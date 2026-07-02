@@ -1,0 +1,76 @@
+# Structure world prompt — FR-655
+# Single LLM pass: synopsis + character cards → structured canon YAML.
+system: |
+  You are a world-builder converting prose into structured YAML canon pages.
+  You receive a premise, a synopsis, and character cards. From these you must
+  produce a single JSON object containing ALL seed entities for this world,
+  organized by type.
+
+  Rules:
+  - Every entity needs an `id` (snake_case, unique), a `type`, and `lane: "dynamic"`.
+  - Characters need `birth_year` (integer, relative to timeline — Year 0 is the
+    central cataclysmic event). Negative = born before. Estimate ages from context.
+  - Events need `year` (integer, Year 0 = the central event) and `scope` (one of:
+    "world", "regional", "local").
+  - Factions need `members` (list of character ids who belong).
+  - Rules need `domain` (one of: "social_rule", "physical_constraint",
+    "temporal_rule", "magic_system", "character_state") and `title`.
+  - Locations need `name` and `description`.
+  - The premise page needs `genre_tags`, `era`, `themes`, and `calendar_note`
+    explaining the Year 0 reference.
+  - The synopsis page needs `text` containing the full synopsis prose.
+  - All `references` fields should list ids of related entities.
+  - Character `role` must be one of: "protagonist", "antagonist", "supporting", "minor".
+  - Character `faction` should match a faction id.
+
+  Return ONLY valid JSON — no markdown fences, no commentary.
+
+user: |
+  PREMISE:
+  {{ premise_text }}
+
+  SYNOPSIS:
+  {{ synopsis }}
+
+  CHARACTER CARDS:
+  {% for card in character_cards %}
+  --- Card {{ loop.index }} ---
+  {{ card }}
+  {% endfor %}
+
+  Convert all the above into a single JSON object with these top-level keys:
+  - "premise": single object with {type, id, lane, depth, text, genre_tags, era, themes, calendar_note, references}
+  - "synopsis": single object with {type, id, lane, depth, text, references}
+  - "characters": list of {type, id, lane, depth, name, birth_year, role, faction, personality, goals, fears, triggers, backstory, driving_force, wants, needs, arc_summary, relationships, references}
+  - "events": list of {type, id, lane, depth, year, scope, window, participants, consequences, affected_locations, references}
+  - "factions": list of {type, id, lane, depth, name, description, members, references}
+  - "rules": list of {type, id, lane, depth, domain, title, description, references}
+  - "locations": list of {type, id, lane, depth, name, description, location_type, atmosphere, sensory, significance, references}
+
+  Set depth: 0 and lane: "dynamic" for all entities.
+  Use snake_case ids. Year 0 = the central cataclysmic event described in the premise.
+
+schema:
+  name: StructuredWorld
+  fields:
+    premise:
+      type: dict
+      description: "Premise page"
+    synopsis:
+      type: dict
+      description: "Synopsis page"
+    characters:
+      type: list
+      description: "Character pages"
+    events:
+      type: list
+      description: "Event pages"
+    factions:
+      type: list
+      description: "Faction pages"
+    rules:
+      type: list
+      description: "Rule pages"
+    locations:
+      type: list
+      description: "Location pages"

@@ -1272,6 +1272,18 @@ These are not `# noqa` suppressions — they are documented deviations from proc
 - **Sin**: Intermediate stub commits in FR-301 integration test use `git commit --no-verify` to skip pre-commit hooks on docs-only echo statements.
 - **Penance**: These commits exist only inside a worktree branch that will be squash-merged. The `finalizing` state runs `pre-commit run --all-files` on the complete worktree before push. The final squash-merged commit on main passes all CI gates. No unverified code reaches main.
 
+### CONF-301
+- **File**: [examples/novel_fandom/nodes/persist_genesis.py](../examples/novel_fandom/nodes/persist_genesis.py#L17)
+- **Code**: ANN202
+- **Sin**: `_load_persist_impl` helper returns dynamically loaded function, type is not expressible without Protocol.
+- **Penance**: Internal loader used only within persist_genesis; return type is `Callable` but annotating it adds no value over reading the one callsite.
+
+### CONF-302
+- **File**: [tests/unit/test_fr655_genesis.py](../tests/unit/test_fr655_genesis.py#L27)
+- **Code**: ANN202
+- **Sin**: `_load` test helper returns dynamically loaded module, same pattern as all other novel_fandom test files.
+- **Penance**: Consistent with CONF-247..256 pattern across test_fr637..654 files. Test-only utility.
+
 ---
 
 ## Adding New Confessions

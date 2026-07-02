@@ -1,0 +1,116 @@
+# Novel Fandom — Genesis: Premise → Seed Canon (FR-655)
+# Two-phase pipeline:
+#   Phase 1: Prose generation (DM prompts as LLM nodes)
+#   Phase 2: Structure extraction (single LLM → structured YAML) + persist
+#
+# Usage:
+#   yamlgraph graph run examples/novel_fandom/genesis.yaml \
+#     --var premise_file=examples/dungeon_master/premises/floodmark-saga.txt \
+#     --full
+
+version: "1.0"
+name: novel-fandom-genesis
+description: Bootstrap seed canon from a premise via prose-first pipeline
+prompts_relative: true
+prompts_dir: prompts
+
+state:
+  premise_text: str
+  synopsis: str
+  roster_text: str
+  character_names: list
+  character_cards: list
+  structured_world: dict
+  written_paths: list
+  written_count: int
+
+variables:
+  premise_file: "examples/dungeon_master/premises/floodmark-saga.txt"
+
+tools:
+  load_premise:
+    type: python
+    path: nodes/genesis_tools.py
+    function: load_premise
+  parse_roster:
+    type: python
+    path: nodes/genesis_tools.py
+    function: parse_roster
+  persist_genesis:
+    type: python
+    path: nodes/persist_genesis.py
+    function: persist_genesis
+
+nodes:
+  load:
+    type: python
+    tool: load_premise
+
+  synopsis:
+    type: llm
+    prompt: genesis_synopsis
+    state_key: synopsis
+    temperature: 0.7
+
+  roster:
+    type: llm
+    prompt: genesis_roster
+    state_key: roster_text
+    temperature: 0.3
+
+  parse_roster:
+    type: python
+    tool: parse_roster
+
+  characters:
+    type: map
+    over: "{state.character_names}"
+    as: char_name
+    max_items: 6
+    collect: character_cards
+    node:
+      type: llm
+      prompt: genesis_character
+      state_key: card
+      temperature: 0.5
+      variables:
+        synopsis: "{state.synopsis}"
+
+  structure:
+    type: llm
+    prompt: structure_world
+    state_key: structured_world
+    temperature: 0.3
+    variables:
+      premise_text: "{state.premise_text}"
+      synopsis: "{state.synopsis}"
+      character_cards: "{state.character_cards}"
+
+  persist:
+    type: python
+    tool: persist_genesis
+
+edges:
+  - from: START
+    to: load
+
+  - from: load
+    to: synopsis
+
+  - from: synopsis
+    to: roster
+
+  - from: roster
+    to: parse_roster
+
+  - from: parse_roster
+    to: characters
+
+  - from: characters
+    to: structure
+
+  - from: structure
+    to: persist
+
+  - from: persist
+    to: END

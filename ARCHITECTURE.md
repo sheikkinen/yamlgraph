@@ -496,6 +496,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 178 | CAP-178 Novel Fandom Prose and Close Loop | `examples` | REQ-YG-489 – 491 |
 | 179 | CAP-179 Novel Fandom Wiki Core Types | `examples` | REQ-YG-492 – 493 |
 | 180 | CAP-180 Novel Fandom World Expansion | `examples` | REQ-YG-494 – 504 |
+| 181 | CAP-181 Novel Fandom Genesis Pipeline | `examples/novel_fandom` | REQ-YG-505 – 508 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -2259,6 +2260,19 @@ World expansion pipeline for novel_fandom. Deepens thin entities via LLM, extrac
 | REQ-YG-502 | Role enum normalization (FR-652): normalize_page coerces freetext character role to valid enum (protagonist/antagonist/supporting/minor), defaulting to 'supporting'. | `examples` |
 | REQ-YG-503 | Robust deepen output (FR-653): persist_pages handles flat-dict deepen results (no updated_page wrapper) by using the result dict itself as the page when it contains id and type fields. | `examples` |
 | REQ-YG-504 | Seed depth-0 thin bonus (FR-654): select_thin adds +2 to thin_score for pages with depth 0 or missing depth, prioritizing seed pages for deepening before newly generated skeletons. | `examples` |
+
+### 181. CAP-181 Novel Fandom Genesis Pipeline
+
+Premise-driven world bootstrapping via two-phase pipeline: Phase 1 generates prose (synopsis, roster, character cards), Phase 2 structures prose into typed canon YAML pages. FR-655.
+
+**Feature Request:** FR-655
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-505 | genesis.yaml graph loads premise from file, generates synopsis, extracts character roster, and produces character cards via map node. | `examples/novel_fandom` |
+| REQ-YG-506 | structure_world prompt converts prose (synopsis + character cards) into structured canon pages with typed fields, absolute years, and cross-references in a single LLM pass. | `examples/novel_fandom` |
+| REQ-YG-507 | persist_genesis node flattens structured_world output and writes each entity to canon/{type}/ via existing persist_pages logic. | `examples/novel_fandom` |
+| REQ-YG-508 | genesis_tools.parse_roster splits roster text (one name per line) into a list of character names for the map node. | `examples/novel_fandom` |
 
 <!-- END GENERATED CAPABILITIES -->
 
