@@ -32,7 +32,9 @@ def anchor_events(state: dict) -> dict:
             if scope == "world":
                 affected = True
             elif scope == "regional":
-                char_locs = {char.get("faction", "")} | set(char.get("references", []))
+                raw_refs = char.get("references", [])
+                refs = {r["id"] if isinstance(r, dict) else r for r in raw_refs}
+                char_locs = {char.get("faction", "")} | refs
                 affected = bool(char_locs & affected_locs) or cid in participants
             elif scope == "local":
                 affected = cid in participants
