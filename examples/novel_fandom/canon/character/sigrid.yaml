@@ -1,0 +1,44 @@
+type: character
+id: sigrid
+lane: dynamic
+depth: 0
+name: Sigrid
+birth_year: -30
+role: supporting
+faction: aschenwulf
+personality: Mystical, authoritative in spiritual matters, interprets the flood as
+  divine judgment. Leads a breakaway faction accepting Hilde and Gunnar's union.
+goals:
+- reveal the gods' will
+- unite the clans through Hilde and Gunnar
+- lead the faithful to the new valley
+fears:
+- the gods' wrath
+- the clans failing to heed the sign
+- being ignored by leaders
+triggers:
+- bloodshed between clans
+- denial of her prophecies
+- defiance of the old rites
+backstory: Keeper of the old rites for the Aschenwulf. Believes the flood was sent
+  to break the feud.
+driving_force: To see the prophecy fulfilled and the clans reconciled.
+wants: to establish a new order based on the flood's message
+needs: to be accepted as a true interpreter of the gods
+arc_summary: Spiritual leader who convinces a faction to follow Hilde and Gunnar,
+  enabling the new settlement.
+relationships:
+- to: hilde
+  kind: spiritual guide
+  valence: faith
+- to: gunnar
+  kind: prophesied partner
+  valence: reverence
+- to: aelfgard
+  kind: clan leader
+  valence: conflict
+- to: arnulf
+  kind: guide
+  valence: respect
+references:
+- judgment_of_the_flood

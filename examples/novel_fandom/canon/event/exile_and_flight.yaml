@@ -1,0 +1,19 @@
+type: event
+id: exile_and_flight
+lane: dynamic
+depth: 0
+year: 0
+scope: local
+window: immediately after reunion
+participants:
+- hilde
+- gunnar
+- reinmar
+consequences:
+- Hilde and Gunnar flee with minimal supplies
+- Reinmar follows them
+- Sigrid begins rallying followers
+affected_locations:
+- the_ridge_camp
+- the_foot_of_the_pass
+references: []

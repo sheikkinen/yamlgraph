@@ -1,0 +1,46 @@
+type: character
+id: reinmar
+lane: dynamic
+depth: 0
+name: Reinmar
+birth_year: -28
+role: supporting
+faction: none
+personality: Pragmatic, observant, driven by belief that the clans' fate depends on
+  Hilde and Gunnar. Acts as a guide and trader.
+goals:
+- lead survivors to the high valley
+- ensure the survival of the clans
+- establish trade routes
+fears:
+- the pass snowing in before they cross
+- the clans falling to violence
+- being caught in the feud
+triggers:
+- irrational clan violence
+- waste of resources
+- refusal to cooperate
+backstory: Traveler from the salt-road north. Finds the survivors and guides them
+  east.
+driving_force: Convinced the fate of the clans depends on Hilde and Gunnar's survival.
+wants: to see both clans survive and trade
+needs: to create a lasting peace
+arc_summary: Stranger who becomes a key guide and ally, then leaves to return with
+  trade.
+relationships:
+- to: hilde
+  kind: ally
+  valence: trust
+- to: gunnar
+  kind: ally
+  valence: trust
+- to: ruedeger
+  kind: reluctant guide
+  valence: distrust
+- to: aelfgard
+  kind: reluctant guide
+  valence: distrust
+- to: sigrid
+  kind: respectful acquaintance
+  valence: respect
+references: []

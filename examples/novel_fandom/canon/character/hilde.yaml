@@ -1,0 +1,50 @@
+type: character
+id: hilde
+lane: dynamic
+depth: 0
+name: Hilde
+birth_year: -24
+role: protagonist
+faction: aschenwulf
+personality: Direct in speech, little patience for indirectness. Fiercely loyal once
+  she commits. Pragmatic under pressure, adapts to survival.
+goals:
+- avenge her father
+- protect bond with Gunnar
+- survive the flood
+- build a life free of feud
+fears:
+- losing Gunnar
+- being rejected by her clan
+- failing to protect her brother
+- the flood returning
+triggers:
+- mention of her father's death
+- attacks on Gunnar
+- betrayal from clan members
+- being cornered or trapped
+backstory: Daughter of the slain former leader of the Aschenwulf band. Became war-leader
+  to avenge her father's death at the hands of Gunnar.
+driving_force: To avenge her father, then to protect the bond she forms with Gunnar.
+wants: vengeance, then love and peace
+needs: to let go of the feud and embrace new life with Gunnar
+arc_summary: From avenger to lover, reconciles with brother and builds new settlement.
+relationships:
+- to: gunnar
+  kind: lover
+  valence: love
+- to: arnulf
+  kind: sibling
+  valence: familial love
+- to: aelfgard
+  kind: clan leader
+  valence: loyalty then betrayal
+- to: sigrid
+  kind: spiritual advisor
+  valence: respect
+- to: reinmar
+  kind: ally
+  valence: trust
+references:
+- survival_truce
+- judgment_of_the_flood

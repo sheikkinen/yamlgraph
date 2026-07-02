@@ -1,0 +1,13 @@
+type: faction
+id: followers_of_sigrid
+lane: dynamic
+depth: 0
+name: Followers of Sigrid
+description: Aschenwulf who break from Ælfgard, accepting Sigrid's interpretation
+  that the flood demands union between Hilde and Gunnar.
+members:
+- sigrid
+- hilde
+- gunnar
+- arnulf
+references: []

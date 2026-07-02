@@ -1,0 +1,12 @@
+type: rule
+id: judgment_of_the_flood
+lane: dynamic
+depth: 0
+domain: character_state
+title: Judgment of the Flood
+description: Sigrid's belief that the flood was sent by the river-god to break the
+  feud. The survival truce and union of Hilde and Gunnar are seen as divine signs.
+references:
+- sigrid
+- hilde
+- gunnar

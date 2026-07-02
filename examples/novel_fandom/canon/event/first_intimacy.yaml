@@ -1,0 +1,16 @@
+type: event
+id: first_intimacy
+lane: dynamic
+depth: 0
+year: 0
+scope: local
+window: third night on the ledge
+participants:
+- hilde
+- gunnar
+consequences:
+- Sexual bond formed
+- Truce hardens into relationship
+affected_locations:
+- the_ledge
+references: []

@@ -1,0 +1,47 @@
+type: character
+id: gunnar
+lane: dynamic
+depth: 0
+name: Gunnar
+birth_year: -26
+role: protagonist
+faction: barenschadel
+personality: Keeps his word even with an enemy. Acts on physical impulse. Accepts
+  exile rather than obey a dishonorable order.
+goals:
+- live without clan feuds with Hilde
+- honor the survival truce
+- protect Hilde
+- find a place where they are accepted
+fears:
+- being forced to kill Hilde
+- exile and abandonment
+- dishonor
+- losing Hilde
+triggers:
+- orders to kill Hilde
+- threats to Hilde
+- reminders of killing her father
+- being trapped or confined
+backstory: Bärenschädel warrior who killed Hilde's father in the feud. Later becomes
+  her lover and is exiled for refusing to kill her.
+driving_force: To live without clan feuds, with Hilde.
+wants: to live peacefully with Hilde
+needs: to forgive himself for the past and be accepted by Hilde's family
+arc_summary: From enemy to lover, accepts exile and builds new life with Hilde.
+relationships:
+- to: hilde
+  kind: lover
+  valence: love
+- to: ruedeger
+  kind: clan leader
+  valence: loyalty then betrayal
+- to: arnulf
+  kind: enemy turned brother-in-law
+  valence: initial hostility then respect
+- to: reinmar
+  kind: ally
+  valence: trust
+references:
+- survival_truce
+- judgment_of_the_flood

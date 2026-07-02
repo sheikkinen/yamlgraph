@@ -1,0 +1,11 @@
+type: rule
+id: survival_truce
+lane: dynamic
+depth: 0
+domain: social_rule
+title: Survival Truce
+description: A pact of non-violence between enemies when trapped by circumstance.
+  Breaking it brings dishonor. Hilde and Gunnar established this on the ledge.
+references:
+- hilde
+- gunnar

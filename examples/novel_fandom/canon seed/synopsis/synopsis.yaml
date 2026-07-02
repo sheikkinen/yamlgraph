@@ -1,22 +1,70 @@
 type: synopsis
-id: ashfall_synopsis
+id: synopsis
 lane: dynamic
-text: >
-  Kaelen, last blade-bearer of the Ashguard, hunts Voss — a former
-  Emberwrights artisan he blames for the betrayal that triggered the
-  Ashfall. What Kaelen wants is vengeance; what he needs is to forgive
-  himself for surviving when his order did not. Maren, an Emberwrights
-  elder and Kaelen's reluctant mentor, knows the Ashfall Pact was forged
-  on a half-truth: the Emberwrights did not cause the cataclysm, but they
-  let the Ashguard believe they did, to end a war both sides were losing.
-  Voss, bitter and exiled from his own guild, seeks to reforge the
-  Emberbrand — the last dragonsteel blade — not as a weapon but as proof
-  that the old forge-craft survives. The Emberbrand can only be reforged
-  with dragonsteel, and the only remaining source lies beneath the ruins
-  the Ashguard still guard. When Kaelen confronts Voss at the ruins,
-  Maren reveals the Pact's lie. Kaelen must choose: destroy Voss and
-  preserve the Pact's false peace, or let the blade be reforged and face
-  the truth that his order's grief was manufactured. He lets the blade be
-  reforged. The Pact shatters, but what replaces it is honest.
+depth: 0
+text: 'Hilde, war-leader of the Aschenwulf band, leads a dawn raid against the Bärenschädel
+  clan with the aim of killing Gunnar, the man who killed her father two winters past.
+  She and six warriors cross the river at first light, but as she closes on Gunnar,
+  the river upstream cracks open a glacial dam. A wall of meltwater surges into the
+  valley. The flood drowns three villages in minutes. Hilde and Gunnar are both swept
+  onto a narrowing ledge twenty feet above the waterline, cut off from both clans.
+  Arnulf, Hilde''s younger brother, is standing on a gravel bar when the wave hits;
+  his body is not found, and the Aschenwulf assume he drowned.
+
+
+  On the ledge, Hilde and Gunnar fight. She wounds him in the shoulder before the
+  rock begins to crumble. They agree to a survival truce: no violence until they reach
+  dry ground. Over three days, as the flood slowly falls, they share body heat, drink
+  meltwater, and Hilde binds his wound. On the third night, Gunnar kisses her. She
+  responds. They have sex on the ledge, then again the next morning. The truce hardens
+  into a sexual bond neither intends to break.
+
+
+  Meanwhile, a trader named Reinmar, traveling from the salt-road to the north, finds
+  the survivors of both clans camped on a ridge above the drowned lowlands. He tells
+  them the only high valley still dry by autumn lies three weeks east, through bear-country
+  and a pass that will be snowed in by the first frost. The two clan leaders, Rüdeger
+  of the Bärenschädel and Ælfgard of the Aschenwulf, agree to a temporary truce under
+  Reinmar’s guidance, each secretly planning to attack the other once they reach the
+  valley.
+
+
+  Sigrid, the keeper of the old rites for the Aschenwulf, reads the flood as a judgment
+  from the river-god: the clans were meant to break their feud, and the truce between
+  Hilde and Gunnar is the sign that saved them. She begins to speak of a union between
+  the two warleaders as a sacred necessity. The Bärenschädel elders reject this, and
+  the truce frays.
+
+
+  Hilde and Gunnar rejoin their people after nine days. They do not hide their relationship.
+  Rüdeger orders Gunnar to kill Hilde; Gunnar refuses. Rüdeger exiles him from the
+  Bärenschädel. Ælfgard declares Hilde a traitor and orders her stoned. Gunnar and
+  Hilde flee together, taking only a hunting knife and a fire-bow. Reinmar follows
+  them, convinced the fate of the clans depends on their survival.
+
+
+  Arnulf was not drowned. The wave pinned him against a fallen tree; he was pulled
+  under but found an air pocket in a hollow trunk. After the water receded, he crawled
+  out and spent two weeks walking the wreckage, eating raw fish and roots. He arrives
+  at the Aschenwulf camp just after Hilde and Gunnar have been exiled. Ælfgard tells
+  him Hilde sleeps with the enemy. Arnulf, who idolized his sister, sets out to kill
+  her.
+
+
+  He finds Hilde, Gunnar, and Reinmar camped at the foot of the pass. Hilde sees him
+  first. She embraces him. He shoves her away and attacks Gunnar with a stone axe.
+  Gunnar takes a blow to the ribs but does not fight back. Hilde steps between them.
+  She tells Arnulf the flood was judgment, that their father’s death is old bone,
+  that she loves Gunnar. Arnulf hesitates. Sigrid arrives with a dozen Aschenwulf
+  who have broken from Ælfgard, accepting her reading of the rite. Gunnar’s blood
+  on the ground seals it: the elders see it as a sacrifice accepted by the gods.
+
+
+  The combined group crosses the pass as snow begins to fall. At the high valley —
+  a bowl of grassland and birch forest — they build a settlement before winter. Reinmar
+  leaves for the salt-road, promising to return with trade. Arnulf stays, makes peace
+  with Gunnar, and becomes the band’s hunter. Hilde and Gunnar bear a child the following
+  spring. The Bärenschädel and Aschenwulf clans dissolve into two families that share
+  the valley, and the feud dies with the flood.'
 references:
-  - ashfall_premise
+- the_floodmark_saga

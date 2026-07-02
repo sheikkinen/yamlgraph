@@ -1,0 +1,18 @@
+type: location
+id: the_foot_of_the_pass
+lane: dynamic
+depth: 0
+name: Foot of the Pass
+description: Entrance to the mountain pass leading east to the high valley. Bear country,
+  rocky terrain.
+location_type: geographic_boundary
+atmosphere:
+- wild
+- cold
+- uncertain
+sensory:
+- sight of mountains
+- sound of wind
+- smell of pine
+significance: Where Arnulf attacks Gunnar and Sigrid's group joins them.
+references: []

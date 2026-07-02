@@ -1,0 +1,13 @@
+type: faction
+id: aschenwulf
+lane: dynamic
+depth: 0
+name: Aschenwulf
+description: River-valley clan led by Ælfgard after the death of Hilde's father. Follow
+  the old rites, keepers of the flood judgment.
+members:
+- hilde
+- arnulf
+- aelfgard
+- sigrid
+references: []

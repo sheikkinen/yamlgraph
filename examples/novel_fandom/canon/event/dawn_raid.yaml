@@ -1,0 +1,19 @@
+type: event
+id: dawn_raid
+lane: dynamic
+depth: 0
+year: 0
+scope: local
+window: early morning of the flood day
+participants:
+- hilde
+- gunnar
+- arnulf
+consequences:
+- Flood triggered as raid begins
+- Hilde and Gunnar trapped on ledge
+- Arnulf swept away and presumed dead
+affected_locations:
+- the_river_valley
+references:
+- the_great_flood

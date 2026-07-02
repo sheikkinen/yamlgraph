@@ -641,7 +641,7 @@ class TestReloadCanon:
     def test_reads_canon_dir(self):
         result = reload_canon({})
         assert result["canon_count"] >= 10
-        assert "hilde_aschenwulf" in result["canon_pages"]
+        assert "hilde" in result["canon_pages"]
         assert result["synopsis_text"]  # synopsis text extracted
 
     @pytest.mark.req("REQ-YG-495")
@@ -649,7 +649,7 @@ class TestReloadCanon:
         result = reload_canon({})
         assert (
             "Hilde" in result["synopsis_text"]
-            or "Aschenwulf" in result["synopsis_text"]
+            or "flood" in result["synopsis_text"].lower()
         )
 
 
@@ -660,7 +660,7 @@ class TestSeedCanon:
     @pytest.mark.req("REQ-YG-494")
     def test_all_seed_pages_dynamic(self):
         canon_dir = NOVEL_FANDOM_DIR / "canon"
-        for f in canon_dir.glob("*.yaml"):
+        for f in canon_dir.glob("**/*.yaml"):
             data = yaml.safe_load(f.read_text())
             assert data.get("lane") == "dynamic", f"{f.name} is not lane:dynamic"
 

@@ -1,0 +1,18 @@
+type: event
+id: survival_truce_formed
+lane: dynamic
+depth: 0
+year: 0
+scope: local
+window: first day on the ledge
+participants:
+- hilde
+- gunnar
+consequences:
+- Mutual agreement to stop violence
+- Shared body heat and water
+- Emotional and physical bond develops
+affected_locations:
+- the_ledge
+references:
+- survival_truce

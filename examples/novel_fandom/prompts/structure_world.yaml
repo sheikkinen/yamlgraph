@@ -1,4 +1,4 @@
-# Structure world prompt — FR-655
+# Structure world prompt — FR-655, tightened FR-656
 # Single LLM pass: synopsis + character cards → structured canon YAML.
 system: |
   You are a world-builder converting prose into structured YAML canon pages.
@@ -10,8 +10,13 @@ system: |
   - Every entity needs an `id` (snake_case, unique), a `type`, and `lane: "dynamic"`.
   - Characters need `birth_year` (integer, relative to timeline — Year 0 is the
     central cataclysmic event). Negative = born before. Estimate ages from context.
-  - Events need `year` (integer, Year 0 = the central event) and `scope` (one of:
-    "world", "regional", "local").
+  - Characters need `goals`, `fears`, `triggers` — each is a list of strings.
+    One distinct item per entry. Do NOT combine multiple items in one string.
+  - Characters need `relationships` — a list of objects with keys: to (character_id), kind (relationship_type), valence (emotional_quality).
+    `valence` is the emotional quality of the relationship (e.g. enmity, trust, fear, distrust, respect, love).
+    Use empty string for neutral or undefined.
+  - Events need `year` (integer, Year 0 = the central event), `scope` (one of:
+    "world", "regional", "local"), and `consequences` (list of strings, one per consequence).
   - Factions need `members` (list of character ids who belong).
   - Rules need `domain` (one of: "social_rule", "physical_constraint",
     "temporal_rule", "magic_system", "character_state") and `title`.
@@ -19,6 +24,8 @@ system: |
   - The premise page needs `genre_tags`, `era`, `themes`, and `calendar_note`
     explaining the Year 0 reference.
   - The synopsis page needs `text` containing the full synopsis prose.
+  - Cross-references: every character must include IDs of any rules that
+    govern their behavior in `references`. Synopsis must reference the premise ID.
   - All `references` fields should list ids of related entities.
   - Character `role` must be one of: "protagonist", "antagonist", "supporting", "minor".
   - Character `faction` should match a faction id.
@@ -39,13 +46,13 @@ user: |
   {% endfor %}
 
   Convert all the above into a single JSON object with these top-level keys:
-  - "premise": single object with {type, id, lane, depth, text, genre_tags, era, themes, calendar_note, references}
-  - "synopsis": single object with {type, id, lane, depth, text, references}
-  - "characters": list of {type, id, lane, depth, name, birth_year, role, faction, personality, goals, fears, triggers, backstory, driving_force, wants, needs, arc_summary, relationships, references}
-  - "events": list of {type, id, lane, depth, year, scope, window, participants, consequences, affected_locations, references}
-  - "factions": list of {type, id, lane, depth, name, description, members, references}
-  - "rules": list of {type, id, lane, depth, domain, title, description, references}
-  - "locations": list of {type, id, lane, depth, name, description, location_type, atmosphere, sensory, significance, references}
+  - "premise": single object with keys: type, id, lane, depth, text, genre_tags (list[str]), era (str), themes (list[str]), calendar_note (str), references (list[str])
+  - "synopsis": single object with keys: type, id, lane, depth, text, references (list[str]) — references MUST include the premise id
+  - "characters": list of objects with keys: type, id, lane, depth, name, birth_year (int), role, faction, personality, goals (list[str]), fears (list[str]), triggers (list[str]), backstory, driving_force, wants, needs, arc_summary, relationships (list of objects with to/kind/valence), references (list[str]) — references must include any rule ids that govern the character
+  - "events": list of objects with keys: type, id, lane, depth, year (int), scope, window, participants (list[str]), consequences (list[str]), affected_locations (list[str]), references (list[str])
+  - "factions": list of objects with keys: type, id, lane, depth, name, description, members (list[str]), references (list[str])
+  - "rules": list of objects with keys: type, id, lane, depth, domain, title, description, references (list[str])
+  - "locations": list of objects with keys: type, id, lane, depth, name, description, location_type, atmosphere (list[str]), sensory (list[str]), significance, references (list[str])
 
   Set depth: 0 and lane: "dynamic" for all entities.
   Use snake_case ids. Year 0 = the central cataclysmic event described in the premise.

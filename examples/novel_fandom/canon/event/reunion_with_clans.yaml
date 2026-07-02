@@ -1,0 +1,22 @@
+type: event
+id: reunion_with_clans
+lane: dynamic
+depth: 0
+year: 0
+scope: local
+window: nine days after flood
+participants:
+- hilde
+- gunnar
+- ruedeger
+- aelfgard
+- sigrid
+- reinmar
+consequences:
+- Hilde and Gunnar reveal relationship
+- Rüdeger orders Gunnar to kill Hilde
+- Gunnar refuses and is exiled
+- Ælfgard orders Hilde stoned
+affected_locations:
+- the_ridge_camp
+references: []

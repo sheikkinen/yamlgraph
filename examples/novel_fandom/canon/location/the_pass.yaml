@@ -1,0 +1,18 @@
+type: location
+id: the_pass
+lane: dynamic
+depth: 0
+name: The Pass
+description: Three-week journey through bear-country and high altitude. Snows close
+  it by first frost.
+location_type: mountain_pass
+atmosphere:
+- dangerous
+- treacherous
+- cold
+sensory:
+- deep snow
+- howling wind
+- exhaustion
+significance: Only route to the high valley.
+references: []

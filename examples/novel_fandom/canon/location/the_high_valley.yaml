@@ -1,0 +1,18 @@
+type: location
+id: the_high_valley
+lane: dynamic
+depth: 0
+name: The High Valley
+description: Bowl of grassland and birch forest, sheltered. The destination where
+  survivors build a settlement before winter.
+location_type: valley
+atmosphere:
+- peaceful
+- abundant
+- safe
+sensory:
+- green grass
+- birch trees
+- fresh water
+significance: New home where the feud ends and a new community forms.
+references: []
