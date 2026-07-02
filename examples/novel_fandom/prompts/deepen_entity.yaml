@@ -16,12 +16,17 @@ system: |
   - Fill the backstory field with narrative prose (200-400 words)
   - Add triggers if missing
   - Add relationships to other entities
+  - Set birth_year (integer). Year 0 = the Ashfall. Current story ~year 200. Use existing birth_years for consistency.
+  - Set role to one of: protagonist, antagonist, supporting, minor
   {% elif entity_task.entity_type == "event" %}
   Describe this event's CONSEQUENCES and AFTERMATH. Reveal:
   - What each participant lost or gained
   - What changed in the world after this event
   - Where this event happened (reference or declare a location)
   - Chain of cause and effect to other events
+  - Set year (integer). Year 0 = the Ashfall. Negative = before Ashfall.
+  - Set scope: world | regional | local
+  - Set affected_locations (list of location ids affected by this event)
   {% elif entity_task.entity_type == "faction" %}
   Describe this faction's INTERNAL DYNAMICS. Reveal:
   - Who leads and who dissents

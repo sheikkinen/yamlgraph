@@ -42,6 +42,8 @@ _LIST_STR_FIELDS = frozenset(
     }
 )
 
+_VALID_ROLES = frozenset({"protagonist", "antagonist", "supporting", "minor"})
+
 
 def normalize_page(page: dict) -> dict:
     """Coerce LLM-varied shapes to schema-expected shapes (FR-649).
@@ -117,6 +119,12 @@ def normalize_page(page: dict) -> dict:
         domain = page.get("domain", "")
         if domain not in _VALID_RULE_DOMAINS:
             page["domain"] = "social_rule"
+
+    # --- FR-652: Character.role enum coercion ---
+    if page.get("type") == "character":
+        role = page.get("role", "")
+        if role not in _VALID_ROLES:
+            page["role"] = "supporting"
 
     return page
 
@@ -208,6 +216,10 @@ def _persist_impl(
         if not isinstance(result, dict):
             continue
         page = result.get("updated_page", {})
+        # FR-653: If deepen returned flat dict (no updated_page wrapper),
+        # use the result itself as the page
+        if not page and "id" in result and "type" in result:
+            page = result
         path = _validate_and_write(page, canon_dir, page_models, overwrite=True)
         if path:
             written.append(path)

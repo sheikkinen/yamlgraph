@@ -418,6 +418,12 @@ Test suppressions are acceptable when they enable testing patterns that conflict
 - **Sin**: Binding A2A server to `0.0.0.0` (all interfaces) as default.
 - **Penance**: A2A server is a development tool that must be network-accessible for agent-to-agent communication. The default matches standard server practice (FastAPI, uvicorn). Production deployments control binding via `--host` flag.
 
+### CONF-050
+- **File**: [tests/unit/test_fr651_654_worldgen_improvements.py](../tests/unit/test_fr651_654_worldgen_improvements.py#L26)
+- **Code**: ANN202
+- **Sin**: Missing return type annotation on `_load()` helper.
+- **Penance**: Same pattern as CONF-037 et al. Returns dynamically-loaded module whose type is `types.ModuleType` but annotating gains nothing in test helper context.
+
 ### CONF-301
 - **File**: [tests/unit/test_fr346_fsm_bridge_shared_module_red.py](../tests/unit/test_fr346_fsm_bridge_shared_module_red.py#L19)
 - **Code**: PLC0415
@@ -682,6 +688,12 @@ These are E402 suppressions and are acceptable as "glue code" patterns.
 - **Code**: E402
 - **Sin**: `from nodes.tools import load_glosses, load_glosses_with_kinds, load_synopsis` appears after `sys.path` manipulation.
 - **Penance**: The import must follow the `sys.path.insert` that makes the `nodes` package discoverable. This is the standard pattern for standalone example runners that aren't installed packages.
+
+### CONF-145
+- **File**: [examples/novel_fandom/nodes/persist_pages.py](../examples/novel_fandom/nodes/persist_pages.py#L170)
+- **Code**: BLE001
+- **Sin**: Broad `except Exception` in validation fallback.
+- **Penance**: FR-649 design decision: persist work product even when Pydantic validation fails. The broad catch is intentional — any validation error (type mismatch, missing field, extra field) should trigger the warning-and-persist fallback, not crash the pipeline. The exception is logged with full context.
 
 ### CONF-306
 - **File**: [examples/plot_modeller/spike_salience_gate.py](../examples/plot_modeller/spike_salience_gate.py#L39)

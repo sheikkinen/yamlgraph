@@ -53,6 +53,10 @@ _THIN_CHECKS = {
     "location": _location_thin,
 }
 
+# FR-654: Seed pages (depth 0) get a thin_score bonus so they're deepened
+# before new skeletons that compete for limited map slots.
+_SEED_DEPTH_BONUS = 2
+
 
 def select_thin(state: dict[str, Any]) -> dict[str, Any]:
     """Select entities that need deepening, sorted by thinness."""
@@ -75,6 +79,10 @@ def select_thin(state: dict[str, Any]) -> dict[str, Any]:
 
         reasons = check_fn(page)
         if reasons:
+            score = len(reasons)
+            # FR-654: boost seed pages so they're deepened before skeletons
+            if page_depth == 0 or "depth" not in page:
+                score += _SEED_DEPTH_BONUS
             thin_entities.append(
                 {
                     "entity": page,
@@ -82,7 +90,7 @@ def select_thin(state: dict[str, Any]) -> dict[str, Any]:
                     "entity_type": page_type,
                     "thin_reasons": reasons,
                     "thin_reason": "; ".join(reasons),
-                    "thin_score": len(reasons),
+                    "thin_score": score,
                 }
             )
 

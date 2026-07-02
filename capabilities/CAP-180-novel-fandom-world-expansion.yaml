@@ -73,3 +73,31 @@ requirements:
       type-prefixed save_path.
     modules:
       - examples
+  - id: REQ-YG-501
+    description: >
+      Deepen temporal fields (FR-651): deepen prompt instructs LLM to set
+      birth_year and role on characters, and year/scope/affected_locations on
+      events, enabling timeline queries.
+    modules:
+      - examples
+  - id: REQ-YG-502
+    description: >
+      Role enum normalization (FR-652): normalize_page coerces freetext
+      character role to valid enum (protagonist/antagonist/supporting/minor),
+      defaulting to 'supporting'.
+    modules:
+      - examples
+  - id: REQ-YG-503
+    description: >
+      Robust deepen output (FR-653): persist_pages handles flat-dict deepen
+      results (no updated_page wrapper) by using the result dict itself as
+      the page when it contains id and type fields.
+    modules:
+      - examples
+  - id: REQ-YG-504
+    description: >
+      Seed depth-0 thin bonus (FR-654): select_thin adds +2 to thin_score
+      for pages with depth 0 or missing depth, prioritizing seed pages for
+      deepening before newly generated skeletons.
+    modules:
+      - examples

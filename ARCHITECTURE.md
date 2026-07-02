@@ -495,7 +495,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 177 | CAP-177 Novel Fandom Plot Pathfinder | `examples` | REQ-YG-487 – 488 |
 | 178 | CAP-178 Novel Fandom Prose and Close Loop | `examples` | REQ-YG-489 – 491 |
 | 179 | CAP-179 Novel Fandom Wiki Core Types | `examples` | REQ-YG-492 – 493 |
-| 180 | CAP-180 Novel Fandom World Expansion | `examples` | REQ-YG-494 – 500 |
+| 180 | CAP-180 Novel Fandom World Expansion | `examples` | REQ-YG-494 – 504 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -2255,6 +2255,10 @@ World expansion pipeline for novel_fandom. Deepens thin entities via LLM, extrac
 | REQ-YG-498 | Obsidian wiki output (FR-648): render_wiki.py converts canon YAML pages to Obsidian-compatible markdown with YAML frontmatter and body sections. References rendered as [[wiki_links]], relationships as linked lists, prose fields as markdown sections (not frontmatter). Standalone script. | `examples` |
 | REQ-YG-499 | Persist boundary normalization (FR-649): normalize_page coerces LLM-varied shapes to schema-expected shapes before Pydantic validation. Covers relationship key variants, participant dicts, consequence dicts, reference dicts, scalar-to-list coercion, Rule.domain default, _map_index strip. Pages that still fail validation are persisted with warning (not dropped). | `examples` |
 | REQ-YG-500 | Canon type subfolders (FR-650): canon pages organized into subfolders by type field (canon/character/, canon/event/, etc.). reload_canon and render_wiki use rglob for recursive reading. persist_pages writes into type subfolders with atomic tempfile in same directory. Skeleton exists-check uses rglob across subfolders. ref_gate produces type-prefixed save_path. | `examples` |
+| REQ-YG-501 | Deepen temporal fields (FR-651): deepen prompt instructs LLM to set birth_year and role on characters, and year/scope/affected_locations on events, enabling timeline queries. | `examples` |
+| REQ-YG-502 | Role enum normalization (FR-652): normalize_page coerces freetext character role to valid enum (protagonist/antagonist/supporting/minor), defaulting to 'supporting'. | `examples` |
+| REQ-YG-503 | Robust deepen output (FR-653): persist_pages handles flat-dict deepen results (no updated_page wrapper) by using the result dict itself as the page when it contains id and type fields. | `examples` |
+| REQ-YG-504 | Seed depth-0 thin bonus (FR-654): select_thin adds +2 to thin_score for pages with depth 0 or missing depth, prioritizing seed pages for deepening before newly generated skeletons. | `examples` |
 
 <!-- END GENERATED CAPABILITIES -->
 
