@@ -1,0 +1,27 @@
+id: CAP-182
+name: Agentic Event Deepening
+description: >
+  FR-657: Worldgen event-deepening via agent node with canon lookup tools.
+  Events routed to agent with lookup_canon_page, list_canon_ids, and
+  validate_draft tools. Other entity types use existing LLM map node.
+  split_thin_by_type partitions thin_entities by type for routing.
+modules:
+  - examples/novel_fandom/nodes/canon_tools.py
+  - examples/novel_fandom/nodes/split_thin_by_type.py
+  - examples/novel_fandom/prompts/deepen_event_agent.yaml
+  - examples/novel_fandom/worldgen.yaml
+requirements:
+  - id: REQ-YG-509
+    description: >
+      canon_tools.py implements lookup_canon_page (returns YAML + calendar
+      header), list_canon_ids (all IDs with types), validate_draft (returns
+      {valid, errors} checking year sign, participant existence, duplicate IDs).
+      split_thin_by_type partitions thin_entities into thin_events and
+      thin_other. worldgen.yaml routes events to agent node with tools,
+      other types to existing LLM map node. Graph lints clean.
+    modules:
+      - examples/novel_fandom/nodes/canon_tools.py
+      - examples/novel_fandom/nodes/split_thin_by_type.py
+      - examples/novel_fandom/worldgen.yaml
+      - tests/unit/test_fr657_agentic_event_deepening.py
+fr: FR-657

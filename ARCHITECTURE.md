@@ -497,6 +497,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 179 | CAP-179 Novel Fandom Wiki Core Types | `examples` | REQ-YG-492 – 493 |
 | 180 | CAP-180 Novel Fandom World Expansion | `examples` | REQ-YG-494 – 504 |
 | 181 | CAP-181 Novel Fandom Genesis Pipeline | `examples/novel_fandom` | REQ-YG-505 – 508 |
+| 182 | CAP-182 Agentic Event Deepening | `examples/novel_fandom/nodes/canon_tools.py`, `examples/novel_fandom/nodes/split_thin_by_type.py`, `examples/novel_fandom/prompts/deepen_event_agent.yaml`, `examples/novel_fandom/worldgen.yaml` | REQ-YG-509 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -2273,6 +2274,16 @@ Premise-driven world bootstrapping via two-phase pipeline: Phase 1 generates pro
 | REQ-YG-506 | structure_world prompt converts prose (synopsis + character cards) into structured canon pages with typed fields, absolute years, and cross-references in a single LLM pass. | `examples/novel_fandom` |
 | REQ-YG-507 | persist_genesis node flattens structured_world output and writes each entity to canon/{type}/ via existing persist_pages logic. | `examples/novel_fandom` |
 | REQ-YG-508 | genesis_tools.parse_roster splits roster text (one name per line) into a list of character names for the map node. | `examples/novel_fandom` |
+
+### 182. CAP-182 Agentic Event Deepening
+
+FR-657: Worldgen event-deepening via agent node with canon lookup tools. Events routed to agent with lookup_canon_page, list_canon_ids, and validate_draft tools. Other entity types use existing LLM map node. split_thin_by_type partitions thin_entities by type for routing.
+
+**Feature Request:** FR-657
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-509 | canon_tools.py implements lookup_canon_page (returns YAML + calendar header), list_canon_ids (all IDs with types), validate_draft (returns {valid, errors} checking year sign, participant existence, duplicate IDs). split_thin_by_type partitions thin_entities into thin_events and thin_other. worldgen.yaml routes events to agent node with tools, other types to existing LLM map node. Graph lints clean. | `examples/novel_fandom/nodes/canon_tools.py`, `examples/novel_fandom/nodes/split_thin_by_type.py`, `examples/novel_fandom/worldgen.yaml`, `tests/unit/test_fr657_agentic_event_deepening.py` |
 
 <!-- END GENERATED CAPABILITIES -->
 

@@ -947,6 +947,12 @@ These are E402 suppressions and are acceptable as "glue code" patterns.
 - **Sin**: `_load` helper has no return type annotation.
 - **Penance**: Same as CONF-343 — internal test helper, dynamically loaded module.
 
+### CONF-348
+- **File**: [tests/unit/test_fr657_agentic_event_deepening.py](../tests/unit/test_fr657_agentic_event_deepening.py#L28)
+- **Code**: ANN202
+- **Sin**: `_load` helper has no return type annotation.
+- **Penance**: Same as CONF-343 — internal test helper, dynamically loaded module.
+
 ### CONF-143
 - **File**: [tests/unit/test_fr296_watcher_fsm_startup_script.py](../tests/unit/test_fr296_watcher_fsm_startup_script.py#L116)
 - **Code**: S603

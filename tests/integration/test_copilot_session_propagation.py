@@ -15,7 +15,7 @@ import pytest
 
 from yamlgraph.graph_loader import compile_graph, load_graph_config
 
-SUBPROCESS_RUN = "yamlgraph.node_factory.copilot_node.subprocess.run"
+SUBPROCESS_RUN = "yamlgraph.node_factory.copilot_runtime.subprocess.run"
 
 
 def _copilot_calls(mock_run):

@@ -1,9 +1,12 @@
-# Novel Fandom — World Expansion (FR-643v2)
+# Novel Fandom — World Expansion (FR-643v2, FR-657)
 # Deepen thin entities, grow wiki via red links, repeat.
 #
-# Pattern: reload → select thin → deepen (LLM) → collect red links →
+# Pattern: reload → select thin → split by type →
+#          deepen_events (agent) + deepen_other (LLM) →
+#          merge → reflect → collect red links →
 #          create skeletons (LLM) → gate → persist → reload
 #
+# FR-657: Events routed to agent with canon lookup tools.
 # No LLM diagnoses. Pipeline decides, LLM generates, gate validates.
 
 version: "1.0"
@@ -21,6 +24,8 @@ state:
   synopsis_text: str
   event_context: dict
   thin_entities: list
+  thin_events: list
+  thin_other: list
   deepened: list
   reflection: dict
   red_links: list
@@ -60,6 +65,25 @@ tools:
     type: python
     path: nodes/persist_pages.py
     function: persist_pages
+  split_thin_by_type:
+    type: python
+    path: nodes/split_thin_by_type.py
+    function: split_thin_by_type
+  lookup_canon_page:
+    type: python
+    path: nodes/canon_tools.py
+    function: lookup_canon_page
+    description: "Look up a canon entity by ID. Returns full YAML with calendar rules."
+  list_canon_ids:
+    type: python
+    path: nodes/canon_tools.py
+    function: list_canon_ids
+    description: "List all entity IDs in the canon with their types."
+  validate_draft:
+    type: python
+    path: nodes/canon_tools.py
+    function: validate_draft
+    description: "Validate a draft page. Returns {valid: bool, errors: list}."
 
 nodes:
   anchor:
@@ -74,9 +98,30 @@ nodes:
     type: python
     tool: select_thin
 
-  deepen:
+  split:
+    type: python
+    tool: split_thin_by_type
+
+  deepen_events:
     type: map
-    over: "{state.thin_entities}"
+    over: "{state.thin_events}"
+    as: entity_task
+    max_items: 5
+    collect: deepened
+    timeout: 120
+    node:
+      type: agent
+      prompt: deepen_event_agent
+      tools: [lookup_canon_page, list_canon_ids, validate_draft]
+      max_iterations: 8
+      state_key: result
+      temperature: 0.7
+      variables:
+        synopsis_text: "{state.synopsis_text}"
+
+  deepen_other:
+    type: map
+    over: "{state.thin_other}"
     as: entity_task
     max_items: 5
     collect: deepened
@@ -143,10 +188,16 @@ edges:
     condition: done == true
 
   - from: select
-    to: deepen
+    to: split
     condition: done == false
 
-  - from: deepen
+  - from: split
+    to: deepen_events
+
+  - from: deepen_events
+    to: deepen_other
+
+  - from: deepen_other
     to: reflect
 
   - from: reflect
@@ -172,7 +223,9 @@ edges:
 loop_limits:
   reload: 3
   select: 3
-  deepen: 3
+  split: 3
+  deepen_events: 3
+  deepen_other: 3
   reflect: 3
   collect: 3
   create_skeletons: 3

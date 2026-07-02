@@ -681,7 +681,9 @@ class TestWorldgenGraph:
         assert data["name"] == "novel-fandom-worldgen"
         assert "reload" in data["nodes"]
         assert "select" in data["nodes"]
-        assert "deepen" in data["nodes"]
+        assert "split" in data["nodes"]
+        assert "deepen_events" in data["nodes"]
+        assert "deepen_other" in data["nodes"]
         assert "collect" in data["nodes"]
         assert "create_skeletons" in data["nodes"]
         assert "gate" in data["nodes"]
@@ -692,5 +694,6 @@ class TestWorldgenGraph:
         graph_path = NOVEL_FANDOM_DIR / "worldgen.yaml"
         data = yaml.safe_load(graph_path.read_text())
         limits = data.get("loop_limits", {})
-        assert "deepen" in limits
+        assert "deepen_events" in limits
+        assert "deepen_other" in limits
         assert "reload" in limits
