@@ -53,5 +53,6 @@ def check_references(state: dict[str, Any]) -> dict[str, Any]:
         "drafted_page": drafted,
     }
     if own_id:
-        result["save_path"] = f"canon/{own_id}.yaml"
+        page_type = drafted.get("type", "misc")
+        result["save_path"] = f"canon/{page_type}/{own_id}.yaml"
     return result

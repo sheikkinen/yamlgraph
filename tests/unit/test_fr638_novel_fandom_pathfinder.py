@@ -50,7 +50,7 @@ def seed_canon() -> dict[str, dict]:
 
     canon_dir = NOVEL_FANDOM_DIR / "canon"
     canon: dict[str, dict] = {}
-    for path in sorted(canon_dir.glob("*.yaml")):
+    for path in sorted(canon_dir.rglob("*.yaml")):
         with open(path, encoding="utf-8") as f:
             data = yaml.safe_load(f)
         canon[data["id"]] = data

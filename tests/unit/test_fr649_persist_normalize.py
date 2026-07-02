@@ -365,7 +365,8 @@ class TestPersistFallback:
         }
         result = _persist._persist_impl(state, tmp_path, PAGE_MODELS)
         assert result["written_count"] >= 1
-        written = tmp_path / "broken_char.yaml"
+        # FR-650: pages now land in type subfolder
+        written = tmp_path / "character" / "broken_char.yaml"
         assert written.exists()
         data = yaml.safe_load(written.read_text())
         assert data["id"] == "broken_char"

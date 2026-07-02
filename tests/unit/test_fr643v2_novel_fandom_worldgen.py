@@ -604,7 +604,8 @@ class TestPersistPages:
         }
         result = _persist._persist_impl(state, canon_dir, PAGE_MODELS)
         assert result["written_count"] == 1
-        written = yaml.safe_load((canon_dir / "hero.yaml").read_text())
+        # FR-650: pages now land in type subfolder
+        written = yaml.safe_load((canon_dir / "character" / "hero.yaml").read_text())
         assert written["name"] == "Hero"
 
     @pytest.mark.req("REQ-YG-495")

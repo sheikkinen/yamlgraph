@@ -63,3 +63,13 @@ requirements:
       Pages that still fail validation are persisted with warning (not dropped).
     modules:
       - examples
+  - id: REQ-YG-500
+    description: >
+      Canon type subfolders (FR-650): canon pages organized into subfolders by
+      type field (canon/character/, canon/event/, etc.). reload_canon and
+      render_wiki use rglob for recursive reading. persist_pages writes into
+      type subfolders with atomic tempfile in same directory. Skeleton
+      exists-check uses rglob across subfolders. ref_gate produces
+      type-prefixed save_path.
+    modules:
+      - examples

@@ -18,7 +18,7 @@ def reload_canon(state: dict[str, Any]) -> dict[str, Any]:
     canon_dir = Path(__file__).parent.parent / "canon"
     pages: dict[str, dict] = {}
     synopsis_text = ""
-    for f in sorted(canon_dir.glob("*.yaml")):
+    for f in sorted(canon_dir.rglob("*.yaml")):
         with open(f) as fh:
             data = yaml.safe_load(fh)
             if data and isinstance(data, dict) and "id" in data:

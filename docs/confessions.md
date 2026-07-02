@@ -929,6 +929,12 @@ These are E402 suppressions and are acceptable as "glue code" patterns.
 - **Sin**: Bare `except Exception` in validation fallback.
 - **Penance**: FR-649 fallback: any Pydantic validation error must trigger persist-with-warning. Catching broad Exception is intentional — unknown model errors should not silently drop pages.
 
+### CONF-347
+- **File**: [tests/unit/test_fr650_canon_type_subfolders.py](../tests/unit/test_fr650_canon_type_subfolders.py#L26)
+- **Code**: ANN202
+- **Sin**: `_load` helper has no return type annotation.
+- **Penance**: Same as CONF-343 — internal test helper, dynamically loaded module.
+
 ### CONF-143
 - **File**: [tests/unit/test_fr296_watcher_fsm_startup_script.py](../tests/unit/test_fr296_watcher_fsm_startup_script.py#L116)
 - **Code**: S603

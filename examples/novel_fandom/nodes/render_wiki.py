@@ -177,7 +177,7 @@ def render_wiki(canon_dir: str, wiki_dir: str) -> dict:
     wiki_path.mkdir(parents=True, exist_ok=True)
 
     written = []
-    for yaml_file in sorted(canon_path.glob("*.yaml")):
+    for yaml_file in sorted(canon_path.rglob("*.yaml")):
         page = yaml.safe_load(yaml_file.read_text())
         if not isinstance(page, dict) or "id" not in page:
             continue

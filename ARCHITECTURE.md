@@ -495,7 +495,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 177 | CAP-177 Novel Fandom Plot Pathfinder | `examples` | REQ-YG-487 – 488 |
 | 178 | CAP-178 Novel Fandom Prose and Close Loop | `examples` | REQ-YG-489 – 491 |
 | 179 | CAP-179 Novel Fandom Wiki Core Types | `examples` | REQ-YG-492 – 493 |
-| 180 | CAP-180 Novel Fandom World Expansion | `examples` | REQ-YG-494 – 499 |
+| 180 | CAP-180 Novel Fandom World Expansion | `examples` | REQ-YG-494 – 500 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -2254,6 +2254,7 @@ World expansion pipeline for novel_fandom. Deepens thin entities via LLM, extrac
 | REQ-YG-497 | Event propagation pre-pass (FR-647): anchor_events Python node runs once before the worldgen loop, computing per-character event context with spatial scoping (world/regional/local) and age arithmetic from absolute dates (Character.birth_year, Event.year). Premise gains calendar_note. Deepen prompt enriched with event timeline for characters. | `examples` |
 | REQ-YG-498 | Obsidian wiki output (FR-648): render_wiki.py converts canon YAML pages to Obsidian-compatible markdown with YAML frontmatter and body sections. References rendered as [[wiki_links]], relationships as linked lists, prose fields as markdown sections (not frontmatter). Standalone script. | `examples` |
 | REQ-YG-499 | Persist boundary normalization (FR-649): normalize_page coerces LLM-varied shapes to schema-expected shapes before Pydantic validation. Covers relationship key variants, participant dicts, consequence dicts, reference dicts, scalar-to-list coercion, Rule.domain default, _map_index strip. Pages that still fail validation are persisted with warning (not dropped). | `examples` |
+| REQ-YG-500 | Canon type subfolders (FR-650): canon pages organized into subfolders by type field (canon/character/, canon/event/, etc.). reload_canon and render_wiki use rglob for recursive reading. persist_pages writes into type subfolders with atomic tempfile in same directory. Skeleton exists-check uses rglob across subfolders. ref_gate produces type-prefixed save_path. | `examples` |
 
 <!-- END GENERATED CAPABILITIES -->
 

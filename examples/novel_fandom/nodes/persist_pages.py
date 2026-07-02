@@ -167,11 +167,14 @@ def _validate_and_write(
             e,
         )
 
-    target = canon_dir / f"{page['id']}.yaml"
+    page_type = page.get("type", "misc")
+    type_dir = canon_dir / page_type
+    type_dir.mkdir(parents=True, exist_ok=True)
+    target = type_dir / f"{page['id']}.yaml"
     if not overwrite and target.exists():
         return None
 
-    fd, tmp_path = tempfile.mkstemp(dir=canon_dir, suffix=".tmp", prefix=".persist_")
+    fd, tmp_path = tempfile.mkstemp(dir=type_dir, suffix=".tmp", prefix=".persist_")
     try:
         with os.fdopen(fd, "w", encoding="utf-8") as f:
             yaml.safe_dump(
@@ -221,12 +224,13 @@ def _persist_impl(
         if "id" not in page or "type" not in page:
             continue
         page.setdefault("lane", "dynamic")
-        target = canon_dir / f"{page['id']}.yaml"
-        if target.exists():
+        page_type = page.get("type", "misc")
+        type_dir = canon_dir / page_type
+        type_dir.mkdir(parents=True, exist_ok=True)
+        target = type_dir / f"{page['id']}.yaml"
+        if any(canon_dir.rglob(f"{page['id']}.yaml")):
             continue
-        fd, tmp_path = tempfile.mkstemp(
-            dir=canon_dir, suffix=".tmp", prefix=".persist_"
-        )
+        fd, tmp_path = tempfile.mkstemp(dir=type_dir, suffix=".tmp", prefix=".persist_")
         try:
             with os.fdopen(fd, "w", encoding="utf-8") as f:
                 yaml.safe_dump(
