@@ -1,0 +1,20 @@
+type: location
+id: lowland_valley
+lane: dynamic
+depth: 0
+name: Lowland Valley
+description: The original dwelling place of both the Aschenwulf and Bärenschädel clans,
+  now destroyed by the flood. A wide valley carved by glacial rivers, with scattered
+  camps and hunting grounds.
+location_type: valley
+atmosphere:
+- Devastated, waterlogged, dangerous.
+sensory:
+- The roar of floodwater, the smell of wet earth and rotting debris, the sight of
+  drowned trees.
+significance: Where the raid and the great flood begin; the land is lost and can never
+  be returned to.
+references:
+- the_great_flood_event
+- aschenwulf_faction
+- barenschadel_faction

@@ -1,0 +1,18 @@
+type: event
+id: arnulf_rescue_event
+lane: dynamic
+depth: 0
+year: 0
+scope: local
+window: day of the flood
+participants:
+- arnulf_aschenwulf
+- reinmar_salt_trader
+consequences:
+- Arnulf survives, learns Hilde is alive, insists on finding her.
+affected_locations:
+- lowland_valley
+references:
+- arnulf_aschenwulf
+- reinmar_salt_trader
+- the_great_flood_event

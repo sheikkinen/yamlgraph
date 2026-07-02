@@ -1,0 +1,21 @@
+type: event
+id: arnulf_death_event
+lane: dynamic
+depth: 0
+year: 0
+scope: local
+window: eight days after flood, after flood recedes
+participants:
+- hilde_aschenwulf
+- gunnar_barenschadel
+- arnulf_aschenwulf
+consequences:
+- Arnulf attacks Gunnar, Hilde pushes him, he falls and dies. This act forces the
+  clans to confront the truce.
+affected_locations:
+- refugee_hill
+references:
+- hilde_aschenwulf
+- gunnar_barenschadel
+- arnulf_aschenwulf
+- refugee_hill

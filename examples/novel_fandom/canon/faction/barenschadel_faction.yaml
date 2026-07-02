@@ -1,0 +1,12 @@
+type: faction
+id: barenschadel_faction
+lane: dynamic
+depth: 0
+name: Bärenschädel
+description: The rival clan to the Aschenwulf, led by Gunnar. After the flood, half
+  of them accept the truce and merge with the survivors.
+members:
+- gunnar_barenschadel
+references:
+- gunnar_barenschadel
+- the_great_flood_event

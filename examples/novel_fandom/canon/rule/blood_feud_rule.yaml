@@ -1,0 +1,14 @@
+type: rule
+id: blood_feud_rule
+lane: dynamic
+depth: 0
+domain: social_rule
+title: Blood Feud Obligation
+description: A killing must be avenged by the kin of the slain. Failure to do so brings
+  dishonor. This rule drives the initial conflict and is later challenged by the flood's
+  divine judgment.
+references:
+- hilde_aschenwulf
+- gunnar_barenschadel
+- arnulf_aschenwulf
+- freydis_ritekeeper

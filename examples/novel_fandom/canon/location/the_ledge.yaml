@@ -1,0 +1,20 @@
+type: location
+id: the_ledge
+lane: dynamic
+depth: 0
+name: The Ledge
+description: A narrow rock outcrop on the side of a steep slope above the floodwaters.
+  Just large enough for two people to sit or lie. Becomes the crucible of the truce
+  between Hilde and Gunnar.
+location_type: natural formation
+atmosphere:
+- Cramped, cold, precarious, intimate.
+sensory:
+- The cold rock against skin, the constant sound of rushing water, the smell of damp
+  stone and wet leather.
+significance: The place where Hilde and Gunnar break the blood feud and forge their
+  bond.
+references:
+- hilde_aschenwulf
+- gunnar_barenschadel
+- ledge_truce_event

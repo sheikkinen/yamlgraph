@@ -1,0 +1,21 @@
+type: event
+id: freydis_judgment_event
+lane: dynamic
+depth: 0
+year: 0
+scope: regional
+window: shortly after Arnulf's death
+participants:
+- freydis_ritekeeper
+- hilde_aschenwulf
+- gunnar_barenschadel
+consequences:
+- Declares the truce a divine judgment; splits the survivors into those who accept
+  and those who reject.
+affected_locations:
+- refugee_hill
+references:
+- freydis_ritekeeper
+- hilde_aschenwulf
+- gunnar_barenschadel
+- refugee_hill

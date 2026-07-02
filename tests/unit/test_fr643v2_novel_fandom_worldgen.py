@@ -641,14 +641,15 @@ class TestReloadCanon:
     def test_reads_canon_dir(self):
         result = reload_canon({})
         assert result["canon_count"] >= 10
-        assert "kaelen" in result["canon_pages"]
+        assert "hilde_aschenwulf" in result["canon_pages"]
         assert result["synopsis_text"]  # synopsis text extracted
 
     @pytest.mark.req("REQ-YG-495")
     def test_synopsis_text_populated(self):
         result = reload_canon({})
         assert (
-            "Ashfall" in result["synopsis_text"] or "Kaelen" in result["synopsis_text"]
+            "Hilde" in result["synopsis_text"]
+            or "Aschenwulf" in result["synopsis_text"]
         )
 
 

@@ -1,0 +1,19 @@
+type: location
+id: stony_valley
+lane: dynamic
+depth: 0
+name: Stony Valley
+description: A high valley not yet drowned by the flood. The only place where the
+  survivors can overwinter. Rocky terrain with some forest and a stream. Isolated
+  by passes that close with snow.
+location_type: valley
+atmosphere:
+- Cold, isolated, but safe; the promise of new beginnings.
+sensory:
+- The crunch of frost underfoot, the sound of wind in pine trees, the sight of snow-capped
+  peaks.
+significance: The destination and new home for the unified clan; symbol of survival
+  and change.
+references:
+- reinmar_salt_trader
+- merger_rite_event

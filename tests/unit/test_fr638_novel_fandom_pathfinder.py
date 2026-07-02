@@ -68,14 +68,14 @@ class TestRetrieveWindow:
         """retrieve_window returns pages for requested roster characters."""
         state = {
             "canon": seed_canon,
-            "window": "age_of_cinders",
-            "roster": ["kaelen", "voss"],
+            "window": "the_great_flood_event",
+            "roster": ["hilde_aschenwulf", "gunnar_barenschadel"],
         }
         result = retrieve_window(state)
         ctx = result["context"]
         ids = [p["id"] for p in ctx["roster_pages"]]
-        assert "kaelen" in ids
-        assert "voss" in ids
+        assert "hilde_aschenwulf" in ids
+        assert "gunnar_barenschadel" in ids
         assert len(ctx["roster_pages"]) == 2
 
     @pytest.mark.req("REQ-YG-487")
@@ -83,23 +83,23 @@ class TestRetrieveWindow:
         """retrieve_window extracts unmet goals as tensions."""
         state = {
             "canon": seed_canon,
-            "window": "age_of_cinders",
-            "roster": ["kaelen"],
+            "window": "the_great_flood_event",
+            "roster": ["hilde_aschenwulf"],
         }
         result = retrieve_window(state)
         goal_tensions = [
             t for t in result["context"]["tensions"] if t["type"] == "unmet_goal"
         ]
         assert len(goal_tensions) >= 2
-        assert all(t["actor"] == "kaelen" for t in goal_tensions)
+        assert all(t["actor"] == "hilde_aschenwulf" for t in goal_tensions)
 
     @pytest.mark.req("REQ-YG-487")
     def test_extracts_internal_conflict(self, seed_canon: dict[str, dict]) -> None:
         """retrieve_window extracts wants≠needs as internal conflict."""
         state = {
             "canon": seed_canon,
-            "window": "age_of_cinders",
-            "roster": ["kaelen"],
+            "window": "the_great_flood_event",
+            "roster": ["hilde_aschenwulf"],
         }
         result = retrieve_window(state)
         conflicts = [
@@ -113,8 +113,8 @@ class TestRetrieveWindow:
         """retrieve_window extracts fears as tension levers."""
         state = {
             "canon": seed_canon,
-            "window": "age_of_cinders",
-            "roster": ["kaelen"],
+            "window": "the_great_flood_event",
+            "roster": ["hilde_aschenwulf"],
         }
         result = retrieve_window(state)
         fear_tensions = [
@@ -127,15 +127,15 @@ class TestRetrieveWindow:
         """retrieve_window extracts unresolved relationship edges."""
         state = {
             "canon": seed_canon,
-            "window": "age_of_cinders",
-            "roster": ["kaelen"],
+            "window": "the_great_flood_event",
+            "roster": ["hilde_aschenwulf"],
         }
         result = retrieve_window(state)
         edges = [
             t for t in result["context"]["tensions"] if t["type"] == "unresolved_edge"
         ]
         assert len(edges) >= 1
-        assert edges[0]["from"] == "kaelen"
+        assert edges[0]["from"] == "hilde_aschenwulf"
         assert edges[0]["valence"] == "enmity"
 
     @pytest.mark.req("REQ-YG-487")
@@ -143,8 +143,8 @@ class TestRetrieveWindow:
         """retrieve_window extracts triggers as beat generators."""
         state = {
             "canon": seed_canon,
-            "window": "age_of_cinders",
-            "roster": ["kaelen"],
+            "window": "the_great_flood_event",
+            "roster": ["hilde_aschenwulf"],
         }
         result = retrieve_window(state)
         triggers = [t for t in result["context"]["tensions"] if t["type"] == "trigger"]
@@ -157,25 +157,25 @@ class TestRetrieveWindow:
         """retrieve_window includes world rules referenced by roster characters."""
         state = {
             "canon": seed_canon,
-            "window": "age_of_cinders",
-            "roster": ["kaelen"],
+            "window": "the_great_flood_event",
+            "roster": ["hilde_aschenwulf"],
         }
         result = retrieve_window(state)
         rules = result["context"]["rules"]
         rule_ids = [r["id"] for r in rules]
-        assert "emberbrand_rule" in rule_ids
+        assert "blood_feud_rule" in rule_ids
 
     @pytest.mark.req("REQ-YG-487")
     def test_ignores_nonexistent_roster_ids(self, seed_canon: dict[str, dict]) -> None:
         """retrieve_window silently skips roster ids not in canon."""
         state = {
             "canon": seed_canon,
-            "window": "age_of_cinders",
-            "roster": ["kaelen", "phantom_character"],
+            "window": "the_great_flood_event",
+            "roster": ["hilde_aschenwulf", "phantom_character"],
         }
         result = retrieve_window(state)
         ids = [p["id"] for p in result["context"]["roster_pages"]]
-        assert "kaelen" in ids
+        assert "hilde_aschenwulf" in ids
         assert "phantom_character" not in ids
 
     @pytest.mark.req("REQ-YG-487")
@@ -183,12 +183,12 @@ class TestRetrieveWindow:
         """retrieve_window includes the window event data when it exists."""
         state = {
             "canon": seed_canon,
-            "window": "age_of_cinders",
-            "roster": ["kaelen"],
+            "window": "the_great_flood_event",
+            "roster": ["hilde_aschenwulf"],
         }
         result = retrieve_window(state)
         assert result["context"]["window_event"] is not None
-        assert result["context"]["window_event"]["id"] == "age_of_cinders"
+        assert result["context"]["window_event"]["id"] == "the_great_flood_event"
 
 
 # --- Path gate tests (REQ-YG-488) ---

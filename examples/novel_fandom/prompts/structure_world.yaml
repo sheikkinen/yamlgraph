@@ -60,17 +60,17 @@ schema:
       type: dict
       description: "Synopsis page"
     characters:
-      type: list
+      type: list[dict]
       description: "Character pages"
     events:
-      type: list
+      type: list[dict]
       description: "Event pages"
     factions:
-      type: list
+      type: list[dict]
       description: "Faction pages"
     rules:
-      type: list
+      type: list[dict]
       description: "Rule pages"
     locations:
-      type: list
+      type: list[dict]
       description: "Location pages"

@@ -1,58 +1,58 @@
 # Novel Fandom — Typed Fiction Canon
 
-A fiction-domain example application demonstrating typed canon management with
-reference-integrity and lane-immutability gates. Built on the FR-628 wiki-memory
-kernel.
+A fiction-domain example demonstrating LLM-bootstrapped world-building with typed
+canon management. The genesis pipeline converts a plain-text premise into structured
+canon YAML; downstream graphs add characters, advance plot, and draft prose.
 
 ## Overview
 
-The canon is a set of typed YAML pages (characters, events, factions, locations)
-that are cross-linked by `references`. A deterministic gate ensures:
+### Genesis Pipeline (FR-655)
 
-1. **No orphan references** — every entry in `references` must resolve to an
-   existing canon page.
-2. **Lane immutability** — pages marked `lane: static` cannot be overwritten.
-   New pages created by the LLM are always `lane: dynamic`.
+The `genesis.yaml` graph bootstraps a seed canon from a one-paragraph premise:
+
+1. **Load** — read premise text from file
+2. **Synopsis** — LLM expands premise into full-disclosure prose
+3. **Roster** — LLM extracts 2–4 principal character names
+4. **Characters** — map node generates a dry RPG-style card per name
+5. **Structure** — single LLM pass converts all prose into typed canon YAML
+6. **Persist** — writes structured output to `canon/` subdirectories
+
+### Accumulation Loop
+
+The `graph.yaml` loop adds dynamic pages to canon with deterministic gates:
+
+1. **No orphan references** — every `references` entry resolves to an existing page.
+2. **Lane immutability** — `lane: static` pages cannot be overwritten by LLM.
 
 ## Schema
 
-All pages share a common base: `id`, `type`, `lane`, `references`. Each type
-adds domain-specific fields:
+Pydantic models in [`schema/canon.py`](schema/canon.py):
 
 | Type | Key Fields |
 |------|-----------|
-| **Premise** | `text`, `genre_tags`, `era`, `themes` |
+| **Premise** | `genre_tags`, `era`, `themes`, `calendar_note` |
 | **Synopsis** | `text` (full-disclosure reveal-all prose) |
-| **Character** | `goals`, `personality`, `faction`, `relationships` (typed: `to`, `kind`, `valence`) |
-| **Event** | `window`, `participants`, `consequences`, `valid_from`, `valid_to` (bi-temporal) |
+| **Character** | `birth_year`, `role` (protagonist/antagonist/mentor/trickster/supporting), `goals`, `personality`, `relationships` |
+| **Event** | `year`, `scope` (personal/local/regional/global), `participants`, `consequences` |
 | **Faction** | `name`, `description`, `members` |
 | **Location** | `name`, `description` |
-
-Pydantic models in [`schema/canon.py`](schema/canon.py) validate every page.
-
-## Seed Canon
-
-Hand-authored (Option A — zero leak risk). Ten pages, fully cross-linked:
-
-- **Premise:** The Ashfall thematic seed — guilt, legacy, truth vs stability
-- **Synopsis:** Full-disclosure reveal-all prose expanding the premise
-- **Characters:** Kaelen (Ashguard, rival to Voss), Maren (Emberwrights, mentor
-  to Kaelen), Voss (Emberwrights, rival to Kaelen)
-- **Factions:** The Ashguard, The Emberwrights
-- **Timeline:** Age of Cinders (the current era)
-- **Rules:** Emberbrand Rule (magic system), Ashfall Pact (social rule)
-
-All seed pages are `lane: static` — the LLM cannot overwrite them.
+| **Rule** | `domain` (magic/social/political/economic/religious), `description` |
 
 ## Running
 
 ```bash
-# Lint the graph
+# Bootstrap canon from premise
+yamlgraph graph run examples/novel_fandom/genesis.yaml \
+  --var premise_file=examples/dungeon_master/premises/floodmark-saga.txt \
+  --full
+
+# Lint graphs
+yamlgraph graph lint examples/novel_fandom/genesis.yaml
 yamlgraph graph lint examples/novel_fandom/graph.yaml
 
-# Add a new dynamic character
+# Add a dynamic character to existing canon
 yamlgraph graph run examples/novel_fandom/graph.yaml \
-  --var input="A wandering scholar named Rhael from the Emberwrights" \
+  --var input="A salt-road stranger named Reinmar" \
   --full
 ```
 
@@ -60,27 +60,21 @@ yamlgraph graph run examples/novel_fandom/graph.yaml \
 
 ```
 examples/novel_fandom/
+├── genesis.yaml        # Premise → seed canon bootstrap (FR-655)
 ├── graph.yaml          # Gated accumulation loop (draft → gate → fix → persist)
 ├── find_path.yaml      # Plot pathfinder (retrieve tensions → LLM → gate → fix)
 ├── draft.yaml          # Prose drafting (map beats → chapters → prose gate)
 ├── close.yaml          # Close loop (extract deltas → apply to canon)
-├── canon/              # Seed canon (flat, globbed as canon/*.yaml)
-├── nodes/              # Python gate nodes (ref_gate, path_gate, prose_gate, etc.)
+├── canon/              # Generated canon (character/, event/, faction/, etc.)
+├── nodes/              # Python nodes (genesis_tools, persist_genesis, gates)
 ├── prompts/            # LLM prompt templates
 ├── schema/canon.py     # Pydantic page models
 └── tests/              # Schema + gate tests
 ```
 
-## Design Decisions
-
-- **Flat canon directory** (not subdirectories) — `data_files` glob rejects
-  recursive `**` patterns (FR-629). The `type` field discriminates page types.
-- **Hand-authored seed** — at 10 pages, LLM-bootstrapping adds risk without value.
-  Option B (LLM-bootstrap + freeze-gate) deferred to a future FR.
-- **`lane` field, not directories** — simpler, works with a single glob pattern.
-
 ## Related
 
+- [FR-655](../../feature-requests/FR-655-genesis-graph.md) — genesis pipeline
 - [FR-637](../../feature-requests/FR-637-novel-fandom-canon-schema-seed.md) — canon schema + seed
 - [FR-628](../../feature-requests/FR-628-wiki-memory-gated-demo.md) — the kernel
 - [FR-638](../../feature-requests/FR-638-novel-fandom-plot-pathfinder.md) — Phase 2 (pathfinder)

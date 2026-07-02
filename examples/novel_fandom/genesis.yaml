@@ -15,6 +15,7 @@ prompts_relative: true
 prompts_dir: prompts
 
 state:
+  premise_file: str
   premise_text: str
   synopsis: str
   roster_text: str
@@ -25,7 +26,7 @@ state:
   written_count: int
 
 variables:
-  premise_file: "examples/dungeon_master/premises/floodmark-saga.txt"
+  premise_file: "examples/novel_fandom/premises/floodmark-saga.txt"
 
 tools:
   load_premise:
