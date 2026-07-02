@@ -10,7 +10,7 @@ from typing import Any
 
 
 def collect_red_links(state: dict[str, Any]) -> dict[str, Any]:
-    """Deduplicate new entities from parallel deepen calls."""
+    """Deduplicate new entities from parallel deepen calls and reflection."""
     deepened_results = state.get("deepened", [])
     canon_pages = state.get("canon_pages", {})
 
@@ -22,6 +22,15 @@ def collect_red_links(state: dict[str, Any]) -> dict[str, Any]:
             eid = entity.get("id", "")
             if eid and eid not in canon_pages and eid not in seen:
                 seen[eid] = entity
+
+    # FR-646: merge missing_entities from reflexion critic
+    reflection = state.get("reflection")
+    if isinstance(reflection, dict):
+        for entity in reflection.get("missing_entities", []):
+            if isinstance(entity, dict):
+                eid = entity.get("id", "")
+                if eid and eid not in canon_pages and eid not in seen:
+                    seen[eid] = entity
 
     red_links = list(seen.values())
     return {"red_links": red_links, "red_link_count": len(red_links)}

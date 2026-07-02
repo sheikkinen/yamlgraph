@@ -29,3 +29,11 @@ requirements:
       models before atomic write, reload_canon reads canon dir at runtime.
     modules:
       - examples
+  - id: REQ-YG-496
+    description: >
+      Reflexion step (FR-646): reflect LLM node reviews canon summaries after
+      deepening and identifies concepts mentioned in prose but lacking pages.
+      missing_entities from reflection merge into collect_red_links alongside
+      new_entities from deepening. Prompt sends page summaries, not full JSON.
+    modules:
+      - examples

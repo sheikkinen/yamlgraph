@@ -21,6 +21,7 @@ state:
   synopsis_text: str
   thin_entities: list
   deepened: list
+  reflection: dict
   red_links: list
   red_link_count: int
   skeletons: list
@@ -80,6 +81,16 @@ nodes:
         canon_count: "{state.canon_count}"
         synopsis_text: "{state.synopsis_text}"
 
+  reflect:
+    type: llm
+    prompt: reflect_canon
+    state_key: reflection
+    temperature: 0.3
+    variables:
+      canon_pages: "{state.canon_pages}"
+      canon_count: "{state.canon_count}"
+      deepened: "{state.deepened}"
+
   collect:
     type: python
     tool: collect_red_links
@@ -123,6 +134,9 @@ edges:
     condition: done == false
 
   - from: deepen
+    to: reflect
+
+  - from: reflect
     to: collect
 
   - from: collect
@@ -146,6 +160,7 @@ loop_limits:
   reload: 3
   select: 3
   deepen: 3
+  reflect: 3
   collect: 3
   create_skeletons: 3
   gate: 3

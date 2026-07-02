@@ -339,6 +339,161 @@ class TestCollectRedLinks:
         assert result["red_link_count"] == 2
 
 
+# --- collect_red_links + reflection (REQ-YG-496, FR-646) ---
+
+
+class TestCollectRedLinksReflexion:
+    """AC-4a, AC-7: reflection missing_entities merge into collect_red_links."""
+
+    @pytest.mark.req("REQ-YG-496")
+    def test_reflection_missing_entities_added(self):
+        """AC-4a: mock reflection with dragonsteel → collect includes it."""
+        result = collect_red_links(
+            {
+                "deepened": [],
+                "canon_pages": {"kaelen": {"type": "character"}},
+                "reflection": {
+                    "missing_entities": [
+                        {
+                            "id": "dragonsteel",
+                            "type": "rule",
+                            "name": "Dragonsteel",
+                            "summary": "Rare forging material",
+                            "cited_in": ["kaelen", "emberbrand_rule"],
+                        }
+                    ],
+                    "verdict": "Dragonsteel lacks a page.",
+                },
+            }
+        )
+        assert result["red_link_count"] == 1
+        assert result["red_links"][0]["id"] == "dragonsteel"
+
+    @pytest.mark.req("REQ-YG-496")
+    def test_both_sources_merged(self):
+        """AC-7: new_entities from deepen + missing_entities from reflection."""
+        result = collect_red_links(
+            {
+                "deepened": [
+                    {
+                        "new_entities": [
+                            {
+                                "id": "brennan",
+                                "type": "character",
+                                "name": "B",
+                                "summary": "x",
+                            }
+                        ]
+                    }
+                ],
+                "canon_pages": {},
+                "reflection": {
+                    "missing_entities": [
+                        {
+                            "id": "dragonsteel",
+                            "type": "rule",
+                            "name": "D",
+                            "summary": "y",
+                        }
+                    ],
+                    "verdict": "ok",
+                },
+            }
+        )
+        ids = {r["id"] for r in result["red_links"]}
+        assert ids == {"brennan", "dragonsteel"}
+        assert result["red_link_count"] == 2
+
+    @pytest.mark.req("REQ-YG-496")
+    def test_reflection_dedup_with_deepened(self):
+        """Reflection names same entity as deepen — no duplicate."""
+        result = collect_red_links(
+            {
+                "deepened": [
+                    {
+                        "new_entities": [
+                            {
+                                "id": "brennan",
+                                "type": "character",
+                                "name": "B",
+                                "summary": "x",
+                            }
+                        ]
+                    }
+                ],
+                "canon_pages": {},
+                "reflection": {
+                    "missing_entities": [
+                        {
+                            "id": "brennan",
+                            "type": "character",
+                            "name": "Brennan",
+                            "summary": "z",
+                        }
+                    ],
+                    "verdict": "ok",
+                },
+            }
+        )
+        assert result["red_link_count"] == 1
+
+    @pytest.mark.req("REQ-YG-496")
+    def test_reflection_filters_existing_pages(self):
+        """Reflection names entity that already has a page — excluded."""
+        result = collect_red_links(
+            {
+                "deepened": [],
+                "canon_pages": {"kaelen": {"type": "character"}},
+                "reflection": {
+                    "missing_entities": [
+                        {
+                            "id": "kaelen",
+                            "type": "character",
+                            "name": "K",
+                            "summary": "x",
+                        }
+                    ],
+                    "verdict": "ok",
+                },
+            }
+        )
+        assert result["red_link_count"] == 0
+
+    @pytest.mark.req("REQ-YG-496")
+    def test_no_reflection_still_works(self):
+        """No reflection in state — original behavior unchanged."""
+        result = collect_red_links(
+            {
+                "deepened": [
+                    {
+                        "new_entities": [
+                            {
+                                "id": "brennan",
+                                "type": "character",
+                                "name": "B",
+                                "summary": "x",
+                            }
+                        ]
+                    }
+                ],
+                "canon_pages": {},
+            }
+        )
+        assert result["red_link_count"] == 1
+
+    @pytest.mark.req("REQ-YG-496")
+    def test_reflection_empty_missing_entities(self):
+        """Reflection with empty missing_entities — no crash."""
+        result = collect_red_links(
+            {
+                "deepened": [],
+                "canon_pages": {},
+                "reflection": {"missing_entities": [], "verdict": "All good."},
+            }
+        )
+        assert result["red_link_count"] == 0
+
+
 # --- validate_pages gate (REQ-YG-495) ---
 
 

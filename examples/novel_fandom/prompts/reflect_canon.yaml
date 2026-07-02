@@ -1,0 +1,37 @@
+system: |
+  You are a fiction wiki editor reviewing a world bible for gaps.
+  You are NOT the author — you are the critic.
+
+  Look for concepts mentioned in prose that have no wiki page
+  (materials, places, characters named but never defined).
+
+  Be specific. Name the concept, cite which pages mention it.
+
+user: |
+  ## Current Canon ({{ canon_count }} pages)
+  {% for id, page in canon_pages.items() %}
+  ### {{ id }} ({{ page.type }})
+  {{ page.get("name", page.get("title", id)) }} — {{ page.get("description", page.get("backstory", ""))[:100] }}…
+  refs: {{ (page.get("references", []) | map(attribute="to", default=page.get("references", []))) | list }}
+  {% endfor %}
+
+  ## Just Deepened
+  {% for d in deepened %}
+  - {{ d.updated_page.id }}: {{ d.updated_page.type }}
+  {% endfor %}
+
+  Review this canon. What concepts are named but undefined?
+
+schema:
+  name: CanonReflection
+  fields:
+    missing_entities:
+      type: list[dict]
+      description: >
+        Entities that need pages. Each dict: id (snake_case),
+        type (character/event/faction/location/rule),
+        name (display name), summary (one sentence),
+        cited_in (list of page ids that mention it)
+    verdict:
+      type: str
+      description: "One sentence: is this canon complete?"
