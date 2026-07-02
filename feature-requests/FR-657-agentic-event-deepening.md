@@ -2,10 +2,11 @@
 
 **Priority:** HIGH
 **Type:** Enhancement
-**Status:** Granted
+**Status:** Enforced
 **Effort:** 0.5 days
 **Requested:** 2026-07-02
 **Judged:** 2026-07-02
+**Enforced:** 2026-07-02
 
 ## Summary
 
