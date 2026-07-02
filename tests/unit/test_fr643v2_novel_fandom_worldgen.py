@@ -573,14 +573,15 @@ class TestPersistPages:
                         "id": "bad",
                         "type": "character",
                         "lane": "dynamic",
-                        # Missing 'name' — should fail Pydantic
+                        # Missing 'name' — fails Pydantic but FR-649 persists anyway
                     }
                 }
             ],
             "skeletons": [],
         }
         result = _persist._persist_impl(state, canon_dir, PAGE_MODELS)
-        assert result["written_count"] == 0
+        # FR-649: invalid pages are now persisted with warning (not dropped)
+        assert result["written_count"] == 1
 
     @pytest.mark.req("REQ-YG-495")
     def test_writes_valid_page(self, tmp_path):

@@ -911,6 +911,24 @@ These are E402 suppressions and are acceptable as "glue code" patterns.
 - **Sin**: `_load` helper has no return type annotation.
 - **Penance**: Internal test helper that dynamically loads modules — return type is `ModuleType` but annotation adds no value. Same pattern as CONF-336.
 
+### CONF-344
+- **File**: [tests/unit/test_fr648_obsidian_wiki.py](../tests/unit/test_fr648_obsidian_wiki.py#L30)
+- **Code**: ANN202
+- **Sin**: `_load` helper has no return type annotation.
+- **Penance**: Same as CONF-343 — internal test helper, dynamically loaded module.
+
+### CONF-345
+- **File**: [tests/unit/test_fr649_persist_normalize.py](../tests/unit/test_fr649_persist_normalize.py#L26)
+- **Code**: ANN202
+- **Sin**: `_load` helper has no return type annotation.
+- **Penance**: Same as CONF-343 — internal test helper, dynamically loaded module.
+
+### CONF-346
+- **File**: [examples/novel_fandom/nodes/persist_pages.py](../examples/novel_fandom/nodes/persist_pages.py#L162)
+- **Code**: BLE001
+- **Sin**: Bare `except Exception` in validation fallback.
+- **Penance**: FR-649 fallback: any Pydantic validation error must trigger persist-with-warning. Catching broad Exception is intentional — unknown model errors should not silently drop pages.
+
 ### CONF-143
 - **File**: [tests/unit/test_fr296_watcher_fsm_startup_script.py](../tests/unit/test_fr296_watcher_fsm_startup_script.py#L116)
 - **Code**: S603

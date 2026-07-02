@@ -2,6 +2,7 @@
 
 Validates each page against canon.py models before writing.
 Uses atomic writes (tempfile + os.replace). Skeletons don't overwrite.
+Normalizes LLM-varied shapes to schema shapes at the boundary (FR-649).
 """
 
 from __future__ import annotations
@@ -16,6 +17,108 @@ from typing import Any
 import yaml
 
 logger = logging.getLogger(__name__)
+
+_VALID_RULE_DOMAINS = frozenset(
+    {
+        "magic_system",
+        "character_state",
+        "physical_constraint",
+        "social_rule",
+        "temporal_rule",
+    }
+)
+
+_LIST_STR_FIELDS = frozenset(
+    {
+        "atmosphere",
+        "sensory",
+        "goals",
+        "fears",
+        "triggers",
+        "genre_tags",
+        "themes",
+        "members",
+        "affected_locations",
+    }
+)
+
+
+def normalize_page(page: dict) -> dict:
+    """Coerce LLM-varied shapes to schema-expected shapes (FR-649).
+
+    Runs at the persist boundary before Pydantic validation.
+    Mutates and returns the same dict.
+    """
+    # Strip map-node metadata
+    page.pop("_map_index", None)
+
+    # --- Relationships ---
+    rels = page.get("relationships")
+    if isinstance(rels, dict) and not isinstance(rels, list):
+        # dict-of-strings: {target: description, ...}
+        page["relationships"] = [
+            {"to": target, "kind": desc, "valence": ""} for target, desc in rels.items()
+        ]
+    elif isinstance(rels, list):
+        normalized_rels = []
+        for rel in rels:
+            if not isinstance(rel, dict):
+                continue
+            if "to" in rel and "kind" in rel:
+                # Already correct format
+                rel.setdefault("valence", "")
+                normalized_rels.append(rel)
+            else:
+                to = rel.get(
+                    "to", rel.get("target", rel.get("target_id", rel.get("id", "?")))
+                )
+                kind = rel.get(
+                    "kind", rel.get("type", rel.get("description", "related"))
+                )
+                valence = rel.get("valence", "")
+                normalized_rels.append({"to": to, "kind": kind, "valence": valence})
+        page["relationships"] = normalized_rels
+
+    # --- Participants (Event) ---
+    participants = page.get("participants")
+    if isinstance(participants, list):
+        normalized = []
+        for p in participants:
+            if isinstance(p, dict):
+                normalized.append(p.get("entity", p.get("name", str(p))))
+            else:
+                normalized.append(str(p))
+        page["participants"] = normalized
+
+    # --- Consequences (Event) ---
+    consequences = page.get("consequences")
+    if isinstance(consequences, dict):
+        page["consequences"] = [f"{key}: {val}" for key, val in consequences.items()]
+
+    # --- References ---
+    refs = page.get("references")
+    if isinstance(refs, list):
+        normalized_refs = []
+        for ref in refs:
+            if isinstance(ref, dict):
+                normalized_refs.append(ref.get("pageId", ref.get("id", str(ref))))
+            else:
+                normalized_refs.append(str(ref))
+        page["references"] = normalized_refs
+
+    # --- Scalar → list coercion for list[str] fields ---
+    for field in _LIST_STR_FIELDS:
+        val = page.get(field)
+        if isinstance(val, str):
+            page[field] = [val]
+
+    # --- Rule.domain default ---
+    if page.get("type") == "rule":
+        domain = page.get("domain", "")
+        if domain not in _VALID_RULE_DOMAINS:
+            page["domain"] = "social_rule"
+
+    return page
 
 
 def _load_page_models() -> dict:
@@ -51,11 +154,18 @@ def _validate_and_write(
         )
         return None
 
+    # FR-649: Normalize LLM-varied shapes before validation
+    normalize_page(page)
+
     try:
         model_cls(**page)
     except Exception as e:  # noqa: BLE001
-        logger.warning("Validation failed for '%s': %s", page.get("id"), e)
-        return None
+        # FR-649 fallback: persist anyway with warning — work product > schema purity
+        logger.warning(
+            "Validation failed for '%s' (persisting anyway): %s",
+            page.get("id"),
+            e,
+        )
 
     target = canon_dir / f"{page['id']}.yaml"
     if not overwrite and target.exists():

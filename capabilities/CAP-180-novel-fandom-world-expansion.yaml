@@ -46,3 +46,20 @@ requirements:
       Deepen prompt enriched with event timeline for characters.
     modules:
       - examples
+  - id: REQ-YG-498
+    description: >
+      Obsidian wiki output (FR-648): render_wiki.py converts canon YAML pages
+      to Obsidian-compatible markdown with YAML frontmatter and body sections.
+      References rendered as [[wiki_links]], relationships as linked lists,
+      prose fields as markdown sections (not frontmatter). Standalone script.
+    modules:
+      - examples
+  - id: REQ-YG-499
+    description: >
+      Persist boundary normalization (FR-649): normalize_page coerces LLM-varied
+      shapes to schema-expected shapes before Pydantic validation. Covers
+      relationship key variants, participant dicts, consequence dicts, reference
+      dicts, scalar-to-list coercion, Rule.domain default, _map_index strip.
+      Pages that still fail validation are persisted with warning (not dropped).
+    modules:
+      - examples

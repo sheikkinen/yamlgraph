@@ -130,12 +130,12 @@ nodes:
 
 edges:
   - from: START
-    to: anchor
-
-  - from: anchor
     to: reload
 
   - from: reload
+    to: anchor
+
+  - from: anchor
     to: select
 
   - from: select
