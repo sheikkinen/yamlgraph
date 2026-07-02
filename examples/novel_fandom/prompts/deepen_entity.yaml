@@ -51,6 +51,22 @@ user: |
   - {{ id }} ({{ page.type }})
   {% endfor %}
 
+  {% if entity_task.entity_type == "character" and event_context and event_context[entity_task.entity.id] %}
+  ## Events in This Character's Timeline
+  {% for ev in event_context[entity_task.entity.id] %}
+  {% if ev.age_at_event is not none and ev.age_at_event >= 0 %}
+  - {{ ev.event_id }} (year {{ ev.year }}, age {{ ev.age_at_event }}): {{ ev.consequences | join("; ") }}
+  {% elif ev.age_at_event is not none and ev.age_at_event < 0 %}
+  - {{ ev.event_id }} (year {{ ev.year }}, before birth): {{ ev.consequences | join("; ") }}
+  {% else %}
+  - {{ ev.event_id }}: {{ ev.consequences | join("; ") }}
+  {% endif %}
+  {% endfor %}
+
+  Ground this character's backstory in these events: where were they,
+  what did they lose or gain? Skip events before their birth.
+  {% endif %}
+
   Enrich this entity. Declare any new entities you introduce.
 
 schema:

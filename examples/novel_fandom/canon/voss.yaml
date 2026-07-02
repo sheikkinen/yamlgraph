@@ -2,6 +2,7 @@ type: character
 id: voss
 lane: dynamic
 name: Voss
+birth_year: 172
 role: antagonist
 goals:
   - "Claim the Emberbrand before Kaelen"

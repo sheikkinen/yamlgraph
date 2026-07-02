@@ -39,6 +39,7 @@ class Character(BaseModel):
     arc_summary: str = ""
     triggers: list[str] = Field(default_factory=list)
     backstory: str = ""
+    birth_year: int | None = None
 
 
 class Event(BaseModel):
@@ -53,6 +54,9 @@ class Event(BaseModel):
     consequences: list[str] = Field(default_factory=list)
     valid_from: str | None = None
     valid_to: str | None = None
+    year: int | None = None
+    scope: Literal["world", "regional", "local"] = "world"
+    affected_locations: list[str] = Field(default_factory=list)
     references: list[str] = Field(default_factory=list)
 
 
@@ -116,6 +120,7 @@ class Premise(BaseModel):
     era: str = ""
     themes: list[str] = Field(default_factory=list)
     references: list[str] = Field(default_factory=list)
+    calendar_note: str = ""
 
 
 class Synopsis(BaseModel):

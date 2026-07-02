@@ -2,6 +2,7 @@ type: character
 id: maren
 lane: dynamic
 name: Maren
+birth_year: 155
 role: supporting
 goals:
   - "Preserve the old pacts between factions"

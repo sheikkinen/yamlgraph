@@ -19,6 +19,7 @@ state:
   canon_pages: dict
   canon_count: int
   synopsis_text: str
+  event_context: dict
   thin_entities: list
   deepened: list
   reflection: dict
@@ -35,6 +36,10 @@ variables:
   max_depth: 2
 
 tools:
+  anchor_events:
+    type: python
+    path: nodes/anchor_events.py
+    function: anchor_events
   reload_canon:
     type: python
     path: nodes/reload_canon.py
@@ -57,6 +62,10 @@ tools:
     function: persist_pages
 
 nodes:
+  anchor:
+    type: python
+    tool: anchor_events
+
   reload:
     type: python
     tool: reload_canon
@@ -80,6 +89,7 @@ nodes:
         canon_pages: "{state.canon_pages}"
         canon_count: "{state.canon_count}"
         synopsis_text: "{state.synopsis_text}"
+        event_context: "{state.event_context}"
 
   reflect:
     type: llm
@@ -120,6 +130,9 @@ nodes:
 
 edges:
   - from: START
+    to: anchor
+
+  - from: anchor
     to: reload
 
   - from: reload

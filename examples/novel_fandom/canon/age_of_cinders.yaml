@@ -2,6 +2,8 @@ type: event
 id: age_of_cinders
 lane: dynamic
 window: age_of_cinders
+year: 0
+scope: world
 participants: [kaelen, maren, voss]
 consequences:
   - "The old forge lies dormant"

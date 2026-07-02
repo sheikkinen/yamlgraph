@@ -905,6 +905,12 @@ These are E402 suppressions and are acceptable as "glue code" patterns.
 - **Sin**: Bare `except Exception` catches all exceptions during Pydantic validation.
 - **Penance**: Intentional — unknown page types or malformed data from LLM output should be skipped, not crash the pipeline. The warning is logged.
 
+### CONF-343
+- **File**: [tests/unit/test_fr647_event_propagation.py](../tests/unit/test_fr647_event_propagation.py#L27)
+- **Code**: ANN202
+- **Sin**: `_load` helper has no return type annotation.
+- **Penance**: Internal test helper that dynamically loads modules — return type is `ModuleType` but annotation adds no value. Same pattern as CONF-336.
+
 ### CONF-143
 - **File**: [tests/unit/test_fr296_watcher_fsm_startup_script.py](../tests/unit/test_fr296_watcher_fsm_startup_script.py#L116)
 - **Code**: S603

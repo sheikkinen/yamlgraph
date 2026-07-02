@@ -2,6 +2,7 @@ type: character
 id: kaelen
 lane: dynamic
 name: Kaelen
+birth_year: 175
 role: protagonist
 goals:
   - "Reforge the Emberbrand with dragonsteel"

@@ -495,7 +495,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 177 | CAP-177 Novel Fandom Plot Pathfinder | `examples` | REQ-YG-487 – 488 |
 | 178 | CAP-178 Novel Fandom Prose and Close Loop | `examples` | REQ-YG-489 – 491 |
 | 179 | CAP-179 Novel Fandom Wiki Core Types | `examples` | REQ-YG-492 – 493 |
-| 180 | CAP-180 Novel Fandom World Expansion | `examples` | REQ-YG-494 – 496 |
+| 180 | CAP-180 Novel Fandom World Expansion | `examples` | REQ-YG-494 – 497 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -2251,6 +2251,7 @@ World expansion pipeline for novel_fandom. Deepens thin entities via LLM, extrac
 | REQ-YG-494 | Schema additions for world expansion: Character has backstory field, all page models have depth field (default 0), depth roundtrips through dict serialization. Seed canon pages are lane:dynamic. worldgen.yaml graph exists and lints clean with all loop_limits specified. | `examples` |
 | REQ-YG-495 | World expansion nodes: select_thin identifies thin entities by structural field checks sorted by thin_score, collect_red_links deduplicates new entities by id and filters existing pages, validate_pages gate checks references against merged canon, persist_pages validates against Pydantic models before atomic write, reload_canon reads canon dir at runtime. | `examples` |
 | REQ-YG-496 | Reflexion step (FR-646): reflect LLM node reviews canon summaries after deepening and identifies concepts mentioned in prose but lacking pages. missing_entities from reflection merge into collect_red_links alongside new_entities from deepening. Prompt sends page summaries, not full JSON. | `examples` |
+| REQ-YG-497 | Event propagation pre-pass (FR-647): anchor_events Python node runs once before the worldgen loop, computing per-character event context with spatial scoping (world/regional/local) and age arithmetic from absolute dates (Character.birth_year, Event.year). Premise gains calendar_note. Deepen prompt enriched with event timeline for characters. | `examples` |
 
 <!-- END GENERATED CAPABILITIES -->
 

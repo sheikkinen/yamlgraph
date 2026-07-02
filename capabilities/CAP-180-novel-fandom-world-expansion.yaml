@@ -37,3 +37,12 @@ requirements:
       new_entities from deepening. Prompt sends page summaries, not full JSON.
     modules:
       - examples
+  - id: REQ-YG-497
+    description: >
+      Event propagation pre-pass (FR-647): anchor_events Python node runs once
+      before the worldgen loop, computing per-character event context with
+      spatial scoping (world/regional/local) and age arithmetic from absolute
+      dates (Character.birth_year, Event.year). Premise gains calendar_note.
+      Deepen prompt enriched with event timeline for characters.
+    modules:
+      - examples
