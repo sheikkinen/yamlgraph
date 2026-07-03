@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Bug
-**Status:** Judged
+**Status:** Enforced
 **Effort:** 0.5 days
 **Requested:** 2026-07-03
 
@@ -39,10 +39,9 @@ rejection — the error the fallback already worked around — instead of the
 actual failure: the model returned prose, not JSON. Boundary normalization
 gap at the schema boundary (`the_one_law`).
 
-`executor_async.py` does not have `_invoke_with_retry`; it delegates to
-`utils/llm_factory_async.py::invoke_async`, which currently has no FR-464
-JSON-extraction fallback. This FR fixes the sync diagnostic only. Async
-fallback parity is a separate issue if desired.
+**Note (Judgement):** `executor_async.py` does NOT have `_invoke_with_retry`
+— it delegates to `llm_factory_async.py`. Verify whether the async path
+hits this code at all before fixing it.
 
 ## Proposed Solution
 
@@ -62,7 +61,7 @@ raise ValueError(
       `response_format` and whose plain invoke returns prose; assert raised
       error mentions JSON extraction and includes a response snippet
 - [ ] Original provider error preserved as `__cause__` (`from struct_err`)
-- [ ] Async path explicitly out of scope; no changes to `invoke_async`
+- [ ] Verify whether async path hits this code; if not, drop async criterion
 - [ ] All unit tests green
 - [ ] Changelog fragment in `changelog/unreleased/`
 
@@ -81,16 +80,17 @@ raise ValueError(
 
 ## Judgement
 
-**APPROVED.** Bare `raise` in `executor.py::_invoke_with_retry` re-raises the
-original provider error after JSON extraction fails, hiding the actual cause.
-`extract_json()` returns the original string on no match, so the
-`isinstance(parsed, dict)` check silently falls through.
+**APPROVED.** Bare `raise` at executor.py:200 confirmed — re-raises the
+original provider error after JSON extraction fails, hiding the real cause.
+`extract_json` returns the original string on no-match (json_extract.py:127).
+The `isinstance(parsed, dict)` check silently passes through.
 
 **Amendments:**
-1. Async path does not hit this code. `executor_async.py` delegates to
-    `utils/llm_factory_async.py::invoke_async`, which lacks the FR-464 fallback
-    entirely. Do not modify async behavior in this FR; file a separate parity
-    FR if async fallback is required.
-2. FR-672 is rejected, so the sequencing note about folding into FR-672 is
-    moot. This FR stands alone.
-3. Keep the proposed `isinstance(parsed, (dict, list))` guard.
+1. FR says "same fix applied to the async path" but verification shows
+   `executor_async.py` does NOT have `_invoke_with_retry` — it delegates
+   to `llm_factory_async.py`. Check whether the async path even hits this
+   code. If not, drop the async criterion.
+2. FR-672 is rejected (see below), so the sequencing note about folding
+   into FR-672 is moot. This FR stands alone.
+3. Add `list` to the isinstance check: `isinstance(parsed, (dict, list))`
+   as proposed.

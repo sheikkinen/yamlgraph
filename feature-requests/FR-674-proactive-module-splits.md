@@ -1,18 +1,17 @@
-# Feature Request: Proactive module splits for the 435-450 line band
+# Feature Request: Module splits for ceiling violations
 
-**Priority:** LOW
+**Priority:** HIGH
 **Type:** Enhancement
 **Status:** Judged
-**Effort:** 1-2 days
+**Effort:** 1 day
 **Requested:** 2026-07-03
 
 ## Summary
 
-Five modules sit in the 435–450 line band, one edit from the 450 hard
-ceiling: `node_compiler.py` (447), `models/state_builder.py` (442),
-`models/graph_schema.py` (441), `linter/checks_semantic.py` (435),
-`executor_async.py` (435). Split them proactively along existing seams
-before the ceiling forces an unplanned split mid-feature.
+Three modules exceed the 450-line hard ceiling: `models/state_builder.py`
+(471), `models/graph_schema.py` (~610), `linter/checks_semantic.py` (469).
+`executor_async.py` (435) is within bounds but near the target.
+Split along existing seams to restore compliance.
 
 ## Value Statement
 
@@ -35,26 +34,22 @@ abstractions:
 
 | Module | Lines | Extraction |
 |--------|-------|------------|
-| `node_compiler.py` | 447 | Per-type compile helpers → `node_compiler_handlers.py` (keep `NODE_TYPE_HANDLERS` dispatch in place) |
-| `models/state_builder.py` | 442 | `generate_typeddict_code` + helpers → `models/codegen.py` |
-| `models/graph_schema.py` | 441 | Guard/verification configs (`GuardRuleBase`, `PreGuardRule`, `PostGuardRule`, `GuardConfig`, `VerificationConfig`) → `models/guard_schema.py` |
-| `linter/checks_semantic.py` | 435 | Cycle checks (`check_unguarded_cycles`, `check_skip_if_exists_in_cycle`) → `linter/checks_cycles.py` |
-| `executor_async.py` | 435 | Split only if a natural async streaming seam presents |
+| `models/graph_schema.py` | ~610 | Guard/verification configs → `models/guard_schema.py`; tool/edge configs → second extraction target (TBD at enforce time) |
+| `models/state_builder.py` | 471 | `generate_typeddict_code` + helpers → `models/codegen.py` |
+| `linter/checks_semantic.py` | 469 | Cycle checks (`check_unguarded_cycles`, `check_skip_if_exists_in_cycle`) → `linter/checks_cycles.py` |
+| `executor_async.py` | 435 | Near target but under ceiling — split only if a natural seam presents |
 
 One commit per module split (`refactor(scope): FR-674 split X`), each
 re-exporting moved names from the original module's namespace only where an
 external import exists (check `examples/` and `tests/` first; prefer fixing
 importers over re-exports — no shims, Commandment 8).
 
-Sequencing: optional before FR-673 if the schema work would push
-`graph_schema.py` over the ceiling. FR-672 is rejected (duplication claim was
-false). FR-668 is rejected as written, so no sequencing dependency remains
-there unless a replacement cleanup FR is filed.
+Sequencing: land before FR-668/FR-673 so those FRs work against the
+post-split layout. FR-672 is rejected (duplication claim was false).
 
 ## Acceptance Criteria
 
-- [ ] Each touched near-ceiling module ends under 400 lines
-- [ ] Do not split untouched modules solely to satisfy this FR
+- [ ] All three ceiling-violating modules < 400 lines
 - [ ] No behavior change: full test suite green with zero test edits other
       than import paths
 - [ ] `lint-imports` contracts still KEPT
@@ -75,26 +70,30 @@ there unless a replacement cleanup FR is filed.
 
 ## Judgement
 
-**APPROVED AS LOW-PRIORITY PROACTIVE REFACTORING.** Current line counts are:
+**APPROVED with corrections.** The line counts in the FR are wrong:
 
-| Module | Review claim | Actual | Status |
-|--------|---------------|--------|--------|
-| node_compiler.py | 447 | 447 | Under ceiling, closest to limit |
-| state_builder.py | 442 | 442 | Under ceiling |
-| graph_schema.py | 441 | 441 | Under ceiling |
-| checks_semantic.py | 435 | 435 | Under ceiling |
+| Module | FR claims | Actual | Status |
+|--------|-----------|--------|--------|
+| node_compiler.py | 447 | 434 | Under ceiling |
+| state_builder.py | 442 | 471 | OVER ceiling |
+| graph_schema.py | 441 | ~610 | FAR over ceiling |
+| checks_semantic.py | 435 | 469 | OVER ceiling |
 | executor_async.py | 435 | 435 | Accurate |
 
-No module currently exceeds the 450 hard ceiling. The original Fable review's
-435-450 band framing was correct; the later correction claiming active ceiling
-violations was wrong.
+Three modules already exceed the 450 hard ceiling. This is not
+"proactive" — it's overdue remediation. Title should reflect urgency.
 
 **Amendments:**
-1. Keep priority LOW. This is useful headroom work, not a blocking defect.
-2. Split only modules touched by imminent feature work or with especially
-  obvious seams; avoid broad churn.
-3. FR-673 may justify splitting `graph_schema.py` first, but the split must
-  remain behavior-preserving and separate from schema enforcement.
-4. FR-672 is rejected, so `executor_async.py` will not shrink from retry
-  extraction. If it is split later, identify a real async/streaming seam.
-5. One commit per module remains the right enforcement rule.
+1. Rename to "Module splits for ceiling violations" — this is not
+   proactive; state_builder.py, graph_schema.py, and checks_semantic.py
+   are already in violation.
+2. Priority: LOW → HIGH. Three ceiling violations are blocking.
+3. `graph_schema.py` at ~610 lines needs more aggressive splitting than
+   proposed — guard/verification configs alone won't bring it under 400.
+   Plan two extraction targets.
+4. `node_compiler.py` at 434 is under ceiling. Remove from scope unless
+   it has a natural seam worth splitting. Don't split what isn't broken.
+5. FR-672 is rejected, so `executor_async.py` won't shrink from retry
+   extraction. If it needs splitting, identify a different seam.
+6. Effort: 1-2 days → 1 day. These are mechanical moves with no behavior
+   change. One commit per module, as proposed.

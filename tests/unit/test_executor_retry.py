@@ -255,6 +255,49 @@ class TestInvokeWithRetryMaxRetriesConfig:
         assert mock_llm.invoke.call_count == 2
 
 
+class TestStructuredFallbackError:
+    """FR-669: Fallback raises extraction error, not provider error."""
+
+    @pytest.mark.req("REQ-YG-014", "REQ-YG-031")
+    def test_fallback_raises_extraction_error_not_provider_error(self):
+        """When JSON extraction fails, error mentions JSON, not response_format."""
+        executor = PromptExecutor(max_retries=1)
+        mock_llm = MagicMock()
+
+        # Structured output raises response_format error
+        mock_structured = MagicMock()
+        mock_structured.invoke.side_effect = Exception(
+            "Error: response_format is not supported"
+        )
+        mock_llm.with_structured_output.return_value = mock_structured
+
+        # Plain invoke returns prose (no JSON)
+        mock_llm.invoke.return_value = MagicMock(
+            content="I cannot produce JSON output for this request."
+        )
+
+        with pytest.raises(ValueError, match="could not extract JSON") as exc_info:
+            executor._invoke_with_retry(mock_llm, ["msg"], output_model=_OutputModel)
+
+        # Original provider error preserved as __cause__
+        assert exc_info.value.__cause__ is not None
+        assert "response_format" in str(exc_info.value.__cause__)
+
+    @pytest.mark.req("REQ-YG-014", "REQ-YG-031")
+    def test_fallback_includes_response_snippet(self):
+        """Error message includes truncated LLM response for debugging."""
+        executor = PromptExecutor(max_retries=1)
+        mock_llm = MagicMock()
+
+        mock_structured = MagicMock()
+        mock_structured.invoke.side_effect = Exception("response_format not available")
+        mock_llm.with_structured_output.return_value = mock_structured
+        mock_llm.invoke.return_value = MagicMock(content="Just prose, no JSON here")
+
+        with pytest.raises(ValueError, match="Just prose"):
+            executor._invoke_with_retry(mock_llm, ["msg"], output_model=_OutputModel)
+
+
 class TestGetExecutorSingleton:
     """Thread-safe singleton access."""
 

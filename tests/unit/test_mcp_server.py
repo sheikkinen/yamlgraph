@@ -5,7 +5,7 @@ TDD red phase: all tests written before implementation.
 
 import json
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -352,6 +352,82 @@ async def test_run_graph_execution_error():
     parsed = json.loads(result[0].text)
     assert "error" in parsed
     assert "Graph execution failed" in parsed["error"]
+
+
+@pytest.mark.req("REQ-YG-068")
+@pytest.mark.asyncio
+async def test_run_graph_execution_error_logs():
+    """FR-671: Graph execution failure is logged with exc_info."""
+    from yamlgraph.mcp_server import create_server
+
+    hello_pattern = str(
+        Path(__file__).resolve().parent.parent.parent
+        / "examples"
+        / "demos"
+        / "hello"
+        / "graph.yaml"
+    )
+    server = create_server(graph_patterns=[hello_pattern])
+
+    def failing_invoke(graph_path: str, variables: dict) -> dict:
+        raise RuntimeError("Simulated graph failure")
+
+    mock_logger = MagicMock()
+    with (
+        patch("yamlgraph.mcp_server._invoke_graph", side_effect=failing_invoke),
+        patch("yamlgraph.mcp_server.logger", mock_logger),
+    ):
+        await _call_tool(
+            server,
+            "yamlgraph_run_graph",
+            {"graph": "hello-world", "vars": {"name": "X", "style": "Y"}},
+        )
+
+    # Find the error call with exc_info
+    error_calls = mock_logger.error.call_args_list
+    assert any("execution failed" in str(c) for c in error_calls)
+    assert any(
+        c.kwargs.get("exc_info")
+        or (len(c.args) > 1 and c.kwargs.get("exc_info", False))
+        for c in error_calls
+        if "execution failed" in str(c)
+    )
+
+
+@pytest.mark.req("REQ-YG-068")
+@pytest.mark.asyncio
+async def test_run_graph_timeout_logs():
+    """FR-671: Graph timeout is logged."""
+    from yamlgraph.mcp_server import create_server
+
+    hello_pattern = str(
+        Path(__file__).resolve().parent.parent.parent
+        / "examples"
+        / "demos"
+        / "hello"
+        / "graph.yaml"
+    )
+    server = create_server(graph_patterns=[hello_pattern])
+
+    def slow_invoke(graph_path: str, variables: dict) -> dict:
+        import time
+
+        time.sleep(0.5)
+        return {}
+
+    mock_logger = MagicMock()
+    with (
+        patch("yamlgraph.mcp_server._invoke_graph", side_effect=slow_invoke),
+        patch("yamlgraph.mcp_server.INVOKE_TIMEOUT", 0.1),
+        patch("yamlgraph.mcp_server.logger", mock_logger),
+    ):
+        await _call_tool(
+            server,
+            "yamlgraph_run_graph",
+            {"graph": "hello-world", "vars": {"name": "X", "style": "Y"}},
+        )
+
+    assert any("timed out" in str(c) for c in mock_logger.error.call_args_list)
 
 
 @pytest.mark.req("REQ-YG-068")

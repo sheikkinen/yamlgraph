@@ -192,8 +192,12 @@ class PromptExecutor:
                             response = llm.invoke(retry_msgs)
                             text = normalize_content(response.content)
                             parsed = extract_json(text)
-                            if isinstance(parsed, dict):
+                            if isinstance(parsed, dict | list):
                                 return output_model.model_validate(parsed)
+                            raise ValueError(
+                                f"Structured output fallback failed: could not extract JSON "
+                                f"from LLM response: {text[:200]}"
+                            ) from struct_err
                         raise
                 else:
                     response = llm.invoke(messages)

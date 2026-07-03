@@ -260,6 +260,32 @@ class TestSendA2AMessage:
         result = send_a2a_message(base_state)
         assert result["response"] == "Done via status"
 
+    @pytest.mark.req("REQ-YG-243")
+    @patch("yamlgraph.contrib.a2a_client.httpx")
+    def test_empty_response_raises_not_empty_string(self, mock_httpx, base_state):
+        """FR-670: Empty A2A response raises ValueError, not silent empty string."""
+        from yamlgraph.contrib.a2a_client import send_a2a_message
+
+        mock_response = MagicMock()
+        mock_response.json.return_value = {
+            "jsonrpc": "2.0",
+            "id": "1",
+            "result": {
+                "id": "task-1",
+                "status": {
+                    "state": "completed",
+                    "message": {
+                        "role": "agent",
+                        "parts": [],  # No text parts
+                    },
+                },
+            },
+        }
+        mock_httpx.post.return_value = mock_response
+
+        with pytest.raises(ValueError, match="no text parts"):
+            send_a2a_message(base_state)
+
 
 # =============================================================================
 # Agent Card Discovery

@@ -64,7 +64,12 @@ def _extract_text_from_result(result: dict[str, Any]) -> str:
         if "text" in part and part["text"]:
             texts.append(part["text"])
 
-    return "\n".join(texts) if texts else ""
+    if not texts:
+        task_state = result.get("status", {}).get("state", "unknown")
+        raise ValueError(
+            f"A2A response contains no text parts (task state: {task_state})"
+        )
+    return "\n".join(texts)
 
 
 def _fetch_agent_card(agent_url: str, timeout: float = 30) -> Any:

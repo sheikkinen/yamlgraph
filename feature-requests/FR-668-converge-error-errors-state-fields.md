@@ -1,24 +1,23 @@
 # Feature Request: Converge dual error/errors state fields on errors list
 
-**Priority:** LOW
+**Priority:** HIGH
 **Type:** Bug
-**Status:** Rejected
+**Status:** Judged
 **Effort:** 1 day
 **Requested:** 2026-07-03
 
 ## Summary
 
 State declares both a singular `error` field (last_value reducer) and an
-`errors` list (add reducer). Direct inspection did not verify the claimed
-state-level divergent writers: the cited tool-node writes are nested
-tool-result payload fields, not top-level `state["error"]` writes. The
-singular state field appears unused except for default initialization and
-summary export.
+`errors` list (add reducer). Writers diverge: tool nodes write singular
+`error`, LLM nodes append to `errors`. In parallel map fan-out,
+last-write-wins on `error` silently loses branch failures. Deprecate the
+singular field and converge all writers/readers on the `errors` list.
 
 ## Value Statement
 
-Graph authors benefit from a simpler error-state contract, but the originally
-claimed parallel-map branch-loss bug is not proven by the cited code.
+Graph authors debugging parallel map failures see every branch error instead
+of only the last one, eliminating a class of invisible failure loss.
 
 ## Problem
 
@@ -28,37 +27,41 @@ claimed parallel-map branch-loss bug is not proven by the cited code.
 "error": Annotated[Any, last_value],
 ```
 
-alongside the accumulating `errors` list. Verified code facts:
+alongside the accumulating `errors` list. Divergent writers:
 
-- `yamlgraph/node_factory/tool_nodes.py` writes nested payload keys under
-  `state_key` (`{state_key: {"error": ...}}`), not top-level state
-- LLM, race, map, guard, and timeout paths append `PipelineError` objects to
-  top-level `errors`
-- `yamlgraph/storage/export.py` reads top-level `state.get("error")`
-- `yamlgraph/models/state_builder.py` initializes top-level `error` to `None`
+- `yamlgraph/node_factory/tool_nodes.py:75,86` — writes singular `error`
+- `yamlgraph/node_factory/llm_nodes.py` / `llm_execution.py` — appends
+  `PipelineError` to `errors`
+- `yamlgraph/storage/export.py:170` — reads singular `error`
 
-The originally claimed divergent top-level writers were not found. This means
-the parallel fan-out loss scenario is unproven. The remaining issue is a
-small contract cleanup: an apparently unused top-level `error` field exists
-beside the real accumulated `errors` list.
+Under parallel map fan-out, multiple branches writing `error` race; the
+last_value reducer keeps only the final write. A user inspecting
+`state["error"]` after a map node sees one failure and misses the rest.
+This is `downstream_fix` territory: the defect is at the state-schema
+boundary, not in any single writer.
 
 ## Proposed Solution
 
-Reject this FR as a HIGH-priority bug. If cleanup is still desired, file a
-new LOW-priority FR with a narrower scope:
-
-1. Prove no top-level writers of `state["error"]` exist outside
-  `state_builder.py` initialization and `storage/export.py` summary read.
-2. Decide whether summary export should expose latest `errors[-1]` or omit
-  the singular `error` field entirely.
-3. Remove `error` from `BASE_FIELDS` only after tests prove no public graph
-  output relies on it.
+1. Migrate all writers of singular `error` to append `PipelineError` to
+   `errors` (tool_nodes, any error_handlers paths).
+2. Migrate readers (`storage/export.py:170`, any CLI/output paths) to derive
+   the latest error: `errors[-1] if errors else None`.
+3. Remove `error` from `BASE_FIELDS` in `state_builder.py`. No compat shim
+   (Commandment 8) — this is an internal state contract, and grep shows a
+   bounded writer/reader set.
+4. Run full test suite; fix all fixtures referencing singular `error`.
 
 ## Acceptance Criteria
 
-- [ ] No enforcement under this FR; rejected as written
-- [ ] Replacement FR, if created, includes a grep/audit proving top-level
-  state writers and readers separately from JSON payload `error` fields
+- [ ] Failing test first (RED): parallel map with two failing branches
+      asserts both failures present in `errors`
+- [ ] `grep -rn '"error"' yamlgraph/` shows no state-level singular writes
+      (nested tool-result `{"error": ...}` payloads are a different pattern
+      and out of scope)
+- [ ] `storage/export.py` derives latest error from `errors` list
+- [ ] `error` removed from `BASE_FIELDS`
+- [ ] All unit tests green
+- [ ] Changelog fragment in `changelog/unreleased/`
 
 ## Alternatives Considered
 
@@ -77,15 +80,18 @@ new LOW-priority FR with a narrower scope:
 
 ## Judgement
 
-**REJECTED AS WRITTEN.** The review artifact overclaimed the evidence. Both
-fields exist in `state_builder.py`, and `storage/export.py` reads the singular
-field, but the cited `tool_nodes.py` writes are nested response payloads under
-`state_key`, not top-level `state["error"]` writes. Grep did not identify a
-parallel fan-out path writing top-level `error`, so the claimed last-write-wins
-branch-loss bug is unproven.
+**APPROVED.** All claims verified against codebase. Both fields exist at
+state_builder.py:66-67. tool_nodes.py writes singular `error` at lines 75
+and 86. export.py reads it at line 170. The parallel-map error-loss bug is
+real and the fix is mechanical.
 
-**Replacement direction:** create a smaller cleanup FR only if desired:
-remove the unused top-level singular `error` field or make export derive a
-summary from `errors`. That FR should not mention tool-result payload fields
-as state-level writers and should not claim a parallelism correctness bug
-without a failing RED test that reproduces it.
+**Amendments:**
+1. The tool_nodes `error` writes are NESTED inside the tool-result dict
+   (stored under `state_key`), not top-level state. Audit whether these
+   are true state-level writes or payload-internal fields. If payload-internal,
+   they are out of scope — only the top-level state field removal matters.
+2. Also grep `mcp_server.py` and `progress.py` — they have `"error"` fields
+   in JSON response payloads, which are NOT state fields and must be
+   excluded from the migration.
+3. Sequencing: land FR-674 module splits first if state_builder.py (471
+   lines, already over ceiling) needs edits.

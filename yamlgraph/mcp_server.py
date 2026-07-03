@@ -304,6 +304,7 @@ async def _handle_run_graph(
             timeout=INVOKE_TIMEOUT,
         )
     except TimeoutError:
+        logger.error("Graph '%s' timed out after %ss", graph_name, INVOKE_TIMEOUT)
         return [
             types.TextContent(
                 type="text",
@@ -313,6 +314,7 @@ async def _handle_run_graph(
             )
         ]
     except Exception as e:
+        logger.error("Graph '%s' execution failed", graph_name, exc_info=True)
         return [
             types.TextContent(
                 type="text",
