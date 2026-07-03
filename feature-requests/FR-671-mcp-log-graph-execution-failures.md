@@ -8,10 +8,11 @@
 
 ## Summary
 
-`_handle_run_graph` in the MCP server catches all graph-execution exceptions
-and returns `{"error": ...}` JSON without logging. The outer tool handler
-logs with `exc_info=True`; the inner handler does not — so failures reaching
-the inner handler leave no trace. Blind debugging for MCP clients.
+`_handle_run_graph` (inner graph-execution handler) in the MCP server catches
+exceptions and returns `{"error": ...}` JSON without logging. The outer
+tool handler (~line 246) logs with `exc_info=True`, but because the inner
+handler catches first, the outer logging never fires for graph failures.
+Blind debugging for MCP clients.
 
 ## Value Statement
 

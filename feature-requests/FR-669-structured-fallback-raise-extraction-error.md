@@ -39,8 +39,9 @@ rejection — the error the fallback already worked around — instead of the
 actual failure: the model returned prose, not JSON. Boundary normalization
 gap at the schema boundary (`the_one_law`).
 
-The same fallback exists in `executor_async.py`; both paths must be fixed
-(or the shared logic extracted first — see FR-672).
+**Note (Judgement):** `executor_async.py` does NOT have `_invoke_with_retry`
+— it delegates to `llm_factory_async.py`. Verify whether the async path
+hits this code at all before fixing it.
 
 ## Proposed Solution
 
@@ -60,7 +61,7 @@ raise ValueError(
       `response_format` and whose plain invoke returns prose; assert raised
       error mentions JSON extraction and includes a response snippet
 - [ ] Original provider error preserved as `__cause__` (`from struct_err`)
-- [ ] Same fix applied to the async path
+- [ ] Verify whether async path hits this code; if not, drop async criterion
 - [ ] All unit tests green
 - [ ] Changelog fragment in `changelog/unreleased/`
 
@@ -74,8 +75,7 @@ raise ValueError(
 
 - docs/2026-07-03-review-fable.md (Issue 2)
 - FR-464 (original fallback)
-- FR-672 (retry logic extraction — sequencing: land this fix first or fold in)
-- yamlgraph/executor.py, yamlgraph/executor_async.py
+- yamlgraph/executor.py
 - yamlgraph/utils/json_extract.py
 
 ## Judgement

@@ -1,4 +1,4 @@
-# Feature Request: Proactive module splits for the 435-450 line band
+# Feature Request: Module splits for ceiling violations
 
 **Priority:** HIGH
 **Type:** Enhancement
@@ -8,11 +8,10 @@
 
 ## Summary
 
-Five modules sit in the 435–450 line band, one edit from the 450 hard
-ceiling: `node_compiler.py` (447), `models/state_builder.py` (442),
-`models/graph_schema.py` (441), `linter/checks_semantic.py` (435),
-`executor_async.py` (435). Split them proactively along existing seams
-before the ceiling forces an unplanned split mid-feature.
+Three modules exceed the 450-line hard ceiling: `models/state_builder.py`
+(471), `models/graph_schema.py` (~610), `linter/checks_semantic.py` (469).
+`executor_async.py` (435) is within bounds but near the target.
+Split along existing seams to restore compliance.
 
 ## Value Statement
 
@@ -35,23 +34,22 @@ abstractions:
 
 | Module | Lines | Extraction |
 |--------|-------|------------|
-| `node_compiler.py` | 447 | Per-type compile helpers → `node_compiler_handlers.py` (keep `NODE_TYPE_HANDLERS` dispatch in place) |
-| `models/state_builder.py` | 442 | `generate_typeddict_code` + helpers → `models/codegen.py` |
-| `models/graph_schema.py` | 441 | Guard/verification configs (`GuardRuleBase`, `PreGuardRule`, `PostGuardRule`, `GuardConfig`, `VerificationConfig`) → `models/guard_schema.py` |
-| `linter/checks_semantic.py` | 435 | Cycle checks (`check_unguarded_cycles`, `check_skip_if_exists_in_cycle`) → `linter/checks_cycles.py` |
-| `executor_async.py` | 435 | Covered by FR-672 retry extraction — no separate action |
+| `models/graph_schema.py` | ~610 | Guard/verification configs → `models/guard_schema.py`; tool/edge configs → second extraction target (TBD at enforce time) |
+| `models/state_builder.py` | 471 | `generate_typeddict_code` + helpers → `models/codegen.py` |
+| `linter/checks_semantic.py` | 469 | Cycle checks (`check_unguarded_cycles`, `check_skip_if_exists_in_cycle`) → `linter/checks_cycles.py` |
+| `executor_async.py` | 435 | Near target but under ceiling — split only if a natural seam presents |
 
 One commit per module split (`refactor(scope): FR-674 split X`), each
 re-exporting moved names from the original module's namespace only where an
 external import exists (check `examples/` and `tests/` first; prefer fixing
 importers over re-exports — no shims, Commandment 8).
 
-Sequencing: land before or interleaved with FR-668/FR-672/FR-673 so those
-FRs work against the post-split layout.
+Sequencing: land before FR-668/FR-673 so those FRs work against the
+post-split layout. FR-672 is rejected (duplication claim was false).
 
 ## Acceptance Criteria
 
-- [ ] All five modules < 400 lines (`find yamlgraph -name '*.py' | xargs wc -l`)
+- [ ] All three ceiling-violating modules < 400 lines
 - [ ] No behavior change: full test suite green with zero test edits other
       than import paths
 - [ ] `lint-imports` contracts still KEPT
