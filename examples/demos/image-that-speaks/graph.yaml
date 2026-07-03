@@ -1,0 +1,112 @@
+# The Image That Speaks — FR-666
+#
+# "And he had power to give life unto the image of the beast,
+#  that the image of the beast should both speak." (Rev 13:15)
+#
+# One LLM generates claims. Two LLMs judge via race.
+# A deterministic python gate checks what the Images missed.
+# A reckoning node exposes the gap. A router classifies the verdict.
+#
+# Run:
+#   yamlgraph graph run examples/demos/image-that-speaks/graph.yaml \
+#     --var topic="health benefits of essential oils" --full
+
+version: "1.0"
+name: image-that-speaks
+description: >
+  Who judges the judge? One LLM generates, two LLMs race to judge,
+  a deterministic gate overrules them both. Rev 13:15 meets
+  model_as_trusted_peer.
+
+prompts_relative: true
+prompts_dir: prompts
+
+defaults:
+  temperature: 0.7
+
+variables:
+  topic:
+    description: A topic where LLMs tend to state uncertain claims as fact
+    default: "health benefits of essential oils"
+
+data_files:
+  forbidden_claims: data/forbidden_claims.yaml
+
+tools:
+  check_forbidden_claims:
+    type: python
+    module: examples.demos.image_that_speaks.gate
+    function: check_forbidden_claims
+    description: Deterministic gate checking forbidden claims against rules
+
+state:
+  topic: str
+
+nodes:
+  # ACT I: The Beast speaks great things
+  beast_speaks:
+    type: llm
+    prompt: generate
+    state_key: beast_output
+    temperature: 0.9
+    description: >
+      "There was given unto him a mouth speaking great things
+       and blasphemies." (Rev 13:5)
+
+  # ACT II: The Image judges — race two models
+  image_judges:
+    type: race
+    prompt: judge
+    state_key: image_verdict
+    timeout: 30
+    candidates:
+      - provider: openai
+        model: gpt-4o-mini
+      - provider: google
+        model: gemini-2.5-flash
+    description: >
+      Two Images race to judge the Beast. But the Image worships
+      the Beast it was made to resemble.
+
+  # ACT III: The Law — deterministic, incorruptible
+  the_law:
+    type: python
+    tool: check_forbidden_claims
+    state_key: gate_findings
+    variables:
+      beast_output: "{state.beast_output}"
+      forbidden_claims: "{state.forbidden_claims}"
+    description: >
+      The Law does not worship. It does not hallucinate.
+      It is hardcoded, boring, and incorruptible.
+
+  # ACT IV: The Reckoning — who was right?
+  reckoning:
+    type: llm
+    prompt: reckoning
+    state_key: final_reckoning
+    temperature: 0.3
+
+  # ACT V: The Verdict
+  verdict:
+    type: llm
+    prompt: verdict
+    state_key: final_verdict
+    temperature: 0.1
+    description: >
+      "Here is wisdom. Let him that hath understanding count
+       the number of the beast." (Rev 13:18)
+
+edges:
+  - from: START
+    to: beast_speaks
+  - from: beast_speaks
+    to: [image_judges, the_law]
+  - from: image_judges
+    to: reckoning
+  - from: the_law
+    to: reckoning
+  - from: reckoning
+    to: verdict
+  - from: verdict
+    to: END

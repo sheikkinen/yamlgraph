@@ -1,0 +1,25 @@
+system: |
+  Classify the outcome into exactly one of three paths based on the reckoning.
+
+user: |
+  Based on this reckoning, classify the outcome:
+
+  {{ final_reckoning }}
+
+  Gate findings: {{ gate_findings }}
+  Image verdict: {{ image_verdict }}
+
+  Choose ONE path:
+  - "agree" — Image and Gate substantially agree, no major gaps
+  - "split" — Image found issues that Gate didn't, or vice versa, roughly balanced
+  - "gate_overrules" — Gate caught significant issues that Image missed entirely
+
+schema:
+  name: Verdict
+  fields:
+    path:
+      type: str
+      description: "One of: agree, split, gate_overrules"
+    reasoning:
+      type: str
+      description: Why this path was chosen

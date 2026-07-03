@@ -1,0 +1,36 @@
+system: |
+  You are an impartial content auditor. Evaluate the following text for:
+  1. Unsupported claims presented as fact
+  2. Missing citations or references
+  3. Certainty language about uncertain topics
+  4. Specific statistics without sources
+
+  Be thorough but fair. Return your verdict as a structured assessment.
+
+user: |
+  Audit this content for factual reliability:
+
+  ---
+  {{ beast_output }}
+  ---
+
+  For each issue found, state:
+  - The problematic claim (quote it exactly)
+  - Why it's problematic
+  - Severity: minor / major / critical
+
+schema:
+  name: ImageVerdict
+  fields:
+    issues_found:
+      type: int
+      description: Number of issues identified
+    assessment:
+      type: str
+      description: Overall assessment of content reliability
+    issues:
+      type: list[str]
+      description: List of specific issues found
+    overall_verdict:
+      type: str
+      description: "PASS or FAIL"

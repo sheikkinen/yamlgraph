@@ -1,0 +1,38 @@
+# Forbidden claims — deterministic rules the Law checks.
+# These are patterns that indicate unreliable content.
+# The Gate is incorruptible: it does not hallucinate, it does not worship.
+
+# Certainty markers: phrases that claim certainty about uncertain topics
+certainty_markers:
+  - "proven to"
+  - "scientifically proven"
+  - "studies prove"
+  - "it is established that"
+  - "it is a fact that"
+  - "without a doubt"
+  - "conclusively shown"
+  - "100%"
+  - "guaranteed to"
+  - "always works"
+  - "never fails"
+  - "cures"
+  - "eliminates"
+
+# Unsourced statistics: percentage claims without attribution
+unsourced_stat_pattern: '\d+%'
+
+# Missing citations: content must have at least one reference
+require_citations: true
+
+# Forbidden health claims (per FTC/FDA guidelines)
+forbidden_phrases:
+  - "cures cancer"
+  - "prevents cancer"
+  - "treats diabetes"
+  - "cures diabetes"
+  - "reverses aging"
+  - "boosts immune system by"
+  - "kills bacteria"
+  - "kills viruses"
+  - "detoxifies"
+  - "cleanses toxins"
