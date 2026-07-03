@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Proposed
+**Status:** Judged
 **Effort:** 1 day
 **Requested:** 2026-07-03
 
@@ -77,3 +77,21 @@ boundary, not in any single writer.
 - yamlgraph/models/state_builder.py:66
 - yamlgraph/node_factory/tool_nodes.py:75-86
 - yamlgraph/storage/export.py:170
+
+## Judgement
+
+**APPROVED.** All claims verified against codebase. Both fields exist at
+state_builder.py:66-67. tool_nodes.py writes singular `error` at lines 75
+and 86. export.py reads it at line 170. The parallel-map error-loss bug is
+real and the fix is mechanical.
+
+**Amendments:**
+1. The tool_nodes `error` writes are NESTED inside the tool-result dict
+   (stored under `state_key`), not top-level state. Audit whether these
+   are true state-level writes or payload-internal fields. If payload-internal,
+   they are out of scope — only the top-level state field removal matters.
+2. Also grep `mcp_server.py` and `progress.py` — they have `"error"` fields
+   in JSON response payloads, which are NOT state fields and must be
+   excluded from the migration.
+3. Sequencing: land FR-674 module splits first if state_builder.py (471
+   lines, already over ceiling) needs edits.

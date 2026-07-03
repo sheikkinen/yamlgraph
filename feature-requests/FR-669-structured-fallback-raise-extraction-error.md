@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Bug
-**Status:** Proposed
+**Status:** Judged
 **Effort:** 0.5 days
 **Requested:** 2026-07-03
 
@@ -77,3 +77,20 @@ raise ValueError(
 - FR-672 (retry logic extraction — sequencing: land this fix first or fold in)
 - yamlgraph/executor.py, yamlgraph/executor_async.py
 - yamlgraph/utils/json_extract.py
+
+## Judgement
+
+**APPROVED.** Bare `raise` at executor.py:200 confirmed — re-raises the
+original provider error after JSON extraction fails, hiding the real cause.
+`extract_json` returns the original string on no-match (json_extract.py:127).
+The `isinstance(parsed, dict)` check silently passes through.
+
+**Amendments:**
+1. FR says "same fix applied to the async path" but verification shows
+   `executor_async.py` does NOT have `_invoke_with_retry` — it delegates
+   to `llm_factory_async.py`. Check whether the async path even hits this
+   code. If not, drop the async criterion.
+2. FR-672 is rejected (see below), so the sequencing note about folding
+   into FR-672 is moot. This FR stands alone.
+3. Add `list` to the isinstance check: `isinstance(parsed, (dict, list))`
+   as proposed.

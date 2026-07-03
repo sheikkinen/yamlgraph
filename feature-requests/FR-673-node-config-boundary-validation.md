@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Proposed
+**Status:** Judged
 **Effort:** 1-2 days
 **Requested:** 2026-07-03
 
@@ -73,3 +73,20 @@ wanted later, it is its own FR.
 - docs/2026-07-03-review-fable.md (Issue 5)
 - yamlgraph/models/graph_schema.py (NodeConfig)
 - yamlgraph/node_compiler.py, yamlgraph/node_factory/
+
+## Judgement
+
+**APPROVED.** NodeConfig confirmed: `model_config = {"extra": "allow"}`
+at graph_schema.py:255. node_compiler.py passes raw dicts at line 358.
+The fix is mechanical: change `allow` to `forbid`.
+
+**Amendments:**
+1. `graph_schema.py` is already at ~610 lines — far over the 450 ceiling.
+   Land FR-674 (module splits) first, or at minimum split guard configs
+   out before adding validation logic.
+2. The `extra="forbid"` change will likely break existing graphs that use
+   undocumented fields. The audit step ("scan examples/ and graphs/") is
+   critical — do it BEFORE writing the RED test to scope the blast radius.
+3. Consider `extra="ignore"` with a deprecation warning as a migration
+   step if the audit reveals widespread use of undocumented fields. But
+   prefer `forbid` if the blast radius is small.

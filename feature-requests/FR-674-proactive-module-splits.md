@@ -1,9 +1,9 @@
 # Feature Request: Proactive module splits for the 435-450 line band
 
-**Priority:** LOW
+**Priority:** HIGH
 **Type:** Enhancement
-**Status:** Proposed
-**Effort:** 1-2 days
+**Status:** Judged
+**Effort:** 1 day
 **Requested:** 2026-07-03
 
 ## Summary
@@ -69,3 +69,33 @@ FRs work against the post-split layout.
 
 - docs/2026-07-03-review-fable.md (Refactoring: module-size band)
 - FR-668, FR-672, FR-673 (sequencing)
+
+## Judgement
+
+**APPROVED with corrections.** The line counts in the FR are wrong:
+
+| Module | FR claims | Actual | Status |
+|--------|-----------|--------|--------|
+| node_compiler.py | 447 | 434 | Under ceiling |
+| state_builder.py | 442 | 471 | OVER ceiling |
+| graph_schema.py | 441 | ~610 | FAR over ceiling |
+| checks_semantic.py | 435 | 469 | OVER ceiling |
+| executor_async.py | 435 | 435 | Accurate |
+
+Three modules already exceed the 450 hard ceiling. This is not
+"proactive" — it's overdue remediation. Title should reflect urgency.
+
+**Amendments:**
+1. Rename to "Module splits for ceiling violations" — this is not
+   proactive; state_builder.py, graph_schema.py, and checks_semantic.py
+   are already in violation.
+2. Priority: LOW → HIGH. Three ceiling violations are blocking.
+3. `graph_schema.py` at ~610 lines needs more aggressive splitting than
+   proposed — guard/verification configs alone won't bring it under 400.
+   Plan two extraction targets.
+4. `node_compiler.py` at 434 is under ceiling. Remove from scope unless
+   it has a natural seam worth splitting. Don't split what isn't broken.
+5. FR-672 is rejected, so `executor_async.py` won't shrink from retry
+   extraction. If it needs splitting, identify a different seam.
+6. Effort: 1-2 days → 1 day. These are mechanical moves with no behavior
+   change. One commit per module, as proposed.

@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Proposed
+**Status:** Rejected
 **Effort:** 1 day
 **Requested:** 2026-07-03
 
@@ -82,3 +82,19 @@ carries the corrected behavior, or fold FR-669 into this FR's RED phase.
 - docs/2026-07-03-review-fable.md (Refactoring: sync/async retry duplication)
 - FR-669 (fallback error fix — sequencing dependency)
 - yamlgraph/executor.py, yamlgraph/executor_async.py, yamlgraph/executor_base.py
+
+## Judgement
+
+**REJECTED.** The core claim — that retry/fallback logic is duplicated
+between `executor.py` and `executor_async.py` — is false. Verification
+shows `executor_async.py` does NOT have `_invoke_with_retry`; it delegates
+to `llm_factory_async.py` for invocation. The async path has inline
+streaming exception handling (~lines 400-409) but this is streaming-specific
+error handling, not retry/fallback duplication.
+
+`executor_base.py` already holds the shared helpers (`is_retryable`,
+`format_prompt`, `prepare_messages`). The extraction this FR proposes was
+already done — the FR is solving a problem that doesn't exist.
+
+The 435-line count for `executor_async.py` is accurate but is addressed by
+FR-674 (module splits) if needed.

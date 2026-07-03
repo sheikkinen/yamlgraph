@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Bug
-**Status:** Proposed
+**Status:** Judged
 **Effort:** 0.5 days
 **Requested:** 2026-07-03
 
@@ -77,3 +77,19 @@ The `TimeoutError` branch above it has the same gap (no log on timeout).
 
 - docs/2026-07-03-review-fable.md (Issue 4)
 - yamlgraph/mcp_server.py:300-321 (inner handler), 246-252 (outer handler)
+
+## Judgement
+
+**APPROVED with corrections.** The FR's description of which handler logs
+and which doesn't is inverted: the OUTER tool handler (line 246) DOES log
+with `exc_info=True`; the INNER graph-execution handler (~line 315) does NOT
+log. The fix direction is correct — add logging to the inner handler — but
+the FR text is misleading.
+
+**Amendments:**
+1. Correct the FR description: the outer handler logs, the inner doesn't.
+   The FR says the opposite.
+2. TimeoutError branch (~line 306) also confirmed: no logging. Fix both
+   branches as proposed.
+3. This is a 2-line fix. Effort 0.5 days is generous but acceptable for
+   TDD overhead.
