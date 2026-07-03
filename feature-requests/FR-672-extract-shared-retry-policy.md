@@ -93,8 +93,10 @@ streaming exception handling (~lines 400-409) but this is streaming-specific
 error handling, not retry/fallback duplication.
 
 `executor_base.py` already holds the shared helpers (`is_retryable`,
-`format_prompt`, `prepare_messages`). The extraction this FR proposes was
-already done — the FR is solving a problem that doesn't exist.
+`format_prompt`, `prepare_messages`). More importantly, async execution does
+not share sync behavior: `utils/llm_factory_async.py::invoke_async` has no
+retry loop and no FR-464 JSON fallback. That may be a future parity problem,
+but it is not duplicated retry/fallback logic to extract.
 
 The 435-line count for `executor_async.py` is accurate but is addressed by
 FR-674 (module splits) if needed.

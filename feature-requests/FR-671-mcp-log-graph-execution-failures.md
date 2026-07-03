@@ -81,16 +81,8 @@ The `TimeoutError` branch above it has the same gap (no log on timeout).
 
 ## Judgement
 
-**APPROVED with corrections.** The FR's description of which handler logs
-and which doesn't is inverted: the OUTER tool handler (line 246) DOES log
-with `exc_info=True`; the INNER graph-execution handler (~line 315) does NOT
-log. The fix direction is correct — add logging to the inner handler — but
-the FR text is misleading.
-
-**Amendments:**
-1. Correct the FR description: the outer handler logs, the inner doesn't.
-   The FR says the opposite.
-2. TimeoutError branch (~line 306) also confirmed: no logging. Fix both
-   branches as proposed.
-3. This is a 2-line fix. Effort 0.5 days is generous but acceptable for
-   TDD overhead.
+**APPROVED.** Current FR text now states the correct handler relationship:
+the outer tool handler logs with `exc_info=True`, while the inner graph-run
+handler catches first and returns JSON without logging. Timeout branch also
+lacks logging. Fix both branches as proposed while preserving returned JSON
+shape. Effort 0.5 days is acceptable for RED/GREEN plus MCP tests.

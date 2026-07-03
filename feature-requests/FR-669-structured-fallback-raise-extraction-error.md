@@ -39,9 +39,10 @@ rejection — the error the fallback already worked around — instead of the
 actual failure: the model returned prose, not JSON. Boundary normalization
 gap at the schema boundary (`the_one_law`).
 
-**Note (Judgement):** `executor_async.py` does NOT have `_invoke_with_retry`
-— it delegates to `llm_factory_async.py`. Verify whether the async path
-hits this code at all before fixing it.
+**Note (Judgement):** `executor_async.py` does NOT have `_invoke_with_retry`;
+it delegates to `utils/llm_factory_async.py::invoke_async`, which currently
+has no FR-464 JSON-extraction fallback. This FR fixes the sync diagnostic
+only. Async fallback parity is a separate issue if desired.
 
 ## Proposed Solution
 
@@ -61,7 +62,7 @@ raise ValueError(
       `response_format` and whose plain invoke returns prose; assert raised
       error mentions JSON extraction and includes a response snippet
 - [ ] Original provider error preserved as `__cause__` (`from struct_err`)
-- [ ] Verify whether async path hits this code; if not, drop async criterion
+- [ ] Async path explicitly out of scope; no changes to `invoke_async`
 - [ ] All unit tests green
 - [ ] Changelog fragment in `changelog/unreleased/`
 
@@ -86,10 +87,10 @@ original provider error after JSON extraction fails, hiding the real cause.
 The `isinstance(parsed, dict)` check silently passes through.
 
 **Amendments:**
-1. FR says "same fix applied to the async path" but verification shows
-   `executor_async.py` does NOT have `_invoke_with_retry` — it delegates
-   to `llm_factory_async.py`. Check whether the async path even hits this
-   code. If not, drop the async criterion.
+1. Async path does not hit this code. `executor_async.py` delegates to
+    `utils/llm_factory_async.py::invoke_async`, which lacks the FR-464 fallback
+    entirely. Do not modify async behavior in this FR; file a separate parity
+    FR if async fallback is required.
 2. FR-672 is rejected (see below), so the sequencing note about folding
    into FR-672 is moot. This FR stands alone.
 3. Add `list` to the isinstance check: `isinstance(parsed, (dict, list))`

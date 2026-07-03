@@ -70,6 +70,6 @@ surface this like any other node failure — no new machinery.
 
 ## Judgement
 
-**APPROVED.** `return "" if texts else ""` at a2a_client.py:67 confirmed.
-Silent empty-string return violates Commandment 6. Fix is one line.
-No amendments.
+**APPROVED.** `return "\n".join(texts) if texts else ""` in
+`a2a_client.py` is confirmed. Silent empty-string return violates
+Commandment 6. Fix is small and correctly scoped. No amendments.
