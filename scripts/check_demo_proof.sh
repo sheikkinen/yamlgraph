@@ -8,7 +8,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/demo_log_semantics.sh"
 
-STAGED=$(git diff --cached --name-only)
+STAGED=$(git diff --cached --name-only --diff-filter=d)
 
 # Extract demo directory names that have changes (excluding the log itself
 # and the shared tests/ directory which is test infrastructure, not a demo)

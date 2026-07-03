@@ -83,7 +83,6 @@ Standalone demos that teach a single YAMLGraph concept. Ordered by the learning 
 | [guards](demos/guards/) | `llm` | Deterministic pre/post node guards with explicit policy (FR-344) |
 | [horoscope](demos/horoscope/) | `map`, `llm` | Parallel daily horoscope for 12 zodiac signs |
 | [image-that-speaks](demos/image-that-speaks/) | `race`, `python`, `llm` | Adversarial content audit — model-judging-model blindness (FR-666) |
-| [image_that_speaks](demos/image_that_speaks/) | `python` | Python gate module for image-that-speaks demo |
 | [chatterbox](demos/chatterbox/) | `map`, `python` | Multilingual TTS with Chatterbox (5 languages → WAV) |
 | [chatterbox_clone](demos/chatterbox_clone/) | `python` | Voice cloning with Chatterbox reference audio → WAV (FR-236) |
 | [interview](demos/interview/) | `interrupt` | Human-in-the-loop |

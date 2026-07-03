@@ -35,7 +35,7 @@ data_files:
 tools:
   check_forbidden_claims:
     type: python
-    module: examples.demos.image_that_speaks.gate
+    path: gate.py
     function: check_forbidden_claims
     description: Deterministic gate checking forbidden claims against rules
 
