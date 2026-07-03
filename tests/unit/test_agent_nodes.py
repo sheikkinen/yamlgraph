@@ -665,3 +665,87 @@ class TestAgentNormalizeContent:
         assert isinstance(
             result["result"], str
         ), f"Max-iterations path returned {type(result['result'])}"
+
+
+class TestToolExecutionUnification:
+    """Tests for FR-660: unified agent tool bind/execute paths."""
+
+    @pytest.mark.req("REQ-YG-018")
+    def test_no_direct_execution_imports_in_agent(self):
+        """AC-3: agent.py must not import execute_shell_tool or load_python_function."""
+        import yamlgraph.tools.agent as agent_mod
+
+        assert not hasattr(
+            agent_mod, "execute_shell_tool"
+        ), "execute_shell_tool should not be imported in agent.py"
+        assert not hasattr(
+            agent_mod, "load_python_function"
+        ), "load_python_function should not be imported in agent.py"
+
+    @patch("yamlgraph.tools.agent.create_llm")
+    @pytest.mark.req("REQ-YG-018")
+    def test_shell_tool_error_format_preserved(self, mock_create_llm):
+        """AC-5: Shell tool errors surface as 'Error: ...' in tool_results."""
+        mock_llm = MagicMock()
+        first_response = MagicMock()
+        first_response.tool_calls = [{"id": "call1", "name": "fail_tool", "args": {}}]
+        first_response.content = ""
+        second_response = MagicMock()
+        second_response.tool_calls = []
+        second_response.content = "Tool failed"
+        mock_llm.bind_tools.return_value = mock_llm
+        mock_llm.invoke.side_effect = [first_response, second_response]
+        mock_create_llm.return_value = mock_llm
+
+        tools = {
+            "fail_tool": ShellToolConfig(command="false", description="Always fails"),
+        }
+        node_config = {
+            "prompt": "agent",
+            "tools": ["fail_tool"],
+            "max_iterations": 5,
+            "state_key": "result",
+            "tool_results_key": "tool_outputs",
+        }
+        node_fn = create_agent_node("agent", node_config, tools)
+        result = node_fn({"input": "Run failing tool"})
+
+        assert len(result["tool_outputs"]) == 1
+        assert result["tool_outputs"][0]["output"].startswith("Error: ")
+        assert result["tool_outputs"][0]["success"] is False
+
+    @patch("yamlgraph.tools.agent.create_llm")
+    @pytest.mark.req("REQ-YG-018")
+    def test_python_tool_error_format_preserved(self, mock_create_llm):
+        """AC-5: Python tool errors surface as 'Error: ...' in tool_results."""
+        mock_llm = MagicMock()
+        first_response = MagicMock()
+        first_response.tool_calls = [{"id": "call1", "name": "boom_tool", "args": {}}]
+        first_response.content = ""
+        second_response = MagicMock()
+        second_response.tool_calls = []
+        second_response.content = "Handled"
+        mock_llm.bind_tools.return_value = mock_llm
+        mock_llm.invoke.side_effect = [first_response, second_response]
+        mock_create_llm.return_value = mock_llm
+
+        python_tools = {
+            "boom_tool": PythonToolConfig(
+                module="os.path",
+                function="join",
+                description="Will fail with no args",
+            ),
+        }
+        node_config = {
+            "prompt": "agent",
+            "tools": ["boom_tool"],
+            "max_iterations": 5,
+            "state_key": "result",
+            "tool_results_key": "tool_outputs",
+        }
+        node_fn = create_agent_node("agent", node_config, {}, python_tools=python_tools)
+        result = node_fn({"input": "Call it"})
+
+        assert len(result["tool_outputs"]) == 1
+        assert result["tool_outputs"][0]["output"].startswith("Error: ")
+        assert result["tool_outputs"][0]["success"] is False

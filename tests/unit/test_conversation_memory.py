@@ -85,7 +85,7 @@ class TestAgentReturnsMessages:
 
         with (
             patch("yamlgraph.tools.agent.create_llm", return_value=mock_llm),
-            patch("yamlgraph.tools.agent.execute_shell_tool") as mock_exec,
+            patch("yamlgraph.tools.tool_builders.execute_shell_tool") as mock_exec,
         ):
             mock_exec.return_value = MagicMock(success=True, output="tool output")
 
@@ -135,7 +135,7 @@ class TestToolResultsPersistence:
 
         with (
             patch("yamlgraph.tools.agent.create_llm", return_value=mock_llm),
-            patch("yamlgraph.tools.agent.execute_shell_tool") as mock_exec,
+            patch("yamlgraph.tools.tool_builders.execute_shell_tool") as mock_exec,
         ):
             mock_exec.return_value = MagicMock(
                 success=True, output="commit abc123\nAuthor: Test"
@@ -213,7 +213,7 @@ class TestToolResultsPersistence:
 
         with (
             patch("yamlgraph.tools.agent.create_llm", return_value=mock_llm),
-            patch("yamlgraph.tools.agent.execute_shell_tool") as mock_exec,
+            patch("yamlgraph.tools.tool_builders.execute_shell_tool") as mock_exec,
         ):
             mock_exec.return_value = MagicMock(success=True, output="output")
 

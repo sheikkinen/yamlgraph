@@ -15,9 +15,9 @@ from typing import Any
 from langchain_core.messages import HumanMessage, SystemMessage, ToolMessage
 
 from yamlgraph.executor_base import format_prompt
-from yamlgraph.tools.python_tool import PythonToolConfig, load_python_function
+from yamlgraph.tools.python_tool import PythonToolConfig
 from yamlgraph.tools.schema_loader_tool import SchemaLoaderToolConfig
-from yamlgraph.tools.shell import ShellToolConfig, execute_shell_tool
+from yamlgraph.tools.shell import ShellToolConfig
 from yamlgraph.tools.tool_builders import build_langchain_tool, build_python_tool
 from yamlgraph.utils.content import normalize_content as _normalize_content
 from yamlgraph.utils.json_extract import extract_json
@@ -145,25 +145,21 @@ def create_agent_node(  # noqa: C901
     graph_root = graph_path.parent.resolve() if graph_path else None
     for name in tool_names:
         if name in tools:
-            # Shell tool - need to wrap
-            lc_tools.append(build_langchain_tool(name, tools[name]))
-            tool_lookup[name] = tools[name]
+            st = build_langchain_tool(name, tools[name])
+            lc_tools.append(st)
+            tool_lookup[name] = st
         elif name in python_tools:
-            # Python tool - wrap as LangChain tool
-            lc_tools.append(
-                build_python_tool(name, python_tools[name], graph_root=graph_root)
-            )
-            tool_lookup[name] = python_tools[name]
+            st = build_python_tool(name, python_tools[name], graph_root=graph_root)
+            lc_tools.append(st)
+            tool_lookup[name] = st
         elif name in graph_tool_configs and name in graph_tool_callables:
-            # FR-658: Graph tool - wrap pre-compiled pipeline as tool
             from yamlgraph.tools.graph_tool import build_graph_tool
 
-            lc_tools.append(
-                build_graph_tool(
-                    name, graph_tool_configs[name], graph_tool_callables[name]
-                )
+            st = build_graph_tool(
+                name, graph_tool_configs[name], graph_tool_callables[name]
             )
-            tool_lookup[name] = graph_tool_callables[name]
+            lc_tools.append(st)
+            tool_lookup[name] = st
         else:
             logger.warning(
                 f"Tool '{name}' not found in shell, python, or graph registries"
@@ -285,49 +281,15 @@ def create_agent_node(  # noqa: C901
 
                 logger.info(f"🔧 Calling tool: {tool_name}({tool_args})")
 
-                # Execute the tool
-                tool_config = tool_lookup.get(tool_name)
-                if tool_config:
-                    # Check the type of tool config
-                    if isinstance(tool_config, ShellToolConfig):
-                        # Shell tool - use execute_shell_tool
-                        result = execute_shell_tool(tool_config, tool_args)
-                        output = (
-                            str(result.output)
-                            if result.success
-                            else f"Error: {result.error}"
-                        )
-                        success = result.success
-                    elif isinstance(
-                        tool_config, PythonToolConfig | SchemaLoaderToolConfig
-                    ):
-                        # Python tool - load and execute function
-                        try:
-                            func = load_python_function(
-                                tool_config,
-                                graph_root=graph_root,
-                                tool_name=tool_name,
-                            )
-                            output = str(func(**tool_args))
-                            success = True
-                        except Exception as e:
-                            output = f"Error: {e}"
-                            success = False
-                    else:
-                        # Graph tool or LangChain tool
-                        try:
-                            if callable(tool_config) and not hasattr(
-                                tool_config, "invoke"
-                            ):
-                                # Graph tool callable (FR-658)
-                                output = str(tool_config(**tool_args))
-                            else:
-                                # LangChain tool (websearch, etc)
-                                output = tool_config.invoke(tool_args)
-                            success = True
-                        except Exception as e:
-                            output = f"Error: {e}"
-                            success = False
+                # Execute the tool via unified StructuredTool.invoke (FR-660)
+                tool_obj = tool_lookup.get(tool_name)
+                if tool_obj:
+                    try:
+                        output = str(tool_obj.invoke(tool_args))
+                        success = not output.startswith("Error: ")
+                    except Exception as e:
+                        output = f"Error: {e}"
+                        success = False
                 else:
                     output = f"Error: Unknown tool '{tool_name}'"
                     success = False
