@@ -312,3 +312,18 @@ def prepare_messages_async(
         prompts_relative,
         state,
     )
+
+
+def build_schema_hint(output_model: type) -> str:
+    """Build a JSON schema instruction string from a Pydantic model (FR-464)."""
+    fields = []
+    for name, info in output_model.model_fields.items():
+        desc = info.description or ""
+        fields.append(
+            f'  "{name}": <{info.annotation.__name__ if hasattr(info.annotation, "__name__") else str(info.annotation)}> — {desc}'
+        )
+    schema_lines = "\n".join(fields)
+    return (
+        "Respond ONLY with valid JSON matching this schema (no markdown, no explanation):\n"
+        f"{{\n{schema_lines}\n}}"
+    )

@@ -20,7 +20,12 @@ from yamlgraph.config import (
     RETRY_BASE_DELAY,
     RETRY_MAX_DELAY,
 )
-from yamlgraph.executor_base import format_prompt, is_retryable, prepare_messages
+from yamlgraph.executor_base import (
+    build_schema_hint,
+    format_prompt,
+    is_retryable,
+    prepare_messages,
+)
 from yamlgraph.utils.content import normalize_content
 from yamlgraph.utils.json_extract import extract_json
 from yamlgraph.utils.llm_factory import create_llm
@@ -33,18 +38,11 @@ __all__ = ["execute_prompt", "format_prompt", "get_executor", "PromptExecutor"]
 
 
 def _build_schema_hint(output_model: type) -> str:
-    """Build a JSON schema instruction string from a Pydantic model (FR-464)."""
-    fields = []
-    for name, info in output_model.model_fields.items():
-        desc = info.description or ""
-        fields.append(
-            f'  "{name}": <{info.annotation.__name__ if hasattr(info.annotation, "__name__") else str(info.annotation)}> — {desc}'
-        )
-    schema_lines = "\n".join(fields)
-    return (
-        "Respond ONLY with valid JSON matching this schema (no markdown, no explanation):\n"
-        f"{{\n{schema_lines}\n}}"
-    )
+    """Build a JSON schema instruction string from a Pydantic model (FR-464).
+
+    .. deprecated:: Use ``executor_base.build_schema_hint`` directly.
+    """
+    return build_schema_hint(output_model)
 
 
 def execute_prompt(

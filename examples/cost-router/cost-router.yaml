@@ -60,17 +60,17 @@ nodes:
   # Track which provider was used
   log_simple:
     type: passthrough
-    set:
+    output:
       provider_used: "replicate/granite-4.0-h-small"
 
   log_medium:
     type: passthrough
-    set:
+    output:
       provider_used: "mistral/mistral-small-latest"
 
   log_complex:
     type: passthrough
-    set:
+    output:
       provider_used: "anthropic/claude-haiku-4-5"
 
 edges:

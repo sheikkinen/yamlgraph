@@ -263,6 +263,7 @@ nodes:
   evaluate:
     type: router
     prompt: evaluate
+    route_field: verdict
     routes:
       improve: generate
       done: finalize

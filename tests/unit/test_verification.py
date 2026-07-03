@@ -17,7 +17,8 @@ import pytest
 import yaml
 
 from yamlgraph.linter.checks_contracts import check_skip_without_verification
-from yamlgraph.models.graph_schema import NodeConfig, VerificationConfig
+from yamlgraph.models.graph_schema import NodeConfig
+from yamlgraph.models.guard_schema import VerificationConfig
 from yamlgraph.models.schemas import ErrorType, VerificationViolation
 from yamlgraph.verification import evaluate_verification
 

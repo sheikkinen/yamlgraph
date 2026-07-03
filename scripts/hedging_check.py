@@ -59,7 +59,7 @@ ALLOWLIST: dict[str, str] = {
     "yamlgraph/linter/checks_semantic.py:289": "CONF-237",
     "yamlgraph/linter/graph_linter.py:128": "CONF-238",
     "yamlgraph/linter/graph_linter.py:129": "CONF-239",
-    "yamlgraph/models/graph_schema.py:169": "CONF-240",
+    "yamlgraph/models/graph_schema.py:72": "CONF-240",
     "yamlgraph/node_factory/copilot_node.py:83": "CONF-241",
     "yamlgraph/node_factory/llm_execution.py:134": "CONF-242",
     "yamlgraph/node_factory/llm_nodes.py:125": "CONF-243",
@@ -75,6 +75,7 @@ ALLOWLIST: dict[str, str] = {
     "yamlgraph/utils/prompts.py:50": "CONF-253",
     "yamlgraph/utils/prompts.py:66": "CONF-254",
     "yamlgraph/tools/agent.py:36": "CONF-304",
+    "yamlgraph/utils/llm_factory_async.py:82": "CONF-349",
 }
 
 

@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Judged
+**Status:** Enforced
 **Effort:** 1-2 days
 **Requested:** 2026-07-03
 

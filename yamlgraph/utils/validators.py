@@ -207,6 +207,16 @@ def validate_config(config: dict[str, Any]) -> None:
     """
     validate_required_sections(config)
 
+    # FR-673: Pydantic schema validation rejects unknown node keys at load time
+    from pydantic import ValidationError
+
+    from yamlgraph.models.graph_schema import validate_graph_schema
+
+    try:
+        validate_graph_schema(config)
+    except ValidationError as e:
+        raise ValueError(str(e)) from e
+
     nodes = config["nodes"]
     for node_name, node_config in nodes.items():
         validate_node_prompt(node_name, node_config)

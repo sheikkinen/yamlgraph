@@ -8,108 +8,11 @@ from typing import Any, Literal
 from pydantic import BaseModel, Field, field_validator, model_validator
 
 from yamlgraph.constants import ErrorHandler, NodeType
-
-VALID_ON_FAIL = {"warn", "halt", "retry"}
-
-
-class CacheConfig(BaseModel):
-    """Configuration for per-node result caching (FR-032).
-
-    Maps to LangGraph CachePolicy on graph.add_node().
-    """
-
-    ttl: int | None = Field(
-        default=None,
-        ge=1,
-        description="Time-to-live in seconds (None = cache forever)",
-    )
-
-
-class VerificationConfig(BaseModel):
-    """Configuration for a node's verification gate (FR-164)."""
-
-    question: str = Field(
-        ..., description="Falsifiable prediction about the node's output"
-    )
-    on_fail: str = Field(
-        default="warn",
-        description="Action when prediction is violated: warn | halt | retry",
-    )
-    max_retries: int = Field(
-        default=1,
-        ge=1,
-        description="Max retry attempts when on_fail: retry",
-    )
-
-    @field_validator("on_fail")
-    @classmethod
-    def validate_on_fail(cls, v: str) -> str:
-        """Validate on_fail is a known action."""
-        if v not in VALID_ON_FAIL:
-            valid = ", ".join(sorted(VALID_ON_FAIL))
-            raise ValueError(f"Invalid on_fail '{v}'. Valid: {valid}")
-        return v
-
-
-class GuardRuleBase(BaseModel):
-    """Base schema for deterministic guard rules (FR-344)."""
-
-    check: str = Field(..., description="Deterministic guard expression")
-    message: str | None = Field(
-        default=None,
-        description="Optional human-readable failure message",
-    )
-
-    model_config = {"extra": "forbid"}
-
-
-class PreGuardRule(GuardRuleBase):
-    """Pre-execution guard rule."""
-
-    on_fail: Literal["warn", "halt", "skip"] = Field(
-        ..., description="Pre-guard action: warn | halt | skip"
-    )
-
-
-class PostGuardRule(GuardRuleBase):
-    """Post-execution guard rule."""
-
-    on_fail: Literal["warn", "halt", "retry"] = Field(
-        ..., description="Post-guard action: warn | halt | retry"
-    )
-    max_retries: int | None = Field(
-        default=None,
-        ge=1,
-        description="Retry budget for post guards with on_fail=retry (default 1)",
-    )
-
-    @model_validator(mode="after")
-    def validate_retry_fields(self) -> "PostGuardRule":
-        """Allow max_retries only with on_fail=retry, defaulting to 1."""
-        if self.on_fail == "retry":
-            if self.max_retries is None:
-                self.max_retries = 1
-            return self
-        if self.max_retries is not None:
-            raise ValueError(
-                "max_retries is only valid for post guards with on_fail=retry"
-            )
-        return self
-
-
-class GuardConfig(BaseModel):
-    """Per-node deterministic guard configuration."""
-
-    pre: list[PreGuardRule] = Field(
-        default_factory=list,
-        description="Pre-execution deterministic guards",
-    )
-    post: list[PostGuardRule] = Field(
-        default_factory=list,
-        description="Post-execution deterministic guards",
-    )
-
-    model_config = {"extra": "forbid"}
+from yamlgraph.models.guard_schema import (
+    CacheConfig,
+    GuardConfig,
+    VerificationConfig,
+)
 
 
 class SubgraphNodeConfig(BaseModel):
@@ -176,7 +79,9 @@ class NodeConfig(BaseModel):
     )
 
     # Map node fields
-    over: str | None = Field(default=None, description="Map over expression")
+    over: str | list | None = Field(
+        default=None, description="Map over expression or inline list"
+    )
     # 'as' is reserved in Python, handled specially
     item_var: str | None = Field(default=None, alias="as")
     node: dict[str, Any] | None = Field(default=None, description="Map sub-node")
@@ -231,7 +136,104 @@ class NodeConfig(BaseModel):
         description="Cache policy — true for default, {ttl: N} for time-limited",
     )
 
-    model_config = {"extra": "allow", "populate_by_name": True}
+    # Structured output model class path (FR-673)
+    output_model: str | None = Field(
+        default=None, description="Pydantic model class path for structured output"
+    )
+    max_tokens: int | None = Field(
+        default=None, description="Per-node token limit override"
+    )
+    default_route: str | None = Field(
+        default=None, description="Fallback route when routing condition doesn't match"
+    )
+    loop_limit: int | None = Field(
+        default=None, description="Per-node loop protection limit"
+    )
+    skip_if_exists: bool = Field(
+        default=True, description="Skip execution if state_key already has truthy value"
+    )
+    max_retries: int | None = Field(
+        default=None, description="Per-node retry count override"
+    )
+    description: str | None = Field(
+        default=None, description="Human-readable node description"
+    )
+
+    # Interrupt node fields
+    message: str | dict[str, Any] | None = Field(
+        default=None, description="Static interrupt payload sent to user"
+    )
+    resume_key: str | None = Field(
+        default=None, description="State key for storing user response to interrupt"
+    )
+    idempotent: bool = Field(
+        default=True,
+        description="Skip prompt if payload already exists (interrupt nodes)",
+    )
+
+    # Passthrough node fields
+    output: dict[str, str] | None = Field(
+        default=None,
+        description="State key → expression mappings for passthrough nodes",
+    )
+    outputs: dict[str, str] | None = Field(
+        default=None, description="Alias for output (passthrough nodes)"
+    )
+
+    # Tool call node fields
+    tool: str | None = Field(
+        default=None, description="Tool name or template expression"
+    )
+    args: str | dict[str, Any] | None = Field(
+        default=None, description="Tool arguments expression"
+    )
+    tool_results_key: str | None = Field(
+        default=None, description="State key for agent tool results"
+    )
+
+    # Map node limits
+    max_items: int | None = Field(
+        default=None, description="Maximum items to process in map node"
+    )
+
+    # Subgraph fields (used when type=subgraph alongside SubgraphNodeConfig)
+    graph: str | None = Field(default=None, description="Path to subgraph YAML file")
+    mode: str | None = Field(
+        default=None, description="Subgraph mode: invoke or direct"
+    )
+    input_mapping: dict[str, str] | str | None = Field(
+        default=None, description="Map parent state fields to child input"
+    )
+    output_mapping: dict[str, str] | str | None = Field(
+        default=None, description="Map child output fields to parent state"
+    )
+    interrupt_output_mapping: dict[str, str] | str | None = Field(
+        default=None, description="Map child state to parent when subgraph interrupts"
+    )
+    checkpointer: str | None = Field(
+        default=None, description="Override parent checkpointer"
+    )
+
+    # Python node fields
+    module: str | None = Field(
+        default=None, description="Python module path for python nodes"
+    )
+    function: str | None = Field(
+        default=None, description="Function name in module for python nodes"
+    )
+    path: str | None = Field(
+        default=None, description="File path to Python module for python nodes"
+    )
+
+    # Schema reference
+    schema_ref: str | None = Field(
+        default=None, alias="schema", description="External YAML schema file reference"
+    )
+    output_schema: dict[str, Any] | str | None = Field(
+        default=None, description="Inline output schema definition"
+    )
+
+    model_config = {"extra": "forbid", "populate_by_name": True}
 
     @field_validator("cache", mode="before")
     @classmethod

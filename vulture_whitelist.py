@@ -269,3 +269,9 @@ run_legacy_yamlgraph_async
 ActionConfig._normalize_event_map  # Pydantic @field_validator; invoked by framework
 ActionConfig._coerce_variable_values  # Pydantic @field_validator; invoked by framework
 ActionConfig.failure  # Pydantic field with AliasChoices; read via attribute access
+
+# --- graph_schema: Pydantic fields accessed via alias or YAML key only ---
+from yamlgraph.models.graph_schema import NodeConfig  # noqa: F401 (CONF-126)
+
+NodeConfig.schema_ref  # Pydantic field with alias="schema"; accessed via YAML key
+NodeConfig.outputs  # Alias for output; used in passthrough node fixtures

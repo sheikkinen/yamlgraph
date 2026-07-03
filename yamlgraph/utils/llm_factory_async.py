@@ -15,10 +15,13 @@ from functools import partial
 from typing import TypeVar
 
 from langchain_core.language_models.chat_models import BaseChatModel
-from langchain_core.messages import BaseMessage
+from langchain_core.messages import BaseMessage, HumanMessage
 from pydantic import BaseModel
 
+from yamlgraph.config import MAX_RETRIES, RETRY_BASE_DELAY, RETRY_MAX_DELAY
+from yamlgraph.executor_base import build_schema_hint, is_retryable
 from yamlgraph.utils.content import normalize_content
+from yamlgraph.utils.json_extract import extract_json
 from yamlgraph.utils.llm_factory import ProviderType, create_llm
 
 logger = logging.getLogger(__name__)
@@ -74,30 +77,74 @@ async def invoke_async(
     llm: BaseChatModel,
     messages: list[BaseMessage],
     output_model: type[T] | None = None,
+    max_retries: int = MAX_RETRIES,
 ) -> T | str:
-    """Invoke LLM asynchronously.
+    """Invoke LLM asynchronously with retry and structured-output fallback.
 
     Runs the sync invoke in a thread pool to avoid blocking.
+    Mirrors sync executor retry semantics (FR-676):
+    - Exponential backoff on retryable errors (asyncio.sleep between attempts)
+    - FR-464 structured-output fallback when provider rejects response_format
 
     Args:
         llm: The LLM instance
         messages: Messages to send
         output_model: Optional Pydantic model for structured output
+        max_retries: Maximum retry attempts (default from config)
 
     Returns:
         LLM response (parsed model or string)
     """
-    loop = asyncio.get_event_loop()
+    loop = asyncio.get_running_loop()
+    last_exception = None
 
-    def sync_invoke() -> T | str:
-        if output_model:
-            structured_llm = llm.with_structured_output(output_model)
-            return structured_llm.invoke(messages)
-        else:
-            response = llm.invoke(messages)
-            return normalize_content(response.content)
+    for attempt in range(max_retries):
+        try:
 
-    return await loop.run_in_executor(get_executor(), sync_invoke)
+            def sync_invoke() -> T | str:
+                if output_model:
+                    try:
+                        structured_llm = llm.with_structured_output(output_model)
+                        return structured_llm.invoke(messages)
+                    except Exception as struct_err:
+                        if "response_format" in str(struct_err):
+                            logger.info(
+                                "Structured output rejected, falling back to JSON extraction (FR-464)"
+                            )
+                            schema_hint = build_schema_hint(output_model)
+                            retry_msgs = list(messages) + [
+                                HumanMessage(content=schema_hint)
+                            ]
+                            response = llm.invoke(retry_msgs)
+                            text = normalize_content(response.content)
+                            parsed = extract_json(text)
+                            if isinstance(parsed, dict | list):
+                                return output_model.model_validate(parsed)
+                            raise ValueError(
+                                f"Structured output fallback failed: could not extract JSON "
+                                f"from LLM response: {text[:200]}"
+                            ) from struct_err
+                        raise
+                else:
+                    response = llm.invoke(messages)
+                    return normalize_content(response.content)
+
+            return await loop.run_in_executor(get_executor(), sync_invoke)
+
+        except Exception as e:
+            last_exception = e
+
+            if not is_retryable(e) or attempt == max_retries - 1:
+                raise
+
+            delay = min(RETRY_BASE_DELAY * (2**attempt), RETRY_MAX_DELAY)
+            logger.warning(
+                f"Async LLM call failed (attempt {attempt + 1}/{max_retries}): {e}. "
+                f"Retrying in {delay:.1f}s..."
+            )
+            await asyncio.sleep(delay)
+
+    raise last_exception
 
 
 def shutdown_executor() -> None:

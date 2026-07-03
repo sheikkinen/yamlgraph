@@ -1152,7 +1152,7 @@ These are E402 suppressions and are acceptable as "glue code" patterns.
 - **Penance**: Retained intentionally for domain semantics or existing contract wording; explicitly allowlisted and audited.
 
 ### CONF-240
-- **File**: [yamlgraph/models/graph_schema.py](../yamlgraph/models/graph_schema.py#L169)
+- **File**: [yamlgraph/models/graph_schema.py](../yamlgraph/models/graph_schema.py#L72)
 - **Code**: FB001
 - **Sin**: Contains lexical `fallback` token flagged by FR-418 fallback-token hygiene gate.
 - **Penance**: Retained intentionally for domain semantics or existing contract wording; explicitly allowlisted and audited.
@@ -1252,6 +1252,12 @@ These are E402 suppressions and are acceptable as "glue code" patterns.
 - **Code**: FB001
 - **Sin**: Comment `# Fallback: structured output re-invoke (expensive)` uses `fallback` token.
 - **Penance**: Same as CONF-304 — documents the two-phase structured output strategy.
+
+### CONF-349
+- **File**: [yamlgraph/utils/llm_factory_async.py](../yamlgraph/utils/llm_factory_async.py#L82)
+- **Code**: FB001
+- **Sin**: Docstring of `invoke_async` contains `fallback` — describes the FR-464 structured-output JSON fallback strategy.
+- **Penance**: The word describes the actual retry-then-parse pattern from FR-676. Renaming would obscure intent.
 
 ### CONF-255
 - **File**: [yamlgraph/utils/fsm/ui_log.py](../yamlgraph/utils/fsm/ui_log.py#L50)

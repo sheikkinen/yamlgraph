@@ -66,6 +66,7 @@ class TestRouterNodeParsing:
                 "classify": {
                     "type": "router",
                     "prompt": "classify_tone",
+                    "route_field": "tone",
                     "routes": {
                         "positive": "handle_positive",
                         "negative": "handle_negative",
@@ -331,6 +332,7 @@ class TestConditionalEdges:
                 "classify": {
                     "type": "router",
                     "prompt": "classify",
+                    "route_field": "tone",
                     "routes": {"a": "node_a", "b": "node_b"},
                     "default_route": "node_a",
                 },
@@ -366,6 +368,7 @@ class TestConditionalEdges:
                     "type": "router",
                     "prompt": "classify",
                     "output_model": "yamlgraph.models.GenericReport",
+                    "route_field": "tone",
                     "routes": {
                         "positive": "respond_positive",
                         "negative": "respond_negative",

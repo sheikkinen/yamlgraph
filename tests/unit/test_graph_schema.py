@@ -94,6 +94,12 @@ class TestNodeConfig:
         with pytest.raises(ValidationError):
             NodeConfig(prompt="test", temperature=2.5)
 
+    @pytest.mark.req("REQ-YG-002")
+    def test_unknown_key_rejected(self):
+        """FR-673: Unknown keys on NodeConfig are rejected at load time."""
+        with pytest.raises(ValidationError, match="promtp"):
+            NodeConfig(promtp="test")
+
 
 class TestEdgeConfig:
     """Tests for EdgeConfig validation."""

@@ -10,7 +10,8 @@ import pytest
 from langgraph.graph import StateGraph
 from langgraph.types import CachePolicy
 
-from yamlgraph.models.graph_schema import CacheConfig, NodeConfig
+from yamlgraph.models.graph_schema import NodeConfig
+from yamlgraph.models.guard_schema import CacheConfig
 
 # ---------------------------------------------------------------------------
 # Helpers

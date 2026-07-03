@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Bug
-**Status:** Judged
+**Status:** Enforced
 **Effort:** 1 day
 **Requested:** 2026-07-03
 

@@ -17,7 +17,7 @@ from langgraph.types import CachePolicy
 
 from yamlgraph.constants import NodeType
 from yamlgraph.map_compiler import compile_map_node
-from yamlgraph.models.graph_schema import CacheConfig
+from yamlgraph.models.guard_schema import CacheConfig
 from yamlgraph.node_factory import (
     create_copilot_node,
     create_interrupt_node,
