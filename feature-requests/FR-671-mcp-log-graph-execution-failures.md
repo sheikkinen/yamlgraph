@@ -8,11 +8,10 @@
 
 ## Summary
 
-`_handle_run_graph` (inner graph-execution handler) in the MCP server catches
-exceptions and returns `{"error": ...}` JSON without logging. The outer
-tool handler (~line 246) logs with `exc_info=True`, but because the inner
-handler catches first, the outer logging never fires for graph failures.
-Blind debugging for MCP clients.
+`_handle_run_graph` in the MCP server catches all graph-execution exceptions
+and returns `{"error": ...}` JSON without logging. The outer tool handler
+logs with `exc_info=True`; the inner handler does not — so failures reaching
+the inner handler leave no trace. Blind debugging for MCP clients.
 
 ## Value Statement
 
@@ -81,8 +80,7 @@ The `TimeoutError` branch above it has the same gap (no log on timeout).
 
 ## Judgement
 
-**APPROVED.** Current FR text now states the correct handler relationship:
-the outer tool handler logs with `exc_info=True`, while the inner graph-run
-handler catches first and returns JSON without logging. Timeout branch also
-lacks logging. Fix both branches as proposed while preserving returned JSON
-shape. Effort 0.5 days is acceptable for RED/GREEN plus MCP tests.
+**APPROVED.** The FR states the correct handler relationship: the outer tool
+handler logs with `exc_info=True`, while the inner graph-run handler catches
+first and returns JSON without logging. Timeout branch also lacks logging. Fix
+both branches as proposed while preserving returned JSON shape.

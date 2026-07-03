@@ -28,9 +28,9 @@ runtime failure (or silent misbehavior) deep in node execution.
   extract fields with `.get()` — unknown keys are ignored, missing keys
   default to `None`
 - `models/graph_schema.py::NodeConfig` validates known fields but tolerates
-   extras
+  extras
 - `graph_loader.py::GraphConfig.__init__` calls `utils.validators.validate_config`,
-   so changing `NodeConfig.extra` alone will not affect `load_graph_config()`
+  so changing `NodeConfig.extra` alone will not affect `load_graph_config()`
 
 This is `the_one_law`: normalize at the boundary where external data (user
 YAML) enters, not downstream where the `None` manifests. The linter catches
@@ -42,11 +42,11 @@ some cases, but the loader is the enforcement gate — lint is advisory
 Minimal, two-step:
 
 1. Call `validate_graph_schema(config)` from the graph-load boundary (or make
-   `utils.validators.validate_config` delegate to it) after compile-time YAML
-   expansions and before storing raw config in `GraphConfig`.
+  `utils.validators.validate_config` delegate to it) after compile-time YAML
+  expansions and before storing raw config in `GraphConfig`.
 2. Set `model_config = ConfigDict(extra="forbid")` on `NodeConfig` after
-   explicitly modeling legitimate node keys. Keep top-level graph extras only
-   where existing graph-level extension keys require them.
+  explicitly modeling legitimate node keys. Keep top-level graph extras only
+  where existing graph-level extension keys require them.
 3. Audit `examples/` and `graphs/` for graphs that rely on tolerated extra
    keys; fix or add the keys to the schema explicitly.
 
@@ -58,9 +58,9 @@ wanted later, it is its own FR.
 ## Acceptance Criteria
 
 - [ ] Failing test first (RED): graph YAML with `promtp:` on an llm node →
-   `load_graph_config` raises naming node and unknown key
+      `load_graph_config` raises naming node and unknown key
 - [ ] Test proves changing only `NodeConfig.extra` is insufficient without
-   loader-boundary schema validation
+  loader-boundary schema validation
 - [ ] All shipped graphs (`graphs/`, `examples/`) load cleanly
 - [ ] `yamlgraph graph validate` surfaces the new error with file context
 - [ ] All unit tests green
@@ -93,11 +93,11 @@ currently use `GraphConfigSchema`; it calls the manual validator in
 
 **Amendments:**
 1. Wire Pydantic schema validation into the loader boundary, then forbid
-   unknown node keys. The acceptance test must call `load_graph_config()`,
-   not `validate_graph_schema()` directly.
-2. The `extra="forbid"` change will likely break existing graphs that use
-   undocumented fields. The audit step ("scan examples/ and graphs/") is
-   critical — do it BEFORE writing the RED test to scope the blast radius.
-3. Consider `extra="ignore"` with a deprecation warning as a migration
-   step if the audit reveals widespread use of undocumented fields. But
-   prefer `forbid` if the blast radius is small.
+  unknown node keys. The acceptance test must call `load_graph_config()`,
+  not `validate_graph_schema()` directly.
+2. The `extra="forbid"` change may break existing graphs that use undocumented
+  fields. Audit `examples/` and `graphs/` before enforcement to scope the
+  blast radius.
+3. Consider `extra="ignore"` with a deprecation warning only if the audit
+  reveals widespread use of undocumented fields. Prefer `forbid` if the
+  blast radius is small.

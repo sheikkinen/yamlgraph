@@ -85,18 +85,13 @@ carries the corrected behavior, or fold FR-669 into this FR's RED phase.
 
 ## Judgement
 
-**REJECTED.** The core claim — that retry/fallback logic is duplicated
-between `executor.py` and `executor_async.py` — is false. Verification
-shows `executor_async.py` does NOT have `_invoke_with_retry`; it delegates
-to `llm_factory_async.py` for invocation. The async path has inline
-streaming exception handling (~lines 400-409) but this is streaming-specific
-error handling, not retry/fallback duplication.
+**REJECTED.** The core claim is false: retry/fallback logic is not duplicated
+between `executor.py` and `executor_async.py`. `executor_async.py` delegates
+to `utils/llm_factory_async.py::invoke_async`, which has no retry loop and no
+FR-464 JSON fallback. That may be a future async parity problem, but it is not
+duplicated retry/fallback logic to extract.
 
 `executor_base.py` already holds the shared helpers (`is_retryable`,
-`format_prompt`, `prepare_messages`). More importantly, async execution does
-not share sync behavior: `utils/llm_factory_async.py::invoke_async` has no
-retry loop and no FR-464 JSON fallback. That may be a future parity problem,
-but it is not duplicated retry/fallback logic to extract.
-
-The 435-line count for `executor_async.py` is accurate but is addressed by
-FR-674 (module splits) if needed.
+`format_prompt`, `prepare_messages`). The 435-line count for
+`executor_async.py` is accurate but belongs to FR-674 if a natural split is
+needed.

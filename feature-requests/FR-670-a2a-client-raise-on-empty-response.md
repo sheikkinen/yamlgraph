@@ -8,8 +8,8 @@
 
 ## Summary
 
-`_extract_text_from_result` in the A2A client returns `""` when the task
-result contains no text parts in either artifacts or status message. Silent
+`_extract_text_from_result` and `_extract_text_from_streaming_events` in the
+A2A client return `""` when the response contains no text parts. Silent
 empty-string fallback violates Commandment 6: when a filter yields nothing,
 raise — never substitute.
 
@@ -27,11 +27,13 @@ into downstream state and prompts.
     return "\n".join(texts) if texts else ""
 ```
 
-If neither artifacts nor the status message contain text parts, the caller
-receives `""`. Downstream, this empty string enters graph state, renders
-into Jinja2 prompts as nothing, and produces plausible-but-wrong LLM output
-(`plausible_wrong_answer` trap). The caller cannot distinguish "agent
-returned empty" from "response shape unrecognized".
+The streaming path has the same pattern in
+`_extract_text_from_streaming_events`. If neither artifacts nor status
+message/streaming events contain text parts, the caller receives `""`.
+Downstream, this empty string enters graph state, renders into Jinja2 prompts
+as nothing, and produces plausible-but-wrong LLM output
+(`plausible_wrong_answer` trap). The caller cannot distinguish "agent returned
+empty" from "response shape unrecognized".
 
 ## Proposed Solution
 
@@ -50,7 +52,8 @@ surface this like any other node failure — no new machinery.
 ## Acceptance Criteria
 
 - [ ] Failing test first (RED): result dict with no text parts in artifacts
-      or status message → `ValueError` raised, message includes task state
+  or status message → `ValueError` raised, message includes task state
+- [ ] Streaming event list with no text artifact parts → `ValueError` raised
 - [ ] Existing tests with valid artifacts/status-message paths still green
 - [ ] Error propagates through `send_a2a_message` as `PipelineError`
 - [ ] Changelog fragment in `changelog/unreleased/`
@@ -70,6 +73,7 @@ surface this like any other node failure — no new machinery.
 
 ## Judgement
 
-**APPROVED.** `return "\n".join(texts) if texts else ""` in
-`a2a_client.py` is confirmed. Silent empty-string return violates
-Commandment 6. Fix is small and correctly scoped. No amendments.
+**APPROVED WITH AMENDMENT.** The non-streaming extractor's
+`return "\n".join(texts) if texts else ""` is confirmed. The same empty-string
+fallback exists in `_extract_text_from_streaming_events`, so enforce both paths
+under this FR rather than leaving the sibling boundary bug alive.

@@ -31,9 +31,9 @@ claimed parallel-map branch-loss bug is not proven by the cited code.
 alongside the accumulating `errors` list. Verified code facts:
 
 - `yamlgraph/node_factory/tool_nodes.py` writes nested payload keys under
-   `state_key` (`{state_key: {"error": ...}}`), not top-level state
+  `state_key` (`{state_key: {"error": ...}}`), not top-level state
 - LLM, race, map, guard, and timeout paths append `PipelineError` objects to
-   top-level `errors`
+  top-level `errors`
 - `yamlgraph/storage/export.py` reads top-level `state.get("error")`
 - `yamlgraph/models/state_builder.py` initializes top-level `error` to `None`
 
@@ -48,17 +48,17 @@ Reject this FR as a HIGH-priority bug. If cleanup is still desired, file a
 new LOW-priority FR with a narrower scope:
 
 1. Prove no top-level writers of `state["error"]` exist outside
-   `state_builder.py` initialization and `storage/export.py` summary read.
+  `state_builder.py` initialization and `storage/export.py` summary read.
 2. Decide whether summary export should expose latest `errors[-1]` or omit
-   the singular `error` field entirely.
+  the singular `error` field entirely.
 3. Remove `error` from `BASE_FIELDS` only after tests prove no public graph
-   output relies on it.
+  output relies on it.
 
 ## Acceptance Criteria
 
 - [ ] No enforcement under this FR; rejected as written
 - [ ] Replacement FR, if created, includes a grep/audit proving top-level
-   state writers and readers separately from JSON payload `error` fields
+  state writers and readers separately from JSON payload `error` fields
 
 ## Alternatives Considered
 

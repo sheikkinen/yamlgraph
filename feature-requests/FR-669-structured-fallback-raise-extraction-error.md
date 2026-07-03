@@ -39,10 +39,10 @@ rejection — the error the fallback already worked around — instead of the
 actual failure: the model returned prose, not JSON. Boundary normalization
 gap at the schema boundary (`the_one_law`).
 
-**Note (Judgement):** `executor_async.py` does NOT have `_invoke_with_retry`;
-it delegates to `utils/llm_factory_async.py::invoke_async`, which currently
-has no FR-464 JSON-extraction fallback. This FR fixes the sync diagnostic
-only. Async fallback parity is a separate issue if desired.
+`executor_async.py` does not have `_invoke_with_retry`; it delegates to
+`utils/llm_factory_async.py::invoke_async`, which currently has no FR-464
+JSON-extraction fallback. This FR fixes the sync diagnostic only. Async
+fallback parity is a separate issue if desired.
 
 ## Proposed Solution
 
@@ -81,17 +81,16 @@ raise ValueError(
 
 ## Judgement
 
-**APPROVED.** Bare `raise` at executor.py:200 confirmed — re-raises the
-original provider error after JSON extraction fails, hiding the real cause.
-`extract_json` returns the original string on no-match (json_extract.py:127).
-The `isinstance(parsed, dict)` check silently passes through.
+**APPROVED.** Bare `raise` in `executor.py::_invoke_with_retry` re-raises the
+original provider error after JSON extraction fails, hiding the actual cause.
+`extract_json()` returns the original string on no match, so the
+`isinstance(parsed, dict)` check silently falls through.
 
 **Amendments:**
 1. Async path does not hit this code. `executor_async.py` delegates to
     `utils/llm_factory_async.py::invoke_async`, which lacks the FR-464 fallback
     entirely. Do not modify async behavior in this FR; file a separate parity
     FR if async fallback is required.
-2. FR-672 is rejected (see below), so the sequencing note about folding
-   into FR-672 is moot. This FR stands alone.
-3. Add `list` to the isinstance check: `isinstance(parsed, (dict, list))`
-   as proposed.
+2. FR-672 is rejected, so the sequencing note about folding into FR-672 is
+    moot. This FR stands alone.
+3. Keep the proposed `isinstance(parsed, (dict, list))` guard.
