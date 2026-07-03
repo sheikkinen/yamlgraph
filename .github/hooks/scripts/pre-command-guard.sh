@@ -4,6 +4,7 @@
 # 2. --no-verify flag (safety bypass forbidden by Scripture)
 # 3. Multiline git commit -m (use git commit -F ./tmp/msg.txt instead)
 # 4. pytest piped to head/tail without tee (output buffering) (FR-440)
+# 5. Branch creation in main worktree (FR-662)
 # Audit: logs every tool invocation to JSONL (FR-414)
 set -euo pipefail
 
@@ -209,6 +210,18 @@ if echo "$COMMAND" | grep -qE 'pytest\b' && \
   audit_log "deny" "pipe-buffer" "${COMMAND:0:200}"
   emit_deny "pytest piped to head/tail buffers all output until exit — hangs and failures are invisible.\\n\\nUse tee for streaming:\\n  pytest ... 2>&1 | tee logs/run.log\\n\\nThen inspect separately:\\n  tail -20 logs/run.log"
   exit 0
+fi
+
+# ── Check 5: branch creation in main worktree (FR-662) ───────────────
+# Agents must not create branches in the main worktree.
+# Isolation goes through chaplain worktrees, not local branches.
+# Allow: git branch -d (delete), git branch --list, git branch -a, queries
+if echo "$COMMAND" | grep -qE 'git\s+(checkout\s+-b|switch\s+-c|branch\s+[^-])'; then
+  if ! echo "$COMMAND" | grep -qE 'git\s+branch\s+(-d|-D|--delete|--list|-a|-r|--merged|--no-merged|--contains|--no-contains|--sort|--show-current)'; then
+    audit_log "deny" "branch-create" "${COMMAND:0:200}"
+    emit_deny "Branch creation in main worktree is forbidden. Single-developer workflow: commit to main.\\n\\nFor isolated work, submit to .chaplain/inbox/ — the chaplain creates worktrees.\\n\\nTo delete stale branches: git branch -d <name>"
+    exit 0
+  fi
 fi
 
 audit_log "approve" "clean" "${COMMAND:0:200}"

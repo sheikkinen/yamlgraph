@@ -252,6 +252,111 @@ TESTS: list[tuple[str, dict, str]] = [
         },
         "approve",
     ),
+    # --- branch creation guard (FR-662) ---
+    (
+        "git checkout -b denied",
+        {
+            "toolName": "run_in_terminal",
+            "toolInput": {"command": "git checkout -b feat/something"},
+        },
+        "deny",
+    ),
+    (
+        "git switch -c denied",
+        {
+            "toolName": "run_in_terminal",
+            "toolInput": {"command": "git switch -c fix/branch-name"},
+        },
+        "deny",
+    ),
+    (
+        "git branch <name> denied",
+        {
+            "toolName": "run_in_terminal",
+            "toolInput": {"command": "git branch feat/new-thing"},
+        },
+        "deny",
+    ),
+    (
+        "git branch -d allowed (deletion)",
+        {
+            "toolName": "run_in_terminal",
+            "toolInput": {"command": "git branch -d feat/old-thing"},
+        },
+        "approve",
+    ),
+    (
+        "git branch -D allowed (force deletion)",
+        {
+            "toolName": "run_in_terminal",
+            "toolInput": {"command": "git branch -D feat/old-thing"},
+        },
+        "approve",
+    ),
+    (
+        "git branch -a allowed (listing)",
+        {
+            "toolName": "run_in_terminal",
+            "toolInput": {"command": "git branch -a"},
+        },
+        "approve",
+    ),
+    (
+        "git branch --merged allowed (query)",
+        {
+            "toolName": "run_in_terminal",
+            "toolInput": {"command": "git branch --merged main"},
+        },
+        "approve",
+    ),
+    (
+        "git branch --show-current allowed",
+        {
+            "toolName": "run_in_terminal",
+            "toolInput": {"command": "git branch --show-current"},
+        },
+        "approve",
+    ),
+    (
+        "git checkout main allowed (switching)",
+        {
+            "toolName": "run_in_terminal",
+            "toolInput": {"command": "git checkout main"},
+        },
+        "approve",
+    ),
+    (
+        "git switch main allowed (switching)",
+        {
+            "toolName": "run_in_terminal",
+            "toolInput": {"command": "git switch main"},
+        },
+        "approve",
+    ),
+    (
+        "git branch -r allowed (remote listing)",
+        {
+            "toolName": "run_in_terminal",
+            "toolInput": {"command": "git branch -r"},
+        },
+        "approve",
+    ),
+    (
+        "git branch --contains allowed (query)",
+        {
+            "toolName": "run_in_terminal",
+            "toolInput": {"command": "git branch --contains abc123"},
+        },
+        "approve",
+    ),
+    (
+        "git branch --sort allowed (query)",
+        {
+            "toolName": "run_in_terminal",
+            "toolInput": {"command": "git branch --sort=-committerdate"},
+        },
+        "approve",
+    ),
 ]
 
 
@@ -293,6 +398,7 @@ def main() -> int:
         test_lockdown_status,
         test_lockdown_unknown_command,
         test_pipe_buffer_deny_logs_audit,
+        test_branch_create_deny_logs_audit,
     ]
     for test in audit_tests:
         name = test.__name__
@@ -578,6 +684,24 @@ def test_pipe_buffer_deny_logs_audit():
         e = entries[-1]
         assert e["decision"] == "deny", f"expected deny, got: {e}"
         assert e["reason"] == "pipe-buffer", f"expected pipe-buffer reason, got: {e}"
+
+
+def test_branch_create_deny_logs_audit():
+    """git checkout -b must be denied with branch-create reason in audit (FR-662)."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        payload = {
+            "toolName": "run_in_terminal",
+            "toolInput": {"command": "git checkout -b feat/agent-branch"},
+        }
+        code, out, entries = run_hook(payload, log_dir=tmpdir)
+        assert code == 0
+        assert "deny" in out
+        assert len(entries) >= 1
+        e = entries[-1]
+        assert e["decision"] == "deny", f"expected deny, got: {e}"
+        assert (
+            e["reason"] == "branch-create"
+        ), f"expected branch-create reason, got: {e}"
 
 
 if __name__ == "__main__":
