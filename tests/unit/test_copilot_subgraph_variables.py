@@ -389,3 +389,37 @@ edges:
         assert "01-doctrine.md" in prompt_content
         assert "docs/ebook" in prompt_content
         assert "10 Commandments" in prompt_content
+
+
+# ---------------------------------------------------------------------------
+# FR-659: _map_output_state auto/* coverage
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.req("REQ-YG-092")
+class TestMapOutputState:
+    """FR-659: Cover _map_output_state auto and * branches."""
+
+    def test_auto_passes_all_fields(self) -> None:
+        from yamlgraph.node_factory.subgraph_nodes import _map_output_state
+
+        child_output = {"result": "ok", "score": 0.9, "extra": True}
+        mapped = _map_output_state(child_output, "auto")
+        assert mapped == child_output
+        assert mapped is child_output
+
+    def test_star_passes_all_fields(self) -> None:
+        from yamlgraph.node_factory.subgraph_nodes import _map_output_state
+
+        child_output = {"result": "ok", "score": 0.9}
+        mapped = _map_output_state(child_output, "*")
+        assert mapped == child_output
+        assert mapped is child_output
+
+    def test_dict_mapping_selects_keys(self) -> None:
+        from yamlgraph.node_factory.subgraph_nodes import _map_output_state
+
+        child_output = {"result": "ok", "score": 0.9, "extra": True}
+        mapped = _map_output_state(child_output, {"parent_result": "result"})
+        assert mapped == {"parent_result": "ok"}
+        assert "score" not in mapped

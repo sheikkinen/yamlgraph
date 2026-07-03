@@ -2,10 +2,11 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Judged — Approved
-**Effort:** 1 day
+**Status:** Enforced
+**Effort:** 0.5 day
 **Requested:** 2026-07-03
 **Judged:** 2026-07-03
+**Enforced:** 2026-07-03
 
 ## Summary
 
@@ -58,12 +59,21 @@ Note: `graph_tool.py` was originally scoped but is now at 97% (1 line missing). 
 
 ## Acceptance Criteria
 
-- [ ] AC-1: `guard_evaluator.py` coverage ≥ 90% — all comparison operators, boolean operators, not/tuple/pipe error branches, filter branches tested
-- [ ] AC-2: `schema_loader_tool.py` coverage ≥ 90% — all validation error branches in `parse_schema_loader_tools` tested
-- [ ] AC-3: `subgraph_nodes.py` — `_map_output_state` auto/* paths tested (interrupt handler deferred)
-- [ ] AC-4: All new tests have `@pytest.mark.req()` traceability
-- [ ] AC-5: Overall coverage remains ≥ 90%
-- [ ] AC-6: No production code changes
+- [x] AC-1: `guard_evaluator.py` coverage 73% → **95%** — all comparison operators, boolean operators, not/tuple/pipe error branches, filter branches tested
+- [x] AC-2: `schema_loader_tool.py` coverage 83% → **97%** — all validation error branches in `parse_schema_loader_tools` tested
+- [x] AC-3: `subgraph_nodes.py` — `_map_output_state` auto/* paths tested (81% → 82%; interrupt handler deferred)
+- [x] AC-4: All new tests have `@pytest.mark.req()` traceability (REQ-YG-154, REQ-YG-417, REQ-YG-418, REQ-YG-092)
+- [x] AC-5: Overall coverage remains ≥ 90% (90.32%)
+- [x] AC-6: No production code changes
+
+### Enforcement Results
+
+- **62 new tests** across 3 files, all passing
+- `test_fr659_guard_evaluator_coverage.py`: 34 tests (9 classes)
+- `test_fr659_schema_loader_tool_coverage.py`: 25 tests (7 classes)
+- `test_copilot_subgraph_variables.py::TestMapOutputState`: 3 tests
+- **4564 total passed**, 71 skipped, 2 xfailed
+- Remaining gaps: guard_evaluator L65-67 (model_dump Pydantic branch), L94/118 (unreachable via public API); schema_loader_tool L180/200/251/253 (deep merge-mode edge cases); subgraph_nodes L157/178-204 (GraphInterrupt — deferred)
 
 ## Judgement Notes (2026-07-03)
 
