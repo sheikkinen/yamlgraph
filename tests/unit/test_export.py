@@ -91,7 +91,6 @@ class TestSerializeState:
         empty_state["generated"] = None
         result = _serialize_state(empty_state)
         assert result["generated"] is None
-        assert result["error"] is None
 
 
 class TestExportSummaryGeneric:
@@ -145,6 +144,28 @@ class TestExportSummaryGeneric:
         summary = export_summary(state)
         # Should extract and include scalar fields
         assert "report" in summary or any(k.startswith("report") for k in summary)
+
+    @pytest.mark.req("REQ-YG-038")
+    def test_export_summary_derives_error_from_errors_list(self):
+        """FR-675: export error derived from errors list, not dead state field."""
+        from yamlgraph.models.schemas import PipelineError
+        from yamlgraph.storage.export import export_summary
+
+        pe = PipelineError(
+            type="llm_error",
+            message="Node failed",
+            node="test_node",
+        )
+        state = {
+            "thread_id": "t-1",
+            "topic": "test",
+            "errors": [pe],
+        }
+
+        summary = export_summary(state)
+        assert summary["error"] is not None
+        assert summary["error"]["message"] == "Node failed"
+        assert summary["error"]["node"] == "test_node"
 
     @pytest.mark.req("REQ-YG-038")
     def test_export_summary_no_demo_model_dependencies(self):

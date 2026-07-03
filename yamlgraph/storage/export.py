@@ -160,14 +160,31 @@ def export_summary(state: dict) -> dict:
     """
     # Internal keys to skip
     internal_keys = frozenset(
-        {"_route", "_loop_counts", "thread_id", "topic", "current_step", "error"}
+        {
+            "_route",
+            "_loop_counts",
+            "thread_id",
+            "topic",
+            "current_step",
+            "error",
+            "errors",
+        }
     )
+
+    # Derive error from errors list (last error, JSON-serializable)
+    errors = state.get("errors") or []
+    last_error = None
+    if errors:
+        last = errors[-1]
+        last_error = (
+            last.model_dump(mode="json") if hasattr(last, "model_dump") else last
+        )
 
     summary = {
         "thread_id": state.get("thread_id"),
         "topic": state.get("topic"),
         "current_step": state.get("current_step"),
-        "error": state.get("error"),
+        "error": last_error,
     }
 
     # Process all non-internal fields generically

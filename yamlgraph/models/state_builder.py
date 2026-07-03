@@ -59,11 +59,8 @@ BASE_FIELDS: dict[str, type] = {
     # Core tracking (last_value reducer: safe for parallel fan-in)
     "thread_id": str,
     "current_step": Annotated[str, last_value],
-    # Error handling (two patterns by design):
-    # - "error" (singular): Current/last error, simple overwrite semantics
-    # - "errors" (plural): Accumulated PipelineError list via add reducer
+    # Error handling: accumulated PipelineError list via add reducer
     # Note: Tool results use nested {"error": ...} which is a different pattern
-    "error": Annotated[Any, last_value],
     "errors": Annotated[list, add],
     # Messages with reducer (accumulates)
     "messages": Annotated[list, add],
@@ -286,7 +283,6 @@ def create_initial_state(
         "style": style,
         "word_count": word_count,
         "current_step": "init",
-        "error": None,
         "errors": [],
         "messages": [],
         "started_at": datetime.now(),
@@ -368,7 +364,7 @@ def generate_typeddict_code(
     if include_base_fields:
         fields["thread_id"] = "str"
         fields["current_step"] = "str"
-        fields["error"] = "Any"
+
         fields["errors"] = "list"
         fields["messages"] = "list"
         fields["_loop_counts"] = "dict"

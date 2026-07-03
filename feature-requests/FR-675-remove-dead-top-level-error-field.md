@@ -2,7 +2,7 @@
 
 **Priority:** LOW
 **Type:** Enhancement
-**Status:** Judged
+**Status:** Enforced
 **Effort:** 0.5 days
 **Requested:** 2026-07-03
 
@@ -56,16 +56,16 @@ consumer can be depending on anything but `None`.
 
 ## Acceptance Criteria
 
-- [ ] Failing test first (RED): export of a state whose `errors` list holds
+- [x] Failing test first (RED): export of a state whose `errors` list holds
       a `PipelineError` yields that error in the export summary (currently
       yields `None`)
-- [ ] Export summary remains JSON-serializable when the latest error is a
+- [x] Export summary remains JSON-serializable when the latest error is a
   `PipelineError`
-- [ ] `error` absent from `BASE_FIELDS` and `create_initial_state`
-- [ ] `grep -rn '\"error\"' yamlgraph/` shows only nested tool-result
+- [x] `error` absent from `BASE_FIELDS` and `create_initial_state`
+- [x] `grep -rn '\"error\"' yamlgraph/` shows only nested tool-result
       payloads and the export derivation
-- [ ] All unit tests green
-- [ ] Changelog fragment in `changelog/unreleased/` (type: removal)
+- [x] All unit tests green (4469 passed)
+- [x] Changelog fragment in `changelog/unreleased/` (type: removal)
 
 ## Alternatives Considered
 

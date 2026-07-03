@@ -129,6 +129,16 @@ class TestBuildStateClass:
         assert "messages" in annotations
 
     @pytest.mark.req("REQ-YG-024")
+    def test_no_dead_error_singleton_field(self):
+        """FR-675: singular 'error' field must not exist in base state."""
+        from yamlgraph.models.state_builder import BASE_FIELDS, build_state_class
+
+        assert "error" not in BASE_FIELDS
+        config = {"nodes": {}, "edges": []}
+        State = build_state_class(config)
+        assert "error" not in State.__annotations__
+
+    @pytest.mark.req("REQ-YG-024")
     def test_errors_has_reducer(self):
         """errors field uses Annotated[list, add] reducer."""
         from yamlgraph.models.state_builder import build_state_class
