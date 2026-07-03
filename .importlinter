@@ -11,7 +11,7 @@ type = layers
 layers =
     yamlgraph.cli
     yamlgraph.graph_loader : yamlgraph.node_factory : yamlgraph.executor : yamlgraph.linter : yamlgraph.edge_compiler : yamlgraph.node_compiler : yamlgraph.map_compiler : yamlgraph.routing : yamlgraph.graph_cache : yamlgraph.schema_loader : yamlgraph.data_loader : yamlgraph.discovery : yamlgraph.executor_async : yamlgraph.interactive_tool : yamlgraph.mcp_server : yamlgraph.a2a_server : yamlgraph.a2a_message
-    yamlgraph.tools : yamlgraph.models : yamlgraph.utils : yamlgraph.config : yamlgraph.constants : yamlgraph.storage : yamlgraph.contrib : yamlgraph.executor_base : yamlgraph.error_handlers : yamlgraph.verification
+    yamlgraph.tools : yamlgraph.models : yamlgraph.utils : yamlgraph.config : yamlgraph.constants : yamlgraph.storage : yamlgraph.contrib : yamlgraph.executor_base : yamlgraph.error_handlers : yamlgraph.verification : yamlgraph.loop_detector
 
 [importlinter:contract:linter-llm-free]
 # Judgement (2026-06-24, FR-588): the linter is a pure, offline, deterministic
