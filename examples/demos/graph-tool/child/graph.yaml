@@ -1,0 +1,31 @@
+# Child graph: Tone Classifier
+# A simple pipeline that classifies the tone of input text.
+# Used as a graph-tool by the parent graph — the parent agent
+# doesn't know this is a full pipeline.
+
+version: "1.0"
+name: tone-classifier
+description: Classify the tone of the given text as formal, casual, or technical
+
+prompts_relative: true
+prompts_dir: prompts
+
+defaults:
+  temperature: 0.3
+
+state:
+  text: str
+
+nodes:
+  classify:
+    type: llm
+    prompt: classify_tone
+    variables:
+      text: "{state.text}"
+    state_key: tone
+
+edges:
+  - from: START
+    to: classify
+  - from: classify
+    to: END

@@ -29,6 +29,10 @@ def _event_thin(page: dict) -> list[str]:
         reasons.append("no consequences")
     if len(page.get("participants", [])) < 2:
         reasons.append("< 2 participants")
+    if not page.get("description"):
+        reasons.append("no description")
+    if not page.get("references"):
+        reasons.append("no references")
     return reasons
 
 
@@ -61,7 +65,7 @@ _SEED_DEPTH_BONUS = 2
 def select_thin(state: dict[str, Any]) -> dict[str, Any]:
     """Select entities that need deepening, sorted by thinness."""
     canon_pages = state.get("canon_pages", {})
-    max_depth = state.get("max_depth", 2)
+    max_depth = int(state.get("max_depth", 2))
 
     thin_entities = []
     for pid, page in canon_pages.items():

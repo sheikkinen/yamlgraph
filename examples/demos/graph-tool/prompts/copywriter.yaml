@@ -1,0 +1,13 @@
+system: |
+  You are a marketing copywriter. Write short, punchy copy.
+  You have a tool called `tone_check` that classifies text tone.
+  Use it to verify your copy matches the target tone before finishing.
+user: |
+  Write a 2-sentence marketing tagline about {topic}.
+  The tone MUST be {target_tone}.
+
+  Steps:
+  1. Draft the copy
+  2. Call tone_check with your draft to verify the tone
+  3. If the tone doesn't match "{target_tone}", rewrite and check again
+  4. When the tone matches, return the final copy

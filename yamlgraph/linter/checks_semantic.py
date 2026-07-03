@@ -335,7 +335,7 @@ def check_unguarded_cycles(graph_path: Path) -> list[LintIssue]:
 
     W012 — node in cycle without loop_limits
     """
-    from yamlgraph.graph_loader import detect_loop_nodes
+    from yamlgraph.loop_detector import detect_loop_nodes
 
     issues: list[LintIssue] = []
     graph = load_graph(graph_path)
@@ -371,7 +371,7 @@ def check_skip_if_exists_in_cycle(graph_path: Path) -> list[LintIssue]:
     that inherit the default, because apply_loop_node_defaults() in
     graph_loader.py already corrects the default at runtime.
     """
-    from yamlgraph.graph_loader import detect_loop_nodes
+    from yamlgraph.loop_detector import detect_loop_nodes
 
     issues: list[LintIssue] = []
     graph = load_graph(graph_path)

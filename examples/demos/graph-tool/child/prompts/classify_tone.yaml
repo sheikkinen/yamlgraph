@@ -1,0 +1,6 @@
+system: You are a tone classifier. Classify text into exactly one tone.
+user: |
+  Classify the tone of the following text. Respond with ONLY one word:
+  formal, casual, or technical.
+
+  Text: {text}

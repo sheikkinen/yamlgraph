@@ -37,9 +37,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-# ---------------------------------------------------------------------------
 # Context passed to node type handlers (FR-220)
-# ---------------------------------------------------------------------------
 
 
 @dataclass(frozen=True)
@@ -56,12 +54,11 @@ class NodeCompileContext:
     effective_defaults: dict[str, Any]
     prompts_dir: Path | None
     prompts_relative: bool
+    graph_tool_configs: dict[str, Any] = field(default_factory=dict)
     cache_policy: CachePolicy | None = field(default=None)
 
 
-# ---------------------------------------------------------------------------
 # Cache policy resolution (FR-032)
-# ---------------------------------------------------------------------------
 
 
 def resolve_cache_policy(cache_config: CacheConfig | None) -> CachePolicy | None:
@@ -94,9 +91,7 @@ def _parse_cache_field(raw: Any) -> CacheConfig | None:
     return None
 
 
-# ---------------------------------------------------------------------------
 # Timeout wrapper (FR-069)
-# ---------------------------------------------------------------------------
 
 
 def _maybe_wrap_timeout(
@@ -187,6 +182,12 @@ def _compile_agent_node(ctx: NodeCompileContext) -> None:
         defaults=ctx.effective_defaults,
         graph_path=ctx.config.source_path,
         output_model=output_model,
+        graph_tool_configs=ctx.graph_tool_configs,
+        graph_tool_callables={
+            k: ctx.callable_registry[k]
+            for k in (ctx.graph_tool_configs or {})
+            if k in ctx.callable_registry
+        },
     )
     node_fn = _maybe_wrap_timeout(node_fn, ctx.node_config, ctx.node_name)
     ctx.graph.add_node(ctx.node_name, node_fn, cache_policy=ctx.cache_policy)
@@ -312,11 +313,6 @@ NODE_TYPE_HANDLERS: dict[str, NodeTypeHandler] = {
 }
 
 
-# ---------------------------------------------------------------------------
-# Public API
-# ---------------------------------------------------------------------------
-
-
 def compile_node(
     node_name: str,
     node_config: dict[str, Any],
@@ -325,6 +321,7 @@ def compile_node(
     tools: dict[str, Any],
     python_tools: dict[str, Any],
     callable_registry: dict[str, Callable],
+    graph_tool_configs: dict[str, Any] | None = None,
 ) -> tuple[str, Any] | None:
     """Compile a single node and add to graph.
 
@@ -336,6 +333,7 @@ def compile_node(
         tools: Shell tools registry
         python_tools: Python tools registry
         callable_registry: Loaded callable functions for tool_call nodes
+        graph_tool_configs: FR-658 graph-tool metadata for agent binding
 
     Returns:
         Tuple of (node_name, metadata) for map/interrupt nodes, None otherwise.
@@ -385,6 +383,7 @@ def compile_node(
         effective_defaults=effective_defaults,
         prompts_dir=prompts_dir,
         prompts_relative=prompts_relative,
+        graph_tool_configs=graph_tool_configs,
         cache_policy=node_cache_policy,
     )
     result = handler(ctx)
@@ -399,6 +398,7 @@ def compile_nodes(
     tools: dict[str, Any],
     python_tools: dict[str, Any],
     callable_registry: dict[str, Callable],
+    graph_tool_configs: dict[str, Any] | None = None,
 ) -> tuple[dict[str, tuple], set[str]]:
     """Compile all nodes and add to graph.
 
@@ -408,11 +408,10 @@ def compile_nodes(
         tools: Shell tools registry
         python_tools: Python tools registry
         callable_registry: Loaded callable functions for tool_call nodes
+        graph_tool_configs: FR-658 graph-tool metadata for agent binding
 
     Returns:
-        Tuple of:
-        - map_nodes: name -> (map_edge_fn, sub_node_name)
-        - interrupt_nodes: set of node names with prepare split
+        Tuple of (map_nodes dict, interrupt_nodes set).
     """
     map_nodes: dict[str, tuple] = {}
     interrupt_nodes: set[str] = set()
@@ -426,6 +425,7 @@ def compile_nodes(
             tools,
             python_tools,
             callable_registry,
+            graph_tool_configs=graph_tool_configs or {},
         )
         if result:
             name, info = result

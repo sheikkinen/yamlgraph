@@ -1,0 +1,26 @@
+2026-07-03 08:51:15,118 [INFO] yamlgraph.node_compiler: Added node: classify (type=llm)
+2026-07-03 08:51:15,120 [INFO] yamlgraph.graph_loader: Parsed 1 graph tools: tone_check
+2026-07-03 08:51:15,121 [INFO] yamlgraph.node_compiler: Added node: write (type=agent)
+2026-07-03 08:51:15,223 [INFO] yamlgraph.utils.llm_factory: Creating LLM: deepseek/deepseek-v4-flash (temp=0.7)
+2026-07-03 08:51:16,250 [INFO] yamlgraph.tools.agent: 🤖 Starting agent loop: write (max 5 iterations)
+2026-07-03 08:51:16,601 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-03 08:51:18,128 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: tone_check({'text': 'Ditch the bulky servers and hardware headaches. The cloud scales with you — so you can focus on the big stuff instead of IT chaos.'})
+2026-07-03 08:51:18,131 [INFO] yamlgraph.utils.llm_factory: Creating LLM: deepseek/deepseek-v4-flash (temp=0.3)
+2026-07-03 08:51:18,433 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-03 08:51:19,417 [INFO] yamlgraph.node_factory.llm_nodes: Node classify completed successfully
+2026-07-03 08:51:19,757 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-03 08:51:20,621 [INFO] yamlgraph.tools.agent: ✓ Agent completed after 2 iterations
+
+🚀 Running graph: graph.yaml
+   Variables: {'topic': 'cloud computing', 'target_tone': 'casual'}
+
+🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/f889c0ec-fa9b-4025-b69c-2aa756283ef8/r/019f2688-00b7-7e51-9c85-8cbef738d32b?poll=true
+============================================================
+RESULT
+============================================================
+  current_step: write
+  topic: cloud computing
+  target_tone: casual
+  final_copy: **Final Copy:**
+
+Ditch the bulky servers and hardware headaches. The cloud scales with you — so you can focus on the big stuff instead of IT chaos.

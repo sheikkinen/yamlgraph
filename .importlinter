@@ -20,8 +20,8 @@ layers =
 # complexity metric (FR-588) lives in a standalone command, never wired into the
 # linter. This contract forbids any linter module from importing the executor or
 # LLM-factory layer directly. The single legitimate transitive bridge —
-# checks_semantic importing graph_loader for loop detection — is exempted below;
-# that path reaches the executor only incidentally, never to invoke a model.
+# checks_semantic imports loop_detector for cycle detection (FR-658 extraction);
+# loop_detector is a pure utility with no executor/LLM dependencies.
 name = Linter stays LLM-free (no executor or LLM-factory imports)
 type = forbidden
 source_modules =
@@ -31,5 +31,3 @@ forbidden_modules =
     yamlgraph.executor_async
     yamlgraph.executor_base
     yamlgraph.utils.llm_factory
-ignore_imports =
-    yamlgraph.linter.checks_semantic -> yamlgraph.graph_loader

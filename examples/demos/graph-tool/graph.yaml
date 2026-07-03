@@ -1,0 +1,48 @@
+# Graph-Tool Demo — FR-658
+# Demonstrates an agent using a graph pipeline as an opaque tool.
+#
+# The agent writes marketing copy, then calls `tone_check` to verify
+# the tone matches the target. The agent doesn't know `tone_check`
+# is a full LLM pipeline — it sees a tool that takes text and returns tone.
+#
+# Run:
+#   yamlgraph graph run examples/demos/graph-tool/graph.yaml \
+#     --var topic="cloud computing" --var target_tone="casual" --full
+
+version: "1.0"
+name: graph-tool-demo
+description: Agent using a graph pipeline as a tool
+
+prompts_relative: true
+prompts_dir: prompts
+
+defaults:
+  temperature: 0.7
+
+state:
+  topic: str
+  target_tone: str
+
+tools:
+  tone_check:
+    type: graph
+    path: child/graph.yaml
+    description: "Classify the tone of text. Returns one word: formal, casual, or technical."
+    input_mapping:
+      text: text
+    output_key: tone
+
+nodes:
+  write:
+    type: agent
+    prompt: copywriter
+    tools:
+      - tone_check
+    state_key: final_copy
+    max_iterations: 5
+
+edges:
+  - from: START
+    to: write
+  - from: write
+    to: END

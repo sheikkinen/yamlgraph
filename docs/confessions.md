@@ -89,7 +89,7 @@ Framework suppressions require elevated scrutiny. These live in `yamlgraph/`.
 - **Resolved**: `node_fn` now an orchestrator calling extracted phases. C901 now passes without suppression.
 
 ### CONF-007
-- **File**: [yamlgraph/tools/agent.py](../yamlgraph/tools/agent.py#L188)
+- **File**: [yamlgraph/tools/agent.py](../yamlgraph/tools/agent.py#L83)
 - **Code**: C901 (cognitive complexity 19 > 15)
 - **Sin**: `create_agent_node` assembles agent with tool binding, prompt loading, and LLM configuration in one function.
 - **Penance**: Agent node factory has inherent setup complexity. Decomposition deferred to a future FR.
@@ -1242,7 +1242,7 @@ These are E402 suppressions and are acceptable as "glue code" patterns.
 - **Penance**: Retained intentionally for domain semantics or existing contract wording; explicitly allowlisted and audited.
 
 ### CONF-304
-- **File**: [yamlgraph/tools/agent.py](../yamlgraph/tools/agent.py#L141)
+- **File**: [yamlgraph/tools/agent.py](../yamlgraph/tools/agent.py#L36)
 - **Code**: FB001
 - **Sin**: Docstring of `_try_structured_output` contains `fallback` — describes the try-parse-first, fallback-to-LLM strategy (FR-448).
 - **Penance**: The word describes the actual algorithmic pattern. Renaming would obscure intent.

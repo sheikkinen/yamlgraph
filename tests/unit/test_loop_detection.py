@@ -6,7 +6,7 @@ as loop nodes, not just the nodes in the actual cycle.
 
 import pytest
 
-from yamlgraph.graph_loader import detect_loop_nodes
+from yamlgraph.loop_detector import detect_loop_nodes
 
 
 class TestDetectLoopNodes:

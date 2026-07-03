@@ -1,11 +1,12 @@
 id: CAP-05
 name: "Tool & Agent Integration"
 description: >
-  Integrate shell and Python tools into graphs, enable agent loops for
+  Integrate shell, Python, and graph tools into graphs, enable agent loops for
   tool-calling.
 modules:
   - node_factory/tool_nodes
   - tools/agent
+  - tools/graph_tool
   - tools/nodes
   - tools/python_tool
   - tools/shell
@@ -31,4 +32,9 @@ requirements:
     description: Agent node structured output via prompt schema (FR-448)
     modules:
       - tools/agent
+  - id: REQ-YG-510
+    description: Graph-as-tool in-process pipeline invocation (FR-658)
+    modules:
+      - tools/graph_tool
+      - graph_loader
 fr: legacy
