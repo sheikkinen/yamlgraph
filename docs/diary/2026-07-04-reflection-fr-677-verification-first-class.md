@@ -55,7 +55,7 @@ with only a code comment is a slow leak.
 
 ## Seed
 
-Both traps share a root: **enforcement metadata that references code by
+**Seed:** Both traps share a root: **enforcement metadata that references code by
 position rather than identity.** noqa confessions cite `file:line`; the module
 budget cites a raw integer; the hedging allowlist cites `file:line`. Each is a
 brittle pointer. Should enforcement infrastructure adopt the same discipline we
