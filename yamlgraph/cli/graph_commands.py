@@ -59,6 +59,47 @@ def _run_streaming(graph_path: str, initial_state: dict, config: dict) -> None:
     asyncio.run(_stream())
 
 
+def _run_lint_gate(graph_path: Path, *, json_mode: bool) -> None:
+    """FR-677: lint the graph and refuse to run on any error-level finding.
+
+    Error-level findings block execution with a non-zero exit; warning-level
+    findings are reported but do not block. In ``--json`` mode the lint report
+    is emitted as JSON to stdout with no decorative text; otherwise a
+    human-readable report is printed.
+    """
+    from yamlgraph.config import WORKING_DIR
+    from yamlgraph.linter import lint_graph
+
+    try:
+        result = lint_graph(graph_path, WORKING_DIR)
+    except Exception as e:
+        print(f"❌ Error linting {graph_path}: {e}", file=sys.stderr)
+        sys.exit(1)
+
+    errors = [issue for issue in result.issues if issue.severity == "error"]
+
+    if json_mode:
+        # Machine-readable: only emit decorative text when blocking.
+        if errors:
+            print(result.model_dump_json())
+            sys.exit(1)
+        return
+
+    for issue in result.issues:
+        icon = "❌" if issue.severity == "error" else "⚠"
+        print(f"   {icon} [{issue.code}] {issue.message}", file=sys.stderr)
+        if issue.fix:
+            print(f"      Fix: {issue.fix}", file=sys.stderr)
+
+    if errors:
+        print(
+            f"❌ Gate blocked: {len(errors)} error-level lint finding(s) in "
+            f"{graph_path.name}; run aborted.",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+
+
 def cmd_graph_run(args: Namespace) -> None:
     """Run any graph with provided variables.
 
@@ -83,6 +124,10 @@ def cmd_graph_run(args: Namespace) -> None:
     if not graph_path.exists():
         print(f"❌ Graph file not found: {graph_path}", file=error_stream)
         sys.exit(1)
+
+    # FR-677: opt-in lint gate — refuse to run on error-level findings.
+    if getattr(args, "gate", False):
+        _run_lint_gate(graph_path, json_mode=json_mode)
 
     # Parse variables: --var-file provides base, --var overrides
     try:

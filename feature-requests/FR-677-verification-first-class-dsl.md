@@ -101,9 +101,9 @@ yamlgraph graph run graph.yaml --gate        # lint first; refuse to run on any 
 - [x] Graph-level `verify:` with `on_fail: retry` fails schema validation
 - [x] Graph-level `verify:` is represented in `GraphConfigSchema` and stored on `GraphConfig`; malformed blocks fail at load time
 - [x] Inserted terminal verification node preserves explicit direct END and conditional/router END paths
-- [ ] `graph run --gate` exits non-zero without executing when lint reports an E-level finding; W-level findings do not block
-- [ ] `graph run --gate --json` returns machine-readable lint-gate failure output without decorative text on stdout
-- [ ] Lint rule: graph-level `verify:` expressions validated by W025 (same executable-expression check as node guards)
+- [x] `graph run --gate` exits non-zero without executing when lint reports an E-level finding; W-level findings do not block
+- [x] `graph run --gate --json` returns machine-readable lint-gate failure output without decorative text on stdout
+- [x] Lint rule: graph-level `verify:` expressions validated by W025 (same executable-expression check as node guards)
 - [x] All tests tagged `@pytest.mark.req(...)` against a new REQ-YG-XXX; `capabilities/CAP-XXX-first-class-verification.yaml` added
 - [ ] `reference/graph-yaml.md` documents `verify:` block and `--gate`; changelog fragment in `changelog/unreleased/`
 - [ ] Demo: `examples/demos/` graph exercising node guards on a tool node + graph-level `verify:` + `--gate`, with `demo-output.log`
@@ -218,6 +218,24 @@ is declared on a type outside `GUARD_SUPPORTED_TYPES`. Guards wired into
   `return END` fallthrough when no condition matches ("shouldn't happen with
   well-formed graphs"). That error path bypasses verify; it is not an explicit
   END edge, so it is out of scope.
+
+**Move 3 — `graph run --gate` lint gate (this commit).** Decisions:
+
+- **Lint-first, opt-in.** `--gate` (default off) added to `graph_run_parser`.
+  When set, `cmd_graph_run` calls `_run_lint_gate` immediately after the
+  file-existence check, before any config load / compile / invoke. The gate
+  reuses the existing `lint_graph(path, WORKING_DIR)` path — one linter, no
+  second implementation (satisfies the Judgement's "same linter path").
+- **Error blocks, warning reports.** Only `severity == "error"` findings abort
+  (exit 1); warnings print but do not block. In `--json` mode the gate emits
+  `result.model_dump_json()` to stdout *only when blocking* — no decorative text
+  on success (empty stdout), so the machine-readable contract holds.
+- **W025 extended to graph-level `verify:`.** `_check_verify_expressions` in
+  `checks_contracts.py` validates the top-level `verify` list with the same
+  executable-expression check as node guards: non-executable checks, invalid
+  `on_fail` (rejects `retry` at graph level), and missing `check` are flagged
+  offline. Folded into `check_guard_expressions` so one W025 rule covers both
+  node guards and graph verify. 12 tests in `tests/unit/test_fr677_gate.py`.
 - Contract tests `test_all_node_types_defined` and
   `test_registry_covers_all_compiled_types` updated to include `verify`.
   20 tests in `tests/unit/test_fr677_graph_verify.py`. Both import-linter

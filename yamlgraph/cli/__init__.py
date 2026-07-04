@@ -135,6 +135,12 @@ def create_parser() -> argparse.ArgumentParser:
         default=False,
         help="Stream LLM tokens to stdout in real-time (mutually exclusive with --json)",
     )
+    graph_run_parser.add_argument(
+        "--gate",
+        action="store_true",
+        default=False,
+        help="Lint the graph first; refuse to run on any error-level finding (FR-677)",
+    )
 
     # graph info
     graph_info_parser = graph_subparsers.add_parser(
