@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Enhancement
-**Status:** Judged
+**Status:** Done
 **Effort:** 3 days
 **Requested:** 2026-07-04
 
@@ -105,8 +105,8 @@ yamlgraph graph run graph.yaml --gate        # lint first; refuse to run on any 
 - [x] `graph run --gate --json` returns machine-readable lint-gate failure output without decorative text on stdout
 - [x] Lint rule: graph-level `verify:` expressions validated by W025 (same executable-expression check as node guards)
 - [x] All tests tagged `@pytest.mark.req(...)` against a new REQ-YG-XXX; `capabilities/CAP-XXX-first-class-verification.yaml` added
-- [ ] `reference/graph-yaml.md` documents `verify:` block and `--gate`; changelog fragment in `changelog/unreleased/`
-- [ ] Demo: `examples/demos/` graph exercising node guards on a tool node + graph-level `verify:` + `--gate`, with `demo-output.log`
+- [x] `reference/graph-yaml.md` documents `verify:` block and `--gate`; changelog fragment in `changelog/unreleased/`
+- [x] Demo: `examples/demos/` graph exercising node guards on a tool node + graph-level `verify:` + `--gate`, with `demo-output.log`
 
 ## Alternatives Considered
 
