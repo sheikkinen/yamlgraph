@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Any
 
 from langchain_core.messages import HumanMessage, SystemMessage, ToolMessage
+from pydantic import ValidationError
 
 from yamlgraph.executor_base import format_prompt
 from yamlgraph.tools.python_tool import PythonToolConfig
@@ -46,14 +47,19 @@ def _try_structured_output(
         return _normalize_content(content)
     # Normalize content — Anthropic returns list of content blocks
     text = _normalize_content(content)
-    # Try parse first (cheap)
-    parsed = None
-    try:
-        parsed = extract_json(text)
-        if isinstance(parsed, dict):
+    # Try parse first (cheap). FR-678: catch only ValidationError — a schema
+    # mismatch in extracted JSON is a legitimate fallback trigger. Programming
+    # defects (TypeError, AttributeError) and a broken extract_json (ValueError)
+    # must propagate instead of being masked as an expensive LLM re-invoke.
+    parsed = extract_json(text)
+    if isinstance(parsed, dict):
+        try:
             return output_model.model_validate(parsed).model_dump()
-    except Exception:
-        logger.debug("JSON parse failed for structured output, retrying with LLM")
+        except ValidationError as parse_exc:
+            logger.warning(
+                "Structured output parse failed (%s), retrying with LLM",
+                type(parse_exc).__name__,
+            )
     # Structured re-invoke: ask LLM again with schema enforcement (expensive)
     # Append a user message so the conversation ends with a user turn —
     # Anthropic rejects assistant prefill when msgs ends with assistant.

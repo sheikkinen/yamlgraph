@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Judged
+**Status:** Enforced
 **Effort:** 1 day
 **Requested:** 2026-07-04
 
@@ -87,18 +87,30 @@ def attempt_structured_invoke(llm, messages, output_model):
 
 ## Acceptance Criteria
 
-- [ ] `attempt_structured_invoke` (or equivalently named) exists in exactly
+- [x] `attempt_structured_invoke` (or equivalently named) exists in exactly
   one module; sync and async paths both call it
-- [ ] Fallback logic (`build_schema_hint` + re-invoke + `extract_json`)
+- [x] Fallback logic (`build_schema_hint` + re-invoke + `extract_json`)
   appears exactly once in the codebase — grep proves no second copy
-- [ ] Shared fallback helper catches only the FR-678-approved exception class
+- [x] Shared fallback helper catches only the FR-678-approved exception class
   for parse/schema mismatch; broad `except Exception` does not wrap JSON
   extraction and model validation
-- [ ] All existing FR-676 parity tests pass unmodified
-- [ ] `executor.py::_build_schema_hint` deleted; grep shows zero references
-- [ ] `lint-imports` passes (layer contract kept)
-- [ ] Changelog fragment in `changelog/unreleased/` (type: refactor → use
+- [x] All existing FR-676 parity tests pass unmodified
+- [x] `executor.py::_build_schema_hint` deleted; grep shows zero references
+- [x] `lint-imports` passes (layer contract kept)
+- [x] Changelog fragment in `changelog/unreleased/` (type: refactor → use
   `fix` or omit gate per fragment rules; no behavior change)
+
+## Implementation Status
+
+**Enforced.** Added `executor_base.attempt_structured_invoke` (one attempt +
+FR-464 fallback + FR-678 narrowed boundary). `executor._invoke_with_retry` and
+`llm_factory_async.invoke_async` both delegate to it; each keeps only its own
+loop/backoff (`time.sleep` vs `await asyncio.sleep`). Deleted
+`executor._build_schema_hint` and updated its one real caller
+(`node_factory/race_node.py`) to `executor_base.build_schema_hint` — the FR's
+"zero-caller" premise was slightly off; the wrapper had one live import.
+9 condemning tests in `tests/unit/test_fr679_shared_attempt_invoke.py` plus the
+10 FR-676 parity tests all GREEN; `lint-imports` clean.
 
 ## Alternatives Considered
 

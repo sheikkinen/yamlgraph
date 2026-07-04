@@ -8,6 +8,8 @@ from pathlib import Path
 
 from langchain_core.messages import HumanMessage, SystemMessage
 
+from yamlgraph.utils.content import normalize_content
+from yamlgraph.utils.json_extract import extract_json
 from yamlgraph.utils.prompts import load_prompt
 from yamlgraph.utils.template import validate_variables
 
@@ -327,3 +329,47 @@ def build_schema_hint(output_model: type) -> str:
         "Respond ONLY with valid JSON matching this schema (no markdown, no explanation):\n"
         f"{{\n{schema_lines}\n}}"
     )
+
+
+def attempt_structured_invoke(llm, messages, output_model):
+    """Single LLM invocation attempt with FR-464 structured-output fallback.
+
+    Shared by the sync (`executor.py`) and async (`llm_factory_async.py`)
+    retry loops (FR-679). The caller owns the retry loop and backoff — this
+    function performs exactly one attempt and raises on failure so the loop
+    can decide whether to retry.
+
+    Behavior:
+    - No ``output_model``: invoke and return normalized string content.
+    - With ``output_model``: try ``with_structured_output``. If the provider
+      rejects ``response_format``, fall back to a plain re-invoke with a JSON
+      schema hint and extract/validate the JSON (FR-464). Any other error
+      propagates unchanged (FR-678 — no broad swallow).
+
+    Raises:
+        ValueError: when the fallback re-invoke yields no extractable JSON.
+        Exception: any provider error not related to ``response_format``.
+    """
+    if output_model:
+        try:
+            structured_llm = llm.with_structured_output(output_model)
+            return structured_llm.invoke(messages)
+        except Exception as struct_err:
+            if "response_format" in str(struct_err):
+                logger.info(
+                    "Structured output rejected, falling back to JSON extraction (FR-464)"
+                )
+                schema_hint = build_schema_hint(output_model)
+                retry_msgs = list(messages) + [HumanMessage(content=schema_hint)]
+                response = llm.invoke(retry_msgs)
+                text = normalize_content(response.content)
+                parsed = extract_json(text)
+                if isinstance(parsed, dict | list):
+                    return output_model.model_validate(parsed)
+                raise ValueError(
+                    f"Structured output fallback failed: could not extract JSON "
+                    f"from LLM response: {text[:200]}"
+                ) from struct_err
+            raise
+    response = llm.invoke(messages)
+    return normalize_content(response.content)

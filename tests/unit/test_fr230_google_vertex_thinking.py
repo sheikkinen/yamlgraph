@@ -66,9 +66,11 @@ class TestCreateLLMThinkingFR230:
     def test_google_thinking_budget_does_not_raise(self):
         """create_llm(provider='google', thinking_budget=8000) does not raise."""
         mock_llm = MagicMock()
-        with patch(
-            "yamlgraph.utils.llm_providers._create_google_llm", return_value=mock_llm
-        ) as mock_create:
+        mock_create = MagicMock(return_value=mock_llm)
+        with patch.dict(
+            "yamlgraph.utils.llm_providers._PROVIDER_FACTORIES",
+            {"google": mock_create},
+        ):
             result = create_llm(provider="google", thinking_budget=8000)
             assert result is mock_llm
             mock_create.assert_called_once()
@@ -80,9 +82,11 @@ class TestCreateLLMThinkingFR230:
     def test_vertex_thinking_budget_does_not_raise(self):
         """create_llm(provider='vertex', thinking_budget=8000) does not raise."""
         mock_llm = MagicMock()
-        with patch(
-            "yamlgraph.utils.llm_providers._create_vertex_llm", return_value=mock_llm
-        ) as mock_create:
+        mock_create = MagicMock(return_value=mock_llm)
+        with patch.dict(
+            "yamlgraph.utils.llm_providers._PROVIDER_FACTORIES",
+            {"vertex": mock_create},
+        ):
             result = create_llm(provider="vertex", thinking_budget=8000)
             assert result is mock_llm
             mock_create.assert_called_once()
@@ -100,9 +104,11 @@ class TestCreateLLMThinkingFR230:
     def test_google_temperature_not_overridden(self):
         """Temperature is NOT forced to 1 for google even with thinking_budget >= 1024."""
         mock_llm = MagicMock()
-        with patch(
-            "yamlgraph.utils.llm_providers._create_google_llm", return_value=mock_llm
-        ) as mock_create:
+        mock_create = MagicMock(return_value=mock_llm)
+        with patch.dict(
+            "yamlgraph.utils.llm_providers._PROVIDER_FACTORIES",
+            {"google": mock_create},
+        ):
             create_llm(provider="google", thinking_budget=8000, temperature=0.7)
             args = mock_create.call_args[0]
             # second positional arg is temperature
@@ -114,9 +120,11 @@ class TestCreateLLMThinkingFR230:
     def test_vertex_temperature_not_overridden(self):
         """Temperature is NOT forced to 1 for vertex even with thinking_budget >= 1024."""
         mock_llm = MagicMock()
-        with patch(
-            "yamlgraph.utils.llm_providers._create_vertex_llm", return_value=mock_llm
-        ) as mock_create:
+        mock_create = MagicMock(return_value=mock_llm)
+        with patch.dict(
+            "yamlgraph.utils.llm_providers._PROVIDER_FACTORIES",
+            {"vertex": mock_create},
+        ):
             create_llm(provider="vertex", thinking_budget=8000, temperature=0.5)
             args = mock_create.call_args[0]
             temperature_arg = args[1]

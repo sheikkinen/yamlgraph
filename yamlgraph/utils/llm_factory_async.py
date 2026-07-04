@@ -15,13 +15,11 @@ from functools import partial
 from typing import TypeVar
 
 from langchain_core.language_models.chat_models import BaseChatModel
-from langchain_core.messages import BaseMessage, HumanMessage
+from langchain_core.messages import BaseMessage
 from pydantic import BaseModel
 
 from yamlgraph.config import MAX_RETRIES, RETRY_BASE_DELAY, RETRY_MAX_DELAY
-from yamlgraph.executor_base import build_schema_hint, is_retryable
-from yamlgraph.utils.content import normalize_content
-from yamlgraph.utils.json_extract import extract_json
+from yamlgraph.executor_base import attempt_structured_invoke, is_retryable
 from yamlgraph.utils.llm_factory import ProviderType, create_llm
 
 logger = logging.getLogger(__name__)
@@ -102,32 +100,7 @@ async def invoke_async(
         try:
 
             def sync_invoke() -> T | str:
-                if output_model:
-                    try:
-                        structured_llm = llm.with_structured_output(output_model)
-                        return structured_llm.invoke(messages)
-                    except Exception as struct_err:
-                        if "response_format" in str(struct_err):
-                            logger.info(
-                                "Structured output rejected, falling back to JSON extraction (FR-464)"
-                            )
-                            schema_hint = build_schema_hint(output_model)
-                            retry_msgs = list(messages) + [
-                                HumanMessage(content=schema_hint)
-                            ]
-                            response = llm.invoke(retry_msgs)
-                            text = normalize_content(response.content)
-                            parsed = extract_json(text)
-                            if isinstance(parsed, dict | list):
-                                return output_model.model_validate(parsed)
-                            raise ValueError(
-                                f"Structured output fallback failed: could not extract JSON "
-                                f"from LLM response: {text[:200]}"
-                            ) from struct_err
-                        raise
-                else:
-                    response = llm.invoke(messages)
-                    return normalize_content(response.content)
+                return attempt_structured_invoke(llm, messages, output_model)
 
             return await loop.run_in_executor(get_executor(), sync_invoke)
 

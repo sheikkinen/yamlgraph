@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Judged
+**Status:** Enforced
 **Effort:** 0.5 days
 **Requested:** 2026-07-04
 
@@ -78,22 +78,29 @@ except ValidationError as parse_exc:
 
 ## Acceptance Criteria
 
-- [ ] RED: test where `output_model.model_validate` raises `TypeError`
+- [x] RED: test where `output_model.model_validate` raises `TypeError`
   (simulated defect) — asserts the exception propagates instead of
   triggering the LLM fallback
-- [ ] Test: malformed JSON content still falls back to LLM re-invoke
+- [x] Test: malformed JSON content still falls back to LLM re-invoke
   because `extract_json()` returns non-dict content (existing behavior
   preserved without exception swallowing)
-- [ ] Test: `ValidationError` on schema mismatch falls back to LLM re-invoke
-- [ ] Test: `ValueError` raised by a mocked `extract_json()` propagates; it is
+- [x] Test: `ValidationError` on schema mismatch falls back to LLM re-invoke
+- [x] Test: `ValueError` raised by a mocked `extract_json()` propagates; it is
   not treated as a normal JSON parse miss unless the real callee contract
   changes
-- [ ] Fallback trigger logged at `warning` with exception class name
-- [ ] Grep confirms no other bare `except Exception:` immediately preceding
+- [x] Fallback trigger logged at `warning` with exception class name
+- [x] Grep confirms no other bare `except Exception:` immediately preceding
   an LLM re-invoke remains in `yamlgraph/tools/`
-- [ ] Tests tagged `@pytest.mark.req(...)` (existing agent/structured-output
+- [x] Tests tagged `@pytest.mark.req(...)` (existing agent/structured-output
   REQ; no new capability)
-- [ ] Changelog fragment in `changelog/unreleased/` (type: fix)
+- [x] Changelog fragment in `changelog/unreleased/` (type: fix)
+
+## Implementation Status
+
+**Enforced.** Narrowed the cheap-parse catch in `agent._try_structured_output`
+to `ValidationError` only; import added. 5 condemning tests in
+`tests/unit/test_fr678_narrow_structured_catch.py` (all GREEN). Grep confirms
+no other bare `except Exception:` in `yamlgraph/tools/`.
 
 ## Alternatives Considered
 

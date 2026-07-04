@@ -285,6 +285,26 @@ def _create_xai_llm(model: str, temperature: float, **kwargs: object) -> BaseCha
     )
 
 
+# Providers whose factory accepts a `thinking_budget` argument (FR-680).
+_THINKING_PROVIDERS = frozenset({"anthropic", "google", "vertex"})
+
+# Data-driven provider registry (FR-680). Adding a provider is one entry here
+# plus its `_create_*_llm` factory — no edit to `dispatch_provider`.
+_PROVIDER_FACTORIES = {
+    "anthropic": _create_anthropic_llm,
+    "azure": _create_azure_llm,
+    "deepseek": _create_deepseek_llm,
+    "google": _create_google_llm,
+    "inception": _create_inception_llm,
+    "lmstudio": _create_lmstudio_llm,
+    "mistral": _create_mistral_llm,
+    "openai": _create_openai_llm,
+    "replicate": _create_replicate_llm,
+    "vertex": _create_vertex_llm,
+    "xai": _create_xai_llm,
+}
+
+
 def dispatch_provider(
     provider: str,
     model: str,
@@ -292,26 +312,18 @@ def dispatch_provider(
     thinking_budget: int | None,
     **kwargs: object,
 ) -> BaseChatModel:
-    """Dispatch to appropriate provider-specific creation function."""
-    if provider == "azure":
-        return _create_azure_llm(model, temperature, **kwargs)
-    if provider == "deepseek":
-        return _create_deepseek_llm(model, temperature, **kwargs)
-    if provider == "google":
-        return _create_google_llm(model, temperature, thinking_budget, **kwargs)
-    if provider == "inception":
-        return _create_inception_llm(model, temperature, **kwargs)
-    if provider == "mistral":
-        return _create_mistral_llm(model, temperature, **kwargs)
-    if provider == "openai":
-        return _create_openai_llm(model, temperature, **kwargs)
-    if provider == "replicate":
-        return _create_replicate_llm(model, temperature, **kwargs)
-    if provider == "vertex":
-        return _create_vertex_llm(model, temperature, thinking_budget, **kwargs)
-    if provider == "xai":
-        return _create_xai_llm(model, temperature, **kwargs)
-    if provider == "lmstudio":
-        return _create_lmstudio_llm(model, temperature, **kwargs)
-    # Default: anthropic
-    return _create_anthropic_llm(model, temperature, thinking_budget, **kwargs)
+    """Dispatch to the appropriate provider-specific creation function.
+
+    FR-680: registry lookup replaces the former 11-branch if/elif chain.
+    Unknown providers raise loudly here — there is no silent Anthropic
+    fallback at this boundary (`create_llm` owns unset-provider defaulting).
+    """
+    factory = _PROVIDER_FACTORIES.get(provider)
+    if factory is None:
+        raise ValueError(
+            f"Unknown provider '{provider}'. "
+            f"Valid: {', '.join(sorted(_PROVIDER_FACTORIES))}"
+        )
+    if provider in _THINKING_PROVIDERS:
+        return factory(model, temperature, thinking_budget, **kwargs)
+    return factory(model, temperature, **kwargs)

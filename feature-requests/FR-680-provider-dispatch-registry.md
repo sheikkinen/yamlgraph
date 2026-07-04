@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Judged
+**Status:** Enforced
 **Effort:** 1 day
 **Requested:** 2026-07-04
 
@@ -105,20 +105,40 @@ integration tests — existing key-gated integration tests remain unchanged.
 
 ## Acceptance Criteria
 
-- [ ] `dispatch_provider` contains no if/elif provider chain; radon grade B
+- [x] `dispatch_provider` contains no if/elif provider chain; radon grade B
   or better
-- [ ] Unknown provider name passed directly to `dispatch_provider` raises
+- [x] Unknown provider name passed directly to `dispatch_provider` raises
   `ValueError` listing valid providers
-- [ ] Existing `create_llm(provider="mistal")` invalid-provider test remains
+- [x] Existing `create_llm(provider="mistal")` invalid-provider test remains
   the caller-level misspelling guard; do not add a false RED claiming normal
   callers currently fall through to Anthropic
-- [ ] Parametrized keyless dispatch test covers **all 11** registry entries;
+- [x] Parametrized keyless dispatch test covers **all 11** registry entries;
   runs in the fast suite (`-m "not slow"`, no API keys)
-- [ ] Default-resolution priority test (param > YAML > env > default) passes
+- [x] Default-resolution priority test (param > YAML > env > default) passes
   unchanged
-- [ ] All tests tagged `@pytest.mark.req(...)` (existing provider CAP/REQ)
-- [ ] Changelog fragment in `changelog/unreleased/`
-- [ ] `reference/` provider docs updated if they describe the fallthrough
+- [x] All tests tagged `@pytest.mark.req(...)` (existing provider CAP/REQ)
+- [x] Changelog fragment in `changelog/unreleased/`
+- [x] `reference/` provider docs updated if they describe the fallthrough
+
+## Implementation Status
+
+**Enforced.** Replaced the 11-branch chain with `_PROVIDER_FACTORIES` registry
+plus a `_THINKING_PROVIDERS` frozenset that routes `thinking_budget` only to
+anthropic/google/vertex. `dispatch_provider` now `.get()`s the factory and
+raises `ValueError` listing valid names on miss — no Anthropic default at this
+boundary. `dispatch_provider` is no longer radon C. New keyless suite
+`tests/unit/test_fr680_provider_registry.py` parametrizes over all 11
+providers (monkeypatching the registry), exercising the previously untested
+inception/replicate/xai/lmstudio branches without keys. Existing
+`create_llm` selection-priority and invalid-provider tests unchanged and
+passing. No `reference/` doc described the fallthrough, so none required edit.
+
+**Deviation:** four FR-230 tests patched the factory by module attribute
+(`patch("...._create_google_llm")`). The registry captures factory references
+at import, so name-patching no longer reached dispatch — those tests were
+re-pointed to patch the new seam (`patch.dict(_PROVIDER_FACTORIES, ...)`).
+Behavior asserted (thinking_budget plumbed, temperature not overridden) is
+identical; only the patch target moved to follow the dispatch seam.
 
 ## Alternatives Considered
 

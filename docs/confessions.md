@@ -89,7 +89,7 @@ Framework suppressions require elevated scrutiny. These live in `yamlgraph/`.
 - **Resolved**: `node_fn` now an orchestrator calling extracted phases. C901 now passes without suppression.
 
 ### CONF-007
-- **File**: [yamlgraph/tools/agent.py](../yamlgraph/tools/agent.py#L88)
+- **File**: [yamlgraph/tools/agent.py](../yamlgraph/tools/agent.py#L94)
 - **Code**: C901 (cognitive complexity 19 > 15)
 - **Sin**: `create_agent_node` assembles agent with tool binding, prompt loading, and LLM configuration in one function.
 - **Penance**: Agent node factory has inherent setup complexity. Decomposition deferred to a future FR.
@@ -149,7 +149,7 @@ Framework suppressions require elevated scrutiny. These live in `yamlgraph/`.
 - **Penance**: Used for YAML prompt template variable extraction, not HTML rendering. Autoescape would corrupt prompt text by escaping `<`, `>`, `&` characters. No web output is generated from this code path.
 
 ### CONF-010
-- **File**: [yamlgraph/executor_base.py](../yamlgraph/executor_base.py#L128)
+- **File**: [yamlgraph/executor_base.py](../yamlgraph/executor_base.py#L130)
 - **Code**: C901 (function too complex)
 - **Sin**: `prepare_messages` has high cyclomatic complexity (14 > 15 after refactoring, but still flagged) due to branching logic for different system field types (scalar vs. list vs. system_segments) and provider-specific message formatting.
 - **Penance**: Working functionality for FR-276 prompt caching. Complexity reduced from D (24) to C (14) through helper function extraction. The function orchestrates message preparation across multiple input formats and providers, making some complexity unavoidable.
@@ -1242,10 +1242,28 @@ These are E402 suppressions and are acceptable as "glue code" patterns.
 - **Penance**: Retained intentionally for domain semantics or existing contract wording; explicitly allowlisted and audited.
 
 ### CONF-304
-- **File**: [yamlgraph/tools/agent.py](../yamlgraph/tools/agent.py#L41)
+- **File**: [yamlgraph/tools/agent.py](../yamlgraph/tools/agent.py#L42)
 - **Code**: FB001
 - **Sin**: Docstring of `_try_structured_output` contains `fallback` — describes the try-parse-first, fallback-to-LLM strategy (FR-448).
 - **Penance**: The word describes the actual algorithmic pattern. Renaming would obscure intent.
+
+### CONF-350
+- **File**: [yamlgraph/tools/agent.py](../yamlgraph/tools/agent.py#L51)
+- **Code**: FB001
+- **Sin**: Comment in `_try_structured_output` says a schema mismatch is a "legitimate fallback trigger" (FR-678 narrowed catch).
+- **Penance**: The word names the FR-464 re-invoke path the narrowed `ValidationError` catch guards; it is descriptive, not a silent hedge.
+
+### CONF-351
+- **File**: [yamlgraph/executor_base.py](../yamlgraph/executor_base.py#L335)
+- **Code**: FB001
+- **Sin**: Docstring of `attempt_structured_invoke` contains `fallback` — describes the shared FR-464 structured-output fallback (FR-679).
+- **Penance**: The word describes the consolidated retry-then-parse pattern both sync/async paths delegate to. Renaming would obscure intent.
+
+### CONF-352
+- **File**: [yamlgraph/utils/llm_providers.py](../yamlgraph/utils/llm_providers.py#L315)
+- **Code**: FB001
+- **Sin**: Docstring of `dispatch_provider` contains `fallback` while explicitly stating there is *no* silent Anthropic fallback at the dispatch boundary (FR-680).
+- **Penance**: The token appears in a negation documenting the removed hedge — it enforces Commandment 6, not violates it.
 
 ### CONF-305
 - **File**: [yamlgraph/tools/agent.py](../yamlgraph/tools/agent.py#L151)
@@ -1254,7 +1272,7 @@ These are E402 suppressions and are acceptable as "glue code" patterns.
 - **Penance**: Same as CONF-304 — documents the two-phase structured output strategy.
 
 ### CONF-349
-- **File**: [yamlgraph/utils/llm_factory_async.py](../yamlgraph/utils/llm_factory_async.py#L82)
+- **File**: [yamlgraph/utils/llm_factory_async.py](../yamlgraph/utils/llm_factory_async.py#L80)
 - **Code**: FB001
 - **Sin**: Docstring of `invoke_async` contains `fallback` — describes the FR-464 structured-output JSON fallback strategy.
 - **Penance**: The word describes the actual retry-then-parse pattern from FR-676. Renaming would obscure intent.

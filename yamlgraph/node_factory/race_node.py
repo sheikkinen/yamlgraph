@@ -17,8 +17,7 @@ from pathlib import Path
 from typing import Any
 
 from yamlgraph.constants import ErrorHandler
-from yamlgraph.executor import _build_schema_hint
-from yamlgraph.executor_base import prepare_messages
+from yamlgraph.executor_base import build_schema_hint, prepare_messages
 from yamlgraph.models import PipelineError
 from yamlgraph.models.schemas import ErrorType
 from yamlgraph.node_factory.base import GraphState, get_output_model_for_node
@@ -76,7 +75,7 @@ async def _invoke_candidate_async(
                 )
                 from langchain_core.messages import HumanMessage
 
-                schema_hint = _build_schema_hint(output_model)
+                schema_hint = build_schema_hint(output_model)
                 retry_msgs = list(messages) + [HumanMessage(content=schema_hint)]
                 response = await llm.ainvoke(retry_msgs)
                 content = normalize_content(response.content)
