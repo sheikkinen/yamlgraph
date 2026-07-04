@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Fix
-**Status:** Judged: APPROVED
+**Status:** Enforced
 **Effort:** 0.5 day
 **Requested:** 2026-07-03
 **Judged:** 2026-07-03

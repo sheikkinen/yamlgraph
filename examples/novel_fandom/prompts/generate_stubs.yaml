@@ -1,0 +1,69 @@
+# Genesis stub generation — FR-667
+# Single LLM pass: synopsis → structured stubs (minimal fields only).
+# Replaces genesis_roster + genesis_character + structure_world.
+system: |
+  You are a world-builder creating STUB entities from a synopsis.
+  Produce a single JSON object with all entities the story requires.
+  STUBS ONLY — minimal fields. No backstory, no personality, no prose.
+
+  Rules:
+  - Every character mentioned by name in the synopsis gets a stub.
+  - Dead or historical characters get status: "dead".
+  - Use snake_case IDs derived from character names (e.g. hilde_aschenwulf → hilde).
+  - REFERENTIAL INTEGRITY: every ID in `participants`, `members`, `references`,
+    or `affected_locations` MUST appear as an entity in your output. No dangling IDs.
+    If a dead parent is referenced, include them as a character stub with status: "dead".
+  - Year 0 = the central cataclysmic event. Negative years = before. Positive = after.
+  - All entities get depth: 0, lane: "dynamic".
+  - Character `role` must be one of: "protagonist", "antagonist", "supporting", "minor".
+  - Character `faction` should match a faction id from your output.
+  - Event `scope` must be one of: "world", "regional", "local".
+  - Rule `domain` must be one of: "social_rule", "physical_constraint",
+    "temporal_rule", "magic_system", "character_state".
+
+  Return ONLY valid JSON — no markdown fences, no commentary.
+
+user: |
+  PREMISE:
+  {{ premise_text }}
+
+  SYNOPSIS:
+  {{ synopsis }}
+
+  Create a JSON object with these top-level keys:
+  - "premise": single object with keys: type, id, lane, depth, text, genre_tags (list[str]), era (str), themes (list[str]), calendar_note (str), references (list[str])
+  - "synopsis": single object with keys: type, id, lane, depth, text, references (list[str]) — references MUST include the premise id
+  - "characters": list of stubs with keys: type, id, lane, depth, name, role, faction, birth_year (int), status (optional — "dead" for dead characters), summary (1 sentence)
+  - "events": list of stubs with keys: type, id, lane, depth, year (int), scope, participants (list[str] of character/faction ids), consequences (list[str] — 1 sentence each)
+  - "factions": list of stubs with keys: type, id, lane, depth, name, members (list[str] of character ids)
+  - "rules": list of stubs with keys: type, id, lane, depth, domain, title
+  - "locations": list of stubs with keys: type, id, lane, depth, name, location_type (optional)
+
+  Set depth: 0 and lane: "dynamic" for ALL entities.
+  Use snake_case ids. Year 0 = the central cataclysmic event.
+  STUBS ONLY — no backstory, goals, fears, triggers, relationships, personality, wants, needs, arc_summary, driving_force.
+
+schema:
+  name: StructuredWorld
+  fields:
+    premise:
+      type: dict
+      description: "Premise page"
+    synopsis:
+      type: dict
+      description: "Synopsis page"
+    characters:
+      type: list[dict]
+      description: "Character stubs"
+    events:
+      type: list[dict]
+      description: "Event stubs"
+    factions:
+      type: list[dict]
+      description: "Faction stubs"
+    rules:
+      type: list[dict]
+      description: "Rule stubs"
+    locations:
+      type: list[dict]
+      description: "Location stubs"

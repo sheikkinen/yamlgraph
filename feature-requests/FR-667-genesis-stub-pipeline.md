@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Refactor
-**Status:** Judged: APPROVED with amendment
+**Status:** Enforced
 **Effort:** 1 day
 **Requested:** 2026-07-03
 **Judged:** 2026-07-03

@@ -1,9 +1,9 @@
-"""Tests for FR-655 genesis pipeline.
+"""Tests for FR-655 genesis pipeline (updated for FR-667 stub pipeline).
 
 REQ-YG-505: Genesis graph structure
-REQ-YG-506: Structure world prompt schema
+REQ-YG-506: Structure world prompt schema → replaced by generate_stubs (FR-667)
 REQ-YG-507: persist_genesis flattening
-REQ-YG-508: parse_roster splitting
+REQ-YG-508: parse_roster splitting → removed (FR-667)
 """
 
 from __future__ import annotations
@@ -44,29 +44,8 @@ for m in PAGE_MODELS.values():
     m.model_rebuild()
 
 
-# --- REQ-YG-508: parse_roster ---
-
-
-class TestParseRoster:
-    """FR-655: parse_roster splits roster text into names."""
-
-    @pytest.mark.req("REQ-YG-508")
-    def test_parse_simple_roster(self) -> None:
-        state = {"roster_text": "Hilde\nGunnar\nArnulf\nReinmar\n"}
-        result = _genesis_tools.parse_roster(state)
-        assert result["character_names"] == ["Hilde", "Gunnar", "Arnulf", "Reinmar"]
-
-    @pytest.mark.req("REQ-YG-508")
-    def test_parse_roster_strips_whitespace(self) -> None:
-        state = {"roster_text": "  Hilde  \n\n  Gunnar\n"}
-        result = _genesis_tools.parse_roster(state)
-        assert result["character_names"] == ["Hilde", "Gunnar"]
-
-    @pytest.mark.req("REQ-YG-508")
-    def test_parse_empty_roster(self) -> None:
-        state = {"roster_text": ""}
-        result = _genesis_tools.parse_roster(state)
-        assert result["character_names"] == []
+# --- REQ-YG-508: parse_roster (removed by FR-667) ---
+# parse_roster tests removed — function deleted in FR-667.
 
 
 # --- REQ-YG-505: load_premise ---
@@ -217,7 +196,7 @@ class TestPersistGenesis:
 
 
 class TestGenesisGraph:
-    """FR-655: genesis.yaml is a valid graph with correct node topology."""
+    """FR-655/FR-667: genesis.yaml is a valid graph with correct node topology."""
 
     @pytest.mark.req("REQ-YG-505")
     def test_genesis_yaml_loads(self) -> None:
@@ -227,9 +206,8 @@ class TestGenesisGraph:
         assert cfg["name"] == "novel-fandom-genesis"
         assert "load" in cfg["nodes"]
         assert "synopsis" in cfg["nodes"]
-        assert "roster" in cfg["nodes"]
-        assert "characters" in cfg["nodes"]
-        assert "structure" in cfg["nodes"]
+        assert "stubs" in cfg["nodes"]  # FR-667
+        assert "validate" in cfg["nodes"]  # FR-667
         assert "persist" in cfg["nodes"]
 
     @pytest.mark.req("REQ-YG-505")
@@ -241,31 +219,25 @@ class TestGenesisGraph:
         edge_pairs = [(e["from"], e["to"]) for e in edges]
         assert ("START", "load") in edge_pairs
         assert ("load", "synopsis") in edge_pairs
-        assert ("synopsis", "roster") in edge_pairs
+        assert ("synopsis", "stubs") in edge_pairs  # FR-667
+        assert ("stubs", "validate") in edge_pairs  # FR-667
+        assert ("validate", "persist") in edge_pairs  # FR-667
         assert ("persist", "END") in edge_pairs
 
-    @pytest.mark.req("REQ-YG-505")
-    def test_characters_is_map_node(self) -> None:
-        graph_path = NOVEL_FANDOM_DIR / "genesis.yaml"
-        with open(graph_path) as f:
-            cfg = yaml.safe_load(f)
-        chars = cfg["nodes"]["characters"]
-        assert chars["type"] == "map"
-        assert chars["collect"] == "character_cards"
-
     @pytest.mark.req("REQ-YG-506")
-    def test_structure_world_prompt_exists(self) -> None:
-        prompt_path = NOVEL_FANDOM_DIR / "prompts" / "structure_world.yaml"
+    def test_generate_stubs_prompt_exists(self) -> None:
+        """FR-667: generate_stubs.yaml replaces structure_world.yaml."""
+        prompt_path = NOVEL_FANDOM_DIR / "prompts" / "generate_stubs.yaml"
         assert prompt_path.exists()
         with open(prompt_path) as f:
             prompt = yaml.safe_load(f)
         assert "schema" in prompt
-        assert "premise" in prompt["schema"]["fields"]
         assert "characters" in prompt["schema"]["fields"]
         assert "events" in prompt["schema"]["fields"]
 
     @pytest.mark.req("REQ-YG-505")
     def test_genesis_prompts_exist(self) -> None:
-        for name in ("genesis_synopsis", "genesis_roster", "genesis_character"):
+        """FR-667: only genesis_synopsis and generate_stubs remain."""
+        for name in ("genesis_synopsis", "generate_stubs"):
             path = NOVEL_FANDOM_DIR / "prompts" / f"{name}.yaml"
             assert path.exists(), f"Missing prompt: {name}"

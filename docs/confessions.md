@@ -89,7 +89,7 @@ Framework suppressions require elevated scrutiny. These live in `yamlgraph/`.
 - **Resolved**: `node_fn` now an orchestrator calling extracted phases. C901 now passes without suppression.
 
 ### CONF-007
-- **File**: [yamlgraph/tools/agent.py](../yamlgraph/tools/agent.py#L94)
+- **File**: [yamlgraph/tools/agent.py](../yamlgraph/tools/agent.py#L88)
 - **Code**: C901 (cognitive complexity 19 > 15)
 - **Sin**: `create_agent_node` assembles agent with tool binding, prompt loading, and LLM configuration in one function.
 - **Penance**: Agent node factory has inherent setup complexity. Decomposition deferred to a future FR.
@@ -149,7 +149,7 @@ Framework suppressions require elevated scrutiny. These live in `yamlgraph/`.
 - **Penance**: Used for YAML prompt template variable extraction, not HTML rendering. Autoescape would corrupt prompt text by escaping `<`, `>`, `&` characters. No web output is generated from this code path.
 
 ### CONF-010
-- **File**: [yamlgraph/executor_base.py](../yamlgraph/executor_base.py#L130)
+- **File**: [yamlgraph/executor_base.py](../yamlgraph/executor_base.py#L128)
 - **Code**: C901 (function too complex)
 - **Sin**: `prepare_messages` has high cyclomatic complexity (14 > 15 after refactoring, but still flagged) due to branching logic for different system field types (scalar vs. list vs. system_segments) and provider-specific message formatting.
 - **Penance**: Working functionality for FR-276 prompt caching. Complexity reduced from D (24) to C (14) through helper function extraction. The function orchestrates message preparation across multiple input formats and providers, making some complexity unavoidable.
@@ -1247,6 +1247,18 @@ These are E402 suppressions and are acceptable as "glue code" patterns.
 - **Sin**: Docstring of `_try_structured_output` contains `fallback` — describes the try-parse-first, fallback-to-LLM strategy (FR-448).
 - **Penance**: The word describes the actual algorithmic pattern. Renaming would obscure intent.
 
+### CONF-305
+- **File**: [yamlgraph/tools/agent.py](../yamlgraph/tools/agent.py#L151)
+- **Code**: FB001
+- **Sin**: Comment `# Fallback: structured output re-invoke (expensive)` uses `fallback` token.
+- **Penance**: Same as CONF-304 — documents the two-phase structured output strategy.
+
+### CONF-349
+- **File**: [yamlgraph/utils/llm_factory_async.py](../yamlgraph/utils/llm_factory_async.py#L80)
+- **Code**: FB001
+- **Sin**: Docstring of `invoke_async` contains `fallback` — describes the FR-464 structured-output JSON fallback strategy.
+- **Penance**: The word describes the actual retry-then-parse pattern from FR-676. Renaming would obscure intent.
+
 ### CONF-350
 - **File**: [yamlgraph/tools/agent.py](../yamlgraph/tools/agent.py#L51)
 - **Code**: FB001
@@ -1265,17 +1277,29 @@ These are E402 suppressions and are acceptable as "glue code" patterns.
 - **Sin**: Docstring of `dispatch_provider` contains `fallback` while explicitly stating there is *no* silent Anthropic fallback at the dispatch boundary (FR-680).
 - **Penance**: The token appears in a negation documenting the removed hedge — it enforces Commandment 6, not violates it.
 
-### CONF-305
-- **File**: [yamlgraph/tools/agent.py](../yamlgraph/tools/agent.py#L151)
-- **Code**: FB001
-- **Sin**: Comment `# Fallback: structured output re-invoke (expensive)` uses `fallback` token.
-- **Penance**: Same as CONF-304 — documents the two-phase structured output strategy.
+### CONF-353
+- **File**: [examples/novel_fandom/nodes/persist_genesis.py](../examples/novel_fandom/nodes/persist_genesis.py#L54)
+- **Code**: ANN202
+- **Sin**: `_load_persist_impl` returns dynamically loaded function — no static type available.
+- **Penance**: Import via importlib to avoid relative import issues in example code. Return type is internal.
 
-### CONF-349
-- **File**: [yamlgraph/utils/llm_factory_async.py](../yamlgraph/utils/llm_factory_async.py#L80)
-- **Code**: FB001
-- **Sin**: Docstring of `invoke_async` contains `fallback` — describes the FR-464 structured-output JSON fallback strategy.
-- **Penance**: The word describes the actual retry-then-parse pattern from FR-676. Renaming would obscure intent.
+### CONF-354
+- **File**: [tests/unit/test_fr664_665_667_dedup_trilogy.py](../tests/unit/test_fr664_665_667_dedup_trilogy.py#L26)
+- **Code**: ANN202
+- **Sin**: `_load` helper returns dynamically loaded module — no static type annotation.
+- **Penance**: Test utility for loading novel_fandom modules via importlib. Same pattern as all other novel_fandom test files.
+
+### CONF-355
+- **File**: [yamlgraph/executor_base.py](../yamlgraph/executor_base.py#L130)
+- **Code**: C901
+- **Sin**: Function exceeds cognitive complexity threshold.
+- **Penance**: Core executor dispatch logic; splitting would scatter the execution flow across multiple functions without reducing actual complexity.
+
+### CONF-356
+- **File**: [yamlgraph/tools/agent.py](../yamlgraph/tools/agent.py#L94)
+- **Code**: C901
+- **Sin**: Function exceeds cognitive complexity threshold.
+- **Penance**: Agent node factory builds the agent execution function with tool binding, iteration limits, and error handling. Splitting would fragment the agent lifecycle.
 
 ### CONF-255
 - **File**: [yamlgraph/utils/fsm/ui_log.py](../yamlgraph/utils/fsm/ui_log.py#L50)

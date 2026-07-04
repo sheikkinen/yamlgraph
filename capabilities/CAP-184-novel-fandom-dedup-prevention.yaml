@@ -1,0 +1,36 @@
+id: CAP-184
+name: Novel Fandom Duplicate Entity Prevention
+description: >
+  Three-layer defense against duplicate entities in novel_fandom:
+  FR-664 genesis referential integrity gate, FR-665 worldgen semantic
+  entity deduplication, FR-667 genesis stub pipeline. Prevents orphan
+  IDs at genesis boundary and catches parallel-invention duplicates
+  in worldgen map nodes.
+modules:
+  - examples/novel_fandom
+requirements:
+  - id: REQ-YG-512
+    description: >
+      validate_referential_integrity checks all cross-reference fields
+      (relationships.to, participants, references, members,
+      affected_locations) resolve to defined entity IDs. Returns
+      orphan_ids list and violations. Warn-only in persist_genesis.
+    modules:
+      - examples/novel_fandom
+  - id: REQ-YG-513
+    description: >
+      Genesis stub pipeline uses 2 LLM calls (synopsis + stubs).
+      Retired prompts deleted (genesis_roster, genesis_character,
+      structure_world). parse_roster removed. generate_stubs prompt
+      produces minimal entity stubs with referential integrity constraint.
+    modules:
+      - examples/novel_fandom
+  - id: REQ-YG-514
+    description: >
+      dedup_entities node in worldgen between collect and create_skeletons.
+      Deterministic pass merges possessive variants, the_ prefixes,
+      and stop-word prefix matches. LLM pass gated on red_link_count > 5.
+      Reference rewriting updates dropped IDs in deepened pages.
+    modules:
+      - examples/novel_fandom
+fr: FR-664

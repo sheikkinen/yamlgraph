@@ -84,6 +84,10 @@ tools:
     path: nodes/canon_tools.py
     function: validate_draft
     description: "Validate a draft page. Returns {valid: bool, errors: list}."
+  dedup_entities:
+    type: python
+    path: nodes/dedup_entities.py
+    function: dedup_entities
 
 nodes:
   anchor:
@@ -150,6 +154,10 @@ nodes:
     type: python
     tool: collect_red_links
 
+  dedup:
+    type: python
+    tool: dedup_entities
+
   create_skeletons:
     type: map
     over: "{state.red_links}"
@@ -204,10 +212,18 @@ edges:
     to: collect
 
   - from: collect
-    to: create_skeletons
+    to: dedup
     condition: red_link_count > 0
 
   - from: collect
+    to: gate
+    condition: red_link_count == 0
+
+  - from: dedup
+    to: create_skeletons
+    condition: red_link_count > 0
+
+  - from: dedup
     to: gate
     condition: red_link_count == 0
 
@@ -222,12 +238,14 @@ edges:
 
 loop_limits:
   reload: 3
+  anchor: 3
   select: 3
   split: 3
   deepen_events: 3
   deepen_other: 3
   reflect: 3
   collect: 3
+  dedup: 3
   create_skeletons: 3
   gate: 3
   persist: 3

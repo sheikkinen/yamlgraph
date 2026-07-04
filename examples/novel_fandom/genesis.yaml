@@ -1,16 +1,15 @@
-# Novel Fandom — Genesis: Premise → Seed Canon (FR-655)
-# Two-phase pipeline:
-#   Phase 1: Prose generation (DM prompts as LLM nodes)
-#   Phase 2: Structure extraction (single LLM → structured YAML) + persist
+# Novel Fandom — Genesis: Premise → Seed Canon (FR-655, FR-667)
+# Streamlined stub pipeline: premise → synopsis → stubs → validate → persist
+# 2 LLM calls only. Character enrichment happens in worldgen.
 #
 # Usage:
 #   yamlgraph graph run examples/novel_fandom/genesis.yaml \
-#     --var premise_file=examples/dungeon_master/premises/floodmark-saga.txt \
+#     --var premise_file=examples/novel_fandom/premises/floodmark-saga.txt \
 #     --full
 
 version: "1.0"
 name: novel-fandom-genesis
-description: Bootstrap seed canon from a premise via prose-first pipeline
+description: Bootstrap seed canon stubs from a premise via 2-call pipeline
 prompts_relative: true
 prompts_dir: prompts
 
@@ -18,10 +17,8 @@ state:
   premise_file: str
   premise_text: str
   synopsis: str
-  roster_text: str
-  character_names: list
-  character_cards: list
   structured_world: dict
+  gate_result: dict
   written_paths: list
   written_count: int
 
@@ -33,10 +30,10 @@ tools:
     type: python
     path: nodes/genesis_tools.py
     function: load_premise
-  parse_roster:
+  validate_genesis:
     type: python
-    path: nodes/genesis_tools.py
-    function: parse_roster
+    path: nodes/validate_genesis.py
+    function: validate_genesis
   persist_genesis:
     type: python
     path: nodes/persist_genesis.py
@@ -53,39 +50,18 @@ nodes:
     state_key: synopsis
     temperature: 0.7
 
-  roster:
+  stubs:
     type: llm
-    prompt: genesis_roster
-    state_key: roster_text
-    temperature: 0.3
-
-  parse_roster:
-    type: python
-    tool: parse_roster
-
-  characters:
-    type: map
-    over: "{state.character_names}"
-    as: char_name
-    max_items: 6
-    collect: character_cards
-    node:
-      type: llm
-      prompt: genesis_character
-      state_key: card
-      temperature: 0.5
-      variables:
-        synopsis: "{state.synopsis}"
-
-  structure:
-    type: llm
-    prompt: structure_world
+    prompt: generate_stubs
     state_key: structured_world
     temperature: 0.3
     variables:
       premise_text: "{state.premise_text}"
       synopsis: "{state.synopsis}"
-      character_cards: "{state.character_cards}"
+
+  validate:
+    type: python
+    tool: validate_genesis
 
   persist:
     type: python
@@ -99,18 +75,12 @@ edges:
     to: synopsis
 
   - from: synopsis
-    to: roster
+    to: stubs
 
-  - from: roster
-    to: parse_roster
+  - from: stubs
+    to: validate
 
-  - from: parse_roster
-    to: characters
-
-  - from: characters
-    to: structure
-
-  - from: structure
+  - from: validate
     to: persist
 
   - from: persist

@@ -2,6 +2,7 @@
 
 Takes the structured_world dict from the structure_world LLM node
 and writes each entity as a separate YAML file via persist_pages logic.
+FR-664: Validate referential integrity before writing.
 """
 
 from __future__ import annotations
@@ -12,6 +13,42 @@ from pathlib import Path
 from typing import Any
 
 logger = logging.getLogger(__name__)
+
+
+def validate_referential_integrity(
+    pages: list[dict],
+) -> dict[str, Any]:
+    """Check all cross-references resolve to defined entity IDs (FR-664)."""
+    defined_ids = {p["id"] for p in pages if "id" in p}
+    orphans: set[str] = set()
+
+    for page in pages:
+        # relationships.to
+        for rel in page.get("relationships", []):
+            to = rel.get("to", "") if isinstance(rel, dict) else ""
+            if to and to not in defined_ids:
+                orphans.add(to)
+
+        # participants, references, members, affected_locations
+        for field in (
+            "participants",
+            "references",
+            "members",
+            "affected_locations",
+        ):
+            for ref in page.get(field, []):
+                ref_id = ref if isinstance(ref, str) else ref.get("id", "")
+                if ref_id and ref_id not in defined_ids:
+                    orphans.add(ref_id)
+
+    violations = [
+        f"orphan ID '{oid}' referenced but never defined" for oid in sorted(orphans)
+    ]
+    return {
+        "valid": len(orphans) == 0,
+        "orphan_ids": sorted(orphans),
+        "violations": violations,
+    }
 
 
 def _load_persist_impl():  # noqa: ANN202
@@ -65,6 +102,16 @@ def _persist_genesis_impl(
         page.setdefault("depth", 0)
         page.setdefault("lane", "dynamic")
         deepened.append({"updated_page": page})
+
+    # FR-664: validate referential integrity (warn-only)
+    result = validate_referential_integrity(pages)
+    if not result["valid"]:
+        logger.warning(
+            "Genesis referential integrity violations (%d orphan IDs):",
+            len(result["orphan_ids"]),
+        )
+        for v in result["violations"]:
+            logger.warning("  %s", v)
 
     return _load_persist_impl()(
         {"deepened": deepened}, canon_dir, page_models=page_models

@@ -496,9 +496,10 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 178 | CAP-178 Novel Fandom Prose and Close Loop | `examples` | REQ-YG-489 – 491 |
 | 179 | CAP-179 Novel Fandom Wiki Core Types | `examples` | REQ-YG-492 – 493 |
 | 180 | CAP-180 Novel Fandom World Expansion | `examples` | REQ-YG-494 – 504 |
-| 181 | CAP-181 Novel Fandom Genesis Pipeline | `examples/novel_fandom` | REQ-YG-505 – 508 |
+| 181 | CAP-181 Novel Fandom Genesis Pipeline | `examples/novel_fandom` | REQ-YG-505 – 507 |
 | 182 | CAP-182 Agentic Event Deepening | `examples/novel_fandom/nodes/canon_tools.py`, `examples/novel_fandom/nodes/split_thin_by_type.py`, `examples/novel_fandom/prompts/deepen_event_agent.yaml`, `examples/novel_fandom/worldgen.yaml` | REQ-YG-509 |
 | 183 | CAP-183 First-Class Verification | `yamlgraph/utils/guard_runtime.py`, `yamlgraph/node_compiler.py`, `yamlgraph/tools/nodes.py`, `yamlgraph/tools/python_tool.py`, … | REQ-YG-511 |
+| 184 | CAP-184 Novel Fandom Duplicate Entity Prevention | `examples/novel_fandom` | REQ-YG-512 – 514 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -2266,16 +2267,15 @@ World expansion pipeline for novel_fandom. Deepens thin entities via LLM, extrac
 
 ### 181. CAP-181 Novel Fandom Genesis Pipeline
 
-Premise-driven world bootstrapping via two-phase pipeline: Phase 1 generates prose (synopsis, roster, character cards), Phase 2 structures prose into typed canon YAML pages. FR-655.
+Premise-driven world bootstrapping via stub pipeline (FR-667): synopsis (LLM) → stubs (LLM) → validate → persist. Produces minimal entity stubs for worldgen enrichment. FR-655, FR-664, FR-667.
 
 **Feature Request:** FR-655
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
-| REQ-YG-505 | genesis.yaml graph loads premise from file, generates synopsis, extracts character roster, and produces character cards via map node. | `examples/novel_fandom` |
-| REQ-YG-506 | structure_world prompt converts prose (synopsis + character cards) into structured canon pages with typed fields, absolute years, and cross-references in a single LLM pass. | `examples/novel_fandom` |
-| REQ-YG-507 | persist_genesis node flattens structured_world output and writes each entity to canon/{type}/ via existing persist_pages logic. | `examples/novel_fandom` |
-| REQ-YG-508 | genesis_tools.parse_roster splits roster text (one name per line) into a list of character names for the map node. | `examples/novel_fandom` |
+| REQ-YG-505 | genesis.yaml graph loads premise from file, generates synopsis, and produces entity stubs via generate_stubs LLM node. Validate node checks referential integrity before persist. | `examples/novel_fandom` |
+| REQ-YG-506 | generate_stubs prompt converts synopsis into structured stub entities with minimal fields, referential integrity constraint, and typed schema output. | `examples/novel_fandom` |
+| REQ-YG-507 | persist_genesis node flattens structured_world output, validates referential integrity (FR-664), and writes each entity to canon/{type}/ via existing persist_pages logic. | `examples/novel_fandom` |
 
 ### 182. CAP-182 Agentic Event Deepening
 
@@ -2296,6 +2296,18 @@ Verification as a first-class DSL construct (FR-677). Guards, previously honored
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-511 | Node guard parity and compile-time matrix. extract_guard_rules / enforce_pre_guards / enforce_post_guards live in the bottom-tier utils.guard_runtime module so Layer-3 tool factories may share the guard contract without crossing import boundaries. Shell tool, python, and agent nodes evaluate guards.pre before execution (halt raises GuardHaltError, skip returns a skip-error state, warn logs) and guards.post after execution (halt raises, retry re-executes bounded by max_retries, warn logs, pass returns output unchanged). Guard halts are not swallowed by on_error=skip. compile_node rejects guards declared on node types outside GUARD_SUPPORTED_TYPES (llm, router, copilot, tool, python, agent) by raising GraphConfigError. | `yamlgraph/utils/guard_runtime.py`, `yamlgraph/node_compiler.py`, `yamlgraph/tools/nodes.py`, `yamlgraph/tools/python_tool.py`, `yamlgraph/tools/agent.py`, `tests/unit/test_fr677_node_guards.py` |
+
+### 184. CAP-184 Novel Fandom Duplicate Entity Prevention
+
+Three-layer defense against duplicate entities in novel_fandom: FR-664 genesis referential integrity gate, FR-665 worldgen semantic entity deduplication, FR-667 genesis stub pipeline. Prevents orphan IDs at genesis boundary and catches parallel-invention duplicates in worldgen map nodes.
+
+**Feature Request:** FR-664
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-512 | validate_referential_integrity checks all cross-reference fields (relationships.to, participants, references, members, affected_locations) resolve to defined entity IDs. Returns orphan_ids list and violations. Warn-only in persist_genesis. | `examples/novel_fandom` |
+| REQ-YG-513 | Genesis stub pipeline uses 2 LLM calls (synopsis + stubs). Retired prompts deleted (genesis_roster, genesis_character, structure_world). parse_roster removed. generate_stubs prompt produces minimal entity stubs with referential integrity constraint. | `examples/novel_fandom` |
+| REQ-YG-514 | dedup_entities node in worldgen between collect and create_skeletons. Deterministic pass merges possessive variants, the_ prefixes, and stop-word prefix matches. LLM pass gated on red_link_count > 5. Reference rewriting updates dropped IDs in deepened pages. | `examples/novel_fandom` |
 
 <!-- END GENERATED CAPABILITIES -->
 

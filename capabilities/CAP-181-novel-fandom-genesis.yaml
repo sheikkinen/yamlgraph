@@ -1,36 +1,32 @@
 id: CAP-181
 name: Novel Fandom Genesis Pipeline
 description: >
-  Premise-driven world bootstrapping via two-phase pipeline:
-  Phase 1 generates prose (synopsis, roster, character cards),
-  Phase 2 structures prose into typed canon YAML pages.
-  FR-655.
+  Premise-driven world bootstrapping via stub pipeline (FR-667):
+  synopsis (LLM) → stubs (LLM) → validate → persist.
+  Produces minimal entity stubs for worldgen enrichment.
+  FR-655, FR-664, FR-667.
 modules:
   - examples/novel_fandom
 requirements:
   - id: REQ-YG-505
     description: >
       genesis.yaml graph loads premise from file, generates synopsis,
-      extracts character roster, and produces character cards via map node.
+      and produces entity stubs via generate_stubs LLM node.
+      Validate node checks referential integrity before persist.
     modules:
       - examples/novel_fandom
   - id: REQ-YG-506
     description: >
-      structure_world prompt converts prose (synopsis + character cards)
-      into structured canon pages with typed fields, absolute years,
-      and cross-references in a single LLM pass.
+      generate_stubs prompt converts synopsis into structured stub
+      entities with minimal fields, referential integrity constraint,
+      and typed schema output.
     modules:
       - examples/novel_fandom
   - id: REQ-YG-507
     description: >
-      persist_genesis node flattens structured_world output and writes
-      each entity to canon/{type}/ via existing persist_pages logic.
-    modules:
-      - examples/novel_fandom
-  - id: REQ-YG-508
-    description: >
-      genesis_tools.parse_roster splits roster text (one name per line)
-      into a list of character names for the map node.
+      persist_genesis node flattens structured_world output, validates
+      referential integrity (FR-664), and writes each entity to
+      canon/{type}/ via existing persist_pages logic.
     modules:
       - examples/novel_fandom
 fr: FR-655
