@@ -2,9 +2,23 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Proposed
+**Status:** Rejected — superseded by [FR-681-module-map-density-contract.md](FR-681-module-map-density-contract.md)
 **Effort:** 1 day
 **Requested:** 2026-07-04
+
+> **Rejection rationale (2026-07-04):** The premise is invalid. The compressed
+> map format is fixed at 2 lines/module + 9 header lines; 121 modules × 2 + 9
+> = 251. Satisfying ≤250 mathematically requires deleting or merging a module
+> — the constant is a module-count cap, not a compression gate, and it
+> directly contradicts Commandment 8's split-before-bloat doctrine (the
+> FR-677 `node_timeout.py` split that triggered the bump was *mandatory*
+> under the 450-line file cap). Merging clean single-purpose modules
+> (`graph_cache.py` 31 lines, `models/streaming.py` 29, `utils/content.py`
+> 36) to reclaim two map lines would increase entropy to satisfy an entropy
+> proxy. The superseding FR replaces the constant with a format-density
+> contract (header + 2×module_count) that preserves FR-335's actual
+> invariant — agent-readable compression — while staying neutral to
+> doctrine-compliant splits.
 
 ## Summary
 
