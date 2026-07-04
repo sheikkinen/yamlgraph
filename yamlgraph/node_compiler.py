@@ -36,6 +36,29 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
+class GraphConfigError(ValueError):
+    """Raised when a graph config is structurally invalid at compile time.
+
+    Subclasses ``ValueError`` so existing ``except ValueError`` handlers in the
+    compile path continue to catch it, while giving guard/verify misuse a named,
+    greppable failure mode (FR-677).
+    """
+
+
+# Node types on which `guards:` is honored at runtime (FR-677). Declaring
+# guards on any other type is a compile-time error rather than a silent no-op.
+GUARD_SUPPORTED_TYPES: frozenset[str] = frozenset(
+    {
+        NodeType.LLM,
+        NodeType.ROUTER,
+        NodeType.COPILOT,
+        NodeType.TOOL,
+        NodeType.PYTHON,
+        NodeType.AGENT,
+    }
+)
+
+
 # Context passed to node type handlers (FR-220)
 
 
@@ -322,6 +345,16 @@ def compile_node(
             f"Registered types: {sorted(NODE_TYPE_HANDLERS.keys())}"
         )
 
+    # Reject guards on node types that cannot honor them (FR-677). Fail loud at
+    # compile time rather than silently ignoring the guard block at runtime.
+    if node_config.get("guards") and node_type not in GUARD_SUPPORTED_TYPES:
+        raise GraphConfigError(
+            f"Node {node_name!r} of type {str(node_type)!r} declares 'guards' "
+            f"but guards are only supported on node types "
+            f"{sorted(str(t) for t in GUARD_SUPPORTED_TYPES)}. "
+            f"Remove the guards block or change the node type."
+        )
+
     ctx = NodeCompileContext(
         node_name=node_name,
         node_config=enriched_config,
@@ -390,6 +423,8 @@ def compile_nodes(
 __all__ = [
     "NodeCompileContext",
     "NODE_TYPE_HANDLERS",
+    "GUARD_SUPPORTED_TYPES",
+    "GraphConfigError",
     "_maybe_wrap_timeout",
     "compile_node",
     "compile_nodes",

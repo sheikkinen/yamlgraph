@@ -24,6 +24,12 @@ from yamlgraph.tools.write_data_file_tool import (
     WriteDataFileToolConfig,
     build_write_data_file_tool,
 )
+from yamlgraph.utils.guard_runtime import (
+    GuardHaltError,
+    enforce_post_guards,
+    enforce_pre_guards,
+    extract_guard_rules,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -235,6 +241,7 @@ def create_python_node(
     on_error = node_config.get("on_error", "fail")
     loop_limit = node_config.get("loop_limit")
     variable_templates = node_config.get("variables", {})
+    guards_pre, guards_post = extract_guard_rules(node_config)
 
     # Load the function at node creation time
     func = load_python_function(
@@ -256,6 +263,17 @@ def create_python_node(
 
         loop_counts[node_name] = current_count + 1
 
+        # FR-677: pre-guards run before executing the function.
+        if enforce_pre_guards(node_name, guards_pre, state):
+            from yamlgraph.error_handlers import build_skip_error_state
+
+            return build_skip_error_state(
+                node_name=node_name,
+                state_key=state_key,
+                error_message=f"Python node '{node_name}' skipped by pre-guard",
+                state=state,
+            )
+
         logger.info(f"🐍 Executing Python node: {node_name} -> {tool_name}")
 
         # FR-252: Resolve variables expressions before calling function
@@ -275,6 +293,15 @@ def create_python_node(
 
             result = func(effective_state)
 
+            # FR-677: post-guards validate output; retry re-runs the function.
+            result = enforce_post_guards(
+                node_name,
+                guards_post,
+                state,
+                result,
+                execute=lambda: func(effective_state),
+            )
+
             # If function returns a dict, merge with node metadata
             if isinstance(result, dict):
                 result["current_step"] = node_name
@@ -288,6 +315,9 @@ def create_python_node(
                     "_loop_counts": loop_counts,
                 }
 
+        except GuardHaltError:
+            # FR-677: guard halts must surface even when on_error=skip.
+            raise
         except Exception as e:
             logger.error(f"Python node {node_name} failed: {e}")
 

@@ -15,10 +15,6 @@ from yamlgraph.error_handlers import check_loop_limit, check_requirements
 from yamlgraph.executor import execute_prompt
 from yamlgraph.models import PipelineError
 from yamlgraph.node_factory.base import GraphState, get_output_model_for_node
-from yamlgraph.node_factory.guard_runtime import (
-    evaluate_guards_once,
-    extract_guard_rules,
-)
 from yamlgraph.node_factory.llm_execution import (
     apply_verification as _apply_verification,
 )
@@ -32,6 +28,10 @@ from yamlgraph.node_factory.llm_execution import (
     should_skip_if_exists as _should_skip_if_exists,
 )
 from yamlgraph.utils.expressions import resolve_node_variables
+from yamlgraph.utils.guard_runtime import (
+    evaluate_guards_once,
+    extract_guard_rules,
+)
 from yamlgraph.utils.json_extract import extract_json
 
 logger = logging.getLogger(__name__)

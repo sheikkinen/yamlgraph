@@ -498,6 +498,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 180 | CAP-180 Novel Fandom World Expansion | `examples` | REQ-YG-494 – 504 |
 | 181 | CAP-181 Novel Fandom Genesis Pipeline | `examples/novel_fandom` | REQ-YG-505 – 508 |
 | 182 | CAP-182 Agentic Event Deepening | `examples/novel_fandom/nodes/canon_tools.py`, `examples/novel_fandom/nodes/split_thin_by_type.py`, `examples/novel_fandom/prompts/deepen_event_agent.yaml`, `examples/novel_fandom/worldgen.yaml` | REQ-YG-509 |
+| 183 | CAP-183 First-Class Verification | `yamlgraph/utils/guard_runtime.py`, `yamlgraph/node_compiler.py`, `yamlgraph/tools/nodes.py`, `yamlgraph/tools/python_tool.py`, … | REQ-YG-511 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -2285,6 +2286,16 @@ FR-657: Worldgen event-deepening via agent node with canon lookup tools. Events 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-509 | canon_tools.py implements lookup_canon_page (returns YAML + calendar header), list_canon_ids (all IDs with types), validate_draft (returns {valid, errors} checking year sign, participant existence, duplicate IDs). split_thin_by_type partitions thin_entities into thin_events and thin_other. worldgen.yaml routes events to agent node with tools, other types to existing LLM map node. Graph lints clean. | `examples/novel_fandom/nodes/canon_tools.py`, `examples/novel_fandom/nodes/split_thin_by_type.py`, `examples/novel_fandom/worldgen.yaml`, `tests/unit/test_fr657_agentic_event_deepening.py` |
+
+### 183. CAP-183 First-Class Verification
+
+Verification as a first-class DSL construct (FR-677). Guards, previously honored only on llm/router/copilot nodes, are extended to all side-effect node types (shell tool, python, agent) with a compile-time matrix that rejects guards declared on node types that cannot honor them (map, race, subgraph, tool_call, passthrough, interrupt). Side-effect nodes raise GuardHaltError on on_fail=halt (and on exhausted retries) rather than returning an error-state dict, making violations loud at the boundary where they occur. Adds a graph-level verify: block that runs terminal checks before END, and a `graph run --gate` flag that lints before executing and blocks on error-severity issues.
+
+**Feature Request:** FR-677
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-511 | Node guard parity and compile-time matrix. extract_guard_rules / enforce_pre_guards / enforce_post_guards live in the bottom-tier utils.guard_runtime module so Layer-3 tool factories may share the guard contract without crossing import boundaries. Shell tool, python, and agent nodes evaluate guards.pre before execution (halt raises GuardHaltError, skip returns a skip-error state, warn logs) and guards.post after execution (halt raises, retry re-executes bounded by max_retries, warn logs, pass returns output unchanged). Guard halts are not swallowed by on_error=skip. compile_node rejects guards declared on node types outside GUARD_SUPPORTED_TYPES (llm, router, copilot, tool, python, agent) by raising GraphConfigError. | `yamlgraph/utils/guard_runtime.py`, `yamlgraph/node_compiler.py`, `yamlgraph/tools/nodes.py`, `yamlgraph/tools/python_tool.py`, `yamlgraph/tools/agent.py`, `tests/unit/test_fr677_node_guards.py` |
 
 <!-- END GENERATED CAPABILITIES -->
 

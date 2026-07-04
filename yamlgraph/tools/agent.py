@@ -20,6 +20,11 @@ from yamlgraph.tools.schema_loader_tool import SchemaLoaderToolConfig
 from yamlgraph.tools.shell import ShellToolConfig
 from yamlgraph.tools.tool_builders import build_langchain_tool, build_python_tool
 from yamlgraph.utils.content import normalize_content as _normalize_content
+from yamlgraph.utils.guard_runtime import (
+    enforce_post_guards,
+    enforce_pre_guards,
+    extract_guard_rules,
+)
 from yamlgraph.utils.json_extract import extract_json
 from yamlgraph.utils.llm_factory import create_llm
 from yamlgraph.utils.prompts import load_prompt
@@ -137,6 +142,7 @@ def create_agent_node(  # noqa: C901
     state_key = node_config.get("state_key", node_name)
     prompt_name = node_config.get("prompt", "agent")
     tool_results_key = node_config.get("tool_results_key")
+    guards_pre, guards_post = extract_guard_rules(node_config)
 
     # Build LangChain tools from configs
     lc_tools = []
@@ -167,6 +173,17 @@ def create_agent_node(  # noqa: C901
 
     def node_fn(state: dict) -> dict:
         """Execute the agent loop."""
+        # FR-677: pre-guards run before the agent loop.
+        if enforce_pre_guards(node_name, guards_pre, state):
+            from yamlgraph.error_handlers import build_skip_error_state
+
+            return build_skip_error_state(
+                node_name=node_name,
+                state_key=state_key,
+                error_message=f"Agent node '{node_name}' skipped by pre-guard",
+                state=state,
+            )
+
         # Load prompts - fail fast if missing
         prompt_config = load_prompt(
             prompt_name,
@@ -263,6 +280,10 @@ def create_agent_node(  # noqa: C901
                 final_value = _try_structured_output(
                     response.content, messages, output_model, llm_base
                 )
+                # FR-677: post-guards validate the agent's final answer.
+                final_value = enforce_post_guards(
+                    node_name, guards_post, state, final_value
+                )
                 result = {
                     state_key: final_value,
                     "current_step": node_name,
@@ -313,6 +334,8 @@ def create_agent_node(  # noqa: C901
         final_value = _try_structured_output(
             last_content, messages, output_model, llm_base
         )
+        # FR-677: post-guards validate the agent's final answer.
+        final_value = enforce_post_guards(node_name, guards_post, state, final_value)
         # Return only NEW messages (delta) — see FR-057
         new_messages = messages[len(existing_messages) :]
         result = {

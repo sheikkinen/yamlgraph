@@ -14,6 +14,11 @@ from typing import Any
 from yamlgraph.error_handlers import build_skip_error_state, check_loop_limit
 from yamlgraph.tools.shell import ShellToolConfig, execute_shell_tool
 from yamlgraph.utils.expressions import resolve_template
+from yamlgraph.utils.guard_runtime import (
+    enforce_post_guards,
+    enforce_pre_guards,
+    extract_guard_rules,
+)
 
 # Type alias for state - dynamic TypedDict at runtime
 GraphState = dict[str, Any]
@@ -85,6 +90,7 @@ def create_tool_node(
     on_error = node_config.get("on_error", "fail")
     variables_template = node_config.get("variables", {})
     loop_limit = node_config.get("loop_limit")
+    guards_pre, guards_post = extract_guard_rules(node_config)
 
     def node_fn(state: GraphState) -> dict:
         """Execute the shell tool and return state update."""
@@ -96,6 +102,15 @@ def create_tool_node(
             return {"_loop_limit_reached": True, "current_step": node_name}
 
         loop_counts[node_name] = current_count + 1
+
+        # FR-677: pre-guards run before side-effect execution.
+        if enforce_pre_guards(node_name, guards_pre, state):
+            return build_skip_error_state(
+                node_name=node_name,
+                state_key=state_key,
+                error_message=f"Tool node '{node_name}' skipped by pre-guard",
+                state=state,
+            )
 
         # Resolve variables from state
         variables = resolve_variables(variables_template, state)
@@ -120,9 +135,19 @@ def create_tool_node(
                     f"Tool '{tool_name}' failed in node '{node_name}': {result.error}"
                 )
 
+        # FR-677: post-guards validate output; retry re-executes the tool.
+        def _reexecute() -> Any:
+            retry_vars = resolve_variables(variables_template, state)
+            retry_result = execute_shell_tool(tool_config, retry_vars)
+            return retry_result.output
+
+        output = enforce_post_guards(
+            node_name, guards_post, state, result.output, execute=_reexecute
+        )
+
         logger.info(f"✓ Tool {tool_name} completed")
         return {
-            state_key: result.output,
+            state_key: output,
             "current_step": node_name,
             "_loop_counts": loop_counts,
         }

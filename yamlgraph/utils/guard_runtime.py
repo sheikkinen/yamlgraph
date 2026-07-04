@@ -1,7 +1,14 @@
-"""Shared node guard runtime helpers for llm/router/copilot nodes."""
+"""Shared node guard runtime helpers for all guard-bearing node types.
+
+Hosted in the bottom (side-effect) tier so both Layer 2 node factories
+(llm/router/copilot) and Layer 3 tool factories (shell tool, python, agent)
+can share one guard evaluation contract without crossing import boundaries.
+"""
 
 from __future__ import annotations
 
+import logging
+from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
 
@@ -10,6 +17,8 @@ from yamlgraph.utils.guard_evaluator import (
     GuardExpressionError,
     evaluate_guard_expression,
 )
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
@@ -131,4 +140,86 @@ def evaluate_guards_once(
     )
 
 
-__all__ = ["GuardDecision", "evaluate_guards_once", "extract_guard_rules"]
+class GuardHaltError(RuntimeError):
+    """Raised when a side-effect node's guard halts (or exhausts retries).
+
+    Side-effect nodes (shell tool, python, agent) cannot silently return an
+    error-state dict the way LLM nodes do, because their output is consumed as
+    a concrete value. A failed ``on_fail: halt`` guard therefore raises, making
+    the violation loud at the exact boundary where it occurred.
+    """
+
+    def __init__(self, violation: GuardViolation) -> None:
+        self.violation = violation
+        super().__init__(violation.message)
+
+
+def _log_guard_warnings(warnings: list[GuardViolation]) -> None:
+    for warning in warnings:
+        logger.warning("Guard warning [%s]: %s", warning.node, warning.message)
+
+
+def enforce_pre_guards(
+    node_name: str,
+    rules: list[dict[str, Any]],
+    state: dict[str, Any],
+) -> bool:
+    """Evaluate pre-guards for a side-effect node.
+
+    Returns ``True`` when the node should skip execution (``on_fail: skip``),
+    ``False`` to proceed. Raises :class:`GuardHaltError` on ``on_fail: halt``.
+    ``on_fail: warn`` violations are logged and do not block.
+    """
+    decision = evaluate_guards_once(node_name, "pre", rules, state, None)
+    _log_guard_warnings(decision.warnings)
+    if decision.action == "halt":
+        raise GuardHaltError(decision.violation)  # type: ignore[arg-type]
+    return decision.action == "skip"
+
+
+def enforce_post_guards(
+    node_name: str,
+    rules: list[dict[str, Any]],
+    state: dict[str, Any],
+    output: Any,
+    *,
+    execute: Callable[[], Any] | None = None,
+) -> Any:
+    """Evaluate post-guards for a side-effect node.
+
+    Re-executes via ``execute`` when a failing rule uses ``on_fail: retry``
+    (bounded per-rule by ``max_retries``). Returns the final output. Raises
+    :class:`GuardHaltError` on ``on_fail: halt`` or when retries are exhausted.
+    ``on_fail: warn`` violations are logged and do not block.
+    """
+    retry_budget = {
+        index: int(rule.get("max_retries") or 1)
+        for index, rule in enumerate(rules)
+        if str(rule.get("on_fail", "halt")) == "retry"
+    }
+    while True:
+        decision = evaluate_guards_once(node_name, "post", rules, state, output)
+        _log_guard_warnings(decision.warnings)
+        if decision.action is None:
+            return output
+        can_retry = (
+            decision.action == "retry"
+            and execute is not None
+            and decision.failed_rule_index is not None
+            and retry_budget.get(decision.failed_rule_index, 0) > 0
+        )
+        if can_retry:
+            retry_budget[decision.failed_rule_index] -= 1  # type: ignore[index]
+            output = execute()
+            continue
+        raise GuardHaltError(decision.violation)  # type: ignore[arg-type]
+
+
+__all__ = [
+    "GuardDecision",
+    "GuardHaltError",
+    "enforce_post_guards",
+    "enforce_pre_guards",
+    "evaluate_guards_once",
+    "extract_guard_rules",
+]

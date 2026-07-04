@@ -21,11 +21,11 @@ from yamlgraph.node_factory.copilot_runtime import (
 from yamlgraph.node_factory.copilot_runtime import (
     _load_and_render_prompt as _load_and_render_prompt_runtime,
 )
-from yamlgraph.node_factory.guard_runtime import (
+from yamlgraph.utils.expressions import resolve_state_expression
+from yamlgraph.utils.guard_runtime import (
     evaluate_guards_once,
     extract_guard_rules,
 )
-from yamlgraph.utils.expressions import resolve_state_expression
 from yamlgraph.utils.prompts import load_prompt as _load_prompt_for_compat
 
 logger = logging.getLogger(__name__)

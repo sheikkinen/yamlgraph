@@ -1,0 +1,41 @@
+id: CAP-183
+name: First-Class Verification
+description: >
+  Verification as a first-class DSL construct (FR-677). Guards, previously
+  honored only on llm/router/copilot nodes, are extended to all side-effect
+  node types (shell tool, python, agent) with a compile-time matrix that
+  rejects guards declared on node types that cannot honor them (map, race,
+  subgraph, tool_call, passthrough, interrupt). Side-effect nodes raise
+  GuardHaltError on on_fail=halt (and on exhausted retries) rather than
+  returning an error-state dict, making violations loud at the boundary where
+  they occur. Adds a graph-level verify: block that runs terminal checks
+  before END, and a `graph run --gate` flag that lints before executing and
+  blocks on error-severity issues.
+modules:
+  - yamlgraph/utils/guard_runtime.py
+  - yamlgraph/node_compiler.py
+  - yamlgraph/tools/nodes.py
+  - yamlgraph/tools/python_tool.py
+  - yamlgraph/tools/agent.py
+requirements:
+  - id: REQ-YG-511
+    description: >
+      Node guard parity and compile-time matrix. extract_guard_rules /
+      enforce_pre_guards / enforce_post_guards live in the bottom-tier
+      utils.guard_runtime module so Layer-3 tool factories may share the
+      guard contract without crossing import boundaries. Shell tool, python,
+      and agent nodes evaluate guards.pre before execution (halt raises
+      GuardHaltError, skip returns a skip-error state, warn logs) and
+      guards.post after execution (halt raises, retry re-executes bounded by
+      max_retries, warn logs, pass returns output unchanged). Guard halts are
+      not swallowed by on_error=skip. compile_node rejects guards declared on
+      node types outside GUARD_SUPPORTED_TYPES (llm, router, copilot, tool,
+      python, agent) by raising GraphConfigError.
+    modules:
+      - yamlgraph/utils/guard_runtime.py
+      - yamlgraph/node_compiler.py
+      - yamlgraph/tools/nodes.py
+      - yamlgraph/tools/python_tool.py
+      - yamlgraph/tools/agent.py
+      - tests/unit/test_fr677_node_guards.py
+fr: FR-677
