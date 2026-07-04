@@ -6,12 +6,21 @@ Warn-only — does not block persist (genesis is expensive to re-run).
 
 from __future__ import annotations
 
+import importlib.util
 import logging
+from pathlib import Path
 from typing import Any
 
-from .persist_genesis import validate_referential_integrity
-
 logger = logging.getLogger(__name__)
+
+
+def _load_validate_fn():  # noqa: ANN202
+    """Load validate_referential_integrity via importlib."""
+    persist_path = Path(__file__).parent / "persist_genesis.py"
+    spec = importlib.util.spec_from_file_location("_persist_genesis_val", persist_path)
+    mod = importlib.util.module_from_spec(spec)  # type: ignore[arg-type]
+    spec.loader.exec_module(mod)  # type: ignore[union-attr]
+    return mod.validate_referential_integrity
 
 
 def validate_genesis(state: dict[str, Any]) -> dict[str, Any]:
@@ -30,7 +39,7 @@ def validate_genesis(state: dict[str, Any]) -> dict[str, Any]:
         if isinstance(items, list):
             pages.extend(item for item in items if isinstance(item, dict))
 
-    result = validate_referential_integrity(pages)
+    result = _load_validate_fn()(pages)
     if not result["valid"]:
         logger.warning(
             "Genesis referential integrity: %d orphan IDs: %s",

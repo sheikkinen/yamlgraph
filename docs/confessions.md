@@ -1301,6 +1301,12 @@ These are E402 suppressions and are acceptable as "glue code" patterns.
 - **Sin**: Function exceeds cognitive complexity threshold.
 - **Penance**: Agent node factory builds the agent execution function with tool binding, iteration limits, and error handling. Splitting would fragment the agent lifecycle.
 
+### CONF-357
+- **File**: [examples/novel_fandom/nodes/validate_genesis.py](../examples/novel_fandom/nodes/validate_genesis.py#L17)
+- **Code**: ANN202
+- **Sin**: `_load_validate_fn` returns dynamically loaded function — no static type available.
+- **Penance**: Import via importlib to avoid relative import issues in example code (same pattern as persist_genesis).
+
 ### CONF-255
 - **File**: [yamlgraph/utils/fsm/ui_log.py](../yamlgraph/utils/fsm/ui_log.py#L50)
 - **Code**: S603
