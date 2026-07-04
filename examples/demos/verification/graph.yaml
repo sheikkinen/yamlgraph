@@ -1,0 +1,47 @@
+# First-Class Verification Demo (FR-677)
+# Node guards on a python tool node + a graph-level verify: postcondition.
+# Runs fully offline — no LLM, no provider key.
+
+version: "1.0"
+name: verification-demo
+description: Node guards on a side-effect node plus a graph-wide verify block
+
+state:
+  readings: list
+  score: int
+
+tools:
+  score_batch:
+    type: python
+    module: examples.demos.verification.tools
+    function: score_batch
+    description: Sum a list of integer readings into a score
+
+nodes:
+  aggregate:
+    type: python
+    tool: score_batch
+    state_key: score
+    variables:
+      readings: "{state.readings}"
+    guards:
+      pre:
+        - check: "state.readings | length > 0"
+          on_fail: halt
+          message: "readings must be a non-empty list"
+      post:
+        - check: "output.score >= 0"
+          on_fail: warn
+          message: "score should not be negative"
+
+edges:
+  - from: START
+    to: aggregate
+  - from: aggregate
+    to: END
+
+# Graph-wide postcondition: the final score must clear the acceptance threshold.
+verify:
+  - check: "state.score >= 100"
+    on_fail: halt
+    message: "score below acceptance threshold (need >= 100)"

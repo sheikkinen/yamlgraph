@@ -1,0 +1,57 @@
+### Scenario 1: passing run (score=105 clears the verify threshold)
+$ yamlgraph graph run examples/demos/verification/graph.yaml --var-file readings-pass.yaml --full
+2026-07-04 11:04:37,666 [INFO] yamlgraph.graph_loader: Parsed 1 Python tools: score_batch
+2026-07-04 11:04:37,670 [INFO] yamlgraph.node_compiler: Added node: aggregate (type=python)
+2026-07-04 11:04:37,672 [INFO] yamlgraph.node_compiler: Added node: __verify__ (type=verify)
+2026-07-04 11:04:38,448 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: aggregate -> score_batch
+
+🚀 Running graph: graph.yaml
+   Variables: {'readings': [40, 35, 30]}
+
+============================================================
+RESULT
+============================================================
+  current_step: __verify__
+  readings: [40, 35, 30]
+  score: 105
+
+
+### Scenario 2: verify halt (score=60 below threshold -> graph halts)
+$ yamlgraph graph run examples/demos/verification/graph.yaml --var-file readings-fail.yaml --full
+2026-07-04 11:04:46,403 [INFO] yamlgraph.graph_loader: Parsed 1 Python tools: score_batch
+2026-07-04 11:04:46,415 [INFO] yamlgraph.node_compiler: Added node: aggregate (type=python)
+2026-07-04 11:04:46,415 [INFO] yamlgraph.node_compiler: Added node: __verify__ (type=verify)
+2026-07-04 11:04:49,071 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: aggregate -> score_batch
+
+🚀 Running graph: graph.yaml
+   Variables: {'readings': [20, 20, 20]}
+
+❌ Error: score below acceptance threshold (need >= 100)
+
+### Scenario 3: pre-guard halt (empty readings -> node pre-guard halts)
+$ yamlgraph graph run examples/demos/verification/graph.yaml --var-file readings-empty.yaml --full
+2026-07-04 11:04:56,423 [INFO] yamlgraph.graph_loader: Parsed 1 Python tools: score_batch
+2026-07-04 11:04:56,428 [INFO] yamlgraph.node_compiler: Added node: aggregate (type=python)
+2026-07-04 11:04:56,428 [INFO] yamlgraph.node_compiler: Added node: __verify__ (type=verify)
+
+🚀 Running graph: graph.yaml
+   Variables: {'readings': []}
+
+❌ Error: readings must be a non-empty list
+
+### Scenario 4: --gate lints before running (clean graph passes the gate)
+$ yamlgraph graph run examples/demos/verification/graph.yaml --var-file readings-pass.yaml --gate --full
+2026-07-04 11:07:48,333 [INFO] yamlgraph.graph_loader: Parsed 1 Python tools: score_batch
+2026-07-04 11:07:48,334 [INFO] yamlgraph.node_compiler: Added node: aggregate (type=python)
+2026-07-04 11:07:48,334 [INFO] yamlgraph.node_compiler: Added node: __verify__ (type=verify)
+2026-07-04 11:07:48,508 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: aggregate -> score_batch
+
+🚀 Running graph: graph.yaml
+   Variables: {'readings': [40, 35, 30]}
+
+============================================================
+RESULT
+============================================================
+  current_step: __verify__
+  readings: [40, 35, 30]
+  score: 105

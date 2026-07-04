@@ -1,0 +1,19 @@
+✅ Graph execution completed successfully
+
+Verification demo (FR-677) — passing run, score=105 clears the verify threshold:
+
+    $ yamlgraph graph run examples/demos/verification/graph.yaml \
+        --var-file /tmp/pass.yaml --gate --full
+
+    🚀 Running graph: graph.yaml
+       Variables: {'readings': [40, 35, 30]}
+    ============================================================
+    RESULT
+    ============================================================
+      current_step: __verify__
+      readings: [40, 35, 30]
+      score: 105
+
+Full transcript of all four scenarios (pass, verify halt, pre-guard halt,
+--gate) is in run-transcript.log. The halt scenarios there intentionally emit
+error markers to prove the guard and verify blocks stop execution.
