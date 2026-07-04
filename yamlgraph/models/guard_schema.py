@@ -108,3 +108,17 @@ class GuardConfig(BaseModel):
     )
 
     model_config = {"extra": "forbid"}
+
+
+class GraphVerifyRule(GuardRuleBase):
+    """Graph-level terminal verification rule (FR-677).
+
+    Evaluated once against final state after the graph reaches its terminal
+    node, before END. Unlike post guards there is no retry — a graph run is
+    already complete, so the only meaningful actions are warn (record and
+    continue) or halt (raise).
+    """
+
+    on_fail: Literal["warn", "halt"] = Field(
+        ..., description="Graph verify action: warn | halt"
+    )

@@ -1038,7 +1038,7 @@ These are E402 suppressions and are acceptable as "glue code" patterns.
 - **Penance**: Retained intentionally for domain semantics or existing contract wording; explicitly allowlisted and audited.
 
 ### CONF-221
-- **File**: [yamlgraph/constants.py](../yamlgraph/constants.py#L47)
+- **File**: [yamlgraph/constants.py](../yamlgraph/constants.py#L48)
 - **Code**: FB001
 - **Sin**: Contains lexical `fallback` token flagged by FR-418 fallback-token hygiene gate.
 - **Penance**: Retained intentionally for domain semantics or existing contract wording; explicitly allowlisted and audited.
@@ -1152,7 +1152,7 @@ These are E402 suppressions and are acceptable as "glue code" patterns.
 - **Penance**: Retained intentionally for domain semantics or existing contract wording; explicitly allowlisted and audited.
 
 ### CONF-240
-- **File**: [yamlgraph/models/graph_schema.py](../yamlgraph/models/graph_schema.py#L72)
+- **File**: [yamlgraph/models/graph_schema.py](../yamlgraph/models/graph_schema.py#L73)
 - **Code**: FB001
 - **Sin**: Contains lexical `fallback` token flagged by FR-418 fallback-token hygiene gate.
 - **Penance**: Retained intentionally for domain semantics or existing contract wording; explicitly allowlisted and audited.

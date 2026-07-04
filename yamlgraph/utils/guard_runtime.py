@@ -12,7 +12,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
 
-from yamlgraph.models import ErrorType, GuardViolation
+from yamlgraph.models import ErrorType, GuardViolation, PipelineError
 from yamlgraph.utils.guard_evaluator import (
     GuardExpressionError,
     evaluate_guard_expression,
@@ -215,9 +215,40 @@ def enforce_post_guards(
         raise GuardHaltError(decision.violation)  # type: ignore[arg-type]
 
 
+def create_verify_node(rules: list[Any]) -> Callable[[dict[str, Any]], dict[str, Any]]:
+    """Build a terminal graph-level verification node function (FR-677).
+
+    Evaluated once against final state before END. ``on_fail: halt`` raises
+    GuardHaltError with the rule message; ``on_fail: warn`` logs and appends a
+    PipelineError to ``state.errors``. No retry — a completed run has nothing to
+    re-execute.
+    """
+    rule_dicts = [_to_rule_dict(rule) for rule in rules]
+
+    def node_fn(state: dict[str, Any]) -> dict[str, Any]:
+        decision = evaluate_guards_once("__verify__", "verify", rule_dicts, state, None)
+        new_errors: list[PipelineError] = []
+        for warning in decision.warnings:
+            logger.warning("Verify warning: %s", warning.message)
+            new_errors.append(
+                PipelineError(
+                    node="__verify__",
+                    type=ErrorType.GUARD_ERROR,
+                    message=warning.message,
+                )
+            )
+        if decision.action == "halt":
+            raise GuardHaltError(decision.violation)  # type: ignore[arg-type]
+        # ``errors`` uses an add-reducer: return only the new deltas.
+        return {"current_step": "__verify__", "errors": new_errors}
+
+    return node_fn
+
+
 __all__ = [
     "GuardDecision",
     "GuardHaltError",
+    "create_verify_node",
     "enforce_post_guards",
     "enforce_pre_guards",
     "evaluate_guards_once",

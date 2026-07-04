@@ -24,6 +24,7 @@ class NodeType(StrEnum):
     COPILOT = "copilot"
     RACE = "race"
     PIPELINE = "pipeline"
+    VERIFY = "verify"
 
     @classmethod
     def requires_prompt(cls, node_type: str) -> bool:

@@ -29,6 +29,7 @@ from yamlgraph.node_timeout import _maybe_wrap_timeout
 from yamlgraph.tools.agent import create_agent_node
 from yamlgraph.tools.nodes import create_tool_node
 from yamlgraph.tools.python_tool import create_python_node
+from yamlgraph.utils.guard_runtime import create_verify_node
 
 if TYPE_CHECKING:
     from yamlgraph.graph_loader import GraphConfig
@@ -209,6 +210,12 @@ def _compile_passthrough_node(ctx: NodeCompileContext) -> None:
     ctx.graph.add_node(ctx.node_name, node_fn, cache_policy=ctx.cache_policy)
 
 
+def _compile_verify_node(ctx: NodeCompileContext) -> None:
+    """FR-677: terminal graph-level verification node inserted before END."""
+    node_fn = create_verify_node(ctx.config.verify)
+    ctx.graph.add_node(ctx.node_name, node_fn, cache_policy=ctx.cache_policy)
+
+
 def _compile_copilot_node(ctx: NodeCompileContext) -> None:
     node_fn = create_copilot_node(
         ctx.node_name,
@@ -279,6 +286,7 @@ NODE_TYPE_HANDLERS: dict[str, NodeTypeHandler] = {
     NodeType.INTERRUPT: _compile_interrupt_node,
     NodeType.PASSTHROUGH: _compile_passthrough_node,
     NodeType.COPILOT: _compile_copilot_node,
+    NodeType.VERIFY: _compile_verify_node,
     NodeType.SUBGRAPH: _compile_subgraph_node,
     NodeType.LLM: _compile_llm_node,
     NodeType.ROUTER: _compile_llm_node,
