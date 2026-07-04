@@ -10,6 +10,7 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 from yamlgraph.constants import ErrorHandler, NodeType
 from yamlgraph.models.guard_schema import (
     CacheConfig,
+    GraphVerifyRule,
     GuardConfig,
     VerificationConfig,
 )
@@ -363,6 +364,10 @@ class GraphConfigSchema(BaseModel):
     data_files: dict[str, str] = Field(
         default_factory=dict,
         description="External YAML data files to load into state at compile time",
+    )
+    verify: list[GraphVerifyRule] = Field(
+        default_factory=list,
+        description="Graph-level terminal verification rules (FR-677)",
     )
 
     model_config = {"extra": "allow"}

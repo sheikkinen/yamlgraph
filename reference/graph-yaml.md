@@ -1091,6 +1091,67 @@ Remedy: split discrimination from bookkeeping (FR-585 decode pattern) or push gl
 
 ---
 
+### Graph-Level Verification (FR-677)
+
+Node `guards` assert constraints on a *single* node. A top-level `verify:` block
+asserts constraints on the *final graph state*, once, before the graph ends. It
+is the graph-wide postcondition — an acceptance gate that reuses the same guard
+expression language.
+
+```yaml
+nodes:
+  compute:
+    type: python
+    function: mypkg.compute
+    state_key: result
+edges:
+  - from: START
+    to: compute
+  - from: compute
+    to: END
+
+verify:
+  - check: "state.result >= 100"
+    on_fail: halt
+    message: "result below acceptance threshold"
+  - check: "state.warnings | length == 0"
+    on_fail: warn
+```
+
+At load time a terminal `__verify__` node is inserted and every explicit `END`
+destination (scalar edges, list fan-out/router edges, router `routes` and
+`default_route`, and `loop_exits`) is redirected through it, then `__verify__`
+connects to `END`. The rules run once against the final state:
+
+| Path | Type | Description |
+|------|------|-------------|
+| `verify` | `list[rule]` | Graph-wide postconditions evaluated once before END |
+| `rule.check` | `str` | Deterministic expression (`state.*`, logic/comparisons, filters) |
+| `rule.on_fail` | `str` | `halt` (raise with the message) or `warn` (record a `PipelineError` in `state.errors` and continue) |
+| `rule.message` | `str \| null` | Optional custom failure message |
+
+`on_fail: retry` is **not** valid at the graph level — retrying the whole graph
+is out of scope, so `retry` and `max_retries` are rejected at load. Graph-level
+`verify:` expressions are validated by lint rule **W025**, the same executable
+expression check applied to node guards.
+
+### Lint Gate on Run (`--gate`, FR-677)
+
+Lint findings are advisory unless enforced. `yamlgraph graph run --gate` lints
+the graph *before* executing and refuses to run on any **error**-level finding
+(exit code 1, the graph is never compiled). Warning-level findings (such as
+W025/W026) are reported but do not block.
+
+```bash
+yamlgraph graph run graph.yaml --gate          # refuse to run on any error-level finding
+yamlgraph graph run graph.yaml --gate --json   # machine-readable lint report (only on block)
+```
+
+With `--gate --json`, the lint report is emitted as JSON to stdout only when
+the gate blocks; a clean or warning-only graph produces no decorative stdout.
+
+---
+
 ## Variable Templates
 
 The `variables` section maps prompt variables to state values.

@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Enhancement
-**Status:** Judged
+**Status:** Done
 **Effort:** 3 days
 **Requested:** 2026-07-04
 
@@ -94,19 +94,19 @@ yamlgraph graph run graph.yaml --gate        # lint first; refuse to run on any 
 
 ## Acceptance Criteria
 
-- [ ] Guard support matrix enforced: `llm`, `router`, `copilot`, shell `tool`, `python`, and `agent` accept/evaluate guards; `map`, `race`, `subgraph`, `tool_call`, `passthrough`, and `interrupt` reject `guards:` at compilation with an actionable error naming node and type
-- [ ] `guards.post` with `on_fail: halt` on a shell `type: tool` node raises when the check fails; passing check returns tool output unchanged
-- [ ] `guards.pre`/`guards.post` evaluated for `python` and `agent` nodes (parity tests mirroring existing llm-node guard tests)
-- [ ] Graph-level `verify:` block with `on_fail: halt` stops the run before END and surfaces `message`
-- [ ] Graph-level `verify:` with `on_fail: retry` fails schema validation
-- [ ] Graph-level `verify:` is represented in `GraphConfigSchema` and stored on `GraphConfig`; malformed blocks fail at load time
-- [ ] Inserted terminal verification node preserves explicit direct END and conditional/router END paths
-- [ ] `graph run --gate` exits non-zero without executing when lint reports an E-level finding; W-level findings do not block
-- [ ] `graph run --gate --json` returns machine-readable lint-gate failure output without decorative text on stdout
-- [ ] Lint rule: graph-level `verify:` expressions validated by W025 (same executable-expression check as node guards)
-- [ ] All tests tagged `@pytest.mark.req(...)` against a new REQ-YG-XXX; `capabilities/CAP-XXX-first-class-verification.yaml` added
-- [ ] `reference/graph-yaml.md` documents `verify:` block and `--gate`; changelog fragment in `changelog/unreleased/`
-- [ ] Demo: `examples/demos/` graph exercising node guards on a tool node + graph-level `verify:` + `--gate`, with `demo-output.log`
+- [x] Guard support matrix enforced: `llm`, `router`, `copilot`, shell `tool`, `python`, and `agent` accept/evaluate guards; `map`, `race`, `subgraph`, `tool_call`, `passthrough`, and `interrupt` reject `guards:` at compilation with an actionable error naming node and type
+- [x] `guards.post` with `on_fail: halt` on a shell `type: tool` node raises when the check fails; passing check returns tool output unchanged
+- [x] `guards.pre`/`guards.post` evaluated for `python` and `agent` nodes (parity tests mirroring existing llm-node guard tests)
+- [x] Graph-level `verify:` block with `on_fail: halt` stops the run before END and surfaces `message`
+- [x] Graph-level `verify:` with `on_fail: retry` fails schema validation
+- [x] Graph-level `verify:` is represented in `GraphConfigSchema` and stored on `GraphConfig`; malformed blocks fail at load time
+- [x] Inserted terminal verification node preserves explicit direct END and conditional/router END paths
+- [x] `graph run --gate` exits non-zero without executing when lint reports an E-level finding; W-level findings do not block
+- [x] `graph run --gate --json` returns machine-readable lint-gate failure output without decorative text on stdout
+- [x] Lint rule: graph-level `verify:` expressions validated by W025 (same executable-expression check as node guards)
+- [x] All tests tagged `@pytest.mark.req(...)` against a new REQ-YG-XXX; `capabilities/CAP-XXX-first-class-verification.yaml` added
+- [x] `reference/graph-yaml.md` documents `verify:` block and `--gate`; changelog fragment in `changelog/unreleased/`
+- [x] Demo: `examples/demos/` graph exercising node guards on a tool node + graph-level `verify:` + `--gate`, with `demo-output.log`
 
 ## Alternatives Considered
 
@@ -179,3 +179,64 @@ all three moves convert verification from advisory/partial DSL shape into an
 execution-boundary contract. Do not split the lint gate away unless the
 implementation shows the graph-level insertion is larger than expected; the
 three parts reinforce the same invariant.
+
+## Implementation Log
+
+**Move 1 — node guards (committed 34a1c21c).** `guard_runtime` moved from
+`node_factory/` to `utils/` (bottom side-effect tier) so Layer-3 tool factories
+can share the guard contract without a Layer-3 → Layer-2 import. `GraphConfigError`
+(subclass of `ValueError`) raised in `node_compiler.compile_node` when `guards:`
+is declared on a type outside `GUARD_SUPPORTED_TYPES`. Guards wired into
+`tools/nodes.py`, `tools/python_tool.py`, `tools/agent.py`. 19 tests in
+`tests/unit/test_fr677_node_guards.py`.
+
+**Move 2 — graph-level `verify:` (this commit).** Decisions:
+
+- **No new node_compiler/graph_schema bloat.** The verify node factory
+  (`create_verify_node`) lives in `utils/guard_runtime.py`, reusing
+  `evaluate_guards_once` with a new `"verify"` phase — so graph-level verify
+  shares the exact node-guard evaluation path (no second expression engine).
+  `GuardViolation.phase` Literal extended to `"pre" | "post" | "verify"`.
+- **Config-level rewrite, not runtime patching.** A new `verify_insert.py`
+  transform (`insert_verify_node`) mirrors `expand_pipeline_templates`: it runs
+  in `load_graph_config` after pipeline expansion, inserts a `__verify__` node
+  `{type: verify}`, redirects every explicit `END` destination (scalar edges,
+  list fan-out/router edges, router `routes`/`default_route`, and `loop_exits`)
+  through it, then appends `__verify__ → END`. Deep-copies input (no mutation).
+- **Router `routes`/`default_route` redirected too.** The LLM router stores the
+  *resolved target node* in `state._route`; a `routes: {done: END}` mapping had
+  to be rewritten to `__verify__` as well, else the router would fall through to
+  `targets[0]` after edge redirection.
+- **Delta-only error return.** `state.errors` uses an `add` reducer, so the
+  verify node returns only new `PipelineError` deltas, never the merged list.
+- **Schema at the loader boundary.** `GraphVerifyRule(GuardRuleBase)` permits
+  only `on_fail: warn|halt` (inherits `extra: forbid`, so `retry` and
+  `max_retries` are rejected). `verify: list[GraphVerifyRule]` added to
+  `GraphConfigSchema`; `GraphConfig.verify` stores the raw list. Malformed
+  blocks raise `ValueError` at load.
+- **Known limitation (accepted).** `routing.make_expr_router_fn` has an implicit
+  `return END` fallthrough when no condition matches ("shouldn't happen with
+  well-formed graphs"). That error path bypasses verify; it is not an explicit
+  END edge, so it is out of scope.
+
+**Move 3 — `graph run --gate` lint gate (this commit).** Decisions:
+
+- **Lint-first, opt-in.** `--gate` (default off) added to `graph_run_parser`.
+  When set, `cmd_graph_run` calls `_run_lint_gate` immediately after the
+  file-existence check, before any config load / compile / invoke. The gate
+  reuses the existing `lint_graph(path, WORKING_DIR)` path — one linter, no
+  second implementation (satisfies the Judgement's "same linter path").
+- **Error blocks, warning reports.** Only `severity == "error"` findings abort
+  (exit 1); warnings print but do not block. In `--json` mode the gate emits
+  `result.model_dump_json()` to stdout *only when blocking* — no decorative text
+  on success (empty stdout), so the machine-readable contract holds.
+- **W025 extended to graph-level `verify:`.** `_check_verify_expressions` in
+  `checks_contracts.py` validates the top-level `verify` list with the same
+  executable-expression check as node guards: non-executable checks, invalid
+  `on_fail` (rejects `retry` at graph level), and missing `check` are flagged
+  offline. Folded into `check_guard_expressions` so one W025 rule covers both
+  node guards and graph verify. 12 tests in `tests/unit/test_fr677_gate.py`.
+- Contract tests `test_all_node_types_defined` and
+  `test_registry_covers_all_compiled_types` updated to include `verify`.
+  20 tests in `tests/unit/test_fr677_graph_verify.py`. Both import-linter
+  contracts remain KEPT.

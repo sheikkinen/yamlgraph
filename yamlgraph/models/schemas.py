@@ -96,7 +96,7 @@ class VerificationViolation(PipelineError):
 class GuardViolation(PipelineError):
     """A deterministic node guard check failed (FR-344)."""
 
-    phase: Literal["pre", "post"] = Field(description="Guard phase")
+    phase: Literal["pre", "post", "verify"] = Field(description="Guard phase")
     check: str = Field(description="Guard expression that failed")
     actual: str = Field(description="Actual evaluated guard result")
     on_fail: str = Field(description="Configured guard failure action")

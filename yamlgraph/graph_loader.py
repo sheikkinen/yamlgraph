@@ -63,6 +63,8 @@ class GraphConfig:
         self.loop_limits = config.get("loop_limits", {})
         self.loop_exits = config.get("loop_exits", {})
         self.checkpointer = config.get("checkpointer")
+        # FR-677: Graph-level verification rules (read by the __verify__ node)
+        self.verify = config.get("verify", [])
         # FR-027: Execution safety config
         graph_level_config = config.get("config", {})
         self.recursion_limit = graph_level_config.get("recursion_limit", 50)
@@ -136,6 +138,12 @@ def load_graph_config(path: str | Path) -> GraphConfig:
     from yamlgraph.pipeline_template import expand_pipeline_templates
 
     config = expand_pipeline_templates(config)
+
+    # FR-677: Insert terminal __verify__ node when a graph-level verify block
+    # is present, redirecting explicit END destinations through it.
+    from yamlgraph.verify_insert import insert_verify_node
+
+    config = insert_verify_node(config)
 
     return GraphConfig(config, source_path=path.resolve())
 

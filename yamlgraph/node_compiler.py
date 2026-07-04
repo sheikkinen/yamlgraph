@@ -4,10 +4,8 @@ Extracted from graph_loader.py to keep modules under 400 lines.
 Uses a registry pattern (FR-220) to dispatch node types to handlers.
 """
 
-import concurrent.futures
 import logging
 from collections.abc import Callable
-from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
@@ -27,14 +25,39 @@ from yamlgraph.node_factory import (
     create_subgraph_node,
     create_tool_call_node,
 )
+from yamlgraph.node_timeout import _maybe_wrap_timeout
 from yamlgraph.tools.agent import create_agent_node
 from yamlgraph.tools.nodes import create_tool_node
 from yamlgraph.tools.python_tool import create_python_node
+from yamlgraph.utils.guard_runtime import create_verify_node
 
 if TYPE_CHECKING:
     from yamlgraph.graph_loader import GraphConfig
 
 logger = logging.getLogger(__name__)
+
+
+class GraphConfigError(ValueError):
+    """Raised when a graph config is structurally invalid at compile time.
+
+    Subclasses ``ValueError`` so existing ``except ValueError`` handlers in the
+    compile path continue to catch it, while giving guard/verify misuse a named,
+    greppable failure mode (FR-677).
+    """
+
+
+# Node types on which `guards:` is honored at runtime (FR-677). Declaring
+# guards on any other type is a compile-time error rather than a silent no-op.
+GUARD_SUPPORTED_TYPES: frozenset[str] = frozenset(
+    {
+        NodeType.LLM,
+        NodeType.ROUTER,
+        NodeType.COPILOT,
+        NodeType.TOOL,
+        NodeType.PYTHON,
+        NodeType.AGENT,
+    }
+)
 
 
 # Context passed to node type handlers (FR-220)
@@ -91,56 +114,7 @@ def _parse_cache_field(raw: Any) -> CacheConfig | None:
     return None
 
 
-# Timeout wrapper (FR-069)
-
-
-def _maybe_wrap_timeout(
-    node_fn: Callable,
-    node_config: dict[str, Any],
-    node_name: str,
-) -> Callable:
-    """Wrap node function with ThreadPoolExecutor timeout if configured.
-
-    FR-069: Per-node timeout bounding. When timeout is set, the node
-    function is executed in a one-shot ThreadPoolExecutor. On
-    concurrent.futures.TimeoutError, a PipelineError with
-    error_type=TIMEOUT_ERROR is returned.
-
-    Args:
-        node_fn: The original node function
-        node_config: Node configuration dict (checked for 'timeout')
-        node_name: Name of the node (for error messages)
-
-    Returns:
-        Wrapped function if timeout is set, original function otherwise
-    """
-    timeout = node_config.get("timeout")
-    if timeout is None:
-        return node_fn
-
-    state_key = node_config.get("state_key", node_name)
-
-    def timed_fn(state: dict) -> dict:
-        pool = ThreadPoolExecutor(max_workers=1)
-        try:
-            return pool.submit(node_fn, state).result(timeout=timeout)
-        except concurrent.futures.TimeoutError as e:
-            from yamlgraph.models import PipelineError
-            from yamlgraph.models.schemas import ErrorType
-
-            pe = PipelineError.from_exception(
-                e, node=node_name, error_type=ErrorType.TIMEOUT_ERROR
-            )
-            return {
-                state_key: None,
-                "current_step": node_name,
-                "errors": [pe],
-            }
-        finally:
-            pool.shutdown(wait=False, cancel_futures=True)
-
-    timed_fn.__name__ = getattr(node_fn, "__name__", f"{node_name}_node")
-    return timed_fn
+# Timeout wrapper (FR-069): see yamlgraph.node_timeout._maybe_wrap_timeout
 
 
 # Node type handlers — one per node type
@@ -236,6 +210,12 @@ def _compile_passthrough_node(ctx: NodeCompileContext) -> None:
     ctx.graph.add_node(ctx.node_name, node_fn, cache_policy=ctx.cache_policy)
 
 
+def _compile_verify_node(ctx: NodeCompileContext) -> None:
+    """FR-677: terminal graph-level verification node inserted before END."""
+    node_fn = create_verify_node(ctx.config.verify)
+    ctx.graph.add_node(ctx.node_name, node_fn, cache_policy=ctx.cache_policy)
+
+
 def _compile_copilot_node(ctx: NodeCompileContext) -> None:
     node_fn = create_copilot_node(
         ctx.node_name,
@@ -306,6 +286,7 @@ NODE_TYPE_HANDLERS: dict[str, NodeTypeHandler] = {
     NodeType.INTERRUPT: _compile_interrupt_node,
     NodeType.PASSTHROUGH: _compile_passthrough_node,
     NodeType.COPILOT: _compile_copilot_node,
+    NodeType.VERIFY: _compile_verify_node,
     NodeType.SUBGRAPH: _compile_subgraph_node,
     NodeType.LLM: _compile_llm_node,
     NodeType.ROUTER: _compile_llm_node,
@@ -370,6 +351,16 @@ def compile_node(
         raise ValueError(
             f"Unknown node type: {node_type!r}. "
             f"Registered types: {sorted(NODE_TYPE_HANDLERS.keys())}"
+        )
+
+    # Reject guards on node types that cannot honor them (FR-677). Fail loud at
+    # compile time rather than silently ignoring the guard block at runtime.
+    if node_config.get("guards") and node_type not in GUARD_SUPPORTED_TYPES:
+        raise GraphConfigError(
+            f"Node {node_name!r} of type {str(node_type)!r} declares 'guards' "
+            f"but guards are only supported on node types "
+            f"{sorted(str(t) for t in GUARD_SUPPORTED_TYPES)}. "
+            f"Remove the guards block or change the node type."
         )
 
     ctx = NodeCompileContext(
@@ -440,6 +431,8 @@ def compile_nodes(
 __all__ = [
     "NodeCompileContext",
     "NODE_TYPE_HANDLERS",
+    "GUARD_SUPPORTED_TYPES",
+    "GraphConfigError",
     "_maybe_wrap_timeout",
     "compile_node",
     "compile_nodes",

@@ -40,7 +40,7 @@ ALLOWLIST: dict[str, str] = {
     "scripts/req_coverage.py:450": "CONF-218",
     "yamlgraph/a2a_message.py:120": "CONF-219",
     "yamlgraph/a2a_message.py:66": "CONF-220",
-    "yamlgraph/constants.py:47": "CONF-221",
+    "yamlgraph/constants.py:48": "CONF-221",
     "yamlgraph/diary/importer.py:234": "CONF-222",
     "yamlgraph/edge_compiler.py:229": "CONF-223",
     "yamlgraph/error_handlers.py:1": "CONF-224",
@@ -59,7 +59,7 @@ ALLOWLIST: dict[str, str] = {
     "yamlgraph/linter/checks_semantic.py:289": "CONF-237",
     "yamlgraph/linter/graph_linter.py:128": "CONF-238",
     "yamlgraph/linter/graph_linter.py:129": "CONF-239",
-    "yamlgraph/models/graph_schema.py:72": "CONF-240",
+    "yamlgraph/models/graph_schema.py:73": "CONF-240",
     "yamlgraph/node_factory/copilot_node.py:83": "CONF-241",
     "yamlgraph/node_factory/llm_execution.py:134": "CONF-242",
     "yamlgraph/node_factory/llm_nodes.py:125": "CONF-243",
@@ -74,7 +74,7 @@ ALLOWLIST: dict[str, str] = {
     "yamlgraph/utils/prompts.py:138": "CONF-252",
     "yamlgraph/utils/prompts.py:50": "CONF-253",
     "yamlgraph/utils/prompts.py:66": "CONF-254",
-    "yamlgraph/tools/agent.py:36": "CONF-304",
+    "yamlgraph/tools/agent.py:41": "CONF-304",
     "yamlgraph/utils/llm_factory_async.py:82": "CONF-349",
 }
 

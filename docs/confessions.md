@@ -89,7 +89,7 @@ Framework suppressions require elevated scrutiny. These live in `yamlgraph/`.
 - **Resolved**: `node_fn` now an orchestrator calling extracted phases. C901 now passes without suppression.
 
 ### CONF-007
-- **File**: [yamlgraph/tools/agent.py](../yamlgraph/tools/agent.py#L83)
+- **File**: [yamlgraph/tools/agent.py](../yamlgraph/tools/agent.py#L88)
 - **Code**: C901 (cognitive complexity 19 > 15)
 - **Sin**: `create_agent_node` assembles agent with tool binding, prompt loading, and LLM configuration in one function.
 - **Penance**: Agent node factory has inherent setup complexity. Decomposition deferred to a future FR.
@@ -413,7 +413,7 @@ Test suppressions are acceptable when they enable testing patterns that conflict
 - **Penance**: The function is a factory that builds a closure capturing configuration. The inner `node_fn` orchestrates the agent loop which is inherently sequential and branching. Splitting further would scatter the closure's captured variables across multiple functions with no clarity gain.
 
 ### CONF-049
-- **File**: [yamlgraph/cli/__init__.py](../yamlgraph/cli/__init__.py#L323)
+- **File**: [yamlgraph/cli/__init__.py](../yamlgraph/cli/__init__.py#L329)
 - **Code**: S104
 - **Sin**: Binding A2A server to `0.0.0.0` (all interfaces) as default.
 - **Penance**: A2A server is a development tool that must be network-accessible for agent-to-agent communication. The default matches standard server practice (FastAPI, uvicorn). Production deployments control binding via `--host` flag.
@@ -1038,7 +1038,7 @@ These are E402 suppressions and are acceptable as "glue code" patterns.
 - **Penance**: Retained intentionally for domain semantics or existing contract wording; explicitly allowlisted and audited.
 
 ### CONF-221
-- **File**: [yamlgraph/constants.py](../yamlgraph/constants.py#L47)
+- **File**: [yamlgraph/constants.py](../yamlgraph/constants.py#L48)
 - **Code**: FB001
 - **Sin**: Contains lexical `fallback` token flagged by FR-418 fallback-token hygiene gate.
 - **Penance**: Retained intentionally for domain semantics or existing contract wording; explicitly allowlisted and audited.
@@ -1152,7 +1152,7 @@ These are E402 suppressions and are acceptable as "glue code" patterns.
 - **Penance**: Retained intentionally for domain semantics or existing contract wording; explicitly allowlisted and audited.
 
 ### CONF-240
-- **File**: [yamlgraph/models/graph_schema.py](../yamlgraph/models/graph_schema.py#L72)
+- **File**: [yamlgraph/models/graph_schema.py](../yamlgraph/models/graph_schema.py#L73)
 - **Code**: FB001
 - **Sin**: Contains lexical `fallback` token flagged by FR-418 fallback-token hygiene gate.
 - **Penance**: Retained intentionally for domain semantics or existing contract wording; explicitly allowlisted and audited.
@@ -1242,7 +1242,7 @@ These are E402 suppressions and are acceptable as "glue code" patterns.
 - **Penance**: Retained intentionally for domain semantics or existing contract wording; explicitly allowlisted and audited.
 
 ### CONF-304
-- **File**: [yamlgraph/tools/agent.py](../yamlgraph/tools/agent.py#L36)
+- **File**: [yamlgraph/tools/agent.py](../yamlgraph/tools/agent.py#L41)
 - **Code**: FB001
 - **Sin**: Docstring of `_try_structured_output` contains `fallback` — describes the try-parse-first, fallback-to-LLM strategy (FR-448).
 - **Penance**: The word describes the actual algorithmic pattern. Renaming would obscure intent.

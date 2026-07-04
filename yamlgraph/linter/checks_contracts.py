@@ -362,6 +362,72 @@ def check_guard_expressions(graph_path: Path) -> list[LintIssue]:
                         )
                     )
 
+    issues.extend(_check_verify_expressions(graph))
+    return issues
+
+
+def _check_verify_expressions(graph: dict) -> list[LintIssue]:
+    """W025: graph-level verify rules must be executable warn|halt guards (FR-677)."""
+    issues: list[LintIssue] = []
+    verify = graph.get("verify")
+    if verify is None:
+        return issues
+    if not isinstance(verify, list):
+        return [
+            LintIssue(
+                severity="warning",
+                code="W025",
+                message="Graph-level 'verify' must be a list of rules",
+                fix='Use verify:\n  - check: "..."\n    on_fail: warn|halt',
+            )
+        ]
+    for index, rule in enumerate(verify):
+        if not isinstance(rule, dict):
+            issues.append(
+                LintIssue(
+                    severity="warning",
+                    code="W025",
+                    message=f"verify[{index}] must be an object",
+                    fix='Use {check: "...", on_fail: "warn|halt"}',
+                )
+            )
+            continue
+        check = rule.get("check")
+        on_fail = rule.get("on_fail")
+        if not isinstance(check, str) or not check.strip():
+            issues.append(
+                LintIssue(
+                    severity="warning",
+                    code="W025",
+                    message=f"verify[{index}] missing non-empty check expression",
+                    fix="Set check to a deterministic expression (e.g. state.result >= 1)",
+                )
+            )
+            continue
+        if on_fail not in {"warn", "halt"}:
+            issues.append(
+                LintIssue(
+                    severity="warning",
+                    code="W025",
+                    message=f"verify[{index}] has invalid on_fail '{on_fail}'",
+                    fix="Use one of: halt, warn (retry is not valid at graph level)",
+                )
+            )
+        try:
+            validate_guard_expression(check)
+        except GuardExpressionError as exc:
+            issues.append(
+                LintIssue(
+                    severity="warning",
+                    code="W025",
+                    message=f"verify[{index}] has invalid guard expression: {exc}",
+                    fix=(
+                        "Use deterministic guard syntax (state/output refs, "
+                        "and/or/not, comparisons, in/not in, filters: length, "
+                        "file_exists, dir_exists, type, keys)"
+                    ),
+                )
+            )
     return issues
 
 
