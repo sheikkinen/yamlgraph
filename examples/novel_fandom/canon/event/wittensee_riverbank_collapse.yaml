@@ -1,0 +1,12 @@
+id: wittensee_riverbank_collapse
+type: event
+name: Wittensee Riverbank Collapse
+lane: dynamic
+depth: 1
+references:
+- bärenschädel_camp
+- great_flood
+- wittensee_valley
+summary: The collapse of a section of riverbank upstream from the Bärenschädel camp,
+  triggered by the thaw and heavy rains, which released the flood that destroyed both
+  clans' camps.

@@ -1,0 +1,11 @@
+id: uta
+type: character
+name: Uta
+lane: dynamic
+depth: 1
+summary: The previous keeper of the old rites for the Bärenschädel, who taught Frida
+  the traditions before dying of old age.
+references:
+- frida
+- bärenschädel
+- old_rites

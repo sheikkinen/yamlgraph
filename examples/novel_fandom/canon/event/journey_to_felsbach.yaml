@@ -1,5 +1,5 @@
 type: event
-id: dawn_raid
+id: journey_to_felsbach
 lane: dynamic
 depth: 0
 year: 0
@@ -7,9 +7,11 @@ scope: regional
 participants:
 - hilde
 - gunnar
+- frida
+- reinmar
 - arnulf
 - aschenwulf
 - bärenschädel
 consequences:
-- Hilde leads Aschenwulf warriors in a surprise attack on Bärenschädel camp.
-- The raid is interrupted by the flood.
+- Both groups independently head for the Felsbach valley.
+- They arrive on the same day.

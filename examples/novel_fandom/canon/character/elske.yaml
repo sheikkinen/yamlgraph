@@ -1,0 +1,10 @@
+id: elske
+type: character
+name: Elske
+lane: dynamic
+depth: 1
+summary: A young, ambitious trader in the Independent network who pushes for profit
+  over neutrality, arguing that the flood has created a power vacuum they should exploit.
+references:
+- independent
+- great_flood

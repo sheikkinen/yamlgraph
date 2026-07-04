@@ -1,0 +1,12 @@
+type: event
+id: arnulf_rescued
+lane: dynamic
+depth: 0
+year: 0
+scope: local
+participants:
+- arnulf
+- reinmar
+consequences:
+- Arnulf is found by Reinmar on a sandbar and given aid.
+- Arnulf learns his clan is believed dead.

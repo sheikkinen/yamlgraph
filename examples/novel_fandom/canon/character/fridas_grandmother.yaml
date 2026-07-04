@@ -1,0 +1,13 @@
+id: fridas_grandmother
+type: character
+name: Frida's grandmother
+lane: dynamic
+depth: 1
+references:
+- frida
+- bärenschädel
+- old_rites
+summary: The previous keeper of the old rites for the Bärenschädel clan. Taught Frida
+  the sacred knowledge before dying of winter sickness.
+gender: female
+status: dead

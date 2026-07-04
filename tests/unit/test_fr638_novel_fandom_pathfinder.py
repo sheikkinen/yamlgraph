@@ -68,7 +68,7 @@ class TestRetrieveWindow:
         """retrieve_window returns pages for requested roster characters."""
         state = {
             "canon": seed_canon,
-            "window": "the_great_flood",
+            "window": "great_flood",
             "roster": ["hilde", "gunnar"],
         }
         result = retrieve_window(state)
@@ -79,28 +79,35 @@ class TestRetrieveWindow:
         assert len(ctx["roster_pages"]) == 2
 
     @pytest.mark.req("REQ-YG-487")
-    def test_extracts_unmet_goals(self, seed_canon: dict[str, dict]) -> None:
+    def test_extracts_unmet_goals(self) -> None:
         """retrieve_window extracts unmet goals as tensions."""
-        state = {
-            "canon": seed_canon,
-            "window": "the_great_flood",
-            "roster": ["hilde"],
+        canon = {
+            "hero": {
+                "id": "hero",
+                "type": "character",
+                "goals": ["avenge father", "unite clans"],
+            },
         }
+        state = {"canon": canon, "window": "flood", "roster": ["hero"]}
         result = retrieve_window(state)
         goal_tensions = [
             t for t in result["context"]["tensions"] if t["type"] == "unmet_goal"
         ]
-        assert len(goal_tensions) >= 2
-        assert all(t["actor"] == "hilde" for t in goal_tensions)
+        assert len(goal_tensions) == 2
+        assert all(t["actor"] == "hero" for t in goal_tensions)
 
     @pytest.mark.req("REQ-YG-487")
-    def test_extracts_internal_conflict(self, seed_canon: dict[str, dict]) -> None:
+    def test_extracts_internal_conflict(self) -> None:
         """retrieve_window extracts wants≠needs as internal conflict."""
-        state = {
-            "canon": seed_canon,
-            "window": "the_great_flood",
-            "roster": ["hilde"],
+        canon = {
+            "hero": {
+                "id": "hero",
+                "type": "character",
+                "wants": "vengeance",
+                "needs": "peace",
+            },
         }
+        state = {"canon": canon, "window": "flood", "roster": ["hero"]}
         result = retrieve_window(state)
         conflicts = [
             t for t in result["context"]["tensions"] if t["type"] == "internal_conflict"
@@ -109,33 +116,41 @@ class TestRetrieveWindow:
         assert conflicts[0]["wants"] != conflicts[0]["needs"]
 
     @pytest.mark.req("REQ-YG-487")
-    def test_extracts_fears(self, seed_canon: dict[str, dict]) -> None:
+    def test_extracts_fears(self) -> None:
         """retrieve_window extracts fears as tension levers."""
-        state = {
-            "canon": seed_canon,
-            "window": "the_great_flood",
-            "roster": ["hilde"],
+        canon = {
+            "hero": {
+                "id": "hero",
+                "type": "character",
+                "fears": ["betrayal", "exile"],
+            },
         }
+        state = {"canon": canon, "window": "flood", "roster": ["hero"]}
         result = retrieve_window(state)
         fear_tensions = [
             t for t in result["context"]["tensions"] if t["type"] == "fear"
         ]
-        assert len(fear_tensions) >= 2
+        assert len(fear_tensions) == 2
 
     @pytest.mark.req("REQ-YG-487")
-    def test_extracts_unresolved_edges(self, seed_canon: dict[str, dict]) -> None:
+    def test_extracts_unresolved_edges(self) -> None:
         """retrieve_window extracts unresolved relationship edges."""
-        state = {
-            "canon": seed_canon,
-            "window": "the_great_flood",
-            "roster": ["reinmar"],
+        canon = {
+            "hero": {
+                "id": "hero",
+                "type": "character",
+                "relationships": [
+                    {"to": "rival", "kind": "enemy", "valence": "distrust"},
+                ],
+            },
         }
+        state = {"canon": canon, "window": "flood", "roster": ["hero"]}
         result = retrieve_window(state)
         edges = [
             t for t in result["context"]["tensions"] if t["type"] == "unresolved_edge"
         ]
-        assert len(edges) >= 1
-        assert edges[0]["from"] == "reinmar"
+        assert len(edges) == 1
+        assert edges[0]["from"] == "hero"
         assert edges[0]["valence"] == "distrust"
 
     @pytest.mark.req("REQ-YG-487")
@@ -143,7 +158,7 @@ class TestRetrieveWindow:
         """retrieve_window extracts triggers as beat generators."""
         state = {
             "canon": seed_canon,
-            "window": "the_great_flood",
+            "window": "great_flood",
             "roster": ["hilde"],
         }
         result = retrieve_window(state)
@@ -151,26 +166,32 @@ class TestRetrieveWindow:
         assert len(triggers) >= 2
 
     @pytest.mark.req("REQ-YG-487")
-    def test_includes_rules_referenced_by_roster(
-        self, seed_canon: dict[str, dict]
-    ) -> None:
+    def test_includes_rules_referenced_by_roster(self) -> None:
         """retrieve_window includes world rules referenced by roster characters."""
-        state = {
-            "canon": seed_canon,
-            "window": "the_great_flood",
-            "roster": ["hilde"],
+        canon = {
+            "hero": {
+                "id": "hero",
+                "type": "character",
+                "references": ["blood_feud"],
+            },
+            "blood_feud": {
+                "id": "blood_feud",
+                "type": "rule",
+                "summary": "Blood must answer blood.",
+            },
         }
+        state = {"canon": canon, "window": "flood", "roster": ["hero"]}
         result = retrieve_window(state)
         rules = result["context"]["rules"]
         rule_ids = [r["id"] for r in rules]
-        assert "survival_truce" in rule_ids
+        assert "blood_feud" in rule_ids
 
     @pytest.mark.req("REQ-YG-487")
     def test_ignores_nonexistent_roster_ids(self, seed_canon: dict[str, dict]) -> None:
         """retrieve_window silently skips roster ids not in canon."""
         state = {
             "canon": seed_canon,
-            "window": "the_great_flood",
+            "window": "great_flood",
             "roster": ["hilde", "phantom_character"],
         }
         result = retrieve_window(state)
@@ -183,12 +204,12 @@ class TestRetrieveWindow:
         """retrieve_window includes the window event data when it exists."""
         state = {
             "canon": seed_canon,
-            "window": "the_great_flood",
+            "window": "great_flood",
             "roster": ["hilde"],
         }
         result = retrieve_window(state)
         assert result["context"]["window_event"] is not None
-        assert result["context"]["window_event"]["id"] == "the_great_flood"
+        assert result["context"]["window_event"]["id"] == "great_flood"
 
 
 # --- Path gate tests (REQ-YG-488) ---

@@ -1,0 +1,8 @@
+type: faction
+id: bärenschädel
+lane: dynamic
+depth: 0
+name: Bärenschädel
+members:
+- gunnar
+- frida

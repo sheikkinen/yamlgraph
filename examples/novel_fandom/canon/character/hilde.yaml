@@ -1,50 +1,48 @@
-type: character
 id: hilde
-lane: dynamic
-depth: 0
+type: character
 name: Hilde
-birth_year: -24
+summary: War-leader of the Aschenwulf who raids the Bärenschädel to avenge her father's
+  death and ends up bound to Gunnar.
+birth_year: -25
 role: protagonist
+lane: dynamic
 faction: aschenwulf
-personality: Direct in speech, little patience for indirectness. Fiercely loyal once
-  she commits. Pragmatic under pressure, adapts to survival.
-goals:
-- avenge her father
-- protect bond with Gunnar
-- survive the flood
-- build a life free of feud
-fears:
-- losing Gunnar
-- being rejected by her clan
-- failing to protect her brother
-- the flood returning
+depth: 0
+backstory: 'Hilde was born in the Wittensee valley during the last deep cold of the
+  old age. Her father, the war-leader of the Aschenwulf, taught her the lore of the
+  high ground and the art of ambush. When she was twelve, her father led a raid against
+  the Bärenschädel to recover reindeer that were claimed stolen. The raid turned into
+  an ambush. Hilde’s father was cut down by Gunnar’s spearmen. She found his body
+  in the mud, a spear through his chest, and swore an oath over his blood: every Bärenschädel
+  would pay. She trained harder than any warrior, learned the war-leader’s signs and
+  the hidden paths of the high ground. At eighteen, she fought in a border skirmish
+  and killed her first Bärenschädel. By twenty, she was named war-leader, the youngest
+  of her clan. Her brother Arnulf stood beside her as shield-bearer. For five years,
+  she nursed her vengeance, waiting for the moment when the spring thaw swelled the
+  rivers and gave her clan cover. The dawn raid on Gunnar’s camp was her plan, her
+  chance. She told herself it was justice. She did not know the flood would drown
+  the past.'
+driving_force: To avenge her father's death; later transformed by survival necessity
+  into a drive to unite the clans and forge a new peace.
 triggers:
-- mention of her father's death
-- attacks on Gunnar
-- betrayal from clan members
-- being cornered or trapped
-backstory: Daughter of the slain former leader of the Aschenwulf band. Became war-leader
-  to avenge her father's death at the hands of Gunnar.
-driving_force: To avenge her father, then to protect the bond she forms with Gunnar.
-wants: vengeance, then love and peace
-needs: to let go of the feud and embrace new life with Gunnar
-arc_summary: From avenger to lover, reconciles with brother and builds new settlement.
+- father's death
+- the flood
+- survival truce
+- marriage rite
+- arnulf's attack
 relationships:
-- to: gunnar
-  kind: lover
-  valence: love
 - to: arnulf
-  kind: sibling
-  valence: familial love
-- to: aelfgard
-  kind: clan leader
-  valence: loyalty then betrayal
-- to: sigrid
-  kind: spiritual advisor
-  valence: respect
+  kind: brother
+  valence: ''
+- to: gunnar
+  kind: husband
+  valence: ''
+- to: hildes_father
+  kind: father
+  valence: ''
+- to: frida
+  kind: elder
+  valence: ''
 - to: reinmar
   kind: ally
-  valence: trust
-references:
-- survival_truce
-- judgment_of_the_flood
+  valence: ''

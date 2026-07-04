@@ -1,0 +1,13 @@
+id: riverbank_collapse_site
+type: location
+name: Riverbank Collapse Site
+lane: dynamic
+depth: 1
+references:
+- great_flood
+- dawn_raid
+- wittensee_valley
+- aschenwulf
+- bärenschädel
+description: The upstream point on the river where the bank gave way during the dawn
+  raid, releasing a flood that drowned both camps.

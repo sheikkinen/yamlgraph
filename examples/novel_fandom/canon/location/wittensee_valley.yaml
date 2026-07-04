@@ -1,0 +1,64 @@
+depth: 1
+id: wittensee_valley
+lane: dynamic
+location_type: valley
+name: Wittensee Valley
+type: location
+description: 'The Wittensee Valley is a broad, U-shaped glacial trough carved by ice
+  sheets millennia ago. During the great thaw of 10,000 BC, it is a landscape of stark
+  contrasts: high moraine ridges covered in hardy pines and birches rise above a waterlogged
+  plain where three meltwater rivers—the Wittensee, the Grau, and the Tarn—converge.
+  The valley floor is a patchwork of flooded meadows, stands of alder, and treacherous
+  bogs. The Aschenwulf clan holds the eastern high ground, a series of grassy knolls
+  and rocky outcrops that provide dry campsites and clear views of the entire basin.'
+atmosphere:
+- Pervasive dampness and the constant sound of running water dominate the valley.
+  The air smells of wet earth, rotting vegetation, pine resin, and glacial silt. Mist
+  often clings to the lowlands at dawn and dusk, muffling sounds and giving the landscape
+  a ghostly quality. The ground is soft underfoot, and the sky is a pale gray even
+  when not raining. There is a sense of precariousness—the valley is beautiful but
+  unforgiving, with hidden sinkholes and sudden flash floods. At night, the howl of
+  wolves from the higher slopes echoes down, and the damp cold seeps into any shelter.
+significance: The Wittensee Valley is the ancestral homeland of the Aschenwulf clan,
+  a place of deep memory and fierce pride. It is also the stage for the blood feud
+  with the Bärenschädel, a conflict that has defined both clans for a generation.
+  The valley's geography—high ground for defense, low pastures for reindeer—made it
+  a strategic prize. But its vulnerability to flooding became its defining feature
+  when the great flood of the synopsis drowned both camps, forcing the survivors to
+  abandon it forever. The valley thus transitions from a symbol of clan strength to
+  a graveyard of the old ways.
+history: For centuries, the Wittensee Valley provided ample grazing for reindeer herds
+  and shelter from the harshest weather. The Aschenwulf and Bärenschädel once shared
+  these lands under a loose alliance, but a dispute over a stolen herd—later revealed
+  to have died in an early thaw—sparked a blood feud that lasted years. The valley's
+  eastern ridges saw raids and counter-raids, and the Aschenwulf camp became fortified
+  with wooden palisades and storage pits. The older generation, like Frida's grandmother,
+  remembered a time when peace prevailed and the valley's spirits were honored. That
+  memory was lost in the feud's violence.
+inhabitants: 'Before the flood, the Wittensee Valley was home to the Aschenwulf clan,
+  numbering around fifty individuals including warriors, women, and children. They
+  lived in hide tents and timber longhouses on the eastern high ground. The Bärenschädel
+  clan occupied a camp on the western slopes, often visible across the valley during
+  lulls in the fighting. After the great flood, the valley was rendered uninhabitable:
+  the Aschenwulf camp was swept away, and the survivors scattered. The valley is now
+  empty, a muddy wasteland slowly being reclaimed by sedge and willow.'
+notable_features:
+- The Eastern Knolls—a series of drumlin-like hills where the Aschenwulf camp was
+  situated, offering a clear view of the valley entrance.
+- The Tarn-Fe—a deep, tea-colored bog on the southern edge, known to swallow stray
+  reindeer and unwary hunters.
+- The Three Rivers Confluence—where the Wittensee, Grau, and Tarn rivers join, the
+  epicenter of the great flood when an upstream bank collapsed.
+- The Limestone Ledge—a narrow outcrop on the lower eastern slope, where Hilde and
+  Gunnar were stranded during the flood (referenced separately).
+sensory_details: 'The valley assaults the senses: the chill of glacial melt on the
+  skin, the squelch of boots in mud, the metallic tang of silt on the tongue. Birds
+  are scarce—only the occasional croak of a raven or the distant cry of a loon. At
+  dawn, the sun struggles to pierce the overcast, casting pale yellow light that illuminates
+  threads of mist. At night, the valley grows utterly dark; only the faint phosphorescence
+  of rotting wood in the bogs provides any light. The smell of wet fur and campfire
+  smoke clings to anyone who stays long.'
+present_state: Abandoned and flooded, the Wittensee Valley is now a shallow lake of
+  muddy water dotted with drowned trees and floating debris. The high ground is reduced
+  to islands of saturated earth. It serves as a haunting reminder of the flood that
+  ended an era.

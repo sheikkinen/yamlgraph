@@ -1,0 +1,10 @@
+id: rötel_river
+type: location
+name: Rötel River
+lane: dynamic
+depth: 1
+summary: The red-hued river that flows along the western edge of the valley, named
+  for the iron-rich sediments.
+references:
+- wittensee_valley
+- great_flood

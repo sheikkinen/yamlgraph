@@ -1,0 +1,14 @@
+id: ulfs
+type: character
+name: Ulf
+lane: dynamic
+depth: 1
+summary: Gunnar's father, former war-leader of the Bärenschädel, died from a wound
+  in a feud skirmish.
+affiliations:
+- bärenschädel
+children:
+- gunnar
+references:
+- gunnar
+- bärenschädel

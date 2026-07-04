@@ -1,0 +1,16 @@
+type: event
+id: great_flood
+lane: dynamic
+depth: 0
+year: 0
+scope: regional
+participants:
+- hilde
+- gunnar
+- arnulf
+- aschenwulf
+- bärenschädel
+consequences:
+- Riverbank collapse releases a surge that drowns both clans' camps.
+- Hilde and Gunnar are stranded on a limestone ledge.
+- Arnulf is swept downstream.

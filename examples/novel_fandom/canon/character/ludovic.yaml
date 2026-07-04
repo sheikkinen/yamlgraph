@@ -1,0 +1,11 @@
+id: ludovic
+type: character
+name: Ludovic
+summary: A young, ambitious independent trader who challenges Reinmar’s neutrality,
+  advocating for a more assertive trade relationship with the merged Aschenwulf-Bärenschädel
+  clan.
+lane: dynamic
+depth: 1
+references:
+- reinmar
+- independent

@@ -1,0 +1,6 @@
+type: rule
+id: old_rites
+lane: dynamic
+depth: 0
+domain: magic_system
+title: Old Rites

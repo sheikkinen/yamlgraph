@@ -52,12 +52,12 @@ class TestLookupCanonPage:
     """AC-1, AC-5: lookup returns full YAML + calendar header."""
 
     def test_returns_existing_page(self) -> None:
-        result = lookup_canon_page(id="the_great_flood", canon_dir=str(CANON_DIR))
-        assert "the_great_flood" in result
+        result = lookup_canon_page(id="great_flood", canon_dir=str(CANON_DIR))
+        assert "great_flood" in result
         assert "year: 0" in result
 
     def test_includes_calendar_convention(self) -> None:
-        result = lookup_canon_page(id="the_great_flood", canon_dir=str(CANON_DIR))
+        result = lookup_canon_page(id="great_flood", canon_dir=str(CANON_DIR))
         assert "Year 0" in result
         assert "negative" in result.lower() or "before" in result.lower()
 
@@ -80,9 +80,9 @@ class TestListCanonIds:
 
     def test_returns_all_ids(self) -> None:
         result = list_canon_ids(canon_dir=str(CANON_DIR))
-        # Should contain known IDs from the 30-file genesis canon
+        # Should contain known IDs from the seed canon
         assert "hilde" in result
-        assert "the_great_flood" in result
+        assert "great_flood" in result
         assert "aschenwulf" in result
 
     def test_includes_types(self) -> None:
@@ -107,7 +107,7 @@ class TestValidateDraft:
                 "year": -28,
                 "scope": "world",
                 "participants": ["hilde", "gunnar"],
-                "affected_locations": ["the_river_valley"],
+                "affected_locations": ["wittensee_valley"],
             }
         )
         result = validate_draft(page_yaml=draft, canon_dir=str(CANON_DIR))
@@ -122,7 +122,7 @@ class TestValidateDraft:
                 "year": 28,
                 "scope": "world",
                 "participants": ["hilde"],
-                "affected_locations": ["the_river_valley"],
+                "affected_locations": ["wittensee_valley"],
             }
         )
         result = validate_draft(page_yaml=draft, canon_dir=str(CANON_DIR))
@@ -147,11 +147,11 @@ class TestValidateDraft:
         assert any("nonexistent_person" in e for e in result["errors"])
 
     def test_rejects_duplicate_the_prefix_id(self) -> None:
-        """the_river_valley exists, so river_valley should be flagged."""
+        """great_flood exists, so the_great_flood should be flagged."""
         draft = yaml.dump(
             {
-                "id": "river_valley",
-                "type": "location",
+                "id": "the_great_flood",
+                "type": "event",
             }
         )
         result = validate_draft(page_yaml=draft, canon_dir=str(CANON_DIR))

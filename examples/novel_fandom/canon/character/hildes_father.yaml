@@ -1,0 +1,40 @@
+id: hildes_father
+type: character
+lane: dynamic
+name: Hilde's Father
+birth_year: -60
+role: minor
+status: dead
+faction: aschenwulf
+summary: Hilde and Arnulf's father, former war-leader of the Aschenwulf, killed by
+  Gunnar in a skirmish over a reindeer herd he believed was stolen by the Bärenschädel.
+backstory: 'Born in the last generation to remember the great cold, Hilde’s father
+  was a hard-handed war-leader of the Aschenwulf, a man who measured honor by the
+  strength of one’s spear arm and the safety of one’s kin. He was a stern but patient
+  teacher who saw in his daughter Hilde a ferocity he rarely found in grown warriors.
+  When a full winter’s herd of reindeer vanished from the eastern pasture in a sudden
+  thaw, he was convinced the Bärenschädel had raided in the night. He demanded recompense;
+  Gunnar, the Bärenschädel leader, swore ignorance. Blinded by grief for the starving
+  children of his clan, he led a small party to the Bärenschädel camp under a false
+  flag of parley. A fight broke out, and he fell to Gunnar’s axe before any words
+  could be exchanged. His last command to Hilde—carried back by a wounded runner—was
+  a single word: ''Avenge.'' That dying oath became the blood feud that drove Hilde
+  for ten winters, a feud that masked the truth: the reindeer had drowned in a mudslide,
+  a death the ice itself had hidden. His death, born of suspicion and cold hunger,
+  set in motion the very flood that would later wash away both clans.'
+triggers:
+- death_of_hildes_father
+- dawn_raid
+relationships:
+- to: hilde
+  kind: parent_of
+  valence: ''
+- to: arnulf
+  kind: parent_of
+  valence: ''
+- to: gunnar
+  kind: enemy
+  valence: ''
+- to: aschenwulf
+  kind: member_of
+  valence: ''

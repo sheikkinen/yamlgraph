@@ -1,0 +1,56 @@
+id: bärenschädel_camp
+type: location
+name: Bärenschädel Camp
+location_type: camp
+lane: dynamic
+description: The Bärenschädel Camp is a seasonal settlement of hide tents and timber-framed
+  huts pitched on a low rise in the Wittensee valley, just a stone's throw from the
+  main river. The ground is churned mud in spring and packed earth in summer, with
+  dozens of hearths blackening the soil. A ring of sharpened stakes and a shallow
+  ditch mark the perimeter, though the camp is less a fortress than a gathering place
+  for hunters and their families.
+atmosphere:
+- The air is thick with woodsmoke, cured hides, and the sour tang of fermented berries.
+  The constant sound of dogs barking, children shouting, and women grinding grain
+  on stone querns fills the daylight hours. At night, the camp glows with scattered
+  fires and the low hum of stories and argument. The smell of roasting meat mingles
+  with the river's damp breath. The ground is never dry; boots sink into the soft
+  loam near the water's edge. In the predawn silence, fog blankets the camp, muffling
+  sounds and making shadows of everything.
+significance: The Bärenschädel Camp is the heart of Gunnar's clan, the staging ground
+  for hunts, raids, and the blood feud against the Aschenwulf. Its location near the
+  river gives easy access to water and fishing, but also makes it vulnerable to spring
+  floods. The camp's symbolic importance lies in its role as the site of Hilde's dawn
+  raid and the subsequent flood that destroyed both clans' settlements, forcing the
+  survivors into a new alliance.
+control: Controlled by Gunnar, the Bärenschädel war-leader, who holds authority through
+  his raiding prowess and his claim to the feud. After Gunnar's father's death, the
+  camp fell under Gunnar's sole command. The camp's daily management is overseen by
+  Frida, the eldest woman and keeper of old rites, and by experienced hunters like
+  Torsten and Ulf.
+inhabitants: 'Roughly forty to fifty Bärenschädel clan members: warriors, hunters,
+  women, children, and elders. Notable inhabitants prior to the flood: Gunnar (war-leader),
+  Frida (elder), Torsten (hunter), Ulf (hunter), Elke (a young woman), Uta (a mother),
+  and Gunnar''s father''s older widow, who perishes in the flood. The camp also shelters
+  two pack dogs and a few goats.'
+history: The camp was established three generations ago when the Bärenschädel split
+  from a larger northern clan and migrated south along the thawing rivers. The site
+  was chosen for its reliable water and proximity to reindeer migration routes. It
+  was here that the blood feud with the Aschenwulf began when a herd of reindeer was
+  stolen (or so it was believed) a decade ago. Over the years, the camp saw several
+  skirmishes, including the raid that killed Hilde's father, Ragnar, on a misty morning
+  just east of the camp's ditch. The dawn raid by Hilde's Aschenwulf warriors ended
+  when the riverbank upstream collapsed, sending a wall of water through the camp,
+  drowning most inhabitants and sweeping away shelters, tools, and the accumulated
+  stores of winter meat. The camp was never reoccupied; survivors later merged with
+  the Aschenwulf in the Felsbach valley.
+structures: A dozen hide tents (each sleeping four to six people), two larger timber-and-turf
+  longhouses used for communal storage and council meetings, a central fire pit ringed
+  with stones, racks for drying meat and fish, a lean-to for tanning hides, and a
+  small shrine of stacked stones near the riverbank where Frida left offerings to
+  the earth spirit.
+resources: The camp relies on the river for drinking water, fish, and transport. Nearby
+  birch and alder copses provide firewood and timber. Hunting grounds to the north
+  yield deer, boar, and reindeer. A salt lick two miles east attracts game. The camp
+  also trades with passing salt-road merchants like Reinmar, exchanging furs and dried
+  meat for flint, salt, and metal blades.

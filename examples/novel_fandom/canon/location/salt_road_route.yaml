@@ -1,0 +1,10 @@
+id: salt_road_route
+type: location
+name: Salt Road Route
+lane: dynamic
+depth: 1
+references:
+- reinmar
+- felsbach_pass
+description: The network of trails and passes connecting the eastern salt marshes
+  to the northern high valleys, used by traders like Reinmar for centuries.

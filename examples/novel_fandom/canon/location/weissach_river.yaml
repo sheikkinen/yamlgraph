@@ -1,0 +1,9 @@
+id: weissach_river
+type: location
+name: Weissach River
+lane: dynamic
+depth: 1
+summary: One of three rivers that drain the Wittensee Valley; its headwaters are in
+  the melting glaciers to the north.
+references:
+- wittensee_valley

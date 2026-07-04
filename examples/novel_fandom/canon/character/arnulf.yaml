@@ -1,48 +1,45 @@
-type: character
 id: arnulf
-lane: dynamic
-depth: 0
+type: character
 name: Arnulf
-birth_year: -18
-role: supporting
-faction: aschenwulf
-personality: Idolizes his sister, acts on her behalf without question. Quick to anger,
-  slow to forgive himself. Learns restraint through watching Gunnar refuse to fight.
-goals:
-- prove loyalty to the Aschenwulf
-- earn a place in the new settlement beside Hilde
-- protect his sister
-fears:
-- failing his sister
-- being seen as a traitor
-- losing his family
-- being left behind
+summary: Hilde's brother who is swept downriver, presumed dead, but survives and is
+  rescued by Reinmar.
+backstory: 'Arnulf was born into a clan already locked in a bitter blood feud with
+  the Bärenschädel. His earliest memory is the smell of smoke from a raid that killed
+  his uncle. He grew up in the shadow of vengeance, watching his father harden into
+  a man of cold fury. When his father was killed in an ambush three years ago, Arnulf
+  swore to protect his sister Hilde, the new war-leader. He trained with the spear
+  every dawn, determined never to be caught off guard. His loyalty to Hilde was absolute—not
+  just as a brother but as a warrior who trusted her judgment above all. The night
+  before the dawn raid, Arnulf dreamed of drowning, of water closing over his father''s
+  face. He dismissed it as nerves. When the flood hit, he was torn from Hilde''s side,
+  swept downstream with the screams of his clansmen. Clinging to a log, he prayed
+  to the earth spirit to let him live long enough to find her. That desperation—the
+  need to see Hilde safe, to prove that the feud had not claimed everyone—became his
+  driving force. On the sandbar, half-dead, he was found by Reinmar, a trader who
+  gave him warmth and news that shattered him: his clan was believed dead. But Arnulf
+  refused to believe it. He followed Reinmar toward the Felsbach valley, driven by
+  a stubborn hope that Hilde had survived. When he finally saw her standing beside
+  Gunnar, his first instinct was to attack—only to learn the truth: the feud was built
+  on a lie. That revelation reshaped his purpose: not vengeance, but unity.'
 triggers:
-- seeing Hilde with Gunnar
-- being told Hilde betrayed the clan
-- judgment of elders
-- reminders of the flood
-backstory: Younger brother of Hilde, nearly drowned in the flood. Survived and later
-  sought to kill Gunnar, but eventually made peace.
-driving_force: To prove his loyalty to the Aschenwulf, then to earn a place in the
-  new settlement beside Hilde.
-wants: to be accepted and prove his worth
-needs: to learn that loyalty to family can transcend clan duty
-arc_summary: From vengeful brother to peacemaker, accepts Hilde's choices and becomes
-  the band's hunter.
+- sister_in_danger
+- clan_believed_dead
+- feud_revealed_false
 relationships:
 - to: hilde
   kind: sibling
-  valence: idolization then love
+  valence: ''
+- to: hildes_father
+  kind: son
+  valence: ''
+- to: reinmar
+  kind: rescued_by
+  valence: ''
 - to: gunnar
-  kind: enemy turned brother
-  valence: initial hatred then respect
-- to: aelfgard
-  kind: clan leader
-  valence: loyalty then disillusionment
-- to: sigrid
-  kind: spiritual guide
-  valence: respect
-references:
-- survival_truce
-- judgment_of_the_flood
+  kind: former_enemy_now_brother_in_law
+  valence: ''
+birth_year: -28
+role: supporting
+faction: aschenwulf
+lane: dynamic
+depth: 1

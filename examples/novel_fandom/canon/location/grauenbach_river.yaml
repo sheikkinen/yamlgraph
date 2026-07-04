@@ -1,0 +1,10 @@
+id: grauenbach_river
+type: location
+name: Grauenbach River
+lane: dynamic
+depth: 1
+summary: A grey, silt-laden river that runs through the eastern side of the Wittensee
+  Valley.
+references:
+- wittensee_valley
+- great_flood

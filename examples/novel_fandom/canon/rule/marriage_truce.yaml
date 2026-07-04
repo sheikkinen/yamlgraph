@@ -1,6 +1,6 @@
 type: rule
-id: survival_truce
+id: marriage_truce
 lane: dynamic
 depth: 0
 domain: social_rule
-title: Survival Truce
+title: Marriage Truce

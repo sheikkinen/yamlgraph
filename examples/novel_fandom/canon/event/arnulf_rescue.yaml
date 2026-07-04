@@ -1,0 +1,17 @@
+id: arnulf_rescue
+type: event
+name: Arnulf's Rescue on the Sandbar
+lane: dynamic
+depth: 1
+summary: Reinmar finds the half-frozen Arnulf on the sandbar two miles downstream,
+  gives him warm clothes and food, and learns of the clans' destruction.
+participants:
+- arnulf
+- reinmar
+location: sandbar
+cause: great_flood
+references:
+- arnulf
+- reinmar
+- sandbar
+- great_flood

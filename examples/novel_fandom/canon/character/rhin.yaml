@@ -1,0 +1,10 @@
+id: rhin
+type: character
+name: Rhin
+lane: dynamic
+depth: 1
+references:
+- independent
+summary: Elder leader of the Independent traders; a weathered man with grey braids
+  and a map of scars on his hands, he knows every salt road and has never taken sides
+  in a clan feud.

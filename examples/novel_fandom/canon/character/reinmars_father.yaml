@@ -1,0 +1,9 @@
+id: reinmars_father
+type: character
+name: Reinmar's Father
+lane: dynamic
+depth: 1
+summary: A salt trader who raised Reinmar on the trail and was killed in a dispute
+  when Reinmar was fifteen.
+references:
+- reinmar

@@ -1,0 +1,11 @@
+id: reinmar_witnesses_herd_death
+type: event
+name: Reinmar witnesses the reindeer herd death
+lane: dynamic
+depth: 1
+summary: Around year -20, Reinmar found a herd of reindeer dead from starvation after
+  a thaw, disproving the theft story that fueled the feud.
+date: '-20'
+references:
+- reinmar
+- dead_reindeer_herd

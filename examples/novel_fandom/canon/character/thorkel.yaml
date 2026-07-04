@@ -1,0 +1,13 @@
+id: thorkel
+type: character
+name: Thorkel
+lane: dynamic
+depth: 1
+summary: An elderly independent guide and pathfinder who knows every pass and spring
+  in the high country. He is a conservative voice on the Salt Council, warning against
+  breaking neutrality for short-term gain.
+references:
+- independent
+- felsbach_pass
+- felsbach_valley
+- wittensee_valley
