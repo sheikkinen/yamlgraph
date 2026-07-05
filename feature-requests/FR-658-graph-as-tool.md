@@ -2,10 +2,11 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Judged ✅
+**Status:** Enforced ✅
 **Effort:** 2 days
 **Requested:** 2026-07-03
 **Judged:** 2026-07-03
+**Enforced:** 2026-07-05 — All 9 ACs verified. Commit `e7b558de` (FR-683/684/685 trilogy) + `7eefa508` (FR-686) + `b249c98c` (FR-689 variables fix). Six graph-tool pipelines in production (create_character/event/faction/location/rule/premise). FR-689 added `default_variables` injection to complete the graph-tool → state handoff.
 
 ## Summary
 

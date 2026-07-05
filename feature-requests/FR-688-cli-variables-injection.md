@@ -1,8 +1,9 @@
 # FR-688: CLI Variables Injection from Graph YAML
 
-**Status**: Proposed
+**Status**: Closed (implemented by FR-689)
 **Type**: feat
 **Scope**: cli
+**Closed**: 2026-07-05 — Fix shipped in commit `b249c98c` as part of FR-689 enforcement. Both graph-tool and CLI paths now inject `variables:` from YAML.
 
 ## Problem
 
