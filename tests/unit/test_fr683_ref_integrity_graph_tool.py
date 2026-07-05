@@ -121,22 +121,21 @@ class TestValidateGenesisDeleted:
 
 
 class TestGenesisUsesRefIntegrity:
-    """AC-4: genesis validate node uses ref_integrity.py."""
+    """AC-4: genesis uses ref_check graph-tool (FR-686: agent has it in tools)."""
 
     @pytest.mark.req("REQ-YG-515")
-    def test_genesis_validate_tool_points_to_ref_integrity(self) -> None:
-        """genesis.yaml validate tool references ref_integrity.py."""
+    def test_genesis_agent_has_ref_check_tool(self) -> None:
+        """genesis.yaml agent node includes ref_check in its tools list."""
         import yaml
 
         genesis_path = NOVEL_FANDOM_DIR / "genesis.yaml"
         with open(genesis_path) as f:
             config = yaml.safe_load(f)
-        # Find the tool used by the validate node
-        validate_node = config["nodes"]["validate"]
-        tool_name = validate_node["tool"]
-        tool_config = config["tools"][tool_name]
-        assert "ref_integrity" in tool_config["path"]
-        assert tool_config["function"] == "ref_check"
+        agent = config["nodes"]["genesis"]
+        assert "ref_check" in agent["tools"]
+        # Also verify ref_check is a graph-tool
+        ref_check = config["tools"]["ref_check"]
+        assert ref_check["type"] == "graph"
 
 
 # ---------- AC-2/AC-3: worldgen has ref_check graph-tool ----------
@@ -159,15 +158,15 @@ class TestWorldgenRefCheck:
         assert "ref_check" in ref_check["path"]
 
     @pytest.mark.req("REQ-YG-515")
-    def test_deepen_events_has_ref_check(self) -> None:
-        """deepen_events agent node includes ref_check in its tools list."""
+    def test_worldgen_agent_has_ref_check(self) -> None:
+        """worldgen agent node includes ref_check in its tools list (FR-686)."""
         import yaml
 
         worldgen_path = NOVEL_FANDOM_DIR / "worldgen.yaml"
         with open(worldgen_path) as f:
             config = yaml.safe_load(f)
-        deepen_node = config["nodes"]["deepen_events"]["node"]
-        assert "ref_check" in deepen_node["tools"]
+        agent = config["nodes"]["worldgen"]
+        assert "ref_check" in agent["tools"]
 
 
 # ---------- AC-1: ref_check.yaml exists ----------

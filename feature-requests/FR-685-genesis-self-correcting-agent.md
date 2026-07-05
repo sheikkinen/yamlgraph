@@ -2,12 +2,19 @@
 
 **Priority:** HIGH
 **Type:** Refactor
-**Status:** Judged ✅ (architecture amended)
+**Status:** Superseded by FR-686 (2026-07-05) — enforced in `e7b558de`, mechanism replaced
 **Effort:** 1 day
 **Requested:** 2026-07-04
 **Judged:** 2026-07-04
 **Depends:** FR-658 (graph-as-tool, enforced), FR-667 (genesis stubs, enforced),
   FR-683 (ref integrity graph-tool)
+
+> **Superseded:** This FR's gate → route → fix mechanism was enforced in
+> commit `e7b558de`, then replaced by FR-686's per-entity agent-first
+> rewrite (see FR-686 Judgement v1 Finding 1 and Judgement v2 Record
+> Correction 1). Its structure tests are deleted as part of FR-686
+> retirement. Correction: an earlier supersession note claimed this FR
+> was never enforced — that was wrong; git log is the proof trail.
 
 > Original title: "Genesis Self-Correcting via Graph-Tool Validation".
 > The Judgement rejected the agent conversion and replaced the mechanism

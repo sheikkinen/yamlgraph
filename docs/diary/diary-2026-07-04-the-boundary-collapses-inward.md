@@ -67,6 +67,34 @@ the library directory is a fence around the garden but not the orchard.
 
 Maps to: `gate_checks_shape_not_substance` + `infrastructure_self_exempt`.
 
+## Trap: Missing docs as enabler of python-hack bypass
+Genesis `validate` was wired as `type: python` calling `ref_integrity.py:ref_check`
+directly — bypassing the `ref_check.yaml` graph-tool that FR-683 created. The
+`type: graph` tool section exists in `reference/graph-yaml.md` (lines 1411-1455)
+but describes only agent and tool_call as callers. No guidance exists for using
+graph-tools from pipeline gate nodes, and no subgraph-vs-graph-tool decision
+guide documents when each pattern applies.
+
+`reference/tool-call-nodes.md` still claims "Only `type: python` tools are
+currently supported" — stale since FR-658 enforcement.
+
+The contributing chain: feature enforced → demo written → reference section added →
+but no decision guide → implementer (me) defaults to `type: python` because the
+docs frame graph-tool as agent-only → genesis validate becomes a python hack →
+the very feature the trilogy was supposed to showcase goes unused.
+
+Novel_fandom's value is as a showcase for core features. A `type: graph` tool
+that's only exercised in a toy demo (`graph-tool/`) and never in the large-scale
+example is a demo, not a proof. The genesis validate node must use graph composition
+(subgraph or graph-tool), not shortcut around it.
+
+**Heuristic**: When a feature has no decision guide ("when to use X vs Y"),
+implementers default to the simpler pattern they already know. Missing docs
+don't just leave a gap — they actively push code toward the legacy path.
+
+Maps to: `detection_without_enforcement` — the feature was detected (exists in
+reference) but not enforced (no guidance on when it's mandatory vs optional).
+
 ## Seed
 Can the `sys.path.insert` shim pattern be automated? Every Python tool loaded
 via `spec_from_file_location` that needs sibling imports has the same problem.

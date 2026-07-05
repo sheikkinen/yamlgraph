@@ -695,6 +695,12 @@ These are E402 suppressions and are acceptable as "glue code" patterns.
 - **Sin**: Broad `except Exception` in validation fallback.
 - **Penance**: FR-649 design decision: persist work product even when Pydantic validation fails. The broad catch is intentional — any validation error (type mismatch, missing field, extra field) should trigger the warning-and-persist fallback, not crash the pipeline. The exception is logged with full context.
 
+### CONF-146
+- **File**: [examples/novel_fandom/nodes/creation_tools.py](../examples/novel_fandom/nodes/creation_tools.py#L71)
+- **Code**: BLE001
+- **Sin**: Broad `except Exception` in `_write_page` atomic-write fallback.
+- **Penance**: FR-686 design: persist_entity must never crash the graph-tool pipeline. Any filesystem error (permissions, disk full, encoding) returns an error string to the agent rather than raising. Consistent with CONF-145 pattern.
+
 ### CONF-306
 - **File**: [examples/plot_modeller/spike_salience_gate.py](../examples/plot_modeller/spike_salience_gate.py#L39)
 - **Code**: E402
@@ -1324,6 +1330,24 @@ These are E402 suppressions and are acceptable as "glue code" patterns.
 - **Code**: S112
 - **Sin**: `try-except-continue` silently skips YAML files that fail to parse.
 - **Penance**: Script scans all `*.yaml` under demos/ — some may be prompt templates or malformed. Skipping unparseable files is the correct behavior for a coverage scanner; logging would add noise without value.
+
+### CONF-257
+- **File**: [tests/unit/test_fr686_agent_first_rewrite.py](../tests/unit/test_fr686_agent_first_rewrite.py#L32)
+- **Code**: ANN202
+- **Sin**: `_load` fixture returns dynamically loaded module without return type annotation.
+- **Penance**: Consistent with CONF-247..256 pattern. Module is loaded via `importlib` — typing the return as `ModuleType` adds no value for a test fixture.
+
+### CONF-258
+- **File**: [tests/unit/test_fr686_agent_first_rewrite.py](../tests/unit/test_fr686_agent_first_rewrite.py#L258)
+- **Code**: ANN202
+- **Sin**: `tools_mod` fixture returns dynamically loaded module without return type annotation.
+- **Penance**: Same pattern as CONF-257. Test-only fixture.
+
+### CONF-259
+- **File**: [tests/unit/test_fr686_agent_first_rewrite.py](../tests/unit/test_fr686_agent_first_rewrite.py#L398)
+- **Code**: ANN202
+- **Sin**: `tools_mod` fixture returns dynamically loaded module without return type annotation.
+- **Penance**: Same pattern as CONF-257/258. Test-only fixture.
 
 ---
 

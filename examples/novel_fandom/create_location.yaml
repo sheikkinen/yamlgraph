@@ -1,0 +1,66 @@
+# Create Location — graph-tool pipeline (FR-686, FR-658 showcase)
+
+version: "1.0"
+name: create-location
+description: Create a location entity with semantic integrity check
+prompts_relative: true
+prompts_dir: prompts
+
+variables:
+  entity_type: location
+
+state:
+  entity_type: str
+  id: str
+  name: str
+  description: str
+  location_type: str
+  persisted_page: dict
+  result: str
+  digest: str
+  ref_context: str
+  check_skip: str
+  check_result: str
+
+tools:
+  persist:
+    type: python
+    path: nodes/creation_tools.py
+    function: persist_entity
+  prefetch:
+    type: python
+    path: nodes/creation_tools.py
+    function: build_check_context
+
+nodes:
+  persist:
+    type: python
+    tool: persist
+
+  prefetch:
+    type: python
+    tool: prefetch
+
+  check:
+    type: llm
+    prompt: ref_check_entity
+    state_key: check_result
+    temperature: 0.1
+    variables:
+      persisted_page: "{state.persisted_page}"
+      digest: "{state.digest}"
+      ref_context: "{state.ref_context}"
+
+edges:
+  - from: START
+    to: persist
+  - from: persist
+    to: prefetch
+  - from: prefetch
+    to: check
+    condition: check_skip == false
+  - from: prefetch
+    to: END
+    condition: check_skip == true
+  - from: check
+    to: END

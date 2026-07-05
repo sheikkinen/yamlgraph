@@ -29,6 +29,7 @@ def make_graph_tool_fn(
     output_key: str,
     graph_path: Path,
     loading_stack: ContextVar[list[Path]],
+    default_variables: dict[str, Any] | None = None,
 ) -> Callable[..., str]:
     """Create a callable that invokes a pre-compiled graph as a tool.
 
@@ -42,6 +43,7 @@ def make_graph_tool_fn(
         output_key: State key to extract from result.
         graph_path: Resolved path to child graph YAML (for cycle detection).
         loading_stack: ContextVar from subgraph_nodes for circular ref guard.
+        default_variables: Graph-level variables from child config (injected as defaults).
 
     Returns:
         Callable(**kwargs) → str
@@ -56,7 +58,10 @@ def make_graph_tool_fn(
         token = loading_stack.set([*stack, graph_path])
         try:
             # Map tool kwargs → graph variables via input_mapping
-            variables = {input_mapping.get(k, k): v for k, v in kwargs.items()}
+            # Default variables from child graph YAML are injected first,
+            # then tool kwargs override (so entity_type etc. are always set)
+            variables = dict(default_variables or {})
+            variables.update({input_mapping.get(k, k): v for k, v in kwargs.items()})
             result = compiled.invoke(variables)
             return str(result.get(output_key, result))
         except Exception as e:

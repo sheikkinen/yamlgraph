@@ -40,8 +40,18 @@ def _load(mod_name: str, rel_path: str):  # noqa: ANN202
 
 
 _canon = _load("novel_fandom_schema_canon_v2", "schema/canon.py")
-_select = _load("novel_fandom_nodes_select_thin", "nodes/select_thin.py")
-_collect = _load("novel_fandom_nodes_collect_red_links", "nodes/collect_red_links.py")
+_select_path = NOVEL_FANDOM_DIR / "nodes/select_thin.py"
+_collect_path = NOVEL_FANDOM_DIR / "nodes/collect_red_links.py"
+_select = (
+    _load("novel_fandom_nodes_select_thin", "nodes/select_thin.py")
+    if _select_path.exists()
+    else None
+)
+_collect = (
+    _load("novel_fandom_nodes_collect_red_links", "nodes/collect_red_links.py")
+    if _collect_path.exists()
+    else None
+)
 _validate = _load("novel_fandom_nodes_validate_pages", "nodes/validate_pages.py")
 _persist = _load("novel_fandom_nodes_persist_pages", "nodes/persist_pages.py")
 _persist = _load("novel_fandom_nodes_persist_pages", "nodes/persist_pages.py")
@@ -54,8 +64,8 @@ Location = _canon.Location
 Rule = _canon.Rule
 PAGE_MODELS = _canon.PAGE_MODELS
 validate_page = _canon.validate_page
-select_thin = _select.select_thin
-collect_red_links = _collect.collect_red_links
+select_thin = _select.select_thin if _select else None
+collect_red_links = _collect.collect_red_links if _collect else None
 validate_pages = _validate.validate_pages
 reload_canon = _reload.reload_canon
 
@@ -116,6 +126,7 @@ class TestSchemaAdditions:
 # --- select_thin (REQ-YG-495) ---
 
 
+@pytest.mark.skipif(select_thin is None, reason="select_thin.py retired by FR-686")
 class TestSelectThin:
     @pytest.mark.req("REQ-YG-495")
     def test_character_thin_no_backstory(self):
@@ -260,6 +271,9 @@ class TestSelectThin:
 # --- collect_red_links (REQ-YG-495) ---
 
 
+@pytest.mark.skipif(
+    collect_red_links is None, reason="collect_red_links.py retired by FR-686"
+)
 class TestCollectRedLinks:
     @pytest.mark.req("REQ-YG-495")
     def test_dedup_by_id(self):
@@ -342,6 +356,9 @@ class TestCollectRedLinks:
 # --- collect_red_links + reflection (REQ-YG-496, FR-646) ---
 
 
+@pytest.mark.skipif(
+    collect_red_links is None, reason="collect_red_links.py retired by FR-686"
+)
 class TestCollectRedLinksReflexion:
     """AC-4a, AC-7: reflection missing_entities merge into collect_red_links."""
 
@@ -680,20 +697,12 @@ class TestWorldgenGraph:
         data = yaml.safe_load(graph_path.read_text())
         assert data["name"] == "novel-fandom-worldgen"
         assert "reload" in data["nodes"]
-        assert "select" in data["nodes"]
-        assert "split" in data["nodes"]
-        assert "deepen_events" in data["nodes"]
-        assert "deepen_other" in data["nodes"]
-        assert "collect" in data["nodes"]
-        assert "create_skeletons" in data["nodes"]
-        assert "gate" in data["nodes"]
-        assert "persist" in data["nodes"]
+        assert "worldgen" in data["nodes"]
+        assert "final_gate" in data["nodes"]
 
     @pytest.mark.req("REQ-YG-494")
-    def test_worldgen_has_loop_limits(self):
+    def test_worldgen_agent_has_tools(self):
         graph_path = NOVEL_FANDOM_DIR / "worldgen.yaml"
         data = yaml.safe_load(graph_path.read_text())
-        limits = data.get("loop_limits", {})
-        assert "deepen_events" in limits
-        assert "deepen_other" in limits
-        assert "reload" in limits
+        tools = data.get("tools", {})
+        assert len(tools) >= 1, "Worldgen should have at least one tool"

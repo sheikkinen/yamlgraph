@@ -163,7 +163,7 @@ class TestGenesisStubPipeline:
 
     @pytest.mark.req("REQ-YG-513")
     def test_genesis_graph_structure(self) -> None:
-        """Genesis graph has 6 nodes: load, synopsis, stubs, validate, fix_stubs, persist."""
+        """Genesis graph has 5 nodes: load, synopsis, persist_synopsis, genesis (agent), final_gate."""
         graph_path = NOVEL_FANDOM_DIR / "genesis.yaml"
         with open(graph_path) as f:
             config = yaml.safe_load(f)
@@ -171,22 +171,21 @@ class TestGenesisStubPipeline:
         assert node_names == {
             "load",
             "synopsis",
-            "stubs",
-            "validate",
-            "fix_stubs",
-            "persist",
+            "persist_synopsis",
+            "genesis",
+            "final_gate",
         }
 
     @pytest.mark.req("REQ-YG-513")
-    def test_genesis_has_two_happy_path_llm_nodes(self) -> None:
-        """Happy path: synopsis and stubs are LLM nodes; fix_stubs is repair."""
+    def test_genesis_has_one_llm_node(self) -> None:
+        """FR-686: Only synopsis is an LLM node; genesis is agent."""
         graph_path = NOVEL_FANDOM_DIR / "genesis.yaml"
         with open(graph_path) as f:
             config = yaml.safe_load(f)
         llm_nodes = [
             name for name, node in config["nodes"].items() if node.get("type") == "llm"
         ]
-        assert sorted(llm_nodes) == ["fix_stubs", "stubs", "synopsis"]
+        assert sorted(llm_nodes) == ["synopsis"]
 
     @pytest.mark.req("REQ-YG-513")
     def test_retired_prompts_deleted(self) -> None:
@@ -197,13 +196,10 @@ class TestGenesisStubPipeline:
         assert not (prompts_dir / "structure_world.yaml").exists()
 
     @pytest.mark.req("REQ-YG-513")
-    def test_generate_stubs_prompt_exists(self) -> None:
-        """generate_stubs.yaml prompt exists with ref integrity constraint."""
-        prompt_path = NOVEL_FANDOM_DIR / "prompts" / "generate_stubs.yaml"
+    def test_genesis_agent_prompt_exists(self) -> None:
+        """genesis_agent.yaml prompt exists (FR-686 replacement)."""
+        prompt_path = NOVEL_FANDOM_DIR / "prompts" / "genesis_agent.yaml"
         assert prompt_path.exists()
-        with open(prompt_path) as f:
-            prompt = yaml.safe_load(f)
-        assert "REFERENTIAL INTEGRITY" in prompt["system"]
 
     @pytest.mark.req("REQ-YG-513")
     def test_parse_roster_removed(self) -> None:
@@ -341,21 +337,10 @@ class TestDedupEntities:
         assert result["red_link_count"] == 0
 
     @pytest.mark.req("REQ-YG-514")
-    def test_worldgen_graph_has_dedup_node(self) -> None:
-        """worldgen.yaml includes dedup node between collect and create_skeletons."""
+    def test_worldgen_agent_has_dedup_check(self) -> None:
+        """worldgen agent has dedup_check graph-tool (FR-686)."""
         graph_path = NOVEL_FANDOM_DIR / "worldgen.yaml"
         with open(graph_path) as f:
             config = yaml.safe_load(f)
-        assert "dedup" in config["nodes"]
-        assert config["nodes"]["dedup"]["tool"] == "dedup_entities"
-        # Check edges: collect → dedup → create_skeletons
-        edges = config["edges"]
-        collect_to_dedup = any(
-            e.get("from") == "collect" and e.get("to") == "dedup" for e in edges
-        )
-        dedup_to_skeletons = any(
-            e.get("from") == "dedup" and e.get("to") == "create_skeletons"
-            for e in edges
-        )
-        assert collect_to_dedup
-        assert dedup_to_skeletons
+        agent = config["nodes"]["worldgen"]
+        assert "dedup_check" in agent["tools"]

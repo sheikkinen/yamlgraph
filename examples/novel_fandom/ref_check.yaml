@@ -1,31 +1,57 @@
-# Novel Fandom — Referential Integrity Check (FR-683)
-# Single-node graph wrapping ref_integrity.py for use as graph-tool.
-# Validates that all cross-references resolve to defined entity IDs.
+# Novel Fandom — Referential Integrity Audit (FR-683, FR-686)
+# Self-loading graph-tool with LLM judgment: loads full canon, then
+# LLM audits semantic coherence across all entities.
+# Agent passes nothing — tool checks entire canon directory.
 #
-# Input: pages (JSON string or list of page dicts)
-# Output: gate_result {valid, orphan_ids, violations}
+# AC-3 (FR-686): Agent-facing graph-tools MUST contain LLM reasoning.
+# Output: result (advisory ≤2-line verdict)
 
 version: "1.0"
 name: ref-check
-description: Validate referential integrity of entity pages
+description: Audit full canon for referential integrity with LLM judgment
+prompts_relative: true
+prompts_dir: prompts
 
 state:
-  pages: str
-  gate_result: dict
+  canon_pages: dict
+  canon_count: int
+  synopsis_text: str
+  digest: str
+  result: str
 
 tools:
-  ref_check:
+  reload_canon:
     type: python
-    path: nodes/ref_integrity.py
-    function: ref_check
+    path: nodes/reload_canon.py
+    function: reload_canon
+  build_digest:
+    type: python
+    path: nodes/creation_tools.py
+    function: build_audit_digest
 
 nodes:
-  check:
+  load:
     type: python
-    tool: ref_check
+    tool: reload_canon
+
+  digest:
+    type: python
+    tool: build_digest
+
+  audit:
+    type: llm
+    prompt: ref_check_audit
+    state_key: result
+    temperature: 0.1
+    variables:
+      digest: "{state.digest}"
 
 edges:
   - from: START
-    to: check
-  - from: check
+    to: load
+  - from: load
+    to: digest
+  - from: digest
+    to: audit
+  - from: audit
     to: END

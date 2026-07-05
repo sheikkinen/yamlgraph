@@ -1,0 +1,52 @@
+id: CAP-188
+name: Novel Fandom Agent-First Architecture
+description: >
+  Genesis and worldgen rewritten as agent nodes that create entities
+  one at a time via tool calls. Graph-tools for semantic validation.
+  Primary showcase for FR-658 type: graph tools called from agent nodes.
+fr: FR-686
+modules:
+  - examples/novel_fandom/genesis.yaml
+  - examples/novel_fandom/worldgen.yaml
+  - examples/novel_fandom/nodes/creation_tools.py
+  - examples/novel_fandom/create_character.yaml
+  - examples/novel_fandom/create_event.yaml
+  - examples/novel_fandom/create_faction.yaml
+  - examples/novel_fandom/create_location.yaml
+  - examples/novel_fandom/create_rule.yaml
+  - examples/novel_fandom/create_premise.yaml
+  - examples/novel_fandom/ref_check.yaml
+  - examples/novel_fandom/semantic_dedup.yaml
+requirements:
+  - id: REQ-YG-518
+    description: >
+      Genesis uses a single agent node with creation tools;
+      no type: llm nodes for entity generation.
+    modules:
+      - examples/novel_fandom/genesis.yaml
+  - id: REQ-YG-519
+    description: >
+      Each create_* tool validates the entity and persists to canon
+      atomically, returning a single-line confirmation or error.
+    modules:
+      - examples/novel_fandom/nodes/creation_tools.py
+      - examples/novel_fandom/create_character.yaml
+  - id: REQ-YG-520
+    description: >
+      Worldgen uses a single agent node with deepen/create tools;
+      no map nodes for entity processing.
+    modules:
+      - examples/novel_fandom/worldgen.yaml
+  - id: REQ-YG-521
+    description: >
+      Graph-tools (ref_check, dedup_check) self-load canon data;
+      agent passes only IDs or summaries, not full entity data.
+    modules:
+      - examples/novel_fandom/ref_check.yaml
+      - examples/novel_fandom/semantic_dedup.yaml
+  - id: REQ-YG-522
+    description: >
+      Deterministic terminal gate runs ref_check on full canon
+      after agent completion, surfacing orphan refs in final output.
+    modules:
+      - examples/novel_fandom/nodes/creation_tools.py

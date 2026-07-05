@@ -1,6 +1,8 @@
-# Novel Fandom — Genesis: Premise → Seed Canon (FR-655, FR-667)
-# Streamlined stub pipeline: premise → synopsis → stubs → validate → persist
-# 2 LLM calls only. Character enrichment happens in worldgen.
+# Novel Fandom — Genesis: Premise → Seed Canon (FR-686)
+# Agent-first architecture: load → synopsis (LLM) → persist_synopsis →
+#   genesis agent → final_gate → END
+# Each create_* tool IS a graph-tool pipeline (FR-658 showcase):
+#   persist (python) → prefetch (python) → check (LLM)
 #
 # Usage:
 #   yamlgraph graph run examples/novel_fandom/genesis.yaml \
@@ -9,7 +11,7 @@
 
 version: "1.0"
 name: novel-fandom-genesis
-description: Bootstrap seed canon stubs from a premise via 2-call pipeline
+description: Bootstrap seed canon from a premise via agent with graph-tool creation pipelines
 prompts_relative: true
 prompts_dir: prompts
 
@@ -17,10 +19,8 @@ state:
   premise_file: str
   premise_text: str
   synopsis: str
-  structured_world: dict
+  genesis_result: dict
   gate_result: dict
-  written_paths: list
-  written_count: int
 
 variables:
   premise_file: "examples/novel_fandom/premises/floodmark-saga.txt"
@@ -30,14 +30,99 @@ tools:
     type: python
     path: nodes/genesis_tools.py
     function: load_premise
-  validate_genesis:
+    description: "Read the premise text from file."
+  persist_synopsis:
     type: python
-    path: nodes/ref_integrity.py
-    function: ref_check
-  persist_genesis:
+    path: nodes/creation_tools.py
+    function: persist_synopsis
+  create_character:
+    type: graph
+    path: create_character.yaml
+    description: "Create a character entity with semantic integrity check. Args: id, name, role (protagonist/antagonist/supporting/minor), faction, summary, related_to (id:role pairs)."
+    input_mapping:
+      id: id
+      name: name
+      role: role
+      faction: faction
+      summary: summary
+      related_to: related_to
+    output_key: result
+  create_event:
+    type: graph
+    path: create_event.yaml
+    description: "Create an event entity with semantic integrity check. Args: id, year (int, negative=before flood), scope (world/regional/local), participants (comma-sep IDs), consequences, summary."
+    input_mapping:
+      id: id
+      year: year
+      scope: scope
+      participants: participants
+      consequences: consequences
+      summary: summary
+    output_key: result
+  create_faction:
+    type: graph
+    path: create_faction.yaml
+    description: "Create a faction entity with semantic integrity check. Args: id, name, description, members (comma-sep IDs)."
+    input_mapping:
+      id: id
+      name: name
+      description: description
+      members: members
+    output_key: result
+  create_location:
+    type: graph
+    path: create_location.yaml
+    description: "Create a location entity with semantic integrity check. Args: id, name, description, location_type."
+    input_mapping:
+      id: id
+      name: name
+      description: description
+      location_type: location_type
+    output_key: result
+  create_rule:
+    type: graph
+    path: create_rule.yaml
+    description: "Create a rule entity with semantic integrity check. Args: id, domain (magic_system/character_state/physical_constraint/social_rule/temporal_rule), title, description."
+    input_mapping:
+      id: id
+      domain: domain
+      title: title
+      description: description
+    output_key: result
+  create_premise:
+    type: graph
+    path: create_premise.yaml
+    description: "Create the premise entity with semantic integrity check. Args: id, text, genre_tags (comma-sep), era, themes (comma-sep), calendar_note."
+    input_mapping:
+      id: id
+      text: text
+      genre_tags: genre_tags
+      era: era
+      themes: themes
+      calendar_note: calendar_note
+    output_key: result
+  dedup_check:
+    type: graph
+    path: semantic_dedup.yaml
+    description: "Check if a candidate entity already exists under a different name. Args: candidate_id, candidate_summary. Returns merge_map."
+    input_mapping:
+      candidate_id: candidate_id
+      candidate_summary: candidate_summary
+    output_key: merge_map
+  list_canon_ids:
     type: python
-    path: nodes/persist_genesis.py
-    function: persist_genesis
+    path: nodes/canon_tools.py
+    function: list_canon_ids
+    description: "List all entity IDs in the canon with their types."
+  ref_check:
+    type: graph
+    path: ref_check.yaml
+    description: "Run semantic referential integrity audit on the full canon. No args needed."
+    output_key: result
+  final_gate:
+    type: python
+    path: nodes/creation_tools.py
+    function: final_gate
 
 nodes:
   load:
@@ -50,31 +135,31 @@ nodes:
     state_key: synopsis
     temperature: 0.7
 
-  stubs:
-    type: llm
-    prompt: generate_stubs
-    state_key: structured_world
-    temperature: 0.3
-    variables:
-      premise_text: "{state.premise_text}"
-      synopsis: "{state.synopsis}"
-
-  validate:
+  persist_synopsis:
     type: python
-    tool: validate_genesis
+    tool: persist_synopsis
 
-  fix_stubs:
-    type: llm
-    prompt: fix_genesis_refs
-    state_key: structured_world
+  genesis:
+    type: agent
+    prompt: genesis_agent
+    tools:
+      - load_premise
+      - create_character
+      - create_event
+      - create_faction
+      - create_location
+      - create_rule
+      - create_premise
+      - dedup_check
+      - list_canon_ids
+      - ref_check
+    max_iterations: 50
+    state_key: genesis_result
     temperature: 0.3
-    variables:
-      structured_world: "{state.structured_world}"
-      gate_result: "{state.gate_result}"
 
-  persist:
+  final_gate:
     type: python
-    tool: persist_genesis
+    tool: final_gate
 
 edges:
   - from: START
@@ -84,25 +169,13 @@ edges:
     to: synopsis
 
   - from: synopsis
-    to: stubs
+    to: persist_synopsis
 
-  - from: stubs
-    to: validate
+  - from: persist_synopsis
+    to: genesis
 
-  - from: validate
-    to: persist
-    condition: gate_result.valid == true
+  - from: genesis
+    to: final_gate
 
-  - from: validate
-    to: fix_stubs
-    condition: gate_result.valid == false
-
-  - from: fix_stubs
-    to: validate
-
-  - from: persist
+  - from: final_gate
     to: END
-
-loop_limits:
-  validate: 3
-  fix_stubs: 3

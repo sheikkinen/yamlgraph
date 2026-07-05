@@ -168,6 +168,42 @@ class TestCompileOnceInvokeMany:
         result = fn(text="hello")
         assert result == "formal"
 
+    @pytest.mark.req("REQ-YG-510")
+    def test_default_variables_injected(
+        self, mock_compiled, graph_path, mock_loading_stack
+    ):
+        """Graph-level variables from child config are injected as defaults."""
+        fn = make_graph_tool_fn(
+            mock_compiled,
+            {"name": "name"},
+            "result",
+            graph_path,
+            mock_loading_stack,
+            default_variables={"entity_type": "faction"},
+        )
+        fn(name="The Order")
+        mock_compiled.invoke.assert_called_once_with(
+            {"entity_type": "faction", "name": "The Order"}
+        )
+
+    @pytest.mark.req("REQ-YG-510")
+    def test_tool_kwargs_override_default_variables(
+        self, mock_compiled, graph_path, mock_loading_stack
+    ):
+        """Tool kwargs override default_variables if same key is mapped."""
+        fn = make_graph_tool_fn(
+            mock_compiled,
+            {"entity_type": "entity_type", "name": "name"},
+            "result",
+            graph_path,
+            mock_loading_stack,
+            default_variables={"entity_type": "faction"},
+        )
+        fn(entity_type="character", name="Alice")
+        mock_compiled.invoke.assert_called_once_with(
+            {"entity_type": "character", "name": "Alice"}
+        )
+
 
 # ---------------------------------------------------------------------------
 # AC-9: Error surfacing

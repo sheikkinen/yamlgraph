@@ -25,9 +25,21 @@ _CANON_DIR = Path(__file__).parent.parent / "canon"
 
 
 def _load_canon(canon_dir: str | Path | None = None) -> dict[str, dict]:
-    """Load all YAML pages from canon directory."""
-    canon_path = Path(canon_dir) if canon_dir else _CANON_DIR
+    """Load all YAML pages from canon directory.
+
+    Ignores canon_dir if it escapes the project base (path traversal guard).
+    """
+    if canon_dir:
+        candidate = Path(canon_dir).resolve()
+        if not str(candidate).startswith(str(_CANON_DIR.resolve().parent)):
+            canon_path = _CANON_DIR
+        else:
+            canon_path = candidate
+    else:
+        canon_path = _CANON_DIR
     pages: dict[str, dict] = {}
+    if not canon_path.is_dir():
+        return pages
     for f in sorted(canon_path.glob("**/*.yaml")):
         with open(f) as fh:
             page = yaml.safe_load(fh)
@@ -60,6 +72,8 @@ def list_canon_ids(canon_dir: str = "") -> str:
     Call this first to see what entities exist before generating content.
     """
     pages = _load_canon(canon_dir or None)
+    if not pages:
+        return "Canon is empty. Use create_* tools to add entities."
     lines = []
     for pid, page in sorted(pages.items()):
         ptype = page.get("type", "unknown")

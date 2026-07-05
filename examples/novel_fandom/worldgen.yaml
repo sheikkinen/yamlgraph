@@ -1,75 +1,95 @@
-# Novel Fandom — World Expansion (FR-643v2, FR-657)
-# Deepen thin entities, grow wiki via red links, repeat.
+# Novel Fandom — World Expansion (FR-686)
+# Agent-first architecture: reload → worldgen agent → final_gate → END
+# Agent deepens thin entities, creates skeletons for red links.
+# Each create_* tool IS a graph-tool pipeline (FR-658 showcase):
+#   persist (python) → prefetch (python) → check (LLM)
 #
-# Pattern: reload → select thin → split by type →
-#          deepen_events (agent) + deepen_other (LLM) →
-#          merge → reflect → collect red links →
-#          create skeletons (LLM) → gate → persist → reload
-#
-# FR-657: Events routed to agent with canon lookup tools.
-# No LLM diagnoses. Pipeline decides, LLM generates, gate validates.
+# Usage:
+#   yamlgraph graph run examples/novel_fandom/worldgen.yaml --full
 
 version: "1.0"
 name: novel-fandom-worldgen
-description: Expand wiki — deepen thin entities, grow via red links
+description: Expand wiki — agent deepens thin entities, grows via red links
 prompts_relative: true
 prompts_dir: prompts
-
-data_files:
-  canon: "canon/*.yaml"
 
 state:
   canon_pages: dict
   canon_count: int
   synopsis_text: str
-  event_context: dict
-  thin_entities: list
-  thin_events: list
-  thin_other: list
-  deepened: list
-  reflection: dict
-  red_links: list
-  red_link_count: int
-  semantic_merge_map: dict
-  skeletons: list
-  max_depth: int
-  done: bool
+  worldgen_result: dict
   gate_result: dict
-  written_paths: list
-  written_count: int
-
-variables:
-  max_depth: 2
 
 tools:
-  anchor_events:
-    type: python
-    path: nodes/anchor_events.py
-    function: anchor_events
   reload_canon:
     type: python
     path: nodes/reload_canon.py
     function: reload_canon
-  select_thin:
+    description: "Reload all canon pages from disk into state."
+  list_thin_entities:
     type: python
-    path: nodes/select_thin.py
-    function: select_thin
-  collect_red_links:
+    path: nodes/creation_tools.py
+    function: list_thin_entities
+    description: "List entities with depth 0 that need enrichment."
+  deepen_entity:
     type: python
-    path: nodes/collect_red_links.py
-    function: collect_red_links
-  validate_pages:
-    type: python
-    path: nodes/validate_pages.py
-    function: validate_pages
-  persist_pages:
-    type: python
-    path: nodes/persist_pages.py
-    function: persist_pages
-  split_thin_by_type:
-    type: python
-    path: nodes/split_thin_by_type.py
-    function: split_thin_by_type
+    path: nodes/creation_tools.py
+    function: deepen_entity
+    description: "Replace an entity with an enriched version. Args: id, updated_yaml."
+  create_character:
+    type: graph
+    path: create_character.yaml
+    description: "Create a character entity with semantic integrity check. Args: id, name, role, faction, summary, related_to."
+    input_mapping:
+      id: id
+      name: name
+      role: role
+      faction: faction
+      summary: summary
+      related_to: related_to
+    output_key: result
+  create_event:
+    type: graph
+    path: create_event.yaml
+    description: "Create an event entity with semantic integrity check. Args: id, year, scope, participants, consequences, summary."
+    input_mapping:
+      id: id
+      year: year
+      scope: scope
+      participants: participants
+      consequences: consequences
+      summary: summary
+    output_key: result
+  create_faction:
+    type: graph
+    path: create_faction.yaml
+    description: "Create a faction entity with semantic integrity check. Args: id, name, description, members."
+    input_mapping:
+      id: id
+      name: name
+      description: description
+      members: members
+    output_key: result
+  create_location:
+    type: graph
+    path: create_location.yaml
+    description: "Create a location entity with semantic integrity check. Args: id, name, description, location_type."
+    input_mapping:
+      id: id
+      name: name
+      description: description
+      location_type: location_type
+    output_key: result
+  create_rule:
+    type: graph
+    path: create_rule.yaml
+    description: "Create a rule entity with semantic integrity check. Args: id, domain, title, description."
+    input_mapping:
+      id: id
+      domain: domain
+      title: title
+      description: description
+    output_key: result
   lookup_canon_page:
     type: python
     path: nodes/canon_tools.py
@@ -80,225 +100,61 @@ tools:
     path: nodes/canon_tools.py
     function: list_canon_ids
     description: "List all entity IDs in the canon with their types."
-  validate_draft:
-    type: python
-    path: nodes/canon_tools.py
-    function: validate_draft
-    description: "Validate a draft page. Returns {valid: bool, errors: list}."
-  dedup_entities:
-    type: python
-    path: nodes/dedup_entities.py
-    function: dedup_entities
   ref_check:
     type: graph
     path: ref_check.yaml
-    description: "Validate referential integrity of entity pages. Input: pages (JSON list). Output: gate_result with valid/orphan_ids."
-    input_mapping:
-      pages: str
-    output_key: gate_result
-  semantic_dedup:
-    type: graph
-    path: semantic_dedup.yaml
-    description: "Compare entities semantically for duplicates. Input: candidates (JSON list), canon_pages (JSON dict). Output: merge_map {dropped_id: surviving_id}."
-    input_mapping:
-      candidates: str
-      canon_pages: str
-    output_key: merge_map
+    description: "Run semantic referential integrity audit on the full canon. No args needed."
+    output_key: result
   dedup_check:
     type: graph
     path: semantic_dedup.yaml
-    description: "Check if an entity already exists under a different name. Input: candidates (JSON list with one entity), canon_pages (JSON dict). Output: merge_map."
+    description: "Check if a candidate entity already exists under a different name. Args: candidate_id, candidate_summary. Returns merge_map."
     input_mapping:
-      candidates: str
-      canon_pages: str
+      candidate_id: candidate_id
+      candidate_summary: candidate_summary
     output_key: merge_map
-  apply_merge:
+  final_gate:
     type: python
-    path: nodes/apply_merge_map.py
-    function: apply_merge_map
+    path: nodes/creation_tools.py
+    function: final_gate
 
 nodes:
-  anchor:
-    type: python
-    tool: anchor_events
-
   reload:
     type: python
     tool: reload_canon
 
-  select:
+  worldgen:
+    type: agent
+    prompt: worldgen_agent
+    tools:
+      - list_thin_entities
+      - deepen_entity
+      - create_character
+      - create_event
+      - create_faction
+      - create_location
+      - create_rule
+      - lookup_canon_page
+      - list_canon_ids
+      - ref_check
+      - dedup_check
+    max_iterations: 100
+    state_key: worldgen_result
+    temperature: 0.7
+
+  final_gate:
     type: python
-    tool: select_thin
-
-  split:
-    type: python
-    tool: split_thin_by_type
-
-  deepen_events:
-    type: map
-    over: "{state.thin_events}"
-    as: entity_task
-    max_items: 5
-    collect: deepened
-    timeout: 120
-    node:
-      type: agent
-      prompt: deepen_event_agent
-      tools: [lookup_canon_page, list_canon_ids, validate_draft, ref_check, dedup_check]
-      max_iterations: 8
-      state_key: result
-      temperature: 0.7
-      variables:
-        synopsis_text: "{state.synopsis_text}"
-
-  deepen_other:
-    type: map
-    over: "{state.thin_other}"
-    as: entity_task
-    max_items: 5
-    collect: deepened
-    node:
-      type: llm
-      prompt: deepen_entity
-      state_key: result
-      temperature: 0.7
-      variables:
-        canon_pages: "{state.canon_pages}"
-        canon_count: "{state.canon_count}"
-        synopsis_text: "{state.synopsis_text}"
-        event_context: "{state.event_context}"
-
-  reflect:
-    type: llm
-    prompt: reflect_canon
-    state_key: reflection
-    temperature: 0.3
-    variables:
-      canon_pages: "{state.canon_pages}"
-      canon_count: "{state.canon_count}"
-      deepened: "{state.deepened}"
-
-  collect:
-    type: python
-    tool: collect_red_links
-
-  dedup:
-    type: python
-    tool: dedup_entities
-
-  semantic_dedup_call:
-    type: subgraph
-    graph: semantic_dedup.yaml
-    input_mapping:
-      red_links: candidates
-      canon_pages: canon_pages
-    output_mapping:
-      merge_map: semantic_merge_map
-
-  apply_merge:
-    type: python
-    tool: apply_merge
-
-  create_skeletons:
-    type: map
-    over: "{state.red_links}"
-    as: red_link
-    max_items: 10
-    collect: skeletons
-    node:
-      type: llm
-      prompt: generate_skeleton
-      state_key: page
-      temperature: 0.3
-      variables:
-        canon_pages: "{state.canon_pages}"
-        synopsis_text: "{state.synopsis_text}"
-
-  gate:
-    type: python
-    tool: validate_pages
-
-  persist:
-    type: python
-    tool: persist_pages
+    tool: final_gate
 
 edges:
   - from: START
     to: reload
 
   - from: reload
-    to: anchor
+    to: worldgen
 
-  - from: anchor
-    to: select
+  - from: worldgen
+    to: final_gate
 
-  - from: select
+  - from: final_gate
     to: END
-    condition: done == true
-
-  - from: select
-    to: split
-    condition: done == false
-
-  - from: split
-    to: deepen_events
-
-  - from: deepen_events
-    to: deepen_other
-
-  - from: deepen_other
-    to: reflect
-
-  - from: reflect
-    to: collect
-
-  - from: collect
-    to: dedup
-    condition: red_link_count > 0
-
-  - from: collect
-    to: gate
-    condition: red_link_count == 0
-
-  - from: dedup
-    to: semantic_dedup_call
-    condition: red_link_count > 5
-
-  - from: dedup
-    to: create_skeletons
-    condition: red_link_count > 0 and red_link_count <= 5
-
-  - from: dedup
-    to: gate
-    condition: red_link_count == 0
-
-  - from: semantic_dedup_call
-    to: apply_merge
-
-  - from: apply_merge
-    to: create_skeletons
-
-  - from: create_skeletons
-    to: gate
-
-  - from: gate
-    to: persist
-
-  - from: persist
-    to: reload
-
-loop_limits:
-  reload: 3
-  anchor: 3
-  select: 3
-  split: 3
-  deepen_events: 3
-  deepen_other: 3
-  reflect: 3
-  collect: 3
-  dedup: 3
-  semantic_dedup_call: 3
-  apply_merge: 3
-  create_skeletons: 3
-  gate: 3
-  persist: 3

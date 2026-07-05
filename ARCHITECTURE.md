@@ -503,6 +503,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 185 | CAP-185 Novel Fandom Ref Integrity Graph-Tool | `examples/novel_fandom` | REQ-YG-515 |
 | 186 | CAP-186 Novel Fandom Genesis Self-Correcting Pipeline | `examples/novel_fandom` | REQ-YG-516 |
 | 187 | CAP-187 Novel Fandom Semantic Dedup Graph-Tool | `examples/novel_fandom` | REQ-YG-517 |
+| 188 | CAP-188 Novel Fandom Agent-First Architecture | `examples/novel_fandom/genesis.yaml`, `examples/novel_fandom/worldgen.yaml`, `examples/novel_fandom/nodes/creation_tools.py`, `examples/novel_fandom/create_character.yaml`, … | REQ-YG-518 – 522 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -2341,6 +2342,20 @@ FR-684: LLM-based semantic entity deduplication as graph-tool. semantic_dedup.ya
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-517 | Semantic dedup graph-tool with LLM prompt including false-positive negative example. Threshold router (>5) in worldgen routes to subgraph → apply_merge_map. dedup_check for agent prevention. | `examples/novel_fandom` |
+
+### 188. CAP-188 Novel Fandom Agent-First Architecture
+
+Genesis and worldgen rewritten as agent nodes that create entities one at a time via tool calls. Graph-tools for semantic validation. Primary showcase for FR-658 type: graph tools called from agent nodes.
+
+**Feature Request:** FR-686
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-518 | Genesis uses a single agent node with creation tools; no type: llm nodes for entity generation. | `examples/novel_fandom/genesis.yaml` |
+| REQ-YG-519 | Each create_* tool validates the entity and persists to canon atomically, returning a single-line confirmation or error. | `examples/novel_fandom/nodes/creation_tools.py`, `examples/novel_fandom/create_character.yaml` |
+| REQ-YG-520 | Worldgen uses a single agent node with deepen/create tools; no map nodes for entity processing. | `examples/novel_fandom/worldgen.yaml` |
+| REQ-YG-521 | Graph-tools (ref_check, dedup_check) self-load canon data; agent passes only IDs or summaries, not full entity data. | `examples/novel_fandom/ref_check.yaml`, `examples/novel_fandom/semantic_dedup.yaml` |
+| REQ-YG-522 | Deterministic terminal gate runs ref_check on full canon after agent completion, surfacing orphan refs in final output. | `examples/novel_fandom/nodes/creation_tools.py` |
 
 <!-- END GENERATED CAPABILITIES -->
 

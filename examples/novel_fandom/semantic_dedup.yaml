@@ -1,32 +1,38 @@
-# Novel Fandom — Semantic Entity Deduplication (FR-684)
-# LLM-based comparison of entity summaries to find semantic duplicates.
-# Used as graph-tool by worldgen and as dedup_check by deepen_events agent.
+# Novel Fandom — Semantic Entity Deduplication (FR-684, FR-686)
+# Self-loading graph-tool: loads canon internally, compares candidate entity
+# against existing canon entries to find semantic duplicates.
 #
-# Input: candidates (JSON string), canon_pages (JSON string)
+# Finding 2 (FR-686): Agent passes only candidate_id + candidate_summary.
+# Graph self-loads canon via reload_canon node.
+#
+# Input: candidate_id (str), candidate_summary (str)
 # Output: merge_map {dropped_id: surviving_id}, reasoning
 
 version: "1.0"
 name: semantic-dedup
-description: Compare entities semantically, return merge map for duplicates
+description: Compare a candidate entity semantically against canon for duplicates
+prompts_relative: true
+prompts_dir: prompts
 
 state:
-  candidates: str
-  canon_pages: str
-  parsed_candidates: list
-  parsed_canon: list
+  candidate_id: str
+  candidate_summary: str
+  canon_pages: dict
+  canon_count: int
+  synopsis_text: str
   merge_map: dict
   reasoning: str
 
 tools:
-  parse_dedup_input:
+  reload_canon:
     type: python
-    path: nodes/parse_dedup_input.py
-    function: parse_dedup_input
+    path: nodes/reload_canon.py
+    function: reload_canon
 
 nodes:
-  parse:
+  load:
     type: python
-    tool: parse_dedup_input
+    tool: reload_canon
 
   compare:
     type: llm
@@ -34,13 +40,14 @@ nodes:
     state_key: merge_result
     temperature: 0.1
     variables:
-      parsed_candidates: "{state.parsed_candidates}"
-      parsed_canon: "{state.parsed_canon}"
+      candidate_id: "{state.candidate_id}"
+      candidate_summary: "{state.candidate_summary}"
+      canon_pages: "{state.canon_pages}"
 
 edges:
   - from: START
-    to: parse
-  - from: parse
+    to: load
+  - from: load
     to: compare
   - from: compare
     to: END

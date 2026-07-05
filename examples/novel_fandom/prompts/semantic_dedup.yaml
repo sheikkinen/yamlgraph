@@ -32,17 +32,18 @@ system: |
   - Return ONLY valid JSON — no markdown fences, no commentary.
 
 user: |
-  CANDIDATES TO CHECK:
-  {{ state.parsed_candidates | tojson(indent=2) }}
+  CANDIDATE TO CHECK:
+  ID: {{ candidate_id }}
+  Summary: {{ candidate_summary }}
 
-  {% if state.parsed_canon %}
   EXISTING CANON ENTITIES:
-  {{ state.parsed_canon | tojson(indent=2) }}
-  {% endif %}
+  {% for pid, page in canon_pages.items() %}
+  - {{ pid }} ({{ page.type }}): {{ page.get('name', page.get('title', pid)) }} — {{ page.get('personality', page.get('description', page.get('window', '')))[:80] }}
+  {% endfor %}
 
-  Compare the candidates for semantic duplicates.
-  If a candidate duplicates an existing canon entity, merge the candidate
-  into the canon entity.
+  Does this candidate duplicate an existing canon entity?
+  If yes, merge the candidate into the existing entity.
+  If no, return an empty merge_map.
 
   Return a JSON object with:
   - "merge_map": object mapping dropped_id → surviving_id (empty if no duplicates)

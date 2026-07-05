@@ -196,7 +196,7 @@ class TestPersistGenesis:
 
 
 class TestGenesisGraph:
-    """FR-655/FR-667: genesis.yaml is a valid graph with correct node topology."""
+    """FR-655/FR-667/FR-686: genesis.yaml graph structure (updated for agent-first)."""
 
     @pytest.mark.req("REQ-YG-505")
     def test_genesis_yaml_loads(self) -> None:
@@ -206,9 +206,9 @@ class TestGenesisGraph:
         assert cfg["name"] == "novel-fandom-genesis"
         assert "load" in cfg["nodes"]
         assert "synopsis" in cfg["nodes"]
-        assert "stubs" in cfg["nodes"]  # FR-667
-        assert "validate" in cfg["nodes"]  # FR-667
-        assert "persist" in cfg["nodes"]
+        assert "genesis" in cfg["nodes"]  # FR-686: agent node
+        assert "persist_synopsis" in cfg["nodes"]  # FR-686
+        assert "final_gate" in cfg["nodes"]  # FR-686
 
     @pytest.mark.req("REQ-YG-505")
     def test_genesis_edge_sequence(self) -> None:
@@ -219,25 +219,14 @@ class TestGenesisGraph:
         edge_pairs = [(e["from"], e["to"]) for e in edges]
         assert ("START", "load") in edge_pairs
         assert ("load", "synopsis") in edge_pairs
-        assert ("synopsis", "stubs") in edge_pairs  # FR-667
-        assert ("stubs", "validate") in edge_pairs  # FR-667
-        assert ("validate", "persist") in edge_pairs  # FR-667
-        assert ("persist", "END") in edge_pairs
-
-    @pytest.mark.req("REQ-YG-506")
-    def test_generate_stubs_prompt_exists(self) -> None:
-        """FR-667: generate_stubs.yaml replaces structure_world.yaml."""
-        prompt_path = NOVEL_FANDOM_DIR / "prompts" / "generate_stubs.yaml"
-        assert prompt_path.exists()
-        with open(prompt_path) as f:
-            prompt = yaml.safe_load(f)
-        assert "schema" in prompt
-        assert "characters" in prompt["schema"]["fields"]
-        assert "events" in prompt["schema"]["fields"]
+        assert ("synopsis", "persist_synopsis") in edge_pairs  # FR-686
+        assert ("persist_synopsis", "genesis") in edge_pairs  # FR-686
+        assert ("genesis", "final_gate") in edge_pairs  # FR-686
+        assert ("final_gate", "END") in edge_pairs
 
     @pytest.mark.req("REQ-YG-505")
     def test_genesis_prompts_exist(self) -> None:
-        """FR-667: only genesis_synopsis and generate_stubs remain."""
-        for name in ("genesis_synopsis", "generate_stubs"):
+        """FR-686: genesis_synopsis and genesis_agent are the prompts."""
+        for name in ("genesis_synopsis", "genesis_agent"):
             path = NOVEL_FANDOM_DIR / "prompts" / f"{name}.yaml"
             assert path.exists(), f"Missing prompt: {name}"

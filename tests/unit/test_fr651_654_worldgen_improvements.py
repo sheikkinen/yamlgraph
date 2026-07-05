@@ -35,7 +35,12 @@ def _load(mod_name: str, rel_path: str):  # noqa: ANN202
 
 _persist = _load("novel_fandom_nodes_persist_651", "nodes/persist_pages.py")
 _canon = _load("novel_fandom_schema_canon_651", "schema/canon.py")
-_select = _load("novel_fandom_nodes_select_651", "nodes/select_thin.py")
+_select_path = NOVEL_FANDOM_DIR / "nodes/select_thin.py"
+_select = (
+    _load("novel_fandom_nodes_select_651", "nodes/select_thin.py")
+    if _select_path.exists()
+    else None
+)
 
 PAGE_MODELS = _canon.PAGE_MODELS
 for m in PAGE_MODELS.values():
@@ -160,6 +165,7 @@ class TestFlatDictDeepenOutput:
 # --- FR-654: Seed depth-0 thin bonus ---
 
 
+@pytest.mark.skipif(_select is None, reason="select_thin.py retired by FR-686")
 class TestSeedDepthBonus:
     """FR-654: Depth-0 pages get thin_score bonus."""
 

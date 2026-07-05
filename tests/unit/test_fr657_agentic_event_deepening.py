@@ -36,12 +36,17 @@ def _load(mod_name: str, rel_path: str):  # noqa: ANN202
 
 
 _canon_tools = _load("novel_fandom_nodes_canon_tools", "nodes/canon_tools.py")
-_split = _load("novel_fandom_nodes_split_thin", "nodes/split_thin_by_type.py")
+_split_path = NOVEL_FANDOM_DIR / "nodes/split_thin_by_type.py"
+_split = (
+    _load("novel_fandom_nodes_split_thin", "nodes/split_thin_by_type.py")
+    if _split_path.exists()
+    else None
+)
 
 lookup_canon_page = _canon_tools.lookup_canon_page
 list_canon_ids = _canon_tools.list_canon_ids
 validate_draft = _canon_tools.validate_draft
-split_thin_by_type = _split.split_thin_by_type
+split_thin_by_type = _split.split_thin_by_type if _split else None
 
 
 # ── lookup_canon_page ─────────────────────────────────────────
@@ -171,6 +176,9 @@ class TestValidateDraft:
 
 
 @pytest.mark.req("REQ-YG-509")
+@pytest.mark.skipif(
+    split_thin_by_type is None, reason="split_thin_by_type.py retired by FR-686"
+)
 class TestSplitThinByType:
     """AC-2: partitions thin_entities into thin_events and thin_other."""
 

@@ -202,7 +202,12 @@ def _parse_graph_tools(
         description: str = raw.get("description") or child_config.description or name
 
         fn = make_graph_tool_fn(
-            compiled, input_mapping, output_key, graph_path, _loading_stack
+            compiled,
+            input_mapping,
+            output_key,
+            graph_path,
+            _loading_stack,
+            default_variables=child_config.raw_config.get("variables") or None,
         )
         configs[name] = {
             "description": description,
