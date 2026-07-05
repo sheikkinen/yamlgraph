@@ -48,6 +48,25 @@ with a `sys.path.insert` shim + direct import. The importlib chain
 (persist_genesis → validate_genesis → persist_genesis) was a Rube Goldberg
 machine for a sibling import. The fix is 3 lines of sys.path manipulation.
 
+## Trap: Enforcement blind spot — forbid-terms scope
+The `forbid-terms` pre-commit hook searches only `yamlgraph/*.py` for
+`TODO|FIXME`. The FR-665 TODO stub lived at
+`examples/novel_fandom/nodes/dedup_entities.py` — outside `yamlgraph/`,
+invisible to the hook. Double loophole: wrong directory scope AND no YAML
+coverage (graph comments could also carry deferred obligations).
+
+The TODO survived from FR-665 enforcement through multiple commits until
+FR-684 deleted it. The gate checked presence, not substance — a TODO is a
+deferred obligation masquerading as a comment, and the enforcement perimeter
+didn't extend to the code that actually uses YAMLGraph.
+
+**Heuristic**: Enforcement hooks must cover the same perimeter as the code
+they guard. `examples/` and `scripts/` contain production-grade Python and
+YAML that obeys the same doctrine as `yamlgraph/`. A gate that only watches
+the library directory is a fence around the garden but not the orchard.
+
+Maps to: `gate_checks_shape_not_substance` + `infrastructure_self_exempt`.
+
 ## Seed
 Can the `sys.path.insert` shim pattern be automated? Every Python tool loaded
 via `spec_from_file_location` that needs sibling imports has the same problem.
