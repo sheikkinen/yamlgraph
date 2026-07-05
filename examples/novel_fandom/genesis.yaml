@@ -32,8 +32,8 @@ tools:
     function: load_premise
   validate_genesis:
     type: python
-    path: nodes/validate_genesis.py
-    function: validate_genesis
+    path: nodes/ref_integrity.py
+    function: ref_check
   persist_genesis:
     type: python
     path: nodes/persist_genesis.py
@@ -63,6 +63,15 @@ nodes:
     type: python
     tool: validate_genesis
 
+  fix_stubs:
+    type: llm
+    prompt: fix_genesis_refs
+    state_key: structured_world
+    temperature: 0.3
+    variables:
+      structured_world: "{state.structured_world}"
+      gate_result: "{state.gate_result}"
+
   persist:
     type: python
     tool: persist_genesis
@@ -82,6 +91,18 @@ edges:
 
   - from: validate
     to: persist
+    condition: gate_result.valid == true
+
+  - from: validate
+    to: fix_stubs
+    condition: gate_result.valid == false
+
+  - from: fix_stubs
+    to: validate
 
   - from: persist
     to: END
+
+loop_limits:
+  validate: 3
+  fix_stubs: 3

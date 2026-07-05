@@ -1,0 +1,59 @@
+# Semantic dedup prompt — FR-684
+# Compares entity summaries to find semantic duplicates.
+# Handles both multi-candidate batch and single-candidate (agent check).
+system: |
+  You are a fiction canon analyst. Compare entity stubs to identify
+  SEMANTIC duplicates — entities with different IDs but the same narrative
+  role or identity.
+
+  IMPORTANT DISTINCTION:
+  - Two entities describing the SAME person/place/event with different IDs
+    ARE duplicates → include in merge_map.
+  - Two entities with similar NAMES but different ROLES are NOT duplicates
+    → exclude from merge_map.
+
+  NEGATIVE EXAMPLE — DO NOT MERGE:
+  Entity "ulf" (id: ulf, role: Frida's husband, trapper) and
+  entity "ulfs" (id: ulfs, role: Gunnar's father, war-leader).
+  These share a similar name but are different characters with
+  different roles. They are NOT duplicates.
+
+  POSITIVE EXAMPLE — DO MERGE:
+  Entity "gunnars_father" (role: Gunnar's father, war-leader) and
+  entity "ulfs" (role: Gunnar's father, war figure).
+  These have different IDs but describe the same narrative role.
+  Merge gunnars_father into ulfs (keep the shorter, cleaner ID).
+
+  Rules:
+  - Compare summaries, relationships, types, and narrative roles.
+  - When uncertain, do NOT merge — omit from merge_map entirely.
+  - Keep the shorter, cleaner ID as the surviving entity.
+  - If only one candidate is provided, compare it against canon entities.
+  - Return ONLY valid JSON — no markdown fences, no commentary.
+
+user: |
+  CANDIDATES TO CHECK:
+  {{ state.parsed_candidates | tojson(indent=2) }}
+
+  {% if state.parsed_canon %}
+  EXISTING CANON ENTITIES:
+  {{ state.parsed_canon | tojson(indent=2) }}
+  {% endif %}
+
+  Compare the candidates for semantic duplicates.
+  If a candidate duplicates an existing canon entity, merge the candidate
+  into the canon entity.
+
+  Return a JSON object with:
+  - "merge_map": object mapping dropped_id → surviving_id (empty if no duplicates)
+  - "reasoning": string explaining your analysis
+
+schema:
+  name: MergeResult
+  fields:
+    merge_map:
+      type: dict
+      description: "Mapping of dropped_id to surviving_id"
+    reasoning:
+      type: str
+      description: "Explanation of merge decisions"

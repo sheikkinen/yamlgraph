@@ -3,52 +3,26 @@
 Takes the structured_world dict from the structure_world LLM node
 and writes each entity as a separate YAML file via persist_pages logic.
 FR-664: Validate referential integrity before writing.
+FR-683: Validation extracted to ref_integrity.py.
 """
 
 from __future__ import annotations
 
 import importlib.util
 import logging
+import sys
 from pathlib import Path
 from typing import Any
 
+# Sibling import shim (FR-683): tools loaded via spec_from_file_location
+# don't have their directory on sys.path.
+_nodes_dir = str(Path(__file__).parent)
+if _nodes_dir not in sys.path:
+    sys.path.insert(0, _nodes_dir)
+
+from ref_integrity import validate_referential_integrity  # noqa: E402
+
 logger = logging.getLogger(__name__)
-
-
-def validate_referential_integrity(
-    pages: list[dict],
-) -> dict[str, Any]:
-    """Check all cross-references resolve to defined entity IDs (FR-664)."""
-    defined_ids = {p["id"] for p in pages if "id" in p}
-    orphans: set[str] = set()
-
-    for page in pages:
-        # relationships.to
-        for rel in page.get("relationships", []):
-            to = rel.get("to", "") if isinstance(rel, dict) else ""
-            if to and to not in defined_ids:
-                orphans.add(to)
-
-        # participants, references, members, affected_locations
-        for field in (
-            "participants",
-            "references",
-            "members",
-            "affected_locations",
-        ):
-            for ref in page.get(field, []):
-                ref_id = ref if isinstance(ref, str) else ref.get("id", "")
-                if ref_id and ref_id not in defined_ids:
-                    orphans.add(ref_id)
-
-    violations = [
-        f"orphan ID '{oid}' referenced but never defined" for oid in sorted(orphans)
-    ]
-    return {
-        "valid": len(orphans) == 0,
-        "orphan_ids": sorted(orphans),
-        "violations": violations,
-    }
 
 
 def _load_persist_impl():  # noqa: ANN202

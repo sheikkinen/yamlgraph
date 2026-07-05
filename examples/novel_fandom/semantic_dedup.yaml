@@ -1,0 +1,46 @@
+# Novel Fandom — Semantic Entity Deduplication (FR-684)
+# LLM-based comparison of entity summaries to find semantic duplicates.
+# Used as graph-tool by worldgen and as dedup_check by deepen_events agent.
+#
+# Input: candidates (JSON string), canon_pages (JSON string)
+# Output: merge_map {dropped_id: surviving_id}, reasoning
+
+version: "1.0"
+name: semantic-dedup
+description: Compare entities semantically, return merge map for duplicates
+
+state:
+  candidates: str
+  canon_pages: str
+  parsed_candidates: list
+  parsed_canon: list
+  merge_map: dict
+  reasoning: str
+
+tools:
+  parse_dedup_input:
+    type: python
+    path: nodes/parse_dedup_input.py
+    function: parse_dedup_input
+
+nodes:
+  parse:
+    type: python
+    tool: parse_dedup_input
+
+  compare:
+    type: llm
+    prompt: semantic_dedup
+    state_key: merge_result
+    temperature: 0.1
+    variables:
+      parsed_candidates: "{state.parsed_candidates}"
+      parsed_canon: "{state.parsed_canon}"
+
+edges:
+  - from: START
+    to: parse
+  - from: parse
+    to: compare
+  - from: compare
+    to: END

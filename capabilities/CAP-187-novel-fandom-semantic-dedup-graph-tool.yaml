@@ -1,0 +1,19 @@
+id: CAP-187
+name: Novel Fandom Semantic Dedup Graph-Tool
+description: >
+  FR-684: LLM-based semantic entity deduplication as graph-tool.
+  semantic_dedup.yaml compares entity summaries with negative
+  examples. Threshold router in worldgen. dedup_check registered
+  for deepen_events agent. TODO stub and _LLM_DEDUP_THRESHOLD
+  removed from dedup_entities.py.
+modules:
+  - examples/novel_fandom
+requirements:
+  - id: REQ-YG-517
+    description: >
+      Semantic dedup graph-tool with LLM prompt including false-positive
+      negative example. Threshold router (>5) in worldgen routes to
+      subgraph → apply_merge_map. dedup_check for agent prevention.
+    modules:
+      - examples/novel_fandom
+fr: FR-684

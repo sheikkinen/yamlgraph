@@ -1,0 +1,31 @@
+# Novel Fandom — Referential Integrity Check (FR-683)
+# Single-node graph wrapping ref_integrity.py for use as graph-tool.
+# Validates that all cross-references resolve to defined entity IDs.
+#
+# Input: pages (JSON string or list of page dicts)
+# Output: gate_result {valid, orphan_ids, violations}
+
+version: "1.0"
+name: ref-check
+description: Validate referential integrity of entity pages
+
+state:
+  pages: str
+  gate_result: dict
+
+tools:
+  ref_check:
+    type: python
+    path: nodes/ref_integrity.py
+    function: ref_check
+
+nodes:
+  check:
+    type: python
+    tool: ref_check
+
+edges:
+  - from: START
+    to: check
+  - from: check
+    to: END

@@ -1,8 +1,10 @@
-"""Semantic entity deduplication for worldgen (FR-665).
+"""Deterministic entity deduplication for worldgen (FR-665, FR-684).
 
-Two-pass dedup of red_links between collect and create_skeletons:
-  1. Deterministic: merge obvious ID variants (possessive, the_X/X, prefix).
-  2. LLM (gated on red_link_count > 5): cluster semantic duplicates via graph-tool.
+Deterministic dedup of red_links between collect and create_skeletons:
+merge obvious ID variants (possessive, the_X/X, prefix).
+
+LLM-based semantic dedup is handled at the graph level via
+semantic_dedup.yaml subgraph (FR-684).
 
 Also rewrites references in deepened pages when IDs are merged.
 """
@@ -13,8 +15,6 @@ import logging
 from typing import Any
 
 logger = logging.getLogger(__name__)
-
-_LLM_DEDUP_THRESHOLD = 5
 
 
 def _strip_possessive(s: str) -> str:
@@ -152,17 +152,8 @@ def dedup_entities(state: dict[str, Any]) -> dict[str, Any]:
     # Pass 1: deterministic
     survivors, merge_map = _deterministic_dedup(red_links)
 
-    # Pass 2: LLM dedup (only if enough entities to justify cost)
-    if len(survivors) > _LLM_DEDUP_THRESHOLD:
-        logger.info(
-            "LLM dedup pass: %d survivors exceed threshold %d",
-            len(survivors),
-            _LLM_DEDUP_THRESHOLD,
-        )
-        # LLM dedup would be invoked here via graph-tool (FR-658)
-        # For now, log intent — the graph-tool integration is wired
-        # when dedup_check.yaml is created
-        # TODO: Wire dedup_check graph-tool (FR-665 AC-3)
+    # Pass 2: LLM semantic dedup handled at graph level (FR-684)
+    # via semantic_dedup_call subgraph node in worldgen.yaml
 
     # Rewrite references in deepened pages
     if merge_map:

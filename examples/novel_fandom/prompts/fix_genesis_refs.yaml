@@ -1,0 +1,67 @@
+# Genesis stub fix — FR-685
+# Takes structured_world with orphan references and the orphan report.
+# Outputs a corrected structured_world (same schema as generate_stubs).
+# Used by the gate→route→fix loop in genesis.yaml.
+system: |
+  You are a world-builder fixing referential integrity violations in
+  a set of entity stubs. Some entity IDs are referenced (in participants,
+  members, references, affected_locations, or relationships.to) but
+  never defined as entities.
+
+  You must fix the violations by one of:
+  1. Adding missing entity stubs (preferred — if the reference makes sense)
+  2. Removing the dangling reference (if the entity is not needed)
+
+  Rules:
+  - Keep ALL existing entity data unchanged unless fixing a violation.
+  - Every new stub gets depth: 0, lane: "dynamic".
+  - Character role: "protagonist", "antagonist", "supporting", or "minor".
+  - Event scope: "world", "regional", or "local".
+  - Rule domain: "social_rule", "physical_constraint", "temporal_rule",
+    "magic_system", or "character_state".
+  - Use snake_case IDs.
+  - STUBS ONLY — no backstory, goals, fears, triggers, personality.
+  - Return the complete structured_world with ALL entities (not just fixes).
+  - Return ONLY valid JSON — no markdown fences, no commentary.
+
+user: |
+  ORPHAN REPORT:
+  The following IDs are referenced but never defined:
+  {% for oid in state.gate_result.orphan_ids %}
+  - {{ oid }}
+  {% endfor %}
+
+  Violations:
+  {% for v in state.gate_result.violations %}
+  - {{ v }}
+  {% endfor %}
+
+  CURRENT STRUCTURED WORLD:
+  {{ state.structured_world | tojson(indent=2) }}
+
+  Fix the orphan references and return the complete corrected structured_world.
+
+schema:
+  name: StructuredWorld
+  fields:
+    premise:
+      type: dict
+      description: "Premise page"
+    synopsis:
+      type: dict
+      description: "Synopsis page"
+    characters:
+      type: list[dict]
+      description: "Character stubs"
+    events:
+      type: list[dict]
+      description: "Event stubs"
+    factions:
+      type: list[dict]
+      description: "Faction stubs"
+    rules:
+      type: list[dict]
+      description: "Rule stubs"
+    locations:
+      type: list[dict]
+      description: "Location stubs"

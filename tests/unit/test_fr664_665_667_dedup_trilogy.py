@@ -163,23 +163,30 @@ class TestGenesisStubPipeline:
 
     @pytest.mark.req("REQ-YG-513")
     def test_genesis_graph_structure(self) -> None:
-        """Genesis graph has 5 nodes: load, synopsis, stubs, validate, persist."""
+        """Genesis graph has 6 nodes: load, synopsis, stubs, validate, fix_stubs, persist."""
         graph_path = NOVEL_FANDOM_DIR / "genesis.yaml"
         with open(graph_path) as f:
             config = yaml.safe_load(f)
         node_names = set(config["nodes"].keys())
-        assert node_names == {"load", "synopsis", "stubs", "validate", "persist"}
+        assert node_names == {
+            "load",
+            "synopsis",
+            "stubs",
+            "validate",
+            "fix_stubs",
+            "persist",
+        }
 
     @pytest.mark.req("REQ-YG-513")
-    def test_genesis_has_two_llm_nodes(self) -> None:
-        """Only synopsis and stubs are LLM nodes."""
+    def test_genesis_has_two_happy_path_llm_nodes(self) -> None:
+        """Happy path: synopsis and stubs are LLM nodes; fix_stubs is repair."""
         graph_path = NOVEL_FANDOM_DIR / "genesis.yaml"
         with open(graph_path) as f:
             config = yaml.safe_load(f)
         llm_nodes = [
             name for name, node in config["nodes"].items() if node.get("type") == "llm"
         ]
-        assert sorted(llm_nodes) == ["stubs", "synopsis"]
+        assert sorted(llm_nodes) == ["fix_stubs", "stubs", "synopsis"]
 
     @pytest.mark.req("REQ-YG-513")
     def test_retired_prompts_deleted(self) -> None:

@@ -1278,10 +1278,10 @@ These are E402 suppressions and are acceptable as "glue code" patterns.
 - **Penance**: The token appears in a negation documenting the removed hedge — it enforces Commandment 6, not violates it.
 
 ### CONF-353
-- **File**: [examples/novel_fandom/nodes/persist_genesis.py](../examples/novel_fandom/nodes/persist_genesis.py#L54)
+- **File**: [tests/unit/test_fr683_ref_integrity_graph_tool.py](../tests/unit/test_fr683_ref_integrity_graph_tool.py#L24)
 - **Code**: ANN202
-- **Sin**: `_load_persist_impl` returns dynamically loaded function — no static type available.
-- **Penance**: Import via importlib to avoid relative import issues in example code. Return type is internal.
+- **Sin**: `_load` helper returns dynamically loaded module — no static type annotation.
+- **Penance**: Test utility for loading novel_fandom modules via importlib. Same pattern as all other novel_fandom test files.
 
 ### CONF-354
 - **File**: [tests/unit/test_fr664_665_667_dedup_trilogy.py](../tests/unit/test_fr664_665_667_dedup_trilogy.py#L26)
@@ -1302,10 +1302,16 @@ These are E402 suppressions and are acceptable as "glue code" patterns.
 - **Penance**: Agent node factory builds the agent execution function with tool binding, iteration limits, and error handling. Splitting would fragment the agent lifecycle.
 
 ### CONF-357
-- **File**: [examples/novel_fandom/nodes/validate_genesis.py](../examples/novel_fandom/nodes/validate_genesis.py#L17)
+- **File**: [examples/novel_fandom/nodes/persist_genesis.py](../examples/novel_fandom/nodes/persist_genesis.py#L23)
+- **Code**: E402
+- **Sin**: `from ref_integrity import validate_referential_integrity` after sys.path manipulation.
+- **Penance**: FR-683 sibling import requires sys.path.insert before import. No alternative when loaded via spec_from_file_location.
+
+### CONF-358
+- **File**: [tests/unit/test_fr684_semantic_dedup_graph_tool.py](../tests/unit/test_fr684_semantic_dedup_graph_tool.py#L24)
 - **Code**: ANN202
-- **Sin**: `_load_validate_fn` returns dynamically loaded function — no static type available.
-- **Penance**: Import via importlib to avoid relative import issues in example code (same pattern as persist_genesis).
+- **Sin**: `_load` helper returns dynamically loaded module — no static type annotation.
+- **Penance**: Test utility for loading novel_fandom modules via importlib. Same pattern as all other novel_fandom test files.
 
 ### CONF-255
 - **File**: [yamlgraph/utils/fsm/ui_log.py](../yamlgraph/utils/fsm/ui_log.py#L50)
@@ -1333,7 +1339,7 @@ These are not `# noqa` suppressions — they are documented deviations from proc
 - **Penance**: These commits exist only inside a worktree branch that will be squash-merged. The `finalizing` state runs `pre-commit run --all-files` on the complete worktree before push. The final squash-merged commit on main passes all CI gates. No unverified code reaches main.
 
 ### CONF-301
-- **File**: [examples/novel_fandom/nodes/persist_genesis.py](../examples/novel_fandom/nodes/persist_genesis.py#L17)
+- **File**: [examples/novel_fandom/nodes/persist_genesis.py](../examples/novel_fandom/nodes/persist_genesis.py#L28)
 - **Code**: ANN202
 - **Sin**: `_load_persist_impl` helper returns dynamically loaded function, type is not expressible without Protocol.
 - **Penance**: Internal loader used only within persist_genesis; return type is `Callable` but annotating it adds no value over reading the one callsite.

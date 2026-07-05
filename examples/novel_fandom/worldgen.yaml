@@ -30,6 +30,7 @@ state:
   reflection: dict
   red_links: list
   red_link_count: int
+  semantic_merge_map: dict
   skeletons: list
   max_depth: int
   done: bool
@@ -88,6 +89,33 @@ tools:
     type: python
     path: nodes/dedup_entities.py
     function: dedup_entities
+  ref_check:
+    type: graph
+    path: ref_check.yaml
+    description: "Validate referential integrity of entity pages. Input: pages (JSON list). Output: gate_result with valid/orphan_ids."
+    input_mapping:
+      pages: str
+    output_key: gate_result
+  semantic_dedup:
+    type: graph
+    path: semantic_dedup.yaml
+    description: "Compare entities semantically for duplicates. Input: candidates (JSON list), canon_pages (JSON dict). Output: merge_map {dropped_id: surviving_id}."
+    input_mapping:
+      candidates: str
+      canon_pages: str
+    output_key: merge_map
+  dedup_check:
+    type: graph
+    path: semantic_dedup.yaml
+    description: "Check if an entity already exists under a different name. Input: candidates (JSON list with one entity), canon_pages (JSON dict). Output: merge_map."
+    input_mapping:
+      candidates: str
+      canon_pages: str
+    output_key: merge_map
+  apply_merge:
+    type: python
+    path: nodes/apply_merge_map.py
+    function: apply_merge_map
 
 nodes:
   anchor:
@@ -116,7 +144,7 @@ nodes:
     node:
       type: agent
       prompt: deepen_event_agent
-      tools: [lookup_canon_page, list_canon_ids, validate_draft]
+      tools: [lookup_canon_page, list_canon_ids, validate_draft, ref_check, dedup_check]
       max_iterations: 8
       state_key: result
       temperature: 0.7
@@ -157,6 +185,19 @@ nodes:
   dedup:
     type: python
     tool: dedup_entities
+
+  semantic_dedup_call:
+    type: subgraph
+    graph: semantic_dedup.yaml
+    input_mapping:
+      red_links: candidates
+      canon_pages: canon_pages
+    output_mapping:
+      merge_map: semantic_merge_map
+
+  apply_merge:
+    type: python
+    tool: apply_merge
 
   create_skeletons:
     type: map
@@ -220,12 +261,22 @@ edges:
     condition: red_link_count == 0
 
   - from: dedup
+    to: semantic_dedup_call
+    condition: red_link_count > 5
+
+  - from: dedup
     to: create_skeletons
-    condition: red_link_count > 0
+    condition: red_link_count > 0 and red_link_count <= 5
 
   - from: dedup
     to: gate
     condition: red_link_count == 0
+
+  - from: semantic_dedup_call
+    to: apply_merge
+
+  - from: apply_merge
+    to: create_skeletons
 
   - from: create_skeletons
     to: gate
@@ -246,6 +297,8 @@ loop_limits:
   reflect: 3
   collect: 3
   dedup: 3
+  semantic_dedup_call: 3
+  apply_merge: 3
   create_skeletons: 3
   gate: 3
   persist: 3

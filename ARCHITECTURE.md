@@ -500,6 +500,9 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 182 | CAP-182 Agentic Event Deepening | `examples/novel_fandom/nodes/canon_tools.py`, `examples/novel_fandom/nodes/split_thin_by_type.py`, `examples/novel_fandom/prompts/deepen_event_agent.yaml`, `examples/novel_fandom/worldgen.yaml` | REQ-YG-509 |
 | 183 | CAP-183 First-Class Verification | `yamlgraph/utils/guard_runtime.py`, `yamlgraph/node_compiler.py`, `yamlgraph/tools/nodes.py`, `yamlgraph/tools/python_tool.py`, … | REQ-YG-511 |
 | 184 | CAP-184 Novel Fandom Duplicate Entity Prevention | `examples/novel_fandom` | REQ-YG-512 – 514 |
+| 185 | CAP-185 Novel Fandom Ref Integrity Graph-Tool | `examples/novel_fandom` | REQ-YG-515 |
+| 186 | CAP-186 Novel Fandom Genesis Self-Correcting Pipeline | `examples/novel_fandom` | REQ-YG-516 |
+| 187 | CAP-187 Novel Fandom Semantic Dedup Graph-Tool | `examples/novel_fandom` | REQ-YG-517 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -2308,6 +2311,36 @@ Three-layer defense against duplicate entities in novel_fandom: FR-664 genesis r
 | REQ-YG-512 | validate_referential_integrity checks all cross-reference fields (relationships.to, participants, references, members, affected_locations) resolve to defined entity IDs. Returns orphan_ids list and violations. Warn-only in persist_genesis. | `examples/novel_fandom` |
 | REQ-YG-513 | Genesis stub pipeline uses 2 LLM calls (synopsis + stubs). Retired prompts deleted (genesis_roster, genesis_character, structure_world). parse_roster removed. generate_stubs prompt produces minimal entity stubs with referential integrity constraint. | `examples/novel_fandom` |
 | REQ-YG-514 | dedup_entities node in worldgen between collect and create_skeletons. Deterministic pass merges possessive variants, the_ prefixes, and stop-word prefix matches. LLM pass gated on red_link_count > 5. Reference rewriting updates dropped IDs in deepened pages. | `examples/novel_fandom` |
+
+### 185. CAP-185 Novel Fandom Ref Integrity Graph-Tool
+
+FR-683: Referential integrity validation extracted to standalone ref_integrity.py and wrapped as ref_check.yaml graph-tool. Wired to worldgen deepen_events agent. Eliminates importlib hack (validate_genesis.py deleted).
+
+**Feature Request:** FR-683
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-515 | validate_referential_integrity extracted to ref_integrity.py, callable as graph-tool (ref_check.yaml) and direct import. JSON-string input normalization at graph-tool boundary. | `examples/novel_fandom` |
+
+### 186. CAP-186 Novel Fandom Genesis Self-Correcting Pipeline
+
+FR-685: Gate-route-fix loop in genesis.yaml. Validate node writes gate_result, conditional edge routes to fix_stubs LLM on orphans, loops back to validate with loop_limits: 3. Happy path stays at 2 LLM calls; each repair round adds 1.
+
+**Feature Request:** FR-685
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-516 | Genesis validate gate uses ref_check (FR-683) to detect orphans. Conditional edge routes to fix_stubs LLM node for repair. persist_genesis retains defense-in-depth warn-only check. | `examples/novel_fandom` |
+
+### 187. CAP-187 Novel Fandom Semantic Dedup Graph-Tool
+
+FR-684: LLM-based semantic entity deduplication as graph-tool. semantic_dedup.yaml compares entity summaries with negative examples. Threshold router in worldgen. dedup_check registered for deepen_events agent. TODO stub and _LLM_DEDUP_THRESHOLD removed from dedup_entities.py.
+
+**Feature Request:** FR-684
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-517 | Semantic dedup graph-tool with LLM prompt including false-positive negative example. Threshold router (>5) in worldgen routes to subgraph → apply_merge_map. dedup_check for agent prevention. | `examples/novel_fandom` |
 
 <!-- END GENERATED CAPABILITIES -->
 

@@ -1,0 +1,18 @@
+id: CAP-186
+name: Novel Fandom Genesis Self-Correcting Pipeline
+description: >
+  FR-685: Gate-route-fix loop in genesis.yaml. Validate node writes
+  gate_result, conditional edge routes to fix_stubs LLM on orphans,
+  loops back to validate with loop_limits: 3. Happy path stays at
+  2 LLM calls; each repair round adds 1.
+modules:
+  - examples/novel_fandom
+requirements:
+  - id: REQ-YG-516
+    description: >
+      Genesis validate gate uses ref_check (FR-683) to detect orphans.
+      Conditional edge routes to fix_stubs LLM node for repair.
+      persist_genesis retains defense-in-depth warn-only check.
+    modules:
+      - examples/novel_fandom
+fr: FR-685

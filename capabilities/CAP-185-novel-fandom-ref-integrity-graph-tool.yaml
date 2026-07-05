@@ -1,0 +1,18 @@
+id: CAP-185
+name: Novel Fandom Ref Integrity Graph-Tool
+description: >
+  FR-683: Referential integrity validation extracted to standalone
+  ref_integrity.py and wrapped as ref_check.yaml graph-tool.
+  Wired to worldgen deepen_events agent. Eliminates importlib hack
+  (validate_genesis.py deleted).
+modules:
+  - examples/novel_fandom
+requirements:
+  - id: REQ-YG-515
+    description: >
+      validate_referential_integrity extracted to ref_integrity.py,
+      callable as graph-tool (ref_check.yaml) and direct import.
+      JSON-string input normalization at graph-tool boundary.
+    modules:
+      - examples/novel_fandom
+fr: FR-683
