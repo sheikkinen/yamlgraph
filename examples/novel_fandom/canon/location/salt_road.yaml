@@ -1,0 +1,25 @@
+depth: 3
+description: 'An ancient trade route running from the southeastern lowlands into the
+  mountain valleys where the clans lived. Its name comes from the salt that was its
+  primary cargo: traders would carry blocks of sea salt inland to the clans, who used
+  it for preserving meat through winter. The road follows the natural contours of
+  the terrain, crossing rivers at shallow fords and threading through passes that
+  avoid the highest peaks. After the flood, much of the lower sections of the road
+  are submerged. Reinmar follows what remains of the road to reach the survivors,
+  recognizing that the old trade route still offers the safest passage through the
+  transformed landscape.'
+id: salt_road
+lane: dynamic
+location_type: road
+name: Old Salt-Road
+type: location
+atmosphere:
+- A narrow path worn into the earth by generations of travelers
+- 'After the flood: half-submerged, muddy, but still passable to someone who knows
+  the ground'
+- Lonely, winding through terrain that no one else travels anymore
+significance: 'The salt-road is the connective tissue between the isolated clan territories
+  and the wider world. Reinmar''s knowledge of it is what makes him valuable: he can
+  navigate routes the clan people never learned because they never needed to. The
+  road represents the possibility of movement and change in a world where the clans
+  are rooted and static.'

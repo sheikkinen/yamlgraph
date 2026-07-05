@@ -695,12 +695,6 @@ These are E402 suppressions and are acceptable as "glue code" patterns.
 - **Sin**: Broad `except Exception` in validation fallback.
 - **Penance**: FR-649 design decision: persist work product even when Pydantic validation fails. The broad catch is intentional — any validation error (type mismatch, missing field, extra field) should trigger the warning-and-persist fallback, not crash the pipeline. The exception is logged with full context.
 
-### CONF-146
-- **File**: [examples/novel_fandom/nodes/creation_tools.py](../examples/novel_fandom/nodes/creation_tools.py#L71)
-- **Code**: BLE001
-- **Sin**: Broad `except Exception` in `_write_page` atomic-write fallback.
-- **Penance**: FR-686 design: persist_entity must never crash the graph-tool pipeline. Any filesystem error (permissions, disk full, encoding) returns an error string to the agent rather than raising. Consistent with CONF-145 pattern.
-
 ### CONF-306
 - **File**: [examples/plot_modeller/spike_salience_gate.py](../examples/plot_modeller/spike_salience_gate.py#L39)
 - **Code**: E402
@@ -1265,60 +1259,6 @@ These are E402 suppressions and are acceptable as "glue code" patterns.
 - **Sin**: Docstring of `invoke_async` contains `fallback` — describes the FR-464 structured-output JSON fallback strategy.
 - **Penance**: The word describes the actual retry-then-parse pattern from FR-676. Renaming would obscure intent.
 
-### CONF-350
-- **File**: [yamlgraph/tools/agent.py](../yamlgraph/tools/agent.py#L51)
-- **Code**: FB001
-- **Sin**: Comment in `_try_structured_output` says a schema mismatch is a "legitimate fallback trigger" (FR-678 narrowed catch).
-- **Penance**: The word names the FR-464 re-invoke path the narrowed `ValidationError` catch guards; it is descriptive, not a silent hedge.
-
-### CONF-351
-- **File**: [yamlgraph/executor_base.py](../yamlgraph/executor_base.py#L335)
-- **Code**: FB001
-- **Sin**: Docstring of `attempt_structured_invoke` contains `fallback` — describes the shared FR-464 structured-output fallback (FR-679).
-- **Penance**: The word describes the consolidated retry-then-parse pattern both sync/async paths delegate to. Renaming would obscure intent.
-
-### CONF-352
-- **File**: [yamlgraph/utils/llm_providers.py](../yamlgraph/utils/llm_providers.py#L315)
-- **Code**: FB001
-- **Sin**: Docstring of `dispatch_provider` contains `fallback` while explicitly stating there is *no* silent Anthropic fallback at the dispatch boundary (FR-680).
-- **Penance**: The token appears in a negation documenting the removed hedge — it enforces Commandment 6, not violates it.
-
-### CONF-353
-- **File**: [tests/unit/test_fr683_ref_integrity_graph_tool.py](../tests/unit/test_fr683_ref_integrity_graph_tool.py#L24)
-- **Code**: ANN202
-- **Sin**: `_load` helper returns dynamically loaded module — no static type annotation.
-- **Penance**: Test utility for loading novel_fandom modules via importlib. Same pattern as all other novel_fandom test files.
-
-### CONF-354
-- **File**: [tests/unit/test_fr664_665_667_dedup_trilogy.py](../tests/unit/test_fr664_665_667_dedup_trilogy.py#L26)
-- **Code**: ANN202
-- **Sin**: `_load` helper returns dynamically loaded module — no static type annotation.
-- **Penance**: Test utility for loading novel_fandom modules via importlib. Same pattern as all other novel_fandom test files.
-
-### CONF-355
-- **File**: [yamlgraph/executor_base.py](../yamlgraph/executor_base.py#L130)
-- **Code**: C901
-- **Sin**: Function exceeds cognitive complexity threshold.
-- **Penance**: Core executor dispatch logic; splitting would scatter the execution flow across multiple functions without reducing actual complexity.
-
-### CONF-356
-- **File**: [yamlgraph/tools/agent.py](../yamlgraph/tools/agent.py#L94)
-- **Code**: C901
-- **Sin**: Function exceeds cognitive complexity threshold.
-- **Penance**: Agent node factory builds the agent execution function with tool binding, iteration limits, and error handling. Splitting would fragment the agent lifecycle.
-
-### CONF-357
-- **File**: [examples/novel_fandom/nodes/persist_genesis.py](../examples/novel_fandom/nodes/persist_genesis.py#L23)
-- **Code**: E402
-- **Sin**: `from ref_integrity import validate_referential_integrity` after sys.path manipulation.
-- **Penance**: FR-683 sibling import requires sys.path.insert before import. No alternative when loaded via spec_from_file_location.
-
-### CONF-358
-- **File**: [tests/unit/test_fr684_semantic_dedup_graph_tool.py](../tests/unit/test_fr684_semantic_dedup_graph_tool.py#L24)
-- **Code**: ANN202
-- **Sin**: `_load` helper returns dynamically loaded module — no static type annotation.
-- **Penance**: Test utility for loading novel_fandom modules via importlib. Same pattern as all other novel_fandom test files.
-
 ### CONF-255
 - **File**: [yamlgraph/utils/fsm/ui_log.py](../yamlgraph/utils/fsm/ui_log.py#L50)
 - **Code**: S603
@@ -1330,24 +1270,6 @@ These are E402 suppressions and are acceptable as "glue code" patterns.
 - **Code**: S112
 - **Sin**: `try-except-continue` silently skips YAML files that fail to parse.
 - **Penance**: Script scans all `*.yaml` under demos/ — some may be prompt templates or malformed. Skipping unparseable files is the correct behavior for a coverage scanner; logging would add noise without value.
-
-### CONF-257
-- **File**: [tests/unit/test_fr686_agent_first_rewrite.py](../tests/unit/test_fr686_agent_first_rewrite.py#L32)
-- **Code**: ANN202
-- **Sin**: `_load` fixture returns dynamically loaded module without return type annotation.
-- **Penance**: Consistent with CONF-247..256 pattern. Module is loaded via `importlib` — typing the return as `ModuleType` adds no value for a test fixture.
-
-### CONF-258
-- **File**: [tests/unit/test_fr686_agent_first_rewrite.py](../tests/unit/test_fr686_agent_first_rewrite.py#L258)
-- **Code**: ANN202
-- **Sin**: `tools_mod` fixture returns dynamically loaded module without return type annotation.
-- **Penance**: Same pattern as CONF-257. Test-only fixture.
-
-### CONF-259
-- **File**: [tests/unit/test_fr686_agent_first_rewrite.py](../tests/unit/test_fr686_agent_first_rewrite.py#L398)
-- **Code**: ANN202
-- **Sin**: `tools_mod` fixture returns dynamically loaded module without return type annotation.
-- **Penance**: Same pattern as CONF-257/258. Test-only fixture.
 
 ---
 
@@ -1363,7 +1285,7 @@ These are not `# noqa` suppressions — they are documented deviations from proc
 - **Penance**: These commits exist only inside a worktree branch that will be squash-merged. The `finalizing` state runs `pre-commit run --all-files` on the complete worktree before push. The final squash-merged commit on main passes all CI gates. No unverified code reaches main.
 
 ### CONF-301
-- **File**: [examples/novel_fandom/nodes/persist_genesis.py](../examples/novel_fandom/nodes/persist_genesis.py#L28)
+- **File**: [examples/novel_fandom/nodes/persist_genesis.py](../examples/novel_fandom/nodes/persist_genesis.py#L17)
 - **Code**: ANN202
 - **Sin**: `_load_persist_impl` helper returns dynamically loaded function, type is not expressible without Protocol.
 - **Penance**: Internal loader used only within persist_genesis; return type is `Callable` but annotating it adds no value over reading the one callsite.
@@ -1373,6 +1295,120 @@ These are not `# noqa` suppressions — they are documented deviations from proc
 - **Code**: ANN202
 - **Sin**: `_load` test helper returns dynamically loaded module, same pattern as all other novel_fandom test files.
 - **Penance**: Consistent with CONF-247..256 pattern across test_fr637..654 files. Test-only utility.
+
+### CONF-350
+- **File**: [yamlgraph/tools/agent.py](../yamlgraph/tools/agent.py#L51)
+- **Code**: FB001
+- **Sin**: Comment uses `fallback` token describing a legitimate fallback trigger condition.
+- **Penance**: Documents the structured-output mismatch recovery path. Renaming would obscure intent.
+
+### CONF-351
+- **File**: [yamlgraph/executor_base.py](../yamlgraph/executor_base.py#L335)
+- **Code**: FB001
+- **Sin**: Docstring of `_invoke_llm_once` contains `fallback` — describes the FR-464 structured-output fallback strategy.
+- **Penance**: Documents the retry-then-parse pattern. Renaming would obscure intent.
+
+### CONF-352
+- **File**: [yamlgraph/utils/llm_providers.py](../yamlgraph/utils/llm_providers.py#L315)
+- **Code**: FB001
+- **Sin**: Docstring contains `fallback` — explicitly states there is NO silent fallback at this boundary.
+- **Penance**: The word is used to negate a fallback pattern, not to implement one.
+
+### CONF-366
+- **File**: [tests/unit/test_fr689_genesis_consistency.py](../tests/unit/test_fr689_genesis_consistency.py#L36)
+- **Code**: ANN202
+- **Sin**: `_load_yaml` test helper omits return type annotation.
+- **Penance**: Internal test utility returning `dict`. Consistent with CONF-247..365 pattern.
+
+### CONF-367
+- **File**: [tests/unit/test_fr689_genesis_consistency.py](../tests/unit/test_fr689_genesis_consistency.py#L68)
+- **Code**: ANN202
+- **Sin**: `_node_names` test helper omits return type annotation.
+- **Penance**: Internal test utility returning `list[str]`. Test-only.
+
+### CONF-368
+- **File**: [tests/unit/test_fr689_genesis_consistency.py](../tests/unit/test_fr689_genesis_consistency.py#L212)
+- **Code**: ANN202
+- **Sin**: `_canon_fixture` pytest fixture omits return type annotation.
+- **Penance**: Pytest fixture returning `Path`. Consistent with test fixture patterns.
+
+### CONF-369
+- **File**: [tests/unit/test_fr689_genesis_consistency.py](../tests/unit/test_fr689_genesis_consistency.py#L305)
+- **Code**: ANN202
+- **Sin**: `_canon_with_files` pytest fixture omits return type annotation.
+- **Penance**: Pytest fixture returning `Path`. Consistent with test fixture patterns.
+
+### CONF-370
+- **File**: [tests/unit/test_fr689_genesis_consistency.py](../tests/unit/test_fr689_genesis_consistency.py#L417)
+- **Code**: ANN202
+- **Sin**: `_canon_fixture` pytest fixture omits return type annotation.
+- **Penance**: Pytest fixture returning `Path`. Consistent with test fixture patterns.
+
+### CONF-355
+- **File**: [examples/novel_fandom/nodes/creation_tools.py](../examples/novel_fandom/nodes/creation_tools.py#L71)
+- **Code**: BLE001
+- **Sin**: Bare `except Exception` in entity builder dispatch catches all errors.
+- **Penance**: Builder functions may raise arbitrary errors from Pydantic validation; catching broadly and returning structured error message is the correct pattern for a graph-tool node that must not crash the parent agent.
+
+### CONF-356
+- **File**: [examples/novel_fandom/nodes/persist_genesis.py](../examples/novel_fandom/nodes/persist_genesis.py#L23)
+- **Code**: E402
+- **Sin**: Module-level import not at top of file.
+- **Penance**: Import after `sys.path` manipulation to locate sibling module. Standard pattern for example code with relative imports.
+
+### CONF-357
+- **File**: [examples/novel_fandom/nodes/persist_genesis.py](../examples/novel_fandom/nodes/persist_genesis.py#L28)
+- **Code**: ANN202
+- **Sin**: Function omits return type annotation.
+- **Penance**: Example code helper function. Not part of the core framework.
+
+### CONF-358
+- **File**: [tests/unit/test_fr664_665_667_dedup_trilogy.py](../tests/unit/test_fr664_665_667_dedup_trilogy.py#L26)
+- **Code**: ANN202
+- **Sin**: `_load` test helper omits return type annotation.
+- **Penance**: Consistent with CONF-247..354 pattern. Test-only utility.
+
+### CONF-359
+- **File**: [tests/unit/test_fr683_ref_integrity_graph_tool.py](../tests/unit/test_fr683_ref_integrity_graph_tool.py#L24)
+- **Code**: ANN202
+- **Sin**: `_load` test helper omits return type annotation.
+- **Penance**: Consistent with CONF-247..354 pattern. Test-only utility.
+
+### CONF-360
+- **File**: [tests/unit/test_fr684_semantic_dedup_graph_tool.py](../tests/unit/test_fr684_semantic_dedup_graph_tool.py#L24)
+- **Code**: ANN202
+- **Sin**: `_load` test helper omits return type annotation.
+- **Penance**: Consistent with CONF-247..354 pattern. Test-only utility.
+
+### CONF-361
+- **File**: [tests/unit/test_fr686_agent_first_rewrite.py](../tests/unit/test_fr686_agent_first_rewrite.py#L32)
+- **Code**: ANN202
+- **Sin**: `_load_yaml` test helper omits return type annotation.
+- **Penance**: Consistent with CONF-247..354 pattern. Test-only utility.
+
+### CONF-362
+- **File**: [tests/unit/test_fr686_agent_first_rewrite.py](../tests/unit/test_fr686_agent_first_rewrite.py#L258)
+- **Code**: ANN202
+- **Sin**: `_canon_fixture` pytest fixture omits return type annotation.
+- **Penance**: Pytest fixture returning `Path`. Consistent with test fixture patterns.
+
+### CONF-363
+- **File**: [tests/unit/test_fr686_agent_first_rewrite.py](../tests/unit/test_fr686_agent_first_rewrite.py#L398)
+- **Code**: ANN202
+- **Sin**: `_canon_fixture` pytest fixture omits return type annotation.
+- **Penance**: Pytest fixture returning `Path`. Consistent with test fixture patterns.
+
+### CONF-364
+- **File**: [yamlgraph/executor_base.py](../yamlgraph/executor_base.py#L130)
+- **Code**: C901
+- **Sin**: `_invoke_llm` function exceeds cyclomatic complexity threshold.
+- **Penance**: Central LLM invocation dispatch handles multiple provider paths and structured output. Splitting would fragment the core execution flow without reducing actual complexity.
+
+### CONF-365
+- **File**: [yamlgraph/tools/agent.py](../yamlgraph/tools/agent.py#L94)
+- **Code**: C901
+- **Sin**: Agent tool handler exceeds cyclomatic complexity threshold.
+- **Penance**: Agent node orchestration is inherently complex — tool dispatch, error handling, streaming. Splitting would obscure the sequential logic.
 
 ---
 

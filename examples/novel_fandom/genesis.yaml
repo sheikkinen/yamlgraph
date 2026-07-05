@@ -101,19 +101,16 @@ tools:
       themes: themes
       calendar_note: calendar_note
     output_key: result
-  dedup_check:
-    type: graph
-    path: semantic_dedup.yaml
-    description: "Check if a candidate entity already exists under a different name. Args: candidate_id, candidate_summary. Returns merge_map."
-    input_mapping:
-      candidate_id: candidate_id
-      candidate_summary: candidate_summary
-    output_key: merge_map
   list_canon_ids:
     type: python
     path: nodes/canon_tools.py
     function: list_canon_ids
     description: "List all entity IDs in the canon with their types."
+  update_refs:
+    type: python
+    path: nodes/creation_tools.py
+    function: update_refs
+    description: "Rewrite all references from old_id to new_id across canon. Use when dedup gate refuses a create and dangling references remain. Args: old_id, new_id."
   ref_check:
     type: graph
     path: ref_check.yaml
@@ -150,8 +147,8 @@ nodes:
       - create_location
       - create_rule
       - create_premise
-      - dedup_check
       - list_canon_ids
+      - update_refs
       - ref_check
     max_iterations: 50
     state_key: genesis_result

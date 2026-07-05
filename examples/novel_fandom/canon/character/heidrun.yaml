@@ -1,0 +1,52 @@
+depth: 3
+faction: combined_survivors
+id: heidrun
+lane: dynamic
+name: Heidrun
+personality: Keeper of the old rites. Sixty years old. The only person who knows the
+  old songs and signs. Speaks for Reinmar when no one trusts him. Declares the flood
+  is a judgment from the gods for the blood-feud. Urges the survivors to follow Reinmar
+  and let old enmities die. Calls the gathering after Arnulf's return. Proposes and
+  performs the bonding rite for Hilde and Gunnar. Visits Arnulf daily when he isolates
+  himself. Dies peacefully in her sleep during the second winter.
+role: supporting
+type: character
+backstory: 'Heidrun was never a war-leader or a mother. Her role in both clans was
+  that of the memory-keeper. She learned the old songs from her grandmother, who learned
+  them from her grandmother before her. She knows the rites for birth, bonding, burial,
+  and release. She knows which springs are sacred and which mountain passes the spirits
+  guard. When the flood came, she was the oldest survivor of either clan. The young
+  ones looked to her not for orders but for meaning. She gave them the story that
+  made sense of the catastrophe: that the feud soiled the ground and the gods sent
+  the thaw to wash them away.'
+arc_summary: 'Heidrun does not change in the way the younger characters do. She was
+  already complete before the story began. Her arc is one of transmission: she passes
+  on the knowledge that will allow the new community to find its own way. She is the
+  bridge between the old world of the clans and the new world of the high valley.
+  She sees what Hilde and Gunnar are to each other before they do, and she designs
+  the bonding rite specifically to give the community a ritual foundation. Her death
+  in the second winter is peaceful because her work is done.'
+fears:
+- That the old songs will die with her if no one learns them
+- That the younger generation will rebuild the feud if she does not give them a new
+  ritual
+- That she will outlive her usefulness before she passes on what she knows
+goals:
+- Preserve the essential rites for the new community
+- Guide Hilde and Gunnar toward a bond that can heal the clans
+- Help Arnulf release his father's spirit so he can live without the feud
+relationships:
+- kind: spiritual_advisor
+  to: hilde
+  valence: positive
+- kind: spiritual_advisor
+  to: gunnar
+  valence: positive
+- kind: confidant
+  to: arnulf
+  valence: positive
+- kind: ally
+  to: reinmar
+  valence: positive
+summary: The keeper of old rites who interpreted the flood as divine judgment and
+  guided the survivors toward peace.

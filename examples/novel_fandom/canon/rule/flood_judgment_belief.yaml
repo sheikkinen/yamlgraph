@@ -1,0 +1,17 @@
+depth: 3
+description: 'The belief, voiced by Heidrun, that catastrophic flooding is a judgment
+  from the gods sent to wash away blood-guilt. A blood-feud that has lasted too long
+  soils the land and water. The thaw and the flood are the gods'' way of cleansing
+  the valley of the feud. To survive, the people must abandon the old enmities. This
+  belief gives the survivors a framework for understanding the flood as something
+  other than random destruction. It transforms a geological catastrophe into a moral
+  event. Heidrun''s authority as the keeper of the old songs makes the interpretation
+  stick: she is the only one who knows the signs, and no one else can challenge her
+  reading of them. The belief also serves a practical function: it justifies leaving
+  the ancestral valley and following a clanless stranger into unknown territory.'
+domain: social_rule
+id: flood_judgment_belief
+lane: dynamic
+title: Flood as Divine Judgment
+type: rule
+summary: Heidrun's interpretation of the flood as divine punishment for the blood-feud.

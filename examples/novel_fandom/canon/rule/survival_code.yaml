@@ -1,0 +1,19 @@
+depth: 3
+description: 'In the high mountain terrain, survival requires shared watch duty, shared
+  body heat in extreme cold, and cooperation across all divisions. Silt-thickened
+  floodwater is undrinkable. Dead game animals can be recovered and eaten if they
+  are fresh enough. Rock climbing without ropes requires chipping handholds with whatever
+  tools are available. The severity of the environment can override clan divisions
+  when survival is at stake. On the ledge, this code is what allows Gunnar to share
+  the deer with Hilde without seeing it as a betrayal of his clan: sharing food with
+  a stranded person is what the mountains require. Similarly, the back-to-back sleep,
+  the shared watch, and the sex are all, on one level, survival responses to extreme
+  cold and isolation. The code is unwritten but universally understood among people
+  who live in the mountain terrain.'
+domain: physical_constraint
+id: survival_code
+lane: dynamic
+title: Wilderness Survival Code
+type: rule
+summary: The unwritten rules of mountain survival that override clan divisions when
+  life is at stake.

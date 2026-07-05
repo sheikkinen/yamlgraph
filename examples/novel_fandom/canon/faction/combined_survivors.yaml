@@ -1,0 +1,29 @@
+depth: 3
+description: The mixed group of Aschenwulf and Bärenschädel who survive the flood
+  and follow Reinmar to the high valley. Initially numbering around thirty people,
+  including a few children and elders. They are unified by shared catastrophe but
+  divided by history. Over the course of the first year, the clan lines begin to blur
+  as they share labor, shelter, and watch duty. By the third summer, the community
+  has grown to about forty people and the old clan identities have faded into memory.
+  They build permanent cabins, establish hunting grounds, and begin children who will
+  know only the high valley as home.
+id: combined_survivors
+lane: dynamic
+members:
+- hilde
+- gunnar
+- arnulf
+- heidrun
+- berno
+- reinthilde
+name: Flood Survivors
+type: faction
+internal_tensions: 'The split after Arnulf''s return nearly destroys the group. The
+  young men who side with Arnulf build separate shelters and refuse to share food.
+  Heidrun''s intervention and Arnulf''s eventual release of his father''s spirit prevent
+  bloodshed. Even after the reconciliation, some tensions remain: the Bärenschädel
+  survivors sometimes mutter that they gave up more land and cattle than the Aschenwulf,
+  and the Aschenwulf survivors sometimes mutter that they gave up their war-leader''s
+  rightful revenge.'
+summary: The mixed clan survivors who built a new community in the high valley after
+  the Great Flood.

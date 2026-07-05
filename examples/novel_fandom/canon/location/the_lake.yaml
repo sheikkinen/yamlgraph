@@ -1,0 +1,25 @@
+depth: 3
+description: A spring-fed lake at the center of the high valley, roughly half a mile
+  across at its widest. The water is clear and cold year-round, fed by underground
+  springs that never freeze solid. The shores are grassy, sloping gently down to the
+  water on the east side and rising to pine forest on the west. Fish can be seen in
+  the shallows. The lake becomes the physical and spiritual center of the new settlement.
+  The village is built on its eastern shore. The bonding rite is performed at the
+  water's edge.
+id: the_lake
+lane: dynamic
+location_type: lake
+name: High Valley Lake
+type: location
+atmosphere:
+- Calm and reflective, the lake is often still, mirroring the surrounding ridges
+- Water lapping at the shore is a constant, soothing presence
+- In winter, the edges freeze with a crystalline clarity
+- A small circle of open water remains at the center even in deepest cold, regarded
+  as a good omen
+significance: The lake serves as the ritual heart of the new community. Heidrun chooses
+  it as the site for the bonding rite because its spring-fed waters are independent
+  of the glaciers that caused the flood. When Arnulf throws his knife into the lake,
+  the act is both a rejection of violence and a submission to the new order. The two
+  halves of the cut leather from the bonding rite sink into its depths, carrying the
+  feud with them.

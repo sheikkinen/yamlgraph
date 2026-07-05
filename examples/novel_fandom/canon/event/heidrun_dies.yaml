@@ -1,0 +1,27 @@
+depth: 3
+affected_locations:
+- high_valley
+- the_lake
+consequences:
+- The community loses its spiritual elder and keeper of the old songs
+- Her legacy of peace endures in the community's customs
+- She is buried by the lake she used for the bonding rite
+- 'Her death marks the end of the transition: the community must now sustain itself
+  without her guidance'
+id: heidrun_dies
+lane: dynamic
+participants:
+- heidrun
+scope: local
+type: event
+window: Heidrun dies peacefully in her sleep during the second winter in the high
+  valley. She is found by Hilde in the morning, lying on her sleeping furs with her
+  hands folded. There is no sign of struggle or pain. The community buries her by
+  the lake, at the spot where she performed the bonding rite. Hilde speaks the old
+  words of passing, the ones Heidrun taught her. The winter is cold and the ground
+  is hard, but they dig the grave by torchlight and line it with pine boughs. Arnulf
+  stands at the burial with Gunnar beside him. Heidrun is the last voice of the old
+  world, and with her death, the new community must find its own way.
+year: 2
+summary: Heidrun dies peacefully in her sleep during the second winter in the high
+  valley.

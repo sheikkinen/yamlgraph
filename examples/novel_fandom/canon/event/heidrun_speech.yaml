@@ -1,0 +1,30 @@
+depth: 3
+affected_locations:
+- original_valley
+consequences:
+- Survivors begin to trust Reinmar enough to follow him
+- Heidrun establishes herself as the spiritual authority for the combined group
+- The flood is framed as divine judgment for the blood-feud
+- The truce between Hilde and Gunnar on the ledge is reinterpreted as a sign from
+  the gods
+- About half of each clan agrees to follow Reinmar; the rest stay in the valley
+id: heidrun_speech
+lane: dynamic
+participants:
+- heidrun
+- hilde
+- gunnar
+- reinmar
+scope: local
+type: event
+window: 'No one trusts Reinmar. He is a stranger and has no clan. But Heidrun, the
+  keeper of the old rites for the combined survivors, speaks for him. She is sixty
+  years old, the only person who knows the old songs and the signs. She tells the
+  survivors that the flood is a judgment: the blood-feud between Aschenwulf and Bärenschädel
+  has soiled the ground and the water, and the gods have sent the thaw to wash them
+  off the land. The truce that made Hilde and Gunnar share a ledge, she says, is the
+  first sign of what the gods require: a new bond, not a new war. She urges the survivors
+  to follow Reinmar to the high valley and to let the old enmities die in the floodwaters.'
+year: 0
+summary: Heidrun declares the flood a divine judgment and urges the survivors to follow
+  Reinmar.

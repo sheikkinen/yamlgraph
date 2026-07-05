@@ -1,0 +1,25 @@
+depth: 3
+description: A natural rock shelf cut into the cliffside on the east wall of the valley,
+  forty feet wide and fifteen feet deep. The surface is uneven granite with a slight
+  backward tilt, which keeps stranded occupants from sliding off. A crack runs along
+  the back wall where Gunnar chips handholds over six days. Below the ledge, a boiling
+  channel of brown water roars past, thick with silt, debris, and the bodies of the
+  drowned. The water level rises to the ledge edge by mid-morning of the first day
+  and remains there until the seventh day, when it drops by two feet. The ledge has
+  no vegetation, no shelter, and no source of fresh water. At night, the stone retains
+  no heat, and the wind from the channel cuts through wool and leather.
+id: the_ledge
+lane: dynamic
+location_type: ledge
+name: The Ledge
+type: location
+atmosphere:
+- Exposed and cold, with constant roar of floodwaters making speech difficult
+- Spray from the channel coats the rock in a fine mist
+- At night, only starlight reflected on brown water; bodies float past in the current
+significance: The ledge is the crucible where the feud dies. Stripped of all social
+  context, Hilde and Gunnar are reduced to their bare humanity. The deer Gunnar hauls
+  from the river and shares is the first act of cooperation. The back-to-back sleep
+  on the third night is the first act of trust. The sex on the fifth night is the
+  first act of something neither of them has a name for. By the time they climb down,
+  they have been remade by the space.

@@ -2,11 +2,10 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Enforced ✅
+**Status:** Judged ✅
 **Effort:** 2 days
 **Requested:** 2026-07-03
 **Judged:** 2026-07-03
-**Enforced:** 2026-07-03 (commit `9ecaf65b`)
 
 ## Summary
 
@@ -313,33 +312,3 @@ task, not invention.
 - One demo in `examples/demos/graph-tool/`.
 - One capability update: add REQ to CAP-05.
 - Tests: tool parsing, circular detection, agent binding, error surfacing.
-
----
-
-## Implementation Status
-
-**Enforced 2026-07-03** in commit `9ecaf65b`. All ACs implemented and tested
-(`tests/unit/test_graph_tool.py`, tagged `REQ-YG-510`). Demo executed with
-`demo-output.log` committed (2-iteration agent run calling `tone_check`).
-
-### Deviations from plan
-
-1. **Layer split.** The plan placed `parse_graph_tools()` (including child
-   graph compilation) in `yamlgraph/tools/graph_tool.py`. Compilation requires
-   `load_graph_config` and `compile_graph`, which would create a Layer 3 →
-   Layer 2 import violating the import-linter contract. Actual: compilation
-   lives in Layer 2 as `graph_loader._parse_graph_tools()`; Layer 3
-   `graph_tool.py` keeps only `make_graph_tool_fn()` (invocation wrapper with
-   cycle guard + error surfacing) and `build_graph_tool()` (StructuredTool
-   wrapping), receiving pre-compiled graphs from the caller.
-2. **Demo child graph.** The plan reused `tone_router_demo.yaml`; the demo
-   instead ships a self-contained child pipeline in
-   `examples/demos/graph-tool/child/` (Judgement issue #6 flagged the path
-   uncertainty).
-
-### Traceability
-
-- REQ-YG-510 in `capabilities/CAP-05-tool-agent-integration.yaml` and `ARCHITECTURE.md`
-- Reference docs: `reference/graph-yaml.md` (Graph Tool section)
-- Follow-up: FR-660 (enforced) removed the `callable()` dispatch heuristic in
-  `agent.py` that this FR introduced; FR-683/FR-684 build on graph-tools.

@@ -1,0 +1,24 @@
+depth: 3
+affected_locations:
+- original_valley
+consequences:
+- Blood-feud begins between Aschenwulf and Bärenschädel
+- Hilde becomes war-leader of Aschenwulf after her father's death
+- Gunnar becomes the target of Hilde's vengeance
+- The feud lasts three winters, with multiple smaller raids and killings on both sides
+- The feud is the direct cause of Hilde's dawn raid, which triggers the flood confrontation
+id: feud_start
+lane: dynamic
+participants:
+- gunnar
+- hildes_father
+scope: local
+type: event
+window: In the third year before the flood, Gunnar kills Hilde's father in single
+  combat during a Bärenschädel counter-raid. The Aschenwulf war-leader had led a strike
+  against the Bärenschädel cattle pens. Gunnar intercepted him on open ground and
+  killed him cleanly in single combat. According to the law of blood-feud, the Aschenwulf
+  are now obligated to take a life in return. Hilde, as the war-leader's eldest child,
+  takes command of the Aschenwulf band and begins three winters of planning her revenge.
+year: -3
+summary: Gunnar kills Hilde's father, igniting the blood-feud that drives the story.

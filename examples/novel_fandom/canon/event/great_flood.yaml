@@ -1,16 +1,28 @@
-type: event
+depth: 3
+affected_locations:
+- original_valley
+- barenschadel_camp
+- the_ledge
+consequences:
+- Bodies, tents, weapons, and cattle swept south; both clans scattered
+- Hilde and Gunnar carried onto a ledge on the east cliffside
+- Arnulf struck by a floating pine and swept two miles downriver
+- The valley is permanently transformed; three rivers loosed by melting ice
+- The flood becomes the defining event of the era, marking Year 0 in the calendar
 id: great_flood
 lane: dynamic
-depth: 0
-year: 0
-scope: regional
 participants:
 - hilde
 - gunnar
 - arnulf
-- aschenwulf
-- bärenschädel
-consequences:
-- Riverbank collapse releases a surge that drowns both clans' camps.
-- Hilde and Gunnar are stranded on a limestone ledge.
-- Arnulf is swept downstream.
+scope: regional
+type: event
+window: A glacial lake above the valley, fed by melting ice, bursts its natural dam.
+  The wall of water hits the Bärenschädel camp at sunrise, scattering both the raiding
+  Aschenwulf and the defending Bärenschädel. The floodwaters rise throughout the morning
+  and continue to reshape the valley over the following weeks. Reinmar later reports
+  that three rivers have been loosed by the melting ice, warning that the entire region
+  will be underwater within the season.
+year: 0
+summary: The catastrophic glacial flood that destroys both clans' settlements and
+  defines the calendar.

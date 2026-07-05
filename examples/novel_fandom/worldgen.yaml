@@ -105,14 +105,11 @@ tools:
     path: ref_check.yaml
     description: "Run semantic referential integrity audit on the full canon. No args needed."
     output_key: result
-  dedup_check:
-    type: graph
-    path: semantic_dedup.yaml
-    description: "Check if a candidate entity already exists under a different name. Args: candidate_id, candidate_summary. Returns merge_map."
-    input_mapping:
-      candidate_id: candidate_id
-      candidate_summary: candidate_summary
-    output_key: merge_map
+  update_refs:
+    type: python
+    path: nodes/creation_tools.py
+    function: update_refs
+    description: "Rewrite all references from old_id to new_id across canon. Use when dedup gate refuses a create and dangling references remain. Args: old_id, new_id."
   final_gate:
     type: python
     path: nodes/creation_tools.py
@@ -137,7 +134,7 @@ nodes:
       - lookup_canon_page
       - list_canon_ids
       - ref_check
-      - dedup_check
+      - update_refs
     max_iterations: 100
     state_key: worldgen_result
     temperature: 0.7

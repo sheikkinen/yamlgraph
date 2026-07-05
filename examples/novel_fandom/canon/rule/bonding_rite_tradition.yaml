@@ -1,0 +1,18 @@
+depth: 3
+description: 'A ceremonial rite performed at a lake to symbolically end old lineages
+  and begin a new one. The hands of the two participants are bound together with leather
+  soaked in lake water. Each speaks a declaration laying down their feud against the
+  other''s clan. The leather is cut and both halves are thrown into the lake, signifying
+  that the old bonds are dissolved and cannot be retrieved. Heidrun designs this rite
+  specifically for Hilde and Gunnar, adapting older traditions of hand-fasting and
+  water offerings to the needs of the new community. The rite is performed publicly
+  so the entire community can witness the formal end of the feud. The use of lake
+  water from the spring-fed high valley lake is intentional: it is water untouched
+  by the glacial flood, symbolizing a new beginning untainted by the catastrophe.'
+domain: social_rule
+id: bonding_rite_tradition
+lane: dynamic
+title: Rite of New Bonding
+type: rule
+summary: A ceremony devised by Heidrun to formally end the feud and bind Hilde and
+  Gunnar as a new kind of pair.

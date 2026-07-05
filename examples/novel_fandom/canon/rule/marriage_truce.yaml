@@ -1,6 +1,0 @@
-type: rule
-id: marriage_truce
-lane: dynamic
-depth: 0
-domain: social_rule
-title: Marriage Truce

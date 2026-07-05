@@ -1,0 +1,28 @@
+depth: 3
+affected_locations:
+- original_valley
+- salt_road
+consequences:
+- Survivors learn the flooding will not stop
+- Reinmar reveals the existence of the high valley to the east
+- He offers to guide anyone who wants to go
+- No one trusts him at first because he is clanless
+- Heidrun eventually speaks for him, changing the course of the survivors' fate
+id: reinmar_arrives
+lane: dynamic
+participants:
+- reinmar
+- heidrun
+scope: regional
+type: event
+window: On the seventh day after the flood, a man named Reinmar arrives at the valley
+  from the southeast, following the old salt-road that is now half-submerged. He is
+  a trader, clanless, carrying a pack of dried fish and a copper knife. He sees the
+  survivors scattered along the higher slopes and climbs to meet them. He warns that
+  three rivers have been loosed by the melting ice and the entire valley will be underwater
+  within the season. He tells them he has crossed the pass to the east and seen a
+  high valley that is still dry, with game and fresh water and flat ground that will
+  stay above the rising water. He offers to guide anyone who wants to go there.
+year: 0
+summary: The clanless trader Reinmar arrives and reveals the existence of the high
+  valley.

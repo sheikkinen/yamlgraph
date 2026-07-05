@@ -675,11 +675,21 @@ class TestReloadCanon:
 
 class TestSeedCanon:
     @pytest.mark.req("REQ-YG-494")
-    def test_all_seed_pages_dynamic(self):
+    def test_all_seed_pages_have_lane(self):
+        """All canon pages have a lane field; narrative types may be static."""
         canon_dir = NOVEL_FANDOM_DIR / "canon"
-        for f in canon_dir.glob("**/*.yaml"):
+        static_ok = {"synopsis", "premise"}
+        for f in sorted(canon_dir.rglob("*.yaml")):
             data = yaml.safe_load(f.read_text())
-            assert data.get("lane") == "dynamic", f"{f.name} is not lane:dynamic"
+            lane = data.get("lane")
+            assert lane in (
+                "dynamic",
+                "static",
+            ), f"{f.name} has no valid lane (got {lane!r})"
+            if data.get("type") not in static_ok:
+                assert (
+                    lane == "dynamic"
+                ), f"{f.name} (type={data.get('type')}) should be lane:dynamic"
 
 
 # --- Graph lint (REQ-YG-494) ---

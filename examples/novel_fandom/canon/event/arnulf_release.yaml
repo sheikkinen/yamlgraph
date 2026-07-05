@@ -1,0 +1,26 @@
+depth: 3
+affected_locations:
+- high_valley
+- the_lake
+consequences:
+- Arnulf releases his father's spirit from the feud
+- He accepts Hilde's choice publicly
+- He returns to the camp community for the evening meal
+- The path is cleared for the bonding rite to proceed
+id: arnulf_release
+lane: dynamic
+participants:
+- arnulf
+- hildes_father
+scope: local
+type: event
+window: Arnulf refuses Heidrun's request for three days. He stays in his lean-to,
+  speaking to no one except Heidrun during her evening visits. On the third day, he
+  goes to the lake at dawn, alone. He stands at the water's edge and speaks the words
+  of release to the spirit of his father. He tells the spirit that the feud is finished
+  because there is no one left to carry it. He says Hilde has chosen and he will not
+  fight her. Then he walks back into the camp and sits down with the others for the
+  evening meal. No one speaks to him. He eats in silence. But he stays.
+year: 0
+summary: Arnulf releases his father's spirit from the feud and returns to the camp
+  community.

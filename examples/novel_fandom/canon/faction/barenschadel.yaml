@@ -1,0 +1,24 @@
+depth: 3
+description: 'A larger and more settled clan band that occupied the main valley floor.
+  They had better-built shelters, more cattle, and more stored provisions than the
+  Aschenwulf. Their war-leader Gunnar was known for his patience and defensive tactics.
+  They had the advantage of terrain: their camp sat at a choke point where the valley
+  narrowed. The flood destroyed their camp entirely, killing many and scattering their
+  cattle. After the flood, about half the Bärenschädel survivors follow Gunnar to
+  the high valley; the rest remain, unwilling to trust a peace brokered by a stranger
+  and a flood.'
+id: barenschadel
+lane: dynamic
+members:
+- gunnar
+- berno
+name: Bärenschädel Clan
+type: faction
+internal_tensions: Some of Gunnar's former warriors believe he has gone soft. They
+  argue that he should have killed Hilde when he had the chance on the ledge, or immediately
+  after they climbed down. The loss of their camp and cattle makes some of them desperate
+  and bitter. Berno's death on the journey to the high valley deepens their resentment.
+  Those who follow Gunnar do so out of personal loyalty rather than conviction that
+  the peace will hold.
+summary: The rival clan band led by Gunnar, whose camp was destroyed by the Great
+  Flood.

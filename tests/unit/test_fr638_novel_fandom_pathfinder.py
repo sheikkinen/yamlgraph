@@ -156,10 +156,18 @@ class TestRetrieveWindow:
     @pytest.mark.req("REQ-YG-487")
     def test_extracts_triggers(self, seed_canon: dict[str, dict]) -> None:
         """retrieve_window extracts triggers as beat generators."""
+        # Triggers field is optional in the entity schema;
+        # test that extraction works when present (synthetic character data)
+        canon_with_triggers = dict(seed_canon)
+        canon_with_triggers["test_char"] = {
+            "id": "test_char",
+            "type": "character",
+            "triggers": ["flood aftermath", "clan scattering"],
+        }
         state = {
-            "canon": seed_canon,
+            "canon": canon_with_triggers,
             "window": "great_flood",
-            "roster": ["hilde"],
+            "roster": ["test_char"],
         }
         result = retrieve_window(state)
         triggers = [t for t in result["context"]["tensions"] if t["type"] == "trigger"]

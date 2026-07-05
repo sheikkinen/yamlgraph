@@ -1,0 +1,28 @@
+depth: 3
+affected_locations:
+- high_valley
+- the_lake
+consequences:
+- Young men from both clans side with Arnulf, saying Hilde broke the old law
+- Women and older survivors follow Hilde, saying the old law drowned in the flood
+- Heidrun calls a gathering to prevent bloodshed
+- The camp is fractured along age and gender lines as much as clan lines
+id: second_camp_split
+lane: dynamic
+participants:
+- hilde
+- gunnar
+- arnulf
+- heidrun
+scope: local
+type: event
+window: After Arnulf's confrontation and his isolation, the camp splits again. Half
+  of the survivors, mostly young men from both clans, side with Arnulf. They say Hilde
+  has broken the old law and that the gods will punish the valley if she is not cast
+  out. The other half, mostly women and older survivors, follow Hilde. They say the
+  old law drowned in the flood and that the new ground requires a new law. The division
+  threatens to turn violent. Heidrun calls a gathering to address the rift before
+  it becomes another blood-feeding.
+year: 0
+summary: The camp splits after Arnulf's return, with young men supporting Arnulf and
+  older survivors supporting Hilde.

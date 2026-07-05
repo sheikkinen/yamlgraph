@@ -1,0 +1,30 @@
+depth: 3
+affected_locations:
+- high_valley
+- the_lake
+consequences:
+- Arnulf calls Hilde a traitor in front of the whole camp
+- Arnulf draws his knife and goes for Gunnar
+- Hilde steps between them unarmed and says she will kill Arnulf if he kills Gunnar
+- Arnulf throws his knife into the lake and isolates himself
+- He builds a lean-to a quarter mile from camp and speaks only to Heidrun
+id: arnulf_confrontation
+lane: dynamic
+participants:
+- arnulf
+- hilde
+- gunnar
+scope: local
+type: event
+window: Arnulf, nineteen years old and still carrying the bitterness of his weeks
+  alone and injured, cannot accept that the feud is over for Hilde. Their father was
+  killed by Gunnar. Hilde was supposed to kill Gunnar. Instead, she slept with him.
+  Arnulf calls her a traitor in front of the whole camp. He draws his knife and goes
+  for Gunnar. Hilde steps between them. She does not draw a weapon. She tells Arnulf
+  flatly, without tears, that if he kills Gunnar, she will kill him. Arnulf stares
+  at her for a long minute. Then he throws his knife into the lake and walks out of
+  the camp. He builds a lean-to a quarter mile away and refuses to speak to anyone
+  except Heidrun, who visits him every evening.
+year: 0
+summary: Arnulf confronts Hilde and Gunnar, draws a knife, and is stopped only by
+  Hilde's threat.

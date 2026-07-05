@@ -1,15 +1,24 @@
-type: event
+depth: 3
+affected_locations:
+- barenschadel_camp
+- original_valley
+consequences:
+- Both clans converge at Bärenschädel camp; flood hits before combat resolves
+- Hilde and Gunnar are carried onto the ledge
+- Arnulf is swept downriver
 id: dawn_raid
 lane: dynamic
-depth: 0
-year: 0
-scope: regional
 participants:
 - hilde
 - gunnar
 - arnulf
-- aschenwulf
-- bärenschädel
-consequences:
-- Hilde leads Aschenwulf warriors in a surprise attack on Bärenschädel camp.
-- The raid is interrupted by the flood.
+scope: local
+type: event
+window: Hilde leads a dozen Aschenwulf raiders across rising meltwater at dawn to
+  attack the Bärenschädel camp. Gunnar is waiting for them with his warriors positioned
+  in a half-circle around the camp. Before either side can strike, the glacial lake
+  above the valley bursts. Hilde had timed the raid for sunrise; the flood arrives
+  at the same moment.
+year: 0
+summary: Hilde's planned revenge attack on the Bärenschädel camp is interrupted by
+  the Great Flood.

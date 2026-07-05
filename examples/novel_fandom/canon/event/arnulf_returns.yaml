@@ -1,0 +1,29 @@
+depth: 3
+affected_locations:
+- high_valley
+- the_lake
+consequences:
+- Hilde and Arnulf reunite with an embrace
+- Arnulf sees Gunnar and realizes Hilde is with him
+- Arnulf rejects the end of the feud
+- The camp begins to split into factions
+id: arnulf_returns
+lane: dynamic
+participants:
+- arnulf
+- hilde
+- gunnar
+scope: local
+type: event
+window: On the forty-fifth day since the flood, Arnulf walks into the high valley.
+  The pine that struck him pinned him to a gravel bar a mile downstream, where the
+  flood dropped him half-dead. He was found by a small fishing band from the southern
+  delta, who nursed him through a fever and healed his broken arm. When he was well
+  enough to travel, he followed the trail of survivors north, climbing the eastern
+  pass alone. He sees Hilde first as she hauls water from the lake. She drops the
+  water skin and runs to him. They hold each other. Then Arnulf sees Gunnar walking
+  toward them from the tree line. Hilde tells Arnulf what happened on the ledge. Arnulf
+  does not accept it.
+year: 0
+summary: Arnulf returns to the high valley, reunites with Hilde, and rejects the end
+  of the feud.

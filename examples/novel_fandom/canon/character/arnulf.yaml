@@ -1,45 +1,54 @@
-id: arnulf
-type: character
-name: Arnulf
-summary: Hilde's brother who is swept downriver, presumed dead, but survives and is
-  rescued by Reinmar.
-backstory: 'Arnulf was born into a clan already locked in a bitter blood feud with
-  the Bärenschädel. His earliest memory is the smell of smoke from a raid that killed
-  his uncle. He grew up in the shadow of vengeance, watching his father harden into
-  a man of cold fury. When his father was killed in an ambush three years ago, Arnulf
-  swore to protect his sister Hilde, the new war-leader. He trained with the spear
-  every dawn, determined never to be caught off guard. His loyalty to Hilde was absolute—not
-  just as a brother but as a warrior who trusted her judgment above all. The night
-  before the dawn raid, Arnulf dreamed of drowning, of water closing over his father''s
-  face. He dismissed it as nerves. When the flood hit, he was torn from Hilde''s side,
-  swept downstream with the screams of his clansmen. Clinging to a log, he prayed
-  to the earth spirit to let him live long enough to find her. That desperation—the
-  need to see Hilde safe, to prove that the feud had not claimed everyone—became his
-  driving force. On the sandbar, half-dead, he was found by Reinmar, a trader who
-  gave him warmth and news that shattered him: his clan was believed dead. But Arnulf
-  refused to believe it. He followed Reinmar toward the Felsbach valley, driven by
-  a stubborn hope that Hilde had survived. When he finally saw her standing beside
-  Gunnar, his first instinct was to attack—only to learn the truth: the feud was built
-  on a lie. That revelation reshaped his purpose: not vengeance, but unity.'
-triggers:
-- sister_in_danger
-- clan_believed_dead
-- feud_revealed_false
-relationships:
-- to: hilde
-  kind: sibling
-  valence: ''
-- to: hildes_father
-  kind: son
-  valence: ''
-- to: reinmar
-  kind: rescued_by
-  valence: ''
-- to: gunnar
-  kind: former_enemy_now_brother_in_law
-  valence: ''
-birth_year: -28
-role: supporting
+depth: 3
 faction: aschenwulf
+id: arnulf
 lane: dynamic
-depth: 1
+name: Arnulf
+personality: Hilde's younger brother, nineteen years old. Holding horses at the downstream
+  edge of the Bärenschädel camp during the raid. Struck by a floating pine and swept
+  two miles downriver. Presumed drowned but rescued by a southern delta fishing band.
+  Returns to the high valley on the forty-fifth day. Refuses to accept the end of
+  the feud. Calls Hilde a traitor. Eventually speaks the words of release for his
+  father's spirit. Kills a bear alongside Gunnar in winter and reconciles.
+role: supporting
+type: character
+backstory: Arnulf was the younger child of the Aschenwulf war-leader, always living
+  in his father's shadow and then in Hilde's. When his father was killed, he was too
+  young and too untested to take command. Hilde became the leader instead. He resented
+  this but never said so. On the morning of the raid, he was assigned to hold the
+  horses. It was a task beneath a warrior, and he chafed at it. When the flood hit,
+  the pine that struck him broke his arm and knocked him unconscious. He woke among
+  strangers in the delta, feverish and alone, believing his sister had either died
+  or abandoned him.
+arc_summary: 'Arnulf''s arc is the hardest in the story. He is the character who has
+  the most to lose from the end of the feud: his father''s death is the defining event
+  of his young life, and revenge is the purpose he believed he was meant to fulfill.
+  His weeks of solitary recovery among strangers magnify his bitterness. When he returns
+  and finds Hilde sleeping with Gunnar, every sacrifice he made during his recovery
+  feels betrayed. His journey is from loyalty to the dead father toward acceptance
+  of the living sister. The words of release he speaks at the lake are a genuine letting
+  go, but it takes the bear kill with Gunnar to transform acceptance into something
+  like friendship.'
+fears:
+- That his father's death will be forgotten and meaningless
+- That Hilde has replaced him with Gunnar as the most important person in her life
+- That he has no place in the new community because his identity was built on the
+  feud
+goals:
+- Honor his father's memory in a way that does not destroy what remains of his family
+- Find a role in the high valley that gives him purpose outside the feud
+- Learn to trust Gunnar without feeling like a traitor to his father
+relationships:
+- kind: sister
+  to: hilde
+  valence: tense
+- kind: fathers_killer
+  to: gunnar
+  valence: hostile
+- kind: son
+  to: hildes_father
+  valence: positive
+- kind: confidant
+  to: heidrun
+  valence: positive
+summary: Hilde's younger brother who survived the flood alone and struggled to accept
+  the end of the blood-feud.

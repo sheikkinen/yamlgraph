@@ -345,10 +345,21 @@ def build_check_context(state: dict[str, Any]) -> dict[str, Any]:
 
 
 def persist_synopsis(state: dict[str, Any]) -> dict[str, Any]:
-    """Persist synopsis to canon as a static page. Called between LLM and agent."""
+    """Persist synopsis to canon as a static page. Called between LLM and agent.
+
+    FR-689: Clears existing synopsis files before writing to prevent
+    dual-synopsis (e.g. old floodmark_saga_synopsis.yaml + new synopsis.yaml).
+    """
     synopsis_text = state.get("synopsis", "")
     if not synopsis_text:
         return {}
+
+    canon = _canon_path()
+    synopsis_dir = canon / "synopsis"
+    if synopsis_dir.exists():
+        for f in synopsis_dir.glob("*.yaml"):
+            f.unlink()
+
     page = {
         "type": "synopsis",
         "id": "synopsis",
@@ -356,7 +367,7 @@ def persist_synopsis(state: dict[str, Any]) -> dict[str, Any]:
         "depth": 0,
         "text": synopsis_text,
     }
-    _write_page(page, _canon_path())
+    _write_page(page, canon)
     return {}
 
 
@@ -366,7 +377,10 @@ def persist_synopsis(state: dict[str, Any]) -> dict[str, Any]:
 
 
 def final_gate(state: dict[str, Any]) -> dict[str, Any]:
-    """Deterministic terminal gate: mechanical ref_check on full canon."""
+    """Deterministic terminal gate: mechanical ref_check + cross-type collision.
+
+    FR-689: Also detects cross-type ID collisions (same ID in event/ and rule/).
+    """
     from canon_tools import _load_canon
     from ref_integrity import validate_referential_integrity
 
@@ -374,14 +388,54 @@ def final_gate(state: dict[str, Any]) -> dict[str, Any]:
     all_pages = list(pages.values())
 
     if not all_pages:
-        return {"gate_result": {"valid": True, "orphan_ids": [], "violations": []}}
+        return {
+            "gate_result": {
+                "valid": True,
+                "orphan_ids": [],
+                "violations": [],
+                "id_collisions": {},
+            }
+        }
 
     result = validate_referential_integrity(all_pages)
+
+    # FR-689: Cross-type ID collision detection
+    # _load_canon deduplicates by ID, so we scan the filesystem directly
+    from collections import defaultdict
+
+    id_types: dict[str, list[str]] = defaultdict(list)
+    canon = _canon_path()
+    if canon.is_dir():
+        for type_dir in sorted(canon.iterdir()):
+            if not type_dir.is_dir():
+                continue
+            dir_type = type_dir.name
+            for f in sorted(type_dir.glob("*.yaml")):
+                with open(f) as fh:
+                    page_data = yaml.safe_load(fh)
+                if isinstance(page_data, dict) and "id" in page_data:
+                    id_types[page_data["id"]].append(dir_type)
+    collisions = {k: v for k, v in id_types.items() if len(v) > 1}
+    if collisions:
+        result["valid"] = False
+        result["id_collisions"] = collisions
+        for cid, ctypes in collisions.items():
+            result.setdefault("violations", []).append(
+                f"cross-type ID collision: '{cid}' exists as {', '.join(ctypes)}"
+            )
+        logger.warning(
+            "Final gate: %d cross-type ID collisions: %s",
+            len(collisions),
+            ", ".join(collisions),
+        )
+    else:
+        result["id_collisions"] = {}
+
     if not result["valid"]:
         logger.warning(
             "Final gate: %d orphan IDs: %s",
-            len(result["orphan_ids"]),
-            ", ".join(result["orphan_ids"]),
+            len(result.get("orphan_ids", [])),
+            ", ".join(result.get("orphan_ids", [])),
         )
     else:
         logger.info("Final gate: PASS — canon integrity verified")
@@ -460,3 +514,114 @@ def deepen_entity(
     if result.startswith("Error:"):
         return result
     return f"Deepened {id} to depth {page['depth']}"
+
+
+# ============================================================
+# update_refs — deterministic reference rewriter (FR-689)
+# ============================================================
+
+
+def update_refs(state: dict[str, Any]) -> dict[str, Any]:
+    """Rewrite all references from old_id to new_id across canon.
+
+    FR-689: Deadlock prevention — when dedup gate refuses a create,
+    the agent uses this to repoint dangling references to the surviving ID.
+    """
+    old_id = state.get("old_id", "")
+    new_id = state.get("new_id", "")
+    if not old_id or not new_id:
+        return {"result": "Error: update_refs requires old_id and new_id"}
+
+    canon = _canon_path()
+    updated_count = 0
+
+    for f in sorted(canon.rglob("*.yaml")):
+        with open(f) as fh:
+            page = yaml.safe_load(fh)
+        if not isinstance(page, dict):
+            continue
+
+        changed = False
+
+        # Rewrite list fields: participants, references, members, affected_locations
+        for field in ("participants", "references", "members", "affected_locations"):
+            items = page.get(field, [])
+            if old_id in items:
+                page[field] = [new_id if x == old_id else x for x in items]
+                changed = True
+
+        # Rewrite relationships[].to
+        for rel in page.get("relationships", []):
+            if isinstance(rel, dict) and rel.get("to") == old_id:
+                rel["to"] = new_id
+                changed = True
+
+        # Rewrite faction
+        if page.get("faction") == old_id:
+            page["faction"] = new_id
+            changed = True
+
+        if changed:
+            fd, tmp_path = tempfile.mkstemp(dir=f.parent, suffix=".tmp", prefix=".ref_")
+            try:
+                with os.fdopen(fd, "w", encoding="utf-8") as fh_w:
+                    yaml.safe_dump(
+                        page,
+                        fh_w,
+                        default_flow_style=False,
+                        allow_unicode=True,
+                        sort_keys=False,
+                    )
+                os.replace(tmp_path, f)
+            except Exception:
+                if os.path.exists(tmp_path):
+                    os.unlink(tmp_path)
+                raise
+            updated_count += 1
+
+    return {"result": f"Updated {updated_count} files: {old_id} → {new_id}"}
+
+
+# ============================================================
+# dedup_pre_check — deterministic pre-check (FR-689)
+# ============================================================
+
+
+def dedup_pre_check(state: dict[str, Any]) -> dict[str, Any]:
+    """Deterministic pre-check: exact-ID existence + cross-type collision.
+
+    Runs before the dedup LLM gate in create_* pipelines.
+    Returns dedup_refused=True if the entity cannot be created.
+    """
+    entity_type = state.get("entity_type", "")
+    entity_id = state.get("id", "")
+    if not entity_id:
+        return {"dedup_refused": False}
+
+    canon = _canon_path()
+
+    # Check 1: Exact ID exists (any type)
+    for type_dir in canon.iterdir():
+        if not type_dir.is_dir():
+            continue
+        target = type_dir / f"{entity_id}.yaml"
+        if target.exists():
+            existing_type = type_dir.name
+            if existing_type == entity_type:
+                return {
+                    "dedup_refused": True,
+                    "result": (
+                        f"Refused: {entity_type} '{entity_id}' already exists. "
+                        f"Use deepen_entity to enrich it, or update_refs to repoint references."
+                    ),
+                }
+            else:
+                return {
+                    "dedup_refused": True,
+                    "result": (
+                        f"Refused: ID '{entity_id}' already exists as {existing_type}. "
+                        f"Cross-type ID collision. Choose a different ID."
+                    ),
+                }
+
+    return {"dedup_refused": False}

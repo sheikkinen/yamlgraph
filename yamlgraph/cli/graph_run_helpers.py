@@ -126,6 +126,9 @@ def _build_run_config(args: Namespace, graph_config, initial_state: dict) -> tup
     """Build LangGraph run configuration from CLI args and graph config."""
     from yamlgraph.utils.tracing import create_tracer, inject_tracer_config
 
+    yaml_variables = graph_config.raw_config.get("variables") or {}
+    if yaml_variables:
+        initial_state = {**yaml_variables, **initial_state}
     if graph_config.data:
         initial_state = {**graph_config.data, **initial_state}
 

@@ -1,0 +1,23 @@
+depth: 3
+affected_locations:
+- the_ledge
+consequences:
+- Both have food to survive the remaining days on the ledge
+- First act of cooperation between Hilde and Gunnar
+- Gunnar shares without being asked, establishing a baseline of shared humanity
+- The deer meat sustains them through days five and six
+id: deer_recovery
+lane: dynamic
+participants:
+- hilde
+- gunnar
+scope: local
+type: event
+window: On the second day on the ledge, a dead deer floats past in the brown water.
+  Gunnar hauls it up with his leather belt, using a hook he has improvised from a
+  splinter of rock. He butchers it with his knife and shares the meat with Hilde without
+  her asking. There is no negotiation, no bargain, no condition attached. He simply
+  splits the carcass and pushes half toward her.
+year: 0
+summary: Gunnar recovers a dead deer from the flood and shares it with Hilde, the
+  first act of cooperation on the ledge.

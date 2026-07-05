@@ -132,12 +132,12 @@ class TestGenesisAgentStructure:
         assert persist_to_agent, "Missing edge: persist_synopsis → genesis"
 
     @pytest.mark.req("REQ-YG-518")
-    def test_genesis_agent_has_dedup_check(self) -> None:
-        """AC-7: dedup_check in genesis agent tools."""
+    def test_genesis_agent_has_update_refs(self) -> None:
+        """FR-689: update_refs replaces standalone dedup_check."""
         config = _load_graph("genesis.yaml")
         agent = config["nodes"]["genesis"]
         tools = agent.get("tools", [])
-        assert "dedup_check" in tools
+        assert "update_refs" in tools
 
     @pytest.mark.req("REQ-YG-518")
     def test_genesis_graph_lints(self) -> None:
@@ -457,12 +457,12 @@ class TestWorldgenAgentStructure:
             ), f"Node '{name}' is type: map — FR-686 forbids map nodes"
 
     @pytest.mark.req("REQ-YG-520")
-    def test_worldgen_agent_has_dedup_check(self) -> None:
-        """AC-5: dedup_check graph-tool in worldgen agent tools."""
+    def test_worldgen_agent_has_update_refs(self) -> None:
+        """FR-689: update_refs replaces standalone dedup_check."""
         config = _load_graph("worldgen.yaml")
         agent = config["nodes"]["worldgen"]
         tools = agent.get("tools", [])
-        assert "dedup_check" in tools
+        assert "update_refs" in tools
 
     @pytest.mark.req("REQ-YG-520")
     def test_worldgen_agent_has_ref_check(self) -> None:

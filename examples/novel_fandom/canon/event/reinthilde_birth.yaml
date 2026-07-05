@@ -1,0 +1,26 @@
+depth: 3
+affected_locations:
+- high_valley
+- the_lake
+consequences:
+- A new generation born in the high valley, untainted by the feud
+- The name Reinthilde merges the old word for counsel with Hilde's name
+- Symbolizes the new beginning for the community
+- Arnulf becomes the camp's hunter, Gunnar teaches climbing to children
+id: reinthilde_birth
+lane: dynamic
+participants:
+- hilde
+- gunnar
+- reinthilde
+scope: local
+type: event
+window: In the third summer after the flood, Hilde gives birth to a daughter by the
+  edge of the lake. The birth is attended by the women of the community, including
+  those who were once Aschenwulf and those who were once Bärenschädel. Hilde names
+  the child Reinthilde, combining the old word for counsel—rein—and her own name.
+  It is a name that has never been used by either clan. Gunnar teaches the children
+  how to climb rock faces without ropes. Arnulf becomes the camp's hunter. The valley
+  stays dry. The flood never reaches it.
+year: 3
+summary: Hilde gives birth to Reinthilde, the first child of the new community.

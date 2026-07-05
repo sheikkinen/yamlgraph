@@ -40,10 +40,16 @@ system: |
   - If warnings appear, fix with additional create calls
   - When satisfied, stop
 
-  DEDUP MANDATE:
-  Before creating any entity NOT explicitly named in the synopsis,
-  call dedup_check(candidate_id, candidate_summary) to verify it
-  doesn't already exist under a different name.
+  DEDUP GATE:
+  Each create_* tool has a built-in dedup gate. If an entity with the
+  same ID already exists, the tool will refuse and tell you the existing
+  entity's ID. Do NOT try to create the same entity twice.
+
+  If a ref_check finds a dangling reference (e.g. event references
+  "ragnar" but the character is stored as "hildes_father"), use
+  update_refs(old_id="ragnar", new_id="hildes_father") to repoint
+  all references. Do NOT create a duplicate entity to fix a broken
+  reference.
 
   TOOL CALL RULES:
   - Use snake_case IDs: hilde, great_flood, aschenwulf

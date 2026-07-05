@@ -1,0 +1,26 @@
+depth: 3
+description: The valley where the Aschenwulf and Bärenschädel clans lived before the
+  flood. A steep-sided glacial valley with a river running through its center. The
+  Bärenschädel camp was on the valley floor near a choke point; the Aschenwulf used
+  the western slopes and upper tributaries. The valley was fertile enough to support
+  both clans with cattle grazing and hunting, but the land was never abundant enough
+  to eliminate competition. Above the valley, a glacial lake sat perched on the mountain,
+  fed by the melting ice. When the lake burst, the entire valley was scoured by a
+  wall of water, mud, and debris. Reinmar warns that the flooding will continue as
+  three rivers have been loosed by the melting ice.
+id: original_valley
+lane: dynamic
+location_type: valley
+name: The Flooded Valley
+type: location
+atmosphere:
+- 'Before the flood: green, steep, with the constant sound of meltwater running through
+  the river'
+- 'After the flood: devastated, everything coated in brown mud, the river a boiling
+  channel of debris'
+- The valley that was once home becomes an impassable wasteland within days
+significance: 'The original valley is the world that the flood destroys. It represents
+  the old order: clan territories, blood-feuds, ancestral ground that must be defended
+  and avenged. The survivors who stay behind rather than follow Reinmar are clinging
+  to this world even as it drowns. The flood does not just kill people and cattle;
+  it renders the entire framework of clan life uninhabitable.'

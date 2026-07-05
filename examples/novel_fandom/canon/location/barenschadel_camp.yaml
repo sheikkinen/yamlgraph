@@ -1,0 +1,23 @@
+depth: 3
+description: 'The main settlement of the Bärenschädel clan, situated on the valley
+  floor near where the river narrowed into a gorge. The camp consisted of a dozen
+  hide-and-timber shelters, a central fire pit, livestock pens, and a cache of dried
+  meat and weapons. The position was strategically chosen: it controlled access to
+  the upper valley and the pass beyond. Gunnar had placed sentries on the slopes above,
+  which is how he knew Hilde''s raiders were coming. The camp was defensible against
+  people but not against a wall of water from above. The glacial flood obliterated
+  it entirely, sweeping away shelters, pens, weapons, and bodies.'
+id: barenschadel_camp
+lane: dynamic
+location_type: camp
+name: Bärenschädel Camp
+type: location
+atmosphere:
+- 'Before the raid: quiet pre-dawn, fires banked, sentries alert'
+- 'During the flood: chaos, the roar of water, screams, collapsing shelters'
+- 'After the flood: flattened, muddy, strewn with wreckage and drowned cattle'
+significance: The camp is where the climax of the raid turns into the catastrophe
+  of the flood. It is also where Arnulf was stationed holding horses, at the downstream
+  edge. The destruction of the camp is the destruction of the Bärenschädel's material
+  base, forcing them to depend on the mercy of strangers and the guidance of a clanless
+  trader.

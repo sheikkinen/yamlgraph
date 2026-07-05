@@ -1,10 +1,11 @@
 # Create Character — graph-tool pipeline (FR-686, FR-658 showcase)
-# persist (python) → prefetch (python) → check (LLM) → END
+# FR-689: dedup_pre_check → persist → prefetch → check → END
 # Agent sees: create_character(id, name, role, ...) → "Created character hilde. Refs coherent."
+#   or: "Refused: character 'hilde' already exists."
 
 version: "1.0"
 name: create-character
-description: Create a character entity with semantic integrity check
+description: Create a character entity with dedup gate and semantic integrity check
 prompts_relative: true
 prompts_dir: prompts
 
@@ -19,6 +20,7 @@ state:
   faction: str
   summary: str
   related_to: str
+  dedup_refused: str
   persisted_page: dict
   result: str
   digest: str
@@ -27,6 +29,10 @@ state:
   check_result: str
 
 tools:
+  dedup_pre_check:
+    type: python
+    path: nodes/creation_tools.py
+    function: dedup_pre_check
   persist:
     type: python
     path: nodes/creation_tools.py
@@ -37,6 +43,10 @@ tools:
     function: build_check_context
 
 nodes:
+  dedup_pre_check:
+    type: python
+    tool: dedup_pre_check
+
   persist:
     type: python
     tool: persist
@@ -57,7 +67,13 @@ nodes:
 
 edges:
   - from: START
+    to: dedup_pre_check
+  - from: dedup_pre_check
     to: persist
+    condition: dedup_refused == false
+  - from: dedup_pre_check
+    to: END
+    condition: dedup_refused == true
   - from: persist
     to: prefetch
   - from: prefetch

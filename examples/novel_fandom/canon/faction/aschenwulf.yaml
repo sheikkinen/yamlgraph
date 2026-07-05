@@ -1,9 +1,23 @@
-type: faction
+depth: 3
+description: A clan band that controlled the western slopes and upper tributaries
+  of the valley. Known for their skill with the axe and their knowledge of the high
+  passes. Their war-leader was Hilde's father until Gunnar killed him in single combat,
+  after which Hilde took command. The band was smaller than the Bärenschädel but more
+  mobile, relying on dawn raids and quick strikes rather than prolonged engagements.
+  About half of the Aschenwulf survivors follow Hilde to the high valley; the other
+  half stay in the ruined valley to seek their own fate.
 id: aschenwulf
 lane: dynamic
-depth: 0
-name: Aschenwulf
 members:
 - hilde
 - arnulf
 - hildes_father
+name: Aschenwulf Band
+type: faction
+internal_tensions: The younger warriors, especially those who lost kin in the feud,
+  resent Hilde's decision to spare Gunnar. They see her relationship with Gunnar as
+  a betrayal of the dead. The older members and women who bore the cost of the feud
+  are more willing to accept the peace. This fracture mirrors the larger split in
+  the camp after Arnulf's return.
+summary: The clan band led by Hilde, locked in a blood-feud with the Bärenschädel
+  for three winters before the flood.

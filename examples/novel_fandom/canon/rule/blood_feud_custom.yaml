@@ -1,0 +1,18 @@
+depth: 3
+description: A killing between clans creates an obligation for the victim's kin to
+  take a life in return. The feud passes through family lines and can persist for
+  generations. To end a feud without blood payment is considered a betrayal of the
+  dead. The feud can only be formally ended through a rite of release spoken by the
+  closest kin of the slain. In practice, the law means that every death demands another
+  death, and each death creates new mourners who are then obligated to seek revenge.
+  The cycle is self-perpetuating. The Aschenwulf-Bärenschädel feud ran for three winters
+  before the flood, during which both clans lost multiple members beyond Hilde's father.
+  The custom does not distinguish between just and unjust killings; it only demands
+  balance.
+domain: social_rule
+id: blood_feud_custom
+lane: dynamic
+title: Law of Blood-Feud
+type: rule
+summary: The customary obligation requiring kin to avenge a killing with another killing,
+  perpetuating clan warfare.

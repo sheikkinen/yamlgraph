@@ -1,0 +1,27 @@
+depth: 3
+affected_locations:
+- high_valley
+consequences:
+- Gunnar and Arnulf reconcile through shared combat
+- Arnulf begins talking to Gunnar, first about the ledge, then about hunting
+- They become hunting partners
+- The bear carcass provides meat and fur for the whole community through late winter
+- The reconciliation heals the final rift in the community
+id: bear_kill
+lane: dynamic
+participants:
+- gunnar
+- arnulf
+scope: local
+type: event
+window: In the dead of winter, a bear comes down from the timber, driven by hunger,
+  and tears open two of the community's food caches. Arnulf and Gunnar are the first
+  to reach the caches, arriving from opposite sides of the village. They kill the
+  bear together without needing to coordinate—Gunnar with a thrusting spear to the
+  chest and Arnulf with an axe to the spine as the bear turns. They drag the carcass
+  back to the village together. That night, Arnulf sits across from Gunnar at the
+  central fire and asks about the ledge. Gunnar tells him about the six days. By the
+  end of the night, they are talking about the hunting on the eastern slopes. It is
+  not forgiveness. It is the beginning of something else.
+year: 0
+summary: Arnulf and Gunnar kill a bear together, leading to their reconciliation.

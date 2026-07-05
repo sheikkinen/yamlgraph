@@ -1,0 +1,23 @@
+depth: 3
+faction: barenschadel
+id: berno
+lane: dynamic
+name: Berno
+personality: A Bärenschädel man who joins the journey to the high valley. He is one
+  of the Bärenschädel who trust Gunnar enough to follow him into an unknown future.
+  He is not a warrior by trade; he is a herdsman, more comfortable with cattle than
+  with axes. His death comes when he loses his footing on a scree slope during the
+  eighteen-day journey, breaking his neck in the fall. He is buried in the mountains,
+  far from his ancestral ground.
+role: minor
+type: character
+backstory: Berno was a quiet man who lost his wife to a winter fever two years before
+  the flood. He had no children. The feud meant little to him personally; his grief
+  was already too large to make room for someone else's. He followed Gunnar because
+  Gunnar was his war-leader and because staying in the ruined valley meant starving.
+  He died before he ever saw the high valley.
+relationships:
+- kind: clanmate
+  to: gunnar
+  valence: positive
+summary: A Bärenschädel herdsman who died on the journey to the high valley.

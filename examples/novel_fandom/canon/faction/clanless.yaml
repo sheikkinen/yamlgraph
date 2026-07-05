@@ -1,0 +1,19 @@
+depth: 3
+description: People who belong to no clan. In the mountain region, clan membership
+  determines access to hunting grounds, trade routes, and protection. The clanless
+  live at the margins, trading where they can and sleeping where they must. They are
+  viewed with suspicion by clan people, who see them as untrustworthy because they
+  have no kin to vouch for them. Reinmar is the only clanless person in the story,
+  but he represents a whole class of people who move between the clans carrying news,
+  goods, and knowledge that the settled people lack.
+id: clanless
+lane: dynamic
+members:
+- reinmar
+name: Clanless Wanderers
+type: faction
+internal_tensions: 'The clanless have no leaders and no hierarchy. Each wanderer makes
+  their own way. Their lack of organization is both their weakness and their strength:
+  no one commands them, but no one protects them either.'
+summary: People without clan affiliation who live as traders and guides between clan
+  territories.

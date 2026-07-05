@@ -1,0 +1,29 @@
+depth: 3
+faction: combined_survivors
+id: reinthilde
+lane: dynamic
+name: Reinthilde
+personality: Daughter of Hilde and Gunnar, born in the third summer after the flood.
+  Her name combines the old word for counsel—rein—and Hilde's own name, symbolizing
+  the merging of wisdom and leadership. She is the first child born in the high valley
+  who belongs to neither clan specifically but to the new community as a whole. She
+  grows up in a world where the feud is only a story told by adults, not a lived reality.
+role: minor
+type: character
+backstory: 'Reinthilde is born in the third summer after the flood, delivered by the
+  women of the community at the edge of the lake. Her birth is the first fully new
+  thing that the community has created together, not salvaged from the old world.
+  Hilde chooses her name deliberately: rein for counsel, thilde from her own name.
+  It is a name that has never been used by either the Aschenwulf or the Bärenschädel.
+  When Gunnar teaches the children to climb without ropes, Reinthilde is among them.
+  When Arnulf teaches hunting, she learns that too. She is the proof that the community
+  will survive beyond its founders.'
+relationships:
+- kind: mother
+  to: hilde
+  valence: positive
+- kind: father
+  to: gunnar
+  valence: positive
+summary: The first child born in the high valley, daughter of Hilde and Gunnar, symbol
+  of the new beginning.

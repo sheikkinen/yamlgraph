@@ -1,0 +1,30 @@
+depth: 3
+affected_locations:
+- original_valley
+- salt_road
+- high_valley
+consequences:
+- Two children die of cold during the crossing
+- Berno breaks his neck on a scree slope and is buried in the mountains
+- Hilde and Gunnar share watch duty and sleeping shelter, deepening their bond
+- Clan lines begin to blur as shared labor and hardship replace old divisions
+- The survivors finally reach the high valley after eighteen days
+id: journey_high_valley
+lane: dynamic
+participants:
+- hilde
+- gunnar
+- reinmar
+- heidrun
+- berno
+scope: regional
+type: event
+window: The journey takes eighteen days. They cross three passes and two half-frozen
+  rivers. The path is narrow and wet, with meltwater running across the trail in many
+  places. Two children die of cold despite being wrapped in every available skin.
+  Berno, a Bärenschädel man, slips on a scree slope and breaks his neck. Reinmar keeps
+  them moving with a relentless pace, knowing that delays will kill more than the
+  terrain will. Hilde and Gunnar share watch duty and share a sleeping shelter. Heidrun
+  watches them and says nothing.
+year: 0
+summary: The eighteen-day journey from the flooded valley to the high valley.

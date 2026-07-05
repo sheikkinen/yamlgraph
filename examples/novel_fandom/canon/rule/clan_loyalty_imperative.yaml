@@ -1,0 +1,17 @@
+depth: 3
+description: An individual's identity is defined by their clan. Betraying your clan
+  or making alliance with the enemy clan without proper resolution is considered treason.
+  A person who breaks clan law may be cast out. This imperative drives the conflict
+  when Hilde and Gunnar return from the ledge together. The imperative also governs
+  access to hunting grounds, marriage, trade, and shelter. The young men who side
+  with Arnulf invoke this imperative when they say Hilde has broken the old law. The
+  women and older survivors who side with Hilde argue that the imperative died with
+  the flood. The clash between the old imperative and the new reality is the central
+  tension of the story.
+domain: social_rule
+id: clan_loyalty_imperative
+lane: dynamic
+title: Clan Loyalty Imperative
+type: rule
+summary: The social law that binds identity and loyalty to one's clan above all other
+  ties.

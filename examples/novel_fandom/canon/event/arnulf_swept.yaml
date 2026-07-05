@@ -1,0 +1,24 @@
+depth: 3
+affected_locations:
+- original_valley
+consequences:
+- Arnulf presumed drowned by the Aschenwulf band
+- His body not recovered from the mud when water recedes on the fifth day
+- He is actually pinned on a gravel bar a mile downstream, half-dead
+- Rescued by a southern delta fishing band who nurse him through a fever
+- His absence sets up the shock of his return on the forty-fifth day
+id: arnulf_swept
+lane: dynamic
+participants:
+- arnulf
+scope: local
+type: event
+window: During the flood, Arnulf is on the downstream edge of the Bärenschädel camp
+  holding the horses for the Aschenwulf raiders. He is struck by a floating pine and
+  swept two miles downriver. The pine pins him to a gravel bar a mile downstream,
+  where the flood drops him half-dead. When the survivors comb the mud on the fifth
+  day, they find no trace of him. The Aschenwulf band declares him drowned. Hilde,
+  stranded on the ledge, cannot see any of this.
+year: 0
+summary: Arnulf is struck by debris and swept downriver during the flood, presumed
+  dead.

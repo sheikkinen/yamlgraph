@@ -1,48 +1,51 @@
-id: hilde
-type: character
-name: Hilde
-summary: War-leader of the Aschenwulf who raids the Bärenschädel to avenge her father's
-  death and ends up bound to Gunnar.
-birth_year: -25
-role: protagonist
-lane: dynamic
+depth: 3
 faction: aschenwulf
-depth: 0
-backstory: 'Hilde was born in the Wittensee valley during the last deep cold of the
-  old age. Her father, the war-leader of the Aschenwulf, taught her the lore of the
-  high ground and the art of ambush. When she was twelve, her father led a raid against
-  the Bärenschädel to recover reindeer that were claimed stolen. The raid turned into
-  an ambush. Hilde’s father was cut down by Gunnar’s spearmen. She found his body
-  in the mud, a spear through his chest, and swore an oath over his blood: every Bärenschädel
-  would pay. She trained harder than any warrior, learned the war-leader’s signs and
-  the hidden paths of the high ground. At eighteen, she fought in a border skirmish
-  and killed her first Bärenschädel. By twenty, she was named war-leader, the youngest
-  of her clan. Her brother Arnulf stood beside her as shield-bearer. For five years,
-  she nursed her vengeance, waiting for the moment when the spring thaw swelled the
-  rivers and gave her clan cover. The dawn raid on Gunnar’s camp was her plan, her
-  chance. She told herself it was justice. She did not know the flood would drown
-  the past.'
-driving_force: To avenge her father's death; later transformed by survival necessity
-  into a drive to unite the clans and forge a new peace.
-triggers:
-- father's death
-- the flood
-- survival truce
-- marriage rite
-- arnulf's attack
+id: hilde
+lane: dynamic
+name: Hilde
+personality: Leader of the Aschenwulf band. Leads a dawn raid against the Bärenschädel
+  to avenge her father. Stranded on a ledge with Gunnar for six days during the flood.
+  Initiates sex with Gunnar on the fifth night. Refuses to continue the blood-feud
+  after the flood. Becomes the co-founder of a new community in the high valley. Mother
+  of Reinthilde.
+role: protagonist
+type: character
+backstory: Hilde was raised as the eldest child of the Aschenwulf war-leader. When
+  her father was killed by Gunnar in the blood-feud, she took command of the band
+  despite being a young woman in a male-dominated clan structure. She spent three
+  winters training with the axe, learning the mountain passes, and planning her revenge.
+  The dawn raid on the Bärenschädel camp was her first major action as leader. She
+  chose the timing carefully—spring meltwater rising, the river loud enough to mask
+  footfalls, sunrise in the enemy's eyes.
+arc_summary: Starts as a woman driven by vengeance and clan duty. The flood strips
+  away the physical and social context of the feud. Stranded on the ledge, she is
+  forced to see Gunnar as a person rather than a symbol of her father's death. She
+  initiates the sex not as love but as a survival instinct and a recognition of shared
+  humanity. After the flood, she makes the conscious choice to end the feud, even
+  at the cost of her brother's respect. By the third summer, she has become the mother
+  of a child whose name—Reinthilde—merges counsel with her own identity, signaling
+  the new kind of leadership she embodies.
+fears:
+- That the feud will resurrect itself through Arnulf or the younger generation
+- That she will be seen as a traitor by her own people
+- That Gunnar will one day wake up and see his father's killer when he looks at her
+goals:
+- Survive the ledge, reunite with survivors, and prevent further bloodshed
+- Build a lasting community in the high valley where the blood-feud has no meaning
 relationships:
-- to: arnulf
-  kind: brother
-  valence: ''
-- to: gunnar
-  kind: husband
-  valence: ''
-- to: hildes_father
-  kind: father
-  valence: ''
-- to: frida
-  kind: elder
-  valence: ''
-- to: reinmar
-  kind: ally
-  valence: ''
+- kind: feud_enemy_turned_lover
+  to: gunnar
+  valence: positive
+- kind: younger_brother
+  to: arnulf
+  valence: tense
+- kind: daughter
+  to: hildes_father
+  valence: positive
+- kind: elder_advisor
+  to: heidrun
+  valence: positive
+- kind: follower
+  to: reinmar
+  valence: positive
+summary: The Aschenwulf leader who abandoned the feud and co-founded a new community.

@@ -1,0 +1,27 @@
+depth: 3
+affected_locations:
+- the_ledge
+- original_valley
+consequences:
+- Hilde and Gunnar trapped together for six days
+- No food or clean water; forced into proximity and cooperation
+- Gunnar chips handholds in the cliff face over six days
+- They sleep back to back on the third night
+- They have sex on the fifth night, initiated by Hilde
+- The feud begins to dissolve between them
+id: ledge_stranding
+lane: dynamic
+participants:
+- hilde
+- gunnar
+scope: local
+type: event
+window: Hilde and Gunnar, still locked in combat as the flood hits, are carried by
+  the surge onto a ledge cut into the cliffside on the east wall of the valley. The
+  water rises to the ledge edge by mid-morning and stops. They are stranded on a patch
+  of rock forty feet wide and fifteen feet deep above a boiling channel of brown water
+  thick with silt and bodies. There is no way up and no way down without climbing
+  tools they do not have. They share the ledge for six days.
+year: 0
+summary: The six-day stranding on the ledge that forces Hilde and Gunnar into proximity
+  and transforms their relationship.

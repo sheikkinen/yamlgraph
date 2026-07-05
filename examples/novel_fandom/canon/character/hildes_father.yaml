@@ -1,40 +1,31 @@
+depth: 3
+faction: aschenwulf
 id: hildes_father
-type: character
 lane: dynamic
 name: Hilde's Father
-birth_year: -60
+personality: The unnamed father of Hilde and Arnulf. Former war-leader of the Aschenwulf
+  band. Killed by Gunnar in single combat during a raid in the third winter of the
+  blood-feud. His death is the origin of the feud that drives the story. Arnulf speaks
+  words of release for his spirit at the bonding rite.
 role: minor
-status: dead
-faction: aschenwulf
-summary: Hilde and Arnulf's father, former war-leader of the Aschenwulf, killed by
-  Gunnar in a skirmish over a reindeer herd he believed was stolen by the Bärenschädel.
-backstory: 'Born in the last generation to remember the great cold, Hilde’s father
-  was a hard-handed war-leader of the Aschenwulf, a man who measured honor by the
-  strength of one’s spear arm and the safety of one’s kin. He was a stern but patient
-  teacher who saw in his daughter Hilde a ferocity he rarely found in grown warriors.
-  When a full winter’s herd of reindeer vanished from the eastern pasture in a sudden
-  thaw, he was convinced the Bärenschädel had raided in the night. He demanded recompense;
-  Gunnar, the Bärenschädel leader, swore ignorance. Blinded by grief for the starving
-  children of his clan, he led a small party to the Bärenschädel camp under a false
-  flag of parley. A fight broke out, and he fell to Gunnar’s axe before any words
-  could be exchanged. His last command to Hilde—carried back by a wounded runner—was
-  a single word: ''Avenge.'' That dying oath became the blood feud that drove Hilde
-  for ten winters, a feud that masked the truth: the reindeer had drowned in a mudslide,
-  a death the ice itself had hidden. His death, born of suspicion and cold hunger,
-  set in motion the very flood that would later wash away both clans.'
-triggers:
-- death_of_hildes_father
-- dawn_raid
+type: character
+backstory: 'He was a hard man by the standards of the mountain clans, respected more
+  than loved. He trained both his children in the use of the axe, though he never
+  expected Hilde to take command after his death. He was killed in a raid that he
+  initiated: he led a strike against the Bärenschädel cattle pens and was caught in
+  a counter-attack by Gunnar. The combat was brief and according to the old rules:
+  two war-leaders meeting on open ground. Gunnar won cleanly. He did not mutilate
+  the body or take trophies beyond the axe he still carries. This restraint is part
+  of why Hilde can eventually let go of the feud.'
 relationships:
-- to: hilde
-  kind: parent_of
-  valence: ''
-- to: arnulf
-  kind: parent_of
-  valence: ''
-- to: gunnar
-  kind: enemy
-  valence: ''
-- to: aschenwulf
-  kind: member_of
-  valence: ''
+- kind: daughter
+  to: hilde
+  valence: positive
+- kind: son
+  to: arnulf
+  valence: positive
+- kind: killed_by
+  to: gunnar
+  valence: negative
+summary: The murdered war-leader of the Aschenwulf band, whose death initiated the
+  blood-feud.

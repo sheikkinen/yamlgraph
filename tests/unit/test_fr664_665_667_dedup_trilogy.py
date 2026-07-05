@@ -337,10 +337,10 @@ class TestDedupEntities:
         assert result["red_link_count"] == 0
 
     @pytest.mark.req("REQ-YG-514")
-    def test_worldgen_agent_has_dedup_check(self) -> None:
-        """worldgen agent has dedup_check graph-tool (FR-686)."""
+    def test_worldgen_agent_has_update_refs(self) -> None:
+        """FR-689: worldgen agent has update_refs (dedup integrated into create_* pipelines)."""
         graph_path = NOVEL_FANDOM_DIR / "worldgen.yaml"
         with open(graph_path) as f:
             config = yaml.safe_load(f)
         agent = config["nodes"]["worldgen"]
-        assert "dedup_check" in agent["tools"]
+        assert "update_refs" in agent["tools"]

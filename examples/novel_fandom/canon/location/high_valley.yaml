@@ -1,0 +1,25 @@
+depth: 3
+description: 'A bowl-shaped valley at high elevation, surrounded by pine-timbered
+  slopes on three sides and a granite ridge to the east. The floor is flat grass about
+  a mile across, with a spring-fed lake at its center. Game is plentiful: bear, deer,
+  and smaller game in the timber. The water is clear and cold, fed by underground
+  springs rather than glacial melt, which means it stays drinkable year-round and
+  will not rise with the thaw. The timber line offers building materials and firewood.
+  The passes that lead into the valley are narrow and easy to defend. Reinmar found
+  it during his wanderings and recognized it as a place where people could survive
+  the coming floods.'
+id: high_valley
+lane: dynamic
+location_type: valley
+name: The High Valley
+type: location
+atmosphere:
+- Quiet and enclosed, with surrounding ridges blocking the worst of the wind
+- The lake reflects the sky; in summer the air smells of pine and water
+- In winter, snow covers everything and the lake freezes at the edges
+- Remote and isolated, safe but cut off from the rest of the world
+significance: The high valley represents the new beginning that the flood made possible.
+  It is untouched by the blood-feud. No Aschenwulf or Bärenschädel has ever hunted
+  here, fought here, or died here. It is neutral ground, and that neutrality allows
+  the survivors to build something new. The valley's spring-fed lake—independent of
+  the glaciers—is a symbol of the self-sustaining community they hope to create.

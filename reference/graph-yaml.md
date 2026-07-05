@@ -1408,42 +1408,6 @@ tools:
 pip install yamlgraph[websearch]
 ```
 
-### Graph Tool (FR-658)
-
-Invoke another YAMLGraph pipeline in-process as an opaque tool. The calling
-`agent` or `tool_call` node sees a typed tool — it doesn't know the tool is
-a full pipeline:
-
-```yaml
-tools:
-  tone_check:
-    type: graph
-    path: child/graph.yaml               # Resolved relative to parent graph
-    description: "Classify the tone of text. Returns: formal, casual, or technical."
-    input_mapping:
-      text: text                          # tool input field → child graph variable
-    output_key: tone                      # State key extracted as tool output
-```
-
-**Graph tool properties:**
-
-| Property | Type | Required | Description |
-|----------|------|----------|-------------|
-| `type` | `string` | Yes | Must be `"graph"` |
-| `path` | `string` | Yes | Child graph YAML path (relative to parent graph) |
-| `input_mapping` | `dict` | No | Maps tool input fields → child graph variables; keys define the tool's input schema (each becomes a `str` field) |
-| `output_key` | `string` | No | State key to extract from child result (default: `result`) |
-| `description` | `string` | No | Tool description for the agent LLM; defaults to child graph's `description` metadata |
-
-**Behavior:**
-- Child graph is compiled **once** at parse time; each call reuses the compiled graph
-- Circular references are detected at invocation time and returned as error text
-- Pipeline errors are caught and returned as error text — the parent agent loop never crashes
-- In-process only: no MCP server, no A2A network, no subprocess
-
-See `examples/demos/graph-tool/` for a working demo (agent self-correcting
-marketing copy via a tone-classification pipeline).
-
 ### Tool Type Summary
 
 | Type | Description | Example |
@@ -1451,7 +1415,6 @@ marketing copy via a tone-classification pipeline).
 | `shell` | Execute shell commands | `git log`, `ruff check` |
 | `python` | Call Python functions | Custom processing |
 | `websearch` | Web search via DuckDuckGo | Research agents |
-| `graph` | Invoke a YAMLGraph pipeline in-process | Fact-checking, tone analysis |
 
 ---
 

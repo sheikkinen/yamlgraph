@@ -1,48 +1,47 @@
-birth_year: -30
-depth: 1
-faction: independent
+depth: 3
+faction: clanless
 id: reinmar
 lane: dynamic
 name: Reinmar
+personality: A clanless trader who arrives at the flooded valley from the southeast,
+  following the old salt-road. Carries dried fish and a copper knife. Warns that three
+  rivers have been loosed and the entire valley will flood within the season. Has
+  crossed the pass to the east and found a high valley with game and fresh water.
+  Guides the survivors on an eighteen-day journey to the high valley. Claims the valley
+  for no one. Leaves after the first winter, returning south.
 role: supporting
-summary: A salt-road trader who rescues Arnulf and leads him to the Felsbach valley,
-  later exposing the false cause of the blood feud.
 type: character
-backstory: 'Reinmar was born into a family of salt-road traders who had worked the
-  routes between the northern tribes for generations. His father taught him the paths,
-  the languages, the signs of weather, and the art of moving goods through contested
-  territory without taking sides. By age fifteen, Reinmar was leading his own pack
-  train of two dogs, bartering salt, flint, and dried fish for hides, antlers, and
-  amber. He came to know both the Aschenwulf and Bärenschädel as customers—fierce
-  people, but reliable in trade. In the early thaw of his twentieth year, Reinmar
-  was passing through the Wittensee valley when he encountered a herd of reindeer
-  that had died en masse, their bodies bloated in the slush. The cause was clear:
-  an early melt had locked the lichen under ice, and the herd starved. He said nothing
-  of this, knowing that rumors of a stolen herd were already spreading between the
-  clans. An outsider’s truth would only be weaponized. For three decades he watched
-  the feud fester, trading with both sides, never speaking of what he saw. The flood
-  changed his calculations. When he found Arnulf half-drowned on a sandbar, he saw
-  a chance not just to save a life but to break the cycle. He guided Arnulf toward
-  the Felsbach valley, knowing the high ground would be a refuge. At the confrontation
-  with Gunnar, Reinmar finally revealed the truth about the reindeer—not as a judgment,
-  but as a key to unlock the past. His driving force is not profit but the conviction
-  that survival comes from knowledge shared at the right moment. He is the bridge
-  between the old world of isolated clans and the new world that must emerge after
-  the flood.'
-triggers:
-- seeing a stranded traveler — will offer aid, shelter, and guidance
-- hearing the feud mentioned with false premise — will reveal the truth about the dead
-  reindeer herd
+backstory: Reinmar was born into no clan. His mother was a woman cast out by the Bärenschädel
+  for marrying outside the bloodline, and his father was a trader from the southern
+  lowlands who died of fever before Reinmar could walk. He grew up moving between
+  isolated settlements, learning the routes through the mountains that the clan people
+  never used. He knows the salt-road, the passes, the springs, and the signs of changing
+  weather. He was traveling north along the old salt-road when he found the floodwaters
+  spreading. He climbed to high ground and saw the survivors. He could have walked
+  past them. He chose not to.
+arc_summary: Reinmar is the catalyst, not the protagonist. His function is to appear
+  at the moment of crisis, offer a path forward, and then disappear when the community
+  no longer needs him. He has no personal stake in the feud and no desire to lead.
+  He is a wanderer by nature, and the winter he spends in the high valley is the longest
+  he has stayed in one place since childhood. In the spring, he leaves because staying
+  would make him part of the thing he helped build, and he does not know how to belong.
+fears:
+- That settling down will trap him in a life he never chose
+- That the clans will turn on him once they no longer need his knowledge of the passes
+- That he has nothing permanent to offer anyone
+goals:
+- Guide the survivors to safety
+- Leave the high valley before the bonds of community become impossible to break
+- Return south and continue the wandering life he knows
 relationships:
-- to: '?'
-  kind: rescuer
-  valence: ''
-- to: '?'
-  kind: witness
-  valence: ''
-- to: '?'
-  kind: acquaintance
-  valence: ''
-- to: '?'
-  kind: informant
-  valence: ''
+- kind: guide
+  to: hilde
+  valence: positive
+- kind: guide
+  to: gunnar
+  valence: positive
+- kind: ally
+  to: heidrun
+  valence: positive
+summary: The clanless trader who led the survivors to the high valley and then returned
+  to his wandering life.

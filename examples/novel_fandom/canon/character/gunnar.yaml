@@ -1,53 +1,52 @@
+depth: 3
+faction: barenschadel
 id: gunnar
-type: character
-name: Gunnar
-summary: War-leader of the Bärenschädel who becomes stranded with Hilde and forms
-  a truce and later marriage.
-birth_year: -25
-role: protagonist
-faction: bärenschädel
 lane: dynamic
-backstory: 'Gunnar was born into the Bärenschädel in the twenty-fifth year before
-  the Ashfall, the son of a respected hunter who died in a hunting accident when Gunnar
-  was twelve. Without a father, Gunnar threw himself into the warrior''s path, honing
-  his skill with spear and blade until he became the youngest war-leader the clan
-  had ever known. The blood feud with the Aschenwulf was an old wound, passed down
-  from grandparents who could no longer recall its true beginning. Gunnar led raids,
-  fought skirmishes, and buried friends. To him, it was duty, not hatred. But duty
-  demanded one terrible act: in a raid three summers ago, he faced Hilde''s father
-  in single combat and killed him. It was a clean kill, face-to-face, but it planted
-  a seed of guilt that never fully rotted. He saw the grief in Hilde''s eyes from
-  across the battle lines and knew she would come for him one day. He accepted that.
-  What he did not expect was the flood. When the riverbank collapsed and the water
-  swept away everything—his camp, his warriors, his certainties—he found himself stranded
-  on a limestone ledge with the woman sworn to kill him. In those three days of shared
-  warmth and whispered confessions, the old hatred dissolved. The moment that forged
-  his driving_force came on the third night, when he chose to trust her with his life.
-  From then on, he wanted not just to survive, but to build a peace that would outlast
-  the feud. Frida''s declaration that the flood was a judgment only confirmed what
-  he already felt: the old ways were dead. He would marry Hilde, not out of necessity
-  alone, but because she had become his anchor in a drowned world.'
-triggers:
-- great_flood
-- first_intimacy
-- receding_flood
-- journey_to_felsbach
-- confrontation
-- marriage_rite
-- winter_settlement
+name: Gunnar
+personality: War-leader of the Bärenschädel clan. Killed Hilde's father in the blood-feud.
+  Knew Hilde's raid was coming and was waiting. Stranded with Hilde on a ledge for
+  six days. Hauls a dead deer from the river and shares it. Chips handholds with his
+  axe to escape. Co-founder of the new community. Fathers Reinthilde with Hilde. Kills
+  a bear alongside Arnulf in winter.
+role: supporting
+type: character
+backstory: Gunnar earned his place as war-leader of the Bärenschädel by killing Hilde's
+  father in single combat during a raid in the third winter of the feud. He was not
+  a cruel man by the standards of his people, but he was a practical one. The feud
+  was a fact of mountain life, and he defended his clan. He knew the Aschenwulf would
+  come for revenge eventually. When scouts reported Hilde's raiders moving through
+  the meltwater, he prepared an ambush. He did not anticipate the flood.
+arc_summary: 'Begins as an enemy defined by his role in the feud. The flood and the
+  ledge force him into proximity with the woman who came to kill him. He shares the
+  deer without being asked. Not as a peace offering but because the survival code
+  of the mountains overrides the feud. He chips handholds in the cliff face methodically
+  over six days, never saying whether he is making an escape for one or for two. In
+  the high valley, he transitions from war-leader to builder and teacher, instructing
+  children in rock-climbing. The bear kill with Arnulf completes his arc: he is accepted
+  by the brother of the man he killed.'
+fears:
+- That Arnulf will never truly accept the end of the feud
+- That Hilde's choice to spare him was a decision she will come to regret
+- That he is only useful as a fighter and will have nothing to offer in peacetime
+goals:
+- Protect Hilde and the new community from any threat
+- Teach the next generation skills that have nothing to do with clan warfare
+- Earn the trust of the Aschenwulf survivors who still look at him with suspicion
 relationships:
-- to: hilde
-  kind: marriage
-  valence: ''
-- to: arnulf
-  kind: alliance
-  valence: ''
-- to: frida
-  kind: respect
-  valence: ''
-- to: reinmar
-  kind: gratitude
-  valence: ''
-- to: hildes_father
-  kind: killed
-  valence: ''
+- kind: feud_enemy_turned_lover
+  to: hilde
+  valence: positive
+- kind: fathers_killer
+  to: arnulf
+  valence: tense
+- kind: killed_in_feud
+  to: hildes_father
+  valence: negative
+- kind: rite_participant
+  to: heidrun
+  valence: positive
+- kind: follower
+  to: reinmar
+  valence: positive
+summary: The Bärenschädel war-leader who survived the flood on a ledge with his enemy
+  and became her partner.

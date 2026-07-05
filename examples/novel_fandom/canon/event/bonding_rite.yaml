@@ -1,0 +1,29 @@
+depth: 3
+affected_locations:
+- high_valley
+- the_lake
+consequences:
+- A new bond formally created between Hilde and Gunnar
+- Both old lineages formally ended through spoken declaration
+- Hilde and Gunnar accepted as a pair by the community
+- The community begins to heal and unify around the new foundation
+- The leather halves sink into the lake, carrying the feud with them
+id: bonding_rite
+lane: dynamic
+participants:
+- hilde
+- gunnar
+- heidrun
+- arnulf
+scope: local
+type: event
+window: Hilde and Gunnar perform the rite the day after Arnulf's release. The whole
+  camp gathers at the lake shore. Heidrun ties their hands together with a strip of
+  leather that has been soaked in the lake water. Gunnar speaks first and says he
+  lays down his feud against the Aschenwulf. Hilde speaks second and says she lays
+  down her feud against the Bärenschädel. Heidrun cuts the leather binding their hands
+  and throws both halves into the lake. The rite is done. The survivors watch the
+  leather sink. No one speaks for a long moment. Then the building work resumes.
+year: 0
+summary: Heidrun performs the bonding rite, formally ending the feud and binding Hilde
+  and Gunnar.

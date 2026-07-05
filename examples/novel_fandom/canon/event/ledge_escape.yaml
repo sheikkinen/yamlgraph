@@ -1,0 +1,27 @@
+depth: 3
+affected_locations:
+- the_ledge
+- original_valley
+consequences:
+- Hilde and Gunnar rejoin the survivors
+- Both clans see them standing together for the first time
+- Suspicion and mistrust from both sides
+- Gunnar's handholds allow others to access the ledge later if needed
+id: ledge_escape
+lane: dynamic
+participants:
+- hilde
+- gunnar
+scope: local
+type: event
+window: On the seventh day, the water on the ledge drops by two feet, revealing a
+  crack in the cliff wall that was previously submerged. Gunnar has been spending
+  the evenings chipping handholds with the edge of his axe, working methodically without
+  saying whether he is making an escape for one or for two. They climb down together,
+  Gunnar going first to test each hold, Hilde following. At the base of the cliff,
+  they find a shelf of mud and rock that connects to the higher ground where the survivors
+  have gathered. When they walk into the survivor camp side by side, the silence tells
+  them everything they need to know about what their people think.
+year: 0
+summary: Hilde and Gunnar escape the ledge using handholds Gunnar carved and rejoin
+  the survivors.

@@ -1,0 +1,31 @@
+depth: 3
+affected_locations:
+- original_valley
+consequences:
+- Hilde and Gunnar refuse to continue the feud
+- About half of each clan follows Reinmar to the high valley
+- The rest stay in the flooded valley, saying they will find their own way or die
+  on their own ground
+- Heidrun stays with those who leave
+- The surviving group becomes a mixed community rather than two separate clans
+id: clan_divide
+lane: dynamic
+participants:
+- hilde
+- gunnar
+- heidrun
+- reinmar
+scope: local
+type: event
+window: When Hilde and Gunnar climb down from the ledge and reunite with the survivors,
+  Hilde is greeted with relief by her people. But then both clans see that she is
+  standing beside Gunnar. The blood-feud is not dead. The Bärenschädel who lost kin
+  to Hilde's raid want Gunnar to finish the kill. The Aschenwulf who lost kin to the
+  original feud want Hilde to do it herself. Hilde refuses. She tells both clans that
+  the feud ends here. She says she will go with Reinmar to the high valley and anyone
+  who follows her must leave the feud behind. Gunnar says the same. About half of
+  each clan agrees. The rest stay in the valley, saying they will find their own way
+  or die on their own ground. Heidrun stays with the survivors who leave.
+year: 0
+summary: 'The first major split: half of each clan follows Reinmar to the high valley,
+  the rest stay.'

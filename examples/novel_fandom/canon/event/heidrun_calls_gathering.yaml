@@ -1,0 +1,28 @@
+depth: 3
+affected_locations:
+- high_valley
+- the_lake
+consequences:
+- Heidrun proposes the bonding rite as a solution to the rift
+- Hilde and Gunnar must stand together before the lake and declare themselves bound
+- Arnulf must witness the rite and speak the words of release for his father's spirit
+- The gathering prevents immediate violence but does not resolve the deeper divide
+id: heidrun_calls_gathering
+lane: dynamic
+participants:
+- heidrun
+- hilde
+- gunnar
+- arnulf
+scope: local
+type: event
+window: 'Heidrun calls a gathering by the lake. She speaks to both sides. She says
+  the gods sent the flood to wash away the feud, but the feud has followed them into
+  the high valley. She says the judgment is incomplete. She asks Hilde and Gunnar
+  to perform a rite: they must stand together before the lake and declare themselves
+  bound, not as clan-mates, but as a new kind of pair, one that ends the old lineages
+  and starts a new one. She asks Arnulf to witness the rite and to speak the words
+  of release for his father''s spirit.'
+year: 0
+summary: Heidrun gathers the divided camp and proposes the bonding rite to heal the
+  rift.

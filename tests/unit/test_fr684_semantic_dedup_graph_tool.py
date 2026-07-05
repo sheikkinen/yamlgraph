@@ -55,25 +55,22 @@ class TestSemanticDedupGraph:
 
 
 class TestWorldgenSemanticDedup:
-    """AC-2/AC-4: worldgen.yaml has dedup_check graph-tool for agent."""
+    """AC-2/AC-4: worldgen dedup — superseded by FR-689 integrated gate."""
 
     @pytest.mark.req("REQ-YG-517")
-    def test_worldgen_has_dedup_check_tool(self) -> None:
-        """dedup_check graph-tool wraps semantic_dedup.yaml."""
+    def test_worldgen_has_no_standalone_dedup_check(self) -> None:
+        """FR-689: dedup_check removed from worldgen tools (integrated into create_* pipelines)."""
         with open(NOVEL_FANDOM_DIR / "worldgen.yaml") as f:
             config = yaml.safe_load(f)
-        tool = config["tools"].get("dedup_check")
-        assert tool is not None, "dedup_check tool missing"
-        assert tool["type"] == "graph"
-        assert "semantic_dedup" in tool["path"]
+        assert "dedup_check" not in config.get("tools", {})
 
     @pytest.mark.req("REQ-YG-517")
-    def test_worldgen_agent_has_dedup_check(self) -> None:
-        """Agent node includes dedup_check in tools list (FR-686)."""
+    def test_worldgen_agent_has_update_refs(self) -> None:
+        """FR-689: Agent uses update_refs instead of standalone dedup_check."""
         with open(NOVEL_FANDOM_DIR / "worldgen.yaml") as f:
             config = yaml.safe_load(f)
         agent = config["nodes"]["worldgen"]
-        assert "dedup_check" in agent["tools"]
+        assert "update_refs" in agent["tools"]
 
 
 # ---------- AC-3: worldgen uses agent-first dedup (FR-686) ----------

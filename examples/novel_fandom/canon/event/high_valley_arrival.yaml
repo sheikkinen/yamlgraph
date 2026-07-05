@@ -1,0 +1,30 @@
+depth: 3
+affected_locations:
+- high_valley
+- the_lake
+consequences:
+- Survivors begin building shelters from timber
+- They hunt bear and deer in the surrounding forest
+- Clan lines start to blur as shared labor replaces old divisions
+- Hilde and Gunnar share a shelter openly and neither clan challenges it
+- The community enters a period of relative peace that lasts three weeks
+id: high_valley_arrival
+lane: dynamic
+participants:
+- hilde
+- gunnar
+- reinmar
+- heidrun
+scope: local
+type: event
+window: 'After eighteen days of travel, the survivors reach the high valley. It is
+  as Reinmar described: a bowl of grass with a lake at the center, fed by springs
+  and not by glaciers. The game trails show bear and deer tracks. The timber line
+  is thick with pine. Reinmar tells them he claimed this valley for no one and that
+  he is not their leader. He says he will leave after the first snow and return south.
+  The survivors begin building shelters from the pine timber. They hunt and gather.
+  For three weeks, the work is steady and the clan lines start to blur. Hilde and
+  Gunnar share a shelter openly. The Aschenwulf do not challenge it. The Bärenschädel
+  do not challenge it. For a brief time, the new world seems possible.'
+year: 0
+summary: The survivors arrive at the high valley and begin building a new settlement.

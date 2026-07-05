@@ -1,9 +1,0 @@
-id: torsten
-type: character
-name: Torsten
-lane: dynamic
-depth: 1
-summary: Frida's son, who died at age seven in a rockfall along with his father Ulf.
-status: deceased
-references:
-- frida
