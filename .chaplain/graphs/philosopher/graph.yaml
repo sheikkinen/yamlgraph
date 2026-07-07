@@ -37,27 +37,27 @@ state:
 tools:
   scan_diary_tool:
     type: python
-    path: .chaplain/graphs/philosopher/tools.py
+    path: tools.py
     function: scan_diary_markers
   load_context_tool:
     type: python
-    path: .chaplain/graphs/philosopher/tools.py
+    path: tools.py
     function: load_world_context
   write_diary_tool:
     type: python
-    path: .chaplain/lib/diary.py
+    path: tools.py
     function: write_diary
   write_proposal_tool:
     type: python
-    path: .chaplain/graphs/philosopher/tools.py
+    path: tools.py
     function: write_proposals
   unwrap_distill_tool:
     type: python
-    path: .chaplain/graphs/philosopher/tools.py
+    path: tools.py
     function: unwrap_distill
   unwrap_challenge_tool:
     type: python
-    path: .chaplain/graphs/philosopher/tools.py
+    path: tools.py
     function: unwrap_challenge
 
 nodes:

@@ -22,11 +22,11 @@ state:
 tools:
   load_module_map_tool:
     type: python
-    path: .chaplain/graphs/watcher-enforce/tools.py
+    path: tools.py
     function: load_module_map
   assemble_context_tool:
     type: python
-    path: .chaplain/graphs/watcher-enforce/tools.py
+    path: tools.py
     function: assemble_context
 
 nodes:

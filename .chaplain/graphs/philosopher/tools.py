@@ -358,3 +358,18 @@ This pattern has appeared {count} times, meeting the graduation threshold.
         "written_count": written_count,
         "excluded_already_graduated": excluded_already_graduated,
     }
+
+
+def write_diary(state: dict) -> dict:
+    """Proxy to .chaplain/lib/diary.py:write_diary.
+
+    FR-445 confines `path:` tools to the graph root, so the shared diary
+    library outside this directory is loaded by absolute path here.
+    """
+    import importlib.util
+
+    lib_path = Path(__file__).resolve().parents[2] / "lib" / "diary.py"
+    spec = importlib.util.spec_from_file_location("chaplain_lib_diary", lib_path)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod.write_diary(state)
