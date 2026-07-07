@@ -150,6 +150,21 @@ Key design decisions encoded in the FSM:
 - **Remote intake**: GitHub Issues labeled `chaplain` are imported (author allowlist, size cap)
   and closed with commit reference on merge.
 
+### 3.1 Reality check: the manual rite dominates
+
+The Chaplain is the *formalization* of the process, not its primary execution path. Measured
+over May–July 2026: **~568 commits on main, of which ~94 (17%) arrived via PR (chaplain path)
+and ~474 (83%) were direct pushes** from operator-driven Copilot sessions. Most actual change
+follows the **manual plan-judge-enforce loop**: the operator states a problem, the agent plans,
+the operator judges (often with a one-word verdict — "reflect", "diary", "commit push"), the
+agent enforces, and pre-commit hooks + the operator's read are the gates. The FSM automates
+the *same rite* the human loop already practices; its true value is that formalizing the rite
+forced the gates, prompts, and judgement contracts to be explicit enough that either executor
+— human-in-the-loop or FSM — is constrained identically. The single-developer workflow even
+enforces this convergence mechanically: branch creation in the main worktree is blocked
+("commit to main; for isolated work, submit to `.chaplain/inbox/`"), so the two paths cannot
+drift into different git topologies.
+
 ---
 
 ## 4. The Traceability Spine: CAP → REQ → Test → Changelog

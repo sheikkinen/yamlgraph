@@ -39,6 +39,27 @@ checkable survives enforcement; what is narratively valuable escapes it.
 - Chaplain metrics are emitted (`tmp/pipeline-metrics`) but never aggregated —
   `detection_without_enforcement`, dashboard edition.
 
+## Addendum: The Manual Rite Dominates (operator correction)
+
+The operator pointed out that most actual change follows the *manual* plan-judge-enforce-
+commit-push loop, not the Chaplain. Measured: since 2026-05-01, 568 commits on main — 94 via
+PR (17%, chaplain path), 474 direct (83%, operator-driven sessions). The overview doc had
+committed a quieter form of the same trap: it described the *formalized* path as if it were
+the *dominant* path. The map showed the highway; the traffic is on the side road.
+
+The reframe that survives: the Chaplain is not the process — it is the process's *executable
+specification*. Its value is not throughput (17%) but that formalizing the rite forced every
+gate, prompt contract, and judgement boundary to become explicit — and those constraints bind
+the manual loop identically (same hooks, same pre-commit rings, same one-word judge verdicts:
+"reflect", "diary", "commit push"). The human loop and the FSM loop are the same state machine;
+one runs on wetware with better judgement and worse patience. Even the git topology is forced
+to converge: branch creation in the main worktree is mechanically blocked, routing isolated
+work to the inbox.
+
+Corollary for the doc: a section 3.1 "reality check" now states the ratio. A process document
+that only describes the aspirational executor is `research_as_inventory` in reverse —
+describing what was *built* rather than what *happens*.
+
 ## Heuristic
 
 **A document describing an enforcement system must name its own enforcement, or confess its
