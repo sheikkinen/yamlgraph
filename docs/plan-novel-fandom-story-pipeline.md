@@ -81,16 +81,16 @@ Two dual decompositions of the same story, produced by one graph. **Plot threads
 | Faction `internal_tensions` | *Latent* | Aschenwulf young warriors "see her relationship with Gunnar as a betrayal of the dead" — a loaded gun no event fires |
 | Rules | *Structural* | `blood_feud_custom` "only demands balance" — every unavenged death in the raid is an open thread *by law* |
 
-Reconciliation reads fears × rules × factions *together* — the cross-entity pass the single-entity `deepen` tool architecturally couldn't do. Latent threads become the work queue for steps 1.5 and 2.
+Reconciliation reads fears × rules × factions *together* — the cross-entity pass the single-entity `deepen` tool architecturally couldn't do. Latent threads become the work queue for steps 1.5 and 2. The final union is **capped at 8 threads** (1a contributes ≤6); each admitted latent thread carries a one-line justification citing the canon field it was mined from; reconcile ranks and drops beyond the cap with reasons.
 
-**Diagnostic for free:** diffing 1a (synopsis-only) against 1b (canon-grounded) measures how much plot the entity fields actually add. If 1b adds nothing but ids, the genesis reordering (below) is a pure win.
+**Diagnostic for free:** diffing 1a (synopsis-only, persisted as `story/threads_1a.yaml`) against 1b (canon-grounded) measures how much plot the entity fields actually add. If 1b adds nothing but ids, the genesis reordering (below) is a pure win.
 
 **Output:** `story/thread/<thread_id>.yaml`:
 
 ```yaml
 id: young_men_grievance
 kind: feud                    # closed enum: feud | bond | belief | survival | succession
-carriers: [arnulf, ...]       # character ids, must resolve (ref_check)
+carriers: [arnulf, ...]       # character ids, must resolve against canon
 sources: [blood_feud_custom, aschenwulf]   # canon ids this thread derives from
 opposition: "..."             # required, non-empty (Gen 1's `complications`)
 stakes: "..."                 # what is lost if unresolved
@@ -99,11 +99,11 @@ releases: []                  # event ids; empty ⇒ status ≠ released
 status: latent                # open | escalating | released | latent
 ```
 
-**Mechanical gates:**
-1. **Citation integrity** — every carrier/source/raise/release id resolves against canon (existing `ref_check` pattern)
-2. **Ledger walk** — a release without a prior raise fails; ported from Gen 2's affect-closure validator, per-thread instead of per-(char, kind)
-3. **Cap and distinctness** — 3–6 threads, distinct carrier-sets, non-trivial `opposition`. A thread nobody opposes is a theme, not a thread; unbounded extraction finds "threads" everywhere
-4. **Id stability across regenerations** — the reconcile prompt receives the prior `story/thread/` set and must preserve ids for threads that persist; new threads get new ids; dropped threads are listed in a `dropped` output with a reason. Every thread id referenced in `story/thread_waivers.yaml` and `story/chapter_plan.yaml` must resolve against the current thread set (same `ref_check` pattern). Without this, every regeneration silently orphans waivers and ledger entries
+**Mechanical gates** — pure Python functions in `nodes/thread_gates.py`, invoked as graph nodes (fail the run) and imported by tests (one implementation, two callers). Id resolution against a YAML set is arithmetic, not an LLM task — the `ref_check` LLM graph-tool is the wrong tool here (FR-690/691 Judgement):
+1. **Citation integrity** — every carrier/source/raise/release id resolves against canon
+2. **Ledger walk** — a release without a prior raise (by `sequence`) fails; ported from Gen 2's affect-closure validator, per-thread instead of per-(char, kind)
+3. **Cap and distinctness** — final union ≤8 threads, distinct carrier-sets, non-empty `opposition`. A thread nobody opposes is a theme, not a thread; unbounded extraction finds "threads" everywhere. Non-emptiness is a shape check; opposition *substance* is judged in the raw read
+4. **Id stability across regenerations** — the reconcile prompt receives the prior `story/thread/` set and must preserve ids for threads that persist; new threads get new ids; dropped threads are listed in a `dropped` output with a reason. Every thread id referenced in `story/thread_waivers.yaml` and `story/chapter_plan.yaml` must resolve against the current thread set. Without this, every regeneration silently orphans waivers and ledger entries. **No-op on first run** (empty prior set) — its RED test uses a fixture prior-set
 
 **Known limitation:** `status` is an LLM claim — the ledger walk checks consistency (releases follow raises), not truth. The FR-review raw read covers substance.
 
@@ -181,15 +181,15 @@ The known deficit list already covers the three review gaps:
 
 **Why this is not the rejected Option B:** The diary rejected cross-entity *mutation* — editing existing entities puts the 55-FR consistency arc at risk. Step 2 is additive: new event pages only, gated identically to genesis output, with a mechanical byte-identity check on everything that existed before. The agent must not "helpfully" touch `hilde.yaml` to reference a new event; if a new event needs to be discoverable from a character, that is what `participants` on the event is for.
 
-**Prerequisite — event ordering:** 19 of 22 events sit at `year: 0` with no intra-year ordering, and step 2 adds 3-5 more into the same year. The `Event` schema needs a `sequence: int` field (one small FR: schema field + backfill of the 22 existing events from synopsis order + `ref_check` uniqueness check). Without it, step 1c's timeline walk and step 3's "revised event sequence" are unexpressible in canon and each silently invents an ordering the canon does not state. This FR therefore precedes step 1, not step 2 — the throughline walk is its first consumer.
+**Prerequisite — event ordering:** 19 of 22 events sit at `year: 0` with no intra-year ordering, and step 2 adds more into the same year (count set by the deficit list). The `Event` schema needs a `sequence: int` field (FR-690: schema field, optional at the Pydantic layer so genesis/`create_event` keep validating; backfill of the 22 existing events from synopsis order, gaps filled by year + consequences; Python uniqueness/consistency check — mandatory for the Floodmark canon). Without it, step 1c's timeline walk and step 3's "revised event sequence" are unexpressible in canon and each silently invents an ordering the canon does not state. This FR therefore precedes step 1, not step 2 — the throughline walk is its first consumer. Teaching `create_event` to emit `sequence` is step 2's scope (FR-693).
 
-**Size:** Medium. Agent with 3-5 create calls. Reuses existing graph-tool pipelines.
+**Size:** Medium. Agent with create calls sized by the deficit list. Reuses existing graph-tool pipelines.
 
 ---
 
 ## Step 3: Chapter Plan
 
-**What:** Group the revised event sequence (22 original + 3-5 new) into 8-12 chapters. Each chapter gets:
+**What:** Group the revised event sequence (22 original + the deficit-driven additions) into 8-12 chapters. Each chapter gets:
 
 - POV character
 - Events covered
@@ -207,7 +207,7 @@ The known deficit list already covers the three review gaps:
 
 **Why third:** Without throughlines and resistance events, chapter grouping optimizes for chronology. With them, it optimizes for emotional arc — which chapters carry grief, which carry dread, where the reader gets a breath.
 
-**Size:** Medium. 1-2 LLM calls. Full canon + throughlines as context.
+**Size:** Medium. 1-2 LLM calls. Full canon + threads + throughlines + waivers as context.
 
 ---
 
@@ -259,12 +259,12 @@ Start with the event-sequence field (mechanical, hours), then step 1 (threads + 
 
 FR sequence:
 
-1. **FR: event sequence field** — `sequence: int` on `Event` (port of Gen 1's `Beat.sequence`), backfill 22 events from synopsis order + uniqueness check (prerequisite for steps 1c and 3 — the throughline timeline walk is its first consumer)
-2. **FR: threads + throughlines** — `Thread` + `Throughline` schemas + step 1 graph (synopsis extraction → canon reconciliation → throughlines) + citation/ledger/cap/id-stability gates + 1a/1b diff in the FR review
-3. **FR: world pressure** — step 1.5 agent: kinship + trade entities under the thread-citation admission rule, byte-identity enforcement, step 1 regeneration
-4. **FR: event revision** — step 2 agent + latent-closure exit gate + byte-identity enforcement + step 1 regeneration
-5. **FR: chapter plan** — `ChapterPlan` schema + step 3 graph + thread-ledger gate script (ported from `dungeon_master/api/plot/validate.py`)
-6. **FR: scene drafting** — step 4 sequential fold + rolling summary
-7. **FR: genesis reordering** (conditional) — thread extraction between synopsis and structuring in `genesis.yaml`, if the 1a/1b diff shows entity fields add no plot
+1. **FR-690: event sequence field** — `sequence: int` on `Event` (port of Gen 1's `Beat.sequence`), backfill 22 events from synopsis order + uniqueness check (prerequisite for steps 1c and 3 — the throughline timeline walk is its first consumer)
+2. **FR-691: threads + throughlines** — `Thread` + `Throughline` schemas + step 1 graph (synopsis extraction → canon reconciliation → throughlines) + citation/ledger/cap/id-stability gates + 1a/1b diff in the FR review
+3. **FR-692: world pressure** — step 1.5 agent: kinship + trade entities under the thread-citation admission rule, byte-identity enforcement, step 1 regeneration
+4. **FR-693: event revision** — step 2 agent + latent-closure exit gate + byte-identity enforcement + step 1 regeneration
+5. **FR-694: chapter plan** — `ChapterPlan` schema + step 3 graph + thread-ledger gate script (ported from `dungeon_master/api/plot/validate.py`)
+6. **FR-695: scene drafting** — step 4 sequential fold + rolling summary
+7. **FR-696: genesis reordering** (conditional) — thread extraction between synopsis and structuring in `genesis.yaml`, if the 1a/1b diff shows entity fields add no plot
 
 Known accepted limitation for draft 1: no revision loop on prose. Step 4 output is a first draft; a critique-revise cycle is a later pipeline, not scope creep into this one.

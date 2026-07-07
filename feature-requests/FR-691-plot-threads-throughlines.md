@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Feature
-**Status:** Judged ✅ (amendments folded into body; Judgement retained as decision history)
+**Status:** Enforced ✅ (RED `4d9873fd` → GREEN `08549508` → pipeline `feat(examples): FR-691 wire story_extract pipeline`; 1a/1b diff read below)
 **Effort:** 2 days
 **Requested:** 2026-07-07
 **Judged:** 2026-07-07
@@ -44,11 +44,18 @@ All gates run persist-then-fail: `story/` artifacts are written before the verdi
 
 ## Acceptance Criteria
 
-- [ ] `Thread` + `Throughline` schemas in `schema/story.py`; gates in `nodes/thread_gates.py` with RED-first tests per gate (id-stability RED uses a fixture prior-set)
-- [ ] `story/threads_1a.yaml`, `story/thread/*.yaml`, `story/throughline/*.yaml` generated for Floodmark canon
-- [ ] All four thread gates pass on the final union (≤8); throughline criteria pass or produce persisted-artifact failures
-- [ ] **1a/1b diff read in FR review** (raw read, no similarity metric — `metric_archaeology_before_reading_output`): documented verdict on how much plot the entity fields add, feeding FR-696's go/no-go
-- [ ] Tests tagged `@pytest.mark.req("REQ-YG-524")`; new `capabilities/CAP-189-novel-fandom-plot-threads.yaml` with REQ-YG-524; changelog fragment; demo output committed
+- [x] `Thread` + `Throughline` schemas in `schema/story.py`; gates in `nodes/thread_gates.py` with RED-first tests per gate (id-stability RED uses a fixture prior-set)
+- [x] `story/threads_1a.yaml`, `story/thread/*.yaml`, `story/throughline/*.yaml` generated for Floodmark canon
+- [x] All four thread gates pass on the final union (8 threads, at cap); throughline criteria pass or produce persisted-artifact failures
+- [x] **1a/1b diff read in FR review** (raw read, no similarity metric — `metric_archaeology_before_reading_output`): documented verdict on how much plot the entity fields add, feeding FR-696's go/no-go
+- [x] Tests tagged `@pytest.mark.req("REQ-YG-530")`; new `capabilities/CAP-194-novel-fandom-plot-threads.yaml` with REQ-YG-530; changelog fragment; run proof committed as `story/` artifacts
+
+## Deviations from Judged Plan
+
+1. **ID reassignment.** The FR body cites `REQ-YG-524` / `CAP-189`; both were already taken when enforcement began. Actual IDs used: **`REQ-YG-530` / `CAP-194`**. No semantic change — the requirement text is as judged.
+2. **Ledger walk — one raise, many releases.** The judged gate ported `validate_plan`'s balanced raise/release model. The Floodmark acceptance run condemned it: `hilde_gunnar_feud` opens once (`dawn_raid`) and de-escalates over four releases. Fixed under a condemning test (`test_one_raise_many_releases_passes`) to require *a* prior raise by sequence for each release, not one raise per release.
+3. **Distinctness keys on `(kind, carriers)`.** The judged gate keyed distinctness on carrier-set alone; the run condemned it by rejecting `ledge_survival` as a duplicate of `hilde_gunnar_feud` (same two carriers, different conflict). Fixed under `test_same_carriers_different_kind_passes`.
+4. **Latent-mining shortfall (open, routed to prompt fix).** The reconcile prompt under-mined: all 8 threads closed, `sources`/`justification` empty on grounded threads, and `young_men_grievance` unmined despite being in the prompt design. Diagnosed in the 1a/1b read below; scoped as a prompt-only FR-691 review amendment blocking FR-692/693 (gates and schemas are correct).
 
 ## Alternatives Considered
 
@@ -75,3 +82,18 @@ All gates run persist-then-fail: `story/` artifacts are written before the verdi
 7. **`threads_1a.yaml` persisted**, not discarded: the diff's left side must exist as an artifact or the FR-696 go/no-go verdict is unreviewable.
 
 Scope frozen. Path is explicit and minimal. Authority granted, contingent on FR-690 merging first.
+
+## 1a/1b Diff Read (2026-07-07, raw read of `story/threads_1a.yaml` vs `story/thread/*.yaml`)
+
+**Verdict: entity fields DO add plot → FR-696 takes the Go branch** (genesis reordering must preserve a post-entity reconcile pass, not replace it with a single synopsis-time extraction).
+
+Evidence — concrete details a generated dump would not produce:
+
+1. **1b mined 3 threads 1a could not see**, each with a verifiable justification quoting the exact canon field: `gunnar_peacetime_identity` from gunnar.fears ("only useful as a fighter"), `heidrun_legacy` from heidrun.fears ("the old songs will die with her"), `reinmar_departure`. These are real plot — heidrun_legacy releases on `heidrun_dies`, a beat 1a's prose-level pass skipped entirely.
+2. **Grounding worked but source citation didn't**: all 5 grounded threads carry `sources: []` and `justification: ''` — the reconcile prompt grounds raises/releases to event ids yet never fills `sources` for 1a-originated threads. Gate 1 passes because empty lists cite nothing false — shape passes, substance is missing.
+3. **`conflict_dissolution_bias` reproduced inside the extractor**: all 8 threads are `status: released`; zero latent, zero open. The plan's own worked example — `young_men_grievance` from aschenwulf `internal_tensions` ("see her relationship with Gunnar as a betrayal of the dead") — was **not mined**, despite being quoted verbatim in the reconcile prompt's design. The miner found only threads it could close, and closed them. The deficit list that was to be FR-692/693's work queue is empty.
+4. Substance wobble in grounding: `hilde_gunnar_feud` lists `clan_divide` as a *release* — in canon it is an escalation (of `community_peace`); the LLM bent the event's valence to fit the release column.
+
+**Consequences:**
+- FR-696: **Go** — canon fields contribute threads the synopsis lacks; reordering keeps the reconcile pass.
+- FR-692/693 are **blocked on a reconcile prompt fix** (latent-mining hardening): the prompt must state that latent threads have empty `raises`/`releases` and `status: latent`, and that a mining pass returning zero latents against a canon with loaded `internal_tensions` is itself suspect. Also fix `sources` population for grounded threads. This is prompt-only — gates and schemas are correct — in scope as an FR-691 review amendment, not a new FR.
