@@ -3,7 +3,7 @@ name: Worktree CLI Contract
 description: >
   Canonical executor-neutral worktree lifecycle command in scripts/worktree.sh
   with verbs new, spike, list, and rm, plus scripts/wt alias wrapper.
-fr: FR-697
+fr: FR-698
 modules:
   - scripts/worktree.sh
   - scripts/wt

@@ -3,7 +3,7 @@ name: Instrumentation Worktree Delegation
 description: >
   scripts/copilot_instrument.sh delegates disposable worktree creation and
   teardown to scripts/worktree.sh instead of private git worktree lifecycle logic.
-fr: FR-697
+fr: FR-698
 modules:
   - scripts/copilot_instrument.sh
   - tests/unit/test_copilot_instrument_worktree_delegation_red.py

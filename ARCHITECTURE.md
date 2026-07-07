@@ -505,9 +505,9 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 187 | CAP-187 Novel Fandom Semantic Dedup Graph-Tool | `examples/novel_fandom` | REQ-YG-517 |
 | 188 | CAP-188 Novel Fandom Agent-First Architecture | `examples/novel_fandom/genesis.yaml`, `examples/novel_fandom/worldgen.yaml`, `examples/novel_fandom/nodes/creation_tools.py`, `examples/novel_fandom/create_character.yaml`, … | REQ-YG-518 – 522 |
 | 189 | CAP-189 Worktree CLI Contract | `scripts/worktree.sh`, `scripts/wt`, `tests/unit/test_worktree_cli_red.py` | REQ-YG-524 |
-| 190 | CAP-190 Watcher Wrapper JSON Envelope | `.chaplain/lib/watcher/worktree_setup.sh`, `.chaplain/lib/watcher/worktree_teardown.sh`, `tests/unit/test_watcher_worktree_wrapper_red.py` | REQ-YG-525 |
 | 191 | CAP-191 Instrumentation Worktree Delegation | `scripts/copilot_instrument.sh`, `tests/unit/test_copilot_instrument_worktree_delegation_red.py` | REQ-YG-526 |
 | 192 | CAP-192 Branch Deny Guidance Manual Worktree Lane | `.github/hooks/scripts/pre-command-guard.sh`, `.github/hooks/tests/test_pre_command_guard.py` | REQ-YG-527 |
+| 193 | CAP-193 Watcher Wrapper JSON Envelope | `.chaplain/lib/watcher/worktree_setup.sh`, `.chaplain/lib/watcher/worktree_teardown.sh`, `tests/unit/test_watcher_worktree_wrapper_red.py` | REQ-YG-528 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -2366,27 +2366,17 @@ Genesis and worldgen rewritten as agent nodes that create entities one at a time
 
 Canonical executor-neutral worktree lifecycle command in scripts/worktree.sh with verbs new, spike, list, and rm, plus scripts/wt alias wrapper.
 
-**Feature Request:** FR-697
+**Feature Request:** FR-698
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-524 | scripts/worktree.sh provides new/spike/list/rm lifecycle verbs, usage output, and scripts/wt delegates to canonical command. Spike teardown enforces --note policy and appends notes log. | `scripts/worktree.sh`, `scripts/wt`, `tests/unit/test_worktree_cli_red.py` |
 
-### 190. CAP-190 Watcher Wrapper JSON Envelope
-
-Watcher worktree setup/teardown wrappers delegate to scripts/worktree.sh while preserving setup JSON envelope keys for FSM context mapping.
-
-**Feature Request:** FR-697
-
-| Requirement | Description | Key Modules |
-|------------|-------------|-------------|
-| REQ-YG-525 | worktree_setup.sh forwards topic/prefix/work-dir to scripts/worktree.sh new --json and preserves wt_dir/wt_branch/main_dir/work_dir output contract. worktree_teardown.sh delegates to scripts/worktree.sh rm --dir. | `.chaplain/lib/watcher/worktree_setup.sh`, `.chaplain/lib/watcher/worktree_teardown.sh`, `tests/unit/test_watcher_worktree_wrapper_red.py` |
-
 ### 191. CAP-191 Instrumentation Worktree Delegation
 
 scripts/copilot_instrument.sh delegates disposable worktree creation and teardown to scripts/worktree.sh instead of private git worktree lifecycle logic.
 
-**Feature Request:** FR-697
+**Feature Request:** FR-698
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
@@ -2396,11 +2386,21 @@ scripts/copilot_instrument.sh delegates disposable worktree creation and teardow
 
 Pre-command guard branch-create denial guidance includes manual isolated worktree lane command scripts/worktree.sh new <name>.
 
-**Feature Request:** FR-697
+**Feature Request:** FR-698
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-527 | Branch-create denial text includes manual isolated-work guidance "scripts/worktree.sh new <name>" while keep deny/allow behavior unchanged. | `.github/hooks/scripts/pre-command-guard.sh`, `.github/hooks/tests/test_pre_command_guard.py` |
+
+### 193. CAP-193 Watcher Wrapper JSON Envelope
+
+Watcher worktree setup/teardown wrappers delegate to scripts/worktree.sh while preserving setup JSON envelope keys for FSM context mapping.
+
+**Feature Request:** FR-698
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-528 | worktree_setup.sh forwards topic/prefix/work-dir to scripts/worktree.sh new --json and preserves wt_dir/wt_branch/main_dir/work_dir output contract. worktree_teardown.sh delegates to scripts/worktree.sh rm --dir. | `.chaplain/lib/watcher/worktree_setup.sh`, `.chaplain/lib/watcher/worktree_teardown.sh`, `tests/unit/test_watcher_worktree_wrapper_red.py` |
 
 <!-- END GENERATED CAPABILITIES -->
 

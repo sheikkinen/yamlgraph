@@ -1,7 +1,7 @@
-# Reflection: FR-697 Watcher2 Sanity Check
+# Reflection: FR-698 Watcher2 Sanity Check
 
 **Date:** 2026-07-07
-**FR:** FR-697 — Executor-Neutral Worktree Tooling (`wt`)
+**FR:** FR-698 — Executor-Neutral Worktree Tooling (`wt`)
 **Reviewer:** watcher2 post-validate sanity pass
 
 ## Trap

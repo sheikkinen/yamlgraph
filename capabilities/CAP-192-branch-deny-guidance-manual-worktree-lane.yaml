@@ -3,7 +3,7 @@ name: Branch Deny Guidance Manual Worktree Lane
 description: >
   Pre-command guard branch-create denial guidance includes manual isolated
   worktree lane command scripts/worktree.sh new <name>.
-fr: FR-697
+fr: FR-698
 modules:
   - .github/hooks/scripts/pre-command-guard.sh
   - .github/hooks/tests/test_pre_command_guard.py

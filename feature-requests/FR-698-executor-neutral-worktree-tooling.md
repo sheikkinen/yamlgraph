@@ -1,4 +1,4 @@
-# Feature Request: FR-697 — Executor-Neutral Worktree Tooling (`wt`)
+# Feature Request: FR-698 — Executor-Neutral Worktree Tooling (`wt`)
 
 **Priority:** HIGH
 **Type:** Enhancement
@@ -169,7 +169,7 @@ At the same time, pre-command guard (FR-662) denies branch creation in main work
 - Updated `scripts/copilot_instrument.sh` to delegate create/remove lifecycle to canonical worktree tooling.
 - Updated pre-command guard deny guidance to include manual isolated-work command.
 - Added CAP-189..192 and regenerated `ARCHITECTURE.md` generated capability section.
-- Added FR-697 acceptance tests and requirement markers for new REQ IDs.
+- Added FR-698 acceptance tests and requirement markers for new REQ IDs.
 
 ## Failing Acceptance Tests (RED before implementation)
 
@@ -206,14 +206,14 @@ Existing requirements reused:
 New requirement IDs to add during implementation:
 
 - `REQ-YG-524` — canonical executor-neutral `scripts/worktree.sh` CLI contract (`new|spike|list|rm`) and `scripts/wt` alias wrapper
-- `REQ-YG-525` — watcher wrapper JSON envelope contract preserved (`wt_dir`, `wt_branch`, `main_dir`, `work_dir`)
+- `REQ-YG-528` — watcher wrapper JSON envelope contract preserved (`wt_dir`, `wt_branch`, `main_dir`, `work_dir`)
 - `REQ-YG-526` — instrumentation script delegates worktree lifecycle to shared tooling (no private add/remove lifecycle)
 - `REQ-YG-527` — pre-command guard branch-create denial guidance includes manual isolated-work lane command
 
 Capability files to add (next available CAP IDs confirmed up to CAP-188 in repository):
 
 - `capabilities/CAP-189-worktree-cli-contract.yaml` → `REQ-YG-524`
-- `capabilities/CAP-190-watcher-wrapper-json-envelope.yaml` → `REQ-YG-525`
+- `capabilities/CAP-193-watcher-wrapper-json-envelope.yaml` → `REQ-YG-528`
 - `capabilities/CAP-191-instrument-worktree-delegation.yaml` → `REQ-YG-526`
 - `capabilities/CAP-192-branch-deny-guidance-manual-worktree-lane.yaml` → `REQ-YG-527`
 
@@ -261,7 +261,7 @@ Commandment 7 mandates RED exists before GREEN. The enforce agent must write the
 The FR declares four new requirement IDs (REQ-YG-524 through REQ-YG-527) but does not mention the corresponding `capabilities/CAP-XXX-name.yaml` files required by ADR-001. The capability registry is loaded dynamically from YAML — no capability file means the REQ IDs are phantom references that will fail `changelog-req-gate` CI. Add to the implementation plan:
 
 - `capabilities/CAP-NNN-worktree-cli-contract.yaml` → REQ-YG-524
-- `capabilities/CAP-NNN-watcher-wrapper-json-envelope.yaml` → REQ-YG-525
+- `capabilities/CAP-NNN-watcher-wrapper-json-envelope.yaml` → REQ-YG-528
 - `capabilities/CAP-NNN-instrument-delegation.yaml` → REQ-YG-526
 - `capabilities/CAP-NNN-branch-deny-guidance.yaml` → REQ-YG-527
 

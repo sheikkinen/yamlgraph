@@ -1,4 +1,4 @@
-"""Acceptance tests for FR-697 shared worktree CLI."""
+"""Acceptance tests for FR-698 shared worktree CLI."""
 
 from __future__ import annotations
 

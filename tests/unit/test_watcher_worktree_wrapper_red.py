@@ -1,4 +1,4 @@
-"""Acceptance tests for FR-697 watcher wrapper delegation."""
+"""Acceptance tests for FR-698 watcher wrapper delegation."""
 
 from pathlib import Path
 
@@ -10,7 +10,7 @@ TEARDOWN_WRAPPER = REPO_ROOT / ".chaplain" / "lib" / "watcher" / "worktree_teard
 CANONICAL_SCRIPT = REPO_ROOT / "scripts" / "worktree.sh"
 
 
-@pytest.mark.req("REQ-YG-525")
+@pytest.mark.req("REQ-YG-528")
 def test_worktree_setup_wrapper_preserves_json_contract_keys() -> None:
     wrapper = SETUP_WRAPPER.read_text()
     canonical = CANONICAL_SCRIPT.read_text()
@@ -23,7 +23,7 @@ def test_worktree_setup_wrapper_preserves_json_contract_keys() -> None:
     assert "work_dir" in canonical
 
 
-@pytest.mark.req("REQ-YG-525")
+@pytest.mark.req("REQ-YG-528")
 def test_worktree_teardown_wrapper_delegates_to_worktree_rm() -> None:
     wrapper = TEARDOWN_WRAPPER.read_text()
     assert "scripts/worktree.sh" in wrapper

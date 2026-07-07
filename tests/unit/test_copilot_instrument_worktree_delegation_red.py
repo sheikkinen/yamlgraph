@@ -1,4 +1,4 @@
-"""Acceptance tests for FR-697 copilot instrumentation worktree delegation."""
+"""Acceptance tests for FR-698 copilot instrumentation worktree delegation."""
 
 from pathlib import Path
 

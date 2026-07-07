@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# worktree.sh — Canonical worktree lifecycle command (FR-697)
+# worktree.sh — Canonical worktree lifecycle command (FR-698)
 #
 # Verbs:
 #   new <name> [--prefix <branch_prefix>] [--work-dir <selector>] [--json]
