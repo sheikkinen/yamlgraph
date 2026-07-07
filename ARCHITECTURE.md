@@ -490,7 +490,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 172 | CAP-172 Prompt-Monolith Linter Check (W026) | `yamlgraph/linter/checks_prompts.py`, `yamlgraph/linter/graph_linter.py` | REQ-YG-473 |
 | 173 | CAP-173 Write Data File Tool | `tools/write_data_file_tool` | REQ-YG-474 – 477 |
 | 174 | CAP-174 Data Files Glob Support | `data_loader` | REQ-YG-478 – 479 |
-| 175 | CAP-175 Novel Fandom Canon Schema | `examples` | REQ-YG-481 – 483 |
+| 175 | CAP-175 Novel Fandom Canon Schema | `examples` | REQ-YG-481 – 483, 523 |
 | 176 | CAP-176 Novel Fandom Enriched World Model | `examples` | REQ-YG-484 – 486 |
 | 177 | CAP-177 Novel Fandom Plot Pathfinder | `examples` | REQ-YG-487 – 488 |
 | 178 | CAP-178 Novel Fandom Prose and Close Loop | `examples` | REQ-YG-489 – 491 |
@@ -2202,6 +2202,7 @@ Typed, multi-entity fiction canon for the novel_fandom example application. Pyda
 | REQ-YG-481 | Pydantic models (Character, Event, Faction, Location) validate canon pages. Each model enforces required fields: id, type, lane, references. Character has goals, personality, faction, relationships with typed valence. Event has participants, consequences, valid_from/valid_to for bi-temporal history. | `examples` |
 | REQ-YG-482 | Reference-integrity gate rejects pages with orphan references (references that don't resolve to existing canon page ids). Reuses FR-628 gate logic with lane-immutability extension. | `examples` |
 | REQ-YG-483 | Lane-immutability gate rejects writes to existing lane:static pages. Dynamic pages (lane:dynamic) can be updated. Gate checks lane field on the existing page and rejects if static and page already exists. | `examples` |
+| REQ-YG-523 | Event schema carries an optional integer `sequence` field giving a global total order across all events (FR-690). Optional at the Pydantic layer so genesis/create_event keep validating; mandatory for the Floodmark canon via check_event_sequence, which enforces completeness (every event sequenced), uniqueness (no shared sequence), and year/sequence consistency (a later year never receives an earlier sequence). Arithmetic check, not an LLM task. | `examples` |
 
 ### 176. CAP-176 Novel Fandom Enriched World Model
 

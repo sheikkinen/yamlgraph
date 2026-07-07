@@ -55,6 +55,15 @@ class Event(BaseModel):
     valid_from: str | None = None
     valid_to: str | None = None
     year: int | None = None
+    sequence: int | None = Field(
+        default=None,
+        description=(
+            "Global total order across all events (FR-690). Optional at the "
+            "schema layer so genesis/create_event keep validating; the story "
+            "pipeline's mechanical check makes it mandatory for the canon. "
+            "Gaps allowed (10, 20, 30 …) for insertion without renumbering."
+        ),
+    )
     scope: Literal["world", "regional", "local"] = "world"
     affected_locations: list[str] = Field(default_factory=list)
     references: list[str] = Field(default_factory=list)

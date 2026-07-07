@@ -33,3 +33,13 @@ requirements:
       on the existing page and rejects if static and page already exists.
     modules:
       - examples
+  - id: REQ-YG-523
+    description: >
+      Event schema carries an optional integer `sequence` field giving a global
+      total order across all events (FR-690). Optional at the Pydantic layer so
+      genesis/create_event keep validating; mandatory for the Floodmark canon via
+      check_event_sequence, which enforces completeness (every event sequenced),
+      uniqueness (no shared sequence), and year/sequence consistency (a later
+      year never receives an earlier sequence). Arithmetic check, not an LLM task.
+    modules:
+      - examples
