@@ -508,6 +508,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 191 | CAP-191 Instrumentation Worktree Delegation | `scripts/copilot_instrument.sh`, `tests/unit/test_copilot_instrument_worktree_delegation_red.py` | REQ-YG-526 |
 | 192 | CAP-192 Branch Deny Guidance Manual Worktree Lane | `.github/hooks/scripts/pre-command-guard.sh`, `.github/hooks/tests/test_pre_command_guard.py` | REQ-YG-527 |
 | 193 | CAP-193 Watcher Wrapper JSON Envelope | `.chaplain/lib/watcher/worktree_setup.sh`, `.chaplain/lib/watcher/worktree_teardown.sh`, `tests/unit/test_watcher_worktree_wrapper_red.py` | REQ-YG-528 |
+| 194 | CAP-194 Novel Fandom Plot Threads and Throughlines | `examples` | REQ-YG-530 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -2402,6 +2403,16 @@ Watcher worktree setup/teardown wrappers delegate to scripts/worktree.sh while p
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-528 | worktree_setup.sh forwards topic/prefix/work-dir to scripts/worktree.sh new --json and preserves wt_dir/wt_branch/main_dir/work_dir output contract. worktree_teardown.sh delegates to scripts/worktree.sh rm --dir. | `.chaplain/lib/watcher/worktree_setup.sh`, `.chaplain/lib/watcher/worktree_teardown.sh`, `tests/unit/test_watcher_worktree_wrapper_red.py` |
+
+### 194. CAP-194 Novel Fandom Plot Threads and Throughlines
+
+Derived story layer for the novel_fandom example: plot threads (decomposition by conflict) and throughlines (decomposition by character), extracted from canon by an LLM pipeline and validated by pure mechanical gates. Threads carry a raise/release event ledger walked in `sequence` order (FR-690); throughlines walk a character's emotional deltas over the events they appear in. Gates are arithmetic set/ledger checks, not LLM tasks.
+
+**Feature Request:** FR-691
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-530 | Story gates validate threads and throughlines against canon. Citation integrity: every carrier/source/raise/release id resolves to a canon id. Ledger walk: for each thread, walking its raise/release events in FR-690 sequence order, a release without a prior open raise fails, and status=released requires a non-empty releases list. Cap and distinctness: at most eight threads, each with a distinct carrier set and non-empty opposition. Id stability: regeneration preserves ids for persisting threads and lists every dropped prior id with a reason (no-op on first run). Throughlines: every entry cites a canon event carrying a sequence, entries walk in non-decreasing sequence order, each throughline has at least one slack point or an explicit arc_taut claim, and a major character's arc may not be zero-delta. All gates are pure functions returning {valid, violations}; arithmetic, not LLM tasks. | `examples` |
 
 <!-- END GENERATED CAPABILITIES -->
 
