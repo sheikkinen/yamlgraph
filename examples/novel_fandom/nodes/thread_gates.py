@@ -27,20 +27,80 @@ MAX_THREADS = 8
 def check_citation_integrity(
     threads: list[dict[str, Any]], canon_ids: set[str]
 ) -> dict[str, Any]:
-    """STUB (FR-691 RED): real logic lands in GREEN."""
-    return {"valid": True, "violations": []}
+    """Every carrier/source/raise/release id must resolve to a canon id."""
+    violations: list[str] = []
+    for t in threads:
+        tid = t.get("id", "<no-id>")
+        for field in ("carriers", "sources", "raises", "releases"):
+            for ref in t.get(field, []):
+                if ref not in canon_ids:
+                    violations.append(
+                        f"thread '{tid}': {field} cites unknown canon id '{ref}'"
+                    )
+    return {"valid": not violations, "violations": violations}
 
 
 def check_ledger_walk(
     threads: list[dict[str, Any]], sequences: dict[str, int]
 ) -> dict[str, Any]:
-    """STUB (FR-691 RED): real logic lands in GREEN."""
-    return {"valid": True, "violations": []}
+    """Walk each thread's raise/release events in sequence order.
+
+    A release fires only against an open raise; a release seen while nothing is
+    open is unbalanced. A thread declared ``released`` must cite at least one
+    release event.
+    """
+    violations: list[str] = []
+    for t in threads:
+        tid = t.get("id", "<no-id>")
+        releases = t.get("releases", [])
+        if t.get("status") == "released" and not releases:
+            violations.append(
+                f"thread '{tid}': status=released but no release event cited"
+            )
+
+        events: list[tuple[int, str, str]] = []
+        for eid in t.get("raises", []):
+            seq = sequences.get(eid)
+            if seq is not None:
+                events.append((seq, "raise", eid))
+        for eid in releases:
+            seq = sequences.get(eid)
+            if seq is not None:
+                events.append((seq, "release", eid))
+        events.sort(key=lambda x: x[0])
+
+        opened = 0
+        for seq, op, eid in events:
+            if op == "raise":
+                opened += 1
+            elif opened == 0:
+                violations.append(
+                    f"thread '{tid}': release '{eid}' (seq {seq}) has no prior raise"
+                )
+            else:
+                opened -= 1
+    return {"valid": not violations, "violations": violations}
 
 
 def check_cap_and_distinctness(threads: list[dict[str, Any]]) -> dict[str, Any]:
-    """STUB (FR-691 RED): real logic lands in GREEN."""
-    return {"valid": True, "violations": []}
+    """At most MAX_THREADS threads; distinct carrier sets; non-empty opposition."""
+    violations: list[str] = []
+    if len(threads) > MAX_THREADS:
+        violations.append(f"thread count {len(threads)} exceeds cap of {MAX_THREADS}")
+
+    seen: dict[frozenset[str], str] = {}
+    for t in threads:
+        tid = t.get("id", "<no-id>")
+        if not (t.get("opposition") or "").strip():
+            violations.append(f"thread '{tid}': opposition is empty")
+        carrier_set = frozenset(t.get("carriers", []))
+        if carrier_set in seen:
+            violations.append(
+                f"thread '{tid}': carrier set duplicates thread '{seen[carrier_set]}'"
+            )
+        else:
+            seen[carrier_set] = tid
+    return {"valid": not violations, "violations": violations}
 
 
 def check_id_stability(
@@ -48,8 +108,23 @@ def check_id_stability(
     prior_ids: set[str],
     dropped: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
-    """STUB (FR-691 RED): real logic lands in GREEN."""
-    return {"valid": True, "violations": []}
+    """Regeneration must preserve ids or account for every dropped prior id.
+
+    No-op on the first run (empty ``prior_ids``). Any prior id absent from the
+    current set must appear in ``dropped``.
+    """
+    if not prior_ids:
+        return {"valid": True, "violations": []}
+
+    violations: list[str] = []
+    current_ids = {t.get("id") for t in threads}
+    dropped_ids = {d.get("id") for d in (dropped or [])}
+    for pid in prior_ids:
+        if pid not in current_ids and pid not in dropped_ids:
+            violations.append(
+                f"prior thread '{pid}' dropped without a reason in `dropped`"
+            )
+    return {"valid": not violations, "violations": violations}
 
 
 def check_throughlines(
@@ -58,5 +133,46 @@ def check_throughlines(
     sequences: dict[str, int],
     major_ids: set[str],
 ) -> dict[str, Any]:
-    """STUB (FR-691 RED): real logic lands in GREEN."""
-    return {"valid": True, "violations": []}
+    """Each throughline walks cited, sequenced events in non-decreasing order.
+
+    A throughline needs at least one slack point or an explicit ``arc_taut``
+    claim; a major character's arc may not be zero-delta (every entry ``none``).
+    """
+    violations: list[str] = []
+    for tl in throughlines:
+        char = tl.get("character", "<no-char>")
+        entries = tl.get("entries", [])
+
+        prev_seq: int | None = None
+        for entry in entries:
+            eid = entry.get("event")
+            if eid not in canon_ids:
+                violations.append(
+                    f"throughline '{char}': entry cites unknown event '{eid}'"
+                )
+                continue
+            seq = sequences.get(eid)
+            if seq is None:
+                violations.append(
+                    f"throughline '{char}': event '{eid}' has no sequence"
+                )
+                continue
+            if prev_seq is not None and seq < prev_seq:
+                violations.append(
+                    f"throughline '{char}': event '{eid}' (seq {seq}) out of order"
+                )
+            prev_seq = seq
+
+        has_slack = any(e.get("slack") for e in entries)
+        if not has_slack and not tl.get("arc_taut"):
+            violations.append(
+                f"throughline '{char}': no slack point and no arc_taut claim"
+            )
+
+        if char in major_ids:
+            has_delta = any(e.get("delta") in ("gain", "loss") for e in entries)
+            if not has_delta:
+                violations.append(
+                    f"throughline '{char}': zero-delta arc for major character"
+                )
+    return {"valid": not violations, "violations": violations}
