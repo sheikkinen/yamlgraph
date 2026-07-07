@@ -1,0 +1,20 @@
+id: CAP-189
+name: Worktree CLI Contract
+description: >
+  Canonical executor-neutral worktree lifecycle command in scripts/worktree.sh
+  with verbs new, spike, list, and rm, plus scripts/wt alias wrapper.
+fr: FR-697
+modules:
+  - scripts/worktree.sh
+  - scripts/wt
+  - tests/unit/test_worktree_cli_red.py
+requirements:
+  - id: REQ-YG-524
+    description: >
+      scripts/worktree.sh provides new/spike/list/rm lifecycle verbs,
+      usage output, and scripts/wt delegates to canonical command.
+      Spike teardown enforces --note policy and appends notes log.
+    modules:
+      - scripts/worktree.sh
+      - scripts/wt
+      - tests/unit/test_worktree_cli_red.py

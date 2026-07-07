@@ -1,0 +1,17 @@
+id: CAP-191
+name: Instrumentation Worktree Delegation
+description: >
+  scripts/copilot_instrument.sh delegates disposable worktree creation and
+  teardown to scripts/worktree.sh instead of private git worktree lifecycle logic.
+fr: FR-697
+modules:
+  - scripts/copilot_instrument.sh
+  - tests/unit/test_copilot_instrument_worktree_delegation_red.py
+requirements:
+  - id: REQ-YG-526
+    description: >
+      Copilot instrumentation script uses shared scripts/worktree.sh for create/remove
+      lifecycle and no longer includes direct git worktree add/remove lifecycle commands.
+    modules:
+      - scripts/copilot_instrument.sh
+      - tests/unit/test_copilot_instrument_worktree_delegation_red.py

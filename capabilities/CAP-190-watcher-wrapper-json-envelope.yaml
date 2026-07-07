@@ -1,0 +1,20 @@
+id: CAP-190
+name: Watcher Wrapper JSON Envelope
+description: >
+  Watcher worktree setup/teardown wrappers delegate to scripts/worktree.sh
+  while preserving setup JSON envelope keys for FSM context mapping.
+fr: FR-697
+modules:
+  - .chaplain/lib/watcher/worktree_setup.sh
+  - .chaplain/lib/watcher/worktree_teardown.sh
+  - tests/unit/test_watcher_worktree_wrapper_red.py
+requirements:
+  - id: REQ-YG-525
+    description: >
+      worktree_setup.sh forwards topic/prefix/work-dir to scripts/worktree.sh new --json
+      and preserves wt_dir/wt_branch/main_dir/work_dir output contract.
+      worktree_teardown.sh delegates to scripts/worktree.sh rm --dir.
+    modules:
+      - .chaplain/lib/watcher/worktree_setup.sh
+      - .chaplain/lib/watcher/worktree_teardown.sh
+      - tests/unit/test_watcher_worktree_wrapper_red.py
