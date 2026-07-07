@@ -24,3 +24,13 @@ requirements:
     modules:
       - yamlgraph/tools/python_tool.py
       - tests/unit/test_python_nodes.py
+  - id: REQ-YG-529
+    description: >
+      All chaplain graph configs under .chaplain/graphs/ compile and their
+      declared python tools resolve at load time (FR-699); the philosopher
+      write_diary proxy resolves .chaplain/lib/diary.py; verified by unit
+      witness tests so loader-semantics changes condemn config drift at
+      pre-commit instead of pipeline runtime
+    modules:
+      - .chaplain/graphs
+      - tests/unit/test_chaplain_graph_compile.py

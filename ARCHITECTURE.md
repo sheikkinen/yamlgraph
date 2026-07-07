@@ -397,7 +397,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 72 | CAP-72 Knowledge Graph Mass Graduation (FR-193) | `.github/copilot-instructions.md` | REQ-YG-192 |
 | 73 | CAP-73 Philosopher Challenge Node (FR-195) | `examples/philosopher/models.py`, `examples/philosopher/tools.py`, `examples/philosopher/graph.yaml`, `examples/philosopher/prompts/distill.yaml`, … | REQ-YG-193 |
 | 74 | CAP-74 FSM Scripture CLAUDE.md (FR-199) | `fsm/CLAUDE.md`, `tests/unit/test_fsm_claude_md_doctrine.py` | REQ-YG-195 |
-| 75 | CAP-75 Portable Chaplain (FR-196) | `yamlgraph/tools/python_tool.py`, `.chaplain/graphs/philosopher/tools.py`, `.chaplain/lib/diary.py`, `tests/unit/test_python_nodes.py` | REQ-YG-196 |
+| 75 | CAP-75 Portable Chaplain (FR-196) | `yamlgraph/tools/python_tool.py`, `.chaplain/graphs/philosopher/tools.py`, `.chaplain/lib/diary.py`, `tests/unit/test_python_nodes.py` | REQ-YG-196, 529 |
 | 76 | CAP-76 Horoscope Demo | `examples/demos/horoscope` | REQ-YG-197 |
 | 77 | CAP-77 Image Generation Pipeline | `examples/image_pipeline` | REQ-YG-198 |
 | 78 | CAP-78 .fi Domain Crawl Demo | `examples/demos/fi-domain-crawl` | REQ-YG-199 |
@@ -1195,6 +1195,7 @@ PythonToolConfig supports a `path` field for file-path-based tool loading via im
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-196 | PythonToolConfig supports path field (mutually exclusive with module) for file-path-based Python tool loading via spec_from_file_location; path resolves relative to graph_root when provided and both relative/absolute out-of-root paths are rejected; validation rejects both-set and neither-set; parse_python_tools accepts path or module in YAML tool definitions | `yamlgraph/tools/python_tool.py`, `tests/unit/test_python_nodes.py` |
+| REQ-YG-529 | All chaplain graph configs under .chaplain/graphs/ compile and their declared python tools resolve at load time (FR-699); the philosopher write_diary proxy resolves .chaplain/lib/diary.py; verified by unit witness tests so loader-semantics changes condemn config drift at pre-commit instead of pipeline runtime | `.chaplain/graphs`, `tests/unit/test_chaplain_graph_compile.py` |
 
 ### 76. CAP-76 Horoscope Demo
 
