@@ -147,6 +147,7 @@ seeds:
 
 See these canonical sources for patterns:
 - **Getting Started**: `reference/getting-started.md` (core patterns, node types, CLI)
+- **Development Process**: `docs/development-process.md` (self-reflection overview: doctrine, chaplain pipeline, traceability spine, enforcement rings — with diagrams)
 - **Architecture**: `ARCHITECTURE.md` (design philosophy, state, 3-layer pattern)
 - **Dev Commands**: `CLAUDE.md` (testing, linting, running examples)
 - **Prompts**: `reference/prompt-yaml.md` (Jinja2, schemas)
