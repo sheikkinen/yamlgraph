@@ -2,19 +2,19 @@ character: heidrun
 arc_taut: false
 entries:
 - event: reinmar_arrives
-  emotion: welcoming
+  emotion: curiosity
   delta: none
   slack: false
 - event: heidrun_speech
-  emotion: wisdom
-  delta: gain
-  slack: true
+  emotion: serene authority
+  delta: none
+  slack: false
 - event: clan_divide
-  emotion: guidance
-  delta: gain
+  emotion: acceptance
+  delta: none
   slack: false
 - event: journey_high_valley
-  emotion: steadfastness
+  emotion: fortitude
   delta: none
   slack: false
 - event: high_valley_arrival
@@ -26,7 +26,7 @@ entries:
   delta: none
   slack: false
 - event: heidrun_calls_gathering
-  emotion: purpose
+  emotion: determination
   delta: gain
   slack: false
 - event: bonding_rite
@@ -36,4 +36,4 @@ entries:
 - event: heidrun_dies
   emotion: peace
   delta: gain
-  slack: false
+  slack: true

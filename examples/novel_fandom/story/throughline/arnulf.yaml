@@ -2,11 +2,11 @@ character: arnulf
 arc_taut: false
 entries:
 - event: dawn_raid
-  emotion: vengeful anger
+  emotion: vengeful rage
   delta: none
   slack: false
 - event: great_flood
-  emotion: anger turned to frustration
+  emotion: terror
   delta: loss
   slack: false
 - event: arnulf_swept
@@ -14,30 +14,30 @@ entries:
   delta: loss
   slack: false
 - event: arnulf_returns
-  emotion: bitter resentment
+  emotion: betrayal
   delta: gain
   slack: false
 - event: arnulf_confrontation
-  emotion: rage
-  delta: loss
+  emotion: fury
+  delta: gain
   slack: false
 - event: second_camp_split
-  emotion: isolation
+  emotion: resentment
   delta: loss
   slack: false
 - event: heidrun_calls_gathering
-  emotion: reluctant participation
-  delta: gain
+  emotion: reluctant compliance
+  delta: none
   slack: false
 - event: arnulf_release
-  emotion: letting go
+  emotion: release and grief
   delta: gain
   slack: true
 - event: bonding_rite
-  emotion: grudging inclusion
-  delta: gain
+  emotion: acceptance
+  delta: loss
   slack: false
 - event: bear_kill
-  emotion: friendship
+  emotion: camaraderie
   delta: gain
   slack: false

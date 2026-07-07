@@ -2,39 +2,39 @@ character: hilde
 arc_taut: false
 entries:
 - event: dawn_raid
-  emotion: vengeful anger
+  emotion: vengeance
   delta: none
   slack: false
 - event: great_flood
-  emotion: terror
+  emotion: fear
   delta: loss
   slack: false
 - event: ledge_stranding
-  emotion: confused vulnerability
-  delta: loss
+  emotion: suspicion
+  delta: none
   slack: false
 - event: deer_recovery
-  emotion: grudging gratitude
-  delta: gain
-  slack: true
-- event: heidrun_speech
-  emotion: hopeful
+  emotion: gratitude
   delta: gain
   slack: false
+- event: heidrun_speech
+  emotion: questioning
+  delta: none
+  slack: false
 - event: ledge_escape
-  emotion: relief
+  emotion: admiration
   delta: gain
   slack: false
 - event: clan_divide
-  emotion: determined sorrow
-  delta: loss
+  emotion: decision
+  delta: gain
   slack: false
 - event: journey_high_valley
-  emotion: anxious endurance
+  emotion: determination
   delta: none
   slack: false
 - event: high_valley_arrival
-  emotion: cautious hope
+  emotion: relief
   delta: gain
   slack: false
 - event: arnulf_returns
@@ -42,22 +42,22 @@ entries:
   delta: loss
   slack: false
 - event: arnulf_confrontation
-  emotion: anguish
+  emotion: pleading
   delta: loss
   slack: false
 - event: second_camp_split
-  emotion: resolve
-  delta: gain
+  emotion: sorrow
+  delta: loss
   slack: false
 - event: heidrun_calls_gathering
-  emotion: anticipation
+  emotion: hope
   delta: gain
   slack: false
 - event: bonding_rite
-  emotion: love and acceptance
+  emotion: love
   delta: gain
-  slack: false
+  slack: true
 - event: reinthilde_birth
-  emotion: fulfillment
+  emotion: maternal joy
   delta: gain
   slack: false

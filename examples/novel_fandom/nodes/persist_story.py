@@ -80,12 +80,22 @@ def persist_threads(state: dict[str, Any]) -> dict[str, Any]:
     result = state.get("reconcile_result")
     threads = [_dump(t) for t in _extract(result, "threads")]
     dropped = [_dump(d) for d in _extract(result, "dropped")]
+    thread_dir = _STORY_DIR / "thread"
     written: list[str] = []
+    kept_ids: set[str] = set()
     for data in threads:
         tid = data.get("id", f"thread_{len(written)}")
-        path = _STORY_DIR / "thread" / f"{tid}.yaml"
+        kept_ids.add(tid)
+        path = thread_dir / f"{tid}.yaml"
         _atomic_write(path, data)
         written.append(str(path))
+    # Regeneration is idempotent: a thread that left the union must leave disk,
+    # or the persisted set drifts from the gated in-state union (stale orphans
+    # would silently breach the cap the pipeline just checked).
+    if thread_dir.is_dir():
+        for f in thread_dir.glob("*.yaml"):
+            if f.stem not in kept_ids:
+                f.unlink()
     return {
         "threads": threads,
         "dropped_threads": dropped,

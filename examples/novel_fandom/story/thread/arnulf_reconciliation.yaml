@@ -1,10 +1,17 @@
 id: arnulf_reconciliation
-kind: bond
+kind: feud
 carriers:
 - arnulf
-sources: []
-opposition: His own grief, anger, and sense of betrayal
-stakes: Permanent estrangement from Hilde and the community
+- hilde
+- gunnar
+sources:
+- arnulf
+- hilde
+- gunnar
+- hildes_father
+opposition: Hilde's refusal to continue the feud and her bond with Gunnar, which Arnulf
+  sees as a betrayal of their father's memory
+stakes: Arnulf's honor and his acceptance of the new peace
 raises:
 - arnulf_returns
 - arnulf_confrontation
@@ -12,4 +19,3 @@ releases:
 - arnulf_release
 - bear_kill
 status: released
-justification: ''

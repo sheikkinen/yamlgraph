@@ -4,30 +4,52 @@ system: |
 
   1. GROUND every synopsis thread's carriers, sources, raises, and releases to
      real canon ids. A carrier maps to a character id; a raise/release maps to an
-     EVENT id. If a beat has no matching canon event, drop that beat.
+     EVENT id. If a beat has no matching canon event, drop that beat. Populate
+     `sources` for EVERY thread with the canon character/faction ids whose fields
+     anchor the conflict — a grounded synopsis thread is still sourced in the
+     canon entities it is about; `sources: []` is only valid if no canon entity
+     grounds the thread, which should never happen.
   2. MINE latent threads the synopsis missed — tensions buried in character
-     `fears` and `backstory`, faction internal tensions, and world rules. Each
+     `fears` and `backstory`, faction `internal_tensions`, and world rules. Each
      latent thread you admit MUST carry a one-line `justification` naming the
-     canon field it was mined from.
+     canon field it was mined from, and MUST set `sources` to the id whose field
+     it was mined from. A latent thread is one whose pressure has NOT yet been
+     released in canon: give it `status: latent` and leave `raises` and
+     `releases` EMPTY (a latent thread that already had events would be an open
+     or released thread, not latent). Latent threads are the deficit queue —
+     they are the tensions the story has set up but not paid off.
   3. CAP the final union at 8 threads. The synopsis contributes at most 6. Rank
      by dramatic weight; list anything you drop beyond the cap in `dropped` with
      a reason.
 
+  SELF-CHECK before you answer: the `internal_tensions` fields below are loaded
+  with unresolved grievances (resentment, distrust, bitterness). If your final
+  union contains ZERO latent threads — if every thread is `released` — you have
+  almost certainly failed to mine. A canon this dense in stated tension MUST
+  surface latent threads; a clean, fully-resolved union is a symptom of
+  optimizing for closure, not of a conflict-free story. Re-read the
+  `internal_tensions` and mine at least the grievances stated there.
+
   Hard rules:
   - Every carrier/source/raise/release MUST be a canon id from the lists below.
   - `raises` and `releases` are EVENT ids only.
+  - `sources` are character/faction ids (never events); every thread has ≥1.
   - Every thread needs a non-empty `opposition`.
   - A thread with status `released` MUST cite at least one release event, and a
     release event must come after (higher sequence than) a raise event.
+  - A thread with status `latent` MUST have empty `raises` and `releases`.
+  - Do not label an escalating event as a `release`: a `release` lowers the
+    conflict's pressure. If an event raises tension, it is a `raise`.
 
   Canon characters (id — fears / backstory):
   {% for pid, page in state.canon_pages.items() if page.type == 'character' %}
   - {{ pid }} ({{ page.role }}): fears={{ page.fears | join('; ') }} | back={{ page.backstory }}
   {% endfor %}
 
-  Canon factions:
+  Canon factions (id — description / internal tensions):
   {% for pid, page in state.canon_pages.items() if page.type == 'faction' %}
   - {{ pid }}: {{ page.description }}
+    internal_tensions: {{ page.internal_tensions }}
   {% endfor %}
 
   Canon rules:
@@ -50,7 +72,9 @@ user: |
   {{ state.prior_thread_ids | join(', ') }}
   {% endif %}
 
-  Produce the final union of at most 8 canon-grounded threads, plus any dropped
+  Produce the final union of at most 8 canon-grounded threads. Include the latent
+  threads you mined from `internal_tensions`, `fears`, and `backstory` — a union
+  with zero latent threads has almost certainly under-mined. List anything dropped
   beyond the cap with reasons.
 
 schema:
@@ -63,11 +87,12 @@ schema:
         id (str, snake_case; preserve prior ids where the thread persists),
         kind (str: feud, bond, belief, survival, succession),
         carriers (list[str]: canon character ids),
-        sources (list[str]: canon ids this thread is mined from),
+        sources (list[str]: canon character/faction ids whose fields anchor the
+        thread; NON-EMPTY for every thread, never event ids),
         opposition (str: REQUIRED non-empty),
         stakes (str),
-        raises (list[str]: canon EVENT ids that open/escalate),
-        releases (list[str]: canon EVENT ids that resolve),
+        raises (list[str]: canon EVENT ids that open/escalate; EMPTY for latent),
+        releases (list[str]: canon EVENT ids that resolve; EMPTY for latent),
         status (str: open, escalating, released, or latent),
         justification (str: for latent threads, the canon field mined from).
     dropped:

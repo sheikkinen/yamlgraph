@@ -1,17 +1,12 @@
 id: gunnar_peacetime_identity
-kind: belief
+kind: succession
 carriers:
 - gunnar
 sources:
 - gunnar
-opposition: His own doubt about his usefulness outside of combat
-stakes: Loss of purpose and place in the community
-raises:
-- clan_divide
-- high_valley_arrival
-releases:
-- bear_kill
-- reinthilde_birth
-status: released
-justification: 'Gunnar''s fear: ''That he is only useful as a fighter and will have
-  nothing to offer in peacetime'' from gunnar.fears'
+opposition: Gunnar's fear that he is only useful as a fighter and has no role in peacetime
+stakes: Gunnar's sense of purpose and his place in the new community
+raises: []
+releases: []
+status: latent
+justification: mined from gunnar fears field

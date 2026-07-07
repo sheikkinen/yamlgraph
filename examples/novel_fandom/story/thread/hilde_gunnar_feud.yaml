@@ -1,17 +1,22 @@
 id: hilde_gunnar_feud
-kind: feud
+kind: bond
 carriers:
 - hilde
 - gunnar
-sources: []
-opposition: Each other's clan loyalties and the history of bloodshed
-stakes: Continued cycle of killing and loss
+sources:
+- hilde
+- gunnar
+- aschenwulf
+- barenschadel
+opposition: The blood-feud between Aschenwulf and Bärenschädel that expects Hilde
+  and Gunnar to kill each other
+stakes: The possibility of a new life together and the end of personal enmity
 raises:
 - dawn_raid
-releases:
 - ledge_stranding
 - deer_recovery
+releases:
 - clan_divide
 - bonding_rite
+- reinthilde_birth
 status: released
-justification: ''

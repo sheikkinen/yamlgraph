@@ -1,0 +1,18 @@
+id: youth_resentment
+kind: feud
+carriers:
+- hilde
+- gunnar
+sources:
+- hilde
+- gunnar
+- aschenwulf
+- barenschadel
+opposition: The lingering resentment among younger warriors who lost kin and see the
+  peace as a betrayal
+stakes: The long-term survival of the peace and the community's unity
+raises: []
+releases: []
+status: latent
+justification: mined from aschenwulf and barenschadel internal_tensions about younger
+  warriors' resentment

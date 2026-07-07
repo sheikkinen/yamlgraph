@@ -365,3 +365,30 @@ class TestThroughlines:
         )
         result = check_throughlines([tl], self.CANON, self.SEQ, self.MAJOR)
         assert result["valid"] is True
+
+
+class TestPersistIdempotence:
+    """Regeneration must not leave orphaned thread files on disk.
+
+    A thread that leaves the union between runs must leave `story/thread/` too,
+    or the persisted set drifts above the cap the in-state gate just cleared.
+    """
+
+    @pytest.mark.req("REQ-YG-530")
+    def test_persist_removes_orphaned_threads(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        persist = _load("novel_fandom_nodes_persist_story", "nodes/persist_story.py")
+        monkeypatch.setattr(persist, "_STORY_DIR", tmp_path)
+        thread_dir = tmp_path / "thread"
+        thread_dir.mkdir(parents=True)
+        # A stale thread from a prior run that the new union does not contain.
+        (thread_dir / "ledge_survival.yaml").write_text("id: ledge_survival\n")
+
+        persist.persist_threads(
+            {"reconcile_result": {"threads": [_thread(id="hilde_gunnar_feud")]}}
+        )
+
+        remaining = {f.stem for f in thread_dir.glob("*.yaml")}
+        assert remaining == {"hilde_gunnar_feud"}
+        assert not (thread_dir / "ledge_survival.yaml").exists()

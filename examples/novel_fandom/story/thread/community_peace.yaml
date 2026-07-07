@@ -1,22 +1,23 @@
 id: community_peace
 kind: belief
 carriers:
+- heidrun
 - hilde
 - gunnar
-- heidrun
 - arnulf
-sources: []
-opposition: Clan members who want to continue the feud, especially young men and Arnulf
-stakes: Fragile new community collapses into civil conflict
+sources:
+- heidrun
+- hilde
+- gunnar
+- arnulf
+- combined_survivors
+opposition: Old customs of blood-feud and clan loyalty that resist change and threaten
+  to restart the war
+stakes: The spiritual unity of the community and the creation of a new moral order
 raises:
-- ledge_escape
-- clan_divide
-- arnulf_confrontation
-- second_camp_split
-releases:
+- heidrun_speech
 - heidrun_calls_gathering
+releases:
 - arnulf_release
 - bonding_rite
-- bear_kill
 status: released
-justification: ''

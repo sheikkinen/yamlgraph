@@ -1,102 +1,84 @@
 threads:
-- id: hilde_gunnar_feud
-  kind: feud
-  carriers:
-  - Hilde
-  - Gunnar
-  opposition: Each other's clan loyalties and the history of bloodshed
-  stakes: Continued cycle of killing and loss
-  raises:
-  - Hilde leads dawn raid against Gunnar
-  - Both meet with drawn axes
-  releases:
-  - Flood strands them on ledge
-  - Gunnar shares deer meat
-  - They sleep back to back
-  - They have sex
-  - Hilde refuses to kill Gunnar when reunited
-  - Both declare feud over
-  - Rite performed with leather binding
-  status: released
-- id: ledge_survival
-  kind: survival
-  carriers:
-  - Hilde
-  - Gunnar
-  opposition: Lack of food and water, dangerous river, isolation
-  stakes: Death from starvation or drowning
-  raises:
-  - Flood carries them onto ledge
-  - Water rises to ledge edge
-  releases:
-  - Gunnar hauls up dead deer
-  - They share food
-  - Sleep back to back
-  - Water drops two feet
-  - Climb down using handholds
-  status: released
-- id: community_peace
-  kind: belief
-  carriers:
-  - Hilde
-  - Gunnar
-  - Heidrun
-  - Arnulf
-  opposition: Clan members who want to continue the feud, especially young men and
-    Arnulf
-  stakes: Fragile new community collapses into civil conflict
-  raises:
-  - Hilde and Gunnar return together
-  - Both clans suspicious
-  - Hilde refuses to kill Gunnar
-  - Arnulf returns and calls Hilde traitor
-  - Camp splits into two factions
-  releases:
-  - Heidrun calls gathering
-  - Arnulf speaks words of release
-  - Hilde and Gunnar perform rite
-  - Permanent village built
-  - Bear hunt brings Arnulf and Gunnar together
-  status: released
-- id: arnulf_reconciliation
+- id: hilde_gunnar_bond
   kind: bond
   carriers:
-  - Arnulf
-  opposition: His own grief, anger, and sense of betrayal
-  stakes: Permanent estrangement from Hilde and the community
+  - Hilde
+  - Gunnar
+  opposition: The blood-feud between Aschenwulf and Bärenschädel and the expectation
+    that they kill each other
+  stakes: The possibility of a new life together and the end of personal enmity
   raises:
-  - Arnulf returns and sees Gunnar
-  - Calls Hilde traitor
-  - Draws knife on Gunnar
-  - Throws knife in lake
-  - Builds lean-to apart
-  - Refuses to speak except to Heidrun
+  - Hilde leads raid to kill Gunnar
+  - Flood traps them on a ledge
+  - Gunnar shares the deer he hauls up
+  - They sleep back to back
+  - Hilde initiates sex
   releases:
-  - Arnulf goes to lake at dawn
-  - Speaks words of release for his father's spirit
-  - Sits with others for evening meal
-  - Later talks with Gunnar after bear hunt
+  - Hilde refuses to kill Gunnar after reunion
+  - They both declare the feud over to the survivors
+  - They share a shelter openly
+  - They perform the binding rite at the lake
+  - Gunnar teaches children to climb
   status: released
-- id: migration_trust
+- id: arnulf_feud
+  kind: feud
+  carriers:
+  - Arnulf
+  - Hilde
+  - Gunnar
+  opposition: Hilde's refusal to continue the feud and her new bond with Gunnar
+  stakes: Arnulf's honor and the legacy of his father's death
+  raises:
+  - Arnulf returns and confronts Hilde
+  - Arnulf calls Hilde a traitor
+  - Arnulf draws his knife on Gunnar
+  releases:
+  - Hilde threatens to kill Arnulf if he kills Gunnar
+  - Arnulf throws his knife into the lake
+  - Arnulf speaks the words of release for his father's spirit
+  - Arnulf and Gunnar kill the bear together and talk by the fire
+  status: released
+- id: group_survival
   kind: survival
   carriers:
+  - Hilde
+  - Gunnar
   - Reinmar
   - Heidrun
   - survivors
-  opposition: Distrust of a clanless stranger, attachment to ancestral land
-  stakes: Death by drowning if they stay
+  opposition: Floodwaters, cold, treacherous terrain, lack of food, and distrust of
+    a stranger
+  stakes: The lives of all survivors and finding a safe place to settle
   raises:
-  - Reinmar arrives and warns of flood
-  - He offers to guide to high valley
-  - No one trusts him
-  - Heidrun speaks for him
-  - Half choose to stay
+  - Flood destroys both camps
+  - Hilde and Gunnar stranded on ledge
+  - Reinmar arrives and offers to guide to high valley
+  - Journey begins across passes and rivers
+  - Two children die of cold
+  - Berno breaks his neck
   releases:
-  - Reinmar leads survivors east
-  - Journey of eighteen days
-  - Two children die
-  - Berno dies
-  - They reach high valley
-  - Valley is as described
-  - Survivors build shelters
+  - Reach high valley with grass, game, and fresh water
+  - Build shelters
+  - Permanent village built before first snow
+  status: released
+- id: cultural_transformation
+  kind: belief
+  carriers:
+  - Heidrun
+  - Hilde
+  - Gunnar
+  - Arnulf
+  - survivors
+  opposition: Old customs of blood-feud and clan loyalty that resist change
+  stakes: The spiritual fate of the community and the possibility of unity under new
+    law
+  raises:
+  - Heidrun declares the flood a judgment from the gods
+  - Heidrun urges a new bond instead of war
+  - Heidrun calls a gathering after Arnulf's return
+  - Arnulf refuses to witness the rite for three days
+  releases:
+  - Arnulf speaks the words of release alone at dawn
+  - Hilde and Gunnar perform the binding rite
+  - Heidrun cuts the leather and throws it into the lake
   status: released

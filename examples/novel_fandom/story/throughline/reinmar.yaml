@@ -6,22 +6,22 @@ entries:
   delta: none
   slack: false
 - event: heidrun_speech
-  emotion: interest
-  delta: gain
+  emotion: engaged
+  delta: none
   slack: false
 - event: clan_divide
-  emotion: observation
+  emotion: advisory
   delta: none
   slack: false
 - event: journey_high_valley
-  emotion: determined
+  emotion: leading
   delta: gain
   slack: false
 - event: high_valley_arrival
-  emotion: contentment
-  delta: gain
+  emotion: satisfaction
+  delta: none
   slack: true
 - event: reinmar_departs
-  emotion: wanderlust
-  delta: loss
+  emotion: resolve to leave
+  delta: none
   slack: false
