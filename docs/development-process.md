@@ -165,6 +165,24 @@ enforces this convergence mechanically: branch creation in the main worktree is 
 ("commit to main; for isolated work, submit to `.chaplain/inbox/`"), so the two paths cannot
 drift into different git topologies.
 
+**Why the manual loop wins** (operator's own diagnosis):
+
+1. **Latency.** The pipeline is slow: plan (≤10 min) + judge (≤10 min) + enforce (≤1 h) +
+   CI wait (≤30 min) per topic. The manual loop replaces each stage boundary with an
+   operator's one-word verdict issued in seconds.
+2. **Task-shape mismatch.** The Chaplain fits *fill-in-the-gaps* development — bounded,
+   well-specified changes where an FR can be frozen before code exists. Exploration inverts
+   the rite: you *enforce first* (prototype) to discover what the plan should be, and the
+   prototype might legitimately fail. The pipeline treats failure as a defect
+   (`.chaplain/failed/`); exploration treats failure as the purchased information.
+3. **Transaction cost.** Worktree setup, PR creation, CI polling, squash-merge, teardown —
+   fixed overhead per change that the direct-to-main loop simply doesn't pay.
+
+The dispatch heuristic that falls out: **route by task shape, not by habit** — frozen-spec,
+bounded topics to the inbox; exploratory or judgement-dense work to the interactive loop.
+Using the Chaplain for a spike wastes an hour to learn what a 5-minute prototype would have
+shown; using the manual loop for routine gap-filling normalizes gate bypasses.
+
 ---
 
 ## 4. The Traceability Spine: CAP → REQ → Test → Changelog

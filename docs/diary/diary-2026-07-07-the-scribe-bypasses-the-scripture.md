@@ -60,6 +60,33 @@ Corollary for the doc: a section 3.1 "reality check" now states the ratio. A pro
 that only describes the aspirational executor is `research_as_inventory` in reverse —
 describing what was *built* rather than what *happens*.
 
+## Second Addendum: Why the Manual Loop Wins (operator's causal decomposition)
+
+The operator named three reasons, which decompose cleanly:
+
+1. **Latency** — the pipeline is a batch system (10 min plan + 10 min judge + 1 h enforce +
+   30 min CI per topic); the manual loop is interactive, with judge verdicts in seconds.
+2. **Task-shape mismatch** — the Chaplain's contract is *freeze the spec, then enforce*. That
+   fits fill-in-the-gaps development. Exploration runs the rite backwards: enforce (prototype)
+   first to *discover* the plan, and the prototype may legitimately fail. The pipeline has no
+   vocabulary for productive failure — `.chaplain/failed/` is a defect queue, not a lab
+   notebook. A spike that disproves an approach is a success the FSM records as an error.
+3. **Transaction cost** — worktree + PR + CI + merge is fixed overhead the direct loop skips.
+
+The deeper pattern: **the rite assumes the plan is judgeable before the code exists.** True
+for bounded changes; false for research. Plot-modeller layer spikes, the UP-engine
+unsolvability proof, the L5/L7 kill-decisions — the most valuable recent work was *designed to
+possibly fail*, and none of it could have written a freezable FR up front. The manual loop is
+not indiscipline; it is the correct executor for judgement-dense, failure-tolerant work.
+
+**Heuristic:** route by task shape — frozen-spec topics to the inbox, exploratory work to the
+interactive loop; the anti-pattern is either executor used for the other's shape.
+
+**Seed:** could the pipeline grow a *spike mode* — disposable worktree, gates suspended, no
+FR required, and the only mandatory artifact a diary entry stating what the failure taught?
+That would give exploration the same crash-safe, inspectable state the enforce path enjoys,
+without taxing it with the enforce path's contract.
+
 ## Heuristic
 
 **A document describing an enforcement system must name its own enforcement, or confess its
