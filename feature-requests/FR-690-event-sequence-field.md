@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Enhancement
-**Status:** Judged ✅ (amendments folded into body; Judgement retained as decision history)
+**Status:** Enforced ✅ (RED `b7b7adf9` → GREEN; commit history is the proof trail)
 **Effort:** 0.5 days
 **Requested:** 2026-07-07
 **Judged:** 2026-07-07
@@ -28,11 +28,11 @@ Downstream story-pipeline steps (throughline timeline walk, chapter planning) ge
 
 ## Acceptance Criteria
 
-- [ ] `Event` schema has `sequence: int | None = None`; all 47 canon files still validate; genesis/create_event untouched
-- [ ] 22 events backfilled with unique, gapped values; sorted listing raw-read against synopsis in review
-- [ ] Python check fails on fixtures with (a) missing sequence, (b) duplicate, (c) year/sequence contradiction — RED committed first
-- [ ] Tests tagged `@pytest.mark.req("REQ-YG-523")`; CAP-175 extended with REQ-YG-523 (sequence ordering) — extension of existing canon-schema capability, no new CAP file
-- [ ] Changelog fragment with `req: REQ-YG-523`
+- [x] `Event` schema has `sequence: int | None = None`; all 47 canon files still validate; genesis/create_event untouched
+- [x] 22 events backfilled with unique, gapped values; sorted listing raw-read against synopsis in review
+- [x] Python check fails on fixtures with (a) missing sequence, (b) duplicate, (c) year/sequence contradiction — RED committed first
+- [x] Tests tagged `@pytest.mark.req("REQ-YG-523")`; CAP-175 extended with REQ-YG-523 (sequence ordering) — extension of existing canon-schema capability, no new CAP file
+- [x] Changelog fragment with `req: REQ-YG-523`
 
 ## Alternatives Considered
 
@@ -55,3 +55,38 @@ Downstream story-pipeline steps (throughline timeline walk, chapter planning) ge
 4. **Traceability:** extend CAP-175 with REQ-YG-523 rather than minting a CAP file for one field.
 
 Scope frozen. Path is explicit and minimal. Authority granted.
+
+## Enforcement (2026-07-07)
+
+RED committed first (`b7b7adf9`): schema + `check_event_sequence` + fixture tests pass; the three real-canon tests fail until backfill. GREEN: 22 events backfilled, all 10 FR-690 tests + 15 FR-637 canon tests pass.
+
+### Sorted listing raw-read against synopsis (AC 2 substance check)
+
+The ordering is not the alphabetical file order and not year alone — it follows the synopsis narrative. Read top-to-bottom against `canon/synopsis/synopsis.yaml`:
+
+| seq | event | year | synopsis anchor |
+|----:|-------|-----:|-----------------|
+| 10 | feud_start | -3 | Gunnar kills Hilde's father; three winters of planned revenge |
+| 20 | dawn_raid | 0 | Hilde's revenge raid on the Bärenschädel camp |
+| 30 | great_flood | 0 | the raid is interrupted by the Great Flood |
+| 40 | ledge_stranding | 0 | survivors of both clans stranded together on the ledge |
+| 50 | arnulf_swept | 0 | Arnulf swept off by the water |
+| 60 | deer_recovery | 0 | deer carcass recovered — first shared food |
+| 70 | reinmar_arrives | 0 | Reinmar the reindeer-herder appears |
+| 80 | heidrun_speech | 0 | Heidrun's speech shames both sides into truce |
+| 90 | ledge_escape | 0 | the ledge escape after six days |
+| 100 | clan_divide | 0 | clans divide over whether to trust the truce |
+| 110 | journey_high_valley | 0 | Reinmar guides survivors toward the high valley |
+| 120 | high_valley_arrival | 0 | arrival at the high valley |
+| 130 | arnulf_returns | 0 | Arnulf, presumed dead, returns |
+| 140 | arnulf_confrontation | 0 | Arnulf confronts the new community |
+| 150 | second_camp_split | 0 | a second split over Arnulf's demands |
+| 160 | heidrun_calls_gathering | 0 | Heidrun calls the gathering |
+| 170 | arnulf_release | 0 | Arnulf is released from his grievance |
+| 180 | bonding_rite | 0 | the bonding rite unifies the survivors |
+| 190 | bear_kill | 0 | the bear kill — reconciliation sealed |
+| 200 | reinmar_departs | 1 | Reinmar departs the following year |
+| 210 | heidrun_dies | 2 | Heidrun dies two years on |
+| 220 | reinthilde_birth | 3 | Hilde bears Reinthilde, first child of the new community |
+
+Year-monotonic across the three dated boundaries: feud_start (yr -3) < all yr-0 events < reinmar_departs (yr 1) < heidrun_dies (yr 2) < reinthilde_birth (yr 3). No year/sequence contradiction — `check_event_sequence` confirms.
