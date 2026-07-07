@@ -21,7 +21,7 @@ Based on the recent commit history (May 29-31, 2026), here's a feature-level sum
 #### **2. LLM & Agent Improvements**
 - **Structured Output Enhancements**: Added JSON fallback support for multiple LLM providers
 - **Temperature Control**: Fixed temperature=0 handling in agent nodes (FR-451)
-- **Provider-Specific Fixes**: 
+- **Provider-Specific Fixes**:
   - Anthropic structured output bugfix
   - OpenAI strict schema fallback
   - DeepSeek JSON output instruction support
