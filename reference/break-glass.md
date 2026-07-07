@@ -89,6 +89,15 @@ Every emergency bypass **must** be followed by a diary entry. Create a file in `
 
 If the bypass was triggered by a CI infrastructure failure, also file a feature request in `feature-requests/` to prevent recurrence.
 
+## Direct-to-main incident ledger
+
+| sha | date | rationale | corrective_action | evidence |
+| --- | --- | --- | --- | --- |
+| 56230029 | 2026-07-07 | Manual direct-to-main docs sync was used to rapidly capture bypass drift findings before the branch-protection narrative diverged further. | Add deterministic break-glass CI audit gate and structured ledger coverage checks so future bypasses are validated mechanically. | feature-requests/FR-697-inquisitor-main-bypass-audit-trail.md |
+| caf14330 | 2026-07-07 | Diary evidence for active bypass behavior was pushed directly to preserve incident context while remediation planning was in progress. | Require each bypass in-range SHA to have explicit rationale/corrective_action/evidence via scripts/check_direct_push_breakglass.py. | docs/diary/diary-2026-07-07-the-scribe-bypasses-the-scripture.md |
+| 2b265793 | 2026-07-07 | Process reality-check update was shipped directly to keep governance documentation current during bypass-window investigation. | Track direct-push incidents in this ledger and enforce coverage from pinned baseline SHA 56230029 in CI advisory gate. | reference/break-glass.md |
+| b17a8b5e | 2026-07-07 | Manual-ops latency analysis was committed directly to document root causes behind bypass-heavy flow before subsequent process hardening. | Continue FR-based hardening of plan-judge-enforce automation and maintain per-incident traceability links in ledger entries. | FR-697 |
+
 ## Who Can Override
 
 Only repository admins (`sheikkinen` and collaborators with admin role) can bypass branch protection. This is enforced by GitHub — non-admin contributors cannot override.

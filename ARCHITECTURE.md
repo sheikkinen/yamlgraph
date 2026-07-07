@@ -504,6 +504,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 186 | CAP-186 Novel Fandom Genesis Self-Correcting Pipeline | `examples/novel_fandom` | REQ-YG-516 |
 | 187 | CAP-187 Novel Fandom Semantic Dedup Graph-Tool | `examples/novel_fandom` | REQ-YG-517 |
 | 188 | CAP-188 Novel Fandom Agent-First Architecture | `examples/novel_fandom/genesis.yaml`, `examples/novel_fandom/worldgen.yaml`, `examples/novel_fandom/nodes/creation_tools.py`, `examples/novel_fandom/create_character.yaml`, … | REQ-YG-518 – 522 |
+| 190 | CAP-190 Break-glass Direct Push Ledger Gate | `scripts/check_direct_push_breakglass.py`, `reference/break-glass.md`, `.github/workflows/commitlint.yml`, `tests/unit/test_fr697_breakglass_direct_push_gate_red.py`, … | REQ-YG-525 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -2357,6 +2358,16 @@ Genesis and worldgen rewritten as agent nodes that create entities one at a time
 | REQ-YG-520 | Worldgen uses a single agent node with deepen/create tools; no map nodes for entity processing. | `examples/novel_fandom/worldgen.yaml` |
 | REQ-YG-521 | Graph-tools (ref_check, dedup_check) self-load canon data; agent passes only IDs or summaries, not full entity data. | `examples/novel_fandom/ref_check.yaml`, `examples/novel_fandom/semantic_dedup.yaml` |
 | REQ-YG-522 | Deterministic terminal gate runs ref_check on full canon after agent completion, surfacing orphan refs in final output. | `examples/novel_fandom/nodes/creation_tools.py` |
+
+### 190. CAP-190 Break-glass Direct Push Ledger Gate
+
+Adds a deterministic direct-to-main break-glass ledger checker and advisory CI gate that verifies SHA-range coverage plus required incident fields.
+
+**Feature Request:** FR-697
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-525 | A deterministic script validates that all commits in a supplied SHA range are covered by `reference/break-glass.md` direct-to-main incident ledger rows with non-empty rationale/corrective_action/evidence fields and that CI runs this check via advisory `breakglass-gate`. | `scripts/check_direct_push_breakglass.py`, `reference/break-glass.md`, `.github/workflows/commitlint.yml`, `tests/unit/test_fr697_breakglass_direct_push_gate_red.py` |
 
 <!-- END GENERATED CAPABILITIES -->
 

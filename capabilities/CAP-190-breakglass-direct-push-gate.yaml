@@ -1,0 +1,24 @@
+id: CAP-190
+name: Break-glass Direct Push Ledger Gate
+description: >
+  Adds a deterministic direct-to-main break-glass ledger checker and advisory
+  CI gate that verifies SHA-range coverage plus required incident fields.
+modules:
+  - scripts/check_direct_push_breakglass.py
+  - reference/break-glass.md
+  - .github/workflows/commitlint.yml
+  - tests/unit/test_fr697_breakglass_direct_push_gate_red.py
+  - ARCHITECTURE.md
+requirements:
+  - id: REQ-YG-525
+    description: >
+      A deterministic script validates that all commits in a supplied SHA range
+      are covered by `reference/break-glass.md` direct-to-main incident ledger
+      rows with non-empty rationale/corrective_action/evidence fields and that
+      CI runs this check via advisory `breakglass-gate`.
+    modules:
+      - scripts/check_direct_push_breakglass.py
+      - reference/break-glass.md
+      - .github/workflows/commitlint.yml
+      - tests/unit/test_fr697_breakglass_direct_push_gate_red.py
+fr: FR-697

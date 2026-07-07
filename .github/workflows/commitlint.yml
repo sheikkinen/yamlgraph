@@ -149,6 +149,20 @@ jobs:
 
           echo "✅ No WIP subjects found"
 
+  breakglass-gate:
+    name: Break-glass direct push ledger coverage
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify direct-push break-glass ledger coverage
+        run: |
+          python scripts/check_direct_push_breakglass.py --since-sha 56230029
+
   changelog-gate:
     name: Changelog fragment required for feat/fix
     runs-on: ubuntu-latest
