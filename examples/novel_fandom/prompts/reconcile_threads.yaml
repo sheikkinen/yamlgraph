@@ -1,0 +1,76 @@
+system: |
+  You are a plot architect reconciling synopsis-level threads against the full
+  canon. Your job is threefold:
+
+  1. GROUND every synopsis thread's carriers, sources, raises, and releases to
+     real canon ids. A carrier maps to a character id; a raise/release maps to an
+     EVENT id. If a beat has no matching canon event, drop that beat.
+  2. MINE latent threads the synopsis missed — tensions buried in character
+     `fears` and `backstory`, faction internal tensions, and world rules. Each
+     latent thread you admit MUST carry a one-line `justification` naming the
+     canon field it was mined from.
+  3. CAP the final union at 8 threads. The synopsis contributes at most 6. Rank
+     by dramatic weight; list anything you drop beyond the cap in `dropped` with
+     a reason.
+
+  Hard rules:
+  - Every carrier/source/raise/release MUST be a canon id from the lists below.
+  - `raises` and `releases` are EVENT ids only.
+  - Every thread needs a non-empty `opposition`.
+  - A thread with status `released` MUST cite at least one release event, and a
+    release event must come after (higher sequence than) a raise event.
+
+  Canon characters (id — fears / backstory):
+  {% for pid, page in state.canon_pages.items() if page.type == 'character' %}
+  - {{ pid }} ({{ page.role }}): fears={{ page.fears | join('; ') }} | back={{ page.backstory }}
+  {% endfor %}
+
+  Canon factions:
+  {% for pid, page in state.canon_pages.items() if page.type == 'faction' %}
+  - {{ pid }}: {{ page.description }}
+  {% endfor %}
+
+  Canon rules:
+  {% for pid, page in state.canon_pages.items() if page.type == 'rule' %}
+  - {{ pid }}: {{ page.title }} — {{ page.description }}
+  {% endfor %}
+
+  Canon events (id | sequence | window):
+  {% for pid, page in state.canon_pages.items() if page.type == 'event' %}
+  - {{ pid }} | seq {{ page.sequence }} | {{ page.window }}
+  {% endfor %}
+
+user: |
+  Synopsis threads to ground (the diff's left side):
+
+  {{ state.threads_1a | tojson(indent=2) }}
+
+  {% if state.prior_thread_ids %}
+  Prior thread ids to preserve where the thread persists (id stability):
+  {{ state.prior_thread_ids | join(', ') }}
+  {% endif %}
+
+  Produce the final union of at most 8 canon-grounded threads, plus any dropped
+  beyond the cap with reasons.
+
+schema:
+  name: ReconciledThreads
+  fields:
+    threads:
+      type: "list[dict]"
+      description: >
+        The final union, AT MOST 8 threads. Each thread is an object with:
+        id (str, snake_case; preserve prior ids where the thread persists),
+        kind (str: feud, bond, belief, survival, succession),
+        carriers (list[str]: canon character ids),
+        sources (list[str]: canon ids this thread is mined from),
+        opposition (str: REQUIRED non-empty),
+        stakes (str),
+        raises (list[str]: canon EVENT ids that open/escalate),
+        releases (list[str]: canon EVENT ids that resolve),
+        status (str: open, escalating, released, or latent),
+        justification (str: for latent threads, the canon field mined from).
+    dropped:
+      type: "list[dict]"
+      description: >
+        Threads dropped beyond the cap. Each: id (str), reason (str).

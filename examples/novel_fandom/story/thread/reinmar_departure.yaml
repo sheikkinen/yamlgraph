@@ -1,0 +1,17 @@
+id: reinmar_departure
+kind: survival
+carriers:
+- reinmar
+sources:
+- reinmar
+opposition: His own transient nature and the community's dependence on him
+stakes: The community loses its guide and must become self-sufficient
+raises:
+- reinmar_arrives
+- heidrun_speech
+- high_valley_arrival
+releases:
+- reinmar_departs
+status: released
+justification: 'Reinmar''s backstory: ''born into no clan... moving between isolated
+  settlements'' from reinmar.backstory'

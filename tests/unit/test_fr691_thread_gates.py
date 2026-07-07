@@ -157,6 +157,16 @@ class TestLedgerWalk:
         assert result["valid"] is True
 
     @pytest.mark.req("REQ-YG-530")
+    def test_one_raise_many_releases_passes(self) -> None:
+        # De-escalation happens in steps: one raise opens, several releases
+        # resolve. Each release only needs a raise BEFORE it, not its own raise.
+        threads = [
+            _thread(raises=["dawn_raid"], releases=["great_flood", "bonding_rite"])
+        ]
+        result = check_ledger_walk(threads, self.SEQ)
+        assert result["valid"] is True
+
+    @pytest.mark.req("REQ-YG-530")
     def test_status_released_requires_release_event(self) -> None:
         threads = [_thread(status="released", raises=["dawn_raid"], releases=[])]
         result = check_ledger_walk(threads, self.SEQ)
@@ -194,6 +204,17 @@ class TestCapAndDistinctness:
         threads = [
             _thread(id="a", carriers=["hilde"]),
             _thread(id="b", carriers=["arnulf"]),
+        ]
+        result = check_cap_and_distinctness(threads)
+        assert result["valid"] is True
+
+    @pytest.mark.req("REQ-YG-530")
+    def test_same_carriers_different_kind_passes(self) -> None:
+        # A feud and a survival crisis between the same two people are distinct
+        # threads. Distinctness keys on (kind, carriers), not carriers alone.
+        threads = [
+            _thread(id="feud", kind="feud", carriers=["hilde", "gunnar"]),
+            _thread(id="ledge", kind="survival", carriers=["gunnar", "hilde"]),
         ]
         result = check_cap_and_distinctness(threads)
         assert result["valid"] is True

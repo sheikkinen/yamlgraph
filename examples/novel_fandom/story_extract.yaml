@@ -1,0 +1,132 @@
+# Novel Fandom — Story Extract (FR-691)
+# Resurrect the plot layer: threads (by conflict) + throughlines (by character),
+# derived from canon and validated by mechanical gates.
+#
+# Flow:
+#   reload → 1a threads-from-synopsis → persist_1a
+#          → prefetch_prior → 1b reconcile (union <= 8) → persist_threads
+#          → gate_threads → 1c throughlines → persist_throughlines
+#          → gate_throughlines → END
+#
+# Gates run persist-then-fail: story/ artifacts are written before the verdict.
+
+version: "1.0"
+name: novel-fandom-story-extract
+description: Extract plot threads and per-character throughlines from canon
+prompts_relative: true
+prompts_dir: prompts
+
+state:
+  canon_pages: dict
+  canon_count: int
+  synopsis_text: str
+  threads_1a_raw: dict
+  threads_1a: list
+  prior_thread_ids: list
+  reconcile_result: dict
+  threads: list
+  dropped_threads: list
+  throughlines_raw: dict
+  throughlines: list
+  gate_result: dict
+
+tools:
+  reload_canon:
+    type: python
+    path: nodes/reload_canon.py
+    function: reload_canon
+  prefetch_prior:
+    type: python
+    path: nodes/persist_story.py
+    function: prefetch_prior_threads
+  persist_1a:
+    type: python
+    path: nodes/persist_story.py
+    function: persist_threads_1a
+  persist_threads:
+    type: python
+    path: nodes/persist_story.py
+    function: persist_threads
+  persist_throughlines:
+    type: python
+    path: nodes/persist_story.py
+    function: persist_throughlines
+  gate_threads:
+    type: python
+    path: nodes/thread_gates.py
+    function: gate_threads
+  gate_throughlines:
+    type: python
+    path: nodes/thread_gates.py
+    function: gate_throughlines
+
+nodes:
+  reload:
+    type: python
+    tool: reload_canon
+
+  threads_from_synopsis:
+    type: llm
+    prompt: threads_from_synopsis
+    state_key: threads_1a_raw
+    temperature: 0.6
+
+  persist_1a_node:
+    type: python
+    tool: persist_1a
+
+  prefetch_prior_node:
+    type: python
+    tool: prefetch_prior
+
+  reconcile:
+    type: llm
+    prompt: reconcile_threads
+    state_key: reconcile_result
+    temperature: 0.4
+
+  persist_threads_node:
+    type: python
+    tool: persist_threads
+
+  gate_threads_node:
+    type: python
+    tool: gate_threads
+
+  throughlines:
+    type: llm
+    prompt: throughlines
+    state_key: throughlines_raw
+    temperature: 0.5
+
+  persist_throughlines_node:
+    type: python
+    tool: persist_throughlines
+
+  gate_throughlines_node:
+    type: python
+    tool: gate_throughlines
+
+edges:
+  - from: START
+    to: reload
+  - from: reload
+    to: threads_from_synopsis
+  - from: threads_from_synopsis
+    to: persist_1a_node
+  - from: persist_1a_node
+    to: prefetch_prior_node
+  - from: prefetch_prior_node
+    to: reconcile
+  - from: reconcile
+    to: persist_threads_node
+  - from: persist_threads_node
+    to: gate_threads_node
+  - from: gate_threads_node
+    to: throughlines
+  - from: throughlines
+    to: persist_throughlines_node
+  - from: persist_throughlines_node
+    to: gate_throughlines_node
+  - from: gate_throughlines_node
+    to: END

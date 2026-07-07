@@ -1,0 +1,15 @@
+id: arnulf_reconciliation
+kind: bond
+carriers:
+- arnulf
+sources: []
+opposition: His own grief, anger, and sense of betrayal
+stakes: Permanent estrangement from Hilde and the community
+raises:
+- arnulf_returns
+- arnulf_confrontation
+releases:
+- arnulf_release
+- bear_kill
+status: released
+justification: ''

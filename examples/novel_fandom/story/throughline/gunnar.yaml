@@ -1,0 +1,71 @@
+character: gunnar
+arc_taut: false
+entries:
+- event: feud_start
+  emotion: duty-bound enmity
+  delta: none
+  slack: false
+- event: dawn_raid
+  emotion: combat readiness
+  delta: none
+  slack: false
+- event: great_flood
+  emotion: panic
+  delta: loss
+  slack: false
+- event: ledge_stranding
+  emotion: forced calm
+  delta: gain
+  slack: false
+- event: deer_recovery
+  emotion: shared purpose
+  delta: gain
+  slack: true
+- event: heidrun_speech
+  emotion: contemplation
+  delta: gain
+  slack: false
+- event: ledge_escape
+  emotion: determination
+  delta: gain
+  slack: false
+- event: clan_divide
+  emotion: conflicted loyalty
+  delta: loss
+  slack: false
+- event: journey_high_valley
+  emotion: endurance
+  delta: none
+  slack: false
+- event: high_valley_arrival
+  emotion: hope
+  delta: gain
+  slack: false
+- event: arnulf_returns
+  emotion: guilt
+  delta: loss
+  slack: false
+- event: arnulf_confrontation
+  emotion: defensiveness
+  delta: loss
+  slack: false
+- event: second_camp_split
+  emotion: saddened acceptance
+  delta: gain
+  slack: false
+- event: heidrun_calls_gathering
+  emotion: anticipation
+  delta: gain
+  slack: false
+- event: bonding_rite
+  emotion: commitment
+  delta: gain
+  slack: false
+- event: bear_kill
+  emotion: brotherhood
+  delta: gain
+  slack: false
+- event: reinthilde_birth
+  emotion: fatherly love
+  delta: gain
+  slack: false

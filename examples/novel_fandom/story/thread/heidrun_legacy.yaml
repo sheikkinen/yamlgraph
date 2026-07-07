@@ -1,0 +1,17 @@
+id: heidrun_legacy
+kind: belief
+carriers:
+- heidrun
+- hilde
+sources:
+- heidrun
+opposition: The risk that the old songs and rites will be lost when she dies
+stakes: Loss of cultural memory and identity
+raises:
+- heidrun_speech
+- bonding_rite
+releases:
+- heidrun_dies
+status: released
+justification: 'Heidrun''s fear: ''That the old songs will die with her if no one
+  learns them'' from heidrun.fears'

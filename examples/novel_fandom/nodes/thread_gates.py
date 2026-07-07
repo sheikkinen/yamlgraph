@@ -45,9 +45,10 @@ def check_ledger_walk(
 ) -> dict[str, Any]:
     """Walk each thread's raise/release events in sequence order.
 
-    A release fires only against an open raise; a release seen while nothing is
-    open is unbalanced. A thread declared ``released`` must cite at least one
-    release event.
+    A thread opens on its first raise. Once open it may receive several
+    releases — de-escalation resolves a tension in steps, not one release per
+    raise. A release fired before any raise (by sequence) is unbalanced. A
+    thread declared ``released`` must cite at least one release event.
     """
     violations: list[str] = []
     for t in threads:
@@ -69,37 +70,41 @@ def check_ledger_walk(
                 events.append((seq, "release", eid))
         events.sort(key=lambda x: x[0])
 
-        opened = 0
+        raises_seen = 0
         for seq, op, eid in events:
             if op == "raise":
-                opened += 1
-            elif opened == 0:
+                raises_seen += 1
+            elif raises_seen == 0:
                 violations.append(
                     f"thread '{tid}': release '{eid}' (seq {seq}) has no prior raise"
                 )
-            else:
-                opened -= 1
     return {"valid": not violations, "violations": violations}
 
 
 def check_cap_and_distinctness(threads: list[dict[str, Any]]) -> dict[str, Any]:
-    """At most MAX_THREADS threads; distinct carrier sets; non-empty opposition."""
+    """At most MAX_THREADS threads; distinct threads; non-empty opposition.
+
+    Distinctness keys on ``(kind, carriers)``: a feud and a survival crisis
+    between the same two people are different threads. Only a same-kind,
+    same-carrier pair is a true duplicate.
+    """
     violations: list[str] = []
     if len(threads) > MAX_THREADS:
         violations.append(f"thread count {len(threads)} exceeds cap of {MAX_THREADS}")
 
-    seen: dict[frozenset[str], str] = {}
+    seen: dict[tuple[str, frozenset[str]], str] = {}
     for t in threads:
         tid = t.get("id", "<no-id>")
         if not (t.get("opposition") or "").strip():
             violations.append(f"thread '{tid}': opposition is empty")
-        carrier_set = frozenset(t.get("carriers", []))
-        if carrier_set in seen:
+        key = (t.get("kind", ""), frozenset(t.get("carriers", [])))
+        if key in seen:
             violations.append(
-                f"thread '{tid}': carrier set duplicates thread '{seen[carrier_set]}'"
+                f"thread '{tid}': duplicates thread '{seen[key]}' "
+                "(same kind and carriers)"
             )
         else:
-            seen[carrier_set] = tid
+            seen[key] = tid
     return {"valid": not violations, "violations": violations}
 
 
@@ -176,3 +181,74 @@ def check_throughlines(
                     f"throughline '{char}': zero-delta arc for major character"
                 )
     return {"valid": not violations, "violations": violations}
+
+
+# --- Graph-node adapters (second caller: story_extract.yaml) ---
+#
+# These read graph state, derive the canon facts the pure gates need, and
+# aggregate their verdicts into the {"gate_result": ...} shape the graph edges
+# route on. The pure functions above stay the single source of gate logic.
+
+_MAJOR_ROLES = frozenset({"protagonist", "antagonist", "supporting"})
+
+
+def _derive_canon(
+    canon_pages: dict[str, dict[str, Any]],
+) -> tuple[set[str], dict[str, int], set[str]]:
+    """Extract (all ids, event sequences, major character ids) from canon.
+
+    "Major" is any named character with an arc — every role except ``minor``.
+    """
+    canon_ids = set(canon_pages.keys())
+    sequences: dict[str, int] = {}
+    major_ids: set[str] = set()
+    for pid, page in canon_pages.items():
+        if page.get("type") == "event" and page.get("sequence") is not None:
+            sequences[pid] = page["sequence"]
+        if page.get("type") == "character" and page.get("role") in _MAJOR_ROLES:
+            major_ids.add(pid)
+    return canon_ids, sequences, major_ids
+
+
+def _as_dicts(items: Any) -> list[dict[str, Any]]:
+    """Normalize a list of Pydantic models or dicts to plain dicts."""
+    out: list[dict[str, Any]] = []
+    for item in items or []:
+        out.append(item.model_dump() if hasattr(item, "model_dump") else dict(item))
+    return out
+
+
+def gate_threads(state: dict[str, Any]) -> dict[str, Any]:
+    """Run all four thread gates over the final union in graph state.
+
+    Reads state["threads"] (final union), state["canon_pages"],
+    state["prior_thread_ids"] (set, empty on first run), and
+    state["dropped_threads"] (list of {id, reason}). Returns the aggregated
+    {"gate_result": {"valid", "violations"}}.
+    """
+    threads = _as_dicts(state.get("threads"))
+    canon_ids, sequences, _ = _derive_canon(state.get("canon_pages", {}))
+    prior_ids = set(state.get("prior_thread_ids", []) or [])
+    dropped = _as_dicts(state.get("dropped_threads"))
+
+    violations: list[str] = []
+    for result in (
+        check_citation_integrity(threads, canon_ids),
+        check_ledger_walk(threads, sequences),
+        check_cap_and_distinctness(threads),
+        check_id_stability(threads, prior_ids, dropped),
+    ):
+        violations.extend(result["violations"])
+    return {"gate_result": {"valid": not violations, "violations": violations}}
+
+
+def gate_throughlines(state: dict[str, Any]) -> dict[str, Any]:
+    """Run the throughline gate over graph state.
+
+    Reads state["throughlines"] and state["canon_pages"]. Returns
+    {"gate_result": {"valid", "violations"}}.
+    """
+    throughlines = _as_dicts(state.get("throughlines"))
+    canon_ids, sequences, major_ids = _derive_canon(state.get("canon_pages", {}))
+    result = check_throughlines(throughlines, canon_ids, sequences, major_ids)
+    return {"gate_result": result}

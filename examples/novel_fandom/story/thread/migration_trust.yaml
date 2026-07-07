@@ -1,0 +1,19 @@
+id: migration_trust
+kind: survival
+carriers:
+- reinmar
+- heidrun
+- hilde
+- gunnar
+sources: []
+opposition: Distrust of a clanless stranger, attachment to ancestral land
+stakes: Death by drowning if they stay
+raises:
+- reinmar_arrives
+- heidrun_speech
+- clan_divide
+releases:
+- journey_high_valley
+- high_valley_arrival
+status: released
+justification: ''

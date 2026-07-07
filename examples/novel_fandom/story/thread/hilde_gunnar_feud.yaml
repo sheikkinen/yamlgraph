@@ -1,0 +1,17 @@
+id: hilde_gunnar_feud
+kind: feud
+carriers:
+- hilde
+- gunnar
+sources: []
+opposition: Each other's clan loyalties and the history of bloodshed
+stakes: Continued cycle of killing and loss
+raises:
+- dawn_raid
+releases:
+- ledge_stranding
+- deer_recovery
+- clan_divide
+- bonding_rite
+status: released
+justification: ''

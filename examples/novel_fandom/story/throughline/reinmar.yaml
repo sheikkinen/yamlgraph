@@ -1,0 +1,27 @@
+character: reinmar
+arc_taut: false
+entries:
+- event: reinmar_arrives
+  emotion: curiosity
+  delta: none
+  slack: false
+- event: heidrun_speech
+  emotion: interest
+  delta: gain
+  slack: false
+- event: clan_divide
+  emotion: observation
+  delta: none
+  slack: false
+- event: journey_high_valley
+  emotion: determined
+  delta: gain
+  slack: false
+- event: high_valley_arrival
+  emotion: contentment
+  delta: gain
+  slack: true
+- event: reinmar_departs
+  emotion: wanderlust
+  delta: loss
+  slack: false
