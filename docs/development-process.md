@@ -288,6 +288,11 @@ flowchart LR
   same inbox that feeds the same pipeline — improvement proposals are processed identically
   to feature proposals (`audit_gate`: an audit without a blocking mechanism is a post-mortem
   before the incident).
+- *Known asymmetry (2026-07-07, PR #458):* the Philosopher self-challenges (devil's-advocate
+  node) before proposing; the Inquisitor's `--propose` does not — and the pipeline Judge
+  validates execution, not premise (`unchallenged_premise`). Detector-originated proposals
+  can therefore build correctly-executed wrong policies at full pipeline cost. Detection
+  authority ≠ prescription authority; a premise gate for Inquisitor proposals is an open seed.
 
 ---
 
