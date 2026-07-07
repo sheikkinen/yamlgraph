@@ -16,7 +16,7 @@ Perfect! Now I have a comprehensive view. Let me provide you with a detailed fea
 ### **1. Novel Fandom Story Pipeline (Latest - July 6)**
 - **FR-689 (Dedup Gate)**: Integrated dedup gate with variables injection fix
 - **FR-686 (Agent-First Genesis)**: Complete rewrite of genesis pipeline with graph-tool integration
-- **FR-683-685 (Graph-Tool Integration Trilogy)**: 
+- **FR-683-685 (Graph-Tool Integration Trilogy)**:
   - FR-683: Reference integrity validation using graph-tool
   - FR-684: Semantic deduplication with graph-tool
   - FR-685: Self-correcting genesis agent
@@ -27,7 +27,7 @@ Perfect! Now I have a comprehensive view. Let me provide you with a detailed fea
 - **FR-656**: Tightened genesis prompt to match Pydantic schema
 - **FR-657**: Agentic event deepening enforcement
 - **FR-658**: Graph as tool enabler for fandom fact checker
-- **FR-664-667 Trilogy**: 
+- **FR-664-667 Trilogy**:
   - Genesis referential integrity
   - Worldgen semantic deduplication
   - Genesis stub pipeline and worldgen dedup

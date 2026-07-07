@@ -14,7 +14,10 @@ import sys
 import tempfile
 from pathlib import Path
 
+import pytest
+
 HOOK = Path(__file__).resolve().parents[1] / "scripts" / "pre-command-guard.sh"
+pytestmark = pytest.mark.req("REQ-YG-527")
 
 
 def run_hook(
@@ -702,6 +705,11 @@ def test_branch_create_deny_logs_audit():
         assert (
             e["reason"] == "branch-create"
         ), f"expected branch-create reason, got: {e}"
+        parsed = json.loads(out)
+        reason = parsed.get("hookSpecificOutput", {}).get(
+            "permissionDecisionReason", ""
+        )
+        assert "scripts/worktree.sh new <name>" in reason
 
 
 if __name__ == "__main__":

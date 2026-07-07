@@ -219,7 +219,7 @@ fi
 if echo "$COMMAND" | grep -qE 'git\s+(checkout\s+-b|switch\s+-c|branch\s+[^-])'; then
   if ! echo "$COMMAND" | grep -qE 'git\s+branch\s+(-d|-D|--delete|--list|-a|-r|--merged|--no-merged|--contains|--no-contains|--sort|--show-current)'; then
     audit_log "deny" "branch-create" "${COMMAND:0:200}"
-    emit_deny "Branch creation in main worktree is forbidden. Single-developer workflow: commit to main.\\n\\nFor isolated work, submit to .chaplain/inbox/ — the chaplain creates worktrees.\\n\\nTo delete stale branches: git branch -d <name>"
+    emit_deny "Branch creation in main worktree is forbidden. Single-developer workflow: commit to main.\\n\\nFor isolated work, submit to .chaplain/inbox/ — the chaplain creates worktrees.\\nFor isolated manual work: scripts/worktree.sh new <name>\\n\\nTo delete stale branches: git branch -d <name>"
     exit 0
   fi
 fi

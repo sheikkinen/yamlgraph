@@ -102,12 +102,19 @@ mkdir -p "$(dirname "$WORKTREE_DIR")"
 
 cleanup() {
     if [[ "$KEEP_WORKTREE" == false && -d "$WORKTREE_DIR" ]]; then
-        git -C "$REPO_ROOT" worktree remove --force "$WORKTREE_DIR" >/dev/null 2>&1 || true
+        bash "$REPO_ROOT/scripts/worktree.sh" rm --dir "$WORKTREE_DIR" >/dev/null 2>&1 || true
     fi
 }
 trap cleanup EXIT
 
-git -C "$REPO_ROOT" worktree add --detach "$WORKTREE_DIR" "$BASE_REF" >/dev/null
+WORKTREE_CREATE_JSON=$(
+    bash "$REPO_ROOT/scripts/worktree.sh" new "copilot-$RUN_ID" \
+        --prefix "feat/copilot-instrumentation-" \
+        --work-dir "copilot-instrumentation" \
+        --json
+)
+WORKTREE_DIR=$(python3 -c "import json,sys; print(json.loads(sys.stdin.read())['wt_dir'])" <<<"$WORKTREE_CREATE_JSON")
+git -C "$WORKTREE_DIR" checkout --detach "$BASE_REF" >/dev/null
 WORKTREE_ROOT=$(git -C "$WORKTREE_DIR" rev-parse --show-toplevel)
 if [[ "$WORKTREE_ROOT" == "$REPO_ROOT" ]]; then
     echo "Refusing to run outside disposable worktree boundary." >&2
