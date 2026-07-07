@@ -87,6 +87,43 @@ FR required, and the only mandatory artifact a diary entry stating what the fail
 That would give exploration the same crash-safe, inspectable state the enforce path enjoys,
 without taxing it with the enforce path's contract.
 
+## Third Addendum: The Shape Was Right, the Plumbing Failed (evening scorecard)
+
+The worktree-tooling topic was graded "textbook fill-in-the-gaps — suitable for chaplain"
+at ~11:00. It merged at ~13:10 as PR #459 — **after four manual interventions**:
+
+1. First run orphaned by a dispatcher restart → manual teardown + requeue
+2. Latent tool-path bug (FR-445 semantics × FR-658 plumbing) would have killed enforce →
+   manually diagnosed and fixed
+3. FSM wedged after sanity passed — the `pass` event fired and was never received → manual kill
+4. FR-697 / CAP-190 / REQ-YG-525 drawn simultaneously by the concurrent `inquisitor-main-bypass`
+   pipeline → manual renumber, PR, merge, teardown
+
+The morning heuristic — *route by task shape* — was *not wrong about the work*: the chaplain's
+cognitive stages performed flawlessly (plan with research, judge with a substantive AMEND loop,
+enforce with full traceability: FR, RED tests, 4 CAPs, 5 REQs, changelog, diary). Every failure
+was **orchestration, not cognition**: process lifecycle (orphaning, dropped events), shared
+mutable state (the FR/CAP/REQ counters raced by parallel worktrees), latent config drift.
+Classic distributed-system failures — lost message, orphaned worker, allocation race — wearing
+an FSM costume.
+
+**Refined heuristic:** task shape predicts whether the pipeline can do the *thinking*; it says
+nothing about whether the pipeline survives the *run*. Dispatch needs two axes: task shape
+(cognitive fit) × pipeline operational reliability (mechanical completion rate). Today's
+mechanical completion rate was 1 of 4 runs unassisted — until that number improves, every inbox
+submission implicitly books a human finalizer, and the latency argument for manual ops stands
+even for well-shaped tasks.
+
+Honest accounting: chaplain + babysitting ≈ half a day; a manual session would have shipped in
+1–2 h — but likely without the four CAPs, the REQ-tagged RED tests, and the judge's AMEND
+catches. The pipeline's value today was not autonomy; it was *enforced thoroughness*.
+
+**Seed:** ID allocation is the clearest fix — FR/CAP/REQ numbers are drawn from an unsynchronized
+shared counter by parallel worktrees. Reserve IDs at dispatch time (dispatcher-level allocation,
+like a database sequence), and the renumber class of manual intervention disappears. The dropped
+FSM event is the second: should `yamlgraph_async` completion events be written to the database
+*first* and the socket used only as a wake-up, making event delivery idempotent?
+
 ## Heuristic
 
 **A document describing an enforcement system must name its own enforcement, or confess its

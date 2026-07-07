@@ -183,6 +183,13 @@ bounded topics to the inbox; exploratory or judgement-dense work to the interact
 Using the Chaplain for a spike wastes an hour to learn what a 5-minute prototype would have
 shown; using the manual loop for routine gap-filling normalizes gate bypasses.
 
+*Caveat (measured 2026-07-07):* task shape predicts cognitive fit, not run survival. A
+well-shaped topic (FR-698 worktree tooling) sailed through plan/judge/enforce/sanity yet
+needed four manual interventions — orphaned run, latent config bug, dropped FSM event, and an
+FR/CAP/REQ ID race between parallel pipelines. Dispatch has two axes: cognitive fit ×
+mechanical completion rate. Until the plumbing (event delivery, ID reservation at dispatch)
+is hardened, every inbox submission implicitly books a human finalizer.
+
 ---
 
 ## 4. The Traceability Spine: CAP → REQ → Test → Changelog
