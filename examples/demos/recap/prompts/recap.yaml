@@ -1,0 +1,70 @@
+# Timeframe Recap Prompt (FR-700)
+# ONE judgement: group the collected change inventory into workstreams and
+# flag orphans. All mechanizable work (partitioning, truncation detection,
+# convention detection inputs) is done by Jinja2 below, not by the model.
+
+schema:
+  name: Recap
+  fields:
+    workstreams:
+      type: list[str]
+      description: "One line per workstream: '<FR-ref or theme>: <summary> (commits: N; layers: code/graph/prompt/other)'"
+    orphans:
+      type: list[str]
+      description: "Commits with no FR/issue reference, and graph/prompt file changes with no changelog fragment. Empty list if none. Quote commit hashes verbatim from the input."
+    hotspots:
+      type: list[str]
+      description: "File paths touched by more than one workstream. Empty list if none."
+      default: []
+
+system: |
+  You summarize git change inventories. You group commits into workstreams
+  and flag orphan changes. Rules:
+  - Use ONLY the commits and file paths given in the input. Never invent
+    commit hashes, FR references, or file paths.
+  - A commit belongs to a workstream if its subject shares an FR/issue
+    reference (FR-123, NC-123, #123) or an obvious common theme.
+  - An orphan is a commit whose subject has no FR/issue reference, or a
+    graph/prompt YAML change with no matching changelog fragment.
+  - If the convention sections say none were detected, do NOT report
+    convention-based orphans — report only reference-less commits.
+  - Do not editorialize, rank, or recommend. Inventory and grouping only.
+
+user: |
+  Recap the changes in this repository for the requested window.
+
+  ## Commits ({{ commits.split('\n') | length }} shown)
+  {% if commits.split('\n') | length >= 300 %}
+  NOTE: commit list capped at 300 — the window is TRUNCATED; say so in a workstream line.
+  {% endif %}
+  {{ commits }}
+
+  {% set churn_lines = churn.split('\n') %}
+  ## Code changes (.py — added/removed/path)
+  {% for line in churn_lines if line.endswith('.py') %}
+  {{ line }}
+  {% endfor %}
+
+  ## Graph/prompt YAML changes (added/removed/path)
+  {% for line in churn_lines if line.endswith('.yaml') and ('graphs/' in line or 'prompts/' in line) %}
+  {{ line }}
+  {% endfor %}
+
+  ## Other file changes (added/removed/path)
+  {% for line in churn_lines if '\t' in line and not line.endswith('.py') and not (line.endswith('.yaml') and ('graphs/' in line or 'prompts/' in line)) %}
+  {{ line }}
+  {% endfor %}
+
+  ## Conventions
+  {% if fr_changes.strip() %}
+  Feature-request files changed:
+  {{ fr_changes }}
+  {% else %}
+  (No feature-request convention detected.)
+  {% endif %}
+  {% if fragments.strip() %}
+  Changelog fragments added:
+  {{ fragments }}
+  {% else %}
+  (No changelog-fragment convention detected.)
+  {% endif %}

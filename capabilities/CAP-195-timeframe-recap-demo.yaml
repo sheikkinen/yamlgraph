@@ -11,9 +11,9 @@ description: >
   orphan changes (commits without FR/issue references, prompt/graph edits
   without changelog fragments), and hotspots. YAMLGraph-specific conventions
   (feature-requests/, changelog/unreleased/) are optional enrichment — a
-  repository without them yields conventions_detected=false, never an error
-  or hallucinated findings. Mechanizes the Scripture's changelog_first_diagnostic
-  cure as a runnable graph.
+  repository without them yields "convention not detected" template input,
+  never an error or hallucinated findings. Mechanizes the Scripture's
+  changelog_first_diagnostic cure as a runnable graph.
 modules:
   - examples
 requirements:
@@ -26,8 +26,8 @@ requirements:
       truncation surfaced to the prompt via Jinja2. A repo_path that is not
       a git repository fails loudly (tool node on_error: fail raises); missing
       convention paths yield empty output without error. The synthesis prompt
-      uses an inline schema (workstreams, orphans, hotspots,
-      conventions_detected) with file-kind partitioning done by Jinja2 path
-      heuristics in the template, not by the model.
+      uses an inline schema (workstreams, orphans, hotspots) with file-kind
+      partitioning and convention detection done by Jinja2 path heuristics in
+      the template, not by the model (W026-clean: judgement fields only).
     modules:
       - examples

@@ -79,11 +79,15 @@ class TestRecapGraphStructure:
 
     @pytest.mark.req("REQ-YG-531")
     def test_prompt_schema_frozen_fields(self) -> None:
-        """Inline schema has the frozen fields (F6 resolution)."""
+        """Inline schema has the frozen fields (F6, amended during Enforce).
+
+        conventions_detected was removed from the model schema: W026 flagged
+        the 4-field output as a fused judgement, and the field is mechanically
+        derivable (fr_changes/fragments non-empty) — bookkeeping, not judgement.
+        """
         prompt = yaml.safe_load((DEMO_DIR / "prompts" / "recap.yaml").read_text())
         fields = prompt["schema"]["fields"]
-        for field in ("workstreams", "orphans", "hotspots", "conventions_detected"):
-            assert field in fields, f"schema missing {field}"
+        assert set(fields) == {"workstreams", "orphans", "hotspots"}
 
     @pytest.mark.req("REQ-YG-531")
     def test_prompt_partitions_via_jinja(self) -> None:

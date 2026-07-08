@@ -26,6 +26,7 @@ STANDARD_DEMOS = [
     "interview",
     "map",
     "memory",
+    "recap",
     "reflexion",
     "research-agent",
     "router",

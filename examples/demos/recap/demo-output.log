@@ -1,0 +1,1534 @@
+2026-07-08 16:02:05,242 [INFO] yamlgraph.graph_loader: Parsed 4 shell tools: commits_since, file_churn, changed_frs, new_changelog_fragments
+2026-07-08 16:02:05,243 [INFO] yamlgraph.node_compiler: Added node: get_commits (type=tool)
+2026-07-08 16:02:05,243 [INFO] yamlgraph.node_compiler: Added node: get_churn (type=tool)
+2026-07-08 16:02:05,243 [INFO] yamlgraph.node_compiler: Added node: get_frs (type=tool)
+2026-07-08 16:02:05,243 [INFO] yamlgraph.node_compiler: Added node: get_fragments (type=tool)
+2026-07-08 16:02:05,246 [INFO] yamlgraph.node_compiler: Added node: synthesize (type=llm)
+2026-07-08 16:02:05,356 [INFO] yamlgraph.tools.nodes: 🔧 Executing tool: commits_since
+2026-07-08 16:02:05,404 [INFO] yamlgraph.tools.nodes: ✓ Tool commits_since completed
+2026-07-08 16:02:05,407 [INFO] yamlgraph.tools.nodes: 🔧 Executing tool: file_churn
+2026-07-08 16:02:05,622 [INFO] yamlgraph.tools.nodes: ✓ Tool file_churn completed
+2026-07-08 16:02:05,623 [INFO] yamlgraph.tools.nodes: 🔧 Executing tool: changed_frs
+2026-07-08 16:02:05,676 [INFO] yamlgraph.tools.nodes: ✓ Tool changed_frs completed
+2026-07-08 16:02:05,678 [INFO] yamlgraph.tools.nodes: 🔧 Executing tool: new_changelog_fragments
+2026-07-08 16:02:05,721 [INFO] yamlgraph.tools.nodes: ✓ Tool new_changelog_fragments completed
+2026-07-08 16:02:05,740 [INFO] yamlgraph.utils.llm_factory: Creating LLM: azure/aaa-gpt-5.4-mini (temp=0.7)
+2026-07-08 16:02:15,378 [INFO] httpx: HTTP Request: POST https://ai-samijpheikkinenaihub338640401537.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-08 16:02:15,397 [INFO] yamlgraph.node_factory.llm_nodes: Node synthesize completed successfully
+
+🚀 Running graph: graph.yaml
+   Variables: {'since': '1 week ago', 'repo_path': '.'}
+
+🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/09c0c2d4-5724-4301-bcee-e1b64ddeb80e/r/019f41d2-3dca-7922-b073-d3ef265a59a3?poll=true
+============================================================
+RESULT
+============================================================
+  current_step: synthesize
+  since: 1 week ago
+  repo_path: .
+  commits: 8e06627e|2026-07-08|test(demos): FR-700 RED recap demo structural tests
+1edae2e9|2026-07-07|fix(examples): FR-691 mine latent threads from faction internal_tensions
+a9a8bdec|2026-07-07|docs(fr-691): mark Enforced, record 1a/1b verdict and gate deviations
+7076828f|2026-07-07|docs(diary): the miner who only finds what it can close
+bc8384b3|2026-07-07|feat(examples): FR-691 wire story_extract pipeline and prove on canon
+08549508|2026-07-07|feat(examples): FR-691 GREEN story thread + throughline gates
+4d9873fd|2026-07-07|test(novel_fandom): FR-691 RED story thread + throughline gates
+b836e41b|2026-07-07|feat(novel-fandom): FR-690 backfill event sequences (GREEN)
+3126af53|2026-07-07|test(chaplain): FR-699 graph compile witness condemns path-doubling class
+2622afc1|2026-07-07|chore(chaplain): consume finalized topics, record inquisitor audits 256-258
+3c93463a|2026-07-07|docs(diary): the inquisitor prescribes without judgement - PR 458 autoimmune event
+835c846a|2026-07-07|docs(diary): shape predicts thinking not run survival - FR-698 finalization scorecard
+7c877424|2026-07-07|feat(worktree): FR-698 unify executor-neutral worktree tooling (#459)
+1ed5b8b6|2026-07-07|fix(chaplain): graph-root-relative tool paths in enforce-session and philosopher graphs
+b17a8b5e|2026-07-07|docs(process): why manual ops dominate - latency, task-shape mismatch, transaction cost
+2b265793|2026-07-07|docs(process): reality check - manual plan-judge-enforce loop dominates (83% direct commits)
+caf14330|2026-07-07|docs(diary): the scribe bypasses the scripture - process overview reflection
+56230029|2026-07-07|docs(process): add development process self-reflection overview
+b171818a|2026-07-07|chore: fandom refactoring FRs
+29abbc05|2026-07-07|test(novel_fandom): FR-690 RED event sequence total-order check
+33b7cdd1|2026-07-07|chore: fandom docs
+6ee6c3c2|2026-07-06|docs: novel fandom story pipeline plan (throughlines → events → chapters → scenes)
+9edf1c85|2026-07-06|chore: fandom analysis, diary
+ab9956a5|2026-07-05|docs(diary): vertical depth, horizontal silence
+1cf09ccc|2026-07-05|docs(diary): the machine that created but did not think
+beba8d37|2026-07-05|docs(diary): the agent proposes, the pipeline disposes
+6a829641|2026-07-05|chore: close FR-688 (implemented by FR-689), mark FR-658 enforced
+37dfeaaa|2026-07-05|docs(diary): the long road to consistency — FR-637 to FR-689 arc reflection
+b249c98c|2026-07-05|feat(novel-fandom): FR-689 integrated dedup gate and variables injection fix
+7eefa508|2026-07-05|feat(novel-fandom): FR-686 agent-first genesis with graph-tool pipelines
+092397ff|2026-07-05|chore: diary
+e7b558de|2026-07-05|feat(novel_fandom): FR-683 FR-684 FR-685 graph-tool integration trilogy
+03a80c15|2026-07-05|chore: fandom canon regen + test fixes
+b30b9102|2026-07-04|fix(novel_fandom): FR-667 validate_genesis importlib fix
+2cfbd27a|2026-07-04|feat(novel_fandom): FR-664 FR-665 FR-667 genesis stub pipeline and worldgen dedup
+a4545d56|2026-07-04|chore(scripts): add tiered VS Code / Copilot storage cleanup script
+bd79e2a2|2026-07-04|refactor(providers): FR-678/679/680 narrow catch, consolidate retry, provider registry
+ff3550fe|2026-07-04|chore: FR update
+6de65322|2026-07-04|feat: FR-677 verification as a first-class DSL construct (#457)
+0062b406|2026-07-04|chore: Batch 2 of Fable findings as FR
+30e88102|2026-07-03|feat(schema): FR-673 FR-674 FR-676 boundary validation, module split, async retry parity
+09a34422|2026-07-03|fix(state): FR-675 remove dead top-level error field
+0a2b8424|2026-07-03|fix(executor): FR-669 FR-670 FR-671 three boundary fixes
+ead44cd6|2026-07-03|chore: fable FRs judged
+d504ff40|2026-07-03|chore: fable FRs judged
+eb3d8d06|2026-07-03|chore: fable FRs judged
+a10a34bb|2026-07-03|chore: fold judgement corrections into FR-669, FR-671, FR-674
+d238c5c2|2026-07-03|chore: judge FR-668 through FR-674
+db4d431c|2026-07-03|refactor(demo): FR-666 consolidate image_that_speaks into image-that-speaks
+12d2c600|2026-07-03|feat(demo): FR-666 the image that speaks — adversarial content audit
+32d8d4b9|2026-07-03|chore: FR-663 changelog req legacy cap false positive
+085f3aad|2026-07-03|feat(agent): FR-660 unify tool bind/execute paths
+5f3b2e1c|2026-07-03|feat(import): FR-661 register loop_detector in import-linter Layer 3
+80e6b476|2026-07-03|chore: test coverage improvements
+8b3ff377|2026-07-03|chore: FR docs
+76452d6f|2026-07-03|feat(hooks): FR-662 ban agent branching in main worktree
+a49ec84b|2026-07-03|fix(novel_fandom): correct orphan synopsis reference in seed page
+9ecaf65b|2026-07-03|chore: FR-658 as enabler for fandom fact checker
+7e1e53d8|2026-07-02|docs(diary): FR-657 the tool is the boundary
+88f5766b|2026-07-02|feat(novel-fandom): FR-657 enforce agentic event deepening
+ba4cdf01|2026-07-02|feat(novel-fandom): FR-657 agentic event deepening plan
+59e2fc01|2026-07-02|fix(novel-fandom): normalize dict references in anchor_events
+7e4d40bc|2026-07-02|docs(diary): FR-656 the template is the boundary
+cfd2a89c|2026-07-02|feat(novel_fandom): FR-656 tighten genesis prompt to match Pydantic schema
+c46d6a98|2026-07-02|refactor(novel_fandom): FR-655 replace Ashfall seed with Floodmark genesis canon
+1360bcde|2026-07-02|docs(diary): FR-655 the prompt is the asset
+28d71a07|2026-07-02|feat(novel_fandom): FR-655 genesis pipeline — premise to seed canon
+ecc72b0f|2026-07-02|docs(diary): FR-651-654 the ignored floor
+b290689e|2026-07-02|fix(novel_fandom): FR-651-654 worldgen quality improvements
+cf096e1a|2026-07-02|docs(diary): FR-650 the scattered callsites
+6061c32c|2026-07-02|feat(novel_fandom): FR-650 canon type subfolders
+4a7c6fc8|2026-07-02|docs(diary): FR-649 the silent dropout
+90ae6205|2026-07-02|feat(novel_fandom): FR-648 Obsidian-compatible wiki output
+8d44891f|2026-07-02|feat(novel_fandom): FR-647 event propagation pre-pass
+0a5f508a|2026-07-02|feat(worldgen): FR-646 add reflexion step to worldgen pipeline
+3d4cdde5|2026-07-02|fix(examples): FR-643v2 worldgen runtime fixes from first execution
+2e28e82e|2026-07-01|docs(diary): FR-643v2 prayer vs engineering reflection
+7f599236|2026-07-01|feat(examples): FR-643v2 world expansion pipeline
+9162fa4e|2026-07-01|fix(examples): FR-638 move graphs to example root, fix roster parsing
+a412bc5a|2026-07-01|feat(examples): FR-642 wiki core types (Premise + Synopsis)
+0f069181|2026-07-01|docs: FR-641 rejudgement and novel-fandom wiki-core planning
+6e463308|2026-07-01|feat(examples): FR-638 plot pathfinder + FR-639 prose close loop
+  churn: 8e06627e
+11	0	ARCHITECTURE.md
+33	0	capabilities/CAP-195-timeframe-recap-demo.yaml
+154	0	feature-requests/FR-700-timeframe-recap-example.md
+147	0	tests/unit/test_recap_demo.py
+
+1edae2e9
+16	0	changelog/unreleased/fr-691-latent-mining-fix.md
+11	1	examples/novel_fandom/nodes/persist_story.py
+33	8	examples/novel_fandom/prompts/reconcile_threads.yaml
+11	5	examples/novel_fandom/story/thread/arnulf_reconciliation.yaml
+11	10	examples/novel_fandom/story/thread/community_peace.yaml
+7	12	examples/novel_fandom/story/thread/gunnar_peacetime_identity.yaml
+10	11	examples/novel_fandom/story/thread/heidrun_legacy.yaml
+11	6	examples/novel_fandom/story/thread/hilde_gunnar_feud.yaml
+0	15	examples/novel_fandom/story/thread/ledge_survival.yaml
+11	7	examples/novel_fandom/story/thread/migration_trust.yaml
+5	7	examples/novel_fandom/story/thread/reinmar_departure.yaml
+18	0	examples/novel_fandom/story/thread/youth_resentment.yaml
+58	76	examples/novel_fandom/story/threads_1a.yaml
+12	12	examples/novel_fandom/story/throughline/arnulf.yaml
+19	19	examples/novel_fandom/story/throughline/gunnar.yaml
+9	9	examples/novel_fandom/story/throughline/heidrun.yaml
+20	20	examples/novel_fandom/story/throughline/hilde.yaml
+8	8	examples/novel_fandom/story/throughline/reinmar.yaml
+1	1	feature-requests/FR-691-plot-threads-throughlines.md
+27	0	tests/unit/test_fr691_thread_gates.py
+
+a9a8bdec
+31	0	docs/diary/diary-2026-07-07-the-acceptance-run-condemns-the-gate.md
+
+7076828f
+38	0	docs/diary/diary-2026-07-07-the-miner-who-only-finds-what-it-can-close.md
+19	19	docs/plan-novel-fandom-story-pipeline.md
+28	6	feature-requests/FR-691-plot-threads-throughlines.md
+
+bc8384b3
+14	0	changelog/unreleased/fr-691-story-extract-pipeline.md
+107	0	examples/novel_fandom/nodes/persist_story.py
+90	14	examples/novel_fandom/nodes/thread_gates.py
+76	0	examples/novel_fandom/prompts/reconcile_threads.yaml
+42	0	examples/novel_fandom/prompts/threads_from_synopsis.yaml
+40	0	examples/novel_fandom/prompts/throughlines.yaml
+15	0	examples/novel_fandom/story/thread/arnulf_reconciliation.yaml
+22	0	examples/novel_fandom/story/thread/community_peace.yaml
+17	0	examples/novel_fandom/story/thread/gunnar_peacetime_identity.yaml
+17	0	examples/novel_fandom/story/thread/heidrun_legacy.yaml
+17	0	examples/novel_fandom/story/thread/hilde_gunnar_feud.yaml
+15	0	examples/novel_fandom/story/thread/ledge_survival.yaml
+19	0	examples/novel_fandom/story/thread/migration_trust.yaml
+17	0	examples/novel_fandom/story/thread/reinmar_departure.yaml
+102	0	examples/novel_fandom/story/threads_1a.yaml
+43	0	examples/novel_fandom/story/throughline/arnulf.yaml
+71	0	examples/novel_fandom/story/throughline/gunnar.yaml
+39	0	examples/novel_fandom/story/throughline/heidrun.yaml
+63	0	examples/novel_fandom/story/throughline/hilde.yaml
+27	0	examples/novel_fandom/story/throughline/reinmar.yaml
+132	0	examples/novel_fandom/story_extract.yaml
+21	0	tests/unit/test_fr691_thread_gates.py
+
+08549508
+6	0	changelog/unreleased/fr-691-plot-threads-throughlines.md
+126	10	examples/novel_fandom/nodes/thread_gates.py
+
+4d9873fd
+11	0	ARCHITECTURE.md
+32	0	capabilities/CAP-194-novel-fandom-plot-threads.yaml
+62	0	examples/novel_fandom/nodes/thread_gates.py
+98	0	examples/novel_fandom/schema/story.py
+346	0	tests/unit/test_fr691_thread_gates.py
+
+b836e41b
+6	0	changelog/unreleased/fr-690-event-sequence-field.md
+1	1	examples/novel_fandom/canon/event/arnulf_confrontation.yaml
+1	1	examples/novel_fandom/canon/event/arnulf_release.yaml
+1	1	examples/novel_fandom/canon/event/arnulf_returns.yaml
+1	1	examples/novel_fandom/canon/event/bear_kill.yaml
+1	1	examples/novel_fandom/canon/event/bonding_rite.yaml
+1	1	examples/novel_fandom/canon/event/clan_divide.yaml
+1	1	examples/novel_fandom/canon/event/dawn_raid.yaml
+1	1	examples/novel_fandom/canon/event/deer_recovery.yaml
+1	1	examples/novel_fandom/canon/event/great_flood.yaml
+1	1	examples/novel_fandom/canon/event/heidrun_calls_gathering.yaml
+1	1	examples/novel_fandom/canon/event/heidrun_speech.yaml
+1	1	examples/novel_fandom/canon/event/high_valley_arrival.yaml
+1	1	examples/novel_fandom/canon/event/journey_high_valley.yaml
+1	1	examples/novel_fandom/canon/event/ledge_escape.yaml
+1	1	examples/novel_fandom/canon/event/ledge_stranding.yaml
+1	1	examples/novel_fandom/canon/event/reinmar_arrives.yaml
+1	1	examples/novel_fandom/canon/event/second_camp_split.yaml
+41	6	feature-requests/FR-690-event-sequence-field.md
+
+3126af53
+2	1	ARCHITECTURE.md
+10	0	capabilities/CAP-75-portable-chaplain.yaml
+81	0	feature-requests/FR-699-chaplain-graph-compile-witness.md
+63	0	tests/unit/test_chaplain_graph_compile.py
+
+2622afc1
+67	0	.chaplain/done/executor-neutral-worktree-tooling.md
+39	0	.chaplain/done/substance-gates-diary-changelog.md
+39	0	docs/diary/2026-07-07-inquisitor-audit-256.md
+37	0	docs/diary/2026-07-07-inquisitor-audit-257.md
+27	0	docs/diary/2026-07-07-inquisitor-audit-258.md
+
+3c93463a
+5	0	docs/development-process.md
+55	0	docs/diary/diary-2026-07-07-the-inquisitor-prescribes-without-judgement.md
+
+835c846a
+7	0	docs/development-process.md
+37	0	docs/diary/diary-2026-07-07-the-scribe-bypasses-the-scripture.md
+
+7c877424
+13	81	.chaplain/lib/watcher/worktree_setup.sh
+6	49	.chaplain/lib/watcher/worktree_teardown.sh
+1	1	.github/hooks/scripts/pre-command-guard.sh
+8	0	.github/hooks/tests/test_pre_command_guard.py
+44	0	ARCHITECTURE.md
+20	0	capabilities/CAP-189-worktree-cli-contract.yaml
+17	0	capabilities/CAP-191-instrument-worktree-delegation.yaml
+17	0	capabilities/CAP-192-branch-deny-guidance-manual-worktree-lane.yaml
+20	0	capabilities/CAP-193-watcher-wrapper-json-envelope.yaml
+6	0	changelog/unreleased/fr-698-worktree-tooling.md
+369	0	docs/context/fr-698.md
+1	1	docs/diary/2026-06-02-git-report.md
+3	3	docs/diary/2026-06-02-world-digest.md
+2	2	docs/diary/2026-07-07-git-report.md
+47	0	docs/diary/2026-07-07-reflection-fr-698-worktree-tooling.md
+1	0	examples/novel_fandom/canon/event/arnulf_confrontation.yaml
+1	0	examples/novel_fandom/canon/event/arnulf_release.yaml
+1	0	examples/novel_fandom/canon/event/arnulf_returns.yaml
+1	0	examples/novel_fandom/canon/event/arnulf_swept.yaml
+1	0	examples/novel_fandom/canon/event/bear_kill.yaml
+1	0	examples/novel_fandom/canon/event/bonding_rite.yaml
+1	0	examples/novel_fandom/canon/event/clan_divide.yaml
+1	0	examples/novel_fandom/canon/event/dawn_raid.yaml
+1	0	examples/novel_fandom/canon/event/deer_recovery.yaml
+1	0	examples/novel_fandom/canon/event/feud_start.yaml
+1	0	examples/novel_fandom/canon/event/great_flood.yaml
+1	0	examples/novel_fandom/canon/event/heidrun_calls_gathering.yaml
+1	0	examples/novel_fandom/canon/event/heidrun_dies.yaml
+1	0	examples/novel_fandom/canon/event/heidrun_speech.yaml
+1	0	examples/novel_fandom/canon/event/high_valley_arrival.yaml
+1	0	examples/novel_fandom/canon/event/journey_high_valley.yaml
+1	0	examples/novel_fandom/canon/event/ledge_escape.yaml
+1	0	examples/novel_fandom/canon/event/ledge_stranding.yaml
+1	0	examples/novel_fandom/canon/event/reinmar_arrives.yaml
+1	0	examples/novel_fandom/canon/event/reinmar_departs.yaml
+1	0	examples/novel_fandom/canon/event/reinthilde_birth.yaml
+1	0	examples/novel_fandom/canon/event/second_camp_split.yaml
+328	0	feature-requests/FR-698-executor-neutral-worktree-tooling.md
+9	2	scripts/copilot_instrument.sh
+315	0	scripts/worktree.sh
+4	0	scripts/wt
+11	0	tests/unit/test_branch_deny_guidance_worktree_lane.py
+23	0	tests/unit/test_copilot_instrument_worktree_delegation_red.py
+30	0	tests/unit/test_watcher_worktree_wrapper_red.py
+109	0	tests/unit/test_worktree_cli_red.py
+
+1ed5b8b6
+6	6	.chaplain/graphs/philosopher/graph.yaml
+15	0	.chaplain/graphs/philosopher/tools.py
+2	2	.chaplain/graphs/watcher-enforce/enforce-session.yaml
+5	0	changelog/unreleased/fix-chaplain-graph-tool-paths.md
+
+b17a8b5e
+18	0	docs/development-process.md
+27	0	docs/diary/diary-2026-07-07-the-scribe-bypasses-the-scripture.md
+
+2b265793
+15	0	docs/development-process.md
+21	0	docs/diary/diary-2026-07-07-the-scribe-bypasses-the-scripture.md
+
+caf14330
+55	0	docs/diary/diary-2026-07-07-the-scribe-bypasses-the-scripture.md
+
+56230029
+1	0	.github/copilot-instructions.md
+302	0	docs/development-process.md
+
+b171818a
+57	0	feature-requests/FR-690-event-sequence-field.md
+77	0	feature-requests/FR-691-plot-threads-throughlines.md
+48	0	feature-requests/FR-692-world-pressure-agent.md
+49	0	feature-requests/FR-693-event-revision-latent-closure.md
+54	0	feature-requests/FR-694-chapter-plan-ledger-gate.md
+50	0	feature-requests/FR-695-scene-drafting-fold.md
+53	0	feature-requests/FR-696-genesis-thread-reordering.md
+
+29abbc05
+2	1	ARCHITECTURE.md
+10	0	capabilities/CAP-175-novel-fandom-canon-schema.yaml
+80	0	examples/novel_fandom/nodes/event_sequence.py
+9	0	examples/novel_fandom/schema/canon.py
+151	0	tests/unit/test_fr690_event_sequence.py
+
+33b7cdd1
+38	0	docs/diary/2026-07-06-git-report.md
+18	0	docs/diary/2026-07-06-world-digest.md
+52	0	docs/diary/2026-07-07-git-report.md
+18	0	docs/diary/2026-07-07-world-digest.md
+52	0	docs/diary/diary-2026-07-06-the-dropped-plot-layer.md
+170	29	docs/plan-novel-fandom-story-pipeline.md
+
+6ee6c3c2
+129	0	docs/plan-novel-fandom-story-pipeline.md
+
+9edf1c85
+36	0	docs/diary/diary-2026-07-06-the-synopsis-that-de-escalates.md
+
+ab9956a5
+42	0	docs/diary/diary-2026-07-05-vertical-depth-horizontal-silence.md
+
+1cf09ccc
+42	0	docs/diary/diary-2026-07-05-the-machine-that-created-but-did-not-think.md
+
+beba8d37
+62	0	docs/diary/diary-2026-07-05-the-agent-proposes-the-pipeline-disposes.md
+
+6a829641
+2	1	feature-requests/FR-658-graph-as-tool.md
+2	1	feature-requests/FR-688-cli-variables-injection.md
+
+37dfeaaa
+66	0	docs/diary/diary-2026-07-05-the-long-road-to-consistency.md
+
+b249c98c
+6	0	changelog/unreleased/fr-689-dedup-gate.md
+113	77	docs/confessions.md
+43	0	docs/diary/diary-2026-07-05-the-agent-reads-before-it-writes.md
+46	0	docs/diary/diary-2026-07-05-the-dict-that-ate-the-twin.md
+84	0	docs/diary/diary-2026-07-05-the-log-is-the-agent.md
+51	42	examples/novel_fandom/canon/character/arnulf.yaml
+23	0	examples/novel_fandom/canon/character/berno.yaml
+0	12	examples/novel_fandom/canon/character/eberhard.yaml
+0	11	examples/novel_fandom/canon/character/elke.yaml
+0	10	examples/novel_fandom/canon/character/elske.yaml
+0	12	examples/novel_fandom/canon/character/erken.yaml
+0	13	examples/novel_fandom/canon/character/ewald.yaml
+0	50	examples/novel_fandom/canon/character/frida.yaml
+0	13	examples/novel_fandom/canon/character/fridas_grandmother.yaml
+49	50	examples/novel_fandom/canon/character/gunnar.yaml
+0	13	examples/novel_fandom/canon/character/gunnars_father.yaml
+52	0	examples/novel_fandom/canon/character/heidrun.yaml
+47	44	examples/novel_fandom/canon/character/hilde.yaml
+26	35	examples/novel_fandom/canon/character/hildes_father.yaml
+0	11	examples/novel_fandom/canon/character/ludovic.yaml
+41	42	examples/novel_fandom/canon/character/reinmar.yaml
+0	9	examples/novel_fandom/canon/character/reinmars_father.yaml
+29	0	examples/novel_fandom/canon/character/reinthilde.yaml
+0	10	examples/novel_fandom/canon/character/rhin.yaml
+0	12	examples/novel_fandom/canon/character/sigrid.yaml
+0	13	examples/novel_fandom/canon/character/thorkel.yaml
+0	9	examples/novel_fandom/canon/character/torsten.yaml
+0	17	examples/novel_fandom/canon/character/ulf.yaml
+0	14	examples/novel_fandom/canon/character/ulfs.yaml
+0	11	examples/novel_fandom/canon/character/uta.yaml
+30	0	examples/novel_fandom/canon/event/arnulf_confrontation.yaml
+26	0	examples/novel_fandom/canon/event/arnulf_release.yaml
+0	17	examples/novel_fandom/canon/event/arnulf_rescue.yaml
+0	12	examples/novel_fandom/canon/event/arnulf_rescued.yaml
+29	0	examples/novel_fandom/canon/event/arnulf_returns.yaml
+24	0	examples/novel_fandom/canon/event/arnulf_swept.yaml
+27	0	examples/novel_fandom/canon/event/bear_kill.yaml
+29	0	examples/novel_fandom/canon/event/bonding_rite.yaml
+31	0	examples/novel_fandom/canon/event/clan_divide.yaml
+0	14	examples/novel_fandom/canon/event/confrontation.yaml
+18	9	examples/novel_fandom/canon/event/dawn_raid.yaml
+0	12	examples/novel_fandom/canon/event/dead_reindeer_herd.yaml
+0	15	examples/novel_fandom/canon/event/death_of_ragnar.yaml
+23	0	examples/novel_fandom/canon/event/deer_recovery.yaml
+0	25	examples/novel_fandom/canon/event/fathers_death.yaml
+24	0	examples/novel_fandom/canon/event/feud_start.yaml
+0	11	examples/novel_fandom/canon/event/first_intimacy.yaml
+22	10	examples/novel_fandom/canon/event/great_flood.yaml
+28	0	examples/novel_fandom/canon/event/heidrun_calls_gathering.yaml
+27	0	examples/novel_fandom/canon/event/heidrun_dies.yaml
+30	0	examples/novel_fandom/canon/event/heidrun_speech.yaml
+30	0	examples/novel_fandom/canon/event/high_valley_arrival.yaml
+30	0	examples/novel_fandom/canon/event/journey_high_valley.yaml
+0	17	examples/novel_fandom/canon/event/journey_to_felsbach.yaml
+27	0	examples/novel_fandom/canon/event/ledge_escape.yaml
+27	0	examples/novel_fandom/canon/event/ledge_stranding.yaml
+0	15	examples/novel_fandom/canon/event/marriage_rite.yaml
+0	15	examples/novel_fandom/canon/event/receding_flood.yaml
+28	0	examples/novel_fandom/canon/event/reinmar_arrives.yaml
+25	0	examples/novel_fandom/canon/event/reinmar_departs.yaml
+0	11	examples/novel_fandom/canon/event/reinmar_witnesses_herd_death.yaml
+26	0	examples/novel_fandom/canon/event/reinthilde_birth.yaml
+28	0	examples/novel_fandom/canon/event/second_camp_split.yaml
+0	12	examples/novel_fandom/canon/event/survival_truce.yaml
+0	17	examples/novel_fandom/canon/event/winter_settlement.yaml
+0	12	examples/novel_fandom/canon/event/wittensee_riverbank_collapse.yaml
+17	3	examples/novel_fandom/canon/faction/aschenwulf.yaml
+24	0	examples/novel_fandom/canon/faction/barenschadel.yaml
+0	8	"examples/novel_fandom/canon/faction/b\303\244rensch\303\244del.yaml"
+19	0	examples/novel_fandom/canon/faction/clanless.yaml
+29	0	examples/novel_fandom/canon/faction/combined_survivors.yaml
+0	42	examples/novel_fandom/canon/faction/independent.yaml
+0	17	examples/novel_fandom/canon/location/aschenwulf_camp.yaml
+23	0	examples/novel_fandom/canon/location/barenschadel_camp.yaml
+0	11	examples/novel_fandom/canon/location/bear_hall.yaml
+0	56	"examples/novel_fandom/canon/location/b\303\244rensch\303\244del_camp.yaml"
+0	14	"examples/novel_fandom/canon/location/b\303\244rensch\303\244del_shrine.yaml"
+0	64	examples/novel_fandom/canon/location/felsbach_pass.yaml
+0	48	examples/novel_fandom/canon/location/felsbach_valley.yaml
+0	10	examples/novel_fandom/canon/location/grauenbach_river.yaml
+25	0	examples/novel_fandom/canon/location/high_valley.yaml
+0	60	examples/novel_fandom/canon/location/limestone_ledge.yaml
+26	0	examples/novel_fandom/canon/location/original_valley.yaml
+0	13	examples/novel_fandom/canon/location/riverbank_collapse_site.yaml
+0	10	"examples/novel_fandom/canon/location/r\303\266tel_river.yaml"
+25	0	examples/novel_fandom/canon/location/salt_road.yaml
+0	10	examples/novel_fandom/canon/location/salt_road_route.yaml
+0	32	examples/novel_fandom/canon/location/sandbar.yaml
+25	0	examples/novel_fandom/canon/location/the_lake.yaml
+25	0	examples/novel_fandom/canon/location/the_ledge.yaml
+0	9	examples/novel_fandom/canon/location/weissach_river.yaml
+0	64	examples/novel_fandom/canon/location/wittensee_valley.yaml
+0	31	examples/novel_fandom/canon/premise/floodmark_saga_premise.yaml
+32	0	examples/novel_fandom/canon/premise/seed_premise.yaml
+0	6	examples/novel_fandom/canon/rule/blood_feud.yaml
+18	0	examples/novel_fandom/canon/rule/blood_feud_custom.yaml
+18	0	examples/novel_fandom/canon/rule/bonding_rite_tradition.yaml
+17	0	examples/novel_fandom/canon/rule/clan_loyalty_imperative.yaml
+17	0	examples/novel_fandom/canon/rule/flood_judgment_belief.yaml
+0	6	examples/novel_fandom/canon/rule/marriage_truce.yaml
+0	6	examples/novel_fandom/canon/rule/old_rites.yaml
+19	0	examples/novel_fandom/canon/rule/survival_code.yaml
+0	6	examples/novel_fandom/canon/rule/survival_truce.yaml
+0	69	examples/novel_fandom/canon/synopsis/floodmark_saga_synopsis.yaml
+174	0	examples/novel_fandom/canon/synopsis/synopsis.yaml
+18	2	examples/novel_fandom/create_character.yaml
+17	1	examples/novel_fandom/create_event.yaml
+17	1	examples/novel_fandom/create_faction.yaml
+17	1	examples/novel_fandom/create_location.yaml
+17	1	examples/novel_fandom/create_premise.yaml
+17	1	examples/novel_fandom/create_rule.yaml
+6	9	examples/novel_fandom/genesis.yaml
+171	6	examples/novel_fandom/nodes/creation_tools.py
+10	4	examples/novel_fandom/prompts/genesis_agent.yaml
+6	9	examples/novel_fandom/worldgen.yaml
+1	32	feature-requests/FR-658-graph-as-tool.md
+86	0	feature-requests/FR-688-cli-variables-injection.md
+267	0	feature-requests/FR-689-genesis-canon-consistency.md
+0	37	reference/graph-yaml.md
+10	2	tests/unit/test_fr638_novel_fandom_pathfinder.py
+6	3	tests/unit/test_fr642_novel_fandom_wiki_core.py
+13	3	tests/unit/test_fr643v2_novel_fandom_worldgen.py
+2	1	tests/unit/test_fr657_agentic_event_deepening.py
+3	3	tests/unit/test_fr664_665_667_dedup_trilogy.py
+7	10	tests/unit/test_fr684_semantic_dedup_graph_tool.py
+6	6	tests/unit/test_fr686_agent_first_rewrite.py
+468	0	tests/unit/test_fr689_genesis_consistency.py
+3	0	yamlgraph/cli/graph_run_helpers.py
+
+7eefa508
+15	0	ARCHITECTURE.md
+52	0	capabilities/CAP-188-novel-fandom-agent-first.yaml
+6	0	changelog/unreleased/fr-686-agent-first-genesis.md
+24	0	docs/confessions.md
+28	0	docs/diary/diary-2026-07-04-the-boundary-collapses-inward.md
+64	0	docs/diary/diary-2026-07-05-the-gate-that-minted-twins.md
+70	0	examples/novel_fandom/create_character.yaml
+69	0	examples/novel_fandom/create_event.yaml
+66	0	examples/novel_fandom/create_faction.yaml
+66	0	examples/novel_fandom/create_location.yaml
+68	0	examples/novel_fandom/create_premise.yaml
+66	0	examples/novel_fandom/create_rule.yaml
+125	52	examples/novel_fandom/genesis.yaml
+0	89	examples/novel_fandom/nodes/apply_merge_map.py
+16	2	examples/novel_fandom/nodes/canon_tools.py
+0	36	examples/novel_fandom/nodes/collect_red_links.py
+462	0	examples/novel_fandom/nodes/creation_tools.py
+0	40	examples/novel_fandom/nodes/parse_dedup_input.py
+0	105	examples/novel_fandom/nodes/select_thin.py
+0	18	examples/novel_fandom/nodes/split_thin_by_type.py
+0	67	examples/novel_fandom/prompts/fix_genesis_refs.yaml
+0	69	examples/novel_fandom/prompts/generate_stubs.yaml
+62	0	examples/novel_fandom/prompts/genesis_agent.yaml
+28	0	examples/novel_fandom/prompts/ref_check_audit.yaml
+49	0	examples/novel_fandom/prompts/ref_check_entity.yaml
+9	8	examples/novel_fandom/prompts/semantic_dedup.yaml
+52	0	examples/novel_fandom/prompts/worldgen_agent.yaml
+41	15	examples/novel_fandom/ref_check.yaml
+25	18	examples/novel_fandom/semantic_dedup.yaml
+108	252	examples/novel_fandom/worldgen.yaml
+32	1	feature-requests/FR-658-graph-as-tool.md
+8	1	feature-requests/FR-685-genesis-self-correcting-agent.md
+457	0	feature-requests/FR-686-novel-fandom-agent-first-rewrite.md
+60	0	feature-requests/FR-687-agent-tool-path-grounding.md
+37	0	reference/graph-yaml.md
+26	17	tests/unit/test_fr643v2_novel_fandom_worldgen.py
+7	1	tests/unit/test_fr651_654_worldgen_improvements.py
+10	21	tests/unit/test_fr655_genesis.py
+10	2	tests/unit/test_fr657_agentic_event_deepening.py
+14	29	tests/unit/test_fr664_665_667_dedup_trilogy.py
+12	13	tests/unit/test_fr683_ref_integrity_graph_tool.py
+15	154	tests/unit/test_fr684_semantic_dedup_graph_tool.py
+7	148	tests/unit/test_fr685_genesis_self_correcting.py
+630	0	tests/unit/test_fr686_agent_first_rewrite.py
+36	0	tests/unit/test_graph_tool.py
+6	1	yamlgraph/graph_loader.py
+6	1	yamlgraph/tools/graph_tool.py
+
+092397ff
+19	0	docs/diary/diary-2026-07-04-the-boundary-collapses-inward.md
+
+e7b558de
+33	0	ARCHITECTURE.md
+18	0	capabilities/CAP-185-novel-fandom-ref-integrity-graph-tool.yaml
+18	0	capabilities/CAP-186-novel-fandom-genesis-self-correcting.yaml
+19	0	capabilities/CAP-187-novel-fandom-semantic-dedup-graph-tool.yaml
+6	0	changelog/unreleased/fr-683-ref-integrity-graph-tool.md
+6	0	changelog/unreleased/fr-684-semantic-dedup-graph-tool.md
+6	0	changelog/unreleased/fr-685-genesis-self-correcting.md
+13	7	docs/confessions.md
+38	0	docs/diary/2026-07-05-git-report.md
+14	0	docs/diary/2026-07-05-world-digest.md
+55	0	docs/diary/diary-2026-07-04-the-boundary-collapses-inward.md
+23	2	examples/novel_fandom/genesis.yaml
+89	0	examples/novel_fandom/nodes/apply_merge_map.py
+8	17	examples/novel_fandom/nodes/dedup_entities.py
+40	0	examples/novel_fandom/nodes/parse_dedup_input.py
+9	35	examples/novel_fandom/nodes/persist_genesis.py
+112	0	examples/novel_fandom/nodes/ref_integrity.py
+0	52	examples/novel_fandom/nodes/validate_genesis.py
+67	0	examples/novel_fandom/prompts/fix_genesis_refs.yaml
+59	0	examples/novel_fandom/prompts/semantic_dedup.yaml
+31	0	examples/novel_fandom/ref_check.yaml
+46	0	examples/novel_fandom/semantic_dedup.yaml
+55	2	examples/novel_fandom/worldgen.yaml
+12	5	tests/unit/test_fr664_665_667_dedup_trilogy.py
+215	0	tests/unit/test_fr683_ref_integrity_graph_tool.py
+280	0	tests/unit/test_fr684_semantic_dedup_graph_tool.py
+150	0	tests/unit/test_fr685_genesis_self_correcting.py
+
+03a80c15
+90	0	docs/diary/diary-2026-07-04-the-stub-kills-the-hydra.md
+0	40	examples/novel_fandom/canon/character/aelfgard.yaml
+38	41	examples/novel_fandom/canon/character/arnulf.yaml
+0	36	examples/novel_fandom/canon/character/arnulf_aschenwulf.yaml
+12	0	examples/novel_fandom/canon/character/eberhard.yaml
+11	0	examples/novel_fandom/canon/character/elke.yaml
+10	0	examples/novel_fandom/canon/character/elske.yaml
+12	0	examples/novel_fandom/canon/character/erken.yaml
+13	0	examples/novel_fandom/canon/character/ewald.yaml
+0	38	examples/novel_fandom/canon/character/freydis_ritekeeper.yaml
+50	0	examples/novel_fandom/canon/character/frida.yaml
+13	0	examples/novel_fandom/canon/character/fridas_grandmother.yaml
+45	39	examples/novel_fandom/canon/character/gunnar.yaml
+0	42	examples/novel_fandom/canon/character/gunnar_barenschadel.yaml
+13	0	examples/novel_fandom/canon/character/gunnars_father.yaml
+39	41	examples/novel_fandom/canon/character/hilde.yaml
+0	53	examples/novel_fandom/canon/character/hilde_aschenwulf.yaml
+40	0	examples/novel_fandom/canon/character/hildes_father.yaml
+11	0	examples/novel_fandom/canon/character/ludovic.yaml
+42	40	examples/novel_fandom/canon/character/reinmar.yaml
+0	36	examples/novel_fandom/canon/character/reinmar_salt_trader.yaml
+9	0	examples/novel_fandom/canon/character/reinmars_father.yaml
+10	0	examples/novel_fandom/canon/character/rhin.yaml
+0	39	examples/novel_fandom/canon/character/ruedeger.yaml
+8	40	examples/novel_fandom/canon/character/sigrid.yaml
+13	0	examples/novel_fandom/canon/character/thorkel.yaml
+9	0	examples/novel_fandom/canon/character/torsten.yaml
+17	0	examples/novel_fandom/canon/character/ulf.yaml
+14	0	examples/novel_fandom/canon/character/ulfs.yaml
+11	0	examples/novel_fandom/canon/character/uta.yaml
+0	21	examples/novel_fandom/canon/event/arnulf_death_event.yaml
+17	0	examples/novel_fandom/canon/event/arnulf_rescue.yaml
+0	18	examples/novel_fandom/canon/event/arnulf_rescue_event.yaml
+12	0	examples/novel_fandom/canon/event/arnulf_rescued.yaml
+0	20	examples/novel_fandom/canon/event/arnulf_return_and_attack.yaml
+0	17	examples/novel_fandom/canon/event/avalanche_death_event.yaml
+0	16	examples/novel_fandom/canon/event/birth_of_child.yaml
+14	0	examples/novel_fandom/canon/event/confrontation.yaml
+0	21	examples/novel_fandom/canon/event/crossing_the_pass.yaml
+5	9	examples/novel_fandom/canon/event/dawn_raid.yaml
+12	0	examples/novel_fandom/canon/event/dead_reindeer_herd.yaml
+15	0	examples/novel_fandom/canon/event/death_of_ragnar.yaml
+0	19	examples/novel_fandom/canon/event/exile_and_flight.yaml
+25	0	examples/novel_fandom/canon/event/fathers_death.yaml
+1	6	examples/novel_fandom/canon/event/first_intimacy.yaml
+0	21	examples/novel_fandom/canon/event/freydis_judgment_event.yaml
+16	0	examples/novel_fandom/canon/event/great_flood.yaml
+17	0	examples/novel_fandom/canon/event/journey_to_felsbach.yaml
+0	19	examples/novel_fandom/canon/event/ledge_truce_event.yaml
+15	0	examples/novel_fandom/canon/event/marriage_rite.yaml
+0	21	examples/novel_fandom/canon/event/merger_rite_event.yaml
+15	0	examples/novel_fandom/canon/event/receding_flood.yaml
+11	0	examples/novel_fandom/canon/event/reinmar_witnesses_herd_death.yaml
+0	22	examples/novel_fandom/canon/event/reunion_with_clans.yaml
+0	21	examples/novel_fandom/canon/event/sigrid_arrival_and_peace.yaml
+12	0	examples/novel_fandom/canon/event/survival_truce.yaml
+0	18	examples/novel_fandom/canon/event/survival_truce_formed.yaml
+0	25	examples/novel_fandom/canon/event/the_great_flood.yaml
+0	25	examples/novel_fandom/canon/event/the_great_flood_event.yaml
+17	0	examples/novel_fandom/canon/event/winter_settlement.yaml
+12	0	examples/novel_fandom/canon/event/wittensee_riverbank_collapse.yaml
+1	5	examples/novel_fandom/canon/faction/aschenwulf.yaml
+0	15	examples/novel_fandom/canon/faction/aschenwulf_faction.yaml
+0	11	examples/novel_fandom/canon/faction/barenschadel.yaml
+0	12	examples/novel_fandom/canon/faction/barenschadel_faction.yaml
+8	0	"examples/novel_fandom/canon/faction/b\303\244rensch\303\244del.yaml"
+0	13	examples/novel_fandom/canon/faction/followers_of_sigrid.yaml
+42	0	examples/novel_fandom/canon/faction/independent.yaml
+17	0	examples/novel_fandom/canon/location/aschenwulf_camp.yaml
+11	0	examples/novel_fandom/canon/location/bear_hall.yaml
+56	0	"examples/novel_fandom/canon/location/b\303\244rensch\303\244del_camp.yaml"
+14	0	"examples/novel_fandom/canon/location/b\303\244rensch\303\244del_shrine.yaml"
+64	0	examples/novel_fandom/canon/location/felsbach_pass.yaml
+48	0	examples/novel_fandom/canon/location/felsbach_valley.yaml
+10	0	examples/novel_fandom/canon/location/grauenbach_river.yaml
+60	0	examples/novel_fandom/canon/location/limestone_ledge.yaml
+0	20	examples/novel_fandom/canon/location/lowland_valley.yaml
+0	18	examples/novel_fandom/canon/location/refugee_hill.yaml
+13	0	examples/novel_fandom/canon/location/riverbank_collapse_site.yaml
+10	0	"examples/novel_fandom/canon/location/r\303\266tel_river.yaml"
+10	0	examples/novel_fandom/canon/location/salt_road_route.yaml
+32	0	examples/novel_fandom/canon/location/sandbar.yaml
+0	15	examples/novel_fandom/canon/location/snow_ridge.yaml
+0	19	examples/novel_fandom/canon/location/stony_valley.yaml
+0	18	examples/novel_fandom/canon/location/the_foot_of_the_pass.yaml
+0	18	examples/novel_fandom/canon/location/the_high_valley.yaml
+0	18	examples/novel_fandom/canon/location/the_ledge.yaml
+0	18	examples/novel_fandom/canon/location/the_pass.yaml
+0	18	examples/novel_fandom/canon/location/the_ridge_camp.yaml
+0	17	examples/novel_fandom/canon/location/the_river_valley.yaml
+9	0	examples/novel_fandom/canon/location/weissach_river.yaml
+64	0	examples/novel_fandom/canon/location/wittensee_valley.yaml
+10	14	examples/novel_fandom/canon/premise/{the_floodmark_saga.yaml => floodmark_saga_premise.yaml}
+0	42	examples/novel_fandom/canon/premise/the_floodmark_saga_premise.yaml
+6	0	examples/novel_fandom/canon/rule/blood_feud.yaml
+0	14	examples/novel_fandom/canon/rule/blood_feud_rule.yaml
+0	12	examples/novel_fandom/canon/rule/burial_rites_rule.yaml
+0	13	examples/novel_fandom/canon/rule/divine_judgment_rule.yaml
+0	12	examples/novel_fandom/canon/rule/judgment_of_the_flood.yaml
+6	0	examples/novel_fandom/canon/rule/marriage_truce.yaml
+6	0	examples/novel_fandom/canon/rule/old_rites.yaml
+0	5	examples/novel_fandom/canon/rule/survival_truce.yaml
+0	13	examples/novel_fandom/canon/rule/survival_truce_rule.yaml
+69	0	examples/novel_fandom/canon/synopsis/floodmark_saga_synopsis.yaml
+0	70	examples/novel_fandom/canon/synopsis/the_floodmark_saga_synopsis.yaml
+195	0	feature-requests/FR-683-ref-integrity-graph-tool.md
+215	0	feature-requests/FR-684-semantic-dedup-graph-tool.md
+191	0	feature-requests/FR-685-genesis-self-correcting-agent.md
+59	38	tests/unit/test_fr638_novel_fandom_pathfinder.py
+10	10	tests/unit/test_fr657_agentic_event_deepening.py
+
+b30b9102
+6	0	changelog/unreleased/fr-664-665-667-genesis-dedup-trilogy.md
+6	0	docs/confessions.md
+12	3	examples/novel_fandom/nodes/validate_genesis.py
+
+2cfbd27a
+18	6	ARCHITECTURE.md
+12	16	capabilities/CAP-181-novel-fandom-genesis.yaml
+36	0	capabilities/CAP-184-novel-fandom-dedup-prevention.yaml
+1	1	changelog/unreleased/fr-655-genesis-pipeline.md
+2	2	changelog/unreleased/fr-656-tighten-genesis-prompt.md
+36	12	docs/confessions.md
+19	49	examples/novel_fandom/genesis.yaml
+175	0	examples/novel_fandom/nodes/dedup_entities.py
+1	8	examples/novel_fandom/nodes/genesis_tools.py
+47	0	examples/novel_fandom/nodes/persist_genesis.py
+43	0	examples/novel_fandom/nodes/validate_genesis.py
+69	0	examples/novel_fandom/prompts/generate_stubs.yaml
+0	55	examples/novel_fandom/prompts/genesis_character.yaml
+0	20	examples/novel_fandom/prompts/genesis_roster.yaml
+0	83	examples/novel_fandom/prompts/structure_world.yaml
+19	1	examples/novel_fandom/worldgen.yaml
+1	1	feature-requests/FR-664-genesis-referential-integrity.md
+1	1	feature-requests/FR-665-worldgen-semantic-dedup.md
+1	1	feature-requests/FR-667-genesis-stub-pipeline.md
+16	44	tests/unit/test_fr655_genesis.py
+354	0	tests/unit/test_fr664_665_667_dedup_trilogy.py
+
+a4545d56
+182	0	scripts/vscode_storage_cleanup.sh
+
+bd79e2a2
+5	0	changelog/unreleased/fr-678-narrow-structured-catch.md
+5	0	changelog/unreleased/fr-679-consolidate-retry-fallback.md
+5	0	changelog/unreleased/fr-680-provider-registry.md
+22	4	docs/confessions.md
+68	0	docs/diary/2026-07-04-fr-678-679-680-boundary-trust.md
+16	9	feature-requests/FR-678-narrow-agent-structured-output-catch.md
+20	8	feature-requests/FR-679-consolidate-retry-fallback-post-676.md
+29	9	feature-requests/FR-680-provider-dispatch-registry.md
+5	2	scripts/hedging_check.py
+20	12	tests/unit/test_fr230_google_vertex_thinking.py
+163	0	tests/unit/test_fr678_narrow_structured_catch.py
+160	0	tests/unit/test_fr679_shared_attempt_invoke.py
+118	0	tests/unit/test_fr680_provider_registry.py
+2	39	yamlgraph/executor.py
+46	0	yamlgraph/executor_base.py
+2	3	yamlgraph/node_factory/race_node.py
+13	7	yamlgraph/tools/agent.py
+3	30	yamlgraph/utils/llm_factory_async.py
+35	23	yamlgraph/utils/llm_providers.py
+
+ff3550fe
+138	0	feature-requests/FR-681-module-map-density-contract.md
+15	1	feature-requests/FR-681-module-reorg-restore-module-map-budget.md
+136	0	feature-requests/FR-682-extend-seed-gate-substance.md
+
+6de65322
+11	0	ARCHITECTURE.md
+41	0	capabilities/CAP-183-first-class-verification.yaml
+8	0	changelog/unreleased/fr-677-first-class-verification.md
+5	5	docs/confessions.md
+65	0	docs/diary/2026-07-04-reflection-fr-677-verification-first-class.md
+42	0	examples/demos/verification/README.md
+19	0	examples/demos/verification/demo-output.log
+47	0	examples/demos/verification/graph.yaml
+57	0	examples/demos/verification/run-transcript.log
+18	0	examples/demos/verification/tools.py
+75	14	feature-requests/FR-677-verification-first-class-dsl.md
+89	0	feature-requests/FR-681-module-reorg-restore-module-map-budget.md
+61	0	reference/graph-yaml.md
+56	46	reference/module-map.md
+3	3	scripts/hedging_check.py
+1	0	tests/unit/test_constants.py
+3	1	tests/unit/test_fr335_module_map_compression.py
+208	0	tests/unit/test_fr677_gate.py
+259	0	tests/unit/test_fr677_graph_verify.py
+286	0	tests/unit/test_fr677_node_guards.py
+1	0	tests/unit/test_node_type_registry.py
+6	0	yamlgraph/cli/__init__.py
+45	0	yamlgraph/cli/graph_commands.py
+1	0	yamlgraph/constants.py
+8	0	yamlgraph/graph_loader.py
+66	0	yamlgraph/linter/checks_contracts.py
+5	0	yamlgraph/models/graph_schema.py
+14	0	yamlgraph/models/guard_schema.py
+1	1	yamlgraph/models/schemas.py
+45	52	yamlgraph/node_compiler.py
+2	2	yamlgraph/node_factory/copilot_node.py
+0	134	yamlgraph/node_factory/guard_runtime.py
+4	4	yamlgraph/node_factory/llm_nodes.py
+64	0	yamlgraph/node_timeout.py
+23	0	yamlgraph/tools/agent.py
+26	1	yamlgraph/tools/nodes.py
+30	0	yamlgraph/tools/python_tool.py
+256	0	yamlgraph/utils/guard_runtime.py
+77	0	yamlgraph/verify_insert.py
+
+0062b406
+32	0	docs/diary/2026-07-04-git-report.md
+19	0	docs/diary/2026-07-04-world-digest.md
+181	0	feature-requests/FR-677-verification-first-class-dsl.md
+133	0	feature-requests/FR-678-narrow-agent-structured-output-catch.md
+141	0	feature-requests/FR-679-consolidate-retry-fallback-post-676.md
+163	0	feature-requests/FR-680-provider-dispatch-registry.md
+
+30e88102
+6	0	changelog/unreleased/fr-673-674-schema-validation-split.md
+5	0	changelog/unreleased/fr-676-async-retry-parity.md
+7	1	docs/confessions.md
+31	0	docs/diary/2026-07-03-fr-673-674-676-interleaved-enforcement.md
+3	3	examples/cost-router/cost-router.yaml
+1	1	feature-requests/FR-673-node-config-boundary-validation.md
+1	1	feature-requests/FR-674-proactive-module-splits.md
+1	1	feature-requests/FR-676-async-invoke-retry-fallback-parity.md
+2	1	scripts/hedging_check.py
+1	0	tests/unit/test_auto_loop_detection.py
+6	0	tests/unit/test_graph_schema.py
+71	0	tests/unit/test_llm_factory_async.py
+2	1	tests/unit/test_node_cache_policy.py
+3	0	tests/unit/test_router.py
+2	1	tests/unit/test_verification.py
+6	0	vulture_whitelist.py
+11	13	yamlgraph/executor.py
+15	0	yamlgraph/executor_base.py
+106	104	yamlgraph/models/graph_schema.py
+110	0	yamlgraph/models/guard_schema.py
+1	1	yamlgraph/node_compiler.py
+60	13	yamlgraph/utils/llm_factory_async.py
+10	0	yamlgraph/utils/validators.py
+
+09a34422
+6	0	changelog/unreleased/fr-675-remove-dead-error-field.md
+25	0	docs/diary/2026-07-03-fr-675-remove-dead-error-field.md
+7	7	feature-requests/FR-675-remove-dead-top-level-error-field.md
+22	1	tests/unit/test_export.py
+10	0	tests/unit/test_state_builder.py
+2	6	yamlgraph/models/state_builder.py
+19	2	yamlgraph/storage/export.py
+
+0a2b8424
+5	0	changelog/unreleased/fr-669-structured-fallback-error.md
+5	0	changelog/unreleased/fr-670-a2a-empty-response.md
+5	0	changelog/unreleased/fr-671-mcp-logging.md
+44	0	docs/diary/diary-2026-07-03-three-boundary-fixes.md
+50	44	feature-requests/FR-668-converge-error-errors-state-fields.md
+17	17	feature-requests/FR-669-structured-fallback-raise-extraction-error.md
+12	16	feature-requests/FR-670-a2a-client-raise-on-empty-response.md
+19	9	feature-requests/FR-671-mcp-log-graph-execution-failures.md
+11	8	feature-requests/FR-672-extract-shared-retry-policy.md
+23	34	feature-requests/FR-673-node-config-boundary-validation.md
+36	37	feature-requests/FR-674-proactive-module-splits.md
+26	0	tests/unit/test_a2a_contrib_client.py
+43	0	tests/unit/test_executor_retry.py
+77	1	tests/unit/test_mcp_server.py
+6	1	yamlgraph/contrib/a2a_client.py
+5	1	yamlgraph/executor.py
+2	0	yamlgraph/mcp_server.py
+
+ead44cd6
+84	0	docs/diary/diary-2026-07-03-the-subagents-confident-inventory.md
+104	0	feature-requests/FR-675-remove-dead-top-level-error-field.md
+128	0	feature-requests/FR-676-async-invoke-retry-fallback-parity.md
+
+d504ff40
+6	6	feature-requests/FR-668-converge-error-errors-state-fields.md
+11	12	feature-requests/FR-669-structured-fallback-raise-extraction-error.md
+15	11	feature-requests/FR-670-a2a-client-raise-on-empty-response.md
+8	10	feature-requests/FR-671-mcp-log-graph-execution-failures.md
+8	13	feature-requests/FR-672-extract-shared-retry-policy.md
+16	16	feature-requests/FR-673-node-config-boundary-validation.md
+23	24	feature-requests/FR-674-proactive-module-splits.md
+
+eb3d8d06
+54	0	docs/diary/diary-2026-07-03-grading-the-polished-audit.md
+44	50	feature-requests/FR-668-converge-error-errors-state-fields.md
+9	8	feature-requests/FR-669-structured-fallback-raise-extraction-error.md
+3	3	feature-requests/FR-670-a2a-client-raise-on-empty-response.md
+5	13	feature-requests/FR-671-mcp-log-graph-execution-failures.md
+4	2	feature-requests/FR-672-extract-shared-retry-policy.md
+29	18	feature-requests/FR-673-node-config-boundary-validation.md
+44	42	feature-requests/FR-674-proactive-module-splits.md
+
+a10a34bb
+5	5	feature-requests/FR-669-structured-fallback-raise-extraction-error.md
+5	4	feature-requests/FR-671-mcp-log-graph-execution-failures.md
+12	14	feature-requests/FR-674-proactive-module-splits.md
+
+d238c5c2
+19	1	feature-requests/FR-668-converge-error-errors-state-fields.md
+18	1	feature-requests/FR-669-structured-fallback-raise-extraction-error.md
+7	1	feature-requests/FR-670-a2a-client-raise-on-empty-response.md
+17	1	feature-requests/FR-671-mcp-log-graph-execution-failures.md
+17	1	feature-requests/FR-672-extract-shared-retry-policy.md
+18	1	feature-requests/FR-673-node-config-boundary-validation.md
+33	3	feature-requests/FR-674-proactive-module-splits.md
+
+db4d431c
+0	1	examples/README.md
+33	42	examples/demos/image-that-speaks/demo-output.log
+0	0	examples/demos/{image_that_speaks => image-that-speaks}/gate.py
+1	1	examples/demos/image-that-speaks/graph.yaml
+0	6	examples/demos/image_that_speaks/README.md
+0	0	examples/demos/image_that_speaks/__init__.py
+0	57	examples/demos/image_that_speaks/demo-output.log
+1	1	scripts/check_demo_proof.sh
+
+12d2c600
+5	0	changelog/unreleased/fr-666-image-that-speaks.md
+184	0	docs/2026-07-03-review-fable.md
+28	0	docs/diary/diary-2026-07-03-the-image-worships-the-beast.md
+2	0	examples/README.md
+44	0	examples/demos/image-that-speaks/README.md
+38	0	examples/demos/image-that-speaks/data/forbidden_claims.yaml
+57	0	examples/demos/image-that-speaks/demo-output.log
+112	0	examples/demos/image-that-speaks/graph.yaml
+17	0	examples/demos/image-that-speaks/prompts/generate.yaml
+36	0	examples/demos/image-that-speaks/prompts/judge.yaml
+39	0	examples/demos/image-that-speaks/prompts/reckoning.yaml
+25	0	examples/demos/image-that-speaks/prompts/verdict.yaml
+6	0	examples/demos/image_that_speaks/README.md
+0	0	examples/demos/image_that_speaks/__init__.py
+57	0	examples/demos/image_that_speaks/demo-output.log
+62	0	examples/demos/image_that_speaks/gate.py
+173	0	feature-requests/FR-664-genesis-referential-integrity.md
+229	0	feature-requests/FR-665-worldgen-semantic-dedup.md
+498	0	feature-requests/FR-666-the-beasts-number-adversarial-content-audit.md
+297	0	feature-requests/FR-667-genesis-stub-pipeline.md
+79	0	feature-requests/FR-668-converge-error-errors-state-fields.md
+79	0	feature-requests/FR-669-structured-fallback-raise-extraction-error.md
+69	0	feature-requests/FR-670-a2a-client-raise-on-empty-response.md
+79	0	feature-requests/FR-671-mcp-log-graph-execution-failures.md
+84	0	feature-requests/FR-672-extract-shared-retry-policy.md
+75	0	feature-requests/FR-673-node-config-boundary-validation.md
+71	0	feature-requests/FR-674-proactive-module-splits.md
+
+32d8d4b9
+27	0	docs/diary/diary-2026-07-03-the-gate-that-guards-shape-not-provenance.md
+66	0	feature-requests/FR-663-changelog-req-legacy-cap-false-positive.md
+
+085f3aad
+5	0	changelog/unreleased/fr-660-agent-tool-unification.md
+0	1	changelog/unreleased/fr-661-loop-detector-layer.md
+29	0	docs/diary/diary-2026-07-03-the-wrapper-was-already-there.md
+1	1	feature-requests/FR-660-agent-tool-execution-unification.md
+84	0	tests/unit/test_agent_nodes.py
+3	3	tests/unit/test_conversation_memory.py
+21	59	yamlgraph/tools/agent.py
+
+5f3b2e1c
+1	1	.importlinter
+6	0	changelog/unreleased/fr-661-loop-detector-layer.md
+1	1	feature-requests/FR-661-loop-detector-layer-registration.md
+
+80e6b476
+18	8	feature-requests/FR-659-test-coverage-gaps.md
+34	0	tests/unit/test_copilot_subgraph_variables.py
+299	0	tests/unit/test_fr659_guard_evaluator_coverage.py
+254	0	tests/unit/test_fr659_schema_loader_tool_coverage.py
+
+8b3ff377
+79	0	feature-requests/FR-659-test-coverage-gaps.md
+100	0	feature-requests/FR-660-agent-tool-execution-unification.md
+71	0	feature-requests/FR-661-loop-detector-layer-registration.md
+
+76452d6f
+13	0	.github/hooks/scripts/pre-command-guard.sh
+124	0	.github/hooks/tests/test_pre_command_guard.py
+5	0	changelog/unreleased/fr-662-ban-agent-branching.md
+98	0	feature-requests/FR-662-ban-agent-branching-main-worktree.md
+
+a49ec84b
+5	0	changelog/unreleased/fix-orphan-synopsis-ref.md
+1	1	examples/novel_fandom/canon/premise/the_floodmark_saga.yaml
+
+9ecaf65b
+2	4	.importlinter
+3	2	ARCHITECTURE.md
+7	1	capabilities/CAP-05-tool-agent-integration.yaml
+6	0	changelog/unreleased/feat-graph-as-tool.md
+2	2	docs/confessions.md
+46	0	docs/diary/2026-07-03-git-report.md
+99	0	docs/diary/2026-07-03-parallel-invention-trap.md
+13	0	docs/diary/2026-07-03-world-digest.md
+146	0	docs/research-agent-comms-fact-checking.md
+1	0	examples/README.md
+24	0	examples/demos/graph-tool/README.md
+31	0	examples/demos/graph-tool/child/graph.yaml
+6	0	examples/demos/graph-tool/child/prompts/classify_tone.yaml
+26	0	examples/demos/graph-tool/demo-output.log
+48	0	examples/demos/graph-tool/graph.yaml
+13	0	examples/demos/graph-tool/prompts/copywriter.yaml
+5	1	examples/novel_fandom/nodes/select_thin.py
+314	0	feature-requests/FR-658-graph-as-tool.md
+1	1	scripts/hedging_check.py
+2	5	tests/unit/test_agent_nodes.py
+15	15	tests/unit/test_auto_loop_detection.py
+306	0	tests/unit/test_graph_tool.py
+1	1	tests/unit/test_loop_detection.py
+75	102	yamlgraph/graph_loader.py
+2	2	yamlgraph/linter/checks_semantic.py
+104	0	yamlgraph/loop_detector.py
+14	14	yamlgraph/node_compiler.py
+29	109	yamlgraph/tools/agent.py
+109	0	yamlgraph/tools/graph_tool.py
+116	0	yamlgraph/tools/tool_builders.py
+
+7e1e53d8
+41	0	docs/diary/diary-2026-07-02-the-tool-is-the-boundary.md
+2	1	feature-requests/FR-657-agentic-event-deepening.md
+
+88f5766b
+-	-	.coverage.demo
+11	0	ARCHITECTURE.md
+27	0	capabilities/CAP-182-agentic-event-deepening.yaml
+5	0	changelog/unreleased/fix-copilot-test-mock-target.md
+1	0	changelog/unreleased/fr-657-agentic-event-deepening.md
+6	0	docs/confessions.md
+120	0	examples/novel_fandom/nodes/canon_tools.py
+18	0	examples/novel_fandom/nodes/split_thin_by_type.py
+54	0	examples/novel_fandom/prompts/deepen_event_agent.yaml
+60	7	examples/novel_fandom/worldgen.yaml
+1	1	tests/integration/test_copilot_session_propagation.py
+5	2	tests/unit/test_fr643v2_novel_fandom_worldgen.py
+247	0	tests/unit/test_fr657_agentic_event_deepening.py
+
+ba4cdf01
+6	0	changelog/unreleased/fr-657-agentic-event-deepening.md
+282	0	docs/plan-worldgen-context.md
+131	0	docs/research-wiki-format.md
+184	0	feature-requests/FR-657-agentic-event-deepening.md
+
+59e2fc01
+5	0	changelog/unreleased/fix-anchor-events-dict-refs.md
+3	1	examples/novel_fandom/nodes/anchor_events.py
+
+7e4d40bc
+49	0	docs/diary/diary-2026-07-02-the-template-is-the-boundary.md
+
+cfd2a89c
+6	0	changelog/unreleased/fr-656-tighten-genesis-prompt.md
+67	19	examples/novel_fandom/canon seed/synopsis/synopsis.yaml
+40	0	examples/novel_fandom/canon/character/aelfgard.yaml
+48	0	examples/novel_fandom/canon/character/arnulf.yaml
+47	0	examples/novel_fandom/canon/character/gunnar.yaml
+50	0	examples/novel_fandom/canon/character/hilde.yaml
+46	0	examples/novel_fandom/canon/character/reinmar.yaml
+39	0	examples/novel_fandom/canon/character/ruedeger.yaml
+44	0	examples/novel_fandom/canon/character/sigrid.yaml
+20	0	examples/novel_fandom/canon/event/arnulf_return_and_attack.yaml
+16	0	examples/novel_fandom/canon/event/birth_of_child.yaml
+21	0	examples/novel_fandom/canon/event/crossing_the_pass.yaml
+19	0	examples/novel_fandom/canon/event/dawn_raid.yaml
+19	0	examples/novel_fandom/canon/event/exile_and_flight.yaml
+16	0	examples/novel_fandom/canon/event/first_intimacy.yaml
+22	0	examples/novel_fandom/canon/event/reunion_with_clans.yaml
+21	0	examples/novel_fandom/canon/event/sigrid_arrival_and_peace.yaml
+18	0	examples/novel_fandom/canon/event/survival_truce_formed.yaml
+25	0	examples/novel_fandom/canon/event/the_great_flood.yaml
+13	0	examples/novel_fandom/canon/faction/aschenwulf.yaml
+11	0	examples/novel_fandom/canon/faction/barenschadel.yaml
+13	0	examples/novel_fandom/canon/faction/followers_of_sigrid.yaml
+18	0	examples/novel_fandom/canon/location/the_foot_of_the_pass.yaml
+18	0	examples/novel_fandom/canon/location/the_high_valley.yaml
+11	13	examples/novel_fandom/canon/location/the_ledge.yaml
+18	0	examples/novel_fandom/canon/location/the_pass.yaml
+18	0	examples/novel_fandom/canon/location/the_ridge_camp.yaml
+17	0	examples/novel_fandom/canon/location/the_river_valley.yaml
+35	0	examples/novel_fandom/canon/premise/the_floodmark_saga.yaml
+12	0	examples/novel_fandom/canon/rule/judgment_of_the_flood.yaml
+11	0	examples/novel_fandom/canon/rule/survival_truce.yaml
+17	10	examples/novel_fandom/prompts/structure_world.yaml
+95	0	feature-requests/FR-656-tighten-genesis-prompt.md
+26	26	tests/unit/test_fr638_novel_fandom_pathfinder.py
+3	3	tests/unit/test_fr643v2_novel_fandom_worldgen.py
+
+c46d6a98
+46	0	docs/diary/diary-2026-07-02-the-allowlist-is-the-coupling.md
+0	21	examples/novel_fandom/.gitignore
+37	43	examples/novel_fandom/README.md
+0	0	examples/novel_fandom/{canon => canon seed}/character/kaelen.yaml
+0	0	examples/novel_fandom/{canon => canon seed}/character/maren.yaml
+0	0	examples/novel_fandom/{canon => canon seed}/character/voss.yaml
+0	0	examples/novel_fandom/{canon => canon seed}/event/age_of_cinders.yaml
+0	0	examples/novel_fandom/{canon => canon seed}/faction/ashguard.yaml
+0	0	examples/novel_fandom/{canon => canon seed}/faction/emberwrights.yaml
+0	0	examples/novel_fandom/{canon => canon seed}/premise/premise.yaml
+0	0	examples/novel_fandom/{canon => canon seed}/rule/ashfall_pact.yaml
+0	0	examples/novel_fandom/{canon => canon seed}/rule/emberbrand_rule.yaml
+0	0	examples/novel_fandom/{canon => canon seed}/synopsis/synopsis.yaml
+36	0	examples/novel_fandom/canon/character/arnulf_aschenwulf.yaml
+38	0	examples/novel_fandom/canon/character/freydis_ritekeeper.yaml
+42	0	examples/novel_fandom/canon/character/gunnar_barenschadel.yaml
+53	0	examples/novel_fandom/canon/character/hilde_aschenwulf.yaml
+36	0	examples/novel_fandom/canon/character/reinmar_salt_trader.yaml
+21	0	examples/novel_fandom/canon/event/arnulf_death_event.yaml
+18	0	examples/novel_fandom/canon/event/arnulf_rescue_event.yaml
+17	0	examples/novel_fandom/canon/event/avalanche_death_event.yaml
+21	0	examples/novel_fandom/canon/event/freydis_judgment_event.yaml
+19	0	examples/novel_fandom/canon/event/ledge_truce_event.yaml
+21	0	examples/novel_fandom/canon/event/merger_rite_event.yaml
+25	0	examples/novel_fandom/canon/event/the_great_flood_event.yaml
+15	0	examples/novel_fandom/canon/faction/aschenwulf_faction.yaml
+12	0	examples/novel_fandom/canon/faction/barenschadel_faction.yaml
+20	0	examples/novel_fandom/canon/location/lowland_valley.yaml
+18	0	examples/novel_fandom/canon/location/refugee_hill.yaml
+15	0	examples/novel_fandom/canon/location/snow_ridge.yaml
+19	0	examples/novel_fandom/canon/location/stony_valley.yaml
+20	0	examples/novel_fandom/canon/location/the_ledge.yaml
+42	0	examples/novel_fandom/canon/premise/the_floodmark_saga_premise.yaml
+14	0	examples/novel_fandom/canon/rule/blood_feud_rule.yaml
+12	0	examples/novel_fandom/canon/rule/burial_rites_rule.yaml
+13	0	examples/novel_fandom/canon/rule/divine_judgment_rule.yaml
+13	0	examples/novel_fandom/canon/rule/survival_truce_rule.yaml
+70	0	examples/novel_fandom/canon/synopsis/the_floodmark_saga_synopsis.yaml
+2	1	examples/novel_fandom/genesis.yaml
+1	0	examples/novel_fandom/premises/floodmark-saga.txt
+5	5	examples/novel_fandom/prompts/structure_world.yaml
+25	25	tests/unit/test_fr638_novel_fandom_pathfinder.py
+3	2	tests/unit/test_fr643v2_novel_fandom_worldgen.py
+
+1360bcde
+39	0	docs/diary/diary-2026-07-02-the-prompt-is-the-asset.md
+
+28d71a07
+14	0	ARCHITECTURE.md
+36	0	capabilities/CAP-181-novel-fandom-genesis.yaml
+6	0	changelog/unreleased/fr-655-genesis-pipeline.md
+12	0	docs/confessions.md
+116	0	examples/novel_fandom/genesis.yaml
+25	0	examples/novel_fandom/nodes/genesis_tools.py
+71	0	examples/novel_fandom/nodes/persist_genesis.py
+55	0	examples/novel_fandom/prompts/genesis_character.yaml
+20	0	examples/novel_fandom/prompts/genesis_roster.yaml
+28	0	examples/novel_fandom/prompts/genesis_synopsis.yaml
+76	0	examples/novel_fandom/prompts/structure_world.yaml
+153	0	feature-requests/FR-655-genesis-graph.md
+271	0	tests/unit/test_fr655_genesis.py
+
+ecc72b0f
+48	0	docs/diary/diary-2026-07-02-the-ignored-floor.md
+
+b290689e
+5	1	ARCHITECTURE.md
+28	0	capabilities/CAP-180-novel-fandom-world-expansion.yaml
+6	0	changelog/unreleased/fr-651-654-worldgen-quality.md
+12	0	docs/confessions.md
+12	0	examples/novel_fandom/nodes/persist_pages.py
+9	1	examples/novel_fandom/nodes/select_thin.py
+5	0	examples/novel_fandom/prompts/deepen_entity.yaml
+71	0	feature-requests/FR-651-deepen-temporal-fields.md
+49	0	feature-requests/FR-652-normalize-role-enum.md
+59	0	feature-requests/FR-653-robust-reflect-schema.md
+59	0	feature-requests/FR-654-redeepen-seed-characters.md
+249	0	tests/unit/test_fr651_654_worldgen_improvements.py
+
+cf096e1a
+21	0	docs/diary/diary-2026-07-02-the-scattered-callsites.md
+
+6061c32c
+2	1	ARCHITECTURE.md
+10	0	capabilities/CAP-180-novel-fandom-world-expansion.yaml
+6	0	changelog/unreleased/fr-650-canon-type-subfolders.md
+6	0	docs/confessions.md
+21	0	examples/novel_fandom/.gitignore
+0	0	examples/novel_fandom/canon/{ => character}/kaelen.yaml
+0	0	examples/novel_fandom/canon/{ => character}/maren.yaml
+0	0	examples/novel_fandom/canon/{ => character}/voss.yaml
+0	0	examples/novel_fandom/canon/{ => event}/age_of_cinders.yaml
+0	0	examples/novel_fandom/canon/{ => faction}/ashguard.yaml
+0	0	examples/novel_fandom/canon/{ => faction}/emberwrights.yaml
+0	0	examples/novel_fandom/canon/{ => premise}/premise.yaml
+0	0	examples/novel_fandom/canon/{ => rule}/ashfall_pact.yaml
+0	0	examples/novel_fandom/canon/{ => rule}/emberbrand_rule.yaml
+0	0	examples/novel_fandom/canon/{ => synopsis}/synopsis.yaml
+11	7	examples/novel_fandom/nodes/persist_pages.py
+2	1	examples/novel_fandom/nodes/ref_gate.py
+1	1	examples/novel_fandom/nodes/reload_canon.py
+1	1	examples/novel_fandom/nodes/render_wiki.py
+177	0	feature-requests/FR-650-canon-type-subfolders.md
+1	1	tests/unit/test_fr637_novel_fandom_canon.py
+1	1	tests/unit/test_fr638_novel_fandom_pathfinder.py
+1	1	tests/unit/test_fr642_novel_fandom_wiki_core.py
+2	1	tests/unit/test_fr643v2_novel_fandom_worldgen.py
+2	1	tests/unit/test_fr649_persist_normalize.py
+250	0	tests/unit/test_fr650_canon_type_subfolders.py
+
+4a7c6fc8
+29	0	docs/diary/diary-2026-07-02-the-silent-dropout.md
+
+90ae6205
+3	1	ARCHITECTURE.md
+17	0	capabilities/CAP-180-novel-fandom-world-expansion.yaml
+6	0	changelog/unreleased/fr-648-obsidian-wiki.md
+6	0	changelog/unreleased/fr-649-persist-normalize.md
+18	0	docs/confessions.md
+2	0	examples/novel_fandom/.gitignore
+112	2	examples/novel_fandom/nodes/persist_pages.py
+203	0	examples/novel_fandom/nodes/render_wiki.py
+3	3	examples/novel_fandom/worldgen.yaml
+171	0	feature-requests/FR-648-obsidian-wiki-output.md
+64	0	feature-requests/FR-649-worldgen-persist-normalize.md
+3	2	tests/unit/test_fr643v2_novel_fandom_worldgen.py
+236	0	tests/unit/test_fr648_obsidian_wiki.py
+371	0	tests/unit/test_fr649_persist_normalize.py
+
+8d44891f
+2	1	ARCHITECTURE.md
+9	0	capabilities/CAP-180-novel-fandom-world-expansion.yaml
+6	0	changelog/unreleased/fr-647-event-propagation.md
+6	0	docs/confessions.md
+2	0	examples/novel_fandom/canon/age_of_cinders.yaml
+1	0	examples/novel_fandom/canon/kaelen.yaml
+1	0	examples/novel_fandom/canon/maren.yaml
+1	0	examples/novel_fandom/canon/premise.yaml
+1	0	examples/novel_fandom/canon/voss.yaml
+63	0	examples/novel_fandom/nodes/anchor_events.py
+16	0	examples/novel_fandom/prompts/deepen_entity.yaml
+5	0	examples/novel_fandom/schema/canon.py
+13	0	examples/novel_fandom/worldgen.yaml
+241	0	feature-requests/FR-647-worldgen-event-propagation.md
+278	0	tests/unit/test_fr647_event_propagation.py
+
+0a5f508a
+2	1	ARCHITECTURE.md
+8	0	capabilities/CAP-180-novel-fandom-world-expansion.yaml
+2	0	changelog/unreleased/fr-646-worldgen-reflexion.md
+18	0	docs/diary/2026-07-02-world-digest.md
+10	1	examples/novel_fandom/nodes/collect_red_links.py
+37	0	examples/novel_fandom/prompts/reflect_canon.yaml
+15	0	examples/novel_fandom/worldgen.yaml
+165	0	feature-requests/FR-646-worldgen-reflexion-step.md
+155	0	tests/unit/test_fr643v2_novel_fandom_worldgen.py
+
+3d4cdde5
+6	0	changelog/unreleased/fr-643v2-worldgen-runtime-fixes.md
+1	1	docs/confessions.md
+35	4	examples/novel_fandom/nodes/persist_pages.py
+26	5	examples/novel_fandom/nodes/validate_pages.py
+2	17	examples/novel_fandom/prompts/deepen_entity.yaml
+8	1	examples/novel_fandom/prompts/generate_skeleton.yaml
+0	2	examples/novel_fandom/schema/canon.py
+10	3	examples/novel_fandom/worldgen.yaml
+91	0	feature-requests/FR-644-lint-inline-schema-types.md
+135	0	feature-requests/FR-645-lint-map-subnode-prompt-variables.md
+
+2e28e82e
+42	0	docs/diary/diary-2026-07-01-prayer-vs-engineering.md
+
+7f599236
+12	0	ARCHITECTURE.md
+31	0	capabilities/CAP-180-novel-fandom-world-expansion.yaml
+6	0	changelog/unreleased/fr-643v2-world-expansion.md
+12	0	docs/confessions.md
+559	0	docs/plan-world-expansion.md
+599	0	docs/plan-world-generation-loop.md
+1	1	examples/novel_fandom/canon/age_of_cinders.yaml
+1	1	examples/novel_fandom/canon/ashfall_pact.yaml
+1	1	examples/novel_fandom/canon/ashguard.yaml
+1	1	examples/novel_fandom/canon/emberbrand_rule.yaml
+1	1	examples/novel_fandom/canon/emberwrights.yaml
+1	1	examples/novel_fandom/canon/kaelen.yaml
+1	1	examples/novel_fandom/canon/maren.yaml
+1	1	examples/novel_fandom/canon/premise.yaml
+1	1	examples/novel_fandom/canon/voss.yaml
+27	19	examples/novel_fandom/demo-output.log
+27	0	examples/novel_fandom/nodes/collect_red_links.py
+105	0	examples/novel_fandom/nodes/persist_pages.py
+32	0	examples/novel_fandom/nodes/reload_canon.py
+93	0	examples/novel_fandom/nodes/select_thin.py
+59	0	examples/novel_fandom/nodes/validate_pages.py
+79	0	examples/novel_fandom/prompts/deepen_entity.yaml
+26	0	examples/novel_fandom/prompts/generate_skeleton.yaml
+8	0	examples/novel_fandom/schema/canon.py
+145	0	examples/novel_fandom/worldgen.yaml
+582	0	feature-requests/FR-643-novel-fandom-worldgen-loop.md
+625	0	feature-requests/FR-643v2-novel-fandom-world-expansion.md
+538	0	tests/unit/test_fr643v2_novel_fandom_worldgen.py
+
+9162fa4e
+8	0	changelog/unreleased/fr-638-graph-path-fix.md
+4	1	examples/novel_fandom/README.md
+3	3	examples/novel_fandom/{graphs => }/close.yaml
+3	3	examples/novel_fandom/{graphs => }/draft.yaml
+4	4	examples/novel_fandom/{graphs => }/find_path.yaml
+9	0	examples/novel_fandom/nodes/retrieve_window.py
+
+a412bc5a
+12	0	ARCHITECTURE.md
+28	0	capabilities/CAP-179-novel-fandom-wiki-core-types.yaml
+7	0	changelog/unreleased/fr-642-wiki-core-types.md
+6	0	docs/confessions.md
+9	3	examples/novel_fandom/README.md
+23	0	examples/novel_fandom/canon/premise.yaml
+22	0	examples/novel_fandom/canon/synopsis.yaml
+25	0	examples/novel_fandom/schema/canon.py
+186	0	feature-requests/FR-642-novel-fandom-wiki-core-types.md
+1	1	tests/unit/test_fr637_novel_fandom_canon.py
+224	0	tests/unit/test_fr642_novel_fandom_wiki_core.py
+
+0f069181
+297	0	docs/plan-novel-fandom-wiki-core.md
+65	2	feature-requests/FR-641-novel-fandom-llm-canon-extraction.md
+
+6e463308
+25	0	ARCHITECTURE.md
+30	0	capabilities/CAP-177-novel-fandom-plot-pathfinder.yaml
+37	0	capabilities/CAP-178-novel-fandom-prose-close-loop.yaml
+6	0	changelog/unreleased/fr-638-plot-pathfinder.md
+6	0	changelog/unreleased/fr-639-prose-close-loop.md
+12	0	docs/confessions.md
+47	0	examples/novel_fandom/graphs/close.yaml
+62	0	examples/novel_fandom/graphs/draft.yaml
+77	0	examples/novel_fandom/graphs/find_path.yaml
+232	0	examples/novel_fandom/nodes/apply_deltas.py
+61	0	examples/novel_fandom/nodes/path_gate.py
+39	0	examples/novel_fandom/nodes/prose_gate.py
+124	0	examples/novel_fandom/nodes/retrieve_window.py
+43	0	examples/novel_fandom/prompts/draft_chapter.yaml
+45	0	examples/novel_fandom/prompts/extract_consequences.yaml
+24	0	examples/novel_fandom/prompts/extract_prose_mentions.yaml
+61	0	examples/novel_fandom/prompts/find_plot_path.yaml
+37	0	examples/novel_fandom/prompts/fix_plot_path.yaml
+1	1	feature-requests/FR-638-novel-fandom-plot-pathfinder.md
+1	1	feature-requests/FR-639-novel-fandom-prose-close-loop.md
+328	0	tests/unit/test_fr638_novel_fandom_pathfinder.py
+403	0	tests/unit/test_fr639_novel_fandom_close_loop.py
+
+  fr_changes: feature-requests/FR-700-timeframe-recap-example.md
+
+feature-requests/FR-691-plot-threads-throughlines.md
+
+feature-requests/FR-691-plot-threads-throughlines.md
+
+feature-requests/FR-690-event-sequence-field.md
+
+feature-requests/FR-699-chaplain-graph-compile-witness.md
+
+feature-requests/FR-698-executor-neutral-worktree-tooling.md
+
+feature-requests/FR-690-event-sequence-field.md
+feature-requests/FR-691-plot-threads-throughlines.md
+feature-requests/FR-692-world-pressure-agent.md
+feature-requests/FR-693-event-revision-latent-closure.md
+feature-requests/FR-694-chapter-plan-ledger-gate.md
+feature-requests/FR-695-scene-drafting-fold.md
+feature-requests/FR-696-genesis-thread-reordering.md
+
+feature-requests/FR-658-graph-as-tool.md
+feature-requests/FR-688-cli-variables-injection.md
+
+feature-requests/FR-658-graph-as-tool.md
+feature-requests/FR-688-cli-variables-injection.md
+feature-requests/FR-689-genesis-canon-consistency.md
+
+feature-requests/FR-658-graph-as-tool.md
+feature-requests/FR-685-genesis-self-correcting-agent.md
+feature-requests/FR-686-novel-fandom-agent-first-rewrite.md
+feature-requests/FR-687-agent-tool-path-grounding.md
+
+feature-requests/FR-683-ref-integrity-graph-tool.md
+feature-requests/FR-684-semantic-dedup-graph-tool.md
+feature-requests/FR-685-genesis-self-correcting-agent.md
+
+feature-requests/FR-664-genesis-referential-integrity.md
+feature-requests/FR-665-worldgen-semantic-dedup.md
+feature-requests/FR-667-genesis-stub-pipeline.md
+
+feature-requests/FR-678-narrow-agent-structured-output-catch.md
+feature-requests/FR-679-consolidate-retry-fallback-post-676.md
+feature-requests/FR-680-provider-dispatch-registry.md
+
+feature-requests/FR-681-module-map-density-contract.md
+feature-requests/FR-681-module-reorg-restore-module-map-budget.md
+feature-requests/FR-682-extend-seed-gate-substance.md
+
+feature-requests/FR-677-verification-first-class-dsl.md
+feature-requests/FR-681-module-reorg-restore-module-map-budget.md
+
+feature-requests/FR-677-verification-first-class-dsl.md
+feature-requests/FR-678-narrow-agent-structured-output-catch.md
+feature-requests/FR-679-consolidate-retry-fallback-post-676.md
+feature-requests/FR-680-provider-dispatch-registry.md
+
+feature-requests/FR-673-node-config-boundary-validation.md
+feature-requests/FR-674-proactive-module-splits.md
+feature-requests/FR-676-async-invoke-retry-fallback-parity.md
+
+feature-requests/FR-675-remove-dead-top-level-error-field.md
+
+feature-requests/FR-668-converge-error-errors-state-fields.md
+feature-requests/FR-669-structured-fallback-raise-extraction-error.md
+feature-requests/FR-670-a2a-client-raise-on-empty-response.md
+feature-requests/FR-671-mcp-log-graph-execution-failures.md
+feature-requests/FR-672-extract-shared-retry-policy.md
+feature-requests/FR-673-node-config-boundary-validation.md
+feature-requests/FR-674-proactive-module-splits.md
+
+feature-requests/FR-675-remove-dead-top-level-error-field.md
+feature-requests/FR-676-async-invoke-retry-fallback-parity.md
+
+feature-requests/FR-668-converge-error-errors-state-fields.md
+feature-requests/FR-669-structured-fallback-raise-extraction-error.md
+feature-requests/FR-670-a2a-client-raise-on-empty-response.md
+feature-requests/FR-671-mcp-log-graph-execution-failures.md
+feature-requests/FR-672-extract-shared-retry-policy.md
+feature-requests/FR-673-node-config-boundary-validation.md
+feature-requests/FR-674-proactive-module-splits.md
+
+feature-requests/FR-668-converge-error-errors-state-fields.md
+feature-requests/FR-669-structured-fallback-raise-extraction-error.md
+feature-requests/FR-670-a2a-client-raise-on-empty-response.md
+feature-requests/FR-671-mcp-log-graph-execution-failures.md
+feature-requests/FR-672-extract-shared-retry-policy.md
+feature-requests/FR-673-node-config-boundary-validation.md
+feature-requests/FR-674-proactive-module-splits.md
+
+feature-requests/FR-669-structured-fallback-raise-extraction-error.md
+feature-requests/FR-671-mcp-log-graph-execution-failures.md
+feature-requests/FR-674-proactive-module-splits.md
+
+feature-requests/FR-668-converge-error-errors-state-fields.md
+feature-requests/FR-669-structured-fallback-raise-extraction-error.md
+feature-requests/FR-670-a2a-client-raise-on-empty-response.md
+feature-requests/FR-671-mcp-log-graph-execution-failures.md
+feature-requests/FR-672-extract-shared-retry-policy.md
+feature-requests/FR-673-node-config-boundary-validation.md
+feature-requests/FR-674-proactive-module-splits.md
+
+feature-requests/FR-664-genesis-referential-integrity.md
+feature-requests/FR-665-worldgen-semantic-dedup.md
+feature-requests/FR-666-the-beasts-number-adversarial-content-audit.md
+feature-requests/FR-667-genesis-stub-pipeline.md
+feature-requests/FR-668-converge-error-errors-state-fields.md
+feature-requests/FR-669-structured-fallback-raise-extraction-error.md
+feature-requests/FR-670-a2a-client-raise-on-empty-response.md
+feature-requests/FR-671-mcp-log-graph-execution-failures.md
+feature-requests/FR-672-extract-shared-retry-policy.md
+feature-requests/FR-673-node-config-boundary-validation.md
+feature-requests/FR-674-proactive-module-splits.md
+
+feature-requests/FR-663-changelog-req-legacy-cap-false-positive.md
+
+feature-requests/FR-660-agent-tool-execution-unification.md
+
+feature-requests/FR-661-loop-detector-layer-registration.md
+
+feature-requests/FR-659-test-coverage-gaps.md
+
+feature-requests/FR-659-test-coverage-gaps.md
+feature-requests/FR-660-agent-tool-execution-unification.md
+feature-requests/FR-661-loop-detector-layer-registration.md
+
+feature-requests/FR-662-ban-agent-branching-main-worktree.md
+
+feature-requests/FR-658-graph-as-tool.md
+
+feature-requests/FR-657-agentic-event-deepening.md
+
+feature-requests/FR-657-agentic-event-deepening.md
+
+feature-requests/FR-656-tighten-genesis-prompt.md
+
+feature-requests/FR-655-genesis-graph.md
+
+feature-requests/FR-651-deepen-temporal-fields.md
+feature-requests/FR-652-normalize-role-enum.md
+feature-requests/FR-653-robust-reflect-schema.md
+feature-requests/FR-654-redeepen-seed-characters.md
+
+feature-requests/FR-650-canon-type-subfolders.md
+
+feature-requests/FR-648-obsidian-wiki-output.md
+feature-requests/FR-649-worldgen-persist-normalize.md
+
+feature-requests/FR-647-worldgen-event-propagation.md
+
+feature-requests/FR-646-worldgen-reflexion-step.md
+
+feature-requests/FR-644-lint-inline-schema-types.md
+feature-requests/FR-645-lint-map-subnode-prompt-variables.md
+
+feature-requests/FR-643-novel-fandom-worldgen-loop.md
+feature-requests/FR-643v2-novel-fandom-world-expansion.md
+
+feature-requests/FR-642-novel-fandom-wiki-core-types.md
+
+feature-requests/FR-641-novel-fandom-llm-canon-extraction.md
+
+feature-requests/FR-638-novel-fandom-plot-pathfinder.md
+feature-requests/FR-639-novel-fandom-prose-close-loop.md
+
+  fragments: changelog/unreleased/fr-691-latent-mining-fix.md
+
+changelog/unreleased/fr-691-story-extract-pipeline.md
+
+changelog/unreleased/fr-691-plot-threads-throughlines.md
+
+changelog/unreleased/fr-690-event-sequence-field.md
+
+changelog/unreleased/fr-698-worktree-tooling.md
+
+changelog/unreleased/fix-chaplain-graph-tool-paths.md
+
+changelog/unreleased/fr-689-dedup-gate.md
+
+changelog/unreleased/fr-686-agent-first-genesis.md
+
+changelog/unreleased/fr-683-ref-integrity-graph-tool.md
+changelog/unreleased/fr-684-semantic-dedup-graph-tool.md
+changelog/unreleased/fr-685-genesis-self-correcting.md
+
+changelog/unreleased/fr-664-665-667-genesis-dedup-trilogy.md
+
+changelog/unreleased/fr-678-narrow-structured-catch.md
+changelog/unreleased/fr-679-consolidate-retry-fallback.md
+changelog/unreleased/fr-680-provider-registry.md
+
+changelog/unreleased/fr-677-first-class-verification.md
+
+changelog/unreleased/fr-673-674-schema-validation-split.md
+changelog/unreleased/fr-676-async-retry-parity.md
+
+changelog/unreleased/fr-675-remove-dead-error-field.md
+
+changelog/unreleased/fr-669-structured-fallback-error.md
+changelog/unreleased/fr-670-a2a-empty-response.md
+changelog/unreleased/fr-671-mcp-logging.md
+
+changelog/unreleased/fr-666-image-that-speaks.md
+
+changelog/unreleased/fr-660-agent-tool-unification.md
+
+changelog/unreleased/fr-661-loop-detector-layer.md
+
+changelog/unreleased/fr-662-ban-agent-branching.md
+
+changelog/unreleased/fix-orphan-synopsis-ref.md
+
+changelog/unreleased/feat-graph-as-tool.md
+
+changelog/unreleased/fix-copilot-test-mock-target.md
+
+changelog/unreleased/fr-657-agentic-event-deepening.md
+
+changelog/unreleased/fix-anchor-events-dict-refs.md
+
+changelog/unreleased/fr-656-tighten-genesis-prompt.md
+
+changelog/unreleased/fr-655-genesis-pipeline.md
+
+changelog/unreleased/fr-651-654-worldgen-quality.md
+
+changelog/unreleased/fr-650-canon-type-subfolders.md
+
+changelog/unreleased/fr-648-obsidian-wiki.md
+changelog/unreleased/fr-649-persist-normalize.md
+
+changelog/unreleased/fr-647-event-propagation.md
+
+changelog/unreleased/fr-646-worldgen-reflexion.md
+
+changelog/unreleased/fr-643v2-worldgen-runtime-fixes.md
+
+changelog/unreleased/fr-643v2-world-expansion.md
+
+changelog/unreleased/fr-638-graph-path-fix.md
+
+changelog/unreleased/fr-642-wiki-core-types.md
+
+changelog/unreleased/fr-638-plot-pathfinder.md
+changelog/unreleased/fr-639-prose-close-loop.md
+
+  recap: {'workstreams': ['FR-700: recap demo structural tests and supporting demo assets (commits: 1; layers: code/graph/prompt/other)', 'FR-691: latent thread mining, story extract pipeline, and thread/throughline gates (commits: 4; layers: code/graph/prompt/other)', 'FR-690: event sequence field and total-order canon/event updates (commits: 3; layers: code/graph/prompt/other)', 'FR-699: chaplain graph compile witness and path-doubling checks (commits: 1; layers: code/graph/prompt/other)', 'FR-698: executor-neutral worktree tooling and watcher/worktree path fixes (commits: 2; layers: code/graph/prompt/other)', 'Process/docs reflection: development-process, diary, and process overview updates (commits: 6; layers: code/graph/prompt/other)', 'Novel-fandom pipeline refactor and docs: fandom refactoring, docs, canon regen, and test fixes (commits: 4; layers: code/graph/prompt/other)', 'FR-688/FR-658/FR-689: CLI variables injection, graph-as-tool, and genesis canon consistency (commits: 4; layers: code/graph/prompt/other)', 'FR-683/FR-684/FR-685: ref integrity, semantic dedup, and genesis self-correcting graph-tool work (commits: 3; layers: code/graph/prompt/other)', 'FR-664/FR-665/FR-667: genesis referential integrity, worldgen semantic dedup, and genesis stub pipeline trilogy (commits: 3; layers: code/graph/prompt/other)', 'FR-677: first-class verification DSL and related demo/runtime support (commits: 2; layers: code/graph/prompt/other)', 'FR-678/FR-679/FR-680: structured catch, retry fallback, and provider registry (commits: 3; layers: code/graph/prompt/other)', 'FR-673/FR-674/FR-676: schema validation split, module splits, and async retry parity (commits: 3; layers: code/graph/prompt/other)', 'FR-675: remove dead top-level error field (commits: 1; layers: code/graph/prompt/other)', 'FR-669/FR-670/FR-671/FR-672: boundary fixes, fallback errors, empty-response handling, MCP logging, and shared retry policy (commits: 5; layers: code/graph/prompt/other)', 'FR-666: image-that-speaks adversarial content audit and demo consolidation (commits: 2; layers: code/graph/prompt/other)', 'FR-663: changelog req legacy cap false positive (commits: 1; layers: code/graph/prompt/other)', 'FR-660/FR-661/FR-662: agent tool unification, loop detector layer, and branch-deny guidance (commits: 3; layers: code/graph/prompt/other)', 'FR-657: agentic event deepening and related worldgen/docs updates (commits: 3; layers: code/graph/prompt/other)', 'FR-656/FR-655/FR-651-654/FR-650/FR-648/FR-649/FR-647/FR-646/FR-643v2: novel-fandom genesis/worldgen/wiki-core/pipeline expansions and fixes (commits: 17; layers: code/graph/prompt/other)', 'FR-642/FR-641/FR-638/FR-639: wiki-core types, canon extraction, plot pathfinder, and prose close loop (commits: 5; layers: code/graph/prompt/other)'], 'orphans': ['7076828f', 'b17a8b5e', '2b265793', 'caf14330', '56230029', 'b171818a', '33b7cdd1', '9edf1c85', 'ab9956a5', '1cf09ccc', 'beba8d37', '37dfeaaa', '092397ff', '03a80c15', 'ff3550fe', '0062b406', 'ead44cd6', 'd504ff40', 'eb3d8d06', 'a10a34bb', 'd238c5c2', '32d8d4b9', '80e6b476', '8b3ff377', '9ecaf65b', '0f069181'], 'hotspots': ['examples/novel_fandom/nodes/creation_tools.py', 'examples/novel_fandom/nodes/thread_gates.py', 'examples/novel_fandom/nodes/persist_story.py', 'examples/novel_fandom/prompts/structure_world.yaml', 'examples/novel_fandom/prompts/deepen_entity.yaml', 'examples/novel_fandom/story/threads_1a.yaml', 'examples/novel_fandom/story/throughline/arnulf.yaml', 'examples/novel_fandom/story/throughline/gunnar.yaml', 'examples/novel_fandom/story/throughline/heidrun.yaml', 'examples/novel_fandom/story/throughline/hilde.yaml', 'examples/novel_fandom/story/throughline/reinmar.yaml', 'examples/novel_fandom/canon/event/arnulf_confrontation.yaml', 'examples/novel_fandom/canon/event/arnulf_release.yaml', 'examples/novel_fandom/canon/event/arnulf_returns.yaml', 'examples/novel_fandom/canon/event/bear_kill.yaml', 'examples/novel_fandom/canon/event/bonding_rite.yaml', 'examples/novel_fandom/canon/event/clan_divide.yaml', 'examples/novel_fandom/canon/event/dawn_raid.yaml', 'examples/novel_fandom/canon/event/deer_recovery.yaml', 'examples/novel_fandom/canon/event/great_flood.yaml', 'examples/novel_fandom/canon/event/heidrun_calls_gathering.yaml', 'examples/novel_fandom/canon/event/heidrun_speech.yaml', 'examples/novel_fandom/canon/event/high_valley_arrival.yaml', 'examples/novel_fandom/canon/event/journey_high_valley.yaml', 'examples/novel_fandom/canon/event/ledge_escape.yaml', 'examples/novel_fandom/canon/event/ledge_stranding.yaml', 'examples/novel_fandom/canon/event/reinmar_arrives.yaml', 'examples/novel_fandom/canon/event/second_camp_split.yaml', 'examples/novel_fandom/canon/character/arnulf.yaml', 'examples/novel_fandom/canon/character/gunnar.yaml', 'examples/novel_fandom/canon/character/hilde.yaml', 'examples/novel_fandom/canon/character/reinmar.yaml', 'examples/novel_fandom/canon/premise/the_floodmark_saga_premise.yaml', 'examples/novel_fandom/worldgen.yaml', 'yamlgraph/graph_loader.py', 'yamlgraph/tools/agent.py', 'yamlgraph/node_compiler.py', 'yamlgraph/executor.py', 'feature-requests/FR-691-plot-threads-throughlines.md', 'feature-requests/FR-690-event-sequence-field.md', 'feature-requests/FR-698-executor-neutral-worktree-tooling.md', 'feature-requests/FR-677-verification-first-class-dsl.md', 'feature-requests/FR-678-narrow-agent-structured-output-catch.md', 'feature-requests/FR-679-consolidate-retry-fallback-post-676.md', 'feature-requests/FR-680-provider-dispatch-registry.md', 'feature-requests/FR-673-node-config-boundary-validation.md', 'feature-requests/FR-674-proactive-module-splits.md', 'feature-requests/FR-664-genesis-referential-integrity.md', 'feature-requests/FR-665-worldgen-semantic-dedup.md', 'feature-requests/FR-667-genesis-stub-pipeline.md', 'feature-requests/FR-657-agentic-event-deepening.md', 'feature-requests/FR-655-genesis-graph.md', 'feature-requests/FR-643v2-novel-fandom-world-expansion.md', 'feature-requests/FR-638-novel-fandom-plot-pathfinder.md']}

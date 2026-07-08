@@ -1,0 +1,92 @@
+version: "1.0"
+name: recap
+description: Timeframe change recap for any git repository — deterministic git collection, one synthesis judgement
+prompts_relative: true
+prompts_dir: prompts
+
+state:
+  since: str       # e.g. "1 week ago", "yesterday", "2026-07-01"
+  repo_path: str   # path to any git repository, e.g. "."
+
+tools:
+  commits_since:
+    type: shell
+    command: git -C {repo_path} log --since={since} -n 300 --pretty=format:'%h|%ad|%s' --date=short
+    description: "Commits in the window, capped at 300 (F5)."
+    parse: text
+
+  file_churn:
+    type: shell
+    command: git -C {repo_path} log --since={since} -n 300 --numstat --pretty=format:'%h'
+    description: "Per-file added/removed lines per commit in the window."
+    parse: text
+
+  changed_frs:
+    type: shell
+    command: "git -C {repo_path} log --since={since} --name-only --pretty=format: -- feature-requests/"
+    description: "Feature-request files touched in the window (empty if convention absent)."
+    parse: text
+
+  new_changelog_fragments:
+    type: shell
+    command: "git -C {repo_path} log --since={since} --diff-filter=A --name-only --pretty=format: -- changelog/unreleased/"
+    description: "Changelog fragments added in the window (empty if convention absent)."
+    parse: text
+
+nodes:
+  get_commits:
+    type: tool
+    tool: commits_since
+    state_key: commits
+    variables:
+      repo_path: "{state.repo_path}"
+      since: "{state.since}"
+
+  get_churn:
+    type: tool
+    tool: file_churn
+    state_key: churn
+    variables:
+      repo_path: "{state.repo_path}"
+      since: "{state.since}"
+
+  get_frs:
+    type: tool
+    tool: changed_frs
+    state_key: fr_changes
+    variables:
+      repo_path: "{state.repo_path}"
+      since: "{state.since}"
+
+  get_fragments:
+    type: tool
+    tool: new_changelog_fragments
+    state_key: fragments
+    variables:
+      repo_path: "{state.repo_path}"
+      since: "{state.since}"
+
+  synthesize:
+    type: llm
+    prompt: recap
+    requires: [commits, churn, fr_changes, fragments]
+    state_key: recap
+    variables:
+      commits: "{state.commits}"
+      churn: "{state.churn}"
+      fr_changes: "{state.fr_changes}"
+      fragments: "{state.fragments}"
+
+edges:
+  - from: START
+    to: get_commits
+  - from: get_commits
+    to: get_churn
+  - from: get_churn
+    to: get_frs
+  - from: get_frs
+    to: get_fragments
+  - from: get_fragments
+    to: synthesize
+  - from: synthesize
+    to: END

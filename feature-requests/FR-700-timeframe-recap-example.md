@@ -2,10 +2,21 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** In Progress
+**Status:** Completed
 **Effort:** 1 day
 **Requested:** 2026-07-08
 **Judged:** 2026-07-08 — scope frozen. 8 findings resolved (see Judgement section).
+**Completed:** 2026-07-08 — see Implementation section.
+
+## Implementation (2026-07-08)
+
+- `examples/demos/recap/` — graph.yaml (4 `type: tool` nodes + 1 llm), prompts/recap.yaml, README.md, demo-output.log (real run against this repo).
+- `tests/unit/test_recap_demo.py` — 11 unit tests (RED commit 8e06627e, then GREEN), all `@pytest.mark.req("REQ-YG-531")`.
+- `capabilities/CAP-195-timeframe-recap-demo.yaml` + ARCHITECTURE.md regenerated.
+- Registered in `examples/demos/tests/test_demos.py` STANDARD_DEMOS.
+- **Deviation 1:** `conventions_detected` removed from the LLM schema — W026 (this project's own prompt-monolith linter) flagged it; it is mechanically derivable bookkeeping. See schema section note and diary.
+- **Deviation 2 (known limitation, raw-output read):** in the real run the model emits the literal format example `layers: code/graph/prompt/other` in every workstream instead of computed per-layer counts. Grouping and orphan detection are grounded and correct. Layer counts are mechanically derivable from `--numstat`; if ever needed, they belong in a deterministic post-pass, not in prompt levers.
+- `tests/integration/test_recap_demo_integration.py` — bare-repo + orphan tolerant-matching criteria, API-key-guarded, passed against live LLM (orphan hash flagged, zero hallucinated FR refs).
 
 ## Summary
 
@@ -89,7 +100,9 @@ Judgement notes on the tool layer:
 2. **Orphans** — commits with no FR-XXX/issue reference; prompt/graph files changed with no changelog fragment (section emitted only when the repo has those conventions — empty convention inputs must yield "no conventions detected", never an error or hallucinated findings).
 3. **Hotspots** — files touched by multiple workstreams.
 
-Output via inline schema (Pydantic-validated): `workstreams: list`, `orphans: list[str]`, `hotspots: list[str]`, `conventions_detected: bool`. The demo shows the structured state via `--full`; **no markdown rendering is in scope** — serialization stays out of the model's judgement (F6).
+Output via inline schema (Pydantic-validated): `workstreams: list`, `orphans: list[str]`, `hotspots: list[str]`. The demo shows the structured state via `--full`; **no markdown rendering is in scope** — serialization stays out of the model's judgement (F6).
+
+> **Enforce deviation (2026-07-08):** `conventions_detected: bool` was in the frozen schema but removed during Enforce. The W026 prompt-monolith linter (FR-586) flagged the 4-field output as a fused judgement, and the field is mechanically derivable (`fr_changes`/`fragments` non-empty) — bookkeeping, not judgement. Convention absence is already surfaced to the model by the Jinja2 template ("No … convention detected") and governs orphan rules; downstream consumers can derive the bool from the raw state keys. The linter this FR's own doctrine produced was obeyed rather than suppressed (`infrastructure_self_exempt`).
 
 File-kind partitioning (code / graph YAML / prompt YAML / other) is done by **Jinja2 in the prompt's user template** from the raw `--numstat` paths — simple path heuristics (`.py`, `graphs/`, `prompts/`), no content sniffing, no Python node (F3).
 
@@ -112,7 +125,7 @@ yamlgraph graph run examples/demos/recap/graph.yaml \
 - [ ] `yamlgraph graph lint examples/demos/recap/graph.yaml` passes clean (unit test, no LLM)
 - [ ] Graph compiles and dynamic state builds with mock LLM (unit test, no LLM)
 - [ ] Demo runs on the yamlgraph repo itself and produces workstream + orphan sections (`demo-output.log` committed, per demo-gate FR-206)
-- [ ] Demo runs on a bare temp git repo (3 commits, no FR/changelog/diary conventions) without error; `conventions_detected` is false and orphans/workstreams contain no hallucinated FR references (integration test, API-key-guarded)
+- [ ] Demo runs on a bare temp git repo (3 commits, no FR/changelog/diary conventions) without error; convention sections report "not detected" and orphans/workstreams contain no hallucinated FR references (integration test, API-key-guarded)
 - [ ] Orphan detection: a fixture commit without `FR-XXX`/`NC-XXX`/`#NNN` reference appears in `orphans` — asserted with tolerant matching (contains/prefix, never exact equality) (integration test, API-key-guarded)
 - [ ] Non-git `repo_path` fails loudly with a `PipelineError`; no empty-recap fallback (unit test, no LLM)
 - [ ] Exactly one LLM node (`synthesize`); all collection is `type: tool` nodes (prompt contract: one judgement)

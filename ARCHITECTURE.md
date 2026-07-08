@@ -2417,13 +2417,13 @@ Derived story layer for the novel_fandom example: plot threads (decomposition by
 
 ### 195. CAP-195 Timeframe Recap Demo
 
-Example graph (examples/demos/recap/) that answers "what changed in this repository in a given timeframe?" for any git repository. Deterministic collection via `type: tool` shell nodes (git log --since, --numstat, convention pathspecs); exactly one LLM node synthesizes workstreams, orphan changes (commits without FR/issue references, prompt/graph edits without changelog fragments), and hotspots. YAMLGraph-specific conventions (feature-requests/, changelog/unreleased/) are optional enrichment — a repository without them yields conventions_detected=false, never an error or hallucinated findings. Mechanizes the Scripture's changelog_first_diagnostic cure as a runnable graph.
+Example graph (examples/demos/recap/) that answers "what changed in this repository in a given timeframe?" for any git repository. Deterministic collection via `type: tool` shell nodes (git log --since, --numstat, convention pathspecs); exactly one LLM node synthesizes workstreams, orphan changes (commits without FR/issue references, prompt/graph edits without changelog fragments), and hotspots. YAMLGraph-specific conventions (feature-requests/, changelog/unreleased/) are optional enrichment — a repository without them yields "convention not detected" template input, never an error or hallucinated findings. Mechanizes the Scripture's changelog_first_diagnostic cure as a runnable graph.
 
 **Feature Request:** FR-700
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
-| REQ-YG-531 | The recap demo graph loads, lints clean, and has exactly one LLM node (synthesize) with all collection done by `type: tool` nodes. All git commands use `git -C {repo_path}` (portable to any repo, no reflog syntax, no cwd assumptions). Commit collection is capped (-n 300) with truncation surfaced to the prompt via Jinja2. A repo_path that is not a git repository fails loudly (tool node on_error: fail raises); missing convention paths yield empty output without error. The synthesis prompt uses an inline schema (workstreams, orphans, hotspots, conventions_detected) with file-kind partitioning done by Jinja2 path heuristics in the template, not by the model. | `examples` |
+| REQ-YG-531 | The recap demo graph loads, lints clean, and has exactly one LLM node (synthesize) with all collection done by `type: tool` nodes. All git commands use `git -C {repo_path}` (portable to any repo, no reflog syntax, no cwd assumptions). Commit collection is capped (-n 300) with truncation surfaced to the prompt via Jinja2. A repo_path that is not a git repository fails loudly (tool node on_error: fail raises); missing convention paths yield empty output without error. The synthesis prompt uses an inline schema (workstreams, orphans, hotspots) with file-kind partitioning and convention detection done by Jinja2 path heuristics in the template, not by the model (W026-clean: judgement fields only). | `examples` |
 
 <!-- END GENERATED CAPABILITIES -->
 
