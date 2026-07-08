@@ -63,6 +63,34 @@ def prefetch_prior_threads(state: dict[str, Any]) -> dict[str, Any]:
     return {"prior_thread_ids": prior_ids}
 
 
+def list_threads(state: dict[str, Any]) -> dict[str, Any]:
+    """Load persisted plot threads for the world-pressure pass (FR-692).
+
+    Reads ``story/thread/*.yaml`` and exposes both the live thread id set
+    (``thread_ids``) and a compact digest the agent can cite. Empty when the
+    story layer has not been generated yet.
+    """
+    thread_dir = _STORY_DIR / "thread"
+    ids: list[str] = []
+    digest_lines: list[str] = []
+    if thread_dir.is_dir():
+        for f in sorted(thread_dir.glob("*.yaml")):
+            data = yaml.safe_load(f.read_text())
+            if not (isinstance(data, dict) and "id" in data):
+                continue
+            ids.append(data["id"])
+            carriers = ", ".join(data.get("carriers") or [])
+            digest_lines.append(
+                f"- {data['id']} ({data.get('kind', '?')}, status="
+                f"{data.get('status', '?')}): carriers=[{carriers}] "
+                f"opposition={data.get('opposition', '')}"
+            )
+    return {
+        "thread_ids": ids,
+        "thread_digest": "\n".join(digest_lines) or "(no threads persisted yet)",
+    }
+
+
 def persist_threads_1a(state: dict[str, Any]) -> dict[str, Any]:
     """Write the synopsis-only threads (the diff's left side) to story/."""
     threads = [_dump(t) for t in _extract(state.get("threads_1a_raw"), "threads")]

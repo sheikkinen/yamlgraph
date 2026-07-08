@@ -48,6 +48,8 @@ Faction = _canon.Faction
 Location = _canon.Location
 check_pressure_admission = _gates.check_pressure_admission
 check_reciprocity = _gates.check_reciprocity
+gate_admission = _gates.gate_admission
+gate_reciprocity = _gates.gate_reciprocity
 
 RECIPROCAL_KINDS = {"mother", "father", "clanmate"}
 
@@ -192,3 +194,37 @@ def test_reciprocity_holds_on_repaired_canon() -> None:
     chars = [_load_canon_char(c) for c in ("reinthilde", "hilde", "gunnar", "berno")]
     result = check_reciprocity(chars, RECIPROCAL_KINDS)
     assert result["valid"] is True, result["violations"]
+
+
+# -------------------------------------------------------------- graph adapters
+
+
+@pytest.mark.req("REQ-YG-532")
+def test_gate_reciprocity_adapter_reads_canon_pages() -> None:
+    canon_pages = {
+        "reinthilde": _char("reinthilde", [_rel("hilde", "mother")]),
+        "hilde": _char("hilde", []),  # no reverse edge
+        "the_lake": {"type": "location", "id": "the_lake"},  # ignored
+    }
+    out = gate_reciprocity({"canon_pages": canon_pages})
+    assert out["gate_result"]["valid"] is False
+
+
+@pytest.mark.req("REQ-YG-531")
+def test_gate_admission_adapter_derives_threads_from_state() -> None:
+    state = {
+        "candidates": [{"id": "kin", "pressurizes": ["t_feud"]}],
+        "thread_ids": ["t_feud"],
+    }
+    out = gate_admission(state)
+    assert out["gate_result"]["valid"] is True
+
+
+@pytest.mark.req("REQ-YG-531")
+def test_gate_admission_adapter_rejects_uncited_candidate() -> None:
+    state = {
+        "candidates": [{"id": "orphan", "pressurizes": []}],
+        "thread_ids": ["t_feud"],
+    }
+    out = gate_admission(state)
+    assert out["gate_result"]["valid"] is False

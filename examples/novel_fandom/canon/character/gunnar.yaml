@@ -48,5 +48,11 @@ relationships:
 - kind: follower
   to: reinmar
   valence: positive
+- kind: daughter
+  to: reinthilde
+  valence: positive
+- kind: clanmate
+  to: berno
+  valence: positive
 summary: The Bärenschädel war-leader who survived the flood on a ledge with his enemy
   and became her partner.

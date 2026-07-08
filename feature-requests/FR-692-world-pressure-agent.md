@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Enforcing
+**Status:** Enforced
 **Effort:** 1–2 days
 **Requested:** 2026-07-07
 **Depends:** FR-691 (threads — the admission rule cites thread ids)
@@ -77,6 +77,33 @@ open-ended brainstorm (`growth_as_default`). Frozen scope:
 observation**, not a blocking unit gate (it depends on the LLM miner). The
 blocking unit gate is citation integrity (non-empty + resolves to a live thread
 id). Absorption is verified and documented on the acceptance run.
+
+## Enforcement (2026-07-08 — Enforced)
+
+- **RED** `9f2fcd07` — `pressurizes` schema field + always-valid gate stubs +
+  8 condemning fixtures (admission ×6, reciprocity ×2). Schema + valid fixtures
+  pass immediately; invalid fixtures RED. CAP-195 registered (REQ-YG-531/532).
+- **GREEN** — `check_pressure_admission` + `check_reciprocity` implemented
+  (pure functions, `{valid, violations}`), graph adapters `gate_admission` /
+  `gate_reciprocity`. The three known non-reciprocal edges repaired additively
+  (`hilde → reinthilde`, `gunnar → reinthilde`, `gunnar → berno`); `git diff`
+  shows additions only. Agent graph `world_pressure.yaml` + prompt
+  `world_pressure_agent.yaml` + `list_threads` loader; graph lints clean.
+- **Acceptance:** reciprocity gate green on real canon (4 kinship principals),
+  admission gate blocks citation-free / dangling-citation fixtures. 15 FR-692
+  tests + 47 ref-integrity/FR-691 tests pass; canon edits break nothing.
+
+**Deviation #1 (IDs):** allocated CAP-195 / REQ-YG-531–532 (next free); the FR
+body predates allocation.
+
+**Deviation #2 (LLM canon-mutation run deferred):** `world_pressure.yaml` is
+delivered as lint-clean wiring, but the LLM entity-creation run is
+**operator-driven**, not auto-run in enforcement. Rationale: it mutates *source*
+canon (unlike FR-691's regenerable `story/` artifacts) with non-deterministic
+LLM output and warrants human review (blast radius). The deterministic
+enforceable core (schema + two gates + reciprocity repair) is the CI-kept
+deliverable; the admission gate is applied to the pass's candidate set during
+that operator-driven run.
 
 ## Related
 

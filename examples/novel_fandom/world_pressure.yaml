@@ -1,0 +1,132 @@
+# Novel Fandom — World Pressure (FR-692)
+# Deficit-driven world-building: add antagonistic structure (kinship trees,
+# the Reinmar trade network) bounded by the FR-691 plot threads. Every new
+# entity must cite the thread(s) it pressurizes — no citation, no admission.
+#
+# Flow:
+#   reload → load_threads → world_pressure agent (create_* tools)
+#          → reload_after → gate_reciprocity → END
+#
+# The reciprocity gate is the deterministic post-condition proven on canon.
+# The admission gate (nodes/world_pressure_gates.py::check_pressure_admission)
+# is enforced per candidate and unit-tested.
+#
+# Usage:
+#   yamlgraph graph run examples/novel_fandom/world_pressure.yaml --full
+
+version: "1.0"
+name: novel-fandom-world-pressure
+description: Add antagonistic structure bounded by plot threads (deficit-driven)
+prompts_relative: true
+prompts_dir: prompts
+
+state:
+  canon_pages: dict
+  canon_count: int
+  thread_ids: list
+  thread_digest: str
+  world_pressure_result: dict
+  gate_result: dict
+
+tools:
+  reload_canon:
+    type: python
+    path: nodes/reload_canon.py
+    function: reload_canon
+    description: "Reload all canon pages from disk into state."
+  list_threads:
+    type: python
+    path: nodes/persist_story.py
+    function: list_threads
+    description: "Load the live plot thread ids and a digest to cite in pressurizes."
+  lookup_canon_page:
+    type: python
+    path: nodes/canon_tools.py
+    function: lookup_canon_page
+    description: "Look up a canon entity by ID. Returns full YAML."
+  list_canon_ids:
+    type: python
+    path: nodes/canon_tools.py
+    function: list_canon_ids
+    description: "List all entity IDs in the canon with their types."
+  create_character:
+    type: graph
+    path: create_character.yaml
+    description: "Create a character. Args: id, name, role, faction, summary, related_to."
+    input_mapping:
+      id: id
+      name: name
+      role: role
+      faction: faction
+      summary: summary
+      related_to: related_to
+    output_key: result
+  create_faction:
+    type: graph
+    path: create_faction.yaml
+    description: "Create a faction. Args: id, name, description, members."
+    input_mapping:
+      id: id
+      name: name
+      description: description
+      members: members
+    output_key: result
+  create_location:
+    type: graph
+    path: create_location.yaml
+    description: "Create a location. Args: id, name, description, location_type."
+    input_mapping:
+      id: id
+      name: name
+      description: description
+      location_type: location_type
+    output_key: result
+  gate_reciprocity:
+    type: python
+    path: nodes/world_pressure_gates.py
+    function: gate_reciprocity
+
+nodes:
+  reload:
+    type: python
+    tool: reload_canon
+
+  load_threads:
+    type: python
+    tool: list_threads
+
+  world_pressure:
+    type: agent
+    prompt: world_pressure_agent
+    tools:
+      - list_threads
+      - lookup_canon_page
+      - list_canon_ids
+      - create_character
+      - create_faction
+      - create_location
+    max_iterations: 60
+    state_key: world_pressure_result
+    temperature: 0.7
+
+  reload_after:
+    type: python
+    tool: reload_canon
+
+  gate_reciprocity:
+    type: python
+    tool: gate_reciprocity
+
+edges:
+  - from: START
+    to: reload
+  - from: reload
+    to: load_threads
+  - from: load_threads
+    to: world_pressure
+  - from: world_pressure
+    to: reload_after
+  - from: reload_after
+    to: gate_reciprocity
+  - from: gate_reciprocity
+    to: END
