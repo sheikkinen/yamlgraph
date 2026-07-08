@@ -509,6 +509,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 192 | CAP-192 Branch Deny Guidance Manual Worktree Lane | `.github/hooks/scripts/pre-command-guard.sh`, `.github/hooks/tests/test_pre_command_guard.py` | REQ-YG-527 |
 | 193 | CAP-193 Watcher Wrapper JSON Envelope | `.chaplain/lib/watcher/worktree_setup.sh`, `.chaplain/lib/watcher/worktree_teardown.sh`, `tests/unit/test_watcher_worktree_wrapper_red.py` | REQ-YG-528 |
 | 194 | CAP-194 Novel Fandom Plot Threads and Throughlines | `examples` | REQ-YG-530 |
+| 195 | CAP-195 Novel Fandom World Pressure | `examples` | REQ-YG-531 – 532 |
 | 195 | CAP-195 Timeframe Recap Demo | `examples` | REQ-YG-531 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
@@ -2414,6 +2415,17 @@ Derived story layer for the novel_fandom example: plot threads (decomposition by
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-530 | Story gates validate threads and throughlines against canon. Citation integrity: every carrier/source/raise/release id resolves to a canon id. Ledger walk: for each thread, walking its raise/release events in FR-690 sequence order, a release without a prior open raise fails, and status=released requires a non-empty releases list. Cap and distinctness: at most eight threads, each with a distinct carrier set and non-empty opposition. Id stability: regeneration preserves ids for persisting threads and lists every dropped prior id with a reason (no-op on first run). Throughlines: every entry cites a canon event carrying a sequence, entries walk in non-decreasing sequence order, each throughline has at least one slack point or an explicit arc_taut claim, and a major character's arc may not be zero-delta. All gates are pure functions returning {valid, violations}; arithmetic, not LLM tasks. | `examples` |
+
+### 195. CAP-195 Novel Fandom World Pressure
+
+Deficit-driven world-building layer for the novel_fandom example: an additive pass that grows canon with antagonistic structure (kinship trees, a trade network) bounded by the FR-691 plot threads. Two pure mechanical gates enforce the pass: admission (a newly created entity must cite the live thread(s) it pressurizes) and kinship reciprocity (a directed kinship edge must be acknowledged by a reverse edge). Gates are set-membership checks, not LLM tasks. Schema gains an optional `pressurizes` field on world entities.
+
+**Feature Request:** FR-692
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-531 | World-pressure admission gate. A newly created world entity is admitted only if it carries a non-empty `pressurizes` list and every cited thread id resolves to a live plot thread. Entities citing zero threads, a missing `pressurizes` key, or a nonexistent thread id are rejected; each violation names the offending entity and (for dangling citations) the missing id. Runs over the pass's candidate entities only — pre-existing canon is exempt from retroactive citation. Schema carries an optional `pressurizes` field (default empty) on Character, Faction, and Location so pre-existing pages validate. Pure function returning {valid, violations}. | `examples` |
+| REQ-YG-532 | Kinship reciprocity gate. For every directed relationship `A --kind--> B` whose kind is in a bounded reciprocal-kind set (mother, father, clanmate), some reverse edge `B --*--> A` of any kind must exist — reciprocity means mutual acknowledgment, not identical reverse kind. Non-reciprocal-kind edges are ignored. Each violation names the source, target, and kind. The FR-692 repair adds the reverse edges additively to canon. Pure function returning {valid, violations}. | `examples` |
 
 ### 195. CAP-195 Timeframe Recap Demo
 

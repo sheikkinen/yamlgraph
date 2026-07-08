@@ -2,11 +2,13 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Proposed
+**Status:** Enforcing
 **Effort:** 1–2 days
 **Requested:** 2026-07-07
 **Depends:** FR-691 (threads — the admission rule cites thread ids)
 **Plan:** docs/plan-novel-fandom-story-pipeline.md (Phase 3 of 7)
+**Capability:** CAP-195 (novel-fandom-world-pressure)
+**Requirements:** REQ-YG-531 (pressure admission gate), REQ-YG-532 (kinship reciprocity gate)
 
 ## Summary
 
@@ -41,6 +43,40 @@ Canon-grows-never-changes: existing entity files gain fields only where reciproc
 ## Alternatives Considered
 
 - **Open-ended world elaboration before plotting** — rejected in plan: generates volume, not pressure; threads must exist first to bound admission.
+
+## Judgement (2026-07-08 — scope frozen)
+
+Authority granted with the mechanical core as the enforced deliverable; the LLM
+world-building agent is wiring proven by a **bounded** acceptance run, not an
+open-ended brainstorm (`growth_as_default`). Frozen scope:
+
+1. **Schema** — `pressurizes: list[str]` (default empty) added to `Character`,
+   `Faction`, `Location`. Optional at the Pydantic layer so pre-existing canon
+   keeps validating — mirrors FR-690's `sequence` optionality. The story
+   pipeline (not Pydantic) makes citation mandatory for *newly created* entities.
+2. **Admission gate** — pure `check_pressure_admission(entities, thread_ids)` in
+   `nodes/world_pressure_gates.py`: every candidate entity must have a non-empty
+   `pressurizes` **and** every cited id ∈ `thread_ids`. Runs over the pass's
+   candidate entities only; pre-existing canon is exempt (no retroactive
+   citation). One implementation, two callers (test + graph node).
+3. **Reciprocity gate** — pure `check_reciprocity(characters, reciprocal_kinds)`:
+   for every `A --kind--> B` with `kind ∈ reciprocal_kinds`, assert a reverse
+   edge `B --*--> A` exists (any kind = mutual acknowledgment). FR-scoped
+   `reciprocal_kinds = {"mother", "father", "clanmate"}` → surfaces exactly the 3
+   known non-reciprocal edges. Broader kind coverage is deferred.
+4. **Reciprocity repair** — additive reverse edges only: `hilde.yaml`
+   (`daughter → reinthilde`), `gunnar.yaml` (`daughter → reinthilde`,
+   `clanmate → berno`). `git diff` must show additions only.
+5. **Agent graph** — `examples/novel_fandom/world_pressure.yaml` reusing the
+   FR-658 `create_*` graph-tools plus an admission node; lint-clean. Acceptance:
+   a bounded set of kin/trade entities (each citing ≥1 valid thread id) admitted
+   through `create_*` + admission gate; FR-691 rerun shows absorption.
+
+**Deviations from the plan:** the plan's "entity must appear in carriers/sources
+*after* step-1 rerun" absorption rule is a **non-deterministic acceptance
+observation**, not a blocking unit gate (it depends on the LLM miner). The
+blocking unit gate is citation integrity (non-empty + resolves to a live thread
+id). Absorption is verified and documented on the acceptance run.
 
 ## Related
 

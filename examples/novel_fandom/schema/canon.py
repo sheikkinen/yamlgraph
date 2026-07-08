@@ -40,6 +40,14 @@ class Character(BaseModel):
     triggers: list[str] = Field(default_factory=list)
     backstory: str = ""
     birth_year: int | None = None
+    pressurizes: list[str] = Field(
+        default_factory=list,
+        description=(
+            "Plot thread ids this entity exerts pressure on (FR-692). Optional "
+            "at the schema layer so pre-existing canon validates; the "
+            "world-pressure pass makes it mandatory for newly created entities."
+        ),
+    )
 
 
 class Event(BaseModel):
@@ -80,6 +88,10 @@ class Faction(BaseModel):
     description: str = ""
     members: list[str] = Field(default_factory=list)
     references: list[str] = Field(default_factory=list)
+    pressurizes: list[str] = Field(
+        default_factory=list,
+        description="Plot thread ids this faction exerts pressure on (FR-692).",
+    )
 
 
 class Location(BaseModel):
@@ -96,6 +108,10 @@ class Location(BaseModel):
     atmosphere: list[str] = Field(default_factory=list)
     sensory: list[str] = Field(default_factory=list)
     significance: str = ""
+    pressurizes: list[str] = Field(
+        default_factory=list,
+        description="Plot thread ids this location exerts pressure on (FR-692).",
+    )
 
 
 class Rule(BaseModel):

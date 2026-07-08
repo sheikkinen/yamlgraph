@@ -1,0 +1,40 @@
+name: Novel Fandom World Pressure
+id: CAP-195
+status: active
+fr: FR-692
+feature_request: FR-692
+description: >
+  Deficit-driven world-building layer for the novel_fandom example: an additive
+  pass that grows canon with antagonistic structure (kinship trees, a trade
+  network) bounded by the FR-691 plot threads. Two pure mechanical gates enforce
+  the pass: admission (a newly created entity must cite the live thread(s) it
+  pressurizes) and kinship reciprocity (a directed kinship edge must be
+  acknowledged by a reverse edge). Gates are set-membership checks, not LLM
+  tasks. Schema gains an optional `pressurizes` field on world entities.
+modules:
+  - examples
+requirements:
+  - id: REQ-YG-531
+    description: >
+      World-pressure admission gate. A newly created world entity is admitted
+      only if it carries a non-empty `pressurizes` list and every cited thread
+      id resolves to a live plot thread. Entities citing zero threads, a missing
+      `pressurizes` key, or a nonexistent thread id are rejected; each violation
+      names the offending entity and (for dangling citations) the missing id.
+      Runs over the pass's candidate entities only — pre-existing canon is exempt
+      from retroactive citation. Schema carries an optional `pressurizes` field
+      (default empty) on Character, Faction, and Location so pre-existing pages
+      validate. Pure function returning {valid, violations}.
+    modules:
+      - examples
+  - id: REQ-YG-532
+    description: >
+      Kinship reciprocity gate. For every directed relationship `A --kind--> B`
+      whose kind is in a bounded reciprocal-kind set (mother, father, clanmate),
+      some reverse edge `B --*--> A` of any kind must exist — reciprocity means
+      mutual acknowledgment, not identical reverse kind. Non-reciprocal-kind
+      edges are ignored. Each violation names the source, target, and kind. The
+      FR-692 repair adds the reverse edges additively to canon. Pure function
+      returning {valid, violations}.
+    modules:
+      - examples
