@@ -2,14 +2,15 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Proposed
+**Status:** Judged
 **Effort:** 0.5 days
 **Requested:** 2026-07-09
+**Judged:** 2026-07-09 — scope frozen. 6 findings resolved (see Judgement section).
 **Parent:** FR-700 (timeframe recap example)
 
 ## Summary
 
-Add a disposition axis to the recap demo: each workstream is tagged with its outcome (`shipped | in-progress | judged | rejected | blocked | no-FR`) sourced deterministically from FR `Status:` fields at HEAD via a new tool node. Secondarily, mechanize orphan detection (commit-reference matching) out of the model, which produced 2/6 false positives in the first field run.
+Add a disposition axis to the recap demo: each workstream is tagged with the **verbatim** `Status:` line of its FR, sourced deterministically at HEAD via a new tool node — no normalized vocabulary, no model inference (F1). Secondarily, mechanize orphan detection (commit-reference matching) out of the model via a deterministic python pre-pass node, which produced 2/6 false positives in the first field run.
 
 ## Value Statement
 
@@ -37,27 +38,45 @@ New shell tool + `type: tool` node collecting FR statuses at HEAD:
 ```yaml
 fr_statuses:
   type: shell
-  command: "git -C {repo_path} grep -H -m1 -e 'Status' HEAD -- 'feature-requests/*.md' || [ $? -eq 1 ]"
+  command: "git -C {repo_path} grep -H -m 1 -e '^\\*\\*Status' HEAD -- 'feature-requests/*.md' || [ $? -eq 1 ]"
   parse: text
 ```
 
-- `git grep` exit 1 = no matches (bare repo / no convention) → normalized to success **at the boundary**; exit 2+ (real error, not a repo) still fails loudly. This is boundary normalization, not a silent fallback — the Judge should distinguish it from the rejected `|| true` of FR-700/F4.
+- Pattern anchored to `^\*\*Status` (F2) — bare `Status` matches prose everywhere; `-m 1` caps at one line per file.
+- `git grep` exit 1 = no matches (bare repo / no convention) → normalized to success **at the boundary**; exit 2+ (real error, not a repo) still fails loudly. Verified implementable: `execute_shell_tool` runs `shell=True` for exactly this (tools/shell.py); the exit-code semantics get their own LLM-free unit test (F3). This is boundary normalization, not a silent fallback — distinct from the rejected `|| true` of FR-700/F4.
+- Input bound: one status line per FR file at HEAD — bounded by repo convention size; no cap added, revisit via read_raw_output_first if flooding (F5).
 - Prompt receives `fr_statuses` and attaches the **verbatim** status to each workstream whose FR id appears in it: `NC-351: … [Status: Rejected]`. Explicit bound: the model must not infer disposition; a workstream without a matching status line is tagged `[no FR status]`. Attaching a given string to a given group is bookkeeping the grouping already requires; no new abstraction level.
 - Schema unchanged (disposition rides in the workstream line) — keeps W026 at 3 fields.
 
 ### R2 — mechanize orphan detection
 
-Move reference-detection out of the model: the Jinja2 template (or a small deterministic pre-pass if Jinja2 proves insufficient — no regex filter in stock Jinja2) partitions commits into `referenced` / `unreferenced` sections using the pattern `(FR|NC)-[0-9]+|#[0-9]+` anywhere in the subject. The model's orphan job reduces to copying the `unreferenced` section plus flagging graph/prompt edits without changelog fragments. False-positive class from the field run (mid-subject refs) becomes impossible by construction.
+Stock Jinja2 has no regex filter (verified: `Environment()` with no custom filters in utils/template.py), so reference detection is a **demo-local `type: python` pre-pass node** (`examples/demos/recap/nodes/partition.py`): partitions the commit list into `referenced` / `unreferenced` state keys using `(FR|NC)-[0-9]+|#[0-9]+` anywhere in the subject (F4). The model's orphan job reduces to copying the `unreferenced` section plus flagging graph/prompt edits without changelog fragments. False-positive class from the field run (mid-subject refs) becomes impossible by construction. File-*path* partitioning stays Jinja2; README teaching points updated to reflect the split (paths = template, reference regex = python pre-pass).
 
 ## Acceptance Criteria
 
-- [ ] `fr_statuses` tool node: bare repo without `feature-requests/` succeeds with empty output; non-git repo_path still fails loudly (unit tests, LLM-free)
-- [ ] Workstream lines carry verbatim `[Status: …]` tags for FRs with status fields; rejected FRs surface as rejected — fixture: an FR file with `**Status:** Rejected` whose id appears in a commit subject (integration test, API-key-guarded, tolerant matching)
-- [ ] Commits with `FR-\d+`/`NC-\d+`/`#\d+` anywhere in the subject can no longer appear as orphans (unit-testable if partition is a pre-pass; template-inspection test if Jinja2)
-- [ ] `d2d2934`-class false positive reproduced in a fixture repo and proven fixed (RED first)
+- [ ] `fr_statuses` tool node: bare repo without `feature-requests/` succeeds with empty output; non-git repo_path (git grep exit ≥2) still fails loudly — both LLM-free unit tests (F3)
+- [ ] grep pattern anchored (`^\*\*Status`): a fixture FR containing the word "Status" in prose contributes no extra lines (unit test)
+- [ ] Workstream lines carry verbatim `[Status: …]` tags for FRs with status fields, `[no FR status]` otherwise; rejected FRs surface verbatim — fixture: an FR file with `**Status:** Rejected` whose id appears in a commit subject (integration test, API-key-guarded, tolerant matching)
+- [ ] `partition.py` pre-pass: commits with `FR-\d+`/`NC-\d+`/`#\d+` anywhere in the subject land in `referenced`; `d2d2934`-class false positive reproduced in a fixture and proven fixed — RED first, LLM-free unit tests (F4)
 - [ ] W026 lint stays clean (3 schema fields)
-- [ ] REQ under CAP-195 extended or new REQ added; `req_coverage.py --strict` green
+- [ ] New REQ under CAP-195 — ID verified free against origin/main at enforce time (F6, cap-req-id-allocation-race)
+- [ ] `req_coverage.py --strict` green
 - [ ] Changelog fragment + diary entry
+
+## Judgement (2026-07-09)
+
+Scope frozen. Findings and resolutions:
+
+| # | Finding | Resolution |
+|---|---------|------------|
+| F1 | Summary's normalized vocabulary (`shipped\|judged\|…`) contradicts R1's verbatim-only rule | Verbatim wins; normalized taxonomy dropped — mapping is code's job, added only if a consumer ever needs it |
+| F2 | `grep -e 'Status'` matches prose everywhere | Anchored to `^\*\*Status`, `-m 1` per file |
+| F3 | `\|\| [ $? -eq 1 ]` assumed shell execution | Verified: `execute_shell_tool` uses `shell=True` (documented for pipes/redirects); exit-code semantics get dedicated unit tests |
+| F4 | R2 left mechanism open (Jinja2 vs pre-pass) | Pinned: stock Jinja2 has no regex (verified) → `type: python` pre-pass node, demo-local, LLM-free-testable |
+| F5 | `fr_statuses` input unbounded | Accepted: one line per FR file; no cap; read_raw_output_first watches for flooding |
+| F6 | "REQ extended or new REQ" ambiguous + ID race risk | Pinned: new REQ under CAP-195, ID verified free against origin/main at enforce time |
+
+**Out of scope (purge list):** normalized disposition vocabulary, disposition as schema field, status history (only HEAD), non-FR conventions (GitHub issue states), retroactive FR-700 demo-output regeneration.
 
 ## Alternatives Considered
 
