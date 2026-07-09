@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Judged
+**Status:** In Progress
 **Effort:** 0.5 days
 **Requested:** 2026-07-09
 **Judged:** 2026-07-09 — scope frozen. 4 findings resolved (see Judgement section).

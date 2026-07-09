@@ -45,3 +45,18 @@ requirements:
       longer be flagged as orphans. Schema stays at three fields (W026).
     modules:
       - examples
+  - id: REQ-YG-535
+    description: >
+      Status join as deterministic post-pass (FR-703). attach_statuses runs
+      after synthesize: parses fr_statuses grep lines to an id->status map
+      (path and **Status:** prefix stripped, duplicate id first-wins) and
+      appends [Status: ...] to each workstream line by joining ALL FR/NC ids
+      found (finditer, IGNORECASE) — single tag when statuses agree, per-id
+      tags when they differ, [no FR status] when no id resolves, untouched
+      when the line names no id. The post-pass normalizes recap at its
+      boundary (dict or Pydantic model). The synthesis prompt carries no
+      disposition instructions and no fr_statuses input; it does carry a
+      full-id formatting bound (no range/slash shorthand) so mechanical
+      extraction cannot be starved. The model can no longer fail the join.
+    modules:
+      - examples
