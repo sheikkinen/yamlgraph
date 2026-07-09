@@ -88,3 +88,48 @@ class TestRecapOnBareRepo:
         assert (
             orphan_hash in orphans_blob
         ), f"orphan {orphan_hash} not flagged; orphans: {orphans_blob}"
+
+
+@pytest.mark.slow
+class TestRecapDispositionAxis:
+    """FR-702: verbatim FR status surfaces in workstream lines."""
+
+    @pytest.mark.req("REQ-YG-534")
+    def test_rejected_status_surfaces_verbatim(self, tmp_path: Path) -> None:
+        """FR with **Status:** Rejected appears in its workstream (tolerant)."""
+        from yamlgraph.graph_loader import load_and_compile
+
+        env = {**_GIT_ENV, "HOME": str(tmp_path)}
+        subprocess.run(["git", "init", "-q", str(tmp_path)], check=True, env=env)
+        frdir = tmp_path / "feature-requests"
+        frdir.mkdir()
+        (frdir / "FR-042-widget.md").write_text(
+            "# FR-042 Widget\n\n**Status:** Rejected\n\nNot worth building.\n"
+        )
+        (tmp_path / "widget.py").write_text("# widget stub\n")
+        subprocess.run(["git", "-C", str(tmp_path), "add", "-A"], check=True, env=env)
+        subprocess.run(
+            [
+                "git",
+                "-C",
+                str(tmp_path),
+                "commit",
+                "-q",
+                "-m",
+                "feat: FR-042 widget spike",
+            ],
+            check=True,
+            env=env,
+        )
+
+        graph = load_and_compile(GRAPH_PATH)
+        app = graph.compile()
+        result = app.invoke({"repo_path": str(tmp_path), "since": "1 day ago"})
+
+        recap = result["recap"]
+        recap_dict = recap if isinstance(recap, dict) else recap.model_dump()
+        workstreams_blob = " ".join(str(w) for w in recap_dict["workstreams"])
+        assert "FR-042" in workstreams_blob
+        assert (
+            "Rejected" in workstreams_blob
+        ), f"verbatim status missing: {workstreams_blob}"

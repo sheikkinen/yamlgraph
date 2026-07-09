@@ -509,7 +509,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 192 | CAP-192 Branch Deny Guidance Manual Worktree Lane | `.github/hooks/scripts/pre-command-guard.sh`, `.github/hooks/tests/test_pre_command_guard.py` | REQ-YG-527 |
 | 193 | CAP-193 Watcher Wrapper JSON Envelope | `.chaplain/lib/watcher/worktree_setup.sh`, `.chaplain/lib/watcher/worktree_teardown.sh`, `tests/unit/test_watcher_worktree_wrapper_red.py` | REQ-YG-528 |
 | 194 | CAP-194 Novel Fandom Plot Threads and Throughlines | `examples` | REQ-YG-530 |
-| 195 | CAP-195 Timeframe Recap Demo | `examples` | REQ-YG-531 |
+| 195 | CAP-195 Timeframe Recap Demo | `examples` | REQ-YG-531, 534 |
 | 196 | CAP-196 Novel Fandom World Pressure | `examples` | REQ-YG-532 – 533 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
@@ -2425,6 +2425,7 @@ Example graph (examples/demos/recap/) that answers "what changed in this reposit
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-531 | The recap demo graph loads, lints clean, and has exactly one LLM node (synthesize) with all collection done by `type: tool` nodes. All git commands use `git -C {repo_path}` (portable to any repo, no reflog syntax, no cwd assumptions). Commit collection is capped (-n 300) with truncation surfaced to the prompt via Jinja2. A repo_path that is not a git repository fails loudly (tool node on_error: fail raises); missing convention paths yield empty output without error. The synthesis prompt uses an inline schema (workstreams, orphans, hotspots) with file-kind partitioning and convention detection done by Jinja2 path heuristics in the template, not by the model (W026-clean: judgement fields only). | `examples` |
+| REQ-YG-534 | Disposition axis and mechanized orphan detection (FR-702). fr_statuses tool collects verbatim FR Status lines at HEAD via anchored git grep (^**Status, -m 1 per file); git grep exit 1 (no matches / no convention) is normalized to success at the boundary while exit >=2 (not a repo) fails loudly. Workstream lines carry verbatim [Status: ...] tags — the model never infers disposition. Commit reference detection is a deterministic type:python pre-pass (nodes/partition.py, pattern (FR\|NC)-[0-9]+\|#[0-9]+ anywhere in subject) splitting commits into referenced/unreferenced state keys; mid-subject references can no longer be flagged as orphans. Schema stays at three fields (W026). | `examples` |
 
 ### 196. CAP-196 Novel Fandom World Pressure
 

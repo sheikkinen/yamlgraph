@@ -31,3 +31,17 @@ requirements:
       the template, not by the model (W026-clean: judgement fields only).
     modules:
       - examples
+  - id: REQ-YG-534
+    description: >
+      Disposition axis and mechanized orphan detection (FR-702). fr_statuses
+      tool collects verbatim FR Status lines at HEAD via anchored git grep
+      (^**Status, -m 1 per file); git grep exit 1 (no matches / no convention)
+      is normalized to success at the boundary while exit >=2 (not a repo)
+      fails loudly. Workstream lines carry verbatim [Status: ...] tags — the
+      model never infers disposition. Commit reference detection is a
+      deterministic type:python pre-pass (nodes/partition.py, pattern
+      (FR|NC)-[0-9]+|#[0-9]+ anywhere in subject) splitting commits into
+      referenced/unreferenced state keys; mid-subject references can no
+      longer be flagged as orphans. Schema stays at three fields (W026).
+    modules:
+      - examples
