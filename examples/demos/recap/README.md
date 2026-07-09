@@ -25,9 +25,9 @@ yamlgraph graph run examples/demos/recap/graph.yaml \
 
 | Field | Meaning |
 |-------|---------|
-| `workstreams` | Commits grouped by FR reference or theme, each tagged with the **verbatim** FR `[Status: …]` at HEAD (or `[no FR status]`) |
-| `orphans` | Unreferenced commits (partitioned deterministically by code); graph/prompt edits without changelog fragments |
-| `hotspots` | Files touched by multiple workstreams |
+| `workstreams` | Commits grouped by FR reference or theme (model judgement), each tagged with the **verbatim** FR `[Status: …]` at HEAD by code (or `[no FR status]`) |
+| `orphans` | **Code-assembled** (FR-704): unreferenced commit lines copied bit-exact — every hash is `git show`-safe — plus graph/prompt changes in a fragment-less window |
+| `hotspots` | Files touched by multiple workstreams (model judgement) |
 
 Convention absence (no `feature-requests/` / `changelog/unreleased/`) is
 detected by the Jinja2 template and reported to the model as "not detected" —
@@ -53,6 +53,6 @@ the raw `fr_changes`/`fragments` state keys stay available for downstream code.
 ## Teaching points
 
 1. `type: tool` nodes for deterministic collection — no LLM in the loop until judgement is actually needed.
-2. Mechanizable work is split by kind: file-*path* partitioning and truncation/convention notices live in Jinja2 in the prompt template; commit-*reference* detection (FR-702) and the id→status join (FR-703) are `type: python` passes around the LLM node ([nodes/partition.py](nodes/partition.py)) — the model can neither mis-flag a referenced commit as an orphan nor drop a status join.
+2. Mechanizable work is split by kind: file-*path* partitioning and truncation/convention notices live in Jinja2 in the prompt template; commit-*reference* detection (FR-702), the id→status join (FR-703), and orphan assembly (FR-704) are `type: python` passes around the LLM node ([nodes/partition.py](nodes/partition.py)). The schema holds exactly two judgement fields — every transport field the model once carried produced a field defect (mid-subject false positives, silent join drops, hash corruption) and was evicted to code.
 3. Disposition is collected and joined by code, never by the model: a `git grep` tool reads verbatim FR `Status:` lines at HEAD; a post-pass appends `[Status: …]` per id (per-id tags when a merged workstream's statuses differ). Its exit-1 ("no matches") is normalized at the boundary while real errors still fail loudly.
 4. Inline schema keeps serialization out of the model's job: lists only, Pydantic-validated. The prompt's only formatting demand: name FR ids in full, never shorthand — so downstream arithmetic is never starved.

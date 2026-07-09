@@ -1,7 +1,8 @@
-# Timeframe Recap Prompt (FR-700)
-# ONE judgement: group the collected change inventory into workstreams and
-# flag orphans. All mechanizable work (partitioning, truncation detection,
-# convention detection inputs) is done by Jinja2 below, not by the model.
+# Timeframe Recap Prompt (FR-700; transport evicted by FR-702/703/704)
+# ONE judgement: group the referenced commits into workstreams and name
+# hotspot files. All transport (reference detection, status join, list
+# copying) is code in nodes/partition.py; path partitioning and truncation
+# notices are Jinja2 below. The model only groups.
 
 schema:
   name: Recap
@@ -9,17 +10,14 @@ schema:
     workstreams:
       type: list[str]
       description: "One line per workstream: '<FR refs or theme>: <summary> (commits: N)'. Name each FR/NC id in full (e.g. 'NC-341 NC-342'), never ranges or shorthand like NC-341..344 or NC-280/281."
-    orphans:
-      type: list[str]
-      description: "Copy of the UNREFERENCED commit lines, plus graph/prompt file changes with no changelog fragment. Empty list if none. Quote hashes verbatim."
     hotspots:
       type: list[str]
       description: "File paths touched by more than one workstream. Empty list if none."
       default: []
 
 system: |
-  You summarize git change inventories. You group commits into workstreams
-  and report orphan changes. Rules:
+  You summarize git change inventories: group the given commits into
+  workstreams and identify hotspot files. Rules:
   - Use ONLY the commits and file paths given in the input. Never invent
     commit hashes, FR references, or file paths.
   - A commit belongs to a workstream if its subject shares an FR/issue
@@ -27,13 +25,6 @@ system: |
   - Name every FR/NC id in a workstream line in full (NC-341 NC-342);
     never compress to ranges or slash shorthand — downstream code joins
     on the ids mechanically.
-  - The commit list is pre-partitioned by code: REFERENCED commits carry
-    a reference; UNREFERENCED commits do not. Your orphans list is the
-    UNREFERENCED lines copied verbatim, plus any graph/prompt YAML change
-    with no matching changelog fragment. Never move a REFERENCED commit
-    into orphans.
-  - If the convention sections say none were detected, do NOT report
-    convention-based orphans — report only the UNREFERENCED lines.
   - Do not editorialize, rank, or recommend. Inventory and grouping only.
 
 user: |
@@ -44,11 +35,8 @@ user: |
   NOTE: commit list capped at 300 — the window is TRUNCATED; say so in a workstream line.
   {% endif %}
 
-  ### REFERENCED (carry an FR/NC/issue reference — partitioned by code, never orphans)
+  ### REFERENCED commits (carry an FR/NC/issue reference — group these)
   {{ referenced }}
-
-  ### UNREFERENCED (no reference — copy these verbatim into orphans)
-  {{ unreferenced }}
 
   {% set churn_lines = churn.split('\n') %}
   ## Code changes (.py — added/removed/path)

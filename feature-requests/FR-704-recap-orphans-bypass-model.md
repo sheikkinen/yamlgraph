@@ -2,11 +2,19 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** In Progress
+**Status:** Completed
 **Effort:** 0.5 days
 **Requested:** 2026-07-09
 **Judged:** 2026-07-09 — scope frozen (compact judgement; core facts pre-verified during FR-703).
+**Completed:** 2026-07-09 — RED 1d0761e2, GREEN follows.
 **Parent:** FR-703 (status join post-pass); grandparent FR-702, FR-700
+
+## Implementation (2026-07-09)
+
+- `finalize_recap` composes `attach_statuses` (unchanged, FR-703 tests intact) with code-owned orphan assembly; graph node renamed per J1; schema down to `workstreams` + `hotspots`.
+- 11 new unit tests (fixture = the verbatim `703b72d` line the model corrupted twice); 48 unit + 2 live integration green; integration orphan assertion flipped to exact hash equality per J4.
+- **Field rerun criterion (user-added): PASSED.** ninchat_voice, `since="1 week ago"`: 11 orphan hashes, `git cat-file -e` resolves all 11 (zero failures), `703b72d` bit-exact, `703b72e` corruption absent (tmp/recap-ninchat-voice-5.log).
+- **Observation for a future FR (window rule in unconventioned repos):** ninchat_voice has no `changelog/unreleased/` at all, so `fragments` is always empty and the window rule flagged 7 graph/prompt paths as convention orphans. Behaving as frozen (J3) but noisy where the convention doesn't exist; refinement (suppress when the repo lacks the convention entirely, e.g. directory absent at HEAD) deliberately out of scope — candidate follow-up.
 
 ## Summary
 

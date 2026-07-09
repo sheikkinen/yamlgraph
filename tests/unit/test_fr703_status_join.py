@@ -155,13 +155,20 @@ class TestGraphAndPromptContract:
 
     @pytest.mark.req("REQ-YG-535")
     def test_attach_statuses_node_wired(self) -> None:
-        """synthesize → attach_statuses → END; still exactly one LLM node."""
+        """Post-pass wired after synthesize; still exactly one LLM node.
+
+        FR-704 renamed the graph node to finalize_recap (composes the FR-703
+        status join with code-owned orphan assembly); the join semantics
+        tested above are unchanged and still live in attach_statuses.
+        """
         raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text())
-        node = raw["nodes"]["attach_statuses"]
+        node = raw["nodes"]["finalize_recap"]
         assert node["type"] == "python"
+        tool = raw["tools"][node["tool"]]
+        assert tool["function"] == "finalize_recap"
         edges = [(e["from"], e["to"]) for e in raw["edges"]]
-        assert ("synthesize", "attach_statuses") in edges
-        assert ("attach_statuses", "END") in edges
+        assert ("synthesize", "finalize_recap") in edges
+        assert ("finalize_recap", "END") in edges
         llm = [n for n, c in raw["nodes"].items() if c.get("type", "llm") == "llm"]
         assert llm == ["synthesize"]
 

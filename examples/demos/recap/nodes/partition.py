@@ -103,3 +103,47 @@ def attach_statuses(state: dict) -> dict:
 
     recap = {**recap, "workstreams": tagged}
     return {"recap": recap}
+
+
+def _is_graph_prompt_path(path: str) -> bool:
+    """Same heuristic the prompt template uses for file-kind partitioning."""
+    return path.endswith(".yaml") and ("graphs/" in path or "prompts/" in path)
+
+
+def _convention_orphans(churn: str, fragments: str) -> list[str]:
+    """Window rule (FR-704 J3): graph/prompt churn + zero fragments → flagged.
+
+    Per-FR fragment↔file matching is out of scope; the window-level rule
+    catches the real case — a prompt/graph tweak shipped with no fragment
+    at all.
+    """
+    if fragments.strip():
+        return []
+    seen: dict[str, None] = {}
+    for line in churn.splitlines():
+        if "\t" not in line:
+            continue
+        path = line.split("\t")[-1].strip()
+        if path and _is_graph_prompt_path(path):
+            seen.setdefault(path, None)
+    return [f"{path} (no changelog fragment in window)" for path in seen]
+
+
+def finalize_recap(state: dict) -> dict:
+    """Post-pass composing the FR-703 status join with code-owned orphans.
+
+    Orphans never transit the model (FR-704): two field runs proved the
+    model corrupts hashes in copy-verbatim steps (703b72d → 703b72e, twice).
+    Commit orphans are the unreferenced lines bit-exact, in order; window-rule
+    convention entries are appended after (J2).
+    """
+    result = attach_statuses(state)
+    recap = result["recap"]
+
+    unreferenced = state.get("unreferenced") or ""
+    orphans = [line for line in unreferenced.splitlines() if line.strip()]
+    orphans += _convention_orphans(
+        state.get("churn") or "", state.get("fragments") or ""
+    )
+
+    return {"recap": {**recap, "orphans": orphans}}

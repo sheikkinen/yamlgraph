@@ -87,15 +87,15 @@ class TestRecapGraphStructure:
 
     @pytest.mark.req("REQ-YG-531")
     def test_prompt_schema_frozen_fields(self) -> None:
-        """Inline schema has the frozen fields (F6, amended during Enforce).
+        """Inline schema carries only judgement fields.
 
-        conventions_detected was removed from the model schema: W026 flagged
-        the 4-field output as a fused judgement, and the field is mechanically
-        derivable (fr_changes/fragments non-empty) — bookkeeping, not judgement.
+        Evolution trail: F6 froze 4 fields; W026 cut conventions_detected
+        (FR-700 enforce); FR-704 moved orphans to code. What remains is
+        judgement: workstreams + hotspots.
         """
         prompt = yaml.safe_load((DEMO_DIR / "prompts" / "recap.yaml").read_text())
         fields = prompt["schema"]["fields"]
-        assert set(fields) == {"workstreams", "orphans", "hotspots"}
+        assert set(fields) == {"workstreams", "hotspots"}
 
     @pytest.mark.req("REQ-YG-531")
     def test_prompt_partitions_via_jinja(self) -> None:
@@ -105,7 +105,7 @@ class TestRecapGraphStructure:
 
     @pytest.mark.req("REQ-YG-531")
     def test_edge_flow(self) -> None:
-        """START → tool chain → partition → synthesize → attach_statuses → END."""
+        """START → tool chain → partition → synthesize → finalize_recap → END."""
         from yamlgraph.graph_loader import load_graph_config
 
         config = load_graph_config(GRAPH_PATH)
@@ -113,8 +113,8 @@ class TestRecapGraphStructure:
         assert ("START", "get_commits") in edge_pairs
         assert ("get_fr_statuses", "partition") in edge_pairs
         assert ("partition", "synthesize") in edge_pairs
-        assert ("synthesize", "attach_statuses") in edge_pairs
-        assert ("attach_statuses", "END") in edge_pairs
+        assert ("synthesize", "finalize_recap") in edge_pairs
+        assert ("finalize_recap", "END") in edge_pairs
 
 
 class TestRecapFailsLoudly:

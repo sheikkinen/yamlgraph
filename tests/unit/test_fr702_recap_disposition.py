@@ -78,16 +78,17 @@ class TestGraphStructureFr702:
 
     @pytest.mark.req("REQ-YG-534")
     def test_prompt_consumes_partition_and_statuses(self) -> None:
-        """Prompt uses the partitioned commits; status join moved to code (FR-703).
+        """Prompt consumes only the referenced partition; transport is code.
 
-        The FR-702 assertions on fr_statuses/[no FR status] in the template
-        were superseded by FR-703: the join is a deterministic post-pass and
-        the prompt must NOT mention statuses at all.
+        Evolved by FR-703 (join → code) and FR-704 (orphan copy → code):
+        the template must reference the referenced commits and mention no
+        status or unreferenced transport at all.
         """
         text = (DEMO_DIR / "prompts" / "recap.yaml").read_text()
-        assert "unreferenced" in text
+        assert "{{ referenced }}" in text
         assert "fr_statuses" not in text
         assert "[no FR status]" not in text
+        assert "unreferenced" not in text.lower()
 
     @pytest.mark.req("REQ-YG-534")
     def test_graph_lint_stays_clean(self) -> None:

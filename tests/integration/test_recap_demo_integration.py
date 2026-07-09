@@ -82,12 +82,13 @@ class TestRecapOnBareRepo:
         blob = str(recap_dict)
         assert not re.search(r"FR-\d+", blob), f"hallucinated FR refs: {blob[:500]}"
 
-        # Orphan detection: tolerant matching — the reference-less commit's
-        # hash appears somewhere in the orphans entries (contains, not equality).
-        orphans_blob = " ".join(str(o) for o in recap_dict["orphans"])
+        # Orphan detection is code-owned since FR-704: the hash field is
+        # asserted by EXACT equality — tolerant matching is doctrine for LLM
+        # output, and orphans no longer transit the model.
+        orphan_hashes = [str(o).split("|")[0] for o in recap_dict["orphans"]]
         assert (
-            orphan_hash in orphans_blob
-        ), f"orphan {orphan_hash} not flagged; orphans: {orphans_blob}"
+            orphan_hash in orphan_hashes
+        ), f"orphan {orphan_hash} not present bit-exact; got: {orphan_hashes}"
 
 
 @pytest.mark.slow

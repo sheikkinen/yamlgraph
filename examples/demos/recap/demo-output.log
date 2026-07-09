@@ -1,40 +1,43 @@
-2026-07-09 12:20:41,644 [INFO] yamlgraph.graph_loader: Parsed 5 shell tools: commits_since, file_churn, changed_frs, new_changelog_fragments, fr_statuses
-2026-07-09 12:20:41,645 [INFO] yamlgraph.graph_loader: Parsed 2 Python tools: partition_commits, attach_statuses_fn
-2026-07-09 12:20:41,645 [INFO] yamlgraph.node_compiler: Added node: get_commits (type=tool)
-2026-07-09 12:20:41,645 [INFO] yamlgraph.node_compiler: Added node: get_churn (type=tool)
-2026-07-09 12:20:41,645 [INFO] yamlgraph.node_compiler: Added node: get_frs (type=tool)
-2026-07-09 12:20:41,645 [INFO] yamlgraph.node_compiler: Added node: get_fragments (type=tool)
-2026-07-09 12:20:41,645 [INFO] yamlgraph.node_compiler: Added node: get_fr_statuses (type=tool)
-2026-07-09 12:20:41,646 [INFO] yamlgraph.node_compiler: Added node: partition (type=python)
-2026-07-09 12:20:41,649 [INFO] yamlgraph.node_compiler: Added node: synthesize (type=llm)
-2026-07-09 12:20:41,649 [INFO] yamlgraph.node_compiler: Added node: attach_statuses (type=python)
-2026-07-09 12:20:41,756 [INFO] yamlgraph.tools.nodes: 🔧 Executing tool: commits_since
-2026-07-09 12:20:41,792 [INFO] yamlgraph.tools.nodes: ✓ Tool commits_since completed
-2026-07-09 12:20:41,794 [INFO] yamlgraph.tools.nodes: 🔧 Executing tool: file_churn
-2026-07-09 12:20:41,973 [INFO] yamlgraph.tools.nodes: ✓ Tool file_churn completed
-2026-07-09 12:20:41,975 [INFO] yamlgraph.tools.nodes: 🔧 Executing tool: changed_frs
-2026-07-09 12:20:42,019 [INFO] yamlgraph.tools.nodes: ✓ Tool changed_frs completed
-2026-07-09 12:20:42,021 [INFO] yamlgraph.tools.nodes: 🔧 Executing tool: new_changelog_fragments
-2026-07-09 12:20:42,062 [INFO] yamlgraph.tools.nodes: ✓ Tool new_changelog_fragments completed
-2026-07-09 12:20:42,064 [INFO] yamlgraph.tools.nodes: 🔧 Executing tool: fr_statuses
-2026-07-09 12:20:42,130 [INFO] yamlgraph.tools.nodes: ✓ Tool fr_statuses completed
-2026-07-09 12:20:42,132 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: partition -> partition_commits
-2026-07-09 12:20:42,143 [INFO] yamlgraph.utils.llm_factory: Creating LLM: azure/aaa-gpt-5.4-mini (temp=0.7)
-2026-07-09 12:20:46,807 [INFO] httpx: HTTP Request: POST https://ai-samijpheikkinenaihub338640401537.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-07-09 12:20:46,821 [INFO] yamlgraph.node_factory.llm_nodes: Node synthesize completed successfully
-2026-07-09 12:20:46,823 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: attach_statuses -> attach_statuses_fn
+2026-07-09 14:44:27,378 [INFO] yamlgraph.graph_loader: Parsed 5 shell tools: commits_since, file_churn, changed_frs, new_changelog_fragments, fr_statuses
+2026-07-09 14:44:27,378 [INFO] yamlgraph.graph_loader: Parsed 2 Python tools: partition_commits, attach_statuses_fn
+2026-07-09 14:44:27,378 [INFO] yamlgraph.node_compiler: Added node: get_commits (type=tool)
+2026-07-09 14:44:27,378 [INFO] yamlgraph.node_compiler: Added node: get_churn (type=tool)
+2026-07-09 14:44:27,378 [INFO] yamlgraph.node_compiler: Added node: get_frs (type=tool)
+2026-07-09 14:44:27,378 [INFO] yamlgraph.node_compiler: Added node: get_fragments (type=tool)
+2026-07-09 14:44:27,378 [INFO] yamlgraph.node_compiler: Added node: get_fr_statuses (type=tool)
+2026-07-09 14:44:27,379 [INFO] yamlgraph.node_compiler: Added node: partition (type=python)
+2026-07-09 14:44:27,381 [INFO] yamlgraph.node_compiler: Added node: synthesize (type=llm)
+2026-07-09 14:44:27,381 [INFO] yamlgraph.node_compiler: Added node: finalize_recap (type=python)
+2026-07-09 14:44:27,475 [INFO] yamlgraph.tools.nodes: 🔧 Executing tool: commits_since
+2026-07-09 14:44:27,513 [INFO] yamlgraph.tools.nodes: ✓ Tool commits_since completed
+2026-07-09 14:44:27,514 [INFO] yamlgraph.tools.nodes: 🔧 Executing tool: file_churn
+2026-07-09 14:44:27,661 [INFO] yamlgraph.tools.nodes: ✓ Tool file_churn completed
+2026-07-09 14:44:27,664 [INFO] yamlgraph.tools.nodes: 🔧 Executing tool: changed_frs
+2026-07-09 14:44:27,718 [INFO] yamlgraph.tools.nodes: ✓ Tool changed_frs completed
+2026-07-09 14:44:27,721 [INFO] yamlgraph.tools.nodes: 🔧 Executing tool: new_changelog_fragments
+2026-07-09 14:44:27,771 [INFO] yamlgraph.tools.nodes: ✓ Tool new_changelog_fragments completed
+2026-07-09 14:44:27,773 [INFO] yamlgraph.tools.nodes: 🔧 Executing tool: fr_statuses
+2026-07-09 14:44:27,842 [INFO] yamlgraph.tools.nodes: ✓ Tool fr_statuses completed
+2026-07-09 14:44:27,844 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: partition -> partition_commits
+2026-07-09 14:44:27,855 [INFO] yamlgraph.utils.llm_factory: Creating LLM: azure/aaa-gpt-5.4-mini (temp=0.7)
+2026-07-09 14:44:32,237 [INFO] httpx: HTTP Request: POST https://ai-samijpheikkinenaihub338640401537.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-09 14:44:32,261 [INFO] yamlgraph.node_factory.llm_nodes: Node synthesize completed successfully
+2026-07-09 14:44:32,264 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: finalize_recap -> attach_statuses_fn
 
 🚀 Running graph: graph.yaml
    Variables: {'since': '2 days ago', 'repo_path': '.'}
 
-🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/09c0c2d4-5724-4301-bcee-e1b64ddeb80e/r/019f462d-e8c1-76c2-822c-22ce820a8dc2?poll=true
+🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/09c0c2d4-5724-4301-bcee-e1b64ddeb80e/r/019f46b1-8704-7940-84e5-8752d0e86663?poll=true
 ============================================================
 RESULT
 ============================================================
-  current_step: attach_statuses
+  current_step: finalize_recap
   since: 2 days ago
   repo_path: .
-  referenced: f4b3d123|2026-07-09|test(demos): FR-703 RED status join post-pass
+  referenced: 1d0761e2|2026-07-09|test(demos): FR-704 RED orphans bypass the model
+27159e69|2026-07-09|docs(feature-requests): FR-704 recap orphans bypass the model
+30d7bb5b|2026-07-09|feat(demos): FR-703 status join as deterministic post-pass
+f4b3d123|2026-07-09|test(demos): FR-703 RED status join post-pass
 7856bc56|2026-07-09|docs(feature-requests): FR-703 judgement - scope frozen, 4 findings
 140f3ef8|2026-07-09|docs(feature-requests): FR-703 recap status join as deterministic post-pass
 5dce816a|2026-07-09|feat(demos): FR-702 recap disposition axis + mechanized orphan partition
@@ -53,13 +56,11 @@ bc8384b3|2026-07-07|feat(examples): FR-691 wire story_extract pipeline and prove
 08549508|2026-07-07|feat(examples): FR-691 GREEN story thread + throughline gates
 4d9873fd|2026-07-07|test(novel_fandom): FR-691 RED story thread + throughline gates
 b836e41b|2026-07-07|feat(novel-fandom): FR-690 backfill event sequences (GREEN)
-3126af53|2026-07-07|test(chaplain): FR-699 graph compile witness condemns path-doubling class
-835c846a|2026-07-07|docs(diary): shape predicts thinking not run survival - FR-698 finalization scorecard
-7c877424|2026-07-07|feat(worktree): FR-698 unify executor-neutral worktree tooling (#459)
   unreferenced: 7076828f|2026-07-07|docs(diary): the miner who only finds what it can close
-2622afc1|2026-07-07|chore(chaplain): consume finalized topics, record inquisitor audits 256-258
-3c93463a|2026-07-07|docs(diary): the inquisitor prescribes without judgement - PR 458 autoimmune event
-  commits: f4b3d123|2026-07-09|test(demos): FR-703 RED status join post-pass
+  commits: 1d0761e2|2026-07-09|test(demos): FR-704 RED orphans bypass the model
+27159e69|2026-07-09|docs(feature-requests): FR-704 recap orphans bypass the model
+30d7bb5b|2026-07-09|feat(demos): FR-703 status join as deterministic post-pass
+f4b3d123|2026-07-09|test(demos): FR-703 RED status join post-pass
 7856bc56|2026-07-09|docs(feature-requests): FR-703 judgement - scope frozen, 4 findings
 140f3ef8|2026-07-09|docs(feature-requests): FR-703 recap status join as deterministic post-pass
 5dce816a|2026-07-09|feat(demos): FR-702 recap disposition axis + mechanized orphan partition
@@ -79,12 +80,29 @@ bc8384b3|2026-07-07|feat(examples): FR-691 wire story_extract pipeline and prove
 08549508|2026-07-07|feat(examples): FR-691 GREEN story thread + throughline gates
 4d9873fd|2026-07-07|test(novel_fandom): FR-691 RED story thread + throughline gates
 b836e41b|2026-07-07|feat(novel-fandom): FR-690 backfill event sequences (GREEN)
-3126af53|2026-07-07|test(chaplain): FR-699 graph compile witness condemns path-doubling class
-2622afc1|2026-07-07|chore(chaplain): consume finalized topics, record inquisitor audits 256-258
-3c93463a|2026-07-07|docs(diary): the inquisitor prescribes without judgement - PR 458 autoimmune event
-835c846a|2026-07-07|docs(diary): shape predicts thinking not run survival - FR-698 finalization scorecard
-7c877424|2026-07-07|feat(worktree): FR-698 unify executor-neutral worktree tooling (#459)
-  churn: f4b3d123
+  churn: 1d0761e2
+2	1	ARCHITECTURE.md
+14	0	capabilities/CAP-195-timeframe-recap-demo.yaml
+17	1	feature-requests/FR-704-recap-orphans-bypass-model.md
+185	0	tests/unit/test_fr704_orphans_bypass.py
+
+27159e69
+59	0	feature-requests/FR-704-recap-orphans-bypass-model.md
+
+30d7bb5b
+6	0	changelog/unreleased/fr-703-status-join-post-pass.md
+46	0	docs/diary/diary-2026-07-09-the-model-is-squeezed-out-one-field-at-a-time.md
+3	3	examples/demos/recap/README.md
+73	61	examples/demos/recap/demo-output.log
+14	2	examples/demos/recap/graph.yaml
+67	0	examples/demos/recap/nodes/partition.py
+6	14	examples/demos/recap/prompts/recap.yaml
+9	1	feature-requests/FR-703-recap-status-join-post-pass.md
+8	3	tests/unit/test_fr702_recap_disposition.py
+2	2	tests/unit/test_fr703_status_join.py
+3	2	tests/unit/test_recap_demo.py
+
+f4b3d123
 2	1	ARCHITECTURE.md
 15	0	capabilities/CAP-195-timeframe-recap-demo.yaml
 1	1	feature-requests/FR-703-recap-status-join-post-pass.md
@@ -258,75 +276,13 @@ b836e41b
 1	1	examples/novel_fandom/canon/event/second_camp_split.yaml
 41	6	feature-requests/FR-690-event-sequence-field.md
 
-3126af53
-2	1	ARCHITECTURE.md
-10	0	capabilities/CAP-75-portable-chaplain.yaml
-81	0	feature-requests/FR-699-chaplain-graph-compile-witness.md
-63	0	tests/unit/test_chaplain_graph_compile.py
+  fr_changes: feature-requests/FR-704-recap-orphans-bypass-model.md
 
-2622afc1
-67	0	.chaplain/done/executor-neutral-worktree-tooling.md
-39	0	.chaplain/done/substance-gates-diary-changelog.md
-39	0	docs/diary/2026-07-07-inquisitor-audit-256.md
-37	0	docs/diary/2026-07-07-inquisitor-audit-257.md
-27	0	docs/diary/2026-07-07-inquisitor-audit-258.md
+feature-requests/FR-704-recap-orphans-bypass-model.md
 
-3c93463a
-5	0	docs/development-process.md
-55	0	docs/diary/diary-2026-07-07-the-inquisitor-prescribes-without-judgement.md
+feature-requests/FR-703-recap-status-join-post-pass.md
 
-835c846a
-7	0	docs/development-process.md
-37	0	docs/diary/diary-2026-07-07-the-scribe-bypasses-the-scripture.md
-
-7c877424
-13	81	.chaplain/lib/watcher/worktree_setup.sh
-6	49	.chaplain/lib/watcher/worktree_teardown.sh
-1	1	.github/hooks/scripts/pre-command-guard.sh
-8	0	.github/hooks/tests/test_pre_command_guard.py
-44	0	ARCHITECTURE.md
-20	0	capabilities/CAP-189-worktree-cli-contract.yaml
-17	0	capabilities/CAP-191-instrument-worktree-delegation.yaml
-17	0	capabilities/CAP-192-branch-deny-guidance-manual-worktree-lane.yaml
-20	0	capabilities/CAP-193-watcher-wrapper-json-envelope.yaml
-6	0	changelog/unreleased/fr-698-worktree-tooling.md
-369	0	docs/context/fr-698.md
-1	1	docs/diary/2026-06-02-git-report.md
-3	3	docs/diary/2026-06-02-world-digest.md
-2	2	docs/diary/2026-07-07-git-report.md
-47	0	docs/diary/2026-07-07-reflection-fr-698-worktree-tooling.md
-1	0	examples/novel_fandom/canon/event/arnulf_confrontation.yaml
-1	0	examples/novel_fandom/canon/event/arnulf_release.yaml
-1	0	examples/novel_fandom/canon/event/arnulf_returns.yaml
-1	0	examples/novel_fandom/canon/event/arnulf_swept.yaml
-1	0	examples/novel_fandom/canon/event/bear_kill.yaml
-1	0	examples/novel_fandom/canon/event/bonding_rite.yaml
-1	0	examples/novel_fandom/canon/event/clan_divide.yaml
-1	0	examples/novel_fandom/canon/event/dawn_raid.yaml
-1	0	examples/novel_fandom/canon/event/deer_recovery.yaml
-1	0	examples/novel_fandom/canon/event/feud_start.yaml
-1	0	examples/novel_fandom/canon/event/great_flood.yaml
-1	0	examples/novel_fandom/canon/event/heidrun_calls_gathering.yaml
-1	0	examples/novel_fandom/canon/event/heidrun_dies.yaml
-1	0	examples/novel_fandom/canon/event/heidrun_speech.yaml
-1	0	examples/novel_fandom/canon/event/high_valley_arrival.yaml
-1	0	examples/novel_fandom/canon/event/journey_high_valley.yaml
-1	0	examples/novel_fandom/canon/event/ledge_escape.yaml
-1	0	examples/novel_fandom/canon/event/ledge_stranding.yaml
-1	0	examples/novel_fandom/canon/event/reinmar_arrives.yaml
-1	0	examples/novel_fandom/canon/event/reinmar_departs.yaml
-1	0	examples/novel_fandom/canon/event/reinthilde_birth.yaml
-1	0	examples/novel_fandom/canon/event/second_camp_split.yaml
-328	0	feature-requests/FR-698-executor-neutral-worktree-tooling.md
-9	2	scripts/copilot_instrument.sh
-315	0	scripts/worktree.sh
-4	0	scripts/wt
-11	0	tests/unit/test_branch_deny_guidance_worktree_lane.py
-23	0	tests/unit/test_copilot_instrument_worktree_delegation_red.py
-30	0	tests/unit/test_watcher_worktree_wrapper_red.py
-109	0	tests/unit/test_worktree_cli_red.py
-
-  fr_changes: feature-requests/FR-703-recap-status-join-post-pass.md
+feature-requests/FR-703-recap-status-join-post-pass.md
 
 feature-requests/FR-703-recap-status-join-post-pass.md
 
@@ -359,11 +315,9 @@ feature-requests/FR-691-plot-threads-throughlines.md
 
 feature-requests/FR-690-event-sequence-field.md
 
-feature-requests/FR-699-chaplain-graph-compile-witness.md
+  fragments: changelog/unreleased/fr-703-status-join-post-pass.md
 
-feature-requests/FR-698-executor-neutral-worktree-tooling.md
-
-  fragments: changelog/unreleased/fr-702-recap-disposition-axis.md
+changelog/unreleased/fr-702-recap-disposition-axis.md
 
 changelog/unreleased/fr-692-world-pressure.md
 
@@ -376,8 +330,6 @@ changelog/unreleased/fr-691-story-extract-pipeline.md
 changelog/unreleased/fr-691-plot-threads-throughlines.md
 
 changelog/unreleased/fr-690-event-sequence-field.md
-
-changelog/unreleased/fr-698-worktree-tooling.md
 
   fr_statuses: HEAD:feature-requests/005-session-manager.md:**Status:** ⏸️ Deferred (Optional)
 HEAD:feature-requests/020-soup-generator.md:**Status:** Proposed
@@ -1045,7 +997,8 @@ HEAD:feature-requests/FR-699-chaplain-graph-compile-witness.md:**Status:** ENFOR
 HEAD:feature-requests/FR-700-timeframe-recap-example.md:**Status:** Completed
 HEAD:feature-requests/FR-701-capability-registry-consistency-gate.md:**Status:** Proposed
 HEAD:feature-requests/FR-702-recap-disposition-axis.md:**Status:** Completed
-HEAD:feature-requests/FR-703-recap-status-join-post-pass.md:**Status:** In Progress
+HEAD:feature-requests/FR-703-recap-status-join-post-pass.md:**Status:** Completed
+HEAD:feature-requests/FR-704-recap-orphans-bypass-model.md:**Status:** In Progress
 HEAD:feature-requests/FR-FSM-015-watcher2-pipeline-logging.md:**Status:** Implemented
 HEAD:feature-requests/JUDGMENT-FR-513.md:**Status:** GRANT with refinements
 HEAD:feature-requests/REJECTED-fix-philosopher-copilot-nodes.md:**Status:** Rejected
@@ -1053,4 +1006,4 @@ HEAD:feature-requests/TEMPLATE.md:**Status:** Proposed
 HEAD:feature-requests/draft-56-protocol-archaeology-graph-given-a-github-repo-url-extract-e.md:**Status:** Draft — Re-submitted for Judgement
 HEAD:feature-requests/fsm-router-interrupt-resume.md:**Status:** In Progress
 
-  recap: {'workstreams': ['FR-703: recap status join post-pass for demos, with deterministic join behavior and status tests/docs (commits: 3) [Status: In Progress]', 'FR-702: recap disposition axis and mechanized orphan partition for demos, with tests/docs/changelog support (commits: 4) [Status: Completed]', 'FR-701: capability registry consistency gate (commits: 1) [Status: Proposed]', 'FR-692: world-pressure capability renumbering and admission/reciprocity gates for examples (commits: 3) [Status: Enforced]', 'FR-700: timeframe recap example and demo structural updates (commits: 2) [Status: Completed]', 'FR-691: novel fandom latent thread mining and story extract/throughline pipeline updates (commits: 5) [Status: Enforced ✅ (RED `4d9873fd` → GREEN `08549508` → pipeline `feat(examples): FR-691 wire story_extract pipeline`; 1a/1b diff read below)]', 'FR-690: event sequence field backfill for novel fandom canon and feature request updates (commits: 2) [Status: Enforced ✅ (RED `b7b7adf9` → GREEN; commit history is the proof trail)]', 'FR-699: chaplain graph compile witness for path-doubling class (commits: 1) [Status: ENFORCED]', 'FR-698: executor-neutral worktree tooling and supporting docs/scripts (commits: 2) [Status: Implemented]'], 'orphans': ['7076828f|2026-07-07|docs(diary): the miner who only finds what it can close', '2622afc1|2026-07-07|chore(chaplain): consume finalized topics, record inquisitor audits 256-258', '3c93463a|2026-07-07|docs(diary): the inquisitor prescribes without judgement - PR 458 autoimmune event'], 'hotspots': ['examples/novel_fandom/story/thread/arnulf_reconciliation.yaml', 'examples/novel_fandom/story/thread/community_peace.yaml', 'examples/novel_fandom/story/thread/gunnar_peacetime_identity.yaml', 'examples/novel_fandom/story/thread/heidrun_legacy.yaml', 'examples/novel_fandom/story/thread/hilde_gunnar_feud.yaml', 'examples/novel_fandom/story/thread/ledge_survival.yaml', 'examples/novel_fandom/story/thread/migration_trust.yaml', 'examples/novel_fandom/story/thread/reinmar_departure.yaml', 'examples/novel_fandom/story/threads_1a.yaml', 'examples/novel_fandom/story/throughline/arnulf.yaml', 'examples/novel_fandom/story/throughline/gunnar.yaml', 'examples/novel_fandom/story/throughline/heidrun.yaml', 'examples/novel_fandom/story/throughline/hilde.yaml', 'examples/novel_fandom/story/throughline/reinmar.yaml', 'examples/demos/recap/graph.yaml', 'examples/demos/recap/README.md', 'examples/demos/recap/demo-output.log', 'ARCHITECTURE.md', 'examples/novel_fandom/nodes/persist_story.py', 'examples/novel_fandom/nodes/thread_gates.py', 'examples/novel_fandom/nodes/world_pressure_gates.py', 'tests/unit/test_fr691_thread_gates.py', 'tests/unit/test_recap_demo.py', 'tests/integration/test_recap_demo_integration.py', 'tests/unit/test_fr692_world_pressure.py', 'tests/unit/test_fr702_recap_disposition.py']}
+  recap: {'workstreams': ['FR-704: recap orphans bypass the model (commits: 2) [Status: In Progress]', 'FR-703: status join as deterministic post-pass (commits: 4) [Status: Completed]', 'FR-702: disposition axis + mechanized orphan partition (commits: 4) [Status: Completed]', 'FR-701: capability registry consistency gate (commits: 1) [Status: Proposed]', 'FR-692: world-pressure admission + reciprocity gates; capability renumbering to CAP-196/REQ-YG-532-533 (commits: 3) [Status: Enforced]', 'FR-700: timeframe recap example graph/demo (commits: 2) [Status: Completed]', 'FR-691: latent threads, story_extract pipeline, and thread/throughline gates (commits: 6) [Status: Enforced ✅ (RED `4d9873fd` → GREEN `08549508` → pipeline `feat(examples): FR-691 wire story_extract pipeline`; 1a/1b diff read below)]', 'FR-690: event sequence field backfill (commits: 1) [Status: Enforced ✅ (RED `b7b7adf9` → GREEN; commit history is the proof trail)]'], 'hotspots': ['ARCHITECTURE.md', 'capabilities/CAP-195-timeframe-recap-demo.yaml', 'examples/demos/recap/README.md', 'examples/demos/recap/demo-output.log', 'examples/demos/recap/graph.yaml', 'examples/demos/recap/prompts/recap.yaml', 'examples/novel_fandom/nodes/persist_story.py', 'examples/novel_fandom/nodes/thread_gates.py', 'examples/novel_fandom/nodes/world_pressure_gates.py', 'examples/novel_fandom/prompts/reconcile_threads.yaml', 'examples/novel_fandom/schema/story.py', 'feature-requests/FR-691-plot-threads-throughlines.md', 'feature-requests/FR-692-world-pressure-agent.md', 'feature-requests/FR-702-recap-disposition-axis.md', 'feature-requests/FR-703-recap-status-join-post-pass.md', 'tests/integration/test_recap_demo_integration.py', 'tests/unit/test_fr691_thread_gates.py', 'tests/unit/test_fr692_world_pressure.py', 'tests/unit/test_fr702_recap_disposition.py', 'tests/unit/test_fr703_status_join.py', 'tests/unit/test_fr704_orphans_bypass.py', 'tests/unit/test_recap_demo.py'], 'orphans': ['7076828f|2026-07-07|docs(diary): the miner who only finds what it can close']}

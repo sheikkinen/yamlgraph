@@ -50,8 +50,8 @@ tools:
   attach_statuses_fn:
     type: python
     module: examples.demos.recap.nodes.partition
-    function: attach_statuses
-    description: "Deterministic status join (FR-703): appends verbatim [Status: ...] tags to workstream lines from the fr_statuses map; the model never joins."
+    function: finalize_recap
+    description: "Deterministic finalization (FR-703/FR-704): joins verbatim [Status: ...] tags and assembles orphans in code — unreferenced lines bit-exact plus window-rule convention entries; the model neither joins nor copies."
 
 nodes:
   get_commits:
@@ -101,7 +101,7 @@ nodes:
   synthesize:
     type: llm
     prompt: recap
-    requires: [commits, churn, fr_changes, fragments, unreferenced]
+    requires: [commits, churn, fr_changes, fragments, referenced]
     state_key: recap
     variables:
       commits: "{state.commits}"
@@ -109,12 +109,11 @@ nodes:
       fr_changes: "{state.fr_changes}"
       fragments: "{state.fragments}"
       referenced: "{state.referenced}"
-      unreferenced: "{state.unreferenced}"
 
-  attach_statuses:
+  finalize_recap:
     type: python
     tool: attach_statuses_fn
-    requires: [recap, fr_statuses]
+    requires: [recap, fr_statuses, unreferenced]
 
 edges:
   - from: START
@@ -132,6 +131,6 @@ edges:
   - from: partition
     to: synthesize
   - from: synthesize
-    to: attach_statuses
-  - from: attach_statuses
+    to: finalize_recap
+  - from: finalize_recap
     to: END
