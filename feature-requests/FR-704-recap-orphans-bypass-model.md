@@ -2,9 +2,10 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Proposed
+**Status:** In Progress
 **Effort:** 0.5 days
 **Requested:** 2026-07-09
+**Judged:** 2026-07-09 — scope frozen (compact judgement; core facts pre-verified during FR-703).
 **Parent:** FR-703 (status join post-pass); grandparent FR-702, FR-700
 
 ## Summary
@@ -43,7 +44,22 @@ Extend the FR-703 post-pass (`attach_statuses` → rename or sibling `assemble_r
 - [ ] Still exactly one LLM node; lint clean (W026 at 2 fields)
 - [ ] FR-700/702/703 suites evolved where topology assertions change
 - [ ] New REQ under CAP-195 — ID verified free against origin/main at enforce time
+- [ ] **Field rerun against projects/ninchat_voice (`--var since="1 week ago"`): every orphan hash resolves via `git -C projects/ninchat_voice show <hash>` — mechanically verified in a loop, zero failures; the `703b72d` line appears bit-exact. Result recorded in this FR's Implementation section.**
 - [ ] README teaching points + demo-output.log regenerated; `req_coverage.py --strict` green; changelog fragment + diary entry
+
+## Judgement (2026-07-09, compact)
+
+Scope frozen with these pins (facts verified during FR-703 enforce — python-node dict merge, state declarations, post-pass seam):
+
+| # | Pin |
+|---|-----|
+| J1 | `attach_statuses` stays as the statuses-only unit (FR-703 tests keep their target); new `finalize_recap` composes it + orphan assembly and becomes the graph's post-pass node/tool (node renamed `finalize_recap`; FR-700/702/703 topology assertions evolve) |
+| J2 | Orphan order = unreferenced order, blanks skipped; convention entries appended after commit orphans, paths deduped preserving first occurrence |
+| J3 | Convention path heuristic identical to the template's (`.yaml` ∧ (`graphs/` ∨ `prompts/`)); path = last tab field of a numstat line |
+| J4 | Integration exactness = hash field equality (`entry.split('\|')[0] == hash`), full-line equality not required (date format is git's) |
+| J5 | `referenced` stays a synthesize input (grouping); `unreferenced`, with orphans code-owned, leaves synthesize and joins finalize_recap requires |
+
+**Out of scope:** per-FR fragment↔file matching (window rule only), duplicate-workstream dedup (judgement territory, separate FR if it recurs), any change to collection tools.
 
 ## Alternatives Considered
 
