@@ -16,6 +16,7 @@
 - Registered in `examples/demos/tests/test_demos.py` STANDARD_DEMOS.
 - **Deviation 1:** `conventions_detected` removed from the LLM schema — W026 (this project's own prompt-monolith linter) flagged it; it is mechanically derivable bookkeeping. See schema section note and diary.
 - **Deviation 2 (known limitation, raw-output read):** in the real run the model emits the literal format example `layers: code/graph/prompt/other` in every workstream instead of computed per-layer counts. Grouping and orphan detection are grounded and correct. Layer counts are mechanically derivable from `--numstat`; if ever needed, they belong in a deterministic post-pass, not in prompt levers.
+- **Known limitation 3 (field feedback 2026-07-09, → FR-702):** no disposition axis — workstreams list activity, not outcome; rejected, blocked, and shipped streams read identically (`research_as_inventory`). Also 2/6 orphan false positives (mid-subject refs). Both addressed in FR-702: disposition from FR `Status:` fields via a deterministic tool node; orphan reference-matching mechanized out of the model.
 - `tests/integration/test_recap_demo_integration.py` — bare-repo + orphan tolerant-matching criteria, API-key-guarded, passed against live LLM (orphan hash flagged, zero hallucinated FR refs).
 
 ## Summary
