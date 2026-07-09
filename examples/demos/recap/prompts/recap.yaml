@@ -8,7 +8,7 @@ schema:
   fields:
     workstreams:
       type: list[str]
-      description: "One line per workstream: '<FR-ref or theme>: <summary> (commits: N) [Status: <verbatim status from input>]' — or '[no FR status]' when the input has no status line for that FR."
+      description: "One line per workstream: '<FR refs or theme>: <summary> (commits: N)'. Name each FR/NC id in full (e.g. 'NC-341 NC-342'), never ranges or shorthand like NC-341..344 or NC-280/281."
     orphans:
       type: list[str]
       description: "Copy of the UNREFERENCED commit lines, plus graph/prompt file changes with no changelog fragment. Empty list if none. Quote hashes verbatim."
@@ -20,14 +20,13 @@ schema:
 system: |
   You summarize git change inventories. You group commits into workstreams
   and report orphan changes. Rules:
-  - Use ONLY the commits, file paths, and status lines given in the input.
-    Never invent commit hashes, FR references, file paths, or statuses.
+  - Use ONLY the commits and file paths given in the input. Never invent
+    commit hashes, FR references, or file paths.
   - A commit belongs to a workstream if its subject shares an FR/issue
     reference (FR-123, NC-123, #123) or an obvious common theme.
-  - Disposition: if the FR STATUSES input contains a status line for a
-    workstream's FR id, append it VERBATIM as '[Status: ...]'. Do NOT
-    infer, normalize, or translate statuses — copy the given text. If no
-    status line matches, append '[no FR status]'.
+  - Name every FR/NC id in a workstream line in full (NC-341 NC-342);
+    never compress to ranges or slash shorthand — downstream code joins
+    on the ids mechanically.
   - The commit list is pre-partitioned by code: REFERENCED commits carry
     a reference; UNREFERENCED commits do not. Your orphans list is the
     UNREFERENCED lines copied verbatim, plus any graph/prompt YAML change
@@ -50,13 +49,6 @@ user: |
 
   ### UNREFERENCED (no reference — copy these verbatim into orphans)
   {{ unreferenced }}
-
-  ## FR STATUSES (verbatim, at HEAD)
-  {% if fr_statuses.strip() %}
-  {{ fr_statuses }}
-  {% else %}
-  (No FR status lines detected — tag every workstream '[no FR status]'.)
-  {% endif %}
 
   {% set churn_lines = churn.split('\n') %}
   ## Code changes (.py — added/removed/path)

@@ -2,10 +2,18 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** In Progress
+**Status:** Completed
 **Effort:** 0.5 days
 **Requested:** 2026-07-09
 **Judged:** 2026-07-09 — scope frozen. 4 findings resolved (see Judgement section).
+**Completed:** 2026-07-09 — RED f4b3d123, GREEN follows.
+
+## Implementation (2026-07-09)
+
+- `attach_statuses` + `_parse_status_map` in [partition.py](../examples/demos/recap/nodes/partition.py); graph wired `synthesize → attach_statuses → END`; prompt shed all status language and gained the full-id bound.
+- 13 unit tests (verbatim field-line fixtures) + FR-700/702 suites evolved to the new topology; live integration (Rejected verbatim) passes through the post-pass path unchanged.
+- Field re-run against ninchat_voice: NC-346/347 now read ENFORCED (join failure dead); merged workstream `NC-349…NC-352` shows per-id tags exposing NC-351 REJECTED inside an otherwise-enforced stream — F1's resolution working as judged; no double prefix; model obeyed the full-id bound.
+- **New finding (raw-output read, out of scope → seed):** the model corrupted one orphan hash in transit (`703b72e` vs real `703b72d`) — a single-character copy error in the "copy UNREFERENCED verbatim" step. The copy is itself mechanizable: code already holds the `unreferenced` list, so orphans could bypass the model entirely (schema drops to 2 judgement fields). Candidate FR-704.
 **Parent:** FR-702 (recap disposition axis)
 
 ## Summary

@@ -47,6 +47,12 @@ tools:
     function: partition_commits
     description: "Deterministic reference partition (FR-702): commits with (FR|NC)-N or #N anywhere in the subject -> referenced; rest -> unreferenced."
 
+  attach_statuses_fn:
+    type: python
+    module: examples.demos.recap.nodes.partition
+    function: attach_statuses
+    description: "Deterministic status join (FR-703): appends verbatim [Status: ...] tags to workstream lines from the fr_statuses map; the model never joins."
+
 nodes:
   get_commits:
     type: tool
@@ -95,16 +101,20 @@ nodes:
   synthesize:
     type: llm
     prompt: recap
-    requires: [commits, churn, fr_changes, fragments, fr_statuses, unreferenced]
+    requires: [commits, churn, fr_changes, fragments, unreferenced]
     state_key: recap
     variables:
       commits: "{state.commits}"
       churn: "{state.churn}"
       fr_changes: "{state.fr_changes}"
       fragments: "{state.fragments}"
-      fr_statuses: "{state.fr_statuses}"
       referenced: "{state.referenced}"
       unreferenced: "{state.unreferenced}"
+
+  attach_statuses:
+    type: python
+    tool: attach_statuses_fn
+    requires: [recap, fr_statuses]
 
 edges:
   - from: START
@@ -122,4 +132,6 @@ edges:
   - from: partition
     to: synthesize
   - from: synthesize
+    to: attach_statuses
+  - from: attach_statuses
     to: END

@@ -1,38 +1,44 @@
-2026-07-09 09:36:10,729 [INFO] yamlgraph.graph_loader: Parsed 5 shell tools: commits_since, file_churn, changed_frs, new_changelog_fragments, fr_statuses
-2026-07-09 09:36:10,729 [INFO] yamlgraph.graph_loader: Parsed 1 Python tools: partition_commits
-2026-07-09 09:36:10,729 [INFO] yamlgraph.node_compiler: Added node: get_commits (type=tool)
-2026-07-09 09:36:10,729 [INFO] yamlgraph.node_compiler: Added node: get_churn (type=tool)
-2026-07-09 09:36:10,729 [INFO] yamlgraph.node_compiler: Added node: get_frs (type=tool)
-2026-07-09 09:36:10,729 [INFO] yamlgraph.node_compiler: Added node: get_fragments (type=tool)
-2026-07-09 09:36:10,729 [INFO] yamlgraph.node_compiler: Added node: get_fr_statuses (type=tool)
-2026-07-09 09:36:10,730 [INFO] yamlgraph.node_compiler: Added node: partition (type=python)
-2026-07-09 09:36:10,732 [INFO] yamlgraph.node_compiler: Added node: synthesize (type=llm)
-2026-07-09 09:36:10,918 [INFO] yamlgraph.tools.nodes: 🔧 Executing tool: commits_since
-2026-07-09 09:36:10,965 [INFO] yamlgraph.tools.nodes: ✓ Tool commits_since completed
-2026-07-09 09:36:10,966 [INFO] yamlgraph.tools.nodes: 🔧 Executing tool: file_churn
-2026-07-09 09:36:11,126 [INFO] yamlgraph.tools.nodes: ✓ Tool file_churn completed
-2026-07-09 09:36:11,129 [INFO] yamlgraph.tools.nodes: 🔧 Executing tool: changed_frs
-2026-07-09 09:36:11,183 [INFO] yamlgraph.tools.nodes: ✓ Tool changed_frs completed
-2026-07-09 09:36:11,184 [INFO] yamlgraph.tools.nodes: 🔧 Executing tool: new_changelog_fragments
-2026-07-09 09:36:11,253 [INFO] yamlgraph.tools.nodes: ✓ Tool new_changelog_fragments completed
-2026-07-09 09:36:11,254 [INFO] yamlgraph.tools.nodes: 🔧 Executing tool: fr_statuses
-2026-07-09 09:36:11,324 [INFO] yamlgraph.tools.nodes: ✓ Tool fr_statuses completed
-2026-07-09 09:36:11,326 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: partition -> partition_commits
-2026-07-09 09:36:11,337 [INFO] yamlgraph.utils.llm_factory: Creating LLM: azure/aaa-gpt-5.4-mini (temp=0.7)
-2026-07-09 09:36:20,134 [INFO] httpx: HTTP Request: POST https://ai-samijpheikkinenaihub338640401537.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-07-09 09:36:20,146 [INFO] yamlgraph.node_factory.llm_nodes: Node synthesize completed successfully
+2026-07-09 12:20:41,644 [INFO] yamlgraph.graph_loader: Parsed 5 shell tools: commits_since, file_churn, changed_frs, new_changelog_fragments, fr_statuses
+2026-07-09 12:20:41,645 [INFO] yamlgraph.graph_loader: Parsed 2 Python tools: partition_commits, attach_statuses_fn
+2026-07-09 12:20:41,645 [INFO] yamlgraph.node_compiler: Added node: get_commits (type=tool)
+2026-07-09 12:20:41,645 [INFO] yamlgraph.node_compiler: Added node: get_churn (type=tool)
+2026-07-09 12:20:41,645 [INFO] yamlgraph.node_compiler: Added node: get_frs (type=tool)
+2026-07-09 12:20:41,645 [INFO] yamlgraph.node_compiler: Added node: get_fragments (type=tool)
+2026-07-09 12:20:41,645 [INFO] yamlgraph.node_compiler: Added node: get_fr_statuses (type=tool)
+2026-07-09 12:20:41,646 [INFO] yamlgraph.node_compiler: Added node: partition (type=python)
+2026-07-09 12:20:41,649 [INFO] yamlgraph.node_compiler: Added node: synthesize (type=llm)
+2026-07-09 12:20:41,649 [INFO] yamlgraph.node_compiler: Added node: attach_statuses (type=python)
+2026-07-09 12:20:41,756 [INFO] yamlgraph.tools.nodes: 🔧 Executing tool: commits_since
+2026-07-09 12:20:41,792 [INFO] yamlgraph.tools.nodes: ✓ Tool commits_since completed
+2026-07-09 12:20:41,794 [INFO] yamlgraph.tools.nodes: 🔧 Executing tool: file_churn
+2026-07-09 12:20:41,973 [INFO] yamlgraph.tools.nodes: ✓ Tool file_churn completed
+2026-07-09 12:20:41,975 [INFO] yamlgraph.tools.nodes: 🔧 Executing tool: changed_frs
+2026-07-09 12:20:42,019 [INFO] yamlgraph.tools.nodes: ✓ Tool changed_frs completed
+2026-07-09 12:20:42,021 [INFO] yamlgraph.tools.nodes: 🔧 Executing tool: new_changelog_fragments
+2026-07-09 12:20:42,062 [INFO] yamlgraph.tools.nodes: ✓ Tool new_changelog_fragments completed
+2026-07-09 12:20:42,064 [INFO] yamlgraph.tools.nodes: 🔧 Executing tool: fr_statuses
+2026-07-09 12:20:42,130 [INFO] yamlgraph.tools.nodes: ✓ Tool fr_statuses completed
+2026-07-09 12:20:42,132 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: partition -> partition_commits
+2026-07-09 12:20:42,143 [INFO] yamlgraph.utils.llm_factory: Creating LLM: azure/aaa-gpt-5.4-mini (temp=0.7)
+2026-07-09 12:20:46,807 [INFO] httpx: HTTP Request: POST https://ai-samijpheikkinenaihub338640401537.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-09 12:20:46,821 [INFO] yamlgraph.node_factory.llm_nodes: Node synthesize completed successfully
+2026-07-09 12:20:46,823 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: attach_statuses -> attach_statuses_fn
 
 🚀 Running graph: graph.yaml
    Variables: {'since': '2 days ago', 'repo_path': '.'}
 
-🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/09c0c2d4-5724-4301-bcee-e1b64ddeb80e/r/019f4597-4a7a-7aa1-a58c-6a6e45692e71?poll=true
+🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/09c0c2d4-5724-4301-bcee-e1b64ddeb80e/r/019f462d-e8c1-76c2-822c-22ce820a8dc2?poll=true
 ============================================================
 RESULT
 ============================================================
-  current_step: synthesize
+  current_step: attach_statuses
   since: 2 days ago
   repo_path: .
-  referenced: ee792608|2026-07-09|test(demos): FR-702 RED disposition axis + partition pre-pass
+  referenced: f4b3d123|2026-07-09|test(demos): FR-703 RED status join post-pass
+7856bc56|2026-07-09|docs(feature-requests): FR-703 judgement - scope frozen, 4 findings
+140f3ef8|2026-07-09|docs(feature-requests): FR-703 recap status join as deterministic post-pass
+5dce816a|2026-07-09|feat(demos): FR-702 recap disposition axis + mechanized orphan partition
+ee792608|2026-07-09|test(demos): FR-702 RED disposition axis + partition pre-pass
 839116c8|2026-07-09|docs(feature-requests): FR-702 judgement - scope frozen, 6 findings
 55b3e266|2026-07-09|docs(feature-requests): FR-702 recap disposition axis from field feedback
 26129e71|2026-07-09|docs(feature-requests): FR-701 capability registry consistency gate
@@ -53,12 +59,11 @@ b836e41b|2026-07-07|feat(novel-fandom): FR-690 backfill event sequences (GREEN)
   unreferenced: 7076828f|2026-07-07|docs(diary): the miner who only finds what it can close
 2622afc1|2026-07-07|chore(chaplain): consume finalized topics, record inquisitor audits 256-258
 3c93463a|2026-07-07|docs(diary): the inquisitor prescribes without judgement - PR 458 autoimmune event
-1ed5b8b6|2026-07-07|fix(chaplain): graph-root-relative tool paths in enforce-session and philosopher graphs
-b17a8b5e|2026-07-07|docs(process): why manual ops dominate - latency, task-shape mismatch, transaction cost
-2b265793|2026-07-07|docs(process): reality check - manual plan-judge-enforce loop dominates (83% direct commits)
-caf14330|2026-07-07|docs(diary): the scribe bypasses the scripture - process overview reflection
-56230029|2026-07-07|docs(process): add development process self-reflection overview
-  commits: ee792608|2026-07-09|test(demos): FR-702 RED disposition axis + partition pre-pass
+  commits: f4b3d123|2026-07-09|test(demos): FR-703 RED status join post-pass
+7856bc56|2026-07-09|docs(feature-requests): FR-703 judgement - scope frozen, 4 findings
+140f3ef8|2026-07-09|docs(feature-requests): FR-703 recap status join as deterministic post-pass
+5dce816a|2026-07-09|feat(demos): FR-702 recap disposition axis + mechanized orphan partition
+ee792608|2026-07-09|test(demos): FR-702 RED disposition axis + partition pre-pass
 839116c8|2026-07-09|docs(feature-requests): FR-702 judgement - scope frozen, 6 findings
 55b3e266|2026-07-09|docs(feature-requests): FR-702 recap disposition axis from field feedback
 26129e71|2026-07-09|docs(feature-requests): FR-701 capability registry consistency gate
@@ -79,12 +84,31 @@ b836e41b|2026-07-07|feat(novel-fandom): FR-690 backfill event sequences (GREEN)
 3c93463a|2026-07-07|docs(diary): the inquisitor prescribes without judgement - PR 458 autoimmune event
 835c846a|2026-07-07|docs(diary): shape predicts thinking not run survival - FR-698 finalization scorecard
 7c877424|2026-07-07|feat(worktree): FR-698 unify executor-neutral worktree tooling (#459)
-1ed5b8b6|2026-07-07|fix(chaplain): graph-root-relative tool paths in enforce-session and philosopher graphs
-b17a8b5e|2026-07-07|docs(process): why manual ops dominate - latency, task-shape mismatch, transaction cost
-2b265793|2026-07-07|docs(process): reality check - manual plan-judge-enforce loop dominates (83% direct commits)
-caf14330|2026-07-07|docs(diary): the scribe bypasses the scripture - process overview reflection
-56230029|2026-07-07|docs(process): add development process self-reflection overview
-  churn: ee792608
+  churn: f4b3d123
+2	1	ARCHITECTURE.md
+15	0	capabilities/CAP-195-timeframe-recap-demo.yaml
+1	1	feature-requests/FR-703-recap-status-join-post-pass.md
+183	0	tests/unit/test_fr703_status_join.py
+
+7856bc56
+31	7	feature-requests/FR-703-recap-status-join-post-pass.md
+
+140f3ef8
+71	0	feature-requests/FR-703-recap-status-join-post-pass.md
+
+5dce816a
+6	0	changelog/unreleased/fr-702-recap-disposition-axis.md
+46	0	docs/diary/diary-2026-07-09-the-regex-repeats-the-models-sin.md
+5	4	examples/demos/recap/README.md
+807	1297	examples/demos/recap/demo-output.log
+36	3	examples/demos/recap/graph.yaml
+38	0	examples/demos/recap/nodes/partition.py
+28	9	examples/demos/recap/prompts/recap.yaml
+4	1	feature-requests/FR-702-recap-disposition-axis.md
+15	0	tests/unit/test_fr702_recap_disposition.py
+18	9	tests/unit/test_recap_demo.py
+
+ee792608
 2	1	ARCHITECTURE.md
 14	0	capabilities/CAP-195-timeframe-recap-demo.yaml
 1	1	feature-requests/FR-702-recap-disposition-axis.md
@@ -302,28 +326,15 @@ b836e41b
 30	0	tests/unit/test_watcher_worktree_wrapper_red.py
 109	0	tests/unit/test_worktree_cli_red.py
 
-1ed5b8b6
-6	6	.chaplain/graphs/philosopher/graph.yaml
-15	0	.chaplain/graphs/philosopher/tools.py
-2	2	.chaplain/graphs/watcher-enforce/enforce-session.yaml
-5	0	changelog/unreleased/fix-chaplain-graph-tool-paths.md
+  fr_changes: feature-requests/FR-703-recap-status-join-post-pass.md
 
-b17a8b5e
-18	0	docs/development-process.md
-27	0	docs/diary/diary-2026-07-07-the-scribe-bypasses-the-scripture.md
+feature-requests/FR-703-recap-status-join-post-pass.md
 
-2b265793
-15	0	docs/development-process.md
-21	0	docs/diary/diary-2026-07-07-the-scribe-bypasses-the-scripture.md
+feature-requests/FR-703-recap-status-join-post-pass.md
 
-caf14330
-55	0	docs/diary/diary-2026-07-07-the-scribe-bypasses-the-scripture.md
+feature-requests/FR-702-recap-disposition-axis.md
 
-56230029
-1	0	.github/copilot-instructions.md
-302	0	docs/development-process.md
-
-  fr_changes: feature-requests/FR-702-recap-disposition-axis.md
+feature-requests/FR-702-recap-disposition-axis.md
 
 feature-requests/FR-702-recap-disposition-axis.md
 
@@ -352,7 +363,9 @@ feature-requests/FR-699-chaplain-graph-compile-witness.md
 
 feature-requests/FR-698-executor-neutral-worktree-tooling.md
 
-  fragments: changelog/unreleased/fr-692-world-pressure.md
+  fragments: changelog/unreleased/fr-702-recap-disposition-axis.md
+
+changelog/unreleased/fr-692-world-pressure.md
 
 changelog/unreleased/fr-700-recap-demo.md
 
@@ -365,8 +378,6 @@ changelog/unreleased/fr-691-plot-threads-throughlines.md
 changelog/unreleased/fr-690-event-sequence-field.md
 
 changelog/unreleased/fr-698-worktree-tooling.md
-
-changelog/unreleased/fix-chaplain-graph-tool-paths.md
 
   fr_statuses: HEAD:feature-requests/005-session-manager.md:**Status:** ⏸️ Deferred (Optional)
 HEAD:feature-requests/020-soup-generator.md:**Status:** Proposed
@@ -1033,7 +1044,8 @@ HEAD:feature-requests/FR-698-executor-neutral-worktree-tooling.md:**Status:** Im
 HEAD:feature-requests/FR-699-chaplain-graph-compile-witness.md:**Status:** ENFORCED
 HEAD:feature-requests/FR-700-timeframe-recap-example.md:**Status:** Completed
 HEAD:feature-requests/FR-701-capability-registry-consistency-gate.md:**Status:** Proposed
-HEAD:feature-requests/FR-702-recap-disposition-axis.md:**Status:** In Progress
+HEAD:feature-requests/FR-702-recap-disposition-axis.md:**Status:** Completed
+HEAD:feature-requests/FR-703-recap-status-join-post-pass.md:**Status:** In Progress
 HEAD:feature-requests/FR-FSM-015-watcher2-pipeline-logging.md:**Status:** Implemented
 HEAD:feature-requests/JUDGMENT-FR-513.md:**Status:** GRANT with refinements
 HEAD:feature-requests/REJECTED-fix-philosopher-copilot-nodes.md:**Status:** Rejected
@@ -1041,4 +1053,4 @@ HEAD:feature-requests/TEMPLATE.md:**Status:** Proposed
 HEAD:feature-requests/draft-56-protocol-archaeology-graph-given-a-github-repo-url-extract-e.md:**Status:** Draft — Re-submitted for Judgement
 HEAD:feature-requests/fsm-router-interrupt-resume.md:**Status:** In Progress
 
-  recap: {'workstreams': ['FR-702: recap disposition axis and capability registry consistency updates (commits: 4) [Status: In Progress]', 'FR-692: world-pressure agent, gates, and capability renumbering (commits: 3) [Status: Enforced]', 'FR-700: timeframe recap example/demo work (commits: 3) [Status: Completed]', 'FR-691: plot threads throughlines, latent mining, and story extract pipeline (commits: 7) [Status: Enforced ✅ (RED `4d9873fd` → GREEN `08549508` → pipeline `feat(examples): FR-691 wire story_extract pipeline`; 1a/1b diff read below)]', 'FR-699: chaplain graph compile witness (commits: 1) [Status: ENFORCED]', 'FR-698: executor-neutral worktree tooling (commits: 1) [Status: Implemented]', 'FR-690: event sequence field (commits: 1) [Status: Enforced ✅ (RED `b7b7adf9` → GREEN; commit history is the proof trail)]'], 'orphans': ['7076828f|2026-07-07|docs(diary): the miner who only finds what it can close', '2622afc1|2026-07-07|chore(chaplain): consume finalized topics, record inquisitor audits 256-258', '3c93463a|2026-07-07|docs(diary): the inquisitor prescribes without judgement - PR 458 autoimmune event', '1ed5b8b6|2026-07-07|fix(chaplain): graph-root-relative tool paths in enforce-session and philosopher graphs', 'b17a8b5e|2026-07-07|docs(process): why manual ops dominate - latency, task-shape mismatch, transaction cost', '2b265793|2026-07-07|docs(process): reality check - manual plan-judge-enforce loop dominates (83% direct commits)', 'caf14330|2026-07-07|docs(diary): the scribe bypasses the scripture - process overview reflection', '56230029|2026-07-07|docs(process): add development process self-reflection overview'], 'hotspots': ['ARCHITECTURE.md', 'feature-requests/FR-702-recap-disposition-axis.md', 'examples/novel_fandom/nodes/world_pressure_gates.py', 'examples/novel_fandom/nodes/persist_story.py', 'examples/novel_fandom/nodes/thread_gates.py', 'examples/novel_fandom/prompts/reconcile_threads.yaml', 'examples/novel_fandom/story/threads_1a.yaml', 'examples/novel_fandom/story/thread/arnulf_reconciliation.yaml', 'examples/novel_fandom/story/thread/community_peace.yaml', 'examples/novel_fandom/story/thread/gunnar_peacetime_identity.yaml', 'examples/novel_fandom/story/thread/heidrun_legacy.yaml', 'examples/novel_fandom/story/thread/hilde_gunnar_feud.yaml', 'examples/novel_fandom/story/thread/ledge_survival.yaml', 'examples/novel_fandom/story/thread/migration_trust.yaml', 'examples/novel_fandom/story/thread/reinmar_departure.yaml', 'examples/novel_fandom/story/throughline/arnulf.yaml', 'examples/novel_fandom/story/throughline/gunnar.yaml', 'examples/novel_fandom/story/throughline/heidrun.yaml', 'examples/novel_fandom/story/throughline/hilde.yaml', 'examples/novel_fandom/story/throughline/reinmar.yaml', 'feature-requests/FR-691-plot-threads-throughlines.md', 'feature-requests/FR-698-executor-neutral-worktree-tooling.md', 'feature-requests/FR-700-timeframe-recap-example.md', 'feature-requests/FR-692-world-pressure-agent.md', 'changelog/unreleased/fr-691-plot-threads-throughlines.md', 'changelog/unreleased/fr-691-story-extract-pipeline.md', 'changelog/unreleased/fr-691-latent-mining-fix.md', 'changelog/unreleased/fr-692-world-pressure.md', 'changelog/unreleased/fr-700-recap-demo.md', 'capabilities/CAP-195-timeframe-recap-demo.yaml', 'capabilities/CAP-195-novel-fandom-world-pressure.yaml', 'capabilities/CAP-196-novel-fandom-world-pressure.yaml', 'capabilities/CAP-194-novel-fandom-plot-threads.yaml', 'capabilities/CAP-75-portable-chaplain.yaml', '.chaplain/graphs/philosopher/graph.yaml', '.chaplain/graphs/watcher-enforce/enforce-session.yaml', '.chaplain/lib/watcher/worktree_setup.sh', '.chaplain/lib/watcher/worktree_teardown.sh', 'scripts/copilot_instrument.sh', 'scripts/worktree.sh', 'scripts/wt', '.github/hooks/scripts/pre-command-guard.sh', 'docs/development-process.md', 'docs/diary/2026-07-07-the-scribe-bypasses-the-scripture.md', 'docs/diary/2026-07-07-git-report.md', 'docs/diary/2026-07-07-reflection-fr-698-worktree-tooling.md', 'docs/context/fr-698.md', 'examples/demos/recap/graph.yaml', 'examples/demos/recap/README.md', 'examples/demos/recap/demo-output.log', 'tests/unit/test_fr702_recap_disposition.py', 'tests/unit/test_fr692_world_pressure.py', 'tests/unit/test_fr691_thread_gates.py', 'tests/unit/test_recap_demo.py', 'tests/integration/test_recap_demo_integration.py', 'tests/unit/test_chaplain_graph_compile.py', 'tests/unit/test_branch_deny_guidance_worktree_lane.py', 'tests/unit/test_copilot_instrument_worktree_delegation_red.py', 'tests/unit/test_watcher_worktree_wrapper_red.py', 'tests/unit/test_worktree_cli_red.py', 'tests/integration/test_recap_demo_integration.py', 'tests/unit/test_recap_demo.py', 'tests/unit/test_fr692_world_pressure.py', 'tests/unit/test_fr691_thread_gates.py', 'tests/unit/test_branch_deny_guidance_worktree_lane.py', '.github/hooks/tests/test_pre_command_guard.py', 'examples/demos/tests/test_demos.py', 'examples/novel_fandom/schema/canon.py', 'examples/novel_fandom/schema/story.py', 'examples/novel_fandom/prompts/world_pressure_agent.yaml', 'examples/novel_fandom/prompts/threads_from_synopsis.yaml', 'examples/novel_fandom/prompts/throughlines.yaml', 'examples/novel_fandom/prompts/reconcile_threads.yaml', 'examples/novel_fandom/nodes/thread_gates.py', 'examples/novel_fandom/nodes/persist_story.py', 'examples/novel_fandom/nodes/world_pressure_gates.py', 'examples/novel_fandom/story_extract.yaml', 'examples/novel_fandom/story/throughline/arnulf.yaml', 'examples/novel_fandom/story/throughline/gunnar.yaml', 'examples/novel_fandom/story/throughline/heidrun.yaml', 'examples/novel_fandom/story/throughline/hilde.yaml', 'examples/novel_fandom/story/throughline/reinmar.yaml', 'examples/novel_fandom/story/thread/arnulf_reconciliation.yaml', 'examples/novel_fandom/story/thread/community_peace.yaml', 'examples/novel_fandom/story/thread/gunnar_peacetime_identity.yaml', 'examples/novel_fandom/story/thread/heidrun_legacy.yaml', 'examples/novel_fandom/story/thread/hilde_gunnar_feud.yaml', 'examples/novel_fandom/story/thread/ledge_survival.yaml', 'examples/novel_fandom/story/thread/migration_trust.yaml', 'examples/novel_fandom/story/thread/reinmar_departure.yaml', 'examples/novel_fandom/story/thread/youth_resentment.yaml', 'examples/novel_fandom/world_pressure.yaml', 'examples/novel_fandom/canon/character/gunnar.yaml', 'examples/novel_fandom/canon/character/hilde.yaml', 'examples/novel_fandom/canon/event/arnulf_confrontation.yaml', 'examples/novel_fandom/canon/event/arnulf_release.yaml', 'examples/novel_fandom/canon/event/arnulf_returns.yaml', 'examples/novel_fandom/canon/event/arnulf_swept.yaml', 'examples/novel_fandom/canon/event/bear_kill.yaml', 'examples/novel_fandom/canon/event/bonding_rite.yaml', 'examples/novel_fandom/canon/event/clan_divide.yaml', 'examples/novel_fandom/canon/event/dawn_raid.yaml', 'examples/novel_fandom/canon/event/deer_recovery.yaml', 'examples/novel_fandom/canon/event/feud_start.yaml', 'examples/novel_fandom/canon/event/great_flood.yaml', 'examples/novel_fandom/canon/event/heidrun_calls_gathering.yaml', 'examples/novel_fandom/canon/event/heidrun_dies.yaml', 'examples/novel_fandom/canon/event/heidrun_speech.yaml', 'examples/novel_fandom/canon/event/high_valley_arrival.yaml', 'examples/novel_fandom/canon/event/journey_high_valley.yaml', 'examples/novel_fandom/canon/event/ledge_escape.yaml', 'examples/novel_fandom/canon/event/ledge_stranding.yaml', 'examples/novel_fandom/canon/event/reinmar_arrives.yaml', 'examples/novel_fandom/canon/event/reinmar_departs.yaml', 'examples/novel_fandom/canon/event/reinthilde_birth.yaml', 'examples/novel_fandom/canon/event/second_camp_split.yaml']}
+  recap: {'workstreams': ['FR-703: recap status join post-pass for demos, with deterministic join behavior and status tests/docs (commits: 3) [Status: In Progress]', 'FR-702: recap disposition axis and mechanized orphan partition for demos, with tests/docs/changelog support (commits: 4) [Status: Completed]', 'FR-701: capability registry consistency gate (commits: 1) [Status: Proposed]', 'FR-692: world-pressure capability renumbering and admission/reciprocity gates for examples (commits: 3) [Status: Enforced]', 'FR-700: timeframe recap example and demo structural updates (commits: 2) [Status: Completed]', 'FR-691: novel fandom latent thread mining and story extract/throughline pipeline updates (commits: 5) [Status: Enforced ✅ (RED `4d9873fd` → GREEN `08549508` → pipeline `feat(examples): FR-691 wire story_extract pipeline`; 1a/1b diff read below)]', 'FR-690: event sequence field backfill for novel fandom canon and feature request updates (commits: 2) [Status: Enforced ✅ (RED `b7b7adf9` → GREEN; commit history is the proof trail)]', 'FR-699: chaplain graph compile witness for path-doubling class (commits: 1) [Status: ENFORCED]', 'FR-698: executor-neutral worktree tooling and supporting docs/scripts (commits: 2) [Status: Implemented]'], 'orphans': ['7076828f|2026-07-07|docs(diary): the miner who only finds what it can close', '2622afc1|2026-07-07|chore(chaplain): consume finalized topics, record inquisitor audits 256-258', '3c93463a|2026-07-07|docs(diary): the inquisitor prescribes without judgement - PR 458 autoimmune event'], 'hotspots': ['examples/novel_fandom/story/thread/arnulf_reconciliation.yaml', 'examples/novel_fandom/story/thread/community_peace.yaml', 'examples/novel_fandom/story/thread/gunnar_peacetime_identity.yaml', 'examples/novel_fandom/story/thread/heidrun_legacy.yaml', 'examples/novel_fandom/story/thread/hilde_gunnar_feud.yaml', 'examples/novel_fandom/story/thread/ledge_survival.yaml', 'examples/novel_fandom/story/thread/migration_trust.yaml', 'examples/novel_fandom/story/thread/reinmar_departure.yaml', 'examples/novel_fandom/story/threads_1a.yaml', 'examples/novel_fandom/story/throughline/arnulf.yaml', 'examples/novel_fandom/story/throughline/gunnar.yaml', 'examples/novel_fandom/story/throughline/heidrun.yaml', 'examples/novel_fandom/story/throughline/hilde.yaml', 'examples/novel_fandom/story/throughline/reinmar.yaml', 'examples/demos/recap/graph.yaml', 'examples/demos/recap/README.md', 'examples/demos/recap/demo-output.log', 'ARCHITECTURE.md', 'examples/novel_fandom/nodes/persist_story.py', 'examples/novel_fandom/nodes/thread_gates.py', 'examples/novel_fandom/nodes/world_pressure_gates.py', 'tests/unit/test_fr691_thread_gates.py', 'tests/unit/test_recap_demo.py', 'tests/integration/test_recap_demo_integration.py', 'tests/unit/test_fr692_world_pressure.py', 'tests/unit/test_fr702_recap_disposition.py']}

@@ -88,8 +88,8 @@ class TestWorkstreamJoin:
 
     @pytest.mark.req("REQ-YG-535")
     def test_lowercase_id_joins(self) -> None:
-        """docs(fr-346) style lowercase ids join (IGNORECASE)."""
-        result = _attach({"workstreams": ["fr-346 follow-ups"]}, FIELD_STATUS_LINE)
+        """docs(nc-346) style lowercase ids join (IGNORECASE)."""
+        result = _attach({"workstreams": ["nc-346 follow-ups"]}, FIELD_STATUS_LINE)
         (line,) = result["recap"]["workstreams"]
         assert "ENFORCED" in line
 

@@ -105,7 +105,7 @@ class TestRecapGraphStructure:
 
     @pytest.mark.req("REQ-YG-531")
     def test_edge_flow(self) -> None:
-        """START → tool chain → partition → synthesize → END (FR-702 topology)."""
+        """START → tool chain → partition → synthesize → attach_statuses → END."""
         from yamlgraph.graph_loader import load_graph_config
 
         config = load_graph_config(GRAPH_PATH)
@@ -113,7 +113,8 @@ class TestRecapGraphStructure:
         assert ("START", "get_commits") in edge_pairs
         assert ("get_fr_statuses", "partition") in edge_pairs
         assert ("partition", "synthesize") in edge_pairs
-        assert ("synthesize", "END") in edge_pairs
+        assert ("synthesize", "attach_statuses") in edge_pairs
+        assert ("attach_statuses", "END") in edge_pairs
 
 
 class TestRecapFailsLoudly:

@@ -53,6 +53,6 @@ the raw `fr_changes`/`fragments` state keys stay available for downstream code.
 ## Teaching points
 
 1. `type: tool` nodes for deterministic collection — no LLM in the loop until judgement is actually needed.
-2. Mechanizable work is split by kind (FR-702): file-*path* partitioning and truncation/convention notices live in Jinja2 in the prompt template; commit-*reference* detection needs a regex, so it is a `type: python` pre-pass ([nodes/partition.py](nodes/partition.py)) — the model can never mis-flag a referenced commit as an orphan.
-3. Disposition is collected, never inferred: a `git grep` tool reads verbatim FR `Status:` lines at HEAD; the model copies them. Its exit-1 ("no matches") is normalized at the boundary while real errors still fail loudly.
-4. Inline schema keeps serialization out of the model's job: lists only, Pydantic-validated.
+2. Mechanizable work is split by kind: file-*path* partitioning and truncation/convention notices live in Jinja2 in the prompt template; commit-*reference* detection (FR-702) and the id→status join (FR-703) are `type: python` passes around the LLM node ([nodes/partition.py](nodes/partition.py)) — the model can neither mis-flag a referenced commit as an orphan nor drop a status join.
+3. Disposition is collected and joined by code, never by the model: a `git grep` tool reads verbatim FR `Status:` lines at HEAD; a post-pass appends `[Status: …]` per id (per-id tags when a merged workstream's statuses differ). Its exit-1 ("no matches") is normalized at the boundary while real errors still fail loudly.
+4. Inline schema keeps serialization out of the model's job: lists only, Pydantic-validated. The prompt's only formatting demand: name FR ids in full, never shorthand — so downstream arithmetic is never starved.
