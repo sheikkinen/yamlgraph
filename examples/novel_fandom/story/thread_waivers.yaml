@@ -1,0 +1,27 @@
+# FR-693: Deliberate latent-thread omissions (waivers).
+#
+# The exit gate is *zero unwaived latents*, not zero latents. Some threads mined
+# by FR-691 are texture — thematic undertones that colour the book without
+# demanding a raise/release event pair. Forcing events for them would invent
+# content nobody wants (`growth_as_default`). Each waiver names a live thread,
+# an honest reason, and the decider. The waiver-integrity gate ref_checks
+# `thread` against the current thread set.
+waivers:
+  - thread: gunnar_peacetime_identity
+    reason: >-
+      Character throughline, not a plot event. Gunnar's fear of being useful
+      only as a fighter is dramatized continuously through his scenes in the
+      truce era; it resolves as tone across the arc, not at a datable event.
+    decided_by: chaplain
+  - thread: heidrun_legacy
+    reason: >-
+      Thematic undertone (cultural memory) carried by Heidrun's presence and
+      the songs she keeps. It is texture that suffuses the setting rather than a
+      thread that raises and releases at specific events.
+    decided_by: chaplain
+  - thread: youth_resentment
+    reason: >-
+      Ambient social pressure, deliberately left simmering. Closing it with a
+      raise/release pair would over-resolve a tension the book keeps unresolved
+      as a reminder that the peace remains fragile.
+    decided_by: chaplain

@@ -1,0 +1,118 @@
+# Novel Fandom — Event Revision (FR-693)
+# Close latent plot threads by ADDING events (raise + release), or leave them as
+# documented waivers in story/thread_waivers.yaml. Additive-only: pre-existing
+# event files stay byte-identical (nodes/event_revision_gates.py::check_byte_identity,
+# unit-tested). The exit gate is *zero unwaived latents* and zero dangling
+# waivers, proven deterministically by gate_event_revision on the persisted
+# story + waiver files.
+#
+# Flow:
+#   reload → load_revision_context → event_revision agent (create_event)
+#          → reload_after → gate_event_revision → END
+#
+# Usage:
+#   yamlgraph graph run examples/novel_fandom/event_revision.yaml --full
+
+version: "1.0"
+name: novel-fandom-event-revision
+description: Close latent threads by adding events (additive) or waiving them
+prompts_relative: true
+prompts_dir: prompts
+
+state:
+  canon_pages: dict
+  canon_count: int
+  synopsis_text: str
+  revision_threads: list
+  revision_waivers: list
+  thread_ids: list
+  thread_digest: str
+  event_revision_result: dict
+  gate_result: dict
+
+tools:
+  reload_canon:
+    type: python
+    path: nodes/reload_canon.py
+    function: reload_canon
+    description: "Reload all canon pages from disk into state."
+  load_revision_context:
+    type: python
+    path: nodes/event_revision_gates.py
+    function: load_revision_context
+    description: "Load latent threads + waivers and build the deficit digest."
+  lookup_canon_page:
+    type: python
+    path: nodes/canon_tools.py
+    function: lookup_canon_page
+    description: "Look up a canon entity by ID. Returns full YAML."
+  list_canon_ids:
+    type: python
+    path: nodes/canon_tools.py
+    function: list_canon_ids
+    description: "List all entity IDs in the canon with their types."
+  create_event:
+    type: graph
+    path: create_event.yaml
+    description: "Create an event. Args: id, year (int), scope (world/regional/local), participants (comma-sep IDs), consequences, summary, sequence (int, total-order value)."
+    input_mapping:
+      id: id
+      year: year
+      scope: scope
+      participants: participants
+      consequences: consequences
+      summary: summary
+      sequence: sequence
+    output_key: result
+  gate_event_revision:
+    type: python
+    path: nodes/event_revision_gates.py
+    function: gate_event_revision
+
+nodes:
+  reload:
+    type: python
+    tool: reload_canon
+
+  load_revision_context:
+    type: python
+    tool: load_revision_context
+
+  event_revision:
+    type: agent
+    prompt: event_revision_agent
+    tools:
+      - lookup_canon_page
+      - list_canon_ids
+      - create_event
+    max_iterations: 60
+    state_key: event_revision_result
+    temperature: 0.7
+
+  reload_after:
+    type: python
+    tool: reload_canon
+
+  load_revision_context_after:
+    type: python
+    tool: load_revision_context
+
+  gate_event_revision:
+    type: python
+    tool: gate_event_revision
+
+edges:
+  - from: START
+    to: reload
+  - from: reload
+    to: load_revision_context
+  - from: load_revision_context
+    to: event_revision
+  - from: event_revision
+    to: reload_after
+  - from: reload_after
+    to: load_revision_context_after
+  - from: load_revision_context_after
+    to: gate_event_revision
+  - from: gate_event_revision
+    to: END

@@ -19,6 +19,7 @@ state:
   consequences: str
   summary: str
   affected_locations: str
+  sequence: str
   dedup_refused: str
   persisted_page: dict
   result: str

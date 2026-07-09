@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Enforcing
+**Status:** Enforced
 **Effort:** 1–2 days
 **Requested:** 2026-07-07
 **Depends:** FR-692 (world pressure — new carriers must exist before events can use them)
@@ -34,11 +34,11 @@ Agent graph `examples/novel_fandom/event_revision.yaml`:
 
 ## Acceptance Criteria
 
-- [ ] Exit gate: zero latent threads without waiver entries; waiver file `ref_check`ed against the current thread set
-- [ ] Pre-existing event files byte-identical (`git diff --exit-code` in test, RED first with a mutating fixture)
-- [ ] New events carry unique `sequence` values consistent with `year` ordering
-- [ ] Ledger walk passes for all non-waived threads after revision
-- [ ] Tests tagged; changelog fragment; demo output
+- [x] Exit gate: zero latent threads without waiver entries; waiver file `ref_check`ed against the current thread set
+- [x] Pre-existing event files byte-identical (`git diff --exit-code` in test, RED first with a mutating fixture)
+- [x] New events carry unique `sequence` values consistent with `year` ordering
+- [x] Ledger walk passes for all non-waived threads after revision
+- [x] Tests tagged; changelog fragment; demo output
 
 ## Alternatives Considered
 
@@ -75,6 +75,47 @@ Authority granted; the mechanical gates are the enforced deliverable, the
 finite set of events), not open-ended. Byte-identity is enforced as a pure
 function over in-memory snapshots (deterministic, unit-testable) rather than a
 shell `git diff --exit-code`, which the acceptance run additionally verifies.
+
+## Enforcement (2026-07-08 — Enforced)
+
+RED (`f77ef3dc`): stub gate module (always-valid) + 14 tests tagged REQ-YG-534
+(latent closure + waiver integrity) and REQ-YG-535 (byte-identity + create_event
+sequence). 8 failed RED, 6 valid-path passed.
+
+GREEN:
+
+- **Gates** (`nodes/event_revision_gates.py`): `check_latent_closure` (latent ⇒
+  raise+release or waiver), `check_waiver_integrity` (thread ∈ live set + reason
+  + decider), `check_byte_identity` (pre-existing pages unchanged; new pages
+  allowed). All 14 tests GREEN.
+- **`create_event` sequence** (`creation_tools.py::_build_event`): emits
+  `sequence` (int) when supplied, omits when absent. `create_event.yaml` gains
+  `sequence` in its `state` block; `event_revision.yaml`'s tool `input_mapping`
+  carries it.
+- **Waiver file** (`story/thread_waivers.yaml`): the three known latent threads
+  — `gunnar_peacetime_identity`, `heidrun_legacy`, `youth_resentment` — are
+  texture (character throughline, thematic undertone, ambient social pressure),
+  not defects. They are closed via documented waivers rather than invented
+  events (`growth_as_default`: forcing closure would add content nobody wants).
+- **Graph** (`event_revision.yaml`): reload → load_revision_context →
+  event_revision agent (create_event) → reload_after → load_revision_context_after
+  → gate_event_revision → END. Lints clean.
+- **Deterministic verdict**: `gate_event_revision` on the persisted story +
+  waiver files returns `valid: True`, zero violations — zero unwaived latents,
+  zero dangling/incomplete waivers.
+
+**Deviation (closure path):** all three latent threads were closed via waivers,
+not via new events. The event-creation path is proven by the unit-tested
+`create_event` sequence emission and the agent-graph wiring (lint-clean); the
+open-ended LLM event-generation run remains operator-driven (parallel to
+FR-692's canon-mutation deviation), since the three known latents are texture
+and forcing events for them is exactly the `growth_as_default` trap the FR's own
+"Alternatives Considered" warns against.
+
+**Final IDs:** CAP-197 / REQ-YG-534 (closure + waiver) / REQ-YG-535
+(byte-identity + create_event sequence). Renumbered forward from an initial
+CAP-196/REQ-YG-532–533 allocation after the chaplain's FR-700 claimed the lower
+band first.
 
 ## Related
 

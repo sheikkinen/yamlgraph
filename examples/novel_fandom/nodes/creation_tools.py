@@ -161,7 +161,7 @@ def _build_event(state: dict) -> dict:
         raise ValueError(
             f"invalid scope '{scope}'. Must be: {', '.join(sorted(_VALID_SCOPES))}"
         )
-    return {
+    page = {
         "type": "event",
         "id": state["id"],
         "lane": "dynamic",
@@ -173,6 +173,10 @@ def _build_event(state: dict) -> dict:
         "affected_locations": _parse_csv(state.get("affected_locations", "")),
         "window": state.get("summary", ""),
     }
+    seq = state.get("sequence")
+    if seq is not None and str(seq).strip() != "":
+        page["sequence"] = int(seq)
+    return page
 
 
 def _build_faction(state: dict) -> dict:
