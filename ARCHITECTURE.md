@@ -511,7 +511,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 194 | CAP-194 Novel Fandom Plot Threads and Throughlines | `examples` | REQ-YG-530 |
 | 195 | CAP-195 Timeframe Recap Demo | `examples` | REQ-YG-531, 534 – 536 |
 | 196 | CAP-196 Novel Fandom World Pressure | `examples` | REQ-YG-532 – 533 |
-| 197 | CAP-197 Novel Fandom Event Revision | `examples` | REQ-YG-534 – 535 |
+| 197 | CAP-197 Novel Fandom Event Revision | `examples` | REQ-YG-537 – 538 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -2449,8 +2449,8 @@ Latent-thread closure layer for the novel_fandom example: an additive pass that 
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
-| REQ-YG-534 | Latent-thread closure and waiver integrity. Every thread with status=latent must carry a non-empty raises AND releases list, or its id must appear in the waiver set — the exit condition is zero unwaived latents, not zero latents. Each waiver must name a live thread id (ref check against the current thread set) and carry a non-empty reason and decided_by; dangling or under-documented waivers are violations. Non-latent threads are ignored. Pure functions returning {valid, violations}. | `examples` |
-| REQ-YG-535 | Additive event revision. The create_event tool emits an optional `sequence` field when supplied (int total order, FR-690) and omits it otherwise so genesis/worldgen creates keep validating. A byte-identity gate over pre-existing event-file snapshots ({id: bytes} before/after) flags any pre-existing file whose bytes changed or that vanished; new files are permitted (revision is additive-only). Pure functions returning {valid, violations}. | `examples` |
+| REQ-YG-537 | Latent-thread closure and waiver integrity. Every thread with status=latent must carry a non-empty raises AND releases list, or its id must appear in the waiver set — the exit condition is zero unwaived latents, not zero latents. Each waiver must name a live thread id (ref check against the current thread set) and carry a non-empty reason and decided_by; dangling or under-documented waivers are violations. Non-latent threads are ignored. Pure functions returning {valid, violations}. | `examples` |
+| REQ-YG-538 | Additive event revision. The create_event tool emits an optional `sequence` field when supplied (int total order, FR-690) and omits it otherwise so genesis/worldgen creates keep validating. A byte-identity gate over pre-existing event-file snapshots ({id: bytes} before/after) flags any pre-existing file whose bytes changed or that vanished; new files are permitted (revision is additive-only). Pure functions returning {valid, violations}. | `examples` |
 
 <!-- END GENERATED CAPABILITIES -->
 

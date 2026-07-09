@@ -1,4 +1,4 @@
-"""FR-693: Event-revision closure, waiver, byte-identity gates (REQ-YG-534/535).
+"""FR-693: Event-revision closure, waiver, byte-identity gates (REQ-YG-537/538).
 
 The event-revision pass closes latent threads by adding events (additive only)
 or waives them. Three pure gates plus a `create_event` change that teaches the
@@ -64,7 +64,7 @@ def _waiver(
 # ----------------------------------------------------- latent closure (RED)
 
 
-@pytest.mark.req("REQ-YG-534")
+@pytest.mark.req("REQ-YG-537")
 def test_closure_rejects_latent_without_events_or_waiver() -> None:
     threads = [_thread("heidrun_legacy", "latent", [], [])]
     result = check_latent_closure(threads, waivers=[])
@@ -72,14 +72,14 @@ def test_closure_rejects_latent_without_events_or_waiver() -> None:
     assert any("heidrun_legacy" in v for v in result["violations"])
 
 
-@pytest.mark.req("REQ-YG-534")
+@pytest.mark.req("REQ-YG-537")
 def test_closure_rejects_latent_with_raise_but_no_release() -> None:
     threads = [_thread("youth_resentment", "latent", ["young_men_meet"], [])]
     result = check_latent_closure(threads, waivers=[])
     assert result["valid"] is False
 
 
-@pytest.mark.req("REQ-YG-534")
+@pytest.mark.req("REQ-YG-537")
 def test_closure_accepts_latent_with_raise_and_release() -> None:
     threads = [
         _thread("youth_resentment", "latent", ["men_meet"], ["men_settle"]),
@@ -88,14 +88,14 @@ def test_closure_accepts_latent_with_raise_and_release() -> None:
     assert result["valid"] is True
 
 
-@pytest.mark.req("REQ-YG-534")
+@pytest.mark.req("REQ-YG-537")
 def test_closure_accepts_waived_latent() -> None:
     threads = [_thread("heidrun_legacy", "latent", [], [])]
     result = check_latent_closure(threads, waivers=[_waiver("heidrun_legacy")])
     assert result["valid"] is True
 
 
-@pytest.mark.req("REQ-YG-534")
+@pytest.mark.req("REQ-YG-537")
 def test_closure_ignores_non_latent_threads() -> None:
     threads = [_thread("hilde_gunnar_feud", "released", ["a"], ["b"])]
     result = check_latent_closure(threads, waivers=[])
@@ -105,7 +105,7 @@ def test_closure_ignores_non_latent_threads() -> None:
 # ---------------------------------------------------- waiver integrity (RED)
 
 
-@pytest.mark.req("REQ-YG-534")
+@pytest.mark.req("REQ-YG-537")
 def test_waiver_rejects_dangling_thread_id() -> None:
     waivers = [_waiver("ghost_thread")]
     result = check_waiver_integrity(waivers, {"heidrun_legacy"})
@@ -113,21 +113,21 @@ def test_waiver_rejects_dangling_thread_id() -> None:
     assert any("ghost_thread" in v for v in result["violations"])
 
 
-@pytest.mark.req("REQ-YG-534")
+@pytest.mark.req("REQ-YG-537")
 def test_waiver_rejects_missing_reason() -> None:
     waivers = [{"thread": "heidrun_legacy", "reason": "", "decided_by": "x"}]
     result = check_waiver_integrity(waivers, {"heidrun_legacy"})
     assert result["valid"] is False
 
 
-@pytest.mark.req("REQ-YG-534")
+@pytest.mark.req("REQ-YG-537")
 def test_waiver_rejects_missing_decider() -> None:
     waivers = [{"thread": "heidrun_legacy", "reason": "texture", "decided_by": ""}]
     result = check_waiver_integrity(waivers, {"heidrun_legacy"})
     assert result["valid"] is False
 
 
-@pytest.mark.req("REQ-YG-534")
+@pytest.mark.req("REQ-YG-537")
 def test_waiver_accepts_valid_waiver() -> None:
     waivers = [_waiver("heidrun_legacy")]
     result = check_waiver_integrity(waivers, {"heidrun_legacy"})
@@ -137,7 +137,7 @@ def test_waiver_accepts_valid_waiver() -> None:
 # ----------------------------------------------------- byte identity (RED)
 
 
-@pytest.mark.req("REQ-YG-535")
+@pytest.mark.req("REQ-YG-538")
 def test_byte_identity_rejects_mutated_preexisting_file() -> None:
     before = {"reinthilde_birth": b"summary: original\n"}
     after = {"reinthilde_birth": b"summary: TAMPERED\n"}
@@ -146,7 +146,7 @@ def test_byte_identity_rejects_mutated_preexisting_file() -> None:
     assert any("reinthilde_birth" in v for v in result["violations"])
 
 
-@pytest.mark.req("REQ-YG-535")
+@pytest.mark.req("REQ-YG-538")
 def test_byte_identity_rejects_deleted_preexisting_file() -> None:
     before = {"reinthilde_birth": b"x"}
     after: dict[str, bytes] = {}
@@ -154,7 +154,7 @@ def test_byte_identity_rejects_deleted_preexisting_file() -> None:
     assert result["valid"] is False
 
 
-@pytest.mark.req("REQ-YG-535")
+@pytest.mark.req("REQ-YG-538")
 def test_byte_identity_allows_new_files() -> None:
     before = {"reinthilde_birth": b"x"}
     after = {"reinthilde_birth": b"x", "heidrun_passing": b"new\n"}
@@ -165,13 +165,13 @@ def test_byte_identity_allows_new_files() -> None:
 # --------------------------------------- create_event sequence emission (RED)
 
 
-@pytest.mark.req("REQ-YG-535")
+@pytest.mark.req("REQ-YG-538")
 def test_build_event_emits_sequence_when_supplied() -> None:
     page = _build_event({"id": "heidrun_passing", "year": 5, "sequence": 305})
     assert page.get("sequence") == 305
 
 
-@pytest.mark.req("REQ-YG-535")
+@pytest.mark.req("REQ-YG-538")
 def test_build_event_omits_sequence_when_absent() -> None:
     """Genesis/worldgen creates omit sequence — the page must still validate."""
     page = _build_event({"id": "some_event", "year": 0})

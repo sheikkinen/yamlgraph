@@ -1,4 +1,4 @@
-"""FR-693: Event-revision closure, waiver, and byte-identity gates (REQ-YG-534/535).
+"""FR-693: Event-revision closure, waiver, and byte-identity gates (REQ-YG-537/538).
 
 The event-revision pass closes latent threads by adding events (additive only)
 or documents a deliberate omission in a waiver file. Three pure mechanical

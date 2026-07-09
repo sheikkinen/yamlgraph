@@ -14,7 +14,7 @@ description: >
 modules:
   - examples
 requirements:
-  - id: REQ-YG-534
+  - id: REQ-YG-537
     description: >
       Latent-thread closure and waiver integrity. Every thread with
       status=latent must carry a non-empty raises AND releases list, or its id
@@ -26,7 +26,7 @@ requirements:
       {valid, violations}.
     modules:
       - examples
-  - id: REQ-YG-535
+  - id: REQ-YG-538
     description: >
       Additive event revision. The create_event tool emits an optional
       `sequence` field when supplied (int total order, FR-690) and omits it

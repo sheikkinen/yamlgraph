@@ -8,7 +8,7 @@
 **Depends:** FR-692 (world pressure — new carriers must exist before events can use them)
 **Plan:** docs/plan-novel-fandom-story-pipeline.md (Phase 4 of 7)
 **Capability:** CAP-197 (novel-fandom-event-revision)
-**Requirements:** REQ-YG-534 (latent-closure + waiver ref gate), REQ-YG-535 (create_event sequence emission + byte-identity gate)
+**Requirements:** REQ-YG-537 (latent-closure + waiver ref gate), REQ-YG-538 (create_event sequence emission + byte-identity gate)
 
 ## Summary
 
@@ -78,8 +78,8 @@ shell `git diff --exit-code`, which the acceptance run additionally verifies.
 
 ## Enforcement (2026-07-08 — Enforced)
 
-RED (`f77ef3dc`): stub gate module (always-valid) + 14 tests tagged REQ-YG-534
-(latent closure + waiver integrity) and REQ-YG-535 (byte-identity + create_event
+RED (`f77ef3dc`): stub gate module (always-valid) + 14 tests tagged REQ-YG-537
+(latent closure + waiver integrity) and REQ-YG-538 (byte-identity + create_event
 sequence). 8 failed RED, 6 valid-path passed.
 
 GREEN:
@@ -112,7 +112,7 @@ FR-692's canon-mutation deviation), since the three known latents are texture
 and forcing events for them is exactly the `growth_as_default` trap the FR's own
 "Alternatives Considered" warns against.
 
-**Final IDs:** CAP-197 / REQ-YG-534 (closure + waiver) / REQ-YG-535
+**Final IDs:** CAP-197 / REQ-YG-537 (closure + waiver) / REQ-YG-538
 (byte-identity + create_event sequence). Renumbered forward from an initial
 CAP-196/REQ-YG-532–533 allocation after the chaplain's FR-700 claimed the lower
 band first.
