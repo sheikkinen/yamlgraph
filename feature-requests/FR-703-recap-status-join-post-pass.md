@@ -2,9 +2,10 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Proposed
+**Status:** Judged
 **Effort:** 0.5 days
 **Requested:** 2026-07-09
+**Judged:** 2026-07-09 — scope frozen. 4 findings resolved (see Judgement section).
 **Parent:** FR-702 (recap disposition axis)
 
 ## Summary
@@ -32,14 +33,20 @@ New function in the existing [partition module](../examples/demos/recap/nodes/pa
 ```python
 def attach_statuses(state):
     """Append [Status: ...] to each workstream line deterministically."""
+    # 0. Normalize recap at the boundary: accept dict OR Pydantic model
+    #    (model_dump) — the seam is ambiguous today (F2).
     # 1. Parse fr_statuses lines: 'HEAD:feature-requests/NC-346-x.md:**Status:** ENFORCED ...'
-    #    -> {'NC-346': 'ENFORCED ...'}  (strip path, strip '**Status:**', strip markdown bold)
-    # 2. For each recap.workstreams line: first (FR|NC)-[0-9]+ (IGNORECASE) -> lookup.
-    #    Append '[Status: <trimmed>]' or '[no FR status]'.
-    # 3. Return {"recap": updated}  (schema shape unchanged)
+    #    -> {'NC-346': 'ENFORCED ...'}  (strip path, strip '**Status:**', strip
+    #    markdown bold). Duplicate id: first line wins (F3).
+    # 2. For each recap.workstreams line: finditer ALL (FR|NC)-[0-9]+ ids
+    #    (IGNORECASE, F1). All found ids share one trimmed status -> single
+    #    '[Status: <s>]'. Distinct statuses -> per-id tags
+    #    '[Status: NC-341 ENFORCED; NC-342 Proposed]'. No ids in map ->
+    #    '[no FR status]'. No ids in line -> untouched.
+    # 3. Return {"recap": updated_dict}  (schema shape unchanged)
 ```
 
-- **Prompt sheds the join**: the disposition rule and `[no FR status]` instruction are removed from `recap.yaml`; `fr_statuses` leaves the synthesize inputs entirely. The model's abstraction span shrinks (grouping only) — the FR-702 W026 posture improves further.
+- **Prompt sheds the join** but gains one *formatting* bound (F1): every workstream line must name each FR id in full (`NC-341 NC-342`), never ranges or shorthand (`NC-341..344`, `NC-280/281/287/339`) — output shape, not judgement; the field run's three shorthand lines are the fixtures proving why. The disposition rule and `[no FR status]` instruction are removed from `recap.yaml`; `fr_statuses` leaves the synthesize inputs entirely.
 - Join failure becomes impossible by construction; `[no FR status]` becomes verified absence (id not in map).
 - Trim rule fixes the double-prefix wart in the same pass.
 - Graph: `synthesize → attach_statuses → END`; `get_fr_statuses` stays (collection unchanged), its output re-routes from prompt input to post-pass input.
@@ -48,13 +55,30 @@ def attach_statuses(state):
 ## Acceptance Criteria
 
 - [ ] `attach_statuses` unit tests (LLM-free, RED first): verbatim field-line fixture parses to trimmed status; workstream with known id gains `[Status: …]`; unknown id gains `[no FR status]`; line without any id untouched; lowercase `fr-346` joins (IGNORECASE); empty `fr_statuses` map tags all workstreams `[no FR status]`
+- [ ] Multi-id workstream (F1): line naming NC-341 and NC-342 with equal statuses gets one tag; with distinct statuses gets per-id tags — fixtures include the verbatim field shorthand lines as condemning evidence for the formatting bound
+- [ ] Boundary normalization (F2): post-pass accepts `recap` as dict AND as Pydantic model — both unit-tested
+- [ ] Duplicate id in status map: first line wins, deterministic (F3)
 - [ ] The NC-346 join failure reproduced as a fixture and proven fixed: given the field run's status lines and a workstream line naming NC-346, the output carries `ENFORCED` — no model involved
-- [ ] `recap.yaml` prompt contains no status/disposition instructions; `fr_statuses` removed from synthesize variables (template-inspection test)
+- [ ] `recap.yaml` prompt contains no status/disposition instructions and does contain the full-id formatting bound; `fr_statuses` removed from synthesize variables (template-inspection test)
 - [ ] No double prefix: output contains `[Status: ENFORCED` not `[Status: **Status:**` (unit test on trim)
 - [ ] Existing integration test (Rejected surfaces verbatim) passes unchanged through the post-pass path
 - [ ] Still exactly one LLM node; W026 clean
+- [ ] README teaching points updated; demo-output.log regenerated from a real run (F4)
 - [ ] New REQ under CAP-195 — ID verified free against origin/main at enforce time
 - [ ] `req_coverage.py --strict` green; changelog fragment + diary entry
+
+## Judgement (2026-07-09)
+
+Scope frozen. Findings and resolutions:
+
+| # | Finding | Resolution |
+|---|---------|------------|
+| F1 | Multi-FR workstreams use shorthand (`NC-341..344`, `NC-280/281/287/339` — verbatim field lines); single-id join stamps a 4-FR stream with one FR's status | Prompt formatting bound: full ids only, never shorthand; post-pass joins ALL ids via finditer; per-id tags when statuses differ |
+| F2 | `recap` state shape dict-vs-model ambiguous (existing integration test already hedges) | Post-pass normalizes at its boundary; both shapes unit-tested |
+| F3 | Duplicate id in status map unspecified | First line wins, deterministic |
+| F4 | Demo artifacts not in criteria though behavior changes | README + demo-output.log regeneration added |
+
+**Out of scope (purge list):** status normalization/vocabulary mapping, multi-repo status sources, status history, retry/self-audit loops, changes to the fr_statuses collection command.
 
 ## Alternatives Considered
 
