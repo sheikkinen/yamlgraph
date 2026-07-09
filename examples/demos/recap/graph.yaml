@@ -5,8 +5,10 @@ prompts_relative: true
 prompts_dir: prompts
 
 state:
-  since: str       # e.g. "1 week ago", "yesterday", "2026-07-01"
-  repo_path: str   # path to any git repository, e.g. "."
+  since: str        # e.g. "1 week ago", "yesterday", "2026-07-01"
+  repo_path: str    # path to any git repository, e.g. "."
+  referenced: str   # FR-702: partition pre-pass output (commits with refs)
+  unreferenced: str # FR-702: partition pre-pass output (orphan candidates)
 
 tools:
   commits_since:
@@ -32,6 +34,18 @@ tools:
     command: "git -C {repo_path} log --since={since} --diff-filter=A --name-only --pretty=format: -- changelog/unreleased/"
     description: "Changelog fragments added in the window (empty if convention absent)."
     parse: text
+
+  fr_statuses:
+    type: shell
+    command: "git -C {repo_path} grep -H -m 1 -e '^\\*\\*Status' HEAD -- 'feature-requests/*.md' || [ $? -eq 1 ]"
+    description: "Verbatim FR Status lines at HEAD (FR-702). Exit 1 (no matches / no convention) is normalized to success at the boundary; exit >=2 (not a repo) fails loudly."
+    parse: text
+
+  partition_commits:
+    type: python
+    module: examples.demos.recap.nodes.partition
+    function: partition_commits
+    description: "Deterministic reference partition (FR-702): commits with (FR|NC)-N or #N anywhere in the subject -> referenced; rest -> unreferenced."
 
 nodes:
   get_commits:
@@ -66,16 +80,31 @@ nodes:
       repo_path: "{state.repo_path}"
       since: "{state.since}"
 
+  get_fr_statuses:
+    type: tool
+    tool: fr_statuses
+    state_key: fr_statuses
+    variables:
+      repo_path: "{state.repo_path}"
+
+  partition:
+    type: python
+    tool: partition_commits
+    requires: [commits]
+
   synthesize:
     type: llm
     prompt: recap
-    requires: [commits, churn, fr_changes, fragments]
+    requires: [commits, churn, fr_changes, fragments, fr_statuses, unreferenced]
     state_key: recap
     variables:
       commits: "{state.commits}"
       churn: "{state.churn}"
       fr_changes: "{state.fr_changes}"
       fragments: "{state.fragments}"
+      fr_statuses: "{state.fr_statuses}"
+      referenced: "{state.referenced}"
+      unreferenced: "{state.unreferenced}"
 
 edges:
   - from: START
@@ -87,6 +116,10 @@ edges:
   - from: get_frs
     to: get_fragments
   - from: get_fragments
+    to: get_fr_statuses
+  - from: get_fr_statuses
+    to: partition
+  - from: partition
     to: synthesize
   - from: synthesize
     to: END

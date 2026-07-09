@@ -25,8 +25,8 @@ yamlgraph graph run examples/demos/recap/graph.yaml \
 
 | Field | Meaning |
 |-------|---------|
-| `workstreams` | Commits grouped by FR reference or theme, with layer breakdown (code/graph/prompt/other) |
-| `orphans` | Reference-less commits; graph/prompt edits without changelog fragments |
+| `workstreams` | Commits grouped by FR reference or theme, each tagged with the **verbatim** FR `[Status: …]` at HEAD (or `[no FR status]`) |
+| `orphans` | Unreferenced commits (partitioned deterministically by code); graph/prompt edits without changelog fragments |
 | `hotspots` | Files touched by multiple workstreams |
 
 Convention absence (no `feature-requests/` / `changelog/unreleased/`) is
@@ -53,5 +53,6 @@ the raw `fr_changes`/`fragments` state keys stay available for downstream code.
 ## Teaching points
 
 1. `type: tool` nodes for deterministic collection — no LLM in the loop until judgement is actually needed.
-2. Jinja2 in the prompt template does the mechanizable work (file-kind partition, truncation notice, convention detection) so the model holds one judgement.
-3. Inline schema keeps serialization out of the model's job: lists + a bool, Pydantic-validated.
+2. Mechanizable work is split by kind (FR-702): file-*path* partitioning and truncation/convention notices live in Jinja2 in the prompt template; commit-*reference* detection needs a regex, so it is a `type: python` pre-pass ([nodes/partition.py](nodes/partition.py)) — the model can never mis-flag a referenced commit as an orphan.
+3. Disposition is collected, never inferred: a `git grep` tool reads verbatim FR `Status:` lines at HEAD; the model copies them. Its exit-1 ("no matches") is normalized at the boundary while real errors still fail loudly.
+4. Inline schema keeps serialization out of the model's job: lists only, Pydantic-validated.

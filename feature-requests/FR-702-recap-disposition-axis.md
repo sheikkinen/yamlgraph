@@ -2,10 +2,11 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** In Progress
+**Status:** Completed
 **Effort:** 0.5 days
 **Requested:** 2026-07-09
 **Judged:** 2026-07-09 — scope frozen. 6 findings resolved (see Judgement section).
+**Completed:** 2026-07-09 — RED ee792608, GREEN follows; one enforce deviation (IGNORECASE, see Judgement section note).
 **Parent:** FR-700 (timeframe recap example)
 
 ## Summary
@@ -75,6 +76,8 @@ Scope frozen. Findings and resolutions:
 | F4 | R2 left mechanism open (Jinja2 vs pre-pass) | Pinned: stock Jinja2 has no regex (verified) → `type: python` pre-pass node, demo-local, LLM-free-testable |
 | F5 | `fr_statuses` input unbounded | Accepted: one line per FR file; no cap; read_raw_output_first watches for flooding |
 | F6 | "REQ extended or new REQ" ambiguous + ID race risk | Pinned: new REQ under CAP-195, ID verified free against origin/main at enforce time |
+
+**Enforce deviation (2026-07-09, raw-output read):** the frozen pattern `(FR|NC)-[0-9]+|#[0-9]+` is case-sensitive; the first GREEN demo run shipped `a9a8bdec docs(fr-691): …` to orphans because conventional-commit scopes lowercase the ref. Pattern amended with `re.IGNORECASE` — same reference class, case-blind — with a condemning unit test added first. Exactly the false-positive family this FR exists to kill, caught by the same read_raw_output_first practice that motivated it.
 
 **Out of scope (purge list):** normalized disposition vocabulary, disposition as schema field, status history (only HEAD), non-FR conventions (GitHub issue states), retroactive FR-700 demo-output regeneration.
 

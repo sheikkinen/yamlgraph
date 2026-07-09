@@ -19,7 +19,7 @@ DEMO_DIR = (
     Path(__file__).resolve().parent.parent.parent / "examples" / "demos" / "recap"
 )
 
-TOOL_NODES = {"get_commits", "get_churn", "get_frs", "get_fragments"}
+TOOL_NODES = {"get_commits", "get_churn", "get_frs", "get_fragments", "get_fr_statuses"}
 
 
 class TestRecapGraphStructure:
@@ -60,10 +60,12 @@ class TestRecapGraphStructure:
 
     @pytest.mark.req("REQ-YG-531")
     def test_git_commands_are_portable(self) -> None:
-        """Every git tool uses -C {repo_path}; no reflog syntax; capped."""
+        """Every git shell tool uses -C {repo_path}; no reflog syntax; capped."""
         raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text())
-        commands = [t["command"] for t in raw["tools"].values()]
-        assert commands, "tools section must not be empty"
+        commands = [
+            t["command"] for t in raw["tools"].values() if t.get("type") == "shell"
+        ]
+        assert commands, "shell tools section must not be empty"
         for cmd in commands:
             assert "git -C {repo_path}" in cmd, f"not portable: {cmd}"
             assert "@{" not in cmd, f"reflog syntax forbidden: {cmd}"
@@ -72,10 +74,16 @@ class TestRecapGraphStructure:
 
     @pytest.mark.req("REQ-YG-531")
     def test_no_silent_fallback_in_commands(self) -> None:
-        """No '|| true' — non-repo must fail loudly (Commandment 6)."""
+        """No '|| true' — non-repo must fail loudly (Commandment 6).
+
+        FR-702's '|| [ $? -eq 1 ]' is boundary normalization, not a silent
+        fallback: exit >=2 (real error) still fails.
+        """
         raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text())
-        for cmd in (t["command"] for t in raw["tools"].values()):
-            assert "|| true" not in cmd, f"silent fallback: {cmd}"
+        for tool in raw["tools"].values():
+            if tool.get("type") != "shell":
+                continue
+            assert "|| true" not in tool["command"], f"silent fallback: {tool}"
 
     @pytest.mark.req("REQ-YG-531")
     def test_prompt_schema_frozen_fields(self) -> None:
@@ -97,13 +105,14 @@ class TestRecapGraphStructure:
 
     @pytest.mark.req("REQ-YG-531")
     def test_edge_flow(self) -> None:
-        """START → tool chain → synthesize → END."""
+        """START → tool chain → partition → synthesize → END (FR-702 topology)."""
         from yamlgraph.graph_loader import load_graph_config
 
         config = load_graph_config(GRAPH_PATH)
         edge_pairs = [(e["from"], e["to"]) for e in config.edges]
         assert ("START", "get_commits") in edge_pairs
-        assert ("get_fragments", "synthesize") in edge_pairs
+        assert ("get_fr_statuses", "partition") in edge_pairs
+        assert ("partition", "synthesize") in edge_pairs
         assert ("synthesize", "END") in edge_pairs
 
 

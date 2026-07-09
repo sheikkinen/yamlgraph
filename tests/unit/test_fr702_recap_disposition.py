@@ -171,6 +171,21 @@ class TestPartitionPrePass:
         assert "d4" not in result["referenced"]
 
     @pytest.mark.req("REQ-YG-534")
+    def test_lowercase_scoped_ref_is_referenced(self) -> None:
+        """a9a8bdec-class: lowercase 'fr-691' in commit scope must count.
+
+        Found by raw-output read of the first GREEN demo run: conventional
+        commit scopes lowercase the ref (docs(fr-691): ...) and the frozen
+        case-sensitive pattern shipped it to orphans.
+        """
+        from examples.demos.recap.nodes.partition import partition_commits
+
+        commits = "a9a8bdec|2026-07-07|docs(fr-691): mark Enforced, record verdict"
+        result = partition_commits({"commits": commits})
+        assert "a9a8bdec" in result["referenced"]
+        assert result["unreferenced"].strip() == ""
+
+    @pytest.mark.req("REQ-YG-534")
     def test_empty_input(self) -> None:
         """Empty commit list partitions to two empty strings, no error."""
         from examples.demos.recap.nodes.partition import partition_commits

@@ -8,10 +8,10 @@ schema:
   fields:
     workstreams:
       type: list[str]
-      description: "One line per workstream: '<FR-ref or theme>: <summary> (commits: N; layers: code/graph/prompt/other)'"
+      description: "One line per workstream: '<FR-ref or theme>: <summary> (commits: N) [Status: <verbatim status from input>]' — or '[no FR status]' when the input has no status line for that FR."
     orphans:
       type: list[str]
-      description: "Commits with no FR/issue reference, and graph/prompt file changes with no changelog fragment. Empty list if none. Quote commit hashes verbatim from the input."
+      description: "Copy of the UNREFERENCED commit lines, plus graph/prompt file changes with no changelog fragment. Empty list if none. Quote hashes verbatim."
     hotspots:
       type: list[str]
       description: "File paths touched by more than one workstream. Empty list if none."
@@ -19,15 +19,22 @@ schema:
 
 system: |
   You summarize git change inventories. You group commits into workstreams
-  and flag orphan changes. Rules:
-  - Use ONLY the commits and file paths given in the input. Never invent
-    commit hashes, FR references, or file paths.
+  and report orphan changes. Rules:
+  - Use ONLY the commits, file paths, and status lines given in the input.
+    Never invent commit hashes, FR references, file paths, or statuses.
   - A commit belongs to a workstream if its subject shares an FR/issue
     reference (FR-123, NC-123, #123) or an obvious common theme.
-  - An orphan is a commit whose subject has no FR/issue reference, or a
-    graph/prompt YAML change with no matching changelog fragment.
+  - Disposition: if the FR STATUSES input contains a status line for a
+    workstream's FR id, append it VERBATIM as '[Status: ...]'. Do NOT
+    infer, normalize, or translate statuses — copy the given text. If no
+    status line matches, append '[no FR status]'.
+  - The commit list is pre-partitioned by code: REFERENCED commits carry
+    a reference; UNREFERENCED commits do not. Your orphans list is the
+    UNREFERENCED lines copied verbatim, plus any graph/prompt YAML change
+    with no matching changelog fragment. Never move a REFERENCED commit
+    into orphans.
   - If the convention sections say none were detected, do NOT report
-    convention-based orphans — report only reference-less commits.
+    convention-based orphans — report only the UNREFERENCED lines.
   - Do not editorialize, rank, or recommend. Inventory and grouping only.
 
 user: |
@@ -37,7 +44,19 @@ user: |
   {% if commits.split('\n') | length >= 300 %}
   NOTE: commit list capped at 300 — the window is TRUNCATED; say so in a workstream line.
   {% endif %}
-  {{ commits }}
+
+  ### REFERENCED (carry an FR/NC/issue reference — partitioned by code, never orphans)
+  {{ referenced }}
+
+  ### UNREFERENCED (no reference — copy these verbatim into orphans)
+  {{ unreferenced }}
+
+  ## FR STATUSES (verbatim, at HEAD)
+  {% if fr_statuses.strip() %}
+  {{ fr_statuses }}
+  {% else %}
+  (No FR status lines detected — tag every workstream '[no FR status]'.)
+  {% endif %}
 
   {% set churn_lines = churn.split('\n') %}
   ## Code changes (.py — added/removed/path)
