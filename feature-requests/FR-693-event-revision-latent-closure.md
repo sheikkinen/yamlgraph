@@ -2,11 +2,13 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Proposed
+**Status:** Enforcing
 **Effort:** 1–2 days
 **Requested:** 2026-07-07
 **Depends:** FR-692 (world pressure — new carriers must exist before events can use them)
 **Plan:** docs/plan-novel-fandom-story-pipeline.md (Phase 4 of 7)
+**Capability:** CAP-197 (novel-fandom-event-revision)
+**Requirements:** REQ-YG-534 (latent-closure + waiver ref gate), REQ-YG-535 (create_event sequence emission + byte-identity gate)
 
 ## Summary
 
@@ -42,6 +44,37 @@ Agent graph `examples/novel_fandom/event_revision.yaml`:
 
 - **Rewrite existing events to add raises/releases** — violates canon-grows-never-changes; blame and revert become impossible.
 - **Force zero latents (no waivers)** — some latents are texture, not defects; forcing closure invents events nobody wants (`growth_as_default`).
+
+## Judgement (2026-07-08 — scope frozen)
+
+Authority granted; the mechanical gates are the enforced deliverable, the
+`event_revision` agent is wiring proven by a bounded acceptance run. Frozen scope:
+
+1. **`create_event` sequence emission** — `_build_event` in `creation_tools.py`
+   emits `sequence` (int, from state; omitted when absent) so revision events
+   carry a total-order value. `create_event.yaml` gains `sequence` in its
+   `state` block and the tool `input_mapping`. Scope inherited from FR-690.
+2. **Latent-closure gate** — pure `check_latent_closure(threads, waivers)` in
+   `nodes/event_revision_gates.py`: every `status == "latent"` thread must either
+   carry non-empty `raises` **and** `releases`, or appear in `waivers`. Exit
+   condition = zero unwaived latents.
+3. **Waiver integrity gate** — pure `check_waiver_integrity(waivers, thread_ids)`:
+   every waiver's `thread` ∈ current `thread_ids` (ref_check) and carries a
+   non-empty `reason` and `decided_by`. Dangling waivers are violations.
+4. **Byte-identity gate** — pure `check_byte_identity(before, after)` over
+   `{event_id: bytes}` snapshots: any pre-existing event file whose bytes
+   changed or that vanished is a violation (new files are allowed). Condemned
+   RED with a mutating fixture.
+5. **Waiver file** — `story/thread_waivers.yaml` records deliberate latents
+   (`thread`, `reason`, `decided_by`).
+6. **Agent graph** — `examples/novel_fandom/event_revision.yaml`; acceptance:
+   deficit latents closed via `create_event` or waived; FR-691 ledger walk
+   passes for every non-waived thread; pre-existing event files byte-identical.
+
+**Deviations:** the LLM event-generation run is bounded (deficit list drives a
+finite set of events), not open-ended. Byte-identity is enforced as a pure
+function over in-memory snapshots (deterministic, unit-testable) rather than a
+shell `git diff --exit-code`, which the acceptance run additionally verifies.
 
 ## Related
 
