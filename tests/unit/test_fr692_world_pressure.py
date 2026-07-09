@@ -1,4 +1,4 @@
-"""FR-692: World-pressure admission + kinship reciprocity gates (REQ-YG-531/532).
+"""FR-692: World-pressure admission + kinship reciprocity gates (REQ-YG-532/532).
 
 The world-pressure pass grows canon additively under two mechanical rules:
 admission (a new entity must cite a live thread it pressurizes) and reciprocity
@@ -76,7 +76,7 @@ def _load_canon_char(cid: str) -> dict:
 # ------------------------------------------------------------------ schema
 
 
-@pytest.mark.req("REQ-YG-531")
+@pytest.mark.req("REQ-YG-532")
 def test_pressurizes_defaults_empty_on_all_world_entities() -> None:
     """pressurizes is optional (default empty) so pre-existing canon validates."""
     assert Character(id="x", lane="dynamic", name="X").pressurizes == []
@@ -84,7 +84,7 @@ def test_pressurizes_defaults_empty_on_all_world_entities() -> None:
     assert Location(id="l", lane="dynamic", name="L").pressurizes == []
 
 
-@pytest.mark.req("REQ-YG-531")
+@pytest.mark.req("REQ-YG-532")
 def test_pressurizes_accepts_thread_ids() -> None:
     c = Character(id="x", lane="dynamic", name="X", pressurizes=["t_feud", "t_bond"])
     assert c.pressurizes == ["t_feud", "t_bond"]
@@ -93,7 +93,7 @@ def test_pressurizes_accepts_thread_ids() -> None:
 # ------------------------------------------------------- admission gate (RED)
 
 
-@pytest.mark.req("REQ-YG-531")
+@pytest.mark.req("REQ-YG-532")
 def test_admission_rejects_entity_with_no_thread_citation() -> None:
     entities = [{"id": "gunnar_father", "pressurizes": []}]
     result = check_pressure_admission(entities, {"t_feud", "t_bond"})
@@ -101,14 +101,14 @@ def test_admission_rejects_entity_with_no_thread_citation() -> None:
     assert any("gunnar_father" in v for v in result["violations"])
 
 
-@pytest.mark.req("REQ-YG-531")
+@pytest.mark.req("REQ-YG-532")
 def test_admission_rejects_missing_pressurizes_key() -> None:
     entities = [{"id": "orphan"}]  # no pressurizes field at all
     result = check_pressure_admission(entities, {"t_feud"})
     assert result["valid"] is False
 
 
-@pytest.mark.req("REQ-YG-531")
+@pytest.mark.req("REQ-YG-532")
 def test_admission_rejects_nonexistent_thread_id() -> None:
     entities = [{"id": "berno_kin", "pressurizes": ["t_ghost"]}]
     result = check_pressure_admission(entities, {"t_feud", "t_bond"})
@@ -116,7 +116,7 @@ def test_admission_rejects_nonexistent_thread_id() -> None:
     assert any("t_ghost" in v for v in result["violations"])
 
 
-@pytest.mark.req("REQ-YG-531")
+@pytest.mark.req("REQ-YG-532")
 def test_admission_flags_only_the_bad_entity() -> None:
     entities = [
         {"id": "good", "pressurizes": ["t_feud"]},
@@ -128,7 +128,7 @@ def test_admission_flags_only_the_bad_entity() -> None:
     assert any("bad" in v for v in result["violations"])
 
 
-@pytest.mark.req("REQ-YG-531")
+@pytest.mark.req("REQ-YG-532")
 def test_admission_passes_when_all_cite_live_threads() -> None:
     entities = [
         {"id": "a", "pressurizes": ["t_feud"]},
@@ -142,7 +142,7 @@ def test_admission_passes_when_all_cite_live_threads() -> None:
 # ------------------------------------------------------ reciprocity gate (RED)
 
 
-@pytest.mark.req("REQ-YG-532")
+@pytest.mark.req("REQ-YG-533")
 def test_reciprocity_rejects_unacknowledged_mother_edge() -> None:
     chars = [
         _char("reinthilde", [_rel("hilde", "mother")]),
@@ -153,7 +153,7 @@ def test_reciprocity_rejects_unacknowledged_mother_edge() -> None:
     assert any("hilde" in v and "reinthilde" in v for v in result["violations"])
 
 
-@pytest.mark.req("REQ-YG-532")
+@pytest.mark.req("REQ-YG-533")
 def test_reciprocity_rejects_one_directional_clanmate() -> None:
     chars = [
         _char("berno", [_rel("gunnar", "clanmate")]),
@@ -163,7 +163,7 @@ def test_reciprocity_rejects_one_directional_clanmate() -> None:
     assert result["valid"] is False
 
 
-@pytest.mark.req("REQ-YG-532")
+@pytest.mark.req("REQ-YG-533")
 def test_reciprocity_accepts_any_reverse_edge() -> None:
     """Reciprocity = mutual acknowledgment; the reverse kind may differ."""
     chars = [
@@ -174,7 +174,7 @@ def test_reciprocity_accepts_any_reverse_edge() -> None:
     assert result["valid"] is True
 
 
-@pytest.mark.req("REQ-YG-532")
+@pytest.mark.req("REQ-YG-533")
 def test_reciprocity_ignores_non_reciprocal_kinds() -> None:
     chars = [
         _char("hilde", [_rel("reinmar", "follower")]),
@@ -184,7 +184,7 @@ def test_reciprocity_ignores_non_reciprocal_kinds() -> None:
     assert result["valid"] is True
 
 
-@pytest.mark.req("REQ-YG-532")
+@pytest.mark.req("REQ-YG-533")
 def test_reciprocity_holds_on_repaired_canon() -> None:
     """After the FR-692 additive repair, the 4 kinship principals reciprocate.
 
@@ -199,7 +199,7 @@ def test_reciprocity_holds_on_repaired_canon() -> None:
 # -------------------------------------------------------------- graph adapters
 
 
-@pytest.mark.req("REQ-YG-532")
+@pytest.mark.req("REQ-YG-533")
 def test_gate_reciprocity_adapter_reads_canon_pages() -> None:
     canon_pages = {
         "reinthilde": _char("reinthilde", [_rel("hilde", "mother")]),
@@ -210,7 +210,7 @@ def test_gate_reciprocity_adapter_reads_canon_pages() -> None:
     assert out["gate_result"]["valid"] is False
 
 
-@pytest.mark.req("REQ-YG-531")
+@pytest.mark.req("REQ-YG-532")
 def test_gate_admission_adapter_derives_threads_from_state() -> None:
     state = {
         "candidates": [{"id": "kin", "pressurizes": ["t_feud"]}],
@@ -220,7 +220,7 @@ def test_gate_admission_adapter_derives_threads_from_state() -> None:
     assert out["gate_result"]["valid"] is True
 
 
-@pytest.mark.req("REQ-YG-531")
+@pytest.mark.req("REQ-YG-532")
 def test_gate_admission_adapter_rejects_uncited_candidate() -> None:
     state = {
         "candidates": [{"id": "orphan", "pressurizes": []}],

@@ -7,8 +7,8 @@
 **Requested:** 2026-07-07
 **Depends:** FR-691 (threads — the admission rule cites thread ids)
 **Plan:** docs/plan-novel-fandom-story-pipeline.md (Phase 3 of 7)
-**Capability:** CAP-195 (novel-fandom-world-pressure)
-**Requirements:** REQ-YG-531 (pressure admission gate), REQ-YG-532 (kinship reciprocity gate)
+**Capability:** CAP-196 (novel-fandom-world-pressure)
+**Requirements:** REQ-YG-532 (pressure admission gate), REQ-YG-533 (kinship reciprocity gate)
 
 ## Summary
 
@@ -82,7 +82,7 @@ id). Absorption is verified and documented on the acceptance run.
 
 - **RED** `9f2fcd07` — `pressurizes` schema field + always-valid gate stubs +
   8 condemning fixtures (admission ×6, reciprocity ×2). Schema + valid fixtures
-  pass immediately; invalid fixtures RED. CAP-195 registered (REQ-YG-531/532).
+  pass immediately; invalid fixtures RED. CAP-196 registered (REQ-YG-532/533).
 - **GREEN** — `check_pressure_admission` + `check_reciprocity` implemented
   (pure functions, `{valid, violations}`), graph adapters `gate_admission` /
   `gate_reciprocity`. The three known non-reciprocal edges repaired additively
@@ -93,7 +93,7 @@ id). Absorption is verified and documented on the acceptance run.
   admission gate blocks citation-free / dangling-citation fixtures. 15 FR-692
   tests + 47 ref-integrity/FR-691 tests pass; canon edits break nothing.
 
-**Deviation #1 (IDs):** allocated CAP-195 / REQ-YG-531–532 (next free); the FR
+**Deviation #1 (IDs):** allocated CAP-196 / REQ-YG-532–533 (next free); the FR
 body predates allocation.
 
 **Deviation #2 (LLM canon-mutation run deferred):** `world_pressure.yaml` is

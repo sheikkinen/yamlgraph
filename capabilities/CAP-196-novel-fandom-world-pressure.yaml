@@ -1,5 +1,5 @@
 name: Novel Fandom World Pressure
-id: CAP-195
+id: CAP-196
 status: active
 fr: FR-692
 feature_request: FR-692
@@ -14,7 +14,7 @@ description: >
 modules:
   - examples
 requirements:
-  - id: REQ-YG-531
+  - id: REQ-YG-532
     description: >
       World-pressure admission gate. A newly created world entity is admitted
       only if it carries a non-empty `pressurizes` list and every cited thread
@@ -27,7 +27,7 @@ requirements:
       validate. Pure function returning {valid, violations}.
     modules:
       - examples
-  - id: REQ-YG-532
+  - id: REQ-YG-533
     description: >
       Kinship reciprocity gate. For every directed relationship `A --kind--> B`
       whose kind is in a bounded reciprocal-kind set (mother, father, clanmate),
