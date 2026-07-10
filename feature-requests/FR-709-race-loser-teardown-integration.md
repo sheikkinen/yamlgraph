@@ -2,9 +2,10 @@
 
 **Priority:** MEDIUM
 **Type:** Test (real-phenomenon witness)
-**Status:** Proposed
+**Status:** Judged
 **Effort:** 0.5 day
 **Requested:** 2026-07-10
+**Judged:** 2026-07-10 — scope frozen. 6 findings resolved (see Judgement section); the draft's own thread-baseline invariant was flaky by construction (F1) and its teardown window mixed layers of the very stack the parent arc documented (F2).
 **Parent arc:** FR-705/706/707/708 (NC-361 layer stack: message → witness → wait → work) — every witness so far is mocked; this FR exercises the real transport
 **Doctrine driver:** `mock_escape_hatch` — cancellation of live TLS/gRPC work is a physical phenomenon; a mocked loser is a unit test with extra steps
 
@@ -34,16 +35,20 @@ The NC-361 arc shipped four fixes whose end-to-end composition has never run aga
 
 **Teardown invariants (the actual subject), asserted in all three shapes:**
 1. Node returns/raises within `3 + CLEANUP_GRACE + margin` wall-clock (FR-707 verdict budget honored on real transport).
-2. Within `CLEANUP_GRACE + margin` after return: `threading.enumerate()` back to pre-race baseline (no `race-bridge` thread, no SDK transport threads surviving).
+2. **After a per-provider warm-up call** (F1: SDKs spawn persistent pool/poller threads on first use — baseline is taken post-warm-up, never pre-race): zero net thread growth from the post-warm-up baseline, measured within `LLM_REQUEST_TIMEOUT + margin` after return (F2: an abandoned loser legally lives until the CLIENT timeout, not CLEANUP_GRACE — the layers must not be mixed), plus name-based absence of any `race-bridge` thread.
 3. Log discipline: either a clean drain (no abandon-WARNING) **or** the WARNING naming the abandoned candidate by task name — both recorded to the test log; anything else (anonymous WARNING, unnamed exception) fails.
-4. Repeatability: 3 consecutive races in one process show no monotonic thread growth (the Fly-freeze accumulation signature, now against real channels).
+4. Repeatability: 3 consecutive races in one process show no monotonic thread growth from the post-warm-up baseline (the Fly-freeze accumulation signature, now against real channels).
+
+Shape dispatch is explicit (F4): an if/elif over the three outcomes with the
+taken shape recorded; an unrecognized shape fails the test rather than
+falling through.
 
 ### Mechanics
 
-- `tests/integration/test_race_loser_teardown.py`, guarded by presence of BOTH providers' keys (skip with reason naming the missing key); `@pytest.mark.slow`; total budget ≤ ~30 s.
+- `tests/integration/test_race_loser_teardown.py`, guarded by presence of BOTH `ANTHROPIC_API_KEY` and `GOOGLE_API_KEY` (F3: the two keys the integration suite already guards on; providers `anthropic` + `google` — "vertex loses" becomes "gemini loses", same transport family; `VERTEX_TRANSPORT` is out of scope, covered by FR-708 units); skip reason names the missing key; `@pytest.mark.slow`; total budget ≤ 60 s (F2 recomputation: worst case 3 races × verdict + final settle ≤ LLM_REQUEST_TIMEOUT).
 - Candidates biased toward the desired shape without depending on it: anthropic `claude-3-5-haiku` vs google `gemini-2.5-pro` (heavier model more likely to lose a 3 s race) — bias documented as bias, not contract.
-- `LLM_REQUEST_TIMEOUT=10` for the test (env fixture) so FR-708 bounds any pathological hang inside the test budget.
-- Graph: reuse [examples/demos/race](../examples/demos/race/) graph with `--var`-style overrides if its shape fits; otherwise a minimal inline node_config through `create_race_node` (decision at enforce — prefer reuse per Commandment 4).
+- `LLM_REQUEST_TIMEOUT=5` for the test (env fixture, F2) so FR-708 bounds any pathological residue inside the test budget.
+- Graph: minimal `create_race_node` node_config with a **test-local fixture prompt** resolved via `prompts_dir` (F6) — no coupling to the demo graph; the unit of interest is the node factory against real transports.
 - Prompt: trivial fixed question; output irrelevant to every assertion (this test is about teardown, not content — one job).
 
 ### Explicitly NOT this FR
@@ -55,12 +60,25 @@ The NC-361 arc shipped four fixes whose end-to-end composition has never run aga
 ## Acceptance Criteria
 
 - [ ] Test skips cleanly (reason names the missing key) without either API key; runs with both
-- [ ] All four teardown invariants asserted in whichever outcome shape occurs; the shape taken is printed to the test log (observability of the path, not just the verdict)
-- [ ] Repeatability loop (3 races) shows zero net thread growth
-- [ ] Wall-clock bound: full test ≤ 30 s including drains (bounded-witness rule from FR-706: un-hangable by construction)
+- [ ] Per-provider warm-up precedes the baseline; all four teardown invariants asserted in whichever outcome shape occurs; the shape taken is printed to the test log; unrecognized shape fails (F1/F4)
+- [ ] Repeatability loop (3 races) shows zero net thread growth from the post-warm-up baseline
+- [ ] Wall-clock bound: full test ≤ 60 s including settle windows (bounded-witness rule from FR-706: un-hangable by construction) (F2)
 - [ ] Runs recorded: at least one local run pasted into this FR's Implementation section with the observed shape, timings, and drain/WARNING result (read_raw_output_first — the first artifact of a real-transport test is its own log)
-- [ ] Tagged with the appropriate existing REQ (REQ-YG-269 lineage — race must not block on slow losers) or new REQ under CAP-91; id verified against origin at enforce
+- [ ] Tagged `@pytest.mark.req("REQ-YG-269")` (F5 — race must not block on slow losers; no new REQ)
 - [ ] `req_coverage --strict` green; changelog fragment (test scope) + diary entry
+
+## Judgement (2026-07-10)
+
+| # | Finding | Resolution |
+|---|---------|------------|
+| F1 | Pre-race thread baseline is flaky by construction — SDKs spawn persistent pool/poller threads on first use | Warm-up call per provider; baseline post-warm-up; name-based race-bridge absence + zero net growth |
+| F2 | "Baseline within CLEANUP_GRACE" mixes layers — an abandoned loser legally lives until the CLIENT timeout (FR-708 bound) | LLM_REQUEST_TIMEOUT=5 fixture; settle window = client timeout + margin; total budget ≤ 60 s |
+| F3 | "vertex/google" key ambiguity | Pinned: anthropic + google (keys the suite already guards on); VERTEX_TRANSPORT out of scope |
+| F4 | Shape variance across runs could silently skip assertions | Explicit three-branch dispatch; unrecognized shape fails |
+| F5 | REQ unpinned | REQ-YG-269 under CAP-91; no new REQ |
+| F6 | Demo-graph reuse couples the constraint test to demo maintenance | Test-local fixture prompt via prompts_dir; direct create_race_node config |
+
+**Out of scope (purge list):** mocked variants, hang injection against live endpoints, VERTEX_TRANSPORT dimension, gRPC-internal channel assertions, CI-gating, demo changes.
 
 ## Alternatives Considered
 
