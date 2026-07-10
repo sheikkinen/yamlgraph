@@ -44,6 +44,15 @@ concurrently, so per-turn added latency ≈ max over candidates ≈ 0.5 s —
 far above the 100 ms line, but jurisdiction stays with the deployed
 numbers per F1 (Fly's datacenter RTT may differ substantially).
 
+**Post-FR-712 re-run (2026-07-10, production-faithful Arm B — create_llm
+per call):** google Arm B is clean (0 errors) and its Δp50 collapses to
+**+0.067 s** — fresh-client-per-call google pays almost no reconnect
+penalty locally. The latency burden sits with **azure (+0.628 s Δp50)**;
+anthropic control +0.405 s. Fleet arithmetic shifts accordingly: the
+per-turn cost driver is the azure candidate, not gemini. (google shows
+wild inference-variance p95s — 14.9 s outliers — unrelated to
+connections.) Deployed verdict still pending (AC-03/04).
+
 ## Value Statement
 
 The pool is currently a plausible architecture with one absolving datapoint

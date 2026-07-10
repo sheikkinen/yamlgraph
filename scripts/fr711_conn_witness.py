@@ -73,7 +73,13 @@ def _measure(provider: str, model: str | None) -> dict:
     for _ in range(N):
 
         async def _one() -> None:
-            await llm.ainvoke(MSG)
+            # Production topology (post-FR-712): create_llm PER CALL —
+            # identity-stable via _llm_cache for cached providers, fresh
+            # client per call for loop-affine google/vertex. The witness
+            # previously reused one pre-created object across loops, which
+            # is the exact topology FR-712 retired for google.
+            client = create_llm(provider=provider, model=model)
+            await client.ainvoke(MSG)
 
         t1 = time.perf_counter()
         try:

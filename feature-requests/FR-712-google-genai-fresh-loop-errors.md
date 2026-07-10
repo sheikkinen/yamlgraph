@@ -2,12 +2,19 @@
 
 **Priority:** HIGH
 **Type:** Bug (correctness — silent hedge degradation)
-**Status:** Judged
+**Status:** Completed
 **Effort:** 0.5 day
 **Requested:** 2026-07-10
 **Judged:** 2026-07-10 — scope frozen. 7 findings resolved; fix pinned to option 1 (see Judgement section).
+**Completed:** 2026-07-10 — RED 812f57a5, GREEN follows.
 **Spawned by:** FR-711 local instrument, Finding A (10/20 Arm-B errors)
 **Related:** FR-709 (whose cancellation masked this), FR-707 (bridge), `_llm_cache` (llm_factory)
+
+## Implementation (2026-07-10)
+
+- `_UNCACHED_PROVIDERS = frozenset({"google", "vertex"})` in llm_factory with the full FR-712 confession in-code (vertex same-class-inferred per F4); cache lookup and store both gated.
+- Unit cache-identity gate + annotation test; **integration witness: 10/10 completed fresh-loop google calls, zero errors** (was 10/20 erroring) — live, F2 odds honored. 90 unit tests green across factory/timeout/floor suites.
+- **FR-711 interplay executed**: instrument's Arm B updated to production topology (create_llm per call — it was still exercising the exact shape this FR retired); post-fix run shows google Δp50 collapses to +0.067 s with zero errors — the latency burden is azure's (+0.628 s), inverting the fleet arithmetic assumption. Recorded in FR-711.
 
 ## Problem (field evidence, verbatim from the FR-711 artifact)
 

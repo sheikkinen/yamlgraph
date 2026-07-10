@@ -43,6 +43,17 @@ REASONING_MODEL_PREFIXES = ("o1", "o3", "o4")
 _llm_cache: dict[tuple, BaseChatModel] = {}
 _cache_lock = threading.Lock()
 
+# FR-712: loop-affine SDK clients must NOT be reused across event loops.
+# The google-genai wrapper's aiohttp session binds to the first loop that
+# runs it; under the race bridge (fresh loop per call) a cached client
+# errors on ~50% of COMPLETED calls ("Executor shutdown has been called" /
+# "Timeout context manager should be used inside a task" — FR-711 Finding A,
+# docs/analysis/fr711-conn-witness-2026-07-10.txt). These providers
+# construct fresh per call so the session is born in, and dies with, the
+# loop that uses it. "vertex" is same-class-inferred (identical wrapper
+# class and session internals; not independently witnessed — FR-712 F4).
+_UNCACHED_PROVIDERS = frozenset({"google", "vertex"})
+
 
 def create_llm(
     provider: ProviderType | None = None,
@@ -155,43 +166,61 @@ def create_llm(
         thinking_budget,
     )
 
-    # Thread-safe cache access
+    llm = _cached_or_create(
+        cache_key,
+        selected_provider,
+        selected_model,
+        temperature,
+        max_tokens,
+        thinking_budget,
+    )
+
+    if temperature_overridden:
+        logger.warning(
+            f"Temperature overridden from {original_temperature} to 1.0 "
+            f"(required for extended thinking with budget={thinking_budget})"
+        )
+
+    return llm
+
+
+def _cached_or_create(
+    cache_key: tuple,
+    provider: str,
+    model: str,
+    temperature: float | None,
+    max_tokens: int | None,
+    thinking_budget: int | None,
+) -> BaseChatModel:
+    """Thread-safe cache lookup / construction (extracted for the CC gate).
+
+    FR-712: loop-affine providers (_UNCACHED_PROVIDERS) are never cached —
+    they construct fresh per call so the SDK session is born in, and dies
+    with, the loop that uses it.
+    """
     with _cache_lock:
-        # Return cached instance if available
-        if cache_key in _llm_cache:
-            logger.debug(
-                f"Using cached LLM: {selected_provider}/{selected_model} (temp={temperature})"
-            )
+        cacheable = provider not in _UNCACHED_PROVIDERS
+        if cacheable and cache_key in _llm_cache:
+            logger.debug(f"Using cached LLM: {provider}/{model} (temp={temperature})")
             return _llm_cache[cache_key]
 
-        # Create new LLM instance
-        logger.info(
-            f"Creating LLM: {selected_provider}/{selected_model} (temp={temperature})"
-        )
+        logger.info(f"Creating LLM: {provider}/{model} (temp={temperature})")
 
         # Build optional kwargs (only include max_tokens if set)
         optional_kwargs: dict[str, object] = {}
         if max_tokens is not None:
             optional_kwargs["max_tokens"] = max_tokens
 
-        # Dispatch to provider-specific creation
         llm = dispatch_provider(
-            selected_provider,
-            selected_model,
+            provider,
+            model,
             temperature,
             thinking_budget,
             **optional_kwargs,
         )
 
-        # Cache the instance
-        _llm_cache[cache_key] = llm
-
-        # Emit warning after caching if temperature was overridden
-        if temperature_overridden:
-            logger.warning(
-                f"Temperature overridden from {original_temperature} to 1.0 "
-                f"(required for extended thinking with budget={thinking_budget})"
-            )
+        if cacheable:
+            _llm_cache[cache_key] = llm
 
         return llm
 
