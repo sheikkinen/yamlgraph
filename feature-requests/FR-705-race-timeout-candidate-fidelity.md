@@ -1,12 +1,19 @@
 # FR-705: Race timeout error must enumerate pending candidates (forensic fidelity)
 
-**Status:** Judged
+**Status:** Completed
 **Type:** Bug (error-path fidelity)
 **Effort:** 0.5 day
 **Requested:** 2026-07-10
 **Judged:** 2026-07-10 — scope frozen. 5 findings resolved (see Judgement section).
+**Completed:** 2026-07-10 — RED 3520ea9c, GREEN follows.
 **Spawned by:** ninchat_voice NC-361 (judgement R-1) — production forensics
 misled by the race error message
+
+## Implementation (2026-07-10)
+
+- `_race_async` raises `AllCandidatesFailedError(errors + pending-as-timeout)` at the deadline; both synthetic `[({}, exc)]` wraps deleted (race sync path + router FAIL path per F3); dead `except TimeoutError` branch removed; skip branch classifies `TIMEOUT_ERROR` when any wrapped error is a `TimeoutError` (F2).
+- 4 new tests tagged REQ-YG-266 (RED 3520ea9c): pending-fleet enumeration (`All 2`, names, no `?/?`), mixed fast-failure + pending with per-candidate exceptions, mixed-skip TIMEOUT_ERROR classification, router no-double-wrap.
+- Full race + router-race suites: 59/59 green; the existing REQ-YG-266 skip and `match="timed out"` tests pass **unmodified**, witnessing F2/F4.
 
 ## Problem
 

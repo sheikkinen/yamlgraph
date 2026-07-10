@@ -123,7 +123,14 @@ async def _race_async(
                 return_when=asyncio.FIRST_COMPLETED,
             )
             if not done:
-                raise TimeoutError(f"race timed out after {timeout}s")
+                # FR-705: raise where the context exists — already-failed
+                # candidates keep their real exceptions; still-pending ones
+                # are reported as timed out BY NAME (NC-361: forensics need
+                # to know WHICH providers were pending at the deadline).
+                timeout_exc = TimeoutError(f"race timed out after {timeout}s")
+                raise AllCandidatesFailedError(
+                    errors + [(c, timeout_exc) for c in tasks.values()]
+                )
 
             for task in done:
                 candidate = tasks.pop(task)
@@ -267,8 +274,12 @@ def create_race_node(
                     temperature,
                 )
             )
-        except TimeoutError as exc:
+        except AllCandidatesFailedError as exc:
             if on_error == ErrorHandler.SKIP:
+                # FR-705 F2: deadline expiry is what ended the race — when any
+                # candidate error is a TimeoutError, preserve the skip
+                # contract's TIMEOUT_ERROR classification (REQ-YG-266).
+                timed_out = any(isinstance(e, TimeoutError) for _, e in exc.errors)
                 return {
                     state_key: None,
                     "current_step": node_name,
@@ -277,18 +288,9 @@ def create_race_node(
                         PipelineError.from_exception(
                             exc,
                             node=node_name,
-                            error_type=ErrorType.TIMEOUT_ERROR,
+                            error_type=(ErrorType.TIMEOUT_ERROR if timed_out else None),
                         )
                     ],
-                }
-            raise AllCandidatesFailedError([({}, exc)]) from exc
-        except AllCandidatesFailedError as exc:
-            if on_error == ErrorHandler.SKIP:
-                return {
-                    state_key: None,
-                    "current_step": node_name,
-                    "_loop_counts": loop_counts,
-                    "errors": [PipelineError.from_exception(exc, node=node_name)],
                 }
             raise
 

@@ -71,7 +71,10 @@ def _execute_router_race(
         )
     except (TimeoutError, AllCandidatesFailedError) as exc:
         if cfg.on_error == ErrorHandler.FAIL:
-            raise AllCandidatesFailedError([({}, exc)]) from exc
+            # FR-705 F3: AllCandidatesFailedError already enumerates every
+            # candidate by name — re-raise as-is; wrapping it in a synthetic
+            # [({}, exc)] entry would collapse it back to 'All 1 … ?/?'.
+            raise
         route = cfg.default_route or (
             list(cfg.routes.values())[0] if cfg.routes else None
         )
