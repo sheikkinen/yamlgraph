@@ -1295,3 +1295,110 @@ class TestRaceStructuredOutputFallback:
 
         assert isinstance(result["response"], RaceTestOutput)
         assert result["response"].answer == "fallback result"
+
+
+# =============================================================================
+# FR-705: Race timeout error must enumerate pending candidates (REQ-YG-266)
+# =============================================================================
+
+
+class TestRaceTimeoutCandidateFidelity:
+    """FR-705: the NC-361 incident — timeout reported 'All 1 … ?/?' while
+    two named providers were pending. The error must enumerate every
+    candidate with its identity."""
+
+    CANDIDATES = [
+        {"provider": "google", "model": "gemini-2.0-flash"},
+        {"provider": "azure", "model": "gpt-4o"},
+    ]
+
+    def _config(self, **overrides):
+        cfg = {
+            "type": "race",
+            "prompt": "test_prompt",
+            "state_key": "response",
+            "timeout": 0.1,
+            "candidates": [dict(c) for c in self.CANDIDATES],
+        }
+        cfg.update(overrides)
+        return cfg
+
+    @pytest.mark.req("REQ-YG-266")
+    @patch("yamlgraph.node_factory.race_node.create_llm")
+    @patch("yamlgraph.node_factory.race_node.prepare_messages")
+    def test_timeout_enumerates_all_pending_candidates(
+        self, mock_prepare, mock_create_llm, sample_state
+    ):
+        """Both candidates pending at deadline → both named, count correct."""
+        from yamlgraph.node_factory.race_node import (
+            AllCandidatesFailedError,
+            create_race_node,
+        )
+
+        mock_prepare.return_value = ([MagicMock()], "anthropic", None)
+        mock_create_llm.side_effect = [
+            _make_mock_llm("slow", delay=10.0),
+            _make_mock_llm("slow", delay=10.0),
+        ]
+
+        node_fn = create_race_node("race_timeout", self._config(), {})
+        with pytest.raises(AllCandidatesFailedError) as excinfo:
+            node_fn(sample_state)
+
+        msg = str(excinfo.value)
+        assert "All 2 race candidates failed" in msg, msg
+        assert "google/gemini-2.0-flash" in msg, msg
+        assert "azure/gpt-4o" in msg, msg
+        assert "timed out" in msg  # F4: substring existing tests match
+        assert "?/?" not in msg, f"anonymous candidate leaked: {msg}"
+        # F2/programmatic consumers: candidate dicts preserved, never {}
+        assert all(c for c, _ in excinfo.value.errors)
+
+    @pytest.mark.req("REQ-YG-266")
+    @patch("yamlgraph.node_factory.race_node.create_llm")
+    @patch("yamlgraph.node_factory.race_node.prepare_messages")
+    def test_timeout_mixed_fast_failure_and_pending(
+        self, mock_prepare, mock_create_llm, sample_state
+    ):
+        """One real failure + one pending at deadline → each with its own error."""
+        from yamlgraph.node_factory.race_node import (
+            AllCandidatesFailedError,
+            create_race_node,
+        )
+
+        mock_prepare.return_value = ([MagicMock()], "anthropic", None)
+        mock_create_llm.side_effect = [
+            _make_mock_llm("boom", fail=True),
+            _make_mock_llm("slow", delay=10.0),
+        ]
+
+        node_fn = create_race_node("race_mixed", self._config(), {})
+        with pytest.raises(AllCandidatesFailedError) as excinfo:
+            node_fn(sample_state)
+
+        errors = excinfo.value.errors
+        assert len(errors) == 2
+        by_provider = {c.get("provider"): e for c, e in errors}
+        assert isinstance(by_provider["google"], RuntimeError)  # real exception
+        assert isinstance(by_provider["azure"], TimeoutError)  # pending at deadline
+
+    @pytest.mark.req("REQ-YG-266")
+    @patch("yamlgraph.node_factory.race_node.create_llm")
+    @patch("yamlgraph.node_factory.race_node.prepare_messages")
+    def test_timeout_mixed_skip_tags_timeout_error(
+        self, mock_prepare, mock_create_llm, sample_state
+    ):
+        """F2: skip + any pending TimeoutError → PipelineError type TIMEOUT_ERROR."""
+        from yamlgraph.node_factory.race_node import create_race_node
+
+        mock_prepare.return_value = ([MagicMock()], "anthropic", None)
+        mock_create_llm.side_effect = [
+            _make_mock_llm("boom", fail=True),
+            _make_mock_llm("slow", delay=10.0),
+        ]
+
+        node_fn = create_race_node("race_skip", self._config(on_error="skip"), {})
+        result = node_fn(sample_state)
+
+        assert result["response"] is None
+        assert result["errors"][0].type == ErrorType.TIMEOUT_ERROR

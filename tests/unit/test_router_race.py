@@ -353,6 +353,51 @@ class TestRouterRaceTimeout:
         with pytest.raises(AllCandidatesFailedError):
             node_fn(sample_state)
 
+    @pytest.mark.req("REQ-YG-266")
+    @patch("yamlgraph.node_factory.router_race_node.prepare_messages")
+    @patch("yamlgraph.node_factory.race_node.create_llm")
+    def test_timeout_fail_enumerates_candidates_no_double_wrap(
+        self, mock_create_llm, mock_prepare, sample_state
+    ):
+        """FR-705 F3: router FAIL path surfaces candidate names, not ?/?.
+
+        The synthetic AllCandidatesFailedError([({}, exc)]) wrap would
+        double-wrap the enumerated error back into 'All 1 … ?/?'.
+        """
+        from yamlgraph.node_factory.llm_nodes import create_node_function
+        from yamlgraph.node_factory.race_node import AllCandidatesFailedError
+
+        mock_prepare.return_value = ([MagicMock()], "anthropic", None)
+        mock_create_llm.side_effect = [
+            _make_mock_llm("slow", delay=10.0),
+            _make_mock_llm("slow", delay=10.0),
+        ]
+
+        node_config = {
+            "type": "router",
+            "prompt": "classify",
+            "parse_json": True,
+            "route_field": "intent",
+            "routes": {"medical_triage": "switch_to_triage"},
+            "default_route": "switch_to_triage",
+            "state_key": "intent",
+            "timeout": 0.05,
+            "on_error": "fail",
+            "candidates": [
+                {"provider": "vertex", "model": "gemini"},
+                {"provider": "anthropic", "model": "haiku"},
+            ],
+        }
+        node_fn = create_node_function("classify", node_config, {})
+        with pytest.raises(AllCandidatesFailedError) as excinfo:
+            node_fn(sample_state)
+
+        msg = str(excinfo.value)
+        assert "All 2 race candidates failed" in msg, msg
+        assert "vertex/gemini" in msg, msg
+        assert "anthropic/haiku" in msg, msg
+        assert "?/?" not in msg, f"double-wrap leaked anonymous candidate: {msg}"
+
 
 # =============================================================================
 # AC5: Mutual exclusion: provider + candidates rejected at compile time
