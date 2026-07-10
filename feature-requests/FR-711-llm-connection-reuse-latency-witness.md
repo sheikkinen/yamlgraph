@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Investigation (measurement; FR-706-shaped — the deliverable is a verdict with numbers, not architecture)
-**Status:** Judged
+**Status:** In Progress — local half complete (2026-07-10); verdict awaits the Fly half (AC-03/04, ninchat_voice side)
 **Effort:** 0.5–1 day
 **Requested:** 2026-07-10
 **Judged:** 2026-07-10 — scope frozen. 6 findings resolved (see Judgement section); cache and bridge claims re-verified at source.
@@ -15,6 +15,34 @@ object is warm but the event loop is fresh — the actual production topology
 of every race-node turn. Verdict rule fixed up front: below the threshold,
 the pooling seed is closed for good; above it, the numbers write the
 architecture FRs (FR-A persistent bridge loop / FR-B cache loop-affinity).
+
+## Local instrument results (2026-07-10, AC-01/AC-02 ✓)
+
+Artifact: `docs/analysis/fr711-conn-witness-2026-07-10.txt` (raw timings);
+script `scripts/fr711_conn_witness.py`. N=20/arm, real `_run_coro_sync_safe`.
+
+| provider | A p50 | B p50 | Δp50 | Δmin | note |
+|----------|-------|-------|------|------|------|
+| google | 0.550 | 0.491 | — | — | **10/20 Arm-B ERRORS** — Δ meaningless (fast errors deflate B) |
+| azure | 0.712 | 1.311 | **+0.598** | +0.630 | clean |
+| anthropic | 0.792 | 1.318 | **+0.527** | +0.449 | clean (control) |
+
+**Finding A (correctness — the F2 hedge fired):** the cached google-genai
+client errors on ~50% of COMPLETED calls in a fresh loop
+(`RuntimeError: Executor shutdown has been called`, `Timeout context
+manager should be used inside a task` — aiohttp internals bound to the
+first loop). FR-709's "field-verified tolerant" was wrong in an
+instructive way: its google candidate was always the cancelled loser and
+never COMPLETED cross-loop — cancellation masked the defect. Production
+implication: a gemini candidate that would have won can error instead,
+silently degrading the hedge — a correctness defect independent of the
+latency verdict. **Escalated as FR-712.**
+
+**Finding B (latency signal, clean arms):** fresh-loop reconnect costs
+~530–600 ms p50 per call locally (azure/anthropic). Candidates run
+concurrently, so per-turn added latency ≈ max over candidates ≈ 0.5 s —
+far above the 100 ms line, but jurisdiction stays with the deployed
+numbers per F1 (Fly's datacenter RTT may differ substantially).
 
 ## Value Statement
 
