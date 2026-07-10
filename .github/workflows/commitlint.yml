@@ -17,6 +17,9 @@ permissions:
 
 jobs:
   commitlint:
+    # PR-only: action-semantic-pull-request cannot run on tag pushes —
+    # every v* tag push failed this job (chronic since at least v0.5.6).
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - name: Validate PR title
