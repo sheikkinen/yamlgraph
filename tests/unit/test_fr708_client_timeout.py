@@ -59,6 +59,11 @@ _ENV = {
 
 def _construct(provider: str, monkeypatch, **extra):
     """Invoke the provider factory with its wrapper patched; return kwargs."""
+    wrapper_path = _WRAPPER_PATH[provider]
+    pytest.importorskip(
+        wrapper_path.rsplit(".", 1)[0],
+        reason=f"optional SDK for {provider} not installed",
+    )
     for k, v in _ENV.items():
         monkeypatch.setenv(k, v)
     captured: dict = {}
@@ -68,7 +73,7 @@ def _construct(provider: str, monkeypatch, **extra):
             captured.update(kwargs)
             return MagicMock()
 
-    with patch(_WRAPPER_PATH[provider], FakeWrapper):
+    with patch(wrapper_path, FakeWrapper):
         _PROVIDER_FACTORIES[provider]("some-model", 0.5, **extra)
     return captured
 

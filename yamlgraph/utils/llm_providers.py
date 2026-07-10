@@ -18,6 +18,58 @@ logger = logging.getLogger(__name__)
 # Serialises Vertex Express construction so env-var masking is race-free
 _VERTEX_CONSTRUCT_LOCK = threading.Lock()
 
+# FR-708: default request timeout (seconds) for every provider client.
+# A hung endpoint must FAIL within this bound instead of hanging forever
+# and accumulating transport channels (Fly freeze RCA 2026-07-10).
+_DEFAULT_REQUEST_TIMEOUT = 30.0
+_DEFAULT_MAX_RETRIES = 2
+
+
+def _request_timeout() -> float:
+    """Resolve the client request timeout at the env boundary (FR-708).
+
+    Garbage or non-positive values raise — never silently substituted with the
+    default (Commandment 6).
+    """
+    raw = os.getenv("LLM_REQUEST_TIMEOUT")
+    if raw is None or not raw.strip():
+        return _DEFAULT_REQUEST_TIMEOUT
+    try:
+        value = float(raw)
+    except ValueError as exc:
+        raise ValueError(
+            f"LLM_REQUEST_TIMEOUT must be a positive number of seconds, got {raw!r}"
+        ) from exc
+    if value <= 0:
+        raise ValueError(
+            f"LLM_REQUEST_TIMEOUT must be a positive number of seconds, got {raw!r}"
+        )
+    return value
+
+
+def _bounded(kwargs: dict, timeout_param: str = "timeout") -> dict:
+    """Inject the FR-708 work bounds unless the caller supplied their own."""
+    kwargs.setdefault(timeout_param, _request_timeout())
+    kwargs.setdefault("max_retries", _DEFAULT_MAX_RETRIES)
+    return kwargs
+
+
+def _vertex_transport(kwargs: dict) -> dict:
+    """Apply VERTEX_TRANSPORT=rest|grpc to google/vertex constructors (FR-708).
+
+    Unset leaves the SDK default untouched; anything else raises at the
+    boundary. REST rides httpx and honors timeouts reliably; gRPC-from-Fly
+    is the suspected hanging layer in the freeze RCA.
+    """
+    raw = os.getenv("VERTEX_TRANSPORT")
+    if raw is None or not raw.strip():
+        return kwargs
+    value = raw.strip().lower()
+    if value not in ("rest", "grpc"):
+        raise ValueError(f"VERTEX_TRANSPORT must be 'rest' or 'grpc', got {raw!r}")
+    kwargs.setdefault("transport", value)
+    return kwargs
+
 
 @contextmanager
 def _masked_env(*keys: str):  # type: ignore[return]
@@ -45,7 +97,9 @@ def _create_anthropic_llm(
             "budget_tokens": thinking_budget,
         }
 
-    return ChatAnthropic(model=model, temperature=temperature, **anthropic_kwargs)
+    return ChatAnthropic(
+        model=model, temperature=temperature, **_bounded(anthropic_kwargs)
+    )
 
 
 def _create_azure_llm(
@@ -88,7 +142,7 @@ def _create_azure_llm(
         credential=api_key,
         model=model,
         temperature=temperature,
-        **kwargs,
+        **_bounded(dict(kwargs)),
     )
 
 
@@ -103,7 +157,7 @@ def _create_deepseek_llm(
         temperature=temperature,
         base_url="https://api.deepseek.com/v1",
         api_key=os.getenv("DEEPSEEK_API_KEY"),
-        **kwargs,
+        **_bounded(dict(kwargs)),
     )
 
 
@@ -120,7 +174,7 @@ def _create_google_llm(
         model=model,
         temperature=temperature,
         google_api_key=os.getenv("GOOGLE_API_KEY"),
-        **google_kwargs,
+        **_vertex_transport(_bounded(google_kwargs)),
     )
 
 
@@ -135,7 +189,7 @@ def _create_inception_llm(
         temperature=temperature,
         base_url="https://api.inceptionlabs.ai/v1",
         api_key=os.getenv("INCEPTION_API_KEY"),
-        **kwargs,
+        **_bounded(dict(kwargs)),
     )
 
 
@@ -151,7 +205,7 @@ def _create_lmstudio_llm(
         temperature=temperature,
         base_url=base_url,
         api_key="not-needed",
-        **kwargs,
+        **_bounded(dict(kwargs)),
     )
 
 
@@ -161,7 +215,7 @@ def _create_mistral_llm(
     """Create Mistral AI LLM."""
     from langchain_mistralai import ChatMistralAI
 
-    return ChatMistralAI(model=model, temperature=temperature, **kwargs)
+    return ChatMistralAI(model=model, temperature=temperature, **_bounded(dict(kwargs)))
 
 
 def _create_openai_llm(
@@ -170,7 +224,7 @@ def _create_openai_llm(
     """Create OpenAI LLM."""
     from langchain_openai import ChatOpenAI
 
-    params: dict[str, object] = {"model": model, **kwargs}
+    params: dict[str, object] = {"model": model, **_bounded(dict(kwargs))}
     if temperature is not None:
         params["temperature"] = temperature
     return ChatOpenAI(**params)
@@ -222,7 +276,7 @@ def _create_replicate_llm(
     return ChatLiteLLM(
         model=litellm_model,
         temperature=temperature,
-        **kwargs,
+        **_bounded(dict(kwargs), timeout_param="request_timeout"),
     )
 
 
@@ -240,6 +294,7 @@ def _create_vertex_llm(
     vertex_kwargs = dict(kwargs)
     if thinking_budget is not None:
         vertex_kwargs["thinking_budget"] = thinking_budget
+    vertex_kwargs = _vertex_transport(_bounded(vertex_kwargs))
 
     api_key = os.getenv("VERTEX_API_KEY")
     if api_key:
@@ -281,7 +336,7 @@ def _create_xai_llm(model: str, temperature: float, **kwargs: object) -> BaseCha
         temperature=temperature,
         base_url="https://api.x.ai/v1",
         api_key=os.getenv("XAI_API_KEY"),
-        **kwargs,
+        **_bounded(dict(kwargs)),
     )
 
 
@@ -316,7 +371,7 @@ def dispatch_provider(
 
     FR-680: registry lookup replaces the former 11-branch if/elif chain.
     Unknown providers raise loudly here — there is no silent Anthropic
-    fallback at this boundary (`create_llm` owns unset-provider defaulting).
+    substitution at this boundary (`create_llm` owns unset-provider defaulting).
     """
     factory = _PROVIDER_FACTORIES.get(provider)
     if factory is None:

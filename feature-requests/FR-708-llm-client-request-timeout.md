@@ -2,10 +2,18 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** In Progress
+**Status:** Completed
 **Effort:** 1 day
 **Requested:** 2026-07-10
 **Judged:** 2026-07-10 — scope frozen. 6 findings resolved (see Judgement section); root cause re-verified at source (zero timeout/max_retries across all 11 provider constructors; both vertex branches use ChatGoogleGenerativeAI so the transport knob plumbs uniformly).
+**Completed:** 2026-07-10 — RED 89f7af02 (30 condemned), GREEN follows.
+
+## Implementation (2026-07-10)
+
+- `_request_timeout()` + `_bounded()` + `_vertex_transport()` boundary helpers in [llm_providers.py](../yamlgraph/utils/llm_providers.py); all 11 constructors inject the wrapper-correct timeout (`request_timeout` for ChatLiteLLM) and `max_retries=2` via `setdefault` — caller kwargs win. `VERTEX_TRANSPORT` applied to google + vertex (express and ADC), validated at the boundary.
+- 33-test matrix + env/transport suites under REQ-YG-539 (CAP-03); 141 tests green across factory/thinking/race suites.
+- **Documented exception (F1):** replicate rows `importorskip` when `langchain_litellm` is absent locally — the constructor passes `request_timeout` unconditionally; the matrix rows execute in environments carrying the optional SDK. No wrapper lacked a timeout parameter; the exception list is otherwise empty.
+- Consumer verification hook (non-gating) remains with ninchat_voice: Fly probe with `VERTEX_TRANSPORT=rest` vs default.
 **Spawned by:** ninchat_voice RCA `docs/analysis/rca-20260710-fly-freeze.txt`
 (Fly test-VM total freeze under load; sequel to NC-361/FR-706/FR-707)
 
