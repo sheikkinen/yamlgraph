@@ -113,6 +113,12 @@ Scope frozen. Findings and resolutions:
 ## Related
 
 - FR-271 (async race), FR-119/CAP-119 (race timeout)
+- **FR-706 (sibling, same incident):** NC-361's H2 verdict (2026-07-10)
+  proved the *stall* itself is event-loop blockage in this same path —
+  `_run_coro_sync_safe`'s unbounded `t.join()` over a cleanup gather that
+  waits forever on cancellation-ignoring provider connections. FR-705 fixes
+  what the error *says*; FR-706 fixes what the error path *does*. Enforce in
+  either order; both RED tests share the hung-candidate fixture.
 - ninchat_voice NC-361 (the incident this would have clarified in one read)
 - Doctrine: Commandment 6 (bear witness of thy errors — an error message that
   miscounts its own evidence is a silent fallback in forensic clothing)
