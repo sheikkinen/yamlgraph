@@ -2,9 +2,10 @@
 
 **Priority:** MEDIUM
 **Type:** Investigation (measurement; FR-706-shaped — the deliverable is a verdict with numbers, not architecture)
-**Status:** Proposed
+**Status:** Judged
 **Effort:** 0.5–1 day
 **Requested:** 2026-07-10
+**Judged:** 2026-07-10 — scope frozen. 6 findings resolved (see Judgement section); cache and bridge claims re-verified at source.
 **Related:** FR-708 (request timeout + `VERTEX_TRANSPORT`), FR-709 (pool-for-safety absolved), FR-710 (deadline floors), rate-layer diary 2026-07-10; field site: projects/ninchat_voice
 
 ## Summary
@@ -81,6 +82,11 @@ real flex_navigator turns. The deployed network path is where handshakes
 hurt; laptop numbers alone do not condemn.
 
 **Verdict rule (frozen before measurement):**
+- Jurisdiction (F1): the verdict is rendered on **Instrument 2 (deployed)**
+  numbers — neither direction of the local/deployed gap bounds the other
+  (Fly's datacenter RTT to google may be lower than a laptop's).
+  Instrument 1 is mechanism-proof and per-provider decomposition; wild
+  local/deployed disagreement blocks the verdict pending investigation.
 - `(B − A) × handshakes-per-turn < 100 ms` on the deployed path →
   **ABSOLVE**: close the pooling seed, record the numbers, no pool ever
   without new evidence.
@@ -91,21 +97,49 @@ hurt; laptop numbers alone do not condemn.
   new registry). Pre-listed judge hazards for FR-B: **fork-safety**
   (ninchat supervisor forks workers — assert `_llm_cache` empty pre-fork),
   shutdown draining, staleness semantics.
+- Cross-loop-reuse basis (F2): "cached object silently reconnects per
+  loop" is field-verified for anthropic + google by FR-709 (3 races ×
+  fresh loops, cached clients, zero errors). If Arm B instead ERRORS for
+  any provider, that is itself a recorded finding, not a witness bug.
 
 ## Acceptance Criteria
 
-- [ ] AC-01 Micro-witness produces the A/B table for vertex + azure +
-      anthropic (N ≥ 20 calls/arm, p50/p95); raw timings committed as
-      artifact.
+- [ ] AC-01 Micro-witness produces the A/B table (N ≥ 20 calls/arm,
+      p50/p95); providers: google-family arm REQUIRED (the gRPC suspect;
+      `google` may substitute for `vertex` locally, annotated — same SDK
+      transport family), azure desired, anthropic control; missing keys
+      skip with a named reason (F3). Raw timings committed to
+      `docs/analysis/fr711-conn-witness-2026-07-10.txt` (F5).
 - [ ] AC-02 Arm B uses the real `_run_coro_sync_safe`, not a simulated
-      loop — the witness exercises the production bridge.
+      loop — the witness exercises the production bridge; default
+      `LLM_REQUEST_TIMEOUT` respected (≥ FR-710 floors).
 - [ ] AC-03 Fly probe: `VERTEX_TRANSPORT=rest` vs grpc per-turn split from
-      LangSmith on ≥ 10 real flex_navigator turns each.
+      LangSmith on ≥ 10 real flex_navigator turns each — **executed from
+      the ninchat_voice side** (F4: one session, one repo), results folded
+      into this FR.
 - [ ] AC-04 Per-turn cost computed for ninchat_voice using measured
       handshake × actual race-execution count per turn (from a suite-run
-      trace, not the 1–3 estimate).
-- [ ] AC-05 Verdict recorded against the frozen rule; seed closed OR
-      FR-A/FR-B filed with the numbers embedded. No third outcome.
+      trace, not the 1–3 estimate) — ninchat_voice side (F4).
+- [ ] AC-05 Verdict recorded against the frozen rule on deployed numbers
+      (F1); seed closed OR FR-A/FR-B filed with the numbers embedded. No
+      third outcome.
+- [ ] No REQ/changelog (investigation script + verdict, no production
+      branch changed); diary entry required (F6).
+
+## Judgement (2026-07-10)
+
+| # | Finding | Resolution |
+|---|---------|------------|
+| F1 | Verdict jurisdiction ambiguous — rule says "deployed path", Instrument 1 is local; neither bounds the other | Verdict on Instrument 2 numbers; Instrument 1 = mechanism proof + decomposition; wild disagreement blocks verdict |
+| F2 | "Silently reconnects per loop" could instead ERROR (loop-bound clients) | Field-verified tolerant for anthropic+google by FR-709 (3 races × fresh loops, cached, zero errors); an Arm-B error is a finding, not a bug |
+| F3 | Fleet keys locally unknown (azure/vertex creds) | Skip-with-reason per provider; google-family arm required, google↔vertex substitution annotated |
+| F4 | AC-03/04 live in another repo/session | Executed from ninchat_voice; this FR lands its local instrument independently; AC-05 waits for both halves |
+| F5 | Artifact location unpinned | docs/analysis/fr711-conn-witness-2026-07-10.txt |
+| F6 | Traceability for an investigation script | No REQ/changelog (no production branch); diary required |
+
+**Out of scope (purge list):** the pool itself (FR-A/FR-B only on CONDEMN),
+bridge changes, cache changes, new metrics infrastructure, provider floors
+(FR-710 shipped).
 
 ## Alternatives Considered
 
