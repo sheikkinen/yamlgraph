@@ -39,4 +39,4 @@ jobs:
           # TODO: Remove --ignore-vuln CVE-2026-3219 when pip fix is available
           # Added 2026-04-25: pip 26.0.1 vulnerability with no fix version
           # CVE-2026-3219: pip handles concatenated tar+ZIP files as ZIP regardless of filename
-          command: pip-audit --strict --desc --ignore-vuln CVE-2026-3219
+          command: pip-audit --strict --desc --skip-editable --ignore-vuln CVE-2026-3219
