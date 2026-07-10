@@ -24,6 +24,19 @@ _VERTEX_CONSTRUCT_LOCK = threading.Lock()
 _DEFAULT_REQUEST_TIMEOUT = 30.0
 _DEFAULT_MAX_RETRIES = 2
 
+# FR-710: provider-enforced client deadline floors, validated at construction
+# so a below-floor knob fails loudly ONCE instead of a confusing 400 per
+# request (which silently drops the candidate from every race).
+_PROVIDER_TIMEOUT_FLOORS: dict[str, float] = {
+    # Field-verified (FR-709 run 2, verbatim): 400 INVALID_ARGUMENT
+    # "Manually set deadline 5s is too short. Minimum allowed deadline is 10s."
+    "google": 10.0,
+    # Backend-inferred (FR-710 Judgement F2): same google-genai client
+    # enforces the deadline; not independently field-verified for vertex —
+    # one line to fix if a field run ever contradicts it.
+    "vertex": 10.0,
+}
+
 
 def _request_timeout() -> float:
     """Resolve the client request timeout at the env boundary (FR-708).
@@ -47,10 +60,35 @@ def _request_timeout() -> float:
     return value
 
 
-def _bounded(kwargs: dict, timeout_param: str = "timeout") -> dict:
-    """Inject the FR-708 work bounds unless the caller supplied their own."""
+def _bounded(
+    kwargs: dict, timeout_param: str = "timeout", provider: str | None = None
+) -> dict:
+    """Inject the FR-708 work bounds unless the caller supplied their own.
+
+    FR-710: for providers with a known deadline floor, the EFFECTIVE timeout
+    (whatever its source) is validated at construction — floor, value, and
+    source named in the error. The source is resolved BEFORE setdefault
+    (Judgement F1), since afterwards kwarg/env/default are indistinguishable.
+    """
+    if timeout_param in kwargs:
+        source = f"caller kwarg {timeout_param}="
+    elif (os.getenv("LLM_REQUEST_TIMEOUT") or "").strip():
+        source = "LLM_REQUEST_TIMEOUT"
+    else:
+        source = "the default"
     kwargs.setdefault(timeout_param, _request_timeout())
     kwargs.setdefault("max_retries", _DEFAULT_MAX_RETRIES)
+
+    floor = _PROVIDER_TIMEOUT_FLOORS.get(provider or "")
+    if floor is not None:
+        value = kwargs[timeout_param]
+        # F3: None (or garbage) would TypeError the comparison and silently
+        # defeat the FR-708 bound — raise the same shaped error.
+        if not isinstance(value, int | float) or value < floor:
+            raise ValueError(
+                f"{provider} requires a request timeout >= {floor:g}s "
+                f"(provider-enforced deadline floor); got {value!r} via {source}"
+            )
     return kwargs
 
 
@@ -174,7 +212,7 @@ def _create_google_llm(
         model=model,
         temperature=temperature,
         google_api_key=os.getenv("GOOGLE_API_KEY"),
-        **_vertex_transport(_bounded(google_kwargs)),
+        **_vertex_transport(_bounded(google_kwargs, provider="google")),
     )
 
 
@@ -294,7 +332,7 @@ def _create_vertex_llm(
     vertex_kwargs = dict(kwargs)
     if thinking_budget is not None:
         vertex_kwargs["thinking_budget"] = thinking_budget
-    vertex_kwargs = _vertex_transport(_bounded(vertex_kwargs))
+    vertex_kwargs = _vertex_transport(_bounded(vertex_kwargs, provider="vertex"))
 
     api_key = os.getenv("VERTEX_API_KEY")
     if api_key:

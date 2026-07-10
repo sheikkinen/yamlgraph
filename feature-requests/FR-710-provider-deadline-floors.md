@@ -2,12 +2,18 @@
 
 **Priority:** HIGH (release-targeted: v0.5.10)
 **Type:** Bug (boundary normalization of a provider constraint)
-**Status:** Judged
+**Status:** Completed
 **Effort:** 0.25 day
 **Requested:** 2026-07-10
 **Judged:** 2026-07-10 — scope frozen. 4 findings resolved (see Judgement section).
+**Completed:** 2026-07-10 — RED fb06f57e (6 condemned), GREEN follows; ships in v0.5.10.
 **Spawned by:** FR-709 field finding 1 — a real google request rejected the judged 5 s fixture
 **Parent:** FR-708 (client request timeout — the knob this FR gives a floor)
+
+## Implementation (2026-07-10)
+
+- `_PROVIDER_TIMEOUT_FLOORS` map (google field-cited verbatim; vertex backend-inferred per F2 annotation) + provider-aware `_bounded(kwargs, timeout_param, provider)` with source resolved before `setdefault` (F1); `timeout=None`/non-numeric raises for floored providers (F3). google + vertex constructors pass their provider name; all others unchanged.
+- 10 tests (6 RED → GREEN + 4 guards) under REQ-YG-539; FR-708 matrix and factory suites green unmodified; FR-709 witness unaffected (runs at the floor, 10 s).
 
 ## Summary
 
