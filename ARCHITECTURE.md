@@ -334,7 +334,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 |---|-----------|----------------|--------------|
 | 1 | CAP-1 Config Loading & Validation | `cli/helpers`, `cli/helpers.GraphLoadError`, `data_loader`, `data_loader.DataFileError`, … | REQ-YG-001 – 004 |
 | 2 | CAP-2 Graph Compilation | `graph_loader`, `graph_loader.apply_loop_node_defaults`, `graph_loader.compile_graph`, `graph_loader.detect_loop_nodes`, … | REQ-YG-005 – 008, 220, 239 |
-| 3 | CAP-3 Node Execution | `executor`, `executor_async`, `executor_base`, `node_factory/llm_nodes`, … | REQ-YG-009 – 011, 050, 223, 539 |
+| 3 | CAP-3 Node Execution | `executor`, `executor_async`, `executor_base`, `node_factory/llm_nodes`, … | REQ-YG-009 – 011, 050, 223, 539 – 540 |
 | 4 | CAP-4 Prompt Execution | `executor.PromptExecutor`, `executor.execute_prompt`, `executor_async`, `executor_base.format_prompt`, … | REQ-YG-012 – 016, 216 |
 | 5 | CAP-5 Tool & Agent Integration | `node_factory/tool_nodes`, `tools/agent`, `tools/graph_tool`, `tools/nodes`, … | REQ-YG-017 – 020, 422, 510 |
 | 6 | CAP-6 Routing & Flow Control | `node_factory/control_nodes`, `routing`, `utils/conditions` | REQ-YG-021 – 023, 214 |
@@ -553,6 +553,7 @@ Create executable node functions for LLM, streaming, tool, interrupt, and subgra
 | REQ-YG-050 | Per-node and default-level `model` override: graph YAML `model` field flows through `execute_prompt()` to `create_llm()` | `node_factory/llm_nodes`, `executor`, `executor_async`, `executor_base` |
 | REQ-YG-223 | LLM node factory decomposed into composable phases: LLMNodeConfig frozen dataclass, resolve_llm_node_config() pure config resolver, _apply_verification(), _resolve_route(), _handle_error() — each independently testable, all below C901=10 (FR-223) | `node_factory/llm_nodes` |
 | REQ-YG-539 | Every provider constructor in llm_providers.py bounds provider work at the client boundary (FR-708): an explicit finite request timeout (default LLM_REQUEST_TIMEOUT=30s, env-overridable, garbage values raise) and bounded retries (max_retries=2) via the wrapper-correct parameter (timeout for the ChatOpenAI/ChatAnthropic/ ChatGoogleGenerativeAI/ChatMistralAI/Azure families, request_timeout for ChatLiteLLM). Caller-supplied kwargs win over the defaults. VERTEX_TRANSPORT=rest\|grpc plumbs transport= into the google and vertex constructors (express and ADC branches); invalid values raise at the boundary. A hung provider endpoint fails within the timeout instead of hanging forever and accumulating transport channels (Fly freeze RCA 2026-07-10). | `utils/llm_providers` |
+| REQ-YG-540 | Loop-affine provider clients are never cached across event loops (FR-712): google and vertex construct fresh per create_llm call (_UNCACHED_PROVIDERS) so the aiohttp session is born in and dies with the loop that uses it — a cached google-genai client errors on ~50% of completed calls in fresh loops (FR-711 Finding A: Executor shutdown / Timeout context manager RuntimeErrors), silently degrading the race hedge. Other providers keep the cache. Witnessed by a cache-identity unit gate and a zero-errors-over-10 completed fresh-loop integration test. | `utils/llm_factory` |
 
 ### 4. CAP-4 Prompt Execution
 

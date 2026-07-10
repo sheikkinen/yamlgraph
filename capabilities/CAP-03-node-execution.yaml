@@ -58,4 +58,17 @@ requirements:
       (Fly freeze RCA 2026-07-10).
     modules:
       - utils/llm_providers
+  - id: REQ-YG-540
+    description: >
+      Loop-affine provider clients are never cached across event loops
+      (FR-712): google and vertex construct fresh per create_llm call
+      (_UNCACHED_PROVIDERS) so the aiohttp session is born in and dies with
+      the loop that uses it — a cached google-genai client errors on ~50%
+      of completed calls in fresh loops (FR-711 Finding A: Executor
+      shutdown / Timeout context manager RuntimeErrors), silently degrading
+      the race hedge. Other providers keep the cache. Witnessed by a
+      cache-identity unit gate and a zero-errors-over-10 completed
+      fresh-loop integration test.
+    modules:
+      - utils/llm_factory
 fr: legacy
