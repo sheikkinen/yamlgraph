@@ -2,10 +2,36 @@
 
 **Priority:** HIGH
 **Type:** Bug investigation / witness test
-**Status:** Judged
+**Status:** Completed
 **Effort:** 0.5 day
 **Requested:** 2026-07-10
 **Judged:** 2026-07-10 — scope frozen. 6 findings resolved (see Judgement section); source read predicts CONDEMNED (blocking `t.join()` on the loop thread at `_run_coro_sync_safe`, running-loop branch).
+**Completed:** 2026-07-10 — **VERDICT: CONDEMNED.**
+
+## Verdict (2026-07-10)
+
+The witness ran against main (yamlgraph v0.5.8, post-FR-705):
+
+- **Caller blocked 5.01 s** for a 0.5 s race timeout — the full uncancellable
+  loser hang (HANG=5 s), confirming the caller waits on the losers, not the
+  deadline.
+- **Host-loop heartbeat stalled 5.01 s** (threshold 2 s) — the NC-361
+  silent-stall signature reproduced deterministically, no load rig, no phone
+  calls.
+- Thread accounting passed: population returns to baseline once losers
+  finish — the defect is *synchronous waiting*, not leakage.
+- Mechanism as predicted at Judgement: `_race_async`'s finally-gather awaits
+  cancelled-but-uncancellable losers; `_run_coro_sync_safe`'s `t.join()`
+  propagates that wait to the loop thread. Production scale: provider socket
+  timeouts → 320–340 s.
+- Test landed `xfail(strict=True, reason="… Fix: FR-707 …")` per F6 — main
+  stays committable; the fix cannot ship without removing the marker.
+- **Fix FR: FR-707** (race sync-bridge deadline authority).
+- NC-361 H2 verdict: the stall is loop-blockage by design of the bridge, not
+  CPU starvation — closing evidence for its R-3.
+- Deviation: no changelog fragment — nothing user-facing changed (test +
+  verdict only; commit type `test` does not trip the changelog gate). The
+  fragment ships with FR-707's fix.
 **Spawned by:** ninchat_voice NC-361 (PAR-02 run-5 hard stall, evidence
 `projects/ninchat_voice/logs/nc361-timeline.txt`)
 **Companion:** FR-705 (race timeout error fidelity — same incident, error
