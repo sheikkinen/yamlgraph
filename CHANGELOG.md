@@ -8,6 +8,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.10]
+
+### Added
+- **FR-709 Real-Provider Race Loser-Teardown Witness**: API-key-guarded integration test racing anthropic vs google live with a 3 s timeout, asserting the FR-707/708 teardown contract against real transports in whichever outcome shape occurs — verdict within budget, post-warm-up thread baseline restored, drain clean or WARNING-with-names, zero net thread growth over 3 consecutive races (the Fly-freeze accumulation signature, absent). Field findings: google rejects client deadlines < 10 s (`LLM_REQUEST_TIMEOUT < 10` breaks the google provider — consumer-relevant for FR-708 deployments), and real cancelled gemini tasks acknowledge cancellation within `CLEANUP_GRACE` (abandon path stays cold on healthy endpoints).
+
+### Fixed
+- **FR-710 Provider Deadline Floors**: the `LLM_REQUEST_TIMEOUT` knob (FR-708) now validates against provider-enforced deadline floors at construction — google/vertex require ≥ 10 s (field-verified via a live 400: *"Manually set deadline 5s is too short. Minimum allowed deadline is 10s."*). A below-floor value — env, caller kwarg, or `timeout=None` — raises once at construction naming the floor, the value, and its source, instead of a confusing 400 per request that silently drops the gemini candidate from every race. Non-floored providers unchanged; silent clamping deliberately rejected.
+- **FR-708 LLM Client Request Timeout**: every provider constructor in `llm_providers.py` now bounds provider work at the client boundary — explicit finite request timeout (default `LLM_REQUEST_TIMEOUT=30` s, env-overridable, garbage values raise) and `max_retries=2`, via the wrapper-correct parameter (`request_timeout` for ChatLiteLLM, `timeout` elsewhere); caller kwargs win. New `VERTEX_TRANSPORT=rest|grpc` knob plumbs `transport=` into the google/vertex constructors (both express and ADC branches) — REST honors timeouts via httpx where gRPC-from-Fly hung. A hung endpoint now fails within the timeout with the provider named (FR-705) instead of hanging forever and accumulating transport channels (Fly freeze RCA 2026-07-10). Completes the NC-361 chain: message (705) → witness (706) → wait (707) → work (708). (REQ-YG-539)
+
 ## [0.5.9]
 
 ### Fixed
