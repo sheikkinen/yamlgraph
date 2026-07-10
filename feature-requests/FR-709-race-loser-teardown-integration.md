@@ -2,10 +2,38 @@
 
 **Priority:** MEDIUM
 **Type:** Test (real-phenomenon witness)
-**Status:** Judged
+**Status:** Completed
 **Effort:** 0.5 day
 **Requested:** 2026-07-10
 **Judged:** 2026-07-10 — scope frozen. 6 findings resolved (see Judgement section); the draft's own thread-baseline invariant was flaky by construction (F1) and its teardown window mixed layers of the very stack the parent arc documented (F2).
+**Completed:** 2026-07-10 — PASSED on live transport; two field findings below.
+
+## Implementation (2026-07-10)
+
+**Run log (local, both keys present, verbatim):**
+
+```
+FR-709 shapes: race1: winner=anthropic loser=google verdict=0.74s;
+race2: winner=anthropic loser=google verdict=1.22s;
+race3: winner=anthropic loser=google verdict=1.95s | abandon-warnings: 0
+1 passed, 4 warnings in 9.66s
+```
+
+- All four invariants held in the `winner+in-flight-loser` shape ×3: verdicts far under the 9 s budget; threads settled to the post-warm-up baseline after every race; no `race-bridge` survivors; **zero net growth over 3 races** — the Fly-freeze accumulation signature is absent on live channels post-FR-707/708. First datapoint for the rate-layer gate (diary 2026-07-10): local evidence says FR-710 is NOT needed; the Fly probe remains the deployed-environment check.
+- Clean drain every race (0 abandon-WARNINGs): real cancelled gemini tasks acknowledged cancellation within `CLEANUP_GRACE` — the abandon path stayed cold on healthy endpoints, as designed.
+
+**Field finding 1 (F2 fixture corrected by reality):** google rejects client
+deadlines below its floor — `400 INVALID_ARGUMENT: "Manually set deadline 5s
+is too short. Minimum allowed deadline is 10s."` The judged
+`LLM_REQUEST_TIMEOUT=5` fixture was invalid for google; the test runs at the
+floor (10 s). **Consumer implication for FR-708:** any deployment setting
+`LLM_REQUEST_TIMEOUT < 10` breaks the google provider outright — surfaced
+loudly (400 at request time), but worth knowing before the Fly probe.
+
+**Field finding 2:** the stale `claude-3-5-haiku-latest` id 404s; current id
+`claude-haiku-4-5` used. Model ids in tests rot; the census lives in the
+repo's own usage (83 occurrences), not memory.
+
 **Parent arc:** FR-705/706/707/708 (NC-361 layer stack: message → witness → wait → work) — every witness so far is mocked; this FR exercises the real transport
 **Doctrine driver:** `mock_escape_hatch` — cancellation of live TLS/gRPC work is a physical phenomenon; a mocked loser is a unit test with extra steps
 

@@ -1,0 +1,7 @@
+# FR-709 teardown probe — trivial fixed question; the output is irrelevant
+# to every assertion (the test is about loser teardown, not content).
+system: |
+  Answer in one short sentence.
+
+user: |
+  Name one primary color.
