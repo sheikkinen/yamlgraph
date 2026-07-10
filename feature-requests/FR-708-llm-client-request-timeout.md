@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Judged
+**Status:** In Progress
 **Effort:** 1 day
 **Requested:** 2026-07-10
 **Judged:** 2026-07-10 — scope frozen. 6 findings resolved (see Judgement section); root cause re-verified at source (zero timeout/max_retries across all 11 provider constructors; both vertex branches use ChatGoogleGenerativeAI so the transport knob plumbs uniformly).

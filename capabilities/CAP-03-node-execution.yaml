@@ -42,4 +42,20 @@ requirements:
       independently testable, all below C901=10 (FR-223)
     modules:
       - node_factory/llm_nodes
+  - id: REQ-YG-539
+    description: >
+      Every provider constructor in llm_providers.py bounds provider work at
+      the client boundary (FR-708): an explicit finite request timeout
+      (default LLM_REQUEST_TIMEOUT=30s, env-overridable, garbage values
+      raise) and bounded retries (max_retries=2) via the wrapper-correct
+      parameter (timeout for the ChatOpenAI/ChatAnthropic/
+      ChatGoogleGenerativeAI/ChatMistralAI/Azure families, request_timeout
+      for ChatLiteLLM). Caller-supplied kwargs win over the defaults.
+      VERTEX_TRANSPORT=rest|grpc plumbs transport= into the google and
+      vertex constructors (express and ADC branches); invalid values raise
+      at the boundary. A hung provider endpoint fails within the timeout
+      instead of hanging forever and accumulating transport channels
+      (Fly freeze RCA 2026-07-10).
+    modules:
+      - utils/llm_providers
 fr: legacy
