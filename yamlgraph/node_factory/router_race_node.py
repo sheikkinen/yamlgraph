@@ -16,6 +16,8 @@ from yamlgraph.executor_base import prepare_messages
 from yamlgraph.models import PipelineError
 from yamlgraph.models.schemas import ErrorType
 from yamlgraph.node_factory.race_node import (
+    _BRIDGE_MARGIN,
+    CLEANUP_GRACE,
     AllCandidatesFailedError,
     _race_async,
     _run_coro_sync_safe,
@@ -67,7 +69,12 @@ def _execute_router_race(
                 parse_json=cfg.parse_json,
                 timeout=cfg.timeout,
                 temperature=cfg.temperature,
-            )
+            ),
+            verdict_budget=(
+                None
+                if cfg.timeout is None
+                else cfg.timeout + CLEANUP_GRACE + _BRIDGE_MARGIN
+            ),
         )
     except (TimeoutError, AllCandidatesFailedError) as exc:
         if cfg.on_error == ErrorHandler.FAIL:

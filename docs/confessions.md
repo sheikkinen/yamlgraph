@@ -1344,6 +1344,18 @@ These are not `# noqa` suppressions — they are documented deviations from proc
 - **Sin**: `_canon_fixture` pytest fixture omits return type annotation.
 - **Penance**: Pytest fixture returning `Path`. Consistent with test fixture patterns.
 
+### CONF-371
+- **File**: [yamlgraph/node_factory/race_node.py](../yamlgraph/node_factory/race_node.py#L198)
+- **Code**: BLE001
+- **Sin**: `except BaseException` in the race bridge's verdict transport catches everything, including KeyboardInterrupt/SystemExit.
+- **Penance**: FR-707 verdict handoff — the coroutine's outcome (result OR any exception) must cross the thread boundary via the Future; swallowing nothing, relabeling nothing. Anything not captured here would vanish in the daemon thread and the caller would hit the bridge budget as an anonymous RuntimeError, recreating the NC-361 forensic hole this fix exists to close. Same pattern as the previous `_run` transport it replaces.
+
+### CONF-372
+- **File**: [yamlgraph/node_factory/router_race_node.py](../yamlgraph/node_factory/router_race_node.py#L40)
+- **Code**: FB001
+- **Sin**: Docstring contains the lexical token `fallback`.
+- **Penance**: It documents the judged `on_error: fallback` contract (route via `default_route`, record the error in state) — an explicit, tested error mode, not a silent fallback. The docstring moved onto the flagged line during the FR-707 call-site edit; the semantics predate it.
+
 ### CONF-355
 - **File**: [examples/novel_fandom/nodes/creation_tools.py](../examples/novel_fandom/nodes/creation_tools.py#L71)
 - **Code**: BLE001

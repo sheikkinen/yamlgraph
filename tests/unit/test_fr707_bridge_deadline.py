@@ -20,11 +20,22 @@ import pytest
 from yamlgraph.node_factory import race_node as race_node_module
 
 
-def _make_hanging_llm(hang: float):
+def _make_cancel_ignoring_llm(hang: float):
+    """The NC-361 shape: a provider call that ignores cancellation.
+
+    A to_thread loser dies as a TASK instantly on cancel (the hung thread is
+    invisible to asyncio.all_tasks), so it never reaches the drain WARNING.
+    A coroutine that swallows CancelledError keeps the named race task
+    pending — exactly what the drain must report.
+    """
     mock = MagicMock()
 
     async def ainvoke(messages):
-        await asyncio.to_thread(time.sleep, hang)
+        try:
+            await asyncio.sleep(hang)
+        except asyncio.CancelledError:
+            await asyncio.sleep(hang)  # hung TLS read: cancel changes nothing
+            raise
         result = MagicMock()
         result.content = "too late"
         return result
@@ -51,8 +62,8 @@ class TestCleanupDrainWarning:
         monkeypatch.setattr(race_node_module, "CLEANUP_GRACE", 0.2)
         mock_prepare.return_value = ([MagicMock()], "anthropic", None)
         mock_create_llm.side_effect = [
-            _make_hanging_llm(2.0),
-            _make_hanging_llm(2.0),
+            _make_cancel_ignoring_llm(2.0),
+            _make_cancel_ignoring_llm(2.0),
         ]
 
         node_config = {

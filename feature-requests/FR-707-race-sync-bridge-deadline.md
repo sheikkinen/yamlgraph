@@ -2,12 +2,20 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Judged
+**Status:** Completed
 **Effort:** 1 day
 **Requested:** 2026-07-10
 **Judged:** 2026-07-10 — scope frozen. Consolidates the parallel session's fix spec (filed as a duplicate FR-706, renumbered here per first-on-origin precedent) with this FR's original stub; 6 findings resolved (see Judgement section).
+**Completed:** 2026-07-10 — RED 0adc3d5d, GREEN follows. One structural enforce deviation (below).
 **Condemned by:** FR-706 witness (`tests/unit/test_fr706_race_timeout_loop_liveness.py`, xfail strict) — measured 5.01 s caller block / 5.01 s host-loop stall for a 0.5 s race timeout
 **Incident:** ninchat_voice NC-361 (320–340 s production stall; H2 verdict: event-loop blockage)
+
+## Implementation (2026-07-10)
+
+- **Enforce deviation (structural, judged intent honored):** the frozen two-bound design (wait_for around the finally-gather + `t.join(budget)`) is insufficient — `asyncio.run`'s own shutdown (`_cancel_all_tasks`, `shutdown_default_executor`) ALSO waits unboundedly on cancellation-ignoring work, which would have delayed the verdict past the witness threshold and made the RuntimeError belt the common path. Implemented instead per the judgement's intent line ("return the verdict at the deadline, let cleanup be asynchronous to the caller"): `_race_async`'s finally is **cancel-only**; `_run_coro_sync_safe` hands the verdict through a Future the instant the coroutine finishes and performs the bounded drain (CLEANUP_GRACE, WARNING with task names carrying provider/model) **post-verdict inside the daemon thread**, on both entry paths. All F1–F6 pins hold: budget only when timeout exists (F3), RuntimeError on budget breach with verdict-TimeoutError passthrough (F4), constant not knob (F5), WARNING names candidates (F6).
+- FR-706 witness xfail marker removed — passes at the deadline (was 5.01 s block). 64/64 across the four race suites; FR-705 enumeration and thread accounting green.
+- Test finding: two kinds of "hung" loser — `to_thread` (thread-hidden, dies as a task on cancel, invisible to the drain) vs cancellation-ignoring coroutine (task-visible, the NC-361 TLS-read shape). The WARNING test needed the latter; see diary.
+- **Deviation 2 (fragment wiring):** the changelog fragment carries no `req:` — REQ-YG-269 is owned by CAP-91 (`fr: FR-232`), and the cross-wiring gate correctly rejects a second FR claiming it via fragment front-matter (a frozen FR-270 fragment already shares the req). Traceability is carried by the `@pytest.mark.req("REQ-YG-269")` tags; fragment `req:` is optional by convention. Adding a duplicate REQ to a new CAP would violate the FR-701 uniqueness rules.
 
 ## Problem
 

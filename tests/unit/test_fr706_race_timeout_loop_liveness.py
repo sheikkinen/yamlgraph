@@ -49,14 +49,6 @@ def _make_hanging_llm():
 
 
 @pytest.mark.req("REQ-YG-269")
-@pytest.mark.xfail(
-    strict=True,
-    reason="FR-706 verdict: CONDEMNED (2026-07-10). _run_coro_sync_safe's "
-    "running-loop branch blocks the caller (t.join) until the bg loop's "
-    "finally-gather finishes awaiting uncancellable losers — measured "
-    "5.01s block / 5.01s heartbeat stall for a 0.5s timeout. Fix: FR-707; "
-    "its GREEN must remove this marker (strict xfail errors on pass).",
-)
 @patch("yamlgraph.node_factory.race_node.create_llm")
 @patch("yamlgraph.node_factory.race_node.prepare_messages")
 def test_race_timeout_does_not_block_host_loop(mock_prepare, mock_create_llm):
@@ -126,7 +118,9 @@ def test_race_timeout_does_not_block_host_loop(mock_prepare, mock_create_llm):
     assert not violations, "; ".join(violations)
 
     # F4: thread accounting — population returns to baseline within grace.
-    deadline = time.monotonic() + HANG
+    # Grace = HANG + margin: the loser's executor thread exits at ~HANG, then
+    # the bg loop's shutdown joins it; xdist load adds jitter on top.
+    deadline = time.monotonic() + HANG + 2.0
     while time.monotonic() < deadline:
         leaked = set(threading.enumerate()) - baseline_threads
         if not leaked:

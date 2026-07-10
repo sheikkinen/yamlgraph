@@ -28,6 +28,11 @@ from yamlgraph.utils.llm_factory import create_llm
 
 logger = logging.getLogger(__name__)
 
+# FR-707: post-verdict cleanup drain bound (module constant by Judgement F5 —
+# no YAML knob until a real workload demands one) and the bridge budget margin.
+CLEANUP_GRACE = 5.0
+_BRIDGE_MARGIN = 1.0
+
 
 class AllCandidatesFailedError(Exception):
     """Raised when all race candidates fail."""
@@ -159,39 +164,67 @@ async def _race_async(
 
         raise AllCandidatesFailedError(errors)
     finally:
-        # Defensive cleanup for timeout/error exits — cancel any remaining tasks.
+        # FR-707: cancel-only — the verdict must not wait for losers. The
+        # bounded drain (and its WARNING) happens post-verdict in the bridge
+        # wrapper; awaiting uncancellable losers here delayed the verdict by
+        # their full lifetime (NC-361: 320–340 s).
         for task in tasks:
             task.cancel()
-        if tasks:
-            await asyncio.gather(*tasks.keys(), return_exceptions=True)
 
 
-def _run_coro_sync_safe(coro: Any) -> Any:
-    """Run coroutine from sync node without event-loop conflicts (FR-271).
+def _run_coro_sync_safe(coro: Any, verdict_budget: float | None = None) -> Any:
+    """Run coroutine from a sync node; the caller waits for the VERDICT,
+    never for cleanup (FR-707).
 
-    When no loop is running (typical graph.invoke() path): use asyncio.run().
-    When a loop is already running (graph.ainvoke() path): delegate to a
-    dedicated thread with its own loop to avoid nesting.
+    The coroutine runs under asyncio.run() in a dedicated daemon thread on
+    BOTH entry paths (a plain asyncio.run() in the caller would block at
+    shutdown on cancellation-ignoring tasks — the NC-361 stall). Its result
+    or exception is handed to the caller through a Future the moment the
+    coroutine finishes; the loop's post-verdict drain (bounded by
+    CLEANUP_GRACE, WARNING names what it abandons) is invisible to the
+    caller.
+
+    verdict_budget: None → wait indefinitely (a race with `timeout: null`
+    has no deadline authority). On budget expiry raises RuntimeError — an
+    invariant breach, deliberately NOT TimeoutError (FR-705 removed that
+    handling; an anonymous bridge TimeoutError would bypass the
+    on_error: skip contract).
     """
-    try:
-        asyncio.get_running_loop()
-    except RuntimeError:
-        return asyncio.run(coro)
+    verdict: concurrent.futures.Future[Any] = concurrent.futures.Future()
 
-    # Already inside an event loop — run in a dedicated background thread.
-    # concurrent.futures.Future propagates exceptions across threads cleanly.
-    _future: concurrent.futures.Future[Any] = concurrent.futures.Future()
-
-    def _run() -> None:
+    async def _deliver() -> None:
         try:
-            _future.set_result(asyncio.run(coro))
-        except BaseException as exc:
-            _future.set_exception(exc)
+            verdict.set_result(await coro)
+        except BaseException as exc:  # noqa: BLE001 — verdict transport
+            verdict.set_exception(exc)
+        # Post-verdict drain: bounded, invisible to the caller.
+        current = asyncio.current_task()
+        pending = [t for t in asyncio.all_tasks() if t is not current]
+        if pending:
+            _done, still = await asyncio.wait(pending, timeout=CLEANUP_GRACE)
+            if still:
+                logger.warning(
+                    "race cleanup abandoned %d task(s) still pending "
+                    "after %.1fs: %s",
+                    len(still),
+                    CLEANUP_GRACE,
+                    ", ".join(t.get_name() for t in still),
+                )
 
-    t = threading.Thread(target=_run, daemon=True)
+    t = threading.Thread(
+        target=lambda: asyncio.run(_deliver()), daemon=True, name="race-bridge"
+    )
     t.start()
-    t.join()
-    return _future.result()
+    try:
+        return verdict.result(timeout=verdict_budget)
+    except TimeoutError:
+        if verdict.done():
+            raise  # the TimeoutError IS the verdict — deliver it unrelabeled
+        raise RuntimeError(
+            f"race sync bridge abandoned after {verdict_budget:.1f}s — "
+            "background loop failed to deliver a verdict within its "
+            "guaranteed budget"
+        ) from None
 
 
 def create_race_node(
@@ -272,7 +305,12 @@ def create_race_node(
                     parse_json,
                     timeout,
                     temperature,
-                )
+                ),
+                verdict_budget=(
+                    None
+                    if timeout is None
+                    else timeout + CLEANUP_GRACE + _BRIDGE_MARGIN
+                ),
             )
         except AllCandidatesFailedError as exc:
             if on_error == ErrorHandler.SKIP:
