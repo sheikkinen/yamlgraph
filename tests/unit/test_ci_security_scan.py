@@ -130,7 +130,14 @@ class TestSecurityJobStructure:
         assert install_steps, "Must have a step that installs pip-audit"
 
     def test_pip_audit_step(self) -> None:
-        """The job must run pip-audit with --strict and --desc flags."""
+        """The job must run pip-audit with --desc and --skip-editable.
+
+        --strict was removed: it fails on ANY skipped distribution while
+        --skip-editable (required for the local editable install) marks
+        yamlgraph skipped — verified mutually exclusive on tag pushes
+        v0.5.8/v0.5.9. Blocking comes from pip-audit's default non-zero
+        exit on findings.
+        """
         wf = _load_workflow()
         steps = wf["jobs"]["security"]["steps"]
 
@@ -140,7 +147,7 @@ class TestSecurityJobStructure:
             for s in steps
             if "run" in s
             and "pip-audit" in s["run"]
-            and "--strict" in s["run"]
+            and "--skip-editable" in s["run"]
             and "--desc" in s["run"]
         ]
 
@@ -153,7 +160,7 @@ class TestSecurityJobStructure:
             and "with" in s
             and "command" in s["with"]
             and "pip-audit" in s["with"]["command"]
-            and "--strict" in s["with"]["command"]
+            and "--skip-editable" in s["with"]["command"]
             and "--desc" in s["with"]["command"]
         ]
 

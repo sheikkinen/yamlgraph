@@ -350,29 +350,44 @@ class TestSecurityScanBlocking:
     """AC-08: Security scan still blocks on vulnerabilities found."""
 
     def test_pip_audit_still_uses_strict_mode(self) -> None:
-        """security.yml should still use pip-audit --strict to block on vulnerabilities."""
+        """security.yml blocks on vulnerabilities via pip-audit's default
+        non-zero exit on findings.
+
+        History: --strict was the original blocking flag, but --strict fails
+        on ANY skipped distribution and --skip-editable (required since the
+        local editable yamlgraph install cannot be audited against PyPI —
+        verified failing on tag pushes v0.5.8/v0.5.9) marks it skipped. The
+        two flags are mutually exclusive; blocking semantics come from the
+        default exit code, which this witness pins by asserting the audit
+        step has no continue-on-error escape.
+        """
         workflow = _load_workflow("security.yml")
 
-        # Look for pip-audit with --strict flag
-        has_strict_pip_audit = False
+        audit_step = None
         for _job_name, job in workflow.get("jobs", {}).items():
             for step in job.get("steps", []):
-                step_run = step.get("run", "")
-                command = step.get("with", {}).get("command", "")
-
-                if (
-                    "pip-audit" in step_run
-                    and "--strict" in step_run
-                    or "pip-audit" in command
-                    and "--strict" in command
-                ):
-                    has_strict_pip_audit = True
+                command = step.get("with", {}).get("command", "") or step.get("run", "")
+                if "pip-audit" in command and "install" not in command:
+                    audit_step = step
                     break
 
-            if has_strict_pip_audit:
-                break
-
-        assert has_strict_pip_audit, "security.yml should still use pip-audit --strict"
+        assert audit_step is not None, "security.yml must run pip-audit"
+        command = audit_step.get("with", {}).get("command", "") or audit_step.get(
+            "run", ""
+        )
+        assert (
+            "--skip-editable" in command
+        ), "pip-audit must skip the local editable install"
+        assert (
+            "--strict" not in command
+        ), "--strict fails on the intentional --skip-editable skip"
+        assert (
+            audit_step.get("continue-on-error") is not True
+        ), "audit step must block on findings (no continue-on-error)"
+        assert (
+            str(audit_step.get("with", {}).get("continue_on_error", "false")).lower()
+            != "true"
+        ), "retry action must not swallow the audit exit code"
 
 
 # ── AC-09: Release Process Unchanged ──────────────────────────────────────

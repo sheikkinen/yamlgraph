@@ -148,11 +148,15 @@ class TestFR282CVEIgnore:
 
         assert pip_audit_commands, "Must find pip-audit command"
 
-        # Verify critical flags are still present
+        # Verify critical flags are still present (--strict removed: it
+        # fails on the intentional --skip-editable skip; blocking comes
+        # from pip-audit's default non-zero exit on findings)
         found_valid_cmd = False
         for cmd in pip_audit_commands:
             if "pip-audit" in cmd and "install" not in cmd:
-                assert "--strict" in cmd, f"pip-audit must retain --strict flag: {cmd}"
+                assert (
+                    "--skip-editable" in cmd
+                ), f"pip-audit must skip the local editable install: {cmd}"
                 assert "--desc" in cmd, f"pip-audit must retain --desc flag: {cmd}"
                 found_valid_cmd = True
                 break
