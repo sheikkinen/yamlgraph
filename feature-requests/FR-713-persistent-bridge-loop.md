@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement (architecture — substrate promotion)
-**Status:** Part A ENFORCED (2026-07-11) — persistent loop shipped; Part B reframed on PURITY (F13): kill the `_UNCACHED_PROVIDERS` carve-out + collapse the vertex masked-env window; gated on re-derived FR-712 witness (AC-04), not on the deployed-google incident
+**Status:** Part A ENFORCED (2026-07-11); Part B JUDGED (2026-07-11) — purity scope frozen (F13–F17), authority granted, gated only on its own RED (AC-12) and witness (AC-14)
 **Effort:** 2 days — Part A (persistent loop, PR 1) 1.5 days; Part B (cache re-entry, PR 2, F9) 0.5 days
 **Requested:** 2026-07-11
 **Spawned by:** Third independent arrival at the same seed — FR-706 seed (generic deadline-aware bridge), FR-707 seed (extract `_run_coro_sync_safe` as primitive), rate-layer reflection 2026-07-10 ("FR-710 candidate"), diary 2026-07-11 (contract-vs-substrate split). This is FR-711's **FR-A**, conjoined with **FR-B** (loop-stable client cache) because the diaries proved neither is sufficient alone.
@@ -244,15 +244,10 @@ margin are loop-independent invariants).
       cancellation-ignoring coroutine on the persistent loop. (Witness
       itself repaired en route: its caplog assertion only passed via
       test-order propagation pollution — failed in isolation on main.)
-- [ ] AC-04 (Part B PR) FR-712 integration witness re-derived to persistent-loop
-      topology: warm cached google client, 10/10 completed calls on the
-      bridge loop, zero errors — THEN `_UNCACHED_PROVIDERS` reverted in
-      the **Part B PR** (separate from Part A, per F9); if it fails, the
-      revert stays out and Part B is descoped to azure/anthropic only.
-      **F13 supersedes the F10 descope trigger:** the revert is a purity
-      change gated on this witness alone; the deployed-google
-      0-completion incident (NC-366, ninchat-side) is tracked separately
-      and does not block it
+- [x] AC-04 SUPERSEDED by the Part B Judgement's frozen set (AC-12–AC-15,
+      2026-07-11): the re-derived FR-712 witness lives on as AC-14; the
+      F10 descope trigger was narrowed by F13 (purity, not latency, is
+      the motivation; the deployed-google incident does not block)
 - [x] AC-05 FR-711 instrument re-run on new topology (local jurisdiction
       per gate resolution): Arm-B delta collapsed — anthropic Δp50
       +0.527 → **+0.073 s**, google +0.067 → +0.059 s, both < 100 ms.
@@ -362,11 +357,52 @@ Consequences for the gates:
   ledger entry (carve-out gone) and the collapsed env-mutation window;
   any latency change is incidental and shall not be cited as motivation.
 
-**Authority:** scope is frozen as amended. Enforcement authority is
-WITHHELD until FR-711 AC-05 records the deployed verdict. If deployed
-`(B − A) × handshakes-per-turn < 100 ms` → this FR flips to Rejected
-per the frozen rule; no renegotiation. If ≥ 100 ms → authority granted,
-no re-judgement needed.
+**Authority (superseded record):** the original judgement withheld
+authority pending FR-711's deployed verdict; the operator resolved
+jurisdiction 2026-07-11 (Fly removed from scope, verdict CONDEMN on
+local numbers) and Part A was enforced the same day.
+
+## Part B Judgement (2026-07-11)
+
+Scope verified at source: `_UNCACHED_PROVIDERS` + `cacheable` branch
+(`llm_factory.py:55,202`), old-policy witnesses
+(`tests/unit/test_fr712_uncached_google.py`,
+`tests/integration/test_fr712_fresh_loop_completions.py`), REQ-YG-540
+text in CAP-03 + ARCHITECTURE. Pre-listed hazards resolved: fork-safety
+shipped and witnessed in Part A (`register_at_fork` clears cache with
+fresh locks); shutdown draining introduces nothing beyond what every
+cached provider already does today; fingerprint-churn cache growth
+accepted (no eviction exists today; env churn is rare — recorded, not
+engineered around).
+
+| # | Finding | Resolution |
+|---|---------|------------|
+| F14 | Env-fingerprint scoped to google/vertex would replace one provider carve-out with another — Part B contradicting its own purity frame. Staleness is universal: every cached provider's client survives key rotation today | Fingerprint mechanism is UNIFORM across all providers; the per-provider env-var list is declarative data (one table, like DEFAULT_MODELS), covering the vars each constructor reads (keys, project/location, VERTEX_TRANSPORT, LLM_REQUEST_TIMEOUT) |
+| F15 | The FR-712 unit gate asserts the OLD policy (`first is not second` for google/vertex; `_UNCACHED_PROVIDERS` present in source) — it is Part B's natural RED, not an obstacle | Part B's RED = invert those witnesses first: google/vertex assert cache identity; the annotation test dies with the frozenset. Commit RED (SKIP=pytest), then the revert as GREEN |
+| F16 | REQ-YG-540's text ("never cached across event loops") becomes false on merge — minting a new REQ would leave a phantom claim standing (growth_as_default) | Rewrite REQ-YG-540 in place (CAP-03 + ARCHITECTURE) to the new contract: loop-stable cached clients on the persistent bridge loop, env-fingerprinted keys, witnessed by identity gate + warm-cached integration run. Same REQ ID — the requirement evolved, the traceability spine holds |
+| F17 | Vertex was uncached by same-class inference, never witnessed (FR-712 F4); it re-enters the cache by the same inference — asymmetric evidence either way | Symmetric treatment: google integration witness required (AC-14); vertex rides the inference with skip-with-reason (FR-711 F3 pattern), one line to re-uncache if a field run ever contradicts. The inference annotation moves from the deleted llm_factory comment into the CAP text — the confession travels with the claim |
+
+### Part B Acceptance Criteria (frozen)
+
+- [ ] AC-12 RED: FR-712 unit gate inverted — google/vertex `create_llm`
+      twice returns the SAME object (cache identity ⇒ construction once
+      ⇒ masked-env window per key, the F13 purity claim, proven
+      mechanically); `_UNCACHED_PROVIDERS` absent from llm_factory source
+- [ ] AC-13 Uniform staleness gate (F14): changing a fingerprinted env
+      var between `create_llm` calls yields a NEW client for any
+      provider; unchanged env is a cache hit — parametrized across at
+      least google, vertex, anthropic
+- [ ] AC-14 Integration witness re-derived: ONE warm CACHED google
+      client, 10/10 completed calls on the persistent bridge loop, zero
+      errors; vertex skip-with-reason. If it fails: revert stays out,
+      Part B ships the fingerprint (AC-13) only, finding recorded
+- [ ] AC-15 REQ-YG-540 rewritten in place (F16) in CAP-03 and
+      ARCHITECTURE; changelog fragment (req: REQ-YG-540) + diary entry
+
+**Authority:** granted under F13's frame — the PR description and
+changelog shall cite entropy removed, not milliseconds. Scope is the
+four ACs above; anything further (construction_context seam from the
+diary Seed, cache eviction) is out of scope.
 
 ## Related
 
