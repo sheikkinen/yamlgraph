@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement (architecture — substrate promotion)
-**Status:** Part A ENFORCED (2026-07-11) — persistent loop shipped; Part B (cache re-entry) pending, google descoped while deployed completions are 0 (F10)
+**Status:** Part A ENFORCED (2026-07-11) — persistent loop shipped; Part B reframed on PURITY (F13): kill the `_UNCACHED_PROVIDERS` carve-out + collapse the vertex masked-env window; gated on re-derived FR-712 witness (AC-04), not on the deployed-google incident
 **Effort:** 2 days — Part A (persistent loop, PR 1) 1.5 days; Part B (cache re-entry, PR 2, F9) 0.5 days
 **Requested:** 2026-07-11
 **Spawned by:** Third independent arrival at the same seed — FR-706 seed (generic deadline-aware bridge), FR-707 seed (extract `_run_coro_sync_safe` as primitive), rate-layer reflection 2026-07-10 ("FR-710 candidate"), diary 2026-07-11 (contract-vs-substrate split). This is FR-711's **FR-A**, conjoined with **FR-B** (loop-stable client cache) because the diaries proved neither is sufficient alone.
@@ -165,6 +165,29 @@ graph TB
 
 ### Part B — loop-stable client cache (FR-711's FR-B)
 
+**Reframed 2026-07-11 (operator + F13): Part B is a PURITY change, not a
+latency change.** `_UNCACHED_PROVIDERS` is provider-special-cased scar
+tissue — exactly the class Commandment 8 forbids ("no shims, no compat
+flags"). It was justified only while the substrate made loop affinity
+unhonorable; Part A removed that justification. Keeping the carve-out now
+would be special faulty code living past its cause. The latency prize is
+negligible (AC-05 re-run: google Δp50 +0.059 s with per-call
+construction); the purity prize is not:
+
+1. **Cache uniformity restored.** Delete the `_UNCACHED_PROVIDERS`
+   frozenset, the `cacheable` branch in `_cached_or_create`, and the
+   FR-712 scar comment — one caching rule for all providers, zero
+   provider carve-outs.
+2. **Global-env mutation window collapses from per-call to per-key.**
+   Vertex Express construction mutates process-global `os.environ` under
+   `_VERTEX_CONSTRUCT_LOCK` + `_masked_env` (FR-227). The lock serializes
+   vertex-vs-vertex only; any OTHER thread reading those env vars during
+   the masked window races it. Uncached = the window opens on EVERY race
+   call, on caller threads (post-F6). Cached = once per cache key per
+   process. Same move FR-708 made on leak lifetime: the impurity is
+   forced by the SDK's env-reading constructor and cannot be deleted, but
+   its exposure collapses by orders of magnitude.
+
 - Keep the **existing** `_llm_cache` (no new registry — FR-711 F-list) but
   clients now live their whole life on one loop, restoring cache
   eligibility for loop-affine SDKs.
@@ -226,10 +249,10 @@ margin are loop-independent invariants).
       bridge loop, zero errors — THEN `_UNCACHED_PROVIDERS` reverted in
       the **Part B PR** (separate from Part A, per F9); if it fails, the
       revert stays out and Part B is descoped to azure/anthropic only.
-      **Additional descope trigger (F10):** while deployed google
-      completions remain 0 (NC-366), the google revert is moot regardless
-      of local witness outcome — Part B ships azure/anthropic only until
-      the ninchat-side google incident is resolved
+      **F13 supersedes the F10 descope trigger:** the revert is a purity
+      change gated on this witness alone; the deployed-google
+      0-completion incident (NC-366, ninchat-side) is tracked separately
+      and does not block it
 - [x] AC-05 FR-711 instrument re-run on new topology (local jurisdiction
       per gate resolution): Arm-B delta collapsed — anthropic Δp50
       +0.527 → **+0.073 s**, google +0.067 → +0.059 s, both < 100 ms.
@@ -313,6 +336,31 @@ dismissed with evidence citations.
 | F10 | Deployed google completes ZERO races (0/59 spans, pending-forever, both transports) — Part B's google cache revert presumed a completing google candidate; a local 10/10 witness cannot evidence deployed completions | AC-04 gains a deployed descope trigger: google revert stays out while deployed completions are 0; the google incident is ninchat-side, out of this FR's scope. Note: pending-forever is "different symptom, same organ" as FR-712 loop-affinity — if Part A resolves it, that is a recorded finding, not a claimed objective |
 | F11 | Gate quantity was never measurable by Instrument 2 (transport A/B ≠ fresh-loop reconnect Δ) — instrument rot in the gate itself, the same class this FR's F4/AC-02 guard against | Gate re-pinned: deployed azure Instrument-1 Arm A/B × measured 2.38 races/turn; frozen 100 ms line unchanged. Gate remains CLOSED |
 | F12 | Handshakes-per-turn estimate (1–3) retired by measurement: mean 2.38, p50 2–3, max 4 — a fifth of turns run FOUR sequential races | Value arithmetic updated in Gate; azure confirmed as sole production cost driver (100% win rate) |
+
+### F13 — Part B reframed on purity (2026-07-11, post-Part-A)
+
+The post-enforcement evaluation asked the wrong question of Part B
+("what latency does the revert buy?" — answer: ~60 ms, nearly nothing)
+and nearly parked it on that basis, with F10's deployed-google descope as
+reinforcement. The operator corrected the frame: **special-cased faulty
+code is against the Scripture regardless of its latency cost**
+(Commandment 8 — kill entropy, no compat flags; `the_one_law` — the
+FR-712 carve-out was a downstream guard whose boundary cause Part A
+removed). Two purity findings stand independent of any deployment:
+
+| Impurity | Today (uncached) | After Part B |
+|---|---|---|
+| Provider carve-out in cache policy (`_UNCACHED_PROVIDERS` + `cacheable` branch) | Permanent special case with retired justification | Deleted — uniform rule |
+| Vertex Express `_masked_env` global-`os.environ` mutation window (FR-227) | Opens on EVERY race call, on concurrent caller threads (post-F6) — unguarded against non-vertex env readers | Once per cache key per process |
+
+Consequences for the gates:
+- **F10 narrows.** The deployed-google 0-completion descope was a latency
+  argument; it does not answer purity. The google/vertex revert proceeds
+  on the re-derived FR-712 witness alone (AC-04) — it need not wait for
+  the ninchat incident. The witness, not the deployment, is the gate.
+- **Part B's value statement is corrected:** deliverable is the deletion
+  ledger entry (carve-out gone) and the collapsed env-mutation window;
+  any latency change is incidental and shall not be cited as motivation.
 
 **Authority:** scope is frozen as amended. Enforcement authority is
 WITHHELD until FR-711 AC-05 records the deployed verdict. If deployed
