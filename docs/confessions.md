@@ -1422,6 +1422,12 @@ These are not `# noqa` suppressions — they are documented deviations from proc
 - **Sin**: Agent tool handler exceeds cyclomatic complexity threshold.
 - **Penance**: Agent node orchestration is inherently complex — tool dispatch, error handling, streaming. Splitting would obscure the sequential logic.
 
+### CONF-373
+- **File**: [tests/unit/test_fr713_persistent_bridge.py](../tests/unit/test_fr713_persistent_bridge.py#L274)
+- **Code**: SLF001
+- **Sin**: AC-11 witness stops `bridge._loop` directly to simulate loop-thread death.
+- **Penance**: Loop death is an internal fatality by definition — no public API should exist to kill the bridge; the witness must reach through the seam it guards.
+
 ---
 
 ## Adding New Confessions
