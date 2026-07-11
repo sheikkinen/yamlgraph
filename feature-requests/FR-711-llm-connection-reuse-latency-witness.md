@@ -150,12 +150,13 @@ hurt; laptop numbers alone do not condemn.
 - [ ] AC-02 Arm B uses the real `_run_coro_sync_safe`, not a simulated
       loop — the witness exercises the production bridge; default
       `LLM_REQUEST_TIMEOUT` respected (≥ FR-710 floors).
-- [ ] AC-03 Fly probe: `VERTEX_TRANSPORT=rest` vs grpc per-turn split from
-      LangSmith on ≥ 10 real flex_navigator turns each — **executed from
-      the ninchat_voice side** (F4: one session, one repo), results folded
-      into this FR. *(NC-366 status: runbook ready
-      (capture→flip→verify→restore, azure control per its R-1); awaits the
-      operator fly window.)*
+- [x] AC-03 Fly probe EXECUTED (NC-366, 2026-07-11): 10 turns/arm,
+      azure control FLAT (+22 ms — window clean). **Finding: the deployed
+      transport Δ is UNDEFINED and MOOT — every google llm span in both
+      arms is pending-forever (0 completions of 29–30/arm); google
+      candidates never complete a deployed race; azure wins 100%.**
+      Full table + trace IDs:
+      ninchat_voice `docs/analysis/nc366-fly-probe-2026-07-10.md`.
 - [x] AC-04 race-count HALF measured (NC-366 AC-01, 2026-07-11): 5 persona
       cases, 42 caller turns, 100 race executions — **mean 2.38
       races/turn, p50 2–3, max 4** (histogram 1×13 / 2×8 / 3×13 / 4×8;
