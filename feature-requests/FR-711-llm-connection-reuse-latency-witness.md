@@ -153,10 +153,20 @@ hurt; laptop numbers alone do not condemn.
 - [ ] AC-03 Fly probe: `VERTEX_TRANSPORT=rest` vs grpc per-turn split from
       LangSmith on ≥ 10 real flex_navigator turns each — **executed from
       the ninchat_voice side** (F4: one session, one repo), results folded
-      into this FR.
-- [ ] AC-04 Per-turn cost computed for ninchat_voice using measured
-      handshake × actual race-execution count per turn (from a suite-run
-      trace, not the 1–3 estimate) — ninchat_voice side (F4).
+      into this FR. *(NC-366 status: runbook ready
+      (capture→flip→verify→restore, azure control per its R-1); awaits the
+      operator fly window.)*
+- [x] AC-04 race-count HALF measured (NC-366 AC-01, 2026-07-11): 5 persona
+      cases, 42 caller turns, 100 race executions — **mean 2.38
+      races/turn, p50 2–3, max 4** (histogram 1×13 / 2×8 / 3×13 / 4×8;
+      ninchat_voice `docs/analysis/nc366-fly-probe-2026-07-10.md`). The
+      1–3 estimate is retired; its upper bound was optimistic (a fifth of
+      turns run 4 sequential races). Cost half (measured handshake ×
+      2.38) computes when AC-03's deployed Δ lands. Using the LOCAL
+      Δp50 (+598 ms azure / +527 ms anthropic) as a provisional bound:
+      2.38 × ~0.5–0.6 s ≈ **1.2–1.4 s avoidable per spoken turn** —
+      12–14× the frozen 100 ms threshold — but the verdict stays frozen
+      until the deployed numbers replace the laptop TLS path (F1).
 - [ ] AC-05 Verdict recorded against the frozen rule on deployed numbers
       (F1); seed closed OR FR-A/FR-B filed with the numbers embedded. No
       third outcome.
