@@ -43,16 +43,44 @@ REASONING_MODEL_PREFIXES = ("o1", "o3", "o4")
 _llm_cache: dict[tuple, BaseChatModel] = {}
 _cache_lock = threading.Lock()
 
-# FR-712: loop-affine SDK clients must NOT be reused across event loops.
-# The google-genai wrapper's aiohttp session binds to the first loop that
-# runs it; under the race bridge (fresh loop per call) a cached client
-# errors on ~50% of COMPLETED calls ("Executor shutdown has been called" /
-# "Timeout context manager should be used inside a task" — FR-711 Finding A,
-# docs/analysis/fr711-conn-witness-2026-07-10.txt). These providers
-# construct fresh per call so the session is born in, and dies with, the
-# loop that uses it. "vertex" is same-class-inferred (identical wrapper
-# class and session internals; not independently witnessed — FR-712 F4).
-_UNCACHED_PROVIDERS = frozenset({"google", "vertex"})
+# FR-713 Part B (F14): construction is env-sensitive (FR-227) — a cached
+# client must not survive a change in the env it was born under, for ANY
+# provider (uniform mechanism; special-casing staleness per provider would
+# be a carve-out). The fingerprint covers the vars each constructor reads:
+# a COMMON set every provider consumes (FR-708 work bounds) plus a
+# declarative per-provider list. Loop affinity is no longer a cache
+# concern: clients live their whole life on the persistent bridge loop
+# (FR-713 Part A), which retired the FR-712 google/vertex cache carve-out.
+# NOTE (FR-712 F4, confession carried): vertex was excluded by same-class
+# inference and re-enters the cache by the same inference — witnessed for
+# google (integration), one line to re-exclude if the field contradicts.
+_COMMON_FINGERPRINT_VARS = ("LLM_REQUEST_TIMEOUT",)
+_PROVIDER_FINGERPRINT_VARS: dict[str, tuple[str, ...]] = {
+    "anthropic": ("ANTHROPIC_API_KEY",),
+    "azure": ("AZURE_AI_ENDPOINT", "AZURE_AI_API_KEY", "AZURE_MODEL"),
+    "deepseek": ("DEEPSEEK_API_KEY",),
+    "google": ("GOOGLE_API_KEY", "VERTEX_TRANSPORT"),
+    "inception": ("INCEPTION_API_KEY",),
+    "lmstudio": ("LMSTUDIO_BASE_URL",),
+    "mistral": ("MISTRAL_API_KEY",),
+    "openai": ("OPENAI_API_KEY",),
+    "replicate": ("REPLICATE_API_TOKEN",),
+    "vertex": (
+        "VERTEX_API_KEY",
+        "GOOGLE_CLOUD_PROJECT",
+        "GOOGLE_CLOUD_LOCATION",
+        "VERTEXAI_PROJECT",
+        "GOOGLE_API_KEY",
+        "VERTEX_TRANSPORT",
+    ),
+    "xai": ("XAI_API_KEY",),
+}
+
+
+def _env_fingerprint(provider: str) -> tuple:
+    """Snapshot the env vars this provider's constructor reads (F14)."""
+    names = _COMMON_FINGERPRINT_VARS + _PROVIDER_FINGERPRINT_VARS.get(provider, ())
+    return tuple(os.getenv(name) for name in names)
 
 
 def create_llm(
@@ -157,13 +185,15 @@ def create_llm(
         logger.info(f"Omitting temperature for reasoning model: {selected_model}")
         temperature = None
 
-    # Create cache key (includes thinking_budget, uses overridden temperature)
+    # Create cache key (includes thinking_budget, uses overridden temperature,
+    # and the env fingerprint — FR-713 Part B: construction is env-sensitive)
     cache_key = (
         selected_provider,
         selected_model,
         temperature,
         max_tokens,
         thinking_budget,
+        _env_fingerprint(selected_provider),
     )
 
     llm = _cached_or_create(
@@ -194,13 +224,12 @@ def _cached_or_create(
 ) -> BaseChatModel:
     """Thread-safe cache lookup / construction (extracted for the CC gate).
 
-    FR-712: loop-affine providers (_UNCACHED_PROVIDERS) are never cached —
-    they construct fresh per call so the SDK session is born in, and dies
-    with, the loop that uses it.
+    One caching rule for every provider (FR-713 Part B): clients live
+    their whole life on the persistent bridge loop, so loop affinity is
+    stable; the env fingerprint in the key retires stale-credential reuse.
     """
     with _cache_lock:
-        cacheable = provider not in _UNCACHED_PROVIDERS
-        if cacheable and cache_key in _llm_cache:
+        if cache_key in _llm_cache:
             logger.debug(f"Using cached LLM: {provider}/{model} (temp={temperature})")
             return _llm_cache[cache_key]
 
@@ -219,8 +248,7 @@ def _cached_or_create(
             **optional_kwargs,
         )
 
-        if cacheable:
-            _llm_cache[cache_key] = llm
+        _llm_cache[cache_key] = llm
 
         return llm
 

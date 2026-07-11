@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement (architecture — substrate promotion)
-**Status:** Part A ENFORCED (2026-07-11); Part B JUDGED (2026-07-11) — purity scope frozen (F13–F17), authority granted, gated only on its own RED (AC-12) and witness (AC-14)
+**Status:** COMPLETED (2026-07-11) — Part A enforced (persistent loop); Part B enforced (uniform cache + env fingerprint, F13–F17)
 **Effort:** 2 days — Part A (persistent loop, PR 1) 1.5 days; Part B (cache re-entry, PR 2, F9) 0.5 days
 **Requested:** 2026-07-11
 **Spawned by:** Third independent arrival at the same seed — FR-706 seed (generic deadline-aware bridge), FR-707 seed (extract `_run_coro_sync_safe` as primitive), rate-layer reflection 2026-07-10 ("FR-710 candidate"), diary 2026-07-11 (contract-vs-substrate split). This is FR-711's **FR-A**, conjoined with **FR-B** (loop-stable client cache) because the diaries proved neither is sufficient alone.
@@ -384,20 +384,33 @@ engineered around).
 
 ### Part B Acceptance Criteria (frozen)
 
-- [ ] AC-12 RED: FR-712 unit gate inverted — google/vertex `create_llm`
+- [x] AC-12 RED: FR-712 unit gate inverted — google/vertex `create_llm`
       twice returns the SAME object (cache identity ⇒ construction once
       ⇒ masked-env window per key, the F13 purity claim, proven
-      mechanically); `_UNCACHED_PROVIDERS` absent from llm_factory source
-- [ ] AC-13 Uniform staleness gate (F14): changing a fingerprinted env
+      mechanically); `_UNCACHED_PROVIDERS` absent from llm_factory source.
+      RED commit 782e82db (`tests/unit/test_fr713_cache_policy.py`); the
+      old gate `test_fr712_uncached_google.py` deleted at GREEN — it
+      guarded the retired world. (The source-scan witness also caught the
+      GREEN's own history comment naming the deleted token — see diary.)
+- [x] AC-13 Uniform staleness gate (F14): changing a fingerprinted env
       var between `create_llm` calls yields a NEW client for any
-      provider; unchanged env is a cache hit — parametrized across at
-      least google, vertex, anthropic
-- [ ] AC-14 Integration witness re-derived: ONE warm CACHED google
-      client, 10/10 completed calls on the persistent bridge loop, zero
-      errors; vertex skip-with-reason. If it fails: revert stays out,
-      Part B ships the fingerprint (AC-13) only, finding recorded
-- [ ] AC-15 REQ-YG-540 rewritten in place (F16) in CAP-03 and
-      ARCHITECTURE; changelog fragment (req: REQ-YG-540) + diary entry
+      provider; unchanged env is a cache hit — parametrized google,
+      vertex, anthropic + LLM_REQUEST_TIMEOUT in the common fingerprint.
+      Mechanism: `_COMMON_FINGERPRINT_VARS` + declarative
+      `_PROVIDER_FINGERPRINT_VARS` table, fingerprint tuple in cache key
+- [x] AC-14 Integration witness re-derived: ONE warm CACHED google
+      client (identity asserted), 10/10 completed calls on the
+      persistent bridge loop, zero errors — green live 2026-07-11
+      (`tests/integration/test_fr713_cached_loop_completions.py`,
+      replaces the fresh-loop witness). Vertex rides the F17 inference
+- [x] AC-15 REQ-YG-540 rewritten in place in CAP-03 (ARCHITECTURE
+      regenerates via hook); changelog fragment + diary entry.
+      **Recorded deviation:** the fragment claims REQ-YG-541 (CAP-198),
+      not REQ-YG-540 — the changelog cross-wiring gate correctly forbids
+      a second FR claiming a REQ that FR-712's unreleased fragment
+      already claims; the fragment ledger is append-only history, the
+      requirement text is mutable present. FR-712's fragment stands as
+      true history of the interim policy
 
 **Authority:** granted under F13's frame — the PR description and
 changelog shall cite entropy removed, not milliseconds. Scope is the
