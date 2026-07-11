@@ -1,0 +1,13 @@
+FR-713 AC-05 re-run — persistent-loop topology (was: FR-711 local instrument)
+date: 2026-07-11  N=20/arm  msg='Say OK.'
+Arm A = one loop, sequential (reuse). Arm B = per call
+via the production _run_coro_sync_safe bridge — now ONE persistent loop (FR-713 Part A): reconnect eliminated. anthropic Dp50 +0.527 -> +0.073; google +0.067 -> +0.059. azure key absent locally; deployed azure re-run tracked by FR-711 AC-05 note.
+
+provider     A p50   A p95   B p50   B p95    Δp50    Δmin  cold1st
+google       0.549   0.796   0.623   0.824  +0.059  +0.062    0.955
+  raw A: 0.745 0.527 0.549 0.454 0.665 0.932 0.410 0.726 0.748 0.533 0.477 0.535 0.515 0.563 0.477 0.525 0.432 0.616 0.796 0.786
+  raw B: 0.524 0.522 0.526 0.780 0.479 0.498 0.490 0.473 0.816 0.824 0.559 0.709 0.879 0.579 0.771 0.523 0.623 0.819 0.655 0.812
+azure      SKIPPED — AZURE_AI_API_KEY not set
+anthropic    0.653   0.850   0.716   1.238  +0.073  -0.009    1.031
+  raw A: 0.596 0.701 0.598 0.779 0.617 0.628 0.569 0.577 0.653 0.691 0.801 0.552 0.743 0.673 0.575 0.708 0.856 0.556 0.850 0.631
+  raw B: 1.238 0.922 0.667 0.710 0.657 0.568 1.086 0.714 0.780 0.936 0.633 1.264 1.072 0.805 0.543 0.544 1.163 0.549 0.679 0.716

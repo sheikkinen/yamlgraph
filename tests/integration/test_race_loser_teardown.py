@@ -10,14 +10,21 @@ contract.
 Judgement pins:
 - F1: SDKs spawn persistent pool/poller threads on first use — the thread
   baseline is taken AFTER a per-provider warm-up call, never pre-race.
+  FR-713 extends this: the persistent bridge loop thread
+  (yamlgraph-bridge-loop) is architecture, not leakage — warmed up before
+  the baseline like the SDK pools.
 - F2: an abandoned loser legally lives until the CLIENT timeout (FR-708),
   not CLEANUP_GRACE — LLM_REQUEST_TIMEOUT=5 fixture; settle window =
   client timeout + margin.
 - F4: explicit shape dispatch; an unrecognized shape fails.
+- FR-713 AC-02 re-derivation: the old `race-bridge` survivor assertion
+  became vacuous with the thread rename — re-pinned to: exactly ONE
+  yamlgraph-bridge-loop thread, zero per-invocation bridge threads.
 """
 
 from __future__ import annotations
 
+import contextlib
 import logging
 import os
 import threading
@@ -64,14 +71,34 @@ CANDIDATES = [
 logger = logging.getLogger(__name__)
 
 
-def _warm_up() -> None:
+@pytest.fixture(autouse=True)
+def _propagate_yamlgraph_logs():
+    """yamlgraph logger has propagate=False; caplog needs propagation."""
+    parent = logging.getLogger("yamlgraph")
+    original = parent.propagate
+    parent.propagate = True
+    yield
+    parent.propagate = original
+
+
+def _warm_up(node_fn) -> None:
     """F1: first use spawns persistent SDK pool/poller threads — do it
-    before the baseline so the baseline is architecture, not leakage."""
+    before the baseline so the baseline is architecture, not leakage.
+
+    FR-713: one full uncounted race warms the persistent bridge loop AND
+    its executor pool (asyncio_N workers spawn on first to_thread use and
+    persist by design) — the counted races must reuse, not grow, them."""
     from yamlgraph.utils.llm_factory import create_llm
 
     for cand in CANDIDATES:
         llm = create_llm(provider=cand["provider"], model=cand["model"])
         llm.invoke("Say OK.")
+    with contextlib.suppress(AllCandidatesFailedError):
+        node_fn({"_loop_counts": {}, "errors": []})
+        # warm-up cares about machinery, not outcome
+    # F2 window: the warm-up loser may hold an executor worker busy until
+    # the CLIENT timeout; baseline must be taken at steady idle.
+    time.sleep(CLIENT_TIMEOUT + 1.0)
 
 
 def _settle_to(baseline_count: int) -> tuple[int, list[str]]:
@@ -104,13 +131,15 @@ def test_race_loser_teardown_live(monkeypatch, caplog) -> None:
         defaults={"prompts_dir": str(PROMPTS_DIR)},
     )
 
-    _warm_up()
+    _warm_up(node_fn)
     baseline_count = len(threading.enumerate())
     baseline_names = sorted(t.name for t in threading.enumerate())
     logger.info("post-warm-up baseline: %d threads %s", baseline_count, baseline_names)
 
     shapes: list[str] = []
-    with caplog.at_level(logging.WARNING, logger="yamlgraph.node_factory.race_node"):
+    # FR-713: drain WARNINGs are emitted by yamlgraph.utils.bridge now —
+    # capture the whole yamlgraph namespace (propagation via fixture).
+    with caplog.at_level(logging.WARNING, logger="yamlgraph"):
         for i in range(RACES):
             start = time.monotonic()
             # F4: explicit shape dispatch — an unrecognized shape fails.
@@ -144,14 +173,19 @@ def test_race_loser_teardown_live(monkeypatch, caplog) -> None:
             )
 
             # Invariant 2 (F1/F2): threads settle to post-warm-up baseline
-            # within client-timeout + margin; no race-bridge survivors.
+            # within client-timeout + margin. FR-713 AC-02: exactly one
+            # persistent loop thread; zero per-invocation bridge threads.
             count, names = _settle_to(baseline_count)
             assert (
                 count <= baseline_count
             ), f"race {i + 1}: thread growth {baseline_count} -> {count}: {names}"
+            assert names.count("yamlgraph-bridge-loop") == 1, (
+                f"race {i + 1}: expected exactly one persistent bridge loop "
+                f"thread: {names}"
+            )
             assert not any(
                 "race-bridge" in n for n in names
-            ), f"race {i + 1}: race-bridge thread survived: {names}"
+            ), f"race {i + 1}: per-invocation bridge thread survived: {names}"
 
     # Invariant 3: log discipline — clean drain, or WARNING naming the
     # abandoned candidate; anything anonymous fails.

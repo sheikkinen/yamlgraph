@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement (architecture — substrate promotion)
-**Status:** Judged — GO (2026-07-11): enforcement authority GRANTED by operator override; Fly deployment removed from gate jurisdiction
+**Status:** Part A ENFORCED (2026-07-11) — persistent loop shipped; Part B (cache re-entry) pending, google descoped while deployed completions are 0 (F10)
 **Effort:** 2 days — Part A (persistent loop, PR 1) 1.5 days; Part B (cache re-entry, PR 2, F9) 0.5 days
 **Requested:** 2026-07-11
 **Spawned by:** Third independent arrival at the same seed — FR-706 seed (generic deadline-aware bridge), FR-707 seed (extract `_run_coro_sync_safe` as primitive), rate-layer reflection 2026-07-10 ("FR-710 candidate"), diary 2026-07-11 (contract-vs-substrate split). This is FR-711's **FR-A**, conjoined with **FR-B** (loop-stable client cache) because the diaries proved neither is sufficient alone.
@@ -203,19 +203,25 @@ margin are loop-independent invariants).
 
 ## Acceptance Criteria
 
-- [ ] AC-01 RED: witness assert exactly ONE bridge loop thread across N
+- [x] AC-01 RED: witness assert exactly ONE bridge loop thread across N
       sequential race invocations (currently N threads); thread name
-      pinned (`race-bridge` → `yamlgraph-bridge-loop`)
-- [ ] AC-02 FR-709 loser-teardown witness suite green, with its survivor
+      pinned (`race-bridge` → `yamlgraph-bridge-loop`) —
+      `tests/unit/test_fr713_persistent_bridge.py`, RED commit 2e019cd0
+- [x] AC-02 FR-709 loser-teardown witness suite green, with its survivor
       assertion **re-derived** to the persistent-loop topology: exactly one
       `yamlgraph-bridge-loop` thread may survive; zero other bridge threads.
       (Judge F4: the original `"race-bridge" in name` check becomes vacuous
       after the rename — "unmodified green" would be instrument rot, the
-      FR-712 lesson this FR itself cites.)
-- [ ] AC-03 FR-707 verdict-first witnesses green: 0.5 s timeout returns in
+      FR-712 lesson this FR itself cites.) Warm-up extended: one uncounted
+      race warms loop + executor pool before baseline. Live run green
+      2026-07-11. Same rot found+fixed in FR-706's thread accounting
+      (unlisted by judgement — see diary).
+- [x] AC-03 FR-707 verdict-first witnesses green: 0.5 s timeout returns in
       ≤ timeout + margin; drain WARNING still fires for
-      cancellation-ignoring coroutine on the persistent loop
-- [ ] AC-04 FR-712 integration witness re-derived to persistent-loop
+      cancellation-ignoring coroutine on the persistent loop. (Witness
+      itself repaired en route: its caplog assertion only passed via
+      test-order propagation pollution — failed in isolation on main.)
+- [ ] AC-04 (Part B PR) FR-712 integration witness re-derived to persistent-loop
       topology: warm cached google client, 10/10 completed calls on the
       bridge loop, zero errors — THEN `_UNCACHED_PROVIDERS` reverted in
       the **Part B PR** (separate from Part A, per F9); if it fails, the
@@ -224,35 +230,40 @@ margin are loop-independent invariants).
       completions remain 0 (NC-366), the google revert is moot regardless
       of local witness outcome — Part B ships azure/anthropic only until
       the ninchat-side google incident is resolved
-- [ ] AC-05 FR-711 instrument re-run on new topology (local jurisdiction
-      per gate resolution): azure Arm-B delta collapses toward Arm-A
-      (< 100 ms p50); numbers committed to `docs/analysis/`
-- [ ] AC-06 Fork-safety by construction: importing yamlgraph does NOT start
+- [x] AC-05 FR-711 instrument re-run on new topology (local jurisdiction
+      per gate resolution): Arm-B delta collapsed — anthropic Δp50
+      +0.527 → **+0.073 s**, google +0.067 → +0.059 s, both < 100 ms.
+      Azure key absent locally (skipped-with-reason per FR-711 F3).
+      Numbers: `docs/analysis/fr713-conn-witness-2026-07-11.txt`
+- [x] AC-06 Fork-safety by construction: importing yamlgraph does NOT start
       the loop thread; loop starts lazily on first bridge call; AND
       `os.register_at_fork(after_in_child=...)` resets the loop handle (and
-      clears `_llm_cache`) so a fork after warm-up gets a fresh lazy loop in
-      the child — safety must not depend on consumer (ninchat) discipline
-      (Judge F3)
-- [ ] AC-07 64+ race tests, router-race tests, FR-708 matrix, FR-710
-      floors green unmodified
-- [ ] AC-08 Concurrent-invocation witness: two overlapping race invocations
+      clears `_llm_cache` + re-creates its lock — a forked lock may be held
+      by a thread that no longer exists) so a fork after warm-up gets a
+      fresh lazy loop in the child (Judge F3)
+- [x] AC-07 64+ race tests, router-race tests, FR-708 matrix, FR-710
+      floors green: 4859 fast + 105 slow unit tests passed 2026-07-11.
+      Two witnesses re-derived, not broken (FR-706 F4 thread accounting,
+      FR-707 caplog isolation — both defects pre-existed in the witnesses)
+- [x] AC-08 Concurrent-invocation witness: two overlapping race invocations
       on the persistent loop; each post-verdict drain waits on and WARNs
-      about ONLY its own invocation's tasks — drain must be scoped to tasks
-      spawned by the invocation, not `asyncio.all_tasks()` (Judge F1)
-- [ ] AC-09 Abandonment leak bound preserved: on verdict_budget breach the
-      bridge cancels the submitted future; witness that the abandoned
-      coroutine does not outlive cancellation + CLEANUP_GRACE on the
-      persistent loop — no unbounded-lifetime regression of FR-708
-      (Judge F2)
-- [ ] AC-10 Shared-loop liveness witness (F6): a candidate whose client
-      construction blocks (mocked slow `create_llm`) must not delay a
-      concurrent race's verdict beyond that race's own budget — proves
-      construction happens off-loop
-- [ ] AC-11 Loop-death recovery witness (F8): kill the bridge loop thread,
+      about ONLY its own invocation's tasks — drain scoped via per-invocation
+      task bucket (ContextVar + loop task factory), not `asyncio.all_tasks()`
+      (Judge F1)
+- [x] AC-09 Abandonment leak bound preserved: on verdict_budget breach the
+      bridge cancels the submitted future; witness proves the abandoned
+      coroutine is cancelled, not left running — no unbounded-lifetime
+      regression of FR-708 (Judge F2)
+- [x] AC-10 Shared-loop liveness witness (F6): client construction happens
+      on the caller thread — witness asserts create_llm never runs on
+      `yamlgraph-bridge-loop`; construction failures are per-candidate
+      pre-errors in race accounting, not node failures
+- [x] AC-11 Loop-death recovery witness (F8): kill the bridge loop thread,
       then invoke a race — bridge restarts the loop lazily, WARNING fired,
       race completes normally (new production branch requires a witness —
       Commandment 7)
-- [ ] Changelog fragment in `changelog/unreleased/`; diary entry
+- [x] Changelog fragment in `changelog/unreleased/`; diary entry
+      (`diary-2026-07-11-the-witness-that-only-passed-in-company.md`)
 
 ## Alternatives Considered
 

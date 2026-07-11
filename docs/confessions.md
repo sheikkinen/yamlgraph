@@ -1351,10 +1351,10 @@ These are not `# noqa` suppressions — they are documented deviations from proc
 - **Penance**: FR-707 verdict handoff — the coroutine's outcome (result OR any exception) must cross the thread boundary via the Future; swallowing nothing, relabeling nothing. Anything not captured here would vanish in the daemon thread and the caller would hit the bridge budget as an anonymous RuntimeError, recreating the NC-361 forensic hole this fix exists to close. Same pattern as the previous `_run` transport it replaces.
 
 ### CONF-372
-- **File**: [yamlgraph/node_factory/router_race_node.py](../yamlgraph/node_factory/router_race_node.py#L40)
+- **File**: [yamlgraph/node_factory/router_race_node.py](../yamlgraph/node_factory/router_race_node.py#L41)
 - **Code**: FB001
 - **Sin**: Docstring contains the lexical token `fallback`.
-- **Penance**: It documents the judged `on_error: fallback` contract (route via `default_route`, record the error in state) — an explicit, tested error mode, not a silent fallback. The docstring moved onto the flagged line during the FR-707 call-site edit; the semantics predate it.
+- **Penance**: It documents the judged `on_error: fallback` contract (route via `default_route`, record the error in state) — an explicit, tested error mode, not a silent fallback. The docstring moved onto the flagged line during the FR-707 call-site edit (and again in FR-713); the semantics predate it.
 
 ### CONF-355
 - **File**: [examples/novel_fandom/nodes/creation_tools.py](../examples/novel_fandom/nodes/creation_tools.py#L71)
@@ -1423,10 +1423,28 @@ These are not `# noqa` suppressions — they are documented deviations from proc
 - **Penance**: Agent node orchestration is inherently complex — tool dispatch, error handling, streaming. Splitting would obscure the sequential logic.
 
 ### CONF-373
-- **File**: [tests/unit/test_fr713_persistent_bridge.py](../tests/unit/test_fr713_persistent_bridge.py#L274)
+- **File**: [tests/unit/test_fr713_persistent_bridge.py](../tests/unit/test_fr713_persistent_bridge.py#L288)
 - **Code**: SLF001
 - **Sin**: AC-11 witness stops `bridge._loop` directly to simulate loop-thread death.
 - **Penance**: Loop death is an internal fatality by definition — no public API should exist to kill the bridge; the witness must reach through the seam it guards.
+
+### CONF-374
+- **File**: [yamlgraph/utils/bridge.py](../yamlgraph/utils/bridge.py#L79)
+- **Code**: SLF001
+- **Sin**: `_reset_after_fork` rebinds `llm_factory._cache_lock` directly.
+- **Penance**: Fork hygiene cannot go through `clear_cache()` — the forked lock may be held by a thread that no longer exists in the child; acquiring it would deadlock. Rebinding a fresh lock is the only safe move.
+
+### CONF-376
+- **File**: [yamlgraph/utils/bridge.py](../yamlgraph/utils/bridge.py#L80)
+- **Code**: SLF001
+- **Sin**: `_reset_after_fork` rebinds `llm_factory._llm_cache` directly.
+- **Penance**: Companion to CONF-374 — cached clients bind sessions to the parent's loop; the child must drop them without touching the possibly-poisoned lock.
+
+### CONF-375
+- **File**: [yamlgraph/utils/bridge.py](../yamlgraph/utils/bridge.py#L138)
+- **Code**: BLE001
+- **Sin**: `_deliver` catches `BaseException` around the awaited coroutine.
+- **Penance**: Verdict transport — every outcome including CancelledError must cross the thread boundary to the caller's Future; swallowing nothing, relabeling nothing. Same contract as the FR-707 bridge it replaces.
 
 ---
 

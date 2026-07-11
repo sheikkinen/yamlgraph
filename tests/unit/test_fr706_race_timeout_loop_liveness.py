@@ -59,7 +59,12 @@ def test_race_timeout_does_not_block_host_loop(mock_prepare, mock_create_llm):
     )
 
     mock_prepare.return_value = ([MagicMock()], "anthropic", None)
-    mock_create_llm.side_effect = [_make_hanging_llm(), _make_hanging_llm()]
+    mock_create_llm.side_effect = [
+        _make_hanging_llm(),
+        _make_hanging_llm(),
+        _make_hanging_llm(),
+        _make_hanging_llm(),
+    ]
 
     node_config = {
         "type": "race",
@@ -75,6 +80,14 @@ def test_race_timeout_does_not_block_host_loop(mock_prepare, mock_create_llm):
     node_fn = create_race_node("race_liveness", node_config, {})
     state = {"_loop_counts": {}, "errors": []}
 
+    # FR-713 re-derivation (FR-709 F1 pattern): the persistent bridge loop
+    # and its executor pool are ARCHITECTURE, not leakage — warm them up
+    # with one full race, then let the hung executor workers finish their
+    # bounded sleep and go idle, so the baseline includes the pool and the
+    # measured race reuses (not grows) it.
+    with pytest.raises(AllCandidatesFailedError):
+        node_fn(dict(state))
+    time.sleep(HANG + 1.0)  # workers exit their sleep and return to the pool
     baseline_threads = set(threading.enumerate())
     heartbeats: list[float] = []
     result: dict = {}
@@ -117,9 +130,10 @@ def test_race_timeout_does_not_block_host_loop(mock_prepare, mock_create_llm):
         )
     assert not violations, "; ".join(violations)
 
-    # F4: thread accounting — population returns to baseline within grace.
-    # Grace = HANG + margin: the loser's executor thread exits at ~HANG, then
-    # the bg loop's shutdown joins it; xdist load adds jitter on top.
+    # F4 (re-derived for FR-713): steady-state reuse — a race on the warm
+    # persistent loop must add ZERO threads beyond the pooled baseline
+    # (the old "return to baseline" phrasing encoded the fresh-loop
+    # teardown; pooled executor workers idle by design and are reused).
     deadline = time.monotonic() + HANG + 2.0
     while time.monotonic() < deadline:
         leaked = set(threading.enumerate()) - baseline_threads
@@ -127,4 +141,4 @@ def test_race_timeout_does_not_block_host_loop(mock_prepare, mock_create_llm):
             break
         time.sleep(0.1)
     leaked = set(threading.enumerate()) - baseline_threads
-    assert not leaked, f"threads outlived the race beyond grace: {leaked}"
+    assert not leaked, f"threads grew beyond the warm pool baseline: {leaked}"

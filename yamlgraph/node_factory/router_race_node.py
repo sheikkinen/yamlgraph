@@ -19,9 +19,10 @@ from yamlgraph.node_factory.race_node import (
     _BRIDGE_MARGIN,
     CLEANUP_GRACE,
     AllCandidatesFailedError,
+    _build_candidate_llms,
     _race_async,
-    _run_coro_sync_safe,
 )
+from yamlgraph.utils.bridge import run_coro_sync_safe
 
 if TYPE_CHECKING:
     from yamlgraph.node_factory.llm_nodes import LLMNodeConfig
@@ -61,20 +62,27 @@ def _execute_router_race(
     )
 
     try:
-        winner_candidate, result = _run_coro_sync_safe(
+        # FR-713 F6: construct clients on the caller thread, never on the
+        # shared bridge loop.
+        armed, pre_errors = _build_candidate_llms(
+            cfg.candidates,  # type: ignore[arg-type]
+            cfg.temperature,
+        )
+        winner_candidate, result = run_coro_sync_safe(
             _race_async(
-                cfg.candidates,  # type: ignore[arg-type]
+                armed,
                 messages,
                 output_model=None,  # parse_json path only for race-router
                 parse_json=cfg.parse_json,
                 timeout=cfg.timeout,
-                temperature=cfg.temperature,
+                pre_errors=pre_errors,
             ),
             verdict_budget=(
                 None
                 if cfg.timeout is None
                 else cfg.timeout + CLEANUP_GRACE + _BRIDGE_MARGIN
             ),
+            cleanup_grace=CLEANUP_GRACE,
         )
     except (TimeoutError, AllCandidatesFailedError) as exc:
         if cfg.on_error == ErrorHandler.FAIL:

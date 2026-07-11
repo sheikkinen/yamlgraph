@@ -6,12 +6,13 @@ candidates concurrently and return the first successful result.
 FR-271: Rewritten to asyncio so losing candidates are cooperatively
 cancelled at await points after a winner is found, eliminating orphan
 HTTP connections and interpreter-exit delays.
+
+FR-713: the sync→async bridge substrate lives in yamlgraph.utils.bridge
+(one persistent loop thread); this module keeps race semantics only.
 """
 
 import asyncio
-import concurrent.futures
 import logging
-import threading
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any
@@ -21,6 +22,7 @@ from yamlgraph.executor_base import build_schema_hint, prepare_messages
 from yamlgraph.models import PipelineError
 from yamlgraph.models.schemas import ErrorType
 from yamlgraph.node_factory.base import GraphState, get_output_model_for_node
+from yamlgraph.utils.bridge import run_coro_sync_safe
 from yamlgraph.utils.content import normalize_content
 from yamlgraph.utils.expressions import resolve_node_variables
 from yamlgraph.utils.json_extract import extract_json
@@ -50,21 +52,18 @@ class AllCandidatesFailedError(Exception):
 
 async def _invoke_candidate_async(
     candidate: dict,
+    llm: Any,
     messages: list,
     output_model: type | None,
     parse_json: bool,
-    temperature: float,
 ) -> tuple[dict, Any]:
     """Invoke a single LLM candidate asynchronously (FR-271).
 
     Uses llm.ainvoke() for native cooperative cancellation at await points.
-    create_llm() is called synchronously — it is pure object construction.
+    The client is constructed OFF-loop by the caller (FR-713 F6): sync
+    construction on the shared bridge loop would head-of-line block every
+    concurrent race.
     """
-    llm = create_llm(
-        temperature=temperature,
-        provider=candidate.get("provider"),
-        model=candidate.get("model"),
-    )
     if output_model:
         try:
             structured_llm = llm.with_structured_output(output_model)
@@ -95,13 +94,45 @@ async def _invoke_candidate_async(
         return candidate, parsed
 
 
+def _build_candidate_llms(
+    candidates: list[dict], temperature: float
+) -> tuple[list[tuple[dict, Any]], list[tuple[dict, Exception]]]:
+    """Construct candidate clients on the CALLER thread (FR-713 F6).
+
+    Sync construction (including the vertex construct lock) must never run
+    on the shared bridge loop. A candidate whose construction fails is a
+    pre-failed entry in the race's error accounting, not a node failure —
+    the race can still be won by the remaining candidates.
+    """
+    armed: list[tuple[dict, Any]] = []
+    pre_errors: list[tuple[dict, Exception]] = []
+    for candidate in candidates:
+        try:
+            llm = create_llm(
+                temperature=temperature,
+                provider=candidate.get("provider"),
+                model=candidate.get("model"),
+            )
+        except Exception as exc:
+            logger.warning(
+                "Race candidate %s/%s failed to construct: %s",
+                candidate.get("provider", "?"),
+                candidate.get("model", "?"),
+                exc,
+            )
+            pre_errors.append((candidate, exc))
+            continue
+        armed.append((candidate, llm))
+    return armed, pre_errors
+
+
 async def _race_async(
-    candidates: list[dict],
+    armed: list[tuple[dict, Any]],
     messages: list,
     output_model: type | None,
     parse_json: bool,
     timeout: float | None,
-    temperature: float,
+    pre_errors: list[tuple[dict, Exception]] | None = None,
 ) -> tuple[dict, Any]:
     """Return first successful candidate result; cancel remaining tasks (FR-271).
 
@@ -111,13 +142,16 @@ async def _race_async(
     loop = asyncio.get_running_loop()
     tasks: dict[asyncio.Task, dict] = {
         asyncio.create_task(
-            _invoke_candidate_async(c, messages, output_model, parse_json, temperature),
+            _invoke_candidate_async(c, llm, messages, output_model, parse_json),
             name=f"race-{c.get('provider', '?')}-{c.get('model', '?')}",
         ): c
-        for c in candidates
+        for c, llm in armed
     }
-    errors: list[tuple[dict, Exception]] = []
+    errors: list[tuple[dict, Exception]] = list(pre_errors or [])
     deadline = None if timeout is None else (loop.time() + timeout)
+
+    if not tasks:
+        raise AllCandidatesFailedError(errors)
 
     try:
         while tasks:
@@ -173,58 +207,14 @@ async def _race_async(
 
 
 def _run_coro_sync_safe(coro: Any, verdict_budget: float | None = None) -> Any:
-    """Run coroutine from a sync node; the caller waits for the VERDICT,
-    never for cleanup (FR-707).
+    """Race-scoped bridge entry — substrate lives in yamlgraph.utils.bridge
+    (FR-713: one persistent loop thread; verdict-first contract unchanged).
 
-    The coroutine runs under asyncio.run() in a dedicated daemon thread on
-    BOTH entry paths (a plain asyncio.run() in the caller would block at
-    shutdown on cancellation-ignoring tasks — the NC-361 stall). Its result
-    or exception is handed to the caller through a Future the moment the
-    coroutine finishes; the loop's post-verdict drain (bounded by
-    CLEANUP_GRACE, WARNING names what it abandons) is invisible to the
-    caller.
-
-    verdict_budget: None → wait indefinitely (a race with `timeout: null`
-    has no deadline authority). On budget expiry raises RuntimeError — an
-    invariant breach, deliberately NOT TimeoutError (FR-705 removed that
-    handling; an anonymous bridge TimeoutError would bypass the
-    on_error: skip contract).
+    CLEANUP_GRACE is read at call time so tests may pin the drain bound.
     """
-    verdict: concurrent.futures.Future[Any] = concurrent.futures.Future()
-
-    async def _deliver() -> None:
-        try:
-            verdict.set_result(await coro)
-        except BaseException as exc:  # noqa: BLE001 — verdict transport
-            verdict.set_exception(exc)
-        # Post-verdict drain: bounded, invisible to the caller.
-        current = asyncio.current_task()
-        pending = [t for t in asyncio.all_tasks() if t is not current]
-        if pending:
-            _done, still = await asyncio.wait(pending, timeout=CLEANUP_GRACE)
-            if still:
-                logger.warning(
-                    "race cleanup abandoned %d task(s) still pending "
-                    "after %.1fs: %s",
-                    len(still),
-                    CLEANUP_GRACE,
-                    ", ".join(t.get_name() for t in still),
-                )
-
-    t = threading.Thread(
-        target=lambda: asyncio.run(_deliver()), daemon=True, name="race-bridge"
+    return run_coro_sync_safe(
+        coro, verdict_budget=verdict_budget, cleanup_grace=CLEANUP_GRACE
     )
-    t.start()
-    try:
-        return verdict.result(timeout=verdict_budget)
-    except TimeoutError:
-        if verdict.done():
-            raise  # the TimeoutError IS the verdict — deliver it unrelabeled
-        raise RuntimeError(
-            f"race sync bridge abandoned after {verdict_budget:.1f}s — "
-            "background loop failed to deliver a verdict within its "
-            "guaranteed budget"
-        ) from None
 
 
 def create_race_node(
@@ -297,14 +287,17 @@ def create_race_node(
         )
 
         try:
+            # FR-713 F6: construct clients on the caller thread, never on
+            # the shared bridge loop.
+            armed, pre_errors = _build_candidate_llms(candidates, temperature)
             winner_candidate, result = _run_coro_sync_safe(
                 _race_async(
-                    candidates,
+                    armed,
                     messages,
                     output_model,
                     parse_json,
                     timeout,
-                    temperature,
+                    pre_errors,
                 ),
                 verdict_budget=(
                     None

@@ -20,6 +20,21 @@ import pytest
 from yamlgraph.node_factory import race_node as race_node_module
 
 
+@pytest.fixture(autouse=True)
+def _propagate_yamlgraph_logs():
+    """yamlgraph logger has propagate=False; caplog needs propagation.
+
+    Without this the drain-WARNING assertion only passed when an earlier
+    test in the session happened to leave propagation enabled (test
+    pollution) — it failed when run in isolation.
+    """
+    parent = logging.getLogger("yamlgraph")
+    original = parent.propagate
+    parent.propagate = True
+    yield
+    parent.propagate = original
+
+
 def _make_cancel_ignoring_llm(hang: float):
     """The NC-361 shape: a provider call that ignores cancellation.
 

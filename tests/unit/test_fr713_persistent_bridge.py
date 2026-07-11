@@ -28,6 +28,16 @@ import pytest
 from yamlgraph.utils import bridge
 
 
+@pytest.fixture(autouse=True)
+def _propagate_yamlgraph_logs():
+    """yamlgraph logger has propagate=False; caplog needs propagation."""
+    parent = logging.getLogger("yamlgraph")
+    original = parent.propagate
+    parent.propagate = True
+    yield
+    parent.propagate = original
+
+
 def BRIDGE_THREADS() -> list[threading.Thread]:
     return [t for t in threading.enumerate() if t.name == bridge.BRIDGE_THREAD_NAME]
 
@@ -48,7 +58,7 @@ def _fast_llm(content: str = "ok"):
 class TestSinglePersistentLoop:
     """AC-01: one loop thread, not one per invocation."""
 
-    @pytest.mark.req("REQ-YG-269")
+    @pytest.mark.req("REQ-YG-541")
     @patch("yamlgraph.node_factory.race_node.create_llm")
     @patch("yamlgraph.node_factory.race_node.prepare_messages")
     def test_one_loop_thread_across_sequential_races(
@@ -90,7 +100,7 @@ class TestSinglePersistentLoop:
 class TestImportAndForkSafety:
     """AC-06: lazy start; fork resets the loop handle (F3)."""
 
-    @pytest.mark.req("REQ-YG-269")
+    @pytest.mark.req("REQ-YG-541")
     def test_import_does_not_start_loop(self):
         code = (
             "import yamlgraph, yamlgraph.utils.bridge, threading; "
@@ -102,7 +112,7 @@ class TestImportAndForkSafety:
         )
         assert proc.returncode == 0, proc.stderr
 
-    @pytest.mark.req("REQ-YG-269")
+    @pytest.mark.req("REQ-YG-541")
     @pytest.mark.skipif(sys.platform == "win32", reason="fork is POSIX-only")
     def test_fork_after_warmup_gets_fresh_lazy_loop(self):
         code = """
@@ -129,19 +139,23 @@ sys.exit(os.waitstatus_to_exitcode(status))
 class TestScopedDrain:
     """AC-08 (F1): drain waits on and WARNs about ONLY its own tasks."""
 
-    @pytest.mark.req("REQ-YG-269")
+    @pytest.mark.req("REQ-YG-541")
     def test_drain_ignores_concurrent_invocation_tasks(self, caplog):
         async def straggler_race():
             async def straggler():
                 try:
                     await asyncio.sleep(30.0)
                 except asyncio.CancelledError:
-                    await asyncio.sleep(30.0)  # cancellation-ignoring
+                    # cancellation-ignoring, but bounded: outlives the 0.5s
+                    # drain grace (gets abandoned + WARNed), then finishes so
+                    # it cannot pollute later tests at interpreter exit.
+                    await asyncio.sleep(2.0)
                     raise
 
             task = asyncio.get_running_loop().create_task(
                 straggler(), name="inv1-straggler"
             )
+            await asyncio.sleep(0)  # let the straggler enter its try block
             task.cancel()
             return "inv1-verdict"
 
@@ -191,7 +205,7 @@ class TestScopedDrain:
 class TestAbandonmentCancels:
     """AC-09 (F2): budget breach cancels the coroutine on the shared loop."""
 
-    @pytest.mark.req("REQ-YG-269")
+    @pytest.mark.req("REQ-YG-541")
     def test_abandoned_coroutine_is_cancelled(self):
         fate: dict = {}
 
@@ -223,7 +237,7 @@ class TestAbandonmentCancels:
 class TestOffLoopConstruction:
     """AC-10 (F6): create_llm never runs on the bridge loop thread."""
 
-    @pytest.mark.req("REQ-YG-269")
+    @pytest.mark.req("REQ-YG-541")
     @patch("yamlgraph.node_factory.race_node.create_llm")
     @patch("yamlgraph.node_factory.race_node.prepare_messages")
     def test_construction_happens_on_caller_thread(self, mock_prepare, mock_create_llm):
@@ -262,7 +276,7 @@ class TestOffLoopConstruction:
 class TestLoopDeathRecovery:
     """AC-11 (F8): a dead loop thread is restarted lazily with a WARNING."""
 
-    @pytest.mark.req("REQ-YG-269")
+    @pytest.mark.req("REQ-YG-541")
     def test_dead_loop_restarts_lazily(self, caplog):
         async def probe():
             return "alive"

@@ -512,6 +512,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 195 | CAP-195 Timeframe Recap Demo | `examples` | REQ-YG-531, 534 – 536 |
 | 196 | CAP-196 Novel Fandom World Pressure | `examples` | REQ-YG-532 – 533 |
 | 197 | CAP-197 Novel Fandom Event Revision | `examples` | REQ-YG-537 – 538 |
+| 198 | CAP-198 Persistent Bridge Loop | `yamlgraph/utils/bridge.py`, `yamlgraph/node_factory/race_node.py`, `yamlgraph/node_factory/router_race_node.py` | REQ-YG-541 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -2453,6 +2454,16 @@ Latent-thread closure layer for the novel_fandom example: an additive pass that 
 |------------|-------------|-------------|
 | REQ-YG-537 | Latent-thread closure and waiver integrity. Every thread with status=latent must carry a non-empty raises AND releases list, or its id must appear in the waiver set — the exit condition is zero unwaived latents, not zero latents. Each waiver must name a live thread id (ref check against the current thread set) and carry a non-empty reason and decided_by; dangling or under-documented waivers are violations. Non-latent threads are ignored. Pure functions returning {valid, violations}. | `examples` |
 | REQ-YG-538 | Additive event revision. The create_event tool emits an optional `sequence` field when supplied (int total order, FR-690) and omits it otherwise so genesis/worldgen creates keep validating. A byte-identity gate over pre-existing event-file snapshots ({id: bytes} before/after) flags any pre-existing file whose bytes changed or that vanished; new files are permitted (revision is additive-only). Pure functions returning {valid, violations}. | `examples` |
+
+### 198. CAP-198 Persistent Bridge Loop
+
+One long-lived event loop thread (yamlgraph-bridge-loop) owned by the graph runtime bridges all sync→async node work (race, router-race, future async paths), replacing the per-invocation daemon-thread + asyncio.run() topology. Eliminates per-call thread churn and fresh-loop SDK reconnects (FR-711: anthropic Δp50 +0.527 s → +0.073 s locally) and makes the FR-707 shutdown-blocker and FR-712 loop-affinity defect classes unreachable by construction. The verdict-first contract, CLEANUP_GRACE drain bound, and RuntimeError-on-budget-breach semantics are preserved unchanged.
+
+**Feature Request:** FR-713
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-541 | Persistent bridge loop substrate. Exactly ONE yamlgraph-bridge-loop daemon thread across N sequential bridge invocations; started lazily on first use, never at import; os.register_at_fork resets the loop handle and the LLM cache (with fresh locks) so a fork after warm-up gets a fresh lazy loop in the child; a dead loop thread is restarted lazily with a WARNING. The post-verdict drain is scoped to the invocation's own tasks (ContextVar task bucket via loop task factory) — concurrent invocations never wait on or WARN about each other's tasks. On verdict_budget breach the bridge cancels the submitted work so the abandoned coroutine cannot outlive cancellation + CLEANUP_GRACE (FR-708 leak-lifetime bound preserved). Client construction happens on the caller thread, never on the shared loop (head-of-line blocking); per-candidate construction failures are pre-errors in race accounting, not node failures. | `yamlgraph/utils/bridge.py`, `yamlgraph/node_factory/race_node.py`, `tests/unit/test_fr713_persistent_bridge.py` |
 
 <!-- END GENERATED CAPABILITIES -->
 
