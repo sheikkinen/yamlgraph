@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Investigation (measurement; FR-706-shaped — the deliverable is a verdict with numbers, not architecture)
-**Status:** In Progress — local half complete (2026-07-10); verdict awaits the Fly half (AC-03/04, ninchat_voice side)
+**Status:** Completed 2026-07-11 — verdict CONDEMN (AC-05); local half 2026-07-10, Fly half NC-366, jurisdiction resolved by operator (Fly removed from scope)
 **Effort:** 0.5–1 day
 **Requested:** 2026-07-10
 **Judged:** 2026-07-10 — scope frozen. 6 findings resolved (see Judgement section); cache and bridge claims re-verified at source.
@@ -168,9 +168,15 @@ hurt; laptop numbers alone do not condemn.
       2.38 × ~0.5–0.6 s ≈ **1.2–1.4 s avoidable per spoken turn** —
       12–14× the frozen 100 ms threshold — but the verdict stays frozen
       until the deployed numbers replace the laptop TLS path (F1).
-- [ ] AC-05 Verdict recorded against the frozen rule on deployed numbers
-      (F1); seed closed OR FR-A/FR-B filed with the numbers embedded. No
-      third outcome.
+- [x] AC-05 Verdict recorded 2026-07-11: **CONDEMN, by operator gate
+      resolution.** NC-366 proved the deployed Δ undefined (google 0/59
+      completions both arms; transport A/B structurally cannot yield the
+      fresh-loop reconnect delta — instrument rot in the verdict input).
+      Operator removed Fly deployment from jurisdiction → local numbers
+      operative: azure `(B − A)` +0.628 s p50 × 2.38 measured races/turn
+      ≈ 1.5 s ≫ 100 ms. FR-A/FR-B = **FR-713** (Judged, authority
+      granted). The deployed google 0-completion defect is a ninchat-side
+      incident, outside this verdict.
 - [ ] No REQ/changelog (investigation script + verdict, no production
       branch changed); diary entry required (F6).
 
