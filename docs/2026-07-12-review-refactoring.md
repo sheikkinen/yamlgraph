@@ -117,6 +117,36 @@ The other 14 C-grade functions (skill_export, a2a parse, mcp validate…)
 are leaf conveniences — leave them; refactoring them is
 `working_system_inertia` in reverse (busywork on low-incident code).
 
+## P2.5 — Double-check addendum (2026-07-12, second pass)
+
+The first pass ran radon/vulture/jscpd but **skipped bandit** — the
+exact instrument the code-analysis skill lists with a "0 medium+"
+target. Running it surfaced two findings the review missed, both of the
+`detection_without_enforcement` class (Scripture: "lint without gate =
+advisory → add CI block or remove claim"):
+
+1. **Bandit is gated nowhere** (not in pre-commit, not in CI — the CI
+   `security` job is pip-audit, dependencies only). Current findings:
+   1 HIGH (B701 jinja2 `autoescape=False` in `utils/template.py`) +
+   3 MEDIUM (2× B104 bind-`0.0.0.0` defaults in the a2a CLI, B108 `/tmp`
+   FSM socket). Every one is already **ruff-confessed** (S701, S104,
+   CONF-302) and judged acceptable for its context — prompt templates
+   are not HTML, the socket prefix is deliberate — but bandit does not
+   honor ruff `noqa`, so the skill's "0 medium+" claim is false as
+   stated. Fix is one of: add bandit to pre-commit with `# nosec`
+   mirrors of the existing confessions (~30 min), or delete the bandit
+   target from the skill. A claim with no gate decays into a lie.
+2. **Coverage gate drift:** CLAUDE.md documents "80% coverage threshold"
+   for the CI `test` job; `pyproject.toml` enforces
+   `--cov-fail-under=70`. The documented gate and the enforced gate
+   disagree by 10 points — one of them lies
+   (`gate_checks_shape_not_substance`, doc-claim variant). Align to the
+   enforced number or raise the enforcement.
+
+P2.1–P2.4 claims were re-verified against source in the same pass:
+signatures, sizes, radon grades, and the dead-shim zero-caller claim all
+hold as written.
+
 ## P3 — Registry pruning (the FR-465/466 arc, continued)
 
 - **23 CAPs still `fr: legacy`** — each is a capability claim with no
