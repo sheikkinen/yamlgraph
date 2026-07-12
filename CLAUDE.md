@@ -360,7 +360,7 @@ The `main` branch is protected by GitHub branch protection rules (FR-150). These
 ### Required status checks
 
 - **`commitlint`** (`.github/workflows/commitlint.yml`): Validates PR title follows Conventional Commits format. `feat` PRs must include `FR-XXX` reference.
-- **`test`** (`.github/workflows/workflow.yml`): Runs `pytest` with 80% coverage threshold and `ruff` linting.
+- **`test`** (`.github/workflows/workflow.yml`): Runs `pytest` with 85% coverage threshold (measured 90.36% on 2026-07-12; gate raised from 70 by FR-714) and `ruff` linting.
 - **`conflict-check`** (`.github/workflows/commitlint.yml`): Fails when unresolved merge conflict markers (`<<<<<<<`, `=======`, `>>>>>>>`) are found in tracked files (excluding `.github/`). Complements the local `check-merge-conflict` pre-commit hook which is bypassed by server-side squash merges.
 - **`copilot-trailer-gate`** (`.github/workflows/commitlint.yml`): Blocks PRs when any `Co-authored-by:` trailer identities appear in PR commit messages or PR body text.
 - **`wip-gate`** (`.github/workflows/commitlint.yml`): Blocks PRs when any commit subject in `BASE_SHA..HEAD_SHA` contains standalone `wip` (case-insensitive).

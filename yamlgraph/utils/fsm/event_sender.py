@@ -10,7 +10,7 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
-SOCKET_PREFIX = "/tmp/statemachine-control"  # noqa: S108 — CONF-302
+SOCKET_PREFIX = "/tmp/statemachine-control"  # noqa: S108 — CONF-302  # nosec B108
 MAX_MESSAGE_BYTES = 4096
 
 

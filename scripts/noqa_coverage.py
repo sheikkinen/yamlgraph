@@ -56,6 +56,11 @@ def find_noqa_in_file(filepath: Path) -> list[tuple[int, str]]:
             else:
                 # Blanket noqa
                 results.append((i, "ALL"))
+        # FR-714: bandit suppressions confess identically to ruff ones.
+        # Matches "nosec B701" and blanket "nosec" markers.
+        nosec = re.search(r"#\s*nosec(?:\s+(B[0-9]+))?", line)
+        if nosec:
+            results.append((i, nosec.group(1) or "ALL"))
     return results
 
 

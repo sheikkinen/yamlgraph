@@ -44,6 +44,7 @@ dev = [
     "ruff>=0.1.0",
     "radon>=6.0.0",
     "vulture>=2.0",
+    "bandit>=1.7.0",
     "pre-commit>=3.0.0",
     "import-linter>=2.0",
 ]
@@ -173,7 +174,7 @@ max-complexity = 15
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 asyncio_mode = "strict"
-addopts = "--cov=yamlgraph --cov-report=term-missing --cov-fail-under=70"
+addopts = "--cov=yamlgraph --cov-report=term-missing --cov-fail-under=85"
 filterwarnings = []
 markers = [
     "req(id): links test to requirement(s) e.g. @pytest.mark.req('REQ-YG-014')",

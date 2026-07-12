@@ -513,6 +513,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 196 | CAP-196 Novel Fandom World Pressure | `examples` | REQ-YG-532 – 533 |
 | 197 | CAP-197 Novel Fandom Event Revision | `examples` | REQ-YG-537 – 538 |
 | 198 | CAP-198 Persistent Bridge Loop | `yamlgraph/utils/bridge.py`, `yamlgraph/node_factory/race_node.py`, `yamlgraph/node_factory/router_race_node.py` | REQ-YG-541 |
+| 199 | CAP-199 Security and Coverage Gate Truth | `scripts/noqa_coverage.py` | REQ-YG-542 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -2464,6 +2465,16 @@ One long-lived event loop thread (yamlgraph-bridge-loop) owned by the graph runt
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-541 | Persistent bridge loop substrate. Exactly ONE yamlgraph-bridge-loop daemon thread across N sequential bridge invocations; started lazily on first use, never at import; os.register_at_fork resets the loop handle and the LLM cache (with fresh locks) so a fork after warm-up gets a fresh lazy loop in the child; a dead loop thread is restarted lazily with a WARNING. The post-verdict drain is scoped to the invocation's own tasks (ContextVar task bucket via loop task factory) — concurrent invocations never wait on or WARN about each other's tasks. On verdict_budget breach the bridge cancels the submitted work so the abandoned coroutine cannot outlive cancellation + CLEANUP_GRACE (FR-708 leak-lifetime bound preserved). Client construction happens on the caller thread, never on the shared loop (head-of-line blocking); per-candidate construction failures are pre-errors in race accounting, not node failures. | `yamlgraph/utils/bridge.py`, `yamlgraph/node_factory/race_node.py`, `tests/unit/test_fr713_persistent_bridge.py` |
+
+### 199. CAP-199 Security and Coverage Gate Truth
+
+Every documented quality claim has an enforcing gate. Bandit (medium+ severity) runs in pre-commit over yamlgraph/; all suppressions use # nosec markers confessed in docs/confessions.md exactly like ruff noqa (the confession scanner counts both dialects). The coverage threshold documented in CLAUDE.md equals the value enforced by pytest --cov-fail-under.
+
+**Feature Request:** FR-714
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-542 | Gate-truth alignment (FR-714). The bandit pre-commit hook blocks medium+ severity findings; the five standing suppressions (B701 prompt-template jinja, 2x B104 dev-server bind defaults, B108 FSM socket prefix, B602 shell tool) carry nosec markers with confession entries. scripts/noqa_coverage.py counts nosec markers (specific and blanket) alongside noqa; an unconfessed nosec fails --strict. The documented coverage threshold in CLAUDE.md matches the enforced --cov-fail-under value (85; measured 90.36% on 2026-07-12). | `scripts/noqa_coverage.py`, `tests/unit/test_fr714_bandit_gate.py` |
 
 <!-- END GENERATED CAPABILITIES -->
 

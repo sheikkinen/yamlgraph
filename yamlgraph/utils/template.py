@@ -43,8 +43,9 @@ def extract_variables(template: str) -> set[str]:
     is_jinja = "{{" in template or "{%" in template
 
     if is_jinja:
-        # Use Jinja2 AST for correctness
-        env = Environment()  # noqa: S701
+        # Use Jinja2 AST for correctness. autoescape stays False: templates
+        # render LLM prompt text, never HTML (CONF-377).
+        env = Environment()  # noqa: S701  # nosec B701
         ast = env.parse(template)
         variables = meta.find_undeclared_variables(ast)
         # Subtract variables assigned via {% set %} at any nesting depth.

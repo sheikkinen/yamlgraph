@@ -1,0 +1,29 @@
+name: Security and Coverage Gate Truth
+id: CAP-199
+status: active
+fr: FR-714
+feature_request: FR-714
+description: >
+  Every documented quality claim has an enforcing gate. Bandit (medium+
+  severity) runs in pre-commit over yamlgraph/; all suppressions use
+  # nosec markers confessed in docs/confessions.md exactly like ruff
+  noqa (the confession scanner counts both dialects). The coverage
+  threshold documented in CLAUDE.md equals the value enforced by
+  pytest --cov-fail-under.
+modules:
+  - scripts/noqa_coverage.py
+requirements:
+  - id: REQ-YG-542
+    description: >
+      Gate-truth alignment (FR-714). The bandit pre-commit hook blocks
+      medium+ severity findings; the five standing suppressions (B701
+      prompt-template jinja, 2x B104 dev-server bind defaults, B108 FSM
+      socket prefix, B602 shell tool) carry nosec markers with
+      confession entries. scripts/noqa_coverage.py counts nosec markers
+      (specific and blanket) alongside noqa; an unconfessed nosec fails
+      --strict. The documented coverage threshold in CLAUDE.md matches
+      the enforced --cov-fail-under value (85; measured 90.36% on
+      2026-07-12).
+    modules:
+      - scripts/noqa_coverage.py
+      - tests/unit/test_fr714_bandit_gate.py

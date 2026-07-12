@@ -326,7 +326,7 @@ def create_parser() -> argparse.ArgumentParser:
     a2a_serve_parser.add_argument(
         "--host",
         type=str,
-        default="0.0.0.0",  # noqa: S104
+        default="0.0.0.0",  # noqa: S104  # nosec B104
         help="Server host (default: 0.0.0.0)",
     )
     a2a_serve_parser.add_argument(

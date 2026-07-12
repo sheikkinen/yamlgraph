@@ -100,6 +100,11 @@ dependencies:
     modules: ["vulture_whitelist.py"]
     added: "0.1.0"
 
+  bandit:
+    rationale: "Security static analysis gate (medium+ severity) — FR-714 gate-truth; suppressions confessed as nosec"
+    modules: ["scripts/noqa_coverage.py"]
+    added: "0.5.12"
+
   pre-commit:
     rationale: "Git hook framework for pre-commit and commit-msg quality gates"
     modules: [".pre-commit-config.yaml"]

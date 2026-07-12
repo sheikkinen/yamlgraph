@@ -143,7 +143,7 @@ Framework suppressions require elevated scrutiny. These live in `yamlgraph/`.
 - **Penance**: Command is built as a list (no shell=True), with fixed executable/flags plus validated node configuration (`model`, `resume`, `continue_session`, `timeout`). No raw user input is interpolated into shell commands.
 
 ### CONF-009
-- **File**: [yamlgraph/utils/template.py](../yamlgraph/utils/template.py#L47)
+- **File**: [yamlgraph/utils/template.py](../yamlgraph/utils/template.py#L48)
 - **Code**: S701
 - **Sin**: Jinja2 `Environment()` without `autoescape=True`.
 - **Penance**: Used for YAML prompt template variable extraction, not HTML rendering. Autoescape would corrupt prompt text by escaping `<`, `>`, `&` characters. No web output is generated from this code path.
@@ -1445,6 +1445,36 @@ These are not `# noqa` suppressions — they are documented deviations from proc
 - **Code**: BLE001
 - **Sin**: `_deliver` catches `BaseException` around the awaited coroutine.
 - **Penance**: Verdict transport — every outcome including CancelledError must cross the thread boundary to the caller's Future; swallowing nothing, relabeling nothing. Same contract as the FR-707 bridge it replaces.
+
+### CONF-377
+- **File**: [yamlgraph/utils/template.py](../yamlgraph/utils/template.py#L48)
+- **Code**: B701
+- **Sin**: Jinja2 `Environment()` constructed with `autoescape=False` (default).
+- **Penance**: Templates render LLM prompt text, never HTML — autoescaping would corrupt prompts containing markup-like characters. XSS requires a browser sink; there is none.
+
+### CONF-378
+- **File**: [yamlgraph/cli/__init__.py](../yamlgraph/cli/__init__.py#L329)
+- **Code**: B104
+- **Sin**: a2a serve CLI defaults `--host` to `0.0.0.0`.
+- **Penance**: Development server for local/container use; binding all interfaces is the documented default (containers need it). Deployment behind a proxy is the operator's boundary, flagged in help text.
+
+### CONF-379
+- **File**: [yamlgraph/cli/a2a_commands.py](../yamlgraph/cli/a2a_commands.py#L58)
+- **Code**: B104
+- **Sin**: a2a serve fallback host is `0.0.0.0` when args carry no host.
+- **Penance**: Companion to CONF-378 — same default, same context, single serve path.
+
+### CONF-380
+- **File**: [yamlgraph/tools/shell.py](../yamlgraph/tools/shell.py#L131)
+- **Code**: B602
+- **Sin**: `subprocess` invoked with `shell=True` for YAML-declared command templates.
+- **Penance**: Command templates come from trusted graph YAML only; all runtime variables pass through `shlex.quote()` before substitution (module's documented security contract). Pre-existing nosec, confessed retroactively by FR-714 Judgement F1.
+
+### CONF-381
+- **File**: [yamlgraph/utils/fsm/event_sender.py](../yamlgraph/utils/fsm/event_sender.py#L13)
+- **Code**: B108
+- **Sin**: FSM control socket prefix hardcoded under `/tmp` (bandit twin of CONF-302's S108).
+- **Penance**: AF_UNIX datagram sockets need a well-known rendezvous path shared across processes; the statemachine-engine contract pins this prefix. Same rationale as CONF-302.
 
 ---
 
