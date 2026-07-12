@@ -5,7 +5,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from pydantic import BaseModel
 
-from yamlgraph.executor_base import format_prompt
+from yamlgraph.executor_base import PromptRequest, format_prompt
 from yamlgraph.utils.prompts import load_prompt
 
 
@@ -117,10 +117,12 @@ user: Generate opening for {questionnaire_name}.
         with patch.object(executor, "_get_llm", return_value=mock_llm):
             # Should find prompts/opening.yaml relative to graph_path
             result = executor.execute(
-                prompt_name="prompts/opening",
-                variables={"questionnaire_name": "Financial Audit"},
-                graph_path=graph_path,
-                prompts_relative=True,
+                PromptRequest(
+                    prompt_name="prompts/opening",
+                    variables={"questionnaire_name": "Financial Audit"},
+                    graph_path=graph_path,
+                    prompts_relative=True,
+                )
             )
 
         assert result == "Welcome to the audit."
@@ -152,9 +154,11 @@ user: Say hello to {name}.
 
         with patch.object(executor, "_get_llm", return_value=mock_llm):
             result = executor.execute(
-                prompt_name="greeting",
-                variables={"name": "World"},
-                prompts_dir=prompts_dir,
+                PromptRequest(
+                    prompt_name="greeting",
+                    variables={"name": "World"},
+                    prompts_dir=prompts_dir,
+                )
             )
 
         assert result == "Hello!"
@@ -190,10 +194,10 @@ user: Test {msg}.
                 prompts_dir=prompts_dir,
             )
 
-            # Verify path params were forwarded
+            # Verify path params were forwarded (FR-715: as PromptRequest)
             mock_executor.execute.assert_called_once()
-            call_kwargs = mock_executor.execute.call_args.kwargs
-            assert call_kwargs["prompts_dir"] == prompts_dir
+            request = mock_executor.execute.call_args.args[0]
+            assert request.prompts_dir == prompts_dir
 
 
 class TestStructuredOutputFallback:

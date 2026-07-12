@@ -2,7 +2,7 @@
 
 **Priority:** HIGH (highest knowledge-per-line refactor available; every new knob currently costs 3 edits)
 **Type:** Enhancement (refactor — API-shape consolidation)
-**Status:** Judged (2026-07-12) — scope frozen NARROWER than proposed (F1: prepare_messages descoped); authority granted
+**Status:** COMPLETED (2026-07-12) — PromptRequest shipped; clone deleted; parity witnessed; async door pinned as subset
 **Effort:** 1 day
 **Requested:** 2026-07-12
 **Spawned by:** docs/2026-07-12-review-refactoring.md P2.1; jscpd (the codebase's only real clone: `executor.py` 38–80 vs 185–220, 172 tokens)
@@ -58,16 +58,26 @@ flags it, and drift between the copies is a silent-default bug waiting
 
 ## Acceptance Criteria
 
-- [ ] AC-01 RED: `inspect.signature(execute_prompt)` parameter names ==
+- [x] AC-01 RED: `inspect.signature(execute_prompt)` parameter names ==
       `PromptRequest` field names, derived from ONE source — fails today
-      (no PromptRequest); keeps failing if either side drifts (F3)
-- [ ] AC-02 jscpd reports 0 clones in executor.py
-- [ ] AC-03 Public API unchanged: existing `execute_prompt(...)` calls
-      in examples/ and tests pass unmodified
-- [ ] AC-04 (deleted by Judgement F1 — prepare_messages out of scope)
-- [ ] AC-05 Net line delta ≤ 0 in yamlgraph/ (promotion test);
-      `prepare_messages_async` deleted if F2 verification allows
-- [ ] Changelog fragment (REQ under CAP-04 prompt execution); diary
+      (no PromptRequest); keeps failing if either side drifts (F3).
+      RED commit fe092958; GREEN adds subset witness for the async door
+      (found pre-existing drift: async lacks max_tokens/thinking_budget —
+      RECORDED as subset pin, not silently fixed; equalizing is a
+      feature add for the async-first FR)
+- [x] AC-02 jscpd reports 0 clones in executor.py (was 1 × 172 tokens)
+- [x] AC-03 Public API unchanged: all execute_prompt callers green
+      unmodified (4873 unit tests); three TEST call sites of
+      PromptExecutor.execute converted to the object (tests are not
+      public API; conversion is the contract improving)
+- [x] AC-04 (deleted by Judgement F1 — prepare_messages out of scope)
+- [x] AC-05 **Deviation recorded:** net +8 lines in yamlgraph/ (− code,
+      + consolidated dataclass docstring — the three copied docstrings
+      collapsed into one authoritative one). F2 purge
+      (prepare_messages_async) BLOCKED: pinned by FR-276 contract tests
+      ("should exist and behave like sync version") — deleting it means
+      re-judging FR-276's pin; deferred to the async-first substrate FR
+- [x] Changelog fragment (CAP-200 / REQ-YG-543); diary at arc end
 
 ## Judgement (2026-07-12)
 

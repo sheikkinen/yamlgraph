@@ -77,7 +77,7 @@ ALLOWLIST: dict[str, str] = {
     "yamlgraph/utils/prompts.py:66": "CONF-254",
     "yamlgraph/tools/agent.py:42": "CONF-304",
     "yamlgraph/tools/agent.py:51": "CONF-350",
-    "yamlgraph/executor_base.py:335": "CONF-351",
+    "yamlgraph/executor_base.py:377": "CONF-351",
     "yamlgraph/utils/llm_providers.py:315": "CONF-352",
     "yamlgraph/utils/llm_factory_async.py:80": "CONF-349",
 }

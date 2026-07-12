@@ -4,16 +4,58 @@ Provides common functions for prompt loading, formatting, and message building.
 """
 
 import logging
+from dataclasses import dataclass, field
 from pathlib import Path
 
 from langchain_core.messages import HumanMessage, SystemMessage
 
+from yamlgraph.config import DEFAULT_TEMPERATURE
 from yamlgraph.utils.content import normalize_content
 from yamlgraph.utils.json_extract import extract_json
 from yamlgraph.utils.prompts import load_prompt
 from yamlgraph.utils.template import validate_variables
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass(frozen=True)
+class PromptRequest:
+    """One prompt execution, as one object (FR-715).
+
+    Single source of truth for the front-door parameter set —
+    execute_prompt's public keyword signature mirrors these fields
+    exactly (witnessed by signature-parity tests), and
+    PromptExecutor.execute consumes the object. Add a parameter HERE;
+    the witnesses force the mirrors to follow.
+
+    Fields:
+        prompt_name: Prompt file name (without .yaml)
+        variables: Template variable values
+        output_model: Pydantic model for structured output (None → str)
+        temperature: LLM temperature
+        provider: LLM provider override (else YAML metadata / env / default)
+        model: Model override (else YAML metadata / provider default)
+        graph_path: Graph file path for relative prompt resolution
+        prompts_dir: Explicit prompts directory override
+        prompts_relative: Resolve prompts relative to graph_path
+        state: State dict for Jinja2 templates ({{ state.field }})
+        max_tokens: Max output tokens (None → provider default)
+        thinking_budget: Extended thinking budget tokens (FR-071/FR-230)
+    """
+
+    prompt_name: str
+    variables: dict | None = None
+    output_model: type | None = None
+    temperature: float = DEFAULT_TEMPERATURE
+    provider: str | None = None
+    model: str | None = None
+    graph_path: Path | None = None
+    prompts_dir: Path | None = None
+    prompts_relative: bool = False
+    state: dict | None = field(default=None)
+    max_tokens: int | None = None
+    thinking_budget: int | None = None
+
 
 # Exceptions that are retryable
 RETRYABLE_EXCEPTIONS = (

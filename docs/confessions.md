@@ -1303,7 +1303,7 @@ These are not `# noqa` suppressions — they are documented deviations from proc
 - **Penance**: Documents the structured-output mismatch recovery path. Renaming would obscure intent.
 
 ### CONF-351
-- **File**: [yamlgraph/executor_base.py](../yamlgraph/executor_base.py#L335)
+- **File**: [yamlgraph/executor_base.py](../yamlgraph/executor_base.py#L377)
 - **Code**: FB001
 - **Sin**: Docstring of `_invoke_llm_once` contains `fallback` — describes the FR-464 structured-output fallback strategy.
 - **Penance**: Documents the retry-then-parse pattern. Renaming would obscure intent.
@@ -1411,7 +1411,7 @@ These are not `# noqa` suppressions — they are documented deviations from proc
 - **Penance**: Pytest fixture returning `Path`. Consistent with test fixture patterns.
 
 ### CONF-364
-- **File**: [yamlgraph/executor_base.py](../yamlgraph/executor_base.py#L130)
+- **File**: [yamlgraph/executor_base.py](../yamlgraph/executor_base.py#L172)
 - **Code**: C901
 - **Sin**: `_invoke_llm` function exceeds cyclomatic complexity threshold.
 - **Penance**: Central LLM invocation dispatch handles multiple provider paths and structured output. Splitting would fragment the core execution flow without reducing actual complexity.

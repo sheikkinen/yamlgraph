@@ -20,6 +20,7 @@ from yamlgraph.config import (
     RETRY_MAX_DELAY,
 )
 from yamlgraph.executor_base import (
+    PromptRequest,
     attempt_structured_invoke,
     format_prompt,
     is_retryable,
@@ -31,7 +32,13 @@ logger = logging.getLogger(__name__)
 
 T = TypeVar("T", bound=BaseModel)
 
-__all__ = ["execute_prompt", "format_prompt", "get_executor", "PromptExecutor"]
+__all__ = [
+    "execute_prompt",
+    "format_prompt",
+    "get_executor",
+    "PromptExecutor",
+    "PromptRequest",
+]
 
 
 def execute_prompt(
@@ -50,25 +57,10 @@ def execute_prompt(
 ) -> T | str:
     """Execute a YAML prompt with optional structured output.
 
-    Uses the singleton PromptExecutor for LLM caching.
-
-    Args:
-        prompt_name: Name of the prompt file (without .yaml)
-        variables: Variables to substitute in the template
-        output_model: Optional Pydantic model for structured output
-        temperature: LLM temperature setting
-        provider: LLM provider ("anthropic", "mistral", "openai").
-                 Can also be set in YAML metadata or PROVIDER env var.
-        model: LLM model override (e.g. "claude-haiku-4-5", "mistral-small-latest").
-               Priority: parameter > prompt YAML metadata > provider default.
-        graph_path: Path to graph file for relative prompt resolution
-        prompts_dir: Explicit prompts directory override
-        prompts_relative: If True, resolve prompts relative to graph_path
-        state: Optional state dict for Jinja2 templates (accessible as {{ state.field }})
-        thinking_budget: Anthropic extended thinking budget_tokens (0 or ≥1024, FR-071)
-
-    Returns:
-        Parsed Pydantic model if output_model provided, else raw string
+    Public front door — thin constructor over PromptRequest (FR-715);
+    the parameter contract is documented ONCE on the dataclass and
+    signature parity is witnessed by tests. Uses the singleton
+    PromptExecutor for LLM caching.
 
     Example:
         >>> result = execute_prompt(
@@ -79,18 +71,20 @@ def execute_prompt(
         >>> print(result.summary)
     """
     return get_executor().execute(
-        prompt_name=prompt_name,
-        variables=variables,
-        output_model=output_model,
-        temperature=temperature,
-        provider=provider,
-        model=model,
-        graph_path=graph_path,
-        prompts_dir=prompts_dir,
-        prompts_relative=prompts_relative,
-        state=state,
-        max_tokens=max_tokens,
-        thinking_budget=thinking_budget,
+        PromptRequest(
+            prompt_name=prompt_name,
+            variables=variables,
+            output_model=output_model,
+            temperature=temperature,
+            provider=provider,
+            model=model,
+            graph_path=graph_path,
+            prompts_dir=prompts_dir,
+            prompts_relative=prompts_relative,
+            state=state,
+            max_tokens=max_tokens,
+            thinking_budget=thinking_budget,
+        )
     )
 
 
@@ -180,61 +174,33 @@ class PromptExecutor:
 
         raise last_exception
 
-    def execute(
-        self,
-        prompt_name: str,
-        variables: dict | None = None,
-        output_model: type[T] | None = None,
-        temperature: float = DEFAULT_TEMPERATURE,
-        provider: str | None = None,
-        model: str | None = None,
-        graph_path: "Path | None" = None,
-        prompts_dir: "Path | None" = None,
-        prompts_relative: bool = False,
-        state: dict | None = None,
-        max_tokens: int | None = None,
-        thinking_budget: int | None = None,
-    ) -> T | str:
-        """Execute a prompt using cached LLM with retry logic.
+    def execute(self, request: PromptRequest) -> T | str:
+        """Execute a PromptRequest using cached LLM with retry logic.
 
-        Same interface as execute_prompt() but with LLM caching and
-        automatic retry for transient failures.
-
-        Model/provider priority: parameter > prompt YAML metadata > env var > default
-
-        Args:
-            prompt_name: Name of the prompt file (without .yaml)
-            variables: Variables to substitute in the template
-            output_model: Optional Pydantic model for structured output
-            temperature: LLM temperature setting
-            provider: LLM provider ("anthropic", "mistral", "openai")
-            model: LLM model override (None to use prompt YAML/provider default)
-            graph_path: Path to graph file for relative prompt resolution
-            prompts_dir: Explicit prompts directory override
-            prompts_relative: If True, resolve prompts relative to graph_path
-            state: Optional state dict for Jinja2 templates (accessible as {{ state.field }})
-            thinking_budget: Anthropic extended thinking budget_tokens (0 or ≥1024)
+        The parameter contract lives on PromptRequest (FR-715).
+        Model/provider priority: request > prompt YAML metadata > env
+        var > default.
 
         Raises:
             ValueError: If required template variables are missing
         """
         messages, resolved_provider, resolved_model = prepare_messages(
-            prompt_name=prompt_name,
-            variables=variables,
-            provider=provider,
-            model=model,
-            graph_path=graph_path,
-            prompts_dir=prompts_dir,
-            prompts_relative=prompts_relative,
-            state=state,
+            prompt_name=request.prompt_name,
+            variables=request.variables,
+            provider=request.provider,
+            model=request.model,
+            graph_path=request.graph_path,
+            prompts_dir=request.prompts_dir,
+            prompts_relative=request.prompts_relative,
+            state=request.state,
         )
 
         llm = self._get_llm(
-            temperature=temperature,
+            temperature=request.temperature,
             provider=resolved_provider,
             model=resolved_model,
-            max_tokens=max_tokens,
-            thinking_budget=thinking_budget,
+            max_tokens=request.max_tokens,
+            thinking_budget=request.thinking_budget,
         )
 
-        return self._invoke_with_retry(llm, messages, output_model)
+        return self._invoke_with_retry(llm, messages, request.output_model)

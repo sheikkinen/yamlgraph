@@ -193,6 +193,7 @@ class TestExecutorModelPassthrough:
     def test_executor_execute_passes_model_to_prepare_messages(self):
         """PromptExecutor.execute() forwards model to prepare_messages."""
         from yamlgraph.executor import PromptExecutor
+        from yamlgraph.executor_base import PromptRequest
 
         executor = PromptExecutor()
 
@@ -205,9 +206,11 @@ class TestExecutorModelPassthrough:
             mock_llm.return_value = MagicMock()
 
             executor.execute(
-                prompt_name="test",
-                variables={"word": "hello"},
-                model="mistral-small-latest",
+                PromptRequest(
+                    prompt_name="test",
+                    variables={"word": "hello"},
+                    model="mistral-small-latest",
+                )
             )
 
             # _get_llm should receive the model
