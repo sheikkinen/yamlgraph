@@ -514,6 +514,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 197 | CAP-197 Novel Fandom Event Revision | `examples` | REQ-YG-537 – 538 |
 | 198 | CAP-198 Persistent Bridge Loop | `yamlgraph/utils/bridge.py`, `yamlgraph/node_factory/race_node.py`, `yamlgraph/node_factory/router_race_node.py` | REQ-YG-541 |
 | 199 | CAP-199 Security and Coverage Gate Truth | `scripts/noqa_coverage.py` | REQ-YG-542 |
+| 200 | CAP-200 Prompt Request Front Door | `yamlgraph/executor.py`, `yamlgraph/executor_base.py` | REQ-YG-543 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -2475,6 +2476,16 @@ Every documented quality claim has an enforcing gate. Bandit (medium+ severity) 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-542 | Gate-truth alignment (FR-714). The bandit pre-commit hook blocks medium+ severity findings; the five standing suppressions (B701 prompt-template jinja, 2x B104 dev-server bind defaults, B108 FSM socket prefix, B602 shell tool) carry nosec markers with confession entries. scripts/noqa_coverage.py counts nosec markers (specific and blanket) alongside noqa; an unconfessed nosec fails --strict. The documented coverage threshold in CLAUDE.md matches the enforced --cov-fail-under value (85; measured 90.36% on 2026-07-12). | `scripts/noqa_coverage.py`, `tests/unit/test_fr714_bandit_gate.py` |
+
+### 200. CAP-200 Prompt Request Front Door
+
+The prompt-execution front door takes one typed object. PromptRequest (frozen dataclass in executor_base) is the single source of truth for the execution parameter set; execute_prompt keeps its public keyword signature as a thin constructor, PromptExecutor.execute consumes the object, and the async front door's parameter set is a subset of the dataclass fields. Signature-parity witnesses make three-places drift (the max_tokens/thinking_budget history) structurally impossible.
+
+**Feature Request:** FR-715
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-543 | PromptRequest signature parity (FR-715). execute_prompt's keyword parameters equal PromptRequest's field names exactly; defaults are defined once on the dataclass and mirrored by the public signature; PromptExecutor.execute accepts only the request object; execute_prompt_async's parameters are a subset of the field set. The jscpd clone between execute_prompt and PromptExecutor.execute is deleted and must not return. | `yamlgraph/executor.py`, `yamlgraph/executor_base.py`, `tests/unit/test_fr715_prompt_request.py` |
 
 <!-- END GENERATED CAPABILITIES -->
 

@@ -1,0 +1,30 @@
+name: Prompt Request Front Door
+id: CAP-200
+status: active
+fr: FR-715
+feature_request: FR-715
+description: >
+  The prompt-execution front door takes one typed object. PromptRequest
+  (frozen dataclass in executor_base) is the single source of truth for
+  the execution parameter set; execute_prompt keeps its public keyword
+  signature as a thin constructor, PromptExecutor.execute consumes the
+  object, and the async front door's parameter set is a subset of the
+  dataclass fields. Signature-parity witnesses make three-places drift
+  (the max_tokens/thinking_budget history) structurally impossible.
+modules:
+  - yamlgraph/executor.py
+  - yamlgraph/executor_base.py
+requirements:
+  - id: REQ-YG-543
+    description: >
+      PromptRequest signature parity (FR-715). execute_prompt's keyword
+      parameters equal PromptRequest's field names exactly; defaults are
+      defined once on the dataclass and mirrored by the public signature;
+      PromptExecutor.execute accepts only the request object;
+      execute_prompt_async's parameters are a subset of the field set.
+      The jscpd clone between execute_prompt and PromptExecutor.execute
+      is deleted and must not return.
+    modules:
+      - yamlgraph/executor.py
+      - yamlgraph/executor_base.py
+      - tests/unit/test_fr715_prompt_request.py
