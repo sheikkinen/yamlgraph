@@ -8,6 +8,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.11]
+
+### Added
+- **FR-713 Persistent Bridge Loop (Part A)**: the sync→async bridge is promoted from a per-invocation daemon-thread + `asyncio.run()` to ONE long-lived event loop thread (`yamlgraph-bridge-loop`) in `yamlgraph/utils/bridge.py`. Per-call thread churn and fresh-loop SDK reconnects are eliminated (local instrument: anthropic Δp50 +0.527 s → +0.073 s); the FR-707 shutdown-blocker and FR-712 loop-affinity defect classes become unreachable by construction. Post-verdict drain is scoped per invocation; budget-breach abandonment cancels the submitted work; the loop starts lazily, resets across fork, and restarts with a WARNING after loop-thread death. Client construction moved off-loop to the caller thread. (REQ-YG-269)
+- **FR-713 Persistent Bridge Loop (Part B)**: the LLM client cache is uniform again — the FR-712 `_UNCACHED_PROVIDERS` carve-out (google/vertex constructed fresh per call) is deleted, its justifying cause retired by Part A's persistent loop. Entropy removed: one caching rule for every provider, and the vertex Express `_masked_env` global-`os.environ` mutation window collapses from once-per-race-call to once-per-cache-key. Cache keys now embed an env fingerprint (FR-227: construction is env-sensitive) — a common set (`LLM_REQUEST_TIMEOUT`) plus a declarative per-provider var list; changing a fingerprinted var yields a new client, unchanged env is a cache hit. Witnessed by a uniform cache-identity gate, a staleness gate across providers, and a warm-cached zero-errors-over-10 google integration run on the bridge loop. (REQ-YG-541)
+
+### Fixed
+- **FR-712 Loop-Affine Clients Uncached**: google and vertex clients are excluded from the LLM instance cache (`_UNCACHED_PROVIDERS`) — the google-genai wrapper's aiohttp session binds to the first event loop that runs it, and under the race bridge (fresh loop per call) a cached client errored on ~50% of *completed* calls (`Executor shutdown has been called` / `Timeout context manager should be used inside a task`), silently degrading the gemini race hedge. Fresh-per-call construction costs ~ms and collapses google's fresh-loop latency delta to +0.07 s (FR-711 instrument, post-fix run). Other providers keep the cache. (REQ-YG-540)
+
 ## [0.5.10]
 
 ### Added
