@@ -5,6 +5,7 @@ Each pattern gets its own submodule for focused validation logic.
 """
 
 from yamlgraph.linter.patterns.agent import check_agent_patterns
+from yamlgraph.linter.patterns.conditions_smt import check_condition_smt
 from yamlgraph.linter.patterns.copilot import check_copilot_patterns
 from yamlgraph.linter.patterns.interrupt import check_interrupt_patterns
 from yamlgraph.linter.patterns.map import check_map_patterns
@@ -21,5 +22,6 @@ __all__ = [
     "check_subgraph_patterns",
     "check_copilot_patterns",
     "check_pipeline_patterns",
+    "check_condition_smt",
     "check_race_patterns",
 ]

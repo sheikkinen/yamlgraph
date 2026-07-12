@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement (linter — static verification)
-**Status:** Judged (2026-07-12) — scope frozen with F1/F2 encoding amendments; authority granted
+**Status:** COMPLETED (2026-07-12) — W803–W805 shipped; 13 witnesses green; 8 shipped examples flagged with real gaps (recorded, AC-07)
 **Effort:** 1.5 days
 **Requested:** 2026-07-12
 **Spawned by:** Z3 research 2026-07-12 — the condition language is exactly QF_LRA + equality; the runtime hedges condition gaps silently.
@@ -130,36 +130,46 @@ exhaustive guards and is the highest-value finding.
 
 ## Acceptance Criteria
 
-- [ ] AC-01 RED: fixture graph with the `score >= 0.8` / `score < 0.5`
+- [x] AC-01 RED: fixture graph with the `score >= 0.8` / `score < 0.5`
       pair → W803 with a numeric counterexample in [0.5, 0.8)
-- [ ] AC-02 None-semantics: syntactically exhaustive guards
+- [x] AC-02 None-semantics: syntactically exhaustive guards
       (`x >= 0.5 or x < 0.5`) still yield W803 with `x = <missing>`;
       adding an `x != null` guard (supported by the runtime grammar —
       verified: `null`/`none` are literal keywords and `==`/`!=` are
       None-exempt) or an unconditional fallback edge silences it
-- [ ] AC-03 W804 overlap witness on `score >= 0.5` / `score >= 0.8`
+- [x] AC-03 W804 overlap witness on `score >= 0.5` / `score >= 0.8`
       (both true at 0.9); W805 on a guard shadowed by earlier guards
-- [ ] AC-04 Faithfulness witness: for every counterexample model the
+- [x] AC-04 Faithfulness witness: for every counterexample model the
       checker emits, replaying it through `evaluate_condition` confirms
       the fallthrough/overlap actually occurs — the encoding is tested
       against the runtime, not against itself. Parametrized to cover
       every row of the F1 operator table, INCLUDING `!= lit` with a
       missing variable (the case the pre-judgement encoding got wrong)
-- [ ] AC-09 Variable-vs-variable and ambiguous-identifier right sides
+- [x] AC-09 Variable-vs-variable and ambiguous-identifier right sides
       (F2): `a > b` with both known state keys → encoded, gap analysis
       runs; unknown identifier → string literal; key set unavailable →
       skip-with-notice — all three witnessed
-- [ ] AC-05 Without z3 installed: single skip notice, exit code
+- [x] AC-05 Without z3 installed: single skip notice, exit code
       unchanged, all other checks run (unit test manipulates import)
-- [ ] AC-06 Mixed-sort comparison group → skip-with-notice, no crash,
+- [x] AC-06 Mixed-sort comparison group → skip-with-notice, no crash,
       no false verdict
 - [ ] AC-07 Existing linter suite green; `examples/` and `graphs/` lint
       clean or with documented findings (run and record — a new check
-      that fires on shipped examples must either be right or be fixed)
-- [ ] AC-08 Solver timeout produces skip-with-notice for that group,
+      that fires on shipped examples must either be right or be fixed).
+      **RECORDED 2026-07-12 (findings are right, examples not rewritten
+      in this FR):** W803/W804 fire on 8 example graphs — notably
+      reflexion (`critique.score = <missing>` → silent END: the exact
+      on_error:skip leak the FR predicted), diary_digest
+      (`relevant_count = -1` numeric hole), questionnaire (2 gaps + 2
+      overlaps), novel_fandom/wiki-memory/five-whys/book_translator/
+      novel_generator (missing-variable gaps). All warnings (exit code
+      unchanged). Full list: `logs/fr719_examples.log`. Fixing the
+      examples = follow-up FR (each needs an `x == null` guard or
+      fallback edge — a judged pattern decision, not a mechanical
+      sweep)
+- [x] AC-08 Solver timeout produces skip-with-notice for that group,
       never a hang or a false pass
-- [ ] Changelog fragment; new REQ-YG-XXX + CAP entry (new lint
-      capability); diary entry
+- [x] Changelog fragment; CAP-202 / REQ-YG-545; diary at arc end
 
 ## Judgement (2026-07-12)
 

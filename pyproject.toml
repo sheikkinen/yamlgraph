@@ -51,6 +51,12 @@ dev = [
 analysis = [
     "jedi>=0.19.0",
 ]
+verify = [
+    # FR-719: SMT condition verification (W803–W805). Never a core dep.
+    # mac-x86_64 wheels stop at 4.13.x; other platforms track latest.
+    "z3-solver<4.14; sys_platform == 'darwin' and platform_machine == 'x86_64'",
+    "z3-solver>=4.12; sys_platform != 'darwin' or platform_machine != 'x86_64'",
+]
 websearch = [
     "ddgs>=6.0.0",
 ]

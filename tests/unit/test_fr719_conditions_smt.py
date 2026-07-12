@@ -72,7 +72,7 @@ def _replay_state(issue) -> dict:
     import re
 
     state: dict = {}
-    for var, val in re.findall(r"(\w[\w.]*) = ([^,;]+)", issue.message):
+    for var, val in re.findall(r"(\w[\w.]*) = ([^,;)]+)", issue.message):
         val = val.strip()
         if val == "<missing>":
             continue  # absent from state

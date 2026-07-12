@@ -51,6 +51,7 @@ from yamlgraph.linter.checks_semantic import (
 )
 from yamlgraph.linter.patterns import (
     check_agent_patterns,
+    check_condition_smt,
     check_copilot_patterns,
     check_interrupt_patterns,
     check_map_patterns,
@@ -119,6 +120,9 @@ def lint_graph(
 
     # FR-232: Race pattern checks
     all_issues.extend(check_race_patterns(graph_path))
+
+    # FR-719: SMT-verified guard groups (W803–W805; optional z3)
+    all_issues.extend(check_condition_smt(graph_path))
 
     # FR-235: Pipeline template checks
     all_issues.extend(check_pipeline_patterns(graph_path))
