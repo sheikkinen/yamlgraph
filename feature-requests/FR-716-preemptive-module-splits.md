@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement (refactor — module splits at chosen seams)
-**Status:** Proposed
+**Status:** Judged (2026-07-12) — scope frozen; authority granted (seam verified: NodeConfig+SubgraphNodeConfig ≈ 330 lines → node_schema.py; EdgeConfig+GraphConfigSchema stay)
 **Effort:** 1 day
 **Requested:** 2026-07-12
 **Spawned by:** docs/2026-07-12-review-refactoring.md P2.3 (five modules within 15 lines of the 450 gate) + P2.4 (`run_graph_streaming_native` C 17)
@@ -60,6 +60,15 @@ special-case → table).
       pinned before the move (assert_path_not_destination: event
       SEQUENCE asserted, not final state)
 - [ ] Changelog fragment; diary entry
+
+## Judgement (2026-07-12)
+
+Seam verified at source: `graph_schema.py` holds exactly four classes —
+`SubgraphNodeConfig` + `NodeConfig` (L19–335, the node half) and
+`EdgeConfig` + `GraphConfigSchema` (the graph half); the split is a
+clean bisection, import direction graph→node only. One finding: the FR
+must land AFTER FR-715 (both edit executor_async; smaller change first,
+F9 one-concern discipline). Scope frozen as written.
 
 ## Alternatives Considered
 

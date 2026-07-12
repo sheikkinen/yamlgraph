@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM (highest-complexity function in the highest-blast-radius module)
 **Type:** Enhancement (refactor — complexity decomposition, TDD-pinned)
-**Status:** Proposed
+**Status:** Judged (2026-07-12) — scope frozen; authority granted; note F1 (decomposition is completion, not invention)
 **Effort:** 1 day
 **Requested:** 2026-07-12
 **Spawned by:** docs/2026-07-12-review-refactoring.md P2.4 (`_process_edge` C 20, `_add_conditional_edges` C 18 — routing is core semantics; edge bugs are graph-wide)
@@ -72,6 +72,13 @@ condition-parsing between the two functions → one shared pure helper.
       examples/demos green unmodified (after the AC-01 pin lands)
 - [ ] AC-05 Net line delta ≤ 0 in edge_compiler.py
 - [ ] Changelog fragment (CAP-06 REQ); diary entry
+
+## Judgement (2026-07-12)
+
+| # | Finding | Resolution |
+|---|---------|------------|
+| F1 | Source check: per-shape handlers ALREADY exist (`_handle_start_edge`, `_handle_map_to_map_edge`, `_handle_to_map_edge`, `_handle_from_map_edge`, `_add_parallel_fanout_edges`) — the C(20) is the boolean-probe classification chain ("returns True if handled"), not monolithic compilation. The FR slightly overstated the problem; the cure is right but smaller | Scope sharpened: `classify_edge(edge, context) -> EdgeShape` replaces the probe chain; existing handlers become the dispatch targets largely as-is. Effort likely 0.5 day, keep 1 day budget |
+| F2 | "Unknown shape raises" — today's fall-through IS the plain-edge case, a legitimate shape, not an implicit claim | Amended: classification is exhaustive with `PLAIN` as an explicit enum member; the raise fires only for a shape the classifier cannot name (e.g. `to: list` WITH condition AND type mismatch). The witness enumerates the enum |
 
 ## Alternatives Considered
 

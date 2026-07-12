@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement (refactor — package structure; move-only)
-**Status:** Proposed
+**Status:** Judged (2026-07-12) — scope frozen with F1 naming note; authority granted; PR 3 sequenced after FR-715/716
 **Effort:** 1–2 days (three independent PRs, one per sub-package)
 **Requested:** 2026-07-12
 **Spawned by:** docs/2026-07-12-review-refactoring.md P2.2 (27 flat root modules, 6,097 lines, no seams inside Layer 2)
@@ -56,6 +56,13 @@ contracts — and shrinks the root listing every reader scans first.
 - [ ] AC-04 No `from yamlgraph.a2a_server import ...`-style stale paths
       anywhere in repo (docs included)
 - [ ] Changelog fragment per PR; diary once at arc end
+
+## Judgement (2026-07-12)
+
+| # | Finding | Resolution |
+|---|---------|------------|
+| F1 | `yamlgraph.compile` shadows the `compile` builtin as an attribute name — harmless for `from yamlgraph.compile import x` but `from yamlgraph import compile` would shadow the builtin at the importer's site | Keep `compile/` (the domain word is right); forbid re-exporting the package itself from `yamlgraph/__init__` — only its members (`load_and_compile` already re-exported, verified) |
+| F2 | Move-only claim needs a mechanical witness, not reviewer discipline | AC-01 amended: `git diff --find-renames --summary` output pasted into each PR description; any non-rename line in yamlgraph/ fails review |
 
 ## Alternatives Considered
 

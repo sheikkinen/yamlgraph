@@ -2,7 +2,7 @@
 
 **Priority:** HIGH (cheapest, and every day ungated is a day the claim lies)
 **Type:** Enhancement (enforcement infrastructure)
-**Status:** Proposed
+**Status:** Judged (2026-07-12) — scope frozen with F1 amendment; authority granted
 **Effort:** 0.5 day
 **Requested:** 2026-07-12
 **Spawned by:** docs/2026-07-12-review-refactoring.md P2.5 (second-pass addendum)
@@ -51,6 +51,13 @@ true or delete it — a claim with no gate decays into a lie.
 - [ ] AC-04 CLAUDE.md coverage claim == pyproject enforced value; the
       actual measured coverage number recorded in this FR
 - [ ] Changelog fragment; diary entry
+
+## Judgement (2026-07-12)
+
+| # | Finding | Resolution |
+|---|---------|------------|
+| F1 | The FR counted 4 suppression sites; source shows a FIFTH pre-existing `# nosec B602` (`tools/shell.py:131`) with NO confession — AC-03's gate would flag it on day one | In scope: shell.py's nosec gets its confession too; total = 5 confessed nosec sites. The gate must be born green |
+| F2 | AC-02's scratch-file witness cannot live in CI (a deliberately bad file cannot be committed) | Acceptable as recorded manual verification: command + output pasted into this FR at enforce time |
 
 ## Alternatives Considered
 

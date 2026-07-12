@@ -2,7 +2,7 @@
 
 **Priority:** HIGH (highest knowledge-per-line refactor available; every new knob currently costs 3 edits)
 **Type:** Enhancement (refactor — API-shape consolidation)
-**Status:** Proposed
+**Status:** Judged (2026-07-12) — scope frozen NARROWER than proposed (F1: prepare_messages descoped); authority granted
 **Effort:** 1 day
 **Requested:** 2026-07-12
 **Spawned by:** docs/2026-07-12-review-refactoring.md P2.1; jscpd (the codebase's only real clone: `executor.py` 38–80 vs 185–220, 172 tokens)
@@ -58,17 +58,27 @@ flags it, and drift between the copies is a silent-default bug waiting
 
 ## Acceptance Criteria
 
-- [ ] AC-01 RED: witness that `execute_prompt` kwargs and
-      `PromptExecutor.execute` accept identical parameter sets derived
-      from ONE source (dataclass fields) — currently fails because the
-      sets are maintained by hand
+- [ ] AC-01 RED: `inspect.signature(execute_prompt)` parameter names ==
+      `PromptRequest` field names, derived from ONE source — fails today
+      (no PromptRequest); keeps failing if either side drifts (F3)
 - [ ] AC-02 jscpd reports 0 clones in executor.py
 - [ ] AC-03 Public API unchanged: existing `execute_prompt(...)` calls
       in examples/ and tests pass unmodified
-- [ ] AC-04 `prepare_messages` CC drops below 10 or the remainder is
-      confessed with cause
-- [ ] AC-05 Net line delta ≤ 0 in yamlgraph/ (promotion test)
+- [ ] AC-04 (deleted by Judgement F1 — prepare_messages out of scope)
+- [ ] AC-05 Net line delta ≤ 0 in yamlgraph/ (promotion test);
+      `prepare_messages_async` deleted if F2 verification allows
 - [ ] Changelog fragment (REQ under CAP-04 prompt execution); diary
+
+## Judgement (2026-07-12)
+
+| # | Finding | Resolution |
+|---|---------|------------|
+| F1 | The FR claimed prepare_messages "threads the same ~12 kwargs" — FALSE: it threads 8, is already C901-confessed, and has 5 callers including race_node/router_race. Changing its signature drags the race paths into a clone-kill that lives entirely in executor.py | **Descoped.** `prepare_messages` keeps its kwargs signature untouched. PromptRequest covers `execute_prompt` → `PromptExecutor.execute` (+ the executor_async mirror). AC-04 (prepare_messages CC) DELETED — out of scope |
+| F2 | `prepare_messages_async` (executor_base.py:296) is a pure delegation shim — duplicates the 8-param signature and calls the sync version | Purge candidate IN scope (Commandment 8): verify callers at enforce time; if all callers can call `prepare_messages` directly, delete it in this FR's PR with a witness |
+| F3 | AC-01's RED is vacuous as written (fails on ImportError, not on the claim) | Amended: RED = assert `inspect.signature(execute_prompt)` parameter names == `PromptRequest` dataclass field names, single source — fails today because PromptRequest does not exist AND stays failing if a field is added to one side only |
+
+AC list amended per F1/F3: AC-04 deleted; AC-01 rewritten. Sequence:
+this FR lands before FR-716 (both touch executor_async; smaller first).
 
 ## Alternatives Considered
 
