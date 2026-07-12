@@ -7,7 +7,7 @@ description: >
 
 modules:
   - yamlgraph/discovery.py
-  - yamlgraph/mcp_server.py
+  - yamlgraph/export/mcp.py
 
 requirements:
   - id: REQ-YG-310
@@ -32,7 +32,7 @@ requirements:
       Per-graph MCP tool registration: each discovered graph registers as
       its own named MCP tool with typed inputSchema derived from input_vars.
     modules:
-      - yamlgraph/mcp_server.py
+      - yamlgraph/export/mcp.py
       - tests/unit/test_mcp_typed_tools.py
 
   - id: REQ-YG-313
@@ -48,7 +48,7 @@ requirements:
       Name collision detection: duplicate tool_name values across discovered
       graphs raise ValueError at server startup.
     modules:
-      - yamlgraph/mcp_server.py
+      - yamlgraph/export/mcp.py
       - tests/unit/test_mcp_typed_tools.py
 
 fr: FR-291

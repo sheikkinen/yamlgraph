@@ -28,7 +28,7 @@ REQUIRED_EVIDENCE_MARKERS = [
     "yamlgraph/storage/",
     "yamlgraph/graph_cache.py",
     ".chaplain/inquisitor.sh",
-    "yamlgraph/mcp_server.py",
+    "yamlgraph/export/mcp.py",
     "yamlgraph/executor_async.py",
 ]
 

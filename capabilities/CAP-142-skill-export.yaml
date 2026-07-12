@@ -5,8 +5,8 @@ description: >
   bundles with deterministic filesystem artifacts for skill discovery.
 
 modules:
-  - yamlgraph/skill_export.py
-  - yamlgraph/skill_export_writer.py
+  - yamlgraph/export/skill.py
+  - yamlgraph/export/skill_writer.py
   - yamlgraph/cli/__init__.py
   - yamlgraph/cli/skill_commands.py
   - reference/cli.md
@@ -29,8 +29,8 @@ requirements:
       Export generates required package artifacts: `SKILL.md`,
       executable `scripts/run.sh`, `references/`, and `assets/schema.json`.
     modules:
-      - yamlgraph/skill_export.py
-      - yamlgraph/skill_export_writer.py
+      - yamlgraph/export/skill.py
+      - yamlgraph/export/skill_writer.py
       - tests/unit/test_fr348_skill_export_red.py
 
   - id: REQ-YG-322
@@ -38,8 +38,8 @@ requirements:
       `SKILL.md` includes skill metadata, typed input/output sections, and
       runnable CLI invocation example.
     modules:
-      - yamlgraph/skill_export.py
-      - yamlgraph/skill_export_writer.py
+      - yamlgraph/export/skill.py
+      - yamlgraph/export/skill_writer.py
       - tests/unit/test_fr348_skill_export_red.py
 
   - id: REQ-YG-323
@@ -47,8 +47,8 @@ requirements:
       `assets/schema.json` contains top-level `input` and `output` schema
       objects derived from graph input vars and output state keys.
     modules:
-      - yamlgraph/skill_export.py
-      - yamlgraph/skill_export_writer.py
+      - yamlgraph/export/skill.py
+      - yamlgraph/export/skill_writer.py
       - tests/unit/test_fr348_skill_export_red.py
 
   - id: REQ-YG-324
@@ -56,8 +56,8 @@ requirements:
       Format variants map to expected paths for `skill-md`, `copilot`, and
       `cursor` package layouts.
     modules:
-      - yamlgraph/skill_export.py
-      - yamlgraph/skill_export_writer.py
+      - yamlgraph/export/skill.py
+      - yamlgraph/export/skill_writer.py
       - tests/unit/test_fr348_skill_export_red.py
 
   - id: REQ-YG-325
@@ -65,8 +65,8 @@ requirements:
       Export is deterministic and non-LLM with explicit errors for invalid
       graph input, unsupported format, and target collisions.
     modules:
-      - yamlgraph/skill_export.py
-      - yamlgraph/skill_export_writer.py
+      - yamlgraph/export/skill.py
+      - yamlgraph/export/skill_writer.py
       - yamlgraph/cli/skill_commands.py
       - tests/unit/test_fr348_skill_export_red.py
 

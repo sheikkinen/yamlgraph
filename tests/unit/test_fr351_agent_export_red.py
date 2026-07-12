@@ -72,7 +72,7 @@ def test_ac01_cli_registers_agent_md_format() -> None:
 
 @pytest.mark.req("REQ-YG-328")
 def test_ac02_export_agent_md_writes_file_in_github_agents(tmp_path: Path) -> None:
-    from yamlgraph.skill_export import export_skill
+    from yamlgraph.export.skill import export_skill
 
     graph_path = _write_demo_agent_graph(tmp_path)
     export_skill(graph_path, format="agent-md", output_dir=tmp_path / "out")
@@ -87,7 +87,7 @@ def test_ac02_export_agent_md_writes_file_in_github_agents(tmp_path: Path) -> No
 def test_ac03_agent_md_contains_required_frontmatter_and_tool_scope(
     tmp_path: Path,
 ) -> None:
-    from yamlgraph.skill_export import export_skill
+    from yamlgraph.export.skill import export_skill
 
     graph_path = _write_demo_agent_graph(tmp_path)
     export_skill(graph_path, format="agent-md", output_dir=tmp_path / "out")
@@ -104,7 +104,7 @@ def test_ac03_agent_md_contains_required_frontmatter_and_tool_scope(
 
 @pytest.mark.req("REQ-YG-331")
 def test_ac04_export_agent_md_errors_on_target_collision(tmp_path: Path) -> None:
-    from yamlgraph.skill_export import export_skill
+    from yamlgraph.export.skill import export_skill
 
     graph_path = _write_demo_agent_graph(tmp_path)
     target_file = tmp_path / "out" / ".github" / "agents" / "demo-agent.agent.md"

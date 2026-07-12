@@ -5,8 +5,8 @@ description: >
   with YAMLGraph MCP tool scoping from graph metadata.
 
 modules:
-  - yamlgraph/skill_export.py
-  - yamlgraph/skill_export_writer.py
+  - yamlgraph/export/skill.py
+  - yamlgraph/export/skill_writer.py
   - yamlgraph/cli/__init__.py
   - yamlgraph/cli/skill_commands.py
   - reference/cli.md
@@ -29,8 +29,8 @@ requirements:
       `agent-md` export writes a single file at
       `<output-dir>/.github/agents/<skill-name>.agent.md`.
     modules:
-      - yamlgraph/skill_export.py
-      - yamlgraph/skill_export_writer.py
+      - yamlgraph/export/skill.py
+      - yamlgraph/export/skill_writer.py
       - tests/unit/test_fr350_agent_export_red.py
 
   - id: REQ-YG-329
@@ -38,8 +38,8 @@ requirements:
       Generated `.agent.md` frontmatter includes non-empty `description`,
       `tools: [yamlgraph/*]`, and `model: Claude Sonnet 4`.
     modules:
-      - yamlgraph/skill_export.py
-      - yamlgraph/skill_export_writer.py
+      - yamlgraph/export/skill.py
+      - yamlgraph/export/skill_writer.py
       - tests/unit/test_fr350_agent_export_red.py
 
   - id: REQ-YG-330
@@ -47,8 +47,8 @@ requirements:
       Generated `.agent.md` body includes agent heading, inputs derived from
       graph schema, and `@agent-name` invocation guidance.
     modules:
-      - yamlgraph/skill_export.py
-      - yamlgraph/skill_export_writer.py
+      - yamlgraph/export/skill.py
+      - yamlgraph/export/skill_writer.py
       - tests/unit/test_fr350_agent_export_red.py
 
   - id: REQ-YG-331
@@ -56,8 +56,8 @@ requirements:
       Export remains deterministic and non-LLM with explicit failures for
       invalid graph path, unsupported format, and output file collisions.
     modules:
-      - yamlgraph/skill_export.py
-      - yamlgraph/skill_export_writer.py
+      - yamlgraph/export/skill.py
+      - yamlgraph/export/skill_writer.py
       - yamlgraph/cli/skill_commands.py
       - tests/unit/test_fr350_agent_export_red.py
 

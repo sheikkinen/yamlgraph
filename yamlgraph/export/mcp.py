@@ -5,14 +5,14 @@ CAP-19: MCP Server Interface (REQ-YG-066, REQ-YG-067, REQ-YG-068)
 CAP-136: Per-graph typed MCP tools (REQ-YG-310–314)
 
 Usage (stdio transport):
-    python yamlgraph/mcp_server.py
+    python yamlgraph/export/mcp.py
 
 Configure in .mcp.json:
     {
       "mcpServers": {
         "yamlgraph": {
           "command": ".venv/bin/python3",
-          "args": ["yamlgraph/mcp_server.py"]
+          "args": ["yamlgraph/export/mcp.py"]
         }
       }
     }

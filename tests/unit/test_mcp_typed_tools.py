@@ -334,7 +334,7 @@ edges:
 @pytest.mark.asyncio
 async def test_mcp_tool_array_param_valid_schema(tmp_path: Path):
     """MCP tool with array parameter produces schema Copilot can validate."""
-    from yamlgraph.mcp_server import create_server
+    from yamlgraph.export.mcp import create_server
 
     yaml_content = """\
 version: "1.0"
@@ -420,7 +420,7 @@ edges:
 @pytest.mark.asyncio
 async def test_per_graph_tools_registered(tmp_path: Path):
     """Each discovered graph appears as its own named MCP tool."""
-    from yamlgraph.mcp_server import create_server
+    from yamlgraph.export.mcp import create_server
 
     _write_graph(tmp_path, "demo", GRAPH_WITH_IO)
     server = create_server(graph_patterns=[str(tmp_path / "*/graph.yaml")])
@@ -440,7 +440,7 @@ async def test_per_graph_tools_registered(tmp_path: Path):
 @pytest.mark.asyncio
 async def test_per_graph_tool_has_typed_schema(tmp_path: Path):
     """Per-graph tool has JSON Schema derived from input vars."""
-    from yamlgraph.mcp_server import create_server
+    from yamlgraph.export.mcp import create_server
 
     _write_graph(tmp_path, "demo", GRAPH_WITH_IO)
     server = create_server(graph_patterns=[str(tmp_path / "*/graph.yaml")])
@@ -461,7 +461,7 @@ async def test_per_graph_tool_has_typed_schema(tmp_path: Path):
 @pytest.mark.asyncio
 async def test_per_graph_tool_has_description(tmp_path: Path):
     """Per-graph tool description comes from graph description."""
-    from yamlgraph.mcp_server import create_server
+    from yamlgraph.export.mcp import create_server
 
     _write_graph(tmp_path, "demo", GRAPH_WITH_IO)
     server = create_server(graph_patterns=[str(tmp_path / "*/graph.yaml")])
@@ -476,7 +476,7 @@ async def test_per_graph_tool_has_description(tmp_path: Path):
 @pytest.mark.asyncio
 async def test_per_graph_tool_invocation(tmp_path: Path):
     """Calling a per-graph typed tool invokes the correct graph."""
-    from yamlgraph.mcp_server import create_server
+    from yamlgraph.export.mcp import create_server
 
     _write_graph(tmp_path, "demo", GRAPH_WITH_IO)
     server = create_server(graph_patterns=[str(tmp_path / "*/graph.yaml")])
@@ -488,7 +488,7 @@ async def test_per_graph_tool_invocation(tmp_path: Path):
         captured["vars"] = variables
         return {"greeting": "Hello!"}
 
-    with patch("yamlgraph.mcp_server._invoke_graph", side_effect=fake_invoke):
+    with patch("yamlgraph.export.mcp._invoke_graph", side_effect=fake_invoke):
         result = await _call_tool(
             server,
             "test_graph",
@@ -506,7 +506,7 @@ async def test_per_graph_tool_invocation(tmp_path: Path):
 @pytest.mark.asyncio
 async def test_per_graph_tool_no_state(tmp_path: Path):
     """Graph with no state block registers as tool with empty schema."""
-    from yamlgraph.mcp_server import create_server
+    from yamlgraph.export.mcp import create_server
 
     _write_graph(tmp_path, "demo", GRAPH_NO_STATE)
     server = create_server(graph_patterns=[str(tmp_path / "*/graph.yaml")])
@@ -521,7 +521,7 @@ async def test_per_graph_tool_no_state(tmp_path: Path):
 @pytest.mark.asyncio
 async def test_per_graph_tool_multi_type_schema(tmp_path: Path):
     """Per-graph tool with multiple types has correct JSON Schema."""
-    from yamlgraph.mcp_server import create_server
+    from yamlgraph.export.mcp import create_server
 
     _write_graph(tmp_path, "demo", GRAPH_MULTI_TYPE)
     server = create_server(graph_patterns=[str(tmp_path / "*/graph.yaml")])
@@ -547,7 +547,7 @@ async def test_per_graph_tool_multi_type_schema(tmp_path: Path):
 @pytest.mark.req("REQ-YG-314")
 def test_name_collision_raises(tmp_path: Path):
     """Two graphs with the same tool_name raise ValueError at startup."""
-    from yamlgraph.mcp_server import create_server
+    from yamlgraph.export.mcp import create_server
 
     # Two different directories, same graph name
     _write_graph(tmp_path, "dir_a", GRAPH_WITH_IO)
@@ -560,7 +560,7 @@ def test_name_collision_raises(tmp_path: Path):
 @pytest.mark.req("REQ-YG-314")
 def test_no_collision_different_names(tmp_path: Path):
     """Graphs with different names don't trigger collision."""
-    from yamlgraph.mcp_server import create_server
+    from yamlgraph.export.mcp import create_server
 
     _write_graph(tmp_path, "dir_a", GRAPH_WITH_IO)
     _write_graph(tmp_path, "dir_b", GRAPH_NO_STATE)

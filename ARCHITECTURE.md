@@ -452,14 +452,14 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 133 | CAP-133 Watcher2 CI Remediation Crash Fix | `.chaplain/scripts/start-system.sh`, `tests/unit/test_fr284_watcher2_ci_remediation_crash_fix.py` | REQ-YG-307 |
 | 134 | CAP-134 Watcher2 Changelog Auto-Generation | `.chaplain/scripts/start-system.sh`, `.chaplain/graphs/watcher-enforce/prompts/enforce-critique-and-distill.yaml`, `.chaplain/graphs/watcher-enforce/prompts/enforce-finalize.yaml`, `.chaplain/graphs/watcher-enforce/step-ci-remediate.yaml` | REQ-YG-308 |
 | 135 | CAP-135 Watcher2 Forensic Failure Diary | `.chaplain/scripts/start-system.sh`, `.chaplain/graphs/watcher-forensic/`, `.chaplain/lib/diary.py` | REQ-YG-309 |
-| 136 | CAP-136 Per-Graph Typed MCP Tools | `yamlgraph/discovery.py`, `yamlgraph/mcp_server.py` | REQ-YG-310 – 314 |
+| 136 | CAP-136 Per-Graph Typed MCP Tools | `yamlgraph/discovery.py`, `yamlgraph/export/mcp.py` | REQ-YG-310 – 314 |
 | 137 | CAP-137 Watcher FSM System Startup Script | `.chaplain/scripts/start-system.sh` | REQ-YG-315 |
 | 138 | CAP-138 Watcher Pipeline FSM Simplification | `.chaplain/config/watcher-pipeline-v2.yaml`, `.chaplain/graphs/watcher-plan/step-judge-v2.yaml`, `.chaplain/graphs/watcher-enforce/enforce-session.yaml` | REQ-YG-316 |
 | 139 | CAP-139 Root README Accuracy Contract | `README.md`, `tests/unit/test_root_readme_accuracy.py` | REQ-YG-317 |
 | 140 | CAP-140 Watcher2 Validate Split Fix/Gate | `.chaplain/config/watcher-pipeline-v2.yaml`, `.chaplain/actions/changelog_gen_action.py`, `.chaplain/actions/validate_gate_action.py`, `.chaplain/graphs/watcher-enforce/validate-session.yaml`, … | REQ-YG-318 |
 | 141 | CAP-141 Shared FSM Bridge Module | `yamlgraph/utils/fsm/__init__.py`, `yamlgraph/utils/fsm/helpers.py`, `yamlgraph/utils/fsm/event_sender.py`, `yamlgraph/utils/fsm/graph_runner.py`, … | REQ-YG-319 |
-| 142 | CAP-142 Skill Export Portable Packaging | `yamlgraph/skill_export.py`, `yamlgraph/skill_export_writer.py`, `yamlgraph/cli/__init__.py`, `yamlgraph/cli/skill_commands.py`, … | REQ-YG-320 – 326 |
-| 143 | CAP-143 Agent Export Tool-Scoped Personas | `yamlgraph/skill_export.py`, `yamlgraph/skill_export_writer.py`, `yamlgraph/cli/__init__.py`, `yamlgraph/cli/skill_commands.py`, … | REQ-YG-327 – 332 |
+| 142 | CAP-142 Skill Export Portable Packaging | `yamlgraph/export/skill.py`, `yamlgraph/export/skill_writer.py`, `yamlgraph/cli/__init__.py`, `yamlgraph/cli/skill_commands.py`, … | REQ-YG-320 – 326 |
+| 143 | CAP-143 Agent Export Tool-Scoped Personas | `yamlgraph/export/skill.py`, `yamlgraph/export/skill_writer.py`, `yamlgraph/cli/__init__.py`, `yamlgraph/cli/skill_commands.py`, … | REQ-YG-327 – 332 |
 | 145 | CAP-145 Copilot Instrumentation Gap Closure | `scripts/copilot_instrument.sh`, `scripts/extract_copilot_events.py`, `scripts/extract_copilot_events_lib.py`, `docs/copilot-instrumentation-poc.md`, … | REQ-YG-340 – 346 |
 | 146 | CAP-146 FSM Snapshot Hooks Phase 2 Subclassing | `yamlgraph/utils/fsm/snapshot.py`, `yamlgraph/utils/fsm/action.py`, `yamlgraph/utils/fsm/graph_runner.py`, `yamlgraph/utils/fsm/__init__.py`, … | REQ-YG-347 |
 | 147 | CAP-147 Graph Run JSON Stdout + TypeScript Node Integration | `yamlgraph/cli/__init__.py`, `yamlgraph/cli/graph_commands.py`, `yamlgraph/cli/helpers.py`, `yamlgraph/storage/export.py`, … | REQ-YG-348 – 355 |
@@ -1797,9 +1797,9 @@ Derive per-graph typed MCP tool definitions from graph YAML metadata (name, desc
 |------------|-------------|-------------|
 | REQ-YG-310 | Input/output var separation: discovery excludes state_key targets from input_vars, exposing only user-supplied inputs. | `yamlgraph/discovery.py`, `tests/unit/test_mcp_typed_tools.py` |
 | REQ-YG-311 | JSON Schema derivation from state type annotations. Maps str->string, int->integer, float->number, bool->boolean, list->array, dict->object. Parameterized types map to base type. Unknown types fall back to string. | `yamlgraph/discovery.py`, `tests/unit/test_mcp_typed_tools.py` |
-| REQ-YG-312 | Per-graph MCP tool registration: each discovered graph registers as its own named MCP tool with typed inputSchema derived from input_vars. | `yamlgraph/mcp_server.py`, `tests/unit/test_mcp_typed_tools.py` |
+| REQ-YG-312 | Per-graph MCP tool registration: each discovered graph registers as its own named MCP tool with typed inputSchema derived from input_vars. | `yamlgraph/export/mcp.py`, `tests/unit/test_mcp_typed_tools.py` |
 | REQ-YG-313 | Tool name normalization: graph name hyphens replaced with underscores to produce valid MCP tool names. | `yamlgraph/discovery.py`, `tests/unit/test_mcp_typed_tools.py` |
-| REQ-YG-314 | Name collision detection: duplicate tool_name values across discovered graphs raise ValueError at server startup. | `yamlgraph/mcp_server.py`, `tests/unit/test_mcp_typed_tools.py` |
+| REQ-YG-314 | Name collision detection: duplicate tool_name values across discovered graphs raise ValueError at server startup. | `yamlgraph/export/mcp.py`, `tests/unit/test_mcp_typed_tools.py` |
 
 ### 137. CAP-137 Watcher FSM System Startup Script
 
@@ -1860,11 +1860,11 @@ Add `yamlgraph skill export` to package existing graphs into portable Skills bun
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-320 | CLI parser registers `yamlgraph skill export` with `--format` and `--output-dir` options and dispatches to skill command handlers. | `yamlgraph/cli/__init__.py`, `yamlgraph/cli/skill_commands.py`, `tests/unit/test_fr348_skill_export_red.py` |
-| REQ-YG-321 | Export generates required package artifacts: `SKILL.md`, executable `scripts/run.sh`, `references/`, and `assets/schema.json`. | `yamlgraph/skill_export.py`, `yamlgraph/skill_export_writer.py`, `tests/unit/test_fr348_skill_export_red.py` |
-| REQ-YG-322 | `SKILL.md` includes skill metadata, typed input/output sections, and runnable CLI invocation example. | `yamlgraph/skill_export.py`, `yamlgraph/skill_export_writer.py`, `tests/unit/test_fr348_skill_export_red.py` |
-| REQ-YG-323 | `assets/schema.json` contains top-level `input` and `output` schema objects derived from graph input vars and output state keys. | `yamlgraph/skill_export.py`, `yamlgraph/skill_export_writer.py`, `tests/unit/test_fr348_skill_export_red.py` |
-| REQ-YG-324 | Format variants map to expected paths for `skill-md`, `copilot`, and `cursor` package layouts. | `yamlgraph/skill_export.py`, `yamlgraph/skill_export_writer.py`, `tests/unit/test_fr348_skill_export_red.py` |
-| REQ-YG-325 | Export is deterministic and non-LLM with explicit errors for invalid graph input, unsupported format, and target collisions. | `yamlgraph/skill_export.py`, `yamlgraph/skill_export_writer.py`, `yamlgraph/cli/skill_commands.py`, `tests/unit/test_fr348_skill_export_red.py` |
+| REQ-YG-321 | Export generates required package artifacts: `SKILL.md`, executable `scripts/run.sh`, `references/`, and `assets/schema.json`. | `yamlgraph/export/skill.py`, `yamlgraph/export/skill_writer.py`, `tests/unit/test_fr348_skill_export_red.py` |
+| REQ-YG-322 | `SKILL.md` includes skill metadata, typed input/output sections, and runnable CLI invocation example. | `yamlgraph/export/skill.py`, `yamlgraph/export/skill_writer.py`, `tests/unit/test_fr348_skill_export_red.py` |
+| REQ-YG-323 | `assets/schema.json` contains top-level `input` and `output` schema objects derived from graph input vars and output state keys. | `yamlgraph/export/skill.py`, `yamlgraph/export/skill_writer.py`, `tests/unit/test_fr348_skill_export_red.py` |
+| REQ-YG-324 | Format variants map to expected paths for `skill-md`, `copilot`, and `cursor` package layouts. | `yamlgraph/export/skill.py`, `yamlgraph/export/skill_writer.py`, `tests/unit/test_fr348_skill_export_red.py` |
+| REQ-YG-325 | Export is deterministic and non-LLM with explicit errors for invalid graph input, unsupported format, and target collisions. | `yamlgraph/export/skill.py`, `yamlgraph/export/skill_writer.py`, `yamlgraph/cli/skill_commands.py`, `tests/unit/test_fr348_skill_export_red.py` |
 | REQ-YG-326 | CLI/reference docs include `yamlgraph skill export` usage and output layout examples for all format variants. | `reference/cli.md`, `reference/skills-export.md`, `reference/README.md`, `tests/unit/test_fr348_skill_export_red.py` |
 
 ### 143. CAP-143 Agent Export Tool-Scoped Personas
@@ -1876,10 +1876,10 @@ Add `agent-md` export format to generate GitHub Copilot `.agent.md` files with Y
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-327 | CLI parser accepts `--format agent-md` for `yamlgraph skill export` and dispatches through existing skill command handlers. | `yamlgraph/cli/__init__.py`, `yamlgraph/cli/skill_commands.py`, `tests/unit/test_fr350_agent_export_red.py` |
-| REQ-YG-328 | `agent-md` export writes a single file at `<output-dir>/.github/agents/<skill-name>.agent.md`. | `yamlgraph/skill_export.py`, `yamlgraph/skill_export_writer.py`, `tests/unit/test_fr350_agent_export_red.py` |
-| REQ-YG-329 | Generated `.agent.md` frontmatter includes non-empty `description`, `tools: [yamlgraph/*]`, and `model: Claude Sonnet 4`. | `yamlgraph/skill_export.py`, `yamlgraph/skill_export_writer.py`, `tests/unit/test_fr350_agent_export_red.py` |
-| REQ-YG-330 | Generated `.agent.md` body includes agent heading, inputs derived from graph schema, and `@agent-name` invocation guidance. | `yamlgraph/skill_export.py`, `yamlgraph/skill_export_writer.py`, `tests/unit/test_fr350_agent_export_red.py` |
-| REQ-YG-331 | Export remains deterministic and non-LLM with explicit failures for invalid graph path, unsupported format, and output file collisions. | `yamlgraph/skill_export.py`, `yamlgraph/skill_export_writer.py`, `yamlgraph/cli/skill_commands.py`, `tests/unit/test_fr350_agent_export_red.py` |
+| REQ-YG-328 | `agent-md` export writes a single file at `<output-dir>/.github/agents/<skill-name>.agent.md`. | `yamlgraph/export/skill.py`, `yamlgraph/export/skill_writer.py`, `tests/unit/test_fr350_agent_export_red.py` |
+| REQ-YG-329 | Generated `.agent.md` frontmatter includes non-empty `description`, `tools: [yamlgraph/*]`, and `model: Claude Sonnet 4`. | `yamlgraph/export/skill.py`, `yamlgraph/export/skill_writer.py`, `tests/unit/test_fr350_agent_export_red.py` |
+| REQ-YG-330 | Generated `.agent.md` body includes agent heading, inputs derived from graph schema, and `@agent-name` invocation guidance. | `yamlgraph/export/skill.py`, `yamlgraph/export/skill_writer.py`, `tests/unit/test_fr350_agent_export_red.py` |
+| REQ-YG-331 | Export remains deterministic and non-LLM with explicit failures for invalid graph path, unsupported format, and output file collisions. | `yamlgraph/export/skill.py`, `yamlgraph/export/skill_writer.py`, `yamlgraph/cli/skill_commands.py`, `tests/unit/test_fr350_agent_export_red.py` |
 | REQ-YG-332 | CLI/reference docs include `agent-md` usage and output layout examples. | `reference/cli.md`, `reference/skills-export.md`, `reference/README.md`, `tests/unit/test_fr350_agent_export_red.py` |
 
 ### 145. CAP-145 Copilot Instrumentation Gap Closure

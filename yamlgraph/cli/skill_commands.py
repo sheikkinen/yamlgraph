@@ -5,7 +5,7 @@ from __future__ import annotations
 import argparse
 import sys
 
-from yamlgraph.skill_export import export_skill
+from yamlgraph.export.skill import export_skill
 
 
 def cmd_skill_export(args: argparse.Namespace) -> None:

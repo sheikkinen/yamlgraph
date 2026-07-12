@@ -79,7 +79,7 @@ def test_ac01_cli_registers_skill_export_subcommand() -> None:
 
 @pytest.mark.req("REQ-YG-321")
 def test_ac02_export_generates_required_skill_package_files(tmp_path: Path) -> None:
-    from yamlgraph.skill_export import export_skill
+    from yamlgraph.export.skill import export_skill
 
     graph_path = _write_demo_skill_graph(tmp_path)
     package = export_skill(
@@ -109,7 +109,7 @@ def test_ac02_export_generates_required_skill_package_files(tmp_path: Path) -> N
 def test_ac03_skill_md_contains_graph_metadata_and_run_instructions(
     tmp_path: Path,
 ) -> None:
-    from yamlgraph.skill_export import export_skill
+    from yamlgraph.export.skill import export_skill
 
     graph_path = _write_demo_skill_graph(tmp_path)
     package = export_skill(graph_path, output_dir=tmp_path / "out")
@@ -127,7 +127,7 @@ def test_ac03_skill_md_contains_graph_metadata_and_run_instructions(
 
 @pytest.mark.req("REQ-YG-323")
 def test_ac04_schema_json_contains_input_and_output_sections(tmp_path: Path) -> None:
-    from yamlgraph.skill_export import export_skill
+    from yamlgraph.export.skill import export_skill
 
     graph_path = _write_demo_skill_graph(tmp_path)
     package = export_skill(graph_path, output_dir=tmp_path / "out")
@@ -143,7 +143,7 @@ def test_ac04_schema_json_contains_input_and_output_sections(tmp_path: Path) -> 
 
 @pytest.mark.req("REQ-YG-324")
 def test_ac05_format_variant_paths_skill_md_copilot_cursor(tmp_path: Path) -> None:
-    from yamlgraph.skill_export import export_skill
+    from yamlgraph.export.skill import export_skill
 
     graph_path = _write_demo_skill_graph(tmp_path)
 
@@ -179,7 +179,7 @@ def test_ac06_export_errors_on_invalid_graph_or_target_collision(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     from yamlgraph.cli.skill_commands import cmd_skill_export
-    from yamlgraph.skill_export import export_skill
+    from yamlgraph.export.skill import export_skill
 
     with pytest.raises(ValueError, match="Graph path does not exist"):
         export_skill(tmp_path / "missing-graph.yaml", output_dir=tmp_path / "out")

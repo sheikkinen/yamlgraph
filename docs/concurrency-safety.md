@@ -129,9 +129,9 @@ This document classifies every concurrency pattern in YAMLGraph as safe, conditi
 **Safety Invariant:** `max_workers=1` guarantees sequential execution. Only one `_invoke_graph` call runs at any time. Graph state lives in the checkpointer, not in the executor.
 
 **Evidence:**
-- Executor creation: `yamlgraph/mcp_server.py:55` (`ThreadPoolExecutor(max_workers=1)`)
-- Graph invocation: `yamlgraph/mcp_server.py:277` (`loop.run_in_executor(_executor, _invoke_graph, ...)`)
-- Import: `yamlgraph/mcp_server.py:26` (`from concurrent.futures import ThreadPoolExecutor`)
+- Executor creation: `yamlgraph/export/mcp.py:55` (`ThreadPoolExecutor(max_workers=1)`)
+- Graph invocation: `yamlgraph/export/mcp.py:277` (`loop.run_in_executor(_executor, _invoke_graph, ...)`)
+- Import: `yamlgraph/export/mcp.py:26` (`from concurrent.futures import ThreadPoolExecutor`)
 
 **Verdict:** ✓ **SAFE** — Serialized by design. Single-worker pool eliminates all concurrency concerns within graph execution.
 

@@ -35,7 +35,7 @@ def test_mcp_server_uses_shared_discovery():
     """mcp_server.discover_graphs is the same function as discovery.discover_graphs."""
     mcp = pytest.importorskip("mcp")  # noqa: F841 (CONF-034)
     from yamlgraph.discovery import discover_graphs as shared_discover
-    from yamlgraph.mcp_server import discover_graphs as mcp_discover
+    from yamlgraph.export.mcp import discover_graphs as mcp_discover
 
     assert shared_discover is mcp_discover
 

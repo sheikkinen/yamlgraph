@@ -90,7 +90,7 @@ def test_ac01_cli_registers_agent_md_format_for_skill_export() -> None:
 def test_ac02_agent_md_format_writes_expected_github_agents_path(
     tmp_path: Path,
 ) -> None:
-    from yamlgraph.skill_export import export_skill
+    from yamlgraph.export.skill import export_skill
 
     graph_path = _write_demo_agent_graph(tmp_path)
     package = export_skill(
@@ -107,7 +107,7 @@ def test_ac02_agent_md_format_writes_expected_github_agents_path(
 def test_ac03_agent_md_frontmatter_contains_description_tools_and_model(
     tmp_path: Path,
 ) -> None:
-    from yamlgraph.skill_export import export_skill
+    from yamlgraph.export.skill import export_skill
 
     graph_path = _write_demo_agent_graph(tmp_path)
     package = export_skill(
@@ -126,7 +126,7 @@ def test_ac03_agent_md_frontmatter_contains_description_tools_and_model(
 def test_ac04_agent_md_body_contains_inputs_and_invocation_guidance(
     tmp_path: Path,
 ) -> None:
-    from yamlgraph.skill_export import export_skill
+    from yamlgraph.export.skill import export_skill
 
     graph_path = _write_demo_agent_graph(tmp_path)
     package = export_skill(
@@ -149,7 +149,7 @@ def test_ac05_agent_md_export_errors_on_invalid_graph_format_or_collision(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     from yamlgraph.cli.skill_commands import cmd_skill_export
-    from yamlgraph.skill_export import export_skill
+    from yamlgraph.export.skill import export_skill
 
     with pytest.raises(ValueError, match="Graph path does not exist"):
         export_skill(tmp_path / "missing-graph.yaml", format="agent-md")

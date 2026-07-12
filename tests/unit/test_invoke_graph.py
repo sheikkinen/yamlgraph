@@ -109,7 +109,7 @@ def test_mcp_server_delegates_to_shared_invoke_graph():
     with patch(
         "yamlgraph.graph_loader.invoke_graph", return_value={"greeting": "Hi"}
     ) as mock_invoke:
-        from yamlgraph.mcp_server import _invoke_graph
+        from yamlgraph.export.mcp import _invoke_graph
 
         result = _invoke_graph("/path/graph.yaml", {"name": "Test"})
 

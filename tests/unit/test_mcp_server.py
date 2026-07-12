@@ -45,7 +45,7 @@ async def _call_tool(server, name: str, arguments: dict):
 @pytest.mark.req("REQ-YG-067")
 def test_discover_graphs_finds_yaml(tmp_path: Path):
     """Scan dirs find graph.yaml files and parse headers."""
-    from yamlgraph.mcp_server import discover_graphs
+    from yamlgraph.export.mcp import discover_graphs
 
     # Create a minimal graph.yaml
     graph_dir = tmp_path / "demo"
@@ -67,7 +67,7 @@ def test_discover_graphs_finds_yaml(tmp_path: Path):
 @pytest.mark.req("REQ-YG-067")
 def test_discover_graphs_non_standard_filename(tmp_path: Path):
     """Discover graph YAML files with non-standard names like pipeline.yaml."""
-    from yamlgraph.mcp_server import discover_graphs
+    from yamlgraph.export.mcp import discover_graphs
 
     graph_dir = tmp_path / "demo"
     graph_dir.mkdir()
@@ -90,7 +90,7 @@ def test_discover_graphs_non_standard_filename(tmp_path: Path):
 @pytest.mark.req("REQ-YG-067")
 def test_discover_graphs_skips_prompt_yaml(tmp_path: Path):
     """Prompt YAML files (no nodes key) are excluded from discovery."""
-    from yamlgraph.mcp_server import discover_graphs
+    from yamlgraph.export.mcp import discover_graphs
 
     graph_dir = tmp_path / "demo"
     graph_dir.mkdir()
@@ -105,7 +105,7 @@ def test_discover_graphs_skips_prompt_yaml(tmp_path: Path):
 @pytest.mark.req("REQ-YG-067")
 def test_discover_graphs_malformed_yaml_skipped(tmp_path: Path):
     """Malformed YAML files are skipped, not crash."""
-    from yamlgraph.mcp_server import discover_graphs
+    from yamlgraph.export.mcp import discover_graphs
 
     graph_dir = tmp_path / "demo"
     graph_dir.mkdir()
@@ -128,7 +128,7 @@ def test_discover_graphs_malformed_yaml_skipped(tmp_path: Path):
 @pytest.mark.req("REQ-YG-067")
 def test_discover_graphs_empty_dir(tmp_path: Path):
     """Empty or missing dir returns empty list."""
-    from yamlgraph.mcp_server import discover_graphs
+    from yamlgraph.export.mcp import discover_graphs
 
     graphs = discover_graphs([str(tmp_path / "nonexistent/*/*.yaml")])
     assert graphs == []
@@ -137,7 +137,7 @@ def test_discover_graphs_empty_dir(tmp_path: Path):
 @pytest.mark.req("REQ-YG-067")
 def test_discover_graphs_parses_state(tmp_path: Path):
     """Extracts state vars as parameter info."""
-    from yamlgraph.mcp_server import discover_graphs
+    from yamlgraph.export.mcp import discover_graphs
 
     graph_dir = tmp_path / "myapp"
     graph_dir.mkdir()
@@ -164,7 +164,7 @@ def test_discover_graphs_parses_state(tmp_path: Path):
 @pytest.mark.asyncio
 async def test_list_tools_schema():
     """Tool list includes correct names and input schemas."""
-    from yamlgraph.mcp_server import create_server
+    from yamlgraph.export.mcp import create_server
 
     server = create_server(graph_patterns=[])
     tools = await _call_list_tools(server)
@@ -188,7 +188,7 @@ async def test_list_tools_schema():
 @pytest.mark.asyncio
 async def test_run_graph_hello():
     """Invoke hello graph via MCP, returns greeting in result."""
-    from yamlgraph.mcp_server import create_server
+    from yamlgraph.export.mcp import create_server
 
     hello_pattern = str(
         Path(__file__).resolve().parent.parent.parent
@@ -201,7 +201,7 @@ async def test_run_graph_hello():
 
     # Mock the graph invocation to avoid real LLM calls
     mock_result = {"greeting": "Hello World!"}
-    with patch("yamlgraph.mcp_server._invoke_graph", return_value=mock_result):
+    with patch("yamlgraph.export.mcp._invoke_graph", return_value=mock_result):
         result = await _call_tool(
             server,
             "yamlgraph_run_graph",
@@ -220,7 +220,7 @@ async def test_run_graph_hello():
 @pytest.mark.asyncio
 async def test_run_graph_missing():
     """Missing graph returns error, doesn't crash server."""
-    from yamlgraph.mcp_server import create_server
+    from yamlgraph.export.mcp import create_server
 
     server = create_server(graph_patterns=[])
     result = await _call_tool(
@@ -238,7 +238,7 @@ async def test_run_graph_missing():
 @pytest.mark.asyncio
 async def test_run_graph_with_vars():
     """Vars passed through to graph state correctly."""
-    from yamlgraph.mcp_server import create_server
+    from yamlgraph.export.mcp import create_server
 
     hello_pattern = str(
         Path(__file__).resolve().parent.parent.parent
@@ -255,7 +255,7 @@ async def test_run_graph_with_vars():
         captured_vars.update(variables)
         return {"greeting": "mocked"}
 
-    with patch("yamlgraph.mcp_server._invoke_graph", side_effect=fake_invoke):
+    with patch("yamlgraph.export.mcp._invoke_graph", side_effect=fake_invoke):
         await _call_tool(
             server,
             "yamlgraph_run_graph",
@@ -270,7 +270,7 @@ async def test_run_graph_with_vars():
 @pytest.mark.asyncio
 async def test_run_graph_timeout():
     """Graph timeout produces error result, not hang."""
-    from yamlgraph.mcp_server import create_server
+    from yamlgraph.export.mcp import create_server
 
     hello_pattern = str(
         Path(__file__).resolve().parent.parent.parent
@@ -290,8 +290,8 @@ async def test_run_graph_timeout():
         return {}
 
     with (
-        patch("yamlgraph.mcp_server._invoke_graph", side_effect=slow_invoke),
-        patch("yamlgraph.mcp_server.INVOKE_TIMEOUT", 0.1),
+        patch("yamlgraph.export.mcp._invoke_graph", side_effect=slow_invoke),
+        patch("yamlgraph.export.mcp.INVOKE_TIMEOUT", 0.1),
     ):
         result = await _call_tool(
             server,
@@ -308,7 +308,7 @@ async def test_run_graph_timeout():
 @pytest.mark.asyncio
 async def test_call_unknown_tool():
     """Calling unknown tool returns error, not crash."""
-    from yamlgraph.mcp_server import create_server
+    from yamlgraph.export.mcp import create_server
 
     server = create_server(graph_patterns=[])
     result = await _call_tool(
@@ -327,7 +327,7 @@ async def test_call_unknown_tool():
 @pytest.mark.asyncio
 async def test_run_graph_execution_error():
     """Graph execution exception returns error, not crash."""
-    from yamlgraph.mcp_server import create_server
+    from yamlgraph.export.mcp import create_server
 
     hello_pattern = str(
         Path(__file__).resolve().parent.parent.parent
@@ -341,7 +341,7 @@ async def test_run_graph_execution_error():
     def failing_invoke(graph_path: str, variables: dict) -> dict:
         raise RuntimeError("Simulated graph failure")
 
-    with patch("yamlgraph.mcp_server._invoke_graph", side_effect=failing_invoke):
+    with patch("yamlgraph.export.mcp._invoke_graph", side_effect=failing_invoke):
         result = await _call_tool(
             server,
             "yamlgraph_run_graph",
@@ -358,7 +358,7 @@ async def test_run_graph_execution_error():
 @pytest.mark.asyncio
 async def test_run_graph_execution_error_logs():
     """FR-671: Graph execution failure is logged with exc_info."""
-    from yamlgraph.mcp_server import create_server
+    from yamlgraph.export.mcp import create_server
 
     hello_pattern = str(
         Path(__file__).resolve().parent.parent.parent
@@ -374,8 +374,8 @@ async def test_run_graph_execution_error_logs():
 
     mock_logger = MagicMock()
     with (
-        patch("yamlgraph.mcp_server._invoke_graph", side_effect=failing_invoke),
-        patch("yamlgraph.mcp_server.logger", mock_logger),
+        patch("yamlgraph.export.mcp._invoke_graph", side_effect=failing_invoke),
+        patch("yamlgraph.export.mcp.logger", mock_logger),
     ):
         await _call_tool(
             server,
@@ -398,7 +398,7 @@ async def test_run_graph_execution_error_logs():
 @pytest.mark.asyncio
 async def test_run_graph_timeout_logs():
     """FR-671: Graph timeout is logged."""
-    from yamlgraph.mcp_server import create_server
+    from yamlgraph.export.mcp import create_server
 
     hello_pattern = str(
         Path(__file__).resolve().parent.parent.parent
@@ -417,9 +417,9 @@ async def test_run_graph_timeout_logs():
 
     mock_logger = MagicMock()
     with (
-        patch("yamlgraph.mcp_server._invoke_graph", side_effect=slow_invoke),
-        patch("yamlgraph.mcp_server.INVOKE_TIMEOUT", 0.1),
-        patch("yamlgraph.mcp_server.logger", mock_logger),
+        patch("yamlgraph.export.mcp._invoke_graph", side_effect=slow_invoke),
+        patch("yamlgraph.export.mcp.INVOKE_TIMEOUT", 0.1),
+        patch("yamlgraph.export.mcp.logger", mock_logger),
     ):
         await _call_tool(
             server,
@@ -434,7 +434,7 @@ async def test_run_graph_timeout_logs():
 @pytest.mark.asyncio
 async def test_list_graphs_tool():
     """yamlgraph_list_graphs tool returns graph summaries."""
-    from yamlgraph.mcp_server import create_server
+    from yamlgraph.export.mcp import create_server
 
     hello_pattern = str(
         Path(__file__).resolve().parent.parent.parent
@@ -460,13 +460,13 @@ async def test_list_graphs_tool():
 @pytest.mark.asyncio
 async def test_tool_handler_exception():
     """Exception in tool handler returns error JSON, not crash."""
-    from yamlgraph.mcp_server import create_server
+    from yamlgraph.export.mcp import create_server
 
     server = create_server(graph_patterns=[])
 
     # Patch _handle_list_graphs to raise an exception
     with patch(
-        "yamlgraph.mcp_server._handle_list_graphs",
+        "yamlgraph.export.mcp._handle_list_graphs",
         side_effect=RuntimeError("Handler boom"),
     ):
         result = await _call_tool(server, "yamlgraph_list_graphs", {})

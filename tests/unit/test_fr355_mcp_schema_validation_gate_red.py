@@ -77,7 +77,7 @@ def test_all_discovered_schemas_valid() -> None:
 @pytest.mark.asyncio
 async def test_array_without_items_excluded(tmp_path: Path) -> None:
     """Graph with bare array property should be excluded from MCP tool list."""
-    from yamlgraph.mcp_server import create_server
+    from yamlgraph.export.mcp import create_server
 
     invalid_graph = {
         "name": "invalid-array-tool",
@@ -95,7 +95,7 @@ async def test_array_without_items_excluded(tmp_path: Path) -> None:
             "required": ["topic", "tags"],
         },
     }
-    with patch("yamlgraph.mcp_server.discover_graphs", return_value=[invalid_graph]):
+    with patch("yamlgraph.export.mcp.discover_graphs", return_value=[invalid_graph]):
         server = create_server(graph_patterns=[])
 
     tools = await _call_list_tools(server)
@@ -107,7 +107,7 @@ async def test_array_without_items_excluded(tmp_path: Path) -> None:
 @pytest.mark.req("REQ-YG-312")
 def test_invalid_schema_exclusion_logs_warning(tmp_path: Path) -> None:
     """Startup logs one warning with graph name and validation reason."""
-    from yamlgraph.mcp_server import create_server
+    from yamlgraph.export.mcp import create_server
 
     invalid_graph = {
         "name": "invalid-array-warning-tool",
@@ -126,8 +126,8 @@ def test_invalid_schema_exclusion_logs_warning(tmp_path: Path) -> None:
         },
     }
     with (
-        patch("yamlgraph.mcp_server.discover_graphs", return_value=[invalid_graph]),
-        patch("yamlgraph.mcp_server.logger.warning") as warning_mock,
+        patch("yamlgraph.export.mcp.discover_graphs", return_value=[invalid_graph]),
+        patch("yamlgraph.export.mcp.logger.warning") as warning_mock,
     ):
         create_server(graph_patterns=[])
 

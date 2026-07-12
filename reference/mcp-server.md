@@ -20,7 +20,7 @@ Two config files are provided — VS Code uses `.vscode/mcp.json` (native), Clau
   "servers": {
     "yamlgraph": {
       "command": ".venv/bin/python3",
-      "args": ["yamlgraph/mcp_server.py"],
+      "args": ["yamlgraph/export/mcp.py"],
       "cwd": "/path/to/yamlgraph"
     }
   }
@@ -33,7 +33,7 @@ Two config files are provided — VS Code uses `.vscode/mcp.json` (native), Clau
   "mcpServers": {
     "yamlgraph": {
       "command": ".venv/bin/python3",
-      "args": ["yamlgraph/mcp_server.py"],
+      "args": ["yamlgraph/export/mcp.py"],
       "env": {}
     }
   }

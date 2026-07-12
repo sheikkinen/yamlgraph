@@ -10,7 +10,7 @@ type = layers
 # being blocked from importing up into cli (Layer 1).
 layers =
     yamlgraph.cli
-    yamlgraph.graph_loader : yamlgraph.node_factory : yamlgraph.executor : yamlgraph.linter : yamlgraph.edge_compiler : yamlgraph.node_compiler : yamlgraph.map_compiler : yamlgraph.routing : yamlgraph.graph_cache : yamlgraph.schema_loader : yamlgraph.data_loader : yamlgraph.discovery : yamlgraph.executor_async : yamlgraph.interactive_tool : yamlgraph.mcp_server : yamlgraph.a2a : yamlgraph.mermaid_export
+    yamlgraph.graph_loader : yamlgraph.node_factory : yamlgraph.executor : yamlgraph.linter : yamlgraph.edge_compiler : yamlgraph.node_compiler : yamlgraph.map_compiler : yamlgraph.routing : yamlgraph.graph_cache : yamlgraph.schema_loader : yamlgraph.data_loader : yamlgraph.discovery : yamlgraph.executor_async : yamlgraph.interactive_tool : yamlgraph.export : yamlgraph.a2a : yamlgraph.mermaid_export
     yamlgraph.tools : yamlgraph.models : yamlgraph.utils : yamlgraph.config : yamlgraph.constants : yamlgraph.storage : yamlgraph.contrib : yamlgraph.executor_base : yamlgraph.error_handlers : yamlgraph.verification : yamlgraph.loop_detector
 
 [importlinter:contract:linter-llm-free]
@@ -45,3 +45,16 @@ source_modules =
     yamlgraph.graph_loader
 forbidden_modules =
     yamlgraph.a2a
+
+[importlinter:contract:export-seam]
+# FR-717: export (skills, MCP) is a leaf consumer of the runtime.
+name = export is a leaf (linter/compilers never import it)
+type = forbidden
+source_modules =
+    yamlgraph.linter
+    yamlgraph.edge_compiler
+    yamlgraph.node_compiler
+    yamlgraph.map_compiler
+    yamlgraph.graph_loader
+forbidden_modules =
+    yamlgraph.export
