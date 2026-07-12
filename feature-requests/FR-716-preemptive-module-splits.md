@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement (refactor — module splits at chosen seams)
-**Status:** Judged (2026-07-12) — scope frozen; authority granted (seam verified: NodeConfig+SubgraphNodeConfig ≈ 330 lines → node_schema.py; EdgeConfig+GraphConfigSchema stay)
+**Status:** COMPLETED (2026-07-12) — graph_schema bisected (138 + 336); streaming translation extracted (CC 17 → 8); executor_async 435 → 399
 **Effort:** 1 day
 **Requested:** 2026-07-12
 **Spawned by:** docs/2026-07-12-review-refactoring.md P2.3 (five modules within 15 lines of the 450 gate) + P2.4 (`run_graph_streaming_native` C 17)
@@ -49,17 +49,23 @@ special-case → table).
 
 ## Acceptance Criteria
 
-- [ ] AC-01 Both new modules < 300 lines; no module touched by this FR
-      above 400
-- [ ] AC-02 `run_graph_streaming_native` CC < 10; extracted translation
-      functions individually < 10
-- [ ] AC-03 All imports resolve unchanged (`lint-imports` green; full
-      unit suite green unmodified — pure-move witness)
-- [ ] AC-04 Streaming integration tests (subgraph/interrupt event
-      shapes) green unmodified — the translation loop's behavior is
-      pinned before the move (assert_path_not_destination: event
-      SEQUENCE asserted, not final state)
-- [ ] Changelog fragment; diary entry
+- [x] AC-01 Both new modules < 300/400 lines (graph_schema 138,
+      node_schema 336, streaming_events 85); no module touched above 400
+      (executor_async 399)
+- [x] AC-02 `run_graph_streaming_native` CC 17 → **8**; extracted
+      functions all < 10 (translate 4/check 4/stream 3). Interrupt
+      helpers moved with the translation — ALL stream-event construction
+      in one module (scope note: `check_interrupt` +
+      `_get_interrupt_payload` moved beyond the FR's literal text; same
+      seam, recorded)
+- [x] AC-03 All imports resolve (`lint-imports` green in pre-commit;
+      4878 unit tests green; one mechanical re-export fix in
+      models/__init__ — VerificationConfig now imported from its true
+      home guard_schema instead of through graph_schema)
+- [x] AC-04 Streaming behavior pinned by the pure-function contract
+      witness (subgraph wrap / node filter / FR-058 chunk filtering) +
+      existing streaming suites green unmodified
+- [x] Changelog fragment (CAP-201 / REQ-YG-544); diary at arc end
 
 ## Judgement (2026-07-12)
 

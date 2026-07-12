@@ -8,9 +8,9 @@ from yamlgraph.models.graph_schema import (
     EdgeConfig,
     GraphConfigSchema,
     NodeConfig,
-    VerificationConfig,
     validate_graph_schema,
 )
+from yamlgraph.models.guard_schema import VerificationConfig
 from yamlgraph.models.schemas import (
     ErrorType,
     GenericReport,

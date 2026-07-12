@@ -15,13 +15,13 @@ from collections.abc import AsyncIterator
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, TypeVar
 
-from langchain_core.messages import AIMessageChunk
 from pydantic import BaseModel
 
 from yamlgraph.config import DEFAULT_TEMPERATURE
 from yamlgraph.executor_base import prepare_messages, prepare_messages_async
 from yamlgraph.graph_cache import GRAPH_CACHE as _DEFAULT_CACHE
 from yamlgraph.models.streaming import StreamEvent
+from yamlgraph.streaming_events import check_interrupt, translate_message_event
 from yamlgraph.utils.llm_factory import create_llm
 from yamlgraph.utils.llm_factory_async import invoke_async
 
@@ -307,18 +307,22 @@ async def load_and_compile_async(
 # ==============================================================================
 
 
-def _get_interrupt_payload(state) -> object:  # noqa: ANN001 — StateSnapshot type
-    """Extract interrupt payload from state snapshot.
-
-    Args:
-        state: LangGraph StateSnapshot from aget_state()
-
-    Returns:
-        Interrupt payload value, or None if no interrupts pending.
-    """
-    if state.tasks and state.tasks[-1].interrupts:
-        return state.tasks[-1].interrupts[-1].value
-    return None
+async def _stream_tokens(
+    app: Any,
+    initial_state: dict | Command,
+    config: dict,
+    node_filter: str | None,
+    subgraphs: bool,
+    timeout: float | None,
+) -> AsyncIterator[str]:
+    """Inner token iteration — translation is pure (streaming_events)."""
+    async with asyncio.timeout(timeout):
+        async for event in app.astream(
+            initial_state, config, stream_mode="messages", subgraphs=subgraphs
+        ):
+            token = translate_message_event(event, subgraphs, node_filter)
+            if token is not None:
+                yield token
 
 
 async def run_graph_streaming_native(
@@ -338,7 +342,8 @@ async def run_graph_streaming_native(
 
     FR-062: Wraps the streaming generator with error propagation and timeout
     support. On exception, yields StreamEvent(type="error") instead of crashing
-    silently. On graph interrupt (with thread_id), yields StreamEvent(type="interrupt").
+    silently; on graph interrupt (with thread_id), StreamEvent(type="interrupt").
+    FR-716: event translation + interrupt detection live in streaming_events.
 
     Args:
         graph_path: Path to graph YAML file
@@ -349,78 +354,37 @@ async def run_graph_streaming_native(
         yield_events: If True (default), yield StreamEvent on error/interrupt.
             If False, raise exceptions to caller (pre-FR-062 behavior).
         timeout: Total stream timeout in seconds. None means no timeout.
-
-    Yields:
-        str: Token strings from LLM nodes
-        StreamEvent: Error or interrupt control signals (when yield_events=True)
     """
     app = await load_and_compile_async(graph_path)
     config = config or {}
 
     try:
-        async with asyncio.timeout(timeout):
-            async for event in app.astream(
-                initial_state, config, stream_mode="messages", subgraphs=subgraphs
-            ):
-                # Event structure depends on subgraphs flag:
-                # - subgraphs=False: (AIMessageChunk, metadata_dict)
-                # - subgraphs=True: (namespace_tuple, (AIMessageChunk, metadata_dict))
-                if subgraphs:
-                    _namespace, payload = event
-                    chunk, metadata = payload
-                else:
-                    chunk, metadata = event
-
-                # Filter by node name if specified
-                node_name = metadata.get("langgraph_node")
-                if node_filter and node_name != node_filter:
-                    continue
-
-                # Yield token content — only AI message chunks without tool calls.
-                # Agent nodes emit System, Human, Tool, and intermediate AI messages;
-                # only the final AI answer should reach clients (FR-058).
-                # Router nodes emit dict content which is also filtered out.
-                if (
-                    isinstance(chunk, AIMessageChunk)
-                    and chunk.content
-                    and isinstance(chunk.content, str)
-                    and not chunk.tool_calls
-                ):
-                    yield chunk.content
+        async for token in _stream_tokens(
+            app, initial_state, config, node_filter, subgraphs, timeout
+        ):
+            yield token
     except TimeoutError:
         logger.warning("Streaming timeout after %s seconds for %s", timeout, graph_path)
-        if yield_events:
-            yield StreamEvent(
-                type="error",
-                error=f"Stream timed out after {timeout}s",
-                error_type="TimeoutError",
-            )
-        else:
+        if not yield_events:
             raise
+        yield StreamEvent(
+            type="error",
+            error=f"Stream timed out after {timeout}s",
+            error_type="TimeoutError",
+        )
     except Exception as exc:
         logger.error("Streaming error in %s: %s", graph_path, exc)
-        if yield_events:
-            yield StreamEvent(
-                type="error",
-                error=str(exc),
-                error_type=type(exc).__name__,
-            )
-        else:
+        if not yield_events:
             raise
+        yield StreamEvent(
+            type="error",
+            error=str(exc),
+            error_type=type(exc).__name__,
+        )
     finally:
-        # Interrupt detection — only when a thread_id is configured
-        thread_id = config.get("configurable", {}).get("thread_id")
-        if thread_id:
-            try:
-                state = await app.aget_state(config)
-                interrupt_payload = _get_interrupt_payload(state)
-                if interrupt_payload is not None:
-                    yield StreamEvent(
-                        type="interrupt",
-                        payload=interrupt_payload,
-                    )
-            except Exception:
-                logger.debug("Could not check interrupt state", exc_info=True)
+        interrupt_event = await check_interrupt(app, config)
+        if interrupt_event is not None:
+            yield interrupt_event
 
 
 __all__ = [

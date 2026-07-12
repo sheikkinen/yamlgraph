@@ -101,7 +101,7 @@ Framework suppressions require elevated scrutiny. These live in `yamlgraph/`.
 - **Penance**: Barely above threshold (16 vs 15). Will be addressed when linter checks are decomposed.
 
 ### CONF-003
-- **File**: [yamlgraph/executor_async.py](../yamlgraph/executor_async.py#L310)
+- **File**: [yamlgraph/streaming_events.py](../yamlgraph/streaming_events.py#L56)
 - **Code**: ANN001 (missing type annotation for function argument)
 - **Sin**: `state` parameter in `_get_interrupt_payload()` has no type annotation.
 - **Penance**: The type is `langgraph.pregel.types.StateSnapshot` which is a private API. Importing it would couple us to LangGraph internals. The function only accesses `.tasks` and `.interrupts` attributes, which are stable across versions.
@@ -1152,7 +1152,7 @@ These are E402 suppressions and are acceptable as "glue code" patterns.
 - **Penance**: Retained intentionally for domain semantics or existing contract wording; explicitly allowlisted and audited.
 
 ### CONF-240
-- **File**: [yamlgraph/models/graph_schema.py](../yamlgraph/models/graph_schema.py#L73)
+- **File**: [yamlgraph/models/node_schema.py](../yamlgraph/models/node_schema.py#L75)
 - **Code**: FB001
 - **Sin**: Contains lexical `fallback` token flagged by FR-418 fallback-token hygiene gate.
 - **Penance**: Retained intentionally for domain semantics or existing contract wording; explicitly allowlisted and audited.
