@@ -1488,6 +1488,18 @@ These are not `# noqa` suppressions — they are documented deviations from proc
 - **Sin**: Companion to CONF-382 — direct `node_schema` import unused.
 - **Penance**: Same witness pattern: importability of the new module path is the property under test.
 
+### CONF-384
+- **File**: [tests/unit/test_fr719_conditions_smt.py](../tests/unit/test_fr719_conditions_smt.py#L24)
+- **Code**: E402
+- **Sin**: Module-level import after `pytest.importorskip("z3")`.
+- **Penance**: The skip guard MUST precede the import of the module under test — importing `conditions_smt` without z3 present would defeat the AC-05 optional-dependency contract the file witnesses.
+
+### CONF-385
+- **File**: [tests/unit/test_fr719_conditions_smt.py](../tests/unit/test_fr719_conditions_smt.py#L27)
+- **Code**: E402
+- **Sin**: Companion to CONF-384 — `evaluate_condition` imported after the skip guard.
+- **Penance**: Same ordering constraint; the faithfulness witness needs the runtime evaluator only when z3 is present.
+
 ---
 
 ## Adding New Confessions

@@ -516,6 +516,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 199 | CAP-199 Security and Coverage Gate Truth | `scripts/noqa_coverage.py` | REQ-YG-542 |
 | 200 | CAP-200 Prompt Request Front Door | `yamlgraph/executor.py`, `yamlgraph/executor_base.py` | REQ-YG-543 |
 | 201 | CAP-201 Pre-emptive Module Splits | `yamlgraph/models/graph_schema.py`, `yamlgraph/models/node_schema.py`, `yamlgraph/streaming_events.py`, `yamlgraph/executor_async.py` | REQ-YG-544 |
+| 202 | CAP-202 SMT Condition Verification | `yamlgraph/linter/patterns/conditions_smt.py` | REQ-YG-545 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -2497,6 +2498,16 @@ Size-gate pressure relieved at chosen seams before the 450 gate forces an unplan
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-544 | Module splits at chosen seams (FR-716). node_schema.py holds SubgraphNodeConfig + NodeConfig; graph_schema.py holds EdgeConfig + GraphConfigSchema (< 300 lines); yamlgraph.models re-exports are unchanged. run_graph_streaming_native is below CC 10; translate_message_event in streaming_events.py is a pure function handling subgraph-wrapped and plain message events, node filtering, and FR-058 chunk filtering (tool-call and non-string content dropped); no function in streaming_events reaches CC 10; executor_async.py is below the 400 warn line. | `yamlgraph/models/node_schema.py`, `yamlgraph/streaming_events.py`, `tests/unit/test_fr716_module_splits.py` |
+
+### 202. CAP-202 SMT Condition Verification
+
+Z3-backed linter check family (W803 gap, W804 overlap, W805 shadowed) over expression-edge guard groups. Conditions translate to QF_LRA + equality formulas via the EXISTING condition grammar, with a per-operator encoding faithful to evaluate_comparison's None semantics (comparisons are None→False; ==/!= are None-exempt). Every violation carries a concrete counterexample state. z3-solver is an optional extra (verify); absent z3 yields one skip notice. Solver calls are timeout-bounded.
+
+**Feature Request:** FR-719
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-545 | SMT condition verification (FR-719). Per source node's expression-edge group: W803 fires with a counterexample model (numeric or <missing>) when some state falls through to silent END; groups with an unconditional edge are W803-exempt; W804 reports pairwise-overlapping guards with a witness; W805 reports guards shadowed by earlier guards. Encoding per Judgement F1 table: comparisons carry Not(is_none), == null / != null map to the is_none companion, != lit is Or(is_none, v != lit). Unquoted right-side identifiers encode as variables iff they are known state keys, else string literals (F2). Mixed-sort groups, missing z3, and solver timeouts each produce ONE info notice, never a false verdict. Every emitted counterexample replays true through evaluate_condition (faithfulness witness). | `yamlgraph/linter/patterns/conditions_smt.py`, `tests/unit/test_fr719_conditions_smt.py` |
 
 <!-- END GENERATED CAPABILITIES -->
 

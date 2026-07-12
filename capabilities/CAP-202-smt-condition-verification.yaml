@@ -1,0 +1,35 @@
+name: SMT Condition Verification
+id: CAP-202
+status: active
+fr: FR-719
+feature_request: FR-719
+description: >
+  Z3-backed linter check family (W803 gap, W804 overlap, W805 shadowed)
+  over expression-edge guard groups. Conditions translate to QF_LRA +
+  equality formulas via the EXISTING condition grammar, with a
+  per-operator encoding faithful to evaluate_comparison's None
+  semantics (comparisons are None→False; ==/!= are None-exempt). Every
+  violation carries a concrete counterexample state. z3-solver is an
+  optional extra (verify); absent z3 yields one skip notice. Solver
+  calls are timeout-bounded.
+modules:
+  - yamlgraph/linter/patterns/conditions_smt.py
+requirements:
+  - id: REQ-YG-545
+    description: >
+      SMT condition verification (FR-719). Per source node's
+      expression-edge group: W803 fires with a counterexample model
+      (numeric or <missing>) when some state falls through to silent
+      END; groups with an unconditional edge are W803-exempt; W804
+      reports pairwise-overlapping guards with a witness; W805 reports
+      guards shadowed by earlier guards. Encoding per Judgement F1
+      table: comparisons carry Not(is_none), == null / != null map to
+      the is_none companion, != lit is Or(is_none, v != lit). Unquoted
+      right-side identifiers encode as variables iff they are known
+      state keys, else string literals (F2). Mixed-sort groups, missing
+      z3, and solver timeouts each produce ONE info notice, never a
+      false verdict. Every emitted counterexample replays true through
+      evaluate_condition (faithfulness witness).
+    modules:
+      - yamlgraph/linter/patterns/conditions_smt.py
+      - tests/unit/test_fr719_conditions_smt.py
