@@ -1476,6 +1476,18 @@ These are not `# noqa` suppressions — they are documented deviations from proc
 - **Sin**: FSM control socket prefix hardcoded under `/tmp` (bandit twin of CONF-302's S108).
 - **Penance**: AF_UNIX datagram sockets need a well-known rendezvous path shared across processes; the statemachine-engine contract pins this prefix. Same rationale as CONF-302.
 
+### CONF-382
+- **File**: [tests/unit/test_fr716_module_splits.py](../tests/unit/test_fr716_module_splits.py#L45)
+- **Code**: F401
+- **Sin**: FR-716 re-export witness imports public names without using them.
+- **Penance**: The import IS the assertion — the test proves `yamlgraph.models` re-exports survive the bisection; usage would test something else.
+
+### CONF-383
+- **File**: [tests/unit/test_fr716_module_splits.py](../tests/unit/test_fr716_module_splits.py#L51)
+- **Code**: F401
+- **Sin**: Companion to CONF-382 — direct `node_schema` import unused.
+- **Penance**: Same witness pattern: importability of the new module path is the property under test.
+
 ---
 
 ## Adding New Confessions

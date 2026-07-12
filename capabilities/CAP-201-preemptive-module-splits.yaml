@@ -1,0 +1,35 @@
+name: Pre-emptive Module Splits
+id: CAP-201
+status: active
+fr: FR-716
+feature_request: FR-716
+description: >
+  Size-gate pressure relieved at chosen seams before the 450 gate forces
+  an unplanned split under deadline pressure. graph_schema.py bisected
+  into node-config models (node_schema.py) and graph-level models;
+  public names re-exported unchanged from yamlgraph.models. The
+  stream-event translation loop extracted from
+  run_graph_streaming_native (was CC 17) into streaming_events.py as
+  pure functions, isolating the FR-057..060 streaming scar tissue in a
+  small module.
+modules:
+  - yamlgraph/models/graph_schema.py
+  - yamlgraph/models/node_schema.py
+  - yamlgraph/streaming_events.py
+  - yamlgraph/executor_async.py
+requirements:
+  - id: REQ-YG-544
+    description: >
+      Module splits at chosen seams (FR-716). node_schema.py holds
+      SubgraphNodeConfig + NodeConfig; graph_schema.py holds EdgeConfig
+      + GraphConfigSchema (< 300 lines); yamlgraph.models re-exports are
+      unchanged. run_graph_streaming_native is below CC 10;
+      translate_message_event in streaming_events.py is a pure function
+      handling subgraph-wrapped and plain message events, node
+      filtering, and FR-058 chunk filtering (tool-call and non-string
+      content dropped); no function in streaming_events reaches CC 10;
+      executor_async.py is below the 400 warn line.
+    modules:
+      - yamlgraph/models/node_schema.py
+      - yamlgraph/streaming_events.py
+      - tests/unit/test_fr716_module_splits.py

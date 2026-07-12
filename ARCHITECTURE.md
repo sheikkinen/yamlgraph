@@ -515,6 +515,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 198 | CAP-198 Persistent Bridge Loop | `yamlgraph/utils/bridge.py`, `yamlgraph/node_factory/race_node.py`, `yamlgraph/node_factory/router_race_node.py` | REQ-YG-541 |
 | 199 | CAP-199 Security and Coverage Gate Truth | `scripts/noqa_coverage.py` | REQ-YG-542 |
 | 200 | CAP-200 Prompt Request Front Door | `yamlgraph/executor.py`, `yamlgraph/executor_base.py` | REQ-YG-543 |
+| 201 | CAP-201 Pre-emptive Module Splits | `yamlgraph/models/graph_schema.py`, `yamlgraph/models/node_schema.py`, `yamlgraph/streaming_events.py`, `yamlgraph/executor_async.py` | REQ-YG-544 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -2486,6 +2487,16 @@ The prompt-execution front door takes one typed object. PromptRequest (frozen da
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-543 | PromptRequest signature parity (FR-715). execute_prompt's keyword parameters equal PromptRequest's field names exactly; defaults are defined once on the dataclass and mirrored by the public signature; PromptExecutor.execute accepts only the request object; execute_prompt_async's parameters are a subset of the field set. The jscpd clone between execute_prompt and PromptExecutor.execute is deleted and must not return. | `yamlgraph/executor.py`, `yamlgraph/executor_base.py`, `tests/unit/test_fr715_prompt_request.py` |
+
+### 201. CAP-201 Pre-emptive Module Splits
+
+Size-gate pressure relieved at chosen seams before the 450 gate forces an unplanned split under deadline pressure. graph_schema.py bisected into node-config models (node_schema.py) and graph-level models; public names re-exported unchanged from yamlgraph.models. The stream-event translation loop extracted from run_graph_streaming_native (was CC 17) into streaming_events.py as pure functions, isolating the FR-057..060 streaming scar tissue in a small module.
+
+**Feature Request:** FR-716
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-544 | Module splits at chosen seams (FR-716). node_schema.py holds SubgraphNodeConfig + NodeConfig; graph_schema.py holds EdgeConfig + GraphConfigSchema (< 300 lines); yamlgraph.models re-exports are unchanged. run_graph_streaming_native is below CC 10; translate_message_event in streaming_events.py is a pure function handling subgraph-wrapped and plain message events, node filtering, and FR-058 chunk filtering (tool-call and non-string content dropped); no function in streaming_events reaches CC 10; executor_async.py is below the 400 warn line. | `yamlgraph/models/node_schema.py`, `yamlgraph/streaming_events.py`, `tests/unit/test_fr716_module_splits.py` |
 
 <!-- END GENERATED CAPABILITIES -->
 
