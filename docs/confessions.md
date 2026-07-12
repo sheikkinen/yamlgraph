@@ -107,10 +107,10 @@ Framework suppressions require elevated scrutiny. These live in `yamlgraph/`.
 - **Penance**: The type is `langgraph.pregel.types.StateSnapshot` which is a private API. Importing it would couple us to LangGraph internals. The function only accesses `.tasks` and `.interrupts` attributes, which are stable across versions.
 
 ### CONF-004
-- **File**: [yamlgraph/a2a_server.py](../yamlgraph/a2a_server.py#L43)
+- **File**: [yamlgraph/a2a/server.py](../yamlgraph/a2a/server.py#L43)
 - **Code**: F401
 - **Sin**: Re-imports from `a2a_message` appear unused in `a2a_server.py`.
-- **Penance**: These are public re-exports for backward compatibility — tests and external consumers import from `yamlgraph.a2a_server`. The actual logic lives in `yamlgraph.a2a_message` after the module split to stay under 450 lines.
+- **Penance**: These are public re-exports for backward compatibility — tests and external consumers import from `yamlgraph.a2a.server`. The actual logic lives in `yamlgraph.a2a.message` after the module split to stay under 450 lines.
 
 ### CONF-005
 - **File**: [yamlgraph/cli/__init__.py](../yamlgraph/cli/__init__.py#L317)
@@ -1026,13 +1026,13 @@ These are E402 suppressions and are acceptable as "glue code" patterns.
 - **Penance**: Retained intentionally for domain semantics or existing contract wording; explicitly allowlisted and audited.
 
 ### CONF-219
-- **File**: [yamlgraph/a2a_message.py](../yamlgraph/a2a_message.py#L120)
+- **File**: [yamlgraph/a2a/message.py](../yamlgraph/a2a/message.py#L120)
 - **Code**: FB001
 - **Sin**: Contains lexical `fallback` token flagged by FR-418 fallback-token hygiene gate.
 - **Penance**: Retained intentionally for domain semantics or existing contract wording; explicitly allowlisted and audited.
 
 ### CONF-220
-- **File**: [yamlgraph/a2a_message.py](../yamlgraph/a2a_message.py#L66)
+- **File**: [yamlgraph/a2a/message.py](../yamlgraph/a2a/message.py#L66)
 - **Code**: FB001
 - **Sin**: Contains lexical `fallback` token flagged by FR-418 fallback-token hygiene gate.
 - **Penance**: Retained intentionally for domain semantics or existing contract wording; explicitly allowlisted and audited.

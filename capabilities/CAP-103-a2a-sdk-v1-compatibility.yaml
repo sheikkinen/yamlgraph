@@ -9,8 +9,8 @@ description: >
   AgentCard.url field removed; InMemoryTaskStore API requires ServerCallContext;
   card JSON serialization uses MessageToDict.
 modules:
-  - yamlgraph/a2a_server.py
-  - yamlgraph/a2a_message.py
+  - yamlgraph/a2a/server.py
+  - yamlgraph/a2a/message.py
   - yamlgraph/contrib/a2a_client.py
   - yamlgraph/cli/a2a_commands.py
 requirements:
@@ -27,8 +27,8 @@ requirements:
       discriminator); contrib/a2a_client.py extraction uses key-presence check;
       a2a_commands.py uses MessageToDict for card JSON serialization
     modules:
-      - yamlgraph/a2a_server.py
-      - yamlgraph/a2a_message.py
+      - yamlgraph/a2a/server.py
+      - yamlgraph/a2a/message.py
       - yamlgraph/contrib/a2a_client.py
       - yamlgraph/cli/a2a_commands.py
       - tests/unit/test_a2a_server.py

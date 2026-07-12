@@ -66,7 +66,7 @@ def no_var_graph_info() -> dict[str, Any]:
 @pytest.mark.req("REQ-YG-207")
 def test_a2a_server_uses_shared_discovery():
     """a2a_server imports discover_graphs from yamlgraph.discovery."""
-    from yamlgraph.a2a_server import discover_graphs as a2a_discover
+    from yamlgraph.a2a.server import discover_graphs as a2a_discover
     from yamlgraph.discovery import discover_graphs as shared_discover
 
     assert a2a_discover is shared_discover
@@ -80,7 +80,7 @@ def test_a2a_server_uses_shared_discovery():
 @pytest.mark.req("REQ-YG-207")
 def test_invoke_graph_calls_load_compile_invoke():
     """_invoke_graph loads config, compiles graph, and invokes with variables."""
-    from yamlgraph.a2a_server import _invoke_graph
+    from yamlgraph.a2a.server import _invoke_graph
 
     mock_config = MagicMock()
     mock_sg = MagicMock()
@@ -112,7 +112,7 @@ def test_invoke_graph_calls_load_compile_invoke():
 @pytest.mark.req("REQ-YG-207")
 def test_resolve_graph_single(sample_graph_info):
     """Single-graph lookup returns the only graph."""
-    from yamlgraph.a2a_server import YAMLGraphAgentExecutor
+    from yamlgraph.a2a.server import YAMLGraphAgentExecutor
 
     executor = YAMLGraphAgentExecutor(
         graph_lookup={"hello-world": sample_graph_info},
@@ -124,7 +124,7 @@ def test_resolve_graph_single(sample_graph_info):
 @pytest.mark.req("REQ-YG-207")
 def test_resolve_graph_multi(sample_graph_info, single_var_graph_info):
     """Multi-graph lookup returns first graph (default routing)."""
-    from yamlgraph.a2a_server import YAMLGraphAgentExecutor
+    from yamlgraph.a2a.server import YAMLGraphAgentExecutor
 
     executor = YAMLGraphAgentExecutor(
         graph_lookup={
@@ -145,7 +145,7 @@ def test_resolve_graph_multi(sample_graph_info, single_var_graph_info):
 @pytest.mark.req("REQ-YG-209")
 def test_format_result_string_values():
     """String values are included directly."""
-    from yamlgraph.a2a_server import YAMLGraphAgentExecutor
+    from yamlgraph.a2a.server import YAMLGraphAgentExecutor
 
     executor = YAMLGraphAgentExecutor(graph_lookup={})
     text = executor._format_result({"greeting": "Hello!", "detail": "World"})
@@ -156,7 +156,7 @@ def test_format_result_string_values():
 @pytest.mark.req("REQ-YG-209")
 def test_format_result_json_values():
     """Non-string JSON-serializable values are formatted as JSON."""
-    from yamlgraph.a2a_server import YAMLGraphAgentExecutor
+    from yamlgraph.a2a.server import YAMLGraphAgentExecutor
 
     executor = YAMLGraphAgentExecutor(graph_lookup={})
     text = executor._format_result({"data": {"key": "val"}})
@@ -167,7 +167,7 @@ def test_format_result_json_values():
 @pytest.mark.req("REQ-YG-209")
 def test_format_result_internal_keys_filtered():
     """Keys starting with _ and 'errors' are filtered out."""
-    from yamlgraph.a2a_server import YAMLGraphAgentExecutor
+    from yamlgraph.a2a.server import YAMLGraphAgentExecutor
 
     executor = YAMLGraphAgentExecutor(graph_lookup={})
     text = executor._format_result(
@@ -187,7 +187,7 @@ def test_format_result_internal_keys_filtered():
 @pytest.mark.req("REQ-YG-209")
 def test_format_result_empty():
     """Empty result (all keys filtered) falls back to json.dumps."""
-    from yamlgraph.a2a_server import YAMLGraphAgentExecutor
+    from yamlgraph.a2a.server import YAMLGraphAgentExecutor
 
     executor = YAMLGraphAgentExecutor(graph_lookup={})
     text = executor._format_result({"_internal": "hidden"})
@@ -209,7 +209,7 @@ async def test_executor_execute_invokes_graph(sample_graph_info):
         TaskStatusUpdateEvent,
     )
 
-    from yamlgraph.a2a_server import YAMLGraphAgentExecutor
+    from yamlgraph.a2a.server import YAMLGraphAgentExecutor
 
     executor = YAMLGraphAgentExecutor(
         graph_lookup={"hello-world": sample_graph_info},
@@ -232,7 +232,7 @@ async def test_executor_execute_invokes_graph(sample_graph_info):
         yield "Hello World!"
 
     with patch(
-        "yamlgraph.a2a_server.run_graph_streaming_native",
+        "yamlgraph.a2a.server.run_graph_streaming_native",
         side_effect=mock_streaming,
     ):
         await executor.execute(context, queue)
@@ -252,7 +252,7 @@ async def test_executor_execute_error_path(sample_graph_info):
     from a2a.server.agent_execution import RequestContext
     from a2a.types import TaskState, TaskStatusUpdateEvent
 
-    from yamlgraph.a2a_server import YAMLGraphAgentExecutor
+    from yamlgraph.a2a.server import YAMLGraphAgentExecutor
 
     executor = YAMLGraphAgentExecutor(
         graph_lookup={"hello-world": sample_graph_info},
@@ -274,7 +274,7 @@ async def test_executor_execute_error_path(sample_graph_info):
         yield  # pragma: no cover — makes this an async generator
 
     with patch(
-        "yamlgraph.a2a_server.run_graph_streaming_native",
+        "yamlgraph.a2a.server.run_graph_streaming_native",
         side_effect=mock_streaming_error,
     ):
         await executor.execute(context, queue)
@@ -297,7 +297,7 @@ async def test_executor_execute_pipeline_error_mapping_unreachable(sample_graph_
     from a2a.server.agent_execution import RequestContext
     from a2a.types import TaskState, TaskStatusUpdateEvent
 
-    from yamlgraph.a2a_server import YAMLGraphAgentExecutor
+    from yamlgraph.a2a.server import YAMLGraphAgentExecutor
 
     executor = YAMLGraphAgentExecutor(
         graph_lookup={"hello-world": sample_graph_info},
@@ -319,7 +319,7 @@ async def test_executor_execute_pipeline_error_mapping_unreachable(sample_graph_
         yield  # pragma: no cover — makes this an async generator
 
     with patch(
-        "yamlgraph.a2a_server.run_graph_streaming_native",
+        "yamlgraph.a2a.server.run_graph_streaming_native",
         side_effect=mock_streaming_valerr,
     ):
         await executor.execute(context, queue)
@@ -339,7 +339,7 @@ async def test_executor_cancel(sample_graph_info):
     from a2a.server.agent_execution import RequestContext
     from a2a.types import TaskState, TaskStatusUpdateEvent
 
-    from yamlgraph.a2a_server import YAMLGraphAgentExecutor
+    from yamlgraph.a2a.server import YAMLGraphAgentExecutor
 
     executor = YAMLGraphAgentExecutor(
         graph_lookup={"hello-world": sample_graph_info},
@@ -371,7 +371,7 @@ async def test_executor_cancel(sample_graph_info):
 @pytest.mark.req("REQ-YG-207")
 def test_create_a2a_app(tmp_path: Path):
     """create_a2a_app returns a Starlette application."""
-    from yamlgraph.a2a_server import create_a2a_app
+    from yamlgraph.a2a.server import create_a2a_app
 
     graph_dir = tmp_path / "demo"
     graph_dir.mkdir()
@@ -437,7 +437,7 @@ async def test_task_store_returns_none_for_unknown_id():
 @pytest.mark.req("REQ-YG-210")
 def test_create_a2a_app_uses_task_store(tmp_path: Path):
     """create_a2a_app wires InMemoryTaskStore for task/get retrieval."""
-    from yamlgraph.a2a_server import create_a2a_app
+    from yamlgraph.a2a.server import create_a2a_app
 
     graph_dir = tmp_path / "demo"
     graph_dir.mkdir()
@@ -475,7 +475,7 @@ async def test_execute_produces_streaming_events(sample_graph_info):
         TaskStatusUpdateEvent,
     )
 
-    from yamlgraph.a2a_server import YAMLGraphAgentExecutor
+    from yamlgraph.a2a.server import YAMLGraphAgentExecutor
 
     executor = YAMLGraphAgentExecutor(
         graph_lookup={"hello-world": sample_graph_info},
@@ -496,7 +496,7 @@ async def test_execute_produces_streaming_events(sample_graph_info):
         yield "hi"
 
     with patch(
-        "yamlgraph.a2a_server.run_graph_streaming_native",
+        "yamlgraph.a2a.server.run_graph_streaming_native",
         side_effect=mock_streaming,
     ):
         await executor.execute(context, queue)
@@ -520,7 +520,7 @@ async def test_streaming_events_include_message_on_complete(sample_graph_info):
     from a2a.server.agent_execution import RequestContext
     from a2a.types import TaskState, TaskStatusUpdateEvent
 
-    from yamlgraph.a2a_server import YAMLGraphAgentExecutor
+    from yamlgraph.a2a.server import YAMLGraphAgentExecutor
 
     executor = YAMLGraphAgentExecutor(
         graph_lookup={"hello-world": sample_graph_info},
@@ -541,7 +541,7 @@ async def test_streaming_events_include_message_on_complete(sample_graph_info):
         yield "Hello!"
 
     with patch(
-        "yamlgraph.a2a_server.run_graph_streaming_native",
+        "yamlgraph.a2a.server.run_graph_streaming_native",
         side_effect=mock_streaming,
     ):
         await executor.execute(context, queue)
@@ -563,7 +563,7 @@ async def test_execute_emits_input_required_on_interrupt(sample_graph_info):
     from a2a.server.agent_execution import RequestContext
     from a2a.types import TaskState, TaskStatusUpdateEvent
 
-    from yamlgraph.a2a_server import YAMLGraphAgentExecutor
+    from yamlgraph.a2a.server import YAMLGraphAgentExecutor
     from yamlgraph.models.streaming import StreamEvent
 
     executor = YAMLGraphAgentExecutor(
@@ -586,7 +586,7 @@ async def test_execute_emits_input_required_on_interrupt(sample_graph_info):
         yield StreamEvent(type="interrupt", payload="need clarification")
 
     with patch(
-        "yamlgraph.a2a_server.run_graph_streaming_native",
+        "yamlgraph.a2a.server.run_graph_streaming_native",
         side_effect=mock_streaming_interrupt,
     ):
         await executor.execute(context, queue)
@@ -638,7 +638,7 @@ async def test_execute_does_not_call_queue_close(sample_graph_info):
     """v1.0 SDK: EventQueue no longer has close(); executor must not call it."""
     from a2a.server.agent_execution import RequestContext
 
-    from yamlgraph.a2a_server import YAMLGraphAgentExecutor
+    from yamlgraph.a2a.server import YAMLGraphAgentExecutor
 
     executor = YAMLGraphAgentExecutor(
         graph_lookup={"hello-world": sample_graph_info},
@@ -657,7 +657,7 @@ async def test_execute_does_not_call_queue_close(sample_graph_info):
         yield "hi"
 
     with patch(
-        "yamlgraph.a2a_server.run_graph_streaming_native",
+        "yamlgraph.a2a.server.run_graph_streaming_native",
         side_effect=mock_streaming,
     ):
         await executor.execute(context, queue)
@@ -678,7 +678,7 @@ async def test_interrupt_payload_forwarded_in_input_required_message(sample_grap
     from a2a.server.agent_execution import RequestContext
     from a2a.types import TaskState, TaskStatusUpdateEvent
 
-    from yamlgraph.a2a_server import YAMLGraphAgentExecutor
+    from yamlgraph.a2a.server import YAMLGraphAgentExecutor
     from yamlgraph.models.streaming import StreamEvent
 
     executor = YAMLGraphAgentExecutor(
@@ -702,7 +702,7 @@ async def test_interrupt_payload_forwarded_in_input_required_message(sample_grap
         yield StreamEvent(type="interrupt", payload=interrupt_value)
 
     with patch(
-        "yamlgraph.a2a_server.run_graph_streaming_native",
+        "yamlgraph.a2a.server.run_graph_streaming_native",
         side_effect=mock_streaming_interrupt,
     ):
         await executor.execute(context, queue)
@@ -735,7 +735,7 @@ async def test_streaming_execute_yields_incremental_artifacts(sample_graph_info)
         TaskStatusUpdateEvent,
     )
 
-    from yamlgraph.a2a_server import YAMLGraphAgentExecutor
+    from yamlgraph.a2a.server import YAMLGraphAgentExecutor
 
     executor = YAMLGraphAgentExecutor(
         graph_lookup={"hello-world": sample_graph_info},
@@ -758,7 +758,7 @@ async def test_streaming_execute_yields_incremental_artifacts(sample_graph_info)
         yield "World!"
 
     with patch(
-        "yamlgraph.a2a_server.run_graph_streaming_native",
+        "yamlgraph.a2a.server.run_graph_streaming_native",
         side_effect=mock_streaming,
     ):
         await executor.execute(context, queue)
@@ -784,7 +784,7 @@ async def test_streaming_error_yields_failed_status(sample_graph_info):
     from a2a.server.agent_execution import RequestContext
     from a2a.types import TaskState, TaskStatusUpdateEvent
 
-    from yamlgraph.a2a_server import YAMLGraphAgentExecutor
+    from yamlgraph.a2a.server import YAMLGraphAgentExecutor
     from yamlgraph.models.streaming import StreamEvent
 
     executor = YAMLGraphAgentExecutor(
@@ -806,7 +806,7 @@ async def test_streaming_error_yields_failed_status(sample_graph_info):
         yield StreamEvent(type="error", error="LLM timeout", error_type="TimeoutError")
 
     with patch(
-        "yamlgraph.a2a_server.run_graph_streaming_native",
+        "yamlgraph.a2a.server.run_graph_streaming_native",
         side_effect=mock_streaming_error,
     ):
         await executor.execute(context, queue)
@@ -824,7 +824,7 @@ async def test_streaming_interrupt_yields_input_required(sample_graph_info):
     from a2a.server.agent_execution import RequestContext
     from a2a.types import TaskState, TaskStatusUpdateEvent
 
-    from yamlgraph.a2a_server import YAMLGraphAgentExecutor
+    from yamlgraph.a2a.server import YAMLGraphAgentExecutor
     from yamlgraph.models.streaming import StreamEvent
 
     executor = YAMLGraphAgentExecutor(
@@ -846,7 +846,7 @@ async def test_streaming_interrupt_yields_input_required(sample_graph_info):
         yield StreamEvent(type="interrupt", payload="Please confirm your choice")
 
     with patch(
-        "yamlgraph.a2a_server.run_graph_streaming_native",
+        "yamlgraph.a2a.server.run_graph_streaming_native",
         side_effect=mock_streaming_interrupt,
     ):
         await executor.execute(context, queue)
@@ -881,7 +881,7 @@ async def test_resume_from_input_required_state(sample_graph_info):
         TaskStatusUpdateEvent,
     )
 
-    from yamlgraph.a2a_server import YAMLGraphAgentExecutor
+    from yamlgraph.a2a.server import YAMLGraphAgentExecutor
 
     executor = YAMLGraphAgentExecutor(
         graph_lookup={"hello-world": sample_graph_info},
@@ -913,7 +913,7 @@ async def test_resume_from_input_required_state(sample_graph_info):
         yield "Resumed output"
 
     with patch(
-        "yamlgraph.a2a_server.run_graph_streaming_native",
+        "yamlgraph.a2a.server.run_graph_streaming_native",
         side_effect=mock_resume_streaming,
     ):
         await executor.execute(context, queue)
@@ -947,7 +947,7 @@ async def test_batch_execute_still_works_via_streaming(sample_graph_info):
         TaskStatusUpdateEvent,
     )
 
-    from yamlgraph.a2a_server import YAMLGraphAgentExecutor
+    from yamlgraph.a2a.server import YAMLGraphAgentExecutor
 
     executor = YAMLGraphAgentExecutor(
         graph_lookup={"hello-world": sample_graph_info},
@@ -967,7 +967,7 @@ async def test_batch_execute_still_works_via_streaming(sample_graph_info):
         yield "Complete response"
 
     with patch(
-        "yamlgraph.a2a_server.run_graph_streaming_native",
+        "yamlgraph.a2a.server.run_graph_streaming_native",
         side_effect=mock_streaming,
     ):
         await executor.execute(context, queue)

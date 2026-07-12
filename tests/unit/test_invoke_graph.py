@@ -125,7 +125,7 @@ def test_a2a_server_delegates_to_shared_invoke_graph():
     with patch(
         "yamlgraph.graph_loader.invoke_graph", return_value={"out": "done"}
     ) as mock_invoke:
-        from yamlgraph.a2a_server import _invoke_graph
+        from yamlgraph.a2a.server import _invoke_graph
 
         result = _invoke_graph("/path/graph.yaml", {"x": "1"})
 

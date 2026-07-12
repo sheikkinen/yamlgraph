@@ -10,7 +10,7 @@ type = layers
 # being blocked from importing up into cli (Layer 1).
 layers =
     yamlgraph.cli
-    yamlgraph.graph_loader : yamlgraph.node_factory : yamlgraph.executor : yamlgraph.linter : yamlgraph.edge_compiler : yamlgraph.node_compiler : yamlgraph.map_compiler : yamlgraph.routing : yamlgraph.graph_cache : yamlgraph.schema_loader : yamlgraph.data_loader : yamlgraph.discovery : yamlgraph.executor_async : yamlgraph.interactive_tool : yamlgraph.mcp_server : yamlgraph.a2a_server : yamlgraph.a2a_message : yamlgraph.mermaid_export
+    yamlgraph.graph_loader : yamlgraph.node_factory : yamlgraph.executor : yamlgraph.linter : yamlgraph.edge_compiler : yamlgraph.node_compiler : yamlgraph.map_compiler : yamlgraph.routing : yamlgraph.graph_cache : yamlgraph.schema_loader : yamlgraph.data_loader : yamlgraph.discovery : yamlgraph.executor_async : yamlgraph.interactive_tool : yamlgraph.mcp_server : yamlgraph.a2a : yamlgraph.mermaid_export
     yamlgraph.tools : yamlgraph.models : yamlgraph.utils : yamlgraph.config : yamlgraph.constants : yamlgraph.storage : yamlgraph.contrib : yamlgraph.executor_base : yamlgraph.error_handlers : yamlgraph.verification : yamlgraph.loop_detector
 
 [importlinter:contract:linter-llm-free]
@@ -31,3 +31,17 @@ forbidden_modules =
     yamlgraph.executor_async
     yamlgraph.executor_base
     yamlgraph.utils.llm_factory
+
+[importlinter:contract:a2a-seam]
+# FR-717 F5/AC-02: the a2a package is a leaf serving the runtime — the
+# linter and compile pipeline must never reach into it.
+name = a2a is a leaf (linter/compilers never import it)
+type = forbidden
+source_modules =
+    yamlgraph.linter
+    yamlgraph.edge_compiler
+    yamlgraph.node_compiler
+    yamlgraph.map_compiler
+    yamlgraph.graph_loader
+forbidden_modules =
+    yamlgraph.a2a

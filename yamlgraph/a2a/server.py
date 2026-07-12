@@ -40,7 +40,7 @@ except ImportError as exc:
         "A2A SDK not installed. Install with: pip install yamlgraph[a2a]"
     ) from exc
 
-from yamlgraph.a2a_message import (  # noqa: F401 (CONF-004) — re-exports
+from yamlgraph.a2a.message import (  # noqa: F401 (CONF-004) — re-exports
     _detect_interrupt,
     _extract_interrupt_payload,
     build_agent_card,

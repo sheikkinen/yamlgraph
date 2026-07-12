@@ -53,7 +53,7 @@ def test_extract_text_from_parts_multiple():
     """Multiple TextParts are concatenated with newlines."""
     from a2a.types import Part
 
-    from yamlgraph.a2a_message import extract_text_from_parts
+    from yamlgraph.a2a.message import extract_text_from_parts
 
     parts = [
         Part(text="name=World"),
@@ -68,7 +68,7 @@ def test_extract_text_from_parts_single():
     """Single TextPart returns its text without trailing newline."""
     from a2a.types import Part
 
-    from yamlgraph.a2a_message import extract_text_from_parts
+    from yamlgraph.a2a.message import extract_text_from_parts
 
     parts = [Part(text="hello world")]
     text = extract_text_from_parts(parts)
@@ -78,7 +78,7 @@ def test_extract_text_from_parts_single():
 @pytest.mark.req("REQ-YG-209")
 def test_extract_text_from_parts_empty_list():
     """Empty parts list raises ValueError."""
-    from yamlgraph.a2a_message import extract_text_from_parts
+    from yamlgraph.a2a.message import extract_text_from_parts
 
     with pytest.raises(ValueError, match="unsupported_content_type"):
         extract_text_from_parts([])
@@ -90,7 +90,7 @@ def test_extract_text_skips_non_text_parts():
     from a2a.types import Part
     from google.protobuf.struct_pb2 import Struct, Value
 
-    from yamlgraph.a2a_message import extract_text_from_parts
+    from yamlgraph.a2a.message import extract_text_from_parts
 
     s = Struct()
     s.update({"key": "val"})
@@ -107,7 +107,7 @@ def test_extract_text_skips_non_text_parts():
 @pytest.mark.req("REQ-YG-209")
 def test_parse_message_json_mode():
     """JSON object in text is parsed as variables."""
-    from yamlgraph.a2a_message import parse_a2a_message
+    from yamlgraph.a2a.message import parse_a2a_message
 
     result = parse_a2a_message(
         '{"name": "World", "style": "casual"}',
@@ -119,7 +119,7 @@ def test_parse_message_json_mode():
 @pytest.mark.req("REQ-YG-209")
 def test_parse_message_json_coerces_non_strings():
     """JSON non-string values are coerced to str."""
-    from yamlgraph.a2a_message import parse_a2a_message
+    from yamlgraph.a2a.message import parse_a2a_message
 
     result = parse_a2a_message(
         '{"count": 42, "flag": true}',
@@ -131,7 +131,7 @@ def test_parse_message_json_coerces_non_strings():
 @pytest.mark.req("REQ-YG-209")
 def test_parse_message_key_value_mode():
     """key=value pairs parsed via shlex."""
-    from yamlgraph.a2a_message import parse_a2a_message
+    from yamlgraph.a2a.message import parse_a2a_message
 
     result = parse_a2a_message(
         'name=World style="holy see of code"',
@@ -143,7 +143,7 @@ def test_parse_message_key_value_mode():
 @pytest.mark.req("REQ-YG-209")
 def test_parse_message_single_input_mode():
     """Single required var gets entire text assigned."""
-    from yamlgraph.a2a_message import parse_a2a_message
+    from yamlgraph.a2a.message import parse_a2a_message
 
     result = parse_a2a_message(
         "Hello World, how are you?",
@@ -155,7 +155,7 @@ def test_parse_message_single_input_mode():
 @pytest.mark.req("REQ-YG-209")
 def test_parse_message_fallback_to_input_key():
     """No required vars and no key=value → assign to 'input' key."""
-    from yamlgraph.a2a_message import parse_a2a_message
+    from yamlgraph.a2a.message import parse_a2a_message
 
     result = parse_a2a_message(
         "Just some text",
@@ -167,7 +167,7 @@ def test_parse_message_fallback_to_input_key():
 @pytest.mark.req("REQ-YG-209")
 def test_parse_message_resolution_order():
     """JSON takes priority over key_value even when text contains '='."""
-    from yamlgraph.a2a_message import parse_a2a_message
+    from yamlgraph.a2a.message import parse_a2a_message
 
     result = parse_a2a_message(
         '{"equation": "a=b"}',
@@ -179,7 +179,7 @@ def test_parse_message_resolution_order():
 @pytest.mark.req("REQ-YG-209")
 def test_parse_message_missing_required_vars():
     """Missing required vars raises ValueError with missing keys."""
-    from yamlgraph.a2a_message import parse_a2a_message
+    from yamlgraph.a2a.message import parse_a2a_message
 
     with pytest.raises(ValueError, match="missing_variables"):
         parse_a2a_message(
@@ -191,7 +191,7 @@ def test_parse_message_missing_required_vars():
 @pytest.mark.req("REQ-YG-209")
 def test_parse_message_extra_vars_ignored():
     """Extra variables not in required_vars are included."""
-    from yamlgraph.a2a_message import parse_a2a_message
+    from yamlgraph.a2a.message import parse_a2a_message
 
     result = parse_a2a_message(
         "name=World style=casual extra=ignored",
@@ -205,7 +205,7 @@ def test_parse_message_extra_vars_ignored():
 @pytest.mark.req("REQ-YG-209")
 def test_parse_message_malformed_json_with_equals():
     """Malformed JSON containing '=' falls through to key_value mode."""
-    from yamlgraph.a2a_message import parse_a2a_message
+    from yamlgraph.a2a.message import parse_a2a_message
 
     result = parse_a2a_message(
         "{invalid json name=World style=casual",
@@ -223,7 +223,7 @@ def test_parse_message_malformed_json_with_equals():
 @pytest.mark.req("REQ-YG-209")
 def test_validate_required_vars_all_present():
     """No exception when all required vars are present."""
-    from yamlgraph.a2a_message import _validate_required_vars
+    from yamlgraph.a2a.message import _validate_required_vars
 
     _validate_required_vars({"name": "Alice", "style": "formal"}, ["name", "style"])
 
@@ -231,7 +231,7 @@ def test_validate_required_vars_all_present():
 @pytest.mark.req("REQ-YG-209")
 def test_validate_required_vars_some_missing():
     """Raises ValueError listing missing keys."""
-    from yamlgraph.a2a_message import _validate_required_vars
+    from yamlgraph.a2a.message import _validate_required_vars
 
     with pytest.raises(ValueError, match="missing_variables.*style"):
         _validate_required_vars({"name": "Alice"}, ["name", "style"])
@@ -240,7 +240,7 @@ def test_validate_required_vars_some_missing():
 @pytest.mark.req("REQ-YG-209")
 def test_validate_required_vars_empty_required():
     """No exception when required list is empty."""
-    from yamlgraph.a2a_message import _validate_required_vars
+    from yamlgraph.a2a.message import _validate_required_vars
 
     _validate_required_vars({"any": "value"}, [])
 
@@ -255,7 +255,7 @@ def test_map_pipeline_error_llm():
     """LLM_ERROR maps to InternalError."""
     from a2a.types import InternalError
 
-    from yamlgraph.a2a_message import map_pipeline_error
+    from yamlgraph.a2a.message import map_pipeline_error
     from yamlgraph.models import ErrorType, PipelineError
 
     err = PipelineError(
@@ -275,7 +275,7 @@ def test_map_pipeline_error_validation():
     """VALIDATION_ERROR maps to InvalidParamsError."""
     from a2a.types import InvalidParamsError
 
-    from yamlgraph.a2a_message import map_pipeline_error
+    from yamlgraph.a2a.message import map_pipeline_error
     from yamlgraph.models import ErrorType, PipelineError
 
     err = PipelineError(
@@ -292,7 +292,7 @@ def test_map_pipeline_error_prompt():
     """PROMPT_ERROR maps to InvalidParamsError."""
     from a2a.types import InvalidParamsError
 
-    from yamlgraph.a2a_message import map_pipeline_error
+    from yamlgraph.a2a.message import map_pipeline_error
     from yamlgraph.models import ErrorType, PipelineError
 
     err = PipelineError(
@@ -309,7 +309,7 @@ def test_map_pipeline_error_state_error():
     """STATE_ERROR maps to InternalError."""
     from a2a.types import InternalError
 
-    from yamlgraph.a2a_message import map_pipeline_error
+    from yamlgraph.a2a.message import map_pipeline_error
     from yamlgraph.models import ErrorType, PipelineError
 
     err = PipelineError(
@@ -327,7 +327,7 @@ def test_map_pipeline_error_unknown():
     """UNKNOWN_ERROR maps to InternalError."""
     from a2a.types import InternalError
 
-    from yamlgraph.a2a_message import map_pipeline_error
+    from yamlgraph.a2a.message import map_pipeline_error
     from yamlgraph.models import ErrorType, PipelineError
 
     err = PipelineError(
@@ -345,7 +345,7 @@ def test_map_pipeline_error_verification():
     """VERIFICATION_ERROR maps to InvalidParamsError."""
     from a2a.types import InvalidParamsError
 
-    from yamlgraph.a2a_message import map_pipeline_error
+    from yamlgraph.a2a.message import map_pipeline_error
     from yamlgraph.models import ErrorType, PipelineError
 
     err = PipelineError(
@@ -361,7 +361,7 @@ def test_map_pipeline_error_verification():
 @pytest.mark.req("REQ-YG-209")
 def test_map_pipeline_error_retryable_propagation():
     """Retryable flag propagates to A2A error data."""
-    from yamlgraph.a2a_message import map_pipeline_error
+    from yamlgraph.a2a.message import map_pipeline_error
     from yamlgraph.models import ErrorType, PipelineError
 
     err = PipelineError(
@@ -386,7 +386,7 @@ def test_map_pipeline_error_retryable_propagation():
 @pytest.mark.req("REQ-YG-209")
 def test_map_pipeline_error_details_included():
     """Extra details from PipelineError are included in A2A error data."""
-    from yamlgraph.a2a_message import map_pipeline_error
+    from yamlgraph.a2a.message import map_pipeline_error
     from yamlgraph.models import ErrorType, PipelineError
 
     err = PipelineError(
@@ -408,7 +408,7 @@ def test_map_pipeline_error_details_included():
 @pytest.mark.req("REQ-YG-208")
 def test_build_agent_card_from_graph(sample_graph_info):
     """Agent Card auto-generated with correct name, description, skills."""
-    from yamlgraph.a2a_message import build_agent_card
+    from yamlgraph.a2a.message import build_agent_card
 
     card = build_agent_card(
         graphs=[sample_graph_info],
@@ -427,7 +427,7 @@ def test_build_agent_card_from_graph(sample_graph_info):
 @pytest.mark.req("REQ-YG-208")
 def test_agent_card_capabilities(sample_graph_info):
     """Agent Card has streaming=True, push_notifications=None."""
-    from yamlgraph.a2a_message import build_agent_card
+    from yamlgraph.a2a.message import build_agent_card
 
     card = build_agent_card(
         graphs=[sample_graph_info],
@@ -441,7 +441,7 @@ def test_agent_card_capabilities(sample_graph_info):
 @pytest.mark.req("REQ-YG-208")
 def test_agent_card_no_authentication(sample_graph_info):
     """Agent Card has no security schemes by default."""
-    from yamlgraph.a2a_message import build_agent_card
+    from yamlgraph.a2a.message import build_agent_card
 
     card = build_agent_card(
         graphs=[sample_graph_info],
@@ -455,7 +455,7 @@ def test_agent_card_no_authentication(sample_graph_info):
 @pytest.mark.req("REQ-YG-208")
 def test_agent_card_multi_graph(sample_graph_info, single_var_graph_info):
     """Multiple graphs become multiple skills in Agent Card."""
-    from yamlgraph.a2a_message import build_agent_card
+    from yamlgraph.a2a.message import build_agent_card
 
     card = build_agent_card(
         graphs=[sample_graph_info, single_var_graph_info],
@@ -472,7 +472,7 @@ def test_agent_card_multi_graph(sample_graph_info, single_var_graph_info):
 @pytest.mark.req("REQ-YG-208")
 def test_agent_card_empty_graphs():
     """Empty graphs list produces card with no skills."""
-    from yamlgraph.a2a_message import build_agent_card
+    from yamlgraph.a2a.message import build_agent_card
 
     card = build_agent_card(graphs=[], host="localhost", port=8080)
     assert card.skills == []
@@ -482,7 +482,7 @@ def test_agent_card_empty_graphs():
 @pytest.mark.req("REQ-YG-208")
 def test_agent_card_custom_host_port():
     """Custom host and port are reflected in card URL."""
-    from yamlgraph.a2a_message import build_agent_card
+    from yamlgraph.a2a.message import build_agent_card
 
     card = build_agent_card(
         graphs=[{"name": "g1", "description": "test"}],
@@ -501,7 +501,7 @@ def test_agent_card_custom_host_port():
 @pytest.mark.req("REQ-YG-213")
 def test_detect_interrupt_returns_true():
     """_detect_interrupt recognizes __interrupt__ key in graph result."""
-    from yamlgraph.a2a_message import _detect_interrupt
+    from yamlgraph.a2a.message import _detect_interrupt
 
     result = {"greeting": "Hello", "__interrupt__": [{"value": "need input"}]}
     assert _detect_interrupt(result) is True
@@ -510,7 +510,7 @@ def test_detect_interrupt_returns_true():
 @pytest.mark.req("REQ-YG-213")
 def test_detect_interrupt_returns_false():
     """_detect_interrupt returns False for normal results."""
-    from yamlgraph.a2a_message import _detect_interrupt
+    from yamlgraph.a2a.message import _detect_interrupt
 
     result = {"greeting": "Hello"}
     assert _detect_interrupt(result) is False
@@ -526,7 +526,7 @@ def test_extract_interrupt_payload_with_object():
     """_extract_interrupt_payload extracts .value from interrupt objects."""
     from unittest.mock import MagicMock
 
-    from yamlgraph.a2a_message import _extract_interrupt_payload
+    from yamlgraph.a2a.message import _extract_interrupt_payload
 
     interrupt = MagicMock()
     interrupt.value = "What language do you prefer?"
@@ -537,7 +537,7 @@ def test_extract_interrupt_payload_with_object():
 @pytest.mark.req("REQ-YG-213")
 def test_extract_interrupt_payload_with_dict():
     """_extract_interrupt_payload extracts value from dict interrupts."""
-    from yamlgraph.a2a_message import _extract_interrupt_payload
+    from yamlgraph.a2a.message import _extract_interrupt_payload
 
     result = {"__interrupt__": [{"value": "Please confirm"}]}
     assert _extract_interrupt_payload(result) == "Please confirm"
@@ -546,7 +546,7 @@ def test_extract_interrupt_payload_with_dict():
 @pytest.mark.req("REQ-YG-213")
 def test_extract_interrupt_payload_no_interrupt():
     """_extract_interrupt_payload returns None when no __interrupt__ key."""
-    from yamlgraph.a2a_message import _extract_interrupt_payload
+    from yamlgraph.a2a.message import _extract_interrupt_payload
 
     result = {"greeting": "Hello"}
     assert _extract_interrupt_payload(result) is None
@@ -555,7 +555,7 @@ def test_extract_interrupt_payload_no_interrupt():
 @pytest.mark.req("REQ-YG-213")
 def test_extract_interrupt_payload_empty_list():
     """_extract_interrupt_payload returns None for empty interrupt list."""
-    from yamlgraph.a2a_message import _extract_interrupt_payload
+    from yamlgraph.a2a.message import _extract_interrupt_payload
 
     result = {"__interrupt__": []}
     assert _extract_interrupt_payload(result) is None

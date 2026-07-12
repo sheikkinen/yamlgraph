@@ -52,7 +52,7 @@ def _cmd_a2a_serve(args: argparse.Namespace) -> None:
         print("✗ uvicorn not installed. Install with: pip install uvicorn")
         sys.exit(1)
 
-    from yamlgraph.a2a_server import create_a2a_app
+    from yamlgraph.a2a.server import create_a2a_app
 
     patterns = _resolve_patterns(args)
     host = getattr(args, "host", "0.0.0.0")  # noqa: S104  # nosec B104
@@ -72,7 +72,7 @@ def _cmd_a2a_serve(args: argparse.Namespace) -> None:
 
 def _cmd_a2a_card(args: argparse.Namespace) -> None:
     """Print Agent Card JSON for discovered graphs."""
-    from yamlgraph.a2a_server import build_agent_card
+    from yamlgraph.a2a.server import build_agent_card
     from yamlgraph.discovery import discover_graphs
 
     patterns = _resolve_patterns(args)

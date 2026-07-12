@@ -4,15 +4,17 @@
 - source_root: `yamlgraph/`
 - parser: stdlib `ast.parse()`
 - deterministic ordering: modules sorted by relative path
-- module count: 128
+- module count: 130
 
 ## Module index/tree
 - `yamlgraph/__init__.py` - 63 lines; exports: `get_schema_path()`
   - import dependencies: `yamlgraph.executor`, `yamlgraph.graph_cache`, `yamlgraph.graph_loader`, `yamlgraph.models`, `yamlgraph.utils.tracing`
-- `yamlgraph/a2a_message.py` - 262 lines; exports: `extract_text_from_parts(parts)`, `parse_a2a_message(text, required_vars)`, `map_pipeline_error(err)`, `build_agent_card(graphs, host, port, version)`
+- `yamlgraph/a2a/__init__.py` - 11 lines; exports: _none_
+  - import dependencies: `yamlgraph.a2a.message`, `yamlgraph.a2a.server`
+- `yamlgraph/a2a/message.py` - 262 lines; exports: `extract_text_from_parts(parts)`, `parse_a2a_message(text, required_vars)`, `map_pipeline_error(err)`, `build_agent_card(graphs, host, port, version)`
   - import dependencies: `yamlgraph.models`
-- `yamlgraph/a2a_server.py` - 351 lines; exports: `class YAMLGraphAgentExecutor`, `create_a2a_app(graph_patterns, host, port)`
-  - import dependencies: `yamlgraph.a2a_message`, `yamlgraph.discovery`, `yamlgraph.executor_async`, `yamlgraph.models`, `yamlgraph.models.streaming`
+- `yamlgraph/a2a/server.py` - 351 lines; exports: `class YAMLGraphAgentExecutor`, `create_a2a_app(graph_patterns, host, port)`
+  - import dependencies: `yamlgraph.a2a.message`, `yamlgraph.discovery`, `yamlgraph.executor_async`, `yamlgraph.models`, `yamlgraph.models.streaming`
 - `yamlgraph/cli/__init__.py` - 412 lines; exports: `create_parser()`, `main()`
   - import dependencies: `yamlgraph.cli.a2a_commands`, `yamlgraph.cli.diary_commands`, `yamlgraph.cli.graph_commands`, `yamlgraph.cli.schema_commands`, `yamlgraph.cli.skill_commands`
 - `yamlgraph/cli/__main__.py` - 6 lines; exports: _none_
@@ -80,14 +82,16 @@
   - import dependencies: _none_
 - `yamlgraph/linter/checks_contracts.py` - 441 lines; exports: `check_python_node_variables(graph_path)`, `check_identifier_keys(graph_path)`, `check_skip_if_exists_add_reducer(graph_path)`, `check_top_level_provider_model(graph_path)`, `check_skip_without_verification(graph_path)`, `check_silent_fallback(graph_path)`, `check_guard_expressions(graph_path)`
   - import dependencies: `yamlgraph.linter.checks`, `yamlgraph.utils.guard_evaluator`
+- `yamlgraph/linter/checks_loader_ux.py` - 94 lines; exports: `check_prompt_messages_contract(graph_path, project_root)`, `check_tool_module_graph_local(graph_path)`
+  - import dependencies: `yamlgraph.linter.checks`, `yamlgraph.utils.prompts`
 - `yamlgraph/linter/checks_prompts.py` - 282 lines; exports: `check_unanchored_prompt_variables(graph_path, project_root)`, `check_mixed_template_syntax(graph_path, project_root)`, `check_prompt_complexity(graph_path, project_root, field_threshold)`
   - import dependencies: `yamlgraph.linter.checks`, `yamlgraph.utils.template`
 - `yamlgraph/linter/checks_providers.py` - 140 lines; exports: `check_thinking_budget(graph_path)`
   - import dependencies: `yamlgraph.linter.checks`
 - `yamlgraph/linter/checks_semantic.py` - 435 lines; exports: `check_cross_references(graph_path)`, `check_passthrough_nodes(graph_path)`, `check_tool_call_nodes(graph_path)`, `check_expression_syntax(graph_path)`, `check_error_handling(graph_path)`, `check_edge_types(graph_path)`, `check_unguarded_cycles(graph_path)`, `check_skip_if_exists_in_cycle(graph_path)`, `check_dynamic_map_without_max_items(node_name, node_config, graph_config)`
   - import dependencies: `yamlgraph.linter.checks`, `yamlgraph.models.state_builder`
-- `yamlgraph/linter/graph_linter.py` - 165 lines; exports: `class LintResult`, `lint_graph(graph_path, project_root)`
-  - import dependencies: `yamlgraph.linter.checks`, `yamlgraph.linter.checks_contracts`, `yamlgraph.linter.checks_prompts`, `yamlgraph.linter.checks_providers`, `yamlgraph.linter.checks_semantic`, `yamlgraph.linter.patterns`
+- `yamlgraph/linter/graph_linter.py` - 173 lines; exports: `class LintResult`, `lint_graph(graph_path, project_root)`
+  - import dependencies: `yamlgraph.linter.checks`, `yamlgraph.linter.checks_contracts`, `yamlgraph.linter.checks_loader_ux`, `yamlgraph.linter.checks_prompts`, `yamlgraph.linter.checks_providers`, `yamlgraph.linter.checks_semantic`, `yamlgraph.linter.patterns`
 - `yamlgraph/linter/patterns/__init__.py` - 27 lines; exports: _none_
   - import dependencies: `yamlgraph.linter.patterns.agent`, `yamlgraph.linter.patterns.conditions_smt`, `yamlgraph.linter.patterns.copilot`, `yamlgraph.linter.patterns.interrupt`, `yamlgraph.linter.patterns.map`, `yamlgraph.linter.patterns.pipeline`, `yamlgraph.linter.patterns.race`, `yamlgraph.linter.patterns.router`, `yamlgraph.linter.patterns.subgraph`
 - `yamlgraph/linter/patterns/agent.py` - 89 lines; exports: `check_agent_node_tools(node_name, node_config, graph)`, `check_agent_patterns(graph_path, project_root)`
@@ -187,7 +191,7 @@
   - import dependencies: _none_
 - `yamlgraph/tools/nodes.py` - 155 lines; exports: `resolve_state_variable(template, state)`, `resolve_variables(variables_config, state)`, `create_tool_node(node_name, node_config, tools)`
   - import dependencies: `yamlgraph.error_handlers`, `yamlgraph.tools.shell`, `yamlgraph.utils.expressions`, `yamlgraph.utils.guard_runtime`
-- `yamlgraph/tools/python_tool.py` - 337 lines; exports: `class PythonToolConfig`, `load_python_function(config, *, graph_root, tool_name, graph_path, prompts_dir)`, `parse_python_tools(tools_config)`, `create_python_node(node_name, node_config, python_tools, *, graph_root)`
+- `yamlgraph/tools/python_tool.py` - 348 lines; exports: `class PythonToolConfig`, `load_python_function(config, *, graph_root, tool_name, graph_path, prompts_dir)`, `parse_python_tools(tools_config)`, `create_python_node(node_name, node_config, python_tools, *, graph_root)`
   - import dependencies: `yamlgraph.tools.schema_loader_tool`, `yamlgraph.tools.write_data_file_tool`, `yamlgraph.utils.guard_runtime`
 - `yamlgraph/tools/questionnaire.py` - 40 lines; exports: `detect_gaps(state)`, `normalize_extracted(state)`
   - import dependencies: _none_
@@ -241,7 +245,7 @@
   - import dependencies: _none_
 - `yamlgraph/utils/parsing.py` - 53 lines; exports: `parse_literal(value_str)`
   - import dependencies: _none_
-- `yamlgraph/utils/prompts.py` - 216 lines; exports: `resolve_prompt_path(prompt_name, prompts_dir, graph_path, prompts_relative)`, `load_prompt(prompt_name, prompts_dir, graph_path, prompts_relative)`, `load_prompt_path(prompt_name, prompts_dir, graph_path, prompts_relative)`
+- `yamlgraph/utils/prompts.py` - 247 lines; exports: `check_messages_contract(content, prompt_name)`, `resolve_prompt_path(prompt_name, prompts_dir, graph_path, prompts_relative)`, `load_prompt(prompt_name, prompts_dir, graph_path, prompts_relative)`, `load_prompt_path(prompt_name, prompts_dir, graph_path, prompts_relative)`
   - import dependencies: `yamlgraph.config`
 - `yamlgraph/utils/route_log.py` - 156 lines; exports: `enable_route_log(enabled)`, `route_log_enabled()`, `reset_route_log()`, `current_route_thread_id()`, `route_thread_id(thread_id)`, `route_thread_id_from_config(config)`, `emit_route(node, value, target, fan_out)`
   - import dependencies: _none_
@@ -264,5 +268,5 @@
 ## test_map
 
 - deterministic mapping: derive `test_<stem>.py` and `test_<flattened_path>.py`, then resolve in `tests/`.
-- mapped modules: 62/128
+- mapped modules: 62/130
 - discovered tests: 65
