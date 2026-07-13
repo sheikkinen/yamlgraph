@@ -45,7 +45,7 @@ def BRIDGE_THREADS() -> list[threading.Thread]:
 def _fast_llm(content: str = "ok"):
     mock = MagicMock()
 
-    async def ainvoke(messages):
+    async def ainvoke(messages, config=None):
         result = MagicMock()
         result.content = content
         return result

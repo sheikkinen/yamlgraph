@@ -18,7 +18,7 @@ def _make_mock_llm(response_text: str, delay: float = 0.0, fail: bool = False):
     """Create a mock LLM that returns a fixed response after optional delay."""
     mock = MagicMock()
 
-    async def ainvoke(messages):
+    async def ainvoke(messages, config=None):
         if delay:
             await asyncio.sleep(delay)
         if fail:
@@ -146,7 +146,7 @@ class TestRouterRaceLosersAreCancelled:
 
         cancelled = []
 
-        async def slow_ainvoke(messages):
+        async def slow_ainvoke(messages, config=None):
             try:
                 await asyncio.sleep(10.0)
                 result = MagicMock()

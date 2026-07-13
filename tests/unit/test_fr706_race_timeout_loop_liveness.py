@@ -37,7 +37,7 @@ def _make_hanging_llm():
     """Candidate whose work is uncancellable-but-bounded (F2)."""
     mock = MagicMock()
 
-    async def ainvoke(messages):
+    async def ainvoke(messages, config=None):
         await asyncio.to_thread(time.sleep, HANG)
         result = MagicMock()
         result.content = "too late"

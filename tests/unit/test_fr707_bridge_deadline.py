@@ -45,7 +45,7 @@ def _make_cancel_ignoring_llm(hang: float):
     """
     mock = MagicMock()
 
-    async def ainvoke(messages):
+    async def ainvoke(messages, config=None):
         try:
             await asyncio.sleep(hang)
         except asyncio.CancelledError:
@@ -124,7 +124,7 @@ class TestTimeoutNoneUnbounded:
         mock_prepare.return_value = ([MagicMock()], "anthropic", None)
         fast = MagicMock()
 
-        async def ainvoke(messages):
+        async def ainvoke(messages, config=None):
             result = MagicMock()
             result.content = "quick"
             return result

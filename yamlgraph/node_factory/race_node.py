@@ -12,10 +12,14 @@ FR-713: the sync→async bridge substrate lives in yamlgraph.utils.bridge
 """
 
 import asyncio
+import functools
 import logging
+import os
 from collections.abc import Callable
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
+from uuid import UUID, uuid4
 
 from yamlgraph.constants import ErrorHandler
 from yamlgraph.executor_base import build_schema_hint, prepare_messages
@@ -50,12 +54,69 @@ class AllCandidatesFailedError(Exception):
         )
 
 
+_LS_CLIENT: Any = None
+
+
+def _get_langsmith_client() -> Any:
+    """Lazy singleton langsmith client (FR-720 AC-05: no module import)."""
+    global _LS_CLIENT
+    if _LS_CLIENT is None:
+        from langsmith import Client
+
+        _LS_CLIENT = Client()
+    return _LS_CLIENT
+
+
+def _tracing_enabled() -> bool:
+    return (
+        os.getenv("LANGCHAIN_TRACING_V2", "").lower() == "true"
+        or os.getenv("LANGSMITH_TRACING", "").lower() == "true"
+    )
+
+
+def _close_cancelled_run(run_id: UUID, race_ctx: dict) -> None:
+    """Close a cancelled loser's LangSmith span (FR-720).
+
+    Tracing is ambient (no callback handle exists — Judgement F1); the
+    run_id the wrapper passed to ainvoke is the handle. Enqueue-only:
+    update_run is dispatched to the default executor so the teardown path
+    never awaits (FR-707 discipline). Skipped cleanly when tracing is off.
+    """
+    if not _tracing_enabled():
+        return
+    try:
+        client = _get_langsmith_client()
+        winner = race_ctx.get("winner")
+        if winner is not None:
+            winner_id = f"{winner.get('provider', '?')}/{winner.get('model', '?')}"
+            error = f"cancelled: lost race to {winner_id}"
+            metadata = {"race_outcome": "lost", "race_winner": winner_id}
+        else:
+            error = "cancelled: race timed out"
+            metadata = {"race_outcome": "lost"}
+        asyncio.get_running_loop().run_in_executor(
+            None,
+            functools.partial(
+                client.update_run,
+                run_id=run_id,
+                end_time=datetime.now(UTC),
+                error=error,
+                extra={"metadata": metadata},
+            ),
+        )
+    except Exception:
+        logger.warning(
+            "FR-720: span closure enqueue failed for run %s", run_id, exc_info=True
+        )
+
+
 async def _invoke_candidate_async(
     candidate: dict,
     llm: Any,
     messages: list,
     output_model: type | None,
     parse_json: bool,
+    race_ctx: dict | None = None,
 ) -> tuple[dict, Any]:
     """Invoke a single LLM candidate asynchronously (FR-271).
 
@@ -63,35 +124,48 @@ async def _invoke_candidate_async(
     The client is constructed OFF-loop by the caller (FR-713 F6): sync
     construction on the shared bridge loop would head-of-line block every
     concurrent race.
-    """
-    if output_model:
-        try:
-            structured_llm = llm.with_structured_output(output_model)
-            result = await structured_llm.ainvoke(messages)
-            return candidate, result
-        except Exception as struct_err:
-            if "response_format" in str(struct_err):
-                logger.info(
-                    "Structured output rejected in race candidate %s/%s, "
-                    "falling back to JSON extraction (FR-464)",
-                    candidate.get("provider", "?"),
-                    candidate.get("model", "?"),
-                )
-                from langchain_core.messages import HumanMessage
 
-                schema_hint = build_schema_hint(output_model)
-                retry_msgs = list(messages) + [HumanMessage(content=schema_hint)]
-                response = await llm.ainvoke(retry_msgs)
-                content = normalize_content(response.content)
-                parsed = extract_json(content)
-                if isinstance(parsed, dict):
-                    return candidate, output_model.model_validate(parsed)
-            raise
-    else:
-        response = await llm.ainvoke(messages)
-        content = normalize_content(response.content)
-        parsed = extract_json(content) if parse_json else content
-        return candidate, parsed
+    FR-720: each ainvoke attempt carries a pre-generated run_id
+    (config={"run_id": ...}) so a cancelled loser's LangSmith span can be
+    closed — the retry is a second invocation with its own id, last
+    retained (Judgement F1).
+    """
+    run_id = uuid4()
+    try:
+        if output_model:
+            try:
+                structured_llm = llm.with_structured_output(output_model)
+                result = await structured_llm.ainvoke(
+                    messages, config={"run_id": run_id}
+                )
+                return candidate, result
+            except Exception as struct_err:
+                if "response_format" in str(struct_err):
+                    logger.info(
+                        "Structured output rejected in race candidate %s/%s, "
+                        "falling back to JSON extraction (FR-464)",
+                        candidate.get("provider", "?"),
+                        candidate.get("model", "?"),
+                    )
+                    from langchain_core.messages import HumanMessage
+
+                    schema_hint = build_schema_hint(output_model)
+                    retry_msgs = list(messages) + [HumanMessage(content=schema_hint)]
+                    run_id = uuid4()
+                    response = await llm.ainvoke(retry_msgs, config={"run_id": run_id})
+                    content = normalize_content(response.content)
+                    parsed = extract_json(content)
+                    if isinstance(parsed, dict):
+                        return candidate, output_model.model_validate(parsed)
+                raise
+        else:
+            response = await llm.ainvoke(messages, config={"run_id": run_id})
+            content = normalize_content(response.content)
+            parsed = extract_json(content) if parse_json else content
+            return candidate, parsed
+    except asyncio.CancelledError:
+        _close_cancelled_run(run_id, race_ctx or {})
+        raise
 
 
 def _build_candidate_llms(
@@ -140,9 +214,14 @@ async def _race_async(
     asyncio.wait() call so it applies to the full race window, not per attempt.
     """
     loop = asyncio.get_running_loop()
+    # FR-720: shared context read by cancelled losers' closure handlers —
+    # winner set BEFORE loser.cancel() so terminal payloads name the winner.
+    race_ctx: dict[str, Any] = {"winner": None}
     tasks: dict[asyncio.Task, dict] = {
         asyncio.create_task(
-            _invoke_candidate_async(c, llm, messages, output_model, parse_json),
+            _invoke_candidate_async(
+                c, llm, messages, output_model, parse_json, race_ctx
+            ),
             name=f"race-{c.get('provider', '?')}-{c.get('model', '?')}",
         ): c
         for c, llm in armed
@@ -186,6 +265,7 @@ async def _race_async(
                     continue
 
                 # Winner found — cancel all remaining losers.
+                race_ctx["winner"] = winner_candidate
                 for loser in tasks:
                     loser.cancel()
                 await asyncio.gather(*tasks.keys(), return_exceptions=True)

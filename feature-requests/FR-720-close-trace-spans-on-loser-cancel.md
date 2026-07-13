@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM (observability debt with compounding cost; no runtime defect)
 **Type:** Observability fix
-**Status:** Judged
+**Status:** Completed
 **Effort:** 0.5–1 day
 **Requested:** 2026-07-13
 **Judged:** 2026-07-13 — scope frozen. 7 findings; the proposed "preferred" mechanism was unimplementable on current main and is re-pinned (see Judgement section).
@@ -123,3 +123,33 @@ zombie spans (they age out; a one-off script is ops, not framework).
   (38 pending spans / 14 races, R-4 disambiguation)
 - `projects/ninchat_voice/logs/nc367-langsmith-census.txt` (raw span census)
 - `yamlgraph/node_factory/race_node.py` L188–206 (the two cancel sites)
+
+## Implementation (2026-07-13)
+
+Enforced as judged. RED commit `1543628d`
+(tests/unit/test_fr720_span_closure.py, 3 condemned + 2 invariant
+guards), GREEN in `race_node.py`:
+
+- F1 handle: `_invoke_candidate_async` pre-generates `run_id = uuid4()`
+  per attempt, passes `config={"run_id": run_id}` at all three ainvoke
+  sites (structured / retry-with-own-id / plain); witness asserts the
+  invoked id equals the closed id.
+- F2 closure: `except asyncio.CancelledError` → `_close_cancelled_run`
+  → re-raise; `update_run(run_id, end_time, error, extra)` dispatched
+  via `run_in_executor` — enqueue-only, no await on the teardown path.
+- F5/F7 payloads: winner path `cancelled: lost race to
+  {provider}/{model}` + `race_winner` metadata (winner written into a
+  shared `race_ctx` dict BEFORE `loser.cancel()`); drain path
+  `cancelled: race timed out`; both carry `race_outcome=lost`.
+- AC-03/AC-04: verdict-not-delayed witness green; FR-706/707/709/713
+  suites green. AC-05: env check precedes any langsmith import/client;
+  lazy singleton `_get_langsmith_client`.
+- AC-06: REQ-YG-547 under CAP-13; fragment
+  `changelog/unreleased/fr-720-close-loser-trace-spans.md`; diary
+  `docs/diary/2026-07-13-fr720-fake-narrower-than-interface.md`.
+- Deviation (test-only): eight fake `ainvoke(messages)` doubles across
+  six suites declared a narrower signature than the Runnable interface
+  and crashed with TypeError when config arrived — rewriting two
+  cancellation witnesses' scenarios (loser failed instantly instead of
+  hanging). Fixed to `ainvoke(messages, config=None)`; see diary.
+- Real-LangSmith integration variant: not added (optional per F4).

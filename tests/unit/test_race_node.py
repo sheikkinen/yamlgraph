@@ -60,7 +60,7 @@ def _make_mock_llm(response_text: str, delay: float = 0.0, fail: bool = False):
         result.content = response_text
         return result
 
-    async def ainvoke(messages):
+    async def ainvoke(messages, config=None):
         if delay:
             await asyncio.sleep(delay)
         if fail:
@@ -1068,7 +1068,7 @@ class TestAsyncRaceCancellable:
 
         cancelled_flag = {"value": False}
 
-        async def slow_ainvoke(messages):
+        async def slow_ainvoke(messages, config=None):
             try:
                 await asyncio.sleep(30.0)
                 result = MagicMock()
