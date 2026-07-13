@@ -428,3 +428,10 @@ diary Seed, cache eviction) is out of scope.
 - Diaries: 2026-07-10 ×4 (witness-that-could-not-hang, runtimes-own-
   shutdown, rate-layer, loser-that-never-got-to-fail, fix-inverted-the-
   question), 2026-07-11 (promote-the-loop-not-the-semantics)
+- **Deployed census verdict (ninchat_voice NC-367, 2026-07-13): BOUNDED.**
+  14 races on the deployed 0.5.11 fleet, 0 drain WARNINGs, all losers
+  drained within `CLEANUP_GRACE`; the NC-366 pending-forever signature is
+  zombie SPANS (LangSmith spans never closed on cancel), not zombie work.
+  Artifact: `projects/ninchat_voice/docs/analysis/nc367-census-2026-07-13.md`.
+  Open observability seed: close/annotate the trace span when a race
+  loser is cancelled.
