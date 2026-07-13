@@ -175,11 +175,15 @@ class NodeConfig(BaseModel):
     )
 
     # Passthrough node fields
-    output: dict[str, str] | None = Field(
+    output: dict[str, Any] | None = Field(
         default=None,
-        description="State key → expression mappings for passthrough nodes",
+        description=(
+            "State key → value mappings for passthrough nodes: template/"
+            "expression strings or literal seeds (list, dict, bool, ...) "
+            "passed through unchanged by resolve_template (FR-721)"
+        ),
     )
-    outputs: dict[str, str] | None = Field(
+    outputs: dict[str, Any] | None = Field(
         default=None, description="Alias for output (passthrough nodes)"
     )
 

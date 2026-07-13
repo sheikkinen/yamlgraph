@@ -2,7 +2,7 @@
 
 **Priority:** HIGH (blocks consumer upgrades to 0.5.11; schema lies about the runtime)
 **Type:** Fix (schema/runtime contract)
-**Status:** Judged
+**Status:** Completed
 **Effort:** 0.5 day
 **Requested:** 2026-07-13
 **Judged:** 2026-07-13 — embedded judgement RATIFIED by independent review (see Ratification below); scope frozen.
@@ -99,3 +99,22 @@ section is the authoritative grant. Additional verifications and pins:
 
 **Out of scope (purge list):** widening `output_mapping`/`interrupt_output_mapping`
 (genuinely string→string), runtime changes, template-string syntax changes.
+
+## Implementation (2026-07-13)
+
+Enforced exactly as frozen. RED commit `0b192f46`
+(tests/unit/test_fr721_literal_seeds.py, 3 condemned + mapping guard
+green), GREEN widened `node_schema.py` `output`/`outputs` to
+`dict[str, Any] | None` with descriptions naming the literal-seed
+contract.
+
+- AC-01/AC-02: interrai_ca-shaped fixture (list/dict/bool/str literal +
+  template string) validates; model_dump round-trips types unchanged.
+- AC-03: full fast unit sweep green (4854 passed); `output_mapping`
+  guard test proves the mapping fields were NOT widened (raises
+  ValidationError on non-str value).
+- AC-04: fragment `changelog/unreleased/fr-721-passthrough-literal-seeds.md`
+  (fix/schema, req: REQ-YG-546) with the consumer-unblock note.
+- R4 resolved: REQ-YG-546 filed under CAP-01 (config loading &
+  validation), verified free against origin.
+- Deviations: none.
