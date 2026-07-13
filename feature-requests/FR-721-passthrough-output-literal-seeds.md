@@ -2,9 +2,10 @@
 
 **Priority:** HIGH (blocks consumer upgrades to 0.5.11; schema lies about the runtime)
 **Type:** Fix (schema/runtime contract)
-**Status:** Proposed
+**Status:** Judged
 **Effort:** 0.5 day
 **Requested:** 2026-07-13
+**Judged:** 2026-07-13 — embedded judgement RATIFIED by independent review (see Ratification below); scope frozen.
 **Spawned by:** ninchat_voice NC-370 enforce — pin alignment 0.5.7→0.5.11
 surfaced `test_nc238_interrai_ca_graph_loads` failing with 8 validation
 errors on a graph that runs correctly in production
@@ -80,3 +81,21 @@ No runtime change — the runtime already implements exactly this.
 - The witness must use literals of all four shapes (list/dict/bool/str)
   — the bug report's exact payload (interrai_ca init node) is the
   fixture, per read_raw_output_first.
+
+## Ratification (2026-07-13, independent review)
+
+The FR arrived with the judgement section above already written while its
+filing commit said "not judged" — the contradiction is resolved here: the
+embedded judgement was re-verified adversarially and **ratified**; this
+section is the authoritative grant. Additional verifications and pins:
+
+| # | Check | Result |
+|---|-------|--------|
+| R1 | Schema claim | Verified: node_schema.py L178/L182 `dict[str, str]`; mapping fields (L36/40/210/213) are separate and stay string-only — scope note accurate |
+| R2 | Runtime claim | Verified: expressions.py non-string first branch; control_nodes.py passthrough feeds every output value through `resolve_template` — literals flow unchanged |
+| R3 | Downstream str assumptions (missed by the embedded judgement) | Linter `_extract_expression_values` already filters `isinstance(v, str)` — literals skipped cleanly; W007/E007 unaffected. No other consumer assumes str |
+| R4 | Traceability (unpinned) | Tests tagged under the config-validation capability (CAP-01 family or FR-673's REQ) — exact id verified free against origin at enforce |
+| R5 | Release binding | Ships next release; consumer note in fragment per AC-04 |
+
+**Out of scope (purge list):** widening `output_mapping`/`interrupt_output_mapping`
+(genuinely string→string), runtime changes, template-string syntax changes.
