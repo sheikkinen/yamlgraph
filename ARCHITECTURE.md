@@ -344,7 +344,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 10 | CAP-10 Export & Serialization | `cli/graph_commands.cmd_graph_codegen`, `cli/schema_commands`, `storage/export`, `storage/serializers` | REQ-YG-036 – 039 |
 | 11 | CAP-11 Subgraph & Map | `map_compiler`, `map_compiler.wrap_for_reducer`, `node_factory/subgraph_nodes` | REQ-YG-040 – 042 |
 | 12 | CAP-12 Utilities | `config`, `constants`, `node_factory/base`, `schema_loader`, … | REQ-YG-043 – 046 |
-| 13 | CAP-13 LangSmith Tracing | `cli/graph_commands`, `utils/tracing` | REQ-YG-047 |
+| 13 | CAP-13 LangSmith Tracing | `cli/graph_commands`, `utils/tracing` | REQ-YG-047, 547 |
 | 14 | CAP-14 Graph-Level Streaming | `executor_async` | REQ-YG-048 – 049, 065, 480 |
 | 15 | CAP-15 Expression Language | `utils/conditions`, `utils/expressions`, `utils/parsing` | REQ-YG-051 – 052 |
 | 16 | CAP-16 Linter Cross-Reference | `linter/checks`, `linter/checks_contracts`, `linter/checks_semantic`, `linter/graph_linter`, … | REQ-YG-053 – 054, 069, 114, 408 |
@@ -672,6 +672,7 @@ Observability via LangSmith: trace URL retrieval, public sharing, and tracer inj
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-047 | LangSmith trace URL retrieval and sharing | `utils/tracing`, `cli/graph_commands` |
+| REQ-YG-547 | Race-loser trace spans close on cancellation (FR-720): the candidate wrapper pre-generates a run_id per ainvoke attempt (passed as config={"run_id": ...} — the handle, since tracing is ambient and no callback handle exists), and on CancelledError enqueues client.update_run with end_time, terminal error ("cancelled: lost race to {provider}/{model}" on the winner path, "cancelled: race timed out" on the FR-707 drain path) and extra.metadata.race_outcome=lost before re-raising. Enqueue-only: the verdict path never waits for losers (FR-707 discipline unchanged). Skipped cleanly when tracing is disabled. Spawned by NC-367 census: 38/38 deployed vertex loser spans pending-forever rendered "cancelled by design" as "hung", taxing every trace-based investigation and blinding FR-711's deployed A/B. | `node_factory/race_node` |
 
 ### 14. CAP-14 Graph-Level Streaming
 
