@@ -37,4 +37,18 @@ requirements:
     modules:
       - cli/helpers.GraphLoadError
       - data_loader.DataFileError
+  - id: REQ-YG-546
+    description: >
+      Passthrough node output/outputs accept literal seeds (FR-721): the
+      schema is dict[str, Any] matching the runtime contract —
+      resolve_template's documented first branch passes non-string values
+      through unchanged, and init nodes legitimately seed state with
+      list/dict/bool literals. Template strings keep validating; literal
+      types round-trip through model_dump unchanged (quoting "[]" would
+      silently corrupt state seeding). Mapping fields (output_mapping,
+      interrupt_output_mapping) remain genuinely string-to-string.
+      Surfaced by ninchat NC-370 pin alignment: 8 ValidationErrors on a
+      graph running correctly in production.
+    modules:
+      - models/node_schema
 fr: legacy

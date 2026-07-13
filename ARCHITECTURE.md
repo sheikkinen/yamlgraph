@@ -332,7 +332,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 
 | # | Capability | Primary Modules | Requirements |
 |---|-----------|----------------|--------------|
-| 1 | CAP-1 Config Loading & Validation | `cli/helpers`, `cli/helpers.GraphLoadError`, `data_loader`, `data_loader.DataFileError`, … | REQ-YG-001 – 004 |
+| 1 | CAP-1 Config Loading & Validation | `cli/helpers`, `cli/helpers.GraphLoadError`, `data_loader`, `data_loader.DataFileError`, … | REQ-YG-001 – 004, 546 |
 | 2 | CAP-2 Graph Compilation | `graph_loader`, `graph_loader.apply_loop_node_defaults`, `graph_loader.compile_graph`, `graph_loader.detect_loop_nodes`, … | REQ-YG-005 – 008, 220, 239 |
 | 3 | CAP-3 Node Execution | `executor`, `executor_async`, `executor_base`, `node_factory/llm_nodes`, … | REQ-YG-009 – 011, 050, 223, 539 – 540 |
 | 4 | CAP-4 Prompt Execution | `executor.PromptExecutor`, `executor.execute_prompt`, `executor_async`, `executor_base.format_prompt`, … | REQ-YG-012 – 016, 216 |
@@ -530,6 +530,7 @@ Load YAML graph configs, validate schemas, build state models, and ensure graph 
 | REQ-YG-002 | Validate graph configuration schemas and structures | `models/graph_schema`, `utils/validators` |
 | REQ-YG-003 | Perform linting and pattern validation | `linter/graph_linter`, `linter/checks`, `linter/patterns/*` |
 | REQ-YG-004 | Handle errors during configuration loading | `cli/helpers.GraphLoadError`, `data_loader.DataFileError` |
+| REQ-YG-546 | Passthrough node output/outputs accept literal seeds (FR-721): the schema is dict[str, Any] matching the runtime contract — resolve_template's documented first branch passes non-string values through unchanged, and init nodes legitimately seed state with list/dict/bool literals. Template strings keep validating; literal types round-trip through model_dump unchanged (quoting "[]" would silently corrupt state seeding). Mapping fields (output_mapping, interrupt_output_mapping) remain genuinely string-to-string. Surfaced by ninchat NC-370 pin alignment: 8 ValidationErrors on a graph running correctly in production. | `models/node_schema` |
 
 ### 2. CAP-2 Graph Compilation
 
