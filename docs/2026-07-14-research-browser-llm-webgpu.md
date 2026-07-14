@@ -163,3 +163,88 @@ transformers.js WASM-CPU fallback for small components.
 - **Seed 3:** icpc-2-rfe-style classification at 0.6–1.7B in-browser —
   is a q4 Qwen3-1.7B good enough for the RFE cluster step? A crosscheck
   harness (FR-725 pattern) could answer this without any server cost.
+
+## Reflection: could yamlgraph itself run in the browser?
+
+*(Appended 2026-07-14, same day.)*
+
+### The framing that decides the answer
+
+yamlgraph is two artifacts with opposite portability:
+
+1. **The contract** — graph YAML + prompt YAML + inline schemas. Pure
+   data, runtime-agnostic, machine-defined (`schema export`, FR-009).
+   Trivially portable.
+2. **The engine** — Python: LangGraph compilation, executor,
+   checkpointers, tools. Not portable, and not worth chasing.
+
+Scripture already states the asymmetry (`constraint_over_code`: "the
+constraint is irreplaceable, the code is regenerable"). A browser story
+is a second *regeneration* of the same contract — never a port.
+
+### Four paths, ascending cost
+
+**Path 1 — browser as presentation layer (exists today).**
+FastAPI + `run_graph_streaming_native` + HTMX is the shipped NPC pattern.
+The browser renders; Python executes. The boring, correct answer for
+products.
+
+**Path 2 — authoring playground (cheap; portability already certified).**
+Two subsystems are *contractually* browser-safe, by gates written for
+other reasons:
+
+- the **linter** — the `linter-llm-free` import-linter contract
+  guarantees no executor/LLM/network dependency;
+- **mermaid_export** (FR-723) — pure stdlib+yaml by acceptance criterion.
+
+Both run under Pyodide unmodified. A static page: paste graph YAML → lint
+findings + rendered map. No new architecture. Insight worth keeping: the
+enforcement contracts double as **portability certificates** — a module
+whose import boundary is gated is a module whose deployment surface is
+known.
+
+**Path 3 — single-prompt demos via WebLLM (Seed 1 above).**
+Prompt template + inline schema → WebLLM `response_format` is a
+mechanical compile; grammar-enforced JSON is the browser twin of
+Commandment 5. Demos *prompts*, not graphs.
+
+**Path 4 — a micro-runtime for a declared subset (the honest "graphs
+in browser").** Node-type triage:
+
+| Portable naturally | Portable with work | Not portable |
+|---|---|---|
+| `llm`, `router` (WebLLM) | `python` (→ JS callables) | `tool`/shell (sandbox) |
+| `map` = `Promise.all`, `race` = `Promise.race` | checkpointing (OPFS/IndexedDB) | `copilot`, `a2a` |
+| `interrupt` — *more* natural in a browser than a CLI | `subgraph` | |
+| expression routing + loop limits (small grammar) | | |
+
+The runtime is small (~hundreds of lines of TS) because the semantics are
+frozen in YAML and 4,900 tests. The real cost is **conformance**: a second
+implementation drifts unless gated. The cure is already built: run the
+same fixture graphs in both runtimes and diff their route.jsonl with
+`graph export --diff` — FR-723's route log is accidentally a
+runtime-independent execution trace format, and the empty diff is the
+cross-runtime witness.
+
+### The trap to name
+
+`framework_costume` in reverse: claiming "yamlgraph runs in the browser"
+when a *subset* runs. The doctrine-compliant claim is capability-scoped —
+a `browser-safe` lint profile that verifies a graph uses only the portable
+subset. Generate-or-gate the claim; never hand-write it (the FR-729
+lesson, applied prospectively).
+
+### Verdict
+
+Yes — as a ladder, not a leap. Path 1 exists; Path 2 is nearly free and
+useful now; Path 3 is a small FR; Path 4 waits for a second consumer
+(NC-372's graduation criterion).
+
+- **Seed 4:** Pyodide playground page — lint + mermaid render of pasted
+  graph YAML; the two contractually-pure modules are the MVP.
+- **Seed 5:** `browser-safe` lint profile — mechanical verification that
+  a graph uses only the portable node subset; prerequisite for ever
+  claiming Path 4.
+- **Seed 6:** cross-runtime conformance = same fixtures, both runtimes,
+  `graph export --diff` on their route logs; adopt before the first line
+  of any JS runtime is written.
