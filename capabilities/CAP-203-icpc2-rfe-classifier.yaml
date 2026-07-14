@@ -89,3 +89,19 @@ requirements:
       chapter primaries get no combined_code.
     modules:
       - examples/icpc-2-rfe/nodes/reduce.py
+  - id: REQ-YG-556
+    description: >
+      Chapter-code inflation discipline (FR-730). Chapter cap = {Z10}
+      only (empty inclusion list, pure system descriptor - A13/A23/A29
+      verified genuinely stateable and stay uncapped, A13 an accepted
+      named residual); same-chapter symptom-over-diagnosis mechanizes
+      ICPC practical rule 3 (a component-7 match demotes to partial
+      when a component-1 match exists in the same chapter, P03 demotes
+      P76; no cross-chapter demotion, no demotion without a competing
+      symptom); composition context eligibility is non-process,
+      non-capped, non-Z-chapter with component-7 diseases preferred
+      over component-1 symptoms (opposite of RFE primacy - composition
+      anchors to the problem managed); genuine Z RFEs (Z05) remain
+      classifiable.
+    modules:
+      - examples/icpc-2-rfe/nodes/reduce.py

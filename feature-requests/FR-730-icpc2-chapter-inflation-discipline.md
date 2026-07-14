@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Fix
-**Status:** Judged
+**Status:** In Progress
 **Effort:** 1 day
 **Requested:** 2026-07-14
 **Judged:** 2026-07-14 — scope frozen; proposal's cap list and direction (c) both overturned by rubric-level verification
