@@ -2,9 +2,10 @@
 
 **Priority:** HIGH (fixes a measured regression)
 **Type:** Fix
-**Status:** Proposed
+**Status:** Judged
 **Effort:** 1 day
 **Requested:** 2026-07-14
+**Judged:** 2026-07-14 — scope frozen with 5 findings; cap list pinned from the full rubric read
 **Parent:** FR-724 (phase 2) — see `examples/icpc-2-rfe/PLAN.md`
 **Evidence:** FR-725 baseline `logs/fr725-baseline.json` (11 pass / 19 fail)
 
