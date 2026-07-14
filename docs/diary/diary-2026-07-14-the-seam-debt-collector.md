@@ -62,3 +62,50 @@ the chaplain's post-merge finalization run sibling-project smoke gates
 (collect-only pytest in `projects/*`) and file the repair NCs
 automatically — making the debt land on the debtor's pipeline instead
 of the next courier?
+
+## Addendum: the checkout that ate a parallel session's WIP
+
+Written after the GREEN landed, because the worst mistake of the day
+happened *after* the diary above was drafted.
+
+While assembling the GREEN commit I ran `git add -u` — which swept the
+parallel FR-724 session's unstaged icpc files into my index — and then
+"cleaned up" with `git checkout -- examples/icpc-2-rfe tests/...`. That
+checkout **destroyed another session's tracked-modified WIP**: four
+source files and two test files, gone from the working tree. This is
+`workspace_is_not_boundary` compounded by the shared-index race already
+on record (2026-07-10, ninchat 8d339e7): two agents, one repo, one
+index — and this time the destructive half was mine.
+
+**The recovery was luck shaped like infrastructure:** pre-commit
+stashes unstaged files before every hook run and leaves the patches in
+`~/.cache/pre-commit/patch*`. The stash taken seconds before my
+checkout contained the full icpc diff;
+`git apply --include='examples/icpc-2-rfe/*' <patch>` restored all of
+it. Had the hooks not run between their last edit and my checkout,
+nothing would have.
+
+**Heuristics (graduated to repo memory, recorded here as the diary is
+the core record):**
+- Stage explicit file lists only. `git add -u` and `git add .` are
+  forbidden moves in a shared workspace — they stage other sessions'
+  intent.
+- `git checkout -- <path>` / `git restore` on files you did not modify
+  is a destructive op on someone else's state; run
+  `git diff --stat <path>` and ask whose diff that is first.
+- After any near-miss, check `~/.cache/pre-commit/patch*` before
+  declaring loss — it is an accidental backup of every unstaged tree
+  that ever crossed a hook.
+
+Second recurrence note: the REQ-ID allocation race also fired again
+(CAP-203 owned REQ-YG-551; my max-ID grep misparsed). The
+`validate-capabilities` uniqueness gate — the seed planted in the
+2026-07-08 diary — caught it at commit time. A seed that became a gate
+paid out within six days; that is the graduation pipeline working.
+
+**Seed 2:** both incidents share one shape: *parallel sessions
+communicate through the filesystem with no reservation protocol*. The
+inbox/worktree model already solves this for the chaplain
+(`.chaplain/worktrees/`). Should interactive sessions get the same —
+one worktree per session, main touched only by fast-forward — making
+`git add -u` structurally harmless?
