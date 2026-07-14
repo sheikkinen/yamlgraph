@@ -1,5 +1,19 @@
 # ICPC-2 Background (Reason for Encounter Focus)
 
+## Sources in hand (FR-722 provenance ledger)
+
+| Local file | Identity | Tier | Notes |
+|---|---|---|---|
+| `tmp/icpc-wonca-dec16.pdf` (untracked, gitignored) | WONCA "International Classification of Primary Care" introduction leaflet, 5 pages, Dec 2016 (PDF author metadata: Luisa Pettigrew) | 2/4 — official WONCA background, **non-normative** | Episode-of-care rationale, ICPC-vs-ICD positioning, one sample page. Contains NO rubric text, definitions, or inclusion/exclusion terms. Licensing contact: ceo@wonca.net |
+| WHO ICPC-2 page | Status + 17-chapter / 7-component structure statement | 2 | https://www.who.int/standards/classifications/other-classifications/international-classification-of-primary-care |
+
+**Tier-1 gap (open):** the normative ICPC-2 rubric text (book or official
+rubric browser) is NOT in tooling context. Per FR-722's operational rule,
+every catalog row is `provenance_status: provisional` until reconciled
+against Tier 1 — production mode is empty until then. Source PDFs stay
+untracked (WONCA copyright; FR-722 Judgement F5): cite by pointer, never
+commit verbatim text.
+
 ## What ICPC-2 is
 The International Classification of Primary Care, 2nd edition (ICPC-2), is a primary care classification maintained by the WONCA International Classification Committee (WICC) and accepted by WHO in the WHO Family of International Classifications.
 
