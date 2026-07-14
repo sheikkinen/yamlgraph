@@ -216,21 +216,21 @@ class TestMakeRouterFn:
     @pytest.mark.req("REQ-YG-022", "REQ-YG-023")
     def test_routes_to_matching_target(self):
         """Should route to target matching _route."""
-        router = make_router_fn(["positive", "negative", "neutral"])
+        router = make_router_fn(["positive", "negative", "neutral"], "classify")
         assert router({"_route": "positive"}) == "positive"
         assert router({"_route": "negative"}) == "negative"
 
     @pytest.mark.req("REQ-YG-022", "REQ-YG-023")
     def test_defaults_to_first_target(self):
         """Should default to first target when no match."""
-        router = make_router_fn(["a", "b", "c"])
+        router = make_router_fn(["a", "b", "c"], "classify")
         assert router({"_route": "unknown"}) == "a"
         assert router({}) == "a"
 
     @pytest.mark.req("REQ-YG-022", "REQ-YG-023")
     def test_ignores_invalid_route(self):
         """Should ignore route not in targets."""
-        router = make_router_fn(["x", "y"])
+        router = make_router_fn(["x", "y"], "classify")
         assert router({"_route": "z"}) == "x"
 
 

@@ -262,7 +262,7 @@ def _add_conditional_edges(
                 route_mapping[target] = target
         graph.add_conditional_edges(
             source_node,
-            make_router_fn(target_nodes),
+            make_router_fn(target_nodes, source_node),
             route_mapping,
         )
 

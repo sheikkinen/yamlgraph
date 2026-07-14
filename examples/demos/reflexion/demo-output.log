@@ -1,0 +1,78 @@
+# FR-723 demo: route hook + mermaid export + overlay (reflexion)
+
+$ YAMLGRAPH_ROUTE_LOG=route.jsonl yamlgraph graph run graph.yaml --var topic='why loops need exits' --thread fr723-demo
+2026-07-14 12:59:49,818 [INFO] yamlgraph.node_compiler: Added node: draft (type=llm)
+2026-07-14 12:59:49,820 [INFO] yamlgraph.node_compiler: Added node: critique (type=llm)
+2026-07-14 12:59:49,822 [INFO] yamlgraph.node_compiler: Added node: refine (type=llm)
+2026-07-14 12:59:49,909 [INFO] yamlgraph.utils.llm_factory: Creating LLM: mistral/mistral-large-latest (temp=0.7)
+2026-07-14 12:59:58,023 [INFO] httpx: HTTP Request: POST https://api.mistral.ai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-14 12:59:58,025 [INFO] yamlgraph.node_factory.llm_nodes: Node draft completed successfully
+2026-07-14 13:00:17,552 [INFO] httpx: HTTP Request: POST https://api.mistral.ai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-14 13:00:17,558 [INFO] yamlgraph.node_factory.llm_nodes: Node critique completed successfully
+2026-07-14 13:00:17,561 [INFO] yamlgraph.route: {"event": "route", "node": "critique", "value": "critique.score < 0.8", "target": "refine", "thread_id": "fr723-demo"}
+2026-07-14 13:00:29,069 [INFO] httpx: HTTP Request: POST https://api.mistral.ai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-14 13:00:29,070 [INFO] yamlgraph.node_factory.llm_nodes: Node refine completed successfully
+2026-07-14 13:00:44,824 [INFO] httpx: HTTP Request: POST https://api.mistral.ai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-14 13:00:44,826 [INFO] yamlgraph.node_factory.llm_nodes: Node critique completed successfully
+2026-07-14 13:00:44,826 [INFO] yamlgraph.route: {"event": "route", "node": "critique", "value": "critique.score < 0.8", "target": "refine", "thread_id": "fr723-demo"}
+2026-07-14 13:00:59,924 [INFO] httpx: HTTP Request: POST https://api.mistral.ai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-14 13:00:59,926 [INFO] yamlgraph.node_factory.llm_nodes: Node refine completed successfully
+2026-07-14 13:01:19,135 [INFO] httpx: HTTP Request: POST https://api.mistral.ai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-14 13:01:19,137 [INFO] yamlgraph.node_factory.llm_nodes: Node critique completed successfully
+2026-07-14 13:01:19,137 [INFO] yamlgraph.route: {"event": "route", "node": "critique", "value": "critique.score >= 0.8", "target": "END", "thread_id": "fr723-demo"}
+
+🚀 Running graph: graph.yaml
+   Variables: {'topic': 'why loops need exits'}
+
+🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/09c0c2d4-5724-4301-bcee-e1b64ddeb80e/r/019f6011-8941-7b61-8a8d-493e5ab858cc?poll=true
+============================================================
+RESULT
+============================================================
+  thread_id: fr723-demo
+  current_step: critique
+  topic: why loops need exits
+  current_draft: {'content': '**The Importance of Exit Conditions in Loops**\n\n**Version 3**\n\nLoops are fundamental constructs in programming that allow developers to execute a set of instructions repeatedly. Howev...
+  critique: {'score': 0.85, 'feedback': 'This is a strong, well-structured essay that effectively argues the importance of exit conditions in loops. The introduction is engaging, the arguments are well-supported ...
+
+
+$ cat route.jsonl
+{"event": "route", "node": "critique", "value": "critique.score < 0.8", "target": "refine", "thread_id": "fr723-demo"}
+{"event": "route", "node": "critique", "value": "critique.score < 0.8", "target": "refine", "thread_id": "fr723-demo"}
+{"event": "route", "node": "critique", "value": "critique.score >= 0.8", "target": "END", "thread_id": "fr723-demo"}
+
+$ yamlgraph graph export graph.yaml --mermaid
+flowchart TD
+    START((START))
+    draft["draft (llm)"]
+    critique["critique (llm, loop≤3)"]
+    refine["refine (llm, loop≤3)"]
+    END((END))
+    START --> draft
+    draft --> critique
+    critique -->|"critique.score < 0.8"| refine
+    critique -->|"critique.score >= 0.8"| END
+    refine --> critique
+    critique -.->|"loop_exit"| END
+    refine -.->|"loop_exit"| END
+
+$ yamlgraph graph export graph.yaml --mermaid --overlay route.jsonl
+flowchart TD
+    START((START))
+    draft["draft (llm)"]
+    critique["critique (llm, loop≤3)"]
+    refine["refine (llm, loop≤3)"]
+    END((END))
+    START --> draft
+    draft --> critique
+    critique -->|"critique.score < 0.8 #1 #2"| refine
+    critique -->|"critique.score >= 0.8 #3"| END
+    refine --> critique
+    critique -.->|"loop_exit"| END
+    refine -.->|"loop_exit"| END
+    classDef taken stroke:#e11,stroke-width:3px
+    class END,critique,refine taken
+    linkStyle 2 stroke:#e11,stroke-width:3px
+    linkStyle 3 stroke:#e11,stroke-width:3px
+
+$ yamlgraph graph export --diff route.jsonl route.jsonl
+✓ routes identical

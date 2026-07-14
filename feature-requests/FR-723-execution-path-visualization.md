@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Proposed
+**Status:** Completed (enforced 2026-07-14)
 **Effort:** 2 days
 **Requested:** 2026-07-14
 **Prototype:** ninchat_voice NC-372 (generated map, drift-gated) + NC-373 (route facts, overlay, occurrence-aligned diff) — enforced 2026-07-14; this FR ports the proven design to the framework boundary
@@ -136,7 +136,7 @@ without it the shim lingers and no-shims is violated by omission.
 
 ## Acceptance Criteria
 
-- [ ] AC-01 RED — unit: with route log enabled, a fixture graph run
+- [x] AC-01 RED — unit: with route log enabled, a fixture graph run
       emits one line per conditional decision INCLUDING a loop-limit
       exit, a **simple-router decision** (`make_router_fn`), and a **map
       fan-out** (name + count, no state content — R-2's privacy
@@ -144,22 +144,55 @@ without it the shim lingers and no-shims is violated by omission.
       (or `null`, never fabricated — R-1); disabled ⇒ zero lines and no
       serialization cost (mock assert — **load-bearing: this hook rides
       every conditional edge of every graph; enforce this first**).
-- [ ] AC-02 Export: `graph export --mermaid` on 3 representative
+      → `tests/unit/test_route_log.py` (zero-overhead test leads the file);
+      RED commit ef938d80.
+- [x] AC-02 Export: `graph export --mermaid` on 3 representative
       example graphs (one loopy, one map fan-out, one router node)
       produces syntactically valid Mermaid containing every authored
       node and condition label exactly once, loop-exit edges rendered.
-- [ ] AC-03 Overlay: fixture run's route.jsonl renders taken edges +
+      → reflexion / map / router demos in `tests/unit/test_mermaid_export.py`.
+- [x] AC-03 Overlay: fixture run's route.jsonl renders taken edges +
       ordinals; ordered route reconstructible from the render alone
       (condemning test: counts-only render fails).
-- [ ] AC-04 Diff: occurrence-aligned; same-input temp-0 rerun ⇒ empty
+      → `test_overlay_route_reconstructible_from_render`.
+- [x] AC-04 Diff: occurrence-aligned; same-input temp-0 rerun ⇒ empty
       diff; altered fixture ⇒ diff names seam and Nth firing.
-- [ ] AC-05 Demo: one example (`examples/demos/` or dungeon_master
+      → `diff_routes` keyed per `(node, occurrence)`; CLI exits 1 on divergence.
+- [x] AC-05 Demo: one example (`examples/demos/` or dungeon_master
       chapter) run + export + overlay committed as demo-output.log
-      (demo gate).
-- [ ] AC-06 New REQ under CAP-06 (hook) and CAP-10 (export); changelog
+      (demo gate). → `examples/demos/reflexion/demo-output.log`: live run
+      routed refine→refine→END at score 0.85, thread_id `fr723-demo`
+      carried, self-diff "routes identical".
+- [x] AC-06 New REQ under CAP-06 (hook) and CAP-10 (export); changelog
       fragment; docs in reference/graph-yaml.md (observability flag)
       and CLI reference incl. the `yamlgraph.route` public logger
       namespace; **ninchat migration NC filed before merge (R-3)**.
+      → REQ-YG-552 (CAP-06), REQ-YG-553 (CAP-10) — renumbered from the
+      FR's draft 551/552: CAP-203 (FR-724, landed first) owns 551 per the
+      allocation-race rule; ninchat NC-374 filed.
+
+## Implementation Record (2026-07-14)
+
+- **Seam:** `yamlgraph/utils/route_log.py` (emitter, contextvar, opt-in
+  guards, file sink) + emission wired into `routing.py` at all decision
+  points: simple-router match/default, expression match, map fan-out
+  (Send count taken before return — R-2), loop-limit exit, no-match
+  fallthrough. `make_router_fn` gained a required `source_node` arg for
+  attribution (callsite: edge_compiler).
+- **R-1 delivered as ruled:** contextvar set by
+  `route_thread_id_from_config()` at three entrypoints — CLI
+  `_invoke_graph`, `run_graph_async`, `run_graph_streaming_native`.
+- **Env extension (decision):** `YAMLGRAPH_ROUTE_LOG=<path>` attaches a
+  raw-JSONL file handler in addition to the logger — the smallest
+  mechanism giving the CLI an end-to-end route.jsonl story without a new
+  flag; `=1` remains logger-only as pinned.
+- **Export:** `yamlgraph/mermaid_export.py` (pure stdlib+yaml, registered
+  in the `.importlinter` Layer-2 contract) + `yamlgraph/cli/export_commands.py`.
+  Authored view only; `draw_mermaid()` remains the rejected alternative.
+- **Deviations:** none of substance; module-map line budget bumped
+  265→270 (three judged new modules, precedent FR-677/716/719) and the
+  FR-716 pin on executor_async honoured by trimming a stale docstring
+  example rather than relaxing the gate.
 
 ## Alternatives Considered
 

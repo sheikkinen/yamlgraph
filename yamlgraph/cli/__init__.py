@@ -227,6 +227,36 @@ def create_parser() -> argparse.ArgumentParser:
         help="Show full output per model in display",
     )
 
+    # graph export (FR-723)
+    graph_export_parser = graph_subparsers.add_parser(
+        "export", help="Export authored graph as Mermaid; overlay/diff routes"
+    )
+    graph_export_parser.add_argument(
+        "graph_path", nargs="?", default=None, help="Path to graph YAML file"
+    )
+    graph_export_parser.add_argument(
+        "--mermaid",
+        action="store_true",
+        default=False,
+        help="Render the authored graph as a Mermaid flowchart",
+    )
+    graph_export_parser.add_argument(
+        "--overlay",
+        type=str,
+        default=None,
+        help="route.jsonl to overlay on the map (taken edges + decision ordinals)",
+    )
+    graph_export_parser.add_argument(
+        "--diff",
+        nargs=2,
+        metavar=("A", "B"),
+        default=None,
+        help="Diff two route.jsonl files occurrence-aligned (exit 1 on divergence)",
+    )
+    graph_export_parser.add_argument(
+        "--output", "-o", type=str, default=None, help="Output file (default: stdout)"
+    )
+
     graph_parser.set_defaults(func=cmd_graph_dispatch)
 
     # === Schema commands (FR-009) ===

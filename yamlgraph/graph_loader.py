@@ -307,6 +307,13 @@ def compile_graph(config: GraphConfig) -> StateGraph:
     state_class = _resolve_state_class(config)
     graph = StateGraph(state_class)
 
+    # FR-723: graph-YAML opt-in for the route decision log (process-wide).
+    observability = config.raw_config.get("observability") or {}
+    if observability.get("route_log"):
+        from yamlgraph.utils.route_log import enable_route_log
+
+        enable_route_log(True)
+
     # Parse all tools
     tools, python_tools, callable_registry, graph_tool_configs = _parse_all_tools(
         config

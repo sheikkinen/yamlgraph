@@ -168,12 +168,20 @@ def _build_run_config(args: Namespace, graph_config, initial_state: dict) -> tup
 
 
 def _invoke_graph(app, input_data, config: dict, use_async: bool):
-    """Invoke a compiled graph synchronously or asynchronously."""
-    if use_async:
-        import asyncio
+    """Invoke a compiled graph synchronously or asynchronously.
 
-        return asyncio.run(app.ainvoke(input_data, config=config))
-    return app.invoke(input_data, config=config)
+    Sets the route-log thread_id contextvar around invocation (FR-723 R-1):
+    routing seams receive state only, so the invoking thread id travels by
+    contextvar — null when the run has no thread, never fabricated.
+    """
+    from yamlgraph.utils.route_log import route_thread_id_from_config
+
+    with route_thread_id_from_config(config):
+        if use_async:
+            import asyncio
+
+            return asyncio.run(app.ainvoke(input_data, config=config))
+        return app.invoke(input_data, config=config)
 
 
 def _run_graph_until_complete(

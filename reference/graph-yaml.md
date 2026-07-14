@@ -1448,6 +1448,39 @@ loop_exits:
 
 ---
 
+## Observability (FR-723)
+
+Opt in to the **route decision log** — one JSON line per routing decision
+(simple router, expression match, loop-limit exit, map fan-out):
+
+```yaml
+observability:
+  route_log: true   # enable at compile time (process-wide)
+```
+
+Or per run, without touching the YAML:
+
+```bash
+YAMLGRAPH_ROUTE_LOG=1 yamlgraph graph run graph.yaml ...            # logger only
+YAMLGRAPH_ROUTE_LOG=route.jsonl yamlgraph graph run graph.yaml ...  # + JSONL file
+```
+
+Line grammar (frozen):
+
+```json
+{"event":"route","node":"critique","value":"critique.score < 0.8","target":"refine","thread_id":"t-1"}
+```
+
+- `value` is the matched condition, route key, `loop_exit`, `no_match`, or `default` — framework metadata, never state content.
+- Map fan-out decisions add `"fan_out": <count>` and carry the map-node name as target (never `Send` payloads).
+- `thread_id` is the invoking thread id, or `null` when the run has none — never fabricated.
+- The `yamlgraph.route` logger namespace is **public API**: attach handlers/filters there downstream.
+- Zero overhead when off; emission never raises.
+
+Render routes with `yamlgraph graph export --mermaid --overlay route.jsonl` — see [CLI Reference](cli.md).
+
+---
+
 ## Exports
 
 Configure automatic result export:

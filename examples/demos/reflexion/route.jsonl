@@ -1,0 +1,3 @@
+{"event": "route", "node": "critique", "value": "critique.score < 0.8", "target": "refine", "thread_id": "fr723-demo"}
+{"event": "route", "node": "critique", "value": "critique.score < 0.8", "target": "refine", "thread_id": "fr723-demo"}
+{"event": "route", "node": "critique", "value": "critique.score >= 0.8", "target": "END", "thread_id": "fr723-demo"}

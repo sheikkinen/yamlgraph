@@ -11,6 +11,7 @@ from typing import Any
 from langgraph.graph import END
 
 from yamlgraph.utils.conditions import evaluate_condition
+from yamlgraph.utils.route_log import emit_route
 
 # Type alias for dynamic state
 GraphState = dict[str, Any]
@@ -18,7 +19,7 @@ GraphState = dict[str, Any]
 logger = logging.getLogger(__name__)
 
 
-def make_router_fn(targets: list[str]) -> Callable[[dict], str]:
+def make_router_fn(targets: list[str], source_node: str) -> Callable[[dict], str]:
     """Create a router function that reads _route from state.
 
     Used for type: router nodes with conditional edges to multiple targets.
@@ -28,6 +29,7 @@ def make_router_fn(targets: list[str]) -> Callable[[dict], str]:
 
     Args:
         targets: List of valid target node names
+        source_node: Name of the deciding node (route log attribution, FR-723)
 
     Returns:
         Router function that returns the target node name
@@ -38,9 +40,11 @@ def make_router_fn(targets: list[str]) -> Callable[[dict], str]:
         logger.debug(f"Router: _route={route}, targets={targets}")
         if route and route in targets:
             logger.debug(f"Router: matched route {route}")
+            emit_route(source_node, str(route), route)
             return route
         # Default to first target
         logger.debug(f"Router: defaulting to {targets[0]}")
+        emit_route(source_node, "default", targets[0])
         return targets[0]
 
     return router_fn
@@ -72,12 +76,17 @@ def make_expr_router_fn(
     map_nodes = map_nodes or {}
 
     def expr_router_fn(state: GraphState) -> Any:
-        # Check loop limit first
+        # Check loop limit first — a routing decision too (FR-723: the seam
+        # the ninchat prototype could not see; loop exhaustion must be
+        # visible in route logs).
         if state.get("_loop_limit_reached"):
             if loop_exit_target:
                 # FR-630: Normalize "END" string to sentinel
-                return END if loop_exit_target == "END" else loop_exit_target
-            return END
+                resolved = END if loop_exit_target == "END" else loop_exit_target
+            else:
+                resolved = END
+            emit_route(source_node, "loop_exit", resolved)
+            return resolved
 
         for condition, target in edges:
             try:
@@ -89,12 +98,19 @@ def make_expr_router_fn(
                     # injection and the collect reducer are preserved.
                     if target in map_nodes:
                         map_edge_fn, _ = map_nodes[target]
-                        return map_edge_fn(state)
+                        sends = map_edge_fn(state)
+                        # R-2: emit map-node name + count, never Send
+                        # payloads (they carry state content).
+                        fan_out = len(sends) if isinstance(sends, list) else 1
+                        emit_route(source_node, condition, target, fan_out=fan_out)
+                        return sends
+                    emit_route(source_node, condition, target)
                     return target
             except ValueError as e:
                 logger.warning(f"Failed to evaluate condition '{condition}': {e}")
         # No condition matched - this shouldn't happen with well-formed graphs
         logger.warning(f"No condition matched for {source_node}, defaulting to END")
+        emit_route(source_node, "no_match", END)
         return END
 
     return expr_router_fn

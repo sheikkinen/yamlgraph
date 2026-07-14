@@ -311,6 +311,10 @@ def cmd_graph_dispatch(args: Namespace) -> None:
         from yamlgraph.cli.bench_commands import cmd_graph_bench
 
         cmd_graph_bench(args)
+    elif args.graph_command == "export":
+        from yamlgraph.cli.export_commands import cmd_graph_export
+
+        cmd_graph_export(args)
     else:
         print(f"Unknown graph command: {args.graph_command}")
         sys.exit(1)

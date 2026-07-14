@@ -24,6 +24,7 @@ from yamlgraph.models.streaming import StreamEvent
 from yamlgraph.streaming_events import check_interrupt, translate_message_event
 from yamlgraph.utils.llm_factory import create_llm
 from yamlgraph.utils.llm_factory_async import invoke_async
+from yamlgraph.utils.route_log import route_thread_id_from_config
 
 if TYPE_CHECKING:
     from langgraph.graph.state import CompiledStateGraph
@@ -206,7 +207,8 @@ async def run_graph_async(
     """Execute a compiled graph asynchronously.
 
     Thin wrapper around LangGraph's ainvoke for consistent API.
-    Supports interrupt handling and Command resume.
+    Supports interrupt handling and Command resume. Sets the route-log
+    thread_id contextvar around invocation (FR-723 R-1).
 
     Args:
         app: Compiled LangGraph app (from graph.compile())
@@ -215,25 +217,13 @@ async def run_graph_async(
                 {"configurable": {"thread_id": "my-thread"}}
 
     Returns:
-        Final state dict. If interrupted, contains "__interrupt__" key.
-
-    Example:
-        >>> app = load_and_compile_async("graphs/interview.yaml")
-        >>> result = await run_graph_async(
-        ...     app,
-        ...     {"query": "hello"},
-        ...     {"configurable": {"thread_id": "t1"}},
-        ... )
-        >>> if "__interrupt__" in result:
-        ...     # Handle interrupt - get user input
-        ...     result = await run_graph_async(
-        ...         app,
-        ...         Command(resume="user answer"),
-        ...         {"configurable": {"thread_id": "t1"}},
-        ...     )
+        Final state dict. If interrupted, contains "__interrupt__" key —
+        resume by calling again with Command(resume=...) and the same
+        thread_id config.
     """
     config = config or {}
-    return await app.ainvoke(initial_state, config)
+    with route_thread_id_from_config(config):
+        return await app.ainvoke(initial_state, config)
 
 
 async def compile_graph_async(
@@ -359,10 +349,12 @@ async def run_graph_streaming_native(
     config = config or {}
 
     try:
-        async for token in _stream_tokens(
-            app, initial_state, config, node_filter, subgraphs, timeout
-        ):
-            yield token
+        # FR-723 R-1: route-log thread id contextvar around the streamed run.
+        with route_thread_id_from_config(config):
+            async for token in _stream_tokens(
+                app, initial_state, config, node_filter, subgraphs, timeout
+            ):
+                yield token
     except TimeoutError:
         logger.warning("Streaming timeout after %s seconds for %s", timeout, graph_path)
         if not yield_events:

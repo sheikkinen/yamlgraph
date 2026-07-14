@@ -119,6 +119,36 @@ yamlgraph graph lint <graph_paths...>
 yamlgraph graph lint examples/demos/yamlgraph/graph.yaml examples/demos/router/graph.yaml
 ```
 
+### graph export (FR-723)
+
+Render the **authored** graph as Mermaid (typed nodes, condition labels,
+router routes, loop limits, explicit `loop_exit` edges). Pure function of
+the YAML — no LLM, no API keys, safe for pre-commit.
+
+```bash
+yamlgraph graph export <graph.yaml> --mermaid [-o out.mmd]
+```
+
+Overlay an executed route (captured via `YAMLGRAPH_ROUTE_LOG=route.jsonl`):
+taken edges are highlighted and carry decision ordinals (`#1 #2 …`) so the
+ordered route is reconstructible from the render.
+
+```bash
+yamlgraph graph export <graph.yaml> --mermaid --overlay route.jsonl
+```
+
+Diff two routes, occurrence-aligned per `(node, Nth firing)` — exits 1 on
+divergence, so an empty diff is a cheap determinism witness:
+
+```bash
+yamlgraph graph export --diff a.route.jsonl b.route.jsonl
+```
+
+Route lines are emitted on the `yamlgraph.route` logger — a **public API**
+namespace for downstream handlers/filters. See
+[graph-yaml.md § Observability](graph-yaml.md#observability-fr-723) for the
+line grammar and opt-in surfaces.
+
 ---
 
 ## yamlgraph a2a

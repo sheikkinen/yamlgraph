@@ -127,7 +127,9 @@ class TestFR335ModuleMapCompression:
         # FR-677: temporarily bumped 250 -> 260 to admit node_timeout.py split.
         # FR-716/719: 260 -> 265 for node_schema, streaming_events,
         # conditions_smt (judged splits); FR-717's sub-packaging restores it.
-        assert line_count <= 265, f"module-map too large: {line_count} lines (max 265)"
+        # FR-723: 265 -> 270 for route_log, mermaid_export, export_commands
+        # (judged additions: route hook + authored-map export).
+        assert line_count <= 270, f"module-map too large: {line_count} lines (max 270)"
 
     def test_ac02_dependency_lists_contain_only_yamlgraph_imports(self) -> None:
         module_map = _run_generator()

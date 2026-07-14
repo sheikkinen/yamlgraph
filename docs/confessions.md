@@ -413,7 +413,7 @@ Test suppressions are acceptable when they enable testing patterns that conflict
 - **Penance**: The function is a factory that builds a closure capturing configuration. The inner `node_fn` orchestrates the agent loop which is inherently sequential and branching. Splitting further would scatter the closure's captured variables across multiple functions with no clarity gain.
 
 ### CONF-049
-- **File**: [yamlgraph/cli/__init__.py](../yamlgraph/cli/__init__.py#L329)
+- **File**: [yamlgraph/cli/__init__.py](../yamlgraph/cli/__init__.py#L359)
 - **Code**: S104
 - **Sin**: Binding A2A server to `0.0.0.0` (all interfaces) as default.
 - **Penance**: A2A server is a development tool that must be network-accessible for agent-to-agent communication. The default matches standard server practice (FastAPI, uvicorn). Production deployments control binding via `--host` flag.
@@ -1453,7 +1453,7 @@ These are not `# noqa` suppressions — they are documented deviations from proc
 - **Penance**: Templates render LLM prompt text, never HTML — autoescaping would corrupt prompts containing markup-like characters. XSS requires a browser sink; there is none.
 
 ### CONF-378
-- **File**: [yamlgraph/cli/__init__.py](../yamlgraph/cli/__init__.py#L329)
+- **File**: [yamlgraph/cli/__init__.py](../yamlgraph/cli/__init__.py#L359)
 - **Code**: B104
 - **Sin**: a2a serve CLI defaults `--host` to `0.0.0.0`.
 - **Penance**: Development server for local/container use; binding all interfaces is the documented default (containers need it). Deployment behind a proxy is the operator's boundary, flagged in help text.
