@@ -2,9 +2,10 @@
 
 **Priority:** MEDIUM
 **Type:** Fix
-**Status:** Proposed
+**Status:** Judged
 **Effort:** 1 day
 **Requested:** 2026-07-14
+**Judged:** 2026-07-14 — scope frozen; proposal's cap list and direction (c) both overturned by rubric-level verification
 **Parent:** FR-727 (phase 3b) — see `examples/icpc-2-rfe/PLAN.md`
 **Evidence:** FR-727 definitive baseline `logs/fr727-final.json`
 (22/30; all 8 residual failures quantified below)
@@ -86,3 +87,30 @@ diagnosis-inflation beyond P76.
 - FR-727 Implementation (failure taxonomy, Z50-vs-K50 artifact)
 - Diary 2026-07-14 fr725 (every taxonomy has junk-drawer codes —
   graduating heuristic, second family)
+
+## Judgement (2026-07-14)
+
+**Verdict: APPROVED — with the proposal substantially re-pinned.**
+Rubric-level verification (inclusion terms read for every candidate)
+overturned two of the proposal's three directions:
+
+| # | Finding | Resolution (binding) |
+|---|---------|----------------------|
+| F1 | **Direction (c) is unimplementable as specced — its own example is false.** K86's inclusion terms are English ("essential hypertension…"); a Finnish span ("verenpainelääke") can never string-match them. Evidence-gating against catalog terms breaks every non-English transcript — and Finnish support is a demonstrated feature | (c) **KILLED**. Recorded as the reason: catalog-term gating is language-bound; the example's multilingual capability comes precisely from NOT string-matching English terms |
+| F2 | **Proposed cap list over-reached.** A29's inclusion terms are genuine symptoms (falls, drowsiness, somnolence — "grandma keeps falling" is a real RFE); A23 covers real exposure calls ("contact with infectious disease"); A13 ("fear of treatment consequences") is a genuinely stateable reason whose hp36 appearance is instance-level inflation, not descriptor semantics | Chapter cap = **{Z10} only** (empty inclusion list — a pure system descriptor, the Z-side twin of -48). A13/A23/A29 stay uncapped; their labels remain permanent detectors |
+| F3 | **P76-over-P03 needs a mechanism, and ICPC provides one.** Practical rule 3 (our own background doc): use symptom coding while diagnostic uncertainty remains | New rule (d): **same-chapter symptom-over-diagnosis** — a component-7 match demotes to partial when a component-1 match exists in the same chapter (P03 match → P76 demoted; R05 → R74 demoted; K86 untouched on renewal calls — no K-chapter C1 match exists there). Mechanical, language-independent, witnessed both ways |
+| F4 | **Composition context needs eligibility + preference, not just exclusion.** On the Z50 run, excluding Z10 alone might promote A13 over K86 into the context slot | Context slot rules: eligible = non-process, non-capped, **non-Z-chapter**; among eligible, **prefer component-7 diseases over component-1 symptoms** (the composition chapter anchors to the clinical problem being managed — the OPPOSITE preference from RFE primacy, deliberately). K86 wins context over A13 by component, not luck |
+| F5 | **A13 residual accepted, named, measured.** No mechanical rule caps a genuinely stateable code without blocking its genuine use; prompt fixes are barred (3 failures) | AC-01 re-scoped: the gating classes are **Z10 leaks = 0, P76-class (same-chapter C7-over-C1) = 0, Z-composition for clinical calls = 0**. A13 secondary leaks are an accepted residual, expected ~2–3/30, tracked by the hp36 label as permanent detector; revisit only with harness evidence of growth. Aggregate ≥ 26/30 becomes ≈ 24–26/30 expected, recorded as context (threshold_encodes_forecast) |
+
+Additional pins: AC-03's genuine-Z witness must use a **non-capped**
+Z code (e.g. Z05 work problem) — a genuine Z10 system-complaint call
+will now land low_confidence with Z10 top partial, which is the
+documented trade-off of capping it; REQ under CAP-203 (id verified
+free against origin at enforce); fragment (fix) + diary; harness
+rerun quoted in the FR at completion.
+
+**Out of scope (purge list):** direction (c) in any form, cap-list
+extensions beyond Z10 without harness evidence, translation/multilingual
+term matching, label changes, prompt changes, model variance on
+ambiguous fixtures (diabetic/parking scatter — FR-726's territory if
+anyone's).
