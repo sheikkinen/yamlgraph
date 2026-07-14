@@ -53,6 +53,14 @@ The 8 residuals quantify the deferred defect: chapter-code inflation
 and model variance on ambiguous fixtures — the next FR's opening
 evidence.
 
+## Phase 3c — Chapter-inflation discipline (FR-730, Proposed)
+
+The residual quantified by 3b's baseline: Z10/A13/P76 secondary leaks
+(4/30) and inflated context corrupting composition (Z50-vs-K50).
+Directions: chapter-side meta cap + symptom-over-diagnosis context
+preference; evidence-gated diagnosis verdicts only if the harness
+shows inflation beyond P76.
+
 ## Phase 4 — Verdict stability (FR-726, gated — likely CONDEMNED)
 
 Baseline shows agreement ≈90%+ with the failures being bias, which
