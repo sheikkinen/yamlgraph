@@ -45,6 +45,9 @@ def _align_span(span: str, transcript: str, transcript_cf: str) -> str:
     below the floor is a fabrication and raises. Output spans are
     therefore always verbatim transcript text, whatever the model typed.
     """
+    # Models decorate quotes (field: '"a dry cough"' with literal quote
+    # chars) — strip wrapping punctuation before aligning.
+    span = span.strip().strip("\"'\u201c\u201d\u2018\u2019").strip()
     span_cf = span.casefold()
     idx = transcript_cf.find(span_cf)
     if idx >= 0:

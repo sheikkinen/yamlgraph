@@ -9,9 +9,11 @@ Usage:
     yamlgraph graph run graph.yaml --var transcript="..." --full \
         2>/dev/null | python nodes/show_result.py
     python nodes/show_result.py logs/run.log
+    python nodes/show_result.py --json logs/run.log   # machine-readable
 """
 
 import ast
+import json
 import sys
 from pathlib import Path
 
@@ -39,7 +41,10 @@ def _line(entry: dict) -> str:
 
 
 def main() -> None:
-    text = Path(sys.argv[1]).read_text() if len(sys.argv) > 1 else sys.stdin.read()
+    args = sys.argv[1:]
+    as_json = "--json" in args
+    paths = [a for a in args if a != "--json"]
+    text = Path(paths[0]).read_text() if paths else sys.stdin.read()
     classification = _extract(text, "classification")
     meta = _extract(text, "meta")
     if classification is None:
@@ -49,6 +54,16 @@ def main() -> None:
                 print(text[i : i + 300].split("\n")[0])
                 raise SystemExit(1)
         raise SystemExit("No classification found in input")
+
+    if as_json:
+        print(
+            json.dumps(
+                {"classification": classification, "meta": meta},
+                ensure_ascii=False,
+                indent=2,
+            )
+        )
+        return
 
     primary = classification["primary"]
     print("PRIMARY")

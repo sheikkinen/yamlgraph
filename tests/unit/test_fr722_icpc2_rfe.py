@@ -304,6 +304,18 @@ class TestReducerPolicy:
             )
 
     @pytest.mark.req("REQ-YG-550")
+    def test_quote_wrapped_span_normalized(self):
+        """Field: model returned '\"a dry cough\"' with literal quote
+        chars — wrapping punctuation is stripped before alignment."""
+        reducer = _load("reduce.py")
+        out = _reduce(
+            reducer,
+            [_cand("R05", "Cough", "match", 0.9, ['"a dry cough"'])],
+        )
+        spans = out["classification"]["primary"]["evidence_spans"]
+        assert spans == ["a dry cough"]
+
+    @pytest.mark.req("REQ-YG-550")
     def test_output_meta_declares_coverage(self):
         """Coverage honesty pin: a no-match must be interpretable."""
         reducer = _load("reduce.py")

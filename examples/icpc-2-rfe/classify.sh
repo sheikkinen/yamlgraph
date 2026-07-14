@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # FR-722 runner — classify a transcript file (or stdin) and print only
-# the answer. The --full state dump goes to logs/ for forensics.
+# the answer. Every run is archived for crosscheck: full state dump +
+# extracted classification JSON under logs/icpc2-rfe/, keyed by input
+# name and timestamp (verdicts vary run-to-run; history is the audit).
 #
 # Usage:
 #   examples/icpc-2-rfe/classify.sh path/to/transcript.md
@@ -10,20 +12,27 @@ set -euo pipefail
 # Read input BEFORE changing directory (arg paths are caller-relative).
 if [[ $# -ge 1 ]]; then
   transcript="$(cat "$1")"
+  name="$(basename "${1%.*}")"
 else
   transcript="$(cat)"
+  name="stdin"
 fi
 
 cd "$(dirname "$0")"
 
-mkdir -p ../../logs
-log="../../logs/icpc2-rfe-last-run.log"
+run_dir="../../logs/icpc2-rfe"
+mkdir -p "$run_dir"
+stamp="$(date +%Y%m%d_%H%M%S)"
+log="$run_dir/${name}-${stamp}.log"
+result="$run_dir/${name}-${stamp}.result.json"
 
 yamlgraph graph run graph.yaml \
   --var transcript="$transcript" --full > "$log" 2>&1 || {
     python3 nodes/show_result.py "$log" || true
-    echo "full log: logs/icpc2-rfe-last-run.log" >&2
+    echo "full log: ${log#../../}" >&2
     exit 1
   }
 
+python3 nodes/show_result.py --json "$log" > "$result"
 python3 nodes/show_result.py "$log"
+echo "run archived: ${log#../../} + $(basename "$result")"
