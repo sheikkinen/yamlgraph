@@ -1501,7 +1501,7 @@ These are not `# noqa` suppressions — they are documented deviations from proc
 - **Penance**: Same ordering constraint; the faithfulness witness needs the runtime evaluator only when z3 is present.
 
 ### CONF-386
-- **File**: [examples/icpc-2-rfe/nodes/build_catalog.py](../examples/icpc-2-rfe/nodes/build_catalog.py#L74)
+- **File**: [examples/icpc-2-rfe/nodes/build_catalog.py](../examples/icpc-2-rfe/nodes/build_catalog.py#L77)
 - **Code**: S314
 - **Sin**: `xml.etree.ElementTree.fromstring` on the ICPC-2e ClaML file instead of defusedxml.
 - **Penance**: The input is trusted by construction: `build_catalog` refuses any zip whose sha256 differs from the pinned digest of the official ICPC-2e-v7.0 release (FR-722 A1), so only one byte-exact known file is ever parsed; the unit-test path parses a committed 3-row excerpt. Adding a defusedxml dependency for an example builder would violate the no-new-deps posture for examples.

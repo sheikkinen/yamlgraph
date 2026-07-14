@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Feature
-**Status:** In Progress
+**Status:** Completed
 **Effort:** 1-2 days
 **Requested:** 2026-07-14
 **Judged:** 2026-07-14 — scope frozen with 5 findings
@@ -91,3 +91,33 @@ Additional pins:
 **Out of scope (purge list):** combined-code composition (F5), any
 reducer policy change beyond F1/F4, prompt changes beyond the F2
 example flip, calibration, phase 3/4 concerns.
+
+## Implementation (2026-07-14)
+
+Enforced per judgement. RED `6744eee4` (4 condemned + 2 guards,
+REQ-YG-551); GREEN this commit.
+
+- Builder: process rubrics (chapter "-", components 2–6) → `PROC-C<n>`
+  clusters; regenerated catalog: 726 rows, 38 clusters
+  (PROC-C2:20 C3:10 C4:2 C5:1 C6:7 — exactly the judged arithmetic).
+- Reducer F4: process-over-chapter primacy as an explicit sort-key term
+  with witness proving it holds at LOWER confidence — never ASCII luck.
+- Reducer F1: `chapter_context` = best-ranked non-process candidate,
+  attached only to process primaries; guard witness for chapter
+  primaries. Coverage meta → [1..7].
+- F2 prompt example flipped in this commit; two phase-1 witnesses
+  updated where they asserted the repealed exclusion / old coverage
+  (documented obsolescence, not silent edits).
+- **AC-01 field run (HP-36):** primary `-50 Medication/prescription/
+  renewal` match 0.99 with three verbatim Finnish spans; NOT
+  low_confidence; `chapter_context` attached mechanically. Honest
+  variance note: the context code this run was T29, not K86 — the
+  MECHANISM is deterministic and witnessed; WHICH chapter candidate the
+  LLM emits varies run-to-run. That variance is FR-725's measurement
+  target, not this FR's defect.
+- **Field finding (5th span/fidelity shape):** models drop the process
+  sigil ("48" for "-48") — repaired at the catalog-membership boundary
+  when the sigiled form exists; true inventions still raise. Witnessed.
+- Also observed for FR-725 labels: process clusters show the same
+  match-inflation (-48 clarification, -69 other-NEC claimed match) —
+  labels should use `primary_any_of` and `must_not_include` carefully.

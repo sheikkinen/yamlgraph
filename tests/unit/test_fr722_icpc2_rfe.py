@@ -48,7 +48,8 @@ class TestCatalogBuilder:
         xml_text = (FIXTURES / "icpc2_claml_excerpt.xml").read_text()
         rows = builder.parse_claml(xml_text)
         by_code = {r["code"]: r for r in rows}
-        assert set(by_code) == {"R05", "R74", "A97"}
+        # "-30" joined the catalog in FR-724 (phase 2 process codes).
+        assert set(by_code) == {"R05", "R74", "A97", "-30"}
 
         r05 = by_code["R05"]
         assert r05["title"] == "Cough"
@@ -65,15 +66,14 @@ class TestCatalogBuilder:
         assert by_code["R74"]["cluster_id"] == "R-C7"
 
     @pytest.mark.req("REQ-YG-548")
-    def test_chapters_and_process_codes_excluded(self):
-        """Chapter headers and process codes (components 2–6) are not
-        catalog rows — phase-1 purge list."""
+    def test_chapter_headers_excluded(self):
+        """Chapter headers are never catalog rows. (Process-code
+        exclusion was phase 1 only — repealed by FR-724.)"""
         builder = _load("build_catalog.py")
         xml_text = (FIXTURES / "icpc2_claml_excerpt.xml").read_text()
         rows = builder.parse_claml(xml_text)
         codes = {r["code"] for r in rows}
         assert "R" not in codes, "chapter header leaked into catalog"
-        assert "-30" not in codes, "process code leaked into catalog (phase 2)"
 
     @pytest.mark.req("REQ-YG-548")
     def test_sha256_mismatch_raises(self, tmp_path):
@@ -317,8 +317,17 @@ class TestReducerPolicy:
 
     @pytest.mark.req("REQ-YG-550")
     def test_output_meta_declares_coverage(self):
-        """Coverage honesty pin: a no-match must be interpretable."""
+        """Coverage honesty pin: a no-match must be interpretable.
+        (Components list extended by FR-724 phase 2.)"""
         reducer = _load("reduce.py")
         out = _reduce(reducer, [_cand("R05", "Cough", "match", 0.9)])
         assert out["meta"]["catalog_version"] == "ICPC-2e-v7.0"
-        assert out["meta"]["catalog_coverage"]["components"] == [1, 7]
+        assert out["meta"]["catalog_coverage"]["components"] == [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+        ]

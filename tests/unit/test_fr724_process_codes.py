@@ -121,6 +121,21 @@ class TestReducerProcessPrimacy:
         assert "chapter_context" not in out["classification"]["primary"]
 
     @pytest.mark.req("REQ-YG-551")
+    def test_dropped_sigil_repaired_against_catalog(self):
+        """Field finding: model emits "48" for "-48" — repaired when the
+        sigiled form is in the catalog; true inventions still raise."""
+        reducer = _load("reduce.py")
+        state = {
+            "map_results": [
+                {"candidates": [_cand("50", "Medication renewal", "match", 0.9)]}
+            ],
+            "transcript": TRANSCRIPT,
+            "rfe_clusters": [{"cluster_id": "PROC-C3", "codes": [{"code": "-50"}]}],
+        }
+        out = reducer.reduce_best_rfe(state)
+        assert out["classification"]["primary"]["code"] == "-50"
+
+    @pytest.mark.req("REQ-YG-551")
     def test_coverage_meta_declares_all_components(self):
         reducer = _load("reduce.py")
         out = _reduce(reducer, [_cand("-50", "Medication renewal", "match", 0.9)])

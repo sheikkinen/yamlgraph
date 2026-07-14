@@ -17,9 +17,13 @@ from typing import Literal
 from pydantic import BaseModel, Field, ValidationError
 
 CATALOG_VERSION = "ICPC-2e-v7.0"
-COVERAGE_COMPONENTS = [1, 7]
+COVERAGE_COMPONENTS = [1, 2, 3, 4, 5, 6, 7]
 
 _VERDICT_RANK = {"match": 0, "partial_match": 1, "not_applicable": 2}
+
+
+def _is_process(code: str) -> bool:
+    return code.startswith("-")
 
 
 class CandidateVerdict(BaseModel):
@@ -85,8 +89,14 @@ def _validate_candidates(state: dict) -> list[CandidateVerdict]:
             except ValidationError as exc:
                 raise ValueError(f"Invalid candidate {raw!r}: {exc}") from exc
             if known_codes and cand.code not in known_codes:
-                # AC-02: verdicts are drawn only from the catalog list.
-                raise ValueError(f"candidate code not in catalog: {cand.code!r}")
+                # FR-724 field finding: models drop the process-code
+                # sigil ("48" for "-48") — repair mechanically when the
+                # sigiled form IS in the catalog; anything else is an
+                # invention (AC-02) and raises.
+                if f"-{cand.code}" in known_codes:
+                    cand.code = f"-{cand.code}"
+                else:
+                    raise ValueError(f"candidate code not in catalog: {cand.code!r}")
             try:
                 cand.evidence_spans = [
                     _align_span(span, transcript, transcript_cf)
@@ -101,7 +111,16 @@ def _validate_candidates(state: dict) -> list[CandidateVerdict]:
 
 
 def _sort_key(cand: CandidateVerdict) -> tuple:
-    return (_VERDICT_RANK[cand.verdict], -cand.confidence, cand.code)
+    # FR-724 F4: within a verdict rank a process code outranks a chapter
+    # code — the stated reason for a renewal/admin call IS the process
+    # (ICPC RFE semantics). Deliberate rule, witnessed; "-" sorting
+    # before letters must never be the reason this works.
+    return (
+        _VERDICT_RANK[cand.verdict],
+        0 if _is_process(cand.code) else 1,
+        -cand.confidence,
+        cand.code,
+    )
 
 
 def _entry(cand: CandidateVerdict) -> dict:
@@ -126,8 +145,20 @@ def reduce_best_rfe(state: dict) -> dict:
     partials = [c for c in deduped if c.verdict == "partial_match"]
 
     if matches:
+        primary = _entry(matches[0])
+        if _is_process(matches[0].code):
+            # FR-724 F1: chapter_context is reducer-derived — the best-
+            # ranked non-process candidate (match or partial), attached
+            # mechanically. The LLM never judges chapter from a process
+            # cluster.
+            context = next((c for c in deduped if not _is_process(c.code)), None)
+            if context is not None:
+                primary["chapter_context"] = {
+                    "code": context.code,
+                    "title": context.title,
+                }
         classification = {
-            "primary": _entry(matches[0]),
+            "primary": primary,
             "secondary": [_entry(c) for c in matches[1:]],
             "low_confidence": False,
             "best_partial": [_entry(c) for c in partials[:3]],

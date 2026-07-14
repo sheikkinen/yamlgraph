@@ -7,9 +7,11 @@ system: >
   rubric itself names what the patient states as the reason for the
   contact; a rubric that is merely related, adjacent, implied, or true
   of the situation in general is "partial_match" at most (example: a
-  medication-renewal call for hypertension MATCHES the hypertension
-  rubric; "health care system problem" or generic concern rubrics are
-  partial at best). Do NOT invent codes outside the cluster list, do
+  medication-renewal call MATCHES the medication/prescription-renewal
+  process rubric when it is in this cluster; the disease being treated
+  (e.g. hypertension) is context and rates "partial_match" at most;
+  "health care system problem" or generic concern rubrics are partial
+  at best). Do NOT invent codes outside the cluster list, and do
   NOT paraphrase evidence — quote contiguous transcript fragments
   verbatim; when in doubt quote a SHORTER fragment. Omit rubrics that
   are plainly irrelevant rather than listing them as not_applicable;

@@ -33,9 +33,11 @@ SOURCE_SHA256 = "bbf96476cf97d572c2ce6e8a0652b3ae7460bfa9f3502e345a2d0c2f851e6c2
 SOURCE_VERSION = "ICPC-2e-v7.0"
 CLAML_MEMBER = "ICPC-2e-v7.0.xml"
 
-# Phase 1 scope (Judgement F1): components 1 (symptoms/complaints) and
-# 7 (diseases). Process codes (components 2-6) are phase 2.
+# Phase 1 (FR-722, Judgement F1): components 1 (symptoms/complaints) and
+# 7 (diseases) per chapter. Phase 2 (FR-724): shared process rubrics
+# (components 2-6, ClaML chapter "-") join as PROC-C<n> clusters.
 RFE_COMPONENTS = (1, 7)
+PROCESS_COMPONENTS = (2, 3, 4, 5, 6)
 
 CATALOG_PATH = Path(__file__).resolve().parents[1] / "data" / "icpc2_rfe_catalog.yaml"
 
@@ -66,9 +68,10 @@ def parse_claml(xml_text: str) -> list[dict]:
     """Parse ClaML into catalog rows (REQ-YG-548).
 
     Component is derived from the SuperClass code suffix
-    (``<chapter>.<component>``). Chapter headers and process codes
-    (components 2-6, chapter ``-``) are excluded per the phase-1 purge
-    list. Provenance fields are assigned mechanically: the row is
+    (``<chapter>.<component>``). Chapter headers are excluded. Chapter
+    codes keep components 1/7 (FR-722); process codes (chapter ``-``,
+    components 2-6) become chapter-independent ``PROC-C<n>`` clusters
+    (FR-724). Provenance fields are assigned mechanically: the row is
     derived from the Tier-1 file itself.
     """
     root = ET.fromstring(xml_text)  # noqa: S314 — CONF-386
@@ -84,15 +87,21 @@ def parse_claml(xml_text: str) -> list[dict]:
         if not comp_str.isdigit():
             continue
         component = int(comp_str)
-        if component not in RFE_COMPONENTS or chapter == "-":
-            continue
+        if chapter == "-":
+            if component not in PROCESS_COMPONENTS:
+                continue
+            cluster_id = f"PROC-C{component}"
+        else:
+            if component not in RFE_COMPONENTS:
+                continue
+            cluster_id = f"{chapter}-C{component}"
 
         row: dict = {
             "code": code,
             "title": "",
             "chapter": chapter,
             "component": component,
-            "cluster_id": f"{chapter}-C{component}",
+            "cluster_id": cluster_id,
             "official_definition_or_note": "",
             "inclusion_terms": [],
             "exclusion_terms": [],

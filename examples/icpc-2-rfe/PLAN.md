@@ -23,14 +23,15 @@ Field-proven limits (all documented in the FR):
 - LLM token-fidelity (span quoting) and verdict semantics both required
   code/prompt discipline — see diary 2026-07-14 (two-strike rule).
 
-## Phase 2 — Process codes (FR-724, Proposed)
+## Phase 2 — Process codes (FR-724, **Completed** 2026-07-14)
 
-Add components 2–6 (the 40 shared `-30…-69` process rubrics: medication
-renewal, exams, results, administrative, referrals) as RFE candidates.
-Renewal/administrative calls — the dominant traffic in the ninchat
-voice deployment — become first-class instead of best-partial.
-HP-36 acceptance: primary = medication-renewal process code, K86 as
-disease-context secondary.
+Components 2–6 (the 40 shared `-30…-69` process rubrics: medication
+renewal, exams, results, administrative, referrals) are RFE candidates
+— 5 `PROC-C<n>` clusters, fan-out 38. Process-over-chapter primacy and
+reducer-derived `chapter_context` are explicit witnessed rules.
+HP-36 acceptance met: primary `-50 Medication/prescription/renewal`,
+not low_confidence. Which chapter candidate becomes context still
+varies run-to-run — phase 3's measurement target.
 
 ## Phase 3 — Labeled crosscheck harness (FR-725, Proposed)
 
