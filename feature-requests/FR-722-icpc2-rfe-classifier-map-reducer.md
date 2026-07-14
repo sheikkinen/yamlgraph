@@ -298,6 +298,45 @@ call, ICD/SNOMED mapping, embedding retrieval, multi-language prompts,
 verbatim rubric text in the repo, per-code (non-clustered) fan-out, any
 calibration claim for confidence values, components 2–6 rubrics (RFE
 process codes deferred to phase 2 with their own judgement).
+
+## Judgement Addendum (2026-07-14): generated catalog, not committed catalog
+
+Field verification of the Tier-1 source (ICPC-2e-v7.0 zip from
+helsedirektoratet.no, WICC-delegated) changes the catalog mechanism. The
+zip contains the complete rubric register — 726 rows (686 chapter codes,
+40 process codes) with `preferred, shortTitle, inclusion, exclusion,
+criteria, consider, note, icd10` — in both xlsx and **ClaML XML**
+(stdlib-parseable, no new dependency). Component is derivable from code
+ranges (01–29 = C1, 70–99 = C7, -30…-69 = process).
+
+**A1 (amends F5's mechanism, keeps its constraint):** the catalog is a
+**generated local artifact**, never committed. The repo ships
+`build_catalog.py` (pinned URL + sha256
+`bbf96476cf97d572c2ce6e8a0652b3ae7460bfa9f3502e345a2d0c2f851e6c22`,
+parses ClaML, emits
+`data/icpc2_rfe_catalog.yaml`, gitignored); the user downloads the source
+under their own acceptance of WONCA's terms — the repo redistributes
+nothing. Consequences:
+- The local catalog may carry **verbatim** inclusion/exclusion/criteria
+  text (higher prompt fidelity than paraphrase; local use of a licensed
+  copy, not redistribution). The "paraphrased cues" requirement now
+  applies ONLY to committed artifacts.
+- `provenance_status: verified` is assigned **mechanically** by the
+  builder (row derived from the Tier-1 file; `source_reference:
+  ICPC-2e-v7.0/<code>`). `provisional` marks only hand-added rows.
+- Committed for tests: a ~5-row paraphrased fixture catalog. Unit tests
+  run against the fixture; integration tests require the generated
+  catalog and **skip with an actionable message** ("run build_catalog.py")
+  when absent — the example is usable only after the user-run build step,
+  by design.
+- AC-04/04a/04b are satisfied by builder + validator; the human review
+  checklist in Risks is superseded by the sha256 pin and a builder unit
+  test against a committed 3-row ClaML excerpt fixture (excerpt small
+  enough to be fair-use quotation for testing).
+
+Purge-list line "verbatim rubric text in the repo" is unchanged and now
+trivially enforced: the only rubric text in the repo is the paraphrased
+fixture + the 3-row test excerpt.
 - WONCA WICC steward page and official resources (Tier 1 context): https://www.globalfamilydoctor.com/groups/workingparties/wicc.aspx
 - WICC ICPC explainer PDF reference: https://www.globalfamilydoctor.com/site/DefaultSite/filesystem/documents/Groups/WICC/International%20Classification%20of%20Primary%20Care%20Dec16.pdf
 - ICPC-2 browser lookup tool (Tier 3): https://icpc2.icpc-3.info/
