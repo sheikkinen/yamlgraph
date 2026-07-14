@@ -1,10 +1,11 @@
-# Feature Request: FR-730 WebLLM Browser Prompt Demo — Rung-1 Spike
+# Feature Request: FR-731 WebLLM Browser Prompt Demo — Rung-1 Spike
 
 **Priority:** LOW
 **Type:** Spike / Example
-**Status:** Proposed
+**Status:** Judged
 **Effort:** 0.5–1 day
 **Requested:** 2026-07-14
+**Judged:** 2026-07-14 — scope frozen; renumbered from FR-730 (ID collision, recurrence #3 of the allocation race — FR-730-icpc2 landed on origin first, ec98d311 15:44:44 vs 0b809763 15:45:44)
 **Spawned by:** docs/2026-07-14-research-browser-llm-webgpu.md — recommendation
 "fund only the first rung": one yamlgraph prompt with inline schema running
 against WebLLM in the visitor's browser, zero API key, zero server.
@@ -118,3 +119,25 @@ spike that is honestly recorded is a success of the method.
 - **Qwen3-1.7B for quality:** 2× the download for a spike whose question
   is compile-path validity, not model quality; if the 1B fails the kill
   criterion, the re-judgement considers it.
+
+## Judgement (2026-07-14)
+
+**Verdict: APPROVED — with 6 findings.** Prompt shape verified against
+`examples/demos/reflexion/prompts/critique.yaml` (score ge/le present,
+`{iteration}`/`{content}` placeholders confirmed); CAP-04 REQ inventory
+and max REQ id (555) read before pinning.
+
+| # | Finding | Resolution (binding) |
+|---|---------|----------------------|
+| F0 | **ID collision** — FR-730 was already claimed by icpc2-chapter-inflation (landed origin first, one commit earlier). Recurrence #3 of the allocation race; the validate-capabilities gate covers CAP/REQ ids but not FR ids | Renumbered to **FR-731** at judgement. No external cross-refs existed (research doc, changelog: none). Commit `0b809763`'s message says FR-730 — the rename commit message must note the supersession so `git log --grep=FR-730` stays interpretable |
+| F1 | AC-04's kill criterion demands 10 manual runs but the evidence artifact only ≥3 verbatim outputs — the verdict would rest on 7 unrecorded runs | ≥3 verbatim FULL raw outputs stays, but the kill-criterion tally must enumerate **all 10 runs** in spike-evidence.md as one line each (input id, schema-valid y/n, score). A verdict over unrecorded runs is the `gate_checks_shape_not_substance` trap |
+| F2 | AC-05 claims a REQ under CAP-04 for "inline-schema → JSON Schema export", but the tested behavior is `Model.model_json_schema()` — Pydantic's own serialization. The framework behavior actually exercised is `load_schema_from_yaml` building a model whose constraints survive to JSON Schema (`ge/le` → `minimum/maximum`) | REQ is justified but must be worded as **constraint fidelity through the inline-schema path** (schema_loader → model → json_schema round-trip preserves ge/le/defaults/required), not as a new "export" capability. New REQ id ≥ 556, verified free at enforce (same race, same check) |
+| F3 | `build.py` emits `model_id` into prompt.json, but model choice is a page concern (the compiler knows nothing about WebLLM models); coupling it into the compiled artifact smuggles deployment config into the compile path the spike exists to validate | `prompt.json` carries **only** `{name, system, user_template, json_schema}`. `model_id` is a constant in `index.html`. The artifact then witnesses exactly the claim under test: prompt YAML → portable JSON, nothing else |
+| F4 | AC-03's "source-inspection test" is unenforceable as worded (inspection by whom?) | Pin: a unit test greps `index.html` asserting the WebLLM engine-creation call is lexically inside the click handler / behind the consent gate, and that no `fetch(`/model-URL literal sits at module top level. Crude but mechanical — matches the spike's weight class |
+| F5 | Idempotence AC-02 ("rebuild is a no-op") requires deterministic serialization — `model_json_schema()` key order is stable in practice but the FR shouldn't rest on "in practice" | build.py writes `json.dumps(..., sort_keys=True, indent=2)`; the idempotence test is then a byte-equality check, and prompt-drift diffs stay minimal |
+| F6 | Temperature 0 + q4 1B model: the kill criterion measures grammar enforcement, not model competence — a schema-valid but semantically absurd critique (score 0.97 for gibberish) still PASSES rung 1 | Correct and intentional; pin it explicitly: rung-1 verdict is **schema fidelity only**. spike-evidence.md must carry one sentence acknowledging semantic quality is out of scope, so the research-doc update cannot oversell the rung |
+
+**Scope frozen.** Purge list stands as written (no model picker, no
+streaming, no graph execution, no skill-export). Enforce order: AC-01
+RED first (build.py compiler test), then AC-02/AC-03 tests, then page,
+then the deployed-site evidence run, then AC-05 paperwork.
