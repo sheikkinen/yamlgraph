@@ -55,7 +55,18 @@ exactly the dead runs where the route matters most.
 
 - Both router fns + the loop-exit path emit via a dedicated logger
   (`yamlgraph.route`), one JSON line per decision:
-  `{"event":"route","node":<source>,"value":<matched condition|loop_exit>,"target":<target>,"thread_id":<from config>}`
+  `{"event":"route","node":<source>,"value":<matched condition|loop_exit>,"target":<target>,"thread_id":<or null>}`
+- **thread_id mechanism (R-1):** router fns receive `state` only — the
+  thread id lives in `config["configurable"]`, unreachable from the seam.
+  Mechanism: a **contextvar** set by the executor/run entrypoints around
+  graph invocation (zero signature churn; serves any future seam).
+  Fallback consideration: LangGraph's `(state, config)` conditional-edge
+  signature if the pinned version supports it. Absent both, the field is
+  emitted as **`null` — never fabricated**.
+- **Map fan-out targets (R-2):** when the decision returns `Send` objects,
+  the line carries the **map-node name + fan-out count**
+  (`{"target":"process_items","fan_out":4}`) — never `repr(Send)`, whose
+  payloads carry state content (the privacy rule made structural).
 - **Opt-in** by env (`YAMLGRAPH_ROUTE_LOG=1`) or graph-YAML flag
   (`observability.route_log: true`) — zero overhead when off (guard
   before serialization).
@@ -63,14 +74,18 @@ exactly the dead runs where the route matters most.
   metadata, never state content (privacy bounded by construction).
 - Emission never raises (forensic-channel discipline: a log line must
   not break the run).
+- The `yamlgraph.route` logger namespace is **public API** — documented as
+  the attach point for downstream handlers/filters.
 
 ### 2. `yamlgraph graph export --mermaid <graph.yaml>`
 
 - Renders the **authored** YAML: nodes (type-annotated: llm/race/
   tool/map), edges with condition labels by reference, loop limits,
-  interrupt nodes marked. Conditions-as-authored, not the compiled
-  LangGraph view (`draw_mermaid()` renders Send fan-outs and internal
-  names — documented as the rejected alternative).
+  interrupt nodes marked, **and the loop-exit edge rendered explicitly**
+  (`loop_exit → <target>`) — the hole this FR closes deserves visibility
+  on the authored map, not only in route lines. Conditions-as-authored,
+  not the compiled LangGraph view (`draw_mermaid()` renders Send fan-outs
+  and internal names — documented as the rejected alternative).
 - Pure function of the YAML: stdlib + yaml, no LLM, no API keys — safe
   for pre-commit use by downstream projects.
 
@@ -85,7 +100,7 @@ exactly the dead runs where the route matters most.
   — naive positional diff misaligns after the first divergence in a
   loopy route). Empty diff = the cheap determinism witness.
 
-### Migration note (ninchat_voice, separate NC)
+### Migration note (ninchat_voice, separate NC — R-3: filed BEFORE this FR merges)
 
 Once this lands, ninchat's five `emit_route` calls become a shim over
 framework events and MUST be deleted (no-shims commandment); its
@@ -93,6 +108,12 @@ overlay parser consumes the framework grammar; its project-local
 pieces (facts channel for topics/extracted/delivery, death markers,
 schema sidecar, utterance inventory) remain project-local — they are
 domain, not graph semantics.
+**Grammar compatibility fact for the NC:** ninchat's parser keys on
+`call_sid` in `📋 FACTS:`-prefixed lines; the framework emits
+`event:route` JSON on `yamlgraph.route` with `thread_id`. ninchat already
+invokes with `thread_id=call_sid`, so the shim is a prefix/field rename —
+small by design. The NC is filed (not enforced) as an AC-06 deliverable;
+without it the shim lingers and no-shims is violated by omission.
 
 ### Out of scope (purge list)
 
@@ -117,12 +138,16 @@ domain, not graph semantics.
 
 - [ ] AC-01 RED — unit: with route log enabled, a fixture graph run
       emits one line per conditional decision INCLUDING a loop-limit
-      exit; disabled ⇒ zero lines and no serialization cost (mock
-      assert).
+      exit, a **simple-router decision** (`make_router_fn`), and a **map
+      fan-out** (name + count, no state content — R-2's privacy
+      assertion testable); route lines carry the invoking `thread_id`
+      (or `null`, never fabricated — R-1); disabled ⇒ zero lines and no
+      serialization cost (mock assert — **load-bearing: this hook rides
+      every conditional edge of every graph; enforce this first**).
 - [ ] AC-02 Export: `graph export --mermaid` on 3 representative
       example graphs (one loopy, one map fan-out, one router node)
       produces syntactically valid Mermaid containing every authored
-      node and condition label exactly once.
+      node and condition label exactly once, loop-exit edges rendered.
 - [ ] AC-03 Overlay: fixture run's route.jsonl renders taken edges +
       ordinals; ordered route reconstructible from the render alone
       (condemning test: counts-only render fails).
@@ -133,7 +158,8 @@ domain, not graph semantics.
       (demo gate).
 - [ ] AC-06 New REQ under CAP-06 (hook) and CAP-10 (export); changelog
       fragment; docs in reference/graph-yaml.md (observability flag)
-      and CLI reference.
+      and CLI reference incl. the `yamlgraph.route` public logger
+      namespace; **ninchat migration NC filed before merge (R-3)**.
 
 ## Alternatives Considered
 
