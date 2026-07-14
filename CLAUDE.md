@@ -437,6 +437,7 @@ The codebase uses **sync-first with async wrappers**:
 | `AZURE_AI_API_KEY` | Azure AI API key |
 | `AZURE_MODEL` | Default Azure model/deployment name (default: `gpt-4o`) |
 | `YAMLGRAPH_OTEL_DIR` | Optional directory for per-node copilot OTel files (`<dir>/<node_name>.otel.jsonl`); when set, `_execute_cli` exports `COPILOT_OTEL_FILE_EXPORTER_PATH` per node |
+| `YAMLGRAPH_ROUTE_LOG` | Route decision log opt-in (FR-723): `1` emits one JSON line per routing decision on the public `yamlgraph.route` logger; a file path also appends raw JSONL for `graph export --overlay` |
 | `PROVIDER` | Default LLM provider (anthropic/azure/deepseek/google/inception/mistral/openai/replicate/xai/lmstudio) |
 | `LANGCHAIN_TRACING_V2` | Enable LangSmith observability (true/false) |
 | `LANGCHAIN_API_KEY` | LangSmith API key |

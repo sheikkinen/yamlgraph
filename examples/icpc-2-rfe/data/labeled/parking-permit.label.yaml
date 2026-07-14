@@ -1,0 +1,10 @@
+# FR-725 labeled fixture — synthetic, non-clinical.
+# rationale: phase-1 field run 4 (read raw): no clinical reason exists;
+# A97 No disease / administrative process are the honest answers. A
+# low_confidence outcome is equally acceptable — the label accepts both
+# shapes via primary_any_of OR low_confidence.
+valid_for_components: [1, 2, 3, 4, 5, 6, 7]
+primary_any_of: [A97, "-62"]
+must_include: []
+must_not_include: [X27]
+low_confidence_expected: null   # either outcome acceptable — see rationale

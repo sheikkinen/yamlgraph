@@ -115,6 +115,11 @@ yamlgraph graph run graph.yaml --var name=World --timing
 # Inspect, validate, lint graphs
 yamlgraph graph info examples/demos/router/graph.yaml
 yamlgraph graph lint examples/demos/*/graph.yaml
+
+# Visualize: authored Mermaid map; overlay an executed route (FR-723)
+yamlgraph graph export examples/demos/reflexion/graph.yaml --mermaid
+YAMLGRAPH_ROUTE_LOG=route.jsonl yamlgraph graph run examples/demos/reflexion/graph.yaml --var topic=AI
+yamlgraph graph export examples/demos/reflexion/graph.yaml --mermaid --overlay route.jsonl
 ```
 
 ### Bench Command

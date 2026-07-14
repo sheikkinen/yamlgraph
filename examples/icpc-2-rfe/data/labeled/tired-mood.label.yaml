@@ -1,0 +1,9 @@
+# FR-725 labeled fixture — synthetic, non-clinical.
+# rationale: phase-1 field run 5 (read raw): cross-chapter multi-label —
+# A04 tiredness stated first and longest; P03 feeling depressed is the
+# second stated reason and must surface somewhere.
+valid_for_components: [1, 2, 3, 4, 5, 6, 7]
+primary_any_of: [A04, P03]
+must_include: [P03, A04]
+must_not_include: [P76]
+low_confidence_expected: false

@@ -1,0 +1,9 @@
+# FR-725 labeled fixture — synthetic, non-clinical.
+# rationale: phase-1 field run 6 (read raw): T90 diabetes context with a
+# medication-adjustment request; with phase 2 the prescription process
+# code may take primary. Genuinely tied → wide primary_any_of.
+valid_for_components: [1, 2, 3, 4, 5, 6, 7]
+primary_any_of: [T90, "-50", A91]
+must_include: [T90]
+must_not_include: [X27]
+low_confidence_expected: false

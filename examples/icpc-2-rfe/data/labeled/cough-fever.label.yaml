@@ -1,0 +1,8 @@
+# FR-725 labeled fixture — synthetic, non-clinical.
+# rationale: phase-1 field run 2 (read raw): R05 match with verbatim span;
+# A03 feverish is genuinely partial (no measured temperature).
+valid_for_components: [1, 2, 3, 4, 5, 6, 7]
+primary_any_of: [R05]
+must_include: [A03]
+must_not_include: [Z10]
+low_confidence_expected: false

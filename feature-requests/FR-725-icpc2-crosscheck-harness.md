@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Instrumentation
-**Status:** Judged
+**Status:** In Progress
 **Effort:** 1 day
 **Requested:** 2026-07-14
 **Judged:** 2026-07-14 — scope frozen with 4 findings; raw-read gate satisfied by inheritance

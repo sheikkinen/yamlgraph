@@ -1,0 +1,11 @@
+# FR-725 labeled fixture — synthetic persona transcript (HP-36).
+# rationale: field runs 7-8 + FR-724 AC-01 (read raw): the stated reason
+# is a prescription renewal — the -50 process code; K86 hypertension is
+# chapter context. Phase-1 truth (low_confidence, K86 top partial) is
+# encoded by valid_for_components: this label only applies when process
+# codes are in coverage.
+valid_for_components: [1, 2, 3, 4, 5, 6, 7]
+primary_any_of: ["-50"]
+must_include: []
+must_not_include: [A13, Z10]
+low_confidence_expected: false

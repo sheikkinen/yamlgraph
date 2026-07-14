@@ -62,3 +62,16 @@ requirements:
     modules:
       - examples/icpc-2-rfe/nodes/build_catalog.py
       - examples/icpc-2-rfe/nodes/reduce.py
+  - id: REQ-YG-554
+    description: >
+      Labeled crosscheck harness (FR-725). Labels live beside file-based
+      fixtures in data/labeled/ and require rationale plus
+      valid_for_components; evaluate_result enforces primary_any_of,
+      must_include (any surfaced slot including chapter_context and
+      best_partial), must_not_include (primary and secondary only) and
+      tri-state low_confidence_expected; a coverage mismatch between
+      label and result skips loudly by name; archives attribute by
+      fixture basename only (stdin runs never attributed); agreement
+      reports raw k-of-n counts with no significance computation.
+    modules:
+      - examples/icpc-2-rfe/nodes/crosscheck.py
