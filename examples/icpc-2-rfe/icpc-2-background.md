@@ -7,12 +7,24 @@
 | `tmp/icpc-wonca-dec16.pdf` (untracked, gitignored) | WONCA "International Classification of Primary Care" introduction leaflet, 5 pages, Dec 2016 (PDF author metadata: Luisa Pettigrew) | 2/4 — official WONCA background, **non-normative** | Episode-of-care rationale, ICPC-vs-ICD positioning, one sample page. Contains NO rubric text, definitions, or inclusion/exclusion terms. Licensing contact: ceo@wonca.net |
 | WHO ICPC-2 page | Status + 17-chapter / 7-component structure statement | 2 | https://www.who.int/standards/classifications/other-classifications/international-classification-of-primary-care |
 
-**Tier-1 gap (open):** the normative ICPC-2 rubric text (book or official
-rubric browser) is NOT in tooling context. Per FR-722's operational rule,
-every catalog row is `provenance_status: provisional` until reconciled
-against Tier 1 — production mode is empty until then. Source PDFs stay
-untracked (WONCA copyright; FR-722 Judgement F5): cite by pointer, never
-commit verbatim text.
+**Tier-1 source located online (2026-07-14):** the Norwegian Directorate of
+Health maintains the official ICPC-2e English repository **on behalf of
+WICC/WONCA** at
+https://www.helsedirektoratet.no/digitalisering-og-e-helse/helsefaglige-kodeverk/icpc/icpc-2e--english-version.
+Current normative electronic edition: **ICPC-2e-v7.0** (2018-02-20), a
+~290 kB zip in **Excel and ClaML** with per-rubric `short title, inclusion,
+exclusion, criteria, consider, note` — exactly the fields the FR-722 catalog
+needs. This is Tier 1 (WICC-delegated master). Lookup convenience (Tier 3):
+FinnKode browser + API + Excel export at
+https://finnkode.helsedirektoratet.no/icpc2/chapter (Norwegian-localized
+annual edition; the v7.0 zip is the frozen international English master).
+
+**License:** "ICPC is copyright property of Wonca"; policy at
+http://www.ph3c.org/4daction/w3_CatVisu/en/rules-%26-ethics.html?wCatIDAdmin=1101.
+Judgement F5 stance unchanged: derive the catalog locally from v7.0
+(downloaded to tmp/, untracked), commit only codes + titles + paraphrased
+cues + row/page pointers — never the verbatim rubric text. Rows checked
+against v7.0 may be marked `provenance_status: verified`.
 
 ## What ICPC-2 is
 The International Classification of Primary Care, 2nd edition (ICPC-2), is a primary care classification maintained by the WONCA International Classification Committee (WICC) and accepted by WHO in the WHO Family of International Classifications.
