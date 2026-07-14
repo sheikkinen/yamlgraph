@@ -9,6 +9,9 @@ kramdown:
 
 # Disable Liquid templating globally for all pages
 # This prevents {% %} Jinja2 syntax from being interpreted as Liquid
+# NOTE: render_with_liquid requires Jekyll >= 4.0; GitHub Pages runs
+# Jekyll 3.10 (github-pages gem) which silently ignores it. The exclude
+# list below is the enforcement that actually works on Jekyll 3.
 defaults:
   - scope:
       path: ""
@@ -19,3 +22,8 @@ defaults:
 exclude:
   - "*.log"
   - "*.tmp"
+  # Diary prose quotes raw Jinja2/Liquid syntax ({% ... %}) and is written
+  # for the repo, not the site; Jekyll 3 cannot skip Liquid per-file, so
+  # the whole tree is excluded (fatal since 2026-05-20, FR-425 entry).
+  - "diary"
+  - "diary-*.md"
