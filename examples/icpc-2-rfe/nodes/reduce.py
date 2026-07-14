@@ -26,6 +26,15 @@ def _is_process(code: str) -> bool:
     return code.startswith("-")
 
 
+# FR-727 F1/F2: encounter-form descriptors and junk drawers — rubrics
+# that describe the ENCOUNTER, not a patient-requestable process —
+# pinned from a full read of all 40 process titles. Project curation
+# lives HERE, visibly, not in the generated Tier-1 catalog. The FR-725
+# baseline showed -48 eating symptom transcripts 5/5 (bias with perfect
+# agreement); prompt discipline failed twice, so the cap is code.
+META_PROCESS_CODES = {"-43", "-46", "-48", "-69"}
+
+
 class CandidateVerdict(BaseModel):
     """Per-code verdict returned by a map cluster item (judged contract)."""
 
@@ -36,6 +45,7 @@ class CandidateVerdict(BaseModel):
     reasoning_short: str
     evidence_spans: list[str] = Field(default_factory=list)
     missing_signals: list[str] = Field(default_factory=list)
+    capped: bool = False  # FR-727: demoted meta-process claim
 
 
 def _align_span(span: str, transcript: str, transcript_cf: str) -> str:
@@ -106,6 +116,11 @@ def _validate_candidates(state: dict) -> list[CandidateVerdict]:
                 raise ValueError(
                     f"evidence_span not in transcript for {cand.code}: {exc}"
                 ) from exc
+            if cand.code in META_PROCESS_CODES and cand.verdict == "match":
+                # FR-727 F3: demote, never drop — evidence stays visible
+                # in best_partial; primary/secondary are unreachable.
+                cand.verdict = "partial_match"
+                cand.capped = True
             validated.append(cand)
     return validated
 
@@ -117,6 +132,11 @@ def _sort_key(cand: CandidateVerdict) -> tuple:
     # before letters must never be the reason this works.
     return (
         _VERDICT_RANK[cand.verdict],
+        # FR-727 F3 refinement (final baseline read): a DEMOTED claim
+        # must not outcompete genuine partials for the 3-slot
+        # best_partial window — capped entries rank last in their tier
+        # (field: capped -48 crowded A03 fever out of cough-fever runs).
+        1 if cand.capped else 0,
         0 if _is_process(cand.code) else 1,
         -cand.confidence,
         cand.code,
@@ -157,6 +177,12 @@ def reduce_best_rfe(state: dict) -> dict:
                     "code": context.code,
                     "title": context.title,
                 }
+            # FR-727 F4: ICPC-2 process codes COMPOSE with a chapter
+            # letter (biaxial design: every component exists in every
+            # chapter). K86 + -50 → K50; chapter A (general/unspecified)
+            # when no clinical context surfaced.
+            chapter_letter = context.code[0] if context is not None else "A"
+            primary["combined_code"] = chapter_letter + matches[0].code.lstrip("-")
         classification = {
             "primary": primary,
             "secondary": [_entry(c) for c in matches[1:]],

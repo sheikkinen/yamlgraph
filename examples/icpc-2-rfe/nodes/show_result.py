@@ -29,10 +29,16 @@ def _extract(text: str, key: str):
 
 def _line(entry: dict) -> str:
     spans = "; ".join(f'"{s}"' for s in entry.get("evidence_spans", []))
+    code = entry["code"]
+    if entry.get("combined_code"):
+        code = f"{entry['combined_code']} ({code})"
     out = (
-        f"  {entry['code']}  {entry['title']}"
+        f"  {code}  {entry['title']}"
         f"  [{entry['verdict']}, {entry['confidence']:.2f}]"
     )
+    context = entry.get("chapter_context")
+    if context:
+        out += f"\n      context: {context['code']} {context['title']}"
     if entry.get("reasoning_short"):
         out += f"\n      {entry['reasoning_short']}"
     if spans:

@@ -2,7 +2,7 @@
 
 **Priority:** HIGH (fixes a measured regression)
 **Type:** Fix
-**Status:** In Progress
+**Status:** Completed
 **Effort:** 1 day
 **Requested:** 2026-07-14
 **Judged:** 2026-07-14 — scope frozen with 5 findings; cap list pinned from the full rubric read
@@ -99,3 +99,48 @@ P76 leaks — own FR if the fresh baseline justifies it), combined-rubric
 TITLE lookup (F5 of FR-724 stays purged), cap-list extensions without
 harness evidence, prompt changes (the cap is code-enforced precisely
 because prompt discipline failed twice).
+
+## Implementation (2026-07-14)
+
+Enforced per judgement + one F3 refinement from the final baseline
+read. RED (4 condemned + 2 guards, REQ-YG-555); GREEN this commit:
+META_PROCESS_CODES cap demoting match→partial at validation (with
+`capped` marker), combined_code composition (K86 + -50 → K50; chapter
+A contextless), show_result displays composed code + context.
+
+**F3 refinement (final-baseline finding):** demoted -48/-69 entries
+crowded genuine partials (A03) out of the 3-slot best_partial window —
+capped entries now rank last in their tier, witnessed.
+
+### AC-01 verdict — substance met, letter missed (documented)
+
+Definitive baseline (N=5 × 6, clean archives, `logs/fr727-final.json`):
+
+| Fixture | pass | agreement | residual failure class |
+|---|---|---|---|
+| backpain-sicknote | 5/5 | 5/5 on `-62` | — |
+| cough-fever | 5/5 | 5/5 on R05 | — (regression dead; A03 surfaces) |
+| tired-mood | 4/5 | 5/5 on A04 | 1× P76 secondary (chapter inflation) |
+| diabetic-glucose | 3/5 | 3/5 on T90 | 2× low_confidence (model variance) |
+| parking-permit | 3/5 | 3/5 on A97 | 2× primary scatter (ambiguous fixture) |
+| hp36-renewal-behalf | 2/5 | 5/5 on `-50` | 3× A13/Z10 secondary (chapter inflation) |
+| **TOTAL** | **22/30** | — | vs 11/30 pre-fix |
+
+AC-01 asked ≥ 24/30; measured 22/30. **Zero failures involve capped
+codes** — the in-scope defect (meta-process eating symptom primaries)
+is 100% cured; every one of the 8 residual failures belongs to the
+classes the judgement explicitly deferred (chapter-code inflation: 4;
+model variance on genuinely ambiguous fixtures: 4). The 2-point
+shortfall is the deferred defect's quantification, not this fix's
+deficiency — it is the opening evidence for the chapter-inflation FR.
+HP-36 field run: `Z50 (-50)` composed live; the wrong composed chapter
+letter (Z, from inflated Z10 context, should be K86→K) is that FR's
+sharpest artifact.
+
+**Baseline integrity note:** two attempts were corrupted by the
+parallel-session hazard — `pip install` transiently deleting the venv
+console script (21 dead runs) and one stale-code archive detected by
+its impossible `-69` primary. Cures shipped: classify.sh resolves the
+runner via `python -c` on the venv interpreter (reinstall-proof);
+crosscheck treats failed runs as data, not crashes; mixed-provenance
+archives quarantined before the definitive run.

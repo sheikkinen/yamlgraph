@@ -20,13 +20,24 @@ fi
 
 cd "$(dirname "$0")"
 
+# Resolve the runner robustly: the venv console script can vanish for
+# seconds during a parallel `pip install` (observed: intermittent
+# "command not found" mid-baseline), so prefer python -c on the venv
+# interpreter, which survives reinstalls.
+ROOT="$(cd ../.. && pwd)"
+if [[ -x "$ROOT/.venv/bin/python" ]]; then
+  yg() { "$ROOT/.venv/bin/python" -c 'from yamlgraph.cli import main; main()' "$@"; }
+else
+  yg() { yamlgraph "$@"; }
+fi
+
 run_dir="../../logs/icpc2-rfe"
 mkdir -p "$run_dir"
 stamp="$(date +%Y%m%d_%H%M%S)"
 log="$run_dir/${name}-${stamp}.log"
 result="$run_dir/${name}-${stamp}.result.json"
 
-yamlgraph graph run graph.yaml \
+yg graph run graph.yaml \
   --var transcript="$transcript" --full > "$log" 2>&1 || {
     python3 nodes/show_result.py "$log" || true
     echo "full log: ${log#../../}" >&2

@@ -83,6 +83,24 @@ class TestMetaProcessCap:
         assert partial_codes <= set(capped) and partial_codes
 
     @pytest.mark.req("REQ-YG-555")
+    def test_capped_entries_rank_behind_genuine_partials(self):
+        """Final-baseline finding: demoted -48 crowded A03 out of the
+        3-slot best_partial window. Capped entries rank last in tier."""
+        reducer = _load_reducer()
+        out = _reduce(
+            reducer,
+            [
+                _cand("-48", "Clarification", "match", 0.99),
+                _cand("-69", "Other NEC", "match", 0.99),
+                _cand("-46", "Consultation", "match", 0.99),
+                _cand("A03", "Fever", "partial_match", 0.6),
+                _cand("R05", "Cough", "match", 0.8),
+            ],
+        )
+        partial_codes = [e["code"] for e in out["classification"]["best_partial"]]
+        assert partial_codes[0] == "A03", "genuine partial must lead"
+
+    @pytest.mark.req("REQ-YG-555")
     def test_genuine_process_requests_not_capped(self):
         """-50 renewal and -62 admin stay primary-capable."""
         reducer = _load_reducer()

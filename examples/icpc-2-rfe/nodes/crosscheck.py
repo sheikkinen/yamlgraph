@@ -152,11 +152,18 @@ def _run_fixtures(runs: int) -> None:
     for transcript in sorted(LABELED_DIR.glob("*.md")):
         for i in range(runs):
             print(f"▶ {transcript.stem} run {i + 1}/{runs}", file=sys.stderr)
-            subprocess.run(
+            proc = subprocess.run(
                 [str(classify), str(transcript)],
-                check=True,
                 capture_output=True,
+                text=True,
             )
+            if proc.returncode != 0:
+                # A failed run is DATA for a measurement tool, not a
+                # crash: it simply produces no archive to attribute.
+                print(
+                    f"  ✗ run failed (recorded): {proc.stderr.strip()[-160:]}",
+                    file=sys.stderr,
+                )
 
 
 def main() -> None:

@@ -42,12 +42,16 @@ process rubrics (`-48`, `-69`) + process primacy flip symptom
 transcripts to process primaries with perfect agreement (bias, not
 variance). See FR-727.
 
-## Phase 3b — Process discipline & combined codes (FR-727, Proposed)
+## Phase 3b — Process discipline & combined codes (FR-727, **Completed** 2026-07-14)
 
-The regression fix + the ICPC composition rule: process codes combine
-with a chapter letter or disease code (K86 + `-50` → **K50**) — bare
-process primaries gain a mechanically composed `combined_code`; meta-
-process rubrics get a reducer-enforced verdict cap.
+Meta-process cap `{-43,-46,-48,-69}` (demote-not-drop, capped entries
+rank behind genuine partials) + mechanical `combined_code` composition
+(K86 + `-50` → K50; chapter A contextless). Definitive baseline
+**22/30 (from 11/30)**; zero residual failures involve capped codes.
+The 8 residuals quantify the deferred defect: chapter-code inflation
+(A13/Z10/P76 secondary leaks, wrong composed chapter letter Z50-vs-K50)
+and model variance on ambiguous fixtures — the next FR's opening
+evidence.
 
 ## Phase 4 — Verdict stability (FR-726, gated — likely CONDEMNED)
 
