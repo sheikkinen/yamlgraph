@@ -25,4 +25,9 @@ requirements:
     modules:
       - edge_compiler
       - graph_loader
+  - id: REQ-YG-552
+    description: "Route decision hook (FR-723). Every routing decision — simple router, expression match, loop-limit exit, map fan-out, no-match fallthrough — emits one JSON line on the public yamlgraph.route logger when opted in (YAMLGRAPH_ROUTE_LOG env or observability.route_log graph flag). Map fan-outs emit map-node name + count, never Send payloads (R-2 privacy). thread_id carried by a contextvar set at run entrypoints, null never fabricated (R-1). Zero serialization when off; emission never raises."
+    modules:
+      - routing
+      - utils/route_log
 fr: FR-211

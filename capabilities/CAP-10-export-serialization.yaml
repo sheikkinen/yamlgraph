@@ -24,4 +24,9 @@ requirements:
     description: Serialization and deserialization utilities
     modules:
       - storage/serializers
+  - id: REQ-YG-553
+    description: "Authored-graph Mermaid export (FR-723). graph export --mermaid renders the authored YAML view (typed nodes, condition labels, router routes, loop limits, explicit loop-exit edges); --overlay renders an executed route.jsonl with taken edges and decision ordinals so the ordered route is reconstructible from the render; --diff compares two routes occurrence-aligned per (node, occurrence) naming the seam and Nth firing. Pure stdlib+yaml, no LLM."
+    modules:
+      - mermaid_export
+      - cli/export_commands
 fr: legacy

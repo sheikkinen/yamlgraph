@@ -337,11 +337,11 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 3 | CAP-3 Node Execution | `executor`, `executor_async`, `executor_base`, `node_factory/llm_nodes`, … | REQ-YG-009 – 011, 050, 223, 539 – 540 |
 | 4 | CAP-4 Prompt Execution | `executor.PromptExecutor`, `executor.execute_prompt`, `executor_async`, `executor_base.format_prompt`, … | REQ-YG-012 – 016, 216 |
 | 5 | CAP-5 Tool & Agent Integration | `node_factory/tool_nodes`, `tools/agent`, `tools/graph_tool`, `tools/nodes`, … | REQ-YG-017 – 020, 422, 510 |
-| 6 | CAP-6 Routing & Flow Control | `node_factory/control_nodes`, `routing`, `utils/conditions` | REQ-YG-021 – 023, 214 |
+| 6 | CAP-6 Routing & Flow Control | `node_factory/control_nodes`, `routing`, `utils/conditions` | REQ-YG-021 – 023, 214, 552 |
 | 7 | CAP-7 State Persistence | `models/state_builder`, `storage/checkpointer`, `storage/checkpointer_factory`, `storage/simple_redis` | REQ-YG-024 – 026 |
 | 8 | CAP-8 Error Handling | `error_handlers`, `error_handlers.NodeResult`, `error_handlers.build_skip_error_state`, `error_handlers.check_loop_limit`, … | REQ-YG-027 – 031 |
 | 9 | CAP-9 CLI Interface | `cli/__init__`, `cli/__main__`, `cli/deprecation`, `cli/graph_commands`, … | REQ-YG-032 – 035 |
-| 10 | CAP-10 Export & Serialization | `cli/graph_commands.cmd_graph_codegen`, `cli/schema_commands`, `storage/export`, `storage/serializers` | REQ-YG-036 – 039 |
+| 10 | CAP-10 Export & Serialization | `cli/graph_commands.cmd_graph_codegen`, `cli/schema_commands`, `storage/export`, `storage/serializers` | REQ-YG-036 – 039, 553 |
 | 11 | CAP-11 Subgraph & Map | `map_compiler`, `map_compiler.wrap_for_reducer`, `node_factory/subgraph_nodes` | REQ-YG-040 – 042 |
 | 12 | CAP-12 Utilities | `config`, `constants`, `node_factory/base`, `schema_loader`, … | REQ-YG-043 – 046 |
 | 13 | CAP-13 LangSmith Tracing | `cli/graph_commands`, `utils/tracing` | REQ-YG-047, 547 |
@@ -600,6 +600,7 @@ Route across nodes using explicit routes, expression evaluation, and control nod
 | REQ-YG-022 | Conditional routing functions | `routing` |
 | REQ-YG-023 | Condition expression evaluation | `utils/conditions` |
 | REQ-YG-214 | Router route mapping redirects interrupt targets to *_prepare and subgraph interrupt targets to *__run in conditional edge route mappings (FR-211) | `edge_compiler`, `graph_loader` |
+| REQ-YG-552 | Route decision hook (FR-723). Every routing decision — simple router, expression match, loop-limit exit, map fan-out, no-match fallthrough — emits one JSON line on the public yamlgraph.route logger when opted in (YAMLGRAPH_ROUTE_LOG env or observability.route_log graph flag). Map fan-outs emit map-node name + count, never Send payloads (R-2 privacy). thread_id carried by a contextvar set at run entrypoints, null never fabricated (R-1). Zero serialization when off; emission never raises. | `routing`, `utils/route_log` |
 
 ### 7. CAP-7 State Persistence
 
@@ -644,6 +645,7 @@ Export results/states in JSON/Markdown, handle serialization for persistence.
 | REQ-YG-037 | Graph code generation for IDE support | `cli/graph_commands.cmd_graph_codegen` |
 | REQ-YG-038 | Export and management of pipeline results/states | `storage/export` |
 | REQ-YG-039 | Serialization and deserialization utilities | `storage/serializers` |
+| REQ-YG-553 | Authored-graph Mermaid export (FR-723). graph export --mermaid renders the authored YAML view (typed nodes, condition labels, router routes, loop limits, explicit loop-exit edges); --overlay renders an executed route.jsonl with taken edges and decision ordinals so the ordered route is reconstructible from the render; --diff compares two routes occurrence-aligned per (node, occurrence) naming the seam and Nth firing. Pure stdlib+yaml, no LLM. | `mermaid_export`, `cli/export_commands` |
 
 ### 11. CAP-11 Subgraph & Map
 
