@@ -19,7 +19,7 @@ See [CHANGELOG.md](../CHANGELOG.md) for version history.
 |----------|-------------|
 | [Graph YAML](graph-yaml.md) | Graph configuration: nodes, edges, tools, state |
 | [Prompt YAML](prompt-yaml.md) | Prompt templates: schemas, messages, Jinja2 |
-| [CLI Reference](cli.md) | Command-line interface: run, lint, validate |
+| [CLI Reference](cli.md) | Command-line interface: run, lint, validate, export diagrams |
 | [Common Patterns](patterns.md) | Copy-paste patterns for pipelines |
 | [Expressions](expressions.md) | Value and condition expression syntax |
 

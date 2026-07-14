@@ -23,7 +23,7 @@ yamlgraph [-h] {graph,schema,skill,diary,a2a} ...
 The primary command for running and managing graphs.
 
 ```
-yamlgraph graph {run,info,validate,lint,codegen} ...
+yamlgraph graph {run,info,validate,lint,codegen,bench,export} ...
 ```
 
 ### graph run
@@ -267,6 +267,7 @@ yamlgraph skill export examples/demos/hello/graph.yaml --format agent-md --outpu
 | `MISTRAL_API_KEY` | Mistral API key |
 | `OPENAI_API_KEY` | OpenAI API key |
 | `PROVIDER` | Default LLM provider (`anthropic`, `mistral`, `openai`) |
+| `YAMLGRAPH_ROUTE_LOG` | Route decision log opt-in (FR-723): `1` = emit on the `yamlgraph.route` logger; a file path = also append raw JSONL for `graph export --overlay` |
 | `LANGSMITH_API_KEY` | LangSmith tracing key |
 | `LANGSMITH_PROJECT` | LangSmith project name |
 

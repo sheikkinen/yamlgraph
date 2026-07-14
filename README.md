@@ -154,6 +154,10 @@ yamlgraph graph run examples/demos/router/graph.yaml --var message="I love this!
 # Self-correction loop (Reflexion pattern)
 yamlgraph graph run examples/demos/reflexion/graph.yaml --var topic="climate change"
 
+# Execution path visualization: capture routes, render the map, overlay the run
+YAMLGRAPH_ROUTE_LOG=route.jsonl yamlgraph graph run examples/demos/reflexion/graph.yaml --var topic="AI"
+yamlgraph graph export examples/demos/reflexion/graph.yaml --mermaid --overlay route.jsonl
+
 # AI agent with shell tools
 yamlgraph graph run examples/demos/git-report/graph.yaml --var input="What changed recently?"
 
@@ -234,6 +238,7 @@ See [ARCHITECTURE.md](ARCHITECTURE.md#file-reference) for detailed module line c
 | `GOOGLE_MODEL` | No | Google model (default: gemini-2.0-flash) |
 | `LMSTUDIO_MODEL` | No | LM Studio model (default: qwen2.5-coder-7b-instruct) |
 | `LANGCHAIN_TRACING_V2` | No | Enable LangSmith tracing (`true` to enable) |
+| `YAMLGRAPH_ROUTE_LOG` | No | Route decision log (FR-723): `1` = emit JSON route lines on the `yamlgraph.route` logger; a file path = also append raw JSONL for `graph export --overlay` |
 | `LANGSMITH_API_KEY` | No | LangSmith API key |
 | `LANGCHAIN_ENDPOINT` | No | LangSmith endpoint URL |
 | `LANGCHAIN_PROJECT` | No | LangSmith project name |
