@@ -269,6 +269,41 @@ class TestReducerPolicy:
         assert out["meta"]["candidates_total"] == 2
 
     @pytest.mark.req("REQ-YG-550")
+    def test_near_miss_span_repaired_to_transcript_text(self):
+        """Field run 8 (HP-36): one-character drift ("äitini" →
+        "äitiini") survived two prompt hardenings — token fidelity is
+        mechanizable, so the boundary REPAIRS near-miss claims to the
+        true transcript substring."""
+        reducer = _load("reduce.py")
+        # transcript says "dry cough"; the model typed "dryy cough"
+        out = _reduce(
+            reducer,
+            [_cand("R05", "Cough", "match", 0.9, ["a dryy cough for two weeks"])],
+        )
+        spans = out["classification"]["primary"]["evidence_spans"]
+        assert len(spans) == 1
+        assert spans[0] in TRANSCRIPT, "output span must be verbatim transcript"
+        assert "dry cough" in spans[0]
+
+    @pytest.mark.req("REQ-YG-550")
+    def test_fabricated_span_still_rejected(self):
+        """The repair floor (0.85) still refuses invented evidence."""
+        reducer = _load("reduce.py")
+        with pytest.raises(ValueError, match="evidence_span"):
+            _reduce(
+                reducer,
+                [
+                    _cand(
+                        "R05",
+                        "Cough",
+                        "match",
+                        0.9,
+                        ["patient reports severe chest pain radiating to the arm"],
+                    )
+                ],
+            )
+
+    @pytest.mark.req("REQ-YG-550")
     def test_output_meta_declares_coverage(self):
         """Coverage honesty pin: a no-match must be interpretable."""
         reducer = _load("reduce.py")

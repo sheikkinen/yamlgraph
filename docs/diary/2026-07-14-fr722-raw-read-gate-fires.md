@@ -37,6 +37,30 @@ resolve the postponed `Literal` string) — hyphenated example dirs force
 file-path loading, so their node modules must not use postponed
 annotations.
 
+**Addendum (field runs 7–8): the two-strike rule for prompt fixes.**
+The span-fidelity arc ran: exact match failed (case-folds) → tolerance
+added → editing-by-omission caught → prompt hardened + temp 0.1 →
+one-character inflection drift ("äitini" → "äitiini") STILL failed. Two
+prompt-level fixes for the same defect class both failing is the signal
+that the defect is not in the instructions — it is in the delegation.
+Token-fidelity copying sits at the lowest, fully mechanizable
+abstraction level of the prompt contract; the model was never the right
+worker for it. The cure moved copying into code: the boundary now
+treats the model's span as a *claim* and aligns it to the transcript
+(repair ≥ 0.85 similarity, reject below — fabrications still die). This
+is `prompt-as-subagent-contract` clause 3 in action: if the validator
+can't trust a job to the model, the job belongs to code, and the
+validator becomes a normalizer with a floor. Corollary heuristic: when
+the SAME guard fires twice for the same failure class after a prompt
+fix, stop rewording — split the level out of the prompt.
+
+**Second seed:** two consecutive HP-36 runs gave different 0.98 primaries
+(K86 vs A13) — both defensible matches. Per-cluster verdict variance is
+now the dominant noise source. Would a race/self-consistency vote per
+cluster (N=3, majority verdict, median confidence) be worth 3× the cost
+for classification workloads — and could the map node express it
+natively?
+
 **Seed:** The raw-read gate is currently doctrine enforced by Judge
 diligence. Could `graph lint` or the FR template mechanically require a
 `field-runs:` section (N run logs + one surprise each) for any FR whose

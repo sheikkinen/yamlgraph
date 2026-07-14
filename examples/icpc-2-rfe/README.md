@@ -36,6 +36,11 @@ yamlgraph graph run examples/icpc-2-rfe/graph.yaml \
   --full
 ```
 
+```bash
+yamlgraph graph run examples/icpc-2-rfe/graph.yaml \
+  --var transcript="$(cat examples/icpc-2-rfe/data/HP-36-acting-on-behalf-of-adult.md)" --full
+```
+
 Output (state keys `classification` + `meta`):
 
 ```yaml

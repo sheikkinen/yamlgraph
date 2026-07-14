@@ -11,6 +11,7 @@ annotations break Pydantic model construction under file-path module
 loading (spec_from_file_location cannot resolve the string ``Literal``).
 """
 
+import difflib
 from typing import Literal
 
 from pydantic import BaseModel, Field, ValidationError
@@ -33,8 +34,41 @@ class CandidateVerdict(BaseModel):
     missing_signals: list[str] = Field(default_factory=list)
 
 
+def _align_span(span: str, transcript: str, transcript_cf: str) -> str:
+    """Align a claimed evidence span to the transcript (F3, field run 8).
+
+    LLM token-fidelity is fragile — two prompt hardenings still produced
+    one-character drift ("äitini" → "äitiini"). Copying is a mechanizable
+    level, so it lives HERE: exact (case-folded) containment returns the
+    true transcript text; a near-miss (similarity ≥ 0.85 against the
+    best-anchored window) is REPAIRED to the actual substring; anything
+    below the floor is a fabrication and raises. Output spans are
+    therefore always verbatim transcript text, whatever the model typed.
+    """
+    span_cf = span.casefold()
+    idx = transcript_cf.find(span_cf)
+    if idx >= 0:
+        return transcript[idx : idx + len(span)]
+
+    matcher = difflib.SequenceMatcher(None, transcript_cf, span_cf, autojunk=False)
+    block = matcher.find_longest_match(0, len(transcript_cf), 0, len(span_cf))
+    if block.size == 0:
+        raise ValueError(f"evidence_span not in transcript: {span!r}")
+    # Transcript window that should correspond to the whole claim.
+    start = max(0, block.a - block.b)
+    end = min(len(transcript), start + len(span) + 5)
+    window = transcript[start:end]
+    ratio = difflib.SequenceMatcher(
+        None, window.casefold(), span_cf, autojunk=False
+    ).ratio()
+    if ratio < 0.85:
+        raise ValueError(f"evidence_span not in transcript: {span!r}")
+    return window.strip()
+
+
 def _validate_candidates(state: dict) -> list[CandidateVerdict]:
-    transcript_cf = state["transcript"].casefold()
+    transcript = state["transcript"]
+    transcript_cf = transcript.casefold()
     known_codes = {
         row["code"]
         for cluster in state.get("rfe_clusters") or []
@@ -50,14 +84,15 @@ def _validate_candidates(state: dict) -> list[CandidateVerdict]:
             if known_codes and cand.code not in known_codes:
                 # AC-02: verdicts are drawn only from the catalog list.
                 raise ValueError(f"candidate code not in catalog: {cand.code!r}")
-            for span in cand.evidence_spans:
-                # Case-insensitive containment: field runs showed the
-                # model case-folds span first-letters ("He" -> "he");
-                # still catches invented spans (F3, raw-read finding).
-                if span.casefold() not in transcript_cf:
-                    raise ValueError(
-                        f"evidence_span not in transcript for {cand.code}: " f"{span!r}"
-                    )
+            try:
+                cand.evidence_spans = [
+                    _align_span(span, transcript, transcript_cf)
+                    for span in cand.evidence_spans
+                ]
+            except ValueError as exc:
+                raise ValueError(
+                    f"evidence_span not in transcript for {cand.code}: {exc}"
+                ) from exc
             validated.append(cand)
     return validated
 
