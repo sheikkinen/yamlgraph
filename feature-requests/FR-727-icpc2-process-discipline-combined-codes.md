@@ -2,7 +2,7 @@
 
 **Priority:** HIGH (fixes a measured regression)
 **Type:** Fix
-**Status:** Judged
+**Status:** In Progress
 **Effort:** 1 day
 **Requested:** 2026-07-14
 **Judged:** 2026-07-14 — scope frozen with 5 findings; cap list pinned from the full rubric read

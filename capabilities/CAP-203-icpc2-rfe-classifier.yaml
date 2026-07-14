@@ -75,3 +75,17 @@ requirements:
       reports raw k-of-n counts with no significance computation.
     modules:
       - examples/icpc-2-rfe/nodes/crosscheck.py
+  - id: REQ-YG-555
+    description: >
+      Process-code discipline and combined-code composition (FR-727).
+      META_PROCESS_CODES {-43,-46,-48,-69} — encounter-form descriptors
+      and junk drawers, pinned from a full read of all 40 rubric titles
+      — demote match to partial_match at validation time (evidence
+      preserved in best_partial, never primary/secondary; project
+      curation lives in reduce.py, not the generated Tier-1 catalog);
+      genuine process requests (-50, -62) stay primary-capable; process
+      primaries gain combined_code composed mechanically from
+      chapter_context (K86 + -50 = K50; chapter A when contextless);
+      chapter primaries get no combined_code.
+    modules:
+      - examples/icpc-2-rfe/nodes/reduce.py
