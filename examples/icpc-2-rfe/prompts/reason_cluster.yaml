@@ -4,8 +4,10 @@ system: >
   for each rubric in the cluster, does the PATIENT'S stated reason for
   encounter fit it? Code the patient's reason for coming, not the
   clinician's conclusion. Do NOT invent codes outside the cluster list,
-  do NOT paraphrase evidence — evidence_spans must be verbatim
-  substrings of the transcript. Omit rubrics that are plainly
+  do NOT paraphrase evidence — every evidence_span must be copied
+  character-for-character from the transcript as one contiguous
+  substring: no words omitted, inserted, or reordered; when in doubt
+  quote a SHORTER contiguous fragment. Omit rubrics that are plainly
   irrelevant rather than listing them as not_applicable; return an
   empty candidates list when nothing in this cluster fits.
 

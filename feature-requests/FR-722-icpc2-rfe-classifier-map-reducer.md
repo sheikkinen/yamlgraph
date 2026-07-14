@@ -365,6 +365,19 @@ azure gpt-4o, 33 calls/run ≈ 30 s):**
 Runs 3/6 initially FAILED on exact-substring F3 — the guard caught model
 case-folding, not hallucination; tolerance pinned with witnesses.
 
+**Field run 7 (post-completion, HP-36 Finnish persona transcript):** the
+F3 guard caught genuine span **editing-by-omission** — the model quoted
+"soitan äitini puolesta. Haluaisin…" where the transcript reads "soitan
+äitini Aino Korhosen puolesta" (name elided, sentences joined). Cure:
+prompt hardened to character-for-character contiguous substrings +
+classification temperature pinned to 0.1. Rerun: K86 Hypertension
+uncomplicated (match 0.98) with three verbatim Finnish spans; Z10/A23/
+K29 secondary. Finnish input works unmodified. Observation for phase 2:
+a prescription-renewal RFE is classically a component-2–6 process code
+(K50 medication renewal) — exactly the deferred component family; the
+coverage meta correctly declares components [1, 7] so the consumer can
+see K86 is the best in-catalog answer, not the canonical one.
+
 **Deviations from judgement (all documented):**
 - `on_error: skip` on the map removed (linter W017/W022 + coverage
   honesty: a silently dropped cluster falsifies "no match").

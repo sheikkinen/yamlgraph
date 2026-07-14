@@ -44,6 +44,7 @@ nodes:
       type: llm
       prompt: reason_cluster
       state_key: cluster_verdicts
+      temperature: 0.1  # classification: minimize span drift (F3 field finding)
       variables:
         transcript: "{state.transcript}"
         cluster_id: "{state.cluster.cluster_id}"
