@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Instrumentation
-**Status:** In Progress
+**Status:** Completed
 **Effort:** 1 day
 **Requested:** 2026-07-14
 **Judged:** 2026-07-14 — scope frozen with 4 findings; raw-read gate satisfied by inheritance
@@ -80,3 +80,35 @@ fragment (feat) + diary; harness lives in `examples/icpc-2-rfe/`
 **Out of scope (purge list):** any classifier/prompt/reducer change,
 significance testing, CI-blocking gates (advisory report only until a
 future FR argues for a gate with data), clinical validity claims.
+
+## Implementation (2026-07-14)
+
+Enforced as judged. RED witnesses landed inside `7c2ee15e` (parallel-
+session index race swept the staged files under their message — third
+strike, documented in memory; content correct, only attribution mixed).
+GREEN this commit: `nodes/crosscheck.py` (load_labels with mandatory
+rationale, evaluate_result, basename attribution, raw k-of-n
+agreement), 6 labeled fixtures, slow+key-guarded integration wrapper,
+README section. 8 unit witnesses green.
+
+### AC-04 baseline (N=5 × 6 fixtures, 30 runs ≈ 1,140 calls, azure)
+
+| Fixture | pass/fail | agreement (k/n on mode) |
+|---|---|---|
+| backpain-sicknote | 5/0 | 5/5 on `-62` |
+| hp36-renewal-behalf | 3/2 | 5/5 on `-50` (Z10/A13 leak into secondary) |
+| cough-fever | 0/5 | 5/5 on `-48` — **REGRESSION: R05 eaten** |
+| diabetic-glucose | 0/5 | 5/5 on `-48` — same |
+| parking-permit | 1/4 | 3/5 on `-69` |
+| tired-mood | 2/3 | 4/5 on A04 (P76 leaks; one `-43` primary) |
+| **TOTAL** | **11/19** | — |
+
+**The harness's first baseline is a regression report** — it caught,
+within the hour phase 2 landed, that FR-724's process-primacy rule ×
+meta-process match-inflation (`-48` "clarification of demand" is true
+of every call) systematically flips symptom transcripts to process
+primaries. Agreement is HIGH and WRONG: the defect is bias, not
+variance. Consequences recorded where they belong: FR-726's gate note
+(agreement ≥90% already met — voting cannot fix bias) and FR-727
+(process-code discipline + combined-code composition, proposed).
+Baseline artifact: `logs/fr725-baseline.json`.

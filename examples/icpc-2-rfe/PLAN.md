@@ -33,21 +33,27 @@ HP-36 acceptance met: primary `-50 Medication/prescription/renewal`,
 not low_confidence. Which chapter candidate becomes context still
 varies run-to-run — phase 3's measurement target.
 
-## Phase 3 — Labeled crosscheck harness (FR-725, Proposed)
+## Phase 3 — Labeled crosscheck harness (FR-725, **Completed** 2026-07-14)
 
-Measurement before mitigation: committed labeled fixtures
-(transcript + expected codes with rank tolerance), a regression runner
-over the per-run archive (`logs/icpc2-rfe/*.result.json`), and an
-agreement report across N repeat runs. No behavior change to the
-classifier itself. Gate: phase 4 may not merge without phase-3 numbers
-proving the baseline it improves.
+Six labeled fixtures + LLM-free evaluation over the run archive; raw
+k-of-n agreement. **First baseline (N=5): 11 pass / 19 fail — the
+harness caught a phase-2 regression within the hour it landed**: meta-
+process rubrics (`-48`, `-69`) + process primacy flip symptom
+transcripts to process primaries with perfect agreement (bias, not
+variance). See FR-727.
 
-## Phase 4 — Verdict stability (FR-726, Proposed)
+## Phase 3b — Process discipline & combined codes (FR-727, Proposed)
 
-Per-cluster self-consistency voting (N samples, majority verdict,
-median confidence) or equivalent — mechanism to be judged AFTER the
-FR-725 harness quantifies baseline variance and the cost/benefit of
-N× calls. Explicitly out of scope until phase 3 lands.
+The regression fix + the ICPC composition rule: process codes combine
+with a chapter letter or disease code (K86 + `-50` → **K50**) — bare
+process primaries gain a mechanically composed `combined_code`; meta-
+process rubrics get a reducer-enforced verdict cap.
+
+## Phase 4 — Verdict stability (FR-726, gated — likely CONDEMNED)
+
+Baseline shows agreement ≈90%+ with the failures being bias, which
+voting amplifies rather than fixes. Mechanism judgement deferred until
+FR-727 lands and a fresh baseline isolates residual variance.
 
 ## Deliberately not planned
 

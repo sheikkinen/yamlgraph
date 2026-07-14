@@ -79,3 +79,14 @@ frozen NOW:
    FR-725 harness, not estimated.
 
 **Out of scope until the gate opens:** everything else in this FR.
+
+## Gate citation (2026-07-14): FR-725 baseline exists
+
+Baseline (N=5 × 6 fixtures): primary agreement 5/5, 5/5, 5/5, 5/5, 3/5,
+4/5 — ≈ 90%+ on four of six fixtures. **The kill criterion is in
+reach, and more importantly the baseline shows the dominant defect is
+BIAS, not variance**: cough-fever agrees 5/5 on the WRONG primary
+(`-48`). Self-consistency voting amplifies a biased mode — it cannot
+help. Mechanism judgement stays deferred until FR-727 (process-code
+discipline) lands and a fresh baseline separates residual variance
+from the now-dominant bias. Expected outcome: CONDEMNED per AC-04.

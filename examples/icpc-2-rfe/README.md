@@ -62,6 +62,22 @@ yamlgraph graph run examples/icpc-2-rfe/graph.yaml \
   --full 2>/dev/null | python3 examples/icpc-2-rfe/nodes/show_result.py
 ```
 
+## Crosscheck harness (FR-725)
+
+Labeled fixtures live in `data/labeled/` (`<name>.md` transcript +
+`<name>.label.yaml` expectations with rationale). The harness evaluates
+the run archive LLM-free and reports raw k-of-n agreement:
+
+```bash
+python3 examples/icpc-2-rfe/nodes/crosscheck.py            # existing archives
+python3 examples/icpc-2-rfe/nodes/crosscheck.py --runs 5   # fresh baseline (slow, keys)
+python3 examples/icpc-2-rfe/nodes/crosscheck.py --json     # machine-readable
+```
+
+Labels are rank-tolerant (`primary_any_of`) and coverage-aware
+(`valid_for_components` — mismatched runs are skipped loudly). Advisory
+report by design: no CI gate.
+
 Output (state keys `classification` + `meta`):
 
 ```yaml
