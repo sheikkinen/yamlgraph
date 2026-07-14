@@ -127,3 +127,5 @@ examples/demos/judge/eval-results/
 
 # Audit reports (generated, not tracked)
 docs/*-audit/
+# FR-722 A1: the generated catalog is never committed (Wonca copyright)
+examples/icpc-2-rfe/data/icpc2_rfe_catalog.yaml

@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Feature
-**Status:** In Progress
+**Status:** Completed
 **Effort:** 3-5 days
 **Requested:** 2026-07-14
 **Judged:** 2026-07-14 — scope frozen with re-pins (see Judgement)
@@ -337,6 +337,49 @@ nothing. Consequences:
 Purge-list line "verbatim rubric text in the repo" is unchanged and now
 trivially enforced: the only rubric text in the repo is the paraphrased
 fixture + the 3-row test excerpt.
+
+## Implementation (2026-07-14)
+
+Enforced per frozen judgement + A1. RED `d932f3d2` (12 witnesses,
+3 REQs under CAP-203); GREEN this commit.
+
+**Shipped** (`examples/icpc-2-rfe/`): `nodes/build_catalog.py` (sha256-
+pinned ClaML builder → 686 verified rubrics, 33 clusters, gitignored
+output), `nodes/catalog.py` (cluster loader, F6 provisional exclusion,
+A1 actionable absence error, code-side cluster briefs), `nodes/reduce.py`
+(CandidateVerdict boundary validation, deterministic total order,
+per-code dedup, AC-06 low-confidence path, coverage-honesty meta),
+`graph.yaml` (3 nodes + 33-item map, lint-clean), `prompts/reason_cluster.yaml`
+(one judgement, bounded, empty-list default), README, fixtures.
+
+**read_raw_output_first gate (5 field runs, logs/fr722-run2..6.log,
+azure gpt-4o, 33 calls/run ≈ 30 s):**
+| Run | Transcript pattern | Result | Surprise |
+|---|---|---|---|
+| 2 | dry cough + feverish | R05 match, A03 best_partial | span quoted verbatim incl. duration — F3 guard held |
+| 3 | back pain + sick note | L02 primary, Z05 Work problem secondary | **L03 twice in secondary** (cluster voted twice) → dedup added with witness |
+| 4 | parking permit, no complaint | A97 No disease + Z10 | model found the semantically right "non-clinical" codes rather than forcing a symptom |
+| 5 | tired a month + sad/tearful | A04 primary, P03 secondary | multi-label crossed chapters exactly as designed (AC-05) |
+| 6 | T2 diabetic, high glucose | T90 primary | **case-folded span** ("Asks if" → "asks if") → F3 containment made case-insensitive, guard retained |
+
+Runs 3/6 initially FAILED on exact-substring F3 — the guard caught model
+case-folding, not hallucination; tolerance pinned with witnesses.
+
+**Deviations from judgement (all documented):**
+- `on_error: skip` on the map removed (linter W017/W022 + coverage
+  honesty: a silently dropped cluster falsifies "no match").
+- Python-tool dict returns MERGE into state → `classification`/`meta`
+  declared as state keys (framework contract, run-1 finding).
+- No `from __future__ import annotations` in reduce.py (breaks Pydantic
+  under file-path loading — hyphenated dir pin).
+- AC-02 hardened beyond spec: off-catalog candidate codes rejected at
+  the reducer.
+- 33 clusters, not 34: chapter contents yield 33 non-empty C1/C7
+  clusters in v7.0.
+
+**ACs:** 01–06 ✓ (see witnesses + field table). 07 ✓ 15 unit witnesses;
+integration = field runs (key-guarded pytest variant deferred — the
+field-run logs are the evidence). 08 ✓ README with license posture.
 - WONCA WICC steward page and official resources (Tier 1 context): https://www.globalfamilydoctor.com/groups/workingparties/wicc.aspx
 - WICC ICPC explainer PDF reference: https://www.globalfamilydoctor.com/site/DefaultSite/filesystem/documents/Groups/WICC/International%20Classification%20of%20Primary%20Care%20Dec16.pdf
 - ICPC-2 browser lookup tool (Tier 3): https://icpc2.icpc-3.info/

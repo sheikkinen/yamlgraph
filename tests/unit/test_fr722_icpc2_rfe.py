@@ -227,6 +227,48 @@ class TestReducerPolicy:
             _reduce(reducer, [bad])
 
     @pytest.mark.req("REQ-YG-550")
+    def test_evidence_span_case_fold_tolerated(self):
+        """Raw-read finding (field runs 3/6): the model lowercases span
+        first-letters; case-insensitive containment still catches
+        invented spans while tolerating case-folds."""
+        reducer = _load("reduce.py")
+        out = _reduce(
+            reducer,
+            [_cand("R05", "Cough", "match", 0.9, ["patient calls"])],
+        )
+        assert out["classification"]["primary"]["code"] == "R05"
+
+    @pytest.mark.req("REQ-YG-550")
+    def test_off_catalog_code_rejected(self):
+        """AC-02: verdicts are drawn only from the catalog list."""
+        reducer = _load("reduce.py")
+        state = {
+            "map_results": [{"candidates": [_cand("Q99", "Invented", "match", 0.9)]}],
+            "transcript": TRANSCRIPT,
+            "rfe_clusters": [{"cluster_id": "R-C1", "codes": [{"code": "R05"}]}],
+        }
+        with pytest.raises(ValueError, match="not in catalog"):
+            reducer.reduce_best_rfe(state)
+
+    @pytest.mark.req("REQ-YG-550")
+    def test_duplicate_codes_deduped_keeping_best(self):
+        """Raw-read finding (field run 3): a cluster emitted the same
+        code twice → duplicate secondary entries. Keep best-ranked."""
+        reducer = _load("reduce.py")
+        out = _reduce(
+            reducer,
+            [
+                _cand("R05", "Cough", "match", 0.9),
+                _cand("R05", "Cough", "partial_match", 0.7),
+                _cand("A03", "Fever", "match", 0.8, ["mild fever"]),
+            ],
+        )
+        assert out["classification"]["primary"]["code"] == "R05"
+        codes = [c["code"] for c in out["classification"]["secondary"]]
+        assert codes == ["A03"], "duplicate R05 must not reappear"
+        assert out["meta"]["candidates_total"] == 2
+
+    @pytest.mark.req("REQ-YG-550")
     def test_output_meta_declares_coverage(self):
         """Coverage honesty pin: a no-match must be interpretable."""
         reducer = _load("reduce.py")

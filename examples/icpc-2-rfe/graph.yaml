@@ -1,0 +1,66 @@
+version: "1.0"
+name: icpc2_rfe_classifier
+description: >
+  FR-722 ICPC-2 Reason-for-Encounter classifier — cluster map fan-out
+  (17 chapters × components 1 and 7) over a locally generated Tier-1
+  catalog, per-cluster LLM verdicts, fully deterministic python reducer.
+prompts_relative: true
+prompts_dir: prompts
+
+state:
+  transcript: str        # freeform encounter transcription (input)
+  catalog_path: str      # optional override; defaults inside the loader
+  include_provisional: str  # optional; any non-empty value includes provisional rows
+  classification: dict   # reducer output (merged state update)
+  meta: dict             # coverage-honesty metadata (merged state update)
+
+tools:
+  load_rfe_catalog:
+    type: python
+    path: nodes/catalog.py
+    function: load_rfe_catalog
+    description: "Cluster the generated catalog (F6: verified-only by default; A1: actionable error when the catalog has not been built)."
+
+  reduce_best_rfe:
+    type: python
+    path: nodes/reduce.py
+    function: reduce_best_rfe
+    description: "Deterministic ranking (F4): verdict rank → confidence → code; candidates validate at this boundary; spans must quote the transcript (F3)."
+
+nodes:
+  load_catalog:
+    type: python
+    tool: load_rfe_catalog
+    state_key: rfe_clusters
+
+  classify_clusters:
+    type: map
+    over: "{state.rfe_clusters}"
+    as: cluster
+    max_items: 40
+    # on_error deliberately left at fail: a silently dropped cluster would
+    # falsify a "no match" verdict (coverage honesty pin, AC-06).
+    node:
+      type: llm
+      prompt: reason_cluster
+      state_key: cluster_verdicts
+      variables:
+        transcript: "{state.transcript}"
+        cluster_id: "{state.cluster.cluster_id}"
+        cluster_brief: "{state.cluster.brief}"
+    collect: map_results
+
+  reduce:
+    type: python
+    tool: reduce_best_rfe
+    state_key: classification  # dict return is MERGED: classification + meta
+
+edges:
+  - from: START
+    to: load_catalog
+  - from: load_catalog
+    to: classify_clusters
+  - from: classify_clusters
+    to: reduce
+  - from: reduce
+    to: END
