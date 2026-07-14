@@ -49,3 +49,16 @@ requirements:
       output meta declares catalog_version and catalog_coverage.
     modules:
       - examples/icpc-2-rfe/nodes/reduce.py
+  - id: REQ-YG-551
+    description: >
+      Process codes phase 2 (FR-724). Builder includes components 2-6
+      process rubrics (chapter "-") as PROC-C<n> clusters, chapter
+      headers still excluded; reducer F4 rule: a process-code match
+      outranks a chapter-code match for RFE primacy (deliberate,
+      witnessed - never asciibetical accident); reducer F1:
+      chapter_context is derived in code as the best-ranked non-process
+      candidate and attached only when the primary is a process code;
+      coverage meta declares components 1-7.
+    modules:
+      - examples/icpc-2-rfe/nodes/build_catalog.py
+      - examples/icpc-2-rfe/nodes/reduce.py

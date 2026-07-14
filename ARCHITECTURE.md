@@ -517,7 +517,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 200 | CAP-200 Prompt Request Front Door | `yamlgraph/executor.py`, `yamlgraph/executor_base.py` | REQ-YG-543 |
 | 201 | CAP-201 Pre-emptive Module Splits | `yamlgraph/models/graph_schema.py`, `yamlgraph/models/node_schema.py`, `yamlgraph/streaming_events.py`, `yamlgraph/executor_async.py` | REQ-YG-544 |
 | 202 | CAP-202 SMT Condition Verification | `yamlgraph/linter/patterns/conditions_smt.py` | REQ-YG-545 |
-| 203 | CAP-203 ICPC-2 RFE Classifier Example | `examples/icpc-2-rfe/nodes/build_catalog.py`, `examples/icpc-2-rfe/nodes/catalog.py`, `examples/icpc-2-rfe/nodes/reduce.py` | REQ-YG-548 – 550 |
+| 203 | CAP-203 ICPC-2 RFE Classifier Example | `examples/icpc-2-rfe/nodes/build_catalog.py`, `examples/icpc-2-rfe/nodes/catalog.py`, `examples/icpc-2-rfe/nodes/reduce.py` | REQ-YG-548 – 551 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -2523,6 +2523,7 @@ Map/reason/reduce YAMLGraph example classifying freeform encounter transcripts i
 | REQ-YG-548 | Catalog builder + provenance (FR-722). parse_claml derives rows from Class elements: component from the SuperClass code suffix (<chapter>.<component>), cluster_id = <chapter>-C<component>; chapter headers and process codes (components 2-6) are excluded (phase-1 purge list); every row carries source_tier=1, source_reference=ICPC-2e-v7.0/<code>, provenance_status=verified assigned mechanically. verify_source refuses a zip whose sha256 differs from the pinned digest. | `examples/icpc-2-rfe/nodes/build_catalog.py` |
 | REQ-YG-549 | Catalog loader (FR-722). load_rfe_catalog groups rows into chapter x component clusters each carrying its code list; provisional rows are excluded unless include_provisional is set (F6 production-mode default); a missing generated catalog raises FileNotFoundError naming build_catalog.py (A1: usable only after the user-run build step). | `examples/icpc-2-rfe/nodes/catalog.py` |
 | REQ-YG-550 | Reducer determinism (FR-722). Candidates validate against a Pydantic model at the reducer boundary (bad shape raises, names the candidate); evidence spans must be substrings of the raw transcript (F3); ranking is verdict rank then confidence then code (total order); multi-label via secondary; no match yields an explicit low_confidence result naming best partials (AC-06); output meta declares catalog_version and catalog_coverage. | `examples/icpc-2-rfe/nodes/reduce.py` |
+| REQ-YG-551 | Process codes phase 2 (FR-724). Builder includes components 2-6 process rubrics (chapter "-") as PROC-C<n> clusters, chapter headers still excluded; reducer F4 rule: a process-code match outranks a chapter-code match for RFE primacy (deliberate, witnessed - never asciibetical accident); reducer F1: chapter_context is derived in code as the best-ranked non-process candidate and attached only when the primary is a process code; coverage meta declares components 1-7. | `examples/icpc-2-rfe/nodes/build_catalog.py`, `examples/icpc-2-rfe/nodes/reduce.py` |
 
 <!-- END GENERATED CAPABILITIES -->
 

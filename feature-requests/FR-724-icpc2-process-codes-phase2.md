@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Feature
-**Status:** Judged
+**Status:** In Progress
 **Effort:** 1-2 days
 **Requested:** 2026-07-14
 **Judged:** 2026-07-14 — scope frozen with 5 findings
