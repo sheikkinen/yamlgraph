@@ -3,6 +3,9 @@
 Classifies a freeform encounter transcription into ICPC-2 **Reason for
 Encounter** code(s) with titles, verdicts, and short reasoning.
 
+Phase-in roadmap (process codes, crosscheck harness, verdict
+stability): see [PLAN.md](PLAN.md) — FR-722 (done), FR-724/725/726.
+
 Architecture: cluster map fan-out → per-cluster LLM verdicts → fully
 deterministic python reducer.
 
