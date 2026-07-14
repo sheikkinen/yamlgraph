@@ -517,6 +517,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 200 | CAP-200 Prompt Request Front Door | `yamlgraph/executor.py`, `yamlgraph/executor_base.py` | REQ-YG-543 |
 | 201 | CAP-201 Pre-emptive Module Splits | `yamlgraph/models/graph_schema.py`, `yamlgraph/models/node_schema.py`, `yamlgraph/streaming_events.py`, `yamlgraph/executor_async.py` | REQ-YG-544 |
 | 202 | CAP-202 SMT Condition Verification | `yamlgraph/linter/patterns/conditions_smt.py` | REQ-YG-545 |
+| 203 | CAP-203 ICPC-2 RFE Classifier Example | `examples/icpc-2-rfe/nodes/build_catalog.py`, `examples/icpc-2-rfe/nodes/catalog.py`, `examples/icpc-2-rfe/nodes/reduce.py` | REQ-YG-548 – 550 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -2510,6 +2511,18 @@ Z3-backed linter check family (W803 gap, W804 overlap, W805 shadowed) over expre
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-545 | SMT condition verification (FR-719). Per source node's expression-edge group: W803 fires with a counterexample model (numeric or <missing>) when some state falls through to silent END; groups with an unconditional edge are W803-exempt; W804 reports pairwise-overlapping guards with a witness; W805 reports guards shadowed by earlier guards. Encoding per Judgement F1 table: comparisons carry Not(is_none), == null / != null map to the is_none companion, != lit is Or(is_none, v != lit). Unquoted right-side identifiers encode as variables iff they are known state keys, else string literals (F2). Mixed-sort groups, missing z3, and solver timeouts each produce ONE info notice, never a false verdict. Every emitted counterexample replays true through evaluate_condition (faithfulness witness). | `yamlgraph/linter/patterns/conditions_smt.py`, `tests/unit/test_fr719_conditions_smt.py` |
+
+### 203. CAP-203 ICPC-2 RFE Classifier Example
+
+Map/reason/reduce YAMLGraph example classifying freeform encounter transcripts into ICPC-2 Reason-for-Encounter codes. Cluster fan-out (17 chapters x components 1 and 7, max 34 items) over a catalog GENERATED locally from the Tier-1 ICPC-2e-v7.0 source (Judgement A1: the repo ships the builder with URL + sha256 pin, never the Wonca- copyrighted data); per-cluster LLM verdicts validate at the python reducer boundary; ranking is fully deterministic.
+
+**Feature Request:** FR-722
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-548 | Catalog builder + provenance (FR-722). parse_claml derives rows from Class elements: component from the SuperClass code suffix (<chapter>.<component>), cluster_id = <chapter>-C<component>; chapter headers and process codes (components 2-6) are excluded (phase-1 purge list); every row carries source_tier=1, source_reference=ICPC-2e-v7.0/<code>, provenance_status=verified assigned mechanically. verify_source refuses a zip whose sha256 differs from the pinned digest. | `examples/icpc-2-rfe/nodes/build_catalog.py` |
+| REQ-YG-549 | Catalog loader (FR-722). load_rfe_catalog groups rows into chapter x component clusters each carrying its code list; provisional rows are excluded unless include_provisional is set (F6 production-mode default); a missing generated catalog raises FileNotFoundError naming build_catalog.py (A1: usable only after the user-run build step). | `examples/icpc-2-rfe/nodes/catalog.py` |
+| REQ-YG-550 | Reducer determinism (FR-722). Candidates validate against a Pydantic model at the reducer boundary (bad shape raises, names the candidate); evidence spans must be substrings of the raw transcript (F3); ranking is verdict rank then confidence then code (total order); multi-label via secondary; no match yields an explicit low_confidence result naming best partials (AC-06); output meta declares catalog_version and catalog_coverage. | `examples/icpc-2-rfe/nodes/reduce.py` |
 
 <!-- END GENERATED CAPABILITIES -->
 

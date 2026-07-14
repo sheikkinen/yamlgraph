@@ -1,0 +1,51 @@
+name: ICPC-2 RFE Classifier Example
+id: CAP-203
+status: active
+fr: FR-722
+feature_request: FR-722
+description: >
+  Map/reason/reduce YAMLGraph example classifying freeform encounter
+  transcripts into ICPC-2 Reason-for-Encounter codes. Cluster fan-out
+  (17 chapters x components 1 and 7, max 34 items) over a catalog
+  GENERATED locally from the Tier-1 ICPC-2e-v7.0 source (Judgement A1:
+  the repo ships the builder with URL + sha256 pin, never the Wonca-
+  copyrighted data); per-cluster LLM verdicts validate at the python
+  reducer boundary; ranking is fully deterministic.
+modules:
+  - examples/icpc-2-rfe/nodes/build_catalog.py
+  - examples/icpc-2-rfe/nodes/catalog.py
+  - examples/icpc-2-rfe/nodes/reduce.py
+requirements:
+  - id: REQ-YG-548
+    description: >
+      Catalog builder + provenance (FR-722). parse_claml derives rows
+      from Class elements: component from the SuperClass code suffix
+      (<chapter>.<component>), cluster_id = <chapter>-C<component>;
+      chapter headers and process codes (components 2-6) are excluded
+      (phase-1 purge list); every row carries source_tier=1,
+      source_reference=ICPC-2e-v7.0/<code>, provenance_status=verified
+      assigned mechanically. verify_source refuses a zip whose sha256
+      differs from the pinned digest.
+    modules:
+      - examples/icpc-2-rfe/nodes/build_catalog.py
+  - id: REQ-YG-549
+    description: >
+      Catalog loader (FR-722). load_rfe_catalog groups rows into
+      chapter x component clusters each carrying its code list;
+      provisional rows are excluded unless include_provisional is set
+      (F6 production-mode default); a missing generated catalog raises
+      FileNotFoundError naming build_catalog.py (A1: usable only after
+      the user-run build step).
+    modules:
+      - examples/icpc-2-rfe/nodes/catalog.py
+  - id: REQ-YG-550
+    description: >
+      Reducer determinism (FR-722). Candidates validate against a
+      Pydantic model at the reducer boundary (bad shape raises, names
+      the candidate); evidence spans must be substrings of the raw
+      transcript (F3); ranking is verdict rank then confidence then
+      code (total order); multi-label via secondary; no match yields an
+      explicit low_confidence result naming best partials (AC-06);
+      output meta declares catalog_version and catalog_coverage.
+    modules:
+      - examples/icpc-2-rfe/nodes/reduce.py

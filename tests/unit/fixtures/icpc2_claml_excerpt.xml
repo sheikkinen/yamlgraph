@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- FR-722 test excerpt: 3 rubric rows + 1 chapter header + 1 process
+     code, quoted from ICPC-2e-v7.0 (© Wonca) at fair-use scale solely to
+     test the ClaML parser. The full classification is NEVER committed —
+     see examples/icpc-2-rfe/nodes/build_catalog.py (Judgement A1). -->
+<ClaML version="2.0.0">
+  <Class code="R" kind="chapter">
+    <Rubric id="_t1" kind="preferred"><Label xml:lang="en">Respiratory</Label></Rubric>
+  </Class>
+  <Class code="R05" kind="symptom">
+    <SuperClass code="R.1"/>
+    <Rubric id="_t2" kind="preferred"><Label xml:lang="en">Cough</Label></Rubric>
+    <Rubric id="_t3" kind="shortTitle"><Label xml:lang="en">Cough</Label></Rubric>
+    <Rubric id="_t4" kind="inclusion"><Label xml:lang="en">cough (dry or moist)</Label></Rubric>
+    <Rubric id="_t5" kind="exclusion"><Label xml:lang="en">abnormal sputum/phlegm R25</Label></Rubric>
+    <Rubric id="_t6" kind="icd10"><Label xml:lang="en">R05</Label></Rubric>
+  </Class>
+  <Class code="R74" kind="infection">
+    <SuperClass code="R.7"/>
+    <Rubric id="_t7" kind="preferred"><Label xml:lang="en">Upper respiratory infection acute</Label></Rubric>
+    <Rubric id="_t8" kind="inclusion"><Label xml:lang="en">acute rhinitis; coryza; head cold; nasopharyngitis; pharyngitis; URTI/URI</Label></Rubric>
+    <Rubric id="_t9" kind="exclusion"><Label xml:lang="en">measles A71; sinusitis R75</Label></Rubric>
+    <Rubric id="_t10" kind="icd10"><Label xml:lang="en">J00; J06.9</Label></Rubric>
+  </Class>
+  <Class code="A97" kind="otherDiagnosis">
+    <SuperClass code="A.7"/>
+    <Rubric id="_t11" kind="preferred"><Label xml:lang="en">No disease</Label></Rubric>
+    <Rubric id="_t12" kind="inclusion"><Label xml:lang="en">no illness/disease dealt with at encounter</Label></Rubric>
+  </Class>
+  <Class code="-30" kind="process">
+    <SuperClass code="-.2"/>
+    <Rubric id="_t13" kind="preferred"><Label xml:lang="en">Medical examination/health evaluation complete</Label></Rubric>
+  </Class>
+</ClaML>

@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Feature
-**Status:** Judged
+**Status:** In Progress
 **Effort:** 3-5 days
 **Requested:** 2026-07-14
 **Judged:** 2026-07-14 — scope frozen with re-pins (see Judgement)

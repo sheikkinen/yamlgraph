@@ -1,0 +1,60 @@
+# FR-722 committed test fixture — PARAPHRASED cue lists authored for this
+# project (Judgement F5): not the Wonca rubric text. The real catalog is
+# generated locally by nodes/build_catalog.py and is gitignored (A1).
+catalog_version: fixture-v1
+rows:
+  - code: R05
+    title: Cough
+    chapter: R
+    component: 1
+    cluster_id: R-C1
+    official_definition_or_note: "Patient presents with coughing of any character."
+    inclusion_terms: ["coughing, whether dry or productive"]
+    exclusion_terms: ["sputum abnormalities belong to R25"]
+    source_tier: 1
+    source_reference: ICPC-2e-v7.0/R05
+    provenance_status: verified
+  - code: R02
+    title: Shortness of breath
+    chapter: R
+    component: 1
+    cluster_id: R-C1
+    official_definition_or_note: "Patient reports breathing difficulty or dyspnoea."
+    inclusion_terms: ["breathlessness", "laboured breathing"]
+    exclusion_terms: ["wheeze belongs to R03"]
+    source_tier: 1
+    source_reference: ICPC-2e-v7.0/R02
+    provenance_status: verified
+  - code: A03
+    title: Fever
+    chapter: A
+    component: 1
+    cluster_id: A-C1
+    official_definition_or_note: "Patient presents with raised body temperature."
+    inclusion_terms: ["feeling feverish", "elevated temperature"]
+    exclusion_terms: ["heat stroke belongs to A88"]
+    source_tier: 1
+    source_reference: ICPC-2e-v7.0/A03
+    provenance_status: verified
+  - code: R74
+    title: Upper respiratory infection acute
+    chapter: R
+    component: 7
+    cluster_id: R-C7
+    official_definition_or_note: "Acute inflammation of nasal or pharyngeal airways."
+    inclusion_terms: ["common cold", "acute sore throat"]
+    exclusion_terms: ["sinusitis belongs to R75"]
+    source_tier: 1
+    source_reference: ICPC-2e-v7.0/R74
+    provenance_status: verified
+  - code: A99
+    title: General disease NOS (fixture stand-in)
+    chapter: A
+    component: 7
+    cluster_id: A-C7
+    official_definition_or_note: "Hand-added stand-in row, not checked against Tier 1."
+    inclusion_terms: []
+    exclusion_terms: []
+    source_tier: 4
+    source_reference: fixture-only
+    provenance_status: provisional
