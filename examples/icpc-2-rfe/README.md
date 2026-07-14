@@ -30,15 +30,33 @@ python examples/icpc-2-rfe/nodes/build_catalog.py
 
 ## Run
 
+The runner classifies a transcript file (or stdin) and prints only the
+answer — the full state dump goes to `logs/icpc2-rfe-last-run.log`:
+
 ```bash
-yamlgraph graph run examples/icpc-2-rfe/graph.yaml \
-  --var transcript="Patient calls because of a dry cough for two weeks, worse at night." \
-  --full
+examples/icpc-2-rfe/classify.sh examples/icpc-2-rfe/data/HP-36-acting-on-behalf-of-adult.md
+
+echo "Patient calls because of a dry cough for two weeks, worse at night." \
+  | examples/icpc-2-rfe/classify.sh
 ```
+
+```
+PRIMARY
+  A13  Concern about/fear of medical treatment  [match, 0.98]
+      The caller is requesting renewal of a blood pressure medication ...
+      evidence: "Haluaisin uusia hänen verenpainelääkereseptinsä."; ...
+SECONDARY
+  K86  Hypertension uncomplicated  [match, 0.98]
+  ...
+coverage: ICPC-2e-v7.0, components [1, 7], 33 clusters, 34 candidates
+```
+
+Raw invocation (prints the entire graph state — large):
 
 ```bash
 yamlgraph graph run examples/icpc-2-rfe/graph.yaml \
-  --var transcript="$(cat examples/icpc-2-rfe/data/HP-36-acting-on-behalf-of-adult.md)" --full
+  --var transcript="Patient calls because of a dry cough for two weeks, worse at night." \
+  --full 2>/dev/null | python3 examples/icpc-2-rfe/nodes/show_result.py
 ```
 
 Output (state keys `classification` + `meta`):
@@ -56,8 +74,11 @@ meta:
 
 ## Contracts (enforced by tests, `tests/unit/test_fr722_icpc2_rfe.py`)
 
-- **Evidence honesty**: `evidence_spans` must be (case-insensitive)
-  substrings of the input transcript — invented spans fail the run.
+- **Evidence honesty**: the model's `evidence_spans` are claims — the
+  reducer aligns each claim to the transcript and outputs the verbatim
+  transcript substring (near-miss ≥ 0.85 similarity is repaired;
+  anything below is a fabrication and fails the run). LLM quoting is
+  fragile; copying is done in code.
 - **Catalog honesty**: candidate codes must exist in the catalog;
   `meta.catalog_coverage` makes "no match" interpretable (components
   2–6 process codes are phase 2).
