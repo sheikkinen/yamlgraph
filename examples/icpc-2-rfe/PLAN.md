@@ -53,13 +53,15 @@ The 8 residuals quantify the deferred defect: chapter-code inflation
 and model variance on ambiguous fixtures — the next FR's opening
 evidence.
 
-## Phase 3c — Chapter-inflation discipline (FR-730, Proposed)
+## Phase 3c — Chapter-inflation discipline (FR-730, **Completed** 2026-07-14)
 
-The residual quantified by 3b's baseline: Z10/A13/P76 secondary leaks
-(4/30) and inflated context corrupting composition (Z50-vs-K50).
-Directions: chapter-side meta cap + symptom-over-diagnosis context
-preference; evidence-gated diagnosis verdicts only if the harness
-shows inflation beyond P76.
+Z10 cap (the Z-side `-48`; A13/A23/A29 verified stateable, uncapped),
+same-chapter symptom-over-diagnosis (ICPC practical rule 3 mechanized:
+P03 demotes P76), composition context eligibility non-Z with C7-over-C1
+preference. All three gating classes at zero (Z10 leaks, P76-class,
+Z-composition); hp36 composes K50, never Z50. Accepted A13 residual
+measured at its upper bound (4/29) — hp36 label is the permanent
+detector.
 
 ## Phase 4 — Verdict stability (FR-726, gated — likely CONDEMNED)
 

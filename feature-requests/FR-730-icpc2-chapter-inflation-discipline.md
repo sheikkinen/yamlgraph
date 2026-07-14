@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Fix
-**Status:** In Progress
+**Status:** Completed
 **Effort:** 1 day
 **Requested:** 2026-07-14
 **Judged:** 2026-07-14 — scope frozen; proposal's cap list and direction (c) both overturned by rubric-level verification
@@ -114,3 +114,36 @@ extensions beyond Z10 without harness evidence, translation/multilingual
 term matching, label changes, prompt changes, model variance on
 ambiguous fixtures (diabetic/parking scatter — FR-726's territory if
 anyone's).
+
+## Implementation (2026-07-14)
+
+Enforced per judgement. RED (4 condemned + 4 guards, REQ-YG-556);
+GREEN this commit: `CHAPTER_DESCRIPTOR_CODES = {Z10}` joins the cap
+mechanism; `_demote_shadowed_diagnoses` mechanizes ICPC practical rule
+3 via `_component` (code-number ranges, language-independent);
+composition context eligibility (non-process, non-capped, non-Z) with
+C7-over-C1 preference. 48/48 example witnesses green.
+
+### AC-01 verdict — all three gating classes PASS
+
+Baseline (N=5 × 6, clean archives, `logs/fr730-final.json`; 29 scored
+— one run lost to a transient failure, recorded as data):
+
+| Gate | Result |
+|---|---|
+| Z10 in primary/secondary | **0** ✓ |
+| P76-class (same-chapter C7-over-C1) | **0** ✓ — tired-mood 0/5→5/5 |
+| Z-chapter composition on clinical calls | **0** ✓ — hp36 composed K50×3, B50×2, never Z |
+
+Aggregate 21/29 (context, not gate). Residual taxonomy, honestly:
+- **A13 residual at its upper bound**: judged forecast ~2–3/30,
+  measured 4/29 (hp36 secondary ×3 + one diabetic PRIMARY — the
+  primary appearance is new and worth watching; the hp36 label remains
+  the permanent detector; revisit per F5 only with growth evidence).
+- Composition context churn moved WITHIN clinical codes (B99 won the
+  context slot twice over K86) — the Z-corruption is gone; residual
+  churn is now among plausible clinical contexts, cosmetically
+  imperfect, semantically defensible.
+- cough-fever 4/5: one A03-not-surfaced (top-3 partial window
+  crowding); tired-mood and backpain 5/5; diabetic/parking scatter
+  unchanged (out of scope, FR-726 territory).

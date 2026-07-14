@@ -34,6 +34,28 @@ def _is_process(code: str) -> bool:
 # agreement); prompt discipline failed twice, so the cap is code.
 META_PROCESS_CODES = {"-43", "-46", "-48", "-69"}
 
+# FR-730 F2: the Z-side twin — Z10's inclusion list is EMPTY in the
+# Tier-1 source; it describes the health care SYSTEM, never a stated
+# reason. A13/A23/A29 were verified genuinely stateable (falls,
+# exposure calls, treatment fears) and stay uncapped; A13 is the
+# accepted named residual, detected permanently by the hp36 label.
+CHAPTER_DESCRIPTOR_CODES = {"Z10"}
+
+_CAPPED_CODES = META_PROCESS_CODES | CHAPTER_DESCRIPTOR_CODES
+
+
+def _component(code: str) -> int | None:
+    """Chapter-code component from the ICPC numbering (C1: 01-29,
+    C7: 70-99); None for process codes and unparseable input."""
+    if _is_process(code) or len(code) < 2 or not code[1:].isdigit():
+        return None
+    num = int(code[1:])
+    if 1 <= num <= 29:
+        return 1
+    if 70 <= num <= 99:
+        return 7
+    return None
+
 
 class CandidateVerdict(BaseModel):
     """Per-code verdict returned by a map cluster item (judged contract)."""
@@ -116,13 +138,34 @@ def _validate_candidates(state: dict) -> list[CandidateVerdict]:
                 raise ValueError(
                     f"evidence_span not in transcript for {cand.code}: {exc}"
                 ) from exc
-            if cand.code in META_PROCESS_CODES and cand.verdict == "match":
-                # FR-727 F3: demote, never drop — evidence stays visible
-                # in best_partial; primary/secondary are unreachable.
+            if cand.code in _CAPPED_CODES and cand.verdict == "match":
+                # FR-727 F3 / FR-730 F2: demote, never drop — evidence
+                # stays visible in best_partial; primary/secondary are
+                # unreachable.
                 cand.verdict = "partial_match"
                 cand.capped = True
             validated.append(cand)
     return validated
+
+
+def _demote_shadowed_diagnoses(candidates: list) -> None:
+    """FR-730 F3: same-chapter symptom-over-diagnosis (ICPC practical
+    rule 3 mechanized) — while diagnostic uncertainty remains, the
+    stated symptom IS the RFE. A component-7 match demotes to partial
+    when a component-1 match exists in the same chapter (P03 → P76
+    demoted). Cross-chapter and lone diagnoses are untouched."""
+    symptom_chapters = {
+        c.code[0]
+        for c in candidates
+        if c.verdict == "match" and _component(c.code) == 1
+    }
+    for cand in candidates:
+        if (
+            cand.verdict == "match"
+            and _component(cand.code) == 7
+            and cand.code[0] in symptom_chapters
+        ):
+            cand.verdict = "partial_match"
 
 
 def _sort_key(cand: CandidateVerdict) -> tuple:
@@ -156,7 +199,9 @@ def _entry(cand: CandidateVerdict) -> dict:
 
 def reduce_best_rfe(state: dict) -> dict:
     """Deterministic selection; explanation composed mechanically."""
-    ranked = sorted(_validate_candidates(state), key=_sort_key)
+    validated = _validate_candidates(state)
+    _demote_shadowed_diagnoses(validated)
+    ranked = sorted(validated, key=_sort_key)
     # Per-code dedup, keep the best-ranked occurrence (raw-read finding,
     # field run 3: one cluster emitted L03 twice → duplicate secondary).
     seen: set[str] = set()
@@ -167,11 +212,23 @@ def reduce_best_rfe(state: dict) -> dict:
     if matches:
         primary = _entry(matches[0])
         if _is_process(matches[0].code):
-            # FR-724 F1: chapter_context is reducer-derived — the best-
-            # ranked non-process candidate (match or partial), attached
-            # mechanically. The LLM never judges chapter from a process
-            # cluster.
-            context = next((c for c in deduped if not _is_process(c.code)), None)
+            # FR-724 F1 + FR-730 F4: chapter_context is reducer-derived.
+            # Eligibility: non-process, non-capped, non-Z-chapter (a
+            # renewal is never social-chapter business). Preference:
+            # component-7 diseases over component-1 symptoms — the
+            # OPPOSITE of RFE primacy, deliberately: composition anchors
+            # to the clinical problem being managed.
+            eligible = [
+                c
+                for c in deduped
+                if not _is_process(c.code)
+                and c.code not in _CAPPED_CODES
+                and not c.code.startswith("Z")
+            ]
+            context = next(
+                (c for c in eligible if _component(c.code) == 7),
+                next(iter(eligible), None),
+            )
             if context is not None:
                 primary["chapter_context"] = {
                     "code": context.code,
