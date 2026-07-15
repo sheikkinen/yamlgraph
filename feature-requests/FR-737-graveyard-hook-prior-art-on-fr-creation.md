@@ -59,11 +59,15 @@ must attach to what runs, not to what is documented as running.
   score = Σ 1/corpus_freq(noun) over matched nouns — inverse corpus
   frequency, so one rare noun (pyodide: 1 file, playground: 2) outranks
   any pile of generic ones (spike: 47). Cap at 5 files.
-- **Noise floor (F2, judged pin):** emit a candidate only if it matches
-  ≥1 rare noun (corpus frequency ≤ 10% of files); when no filename noun
-  is that rare, emit NOTHING — silence over alarm fatigue (255/720
-  files match ≥1 noun for an ordinary filename; a hook that always
-  emits trains agents to ignore it).
+- **Noise floor (F2, judged pin; threshold corrected by addendum A1):**
+  emit a candidate only if it matches ≥1 RARE noun — rare = corpus
+  frequency **≤ 20 files (≈3% of the 720-file corpus)**; when no
+  filename noun is that rare, emit NOTHING — silence over alarm fatigue
+  (255/720 files match ≥1 noun for an ordinary filename; a hook that
+  always emits trains agents to ignore it). The original 10% floor
+  (≤72 files) admitted `spike` (47) — F1's own generic-drowning
+  exemplar — so every `spike-*.md` filename would have emitted five
+  tied 1/47 hits.
 - **Output (advisory, non-blocking):**
 
   ```
@@ -108,8 +112,9 @@ status-only edit to an existing FR → assert silence.
 - [ ] AC-01 RED — hook tests: new-FR event with rejected-FR noun overlap
       emits the prior-art block with status tags; existing-FR edit emits
       nothing; noun extraction drops prefixes and stopwords; a filename
-      with only common nouns (all > 10% corpus frequency) emits nothing
-      (F2); the new file itself is never a candidate (F3).
+      with only common nouns (all above the A1 floor) emits nothing
+      (F2); a `spike`-only filename emits nothing (A1 witness); the new
+      file itself is never a candidate (F3).
 - [ ] AC-02 GREEN — `build_prior_art()` implemented with IDF ranking
       (F1); counterfactual witness: replaying today's incident (a file
       named `*-pyodide-playground.md`) surfaces
@@ -165,3 +170,21 @@ the real 720-file corpus).
 chaplain-stage integration, REJECTED-rationale sweeps, blocking
 semantics, title/body noun extraction (F4), any per-noun weighting
 beyond 1/freq.
+
+## Judgement Addendum (2026-07-15): A1 — the F2 floor contradicted F1's exemplar
+
+Author's reread after the fold: F2 defined rare as ≤ 10% of files
+(≤ 72/720), but F1's designated generic-drowning noun `spike` sits at
+47/720 = 6.5% — **rare by the F2 floor**. Consequence: every
+`spike-*.md` filename (a common naming pattern) passes the emission gate
+on `spike` alone and emits five tied 1/47-score hits — precisely the
+alarm-fatigue class F2 exists to prevent. The judgement's own verified
+qualifying list (pyodide 1, playground 2, catalog 8) sits an order of
+magnitude below the floor it was meant to calibrate.
+
+**Binding correction:** rare = corpus frequency **≤ 20 files** (absolute
+count; ≈3% today, and it tightens as the corpus grows, which is the
+correct direction for a "rare" notion). Verified against the F1/F2
+measurements: pyodide(1), playground(2), catalog(8) qualify; spike(47),
+error, handling, process do not. AC-01 gains the witness: a spike-only
+filename emits nothing.
