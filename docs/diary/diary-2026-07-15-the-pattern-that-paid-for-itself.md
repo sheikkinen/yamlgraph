@@ -85,6 +85,32 @@ permanently detectable. And gold_unscoreable earned its keep on first
 contact: Drupalgeddon2 3/3 proposing CWE-94 where NVD's gold is the
 Discouraged CWE-20.
 
+## The judgement that overturned its own proposal (FR-734 addendum)
+
+I wrote FR-734 from the baseline read, confident in the split: "13
+off-population kills dominate, 6 span kills working as designed." The
+judge's first act — recounting per-file from the logs — proved both
+halves false: 8 catalog / 11 span, and the span kills were not
+fabrications but **repairable interior omissions** (every killed claim
+had 100% of its characters in the description, in exactly two
+contiguous blocks; the single-block window anchor just mis-placed the
+comparison). The proposal had filed the DOMINANT defect class under
+"working as designed" — the strongest possible form of
+`quick_confidence`: a wrong number I had already published in a
+completed FR's table.
+
+Two heuristics, both graduation candidates:
+
+- **A completion table is a measurement artifact** — recompute from
+  the source before freezing, never from conversation memory. The 13/6
+  split was a mis-recalled uniq -c sum.
+- **"Working as designed" is a claim about the DEFECT, not the
+  mechanism.** The boundary raising was designed behavior; the claims
+  it raised on were not fabrications. Before filing rejections under
+  by-design, read what was rejected with the same care as what was
+  accepted — the boundary's kills deserve the read_raw_output_first
+  treatment too.
+
 ## Seed
 
 The harness now partitions disagreements by the vocabulary's own

@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Fix/refinement (examples/cwe-classifier, reducer semantics)
-**Status:** Judged
+**Status:** Completed (enforced 2026-07-15)
 **Effort:** 1 day (two independent witnesses, one shared re-baseline)
 **Requested:** 2026-07-15
 **Judged:** 2026-07-15 — evidence recounted; the proposal's dominant-killer
@@ -124,3 +124,46 @@ number below recomputed from logs/cwe-classifier/*.log, per-file
 **Purge list:** capped-partial visibility for off-population claims
 (F3), any similarity-floor reduction, dynamic/learned floors, icpc
 backport (AC-07 records only), retry-the-cluster strategies.
+
+## Enforcement (2026-07-15) — Completed
+
+RED 3f54443a (7 condemning + 3 regression-guard witnesses,
+REQ-YG-561), GREEN 68acbbca, decoy-anchor fix 8f9dc1c2 (found by the
+first re-baseline read — see below). All 33 witnesses green; full
+sweep green.
+
+**Mortality ladder (3×11 runs each, azure gpt-4o, archives
+quarantined by provenance between passes):**
+
+| Pass | Kills | Reading |
+|---|---|---|
+| FR-733 baseline | 19/33 | 8 catalog + 11 span (judgement F1 recount) |
+| Pass 1 (GREEN) | 4/33 | 3 × the SAME Tomcat shape pinned to repair + 1 new. Raw read: global `get_matching_blocks` anchored the claim's 'running' prefix to a decoy occurrence 137 chars away ('running on JDK 9+'), blowing the window cap — greedy global matching fails when a short prefix has a decoy; fixed by a second LOCAL re-anchoring pass around the longest match (8f9dc1c2) |
+| Gate (logs/fr734-baseline2.json) | **1/33 — ZERO from both gated classes** | The survivor: 'possible for remote code execution' vs 'vulnerable to remote code execution' — a REORDERED PARAPHRASE, correctly fatal: rewording is fabrication, not elision. New named span shape, recorded in the pattern doc |
+
+**AC-05 gate satisfied.** Off-population kills 8 → 0: the audit trail
+now holds exactly what used to kill — 8 of 32 archived runs carry
+`meta.off_population_claims` (CWE-119 ×4, CWE-200 ×3, CWE-122,
+CWE-20), every one a formerly-fatal volunteered code, every one with
+usage attached. Span kills 11 → 1 (the paraphrase, by design).
+
+**Scoring effects (18 pass / 8 fail / 6 unscoreable, up from 9/3/3
+on 3× more surviving runs):** Spring4Shell 0→3/3 pass (the repaired
+Tomcat span now flows into a CWE-94 = NVD gold primary); Heartbleed
+3/3 on CWE-125 = gold. Substantive disagreements now measurable with
+full n: Shellshock CWE-78 named residual stands (agreement 2/3 on
+CWE-454); Log4Shell misses gold CWE-917, model prefers CWE-470
+(JNDI-as-code-selection — a defensible literal reading, 2/3); PHP-FPM
+surfaces CWE-787 but not gold CWE-120 (multi-label partial);
+Drupalgeddon2/Struts gold_unscoreable working as designed (our CWE-94
+vs Discouraged golds). All residuals are LABEL/JUDGEMENT tensions, not
+boundary mortality — the instrument now measures the classifier, not
+its own kill rate.
+
+AC checklist: AC-01–03 ✓ (witnessed), AC-04 ✓ (both directions +
+decoy witness), AC-05 ✓ (this section; FR-733 table corrected in
+68acbbca), AC-06 ✓ (pattern doc law 3 + law 4 model-prior corollary),
+AC-07 ✓ (icpc divergence recorded in the pattern doc's shared-library
+manifest — `_align_span` copies have now diverged: cwe has
+multi-block + local re-anchor, icpc has single-block; the manifest
+names this the first concrete extraction motivation).

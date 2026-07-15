@@ -24,8 +24,8 @@ The reducer treats every model output as a **claim**:
 
 | Claim | Reconciliation |
 |---|---|
-| Evidence span | Aligned to the description: exact → verbatim, near-miss ≥ 0.85 → repaired, below → run fails |
-| Code | Catalog membership; bare `79` repairs to `CWE-79`; Prohibited codes are in no cluster → rejected |
+| Evidence span | Aligned to the description: exact → verbatim; interior omission (≥2 blocks, coverage ≥ 0.85, window-capped) → repaired to the true contiguous window restoring elided text; scattered/below-floor → run fails |
+| Code | Catalog membership; bare `79` repairs to `CWE-79`; a real catalog row outside view-699 (the model volunteering a famous Discouraged Class) diverts to `meta.off_population_claims`; a nonexistent code → rejected |
 | `match` on a MITRE-**Discouraged** code | Demoted to partial (capped, evidence preserved) — primary unreachable |
 | `match` on **Allowed-with-Review** | Stays primary-capable, flagged `review: true` |
 | `match` on a Class whose ChildOf descendant also matched | Demoted (map to the lowest abstraction — MITRE's own rule) |

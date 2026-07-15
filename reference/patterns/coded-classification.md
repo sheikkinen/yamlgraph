@@ -72,7 +72,15 @@ Every model output is a claim reconciled in the reducer:
   verbatim substring; near-miss (≥ similarity floor) is repaired to the
   true text; below floor is a fabrication and fails the run. Observed
   span-failure shapes: case-folds, editing-by-omission, one-character
-  inflection drift, quote-wrapping, dropped code sigils.
+  inflection drift, quote-wrapping, dropped code sigils — and
+  **interior omission** (FR-734): claims eliding enumeration markers,
+  list segments, or inflecting tense, with 100% of their characters
+  present in ≤2 contiguous source blocks. Repair multi-block: matching
+  blocks with character coverage ≥ floor inside ONE plausible window
+  (capped at ~2× claim length — the load-bearing guard against
+  stitching scattered fragments); the output is the true contiguous
+  window restoring the elided text verbatim, so repair strengthens
+  evidence rather than tolerating drift.
 - **Codes** → catalog membership.
 - **Verdicts** → caps and domain rules (laws 4–5).
 
@@ -88,6 +96,16 @@ correct answers with perfect agreement. They are detectable a priori
 its raw definition first: half of one proposed list turned out
 genuinely stateable. Cap in code: demote-never-drop, evidence preserved
 in the informational tier, capped entries ranked behind genuine claims.
+
+**Model-prior corollary (FR-734):** for famous vocabularies the model
+imports its own junk drawers — it volunteers the very Discouraged
+Classes the curators demoted, codes that appear in NO cluster brief
+(CWE-119 four times in one 33-run baseline). The cap must therefore
+cover out-of-population citations, not just catalog members: claims of
+real catalog rows outside the candidate population divert to a meta
+audit record (never classification slots, never fatal); only
+nonexistent codes stay fatal. An a-priori cap-candidates list doubles
+as a prediction of what the model will volunteer off-list.
 
 ### 5. Mechanize the standard's own coding rules
 
@@ -170,4 +188,7 @@ is now a judgeable FR): `_align_span`, candidate validation with
 sigil/prefix repair, verdict-rank sorting with capped-last, per-code
 dedup, k-of-n agreement, and timestamp-anchored archive attribution;
 domain rules (caps, abstraction/chapter demotions, composition) stay
-per-instance.
+per-instance. **The copies have now diverged** (FR-734): the CWE
+`_align_span` gained multi-block interior-omission repair with local
+re-anchoring; the ICPC copy is still single-block. First concrete
+extraction motivation on record.
