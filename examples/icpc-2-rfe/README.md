@@ -49,14 +49,27 @@ The ICPC-2 rubric data is **© Wonca** and is never committed to this
 repository. You download it yourself, under your own acceptance of the
 [Wonca licensing terms](http://www.ph3c.org/4daction/w3_CatVisu/en/rules-%26-ethics.html?wCatIDAdmin=1101),
 from the official WICC-delegated repository (Norwegian Directorate of
-Health):
+Health). Two steps, both offline (no LLM key needed):
 
 ```bash
-# 1. Download ICPC-2e-v7.0 (the builder prints the URL if absent)
+# 1. Download ICPC-2e-v7.0 (~290 kB) to tmp/ — your acceptance of Wonca terms
+curl -L -o tmp/ICPC-2e-v7.0.zip \
+  'https://www.helsedirektoratet.no/digitalisering-og-e-helse/helsefaglige-kodeverk/icpc/icpc-2e--english-version/_/attachment/inline/7c5c8e7f-8c5a-4a0d-97a7-49bb144a162c:22fb4d59b1033d44af1da42cb84897cb363f7136/ICPC-2e-v7.0.zip'
+
+# 2. Generate the catalog (verifies sha256, parses ClaML)
 python examples/icpc-2-rfe/nodes/build_catalog.py
-# → verifies sha256, parses ClaML, writes data/icpc2_rfe_catalog.yaml
-#   (726 rubrics: 686 chapter codes + 40 process codes, gitignored)
+# ✓ 726 rubrics → examples/icpc-2-rfe/data/icpc2_rfe_catalog.yaml (gitignored)
 ```
+
+Run without arguments the builder expects `tmp/ICPC-2e-v7.0.zip`; a
+different zip location can be passed as the first argument. If the zip
+is missing or its sha256 differs from the pinned digest, the builder
+refuses with the download URL — it never parses unverified input.
+
+Running the classifier additionally needs an LLM provider key in the
+environment (e.g. `AZURE_AI_API_KEY`/`ANTHROPIC_API_KEY` — see the
+repo-root README for providers). The builder and the crosscheck
+harness's default mode are LLM-free.
 
 ## Run
 
