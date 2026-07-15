@@ -2,10 +2,11 @@
 
 **Priority:** LOW (blocked)
 **Type:** Feature
-**Status:** Judged (gated — mechanism judgement deferred)
+**Status:** Closed — CONDEMNED (per AC-04, the designed success outcome)
 **Effort:** 1-2 days
 **Requested:** 2026-07-14
 **Judged:** 2026-07-14 — frame ratified; mechanism NOT judged
+**Closed:** 2026-07-15 — mechanism judgement held with FR-730's baseline; alternative (a) "do nothing" wins
 **Parent:** FR-722 — see `examples/icpc-2-rfe/PLAN.md`
 **Blocked by:** FR-725 — this FR may not be judged until the crosscheck
 harness has produced baseline agreement numbers (AC-04 there).
@@ -79,6 +80,42 @@ frozen NOW:
    FR-725 harness, not estimated.
 
 **Out of scope until the gate opens:** everything else in this FR.
+
+## Closure (2026-07-15): CONDEMNED — closing is the success outcome
+
+The gate opened: two clean baselines exist (FR-727 pre/post, FR-730
+final). Mechanism judgement held against the alternatives table, in
+cost order:
+
+**Numbers (FR-730 final, N=5):** stable fixtures agree perfectly —
+backpain 5/5, cough-fever 5/5, hp36 5/5, tired-mood 5/5. The two below
+threshold are diabetic-glucose 2/4 and parking-permit 2/5.
+
+**Why (a) "do nothing" wins:**
+1. The dominant instability across the whole arc was **bias, not
+   variance** — meta-process and chapter inflation, both fixed in code
+   (FR-727/730) with their gating classes measured at zero. Voting
+   would have amplified those biased modes with more confidence.
+2. The residual scatter lives ONLY on fixtures whose labels themselves
+   accept multiple primaries (`primary_any_of` has 2–3 entries) —
+   genuinely ambiguous calls where humans would also waver.
+   Self-consistency voting on a genuinely tied judgement manufactures
+   FALSE stability: it converts "this call is ambiguous" (information)
+   into a confidently repeated arbitrary pick (noise laundering).
+3. The strict ≥90%-across-the-set reading is 4/6 fixtures at 100% —
+   and per threshold_encodes_forecast (FR-727 diary), the aggregate
+   number was a forecast, not a property; the defect-class reading is
+   unambiguous: zero bias-class failures remain, and variance-class
+   "failures" are within label tolerance.
+
+(b) hysteresis and (c) N× voting are rejected on the same evidence;
+(d) the framework `samples:` primitive fails the rule of two (no
+second example needs it). Cost of the condemned mechanism, avoided:
+3× LLM calls per classification, permanently.
+
+Reopening condition: harness evidence of primary flapping on a fixture
+whose label accepts exactly ONE primary — that would be variance
+proper, not ambiguity.
 
 ## Gate citation (2026-07-14): FR-725 baseline exists
 

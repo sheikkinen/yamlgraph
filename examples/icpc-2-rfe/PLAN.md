@@ -63,11 +63,14 @@ Z-composition); hp36 composes K50, never Z50. Accepted A13 residual
 measured at its upper bound (4/29) — hp36 label is the permanent
 detector.
 
-## Phase 4 — Verdict stability (FR-726, gated — likely CONDEMNED)
+## Phase 4 — Verdict stability (FR-726, **Closed CONDEMNED** 2026-07-15)
 
-Baseline shows agreement ≈90%+ with the failures being bias, which
-voting amplifies rather than fixes. Mechanism judgement deferred until
-FR-727 lands and a fresh baseline isolates residual variance.
+The designed success outcome: two clean baselines proved the noise was
+bias (fixed in code, gating classes at zero), and residual scatter
+lives only on fixtures whose labels accept multiple primaries —
+genuinely ambiguous calls where voting would launder ambiguity into
+false confidence. 3× LLM cost avoided permanently. Reopens only on
+primary flapping against a single-answer label.
 
 ## Deliberately not planned
 
