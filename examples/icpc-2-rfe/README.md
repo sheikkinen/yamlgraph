@@ -1,20 +1,47 @@
-# ICPC-2 RFE Classifier (FR-722)
+# ICPC-2 RFE Classifier (FR-722/724/725/727/730)
+
+> **Purpose: YAMLGraph demo and research vehicle.** This example
+> exists to demonstrate the framework's map/reduce pattern on a real
+> taxonomy and to research LLM-classification discipline (verdict
+> inflation, evidence fidelity, measurement-gated fixes — see the
+> FR-72x arc). It is **not** a clinical or production coding tool: no
+> calibration, no clinical validation, synthetic fixtures only.
 
 Classifies a freeform encounter transcription into ICPC-2 **Reason for
-Encounter** code(s) with titles, verdicts, and short reasoning.
+Encounter** code(s) with titles, verdicts, short reasoning, and — for
+process-code primaries — the composed combined code (K86 context +
+`-50` → **K50**).
 
-Phase-in roadmap (process codes, crosscheck harness, verdict
-stability): see [PLAN.md](PLAN.md) — FR-722 (done), FR-724/725/726.
+Phase ladder and per-phase evidence: see [PLAN.md](PLAN.md)
+(FR-722, 724, 725, 727, 730 completed; FR-726 gated).
 
-Architecture: cluster map fan-out → per-cluster LLM verdicts → fully
-deterministic python reducer.
+## Architecture
 
+One LLM judgement per cluster; everything else is deterministic code.
+
+```mermaid
+flowchart TD
+    T["transcript (any language)"] --> LC["load_catalog (python)\nverified rows → 38 clusters\n17 chapters × C1/C7 + PROC-C2..C6"]
+    LC --> MAP["map fan-out: 38 × reason_cluster (LLM)\n0..n candidate verdicts per cluster"]
+    MAP --> RED["reduce (python — deterministic)"]
+    RED --> OUT["classification + meta"]
+
+    subgraph RED_RULES [reducer boundary rules]
+        R1["validate: Pydantic + span alignment\n(repair ≥ 0.85, reject fabrications)"]
+        R2["caps: meta-process {-43,-46,-48,-69}\n+ chapter descriptor {Z10} → demote"]
+        R3["ICPC rule 3: same-chapter C7 match\ndemotes when C1 matches (P03 ▸ P76)"]
+        R4["rank: verdict ▸ uncapped ▸ process ▸\nconfidence ▸ code; per-code dedup"]
+        R5["compose: process primary + context\n(non-Z, C7-preferred) → K50 / A50"]
+    end
+    RED -.- RED_RULES
+
+    OUT --> XC["crosscheck.py (LLM-free)\nlabeled fixtures × run archive → k-of-n"]
 ```
-transcript ──► load_catalog ──► map: 33 clusters (17 chapters × C1/C7)
-                                  └─ reason_cluster (only LLM judgement)
-                              ──► reduce (python: rank, dedup, validate)
-                              ──► classification + meta
-```
+
+Data flow guarantees: evidence spans in the output are verbatim
+transcript substrings *by construction*; candidate codes must exist in
+the generated catalog (dropped process sigils repaired, inventions
+rejected); the reducer never calls an LLM.
 
 ## Setup — generate the catalog first (required)
 
@@ -28,16 +55,17 @@ Health):
 # 1. Download ICPC-2e-v7.0 (the builder prints the URL if absent)
 python examples/icpc-2-rfe/nodes/build_catalog.py
 # → verifies sha256, parses ClaML, writes data/icpc2_rfe_catalog.yaml
-#   (686 rubrics, gitignored)
+#   (726 rubrics: 686 chapter codes + 40 process codes, gitignored)
 ```
 
 ## Run
 
 The runner classifies a transcript file (or stdin) and prints only the
-answer — the full state dump goes to `logs/icpc2-rfe-last-run.log`:
+answer; every run is archived for crosscheck as
+`logs/icpc2-rfe/<input>-<timestamp>.{log,result.json}`:
 
 ```bash
-examples/icpc-2-rfe/classify.sh examples/icpc-2-rfe/data/HP-36-acting-on-behalf-of-adult.md
+examples/icpc-2-rfe/classify.sh examples/icpc-2-rfe/data/labeled/hp36-renewal-behalf.md
 
 echo "Patient calls because of a dry cough for two weeks, worse at night." \
   | examples/icpc-2-rfe/classify.sh
@@ -45,13 +73,15 @@ echo "Patient calls because of a dry cough for two weeks, worse at night." \
 
 ```
 PRIMARY
-  A13  Concern about/fear of medical treatment  [match, 0.98]
-      The caller is requesting renewal of a blood pressure medication ...
+  K50 (-50)  Medication/prescription/renewal  [match, 0.99]
+      context: K86 Hypertension uncomplicated
+      The caller explicitly states the reason for contact is to renew ...
       evidence: "Haluaisin uusia hänen verenpainelääkereseptinsä."; ...
 SECONDARY
-  K86  Hypertension uncomplicated  [match, 0.98]
+  -62  Administrative procedure  [match, 0.98]
   ...
-coverage: ICPC-2e-v7.0, components [1, 7], 33 clusters, 34 candidates
+coverage: ICPC-2e-v7.0, components [1, 2, 3, 4, 5, 6, 7], 38 clusters, 44 candidates
+run archived: logs/icpc2-rfe/hp36-renewal-behalf-20260714_152018.log + ...
 ```
 
 Raw invocation (prints the entire graph state — large):
@@ -82,35 +112,52 @@ Output (state keys `classification` + `meta`):
 
 ```yaml
 classification:
-  primary:   {code: R05, title: Cough, verdict: match, confidence: 0.99, ...}
+  primary:   {code: "-50", combined_code: K50, title: Medication/prescription/renewal,
+              verdict: match, confidence: 0.99,
+              chapter_context: {code: K86, title: Hypertension uncomplicated}, ...}
   secondary: []          # multi-label when justified
   low_confidence: false  # true + best_partial when nothing reaches "match"
   best_partial: [...]
 meta:
   catalog_version: ICPC-2e-v7.0
-  catalog_coverage: {components: [1, 7], clusters_evaluated: 33}
+  catalog_coverage: {components: [1, 2, 3, 4, 5, 6, 7], clusters_evaluated: 38}
 ```
 
-## Contracts (enforced by tests, `tests/unit/test_fr722_icpc2_rfe.py`)
+## Contracts (enforced by tests, `tests/unit/test_fr72*_*.py`)
 
-- **Evidence honesty**: the model's `evidence_spans` are claims — the
-  reducer aligns each claim to the transcript and outputs the verbatim
-  transcript substring (near-miss ≥ 0.85 similarity is repaired;
-  anything below is a fabrication and fails the run). LLM quoting is
-  fragile; copying is done in code.
-- **Catalog honesty**: candidate codes must exist in the catalog;
-  `meta.catalog_coverage` makes "no match" interpretable (components
-  2–6 process codes are phase 2).
-- **Deterministic ranking**: verdict rank → confidence → code; per-code
-  dedup keeps the best-ranked occurrence; no reducer LLM call.
-- **Provenance**: every generated row is `verified` with
+- **Evidence honesty** (FR-722): the model's `evidence_spans` are
+  claims — the reducer aligns each claim to the transcript and outputs
+  the verbatim substring (case-folds/quote-wrapping/1-char drift
+  repaired at ≥ 0.85 similarity; below = fabrication, run fails).
+  Five span failure shapes were field-collected; LLM quoting is
+  fragile, so copying is done in code.
+- **Catalog honesty** (FR-722/724): candidate codes must exist in the
+  catalog (dropped process sigils "48"→"-48" repaired); coverage is
+  declared in `meta` so "no match" is interpretable.
+- **Verdict discipline in code** (FR-727/730): encounter-descriptor
+  rubrics (`-43,-46,-48,-69`, `Z10`) can never reach primary/secondary
+  — demoted, evidence preserved in best_partial; a same-chapter
+  symptom match demotes diagnosis matches (ICPC practical rule 3);
+  prompt discipline alone failed three times, hence code.
+- **Deterministic ranking** (FR-722/724): verdict → uncapped-first →
+  process-over-chapter (RFE primacy) → confidence → code; per-code
+  dedup; no reducer LLM call.
+- **Composition** (FR-727/730): process primaries compose
+  `combined_code` from the best clinical context (non-Z, diseases
+  preferred); chapter A when contextless.
+- **Provenance** (FR-722): every generated row is `verified` with
   `source_reference: ICPC-2e-v7.0/<code>`; hand-added rows are
   `provisional` and excluded unless `--var include_provisional=1`.
 
-## Assumptions / limits (phase 1)
+## Assumptions / limits
 
-- English prompting only; RFE-centric (not diagnosis coding).
-- Confidence values are uncalibrated — used only to tie-break within a
-  verdict rank, never compared across ranks.
+- Research demo: confidence values are uncalibrated (within-rank
+  tie-break only); no clinical validation; labeled fixtures are
+  synthetic and non-clinical.
+- Prompts are English; Finnish transcripts are field-proven (span
+  alignment and rule mechanics are language-independent). Known open
+  residuals are measured, not hidden: A13 over-claiming ~4/29, context
+  churn among plausible clinical codes — see PLAN.md and the FR-730
+  implementation notes.
 - The committed `data/fixture_catalog.yaml` is a paraphrased 5-row
   test fixture, not clinical data.
