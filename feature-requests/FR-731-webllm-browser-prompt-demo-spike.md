@@ -90,14 +90,14 @@ spike that is honestly recorded is a success of the method.
 
 ## Acceptance Criteria
 
-- [ ] AC-01 RED — unit test: `build.py` on `critique.yaml` emits
+- [x] AC-01 RED — unit test: `build.py` on `critique.yaml` emits
       `prompt.json` whose json_schema requires score/feedback fields,
       carries `ge:0/le:1` as `minimum/maximum` on score, and whose
       user_template preserves `{iteration}`/`{content}` placeholders
       verbatim.
-- [ ] AC-02 — artifact committed; rebuild is a no-op on unchanged prompt
+- [x] AC-02 — artifact committed; rebuild is a no-op on unchanged prompt
       (idempotence test).
-- [ ] AC-03 — page gates on `navigator.gpu` and defers the weight download
+- [x] AC-03 — page gates on `navigator.gpu` and defers the weight download
       to an explicit click with size disclosure (source-inspection test:
       no fetch of model artifacts before user gesture).
 - [ ] AC-04 — spike-evidence.md with ≥ 3 verbatim raw model outputs,
@@ -141,3 +141,28 @@ and max REQ id (555) read before pinning.
 streaming, no graph execution, no skill-export). Enforce order: AC-01
 RED first (build.py compiler test), then AC-02/AC-03 tests, then page,
 then the deployed-site evidence run, then AC-05 paperwork.
+
+## Implementation (2026-07-15)
+
+Enforced per judgement. RED fd02a782 (14 condemning tests, REQ-YG-562
+registered in CAP-04); GREEN this commit.
+
+- `examples/webllm-demo/build.py` — loads critique.yaml, builds the
+  model via `build_pydantic_model`, emits
+  `{name, system, user_template, json_schema}` (F3: no model_id);
+  `serialize()` uses `sort_keys=True` (F5); `--check` mode verifies
+  drift for CI/pre-commit use.
+- `docs/demos/webllm/prompt.json` — committed artifact; raw read
+  confirmed `minimum: 0.0` / `maximum: 1.0` on score and defaults on
+  issues/should_refine before any test asserted it.
+- `docs/demos/webllm/index.html` — vanilla ESM, esm.run CDN import;
+  `navigator.gpu` gate with honest browser list; consent click owns
+  the only `CreateMLCEngine` call (F4 witnessed by lexical test);
+  MODEL_ID constant page-side (F3); temperature 0;
+  `response_format: {type: json_object, schema}` from the artifact;
+  raw output rendered always (F6 disclaimer in the page header);
+  shape failures render loud red, never prettified.
+
+AC-04 remains: deployed-site run, 10-run tally (F1), verdict into
+this FR, research-doc update. The page ships dark until Pages
+deploys it; no framework surface changed.

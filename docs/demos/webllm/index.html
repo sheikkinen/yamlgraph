@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>YAMLGraph × WebLLM — prompt demo (FR-731)</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 46rem; margin: 2rem auto; padding: 0 1rem; line-height: 1.5; }
+  textarea { width: 100%; min-height: 8rem; font: inherit; padding: .5rem; box-sizing: border-box; }
+  button { font: inherit; padding: .5rem 1.25rem; cursor: pointer; }
+  button:disabled { cursor: not-allowed; opacity: .5; }
+  pre { background: #f6f6f6; padding: .75rem; overflow-x: auto; white-space: pre-wrap; }
+  progress { width: 100%; }
+  .fail { color: #b00; border: 2px solid #b00; padding: .75rem; font-weight: 600; }
+  .muted { color: #666; font-size: .9rem; }
+  dt { font-weight: 600; margin-top: .5rem; }
+</style>
+</head>
+<body>
+<h1>Essay critique — in your browser, no API key</h1>
+<p class="muted">
+  A <a href="https://github.com/tuplet-fi/yamlgraph">yamlgraph</a> prompt
+  (<code>reflexion/prompts/critique.yaml</code>, inline Pydantic schema)
+  compiled mechanically to a WebLLM <code>response_format</code> and run
+  entirely in this tab. This spike proves schema fidelity only — semantic
+  quality of the critique is out of scope (FR-731 F6).
+</p>
+
+<section id="gate-unsupported" hidden>
+  <p class="fail">
+    This browser has no WebGPU (<code>navigator.gpu</code> is absent).
+    Works in: Chrome/Edge 113+ and Safari 26+ on macOS, Chrome on
+    Windows/Android with a supported GPU. Firefox: not yet.
+  </p>
+</section>
+
+<section id="gate-consent" hidden>
+  <p>
+    Running this demo downloads model weights to your browser cache:<br>
+    <strong id="model-id"></strong> — approximately <strong>0.7 GB</strong>
+    (one-time; the second visit loads from cache).
+  </p>
+  <button id="load-btn">Download model and start</button>
+  <progress id="load-progress" max="1" value="0" hidden></progress>
+  <p id="load-status" class="muted"></p>
+</section>
+
+<section id="demo" hidden>
+  <label for="essay">Paste an essay paragraph:</label>
+  <textarea id="essay">The internet has changed how people communicate. It is faster than letters. Some people think it is good and some people think it is bad. In conclusion, the internet has both good and bad sides.</textarea>
+  <button id="critique-btn">Critique</button>
+  <p id="run-status" class="muted"></p>
+  <div id="result" hidden>
+    <h2>Parsed fields</h2>
+    <dl id="fields"></dl>
+    <h2>Raw model output</h2>
+    <pre id="raw"></pre>
+  </div>
+  <div id="shape-fail" class="fail" hidden></div>
+</section>
+
+<script type="module">
+import * as webllm from "https://esm.run/@mlc-ai/web-llm";
+
+// F3: deployment config lives here, not in the compiled artifact.
+const MODEL_ID = "Llama-3.2-1B-Instruct-q4f16_1-MLC";
+
+const $ = (id) => document.getElementById(id);
+let engine = null;
+let prompt = null;
+
+// Capability gate first — honest message, no workarounds.
+if (!navigator.gpu) {
+  $("gate-unsupported").hidden = false;
+} else {
+  $("gate-consent").hidden = false;
+  $("model-id").textContent = MODEL_ID;
+}
+
+// Consent gate: nothing model-related is fetched before this click (F4).
+$("load-btn").addEventListener("click", async () => {
+  $("load-btn").disabled = true;
+  $("load-progress").hidden = false;
+  try {
+    prompt = await (await fetch("./prompt.json")).json();
+    engine = await webllm.CreateMLCEngine(MODEL_ID, {
+      initProgressCallback: (p) => {
+        $("load-progress").value = p.progress ?? 0;
+        $("load-status").textContent = p.text ?? "";
+      },
+    });
+    $("gate-consent").hidden = true;
+    $("demo").hidden = false;
+  } catch (err) {
+    $("load-status").innerHTML = "";
+    $("load-status").className = "fail";
+    $("load-status").textContent = `Model load failed: ${err}`;
+  }
+});
+
+$("critique-btn").addEventListener("click", async () => {
+  $("critique-btn").disabled = true;
+  $("result").hidden = true;
+  $("shape-fail").hidden = true;
+  $("run-status").textContent = "Generating…";
+  const t0 = performance.now();
+  try {
+    const user = prompt.user_template
+      .replaceAll("{iteration}", "1")
+      .replaceAll("{content}", $("essay").value);
+    const reply = await engine.chat.completions.create({
+      messages: [
+        { role: "system", content: prompt.system },
+        { role: "user", content: user },
+      ],
+      temperature: 0,
+      response_format: {
+        type: "json_object",
+        schema: JSON.stringify(prompt.json_schema),
+      },
+    });
+    const raw = reply.choices[0].message.content;
+    const secs = ((performance.now() - t0) / 1000).toFixed(1);
+    $("run-status").textContent = `Done in ${secs}s.`;
+    $("raw").textContent = raw; // read the raw output, always
+    renderParsed(raw);
+    $("result").hidden = false;
+  } catch (err) {
+    $("run-status").textContent = "";
+    shapeFail(`Completion failed: ${err}`);
+  } finally {
+    $("critique-btn").disabled = false;
+  }
+});
+
+// Client-side shape check mirroring the schema — a failed check renders
+// as a loud red failure, never silently prettified.
+function renderParsed(raw) {
+  let obj;
+  try {
+    obj = JSON.parse(raw);
+  } catch (err) {
+    return shapeFail(`SCHEMA FAILURE: output is not valid JSON (${err})`);
+  }
+  const required = prompt.json_schema.required ?? [];
+  const missing = required.filter((k) => !(k in obj));
+  if (missing.length) {
+    return shapeFail(`SCHEMA FAILURE: missing required fields: ${missing.join(", ")}`);
+  }
+  if (typeof obj.score !== "number" || obj.score < 0 || obj.score > 1) {
+    return shapeFail(`SCHEMA FAILURE: score=${JSON.stringify(obj.score)} violates 0 \u2264 score \u2264 1`);
+  }
+  const dl = $("fields");
+  dl.innerHTML = "";
+  for (const [key, value] of Object.entries(obj)) {
+    const dt = document.createElement("dt");
+    dt.textContent = key;
+    const dd = document.createElement("dd");
+    dd.textContent = Array.isArray(value) ? value.join(" • ") : String(value);
+    dl.append(dt, dd);
+  }
+}
+
+function shapeFail(message) {
+  const el = $("shape-fail");
+  el.textContent = message;
+  el.hidden = false;
+}
+</script>
+</body>
+</html>
