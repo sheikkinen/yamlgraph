@@ -59,6 +59,32 @@ renaming. That is what "extract a shared library" should mean: the six
 things that survived contact unchanged (recorded in the pattern doc),
 not the twenty things that exist.
 
+## The baseline read (added after the 33-run measurement)
+
+9 pass / 3 fail / 3 unscoreable, and 19 of 33 runs killed at the
+boundary. The dominant kill was something ICPC structurally could not
+show: the model volunteers famous MITRE-**Discouraged** Classes
+(CWE-119 four times, -200, -20, -664) that appear in NO cluster brief.
+For an obscure vocabulary (ICPC) the closed cluster list is the
+model's only source of codes; for a famous vocabulary the model brings
+its own — and what it brings is precisely the overused junk drawers
+the vocabulary's curators demoted. **The junk_drawer_cap phenomenon
+arrives through model weights, not just catalog membership.** The
+closed-list pin kills those runs honestly; whether an off-catalog
+claim of a real-but-demoted code should drop-with-record instead of
+killing 39 clusters' work is strike-one material for a follow-up FR,
+not an enforce-time improvisation — the pin is judged.
+
+Second reading: Shellshock failed 3/3 with agreement 2/3 on CWE-454
+(External Initialization of Trusted Variables) against gold CWE-78 (OS
+Command Injection). The description literally states env-variable
+processing; NVD coded the exploit consequence. Mechanically our_miss
+(CWE-78 is Allowed, in-population); substantively a label-vs-
+description tension — the A13-style named residual, kept failing,
+permanently detectable. And gold_unscoreable earned its keep on first
+contact: Drupalgeddon2 3/3 proposing CWE-94 where NVD's gold is the
+Discouraged CWE-20.
+
 ## Seed
 
 The harness now partitions disagreements by the vocabulary's own
@@ -69,4 +95,6 @@ manually. **Can a builder detect junk-drawer candidates a priori across
 vocabularies — empty inclusion terms, meta-language in definitions,
 degree-centrality outliers in the hierarchy — and emit a
 `cap_candidates` list for the judge, turning law 4's curation from
-per-instance archaeology into a mechanical pre-read?**
+per-instance archaeology into a mechanical pre-read?** And its new
+twin: for famous vocabularies, the same list predicts what the MODEL
+will volunteer off-list — one artifact, two guards.
