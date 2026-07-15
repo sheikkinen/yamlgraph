@@ -5,11 +5,16 @@ taxonomy with official definitions) using one bounded LLM judgement per
 cluster and a deterministic reducer that treats every model output as a
 claim to be reconciled against a source of truth.
 
-> **Evidence base:** extracted from one field-hardened instance — the
-> ICPC-2 RFE classifier ([examples/icpc-2-rfe](../../examples/icpc-2-rfe/README.md),
+> **Evidence base: PROVEN (two instances).** Extracted from the
+> field-hardened ICPC-2 RFE classifier
+> ([examples/icpc-2-rfe](../../examples/icpc-2-rfe/README.md),
 > FR-722→730, ~90 field runs, every law below paid for by a measured
-> failure). Second instance pending; treat this as a
-> pattern-with-provenance, not a proven abstraction.
+> failure) and confirmed by the CWE vulnerability classifier
+> ([examples/cwe-classifier](../../examples/cwe-classifier/README.md),
+> FR-733) — a copy-adapt of ~4 modules that went RED→GREEN in one
+> session with zero new law needed. See
+> [What the second instance forced](#what-the-second-instance-forced-cwe-divergences)
+> for where CWE stretched the laws without breaking them.
 
 ## When to use
 
@@ -117,9 +122,52 @@ Encode the standard's rules, not guesses about the model.
 - Confidence values remain uncalibrated everywhere: within-rank
   tie-break only, never a threshold.
 
-## Reference implementation
+## What the second instance forced (CWE divergences)
+
+Each divergence stretched a law without contradicting it:
+
+- **Multi-membership clusters** (law 2): a CWE belongs to several
+  view-699 categories. The builder duplicates the code into every
+  member cluster; the reducer's existing per-code dedup keeps the
+  best-ranked occurrence — no new mechanism.
+- **Catalog-derived caps** (law 4): MITRE ships the junk-drawer
+  taxonomy as Tier-1 data (`Mapping_Notes/Usage`). Prohibited codes are
+  stripped from candidacy at BUILD time (never shown to the model);
+  Discouraged demotes-not-drops; Allowed-with-Review flags
+  `review: true` without demotion — in an analyst-assistance posture,
+  review is an outcome, not a penalty. Project curation shrinks to
+  zero, but the counts get pinned two-level (catalog-wide AND
+  in-population) so a vocabulary bump that shifts the curation is loud.
+- **Abstraction chains** (law 5): the standard's own rule ("map to the
+  lowest abstraction") mechanizes via `ChildOf` links — a match whose
+  matched transitive descendant exists demotes. Verified nearly vacuous
+  in-population (384 Base / 9 Variant / 6 Class) — measure the rule's
+  live surface before billing it as a centerpiece.
+- **Gold labels that violate the vocabulary's own guidance** (law 6):
+  2 of 11 NVD gold labels are MITRE-Discouraged codes. The harness
+  partitions disagreements mechanically by usage: a miss on an Allowed
+  gold code fails (`our_miss`); a miss on a Discouraged gold code is
+  recorded (`label_questionable`); a fixture whose entire gold set
+  violates guidance is `gold_unscoreable` — reported for the human
+  read, never a mechanical pass/fail. Proposing a more specific
+  Allowed code than a Discouraged gold label is a success narrative.
+- **Committable fixtures**: US-government CVE descriptions are
+  redistributable verbatim — the fixture-labeling economics of law 6
+  collapse to near zero when the domain has a public gold corpus.
+
+## Reference implementations
 
 [examples/icpc-2-rfe](../../examples/icpc-2-rfe/README.md) — builder,
 prompt, reducer (~300 lines total), harness, labeled fixtures in three
 languages, and [PLAN.md](../../examples/icpc-2-rfe/PLAN.md) recording
 the measured evidence for every law above.
+
+[examples/cwe-classifier](../../examples/cwe-classifier/README.md) —
+the second instance (FR-733): view-699 fan-out over cwec_v4.20,
+usage-partitioned NVD-gold harness. What a shared library WOULD need
+(recorded, deliberately not built — rule of two satisfied, extraction
+is now a judgeable FR): `_align_span`, candidate validation with
+sigil/prefix repair, verdict-rank sorting with capped-last, per-code
+dedup, k-of-n agreement, and timestamp-anchored archive attribution;
+domain rules (caps, abstraction/chapter demotions, composition) stay
+per-instance.

@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Feature (new example: `examples/cwe-classifier/`)
-**Status:** Judged
+**Status:** Completed (enforced 2026-07-15)
 **Effort:** 2-3 days (phased; phase 1 independently committable)
 **Requested:** 2026-07-15
 **Judged:** 2026-07-15 — scope frozen; two load-bearing numbers overturned by candidate-population verification
@@ -195,3 +195,54 @@ so the harness can partition disagreements mechanically. The fixture
 set also bakes in: multi-label (2), Allowed-with-Review labels (4),
 one terse near-underdetermined description (Citrix), and a
 specificity-pair (193 vs 787).
+
+## Enforcement (2026-07-15) — Completed
+
+RED f34a07d3 (22 witnesses, CAP-204 / REQ-YG-557..560), GREEN a70921df.
+All 22 pass; full unit sweep green; graph lints; smoke run on
+cve-2024-49038 returned primary CWE-79 = NVD gold on first attempt.
+
+**Deviations from the judgement (all evidence-forced, none silent):**
+
+1. **Catalog-wide Prohibited pin is 58, not 83** — the judgement's 83
+   counted the 25 Deprecated rows the builder skips. Every count pin
+   must be computed by the same filter chain that produces the pinned
+   population. In-population 54/5/13 confirmed exactly.
+2. **39 briefed clusters, not 40** — CAT-1225 (Documentation Issues) is
+   100% Prohibited and vanishes at build time: the candidacy strip
+   silently performs cluster-level curation. Correct, unforecast.
+3. **`nvd_label_usage` lives in the harness report, not the committed
+   label files** — usage is computed from the generated catalog at
+   evaluation time; committed fixtures stay raw provenance (a builder
+   writing into committed files would blur the generated/committed
+   boundary of law 1).
+
+**AC-04 baseline (3 runs × 11 fixtures, azure gpt-4o, 2026-07-15;
+logs/fr733-baseline.json):** TOTAL 9 pass / 3 fail / 3 unscoreable;
+19 of 33 runs died at the reducer boundary (a failed run is data).
+Every disagreement read and classified:
+
+| Class | Evidence | Reading |
+|---|---|---|
+| Off-population volunteering (13 run-kills) | CWE-119 ×4, CWE-200, CWE-20, CWE-664 (all MITRE-**Discouraged** non-members), CWE-122 (Allowed, not in view-699) | NEW domain fact ICPC could not show: the model KNOWS CWE by heart and volunteers exactly the famous junk-drawer Classes MITRE demoted — the junk_drawer_cap phenomenon arriving via model prior instead of catalog membership. The closed-list pin (AC-02, judged) kills the whole 39-cluster run for one volunteered code — heavy but honest; softening reject→drop-with-record is a SEMANTICS change to a judged pin → follow-up FR, not an enforce-time improvisation |
+| Span fabrications (6 run-kills) | ellipsis editing ("From version 2.16.0 ... this functionalit"), enumeration-marker omission ("(1) TLS and (2) DTLS" → "TLS and DTLS"), paraphrase ("to run on" → "running on"), and one candidate quoting the CWE **catalog brief** as evidence ("does not neutralize or incorrectly neutral…") | All four are known icpc shapes or their close kin; the brief-as-evidence shape is new and correctly rejected — the boundary built for Finnish transcripts caught English CVE fabrications unchanged |
+| our_miss: CWE-78 (Shellshock, 3/3 fail, agreement 2/3 on CWE-454) | Description states env-variable processing ("processes trailing strings after function definitions in the values of environment variables"); NVD coded the exploit consequence (OS command injection). CWE-454 (External Initialization of Trusted Variables) is the literal reading | The named residual (icpc's A13 analog): mechanically our_miss because CWE-78 is Allowed and in-population; substantively a label-vs-description tension. Kept failing, permanently detectable |
+| gold_unscoreable: cve-2018-7600 (3/3) | Gold CWE-20 is Discouraged; our primaries CWE-94/CWE-439 | The success narrative working as designed: we propose specific Allowed codes where NVD's label violates MITRE's own guidance |
+| label_questionable: CWE-20 (Log4Shell) | CWE-20 has NO view-699 membership — it can never surface | Partition handles it mechanically; the Allowed gold CWE-917 is what the classifier is scored on |
+
+Passing fixtures: cve-2019-19781 3/3 on CWE-22 (the terse Citrix
+description resolved, no forced low-confidence needed),
+cve-2024-49038 3/3 on CWE-79, cve-2021-3156 2/2 on CWE-193 (the
+specificity pair held: 193 chosen over 787), cve-2023-4863 1/1 on
+CWE-787.
+
+**Recorded for a follow-up FR (not built):** off-catalog candidate
+handling — drop-with-record (meta lists rejected claims) vs run-kill.
+Strike one at the mechanism level; the two-strike rule wants a second
+occurrence or a judge's decision before the pin changes.
+
+AC checklist: AC-01 ✓ (pins two-level, corrected), AC-02 ✓, AC-03 ✓,
+AC-04 ✓ (this section), AC-05 ✓ (witnessed via Discouraged-only match
+→ low_confidence; terse Citrix fixture resolved rather than forced),
+AC-06 ✓ (pattern doc promoted to PROVEN with divergence section),
+AC-07 ✓ (CAP-204, fragment, diary, README with purpose header).
