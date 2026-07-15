@@ -13,5 +13,8 @@ req: REQ-YG-561
   interior-omission repair (coverage ≥ 0.85, window-capped): elided
   enumeration markers and list segments repair to the true contiguous
   window restoring the elided text verbatim; scattered fabrications
-  still die. Loader ships a full-catalog `usage_index` via merged dict
+  still die; anchoring runs two passes (global blocks, then local
+  re-anchor around the longest match) so a decoy occurrence of a short
+  claim prefix elsewhere in the text cannot blow the window cap. Loader
+  ships a full-catalog `usage_index` via merged dict
   return. (REQ-YG-561)

@@ -256,6 +256,38 @@ class TestInteriorOmissionRepair:
         assert span in DESCRIPTION
         assert "arbitrary" in span
 
+    @pytest.mark.req("REQ-YG-561")
+    def test_decoy_occurrence_does_not_steal_the_anchor(self):
+        """AC-05 residual (re-baseline read): Spring4Shell's 'running on
+        JDK 9+' stole the 'running' block from 'to run on Tomcat as a
+        WAR deployment' 137 chars away, blowing the window cap on a
+        claim that repairs perfectly around its largest block. Matching
+        must re-anchor LOCALLY around the longest block."""
+        reducer = _load("reduce.py")
+        description = (
+            "A Spring application running on JDK 9+ may be vulnerable to "
+            "remote code execution via data binding. The specific exploit "
+            "requires the application to run on Tomcat as a WAR deployment "
+            "with attackers able to inject arbitrary JavaScript."
+        )
+        out = _reduce(
+            reducer,
+            [
+                _cand(
+                    "CWE-79",
+                    "XSS",
+                    "match",
+                    0.9,
+                    ["running on Tomcat as a WAR deployment"],
+                )
+            ],
+            description=description,
+        )
+        span = out["classification"]["primary"]["evidence_spans"][0]
+        assert span in description
+        assert "Tomcat as a WAR deployment" in span
+        assert "JDK" not in span
+
 
 # ---------------------------------------------------------------------------
 # Loader ships usage_index (F4)

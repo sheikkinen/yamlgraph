@@ -42,19 +42,37 @@ class CandidateVerdict(BaseModel):
     review: bool = False  # Allowed-with-Review flag (F3: outcome, not demotion)
 
 
+def _blocks_window(
+    description_cf: str, span_cf: str, lo: int, hi: int
+) -> tuple[int, int] | None:
+    """Matching blocks (size ≥ 3) of the claim against description[lo:hi];
+    returns the outermost-block window when coverage ≥ 0.85, else None."""
+    matcher = difflib.SequenceMatcher(
+        None, description_cf[lo:hi], span_cf, autojunk=False
+    )
+    blocks = [b for b in matcher.get_matching_blocks() if b.size >= 3]
+    if not blocks or sum(b.size for b in blocks) < 0.85 * len(span_cf):
+        return None
+    return lo + blocks[0].a, lo + blocks[-1].a + blocks[-1].size
+
+
 def _align_span(span: str, description: str, description_cf: str) -> str:
     """Align a claimed evidence span to the description (icpc F3
     boundary, multi-block repair per FR-734 F2).
 
     Exact (case-folded) containment returns the true source text.
-    Otherwise: matching blocks (size ≥ 3) between description and claim
-    must cover ≥ 0.85 of the claim's characters AND fall inside one
-    plausible window (≤ max(2×span, span+40) — the load-bearing guard
-    against stitching scattered fragments). The repair returns the true
-    CONTIGUOUS description window spanning the outermost blocks,
-    restoring interior text the model elided (enumeration markers, list
-    segments) verbatim — evidence honesty is strengthened, never
-    weakened. Below the coverage floor or outside the window cap is a
+    Otherwise matching blocks (size ≥ 3) must cover ≥ 0.85 of the
+    claim's characters AND fall inside one plausible window
+    (≤ max(2×span, span+40) — the load-bearing guard against stitching
+    scattered fragments). Two anchoring passes: GLOBAL blocks first
+    (handles long elisions like the Struts header list), then LOCAL
+    re-anchor around the longest match (a decoy occurrence of a short
+    prefix elsewhere in the text must not steal the anchor —
+    Spring4Shell's 'running on JDK 9+' vs 'to run on Tomcat', found by
+    the AC-05 re-baseline read). The repair returns the true CONTIGUOUS
+    description window, restoring interior text the model elided
+    verbatim — evidence honesty is strengthened, never weakened. Below
+    the coverage floor or outside the window cap on both passes is a
     fabrication and raises.
     """
     span = span.strip().strip("\"'\u201c\u201d\u2018\u2019").strip()
@@ -63,16 +81,21 @@ def _align_span(span: str, description: str, description_cf: str) -> str:
     if idx >= 0:
         return description[idx : idx + len(span)]
 
-    matcher = difflib.SequenceMatcher(None, description_cf, span_cf, autojunk=False)
-    blocks = [b for b in matcher.get_matching_blocks() if b.size >= 3]
-    coverage = sum(b.size for b in blocks)
-    if not blocks or coverage < 0.85 * len(span_cf):
-        raise ValueError(f"evidence_span not in description: {span!r}")
-    start = blocks[0].a
-    end = blocks[-1].a + blocks[-1].size
-    if end - start > max(2 * len(span), len(span) + 40):
-        raise ValueError(f"evidence_span not in description: {span!r}")
-    return description[start:end].strip()
+    cap = max(2 * len(span), len(span) + 40)
+    candidates: list[tuple[int, int] | None] = [
+        _blocks_window(description_cf, span_cf, 0, len(description_cf))
+    ]
+    anchor = difflib.SequenceMatcher(
+        None, description_cf, span_cf, autojunk=False
+    ).find_longest_match(0, len(description_cf), 0, len(span_cf))
+    if anchor.size >= 3:
+        lo = max(0, anchor.a - anchor.b - 20)
+        hi = min(len(description), anchor.a + (len(span) - anchor.b) + 20)
+        candidates.append(_blocks_window(description_cf, span_cf, lo, hi))
+    for window in candidates:
+        if window is not None and window[1] - window[0] <= cap:
+            return description[window[0] : window[1]].strip()
+    raise ValueError(f"evidence_span not in description: {span!r}")
 
 
 def _catalog_rows(state: dict) -> dict[str, dict]:
