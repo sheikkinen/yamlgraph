@@ -33,6 +33,16 @@ PROMPT_YAML = (
 )
 ARTIFACT = REPO_ROOT / "docs" / "demos" / "webllm" / "prompt.json"
 
+# Grammar-constrained decoding needs prompt-side JSON steering: without it
+# the model's preferred prose continuation is masked and whitespace is the
+# only always-legal token — deterministic flood (FR-731 kill-criterion root
+# cause, 2026-07-15). WebLLM's own json-mode examples state the prompt must
+# mention JSON. Schema-agnostic by design: compile output, not hand-tuning.
+JSON_DIRECTIVE = (
+    "Respond with a single JSON object only. "
+    "Do not output any text outside the JSON object."
+)
+
 
 def build_prompt_json() -> dict:
     """Compile the critique prompt YAML to the WebLLM contract dict."""
@@ -40,7 +50,7 @@ def build_prompt_json() -> dict:
     model = build_pydantic_model(config["schema"])
     return {
         "name": config["schema"]["name"],
-        "system": config["system"],
+        "system": config["system"].rstrip() + "\n" + JSON_DIRECTIVE,
         "user_template": config["user"],
         "json_schema": model.model_json_schema(),
     }

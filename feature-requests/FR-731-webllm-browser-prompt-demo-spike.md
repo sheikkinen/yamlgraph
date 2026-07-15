@@ -166,3 +166,34 @@ registered in CAP-04); GREEN this commit.
 AC-04 remains: deployed-site run, 10-run tally (F1), verdict into
 this FR, research-doc update. The page ships dark until Pages
 deploys it; no framework surface changed.
+
+## Kill-Criterion Event + Amendment (2026-07-15)
+
+**Protocol run 1 (instrumented): deterministic schema failure on
+every input.** Evidence (FR-735 instrument, session
+2026-07-15T11:12:06Z, apple metal-3, cache-hit load 2753 ms): raw
+output = one `{`, four newlines, 3914 spaces — 3919 bytes, zero
+semantic tokens, 86.8 s at 49.5 tok/s (usage field, not proxy).
+Same signature on distinct inputs ⇒ systematic, not per-input model
+degeneracy. Kill criterion met trivially (would be 10/10).
+
+**Root cause — compile path, not model capacity.** The compiled
+system prompt never mentions JSON (critique.yaml was authored for
+tool-calling providers where format steering is out-of-band). Under
+grammar masking the model's preferred prose continuation is illegal
+and whitespace is the only always-legal token: greedy decoding
+floods. Upstream confirmation: WebLLM's json-mode, json-schema, and
+ebnf examples all carry the same comment verbatim — *"Note that
+you'd need to prompt the model to answer in JSON either in user's
+message or the system prompt"* — and all set `max_tokens`.
+
+**Amendment (judged, this session):** the JSON directive is part of
+the *mechanical* compile, not per-prompt hand-tuning — `build.py`
+appends a schema-agnostic `JSON_DIRECTIVE` to every compiled system
+prompt (condemned by test: directive present AND contains no field
+names); the page bounds `max_tokens: 512` so a degenerate run costs
+~10 s, not 87. This is a boundary fix in the compiler the spike
+exists to validate — the spike's *question* is unchanged, its first
+answer was "template + schema alone is insufficient", and that
+finding is banked above. **The 10-run tally restarts from zero on
+the amended artifact.** Verdict stays open until that tally.

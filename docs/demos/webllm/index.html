@@ -133,6 +133,7 @@ $("critique-btn").addEventListener("click", async () => {
         { role: "user", content: user },
       ],
       temperature: 0,
+      max_tokens: 512, // bounds degenerate runs (the unbounded flood cost 87 s)
       response_format: {
         type: "json_object",
         schema: JSON.stringify(prompt.json_schema),
