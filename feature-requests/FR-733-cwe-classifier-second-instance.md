@@ -222,6 +222,15 @@ logs/fr733-baseline.json):** TOTAL 9 pass / 3 fail / 3 unscoreable;
 19 of 33 runs died at the reducer boundary (a failed run is data).
 Every disagreement read and classified:
 
+> **Correction (2026-07-15, FR-734 judgement F1):** the table below
+> originally claimed 13 off-population / 6 span kills. Per-file recount
+> from logs/cwe-classifier/*.log: **8 catalog kills / 11 span kills** —
+> span mortality dominated, and FR-734 F2 proved those span kills were
+> repairable interior omissions (a boundary defect), not fabrications;
+> "working as designed" below is repealed for that class. Meta-lesson:
+> a completion table is a measurement artifact — recompute from the
+> source before freezing, never from conversation memory.
+
 | Class | Evidence | Reading |
 |---|---|---|
 | Off-population volunteering (13 run-kills) | CWE-119 ×4, CWE-200, CWE-20, CWE-664 (all MITRE-**Discouraged** non-members), CWE-122 (Allowed, not in view-699) | NEW domain fact ICPC could not show: the model KNOWS CWE by heart and volunteers exactly the famous junk-drawer Classes MITRE demoted — the junk_drawer_cap phenomenon arriving via model prior instead of catalog membership. The closed-list pin (AC-02, judged) kills the whole 39-cluster run for one volunteered code — heavy but honest; softening reject→drop-with-record is a SEMANTICS change to a judged pin → follow-up FR, not an enforce-time improvisation |

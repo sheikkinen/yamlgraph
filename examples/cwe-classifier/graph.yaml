@@ -11,6 +11,7 @@ prompts_dir: prompts
 state:
   description: str       # freeform vulnerability description (input)
   catalog_path: str      # optional override; defaults inside the loader
+  usage_index: dict      # full-catalog code→Mapping_Notes usage (FR-734 F4)
   classification: dict   # reducer output (merged state update)
   meta: dict             # coverage-honesty metadata (merged state update)
 
@@ -19,7 +20,7 @@ tools:
     type: python
     path: nodes/catalog.py
     function: load_cwe_clusters
-    description: "Cluster the generated catalog by view-699 category (F3: Prohibited stripped at build; actionable error when the catalog has not been built)."
+    description: "Cluster the generated catalog by view-699 category (F3: Prohibited stripped at build; actionable error when the catalog has not been built). Merged dict return: cwe_clusters + usage_index (FR-734)."
 
   reduce_best_cwe:
     type: python

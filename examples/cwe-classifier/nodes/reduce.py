@@ -43,12 +43,19 @@ class CandidateVerdict(BaseModel):
 
 
 def _align_span(span: str, description: str, description_cf: str) -> str:
-    """Align a claimed evidence span to the description (icpc F3 boundary).
+    """Align a claimed evidence span to the description (icpc F3
+    boundary, multi-block repair per FR-734 F2).
 
-    Exact (case-folded) containment returns the true source text; a
-    near-miss (similarity ≥ 0.85 against the best-anchored window) is
-    REPAIRED to the actual substring; below the floor is a fabrication
-    and raises. Output spans are always verbatim description text.
+    Exact (case-folded) containment returns the true source text.
+    Otherwise: matching blocks (size ≥ 3) between description and claim
+    must cover ≥ 0.85 of the claim's characters AND fall inside one
+    plausible window (≤ max(2×span, span+40) — the load-bearing guard
+    against stitching scattered fragments). The repair returns the true
+    CONTIGUOUS description window spanning the outermost blocks,
+    restoring interior text the model elided (enumeration markers, list
+    segments) verbatim — evidence honesty is strengthened, never
+    weakened. Below the coverage floor or outside the window cap is a
+    fabrication and raises.
     """
     span = span.strip().strip("\"'\u201c\u201d\u2018\u2019").strip()
     span_cf = span.casefold()
@@ -57,18 +64,15 @@ def _align_span(span: str, description: str, description_cf: str) -> str:
         return description[idx : idx + len(span)]
 
     matcher = difflib.SequenceMatcher(None, description_cf, span_cf, autojunk=False)
-    block = matcher.find_longest_match(0, len(description_cf), 0, len(span_cf))
-    if block.size == 0:
+    blocks = [b for b in matcher.get_matching_blocks() if b.size >= 3]
+    coverage = sum(b.size for b in blocks)
+    if not blocks or coverage < 0.85 * len(span_cf):
         raise ValueError(f"evidence_span not in description: {span!r}")
-    start = max(0, block.a - block.b)
-    end = min(len(description), start + len(span) + 5)
-    window = description[start:end]
-    ratio = difflib.SequenceMatcher(
-        None, window.casefold(), span_cf, autojunk=False
-    ).ratio()
-    if ratio < 0.85:
+    start = blocks[0].a
+    end = blocks[-1].a + blocks[-1].size
+    if end - start > max(2 * len(span), len(span) + 40):
         raise ValueError(f"evidence_span not in description: {span!r}")
-    return window.strip()
+    return description[start:end].strip()
 
 
 def _catalog_rows(state: dict) -> dict[str, dict]:
@@ -79,26 +83,70 @@ def _catalog_rows(state: dict) -> dict[str, dict]:
     }
 
 
-def _validate_candidates(state: dict, rows: dict[str, dict]) -> list[CandidateVerdict]:
+def _off_population_claim(
+    cand: CandidateVerdict, usage: str, description: str, description_cf: str
+) -> dict:
+    """FR-734 F3: audit record for a real-catalog code without view-699
+    membership — the model volunteered it from prior knowledge. Span
+    alignment is best-effort and never fatal for meta-tier claims."""
+    claim = {
+        "code": cand.code,
+        "title": cand.title,
+        "usage": usage,
+        "verdict": cand.verdict,
+        "confidence": cand.confidence,
+        "reasoning_short": cand.reasoning_short,
+    }
+    try:
+        claim["evidence_spans"] = [
+            _align_span(span, description, description_cf)
+            for span in cand.evidence_spans
+        ]
+    except ValueError:
+        claim["evidence_spans"] = list(cand.evidence_spans)
+        claim["span_unverified"] = True
+    return claim
+
+
+def _validate_candidates(
+    state: dict, rows: dict[str, dict]
+) -> tuple[list[CandidateVerdict], list[dict]]:
     description = state["description"]
     description_cf = description.casefold()
+    usage_index = state.get("usage_index") or {}
     validated: list[CandidateVerdict] = []
+    off_population: list[dict] = []
     for result in state.get("map_results") or []:
         for raw in (result or {}).get("candidates") or []:
             try:
                 cand = CandidateVerdict.model_validate(raw)
             except ValidationError as exc:
                 raise ValueError(f"Invalid candidate {raw!r}: {exc}") from exc
-            if rows and cand.code not in rows:
+            if (
+                rows
+                and cand.code not in rows
+                and (f"CWE-{cand.code}" in rows or f"CWE-{cand.code}" in usage_index)
+            ):
                 # Sigil analog (icpc FR-724 field finding): models emit
                 # the bare number ("79" for "CWE-79") — repair when the
-                # prefixed form IS in the catalog; anything else —
-                # including Prohibited codes, absent from all clusters —
-                # is an invention and raises.
-                if f"CWE-{cand.code}" in rows:
-                    cand.code = f"CWE-{cand.code}"
-                else:
-                    raise ValueError(f"candidate code not in catalog: {cand.code!r}")
+                # prefixed form IS known.
+                cand.code = f"CWE-{cand.code}"
+            if rows and cand.code not in rows:
+                if cand.code in usage_index:
+                    # FR-734 F3: real catalog row without view-699
+                    # membership — divert to the meta audit trail;
+                    # classification slots stay population-only
+                    # (FR-733 AC-02 pin preserved verbatim).
+                    off_population.append(
+                        _off_population_claim(
+                            cand,
+                            usage_index[cand.code],
+                            description,
+                            description_cf,
+                        )
+                    )
+                    continue
+                raise ValueError(f"candidate code not in catalog: {cand.code!r}")
             try:
                 cand.evidence_spans = [
                     _align_span(span, description, description_cf)
@@ -117,7 +165,7 @@ def _validate_candidates(state: dict, rows: dict[str, dict]) -> list[CandidateVe
             if usage == "Allowed-with-Review" and cand.verdict == "match":
                 cand.review = True
             validated.append(cand)
-    return validated
+    return validated, off_population
 
 
 def _ancestors(code: str, rows: dict[str, dict]) -> set[str]:
@@ -176,7 +224,7 @@ def _entry(cand: CandidateVerdict) -> dict:
 def reduce_best_cwe(state: dict) -> dict:
     """Deterministic selection; explanation composed mechanically."""
     rows = _catalog_rows(state)
-    validated = _validate_candidates(state, rows)
+    validated, off_population = _validate_candidates(state, rows)
     _demote_matched_ancestors(validated, rows)
     ranked = sorted(validated, key=_sort_key)
     seen: set[str] = set()
@@ -210,5 +258,7 @@ def reduce_best_cwe(state: dict) -> dict:
             ),
             "catalog_coverage": coverage,
             "candidates_total": len(deduped),
+            # FR-734 F3: always present — an empty audit list is honest.
+            "off_population_claims": off_population,
         },
     }
