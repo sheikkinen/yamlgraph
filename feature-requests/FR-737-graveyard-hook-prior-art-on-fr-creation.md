@@ -52,7 +52,18 @@ must attach to what runs, not to what is documented as running.
   a small stopword list (fix, add, support, node, graph, yaml, demo…).
 - **Corpus grep:** case-insensitive, whole-word-ish match of each noun
   across `feature-requests/*.md` (including `REJECTED-*` and bodies with
-  `Status: Rejected`). Rank by distinct-noun hit count; cap at 5 files.
+  `Status: Rejected`), excluding the newly created file itself (F3:
+  in the counterfactual the new FR outranked its own precedent).
+- **Ranking (F1, judged pin — the proposal's distinct-noun count FAILED
+  its own counterfactual when simulated on the 720-file corpus):**
+  score = Σ 1/corpus_freq(noun) over matched nouns — inverse corpus
+  frequency, so one rare noun (pyodide: 1 file, playground: 2) outranks
+  any pile of generic ones (spike: 47). Cap at 5 files.
+- **Noise floor (F2, judged pin):** emit a candidate only if it matches
+  ≥1 rare noun (corpus frequency ≤ 10% of files); when no filename noun
+  is that rare, emit NOTHING — silence over alarm fatigue (255/720
+  files match ≥1 noun for an ordinary filename; a hook that always
+  emits trains agents to ignore it).
 - **Output (advisory, non-blocking):**
 
   ```
@@ -96,16 +107,20 @@ status-only edit to an existing FR → assert silence.
 
 - [ ] AC-01 RED — hook tests: new-FR event with rejected-FR noun overlap
       emits the prior-art block with status tags; existing-FR edit emits
-      nothing; noun extraction drops prefixes and stopwords.
-- [ ] AC-02 GREEN — `build_prior_art()` implemented; counterfactual
-      witness: replaying today's incident (a file named
-      `*-pyodide-playground.md`) surfaces `070-gui-web-playground.md`
-      with `[REJECTED]`.
+      nothing; noun extraction drops prefixes and stopwords; a filename
+      with only common nouns (all > 10% corpus frequency) emits nothing
+      (F2); the new file itself is never a candidate (F3).
+- [ ] AC-02 GREEN — `build_prior_art()` implemented with IDF ranking
+      (F1); counterfactual witness: replaying today's incident (a file
+      named `*-pyodide-playground.md`) surfaces
+      `070-gui-web-playground.md` with `[REJECTED]` **in the top 5 by
+      IDF score** (measured at judgement: #2).
 - [ ] AC-03 — Scripture Judge-paragraph line added (copilot-instructions.md).
 - [ ] AC-04 — hooks README updated (new check documented, output format).
-- [ ] AC-05 — changelog fragment; diary reflection. No REQ/CAP: hooks are
-      process infrastructure, not framework capability (precedent: other
-      fr-checks have no REQ marks) — judge to confirm.
+- [ ] AC-05 — changelog fragment; diary reflection. No REQ/CAP:
+      confirmed at judgement (F5) — follow `test_fr_checks.py`'s own
+      convention (unmarked; the broader hook-test precedent is mixed,
+      3 files do carry marks).
 
 ## Alternatives Considered
 
