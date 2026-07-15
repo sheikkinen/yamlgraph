@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.14]
+
+### Fixed
+- **FR-730 ICPC-2 Chapter-Inflation Discipline**: Z10 joins the verdict cap (empty inclusion list — a pure system descriptor, the Z-side `-48`; A13/A23/A29 verified genuinely stateable and stay uncapped); same-chapter symptom-over-diagnosis mechanizes ICPC practical rule 3 (a component-7 match demotes to partial when a component-1 match exists in the same chapter — P03 demotes P76, language-independent via code-number ranges); composition context becomes eligibility-gated (non-process, non-capped, non-Z) preferring diseases over symptoms. All three gating classes measured at zero (N=5 harness): Z10 leaks, P76-class demotions, Z-chapter compositions — hp36 composes K50, never Z50. (REQ-YG-556)
+- **FR-727 ICPC-2 Process-Code Discipline & Combined Codes**: meta-process rubrics (`-43, -46, -48, -69` — encounter-form descriptors and junk drawers, pinned from a full read of all 40 process titles) are verdict-capped in the reducer (demote match→partial, evidence preserved, capped entries rank behind genuine partials); process primaries gain a mechanically composed `combined_code` (K86 context + `-50` → K50, chapter A when contextless) per ICPC-2's biaxial design. Cures the FR-725-measured regression where `-48` ate symptom transcripts with perfect agreement: definitive harness baseline 22/30 from 11/30, zero residual failures involving capped codes. classify.sh runner made reinstall-proof (venv-interpreter `python -c`); crosscheck treats failed runs as data. (REQ-YG-555)
+- **GitHub Pages build**: excluded `docs/diary/` (and stray top-level `diary-*.md`) from the Jekyll site — Pages runs Jekyll 3.10 which silently ignores `render_with_liquid: false` (a Jekyll 4 option), so diary prose quoting raw Jinja2 (`{% ... %}`) crashed Liquid; the site had 0 successful deploys since 2026-05-20.
+
 ## [0.5.13]
 
 ### Added
