@@ -1,7 +1,8 @@
 # Plan: Browser Micro-Runtime — WebLLM as the Engine Under Exported Graphs
 
 **Date:** 2026-07-15
-**Status:** Parked — gated on a second consumer (NC-372 graduation criterion)
+**Status:** CONDEMNED unless a named consumer appears — see Red Hat verdict
+(2026-07-15, below); rung-1 findings banked, rungs 2–4 parked indefinitely
 **Source:** `docs/2026-07-14-research-browser-llm-webgpu.md` (Path 4, Seeds 5-6),
 integration-options analysis 2026-07-15 (option C)
 **Lineage:** FR-731 (rung-1 spike: prompt compile, kill-criterion event, JSON
@@ -110,3 +111,42 @@ until the rung-1 verdict is written into FR-731.
   product, different plan).
 - Model picker, streaming UI, service workers, telemetry — the demo
   purge lists carry forward.
+
+## Red Hat verdict (2026-07-15) — largely a red herring
+
+Challenged same-day ("multiple gotchas — jinja2, state management. is
+this a red herring?"). The challenge survives scrutiny; recorded so the
+ladder is not an attractive nuisance:
+
+1. **Jinja2 is the prompt system, not a corner case.** The
+   schema-driven-extraction pattern — the flagship — iterates
+   `schema.fields` in Jinja2. The portable-template subset excludes
+   exactly the graphs worth porting. "Reject at compile" filters out
+   the demand, not the risk.
+2. **State merge semantics are the incident-dense boundary** (reducers,
+   messages append, map fan-out merge, on_error, resume). By
+   `incident_density_ranking`, a second runtime re-buys every recorded
+   incident in a language with no test suite behind it. "~Hundreds of
+   lines" was the optimistic estimate of exactly the code that is never
+   small.
+3. **The portable subset is `framework_costume` by construction**: what
+   ports easily (`llm` + `interrupt` + conditions) is a ~50-line vanilla
+   JS loop — the framework minus its reasons to exist (tools,
+   checkpointing, observability, enforcement).
+4. **Engine ceiling**: browser ≈ 1B q4. This week's evidence: directive
+   needed to avoid whitespace flood, defaulted fields omitted. The
+   "private in-browser classifier" story assumes quality that icpc
+   needed caps + judges + harnesses to get from far larger models.
+5. **Cost signal**: one prompt, in-browser, correctly instrumented =
+   three FRs + a kill-criterion event. A graph multiplies that by every
+   node type.
+
+**What survives:** rung-1 compile-path laws (transfer to any grammar
+runtime, incl. MLC serve); **Path 2 (Pyodide)** as the honest browser
+story — the actual Python linter + mermaid_export via WASM, same code,
+zero drift, no second implementation. Seeds 5–6 park with rung 4.
+
+**Reopen condition:** a *named* consumer with a graph that (a) fits the
+portable subset as-is, (b) tolerates 1B-class output quality, and
+(c) cannot be served by the single-prompt page or Pyodide. All three,
+or it stays dead.
