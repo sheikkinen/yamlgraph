@@ -55,6 +55,15 @@ Flow: WebGPU gate → consent button (model id, ~0.7 GB) → progress bar
 paragraph → **Critique**. Raw JSON is always rendered below the parsed
 fields; schema violations show as a loud red `SCHEMA FAILURE`.
 
+### Recording evidence (FR-735)
+
+The page is self-evidencing: each run logs a structured `webllm-run`
+record to the console, offers a byte-fidelity **Save raw output** link,
+and accumulates a session **Download evidence.md** — the FR-731 F1
+tally (one line per run, verbatim raws, `failures: N/M` computed).
+Evidence is per-session: a reload starts a new session; concatenate
+saved files by hand for multi-session tallies.
+
 ## Scope
 
 This demos a *prompt*, not a graph. The spike verdict is **schema

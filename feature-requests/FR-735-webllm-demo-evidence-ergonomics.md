@@ -2,7 +2,7 @@
 
 **Priority:** LOW
 **Type:** Enhancement
-**Status:** Judged
+**Status:** In Progress — GREEN landed; F5 format witness pending a real browser session
 **Effort:** 0.5 day
 **Requested:** 2026-07-15
 **Judged:** 2026-07-15 — scope frozen; session-mortality gap closed by protocol wording, not storage
@@ -137,3 +137,28 @@ tests extended in test_fr731_webllm_build.py or a sibling module) →
 page GREEN → real 2-run session for the F5 witness → AC-04 protocol
 doc updates → AC-05 paperwork. FR-731's AC-04 tally should run
 **after** this lands — runs 2–10 get the instrument they deserve.
+
+## Implementation (2026-07-15)
+
+RED 8537f824 (15 lexical tests, sibling module
+tests/unit/test_fr735_webllm_evidence.py); GREEN this commit.
+
+- Console: `webllm-load` (model, session, load_ms, gpu, ua) and
+  `webllm-run` (full record incl. verbatim raw) structured logs.
+- Save links: per-run `run-NN-raw.txt` Blob from the single `raw`
+  identifier (F3 — one enforcement wrinkle: a *comment* mentioning
+  the property name tripped the lexical counter; reworded, which is
+  the guard working as designed); session `evidence.md` with header
+  (SESSION_ID, model, UA, GPU, load_ms, temperature), F1 tally table,
+  `failures: N/M` + "protocol requires 10" note when M<10, fenced
+  verbatim raws with error annotations.
+- F1 tok/s chain implemented: `usage.extra.decode_tokens_per_s` →
+  computed proxy labeled `tok/s*` → blank.
+- F6: `requestAdapter().then(...).catch(() => {})` — fire-and-forget,
+  consent flow untouched. `raw-meta` char count beside the raw block.
+- `renderParsed` now returns a verdict object consumed by the run
+  record; DOM rendering behavior unchanged.
+
+**Open:** F5 format witness (`format-witness-evidence.md` from a real
+2-run session) — requires a browser with the cached model; then AC-03
+closes.

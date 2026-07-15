@@ -50,10 +50,15 @@
   <textarea id="essay">The internet has changed how people communicate. It is faster than letters. Some people think it is good and some people think it is bad. In conclusion, the internet has both good and bad sides.</textarea>
   <button id="critique-btn">Critique</button>
   <p id="run-status" class="muted"></p>
+  <p class="muted">
+    <a id="save-raw" hidden download>Save raw output</a>
+    <a id="save-evidence" hidden download="evidence.md">Download evidence.md</a>
+  </p>
   <div id="result" hidden>
     <h2>Parsed fields</h2>
     <dl id="fields"></dl>
     <h2>Raw model output</h2>
+    <p id="raw-meta" class="muted"></p>
     <pre id="raw"></pre>
   </div>
   <div id="shape-fail" class="fail" hidden></div>
@@ -65,6 +70,13 @@ import * as webllm from "https://esm.run/@mlc-ai/web-llm";
 // F3: deployment config lives here, not in the compiled artifact.
 const MODEL_ID = "Llama-3.2-1B-Instruct-q4f16_1-MLC";
 
+// FR-735 F2: evidence is per-session; the id makes short sessions
+// visible instead of deniable. No storage — reload starts a new session.
+const SESSION_ID = new Date().toISOString();
+const runs = [];
+let loadMs = null;
+let gpuInfo = "";
+
 const $ = (id) => document.getElementById(id);
 let engine = null;
 let prompt = null;
@@ -75,12 +87,17 @@ if (!navigator.gpu) {
 } else {
   $("gate-consent").hidden = false;
   $("model-id").textContent = MODEL_ID;
+  // FR-735 F6: best-effort adapter info; never blocks the consent flow.
+  navigator.gpu.requestAdapter().then((adapter) => {
+    gpuInfo = adapter?.info ? `${adapter.info.vendor ?? ""} ${adapter.info.architecture ?? ""}`.trim() : "";
+  }).catch(() => {});
 }
 
 // Consent gate: nothing model-related is fetched before this click (F4).
 $("load-btn").addEventListener("click", async () => {
   $("load-btn").disabled = true;
   $("load-progress").hidden = false;
+  const tLoad = performance.now();
   try {
     prompt = await (await fetch("./prompt.json")).json();
     engine = await webllm.CreateMLCEngine(MODEL_ID, {
@@ -89,6 +106,8 @@ $("load-btn").addEventListener("click", async () => {
         $("load-status").textContent = p.text ?? "";
       },
     });
+    loadMs = Math.round(performance.now() - tLoad);
+    console.log("webllm-load", { model: MODEL_ID, session: SESSION_ID, load_ms: loadMs, gpu: gpuInfo, ua: navigator.userAgent });
     $("gate-consent").hidden = true;
     $("demo").hidden = false;
   } catch (err) {
@@ -120,11 +139,44 @@ $("critique-btn").addEventListener("click", async () => {
       },
     });
     const raw = reply.choices[0].message.content;
-    const secs = ((performance.now() - t0) / 1000).toFixed(1);
-    $("run-status").textContent = `Done in ${secs}s.`;
+    const ms = Math.round(performance.now() - t0);
+    $("run-status").textContent = `Done in ${(ms / 1000).toFixed(1)}s.`;
     $("raw").textContent = raw; // read the raw output, always
-    renderParsed(raw);
+    $("raw-meta").textContent = `${raw.length} chars`;
+    const verdict = renderParsed(raw);
     $("result").hidden = false;
+
+    // FR-735 F1: tok/s fallback chain — usage field, computed proxy
+    // labeled tok/s*, or blank. Never fabricate.
+    const usage = reply.usage ?? {};
+    let tokS = "";
+    if (usage.extra?.decode_tokens_per_s) {
+      tokS = usage.extra.decode_tokens_per_s.toFixed(1);
+    } else if (usage.completion_tokens) {
+      tokS = `${(usage.completion_tokens / (ms / 1000)).toFixed(1)} (tok/s*)`;
+    }
+
+    const record = {
+      run: runs.length + 1,
+      ms,
+      tok_s: tokS,
+      schema_valid: verdict.ok,
+      score: verdict.score ?? "",
+      error: verdict.error ?? "",
+      raw_chars: raw.length,
+      raw,
+    };
+    runs.push(record);
+    console.log("webllm-run", record);
+
+    // AC-02: byte-fidelity save link — the Blob is built from the same
+    // identifier the DOM shows (single raw read from the reply, F3).
+    const rawUrl = URL.createObjectURL(new Blob([raw], { type: "text/plain" }));
+    const saveRaw = $("save-raw");
+    saveRaw.href = rawUrl;
+    saveRaw.download = `run-${String(record.run).padStart(2, "0")}-raw.txt`;
+    saveRaw.hidden = false;
+    updateEvidenceLink();
   } catch (err) {
     $("run-status").textContent = "";
     shapeFail(`Completion failed: ${err}`);
@@ -133,22 +185,58 @@ $("critique-btn").addEventListener("click", async () => {
   }
 });
 
+// FR-735 AC-03: evidence.md in FR-731 F1 shape — tally table, verbatim
+// raws, kill-criterion arithmetic computed, not asserted.
+function renderEvidence() {
+  const failures = runs.filter((r) => !r.schema_valid).length;
+  const note = runs.length < 10 ? ` (protocol requires 10 runs; this session has ${runs.length})` : "";
+  const lines = [
+    `# WebLLM spike evidence — session ${SESSION_ID}`,
+    "",
+    `- model: ${MODEL_ID}`,
+    `- ua: ${navigator.userAgent}`,
+    `- gpu: ${gpuInfo || "(unavailable)"}`,
+    `- load_ms: ${loadMs ?? ""}`,
+    `- temperature: 0`,
+    "",
+    "| run | schema_valid | score | ms | tok/s | raw_chars |",
+    "|---|---|---|---|---|---|",
+    ...runs.map((r) => `| ${r.run} | ${r.schema_valid ? "yes" : "NO"} | ${r.score} | ${r.ms} | ${r.tok_s} | ${r.raw_chars} |`),
+    "",
+    `failures: ${failures}/${runs.length}${note}`,
+    "",
+    ...runs.flatMap((r) => [`## run ${r.run} raw output${r.error ? ` — ${r.error}` : ""}`, "", "```", r.raw, "```", ""]),
+  ];
+  return lines.join("\n");
+}
+
+function updateEvidenceLink() {
+  const link = $("save-evidence");
+  if (link.href) URL.revokeObjectURL(link.href);
+  link.href = URL.createObjectURL(new Blob([renderEvidence()], { type: "text/markdown" }));
+  link.hidden = false;
+}
+
 // Client-side shape check mirroring the schema — a failed check renders
-// as a loud red failure, never silently prettified.
+// as a loud red failure, never silently prettified. Returns the verdict
+// for the run record (FR-735).
 function renderParsed(raw) {
   let obj;
   try {
     obj = JSON.parse(raw);
   } catch (err) {
-    return shapeFail(`SCHEMA FAILURE: output is not valid JSON (${err})`);
+    shapeFail(`SCHEMA FAILURE: output is not valid JSON (${err})`);
+    return { ok: false, error: `parse: ${err.message}` };
   }
   const required = prompt.json_schema.required ?? [];
   const missing = required.filter((k) => !(k in obj));
   if (missing.length) {
-    return shapeFail(`SCHEMA FAILURE: missing required fields: ${missing.join(", ")}`);
+    shapeFail(`SCHEMA FAILURE: missing required fields: ${missing.join(", ")}`);
+    return { ok: false, error: `missing: ${missing.join(",")}` };
   }
   if (typeof obj.score !== "number" || obj.score < 0 || obj.score > 1) {
-    return shapeFail(`SCHEMA FAILURE: score=${JSON.stringify(obj.score)} violates 0 \u2264 score \u2264 1`);
+    shapeFail(`SCHEMA FAILURE: score=${JSON.stringify(obj.score)} violates 0 \u2264 score \u2264 1`);
+    return { ok: false, error: `score: ${JSON.stringify(obj.score)}` };
   }
   const dl = $("fields");
   dl.innerHTML = "";
@@ -159,6 +247,7 @@ function renderParsed(raw) {
     dd.textContent = Array.isArray(value) ? value.join(" • ") : String(value);
     dl.append(dt, dd);
   }
+  return { ok: true, score: obj.score };
 }
 
 function shapeFail(message) {

@@ -575,7 +575,7 @@ Load prompt YAML, validate variables, format messages, and run LLM calls sync an
 | REQ-YG-014 | Synchronous prompt execution | `executor.PromptExecutor`, `executor.execute_prompt` |
 | REQ-YG-015 | Asynchronous prompt execution | `executor_async` |
 | REQ-YG-016 | JSON extraction from LLM outputs | `utils/json_extract` |
-| REQ-YG-562 | Constraint fidelity through the inline-schema path: a prompt YAML schema built via schema_loader preserves ge/le constraints, defaults, and required fields through model_json_schema() so the JSON Schema is portable to external grammar-enforced runtimes (FR-731 WebLLM spike) | `schema_loader` |
+| REQ-YG-562 | Constraint fidelity through the inline-schema path: a prompt YAML schema built via schema_loader preserves ge/le constraints, defaults, and required fields through model_json_schema() so the JSON Schema is portable to external grammar-enforced runtimes (FR-731 WebLLM spike). The spike instrument is self-evidencing (FR-735): per-run console records, byte-fidelity raw downloads, and a per-session evidence.md in the FR-731 F1 tally shape with computed kill-criterion arithmetic | `schema_loader` |
 
 ### 5. CAP-5 Tool & Agent Integration
 
