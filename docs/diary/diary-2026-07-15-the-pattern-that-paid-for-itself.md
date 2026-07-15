@@ -111,6 +111,25 @@ Two heuristics, both graduation candidates:
   accepted — the boundary's kills deserve the read_raw_output_first
   treatment too.
 
+## Red Hat, end of day: is the example adding value?
+
+Asked directly, answered honestly. As a classifier it is not
+competitive (n=3 scoring, ~40 LLM calls per description) and as a
+framework demo it is redundant (same graph shape as icpc-2-rfe, zero
+new primitives). Its value was as a MEASUREMENT INSTRUMENT for the
+pattern, and that value is already banked: the PROVEN promotion, three
+findings ICPC structurally could not produce (model-prior junk
+drawers, interior-omission/decoy span shapes, guidance-violating
+gold), and the first evidence-motivated extraction case. By
+`constraint_over_code`, deleting the example tomorrow would lose
+almost nothing — the treasure lives in the pattern doc and the
+boundary code. The operative heuristic: **an example built to prove a
+pattern is spent the moment the pattern is proven; its future
+marginal value is near zero unless it serves the extraction.** The
+`growth_as_default` temptation now is a third instance; the justified
+next step is subtractive or consolidating (shared-library FR with
+both instances as test bed) — or nothing.
+
 ## Seed
 
 The harness now partitions disagreements by the vocabulary's own
