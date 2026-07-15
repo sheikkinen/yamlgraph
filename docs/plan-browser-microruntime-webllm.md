@@ -142,11 +142,28 @@ ladder is not an attractive nuisance:
    node type.
 
 **What survives:** rung-1 compile-path laws (transfer to any grammar
-runtime, incl. MLC serve); **Path 2 (Pyodide)** as the honest browser
-story — the actual Python linter + mermaid_export via WASM, same code,
-zero drift, no second implementation. Seeds 5–6 park with rung 4.
+runtime, incl. MLC serve). Seeds 5–6 park with rung 4.
 
-**Reopen condition:** a *named* consumer with a graph that (a) fits the
+**Path 2 (Pyodide) killed same day, second pass:** paste-YAML-get-
+lint-and-diagram is FR-070 (`yamlgraph serve` web playground,
+REJECTED 2026-02-21) wearing a WASM costume — the graduated doctrine
+("No UI, ever; text is the interface; visual tools create a human
+dependency that YAML eliminates") objected to the visual *authoring
+surface*, not the runtime, so moving it into Pyodide changes nothing.
+
+**The one visual survivor — realtime forensic overlay:** FR-070's own
+rejection table sanctioned visual *observability* (LangSmith trace
+URLs were the preferred alternative); only authoring UI is banned.
+Doctrine-compliant shape: `yamlgraph graph watch` — tail a live
+route.jsonl (producer already exists: `YAMLGRAPH_ROUTE_LOG=<path>`),
+re-render `render_overlay` per decision, atomic-write the `.mmd`; any
+auto-refreshing mermaid preview renders it. No server, no JS, no UI
+framework — the file is the interface. Named consumer: ninchat_voice
+(NC-376 renders route artifacts at teardown; realtime is its upgrade,
+and loop starvation of the NC-386 class becomes visible while it
+happens — `streaming_xray`).
+
+**Reopen condition (rung 4):** a *named* consumer with a graph that (a) fits the
 portable subset as-is, (b) tolerates 1B-class output quality, and
-(c) cannot be served by the single-prompt page or Pyodide. All three,
+(c) cannot be served by the single-prompt page. All three,
 or it stays dead.
