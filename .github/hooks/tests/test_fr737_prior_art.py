@@ -135,7 +135,7 @@ def test_idf_ranking_rare_noun_first() -> None:
         assert code == 0
         msg = _msg(out)
         assert "prior art" in msg.lower()
-        lines = [ln for ln in msg.splitlines() if ".md" in ln and "File:" not in ln]
+        lines = [ln for ln in msg.splitlines() if ln.startswith("  ") and ".md" in ln]
         assert lines, f"no candidate lines in: {msg!r}"
         assert "FR-200-flux-capacitor.md" in lines[0]
 

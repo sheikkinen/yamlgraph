@@ -61,6 +61,20 @@ if hits >= 2:
     file_issues="${file_issues}⚠ FSM patterns detected - see reference/patterns/fsm-as-conductor.md before reinventing.\n\n"
   fi
 
+  # FR-737: prior-art retrieval on NEWLY CREATED FRs only — tracked files
+  # (status edits, judgement folds) never re-nag.
+  local is_tracked=0
+  if git -C "$(dirname "$file_path")" ls-files --error-unmatch "$(basename "$file_path")" >/dev/null 2>&1; then
+    is_tracked=1
+  fi
+  if [[ "$is_tracked" -eq 0 ]]; then
+    local prior_art
+    prior_art=$(python3 "$SCRIPT_DIR/prior_art.py" "$file_path" 2>/dev/null || true)
+    if [[ -n "$prior_art" ]]; then
+      file_issues="${file_issues}${prior_art}\n"
+    fi
+  fi
+
   if [[ -n "$file_issues" ]]; then
     printf 'File: %s\n%s' "$file_path" "$file_issues"
   fi

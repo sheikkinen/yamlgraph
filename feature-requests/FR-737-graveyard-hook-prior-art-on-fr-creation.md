@@ -2,11 +2,12 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement (enforcement infrastructure)
-**Status:** Judged
+**Status:** Completed
 **Effort:** 0.5 day
 **Judged:** 2026-07-15 — the proposed ranking FAILED its own
 counterfactual when measured; repaired by pin before any code exists
 **Requested:** 2026-07-15
+**Completed:** 2026-07-16
 **Spawned by:** the FR-070 resurrection (2026-07-15): a committed plan doc
 recommended a Pyodide "playground" while FR-070 (`yamlgraph serve` web
 playground, REJECTED 2026-02-21, graduated doctrine "No UI, ever") sat
@@ -188,3 +189,29 @@ correct direction for a "rare" notion). Verified against the F1/F2
 measurements: pyodide(1), playground(2), catalog(8) qualify; spike(47),
 error, handling, process do not. AC-01 gains the witness: a spike-only
 filename emits nothing.
+
+## Implementation (2026-07-16)
+
+RED 2d67b0d1 (7 tests: 3 condemning positive paths, 4 vacuous negative
+paths — split declared at RED time); GREEN this commit. All ACs
+discharged:
+
+- `prior_art.py` alongside the checks (bash stays thin): filename-noun
+  extraction, one-pass corpus scan, IDF scoring, A1 floor (constant
+  `RARE_MAX_FILES = 20`), self-exclusion, top-5 with status tags
+  (REJECTED uppercased, filename-prefix REJECTED- recognized).
+- fr-checks.sh calls it only for files absent from `git ls-files`
+  (tracked edits and judgement folds never re-nag; non-repo temp dirs
+  count as new, which is what makes the hook tests hermetic).
+- AC-02 counterfactual, measured live on a copytree of the real corpus:
+  FR-070 at #2 — exactly the judgement's predicted position; #1 is
+  FR-737 itself (body-citer, kept by F3's ruling — same-territory
+  citation is signal, and the mechanizing FR is now the loudest pointer
+  into its own territory).
+- Scripture Judge paragraph gains the F6 standing obligation; hooks
+  README documents the check; changelog fragment; diary.
+- 72/72 hook tests green (full `.github/hooks/tests/` suite).
+
+One test-side fix during GREEN: the IDF-order assertion's line matcher
+caught the header line (contains `.md`); tightened to candidate-line
+indent. Zero implementation churn against the judged pins.

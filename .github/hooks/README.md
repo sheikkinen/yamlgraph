@@ -18,7 +18,7 @@ Hook JSON files in `.github/hooks/` are auto-discovered by VS Code Copilot. Each
 │   │   ├── python-checks.sh          # Ruff, size, terms, debug, noqa
 │   │   ├── yaml-checks.sh            # Graph lint and prompt YAML parse
 │   │   ├── markdown-checks.sh        # Markdown trailing-whitespace hygiene
-│   │   └── fr-checks.sh              # FR markdown FSM reinvention checks
+│   │   └── fr-checks.sh              # FR markdown checks: FSM reinvention + prior art (FR-737)
 │   ├── classify-emit.sh              # Parse input, redact secrets, emit DGRAM
 │   └── session-timeline.py           # Join audit + transcript into session narrative
 ├── logs/
@@ -130,6 +130,26 @@ Both hooks log every invocation to `.github/hooks/logs/audit.jsonl` (gitignored,
 | `post-edit-yaml-checks` | Edit tools, `.yaml/.yml` checks | `approve` (all-checks-clean), `feedback` (issues found) |
 | `post-edit-markdown-checks` | Edit tools, non-FR `.md` hygiene checks | `approve` (all-checks-clean), `feedback` (issues found) |
 | `post-edit-fr-checks` | Edit tools, `feature-requests/*.md` checks | `approve` (all-checks-clean), `feedback` (issues found) |
+
+### Prior-art check (FR-737)
+
+On **newly created** FR files (not in `git ls-files` — tracked status
+edits and judgement folds never re-nag), `prior_art.py` extracts nouns
+from the filename (prefix + stopwords dropped), greps the sibling FR
+corpus — including rejected FRs — and emits up to 5 candidates ranked by
+inverse corpus frequency (one rare noun outranks a pile of generic
+ones). Emission requires ≥1 rare noun (corpus frequency ≤ 20 files);
+with no rare filename noun the check stays silent — silence over alarm
+fatigue. The created file is never its own candidate. Output:
+
+```
+⚠ prior art for FR-999-pyodide-playground.md (nouns: pyodide, playground):
+  070-gui-web-playground.md  [REJECTED]  matches: playground
+Disposition required in the FR or its judgement (Scripture: Judge step).
+```
+
+Advisory, never blocking: the hook does retrieval; relevance stays with
+the judge (Scripture, Judge paragraph).
 
 Non-edit tools are logged once by PreToolUse as `pass/not-inspected` (no double-logging).
 
