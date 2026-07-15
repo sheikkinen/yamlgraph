@@ -61,7 +61,12 @@ class TestEvidenceBundle:
     """AC-03 — evidence.md in FR-731 F1 shape."""
 
     def test_tally_table_header(self, html):
-        assert "| run | schema_valid | score | ms | tok/s | raw_chars |" in html
+        """Header shape superseded by FR-736 F4: finish_reason and the
+        stimulus columns join the tally."""
+        assert (
+            "| run | schema_valid | score | finish | ms | tok/s "
+            "| input_chars | input_head | raw_chars |" in html
+        )
 
     def test_kill_criterion_computed(self, html):
         assert "failures:" in html
