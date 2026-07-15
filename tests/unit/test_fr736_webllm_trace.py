@@ -26,7 +26,7 @@ class TestTraceObject:
     """AC-01 — full request/response pair captured per run."""
 
     def test_trace_keys_present(self, html):
-        for key in ('"request"', '"response"', "finish_reason"):
+        for key in ("request: {", "response: {", "finish_reason"):
             assert key in html, f"missing trace surface: {key}"
 
     def test_save_trace_link(self, html):

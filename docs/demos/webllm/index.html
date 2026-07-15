@@ -52,6 +52,7 @@
   <p id="run-status" class="muted"></p>
   <p class="muted">
     <a id="save-raw" hidden download>Save raw output</a>
+    <a id="save-trace" hidden download>Save trace</a>
     <a id="save-evidence" hidden download="evidence.md">Download evidence.md</a>
   </p>
   <div id="result" hidden>
@@ -124,16 +125,20 @@ $("critique-btn").addEventListener("click", async () => {
   $("run-status").textContent = "Generating…";
   const t0 = performance.now();
   try {
+    const input = $("essay").value;
     const user = prompt.user_template
       .replaceAll("{iteration}", "1")
-      .replaceAll("{content}", $("essay").value);
+      .replaceAll("{content}", input);
+    // FR-736 F3: the messages array is built ONCE; the same identifier
+    // flows to the API call and the trace — the trace shows the wire.
+    const messages = [
+      { role: "system", content: prompt.system },
+      { role: "user", content: user },
+    ];
+    const params = { temperature: 0, max_tokens: 512 };
     const reply = await engine.chat.completions.create({
-      messages: [
-        { role: "system", content: prompt.system },
-        { role: "user", content: user },
-      ],
-      temperature: 0,
-      max_tokens: 512, // bounds degenerate runs (the unbounded flood cost 87 s)
+      messages,
+      ...params, // bounds degenerate runs (the unbounded flood cost 87 s)
       response_format: {
         type: "json_object",
         schema: JSON.stringify(prompt.json_schema),
@@ -164,8 +169,25 @@ $("critique-btn").addEventListener("click", async () => {
       schema_valid: verdict.ok,
       score: verdict.score ?? "",
       error: verdict.error ?? "",
+      finish_reason: reply.choices[0].finish_reason ?? "",
+      input,
+      user_message: user,
       raw_chars: raw.length,
       raw,
+    };
+    // FR-736: full request/response pair — the stimulus is evidence too.
+    record.trace = {
+      run: record.run,
+      session: SESSION_ID,
+      model: MODEL_ID,
+      params,
+      request: { messages, response_format_schema: prompt.json_schema },
+      response: {
+        content: raw,
+        finish_reason: record.finish_reason,
+        usage: reply.usage ?? null,
+      },
+      timing: { ms },
     };
     runs.push(record);
     console.log("webllm-run", record);
@@ -177,6 +199,13 @@ $("critique-btn").addEventListener("click", async () => {
     saveRaw.href = rawUrl;
     saveRaw.download = `run-${String(record.run).padStart(2, "0")}-raw.txt`;
     saveRaw.hidden = false;
+    const traceUrl = URL.createObjectURL(
+      new Blob([JSON.stringify(record.trace, null, 2)], { type: "application/json" }),
+    );
+    const saveTrace = $("save-trace");
+    saveTrace.href = traceUrl;
+    saveTrace.download = `run-${String(record.run).padStart(2, "0")}-trace.json`;
+    saveTrace.hidden = false;
     updateEvidenceLink();
   } catch (err) {
     $("run-status").textContent = "";
@@ -186,8 +215,15 @@ $("critique-btn").addEventListener("click", async () => {
   }
 });
 
+// FR-736 F2: markdown-table escape — pipes and newlines both break rows.
+function escCell(text) {
+  return text.replaceAll("|", "/").replaceAll("\n", " ");
+}
+
 // FR-735 AC-03: evidence.md in FR-731 F1 shape — tally table, verbatim
-// raws, kill-criterion arithmetic computed, not asserted.
+// raws, kill-criterion arithmetic computed, not asserted. FR-736: the
+// stimulus rides along — input columns, finish_reason, and the system
+// prompt as sent (same object the request used: wire fidelity, F1).
 function renderEvidence() {
   const failures = runs.filter((r) => !r.schema_valid).length;
   const note = runs.length < 10 ? ` (protocol requires 10 runs; this session has ${runs.length})` : "";
@@ -200,13 +236,34 @@ function renderEvidence() {
     `- load_ms: ${loadMs ?? ""}`,
     `- temperature: 0`,
     "",
-    "| run | schema_valid | score | ms | tok/s | raw_chars |",
-    "|---|---|---|---|---|---|",
-    ...runs.map((r) => `| ${r.run} | ${r.schema_valid ? "yes" : "NO"} | ${r.score} | ${r.ms} | ${r.tok_s} | ${r.raw_chars} |`),
+    "## system prompt (as sent)",
+    "",
+    "```",
+    prompt.system,
+    "```",
+    "",
+    "| run | schema_valid | score | finish | ms | tok/s | input_chars | input_head | raw_chars |",
+    "|---|---|---|---|---|---|---|---|---|",
+    ...runs.map((r) => `| ${r.run} | ${r.schema_valid ? "yes" : "NO"} | ${r.score} | ${r.finish_reason} | ${r.ms} | ${r.tok_s} | ${r.input.length} | ${escCell(r.input.slice(0, 40))} | ${r.raw_chars} |`),
     "",
     `failures: ${failures}/${runs.length}${note}`,
     "",
-    ...runs.flatMap((r) => [`## run ${r.run} raw output${r.error ? ` — ${r.error}` : ""}`, "", "```", r.raw, "```", ""]),
+    ...runs.flatMap((r) => [
+      `## run ${r.run}${r.error ? ` — ${r.error}` : ""}`,
+      "",
+      "### user message (as sent)",
+      "",
+      "```",
+      r.user_message,
+      "```",
+      "",
+      `### raw output (finish_reason: ${r.finish_reason})`,
+      "",
+      "```",
+      r.raw,
+      "```",
+      "",
+    ]),
   ];
   return lines.join("\n");
 }

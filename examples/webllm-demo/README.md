@@ -58,11 +58,14 @@ fields; schema violations show as a loud red `SCHEMA FAILURE`.
 ### Recording evidence (FR-735)
 
 The page is self-evidencing: each run logs a structured `webllm-run`
-record to the console, offers a byte-fidelity **Save raw output** link,
-and accumulates a session **Download evidence.md** — the FR-731 F1
-tally (one line per run, verbatim raws, `failures: N/M` computed).
-Evidence is per-session: a reload starts a new session; concatenate
-saved files by hand for multi-session tallies.
+record to the console, offers byte-fidelity **Save raw output** and
+**Save trace** links (`run-NN-trace.json` = the full request/response
+pair — messages as sent, response_format, params, finish_reason,
+usage), and accumulates a session **Download evidence.md** — the FR-731
+F1 tally (one line per run with finish_reason and stimulus columns,
+the system prompt as sent, hydrated user messages, verbatim raws,
+`failures: N/M` computed). Evidence is per-session: a reload starts a
+new session; concatenate saved files by hand for multi-session tallies.
 
 ## Scope
 

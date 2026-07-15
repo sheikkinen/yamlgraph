@@ -2,7 +2,7 @@
 
 **Priority:** LOW
 **Type:** Enhancement
-**Status:** Judged
+**Status:** In Progress — GREEN landed; merged F5 witness pending a real browser session
 **Effort:** 0.5 day
 **Requested:** 2026-07-15
 **Judged:** 2026-07-15 — scope frozen; restart ruling granted with a wire-fidelity witness attached
@@ -144,3 +144,27 @@ consumer exists; no persistence; no replay UI. Enforce order: AC-01 RED
 paperwork. Then the FR-731 10-run tally runs on the traced instrument —
 no further instrument FRs before the tally; the instrument is done
 improving until the protocol it serves has actually run.
+
+## Implementation (2026-07-15)
+
+RED 103d05f3 (9 condemning across a sibling module + the FR-735 header
+test updated in place per F4); GREEN this commit.
+
+- `messages` built once (F3): create call uses shorthand, trace
+  references the same identifier; one `role: "system"` literal in the
+  script.
+- Trace object per run: `{run, session, model, params, request:
+  {messages, response_format_schema}, response: {content,
+  finish_reason, usage}, timing}` — `Save trace` → `run-NN-trace.json`;
+  also carried in the `webllm-run` console record.
+- Evidence.md: `## system prompt (as sent)` header printed from the
+  same `prompt` object the request uses (F1 wire fidelity); tally
+  header now `finish | … | input_chars | input_head`; per-run sections
+  embed the hydrated user message and finish_reason; `escCell` handles
+  pipes and newlines (F2).
+- One test-side alignment during GREEN: the trace-keys probe looked for
+  JSON-quoted keys; JS object literals are unquoted — probe reworded to
+  `request: {`/`response: {`, same substance.
+
+**Open:** merged F5 witness (≥2-run real session on the traced
+instrument → `format-witness-evidence.md`), then the FR-731 tally.
