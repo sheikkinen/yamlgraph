@@ -2,9 +2,10 @@
 
 **Priority:** MEDIUM
 **Type:** Fix
-**Status:** Proposed
+**Status:** Judged
 **Effort:** 0.5 day
 **Requested:** 2026-07-15
+**Judged:** 2026-07-15 — scope frozen; blast radius corrected by two verification finds (parse_json bypass, nested enum)
 **Spawned by:** FR-731 F2 (constraint fidelity holds only for the native
 `schema:` path) — the reference-doc audit that judgement mandated found
 `reference/prompt-yaml.md` promising what `build_pydantic_model_from_json_schema`
@@ -79,15 +80,15 @@ All changes in `build_pydantic_model_from_json_schema`
 
 **Behavior changes (enum → Literal enforcement) — must be tested:**
 
+*(corrected at judgement — see F1/F2: cost-router and beautify removed)*
+
 | File | New enforcement |
 |---|---|
-| examples/beautify/prompts/analyze.yaml | 1 enum |
-| examples/cost-router/prompts/classify_complexity.yaml | 1 enum (values already duplicated in prose — lowest risk) |
-| examples/fsm-router/graphs/prompts/classify.yaml | 1 enum |
-| examples/npc/prompts/encounter_decide.yaml | 1 enum |
-| examples/npc/prompts/npc_behavior.yaml | 1 enum |
-| examples/npc/prompts/npc_identity.yaml | 1 enum |
-| examples/npc/prompts/npc_personality.yaml | 1 enum |
+| examples/fsm-router/graphs/prompts/classify.yaml | 1 top-level enum |
+| examples/npc/prompts/encounter_decide.yaml | 1 top-level enum |
+| examples/npc/prompts/npc_behavior.yaml | 1 top-level enum |
+| examples/npc/prompts/npc_identity.yaml | 1 top-level enum |
+| examples/npc/prompts/npc_personality.yaml | 1 top-level enum |
 
 **Behavior changes (bounds now enforced):**
 
@@ -98,6 +99,11 @@ All changes in `build_pydantic_model_from_json_schema`
 **No behavior change (plain shapes)**: beautify/mermaid, book_reviewer (2),
 dungeon_master (2 + 6 purgatory), fsm-router responses (3),
 npc perceive/knowledge/stats-description-only fields, ocr_cleanup.
+**No behavior change (F1/F2)**: cost-router/classify_complexity — its node
+sets `parse_json: true`, so `output_model = None` and the builder never
+runs (docs-comment cleanup only); beautify/analyze — its enum is nested
+inside `items: {type: object}`, unreachable while nested objects stay
+`dict` (documented in the AC-05 matrix).
 
 **ninchat_voice: NOT affected** — zero `output_schema:` in
 `projects/ninchat_voice/` prompts/config (only a SKILL.md doc example and
@@ -105,10 +111,11 @@ an FR quote). Its prompts use the native `schema:` format exclusively.
 
 Risk statement: enum/bounds enforcement turns previously-tolerated loose
 LLM outputs into `ValidationError` at the structured-output boundary. This
-is the intended crash-over-plausible-wrong-answer. Providers receiving the
-enriched schema (all — it rides `with_structured_output`) should comply
-*more* often, not less; the residual risk is retry/error-path exercise in
-examples, covered by AC-04.
+is the intended crash-over-plausible-wrong-answer. Nodes with
+`parse_json: true` bypass the model entirely and are untouched (F1).
+Providers receiving the enriched schema should comply *more* often, not
+less; the residual risk is retry/error-path exercise in examples, covered
+by AC-04.
 
 ## Acceptance Criteria
 
@@ -124,10 +131,11 @@ examples, covered by AC-04.
       formats produces models whose `model_json_schema()` agree on
       enum/bounds/required/defaults (field-by-field assertion, not dict
       equality — model names differ).
-- [ ] AC-04 — blast-radius run: unit suites touching npc, cost-router,
-      fsm-router, beautify pass; `yamlgraph graph lint` clean on the four
-      affected example graphs; one live smoke of cost-router classify
-      (cheapest enum-bearing prompt) recorded in the FR.
+- [ ] AC-04 — blast-radius run: unit suites touching npc and fsm-router
+      pass; `yamlgraph graph lint` clean on npc, fsm-router, beautify,
+      cost-router graphs; one live smoke of **fsm-router classify** (F1:
+      cost-router is parse_json-inert — smoking it would witness nothing)
+      recorded in the FR.
 - [ ] AC-05 — docs: prompt-yaml.md support matrix replaces the "identical
       models" claim; stale cost-router comment removed.
 - [ ] AC-06 — changelog fragment (fix); REQ under CAP-04, id ≥ 556 verified
@@ -154,3 +162,23 @@ examples, covered by AC-04.
 - `yamlgraph/schema_loader.py` — `build_pydantic_model_from_json_schema`
 - `reference/prompt-yaml.md` §"JSON Schema Format"
 - `tests/unit/test_schema_loader.py` — `TestBuildPydanticModelFromJsonSchema`
+
+## Judgement (2026-07-15)
+
+**Verdict: APPROVED — with 6 findings.** Every blast-radius row was
+verified against its consuming node config and the actual schema nesting
+before freeze; two rows fell.
+
+| # | Finding | Resolution (binding) |
+|---|---------|----------------------|
+| F1 | **cost-router is inert**: its classify node sets `parse_json: true`, and `llm_nodes.py:101` then forces `output_model = None` — the builder under change never executes. The proposal's AC-04 "live smoke of cost-router" would have smoked a path where the fix is dead code — a witness witnessing nothing | Smoke target moved to **fsm-router classify**; cost-router reduced to the docs-comment cleanup. Risk statement corrected: parse_json nodes bypass entirely |
+| F2 | **beautify's enum is nested** inside `items: {type: object, properties: {type: {enum: …}}}` — unreachable while nested objects stay `dict` (which this FR deliberately keeps) | beautify removed from the behavior-change table. The AC-05 matrix must state the ceiling explicitly: *enum is enforced on top-level properties only*; nested/item-level enums remain prompt-prose territory. Scalar-array item enums (`items: {type: string, enum: []}`): zero current usage — NOT implemented, listed in the matrix as unsupported |
+| F3 | Proposal pinned "string values only" for enum, but restricting to str costs *more* code than accepting what `Literal` + JSON natively support | Accept str/int/bool enum members (`Literal[*values]` handles all three; all serialize correctly); raise `ValueError` naming the field for dict/list/null members. Minimalism cuts the other way here |
+| F4 | `exclusiveMinimum`/`exclusiveMaximum` are boolean in draft-4, numeric in 2020-12 — the mapping table assumed numeric silently | Numeric form only; the boolean draft-4 form raises `ValueError` (loud boundary, zero current usage). Documented in the matrix |
+| F5 | `default` + `required` can contradict (a field listed in `required` that also carries `default`) | Default wins — the field becomes optional-with-default, matching both Pydantic semantics (a field with a default is never required) and the native format. One test witnesses the precedence |
+| F6 | **Dead config surface found during verification**: `models/node_schema.py` declares node-level `output_schema:` and `schema:` (schema_ref) fields that no node_factory code consumes — declared-but-nonfunctional, the same defect class this FR fixes, one layer up | OUT of scope (no smuggling). Separate proposal to `.chaplain/inbox/`: purge or implement (Commandment 8 — no false idols) |
+
+**Scope frozen.** Enforce order: AC-01 RED (condemning tests incl. the
+`test_enum_type_becomes_string` flip) → AC-02 GREEN → AC-03 parity
+witness → AC-04 blast-radius run → AC-05/06 paperwork. Purge list stands
+(no recursion, no scalar-item enums, no node-level schema work).
