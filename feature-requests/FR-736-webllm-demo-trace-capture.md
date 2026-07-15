@@ -2,9 +2,10 @@
 
 **Priority:** LOW
 **Type:** Enhancement
-**Status:** Proposed
+**Status:** Judged
 **Effort:** 0.5 day
 **Requested:** 2026-07-15
+**Judged:** 2026-07-15 — scope frozen; restart ruling granted with a wire-fidelity witness attached
 **Parent:** FR-731 (spike instrument); sibling of FR-735 (evidence ergonomics)
 **Spawned by:** FR-731 evidence review (2026-07-15): the instrument records
 outcomes, not stimuli. The flood diagnosis required reading compiler source
@@ -120,3 +121,26 @@ the traced instrument without a second restart debate.
 - FR-731 (kill-criterion protocol consumer), FR-735 (instrument sibling)
 - docs/demos/webllm/index.html, examples/webllm-demo/README.md
 - tests/unit/test_fr735_webllm_evidence.py (test conventions)
+
+## Judgement (2026-07-15)
+
+**Verdict: APPROVED — with 5 findings.** The LangSmith purge is
+correctly recorded as designed-then-killed with rationale, so it cannot
+be re-proposed without new facts; the restart ruling is granted but
+earns a witness obligation.
+
+| # | Finding | Resolution (binding) |
+|---|---------|----------------------|
+| F1 | **Restart ruling GRANTED, with teeth**: trace capture is semantics-neutral (same messages, params, model), so the FR-731 restart precedent does not apply — but "semantics-neutral" is a claim, and claims get witnesses | The evidence header must print the system prompt **from the same `prompt` object the request uses** (one identifier, fetched prompt.json → both the create call and the evidence renderer). Artifact-to-wire fidelity becomes readable: the header's system prompt IS what was sent, byte-for-byte, including the JSON directive. A tally run on the traced instrument then self-proves it ran the amended artifact |
+| F2 | `input_head` in a markdown table breaks on `\|` **and newlines** — the FR says pipe-escaped only | Escape both: pipes → `/`, newlines → `⏎` (or space). Pin follows the `_esc` precedent in mermaid_export. One lexical test |
+| F3 | "Same identifier to API call and trace" needs a mechanical form | Pin: `const messages = […]` built once; the create call uses the `messages,` shorthand; the trace object references the same `messages` identifier. Lexical tests: exactly one `role: "system"` literal in the script (array built once), shorthand present |
+| F4 | `finish_reason` is the flood-vs-natural-stop discriminator and must appear in BOTH surfaces | In the tally table as a column (not just the per-run section) — a `length` row in a 10-run table is the one-glance signal the kill-criterion review needs. Table becomes: `\| run \| schema_valid \| score \| finish \| ms \| tok/s \| input_chars \| input_head \| raw_chars \|` |
+| F5 | FR-735's F5 format witness is still open (needed ≥2 real runs); AC-02 here demands another real-session witness — two obligations, one browser session | **Merged**: one real ≥2-run session on the traced instrument produces `format-witness-evidence.md` satisfying FR-735 F5 and FR-736 AC-02 simultaneously. The file carries the "format witness, not spike evidence" header per FR-735 F5 |
+
+**Scope frozen.** Purge list stands — LangSmith stays dead until a real
+consumer exists; no persistence; no replay UI. Enforce order: AC-01 RED
+(lexical tests in test_fr735_webllm_evidence.py or sibling) → page GREEN
+→ merged real-session witness (closes FR-735 F5 too) → README →
+paperwork. Then the FR-731 10-run tally runs on the traced instrument —
+no further instrument FRs before the tally; the instrument is done
+improving until the protocol it serves has actually run.
