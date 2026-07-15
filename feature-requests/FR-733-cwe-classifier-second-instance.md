@@ -2,9 +2,10 @@
 
 **Priority:** MEDIUM
 **Type:** Feature (new example: `examples/cwe-classifier/`)
-**Status:** Proposed
+**Status:** Judged
 **Effort:** 2-3 days (phased; phase 1 independently committable)
 **Requested:** 2026-07-15
+**Judged:** 2026-07-15 — scope frozen; two load-bearing numbers overturned by candidate-population verification
 **Pattern:** `reference/patterns/coded-classification.md` — this FR is the
 **second instance** whose completion promotes the pattern from
 provenance to proven (and reopens the rule-of-two extraction question)
@@ -125,3 +126,37 @@ ICPC).
 - View-699 doesn't cover all 944 weaknesses (some only in Research
   view) — coverage meta must declare the actual candidate population,
   exactly like ICPC's components field.
+
+## Judgement (2026-07-15)
+
+**Verdict: APPROVED — with 5 findings; the proposal's candidate
+population and its centerpiece rule were both re-measured.** The
+versioned URL verified live (200 OK). All numbers below computed
+against cwec_v4.20.xml scoped to the ACTUAL candidate set, which the
+proposal never did.
+
+| # | Finding | Resolution (binding) |
+|---|---------|----------------------|
+| F1 | **Candidate population is 399, not 944.** View-699 categories contain 399 live weaknesses (42% of catalog); the proposal's "944 live rows" conflated catalog rows with candidacy | Builder emits all 944 rows (catalog completeness) but clusters only the 399 view-699 members; coverage meta declares `view: 699, candidates: 345, excluded_prohibited: 54, catalog_total: 944` — a no-match is interpretable |
+| F2 | **The lowest-abstraction rule is nearly vacuous in-population**: inside view-699 the abstraction mix is 384 Base / 9 Variant / 6 Class, with only 22 fully-inside ChildOf pairs. The "ICPC rule 3 analog" billing overstated it | Rule KEPT (cheap, correct, witnessed both directions per AC-02) but demoted from centerpiece to secondary guard. The primary CWE-specific discipline is F3 |
+| F3 | **Prohibited codes sit INSIDE the candidate clusters**: 54 of 399 view-699 members (13.5%) are Mapping_Notes Prohibited; Discouraged 5, Allowed-with-Review 13 in-population | Exclusion/cap semantics pinned: Prohibited → removed from cluster briefs at BUILD time (never shown to the model); Discouraged → candidacy allowed, match demoted to partial (FR-727 mechanism); Allowed-with-Review → match allowed, flagged `review: true` in output (analyst-assistance posture makes review a first-class outcome, not a demotion) |
+| F4 | **Brief-budget risk withdrawn**: 399 candidates / 40 clusters ≈ 10 median — LIGHTER than ICPC's briefs, not denser; the proposal's ~24/cluster arithmetic divided the wrong numerator | Description-only briefs stay (simplicity, not budget); the category-split contingency is purged |
+| F5 | AC-01's count pins were catalog-wide only | Pins now two-level: catalog-wide 83/44/93 AND in-population 54/5/13 — a catalog bump shifting either level is loud |
+
+Additional pins:
+- Multi-membership: builder duplicates the code into each member
+  cluster's list; reducer's per-code dedup (existing mechanism) keeps
+  the best-ranked occurrence.
+- Fixtures: CVE descriptions are US-government work (NVD public data)
+  — committable verbatim with CVE id + NVD's CWE as the label
+  rationale; no paraphrase needed (unlike Wonca).
+- REQ ids allocated at enforce, verified free against origin; new CAP
+  file for the example.
+- The pattern-doc promotion (AC-06) happens in this FR's completion
+  commit, not a separate FR.
+
+**Out of scope (purge list):** shared-library extraction (recorded-not-
+built), CAPEC/ATT&CK cross-mapping, hardware CWE view (1194),
+source-code (diff) input mode — text descriptions only in phase 1,
+autonomous assignment posture anywhere, category-split contingency
+(F4), two-stage triage architectures.
