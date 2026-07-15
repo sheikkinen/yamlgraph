@@ -40,6 +40,7 @@ After the learning path, explore production examples below.
 | [bugfix/](bugfix/) | Bug-fix pipeline with condemning test | Copilot nodes, 4-phase workflow, TDD enforcement (FR-173) |
 | [codegen/](codegen/) | Implementation agent | Tool nodes, code analysis, 24 Python tools |
 | [cost-router/](cost-router/) | Multi-provider routing | Router nodes, Granite/Mistral/Claude |
+| [cwe-classifier/](cwe-classifier/) | CVE→CWE weakness coding (judged, in progress) | Coded-classification pattern 2nd instance, NVD gold labels, MITRE usage caps (FR-733) |
 | [daily_digest/](daily_digest/) | Scheduled news digest | Fly.io deployment, background tasks, email |
 | [diary_digest/](diary_digest/) | Automated diary digest | Data files, feed topics, parallel processing (FR-046) |
 | [dungeon_master/](dungeon_master/) | Interactive DM turn loop | Interrupt loop, parallel character planning (map), conditional-to-map routing (FR-466/467) |

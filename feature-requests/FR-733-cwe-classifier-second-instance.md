@@ -160,3 +160,38 @@ built), CAPEC/ATT&CK cross-mapping, hardware CWE view (1194),
 source-code (diff) input mode — text descriptions only in phase 1,
 autonomous assignment posture anywhere, category-split contingency
 (F4), two-stage triage architectures.
+
+## Judgement Addendum (2026-07-15): fixtures gathered, label audit done
+
+Eleven NVD-labeled CVE fixtures fetched from the live API and committed
+under `examples/cwe-classifier/data/labeled/` (raw description +
+provenance-stamped gold label; the harness's `expected_*` schema is
+defined at enforce):
+
+| CVE | NVD label | Class exercised |
+|---|---|---|
+| CVE-2024-49038 | CWE-79 | XSS (also a CWE Observed_Example — doubly gold) |
+| CVE-2014-6271 (Shellshock) | CWE-78 | OS command injection |
+| CVE-2019-19781 (Citrix) | CWE-22 | path traversal, terse description |
+| CVE-2014-0160 (Heartbleed) | CWE-125 | OOB read |
+| CVE-2023-4863 (libwebp) | CWE-787 | OOB write |
+| CVE-2021-3156 (Baron Samedit) | CWE-193 | off-by-one — specificity test vs 787 |
+| CVE-2022-22965 (Spring4Shell) | CWE-94 | code injection, Review-flagged label |
+| CVE-2021-44228 (Log4Shell) | CWE-20 + CWE-917 | **multi-label** fixture |
+| CVE-2019-11043 (PHP-FPM) | CWE-120 + CWE-787 | multi-label, overlapping codes |
+| CVE-2018-7600 (Drupalgeddon2) | CWE-20 | **label = Discouraged code** |
+| CVE-2017-5638 (Struts) | CWE-755 | **label = Discouraged code** |
+
+**Label-vs-guidance audit finding (pre-enforce gold):** two of eleven
+NVD gold labels (CWE-20, CWE-755) are codes MITRE itself marks
+Mapping-Discouraged, and CWE-20 also rides Log4Shell's multi-label.
+This settles AC-04's disagreement protocol IN ADVANCE: the harness must
+score against `nvd_cwes` while separately reporting when the gold label
+itself violates MITRE guidance — "our classifier proposes a more
+specific Allowed code than NVD's Discouraged label" is a SUCCESS
+narrative, not a miss. Labels must therefore carry an
+`nvd_label_usage` field (computed by the builder from Mapping_Notes)
+so the harness can partition disagreements mechanically. The fixture
+set also bakes in: multi-label (2), Allowed-with-Review labels (4),
+one terse near-underdetermined description (Citrix), and a
+specificity-pair (193 vs 787).
