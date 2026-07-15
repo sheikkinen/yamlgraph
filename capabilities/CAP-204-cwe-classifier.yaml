@@ -91,3 +91,23 @@ requirements:
       agreement reports raw k-of-n counts, no significance.
     modules:
       - examples/cwe-classifier/nodes/crosscheck.py
+  - id: REQ-YG-561
+    description: >
+      Boundary run-mortality fixes (FR-734). Off-population claims —
+      real catalog rows without view-699 membership, volunteered by
+      the model from prior knowledge — divert to
+      meta.off_population_claims (code, usage, verdict, confidence,
+      best-effort spans; unalignable spans recorded raw with
+      span_unverified, never fatal for meta-tier claims);
+      classification slots stay population-only (FR-733 AC-02 pin
+      preserved verbatim); nonexistent codes still raise. Span
+      alignment repairs interior omissions: matching blocks (size >= 3)
+      with character coverage >= 0.85 of the claim, all inside one
+      plausible window (<= max(2x span, span+40)), repair to the true
+      contiguous description window restoring elided text verbatim;
+      scattered fabrications exceed the window cap and raise. Loader
+      returns the merged dict {cwe_clusters, usage_index} covering all
+      catalog rows including Prohibited non-members.
+    modules:
+      - examples/cwe-classifier/nodes/reduce.py
+      - examples/cwe-classifier/nodes/catalog.py

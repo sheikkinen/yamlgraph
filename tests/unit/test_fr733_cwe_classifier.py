@@ -135,10 +135,11 @@ class TestCatalogLoader:
     @pytest.mark.req("REQ-YG-558")
     def test_fixture_catalog_loads_clusters(self):
         """Committed fixture groups into view-699 category clusters;
-        multi-membership codes appear in every member cluster."""
+        multi-membership codes appear in every member cluster.
+        (Return shape is the FR-734 merged dict.)"""
         catalog = _load("catalog.py")
         state = {"catalog_path": str(EXAMPLE / "data" / "fixture_catalog.yaml")}
-        clusters = catalog.load_cwe_clusters(state)
+        clusters = catalog.load_cwe_clusters(state)["cwe_clusters"]
         by_id = {c["cluster_id"]: c for c in clusters}
         assert set(by_id) == {"CAT-137", "CAT-1019"}
         cat137 = {row["code"] for row in by_id["CAT-137"]["codes"]}
@@ -155,7 +156,7 @@ class TestCatalogLoader:
         abstraction noise (caps are code-side, not the model's job)."""
         catalog = _load("catalog.py")
         state = {"catalog_path": str(EXAMPLE / "data" / "fixture_catalog.yaml")}
-        clusters = catalog.load_cwe_clusters(state)
+        clusters = catalog.load_cwe_clusters(state)["cwe_clusters"]
         brief = next(c for c in clusters if c["cluster_id"] == "CAT-137")["brief"]
         assert "CWE-79" in brief
         assert "user-controllable input" in brief
