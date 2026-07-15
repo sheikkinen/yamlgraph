@@ -71,6 +71,19 @@ class TestBuildPromptJson:
     def test_system_prompt_carried(self, payload):
         assert "essay" in payload["system"].lower()
 
+    def test_json_directive_appended(self, payload):
+        """Kill-criterion root cause (2026-07-15): grammar masking without
+        prompt-side JSON steering floods whitespace — WebLLM's own examples
+        state the prompt must mention JSON. The directive is part of the
+        mechanical compile, not per-prompt hand-tuning."""
+        assert "single JSON object" in payload["system"]
+
+    def test_directive_is_schema_agnostic(self, payload):
+        """The directive must not encode field names — it is generic
+        compile-path output, valid for any prompt with a schema."""
+        directive = payload["system"].split("\n")[-1]
+        assert "score" not in directive
+
 
 @pytest.mark.req("REQ-YG-562")
 class TestArtifactIdempotence:
@@ -125,3 +138,8 @@ class TestPageConsentGate:
 
     def test_temperature_zero(self, html):
         assert "temperature: 0" in html
+
+    def test_max_tokens_bounded(self, html):
+        """Degenerate runs must be bounded — the unbounded flood cost 87 s
+        per run; upstream json-mode examples all set max_tokens."""
+        assert "max_tokens:" in html
