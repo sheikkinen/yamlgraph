@@ -2,8 +2,10 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement (enforcement infrastructure)
-**Status:** Proposed
+**Status:** Judged
 **Effort:** 0.5 day
+**Judged:** 2026-07-15 — the proposed ranking FAILED its own
+counterfactual when measured; repaired by pin before any code exists
 **Requested:** 2026-07-15
 **Spawned by:** the FR-070 resurrection (2026-07-15): a committed plan doc
 recommended a Pyodide "playground" while FR-070 (`yamlgraph serve` web
@@ -127,3 +129,24 @@ status-only edit to an existing FR → assert silence.
 - `docs/diary/diary-2026-07-15-the-vague-memory-that-beat-the-archive.md`
 - `/memories/repo/check-graveyard-before-proposing.md` (session-side cure,
   this FR is its mechanization)
+
+## Judgement (2026-07-15)
+
+**Verdict: APPROVED — with the central mechanism corrected by
+measurement before a line of code exists** (read_raw_output_first
+applied to the hook's own design: the ranking was simulated against
+the real 720-file corpus).
+
+| # | Finding | Resolution (binding) |
+|---|---------|----------------------|
+| F1 | **The proposed ranking fails AC-02's own counterfactual.** Measured: `spike-pyodide-playground.md` → 49 files match ≥1 noun; `070-gui-web-playground.md` scores 1 (playground), TIES with ~45 generic `spike`-only matches (spike occurs in 47/720 files) and falls outside the top-5 cap. Distinct-noun count lets common nouns drown the rare one — the exact availability bias the hook exists to fight, rebuilt inside the hook | Rank by **inverse corpus frequency**: score = Σ 1/freq(noun) over matched nouns. Measured result: 070 surfaces at #2 on the counterfactual; a generic filename (off-catalog-claim-handling) yields its TRUE prior art (722/730/733) as top-5 |
+| F2 | **Noise floor needed**: 255/720 files match ≥1 noun for an ordinary filename; a hook that always emits 5 files trains agents to ignore it (alarm fatigue = `audit_as_ritual` at machine speed) | Emit a candidate only if it matches ≥1 RARE noun (corpus frequency ≤ 10% of files); if no filename noun is that rare, **emit nothing** — silence over noise. Verified: pyodide(1), playground(2), catalog(8), webllm, icpc2 all qualify; error/handling/process do not |
+| F3 | **Self-hit pollution**: in the counterfactual the top hit was FR-737 itself (its body cites pyodide/playground) — the newly created file and same-territory citations outranked the precedent | The newly created file is excluded from candidates. Other body-level citers stay: they point at the same territory, which is signal |
+| F4 | Filename-only noun extraction is thin but MEASURED sufficient for the motivating class | Keep filename-only (purge list stands); title-line extraction is the recorded escalation path if a real miss occurs (`two_strike_split` applies to the hook) |
+| F5 | AC-05's "no REQ/CAP" precedent claim is MIXED in reality: 3 of the hook-test files carry `mark.req`; `test_fr_checks.py` itself is unmarked | Confirmed as proposed: follow the target file's own convention (unmarked). Hooks are process infrastructure |
+| F6 | Scripture line: the obligation must not depend on the hook | Approved for the Judge paragraph, worded as a standing obligation — the hook is a retrieval aid; disposition is required whether or not the hook fired |
+
+**Purge list (unchanged + additions):** LLM/semantic similarity,
+chaplain-stage integration, REJECTED-rationale sweeps, blocking
+semantics, title/body noun extraction (F4), any per-noun weighting
+beyond 1/freq.
