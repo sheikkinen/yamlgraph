@@ -40,4 +40,12 @@ requirements:
     description: JSON extraction from LLM outputs
     modules:
       - utils/json_extract
+  - id: REQ-YG-562
+    description: >
+      Constraint fidelity through the inline-schema path: a prompt YAML
+      schema built via schema_loader preserves ge/le constraints, defaults,
+      and required fields through model_json_schema() so the JSON Schema is
+      portable to external grammar-enforced runtimes (FR-731 WebLLM spike)
+    modules:
+      - schema_loader
 fr: legacy

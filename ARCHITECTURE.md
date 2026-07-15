@@ -335,7 +335,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 1 | CAP-1 Config Loading & Validation | `cli/helpers`, `cli/helpers.GraphLoadError`, `data_loader`, `data_loader.DataFileError`, … | REQ-YG-001 – 004, 546 |
 | 2 | CAP-2 Graph Compilation | `graph_loader`, `graph_loader.apply_loop_node_defaults`, `graph_loader.compile_graph`, `graph_loader.detect_loop_nodes`, … | REQ-YG-005 – 008, 220, 239 |
 | 3 | CAP-3 Node Execution | `executor`, `executor_async`, `executor_base`, `node_factory/llm_nodes`, … | REQ-YG-009 – 011, 050, 223, 539 – 540 |
-| 4 | CAP-4 Prompt Execution | `executor.PromptExecutor`, `executor.execute_prompt`, `executor_async`, `executor_base.format_prompt`, … | REQ-YG-012 – 016, 216 |
+| 4 | CAP-4 Prompt Execution | `executor.PromptExecutor`, `executor.execute_prompt`, `executor_async`, `executor_base.format_prompt`, … | REQ-YG-012 – 016, 216, 562 |
 | 5 | CAP-5 Tool & Agent Integration | `node_factory/tool_nodes`, `tools/agent`, `tools/graph_tool`, `tools/nodes`, … | REQ-YG-017 – 020, 422, 510 |
 | 6 | CAP-6 Routing & Flow Control | `node_factory/control_nodes`, `routing`, `utils/conditions` | REQ-YG-021 – 023, 214, 552 |
 | 7 | CAP-7 State Persistence | `models/state_builder`, `storage/checkpointer`, `storage/checkpointer_factory`, `storage/simple_redis` | REQ-YG-024 – 026 |
@@ -575,6 +575,7 @@ Load prompt YAML, validate variables, format messages, and run LLM calls sync an
 | REQ-YG-014 | Synchronous prompt execution | `executor.PromptExecutor`, `executor.execute_prompt` |
 | REQ-YG-015 | Asynchronous prompt execution | `executor_async` |
 | REQ-YG-016 | JSON extraction from LLM outputs | `utils/json_extract` |
+| REQ-YG-562 | Constraint fidelity through the inline-schema path: a prompt YAML schema built via schema_loader preserves ge/le constraints, defaults, and required fields through model_json_schema() so the JSON Schema is portable to external grammar-enforced runtimes (FR-731 WebLLM spike) | `schema_loader` |
 
 ### 5. CAP-5 Tool & Agent Integration
 
