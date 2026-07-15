@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- FR-733 test excerpt: hand-reduced cwec_v4.20.xml shapes (MITRE CWE,
+     free with attribution). Exercises: Deprecated skip, Prohibited
+     build-time strip, Discouraged/Allowed-with-Review carry, ChildOf
+     parents, view-699 multi-membership duplication. -->
+<Weakness_Catalog xmlns="http://cwe.mitre.org/cwe-7" Name="CWE" Version="4.20">
+  <Weaknesses>
+    <Weakness ID="79" Name="Improper Neutralization of Input During Web Page Generation ('Cross-site Scripting')" Abstraction="Base" Structure="Simple" Status="Stable">
+      <Description>The product does not neutralize or incorrectly neutralizes user-controllable input before it is placed in output that is used as a web page that is served to other users.</Description>
+      <Related_Weaknesses>
+        <Related_Weakness Nature="ChildOf" CWE_ID="707" View_ID="1000" Ordinal="Primary"/>
+        <Related_Weakness Nature="ChildOf" CWE_ID="707" View_ID="1003"/>
+        <Related_Weakness Nature="PeerOf" CWE_ID="352" View_ID="1000"/>
+      </Related_Weaknesses>
+      <Mapping_Notes>
+        <Usage>Allowed</Usage>
+      </Mapping_Notes>
+    </Weakness>
+    <Weakness ID="707" Name="Improper Neutralization" Abstraction="Class" Structure="Simple" Status="Draft">
+      <Description>The product does not ensure or incorrectly ensures that structured messages or data are well-formed before being read from an upstream component or sent to a downstream component.</Description>
+      <Mapping_Notes>
+        <Usage>Allowed</Usage>
+      </Mapping_Notes>
+    </Weakness>
+    <Weakness ID="89" Name="Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')" Abstraction="Base" Structure="Simple" Status="Stable">
+      <Description>The product constructs all or part of an SQL command using externally-influenced input, but it does not neutralize special elements that could modify the intended SQL command.</Description>
+      <Related_Weaknesses>
+        <Related_Weakness Nature="ChildOf" CWE_ID="707" View_ID="1000" Ordinal="Primary"/>
+      </Related_Weaknesses>
+      <Mapping_Notes>
+        <Usage>Allowed</Usage>
+      </Mapping_Notes>
+    </Weakness>
+    <Weakness ID="20" Name="Improper Input Validation" Abstraction="Class" Structure="Simple" Status="Stable">
+      <Description>The product receives input or data, but it does not validate or incorrectly validates that the input has the properties that are required to process the data safely and correctly.</Description>
+      <Mapping_Notes>
+        <Usage>Discouraged</Usage>
+      </Mapping_Notes>
+    </Weakness>
+    <Weakness ID="441" Name="Unintended Proxy or Intermediary ('Confused Deputy')" Abstraction="Class" Structure="Simple" Status="Draft">
+      <Description>The product receives a request, message, or directive from an upstream component, but the product does not sufficiently preserve the original source of the request before forwarding the request to an external actor.</Description>
+      <Mapping_Notes>
+        <Usage>Prohibited</Usage>
+      </Mapping_Notes>
+    </Weakness>
+    <Weakness ID="94" Name="Improper Control of Generation of Code ('Code Injection')" Abstraction="Base" Structure="Simple" Status="Draft">
+      <Description>The product constructs all or part of a code segment using externally-influenced input, but it does not neutralize special elements that could modify the syntax or behavior of the intended code segment.</Description>
+      <Mapping_Notes>
+        <Usage>Allowed-with-Review</Usage>
+      </Mapping_Notes>
+    </Weakness>
+    <Weakness ID="365" Name="DEPRECATED: Race Condition in Switch" Abstraction="Base" Structure="Simple" Status="Deprecated">
+      <Description>This entry has been deprecated.</Description>
+    </Weakness>
+  </Weaknesses>
+  <Categories>
+    <Category ID="137" Name="Data Neutralization Issues" Status="Draft">
+      <Summary>Weaknesses in this category are related to the creation or neutralization of data using an incorrect format.</Summary>
+      <Relationships>
+        <Has_Member CWE_ID="79" View_ID="699"/>
+        <Has_Member CWE_ID="89" View_ID="699"/>
+        <Has_Member CWE_ID="20" View_ID="699"/>
+        <Has_Member CWE_ID="441" View_ID="699"/>
+        <Has_Member CWE_ID="365" View_ID="699"/>
+      </Relationships>
+    </Category>
+    <Category ID="1019" Name="Validate Inputs" Status="Draft">
+      <Summary>Weaknesses in this category are related to input validation strategies.</Summary>
+      <Relationships>
+        <Has_Member CWE_ID="79" View_ID="699"/>
+        <Has_Member CWE_ID="707" View_ID="699"/>
+        <Has_Member CWE_ID="94" View_ID="699"/>
+        <Has_Member CWE_ID="89" View_ID="1000"/>
+      </Relationships>
+    </Category>
+  </Categories>
+</Weakness_Catalog>
