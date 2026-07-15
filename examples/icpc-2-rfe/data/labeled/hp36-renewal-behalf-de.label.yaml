@@ -1,0 +1,10 @@
+# FR-725 labeled fixture — HP-36 translated (de), same expectations as
+# the Finnish original: the stated reason is a prescription renewal
+# (-50); A13/Z10 are the known inflation detectors.
+# rationale: language-invariance acceptance — identical semantics, only
+# the surface language differs; labels must hold across fi/en/de.
+valid_for_components: [1, 2, 3, 4, 5, 6, 7]
+primary_any_of: ["-50"]
+must_include: []
+must_not_include: [A13, Z10]
+low_confidence_expected: false

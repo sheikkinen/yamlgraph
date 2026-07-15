@@ -62,10 +62,11 @@ def _result(
 
 class TestLabels:
     @pytest.mark.req("REQ-YG-554")
-    def test_six_labeled_fixtures_parse_complete(self):
+    def test_labeled_fixtures_parse_complete(self):
         harness = _load_harness()
         labels = harness.load_labels(LABELED)
-        assert len(labels) == 6
+        # 6 originals + hp36 en/de translations (language invariance)
+        assert len(labels) >= 8
         for name, label in labels.items():
             assert (LABELED / f"{name}.md").exists(), f"{name}: transcript missing"
             assert label["rationale"], f"{name}: rationale required"
@@ -173,6 +174,17 @@ class TestAttributionAndAgreement:
         attributed = harness.attribute_archives(tmp_path, {"cough-fever"})
         assert set(attributed) == {"cough-fever"}
         assert len(attributed["cough-fever"]) == 1
+
+    @pytest.mark.req("REQ-YG-554")
+    def test_prefix_fixture_names_not_confused(self, tmp_path):
+        """Language-invariance finding: hp36-renewal-behalf-en archives
+        must NOT attribute to hp36-renewal-behalf (prefix collision) —
+        attribution is exact name + timestamp."""
+        (tmp_path / "hp36-20260715_080000.result.json").write_text("{}")
+        (tmp_path / "hp36-en-20260715_080001.result.json").write_text("{}")
+        attributed = _load_harness().attribute_archives(tmp_path, {"hp36", "hp36-en"})
+        assert len(attributed["hp36"]) == 1
+        assert len(attributed["hp36-en"]) == 1
 
     @pytest.mark.req("REQ-YG-554")
     def test_agreement_raw_counts_no_significance(self):

@@ -20,6 +20,7 @@ Usage:
 """
 
 import json
+import re
 import subprocess
 import sys
 from collections import Counter
@@ -127,15 +128,18 @@ def evaluate_result(label: dict, result: dict) -> dict:
 def attribute_archives(
     archive_dir: Path, fixture_names: set[str]
 ) -> dict[str, list[Path]]:
-    """Join archives to fixtures by basename prefix (F2). Unknown and
-    stdin archives are never attributed."""
+    """Join archives to fixtures by exact `<name>-<timestamp>` stem (F2).
+    Timestamp-anchored: a bare prefix match would misattribute fixtures
+    whose names are prefixes of other fixtures (hp36-renewal-behalf vs
+    hp36-renewal-behalf-en — found by the language-invariance runs).
+    Unknown and stdin archives are never attributed."""
+    stamp = re.compile(r"-\d{8}_\d{6}$")
     attributed: dict[str, list[Path]] = {}
     for path in sorted(archive_dir.glob("*.result.json")):
         stem = path.name.removesuffix(".result.json")
-        for name in fixture_names:
-            if stem.startswith(f"{name}-"):
-                attributed.setdefault(name, []).append(path)
-                break
+        base = stamp.sub("", stem)
+        if base in fixture_names:
+            attributed.setdefault(base, []).append(path)
     return attributed
 
 
