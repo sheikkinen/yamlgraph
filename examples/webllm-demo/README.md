@@ -35,6 +35,26 @@ python examples/webllm-demo/build.py --check    # verify no drift
 Rebuild on an unchanged prompt is a byte-level no-op (`sort_keys`
 serialization) — prompt drift is visible in `git diff`.
 
+## Running the page
+
+The page needs an HTTP server (it fetches `prompt.json` and imports an
+ES module — `file://` won't work) and a WebGPU browser (Chrome/Edge
+113+; Safari 26+ on macOS; Firefox not yet).
+
+```bash
+# Local
+cd docs && python3 -m http.server 8000
+# then open http://localhost:8000/demos/webllm/
+
+# Deployed (GitHub Pages)
+# https://<org>.github.io/yamlgraph/demos/webllm/
+```
+
+Flow: WebGPU gate → consent button (model id, ~0.7 GB) → progress bar
+(first visit downloads; later visits hit the browser cache) → paste a
+paragraph → **Critique**. Raw JSON is always rendered below the parsed
+fields; schema violations show as a loud red `SCHEMA FAILURE`.
+
 ## Scope
 
 This demos a *prompt*, not a graph. The spike verdict is **schema
