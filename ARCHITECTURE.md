@@ -2533,7 +2533,7 @@ Map/reason/reduce YAMLGraph example classifying freeform encounter transcripts i
 
 ### 204. CAP-204 CWE Vulnerability Classifier Example
 
-Second instance of the coded-classification pattern (reference/patterns/coded-classification.md): map/reason/reduce YAMLGraph example classifying free-text vulnerability descriptions into CWE weakness codes. View-699 category fan-out (40 clusters, 399 live members, 345 candidates after the build-time Prohibited strip) over a catalog GENERATED locally from cwec_v4.20.xml (versioned URL + sha256 pin; MITRE CWE is free with attribution); per-cluster LLM verdicts validate at the python reducer boundary; ranking is fully deterministic; the crosscheck harness scores against NVD gold labels partitioned by MITRE's own Mapping_Notes usage.
+Second instance of the coded-classification pattern (reference/patterns/coded-classification.md): map/reason/reduce YAMLGraph example classifying free-text vulnerability descriptions into CWE weakness codes. View-699 category fan-out (40 categories of which 39 brief — CAT-1225 Documentation Issues is entirely Prohibited and drops out; 399 live members, 345 candidates after the build-time Prohibited strip) over a catalog GENERATED locally from cwec_v4.20.xml (versioned URL + sha256 pin; MITRE CWE is free with attribution); per-cluster LLM verdicts validate at the python reducer boundary; ranking is fully deterministic; the crosscheck harness scores against NVD gold labels partitioned by MITRE's own Mapping_Notes usage.
 
 **Feature Request:** FR-733
 

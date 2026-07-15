@@ -1,0 +1,89 @@
+# FR-733 committed test fixture — hand-reduced catalog mirroring the
+# shapes build_catalog.py emits from cwec_v4.20.xml (MITRE CWE, free
+# with attribution). The REAL catalog is generated locally and
+# gitignored; this fixture exists so unit tests run without the 18 MB
+# Tier-1 source.
+catalog_version: cwec_v4.20
+coverage:
+  view: 699
+  candidates: 5
+  excluded_prohibited: 1
+  catalog_total: 6
+categories:
+  CAT-137: Data Neutralization Issues
+  CAT-1019: Validate Inputs
+rows:
+  - code: CWE-79
+    title: "Improper Neutralization of Input During Web Page Generation ('Cross-site Scripting')"
+    abstraction: Base
+    mapping_usage: Allowed
+    description: >-
+      The product does not neutralize or incorrectly neutralizes
+      user-controllable input before it is placed in output that is used
+      as a web page that is served to other users.
+    parents: [CWE-707]
+    cluster_ids: [CAT-137, CAT-1019]
+    source_tier: 1
+    source_reference: cwec_v4.20/CWE-79
+  - code: CWE-89
+    title: "Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')"
+    abstraction: Base
+    mapping_usage: Allowed
+    description: >-
+      The product constructs all or part of an SQL command using
+      externally-influenced input, but it does not neutralize special
+      elements that could modify the intended SQL command.
+    parents: [CWE-707]
+    cluster_ids: [CAT-137]
+    source_tier: 1
+    source_reference: cwec_v4.20/CWE-89
+  - code: CWE-20
+    title: Improper Input Validation
+    abstraction: Class
+    mapping_usage: Discouraged
+    description: >-
+      The product receives input or data, but it does not validate or
+      incorrectly validates that the input has the properties that are
+      required to process the data safely and correctly.
+    parents: []
+    cluster_ids: [CAT-137]
+    source_tier: 1
+    source_reference: cwec_v4.20/CWE-20
+  - code: CWE-707
+    title: Improper Neutralization
+    abstraction: Class
+    mapping_usage: Allowed
+    description: >-
+      The product does not ensure or incorrectly ensures that structured
+      messages or data are well-formed before being read from an
+      upstream component or sent to a downstream component.
+    parents: []
+    cluster_ids: [CAT-1019]
+    source_tier: 1
+    source_reference: cwec_v4.20/CWE-707
+  - code: CWE-94
+    title: "Improper Control of Generation of Code ('Code Injection')"
+    abstraction: Base
+    mapping_usage: Allowed-with-Review
+    description: >-
+      The product constructs all or part of a code segment using
+      externally-influenced input, but it does not neutralize special
+      elements that could modify the syntax or behavior of the intended
+      code segment.
+    parents: [CWE-707]
+    cluster_ids: [CAT-1019]
+    source_tier: 1
+    source_reference: cwec_v4.20/CWE-94
+  - code: CWE-441
+    title: "Unintended Proxy or Intermediary ('Confused Deputy')"
+    abstraction: Class
+    mapping_usage: Prohibited
+    description: >-
+      The product receives a request, message, or directive from an
+      upstream component, but the product does not sufficiently preserve
+      the original source of the request before forwarding the request
+      to an external actor.
+    parents: []
+    cluster_ids: []
+    source_tier: 1
+    source_reference: cwec_v4.20/CWE-441

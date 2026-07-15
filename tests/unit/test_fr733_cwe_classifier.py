@@ -244,7 +244,7 @@ class TestReducerPolicy:
         reducer = _load("reduce.py")
         out = _reduce(
             reducer,
-            [_cand("CWE-79", "XSS", "match", 0.9, ["sanitze user input"])],
+            [_cand("CWE-79", "XSS", "match", 0.9, ["fails to sanitze user input"])],
         )
         assert out["classification"]["primary"]["evidence_spans"][0] in DESCRIPTION
         with pytest.raises(ValueError, match="evidence_span"):

@@ -1506,6 +1506,12 @@ These are not `# noqa` suppressions — they are documented deviations from proc
 - **Sin**: `xml.etree.ElementTree.fromstring` on the ICPC-2e ClaML file instead of defusedxml.
 - **Penance**: The input is trusted by construction: `build_catalog` refuses any zip whose sha256 differs from the pinned digest of the official ICPC-2e-v7.0 release (FR-722 A1), so only one byte-exact known file is ever parsed; the unit-test path parses a committed 3-row excerpt. Adding a defusedxml dependency for an example builder would violate the no-new-deps posture for examples.
 
+### CONF-387
+- **File**: [examples/cwe-classifier/nodes/build_catalog.py](../examples/cwe-classifier/nodes/build_catalog.py#L66)
+- **Code**: S314
+- **Sin**: `xml.etree.ElementTree.fromstring` on cwec_v4.20.xml instead of defusedxml.
+- **Penance**: Same trust construction as CONF-386: `build_catalog` refuses any zip whose sha256 differs from the pinned digest of the versioned MITRE cwec_v4.20.xml.zip release (FR-733), so only one byte-exact known file is ever parsed; the unit-test path parses a committed hand-reduced excerpt. Examples take no new dependencies.
+
 ---
 
 ## Adding New Confessions

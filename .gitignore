@@ -129,3 +129,5 @@ examples/demos/judge/eval-results/
 docs/*-audit/
 # FR-722 A1: the generated catalog is never committed (Wonca copyright)
 examples/icpc-2-rfe/data/icpc2_rfe_catalog.yaml
+# FR-733: generated locally from cwec_v4.20 (18 MB source; catalog is a build artifact)
+examples/cwe-classifier/data/cwe_catalog.yaml

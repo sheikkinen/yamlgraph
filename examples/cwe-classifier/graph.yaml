@@ -1,0 +1,68 @@
+version: "1.0"
+name: cwe_classifier
+description: >
+  FR-733 CWE vulnerability classifier — view-699 category map fan-out
+  (40 clusters, 345 candidates after the build-time Prohibited strip)
+  over a locally generated Tier-1 catalog (cwec_v4.20), per-cluster LLM
+  verdicts, fully deterministic python reducer.
+prompts_relative: true
+prompts_dir: prompts
+
+state:
+  description: str       # freeform vulnerability description (input)
+  catalog_path: str      # optional override; defaults inside the loader
+  classification: dict   # reducer output (merged state update)
+  meta: dict             # coverage-honesty metadata (merged state update)
+
+tools:
+  load_cwe_clusters:
+    type: python
+    path: nodes/catalog.py
+    function: load_cwe_clusters
+    description: "Cluster the generated catalog by view-699 category (F3: Prohibited stripped at build; actionable error when the catalog has not been built)."
+
+  reduce_best_cwe:
+    type: python
+    path: nodes/reduce.py
+    function: reduce_best_cwe
+    description: "Deterministic ranking; candidates validate at this boundary; spans must quote the description; Discouraged demotes, Review flags, matched Class ancestors demote."
+
+nodes:
+  load_catalog:
+    type: python
+    tool: load_cwe_clusters
+    state_key: cwe_clusters
+
+  classify_clusters:
+    type: map
+    over: "{state.cwe_clusters}"
+    as: cluster
+    max_items: 40
+    # on_error deliberately left at fail: a silently dropped cluster would
+    # falsify a "no match" verdict (coverage honesty pin).
+    node:
+      type: llm
+      prompt: reason_cluster
+      state_key: cluster_verdicts
+      temperature: 0.1  # classification: minimize span drift
+      variables:
+        description: "{state.description}"
+        cluster_id: "{state.cluster.cluster_id}"
+        cluster_name: "{state.cluster.name}"
+        cluster_brief: "{state.cluster.brief}"
+    collect: map_results
+
+  reduce:
+    type: python
+    tool: reduce_best_cwe
+    state_key: classification  # dict return is MERGED: classification + meta
+
+edges:
+  - from: START
+    to: load_catalog
+  - from: load_catalog
+    to: classify_clusters
+  - from: classify_clusters
+    to: reduce
+  - from: reduce
+    to: END
