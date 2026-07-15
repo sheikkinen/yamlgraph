@@ -14,6 +14,8 @@ process-code primaries — the composed combined code (K86 context +
 
 Phase ladder and per-phase evidence: see [PLAN.md](PLAN.md)
 (FR-722, 724, 725, 727, 730 completed; FR-726 gated).
+This example is the reference implementation of the generic
+[Coded-Classification Pattern](../../reference/patterns/coded-classification.md).
 
 ## Architecture
 
