@@ -23,7 +23,7 @@ this file when territory changes state (dark → probed → instrumented).
 | Territory | What's known | Value hypothesis |
 |---|---|---|
 | `state.vscdb` → `chat.ChatSessionStore.index` | Session index incl. **`copilotcli:/` sessions** + timing (created/lastRequestStarted/Ended) | CLI sessions join the cost model; per-session wall-clock timing without the tap |
-| `state.vscdb` → `memento/chat-todo-list` | Per-session todo lists (the manage_todo_list store) | Cross-session WIP visibility; "what was that session planning" post-mortem |
+| `state.vscdb` → `memento/chat-todo-list` | **Instrumented: `todos.py`** — 191 slots, 21 non-empty, 18 orphaned open intentions; verdicts CLEAN CLOSE / DIED OPEN / LIVE OPEN with title join | Forensics live: the Vertex migration case (work moved sessions, record never reconciled); NC-365 shipped while its orphan reads not-started; 3× dead sessions orphaning "diary reflection" — Distill is the most-abandoned step, measured |
 | `state.vscdb` → `chat.terminalSessions`, `chat.customModes` | Terminal-session map; custom mode definitions | Low |
 | Chronicle `session-store.db` | Full schema: sessions/turns/session_files/session_refs/checkpoints + FTS | Narrative empty (indexes vacuous debug-logs) — *indexed ≠ informative*; reindex-from-chatSessions is the fix if narrative wanted |
 | Transcripts (`transcripts/*.jsonl`) | Verbatim assistant messages, 35 MB | Sentinel retro-scan seed (doctrine-phrase rate over time); summarizer-loss study input |

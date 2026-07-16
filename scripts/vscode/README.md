@@ -149,6 +149,7 @@ watches *graph workflows*, this tap watches *editor sessions*.
 | `ledger.py --by-model` | Metabolism | Requests/tokens per period (today / this month / previous month / all-time) and per model, all workspaces; **estimated credits** from the per-model price sheets (1 cr = $0.01, calibrated 2026-07-16). No balance history is persisted locally (verified) — the UI's credit figure is fetched live, so absolute credits need one calibration anchor; relative attribution is solid |
 | `portrait.py` | Memory | What was worked on: chronicle summaries + session titles + most-touched files + measured session parallelism per day |
 | `now.py` | Situation board | Live sessions (titles, models, recency) × git state per implicated repo (branch, STAGED files, recent commits with FR/NC refs) × FRs in motion × interleave-hazard flags. The session-start briefing, reception rung 2 |
+| `todos.py` | Last-known intentions | Every session's frozen todo list (memento/chat-todo-list, all workspaces): CLEAN CLOSE / DIED OPEN / LIVE OPEN, orphaned open intentions with title + recency. The graveyard of plans |
 
 ## First-run findings (2026-07-16)
 
