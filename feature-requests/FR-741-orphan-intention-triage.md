@@ -1,9 +1,11 @@
 # FR-741: Orphan Intention Triage — DIED OPEN todos in the session-start briefing
 
-**Status:** Proposed
+**Status:** Judged — APPROVED with corrections (see Judgement)
 **Type:** Enhancement (agent-facing tooling, `scripts/vscode/`)
 **Effort:** 0.5 day
 **Requested:** 2026-07-16
+**Judged:** 2026-07-16 — the 30-day briefing cap would hide 4 of 6 dead
+sessions including both exhibit cases; backlog-triage-first ordering bound
 **Spawned by:** todos.py forensics (CSI arc, 2026-07-16): 191 todo
 slots, 21 non-empty, **18 orphaned open intentions** in
 `memento/chat-todo-list`. Case evidence: the Vertex migration
@@ -68,3 +70,25 @@ starting work has no view of what its predecessors left open — the
 
 None — mechanism and rung are pinned by measured evidence; scope
 questions (age cap 30d, row cap 10) are judgement-adjustable defaults.
+
+## Judgement (2026-07-16)
+
+**Verdict: APPROVED — with the FR's own defaults measured against the
+evidence they were written from.**
+
+| # | Finding | Resolution (binding) |
+|---|---------|----------------------|
+| F1 | **The 30-day cap hides the FR's own exhibits.** DIED OPEN ages measured: 0.2 / 3.3 / 93 / 106 / 120 / 133 days — the cap excludes 4 of 6 dead sessions including the Vertex case AND the NC-365 case. A briefing filtered to recency is right; shipping it against an untriaged backlog silently buries the archaeology forever | **Backlog-zero precondition**: AC-04's full 18-orphan triage executes FIRST (every ancient orphan explicitly dropped or resumed via the sidecar); only then does the 30-day cap arm. Enforce order: AC-01 → AC-04 → AC-02/03 |
+| F2 | **The artifact cross-check covers 3 of 29 open orphans** (10%) — and 2 of those 3 belong to LIVE sessions. The DELIVERED-ELSEWHERE detector applies to exactly one dead orphan today (NC-365). Correct, cheap, but the FR's framing oversells it | Keep (it is one regex + one glob); reframed as a triage *aid*, not the mechanism. The FR's primary value is visibility + disposition — F1's backlog-zero is the real deliverable |
+| F3 | `--drop <session8> <n>` is **positionally keyed** — fragile against any list mutation and ambiguous in review | Content key: `(session_id, sha1(title)[:8])`. A disposition names what it dropped |
+| F4 | Dispositions sidecar location unpinned | Beside compactions.jsonl (`scripts/vscode/orphan-dispositions.jsonl`), same append-only JSONL discipline, git-tracked — dispositions are decisions, decisions get history |
+
+**Purge additions:** none beyond the FR's own list.
+
+**Scope frozen:** AC-01 (cross-check witnesses) → AC-04 (backlog-zero
+triage, recorded here) → AC-02 (capped briefing section, receipt
+witnessed) → AC-03 (content-keyed drops persist).
+
+### Questions for the human (as options, or 'none')
+
+None — F1's reordering resolves the only real hazard found.
