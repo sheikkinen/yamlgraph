@@ -186,6 +186,8 @@
 | FR-701 | Proposed | yamlgraph |  | FR-701-capability-registry-consistency-gate.md |
 | FR-728 | Proposed | yamlgraph |  | FR-728-session-safe-release-commit-hygiene.md |
 | FR-729 | Proposed | yamlgraph |  | FR-729-landing-page-metrics-generated.md |
+| FR-741 | Proposed | yamlgraph |  | FR-741-orphan-intention-triage.md |
+| FR-742 | Proposed | yamlgraph |  | FR-742-undelivered-diary-detection.md |
 | FR-078 | In Progress | yamlgraph |  | FR-078-relocate-project-tests.md |
 | FR-100 | In Progress | yamlgraph |  | FR-100-yamlgraph-development-pipeline-ebook.md |
 | FR-169 | In Progress | yamlgraph |  | FR-169-enforce-reflexion-loop.md |
@@ -402,6 +404,8 @@ graph TD
     FR-732["FR-732 Judged"]
     FR-735["FR-735 In Progress"]
     FR-736["FR-736 In Progress"]
+    FR-741["FR-741 Proposed"]
+    FR-742["FR-742 Proposed"]
     FR-081 --> FR-082
     FR-731 --> FR-735
     FR-731 --> FR-736
