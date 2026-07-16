@@ -5,6 +5,10 @@ Multi-angle overview of what the agents in this workspace have been
 doing: where session data lives, what it costs, what was worked on,
 and how parallel the work actually is.
 
+**Territory map for subsequent development: [MAP.md](MAP.md)** —
+explored/probed/dark stores, join keys, seams, calibration facts (do
+not re-derive), and ranked next directions.
+
 ## Cookbook: what does it cost? (start here)
 
 **Cost of ongoing sessions, right now** (exact tokens, per session,
