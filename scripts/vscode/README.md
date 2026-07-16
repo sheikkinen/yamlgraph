@@ -77,6 +77,59 @@ two witnesses within 0.5%).
 | Chronicle | `globalStorage/github.copilot-chat/session-store.db` | SQLite: session summaries, agent names, files touched, refs. **The narrative.** No cost columns |
 | Editing sessions | `workspaceStorage/<hash>/chatEditingSessions/` | Edit checkpoints/snapshots |
 
+## Data model: the full Copilot storage tree (mapped 2026-07-16)
+
+Two scoping axes: **global vs workspace** (the `<hash>` key from
+`workspace.json` → folder path) and, within Copilot, **per-session**
+(the session UUID). Everything below `~/Library/Application Support/Code/User/`:
+
+```
+User/
+├── settings.json, keybindings.json, snippets/, mcp.json, mcp/   # config
+├── prompts/                        # user-level *.prompt.md / *.agent.md / skills
+├── History/                        # VS Code local file history (per-file snapshots)
+├── globalStorage/
+│   └── github.copilot-chat/
+│       ├── memory-tool/memories/*.md          # USER memory  (= /memories/*.md)
+│       ├── session-store.db(-wal,-shm)        # chronicle SQLite (FTS index of sessions)
+│       ├── ask-agent/ plan-agent/ explore-agent/  # built-in subagent workspaces
+│       ├── copilotCli/ copilot-cli-images/    # CLI integration state
+│       ├── commandEmbeddings.json             # command palette semantic index
+│       └── toolEmbeddingsCache.bin            # tool_search embedding cache
+└── workspaceStorage/<hash>/
+    ├── workspace.json              # hash → folder URI (the join key)
+    ├── state.vscdb (43 MB here)    # workspace KV store (UI/chat metadata)
+    ├── chatSessions/<sessionId>.jsonl          # request log; customTitle; STEM = SESSION ID
+    ├── chatEditingSessions/<sessionId>/        # edit checkpoints
+    └── GitHub.copilot-chat/
+        ├── memory-tool/memories/
+        │   ├── repo/*.md                       # REPO memory   (= /memories/repo/)
+        │   └── <base64(sessionId)>/*.md        # SESSION memory (= /memories/session/)
+        ├── transcripts/<sessionId>.jsonl       # assistant messages verbatim
+        ├── chat-session-resources/<sessionId>/ # spilled tool results
+        ├── debug-logs/<sessionId>/             # models.json price sheet + markers
+        ├── workspace-chunks.db (3 MB)          # semantic_search chunk index
+        ├── local-index.1.db                    # local code search index
+        └── codebase-external.sqlite            # external-code index
+```
+
+Memory-tool findings worth knowing:
+- **All three memory scopes live OUTSIDE the repo.** "Repo" memory is
+  keyed by workspace hash in the user dir — it does not travel with
+  git, clones, or other machines. The durable repo memory is
+  `docs/diary/` (enforced by diary-gate); `/memories/repo/` is
+  machine-local working memory. One repo, two machines ⇒ two disjoint
+  "repo" memories.
+- **Session memory dirs are base64(session UUID)** —
+  `ODU0YzZhMzUt…` = `854c6a35-…` (verifiable against chatSessions
+  stems and tap session ids). Session notes are joinable to cost,
+  transcript, and title by decoding the dir name.
+- The session UUID is the universal join key across chatSessions,
+  transcripts, chat-session-resources, debug-logs, chatEditingSessions,
+  session memory (base64), and the OTel tap (`session.id` attr).
+  `workspace.json` joins the hash axis to folder paths. Between those
+  two keys, every store above is relationally connected.
+
 Related prior art in this repo: `docs/plan-process-mining.md` (FR-362
 POC) tapped Copilot **CLI** OTel through the same
 `COPILOT_OTEL_FILE_EXPORTER_PATH` env — per-node spans for process
