@@ -59,6 +59,16 @@ this file when territory changes state (dark → probed → instrumented).
    chunks. Never write; these are VS Code's live stores.
 3. **JSONL regex-over-lines** — chatSessions/transcripts/tap. Schema
    parser is the recorded escalation if a spike graduates further.
+4. **Events → agent push (PROVEN 2026-07-16):** a watcher started
+   with `mode=async` notifies the agent automatically on exit/output —
+   witnessed live: a 20s altimeter watcher delivered the authoring
+   session's own context level (468,568) into its next turn. True
+   push, rung 2, zero infrastructure. Sibling seams: PreToolUse
+   sentinel files (rung 1, per-session-id targeting — the FR-438
+   arm-then-deliver pattern generalizes from reasoning flags to event
+   envelopes) and the declared-but-unused SessionStart hook (briefing
+   moment). No seam pushes between tool calls; delivery is at
+   tool-call boundaries or session start.
 
 ## Calibration facts (do not re-derive)
 
