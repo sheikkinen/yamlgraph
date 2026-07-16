@@ -2,10 +2,11 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement (enforcement infrastructure)
-**Status:** Judged
+**Status:** Completed
 **Effort:** 0.5 day
 **Requested:** 2026-07-16
 **Judged:** 2026-07-16 — scope frozen; the gate's own blind spot found before enforce: the motivating incident lives in a repo this gate never sees
+**Completed:** 2026-07-16
 **Parent:** FR-737 (field review U-1..U-4, first firing 2026-07-16)
 **Spawned by:** FR-737's first field firing (NC-393, ninchat_voice): the
 hook emitted `feedback`, the audit log recorded it, the **human** saw the
@@ -158,3 +159,28 @@ RED (gate + ranking + status tests, staged-blob divergence case included)
 → GREEN → AC-04 counterfactual re-run → pre-commit entry + README →
 NC-side mirror FR filed → paperwork. The FR's own `**Prior art:**` line
 is the format fixture.
+
+## Implementation (2026-07-16)
+
+RED cc4ac838 (10 tests, 7 condemning); GREEN this commit. All ACs
+discharged; F1's binding follow-up filed as **NC-394** in
+projects/ninchat_voice (mirror pre-commit entry via relative path —
+the boundary stated honestly: this gate covers yamlgraph commits only;
+the repo where NC-393 happened gets its own floor).
+
+- `prior_art_gate.py`: staged-ADDED filter (`git diff --cached
+  --diff-filter=A`), hits via the shared `build_prior_art`, marker
+  check against `git show :0:path` (F2 — the divergence test passes:
+  an unstaged marker does not count). Plain-text stderr, exit 1.
+  S603 noqa ×2 confessed (CONF-388/389).
+- `prior_art.py` U-2: weighted zone = filename + first H1 + `##
+  Summary` section; matched-noun weight 2 in zone, 1 in body; freq
+  stays match-anywhere; ties by matched-noun count then name. U-3:
+  `.judgement.md` inherits parent status; orphans excluded from the
+  corpus.
+- AC-04 re-measured: FR-070 [REJECTED] holds #2 with score doubled
+  (1/2 → 2/2, filename match) — F3's prediction confirmed, rank
+  unchanged because FR-737's two-noun body match also gains nothing
+  relative (its nouns sit outside its zone).
+- Pre-commit entry `prior-art-gate` before the pytest hook; hooks
+  README documents the advisory-vs-floor layering. 82/82 hook tests.

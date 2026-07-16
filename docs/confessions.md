@@ -1527,3 +1527,15 @@ The ID ranges are:
 - **CONF-010 to CONF-099**: Test code
 - **CONF-100 to CONF-199**: Example code
 - **CONF-200 to CONF-299**: Scripts
+
+### CONF-388
+- **File**: [.github/hooks/scripts/checks/prior_art_gate.py](../.github/hooks/scripts/checks/prior_art_gate.py#L36)
+- **Code**: S603
+- **Sin**: `subprocess.run([GIT, "diff", "--cached", ...])` flagged as untrusted input.
+- **Penance**: Command and args are hardcoded constants; GIT resolved via `shutil.which`. No user input reaches the call.
+
+### CONF-389
+- **File**: [.github/hooks/scripts/checks/prior_art_gate.py](../.github/hooks/scripts/checks/prior_art_gate.py#L47)
+- **Code**: S603
+- **Sin**: `subprocess.run([GIT, "show", f":0:{path}"])` — path interpolated into an argument.
+- **Penance**: `path` comes from pre-commit's staged-filename list (list-form argv, no shell); worst case is a git error for a nonexistent blob, handled by returncode check.

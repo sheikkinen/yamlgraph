@@ -151,6 +151,15 @@ Disposition required in the FR or its judgement (Scripture: Judge step).
 Advisory, never blocking: the hook does retrieval; relevance stays with
 the judge (Scripture, Judge paragraph).
 
+**Layering (FR-738):** the PostToolUse advisory fires *when its delivery
+channel works* — field-proven unreliable (FR-737 U-1: the warning reached
+the human, not the agent). The floor is the `prior-art-gate` pre-commit
+hook (`prior_art_gate.py`): a newly **added** `feature-requests/*.md`
+with hits and no `**Prior art:**` line in the **staged blob** fails the
+commit. Repo-scoped — nested project repos need their own mirror entry
+(ninchat: NC-394). Skippable via `SKIP=prior-art-gate` like any local
+hook; `--no-verify` remains blocked by the pre-command guard.
+
 Non-edit tools are logged once by PreToolUse as `pass/not-inspected` (no double-logging).
 
 ### Log format

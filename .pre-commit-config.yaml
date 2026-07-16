@@ -253,6 +253,15 @@ repos:
 
   - repo: local
     hooks:
+      - id: prior-art-gate
+        name: prior-art disposition gate (FR-738)
+        entry: .venv/bin/python .github/hooks/scripts/checks/prior_art_gate.py
+        language: system
+        files: ^feature-requests/.*\.md$
+        stages: [pre-commit]
+
+  - repo: local
+    hooks:
       - id: pytest
         name: pytest (unit only, ~20s)
         entry: bash -c 'export PATH=".venv/bin:$PATH" && .venv/bin/python -m pytest tests/unit/ -q --tb=short --no-cov -m "not slow" -n auto && echo "" && echo "✓ Unit tests passed. Run integration tests separately:" && echo "  pytest tests/integration/ -v"'
