@@ -94,7 +94,10 @@ def main() -> None:
     prices = load_prices()
 
     def credits(model: str, p: int, o: int) -> tuple[float, float]:
-        """(best, worst) in credits, under the milli-credit unit assumption."""
+        """(best, worst) in credits. CALIBRATED 2026-07-16: a single session
+        showing 2702.9 credits billed $27.09 → 1 credit = $0.01, and the
+        models.json prices ARE credits per 1M tokens (fable: $10/M in,
+        $50/M out, $1/M cache-read — frontier-consistent, corroborating)."""
         pr = prices.get(model, UNKNOWN_MODEL_PRICE)
         out = o / 1e6 * pr["out"]
         worst = p / 1e6 * pr["in"] + out
@@ -104,7 +107,7 @@ def main() -> None:
             * ((1 - CACHE_RATIO_BEST) * pr["in"] + CACHE_RATIO_BEST * pr["cache"])
             + out
         )
-        return best / 1000, worst / 1000
+        return best, worst
 
     today = date.today()
     this_month = today.strftime("%Y-%m")
@@ -135,11 +138,13 @@ def main() -> None:
         agg[2] += 1
 
     print(
-        "credits = ESTIMATE (milli-credit unit assumption; best=90% cached, worst=all fresh)"
+        "credits: 1 cr = $0.01 (calibrated 2026-07-16, single-session anchor: "
+        "2702.9 cr = $27.09); range = 90%-cached .. all-fresh"
     )
     print("tokens  = exact from chatSessions request records\n")
     print(
-        f"{'period':<16} {'req':>6} {'promptTok':>14} {'outTok':>10} {'est. credits':>18}"
+        f"{'period':<16} {'req':>6} {'promptTok':>14} {'outTok':>10}"
+        f" {'est. credits':>19} {'est. USD':>15}"
     )
     for name in period_names:
         models = by_model_period[name]
@@ -148,7 +153,10 @@ def main() -> None:
         tr = sum(v[2] for v in models.values())
         lo = sum(credits(m, v[0], v[1])[0] for m, v in models.items())
         hi = sum(credits(m, v[0], v[1])[1] for m, v in models.items())
-        print(f"{name:<16} {tr:>6} {tp:>14,} {to:>10,} {lo:>8.1f}–{hi:<8.1f}")
+        print(
+            f"{name:<16} {tr:>6} {tp:>14,} {to:>10,} {lo:>9,.0f}–{hi:<9,.0f}"
+            f" ${lo / 100:>6,.0f}–${hi / 100:<6,.0f}"
+        )
 
     if args.by_model:
         for name in ("today", "this month", "previous month"):
@@ -160,7 +168,7 @@ def main() -> None:
                 lo, hi = credits(m, p, o)
                 print(
                     f"  {m:<28} {r:>5} req {p:>13,} in {o:>10,} out"
-                    f"  ≈{lo:.1f}–{hi:.1f} cr"
+                    f"  ≈{lo:,.0f}–{hi:,.0f} cr (${lo / 100:,.0f}–${hi / 100:,.0f})"
                 )
 
     if args.days:
