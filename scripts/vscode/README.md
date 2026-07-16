@@ -62,3 +62,22 @@ and how parallel the work actually is.
   Refining to repo-level requires scanning session content for paths;
   escalation path if the overcount produces false hazard flags twice
   (`two_strike_split`).
+
+## OTel tap experiment (2026-07-16, in progress)
+
+The UI's per-operation credit figure arrives on the wire: every
+`response.completed` carries `copilot_quota_snapshots` (found in the
+extension bundle), and telemetry.json declares the cache-split fields
+(`promptcachetokencount`, `promptcachecreation5m/1htokencount`) that
+would turn ledger.py's estimate into an invoice. The extension honors
+a `COPILOT_OTEL_*` env family; `debug-logs/*/main.jsonl` is that
+exporter at default verbosity.
+
+- `otel-tap-on.sh [out.jsonl]` — launchctl env: file exporter + HTTP
+  instrumentation + debug level (CAPTURE_CONTENT deliberately off).
+  Requires full VS Code restart (Cmd+Q).
+- `otel-tap-off.sh` — unset everything.
+- Verification: one chat turn, then read the span file for HTTP spans
+  with quota/cache fields. Success → exact-mode ledger; failure →
+  escalate log level / CAPTURE_CONTENT (two-strike), else the tap
+  idea dies honestly.
