@@ -13,7 +13,6 @@
 | FR-284 | PARSE-FAILURE (Amendment Required) | yamlgraph |  | FR-284-watcher2-ci-remediation-crash-fix.md |
 | FR-293 | PARSE-FAILURE ((no Status header)) | yamlgraph |  | FR-293-pytest-xdist-parallel-tests.md |
 | FR-294 | PARSE-FAILURE ((no Status header)) | yamlgraph |  | FR-294-precommit-venv-path-isolation.md |
-| FR-374 | PARSE-FAILURE (Open — cause unknown) | ninchat_voice |  | FR-374-echo-investigation-audio-recording.md |
 | FR-422 | PARSE-FAILURE (APPROVE — plan amended, author) | yamlgraph |  | FR-422-actionconfig-mapping-hardening.md |
 | FR-448 | PARSE-FAILURE ((no Status header)) | yamlgraph |  | FR-448-judgement.md |
 | FR-453 | PARSE-FAILURE (Partially Enforced (Step 1 com) | yamlgraph |  | FR-453-judge-model-evaluation.md |
@@ -28,39 +27,14 @@
 | FR-613 | PARSE-FAILURE (Raw Output Read FILLED (K=6, 2) | yamlgraph |  | FR-613-roundtrip-skeleton-p3-coherence-gate.md |
 | FR-614 | PARSE-FAILURE (REFUTED by the FR-613 K=6 Raw ) | yamlgraph |  | FR-614-roundtrip-skeleton-p4-scene-type-close-op.md |
 | FR-663 | PARSE-FAILURE (Planned) | yamlgraph |  | FR-663-changelog-req-legacy-cap-false-positive.md |
-| NC-150 | PARSE-FAILURE (Planning) | ninchat_voice |  | NC-150-fly-monitoring-ui-proxy.md |
-| NC-152 | PARSE-FAILURE (Conditionally Approved) | ninchat_voice |  | NC-152-shared-voice-runtime-extraction.md |
-| NC-153 | PARSE-FAILURE (Conditionally Approved) | ninchat_voice |  | NC-153-voice-runtime-consumer-adaptation.md |
-| NC-163 | PARSE-FAILURE ((no Status header)) | ninchat_voice |  | NC-163-azure-stt-listening-toggle.md |
-| NC-164 | PARSE-FAILURE ((no Status header)) | ninchat_voice |  | NC-164-multi-provider-stt-logging.md |
-| NC-165 | PARSE-FAILURE ((no Status header)) | ninchat_voice |  | NC-165-stt-provider-protocol.md |
-| NC-166 | PARSE-FAILURE ((no Status header)) | ninchat_voice |  | NC-166-eliminate-direct-dispatch-side-channel.md |
-| NC-167 | PARSE-FAILURE ((no Status header)) | ninchat_voice |  | NC-167-type-session-factories.md |
-| NC-168 | PARSE-FAILURE ((no Status header)) | ninchat_voice |  | NC-168-fsm-event-sender-audit.md |
-| NC-169 | PARSE-FAILURE ((no Status header)) | ninchat_voice |  | NC-169-tts-provider-protocol.md |
-| NC-201 | PARSE-FAILURE ((no Status header)) | ninchat_voice |  | NC-201-navigator-fsm-transcribed-loopback-accumulator.enforcement-review.md |
-| NC-226 | PARSE-FAILURE ((no Status header)) | ninchat_voice |  | NC-226-speculative-checkpoint-isolation.md |
-| NC-227 | PARSE-FAILURE ((no Status header)) | ninchat_voice |  | NC-227-rollback-nc220.md |
-| NC-231 | PARSE-FAILURE ((no Status header)) | ninchat_voice |  | NC-231-provider-switch-vertex.md |
-| NC-233 | PARSE-FAILURE ((no Status header)) | ninchat_voice |  | NC-233-prefetch-extraction-on-partials.rejudgement.md |
-| NC-243 | PARSE-FAILURE ((no Status header)) | ninchat_voice |  | NC-243-refactor-yamlgraph-async-action.rejudgement.md |
-| NC-299 | PARSE-FAILURE ((no Status header)) | ninchat_voice |  | NC-299-judgement.md |
-| NC-300 | PARSE-FAILURE ((no Status header)) | ninchat_voice |  | NC-300-judgement.md |
-| NC-304 | PARSE-FAILURE ((no Status header)) | ninchat_voice |  | NC-304-hangup-partial-result-ticket.rejudgement.md |
-| NC-331 | PARSE-FAILURE (Reopened — enforcement rolled ) | ninchat_voice |  | NC-331-refusal-verbatim-plaintext-nodes.md |
-| NC-368 | PARSE-FAILURE ((no Status header)) | ninchat_voice |  | NC-368-digialusta-ticket-routing.md |
-| NC-379 | PARSE-FAILURE (Sign-off RECORDED (2026-07-16)) | ninchat_voice | P5(answered) | NC-379-production-keys-export.md |
-| NC-392 | PARSE-FAILURE (Mechanism ENFORCED (2026-07-16) | ninchat_voice | P6(answered), P7(answered) | NC-392-branching-schema.md |
 | FR-111 | Judged | yamlgraph |  | FR-111-compiled-graph-cache.md |
 | FR-179 | Judged | yamlgraph |  | FR-179-asterisk-ari-audiosocket-provider.md |
-| FR-186 | Judged | ninchat_voice |  | FR-186-ninchat-voice-dead-code-purge.md |
 | FR-210 | Judged | yamlgraph |  | FR-210-subgraph-interrupt-state-commit.md |
 | FR-274 | Judged | yamlgraph |  | FR-274-copilot-session-id-extraction.md |
 | FR-290 | Judged | yamlgraph |  | FR-290-watcher-fsm-phase0-configs.md |
 | FR-291 | Judged | yamlgraph |  | FR-291-watcher-fsm-phase1-action-wiring.md |
 | FR-295 | Judged | yamlgraph |  | FR-295-watcher-fsm-phase2-single-worker-validation.md |
 | FR-304 | Judged | yamlgraph |  | FR-304-pros-and-cons-decision-analysis-demo.md |
-| FR-372 | Judged | ninchat_voice |  | FR-372-selective-gen-gate-dispatch.md |
 | FR-425 | Judged | yamlgraph |  | FR-425-hook-classification-daemon.md |
 | FR-440 | Judged | yamlgraph |  | FR-440-pipe-buffer-guard.md |
 | FR-466 | Judged | yamlgraph |  | FR-466-cap-retirement-support.md |
@@ -118,45 +92,6 @@
 | FR-718 | Judged | yamlgraph |  | FR-718-edge-compiler-decomposition.md |
 | FR-731 | Judged | yamlgraph |  | FR-731-webllm-browser-prompt-demo-spike.md |
 | FR-732 | Judged | yamlgraph |  | FR-732-output-schema-parity-enum-constraints.md |
-| NC-112 | Judged | ninchat_voice |  | NC-112-fsm-coordinator.md |
-| NC-112 | Judged | ninchat_voice |  | NC-112b-service-dispatchers.md |
-| NC-129 | Judged | ninchat_voice |  | NC-129-barge-in.md |
-| NC-130 | Judged | ninchat_voice |  | NC-130-persistent-stt.md |
-| NC-131 | Judged | ninchat_voice |  | NC-131-e2e-barge-in-witness.md |
-| NC-134 | Judged | ninchat_voice |  | NC-134-hospital-support-line-outcaller.md |
-| NC-135 | Judged | ninchat_voice |  | NC-135-e2e-barge-in-outcaller.md |
-| NC-136 | Judged | ninchat_voice |  | NC-136-mid-llm-user-speech.md |
-| NC-183 | Judged | ninchat_voice |  | NC-183-self-contained-recap-loop.md |
-| NC-185 | Judged | ninchat_voice |  | NC-185-deduplicate-action-modules.md |
-| NC-186 | Judged | ninchat_voice |  | NC-186-split-run-and-dispatch.md |
-| NC-187 | Judged | ninchat_voice |  | NC-187-navigator-coordinator-interrai.md |
-| NC-193 | Judged | ninchat_voice |  | NC-193-triage-result-delivery-sms-service.md |
-| NC-194 | Judged | ninchat_voice |  | NC-194-ninchat-result-delivery-callback.md |
-| NC-195 | Judged | ninchat_voice |  | NC-195-extracted-values-fsm-action-log.md |
-| NC-196 | Judged | ninchat_voice |  | NC-196-recap-prompt-fixes.md |
-| NC-199 | Judged | ninchat_voice |  | NC-199-listen-path-recognizing-continuation.md |
-| NC-233 | Judged | ninchat_voice |  | NC-233-prefetch-extraction-on-partials.md |
-| NC-236 | Judged | ninchat_voice |  | NC-236-unique-mark-names-prevent-farewell-cutoff.md |
-| NC-237 | Judged | ninchat_voice |  | NC-237-normalize-dispatch-thread-at-fsm-socket-boundary.md |
-| NC-249 | Judged | ninchat_voice |  | NC-249-tervola-aaa-navigator-flow-alignment.md |
-| NC-258 | Judged | ninchat_voice |  | NC-258-stt-death-detection-recovery.md |
-| NC-259 | Judged | ninchat_voice |  | NC-259-silence-watchdog-stt-recovery.md |
-| NC-260 | Judged | ninchat_voice |  | NC-260-stt-silent-error-gap-closure.md |
-| NC-261 | Judged | ninchat_voice |  | NC-261-stt-restart-action.md |
-| NC-281 | Judged | ninchat_voice |  | NC-281-supervisor-monitoring.md |
-| NC-282 | Judged | ninchat_voice |  | NC-282-split-bridge-handlers.md |
-| NC-292 | Judged | ninchat_voice |  | NC-292-filtered-export-to-corp-github.md |
-| NC-316 | Judged | ninchat_voice |  | NC-316-reaper-blind-spot.md |
-| NC-317 | Judged | ninchat_voice |  | NC-317-ephemeral-workers.md |
-| NC-318 | Judged | ninchat_voice |  | NC-318-background-call-summary.md |
-| NC-319 | Judged | ninchat_voice |  | NC-319-max-accumulation-timeout.md |
-| NC-320 | Judged | ninchat_voice |  | NC-320-probe-loop-graceful-exit.md |
-| NC-334 | Judged | ninchat_voice |  | NC-334-healthcare-model-applicability-eval-harness.md |
-| NC-377 | Judged | ninchat_voice |  | NC-377-schema-signal-aggregator.md |
-| NC-384 | Judged | ninchat_voice | P1(answered) | NC-384-vaccination-fallback-arm.md |
-| NC-386 | Judged | ninchat_voice |  | NC-386-loop-progress-guard.md |
-| NC-388 | Judged | ninchat_voice |  | NC-388-recap-claim-fidelity-gate.md |
-| NC-389 | Judged | ninchat_voice | P2(answered), P3(answered) | NC-389-pair-before-blame-twin-column.md |
 | FR-094 | Approved | yamlgraph |  | FR-094-memory-node.md |
 | FR-095 | Approved | yamlgraph |  | FR-095-doc-staleness-monitor.md |
 | FR-096 | Approved | yamlgraph |  | FR-096-fr-template-demo-plan.md |
@@ -184,7 +119,6 @@
 | FR-180 | Approved | yamlgraph |  | FR-180-plan-phase-id-reservation.md |
 | FR-183 | Approved | yamlgraph |  | FR-183-simplify-enforce-pipeline.md |
 | FR-184 | Approved | yamlgraph |  | FR-184-philosopher-daemon.md |
-| FR-185 | Approved | ninchat_voice |  | FR-185-ninchat-voice-state-naming-and-io-activity-logs.md |
 | FR-186 | Approved | yamlgraph |  | FR-186-fsm-pre-commit-quality-gates.md |
 | FR-188 | Approved | yamlgraph |  | FR-188-enforce-pipeline-gate-bypass.md |
 | FR-196 | Approved | yamlgraph |  | FR-196-portable-chaplain.md |
@@ -217,41 +151,6 @@
 | FR-647 | Approved | yamlgraph |  | FR-647-worldgen-event-propagation.md |
 | FR-648 | Approved | yamlgraph |  | FR-648-obsidian-wiki-output.md |
 | FR-655 | Approved | yamlgraph |  | FR-655-genesis-graph.md |
-| NC-115 | Approved | ninchat_voice |  | NC-115-predefined-audio-responses.md |
-| NC-118 | Approved | ninchat_voice |  | NC-118-predefined-thankyou-acknowledgement.md |
-| NC-137 | Approved | ninchat_voice |  | NC-137-fire-and-forget-llm-bridge.md |
-| NC-142 | Approved | ninchat_voice |  | NC-142a-coordinator-fsm-transition-tests.md |
-| NC-143 | Approved | ninchat_voice |  | NC-143-call-transcription-with-timestamps.md |
-| NC-144 | Approved | ninchat_voice |  | NC-144-coordinator-graph-separation-simple-bargein.md |
-| NC-146 | Approved | ninchat_voice |  | NC-146b-bargein-service-contracts-and-controller-tests.md |
-| NC-155 | Approved | ninchat_voice |  | NC-155-voice-runtime-test-gaps.md |
-| NC-156 | Approved | ninchat_voice |  | NC-156-dead-and-duplicate-code-cleanup.md |
-| NC-157 | Approved | ninchat_voice |  | NC-157-server-fsm-split.md |
-| NC-158 | Approved | ninchat_voice |  | NC-158-voice-runtime-import-path-consistency.md |
-| NC-159 | Approved | ninchat_voice |  | NC-159-elevenlabs-native-mulaw.md |
-| NC-161 | Approved | ninchat_voice |  | NC-161-azure-speech-provider.md |
-| NC-170 | Approved | ninchat_voice |  | NC-170-voice-runtime-resilience-fixes.md |
-| NC-171 | Approved | ninchat_voice |  | NC-171-medical-triage-questionnaire.md |
-| NC-172 | Approved | ninchat_voice |  | NC-172-simplified-triage-fsm.md |
-| NC-173 | Approved | ninchat_voice |  | NC-173-triage-call-flow-polish.md |
-| NC-174 | Approved | ninchat_voice |  | NC-174-speak-recap-before-farewell.md |
-| NC-176 | Approved | ninchat_voice |  | NC-176-fix-recap-skip-and-state-leak.md |
-| NC-177 | Approved | ninchat_voice |  | NC-177-integration-test-suite.md |
-| NC-178 | Approved | ninchat_voice |  | NC-178-fsm-graph-integration-test.md |
-| NC-217 | Approved | ninchat_voice |  | NC-217-disable-stt-muting-during-tts.md |
-| NC-250 | Approved | ninchat_voice |  | NC-250-callback-symptom-graph.md |
-| NC-251 | Approved | ninchat_voice |  | NC-251-callback-appointment-graph.md |
-| NC-252 | Approved | ninchat_voice |  | NC-252-callback-prescription-graph.md |
-| NC-253 | Approved | ninchat_voice |  | NC-253-callback-examination-graph.md |
-| NC-254 | Approved | ninchat_voice |  | NC-254-callback-other-topic-graph.md |
-| NC-256 | Approved | ninchat_voice |  | NC-256-symptom-answerer-e2e.md |
-| NC-262 | Approved | ninchat_voice |  | NC-262-promptfoo-marketing-eval.md |
-| NC-263 | Approved | ninchat_voice |  | NC-263-promptfoo-all-graphs-eval.md |
-| NC-267 | Approved | ninchat_voice |  | NC-267-mock-providers-scripted-testing.md |
-| NC-271 | Approved | ninchat_voice |  | NC-271-mock-transport-bridge.md |
-| NC-274 | Approved | ninchat_voice |  | NC-274-generic-llm-answerer.md |
-| NC-276 | Approved | ninchat_voice |  | NC-276-flex-navigator-e2e-hybrid.md |
-| NC-300 | Approved | ninchat_voice |  | NC-300-call-cleanup-context-sweep.md |
 | FR-214 | Proposed | yamlgraph |  | FR-214-fix-extract-variables-nested-set.md |
 | FR-227 | Proposed | yamlgraph |  | FR-227-vertex-express-env-var-masking.md |
 | FR-267 | Proposed | yamlgraph |  | FR-267-race-node-timeout-double-wrap-2.md |
@@ -259,10 +158,6 @@
 | FR-275 | Proposed | yamlgraph |  | FR-275-unit-test-runtime-quick-wins.md |
 | FR-361 | Proposed | yamlgraph |  | FR-361-fix-executor-double-brace-output.md |
 | FR-370 | Proposed | yamlgraph |  | FR-370-jaccard-echo-cancellation.md |
-| FR-371 | Proposed | ninchat_voice |  | FR-371-fsm-preemption-race-greeting-replay.md |
-| FR-375 | Proposed | ninchat_voice |  | FR-375-jaccard-echo-filter.md |
-| FR-376 | Proposed | ninchat_voice |  | FR-376-conversation-tester-supervisor-compat.md |
-| FR-377 | Proposed | ninchat_voice |  | FR-377-echo-filter-punctuation-tokenization.md |
 | FR-381 | Proposed | yamlgraph |  | FR-381-batch-llm-node-anthropic-messages-batch-api.md |
 | FR-384 | Proposed | yamlgraph |  | FR-384-cost-profile-model-tiering.md |
 | FR-403 | Proposed | yamlgraph |  | FR-403-philosopher-turing-test.md |
@@ -291,42 +186,6 @@
 | FR-701 | Proposed | yamlgraph |  | FR-701-capability-registry-consistency-gate.md |
 | FR-728 | Proposed | yamlgraph |  | FR-728-session-safe-release-commit-hygiene.md |
 | FR-729 | Proposed | yamlgraph |  | FR-729-landing-page-metrics-generated.md |
-| NC-138 | Proposed | ninchat_voice |  | NC-138-yamlgraph-async-fsm-action.md |
-| NC-160 | Proposed | ninchat_voice |  | NC-160-google-cloud-speech-provider.md |
-| NC-162 | Proposed | ninchat_voice |  | NC-162-interrai-ca-voice-port.md |
-| NC-197 | Proposed | ninchat_voice |  | NC-197-stt-segment-completion-contract.md |
-| NC-200 | Proposed | ninchat_voice |  | NC-200-recognizing-staleness-reset.md |
-| NC-204 | Proposed | ninchat_voice |  | NC-204-accumulated-utterance-not-passed-to-graph-processing.md |
-| NC-206 | Proposed | ninchat_voice |  | NC-206-silence-detector-timestamp-not-reset-by-recognizing.md |
-| NC-207 | Proposed | ninchat_voice |  | NC-207-generation-gate-ineffective-current-state-timing.md |
-| NC-208 | Proposed | ninchat_voice |  | NC-208-recognizing-events-dropped-in-graph-processing.md |
-| NC-209 | Proposed | ninchat_voice |  | NC-209-nc206-regression-silence-detection-broken-by-tick-reset.md |
-| NC-210 | Proposed | ninchat_voice |  | NC-210-production-observability-fly-tigris-grafana.md |
-| NC-211 | Proposed | ninchat_voice |  | NC-211-call-analytics-cli.md |
-| NC-211 | Proposed | ninchat_voice |  | NC-211-instrument-actions-with-metrics-wiring.md |
-| NC-212 | Proposed | ninchat_voice |  | NC-212-per-call-context-prefix-convention.md |
-| NC-228 | Proposed | ninchat_voice |  | NC-228-questionnaire-handler-dedup.md |
-| NC-230 | Proposed | ninchat_voice |  | NC-230-standalone-voice-repo.md |
-| NC-255 | Proposed | ninchat_voice |  | NC-255-voice-runtime-pip-package.md |
-| NC-268 | Proposed | ninchat_voice |  | NC-268-outcaller-provider-factory-refactor.md |
-| NC-283 | Proposed | ninchat_voice |  | NC-283-promptfoo-ci-integration.md |
-| NC-284 | Proposed | ninchat_voice |  | NC-284-eval-provider-contract-check.md |
-| NC-285 | Proposed | ninchat_voice |  | NC-285-migrate-to-shared-yamlgraph-async-action.md |
-| NC-293 | Proposed | ninchat_voice |  | NC-293-flex-navigator-deduplicate-schema-tools.md |
-| NC-293 | Proposed | ninchat_voice |  | NC-293-speculative-llm-during-vad-silence.md |
-| NC-294 | Proposed | ninchat_voice |  | NC-294-flex-navigator-rollout.md |
-| NC-295 | Proposed | ninchat_voice |  | NC-295-flex-navigator-ui-instrumentation.md |
-| NC-307 | Proposed | ninchat_voice |  | NC-307-signal-disconnected-secondary-vector.md |
-| NC-353 | Proposed | ninchat_voice |  | NC-353-twilio-number-pool-fixture.md |
-| NC-354 | Proposed | ninchat_voice |  | NC-354-caller-side-supervisor.md |
-| NC-355 | Proposed | ninchat_voice |  | NC-355-synthetic-flood-generator.md |
-| NC-356 | Proposed | ninchat_voice |  | NC-356-st01-campaign-runner.md |
-| NC-358 | Proposed | ninchat_voice |  | NC-358-manual-parallel-outcallers.md |
-| NC-361 | Proposed | ninchat_voice |  | NC-361-midcall-silence-under-load.md |
-| NC-370 | Proposed | ninchat_voice |  | NC-370-fly-machine-sizing.md |
-| NC-378 | Proposed | ninchat_voice |  | NC-378-schema-proposal-emitter.md |
-| NC-385 | Proposed | ninchat_voice |  | NC-385-appointment-intent-override.md |
-| NC-387 | Proposed | ninchat_voice |  | NC-387-additive-topic-loading.md |
 | FR-078 | In Progress | yamlgraph |  | FR-078-relocate-project-tests.md |
 | FR-100 | In Progress | yamlgraph |  | FR-100-yamlgraph-development-pipeline-ebook.md |
 | FR-169 | In Progress | yamlgraph |  | FR-169-enforce-reflexion-loop.md |
@@ -339,43 +198,10 @@
 | FR-643 | In Progress | yamlgraph |  | FR-643v2-novel-fandom-world-expansion.md |
 | FR-735 | In Progress | yamlgraph |  | FR-735-webllm-demo-evidence-ergonomics.md |
 | FR-736 | In Progress | yamlgraph |  | FR-736-webllm-demo-trace-capture.md |
-| NC-151 | In Progress | ninchat_voice |  | NC-151-questionnaire-phase-before-ninchat.md |
-| NC-154 | In Progress | ninchat_voice |  | NC-154-transport-intent-abstraction.md |
-| NC-322 | In Progress | ninchat_voice |  | NC-322-marketing-teardown.md |
 | FR-273 | Draft | yamlgraph |  | FR-273-watcher2-pipeline.md |
 | FR-307 | Draft | yamlgraph |  | FR-307-yamlgraph-async-action-logging.md |
 | FR-317 | Draft | yamlgraph |  | FR-317-retire-obsolete-watcher2-components.md |
 | FR-330 | Draft | yamlgraph |  | FR-330-fr-330-watcher-clean-stale-branches-on-retry.md |
-| NC-175 | Draft | ninchat_voice |  | NC-175-handle-user-refusal.md |
-| NC-180 | Draft | ninchat_voice |  | NC-180-scenario-driven-fsm-test-infrastructure.md |
-| NC-213 | Draft | ninchat_voice |  | NC-213-adaptive-silence-threshold.md |
-| NC-214 | Draft | ninchat_voice |  | NC-214-skip-rewrite-farewell-confirmation.md |
-| NC-215 | Draft | ninchat_voice |  | NC-215-parallel-classify-ninchat-navigator.md |
-| NC-216 | Draft | ninchat_voice |  | NC-216-pre-baked-ack-navigator.md |
-| NC-218 | Draft | ninchat_voice |  | NC-218-troubleshoot-outcaller-hangup.md |
-| NC-220 | Draft | ninchat_voice |  | NC-220-speculative-extraction-during-vad.md |
-| NC-221 | Draft | ninchat_voice |  | NC-221-pre-synth-tts-cache.md |
-| NC-222 | Draft | ninchat_voice |  | NC-222-streaming-tts-for-probe.md |
-| NC-223 | Draft | ninchat_voice |  | NC-223-drop-ack-when-fast-enough.md |
-| NC-224 | Draft | ninchat_voice |  | NC-224-inline-gap-detection-in-extraction.md |
-| NC-229 | Draft | ninchat_voice |  | NC-229-concurrent-ack-llm-processing.md |
-| NC-232 | Draft | ninchat_voice |  | NC-232-lower-silence-and-split-extract-probe.md |
-| NC-235 | Draft | ninchat_voice |  | NC-235-ack-latency-measure-and-tune-silence.md |
-| NC-238 | Draft | ninchat_voice |  | NC-238-restore-format-completion-interrai-ca.md |
-| NC-239 | Draft | ninchat_voice |  | NC-239-fix-probe-recap-oc012-stale-comment.md |
-| NC-240 | Draft | ninchat_voice |  | NC-240-farewell-wait-grace-state.md |
-| NC-241 | Draft | ninchat_voice |  | NC-241-race-candidate-llm-phases.md |
-| NC-243 | Draft | ninchat_voice |  | NC-243-refactor-yamlgraph-async-action.md |
-| NC-244 | Draft | ninchat_voice |  | NC-244-graph-switch-dropped-during-bargein.md |
-| NC-245 | Draft | ninchat_voice |  | NC-245-stale-response-leak-through-opening-interrupt.md |
-| NC-246 | Draft | ninchat_voice |  | NC-246-correlate-call-helper.md |
-| NC-248 | Draft | ninchat_voice |  | NC-248-race-triage-recap-probe-classify.md |
-| NC-264 | Draft | ninchat_voice |  | NC-264-content-filter-crisis-routing.md |
-| NC-286 | Draft | ninchat_voice |  | NC-286-voice-runtime-integration-umbrella.md |
-| NC-291 | Draft | ninchat_voice |  | NC-291-action-import-shadowing-investigation.md |
-| NC-311 | Draft | ninchat_voice |  | NC-311-voice-test-harness-and-call-sim.md |
-| NC-321 | Draft | ninchat_voice |  | NC-321-background-graph-action.md |
-| NC-333 | Draft | ninchat_voice |  | NC-333-intent-based-ninchat-queue-routing.md |
 
 ```mermaid
 graph TD
@@ -576,188 +402,7 @@ graph TD
     FR-732["FR-732 Judged"]
     FR-735["FR-735 In Progress"]
     FR-736["FR-736 In Progress"]
-    FR-185["FR-185 Approved"]
-    FR-186["FR-186 Judged"]
-    FR-371["FR-371 Proposed"]
-    FR-372["FR-372 Judged"]
-    FR-374["FR-374 PARSE-FAILURE"]
-    FR-375["FR-375 Proposed"]
-    FR-376["FR-376 Proposed"]
-    FR-377["FR-377 Proposed"]
-    NC-112["NC-112 Judged"]
-    NC-112["NC-112 Judged"]
-    NC-115["NC-115 Approved"]
-    NC-118["NC-118 Approved"]
-    NC-129["NC-129 Judged"]
-    NC-130["NC-130 Judged"]
-    NC-131["NC-131 Judged"]
-    NC-134["NC-134 Judged"]
-    NC-135["NC-135 Judged"]
-    NC-136["NC-136 Judged"]
-    NC-137["NC-137 Approved"]
-    NC-138["NC-138 Proposed"]
-    NC-142["NC-142 Approved"]
-    NC-143["NC-143 Approved"]
-    NC-144["NC-144 Approved"]
-    NC-146["NC-146 Approved"]
-    NC-150["NC-150 PARSE-FAILURE"]
-    NC-151["NC-151 In Progress"]
-    NC-152["NC-152 PARSE-FAILURE"]
-    NC-153["NC-153 PARSE-FAILURE"]
-    NC-154["NC-154 In Progress"]
-    NC-155["NC-155 Approved"]
-    NC-156["NC-156 Approved"]
-    NC-157["NC-157 Approved"]
-    NC-158["NC-158 Approved"]
-    NC-159["NC-159 Approved"]
-    NC-160["NC-160 Proposed"]
-    NC-161["NC-161 Approved"]
-    NC-162["NC-162 Proposed"]
-    NC-163["NC-163 PARSE-FAILURE"]
-    NC-164["NC-164 PARSE-FAILURE"]
-    NC-165["NC-165 PARSE-FAILURE"]
-    NC-166["NC-166 PARSE-FAILURE"]
-    NC-167["NC-167 PARSE-FAILURE"]
-    NC-168["NC-168 PARSE-FAILURE"]
-    NC-169["NC-169 PARSE-FAILURE"]
-    NC-170["NC-170 Approved"]
-    NC-171["NC-171 Approved"]
-    NC-172["NC-172 Approved"]
-    NC-173["NC-173 Approved"]
-    NC-174["NC-174 Approved"]
-    NC-175["NC-175 Draft"]
-    NC-176["NC-176 Approved"]
-    NC-177["NC-177 Approved"]
-    NC-178["NC-178 Approved"]
-    NC-180["NC-180 Draft"]
-    NC-183["NC-183 Judged"]
-    NC-185["NC-185 Judged"]
-    NC-186["NC-186 Judged"]
-    NC-187["NC-187 Judged"]
-    NC-193["NC-193 Judged"]
-    NC-194["NC-194 Judged"]
-    NC-195["NC-195 Judged"]
-    NC-196["NC-196 Judged"]
-    NC-197["NC-197 Proposed"]
-    NC-199["NC-199 Judged"]
-    NC-200["NC-200 Proposed"]
-    NC-201["NC-201 PARSE-FAILURE"]
-    NC-204["NC-204 Proposed"]
-    NC-206["NC-206 Proposed"]
-    NC-207["NC-207 Proposed"]
-    NC-208["NC-208 Proposed"]
-    NC-209["NC-209 Proposed"]
-    NC-210["NC-210 Proposed"]
-    NC-211["NC-211 Proposed"]
-    NC-211["NC-211 Proposed"]
-    NC-212["NC-212 Proposed"]
-    NC-213["NC-213 Draft"]
-    NC-214["NC-214 Draft"]
-    NC-215["NC-215 Draft"]
-    NC-216["NC-216 Draft"]
-    NC-217["NC-217 Approved"]
-    NC-218["NC-218 Draft"]
-    NC-220["NC-220 Draft"]
-    NC-221["NC-221 Draft"]
-    NC-222["NC-222 Draft"]
-    NC-223["NC-223 Draft"]
-    NC-224["NC-224 Draft"]
-    NC-226["NC-226 PARSE-FAILURE"]
-    NC-227["NC-227 PARSE-FAILURE"]
-    NC-228["NC-228 Proposed"]
-    NC-229["NC-229 Draft"]
-    NC-230["NC-230 Proposed"]
-    NC-231["NC-231 PARSE-FAILURE"]
-    NC-232["NC-232 Draft"]
-    NC-233["NC-233 Judged"]
-    NC-233["NC-233 PARSE-FAILURE"]
-    NC-235["NC-235 Draft"]
-    NC-236["NC-236 Judged"]
-    NC-237["NC-237 Judged"]
-    NC-238["NC-238 Draft"]
-    NC-239["NC-239 Draft"]
-    NC-240["NC-240 Draft"]
-    NC-241["NC-241 Draft"]
-    NC-243["NC-243 Draft"]
-    NC-243["NC-243 PARSE-FAILURE"]
-    NC-244["NC-244 Draft"]
-    NC-245["NC-245 Draft"]
-    NC-246["NC-246 Draft"]
-    NC-248["NC-248 Draft"]
-    NC-249["NC-249 Judged"]
-    NC-250["NC-250 Approved"]
-    NC-251["NC-251 Approved"]
-    NC-252["NC-252 Approved"]
-    NC-253["NC-253 Approved"]
-    NC-254["NC-254 Approved"]
-    NC-255["NC-255 Proposed"]
-    NC-256["NC-256 Approved"]
-    NC-258["NC-258 Judged"]
-    NC-259["NC-259 Judged"]
-    NC-260["NC-260 Judged"]
-    NC-261["NC-261 Judged"]
-    NC-262["NC-262 Approved"]
-    NC-263["NC-263 Approved"]
-    NC-264["NC-264 Draft"]
-    NC-267["NC-267 Approved"]
-    NC-268["NC-268 Proposed"]
-    NC-271["NC-271 Approved"]
-    NC-274["NC-274 Approved"]
-    NC-276["NC-276 Approved"]
-    NC-281["NC-281 Judged"]
-    NC-282["NC-282 Judged"]
-    NC-283["NC-283 Proposed"]
-    NC-284["NC-284 Proposed"]
-    NC-285["NC-285 Proposed"]
-    NC-286["NC-286 Draft"]
-    NC-291["NC-291 Draft"]
-    NC-292["NC-292 Judged"]
-    NC-293["NC-293 Proposed"]
-    NC-293["NC-293 Proposed"]
-    NC-294["NC-294 Proposed"]
-    NC-295["NC-295 Proposed"]
-    NC-299["NC-299 PARSE-FAILURE"]
-    NC-300["NC-300 Approved"]
-    NC-300["NC-300 PARSE-FAILURE"]
-    NC-304["NC-304 PARSE-FAILURE"]
-    NC-307["NC-307 Proposed"]
-    NC-311["NC-311 Draft"]
-    NC-316["NC-316 Judged"]
-    NC-317["NC-317 Judged"]
-    NC-318["NC-318 Judged"]
-    NC-319["NC-319 Judged"]
-    NC-320["NC-320 Judged"]
-    NC-321["NC-321 Draft"]
-    NC-322["NC-322 In Progress"]
-    NC-331["NC-331 PARSE-FAILURE"]
-    NC-333["NC-333 Draft"]
-    NC-334["NC-334 Judged"]
-    NC-353["NC-353 Proposed"]
-    NC-354["NC-354 Proposed"]
-    NC-355["NC-355 Proposed"]
-    NC-356["NC-356 Proposed"]
-    NC-358["NC-358 Proposed"]
-    NC-361["NC-361 Proposed"]
-    NC-368["NC-368 PARSE-FAILURE"]
-    NC-370["NC-370 Proposed"]
-    NC-377["NC-377 Judged"]
-    NC-378["NC-378 Proposed"]
-    NC-379["NC-379 PARSE-FAILURE"]
-    NC-384["NC-384 Judged"]
-    NC-385["NC-385 Proposed"]
-    NC-386["NC-386 Judged"]
-    NC-387["NC-387 Proposed"]
-    NC-388["NC-388 Judged"]
-    NC-389["NC-389 Judged"]
-    NC-392["NC-392 PARSE-FAILURE"]
     FR-081 --> FR-082
     FR-731 --> FR-735
     FR-731 --> FR-736
-    NC-112 --> NC-112
-    P1{{gate P1 answered}} --> NC-384
-    P2{{gate P2 answered}} --> NC-389
-    P3{{gate P3 answered}} --> NC-389
-    P5{{gate P5 answered}} --> NC-379
-    P6{{gate P6 answered}} --> NC-392
-    P7{{gate P7 answered}} --> NC-392
 ```

@@ -264,7 +264,7 @@ repos:
     hooks:
       - id: fr-board-check
         name: FR board drift + gates schema (FR-740)
-        entry: .venv/bin/python scripts/fr_board.py --check --project projects/ninchat_voice
+        entry: .venv/bin/python scripts/fr_board.py --check
         language: system
         pass_filenames: false
         files: (^feature-requests/|^scripts/fr_board\.py$|^docs/fr-board\.md$)

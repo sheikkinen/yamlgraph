@@ -8,4 +8,5 @@ scope: scripts
   drift lint wired at pre-commit; TEMPLATE.md gains the judgement
   skeleton with the questions-or-none terminal section. First render
   surfaced 13 duplicate FR/NC IDs and the status-header lag it exists
-  to expose.
+  to expose. F7: the committed board is own-repo only — `--project`
+  renders an ephemeral cross-repo view, never committed or checked.

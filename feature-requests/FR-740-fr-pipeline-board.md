@@ -175,3 +175,12 @@ ninchat_voice):**
 **Deviations:** canon map grew beyond the judgement's initial census
 (F2 anticipated this: "the board adapts to the corpus") — every
 addition is backed by the AC-06 measurement above, none speculative.
+
+## Judgement Addendum (2026-07-16): F7 — the committed board crossed a repo boundary
+
+Human review after completion: "feature-requests under projects are
+grey area." Correct, and worse than grey — two defects:
+
+| # | Finding | Resolution (binding, applied) |
+|---|---------|-------------------------------|
+| F7 | The committed board embedded `projects/ninchat_voice` rows: (a) **provenance** — yamlgraph history asserting foreign-repo state no yamlgraph commit controls (`workspace_is_not_boundary`); (b) **nondeterministic lint** — the drift check regenerated from ninchat's *current working tree*, so a stale or absent ninchat checkout on any other machine bounces innocent yamlgraph commits; F6's skip-with-notice amplifies this (skip changes content → guaranteed diff) | **Each repo owns its board.** The committed board and the `--check` lint are own-repo only; `--project` becomes the EPHEMERAL cross-repo stdout view (now.py's family — rendered, read, never committed or checked). Hook drops `--project`. AC-04 reinterpreted: cross-repo rendering works, on the terminal; ninchat gets its own board+hook via the NC-394 mirror pattern when picked up |

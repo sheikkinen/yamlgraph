@@ -192,25 +192,34 @@ def check_board(
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--project", action="append", default=[], help="sibling repo path")
+    ap.add_argument(
+        "--project",
+        action="append",
+        default=[],
+        help="sibling repo for the EPHEMERAL stdout view; never written or"
+        " checked (F7: each repo owns its board — committed state must not"
+        " embed another repo's working tree)",
+    )
     ap.add_argument("--gates", default="feature-requests/gates.yaml")
     ap.add_argument("--out", default="docs/fr-board.md")
     ap.add_argument("--check", action="store_true")
     ap.add_argument("--all", action="store_true", help="include terminal statuses")
     args = ap.parse_args()
 
-    repos = [Path.cwd()] + [Path(p) for p in args.project]
+    own = [Path.cwd()]
     gates = load_gates(Path(args.gates))
     board_path = Path(args.out)
 
+    if args.project:  # F7: cross-repo aggregate is a terminal view, like now.py
+        print(render_board(own + [Path(p) for p in args.project], gates, args.all))
+        return 0
+
     if args.check:
-        errors = check_board(repos, board_path, gates)
+        errors = check_board(own, board_path, gates)
         for e in errors:
             print(f"✗ {e}")
         if errors:
-            print(
-                f"  fix: python scripts/fr_board.py {' '.join('--project ' + p for p in args.project)}"
-            )
+            print("  fix: python scripts/fr_board.py")
         return 1 if errors else 0
 
     errors = validate_gates(gates)
@@ -219,7 +228,7 @@ def main() -> int:
             print(f"✗ {e}")
         return 1
     board_path.parent.mkdir(parents=True, exist_ok=True)
-    board_path.write_text(render_board(repos, gates, all_rows=args.all))
+    board_path.write_text(render_board(own, gates, all_rows=args.all))
     print(f"wrote {board_path}")
     return 0
 
