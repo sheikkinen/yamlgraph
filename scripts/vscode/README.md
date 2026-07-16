@@ -81,3 +81,29 @@ exporter at default verbosity.
   with quota/cache fields. Success → exact-mode ledger; failure →
   escalate log level / CAPTURE_CONTENT (two-strike), else the tap
   idea dies honestly.
+
+### Verdict (2026-07-16): PARTIAL SUCCESS — volume exact, cost split absent
+
+Verified with a live 4-turn conversation after restart. The tap writes
+OTel LogRecords (KeyValue-list attributes) with three event families:
+
+- `gen_ai.client.inference.operation.details` — **every** inference
+  call, with exact `gen_ai.usage.input_tokens`/`output_tokens`, model,
+  finish reasons. Anchor-2 confirmed at source: each agent turn billed
+  ~740K input, growing ~1–3K/turn. Side-model utility calls
+  (gpt-4o-mini titling, 253–2,613 tok) surface here — invisible in
+  chatSessions.
+- `copilot_chat.agent.turn` — per-turn rollup with `turn.index`.
+- `copilot_chat.tool.call` / `session.start` — tool names, session id.
+
+NOT captured at debug level: `copilot_quota_snapshots` (consumed
+internally by ChatQuotaService) and the `promptcache*` split. Strike 1
+recorded; escalation `COPILOT_OTEL_LOG_LEVEL=trace` available, then
+CAPTURE_CONTENT (privacy — user decision).
+
+Consequence: `tap.py` reads the file and reports exact per-model
+volume; cost = exact volume × two-anchor calibration (98% cache) with
+the all-fresh ceiling printed alongside. This supersedes ledger.py's
+rounds×last-round approximation for post-tap data. The tap file grows
+with every turn of every session — tap.py warns past 100 MB; disarm
+with otel-tap-off.sh when the sample suffices.
