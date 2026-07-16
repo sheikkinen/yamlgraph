@@ -72,8 +72,17 @@ two witnesses within 0.5%).
 |---|---|---|
 | Chat sessions | `workspaceStorage/<hash>/chatSessions/*.jsonl` | Full request log: timestamps, modelId, promptTokens/outputTokens, tool calls, titles. **The ledger.** (1.3 GB for this workspace alone) |
 | Debug logs | `workspaceStorage/<hash>/GitHub.copilot-chat/debug-logs/<session>/` | `main.jsonl` = start/end markers only; `models.json` = **the price sheet** (per-1M token prices incl. cache tiers) |
+| Transcripts | `workspaceStorage/<hash>/GitHub.copilot-chat/transcripts/*.jsonl` | Assistant messages **verbatim** (35 MB / 21 files here). The most self-referential store — what the agent actually said; found last (reception-hierarchy diary) |
+| Session resources | `workspaceStorage/<hash>/GitHub.copilot-chat/chat-session-resources/<session>/` | Large tool results spilled to disk (terminal output >20 KB etc.) |
 | Chronicle | `globalStorage/github.copilot-chat/session-store.db` | SQLite: session summaries, agent names, files touched, refs. **The narrative.** No cost columns |
 | Editing sessions | `workspaceStorage/<hash>/chatEditingSessions/` | Edit checkpoints/snapshots |
+
+Related prior art in this repo: `docs/plan-process-mining.md` (FR-362
+POC) tapped Copilot **CLI** OTel through the same
+`COPILOT_OTEL_FILE_EXPORTER_PATH` env — per-node spans for process
+mining of yamlgraph-run workflows (`YAMLGRAPH_OTEL_DIR` in CLAUDE.md is
+the shipped per-node variant). Same seam, two consumers: the CLI tap
+watches *graph workflows*, this tap watches *editor sessions*.
 
 ## The spikes
 
