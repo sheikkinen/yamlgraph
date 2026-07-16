@@ -119,9 +119,32 @@ def frs_in_motion(repos: set[Path], window_s: float) -> list[tuple[str, str, str
     return rows
 
 
+def tap_ground_truth() -> list[str]:
+    """FR-739 AC-02/03: liveness + altimeter from OTel events, not mtimes."""
+    import os
+
+    import tap  # same-dir import; script dir is on sys.path
+
+    path = Path(os.environ.get("COPILOT_OTEL_FILE_EXPORTER_PATH", tap.DEFAULT_PATH))
+    if not path.is_file():
+        return ["  (no tap file — arm with otel-tap-on.sh and restart VS Code)"]
+    sessions = tap.join_sessions(tap.load_events(path))
+    live = tap.live_session_ids(sessions)
+    now = time.time()
+    lines = []
+    for sid, sess in sorted(sessions.items(), key=lambda kv: -kv[1]["last_ts"]):
+        ago = (now - sess["last_ts"]) / 60
+        mark = "LIVE" if sid in live else f"{ago:.0f}m ago"
+        models = ",".join(sorted(m for m in sess["models"] if "mini" not in m))
+        lines.append(f"  {sid[:8]}  {mark:<8} turns={len(sess['turns'])}  {models}")
+    lines.extend(tap.altimeter_lines(sessions))
+    return lines
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--window", type=float, default=8.0, help="hours of 'now'")
+    ap.add_argument("--tap", action="store_true", help="OTel ground truth (FR-739)")
     args = ap.parse_args()
     window_s = args.window * 3600
 
@@ -159,6 +182,10 @@ def main() -> None:
     print("\n== FRs in motion (files touched in window) ==")
     for repo, name, status in frs_in_motion(repos, window_s):
         print(f"  {repo:<16} {status:<22} {name}")
+
+    if args.tap:
+        print("\n== tap ground truth (OTel events, FR-739) ==")
+        print("\n".join(tap_ground_truth()))
 
     if hazards:
         print(

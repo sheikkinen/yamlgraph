@@ -88,13 +88,53 @@ def iter_requests():
                 (model.group(1).removeprefix("copilot/") if model else "?"),
                 int(tok.group(1)) * rounds,
                 int(tok.group(2)) * rounds,
+                chat.stem,  # session id (FR-739 AC-04 seam reconciliation)
             )
+
+
+def tap_seam_report() -> list[str]:
+    """FR-739 AC-04: per-session estimate-vs-exact over the tap window.
+
+    Pre-tap history stays rounds×-estimated; post-seam data has an exact
+    witness in the tap. Reconciled per-session over sessions present in
+    BOTH stores — per-total would be guaranteed noise (other machines,
+    pre-restart turns absent from the tap by construction).
+    """
+    import os
+    import sys
+
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    import tap
+
+    path = Path(os.environ.get("COPILOT_OTEL_FILE_EXPORTER_PATH", tap.DEFAULT_PATH))
+    if not path.is_file():
+        return ["no tap file — seam unavailable (estimates only)"]
+    events = tap.load_events(path)
+    seam = datetime.fromtimestamp(min(e["ts"] for e in events if e["ts"]))
+    sessions = tap.join_sessions(events)
+    exact = {sid: sum(ti for _, _, ti, _ in s["calls"]) for sid, s in sessions.items()}
+    est: dict[str, int] = {}
+    for when, _, p, _, sid in iter_requests():
+        if when >= seam and sid in exact:
+            est[sid] = est.get(sid, 0) + p
+    lines = [
+        f"seam: {seam:%Y-%m-%d %H:%M} — pre-seam = rounds× estimate,"
+        f" post-seam = tap exact",
+        f"{'session':<10} {'est(rounds×)':>14} {'exact(tap)':>12} {'ratio':>6}",
+    ]
+    for row in tap.reconcile(est, exact):
+        lines.append(
+            f"{row['session'][:8]:<10} {row['est']:>14,} {row['exact']:>12,}"
+            f" {row['ratio']:>6.2f}"
+        )
+    return lines
 
 
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--days", type=int, default=0, help="also print N trailing days")
     ap.add_argument("--by-model", action="store_true")
+    ap.add_argument("--tap", action="store_true", help="seam reconciliation (FR-739)")
     args = ap.parse_args()
 
     prices = load_prices()
@@ -124,7 +164,7 @@ def main() -> None:
     by_model_period: dict[str, dict[str, list]] = {
         k: defaultdict(lambda: [0, 0, 0]) for k in period_names
     }
-    for when, model, p, o in iter_requests():
+    for when, model, p, o, _sid in iter_requests():
         d = when.date()
         buckets = ["all-time"]
         if d == today:
@@ -183,6 +223,10 @@ def main() -> None:
         for d in sorted(daily)[-args.days :]:
             p, o, r = daily[d]
             print(f"{d:<12} {r:>5} {p:>13,} {o:>9,}")
+
+    if args.tap:
+        print()
+        print("\n".join(tap_seam_report()))
 
 
 if __name__ == "__main__":

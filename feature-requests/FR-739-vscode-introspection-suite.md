@@ -2,12 +2,13 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement (agent-facing tooling, `scripts/vscode/`)
-**Status:** Judged — APPROVED with corrections (see Judgement)
+**Status:** Completed
 **Effort:** 1–2 days across independently shippable rungs
 **Requested:** 2026-07-16
 **Judged:** 2026-07-16 — the FR's own exhibit was mis-attributed: the
 merged tap stream shows 11 "compactions" where per-session truth is 1;
 session attribution promoted to AC-00, the load-bearing prerequisite
+**Completed:** 2026-07-16 — all six rungs; witnesses below
 **Spawned by:** the 2026-07-14→16 introspection arc ("a metacognitive
 journey into 'self'"): four spikes (`now.py`, `ledger.py`, `stores.py`,
 `portrait.py`), the OTel tap (`otel-tap-on.sh` / `tap.py`, commit
@@ -145,3 +146,35 @@ calibration record) → AC-02 (rung-2 delivery via now.py/skill) →
 AC-03 (ground-truth liveness) → AC-04 (ledger seam, per-session
 reconciliation) → AC-05 (rotation + disarm criterion). Each rung
 independently shippable; AC-00 blocks all.
+
+## Implementation (2026-07-16)
+
+RED 82ba08a0 (10 failing witnesses, fixture mirrors real exporter
+shape) → GREEN in the same day. `tap.py` restructured into judged
+functions (`load_events`, `join_sessions`, `detect_compactions`,
+`record_compactions`, `altimeter_lines`, `live_session_ids`,
+`reconcile`, `rotate_if_big`); `now.py --tap`; `ledger.py --tap`.
+Tests: `pytest scripts/vscode/tests/ -q` — 10/10.
+
+**AC witnesses (all live, same day):**
+- AC-00/01: first real run recorded the witnessed compaction to
+  `compactions.jsonl` (peak 750,382 → post 61,205, session a904c468);
+  three live sessions ranked: 715K and 679K climbing, 158K
+  post-compaction.
+- AC-02: `now.py --tap` output — including the authoring session's own
+  altimeter line — arrived in the authoring agent's tool result:
+  rung-2 receipt witnessed per the FR-738 standard, not emitted to a
+  log. (F3's per-tool-call hook remains the unspent escalation.)
+- AC-03: tap showed 3 LIVE sessions with turn counts vs mtime-mode's
+  title-only view; ground truth includes turns and models.
+- AC-04: seam 2026-07-16 11:54; neighbor session ratio 1.01 —
+  the rounds× estimator validated against exact within 1% on a
+  complete session; own in-flight session 0.27 because chatSessions
+  lags the active turn (expected; documented in README).
+- AC-05: rotation archive+truncate under test with a tiny cap;
+  truncation chosen over rename to keep the exporter's append fd
+  valid. Disarm criterion written in README (meter, not experiment).
+
+**Deviations:** none of scope; one implementation note — slope uses
+the last ≤4 turns' consecutive deltas (a zip-tail bug caught by the
+RED suite's ETA witness before it shipped).

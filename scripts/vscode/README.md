@@ -104,6 +104,32 @@ CAPTURE_CONTENT (privacy — user decision).
 Consequence: `tap.py` reads the file and reports exact per-model
 volume; cost = exact volume × two-anchor calibration (98% cache) with
 the all-fresh ceiling printed alongside. This supersedes ledger.py's
-rounds×last-round approximation for post-tap data. The tap file grows
-with every turn of every session — tap.py warns past 100 MB; disarm
-with otel-tap-off.sh when the sample suffices.
+rounds×last-round approximation for post-tap data.
+
+### FR-739 (enforced 2026-07-16): attribution, altimeter, delivery
+
+- **AC-00** `tap.py` attributes events via `session.start.traceId →
+  session.id` (agent.turn events carry no session.id; the merged
+  stream manufactures phantom compactions — 11 where truth was 1).
+- **AC-01** `tap.py --altimeter`: per-session context level, slope,
+  witnessed peaks. Compactions (>50% drop) are recorded to
+  `compactions.jsonl` (the calibration set); turns-to-ceiling ETA
+  unlocks at ≥3 witnesses — the ceiling is never hardcoded.
+- **AC-02/03** `now.py --tap`: ground-truth liveness + altimeter in
+  the session-start briefing (rung-2 delivery). Witnessed 2026-07-16:
+  the authoring agent received its own post-compaction level (158K)
+  in a tool result. PreToolUse injection is the recorded escalation
+  if rung-2 receipt fails twice.
+- **AC-04** `ledger.py --tap`: seam-stamped per-session reconciliation
+  (estimate vs exact, overlap only). First run: neighbor session
+  ratio 1.01 (rounds× validated); own in-flight session 0.27
+  (chatSessions lags the active turn — expected, documented).
+- **AC-05** rotation enforced on read past 100 MB (archive + truncate;
+  truncation keeps the exporter's append fd valid).
+
+**Disarm criterion:** run `otel-tap-off.sh` (and delete the tmp file)
+when either (a) quota/cache fields become available via a supported
+API, making the tap redundant, or (b) the calibration set has ≥3
+witnesses and no open cost/awareness question needs per-call data.
+Until then the tap is a **meter** with a rotation rule, not an
+unbounded experiment.
