@@ -92,3 +92,24 @@ witnessed) → AC-03 (content-keyed drops persist).
 ### Questions for the human (as options, or 'none')
 
 None — F1's reordering resolves the only real hazard found.
+
+## Judgement Addendum (2026-07-16): A1 — live intent rows, in git we trust
+
+Human reflection after judgement: "now should include the next steps
+agents are/were planning ... and in git we trust." Correct on both
+halves, and the second constrains the first:
+
+**A1 (binding):** AC-02's briefing section gains LIVE-session rows —
+each live session's in-progress/next todos — completing the board's
+tense triad: git = past (fact), tap = present (fact), todos = future
+(**claim**). Constraints, from measured staleness (the authoring
+session's own todos read not-started for work pushed hours earlier;
+NC-365's orphan likewise — claims lag reality asymmetrically because
+updating is optional effort):
+- Intent rows are rendered as testimony, visually distinct from fact
+  rows (a `claims:` prefix), never merged with git-derived state.
+- The artifact cross-check runs on live claims too: a "next step"
+  naming an FR/NC id that already has a git artifact is flagged
+  `STALE CLAIM` — git overrules the todo, mechanically, every time.
+- No collision inference in this FR (two sessions' next-steps naming
+  the same file = future work; recorded as a seed, not scope).
