@@ -183,6 +183,36 @@ def test_reconcile_per_session_only_overlap():
     assert abs(a["ratio"] - 5_000_000 / 5_200_000) < 1e-9
 
 
+# ------------------------------------------------- per-session cost view
+
+
+def test_sessions_table_per_session_cost(tmp_path):
+    """User ask 2026-07-16: 'how to get the costs for ongoing sessions'.
+    Per-session rows with exact tokens and calibrated credits."""
+    rows = two_session_interleave(1000.0)
+    for trace, tokens in [("tA", 700_000), ("tB", 100_000)]:
+        rows.append(
+            rec(
+                "gen_ai.client.inference.operation.details",
+                trace,
+                1020.0,
+                **{
+                    "gen_ai.usage.input_tokens": tokens,
+                    "gen_ai.usage.output_tokens": 500,
+                    "gen_ai.request.model": "claude-fable-5",
+                },
+            )
+        )
+    path = write_tap(tmp_path / "tap.jsonl", rows)
+    sessions = tap.join_sessions(tap.load_events(path))
+    text = "\n".join(tap.sessions_table(sessions, live=set()))
+    assert "sess-aaa" in text and "sess-bbb" in text
+    assert "700,000" in text  # exact per-session input tokens
+    a_line = next(ln for ln in text.splitlines() if "sess-aaa" in ln)
+    # 0.7M × (0.02×1000 + 0.98×100) + 0.0005M × 5000 = 82.6 + 2.5 = 85.1 cr
+    assert "85.1" in a_line
+
+
 # ---------------------------------------------------------------- AC-05
 
 

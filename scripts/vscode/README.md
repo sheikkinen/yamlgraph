@@ -5,6 +5,64 @@ Multi-angle overview of what the agents in this workspace have been
 doing: where session data lives, what it costs, what was worked on,
 and how parallel the work actually is.
 
+## Cookbook: what does it cost? (start here)
+
+**Cost of ongoing sessions, right now** (exact tokens, per session,
+requires the tap — see arming below):
+
+```bash
+python3 scripts/vscode/tap.py
+```
+
+```
+session    state     calls       inputTok   outTok   cr@98%     USD
+854c6a35   LIVE        186     66,278,485  137,763  8,502.6  $85.03
+a904c468   LIVE        177     32,340,549  155,918  4,589.3  $45.89
+...
+TOTAL                         137,306,982  360,057 17,987.7 $179.88
+```
+
+Per-session, per-model, exact per-call tokens (every tool-call round,
+including side-model utility calls invisible in chatSessions), plus
+the compaction altimeter. `--altimeter` for just the altimeter.
+
+**Cost by period — today / this month / previous month / all-time**
+(estimate, works without the tap, covers all history):
+
+```bash
+python3 scripts/vscode/ledger.py            # periods table
+python3 scripts/vscode/ledger.py --by-model # + per-model breakdown
+python3 scripts/vscode/ledger.py --tap      # + seam reconciliation vs tap
+```
+
+**How the two relate:** ledger.py estimates from chatSessions
+(`promptTokens` records only the LAST tool-call round → billed ≈
+rounds × recorded; anchor-2 calibration). tap.py reads exact per-call
+tokens from the OTel tap, but only from arming onward and only on
+this machine. `ledger.py --tap` stamps the seam and reconciles
+per-session — the estimator validated at **ratio 1.01** on a complete
+session (2026-07-16). For live sessions the estimate lags the tap
+(chatSessions hasn't recorded the in-flight turn yet): ratios 0.3–0.9
+on LIVE rows are the self-measurement lag, not a defect.
+
+**Pricing model (two anchors, 2026-07-16):** 1 credit = $0.01;
+models.json prices are credits/1M tokens (fable: 1000 in / 5000 out /
+100 cache-read); agent turns run ≈98% cached, so cost ≈ exact volume
+× 98%-cache blend. The all-fresh column is a ceiling, not a forecast.
+gpt-4o-mini utility calls are priced 0 pending evidence they bill.
+
+**Arming the tap** (needed for exact/ongoing views):
+
+```bash
+scripts/vscode/otel-tap-on.sh   # launchctl env; then FULLY restart VS Code (Cmd+Q)
+scripts/vscode/otel-tap-off.sh  # disarm (see disarm criterion below)
+```
+
+The tap writes `tmp/copilot-otel.jsonl` (all sessions, machine-global);
+tap.py rotates it past 100 MB. Witnessed compactions accumulate in
+`compactions.jsonl` — the guillotine calibration set (ceiling ~750K,
+two witnesses within 0.5%).
+
 ## The stores (discovered by exploration, 2026-07-16)
 
 | Store | Path (under `~/Library/Application Support/Code/User/`) | Contains |

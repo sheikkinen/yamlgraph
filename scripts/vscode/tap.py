@@ -225,6 +225,43 @@ def rotate_if_big(path: Path, cap_bytes: int = CAP_BYTES) -> Path | None:
     return archive
 
 
+def call_credits(model: str, ti: int, to: int) -> float:
+    pr = price_for(model)
+    return (
+        ti / 1e6 * ((1 - CACHE_RATIO) * pr["in"] + CACHE_RATIO * pr["cache"])
+        + to / 1e6 * pr["out"]
+    )
+
+
+def sessions_table(sessions: dict[str, dict], live: set[str]) -> list[str]:
+    """Per-session exact tokens + calibrated credits — the ongoing-session
+    cost view (user ask 2026-07-16)."""
+    lines = [
+        f"{'session':<10} {'state':<8} {'calls':>6} {'inputTok':>14}"
+        f" {'outTok':>8} {'cr@98%':>8} {'USD':>7}"
+    ]
+    totals = [0, 0, 0.0]
+    for sid, sess in sorted(
+        sessions.items(), key=lambda kv: -sum(c[2] for c in kv[1]["calls"])
+    ):
+        ti = sum(c[2] for c in sess["calls"])
+        to = sum(c[3] for c in sess["calls"])
+        cr = sum(call_credits(c[1], c[2], c[3]) for c in sess["calls"])
+        state = "LIVE" if sid in live else "idle"
+        totals[0] += ti
+        totals[1] += to
+        totals[2] += cr
+        lines.append(
+            f"{sid[:8]:<10} {state:<8} {len(sess['calls']):>6} {ti:>14,}"
+            f" {to:>8,} {cr:>8,.1f} {'$' + format(cr / 100, ',.2f'):>7}"
+        )
+    lines.append(
+        f"{'TOTAL':<10} {'':<8} {'':>6} {totals[0]:>14,} {totals[1]:>8,}"
+        f" {totals[2]:>8,.1f} {'$' + format(totals[2] / 100, ',.2f'):>7}"
+    )
+    return lines
+
+
 def usage_table(sessions: dict[str, dict]) -> list[str]:
     by_model = defaultdict(lambda: [0, 0, 0])
     for sess in sessions.values():
@@ -290,6 +327,8 @@ def main() -> None:
             f"  sessions: {len(sessions)} ({len(live)} live)"
         )
         print("\n".join(usage_table(sessions)))
+        print()
+        print("\n".join(sessions_table(sessions, live)))
         print()
     print("\n".join(altimeter_lines(sessions)))
 
