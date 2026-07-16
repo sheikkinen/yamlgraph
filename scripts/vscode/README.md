@@ -28,11 +28,13 @@ and how parallel the work actually is.
 - **Habitat**: 2.23 GB across 15 workspaces; yamlgraph is 1.7 GB / 281
   sessions / 8 active-in-24h — 64% of everything this machine's agents
   have ever done. The largest single session: "Plot Modeller", 50.4 MB.
-- **Metabolism**: 6,447 requests, 723M prompt tokens, 3.7M output
-  tokens all-time. Fable-5 averages 356K prompt tokens/request — 5×
-  the opus-4.6 average; the 1M context window changed usage shape, not
-  just capacity. Cost spread (units): 156K best-case vs 741K
-  worst-case — the 5× gap IS the cache-ratio unknown.
+- **Metabolism**: 6,461 requests all-time; **billed** prompt volume ≈
+  7.3B tokens (each tool-call round re-bills the full context —
+  anchor-2 proved `promptTokens` records only the last round). Two
+  calibration anchors 2026-07-16: 2702.9 cr = $27.09 (1 cr = $0.01)
+  and an 820.5 cr turn whose pure-cache pricing hit 814 → agent turns
+  run ≈98% cached. Best-case estimates: this month ≈ $2.4K, all-time
+  ≈ $6.2K. Cache reads at $1/M are the entire economics.
 - **Memory**: the chronicle DB indexes debug-logs (2-line markers), so
   its narrative tables are empty even after reindex — the real
   narrative lives in chatSessions titles. `emission ≠ reception` has a

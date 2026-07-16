@@ -35,7 +35,9 @@ TOK_RE = re.compile(r'"promptTokens":(\d+),"outputTokens":(\d+)')
 # price assumption for models absent from the sheet: fable rates — the
 # HIGHEST tier, so unknown models overestimate (conservative for a ceiling)
 UNKNOWN_MODEL_PRICE = {"in": 1000, "out": 5000, "cache": 100}
-CACHE_RATIO_BEST = 0.9  # best-case: 90% of prompt tokens are cache reads
+# ANCHOR-2 (820.5 cr turn, 11 rounds × 695K): pure-cache pricing of the
+# full turn hit 814 cr vs 820.5 actual → agent turns run ≈98% cached.
+CACHE_RATIO_BEST = 0.98  # calibrated; worst bound keeps all-fresh
 
 
 def load_prices() -> dict[str, dict[str, int]]:
@@ -77,11 +79,15 @@ def iter_requests():
             if not (ts and tok):
                 continue
             model = MODEL_RE.search(head)
+            # ANCHOR-2 finding (2026-07-16, 820.5 cr turn): promptTokens
+            # records the LAST round's context only; every tool-call round
+            # re-bills the full context. Billed prompt ≈ rounds × recorded.
+            rounds = max(1, len(re.findall(r'"toolCalls":\[', chunk)))
             yield (
                 datetime.fromtimestamp(int(ts.group(1)) / 1000),
                 (model.group(1).removeprefix("copilot/") if model else "?"),
-                int(tok.group(1)),
-                int(tok.group(2)),
+                int(tok.group(1)) * rounds,
+                int(tok.group(2)) * rounds,
             )
 
 
@@ -138,8 +144,9 @@ def main() -> None:
         agg[2] += 1
 
     print(
-        "credits: 1 cr = $0.01 (calibrated 2026-07-16, single-session anchor: "
-        "2702.9 cr = $27.09); range = 90%-cached .. all-fresh"
+        "credits: 1 cr = $0.01; billed prompt = tool-call rounds × recorded context "
+        "(anchor-2: 11×695K turn = 820.5 cr, pure-cache model hit 814);\n"
+        "range = 98%-cached (calibrated) .. all-fresh (ceiling)"
     )
     print("tokens  = exact from chatSessions request records\n")
     print(
