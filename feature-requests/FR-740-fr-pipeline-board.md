@@ -1,9 +1,12 @@
 # FR-740: FR Pipeline Board — generated priority view + structural interrupts
 
-**Status:** Proposed
+**Status:** Judged — APPROVED with corrections (see Judgement)
 **Type:** Feature (process tooling — LLM-free)
 **Effort:** 1 day (board + lint) + template/convention edits
 **Requested:** 2026-07-16
+**Judged:** 2026-07-16 — the completeness gate as specced would force a
+700-row board (status census measured); active-set scoping, gates.yaml,
+and the missing template section bound below
 **Spawned by:** diaries 2026-07-16 *the-unasked-question* (ninchat_voice) +
 *the-human-skims* (yamlgraph) — two named traps, one mechanism
 **Prior art:** NC-372 (generate + drift-gate a view — the pattern donor),
@@ -102,3 +105,37 @@ distinction is deliberate: "none" is a statement, absence is an omission.
 
 None — P-gates for this FR's own scope were resolved by the filing
 decision (yamlgraph-level, ratified 2026-07-16).
+
+## Judgement (2026-07-16)
+
+**Verdict: APPROVED — with the board's blast radius measured before a
+line of code exists.** Status census over the live corpus: **723 FR
+files**, statuses 252 Implemented / 115 Enforced / 57 Judged / 54
+Approved / 43 Proposed / 28 Completed / 21 `✅` / 13 Rejected / 12 In
+Progress / 11 in a `**Status**:` bold-variant format / 10 Superseded /
+6 Draft + tail. TEMPLATE.md headings enumerated: **no Judgement
+section exists** to amend.
+
+| # | Finding | Resolution (binding) |
+|---|---------|----------------------|
+| F1 | **Repo→board completeness over 723 files = a 700-row board.** A board nobody scrolls is tribal knowledge with a generated header — the alarm-fatigue class (FR-737 F2) at board scale. The queue's subject is FRs *in motion* | Board and completeness lint scope to the **active set**: Proposed / Judged / Approved / In Progress / Draft / gated rows. Terminal statuses (Implemented, Enforced, Completed, ✅, Rejected, Superseded) excluded from the default view and from the completeness gate; `--all` renders the full census for archaeology |
+| F2 | **Status is a heterogeneous free-text boundary**, not an enum: two bold formats (`**Status:**` / `**Status**:`, 11 files), emoji statuses, multiword variants ("Mechanism ENFORCED", "Sign-off RECORDED") | Normalize at the boundary: accept both bold variants; small canonicalization map for known families; unknown → parse-failure row with verbatim text preserved (AC-01 already pins never-dropped). No repo-wide header migration — the board adapts to the corpus, not the corpus to the board |
+| F3 | `.judgement.md` companions lack Status headers (measured: 1 of N has one) — the repo→board lint would flag every companion as missing | Companions excluded from completeness / inherit parent status — the FR-738 U-3 resolution, reused verbatim |
+| F4 | "Gates table parsed from the queue doc's `\| P# \|` rows, or gates.yaml — enforce decides" **defers a decision that belongs to Judgement.** Regex-parsing a hand-authored markdown table is exactly the fragile boundary the one_law warns about; config is truth (Commandment 3) | **gates.yaml, bound now.** Owner, ask-by, and the pre-drafted question block live as YAML fields (AC-03's contract becomes schema validation, not prose-grep). Queue-doc gate rows migrate once, at enforce |
+| F5 | **AC-05 amends a template section that does not exist.** TEMPLATE.md has no Judgement section; judgements are ad-hoc `## Judgement (date)` headings in practice | AC-05 lands as two edits: (a) TEMPLATE.md gains a Judgement skeleton ending with the questions-or-none heading; (b) one sentence in the Sermon's **Judge** paragraph — the obligation must not depend on the template (FR-737 F6 precedent). This judgement itself practices the convention (terminal section below) |
+| F6 | Cross-repo lint (`--project`) fails structurally where the sibling repo is absent (CI runners, other machines) — a lint that errors on environment is a bypass invitation | Missing project path ⇒ skip that repo with a printed notice, pass. The lint is a local pre-commit aid (now.py's family), never a CI gate on sibling-repo state |
+
+**Purge additions:** repo-wide status-header migration; a rigid status
+enum (canonicalization map + verbatim display only); CI enforcement of
+cross-repo rows (F6).
+
+**Scope frozen:** AC-01 (fixture → board, parse-failure rows) → AC-02
+(two-way lint, active-set scoped per F1) → AC-03 (gated-row contract as
+gates.yaml schema per F4) → AC-04 (cross-repo, skip-if-absent per F6)
+→ AC-05 (template skeleton + Sermon sentence per F5) → AC-06 (raw read
+of the first board against the live queue before the lint arms).
+
+### Questions for the human (as options, or 'none')
+
+None — all six findings resolved with corpus measurements; no
+authority gaps found.
