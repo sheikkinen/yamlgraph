@@ -2,9 +2,10 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement (enforcement infrastructure)
-**Status:** Proposed
+**Status:** Judged
 **Effort:** 0.5 day
 **Requested:** 2026-07-16
+**Judged:** 2026-07-16 — scope frozen; the gate's own blind spot found before enforce: the motivating incident lives in a repo this gate never sees
 **Parent:** FR-737 (field review U-1..U-4, first firing 2026-07-16)
 **Spawned by:** FR-737's first field firing (NC-393, ninchat_voice): the
 hook emitted `feedback`, the audit log recorded it, the **human** saw the
@@ -136,3 +137,24 @@ candidates entirely.
 - FR-737 (parent; U-1..U-4 field review in its Usage Comments section)
 - `.github/hooks/scripts/checks/prior_art.py`, `.pre-commit-config.yaml`
 - `docs/diary/diary-2026-07-16-emission-is-not-reception.md`
+
+## Judgement (2026-07-16)
+
+**Verdict: APPROVED — with 5 findings.** The sharpest one is the gate's
+own `workspace_is_not_boundary` violation, caught by checking where the
+motivating incident actually lives.
+
+| # | Finding | Resolution (binding) |
+|---|---------|----------------------|
+| F1 | **Nested-repo blind spot**: NC-393 — the incident this FR exists to prevent — was committed in `projects/ninchat_voice`, a SEPARATE git repo with its own `.pre-commit-config.yaml`. A gate in yamlgraph's config never sees those commits. The floor, as proposed, does not cover its own origin story — compliance theatre relative to the motivating incident (`workspace_is_not_boundary`: the editor shows one tree; the commit boundaries are two) | Scope stays yamlgraph-repo (one concern, one repo, one commit stream). **Binding follow-up at enforce:** a mirror entry in ninchat's own pre-commit config (it can invoke the yamlgraph script by relative path — verified: `../..` resolves from the nested repo) filed as an NC-side FR; FR-738's completion note must state the boundary honestly. The PostToolUse advisory already covers both repos (session-scoped, not repo-scoped) — the asymmetry is the finding |
+| F2 | The gate must judge what is being COMMITTED, not what is on disk — an author can edit after `git add` | Read the staged blob (`git show :0:path`) for both the hit check input and the `**Prior art:**` marker detection. One test witnesses the divergence case (staged lacks marker, working tree has it → FAIL) |
+| F3 | U-2's weight rule needs a mechanical definition | Weight 2 iff the noun matches the candidate's **filename**, **first H1 line**, or **`## Summary` section text**; else 1. Corpus `freq` stays match-anywhere (frequency measures commonness; weight measures placement). Score = Σ weight/freq; ties by total match count, then name. AC-04 prediction recorded: FR-070 *improves* (filename match → weight 2) — if it degrades instead, the implementation misread this pin |
+| F4 | The gate is skippable via `SKIP=<hook-id>` like every local hook | Accepted — consistent with daily repo practice (`SKIP=pytest`); `automation_inherits_doctrine` forbids `--no-verify`, not the named-skip escape. CI mirror stays deferred per Alternatives until bypass becomes a pattern; hook logs are the audit trail. No new denial infrastructure |
+| F5 | U-3 offered two mechanisms ("resolve from parent OR exclude") — pick one | **Resolve from parent** when the parent FR exists (keeps signal, fixes `[?]`); exclude only orphan judgement files. Pinned |
+
+**Scope frozen.** Purge list stands (no channel repair, no plan-doc
+triggers, no CI gate yet, no semantic search). Enforce order: AC-01/02/03
+RED (gate + ranking + status tests, staged-blob divergence case included)
+→ GREEN → AC-04 counterfactual re-run → pre-commit entry + README →
+NC-side mirror FR filed → paperwork. The FR's own `**Prior art:**` line
+is the format fixture.
