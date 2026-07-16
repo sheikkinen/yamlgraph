@@ -121,6 +121,29 @@ def frs_in_motion(repos: set[Path], window_s: float) -> list[tuple[str, str, str
     return rows
 
 
+def intentions_section(repos: set[Path]) -> list[str]:
+    """FR-741 AC-02 + A1: orphaned intentions + live claims. In git we
+    trust; todos we cross-examine."""
+    import time as _time
+
+    import todos
+
+    all_todos = todos.load_todos()
+    now = _time.time()
+    sessions = {}
+    live = set()
+    for sid, items in all_todos.items():
+        if not items:
+            continue
+        title, mtime = todos.session_meta(sid)
+        sessions[sid] = {"todos": items, "title": title, "mtime": mtime}
+        if mtime and now - mtime <= todos.LIVE_WINDOW_S:
+            live.add(sid)
+    return todos.briefing_lines(
+        sessions, live, sorted(repos), todos.load_dispositions(), now
+    )
+
+
 def tap_ground_truth() -> list[str]:
     """FR-739 AC-02/03: liveness + altimeter from OTel events, not mtimes."""
     import os
@@ -143,6 +166,33 @@ def tap_ground_truth() -> list[str]:
     return lines
 
 
+def _print_repo_state(
+    repos: set[Path], sessions: list[dict], window_h: float
+) -> list[str]:
+    window_s = window_h * 3600
+    hazards = []
+    folder_sessions: dict[Path, int] = {}
+    for s in sessions:
+        if s["folder"]:
+            folder_sessions[s["folder"]] = folder_sessions.get(s["folder"], 0) + 1
+    for repo in sorted(repos):
+        st = repo_state(repo, window_s)
+        n_live = sum(
+            n for f, n in folder_sessions.items() if repo == f or repo.is_relative_to(f)
+        )
+        flag = ""
+        if st["staged"] and n_live > 1:
+            flag = "  ⚠ INTERLEAVE HAZARD (staged work + multiple live sessions)"
+            hazards.append(repo.name)
+        print(
+            f"  {repo.name} [{st['branch']}] staged={len(st['staged'])} "
+            f"commits({window_h:g}h)={len(st['commits'])} live_sessions={n_live}{flag}"
+        )
+        if st["refs"]:
+            print(f"    recent refs: {', '.join(st['refs'])}")
+    return hazards
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--window", type=float, default=8.0, help="hours of 'now'")
@@ -160,26 +210,7 @@ def main() -> None:
 
     repos = find_repos({s["folder"] for s in sessions if s["folder"]})
     print("\n== repo state ==")
-    hazards = []
-    folder_sessions: dict[Path, int] = {}
-    for s in sessions:
-        if s["folder"]:
-            folder_sessions[s["folder"]] = folder_sessions.get(s["folder"], 0) + 1
-    for repo in sorted(repos):
-        st = repo_state(repo, window_s)
-        n_live = sum(
-            n for f, n in folder_sessions.items() if repo == f or repo.is_relative_to(f)
-        )
-        flag = ""
-        if st["staged"] and n_live > 1:
-            flag = "  ⚠ INTERLEAVE HAZARD (staged work + multiple live sessions)"
-            hazards.append(repo.name)
-        print(
-            f"  {repo.name} [{st['branch']}] staged={len(st['staged'])} "
-            f"commits({args.window:g}h)={len(st['commits'])} live_sessions={n_live}{flag}"
-        )
-        if st["refs"]:
-            print(f"    recent refs: {', '.join(st['refs'])}")
+    hazards = _print_repo_state(repos, sessions, args.window)
 
     print("\n== FRs in motion (files touched in window) ==")
     for repo, name, status in frs_in_motion(repos, window_s):
@@ -197,6 +228,11 @@ def main() -> None:
     if args.tap:
         print("\n== tap ground truth (OTel events, FR-739) ==")
         print("\n".join(tap_ground_truth()))
+
+    intent = intentions_section(repos)
+    if intent:
+        print("\n== intentions (todos are claims; in git we trust — FR-741) ==")
+        print("\n".join(intent))
 
     if hazards:
         print(

@@ -1569,3 +1569,9 @@ The ID ranges are:
 - **Code**: E402
 - **Sin**: `import todos` after a `sys.path.insert` — module-level import not at top.
 - **Penance**: script-adjacent test outside the installable package; path bootstrap must precede the import (CONF-392/393 idiom).
+
+### CONF-395
+- **File**: [scripts/vscode/todos.py](../scripts/vscode/todos.py#L52)
+- **Code**: S324
+- **Sin**: `hashlib.sha1` for the orphan drop key.
+- **Penance**: content addressing of todo titles for dedupe, zero security role; sha1's 8-hex prefix is stable, short, and printable — collision resistance is irrelevant at n≈30 titles.

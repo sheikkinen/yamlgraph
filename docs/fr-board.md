@@ -92,7 +92,6 @@
 | FR-718 | Judged | yamlgraph |  | FR-718-edge-compiler-decomposition.md |
 | FR-731 | Judged | yamlgraph |  | FR-731-webllm-browser-prompt-demo-spike.md |
 | FR-732 | Judged | yamlgraph |  | FR-732-output-schema-parity-enum-constraints.md |
-| FR-741 | Judged | yamlgraph |  | FR-741-orphan-intention-triage.md |
 | FR-742 | Judged | yamlgraph |  | FR-742-undelivered-diary-detection.md |
 | FR-094 | Approved | yamlgraph |  | FR-094-memory-node.md |
 | FR-095 | Approved | yamlgraph |  | FR-095-doc-staleness-monitor.md |
@@ -404,7 +403,6 @@ graph TD
     FR-732["FR-732 Judged"]
     FR-735["FR-735 In Progress"]
     FR-736["FR-736 In Progress"]
-    FR-741["FR-741 Judged"]
     FR-742["FR-742 Judged"]
     FR-081 --> FR-082
     FR-731 --> FR-735

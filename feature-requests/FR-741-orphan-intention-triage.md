@@ -1,11 +1,12 @@
 # FR-741: Orphan Intention Triage — DIED OPEN todos in the session-start briefing
 
-**Status:** Judged — APPROVED with corrections (see Judgement)
+**Status:** Completed
 **Type:** Enhancement (agent-facing tooling, `scripts/vscode/`)
 **Effort:** 0.5 day
 **Requested:** 2026-07-16
 **Judged:** 2026-07-16 — the 30-day briefing cap would hide 4 of 6 dead
 sessions including both exhibit cases; backlog-triage-first ordering bound
+**Completed:** 2026-07-16 — backlog-zero achieved (18 → 3); witnesses below
 **Spawned by:** todos.py forensics (CSI arc, 2026-07-16): 191 todo
 slots, 21 non-empty, **18 orphaned open intentions** in
 `memento/chat-todo-list`. Case evidence: the Vertex migration
@@ -113,3 +114,39 @@ updating is optional effort):
   `STALE CLAIM` — git overrules the todo, mechanically, every time.
 - No collision inference in this FR (two sessions' next-steps naming
   the same file = future work; recorded as a seed, not scope).
+
+## Implementation (2026-07-16)
+
+RED (8 witnesses) → GREEN same session; 21/21 across the vscode suite.
+`todos.py` gains `cross_check` / `drop_key` / `record_drop` /
+`load_dispositions` / `briefing_lines` + `--drop SESSION8 SHA8
+--reason`; dispositions in git-tracked
+`scripts/vscode/orphan-dispositions.jsonl` (F4). `now.py` gains the
+`== intentions ==` section (AC-02 + A1).
+
+**AC-04 backlog-zero triage record (18 → 3):**
+- 1d4c2166 (†3.3d, RCA fork): 7 dropped — NC-365 DELIVERED ELSEWHERE
+  (FR + judgement in git); 6 siblings superseded (the FR was the report).
+- dee997c4 (†106d, NC-193): 3 dropped — DELIVERED ELSEWHERE
+  (e06433d5 shipped Vertex on Fly; the Vertex migration case).
+- 32c7dcee (†120d): FR-FSM-011 status update dropped (stale; project
+  moved past it). c35242a7 (†133d): 4 test-infra fixes dropped (stale;
+  infra rebuilt since).
+- **KEPT: the three diary-class debts** (1c395e06, 31027c36, 32c7dcee)
+  — FR-742's AC-03 material; doctrine debt does not expire.
+
+**AC-02/A1 receipt witnessed** in the authoring agent's tool result:
+four LIVE sessions' claims rendered with the `claims:` prefix; the
+authoring session's own claim "Implement FR-741" flagged STALE CLAIM
+— the instrument cross-examined its author mid-enforcement. Bonus
+exhibit: a neighbor session still claims "Generate FR board
+from existing data [not-started]" while FR-740 sits shipped in git —
+the done-but-claimed-undone decay, live, cross-session.
+
+**Known limitation (recorded honestly):** STALE CLAIM over-fires on
+"Implement FR-XXX" phrasing — the FR file exists from proposal, so
+artifact-exists ≠ work-done for implementation claims (it is exact
+for creation claims like "Create NC-365"). The verdict is a cue for
+cross-examination, not a conviction; the briefing label says
+"artifact in git", which is literally true. Escalation if it misleads
+twice: split verdicts by claim verb (create vs implement).

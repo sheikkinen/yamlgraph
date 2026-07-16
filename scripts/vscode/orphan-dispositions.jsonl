@@ -1,0 +1,15 @@
+{"key": "1d4c2166-d7f0-4dad-afe8-a097cd826d66:7ce5bae9", "title": "Monitor health checks and logs", "reason": "superseded - NC-365 FR was the report", "ts": 1784206641.260971}
+{"key": "1d4c2166-d7f0-4dad-afe8-a097cd826d66:cd8ff672", "title": "Analyze race condition errors", "reason": "superseded - NC-365 FR was the report", "ts": 1784206641.352125}
+{"key": "1d4c2166-d7f0-4dad-afe8-a097cd826d66:e922036f", "title": "Report findings to user", "reason": "superseded - NC-365 FR was the report", "ts": 1784206641.452128}
+{"key": "1d4c2166-d7f0-4dad-afe8-a097cd826d66:a4d6902c", "title": "Restart machine if necessary", "reason": "superseded - NC-365 FR was the report", "ts": 1784206641.528085}
+{"key": "1d4c2166-d7f0-4dad-afe8-a097cd826d66:6918df56", "title": "Add request timeout to Google client", "reason": "superseded - NC-365 FR captured the action", "ts": 1784206641.59633}
+{"key": "1d4c2166-d7f0-4dad-afe8-a097cd826d66:055b7ca0", "title": "Update RCA actions and summary", "reason": "superseded - NC-365 FR was the report", "ts": 1784206641.6661272}
+{"key": "1d4c2166-d7f0-4dad-afe8-a097cd826d66:54437324", "title": "Create NC-365 feature request", "reason": "DELIVERED ELSEWHERE - NC-365 exists with judgement", "ts": 1784206641.7381818}
+{"key": "dee997c4-007a-4df0-bdd8-aacd563c0f9d:ae9eda67", "title": "Research current LLM provider setup", "reason": "DELIVERED ELSEWHERE - e06433d5 shipped Vertex on Fly", "ts": 1784206641.809338}
+{"key": "dee997c4-007a-4df0-bdd8-aacd563c0f9d:414d46d0", "title": "Evaluate Vertex AI on Fly feasibility", "reason": "DELIVERED ELSEWHERE - e06433d5 shipped Vertex on Fly", "ts": 1784206641.8821802}
+{"key": "dee997c4-007a-4df0-bdd8-aacd563c0f9d:5fb4dbd8", "title": "Summarize findings", "reason": "DELIVERED ELSEWHERE - e06433d5 shipped Vertex on Fly", "ts": 1784206641.9539871}
+{"key": "32c7dcee-465b-46cb-8a61-c1dc42f5e1ce:c8a755fc", "title": "Update FR-FSM-011 status", "reason": "stale 120d - FSM project moved past FR-FSM-011", "ts": 1784206642.0222561}
+{"key": "c35242a7-2a2f-4ecb-ae77-0156259b5e03:de5369ec", "title": "Fix pyproject.toml pythonpath", "reason": "stale 133d - test infra rebuilt since", "ts": 1784206642.09026}
+{"key": "c35242a7-2a2f-4ecb-ae77-0156259b5e03:a75e3653", "title": "Fix conftest.py ROOT path", "reason": "stale 133d - test infra rebuilt since", "ts": 1784206642.1557708}
+{"key": "c35242a7-2a2f-4ecb-ae77-0156259b5e03:5d3eba5e", "title": "Fix _prefix outcaller remnant", "reason": "stale 133d - test infra rebuilt since", "ts": 1784206642.221162}
+{"key": "c35242a7-2a2f-4ecb-ae77-0156259b5e03:3925a3a1", "title": "Run tests and verify", "reason": "stale 133d - test infra rebuilt since", "ts": 1784206642.332104}
