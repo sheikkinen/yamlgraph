@@ -106,6 +106,8 @@ def frs_in_motion(repos: set[Path], window_s: float) -> list[tuple[str, str, str
         if not fr_dir.is_dir():
             continue
         for fr in fr_dir.glob("*.md"):
+            if fr.name == "TEMPLATE.md" or ".judgement." in fr.name:
+                continue
             if now - fr.stat().st_mtime > window_s:
                 continue
             status = "?"

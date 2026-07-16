@@ -130,10 +130,15 @@ def join_sessions(events: list[dict]) -> dict[str, dict]:
 
 
 def detect_compactions(turns: list[tuple[float, int]]) -> list[dict]:
-    """>50% context drop between consecutive turns of ONE session."""
+    """>50% context drop between consecutive turns of ONE session.
+
+    post=0 is a cancelled/dead turn, not a compaction — a real compaction
+    leaves the summary as the new context floor (~56-61K witnessed).
+    Field defect 2026-07-16: a 91,846→0 turn poisoned min(peaks).
+    """
     comps = []
     for (_, prev), (ts, cur) in zip(turns, turns[1:], strict=False):
-        if prev and cur < prev * (1 - COMPACTION_DROP):
+        if prev and cur and cur < prev * (1 - COMPACTION_DROP):
             comps.append({"peak": prev, "post": cur, "ts": ts})
     return comps
 

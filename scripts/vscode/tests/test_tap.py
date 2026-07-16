@@ -105,6 +105,15 @@ def test_detect_compaction_witnessed_shape():
     assert comps[0]["post"] == 61_000
 
 
+def test_zero_post_turn_is_not_a_compaction():
+    """Field defect 2026-07-16: a cancelled/zero-token turn (91,846 → 0)
+    was recorded as a witness and poisoned min(peaks) → ETA≈0 for all.
+    A real compaction leaves a summary (~56-61K witnessed); post=0 is a
+    dead turn, not a guillotine."""
+    turns = [(1.0, 91_846), (2.0, 0)]
+    assert tap.detect_compactions(turns) == []
+
+
 def test_calibration_records_appended_and_deduped(tmp_path):
     calib = tmp_path / "compactions.jsonl"
     comps = [{"peak": 748_000, "post": 61_000, "ts": 3.0}]
