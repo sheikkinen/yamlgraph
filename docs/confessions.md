@@ -1557,3 +1557,9 @@ The ID ranges are:
 - **Code**: E402
 - **Sin**: `import tap` after a `sys.path.insert` — module-level import not at top.
 - **Penance**: the spike suite lives outside the package; the path bootstrap must precede the import. Same idiom as any script-adjacent test without an installable package.
+
+### CONF-393
+- **File**: [scripts/tests/test_fr_board.py](../scripts/tests/test_fr_board.py#L29)
+- **Code**: E402
+- **Sin**: `import fr_board` after a `sys.path.insert` — module-level import not at top.
+- **Penance**: script-adjacent test outside the installable package; path bootstrap must precede the import (CONF-392 idiom).

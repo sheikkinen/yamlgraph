@@ -172,6 +172,7 @@ max-complexity = 15
 # Tests use assert statements and subprocess calls by design
 "tests/**" = ["S101", "S602", "S603", "S607", "S108"]
 "scripts/vscode/tests/**" = ["S101"]
+"scripts/tests/**" = ["S101"]
 ".github/hooks/tests/**" = ["S101", "S603"]
 # Examples demonstrate patterns; subprocess/binding/assert-in-tests are intentional
 "examples/**" = ["S101", "S603", "S607", "S104", "S105", "S108", "S112"]
