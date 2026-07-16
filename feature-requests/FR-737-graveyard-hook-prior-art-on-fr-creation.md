@@ -215,3 +215,46 @@ discharged:
 One test-side fix during GREEN: the IDF-order assertion's line matcher
 caught the header line (contains `.md`); tightened to candidate-line
 indent. Zero implementation churn against the judged pins.
+
+## Usage Comments (2026-07-16, first field use — NC-393 creation, ninchat_voice)
+
+First real-world firing: `NC-393-telemetry-map.md` triggered
+`⚠ prior art … (nouns: telemetry, map)` with four hits. Feedback from
+the agent-author it fired at:
+
+**U-1 (critical) — the warning reached the human, not the agent.** The
+hook emitted `decision: feedback / issues-found` (audit
+2026-07-16T05:17:28), the user saw the warning — and the authoring
+agent's `create_file` result contained nothing. NC-393 was filed,
+committed, and pushed with NO disposition: the exact failure mode the
+hook exists to prevent, performed under the hook's nose. An unseen
+advisory is no advisory. Until PostToolUse feedback provably reaches
+the agent surface in use, the disposition requirement is enforced only
+by luck. Cheapest hard backstop: re-run `prior_art.py` in pre-commit
+for NEW FR files and fail when hits exist but the FR lacks a
+`**Prior art:**` disposition line — same check, moved to a boundary
+that cannot be unseen. (Filed as the natural F7 follow-up candidate.)
+
+**U-2 — signal 1/4, and the ranking didn't surface it.** The genuinely
+relevant hit (NC-361's judgement — discusses telemetry channels in the
+same territory NC-393 maps) ranked third; NC-186/NC-241/NV-238 match
+"telemetry" incidentally in body prose. Within a same-noun tie the
+order appears corpus-incidental. Two cheap improvements: weight
+title/Summary-section matches above stray body mentions, and break
+same-noun ties by match count. The floor did its job ("map" produced
+zero noise) — the residual noise is *where* in the document the noun
+sits, not how rare it is.
+
+**U-3 — `[?]` status on judgement files.** Two hits are `.judgement.md`
+companions with no Status header, displayed as `[?]`. Either resolve
+status from the parent FR or exclude judgement companions from the hit
+list (their parent FR will match anyway when relevant) — `[?]` spends
+the reader's attention on a non-answer.
+
+**U-4 — what worked.** Cross-project corpus (fired correctly inside
+`projects/ninchat_voice/`); five-line format is skimmable in flow;
+status tags triage at a glance; the Scripture cite makes the required
+action unambiguous. The human loop worked end-to-end: the user saw the
+warning, asked for this review, and NC-393's disposition was added
+retroactively — the hook caught a real omission on its first firing,
+just via the wrong reader.
