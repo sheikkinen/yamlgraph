@@ -185,6 +185,15 @@ def main() -> None:
     for repo, name, status in frs_in_motion(repos, window_s):
         print(f"  {repo:<16} {status:<22} {name}")
 
+    # FR-740: plan-state pointer — live state is here, plan state is the board
+    for repo in sorted(repos):
+        board = repo / "docs/fr-board.md"
+        if board.is_file():
+            n_rows = sum(
+                1 for ln in board.open(errors="replace") if ln.startswith("| ")
+            )
+            print(f"\nplan state: {board} ({max(n_rows - 1, 0)} active rows)")
+
     if args.tap:
         print("\n== tap ground truth (OTel events, FR-739) ==")
         print("\n".join(tap_ground_truth()))

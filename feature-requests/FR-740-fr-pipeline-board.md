@@ -176,6 +176,21 @@ ninchat_voice):**
 (F2 anticipated this: "the board adapts to the corpus") — every
 addition is backed by the AC-06 measurement above, none speculative.
 
+**Deviation recorded late (integration reflection, same day):** two
+proposed inputs — `git log` motion (RED/GREEN commits per FR ref) and
+lane facts (files-touched contention) — were NOT implemented. Not
+purged at enforce, just silently absent: an `intent_drift` instance
+caught by the reflection, not by the process. Disposition now
+explicit: **deferred, not dropped** — the AC-06 read showed the
+board's proven value is status truth (parse failures, duplicate IDs,
+lag); motion and lanes join when a consumer exists (the flush-advisory
+or a session-start briefing that ranks by recency). Also found: the
+board had **no reader but its own generator** — write-side integration
+(pre-commit) shipped without read-side delivery, emission≠reception at
+workflow scale. Fixed same day: `now.py` prints the plan-state pointer
+with row count; the session-introspection skill routes "what's next?"
+to the board before hand-derivation.
+
 ## Judgement Addendum (2026-07-16): F7 — the committed board crossed a repo boundary
 
 Human review after completion: "feature-requests under projects are
