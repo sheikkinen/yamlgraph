@@ -1539,3 +1539,15 @@ The ID ranges are:
 - **Code**: S603
 - **Sin**: `subprocess.run([GIT, "show", f":0:{path}"])` — path interpolated into an argument.
 - **Penance**: `path` comes from pre-commit's staged-filename list (list-form argv, no shell); worst case is a git error for a nonexistent blob, handled by returncode check.
+
+### CONF-390
+- **File**: [scripts/vscode/now.py](../scripts/vscode/now.py#L35)
+- **Code**: S603
+- **Sin**: `subprocess.run([GIT, "-C", repo, *args])` — non-constant arguments.
+- **Penance**: GIT resolved via `shutil.which`; subcommands are hardcoded read-only queries (branch/diff/log); repo paths come from workspace.json enumeration, list-form argv, no shell.
+
+### CONF-391
+- **File**: [scripts/vscode/now.py](../scripts/vscode/now.py#L60)
+- **Code**: B007
+- **Sin**: loop variable `model` reused after the loop — B007 flags the unused loop body.
+- **Penance**: deliberate last-match idiom (want the final modelId in the tail window); a `pass` body with the value read after the loop is the cheapest form.

@@ -21,6 +21,7 @@ and how parallel the work actually is.
 | `stores.py` | Habitat | Where does session data live, how big, which workspaces, what's active now? |
 | `ledger.py` | Metabolism | Requests/tokens per day and per model, across ALL workspaces; price-sheet cost estimate with an honest cache-ratio caveat |
 | `portrait.py` | Memory | What was worked on: chronicle summaries + session titles + most-touched files + measured session parallelism per day |
+| `now.py` | Situation board | Live sessions (titles, models, recency) × git state per implicated repo (branch, STAGED files, recent commits with FR/NC refs) × FRs in motion × interleave-hazard flags. The session-start briefing, reception rung 2 |
 
 ## First-run findings (2026-07-16)
 
@@ -53,3 +54,9 @@ and how parallel the work actually is.
 - The authoritative credit ledger is GitHub's billing side; these
   scripts do *attribution* (which arcs burned what), which the
   dashboard cannot.
+- `now.py` counts live sessions per **workspace**, not per repo — a
+  session in the yamlgraph workspace working purely inside
+  `projects/ninchat_voice` still counts against every nested repo.
+  Refining to repo-level requires scanning session content for paths;
+  escalation path if the overcount produces false hazard flags twice
+  (`two_strike_split`).
