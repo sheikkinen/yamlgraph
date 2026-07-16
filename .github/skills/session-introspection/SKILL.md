@@ -1,0 +1,50 @@
+---
+name: session-introspection
+description: "Situation awareness across parallel agent sessions. Use when: starting work in this workspace, checking what other sessions are active right now, avoiding parallel-session git collisions (one_session_one_repo), seeing FRs in motion, reconstructing token/cost history, or introspecting VS Code session stores."
+---
+
+# Session Introspection — the situation board and its siblings
+
+Spike suite in `scripts/vscode/` (stdlib-only, read-only). Run these
+BEFORE starting multi-commit work in a shared repo, and whenever you
+need to know what the other live sessions are doing.
+
+## The one to run first
+
+```bash
+python3 scripts/vscode/now.py            # last 8h; --window 2 for tighter
+```
+
+Prints: live sessions (titles, models, recency) × git state per
+implicated repo — branch, **staged files (the interleave tripwire)**,
+recent commits with FR/NC refs — × FRs in motion with statuses, plus an
+explicit `⚠ INTERLEAVE HAZARD` flag when a repo has staged work and
+multiple live sessions. This is the `one_session_one_repo` staged-check
+ritual as one command.
+
+Answers before you act:
+- Is another session already judging/enforcing the FR I'm about to touch?
+- Is there staged work in this repo that is not mine?
+- What landed in the last hours that my context predates?
+
+## The other angles
+
+| Script | Question |
+|---|---|
+| `scripts/vscode/stores.py` | Where does session data live, how big, which workspaces active? |
+| `scripts/vscode/ledger.py --by-model` | Requests/tokens/cost-range per day and per model, all workspaces |
+| `scripts/vscode/portrait.py` | Recent session titles + measured same-hour concurrency per day |
+
+## Facts worth knowing (measured 2026-07-16)
+
+- Session data: `~/Library/Application Support/Code/User/workspaceStorage/<hash>/chatSessions/*.jsonl`
+  — per-request timestamps, modelId, promptTokens/outputTokens. The
+  price sheet lives in `debug-logs/*/models.json`.
+- The chronicle DB indexes debug-logs (2-line markers) — vacuous;
+  narrative lives in chatSessions titles (indexed ≠ informative).
+- `promptTokens` conflates cache reads with fresh input (billed ~10×
+  apart) — treat cost figures as ranges.
+- Peak measured concurrency 6 same-hour sessions (2026-07-14) — the
+  day of the recorded interleave incidents. Hazard is real, use the flag.
+
+See `scripts/vscode/README.md` for the full store map and limits.
