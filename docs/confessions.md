@@ -1563,3 +1563,9 @@ The ID ranges are:
 - **Code**: E402
 - **Sin**: `import fr_board` after a `sys.path.insert` — module-level import not at top.
 - **Penance**: script-adjacent test outside the installable package; path bootstrap must precede the import (CONF-392 idiom).
+
+### CONF-394
+- **File**: [scripts/vscode/tests/test_todos.py](../scripts/vscode/tests/test_todos.py#L23)
+- **Code**: E402
+- **Sin**: `import todos` after a `sys.path.insert` — module-level import not at top.
+- **Penance**: script-adjacent test outside the installable package; path bootstrap must precede the import (CONF-392/393 idiom).
