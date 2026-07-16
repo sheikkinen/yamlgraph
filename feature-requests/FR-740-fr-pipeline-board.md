@@ -1,12 +1,13 @@
 # FR-740: FR Pipeline Board — generated priority view + structural interrupts
 
-**Status:** Judged — APPROVED with corrections (see Judgement)
+**Status:** Completed
 **Type:** Feature (process tooling — LLM-free)
 **Effort:** 1 day (board + lint) + template/convention edits
 **Requested:** 2026-07-16
 **Judged:** 2026-07-16 — the completeness gate as specced would force a
 700-row board (status census measured); active-set scoping, gates.yaml,
 and the missing template section bound below
+**Completed:** 2026-07-16 — all rungs; AC-06 read recorded below
 **Spawned by:** diaries 2026-07-16 *the-unasked-question* (ninchat_voice) +
 *the-human-skims* (yamlgraph) — two named traps, one mechanism
 **Prior art:** NC-372 (generate + drift-gate a view — the pattern donor),
@@ -139,3 +140,38 @@ of the first board against the live queue before the lint arms).
 
 None — all six findings resolved with corpus measurements; no
 authority gaps found.
+
+## Implementation (2026-07-16)
+
+RED (10 witnesses, fixture corpus) → GREEN same session.
+`scripts/fr_board.py` (collect_rows / active_rows / validate_gates /
+render_board / check_board), `feature-requests/gates.yaml` (P1–P8
+migrated from the queue doc, all answered), TEMPLATE.md judgement
+skeleton + Sermon sentence (F5), pre-commit hook `fr-board-check`
+(drift + gates schema). Tests: `pytest scripts/tests/ -q` — 10/10.
+
+**AC-06 raw read of the first real board (yamlgraph +
+ninchat_voice):**
+- First generation: 401 rows, **198 PARSE-FAILURE** — alarm fatigue
+  reborn at board scale. Census of failure families (CLOSED 9,
+  Granted 5, Re-judged/Amended 13, `**ENFORCED**` bold-value 9,
+  ❌/✓ 5, Enforcing 3) → canon map extended ONLY for measured
+  families; genuinely ambiguous statuses (Sign-off RECORDED,
+  Partially, Conditionally, Reopened, 22× missing header) stay
+  visible as parse-failure rows. Second generation: 374 rows.
+- **13 duplicate FR/NC IDs discovered** (FR-179/186/203/204/291/466/
+  573, NC-112/211/233/243/293/300 — two different files each): the
+  ID-allocation race (`cap-req-id-allocation-race`) made visible by
+  the board's first render. Cleanup is its own chore, not this FR.
+- Queue-doc agreement: NC-354/355/356 render Proposed — matching the
+  queue doc's own staleness complaint verbatim; the board and the
+  hand-authored table agree on the lag the board exists to expose.
+- Status-lag exhibits on the active board: FR-179 (append-only
+  changelog, shipped long ago) still reads In Progress; FR-735/736
+  read In Progress with Completed bodies.
+- check passes (rc=0) on the fresh board; hook wired with files
+  filter on feature-requests/, fr_board.py, and the board itself.
+
+**Deviations:** canon map grew beyond the judgement's initial census
+(F2 anticipated this: "the board adapts to the corpus") — every
+addition is backed by the AC-06 measurement above, none speculative.

@@ -1,0 +1,44 @@
+# FR-740: gates.yaml — owned gates with pre-drafted questions (F4)
+#
+# Schema per gate:
+#   id: P-number          status: open | answered
+#   fr: FR/NC ref         owner + ask_by + question REQUIRED while open
+#   question: {text, options: [...], recommendation}
+#   answer: recorded verbatim on transition to answered
+#
+# Migrated once from projects/ninchat_voice/docs/plan-fr-queue-2026-07-15.md
+# (judgement F4: the hand-authored table rows retire; this file is truth).
+
+gates:
+  - id: P1
+    fr: NC-384
+    status: answered
+    answer: "callback path (2026-07-16); NC-384 judged same day"
+  - id: P2
+    fr: NC-389
+    status: answered
+    answer: "redirect is the design; judge calibration via NC-389 checklist"
+  - id: P3
+    fr: NC-389
+    status: answered
+    answer: "acceptable if recovered — one redundant re-ask that recovers is not a FAIL"
+  - id: P4
+    fr: NC-395
+    status: answered
+    answer: "commitment — farewell may promise on committed-but-unconfirmed delivery once outbox+retry guarantees it; Delivery Phase 2 unlocked"
+  - id: P5
+    fr: NC-379
+    status: answered
+    answer: "YES with PII condition (k>=3 derived-key threshold, AC-00b)"
+  - id: P6
+    fr: NC-392
+    status: answered
+    answer: "the proposed three: case ref, requested-by, timeframe"
+  - id: P7
+    fr: NC-392
+    status: answered
+    answer: "full symptom schema reuse"
+  - id: P8
+    fr: NC-395
+    status: answered
+    answer: "fly volume tier sanctioned, retention 30 days; off-machine tier gets own FR/AC when picked up"

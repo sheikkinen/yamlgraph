@@ -262,6 +262,16 @@ repos:
 
   - repo: local
     hooks:
+      - id: fr-board-check
+        name: FR board drift + gates schema (FR-740)
+        entry: .venv/bin/python scripts/fr_board.py --check --project projects/ninchat_voice
+        language: system
+        pass_filenames: false
+        files: (^feature-requests/|^scripts/fr_board\.py$|^docs/fr-board\.md$)
+        stages: [pre-commit]
+
+  - repo: local
+    hooks:
       - id: pytest
         name: pytest (unit only, ~20s)
         entry: bash -c 'export PATH=".venv/bin:$PATH" && .venv/bin/python -m pytest tests/unit/ -q --tb=short --no-cov -m "not slow" -n auto && echo "" && echo "✓ Unit tests passed. Run integration tests separately:" && echo "  pytest tests/integration/ -v"'

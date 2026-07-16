@@ -56,3 +56,21 @@ What other approaches were considered?
 
 - Link to related issues, PRs, or files
 - LangSmith trace as a separate file
+
+## Judgement (date)
+
+**Verdict:** APPROVED / APPROVED with corrections / REJECTED
+
+| # | Finding | Resolution (binding) |
+|---|---------|----------------------|
+| F1 | … | … |
+
+**Purge list:** …
+
+**Scope frozen:** …
+
+### Questions for the human (as options, or 'none')
+
+<!-- FR-740: the interrupt is a judgement OUTPUT, not an agent
+initiative. Each question: options + evidence + recommended default.
+'None' is a statement; absence is an omission. -->
