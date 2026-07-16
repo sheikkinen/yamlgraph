@@ -1551,3 +1551,9 @@ The ID ranges are:
 - **Code**: B007
 - **Sin**: loop variable `model` reused after the loop — B007 flags the unused loop body.
 - **Penance**: deliberate last-match idiom (want the final modelId in the tail window); a `pass` body with the value read after the loop is the cheapest form.
+
+### CONF-392
+- **File**: [scripts/vscode/tests/test_tap.py](../scripts/vscode/tests/test_tap.py#L28)
+- **Code**: E402
+- **Sin**: `import tap` after a `sys.path.insert` — module-level import not at top.
+- **Penance**: the spike suite lives outside the package; the path bootstrap must precede the import. Same idiom as any script-adjacent test without an installable package.
