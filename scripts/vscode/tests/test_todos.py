@@ -189,6 +189,36 @@ def test_diary_debt_verdict_window(tmp_path):
     assert last_active + day  # window upper bound documented
 
 
+def test_diary_debt_verdict_ref_aware(tmp_path):
+    """Substance over presence: in a repo that diaries daily,
+    any-entry-in-window is vacuous. With session refs, only a
+    filename naming the ref counts."""
+    diary = tmp_path / "docs/diary"
+    diary.mkdir(parents=True)
+    last_active = 1_000_000_000.0
+    (diary / "diary-2001-09-06-unrelated-arc.md").write_text("x")
+    assert (
+        todos.diary_debt_verdict(last_active, [diary], refs=["FR-220"]) == "UNWRITTEN"
+    )
+    (diary / "2001-09-06-reflection-fr-220-god-factory.md").write_text("x")
+    assert (
+        todos.diary_debt_verdict(last_active, [diary], refs=["FR-220"]) == "DELIVERED"
+    )
+
+
+def test_diary_ref_match_normalizes_hyphens(tmp_path):
+    """Field defect 2026-07-16: diary-...-nc393-... did not match ref
+    NC-393 — a false UNWRITTEN caught by git cross-examination during
+    AC-03. Hyphens are noise at this boundary."""
+    diary = tmp_path / "docs/diary"
+    diary.mkdir(parents=True)
+    (diary / "diary-2001-09-06-nc393-the-map.md").write_text("x")
+    assert (
+        todos.diary_debt_verdict(1_000_000_000.0, [diary], refs=["NC-393"])
+        == "DELIVERED"
+    )
+
+
 def test_material_priority_transcript_else_chatsessions(tmp_path, monkeypatch):
     """FR-742 F1: transcripts do not survive for old debts; chatSessions
     is the second-priority material source."""

@@ -1,12 +1,13 @@
 # FR-742: Undelivered Diary Detection — the Distill step's measured abandonment
 
-**Status:** Judged — APPROVED with corrections (see Judgement)
+**Status:** Completed
 **Type:** Enhancement (process enforcement, `scripts/vscode/` + doctrine)
 **Effort:** 0.5 day
 **Requested:** 2026-07-16
 **Judged:** 2026-07-16 — transcripts do NOT survive for 2 of the 3 real
 debts; the posthumous-diary material clause corrected to chatSessions
 fallback before a line of code exists
+**Completed:** 2026-07-16 — debt ledger settled; witnesses below
 **Spawned by:** todos.py forensics (2026-07-16): **three separate dead
 sessions orphan the same final item — the diary reflection** (1c395e06
 †0.2d "Document findings and diary entry" in-progress; 31027c36 †93d
@@ -106,3 +107,38 @@ sentence).
 None — all findings resolved mechanically; the posthumous diary's
 subject choice (which of the three debts) falls to enforce, guided by
 F1's material table.
+
+## Implementation (2026-07-16)
+
+RED → GREEN, 28/28 across the vscode suite. `todos.py` gains
+`is_diary_class` / `diary_debt_verdict(refs=...)` / `material_for`;
+diary-class DIED OPEN rows exempt from the age cap and labeled
+DIARY DEBT in the briefing. Scripture Distill paragraph carries the
+inheritance sentence (AC-04).
+
+**AC-02 hardening beyond the judgement (recorded):** the naive
+any-entry-in-window verdict returned LIKELY DELIVERED for all three
+debts — vacuous in a repo that diaries daily
+(`gate_checks_shape_not_substance`, caught by reading the actual
+windows). Verdict is now **ref-aware**: with the session's FR/NC refs,
+only an in-window diary filename naming the ref counts (DELIVERED /
+UNWRITTEN); the ref-less path keeps the explicitly weak LIKELY.
+
+**AC-03 triage record (git cross-examined the tool twice):**
+- 1c395e06 (†0.3d, NC-393): first ruled UNWRITTEN — **false**: the
+  diary exists as `…-nc393-…` and the ref match missed the hyphen
+  variant. Fixed RED-first (hyphen normalization). DELIVERED.
+- 31027c36 (†93d, FR-220): DELIVERED
+  (`2026-04-12-reflection-fr-220-refactor-god-factory.md`).
+- 32c7dcee (†120d, FSM planner): first ruled DELIVERED under a loose
+  `FSM` ref matching `multi-fsm` noise — **false**; precise ref →
+  **UNWRITTEN**, the genuine debt. Posthumous diary written from its
+  13.6 MB chatSessions record (transcript did not survive, per F1):
+  `docs/diary/diary-2026-07-16-posthumous-fsm-planner-nc120.md` —
+  the AC-03 witness. All three debts dropped with verdict reasons in
+  the dispositions sidecar.
+
+**Deviation:** none of scope; the double false-verdict episode is the
+better witness than a mechanically clean run would have been — both
+lies were caught by the FR's own doctrine (in git we trust), and both
+cures are now pinned by tests.

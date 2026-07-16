@@ -13,3 +13,6 @@
 {"key": "c35242a7-2a2f-4ecb-ae77-0156259b5e03:a75e3653", "title": "Fix conftest.py ROOT path", "reason": "stale 133d - test infra rebuilt since", "ts": 1784206642.1557708}
 {"key": "c35242a7-2a2f-4ecb-ae77-0156259b5e03:5d3eba5e", "title": "Fix _prefix outcaller remnant", "reason": "stale 133d - test infra rebuilt since", "ts": 1784206642.221162}
 {"key": "c35242a7-2a2f-4ecb-ae77-0156259b5e03:3925a3a1", "title": "Run tests and verify", "reason": "stale 133d - test infra rebuilt since", "ts": 1784206642.332104}
+{"key": "1c395e06-9ae7-41fd-a2e8-39492c216a96:ebfdc863", "title": "Document findings and diary entry", "reason": "DELIVERED - nc393 diary exists (hyphen-normalized match)", "ts": 1784213086.8488882}
+{"key": "31027c36-4afb-4ece-bf93-e2376f13e6bb:0bc88d7c", "title": "Write diary reflection", "reason": "DELIVERED - reflection-fr-220 diary exists in window", "ts": 1784213086.926659}
+{"key": "32c7dcee-465b-46cb-8a61-c1dc42f5e1ce:8031bf63", "title": "Diary reflection", "reason": "PAID POSTHUMOUSLY - diary-2026-07-16-posthumous-fsm-planner-nc120.md", "ts": 1784213087.006158}

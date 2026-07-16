@@ -26,10 +26,66 @@ from pathlib import Path
 WS_STORAGE = Path.home() / "Library/Application Support/Code/User/workspaceStorage"
 TITLE_RE = re.compile(r'"customTitle":"([^"]{1,120})"')
 REF_RE = re.compile(r"\b((?:FR|NC)-\d{2,4})\b")
+DIARY_RE = re.compile(r"diary|reflect|distill", re.I)
+DIARY_DATE_RE = re.compile(r"(\d{4})-(\d{2})-(\d{2})")
 LIVE_WINDOW_S = 3600
 BRIEFING_AGE_CAP_S = 30 * 86400  # F1: arms only after backlog-zero (AC-04)
 BRIEFING_ROW_CAP = 10
+DIARY_WINDOW_BEFORE_S = 7 * 86400  # FR-742 F2: [last_active-7d, +1d]
+DIARY_WINDOW_AFTER_S = 86400
 DISPOSITIONS_PATH = Path(__file__).resolve().parent / "orphan-dispositions.jsonl"
+
+
+def is_diary_class(title: str) -> bool:
+    """FR-742 AC-01: the Distill debt class. Doctrine debt does not expire."""
+    return bool(DIARY_RE.search(title))
+
+
+def diary_debt_verdict(
+    last_active: float, diary_dirs: list[Path], refs: list[str] | None = None
+) -> str:
+    """FR-742 AC-02: delivery verdict for a dead session's diary debt.
+
+    With refs (FR/NC ids from the session's own todos): DELIVERED iff an
+    in-window diary filename names one — substance, not presence (this
+    repo diaries daily; any-entry-in-window is vacuous). Without refs:
+    LIKELY DELIVERED on any in-window entry — explicitly weak, hence
+    'LIKELY'. Window = [last_active - 7d, last_active + 1d]; a
+    successor's later posthumous entry must not count (F2).
+    """
+    from datetime import datetime
+
+    lo = last_active - DIARY_WINDOW_BEFORE_S
+    hi = last_active + DIARY_WINDOW_AFTER_S
+    in_window = []
+    for d in diary_dirs:
+        for p in d.glob("*.md"):
+            m = DIARY_DATE_RE.search(p.name)
+            if not m:
+                continue
+            ts = datetime(int(m.group(1)), int(m.group(2)), int(m.group(3))).timestamp()
+            if lo <= ts <= hi:
+                in_window.append(p.name.lower())
+    if refs:
+        # hyphens are noise at this boundary (field defect: nc393 vs NC-393)
+        flat = [n.replace("-", "") for n in in_window]
+        for ref in refs:
+            needle = ref.lower().replace("-", "")
+            if any(needle in name for name in flat):
+                return "DELIVERED"
+        return "UNWRITTEN"
+    return "LIKELY DELIVERED" if in_window else "UNWRITTEN"
+
+
+def material_for(sid: str) -> Path | None:
+    """FR-742 F1: best-available material — transcript if present, else
+    chatSessions (which holds the full session). Age of debt
+    anti-correlates with material richness."""
+    for p in WS_STORAGE.glob(f"*/GitHub.copilot-chat/transcripts/{sid}*.jsonl"):
+        return p
+    for p in WS_STORAGE.glob(f"*/chatSessions/{sid}*.jsonl"):
+        return p
+    return None
 
 
 def cross_check(title: str, roots: list[Path]) -> str | None:
@@ -111,14 +167,20 @@ def briefing_lines(
                 )
             lines.append(f"  {sid[:8]}  LIVE  {sess.get('title', '')[:48]}")
             lines.extend(claims)
-        elif mtime and now - mtime <= BRIEFING_AGE_CAP_S:
+        elif mtime:
+            age_s = now - mtime
             for t in open_items:
-                verdict = cross_check(t.get("title", ""), roots)
-                tag = f" [{verdict}]" if verdict else ""
+                title_t = t.get("title", "")
+                diary = is_diary_class(title_t)
+                if not diary and age_s > BRIEFING_AGE_CAP_S:
+                    continue  # ordinary orphans expire; doctrine debt does not
+                verdict_t = cross_check(title_t, roots)
+                tag = f" [{verdict_t}]" if verdict_t else ""
+                label = "DIARY DEBT" if diary else "DIED OPEN"
                 dead_rows.append(
-                    f"  {sid[:8]}  DIED OPEN ({(now - mtime) / 86400:.1f}d)"
-                    f"  {t.get('title', '')[:56]}{tag}"
-                    f"  key={drop_key(sid, t.get('title', '')).split(':')[1]}"
+                    f"  {sid[:8]}  {label} ({age_s / 86400:.1f}d)"
+                    f"  {title_t[:56]}{tag}"
+                    f"  key={drop_key(sid, title_t).split(':')[1]}"
                 )
     lines.extend(dead_rows[:BRIEFING_ROW_CAP])
     return lines
