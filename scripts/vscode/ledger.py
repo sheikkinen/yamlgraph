@@ -120,12 +120,13 @@ def tap_seam_report() -> list[str]:
     lines = [
         f"seam: {seam:%Y-%m-%d %H:%M} — pre-seam = rounds× estimate,"
         f" post-seam = tap exact",
-        f"{'session':<10} {'est(rounds×)':>14} {'exact(tap)':>12} {'ratio':>6}",
+        f"{'session':<10} {'est(rounds×)':>14} {'exact(tap)':>12} {'ratio':>6}  title",
     ]
+    titles = tap.session_titles(exact)
     for row in tap.reconcile(est, exact):
         lines.append(
             f"{row['session'][:8]:<10} {row['est']:>14,} {row['exact']:>12,}"
-            f" {row['ratio']:>6.2f}"
+            f" {row['ratio']:>6.2f}  {titles.get(row['session'], '')[:44]}"
         )
     return lines
 

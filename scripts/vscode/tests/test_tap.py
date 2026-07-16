@@ -213,6 +213,17 @@ def test_sessions_table_per_session_cost(tmp_path):
     assert "85.1" in a_line
 
 
+def test_sessions_table_shows_titles(tmp_path):
+    """Session names come from chatSessions customTitle (stem = session id)."""
+    rows = two_session_interleave(1000.0)
+    path = write_tap(tmp_path / "tap.jsonl", rows)
+    sessions = tap.join_sessions(tap.load_events(path))
+    titles = {"sess-aaaa": "OTel tap experiment", "sess-bbbb": "NC-395 enforce"}
+    text = "\n".join(tap.sessions_table(sessions, live=set(), titles=titles))
+    assert "OTel tap experiment" in text
+    assert "NC-395 enforce" in text
+
+
 # ---------------------------------------------------------------- AC-05
 
 

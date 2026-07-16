@@ -28,6 +28,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import shutil
 import time
 from collections import defaultdict
@@ -51,6 +52,21 @@ CACHE_RATIO = 0.98  # anchor-2 calibration
 
 TURN_EVENT = "copilot_chat.agent.turn"
 CALL_EVENT = "gen_ai.client.inference.operation.details"
+
+WS_STORAGE = Path.home() / "Library/Application Support/Code/User/workspaceStorage"
+TITLE_RE = re.compile(r'"customTitle":"([^"]{1,120})"')
+
+
+def session_titles(sids) -> dict[str, str]:
+    """Session names from chatSessions customTitle (file stem = session id)."""
+    titles = {}
+    for sid in sids:
+        for p in WS_STORAGE.glob(f"*/chatSessions/{sid}.jsonl"):
+            m = TITLE_RE.search(p.open(errors="replace").read(4000))
+            if m:
+                titles[sid] = m.group(1)
+            break
+    return titles
 
 
 def price_for(model: str) -> dict[str, int]:
@@ -233,12 +249,15 @@ def call_credits(model: str, ti: int, to: int) -> float:
     )
 
 
-def sessions_table(sessions: dict[str, dict], live: set[str]) -> list[str]:
+def sessions_table(
+    sessions: dict[str, dict], live: set[str], titles: dict[str, str] | None = None
+) -> list[str]:
     """Per-session exact tokens + calibrated credits — the ongoing-session
-    cost view (user ask 2026-07-16)."""
+    cost view (user ask 2026-07-16). Titles joined from chatSessions."""
+    titles = titles or {}
     lines = [
         f"{'session':<10} {'state':<8} {'calls':>6} {'inputTok':>14}"
-        f" {'outTok':>8} {'cr@98%':>8} {'USD':>7}"
+        f" {'outTok':>8} {'cr@98%':>8} {'USD':>7}  title"
     ]
     totals = [0, 0, 0.0]
     for sid, sess in sorted(
@@ -254,6 +273,7 @@ def sessions_table(sessions: dict[str, dict], live: set[str]) -> list[str]:
         lines.append(
             f"{sid[:8]:<10} {state:<8} {len(sess['calls']):>6} {ti:>14,}"
             f" {to:>8,} {cr:>8,.1f} {'$' + format(cr / 100, ',.2f'):>7}"
+            f"  {titles.get(sid, '')[:48]}"
         )
     lines.append(
         f"{'TOTAL':<10} {'':<8} {'':>6} {totals[0]:>14,} {totals[1]:>8,}"
@@ -328,7 +348,7 @@ def main() -> None:
         )
         print("\n".join(usage_table(sessions)))
         print()
-        print("\n".join(sessions_table(sessions, live)))
+        print("\n".join(sessions_table(sessions, live, session_titles(sessions))))
         print()
     print("\n".join(altimeter_lines(sessions)))
 

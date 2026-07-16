@@ -15,16 +15,19 @@ python3 scripts/vscode/tap.py
 ```
 
 ```
-session    state     calls       inputTok   outTok   cr@98%     USD
-854c6a35   LIVE        186     66,278,485  137,763  8,502.6  $85.03
-a904c468   LIVE        177     32,340,549  155,918  4,589.3  $45.89
+session    state     calls       inputTok   outTok   cr@98%     USD  title
+854c6a35   LIVE        193     67,430,522  140,287  8,650.3  $86.50  CSAP Enforcer
+c0f1927c   idle         56     37,028,491   53,823  4,637.9  $46.38  CSAP Judge
+a904c468   LIVE        191     35,608,570  166,787  5,028.1  $50.28  Voice projects comparison
 ...
-TOTAL                         137,306,982  360,057 17,987.7 $179.88
+TOTAL                         141,727,040  373,450 18,574.3 $185.74
 ```
 
-Per-session, per-model, exact per-call tokens (every tool-call round,
-including side-model utility calls invisible in chatSessions), plus
-the compaction altimeter. `--altimeter` for just the altimeter.
+Session titles are joined from chatSessions `customTitle` (file stem =
+session id). Per-session, per-model, exact per-call tokens (every
+tool-call round, including side-model utility calls invisible in
+chatSessions), plus the compaction altimeter. `--altimeter` for just
+the altimeter.
 
 **Cost by period — today / this month / previous month / all-time**
 (estimate, works without the tap, covers all history):
