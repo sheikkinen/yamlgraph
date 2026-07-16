@@ -127,3 +127,77 @@ def test_briefing_excludes_dropped(tmp_path):
         sessions, live=set(), roots=[], dispositions=dropped, now=now
     )
     assert "Fix the thing" not in "\n".join(lines)
+
+
+# ------------------------------------------------------- FR-742: diary debt
+
+
+def test_diary_class_matches_real_debts():
+    for title in (
+        "Document findings and diary entry",
+        "Write diary reflection",
+        "Diary reflection",
+        "Distill the arc",
+    ):
+        assert todos.is_diary_class(title), title
+    assert not todos.is_diary_class("Fix the thing")
+
+
+def test_diary_debt_exempt_from_age_cap(tmp_path):
+    """FR-742 AC-01: doctrine debt does not expire — 93d diary orphan
+    stays visible while a 93d ordinary orphan is capped out."""
+    now = 1_000_000.0
+    sessions = {
+        "old-dead": _session([("Write diary reflection", "in-progress")], 93, now),
+    }
+    lines = todos.briefing_lines(
+        sessions, live=set(), roots=[], dispositions=set(), now=now
+    )
+    text = "\n".join(lines)
+    assert "Write diary reflection" in text
+    assert "DIARY DEBT" in text
+
+
+def test_diary_class_applies_to_died_open_only(tmp_path):
+    """FR-742 F4: LIVE sessions own their futures."""
+    now = 1_000_000.0
+    sessions = {
+        "live-s": _session([("Write diary reflection", "not-started")], 0.01, now),
+    }
+    lines = todos.briefing_lines(
+        sessions, live={"live-s"}, roots=[], dispositions=set(), now=now
+    )
+    text = "\n".join(lines)
+    assert "claims:" in text
+    assert "DIARY DEBT" not in text
+
+
+def test_diary_debt_verdict_window(tmp_path):
+    """FR-742 AC-02/F2: window = [last_active − 7d, last_active + 1d];
+    a successor's LATER posthumous entry must not count as delivery."""
+    diary = tmp_path / "docs/diary"
+    diary.mkdir(parents=True)
+    day = 86400.0
+    last_active = 1_000_000_000.0  # 2001-09-09
+    (diary / "diary-2001-09-06-in-window.md").write_text("x")
+    assert todos.diary_debt_verdict(last_active, [diary]) == "LIKELY DELIVERED"
+    (diary / "diary-2001-09-06-in-window.md").unlink()
+    (diary / "diary-2001-09-20-too-late.md").write_text("x")
+    assert todos.diary_debt_verdict(last_active, [diary]) == "UNWRITTEN"
+    (diary / "diary-2001-08-25-too-early.md").write_text("x")
+    assert todos.diary_debt_verdict(last_active, [diary]) == "UNWRITTEN"
+    assert last_active + day  # window upper bound documented
+
+
+def test_material_priority_transcript_else_chatsessions(tmp_path, monkeypatch):
+    """FR-742 F1: transcripts do not survive for old debts; chatSessions
+    is the second-priority material source."""
+    ws = tmp_path / "ws1"
+    (ws / "GitHub.copilot-chat/transcripts").mkdir(parents=True)
+    (ws / "chatSessions").mkdir(parents=True)
+    monkeypatch.setattr(todos, "WS_STORAGE", tmp_path)
+    (ws / "chatSessions/sess-old.jsonl").write_text("{}")
+    assert "chatSessions" in str(todos.material_for("sess-old"))
+    (ws / "GitHub.copilot-chat/transcripts/sess-old.jsonl").write_text("{}")
+    assert "transcripts" in str(todos.material_for("sess-old"))
+    assert todos.material_for("sess-none") is None
