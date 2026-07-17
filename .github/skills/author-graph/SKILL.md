@@ -34,10 +34,37 @@ defaults:
   prompts_relative: true      # Resolve prompts relative to graph file
 ```
 
+## Tools
+
+```yaml
+tools:
+  my_shell_tool:
+    type: shell
+    command: git -C {repo_path} log --since={since}
+    parse: text
+
+  my_python_tool:
+    type: python
+    path: tools.py          # GRAPH-RELATIVE file — use for graph-local tools
+    function: my_function
+
+  my_module_tool:
+    type: python
+    module: examples.pkg.nodes.mod   # dotted IMPORT — needs importable package
+    function: my_function
+```
+
+**`path:` vs `module:` for python tools:** graphs with a sibling
+`tools.py` (chaplain graphs, standalone graph dirs) must use
+`path: tools.py`; `module:` requires the module on `sys.path` and
+fails from graph directories as
+`Cannot import module 'tools': No module named 'tools'` (strict
+mode names the tool, not the fix). Field incident: FR-744 enforce,
+2026-07-17 — the philosopher precedent (`path:`) is the working form.
+
 ## Node Types
 
 ### Common Properties
-
 | Property | Default | Description |
 |----------|---------|-------------|
 | `type` | `"llm"` | `llm`, `router`, `agent`, `tool`, `python`, `map`, `interrupt`, `passthrough`, `tool_call`, `subgraph`, `copilot`, `pipeline`, `race`, `interactive_tool` |

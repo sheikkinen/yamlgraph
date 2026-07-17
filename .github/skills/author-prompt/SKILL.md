@@ -81,6 +81,12 @@ Other providers: cache flags ignored, segments flattened.
 
 ## User Message vs Template
 
+**NOT supported: `messages:` role lists.** Prompts use TOP-LEVEL
+`system:` / `user:` keys — an OpenAI/Anthropic-style
+`messages: [{role, content}]` block fails at runtime as
+`Node <name> failed: 'user'` (KeyError, no format hint). Field
+incident: FR-744 enforce, 2026-07-17.
+
 **Simple substitution** — use `user:`:
 ```yaml
 user: |
