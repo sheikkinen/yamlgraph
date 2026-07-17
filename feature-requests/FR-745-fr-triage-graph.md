@@ -1,9 +1,11 @@
 # FR-745: FR Triage Graph — the checklist tier, mechanized; the signature, reserved
 
-**Status:** Proposed
+**Status:** Judged
 **Type:** Feature (chaplain graph + FR-lifecycle hook)
 **Effort:** 1 day
 **Requested:** 2026-07-17
+**Judged:** 2026-07-17 — approved with revisions; the hook goes
+reminder-only and the whole mechanism gets a binding kill criterion
 **First consumer / first event:** the next judgement (interactive or
 chaplain) reads triage claims already sitting in the FR; first event =
 the next `docs(fr): proposed` commit after enforcement.
@@ -84,3 +86,20 @@ CONFIRMED). Disposition: extends 737's pattern from one question
 None — the pattern is FR-737/738 recombined with the canon; the only
 novel risk (ritual triage nobody reads) is answered by the
 disposition gate.
+
+## Judgement (2026-07-17)
+
+**Verdict: APPROVED WITH REVISIONS — 4 findings; two proposal
+mechanisms corrected against sibling precedent before any code.**
+Verified: FR-737/738 both Completed, `prior_art_gate.py` live at
+pre-commit, `.chaplain/graphs/` convention exists.
+
+| # | Finding | Resolution (binding) |
+|---|---------|----------------------|
+| F1 | **An LLM call inside a PostToolUse hook contradicts the sibling precedent this FR builds on**: FR-737's own judgement kept hooks fast, offline, and LLM-free — a haiku call adds seconds of latency, an API-key dependency, and an offline failure mode to EVERY FR edit; a hook that silently skips when the key is absent is a silent fallback (Commandment 6) | The hook is REMINDER-ONLY (one non-blocking line: "triage pending — run fr_triage"). The graph runs on demand (author or judge, judgement-start at latest). The delivery deadline is AUTHORITY, not the next keystroke — and the disposition gate already enforces exactly that deadline mechanically. No background-async execution (worktree/env hazards, purged) |
+| F2 | **No kill criterion.** The calibration ledger records upheld/overturned but nothing binds it — an unread-but-dispositioned triage section is `audit_as_ritual` with a forced signature; the gate would make the ritual mandatory forever | Binding review after the 10th judged FR carrying triage: unless the ledger shows ≥3 triage claims that changed a judgement outcome (AC kept, scope cut, witness added), gate + hook are REMOVED and this FR is re-closed CONDEMNED-analog (designed-and-disproven). Default is removal; survival must be earned in the ledger |
+| F3 | **Small-model output-shape risk is precedented** (FR-596/597: haiku returned a 658-token novel as analysis) | Schema pins: canon-pass answers and pre-mortem witnesses are single lines, hard cap 5 witnesses / 3 canon answers; zero-yield rules per FR-744. ORDERING pin: AC-02's raw read happens BEFORE the gate or hook is armed — run on a live FR, read, THEN wire (read_raw_output_first as an enforcement-sequence constraint, not just an AC) |
+| F4 | Disposition-gate scope was underspecified (a draft commit right after creation must not be blocked) | Gate fires only when the FR's Status line transitions to Judged (or later) with an undispositioned `## Triage` section present; drafts and Proposed-status edits pass freely |
+
+**Purge additions:** background/async triage execution, any hook-time
+LLM call, triage on FR edits (creation + explicit re-run only).

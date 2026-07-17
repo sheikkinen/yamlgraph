@@ -1,9 +1,11 @@
 # FR-747: Loader Error UX — the two FR-744 boundary errors name their fix
 
-**Status:** Proposed
+**Status:** Judged
 **Type:** Fix (framework ergonomics, `yamlgraph/` loader + prompt parsing)
 **Effort:** 0.5 day
 **Requested:** 2026-07-17
+**Judged:** 2026-07-17 — approved; AC-02's "load time" made precise
+against the actual loading semantics
 **First consumer / first event:** the next graph/prompt author who
 makes either known mistake; first event = their error message. The
 population is measured: the author of FR-744 hit both in one
@@ -74,3 +76,20 @@ rejected FR touches error-message territory.
 ## Questions for the human (as options, or 'none')
 
 None — two incidents, two messages, three witnesses.
+
+## Judgement (2026-07-17)
+
+**Verdict: APPROVED — 3 findings.** Verified: the exact error string
+lives at `yamlgraph/tools/python_tool.py:132`; prompt loading is
+`yamlgraph/utils/prompts.py:load_prompt` (returns the system/user
+dict; the field KeyError fires downstream); `graph lint` does not
+load prompt files today — the AC-03 lint gap is real.
+
+| # | Finding | Resolution (binding) |
+|---|---------|----------------------|
+| F1 | **Prompts load lazily** (at node execution), so AC-02's "fails at graph-load" would require eager prompt resolution at compile — a framework-semantics change (dynamic prompts_dir/fallback resolution paths exist), disproportionate to two error messages | AC-02 re-pinned: the actionable raise lives in `load_prompt` (fires before any LLM call in that node — still ahead of the FR-744 burn point within the node); the PRE-RUN guarantee belongs to `graph lint` (AC-03), which gains a prompt-resolution pass over each node's `prompt:` reference. Eager compile-time loading is PURGED |
+| F2 | The `module:` hint needs graph-dir context at the python_tool boundary, and a speculative hint on every import failure would be noise | Hint appended ONLY when `<module>.py` exists relative to the graph dir (verified file existence, never speculation); otherwise the current error stands unchanged |
+| F3 | The `messages:` detection must not fire on prompts that legitimately contain a `messages` VARIABLE or field name | Detection keys on a top-level `messages:` mapping key in the parsed YAML combined with ABSENT `system:`/`user:` — both conditions, parsed-structure level, never text grep |
+
+Scope otherwise frozen; the purge list (no `messages:` support, no
+general audit) stands.
