@@ -1,6 +1,6 @@
 # FR-744: World Now — a distill graph feeding docs/world-context.md, referenced by the board
 
-**Status:** Judged — APPROVED with corrections (see Judgement)
+**Status:** Completed
 **Type:** Feature (graph + board pointer — the first fit-tested delegation)
 **Effort:** 1 day
 **Requested:** 2026-07-17
@@ -8,6 +8,7 @@
 general-tech; the March exemplar was ecosystem-targeted); placement
 corrected by the philosopher's own relocation precedent; AC-05's
 meter was pointed at the wrong pipe
+**Completed:** 2026-07-17 — the world is fresh; witnesses below
 **First consumer / first event:** the philosopher's next graduation
 scan (`world_context_path` is its existing, currently starving input);
 second consumer: `now.py`'s briefing (`world:` pointer with age).
@@ -122,3 +123,48 @@ Placement per F4; input cap per F3.
 
 None — the feed curation list is an enforce-time editorial choice
 within F2's binding shape; everything else is pinned.
+
+## Implementation (2026-07-17)
+
+RED (4 witnesses, REQ-YG-563/CAP-205) → GREEN.
+`.chaplain/graphs/world_distill/` per F4: fetch (curated feeds:
+langchain blog, simonwillison, huggingface + HN keyword-filtered) →
+prepare (F3 cap) → distill (inline schema) → write (dated header).
+now.py world pointer with age + STALE-with-refresh-command past 14d.
+
+**Commandment 6 fired in production on run 1:** the distill node
+failed (prompt-format defect, below) and `write_context` REFUSED to
+overwrite the March world with emptiness — the exact guard whose
+absence made the daily_digest ship a polite empty digest. The guard's
+first act was protecting the file from its own author's bug.
+
+**Two consumer-UX defects found by consuming (the builders_never_call
+mechanism, live):** (1) `messages:` list format silently unsupported —
+house prompts use top-level `system:`/`user:` keys; failure mode was
+`Node distill failed: 'user'` (KeyError as UX). (2) `module: tools`
+import fails from graph dirs — the philosopher precedent uses
+`path: tools.py`. Both cost minutes here and would cost a newcomer
+hours; both are FR-shaped framework ergonomics (error messages naming
+the fix).
+
+**AC-02 raw read (against the March exemplar — clears the bar):**
+grok-build open-sourced after secret-upload backlash; Inkling 975B/41B
+MoE Apache-2.0; Kimi K3 2.8T with open weights promised 2026-07-27;
+Nemotron 3 Embed #1 on RTEB; model routing as a systems problem.
+Specific, named, dated — nothing a generated dump could produce. Open
+questions land on yamlgraph territory (sandboxing/tool-permission
+primitives in YAML; routing/eval primitives across frontier vs open
+weights; security regressions as first-class eval cases).
+
+**AC-04:** philosopher's own `load_world_context` loaded the fresh
+file (2,909 chars, header 2026-07-17) — no code change, as judged.
+
+**AC-05 economics (F5 — CLI does not log token usage; estimated from
+artifact sizes):** one distill call ≈ 5K in / 0.7K out ≈ $0.03 direct
+API. The same synthesis done inline by this agent ≈ 3–5 tool calls ×
+~740K context ≈ $2–4 at cache rates. **Delegation is ~100× cheaper**
+for this shape — the first real data point for the dogfood ledger.
+Honest caveat: CLI usage logging absent is itself a gap (LangSmith
+trace is the proper source; not wired in this run).
+
+**Deviations:** none of scope.

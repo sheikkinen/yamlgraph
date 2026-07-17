@@ -93,13 +93,21 @@ def test_ac03_copilot_chaplain_prompts_remain_system_field_only() -> None:
 
 @pytest.mark.req("REQ-YG-287")
 def test_ac03_prompt_inventory_scope_matches_graph_node_types() -> None:
-    """Only the LLM-consumed context-planner prompt is in FR-382 scope."""
+    """LLM-consumed chaplain prompts: context-planner (FR-382 caching
+    scope) + world_distill's distill prompt (FR-744, out of FR-382
+    caching scope — single uncached call by design)."""
     inventory = _collect_prompt_inventory()
-    expected_llm_prompt = {CONTEXT_PLANNER_PATH.resolve()}
+    world_distill_prompt = (
+        CHAPLAIN_GRAPHS_DIR / "world_distill" / "prompts" / "distill_world.yaml"
+    )
+    expected_llm_prompts = {
+        CONTEXT_PLANNER_PATH.resolve(),
+        world_distill_prompt.resolve(),
+    }
 
     assert (
-        inventory["llm"] == expected_llm_prompt
-    ), "Only context-planner should be llm-consumed in Chaplain graphs"
+        inventory["llm"] == expected_llm_prompts
+    ), "LLM-consumed chaplain prompts must be exactly context-planner + distill_world"
     assert (
         CONTEXT_PLANNER_PATH.resolve() not in inventory["copilot"]
     ), "context-planner must not be consumed by copilot nodes"

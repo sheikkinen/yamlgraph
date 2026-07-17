@@ -299,6 +299,19 @@ def main() -> None:
         ' --var since="1 week ago" --var repo_path=.'
     )
 
+    # FR-744: world state — the age label IS the scheduler
+    for repo in sorted(repos):
+        wc = repo / "docs/world-context.md"
+        if wc.is_file():
+            age_d = (time.time() - wc.stat().st_mtime) / 86400
+            stale = (
+                "  ⚠ STALE — refresh: yamlgraph graph run .chaplain/graphs/world_distill/graph.yaml --var date=$(date +%F)"
+                if age_d > 14
+                else ""
+            )
+            print(f"world: {wc} (updated {age_d:.0f}d ago){stale}")
+            break
+
     if args.tap:
         print("\n== tap ground truth (OTel events, FR-739) ==")
         print("\n".join(tap_ground_truth()))

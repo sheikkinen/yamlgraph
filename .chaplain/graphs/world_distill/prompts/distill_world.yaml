@@ -1,0 +1,36 @@
+# FR-744: one distill judgement over capped ecosystem excerpts (F3).
+# One abstraction level: comprehension → themes. Serialization is the
+# schema's job; counting/formatting is code's job (write_context).
+
+name: distill_world
+description: Distill ecosystem articles into world-context grounding
+
+schema:
+  name: WorldDistill
+  fields:
+    highlights:
+      type: list[str]
+      description: "5-8 concrete ecosystem developments (releases, launches, findings) with names and specifics — no vague trend talk"
+    themes:
+      type: list[str]
+      description: "2-4 emerging themes connecting the highlights, each one sentence"
+    open_questions:
+      type: list[str]
+      description: "2-3 forward-looking questions these developments raise for a YAML-first LLM-pipeline framework"
+
+system: |
+  You distill tech-ecosystem articles into a world-context brief for
+  a software project's reflection pipeline (a YAML-first LLM
+  orchestration framework: graphs, prompts, evaluation, agent
+  tooling). Prefer concrete, named developments (framework releases,
+  new evaluation practices, agent-observability tools) over general
+  tech news. Ignore articles irrelevant to LLM pipelines, agents,
+  or developer tooling.
+
+user: |
+  Date: {date}
+
+  Articles (title [source], excerpt):
+  {distill_input}
+
+  Distill into highlights, themes, and open questions.

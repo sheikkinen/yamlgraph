@@ -1,0 +1,75 @@
+# FR-744: World Distill — refresh docs/world-context.md (REQ-YG-563)
+# The pump between FR-046 (digest producer) and FR-194 (philosopher
+# consumer): curated ecosystem feeds → one distill judgement → dated file.
+# Zero-yield raises at both boundaries; distill input capped (F3).
+
+version: "1.0"
+name: world_distill
+description: Refresh docs/world-context.md — ecosystem events distilled for philosopher grounding
+
+prompts_relative: true
+prompts_dir: prompts
+
+state:
+  feeds: list           # curated ecosystem RSS feeds (default in tools.py)
+  output_path: str      # default docs/world-context.md
+  date: str             # YYYY-MM-DD for the header
+  articles: list        # fetched ecosystem articles
+  distill_input: str    # capped excerpt block (F3)
+  distilled: dict       # schema'd distill output
+  written: bool
+
+tools:
+  fetch_ecosystem:
+    type: python
+    path: tools.py
+    function: fetch_ecosystem
+    description: "Curated feeds + keyword-filtered HN; zero total yield raises"
+
+  prepare_distill_input:
+    type: python
+    path: tools.py
+    function: prepare_distill_input
+    description: "Cap articles at title + source + 500-char excerpt (F3)"
+
+  write_context:
+    type: python
+    path: tools.py
+    function: write_context
+    description: "Dated header + prose; refuses empty distill (Commandment 6)"
+
+nodes:
+  fetch:
+    type: python
+    tool: fetch_ecosystem
+    state_key: articles
+
+  prepare:
+    type: python
+    tool: prepare_distill_input
+    state_key: distill_input
+
+  distill:
+    type: llm
+    prompt: distill_world
+    variables:
+      distill_input: "{state.distill_input}"
+      date: "{state.date}"
+    state_key: distilled
+
+  write:
+    type: python
+    tool: write_context
+    state_key: written
+
+edges:
+  - from: START
+    to: fetch
+  - from: fetch
+    to: prepare
+  - from: prepare
+    to: distill
+  - from: distill
+    to: write
+  - from: write
+    to: END
