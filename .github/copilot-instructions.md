@@ -114,6 +114,21 @@ cures:
   two_strike_split: "Same guard fires twice for the same failure class after a prompt fix → the abstraction level belongs in CODE; stop rewording. Token-fidelity, verdict semantics, and every other mechanizable level eventually defeats instruction text — treat the model's output as a CLAIM and reconcile it against the source of truth at the boundary (repair within a similarity floor, reject below). Five span shapes and three verdict-inflation families fell to one boundary each; zero prompt patches held (yamlgraph FR-722/727/730; the prompt-as-subagent-contract corollary)"
   junk_drawer_cap: "Every taxonomy/enum family has 'true-of-everything' members — rubrics describing the ENCOUNTER or the SYSTEM, not the subject's stated reason (Z10, -48 clarification-of-demand, -69 other-NEC, generic-concern codes). They are detectable A PRIORI (empty or meta inclusion terms) and they eat correct answers with perfect agreement. Cap them in code at the boundary before the model votes: demote-never-drop, evidence preserved, capped entries rank behind genuine claims. Verify each cap candidate against its raw definition first — half of one proposed list turned out genuinely stateable (FR-725 found it, FR-727/730 cured it, three families in one day)"
 
+questions:
+  # The interrogative canon — questions that changed direction, with their
+  # firing moments. Answers graduate to traps/cures; the questions that
+  # produced them graduate here. A question without a firing moment is a
+  # library, not a questioner (2026-07-17 introspection arc; every entry
+  # recurred and killed or redirected real work).
+  would_you_use_this: "MOMENT: any proposal. Names the first consumer and first event; an empty trigger list is growth_as_default wearing an architecture costume (killed the watcher-subscription FR in conversation — the cheapest kill rung)"
+  does_the_platform_already_do_this: "MOMENT: before building any approximation of platform behavior. One bundle/source grep beats a week of prediction (PreCompact existed while we built ceiling models; the docs are a lossy summary of the vendor's intent)"
+  who_reads_this_when: "MOMENT: shipping any view, artifact, or signal. Name the rung, the reader, the moment — else it is archived at birth (fr-board's only reader was its own generator)"
+  what_does_the_raw_record_say: "MOMENT: before any metric, model, or verdict. cat beats instrumentation (Scripture: read_raw_output_first — restated here as the question form)"
+  are_the_witnesses_one_phenomenon: "MOMENT: fitting any model to field data. A clean calibration set can carry a wrong curve (five valid compaction witnesses broke the single-ceiling model)"
+  does_the_tool_fit_or_merely_exist: "MOMENT: any dogfooding or adoption push. A generic affordance sits unused; fit to a named recurring task creates the consumer (MCP registration vs world_distill)"
+  where_is_the_repo_boundary: "MOMENT: any artifact that aggregates across trees. Committed state must not embed another repo's working tree (fr-board F7; workspace_is_not_boundary's question form)"
+  what_would_the_successor_need: "MOMENT: ending any arc. The amnesia is scheduled; a doc addressed to 'whoever' is addressed to no one (MAP.md's do-not-re-derive section)"
+
 process:
   # Workflow patterns
   graduation: "Heuristic appears twice → create FR; confirmed recurrence → graduate to Scripture"
