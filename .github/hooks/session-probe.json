@@ -46,6 +46,62 @@
         "command": ".github/hooks/scripts/session-probe.sh",
         "timeout": 5
       }
+    ],
+    "Stop": [
+      {
+        "type": "command",
+        "command": ".github/hooks/scripts/session-probe.sh",
+        "timeout": 5
+      }
+    ],
+    "SubagentStart": [
+      {
+        "type": "command",
+        "command": ".github/hooks/scripts/session-probe.sh",
+        "timeout": 5
+      }
+    ],
+    "SubagentStop": [
+      {
+        "type": "command",
+        "command": ".github/hooks/scripts/session-probe.sh",
+        "timeout": 5
+      }
+    ],
+    "PermissionRequest": [
+      {
+        "type": "command",
+        "command": ".github/hooks/scripts/session-probe.sh",
+        "timeout": 5
+      }
+    ],
+    "Notification": [
+      {
+        "type": "command",
+        "command": ".github/hooks/scripts/session-probe.sh",
+        "timeout": 5
+      }
+    ],
+    "TeammateIdle": [
+      {
+        "type": "command",
+        "command": ".github/hooks/scripts/session-probe.sh",
+        "timeout": 5
+      }
+    ],
+    "TaskCreated": [
+      {
+        "type": "command",
+        "command": ".github/hooks/scripts/session-probe.sh",
+        "timeout": 5
+      }
+    ],
+    "TaskCompleted": [
+      {
+        "type": "command",
+        "command": ".github/hooks/scripts/session-probe.sh",
+        "timeout": 5
+      }
     ]
   }
 }

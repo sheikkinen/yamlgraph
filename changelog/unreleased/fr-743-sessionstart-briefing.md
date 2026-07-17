@@ -11,4 +11,7 @@ scope: hooks
   to six events — **PreCompact** (the flush-before-guillotine moment),
   PostCompact (mechanical compaction-witness recording), and
   PostToolUseFailure, all found in the runtime bundle and absent from
-  our hooks documentation.
+  our hooks documentation. A2: the canonical enums located — **16 hook
+  events across two subsystems** (Stop, SubagentStart/Stop,
+  TeammateIdle, TaskCreated/Completed, PermissionRequest, Notification
+  …) vs 3 documented; the probe now registers all 14 non-tool events.

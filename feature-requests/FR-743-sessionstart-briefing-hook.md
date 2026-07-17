@@ -162,3 +162,29 @@ marginal-cost argument, applied again). Consequences if they fire:
   compactions.jsonl (cures the poll-gated harvest).
 - Distill-at-compaction (FR-742 seed) gains its mechanism.
 Each is its own FR once the probe returns verdicts.
+
+## Amendment A2 (2026-07-17): the canonical enums found — 16 events, probe completed
+
+Third grep found the canonical event arrays whole; two hook
+subsystems:
+
+```
+["PreToolUse","PostToolUse","Notification","UserPromptSubmit","SessionStart",
+ "SessionEnd","Stop","SubagentStop","PreCompact","PostCompact","TeammateIdle",
+ "TaskCreated","TaskCompleted"]
+["PreToolUse","PostToolUse","PostToolUseFailure","PermissionRequest",
+ "UserPromptSubmit","Stop","SubagentStart","SubagentStop","PreCompact",
+ "SessionStart","SessionEnd","Notification"]
+```
+
+Union = 16 events; our README documented 3. Probe now registers all
+14 non-Pre/PostToolUse events (the two tool events are already
+production hooks). Strategic notes for post-verdict FRs:
+- **Stop** (turn-end) is a better Distill moment than SessionEnd —
+  fires while reflection material is freshest, every turn.
+- **SubagentStart/Stop**: the delegation lifecycle, observable — the
+  dogfood metric's event source.
+- **TeammateIdle/TaskCreated/TaskCompleted**: a native task/teammate
+  orchestration surface — the CSAP Planner/Judge/Enforcer
+  coordination seam, platform-level.
+- **PermissionRequest**: hook into permission decisions.

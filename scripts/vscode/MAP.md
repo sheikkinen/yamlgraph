@@ -67,15 +67,16 @@ this file when territory changes state (dark → probed → instrumented).
    sentinel files (rung 1, per-session-id targeting — the FR-438
    arm-then-deliver pattern generalizes from reasoning flags to event
    envelopes) and SessionStart (FR-743: probe + fail-open briefing
-   SHIPPED 2026-07-17; bundle grep found SessionStart 76 refs plus two
-   undocumented events — UserPromptSubmit 43, **SessionEnd 28 = the
-   diary-debt moment**, both registered in the probe; second grep
-   2026-07-17 found THREE more: **PreCompact** (the
-   flush-before-guillotine moment — supersedes predictive altimeter
-   protection if it fires), **PostCompact** (mechanical witness
-   recording), PostToolUseFailure — all six now in the probe; firing
-   verdicts pend the first fresh session). No seam pushes between
-   tool calls; delivery is at tool-call boundaries or session start.
+   SHIPPED 2026-07-17). Bundle greps found the CANONICAL EVENT ENUMS:
+   **16 hook events** across two subsystems vs 3 in our README —
+   incl. **PreCompact/PostCompact** (flush-before-guillotine +
+   mechanical witness recording), **Stop** (turn-end — the freshest
+   Distill moment), **SubagentStart/Stop** (delegation lifecycle),
+   **TeammateIdle/TaskCreated/TaskCompleted** (native task
+   orchestration), PermissionRequest, Notification,
+   PostToolUseFailure. All in the probe; firing verdicts pend the
+   first fresh session. No seam pushes between tool calls; delivery
+   is at tool-call boundaries or session start.
 
 ## Calibration facts (do not re-derive)
 
