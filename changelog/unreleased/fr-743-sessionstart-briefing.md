@@ -15,3 +15,7 @@ scope: hooks
   events across two subsystems** (Stop, SubagentStart/Stop,
   TeammateIdle, TaskCreated/Completed, PermissionRequest, Notification
   …) vs 3 documented; the probe now registers all 14 non-tool events.
+- A3: probe reads full stdin (head -c truncation broke JSON on
+  long prompts). Live telemetry: hooks load WITHOUT restart - 46
+  UserPromptSubmit firings from 4 running sessions; stdin carries
+  prompt + transcript_path.

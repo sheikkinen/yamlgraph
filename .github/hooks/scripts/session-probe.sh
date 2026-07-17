@@ -6,7 +6,7 @@
 REPO="$(cd "$(dirname "$0")/../../.." 2>/dev/null && pwd)" || exit 0
 LOG="$REPO/.github/hooks/logs/audit.jsonl"
 mkdir -p "$(dirname "$LOG")" 2>/dev/null
-STDIN=$(cat 2>/dev/null | head -c 4000)
+STDIN=$(cat 2>/dev/null)  # full read: truncation broke JSON on long prompts (4 unparsed records, 2026-07-17)
 PY="$REPO/.venv/bin/python"; [ -x "$PY" ] || PY="$(command -v python3)"
 if [ -n "$PY" ]; then
   "$PY" - "$STDIN" >> "$LOG" 2>/dev/null <<'EOF' || true
