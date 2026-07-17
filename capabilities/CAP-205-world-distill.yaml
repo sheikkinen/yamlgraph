@@ -1,0 +1,26 @@
+id: CAP-205
+name: World Distill Graph
+description: >
+  Doctrine-infrastructure graph (.chaplain/graphs/world_distill) that
+  refreshes docs/world-context.md — the philosopher's world-grounding
+  input, stale since 2026-03-13. Curated ecosystem feeds (RSS + HN
+  keyword-filtered) → single distill LLM node with inline schema →
+  dated markdown file. Zero-yield raises at both boundaries
+  (Commandment 6); distill input capped at title + source + 500-char
+  excerpt per article (F3).
+modules:
+  - .chaplain/graphs/world_distill
+requirements:
+  - id: REQ-YG-563
+    description: >
+      world_distill graph: fetch from curated ecosystem feed config,
+      per-feed failure tolerated but zero total yield raises ValueError;
+      prepare_distill_input caps each article at title + source +
+      500-char excerpt; distill LLM node uses inline schema (highlights,
+      themes, open_questions); write_context renders dated header
+      ("Last updated: YYYY-MM-DD") + prose sections and REFUSES an
+      empty distill result. now.py displays the world pointer with age
+      and STALE label past 14 days.
+    modules:
+      - .chaplain/graphs/world_distill
+fr: FR-744
