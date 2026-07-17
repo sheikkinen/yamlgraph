@@ -1,9 +1,13 @@
 # FR-744: World Now — a distill graph feeding docs/world-context.md, referenced by the board
 
-**Status:** Proposed
+**Status:** Judged — APPROVED with corrections (see Judgement)
 **Type:** Feature (graph + board pointer — the first fit-tested delegation)
 **Effort:** 1 day
 **Requested:** 2026-07-17
+**Judged:** 2026-07-17 — source-fit gap measured (donor feeds are
+general-tech; the March exemplar was ecosystem-targeted); placement
+corrected by the philosopher's own relocation precedent; AC-05's
+meter was pointed at the wrong pipe
 **First consumer / first event:** the philosopher's next graduation
 scan (`world_context_path` is its existing, currently starving input);
 second consumer: `now.py`'s briefing (`world:` pointer with age).
@@ -91,3 +95,30 @@ mechanical.
 
 None — both consumers are named and wired; cadence deliberately
 deferred to the staleness label per the two-strike rule.
+
+## Judgement (2026-07-17)
+
+**Verdict: APPROVED — with the consumer's actual contract measured
+and the meter re-aimed.**
+
+| # | Finding | Resolution (binding) |
+|---|---------|----------------------|
+| F1 | **The philosopher SLURPS the file** (measured: `load_world_context` returns raw text under `world_context`; no parsing). Format coupling is soft — the FR's "format the philosopher shares" overstates the contract | Schema applies to the distill NODE's output envelope only (one_law at the LLM boundary); the FILE contract is just: dated header + prose. AC-01 scope reduced accordingly |
+| F2 | **Source fit gap.** The March exemplar's value was ecosystem-targeted (LangGraph releases, LangChain posts, LangSmith case studies); the donor feeds are general-tech (HN top, lobste.rs, dev.to) — a distill over those yields tech-news noise, not grounding for Scripture graduation. FR-046's original scope was explicitly "AI frameworks, LangGraph, Python ecosystem" | Feed list becomes curated ecosystem CONFIG (graph var / data file): framework blogs' RSS + HN filtered by topics; the `websearch` extra (exists in pyproject) is the recorded two-strike escalation if RSS curation can't reach exemplar quality. **AC-02's raw read judges grounding fitness against the March exemplar** — could this content have informed a graduation reflection? — not mere production |
+| F3 | 50 articles × full fetched content into one distill call is a bloated prompt for a themes-level output | Distill input = title + source + ≤500-char excerpt per article, one call. Full-content fetch stays for the excerpt source only |
+| F4 | **Placement: the philosopher already took this exact journey** — FR-196 relocated it FROM `examples/` TO `.chaplain/graphs/` because it is working doctrine infrastructure, not a demo | `​.chaplain/graphs/world_distill/` from birth; skip the examples detour whose correction is already in the git history |
+| F5 | **AC-05's meter is aimed at the wrong pipe**: graph runs bill the Anthropic API directly — the OTel tap sees only Copilot editor sessions and will record nothing | AC-05 reworded: cost from the run's own usage output / LangSmith trace, compared against the inline-agent estimate (≈740K-context tool-call pricing). The comparison is the point, not the instrument |
+
+**Purge confirmations:** daily_digest fixes, email/HTML/deploy,
+scheduling, MCP registration — all stay out.
+
+**Scope frozen:** AC-01 (distill envelope schema + zero-yield raise +
+dated header, F1-reduced) → AC-02 (real run; raw read judged against
+the March exemplar per F2) → AC-03 (now.py pointer + STALE) → AC-04
+(philosopher smoke) → AC-05 (economics from run output per F5).
+Placement per F4; input cap per F3.
+
+### Questions for the human (as options, or 'none')
+
+None — the feed curation list is an enforce-time editorial choice
+within F2's binding shape; everything else is pinned.
