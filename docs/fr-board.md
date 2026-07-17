@@ -92,6 +92,7 @@
 | FR-718 | Judged | yamlgraph |  | FR-718-edge-compiler-decomposition.md |
 | FR-731 | Judged | yamlgraph |  | FR-731-webllm-browser-prompt-demo-spike.md |
 | FR-732 | Judged | yamlgraph |  | FR-732-output-schema-parity-enum-constraints.md |
+| FR-743 | Judged | yamlgraph |  | FR-743-sessionstart-briefing-hook.md |
 | FR-094 | Approved | yamlgraph |  | FR-094-memory-node.md |
 | FR-095 | Approved | yamlgraph |  | FR-095-doc-staleness-monitor.md |
 | FR-096 | Approved | yamlgraph |  | FR-096-fr-template-demo-plan.md |
@@ -186,7 +187,6 @@
 | FR-701 | Proposed | yamlgraph |  | FR-701-capability-registry-consistency-gate.md |
 | FR-728 | Proposed | yamlgraph |  | FR-728-session-safe-release-commit-hygiene.md |
 | FR-729 | Proposed | yamlgraph |  | FR-729-landing-page-metrics-generated.md |
-| FR-743 | Proposed | yamlgraph |  | FR-743-sessionstart-briefing-hook.md |
 | FR-078 | In Progress | yamlgraph |  | FR-078-relocate-project-tests.md |
 | FR-100 | In Progress | yamlgraph |  | FR-100-yamlgraph-development-pipeline-ebook.md |
 | FR-169 | In Progress | yamlgraph |  | FR-169-enforce-reflexion-loop.md |
@@ -403,7 +403,7 @@ graph TD
     FR-732["FR-732 Judged"]
     FR-735["FR-735 In Progress"]
     FR-736["FR-736 In Progress"]
-    FR-743["FR-743 Proposed"]
+    FR-743["FR-743 Judged"]
     FR-081 --> FR-082
     FR-731 --> FR-735
     FR-731 --> FR-736

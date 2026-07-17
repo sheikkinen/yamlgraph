@@ -1,9 +1,12 @@
 # FR-743: SessionStart Briefing Hook — the situation board becomes structural
 
-**Status:** Proposed
+**Status:** Judged — APPROVED (see Judgement)
 **Type:** Enhancement (agent-facing enforcement, `.github/hooks/`)
 **Effort:** 0.5–1 day (including the platform-contract probe)
 **Requested:** 2026-07-17
+**Judged:** 2026-07-17 — bundle probe: SessionStart present in the
+runtime (76 refs); TWO undocumented events found (UserPromptSubmit,
+SessionEnd — the diary-debt moment); probe widened, scope held
 **Spawned by:** the events-to-agent seam research (2026-07-16, MAP.md
 seam 4): three delivery seams proven or mapped; SessionStart is the
 declared-but-unused one — the natural briefing moment. Every FR-741/742
@@ -89,3 +92,30 @@ precisely before any briefing has been read.
 None — AC-00's probe answers the only open question (platform
 behavior), and the fallback path is specified for both probe
 outcomes.
+
+## Judgement (2026-07-17)
+
+**Verdict: APPROVED — with the platform contract measured as far as a
+bundle grep reaches, and the probe scope widened by what the grep
+found.**
+
+| # | Finding | Resolution (binding) |
+|---|---------|----------------------|
+| F1 | **The runtime knows SessionStart** — 76 occurrences in the built-in extension bundle (alongside PreToolUse 87 / PostToolUse 131). Existence ≠ wiring: whether our hook-config schema reaches it and where stdout lands remains unmeasured | AC-00 stands as the design gate; the bundle evidence upgrades the prior from "documented in our own README" to "present in the runtime". The fallback (first-PreToolUse detection) stays specified |
+| F2 | **The probe found two undocumented events: `UserPromptSubmit` (43) and `SessionEnd` (28).** Our hooks README's event table is incomplete — prior art lives in the bundle, not our docs. SessionEnd is *the diary-debt moment*: FR-742 measured that sessions die exactly when reflection is due; a SessionEnd hook is the structural answer to that finding | AC-00 probes **all three events in one config** (marginal cost ≈ zero: one probe script, three registrations, one line each to audit.jsonl). Scope stays SessionStart-briefing; SessionEnd flush/diary-warning and UserPromptSubmit are RECORDED as territory in MAP.md and left to their own FRs — this judgement refuses the scope-creep its own measurement invites |
+| F3 | ≤15-line budget is asserted, not derived | Keep as the F2-of-FR-737 default (silence over noise); the receipt witness (AC-02) is the empirical check — if the witnessed session skims past the briefing, the budget was still too fat |
+| F4 | `now.py --brief` does not exist yet; the briefing script shelling into a 200-line board would blow the 5s/15-line budget | AC-01 includes `--brief` as a tested now.py mode (headline counts only: hazards, orphans+debts count, altimeter top line, board pointer). Fail-open pinned by test |
+| F5 | Hook JSON files load at session start — a config error could break ALL hooks, not just this one | The probe config ships as a separate JSON file (isolation by file, matching pre-command-guard.json precedent); AC-03's kill-test covers script failure AND malformed-config rollback |
+
+**Purge confirmations:** rung-1 sentinel envelope, detector daemon,
+LLM, deny semantics — all stay out. SessionEnd/UserPromptSubmit
+explicitly out (F2).
+
+**Scope frozen:** AC-00 (three-event probe, verdict recorded here) →
+AC-01 (`now.py --brief` + briefing script, RED-first, fail-open) →
+AC-02 (fresh-session receipt witness) → AC-03 (failure isolation) →
+AC-04 (MAP.md seam update).
+
+### Questions for the human (as options, or 'none')
+
+None — F2's discoveries are recorded, not adopted; no authority gaps.

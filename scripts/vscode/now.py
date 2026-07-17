@@ -225,6 +225,13 @@ def main() -> None:
             )
             print(f"\nplan state: {board} ({max(n_rows - 1, 0)} active rows)")
 
+    # deep history is a graph away (examples/demos/recap): narrative recap
+    # of any window — workstreams + orphan commits, one LLM judgement
+    print(
+        "deep history: yamlgraph graph run examples/demos/recap/graph.yaml"
+        ' --var since="1 week ago" --var repo_path=.'
+    )
+
     if args.tap:
         print("\n== tap ground truth (OTel events, FR-739) ==")
         print("\n".join(tap_ground_truth()))
