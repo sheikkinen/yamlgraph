@@ -66,9 +66,12 @@ this file when territory changes state (dark → probed → instrumented).
    push, rung 2, zero infrastructure. Sibling seams: PreToolUse
    sentinel files (rung 1, per-session-id targeting — the FR-438
    arm-then-deliver pattern generalizes from reasoning flags to event
-   envelopes) and the declared-but-unused SessionStart hook (briefing
-   moment). No seam pushes between tool calls; delivery is at
-   tool-call boundaries or session start.
+   envelopes) and SessionStart (FR-743: probe + fail-open briefing
+   SHIPPED 2026-07-17; bundle grep found SessionStart 76 refs plus two
+   undocumented events — UserPromptSubmit 43, **SessionEnd 28 = the
+   diary-debt moment**, both registered in the probe; firing verdict
+   pends the first fresh session). No seam pushes between tool calls;
+   delivery is at tool-call boundaries or session start.
 
 ## Calibration facts (do not re-derive)
 

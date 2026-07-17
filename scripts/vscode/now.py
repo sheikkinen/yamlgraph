@@ -193,11 +193,78 @@ def _print_repo_state(
     return hazards
 
 
+def brief_lines() -> list[str]:
+    """FR-743 AC-01: ≤15-line headline briefing for SessionStart.
+
+    Fail-open at every seam: any data-source failure degrades the
+    briefing instead of killing it (a briefing hook that blocks
+    session start is worse than no briefing).
+    """
+    lines = [
+        "== session-start briefing (FR-743; full board: python3 scripts/vscode/now.py --tap) =="
+    ]
+    window_s = 2 * 3600
+    try:
+        sessions = live_sessions(window_s)
+        repos = find_repos({s["folder"] for s in sessions if s["folder"]})
+        staged_repos = [
+            r.name for r in repos if _git(r, "diff", "--cached", "--name-only").strip()
+        ]
+        hazard = (
+            f"⚠ staged work in {', '.join(staged_repos)} — one_session_one_repo"
+            if staged_repos and len(sessions) > 1
+            else "no interleave hazard"
+        )
+        lines.append(f"live sessions: {len(sessions)}  |  {hazard}")
+    except Exception:
+        lines.append("live sessions: unavailable")
+        repos = set()
+    try:
+        import todos
+
+        all_todos = todos.load_todos()
+        dispositions = todos.load_dispositions()
+        n_orphans = n_debts = 0
+        for sid, items in all_todos.items():
+            _, mtime = todos.session_meta(sid)
+            if mtime and __import__("time").time() - mtime <= todos.LIVE_WINDOW_S:
+                continue
+            for t in items or []:
+                if t.get("status") == "completed":
+                    continue
+                if todos.drop_key(sid, t.get("title", "")) in dispositions:
+                    continue
+                if todos.is_diary_class(t.get("title", "")):
+                    n_debts += 1
+                else:
+                    n_orphans += 1
+        lines.append(f"orphaned intentions: {n_orphans}  |  diary debts: {n_debts}")
+    except Exception:
+        lines.append("intentions: unavailable")
+    try:
+        import tap
+
+        t_sessions = tap.join_sessions(tap.load_events(tap.DEFAULT_PATH))
+        alti = tap.altimeter_lines(t_sessions)
+        lines.extend(alti[:4])
+    except Exception:
+        lines.append("altimeter: unavailable (tap not armed?)")
+    for repo in sorted(repos):
+        if (repo / "docs/fr-board.md").is_file():
+            lines.append(f"plan state: {repo / 'docs/fr-board.md'}")
+            break
+    return lines[:15]
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--window", type=float, default=8.0, help="hours of 'now'")
     ap.add_argument("--tap", action="store_true", help="OTel ground truth (FR-739)")
+    ap.add_argument("--brief", action="store_true", help="≤15-line briefing (FR-743)")
     args = ap.parse_args()
+    if args.brief:
+        print("\n".join(brief_lines()))
+        return
     window_s = args.window * 3600
 
     sessions = live_sessions(window_s)

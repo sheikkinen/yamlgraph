@@ -1,12 +1,14 @@
 # FR-743: SessionStart Briefing Hook — the situation board becomes structural
 
-**Status:** Judged — APPROVED (see Judgement)
+**Status:** Enforced — probe verdict + receipt witness pend the first fresh session
 **Type:** Enhancement (agent-facing enforcement, `.github/hooks/`)
 **Effort:** 0.5–1 day (including the platform-contract probe)
 **Requested:** 2026-07-17
 **Judged:** 2026-07-17 — bundle probe: SessionStart present in the
 runtime (76 refs); TWO undocumented events found (UserPromptSubmit,
 SessionEnd — the diary-debt moment); probe widened, scope held
+**Enforced:** 2026-07-17 — AC-01/03/04 witnessed; AC-00/02 armed,
+awaiting a fresh session (see Implementation)
 **Spawned by:** the events-to-agent seam research (2026-07-16, MAP.md
 seam 4): three delivery seams proven or mapped; SessionStart is the
 declared-but-unused one — the natural briefing moment. Every FR-741/742
@@ -119,3 +121,28 @@ AC-04 (MAP.md seam update).
 ### Questions for the human (as options, or 'none')
 
 None — F2's discoveries are recorded, not adopted; no authority gaps.
+
+## Implementation (2026-07-17)
+
+RED (4 witnesses) → GREEN. `now.py --brief` (≤15 lines, per-seam
+degradation — live run produced 8 lines incl. a real interleave
+warning and the altimeter top); `session-briefing.sh` (fail-open:
+exit 0 with sabotaged PATH, pinned by test); `session-probe.sh`
+(stdin schema → audit.jsonl + stdout visibility marker; self-tested
+with fixture stdin — log line and marker both correct);
+`session-probe.json` registers SessionStart (probe + briefing),
+UserPromptSubmit, SessionEnd — isolated file per judgement F5.
+
+**Armed, not yet witnessed (requires a fresh session — human
+action):**
+- AC-00 verdict: which events fire, stdin schema per event, and
+  whether the stdout marker/briefing is agent-visible. Read
+  `.github/hooks/logs/audit.jsonl` for `"probe": "FR-743"` lines
+  after opening a new session.
+- AC-02 receipt: the fresh session's transcript referencing briefing
+  content it wasn't told by the human.
+
+On negative visibility verdict: fall back to first-PreToolUse
+delivery per the judged design; the probe stays until all three
+events have a recorded verdict, then unregisters (it is an
+experiment, not a meter — AC-05 discipline from FR-739).
