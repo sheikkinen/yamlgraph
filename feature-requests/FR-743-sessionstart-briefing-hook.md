@@ -146,3 +146,19 @@ On negative visibility verdict: fall back to first-PreToolUse
 delivery per the judged design; the probe stays until all three
 events have a recorded verdict, then unregisters (it is an
 experiment, not a meter — AC-05 discipline from FR-739).
+
+## Amendment A1 (2026-07-17): probe widened to six events
+
+Second bundle grep (prompted by "is there a hook for compact?"):
+**PreCompact** (10 refs), **PostCompact** (7), **PostToolUseFailure**
+(17) also exist in the runtime — three more events our hooks README
+never listed. Registered in the same probe config (the F2
+marginal-cost argument, applied again). Consequences if they fire:
+- **PreCompact** = the flush-before-guillotine moment — supersedes
+  the altimeter's *predictive* protection (ceiling models, ETA) with
+  an exact platform event; the ceiling-that-wasn't-one-thing problem
+  (2026-07-17 diary) becomes moot for the protective use case.
+- **PostCompact** = mechanical witness recording for
+  compactions.jsonl (cures the poll-gated harvest).
+- Distill-at-compaction (FR-742 seed) gains its mechanism.
+Each is its own FR once the probe returns verdicts.

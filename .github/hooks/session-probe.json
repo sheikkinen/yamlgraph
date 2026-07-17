@@ -25,6 +25,27 @@
         "command": ".github/hooks/scripts/session-probe.sh",
         "timeout": 5
       }
+    ],
+    "PreCompact": [
+      {
+        "type": "command",
+        "command": ".github/hooks/scripts/session-probe.sh",
+        "timeout": 5
+      }
+    ],
+    "PostCompact": [
+      {
+        "type": "command",
+        "command": ".github/hooks/scripts/session-probe.sh",
+        "timeout": 5
+      }
+    ],
+    "PostToolUseFailure": [
+      {
+        "type": "command",
+        "command": ".github/hooks/scripts/session-probe.sh",
+        "timeout": 5
+      }
     ]
   }
 }

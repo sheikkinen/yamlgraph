@@ -69,9 +69,13 @@ this file when territory changes state (dark → probed → instrumented).
    envelopes) and SessionStart (FR-743: probe + fail-open briefing
    SHIPPED 2026-07-17; bundle grep found SessionStart 76 refs plus two
    undocumented events — UserPromptSubmit 43, **SessionEnd 28 = the
-   diary-debt moment**, both registered in the probe; firing verdict
-   pends the first fresh session). No seam pushes between tool calls;
-   delivery is at tool-call boundaries or session start.
+   diary-debt moment**, both registered in the probe; second grep
+   2026-07-17 found THREE more: **PreCompact** (the
+   flush-before-guillotine moment — supersedes predictive altimeter
+   protection if it fires), **PostCompact** (mechanical witness
+   recording), PostToolUseFailure — all six now in the probe; firing
+   verdicts pend the first fresh session). No seam pushes between
+   tool calls; delivery is at tool-call boundaries or session start.
 
 ## Calibration facts (do not re-derive)
 
