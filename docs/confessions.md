@@ -1575,3 +1575,9 @@ The ID ranges are:
 - **Code**: S324
 - **Sin**: `hashlib.sha1` for the orphan drop key.
 - **Penance**: content addressing of todo titles for dedupe, zero security role; sha1's 8-hex prefix is stable, short, and printable — collision resistance is irrelevant at n≈30 titles.
+
+### CONF-396
+- **File**: [scripts/vscode/tests/test_brief.py](../scripts/vscode/tests/test_brief.py#L22)
+- **Code**: E402
+- **Sin**: `import now` after a `sys.path.insert` — module-level import not at top.
+- **Penance**: script-adjacent test outside the installable package; path bootstrap must precede the import (CONF-392/393/394 idiom).
