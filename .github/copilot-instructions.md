@@ -129,6 +129,19 @@ questions:
   where_is_the_repo_boundary: "MOMENT: any artifact that aggregates across trees. Committed state must not embed another repo's working tree (fr-board F7; workspace_is_not_boundary's question form)"
   what_would_the_successor_need: "MOMENT: ending any arc. The amnesia is scheduled; a doc addressed to 'whoever' is addressed to no one (MAP.md's do-not-re-derive section)"
 
+generative_methods:
+  # The canon covers precedented moments; these PRODUCE questions at
+  # unprecedented ones — mechanized taste, coarse-grained. Several already
+  # exist as graphs (found unconsumed 2026-07-17: builders_never_call,
+  # ideation edition). Fire the method at its moment; don't run all
+  # methods everywhere (ritual risk).
+  ideal_result_backwards: "MOMENT: FR authoring, before Proposed Solution. State the ideal end state, derive the minimal path back — the north-star discipline (FR-739 'agent knows what's ongoing and when the guillotine comes'; FR-744 'world now'). The recurring human contribution not yet mechanized"
+  five_whys: "MOMENT: defect investigation. Graph exists: examples/demos/five-whys (root-cause chains; pairs with investigation_before_fix)"
+  forced_opposite: "MOMENT: judgement. State the strongest case AGAINST before granting authority — the challenge gate (FR-195) is this method scoped to graduations; the judge skeleton inherits it repo-wide"
+  value_proposition: "MOMENT: FR filing. For whom / what pain / versus what alternative — the full form of the first-consumer line; an FR that can't complete the sentence is growth_as_default"
+  pre_mortem: "MOMENT: before enforcing a risky FR. 'It shipped and failed — what broke?' writes the missing witness list (the phantom-witness and F7 classes were both pre-mortemable)"
+  capability_constraint_matrix: "MOMENT: research (Commandment 1). Graph exists: examples/demos/innovation_matrix"
+
 process:
   # Workflow patterns
   graduation: "Heuristic appears twice → create FR; confirmed recurrence → graduate to Scripture"
