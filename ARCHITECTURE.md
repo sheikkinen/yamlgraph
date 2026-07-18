@@ -524,6 +524,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 207 | CAP-207 Loader Error UX | `utils/prompts.check_messages_contract`, `tools/python_tool`, `linter/checks_loader_ux` | REQ-YG-565 |
 | 208 | CAP-208 FR Atlas Onboarding Demo | `examples/demos/fr-atlas/nodes/collect.py`, `examples/demos/fr-atlas/nodes/coverage.py`, `examples/demos/fr-atlas/nodes/render.py` | REQ-YG-566 |
 | 209 | CAP-209 Root Package Seams | `yamlgraph/a2a`, `yamlgraph/export`, `yamlgraph/compile` | REQ-YG-567 |
+| 210 | CAP-210 Edge Shape Classification | `yamlgraph/compile/edge_compiler.py` | REQ-YG-568 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -2600,6 +2601,16 @@ Layer 2's implicit module clusters are named packages with enforced boundaries: 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-567 | Root-package seams (FR-717). yamlgraph.a2a, yamlgraph.export and yamlgraph.compile exist as packages holding their clusters (module names preserved in compile/); .importlinter carries a2a-seam, export-seam and compile-seam forbidden contracts plus the collapsed three-layer contract; lint-imports keeps >= 5 contracts; root yamlgraph/*.py module count <= 17; deep import paths updated repo-wide (code, tests, capabilities, confessions, hedging allowlist, docs). | `yamlgraph/a2a`, `yamlgraph/export`, `yamlgraph/compile`, `tests/unit/test_fr717_seams.py` |
+
+### 210. CAP-210 Edge Shape Classification
+
+Edge compilation is classify-then-dispatch: classify_edge names every edge form as an explicit EdgeShape (START, PARALLEL_FANOUT, MAP_TO_MAP, TO_MAP, FROM_MAP, ROUTER_CONDITIONAL, EXPRESSION, PLAIN — PLAIN is a member, not a fall-through claim), and per-shape compilers are registered in a dispatch table. An unnameable shape (fan-out list with a condition but no type: conditional — previously compiled with the condition silently dropped) raises naming the edge. The condition-map assembly for router and expression edges is extracted as pure functions, unit-testable without a compiled graph.
+
+**Feature Request:** FR-718
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-568 | Edge-shape classification (FR-718). classify_edge is pure and exhaustive over the EdgeShape enum (member set asserted, so a new shape must register itself); classification order preserves the FR-467/FR-234/FR-060 semantics (conditional-to-map is EXPRESSION; map-to-map ignores condition; interrupt redirect precedes membership tests). A condition on an untyped fan-out list raises ValueError naming the edge instead of silently dropping the condition. No function in edge_compiler reaches CC 10. build_expression_route_mapping and build_router_route_mapping are pure (FR-467 sub-node routing, END always reachable, FR-211 interrupt and subgraph-interrupt redirects). | `yamlgraph/compile/edge_compiler.py`, `tests/unit/test_fr718_edge_shapes.py` |
 
 <!-- END GENERATED CAPABILITIES -->
 

@@ -1,0 +1,34 @@
+name: Edge Shape Classification
+id: CAP-210
+status: active
+fr: FR-718
+feature_request: FR-718
+description: >
+  Edge compilation is classify-then-dispatch: classify_edge names every
+  edge form as an explicit EdgeShape (START, PARALLEL_FANOUT,
+  MAP_TO_MAP, TO_MAP, FROM_MAP, ROUTER_CONDITIONAL, EXPRESSION, PLAIN —
+  PLAIN is a member, not a fall-through claim), and per-shape compilers
+  are registered in a dispatch table. An unnameable shape (fan-out list
+  with a condition but no type: conditional — previously compiled with
+  the condition silently dropped) raises naming the edge. The
+  condition-map assembly for router and expression edges is extracted
+  as pure functions, unit-testable without a compiled graph.
+modules:
+  - yamlgraph/compile/edge_compiler.py
+requirements:
+  - id: REQ-YG-568
+    description: >
+      Edge-shape classification (FR-718). classify_edge is pure and
+      exhaustive over the EdgeShape enum (member set asserted, so a new
+      shape must register itself); classification order preserves the
+      FR-467/FR-234/FR-060 semantics (conditional-to-map is EXPRESSION;
+      map-to-map ignores condition; interrupt redirect precedes
+      membership tests). A condition on an untyped fan-out list raises
+      ValueError naming the edge instead of silently dropping the
+      condition. No function in edge_compiler reaches CC 10.
+      build_expression_route_mapping and build_router_route_mapping are
+      pure (FR-467 sub-node routing, END always reachable, FR-211
+      interrupt and subgraph-interrupt redirects).
+    modules:
+      - yamlgraph/compile/edge_compiler.py
+      - tests/unit/test_fr718_edge_shapes.py
