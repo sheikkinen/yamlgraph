@@ -31,7 +31,7 @@ def _make_config(nodes=None, source_path=None):
     """Build a minimal valid GraphConfig."""
     from pathlib import Path
 
-    from yamlgraph.graph_loader import GraphConfig
+    from yamlgraph.compile.graph_loader import GraphConfig
 
     raw = {
         "nodes": nodes or {"dummy": {"prompt": "p", "state_key": "k"}},
@@ -119,10 +119,13 @@ class TestNodeCompilerCachePolicy:
     """compile_node passes CachePolicy to graph.add_node()."""
 
     @pytest.mark.req("REQ-YG-239")
-    @patch("yamlgraph.node_compiler.create_node_function", return_value=lambda s: {})
+    @patch(
+        "yamlgraph.compile.node_compiler.create_node_function",
+        return_value=lambda s: {},
+    )
     def test_llm_node_with_cache_true(self, mock_factory):
         """cache: true → add_node called with cache_policy=CachePolicy()."""
-        from yamlgraph.node_compiler import compile_node
+        from yamlgraph.compile.node_compiler import compile_node
 
         config = _make_config()
         graph = _make_graph()
@@ -146,10 +149,13 @@ class TestNodeCompilerCachePolicy:
             assert policy.ttl is None
 
     @pytest.mark.req("REQ-YG-239")
-    @patch("yamlgraph.node_compiler.create_node_function", return_value=lambda s: {})
+    @patch(
+        "yamlgraph.compile.node_compiler.create_node_function",
+        return_value=lambda s: {},
+    )
     def test_llm_node_with_cache_ttl(self, mock_factory):
         """cache: {ttl: 3600} → add_node called with CachePolicy(ttl=3600)."""
-        from yamlgraph.node_compiler import compile_node
+        from yamlgraph.compile.node_compiler import compile_node
 
         config = _make_config()
         graph = _make_graph()
@@ -176,10 +182,13 @@ class TestNodeCompilerCachePolicy:
             assert policy.ttl == 3600
 
     @pytest.mark.req("REQ-YG-239")
-    @patch("yamlgraph.node_compiler.create_node_function", return_value=lambda s: {})
+    @patch(
+        "yamlgraph.compile.node_compiler.create_node_function",
+        return_value=lambda s: {},
+    )
     def test_llm_node_without_cache(self, mock_factory):
         """No cache field → add_node called without cache_policy."""
-        from yamlgraph.node_compiler import compile_node
+        from yamlgraph.compile.node_compiler import compile_node
 
         config = _make_config()
         graph = _make_graph()
@@ -201,11 +210,13 @@ class TestNodeCompilerCachePolicy:
             assert policy is None
 
     @pytest.mark.req("REQ-YG-239")
-    @patch("yamlgraph.node_compiler.create_tool_node", return_value=lambda s: {})
+    @patch(
+        "yamlgraph.compile.node_compiler.create_tool_node", return_value=lambda s: {}
+    )
     def test_tool_node_with_cache(self, mock_factory):
         """Tool nodes also support cache policy."""
+        from yamlgraph.compile.node_compiler import compile_node
         from yamlgraph.constants import NodeType
-        from yamlgraph.node_compiler import compile_node
 
         config = _make_config()
         graph = _make_graph()
@@ -241,13 +252,13 @@ class TestResolveCachePolicy:
 
     @pytest.mark.req("REQ-YG-239")
     def test_none_returns_none(self):
-        from yamlgraph.node_compiler import resolve_cache_policy
+        from yamlgraph.compile.node_compiler import resolve_cache_policy
 
         assert resolve_cache_policy(None) is None
 
     @pytest.mark.req("REQ-YG-239")
     def test_cache_config_no_ttl(self):
-        from yamlgraph.node_compiler import resolve_cache_policy
+        from yamlgraph.compile.node_compiler import resolve_cache_policy
 
         policy = resolve_cache_policy(CacheConfig())
         assert isinstance(policy, CachePolicy)
@@ -255,7 +266,7 @@ class TestResolveCachePolicy:
 
     @pytest.mark.req("REQ-YG-239")
     def test_cache_config_with_ttl(self):
-        from yamlgraph.node_compiler import resolve_cache_policy
+        from yamlgraph.compile.node_compiler import resolve_cache_policy
 
         policy = resolve_cache_policy(CacheConfig(ttl=600))
         assert isinstance(policy, CachePolicy)

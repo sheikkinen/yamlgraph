@@ -117,7 +117,7 @@ class TestDemosLoadable:
     @pytest.mark.req("REQ-YG-001")
     def test_demo_graph_loads(self, demo_name: str) -> None:
         """Demo graphs should load without errors."""
-        from yamlgraph.graph_loader import load_and_compile
+        from yamlgraph.compile.graph_loader import load_and_compile
 
         graph_path = EXAMPLES_DEMOS / demo_name / "graph.yaml"
         if graph_path.exists():

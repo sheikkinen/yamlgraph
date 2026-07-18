@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from yamlgraph.graph_loader import load_graph_config
+from yamlgraph.compile.graph_loader import load_graph_config
 
 
 class TestDataFilesInGraphLoader:

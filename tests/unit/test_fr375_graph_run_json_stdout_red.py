@@ -80,9 +80,9 @@ def test_ac02_parser_accepts_json_flag_default_false() -> None:
 @patch("yamlgraph.cli.graph_commands._setup_timeout", return_value=None)
 @patch("yamlgraph.cli.graph_commands._teardown_timeout")
 @patch("yamlgraph.cli.graph_commands._build_run_config")
-@patch("yamlgraph.graph_loader.get_checkpointer_for_graph")
-@patch("yamlgraph.graph_loader.compile_graph")
-@patch("yamlgraph.graph_loader.load_graph_config")
+@patch("yamlgraph.compile.graph_loader.get_checkpointer_for_graph")
+@patch("yamlgraph.compile.graph_loader.compile_graph")
+@patch("yamlgraph.compile.graph_loader.load_graph_config")
 def test_ac03_json_success_stdout_contains_only_valid_json(
     mock_load_config,
     mock_compile,
@@ -118,8 +118,8 @@ def test_ac03_json_success_stdout_contains_only_valid_json(
 @pytest.mark.req("REQ-YG-350")
 @patch("yamlgraph.cli.graph_commands._setup_timeout", return_value=None)
 @patch("yamlgraph.cli.graph_commands._teardown_timeout")
-@patch("yamlgraph.graph_loader.load_graph_config")
-@patch("yamlgraph.graph_loader.compile_graph")
+@patch("yamlgraph.compile.graph_loader.load_graph_config")
+@patch("yamlgraph.compile.graph_loader.compile_graph")
 def test_ac04_json_failure_writes_stderr_and_leaves_stdout_empty(
     mock_compile,
     mock_load_config,
@@ -148,9 +148,9 @@ def test_ac04_json_failure_writes_stderr_and_leaves_stdout_empty(
 @patch("yamlgraph.cli.graph_commands._setup_timeout", return_value=None)
 @patch("yamlgraph.cli.graph_commands._teardown_timeout")
 @patch("yamlgraph.cli.graph_commands._build_run_config")
-@patch("yamlgraph.graph_loader.get_checkpointer_for_graph")
-@patch("yamlgraph.graph_loader.compile_graph")
-@patch("yamlgraph.graph_loader.load_graph_config")
+@patch("yamlgraph.compile.graph_loader.get_checkpointer_for_graph")
+@patch("yamlgraph.compile.graph_loader.compile_graph")
+@patch("yamlgraph.compile.graph_loader.load_graph_config")
 def test_ac05_json_mode_rejects_interrupt_without_input_prompt(
     mock_load_config,
     mock_compile,
@@ -185,9 +185,9 @@ def test_ac05_json_mode_rejects_interrupt_without_input_prompt(
 @patch("yamlgraph.cli.graph_commands._setup_timeout", return_value=None)
 @patch("yamlgraph.cli.graph_commands._teardown_timeout")
 @patch("yamlgraph.cli.graph_commands._build_run_config")
-@patch("yamlgraph.graph_loader.get_checkpointer_for_graph")
-@patch("yamlgraph.graph_loader.compile_graph")
-@patch("yamlgraph.graph_loader.load_graph_config")
+@patch("yamlgraph.compile.graph_loader.get_checkpointer_for_graph")
+@patch("yamlgraph.compile.graph_loader.compile_graph")
+@patch("yamlgraph.compile.graph_loader.load_graph_config")
 def test_ac06_json_mode_emits_full_untruncated_serialized_state(
     mock_load_config,
     mock_compile,
@@ -227,9 +227,9 @@ def test_ac06_json_mode_emits_full_untruncated_serialized_state(
 @patch("yamlgraph.cli.graph_commands._setup_timeout", return_value=None)
 @patch("yamlgraph.cli.graph_commands._teardown_timeout")
 @patch("yamlgraph.cli.graph_commands._build_run_config")
-@patch("yamlgraph.graph_loader.get_checkpointer_for_graph")
-@patch("yamlgraph.graph_loader.compile_graph")
-@patch("yamlgraph.graph_loader.load_graph_config")
+@patch("yamlgraph.compile.graph_loader.get_checkpointer_for_graph")
+@patch("yamlgraph.compile.graph_loader.compile_graph")
+@patch("yamlgraph.compile.graph_loader.load_graph_config")
 def test_ac07_json_mode_preserves_import_var_merge_and_export_state_compatibility(
     mock_load_config,
     mock_compile,

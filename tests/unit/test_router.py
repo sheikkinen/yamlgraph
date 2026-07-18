@@ -7,7 +7,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from yamlgraph.graph_loader import (
+from yamlgraph.compile.graph_loader import (
     GraphConfig,
     compile_graph,
     load_graph_config,

@@ -157,7 +157,7 @@ def fake_executor(monkeypatch):
 
 def test_graph_runs_and_every_score_is_computed(fake_executor, tmp_path) -> None:
     """The full pipeline runs on the sample book and emits a typed, COMPUTED review."""
-    from yamlgraph.graph_loader import compile_graph, load_graph_config
+    from yamlgraph.compile.graph_loader import compile_graph, load_graph_config
 
     manuscript = tmp_path / "story.md"
     shutil.copyfile(SAMPLE, manuscript)
@@ -203,7 +203,7 @@ def test_graph_runs_and_every_score_is_computed(fake_executor, tmp_path) -> None
 
 def test_chapter_review_call_carries_one_body(fake_executor, tmp_path) -> None:
     """Each chapter_review LLM call is handed exactly one chapter body (K4 at runtime)."""
-    from yamlgraph.graph_loader import compile_graph, load_graph_config
+    from yamlgraph.compile.graph_loader import compile_graph, load_graph_config
 
     manuscript = tmp_path / "story.md"
     shutil.copyfile(SAMPLE, manuscript)

@@ -18,7 +18,7 @@ import pytest
 @pytest.mark.req("REQ-YG-258")
 def test_invoke_graph_exists_in_graph_loader():
     """invoke_graph is importable from graph_loader."""
-    from yamlgraph.graph_loader import invoke_graph
+    from yamlgraph.compile.graph_loader import invoke_graph
 
     assert callable(invoke_graph)
 
@@ -36,13 +36,13 @@ def test_invoke_graph_calls_pipeline():
 
     with (
         patch(
-            "yamlgraph.graph_loader.load_graph_config", return_value=mock_config
+            "yamlgraph.compile.graph_loader.load_graph_config", return_value=mock_config
         ) as mock_load,
         patch(
-            "yamlgraph.graph_loader.compile_graph", return_value=mock_sg
+            "yamlgraph.compile.graph_loader.compile_graph", return_value=mock_sg
         ) as mock_compile,
     ):
-        from yamlgraph.graph_loader import invoke_graph
+        from yamlgraph.compile.graph_loader import invoke_graph
 
         result = invoke_graph("/fake/graph.yaml", {"name": "World"})
 
@@ -63,10 +63,12 @@ def test_invoke_graph_passes_config():
     mock_sg.compile.return_value = mock_compiled
 
     with (
-        patch("yamlgraph.graph_loader.load_graph_config", return_value=MagicMock()),
-        patch("yamlgraph.graph_loader.compile_graph", return_value=mock_sg),
+        patch(
+            "yamlgraph.compile.graph_loader.load_graph_config", return_value=MagicMock()
+        ),
+        patch("yamlgraph.compile.graph_loader.compile_graph", return_value=mock_sg),
     ):
-        from yamlgraph.graph_loader import invoke_graph
+        from yamlgraph.compile.graph_loader import invoke_graph
 
         run_config = {"configurable": {"thread_id": "t1"}}
         invoke_graph("/fake/graph.yaml", {"x": "1"}, config=run_config)
@@ -86,10 +88,12 @@ def test_invoke_graph_accepts_path_object():
     mock_sg.compile.return_value = mock_compiled
 
     with (
-        patch("yamlgraph.graph_loader.load_graph_config", return_value=MagicMock()),
-        patch("yamlgraph.graph_loader.compile_graph", return_value=mock_sg),
+        patch(
+            "yamlgraph.compile.graph_loader.load_graph_config", return_value=MagicMock()
+        ),
+        patch("yamlgraph.compile.graph_loader.compile_graph", return_value=mock_sg),
     ):
-        from yamlgraph.graph_loader import invoke_graph
+        from yamlgraph.compile.graph_loader import invoke_graph
 
         result = invoke_graph(Path("/fake/graph.yaml"), {"key": "val"})
 
@@ -107,7 +111,7 @@ def test_mcp_server_delegates_to_shared_invoke_graph():
     pytest.importorskip("mcp")
 
     with patch(
-        "yamlgraph.graph_loader.invoke_graph", return_value={"greeting": "Hi"}
+        "yamlgraph.compile.graph_loader.invoke_graph", return_value={"greeting": "Hi"}
     ) as mock_invoke:
         from yamlgraph.export.mcp import _invoke_graph
 
@@ -123,7 +127,7 @@ def test_a2a_server_delegates_to_shared_invoke_graph():
     pytest.importorskip("a2a")
 
     with patch(
-        "yamlgraph.graph_loader.invoke_graph", return_value={"out": "done"}
+        "yamlgraph.compile.graph_loader.invoke_graph", return_value={"out": "done"}
     ) as mock_invoke:
         from yamlgraph.a2a.server import _invoke_graph
 

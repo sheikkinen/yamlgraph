@@ -122,7 +122,7 @@ class TestGateBlocksExecution:
         )
         with (
             patch(f"{GATE_MODULE}.lint_graph", return_value=_result([_err()])),
-            patch("yamlgraph.graph_loader.compile_graph") as mock_compile,
+            patch("yamlgraph.compile.graph_loader.compile_graph") as mock_compile,
             pytest.raises(SystemExit) as exc,
             redirect_stderr(io.StringIO()),
         ):

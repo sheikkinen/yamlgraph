@@ -85,7 +85,7 @@ class TestCopilotSubgraphVariables:
 
     def test_subgraph_copilot_receives_mapped_variables(self, tmp_path: Path) -> None:
         """Full flow: parent invokes subgraph, copilot node gets mapped variables."""
-        from yamlgraph.graph_loader import compile_graph, load_graph_config
+        from yamlgraph.compile.graph_loader import compile_graph, load_graph_config
 
         # Create subgraph with copilot node
         subgraph_dir = tmp_path / "subgraphs"
@@ -266,7 +266,7 @@ class TestEbookChapterPattern:
 
     def test_ebook_graph_structure_with_filename_in_state(self, tmp_path: Path) -> None:
         """Test the complete ebook chapter pattern with filename in state."""
-        from yamlgraph.graph_loader import compile_graph, load_graph_config
+        from yamlgraph.compile.graph_loader import compile_graph, load_graph_config
 
         # Create subgraph
         subgraph_dir = tmp_path / "subgraphs"

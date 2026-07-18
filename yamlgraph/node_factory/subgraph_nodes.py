@@ -118,7 +118,7 @@ def create_subgraph_node(
         FileNotFoundError: If subgraph YAML doesn't exist
         ValueError: If circular reference detected
     """
-    from yamlgraph.graph_loader import compile_graph, load_graph_config
+    from yamlgraph.compile.graph_loader import compile_graph, load_graph_config
 
     # Resolve path relative to parent graph file
     graph_rel_path = node_config["graph"]

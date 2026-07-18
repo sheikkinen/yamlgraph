@@ -5,7 +5,7 @@ These tests verify the fixes for issues documented in docs/open-issues.md.
 
 import pytest
 
-from yamlgraph.graph_loader import load_graph_config
+from yamlgraph.compile.graph_loader import load_graph_config
 
 # =============================================================================
 # Issue 2: Conditions Block is Dead Config
@@ -65,7 +65,7 @@ edges:
         Currently graph_loader.py sets graph._entry_point for testing.
         This test shows how to test entry point via behavior instead.
         """
-        from yamlgraph.graph_loader import load_and_compile
+        from yamlgraph.compile.graph_loader import load_and_compile
 
         graph = load_and_compile(simple_yaml)
         _ = graph.compile()  # Verify it compiles

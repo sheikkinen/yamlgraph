@@ -13,11 +13,11 @@ import yaml
 from langgraph.checkpoint.base import BaseCheckpointSaver
 from langgraph.graph import StateGraph
 
+from yamlgraph.compile.edge_compiler import _add_conditional_edges, _process_edge
+from yamlgraph.compile.node_compiler import compile_nodes
 from yamlgraph.data_loader import load_data_files
-from yamlgraph.edge_compiler import _add_conditional_edges, _process_edge
 from yamlgraph.loop_detector import apply_loop_node_defaults
 from yamlgraph.models.state_builder import build_state_class
-from yamlgraph.node_compiler import compile_nodes
 from yamlgraph.storage.checkpointer_factory import get_checkpointer
 from yamlgraph.tools.graph_tool import make_graph_tool_fn
 from yamlgraph.tools.python_tool import load_python_function, parse_python_tools
@@ -135,13 +135,13 @@ def load_graph_config(path: str | Path) -> GraphConfig:
     config = expand_interactive_tools(config)
 
     # FR-235: Expand pipeline template nodes before compilation
-    from yamlgraph.pipeline_template import expand_pipeline_templates
+    from yamlgraph.compile.pipeline_template import expand_pipeline_templates
 
     config = expand_pipeline_templates(config)
 
     # FR-677: Insert terminal __verify__ node when a graph-level verify block
     # is present, redirecting explicit END destinations through it.
-    from yamlgraph.verify_insert import insert_verify_node
+    from yamlgraph.compile.verify_insert import insert_verify_node
 
     config = insert_verify_node(config)
 

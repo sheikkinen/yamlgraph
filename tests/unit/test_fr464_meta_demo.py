@@ -24,7 +24,7 @@ class TestMetaDemoGraphStructure:
     @pytest.mark.req("REQ-YG-467")
     def test_graph_config_loads(self) -> None:
         """Graph config loads via yamlgraph."""
-        from yamlgraph.graph_loader import load_graph_config
+        from yamlgraph.compile.graph_loader import load_graph_config
 
         config = load_graph_config(GRAPH_PATH)
         assert config.name == "meta"
@@ -32,7 +32,7 @@ class TestMetaDemoGraphStructure:
     @pytest.mark.req("REQ-YG-467")
     def test_has_two_nodes(self) -> None:
         """Graph must have exactly 2 nodes: load (tool) and transform (llm)."""
-        from yamlgraph.graph_loader import load_graph_config
+        from yamlgraph.compile.graph_loader import load_graph_config
 
         config = load_graph_config(GRAPH_PATH)
         assert set(config.nodes) == {"load", "transform"}
@@ -40,7 +40,7 @@ class TestMetaDemoGraphStructure:
     @pytest.mark.req("REQ-YG-467")
     def test_load_is_tool_node(self) -> None:
         """load node must be type: tool using the read_file shell tool."""
-        from yamlgraph.graph_loader import load_graph_config
+        from yamlgraph.compile.graph_loader import load_graph_config
 
         config = load_graph_config(GRAPH_PATH)
         assert config.nodes["load"]["type"] == "tool"
@@ -65,7 +65,7 @@ class TestMetaDemoGraphStructure:
     @pytest.mark.req("REQ-YG-467")
     def test_transform_is_llm_node(self) -> None:
         """transform node must be type: llm using the meta_transform prompt."""
-        from yamlgraph.graph_loader import load_graph_config
+        from yamlgraph.compile.graph_loader import load_graph_config
 
         config = load_graph_config(GRAPH_PATH)
         assert config.nodes["transform"]["type"] == "llm"
@@ -120,7 +120,7 @@ class TestMetaDemoGraphStructure:
     @pytest.mark.req("REQ-YG-467")
     def test_graph_compiles(self) -> None:
         """Graph compiles to a LangGraph StateGraph."""
-        from yamlgraph.graph_loader import compile_graph, load_graph_config
+        from yamlgraph.compile.graph_loader import compile_graph, load_graph_config
 
         config = load_graph_config(GRAPH_PATH)
         graph = compile_graph(config)

@@ -12,7 +12,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from langgraph.graph import StateGraph
 
-from yamlgraph.node_compiler import (
+from yamlgraph.compile.node_compiler import (
     GUARD_SUPPORTED_TYPES,
     GraphConfigError,
     compile_node,

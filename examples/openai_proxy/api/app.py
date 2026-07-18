@@ -48,7 +48,7 @@ def run_graph(*, initial_state: dict[str, Any]) -> dict[str, Any]:
     In production this calls YAMLGraph's compiled graph.
     For testing this function is patched.
     """
-    from yamlgraph.graph_loader import load_and_compile
+    from yamlgraph.compile.graph_loader import load_and_compile
 
     graph_path = os.getenv("GRAPH_PATH", "examples/openai_proxy/graph.yaml")
     state_graph = load_and_compile(graph_path)

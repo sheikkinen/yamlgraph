@@ -36,7 +36,7 @@ class TestFR463ToolSurface:
     @pytest.mark.req("REQ-YG-427")
     def test_enforcer_has_ten_tools(self) -> None:
         """Enforcer node references exactly 10 tools."""
-        from yamlgraph.graph_loader import load_graph_config
+        from yamlgraph.compile.graph_loader import load_graph_config
 
         config = load_graph_config(GRAPH_PATH)
         tools = config.nodes["enforcer"]["tools"]
@@ -45,7 +45,7 @@ class TestFR463ToolSurface:
     @pytest.mark.req("REQ-YG-427")
     def test_enforcer_tool_names(self) -> None:
         """Enforcer has the exact expected tool set."""
-        from yamlgraph.graph_loader import load_graph_config
+        from yamlgraph.compile.graph_loader import load_graph_config
 
         config = load_graph_config(GRAPH_PATH)
         tools = set(config.nodes["enforcer"]["tools"])
@@ -264,7 +264,7 @@ class TestFR463GraphCompiles:
     @pytest.mark.req("REQ-YG-427")
     def test_graph_compiles(self) -> None:
         """Hardened graph compiles to a LangGraph StateGraph."""
-        from yamlgraph.graph_loader import compile_graph, load_graph_config
+        from yamlgraph.compile.graph_loader import compile_graph, load_graph_config
 
         config = load_graph_config(GRAPH_PATH)
         graph = compile_graph(config)

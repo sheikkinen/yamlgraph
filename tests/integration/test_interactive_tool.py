@@ -25,7 +25,7 @@ from langgraph.checkpoint.memory import MemorySaver
 from langgraph.types import Command
 
 from tests.integration.stubs.chatbot_tool import reset_sessions
-from yamlgraph.graph_loader import compile_graph, load_graph_config
+from yamlgraph.compile.graph_loader import compile_graph, load_graph_config
 
 FIXTURES = Path(__file__).parent / "fixtures" / "interactive_tool"
 CHATBOT_YAML = FIXTURES / "chatbot.yaml"

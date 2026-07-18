@@ -20,7 +20,7 @@ class TestEmptyYamlHandling:
         Bug: yaml.safe_load returns None for empty files, and
         apply_loop_node_defaults calls config.get() which fails.
         """
-        from yamlgraph.graph_loader import load_graph_config
+        from yamlgraph.compile.graph_loader import load_graph_config
 
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
             f.write("")  # Empty file
@@ -41,7 +41,7 @@ class TestEmptyYamlHandling:
     @pytest.mark.req("REQ-YG-004")
     def test_yaml_with_only_comments_throws_valueerror(self) -> None:
         """YAML with only comments is effectively empty."""
-        from yamlgraph.graph_loader import load_graph_config
+        from yamlgraph.compile.graph_loader import load_graph_config
 
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
             f.write("# This is a comment\n# Another comment\n")
@@ -59,7 +59,7 @@ class TestEmptyYamlHandling:
     @pytest.mark.req("REQ-YG-004")
     def test_yaml_with_null_throws_valueerror(self) -> None:
         """YAML containing just 'null' should give clear error."""
-        from yamlgraph.graph_loader import load_graph_config
+        from yamlgraph.compile.graph_loader import load_graph_config
 
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
             f.write("null\n")

@@ -205,7 +205,7 @@ class TestChatterboxDemoStructure:
         assert config["nodes"]["generate"]["type"] == "map"
 
     def test_graph_loads(self):
-        from yamlgraph.graph_loader import load_graph_config
+        from yamlgraph.compile.graph_loader import load_graph_config
 
         config = load_graph_config(str(self.DEMO_DIR / "graph.yaml"))
         assert config is not None

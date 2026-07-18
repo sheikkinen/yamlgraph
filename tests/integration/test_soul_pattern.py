@@ -9,7 +9,7 @@ from pathlib import Path
 
 import pytest
 
-from yamlgraph.graph_loader import load_graph_config
+from yamlgraph.compile.graph_loader import load_graph_config
 
 SOUL_EXAMPLE_PATH = Path(__file__).parent.parent.parent / "examples" / "demos" / "soul"
 

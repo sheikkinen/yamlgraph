@@ -1,0 +1,23 @@
+2026-07-18 20:07:45,011 [INFO] yamlgraph.compile.node_compiler: Added node: process (type=passthrough)
+2026-07-18 20:07:45,011 [INFO] yamlgraph.compile.node_compiler: Added node: ask_user (type=interrupt)
+2026-07-18 20:07:45,011 [INFO] yamlgraph.compile.node_compiler: Added node: finalize (type=passthrough)
+2026-07-18 20:07:45,015 [INFO] yamlgraph.compile.node_compiler: Added node: run_child (type=subgraph)
+2026-07-18 20:07:45,015 [INFO] yamlgraph.compile.node_compiler: Added node: done (type=passthrough)
+2026-07-18 20:07:45,094 [INFO] yamlgraph.node_factory.control_nodes: Node process completed successfully
+2026-07-18 20:07:45,102 [INFO] yamlgraph.node_factory.subgraph_nodes: FR-006: Subgraph run_child mapped state: ['child_phase', 'child_data', 'current_step']
+
+🚀 Running graph: interrupt-parent.yaml
+
+🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/f889c0ec-fa9b-4025-b69c-2aa756283ef8/r/019f7632-befc-7533-bf50-a0474856a047?poll=true
+
+💬 What is your answer?
+
+> 2026-07-18 20:07:45,314 [INFO] yamlgraph.node_factory.control_nodes: Node finalize completed successfully
+2026-07-18 20:07:45,316 [INFO] yamlgraph.node_factory.control_nodes: Node done completed successfully
+🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/f889c0ec-fa9b-4025-b69c-2aa756283ef8/r/019f7632-c01e-7363-9c60-c79bda4cf951?poll=true
+============================================================
+RESULT
+============================================================
+  thread_id: demo717d
+  current_step: done
+  final_result: all done

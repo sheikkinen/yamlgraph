@@ -209,7 +209,7 @@ def test_ac08_only_yaml_extensions_accepted(tmp_path: Path) -> None:
 
 @pytest.mark.req("REQ-YG-474")
 def test_ac09_end_to_end_graph_execution(tmp_path: Path) -> None:
-    from yamlgraph.graph_loader import load_and_compile
+    from yamlgraph.compile.graph_loader import load_and_compile
 
     graph_path = tmp_path / "graph.yaml"
     _write_graph(

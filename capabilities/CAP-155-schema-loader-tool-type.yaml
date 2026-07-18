@@ -8,9 +8,9 @@ description: >
 modules:
   - yamlgraph/tools/schema_loader_tool.py
   - yamlgraph/tools/python_tool.py
-  - yamlgraph/graph_loader.py
-  - yamlgraph/node_compiler.py
-  - yamlgraph/map_compiler.py
+  - yamlgraph/compile/graph_loader.py
+  - yamlgraph/compile/node_compiler.py
+  - yamlgraph/compile/map_compiler.py
   - yamlgraph/tools/agent.py
   - tests/unit/test_fr426_schema_loader_tool_type_red.py
 requirements:
@@ -23,8 +23,8 @@ requirements:
     modules:
       - yamlgraph/tools/schema_loader_tool.py
       - yamlgraph/tools/python_tool.py
-      - yamlgraph/graph_loader.py
-      - yamlgraph/node_compiler.py
+      - yamlgraph/compile/graph_loader.py
+      - yamlgraph/compile/node_compiler.py
       - tests/unit/test_fr426_schema_loader_tool_type_red.py
   - id: REQ-YG-418
     description: >
@@ -35,5 +35,5 @@ requirements:
     modules:
       - yamlgraph/tools/schema_loader_tool.py
       - yamlgraph/tools/python_tool.py
-      - yamlgraph/map_compiler.py
+      - yamlgraph/compile/map_compiler.py
       - tests/unit/test_fr426_schema_loader_tool_type_red.py

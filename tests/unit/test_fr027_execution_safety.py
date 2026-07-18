@@ -38,7 +38,7 @@ class TestMapMaxItems:
         # Build a minimal graph + config
         from langgraph.graph import StateGraph
 
-        from yamlgraph.map_compiler import compile_map_node
+        from yamlgraph.compile.map_compiler import compile_map_node
         from yamlgraph.models.state_builder import build_state_class
 
         state_class = build_state_class(
@@ -73,7 +73,7 @@ class TestMapMaxItems:
         """Graph-level max_map_items used when node has no max_items."""
         from langgraph.graph import StateGraph
 
-        from yamlgraph.map_compiler import compile_map_node
+        from yamlgraph.compile.map_compiler import compile_map_node
         from yamlgraph.models.state_builder import build_state_class
 
         state_class = build_state_class(
@@ -107,7 +107,7 @@ class TestMapMaxItems:
         """When items <= max_items, no truncation occurs."""
         from langgraph.graph import StateGraph
 
-        from yamlgraph.map_compiler import compile_map_node
+        from yamlgraph.compile.map_compiler import compile_map_node
         from yamlgraph.models.state_builder import build_state_class
 
         state_class = build_state_class(
@@ -140,7 +140,7 @@ class TestMapMaxItems:
         """Without explicit config, default cap is 100."""
         from langgraph.graph import StateGraph
 
-        from yamlgraph.map_compiler import compile_map_node
+        from yamlgraph.compile.map_compiler import compile_map_node
         from yamlgraph.models.state_builder import build_state_class
 
         state_class = build_state_class(
@@ -181,7 +181,7 @@ class TestRecursionLimit:
     @pytest.mark.req("REQ-YG-056")
     def test_graph_config_reads_recursion_limit(self):
         """GraphConfig should parse config.recursion_limit from YAML."""
-        from yamlgraph.graph_loader import GraphConfig
+        from yamlgraph.compile.graph_loader import GraphConfig
 
         raw = {
             "nodes": {"a": {"type": "llm", "prompt": "test"}},
@@ -194,7 +194,7 @@ class TestRecursionLimit:
     @pytest.mark.req("REQ-YG-056")
     def test_graph_config_default_recursion_limit(self):
         """Default recursion_limit should be 50."""
-        from yamlgraph.graph_loader import GraphConfig
+        from yamlgraph.compile.graph_loader import GraphConfig
 
         raw = {
             "nodes": {"a": {"type": "llm", "prompt": "test"}},
@@ -206,7 +206,7 @@ class TestRecursionLimit:
     @pytest.mark.req("REQ-YG-056")
     def test_graph_config_reads_max_map_items(self):
         """GraphConfig should parse config.max_map_items."""
-        from yamlgraph.graph_loader import GraphConfig
+        from yamlgraph.compile.graph_loader import GraphConfig
 
         raw = {
             "nodes": {"a": {"type": "llm", "prompt": "test"}},
@@ -437,15 +437,15 @@ class TestRecursionLimitWiring:
         with (
             patch.object(Path, "exists", return_value=True),
             patch(
-                "yamlgraph.graph_loader.load_graph_config",
+                "yamlgraph.compile.graph_loader.load_graph_config",
                 return_value=mock_config,
             ),
             patch(
-                "yamlgraph.graph_loader.compile_graph",
+                "yamlgraph.compile.graph_loader.compile_graph",
                 return_value=mock_graph,
             ),
             patch(
-                "yamlgraph.graph_loader.get_checkpointer_for_graph",
+                "yamlgraph.compile.graph_loader.get_checkpointer_for_graph",
                 return_value=None,
             ),
         ):
@@ -487,15 +487,15 @@ class TestRecursionLimitWiring:
         with (
             patch.object(Path, "exists", return_value=True),
             patch(
-                "yamlgraph.graph_loader.load_graph_config",
+                "yamlgraph.compile.graph_loader.load_graph_config",
                 return_value=mock_config,
             ),
             patch(
-                "yamlgraph.graph_loader.compile_graph",
+                "yamlgraph.compile.graph_loader.compile_graph",
                 return_value=mock_graph,
             ),
             patch(
-                "yamlgraph.graph_loader.get_checkpointer_for_graph",
+                "yamlgraph.compile.graph_loader.get_checkpointer_for_graph",
                 return_value=None,
             ),
         ):
@@ -537,15 +537,15 @@ class TestRecursionLimitWiring:
         with (
             patch.object(Path, "exists", return_value=True),
             patch(
-                "yamlgraph.graph_loader.load_graph_config",
+                "yamlgraph.compile.graph_loader.load_graph_config",
                 return_value=mock_config,
             ),
             patch(
-                "yamlgraph.graph_loader.compile_graph",
+                "yamlgraph.compile.graph_loader.compile_graph",
                 return_value=mock_graph,
             ),
             patch(
-                "yamlgraph.graph_loader.get_checkpointer_for_graph",
+                "yamlgraph.compile.graph_loader.get_checkpointer_for_graph",
                 return_value=None,
             ),
         ):
@@ -687,7 +687,7 @@ class TestMaxTokensWiring:
     @pytest.mark.req("REQ-YG-060")
     def test_graph_config_max_tokens(self):
         """GraphConfig must parse config.max_tokens from YAML."""
-        from yamlgraph.graph_loader import GraphConfig
+        from yamlgraph.compile.graph_loader import GraphConfig
 
         config = {
             "nodes": {"a": {"type": "llm", "prompt": "test"}},
@@ -700,7 +700,7 @@ class TestMaxTokensWiring:
     @pytest.mark.req("REQ-YG-060")
     def test_graph_config_max_tokens_default_none(self):
         """GraphConfig max_tokens should default to None (no cap)."""
-        from yamlgraph.graph_loader import GraphConfig
+        from yamlgraph.compile.graph_loader import GraphConfig
 
         config = {
             "nodes": {"a": {"type": "llm", "prompt": "test"}},
@@ -829,7 +829,7 @@ class TestExecutionTimeout:
     @pytest.mark.req("REQ-YG-061")
     def test_graph_config_parses_timeout(self):
         """GraphConfig must parse config.timeout from YAML."""
-        from yamlgraph.graph_loader import GraphConfig
+        from yamlgraph.compile.graph_loader import GraphConfig
 
         config = {
             "nodes": {"a": {"type": "llm", "prompt": "test"}},
@@ -842,7 +842,7 @@ class TestExecutionTimeout:
     @pytest.mark.req("REQ-YG-061")
     def test_graph_config_timeout_default_none(self):
         """GraphConfig timeout should default to None (no timeout)."""
-        from yamlgraph.graph_loader import GraphConfig
+        from yamlgraph.compile.graph_loader import GraphConfig
 
         config = {
             "nodes": {"a": {"type": "llm", "prompt": "test"}},
@@ -904,10 +904,16 @@ class TestExecutionTimeout:
 
         with (
             patch.object(Path, "exists", return_value=True),
-            patch("yamlgraph.graph_loader.load_graph_config", return_value=mock_config),
-            patch("yamlgraph.graph_loader.compile_graph", return_value=mock_graph),
             patch(
-                "yamlgraph.graph_loader.get_checkpointer_for_graph", return_value=None
+                "yamlgraph.compile.graph_loader.load_graph_config",
+                return_value=mock_config,
+            ),
+            patch(
+                "yamlgraph.compile.graph_loader.compile_graph", return_value=mock_graph
+            ),
+            patch(
+                "yamlgraph.compile.graph_loader.get_checkpointer_for_graph",
+                return_value=None,
             ),
             pytest.raises(SystemExit),
         ):
@@ -916,7 +922,7 @@ class TestExecutionTimeout:
     @pytest.mark.req("REQ-YG-061")
     def test_cli_timeout_overrides_yaml(self):
         """--timeout CLI arg should override YAML config.timeout."""
-        from yamlgraph.graph_loader import GraphConfig
+        from yamlgraph.compile.graph_loader import GraphConfig
 
         config = {
             "nodes": {"a": {"type": "llm", "prompt": "test"}},

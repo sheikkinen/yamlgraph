@@ -4,7 +4,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from yamlgraph.map_compiler import compile_map_node, wrap_for_reducer
+from yamlgraph.compile.map_compiler import compile_map_node, wrap_for_reducer
 
 
 class TestWrapForReducer:
@@ -302,7 +302,8 @@ class TestCompileMapNodePython:
         python_tools = {"process_item": tool_config}
 
         with patch(
-            "yamlgraph.map_compiler.load_python_function", return_value=process_item
+            "yamlgraph.compile.map_compiler.load_python_function",
+            return_value=process_item,
         ):
             map_edge, sub_node_name = compile_map_node(
                 "process", config, builder, defaults, python_tools=python_tools
@@ -333,7 +334,8 @@ class TestCompileMapNodePython:
         python_tools = {"process_item": tool_config}
 
         with patch(
-            "yamlgraph.map_compiler.load_python_function", return_value=process_item
+            "yamlgraph.compile.map_compiler.load_python_function",
+            return_value=process_item,
         ):
             compile_map_node(
                 "process", config, builder, defaults, python_tools=python_tools

@@ -14,7 +14,7 @@ from pathlib import Path
 
 from langgraph.checkpoint.memory import MemorySaver
 
-from yamlgraph.graph_loader import compile_graph, load_graph_config
+from yamlgraph.compile.graph_loader import compile_graph, load_graph_config
 
 
 async def demo_updates_mode():

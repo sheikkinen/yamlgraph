@@ -536,8 +536,8 @@ edges:
         }
 
         with (
-            patch("yamlgraph.graph_loader.compile_graph") as mock_compile_graph,
-            patch("yamlgraph.graph_loader.load_graph_config") as mock_load,
+            patch("yamlgraph.compile.graph_loader.compile_graph") as mock_compile_graph,
+            patch("yamlgraph.compile.graph_loader.load_graph_config") as mock_load,
         ):
             mock_load.return_value = MagicMock()
             mock_state_graph = MagicMock()
@@ -600,8 +600,8 @@ edges:
         }
 
         with (
-            patch("yamlgraph.graph_loader.compile_graph") as mock_compile_graph,
-            patch("yamlgraph.graph_loader.load_graph_config") as mock_load,
+            patch("yamlgraph.compile.graph_loader.compile_graph") as mock_compile_graph,
+            patch("yamlgraph.compile.graph_loader.load_graph_config") as mock_load,
         ):
             mock_load.return_value = MagicMock()
             mock_state_graph = MagicMock()

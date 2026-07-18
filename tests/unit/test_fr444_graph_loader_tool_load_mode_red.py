@@ -7,7 +7,7 @@ from unittest.mock import patch
 
 import pytest
 
-from yamlgraph.graph_loader import load_and_compile
+from yamlgraph.compile.graph_loader import load_and_compile
 
 
 def _write_graph(path: Path, body: str) -> None:
@@ -176,7 +176,7 @@ edges:
 """,
     )
 
-    with patch("yamlgraph.graph_loader.logger.warning") as mock_warning:
+    with patch("yamlgraph.compile.graph_loader.logger.warning") as mock_warning:
         load_and_compile(graph_path)
 
     warning_messages = [call.args[0] for call in mock_warning.call_args_list]

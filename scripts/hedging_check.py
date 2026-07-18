@@ -43,7 +43,7 @@ ALLOWLIST: dict[str, str] = {
     "yamlgraph/constants.py:48": "CONF-221",
     "yamlgraph/node_factory/router_race_node.py:41": "CONF-372",
     "yamlgraph/diary/importer.py:234": "CONF-222",
-    "yamlgraph/edge_compiler.py:229": "CONF-223",
+    "yamlgraph/compile/edge_compiler.py:229": "CONF-223",
     "yamlgraph/error_handlers.py:1": "CONF-224",
     "yamlgraph/error_handlers.py:139": "CONF-225",
     "yamlgraph/error_handlers.py:142": "CONF-226",

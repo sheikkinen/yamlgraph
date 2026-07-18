@@ -377,7 +377,7 @@ class TestInterruptTwoNodeSplit:
     @pytest.mark.req("REQ-YG-021")
     def test_compile_node_adds_prepare_and_interrupt(self):
         """compile_node adds both prepare and interrupt nodes to graph."""
-        from yamlgraph.node_compiler import compile_node
+        from yamlgraph.compile.node_compiler import compile_node
 
         graph = MagicMock()
         config = MagicMock()

@@ -90,10 +90,10 @@ def test_invoke_graph_calls_load_compile_invoke():
 
     with (
         patch(
-            "yamlgraph.graph_loader.load_graph_config", return_value=mock_config
+            "yamlgraph.compile.graph_loader.load_graph_config", return_value=mock_config
         ) as mock_load,
         patch(
-            "yamlgraph.graph_loader.compile_graph", return_value=mock_sg
+            "yamlgraph.compile.graph_loader.compile_graph", return_value=mock_sg
         ) as mock_compile,
     ):
         result = _invoke_graph("/tmp/graph.yaml", {"name": "test"})

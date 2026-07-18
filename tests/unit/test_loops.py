@@ -209,7 +209,7 @@ class TestLoopLimits:
     @pytest.mark.req("REQ-YG-006")
     def test_parses_loop_limits_from_yaml(self):
         """GraphConfig parses loop_limits section."""
-        from yamlgraph.graph_loader import GraphConfig
+        from yamlgraph.compile.graph_loader import GraphConfig
 
         config_dict = {
             "version": "1.0",
@@ -233,7 +233,7 @@ class TestLoopLimits:
     @pytest.mark.req("REQ-YG-006")
     def test_loop_limits_defaults_to_empty(self):
         """Missing loop_limits defaults to empty dict."""
-        from yamlgraph.graph_loader import GraphConfig
+        from yamlgraph.compile.graph_loader import GraphConfig
 
         config_dict = {
             "version": "1.0",
@@ -282,7 +282,7 @@ class TestCyclicEdges:
     @pytest.mark.req("REQ-YG-006")
     def test_allows_backward_edges(self):
         """Graph config allows edges pointing to earlier nodes."""
-        from yamlgraph.graph_loader import GraphConfig
+        from yamlgraph.compile.graph_loader import GraphConfig
 
         config_dict = {
             "version": "1.0",
@@ -312,7 +312,7 @@ class TestCyclicEdges:
     @pytest.mark.req("REQ-YG-006")
     def test_compiles_cyclic_graph(self):
         """Cyclic graph compiles to StateGraph."""
-        from yamlgraph.graph_loader import GraphConfig, compile_graph
+        from yamlgraph.compile.graph_loader import GraphConfig, compile_graph
 
         config_dict = {
             "version": "1.0",
@@ -403,7 +403,7 @@ class TestReflexionDemoGraph:
     @pytest.mark.req("REQ-YG-006")
     def test_demo_graph_loads(self):
         """reflexion-demo.yaml loads without error."""
-        from yamlgraph.graph_loader import load_graph_config
+        from yamlgraph.compile.graph_loader import load_graph_config
 
         config = load_graph_config("examples/demos/reflexion/graph.yaml")
         assert config.name == "reflexion-demo"
@@ -414,7 +414,7 @@ class TestReflexionDemoGraph:
     @pytest.mark.req("REQ-YG-006")
     def test_demo_graph_has_loop_limits(self):
         """reflexion-demo.yaml has loop_limits configured."""
-        from yamlgraph.graph_loader import load_graph_config
+        from yamlgraph.compile.graph_loader import load_graph_config
 
         config = load_graph_config("examples/demos/reflexion/graph.yaml")
         assert "critique" in config.loop_limits
@@ -423,7 +423,7 @@ class TestReflexionDemoGraph:
     @pytest.mark.req("REQ-YG-006")
     def test_demo_graph_compiles(self):
         """reflexion-demo.yaml compiles to StateGraph."""
-        from yamlgraph.graph_loader import compile_graph, load_graph_config
+        from yamlgraph.compile.graph_loader import compile_graph, load_graph_config
 
         config = load_graph_config("examples/demos/reflexion/graph.yaml")
         graph = compile_graph(config)
@@ -480,7 +480,7 @@ class TestLoopExits:
     @pytest.mark.req("REQ-YG-093")
     def test_graph_config_stores_loop_exits(self):
         """GraphConfig stores loop_exits from raw config."""
-        from yamlgraph.graph_loader import GraphConfig
+        from yamlgraph.compile.graph_loader import GraphConfig
 
         config_dict = {
             "version": "1.0",
@@ -505,7 +505,7 @@ class TestLoopExits:
     @pytest.mark.req("REQ-YG-093")
     def test_graph_config_loop_exits_defaults_empty(self):
         """Missing loop_exits defaults to empty dict."""
-        from yamlgraph.graph_loader import GraphConfig
+        from yamlgraph.compile.graph_loader import GraphConfig
 
         config_dict = {
             "version": "1.0",
@@ -558,7 +558,7 @@ class TestLoopExits:
     @pytest.mark.req("REQ-YG-093")
     def test_compiles_graph_with_loop_exits(self):
         """Graph with loop_exits compiles to StateGraph successfully."""
-        from yamlgraph.graph_loader import GraphConfig, compile_graph
+        from yamlgraph.compile.graph_loader import GraphConfig, compile_graph
 
         config_dict = {
             "version": "1.0",
@@ -597,7 +597,7 @@ class TestLoopExits:
         """FR-630: loop_exits: node: END must compile and route to graph end."""
         from unittest.mock import MagicMock, patch
 
-        from yamlgraph.graph_loader import GraphConfig, compile_graph
+        from yamlgraph.compile.graph_loader import GraphConfig, compile_graph
 
         config_dict = {
             "version": "1.0",

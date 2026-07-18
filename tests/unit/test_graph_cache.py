@@ -58,8 +58,8 @@ class TestLoadAndCompileAsyncCache:
         mock_compiled = MagicMock(name="CompiledStateGraph")
 
         with (
-            patch("yamlgraph.graph_loader.load_graph_config") as mock_load,
-            patch("yamlgraph.graph_loader.compile_graph") as mock_compile,
+            patch("yamlgraph.compile.graph_loader.load_graph_config") as mock_load,
+            patch("yamlgraph.compile.graph_loader.compile_graph") as mock_compile,
             patch(
                 "yamlgraph.executor_async.compile_graph_async",
                 new_callable=AsyncMock,
@@ -85,8 +85,8 @@ class TestLoadAndCompileAsyncCache:
         mock_compiled = MagicMock(name="CompiledStateGraph")
 
         with (
-            patch("yamlgraph.graph_loader.load_graph_config") as mock_load,
-            patch("yamlgraph.graph_loader.compile_graph") as mock_compile,
+            patch("yamlgraph.compile.graph_loader.load_graph_config") as mock_load,
+            patch("yamlgraph.compile.graph_loader.compile_graph") as mock_compile,
             patch(
                 "yamlgraph.executor_async.compile_graph_async",
                 new_callable=AsyncMock,
@@ -113,8 +113,8 @@ class TestLoadAndCompileAsyncCache:
     async def test_cache_none_disables_caching(self):
         """cache=None should compile every time, never store."""
         with (
-            patch("yamlgraph.graph_loader.load_graph_config") as mock_load,
-            patch("yamlgraph.graph_loader.compile_graph") as mock_compile,
+            patch("yamlgraph.compile.graph_loader.load_graph_config") as mock_load,
+            patch("yamlgraph.compile.graph_loader.compile_graph") as mock_compile,
             patch(
                 "yamlgraph.executor_async.compile_graph_async",
                 new_callable=AsyncMock,
@@ -144,8 +144,8 @@ class TestLoadAndCompileAsyncCache:
     async def test_clear_cache_forces_recompile(self):
         """After clear_cache(), next call should recompile."""
         with (
-            patch("yamlgraph.graph_loader.load_graph_config") as mock_load,
-            patch("yamlgraph.graph_loader.compile_graph") as mock_compile,
+            patch("yamlgraph.compile.graph_loader.load_graph_config") as mock_load,
+            patch("yamlgraph.compile.graph_loader.compile_graph") as mock_compile,
             patch(
                 "yamlgraph.executor_async.compile_graph_async",
                 new_callable=AsyncMock,
@@ -176,8 +176,8 @@ class TestLoadAndCompileAsyncCache:
         mock_compiled = MagicMock(name="CompiledStateGraph")
 
         with (
-            patch("yamlgraph.graph_loader.load_graph_config") as mock_load,
-            patch("yamlgraph.graph_loader.compile_graph") as mock_compile,
+            patch("yamlgraph.compile.graph_loader.load_graph_config") as mock_load,
+            patch("yamlgraph.compile.graph_loader.compile_graph") as mock_compile,
             patch(
                 "yamlgraph.executor_async.compile_graph_async",
                 new_callable=AsyncMock,
@@ -213,8 +213,8 @@ class TestLoadAndCompileAsyncCache:
         import logging
 
         with (
-            patch("yamlgraph.graph_loader.load_graph_config") as mock_load,
-            patch("yamlgraph.graph_loader.compile_graph") as mock_compile,
+            patch("yamlgraph.compile.graph_loader.load_graph_config") as mock_load,
+            patch("yamlgraph.compile.graph_loader.compile_graph") as mock_compile,
             patch(
                 "yamlgraph.executor_async.compile_graph_async",
                 new_callable=AsyncMock,
@@ -246,8 +246,8 @@ class TestLoadAndCompileAsyncCache:
     async def test_different_paths_cached_separately(self):
         """Different graph paths should be cached as separate entries."""
         with (
-            patch("yamlgraph.graph_loader.load_graph_config") as mock_load,
-            patch("yamlgraph.graph_loader.compile_graph") as mock_compile,
+            patch("yamlgraph.compile.graph_loader.load_graph_config") as mock_load,
+            patch("yamlgraph.compile.graph_loader.compile_graph") as mock_compile,
             patch(
                 "yamlgraph.executor_async.compile_graph_async",
                 new_callable=AsyncMock,

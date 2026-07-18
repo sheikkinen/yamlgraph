@@ -29,7 +29,7 @@ def test_evolution_loop_improves_synopsis():
     # Red phase: test fails until implementation exists
     assert GRAPH_PATH.exists(), f"Graph not found at {GRAPH_PATH}"
 
-    from yamlgraph.graph_loader import load_graph_config
+    from yamlgraph.compile.graph_loader import load_graph_config
 
     config = load_graph_config(str(GRAPH_PATH))
 
@@ -55,7 +55,7 @@ def test_map_node_generates_parallel_prose():
     """
     assert GRAPH_PATH.exists(), f"Graph not found at {GRAPH_PATH}"
 
-    from yamlgraph.graph_loader import load_graph_config
+    from yamlgraph.compile.graph_loader import load_graph_config
 
     config = load_graph_config(str(GRAPH_PATH))
 
@@ -80,7 +80,7 @@ def test_review_gate_routes_correctly():
     """
     assert GRAPH_PATH.exists(), f"Graph not found at {GRAPH_PATH}"
 
-    from yamlgraph.graph_loader import load_graph_config
+    from yamlgraph.compile.graph_loader import load_graph_config
 
     config = load_graph_config(str(GRAPH_PATH))
 
@@ -101,7 +101,7 @@ def test_full_pipeline_end_to_end():
     """
     assert GRAPH_PATH.exists(), f"Graph not found at {GRAPH_PATH}"
 
-    from yamlgraph.graph_loader import compile_graph, load_graph_config
+    from yamlgraph.compile.graph_loader import compile_graph, load_graph_config
 
     config = load_graph_config(str(GRAPH_PATH))
 

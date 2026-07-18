@@ -106,7 +106,7 @@ def cmd_graph_run(args: Namespace) -> None:
     Usage:
         yamlgraph graph run graphs/yamlgraph.yaml --var topic=AI --var style=casual
     """
-    from yamlgraph.graph_loader import (
+    from yamlgraph.compile.graph_loader import (
         compile_graph,
         get_checkpointer_for_graph,
         load_graph_config,

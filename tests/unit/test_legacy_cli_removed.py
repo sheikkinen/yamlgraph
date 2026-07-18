@@ -72,7 +72,7 @@ class TestModernAPIPreserved:
     @pytest.mark.req("REQ-YG-035")
     def test_load_and_compile_from_graph_loader(self) -> None:
         """load_and_compile should be available from graph_loader."""
-        from yamlgraph.graph_loader import load_and_compile
+        from yamlgraph.compile.graph_loader import load_and_compile
 
         assert callable(load_and_compile)
 

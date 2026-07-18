@@ -8,7 +8,7 @@ import os
 
 import pytest
 
-from yamlgraph.graph_loader import GraphConfig, compile_graph
+from yamlgraph.compile.graph_loader import GraphConfig, compile_graph
 
 
 @pytest.mark.req("REQ-YG-083")

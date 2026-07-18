@@ -250,7 +250,7 @@ class TestIntegrationWithGraphLoader:
     @pytest.mark.req("REQ-YG-006")
     def test_reflexion_demo_auto_detected(self, tmp_path) -> None:
         """Test reflexion-demo pattern works without explicit skip_if_exists."""
-        from yamlgraph.graph_loader import load_graph_config
+        from yamlgraph.compile.graph_loader import load_graph_config
 
         graph_yaml = """
 version: "1.0"

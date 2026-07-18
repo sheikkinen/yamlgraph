@@ -1,20 +1,20 @@
-2026-05-08 23:07:09,883 [INFO] yamlgraph.node_compiler: Added node: classify (type=router)
-2026-05-08 23:07:09,884 [INFO] yamlgraph.node_compiler: Added node: respond_positive (type=llm)
-2026-05-08 23:07:09,885 [INFO] yamlgraph.node_compiler: Added node: respond_negative (type=llm)
-2026-05-08 23:07:09,886 [INFO] yamlgraph.node_compiler: Added node: respond_neutral (type=llm)
-2026-05-08 23:07:09,994 [INFO] yamlgraph.utils.llm_factory: Creating LLM: openai/gpt-4o-mini (temp=0.7)
-2026-05-08 23:07:14,762 [INFO] httpx: HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
-2026-05-08 23:07:14,786 [INFO] yamlgraph.node_factory.llm_nodes: Node classify completed successfully
-2026-05-08 23:07:14,786 [INFO] yamlgraph.node_factory.llm_nodes: Router classify routing to: respond_neutral
-2026-05-08 23:07:17,833 [INFO] httpx: HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
-2026-05-08 23:07:17,836 [INFO] yamlgraph.node_factory.llm_nodes: Node respond_neutral completed successfully
+2026-07-18 20:04:10,130 [INFO] yamlgraph.compile.node_compiler: Added node: classify (type=router)
+2026-07-18 20:04:10,133 [INFO] yamlgraph.compile.node_compiler: Added node: respond_positive (type=llm)
+2026-07-18 20:04:10,135 [INFO] yamlgraph.compile.node_compiler: Added node: respond_negative (type=llm)
+2026-07-18 20:04:10,136 [INFO] yamlgraph.compile.node_compiler: Added node: respond_neutral (type=llm)
+2026-07-18 20:04:10,648 [INFO] yamlgraph.utils.llm_factory: Creating LLM: openai/gpt-4o-mini (temp=0.7)
+2026-07-18 20:04:15,079 [INFO] httpx: HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-18 20:04:15,103 [INFO] yamlgraph.node_factory.llm_nodes: Node classify completed successfully
+2026-07-18 20:04:15,107 [INFO] yamlgraph.node_factory.llm_nodes: Router classify routing to: respond_neutral
+2026-07-18 20:04:16,447 [INFO] httpx: HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-18 20:04:16,452 [INFO] yamlgraph.node_factory.llm_nodes: Node respond_neutral completed successfully
 
 🚀 Running graph: graph.yaml
 
-🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/f889c0ec-fa9b-4025-b69c-2aa756283ef8/r/019e0933-7d44-7233-bd36-1edd22f6ec8b?poll=true
+🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/f889c0ec-fa9b-4025-b69c-2aa756283ef8/r/019f762f-779f-7d71-8289-e9a8d8df3452?poll=true
 ============================================================
 RESULT
 ============================================================
   current_step: respond_neutral
   classification: neutral
-  response: It seems like your message may not have come through. If you have any questions or need assistance, please feel free to share, and I'd be happy to help!
+  response: It seems there was no specific question or issue mentioned. If you need assistance or have a query, please feel free to share, and I'd be happy to help!

@@ -46,7 +46,7 @@ class TestGraphLoader:
 
     def test_main_graph_loads(self):
         """Main graph should load without errors."""
-        from yamlgraph.graph_loader import load_graph_config
+        from yamlgraph.compile.graph_loader import load_graph_config
 
         config = load_graph_config(str(EXAMPLE_DIR / "graph.yaml"))
         assert config is not None
@@ -54,7 +54,7 @@ class TestGraphLoader:
 
     def test_character_graph_loads(self):
         """Character graph should load without errors."""
-        from yamlgraph.graph_loader import load_graph_config
+        from yamlgraph.compile.graph_loader import load_graph_config
 
         config = load_graph_config(str(EXAMPLE_DIR / "character-graph.yaml"))
         assert config is not None

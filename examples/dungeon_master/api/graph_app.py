@@ -18,7 +18,7 @@ def reset_caches() -> None:
 def get_app(graph: str):
     """Compile + cache a stage graph (no checkpointer)."""
     if graph not in _app_cache:
-        from yamlgraph.graph_loader import compile_graph, load_graph_config
+        from yamlgraph.compile.graph_loader import compile_graph, load_graph_config
 
         config = load_graph_config(graph)
         _app_cache[graph] = compile_graph(config).compile()

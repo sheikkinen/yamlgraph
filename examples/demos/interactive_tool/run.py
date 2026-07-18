@@ -19,7 +19,7 @@ from pathlib import Path
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.types import Command
 
-from yamlgraph.graph_loader import compile_graph, load_graph_config
+from yamlgraph.compile.graph_loader import compile_graph, load_graph_config
 
 GRAPH_PATH = Path(__file__).parent / "graph.yaml"
 

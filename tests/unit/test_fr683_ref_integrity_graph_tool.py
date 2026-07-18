@@ -184,7 +184,7 @@ class TestRefCheckGraph:
     @pytest.mark.req("REQ-YG-515")
     def test_ref_check_yaml_lints(self) -> None:
         """ref_check.yaml passes graph lint."""
-        from yamlgraph.graph_loader import load_graph_config
+        from yamlgraph.compile.graph_loader import load_graph_config
 
         path = NOVEL_FANDOM_DIR / "ref_check.yaml"
         config = load_graph_config(str(path))

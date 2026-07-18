@@ -83,7 +83,7 @@ class TestGraphLoader:
     @pytest.mark.parametrize("demo", STANDARD_DEMOS)
     def test_graph_loads(self, demo):
         """Graph should load without errors."""
-        from yamlgraph.graph_loader import load_graph_config
+        from yamlgraph.compile.graph_loader import load_graph_config
 
         graph_path = DEMOS_DIR / demo / "graph.yaml"
         config = load_graph_config(str(graph_path))
@@ -92,7 +92,7 @@ class TestGraphLoader:
     @pytest.mark.parametrize("yaml_file", INTERRUPT_YAMLS)
     def test_interrupt_graphs_load(self, yaml_file):
         """Interrupt graphs should load."""
-        from yamlgraph.graph_loader import load_graph_config
+        from yamlgraph.compile.graph_loader import load_graph_config
 
         graph_path = DEMOS_DIR / "interrupt" / yaml_file
         config = load_graph_config(str(graph_path))

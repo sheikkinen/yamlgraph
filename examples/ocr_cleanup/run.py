@@ -87,7 +87,10 @@ def retry_failed_pages(
             try:
                 import asyncio
 
-                from yamlgraph.graph_loader import compile_graph, load_graph_config
+                from yamlgraph.compile.graph_loader import (
+                    compile_graph,
+                    load_graph_config,
+                )
 
                 config = load_graph_config("examples/ocr_cleanup/graph.yaml")
                 builder = compile_graph(config)
@@ -151,7 +154,7 @@ def run_batch(
     try:
         import asyncio
 
-        from yamlgraph.graph_loader import compile_graph, load_graph_config
+        from yamlgraph.compile.graph_loader import compile_graph, load_graph_config
 
         config = load_graph_config("examples/ocr_cleanup/graph.yaml")
         builder = compile_graph(config)

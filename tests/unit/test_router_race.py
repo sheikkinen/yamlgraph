@@ -408,7 +408,7 @@ class TestRouterRaceMutualExclusion:
     @pytest.mark.req("REQ-YG-271")
     def test_provider_and_candidates_rejected_by_graph_config(self):
         """AC5: GraphConfig raises ValueError when provider + candidates both set."""
-        from yamlgraph.graph_loader import GraphConfig
+        from yamlgraph.compile.graph_loader import GraphConfig
 
         config_dict = {
             "version": "1.0",
@@ -440,7 +440,7 @@ class TestRouterRaceMutualExclusion:
     @pytest.mark.req("REQ-YG-271")
     def test_on_error_skip_rejected_for_router_with_candidates(self):
         """AC5: on_error=skip is invalid for router nodes with candidates."""
-        from yamlgraph.graph_loader import GraphConfig
+        from yamlgraph.compile.graph_loader import GraphConfig
 
         config_dict = {
             "version": "1.0",
@@ -552,13 +552,16 @@ class TestRouterSingleProviderUnchanged:
 
 class TestRouterRaceCompilePathSkipsTimeoutWrap:
     @pytest.mark.req("REQ-YG-271")
-    @patch("yamlgraph.node_compiler._maybe_wrap_timeout")
+    @patch("yamlgraph.compile.node_compiler._maybe_wrap_timeout")
     @patch("yamlgraph.node_factory.llm_nodes.create_node_function")
     def test_timeout_wrapper_skipped_for_router_with_candidates(
         self, mock_create_fn, mock_wrap_timeout
     ):
         """Compiler skips _maybe_wrap_timeout when router has candidates (like race)."""
-        from yamlgraph.node_compiler import NodeCompileContext, _compile_llm_node
+        from yamlgraph.compile.node_compiler import (
+            NodeCompileContext,
+            _compile_llm_node,
+        )
 
         mock_graph = MagicMock()
         mock_node_fn = MagicMock()

@@ -13,14 +13,14 @@ class TestCodeAnalysisGraphStructure:
 
     def test_graph_loads_successfully(self):
         """Graph should load without errors."""
-        from yamlgraph.graph_loader import load_and_compile
+        from yamlgraph.compile.graph_loader import load_and_compile
 
         graph = load_and_compile("examples/demos/code-analysis/graph.yaml")
         assert graph is not None
 
     def test_graph_has_required_nodes(self):
         """Graph should have run_analysis and generate_recommendations nodes."""
-        from yamlgraph.graph_loader import load_graph_config
+        from yamlgraph.compile.graph_loader import load_graph_config
 
         config = load_graph_config("examples/demos/code-analysis/graph.yaml")
         assert "run_analysis" in config.nodes
@@ -28,7 +28,7 @@ class TestCodeAnalysisGraphStructure:
 
     def test_graph_has_analysis_tools(self):
         """Graph should define analysis tools."""
-        from yamlgraph.graph_loader import load_graph_config
+        from yamlgraph.compile.graph_loader import load_graph_config
 
         config = load_graph_config("examples/demos/code-analysis/graph.yaml")
         tools = config.tools
@@ -82,7 +82,7 @@ class TestCodeAnalysisTools:
 
     def test_ruff_tool_command_valid(self):
         """Ruff tool should have valid command structure."""
-        from yamlgraph.graph_loader import load_graph_config
+        from yamlgraph.compile.graph_loader import load_graph_config
 
         config = load_graph_config("examples/demos/code-analysis/graph.yaml")
         ruff_tool = config.tools.get("run_ruff", {})
@@ -92,7 +92,7 @@ class TestCodeAnalysisTools:
 
     def test_tests_tool_command_valid(self):
         """Tests tool should have valid command structure."""
-        from yamlgraph.graph_loader import load_graph_config
+        from yamlgraph.compile.graph_loader import load_graph_config
 
         config = load_graph_config("examples/demos/code-analysis/graph.yaml")
         tests_tool = config.tools.get("run_tests", {})
@@ -102,7 +102,7 @@ class TestCodeAnalysisTools:
 
     def test_bandit_tool_command_valid(self):
         """Bandit tool should have valid command structure."""
-        from yamlgraph.graph_loader import load_graph_config
+        from yamlgraph.compile.graph_loader import load_graph_config
 
         config = load_graph_config("examples/demos/code-analysis/graph.yaml")
         bandit_tool = config.tools.get("run_bandit", {})
@@ -118,7 +118,7 @@ class TestCodeAnalysisCompilation:
         """Graph should compile with SQLite checkpointer."""
         from langgraph.checkpoint.sqlite import SqliteSaver
 
-        from yamlgraph.graph_loader import load_and_compile
+        from yamlgraph.compile.graph_loader import load_and_compile
 
         graph = load_and_compile("examples/demos/code-analysis/graph.yaml")
 
@@ -128,7 +128,7 @@ class TestCodeAnalysisCompilation:
 
     def test_graph_has_entry_point(self):
         """Graph should have START -> run_analysis edge."""
-        from yamlgraph.graph_loader import load_graph_config
+        from yamlgraph.compile.graph_loader import load_graph_config
 
         config = load_graph_config("examples/demos/code-analysis/graph.yaml")
 

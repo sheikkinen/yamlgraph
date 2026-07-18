@@ -21,7 +21,7 @@ load_dotenv(Path(__file__).parent.parent.parent.parent / ".env")
 
 from langgraph.types import Command  # noqa: E402
 
-from yamlgraph.graph_loader import (  # noqa: E402
+from yamlgraph.compile.graph_loader import (  # noqa: E402
     compile_graph,
     get_checkpointer_for_graph,
     load_graph_config,

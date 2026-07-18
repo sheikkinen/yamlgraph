@@ -275,7 +275,7 @@ async def load_and_compile_async(
         logger.debug("Cache hit: %s", path)
         return cache[path]
 
-    from yamlgraph.graph_loader import compile_graph, load_graph_config
+    from yamlgraph.compile.graph_loader import compile_graph, load_graph_config
 
     logger.info("Compiling graph: %s", path)
     config = load_graph_config(path)

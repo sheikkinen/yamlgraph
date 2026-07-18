@@ -99,7 +99,7 @@ class TestCompilerPassesDefaults:
 
     def test_compile_passes_effective_defaults(self) -> None:
         """node_compiler must forward effective_defaults to copilot factory."""
-        from yamlgraph.node_compiler import _compile_copilot_node
+        from yamlgraph.compile.node_compiler import _compile_copilot_node
 
         # Build a minimal NodeCompileContext mock
         ctx = MagicMock()
@@ -115,7 +115,9 @@ class TestCompilerPassesDefaults:
         ctx.prompts_relative = False
         ctx.cache_policy = None
 
-        with patch("yamlgraph.node_compiler.create_copilot_node") as mock_factory:
+        with patch(
+            "yamlgraph.compile.node_compiler.create_copilot_node"
+        ) as mock_factory:
             mock_factory.return_value = lambda state: {}
             _compile_copilot_node(ctx)
 

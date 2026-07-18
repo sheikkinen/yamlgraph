@@ -278,7 +278,7 @@ class TestFiDomainCrawlGraph:
     @pytest.mark.req("REQ-YG-199")
     def test_graph_config_loads(self) -> None:
         """Graph config loads successfully."""
-        from yamlgraph.graph_loader import load_graph_config
+        from yamlgraph.compile.graph_loader import load_graph_config
 
         config = load_graph_config(self.GRAPH_PATH)
         assert config.name == "fi-domain-crawl"
@@ -286,7 +286,7 @@ class TestFiDomainCrawlGraph:
     @pytest.mark.req("REQ-YG-199")
     def test_plan_node_uses_parse_json(self) -> None:
         """Plan node outputs search queries via parse_json."""
-        from yamlgraph.graph_loader import load_graph_config
+        from yamlgraph.compile.graph_loader import load_graph_config
 
         config = load_graph_config(self.GRAPH_PATH)
         plan = config.nodes["plan"]
@@ -296,7 +296,7 @@ class TestFiDomainCrawlGraph:
     @pytest.mark.req("REQ-YG-199")
     def test_crawl_node_is_map_with_collect(self) -> None:
         """Crawl node is a map node that collects into crawl_results."""
-        from yamlgraph.graph_loader import load_graph_config
+        from yamlgraph.compile.graph_loader import load_graph_config
 
         config = load_graph_config(self.GRAPH_PATH)
         crawl = config.nodes["crawl"]
@@ -307,7 +307,7 @@ class TestFiDomainCrawlGraph:
     @pytest.mark.req("REQ-YG-199")
     def test_pipeline_flow_start_to_end(self) -> None:
         """Edges define START → plan → discover → crawl → summarise → END."""
-        from yamlgraph.graph_loader import load_graph_config
+        from yamlgraph.compile.graph_loader import load_graph_config
 
         config = load_graph_config(self.GRAPH_PATH)
         edges = config.edges
@@ -321,7 +321,7 @@ class TestFiDomainCrawlGraph:
     @pytest.mark.req("REQ-YG-199")
     def test_no_max_pages_in_state(self) -> None:
         """State should NOT contain max_pages — cap is via map max_items."""
-        from yamlgraph.graph_loader import load_graph_config
+        from yamlgraph.compile.graph_loader import load_graph_config
 
         config = load_graph_config(self.GRAPH_PATH)
         state = config.raw_config.get("state", {})

@@ -68,7 +68,7 @@ class TestGraphConfiguration:
     @pytest.mark.req("REQ-YG-303")
     def test_graph_loads_successfully(self) -> None:
         """Graph config loads via yamlgraph."""
-        from yamlgraph.graph_loader import load_graph_config
+        from yamlgraph.compile.graph_loader import load_graph_config
 
         config = load_graph_config(f"{DEMO_PATH}/graph.yaml")
         assert config.name == "prompt-caching-demo"
@@ -76,7 +76,7 @@ class TestGraphConfiguration:
     @pytest.mark.req("REQ-YG-303")
     def test_uses_anthropic_provider(self) -> None:
         """Graph uses provider: anthropic."""
-        from yamlgraph.graph_loader import load_graph_config
+        from yamlgraph.compile.graph_loader import load_graph_config
 
         config = load_graph_config(f"{DEMO_PATH}/graph.yaml")
         assert (
@@ -86,7 +86,7 @@ class TestGraphConfiguration:
     @pytest.mark.req("REQ-YG-303")
     def test_has_two_llm_nodes(self) -> None:
         """Graph has exactly 2 LLM nodes (analyze, reflect)."""
-        from yamlgraph.graph_loader import load_graph_config
+        from yamlgraph.compile.graph_loader import load_graph_config
 
         config = load_graph_config(f"{DEMO_PATH}/graph.yaml")
 
@@ -107,7 +107,7 @@ class TestGraphConfiguration:
     @pytest.mark.req("REQ-YG-303")
     def test_follows_cache_demo_pattern(self) -> None:
         """Demo follows existing cache demo structure patterns."""
-        from yamlgraph.graph_loader import load_graph_config
+        from yamlgraph.compile.graph_loader import load_graph_config
 
         config = load_graph_config(f"{DEMO_PATH}/graph.yaml")
 

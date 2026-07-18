@@ -20,7 +20,7 @@ class TestPromptsRelativeConfig:
     @pytest.mark.req("REQ-YG-012")
     def test_graph_config_has_prompts_relative(self, demo_graph_path: Path):
         """GraphConfig exposes prompts_relative from top-level config."""
-        from yamlgraph.graph_loader import load_graph_config
+        from yamlgraph.compile.graph_loader import load_graph_config
 
         config = load_graph_config(demo_graph_path)
 
@@ -30,7 +30,7 @@ class TestPromptsRelativeConfig:
     @pytest.mark.req("REQ-YG-012")
     def test_llm_node_receives_prompts_config(self, demo_graph_path: Path):
         """LLM nodes receive prompts_relative via effective_defaults."""
-        from yamlgraph.graph_loader import load_graph_config
+        from yamlgraph.compile.graph_loader import load_graph_config
 
         config = load_graph_config(demo_graph_path)
 
@@ -74,7 +74,7 @@ class TestPromptsRelativeConfig:
     @pytest.mark.req("REQ-YG-012")
     def test_map_node_receives_prompts_config(self, demo_graph_path: Path):
         """Map nodes receive prompts_relative via defaults dict."""
-        from yamlgraph.graph_loader import load_graph_config
+        from yamlgraph.compile.graph_loader import load_graph_config
 
         # Load map demo config
         map_config = load_graph_config("examples/demos/map/graph.yaml")
@@ -89,7 +89,7 @@ class TestEffectiveDefaultsBuilding:
     @pytest.mark.req("REQ-YG-012")
     def test_effective_defaults_includes_prompts_settings(self):
         """effective_defaults should merge top-level prompts settings."""
-        from yamlgraph.graph_loader import load_graph_config
+        from yamlgraph.compile.graph_loader import load_graph_config
 
         config = load_graph_config("examples/demos/reflexion/graph.yaml")
 
@@ -114,7 +114,7 @@ class TestEffectiveDefaultsBuilding:
     @pytest.mark.req("REQ-YG-012")
     def test_top_level_overrides_defaults_block(self):
         """Top-level prompts_relative should override defaults block value."""
-        from yamlgraph.graph_loader import GraphConfig
+        from yamlgraph.compile.graph_loader import GraphConfig
 
         # Config with prompts_relative at both levels
         raw_config = {

@@ -14,7 +14,7 @@ class TestFlattenOutput:
     @pytest.mark.req("REQ-YG-075")
     def test_flatten_output_merges_sub_key_into_item(self):
         """flatten_output: true should merge _map_xxx_sub contents into item."""
-        from yamlgraph.map_compiler import flatten_map_results
+        from yamlgraph.compile.map_compiler import flatten_map_results
 
         items = [
             {"_map_index": 0, "_map_analyze_sub": {"score": 0.8, "title": "Hello"}},
@@ -29,7 +29,7 @@ class TestFlattenOutput:
     @pytest.mark.req("REQ-YG-075")
     def test_flatten_output_preserves_map_index(self):
         """_map_index should always be preserved after flattening."""
-        from yamlgraph.map_compiler import flatten_map_results
+        from yamlgraph.compile.map_compiler import flatten_map_results
 
         items = [
             {"_map_index": 2, "_map_node_sub": {"value": "test"}},
@@ -44,7 +44,7 @@ class TestFlattenOutput:
     @pytest.mark.req("REQ-YG-075")
     def test_flatten_output_converts_pydantic_models(self):
         """Pydantic models in _map_xxx_sub should be converted to dicts."""
-        from yamlgraph.map_compiler import flatten_map_results
+        from yamlgraph.compile.map_compiler import flatten_map_results
 
         class Result(BaseModel):
             name: str
@@ -63,7 +63,7 @@ class TestFlattenOutput:
     @pytest.mark.req("REQ-YG-075")
     def test_flatten_output_noop_for_scalars(self):
         """Scalars in _map_xxx_sub should be kept as-is (no-op)."""
-        from yamlgraph.map_compiler import flatten_map_results
+        from yamlgraph.compile.map_compiler import flatten_map_results
 
         items = [
             {"_map_index": 0, "_map_compute_sub": 42},
@@ -79,7 +79,7 @@ class TestFlattenOutput:
     @pytest.mark.req("REQ-YG-075")
     def test_flatten_output_no_sub_key(self):
         """Items without _map_xxx_sub key should pass through unchanged."""
-        from yamlgraph.map_compiler import flatten_map_results
+        from yamlgraph.compile.map_compiler import flatten_map_results
 
         items = [
             {"_map_index": 0, "directly_added": "value"},
@@ -92,7 +92,7 @@ class TestFlattenOutput:
     @pytest.mark.req("REQ-YG-075")
     def test_flatten_output_overwrites_input_fields(self):
         """Output fields should overwrite input fields on conflict."""
-        from yamlgraph.map_compiler import flatten_map_results
+        from yamlgraph.compile.map_compiler import flatten_map_results
 
         items = [
             {
@@ -111,14 +111,14 @@ class TestFlattenOutput:
     @pytest.mark.req("REQ-YG-075")
     def test_flatten_output_empty_list(self):
         """Empty list should return empty list."""
-        from yamlgraph.map_compiler import flatten_map_results
+        from yamlgraph.compile.map_compiler import flatten_map_results
 
         assert flatten_map_results([]) == []
 
     @pytest.mark.req("REQ-YG-075")
     def test_flatten_output_preserves_other_fields(self):
         """Non-_map fields should be preserved (e.g., _error)."""
-        from yamlgraph.map_compiler import flatten_map_results
+        from yamlgraph.compile.map_compiler import flatten_map_results
 
         items = [
             {
@@ -144,7 +144,7 @@ class TestWrapForReducerFlatten:
     @pytest.mark.req("REQ-YG-075")
     def test_wrap_for_reducer_flatten_output_merges_sub_key(self):
         """wrap_for_reducer with flatten_output=True should flatten results."""
-        from yamlgraph.map_compiler import wrap_for_reducer
+        from yamlgraph.compile.map_compiler import wrap_for_reducer
 
         def node_fn(state: dict) -> dict:
             return {"result": {"score": 0.8, "tag": "relevant"}}
@@ -160,7 +160,7 @@ class TestWrapForReducerFlatten:
     @pytest.mark.req("REQ-YG-075")
     def test_wrap_for_reducer_flatten_output_false_preserves_structure(self):
         """wrap_for_reducer with flatten_output=False (default) preserves structure."""
-        from yamlgraph.map_compiler import wrap_for_reducer
+        from yamlgraph.compile.map_compiler import wrap_for_reducer
 
         def node_fn(state: dict) -> dict:
             return {"result": {"score": 0.8, "tag": "relevant"}}
@@ -182,7 +182,7 @@ class TestWrapForReducerFlatten:
         but wrap_for_reducer defaults to "result". The result is the full
         dict gets included as extracted value with the node_name key.
         """
-        from yamlgraph.map_compiler import wrap_for_reducer
+        from yamlgraph.compile.map_compiler import wrap_for_reducer
 
         def node_fn(state: dict) -> dict:
             # Simulates what create_node_function produces when state_key
@@ -201,7 +201,7 @@ class TestWrapForReducerFlatten:
     @pytest.mark.req("REQ-YG-075")
     def test_wrap_for_reducer_flatten_without_mismatch(self):
         """Without flatten_output, the _map_xxx_sub key is preserved."""
-        from yamlgraph.map_compiler import wrap_for_reducer
+        from yamlgraph.compile.map_compiler import wrap_for_reducer
 
         def node_fn(state: dict) -> dict:
             return {"_map_analyze_sub": {"score": 0.8, "tag": "relevant"}}

@@ -142,7 +142,7 @@ class TestGenesisAgentStructure:
     @pytest.mark.req("REQ-YG-518")
     def test_genesis_graph_lints(self) -> None:
         """genesis.yaml loads without error."""
-        from yamlgraph.graph_loader import load_graph_config
+        from yamlgraph.compile.graph_loader import load_graph_config
 
         config = load_graph_config(str(NOVEL_FANDOM_DIR / "genesis.yaml"))
         assert config.name == "novel-fandom-genesis"
@@ -486,7 +486,7 @@ class TestWorldgenAgentStructure:
     @pytest.mark.req("REQ-YG-520")
     def test_worldgen_graph_lints(self) -> None:
         """worldgen.yaml loads without error."""
-        from yamlgraph.graph_loader import load_graph_config
+        from yamlgraph.compile.graph_loader import load_graph_config
 
         config = load_graph_config(str(NOVEL_FANDOM_DIR / "worldgen.yaml"))
         assert config.name == "novel-fandom-worldgen"

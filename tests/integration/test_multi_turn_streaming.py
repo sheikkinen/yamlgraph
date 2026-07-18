@@ -43,7 +43,7 @@ async def test_multi_turn_resume_with_command():
 @pytest.mark.req("REQ-YG-049")
 async def test_guard_classification_separate_call():
     """Guard classification works as separate graph call."""
-    from yamlgraph.graph_loader import load_and_compile
+    from yamlgraph.compile.graph_loader import load_and_compile
 
     guard_path = "examples/demos/multi-turn/guard.yaml"
     graph = load_and_compile(guard_path)

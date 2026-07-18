@@ -26,7 +26,7 @@ class TestJudgeDemoGraphStructure:
     @pytest.mark.req("REQ-YG-408")
     def test_graph_config_loads(self) -> None:
         """Graph config loads via yamlgraph."""
-        from yamlgraph.graph_loader import load_graph_config
+        from yamlgraph.compile.graph_loader import load_graph_config
 
         config = load_graph_config(GRAPH_PATH)
         assert config.name == "fr-judge"
@@ -34,7 +34,7 @@ class TestJudgeDemoGraphStructure:
     @pytest.mark.req("REQ-YG-408")
     def test_has_one_node(self) -> None:
         """Graph must have exactly 1 node (judge)."""
-        from yamlgraph.graph_loader import load_graph_config
+        from yamlgraph.compile.graph_loader import load_graph_config
 
         config = load_graph_config(GRAPH_PATH)
         assert len(config.nodes) == 1
@@ -43,7 +43,7 @@ class TestJudgeDemoGraphStructure:
     @pytest.mark.req("REQ-YG-408")
     def test_judge_is_agent_type(self) -> None:
         """Judge node must be type: agent."""
-        from yamlgraph.graph_loader import load_graph_config
+        from yamlgraph.compile.graph_loader import load_graph_config
 
         config = load_graph_config(GRAPH_PATH)
         assert config.nodes["judge"]["type"] == "agent"
@@ -51,7 +51,7 @@ class TestJudgeDemoGraphStructure:
     @pytest.mark.req("REQ-YG-408")
     def test_judge_has_five_tools(self) -> None:
         """FR-450: Judge node must reference exactly 5 task-shaped tools."""
-        from yamlgraph.graph_loader import load_graph_config
+        from yamlgraph.compile.graph_loader import load_graph_config
 
         config = load_graph_config(GRAPH_PATH)
         tools = config.nodes["judge"]["tools"]
@@ -93,7 +93,7 @@ class TestJudgeDemoGraphStructure:
     @pytest.mark.req("REQ-YG-408")
     def test_max_iterations_is_12(self) -> None:
         """FR-450: max_iterations set to 12 for genuine investigation."""
-        from yamlgraph.graph_loader import load_graph_config
+        from yamlgraph.compile.graph_loader import load_graph_config
 
         config = load_graph_config(GRAPH_PATH)
         assert config.nodes["judge"].get("max_iterations") == 12
@@ -109,7 +109,7 @@ class TestJudgeDemoGraphStructure:
     @pytest.mark.req("REQ-YG-408")
     def test_judge_state_key_is_verdict(self) -> None:
         """Judge node writes to state_key: verdict."""
-        from yamlgraph.graph_loader import load_graph_config
+        from yamlgraph.compile.graph_loader import load_graph_config
 
         config = load_graph_config(GRAPH_PATH)
         assert config.nodes["judge"].get("state_key") == "verdict"
@@ -132,7 +132,7 @@ class TestJudgeDemoGraphStructure:
     @pytest.mark.req("REQ-YG-408")
     def test_graph_compiles(self) -> None:
         """Graph compiles to a LangGraph StateGraph."""
-        from yamlgraph.graph_loader import compile_graph, load_graph_config
+        from yamlgraph.compile.graph_loader import compile_graph, load_graph_config
 
         config = load_graph_config(GRAPH_PATH)
         graph = compile_graph(config)

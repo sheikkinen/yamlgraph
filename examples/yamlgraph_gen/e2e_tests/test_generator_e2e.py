@@ -13,7 +13,7 @@ from pathlib import Path
 import pytest
 import yaml
 
-from yamlgraph.graph_loader import load_and_compile
+from yamlgraph.compile.graph_loader import load_and_compile
 
 GRAPH_PATH = Path(__file__).parent.parent / "graph.yaml"
 

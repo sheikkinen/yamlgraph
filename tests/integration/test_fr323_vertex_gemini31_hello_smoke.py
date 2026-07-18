@@ -6,7 +6,7 @@ from unittest.mock import patch
 
 import pytest
 
-from yamlgraph.graph_loader import compile_graph, load_graph_config
+from yamlgraph.compile.graph_loader import compile_graph, load_graph_config
 
 
 @pytest.mark.req("REQ-YG-010")

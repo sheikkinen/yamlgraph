@@ -18,7 +18,7 @@ from pathlib import Path
 import yaml
 from langgraph.types import Command
 
-from yamlgraph.graph_loader import (
+from yamlgraph.compile.graph_loader import (
     compile_graph,
     get_checkpointer_for_graph,
     load_graph_config,

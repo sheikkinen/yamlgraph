@@ -7,7 +7,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from yamlgraph.map_compiler import compile_map_node, wrap_for_reducer
+from yamlgraph.compile.map_compiler import compile_map_node, wrap_for_reducer
 from yamlgraph.models import PipelineError
 from yamlgraph.models.schemas import ErrorType
 
@@ -184,7 +184,8 @@ class TestCompileMapNodeTimeout:
         defaults = {}
 
         with patch(
-            "yamlgraph.map_compiler.create_node_function", return_value=slow_sub_node
+            "yamlgraph.compile.map_compiler.create_node_function",
+            return_value=slow_sub_node,
         ):
             compile_map_node("expand", config, builder, defaults)
 
@@ -207,7 +208,7 @@ class TestNonMapNodeTimeout:
     @pytest.mark.slow
     def test_maybe_wrap_timeout_wraps_slow_node(self):
         """_maybe_wrap_timeout wraps a node function with timeout."""
-        from yamlgraph.node_compiler import _maybe_wrap_timeout
+        from yamlgraph.compile.node_compiler import _maybe_wrap_timeout
 
         def slow_node(state):
             delay_scale = float(os.environ.get("TEST_DELAY_SCALE", "1.0"))
@@ -226,7 +227,7 @@ class TestNonMapNodeTimeout:
     @pytest.mark.req("REQ-YG-078")
     def test_maybe_wrap_timeout_passes_fast_node(self):
         """_maybe_wrap_timeout passes fast node through unchanged result."""
-        from yamlgraph.node_compiler import _maybe_wrap_timeout
+        from yamlgraph.compile.node_compiler import _maybe_wrap_timeout
 
         def fast_node(state):
             return {"result": "done", "current_step": "test"}
@@ -241,7 +242,7 @@ class TestNonMapNodeTimeout:
     @pytest.mark.req("REQ-YG-078")
     def test_maybe_wrap_timeout_no_timeout_returns_original(self):
         """_maybe_wrap_timeout returns original fn when no timeout set."""
-        from yamlgraph.node_compiler import _maybe_wrap_timeout
+        from yamlgraph.compile.node_compiler import _maybe_wrap_timeout
 
         def original_node(state):
             return {"result": "done"}
@@ -252,7 +253,7 @@ class TestNonMapNodeTimeout:
     @pytest.mark.req("REQ-YG-078")
     def test_maybe_wrap_timeout_none_returns_original(self):
         """_maybe_wrap_timeout returns original fn when timeout is None."""
-        from yamlgraph.node_compiler import _maybe_wrap_timeout
+        from yamlgraph.compile.node_compiler import _maybe_wrap_timeout
 
         def original_node(state):
             return {"result": "done"}

@@ -11,7 +11,7 @@ modules:
   - yamlgraph/node_factory/llm_nodes.py
   - yamlgraph/utils/validators.py
   - yamlgraph/models/state_builder.py
-  - yamlgraph/node_compiler.py
+  - yamlgraph/compile/node_compiler.py
   - tests/unit/test_router_race.py
 requirements:
   - id: REQ-YG-271
@@ -30,6 +30,6 @@ requirements:
       - yamlgraph/node_factory/llm_nodes.py
       - yamlgraph/utils/validators.py
       - yamlgraph/models/state_builder.py
-      - yamlgraph/node_compiler.py
+      - yamlgraph/compile/node_compiler.py
       - tests/unit/test_router_race.py
 fr: FR-272

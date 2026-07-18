@@ -2,7 +2,7 @@
 
 import pytest
 
-from yamlgraph.graph_loader import load_and_compile
+from yamlgraph.compile.graph_loader import load_and_compile
 
 
 class TestLoadAndCompile:

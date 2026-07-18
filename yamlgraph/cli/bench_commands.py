@@ -262,7 +262,7 @@ def cmd_graph_bench(args: Namespace) -> None:
         yamlgraph graph bench graph.yaml --models anthropic/claude-sonnet-4-20250514 openai/gpt-4o
     """
     from yamlgraph.cli.helpers import load_var_file, parse_vars
-    from yamlgraph.graph_loader import compile_graph, load_graph_config
+    from yamlgraph.compile.graph_loader import compile_graph, load_graph_config
 
     graph_path = Path(args.graph_path)
 

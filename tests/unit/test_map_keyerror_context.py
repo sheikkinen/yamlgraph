@@ -61,7 +61,7 @@ class TestMapNodeKeyErrorContext:
         """Map 'over' with missing key should provide node context."""
         from unittest.mock import MagicMock
 
-        from yamlgraph.map_compiler import compile_map_node
+        from yamlgraph.compile.map_compiler import compile_map_node
 
         # Create minimal builder mock
         builder = MagicMock()

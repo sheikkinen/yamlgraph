@@ -42,7 +42,7 @@ if __name__ == "__main__":
         from scripts.lint_inline_llm import check_file
 
         code = """
-from yamlgraph.graph_loader import load_graph_config, compile_graph
+from yamlgraph.compile.graph_loader import load_graph_config, compile_graph
 
 def main():
     config = load_graph_config("graph.yaml")
@@ -65,7 +65,7 @@ if __name__ == "__main__":
 
         code = """
 from yamlgraph.executor import execute_prompt
-from yamlgraph.graph_loader import load_graph_config, compile_graph
+from yamlgraph.compile.graph_loader import load_graph_config, compile_graph
 
 def main():
     # This is a graph runner that also imports executor
@@ -176,7 +176,7 @@ if __name__ == "__main__":
 
         code = """
 from yamlgraph.executor import execute_prompt
-from yamlgraph.graph_loader import load_and_compile
+from yamlgraph.compile.graph_loader import load_and_compile
 
 def main():
     graph = load_and_compile("graph.yaml")

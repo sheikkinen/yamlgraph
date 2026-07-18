@@ -13,8 +13,8 @@ from typing import TYPE_CHECKING, Any
 from langgraph.graph import StateGraph
 from langgraph.types import CachePolicy
 
+from yamlgraph.compile.map_compiler import compile_map_node
 from yamlgraph.constants import NodeType
-from yamlgraph.map_compiler import compile_map_node
 from yamlgraph.models.guard_schema import CacheConfig
 from yamlgraph.node_factory import (
     create_copilot_node,
@@ -32,7 +32,7 @@ from yamlgraph.tools.python_tool import create_python_node
 from yamlgraph.utils.guard_runtime import create_verify_node
 
 if TYPE_CHECKING:
-    from yamlgraph.graph_loader import GraphConfig
+    from yamlgraph.compile.graph_loader import GraphConfig
 
 logger = logging.getLogger(__name__)
 

@@ -48,7 +48,7 @@ class TestGraphLoader:
 
     def test_npc_creation_loads(self):
         """NPC creation graph should load without errors."""
-        from yamlgraph.graph_loader import load_graph_config
+        from yamlgraph.compile.graph_loader import load_graph_config
 
         config = load_graph_config(str(EXAMPLE_DIR / "npc-creation.yaml"))
         assert config is not None
@@ -56,7 +56,7 @@ class TestGraphLoader:
 
     def test_encounter_loop_loads(self):
         """Encounter loop graph should load without errors."""
-        from yamlgraph.graph_loader import load_graph_config
+        from yamlgraph.compile.graph_loader import load_graph_config
 
         config = load_graph_config(str(EXAMPLE_DIR / "encounter-loop.yaml"))
         assert config is not None

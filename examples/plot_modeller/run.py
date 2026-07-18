@@ -61,7 +61,7 @@ RESULTS_DIR = EXAMPLE_DIR / "results"
 
 def _compile(graph_key: str):
     """Load and compile a graph by key."""
-    from yamlgraph.graph_loader import compile_graph, load_graph_config
+    from yamlgraph.compile.graph_loader import compile_graph, load_graph_config
 
     config = load_graph_config(str(GRAPH_PATHS[graph_key]))
     graph = compile_graph(config)

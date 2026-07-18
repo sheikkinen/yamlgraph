@@ -12,8 +12,8 @@ from unittest.mock import MagicMock, call
 
 import pytest
 
-from yamlgraph.edge_compiler import _process_edge
-from yamlgraph.graph_loader import compile_graph, load_graph_config
+from yamlgraph.compile.edge_compiler import _process_edge
+from yamlgraph.compile.graph_loader import compile_graph, load_graph_config
 
 # =============================================================================
 # Fixtures

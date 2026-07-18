@@ -1050,7 +1050,7 @@ These are E402 suppressions and are acceptable as "glue code" patterns.
 - **Penance**: Retained intentionally for domain semantics or existing contract wording; explicitly allowlisted and audited.
 
 ### CONF-223
-- **File**: [yamlgraph/edge_compiler.py](../yamlgraph/edge_compiler.py#L229)
+- **File**: [yamlgraph/compile/edge_compiler.py](../yamlgraph/compile/edge_compiler.py#L229)
 - **Code**: FB001
 - **Sin**: Contains lexical `fallback` token flagged by FR-418 fallback-token hygiene gate.
 - **Penance**: Retained intentionally for domain semantics or existing contract wording; explicitly allowlisted and audited.

@@ -256,7 +256,7 @@ class TestGraphYaml:
     @pytest.mark.req("REQ-YG-257")
     def test_graph_loads(self):
         """Graph YAML loads via load_graph_config."""
-        from yamlgraph.graph_loader import load_graph_config
+        from yamlgraph.compile.graph_loader import load_graph_config
 
         config = load_graph_config(str(GRAPH_PATH))
         assert config.name == "diary-index"
@@ -273,7 +273,7 @@ class TestGraphYaml:
     @pytest.mark.req("REQ-YG-257")
     def test_aggregate_node_is_python_type(self):
         """AC #4: aggregate node must be type: python, not type: llm."""
-        from yamlgraph.graph_loader import load_graph_config
+        from yamlgraph.compile.graph_loader import load_graph_config
 
         config = load_graph_config(str(GRAPH_PATH))
         agg_node = config.nodes["aggregate"]
@@ -282,7 +282,7 @@ class TestGraphYaml:
     @pytest.mark.req("REQ-YG-257")
     def test_write_index_node_is_python_type(self):
         """AC #5: write_index node must be type: python."""
-        from yamlgraph.graph_loader import load_graph_config
+        from yamlgraph.compile.graph_loader import load_graph_config
 
         config = load_graph_config(str(GRAPH_PATH))
         write_node = config.nodes["write_index"]
@@ -291,7 +291,7 @@ class TestGraphYaml:
     @pytest.mark.req("REQ-YG-257")
     def test_defaults_model_is_haiku(self):
         """AC #14: defaults.model set to claude-haiku for cost control."""
-        from yamlgraph.graph_loader import load_graph_config
+        from yamlgraph.compile.graph_loader import load_graph_config
 
         config = load_graph_config(str(GRAPH_PATH))
         assert "haiku" in config.defaults.get("model", "").lower()
@@ -317,7 +317,7 @@ class TestGraphYaml:
     @pytest.mark.req("REQ-YG-257")
     def test_map_node_max_items(self):
         """Map node must support 500 items for full diary corpus."""
-        from yamlgraph.graph_loader import load_graph_config
+        from yamlgraph.compile.graph_loader import load_graph_config
 
         config = load_graph_config(str(GRAPH_PATH))
         extract_node = config.nodes["extract_all"]

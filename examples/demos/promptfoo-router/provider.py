@@ -1,6 +1,6 @@
 """Promptfoo Python provider for YAMLGraph graphs."""
 
-from yamlgraph.graph_loader import invoke_graph
+from yamlgraph.compile.graph_loader import invoke_graph
 
 
 def call_api(prompt, options, context):

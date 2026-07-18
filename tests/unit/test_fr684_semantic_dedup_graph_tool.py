@@ -44,7 +44,7 @@ class TestSemanticDedupGraph:
 
     @pytest.mark.req("REQ-YG-517")
     def test_semantic_dedup_yaml_lints(self) -> None:
-        from yamlgraph.graph_loader import load_graph_config
+        from yamlgraph.compile.graph_loader import load_graph_config
 
         path = NOVEL_FANDOM_DIR / "semantic_dedup.yaml"
         config = load_graph_config(str(path))
@@ -132,7 +132,7 @@ class TestWorldgenLints:
 
     @pytest.mark.req("REQ-YG-517")
     def test_worldgen_yaml_lints(self) -> None:
-        from yamlgraph.graph_loader import load_graph_config
+        from yamlgraph.compile.graph_loader import load_graph_config
 
         config = load_graph_config(str(NOVEL_FANDOM_DIR / "worldgen.yaml"))
         assert config.name == "novel-fandom-worldgen"

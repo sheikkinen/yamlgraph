@@ -170,9 +170,9 @@ class TestFR269CmdGraphRunStateMerging:
     @patch("yamlgraph.cli.graph_commands._teardown_timeout")
     @patch("yamlgraph.cli.graph_commands._build_run_config")
     @patch("yamlgraph.storage.export.load_export", return_value={"imported": "state"})
-    @patch("yamlgraph.graph_loader.get_checkpointer_for_graph")
-    @patch("yamlgraph.graph_loader.compile_graph")
-    @patch("yamlgraph.graph_loader.load_graph_config")
+    @patch("yamlgraph.compile.graph_loader.get_checkpointer_for_graph")
+    @patch("yamlgraph.compile.graph_loader.compile_graph")
+    @patch("yamlgraph.compile.graph_loader.load_graph_config")
     def test_import_state_is_base_initial_state(
         self,
         mock_load_config,
@@ -227,9 +227,9 @@ class TestFR269CmdGraphRunStateMerging:
         "yamlgraph.cli.graph_commands.load_var_file",
         return_value={"shared": "file", "f": 2},
     )
-    @patch("yamlgraph.graph_loader.get_checkpointer_for_graph")
-    @patch("yamlgraph.graph_loader.compile_graph")
-    @patch("yamlgraph.graph_loader.load_graph_config")
+    @patch("yamlgraph.compile.graph_loader.get_checkpointer_for_graph")
+    @patch("yamlgraph.compile.graph_loader.compile_graph")
+    @patch("yamlgraph.compile.graph_loader.load_graph_config")
     def test_merge_order_is_import_then_var_file_then_var(
         self,
         mock_load_config,
@@ -283,9 +283,9 @@ class TestFR269CmdGraphRunStateMerging:
         "yamlgraph.cli.graph_commands.parse_vars", return_value={"topic": "from-cli"}
     )
     @patch("yamlgraph.cli.graph_commands.load_var_file", return_value={})
-    @patch("yamlgraph.graph_loader.get_checkpointer_for_graph")
-    @patch("yamlgraph.graph_loader.compile_graph")
-    @patch("yamlgraph.graph_loader.load_graph_config")
+    @patch("yamlgraph.compile.graph_loader.get_checkpointer_for_graph")
+    @patch("yamlgraph.compile.graph_loader.compile_graph")
+    @patch("yamlgraph.compile.graph_loader.load_graph_config")
     def test_cli_vars_override_imported_keys(
         self,
         mock_load_config,
@@ -329,9 +329,9 @@ class TestFR269CmdGraphRunStateMerging:
     @patch("yamlgraph.cli.graph_commands._setup_timeout", return_value=None)
     @patch("yamlgraph.cli.graph_commands._teardown_timeout")
     @patch("yamlgraph.cli.graph_commands._build_run_config")
-    @patch("yamlgraph.graph_loader.get_checkpointer_for_graph")
-    @patch("yamlgraph.graph_loader.compile_graph")
-    @patch("yamlgraph.graph_loader.load_graph_config")
+    @patch("yamlgraph.compile.graph_loader.get_checkpointer_for_graph")
+    @patch("yamlgraph.compile.graph_loader.compile_graph")
+    @patch("yamlgraph.compile.graph_loader.load_graph_config")
     def test_import_state_missing_file_exits_with_clear_error(
         self,
         mock_load_config,
@@ -366,9 +366,9 @@ class TestFR269CmdGraphRunStateMerging:
     @patch("yamlgraph.cli.graph_commands._setup_timeout", return_value=None)
     @patch("yamlgraph.cli.graph_commands._teardown_timeout")
     @patch("yamlgraph.cli.graph_commands._build_run_config")
-    @patch("yamlgraph.graph_loader.get_checkpointer_for_graph")
-    @patch("yamlgraph.graph_loader.compile_graph")
-    @patch("yamlgraph.graph_loader.load_graph_config")
+    @patch("yamlgraph.compile.graph_loader.get_checkpointer_for_graph")
+    @patch("yamlgraph.compile.graph_loader.compile_graph")
+    @patch("yamlgraph.compile.graph_loader.load_graph_config")
     def test_export_state_write_failure_exits_with_clear_error(
         self,
         mock_load_config,

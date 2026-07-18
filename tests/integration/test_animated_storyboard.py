@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from yamlgraph.graph_loader import compile_graph, load_graph_config
+from yamlgraph.compile.graph_loader import compile_graph, load_graph_config
 
 
 class TestAnimatedStoryboardGraph:
@@ -35,7 +35,9 @@ class TestAnimatedStoryboardGraph:
         """Animated character storyboard graph compiles to StateGraph."""
         config = load_graph_config("examples/storyboard/animated-character-graph.yaml")
 
-        with patch("yamlgraph.node_compiler.compile_map_node") as mock_compile_map:
+        with patch(
+            "yamlgraph.compile.node_compiler.compile_map_node"
+        ) as mock_compile_map:
             mock_map_edge_fn = MagicMock()
             mock_compile_map.return_value = (
                 mock_map_edge_fn,

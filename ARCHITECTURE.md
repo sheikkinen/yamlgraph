@@ -412,12 +412,12 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 88 | CAP-88 Google/Vertex Thinking Budget Support | `yamlgraph/utils/llm_factory.py`, `yamlgraph/models/graph_schema.py`, `yamlgraph/linter/checks_providers.py` | REQ-YG-230 |
 | 89 | CAP-89 Execution Timing Callback | `yamlgraph/utils/timing_tracker.py`, `yamlgraph/cli/graph_commands.py`, `yamlgraph/cli/__init__.py` | REQ-YG-231 |
 | 90 | CAP-90 Graph Bench Command | `yamlgraph/cli/bench_commands.py`, `yamlgraph/cli/graph_commands.py`, `yamlgraph/cli/__init__.py` | REQ-YG-232 |
-| 91 | CAP-91 Race Node Type | `yamlgraph/node_factory/race_node.py`, `yamlgraph/constants.py`, `yamlgraph/node_compiler.py`, `yamlgraph/models/graph_schema.py`, … | REQ-YG-233, 269 |
+| 91 | CAP-91 Race Node Type | `yamlgraph/node_factory/race_node.py`, `yamlgraph/constants.py`, `yamlgraph/compile/node_compiler.py`, `yamlgraph/models/graph_schema.py`, … | REQ-YG-233, 269 |
 | 92 | CAP-92 Chatterbox TTS Demo | `examples/demos/chatterbox` | REQ-YG-234 |
 | 93 | CAP-93 Chatterbox Voice Clone Demo | `examples/demos/chatterbox` | REQ-YG-235, 238 |
-| 94 | CAP-94 Compile-Time Pipeline Templates | `yamlgraph/pipeline_template.py`, `yamlgraph/constants.py`, `yamlgraph/graph_loader.py`, `yamlgraph/linter/checks.py`, … | REQ-YG-236 |
-| 95 | CAP-95 Parallel Fan-Out Edges | `yamlgraph/edge_compiler.py` | REQ-YG-237 |
-| 96 | CAP-96 Per-Node Timeout | `yamlgraph/map_compiler.py`, `yamlgraph/node_compiler.py`, `yamlgraph/models/graph_schema.py`, `yamlgraph/models/schemas.py`, … | REQ-YG-078 |
+| 94 | CAP-94 Compile-Time Pipeline Templates | `yamlgraph/compile/pipeline_template.py`, `yamlgraph/constants.py`, `yamlgraph/compile/graph_loader.py`, `yamlgraph/linter/checks.py`, … | REQ-YG-236 |
+| 95 | CAP-95 Parallel Fan-Out Edges | `yamlgraph/compile/edge_compiler.py` | REQ-YG-237 |
+| 96 | CAP-96 Per-Node Timeout | `yamlgraph/compile/map_compiler.py`, `yamlgraph/compile/node_compiler.py`, `yamlgraph/models/graph_schema.py`, `yamlgraph/models/schemas.py`, … | REQ-YG-078 |
 | 98 | CAP-98 Pipeline Accumulated State | `yamlgraph/models/state_builder.py`, `reference/graph-yaml.md`, `tests/unit/test_state_builder_reducers.py` | REQ-YG-241 |
 | 99 | CAP-99 Race and Pipeline Node Type Documentation | `reference/graph-yaml.md`, `reference/getting-started.md` | REQ-YG-240 |
 | 100 | CAP-100 Chatterbox Multilingual CLI | `examples/demos/chatterbox` | REQ-YG-242 |
@@ -436,11 +436,11 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 114 | CAP-114 Automated Post-Merge Finalization | `.chaplain/lib/finalize_lib.sh`, `.chaplain/watch.sh`, `scripts/finalize_merge.sh`, `tests/unit/test_automated_post_merge_finalization` | REQ-YG-261 |
 | 116 | CAP-116 Acceptance Tests Before Enforce | `.chaplain/config/watcher-pipeline-v2.yaml`, `.chaplain/graphs/watcher-plan/step-plan-unified.yaml`, `.chaplain/graphs/watcher-plan/prompts/write-acceptance-tests.yaml`, `.chaplain/graphs/watcher-plan/prompts/judge.yaml`, … | REQ-YG-263 |
 | 117 | CAP-117 Race Node parse_json & Content Normalization | `yamlgraph/node_factory/race_node.py`, `yamlgraph/utils/content.py`, `yamlgraph/tools/agent.py` | REQ-YG-264 |
-| 118 | CAP-118 Copilot Node Model Selection | `yamlgraph/models/graph_schema.py`, `yamlgraph/node_compiler.py`, `yamlgraph/node_factory/copilot_node.py` | REQ-YG-265 |
-| 119 | CAP-119 Race Node Timeout Fix | `yamlgraph/node_factory/race_node.py`, `yamlgraph/node_compiler.py` | REQ-YG-266 |
+| 118 | CAP-118 Copilot Node Model Selection | `yamlgraph/models/graph_schema.py`, `yamlgraph/compile/node_compiler.py`, `yamlgraph/node_factory/copilot_node.py` | REQ-YG-265 |
+| 119 | CAP-119 Race Node Timeout Fix | `yamlgraph/node_factory/race_node.py`, `yamlgraph/compile/node_compiler.py` | REQ-YG-266 |
 | 120 | CAP-120 CLI Inter-Run State Chaining | `yamlgraph/cli/__init__.py`, `yamlgraph/cli/graph_commands.py`, `yamlgraph/cli/helpers.py`, `yamlgraph/storage/export.py` | REQ-YG-267 – 268 |
 | 121 | CAP-121 Async Race Node with Cancellable Candidates | `yamlgraph/node_factory/race_node.py`, `tests/unit/test_race_node.py` | REQ-YG-270 |
-| 122 | CAP-122 Router Node with Candidates Race Support | `yamlgraph/node_factory/llm_nodes.py`, `yamlgraph/utils/validators.py`, `yamlgraph/models/state_builder.py`, `yamlgraph/node_compiler.py`, … | REQ-YG-271 |
+| 122 | CAP-122 Router Node with Candidates Race Support | `yamlgraph/node_factory/llm_nodes.py`, `yamlgraph/utils/validators.py`, `yamlgraph/models/state_builder.py`, `yamlgraph/compile/node_compiler.py`, … | REQ-YG-271 |
 | 124 | CAP-124 Watcher2 PR Reuse (FR-275) | `.chaplain/lib/watcher/create_pr.sh`, `tests/unit/test_watcher2_create_pr_reuse.py` | REQ-YG-272 |
 | 125 | CAP-125 Pipeline Script Retirement (FR-276) | `.chaplain/scripts/start-system.sh`, `.chaplain/config/watcher-dispatcher.yaml`, `.chaplain/config/watcher-pipeline-v2.yaml`, `.chaplain/lib/watcher/worktree_setup.sh`, … | REQ-YG-276 |
 | 126 | CAP-126 Test Speed Optimization | `pyproject.toml`, `tests/chaos_tools.py`, `tests/unit/test_map_node_timeout.py`, `tests/unit/test_race_node.py`, … | REQ-YG-275 |
@@ -470,9 +470,9 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 152 | CAP-152 Watcher2 Dispatcher Audit Cadence | `.chaplain/config/watcher-dispatcher.yaml`, `.chaplain/actions/syncing_inbox_action.py`, `.chaplain/actions/audit_action.py`, `tests/unit/test_fr411_watcher2_dispatcher_inquisitor_audit_cadence.py`, … | REQ-YG-407 |
 | 153 | CAP-153 Built-in Questionnaire Gap Utilities | `yamlgraph/tools/questionnaire.py`, `tests/unit/test_fr421_questionnaire_gap_utilities_red.py`, `reference/probe-recap-questionnaire.md`, `ARCHITECTURE.md` | REQ-YG-409 – 410 |
 | 154 | CAP-154 Hook Classification Daemon | `examples/demos/hook_classifier/actions/classify_action.py`, `examples/demos/hook_classifier/config/hook-classifier.yaml`, `examples/demos/hook_classifier/graphs/classify-intent.yaml`, `examples/demos/hook_classifier/prompts/classify-tool-intent.yaml`, … | REQ-YG-411 – 416 |
-| 155 | CAP-155 Schema Loader Tool Type | `yamlgraph/tools/schema_loader_tool.py`, `yamlgraph/tools/python_tool.py`, `yamlgraph/graph_loader.py`, `yamlgraph/node_compiler.py`, … | REQ-YG-417 – 418 |
+| 155 | CAP-155 Schema Loader Tool Type | `yamlgraph/tools/schema_loader_tool.py`, `yamlgraph/tools/python_tool.py`, `yamlgraph/compile/graph_loader.py`, `yamlgraph/compile/node_compiler.py`, … | REQ-YG-417 – 418 |
 | 156 | CAP-156 WIP Commit Subject Gate | `.pre-commit-config.yaml`, `.github/workflows/commitlint.yml`, `tests/unit/test_fr424_wip_main_gate_red.py`, `CLAUDE.md`, … | REQ-YG-419 |
-| 157 | CAP-157 Graph Loader Strict Tool Load Fail Fast | `yamlgraph/graph_loader.py`, `tests/unit/test_fr444_graph_loader_tool_load_mode_red.py`, `reference/graph-yaml.md`, `ARCHITECTURE.md` | REQ-YG-420 – 421 |
+| 157 | CAP-157 Graph Loader Strict Tool Load Fail Fast | `yamlgraph/compile/graph_loader.py`, `tests/unit/test_fr444_graph_loader_tool_load_mode_red.py`, `reference/graph-yaml.md`, `ARCHITECTURE.md` | REQ-YG-420 – 421 |
 | 158 | CAP-158 Copilot Skill Promotion | `.github/skills/author-graph/SKILL.md`, `.github/skills/author-prompt/SKILL.md`, `.github/skills/release-version/SKILL.md`, `.github/skills/chaplain-ops/SKILL.md`, … | REQ-YG-423 |
 | 159 | CAP-159 Standalone Planner Demo | `examples/demos/planner/graph.yaml`, `examples/demos/planner/prompts/planner.yaml`, `examples/demos/planner/tools/write_file.py`, `examples/demos/planner/demo.sh` | REQ-YG-424 |
 | 160 | CAP-160 CAP Architecture Auto-Sync | `.pre-commit-config.yaml`, `scripts/aggregate_capabilities.py` | REQ-YG-425 |
@@ -498,7 +498,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 180 | CAP-180 Novel Fandom World Expansion | `examples` | REQ-YG-494 – 504 |
 | 181 | CAP-181 Novel Fandom Genesis Pipeline | `examples/novel_fandom` | REQ-YG-505 – 507 |
 | 182 | CAP-182 Agentic Event Deepening | `examples/novel_fandom/nodes/canon_tools.py`, `examples/novel_fandom/nodes/split_thin_by_type.py`, `examples/novel_fandom/prompts/deepen_event_agent.yaml`, `examples/novel_fandom/worldgen.yaml` | REQ-YG-509 |
-| 183 | CAP-183 First-Class Verification | `yamlgraph/utils/guard_runtime.py`, `yamlgraph/node_compiler.py`, `yamlgraph/tools/nodes.py`, `yamlgraph/tools/python_tool.py`, … | REQ-YG-511 |
+| 183 | CAP-183 First-Class Verification | `yamlgraph/utils/guard_runtime.py`, `yamlgraph/compile/node_compiler.py`, `yamlgraph/tools/nodes.py`, `yamlgraph/tools/python_tool.py`, … | REQ-YG-511 |
 | 184 | CAP-184 Novel Fandom Duplicate Entity Prevention | `examples/novel_fandom` | REQ-YG-512 – 514 |
 | 185 | CAP-185 Novel Fandom Ref Integrity Graph-Tool | `examples/novel_fandom` | REQ-YG-515 |
 | 186 | CAP-186 Novel Fandom Genesis Self-Correcting Pipeline | `examples/novel_fandom` | REQ-YG-516 |
@@ -1374,7 +1374,7 @@ A type: race node that fires the same prompt to N provider/model candidates conc
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
-| REQ-YG-233 | type: race node fires prompt to all candidates concurrently using ThreadPoolExecutor; returns first successful result (not just first to complete); remaining candidates cancelled; all-fail triggers on_error policy; _race_winner metadata in state; candidates validated ≥2 entries each with provider or model; graph lint E301-E304; structured output works; NodeType.RACE in constants; NODE_TYPE_HANDLERS registered | `yamlgraph/node_factory/race_node.py`, `yamlgraph/constants.py`, `yamlgraph/node_compiler.py`, `yamlgraph/models/graph_schema.py`, `yamlgraph/models/state_builder.py`, `yamlgraph/linter/patterns/race.py`, `yamlgraph/linter/checks.py`, `tests/unit/test_race_node.py`, `tests/unit/test_linter_patterns_race.py` |
+| REQ-YG-233 | type: race node fires prompt to all candidates concurrently using ThreadPoolExecutor; returns first successful result (not just first to complete); remaining candidates cancelled; all-fail triggers on_error policy; _race_winner metadata in state; candidates validated ≥2 entries each with provider or model; graph lint E301-E304; structured output works; NodeType.RACE in constants; NODE_TYPE_HANDLERS registered | `yamlgraph/node_factory/race_node.py`, `yamlgraph/constants.py`, `yamlgraph/compile/node_compiler.py`, `yamlgraph/models/graph_schema.py`, `yamlgraph/models/state_builder.py`, `yamlgraph/linter/patterns/race.py`, `yamlgraph/linter/checks.py`, `tests/unit/test_race_node.py`, `tests/unit/test_linter_patterns_race.py` |
 | REQ-YG-269 | Race node must not block on losing candidates after a winner is found. ThreadPoolExecutor shut down with wait=False, cancel_futures=True after returning winner. No with ThreadPoolExecutor context manager pattern. Loser threads terminate naturally; their results are discarded. | `yamlgraph/node_factory/race_node.py`, `tests/unit/test_race_node.py` |
 
 ### 92. CAP-92 Chatterbox TTS Demo
@@ -1406,7 +1406,7 @@ A type: pipeline meta-node that defines a sequence of stages once, iterates over
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
-| REQ-YG-236 | type: pipeline meta-node expands at compile time into concrete nodes and sequential edges; {item.field} interpolation in prompt, variables, state_key; non-string fields copied verbatim; external edges rewritten to first/last expanded node; lint E401 (empty items), E402 (empty stages), E403 (unresolved item refs), E404 (missing name); NodeType.PIPELINE in constants; VALID_NODE_TYPES includes pipeline; expansion called in graph_loader after expand_interactive_tools | `yamlgraph/pipeline_template.py`, `yamlgraph/constants.py`, `yamlgraph/graph_loader.py`, `yamlgraph/linter/checks.py`, `yamlgraph/linter/patterns/pipeline.py`, `yamlgraph/linter/graph_linter.py`, `tests/unit/test_pipeline_template.py`, `tests/unit/test_linter_patterns_pipeline.py` |
+| REQ-YG-236 | type: pipeline meta-node expands at compile time into concrete nodes and sequential edges; {item.field} interpolation in prompt, variables, state_key; non-string fields copied verbatim; external edges rewritten to first/last expanded node; lint E401 (empty items), E402 (empty stages), E403 (unresolved item refs), E404 (missing name); NodeType.PIPELINE in constants; VALID_NODE_TYPES includes pipeline; expansion called in graph_loader after expand_interactive_tools | `yamlgraph/compile/pipeline_template.py`, `yamlgraph/constants.py`, `yamlgraph/compile/graph_loader.py`, `yamlgraph/linter/checks.py`, `yamlgraph/linter/patterns/pipeline.py`, `yamlgraph/linter/graph_linter.py`, `tests/unit/test_pipeline_template.py`, `tests/unit/test_linter_patterns_pipeline.py` |
 
 ### 95. CAP-95 Parallel Fan-Out Edges
 
@@ -1416,7 +1416,7 @@ Parallel fan-out edges allow a single node to fan out to multiple target nodes t
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
-| REQ-YG-237 | Parallel fan-out edges: to: [a, b, c] without type: conditional compiles as parallel fan-out via multiple add_edge() calls; handles interrupt node redirect to _prepare; handles map node targets via conditional edges; START fan-out uses conditional entry point; existing conditional routing with type: conditional unchanged | `yamlgraph/edge_compiler.py`, `tests/unit/test_parallel_fanout_edges.py` |
+| REQ-YG-237 | Parallel fan-out edges: to: [a, b, c] without type: conditional compiles as parallel fan-out via multiple add_edge() calls; handles interrupt node redirect to _prepare; handles map node targets via conditional edges; START fan-out uses conditional entry point; existing conditional routing with type: conditional unchanged | `yamlgraph/compile/edge_compiler.py`, `tests/unit/test_parallel_fanout_edges.py` |
 
 ### 96. CAP-96 Per-Node Timeout
 
@@ -1426,7 +1426,7 @@ Per-node timeout bounding for map branches and all node types via ThreadPoolExec
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
-| REQ-YG-078 | Per-node timeout: optional float timeout field on NodeConfig validated as positive; map branch timeout via wrap_for_reducer with ThreadPoolExecutor; non-map node timeout via _maybe_wrap_timeout in node_compiler handlers; TIMEOUT_ERROR error type in ErrorType enum; from_exception classification unchanged (callers pass error_type explicitly); lint warning W203 for map+agent without timeout; except concurrent.futures.TimeoutError before except Exception in both paths | `yamlgraph/map_compiler.py`, `yamlgraph/node_compiler.py`, `yamlgraph/models/graph_schema.py`, `yamlgraph/models/schemas.py`, `yamlgraph/linter/patterns/map.py`, `tests/unit/test_map_node_timeout.py` |
+| REQ-YG-078 | Per-node timeout: optional float timeout field on NodeConfig validated as positive; map branch timeout via wrap_for_reducer with ThreadPoolExecutor; non-map node timeout via _maybe_wrap_timeout in node_compiler handlers; TIMEOUT_ERROR error type in ErrorType enum; from_exception classification unchanged (callers pass error_type explicitly); lint warning W203 for map+agent without timeout; except concurrent.futures.TimeoutError before except Exception in both paths | `yamlgraph/compile/map_compiler.py`, `yamlgraph/compile/node_compiler.py`, `yamlgraph/models/graph_schema.py`, `yamlgraph/models/schemas.py`, `yamlgraph/linter/patterns/map.py`, `tests/unit/test_map_node_timeout.py` |
 
 ### 98. CAP-98 Pipeline Accumulated State
 
@@ -1619,7 +1619,7 @@ Copilot nodes support model as a top-level node config key, consistent with LLM 
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
-| REQ-YG-265 | NodeConfig has model: str \| None field; create_copilot_node accepts defaults parameter; _compile_copilot_node passes effective_defaults to factory; model resolution follows cli_flags.model > node-level model > defaults.model > omit; CopilotResult.model reflects the resolved model regardless of source | `yamlgraph/models/graph_schema.py`, `yamlgraph/node_compiler.py`, `yamlgraph/node_factory/copilot_node.py`, `tests/unit/test_copilot_node_model_selection.py` |
+| REQ-YG-265 | NodeConfig has model: str \| None field; create_copilot_node accepts defaults parameter; _compile_copilot_node passes effective_defaults to factory; model resolution follows cli_flags.model > node-level model > defaults.model > omit; CopilotResult.model reflects the resolved model regardless of source | `yamlgraph/models/graph_schema.py`, `yamlgraph/compile/node_compiler.py`, `yamlgraph/node_factory/copilot_node.py`, `tests/unit/test_copilot_node_model_selection.py` |
 
 ### 119. CAP-119 Race Node Timeout Fix
 
@@ -1629,7 +1629,7 @@ Race node applies exactly one timeout mechanism — its native as_completed(time
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
-| REQ-YG-266 | Race node applies exactly one timeout mechanism — its native as_completed(timeout=...); _compile_race_node must NOT call _maybe_wrap_timeout; on timeout expiry (no candidate succeeds within deadline), race node produces PipelineError(TIMEOUT_ERROR) and respects on_error config; without on_error, raises AllCandidatesFailedError; race timeout is total race deadline, not per-candidate | `yamlgraph/node_factory/race_node.py`, `yamlgraph/node_compiler.py`, `tests/unit/test_race_node.py` |
+| REQ-YG-266 | Race node applies exactly one timeout mechanism — its native as_completed(timeout=...); _compile_race_node must NOT call _maybe_wrap_timeout; on timeout expiry (no candidate succeeds within deadline), race node produces PipelineError(TIMEOUT_ERROR) and respects on_error config; without on_error, raises AllCandidatesFailedError; race timeout is total race deadline, not per-candidate | `yamlgraph/node_factory/race_node.py`, `yamlgraph/compile/node_compiler.py`, `tests/unit/test_race_node.py` |
 
 ### 120. CAP-120 CLI Inter-Run State Chaining
 
@@ -1660,7 +1660,7 @@ Extends the router node type to accept an optional `candidates:` list (identical
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
-| REQ-YG-271 | Router node accepts optional candidates: list (≥2 {provider, model} dicts) for race-based routing: fires prompt concurrently, first-valid result used for routing resolution via _resolve_route; losers cancelled via asyncio.Task.cancel(); timeout: managed by _race_async (no outer _maybe_wrap_timeout); provider: + candidates: mutually exclusive (compile error); on_error: skip rejected at compile time; timeout/all-fail with on_error: fail raises AllCandidatesFailedError, with on_error: fallback/unset routes via default_route + records error; _race_winner metadata set in state; missing route_field in winner falls to default_route (no disqualification); single-provider routers unchanged | `yamlgraph/node_factory/llm_nodes.py`, `yamlgraph/utils/validators.py`, `yamlgraph/models/state_builder.py`, `yamlgraph/node_compiler.py`, `tests/unit/test_router_race.py` |
+| REQ-YG-271 | Router node accepts optional candidates: list (≥2 {provider, model} dicts) for race-based routing: fires prompt concurrently, first-valid result used for routing resolution via _resolve_route; losers cancelled via asyncio.Task.cancel(); timeout: managed by _race_async (no outer _maybe_wrap_timeout); provider: + candidates: mutually exclusive (compile error); on_error: skip rejected at compile time; timeout/all-fail with on_error: fail raises AllCandidatesFailedError, with on_error: fallback/unset routes via default_route + records error; _race_winner metadata set in state; missing route_field in winner falls to default_route (no disqualification); single-provider routers unchanged | `yamlgraph/node_factory/llm_nodes.py`, `yamlgraph/utils/validators.py`, `yamlgraph/models/state_builder.py`, `yamlgraph/compile/node_compiler.py`, `tests/unit/test_router_race.py` |
 
 ### 124. CAP-124 Watcher2 PR Reuse (FR-275)
 
@@ -2010,8 +2010,8 @@ Add built-in tools.type=schema_loader for deterministic graph-relative schema lo
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
-| REQ-YG-417 | parse_schema_loader_tools recognizes type: schema_loader entries, enforces exactly-one-of path/paths_from_state plus required state_key, and supports single-file schema loading into the configured state key via python tool runtime integration. | `yamlgraph/tools/schema_loader_tool.py`, `yamlgraph/tools/python_tool.py`, `yamlgraph/graph_loader.py`, `yamlgraph/node_compiler.py`, `tests/unit/test_fr426_schema_loader_tool_type_red.py` |
-| REQ-YG-418 | Merge mode loads schema files from paths_from_state topics under schema_dir with suffix, preserves additive ordering (existing fields first), deduplicates by deduplicate_by, and enforces graph-root path safety including traversal rejection and graph-relative resolution independent of process CWD. | `yamlgraph/tools/schema_loader_tool.py`, `yamlgraph/tools/python_tool.py`, `yamlgraph/map_compiler.py`, `tests/unit/test_fr426_schema_loader_tool_type_red.py` |
+| REQ-YG-417 | parse_schema_loader_tools recognizes type: schema_loader entries, enforces exactly-one-of path/paths_from_state plus required state_key, and supports single-file schema loading into the configured state key via python tool runtime integration. | `yamlgraph/tools/schema_loader_tool.py`, `yamlgraph/tools/python_tool.py`, `yamlgraph/compile/graph_loader.py`, `yamlgraph/compile/node_compiler.py`, `tests/unit/test_fr426_schema_loader_tool_type_red.py` |
+| REQ-YG-418 | Merge mode loads schema files from paths_from_state topics under schema_dir with suffix, preserves additive ordering (existing fields first), deduplicates by deduplicate_by, and enforces graph-root path safety including traversal rejection and graph-relative resolution independent of process CWD. | `yamlgraph/tools/schema_loader_tool.py`, `yamlgraph/tools/python_tool.py`, `yamlgraph/compile/map_compiler.py`, `tests/unit/test_fr426_schema_loader_tool_type_red.py` |
 
 ### 156. CAP-156 WIP Commit Subject Gate
 
@@ -2031,8 +2031,8 @@ Graph compilation enforces explicit Python tool loading policy with strict fail-
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
-| REQ-YG-420 | Graph compilation defaults to strict Python tool loading and raises a compile-time ValueError when any Python tool import/symbol load fails, reporting each failed tool and root cause in one actionable error. | `yamlgraph/graph_loader.py`, `tests/unit/test_fr444_graph_loader_tool_load_mode_red.py` |
-| REQ-YG-421 | Graph config supports config.tool_load_mode: warn to preserve warn-and-continue behavior: failed Python tools emit warnings during compile and unresolved tools surface as runtime Unknown tool errors in tool_call nodes. | `yamlgraph/graph_loader.py`, `tests/unit/test_fr444_graph_loader_tool_load_mode_red.py`, `reference/graph-yaml.md` |
+| REQ-YG-420 | Graph compilation defaults to strict Python tool loading and raises a compile-time ValueError when any Python tool import/symbol load fails, reporting each failed tool and root cause in one actionable error. | `yamlgraph/compile/graph_loader.py`, `tests/unit/test_fr444_graph_loader_tool_load_mode_red.py` |
+| REQ-YG-421 | Graph config supports config.tool_load_mode: warn to preserve warn-and-continue behavior: failed Python tools emit warnings during compile and unresolved tools surface as runtime Unknown tool errors in tool_call nodes. | `yamlgraph/compile/graph_loader.py`, `tests/unit/test_fr444_graph_loader_tool_load_mode_red.py`, `reference/graph-yaml.md` |
 
 ### 158. CAP-158 Copilot Skill Promotion
 
@@ -2327,7 +2327,7 @@ Verification as a first-class DSL construct (FR-677). Guards, previously honored
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
-| REQ-YG-511 | Node guard parity and compile-time matrix. extract_guard_rules / enforce_pre_guards / enforce_post_guards live in the bottom-tier utils.guard_runtime module so Layer-3 tool factories may share the guard contract without crossing import boundaries. Shell tool, python, and agent nodes evaluate guards.pre before execution (halt raises GuardHaltError, skip returns a skip-error state, warn logs) and guards.post after execution (halt raises, retry re-executes bounded by max_retries, warn logs, pass returns output unchanged). Guard halts are not swallowed by on_error=skip. compile_node rejects guards declared on node types outside GUARD_SUPPORTED_TYPES (llm, router, copilot, tool, python, agent) by raising GraphConfigError. | `yamlgraph/utils/guard_runtime.py`, `yamlgraph/node_compiler.py`, `yamlgraph/tools/nodes.py`, `yamlgraph/tools/python_tool.py`, `yamlgraph/tools/agent.py`, `tests/unit/test_fr677_node_guards.py` |
+| REQ-YG-511 | Node guard parity and compile-time matrix. extract_guard_rules / enforce_pre_guards / enforce_post_guards live in the bottom-tier utils.guard_runtime module so Layer-3 tool factories may share the guard contract without crossing import boundaries. Shell tool, python, and agent nodes evaluate guards.pre before execution (halt raises GuardHaltError, skip returns a skip-error state, warn logs) and guards.post after execution (halt raises, retry re-executes bounded by max_retries, warn logs, pass returns output unchanged). Guard halts are not swallowed by on_error=skip. compile_node rejects guards declared on node types outside GUARD_SUPPORTED_TYPES (llm, router, copilot, tool, python, agent) by raising GraphConfigError. | `yamlgraph/utils/guard_runtime.py`, `yamlgraph/compile/node_compiler.py`, `yamlgraph/tools/nodes.py`, `yamlgraph/tools/python_tool.py`, `yamlgraph/tools/agent.py`, `tests/unit/test_fr677_node_guards.py` |
 
 ### 184. CAP-184 Novel Fandom Duplicate Entity Prevention
 

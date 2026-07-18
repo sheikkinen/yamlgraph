@@ -53,7 +53,7 @@ class TestGraphLoader:
 
     def test_graph_loads(self):
         """Graph should load without errors."""
-        from yamlgraph.graph_loader import load_graph_config
+        from yamlgraph.compile.graph_loader import load_graph_config
 
         config = load_graph_config(str(GRAPH_PATH))
         assert config is not None

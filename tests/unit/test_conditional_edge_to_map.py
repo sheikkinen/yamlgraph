@@ -17,7 +17,7 @@ These tests pin the fix:
 
 import pytest
 
-from yamlgraph.graph_loader import GraphConfig, compile_graph
+from yamlgraph.compile.graph_loader import GraphConfig, compile_graph
 
 
 def _passthrough(outputs: dict) -> dict:

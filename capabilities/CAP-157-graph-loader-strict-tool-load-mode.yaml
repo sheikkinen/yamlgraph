@@ -5,7 +5,7 @@ description: >
   Graph compilation enforces explicit Python tool loading policy with strict
   fail-fast default and warn-mode opt-out for partial registries.
 modules:
-  - yamlgraph/graph_loader.py
+  - yamlgraph/compile/graph_loader.py
   - tests/unit/test_fr444_graph_loader_tool_load_mode_red.py
   - reference/graph-yaml.md
   - ARCHITECTURE.md
@@ -16,7 +16,7 @@ requirements:
       compile-time ValueError when any Python tool import/symbol load fails,
       reporting each failed tool and root cause in one actionable error.
     modules:
-      - yamlgraph/graph_loader.py
+      - yamlgraph/compile/graph_loader.py
       - tests/unit/test_fr444_graph_loader_tool_load_mode_red.py
   - id: REQ-YG-421
     description: >
@@ -25,6 +25,6 @@ requirements:
       compile and unresolved tools surface as runtime Unknown tool errors in
       tool_call nodes.
     modules:
-      - yamlgraph/graph_loader.py
+      - yamlgraph/compile/graph_loader.py
       - tests/unit/test_fr444_graph_loader_tool_load_mode_red.py
       - reference/graph-yaml.md

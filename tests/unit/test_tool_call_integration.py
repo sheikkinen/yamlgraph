@@ -6,9 +6,9 @@ TDD Phase 3b: Wire tool_call node into graph compilation.
 import pytest
 from langgraph.graph import StateGraph
 
-from yamlgraph.graph_loader import GraphConfig
-from yamlgraph.map_compiler import compile_map_node
-from yamlgraph.node_compiler import compile_node
+from yamlgraph.compile.graph_loader import GraphConfig
+from yamlgraph.compile.map_compiler import compile_map_node
+from yamlgraph.compile.node_compiler import compile_node
 
 
 # Sample tools for testing

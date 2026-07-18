@@ -11,8 +11,8 @@ description: >
   Lint warning W203 emitted when a map node contains an agent sub-node
   without timeout.
 modules:
-  - yamlgraph/map_compiler.py
-  - yamlgraph/node_compiler.py
+  - yamlgraph/compile/map_compiler.py
+  - yamlgraph/compile/node_compiler.py
   - yamlgraph/models/graph_schema.py
   - yamlgraph/models/schemas.py
   - yamlgraph/linter/patterns/map.py
@@ -29,8 +29,8 @@ requirements:
       concurrent.futures.TimeoutError before except Exception in
       both paths
     modules:
-      - yamlgraph/map_compiler.py
-      - yamlgraph/node_compiler.py
+      - yamlgraph/compile/map_compiler.py
+      - yamlgraph/compile/node_compiler.py
       - yamlgraph/models/graph_schema.py
       - yamlgraph/models/schemas.py
       - yamlgraph/linter/patterns/map.py

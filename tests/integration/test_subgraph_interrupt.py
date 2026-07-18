@@ -29,7 +29,7 @@ class TestSubgraphInterruptMapping:
     @pytest.fixture
     def compiled_graph(self, parent_graph_path: Path):
         """Compile the parent graph with checkpointer."""
-        from yamlgraph.graph_loader import compile_graph, load_graph_config
+        from yamlgraph.compile.graph_loader import compile_graph, load_graph_config
 
         config = load_graph_config(parent_graph_path)
         state_graph = compile_graph(config)

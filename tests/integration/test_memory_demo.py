@@ -27,7 +27,7 @@ class TestMemoryDemoGraphConfig:
     @pytest.mark.req("REQ-YG-025", "REQ-YG-026")
     def test_graph_config_loads(self):
         """Graph config loads without errors."""
-        from yamlgraph.graph_loader import load_graph_config
+        from yamlgraph.compile.graph_loader import load_graph_config
 
         config = load_graph_config("examples/demos/memory/graph.yaml")
         assert config.name == "memory_demo"
@@ -35,7 +35,7 @@ class TestMemoryDemoGraphConfig:
     @pytest.mark.req("REQ-YG-025", "REQ-YG-026")
     def test_graph_has_agent_node(self):
         """Graph includes an agent node."""
-        from yamlgraph.graph_loader import load_graph_config
+        from yamlgraph.compile.graph_loader import load_graph_config
 
         config = load_graph_config("examples/demos/memory/graph.yaml")
         assert "review" in config.nodes
@@ -44,7 +44,7 @@ class TestMemoryDemoGraphConfig:
     @pytest.mark.req("REQ-YG-025", "REQ-YG-026")
     def test_graph_has_tools(self):
         """Graph defines git tools."""
-        from yamlgraph.graph_loader import load_graph_config
+        from yamlgraph.compile.graph_loader import load_graph_config
 
         config = load_graph_config("examples/demos/memory/graph.yaml")
         tools = config.tools or {}
@@ -86,7 +86,7 @@ class TestCheckpointerIntegration:
     @pytest.mark.req("REQ-YG-025", "REQ-YG-026")
     def test_load_and_compile_works(self):
         """load_and_compile returns a valid graph."""
-        from yamlgraph.graph_loader import load_and_compile
+        from yamlgraph.compile.graph_loader import load_and_compile
 
         graph = load_and_compile("examples/demos/memory/graph.yaml")
         assert graph is not None
@@ -98,7 +98,7 @@ class TestCheckpointerIntegration:
         """Graph with checkpointer can be invoked with thread_id."""
         import tempfile
 
-        from yamlgraph.graph_loader import load_and_compile
+        from yamlgraph.compile.graph_loader import load_and_compile
         from yamlgraph.storage.checkpointer import get_checkpointer
 
         with tempfile.NamedTemporaryFile(suffix=".db") as f:

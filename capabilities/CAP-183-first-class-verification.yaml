@@ -13,7 +13,7 @@ description: >
   blocks on error-severity issues.
 modules:
   - yamlgraph/utils/guard_runtime.py
-  - yamlgraph/node_compiler.py
+  - yamlgraph/compile/node_compiler.py
   - yamlgraph/tools/nodes.py
   - yamlgraph/tools/python_tool.py
   - yamlgraph/tools/agent.py
@@ -33,7 +33,7 @@ requirements:
       python, agent) by raising GraphConfigError.
     modules:
       - yamlgraph/utils/guard_runtime.py
-      - yamlgraph/node_compiler.py
+      - yamlgraph/compile/node_compiler.py
       - yamlgraph/tools/nodes.py
       - yamlgraph/tools/python_tool.py
       - yamlgraph/tools/agent.py

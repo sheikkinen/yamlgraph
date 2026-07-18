@@ -7,7 +7,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from yamlgraph.graph_loader import GraphConfig
+from yamlgraph.compile.graph_loader import GraphConfig
 from yamlgraph.models import PipelineError
 from yamlgraph.node_factory import create_node_function
 

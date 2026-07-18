@@ -8,9 +8,9 @@ __version__ = "0.5.14"
 
 from pathlib import Path
 
+from yamlgraph.compile.graph_loader import load_and_compile
 from yamlgraph.executor import execute_prompt, get_executor
 from yamlgraph.graph_cache import GRAPH_CACHE, clear_cache
-from yamlgraph.graph_loader import load_and_compile
 from yamlgraph.models import (
     ErrorType,
     GenericReport,

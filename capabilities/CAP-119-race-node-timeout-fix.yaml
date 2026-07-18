@@ -10,7 +10,7 @@ description: >
   Without on_error, raises AllCandidatesFailedError.
 modules:
   - yamlgraph/node_factory/race_node.py
-  - yamlgraph/node_compiler.py
+  - yamlgraph/compile/node_compiler.py
 requirements:
   - id: REQ-YG-266
     description: >
@@ -23,6 +23,6 @@ requirements:
       not per-candidate
     modules:
       - yamlgraph/node_factory/race_node.py
-      - yamlgraph/node_compiler.py
+      - yamlgraph/compile/node_compiler.py
       - tests/unit/test_race_node.py
 fr: FR-267

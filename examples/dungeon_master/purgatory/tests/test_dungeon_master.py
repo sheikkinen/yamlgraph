@@ -18,7 +18,7 @@ from examples.dungeon_master.nodes.story_io import (
     prep_turn_tool,
     save_story_tool,
 )
-from yamlgraph.graph_loader import compile_graph, load_graph_config
+from yamlgraph.compile.graph_loader import compile_graph, load_graph_config
 
 PREPLAN = "examples/dungeon_master/preplan.yaml"
 TURN_LOOP = "examples/dungeon_master/turn-loop.yaml"

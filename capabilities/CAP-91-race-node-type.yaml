@@ -10,7 +10,7 @@ description: >
 modules:
   - yamlgraph/node_factory/race_node.py
   - yamlgraph/constants.py
-  - yamlgraph/node_compiler.py
+  - yamlgraph/compile/node_compiler.py
   - yamlgraph/models/graph_schema.py
   - yamlgraph/models/state_builder.py
   - yamlgraph/linter/patterns/race.py
@@ -27,7 +27,7 @@ requirements:
     modules:
       - yamlgraph/node_factory/race_node.py
       - yamlgraph/constants.py
-      - yamlgraph/node_compiler.py
+      - yamlgraph/compile/node_compiler.py
       - yamlgraph/models/graph_schema.py
       - yamlgraph/models/state_builder.py
       - yamlgraph/linter/patterns/race.py

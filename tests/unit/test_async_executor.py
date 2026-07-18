@@ -270,8 +270,8 @@ async def test_load_and_compile_async_returns_compiled_graph():
     from yamlgraph.executor_async import load_and_compile_async
 
     with (
-        patch("yamlgraph.graph_loader.load_graph_config") as mock_load,
-        patch("yamlgraph.graph_loader.compile_graph") as mock_compile,
+        patch("yamlgraph.compile.graph_loader.load_graph_config") as mock_load,
+        patch("yamlgraph.compile.graph_loader.compile_graph") as mock_compile,
         patch("yamlgraph.storage.checkpointer_factory.get_checkpointer") as mock_cp,
     ):
         mock_config = MagicMock()

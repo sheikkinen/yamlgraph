@@ -186,7 +186,7 @@ class TestFR278NoImportErrors:
         """Importing core modules must not fail due to baseline references."""
         # Test core imports that might have had baseline references
         importable_modules = [
-            "yamlgraph.graph_loader",
+            "yamlgraph.compile.graph_loader",
             "yamlgraph.executor",
             "yamlgraph.models.graph_schema",
             "yamlgraph.models.schemas",

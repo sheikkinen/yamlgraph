@@ -24,7 +24,7 @@ class TestPlannerDemoGraphStructure:
     @pytest.mark.req("REQ-YG-424")
     def test_graph_config_loads(self) -> None:
         """Graph config loads via yamlgraph."""
-        from yamlgraph.graph_loader import load_graph_config
+        from yamlgraph.compile.graph_loader import load_graph_config
 
         config = load_graph_config(GRAPH_PATH)
         assert config.name == "fr-planner"
@@ -32,7 +32,7 @@ class TestPlannerDemoGraphStructure:
     @pytest.mark.req("REQ-YG-424")
     def test_has_one_node(self) -> None:
         """Graph must have exactly 1 node (planner)."""
-        from yamlgraph.graph_loader import load_graph_config
+        from yamlgraph.compile.graph_loader import load_graph_config
 
         config = load_graph_config(GRAPH_PATH)
         assert len(config.nodes) == 1
@@ -41,7 +41,7 @@ class TestPlannerDemoGraphStructure:
     @pytest.mark.req("REQ-YG-424")
     def test_planner_is_agent_type(self) -> None:
         """Planner node must be type: agent."""
-        from yamlgraph.graph_loader import load_graph_config
+        from yamlgraph.compile.graph_loader import load_graph_config
 
         config = load_graph_config(GRAPH_PATH)
         assert config.nodes["planner"]["type"] == "agent"
@@ -49,7 +49,7 @@ class TestPlannerDemoGraphStructure:
     @pytest.mark.req("REQ-YG-424")
     def test_planner_has_five_tools(self) -> None:
         """Planner node must reference exactly 5 task-shaped tools."""
-        from yamlgraph.graph_loader import load_graph_config
+        from yamlgraph.compile.graph_loader import load_graph_config
 
         config = load_graph_config(GRAPH_PATH)
         tools = config.nodes["planner"]["tools"]
@@ -87,7 +87,7 @@ class TestPlannerDemoGraphStructure:
     @pytest.mark.req("REQ-YG-424")
     def test_max_iterations_is_15(self) -> None:
         """max_iterations set to 15 for research + drafting."""
-        from yamlgraph.graph_loader import load_graph_config
+        from yamlgraph.compile.graph_loader import load_graph_config
 
         config = load_graph_config(GRAPH_PATH)
         assert config.nodes["planner"].get("max_iterations") == 15
@@ -103,7 +103,7 @@ class TestPlannerDemoGraphStructure:
     @pytest.mark.req("REQ-YG-424")
     def test_planner_state_key_is_plan_result(self) -> None:
         """Planner node writes to state_key: plan_result."""
-        from yamlgraph.graph_loader import load_graph_config
+        from yamlgraph.compile.graph_loader import load_graph_config
 
         config = load_graph_config(GRAPH_PATH)
         assert config.nodes["planner"].get("state_key") == "plan_result"
@@ -134,7 +134,7 @@ class TestPlannerDemoGraphStructure:
     @pytest.mark.req("REQ-YG-424")
     def test_graph_compiles(self) -> None:
         """Graph compiles to a LangGraph StateGraph."""
-        from yamlgraph.graph_loader import compile_graph, load_graph_config
+        from yamlgraph.compile.graph_loader import compile_graph, load_graph_config
 
         config = load_graph_config(GRAPH_PATH)
         graph = compile_graph(config)

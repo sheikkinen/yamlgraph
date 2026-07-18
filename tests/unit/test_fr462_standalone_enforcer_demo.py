@@ -24,7 +24,7 @@ class TestEnforcerDemoGraphStructure:
     @pytest.mark.req("REQ-YG-426")
     def test_graph_config_loads(self) -> None:
         """Graph config loads via yamlgraph."""
-        from yamlgraph.graph_loader import load_graph_config
+        from yamlgraph.compile.graph_loader import load_graph_config
 
         config = load_graph_config(GRAPH_PATH)
         assert config.name == "fr-enforcer"
@@ -32,7 +32,7 @@ class TestEnforcerDemoGraphStructure:
     @pytest.mark.req("REQ-YG-426")
     def test_has_one_node(self) -> None:
         """Graph must have exactly 1 node (enforcer)."""
-        from yamlgraph.graph_loader import load_graph_config
+        from yamlgraph.compile.graph_loader import load_graph_config
 
         config = load_graph_config(GRAPH_PATH)
         assert len(config.nodes) == 1
@@ -41,7 +41,7 @@ class TestEnforcerDemoGraphStructure:
     @pytest.mark.req("REQ-YG-426")
     def test_enforcer_is_agent_type(self) -> None:
         """Enforcer node must be type: agent."""
-        from yamlgraph.graph_loader import load_graph_config
+        from yamlgraph.compile.graph_loader import load_graph_config
 
         config = load_graph_config(GRAPH_PATH)
         assert config.nodes["enforcer"]["type"] == "agent"
@@ -49,7 +49,7 @@ class TestEnforcerDemoGraphStructure:
     @pytest.mark.req("REQ-YG-426")
     def test_enforcer_has_ten_tools(self) -> None:
         """Enforcer node must reference exactly 10 task-shaped tools."""
-        from yamlgraph.graph_loader import load_graph_config
+        from yamlgraph.compile.graph_loader import load_graph_config
 
         config = load_graph_config(GRAPH_PATH)
         tools = config.nodes["enforcer"]["tools"]
@@ -89,7 +89,7 @@ class TestEnforcerDemoGraphStructure:
     @pytest.mark.req("REQ-YG-426")
     def test_max_iterations_is_25(self) -> None:
         """max_iterations set to 25 for implementation + testing + fixes."""
-        from yamlgraph.graph_loader import load_graph_config
+        from yamlgraph.compile.graph_loader import load_graph_config
 
         config = load_graph_config(GRAPH_PATH)
         assert config.nodes["enforcer"].get("max_iterations") == 25
@@ -97,7 +97,7 @@ class TestEnforcerDemoGraphStructure:
     @pytest.mark.req("REQ-YG-426")
     def test_temperature_is_0_3(self) -> None:
         """temperature set to 0.3 for deterministic implementation."""
-        from yamlgraph.graph_loader import load_graph_config
+        from yamlgraph.compile.graph_loader import load_graph_config
 
         config = load_graph_config(GRAPH_PATH)
         assert config.nodes["enforcer"].get("temperature") == 0.3
@@ -113,7 +113,7 @@ class TestEnforcerDemoGraphStructure:
     @pytest.mark.req("REQ-YG-426")
     def test_enforcer_state_key_is_implementation_result(self) -> None:
         """Enforcer node writes to state_key: implementation_result."""
-        from yamlgraph.graph_loader import load_graph_config
+        from yamlgraph.compile.graph_loader import load_graph_config
 
         config = load_graph_config(GRAPH_PATH)
         assert config.nodes["enforcer"].get("state_key") == "implementation_result"
@@ -145,7 +145,7 @@ class TestEnforcerDemoGraphStructure:
     @pytest.mark.req("REQ-YG-426")
     def test_graph_compiles(self) -> None:
         """Graph compiles to a LangGraph StateGraph."""
-        from yamlgraph.graph_loader import compile_graph, load_graph_config
+        from yamlgraph.compile.graph_loader import compile_graph, load_graph_config
 
         config = load_graph_config(GRAPH_PATH)
         graph = compile_graph(config)

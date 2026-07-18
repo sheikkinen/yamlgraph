@@ -8,9 +8,9 @@ description: >
   sequential intra-item and inter-item chaining, external edge rewriting,
   and linter validation (E401–E404).
 modules:
-  - yamlgraph/pipeline_template.py
+  - yamlgraph/compile/pipeline_template.py
   - yamlgraph/constants.py
-  - yamlgraph/graph_loader.py
+  - yamlgraph/compile/graph_loader.py
   - yamlgraph/linter/checks.py
   - yamlgraph/linter/patterns/pipeline.py
   - yamlgraph/linter/graph_linter.py
@@ -25,9 +25,9 @@ requirements:
       constants; VALID_NODE_TYPES includes pipeline; expansion called in
       graph_loader after expand_interactive_tools
     modules:
-      - yamlgraph/pipeline_template.py
+      - yamlgraph/compile/pipeline_template.py
       - yamlgraph/constants.py
-      - yamlgraph/graph_loader.py
+      - yamlgraph/compile/graph_loader.py
       - yamlgraph/linter/checks.py
       - yamlgraph/linter/patterns/pipeline.py
       - yamlgraph/linter/graph_linter.py

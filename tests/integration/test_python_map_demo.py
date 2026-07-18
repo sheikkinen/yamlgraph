@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from yamlgraph.graph_loader import compile_graph, load_graph_config
+from yamlgraph.compile.graph_loader import compile_graph, load_graph_config
 
 DEMO_PATH = Path(__file__).parent.parent.parent / "examples" / "demos" / "python-map"
 

@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from yamlgraph.graph_loader import load_and_compile
+from yamlgraph.compile.graph_loader import load_and_compile
 
 
 def _write_graph(path: Path, body: str) -> None:

@@ -8,7 +8,7 @@ class TestGraphLoading:
 
     def test_graph_loads_with_data_files(self) -> None:
         """Graph loads and schema is available via data_files."""
-        from yamlgraph.graph_loader import load_graph_config
+        from yamlgraph.compile.graph_loader import load_graph_config
 
         graph_path = Path(__file__).parent.parent / "graph.yaml"
         config = load_graph_config(graph_path)
@@ -20,7 +20,7 @@ class TestGraphLoading:
 
     def test_graph_compiles(self) -> None:
         """Graph compiles to StateGraph."""
-        from yamlgraph.graph_loader import compile_graph, load_graph_config
+        from yamlgraph.compile.graph_loader import compile_graph, load_graph_config
 
         graph_path = Path(__file__).parent.parent / "graph.yaml"
         config = load_graph_config(graph_path)
@@ -31,7 +31,7 @@ class TestGraphLoading:
 
     def test_graph_has_expected_nodes(self) -> None:
         """Graph has all expected nodes."""
-        from yamlgraph.graph_loader import load_graph_config
+        from yamlgraph.compile.graph_loader import load_graph_config
 
         graph_path = Path(__file__).parent.parent / "graph.yaml"
         config = load_graph_config(graph_path)
@@ -58,7 +58,7 @@ class TestInitNode:
 
     def test_init_sets_default_state(self) -> None:
         """Init node initializes all state fields."""
-        from yamlgraph.graph_loader import load_graph_config
+        from yamlgraph.compile.graph_loader import load_graph_config
 
         graph_path = Path(__file__).parent.parent / "graph.yaml"
         config = load_graph_config(graph_path)

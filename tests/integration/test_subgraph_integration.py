@@ -110,7 +110,7 @@ class TestSubgraphIntegration:
     def test_runs_parent_to_subgraph_to_parent(self, subgraph_graphs, monkeypatch):
         """Runs parent → subgraph → parent flow successfully."""
 
-        from yamlgraph.graph_loader import compile_graph, load_graph_config
+        from yamlgraph.compile.graph_loader import compile_graph, load_graph_config
 
         parent_graph, _ = subgraph_graphs
         prompts_dir = parent_graph.parent.parent / "prompts"
@@ -149,7 +149,7 @@ class TestSubgraphIntegration:
     @pytest.mark.req("REQ-YG-042")
     def test_subgraph_state_mapping_works(self, subgraph_graphs, monkeypatch):
         """Input/output mapping correctly transforms state."""
-        from yamlgraph.graph_loader import compile_graph, load_graph_config
+        from yamlgraph.compile.graph_loader import compile_graph, load_graph_config
 
         parent_graph, _ = subgraph_graphs
         prompts_dir = parent_graph.parent.parent / "prompts"
@@ -290,7 +290,7 @@ edges:
         with patch(
             "yamlgraph.node_factory.llm_nodes.execute_prompt", side_effect=mock_execute
         ):
-            from yamlgraph.graph_loader import compile_graph, load_graph_config
+            from yamlgraph.compile.graph_loader import compile_graph, load_graph_config
 
             config = load_graph_config(root)
             graph = compile_graph(config)

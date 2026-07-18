@@ -26,7 +26,7 @@ class TestResearchAgentGraphStructure:
     @pytest.mark.req("REQ-YG-217")
     def test_graph_config_loads(self) -> None:
         """Graph config loads via yamlgraph."""
-        from yamlgraph.graph_loader import load_graph_config
+        from yamlgraph.compile.graph_loader import load_graph_config
 
         config = load_graph_config(GRAPH_PATH)
         assert config.name == "research-agent"
@@ -34,7 +34,7 @@ class TestResearchAgentGraphStructure:
     @pytest.mark.req("REQ-YG-217")
     def test_has_five_nodes(self) -> None:
         """Graph must have exactly 5 nodes."""
-        from yamlgraph.graph_loader import load_graph_config
+        from yamlgraph.compile.graph_loader import load_graph_config
 
         config = load_graph_config(GRAPH_PATH)
         assert len(config.nodes) == 5
@@ -42,7 +42,7 @@ class TestResearchAgentGraphStructure:
     @pytest.mark.req("REQ-YG-217")
     def test_node_names_match_spec(self) -> None:
         """Nodes match the 5-step pattern names."""
-        from yamlgraph.graph_loader import load_graph_config
+        from yamlgraph.compile.graph_loader import load_graph_config
 
         config = load_graph_config(GRAPH_PATH)
         expected = {
@@ -57,7 +57,7 @@ class TestResearchAgentGraphStructure:
     @pytest.mark.req("REQ-YG-217")
     def test_extract_intent_is_llm(self) -> None:
         """extract_intent must be type: llm."""
-        from yamlgraph.graph_loader import load_graph_config
+        from yamlgraph.compile.graph_loader import load_graph_config
 
         config = load_graph_config(GRAPH_PATH)
         assert config.nodes["extract_intent"]["type"] == "llm"
@@ -65,7 +65,7 @@ class TestResearchAgentGraphStructure:
     @pytest.mark.req("REQ-YG-217")
     def test_plan_research_is_agent(self) -> None:
         """plan_research must be type: agent."""
-        from yamlgraph.graph_loader import load_graph_config
+        from yamlgraph.compile.graph_loader import load_graph_config
 
         config = load_graph_config(GRAPH_PATH)
         assert config.nodes["plan_research"]["type"] == "agent"
@@ -73,7 +73,7 @@ class TestResearchAgentGraphStructure:
     @pytest.mark.req("REQ-YG-217")
     def test_execute_research_is_agent(self) -> None:
         """execute_research must be type: agent."""
-        from yamlgraph.graph_loader import load_graph_config
+        from yamlgraph.compile.graph_loader import load_graph_config
 
         config = load_graph_config(GRAPH_PATH)
         assert config.nodes["execute_research"]["type"] == "agent"
@@ -81,7 +81,7 @@ class TestResearchAgentGraphStructure:
     @pytest.mark.req("REQ-YG-217")
     def test_validate_findings_is_llm(self) -> None:
         """validate_findings must be type: llm."""
-        from yamlgraph.graph_loader import load_graph_config
+        from yamlgraph.compile.graph_loader import load_graph_config
 
         config = load_graph_config(GRAPH_PATH)
         assert config.nodes["validate_findings"]["type"] == "llm"
@@ -89,7 +89,7 @@ class TestResearchAgentGraphStructure:
     @pytest.mark.req("REQ-YG-217")
     def test_synthesize_report_is_llm(self) -> None:
         """synthesize_report must be type: llm."""
-        from yamlgraph.graph_loader import load_graph_config
+        from yamlgraph.compile.graph_loader import load_graph_config
 
         config = load_graph_config(GRAPH_PATH)
         assert config.nodes["synthesize_report"]["type"] == "llm"
@@ -116,7 +116,7 @@ class TestResearchAgentGraphStructure:
     @pytest.mark.req("REQ-YG-217")
     def test_edge_flow_start_to_end(self) -> None:
         """Edges: START → extract → plan → execute → validate → synthesize → END."""
-        from yamlgraph.graph_loader import load_graph_config
+        from yamlgraph.compile.graph_loader import load_graph_config
 
         config = load_graph_config(GRAPH_PATH)
         edge_pairs = [(e["from"], e["to"]) for e in config.edges]

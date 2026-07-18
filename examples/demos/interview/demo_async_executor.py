@@ -32,7 +32,10 @@ load_dotenv(Path(__file__).parent.parent.parent.parent / ".env")
 from langgraph.checkpoint.memory import MemorySaver  # noqa: E402
 from langgraph.types import Command  # noqa: E402
 
-from yamlgraph.graph_loader import compile_graph, load_graph_config  # noqa: E402
+from yamlgraph.compile.graph_loader import (  # noqa: E402
+    compile_graph,
+    load_graph_config,
+)
 
 # Graph path relative to this script
 GRAPH_PATH = Path(__file__).parent / "graph.yaml"

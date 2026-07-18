@@ -11,7 +11,7 @@ from unittest.mock import patch
 import pytest
 
 from tests.conftest import FixtureGeneratedContent
-from yamlgraph.graph_loader import (
+from yamlgraph.compile.graph_loader import (
     GraphConfig,
     compile_graph,
     load_and_compile,

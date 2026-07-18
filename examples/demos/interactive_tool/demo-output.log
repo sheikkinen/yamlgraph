@@ -1,0 +1,32 @@
+══════════════════════════════════════════════════
+  🎯 Interactive Tool Demo — Trivia Quiz
+══════════════════════════════════════════════════
+
+🤖 🎯 Welcome to the trivia quiz! (3 questions)
+
+Q1: What is the capital of Finland?
+
+You: Helsinki
+
+🤖 ✅ Correct! The answer is helsinki.
+
+Q2: How many sides does a hexagon have?
+
+You: 6
+
+🤖 ✅ Correct! The answer is 6.
+
+Q3: What planet is closest to the Sun?
+
+You: Mercury
+
+🤖 ✅ Correct! The answer is mercury.
+
+🏁 Quiz over! Score: 3/3
+
+──────────────────────────────────────────────────
+📊 Session quiz-1: scored 3/3
+
+══════════════════════════════════════════════════
+  Demo complete
+══════════════════════════════════════════════════

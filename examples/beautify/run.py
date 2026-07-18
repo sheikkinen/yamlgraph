@@ -14,7 +14,10 @@ from pathlib import Path
 project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
 
-from yamlgraph.graph_loader import compile_graph, load_graph_config  # noqa: E402
+from yamlgraph.compile.graph_loader import (  # noqa: E402
+    compile_graph,
+    load_graph_config,
+)
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 logger = logging.getLogger(__name__)

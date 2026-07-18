@@ -10,9 +10,9 @@ from unittest.mock import MagicMock
 import pytest
 from langgraph.graph import StateGraph
 
+from yamlgraph.compile.graph_loader import GraphConfig
+from yamlgraph.compile.node_compiler import compile_node
 from yamlgraph.constants import NodeType
-from yamlgraph.graph_loader import GraphConfig
-from yamlgraph.node_compiler import compile_node
 
 # ---------------------------------------------------------------------------
 # Helpers (reused from test_node_compiler_branches.py)
@@ -53,14 +53,14 @@ class TestNodeTypeRegistry:
     @pytest.mark.req("REQ-YG-220")
     def test_registry_exists(self):
         """NODE_TYPE_HANDLERS dict is importable from node_compiler."""
-        from yamlgraph.node_compiler import NODE_TYPE_HANDLERS
+        from yamlgraph.compile.node_compiler import NODE_TYPE_HANDLERS
 
         assert isinstance(NODE_TYPE_HANDLERS, dict)
 
     @pytest.mark.req("REQ-YG-220")
     def test_registry_covers_all_compiled_types(self):
         """Every node type that compile_node handles has a registry entry."""
-        from yamlgraph.node_compiler import NODE_TYPE_HANDLERS
+        from yamlgraph.compile.node_compiler import NODE_TYPE_HANDLERS
 
         expected_types = {
             NodeType.TOOL,
@@ -83,7 +83,7 @@ class TestNodeTypeRegistry:
     @pytest.mark.req("REQ-YG-220")
     def test_registry_values_are_callable(self):
         """Every handler in the registry is callable."""
-        from yamlgraph.node_compiler import NODE_TYPE_HANDLERS
+        from yamlgraph.compile.node_compiler import NODE_TYPE_HANDLERS
 
         for node_type, handler in NODE_TYPE_HANDLERS.items():
             assert callable(handler), f"Handler for {node_type} is not callable"
@@ -100,14 +100,14 @@ class TestNodeCompileContext:
     @pytest.mark.req("REQ-YG-220")
     def test_context_is_importable(self):
         """NodeCompileContext is importable from node_compiler."""
-        from yamlgraph.node_compiler import NodeCompileContext
+        from yamlgraph.compile.node_compiler import NodeCompileContext
 
         assert NodeCompileContext is not None
 
     @pytest.mark.req("REQ-YG-220")
     def test_context_construction(self):
         """NodeCompileContext can be constructed with expected fields."""
-        from yamlgraph.node_compiler import NodeCompileContext
+        from yamlgraph.compile.node_compiler import NodeCompileContext
 
         config = _make_config()
         graph = _make_graph()
@@ -129,7 +129,7 @@ class TestNodeCompileContext:
     @pytest.mark.req("REQ-YG-220")
     def test_context_is_frozen(self):
         """NodeCompileContext is immutable (frozen dataclass)."""
-        from yamlgraph.node_compiler import NodeCompileContext
+        from yamlgraph.compile.node_compiler import NodeCompileContext
 
         config = _make_config()
         graph = _make_graph()
@@ -187,7 +187,7 @@ class TestRegistryDispatch:
     @pytest.mark.req("REQ-YG-220")
     def test_dispatch_calls_registered_handler(self):
         """compile_node delegates to the handler from NODE_TYPE_HANDLERS."""
-        from yamlgraph.node_compiler import NODE_TYPE_HANDLERS
+        from yamlgraph.compile.node_compiler import NODE_TYPE_HANDLERS
 
         config = _make_config()
         graph = _make_graph()

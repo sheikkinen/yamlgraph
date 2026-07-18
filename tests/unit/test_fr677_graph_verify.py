@@ -12,11 +12,11 @@ import textwrap
 import pytest
 from pydantic import ValidationError
 
-from yamlgraph.graph_loader import compile_graph, load_graph_config
+from yamlgraph.compile.graph_loader import compile_graph, load_graph_config
+from yamlgraph.compile.verify_insert import VERIFY_NODE_NAME, insert_verify_node
 from yamlgraph.models.graph_schema import GraphConfigSchema
 from yamlgraph.models.guard_schema import GraphVerifyRule
 from yamlgraph.utils.guard_runtime import GuardHaltError, create_verify_node
-from yamlgraph.verify_insert import VERIFY_NODE_NAME, insert_verify_node
 
 
 # --- module-level python tool for the end-to-end graph -----------------------

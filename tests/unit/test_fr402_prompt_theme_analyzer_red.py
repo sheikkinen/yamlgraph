@@ -64,7 +64,7 @@ def test_ac03_list_prompts_truncates_prompt_text_at_boundary(tmp_path: Path) -> 
 
 @pytest.mark.req("REQ-YG-359")
 def test_ac04_graph_has_python_aggregate_between_map_and_group() -> None:
-    from yamlgraph.graph_loader import load_graph_config
+    from yamlgraph.compile.graph_loader import load_graph_config
 
     config = load_graph_config(str(GRAPH_PATH))
     assert config.nodes["classify_themes"]["type"] == "map"
@@ -79,7 +79,7 @@ def test_ac04_graph_has_python_aggregate_between_map_and_group() -> None:
 
 @pytest.mark.req("REQ-YG-359")
 def test_ac05_group_prompt_uses_aggregated_counts() -> None:
-    from yamlgraph.graph_loader import load_graph_config
+    from yamlgraph.compile.graph_loader import load_graph_config
 
     config = load_graph_config(str(GRAPH_PATH))
     group_node = config.nodes["group_themes"]

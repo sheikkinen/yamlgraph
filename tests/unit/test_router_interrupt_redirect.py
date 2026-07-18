@@ -10,7 +10,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from yamlgraph.edge_compiler import _add_conditional_edges
+from yamlgraph.compile.edge_compiler import _add_conditional_edges
 
 
 class TestRouterInterruptRedirect:

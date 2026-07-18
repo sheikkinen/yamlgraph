@@ -288,9 +288,9 @@ class TestCmdGraphRun:
         with pytest.raises(SystemExit):
             cmd_graph_run(args)
 
-    @patch("yamlgraph.graph_loader.get_checkpointer_for_graph")
-    @patch("yamlgraph.graph_loader.compile_graph")
-    @patch("yamlgraph.graph_loader.load_graph_config")
+    @patch("yamlgraph.compile.graph_loader.get_checkpointer_for_graph")
+    @patch("yamlgraph.compile.graph_loader.compile_graph")
+    @patch("yamlgraph.compile.graph_loader.load_graph_config")
     @pytest.mark.req("REQ-YG-032", "REQ-YG-036")
     def test_invokes_graph_with_vars(self, mock_load_config, mock_compile, mock_get_cp):
         """Should invoke graph with parsed vars as initial state."""
@@ -324,9 +324,9 @@ class TestCmdGraphRun:
         assert call_args["topic"] == "AI"
         assert call_args["style"] == "casual"
 
-    @patch("yamlgraph.graph_loader.get_checkpointer_for_graph")
-    @patch("yamlgraph.graph_loader.compile_graph")
-    @patch("yamlgraph.graph_loader.load_graph_config")
+    @patch("yamlgraph.compile.graph_loader.get_checkpointer_for_graph")
+    @patch("yamlgraph.compile.graph_loader.compile_graph")
+    @patch("yamlgraph.compile.graph_loader.load_graph_config")
     @pytest.mark.req("REQ-YG-032", "REQ-YG-036")
     def test_uses_checkpointer_from_graph(
         self, mock_load_config, mock_compile, mock_get_cp
@@ -366,9 +366,9 @@ class TestCmdGraphRun:
         call_kwargs = mock_app.invoke.call_args[1]
         assert call_kwargs["config"]["configurable"]["thread_id"] == "session-123"
 
-    @patch("yamlgraph.graph_loader.get_checkpointer_for_graph")
-    @patch("yamlgraph.graph_loader.compile_graph")
-    @patch("yamlgraph.graph_loader.load_graph_config")
+    @patch("yamlgraph.compile.graph_loader.get_checkpointer_for_graph")
+    @patch("yamlgraph.compile.graph_loader.compile_graph")
+    @patch("yamlgraph.compile.graph_loader.load_graph_config")
     @pytest.mark.req("REQ-YG-032", "REQ-YG-036")
     def test_uses_checkpointer_even_without_thread(
         self, mock_load_config, mock_compile, mock_get_cp
@@ -1227,9 +1227,9 @@ class TestCmdGraphRunExtended:
 
     @pytest.mark.req("REQ-YG-033")
     @patch("yamlgraph.cli.graph_commands._build_run_config")
-    @patch("yamlgraph.graph_loader.load_graph_config")
-    @patch("yamlgraph.graph_loader.compile_graph")
-    @patch("yamlgraph.graph_loader.get_checkpointer_for_graph")
+    @patch("yamlgraph.compile.graph_loader.load_graph_config")
+    @patch("yamlgraph.compile.graph_loader.compile_graph")
+    @patch("yamlgraph.compile.graph_loader.get_checkpointer_for_graph")
     def test_var_file_loading(
         self, mock_cp, mock_compile, mock_load, mock_build, tmp_path
     ):
@@ -1272,9 +1272,9 @@ class TestCmdGraphRunExtended:
 
     @pytest.mark.req("REQ-YG-033")
     @patch("yamlgraph.cli.graph_commands._build_run_config")
-    @patch("yamlgraph.graph_loader.load_graph_config")
-    @patch("yamlgraph.graph_loader.compile_graph")
-    @patch("yamlgraph.graph_loader.get_checkpointer_for_graph")
+    @patch("yamlgraph.compile.graph_loader.load_graph_config")
+    @patch("yamlgraph.compile.graph_loader.compile_graph")
+    @patch("yamlgraph.compile.graph_loader.get_checkpointer_for_graph")
     def test_timeout_error_exits(
         self, mock_cp, mock_compile, mock_load, mock_build, tmp_path, capsys
     ):
@@ -1321,9 +1321,9 @@ class TestCmdGraphRunExtended:
 
     @pytest.mark.req("REQ-YG-033")
     @patch("yamlgraph.cli.graph_commands._build_run_config")
-    @patch("yamlgraph.graph_loader.load_graph_config")
-    @patch("yamlgraph.graph_loader.compile_graph")
-    @patch("yamlgraph.graph_loader.get_checkpointer_for_graph")
+    @patch("yamlgraph.compile.graph_loader.load_graph_config")
+    @patch("yamlgraph.compile.graph_loader.compile_graph")
+    @patch("yamlgraph.compile.graph_loader.get_checkpointer_for_graph")
     def test_token_usage_summary(
         self, mock_cp, mock_compile, mock_load, mock_build, tmp_path, capsys
     ):
@@ -1381,9 +1381,9 @@ class TestCmdGraphRunExtended:
     @pytest.mark.req("REQ-YG-033")
     @patch("yamlgraph.cli.graph_commands._handle_export")
     @patch("yamlgraph.cli.graph_commands._build_run_config")
-    @patch("yamlgraph.graph_loader.load_graph_config")
-    @patch("yamlgraph.graph_loader.compile_graph")
-    @patch("yamlgraph.graph_loader.get_checkpointer_for_graph")
+    @patch("yamlgraph.compile.graph_loader.load_graph_config")
+    @patch("yamlgraph.compile.graph_loader.compile_graph")
+    @patch("yamlgraph.compile.graph_loader.get_checkpointer_for_graph")
     def test_export_flag_triggers_export(
         self, mock_cp, mock_compile, mock_load, mock_build, mock_export, tmp_path
     ):

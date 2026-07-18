@@ -13,7 +13,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from yamlgraph.graph_loader import compile_graph, load_graph_config
+from yamlgraph.compile.graph_loader import compile_graph, load_graph_config
 
 GRAPH_PATH = "examples/demos/horoscope/graph.yaml"
 
@@ -128,7 +128,9 @@ class TestHoroscopeDemoCompilation:
         """Horoscope demo graph compiles to StateGraph."""
         config = load_graph_config(GRAPH_PATH)
 
-        with patch("yamlgraph.node_compiler.compile_map_node") as mock_compile_map:
+        with patch(
+            "yamlgraph.compile.node_compiler.compile_map_node"
+        ) as mock_compile_map:
             mock_map_edge_fn = MagicMock()
             mock_compile_map.return_value = (mock_map_edge_fn, "_map_generate_sub")
 

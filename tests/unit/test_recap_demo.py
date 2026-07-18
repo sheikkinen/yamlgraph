@@ -28,7 +28,7 @@ class TestRecapGraphStructure:
     @pytest.mark.req("REQ-YG-531")
     def test_graph_config_loads(self) -> None:
         """Graph config loads via yamlgraph."""
-        from yamlgraph.graph_loader import load_graph_config
+        from yamlgraph.compile.graph_loader import load_graph_config
 
         config = load_graph_config(GRAPH_PATH)
         assert config.name == "recap"
@@ -106,7 +106,7 @@ class TestRecapGraphStructure:
     @pytest.mark.req("REQ-YG-531")
     def test_edge_flow(self) -> None:
         """START → tool chain → partition → synthesize → finalize_recap → END."""
-        from yamlgraph.graph_loader import load_graph_config
+        from yamlgraph.compile.graph_loader import load_graph_config
 
         config = load_graph_config(GRAPH_PATH)
         edge_pairs = [(e["from"], e["to"]) for e in config.edges]

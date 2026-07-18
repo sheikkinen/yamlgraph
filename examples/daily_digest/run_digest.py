@@ -53,7 +53,7 @@ def main():
     os.environ["DATABASE_PATH"] = args.db
 
     # Import after env setup
-    from yamlgraph.graph_loader import load_and_compile
+    from yamlgraph.compile.graph_loader import load_and_compile
 
     # Load graph
     graph_path = Path(__file__).parent / "graph.yaml"

@@ -468,7 +468,7 @@ class TestRaceNodeCompiler:
     @pytest.mark.req("REQ-YG-233")
     def test_race_in_node_type_handlers(self):
         """NODE_TYPE_HANDLERS includes 'race'."""
-        from yamlgraph.node_compiler import NODE_TYPE_HANDLERS
+        from yamlgraph.compile.node_compiler import NODE_TYPE_HANDLERS
 
         assert "race" in NODE_TYPE_HANDLERS
 
@@ -772,13 +772,13 @@ class TestRaceTimeoutNoDoubleWrap:
     """
 
     @pytest.mark.req("REQ-YG-266")
-    @patch("yamlgraph.node_compiler._maybe_wrap_timeout")
-    @patch("yamlgraph.node_compiler.create_race_node")
+    @patch("yamlgraph.compile.node_compiler._maybe_wrap_timeout")
+    @patch("yamlgraph.compile.node_compiler.create_race_node")
     def test_compile_race_node_does_not_wrap_timeout(
         self, mock_create_race, mock_wrap_timeout
     ):
         """_compile_race_node must NOT call _maybe_wrap_timeout."""
-        from yamlgraph.node_compiler import _compile_race_node
+        from yamlgraph.compile.node_compiler import _compile_race_node
 
         mock_node_fn = MagicMock()
         mock_create_race.return_value = mock_node_fn

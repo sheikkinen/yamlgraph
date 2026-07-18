@@ -67,7 +67,7 @@ class TestRecapOnBareRepo:
     @pytest.mark.req("REQ-YG-531")
     def test_bare_repo_recap_no_hallucinated_conventions(self, tmp_path: Path) -> None:
         """No error; no invented FR references; orphan commit flagged."""
-        from yamlgraph.graph_loader import load_and_compile
+        from yamlgraph.compile.graph_loader import load_and_compile
 
         orphan_hash = _make_bare_conventions_repo(tmp_path)
 
@@ -98,7 +98,7 @@ class TestRecapDispositionAxis:
     @pytest.mark.req("REQ-YG-534")
     def test_rejected_status_surfaces_verbatim(self, tmp_path: Path) -> None:
         """FR with **Status:** Rejected appears in its workstream (tolerant)."""
-        from yamlgraph.graph_loader import load_and_compile
+        from yamlgraph.compile.graph_loader import load_and_compile
 
         env = {**_GIT_ENV, "HOME": str(tmp_path)}
         subprocess.run(["git", "init", "-q", str(tmp_path)], check=True, env=env)

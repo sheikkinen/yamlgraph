@@ -30,7 +30,7 @@ from slowapi import Limiter, _rate_limit_exceeded_handler  # noqa: E402
 from slowapi.errors import RateLimitExceeded  # noqa: E402
 from slowapi.util import get_remote_address  # noqa: E402
 
-from yamlgraph.graph_loader import load_and_compile  # noqa: E402
+from yamlgraph.compile.graph_loader import load_and_compile  # noqa: E402
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

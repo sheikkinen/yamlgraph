@@ -63,7 +63,7 @@ async def get_encounter_graph():
     """Get cached encounter graph with checkpointer."""
     global _encounter_graph
     if _encounter_graph is None:
-        from yamlgraph.graph_loader import compile_graph, load_graph_config
+        from yamlgraph.compile.graph_loader import compile_graph, load_graph_config
 
         config = load_graph_config("examples/npc/encounter-multi.yaml")
         graph = compile_graph(config)
@@ -75,7 +75,7 @@ async def get_npc_creation_graph():
     """Get cached NPC creation graph (no checkpointer - one-shot)."""
     global _npc_creation_graph
     if _npc_creation_graph is None:
-        from yamlgraph.graph_loader import compile_graph, load_graph_config
+        from yamlgraph.compile.graph_loader import compile_graph, load_graph_config
 
         config = load_graph_config("examples/npc/npc-creation.yaml")
         graph = compile_graph(config)

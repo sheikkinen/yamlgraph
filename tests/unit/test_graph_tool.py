@@ -261,7 +261,7 @@ edges:
         )
         parent_yaml = tmp_path / "parent.yaml"
         # Create a minimal GraphConfig-like object
-        from yamlgraph.graph_loader import GraphConfig, _parse_graph_tools
+        from yamlgraph.compile.graph_loader import GraphConfig, _parse_graph_tools
 
         config = GraphConfig(
             {
@@ -317,7 +317,7 @@ edges:
 """
         )
         parent_yaml = tmp_path / "parent.yaml"
-        from yamlgraph.graph_loader import GraphConfig, _parse_graph_tools
+        from yamlgraph.compile.graph_loader import GraphConfig, _parse_graph_tools
 
         config = GraphConfig(
             {

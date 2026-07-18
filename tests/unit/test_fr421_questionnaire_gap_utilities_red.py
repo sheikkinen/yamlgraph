@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from yamlgraph.graph_loader import load_and_compile
+from yamlgraph.compile.graph_loader import load_and_compile
 
 
 @pytest.mark.req("REQ-YG-409")

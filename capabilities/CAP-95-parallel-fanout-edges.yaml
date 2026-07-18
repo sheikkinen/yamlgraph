@@ -8,7 +8,7 @@ description: >
   edge with map function), START fan-out (conditional entry point), and
   END targets. Conditional routing (type: conditional) remains unchanged.
 modules:
-  - yamlgraph/edge_compiler.py
+  - yamlgraph/compile/edge_compiler.py
 requirements:
   - id: REQ-YG-237
     description: >
@@ -18,6 +18,6 @@ requirements:
       START fan-out uses conditional entry point; existing conditional routing
       with type: conditional unchanged
     modules:
-      - yamlgraph/edge_compiler.py
+      - yamlgraph/compile/edge_compiler.py
       - tests/unit/test_parallel_fanout_edges.py
 fr: FR-234

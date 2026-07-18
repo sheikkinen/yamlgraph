@@ -123,7 +123,7 @@ def _invoke_graph(graph_path: str, variables: dict[str, Any]) -> dict[str, Any]:
     Returns:
         Result dict from graph invocation.
     """
-    from yamlgraph.graph_loader import invoke_graph
+    from yamlgraph.compile.graph_loader import invoke_graph
 
     return invoke_graph(graph_path, variables)
 
