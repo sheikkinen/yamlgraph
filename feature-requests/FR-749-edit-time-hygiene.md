@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Enhancement (dev tooling; zero framework code)
-**Status:** Proposed
+**Status:** Judged
 **Effort:** 0.5 days
 **Requested:** 2026-07-18
 **First consumer / first event:** every interactive enforcement arc;
@@ -106,12 +106,68 @@ None — activation of an existing seam plus one ~60-line script.
 
 ## Triage (generated — claims requiring disposition)
 
-- [pending] canon: would_you_use_this: every interactive enforcement arc; first consumer is next GREEN commit with zero ruff-format, end-of-file-fixer, or CONF line-number rot bounces
-- [pending] canon: who_reads_this_when: master agents at edit-time and pre-commit phases; delivery rung is commit gauntlet (pre-commit hooks)
-- [pending] canon: does_the_platform_already_do_this: POST_EDIT_AUTO_RUFF seam exists dormant in python-checks.sh:23-31; CONF re-keying does not exist; this is activation + completion of existing machinery, no rejected FR occupies hygiene territory
-- [pending] pre-mortem: POST_EDIT_AUTO_RUFF enabled but ruff-format still bounces on commit because env var is read at wrong hook phase or not passed through to child processes
-- [pending] pre-mortem: conf_rekey.py runs and updates CONF anchors, but noqa_coverage --strict still fails because anchor update does not match the actual post-reflow line number or confession file format is not parsed correctly
-- [pending] pre-mortem: hygiene_sweep.sh runs idempotently on first call but second call re-runs ruff format and creates spurious diffs, breaking the idempotency AC-03
-- [pending] pre-mortem: AC-04 witness (GREEN commit with zero hygiene bounces) is never cited because a new bounce class emerges (e.g., CONF anchor rot from concurrent edits or external tool interference)
-- [pending] pre-mortem: POST_EDIT_AUTO_RUFF activation is recorded but the audit-log entry ruff-autofix-applied is never generated, failing AC-02 witness requirement
-- [pending] value-prop: For master agents, kills 3-minute hook cycles + session transcript pollution from mechanical bounces (ruff-format, end-of-file-fixer, CONF line-number rot), vs commit-time remediation; completable from FR text
+- [accepted] canon: would_you_use_this: every interactive enforcement arc; first consumer is next GREEN commit with zero ruff-format, end-of-file-fixer, or CONF line-number rot bounces — consumer and event named; AC-04 is its witness.
+- [accepted] canon: who_reads_this_when: master agents at edit-time and pre-commit phases; delivery rung is commit gauntlet (pre-commit hooks) — rung/reader/moment named.
+- [accepted] canon: does_the_platform_already_do_this: POST_EDIT_AUTO_RUFF seam exists dormant in python-checks.sh:23-31; CONF re-keying does not exist; this is activation + completion of existing machinery, no rejected FR occupies hygiene territory — verified against source in judgement.
+- [accepted] pre-mortem: POST_EDIT_AUTO_RUFF enabled but ruff-format still bounces on commit because env var is read at wrong hook phase or not passed through to child processes — real: nothing loads hook env today; F1 puts the delivery mechanism in scope and AC-02 witnesses it.
+- [accepted] pre-mortem: conf_rekey.py runs and updates CONF anchors, but noqa_coverage --strict still fails because anchor update does not match the actual post-reflow line number or confession file format is not parsed correctly — AC-01's RED witness exists to kill exactly this.
+- [accepted] pre-mortem: hygiene_sweep.sh runs idempotently on first call but second call re-runs ruff format and creates spurious diffs, breaking the idempotency AC-03 — AC-03 asserts second-run no-op mechanically.
+- [deferred] pre-mortem: AC-04 witness (GREEN commit with zero hygiene bounces) is never cited because a new bounce class emerges (e.g., CONF anchor rot from concurrent edits or external tool interference) — concurrent-edit rot is bounded by F3 (post-edit path scoped to edited file); residual classes recorded at AC-04, remediated in a follow-up if they recur.
+- [accepted] pre-mortem: POST_EDIT_AUTO_RUFF activation is recorded but the audit-log entry ruff-autofix-applied is never generated, failing AC-02 witness requirement — the entry name verified in source; AC-02 requires it from a REAL edit, not a test.
+- [accepted] value-prop: For master agents, kills 3-minute hook cycles + session transcript pollution from mechanical bounces (ruff-format, end-of-file-fixer, CONF line-number rot), vs commit-time remediation; completable from FR text — F2 adds the counter-metric (edit-failure delta) so the claimed win is net, not gross.
+
+## Judgement (2026-07-18)
+
+**Verdict: AUTHORITY GRANTED** — scope frozen with the pins below.
+
+Claims verified against source before judging (judge_as_junior_pr):
+the seam is real (`python-checks.sh` guards on `POST_EDIT_AUTO_RUFF=1`
+and emits the exact `ruff-autofix-applied` audit entry AC-02 cites);
+`docs/confessions.md` is `#LNN`-anchored and `noqa_coverage.py`
+parses `#L(\d+)` — CONF rot is mechanically real and re-keying is
+mechanically well-defined; the census §7 correction exists. No
+rejected FR occupies hygiene territory. Prior art dispositioned.
+
+**F1 — The env seam does not exist yet; discovering it IS in scope.**
+`POST_EDIT_AUTO_RUFF` is referenced only by the seam itself and its
+tests; nothing in `common.sh` or the hook entry points loads env.
+"Activation" therefore requires a delivery mechanism. Pin: adding a
+minimal env-file source to the hook bootstrap (e.g. source
+`.github/hooks/env` if present) is activation machinery and IN scope;
+it is not a gate change and does not violate the purge list. AC-02 is
+the witness that the mechanism actually reaches a real hook process —
+the pre-mortem's "wrong phase / not passed through" is exactly what
+AC-02 exists to kill.
+
+**F2 — Auto-format-after-edit can fight the editing agent.** Post-edit
+reformatting invalidates the agent's memory of file content, so
+subsequent string-replacement edits can miss (stale oldString). This
+is the strongest case against the FR and it is not in the FR. Pin:
+AC-02/AC-04 evidence must record the edit-failure delta (count of
+failed edit-tool calls per arc before/after activation, from the
+audit log or transcript). If activation trades commit bounces for
+edit bounces at ≥1:1, the verdict at AC-04 is "deactivate + record",
+not silent tolerance.
+
+**F3 — conf_rekey writes shared state in a parallel-session repo.**
+`docs/confessions.md` is one file shared by 4+ live sessions
+(`one_session_one_repo`). Pin: the post-edit path of conf_rekey may
+only rewrite anchors whose **File** entry equals the edited file;
+whole-file re-keying is reserved for the standalone/sweep invocation.
+Idempotency (AC-03) applies to both paths.
+
+**F4 — end-of-file-fixer is not a ruff concern.** The sweep must also
+terminate final newlines for non-Python files it is pointed at,
+or the FR must drop the end-of-file bounce class from its Value
+Statement. Cheapest: sweep adds the trailing-newline fix (a two-line
+shell fragment), keeping the claimed 5-of-9 coverage honest.
+
+**F5 — AC-04 is the only gate that matters; the rest are scaffolding.**
+One real GREEN commit with zero hygiene-class bounces, cited with its
+SHA in this FR. A demo of the re-keyer on a fixture is necessary
+(AC-01) but not sufficient — the census was measured on real arcs, so
+the cure is witnessed on one.
+
+Triage claims: all dispositioned by F1–F5 (the five pre-mortems map
+to F1, AC-01's contract, AC-03's contract, F2/F4, and F1
+respectively; canon claims verified above).
