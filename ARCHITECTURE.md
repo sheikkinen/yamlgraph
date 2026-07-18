@@ -520,6 +520,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 203 | CAP-203 ICPC-2 RFE Classifier Example | `examples/icpc-2-rfe/nodes/build_catalog.py`, `examples/icpc-2-rfe/nodes/catalog.py`, `examples/icpc-2-rfe/nodes/reduce.py` | REQ-YG-548 – 551, 554 – 556 |
 | 204 | CAP-204 CWE Vulnerability Classifier Example | `examples/cwe-classifier/nodes/build_catalog.py`, `examples/cwe-classifier/nodes/catalog.py`, `examples/cwe-classifier/nodes/reduce.py`, `examples/cwe-classifier/nodes/crosscheck.py` | REQ-YG-557 – 561 |
 | 205 | CAP-205 World Distill Graph | `.chaplain/graphs/world_distill` | REQ-YG-563 |
+| 206 | CAP-206 FR Triage Graph | `.chaplain/graphs/fr_triage` | REQ-YG-564 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -2556,6 +2557,16 @@ Doctrine-infrastructure graph (.chaplain/graphs/world_distill) that refreshes do
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-563 | world_distill graph: fetch from curated ecosystem feed config, per-feed failure tolerated but zero total yield raises ValueError; prepare_distill_input caps each article at title + source + 500-char excerpt; distill LLM node uses inline schema (highlights, themes, open_questions); write_context renders dated header ("Last updated: YYYY-MM-DD") + prose sections and REFUSES an empty distill result. now.py displays the world pointer with age and STALE label past 14 days. | `.chaplain/graphs/world_distill` |
+
+### 206. CAP-206 FR Triage Graph
+
+Doctrine-infrastructure graph (.chaplain/graphs/fr_triage) running the mechanizable checklist tier on a Proposed FR: canon pass (≤3 one-line answers), pre-mortem witnesses (≤5 single lines), value-prop check. Output appended INSIDE the FR as dispositionable [pending] claims — never a verdict, never a Status change (authority_is_not_a_checklist). Reminder-only hook line at FR creation; disposition gate fires only at Status Judged+ with pending claims. Kill criterion: reviewed after the 10th judged FR carrying triage; survival must be earned in the calibration ledger (FR-745 F2).
+
+**Feature Request:** FR-745
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-564 | fr_triage graph: triage prompt with inline schema (canon_answers list ≤3, pre_mortem_witnesses list ≤5, value_prop_check) at haiku-class model; append_triage writes a "## Triage" section with [pending] markers and REFUSES to modify the Status line or append to a non-Proposed FR; empty triage output raises (zero-yield, Commandment 6); triage_gate blocks commits where an FR's Status is Judged-or-later while [pending] triage claims remain. | `.chaplain/graphs/fr_triage` |
 
 <!-- END GENERATED CAPABILITIES -->
 

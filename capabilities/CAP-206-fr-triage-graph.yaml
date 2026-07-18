@@ -1,0 +1,27 @@
+id: CAP-206
+name: FR Triage Graph
+description: >
+  Doctrine-infrastructure graph (.chaplain/graphs/fr_triage) running the
+  mechanizable checklist tier on a Proposed FR: canon pass (≤3 one-line
+  answers), pre-mortem witnesses (≤5 single lines), value-prop check.
+  Output appended INSIDE the FR as dispositionable [pending] claims —
+  never a verdict, never a Status change (authority_is_not_a_checklist).
+  Reminder-only hook line at FR creation; disposition gate fires only at
+  Status Judged+ with pending claims. Kill criterion: reviewed after the
+  10th judged FR carrying triage; survival must be earned in the
+  calibration ledger (FR-745 F2).
+modules:
+  - .chaplain/graphs/fr_triage
+requirements:
+  - id: REQ-YG-564
+    description: >
+      fr_triage graph: triage prompt with inline schema (canon_answers
+      list ≤3, pre_mortem_witnesses list ≤5, value_prop_check) at
+      haiku-class model; append_triage writes a "## Triage" section with
+      [pending] markers and REFUSES to modify the Status line or append
+      to a non-Proposed FR; empty triage output raises (zero-yield,
+      Commandment 6); triage_gate blocks commits where an FR's Status is
+      Judged-or-later while [pending] triage claims remain.
+    modules:
+      - .chaplain/graphs/fr_triage
+fr: FR-745
