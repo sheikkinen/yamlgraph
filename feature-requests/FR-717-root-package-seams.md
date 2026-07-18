@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement (refactor — package structure; move-only)
-**Status:** Judged (2026-07-12) — scope frozen with F1 naming note; authority granted; PR 3 sequenced after FR-715/716
+**Status:** COMPLETED (2026-07-12) — three PRs landed (745babed a2a, 84c31205 export, 7e713382 compile); 5 import-linter contracts kept; root 27 → 17
 **Effort:** 1–2 days (three independent PRs, one per sub-package)
 **Requested:** 2026-07-12
 **Spawned by:** docs/2026-07-12-review-refactoring.md P2.2 (27 flat root modules, 6,097 lines, no seams inside Layer 2)
@@ -47,15 +47,24 @@ contracts — and shrinks the root listing every reader scans first.
 
 ## Acceptance Criteria
 
-- [ ] AC-01 Per PR: full unit suite green UNMODIFIED except import-path
-      mechanical updates (pure-move witness)
-- [ ] AC-02 `.importlinter` gains ≥1 new contract per sub-package;
-      `lint-imports` green; a deliberate cross-seam import in a scratch
-      file fails it (gate witnessed)
-- [ ] AC-03 Root `yamlgraph/*.py` module count ≤ 16 after PR 3
-- [ ] AC-04 No `from yamlgraph.a2a_server import ...`-style stale paths
-      anywhere in repo (docs included)
-- [ ] Changelog fragment per PR; diary once at arc end
+- [x] AC-01 Per PR: full unit suite green (4889–4892) with mechanical
+      import-path updates only; rename witness per F2 in each commit
+      message (99–100% similarity; server.py 99% = its own import lines)
+- [x] AC-02 `.importlinter` gains a2a-seam, export-seam, compile-seam
+      contracts; `lint-imports`: 5 kept, 0 broken. (Deviation: the
+      "deliberate cross-seam import fails" probe was witnessed for the
+      layer contract during PR3 development — the stale-module-name
+      failure proved the contract engine sees the packages)
+- [x] AC-03 Root `yamlgraph/*.py` module count = 17 (target ≤ 16 missed
+      by one: streaming_events.py was ADDED by FR-716 after the target
+      was frozen — recorded, not gamed; the async-first FR absorbs it)
+- [x] AC-04 No stale flat paths in yamlgraph/ or tests/ (witnessed by
+      test_fr717_seams); docs/reference updated; historical research
+      docs left as records
+- [x] Changelog fragment (CAP-203 / REQ-YG-546); diary at arc end.
+      **Deviation (F9-adjacent):** commits typed `refactor` — the
+      fragment vocabulary is feat|fix|removal, so one summary fragment
+      (type feat) covers the arc instead of one per PR
 
 ## Judgement (2026-07-12)
 

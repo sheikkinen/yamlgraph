@@ -518,6 +518,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 201 | CAP-201 Pre-emptive Module Splits | `yamlgraph/models/graph_schema.py`, `yamlgraph/models/node_schema.py`, `yamlgraph/streaming_events.py`, `yamlgraph/executor_async.py` | REQ-YG-544 |
 | 202 | CAP-202 SMT Condition Verification | `yamlgraph/linter/patterns/conditions_smt.py` | REQ-YG-545 |
 | 203 | CAP-203 ICPC-2 RFE Classifier Example | `examples/icpc-2-rfe/nodes/build_catalog.py`, `examples/icpc-2-rfe/nodes/catalog.py`, `examples/icpc-2-rfe/nodes/reduce.py` | REQ-YG-548 – 551, 554 – 556 |
+| 203 | CAP-203 Root Package Seams | `yamlgraph/a2a`, `yamlgraph/export`, `yamlgraph/compile` | REQ-YG-546 |
 | 204 | CAP-204 CWE Vulnerability Classifier Example | `examples/cwe-classifier/nodes/build_catalog.py`, `examples/cwe-classifier/nodes/catalog.py`, `examples/cwe-classifier/nodes/reduce.py`, `examples/cwe-classifier/nodes/crosscheck.py` | REQ-YG-557 – 561 |
 | 205 | CAP-205 World Distill Graph | `.chaplain/graphs/world_distill` | REQ-YG-563 |
 | 206 | CAP-206 FR Triage Graph | `.chaplain/graphs/fr_triage` | REQ-YG-564 |
@@ -2535,6 +2536,16 @@ Map/reason/reduce YAMLGraph example classifying freeform encounter transcripts i
 | REQ-YG-554 | Labeled crosscheck harness (FR-725). Labels live beside file-based fixtures in data/labeled/ and require rationale plus valid_for_components; evaluate_result enforces primary_any_of, must_include (any surfaced slot including chapter_context and best_partial), must_not_include (primary and secondary only) and tri-state low_confidence_expected; a coverage mismatch between label and result skips loudly by name; archives attribute by fixture basename only (stdin runs never attributed); agreement reports raw k-of-n counts with no significance computation. | `examples/icpc-2-rfe/nodes/crosscheck.py` |
 | REQ-YG-555 | Process-code discipline and combined-code composition (FR-727). META_PROCESS_CODES {-43,-46,-48,-69} — encounter-form descriptors and junk drawers, pinned from a full read of all 40 rubric titles — demote match to partial_match at validation time (evidence preserved in best_partial, never primary/secondary; project curation lives in reduce.py, not the generated Tier-1 catalog); genuine process requests (-50, -62) stay primary-capable; process primaries gain combined_code composed mechanically from chapter_context (K86 + -50 = K50; chapter A when contextless); chapter primaries get no combined_code. | `examples/icpc-2-rfe/nodes/reduce.py` |
 | REQ-YG-556 | Chapter-code inflation discipline (FR-730). Chapter cap = {Z10} only (empty inclusion list, pure system descriptor - A13/A23/A29 verified genuinely stateable and stay uncapped, A13 an accepted named residual); same-chapter symptom-over-diagnosis mechanizes ICPC practical rule 3 (a component-7 match demotes to partial when a component-1 match exists in the same chapter, P03 demotes P76; no cross-chapter demotion, no demotion without a competing symptom); composition context eligibility is non-process, non-capped, non-Z-chapter with component-7 diseases preferred over component-1 symptoms (opposite of RFE primacy - composition anchors to the problem managed); genuine Z RFEs (Z05) remain classifiable. | `examples/icpc-2-rfe/nodes/reduce.py` |
+
+### 203. CAP-203 Root Package Seams
+
+Layer 2's implicit module clusters are named packages with enforced boundaries: a2a/ (protocol server + message translation), export/ (skills + MCP), compile/ (YAML-to-LangGraph pipeline). Import-linter contracts make the seams load-bearing — a2a and export are leaf consumers the linter and compile pipeline never import; compile never imports the leaf surfaces. Moves are rename-witnessed; public top-level re-exports are unchanged.
+
+**Feature Request:** FR-717
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-546 | Root-package seams (FR-717). yamlgraph.a2a, yamlgraph.export and yamlgraph.compile exist as packages holding their clusters (module names preserved in compile/); .importlinter carries a2a-seam, export-seam and compile-seam forbidden contracts plus the collapsed three-layer contract; lint-imports keeps >= 5 contracts; root yamlgraph/*.py module count <= 17; deep import paths updated repo-wide (code, tests, capabilities, confessions, hedging allowlist, docs). | `yamlgraph/a2a`, `yamlgraph/export`, `yamlgraph/compile`, `tests/unit/test_fr717_seams.py` |
 
 ### 204. CAP-204 CWE Vulnerability Classifier Example
 

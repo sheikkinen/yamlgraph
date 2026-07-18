@@ -413,7 +413,7 @@ Test suppressions are acceptable when they enable testing patterns that conflict
 - **Penance**: The function is a factory that builds a closure capturing configuration. The inner `node_fn` orchestrates the agent loop which is inherently sequential and branching. Splitting further would scatter the closure's captured variables across multiple functions with no clarity gain.
 
 ### CONF-049
-- **File**: [yamlgraph/cli/__init__.py](../yamlgraph/cli/__init__.py#L359)
+- **File**: [yamlgraph/cli/__init__.py](../yamlgraph/cli/__init__.py#L329)
 - **Code**: S104
 - **Sin**: Binding A2A server to `0.0.0.0` (all interfaces) as default.
 - **Penance**: A2A server is a development tool that must be network-accessible for agent-to-agent communication. The default matches standard server practice (FastAPI, uvicorn). Production deployments control binding via `--host` flag.
@@ -1224,19 +1224,19 @@ These are E402 suppressions and are acceptable as "glue code" patterns.
 - **Penance**: Retained intentionally for domain semantics or existing contract wording; explicitly allowlisted and audited.
 
 ### CONF-252
-- **File**: [yamlgraph/utils/prompts.py](../yamlgraph/utils/prompts.py#L159)
+- **File**: [yamlgraph/utils/prompts.py](../yamlgraph/utils/prompts.py#L138)
 - **Code**: FB001
 - **Sin**: Contains lexical `fallback` token flagged by FR-418 fallback-token hygiene gate.
 - **Penance**: Retained intentionally for domain semantics or existing contract wording; explicitly allowlisted and audited.
 
 ### CONF-253
-- **File**: [yamlgraph/utils/prompts.py](../yamlgraph/utils/prompts.py#L71)
+- **File**: [yamlgraph/utils/prompts.py](../yamlgraph/utils/prompts.py#L50)
 - **Code**: FB001
 - **Sin**: Contains lexical `fallback` token flagged by FR-418 fallback-token hygiene gate.
 - **Penance**: Retained intentionally for domain semantics or existing contract wording; explicitly allowlisted and audited.
 
 ### CONF-254
-- **File**: [yamlgraph/utils/prompts.py](../yamlgraph/utils/prompts.py#L87)
+- **File**: [yamlgraph/utils/prompts.py](../yamlgraph/utils/prompts.py#L66)
 - **Code**: FB001
 - **Sin**: Contains lexical `fallback` token flagged by FR-418 fallback-token hygiene gate.
 - **Penance**: Retained intentionally for domain semantics or existing contract wording; explicitly allowlisted and audited.
@@ -1453,7 +1453,7 @@ These are not `# noqa` suppressions — they are documented deviations from proc
 - **Penance**: Templates render LLM prompt text, never HTML — autoescaping would corrupt prompts containing markup-like characters. XSS requires a browser sink; there is none.
 
 ### CONF-378
-- **File**: [yamlgraph/cli/__init__.py](../yamlgraph/cli/__init__.py#L359)
+- **File**: [yamlgraph/cli/__init__.py](../yamlgraph/cli/__init__.py#L329)
 - **Code**: B104
 - **Sin**: a2a serve CLI defaults `--host` to `0.0.0.0`.
 - **Penance**: Development server for local/container use; binding all interfaces is the documented default (containers need it). Deployment behind a proxy is the operator's boundary, flagged in help text.
@@ -1501,16 +1501,10 @@ These are not `# noqa` suppressions — they are documented deviations from proc
 - **Penance**: Same ordering constraint; the faithfulness witness needs the runtime evaluator only when z3 is present.
 
 ### CONF-386
-- **File**: [examples/icpc-2-rfe/nodes/build_catalog.py](../examples/icpc-2-rfe/nodes/build_catalog.py#L77)
-- **Code**: S314
-- **Sin**: `xml.etree.ElementTree.fromstring` on the ICPC-2e ClaML file instead of defusedxml.
-- **Penance**: The input is trusted by construction: `build_catalog` refuses any zip whose sha256 differs from the pinned digest of the official ICPC-2e-v7.0 release (FR-722 A1), so only one byte-exact known file is ever parsed; the unit-test path parses a committed 3-row excerpt. Adding a defusedxml dependency for an example builder would violate the no-new-deps posture for examples.
-
-### CONF-387
-- **File**: [examples/cwe-classifier/nodes/build_catalog.py](../examples/cwe-classifier/nodes/build_catalog.py#L66)
-- **Code**: S314
-- **Sin**: `xml.etree.ElementTree.fromstring` on cwec_v4.20.xml instead of defusedxml.
-- **Penance**: Same trust construction as CONF-386: `build_catalog` refuses any zip whose sha256 differs from the pinned digest of the versioned MITRE cwec_v4.20.xml.zip release (FR-733), so only one byte-exact known file is ever parsed; the unit-test path parses a committed hand-reduced excerpt. Examples take no new dependencies.
+- **File**: [tests/unit/test_fr717_seams.py](../tests/unit/test_fr717_seams.py#L38)
+- **Code**: F401
+- **Sin**: Re-export witness imports `load_and_compile` without using it.
+- **Penance**: The import IS the assertion — the test proves top-level re-exports survived the package moves (same pattern as CONF-382).
 
 ---
 
@@ -1527,62 +1521,3 @@ The ID ranges are:
 - **CONF-010 to CONF-099**: Test code
 - **CONF-100 to CONF-199**: Example code
 - **CONF-200 to CONF-299**: Scripts
-
-### CONF-388
-- **File**: [.github/hooks/scripts/checks/prior_art_gate.py](../.github/hooks/scripts/checks/prior_art_gate.py#L36)
-- **Code**: S603
-- **Sin**: `subprocess.run([GIT, "diff", "--cached", ...])` flagged as untrusted input.
-- **Penance**: Command and args are hardcoded constants; GIT resolved via `shutil.which`. No user input reaches the call.
-
-### CONF-389
-- **File**: [.github/hooks/scripts/checks/prior_art_gate.py](../.github/hooks/scripts/checks/prior_art_gate.py#L47)
-- **Code**: S603
-- **Sin**: `subprocess.run([GIT, "show", f":0:{path}"])` — path interpolated into an argument.
-- **Penance**: `path` comes from pre-commit's staged-filename list (list-form argv, no shell); worst case is a git error for a nonexistent blob, handled by returncode check.
-
-### CONF-390
-- **File**: [scripts/vscode/now.py](../scripts/vscode/now.py#L35)
-- **Code**: S603
-- **Sin**: `subprocess.run([GIT, "-C", repo, *args])` — non-constant arguments.
-- **Penance**: GIT resolved via `shutil.which`; subcommands are hardcoded read-only queries (branch/diff/log); repo paths come from workspace.json enumeration, list-form argv, no shell.
-
-### CONF-391
-- **File**: [scripts/vscode/now.py](../scripts/vscode/now.py#L60)
-- **Code**: B007
-- **Sin**: loop variable `model` reused after the loop — B007 flags the unused loop body.
-- **Penance**: deliberate last-match idiom (want the final modelId in the tail window); a `pass` body with the value read after the loop is the cheapest form.
-
-### CONF-392
-- **File**: [scripts/vscode/tests/test_tap.py](../scripts/vscode/tests/test_tap.py#L28)
-- **Code**: E402
-- **Sin**: `import tap` after a `sys.path.insert` — module-level import not at top.
-- **Penance**: the spike suite lives outside the package; the path bootstrap must precede the import. Same idiom as any script-adjacent test without an installable package.
-
-### CONF-393
-- **File**: [scripts/tests/test_fr_board.py](../scripts/tests/test_fr_board.py#L29)
-- **Code**: E402
-- **Sin**: `import fr_board` after a `sys.path.insert` — module-level import not at top.
-- **Penance**: script-adjacent test outside the installable package; path bootstrap must precede the import (CONF-392 idiom).
-
-### CONF-394
-- **File**: [scripts/vscode/tests/test_todos.py](../scripts/vscode/tests/test_todos.py#L23)
-- **Code**: E402
-- **Sin**: `import todos` after a `sys.path.insert` — module-level import not at top.
-- **Penance**: script-adjacent test outside the installable package; path bootstrap must precede the import (CONF-392/393 idiom).
-
-### CONF-395
-- **File**: [scripts/vscode/todos.py](../scripts/vscode/todos.py#L108)
-- **Code**: S324
-- **Sin**: `hashlib.sha1` for the orphan drop key.
-- **Penance**: content addressing of todo titles for dedupe, zero security role; sha1's 8-hex prefix is stable, short, and printable — collision resistance is irrelevant at n≈30 titles.
-
-### CONF-396
-- **File**: [scripts/vscode/tests/test_brief.py](../scripts/vscode/tests/test_brief.py#L22)
-- **Code**: E402
-- **Sin**: `import now` after a `sys.path.insert` — module-level import not at top.
-- **Penance**: script-adjacent test outside the installable package; path bootstrap must precede the import (CONF-392/393/394 idiom).
-### CONF-397
-- **File**: [.github/hooks/scripts/checks/triage_gate.py](../.github/hooks/scripts/checks/triage_gate.py#L40)
-- **Code**: S603
-- **Sin**: `subprocess.run([GIT, "show", ...])` flagged as untrusted input.
-- **Penance**: Command and args are hardcoded constants; GIT resolved via `shutil.which`; path comes from pre-commit's staged-file list. No user input reaches the call (CONF-388 idiom).
