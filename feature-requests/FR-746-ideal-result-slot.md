@@ -1,10 +1,17 @@
 # FR-746: Ideal Result Slot — IFR as a template section, not a graph
 
-**Status:** Judged
+**Status:** Completed
 **Type:** Enhancement (template + doctrine; no runtime)
 **Effort:** 0.25 day
 **Requested:** 2026-07-17
 **Judged:** 2026-07-17 — approved; one same-file consistency addition
+**Completed:** 2026-07-17 — Ideal Result slot + first-consumer
+front-matter line (F1) in TEMPLATE.md; Sermon Plan sentence landed;
+F2 witness: `.chaplain/graphs/watcher-plan/prompts/plan.yaml:19`
+"Follow the template in feature-requests/TEMPLATE.md" — the chaplain
+plan stage inherits both sections with no code change. AC-01
+exemplars: FR-745/746/747 (drafted with the slot before it existed).
+AC-03 stays an open witness: cite the next organic FR here
 **First consumer / first event:** the next FR author (agent or
 chaplain plan stage); first event = the next FR filed after this
 lands. FR-745 and this FR practice the slot preemptively.

@@ -5,6 +5,9 @@
 **Status:** Proposed
 **Effort:** X days
 **Requested:** YYYY-MM-DD
+**First consumer / first event:** who uses this first, and at what
+concrete moment? An FR that cannot complete this sentence is
+`growth_as_default` (FR-746 F1; the consumer test).
 
 ## Summary
 
@@ -32,6 +35,12 @@ What problem does this solve? Why is it needed?
 - **What I saw:** one concrete, specific, surprising detail per sample
   (e.g. "The Swarm is not a person, yet the prose authored it a four-kind arc").
   A generated dump cannot produce this line; only a real read can.
+
+## Ideal Result
+
+State the ideal end state in one paragraph (`ideal_result_backwards`,
+FR-746). The Proposed Solution below must read as the minimal path
+back from it — a solution that outgrows its ideal is scope creep.
 
 ## Proposed Solution
 
