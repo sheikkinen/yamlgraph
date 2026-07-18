@@ -12,7 +12,7 @@ Sequence is judged and frozen (2026-07-17):
 
 | Step | What | Owner | Gate |
 |---|---|---|---|
-| 1 | Clean deploy of HEAD — current deploy `93bbdde-dirty` **lacks all Finding-2 fixes** (NC-392 mechanism+content, NC-384, NC-385A, NC-386, NC-395) | voice enforcer | `/health` `git_sha` non-dirty, at/past `47ca206` |
+| 1 | ~~Clean deploy of HEAD~~ **DONE (verified 2026-07-18):** `/health` reports `e8e3c2b` = repo HEAD, non-dirty, past `47ca206` — all Finding-2 fixes live | voice enforcer | ✓ gate MET |
 | 2 | NC-396 expected-block recalibration (HP-44/67 + flips family) | **csap** (handed off @ their 66d3e5c) | their commit |
 | 3 | Flips-suite re-run, 7 cases, ~25 min (currently 1/7 — ruler lag, not defect wave) | voice enforcer | **≥6/7 with residue explained** — hard entry gate for step 5 |
 | 4 | Ride-alongs on the same deploy: HP-47/61 pair (Finding-1 fix live-verified), HP-83 single call (NC-387 Exhibit A), partial NC-370 AC-03 signal | voice enforcer | cheap, parallel with 3 |
@@ -40,13 +40,25 @@ rather than rediscover the pre-fix world.
 
 | Topic | State | Planner action |
 |---|---|---|
-| **FR-745** FR triage graph | Judged | Enforce lane pickup |
+| **FR-745** FR triage graph | Judged; **enforcement in flight** (parallel session, RED committed 2026-07-18) | Taken — no second pickup (`one_session_one_repo`) |
 | **FR-747** loader error UX | Judged | Enforce lane pickup |
 | **FR-746** ideal-result slot (TEMPLATE + Sermon) | Completed 07-18 | Done — new FRs must state Ideal Result before Proposed Solution |
 | **Scripture graduation: the assumed-sensor pattern** | 4 recorded strikes (NC-383 "no bash port", NC-389 "run-test lock", NC-377 "asked count", NC-379 "derived species") | Graduate to traps/cures: *"verify the sensor exists before designing the measurement; an empty verification result is a claim requiring a positive control."* Two-strike rule long since met — file the graduation proposal to `.chaplain/inbox/` |
 | **Seeds awaiting owners** (Scripture seeds block) | `artifact_carries_code_identity`, `diary_graduation_pipeline`, `inquisitor_auto_escalation`, `req_coverage_as_universal_gate`, `verification_checkpoint_primitive` | Each needs a first consumer named before filing (would_you_use_this); `artifact_carries_code_identity` has one — NC-379's export stamps + shared-repo measurement runs |
 
 ## 4. World-context intake (fresh 2026-07-17 — first planner read)
+
+> **Re-distilled 2026-07-18 (world now):** all three questions stand;
+> none gains a consumer. Deltas: (1) sandboxing is STRENGTHENED — the
+> "Agent Security Is a Systems Problem" paper argues system-level
+> design over prompt-level defenses, our `two_strike_split` at
+> industry scale; still research-first, chaplain worktrees remain the
+> first named consumer. (2) New watch-tier signal: benchmark
+> governance / evaluation-reproducibility scrutiny (Kaggle AGI-comp
+> inconsistencies) — resonates with the measurement spine and the
+> `artifact_carries_code_identity` seed, no FR trigger. (3) Output-
+> quality meta-tooling (cliché highlighter) — the ecosystem arriving
+> at `read_raw_output_first`; watch only.
 
 Three open questions from [world-context.md](world-context.md) with a
 local seam each; file only where a consumer exists:
