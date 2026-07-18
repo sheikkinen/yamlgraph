@@ -8,6 +8,123 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.15]
+
+### Added
+- **FR-748 FR Atlas onboarding demo** (`examples/demos/fr-atlas`): turns a
+  project's `feature-requests/` corpus into a newcomer-facing narrative atlas —
+  deterministic collector (filename-stem ids, verbatim statuses, git-log
+  dates), chunked map fan-out for theme candidates, one merge judgement, one
+  story-opener judgement, and a coverage post-pass that guarantees every FR
+  appears exactly once (unclaimed → visible `misc`, unknown ids raise). Model
+  id claims are reconciled at the boundary — bracket sigils stripped, dropped
+  `FR-` prefixes restored, shortened/paraphrased slugs repaired by unique
+  numeric head or similarity floor against the collected population; ties die
+  loudly. Missing CAP registry degrades the module axis to git paths with a
+  loud header declaration. Verified on both corpora: yamlgraph (729 FRs → 13
+  themes) and ninchat_voice (300 FRs → 14 themes). (REQ-YG-566)
+- **FR-746 Ideal Result Slot**: TEMPLATE.md gains `## Ideal Result`
+  (state the end state; the solution is the minimal path back) and the
+  first-consumer/first-event front-matter line; Sermon Plan paragraph
+  carries the obligation independently. Chaplain plan stage inherits
+  via its existing TEMPLATE.md reference.
+- **FR-745 FR Triage Graph**: `.chaplain/graphs/fr_triage/` runs the checklist tier of judgement (canon answers, pre-mortem witnesses, value-prop check) with a small model and appends dispositionable claims inside the FR — never a verdict. `triage-gate` pre-commit hook blocks Judged+ FRs carrying undispositioned `- [pending]` claims; FR-creation hook gains a reminder-only line. Kill criterion bound: review at 10th judged FR. (REQ-YG-564)
+- **FR-744 World Now Distill**: `.chaplain/graphs/world_distill`
+  refreshes `docs/world-context.md` (the philosopher's grounding input,
+  stale since March) from curated ecosystem feeds — one schema'd
+  distill call, zero-yield raises at both boundaries, dated header;
+  `now.py` world pointer with age + STALE refresh command. First
+  fit-tested delegation: ~100× cheaper than inline agent synthesis.
+- **FR-743 SessionStart Briefing Hook**: `now.py --brief` (≤15-line
+  headline briefing, per-seam degradation) delivered fail-open at
+  session start via `session-briefing.sh`; `session-probe.sh` records
+  the platform contract for SessionStart + the two bundle-discovered
+  events (UserPromptSubmit, SessionEnd) to audit.jsonl. Probe verdict
+  and receipt witness pend the first fresh session. A1: probe widened
+  to six events — **PreCompact** (the flush-before-guillotine moment),
+  PostCompact (mechanical compaction-witness recording), and
+  PostToolUseFailure, all found in the runtime bundle and absent from
+  our hooks documentation. A2: the canonical enums located — **16 hook
+  events across two subsystems** (Stop, SubagentStart/Stop,
+  TeammateIdle, TaskCreated/Completed, PermissionRequest, Notification
+  …) vs 3 documented; the probe now registers all 14 non-tool events.
+- A3: probe reads full stdin (head -c truncation broke JSON on
+  long prompts). Live telemetry: hooks load WITHOUT restart - 46
+  UserPromptSubmit firings from 4 running sessions; stdin carries
+  prompt + transcript_path.
+- **FR-742 Undelivered Diary Detection**: diary-class orphans exempt
+  from the age cap (doctrine debt does not expire); ref-aware
+  DELIVERED/UNWRITTEN verdicts against docs/diary windows (substance
+  over presence); Scripture Distill inheritance sentence. Triage of the
+  three real debts caught two false verdicts via git cross-examination
+  and paid the genuine one with a posthumous diary written from a dead
+  session's 13.6 MB record.
+- **FR-741 Orphan Intention Triage**: `todos.py` cross-checks orphaned
+  todos against git artifacts (DELIVERED ELSEWHERE / NO ARTIFACT),
+  supports content-keyed `--drop` dispositions (git-tracked sidecar),
+  and feeds a now.py `intentions` section where live todos render as
+  `claims:` with STALE CLAIM overruled by git. Backlog-zero triage:
+  18 orphans → 3 preserved diary debts (FR-742 material).
+- **FR-740 FR Pipeline Board**: `scripts/fr_board.py` generates a
+  priority table + Mermaid DAG from FR status headers, Parent links,
+  and `gates.yaml` (owned gates with pre-drafted questions); two-way
+  drift lint wired at pre-commit; TEMPLATE.md gains the judgement
+  skeleton with the questions-or-none terminal section. First render
+  surfaced 13 duplicate FR/NC IDs and the status-header lag it exists
+  to expose. F7: the committed board is own-repo only — `--project`
+  renders an ephemeral cross-repo view, never committed or checked.
+- **FR-739 VS Code Introspection Suite**: OTel tap attribution (traceId
+  join kills phantom compactions), compaction altimeter with witnessed
+  calibration records, `now.py --tap` ground-truth liveness (rung-2
+  delivery), `ledger.py --tap` seam-stamped per-session reconciliation,
+  rotation enforced past 100 MB.
+- **FR-738 Prior-Art Disposition Gate**: the floor under the FR-737 advisory — a newly added `feature-requests/*.md` with prior-art hits and no `**Prior art:**` line in the **staged blob** fails the commit (`prior-art-gate` pre-commit hook; an unstaged marker doesn't count). Ranking gains placement weighting (filename/H1/Summary = 2, body prose = 1; ties by matched-noun count) and judgement companions inherit their parent FR's status. FR-070 counterfactual re-measured: [REJECTED] at #2, score doubled. Boundary stated honestly: repo-scoped — the ninchat mirror is NC-394.
+- **FR-737 Graveyard Hook**: newly created FR files trigger prior-art retrieval in the fr-checks PostToolUse hook — filename nouns grepped against the FR corpus *including rejected FRs*, ranked by inverse corpus frequency (one rare noun outranks a pile of generic ones), rare-noun emission floor (≤ 20 files) with silence otherwise, self-exclusion, top-5 with status tags emitted into the acting agent's context. Counterfactual witnessed: `*-pyodide-playground.md` surfaces `070-gui-web-playground.md [REJECTED]` at #2. Scripture Judge step gains the standing obligation: prior art including rejections must be dispositioned before authority, hook or no hook.
+- **FR-736 WebLLM Demo Trace Capture**: the spike instrument now records the stimulus, not just the outcome — per-run `run-NN-trace.json` carries the full request/response pair (messages exactly as sent via a single-identifier build, response_format schema, params, finish_reason, usage); evidence.md prints the system prompt as sent (wire fidelity from the same object the request uses), and the tally gains `finish`, `input_chars`, and `input_head` columns so input distinctness and flood-vs-natural-stop are readable from the artifact alone. Standalone by product decision — no LangSmith, no upload, no network.
+- **FR-735 WebLLM Demo Evidence Ergonomics**: the FR-731 spike page is now self-evidencing — structured `webllm-load`/`webllm-run` console records, per-run byte-fidelity **Save raw output** downloads (single raw read flows to both Blob and DOM), and a per-session **Download evidence.md** in the FR-731 F1 tally shape with computed `failures: N/M` kill-criterion arithmetic and honest short-session labeling. tok/s never fabricated: usage field → computed proxy labeled `tok/s*` → blank. (Tests under REQ-YG-562, whose primary fragment claim stays with FR-731 — the cross-wiring gate enforces one claimant per REQ.)
+- **FR-733 CWE Vulnerability Classifier**: second instance of the
+  coded-classification pattern (`examples/cwe-classifier/`). View-699
+  category fan-out over a locally generated cwec_v4.20 catalog
+  (versioned URL + sha256 pin; 944 live weaknesses, 345 candidates —
+  54 Prohibited codes stripped from candidacy at build time, per
+  MITRE's own Mapping_Notes); deterministic reducer with span-alignment
+  boundary, CWE-prefix sigil repair, Discouraged demote-not-drop,
+  Allowed-with-Review flagging, and a ChildOf lowest-abstraction guard;
+  NVD-gold crosscheck harness partitioning disagreements by MITRE usage
+  (our_miss / label_questionable / gold_unscoreable). (REQ-YG-557)
+- **FR-731 WebLLM Browser Prompt Demo (rung-1 spike)**: `examples/webllm-demo/build.py` compiles the reflexion critique prompt (native inline schema) to `docs/demos/webllm/prompt.json` — constraint fidelity witnessed (`ge/le` → `minimum/maximum`), deterministic serialization, no deployment config in the artifact. `docs/demos/webllm/index.html` runs it against WebLLM in-tab on GitHub Pages: WebGPU gate, consent-gated 0.7 GB weight download, grammar-enforced JSON at temperature 0, raw output always rendered, shape failures loud. (REQ-YG-562)
+- **FR-718 Edge Compiler Decomposition**: edge compilation is classify-then-dispatch. `classify_edge` names every edge form as an explicit `EdgeShape` (8 members; `PLAIN` is a member, not a fall-through claim), per-shape compilers live in a dispatch table, and the condition-map assembly for router/expression edges is extracted as pure functions (`build_router_route_mapping`, `build_expression_route_mapping`). The two most complex functions in the codebase (`_process_edge` C 20, `_add_conditional_edges` C 18) are gone — nothing in the module reaches CC 10. Behavior change (Commandment 6): a condition on an untyped fan-out list now raises naming the edge instead of compiling with the condition silently dropped. (REQ-YG-568)
+- **FR-717 Root-Package Seams**: Layer 2's flat bag of 27 root modules gains three named seams as packages — `yamlgraph/a2a/` (server, message), `yamlgraph/export/` (skill, skill_writer, mcp), and `yamlgraph/compile/` (graph_loader, node_compiler, edge_compiler, map_compiler, pipeline_template, verify_insert). Move-only (rename similarity 99–100%, witnessed per PR); root module count 27 → 17. Three new import-linter contracts turn the implicit clusters into enforced boundaries: a2a and export are leaves the linter/compilers never import; compile never imports the leaf surfaces (5 contracts kept). Top-level re-exports unchanged. (REQ-YG-567)
+
+### Fixed
+- **FR-747 Loader Error UX**: the two FR-744 boundary errors now name their fix. `load_prompt` raises the prompt contract when a YAML uses a `messages:` role list (parsed-structure detection, F3); `module:` import failures hint `path: <mod>.py` only when the file exists next to the graph (F2); `graph lint` gains a prompt-resolution pass (E006) and a module-vs-graph-local check (E008) closing the witnessed lint gap (AC-03). (REQ-YG-565)
+- **FR-739 altimeter phantom witness**: a cancelled zero-token turn was
+  recorded as a compaction witness, poisoning min(peaks) → ETA≈0 for
+  all sessions. post=0 turns are excluded; phantom purged from the
+  calibration file; surviving witnesses agree within 0.5%.
+- **FR-739 per-session cost view**: `tap.py` prints a per-session table
+  (exact tokens, calibrated credits, LIVE/idle) answering "what do
+  ongoing sessions cost"; README gains a cost cookbook (tap vs ledger,
+  seam semantics, pricing anchors, tap arming). Session titles joined
+  from chatSessions `customTitle` into both tap and ledger seam tables.
+- **FR-734 CWE Boundary Run-Mortality**: the FR-733 baseline killed 19
+  of 33 runs at the reducer boundary. Off-population claims (real
+  catalog rows without view-699 membership — the model volunteers
+  famous MITRE-Discouraged Classes from prior knowledge) now divert to
+  `meta.off_population_claims` with best-effort spans instead of
+  killing the run; classification slots stay population-only;
+  nonexistent codes still raise. Span alignment gains multi-block
+  interior-omission repair (coverage ≥ 0.85, window-capped): elided
+  enumeration markers and list segments repair to the true contiguous
+  window restoring the elided text verbatim; scattered fabrications
+  still die; anchoring runs two passes (global blocks, then local
+  re-anchor around the longest match) so a decoy occurrence of a short
+  claim prefix elsewhere in the text cannot blow the window cap. Loader
+  ships a full-catalog `usage_index` via merged dict
+  return. (REQ-YG-561)
+- **FR-731 WebLLM flood fix**: grammar-constrained decoding without prompt-side JSON steering floods whitespace deterministically (run 1: 3919 bytes, one `{` + 3914 spaces, 86.8 s). `build.py` now appends a schema-agnostic JSON directive to every compiled system prompt — mechanical compile output, not hand-tuning (test guards no field names leak); the page bounds `max_tokens: 512`. The spike's first banked finding: prompt template + schema alone is insufficient for grammar-enforced runtimes.
+- **ICPC-2 language-invariance fixtures + attribution fix**: HP-36 translated to English and German as labeled fixtures with identical expectations — both pass the primary gate first-shot (`-50` primary, 8/8 agreement with the Finnish original), and the A13 residual proves language-invariant (semantic inflation, not a Finnish artifact). Harness attribution hardened from prefix-startswith to exact name + timestamp anchoring (`hp36-…-en` archives no longer misattribute to the prefix fixture); German runs exposed a cross-lingual composition-context mechanism ("Blutdruck" lexically primes the B-chapter cluster → B50/B99 where fi/en compose K50/K86) — recorded on the watch list. (REQ-YG-554)
+
 ## [0.5.14]
 
 ### Fixed

@@ -30,7 +30,7 @@ dependencies:
 
   langgraph:
     rationale: "Core graph orchestration engine — StateGraph compilation, node execution, checkpointing"
-    modules: ["yamlgraph/graph_loader.py", "yamlgraph/executor.py", "yamlgraph/edge_compiler.py"]
+    modules: ["yamlgraph/compile/graph_loader.py", "yamlgraph/executor.py", "yamlgraph/compile/edge_compiler.py"]
     added: "0.1.0"
 
   langgraph-checkpoint-sqlite:
@@ -50,7 +50,7 @@ dependencies:
 
   pyyaml:
     rationale: "YAML parsing for graph definitions, prompt templates, and configuration"
-    modules: ["yamlgraph/data_loader.py", "yamlgraph/graph_loader.py"]
+    modules: ["yamlgraph/data_loader.py", "yamlgraph/compile/graph_loader.py"]
     added: "0.1.0"
 
   langsmith:
@@ -257,19 +257,19 @@ dependencies:
 
   mcp:
     rationale: "Model Context Protocol server for exposing graphs as Copilot tools (CAP-19)"
-    modules: ["yamlgraph/mcp_server.py"]
+    modules: ["yamlgraph/export/mcp.py"]
     added: "0.4.0"
 
   # ─── Optional: A2A ───────────────────────────────────────────────────
 
   a2a-sdk:
     rationale: "Agent-to-Agent protocol SDK for inter-agent communication (FR-208)"
-    modules: ["yamlgraph/a2a_server.py"]
+    modules: ["yamlgraph/a2a/server.py"]
     added: "0.4.60"
 
   grpcio:
     rationale: "gRPC runtime required by a2a-sdk>=1.0 compat layer (a2a/compat/v0_3/context_builders.py imports grpc at module level); without it the a2a extras fail to import (FR-244)"
-    modules: ["yamlgraph/a2a_server.py"]
+    modules: ["yamlgraph/a2a/server.py"]
     added: "0.4.68"
 
   # ─── Optional: Telco ─────────────────────────────────────────────────
