@@ -1,5 +1,5 @@
 name: Root Package Seams
-id: CAP-203
+id: CAP-209
 status: active
 fr: FR-717
 feature_request: FR-717
@@ -16,7 +16,7 @@ modules:
   - yamlgraph/export
   - yamlgraph/compile
 requirements:
-  - id: REQ-YG-546
+  - id: REQ-YG-567
     description: >
       Root-package seams (FR-717). yamlgraph.a2a, yamlgraph.export and
       yamlgraph.compile exist as packages holding their clusters

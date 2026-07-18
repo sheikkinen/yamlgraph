@@ -61,7 +61,7 @@ contracts — and shrinks the root listing every reader scans first.
 - [x] AC-04 No stale flat paths in yamlgraph/ or tests/ (witnessed by
       test_fr717_seams); docs/reference updated; historical research
       docs left as records
-- [x] Changelog fragment (CAP-203 / REQ-YG-546); diary at arc end.
+- [x] Changelog fragment (CAP-203 / REQ-YG-567); diary at arc end.
       **Deviation (F9-adjacent):** commits typed `refactor` — the
       fragment vocabulary is feat|fix|removal, so one summary fragment
       (type feat) covers the arc instead of one per PR

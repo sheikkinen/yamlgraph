@@ -518,12 +518,12 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 201 | CAP-201 Pre-emptive Module Splits | `yamlgraph/models/graph_schema.py`, `yamlgraph/models/node_schema.py`, `yamlgraph/streaming_events.py`, `yamlgraph/executor_async.py` | REQ-YG-544 |
 | 202 | CAP-202 SMT Condition Verification | `yamlgraph/linter/patterns/conditions_smt.py` | REQ-YG-545 |
 | 203 | CAP-203 ICPC-2 RFE Classifier Example | `examples/icpc-2-rfe/nodes/build_catalog.py`, `examples/icpc-2-rfe/nodes/catalog.py`, `examples/icpc-2-rfe/nodes/reduce.py` | REQ-YG-548 – 551, 554 – 556 |
-| 203 | CAP-203 Root Package Seams | `yamlgraph/a2a`, `yamlgraph/export`, `yamlgraph/compile` | REQ-YG-546 |
 | 204 | CAP-204 CWE Vulnerability Classifier Example | `examples/cwe-classifier/nodes/build_catalog.py`, `examples/cwe-classifier/nodes/catalog.py`, `examples/cwe-classifier/nodes/reduce.py`, `examples/cwe-classifier/nodes/crosscheck.py` | REQ-YG-557 – 561 |
 | 205 | CAP-205 World Distill Graph | `.chaplain/graphs/world_distill` | REQ-YG-563 |
 | 206 | CAP-206 FR Triage Graph | `.chaplain/graphs/fr_triage` | REQ-YG-564 |
 | 207 | CAP-207 Loader Error UX | `utils/prompts.check_messages_contract`, `tools/python_tool`, `linter/checks_loader_ux` | REQ-YG-565 |
 | 208 | CAP-208 FR Atlas Onboarding Demo | `examples/demos/fr-atlas/nodes/collect.py`, `examples/demos/fr-atlas/nodes/coverage.py`, `examples/demos/fr-atlas/nodes/render.py` | REQ-YG-566 |
+| 209 | CAP-209 Root Package Seams | `yamlgraph/a2a`, `yamlgraph/export`, `yamlgraph/compile` | REQ-YG-567 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -2537,16 +2537,6 @@ Map/reason/reduce YAMLGraph example classifying freeform encounter transcripts i
 | REQ-YG-555 | Process-code discipline and combined-code composition (FR-727). META_PROCESS_CODES {-43,-46,-48,-69} — encounter-form descriptors and junk drawers, pinned from a full read of all 40 rubric titles — demote match to partial_match at validation time (evidence preserved in best_partial, never primary/secondary; project curation lives in reduce.py, not the generated Tier-1 catalog); genuine process requests (-50, -62) stay primary-capable; process primaries gain combined_code composed mechanically from chapter_context (K86 + -50 = K50; chapter A when contextless); chapter primaries get no combined_code. | `examples/icpc-2-rfe/nodes/reduce.py` |
 | REQ-YG-556 | Chapter-code inflation discipline (FR-730). Chapter cap = {Z10} only (empty inclusion list, pure system descriptor - A13/A23/A29 verified genuinely stateable and stay uncapped, A13 an accepted named residual); same-chapter symptom-over-diagnosis mechanizes ICPC practical rule 3 (a component-7 match demotes to partial when a component-1 match exists in the same chapter, P03 demotes P76; no cross-chapter demotion, no demotion without a competing symptom); composition context eligibility is non-process, non-capped, non-Z-chapter with component-7 diseases preferred over component-1 symptoms (opposite of RFE primacy - composition anchors to the problem managed); genuine Z RFEs (Z05) remain classifiable. | `examples/icpc-2-rfe/nodes/reduce.py` |
 
-### 203. CAP-203 Root Package Seams
-
-Layer 2's implicit module clusters are named packages with enforced boundaries: a2a/ (protocol server + message translation), export/ (skills + MCP), compile/ (YAML-to-LangGraph pipeline). Import-linter contracts make the seams load-bearing — a2a and export are leaf consumers the linter and compile pipeline never import; compile never imports the leaf surfaces. Moves are rename-witnessed; public top-level re-exports are unchanged.
-
-**Feature Request:** FR-717
-
-| Requirement | Description | Key Modules |
-|------------|-------------|-------------|
-| REQ-YG-546 | Root-package seams (FR-717). yamlgraph.a2a, yamlgraph.export and yamlgraph.compile exist as packages holding their clusters (module names preserved in compile/); .importlinter carries a2a-seam, export-seam and compile-seam forbidden contracts plus the collapsed three-layer contract; lint-imports keeps >= 5 contracts; root yamlgraph/*.py module count <= 17; deep import paths updated repo-wide (code, tests, capabilities, confessions, hedging allowlist, docs). | `yamlgraph/a2a`, `yamlgraph/export`, `yamlgraph/compile`, `tests/unit/test_fr717_seams.py` |
-
 ### 204. CAP-204 CWE Vulnerability Classifier Example
 
 Second instance of the coded-classification pattern (reference/patterns/coded-classification.md): map/reason/reduce YAMLGraph example classifying free-text vulnerability descriptions into CWE weakness codes. View-699 category fan-out (40 categories of which 39 brief — CAT-1225 Documentation Issues is entirely Prohibited and drops out; 399 live members, 345 candidates after the build-time Prohibited strip) over a catalog GENERATED locally from cwec_v4.20.xml (versioned URL + sha256 pin; MITRE CWE is free with attribution); per-cluster LLM verdicts validate at the python reducer boundary; ranking is fully deterministic; the crosscheck harness scores against NVD gold labels partitioned by MITRE's own Mapping_Notes usage.
@@ -2600,6 +2590,16 @@ Portable onboarding atlas demo (examples/demos/fr-atlas): renders any project's 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-566 | FR Atlas deterministic spine (FR-748). Collector: population id = filename stem, never a prefix regex (unprefixed elder files are population members — the graveyard exemplars); TEMPLATE.md and *.judgement.md companions excluded and counted in parse_notes; headerless files reported by id, never dropped; digests carry verbatim Status line, first-word status_bucket with visible other, and a Problem/Summary excerpt; a missing feature-requests/ dir raises naming the path. Chunker: every population id appears in exactly one chunk. Coverage post-pass: themes referencing unknown ids raise; duplicate assignments keep the first occurrence; unassigned ids land in an explicit misc theme; total assigned count equals population count (silent join drops impossible). Render: graveyard section lists exactly the rejected-bucket FRs with verbatim status lines. | `examples/demos/fr-atlas/nodes/collect.py`, `examples/demos/fr-atlas/nodes/coverage.py`, `examples/demos/fr-atlas/nodes/render.py` |
+
+### 209. CAP-209 Root Package Seams
+
+Layer 2's implicit module clusters are named packages with enforced boundaries: a2a/ (protocol server + message translation), export/ (skills + MCP), compile/ (YAML-to-LangGraph pipeline). Import-linter contracts make the seams load-bearing — a2a and export are leaf consumers the linter and compile pipeline never import; compile never imports the leaf surfaces. Moves are rename-witnessed; public top-level re-exports are unchanged.
+
+**Feature Request:** FR-717
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-567 | Root-package seams (FR-717). yamlgraph.a2a, yamlgraph.export and yamlgraph.compile exist as packages holding their clusters (module names preserved in compile/); .importlinter carries a2a-seam, export-seam and compile-seam forbidden contracts plus the collapsed three-layer contract; lint-imports keeps >= 5 contracts; root yamlgraph/*.py module count <= 17; deep import paths updated repo-wide (code, tests, capabilities, confessions, hedging allowlist, docs). | `yamlgraph/a2a`, `yamlgraph/export`, `yamlgraph/compile`, `tests/unit/test_fr717_seams.py` |
 
 <!-- END GENERATED CAPABILITIES -->
 

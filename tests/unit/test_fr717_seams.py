@@ -11,7 +11,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 
 
 class TestSeams:
-    @pytest.mark.req("REQ-YG-546")
+    @pytest.mark.req("REQ-YG-567")
     def test_packages_exist_with_members(self):
         for pkg, member in [
             ("a2a", "server.py"),
@@ -20,7 +20,7 @@ class TestSeams:
         ]:
             assert (REPO_ROOT / "yamlgraph" / pkg / member).exists()
 
-    @pytest.mark.req("REQ-YG-546")
+    @pytest.mark.req("REQ-YG-567")
     def test_importlinter_contracts_present(self):
         cfg = configparser.ConfigParser()
         cfg.read(REPO_ROOT / ".importlinter")
@@ -28,16 +28,19 @@ class TestSeams:
         for needed in ("a2a-seam", "export-seam", "compile-seam"):
             assert any(needed in s for s in contracts), f"missing contract {needed}"
 
-    @pytest.mark.req("REQ-YG-546")
+    @pytest.mark.req("REQ-YG-567")
     def test_root_module_count_bounded(self):
+        # 17 at FR-717 close; +1 for FR-723's mermaid_export landed
+        # concurrently — mermaid/export tooling is a compile/export
+        # sub-package candidate for the next seam pass.
         count = len(list((REPO_ROOT / "yamlgraph").glob("*.py")))
-        assert count <= 17, f"root module count grew back: {count}"
+        assert count <= 18, f"root module count grew back: {count}"
 
-    @pytest.mark.req("REQ-YG-546")
+    @pytest.mark.req("REQ-YG-567")
     def test_top_level_reexports_unchanged(self):
         from yamlgraph import load_and_compile  # noqa: F401
 
-    @pytest.mark.req("REQ-YG-546")
+    @pytest.mark.req("REQ-YG-567")
     def test_no_stale_deep_imports(self):
         """No code references the retired flat paths."""
         stale = []

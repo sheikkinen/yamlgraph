@@ -88,7 +88,6 @@
 | FR-684 | Judged | yamlgraph |  | FR-684-semantic-dedup-graph-tool.md |
 | FR-686 | Judged | yamlgraph |  | FR-686-novel-fandom-agent-first-rewrite.md |
 | FR-689 | Judged | yamlgraph |  | FR-689-genesis-canon-consistency.md |
-| FR-717 | Judged | yamlgraph |  | FR-717-root-package-seams.md |
 | FR-718 | Judged | yamlgraph |  | FR-718-edge-compiler-decomposition.md |
 | FR-731 | Judged | yamlgraph |  | FR-731-webllm-browser-prompt-demo-spike.md |
 | FR-732 | Judged | yamlgraph |  | FR-732-output-schema-parity-enum-constraints.md |
@@ -396,7 +395,6 @@ graph TD
     FR-695["FR-695 Proposed"]
     FR-696["FR-696 Proposed"]
     FR-701["FR-701 Proposed"]
-    FR-717["FR-717 Judged"]
     FR-718["FR-718 Judged"]
     FR-728["FR-728 Proposed"]
     FR-729["FR-729 Proposed"]
