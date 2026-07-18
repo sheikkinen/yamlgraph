@@ -521,6 +521,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 204 | CAP-204 CWE Vulnerability Classifier Example | `examples/cwe-classifier/nodes/build_catalog.py`, `examples/cwe-classifier/nodes/catalog.py`, `examples/cwe-classifier/nodes/reduce.py`, `examples/cwe-classifier/nodes/crosscheck.py` | REQ-YG-557 – 561 |
 | 205 | CAP-205 World Distill Graph | `.chaplain/graphs/world_distill` | REQ-YG-563 |
 | 206 | CAP-206 FR Triage Graph | `.chaplain/graphs/fr_triage` | REQ-YG-564 |
+| 207 | CAP-207 Loader Error UX | `utils/prompts.check_messages_contract`, `tools/python_tool`, `linter/checks_loader_ux` | REQ-YG-565 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -2567,6 +2568,16 @@ Doctrine-infrastructure graph (.chaplain/graphs/fr_triage) running the mechaniza
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-564 | fr_triage graph: triage prompt with inline schema (canon_answers list ≤3, pre_mortem_witnesses list ≤5, value_prop_check) at haiku-class model; append_triage writes a "## Triage" section with [pending] markers and REFUSES to modify the Status line or append to a non-Proposed FR; empty triage output raises (zero-yield, Commandment 6); triage_gate blocks commits where an FR's Status is Judged-or-later while [pending] triage claims remain. | `.chaplain/graphs/fr_triage` |
+
+### 207. CAP-207 Loader Error UX
+
+Boundary errors at the config-parsing layer name their fix (FR-747; the two FR-744 field incidents). A prompt YAML using a `messages:` role list raises the prompt contract in load_prompt (parsed-structure detection: top-level key AND absent system:/user: — never text grep); a `module:` import failure hints `path: <mod>.py` only when the file exists next to the graph (verified existence, never speculation); `graph lint` surfaces both defects pre-run (E006/E008).
+
+**Feature Request:** FR-747
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-565 | Loader error UX: load_prompt/load_prompt_path raise an actionable ValueError on a messages: role-list prompt (both conditions, parsed structure); python_tool ImportError gains the path: hint only when <module>.py exists under graph_root, otherwise the error is unchanged; lint E006 flags the messages contract and E008 flags module: shadowed by a graph-local file, with no false positives on valid prompts using a `messages` variable. | `utils/prompts`, `tools/python_tool`, `linter/checks_loader_ux` |
 
 <!-- END GENERATED CAPABILITIES -->
 

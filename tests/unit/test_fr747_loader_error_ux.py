@@ -47,14 +47,14 @@ def _write(path: Path, content: str) -> Path:
 
 
 class TestPromptMessagesContract:
-    @pytest.mark.req("REQ-YG-012")
+    @pytest.mark.req("REQ-YG-565")
     def test_messages_role_list_raises_actionable(self, tmp_path):
         """Field incident 1: the bare `'user'` KeyError becomes a contract."""
         _write(tmp_path / "prompts" / "distill.yaml", BAD_MESSAGES_PROMPT)
         with pytest.raises(ValueError, match=r"messages.*system.*user"):
             load_prompt("distill", prompts_dir=tmp_path / "prompts")
 
-    @pytest.mark.req("REQ-YG-012")
+    @pytest.mark.req("REQ-YG-565")
     def test_messages_variable_does_not_fire(self, tmp_path):
         """F3 negative: a `messages` VARIABLE in a valid prompt stays legal."""
         _write(tmp_path / "prompts" / "chat.yaml", GOOD_PROMPT_WITH_MESSAGES_WORD)
@@ -63,7 +63,7 @@ class TestPromptMessagesContract:
 
 
 class TestModuleHint:
-    @pytest.mark.req("REQ-YG-196")
+    @pytest.mark.req("REQ-YG-565")
     def test_hint_when_graph_local_file_exists(self, tmp_path):
         """Field incident 2: `module: tools` names the cure when tools.py
         sits next to the graph."""
@@ -72,7 +72,7 @@ class TestModuleHint:
         with pytest.raises(ImportError, match=r"path: no_such_module_fr747\.py"):
             load_python_function(config, graph_root=tmp_path)
 
-    @pytest.mark.req("REQ-YG-196")
+    @pytest.mark.req("REQ-YG-565")
     def test_no_hint_without_graph_local_file(self, tmp_path):
         """F2: no speculative hint when no matching file exists."""
         config = PythonToolConfig(module="no_such_module_fr747", function="f")
@@ -107,7 +107,7 @@ edges:
 
 
 class TestLintSurfacesBothDefects:
-    @pytest.mark.req("REQ-YG-003")
+    @pytest.mark.req("REQ-YG-565")
     def test_lint_flags_messages_prompt(self, tmp_path):
         """AC-03: lint loads each node's prompt and catches the contract
         violation the FR-744 run only hit mid-run."""
@@ -118,7 +118,7 @@ class TestLintSurfacesBothDefects:
         codes = {i.code for i in result.issues}
         assert "E006" in codes, f"expected E006 in {codes}"
 
-    @pytest.mark.req("REQ-YG-003")
+    @pytest.mark.req("REQ-YG-565")
     def test_lint_flags_module_with_graph_local_file(self, tmp_path):
         """AC-03: lint catches `module:` pointing at a graph-local file."""
         _write(tmp_path / "graph.yaml", GRAPH_WITH_BOTH_DEFECTS)
@@ -129,7 +129,7 @@ class TestLintSurfacesBothDefects:
         assert "E008" in by_code, f"expected E008 in {set(by_code)}"
         assert "path: fr747_local_tools.py" in by_code["E008"].fix
 
-    @pytest.mark.req("REQ-YG-003")
+    @pytest.mark.req("REQ-YG-565")
     def test_lint_clean_when_module_has_no_local_file(self, tmp_path):
         """F2 at lint level: no flag when no matching graph-local file."""
         _write(tmp_path / "graph.yaml", GRAPH_WITH_BOTH_DEFECTS)

@@ -1224,19 +1224,19 @@ These are E402 suppressions and are acceptable as "glue code" patterns.
 - **Penance**: Retained intentionally for domain semantics or existing contract wording; explicitly allowlisted and audited.
 
 ### CONF-252
-- **File**: [yamlgraph/utils/prompts.py](../yamlgraph/utils/prompts.py#L138)
+- **File**: [yamlgraph/utils/prompts.py](../yamlgraph/utils/prompts.py#L159)
 - **Code**: FB001
 - **Sin**: Contains lexical `fallback` token flagged by FR-418 fallback-token hygiene gate.
 - **Penance**: Retained intentionally for domain semantics or existing contract wording; explicitly allowlisted and audited.
 
 ### CONF-253
-- **File**: [yamlgraph/utils/prompts.py](../yamlgraph/utils/prompts.py#L50)
+- **File**: [yamlgraph/utils/prompts.py](../yamlgraph/utils/prompts.py#L71)
 - **Code**: FB001
 - **Sin**: Contains lexical `fallback` token flagged by FR-418 fallback-token hygiene gate.
 - **Penance**: Retained intentionally for domain semantics or existing contract wording; explicitly allowlisted and audited.
 
 ### CONF-254
-- **File**: [yamlgraph/utils/prompts.py](../yamlgraph/utils/prompts.py#L66)
+- **File**: [yamlgraph/utils/prompts.py](../yamlgraph/utils/prompts.py#L87)
 - **Code**: FB001
 - **Sin**: Contains lexical `fallback` token flagged by FR-418 fallback-token hygiene gate.
 - **Penance**: Retained intentionally for domain semantics or existing contract wording; explicitly allowlisted and audited.

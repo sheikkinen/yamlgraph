@@ -152,7 +152,8 @@ Negligible against the judgement attention it pre-spends.
 **AC-05 calibration-ledger format** (to be written by each judgement
 that consumes a triage section, one line under its verdict):
 `**Triage calibration:** upheld N / overturned M / deferred K — <what changed, if anything>`
-First real citation pending the next judged FR carrying triage; the
-F2 kill-criterion review counts these lines (review at 10th judged FR;
-<3 outcome-changing claims → gate + hook REMOVED, FR re-closed
+First real citation: FR-747's enforcement record (upheld 1/8 — the
+"raise at LOAD time" drift; §1 and AC-02 reworded before enforcement).
+The F2 kill-criterion review counts these lines (review at 10th judged
+FR; <3 outcome-changing claims → gate + hook REMOVED, FR re-closed
 designed-and-disproven).

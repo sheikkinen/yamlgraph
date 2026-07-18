@@ -1,6 +1,6 @@
 # FR-747: Loader Error UX — the two FR-744 boundary errors name their fix
 
-**Status:** Judged
+**Status:** Completed
 **Type:** Fix (framework ergonomics, `yamlgraph/` loader + prompt parsing)
 **Effort:** 0.5 day
 **Requested:** 2026-07-17
@@ -47,7 +47,9 @@ rejected FR touches error-message territory.
 ## Proposed Solution
 
 1. **Prompt parser:** if a prompt YAML contains `messages:` and lacks
-   `system:`/`user:`, raise at LOAD time (not node-execution time):
+   `system:`/`user:`, raise in `load_prompt` (F1: lazy load — fires
+   before any LLM call in that node; eager compile-time loading is
+   purged; the pre-run guarantee is lint's, per AC-03):
    `"Prompt '<name>' uses 'messages:' role list — YAMLGraph prompts
    use top-level 'system:' and 'user:' keys (see author-prompt
    skill)."`
@@ -59,12 +61,12 @@ rejected FR touches error-message territory.
 
 ## Acceptance Criteria
 
-- [ ] AC-01 RED: two condemning tests reproducing the exact field
+- [x] AC-01 RED: two condemning tests reproducing the exact field
       errors, asserting the new messages.
-- [ ] AC-02: load-time detection for the prompt case (fails at
-      graph-load, not mid-run — the FR-744 run burned a fetch cycle
-      before the prompt failed).
-- [ ] AC-03: `graph lint` surfaces both defects (the lint ran clean
+- [x] AC-02: load-time detection for the prompt case (per F1: the
+      raise lives in `load_prompt`, ahead of any LLM call in the node;
+      the pre-run guarantee moved to lint).
+- [x] AC-03: `graph lint` surfaces both defects (the lint ran clean
       over the broken prompt in FR-744 — a lint gap, witnessed).
 
 ## Out of scope (purge list)
@@ -93,3 +95,26 @@ load prompt files today — the AC-03 lint gap is real.
 
 Scope otherwise frozen; the purge list (no `messages:` support, no
 general audit) stands.
+
+## Enforcement Record (2026-07-18)
+
+RED 573158a8 (4 condemning witnesses + 3 F2/F3 negatives), GREEN in the
+same arc. Delivered:
+
+- `check_messages_contract` in [yamlgraph/utils/prompts.py](../yamlgraph/utils/prompts.py)
+  — parsed-structure detection (F3), applied in both `load_prompt` and
+  `load_prompt_path`; a `messages` variable in a valid prompt never
+  fires (witnessed).
+- `module:` hint in [yamlgraph/tools/python_tool.py](../yamlgraph/tools/python_tool.py)
+  — appended ONLY when `<module>.py` exists under `graph_root` (F2);
+  the error is otherwise byte-identical (witnessed).
+- Lint pass in [yamlgraph/linter/checks_loader_ux.py](../yamlgraph/linter/checks_loader_ux.py)
+  (new module; siblings sit at the 450-line cap): E006 prompt
+  messages-contract, E008 module-vs-graph-local file; wired into
+  `lint_graph` (AC-03). Full suite 5077 passed; real graphs lint clean
+  (no false positives on hello/fr_triage/world_distill).
+
+**Triage calibration:** upheld 1 / overturned 0 / deferred 0 — the
+FR-745 triage pre-mortem caught this FR's own §1 "raise at LOAD time"
+contradicting the judgement's F1 lazy-load pin; §1 and AC-02 reworded
+above before enforcement (first entry in the FR-745 AC-05 ledger).

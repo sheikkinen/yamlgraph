@@ -21,6 +21,27 @@ from yamlgraph.config import PROMPTS_DIR
 logger = logging.getLogger(__name__)
 
 
+def check_messages_contract(content: object, prompt_name: str) -> None:
+    """FR-747: raise the contract when a prompt uses a `messages:` role list.
+
+    F3 (binding): detection keys on a top-level `messages:` key in the
+    PARSED YAML combined with ABSENT `system:`/`user:` — both conditions,
+    parsed-structure level, never text grep. A `messages` variable inside
+    a valid prompt never fires.
+    """
+    if (
+        isinstance(content, dict)
+        and "messages" in content
+        and "system" not in content
+        and "user" not in content
+    ):
+        raise ValueError(
+            f"Prompt '{prompt_name}' uses 'messages:' role list — YAMLGraph "
+            "prompts use top-level 'system:' and 'user:' keys "
+            "(see author-prompt skill)."
+        )
+
+
 def _resolve_graph_relative_with_dir(
     prompt_name: str, graph_path: Path, prompts_dir: Path
 ) -> Path | None:
@@ -165,6 +186,7 @@ def load_prompt(
 
     Raises:
         FileNotFoundError: If prompt file doesn't exist
+        ValueError: If the prompt uses a 'messages:' role list (FR-747)
     """
     path = resolve_prompt_path(
         prompt_name,
@@ -174,7 +196,10 @@ def load_prompt(
     )
 
     with open(path) as f:
-        return yaml.safe_load(f)
+        content = yaml.safe_load(f)
+
+    check_messages_contract(content, prompt_name)
+    return content
 
 
 def load_prompt_path(
@@ -210,7 +235,13 @@ def load_prompt_path(
     with open(path) as f:
         content = yaml.safe_load(f)
 
+    check_messages_contract(content, prompt_name)
     return path, content
 
 
-__all__ = ["resolve_prompt_path", "load_prompt", "load_prompt_path"]
+__all__ = [
+    "check_messages_contract",
+    "load_prompt",
+    "load_prompt_path",
+    "resolve_prompt_path",
+]

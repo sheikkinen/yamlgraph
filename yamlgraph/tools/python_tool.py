@@ -129,7 +129,18 @@ def load_python_function(
             mod = importlib.import_module(config.module)
         except ImportError as e:
             logger.error(f"Failed to import module: {config.module}")
-            raise ImportError(f"Cannot import module '{config.module}': {e}") from e
+            message = f"Cannot import module '{config.module}': {e}"
+            # FR-747 F2: hint ONLY when <module>.py exists next to the graph.
+            if (
+                graph_root is not None
+                and (graph_root / f"{config.module}.py").is_file()
+            ):
+                message += (
+                    f" hint: '{config.module}.py' exists next to the graph — "
+                    f"graph-local tools use 'path: {config.module}.py', "
+                    "not 'module:'."
+                )
+            raise ImportError(message) from e
         source_label = config.module
 
     try:

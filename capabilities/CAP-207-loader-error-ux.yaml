@@ -1,0 +1,29 @@
+id: CAP-207
+name: Loader Error UX
+description: >
+  Boundary errors at the config-parsing layer name their fix (FR-747;
+  the two FR-744 field incidents). A prompt YAML using a `messages:`
+  role list raises the prompt contract in load_prompt (parsed-structure
+  detection: top-level key AND absent system:/user: — never text grep);
+  a `module:` import failure hints `path: <mod>.py` only when the file
+  exists next to the graph (verified existence, never speculation);
+  `graph lint` surfaces both defects pre-run (E006/E008).
+modules:
+  - utils/prompts.check_messages_contract
+  - tools/python_tool
+  - linter/checks_loader_ux
+requirements:
+  - id: REQ-YG-565
+    description: >
+      Loader error UX: load_prompt/load_prompt_path raise an actionable
+      ValueError on a messages: role-list prompt (both conditions,
+      parsed structure); python_tool ImportError gains the path: hint
+      only when <module>.py exists under graph_root, otherwise the
+      error is unchanged; lint E006 flags the messages contract and
+      E008 flags module: shadowed by a graph-local file, with no
+      false positives on valid prompts using a `messages` variable.
+    modules:
+      - utils/prompts
+      - tools/python_tool
+      - linter/checks_loader_ux
+fr: FR-747

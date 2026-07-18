@@ -33,6 +33,10 @@ from yamlgraph.linter.checks_contracts import (
 from yamlgraph.linter.checks_contracts import (
     check_silent_fallback as check_silent_default_path,
 )
+from yamlgraph.linter.checks_loader_ux import (
+    check_prompt_messages_contract,
+    check_tool_module_graph_local,
+)
 from yamlgraph.linter.checks_prompts import (
     check_mixed_template_syntax,
     check_prompt_complexity,
@@ -95,6 +99,10 @@ def lint_graph(
     all_issues.extend(check_tool_references(graph_path))
     all_issues.extend(check_prompt_files(graph_path, project_root))
     all_issues.extend(check_unanchored_prompt_variables(graph_path, project_root))
+    # FR-747: loader-error-UX pre-run pass (E006 messages contract,
+    # E008 module-vs-graph-local file)
+    all_issues.extend(check_prompt_messages_contract(graph_path, project_root))
+    all_issues.extend(check_tool_module_graph_local(graph_path))
     all_issues.extend(check_mixed_template_syntax(graph_path, project_root))
     all_issues.extend(check_prompt_complexity(graph_path, project_root))
     all_issues.extend(check_edge_coverage(graph_path))
