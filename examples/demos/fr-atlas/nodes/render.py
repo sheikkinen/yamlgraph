@@ -30,6 +30,12 @@ def render_atlas(
 
     ordered = sorted(themes, key=last_activity, reverse=True)
     lines = [
+        # The atlas lands in docs/ where Jekyll renders it as LIQUID: a
+        # literal Jinja2 tag in any FR title kills the Pages build
+        # (2026-07-18, 6 consecutive failures). Normalize at the boundary
+        # where the artifact enters Jekyll's jurisdiction — wrap the whole
+        # document; titles stay verbatim.
+        "{% raw %}",
         f"# FR Atlas — {project_name}",
         "",
         f"> Generated {date.today().isoformat()} by "
@@ -92,6 +98,7 @@ def render_atlas(
             "- No status header (reported, not dropped): "
             + ", ".join(parse_notes["headerless"])
         )
+    lines.append("{% endraw %}")
     return "\n".join(lines) + "\n"
 
 

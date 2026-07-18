@@ -190,6 +190,21 @@ class TestAssembly:
         assert out["chunk_themes"][0]["fr_ids"] == ["FR-001-a", "FR-002-b", "070-old"]
 
     @pytest.mark.req("REQ-YG-566")
+    def test_parenthetical_decoration_repaired_at_assembly(self, tmp_path):
+        """Third live strike (2026-07-18): the model appended a title
+        parenthetical — 'FR-219 (Anthropic Prompt Caching Demo)' — and the
+        exact-equality reconcile refused it. Same decoration family, same
+        boundary: strip a trailing (…) before reconciliation; the naked
+        head then repairs by unique-head match as usual."""
+        pipeline = _load("pipeline.py")
+        assert pipeline._repair_id("FR-219 (Anthropic Prompt Caching Demo)") == (
+            "FR-219"
+        )
+        assert pipeline._repair_id("[FR-219 (Demo)]") == "FR-219"
+        # A parenthesis inside the slug itself is not decoration.
+        assert pipeline._repair_id("FR-100-x(y)") == "FR-100-x(y)"
+
+    @pytest.mark.req("REQ-YG-566")
     def test_shortened_id_reconciled_against_population(self, tmp_path):
         """Second live strike: model dropped a slug segment
         (FR-514-dm-v2-… → FR-514-…). Reconcile by unique numeric head
@@ -365,3 +380,43 @@ class TestRender:
         assert "no UI, ever" in text
         gy = text[text.index("## Graveyard") :]
         assert "FR-001-a" not in gy, "non-rejected FRs stay out of the graveyard"
+
+
+class TestLiquidSafety:
+    """The atlas lands in docs/ where Jekyll renders it as Liquid — an FR
+    title containing a literal Jinja2 tag took the Pages build down for 6
+    consecutive runs (2026-07-18). Normalize at the boundary where the
+    artifact enters Jekyll's jurisdiction, not in the titles."""
+
+    @pytest.mark.req("REQ-YG-566")
+    def test_atlas_is_liquid_safe(self):
+        render = _load("render.py")
+        digests = [
+            {
+                "id": "FR-214-nested-set",
+                "title": "Fix `extract_variables()` for `{% set %}` blocks",
+                "status": "Proposed",
+                "status_bucket": "proposed",
+                "problem_excerpt": "uses {{ state.x }} and {% if y %}",
+                "last_activity": "2026-07-18",
+            }
+        ]
+        themes = [
+            {"name": "T", "arc": "a", "fr_ids": ["FR-214-nested-set"], "modules": []}
+        ]
+        text = render.render_atlas(
+            story="p1\n\np2\n\np3",
+            themes=themes,
+            digests=digests,
+            parse_notes={"excluded": 0, "headerless": []},
+            project_name="demo",
+        )
+        body = text
+        if text.startswith("{% raw %}"):
+            body = text[len("{% raw %}") : text.rindex("{% endraw %}")]
+        else:
+            raise AssertionError(
+                "atlas must be wrapped in {% raw %}...{% endraw %} — a "
+                "Jinja2 tag in any FR title breaks the Jekyll Pages build"
+            )
+        assert "{% set %}" in body, "titles must survive verbatim inside raw"

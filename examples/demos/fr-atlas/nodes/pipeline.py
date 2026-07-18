@@ -8,6 +8,7 @@ never carries FR ids across the merge boundary — keys join, code maps.
 from __future__ import annotations
 
 import importlib.util
+import re
 import sys
 from difflib import SequenceMatcher
 from pathlib import Path
@@ -28,9 +29,14 @@ def _load(name: str):
 
 def _repair_id(claim: str) -> str:
     """Token-fidelity repair at the map boundary: models echo the
-    [bracket] sigils the digest block displays. Strip decoration,
-    keep the claim; genuine fabrications still die in enforce_coverage."""
-    return claim.strip().strip("[]").strip("`'\" ").strip()
+    [bracket] sigils the digest block displays, and (third live strike,
+    2026-07-18) append title parentheticals — 'FR-219 (Prompt Caching
+    Demo)'. Strip decoration, keep the claim; genuine fabrications still
+    die in enforce_coverage."""
+    claim = claim.strip().strip("[]").strip("`'\" ").strip()
+    # Trailing ' (…)' is decoration; a paren embedded in the slug is not.
+    claim = re.sub(r"\s+\([^)]*\)$", "", claim)
+    return claim.strip()
 
 
 def _head(fr_id: str) -> str:
