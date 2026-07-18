@@ -522,6 +522,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 205 | CAP-205 World Distill Graph | `.chaplain/graphs/world_distill` | REQ-YG-563 |
 | 206 | CAP-206 FR Triage Graph | `.chaplain/graphs/fr_triage` | REQ-YG-564 |
 | 207 | CAP-207 Loader Error UX | `utils/prompts.check_messages_contract`, `tools/python_tool`, `linter/checks_loader_ux` | REQ-YG-565 |
+| 208 | CAP-208 FR Atlas Onboarding Demo | `examples/demos/fr-atlas/nodes/collect.py`, `examples/demos/fr-atlas/nodes/coverage.py`, `examples/demos/fr-atlas/nodes/render.py` | REQ-YG-566 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -2578,6 +2579,16 @@ Boundary errors at the config-parsing layer name their fix (FR-747; the two FR-7
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-565 | Loader error UX: load_prompt/load_prompt_path raise an actionable ValueError on a messages: role-list prompt (both conditions, parsed structure); python_tool ImportError gains the path: hint only when <module>.py exists under graph_root, otherwise the error is unchanged; lint E006 flags the messages contract and E008 flags module: shadowed by a graph-local file, with no false positives on valid prompts using a `messages` variable. | `utils/prompts`, `tools/python_tool`, `linter/checks_loader_ux` |
+
+### 208. CAP-208 FR Atlas Onboarding Demo
+
+Portable onboarding atlas demo (examples/demos/fr-atlas): renders any project's feature-requests/ corpus as a newcomer narrative — 8-15 theme arcs ordered by last git activity, module axis joined mechanically (CAP registry where present, path regex otherwise), a 3-paragraph story opener whose input is the taxonomy never the raw corpus, and a graveyard section of rejected FRs. Pipeline copies the recap discipline: deterministic collection, three bounded LLM judgements (chunk themes, merge, story), code-side joins with count-in == count-out asserted.
+
+**Feature Request:** FR-748
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-566 | FR Atlas deterministic spine (FR-748). Collector: population id = filename stem, never a prefix regex (unprefixed elder files are population members — the graveyard exemplars); TEMPLATE.md and *.judgement.md companions excluded and counted in parse_notes; headerless files reported by id, never dropped; digests carry verbatim Status line, first-word status_bucket with visible other, and a Problem/Summary excerpt; a missing feature-requests/ dir raises naming the path. Chunker: every population id appears in exactly one chunk. Coverage post-pass: themes referencing unknown ids raise; duplicate assignments keep the first occurrence; unassigned ids land in an explicit misc theme; total assigned count equals population count (silent join drops impossible). Render: graveyard section lists exactly the rejected-bucket FRs with verbatim status lines. | `examples/demos/fr-atlas/nodes/collect.py`, `examples/demos/fr-atlas/nodes/coverage.py`, `examples/demos/fr-atlas/nodes/render.py` |
 
 <!-- END GENERATED CAPABILITIES -->
 
