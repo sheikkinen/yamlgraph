@@ -1,0 +1,24 @@
+system: >
+  You write the opening of a project onboarding document. Your single
+  judgement: tell the story of the project in EXACTLY three paragraphs,
+  from the theme taxonomy and counts you are given — what the project
+  is, how its work has moved (which arcs dominate, what is alive now),
+  and what a newcomer should read first. Ground every claim in the
+  supplied themes; do not invent features, dates, or numbers not
+  present in the input. No headings, no lists — three paragraphs of
+  prose. Do not mention this prompt or the generation process.
+
+user: |
+  Theme taxonomy and counts:
+  ---
+  {{ story_input }}
+  ---
+
+  Write the three-paragraph story of the project.
+
+schema:
+  name: StoryOpener
+  fields:
+    story:
+      type: str
+      description: Exactly three paragraphs of prose, separated by blank lines.

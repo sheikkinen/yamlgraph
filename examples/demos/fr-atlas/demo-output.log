@@ -1,0 +1,52 @@
+2026-07-18 10:21:11,357 [INFO] yamlgraph.graph_loader: Parsed 4 Python tools: collect_frs, assemble_candidates, finalize_themes, write_atlas
+2026-07-18 10:21:11,357 [INFO] yamlgraph.node_compiler: Added node: collect (type=python)
+2026-07-18 10:21:11,359 [INFO] yamlgraph.node_compiler: Added node: theme_chunks (type=map)
+2026-07-18 10:21:11,360 [INFO] yamlgraph.node_compiler: Added node: assemble (type=python)
+2026-07-18 10:21:11,361 [INFO] yamlgraph.node_compiler: Added node: merge_themes (type=llm)
+2026-07-18 10:21:11,361 [INFO] yamlgraph.node_compiler: Added node: finalize (type=python)
+2026-07-18 10:21:11,363 [INFO] yamlgraph.node_compiler: Added node: story_opener (type=llm)
+2026-07-18 10:21:11,363 [INFO] yamlgraph.node_compiler: Added node: render (type=python)
+2026-07-18 10:21:11,512 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: collect -> collect_frs
+2026-07-18 10:21:12,193 [INFO] yamlgraph.utils.llm_factory: Creating LLM: azure/aaa-gpt-5.4-mini (temp=0.2)
+2026-07-18 10:21:14,725 [INFO] httpx: HTTP Request: POST https://ai-samijpheikkinenaihub338640401537.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 400 Bad Request"
+2026-07-18 10:21:14,740 [INFO] yamlgraph.executor_base: Structured output rejected, falling back to JSON extraction (FR-464)
+2026-07-18 10:21:14,825 [INFO] httpx: HTTP Request: POST https://ai-samijpheikkinenaihub338640401537.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 400 Bad Request"
+2026-07-18 10:21:14,873 [INFO] yamlgraph.executor_base: Structured output rejected, falling back to JSON extraction (FR-464)
+2026-07-18 10:21:15,139 [INFO] httpx: HTTP Request: POST https://ai-samijpheikkinenaihub338640401537.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 400 Bad Request"
+2026-07-18 10:21:15,143 [INFO] yamlgraph.executor_base: Structured output rejected, falling back to JSON extraction (FR-464)
+2026-07-18 10:21:15,155 [INFO] httpx: HTTP Request: POST https://ai-samijpheikkinenaihub338640401537.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 400 Bad Request"
+2026-07-18 10:21:15,159 [INFO] yamlgraph.executor_base: Structured output rejected, falling back to JSON extraction (FR-464)
+2026-07-18 10:21:15,171 [INFO] httpx: HTTP Request: POST https://ai-samijpheikkinenaihub338640401537.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 400 Bad Request"
+2026-07-18 10:21:15,175 [INFO] yamlgraph.executor_base: Structured output rejected, falling back to JSON extraction (FR-464)
+2026-07-18 10:21:15,204 [INFO] httpx: HTTP Request: POST https://ai-samijpheikkinenaihub338640401537.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 400 Bad Request"
+2026-07-18 10:21:15,208 [INFO] yamlgraph.executor_base: Structured output rejected, falling back to JSON extraction (FR-464)
+2026-07-18 10:21:19,392 [INFO] httpx: HTTP Request: POST https://ai-samijpheikkinenaihub338640401537.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-18 10:21:19,398 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_theme_chunks_sub completed successfully
+2026-07-18 10:21:19,398 [INFO] httpx: HTTP Request: POST https://ai-samijpheikkinenaihub338640401537.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-18 10:21:19,400 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_theme_chunks_sub completed successfully
+2026-07-18 10:21:19,527 [INFO] httpx: HTTP Request: POST https://ai-samijpheikkinenaihub338640401537.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-18 10:21:19,528 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_theme_chunks_sub completed successfully
+2026-07-18 10:21:19,549 [INFO] httpx: HTTP Request: POST https://ai-samijpheikkinenaihub338640401537.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-18 10:21:19,550 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_theme_chunks_sub completed successfully
+2026-07-18 10:21:19,625 [INFO] httpx: HTTP Request: POST https://ai-samijpheikkinenaihub338640401537.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-18 10:21:19,626 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_theme_chunks_sub completed successfully
+2026-07-18 10:21:20,047 [INFO] httpx: HTTP Request: POST https://ai-samijpheikkinenaihub338640401537.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-18 10:21:20,048 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_theme_chunks_sub completed successfully
+2026-07-18 10:21:20,050 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: assemble -> assemble_candidates
+2026-07-18 10:21:20,277 [INFO] httpx: HTTP Request: POST https://ai-samijpheikkinenaihub338640401537.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 400 Bad Request"
+2026-07-18 10:21:20,281 [INFO] yamlgraph.executor_base: Structured output rejected, falling back to JSON extraction (FR-464)
+2026-07-18 10:21:24,805 [INFO] httpx: HTTP Request: POST https://ai-samijpheikkinenaihub338640401537.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-18 10:21:24,806 [INFO] yamlgraph.node_factory.llm_nodes: Node merge_themes completed successfully
+2026-07-18 10:21:24,808 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: finalize -> finalize_themes
+2026-07-18 10:21:24,812 [INFO] yamlgraph.utils.llm_factory: Creating LLM: azure/aaa-gpt-5.4-mini (temp=0.4)
+2026-07-18 10:21:27,168 [INFO] httpx: HTTP Request: POST https://ai-samijpheikkinenaihub338640401537.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-18 10:21:27,183 [INFO] yamlgraph.node_factory.llm_nodes: Node story_opener completed successfully
+2026-07-18 10:21:27,185 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: render -> write_atlas
+
+🚀 Running graph: graph.yaml
+   Variables: {'project_dir': 'projects/ninchat_voice'}
+
+✓ atlas → projects/ninchat_voice/docs/2026-07-18-fr-atlas.md
+🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/09c0c2d4-5724-4301-bcee-e1b64ddeb80e/r/019f7419-bbd2-7a03-82c8-028a50233550?poll=true
+  [... full state dump elided; artifact below ...]
+atlas → projects/ninchat_voice/docs/2026-07-18-fr-atlas.md

@@ -104,6 +104,7 @@ Standalone demos that teach a single YAMLGraph concept. Ordered by the learning 
 | [forensic-failure-diary](demos/forensic-failure-diary/) | `llm`, `tool` | Automated failure analysis with structured diary generation (FR-285) |
 | [fi_domain_crawl](demos/fi_domain_crawl/) | `map`, `python`, `llm` | .fi domain crawl + sitemap overview |
 | [five-whys](demos/five-whys/) | `llm` | Fixed-count loop with iterative deepening |
+| [fr-atlas](demos/fr-atlas/) | `python`, `map`, `llm` | Feature-request corpus → newcomer-facing themed atlas with coverage guarantee (FR-748) |
 | [innovation_matrix](demos/innovation_matrix/) | `llm` | Capability-constraint innovation matrix |
 | [interactive_tool](demos/interactive_tool/) | `interactive_tool` | Multi-turn trivia quiz with user interrupts |
 | [judge](demos/judge/) | `agent` | Standalone FR judgment agent (FR-450) — evaluates FRs before enforcement |

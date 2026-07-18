@@ -1,0 +1,122 @@
+version: "1.0"
+name: fr_atlas
+description: >
+  FR-748 FR Atlas — render any project's feature-requests/ corpus as an
+  onboarding narrative: deterministic collection, chunked theme map,
+  one merge judgement, one story judgement, code-side coverage
+  reconciliation (count-in == count-out), dated atlas into docs/.
+prompts_relative: true
+prompts_dir: prompts
+
+state:
+  project_dir: str      # repo root containing feature-requests/ (input)
+  fr_digests: list      # collector output (merged)
+  fr_population: list
+  fr_chunks: list
+  module_index: dict
+  parse_notes: dict
+  chunk_themes: list    # assembled candidates with unique keys
+  candidates_block: str
+  merged: dict          # merge judgement output
+  final_themes: list    # reconciled + module-decorated
+  story_input: str
+  story: str            # 3-paragraph opener
+  atlas_path: str
+  written: bool
+
+tools:
+  collect_frs:
+    type: python
+    path: nodes/collect.py
+    function: collect_frs
+    description: "Deterministic corpus scan: id = filename stem, companions excluded-not-invisible, headerless reported, git dates (REQ-YG-566)."
+
+  assemble_candidates:
+    type: python
+    path: nodes/pipeline.py
+    function: assemble_candidates
+    description: "map_results -> globally-keyed chunk themes + merge input block; zero yield raises."
+
+  finalize_themes:
+    type: python
+    path: nodes/pipeline.py
+    function: finalize_themes
+    description: "Key-join merge output to FR ids, enforce coverage (count-in == count-out), attach module axis mechanically."
+
+  write_atlas:
+    type: python
+    path: nodes/render.py
+    function: write_atlas
+    description: "Mechanical render: themes by last activity, graveyard, counts; dated file into {project_dir}/docs/."
+
+nodes:
+  collect:
+    type: python
+    tool: collect_frs
+    state_key: fr_digests
+
+  theme_chunks:
+    type: map
+    over: "{state.fr_chunks}"
+    as: chunk
+    max_items: 40
+    # on_error stays fail: a silently dropped chunk would falsify
+    # coverage (the count assert would catch it, but loudly is better).
+    node:
+      type: llm
+      prompt: chunk_themes
+      state_key: chunk_verdicts
+      temperature: 0.2
+      variables:
+        chunk_id: "{state.chunk.chunk_id}"
+        digest_block: "{state.chunk.digest_block}"
+    collect: map_results
+
+  assemble:
+    type: python
+    tool: assemble_candidates
+    state_key: chunk_themes
+
+  merge_themes:
+    type: llm
+    prompt: merge_themes
+    state_key: merged
+    temperature: 0.2
+    variables:
+      candidates_block: "{state.candidates_block}"
+
+  finalize:
+    type: python
+    tool: finalize_themes
+    state_key: final_themes
+
+  story_opener:
+    type: llm
+    prompt: story_opener
+    state_key: story
+    temperature: 0.4
+    variables:
+      story_input: "{state.story_input}"
+
+  render:
+    type: python
+    tool: write_atlas
+    state_key: atlas_path
+
+edges:
+  - from: START
+    to: collect
+  - from: collect
+    to: theme_chunks
+  - from: theme_chunks
+    to: assemble
+  - from: assemble
+    to: merge_themes
+  - from: merge_themes
+    to: finalize
+  - from: finalize
+    to: story_opener
+  - from: story_opener
+    to: render
+  - from: render
+    to: END

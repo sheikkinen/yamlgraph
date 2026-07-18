@@ -159,6 +159,167 @@ class TestCoverage:
 
 
 # ---------------------------------------------------------------------------
+# Assembly: map output → candidates (token-fidelity boundary)
+# ---------------------------------------------------------------------------
+
+
+class TestAssembly:
+    @pytest.mark.req("REQ-YG-566")
+    def test_bracket_wrapped_ids_repaired_at_assembly(self, tmp_path):
+        """First live run: the model copied ids WITH the [brackets] the
+        digest block used as sigils. A claim is repaired mechanically at
+        the boundary, never trusted, never fatal (FR-722/727 lesson)."""
+        pipeline = _load("pipeline.py")
+        state = {
+            "map_results": [
+                {
+                    "chunk_verdicts": {
+                        "chunk_id": "c1",
+                        "themes": [
+                            {
+                                "name": "X",
+                                "arc": "a",
+                                "fr_ids": ["[FR-001-a]", " FR-002-b ", "070-old"],
+                            }
+                        ],
+                    }
+                }
+            ]
+        }
+        out = pipeline.assemble_candidates(state)
+        assert out["chunk_themes"][0]["fr_ids"] == ["FR-001-a", "FR-002-b", "070-old"]
+
+    @pytest.mark.req("REQ-YG-566")
+    def test_shortened_id_reconciled_against_population(self, tmp_path):
+        """Second live strike: model dropped a slug segment
+        (FR-514-dm-v2-… → FR-514-…). Reconcile by unique numeric head
+        against the population; ambiguous heads pass through untouched
+        and die loudly in enforce_coverage (two_strike_split)."""
+        pipeline = _load("pipeline.py")
+        population = {
+            "FR-514-dm-v2-delta-close-carry-forward-floor",
+            "FR-100-dup-a",
+            "FR-100-dup-b",  # ambiguous head
+            "FR-081-copilot-node",
+            "070-old",
+        }
+        state = {
+            "fr_population": population,
+            "map_results": [
+                {
+                    "chunk_verdicts": {
+                        "chunk_id": "c1",
+                        "themes": [
+                            {
+                                "name": "X",
+                                "arc": "a",
+                                "fr_ids": [
+                                    "FR-514-delta-close-carry-forward-floor",  # shortened
+                                    "FR-100-dup-x",  # ambiguous → untouched
+                                    "081-copilot-node",  # dropped FR- prefix → restored
+                                    "070-old",  # exact → untouched
+                                ],
+                            }
+                        ],
+                    }
+                }
+            ],
+        }
+        out = pipeline.assemble_candidates(state)
+        assert out["chunk_themes"][0]["fr_ids"] == [
+            "FR-514-dm-v2-delta-close-carry-forward-floor",
+            "FR-100-dup-x",
+            "FR-081-copilot-node",
+            "070-old",
+        ]
+
+    @pytest.mark.req("REQ-YG-566")
+    def test_duplicate_head_resolved_by_slug_similarity(self, tmp_path):
+        """Third live strike: the corpus has genuine duplicate numeric
+        heads (two real FR-424 files) and the model paraphrased one slug.
+        Among head-mates, repair to the strictly closest slug above a
+        similarity floor; ties stay untouched and die loudly."""
+        pipeline = _load("pipeline.py")
+        population = {
+            "FR-424-inquisitor-wip-main-gate",
+            "FR-424-session-timeline-join-script",
+        }
+        state = {
+            "fr_population": population,
+            "map_results": [
+                {
+                    "chunk_verdicts": {
+                        "chunk_id": "c1",
+                        "themes": [
+                            {
+                                "name": "X",
+                                "arc": "a",
+                                "fr_ids": [
+                                    "FR-424-wip-commit-subject-gate",  # paraphrase of gate FR
+                                ],
+                            }
+                        ],
+                    }
+                }
+            ],
+        }
+        out = pipeline.assemble_candidates(state)
+        assert out["chunk_themes"][0]["fr_ids"] == ["FR-424-inquisitor-wip-main-gate"]
+
+
+# ---------------------------------------------------------------------------
+# Render: module-axis degradation must be loud (AC-04 / judgement F4)
+# ---------------------------------------------------------------------------
+
+
+class TestModuleAxisDeclaration:
+    @pytest.mark.req("REQ-YG-566")
+    def test_missing_cap_registry_declared_in_header(self, tmp_path):
+        """A corpus without capabilities/ still renders — but the atlas
+        must say so, not silently degrade to git paths."""
+        render = _load("render.py")
+        digest = {
+            "id": "FR-1-a",
+            "title": "T",
+            "status": "Done",
+            "status_bucket": "done",
+            "last_activity": "2026-01-01",
+        }
+        text = render.render_atlas(
+            story="s",
+            themes=[{"name": "X", "arc": "a", "fr_ids": ["FR-1-a"]}],
+            digests=[digest],
+            parse_notes={},
+            project_name="p",
+            has_cap_registry=False,
+        )
+        assert (
+            "no `capabilities/` registry" in text.lower()
+            or "no capabilities/ registry" in text.lower()
+        )
+
+    @pytest.mark.req("REQ-YG-566")
+    def test_cap_registry_present_no_disclaimer(self, tmp_path):
+        render = _load("render.py")
+        digest = {
+            "id": "FR-1-a",
+            "title": "T",
+            "status": "Done",
+            "status_bucket": "done",
+            "last_activity": "2026-01-01",
+        }
+        text = render.render_atlas(
+            story="s",
+            themes=[{"name": "X", "arc": "a", "fr_ids": ["FR-1-a"]}],
+            digests=[digest],
+            parse_notes={},
+            project_name="p",
+            has_cap_registry=True,
+        )
+        assert "registry" not in text.lower()
+
+
+# ---------------------------------------------------------------------------
 # Render: graveyard presence
 # ---------------------------------------------------------------------------
 

@@ -1,0 +1,31 @@
+system: >
+  You are consolidating candidate themes (proposed per-chunk over a
+  feature-request corpus) into the final taxonomy for an onboarding
+  document. Your single judgement: which candidates describe the SAME
+  workstream? Merge them. Produce 8-15 final themes — hard cap 15,
+  readability is the point. Each final theme lists the candidate KEYS
+  it absorbs (the `cN:...` tokens, copied verbatim); code maps keys to
+  feature requests — you never handle FR ids. Every candidate key
+  should be absorbed by exactly one final theme; a candidate that fits
+  nothing may be left out (its FRs are routed explicitly by code). Do
+  NOT write about individual FRs.
+
+user: |
+  Candidate themes (key — name (size): arc):
+  ---
+  {{ candidates_block }}
+  ---
+
+  Consolidate into 8-15 final themes.
+
+schema:
+  name: MergedThemes
+  fields:
+    themes:
+      type: list[dict]
+      description: >
+        8-15 final themes. Each is an object with EXACTLY these keys:
+        name (str, 2-5 words), arc (str, 1-2 sentences narrating the
+        workstream for a newcomer), merged_from (list of str, candidate
+        keys copied verbatim).
+      default: []

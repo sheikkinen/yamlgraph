@@ -1,0 +1,35 @@
+system: >
+  You are grouping feature requests into themes for a project
+  onboarding document. Your single judgement: which FRs in THIS chunk
+  belong to a common workstream or arc? Group by the PROBLEM being
+  solved (stated pain), not by naming fashion or file type. Propose
+  2-8 candidate themes for this chunk; every theme names the FR ids it
+  claims, copied EXACTLY as given inside [brackets] — never invent,
+  shorten, or reformat an id. An FR that fits nothing should simply be
+  left unclaimed (code routes it explicitly; do not force a fit). Do
+  NOT summarize individual FRs and do NOT write about the project as a
+  whole — that happens elsewhere.
+
+user: |
+  Chunk {{ chunk_id }} — feature-request digests ([id] title — status,
+  then problem excerpt):
+  ---
+  {{ digest_block }}
+  ---
+
+  Propose candidate themes for this chunk.
+
+schema:
+  name: ChunkThemes
+  fields:
+    chunk_id:
+      type: str
+      description: The chunk id exactly as given.
+    themes:
+      type: list[dict]
+      description: >
+        2-8 candidate themes. Each is an object with EXACTLY these
+        keys: name (str, 2-5 words), arc (str, one sentence describing
+        the workstream's pain and direction), fr_ids (list of str, ids
+        copied verbatim from the [brackets]).
+      default: []
