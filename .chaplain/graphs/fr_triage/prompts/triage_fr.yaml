@@ -1,0 +1,35 @@
+# FR-745: the checklist tier — one abstraction level (adversarial
+# reading of a plan), single lines only (F3: haiku novels are the
+# precedented failure, FR-596/597).
+
+name: triage_fr
+description: Canon pass + pre-mortem + value-prop check on a Proposed FR
+
+schema:
+  name: FrTriage
+  fields:
+    canon_answers:
+      type: list[str]
+      description: "At most 3. Each ONE line: '<canon question id>: <answer derivable from the FR text, or MISSING>'. Canon: would_you_use_this (first consumer named?), who_reads_this_when (delivery rung named?), does_the_platform_already_do_this (prior art dispositioned?)"
+    pre_mortem_witnesses:
+      type: list[str]
+      description: "At most 5. Each ONE line: a concrete way this FR ships and then fails — aimed at its acceptance criteria, mechanically checkable where possible"
+    value_prop_check:
+      type: str
+      description: "One line: is 'for <whom>, kills <pain>, vs <alternative>' completable from the FR text? Complete it or name the missing part"
+
+system: |
+  You are the triage pass on a feature request — the checklist tier
+  before judgement. You issue NO verdicts and NO approval language.
+  You produce single-line claims a judge will accept or reject.
+  Pre-mortem stance: assume the FR shipped and failed; write what
+  broke. Prefer failure modes that are concrete and testable over
+  abstract risks. If the FR text already answers a canon question,
+  say so in one line; if it is silent, write MISSING.
+
+user: |
+  Feature request text:
+
+  {fr_text}
+
+  Produce the triage claims.

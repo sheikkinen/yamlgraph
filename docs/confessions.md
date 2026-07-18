@@ -1581,3 +1581,8 @@ The ID ranges are:
 - **Code**: E402
 - **Sin**: `import now` after a `sys.path.insert` — module-level import not at top.
 - **Penance**: script-adjacent test outside the installable package; path bootstrap must precede the import (CONF-392/393/394 idiom).
+### CONF-397
+- **File**: [.github/hooks/scripts/checks/triage_gate.py](../.github/hooks/scripts/checks/triage_gate.py#L40)
+- **Code**: S603
+- **Sin**: `subprocess.run([GIT, "show", ...])` flagged as untrusted input.
+- **Penance**: Command and args are hardcoded constants; GIT resolved via `shutil.which`; path comes from pre-commit's staged-file list. No user input reaches the call (CONF-388 idiom).

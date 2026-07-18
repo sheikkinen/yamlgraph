@@ -1,0 +1,61 @@
+# FR-745: FR triage — the checklist tier, mechanized; the signature, reserved.
+# Runs ON DEMAND (author or judge; judgement-start at latest — F1: no
+# hook-time LLM). Output lands INSIDE the FR as [pending] claims.
+
+version: "1.0"
+name: fr_triage
+description: Canon pass + pre-mortem witnesses + value-prop check, appended into the FR as dispositionable claims
+
+prompts_relative: true
+prompts_dir: prompts
+
+defaults:
+  provider: anthropic
+  model: claude-haiku-4-5
+
+state:
+  fr_path: str      # path to the Proposed FR
+  fr_text: str
+  triage: dict      # schema'd triage output
+  appended: bool
+
+tools:
+  read_fr:
+    type: python
+    path: tools.py
+    function: read_fr
+    description: "Load FR text (capped) for the triage prompt"
+
+  append_triage:
+    type: python
+    path: tools.py
+    function: append_triage
+    description: "Append [pending] claims; never touches Status; Proposed only"
+
+nodes:
+  read:
+    type: python
+    tool: read_fr
+    state_key: fr_text
+
+  triage:
+    type: llm
+    prompt: triage_fr
+    variables:
+      fr_text: "{state.fr_text}"
+    state_key: triage
+
+  append:
+    type: python
+    tool: append_triage
+    state_key: appended
+
+edges:
+  - from: START
+    to: read
+  - from: read
+    to: triage
+  - from: triage
+    to: append
+  - from: append
+    to: END

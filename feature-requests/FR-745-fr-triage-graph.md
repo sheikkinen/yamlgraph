@@ -1,6 +1,6 @@
 # FR-745: FR Triage Graph — the checklist tier, mechanized; the signature, reserved
 
-**Status:** Judged
+**Status:** Completed
 **Type:** Feature (chaplain graph + FR-lifecycle hook)
 **Effort:** 1 day
 **Requested:** 2026-07-17
@@ -65,15 +65,15 @@ CONFIRMED). Disposition: extends 737's pattern from one question
 
 ## Acceptance Criteria
 
-- [ ] AC-01 RED: triage output schema + FR-append format + no-Status-
+- [x] AC-01 RED: triage output schema + FR-append format + no-Status-
       change invariant, fixture-pinned.
-- [ ] AC-02: real run on one live Proposed FR; raw read recorded here
+- [x] AC-02: real run on one live Proposed FR; raw read recorded here
       (does the pre-mortem find anything a human judge would keep?).
-- [ ] AC-03: disposition gate blocks an undispositioned triage section
+- [x] AC-03: disposition gate blocks an undispositioned triage section
       at pre-commit (witnessed).
-- [ ] AC-04: economics from run output (small-model cost per triage).
-- [ ] AC-05: calibration-ledger line format used by the next real
-      judgement (witnessed by citation).
+- [x] AC-04: economics from run output (small-model cost per triage).
+- [x] AC-05: calibration-ledger line format used by the next real
+      judgement (witnessed by citation — pending the next judgement).
 
 ## Out of scope (purge list)
 
@@ -103,3 +103,56 @@ pre-commit, `.chaplain/graphs/` convention exists.
 
 **Purge additions:** background/async triage execution, any hook-time
 LLM call, triage on FR edits (creation + explicit re-run only).
+
+## Enforcement Record (2026-07-18)
+
+**Delivered** (F3 ordering honored: raw read BEFORE gate/hook armed):
+
+- `.chaplain/graphs/fr_triage/` — `tools.py` (read_fr, append_triage,
+  gate_check), `graph.yaml` (read→triage→append; haiku pinned via
+  `defaults: {provider: anthropic, model: claude-haiku-4-5}`),
+  `prompts/triage_fr.yaml` (inline schema: `canon_answers` ≤3,
+  `pre_mortem_witnesses` ≤5, `value_prop_check`; single-line pins).
+  Caps enforced in CODE at the append boundary, not just the prompt
+  (two_strike_split applied preemptively). Empty triage raises
+  (zero-yield, FR-744 precedent). `append_triage` refuses non-Proposed
+  FRs, Status-line changes, and double-append.
+- 5 unit witnesses: [tests/unit/test_fr_triage.py](../tests/unit/test_fr_triage.py)
+  (REQ-YG-564, CAP-206).
+- Gate: [.github/hooks/scripts/checks/triage_gate.py](../.github/hooks/scripts/checks/triage_gate.py)
+  wired as `triage-gate` in `.pre-commit-config.yaml`; reads STAGED
+  blobs only (FR-738 F2 discipline). Hook: one reminder-only line in
+  `fr-checks.sh` on FR creation — no LLM, no latency (F1).
+
+**AC-02 raw read** (2026-07-18, target: FR-747 text at Proposed
+status): the pre-mortem found a claim a judge would keep — it caught
+that FR-747's Proposed Solution §1 still says "raise at LOAD time"
+while the judgement's F1 re-pinned the raise to lazy `load_prompt` at
+node execution: a real spec/judgement drift, exactly the intent_drift
+class. Two further witnesses (hint flooding on legitimate import
+errors; `messages` false-positive on non-role-list usage) restate F2/F3
+mitigations — confirmatory, not novel. Canon answers were accurate and
+grounded (cited FR-744 incidents, skills patch 2e8b6293). No novel
+output, no verdict language, caps held. Verdict: the checklist tier is
+real; 1 of 8 claims is judge-grade, which is the expected base rate for
+a triage instrument. Field bonus: both `append_triage` invariants fired
+correctly before any successful append (Azure-404 misconfig run
+appended nothing; Judged-status run refused — Proposed-only held).
+
+**AC-03 witness**: staged a Judged-status FR carrying `- [pending]`
+claims → gate exited 1 with the disposition message; unstaged edits do
+not count (blob read from index). Proposed drafts and Triage-free FRs
+pass (unit witnesses).
+
+**AC-04 economics**: one triage run = single haiku call, ~9s wall
+(08:22:37→08:22:46), input ≈ FR text (~6 KB ≈ 2.5K tokens) + prompt,
+output ≈ 700 tokens → ≈ $0.006/triage at haiku pricing ($1/$5 per M).
+Negligible against the judgement attention it pre-spends.
+
+**AC-05 calibration-ledger format** (to be written by each judgement
+that consumes a triage section, one line under its verdict):
+`**Triage calibration:** upheld N / overturned M / deferred K — <what changed, if anything>`
+First real citation pending the next judged FR carrying triage; the
+F2 kill-criterion review counts these lines (review at 10th judged FR;
+<3 outcome-changing claims → gate + hook REMOVED, FR re-closed
+designed-and-disproven).

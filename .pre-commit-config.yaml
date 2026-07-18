@@ -259,6 +259,12 @@ repos:
         language: system
         files: ^feature-requests/.*\.md$
         stages: [pre-commit]
+      - id: triage-gate
+        name: triage disposition gate (FR-745)
+        entry: .venv/bin/python .github/hooks/scripts/checks/triage_gate.py
+        language: system
+        files: ^feature-requests/.*\.md$
+        stages: [pre-commit]
 
   - repo: local
     hooks:

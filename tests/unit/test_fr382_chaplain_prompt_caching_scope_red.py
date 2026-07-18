@@ -100,14 +100,16 @@ def test_ac03_prompt_inventory_scope_matches_graph_node_types() -> None:
     world_distill_prompt = (
         CHAPLAIN_GRAPHS_DIR / "world_distill" / "prompts" / "distill_world.yaml"
     )
+    fr_triage_prompt = CHAPLAIN_GRAPHS_DIR / "fr_triage" / "prompts" / "triage_fr.yaml"
     expected_llm_prompts = {
         CONTEXT_PLANNER_PATH.resolve(),
         world_distill_prompt.resolve(),
+        fr_triage_prompt.resolve(),
     }
 
     assert (
         inventory["llm"] == expected_llm_prompts
-    ), "LLM-consumed chaplain prompts must be exactly context-planner + distill_world"
+    ), "LLM-consumed chaplain prompts must be exactly context-planner + distill_world + triage_fr"
     assert (
         CONTEXT_PLANNER_PATH.resolve() not in inventory["copilot"]
     ), "context-planner must not be consumed by copilot nodes"
