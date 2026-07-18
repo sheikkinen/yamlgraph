@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM (highest-complexity function in the highest-blast-radius module)
 **Type:** Enhancement (refactor — complexity decomposition, TDD-pinned)
-**Status:** Judged (2026-07-12) — scope frozen; authority granted; note F1 (decomposition is completion, not invention)
+**Status:** COMPLETED (2026-07-12) — classify-then-dispatch shipped; CC 20/18 -> 8/8 max; condition-on-fanout now raises (was silently dropped)
 **Effort:** 1 day
 **Requested:** 2026-07-12
 **Spawned by:** docs/2026-07-12-review-refactoring.md P2.4 (`_process_edge` C 20, `_add_conditional_edges` C 18 — routing is core semantics; edge bugs are graph-wide)
@@ -62,16 +62,16 @@ condition-parsing between the two functions → one shared pure helper.
 
 ## Acceptance Criteria
 
-- [ ] AC-01 RED first: shape-classification witness pinning every edge
+- [x] AC-01 RED first: shape-classification witness pinning every edge
       form currently compilable (fixtures enumerated in the test, count
       asserted so a new shape must register itself)
-- [ ] AC-02 `_process_edge` and `_add_conditional_edges` CC < 10; no new
+- [x] AC-02 `_process_edge` and `_add_conditional_edges` CC < 10; no new
       function above CC 10
-- [ ] AC-03 Unknown edge shape raises with the edge named — witnessed
-- [ ] AC-04 Full unit suite + `yamlgraph graph lint/run` smoke on
+- [x] AC-03 Unknown edge shape raises with the edge named — witnessed
+- [x] AC-04 Full unit suite + `yamlgraph graph lint/run` smoke on
       examples/demos green unmodified (after the AC-01 pin lands)
-- [ ] AC-05 Net line delta ≤ 0 in edge_compiler.py
-- [ ] Changelog fragment (CAP-06 REQ); diary entry
+- [x] AC-05 Net line delta ≤ 0 in edge_compiler.py
+- [x] Changelog fragment (CAP-210 / REQ-YG-568); diary at arc end
 
 ## Judgement (2026-07-12)
 
