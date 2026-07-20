@@ -1463,7 +1463,18 @@ Or per run, without touching the YAML:
 ```bash
 YAMLGRAPH_ROUTE_LOG=1 yamlgraph graph run graph.yaml ...            # logger only
 YAMLGRAPH_ROUTE_LOG=route.jsonl yamlgraph graph run graph.yaml ...  # + JSONL file
+YAMLGRAPH_ROUTE_LOG=outputs/routes/ yamlgraph graph run graph.yaml ...  # directory target -> outputs/routes/route.jsonl
 ```
+
+Path contract:
+
+- `1` emits on the `yamlgraph.route` logger only.
+- Any other non-boolean value is treated as a path target.
+- Existing directory path values write to `<dir>/route.jsonl`.
+- Values ending with a trailing path separator are treated as directory intent, the directory is created, and output is written to `<dir>/route.jsonl`.
+- File-path mode auto-creates parent directories (`mkdir -p` semantics).
+- Relative paths resolve against the process working directory (CWD at run time).
+- Invalid targets do not raise; one warning is emitted and route logging continues on the logger-only path.
 
 Line grammar (frozen):
 

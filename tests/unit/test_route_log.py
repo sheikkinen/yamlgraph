@@ -7,6 +7,7 @@ criterion (judgement blast-radius ruling) — it is tested first.
 
 import json
 import logging
+import os
 from unittest.mock import MagicMock
 
 import pytest
@@ -288,3 +289,84 @@ edges:
         lines = [json.loads(line) for line in sink.read_text().splitlines() if line]
         assert len(lines) == 2
         assert all(entry["event"] == "route" for entry in lines)
+
+    @pytest.mark.req("REQ-YG-552")
+    def test_env_path_auto_creates_parent_directories(self, monkeypatch, tmp_path):
+        sink = tmp_path / "nested" / "routes" / "custom.route.jsonl"
+        monkeypatch.setenv("YAMLGRAPH_ROUTE_LOG", str(sink))
+
+        router = make_router_fn(["a"], "classify")
+        router({"_route": "a"})
+
+        assert sink.exists()
+        lines = [json.loads(line) for line in sink.read_text().splitlines() if line]
+        assert len(lines) == 1
+
+    @pytest.mark.req("REQ-YG-552")
+    def test_env_existing_directory_writes_default_route_jsonl(
+        self, monkeypatch, tmp_path
+    ):
+        route_dir = tmp_path / "routes"
+        route_dir.mkdir()
+        monkeypatch.setenv("YAMLGRAPH_ROUTE_LOG", str(route_dir))
+
+        router = make_router_fn(["a"], "classify")
+        router({"_route": "a"})
+
+        sink = route_dir / "route.jsonl"
+        assert sink.exists()
+        lines = [json.loads(line) for line in sink.read_text().splitlines() if line]
+        assert len(lines) == 1
+
+    @pytest.mark.req("REQ-YG-552")
+    def test_env_trailing_separator_treated_as_directory_intent(
+        self, monkeypatch, tmp_path
+    ):
+        route_dir = tmp_path / "new-routes"
+        monkeypatch.setenv("YAMLGRAPH_ROUTE_LOG", f"{route_dir}{os.sep}")
+
+        router = make_router_fn(["a"], "classify")
+        router({"_route": "a"})
+
+        sink = route_dir / "route.jsonl"
+        assert sink.exists()
+        lines = [json.loads(line) for line in sink.read_text().splitlines() if line]
+        assert len(lines) == 1
+
+    @pytest.mark.req("REQ-YG-552")
+    def test_relative_env_path_resolves_from_process_cwd(self, monkeypatch, tmp_path):
+        monkeypatch.chdir(tmp_path)
+        monkeypatch.setenv("YAMLGRAPH_ROUTE_LOG", "outputs/routes/run.route.jsonl")
+
+        router = make_router_fn(["a"], "classify")
+        router({"_route": "a"})
+
+        sink = tmp_path / "outputs" / "routes" / "run.route.jsonl"
+        assert sink.exists()
+        lines = [json.loads(line) for line in sink.read_text().splitlines() if line]
+        assert len(lines) == 1
+
+    @pytest.mark.req("REQ-YG-552")
+    def test_invalid_special_target_warns_once_and_continues(
+        self, monkeypatch, route_records
+    ):
+        monkeypatch.setenv("YAMLGRAPH_ROUTE_LOG", "/dev/null")
+
+        router = make_router_fn(["a"], "classify")
+        router({"_route": "a"})
+        router({"_route": "a"})
+
+        warnings = [
+            r
+            for r in route_records
+            if r.levelno == logging.WARNING
+            and "YAMLGRAPH_ROUTE_LOG='/dev/null' ignored" in r.getMessage()
+        ]
+        assert len(warnings) == 1
+
+        info_messages = [
+            r.getMessage() for r in route_records if r.levelno == logging.INFO
+        ]
+        info_lines = [json.loads(line) for line in info_messages]
+        assert len(info_lines) == 2
+        assert all(line["event"] == "route" for line in info_lines)

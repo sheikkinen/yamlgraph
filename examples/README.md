@@ -55,6 +55,7 @@ After the learning path, explore production examples below.
 | [plot_modeller/](plot_modeller/) | L4 kind-classification spike | LLM→validator→retry loop, YAML output, ground-truth evaluation (FR-570) |
 | [questionnaire/](questionnaire/) | Feature request collector | Data files, interrupt loops, conditional routing |
 | [rag/](rag/) | RAG pipeline | LanceDB vectorstore, document indexing, retrieval |
+| [route_overlay_cli/](route_overlay_cli/) | Route overlay rendering CLI example | Direct Mermaid export APIs, route validation, mmdc rendering |
 | [rtm-hello/](rtm-hello/) | TDD + requirement traceability | pytest markers, AST-based tooling |
 | [storyboard/](storyboard/) | Visual story generator | Replicate API, image generation |
 | [batch_image_prompts/](batch_image_prompts/) | Batch image prompt generator | Map node, parallel enrichment, style consistency |

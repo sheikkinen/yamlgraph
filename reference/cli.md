@@ -129,7 +129,7 @@ the YAML — no LLM, no API keys, safe for pre-commit.
 yamlgraph graph export <graph.yaml> --mermaid [-o out.mmd]
 ```
 
-Overlay an executed route (captured via `YAMLGRAPH_ROUTE_LOG=route.jsonl`):
+Overlay an executed route (captured via `YAMLGRAPH_ROUTE_LOG=<path-target>`):
 taken edges are highlighted and carry decision ordinals (`#1 #2 …`) so the
 ordered route is reconstructible from the render.
 
@@ -143,6 +143,24 @@ divergence, so an empty diff is a cheap determinism witness:
 ```bash
 yamlgraph graph export --diff a.route.jsonl b.route.jsonl
 ```
+
+Path-target examples for route capture:
+
+```bash
+# logger only
+YAMLGRAPH_ROUTE_LOG=1 yamlgraph graph run <graph.yaml>
+
+# explicit file (parents auto-created)
+YAMLGRAPH_ROUTE_LOG=outputs/routes/reflexion.route.jsonl yamlgraph graph run <graph.yaml>
+
+# existing directory target -> writes <dir>/route.jsonl
+YAMLGRAPH_ROUTE_LOG=outputs/routes yamlgraph graph run <graph.yaml>
+
+# trailing separator intent -> create dir then write <dir>/route.jsonl
+YAMLGRAPH_ROUTE_LOG=outputs/routes/ yamlgraph graph run <graph.yaml>
+```
+
+Relative path targets are resolved against the process working directory (CWD at run time).
 
 Route lines are emitted on the `yamlgraph.route` logger — a **public API**
 namespace for downstream handlers/filters. See
@@ -267,7 +285,7 @@ yamlgraph skill export examples/demos/hello/graph.yaml --format agent-md --outpu
 | `MISTRAL_API_KEY` | Mistral API key |
 | `OPENAI_API_KEY` | OpenAI API key |
 | `PROVIDER` | Default LLM provider (`anthropic`, `mistral`, `openai`) |
-| `YAMLGRAPH_ROUTE_LOG` | Route decision log opt-in (FR-723): `1` = emit on the `yamlgraph.route` logger; a file path = also append raw JSONL for `graph export --overlay` |
+| `YAMLGRAPH_ROUTE_LOG` | Route decision log opt-in (FR-723/FR-752): `1` = logger only; path target = append raw JSONL (`<file>` or `<dir>/route.jsonl`), parent dirs auto-created, relative targets CWD-relative |
 | `LANGSMITH_API_KEY` | LangSmith tracing key |
 | `LANGSMITH_PROJECT` | LangSmith project name |
 
