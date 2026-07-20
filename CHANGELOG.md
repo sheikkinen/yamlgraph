@@ -8,6 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.16]
+
+### Added
+- **FR-752/FR-753 Route Overlay Workflow**: extended `YAMLGRAPH_ROUTE_LOG` path handling (directory targets, trailing-separator intent, parent auto-create, CWD-relative resolution, warn-once invalid target fallback) and added a standalone `examples/route_overlay_cli/` app that validates route input, renders authored+overlay Mermaid files, and invokes `mmdc` to produce image artifacts with deterministic names. (REQ-YG-552)
+
+### Fixed
+- **FR-748 Atlas Liquid-Safety + Parenthetical ID Repair**: the generated FR atlas broke the GitHub Pages build for 6 consecutive runs — Jekyll renders `docs/` as Liquid, and one FR title contains a literal Jinja2 `set` tag. `render_atlas` now wraps the document in `raw`/`endraw` at the boundary where the artifact enters Jekyll's jurisdiction (titles stay verbatim). Re-proving the demo surfaced the third live decoration strike in the token-fidelity boundary: models append title parentheticals to FR ids — `_repair_id` strips them mechanically (slug-embedded parens preserved); fabrications still die in `enforce_coverage`. (REQ-YG-566)
+
 ## [0.5.15]
 
 ### Added
