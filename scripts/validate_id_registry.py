@@ -19,13 +19,8 @@ Exit codes:
 from __future__ import annotations
 
 import sys
-from pathlib import Path
 
-# Add repo root to path for imports
-REPO_ROOT = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(REPO_ROOT))
-
-from yamlgraph.utils.id_registry import (  # noqa: E402
+from id_registry import (
     DEFAULT_REGISTRY_PATH,
     load_registry,
     validate_registry,

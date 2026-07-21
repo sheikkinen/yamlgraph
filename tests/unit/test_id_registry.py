@@ -10,7 +10,7 @@ from pathlib import Path
 
 import pytest
 
-from yamlgraph.utils.id_registry import (
+from scripts.id_registry import (
     IdRegistry,
     Reservation,
     format_cap_id,
