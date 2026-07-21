@@ -3,6 +3,8 @@ name: Shared FSM Bridge Module
 description: >
   Extract canonical fire-and-forget FSM↔YAMLGraph bridge behavior into
   `yamlgraph.utils.fsm` and make fsm-router consume it via a thin wrapper.
+  Ownership ruling (FR-755, 2026-07-21): contrib tier repeating pattern,
+  supported for reuse but outside YAMLGraph core API identity.
 modules:
   - yamlgraph/utils/fsm/__init__.py
   - yamlgraph/utils/fsm/helpers.py

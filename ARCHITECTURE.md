@@ -1845,7 +1845,7 @@ Split watcher2 post-enforce validation into deterministic micro-remediation fast
 
 ### 141. CAP-141 Shared FSM Bridge Module
 
-Extract canonical fire-and-forget FSM↔YAMLGraph bridge behavior into `yamlgraph.utils.fsm` and make fsm-router consume it via a thin wrapper.
+Extract canonical fire-and-forget FSM↔YAMLGraph bridge behavior into `yamlgraph.utils.fsm` and make fsm-router consume it via a thin wrapper. Ownership ruling (FR-755, 2026-07-21): contrib tier repeating pattern, supported for reuse but outside YAMLGraph core API identity.
 
 **Feature Request:** FR-346
 
