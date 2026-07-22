@@ -9,6 +9,8 @@ from pathlib import Path
 
 import pytest
 
+pytestmark = pytest.mark.process
+
 REPO_ROOT = Path(__file__).parent.parent.parent
 POST_MERGE_SH = REPO_ROOT / ".chaplain" / "lib" / "watcher" / "post_merge.sh"
 CHAPLAIN_README = REPO_ROOT / ".chaplain" / "README.md"

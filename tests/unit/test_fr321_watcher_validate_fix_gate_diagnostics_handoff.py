@@ -6,6 +6,8 @@ import pytest
 import yaml
 from jinja2 import Template
 
+pytestmark = pytest.mark.process
+
 WORKTREE = Path(__file__).resolve().parents[2]
 CHAPLAIN = WORKTREE / ".chaplain"
 PIPELINE_V2 = CHAPLAIN / "config" / "watcher-pipeline-v2.yaml"

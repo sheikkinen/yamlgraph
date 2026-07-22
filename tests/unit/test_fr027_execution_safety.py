@@ -22,11 +22,12 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import pytest
-
 # ──────────────────────────────────────────────────────────────
 # 1. Map fan-out max_items cap (REQ-YG-055)
 # ──────────────────────────────────────────────────────────────
+import pytest
+
+pytestmark = pytest.mark.process
 
 
 class TestMapMaxItems:

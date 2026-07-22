@@ -19,6 +19,8 @@ from pathlib import Path
 
 import pytest
 
+pytestmark = pytest.mark.process
+
 EXAMPLE = Path(__file__).resolve().parents[2] / "examples" / "icpc-2-rfe"
 FIXTURES = Path(__file__).resolve().parent / "fixtures"
 

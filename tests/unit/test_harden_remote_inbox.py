@@ -15,7 +15,10 @@ import textwrap
 
 import pytest
 
-pytestmark = pytest.mark.skip(reason="Legacy watcher2 runtime retired (FR-317)")
+pytestmark = [
+    pytest.mark.process,
+    pytest.mark.skip(reason="Legacy watcher2 runtime retired (FR-317)"),
+]
 
 REPO_ROOT = os.path.join(os.path.dirname(__file__), "..", "..")
 WATCH_SH = os.path.join(REPO_ROOT, ".chaplain", "start-system.sh")

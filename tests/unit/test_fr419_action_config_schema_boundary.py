@@ -15,11 +15,13 @@ import sys
 import types
 from pathlib import Path
 
-import pytest
-
 # ---------------------------------------------------------------------------
 # ActionConfig import — RED until Step 1 of FR-419 is implemented
 # ---------------------------------------------------------------------------
+import pytest
+
+pytestmark = pytest.mark.process
+
 try:
     from yamlgraph.utils.fsm.action import ActionConfig
 

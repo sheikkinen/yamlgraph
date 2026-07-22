@@ -9,6 +9,8 @@ import pytest
 
 from scripts import migrate_diary_to_folder
 
+pytestmark = pytest.mark.process
+
 
 @pytest.mark.req("REQ-YG-063")
 class TestInferEntryType:

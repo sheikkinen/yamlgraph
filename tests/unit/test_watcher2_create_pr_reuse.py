@@ -22,9 +22,11 @@ from unittest.mock import patch
 
 import pytest
 
-pytestmark = pytest.mark.skip(reason="Legacy watcher2 runtime retired (FR-317)")
-
-pytestmark = pytest.mark.slow
+pytestmark = [
+    pytest.mark.process,
+    pytest.mark.skip(reason="Legacy watcher2 runtime retired (FR-317)"),
+    pytest.mark.slow,
+]
 
 REPO_ROOT = Path(__file__).parent.parent.parent
 CREATE_PR_SH = REPO_ROOT / ".chaplain" / "lib" / "watcher" / "create_pr.sh"

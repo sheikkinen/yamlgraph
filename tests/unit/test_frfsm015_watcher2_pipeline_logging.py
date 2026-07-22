@@ -5,6 +5,8 @@ from pathlib import Path
 import pytest
 import yaml
 
+pytestmark = pytest.mark.process
+
 WORKTREE = Path(__file__).resolve().parents[2]
 DISPATCHER_CONFIG_PATH = WORKTREE / ".chaplain" / "config" / "watcher-dispatcher.yaml"
 START_SYSTEM_PATH = WORKTREE / ".chaplain" / "scripts" / "start-system.sh"

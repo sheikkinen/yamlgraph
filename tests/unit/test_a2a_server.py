@@ -14,9 +14,11 @@ from pathlib import Path
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
+# Guard: a2a-sdk is an optional dependency
 import pytest
 
-# Guard: a2a-sdk is an optional dependency
+pytestmark = pytest.mark.process
+
 a2a_sdk = pytest.importorskip("a2a")
 
 

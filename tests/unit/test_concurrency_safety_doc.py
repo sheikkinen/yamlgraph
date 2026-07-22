@@ -11,6 +11,8 @@ from pathlib import Path
 
 import pytest
 
+pytestmark = pytest.mark.process
+
 DOC_PATH = Path(__file__).resolve().parents[2] / "docs" / "concurrency-safety.md"
 
 # The 6 areas from the FR acceptance criteria

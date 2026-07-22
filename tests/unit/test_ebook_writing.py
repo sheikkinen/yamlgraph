@@ -6,6 +6,8 @@ REQ-YG-091: write_chapters_tool writes formatted chapter content to disk.
 
 import pytest
 
+pytestmark = pytest.mark.process
+
 
 class TestWriteChaptersTool:
     """Test suite for write_chapters_tool."""

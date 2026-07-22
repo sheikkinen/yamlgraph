@@ -15,6 +15,8 @@ import pytest
 import yaml
 from pydantic import ValidationError
 
+pytestmark = pytest.mark.process
+
 NOVEL_FANDOM_DIR = (
     Path(__file__).parent.parent.parent / "examples" / "novel_fandom"
 ).resolve()

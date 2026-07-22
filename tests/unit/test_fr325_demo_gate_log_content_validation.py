@@ -10,6 +10,8 @@ from pathlib import Path
 import pytest
 import yaml
 
+pytestmark = pytest.mark.process
+
 WORKFLOW_PATH = Path(".github/workflows/commitlint.yml")
 PRECOMMIT_SCRIPT_PATH = Path("scripts/check_demo_proof.sh")
 SEMANTICS_SCRIPT_PATH = Path("scripts/demo_log_semantics.sh")

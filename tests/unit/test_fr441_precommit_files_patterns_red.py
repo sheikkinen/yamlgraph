@@ -8,6 +8,8 @@ from typing import Any
 import pytest
 import yaml
 
+pytestmark = pytest.mark.process
+
 PRECOMMIT_PATH = Path(".pre-commit-config.yaml")
 
 TARGET_HOOK_FILES_PATTERNS = {

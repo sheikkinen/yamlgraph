@@ -4,6 +4,8 @@ from pathlib import Path
 
 import pytest
 
+pytestmark = pytest.mark.process
+
 
 @pytest.mark.req("REQ-YG-527")
 def test_pre_command_guard_mentions_manual_worktree_lane() -> None:

@@ -10,6 +10,8 @@ import pytest
 
 from scripts import req_coverage
 
+pytestmark = pytest.mark.process
+
 
 @pytest.mark.req("REQ-YG-063")
 class TestExtractReqMarkers:
@@ -18,7 +20,6 @@ class TestExtractReqMarkers:
     def test_single(self, tmp_path: Path) -> None:
         """Should extract single @pytest.mark.req decorator."""
         code = """\
-import pytest
 
 @pytest.mark.req("REQ-YG-014")
 def test_example():
@@ -35,7 +36,6 @@ def test_example():
     def test_multiple_args(self, tmp_path: Path) -> None:
         """Should extract multiple requirements from single decorator."""
         code = """\
-import pytest
 
 @pytest.mark.req("REQ-YG-014", "REQ-YG-031")
 def test_multiple():
@@ -54,7 +54,6 @@ def test_multiple():
     def test_class_level(self, tmp_path: Path) -> None:
         """Should apply class-level marker to all test methods."""
         code = """\
-import pytest
 
 @pytest.mark.req("REQ-YG-005")
 class TestClass:
@@ -86,7 +85,6 @@ class TestClass:
     def test_method_level_marker(self, tmp_path: Path) -> None:
         """Should extract method-level markers in classes."""
         code = """\
-import pytest
 
 class TestExample:
     @pytest.mark.req("REQ-YG-012")
@@ -193,7 +191,6 @@ class TestMain:
         test_dir.mkdir(parents=True)
         test_file = test_dir / "test_smoke.py"
         test_file.write_text("""\
-import pytest
 
 @pytest.mark.req("REQ-YG-001")
 def test_smoke():
@@ -269,7 +266,6 @@ class TestArchitectureCrossCheck:
         test_dir.mkdir(parents=True)
         test_file = test_dir / "test_smoke.py"
         test_file.write_text("""\
-import pytest
 
 @pytest.mark.req("REQ-YG-001")
 def test_smoke():
@@ -388,7 +384,6 @@ class TestPhantomRequirementDetection:
         self._setup_env(
             tmp_path,
             test_code="""\
-import pytest
 
 @pytest.mark.req("REQ-YG-FAKE")
 def test_with_phantom():
@@ -422,7 +417,6 @@ def test_with_phantom():
         self._setup_env(
             tmp_path,
             test_code="""\
-import pytest
 
 @pytest.mark.req("REQ-YG-GHOST")
 def test_alpha():
@@ -460,7 +454,6 @@ def test_beta():
         self._setup_env(
             tmp_path,
             test_code="""\
-import pytest
 
 @pytest.mark.req("REQ-YG-001")
 def test_valid():
@@ -493,7 +486,6 @@ def test_valid():
         self._setup_env(
             tmp_path,
             test_code="""\
-import pytest
 
 @pytest.mark.req("REQ-YG-NOPE")
 def test_phantom():
@@ -525,7 +517,6 @@ def test_phantom():
         self._setup_env(
             tmp_path,
             test_code="""\
-import pytest
 
 @pytest.mark.req("REQ-YG-001")
 def test_valid():
@@ -559,7 +550,6 @@ def test_valid():
         self._setup_env(
             tmp_path,
             test_code="""\
-import pytest
 
 @pytest.mark.req("REQ-YG-PHANTOM")
 def test_phantom():

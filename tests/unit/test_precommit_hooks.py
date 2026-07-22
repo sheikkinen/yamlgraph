@@ -12,10 +12,11 @@ import sys
 import tempfile
 from pathlib import Path
 
-import pytest
-
 # The exact entry strings from .pre-commit-config.yaml (AFTER fix)
 # Note: These include the `_` placeholder for $0
+import pytest
+
+pytestmark = pytest.mark.process
 
 FEAT_REQUIRES_FR_ENTRY = (
     "bash -c '"

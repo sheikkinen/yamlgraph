@@ -5,6 +5,8 @@ from pathlib import Path
 import pytest
 import yaml
 
+pytestmark = pytest.mark.process
+
 WORKTREE = Path(__file__).resolve().parents[2]
 CHAPLAIN = WORKTREE / ".chaplain"
 

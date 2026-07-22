@@ -9,11 +9,12 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
-import pytest
-
 # =============================================================================
 # graph subcommand tests
 # =============================================================================
+import pytest
+
+pytestmark = pytest.mark.process
 
 
 class TestGraphSubcommand:

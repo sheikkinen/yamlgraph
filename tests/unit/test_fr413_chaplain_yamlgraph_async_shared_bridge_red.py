@@ -12,6 +12,8 @@ from typing import Any
 
 import pytest
 
+pytestmark = pytest.mark.process
+
 ROOT = Path(__file__).resolve().parents[2]
 ACTION_PATH = ROOT / ".chaplain" / "actions" / "yamlgraph_async_action.py"
 

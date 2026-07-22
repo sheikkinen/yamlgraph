@@ -10,6 +10,8 @@ from pathlib import Path
 import pytest
 import yaml
 
+pytestmark = pytest.mark.process
+
 PRECOMMIT_PATH = ".pre-commit-config.yaml"
 SCRIPT_PATH = "scripts/check_gitignore_boundary.sh"
 DIARY_REF = "docs/diary/2026-05-12-private-repo-dataloss-recovery.md"

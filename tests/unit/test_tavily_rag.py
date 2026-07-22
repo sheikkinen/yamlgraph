@@ -11,6 +11,8 @@ from unittest.mock import MagicMock, patch
 import pytest
 import yaml
 
+pytestmark = pytest.mark.process
+
 GRAPH_PATH = "examples/demos/tavily_rag/graph.yaml"
 GRAPH_DEEP_PATH = "examples/demos/tavily_rag/graph-deep.yaml"
 

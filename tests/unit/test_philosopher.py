@@ -10,11 +10,12 @@ import importlib.util
 from pathlib import Path
 from unittest.mock import patch
 
-import pytest
-
 # =============================================================================
 # FR-196: Load tools.py from .chaplain/graphs/philosopher/ via spec_from_file_location
 # =============================================================================
+import pytest
+
+pytestmark = pytest.mark.process
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 TOOLS_PATH = REPO_ROOT / ".chaplain" / "graphs" / "philosopher" / "tools.py"

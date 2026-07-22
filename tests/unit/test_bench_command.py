@@ -10,11 +10,12 @@ import json
 from argparse import Namespace
 from unittest.mock import MagicMock, patch
 
-import pytest
-
 # =============================================================================
 # Model spec parsing tests
 # =============================================================================
+import pytest
+
+pytestmark = pytest.mark.process
 
 
 class TestParseModelSpec:

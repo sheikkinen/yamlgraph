@@ -13,10 +13,12 @@ import os
 import subprocess
 import textwrap
 
-import pytest
-
 # Shell snippet that mirrors the flag-parsing logic to be added to inquisitor.sh.
 # We test this in isolation so we don't need copilot or the full script.
+import pytest
+
+pytestmark = pytest.mark.process
+
 _FLAG_PARSE_SCRIPT = textwrap.dedent("""\
     #!/usr/bin/env bash
     set -euo pipefail

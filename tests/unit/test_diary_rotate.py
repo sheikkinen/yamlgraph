@@ -13,6 +13,8 @@ import pytest
 from scripts import diary_rotate
 from yamlgraph.diary import importer
 
+pytestmark = pytest.mark.process
+
 
 @pytest.mark.req("REQ-YG-063")
 class TestImportScheduledEntries:

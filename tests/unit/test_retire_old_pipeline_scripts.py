@@ -5,6 +5,8 @@ from pathlib import Path
 import pytest
 import yaml
 
+pytestmark = pytest.mark.process
+
 
 @pytest.mark.req("REQ-YG-276")
 class TestObsoleteScriptsRemoved:

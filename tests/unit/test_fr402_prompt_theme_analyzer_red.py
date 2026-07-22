@@ -7,6 +7,8 @@ from pathlib import Path
 import pytest
 import yaml
 
+pytestmark = pytest.mark.process
+
 ROOT = Path(__file__).resolve().parents[2]
 DEMO_DIR = ROOT / "examples" / "demos" / "prompt_theme_analyzer"
 GRAPH_PATH = DEMO_DIR / "graph.yaml"

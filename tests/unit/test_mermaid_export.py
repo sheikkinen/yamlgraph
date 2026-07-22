@@ -21,6 +21,8 @@ from yamlgraph.mermaid_export import (
     render_overlay,
 )
 
+pytestmark = pytest.mark.process
+
 REPO = Path(__file__).resolve().parents[2]
 REFLEXION = REPO / "examples/demos/reflexion/graph.yaml"
 ROUTER = REPO / "examples/demos/router/graph.yaml"

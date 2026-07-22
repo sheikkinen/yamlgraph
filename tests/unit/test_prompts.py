@@ -7,6 +7,8 @@ from pathlib import Path
 
 import pytest
 
+pytestmark = pytest.mark.process
+
 
 class TestResolvePromptPath:
     """Tests for resolve_prompt_path function."""

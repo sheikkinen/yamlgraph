@@ -15,6 +15,8 @@ from pathlib import Path
 
 import pytest
 
+pytestmark = pytest.mark.process
+
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 EMIT_SCRIPT = REPO_ROOT / ".github" / "hooks" / "scripts" / "classify-emit.sh"
 EMIT_CONFIG = REPO_ROOT / ".github" / "hooks" / "classify-emit.json"
