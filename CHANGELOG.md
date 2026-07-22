@@ -8,6 +8,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.17]
+
+### Added
+- **FR-756 Core Test Isolation**: introduced `process` test marker with collection-time boundary lint (unmarked unit tests referencing `.chaplain/`, `examples/`, or `scripts/` fail collection), and added CI `core-test` job running `pytest tests/unit -m "not process" -q --no-cov` to prove the shipped package green in isolation.
+- **FR-755 FSM Bridge Ownership Ruling C**: documented `yamlgraph.utils.fsm` as contrib-tier (supported repeating pattern, not core API identity) in ARCHITECTURE.md and CAP-141, and added an import-linter contract preventing core modules from importing `yamlgraph.utils.fsm`.
+
+### Fixed
+- **FR-754 Package Boundary Cleanup**: moved ID registry helper out of `yamlgraph` package (`yamlgraph/utils/id_registry.py` removed, `scripts/id_registry.py` added), rewired validator/tests, and added a boundary test proving no `.chaplain` references remain under `yamlgraph/` Python modules.
+
 ## [0.5.16]
 
 ### Added
