@@ -7,6 +7,8 @@ import pytest
 
 from scripts import final_summary
 
+pytestmark = pytest.mark.process
+
 
 @pytest.mark.req("REQ-YG-063")
 class TestMain:

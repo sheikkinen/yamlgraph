@@ -8,6 +8,8 @@ from pathlib import Path
 
 import pytest
 
+pytestmark = pytest.mark.process
+
 WORKTREE = Path(__file__).resolve().parents[2]
 ACTION_PATH = WORKTREE / ".chaplain" / "actions" / "git_commit_action.py"
 

@@ -5,6 +5,8 @@ from pathlib import Path
 import pytest
 import yaml
 
+pytestmark = pytest.mark.process
+
 REPO_ROOT = Path(__file__).resolve().parents[2]
 PLAN_GRAPH = (
     REPO_ROOT / ".chaplain" / "graphs" / "watcher-plan" / "step-plan-unified.yaml"

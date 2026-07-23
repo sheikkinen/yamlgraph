@@ -2,6 +2,8 @@ from pathlib import Path
 
 import pytest
 
+pytestmark = pytest.mark.process
+
 PROMPT_FILE = Path(".chaplain/graphs/watcher-enforce/prompts/sanity-check-session.yaml")
 
 

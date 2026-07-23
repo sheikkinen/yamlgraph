@@ -9,12 +9,14 @@ from __future__ import annotations
 from pathlib import Path
 from unittest.mock import patch
 
-import pytest
-import yaml
-
 # ---------------------------------------------------------------------------
 # Paths
 # ---------------------------------------------------------------------------
+import pytest
+import yaml
+
+pytestmark = pytest.mark.process
+
 DEMO_DIR = Path("examples/demos/diary_index")
 GRAPH_PATH = DEMO_DIR / "graph.yaml"
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent

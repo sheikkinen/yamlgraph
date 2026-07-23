@@ -13,6 +13,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+pytestmark = pytest.mark.process
+
 pytest.importorskip(
     "feedparser",
     reason="feedparser not installed (install with: pip install -e '.[digest]')",

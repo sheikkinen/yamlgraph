@@ -5,6 +5,9 @@ TDD tests for router node type and multi-target conditional edges.
 
 from unittest.mock import MagicMock, patch
 
+# =============================================================================
+# Test: ToneClassification Model (Using Test Fixture)
+# =============================================================================
 import pytest
 
 from yamlgraph.compile.graph_loader import (
@@ -14,9 +17,7 @@ from yamlgraph.compile.graph_loader import (
 )
 from yamlgraph.node_factory import create_node_function
 
-# =============================================================================
-# Test: ToneClassification Model (Using Test Fixture)
-# =============================================================================
+pytestmark = pytest.mark.process
 
 
 class TestToneClassificationModel:

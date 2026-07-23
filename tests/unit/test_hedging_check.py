@@ -10,6 +10,8 @@ import pytest
 
 from scripts import hedging_check
 
+pytestmark = pytest.mark.process
+
 
 @pytest.mark.req("REQ-YG-063")
 class TestScanFile:

@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+
+
 """FR-744: world_distill — witnesses (REQ-YG-563).
 
 Pins (judgement 2026-07-17):
@@ -18,6 +20,8 @@ import sys
 from pathlib import Path
 
 import pytest
+
+pytestmark = pytest.mark.process
 
 REPO = Path(__file__).resolve().parents[2]
 TOOLS = REPO / ".chaplain/graphs/world_distill/tools.py"

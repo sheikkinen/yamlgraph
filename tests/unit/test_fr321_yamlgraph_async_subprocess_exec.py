@@ -4,6 +4,8 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
+pytestmark = pytest.mark.process
+
 pytest.importorskip("statemachine_engine", reason="statemachine_engine not installed")
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../.chaplain"))

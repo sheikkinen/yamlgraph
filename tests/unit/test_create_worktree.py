@@ -10,9 +10,11 @@ from contextlib import contextmanager
 from pathlib import Path
 from unittest.mock import patch
 
+# Load create_worktree from non-package .chaplain/lib/worktree.py
 import pytest
 
-# Load create_worktree from non-package .chaplain/lib/worktree.py
+pytestmark = pytest.mark.process
+
 _WORKTREE_PY = (
     Path(__file__).resolve().parent.parent.parent / ".chaplain" / "lib" / "worktree.py"
 )

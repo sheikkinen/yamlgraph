@@ -10,6 +10,8 @@ from pathlib import Path
 import pytest
 import yaml
 
+pytestmark = pytest.mark.process
+
 WORKFLOW_PATH = Path(".github/workflows/commitlint.yml")
 SEMANTICS_SCRIPT_PATH = Path("scripts/gate_artifact_semantics.sh")
 

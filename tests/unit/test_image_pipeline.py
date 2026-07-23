@@ -14,6 +14,8 @@ from unittest.mock import patch
 import pytest
 import yaml
 
+pytestmark = pytest.mark.process
+
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 GRAPH_DIR = REPO_ROOT / "examples" / "image_pipeline"
 GRAPH_FILE = GRAPH_DIR / "graph.yaml"

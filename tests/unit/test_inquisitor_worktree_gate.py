@@ -12,9 +12,11 @@ import os
 import subprocess
 import textwrap
 
+# Strip git env vars that pre-commit injects (GIT_INDEX_FILE from stashing).
 import pytest
 
-# Strip git env vars that pre-commit injects (GIT_INDEX_FILE from stashing).
+pytestmark = pytest.mark.process
+
 _GIT_ENV_POISON = {"GIT_INDEX_FILE", "GIT_DIR", "GIT_WORK_TREE", "GIT_COMMON_DIR"}
 
 

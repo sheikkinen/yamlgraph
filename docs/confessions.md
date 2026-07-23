@@ -287,91 +287,91 @@ Test suppressions are acceptable when they enable testing patterns that conflict
 - **Penance**: Same as CONF-015.
 
 ### CONF-019
-- **File**: [tests/unit/test_req_coverage_ast.py](../tests/unit/test_req_coverage_ast.py#L17)
+- **File**: [tests/unit/test_req_coverage_ast.py](../tests/unit/test_req_coverage_ast.py#L19)
 - **Code**: E402
 - **Sin**: Import after `sys.path.insert` for scripts module.
 - **Penance**: Test file needs to import from scripts/ which is not a package.
 
 ### CONF-020
-- **File**: [tests/unit/test_fr027_execution_safety.py](../tests/unit/test_fr027_execution_safety.py#L804)
+- **File**: [tests/unit/test_fr027_execution_safety.py](../tests/unit/test_fr027_execution_safety.py#L805)
 - **Code**: E731 (do not assign a lambda expression)
 - **Sin**: Lambda assigned to variable for signal handler test.
 - **Penance**: Lambda is cleaner than def for trivial no-op handler in test fixture. Accepted for test code.
 
 ### CONF-021
-- **File**: [tests/unit/test_tavily_rag.py](../tests/unit/test_tavily_rag.py#L84)
+- **File**: [tests/unit/test_tavily_rag.py](../tests/unit/test_tavily_rag.py#L86)
 - **Code**: F401
 - **Sin**: Import `tavily_retrieve` after `sys.path.insert` appears unused (used via module reload).
 - **Penance**: Import triggers module loading for test; removing it breaks the test.
 
 ### CONF-022
-- **File**: [tests/unit/test_tavily_rag.py](../tests/unit/test_tavily_rag.py#L127)
+- **File**: [tests/unit/test_tavily_rag.py](../tests/unit/test_tavily_rag.py#L129)
 - **Code**: F401
 - **Sin**: Same as CONF-021 — import for domain-scoping test.
 - **Penance**: Same as CONF-021.
 
 ### CONF-023
-- **File**: [tests/unit/test_tavily_rag.py](../tests/unit/test_tavily_rag.py#L161)
+- **File**: [tests/unit/test_tavily_rag.py](../tests/unit/test_tavily_rag.py#L163)
 - **Code**: F401
 - **Sin**: Same as CONF-021 — import for no-domain fallback test.
 - **Penance**: Same as CONF-021.
 
 ### CONF-024
-- **File**: [tests/unit/test_noqa_coverage.py](../tests/unit/test_noqa_coverage.py#L20)
+- **File**: [tests/unit/test_noqa_coverage.py](../tests/unit/test_noqa_coverage.py#L22)
 - **Code**: E402
 - **Sin**: noqa pattern inside test fixture string — testing the noqa detector.
 - **Penance**: Test fixture strings must contain realistic patterns to test detection.
 
 ### CONF-025
-- **File**: [tests/unit/test_noqa_coverage.py](../tests/unit/test_noqa_coverage.py#L30)
+- **File**: [tests/unit/test_noqa_coverage.py](../tests/unit/test_noqa_coverage.py#L32)
 - **Code**: F401
 - **Sin**: Same as CONF-024 — noqa pattern inside test fixture string.
 - **Penance**: Same as CONF-024.
 
 ### CONF-026
-- **File**: [tests/unit/test_noqa_coverage.py](../tests/unit/test_noqa_coverage.py#L30)
+- **File**: [tests/unit/test_noqa_coverage.py](../tests/unit/test_noqa_coverage.py#L32)
 - **Code**: F403
 - **Sin**: Same as CONF-024 — noqa pattern inside test fixture string.
 - **Penance**: Same as CONF-024.
 
 ### CONF-027
-- **File**: [tests/unit/test_noqa_coverage.py](../tests/unit/test_noqa_coverage.py#L42)
+- **File**: [tests/unit/test_noqa_coverage.py](../tests/unit/test_noqa_coverage.py#L44)
 - **Code**: ALL
 - **Sin**: Same as CONF-024 — blanket noqa pattern inside test fixture string.
 - **Penance**: Same as CONF-024.
 
 ### CONF-028
-- **File**: [tests/unit/test_noqa_coverage.py](../tests/unit/test_noqa_coverage.py#L53)
+- **File**: [tests/unit/test_noqa_coverage.py](../tests/unit/test_noqa_coverage.py#L55)
 - **Code**: E402
 - **Sin**: Same as CONF-024 — noqa pattern inside test fixture string.
 - **Penance**: Same as CONF-024.
 
 ### CONF-029
-- **File**: [tests/unit/test_noqa_coverage.py](../tests/unit/test_noqa_coverage.py#L55)
+- **File**: [tests/unit/test_noqa_coverage.py](../tests/unit/test_noqa_coverage.py#L57)
 - **Code**: F401
 - **Sin**: Same as CONF-024 — noqa pattern inside test fixture string.
 - **Penance**: Same as CONF-024.
 
 ### CONF-030
-- **File**: [tests/unit/test_noqa_coverage.py](../tests/unit/test_noqa_coverage.py#L68)
+- **File**: [tests/unit/test_noqa_coverage.py](../tests/unit/test_noqa_coverage.py#L70)
 - **Code**: E402
 - **Sin**: Same as CONF-024 — noqa pattern inside test fixture string.
 - **Penance**: Same as CONF-024.
 
 ### CONF-031
-- **File**: [tests/unit/test_noqa_coverage.py](../tests/unit/test_noqa_coverage.py#L135)
+- **File**: [tests/unit/test_noqa_coverage.py](../tests/unit/test_noqa_coverage.py#L137)
 - **Code**: E402
 - **Sin**: Same as CONF-024 — noqa pattern inside confessions test fixture.
 - **Penance**: Same as CONF-024.
 
 ### CONF-032
-- **File**: [tests/unit/test_noqa_coverage.py](../tests/unit/test_noqa_coverage.py#L164)
+- **File**: [tests/unit/test_noqa_coverage.py](../tests/unit/test_noqa_coverage.py#L166)
 - **Code**: E402
 - **Sin**: Same as CONF-024 — noqa pattern inside documented entry test fixture.
 - **Penance**: Same as CONF-024.
 
 ### CONF-033
-- **File**: [tests/unit/test_noqa_coverage.py](../tests/unit/test_noqa_coverage.py#L188)
+- **File**: [tests/unit/test_noqa_coverage.py](../tests/unit/test_noqa_coverage.py#L190)
 - **Code**: E402
 - **Sin**: Same as CONF-024 — noqa pattern inside documented entry test fixture.
 - **Penance**: Same as CONF-024.
@@ -401,7 +401,7 @@ Test suppressions are acceptable when they enable testing patterns that conflict
 - **Penance**: Same pattern as CONF-034. The `mcp` package is an optional dependency; `importorskip` must execute before any `mcp` imports to skip the test file gracefully when the package is not installed.
 
 ### CONF-047
-- **File**: [tests/unit/test_fr321_yamlgraph_async_subprocess_exec.py](../tests/unit/test_fr321_yamlgraph_async_subprocess_exec.py#L10)
+- **File**: [tests/unit/test_fr321_yamlgraph_async_subprocess_exec.py](../tests/unit/test_fr321_yamlgraph_async_subprocess_exec.py#L12)
 - **Code**: E402
 - **Sin**: Import `YamlgraphAsyncAction` after `pytest.importorskip("statemachine_engine")` guard.
 - **Penance**: Same pattern as CONF-037. The `statemachine_engine` package is a local dependency not installed in CI; `importorskip` must execute before the action import to skip gracefully.
@@ -876,31 +876,31 @@ These are E402 suppressions and are acceptable as "glue code" patterns.
 - **Penance**: Same as CONF-330 — grouped with the local imports below the `sys.path.insert` required by the standalone example runner pattern.
 
 ### CONF-336
-- **File**: [tests/unit/test_fr637_novel_fandom_canon.py](../tests/unit/test_fr637_novel_fandom_canon.py#L33)
+- **File**: [tests/unit/test_fr637_novel_fandom_canon.py](../tests/unit/test_fr637_novel_fandom_canon.py#L35)
 - **Code**: ANN202
 - **Sin**: `_load()` helper returns `types.ModuleType` but annotated with `# noqa: ANN202`.
 - **Penance**: Internal test helper; the return type varies dynamically depending on which module is loaded. Type annotation would be `types.ModuleType` which adds no value to callers that immediately destructure attributes.
 
 ### CONF-337
-- **File**: [tests/unit/test_fr640_novel_fandom_enriched.py](../tests/unit/test_fr640_novel_fandom_enriched.py#L27)
+- **File**: [tests/unit/test_fr640_novel_fandom_enriched.py](../tests/unit/test_fr640_novel_fandom_enriched.py#L29)
 - **Code**: ANN202
 - **Sin**: `_load()` helper returns `types.ModuleType` but annotated with `# noqa: ANN202`.
 - **Penance**: Same as CONF-336 — internal test helper, dynamically loaded module, type annotation adds no value.
 
 ### CONF-338
-- **File**: [tests/unit/test_fr638_novel_fandom_pathfinder.py](../tests/unit/test_fr638_novel_fandom_pathfinder.py#L25)
+- **File**: [tests/unit/test_fr638_novel_fandom_pathfinder.py](../tests/unit/test_fr638_novel_fandom_pathfinder.py#L27)
 - **Code**: ANN202
 - **Sin**: `_load()` helper returns `types.ModuleType` but annotated with `# noqa: ANN202`.
 - **Penance**: Same as CONF-336 — internal test helper, dynamically loaded module, type annotation adds no value.
 
 ### CONF-339
-- **File**: [tests/unit/test_fr639_novel_fandom_close_loop.py](../tests/unit/test_fr639_novel_fandom_close_loop.py#L27)
+- **File**: [tests/unit/test_fr639_novel_fandom_close_loop.py](../tests/unit/test_fr639_novel_fandom_close_loop.py#L29)
 - **Code**: ANN202
 - **Sin**: `_load()` helper returns `types.ModuleType` but annotated with `# noqa: ANN202`.
 - **Penance**: Same as CONF-336 — internal test helper, dynamically loaded module, type annotation adds no value.
 
 ### CONF-340
-- **File**: [tests/unit/test_fr642_novel_fandom_wiki_core.py](../tests/unit/test_fr642_novel_fandom_wiki_core.py#L27)
+- **File**: [tests/unit/test_fr642_novel_fandom_wiki_core.py](../tests/unit/test_fr642_novel_fandom_wiki_core.py#L29)
 - **Code**: ANN202
 - **Sin**: `_load()` helper returns `types.ModuleType` but annotated with `# noqa: ANN202`.
 - **Penance**: Same as CONF-336 — internal test helper, dynamically loaded module, type annotation adds no value.
@@ -954,7 +954,7 @@ These are E402 suppressions and are acceptable as "glue code" patterns.
 - **Penance**: Same as CONF-343 — internal test helper, dynamically loaded module.
 
 ### CONF-143
-- **File**: [tests/unit/test_fr296_watcher_fsm_startup_script.py](../tests/unit/test_fr296_watcher_fsm_startup_script.py#L116)
+- **File**: [tests/unit/test_fr296_watcher_fsm_startup_script.py](../tests/unit/test_fr296_watcher_fsm_startup_script.py#L118)
 - **Code**: S603
 - **Sin**: `subprocess.run()` called with list argument flagged as untrusted input.
 - **Penance**: Command list is hardcoded `["bash", "-n", str(SCRIPT_PATH)]` — no user input. `SCRIPT_PATH` is a constant derived from `__file__`. Used to validate shell script syntax in tests.

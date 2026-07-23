@@ -10,6 +10,8 @@ from pathlib import Path
 import pytest
 import yaml
 
+pytestmark = pytest.mark.process
+
 REPO_ROOT = Path(__file__).resolve().parents[2]
 PATTERNS_MD = REPO_ROOT / "reference" / "patterns.md"
 EXAMPLES_README = REPO_ROOT / "examples" / "README.md"

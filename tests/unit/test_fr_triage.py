@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+
+
 """FR-745: fr_triage — witnesses (REQ-YG-564).
 
 Pins (parallel judgement 2026-07-17):
@@ -18,6 +20,8 @@ import sys
 from pathlib import Path
 
 import pytest
+
+pytestmark = pytest.mark.process
 
 REPO = Path(__file__).resolve().parents[2]
 TOOLS = REPO / ".chaplain/graphs/fr_triage/tools.py"

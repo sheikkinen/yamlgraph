@@ -9,6 +9,8 @@ from yamlgraph.tools.python_tool import (
     parse_python_tools,
 )
 
+pytestmark = pytest.mark.process
+
 
 class TestPythonToolConfig:
     """Tests for PythonToolConfig dataclass."""

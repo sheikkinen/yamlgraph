@@ -4,6 +4,8 @@ from pathlib import Path
 
 import pytest
 
+pytestmark = pytest.mark.process
+
 REPO_ROOT = Path(__file__).resolve().parents[2]
 INSTRUMENT_SCRIPT = REPO_ROOT / "scripts" / "copilot_instrument.sh"
 

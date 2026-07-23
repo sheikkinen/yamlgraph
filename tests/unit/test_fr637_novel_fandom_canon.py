@@ -13,12 +13,14 @@ import importlib.util
 import sys
 from pathlib import Path
 
+# Load example-local modules via importlib to avoid name collisions with other
+# 'nodes' and 'schema' packages in the workspace (e.g. projects/*/nodes/).
 import pytest
 import yaml
 from pydantic import ValidationError
 
-# Load example-local modules via importlib to avoid name collisions with other
-# 'nodes' and 'schema' packages in the workspace (e.g. projects/*/nodes/).
+pytestmark = pytest.mark.process
+
 NOVEL_FANDOM_DIR = (
     Path(__file__).parent.parent.parent / "examples" / "novel_fandom"
 ).resolve()

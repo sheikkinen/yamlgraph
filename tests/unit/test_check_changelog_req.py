@@ -18,6 +18,8 @@ from scripts.check_changelog_req import (
     validate_fragment,
 )
 
+pytestmark = pytest.mark.process
+
 FIXTURES_DIR = Path(__file__).parent / "fixtures" / "changelog_req"
 
 

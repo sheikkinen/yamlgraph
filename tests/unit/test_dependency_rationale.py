@@ -7,13 +7,14 @@ has a documented rationale in docs/dependency-rationale.yaml.
 from pathlib import Path
 from unittest.mock import patch
 
+# ---------------------------------------------------------------------------
+# parse_pyproject_dependencies
+# ---------------------------------------------------------------------------
 import pytest
 
 from scripts import dependency_rationale
 
-# ---------------------------------------------------------------------------
-# parse_pyproject_dependencies
-# ---------------------------------------------------------------------------
+pytestmark = pytest.mark.process
 
 
 @pytest.mark.req("REQ-YG-219")

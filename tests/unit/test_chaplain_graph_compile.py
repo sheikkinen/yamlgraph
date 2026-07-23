@@ -14,6 +14,8 @@ import pytest
 
 from yamlgraph.compile.graph_loader import compile_graph, load_graph_config
 
+pytestmark = pytest.mark.process
+
 REPO_ROOT = Path(__file__).resolve().parents[2]
 CHAPLAIN_GRAPHS = sorted(
     p

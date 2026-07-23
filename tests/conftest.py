@@ -7,6 +7,7 @@ demonstrate that the framework is truly generic and works with any schema.
 
 import logging
 import os
+import re
 from pathlib import Path
 from unittest.mock import MagicMock
 
@@ -28,6 +29,13 @@ logging.getLogger("langsmith.client").setLevel(logging.WARNING)
 # langchain_core ≥0.3. This fixture cleans up after each test.
 
 _POLLUTING_ENV_VARS = ("LANGCHAIN_TRACING",)
+
+_PROCESS_BOUNDARY_PATTERNS = (
+    re.compile(r"\.chaplain"),
+    re.compile(r"examples/"),
+    re.compile(r"scripts/"),
+)
+_PROCESS_BOUNDARY_ALLOWLIST: set[str] = set()
 
 
 @pytest.fixture(autouse=True)
@@ -74,6 +82,44 @@ def pytest_collection_modifyitems(config, items):
     Raises:
         pytest.UsageError: If any test lacks @pytest.mark.req marker.
     """
+    process_boundary_violations: list[str] = []
+    scanned_modules: set[str] = set()
+
+    for item in items:
+        path_obj = Path(str(item.fspath))
+        try:
+            rel_path = path_obj.relative_to(Path.cwd()).as_posix()
+        except ValueError:
+            rel_path = path_obj.as_posix()
+        if not rel_path.startswith("tests/unit/") or rel_path in scanned_modules:
+            continue
+        scanned_modules.add(rel_path)
+
+        if rel_path in _PROCESS_BOUNDARY_ALLOWLIST:
+            continue
+
+        source = path_obj.read_text(encoding="utf-8")
+        if not any(pattern.search(source) for pattern in _PROCESS_BOUNDARY_PATTERNS):
+            continue
+
+        if "process" not in item.keywords:
+            process_boundary_violations.append(rel_path)
+
+    if process_boundary_violations:
+        error_msg = (
+            f"\n{'=' * 70}\n"
+            f"PROCESS BOUNDARY VIOLATION (FR-756)\n"
+            f"{'=' * 70}\n"
+            f"{len(process_boundary_violations)} unmarked unit module(s) reference"
+            f" process boundaries (.chaplain/examples/scripts):\n\n"
+            + "\n".join(f"  - {path}" for path in process_boundary_violations)
+            + "\n\n"
+            f"Add module-level pytestmark = pytest.mark.process or record a"
+            f" documented allowlist exception.\n"
+            f"{'=' * 70}\n"
+        )
+        raise pytest.UsageError(error_msg)
+
     missing = []
     for item in items:
         # Check if the test has the 'req' marker

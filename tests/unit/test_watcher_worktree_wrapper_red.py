@@ -4,6 +4,8 @@ from pathlib import Path
 
 import pytest
 
+pytestmark = pytest.mark.process
+
 REPO_ROOT = Path(__file__).resolve().parents[2]
 SETUP_WRAPPER = REPO_ROOT / ".chaplain" / "lib" / "watcher" / "worktree_setup.sh"
 TEARDOWN_WRAPPER = REPO_ROOT / ".chaplain" / "lib" / "watcher" / "worktree_teardown.sh"

@@ -6,6 +6,8 @@ from pathlib import Path
 import pytest
 import yaml
 
+pytestmark = pytest.mark.process
+
 REPO_ROOT = Path(__file__).resolve().parents[2]
 CHAPLAIN_GRAPHS_DIR = REPO_ROOT / ".chaplain" / "graphs"
 CONTEXT_PLANNER_PATH = (

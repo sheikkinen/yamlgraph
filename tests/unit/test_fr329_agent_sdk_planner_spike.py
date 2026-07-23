@@ -5,6 +5,8 @@ from pathlib import Path
 
 import pytest
 
+pytestmark = pytest.mark.process
+
 WORKTREE = Path(__file__).resolve().parents[2]
 SCRIPT_PATH = WORKTREE / "examples" / "agent-sdk-planner" / "plan.py"
 README_PATH = WORKTREE / "examples" / "agent-sdk-planner" / "README.md"

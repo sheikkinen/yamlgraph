@@ -68,6 +68,9 @@ pytest tests/unit/ -q --no-cov -m "not slow"
 # Fast unit tests (no coverage report)
 pytest tests/unit/ -q --no-cov
 
+# Core-only unit tests (exclude process-coupled modules)
+pytest tests/unit/ -m "not process" -q --no-cov
+
 # Run only slow tests
 pytest tests/unit/ -q --no-cov -m "slow"
 

@@ -8,9 +8,11 @@ from __future__ import annotations
 import importlib
 from unittest.mock import MagicMock, patch
 
+# Directory uses hyphens; importlib handles it, ``from`` syntax cannot.
 import pytest
 
-# Directory uses hyphens; importlib handles it, ``from`` syntax cannot.
+pytestmark = pytest.mark.process
+
 _crawl_mod = importlib.import_module("examples.demos.fi_domain_crawl.nodes.crawl_page")
 crawl_page = _crawl_mod.crawl_page
 

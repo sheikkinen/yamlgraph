@@ -62,3 +62,33 @@ source_modules =
 forbidden_modules =
     yamlgraph.export
     yamlgraph.a2a
+
+[importlinter:contract:fsm-contrib-ownership]
+# FR-755 ruling C: the FSM bridge is a supported repeating pattern but not
+# part of core framework API surface. Freeze this ownership boundary by
+# preventing core modules from importing yamlgraph.utils.fsm directly.
+name = core modules do not import yamlgraph.utils.fsm
+type = forbidden
+source_modules =
+    yamlgraph.cli
+    yamlgraph.compile
+    yamlgraph.node_factory
+    yamlgraph.executor
+    yamlgraph.executor_async
+    yamlgraph.executor_base
+    yamlgraph.linter
+    yamlgraph.routing
+    yamlgraph.graph_cache
+    yamlgraph.schema_loader
+    yamlgraph.data_loader
+    yamlgraph.discovery
+    yamlgraph.interactive_tool
+    yamlgraph.export
+    yamlgraph.a2a
+    yamlgraph.tools
+    yamlgraph.models
+    yamlgraph.storage
+    yamlgraph.verification
+    yamlgraph.loop_detector
+forbidden_modules =
+    yamlgraph.utils.fsm

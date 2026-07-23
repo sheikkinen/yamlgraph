@@ -20,6 +20,8 @@ from pathlib import Path
 
 import pytest
 
+pytestmark = pytest.mark.process
+
 EXAMPLE_DIR = Path(__file__).resolve().parents[2] / "examples" / "plot_modeller"
 
 

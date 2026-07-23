@@ -13,6 +13,9 @@ import argparse
 from pathlib import Path
 from unittest.mock import patch
 
+# =============================================================================
+# _validate_required_fields tests
+# =============================================================================
 import pytest
 
 from yamlgraph.cli.graph_validate import (
@@ -24,9 +27,7 @@ from yamlgraph.cli.graph_validate import (
     cmd_graph_validate,
 )
 
-# =============================================================================
-# _validate_required_fields tests
-# =============================================================================
+pytestmark = pytest.mark.process
 
 
 class TestValidateRequiredFields:

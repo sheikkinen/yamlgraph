@@ -5,6 +5,8 @@ from pathlib import Path
 import pytest
 import yaml
 
+pytestmark = pytest.mark.process
+
 _GRAPH_PATH = Path(".chaplain/graphs/watcher-enforce/enforce-session.yaml")
 _PROMPTS_DIR = Path(".chaplain/graphs/watcher-enforce/prompts")
 

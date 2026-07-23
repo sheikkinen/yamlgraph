@@ -11,6 +11,8 @@ from pathlib import Path
 import pytest
 import yaml
 
+pytestmark = pytest.mark.process
+
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 GRAPH_DIR = REPO_ROOT / "examples" / "batch_image_prompts"
 GRAPH_FILE = GRAPH_DIR / "graph.yaml"

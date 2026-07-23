@@ -4,6 +4,8 @@ from pathlib import Path
 
 import pytest
 
+pytestmark = pytest.mark.process
+
 
 @pytest.mark.req("REQ-YG-001")  # Placeholder REQ for testing
 class TestFR337ContextPlannerPreNode:

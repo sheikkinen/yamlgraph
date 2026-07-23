@@ -81,7 +81,7 @@ def _build_corpus_graph(tmp_path: Path) -> Path:
     graph = {
         "version": "1.0",
         "name": "fr586-calibration",
-        "state": {name: "str" for name in names},
+        "state": dict.fromkeys(names, "str"),
         "nodes": nodes,
         "edges": edges,
     }

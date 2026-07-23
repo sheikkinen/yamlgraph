@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "yamlgraph"
-version = "0.5.16"
+version = "0.5.17"
 description = "YAML-first framework for building LLM pipelines with LangGraph"
 readme = "README.md"
 requires-python = ">=3.11,<3.15"
@@ -188,6 +188,7 @@ markers = [
     "req(id): links test to requirement(s) e.g. @pytest.mark.req('REQ-YG-014')",
     "integration: marks tests requiring external services",
     "slow: marks tests that take >1 second to complete",
+    "process: marks tests coupled to process/repo boundaries (.chaplain, examples, scripts)",
 ]
 
 [tool.coverage.run]

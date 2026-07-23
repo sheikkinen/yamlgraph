@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+
+
 """Tests for FR-195: Chaplain Documentation
 
 Validates that .chaplain/README.md exists and contains comprehensive
@@ -8,6 +10,8 @@ documentation covering the FSM runtime architecture and shell library.
 from pathlib import Path
 
 import pytest
+
+pytestmark = pytest.mark.process
 
 
 @pytest.mark.req("REQ-YG-278")

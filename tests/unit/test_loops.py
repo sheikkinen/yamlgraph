@@ -6,11 +6,12 @@ TDD tests for expression conditions, loop tracking, and cyclic graphs.
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-import pytest
-
 # =============================================================================
 # Test: Expression Condition Parsing
 # =============================================================================
+import pytest
+
+pytestmark = pytest.mark.process
 
 
 class TestExpressionConditions:

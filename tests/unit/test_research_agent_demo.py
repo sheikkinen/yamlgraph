@@ -11,6 +11,8 @@ from pathlib import Path
 import pytest
 import yaml
 
+pytestmark = pytest.mark.process
+
 GRAPH_PATH = "examples/demos/research-agent/graph.yaml"
 DEMO_DIR = (
     Path(__file__).resolve().parent.parent.parent

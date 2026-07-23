@@ -4,27 +4,16 @@ FR-180: Plan-Phase ID Reservation
 
 This module provides functions to reserve, validate, and manage capability
 and requirement IDs during the Plan and Enforcement phases.
-
-Usage:
-    from yamlgraph.utils.id_registry import load_registry, reserve_ids, save_registry
-
-    registry = load_registry()
-    reservation = reserve_ids(registry, "FR-181", cap_count=1, req_count=3)
-    save_registry(registry)
 """
 
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 import yaml
 from pydantic import BaseModel, Field
 
-if TYPE_CHECKING:
-    pass
-
-REPO_ROOT = Path(__file__).resolve().parent.parent.parent
+REPO_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_REGISTRY_PATH = REPO_ROOT / ".chaplain" / "id-registry.yaml"
 
 # Pre-existing IDs that predate the registry

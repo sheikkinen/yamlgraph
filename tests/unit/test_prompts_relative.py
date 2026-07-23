@@ -8,6 +8,8 @@ from unittest.mock import patch
 
 import pytest
 
+pytestmark = pytest.mark.process
+
 
 class TestPromptsRelativeConfig:
     """Tests that prompts_relative flows to all node factories."""

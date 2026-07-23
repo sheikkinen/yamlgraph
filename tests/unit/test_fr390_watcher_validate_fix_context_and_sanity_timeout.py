@@ -9,6 +9,8 @@ from pathlib import Path
 import pytest
 import yaml
 
+pytestmark = pytest.mark.process
+
 WORKTREE = Path(__file__).resolve().parents[2]
 CHAPLAIN = WORKTREE / ".chaplain"
 ACTION_PATH = CHAPLAIN / "actions" / "yamlgraph_async_action.py"

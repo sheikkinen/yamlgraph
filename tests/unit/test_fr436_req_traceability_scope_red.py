@@ -6,6 +6,8 @@ from pathlib import Path
 
 import pytest
 
+pytestmark = pytest.mark.process
+
 ARCHITECTURE_PATH = Path("ARCHITECTURE.md")
 ADR001_PATH = Path("docs/adr/001-test-requirement-traceability.md")
 REQ_COVERAGE_PATH = Path("scripts/req_coverage.py")

@@ -20,6 +20,8 @@ from pathlib import Path
 
 import pytest
 
+pytestmark = pytest.mark.process
+
 REPO_ROOT = os.path.join(os.path.dirname(__file__), "..", "..")
 WATCH_SH = os.path.join(REPO_ROOT, ".chaplain", "watch.sh")
 FINALIZE_MERGE_SH = os.path.join(REPO_ROOT, "scripts", "finalize_merge.sh")

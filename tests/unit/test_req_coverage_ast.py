@@ -10,9 +10,11 @@ import sys
 import textwrap
 from pathlib import Path
 
+# Add scripts/ to path so we can import req_coverage directly
 import pytest
 
-# Add scripts/ to path so we can import req_coverage directly
+pytestmark = pytest.mark.process
+
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "scripts"))
 from req_coverage import _extract_imports_from_test  # noqa: E402
 

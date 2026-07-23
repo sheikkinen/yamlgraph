@@ -5,12 +5,14 @@ TDD: Write tests first, then implement graph and prompts.
 
 from pathlib import Path
 
+# Use absolute paths relative to project root
 import pytest
 import yaml
 
 from yamlgraph.linter import lint_graph
 
-# Use absolute paths relative to project root
+pytestmark = pytest.mark.process
+
 PROJECT_ROOT = Path(__file__).parent.parent.parent
 GRAPH_PATH = PROJECT_ROOT / "examples/demos/feature-brainstorm/graph.yaml"
 PROMPTS_DIR = PROJECT_ROOT / "examples/demos/feature-brainstorm/prompts"
