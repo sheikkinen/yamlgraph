@@ -23,6 +23,14 @@ author's reasoning is anchored and worthless. If essential context is
 missing from the FR, that is an FR defect: demand it as a revision, do
 not go find the author's intent.
 
+## Execution identity (re-entry guard)
+
+If you are reading this file as the judge, YOU ARE the judge
+execution. Never invoke the judge skill, adapter, graph, or any
+command that launches another judge — routing rules about HOW to
+invoke the judge apply only to agents outside a judge execution.
+Re-invoking instead of judging is a failure (it cascades).
+
 ## The 8-criterion rubric
 
 Examine the FR against every criterion; cite file/line evidence for

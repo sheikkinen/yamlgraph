@@ -12,6 +12,14 @@ into the real `.judgement.md`. The graph must never auto-fold,
 auto-commit, open/update PRs, poll inboxes, manage worktrees, run CI,
 or merge.
 
+**Load-bearing flags (csap NC-414):** BOTH `allow_all_paths: true` AND
+`allow_all_tools: true` are required for the file-write contract.
+Copilot CLI needs `--allow-all-tools` for non-interactive tool use;
+without it the judge runs, renders a verdict, is denied the write,
+and still exits 0. **Verify by artifact existence, never by exit
+code**: after a run, check that `tmp/draft-judgement.md` exists and
+is non-empty with a verdict line.
+
 ## VS Code prompt adapter
 
 FORBIDDEN as a judge execution route (one judge to rule them all — the

@@ -22,6 +22,9 @@ nodes:
     cli_flags:
       model: gpt-5.5
       allow_all_paths: true
+      allow_all_tools: true  # NC-414 (csap): required for non-interactive tool use;
+                             # without it the file write of tmp/draft-judgement.md
+                             # is denied while the CLI still exits 0
     prompt: judge
     variables:
       fr_path: "{state.fr_path}"
