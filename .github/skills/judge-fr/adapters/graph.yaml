@@ -1,0 +1,38 @@
+# NON-AUTHORITATIVE prototype adapter (NC-412 A-1 / D-10).
+# Manual invocation only. Output is a DRAFT judgement — advisory until
+# human-reviewed and folded through the normal FR process. This graph
+# must never auto-fold, auto-commit, open/update PRs, poll inboxes,
+# manage worktrees, run CI, or merge.
+# Lineage: yamlgraph .chaplain/graphs/watcher-plan/step-judge-v2.yaml (FR-305).
+version: "1.0"
+name: judge-fr-adapter
+description: "Thin pointer to .github/skills/judge-fr/doctrine.md — doctrine-free"
+
+prompts_relative: true
+prompts_dir: prompts
+
+state:
+  fr_path: str
+  judge_result: dict
+
+nodes:
+  judge:
+    type: copilot
+    backend: cli
+    cli_flags:
+      model: gpt-5.5
+      allow_all_paths: true
+      allow_all_tools: true  # NC-414 (csap): required for non-interactive tool use;
+                             # without it the file write of tmp/draft-judgement.md
+                             # is denied while the CLI still exits 0
+    prompt: judge
+    variables:
+      fr_path: "{state.fr_path}"
+    state_key: judge_result
+    timeout: 600
+
+edges:
+  - from: START
+    to: judge
+  - from: judge
+    to: END
