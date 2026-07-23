@@ -1,0 +1,39 @@
+# Prototype adapter for the sole-route reviewer (NC-413 parity, A-1 semantics).
+# Manual invocation only. Output is a DRAFT review — advisory until the
+# human merge decision. This graph must never approve, merge, comment,
+# auto-fold, auto-commit, open/update PRs, poll inboxes, or run CI.
+# Pattern: .github/skills/judge-fr/adapters/graph.yaml (NC-412/414).
+version: "1.0"
+name: review-pr-adapter
+description: "Thin pointer to .github/skills/review-pr/doctrine.md — doctrine-free"
+
+prompts_relative: true
+prompts_dir: prompts
+
+state:
+  pr: str
+  fr_path: str
+  review_result: dict
+
+nodes:
+  review:
+    type: copilot
+    backend: cli
+    cli_flags:
+      model: gpt-5.5
+      allow_all_paths: true
+      allow_all_tools: true  # NC-414 lesson: BOTH flags load-bearing for the
+                             # file-write contract; without allow_all_tools the
+                             # CLI exits 0 while the write is denied
+    prompt: review
+    variables:
+      pr: "{state.pr}"
+      fr_path: "{state.fr_path}"
+    state_key: review_result
+    timeout: 600
+
+edges:
+  - from: START
+    to: review
+  - from: review
+    to: END

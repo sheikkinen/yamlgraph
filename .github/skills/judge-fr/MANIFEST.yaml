@@ -42,7 +42,6 @@ files:
   - adapters/README.md                      # graph run command (operational)
   - scripts/judge.sh                        # operator wrapper (csap NC-415 verbatim; OS lock + JUDGE_EXECUTION sentinel + artifact contract; executor resolution YAMLGRAPH_BIN > PATH > uv run); contract tests live in csap tests/test_nc415_judge_wrapper.py
 adapters:
-  - .github/prompts/review-pr.prompt.md     # reviewer adapter (separate doctrine-lite contract)
   - adapters/graph.yaml                     # yamlgraph adapter — SOLE judge execution route
   - adapters/prompts/judge.yaml             # thin graph prompt (pointer to doctrine.md)
 invariant: adapters contain zero doctrine; <=15 lines of instruction; pointer-only (A-4 lint in NC-412)
