@@ -1,7 +1,14 @@
 # judge-fr adapters — execution instructions (operational, not doctrine)
 
 ## YAMLGraph prototype (NC-412 A-1: manual only, output advisory)
+Sole documented operator command (csap NC-415 — serializes via OS lock
+and lineage sentinel; the graph remains the judge execution route):
 
+```bash
+scripts/judge.sh feature-requests/FR-XXX-slug.md
+```
+
+Direct invocation (what the wrapper runs; use the wrapper instead):
 ```bash
 uv run yamlgraph graph run .github/skills/judge-fr/adapters/graph.yaml \
   --var fr_path=feature-requests/NC-XXX-slug.md --full
