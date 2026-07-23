@@ -41,8 +41,8 @@ files:
   - judgement.template.md
   - adapters/README.md                      # graph run command (operational)
 adapters:
-  - .github/prompts/judge-fr.prompt.md      # VS Code prompt adapter (Level 0)
   - .github/prompts/review-pr.prompt.md     # reviewer adapter (separate doctrine-lite contract)
-  - adapters/graph.yaml                     # yamlgraph prototype — NON-AUTHORITATIVE (A-1)
+  - adapters/graph.yaml                     # yamlgraph adapter — SOLE judge execution route
   - adapters/prompts/judge.yaml             # thin graph prompt (pointer to doctrine.md)
 invariant: adapters contain zero doctrine; <=15 lines of instruction; pointer-only (A-4 lint in NC-412)
+routing: one judge to rule them all — graph adapter is the ONLY execution route; prompt-adapter and manual sister-session/subagent judgement are forbidden (judge-fr.prompt.md deleted)

@@ -14,7 +14,10 @@ or merge.
 
 ## VS Code prompt adapter
 
-`/judge-fr` (see `.github/prompts/judge-fr.prompt.md`).
+FORBIDDEN as a judge execution route (one judge to rule them all — the
+graph above is the sole route). The reviewer adapter
+`.github/prompts/review-pr.prompt.md` is unaffected: it reviews PRs,
+it does not judge FRs.
 
 Both adapters point at `../doctrine.md` — the canonical, non-invocable
 judge contract. No doctrine lives in any adapter file.

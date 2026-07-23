@@ -30,7 +30,20 @@ until human-reviewed (NC-412 C-6).
 
 ## Invocation surfaces
 
-- VS Code prompt: `/judge-fr` with a path like
-  `feature-requests/NC-412-...md`
-- YAMLGraph prototype (manual only, advisory output): see
-  `adapters/README.md`
+**One judge to rule them all:** the YAMLGraph adapter is the ONLY
+permitted execution route.
+
+1. **YAMLGraph adapter (SOLE ROUTE)** — run the graph per
+   `adapters/README.md`; output is a draft in `tmp/draft-judgement.md`,
+   advisory until human-reviewed.
+
+Forbidden routes:
+
+- `/judge-fr` VS Code prompt — FORBIDDEN as an execution route.
+- Manual sister-session or subagent judgement — FORBIDDEN.
+
+Rationale: a single executable route keeps the verdict provenance
+uniform (same model pin, same prompt path, same artifact location) and
+leaves no ambiguity for the Scripture to resolve. If the graph
+toolchain is broken, fix the toolchain — do not route around the
+judge.
