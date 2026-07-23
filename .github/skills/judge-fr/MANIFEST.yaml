@@ -1,0 +1,48 @@
+# MANIFEST — judge-fr skill bundle provenance (NC-412 D-8)
+skill: judge-fr
+version: 0.1.0
+status: trial (NC-412 Level 0; not adopted until human-reviewed — AC per A-6)
+
+lineage:
+  origin: yamlgraph .chaplain judge (FR-084 -> FR-257 -> FR-305)
+  source_repo: terveystalo/customer-service-agent-platform (P-1 copy; NC-412 bundle)
+  source_ref: 9ddbb25          # csap nc412-packaging HEAD at copy, 2026-07-23
+  source_files:
+    - .chaplain/graphs/watcher-plan/step-judge-v2.yaml   # model-independence design (this repo!)
+    - .chaplain/graphs/watcher-plan/prompts/judge.yaml   # 8-criterion rubric + verdict taxonomy
+  last_source_change: 34cf8098 (2026-05-20)
+  note: doctrine returns home — extracted FROM this repo's .chaplain by
+    NC-412, hardened there (doctrine.md split, zero-duplication lint,
+    planted-answer-key tests), now re-adopted as a skill bundle.
+
+local_adaptations:
+  - "Local conventions rewritten for yamlgraph: FR-XXX prefix,
+    read_raw_output_first gate for measurement FRs, FR-737 prior-art
+    disposition rule, FR-723 judgement-artifact precedent"
+  - verdict vocabulary APPROVE/AMEND -> APPROVED/APPROVED WITH REVISIONS
+  - "output contract: corp .judgement.md shape
+    (Reviewed against / frozen scope / revised ACs / GATE conditions)"
+  - "doctrine split from SKILL.md into non-invocable doctrine.md
+    (csap PR #53 review: invocable skill file must not be runtime doctrine)"
+
+distribution:
+  model: P-1 copy-per-repo (NC-412 packaging table)
+  core_markers: "CORE:BEGIN / CORE:END in doctrine.md; keep byte-identical across repos"
+  graduation: canonical home in yamlgraph after >=3 repos adopt OR first CORE drift incident
+  adoption_steps:
+    - copy bundle to .github/skills/judge-fr/
+    - fill "Local conventions" section in doctrine.md
+    - update this manifest's provenance
+    - human-review doctrine.md + SKILL.md in the adopting repo's PR flow (C-6 applies per repo)
+
+files:
+  - SKILL.md                                # thin VS Code discovery/usage wrapper
+  - doctrine.md                             # canonical judge contract (non-invocable)
+  - judgement.template.md
+  - adapters/README.md                      # graph run command (operational)
+adapters:
+  - .github/prompts/judge-fr.prompt.md      # VS Code prompt adapter (Level 0)
+  - .github/prompts/review-pr.prompt.md     # reviewer adapter (separate doctrine-lite contract)
+  - adapters/graph.yaml                     # yamlgraph prototype — NON-AUTHORITATIVE (A-1)
+  - adapters/prompts/judge.yaml             # thin graph prompt (pointer to doctrine.md)
+invariant: adapters contain zero doctrine; <=15 lines of instruction; pointer-only (A-4 lint in NC-412)
