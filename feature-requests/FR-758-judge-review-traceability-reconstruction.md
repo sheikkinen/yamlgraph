@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Proposed
+**Status:** Judged
 **Effort:** 0.5 day
 **Requested:** 2026-07-24
 **First consumer / first event:** the next agent invoking
@@ -83,9 +83,17 @@ traceability spine as every other capability.
    - artifact contract: missing/empty artifact → 65; missing verdict
      line → 65; review merge-verdict not on line one → 65
    - success path: stub writes conforming artifact → exit 0
-4. **One real smoke execution** of each wrapper against a trivial FR
-   fixture; record exit code and artifact head in this FR as evidence.
-5. **Changelog fragment** in `changelog/unreleased/` with
+4. **One real smoke execution** of each wrapper, recorded in this FR
+   with exact evidence fields (R-2): command, timestamp, executor
+   identity (`YAMLGRAPH_BIN` / PATH `yamlgraph` / `uv run yamlgraph`),
+   exit code, artifact path, and artifact head proving the contract
+   (`**Verdict:**` for judge; `**Merge verdict:**` on line one for
+   review). The review smoke must record its PR/branch input. Manual
+   evidence only — never an automated test or CI step.
+5. **`ARCHITECTURE.md` traceability** (R-1): capability summary row
+   after CAP-210 and a CAP-211 section with a REQ-YG-569 row, matching
+   the CAP-210 shape — required for `req_coverage.py --strict`.
+6. **Changelog fragment** in `changelog/unreleased/` with
    `req: REQ-YG-569`.
 
 ## Evidence: manual probes already pass (2026-07-24)
@@ -99,15 +107,28 @@ real-graph smoke (scope item 4).
 
 ## Acceptance Criteria
 
-- [ ] `capabilities/CAP-211-sole-route-judge-review.yaml` exists and
-      `python scripts/req_coverage.py --strict` passes
-- [ ] All wrapper contract tests in scope item 3 pass, tagged
-      REQ-YG-569, `process`-marked, runnable without API keys
-- [ ] Real smoke execution of both wrappers recorded in this FR
+(Revised per judgement AC-01..AC-09; the judgement's list is binding.)
+
+- [ ] `capabilities/CAP-211-sole-route-judge-review.yaml` exists,
+      active, references FR-758, defines REQ-YG-569, names both
+      wrappers and both adapter graphs
+- [ ] `ARCHITECTURE.md` has the CAP-211 summary row and section with
+      REQ-YG-569; `python scripts/req_coverage.py --strict` passes
+- [ ] `tests/unit/test_fr758_judge_review_wrappers.py` module-marked
+      `process`, every test tagged `@pytest.mark.req("REQ-YG-569")`,
+      stub `YAMLGRAPH_BIN`, no API keys (placed under `tests/unit/`,
+      not `.github/hooks/tests/` — req coverage excludes hook tests)
+- [ ] Wrapper tests cover: usage/missing-FR exits, sentinel denial
+      (both wrappers), active-lock + stale-lock behavior, lock cleanup,
+      `YAMLGRAPH_BIN` precedence, resolution-failure exit 69,
+      missing/empty artifact 65, verdict-line 65, review line-one
+      merge-verdict 65, stub success 0
+- [ ] Manual smoke evidence per R-2 recorded in this FR
 - [ ] Changelog fragment with `req: REQ-YG-569`
-- [ ] No behavior change to wrappers/adapters unless a witness test
-      proves a porting defect (then: RED commit first, fix under this
-      FR)
+- [ ] No wrapper/adapter/doctrine/hook/CI behavior change unless a RED
+      witness first proves a porting defect; any enforcement-
+      infrastructure change receives explicit human review before
+      merge (R-3 GATE)
 
 ## Alternatives Considered
 
@@ -132,10 +153,40 @@ Enforced) — lexical hit on "review"/"reconstruction" only; it concerns
 DM belief-state projection, not the judge/review governance wrappers.
 No scope overlap; nothing inherited or superseded.
 
-## Judgement (pending)
+## Judgement (2026-07-24)
 
-**Verdict:** —
+**Verdict:** APPROVED WITH REVISIONS — problem real, test-first repair
+minimal; authority activates after R-1..R-3 folded (done above).
+Rendered via the sole route (`scripts/judge.sh`, second run); full
+draft artifact preserved as the binding text — scope table D-1..D-7,
+AC-01..AC-09, conditions C-1..C-6.
+
+| # | Finding | Resolution (binding) |
+|---|---------|----------------------|
+| R-1 | `req_coverage.py --strict` requires ARCHITECTURE.md rows the FR never authorized | ARCHITECTURE.md added to scope (item 5) and ACs |
+| R-2 | "One real smoke execution" too vague to audit; review smoke needs a PR/branch input | Exact evidence fields pinned in scope item 4 |
+| R-3 | FR permits wrapper fixes on porting defects without a human gate | Enforcement-infrastructure human-review GATE added to final AC |
+
+**Purge list:** none.
+
+**Scope frozen:** D-1..D-7 per judgement; not authorized: doctrine/
+template/adapter-prompt/model changes, hook-layer denial, real
+executions in CI, auto-fold/commit/PR/merge from adapters, moving
+wrapper tests to `.github/hooks/tests/`, exit-code changes without a
+RED witness + human gate.
+
+**Note on the first judge run (forensic):** the first execution
+rendered APPROVED WITH REVISIONS but could not persist its artifact —
+every write was denied by a misregistered `PermissionRequest` hook
+(fixed under RED/GREEN commits, see `tmp/judge-fr.log` forensics and
+`changelog/unreleased/permission-request-decision-hook.md`). Its
+recovered draft additionally proposed adapter-contract witness tests
+(single copilot node, `backend: cli`, `allow_all_paths`,
+`allow_all_tools`, `timeout: 600`); recorded here for the enforcer as
+optional-but-cheap coverage consistent with the frozen scope (CAP
+modules already name the adapter graphs).
 
 ### Questions for the human (as options, or 'none')
 
-—
+None — both judge runs converged on APPROVED WITH REVISIONS; the
+revisions are mechanical and folded.

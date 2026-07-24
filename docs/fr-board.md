@@ -92,6 +92,7 @@
 | FR-732 | Judged | yamlgraph |  | FR-732-output-schema-parity-enum-constraints.md |
 | FR-749 | Judged | yamlgraph |  | FR-749-edit-time-hygiene.md |
 | FR-750 | Judged | yamlgraph |  | FR-750-worktree-pilot.md |
+| FR-758 | Judged | yamlgraph |  | FR-758-judge-review-traceability-reconstruction.md |
 | FR-094 | Approved | yamlgraph |  | FR-094-memory-node.md |
 | FR-095 | Approved | yamlgraph |  | FR-095-doc-staleness-monitor.md |
 | FR-096 | Approved | yamlgraph |  | FR-096-fr-template-demo-plan.md |
@@ -188,7 +189,6 @@
 | FR-729 | Proposed | yamlgraph |  | FR-729-landing-page-metrics-generated.md |
 | FR-751 | Proposed | yamlgraph |  | FR-751-liquid-safety-precommit-gate.md |
 | FR-757 | Proposed | yamlgraph |  | FR-757-fsm-contrib-relocation.md |
-| FR-758 | Proposed | yamlgraph |  | FR-758-judge-review-traceability-reconstruction.md |
 | FR-078 | In Progress | yamlgraph |  | FR-078-relocate-project-tests.md |
 | FR-100 | In Progress | yamlgraph |  | FR-100-yamlgraph-development-pipeline-ebook.md |
 | FR-169 | In Progress | yamlgraph |  | FR-169-enforce-reflexion-loop.md |
@@ -407,7 +407,7 @@ graph TD
     FR-750["FR-750 Judged"]
     FR-751["FR-751 Proposed"]
     FR-757["FR-757 Proposed"]
-    FR-758["FR-758 Proposed"]
+    FR-758["FR-758 Judged"]
     FR-081 --> FR-082
     FR-731 --> FR-735
     FR-731 --> FR-736
