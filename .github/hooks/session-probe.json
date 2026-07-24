@@ -68,13 +68,7 @@
         "timeout": 5
       }
     ],
-    "PermissionRequest": [
-      {
-        "type": "command",
-        "command": ".github/hooks/scripts/session-probe.sh",
-        "timeout": 5
-      }
-    ],
+    "PermissionRequest": [],
     "Notification": [
       {
         "type": "command",
