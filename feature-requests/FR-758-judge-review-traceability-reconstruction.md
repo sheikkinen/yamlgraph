@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Judged
+**Status:** Implemented
 **Effort:** 0.5 day
 **Requested:** 2026-07-24
 **First consumer / first event:** the next agent invoking
@@ -109,26 +109,66 @@ real-graph smoke (scope item 4).
 
 (Revised per judgement AC-01..AC-09; the judgement's list is binding.)
 
-- [ ] `capabilities/CAP-211-sole-route-judge-review.yaml` exists,
+- [x] `capabilities/CAP-211-sole-route-judge-review.yaml` exists,
       active, references FR-758, defines REQ-YG-569, names both
       wrappers and both adapter graphs
-- [ ] `ARCHITECTURE.md` has the CAP-211 summary row and section with
+- [x] `ARCHITECTURE.md` has the CAP-211 summary row and section with
       REQ-YG-569; `python scripts/req_coverage.py --strict` passes
-- [ ] `tests/unit/test_fr758_judge_review_wrappers.py` module-marked
+      (CAP-211: 1/1 reqs, 18 tests; regenerated via
+      `scripts/aggregate_capabilities.py`)
+- [x] `tests/unit/test_fr758_judge_review_wrappers.py` module-marked
       `process`, every test tagged `@pytest.mark.req("REQ-YG-569")`,
       stub `YAMLGRAPH_BIN`, no API keys (placed under `tests/unit/`,
       not `.github/hooks/tests/` — req coverage excludes hook tests)
-- [ ] Wrapper tests cover: usage/missing-FR exits, sentinel denial
+- [x] Wrapper tests cover: usage/missing-FR exits, sentinel denial
       (both wrappers), active-lock + stale-lock behavior, lock cleanup,
       `YAMLGRAPH_BIN` precedence, resolution-failure exit 69,
       missing/empty artifact 65, verdict-line 65, review line-one
-      merge-verdict 65, stub success 0
-- [ ] Manual smoke evidence per R-2 recorded in this FR
-- [ ] Changelog fragment with `req: REQ-YG-569`
-- [ ] No wrapper/adapter/doctrine/hook/CI behavior change unless a RED
+      merge-verdict 65, stub success 0 — 18 tests, all passing
+- [x] Manual smoke evidence per R-2 recorded in this FR (see
+      Implementation Evidence below)
+- [x] Changelog fragment with `req: REQ-YG-569`
+- [x] No wrapper/adapter/doctrine/hook/CI behavior change unless a RED
       witness first proves a porting defect; any enforcement-
       infrastructure change receives explicit human review before
-      merge (R-3 GATE)
+      merge (R-3 GATE) — one such change occurred: the misregistered
+      `PermissionRequest` probe fix, RED (`0830e32e`) then GREEN
+      (`c44b3a19`), flagged for human review per R-3
+
+## Implementation Evidence (R-2 smoke records)
+
+**Judge smoke** (second run; the first run found and was blocked by
+the `PermissionRequest` hook bug — forensics in `tmp/judge-fr.log`):
+
+| Field | Value |
+|-------|-------|
+| Command | `scripts/judge.sh feature-requests/FR-758-judge-review-traceability-reconstruction.md` |
+| Timestamp | 2026-07-24T07:09:57+03:00 (artifact mtime) |
+| Executor | PATH `yamlgraph` → `.venv/bin/yamlgraph` (Python 3.14.6 venv) |
+| Exit code | 0 |
+| Artifact | `tmp/draft-judgement.md` (preserved as `feature-requests/FR-758.judgement.md`) |
+| Artifact head | `**Verdict:** APPROVED WITH REVISIONS` |
+| Lock | `tmp/.judge.lock` removed on exit |
+
+**Review smoke** (input: merged PR #461, branch
+`review-pr-skill-adoption` — the review-pr bundle adoption itself):
+
+| Field | Value |
+|-------|-------|
+| Command | `scripts/review.sh 461 feature-requests/FR-758-judge-review-traceability-reconstruction.md` |
+| Timestamp | started 2026-07-24T04:17:30Z, artifact 07:19:42+03:00 |
+| Executor | PATH `yamlgraph` → `.venv/bin/yamlgraph`; child model gpt-5.5, backend cli, session `3a7d3158` |
+| Exit code | 0 |
+| Artifact | `tmp/draft-review.md` |
+| Artifact head (line one) | `**Merge verdict:** Not approved — PR #461 implements the review-pr bundle adoption, but the governing FR-758 judgement authorizes post-fact CAP/REQ/test reconstruction…` |
+| Lock | `tmp/.review.lock` removed on exit |
+
+The review verdict is a **correct rejection of a mismatched FR↔PR
+pairing** (PR #461 predates FR-758 and is already merged) — stronger
+smoke evidence than an approval: the sole route exercised diff
+retrieval, judgement loading, frozen-scope comparison, and the
+line-one artifact contract end-to-end. Advisory only; no PR comment
+or merge action was taken.
 
 ## Alternatives Considered
 

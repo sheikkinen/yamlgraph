@@ -525,6 +525,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 208 | CAP-208 FR Atlas Onboarding Demo | `examples/demos/fr-atlas/nodes/collect.py`, `examples/demos/fr-atlas/nodes/coverage.py`, `examples/demos/fr-atlas/nodes/render.py` | REQ-YG-566 |
 | 209 | CAP-209 Root Package Seams | `yamlgraph/a2a`, `yamlgraph/export`, `yamlgraph/compile` | REQ-YG-567 |
 | 210 | CAP-210 Edge Shape Classification | `yamlgraph/compile/edge_compiler.py` | REQ-YG-568 |
+| 211 | CAP-211 Sole-Route Judge and Review Wrappers | `scripts/judge.sh`, `scripts/review.sh`, `.github/skills/judge-fr/adapters/graph.yaml`, `.github/skills/review-pr/adapters/graph.yaml` | REQ-YG-569 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -2611,6 +2612,16 @@ Edge compilation is classify-then-dispatch: classify_edge names every edge form 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-568 | Edge-shape classification (FR-718). classify_edge is pure and exhaustive over the EdgeShape enum (member set asserted, so a new shape must register itself); classification order preserves the FR-467/FR-234/FR-060 semantics (conditional-to-map is EXPRESSION; map-to-map ignores condition; interrupt redirect precedes membership tests). A condition on an untyped fan-out list raises ValueError naming the edge instead of silently dropping the condition. No function in edge_compiler reaches CC 10. build_expression_route_mapping and build_router_route_mapping are pure (FR-467 sub-node routing, END always reachable, FR-211 interrupt and subgraph-interrupt redirects). | `yamlgraph/compile/edge_compiler.py`, `tests/unit/test_fr718_edge_shapes.py` |
+
+### 211. CAP-211 Sole-Route Judge and Review Wrappers
+
+The judge and review governance pipelines execute through exactly one operational route each: scripts/judge.sh and scripts/review.sh (ports of csap NC-415/NC-413). Each wrapper serializes runs with an atomic mkdir lock (10-minute stale detection, holder metadata, cleanup on exit), blocks re-entry via lineage sentinels (JUDGE_EXECUTION / REVIEW_EXECUTION), resolves the yamlgraph executor explicitly (YAMLGRAPH_BIN, then PATH, then uv run — failing loudly otherwise), and verifies completion by artifact contract, never exit code: the judge draft must contain a "**Verdict:**" line; the review draft must open with "**Merge verdict:**" on line one. The wrappers contain zero judging or reviewing doctrine — the YAMLGraph adapter graphs under .github/skills/{judge-fr,review-pr}/adapters/ remain the sole execution routes.
+
+**Feature Request:** FR-758
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-569 | Sole-route judge/review wrapper contract (FR-758). Both wrappers exit 64 on usage error and 66 on missing FR; exit 70 when the matching lineage sentinel is set (re-entry guard); exit 73 when a fresh lock is held (printing holder metadata) and 75 on a stale lock (never auto-removing it); remove their lock on exit. The executor resolution order is YAMLGRAPH_BIN over PATH yamlgraph over uv, exiting 69 when none resolves. The artifact contract exits 65 when the draft is missing/empty, when the judge draft lacks a "**Verdict:**" line, or when the review draft's line one is not "**Merge verdict:**"; a conforming artifact from a successful graph run yields exit 0. Contract witnessed by stubbed YAMLGRAPH_BIN tests (no API keys, no real graph execution) plus one recorded manual smoke per wrapper in FR-758. | `scripts/judge.sh`, `scripts/review.sh`, `tests/unit/test_fr758_judge_review_wrappers.py` |
 
 <!-- END GENERATED CAPABILITIES -->
 

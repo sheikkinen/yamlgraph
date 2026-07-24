@@ -1,0 +1,44 @@
+name: Sole-Route Judge and Review Wrappers
+id: CAP-211
+status: active
+fr: FR-758
+feature_request: FR-758
+description: >
+  The judge and review governance pipelines execute through exactly one
+  operational route each: scripts/judge.sh and scripts/review.sh (ports
+  of csap NC-415/NC-413). Each wrapper serializes runs with an atomic
+  mkdir lock (10-minute stale detection, holder metadata, cleanup on
+  exit), blocks re-entry via lineage sentinels (JUDGE_EXECUTION /
+  REVIEW_EXECUTION), resolves the yamlgraph executor explicitly
+  (YAMLGRAPH_BIN, then PATH, then uv run — failing loudly otherwise),
+  and verifies completion by artifact contract, never exit code: the
+  judge draft must contain a "**Verdict:**" line; the review draft must
+  open with "**Merge verdict:**" on line one. The wrappers contain zero
+  judging or reviewing doctrine — the YAMLGraph adapter graphs under
+  .github/skills/{judge-fr,review-pr}/adapters/ remain the sole
+  execution routes.
+modules:
+  - scripts/judge.sh
+  - scripts/review.sh
+  - .github/skills/judge-fr/adapters/graph.yaml
+  - .github/skills/review-pr/adapters/graph.yaml
+requirements:
+  - id: REQ-YG-569
+    description: >
+      Sole-route judge/review wrapper contract (FR-758). Both wrappers
+      exit 64 on usage error and 66 on missing FR; exit 70 when the
+      matching lineage sentinel is set (re-entry guard); exit 73 when a
+      fresh lock is held (printing holder metadata) and 75 on a stale
+      lock (never auto-removing it); remove their lock on exit. The
+      executor resolution order is YAMLGRAPH_BIN over PATH yamlgraph
+      over uv, exiting 69 when none resolves. The artifact contract
+      exits 65 when the draft is missing/empty, when the judge draft
+      lacks a "**Verdict:**" line, or when the review draft's line one
+      is not "**Merge verdict:**"; a conforming artifact from a
+      successful graph run yields exit 0. Contract witnessed by stubbed
+      YAMLGRAPH_BIN tests (no API keys, no real graph execution) plus
+      one recorded manual smoke per wrapper in FR-758.
+    modules:
+      - scripts/judge.sh
+      - scripts/review.sh
+      - tests/unit/test_fr758_judge_review_wrappers.py
