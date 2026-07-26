@@ -9,12 +9,12 @@ description: >
   spans, no behavior change). Enabled via YAMLGRAPH_OTEL_EXPORT=otlp;
   fails fast before any node executes when enabled but the `otel`
   extra is not installed. Emits one yamlgraph.graph.run span per
-  invocation with a shared UUID run identity, sha256 variables hash
+  invocation with a shared UUIDv7 run identity, sha256 variables hash
   (never raw values), and success|error|interrupted outcome; child
   yamlgraph.node.execute spans per node with node name/type, state
   keys-written (names only), and optional exception-class-name-only
   error attribute. Node spans are wrapped generically in
-  node_compiler.py (llm, tool, python, agent, tool_call, race,
+  node_compiler.py (llm, router, tool, python, agent, tool_call, race,
   passthrough, copilot, subgraph) via node_otel.py, mirroring the
   node_timeout.py wrapping pattern. LangSmith tracing is unaffected —
   this boundary is a parallel, vendor-neutral exporter path.

@@ -30,9 +30,13 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -e ".[dev,digest,websearch,a2a,fsm,verify,otel]"
+          pip install -e ".[dev,digest,websearch,a2a,fsm,verify]"
 
       - name: Run core-only tests
+        # FR-759 P2: deliberately does NOT install the `otel` extra — this
+        # is the CI path proving the disabled/missing-extra OTEL tests
+        # collect and pass (rather than skip) when opentelemetry-sdk is
+        # absent from the environment.
         run: pytest tests/unit -m "not process" -q --no-cov
 
   test:

@@ -5,25 +5,35 @@ behavior (AC-03), fail-fast when OTEL is requested but the ``otel``
 extra is unavailable (AC-04), and — with an in-memory exporter — span
 names, parent/child linkage, required attributes, success/error
 outcomes, and the deterministic variables hash (AC-05/AC-06).
+
+Only the in-memory-exporter tests require the ``otel`` extra
+(``opentelemetry-sdk``) to be installed — the disabled and
+missing-extra tests exercise the module's true no-op path and must
+collect and pass in a core-only (no ``otel`` extra) environment, per
+PR #464/#465 review P2. The module-level SDK import is therefore
+optional and gates only the fixtures/tests that use it, rather than
+skipping the whole file.
 """
 
 from __future__ import annotations
 
 import sys
+import uuid
 
 import pytest
 
-# Guard: opentelemetry is an optional extra ("otel")
-otel_sdk = pytest.importorskip("opentelemetry.sdk")
+from yamlgraph.observability import otel
 
-from opentelemetry import trace  # noqa: E402
-from opentelemetry.sdk.trace import TracerProvider  # noqa: E402
-from opentelemetry.sdk.trace.export import SimpleSpanProcessor  # noqa: E402
-from opentelemetry.sdk.trace.export.in_memory_span_exporter import (  # noqa: E402
-    InMemorySpanExporter,
+# Optional: only needed by the in-memory-exporter tests below. A missing
+# 'otel' extra must not skip the disabled/missing-extra tests (P2).
+try:
+    import opentelemetry.sdk as otel_sdk
+except ImportError:
+    otel_sdk = None
+
+requires_otel_sdk = pytest.mark.skipif(
+    otel_sdk is None, reason="requires the 'otel' extra (opentelemetry-sdk)"
 )
-
-from yamlgraph.observability import otel  # noqa: E402
 
 
 @pytest.fixture(autouse=True)
@@ -36,7 +46,7 @@ def _reset_otel_env(monkeypatch):
     otel._provider_configured = False
 
 
-_SHARED_EXPORTER = InMemorySpanExporter()
+_SHARED_EXPORTER = None
 
 
 def _install_shared_provider_once():
@@ -44,6 +54,16 @@ def _install_shared_provider_once():
     process — install a single provider backed by a shared in-memory
     exporter and clear its captured spans between tests instead of
     replacing the provider."""
+    from opentelemetry import trace
+    from opentelemetry.sdk.trace import TracerProvider
+    from opentelemetry.sdk.trace.export import SimpleSpanProcessor
+    from opentelemetry.sdk.trace.export.in_memory_span_exporter import (
+        InMemorySpanExporter,
+    )
+
+    global _SHARED_EXPORTER
+    if _SHARED_EXPORTER is None:
+        _SHARED_EXPORTER = InMemorySpanExporter()
     if isinstance(trace.get_tracer_provider(), TracerProvider):
         return
     provider = TracerProvider()
@@ -110,6 +130,23 @@ def test_enabled_but_extra_missing_fails_before_execution(monkeypatch):
 
 
 @pytest.mark.req("REQ-YG-570")
+def test_disabled_no_op_when_opentelemetry_entirely_unavailable(monkeypatch):
+    """AC-03: the disabled path must not require ``opentelemetry`` to be
+    importable at all — blocked here (rather than relying on it merely
+    being absent from this venv) so the assertion is meaningful whether or
+    not the 'otel' extra happens to be installed (PR #465 review P2)."""
+    monkeypatch.setitem(sys.modules, "opentelemetry", None)
+    assert otel.is_otel_enabled() is False
+    with otel.graph_run_span("g", {"a": 1}) as run_ctx:
+        assert run_ctx.run_id is None
+        assert run_ctx.outcome == "success"
+    with otel.node_execution_span("greet", "llm") as node_ctx:
+        node_ctx.keys_written = ["greeting"]
+
+
+@requires_otel_sdk
+@requires_otel_sdk
+@pytest.mark.req("REQ-YG-570")
 def test_enabled_success_emits_parent_and_child_spans(in_memory_exporter):
     """AC-05/AC-06: enabled + in-memory exporter → one graph-run span, one
     child node-execution span, sharing a trace id (run identity), correct
@@ -139,6 +176,8 @@ def test_enabled_success_emits_parent_and_child_spans(in_memory_exporter):
 
     # Required graph-run attributes (frozen schema).
     assert run_span.attributes["yamlgraph.run.id"] == run_ctx.run_id
+    # FR-759 P1: run id is UUIDv7 (time-ordered), not UUIDv4.
+    assert uuid.UUID(run_ctx.run_id).version == 7
     assert run_span.attributes["yamlgraph.graph.name"] == "hello-world"
     assert run_span.attributes["yamlgraph.variables.hash"] == otel.variables_hash(
         variables
@@ -160,6 +199,7 @@ def test_enabled_success_emits_parent_and_child_spans(in_memory_exporter):
     assert node_span.end_time > node_span.start_time
 
 
+@requires_otel_sdk
 @pytest.mark.req("REQ-YG-570")
 def test_enabled_with_thread_id_sets_optional_attribute(in_memory_exporter):
     """AC-06: yamlgraph.thread.id is set when a checkpointer thread id is
@@ -172,6 +212,7 @@ def test_enabled_with_thread_id_sets_optional_attribute(in_memory_exporter):
     assert run_span.attributes["yamlgraph.thread.id"] == "thread-42"
 
 
+@requires_otel_sdk
 @pytest.mark.req("REQ-YG-570")
 def test_graph_run_error_outcome_and_node_error_attribute(in_memory_exporter):
     """AC-06: an exception inside the run sets outcome=error on the graph-run
@@ -199,6 +240,7 @@ def test_graph_run_error_outcome_and_node_error_attribute(in_memory_exporter):
             assert "do not leak this message" not in str(value)
 
 
+@requires_otel_sdk
 @pytest.mark.req("REQ-YG-570")
 def test_graph_run_interrupted_outcome(in_memory_exporter):
     """AC-06: caller-reported interrupted outcome (the CLI sets this when the

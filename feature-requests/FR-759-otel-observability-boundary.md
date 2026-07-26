@@ -170,6 +170,53 @@ explicitly out of scope for this increment. No `langchain-core`
 declaration, lockfile/scan/pip-audit governance, or example-dependency
 taxonomy work was touched, per C-5/R-4.
 
+## PR #465 review fixes (2026-07-26)
+
+**P1 — run id is now UUIDv7, not UUIDv4.** The frozen schema
+(`yamlgraph.run.id: str (UUIDv7)`) was implemented with `uuid.uuid4()` —
+source-of-truth drift the reviewer caught by comparing the FR text,
+the implementation, and the reference doc side by side.
+`otel.py`'s `_generate_run_id()` now constructs an RFC 9562 UUIDv7
+directly (48-bit millisecond timestamp + version/variant bits + random
+tail) since this repo targets Python 3.11+ and `uuid.uuid7()` is
+stdlib-only from 3.14. `test_enabled_success_emits_parent_and_child_spans`
+now asserts `uuid.UUID(run_ctx.run_id).version == 7`, not just
+non-null/string-typed.
+
+**P2 — disabled/missing-extra tests now run without the `otel` extra
+installed.** The test module previously imported `opentelemetry.sdk`
+at module scope via `pytest.importorskip`, so the ENTIRE file skipped
+in a no-extra environment — including the disabled-no-op and
+missing-extra tests that are supposed to prove the core install stays
+OTEL-free. The SDK import is now `try`/`except ImportError`-guarded and
+gates only the 4 in-memory-exporter tests via a `skipif` marker; a new
+`test_disabled_no_op_when_opentelemetry_entirely_unavailable` blocks
+`import opentelemetry` itself (not just the SDK) to prove the no-op
+path never touches OpenTelemetry at all. CI's `core-test` job no longer
+installs the `otel` extra, giving this a real no-extra validation
+environment instead of relying solely on `sys.modules` patching inside
+an environment that happens to have the extra installed.
+
+**P3 — node-type coverage aligned with the frozen contract.**
+`_compile_race_node` now wraps its node function with
+`_maybe_wrap_otel(..., NodeType.RACE)` (previously omitted, contradicting
+the documented coverage claim). `_compile_llm_node` — shared by both
+`llm` and `router` YAML types — now passes the node's actual declared
+`type` from graph config into the wrapper instead of hardcoding
+`NodeType.LLM`, so router spans correctly report `yamlgraph.node.type
+== "router"`. Three new tests in
+`tests/unit/test_node_compiler_branches.py`
+(`TestCompileNodeOtelNodeType`) assert the wrapper receives `llm`,
+`router`, and `race` respectively; `test_race_node.py`'s existing
+no-double-timeout-wrap test updated to also patch `_maybe_wrap_otel`
+now that race nodes are wrapped.
+
+All three fixes verified: full `pytest tests/unit/` (5234 passed, 74
+skipped, 1 xfailed — zero regressions), a manual no-extra probe
+(blocking `import opentelemetry` entirely) showing 6 pass / 4 skip
+instead of the reviewer's cited "1 skipped, exit 5", and a direct UUIDv7
+version check on 5 generated ids.
+
 ## Judgement (2026-07-26)
 
 **Verdict:** APPROVED WITH REVISIONS — revisions R-1..R-4 folded above; authority active.

@@ -33,13 +33,13 @@ YAMLGRAPH_OTEL_EXPORT=otlp yamlgraph graph run examples/demos/hello/graph.yaml \
 
 | Span | Attribute | Type | Required | Source / rule |
 |---|---|---|---|---|
-| `yamlgraph.graph.run` | `yamlgraph.run.id` | str (UUID) | required | generated at run start; shared by all child spans (run identity) |
+| `yamlgraph.graph.run` | `yamlgraph.run.id` | str (UUIDv7) | required | generated at run start; shared by all child spans (run identity) |
 | `yamlgraph.graph.run` | `yamlgraph.graph.name` | str | required | graph YAML `name` (or file stem) |
 | `yamlgraph.graph.run` | `yamlgraph.thread.id` | str | optional | checkpointer thread id when present; omitted otherwise |
 | `yamlgraph.graph.run` | `yamlgraph.variables.hash` | str | required | sha256 of canonical JSON (sorted keys) of input variables; raw values never emitted |
 | `yamlgraph.graph.run` | `yamlgraph.run.outcome` | str enum `success\|error\|interrupted` | required | terminal state |
 | `yamlgraph.node.execute` | `yamlgraph.node.name` | str | required | node id from graph YAML |
-| `yamlgraph.node.execute` | `yamlgraph.node.type` | str | required | node factory type (`llm`, `tool`, `python`, `agent`, `tool_call`, `passthrough`, `copilot`, `subgraph`, …) |
+| `yamlgraph.node.execute` | `yamlgraph.node.type` | str | required | node factory type — the YAML `type` value (`llm`, `router`, `tool`, `python`, `agent`, `tool_call`, `race`, `passthrough`, `copilot`, `subgraph`, …) |
 | `yamlgraph.node.execute` | `yamlgraph.state.keys_written` | list[str] | required | key names only, never values |
 | `yamlgraph.node.execute` | `yamlgraph.node.error` | str | optional | exception class name only, on failure |
 | both | duration | — | required | native OTEL span start/end timestamps (nanoseconds) — no custom attribute |
@@ -60,7 +60,7 @@ threading is required.
 ## Coverage (first increment, R-3)
 
 The graph-run span wraps the CLI's `yamlgraph graph run` entry point.
-Node-execution spans wrap the `llm`, `tool`, `python`, `agent`,
+Node-execution spans wrap the `llm`, `router`, `tool`, `python`, `agent`,
 `tool_call`, `race`, `passthrough`, `copilot`, and `subgraph` node
 types — the set compiled through a single `add_node` call in
 `yamlgraph/compile/node_compiler.py`. `map`, `interrupt`, and `verify`
@@ -80,7 +80,14 @@ outcomes, and the deterministic variables hash — without any network
 export. The "extra missing" failure path is exercised by forcing
 `import opentelemetry` to fail via `sys.modules` patching, so the test
 runs correctly whether or not the `otel` extra happens to be installed
-in the current environment.
+in the current environment. Only the in-memory-exporter tests import
+`opentelemetry.sdk` at module scope; that import is optional
+(`try`/`except ImportError`) and gates just those tests via a
+`skipif` marker, so the disabled and missing-extra tests always
+collect and run. CI's `core-test` job deliberately does not install
+the `otel` extra, giving the disabled/no-op path a real no-extra
+validation environment rather than relying solely on `sys.modules`
+patching within an environment that has it installed.
 
 ## Related
 

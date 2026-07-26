@@ -18,7 +18,7 @@ never authorized.
 Span schema (frozen, judgement R-2; see ``reference/otel-span-schema.md``)::
 
     yamlgraph.graph.run
-        yamlgraph.run.id            str (uuid), required — run identity,
+        yamlgraph.run.id            str (UUIDv7), required — run identity,
                                      shared by all child spans
         yamlgraph.graph.name        str, required
         yamlgraph.thread.id         str, optional
@@ -44,6 +44,8 @@ import hashlib
 import json
 import logging
 import os
+import secrets
+import time
 import uuid
 from collections.abc import Iterator
 from contextlib import contextmanager
@@ -105,6 +107,20 @@ def variables_hash(variables: dict[str, Any]) -> str:
     """
     canonical = json.dumps(variables, sort_keys=True, default=str)
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+
+def _generate_run_id() -> str:
+    """Generate a UUIDv7 (RFC 9562) run id — time-ordered, so run ids sort
+    chronologically and embed their creation time, unlike UUIDv4's pure
+    randomness. ``uuid.uuid7()`` is stdlib-only from Python 3.14; this repo
+    targets 3.11+, so the 48-bit ms timestamp / version / variant / random
+    layout is constructed directly from RFC 9562's algorithm.
+    """
+    unix_ts_ms = time.time_ns() // 1_000_000
+    rand = bytearray(secrets.token_bytes(10))
+    rand[0] = 0x70 | (rand[0] & 0x0F)  # version nibble (0111) + 4 rand bits
+    rand[2] = 0x80 | (rand[2] & 0x3F)  # variant bits (10) + 6 rand bits
+    return str(uuid.UUID(bytes=unix_ts_ms.to_bytes(6, "big") + bytes(rand)))
 
 
 def _ensure_otel_available() -> Any:
@@ -171,7 +187,7 @@ def graph_run_span(
     trace = _ensure_otel_available()
     _configure_exporter_if_needed(trace)
 
-    run_id = str(uuid.uuid4())
+    run_id = _generate_run_id()
     tracer = trace.get_tracer("yamlgraph")
     with tracer.start_as_current_span(GRAPH_RUN_SPAN) as span:
         span.set_attribute("yamlgraph.run.id", run_id)

@@ -45,4 +45,17 @@ def _maybe_wrap_otel(
     return otel_wrapped
 
 
-__all__ = ["_maybe_wrap_otel"]
+def node_config_get(node_config: object, key: str, default: object) -> object:
+    """Read a key from node_config, whether it's a dict or an attr-object.
+
+    Shared by compile handlers that need to inspect the declared YAML
+    config for a node without assuming its concrete representation
+    (FR-759 P3: llm/router share one handler and must report the
+    node's actual declared type, not a hardcoded one).
+    """
+    if isinstance(node_config, dict):
+        return node_config.get(key, default)
+    return getattr(node_config, key, default)
+
+
+__all__ = ["_maybe_wrap_otel", "node_config_get"]
