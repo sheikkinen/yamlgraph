@@ -95,12 +95,19 @@ _USAGE_CMD_RE = re.compile(
 
 
 def _has_graph_yaml(d: Path) -> bool:
+    """True when the directory contains a YAML file whose top level is a
+    mapping with a `nodes` mapping key — i.e. an actual graph definition.
+
+    PR #464 review P1: a substring match on `nodes:` falsely admitted
+    prompt directories (schema fields like `affected_nodes:`, or `nodes`
+    nested below the top level) as example roots; parse structurally.
+    """
     for f in d.glob("*.yaml"):
         try:
-            text = f.read_text(encoding="utf-8")
-        except (UnicodeDecodeError, OSError):
+            doc = yaml.safe_load(f.read_text(encoding="utf-8"))
+        except (UnicodeDecodeError, OSError, yaml.YAMLError):
             continue
-        if "nodes:" in text:
+        if isinstance(doc, dict) and isinstance(doc.get("nodes"), dict):
             return True
     return False
 

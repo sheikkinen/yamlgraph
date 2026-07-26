@@ -10,9 +10,11 @@ req: REQ-YG-571
   partial-owner combination) or `externally-provisioned` (an undeclared
   import is cited by name, never silently added).
   `scripts/example_taxonomy_scan.py` recursively discovers every
-  independently-runnable root under `examples/` (139 roots — any directory
+  independently-runnable root under `examples/` (135 roots — any directory
   at any nesting depth whose `README.md` documents a fenced usage command,
-  not just top-level directories), and writes the generated allowlist
+  not just top-level directories; graph YAML detection parses structurally,
+  requiring a top-level `nodes` mapping, so prompt files containing the
+  substring `nodes:` never create roots — PR #464 review P1), and writes the generated allowlist
   `examples/dependency-taxonomy.yaml`; `--check` mode fails CI when the
   committed file drifts from a fresh discovery run. `pyproject.toml`
   gained direct declarations for `litellm` (replicate), `pyarrow` (rag),

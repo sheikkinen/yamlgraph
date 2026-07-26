@@ -22,11 +22,6 @@ examples:
   entrypoints:
   - examples/beautify/graph.yaml
   - examples/beautify/run.py
-- path: examples/beautify/prompts
-  status: extra-backed
-  extra: null
-  entrypoints:
-  - examples/beautify/prompts/analyze.yaml
 - path: examples/book_reviewer
   status: extra-backed
   extra: null
@@ -418,11 +413,6 @@ examples:
   extra: null
   entrypoints:
   - examples/demos/run-analyzer/graph.yaml
-- path: examples/demos/run-analyzer/prompts
-  status: extra-backed
-  extra: null
-  entrypoints:
-  - examples/demos/run-analyzer/prompts/analyze.yaml
 - path: examples/demos/safety-guards
   status: extra-backed
   extra: null
@@ -813,20 +803,6 @@ examples:
   status: extra-backed
   extra: null
   entrypoints: []
-- path: examples/yamlgraph_gen/prompts
-  status: extra-backed
-  extra: null
-  entrypoints:
-  - examples/yamlgraph_gen/prompts/assemble_graph.yaml
-  - examples/yamlgraph_gen/prompts/generate_prompts.yaml
-  - examples/yamlgraph_gen/prompts/select_snippets.yaml
-- path: examples/yamlgraph_gen/snippets/nodes
-  status: extra-backed
-  extra: null
-  entrypoints:
-  - examples/yamlgraph_gen/snippets/nodes/agent-with-tools.yaml
-  - examples/yamlgraph_gen/snippets/nodes/python-tool.yaml
-  - examples/yamlgraph_gen/snippets/nodes/websearch-agent.yaml
 - path: examples/yamlgraph_gen/snippets/patterns
   status: extra-backed
   extra: null
