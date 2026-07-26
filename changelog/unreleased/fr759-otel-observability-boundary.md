@@ -21,5 +21,8 @@ req: REQ-YG-570
   `_configure_exporter_if_needed()`'s own SDK/exporter imports now raise
   `OtelExtraMissingError` on a partial install instead of a raw
   `ImportError` (previously only the top-level `opentelemetry` import
-  was guarded); 2 new regression tests.
+  was guarded); 2 new regression tests. Round 3 fix: hello demo trace
+  artifact (`examples/demos/hello/otel-trace-demo.txt`) recaptured from
+  a real run of the final head so the committed run id is UUIDv7 per the
+  frozen schema (review P1: prior artifact predated UUIDv7).
   (REQ-YG-570, CAP-212)

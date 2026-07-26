@@ -1,16 +1,16 @@
-2026-07-26 12:37:31,619 [INFO] yamlgraph.compile.node_compiler: Added node: greet (type=llm)
-2026-07-26 12:37:31,737 [INFO] yamlgraph.utils.llm_factory: Creating LLM: deepseek/deepseek-v4-flash (temp=0.7)
-2026-07-26 12:37:33,793 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
-2026-07-26 12:37:35,274 [INFO] yamlgraph.node_factory.llm_nodes: Node greet completed successfully
+2026-07-26 19:25:18,292 [INFO] yamlgraph.compile.node_compiler: Added node: greet (type=llm)
+2026-07-26 19:25:18,378 [INFO] yamlgraph.utils.llm_factory: Creating LLM: deepseek/deepseek-v4-flash (temp=0.7)
+2026-07-26 19:25:20,309 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-26 19:25:22,842 [INFO] yamlgraph.node_factory.llm_nodes: Node greet completed successfully
 
 🚀 Running graph: graph.yaml
-   Variables: {'name': 'World', 'style': 'formal'}
+   Variables: {'name': 'World', 'style': 'enthusiastic'}
 
-🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/f889c0ec-fa9b-4025-b69c-2aa756283ef8/r/019f9dc9-6dec-7281-a2fb-d75d50f857b6?poll=true
+🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/f889c0ec-fa9b-4025-b69c-2aa756283ef8/r/019f9f3e-c2dd-78b1-b65a-9ef1fccd3b73?poll=true
 ============================================================
 RESULT
 ============================================================
   current_step: greet
-  style: formal
+  style: enthusiastic
   name: World
-  greeting: {'greeting': 'Dear World, may your vast horizons inspire unity and peace.', 'emoji': '🌍', 'formality_level': 'formal'}
+  greeting: {'greeting': "Hello to the entire world! It's a fantastic day to be alive!", 'emoji': '🌍', 'formality_level': 'informal'}
