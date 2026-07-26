@@ -527,6 +527,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 210 | CAP-210 Edge Shape Classification | `yamlgraph/compile/edge_compiler.py` | REQ-YG-568 |
 | 211 | CAP-211 Sole-Route Judge and Review Wrappers | `scripts/judge.sh`, `scripts/review.sh`, `.github/skills/judge-fr/adapters/graph.yaml`, `.github/skills/review-pr/adapters/graph.yaml` | REQ-YG-569 |
 | 212 | CAP-212 OpenTelemetry Observability Boundary | `yamlgraph/observability/otel.py`, `yamlgraph/compile/node_otel.py`, `yamlgraph/compile/node_compiler.py`, `yamlgraph/cli/graph_commands.py` | REQ-YG-570 |
+| 214 | CAP-214 Direct-Import Dependency Scanner | `scripts/direct_import_scan.py` | REQ-YG-572 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -2633,6 +2634,16 @@ Opt-in, vendor-neutral OpenTelemetry span schema for graph-run and node-executio
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-570 | OTEL observability boundary (FR-759). is_otel_enabled() is a pure env-var check (YAMLGRAPH_OTEL_EXPORT=="otlp") that imports nothing; graph_run_span()/node_execution_span() no-op when disabled; OtelExtraMissingError raised before any node executes when enabled but opentelemetry is unavailable; enabled path emits yamlgraph.graph.run (yamlgraph.run.id, yamlgraph.graph.name, yamlgraph.thread.id optional, yamlgraph.variables.hash, yamlgraph.run.outcome) and child yamlgraph.node.execute (yamlgraph.node.name, yamlgraph.node.type, yamlgraph.state.keys_written, yamlgraph.node.error optional) spans sharing one trace id with correct parent/child linkage; variables_hash() is deterministic sha256 of canonical sorted-key JSON and never contains raw values. | `yamlgraph/observability/otel.py`, `yamlgraph/compile/node_otel.py`, `yamlgraph/compile/node_compiler.py`, `yamlgraph/cli/graph_commands.py`, `tests/unit/test_otel_observability.py` |
+
+### 214. CAP-214 Direct-Import Dependency Scanner
+
+scripts/direct_import_scan.py walks yamlgraph/ (core, strict) plus examples/, scripts/, tests/ (report-only) via AST, extracting every third-party top-level import (including nested/lazy imports inside functions and try/except blocks) and verifying each resolved distribution is declared somewhere in pyproject.toml — core dependencies OR any optional extra, never charging an optional-extra import to core (FR-761 C-4). Distribution-name comparison is PEP 503-normalized (langchain_anthropic == langchain-anthropic). A small, explicit PENDING_GAPS table tracks imports already dispositioned to a sibling FR (FR-760's langchain-core, FR-762's litellm/starlette/ protobuf) so the gate blocks only genuinely new undeclared core imports. --strict exits 1 on any non-pending core failure; report-only findings never fail the gate.
+
+**Feature Request:** FR-761
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-572 | Direct-import scanner contract (FR-761). AST-based extraction catches nested/lazy imports, not just top-level statements. stdlib modules (via sys.stdlib_module_names) and first-party top-level packages are excluded. Import names are resolved to distribution names via an alias table (yaml->pyyaml, google-> protobuf, bs4->beautifulsoup4, z3->z3-solver, etc.) then compared against declared dependencies using PEP 503 normalization so underscore/hyphen variants match. yamlgraph/ imports are core (strict); examples/, scripts/, tests/ are report-only and never fail --strict. PENDING_GAPS entries are always reported but never block --strict, and a stale entry becomes harmless once its owning FR declares the dependency (no code change required — it simply stops matching the undeclared branch). scan() accepts overridable repo_root/pyproject_path/core_roots/report_only_roots/pending_gaps so tests exercise isolated fixture trees, never the live repo. | `scripts/direct_import_scan.py`, `tests/unit/test_direct_import_scan.py` |
 
 <!-- END GENERATED CAPABILITIES -->
 

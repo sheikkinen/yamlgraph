@@ -45,6 +45,7 @@ dev = [
     "radon>=6.0.0",
     "vulture>=2.0",
     "bandit>=1.7.0",
+    "pip-audit>=2.7.0",
     "pre-commit>=3.0.0",
     "import-linter>=2.0",
 ]
@@ -115,6 +116,7 @@ mcp = [
 a2a = [
     "a2a-sdk[http-server]>=1.0.0a0,<2.0",
     "grpcio>=1.60.0",
+    "httpx>=0.27.0",  # yamlgraph/contrib/a2a_client.py direct import (FR-761 ownership fix)
 ]
 chatterbox = [
     "chatterbox-tts>=0.1.0",

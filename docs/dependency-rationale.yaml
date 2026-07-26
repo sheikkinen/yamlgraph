@@ -105,6 +105,19 @@ dependencies:
     modules: ["scripts/noqa_coverage.py"]
     added: "0.5.12"
 
+  pip-audit:
+    rationale: >
+      Dependency CVE scanner backing the CI `security` gate
+      (`.github/workflows/security.yml`). Declared in the `dev` extra
+      (FR-761) so the exact command CI runs — `pip-audit --desc
+      --skip-editable --ignore-vuln CVE-2026-3219` — is reproducible
+      locally with `pip install -e ".[dev]"` alone; previously it was
+      installed ad hoc beside `.[dev]` in CI only, making the local
+      environment unable to mechanically match the remote gate
+      (`automation_inherits_doctrine`).
+    modules: [".github/workflows/security.yml"]
+    added: "0.5.18"
+
   z3-solver:
     rationale: "SMT solver for lint-time condition verification (W803-W805, FR-719) — optional verify extra, never core; hand-rolled interval analysis is the regex_fourth_exclusion trap"
     modules: ["yamlgraph/linter/patterns/conditions_smt.py"]
@@ -208,8 +221,8 @@ dependencies:
     added: "0.3.0"
 
   httpx:
-    rationale: "Async HTTP client for booking and digest API calls"
-    modules: ["examples/booking/", "examples/daily_digest/"]
+    rationale: "Async HTTP client for booking and digest API calls; also the direct import in yamlgraph/contrib/a2a_client.py's A2A client transport (FR-761 direct-import ownership fix — a2a-sdk pulls httpx in transitively, but the direct import needs its own declaration under the a2a extra)"
+    modules: ["examples/booking/", "examples/daily_digest/", "yamlgraph/contrib/a2a_client.py"]
     added: "0.3.0"
 
   uvicorn:

@@ -107,6 +107,16 @@ repos:
 
   - repo: local
     hooks:
+      - id: direct-import-scan
+        name: direct-import-scan --strict
+        entry: .venv/bin/python scripts/direct_import_scan.py --strict
+        language: system
+        pass_filenames: false
+        files: (pyproject\.toml|^yamlgraph/.*\.py$|^scripts/direct_import_scan\.py$)
+        stages: [pre-commit]
+
+  - repo: local
+    hooks:
       - id: inline-llm-check
         name: inline LLM orchestration check
         entry: .venv/bin/python scripts/lint_inline_llm.py

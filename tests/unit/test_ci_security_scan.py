@@ -8,6 +8,8 @@ Two test layers:
 2. Documentation — verify CLAUDE.md documents the `security` status check.
 """
 
+from pathlib import Path
+
 import pytest
 import yaml
 
@@ -121,13 +123,23 @@ class TestSecurityJobStructure:
         assert python_steps, "Must have an actions/setup-python step"
 
     def test_install_dependencies_step(self) -> None:
-        """The job must install project dependencies and pip-audit."""
+        """The job must install project dependencies with pip-audit available.
+
+        FR-761: pip-audit is declared in the `dev` extra (pyproject.toml) rather
+        than installed ad hoc beside `.[dev]`, so the install step now installs
+        `.[dev]` and pip-audit rides along as a declared dev dependency.
+        """
         wf = _load_workflow()
         steps = wf["jobs"]["security"]["steps"]
         install_steps = [
-            s for s in steps if "run" in s and "pip-audit" in s.get("run", "")
+            s for s in steps if "run" in s and ".[dev]" in s.get("run", "")
         ]
-        assert install_steps, "Must have a step that installs pip-audit"
+        assert install_steps, "Must have a step that installs the dev extra"
+
+        pyproject_text = Path("pyproject.toml").read_text(encoding="utf-8")
+        assert (
+            "pip-audit" in pyproject_text
+        ), "pip-audit must be declared as a dependency (dev extra) in pyproject.toml"
 
     def test_pip_audit_step(self) -> None:
         """The job must run pip-audit with --desc and --skip-editable.
