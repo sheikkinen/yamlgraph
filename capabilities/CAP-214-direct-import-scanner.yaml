@@ -1,5 +1,5 @@
 name: Direct-Import Dependency Scanner
-id: CAP-212
+id: CAP-214
 status: active
 fr: FR-761
 feature_request: FR-761
@@ -20,7 +20,7 @@ description: >
 modules:
   - scripts/direct_import_scan.py
 requirements:
-  - id: REQ-YG-570
+  - id: REQ-YG-572
     description: >
       Direct-import scanner contract (FR-761). AST-based extraction
       catches nested/lazy imports, not just top-level statements.

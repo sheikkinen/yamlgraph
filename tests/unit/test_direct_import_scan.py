@@ -44,7 +44,7 @@ def _pyproject(
     return path
 
 
-@pytest.mark.req("REQ-YG-570")
+@pytest.mark.req("REQ-YG-572")
 def test_undeclared_core_import_fails(tmp_path: Path) -> None:
     """A core (yamlgraph/) import with no matching pyproject entry is a core failure."""
     _write(tmp_path, "yamlgraph/mod.py", "import totally_undeclared_pkg\n")
@@ -57,7 +57,7 @@ def test_undeclared_core_import_fails(tmp_path: Path) -> None:
     assert result.pending == []
 
 
-@pytest.mark.req("REQ-YG-570")
+@pytest.mark.req("REQ-YG-572")
 def test_declared_core_import_passes(tmp_path: Path) -> None:
     """A core import whose distribution is declared in pyproject core deps is not a failure."""
     _write(tmp_path, "yamlgraph/mod.py", "import pydantic\n")
@@ -69,7 +69,7 @@ def test_declared_core_import_passes(tmp_path: Path) -> None:
     assert result.findings == []
 
 
-@pytest.mark.req("REQ-YG-570")
+@pytest.mark.req("REQ-YG-572")
 def test_stdlib_and_first_party_excluded(tmp_path: Path) -> None:
     """stdlib modules and first-party top-level packages never produce findings."""
     _write(
@@ -84,7 +84,7 @@ def test_stdlib_and_first_party_excluded(tmp_path: Path) -> None:
     assert result.findings == []
 
 
-@pytest.mark.req("REQ-YG-570")
+@pytest.mark.req("REQ-YG-572")
 def test_nested_and_lazy_imports_are_caught(tmp_path: Path) -> None:
     """Imports inside functions/try-except (not just top-level statements) are extracted."""
     _write(
@@ -104,7 +104,7 @@ def test_nested_and_lazy_imports_are_caught(tmp_path: Path) -> None:
     assert result.core_failures[0].distribution == "lazy_undeclared_pkg"
 
 
-@pytest.mark.req("REQ-YG-570")
+@pytest.mark.req("REQ-YG-572")
 def test_alias_table_resolves_import_to_distribution(tmp_path: Path) -> None:
     """import yaml resolves to distribution 'pyyaml' via the alias table."""
     _write(tmp_path, "yamlgraph/mod.py", "import yaml\n")
@@ -115,7 +115,7 @@ def test_alias_table_resolves_import_to_distribution(tmp_path: Path) -> None:
     assert result.core_failures == []
 
 
-@pytest.mark.req("REQ-YG-570")
+@pytest.mark.req("REQ-YG-572")
 def test_underscore_hyphen_normalization(tmp_path: Path) -> None:
     """import langchain_anthropic matches a declared 'langchain-anthropic' dependency (PEP 503)."""
     _write(tmp_path, "yamlgraph/mod.py", "import langchain_anthropic\n")
@@ -126,14 +126,14 @@ def test_underscore_hyphen_normalization(tmp_path: Path) -> None:
     assert result.core_failures == []
 
 
-@pytest.mark.req("REQ-YG-570")
+@pytest.mark.req("REQ-YG-572")
 def test_normalize_helper() -> None:
     assert _normalize("langchain_anthropic") == "langchain-anthropic"
     assert _normalize("Langchain.Anthropic") == "langchain-anthropic"
     assert _normalize("langchain-anthropic>=0.3.0") != _normalize("langchain-anthropic")
 
 
-@pytest.mark.req("REQ-YG-570")
+@pytest.mark.req("REQ-YG-572")
 def test_optional_extra_import_satisfies_core_ownership(tmp_path: Path) -> None:
     """An import in yamlgraph/ declared only in an optional extra still passes (FR-761 C-4):
     optional-extra dependencies used by lazy/nested imports inside core files must not be
@@ -153,7 +153,7 @@ def test_optional_extra_import_satisfies_core_ownership(tmp_path: Path) -> None:
     assert result.core_failures == []
 
 
-@pytest.mark.req("REQ-YG-570")
+@pytest.mark.req("REQ-YG-572")
 def test_report_only_roots_never_fail_strict(tmp_path: Path) -> None:
     """Undeclared imports under examples/, scripts/, tests/ are findings but never core failures."""
     _write(tmp_path, "examples/demo/run.py", "import some_example_only_pkg\n")
@@ -169,7 +169,7 @@ def test_report_only_roots_never_fail_strict(tmp_path: Path) -> None:
     assert len(result.findings) == 3
 
 
-@pytest.mark.req("REQ-YG-570")
+@pytest.mark.req("REQ-YG-572")
 def test_pending_gaps_are_reported_but_not_blocking(tmp_path: Path) -> None:
     """A core import matching a surface-scoped PENDING_GAPS entry is reported
     separately and does not fail --strict."""
@@ -189,7 +189,7 @@ def test_pending_gaps_are_reported_but_not_blocking(tmp_path: Path) -> None:
     assert len(result.findings) == 1
 
 
-@pytest.mark.req("REQ-YG-570")
+@pytest.mark.req("REQ-YG-572")
 def test_excluded_roots_produce_no_findings(tmp_path: Path) -> None:
     """A directory outside core_roots/report_only_roots (e.g. docs/) is never scanned."""
     _write(tmp_path, "docs/snippet.py", "import totally_ignored_pkg\n")
@@ -200,7 +200,7 @@ def test_excluded_roots_produce_no_findings(tmp_path: Path) -> None:
     assert result.findings == []
 
 
-@pytest.mark.req("REQ-YG-570")
+@pytest.mark.req("REQ-YG-572")
 def test_module_level_import_not_satisfied_by_unrelated_extra(tmp_path: Path) -> None:
     """PR #463 review P1 regression: a module-level (unconditional) import in a
     yamlgraph/ file with no recognized owner mapping must fail if its
@@ -219,7 +219,7 @@ def test_module_level_import_not_satisfied_by_unrelated_extra(tmp_path: Path) ->
     assert result.core_failures[0].distribution == "some_new_pkg"
 
 
-@pytest.mark.req("REQ-YG-570")
+@pytest.mark.req("REQ-YG-572")
 def test_module_level_import_satisfied_by_recognized_owner_extra(
     tmp_path: Path,
 ) -> None:
@@ -237,7 +237,7 @@ def test_module_level_import_satisfied_by_recognized_owner_extra(
     assert result.core_failures == []
 
 
-@pytest.mark.req("REQ-YG-570")
+@pytest.mark.req("REQ-YG-572")
 def test_module_level_import_owner_mapping_is_specific_not_flattened(
     tmp_path: Path,
 ) -> None:
@@ -256,7 +256,7 @@ def test_module_level_import_owner_mapping_is_specific_not_flattened(
     assert result.core_failures[0].distribution == "orjson"
 
 
-@pytest.mark.req("REQ-YG-570")
+@pytest.mark.req("REQ-YG-572")
 def test_report_only_excludes_local_sibling_module(tmp_path: Path) -> None:
     """PR #463 review P2 regression: a report-only file importing a local
     sibling module/package (first-party example code reachable via
@@ -273,7 +273,7 @@ def test_report_only_excludes_local_sibling_module(tmp_path: Path) -> None:
     assert result.findings == []
 
 
-@pytest.mark.req("REQ-YG-570")
+@pytest.mark.req("REQ-YG-572")
 def test_report_only_excludes_local_sibling_module_file(tmp_path: Path) -> None:
     """Same as above, but the local sibling is a single `.py` file (not a
     package directory), e.g. `examples/daily_digest/tests/test_api.py`
@@ -287,7 +287,7 @@ def test_report_only_excludes_local_sibling_module_file(tmp_path: Path) -> None:
     assert result.findings == []
 
 
-@pytest.mark.req("REQ-YG-570")
+@pytest.mark.req("REQ-YG-572")
 def test_report_only_still_flags_genuinely_undeclared_import(tmp_path: Path) -> None:
     """The local-module exclusion must not suppress genuine report-only
     findings — only names that actually resolve to a real sibling file/dir
@@ -368,7 +368,7 @@ def test_taxonomy_local_sibling_module_excluded_under_strict_root(
     assert result.findings == []
 
 
-@pytest.mark.req("REQ-YG-570")
+@pytest.mark.req("REQ-YG-572")
 def test_top_level_try_import_is_core_surface(tmp_path: Path) -> None:
     """PR #463 review P1 regression: a top-level try/except import still
     executes at module import time, so it is part of the strict core
@@ -389,7 +389,7 @@ def test_top_level_try_import_is_core_surface(tmp_path: Path) -> None:
     assert result.core_failures[0].nested is False
 
 
-@pytest.mark.req("REQ-YG-570")
+@pytest.mark.req("REQ-YG-572")
 def test_top_level_try_import_satisfied_by_owner_extra(tmp_path: Path) -> None:
     """A top-level try/except import inside a recognized optional feature
     surface may still be satisfied by that surface's owning extra —
@@ -411,7 +411,7 @@ def test_top_level_try_import_satisfied_by_owner_extra(tmp_path: Path) -> None:
     assert result.core_failures == []
 
 
-@pytest.mark.req("REQ-YG-570")
+@pytest.mark.req("REQ-YG-572")
 def test_pending_gap_is_path_specific(tmp_path: Path) -> None:
     """PR #463 review P2 regression: a pending-gap disposition is tied to
     the specific file it was granted for — the same import name in any
@@ -434,7 +434,7 @@ def test_pending_gap_is_path_specific(tmp_path: Path) -> None:
     assert result.core_failures[0].file.endswith("new_core.py")
 
 
-@pytest.mark.req("REQ-YG-570")
+@pytest.mark.req("REQ-YG-572")
 def test_pending_gap_directory_prefix_scopes_matches(tmp_path: Path) -> None:
     """A pending-gap entry may name a directory prefix; files under it
     match, files outside it do not.
@@ -456,7 +456,7 @@ def test_pending_gap_directory_prefix_scopes_matches(tmp_path: Path) -> None:
     assert result.core_failures[0].file.endswith("other.py")
 
 
-@pytest.mark.req("REQ-YG-570")
+@pytest.mark.req("REQ-YG-572")
 def test_dotted_namespace_import_requires_namespace_distribution(
     tmp_path: Path,
 ) -> None:
@@ -479,7 +479,7 @@ def test_dotted_namespace_import_requires_namespace_distribution(
     assert result.core_failures[0].distribution == "langgraph-checkpoint-redis"
 
 
-@pytest.mark.req("REQ-YG-570")
+@pytest.mark.req("REQ-YG-572")
 def test_dotted_namespace_import_satisfied_by_declared_distribution(
     tmp_path: Path,
 ) -> None:
@@ -521,7 +521,40 @@ def test_taxonomy_absent_example_root_stays_plain_report_only(tmp_path: Path) ->
     assert len(result.findings) == 1
 
 
-@pytest.mark.req("REQ-YG-570")
+@pytest.mark.req("REQ-YG-572")
+def test_opentelemetry_namespace_resolution(tmp_path: Path) -> None:
+    """FR-759 merge: opentelemetry is a namespace package — nested imports
+    of the api, sdk, and otlp-exporter surfaces resolve to their own
+    distributions, all declared by the otel extra."""
+    _write(
+        tmp_path,
+        "yamlgraph/observability/otel.py",
+        "def setup():\n"
+        "    from opentelemetry import trace\n"
+        "    from opentelemetry.sdk.trace import TracerProvider\n"
+        "    from opentelemetry.exporter.otlp.proto.http.trace_exporter"
+        " import OTLPSpanExporter\n"
+        "    return trace, TracerProvider, OTLPSpanExporter\n",
+    )
+    pyproject = _pyproject(
+        tmp_path,
+        core_deps=[],
+        extras={
+            "otel": [
+                "opentelemetry-api",
+                "opentelemetry-sdk",
+                "opentelemetry-exporter-otlp",
+            ]
+        },
+    )
+
+    result = scan(STDLIB, repo_root=tmp_path, pyproject_path=pyproject)
+
+    assert result.core_failures == []
+    assert result.findings == []
+
+
+@pytest.mark.req("REQ-YG-572")
 def test_google_protobuf_dotted_resolution(tmp_path: Path) -> None:
     """`from google.protobuf.json_format import ParseDict` resolves to
     distribution `protobuf` via the dotted-prefix table."""
@@ -539,7 +572,7 @@ def test_google_protobuf_dotted_resolution(tmp_path: Path) -> None:
     assert result.findings == []
 
 
-@pytest.mark.req("REQ-YG-570")
+@pytest.mark.req("REQ-YG-572")
 def test_report_only_excludes_sys_path_inserted_example_root(
     tmp_path: Path,
 ) -> None:
@@ -565,7 +598,7 @@ def test_report_only_excludes_sys_path_inserted_example_root(
     assert result.findings == []
 
 
-@pytest.mark.req("REQ-YG-570")
+@pytest.mark.req("REQ-YG-572")
 def test_report_only_excludes_sys_path_inserted_src_root(tmp_path: Path) -> None:
     """PR #463 review P2 regression (rtm-hello shape): a test inserting a
     sibling `src/` dir onto sys.path and importing a module from it is
@@ -586,7 +619,7 @@ def test_report_only_excludes_sys_path_inserted_src_root(tmp_path: Path) -> None
     assert result.findings == []
 
 
-@pytest.mark.req("REQ-YG-570")
+@pytest.mark.req("REQ-YG-572")
 def test_sys_path_exclusion_does_not_hide_third_party(tmp_path: Path) -> None:
     """sys.path-root exclusion is evidence-based: an import with no matching
     module under any inserted root is still reported."""

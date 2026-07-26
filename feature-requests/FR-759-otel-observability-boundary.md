@@ -70,16 +70,16 @@ Out of scope (later FRs): LLM/tool/route/checkpoint/interrupt/verification spans
 
 ## Acceptance Criteria (revised per judgement)
 
-- [ ] AC-01: `pyproject.toml` defines an `otel` extra with OTEL API, SDK, and OTLP exporter packages; core install remains OTEL-free when the feature is disabled
-- [ ] AC-02: `docs/dependency-rationale.yaml` documents each added OTEL package; `python scripts/dependency_rationale.py --strict` passes
-- [ ] AC-03: With OTEL disabled, tests assert no OTEL import is required, no spans are emitted, and existing graph execution behavior is unchanged
-- [ ] AC-04: With OTEL explicitly enabled and the extra unavailable, graph execution fails before running nodes with a clear error naming the missing `otel` extra
-- [ ] AC-05: With OTEL enabled and an in-memory exporter configured, a hello graph run emits one `yamlgraph.graph.run` span and child `yamlgraph.node.execute` spans sharing one run identity
-- [ ] AC-06: Unit tests assert required graph/node span attributes, parent/child linkage, success outcome, error outcome, duration unit, state-key-written representation, and deterministic variables hash behavior
-- [ ] AC-07: `reference/` documents the frozen span schema as an attribute table matching the tests
-- [ ] AC-08: Hello-graph demo output includes a visible trace artifact or log, committed per demo-gate
-- [ ] AC-09: Tests are tagged with `@pytest.mark.req(...)`; a new or updated CAP file defines the governing REQ IDs
-- [ ] AC-10: A changelog fragment exists in `changelog/unreleased/`
+- [x] AC-01: `pyproject.toml` defines an `otel` extra with OTEL API, SDK, and OTLP exporter packages; core install remains OTEL-free when the feature is disabled
+- [x] AC-02: `docs/dependency-rationale.yaml` documents each added OTEL package; `python scripts/dependency_rationale.py --strict` passes
+- [x] AC-03: With OTEL disabled, tests assert no OTEL import is required, no spans are emitted, and existing graph execution behavior is unchanged
+- [x] AC-04: With OTEL explicitly enabled and the extra unavailable, graph execution fails before running nodes with a clear error naming the missing `otel` extra
+- [x] AC-05: With OTEL enabled and an in-memory exporter configured, a hello graph run emits one `yamlgraph.graph.run` span and child `yamlgraph.node.execute` spans sharing one run identity
+- [x] AC-06: Unit tests assert required graph/node span attributes, parent/child linkage, success outcome, error outcome, duration unit, state-key-written representation, and deterministic variables hash behavior
+- [x] AC-07: `reference/` documents the frozen span schema as an attribute table matching the tests
+- [x] AC-08: Hello-graph demo output includes a visible trace artifact or log, committed per demo-gate
+- [x] AC-09: Tests are tagged with `@pytest.mark.req(...)`; a new or updated CAP file defines the governing REQ IDs
+- [x] AC-10: A changelog fragment exists in `changelog/unreleased/`
 
 ## Alternatives Considered
 
@@ -93,7 +93,174 @@ Out of scope (later FRs): LLM/tool/route/checkpoint/interrupt/verification spans
 - FR-723 route decision log (`YAMLGRAPH_ROUTE_LOG`) — future route spans should subsume/correlate
 - Sibling FRs from the same research: FR-760, FR-761, FR-762
 
-**Prior art:** `106-otel-observability.md` (Proposed) is an earlier, undeveloped proposal on the same topic — superseded by this judged FR's concrete span schema and phased scope; not a duplicate to merge. `FR-363-per-node-otel-scoping-in-copilot-node.md` (Implemented) covers per-node OTEL export for copilot CLI nodes specifically — a narrower, already-shipped mechanism this FR's `YAMLGRAPH_OTEL_DIR` alternative explicitly declines to use as the spine (see Alternatives Considered). `FR-467-mission-control-unified-observability.md` (Proposed) is a higher-level dashboard/UI concern layered on top of a trace source; it consumes spans, it does not define them, so it does not overlap this FR's span-schema scope. `FR-231-model-provider-timing-comparison.md` (Implemented) is a one-off timing comparison tool, not a standing span schema or exporter boundary. None require scope changes here.
+**Prior art:** `106-otel-observability.md` (Proposed, unjudged) proposed a
+broad phased OTel layer (tools, routers, FSM transitions, TTS/STT, infra
+metrics) — this FR is the minimal first slice of that idea, scoped by
+its own judgement to graph-run + node-execution spans only; the broader
+layer remains future work, not superseded. `FR-362`/`FR-363`
+(Implemented) instrumented the `copilot_node.py` CLI subprocess path
+specifically (per-node file exporter, process-mining POC) — a different,
+narrower boundary (copilot CLI invocation timing) that this FR's design
+explicitly declines to reuse as the spine (see Alternatives Considered:
+"Reuse existing `YAMLGRAPH_OTEL_DIR`... rejected as the spine"); both
+remain valid, non-overlapping instrumentation points. `FR-467`
+(Proposed, unjudged) envisions a unified FSM+YAMLGraph "Mission Control"
+observability surface built atop OTel — this FR is the foundational
+span schema that surface would consume; no conflict, this FR does not
+touch FSM instrumentation.
+
+## Implementation Status (enforced 2026-07-26)
+
+All 10 acceptance criteria complete:
+
+- **AC-01/AC-02**: `otel` extra added to `pyproject.toml`
+  (`opentelemetry-api`/`opentelemetry-sdk`/`opentelemetry-exporter-otlp`,
+  all `>=1.0.0`); rationale entries added to
+  `docs/dependency-rationale.yaml`; `dependency_rationale.py --strict`
+  passes.
+- **AC-03/AC-04**: `yamlgraph/observability/otel.py` implements
+  `is_otel_enabled()` as a pure env-var check (no import when
+  disabled), and `graph_run_span()`/`node_execution_span()` no-op when
+  disabled. When `YAMLGRAPH_OTEL_EXPORT=otlp` is set but
+  `opentelemetry` cannot be imported, `OtelExtraMissingError` is raised
+  *before* the caller's block runs — verified with a `sys.modules`
+  patch so the test holds regardless of whether the extra happens to
+  be installed locally.
+- **AC-05/AC-06**: `yamlgraph/compile/node_otel.py` wraps every node function
+  compiled through a single `add_node` call in
+  `yamlgraph/compile/node_compiler.py` (llm, tool, python, agent,
+  tool_call, race, passthrough, copilot, subgraph) with
+  `_maybe_wrap_otel`, mirroring `node_timeout.py`'s existing wrapping
+  pattern. `yamlgraph/cli/graph_commands.py`'s `cmd_graph_run` wraps
+  the invoke call in `graph_run_span`, threading the checkpointer
+  thread id and setting `outcome="interrupted"` when the final result
+  contains `__interrupt__`. Manually verified end-to-end against the
+  hello demo with an `InMemorySpanExporter`/`ConsoleSpanExporter`:
+  correct trace-id sharing, parent/child linkage
+  (`node_span.parent.span_id == run_span.context.span_id`), and all
+  frozen attributes. 9 unit tests in
+  `tests/unit/test_otel_observability.py` cover disabled no-op,
+  extra-missing fail-fast, success path (parent/child linkage, all
+  required + optional attributes), error path (outcome=error,
+  node.error=exception-class-name-only, no message leakage), the
+  caller-reported interrupted outcome, and variables-hash determinism.
+- **AC-07**: `reference/otel-observability.md` documents the frozen
+  span schema as an attribute table matching the tests, plus the
+  enablement contract, run-identity/linkage model, and this
+  increment's coverage boundary.
+- **AC-08**: `examples/demos/hello/otel-trace-demo.txt` captures a
+  real console-exporter run of the hello graph showing both spans
+  (attributes, trace id, parent/child linkage, success outcome).
+  `examples/demos/hello/demo-output.log` regenerated per demo-gate
+  (this PR adds a new file under `examples/demos/hello/`, triggering
+  the gate).
+- **AC-09**: All 9 tests tagged `@pytest.mark.req("REQ-YG-570")`;
+  `capabilities/CAP-212-otel-observability-boundary.yaml` registers
+  REQ-YG-570; `ARCHITECTURE.md`'s capability and requirement tables
+  updated. `req_coverage.py --strict` passes (CAP-212: 1/1 reqs, 9
+  tests).
+- **AC-10**: `changelog/unreleased/fr759-otel-observability-boundary.md`.
+
+**Scope discipline (R-3/R-4, C-5):** node-execution span wrapping was
+applied to every node type compiled via a single `add_node` call site
+(9 types) rather than only `llm` — a low-risk generalization of the
+same boundary, not a scope expansion — while `map`, `interrupt`, and
+`verify` nodes (multi-node/edge compile paths) were left unwrapped as
+explicitly out of scope for this increment. No `langchain-core`
+declaration, lockfile/scan/pip-audit governance, or example-dependency
+taxonomy work was touched, per C-5/R-4.
+
+## PR #465 review fixes (2026-07-26)
+
+**P1 — run id is now UUIDv7, not UUIDv4.** The frozen schema
+(`yamlgraph.run.id: str (UUIDv7)`) was implemented with `uuid.uuid4()` —
+source-of-truth drift the reviewer caught by comparing the FR text,
+the implementation, and the reference doc side by side.
+`otel.py`'s `_generate_run_id()` now constructs an RFC 9562 UUIDv7
+directly (48-bit millisecond timestamp + version/variant bits + random
+tail) since this repo targets Python 3.11+ and `uuid.uuid7()` is
+stdlib-only from 3.14. `test_enabled_success_emits_parent_and_child_spans`
+now asserts `uuid.UUID(run_ctx.run_id).version == 7`, not just
+non-null/string-typed.
+
+**P2 — disabled/missing-extra tests now run without the `otel` extra
+installed.** The test module previously imported `opentelemetry.sdk`
+at module scope via `pytest.importorskip`, so the ENTIRE file skipped
+in a no-extra environment — including the disabled-no-op and
+missing-extra tests that are supposed to prove the core install stays
+OTEL-free. The SDK import is now `try`/`except ImportError`-guarded and
+gates only the 4 in-memory-exporter tests via a `skipif` marker; a new
+`test_disabled_no_op_when_opentelemetry_entirely_unavailable` blocks
+`import opentelemetry` itself (not just the SDK) to prove the no-op
+path never touches OpenTelemetry at all. CI's `core-test` job no longer
+installs the `otel` extra, giving this a real no-extra validation
+environment instead of relying solely on `sys.modules` patching inside
+an environment that happens to have the extra installed.
+
+**P3 — node-type coverage aligned with the frozen contract.**
+`_compile_race_node` now wraps its node function with
+`_maybe_wrap_otel(..., NodeType.RACE)` (previously omitted, contradicting
+the documented coverage claim). `_compile_llm_node` — shared by both
+`llm` and `router` YAML types — now passes the node's actual declared
+`type` from graph config into the wrapper instead of hardcoding
+`NodeType.LLM`, so router spans correctly report `yamlgraph.node.type
+== "router"`. Three new tests in
+`tests/unit/test_node_compiler_branches.py`
+(`TestCompileNodeOtelNodeType`) assert the wrapper receives `llm`,
+`router`, and `race` respectively; `test_race_node.py`'s existing
+no-double-timeout-wrap test updated to also patch `_maybe_wrap_otel`
+now that race nodes are wrapped.
+
+All three fixes verified: full `pytest tests/unit/` (5234 passed, 74
+skipped, 1 xfailed — zero regressions), a manual no-extra probe
+(blocking `import opentelemetry` entirely) showing 6 pass / 4 skip
+instead of the reviewer's cited "1 skipped, exit 5", and a direct UUIDv7
+version check on 5 generated ids.
+
+## PR #465 review fixes, round 2 (2026-07-26)
+
+**P1 — `_configure_exporter_if_needed()`'s own imports bypassed
+`OtelExtraMissingError`.** Only `_ensure_otel_available()`'s top-level
+`from opentelemetry import trace` was guarded; the SDK
+(`opentelemetry.sdk.trace.TracerProvider`) and exporter
+(`opentelemetry.exporter.otlp.proto.http.trace_exporter.OTLPSpanExporter`,
+`opentelemetry.sdk.trace.export.BatchSpanProcessor`) imports inside
+`_configure_exporter_if_needed()` were unguarded — a partial install
+(`opentelemetry-api` present, `opentelemetry-sdk`/the OTLP exporter
+package missing) raised a raw `ImportError` instead of the documented
+clear error naming the `otel` extra and its install command.
+
+Both imports are now wrapped in their own `try`/`except ImportError`,
+each re-raised as `OtelExtraMissingError` with the same
+`pip install "yamlgraph[otel]"` guidance. The SDK import (needed for the
+`isinstance(..., TracerProvider)` already-configured check) is guarded
+first; the exporter import is guarded separately and only reached once
+that check has determined a new provider actually needs configuring —
+preserving the function's existing laziness (an exporter import is never
+attempted when a host process has already installed its own
+TracerProvider) while closing the gap for both possible partial-install
+shapes.
+
+Two new regression tests in `test_otel_observability.py` call
+`_configure_exporter_if_needed()` directly with a fake `trace` object
+(no real `opentelemetry` import needed), `monkeypatch.setitem`-blocking
+`opentelemetry.sdk.trace` and
+`opentelemetry.exporter.otlp.proto.http.trace_exporter` respectively via
+`sys.modules`, and assert `OtelExtraMissingError` (not a bare
+`ImportError`) is raised in each case. Both tests run in a core-only
+(no `otel` extra) environment, matching the P2 fix from round 1.
+
+**Non-blocking cleanup applied:** removed a duplicated
+`@requires_otel_sdk` decorator on
+`test_enabled_success_emits_parent_and_child_spans`, and deleted five
+stale `docs/confessions.md` entries (CONF-399–403) that documented a
+`pytest.importorskip("opentelemetry.sdk")` module shape the file no
+longer contains (superseded by round 1's P2 fix) — the confession log
+now matches the file's actual `noqa` surface (zero, currently).
+
+Verified: `pytest tests/unit/test_otel_observability.py
+tests/unit/test_fr363_per_node_otel_scoping_red.py -q --no-cov` (16
+passed), `python scripts/noqa_coverage.py --strict` (0 undocumented).
 
 ## Judgement (2026-07-26)
 

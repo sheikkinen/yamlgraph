@@ -772,16 +772,18 @@ class TestRaceTimeoutNoDoubleWrap:
     """
 
     @pytest.mark.req("REQ-YG-266")
+    @patch("yamlgraph.compile.node_compiler._maybe_wrap_otel")
     @patch("yamlgraph.compile.node_compiler._maybe_wrap_timeout")
     @patch("yamlgraph.compile.node_compiler.create_race_node")
     def test_compile_race_node_does_not_wrap_timeout(
-        self, mock_create_race, mock_wrap_timeout
+        self, mock_create_race, mock_wrap_timeout, mock_wrap_otel
     ):
         """_compile_race_node must NOT call _maybe_wrap_timeout."""
         from yamlgraph.compile.node_compiler import _compile_race_node
 
         mock_node_fn = MagicMock()
         mock_create_race.return_value = mock_node_fn
+        mock_wrap_otel.side_effect = lambda fn, name, node_type: fn
 
         ctx = MagicMock()
         ctx.node_name = "race_test"

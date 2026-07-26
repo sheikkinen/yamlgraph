@@ -345,3 +345,20 @@ dependencies:
     rationale: "FR-762 example dependency taxonomy: examples/dungeon_master/api/plot/up_model.py uses unified_planning's PDDL-style planner for the plot causal model (previously undeclared anywhere)"
     modules: ["examples/dungeon_master/api/plot/up_model.py"]
     added: "0.5.18"
+
+  # ─── Optional: OpenTelemetry ─────────────────────────────────────────
+
+  opentelemetry-api:
+    rationale: "OpenTelemetry tracing API for the opt-in graph-run/node-execution observability boundary (FR-759)"
+    modules: ["yamlgraph/observability/otel.py"]
+    added: "0.5.18"
+
+  opentelemetry-sdk:
+    rationale: "OpenTelemetry SDK (TracerProvider, span processors) backing the opt-in observability boundary (FR-759)"
+    modules: ["yamlgraph/observability/otel.py"]
+    added: "0.5.18"
+
+  opentelemetry-exporter-otlp:
+    rationale: "OTLP exporter used when YAMLGRAPH_OTEL_EXPORT=otlp is set, sending spans to an OTLP collector (FR-759)"
+    modules: ["yamlgraph/observability/otel.py"]
+    added: "0.5.18"
