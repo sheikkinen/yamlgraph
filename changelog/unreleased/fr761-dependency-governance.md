@@ -16,11 +16,16 @@ req: REQ-YG-570
   require core `[project.dependencies]` unless the file matches a
   known optional feature surface (`PATH_PREFIX_OWNERS` — e.g.
   `storage/simple_redis.py` → `redis-simple`, `contrib/a2a_client.py`
-  and `a2a/` → `a2a`), in which case that surface's owning extra also
+  and `a2a/` → `a2a`, `export/mcp.py` → `mcp`, `utils/fsm/` → `fsm`),
+  in which case that surface's owning extra also
   counts; nested/lazy imports (multi-provider-factory pattern) may be
-  satisfied by any declared group. Report-only findings under
+  satisfied by any declared group. Top-level `try/except` imports
+  execute at import time and are treated as module-level surface
+  (PR #463 review P1). Report-only findings under
   `examples/`, `scripts/`, `tests/` exclude first-party local sibling
-  modules/packages. A `PENDING_GAPS` table tracks imports already
+  modules/packages. A `PENDING_GAPS` table, keyed by
+  (path-prefix, import-name) so dispositions are surface-scoped and
+  never global by distribution name (PR #463 review P2), tracks imports already
   dispositioned to sibling FRs (FR-760's `langchain-core`, FR-762's
   `litellm`/`starlette`/`protobuf`) so the gate blocks only genuinely
   new undeclared core imports. Wired into `.pre-commit-config.yaml` as

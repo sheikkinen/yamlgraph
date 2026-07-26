@@ -171,7 +171,8 @@ def test_report_only_roots_never_fail_strict(tmp_path: Path) -> None:
 
 @pytest.mark.req("REQ-YG-570")
 def test_pending_gaps_are_reported_but_not_blocking(tmp_path: Path) -> None:
-    """A core import matching PENDING_GAPS is reported separately and does not fail --strict."""
+    """A core import matching a surface-scoped PENDING_GAPS entry is reported
+    separately and does not fail --strict."""
     _write(tmp_path, "yamlgraph/mod.py", "import langchain_core\n")
     pyproject = _pyproject(tmp_path, core_deps=[])
 
@@ -179,7 +180,7 @@ def test_pending_gaps_are_reported_but_not_blocking(tmp_path: Path) -> None:
         STDLIB,
         repo_root=tmp_path,
         pyproject_path=pyproject,
-        pending_gaps={"langchain_core": "FR-760 test fixture"},
+        pending_gaps={("yamlgraph/mod.py", "langchain_core"): "FR-760 test fixture"},
     )
 
     assert result.core_failures == []

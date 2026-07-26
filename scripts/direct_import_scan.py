@@ -14,8 +14,10 @@ Ownership model (frozen by FR-761 judgement, R-2):
       the file is a recognized optional feature surface (see
       PATH_PREFIX_OWNERS below), in which case it may also be satisfied
       by that surface's owning extra(s).
-    - yamlgraph/ nested/lazy imports (inside a function, method, or
-      try/except body): these represent deferred, provider-selection-style
+    - yamlgraph/ nested/lazy imports (inside a function or method body
+      — NOT top-level try/except, which still executes at import time
+      and is treated as module-level): these represent deferred,
+      provider-selection-style
       loads (e.g. `utils/llm_providers.py` importing a different provider
       SDK per branch). They may be satisfied by declaration in core OR
       ANY optional extra — tightening this to per-file ownership would
@@ -40,9 +42,11 @@ files without an explicit owner mapping must be genuinely core.
 Known pending gaps: a small number of currently-undeclared imports are
 already dispositioned to a sibling FR (FR-760's langchain-core, FR-762's
 example/provider dependency taxonomy). These are tracked explicitly in
-PENDING_GAPS below — visible in every run, never silently ignored — so
+PENDING_GAPS below, scoped to the exact file or directory surface they
+were granted for — visible in every run, never silently ignored — so
 this gate does not fail CI for defects already owned and scheduled
-elsewhere, while still catching any *new* undeclared import immediately.
+elsewhere, while still catching any *new* undeclared import (including
+the same distribution name at any other surface) immediately.
 
 Usage:
     python scripts/direct_import_scan.py           # summary + all findings
@@ -91,16 +95,46 @@ IMPORT_TO_DIST: dict[str, str] = {
 }
 
 # Known, already-dispositioned undeclared imports pending a sibling FR's
-# fix. Format: import name -> (owning FR, human note). These are always
-# reported (never hidden) but do not fail --strict. Remove an entry once
-# its owning FR declares the dependency — a stale entry here would then be
-# harmless (the import will simply resolve as declared and stop matching
-# the "undeclared" branch).
-PENDING_GAPS: dict[str, str] = {
-    "litellm": "FR-762 — Replicate provider frozen table: declare litellm explicitly in replicate extra",
-    "starlette": "FR-762 — A2A/openai-proxy frozen table: declare starlette explicitly in a2a extra",
-    "protobuf": "FR-762 — A2A frozen table: declare protobuf explicitly in a2a extra (google.protobuf import)",
-    "langchain_core": "FR-760 — declares langchain-core as an explicit core dependency (PR open at scanner authoring time); this worktree predates that merge",
+# fix. Format: (path prefix, import name) -> (owning FR, human note). The
+# path prefix is an exact file path or a directory prefix relative to the
+# repo root (POSIX-style) — the disposition applies ONLY to imports at
+# that surface (PR #463 review P2: a name-only exemption would whitelist
+# brand-new imports of the same distribution anywhere under yamlgraph/).
+# Entries are always reported (never hidden) but do not fail --strict.
+# Remove an entry once its owning FR declares the dependency.
+PENDING_GAPS: dict[tuple[str, str], str] = {
+    ("yamlgraph/utils/llm_providers.py", "litellm"): (
+        "FR-762 — Replicate provider frozen table: declare litellm explicitly"
+        " in replicate extra"
+    ),
+    ("yamlgraph/a2a", "starlette"): (
+        "FR-762 — A2A frozen table: declare starlette explicitly in a2a extra"
+    ),
+    ("yamlgraph/cli/a2a_commands.py", "starlette"): (
+        "FR-762 — A2A frozen table: declare starlette explicitly in a2a extra"
+    ),
+    ("yamlgraph/contrib/a2a_client.py", "starlette"): (
+        "FR-762 — A2A frozen table: declare starlette explicitly in a2a extra"
+    ),
+    ("yamlgraph/a2a", "protobuf"): (
+        "FR-762 — A2A frozen table: declare protobuf explicitly in a2a extra"
+        " (google.protobuf import)"
+    ),
+    ("yamlgraph/cli/a2a_commands.py", "protobuf"): (
+        "FR-762 — A2A frozen table: declare protobuf explicitly in a2a extra"
+        " (google.protobuf import)"
+    ),
+    ("yamlgraph/contrib/a2a_client.py", "protobuf"): (
+        "FR-762 — A2A frozen table: declare protobuf explicitly in a2a extra"
+        " (google.protobuf import)"
+    ),
+    ("yamlgraph", "langchain_core"): (
+        "FR-760 — declares langchain-core as an explicit core dependency"
+        " (PR open at scanner authoring time); this worktree predates that"
+        " merge. langchain_core is the effective runtime contract across"
+        " core modules (executor, llm_factory, tools, streaming), so the"
+        " disposition surface is yamlgraph/ itself; entry dies with FR-760."
+    ),
 }
 
 
@@ -122,6 +156,8 @@ PATH_PREFIX_OWNERS: dict[str, frozenset[str]] = {
     "yamlgraph/contrib/a2a_client.py": frozenset({"a2a"}),
     "yamlgraph/a2a": frozenset({"a2a"}),
     "yamlgraph/cli/a2a_commands.py": frozenset({"a2a"}),
+    "yamlgraph/export/mcp.py": frozenset({"mcp"}),
+    "yamlgraph/utils/fsm": frozenset({"fsm"}),
 }
 
 
@@ -179,27 +215,42 @@ def _extract_imports(path: Path) -> list[tuple[str, int, bool]]:
 
     Uses ast.walk (not just top-level statements) so lazy/nested imports
     inside functions or try/except blocks are caught. `is_nested` is True
-    for anything not a direct child of the module body (i.e. not a plain
-    top-level, unconditional import). Relative imports (level > 0) are
-    excluded — they are always first-party by definition.
+    only for imports that do NOT execute unconditionally at module import
+    time: anything inside a function/method body or other deferred scope.
+    Imports that are direct children of the module body, OR inside a
+    top-level try/except/else/finally block, DO execute on import and are
+    therefore module-level (PR #463 review P1: a top-level try-guarded
+    import is still part of the core import surface). Relative imports
+    (level > 0) are excluded — they are always first-party by definition.
     """
     try:
         tree = ast.parse(path.read_text(encoding="utf-8"))
     except (SyntaxError, UnicodeDecodeError):
         return []
 
-    top_level_ids = {id(node) for node in tree.body}
+    module_level_ids: set[int] = set()
+    stack: list[ast.stmt] = list(tree.body)
+    while stack:
+        node = stack.pop()
+        module_level_ids.add(id(node))
+        if isinstance(node, ast.Try):
+            stack.extend(node.body)
+            stack.extend(node.orelse)
+            stack.extend(node.finalbody)
+            for handler in node.handlers:
+                stack.extend(handler.body)
+
     results: list[tuple[str, int, bool]] = []
     for node in ast.walk(tree):
         if isinstance(node, ast.Import):
-            nested = id(node) not in top_level_ids
+            nested = id(node) not in module_level_ids
             for alias in node.names:
                 results.append((alias.name.split(".")[0], node.lineno, nested))
         elif isinstance(node, ast.ImportFrom):
             if node.level and node.level > 0:
                 continue
             if node.module:
-                nested = id(node) not in top_level_ids
+                nested = id(node) not in module_level_ids
                 results.append((node.module.split(".")[0], node.lineno, nested))
     return results
 
@@ -219,6 +270,27 @@ def _owner_extras_for(rel_path_posix: str) -> frozenset[str] | None:
     for prefix, owners in PATH_PREFIX_OWNERS.items():
         if rel_path_posix == prefix or rel_path_posix.startswith(prefix + "/"):
             return owners
+    return None
+
+
+def _pending_note_for(
+    rel_path_posix: str,
+    import_name: str,
+    distribution: str,
+    pending: dict[tuple[str, str], str],
+) -> str | None:
+    """Return the pending-gap note covering this exact surface, if any.
+
+    A pending entry (prefix, name) matches only when the finding's file is
+    the prefix itself or lives under "<prefix>/" AND the name equals the
+    import name or resolved distribution (PR #463 review P2: dispositions
+    are surface-scoped, never global by name).
+    """
+    for (prefix, name), note in pending.items():
+        if name not in (import_name, distribution):
+            continue
+        if rel_path_posix == prefix or rel_path_posix.startswith(prefix + "/"):
+            return note
     return None
 
 
@@ -274,7 +346,7 @@ def scan(
     pyproject_path: Path | None = None,
     core_roots: tuple[str, ...] = CORE_ROOTS,
     report_only_roots: tuple[str, ...] = REPORT_ONLY_ROOTS,
-    pending_gaps: dict[str, str] | None = None,
+    pending_gaps: dict[tuple[str, str], str] | None = None,
 ) -> ScanResult:
     """Scan a repository tree and classify every third-party import.
 
@@ -345,7 +417,7 @@ def scan(
             result.findings.append(finding)
             if path_class != "core":
                 continue
-            if distribution in pending or import_name in pending:
+            if _pending_note_for(rel_posix, import_name, distribution, pending):
                 result.pending.append(finding)
             else:
                 result.core_failures.append(finding)
@@ -398,8 +470,11 @@ def main() -> int:
         if result.pending:
             print("Core pending (see PENDING_GAPS):")
             for f in result.pending:
-                note = PENDING_GAPS.get(f.distribution) or PENDING_GAPS.get(
-                    f.import_name
+                note = _pending_note_for(
+                    f.file.replace("\\", "/"),
+                    f.import_name,
+                    f.distribution,
+                    PENDING_GAPS,
                 )
                 print(f"  ⏳ {_format_finding(f, note)}")
         if detail and report_only:
