@@ -299,3 +299,91 @@ def test_report_only_still_flags_genuinely_undeclared_import(tmp_path: Path) -> 
 
     assert len(result.findings) == 1
     assert result.findings[0].distribution == "genuinely_missing_pkg"
+
+
+@pytest.mark.req("REQ-YG-570")
+def test_top_level_try_import_is_core_surface(tmp_path: Path) -> None:
+    """PR #463 review P1 regression: a top-level try/except import still
+    executes at module import time, so it is part of the strict core
+    import surface — an unrelated optional extra declaring the same
+    distribution must not exempt it.
+    """
+    _write(
+        tmp_path,
+        "yamlgraph/core.py",
+        "try:\n    import httpx\nexcept ImportError:\n    pass\n",
+    )
+    pyproject = _pyproject(tmp_path, core_deps=[], extras={"booking": ["httpx>=0.27"]})
+
+    result = scan(STDLIB, repo_root=tmp_path, pyproject_path=pyproject)
+
+    assert len(result.core_failures) == 1
+    assert result.core_failures[0].distribution == "httpx"
+    assert result.core_failures[0].nested is False
+
+
+@pytest.mark.req("REQ-YG-570")
+def test_top_level_try_import_satisfied_by_owner_extra(tmp_path: Path) -> None:
+    """A top-level try/except import inside a recognized optional feature
+    surface may still be satisfied by that surface's owning extra —
+    module-level ownership rules apply, not the any-extra shortcut.
+    """
+    owned = next(iter(PATH_PREFIX_OWNERS))
+    owner_extra = next(iter(PATH_PREFIX_OWNERS[owned]))
+    _write(
+        tmp_path,
+        owned if owned.endswith(".py") else f"{owned}/mod.py",
+        "try:\n    import ownedpkg\nexcept ImportError:\n    pass\n",
+    )
+    pyproject = _pyproject(
+        tmp_path, core_deps=[], extras={owner_extra: ["ownedpkg>=1.0"]}
+    )
+
+    result = scan(STDLIB, repo_root=tmp_path, pyproject_path=pyproject)
+
+    assert result.core_failures == []
+
+
+@pytest.mark.req("REQ-YG-570")
+def test_pending_gap_is_path_specific(tmp_path: Path) -> None:
+    """PR #463 review P2 regression: a pending-gap disposition is tied to
+    the specific file it was granted for — the same import name in any
+    other file is a blocking core failure, not a pending entry.
+    """
+    _write(tmp_path, "yamlgraph/providers.py", "import litellm\n")
+    _write(tmp_path, "yamlgraph/new_core.py", "import litellm\n")
+    pyproject = _pyproject(tmp_path, core_deps=[])
+
+    result = scan(
+        STDLIB,
+        repo_root=tmp_path,
+        pyproject_path=pyproject,
+        pending_gaps={("yamlgraph/providers.py", "litellm"): "FR-762 fixture"},
+    )
+
+    assert len(result.pending) == 1
+    assert result.pending[0].file.endswith("providers.py")
+    assert len(result.core_failures) == 1
+    assert result.core_failures[0].file.endswith("new_core.py")
+
+
+@pytest.mark.req("REQ-YG-570")
+def test_pending_gap_directory_prefix_scopes_matches(tmp_path: Path) -> None:
+    """A pending-gap entry may name a directory prefix; files under it
+    match, files outside it do not.
+    """
+    _write(tmp_path, "yamlgraph/a2a/server.py", "import starlette\n")
+    _write(tmp_path, "yamlgraph/other.py", "import starlette\n")
+    pyproject = _pyproject(tmp_path, core_deps=[])
+
+    result = scan(
+        STDLIB,
+        repo_root=tmp_path,
+        pyproject_path=pyproject,
+        pending_gaps={("yamlgraph/a2a", "starlette"): "FR-762 fixture"},
+    )
+
+    assert len(result.pending) == 1
+    assert result.pending[0].file.endswith("server.py")
+    assert len(result.core_failures) == 1
+    assert result.core_failures[0].file.endswith("other.py")
