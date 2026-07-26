@@ -17,5 +17,9 @@ req: REQ-YG-570
   `tool_call`, `race`, `passthrough`, `copilot`, `subgraph`). The
   disabled/missing-extra tests run without the `otel` extra installed;
   CI's `core-test` job validates this no-extra path directly. LangSmith
-  tracing is unaffected — this is a parallel exporter path.
+  tracing is unaffected — this is a parallel exporter path. Round 2 fix:
+  `_configure_exporter_if_needed()`'s own SDK/exporter imports now raise
+  `OtelExtraMissingError` on a partial install instead of a raw
+  `ImportError` (previously only the top-level `opentelemetry` import
+  was guarded); 2 new regression tests.
   (REQ-YG-570, CAP-212)

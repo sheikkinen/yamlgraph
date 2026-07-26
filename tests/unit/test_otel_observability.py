@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import sys
 import uuid
+from types import SimpleNamespace
 
 import pytest
 
@@ -130,6 +131,38 @@ def test_enabled_but_extra_missing_fails_before_execution(monkeypatch):
 
 
 @pytest.mark.req("REQ-YG-570")
+def test_configure_exporter_raises_clear_error_when_sdk_missing(monkeypatch):
+    """AC-04 follow-up (PR #465 review, round 2): a partial install where
+    ``opentelemetry`` (api-only) imports fine but ``opentelemetry-sdk`` is
+    absent must still raise :class:`OtelExtraMissingError`, not a raw
+    ``ImportError`` — previously only the top-level `opentelemetry` import
+    in `_ensure_otel_available()` was guarded; `_configure_exporter_if_needed()`'s
+    own SDK import was not."""
+    monkeypatch.setitem(sys.modules, "opentelemetry.sdk.trace", None)
+    otel._provider_configured = False
+    fake_trace = SimpleNamespace(get_tracer_provider=lambda: object())
+
+    with pytest.raises(otel.OtelExtraMissingError, match="otel"):
+        otel._configure_exporter_if_needed(fake_trace)
+
+
+@pytest.mark.req("REQ-YG-570")
+def test_configure_exporter_raises_clear_error_when_exporter_missing(monkeypatch):
+    """Same guard, narrower gap: SDK present but the OTLP HTTP exporter
+    package itself is missing (PR #465 review, round 2)."""
+    monkeypatch.setitem(
+        sys.modules,
+        "opentelemetry.exporter.otlp.proto.http.trace_exporter",
+        None,
+    )
+    otel._provider_configured = False
+    fake_trace = SimpleNamespace(get_tracer_provider=lambda: object())
+
+    with pytest.raises(otel.OtelExtraMissingError, match="otel"):
+        otel._configure_exporter_if_needed(fake_trace)
+
+
+@pytest.mark.req("REQ-YG-570")
 def test_disabled_no_op_when_opentelemetry_entirely_unavailable(monkeypatch):
     """AC-03: the disabled path must not require ``opentelemetry`` to be
     importable at all — blocked here (rather than relying on it merely
@@ -144,7 +177,6 @@ def test_disabled_no_op_when_opentelemetry_entirely_unavailable(monkeypatch):
         node_ctx.keys_written = ["greeting"]
 
 
-@requires_otel_sdk
 @requires_otel_sdk
 @pytest.mark.req("REQ-YG-570")
 def test_enabled_success_emits_parent_and_child_spans(in_memory_exporter):

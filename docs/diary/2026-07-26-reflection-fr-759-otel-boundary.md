@@ -62,3 +62,44 @@ enforces" pattern, not three unrelated defects. A single audit pass
 ("for every frozen schema field, does a test assert the field's most
 specific stated property, not just its type?") would have caught all
 three before review rather than after.
+
+## Follow-up: PR #465 review, round 2 (2026-07-26)
+
+The round-2 finding was a narrower instance of round 1's own P2 fix
+applied incompletely: P2 correctly guarded the top-level `import
+opentelemetry` so the disabled path never requires the extra, but the
+SAME "wrap the import, don't trust the caller's environment" discipline
+wasn't propagated to the *second* place OpenTelemetry gets imported —
+`_configure_exporter_if_needed()`'s SDK and exporter imports, which only
+execute once OTEL is actually enabled. Fixing the entry point (the
+top-level check) felt complete because it was the visible boundary named
+in the FR text; the second, lazier import site deeper in the same module
+was invisible to a review pass that stopped at "does the documented
+error path work" rather than "does EVERY OpenTelemetry import in this
+file share the same guard."
+
+This is `two_strike_split`'s shape one level down: not a second guard
+firing on the same code, but the same fix pattern needing to be applied
+a second time within one module because the module has two independent
+import boundaries (api-presence, sdk/exporter-presence) that look like
+one boundary from the outside (both live under `is_otel_enabled()`'s
+umbrella) but fail independently in practice — `opentelemetry-api` and
+`opentelemetry-sdk` are genuinely separate PyPI packages that can be
+installed independently.
+
+**Heuristic:** When a module imports the same optional third-party
+package family at more than one call site, the guard discipline applied
+to the first (usually the most visible, entry-point) call site must be
+verified — not assumed — at every other call site importing any part of
+that family, even ones gated behind a runtime condition (`if
+is_otel_enabled()`) that makes them look like they "can't be reached
+independently." grep for every `import opentelemetry` (or the
+equivalent for any optional-extra package) in the file being reviewed,
+not just the one the FR's prose calls out by name.
+
+**Seed:** Could a lint rule or `noqa`-adjacent convention flag "raw
+`import <optional-package>` outside a function already proven to be
+guarded by the SAME error class" — turning "did every import in this
+file get the same treatment" from a manual review question into a
+mechanical, repo-wide gate the way `noqa_coverage.py` already does for
+undocumented suppressions?

@@ -145,22 +145,45 @@ def _configure_exporter_if_needed(trace: Any) -> None:
     Idempotent, and defers to any TracerProvider a test or host
     application has already installed (e.g. one wired to an in-memory
     exporter) rather than overwriting it.
+
+    Raises :class:`OtelExtraMissingError` (not a raw ``ImportError``) if
+    the SDK/exporter submodules are unavailable on a partial install
+    (``opentelemetry-api`` present without ``opentelemetry-sdk``/the
+    OTLP exporter package) — mirrors :func:`_ensure_otel_available`'s
+    guard for the top-level ``opentelemetry`` import (PR #465 review,
+    round 2).
     """
     global _provider_configured
     if _provider_configured:
         return
 
-    from opentelemetry.sdk.trace import TracerProvider
+    try:
+        from opentelemetry.sdk.trace import TracerProvider
+    except ImportError as e:
+        raise OtelExtraMissingError(
+            f"{ENV_VAR}={ENABLED_VALUE} requested OTEL export, but the "
+            "'otel' extra is not fully installed (opentelemetry-api present, "
+            "opentelemetry-sdk missing). Install it with: "
+            'pip install "yamlgraph[otel]"'
+        ) from e
 
     if isinstance(trace.get_tracer_provider(), TracerProvider):
         # Already configured by the host process/test — respect it.
         _provider_configured = True
         return
 
-    from opentelemetry.exporter.otlp.proto.http.trace_exporter import (
-        OTLPSpanExporter,
-    )
-    from opentelemetry.sdk.trace.export import BatchSpanProcessor
+    try:
+        from opentelemetry.exporter.otlp.proto.http.trace_exporter import (
+            OTLPSpanExporter,
+        )
+        from opentelemetry.sdk.trace.export import BatchSpanProcessor
+    except ImportError as e:
+        raise OtelExtraMissingError(
+            f"{ENV_VAR}={ENABLED_VALUE} requested OTEL export, but the "
+            "'otel' extra is not fully installed (opentelemetry-sdk present, "
+            "the OTLP HTTP exporter package missing). Install it with: "
+            'pip install "yamlgraph[otel]"'
+        ) from e
 
     provider = TracerProvider()
     provider.add_span_processor(BatchSpanProcessor(OTLPSpanExporter()))

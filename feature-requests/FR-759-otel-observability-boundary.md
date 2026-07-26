@@ -217,6 +217,51 @@ skipped, 1 xfailed — zero regressions), a manual no-extra probe
 instead of the reviewer's cited "1 skipped, exit 5", and a direct UUIDv7
 version check on 5 generated ids.
 
+## PR #465 review fixes, round 2 (2026-07-26)
+
+**P1 — `_configure_exporter_if_needed()`'s own imports bypassed
+`OtelExtraMissingError`.** Only `_ensure_otel_available()`'s top-level
+`from opentelemetry import trace` was guarded; the SDK
+(`opentelemetry.sdk.trace.TracerProvider`) and exporter
+(`opentelemetry.exporter.otlp.proto.http.trace_exporter.OTLPSpanExporter`,
+`opentelemetry.sdk.trace.export.BatchSpanProcessor`) imports inside
+`_configure_exporter_if_needed()` were unguarded — a partial install
+(`opentelemetry-api` present, `opentelemetry-sdk`/the OTLP exporter
+package missing) raised a raw `ImportError` instead of the documented
+clear error naming the `otel` extra and its install command.
+
+Both imports are now wrapped in their own `try`/`except ImportError`,
+each re-raised as `OtelExtraMissingError` with the same
+`pip install "yamlgraph[otel]"` guidance. The SDK import (needed for the
+`isinstance(..., TracerProvider)` already-configured check) is guarded
+first; the exporter import is guarded separately and only reached once
+that check has determined a new provider actually needs configuring —
+preserving the function's existing laziness (an exporter import is never
+attempted when a host process has already installed its own
+TracerProvider) while closing the gap for both possible partial-install
+shapes.
+
+Two new regression tests in `test_otel_observability.py` call
+`_configure_exporter_if_needed()` directly with a fake `trace` object
+(no real `opentelemetry` import needed), `monkeypatch.setitem`-blocking
+`opentelemetry.sdk.trace` and
+`opentelemetry.exporter.otlp.proto.http.trace_exporter` respectively via
+`sys.modules`, and assert `OtelExtraMissingError` (not a bare
+`ImportError`) is raised in each case. Both tests run in a core-only
+(no `otel` extra) environment, matching the P2 fix from round 1.
+
+**Non-blocking cleanup applied:** removed a duplicated
+`@requires_otel_sdk` decorator on
+`test_enabled_success_emits_parent_and_child_spans`, and deleted five
+stale `docs/confessions.md` entries (CONF-399–403) that documented a
+`pytest.importorskip("opentelemetry.sdk")` module shape the file no
+longer contains (superseded by round 1's P2 fix) — the confession log
+now matches the file's actual `noqa` surface (zero, currently).
+
+Verified: `pytest tests/unit/test_otel_observability.py
+tests/unit/test_fr363_per_node_otel_scoping_red.py -q --no-cov` (16
+passed), `python scripts/noqa_coverage.py --strict` (0 undocumented).
+
 ## Judgement (2026-07-26)
 
 **Verdict:** APPROVED WITH REVISIONS — revisions R-1..R-4 folded above; authority active.
