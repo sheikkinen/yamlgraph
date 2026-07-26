@@ -5,209 +5,209 @@
 
 | FR | status | repo | gates | file |
 |----|--------|------|-------|------|
-| FR-082 | PARSE-FAILURE (DROPPED) | fr-762 |  | FR-082-sampling-backend.md |
-| FR-104 | PARSE-FAILURE ((no Status header)) | fr-762 |  | FR-104-parallel-chapter-workers.md |
-| FR-116 | PARSE-FAILURE (Duplicate — resolved by FR-122) | fr-762 |  | FR-116-inquisitor-changelog-duplicate.md |
-| FR-198 | PARSE-FAILURE (Blocked (awaiting FR-196 merge) | fr-762 |  | FR-198-fsm-chaplain-pipeline.md |
-| FR-221 | PARSE-FAILURE ((no Status header)) | fr-762 |  | FR-221-refactor-create-node-function.md |
-| FR-284 | PARSE-FAILURE (Amendment Required) | fr-762 |  | FR-284-watcher2-ci-remediation-crash-fix.md |
-| FR-293 | PARSE-FAILURE ((no Status header)) | fr-762 |  | FR-293-pytest-xdist-parallel-tests.md |
-| FR-294 | PARSE-FAILURE ((no Status header)) | fr-762 |  | FR-294-precommit-venv-path-isolation.md |
-| FR-422 | PARSE-FAILURE (APPROVE — plan amended, author) | fr-762 |  | FR-422-actionconfig-mapping-hardening.md |
-| FR-448 | PARSE-FAILURE ((no Status header)) | fr-762 |  | FR-448-judgement.md |
-| FR-453 | PARSE-FAILURE (Partially Enforced (Step 1 com) | fr-762 |  | FR-453-judge-model-evaluation.md |
-| FR-474 | PARSE-FAILURE (Built — GREEN prototype (2026-) | fr-762 |  | FR-474-dm-v2-synopsis-prototype.md |
-| FR-518 | PARSE-FAILURE (Partially enforced (2026-06-17) | fr-762 |  | FR-518-dm-v2-ledger-consolidation-pass.md |
-| FR-524 | PARSE-FAILURE (**SENT BACK TO PLAN (2026-06-1) | fr-762 |  | FR-524-dm-v2-synopsis-summary-reweave.md |
-| FR-527 | PARSE-FAILURE (**FALSIFIED AT ENFORCE — Fix A) | fr-762 |  | FR-527-dm-v2-beat-progress-early-close.md |
-| FR-529 | PARSE-FAILURE (**DESCOPED (2026-06-18) by FR-) | fr-762 |  | FR-529-dm-v2-seam-physical-state-pin.md |
-| FR-548 | PARSE-FAILURE (Reverted (superseded by FR-550) | fr-762 |  | FR-548-dm-v2-world-codex-backstory-stage.md |
-| FR-590 | PARSE-FAILURE (Limbo — KILL authority withhel) | fr-762 |  | FR-590-plot-modeller-L5-multi-perspective.md |
-| FR-593 | PARSE-FAILURE (Kept (2026-06-25) — two-run co) | fr-762 |  | FR-593-story-level-vocabulary-pre-analysis-stage.md |
-| FR-613 | PARSE-FAILURE (Raw Output Read FILLED (K=6, 2) | fr-762 |  | FR-613-roundtrip-skeleton-p3-coherence-gate.md |
-| FR-614 | PARSE-FAILURE (REFUTED by the FR-613 K=6 Raw ) | fr-762 |  | FR-614-roundtrip-skeleton-p4-scene-type-close-op.md |
-| FR-663 | PARSE-FAILURE (Planned) | fr-762 |  | FR-663-changelog-req-legacy-cap-false-positive.md |
-| FR-111 | Judged | fr-762 |  | FR-111-compiled-graph-cache.md |
-| FR-179 | Judged | fr-762 |  | FR-179-asterisk-ari-audiosocket-provider.md |
-| FR-210 | Judged | fr-762 |  | FR-210-subgraph-interrupt-state-commit.md |
-| FR-274 | Judged | fr-762 |  | FR-274-copilot-session-id-extraction.md |
-| FR-290 | Judged | fr-762 |  | FR-290-watcher-fsm-phase0-configs.md |
-| FR-291 | Judged | fr-762 |  | FR-291-watcher-fsm-phase1-action-wiring.md |
-| FR-295 | Judged | fr-762 |  | FR-295-watcher-fsm-phase2-single-worker-validation.md |
-| FR-304 | Judged | fr-762 |  | FR-304-pros-and-cons-decision-analysis-demo.md |
-| FR-425 | Judged | fr-762 |  | FR-425-hook-classification-daemon.md |
-| FR-440 | Judged | fr-762 |  | FR-440-pipe-buffer-guard.md |
-| FR-466 | Judged | fr-762 |  | FR-466-cap-retirement-support.md |
-| FR-466 | Judged | fr-762 |  | FR-466-dungeon-master-example.md |
-| FR-476 | Judged | fr-762 |  | FR-476-executor-plain-text-content-normalization.md |
-| FR-481 | Judged | fr-762 |  | FR-481-dm-v2-director-card-and-arc-integrity.md |
-| FR-482 | Judged | fr-762 |  | FR-482-dm-v2-cumulative-beats-satisfied.md |
-| FR-483 | Judged | fr-762 |  | FR-483-dm-v2-scene-pivotal-non-roster-actor.md |
-| FR-484 | Judged | fr-762 |  | FR-484-dm-v2-post-play-final-cut.md |
-| FR-486 | Judged | fr-762 |  | FR-486-dm-v2-wider-character-performance.md |
-| FR-487 | Judged | fr-762 |  | FR-487-dm-v2-full-text-walkthrough.md |
-| FR-491 | Judged | fr-762 |  | FR-491-dm-v2-retire-key-scene-chapter-play.md |
-| FR-492 | Judged | fr-762 |  | FR-492-restore-chapter-final-text-deterministic-book-compose.md |
-| FR-497 | Judged | fr-762 |  | FR-497-book-reviewer-example.md |
-| FR-498 | Judged | fr-762 |  | FR-498-roster-faction-inventory.md |
-| FR-499 | Judged | fr-762 |  | FR-499-structured-world-state-ledger.md |
-| FR-500 | Judged | fr-762 |  | FR-500-book-editor-example.md |
-| FR-507 | Judged | fr-762 |  | FR-507-dm-v2-character-lifecycle-seam-gate.md |
-| FR-508 | Judged | fr-762 |  | FR-508-dm-v2-layered-narrative-memory-contract.md |
-| FR-509 | Judged | fr-762 |  | FR-509-dm-v2-lifecycle-source-of-truth-cast-filter.md |
-| FR-510 | Judged | fr-762 |  | FR-510-dm-v2-confirmed-dead-prose-exclusion.md |
-| FR-511 | Judged | fr-762 |  | FR-511-dm-v2-final-cut-single-revise-cycle.md |
-| FR-525 | Judged | fr-762 |  | FR-525-dm-v2-outliner-split-gate.md |
-| FR-536 | Judged | fr-762 |  | FR-536-dm-v2-module-organization-refactor.md |
-| FR-537 | Judged | fr-762 |  | FR-537-dm-v2-chapter-scoped-cast.md |
-| FR-540 | Judged | fr-762 |  | FR-540-dm-v2-chapter-entry-exit-contracts.md |
-| FR-541 | Judged | fr-762 |  | FR-541-dm-v2-character-state-overlays.md |
-| FR-546 | Judged | fr-762 |  | FR-546-opencode-copilot-backend.md |
-| FR-573 | Judged | fr-762 |  | FR-573-580-plot-modeller-pipeline-roadmap.md |
-| FR-573 | Judged | fr-762 |  | FR-573-plot-modeller-L1-extract-agents.md |
-| FR-581 | Judged | fr-762 |  | FR-581-plot-modeller-L2-goal-extraction-revise.md |
-| FR-587 | Judged | fr-762 |  | FR-587-plot-modeller-L5-snapshot-then-diff.md |
-| FR-589 | Judged | fr-762 |  | FR-589-abstraction-span-standalone-example.md |
-| FR-594 | Judged | fr-762 |  | FR-594-l5-prose-regenerability-measurement-graph.md |
-| FR-608 | Judged | fr-762 |  | FR-608-strenum-migration-up042.md |
-| FR-610 | Judged | fr-762 |  | FR-610-roundtrip-skeleton-p0-scaffold.md |
-| FR-611 | Judged | fr-762 |  | FR-611-roundtrip-skeleton-p1-cast-briefs.md |
-| FR-612 | Judged | fr-762 |  | FR-612-roundtrip-skeleton-p2-draft-assemble.md |
-| FR-615 | Judged | fr-762 |  | FR-615-roundtrip-skeleton-p5-roundtrip-closure.md |
-| FR-616 | Judged | fr-762 |  | FR-616-compaction-node.md |
-| FR-617 | Judged | fr-762 |  | FR-617-memory-note-taking-primitive.md |
-| FR-618 | Judged | fr-762 |  | FR-618-lazy-reference-variables.md |
-| FR-619 | Judged | fr-762 |  | FR-619-dynamic-orchestrator-workers-node.md |
-| FR-622 | Judged | fr-762 |  | FR-622-roundtrip-reground-gate-and-structural-authoring.md |
-| FR-624 | Judged | fr-762 |  | FR-624-langgraph-floor-bump.md |
-| FR-625 | Judged | fr-762 |  | FR-625-write-data-file-tool.md |
-| FR-626 | Judged | fr-762 |  | FR-626-write-data-file-demo.md |
-| FR-636 | Judged | fr-762 |  | FR-636-demo-coverage-gate.md |
-| FR-668 | Judged | fr-762 |  | FR-668-converge-error-errors-state-fields.md |
-| FR-683 | Judged | fr-762 |  | FR-683-ref-integrity-graph-tool.md |
-| FR-684 | Judged | fr-762 |  | FR-684-semantic-dedup-graph-tool.md |
-| FR-686 | Judged | fr-762 |  | FR-686-novel-fandom-agent-first-rewrite.md |
-| FR-689 | Judged | fr-762 |  | FR-689-genesis-canon-consistency.md |
-| FR-731 | Judged | fr-762 |  | FR-731-webllm-browser-prompt-demo-spike.md |
-| FR-732 | Judged | fr-762 |  | FR-732-output-schema-parity-enum-constraints.md |
-| FR-749 | Judged | fr-762 |  | FR-749-edit-time-hygiene.md |
-| FR-750 | Judged | fr-762 |  | FR-750-worktree-pilot.md |
-| FR-759 | Judged | fr-762 |  | FR-759-otel-observability-boundary.md |
-| FR-760 | Judged | fr-762 |  | FR-760-declare-langchain-core-dependency.md |
-| FR-761 | Judged | fr-762 |  | FR-761-reproducible-dependency-governance.md |
-| FR-762 | Judged | fr-762 |  | FR-762-example-dependency-taxonomy.md |
-| FR-094 | Approved | fr-762 |  | FR-094-memory-node.md |
-| FR-095 | Approved | fr-762 |  | FR-095-doc-staleness-monitor.md |
-| FR-096 | Approved | fr-762 |  | FR-096-fr-template-demo-plan.md |
-| FR-099 | Approved | fr-762 |  | FR-099-chaplain-inbox-smoke-test.md |
-| FR-108 | Approved | fr-762 |  | FR-108-mastermind-game.md |
-| FR-118 | Approved | fr-762 |  | FR-118-inquisitor-auto-propose.md |
-| FR-119 | Approved | fr-762 |  | FR-119-lint-provider-model-toplevel.md |
-| FR-120 | Approved | fr-762 |  | FR-120-fr112-status-update.md |
-| FR-122 | Approved | fr-762 |  | FR-122-fr116-changelog-entry.md |
-| FR-136 | Approved | fr-762 |  | FR-136-judge-split-verdict.md |
-| FR-137 | Approved | fr-762 |  | FR-137-deepseek-provider.md |
-| FR-138 | Approved | fr-762 |  | FR-138-copilot-session-cleanup.md |
-| FR-139 | Approved | fr-762 |  | FR-139-enforce-worktree-bare-corruption-guard.md |
-| FR-140 | Approved | fr-762 |  | FR-140-clean-git-env-test-fixture.md |
-| FR-141 | Approved | fr-762 |  | FR-141-squash-merge-orphan-detection.md |
-| FR-143 | Approved | fr-762 |  | FR-143-fr134-requirement-traceability.md |
-| FR-155 | Approved | fr-762 |  | FR-155-reference-readme-stale-doc-count.md |
-| FR-160 | Approved | fr-762 |  | FR-160-changelog-fr154-reqid-fix.md |
-| FR-168 | Approved | fr-762 |  | FR-168-cross-graph-session-continuity.md |
-| FR-170 | Approved | fr-762 |  | FR-170-yamlgraph-async-action-type.md |
-| FR-173 | Approved | fr-762 |  | FR-173-bug-condemning-test-pipeline.md |
-| FR-174 | Approved | fr-762 |  | FR-174-worktree-venv-corruption-guard.md |
-| FR-177 | Approved | fr-762 |  | FR-177-remove-capability-counts.md |
-| FR-178 | Approved | fr-762 |  | FR-178-append-only-capability-registry.md |
-| FR-180 | Approved | fr-762 |  | FR-180-plan-phase-id-reservation.md |
-| FR-183 | Approved | fr-762 |  | FR-183-simplify-enforce-pipeline.md |
-| FR-184 | Approved | fr-762 |  | FR-184-philosopher-daemon.md |
-| FR-186 | Approved | fr-762 |  | FR-186-fsm-pre-commit-quality-gates.md |
-| FR-188 | Approved | fr-762 |  | FR-188-enforce-pipeline-gate-bypass.md |
-| FR-196 | Approved | fr-762 |  | FR-196-portable-chaplain.md |
-| FR-200 | Approved | fr-762 |  | FR-200-fsm-requirements-traceability.md |
-| FR-203 | Approved | fr-762 |  | FR-203-five-whys-demo.md |
-| FR-203 | Approved | fr-762 |  | FR-203-linter-e302-accept-state-key.md |
-| FR-204 | Approved | fr-762 |  | FR-204-fi-domain-crawl.md |
-| FR-204 | Approved | fr-762 |  | FR-204-fix-e102-output-schema-and-route-field.md |
-| FR-211 | Approved | fr-762 |  | FR-211-router-route-mapping-redirect.md |
-| FR-217 | Approved | fr-762 |  | FR-217-enforcement-pipeline-smoke-test.md |
-| FR-219 | Approved | fr-762 |  | FR-219-speculative-node-type.md |
-| FR-228 | Approved | fr-762 |  | FR-228-bugfix-pipeline-diary-phase.md |
-| FR-239 | Approved | fr-762 |  | FR-239-meta-yamlgraph-self-improving-graphs.md |
-| FR-243 | Approved | fr-762 |  | FR-243-chatterbox-txt-file-batch-tts.md |
-| FR-259 | Approved | fr-762 |  | FR-259-pipeline-inlining-fast-path.md |
-| FR-262 | Approved | fr-762 |  | FR-262-scripture-references-in-plan-research-judge.md |
-| FR-291 | Approved | fr-762 |  | FR-291-per-graph-typed-mcp-tools.md |
-| FR-303 | Approved | fr-762 |  | FR-303-unified-watcher-pipeline-action-profiles.md |
-| FR-305 | Approved | fr-762 |  | FR-305-watcher-pipeline-fsm-simplification.md |
-| FR-309 | Approved | fr-762 |  | FR-309-judge-event-vocabulary-alignment.md |
-| FR-359 | Approved | fr-762 |  | FR-359-pipecat-frame-processor-integration.md |
-| FR-391 | Approved | fr-762 |  | FR-391-time-travel-checkpoint-resume.md |
-| FR-404 | Approved | fr-762 |  | FR-404-philosopher-book.md |
-| FR-409 | Approved | fr-762 |  | FR-409-inquisitor-watcher2-reintegration.md |
-| FR-421 | Approved | fr-762 |  | FR-421-actionconfig-mapping-hardening.md |
-| FR-447 | Approved | fr-762 |  | FR-447-judge-agent-node.md |
-| FR-551 | Approved | fr-762 |  | FR-551-dm-v2-supporting-cast-tier.md |
-| FR-552 | Approved | fr-762 |  | FR-552-dm-v2-world-bible.md |
-| FR-646 | Approved | fr-762 |  | FR-646-worldgen-reflexion-step.md |
-| FR-647 | Approved | fr-762 |  | FR-647-worldgen-event-propagation.md |
-| FR-648 | Approved | fr-762 |  | FR-648-obsidian-wiki-output.md |
-| FR-655 | Approved | fr-762 |  | FR-655-genesis-graph.md |
-| FR-214 | Proposed | fr-762 |  | FR-214-fix-extract-variables-nested-set.md |
-| FR-227 | Proposed | fr-762 |  | FR-227-vertex-express-env-var-masking.md |
-| FR-267 | Proposed | fr-762 |  | FR-267-race-node-timeout-double-wrap-2.md |
-| FR-271 | Proposed | fr-762 |  | FR-271-async-race-node-cancellable.md |
-| FR-275 | Proposed | fr-762 |  | FR-275-unit-test-runtime-quick-wins.md |
-| FR-361 | Proposed | fr-762 |  | FR-361-fix-executor-double-brace-output.md |
-| FR-370 | Proposed | fr-762 |  | FR-370-jaccard-echo-cancellation.md |
-| FR-381 | Proposed | fr-762 |  | FR-381-batch-llm-node-anthropic-messages-batch-api.md |
-| FR-384 | Proposed | fr-762 |  | FR-384-cost-profile-model-tiering.md |
-| FR-403 | Proposed | fr-762 |  | FR-403-philosopher-turing-test.md |
-| FR-449 | Proposed | fr-762 |  | FR-449-agent-structured-output-anthropic-bugfix.md |
-| FR-454 | Proposed | fr-762 |  | FR-454-eval-timeout-config.md |
-| FR-457 | Proposed | fr-762 |  | FR-457-eval-cherry-pick-model-refresh.md |
-| FR-465 | Proposed | fr-762 |  | FR-465-llm-safety-settings.md |
-| FR-467 | Proposed | fr-762 |  | FR-467-mission-control-unified-observability.md |
-| FR-469 | Proposed | fr-762 |  | FR-469-fr-number-allocation-gate.md |
-| FR-502 | Proposed | fr-762 |  | FR-502-resume-partial-generation.md |
-| FR-538 | Proposed | fr-762 |  | FR-538-dm-v2-seam-entrance-witness.md |
-| FR-566 | Proposed | fr-762 |  | FR-566-dm-v3-complete-grammar.md |
-| FR-567 | Proposed | fr-762 |  | FR-567-dm-v3-plan-projected-state.md |
-| FR-568 | Proposed | fr-762 |  | FR-568-dm-v3-plan-derived-outline.md |
-| FR-569 | Proposed | fr-762 |  | FR-569-dm-v3-plan-projected-forward-carry.md |
-| FR-620 | Proposed | fr-762 |  | FR-620-context-budget-observability.md |
-| FR-627 | Proposed | fr-762 |  | FR-627-canon-link-gate.md |
-| FR-644 | Proposed | fr-762 |  | FR-644-lint-inline-schema-types.md |
-| FR-645 | Proposed | fr-762 |  | FR-645-lint-map-subnode-prompt-variables.md |
-| FR-681 | Proposed | fr-762 |  | FR-681-module-map-density-contract.md |
-| FR-682 | Proposed | fr-762 |  | FR-682-extend-seed-gate-substance.md |
-| FR-687 | Proposed | fr-762 |  | FR-687-agent-tool-path-grounding.md |
-| FR-694 | Proposed | fr-762 |  | FR-694-chapter-plan-ledger-gate.md |
-| FR-695 | Proposed | fr-762 |  | FR-695-scene-drafting-fold.md |
-| FR-696 | Proposed | fr-762 |  | FR-696-genesis-thread-reordering.md |
-| FR-701 | Proposed | fr-762 |  | FR-701-capability-registry-consistency-gate.md |
-| FR-728 | Proposed | fr-762 |  | FR-728-session-safe-release-commit-hygiene.md |
-| FR-729 | Proposed | fr-762 |  | FR-729-landing-page-metrics-generated.md |
-| FR-751 | Proposed | fr-762 |  | FR-751-liquid-safety-precommit-gate.md |
-| FR-757 | Proposed | fr-762 |  | FR-757-fsm-contrib-relocation.md |
-| FR-078 | In Progress | fr-762 |  | FR-078-relocate-project-tests.md |
-| FR-100 | In Progress | fr-762 |  | FR-100-yamlgraph-development-pipeline-ebook.md |
-| FR-169 | In Progress | fr-762 |  | FR-169-enforce-reflexion-loop.md |
-| FR-179 | In Progress | fr-762 |  | FR-179-append-only-changelog.md |
-| FR-208 | In Progress | fr-762 |  | FR-208-a2a-graph-support.md |
-| FR-248 | In Progress | fr-762 |  | FR-248-a2a-consumer-agent-card-skill-streaming.md |
-| FR-446 | In Progress | fr-762 |  | FR-446-copilot-skill-promotion.md |
-| FR-506 | In Progress | fr-762 |  | FR-506-dm-v2-chapter-seam-continuity-contract.md |
-| FR-586 | In Progress | fr-762 |  | FR-586-prompt-monolith-linter-check.md |
-| FR-643 | In Progress | fr-762 |  | FR-643v2-novel-fandom-world-expansion.md |
-| FR-735 | In Progress | fr-762 |  | FR-735-webllm-demo-evidence-ergonomics.md |
-| FR-736 | In Progress | fr-762 |  | FR-736-webllm-demo-trace-capture.md |
-| FR-273 | Draft | fr-762 |  | FR-273-watcher2-pipeline.md |
-| FR-307 | Draft | fr-762 |  | FR-307-yamlgraph-async-action-logging.md |
-| FR-317 | Draft | fr-762 |  | FR-317-retire-obsolete-watcher2-components.md |
-| FR-330 | Draft | fr-762 |  | FR-330-fr-330-watcher-clean-stale-branches-on-retry.md |
+| FR-082 | PARSE-FAILURE (DROPPED) | yamlgraph |  | FR-082-sampling-backend.md |
+| FR-104 | PARSE-FAILURE ((no Status header)) | yamlgraph |  | FR-104-parallel-chapter-workers.md |
+| FR-116 | PARSE-FAILURE (Duplicate — resolved by FR-122) | yamlgraph |  | FR-116-inquisitor-changelog-duplicate.md |
+| FR-198 | PARSE-FAILURE (Blocked (awaiting FR-196 merge) | yamlgraph |  | FR-198-fsm-chaplain-pipeline.md |
+| FR-221 | PARSE-FAILURE ((no Status header)) | yamlgraph |  | FR-221-refactor-create-node-function.md |
+| FR-284 | PARSE-FAILURE (Amendment Required) | yamlgraph |  | FR-284-watcher2-ci-remediation-crash-fix.md |
+| FR-293 | PARSE-FAILURE ((no Status header)) | yamlgraph |  | FR-293-pytest-xdist-parallel-tests.md |
+| FR-294 | PARSE-FAILURE ((no Status header)) | yamlgraph |  | FR-294-precommit-venv-path-isolation.md |
+| FR-422 | PARSE-FAILURE (APPROVE — plan amended, author) | yamlgraph |  | FR-422-actionconfig-mapping-hardening.md |
+| FR-448 | PARSE-FAILURE ((no Status header)) | yamlgraph |  | FR-448-judgement.md |
+| FR-453 | PARSE-FAILURE (Partially Enforced (Step 1 com) | yamlgraph |  | FR-453-judge-model-evaluation.md |
+| FR-474 | PARSE-FAILURE (Built — GREEN prototype (2026-) | yamlgraph |  | FR-474-dm-v2-synopsis-prototype.md |
+| FR-518 | PARSE-FAILURE (Partially enforced (2026-06-17) | yamlgraph |  | FR-518-dm-v2-ledger-consolidation-pass.md |
+| FR-524 | PARSE-FAILURE (**SENT BACK TO PLAN (2026-06-1) | yamlgraph |  | FR-524-dm-v2-synopsis-summary-reweave.md |
+| FR-527 | PARSE-FAILURE (**FALSIFIED AT ENFORCE — Fix A) | yamlgraph |  | FR-527-dm-v2-beat-progress-early-close.md |
+| FR-529 | PARSE-FAILURE (**DESCOPED (2026-06-18) by FR-) | yamlgraph |  | FR-529-dm-v2-seam-physical-state-pin.md |
+| FR-548 | PARSE-FAILURE (Reverted (superseded by FR-550) | yamlgraph |  | FR-548-dm-v2-world-codex-backstory-stage.md |
+| FR-590 | PARSE-FAILURE (Limbo — KILL authority withhel) | yamlgraph |  | FR-590-plot-modeller-L5-multi-perspective.md |
+| FR-593 | PARSE-FAILURE (Kept (2026-06-25) — two-run co) | yamlgraph |  | FR-593-story-level-vocabulary-pre-analysis-stage.md |
+| FR-613 | PARSE-FAILURE (Raw Output Read FILLED (K=6, 2) | yamlgraph |  | FR-613-roundtrip-skeleton-p3-coherence-gate.md |
+| FR-614 | PARSE-FAILURE (REFUTED by the FR-613 K=6 Raw ) | yamlgraph |  | FR-614-roundtrip-skeleton-p4-scene-type-close-op.md |
+| FR-663 | PARSE-FAILURE (Planned) | yamlgraph |  | FR-663-changelog-req-legacy-cap-false-positive.md |
+| FR-111 | Judged | yamlgraph |  | FR-111-compiled-graph-cache.md |
+| FR-179 | Judged | yamlgraph |  | FR-179-asterisk-ari-audiosocket-provider.md |
+| FR-210 | Judged | yamlgraph |  | FR-210-subgraph-interrupt-state-commit.md |
+| FR-274 | Judged | yamlgraph |  | FR-274-copilot-session-id-extraction.md |
+| FR-290 | Judged | yamlgraph |  | FR-290-watcher-fsm-phase0-configs.md |
+| FR-291 | Judged | yamlgraph |  | FR-291-watcher-fsm-phase1-action-wiring.md |
+| FR-295 | Judged | yamlgraph |  | FR-295-watcher-fsm-phase2-single-worker-validation.md |
+| FR-304 | Judged | yamlgraph |  | FR-304-pros-and-cons-decision-analysis-demo.md |
+| FR-425 | Judged | yamlgraph |  | FR-425-hook-classification-daemon.md |
+| FR-440 | Judged | yamlgraph |  | FR-440-pipe-buffer-guard.md |
+| FR-466 | Judged | yamlgraph |  | FR-466-cap-retirement-support.md |
+| FR-466 | Judged | yamlgraph |  | FR-466-dungeon-master-example.md |
+| FR-476 | Judged | yamlgraph |  | FR-476-executor-plain-text-content-normalization.md |
+| FR-481 | Judged | yamlgraph |  | FR-481-dm-v2-director-card-and-arc-integrity.md |
+| FR-482 | Judged | yamlgraph |  | FR-482-dm-v2-cumulative-beats-satisfied.md |
+| FR-483 | Judged | yamlgraph |  | FR-483-dm-v2-scene-pivotal-non-roster-actor.md |
+| FR-484 | Judged | yamlgraph |  | FR-484-dm-v2-post-play-final-cut.md |
+| FR-486 | Judged | yamlgraph |  | FR-486-dm-v2-wider-character-performance.md |
+| FR-487 | Judged | yamlgraph |  | FR-487-dm-v2-full-text-walkthrough.md |
+| FR-491 | Judged | yamlgraph |  | FR-491-dm-v2-retire-key-scene-chapter-play.md |
+| FR-492 | Judged | yamlgraph |  | FR-492-restore-chapter-final-text-deterministic-book-compose.md |
+| FR-497 | Judged | yamlgraph |  | FR-497-book-reviewer-example.md |
+| FR-498 | Judged | yamlgraph |  | FR-498-roster-faction-inventory.md |
+| FR-499 | Judged | yamlgraph |  | FR-499-structured-world-state-ledger.md |
+| FR-500 | Judged | yamlgraph |  | FR-500-book-editor-example.md |
+| FR-507 | Judged | yamlgraph |  | FR-507-dm-v2-character-lifecycle-seam-gate.md |
+| FR-508 | Judged | yamlgraph |  | FR-508-dm-v2-layered-narrative-memory-contract.md |
+| FR-509 | Judged | yamlgraph |  | FR-509-dm-v2-lifecycle-source-of-truth-cast-filter.md |
+| FR-510 | Judged | yamlgraph |  | FR-510-dm-v2-confirmed-dead-prose-exclusion.md |
+| FR-511 | Judged | yamlgraph |  | FR-511-dm-v2-final-cut-single-revise-cycle.md |
+| FR-525 | Judged | yamlgraph |  | FR-525-dm-v2-outliner-split-gate.md |
+| FR-536 | Judged | yamlgraph |  | FR-536-dm-v2-module-organization-refactor.md |
+| FR-537 | Judged | yamlgraph |  | FR-537-dm-v2-chapter-scoped-cast.md |
+| FR-540 | Judged | yamlgraph |  | FR-540-dm-v2-chapter-entry-exit-contracts.md |
+| FR-541 | Judged | yamlgraph |  | FR-541-dm-v2-character-state-overlays.md |
+| FR-546 | Judged | yamlgraph |  | FR-546-opencode-copilot-backend.md |
+| FR-573 | Judged | yamlgraph |  | FR-573-580-plot-modeller-pipeline-roadmap.md |
+| FR-573 | Judged | yamlgraph |  | FR-573-plot-modeller-L1-extract-agents.md |
+| FR-581 | Judged | yamlgraph |  | FR-581-plot-modeller-L2-goal-extraction-revise.md |
+| FR-587 | Judged | yamlgraph |  | FR-587-plot-modeller-L5-snapshot-then-diff.md |
+| FR-589 | Judged | yamlgraph |  | FR-589-abstraction-span-standalone-example.md |
+| FR-594 | Judged | yamlgraph |  | FR-594-l5-prose-regenerability-measurement-graph.md |
+| FR-608 | Judged | yamlgraph |  | FR-608-strenum-migration-up042.md |
+| FR-610 | Judged | yamlgraph |  | FR-610-roundtrip-skeleton-p0-scaffold.md |
+| FR-611 | Judged | yamlgraph |  | FR-611-roundtrip-skeleton-p1-cast-briefs.md |
+| FR-612 | Judged | yamlgraph |  | FR-612-roundtrip-skeleton-p2-draft-assemble.md |
+| FR-615 | Judged | yamlgraph |  | FR-615-roundtrip-skeleton-p5-roundtrip-closure.md |
+| FR-616 | Judged | yamlgraph |  | FR-616-compaction-node.md |
+| FR-617 | Judged | yamlgraph |  | FR-617-memory-note-taking-primitive.md |
+| FR-618 | Judged | yamlgraph |  | FR-618-lazy-reference-variables.md |
+| FR-619 | Judged | yamlgraph |  | FR-619-dynamic-orchestrator-workers-node.md |
+| FR-622 | Judged | yamlgraph |  | FR-622-roundtrip-reground-gate-and-structural-authoring.md |
+| FR-624 | Judged | yamlgraph |  | FR-624-langgraph-floor-bump.md |
+| FR-625 | Judged | yamlgraph |  | FR-625-write-data-file-tool.md |
+| FR-626 | Judged | yamlgraph |  | FR-626-write-data-file-demo.md |
+| FR-636 | Judged | yamlgraph |  | FR-636-demo-coverage-gate.md |
+| FR-668 | Judged | yamlgraph |  | FR-668-converge-error-errors-state-fields.md |
+| FR-683 | Judged | yamlgraph |  | FR-683-ref-integrity-graph-tool.md |
+| FR-684 | Judged | yamlgraph |  | FR-684-semantic-dedup-graph-tool.md |
+| FR-686 | Judged | yamlgraph |  | FR-686-novel-fandom-agent-first-rewrite.md |
+| FR-689 | Judged | yamlgraph |  | FR-689-genesis-canon-consistency.md |
+| FR-731 | Judged | yamlgraph |  | FR-731-webllm-browser-prompt-demo-spike.md |
+| FR-732 | Judged | yamlgraph |  | FR-732-output-schema-parity-enum-constraints.md |
+| FR-749 | Judged | yamlgraph |  | FR-749-edit-time-hygiene.md |
+| FR-750 | Judged | yamlgraph |  | FR-750-worktree-pilot.md |
+| FR-759 | Judged | yamlgraph |  | FR-759-otel-observability-boundary.md |
+| FR-760 | Judged | yamlgraph |  | FR-760-declare-langchain-core-dependency.md |
+| FR-761 | Judged | yamlgraph |  | FR-761-reproducible-dependency-governance.md |
+| FR-762 | Judged | yamlgraph |  | FR-762-example-dependency-taxonomy.md |
+| FR-094 | Approved | yamlgraph |  | FR-094-memory-node.md |
+| FR-095 | Approved | yamlgraph |  | FR-095-doc-staleness-monitor.md |
+| FR-096 | Approved | yamlgraph |  | FR-096-fr-template-demo-plan.md |
+| FR-099 | Approved | yamlgraph |  | FR-099-chaplain-inbox-smoke-test.md |
+| FR-108 | Approved | yamlgraph |  | FR-108-mastermind-game.md |
+| FR-118 | Approved | yamlgraph |  | FR-118-inquisitor-auto-propose.md |
+| FR-119 | Approved | yamlgraph |  | FR-119-lint-provider-model-toplevel.md |
+| FR-120 | Approved | yamlgraph |  | FR-120-fr112-status-update.md |
+| FR-122 | Approved | yamlgraph |  | FR-122-fr116-changelog-entry.md |
+| FR-136 | Approved | yamlgraph |  | FR-136-judge-split-verdict.md |
+| FR-137 | Approved | yamlgraph |  | FR-137-deepseek-provider.md |
+| FR-138 | Approved | yamlgraph |  | FR-138-copilot-session-cleanup.md |
+| FR-139 | Approved | yamlgraph |  | FR-139-enforce-worktree-bare-corruption-guard.md |
+| FR-140 | Approved | yamlgraph |  | FR-140-clean-git-env-test-fixture.md |
+| FR-141 | Approved | yamlgraph |  | FR-141-squash-merge-orphan-detection.md |
+| FR-143 | Approved | yamlgraph |  | FR-143-fr134-requirement-traceability.md |
+| FR-155 | Approved | yamlgraph |  | FR-155-reference-readme-stale-doc-count.md |
+| FR-160 | Approved | yamlgraph |  | FR-160-changelog-fr154-reqid-fix.md |
+| FR-168 | Approved | yamlgraph |  | FR-168-cross-graph-session-continuity.md |
+| FR-170 | Approved | yamlgraph |  | FR-170-yamlgraph-async-action-type.md |
+| FR-173 | Approved | yamlgraph |  | FR-173-bug-condemning-test-pipeline.md |
+| FR-174 | Approved | yamlgraph |  | FR-174-worktree-venv-corruption-guard.md |
+| FR-177 | Approved | yamlgraph |  | FR-177-remove-capability-counts.md |
+| FR-178 | Approved | yamlgraph |  | FR-178-append-only-capability-registry.md |
+| FR-180 | Approved | yamlgraph |  | FR-180-plan-phase-id-reservation.md |
+| FR-183 | Approved | yamlgraph |  | FR-183-simplify-enforce-pipeline.md |
+| FR-184 | Approved | yamlgraph |  | FR-184-philosopher-daemon.md |
+| FR-186 | Approved | yamlgraph |  | FR-186-fsm-pre-commit-quality-gates.md |
+| FR-188 | Approved | yamlgraph |  | FR-188-enforce-pipeline-gate-bypass.md |
+| FR-196 | Approved | yamlgraph |  | FR-196-portable-chaplain.md |
+| FR-200 | Approved | yamlgraph |  | FR-200-fsm-requirements-traceability.md |
+| FR-203 | Approved | yamlgraph |  | FR-203-five-whys-demo.md |
+| FR-203 | Approved | yamlgraph |  | FR-203-linter-e302-accept-state-key.md |
+| FR-204 | Approved | yamlgraph |  | FR-204-fi-domain-crawl.md |
+| FR-204 | Approved | yamlgraph |  | FR-204-fix-e102-output-schema-and-route-field.md |
+| FR-211 | Approved | yamlgraph |  | FR-211-router-route-mapping-redirect.md |
+| FR-217 | Approved | yamlgraph |  | FR-217-enforcement-pipeline-smoke-test.md |
+| FR-219 | Approved | yamlgraph |  | FR-219-speculative-node-type.md |
+| FR-228 | Approved | yamlgraph |  | FR-228-bugfix-pipeline-diary-phase.md |
+| FR-239 | Approved | yamlgraph |  | FR-239-meta-yamlgraph-self-improving-graphs.md |
+| FR-243 | Approved | yamlgraph |  | FR-243-chatterbox-txt-file-batch-tts.md |
+| FR-259 | Approved | yamlgraph |  | FR-259-pipeline-inlining-fast-path.md |
+| FR-262 | Approved | yamlgraph |  | FR-262-scripture-references-in-plan-research-judge.md |
+| FR-291 | Approved | yamlgraph |  | FR-291-per-graph-typed-mcp-tools.md |
+| FR-303 | Approved | yamlgraph |  | FR-303-unified-watcher-pipeline-action-profiles.md |
+| FR-305 | Approved | yamlgraph |  | FR-305-watcher-pipeline-fsm-simplification.md |
+| FR-309 | Approved | yamlgraph |  | FR-309-judge-event-vocabulary-alignment.md |
+| FR-359 | Approved | yamlgraph |  | FR-359-pipecat-frame-processor-integration.md |
+| FR-391 | Approved | yamlgraph |  | FR-391-time-travel-checkpoint-resume.md |
+| FR-404 | Approved | yamlgraph |  | FR-404-philosopher-book.md |
+| FR-409 | Approved | yamlgraph |  | FR-409-inquisitor-watcher2-reintegration.md |
+| FR-421 | Approved | yamlgraph |  | FR-421-actionconfig-mapping-hardening.md |
+| FR-447 | Approved | yamlgraph |  | FR-447-judge-agent-node.md |
+| FR-551 | Approved | yamlgraph |  | FR-551-dm-v2-supporting-cast-tier.md |
+| FR-552 | Approved | yamlgraph |  | FR-552-dm-v2-world-bible.md |
+| FR-646 | Approved | yamlgraph |  | FR-646-worldgen-reflexion-step.md |
+| FR-647 | Approved | yamlgraph |  | FR-647-worldgen-event-propagation.md |
+| FR-648 | Approved | yamlgraph |  | FR-648-obsidian-wiki-output.md |
+| FR-655 | Approved | yamlgraph |  | FR-655-genesis-graph.md |
+| FR-214 | Proposed | yamlgraph |  | FR-214-fix-extract-variables-nested-set.md |
+| FR-227 | Proposed | yamlgraph |  | FR-227-vertex-express-env-var-masking.md |
+| FR-267 | Proposed | yamlgraph |  | FR-267-race-node-timeout-double-wrap-2.md |
+| FR-271 | Proposed | yamlgraph |  | FR-271-async-race-node-cancellable.md |
+| FR-275 | Proposed | yamlgraph |  | FR-275-unit-test-runtime-quick-wins.md |
+| FR-361 | Proposed | yamlgraph |  | FR-361-fix-executor-double-brace-output.md |
+| FR-370 | Proposed | yamlgraph |  | FR-370-jaccard-echo-cancellation.md |
+| FR-381 | Proposed | yamlgraph |  | FR-381-batch-llm-node-anthropic-messages-batch-api.md |
+| FR-384 | Proposed | yamlgraph |  | FR-384-cost-profile-model-tiering.md |
+| FR-403 | Proposed | yamlgraph |  | FR-403-philosopher-turing-test.md |
+| FR-449 | Proposed | yamlgraph |  | FR-449-agent-structured-output-anthropic-bugfix.md |
+| FR-454 | Proposed | yamlgraph |  | FR-454-eval-timeout-config.md |
+| FR-457 | Proposed | yamlgraph |  | FR-457-eval-cherry-pick-model-refresh.md |
+| FR-465 | Proposed | yamlgraph |  | FR-465-llm-safety-settings.md |
+| FR-467 | Proposed | yamlgraph |  | FR-467-mission-control-unified-observability.md |
+| FR-469 | Proposed | yamlgraph |  | FR-469-fr-number-allocation-gate.md |
+| FR-502 | Proposed | yamlgraph |  | FR-502-resume-partial-generation.md |
+| FR-538 | Proposed | yamlgraph |  | FR-538-dm-v2-seam-entrance-witness.md |
+| FR-566 | Proposed | yamlgraph |  | FR-566-dm-v3-complete-grammar.md |
+| FR-567 | Proposed | yamlgraph |  | FR-567-dm-v3-plan-projected-state.md |
+| FR-568 | Proposed | yamlgraph |  | FR-568-dm-v3-plan-derived-outline.md |
+| FR-569 | Proposed | yamlgraph |  | FR-569-dm-v3-plan-projected-forward-carry.md |
+| FR-620 | Proposed | yamlgraph |  | FR-620-context-budget-observability.md |
+| FR-627 | Proposed | yamlgraph |  | FR-627-canon-link-gate.md |
+| FR-644 | Proposed | yamlgraph |  | FR-644-lint-inline-schema-types.md |
+| FR-645 | Proposed | yamlgraph |  | FR-645-lint-map-subnode-prompt-variables.md |
+| FR-681 | Proposed | yamlgraph |  | FR-681-module-map-density-contract.md |
+| FR-682 | Proposed | yamlgraph |  | FR-682-extend-seed-gate-substance.md |
+| FR-687 | Proposed | yamlgraph |  | FR-687-agent-tool-path-grounding.md |
+| FR-694 | Proposed | yamlgraph |  | FR-694-chapter-plan-ledger-gate.md |
+| FR-695 | Proposed | yamlgraph |  | FR-695-scene-drafting-fold.md |
+| FR-696 | Proposed | yamlgraph |  | FR-696-genesis-thread-reordering.md |
+| FR-701 | Proposed | yamlgraph |  | FR-701-capability-registry-consistency-gate.md |
+| FR-728 | Proposed | yamlgraph |  | FR-728-session-safe-release-commit-hygiene.md |
+| FR-729 | Proposed | yamlgraph |  | FR-729-landing-page-metrics-generated.md |
+| FR-751 | Proposed | yamlgraph |  | FR-751-liquid-safety-precommit-gate.md |
+| FR-757 | Proposed | yamlgraph |  | FR-757-fsm-contrib-relocation.md |
+| FR-078 | In Progress | yamlgraph |  | FR-078-relocate-project-tests.md |
+| FR-100 | In Progress | yamlgraph |  | FR-100-yamlgraph-development-pipeline-ebook.md |
+| FR-169 | In Progress | yamlgraph |  | FR-169-enforce-reflexion-loop.md |
+| FR-179 | In Progress | yamlgraph |  | FR-179-append-only-changelog.md |
+| FR-208 | In Progress | yamlgraph |  | FR-208-a2a-graph-support.md |
+| FR-248 | In Progress | yamlgraph |  | FR-248-a2a-consumer-agent-card-skill-streaming.md |
+| FR-446 | In Progress | yamlgraph |  | FR-446-copilot-skill-promotion.md |
+| FR-506 | In Progress | yamlgraph |  | FR-506-dm-v2-chapter-seam-continuity-contract.md |
+| FR-586 | In Progress | yamlgraph |  | FR-586-prompt-monolith-linter-check.md |
+| FR-643 | In Progress | yamlgraph |  | FR-643v2-novel-fandom-world-expansion.md |
+| FR-735 | In Progress | yamlgraph |  | FR-735-webllm-demo-evidence-ergonomics.md |
+| FR-736 | In Progress | yamlgraph |  | FR-736-webllm-demo-trace-capture.md |
+| FR-273 | Draft | yamlgraph |  | FR-273-watcher2-pipeline.md |
+| FR-307 | Draft | yamlgraph |  | FR-307-yamlgraph-async-action-logging.md |
+| FR-317 | Draft | yamlgraph |  | FR-317-retire-obsolete-watcher2-components.md |
+| FR-330 | Draft | yamlgraph |  | FR-330-fr-330-watcher-clean-stale-branches-on-retry.md |
 
 ```mermaid
 graph TD

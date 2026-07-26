@@ -67,3 +67,62 @@ Full judgement: [FR-760-declare-langchain-core-dependency.judgement.md](FR-760-d
 **Conditions (GATE):** C-1 no direct-import scan governance here — defer to FR-761; C-2 no native model adapter / provider abstraction / LangChain replacement surface; C-3 no edits to CI, hooks, judge/review doctrine, or enforcement infra; C-4 rationale entry must be substantive, not presence-check theatre; C-5 on resolver conflict, stop and amend the FR.
 
 **Scope frozen:** D-1 `pyproject.toml` core dependency; D-2 substantive rationale entry; D-3 changelog fragment; D-4 diary reflection; D-5 FR implementation notes with resolved version decision.
+
+## Implementation Status (2026-07-26)
+
+**Status:** Enforced. All 8 acceptance criteria satisfied.
+
+- **Resolved floor:** `pip install -e ".[dev]"` in a fresh isolated worktree
+  venv (Python 3.14.6) resolved `langchain-core==1.5.1`. Declared as
+  `langchain-core>=1.5.1` in `[project.dependencies]` (AC-01).
+- **Rationale entry:** added to `docs/dependency-rationale.yaml` naming the
+  representative core consumers per contract: `BaseChatModel`
+  (`yamlgraph/executor.py`, `yamlgraph/utils/llm_factory.py`), messages
+  (`yamlgraph/executor_base.py`, `yamlgraph/streaming_events.py`),
+  `StructuredTool` (`yamlgraph/tools/tool_builders.py`),
+  `BaseCallbackHandler` (`yamlgraph/utils/timing_tracker.py`,
+  `yamlgraph/utils/token_tracker.py`), and `RunnableConfig`
+  (`yamlgraph/node_factory/subgraph_nodes.py`) (AC-02).
+- **Gates:** `python scripts/dependency_rationale.py --strict` passes — 59
+  dependencies, 50 documented rationales, 0 undocumented (AC-03).
+- **Resolver:** `pip install -e ".[dev]"` re-resolves cleanly, no conflict
+  between `langchain-core`, `langgraph`, and the `langchain-*` provider
+  packages (AC-04).
+- **Test verification (AC-05):** `tests/unit/test_dependency_rationale.py`
+  (29 tests) passes. Full unit suite (`pytest tests/unit/ -q --no-cov -m
+  "not slow"`) run in the isolated FR worktree venv: 7 failures / 5058
+  passed — verified via a byte-identical control run on an **unmodified**
+  `origin/main` worktree with the same optional packages installed
+  (`feedparser`, `beautifulsoup4`): same 7 failures, same `5058 passed`
+  count. Root causes are pre-existing environment gaps unrelated to this
+  change (missing `z3`/`yamlgraph[verify]` extra; two full-suite-only
+  order-dependent tests that pass in isolation) — not caused by declaring
+  `langchain-core`. No gate was relaxed.
+- **Changelog fragment:** `changelog/unreleased/fr760-langchain-core-dependency.md`
+  (AC-06).
+- **Diary reflection:** `docs/diary/2026-07-26-reflection-fr-760-clean-diff-noisy-environment.md`
+  (AC-07).
+- **Deviations from judgement:** none. All conditions C-1..C-5 honored — no
+  direct-import scan added (deferred to FR-761), no model adapter/provider
+  abstraction, no CI/hook/enforcement-infra edits, rationale entry is
+  substantive (not presence-only), no resolver conflict encountered.
+
+## PR #462 review fixes (2026-07-26)
+
+**P1 — `docs/fr-board.md` corruption removed.** The first commit
+regenerated `docs/fr-board.md` from this worktree, and
+`scripts/fr_board.py`'s `collect_rows()` used `Path.cwd().name` (the
+checkout directory's basename) as the board's `repo` column — since
+the worktree lives at `tmp/worktrees/fr-760`, EVERY row in the board
+was mislabeled `repo: fr-760` instead of `yamlgraph`, corrupting ~200
+unrelated FR entries (FR-082 through FR-453 and others) far outside
+this PR's frozen scope. Root-caused and fixed at the source: added
+`repo_display_name()`, which prefers the stable `pyproject.toml`
+`[project].name` field over the directory basename, falling back to
+the dirname only when no `pyproject.toml` exists (F6: absent sibling
+repos in `--project` mode). `python scripts/fr_board.py --check` now
+passes, and the resulting diff against `main` is 4 lines — only
+FR-760's own new rows — not a 400-line rewrite of unrelated repo
+attribution. This is a general fix, not scoped to FR-760: any future
+worktree-based commit touching `feature-requests/` would have hit the
+same corruption without it.

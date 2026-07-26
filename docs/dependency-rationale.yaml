@@ -13,6 +13,34 @@ dependencies:
     modules: ["yamlgraph/utils/llm_factory.py"]
     added: "0.1.0"
 
+  langchain-core:
+    rationale: >
+      Effective runtime contract of the LLM provider boundary — BaseChatModel
+      (yamlgraph/executor.py, yamlgraph/utils/llm_factory.py), message classes
+      HumanMessage/SystemMessage/AIMessageChunk (yamlgraph/executor_base.py,
+      yamlgraph/streaming_events.py), StructuredTool for tool binding
+      (yamlgraph/tools/tool_builders.py), BaseCallbackHandler for
+      timing/token tracking (yamlgraph/utils/timing_tracker.py,
+      yamlgraph/utils/token_tracker.py), and RunnableConfig for subgraph/redis
+      checkpoint plumbing (yamlgraph/node_factory/subgraph_nodes.py,
+      yamlgraph/storage/simple_redis.py). Previously arrived only
+      transitively via langgraph and the langchain-* provider packages
+      (FR-760, module_structure boundary per FR-218): declaring it makes the
+      most-imported foreign contract in the codebase visible in dependency
+      diffs instead of drifting silently with an unrelated package's pin.
+    modules:
+      [
+        "yamlgraph/executor.py",
+        "yamlgraph/executor_base.py",
+        "yamlgraph/streaming_events.py",
+        "yamlgraph/tools/tool_builders.py",
+        "yamlgraph/utils/llm_factory.py",
+        "yamlgraph/utils/timing_tracker.py",
+        "yamlgraph/utils/token_tracker.py",
+        "yamlgraph/node_factory/subgraph_nodes.py",
+      ]
+    added: "0.5.18"
+
   langchain-google-genai:
     rationale: "Google Gemini / Vertex AI provider integration"
     modules: ["yamlgraph/utils/llm_factory.py"]
