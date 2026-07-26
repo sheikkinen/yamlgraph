@@ -92,6 +92,29 @@ Out of scope: switching package managers, pinning runtime (non-dev) installs, au
 - **AC-14:** `changelog/unreleased/fr761-dependency-governance.md`.
 - **Sequencing note (R-4):** this worktree was branched from `origin/main` prior to FR-760's merge, so `langchain_core` appears in `PENDING_GAPS` referencing FR-760 rather than being satisfied directly. This is self-correcting: once FR-760 merges, `langchain-core` becomes declared in core deps and the `PENDING_GAPS` entry becomes inert (the import resolves as declared before the pending-lookup branch is reached) — no code change required, per the design note already in the script's docstring.
 
+## PR #463 review fixes, round 2 (2026-07-26)
+
+**P1 — constraints artifact regenerated for the actual CI-tested extras.**
+`constraints/dev-py312.txt` was generated and documented against
+`.[dev,fsm,verify]`, but CI's `test`/`core-test` jobs install
+`.[dev,digest,websearch,a2a,fsm,verify]`
+(`.github/workflows/workflow.yml:33,55`) — omitting `feedparser`,
+`resend`, `beautifulsoup4`, `slowapi` (`digest`), `ddgs` (`websearch`),
+and `a2a-sdk`/`grpcio` (`a2a`) from the pinned artifact. A maintainer
+following the documented reproduction command would still leave part
+of the CI environment to ambient resolver state, defeating AC-01/AC-02.
+
+Regenerated from a fresh Python 3.12 venv with the exact CI extras set;
+the artifact grew from 134 to 167 lines. Updated the header's
+regenerate/reproduce commands and `CLAUDE.md`'s mirrored commands to
+`.[dev,digest,websearch,a2a,fsm,verify]`. Re-verified end-to-end
+reproducibility with the corrected command: a second fresh venv
+installed via `pip install -c constraints/dev-py312.txt -e
+".[dev,digest,websearch,a2a,fsm,verify]"` produced a byte-for-byte
+identical `pip freeze --exclude-editable` diff against the committed
+artifact; both throwaway venvs were deleted after verification.
+
+
 ## Alternatives Considered
 
 - **Full `uv` migration with `uv.lock`:** possibly the endpoint, but tooling migration is a separate decision; a constraints file achieves reproducibility without changing the installer story.

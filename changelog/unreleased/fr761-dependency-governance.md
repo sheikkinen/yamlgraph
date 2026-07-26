@@ -30,3 +30,9 @@ req: REQ-YG-570
   normalization, owner-specific vs unrelated-extra ownership, local
   sibling module/package exclusion, report-only roots, pending gaps).
   CAP-212 / REQ-YG-570 registered. (REQ-YG-570)
+- **Round 2 fix**: `constraints/dev-py312.txt` regenerated to cover the
+  actual CI-tested extras (`.[dev,digest,websearch,a2a,fsm,verify]`),
+  not just `.[dev,fsm,verify]` — the artifact previously omitted
+  `feedparser`, `resend`, `beautifulsoup4`, `slowapi`, `ddgs`,
+  `a2a-sdk`, and `grpcio`. Reproduction re-verified byte-for-byte
+  against the corrected command.
