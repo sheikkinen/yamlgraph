@@ -174,22 +174,31 @@ def cmd_graph_run(args: Namespace) -> None:
         # FR-027: Set up timeout guard (signal.alarm on Unix)
         timeout_ctx = _setup_timeout(timeout)
 
-        try:
-            result = _run_graph_until_complete(
-                app,
-                initial_state,
-                config,
-                use_async,
-                tracer,
-                share_flag,
-                json_mode=json_mode,
-                error_stream=error_stream,
-            )
-        except TimeoutError as te:
-            print(f"❌ {te}", file=error_stream)
-            sys.exit(1)
-        finally:
-            _teardown_timeout(timeout_ctx)
+        from yamlgraph.observability.otel import graph_run_span
+
+        thread_id = config.get("configurable", {}).get("thread_id")
+        with graph_run_span(
+            graph_config.name, initial_state, thread_id=thread_id
+        ) as run_ctx:
+            try:
+                result = _run_graph_until_complete(
+                    app,
+                    initial_state,
+                    config,
+                    use_async,
+                    tracer,
+                    share_flag,
+                    json_mode=json_mode,
+                    error_stream=error_stream,
+                )
+            except TimeoutError as te:
+                print(f"❌ {te}", file=error_stream)
+                sys.exit(1)
+            finally:
+                _teardown_timeout(timeout_ctx)
+
+            if "__interrupt__" in result:
+                run_ctx.outcome = "interrupted"
 
         _emit_success_output(
             args,

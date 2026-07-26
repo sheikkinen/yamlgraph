@@ -1,0 +1,42 @@
+name: Direct-Import Dependency Scanner
+id: CAP-214
+status: active
+fr: FR-761
+feature_request: FR-761
+description: >
+  scripts/direct_import_scan.py walks yamlgraph/ (core, strict) plus
+  examples/, scripts/, tests/ (report-only) via AST, extracting every
+  third-party top-level import (including nested/lazy imports inside
+  functions and try/except blocks) and verifying each resolved
+  distribution is declared somewhere in pyproject.toml — core
+  dependencies OR any optional extra, never charging an optional-extra
+  import to core (FR-761 C-4). Distribution-name comparison is PEP
+  503-normalized (langchain_anthropic == langchain-anthropic). A small,
+  explicit PENDING_GAPS table tracks imports already dispositioned to a
+  sibling FR (FR-760's langchain-core, FR-762's litellm/starlette/
+  protobuf) so the gate blocks only genuinely new undeclared core
+  imports. --strict exits 1 on any non-pending core failure; report-only
+  findings never fail the gate.
+modules:
+  - scripts/direct_import_scan.py
+requirements:
+  - id: REQ-YG-572
+    description: >
+      Direct-import scanner contract (FR-761). AST-based extraction
+      catches nested/lazy imports, not just top-level statements.
+      stdlib modules (via sys.stdlib_module_names) and first-party
+      top-level packages are excluded. Import names are resolved to
+      distribution names via an alias table (yaml->pyyaml, google->
+      protobuf, bs4->beautifulsoup4, z3->z3-solver, etc.) then compared
+      against declared dependencies using PEP 503 normalization so
+      underscore/hyphen variants match. yamlgraph/ imports are core
+      (strict); examples/, scripts/, tests/ are report-only and never
+      fail --strict. PENDING_GAPS entries are always reported but never
+      block --strict, and a stale entry becomes harmless once its owning
+      FR declares the dependency (no code change required — it simply
+      stops matching the undeclared branch). scan() accepts overridable
+      repo_root/pyproject_path/core_roots/report_only_roots/pending_gaps
+      so tests exercise isolated fixture trees, never the live repo.
+    modules:
+      - scripts/direct_import_scan.py
+      - tests/unit/test_direct_import_scan.py

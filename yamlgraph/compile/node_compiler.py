@@ -14,6 +14,7 @@ from langgraph.graph import StateGraph
 from langgraph.types import CachePolicy
 
 from yamlgraph.compile.map_compiler import compile_map_node
+from yamlgraph.compile.node_otel import _maybe_wrap_otel, node_config_get
 from yamlgraph.constants import NodeType
 from yamlgraph.models.guard_schema import CacheConfig
 from yamlgraph.node_factory import (
@@ -125,6 +126,7 @@ NodeTypeHandler = Callable[[NodeCompileContext], tuple[str, Any] | None]
 def _compile_tool_node(ctx: NodeCompileContext) -> None:
     node_fn = create_tool_node(ctx.node_name, ctx.node_config, ctx.tools)
     node_fn = _maybe_wrap_timeout(node_fn, ctx.node_config, ctx.node_name)
+    node_fn = _maybe_wrap_otel(node_fn, ctx.node_name, NodeType.TOOL)
     ctx.graph.add_node(ctx.node_name, node_fn, cache_policy=ctx.cache_policy)
 
 
@@ -136,6 +138,7 @@ def _compile_python_node(ctx: NodeCompileContext) -> None:
         graph_root=ctx.config.source_path and ctx.config.source_path.parent.resolve(),
     )
     node_fn = _maybe_wrap_timeout(node_fn, ctx.node_config, ctx.node_name)
+    node_fn = _maybe_wrap_otel(node_fn, ctx.node_name, NodeType.PYTHON)
     ctx.graph.add_node(ctx.node_name, node_fn, cache_policy=ctx.cache_policy)
 
 
@@ -164,6 +167,7 @@ def _compile_agent_node(ctx: NodeCompileContext) -> None:
         },
     )
     node_fn = _maybe_wrap_timeout(node_fn, ctx.node_config, ctx.node_name)
+    node_fn = _maybe_wrap_otel(node_fn, ctx.node_name, NodeType.AGENT)
     ctx.graph.add_node(ctx.node_name, node_fn, cache_policy=ctx.cache_policy)
 
 
@@ -186,6 +190,7 @@ def _compile_tool_call_node(ctx: NodeCompileContext) -> None:
         ctx.node_name, ctx.node_config, ctx.callable_registry
     )
     node_fn = _maybe_wrap_timeout(node_fn, ctx.node_config, ctx.node_name)
+    node_fn = _maybe_wrap_otel(node_fn, ctx.node_name, NodeType.TOOL_CALL)
     ctx.graph.add_node(ctx.node_name, node_fn, cache_policy=ctx.cache_policy)
 
 
@@ -207,6 +212,7 @@ def _compile_interrupt_node(ctx: NodeCompileContext) -> tuple[str, Any]:
 
 def _compile_passthrough_node(ctx: NodeCompileContext) -> None:
     node_fn = create_passthrough_node(ctx.node_name, ctx.node_config)
+    node_fn = _maybe_wrap_otel(node_fn, ctx.node_name, NodeType.PASSTHROUGH)
     ctx.graph.add_node(ctx.node_name, node_fn, cache_policy=ctx.cache_policy)
 
 
@@ -225,6 +231,7 @@ def _compile_copilot_node(ctx: NodeCompileContext) -> None:
         prompts_dir=ctx.prompts_dir,
         prompts_relative=ctx.prompts_relative,
     )
+    node_fn = _maybe_wrap_otel(node_fn, ctx.node_name, NodeType.COPILOT)
     ctx.graph.add_node(ctx.node_name, node_fn, cache_policy=ctx.cache_policy)
 
 
@@ -239,6 +246,7 @@ def _compile_subgraph_node(ctx: NodeCompileContext) -> None:
         ctx.node_config,
         parent_graph_path=ctx.config.source_path,
     )
+    node_fn = _maybe_wrap_otel(node_fn, ctx.node_name, NodeType.SUBGRAPH)
     ctx.graph.add_node(ctx.node_name, node_fn, cache_policy=ctx.cache_policy)
 
 
@@ -249,15 +257,13 @@ def _compile_llm_node(ctx: NodeCompileContext) -> None:
         ctx.effective_defaults,
         graph_path=ctx.config.source_path,
     )
-    # FR-272: Router with candidates manages its own deadline via _race_async;
-    # do NOT wrap in _maybe_wrap_timeout (same reason as race nodes — FR-267).
-    has_candidates = bool(
-        ctx.node_config.get("candidates")
-        if isinstance(ctx.node_config, dict)
-        else getattr(ctx.node_config, "candidates", None)
-    )
-    if not has_candidates:
+    # FR-272: router-with-candidates owns its deadline via _race_async — skip
+    # _maybe_wrap_timeout (same rationale as race nodes, FR-267).
+    if not node_config_get(ctx.node_config, "candidates", None):
         node_fn = _maybe_wrap_timeout(node_fn, ctx.node_config, ctx.node_name)
+    # llm/router share this handler (FR-759 P3): report the declared type.
+    declared_type = node_config_get(ctx.node_config, "type", NodeType.LLM)
+    node_fn = _maybe_wrap_otel(node_fn, ctx.node_name, declared_type)
     ctx.graph.add_node(ctx.node_name, node_fn, cache_policy=ctx.cache_policy)
 
 
@@ -268,8 +274,9 @@ def _compile_race_node(ctx: NodeCompileContext) -> None:
         ctx.effective_defaults,
         graph_path=ctx.config.source_path,
     )
-    # Race owns `timeout` natively via as_completed(timeout=...);
-    # do NOT wrap in _maybe_wrap_timeout (nested pools drop return value — FR-267).
+    # Race owns `timeout` via as_completed(timeout=...) — nested pools drop
+    # the return value (FR-267), so skip _maybe_wrap_timeout, not otel.
+    node_fn = _maybe_wrap_otel(node_fn, ctx.node_name, NodeType.RACE)
     ctx.graph.add_node(ctx.node_name, node_fn, cache_policy=ctx.cache_policy)
 
 
