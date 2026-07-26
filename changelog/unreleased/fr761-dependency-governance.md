@@ -11,13 +11,22 @@ req: REQ-YG-570
   `scripts/direct_import_scan.py` — an AST-based scanner that walks
   `yamlgraph/` (core, strict) plus `examples/`, `scripts/`, `tests/`
   (report-only), resolving every third-party import to a distribution
-  name (PEP 503-normalized) and verifying it is declared somewhere in
-  `pyproject.toml`. A `PENDING_GAPS` table tracks imports already
+  name (PEP 503-normalized) and verifying it is declared under the
+  correct owner: module-level (unconditional) imports in `yamlgraph/`
+  require core `[project.dependencies]` unless the file matches a
+  known optional feature surface (`PATH_PREFIX_OWNERS` — e.g.
+  `storage/simple_redis.py` → `redis-simple`, `contrib/a2a_client.py`
+  and `a2a/` → `a2a`), in which case that surface's owning extra also
+  counts; nested/lazy imports (multi-provider-factory pattern) may be
+  satisfied by any declared group. Report-only findings under
+  `examples/`, `scripts/`, `tests/` exclude first-party local sibling
+  modules/packages. A `PENDING_GAPS` table tracks imports already
   dispositioned to sibling FRs (FR-760's `langchain-core`, FR-762's
   `litellm`/`starlette`/`protobuf`) so the gate blocks only genuinely
   new undeclared core imports. Wired into `.pre-commit-config.yaml` as
-  a blocking `--strict` hook. 11 unit tests exercise isolated fixture
+  a blocking `--strict` hook. 17 unit tests exercise isolated fixture
   trees (undeclared/declared imports, nested/lazy imports, stdlib and
   first-party exclusion, alias resolution, underscore/hyphen
-  normalization, optional-extra ownership, report-only roots, pending
-  gaps). CAP-212 / REQ-YG-570 registered. (REQ-YG-570)
+  normalization, owner-specific vs unrelated-extra ownership, local
+  sibling module/package exclusion, report-only roots, pending gaps).
+  CAP-212 / REQ-YG-570 registered. (REQ-YG-570)

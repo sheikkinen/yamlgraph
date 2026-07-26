@@ -13,7 +13,7 @@ from pathlib import Path
 
 import pytest
 
-from scripts.direct_import_scan import _normalize, scan
+from scripts.direct_import_scan import PATH_PREFIX_OWNERS, _normalize, scan
 
 pytestmark = pytest.mark.process
 
@@ -197,3 +197,105 @@ def test_excluded_roots_produce_no_findings(tmp_path: Path) -> None:
     result = scan(STDLIB, repo_root=tmp_path, pyproject_path=pyproject)
 
     assert result.findings == []
+
+
+@pytest.mark.req("REQ-YG-570")
+def test_module_level_import_not_satisfied_by_unrelated_extra(tmp_path: Path) -> None:
+    """PR #463 review P1 regression: a module-level (unconditional) import in a
+    yamlgraph/ file with no recognized owner mapping must fail if its
+    distribution is declared ONLY under an unrelated extra — declaring it
+    "anywhere" is not enough. This is the exact gap the flattened-declared
+    model previously missed.
+    """
+    _write(tmp_path, "yamlgraph/new_module.py", "import some_new_pkg\n")
+    pyproject = _pyproject(
+        tmp_path, core_deps=[], extras={"unrelated_extra": ["some-new-pkg>=1.0"]}
+    )
+
+    result = scan(STDLIB, repo_root=tmp_path, pyproject_path=pyproject)
+
+    assert len(result.core_failures) == 1
+    assert result.core_failures[0].distribution == "some_new_pkg"
+
+
+@pytest.mark.req("REQ-YG-570")
+def test_module_level_import_satisfied_by_recognized_owner_extra(
+    tmp_path: Path,
+) -> None:
+    """A module-level import in a file matching PATH_PREFIX_OWNERS passes when
+    declared under its owning extra specifically (not just any extra).
+    """
+    assert "yamlgraph/storage/simple_redis.py" in PATH_PREFIX_OWNERS
+    _write(tmp_path, "yamlgraph/storage/simple_redis.py", "import orjson\n")
+    pyproject = _pyproject(
+        tmp_path, core_deps=[], extras={"redis-simple": ["orjson>=3.9.0"]}
+    )
+
+    result = scan(STDLIB, repo_root=tmp_path, pyproject_path=pyproject)
+
+    assert result.core_failures == []
+
+
+@pytest.mark.req("REQ-YG-570")
+def test_module_level_import_owner_mapping_is_specific_not_flattened(
+    tmp_path: Path,
+) -> None:
+    """A recognized-surface file's module-level import must be declared under
+    ITS owning extra — declaring the same distribution under a completely
+    different, unrelated extra must still fail.
+    """
+    _write(tmp_path, "yamlgraph/storage/simple_redis.py", "import orjson\n")
+    pyproject = _pyproject(
+        tmp_path, core_deps=[], extras={"totally_unrelated": ["orjson>=3.9.0"]}
+    )
+
+    result = scan(STDLIB, repo_root=tmp_path, pyproject_path=pyproject)
+
+    assert len(result.core_failures) == 1
+    assert result.core_failures[0].distribution == "orjson"
+
+
+@pytest.mark.req("REQ-YG-570")
+def test_report_only_excludes_local_sibling_module(tmp_path: Path) -> None:
+    """PR #463 review P2 regression: a report-only file importing a local
+    sibling module/package (first-party example code reachable via
+    sys.path insertion, not a third-party distribution) must not be
+    reported as an undeclared dependency.
+    """
+    _write(tmp_path, "examples/plot_modeller/run.py", "import nodes\n")
+    _write(tmp_path, "examples/plot_modeller/nodes/__init__.py", "")
+    _write(tmp_path, "examples/plot_modeller/nodes/step.py", "")
+    pyproject = _pyproject(tmp_path, core_deps=[])
+
+    result = scan(STDLIB, repo_root=tmp_path, pyproject_path=pyproject)
+
+    assert result.findings == []
+
+
+@pytest.mark.req("REQ-YG-570")
+def test_report_only_excludes_local_sibling_module_file(tmp_path: Path) -> None:
+    """Same as above, but the local sibling is a single `.py` file (not a
+    package directory), e.g. `examples/daily_digest/tests/test_api.py`
+    importing `examples/daily_digest/api.py`."""
+    _write(tmp_path, "examples/daily_digest/tests/test_api.py", "import api\n")
+    _write(tmp_path, "examples/daily_digest/api.py", "")
+    pyproject = _pyproject(tmp_path, core_deps=[])
+
+    result = scan(STDLIB, repo_root=tmp_path, pyproject_path=pyproject)
+
+    assert result.findings == []
+
+
+@pytest.mark.req("REQ-YG-570")
+def test_report_only_still_flags_genuinely_undeclared_import(tmp_path: Path) -> None:
+    """The local-module exclusion must not suppress genuine report-only
+    findings — only names that actually resolve to a real sibling file/dir
+    are excluded.
+    """
+    _write(tmp_path, "examples/plot_modeller/run.py", "import genuinely_missing_pkg\n")
+    pyproject = _pyproject(tmp_path, core_deps=[])
+
+    result = scan(STDLIB, repo_root=tmp_path, pyproject_path=pyproject)
+
+    assert len(result.findings) == 1
+    assert result.findings[0].distribution == "genuinely_missing_pkg"

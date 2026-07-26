@@ -221,8 +221,8 @@ dependencies:
     added: "0.3.0"
 
   httpx:
-    rationale: "Async HTTP client for booking and digest API calls"
-    modules: ["examples/booking/", "examples/daily_digest/"]
+    rationale: "Async HTTP client for booking and digest API calls; also the direct import in yamlgraph/contrib/a2a_client.py's A2A client transport (FR-761 direct-import ownership fix — a2a-sdk pulls httpx in transitively, but the direct import needs its own declaration under the a2a extra)"
+    modules: ["examples/booking/", "examples/daily_digest/", "yamlgraph/contrib/a2a_client.py"]
     added: "0.3.0"
 
   uvicorn:

@@ -8,15 +8,34 @@ functions and try/except blocks are included), and verifies each resolved
 distribution is declared somewhere in pyproject.toml (core dependencies or
 any optional-dependencies extra).
 
-Ownership model (frozen by FR-761 judgement):
-    - yamlgraph/ (core + optional feature surfaces): an import is
-      satisfied if its distribution is declared in EITHER core
-      dependencies OR any optional extra. This never charges an
-      optional-extra import to core (FR-761 C-4) — the module living
-      under yamlgraph/ does not force core ownership.
+Ownership model (frozen by FR-761 judgement, R-2):
+    - yamlgraph/ core import surface: a *module-level* (unconditional)
+      import must be declared in `[project.dependencies]` (core), UNLESS
+      the file is a recognized optional feature surface (see
+      PATH_PREFIX_OWNERS below), in which case it may also be satisfied
+      by that surface's owning extra(s).
+    - yamlgraph/ nested/lazy imports (inside a function, method, or
+      try/except body): these represent deferred, provider-selection-style
+      loads (e.g. `utils/llm_providers.py` importing a different provider
+      SDK per branch). They may be satisfied by declaration in core OR
+      ANY optional extra — tightening this to per-file ownership would
+      force every multi-provider factory file to enumerate every provider
+      extra it might ever lazily import, which the FR's own enforcement
+      notes identified as impractical. This is the one deliberately
+      permissive corner of the model; everything else is owner-strict.
     - examples/, scripts/, tests/: report-only. Findings are always
       printed but never fail --strict (FR-761 AC-09; FR-762 owns
-      flipping specific example roots to strict later).
+      flipping specific example roots to strict later). Local sibling
+      modules/packages (first-party code living next to the importing
+      file, e.g. `examples/plot_modeller/nodes/`) are excluded from
+      findings entirely — they are not third-party distributions.
+
+This closes the gap flagged in PR #463 review: previously ANY import
+under yamlgraph/ passed if its distribution was declared under ANY
+extra, meaning a new *required* core import would silently pass if it
+happened to share a name with an unrelated extra's dependency. Now,
+only nested/lazy imports get that flexibility; module-level imports in
+files without an explicit owner mapping must be genuinely core.
 
 Known pending gaps: a small number of currently-undeclared imports are
 already dispositioned to a sibling FR (FR-760's langchain-core, FR-762's
@@ -85,6 +104,27 @@ PENDING_GAPS: dict[str, str] = {
 }
 
 
+# Path prefixes (relative to repo root, POSIX-style) recognized as
+# optional yamlgraph/ feature surfaces: files whose module-level imports
+# are only ever executed when that surface is actually used (the module
+# itself is loaded lazily by callers, or is only reachable via the
+# owning extra's entry point). Maps prefix -> owning extra name(s).
+# A path matches if it equals a prefix exactly (file) or starts with
+# "<prefix>/" (directory). Discovered by scanning yamlgraph/ for
+# module-level imports not covered by [project.dependencies] (see
+# scripts/direct_import_scan.py module docstring history / FR-761 PR
+# #463 review). Extend this table with a new entry, rather than
+# widening the any-declared-group check for nested imports, when a
+# new optional surface is added.
+PATH_PREFIX_OWNERS: dict[str, frozenset[str]] = {
+    "yamlgraph/storage/serializers.py": frozenset({"redis-simple", "redis"}),
+    "yamlgraph/storage/simple_redis.py": frozenset({"redis-simple"}),
+    "yamlgraph/contrib/a2a_client.py": frozenset({"a2a"}),
+    "yamlgraph/a2a": frozenset({"a2a"}),
+    "yamlgraph/cli/a2a_commands.py": frozenset({"a2a"}),
+}
+
+
 @dataclass
 class Finding:
     file: str
@@ -92,6 +132,7 @@ class Finding:
     distribution: str
     line: int
     path_class: str  # "core" | "report_only"
+    nested: bool = False
 
 
 @dataclass
@@ -133,33 +174,76 @@ def _iter_python_files(repo_root: Path, roots: tuple[str, ...]) -> list[Path]:
     return files
 
 
-def _extract_imports(path: Path) -> list[tuple[str, int]]:
-    """Return (top_level_import_name, line_number) pairs for a file.
+def _extract_imports(path: Path) -> list[tuple[str, int, bool]]:
+    """Return (top_level_import_name, line_number, is_nested) triples for a file.
 
     Uses ast.walk (not just top-level statements) so lazy/nested imports
-    inside functions or try/except blocks are caught. Relative imports
-    (level > 0) are excluded — they are always first-party by definition.
+    inside functions or try/except blocks are caught. `is_nested` is True
+    for anything not a direct child of the module body (i.e. not a plain
+    top-level, unconditional import). Relative imports (level > 0) are
+    excluded — they are always first-party by definition.
     """
     try:
         tree = ast.parse(path.read_text(encoding="utf-8"))
     except (SyntaxError, UnicodeDecodeError):
         return []
 
-    results: list[tuple[str, int]] = []
+    top_level_ids = {id(node) for node in tree.body}
+    results: list[tuple[str, int, bool]] = []
     for node in ast.walk(tree):
         if isinstance(node, ast.Import):
+            nested = id(node) not in top_level_ids
             for alias in node.names:
-                results.append((alias.name.split(".")[0], node.lineno))
+                results.append((alias.name.split(".")[0], node.lineno, nested))
         elif isinstance(node, ast.ImportFrom):
             if node.level and node.level > 0:
                 continue
             if node.module:
-                results.append((node.module.split(".")[0], node.lineno))
+                nested = id(node) not in top_level_ids
+                results.append((node.module.split(".")[0], node.lineno, nested))
     return results
 
 
 def _resolve_distribution(import_name: str) -> str:
     return IMPORT_TO_DIST.get(import_name, import_name)
+
+
+def _owner_extras_for(rel_path_posix: str) -> frozenset[str] | None:
+    """Return the owning extra(s) for a recognized optional yamlgraph/ surface.
+
+    Matches an exact file entry, or a directory prefix ("<prefix>/..."),
+    in PATH_PREFIX_OWNERS. Returns None if the path isn't a recognized
+    optional surface (i.e. it's a core file: module-level imports must
+    be declared in core dependencies).
+    """
+    for prefix, owners in PATH_PREFIX_OWNERS.items():
+        if rel_path_posix == prefix or rel_path_posix.startswith(prefix + "/"):
+            return owners
+    return None
+
+
+def _is_local_module(path: Path, import_name: str, repo_root: Path) -> bool:
+    """Return True if `import_name` resolves to a first-party sibling module.
+
+    Walks up from the importing file's directory to the repo root,
+    checking at each level for a `<import_name>.py` file or
+    `<import_name>/` package directory. This catches example-local
+    helper modules (e.g. `examples/plot_modeller/nodes/`,
+    `examples/daily_digest/api/`) that are only importable because the
+    example inserts its own root onto `sys.path` — they are first-party
+    code, not undeclared third-party distributions (FR-761 AC-12,
+    report-only local-module exclusion; PR #463 review P2).
+    """
+    current = path.parent
+    while True:
+        if (current / f"{import_name}.py").exists():
+            return True
+        candidate_dir = current / import_name
+        if candidate_dir.is_dir() and any(candidate_dir.glob("*.py")):
+            return True
+        if current == repo_root or current.parent == current:
+            return False
+        current = current.parent
 
 
 def _normalize(name: str) -> str:
@@ -205,7 +289,10 @@ def scan(
     )
     pending = pending_gaps if pending_gaps is not None else PENDING_GAPS
     deps_by_group = parse_pyproject_dependencies(pyproject)
-    declared = _declared_distributions(deps_by_group)
+    core_declared = {_normalize(d) for d in deps_by_group.get("core", [])}
+    declared_any = _declared_distributions(
+        deps_by_group
+    )  # core + every extra, flattened
 
     result = ScanResult()
     all_files = _iter_python_files(repo_root, core_roots + report_only_roots)
@@ -214,18 +301,46 @@ def scan(
         if path_class is None:
             continue
         rel_str = str(path.relative_to(repo_root))
-        for import_name, lineno in _extract_imports(path):
+        rel_posix = path.relative_to(repo_root).as_posix()
+        for import_name, lineno, nested in _extract_imports(path):
             if import_name in stdlib or import_name in FIRST_PARTY:
                 continue
-            distribution = _resolve_distribution(import_name)
-            if _normalize(distribution) in declared:
+            if path_class == "report_only" and _is_local_module(
+                path, import_name, repo_root
+            ):
                 continue
+            distribution = _resolve_distribution(import_name)
+            normalized = _normalize(distribution)
+
+            if path_class == "core":
+                if nested:
+                    # Deferred/lazy imports (provider-selection style):
+                    # satisfied by core OR any declared extra.
+                    allowed = declared_any
+                else:
+                    # Unconditional module-level imports: strict-core,
+                    # unless this file is a recognized optional feature
+                    # surface, in which case its owning extra(s) also count.
+                    owners = _owner_extras_for(rel_posix)
+                    allowed = core_declared
+                    if owners:
+                        for owner in owners:
+                            allowed = allowed | {
+                                _normalize(d) for d in deps_by_group.get(owner, [])
+                            }
+                if normalized in allowed:
+                    continue
+            else:
+                if normalized in declared_any:
+                    continue
+
             finding = Finding(
                 file=rel_str,
                 import_name=import_name,
                 distribution=distribution,
                 line=lineno,
                 path_class=path_class,
+                nested=nested,
             )
             result.findings.append(finding)
             if path_class != "core":
@@ -237,10 +352,22 @@ def scan(
     return result
 
 
+def _expected_owner_label(f: Finding) -> str:
+    """Human-readable label for the dependency group(s) a finding must satisfy."""
+    if f.path_class != "core":
+        return "any group (report-only)"
+    if f.nested:
+        return "core or any optional extra (deferred/lazy import)"
+    owners = _owner_extras_for(f.file.replace("\\", "/"))
+    if owners:
+        return "core, or extra(s): " + ", ".join(sorted(owners))
+    return "core (`[project.dependencies]`)"
+
+
 def _format_finding(f: Finding, pending_note: str | None = None) -> str:
     base = (
         f"{f.file}:{f.line}: import '{f.import_name}' -> distribution "
-        f"'{f.distribution}' not declared in pyproject.toml (any group)"
+        f"'{f.distribution}' not declared; expected owner: {_expected_owner_label(f)}"
     )
     if pending_note:
         return f"{base}  [PENDING: {pending_note}]"

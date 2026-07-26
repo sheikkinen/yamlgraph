@@ -79,3 +79,36 @@ check silently passes a core file that's actually importing the wrong
 range? Is there a cheaper structural signal (dependency graph solve
 failure, `pip check`) that would catch that specific class before a
 scanner rewrite would be needed?
+
+## Follow-up (same day, PR #463 review)
+
+The seed above fired within hours. PR review flagged exactly this: a new
+required core import would silently pass if its distribution happened to
+be declared under an unrelated extra (`booking`, `digest`, `redis-simple`,
+`a2a`, …) — the flattened "declared anywhere" set doesn't distinguish
+"this file's owner" from "any owner at all." Concrete instance found by
+the reviewer's probe: `yamlgraph/contrib/a2a_client.py` unconditionally
+imports `httpx` at module scope, but `httpx` was declared only under
+`booking`/`digest`/`npc` — unrelated extras — and the flattened check let
+it through.
+
+Fix: split classification by import *site*, not just by directory.
+Module-level (unconditional) imports in `yamlgraph/` now require the
+distribution in core `[project.dependencies]`, unless the file matches an
+explicit `PATH_PREFIX_OWNERS` table entry (a small, auditable list of
+recognized optional feature surfaces — `storage/simple_redis.py` →
+`redis-simple`, `contrib/a2a_client.py` and `a2a/` → `a2a`, etc.), in
+which case the owning extra(s) also count. Nested/lazy imports (inside a
+function, method, or try/except — the genuine multi-provider-factory
+pattern in `llm_providers.py`) keep the permissive "declared anywhere"
+check, because that's the one case where per-file ownership really would
+be impractical (a single factory file legitimately imports a different
+provider SDK per branch). `httpx` was added explicitly to the `a2a` extra
+(it's already a transitive dependency of `a2a-sdk`, but FR-761's own
+direct-import philosophy requires an explicit declaration, not a
+transitive one).
+
+The seed's harder question (conflicting version ranges across extras for
+the same distribution) remains open — this fix narrows the blast radius
+(only module-level imports in unmapped files are now strict) but doesn't
+solve version-range conflicts. Left for the next person who hits it.
