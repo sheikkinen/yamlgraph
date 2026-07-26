@@ -57,6 +57,43 @@ pre-commit install
 pre-commit install --hook-type commit-msg
 ```
 
+### Reproducible Dependency Governance (FR-761)
+
+`constraints/dev-py312.txt` pins the exact resolved dev/security/fsm/verify
+environment CI tests against, so a failure can be reproduced locally instead
+of depending on ambient resolver state:
+
+```bash
+# Regenerate the constraints artifact (Python 3.12, matching CI)
+python3.12 -m venv .venv312 && source .venv312/bin/activate
+pip install --upgrade pip
+pip install -e ".[dev,fsm,verify]"
+python -m pip freeze --exclude-editable > constraints/dev-py312.txt
+
+# Reproduce a clean environment from the committed artifact
+python3.12 -m venv .venv312 && source .venv312/bin/activate
+pip install --upgrade pip
+pip install -c constraints/dev-py312.txt -e ".[dev,fsm,verify]"
+
+# Run the same dependency CVE scan the CI `security` gate runs
+pip-audit --desc --skip-editable --ignore-vuln CVE-2026-3219
+```
+
+`pip-audit` is declared in the `dev` extra (FR-761) so this command matches
+`.github/workflows/security.yml` byte-for-byte without installing anything
+undeclared. The constraints file targets the tested editable dev/security
+environment only — it does not pin runtime-only installs.
+
+### Direct-Import Dependency Scan (FR-761)
+
+```bash
+# Strict mode: fails on any undeclared core direct import
+python scripts/direct_import_scan.py --strict
+
+# Report-only: also lists examples/scripts/tests findings without failing
+python scripts/direct_import_scan.py
+```
+
 ### Testing
 ```bash
 # Ultra-fast parallel tests (skip slow, ~20s on 12 cores)

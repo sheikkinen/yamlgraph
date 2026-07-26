@@ -1,0 +1,199 @@
+"""Tests for scripts/direct_import_scan.py (FR-761 direct-import scanner).
+
+Every case builds an isolated fixture tree (tmp_path) with its own
+pyproject.toml and scans it via scan(repo_root=..., pyproject_path=...,
+core_roots=..., report_only_roots=..., pending_gaps=...) — never the live
+repository — so results are deterministic regardless of what the real
+codebase currently imports.
+"""
+
+from __future__ import annotations
+
+from pathlib import Path
+
+import pytest
+
+from scripts.direct_import_scan import _normalize, scan
+
+pytestmark = pytest.mark.process
+
+STDLIB = frozenset({"os", "sys", "typing", "pathlib", "dataclasses"})
+
+
+def _write(root: Path, rel: str, content: str) -> None:
+    path = root / rel
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(content, encoding="utf-8")
+
+
+def _pyproject(
+    root: Path, core_deps: list[str], extras: dict[str, list[str]] | None = None
+) -> Path:
+    extras = extras or {}
+    lines = ["[project]", "name = 'fixture'", "dependencies = ["]
+    lines += [f'  "{d}",' for d in core_deps]
+    lines.append("]")
+    if extras:
+        lines.append("[project.optional-dependencies]")
+        for group, deps in extras.items():
+            lines.append(f"{group} = [")
+            lines += [f'  "{d}",' for d in deps]
+            lines.append("]")
+    path = root / "pyproject.toml"
+    path.write_text("\n".join(lines), encoding="utf-8")
+    return path
+
+
+@pytest.mark.req("REQ-YG-570")
+def test_undeclared_core_import_fails(tmp_path: Path) -> None:
+    """A core (yamlgraph/) import with no matching pyproject entry is a core failure."""
+    _write(tmp_path, "yamlgraph/mod.py", "import totally_undeclared_pkg\n")
+    pyproject = _pyproject(tmp_path, core_deps=["pydantic"])
+
+    result = scan(STDLIB, repo_root=tmp_path, pyproject_path=pyproject)
+
+    assert len(result.core_failures) == 1
+    assert result.core_failures[0].distribution == "totally_undeclared_pkg"
+    assert result.pending == []
+
+
+@pytest.mark.req("REQ-YG-570")
+def test_declared_core_import_passes(tmp_path: Path) -> None:
+    """A core import whose distribution is declared in pyproject core deps is not a failure."""
+    _write(tmp_path, "yamlgraph/mod.py", "import pydantic\n")
+    pyproject = _pyproject(tmp_path, core_deps=["pydantic"])
+
+    result = scan(STDLIB, repo_root=tmp_path, pyproject_path=pyproject)
+
+    assert result.core_failures == []
+    assert result.findings == []
+
+
+@pytest.mark.req("REQ-YG-570")
+def test_stdlib_and_first_party_excluded(tmp_path: Path) -> None:
+    """stdlib modules and first-party top-level packages never produce findings."""
+    _write(
+        tmp_path,
+        "yamlgraph/mod.py",
+        "import os\nimport typing\nimport yamlgraph.utils.foo\nfrom . import sibling\n",
+    )
+    pyproject = _pyproject(tmp_path, core_deps=[])
+
+    result = scan(STDLIB, repo_root=tmp_path, pyproject_path=pyproject)
+
+    assert result.findings == []
+
+
+@pytest.mark.req("REQ-YG-570")
+def test_nested_and_lazy_imports_are_caught(tmp_path: Path) -> None:
+    """Imports inside functions/try-except (not just top-level statements) are extracted."""
+    _write(
+        tmp_path,
+        "yamlgraph/mod.py",
+        "def lazy():\n"
+        "    try:\n"
+        "        import lazy_undeclared_pkg\n"
+        "    except ImportError:\n"
+        "        pass\n",
+    )
+    pyproject = _pyproject(tmp_path, core_deps=[])
+
+    result = scan(STDLIB, repo_root=tmp_path, pyproject_path=pyproject)
+
+    assert len(result.core_failures) == 1
+    assert result.core_failures[0].distribution == "lazy_undeclared_pkg"
+
+
+@pytest.mark.req("REQ-YG-570")
+def test_alias_table_resolves_import_to_distribution(tmp_path: Path) -> None:
+    """import yaml resolves to distribution 'pyyaml' via the alias table."""
+    _write(tmp_path, "yamlgraph/mod.py", "import yaml\n")
+    pyproject = _pyproject(tmp_path, core_deps=["pyyaml"])
+
+    result = scan(STDLIB, repo_root=tmp_path, pyproject_path=pyproject)
+
+    assert result.core_failures == []
+
+
+@pytest.mark.req("REQ-YG-570")
+def test_underscore_hyphen_normalization(tmp_path: Path) -> None:
+    """import langchain_anthropic matches a declared 'langchain-anthropic' dependency (PEP 503)."""
+    _write(tmp_path, "yamlgraph/mod.py", "import langchain_anthropic\n")
+    pyproject = _pyproject(tmp_path, core_deps=["langchain-anthropic>=0.3.0"])
+
+    result = scan(STDLIB, repo_root=tmp_path, pyproject_path=pyproject)
+
+    assert result.core_failures == []
+
+
+@pytest.mark.req("REQ-YG-570")
+def test_normalize_helper() -> None:
+    assert _normalize("langchain_anthropic") == "langchain-anthropic"
+    assert _normalize("Langchain.Anthropic") == "langchain-anthropic"
+    assert _normalize("langchain-anthropic>=0.3.0") != _normalize("langchain-anthropic")
+
+
+@pytest.mark.req("REQ-YG-570")
+def test_optional_extra_import_satisfies_core_ownership(tmp_path: Path) -> None:
+    """An import in yamlgraph/ declared only in an optional extra still passes (FR-761 C-4):
+    optional-extra dependencies used by lazy/nested imports inside core files must not be
+    forced into core deps merely because the module lives under yamlgraph/.
+    """
+    _write(
+        tmp_path,
+        "yamlgraph/utils/llm_providers.py",
+        "def azure():\n    import langchain_azure_ai\n",
+    )
+    pyproject = _pyproject(
+        tmp_path, core_deps=[], extras={"azure": ["langchain-azure-ai>=0.1.0"]}
+    )
+
+    result = scan(STDLIB, repo_root=tmp_path, pyproject_path=pyproject)
+
+    assert result.core_failures == []
+
+
+@pytest.mark.req("REQ-YG-570")
+def test_report_only_roots_never_fail_strict(tmp_path: Path) -> None:
+    """Undeclared imports under examples/, scripts/, tests/ are findings but never core failures."""
+    _write(tmp_path, "examples/demo/run.py", "import some_example_only_pkg\n")
+    _write(tmp_path, "scripts/tool.py", "import another_script_only_pkg\n")
+    _write(tmp_path, "tests/unit/test_x.py", "import yet_another_test_only_pkg\n")
+    pyproject = _pyproject(tmp_path, core_deps=[])
+
+    result = scan(STDLIB, repo_root=tmp_path, pyproject_path=pyproject)
+
+    assert result.core_failures == []
+    assert result.pending == []
+    assert {f.path_class for f in result.findings} == {"report_only"}
+    assert len(result.findings) == 3
+
+
+@pytest.mark.req("REQ-YG-570")
+def test_pending_gaps_are_reported_but_not_blocking(tmp_path: Path) -> None:
+    """A core import matching PENDING_GAPS is reported separately and does not fail --strict."""
+    _write(tmp_path, "yamlgraph/mod.py", "import langchain_core\n")
+    pyproject = _pyproject(tmp_path, core_deps=[])
+
+    result = scan(
+        STDLIB,
+        repo_root=tmp_path,
+        pyproject_path=pyproject,
+        pending_gaps={"langchain_core": "FR-760 test fixture"},
+    )
+
+    assert result.core_failures == []
+    assert len(result.pending) == 1
+    assert result.pending[0].distribution == "langchain_core"
+    assert len(result.findings) == 1
+
+
+@pytest.mark.req("REQ-YG-570")
+def test_excluded_roots_produce_no_findings(tmp_path: Path) -> None:
+    """A directory outside core_roots/report_only_roots (e.g. docs/) is never scanned."""
+    _write(tmp_path, "docs/snippet.py", "import totally_ignored_pkg\n")
+    pyproject = _pyproject(tmp_path, core_deps=[])
+
+    result = scan(STDLIB, repo_root=tmp_path, pyproject_path=pyproject)
+
+    assert result.findings == []

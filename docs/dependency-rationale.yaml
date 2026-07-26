@@ -105,6 +105,19 @@ dependencies:
     modules: ["scripts/noqa_coverage.py"]
     added: "0.5.12"
 
+  pip-audit:
+    rationale: >
+      Dependency CVE scanner backing the CI `security` gate
+      (`.github/workflows/security.yml`). Declared in the `dev` extra
+      (FR-761) so the exact command CI runs — `pip-audit --desc
+      --skip-editable --ignore-vuln CVE-2026-3219` — is reproducible
+      locally with `pip install -e ".[dev]"` alone; previously it was
+      installed ad hoc beside `.[dev]` in CI only, making the local
+      environment unable to mechanically match the remote gate
+      (`automation_inherits_doctrine`).
+    modules: [".github/workflows/security.yml"]
+    added: "0.5.18"
+
   z3-solver:
     rationale: "SMT solver for lint-time condition verification (W803-W805, FR-719) — optional verify extra, never core; hand-rolled interval analysis is the regex_fourth_exclusion trap"
     modules: ["yamlgraph/linter/patterns/conditions_smt.py"]

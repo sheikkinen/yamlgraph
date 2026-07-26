@@ -1579,6 +1579,12 @@ These are not `# noqa` suppressions — they are documented deviations from proc
 - **Sin**: `subprocess.run([GIT, "show", ...])` flagged as untrusted input.
 - **Penance**: Command and args are hardcoded constants; GIT resolved via `shutil.which`; path comes from pre-commit's staged-file list. No user input reaches the call (CONF-388 idiom).
 
+### CONF-399
+- **File**: [scripts/direct_import_scan.py](../scripts/direct_import_scan.py#L45)
+- **Code**: E402
+- **Sin**: `from dependency_rationale import parse_pyproject_dependencies` after a `sys.path.insert` — module-level import not at top.
+- **Penance**: script-adjacent module reusing a sibling script's parser; path bootstrap must precede the import (CONF-392/393/394/396 idiom).
+
 
 ---
 

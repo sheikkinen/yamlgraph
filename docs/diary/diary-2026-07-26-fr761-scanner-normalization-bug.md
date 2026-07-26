@@ -1,0 +1,81 @@
+# 2026-07-26 — The gate that found its own bug
+
+## What happened
+
+Building the FR-761 direct-import scanner, the first live run against the
+real repository reported 31 "undeclared core direct imports" — but 24 of
+them were `langchain_anthropic`, `langchain_azure_ai`, `langchain_openai`,
+`langchain_google_genai`, `langchain_mistralai`, `langchain_litellm`: every
+one of these distributions is already declared in `pyproject.toml`, right
+there in `[project.dependencies]`. The scanner was lying about the exact
+thing it exists to catch honestly.
+
+The cause: Python import names use underscores (`langchain_anthropic`);
+PyPI distribution names conventionally use hyphens (`langchain-anthropic`).
+My first-draft comparison did a literal string match between the resolved
+"distribution" and the parsed `pyproject.toml` dependency names, with no
+normalization. Any package whose PyPI name contains a hyphen and whose
+import name uses an underscore in the same position (a *majority* of the
+`langchain-*` family, plus others) would always fail the check, regardless
+of whether it was declared.
+
+## Why this recurred rather than surprised
+
+This is the same shape as `plausible_wrong_answer` from the Scripture: the
+scanner's output had the correct *shape* — a list of file:line findings
+with a distribution name and a "not declared" message — but was
+semantically wrong for roughly three-quarters of its own first real-world
+run. A shape check (does it run, does it print, does it exit non-zero on
+`--strict`) would have passed this version and shipped it straight into a
+blocking pre-commit gate that would then have failed on every single
+commit touching `yamlgraph/utils/llm_providers.py` — which is nearly every
+provider-related change in the repo.
+
+## The catch
+
+`read_raw_output_first`: before writing a single test, I ran
+`python scripts/direct_import_scan.py --detail` against the live repo and
+*read* the findings list rather than trusting the summary counts. The
+summary said "31 core failures" — a number that could plausibly mean "the
+scanner works and there really are 31 gaps." Only reading the actual
+distribution names line by line surfaced that most of them were
+already-declared dependencies wearing an underscore disguise.
+
+## The fix
+
+Added a `_normalize()` helper applying PEP 503-style normalization
+(`re.sub(r"[-_.]+", "-", name).lower()`) to both sides of the comparison —
+the resolved import distribution and every declared `pyproject.toml`
+dependency name — before checking set membership. Re-running the scan
+after the fix: core failures dropped from 31 to 0 (with 24 correctly
+becoming non-findings and the remaining ~7 all being the genuinely
+undeclared `langchain_core` — itself pending on FR-760, not yet merged at
+authoring time — and FR-762's frozen `litellm`/`starlette`/`protobuf`
+table). Two packages I had provisionally flagged as "new gaps needing
+disposition" during design (`httpx`, `uvicorn`) turned out to already be
+declared elsewhere in `pyproject.toml` once normalization was correct —
+they were never real gaps, just victims of the same bug.
+
+## Heuristic
+
+**Any string-based "is this declared?" check that compares an import name
+to a PyPI distribution name must normalize both sides (PEP 503: hyphens,
+underscores, and dots are equivalent, case-insensitive) before the first
+real run, not after the first failure report is misread as ground truth.**
+This is narrower than the general `read_raw_output_first` cure but
+specific enough to save the next person writing an import-to-dependency
+mapper from re-discovering it the hard way — the underscore/hyphen split
+is systemic across the `langchain-*` ecosystem specifically, so any tool
+that walks LangChain-based imports will hit this immediately.
+
+**Seed:** The ownership model this scanner settled on — "satisfied if
+declared *anywhere* in pyproject.toml, not tied to which directory the
+importing file lives in" — was a deliberate simplification of FR-761's
+frozen per-surface ownership table. It works today because no two extras
+currently declare *conflicting* version constraints for the same
+distribution. What happens the day two optional extras need incompatible
+version ranges of the same package, and the scanner's "declared anywhere"
+check silently passes a core file that's actually importing the wrong
+range? Is there a cheaper structural signal (dependency graph solve
+failure, `pip check`) that would catch that specific class before a
+scanner rewrite would be needed?

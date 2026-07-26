@@ -526,6 +526,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 209 | CAP-209 Root Package Seams | `yamlgraph/a2a`, `yamlgraph/export`, `yamlgraph/compile` | REQ-YG-567 |
 | 210 | CAP-210 Edge Shape Classification | `yamlgraph/compile/edge_compiler.py` | REQ-YG-568 |
 | 211 | CAP-211 Sole-Route Judge and Review Wrappers | `scripts/judge.sh`, `scripts/review.sh`, `.github/skills/judge-fr/adapters/graph.yaml`, `.github/skills/review-pr/adapters/graph.yaml` | REQ-YG-569 |
+| 212 | CAP-212 Direct-Import Dependency Scanner | `scripts/direct_import_scan.py` | REQ-YG-570 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -2622,6 +2623,16 @@ The judge and review governance pipelines execute through exactly one operationa
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-569 | Sole-route judge/review wrapper contract (FR-758). Both wrappers exit 64 on usage error and 66 on missing FR; exit 70 when the matching lineage sentinel is set (re-entry guard); exit 73 when a fresh lock is held (printing holder metadata) and 75 on a stale lock (never auto-removing it); remove their lock on exit. The executor resolution order is YAMLGRAPH_BIN over PATH yamlgraph over uv, exiting 69 when none resolves. The artifact contract exits 65 when the draft is missing/empty, when the judge draft lacks a "**Verdict:**" line, or when the review draft's line one is not "**Merge verdict:**"; a conforming artifact from a successful graph run yields exit 0. Contract witnessed by stubbed YAMLGRAPH_BIN tests (no API keys, no real graph execution) plus one recorded manual smoke per wrapper in FR-758. | `scripts/judge.sh`, `scripts/review.sh`, `tests/unit/test_fr758_judge_review_wrappers.py` |
+
+### 212. CAP-212 Direct-Import Dependency Scanner
+
+scripts/direct_import_scan.py walks yamlgraph/ (core, strict) plus examples/, scripts/, tests/ (report-only) via AST, extracting every third-party top-level import (including nested/lazy imports inside functions and try/except blocks) and verifying each resolved distribution is declared somewhere in pyproject.toml — core dependencies OR any optional extra, never charging an optional-extra import to core (FR-761 C-4). Distribution-name comparison is PEP 503-normalized (langchain_anthropic == langchain-anthropic). A small, explicit PENDING_GAPS table tracks imports already dispositioned to a sibling FR (FR-760's langchain-core, FR-762's litellm/starlette/ protobuf) so the gate blocks only genuinely new undeclared core imports. --strict exits 1 on any non-pending core failure; report-only findings never fail the gate.
+
+**Feature Request:** FR-761
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-570 | Direct-import scanner contract (FR-761). AST-based extraction catches nested/lazy imports, not just top-level statements. stdlib modules (via sys.stdlib_module_names) and first-party top-level packages are excluded. Import names are resolved to distribution names via an alias table (yaml->pyyaml, google-> protobuf, bs4->beautifulsoup4, z3->z3-solver, etc.) then compared against declared dependencies using PEP 503 normalization so underscore/hyphen variants match. yamlgraph/ imports are core (strict); examples/, scripts/, tests/ are report-only and never fail --strict. PENDING_GAPS entries are always reported but never block --strict, and a stale entry becomes harmless once its owning FR declares the dependency (no code change required — it simply stops matching the undeclared branch). scan() accepts overridable repo_root/pyproject_path/core_roots/report_only_roots/pending_gaps so tests exercise isolated fixture trees, never the live repo. | `scripts/direct_import_scan.py`, `tests/unit/test_direct_import_scan.py` |
 
 <!-- END GENERATED CAPABILITIES -->
 
