@@ -88,6 +88,8 @@ IMPORT_TO_DIST: dict[str, str] = {
     "statemachine_engine": "statemachine-engine",
     "langgraph_checkpoint_sqlite": "langgraph-checkpoint-sqlite",
     "langgraph_checkpoint_redis": "langgraph-checkpoint-redis",
+    "tavily": "tavily-python",
+    "chatterbox": "chatterbox-tts",
 }
 
 # Known, already-dispositioned undeclared imports pending a sibling FR's
@@ -97,9 +99,6 @@ IMPORT_TO_DIST: dict[str, str] = {
 # harmless (the import will simply resolve as declared and stop matching
 # the "undeclared" branch).
 PENDING_GAPS: dict[str, str] = {
-    "litellm": "FR-762 — Replicate provider frozen table: declare litellm explicitly in replicate extra",
-    "starlette": "FR-762 — A2A/openai-proxy frozen table: declare starlette explicitly in a2a extra",
-    "protobuf": "FR-762 — A2A frozen table: declare protobuf explicitly in a2a extra (google.protobuf import)",
     "langchain_core": "FR-760 — declares langchain-core as an explicit core dependency (PR open at scanner authoring time); this worktree predates that merge",
 }
 
@@ -267,6 +266,50 @@ def _declared_distributions(deps_by_group: dict[str, list[str]]) -> set[str]:
     return declared
 
 
+def _load_taxonomy_roots(taxonomy_path: Path) -> dict[str, str]:
+    """Return {example root relative path: status} from a taxonomy YAML file."""
+    import yaml as _yaml
+
+    data = _yaml.safe_load(taxonomy_path.read_text(encoding="utf-8"))
+    return {row["path"]: row["status"] for row in data.get("examples", [])}
+
+
+def _taxonomy_status_for(
+    rel_str: str, taxonomy_roots: dict[str, str]
+) -> tuple[str | None, str | None]:
+    """Longest-prefix match of a file's relative path against taxonomy roots.
+
+    Returns (status, root_path) or (None, None) when the file falls under no
+    taxonomy root (e.g. scripts/, tests/, or a non-example examples/ file).
+    """
+    match: tuple[str, str] | None = None
+    for root_path, status in taxonomy_roots.items():
+        if (rel_str == root_path or rel_str.startswith(root_path + "/")) and (
+            match is None or len(root_path) > len(match[0])
+        ):
+            match = (root_path, status)
+    return (match[1], match[0]) if match else (None, None)
+
+
+def _local_names_for_root(root: Path) -> set[str]:
+    """Names importable via a same-root sys.path-insert (the example-fixture
+    idiom: `sys.path.insert(0, ...); import tools`). Matches FR-762's
+    taxonomy classifier so files inside an extra-backed root are not
+    misreported for importing their own local sibling modules.
+    """
+    names: set[str] = set()
+    if not root.is_dir():
+        return names
+    for f in root.rglob("*.py"):
+        if "__pycache__" in f.parts:
+            continue
+        names.add(f.stem)
+    for d in root.rglob("*"):
+        if d.is_dir() and "__pycache__" not in d.parts:
+            names.add(d.name)
+    return names
+
+
 def scan(
     stdlib_names: frozenset[str] | None = None,
     *,
@@ -275,11 +318,21 @@ def scan(
     core_roots: tuple[str, ...] = CORE_ROOTS,
     report_only_roots: tuple[str, ...] = REPORT_ONLY_ROOTS,
     pending_gaps: dict[str, str] | None = None,
+    taxonomy_path: Path | None = None,
 ) -> ScanResult:
     """Scan a repository tree and classify every third-party import.
 
     All location/config parameters are overridable so tests can point the
     scanner at an isolated fixture tree instead of the live repository.
+
+    When `taxonomy_path` is given (FR-762 AC-08), files under an
+    `extra-backed` example root (per `examples/dependency-taxonomy.yaml`)
+    are held to the same strict standard as core: an undeclared import
+    fails --strict unless pending. Files under an `externally-provisioned`
+    root stay excused — the taxonomy row IS the allowlist entry, so no
+    separate PENDING_GAPS note is needed for those known gaps. Local
+    sibling-module imports (the sys.path-insert fixture idiom) are excluded
+    per-root, matching the taxonomy classifier's own exclusion.
     """
     stdlib = (
         stdlib_names if stdlib_names is not None else frozenset(sys.stdlib_module_names)
@@ -293,6 +346,8 @@ def scan(
     declared_any = _declared_distributions(
         deps_by_group
     )  # core + every extra, flattened
+    taxonomy_roots = _load_taxonomy_roots(taxonomy_path) if taxonomy_path else {}
+    local_names_cache: dict[str, set[str]] = {}
 
     result = ScanResult()
     all_files = _iter_python_files(repo_root, core_roots + report_only_roots)
@@ -302,8 +357,23 @@ def scan(
             continue
         rel_str = str(path.relative_to(repo_root))
         rel_posix = path.relative_to(repo_root).as_posix()
+        taxonomy_status, taxonomy_root = _taxonomy_status_for(rel_str, taxonomy_roots)
+        strict_via_taxonomy = (
+            path_class == "report_only" and taxonomy_status == "extra-backed"
+        )
+        local_names: set[str] = set()
+        if strict_via_taxonomy and taxonomy_root:
+            if taxonomy_root not in local_names_cache:
+                local_names_cache[taxonomy_root] = _local_names_for_root(
+                    repo_root / taxonomy_root
+                )
+            local_names = local_names_cache[taxonomy_root]
         for import_name, lineno, nested in _extract_imports(path):
-            if import_name in stdlib or import_name in FIRST_PARTY:
+            if (
+                import_name in stdlib
+                or import_name in FIRST_PARTY
+                or import_name in local_names
+            ):
                 continue
             if path_class == "report_only" and _is_local_module(
                 path, import_name, repo_root
@@ -343,7 +413,7 @@ def scan(
                 nested=nested,
             )
             result.findings.append(finding)
-            if path_class != "core":
+            if path_class != "core" and not strict_via_taxonomy:
                 continue
             if distribution in pending or import_name in pending:
                 result.pending.append(finding)
@@ -378,7 +448,8 @@ def main() -> int:
     strict = "--strict" in sys.argv
     detail = "--detail" in sys.argv
 
-    result = scan()
+    taxonomy_path = REPO_ROOT / "examples" / "dependency-taxonomy.yaml"
+    result = scan(taxonomy_path=taxonomy_path if taxonomy_path.exists() else None)
 
     print("=" * 60)
     print("Direct-Import Dependency Scan (FR-761)")

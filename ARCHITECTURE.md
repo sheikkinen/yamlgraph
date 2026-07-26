@@ -527,6 +527,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 210 | CAP-210 Edge Shape Classification | `yamlgraph/compile/edge_compiler.py` | REQ-YG-568 |
 | 211 | CAP-211 Sole-Route Judge and Review Wrappers | `scripts/judge.sh`, `scripts/review.sh`, `.github/skills/judge-fr/adapters/graph.yaml`, `.github/skills/review-pr/adapters/graph.yaml` | REQ-YG-569 |
 | 212 | CAP-212 Direct-Import Dependency Scanner | `scripts/direct_import_scan.py` | REQ-YG-570 |
+| 213 | CAP-213 Example Dependency Taxonomy Generator | `scripts/example_taxonomy_scan.py` | REQ-YG-571 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -2633,6 +2634,16 @@ scripts/direct_import_scan.py walks yamlgraph/ (core, strict) plus examples/, sc
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-570 | Direct-import scanner contract (FR-761). AST-based extraction catches nested/lazy imports, not just top-level statements. stdlib modules (via sys.stdlib_module_names) and first-party top-level packages are excluded. Import names are resolved to distribution names via an alias table (yaml->pyyaml, google-> protobuf, bs4->beautifulsoup4, z3->z3-solver, etc.) then compared against declared dependencies using PEP 503 normalization so underscore/hyphen variants match. yamlgraph/ imports are core (strict); examples/, scripts/, tests/ are report-only and never fail --strict. PENDING_GAPS entries are always reported but never block --strict, and a stale entry becomes harmless once its owning FR declares the dependency (no code change required — it simply stops matching the undeclared branch). scan() accepts overridable repo_root/pyproject_path/core_roots/report_only_roots/pending_gaps so tests exercise isolated fixture trees, never the live repo. | `scripts/direct_import_scan.py`, `tests/unit/test_direct_import_scan.py` |
+
+### 213. CAP-213 Example Dependency Taxonomy Generator
+
+scripts/example_taxonomy_scan.py mechanically discovers every example root under examples/ (top-level directories, with examples/demos/ flattened one level so each demo is its own root) and classifies each as extra-backed (every third-party import resolves to a distribution declared in pyproject.toml; the owning extra(s) are recorded) or externally-provisioned (at least one import remains undeclared; the specific package is cited, never silently added to pyproject.toml per FR-762 C-4). Reuses FR-761's scanner internals (import extraction, distribution resolution, PEP 503 normalization) rather than reimplementing them. Local sibling-module imports (the sys.path-insert fixture idiom common in example tests, e.g. `import tools`) are recognized as local, not third-party. Writes examples/dependency-taxonomy.yaml as the generated allowlist; --check mode fails when the committed file drifts from a fresh discovery run.
+
+**Feature Request:** FR-762
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-571 | Example dependency taxonomy contract (FR-762). Root discovery is mechanical: every direct child of examples/ is a root except demos/, whose own children are each roots; a candidate becomes a root if it has a graph YAML (top-level nodes: key), a Python file with an `if __name__ == "__main__":` guard, or a README.md. examples/shared/ is excluded (support library, not runnable). Classification has exactly two states, no third: extra-backed (owning extra(s) recorded, None when core-only) or externally-provisioned (specific undeclared distribution cited). Local per-example modules imported via sys.path-insert (matching a .py stem or subdirectory name anywhere under the same root) are excluded from third-party classification. build_taxonomy() and classify_root() accept overridable examples_root/pyproject_path/ repo_root so tests exercise isolated fixture trees, never the live repo. | `scripts/example_taxonomy_scan.py`, `tests/unit/test_example_taxonomy_scan.py` |
 
 <!-- END GENERATED CAPABILITIES -->
 

@@ -112,7 +112,15 @@ repos:
         entry: .venv/bin/python scripts/direct_import_scan.py --strict
         language: system
         pass_filenames: false
-        files: (pyproject\.toml|^yamlgraph/.*\.py$|^scripts/direct_import_scan\.py$)
+        files: (pyproject\.toml|^yamlgraph/.*\.py$|^scripts/(direct_import_scan|example_taxonomy_scan)\.py$|^examples/.*\.py$|^examples/dependency-taxonomy\.yaml$)
+        stages: [pre-commit]
+
+      - id: example-taxonomy-check
+        name: example-taxonomy-scan --check
+        entry: .venv/bin/python scripts/example_taxonomy_scan.py --check
+        language: system
+        pass_filenames: false
+        files: (pyproject\.toml|^examples/.*\.py$|^examples/.*/README\.md$|^scripts/example_taxonomy_scan\.py$|^examples/dependency-taxonomy\.yaml$)
         stages: [pre-commit]
 
   - repo: local

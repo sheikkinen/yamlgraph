@@ -1585,6 +1585,24 @@ These are not `# noqa` suppressions — they are documented deviations from proc
 - **Sin**: `from dependency_rationale import parse_pyproject_dependencies` after a `sys.path.insert` — module-level import not at top.
 - **Penance**: script-adjacent module reusing a sibling script's parser; path bootstrap must precede the import (CONF-392/393/394/396 idiom).
 
+### CONF-400
+- **File**: [scripts/example_taxonomy_scan.py](../scripts/example_taxonomy_scan.py#L46)
+- **Code**: E402
+- **Sin**: `from dependency_rationale import parse_pyproject_dependencies` after a `sys.path.insert` — module-level import not at top.
+- **Penance**: script-adjacent module reusing a sibling script's parser; path bootstrap must precede the import (CONF-392/393/394/396/399 idiom).
+
+### CONF-401
+- **File**: [scripts/example_taxonomy_scan.py](../scripts/example_taxonomy_scan.py#L47)
+- **Code**: E402
+- **Sin**: `from direct_import_scan import (...)` after a `sys.path.insert` — module-level import not at top.
+- **Penance**: reuses FR-761's scanner internals (import extraction, distribution resolution, normalization) rather than reimplementing them; same path-bootstrap idiom as CONF-400.
+
+### CONF-402
+- **File**: [tests/unit/test_example_taxonomy_scan.py](../tests/unit/test_example_taxonomy_scan.py#L11)
+- **Code**: E402
+- **Sin**: `from example_taxonomy_scan import (...)` after a `sys.path.insert` — module-level import not at top.
+- **Penance**: test imports the script module directly (not via the `scripts` package) to exercise it with isolated `tmp_path` fixtures; same path-bootstrap idiom as CONF-400/401.
+
 
 ---
 

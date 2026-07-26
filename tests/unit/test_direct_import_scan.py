@@ -299,3 +299,85 @@ def test_report_only_still_flags_genuinely_undeclared_import(tmp_path: Path) -> 
 
     assert len(result.findings) == 1
     assert result.findings[0].distribution == "genuinely_missing_pkg"
+def _taxonomy(root: Path, rows: list[dict]) -> Path:
+    import yaml
+
+    path = root / "examples" / "dependency-taxonomy.yaml"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(yaml.dump({"examples": rows}), encoding="utf-8")
+    return path
+
+
+@pytest.mark.req("REQ-YG-571")
+def test_taxonomy_extra_backed_example_promoted_to_strict(tmp_path: Path) -> None:
+    """FR-762 AC-08: an extra-backed example root's undeclared import fails
+    --strict just like a core (yamlgraph/) import, when taxonomy_path is given."""
+    _write(tmp_path, "examples/myroot/app.py", "import totally_undeclared_pkg\n")
+    pyproject = _pyproject(tmp_path, core_deps=["pydantic"])
+    taxonomy = _taxonomy(
+        tmp_path, [{"path": "examples/myroot", "status": "extra-backed"}]
+    )
+
+    result = scan(
+        STDLIB, repo_root=tmp_path, pyproject_path=pyproject, taxonomy_path=taxonomy
+    )
+
+    assert len(result.core_failures) == 1
+    assert result.core_failures[0].distribution == "totally_undeclared_pkg"
+
+
+@pytest.mark.req("REQ-YG-571")
+def test_taxonomy_externally_provisioned_stays_report_only(tmp_path: Path) -> None:
+    """An externally-provisioned root's undeclared import is excused — the
+    taxonomy row IS the allowlist entry, it must never fail --strict."""
+    _write(tmp_path, "examples/myroot/app.py", "import undeclared_sdk\n")
+    pyproject = _pyproject(tmp_path, core_deps=["pydantic"])
+    taxonomy = _taxonomy(
+        tmp_path, [{"path": "examples/myroot", "status": "externally-provisioned"}]
+    )
+
+    result = scan(
+        STDLIB, repo_root=tmp_path, pyproject_path=pyproject, taxonomy_path=taxonomy
+    )
+
+    assert result.core_failures == []
+    assert len(result.findings) == 1
+
+
+@pytest.mark.req("REQ-YG-571")
+def test_taxonomy_local_sibling_module_excluded_under_strict_root(
+    tmp_path: Path,
+) -> None:
+    """An extra-backed root's own local `import tools` (sys.path-insert
+    idiom) must not be misreported as an undeclared third-party import."""
+    _write(tmp_path, "examples/myroot/app.py", "import tools\n")
+    _write(tmp_path, "examples/myroot/tools/__init__.py", "")
+    pyproject = _pyproject(tmp_path, core_deps=["pydantic"])
+    taxonomy = _taxonomy(
+        tmp_path, [{"path": "examples/myroot", "status": "extra-backed"}]
+    )
+
+    result = scan(
+        STDLIB, repo_root=tmp_path, pyproject_path=pyproject, taxonomy_path=taxonomy
+    )
+
+    assert result.core_failures == []
+    assert result.findings == []
+
+
+@pytest.mark.req("REQ-YG-571")
+def test_taxonomy_absent_example_root_stays_plain_report_only(tmp_path: Path) -> None:
+    """A file under examples/ that matches no taxonomy row (e.g. shared/)
+    keeps the pre-FR-762 report-only behavior — never blocks --strict."""
+    _write(tmp_path, "examples/shared/helper.py", "import undeclared_thing\n")
+    pyproject = _pyproject(tmp_path, core_deps=["pydantic"])
+    taxonomy = _taxonomy(
+        tmp_path, [{"path": "examples/myroot", "status": "extra-backed"}]
+    )
+
+    result = scan(
+        STDLIB, repo_root=tmp_path, pyproject_path=pyproject, taxonomy_path=taxonomy
+    )
+
+    assert result.core_failures == []
+    assert len(result.findings) == 1
