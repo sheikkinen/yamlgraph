@@ -22,6 +22,11 @@ examples:
   entrypoints:
   - examples/beautify/graph.yaml
   - examples/beautify/run.py
+- path: examples/beautify/prompts
+  status: extra-backed
+  extra: null
+  entrypoints:
+  - examples/beautify/prompts/analyze.yaml
 - path: examples/book_reviewer
   status: extra-backed
   extra: null
@@ -36,11 +41,6 @@ examples:
   status: extra-backed
   extra:
   - booking
-  - digest
-  - examples-dungeon-master
-  - npc
-  - openai-proxy
-  - telco
   entrypoints:
   - examples/booking/graph.yaml
   - examples/booking/main.py
@@ -56,6 +56,12 @@ examples:
   - analysis
   entrypoints:
   - examples/codegen/impl-agent.yaml
+- path: examples/codegen/tools
+  status: extra-backed
+  extra:
+  - analysis
+  entrypoints:
+  - examples/codegen/tools/impl_executor.py
 - path: examples/cost-router
   status: extra-backed
   extra: null
@@ -66,19 +72,35 @@ examples:
   extra: null
   entrypoints:
   - examples/cwe-classifier/graph.yaml
+- path: examples/cwe-classifier/nodes
+  status: extra-backed
+  extra: null
+  entrypoints:
+  - examples/cwe-classifier/nodes/build_catalog.py
+  - examples/cwe-classifier/nodes/crosscheck.py
+  - examples/cwe-classifier/nodes/show_result.py
 - path: examples/daily_digest
   status: extra-backed
   extra:
-  - booking
   - digest
-  - examples-dungeon-master
-  - npc
-  - openai-proxy
-  - telco
   entrypoints:
   - examples/daily_digest/graph.yaml
   - examples/daily_digest/run_digest.py
   - examples/daily_digest/test_email.py
+- path: examples/daily_digest/api
+  status: extra-backed
+  extra:
+  - digest
+  entrypoints:
+  - examples/daily_digest/api/app.py
+- path: examples/demos
+  status: extra-backed
+  extra:
+  - chatterbox
+  - digest
+  - tavily
+  - websearch
+  entrypoints: []
 - path: examples/demos/a2a_call
   status: extra-backed
   extra: null
@@ -144,7 +166,6 @@ examples:
 - path: examples/demos/fi_domain_crawl
   status: extra-backed
   extra:
-  - booking
   - digest
   - websearch
   entrypoints:
@@ -174,6 +195,11 @@ examples:
   extra: null
   entrypoints:
   - examples/demos/graph-tool/graph.yaml
+- path: examples/demos/graph-tool/child
+  status: extra-backed
+  extra: null
+  entrypoints:
+  - examples/demos/graph-tool/child/graph.yaml
 - path: examples/demos/guards
   status: extra-backed
   extra: null
@@ -197,6 +223,16 @@ examples:
   extra: null
   entrypoints:
   - examples/demos/hook_classifier/graph.yaml
+- path: examples/demos/hook_classifier/graphs
+  status: extra-backed
+  extra: null
+  entrypoints:
+  - examples/demos/hook_classifier/graphs/classify-intent.yaml
+- path: examples/demos/hook_classifier/scripts
+  status: extra-backed
+  extra: null
+  entrypoints:
+  - examples/demos/hook_classifier/scripts/emit-test-event.py
 - path: examples/demos/horoscope
   status: extra-backed
   extra: null
@@ -229,6 +265,11 @@ examples:
   - examples/demos/interrupt/interrupt-parent-with-checkpointer-child.yaml
   - examples/demos/interrupt/interrupt-parent.yaml
   - examples/demos/interrupt/test_subgraph_interrupt.py
+- path: examples/demos/interrupt/subgraphs
+  status: extra-backed
+  extra: null
+  entrypoints:
+  - examples/demos/interrupt/subgraphs/interrupt-child.yaml
 - path: examples/demos/interview
   status: extra-backed
   extra: null
@@ -359,6 +400,10 @@ examples:
   extra: null
   entrypoints:
   - examples/demos/router/graph.yaml
+- path: examples/demos/router/prompts
+  status: extra-backed
+  extra: null
+  entrypoints: []
 - path: examples/demos/router-race-candidates
   status: extra-backed
   extra: null
@@ -369,6 +414,11 @@ examples:
   extra: null
   entrypoints:
   - examples/demos/run-analyzer/graph.yaml
+- path: examples/demos/run-analyzer/prompts
+  status: extra-backed
+  extra: null
+  entrypoints:
+  - examples/demos/run-analyzer/prompts/analyze.yaml
 - path: examples/demos/safety-guards
   status: extra-backed
   extra: null
@@ -403,6 +453,14 @@ examples:
   extra: null
   entrypoints:
   - examples/demos/subgraph/graph.yaml
+- path: examples/demos/subgraph/subgraphs
+  status: extra-backed
+  extra: null
+  entrypoints:
+  - examples/demos/subgraph/subgraphs/interrupt-child-with-checkpointer-redis.yaml
+  - examples/demos/subgraph/subgraphs/interrupt-child-with-checkpointer.yaml
+  - examples/demos/subgraph/subgraphs/interrupt-child.yaml
+  - examples/demos/subgraph/subgraphs/summarizer.yaml
 - path: examples/demos/system-status
   status: extra-backed
   extra: null
@@ -508,19 +566,13 @@ examples:
 - path: examples/diary_digest
   status: extra-backed
   extra:
-  - booking
   - digest
   entrypoints:
   - examples/diary_digest/graph.yaml
 - path: examples/dungeon_master
   status: extra-backed
   extra:
-  - booking
-  - digest
   - examples-dungeon-master
-  - npc
-  - openai-proxy
-  - telco
   entrypoints:
   - examples/dungeon_master/chapter_close.yaml
   - examples/dungeon_master/chapter_outline.yaml
@@ -531,6 +583,35 @@ examples:
   - examples/dungeon_master/plot_plan.yaml
   - examples/dungeon_master/synopsis.yaml
   - examples/dungeon_master/turn.yaml
+- path: examples/dungeon_master/api
+  status: extra-backed
+  extra:
+  - examples-dungeon-master
+  entrypoints:
+  - examples/dungeon_master/api/app.py
+- path: examples/dungeon_master/api/plot
+  status: extra-backed
+  extra:
+  - examples-dungeon-master
+  entrypoints:
+  - examples/dungeon_master/api/plot/report.py
+- path: examples/dungeon_master/purgatory
+  status: extra-backed
+  extra: null
+  entrypoints:
+  - examples/dungeon_master/purgatory/plot.yaml
+- path: examples/dungeon_master/scripts
+  status: extra-backed
+  extra: null
+  entrypoints:
+  - examples/dungeon_master/scripts/calibrate_continuity_axis.py
+  - examples/dungeon_master/scripts/continuity_report.py
+  - examples/dungeon_master/scripts/emit_continuity_witness.py
+  - examples/dungeon_master/scripts/generate.py
+  - examples/dungeon_master/scripts/replay_chapter_continuity.py
+  - examples/dungeon_master/scripts/scan_turn_waste.py
+  - examples/dungeon_master/scripts/witness_book_compose.py
+  - examples/dungeon_master/scripts/witness_continuity_metrics.py
 - path: examples/ebook
   status: extra-backed
   extra: null
@@ -550,11 +631,30 @@ examples:
   extra:
   - fsm
   entrypoints: []
+- path: examples/fsm-router/graphs
+  status: extra-backed
+  extra: null
+  entrypoints:
+  - examples/fsm-router/graphs/classifier.yaml
+  - examples/fsm-router/graphs/complex-responder.yaml
+  - examples/fsm-router/graphs/simple-responder.yaml
+- path: examples/fsm-router/tests
+  status: extra-backed
+  extra:
+  - fsm
+  entrypoints: []
 - path: examples/icpc-2-rfe
   status: extra-backed
   extra: null
   entrypoints:
   - examples/icpc-2-rfe/graph.yaml
+- path: examples/icpc-2-rfe/nodes
+  status: extra-backed
+  extra: null
+  entrypoints:
+  - examples/icpc-2-rfe/nodes/build_catalog.py
+  - examples/icpc-2-rfe/nodes/crosscheck.py
+  - examples/icpc-2-rfe/nodes/show_result.py
 - path: examples/image_pipeline
   status: extra-backed
   extra: null
@@ -581,15 +681,15 @@ examples:
   - examples/novel_fandom/story_extract.yaml
   - examples/novel_fandom/world_pressure.yaml
   - examples/novel_fandom/worldgen.yaml
+- path: examples/novel_fandom/nodes
+  status: extra-backed
+  extra: null
+  entrypoints:
+  - examples/novel_fandom/nodes/render_wiki.py
 - path: examples/npc
   status: extra-backed
   extra:
   - booking
-  - digest
-  - examples-dungeon-master
-  - npc
-  - openai-proxy
-  - telco
   entrypoints:
   - examples/npc/demo.py
   - examples/npc/encounter-loop.yaml
@@ -597,30 +697,31 @@ examples:
   - examples/npc/encounter-turn.yaml
   - examples/npc/npc-creation.yaml
   - examples/npc/run_encounter.py
+- path: examples/npc/api
+  status: extra-backed
+  extra:
+  - booking
+  entrypoints:
+  - examples/npc/api/app.py
 - path: examples/ocr_cleanup
   status: extra-backed
   extra: null
   entrypoints:
   - examples/ocr_cleanup/graph.yaml
   - examples/ocr_cleanup/run.py
+- path: examples/ocr_cleanup/tools
+  status: extra-backed
+  extra: null
+  entrypoints:
+  - examples/ocr_cleanup/tools/merge_corrected.py
+  - examples/ocr_cleanup/tools/verify_merge.py
 - path: examples/openai_proxy
   status: extra-backed
   extra:
-  - a2a
-  - booking
-  - digest
-  - examples-dungeon-master
-  - npc
   - openai-proxy
-  - rag
-  - telco
   entrypoints:
   - examples/openai_proxy/demo.py
   - examples/openai_proxy/graph.yaml
-- path: examples/philosopher
-  status: extra-backed
-  extra: null
-  entrypoints: []
 - path: examples/plot_modeller
   status: extra-backed
   extra: null
@@ -637,6 +738,23 @@ examples:
   - examples/plot_modeller/spike_salience_gate.py
   - examples/plot_modeller/spike_snapshot_diff.py
   - examples/plot_modeller/spike_vocab_encode.py
+- path: examples/plot_modeller/graphs
+  status: extra-backed
+  extra: null
+  entrypoints:
+  - examples/plot_modeller/graphs/assign_affects.yaml
+  - examples/plot_modeller/graphs/assign_causality.yaml
+  - examples/plot_modeller/graphs/assign_pre_eff.yaml
+  - examples/plot_modeller/graphs/classify_kinds.yaml
+  - examples/plot_modeller/graphs/extract_agents.yaml
+  - examples/plot_modeller/graphs/extract_glosses.yaml
+  - examples/plot_modeller/graphs/extract_goals.yaml
+  - examples/plot_modeller/graphs/interiority_ab.yaml
+  - examples/plot_modeller/graphs/l5_measure.yaml
+  - examples/plot_modeller/graphs/l7_measure.yaml
+  - examples/plot_modeller/graphs/perspective_agent.yaml
+  - examples/plot_modeller/graphs/perspective_l5.yaml
+  - examples/plot_modeller/graphs/roundtrip_skeleton.yaml
 - path: examples/questionnaire
   status: extra-backed
   extra: null
@@ -659,6 +777,11 @@ examples:
   status: extra-backed
   extra: null
   entrypoints: []
+- path: examples/rtm-hello/scripts
+  status: extra-backed
+  extra: null
+  entrypoints:
+  - examples/rtm-hello/scripts/req_coverage.py
 - path: examples/storyboard
   status: extra-backed
   extra:
@@ -682,3 +805,29 @@ examples:
   entrypoints:
   - examples/yamlgraph_gen/graph.yaml
   - examples/yamlgraph_gen/run_generator.py
+- path: examples/yamlgraph_gen/docs
+  status: extra-backed
+  extra: null
+  entrypoints: []
+- path: examples/yamlgraph_gen/prompts
+  status: extra-backed
+  extra: null
+  entrypoints:
+  - examples/yamlgraph_gen/prompts/assemble_graph.yaml
+  - examples/yamlgraph_gen/prompts/generate_prompts.yaml
+  - examples/yamlgraph_gen/prompts/select_snippets.yaml
+- path: examples/yamlgraph_gen/snippets/nodes
+  status: extra-backed
+  extra: null
+  entrypoints:
+  - examples/yamlgraph_gen/snippets/nodes/agent-with-tools.yaml
+  - examples/yamlgraph_gen/snippets/nodes/python-tool.yaml
+  - examples/yamlgraph_gen/snippets/nodes/websearch-agent.yaml
+- path: examples/yamlgraph_gen/snippets/patterns
+  status: extra-backed
+  extra: null
+  entrypoints:
+  - examples/yamlgraph_gen/snippets/patterns/classify-then-process.yaml
+  - examples/yamlgraph_gen/snippets/patterns/generate-then-map.yaml
+  - examples/yamlgraph_gen/snippets/patterns/interrupt-multi-step.yaml
+  - examples/yamlgraph_gen/snippets/patterns/map-then-summarize.yaml

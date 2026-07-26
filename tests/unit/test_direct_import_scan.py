@@ -299,6 +299,8 @@ def test_report_only_still_flags_genuinely_undeclared_import(tmp_path: Path) -> 
 
     assert len(result.findings) == 1
     assert result.findings[0].distribution == "genuinely_missing_pkg"
+
+
 def _taxonomy(root: Path, rows: list[dict]) -> Path:
     import yaml
 

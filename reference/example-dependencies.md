@@ -30,22 +30,22 @@ python scripts/example_taxonomy_scan.py --check     # verify it is current (CI-s
 ## Root discovery
 
 An "example root" is a directory that is mechanically detected as
-independently runnable:
+independently runnable, evaluated at **every nesting depth under
+`examples/`** — a directory qualifies independently of whether its parent
+or a child directory also qualifies (e.g. `examples/dungeon_master/` and
+`examples/dungeon_master/api/` are both roots, each with their own row):
 
-- Every direct child directory of `examples/` is a root, **except**
-  `examples/demos/`, whose own direct children are each roots instead
-  (`examples/demos/chatterbox`, `examples/demos/hello`, ...). This keeps
-  one row per independently-runnable unit rather than treating the
-  `demos/` umbrella as a single root.
 - A candidate directory becomes a root if it contains at least one of:
   a `*.yaml` file with a top-level `nodes:` key (a YAMLGraph graph), a
   `.py` file with an `if __name__ == "__main__":` guard, or a
-  `README.md`.
-- `examples/shared/` is excluded from discovery: it is a support library
-  imported by many other roots, not itself independently runnable.
-- Loose top-level files directly under `examples/` (not inside a
-  directory) are not discovered as roots by this mechanical definition;
-  none currently carry third-party imports requiring taxonomy tracking.
+  `README.md` containing a fenced code block whose first token is a
+  recognized command (`python`, `yamlgraph`, `pytest`, `uvicorn`, `node`,
+  `npm`, `docker`, `make`, `curl`, `go`). README.md merely *existing* is
+  not sufficient — a fixture/data README with no runnable command (e.g.
+  `examples/plot_modeller/fixtures/README.md`) does not make its
+  directory a root.
+- Pure tooling/VCS noise directories (`__pycache__`, hidden directories,
+  etc.) are pruned from the walk and never considered.
 
 ## Classification method
 
@@ -54,16 +54,21 @@ all `.py` files under the root) is resolved to a PyPI distribution name
 using the same import→distribution mapping and PEP 503 normalization as
 `scripts/direct_import_scan.py` (FR-761) — one resolver, reused, not
 reimplemented (FR-762 R-3). Names that resolve to a file or directory
-that exists locally within the same root (the common
-`sys.path.insert(...); import tools` example-fixture idiom) are treated
-as local, not third-party, and excluded from classification.
+that exists locally within the same root, OR within any ancestor
+directory up to `examples/` (the common
+`sys.path.insert(...); import tools` example-fixture idiom, which is
+often rooted at the parent example package rather than a nested root
+itself), are treated as local, not third-party, and excluded from
+classification.
 
 If every remaining import resolves to a declared distribution, the root
-is `extra-backed` and its owning extra(s) are recorded. Multiple example
-roots frequently list the same extra (or several) because dependencies
-like `fastapi`/`uvicorn` are intentionally declared in more than one
-optional-dependency group for independent installability — this is
-existing repo practice, not a taxonomy artifact.
+is `extra-backed` and `extra` names the extra(s) that make
+`pip install -e ".[<extra>]"` alone sufficient: a single extra whose
+declared distributions are a **superset** of everything the root
+imports, preferred over crediting any extra that only partially owns the
+surface (e.g. `examples/openai_proxy/` names only `openai-proxy`, not
+every extra that happens to also declare `fastapi`). Only when no single
+extra covers the whole surface does `extra` list a minimal combination.
 
 If any import remains undeclared, the root is `externally-provisioned`
 and the specific undeclared distribution(s) are cited. Per FR-762's

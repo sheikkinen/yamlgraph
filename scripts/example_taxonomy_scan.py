@@ -6,9 +6,12 @@ graph YAML, a Python app/CLI entry point (`if __name__ == "__main__"`), or a
 README.md usage command — and classifies it as either:
 
     - extra-backed: every third-party import resolves to a distribution
-      declared somewhere in pyproject.toml. `extra` names the specific
-      optional-dependencies group(s) that own the non-core distributions
-      used (empty/"core" when the root needs nothing beyond core+dev).
+      declared somewhere in pyproject.toml. `extra` names the extra(s)
+      that a user must install for `pip install -e ".[<extra>]"` to be
+      sufficient — prefers a single extra whose declared distributions
+      fully cover the root's non-core import surface over crediting any
+      partial owner (empty/None when the root needs nothing beyond
+      core+dev).
     - externally-provisioned: at least one third-party import resolves to a
       distribution NOT declared anywhere in pyproject.toml. `external_reason`
       names the specific undeclared distribution(s). FR-762 C-4 forbids
@@ -17,12 +20,22 @@ README.md usage command — and classifies it as either:
       being silently declared.
 
 Root discovery (mechanical, not hand-curated):
-    - Every direct child directory of `examples/` is a root, EXCEPT
-      `examples/demos/`, whose own direct child directories are each
-      roots instead (examples/demos/chatterbox, examples/demos/hello, ...).
-    - A candidate directory only becomes a root if it contains at least one
-      of: a `*.yaml` file with a top-level `nodes:` key (a graph), a `.py`
-      file with `if __name__ == "__main__"`, or a `README.md`.
+    - Every directory anywhere under `examples/` (at any nesting depth) is
+      independently evaluated against the "example root" markers below —
+      matching FR-762 R-2's literal definition (a nested directory such as
+      `examples/dungeon_master/api/` or
+      `examples/demos/interrupt/subgraphs/` gets its own row even though it
+      sits inside another qualifying root).
+    - A candidate directory becomes a root if it contains at least one of:
+      a `*.yaml` file with a top-level `nodes:` key (a graph), a `.py` file
+      with `if __name__ == "__main__"`, or a `README.md` containing a
+      fenced code block with a recognizable runnable command (`python`,
+      `yamlgraph`, `pytest`, `uvicorn`, `node`, `npm`, `docker`, `make`,
+      `curl`, or `go` as the first token) — mere README.md *existence* is
+      not sufficient, since fixture/docs READMEs without a usage command
+      (e.g. `examples/plot_modeller/fixtures/README.md`) must not count.
+    - Noise directories (`__pycache__`, VCS/tooling caches, hidden dirs)
+      are pruned from the walk.
 
 Reuses scripts/direct_import_scan.py's import extraction/resolution/
 normalization so classification is consistent with the core/report-only
@@ -37,6 +50,8 @@ Usage:
 
 from __future__ import annotations
 
+import os
+import re
 import sys
 from pathlib import Path
 
@@ -55,6 +70,28 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 EXAMPLES_ROOT = REPO_ROOT / "examples"
 PYPROJECT_PATH = REPO_ROOT / "pyproject.toml"
 TAXONOMY_PATH = REPO_ROOT / "examples" / "dependency-taxonomy.yaml"
+
+# Directories that are pure tooling/VCS noise and never example content;
+# pruned during the recursive walk so they can't be mistaken for roots
+# or slow down discovery.
+NOISE_DIR_NAMES = {
+    "__pycache__",
+    "node_modules",
+    ".git",
+    ".pytest_cache",
+    ".mypy_cache",
+    ".ruff_cache",
+    "dist",
+    "build",
+    "htmlcov",
+}
+
+# First token of a fenced-code-block line that counts as a "README usage
+# command" per FR-762 R-2. A README merely existing (e.g. a fixture-corpus
+# README with no runnable command) does not make its directory a root.
+_USAGE_CMD_RE = re.compile(
+    r"^\$?\s*(python3?|yamlgraph|pytest|uvicorn|node|npm|docker|make|curl|go)\b"
+)
 
 
 def _has_graph_yaml(d: Path) -> bool:
@@ -80,10 +117,29 @@ def _has_main_entrypoint(d: Path, repo_root: Path = REPO_ROOT) -> list[str]:
     return entrypoints
 
 
+def _has_readme_usage_command(d: Path) -> bool:
+    readme = d / "README.md"
+    if not readme.exists():
+        return False
+    try:
+        text = readme.read_text(encoding="utf-8")
+    except (UnicodeDecodeError, OSError):
+        return False
+    in_fence = False
+    for line in text.splitlines():
+        stripped = line.strip()
+        if stripped.startswith("```"):
+            in_fence = not in_fence
+            continue
+        if in_fence and _USAGE_CMD_RE.match(stripped):
+            return True
+    return False
+
+
 def _is_example_root(d: Path) -> bool:
     if not d.is_dir():
         return False
-    if _has_graph_yaml(d) or (d / "README.md").exists():
+    if _has_graph_yaml(d) or _has_readme_usage_command(d):
         return True
     for f in d.glob("*.py"):
         try:
@@ -96,19 +152,26 @@ def _is_example_root(d: Path) -> bool:
 
 
 def discover_roots(examples_root: Path = EXAMPLES_ROOT) -> list[Path]:
-    """Mechanically discover every example root (see module docstring)."""
+    """Mechanically discover every example root (see module docstring).
+
+    Walks every directory under examples_root at any nesting depth —
+    a directory qualifies as a root independent of whether its parent or
+    a child directory also qualifies, matching FR-762 R-2's literal
+    "any directory under examples/" definition.
+    """
     roots: list[Path] = []
-    for child in sorted(examples_root.iterdir()):
-        if not child.is_dir() or child.name in {"__pycache__", "shared"}:
+    for dirpath, dirnames, _filenames in os.walk(examples_root):
+        dirnames[:] = sorted(
+            name
+            for name in dirnames
+            if name not in NOISE_DIR_NAMES and not name.startswith(".")
+        )
+        current = Path(dirpath)
+        if current == examples_root:
             continue
-        if child.name == "demos":
-            for grandchild in sorted(child.iterdir()):
-                if _is_example_root(grandchild):
-                    roots.append(grandchild)
-            continue
-        if _is_example_root(child):
-            roots.append(child)
-    return roots
+        if _is_example_root(current):
+            roots.append(current)
+    return sorted(roots)
 
 
 def _root_imports(root: Path) -> list[str]:
@@ -117,25 +180,54 @@ def _root_imports(root: Path) -> list[str]:
     for f in root.rglob("*.py"):
         if "__pycache__" in f.parts:
             continue
-        for import_name, _lineno in _extract_imports(f):
+        for import_name, _lineno, _nested in _extract_imports(f):
             names.append(import_name)
     return names
 
 
-def _owning_extras(
-    distribution_norm: str, deps_by_group: dict[str, list[str]]
+def _extras_covering(
+    required_norms: set[str], deps_by_group: dict[str, list[str]]
 ) -> list[str]:
-    """Which optional-dependencies extras (excluding core/dev) declare this distribution."""
-    owners = []
-    for group, deps in deps_by_group.items():
-        if group in {"core", "dev"}:
-            continue
-        if any(_normalize(d) == distribution_norm for d in deps):
-            owners.append(group)
-    return owners
+    """Return the extra(s) needed so `pip install -e ".[<extra>]"` alone
+    installs every distribution in required_norms.
+
+    Prefers a single extra whose declared distributions are a superset of
+    required_norms (the common case, and what "extra-backed by a named
+    extra" means per FR-762 R-2/AC-02) over unioning several partial
+    owners — a partial owner alone is not a complete install story.
+    Falls back to a minimal greedy combination only when no single extra
+    covers everything (still declared, per the caller's undeclared check,
+    just split across more than one group).
+    """
+    if not required_norms:
+        return []
+    group_norms = {
+        group: {_normalize(d) for d in deps}
+        for group, deps in deps_by_group.items()
+        if group not in {"core", "dev"}
+    }
+    full_owners = sorted(
+        group for group, norms in group_norms.items() if required_norms <= norms
+    )
+    if full_owners:
+        return [full_owners[0]]
+
+    remaining = set(required_norms)
+    chosen: list[str] = []
+    while remaining:
+        best_group, best_covered = None, set()
+        for group, norms in group_norms.items():
+            covered = remaining & norms
+            if len(covered) > len(best_covered):
+                best_group, best_covered = group, covered
+        if best_group is None:
+            break
+        chosen.append(best_group)
+        remaining -= best_covered
+    return sorted(chosen)
 
 
-def _local_module_names(root: Path) -> set[str]:
+def _local_module_names(root: Path, examples_root: Path = EXAMPLES_ROOT) -> set[str]:
     """Names importable as `import <name>` via a sys.path insert of this root
     or one of its subdirectories (the common example test-fixture idiom).
 
@@ -143,6 +235,14 @@ def _local_module_names(root: Path) -> set[str]:
     under the root, so `import tools` from examples/rag/tools/__init__.py
     or `import canon_tools` from examples/novel_fandom/nodes/canon_tools.py
     are recognized as local, not third-party.
+
+    Also walks upward from `root` to `examples_root`, adding each ancestor
+    level's direct children as local names. This covers a nested root
+    (e.g. `examples/fsm-router/tests/`, discovered as its own root per
+    FR-762 R-2) whose test suite imports a *sibling* package one level up
+    (`examples/fsm-router/actions/`) rather than something under its own
+    subtree — the sys.path-insert idiom is commonly rooted at the parent
+    example package, not at the nested root itself.
     """
     names: set[str] = set()
     for f in root.rglob("*.py"):
@@ -152,6 +252,20 @@ def _local_module_names(root: Path) -> set[str]:
     for d in root.rglob("*"):
         if d.is_dir() and "__pycache__" not in d.parts:
             names.add(d.name)
+
+    ancestor = root.parent
+    while True:
+        try:
+            ancestor.relative_to(examples_root)
+        except ValueError:
+            break
+        for child in ancestor.iterdir():
+            if child.name.startswith(".") or child.name in NOISE_DIR_NAMES:
+                continue
+            names.add(child.stem if child.is_file() else child.name)
+        if ancestor == examples_root:
+            break
+        ancestor = ancestor.parent
     return names
 
 
@@ -161,10 +275,11 @@ def classify_root(
     declared: set[str],
     deps_by_group: dict[str, list[str]],
     repo_root: Path = REPO_ROOT,
+    examples_root: Path = EXAMPLES_ROOT,
 ) -> dict:
-    local_names = _local_module_names(root)
+    local_names = _local_module_names(root, examples_root)
     undeclared: list[str] = []
-    extras_used: set[str] = set()
+    required_norms: set[str] = set()
     for import_name in _root_imports(root):
         if (
             import_name in stdlib
@@ -177,7 +292,7 @@ def classify_root(
         if norm not in declared:
             undeclared.append(distribution)
             continue
-        extras_used.update(_owning_extras(norm, deps_by_group))
+        required_norms.add(norm)
 
     rel = str(root.relative_to(repo_root))
     entrypoints = _has_main_entrypoint(root, repo_root)
@@ -201,7 +316,7 @@ def classify_root(
     return {
         "path": rel,
         "status": "extra-backed",
-        "extra": sorted(extras_used) or None,
+        "extra": _extras_covering(required_norms, deps_by_group) or None,
         "entrypoints": sorted(set(entrypoints)),
     }
 
@@ -219,7 +334,11 @@ def build_taxonomy(
 
     rows = []
     for root in discover_roots(examples_root):
-        rows.append(classify_root(root, stdlib, declared, deps_by_group, repo_root))
+        rows.append(
+            classify_root(
+                root, stdlib, declared, deps_by_group, repo_root, examples_root
+            )
+        )
     return rows
 
 

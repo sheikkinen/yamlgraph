@@ -214,8 +214,8 @@ dependencies:
     added: "0.3.0"
 
   openai:
-    rationale: "OpenAI embeddings API for RAG vector generation"
-    modules: ["examples/rag/"]
+    rationale: "OpenAI embeddings API for RAG vector generation; also imported directly by examples/openai_proxy/demo.py's OpenAI() client (PR #464 review — the openai-proxy extra must fully own its example's import surface)"
+    modules: ["examples/rag/", "examples/openai_proxy/demo.py"]
     added: "0.3.0"
 
   pyarrow:

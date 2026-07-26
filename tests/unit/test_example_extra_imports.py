@@ -39,9 +39,14 @@ def test_a2a_extra_imports(module_name):
 
 
 @pytest.mark.req("REQ-YG-571")
-@pytest.mark.parametrize("module_name", ["fastapi", "uvicorn", "starlette"])
+@pytest.mark.parametrize("module_name", ["fastapi", "uvicorn", "starlette", "openai"])
 def test_openai_proxy_extra_imports(module_name):
-    """`openai-proxy` extra: the FastAPI app stack imports cleanly."""
+    """`openai-proxy` extra: the FastAPI app stack AND the OpenAI SDK the
+    demo actually imports (`from openai import OpenAI`) import cleanly.
+    PR #464 review found `openai` missing from this check even though
+    the demo module imports it directly — the extra must cover the
+    example's full non-core import surface, not just its server
+    framework."""
     importlib.import_module(module_name)
 
 

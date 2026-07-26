@@ -163,3 +163,45 @@ rather than asserting an import.
 (REQ-YG-571) covers `scripts/example_taxonomy_scan.py`,
 `tests/unit/test_example_taxonomy_scan.py`, the taxonomy-aware additions to
 `direct_import_scan.py`, and `tests/unit/test_example_extra_imports.py`.
+
+## PR #464 review fixes (2026-07-26)
+
+**P1 — root discovery widened from top-level-plus-one-flatten to fully
+recursive.** The original "flatten `examples/demos/*` one level" heuristic
+missed independently-runnable roots nested deeper than one level
+(`examples/dungeon_master/api/`, `examples/demos/interrupt/subgraphs/`), both
+cited by the reviewer as omissions. `example_taxonomy_scan.py`'s discovery
+now walks every directory under `examples/` via `os.walk` (pruning a
+`NOISE_DIR_NAMES` set — caches, fixtures, `__pycache__`, etc.), and treats
+each directory containing a fenced-code-block usage command in its own
+`README.md` as its own root, independent of nesting depth. A directory
+qualifies by having a README documenting how to run it — not by its position
+in the tree. Root count grew 112 → 139; both reviewer-cited omissions are now
+discovered. The "README exists" check was tightened to "README contains a
+fenced code block whose first token is a recognized command verb
+(`python`/`yamlgraph`/`pytest`/etc.)" to avoid false positives from
+fixture/doc READMEs that happen to live under `examples/`.
+
+**P2 — `extra` field now names the single full-coverage extra, not any
+partial owner.** The reviewer's concrete case: `openai_proxy` imports
+`fastapi`, `uvicorn`, `starlette`, and `openai` — but `openai` was only
+declared under the unrelated `rag` extra, so the row's `extra` field named
+`rag` instead of `openai-proxy`. `_owning_extras()` (any extra covering at
+least one required distribution) is replaced by `_extras_covering()`: it
+prefers a single extra whose declared distributions are a strict superset of
+everything the root imports, falling back to a greedy minimal combination
+only when no single extra suffices. `openai>=1.0.0` was added to the
+`openai-proxy` extra in `pyproject.toml` (duplicating the existing pattern
+used for `fastapi`/`uvicorn`/`starlette` across extras) so `openai-proxy`
+alone now covers the row.
+
+**Follow-on fixes required by P1/P2:** `_local_module_names()` now also walks
+ancestor directories from a nested root up to `examples_root`, because a
+newly-discovered nested root's local-import fixture idiom is often rooted at
+its parent package (e.g. `fsm-router/tests/` importing sibling
+`fsm-router/actions/`) rather than within its own subtree — without this the
+wider discovery introduced false-positive "externally-provisioned" rows.
+`_root_imports()` was fixed to unpack the 3-tuple
+`(name, line, is_nested)` that FR-761's P1 fix changed `_extract_imports()`
+to return (previously a 2-tuple), caught by rebasing this branch onto the
+updated `feat/fr-761-dependency-governance`.

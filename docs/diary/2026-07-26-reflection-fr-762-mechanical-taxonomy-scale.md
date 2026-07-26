@@ -84,3 +84,24 @@ because it doesn't get tired at row 60 and start waving things through.
 mechanically," treat "mechanically" as a literal instruction to write code,
 not prose to interpret by hand — and run the discovery step BEFORE
 estimating effort, because the exponent is invisible until you count.
+
+## Follow-up: PR #464 review (2026-07-26)
+
+The reviewer's rejection restated the same trap in a sharper form: the
+initial enforcement's "top-level plus one demos-flatten" discovery was
+ITSELF an unexamined interpretation of "mechanically" — a human-shaped
+compromise disguised as an algorithm. The literal FR wording ("any
+directory under `examples/`") demanded fully recursive `os.walk`
+discovery; anything less was the same convenience-over-literalism drift
+the diary above already named. The fix (recursive discovery + README
+usage-command gate) grew the root count 112 → 139 and surfaced both
+reviewer-cited omissions immediately — confirming that the "count before
+estimating" heuristic applies recursively: count again after the first
+count, because the first count can itself be an interpretation.
+
+The second finding (`_extras_covering()` preferring full single-extra
+coverage over any partial owner) was a `plausible_wrong_answer` case: the
+old `_owning_extras()` output looked correct (an extra was named, imports
+did resolve) but answered a different question than the one asked — "does
+some extra cover this" instead of "which extra IS this example's."
+Shape-correct, semantically wrong.

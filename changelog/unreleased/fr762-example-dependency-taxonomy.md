@@ -6,10 +6,13 @@ req: REQ-YG-571
 - **FR-762 Example Dependency Taxonomy**: every `examples/` root is now
   mechanically classified as `extra-backed` (every third-party import
   resolves to a distribution declared in `pyproject.toml`; owning
-  extra(s) recorded) or `externally-provisioned` (an undeclared import
-  is cited by name, never silently added). `scripts/example_taxonomy_scan.py`
-  discovers 112 roots (top-level `examples/*`, with `examples/demos/*`
-  flattened one level) and writes the generated allowlist
+  extra(s) recorded, preferring a single full-coverage extra over a
+  partial-owner combination) or `externally-provisioned` (an undeclared
+  import is cited by name, never silently added).
+  `scripts/example_taxonomy_scan.py` recursively discovers every
+  independently-runnable root under `examples/` (139 roots — any directory
+  at any nesting depth whose `README.md` documents a fenced usage command,
+  not just top-level directories), and writes the generated allowlist
   `examples/dependency-taxonomy.yaml`; `--check` mode fails CI when the
   committed file drifts from a fresh discovery run. `pyproject.toml`
   gained direct declarations for `litellm` (replicate), `pyarrow` (rag),
@@ -27,5 +30,7 @@ req: REQ-YG-571
   import-level smoke test suite verifies each actually imports.
   `torch`/`torchaudio` remain statically verified only (no heavyweight
   CI install without explicit human approval). CAP-213 / REQ-YG-571
-  registered; 17 new unit tests (13 taxonomy generator, 4 taxonomy-aware
-  scanner) plus 12 import-level smoke tests. (REQ-YG-571)
+  registered; 19 taxonomy generator tests plus 12 import-level smoke tests,
+  covering the recursive nested-root discovery, README usage-command
+  detection, full-coverage extra preference, and ancestor-aware local-module
+  resolution added per PR #464 review. (REQ-YG-571)
