@@ -192,6 +192,7 @@ except Exception as e:
 | `LMSTUDIO_BASE_URL` | LM Studio local URL |
 | `PROVIDER` | Default provider |
 | `LANGCHAIN_TRACING_V2=true` | Enable LangSmith |
+| `YAMLGRAPH_OTEL_EXPORT=otlp` | OpenTelemetry spans ([otel-observability.md](otel-observability.md)) |
 
 ## LLM Providers
 

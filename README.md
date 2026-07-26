@@ -238,6 +238,7 @@ See [ARCHITECTURE.md](ARCHITECTURE.md#file-reference) for detailed module line c
 | `GOOGLE_MODEL` | No | Google model (default: gemini-2.0-flash) |
 | `LMSTUDIO_MODEL` | No | LM Studio model (default: qwen2.5-coder-7b-instruct) |
 | `LANGCHAIN_TRACING_V2` | No | Enable LangSmith tracing (`true` to enable) |
+| `YAMLGRAPH_OTEL_EXPORT` | No | OpenTelemetry span export: `otlp` emits graph-run/node-execution spans (requires `pip install "yamlgraph[otel]"`); see [reference/otel-observability.md](reference/otel-observability.md) |
 | `YAMLGRAPH_ROUTE_LOG` | No | Route decision log (FR-723): `1` = emit JSON route lines on the `yamlgraph.route` logger; a file path = also append raw JSONL for `graph export --overlay` |
 | `LANGSMITH_API_KEY` | No | LangSmith API key |
 | `LANGCHAIN_ENDPOINT` | No | LangSmith endpoint URL |

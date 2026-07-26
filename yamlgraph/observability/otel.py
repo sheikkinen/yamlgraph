@@ -15,7 +15,7 @@ before any node executes with a clear installation error (AC-04,
 judgement C-3) — silent success with missing requested telemetry is
 never authorized.
 
-Span schema (frozen, judgement R-2; see ``reference/otel-span-schema.md``)::
+Span schema (frozen, judgement R-2; see ``reference/otel-observability.md``)::
 
     yamlgraph.graph.run
         yamlgraph.run.id            str (UUIDv7), required — run identity,

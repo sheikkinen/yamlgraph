@@ -5,9 +5,9 @@ schema for graph runs and node executions. It is opt-in and disabled
 by default: with no configuration, YAMLGraph imports no OpenTelemetry
 package and creates no spans.
 
-LangSmith tracing (`reference/`... see `yamlgraph/utils/tracing.py`)
-is unaffected and continues to work independently — this boundary is
-a parallel exporter path, not a replacement.
+LangSmith tracing (`yamlgraph/utils/tracing.py`) is unaffected and
+continues to work independently — this boundary is a parallel exporter
+path, not a replacement.
 
 ## Enabling
 
@@ -28,6 +28,23 @@ YAMLGRAPH_OTEL_EXPORT=otlp yamlgraph graph run examples/demos/hello/graph.yaml \
   If a host process or test has already installed a `TracerProvider`
   (e.g. wired to an in-memory or console exporter), that provider is
   respected rather than overwritten.
+
+### Where spans go
+
+The exporter is the stock OTLP/HTTP `OTLPSpanExporter()` — destination
+and headers are controlled by the standard OpenTelemetry environment
+variables, e.g.:
+
+```bash
+export OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318   # default
+export OTEL_EXPORTER_OTLP_HEADERS="authorization=Bearer <token>"
+export OTEL_SERVICE_NAME=yamlgraph
+```
+
+With no `OTEL_*` variables set, spans are POSTed to
+`http://localhost:4318/v1/traces` (the OTLP/HTTP default) — run a local
+collector (e.g. Jaeger all-in-one, `grafana/otel-lgtm`, or an
+OpenTelemetry Collector) to receive them.
 
 ## Span schema (frozen)
 
