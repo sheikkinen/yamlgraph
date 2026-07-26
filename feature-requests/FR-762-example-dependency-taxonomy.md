@@ -59,17 +59,17 @@ Every example directory has a declared dependency story: either an installable e
 
 ## Acceptance Criteria (revised per judgement)
 
-- [ ] AC-01: The FR documents the binary rule: every example root is either `extra-backed` or `externally-provisioned`; no third state exists
-- [ ] AC-02: `examples/dependency-taxonomy.yaml` lists every mechanically discovered example root and validates `status`, `extra`, `external_reason`, and `entrypoints` according to the rule
-- [ ] AC-03: The R-1 classification table is folded into the FR with no remaining "or judgement decision" branches
-- [ ] AC-04: `pyproject.toml` declares the direct packages required by the extra-backed surfaces: `litellm`, `pyarrow`, `tiktoken`, `unified-planning`, `torch`, `torchaudio`, `starlette`, and `protobuf`, with platform markers where required
-- [ ] AC-05: `examples/agent-sdk-planner/` is marked externally provisioned in the taxonomy and remains out of project extras
-- [ ] AC-06: `duckduckgo_search` fallback code is removed; `rg "duckduckgo_search" examples yamlgraph tests` finds no live import
-- [ ] AC-07: `docs/dependency-rationale.yaml` has one entry per newly declared package and `python scripts/dependency_rationale.py --strict` passes
-- [ ] AC-08: FR-761's direct-import scan, if present, is strict for core and extra-backed example surfaces and uses the taxonomy as the only externally-provisioned allowlist
-- [ ] AC-09: Import-level dependency checks cover at least `rag` and `replicate`, plus every cheap newly supported extra; Chatterbox is verified statically unless a human approves heavyweight CI installation
-- [ ] AC-10: Every new or changed test has `@pytest.mark.req(...)` with a valid (existing or new) requirement ID
-- [ ] AC-11: A changelog fragment exists in `changelog/unreleased/`
+- [x] AC-01: The FR documents the binary rule: every example root is either `extra-backed` or `externally-provisioned`; no third state exists
+- [x] AC-02: `examples/dependency-taxonomy.yaml` lists every mechanically discovered example root and validates `status`, `extra`, `external_reason`, and `entrypoints` according to the rule
+- [x] AC-03: The R-1 classification table is folded into the FR with no remaining "or judgement decision" branches
+- [x] AC-04: `pyproject.toml` declares the direct packages required by the extra-backed surfaces: `litellm`, `pyarrow`, `tiktoken`, `unified-planning`, `torch`, `torchaudio`, `starlette`, and `protobuf`, with platform markers where required
+- [x] AC-05: `examples/agent-sdk-planner/` is marked externally provisioned in the taxonomy and remains out of project extras
+- [x] AC-06: `duckduckgo_search` fallback code is removed; `rg "duckduckgo_search" examples yamlgraph tests` finds no live import
+- [x] AC-07: `docs/dependency-rationale.yaml` has one entry per newly declared package and `python scripts/dependency_rationale.py --strict` passes
+- [x] AC-08: FR-761's direct-import scan, if present, is strict for core and extra-backed example surfaces and uses the taxonomy as the only externally-provisioned allowlist
+- [x] AC-09: Import-level dependency checks cover at least `rag` and `replicate`, plus every cheap newly supported extra; Chatterbox is verified statically unless a human approves heavyweight CI installation
+- [x] AC-10: Every new or changed test has `@pytest.mark.req(...)` with a valid (existing or new) requirement ID
+- [x] AC-11: A changelog fragment exists in `changelog/unreleased/`
 
 ## Alternatives Considered
 
@@ -92,3 +92,169 @@ Full judgement: [FR-762-example-dependency-taxonomy.judgement.md](FR-762-example
 **Conditions (GATE):** C-1 if FR-761's scanner is absent in the enforcement branch, stop after dependency/taxonomy/doc fixes and leave strict-scan activation explicitly pending — no parallel scanner; C-2 never add `claude-agent-sdk` to a project extra; C-3 no CI job installing Torch/Chatterbox heavyweight deps without explicit human approval; C-4 no dependencies outside the frozen table without returning to judgement; C-5 no changes to judge/review doctrine, hooks, or branch protection.
 
 **Scope frozen:** D-1 `reference/example-dependencies.md` rule doc; D-2 `examples/dependency-taxonomy.yaml`; D-3 `pyproject.toml` updates for the frozen table only; D-4 rationale entries; D-5 duckduckgo_search fallback removal; D-6 taxonomy/scanner/import tests; D-7 FR-761 scanner config flip (only if the scanner exists); D-8 changelog fragment.
+
+## Implementation Status (enforced 2026-07-26)
+
+All 11 acceptance criteria satisfied. Condition C-1 does not apply: this
+branch was based on `feat/fr-761-dependency-governance`, so FR-761's scanner
+was present at enforcement time, and full strict-scan activation (D-7,
+AC-08) was completed rather than deferred.
+
+**Key deviation — mechanical taxonomy generation, not hand authoring.**
+The FR's literal "example root" definition, applied without further scoping,
+yields 112 roots (every top-level `examples/*` directory, with
+`examples/demos/*` flattened one level). Hand-classifying 112 rows was
+infeasible within reasonable effort, and any manual table would drift the
+moment a new example was added. `scripts/example_taxonomy_scan.py` was
+written instead: it reuses FR-761's scanner internals (import extraction,
+distribution resolution, PEP 503 normalization) to mechanically classify
+every discovered root, and writes `examples/dependency-taxonomy.yaml` as a
+generated artifact. `--check` mode fails when the committed file drifts
+from a fresh discovery run, so a new/removed root is caught mechanically —
+satisfying R-2's "test fails when a root is omitted" requirement without
+hand maintenance.
+
+**Root-discovery scope decisions** (documented per R-2's mechanical
+definition, applied literally would also count loose top-level files):
+- `examples/demos/` is flattened one level (each demo subdirectory is its
+  own root) rather than treated as a single root — this matches "one row
+  per independently-runnable unit."
+- `examples/shared/` is excluded — it is a support library imported by many
+  other roots, not itself independently runnable.
+- Loose top-level files directly under `examples/` (not inside a directory)
+  are not discovered as roots under this directory-based definition; none
+  currently carry third-party imports that would need taxonomy tracking.
+
+**Local-module false-positive fix.** The first taxonomy run flagged 12
+false positives — `tools`, `utils`, `api`, `actions`, `canon_tools`,
+`chatterbox` (module, not the `chatterbox-tts` distribution), `tavily`
+(module, not `tavily-python`), and others — all either genuinely local
+per-example modules imported via the common `sys.path.insert(...); import
+X` fixture idiom, or real third-party packages missing an alias in
+`direct_import_scan.py`'s `IMPORT_TO_DIST` table (`tavily`→`tavily-python`,
+`chatterbox`→`chatterbox-tts`, added). Local-module detection (matching a
+`.py` stem or subdirectory name anywhere under the same root) was added to
+both `example_taxonomy_scan.py` and `direct_import_scan.py`'s `scan()` (the
+latter needed it too once AC-08 promoted extra-backed example roots to
+strict). Final result: 111 extra-backed, 1 externally-provisioned
+(`examples/agent-sdk-planner`, citing `claude_agent_sdk` — satisfies AC-05).
+
+**AC-08 implementation.** `direct_import_scan.py`'s `scan()` gained an
+optional `taxonomy_path` parameter: report-only files under an
+`extra-backed` taxonomy root are now held to core-failure standard
+(blocking `--strict` unless in `PENDING_GAPS`); files under an
+`externally-provisioned` root, or under no taxonomy row at all (e.g.
+`examples/shared/`, `scripts/`, `tests/`), keep the pre-FR-762 report-only
+behavior. `main()` auto-detects `examples/dependency-taxonomy.yaml` when
+present. `PENDING_GAPS`'s `litellm`/`starlette`/`protobuf` entries (owned by
+this FR) were removed now that they are genuinely declared; `langchain_core`
+(FR-760, separately in flight) remains.
+
+**AC-09 implementation.** CI's `.[dev,digest,websearch,a2a,fsm,verify]`
+install line gained `,rag,replicate,openai-proxy,examples-dungeon-master` —
+all lightweight, pure-Python-wheel packages. `tests/unit/test_example_extra_imports.py`
+does a real `importlib.import_module()` for every package declared by each
+of those extras. `torch`/`torchaudio` (chatterbox) are declared in
+`pyproject.toml` for direct-import honesty but deliberately NOT installed in
+CI per C-3; the corresponding test documents this as a standing decision
+rather than asserting an import.
+
+**New capability/requirement:** `capabilities/CAP-213-example-dependency-taxonomy.yaml`
+(REQ-YG-571) covers `scripts/example_taxonomy_scan.py`,
+`tests/unit/test_example_taxonomy_scan.py`, the taxonomy-aware additions to
+`direct_import_scan.py`, and `tests/unit/test_example_extra_imports.py`.
+
+## PR #464 review fixes (2026-07-26)
+
+**P1 — root discovery widened from top-level-plus-one-flatten to fully
+recursive.** The original "flatten `examples/demos/*` one level" heuristic
+missed independently-runnable roots nested deeper than one level
+(`examples/dungeon_master/api/`, `examples/demos/interrupt/subgraphs/`), both
+cited by the reviewer as omissions. `example_taxonomy_scan.py`'s discovery
+now walks every directory under `examples/` via `os.walk` (pruning a
+`NOISE_DIR_NAMES` set — caches, fixtures, `__pycache__`, etc.), and treats
+each directory containing a fenced-code-block usage command in its own
+`README.md` as its own root, independent of nesting depth. A directory
+qualifies by having a README documenting how to run it — not by its position
+in the tree. Root count grew 112 → 139; both reviewer-cited omissions are now
+discovered. The "README exists" check was tightened to "README contains a
+fenced code block whose first token is a recognized command verb
+(`python`/`yamlgraph`/`pytest`/etc.)" to avoid false positives from
+fixture/doc READMEs that happen to live under `examples/`.
+
+**P2 — `extra` field now names the single full-coverage extra, not any
+partial owner.** The reviewer's concrete case: `openai_proxy` imports
+`fastapi`, `uvicorn`, `starlette`, and `openai` — but `openai` was only
+declared under the unrelated `rag` extra, so the row's `extra` field named
+`rag` instead of `openai-proxy`. `_owning_extras()` (any extra covering at
+least one required distribution) is replaced by `_extras_covering()`: it
+prefers a single extra whose declared distributions are a strict superset of
+everything the root imports, falling back to a greedy minimal combination
+only when no single extra suffices. `openai>=1.0.0` was added to the
+`openai-proxy` extra in `pyproject.toml` (duplicating the existing pattern
+used for `fastapi`/`uvicorn`/`starlette` across extras) so `openai-proxy`
+alone now covers the row.
+
+**Follow-on fixes required by P1/P2:** `_local_module_names()` now also walks
+ancestor directories from a nested root up to `examples_root`, because a
+newly-discovered nested root's local-import fixture idiom is often rooted at
+its parent package (e.g. `fsm-router/tests/` importing sibling
+`fsm-router/actions/`) rather than within its own subtree — without this the
+wider discovery introduced false-positive "externally-provisioned" rows.
+`_root_imports()` was fixed to unpack the 3-tuple
+`(name, line, is_nested)` that FR-761's P1 fix changed `_extract_imports()`
+to return (previously a 2-tuple), caught by rebasing this branch onto the
+updated `feat/fr-761-dependency-governance`.
+
+## PR #464 review fixes, round 2 (2026-07-26)
+
+**P1 — root import discovery blind to YAML tool-module references and
+README-documented CLI surfaces.** `examples/demos/a2a_call` and
+`examples/demos/a2a_server` were both classified `extra: null` despite
+requiring the `a2a` extra. `_root_imports()` only scanned `*.py` files
+physically located under an example root; it never saw:
+
+- `a2a_call`'s `graph.yaml` declares a `type: python` tool with
+  `module: yamlgraph.contrib.a2a_client` — the tool implementation lives
+  under `yamlgraph/contrib/`, not under the example root, so its
+  `httpx`/`a2a.types`/`google.protobuf` imports were invisible.
+- `a2a_server`'s `README.md` documents `yamlgraph a2a card` and
+  `yamlgraph a2a serve` — both implemented by
+  `yamlgraph/cli/a2a_commands.py`, invoked as a CLI subprocess (never
+  imported by any file under the example root at all).
+
+Fixed with two new resolvers feeding into `_root_imports()`:
+`_yaml_tool_module_paths(root, repo_root)` parses every graph YAML under a
+root for `tools.*.module` values starting with `yamlgraph.`, resolves the
+dotted path to its source file, and folds that file's imports into the
+root's import surface. `_readme_cli_surface_paths(root)` matches
+README-documented `yamlgraph <subcommand>` invocations against a small
+explicit table (`README_CLI_SUBCOMMAND_MODULES`, currently just
+`{"a2a": "yamlgraph/cli/a2a_commands.py"}`) and does the same. Both are
+override-free (no per-example special-casing) — they extend the same
+"discover the true import surface" logic `_root_imports()` already
+performs for local files.
+
+Regenerating the taxonomy now shows `a2a_call: extra: [a2a]` and
+`a2a_server: extra: [a2a, booking]` (the `booking` credit is
+`_extras_covering()` correctly reporting that `uvicorn` — imported inside
+`a2a_commands.py`'s `_cmd_a2a_serve()` to run the HTTP server — isn't
+declared under the `a2a` extra itself; `booking` is the smallest existing
+extra that already declares `uvicorn`). No `pyproject.toml` dependency
+changes were made (C-4 frozen-table constraint) — the two-extra answer is
+the mechanically honest one given the extras as currently declared, and is
+strictly more correct than the prior `null`.
+
+Regression tests added to `tests/unit/test_example_taxonomy_scan.py`:
+unit coverage for both new resolvers (positive and negative cases),
+`_root_imports()` folding both surfaces into its result, an end-to-end
+`classify_root()` case using a synthetic YAML tool-module reference, and a
+real-repo-tree assertion (`test_real_a2a_examples_are_extra_backed_by_a2a`)
+pinning `a2a_call`/`a2a_server` to `extra` containing `"a2a"` against the
+actual `examples/` tree — not just a tmp_path fixture — so this exact
+regression can't reappear silently.
+
+Also deleted a stray untracked duplicate diary file
+(`docs/diary/diary-2026-07-26-fr762-mechanical-taxonomy-scale.md`), a
+leftover from an earlier rename to the diary-gate-compliant filename
+(same pattern independently discovered during FR-761's round-2 fix).

@@ -26,13 +26,8 @@ try:
 
     DUCKDUCKGO_AVAILABLE = True
 except ImportError:
-    try:
-        from duckduckgo_search import DDGS
-
-        DUCKDUCKGO_AVAILABLE = True
-    except ImportError:
-        DDGS = None  # type: ignore[assignment, misc]
-        DUCKDUCKGO_AVAILABLE = False
+    DDGS = None  # type: ignore[assignment, misc]
+    DUCKDUCKGO_AVAILABLE = False
 
 
 def search_web(query: str, max_results: int = 5) -> str:
