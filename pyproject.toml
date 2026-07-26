@@ -70,6 +70,7 @@ storyboard = [
 ]
 replicate = [
     "langchain-litellm>=0.3.0",  # includes litellm as dependency
+    "litellm>=1.0.0",  # FR-762: declared directly (direct-import honesty), not just transitive
 ]
 azure = [
     "langchain-azure-ai>=1.2.0",  # Azure AI Foundry + Azure OpenAI unified client
@@ -87,6 +88,7 @@ redis-simple = [
 rag = [
     "lancedb>=0.4.0",
     "openai>=1.0.0",
+    "pyarrow>=14.0.0",  # FR-762: direct-import honesty (transitive via lancedb)
 ]
 booking = [
     "fastapi>=0.110.0",
@@ -118,9 +120,30 @@ a2a = [
     "a2a-sdk[http-server]>=1.0.0a0,<2.0",
     "grpcio>=1.60.0",
     "httpx>=0.27.0",  # yamlgraph/contrib/a2a_client.py direct import (FR-761 ownership fix)
+    "starlette>=0.36.0",  # FR-762: direct-import honesty (transitive via a2a-sdk/fastapi)
+    "protobuf>=4.25.0",  # FR-762: direct-import honesty (google.protobuf, transitive via a2a-sdk)
 ]
 chatterbox = [
     "chatterbox-tts>=0.1.0",
+    # FR-762: direct-import honesty. torch==2.6.0 has no macOS Intel (x86_64) wheel
+    # (see examples/demos/chatterbox/README.md Platform Requirements) — excluded there.
+    "torch==2.6.0; sys_platform != 'darwin' or platform_machine != 'x86_64'",
+    "torchaudio==2.6.0; sys_platform != 'darwin' or platform_machine != 'x86_64'",
+]
+examples-dungeon-master = [
+    # FR-762: extra-backed classification for examples/dungeon_master/ (FastAPI + HTMX
+    # app entry point plus the unified-planning plot solver and tiktoken salience witness).
+    "fastapi>=0.110.0",
+    "uvicorn>=0.27.0",
+    "tiktoken>=0.7.0",
+    "unified-planning>=1.0.0",
+]
+openai-proxy = [
+    # FR-762: extra-backed classification for examples/openai_proxy/ (FastAPI proxy server).
+    "fastapi>=0.110.0",
+    "uvicorn>=0.27.0",
+    "starlette>=0.36.0",  # FR-762: direct-import honesty (transitive via fastapi)
+    "openai>=1.0.0",  # FR-762: PR #464 review — demo.py imports openai.OpenAI directly
 ]
 telco = [
     "twilio>=9.0.0",

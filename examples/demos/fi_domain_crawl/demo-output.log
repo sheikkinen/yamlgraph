@@ -1,0 +1,104 @@
+2026-07-26 12:21:53,509 [INFO] yamlgraph.compile.graph_loader: Parsed 2 Python tools: seed_discovery, crawl_page
+2026-07-26 12:21:53,509 [INFO] yamlgraph.compile.node_compiler: Added node: plan (type=llm)
+2026-07-26 12:21:53,510 [INFO] yamlgraph.compile.node_compiler: Added node: discover (type=python)
+2026-07-26 12:21:53,510 [INFO] yamlgraph.compile.node_compiler: Added node: crawl (type=map)
+2026-07-26 12:21:53,512 [INFO] yamlgraph.compile.node_compiler: Added node: summarise (type=llm)
+2026-07-26 12:21:53,627 [INFO] yamlgraph.utils.llm_factory: Creating LLM: deepseek/deepseek-v4-flash (temp=0.3)
+2026-07-26 12:21:55,590 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-26 12:21:59,503 [INFO] yamlgraph.node_factory.llm_nodes: Node plan completed successfully
+2026-07-26 12:21:59,504 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: discover -> seed_discovery
+2026-07-26 12:22:00,766 [INFO] primp: response: https://grokipedia.com/api/typeahead?query=Helsingin+kaupunginkirjasto+site%3A.fi&limit=1 200
+2026-07-26 12:22:01,034 [INFO] primp: response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=Helsingin%20kaupunginkirjasto%20site%3A.fi 200
+2026-07-26 12:22:01,567 [INFO] primp: response: https://yandex.com/search/site/?text=Helsingin+kaupunginkirjasto+site%3A.fi&web=1&searchid=1750877 200
+2026-07-26 12:22:01,951 [INFO] primp: response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=Helmet%20kirjasto%20aukioloajat%20site%3A.fi 200
+2026-07-26 12:22:02,163 [INFO] primp: response: https://grokipedia.com/api/typeahead?query=Helmet+kirjasto+aukioloajat+site%3A.fi&limit=1 200
+2026-07-26 12:22:02,485 [INFO] primp: response: https://search.brave.com/search?q=Helmet+kirjasto+aukioloajat+site%3A.fi&source=web 429
+2026-07-26 12:22:03,131 [INFO] primp: response: https://yandex.com/search/site/?text=Helmet+kirjasto+aukioloajat+site%3A.fi&web=1&searchid=7739559 200
+2026-07-26 12:22:03,367 [INFO] primp: response: https://grokipedia.com/api/typeahead?query=Helsinki+kirjasto+tapahtumat+site%3A.fi&limit=1 200
+2026-07-26 12:22:03,524 [INFO] primp: response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=Helsinki%20kirjasto%20tapahtumat%20site%3A.fi 200
+2026-07-26 12:22:03,876 [INFO] primp: response: https://www.startpage.com/ 200
+2026-07-26 12:22:04,311 [INFO] primp: response: https://www.startpage.com/sp/search 200
+2026-07-26 12:22:04,706 [INFO] primp: response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=Helsinki%20e-kirjasto%20site%3A.fi 200
+2026-07-26 12:22:04,777 [INFO] primp: response: https://grokipedia.com/api/typeahead?query=Helsinki+e-kirjasto+site%3A.fi&limit=1 200
+2026-07-26 12:22:04,865 [INFO] primp: response: https://www.google.com/search?q=Helsinki+e-kirjasto+site%3A.fi&filter=1&start=0&hl=en-US&lr=lang_en&cr=countryUS 200
+2026-07-26 12:22:05,756 [INFO] primp: response: https://search.brave.com/search?q=Helsinki+e-kirjasto+site%3A.fi&source=web 429
+2026-07-26 12:22:06,137 [INFO] primp: response: https://search.yahoo.com/search;_ylt=HNHjO24pl2fWFgRE3QwC0h9K;_ylu=1l416xlOSUFpi6uyYe6mRXErNb_tex2LctjN2wydPhiOQ9M?p=Helsinki+e-kirjasto+site%3A.fi 200
+2026-07-26 12:22:07,039 [INFO] primp: response: https://www.mojeek.com/search?q=Helsinki+e-kirjasto+site%3A.fi 200
+2026-07-26 12:22:07,374 [INFO] primp: response: https://www.startpage.com/ 200
+2026-07-26 12:22:07,856 [INFO] primp: response: https://www.startpage.com/sp/search 200
+2026-07-26 12:22:08,153 [INFO] primp: response: https://grokipedia.com/api/typeahead?query=Helsinki+kirjasto+uutiset+site%3A.fi&limit=1 200
+2026-07-26 12:22:08,247 [INFO] primp: response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=Helsinki%20kirjasto%20uutiset%20site%3A.fi 200
+2026-07-26 12:22:08,586 [INFO] primp: response: https://www.startpage.com/ 200
+2026-07-26 12:22:08,946 [INFO] primp: response: https://www.startpage.com/sp/search 200
+2026-07-26 12:22:09,008 [WARNING] yamlgraph.compile.map_compiler: Map node 'crawl': truncating 41 items to 10
+2026-07-26 12:22:09,250 [INFO] httpx: HTTP Request: GET https://www.utu.fi/fi/yliopisto/kirjasto/aukioloajat-yhteystiedot/poikkeusaukiolot "HTTP/1.1 200 OK"
+2026-07-26 12:22:09,444 [INFO] httpx: HTTP Request: GET https://sivusto.fi/tyot/helsingin-kaupunginkirjasto/ "HTTP/1.1 200 OK"
+2026-07-26 12:22:09,456 [INFO] httpx: HTTP Request: GET https://www.cylex.fi/yritys/helsingin-kaupunginkirjasto-it%C3%A4keskuksen-kirjasto-11421197.html "HTTP/1.1 403 Forbidden"
+2026-07-26 12:22:09,457 [WARNING] examples.demos.fi_domain_crawl.nodes.crawl_page: Failed to fetch https://www.cylex.fi/yritys/helsingin-kaupunginkirjasto-itäkeskuksen-kirjasto-11421197.html: Client error '403 Forbidden' for url 'https://www.cylex.fi/yritys/helsingin-kaupunginkirjasto-it%C3%A4keskuksen-kirjasto-11421197.html'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/403
+2026-07-26 12:22:09,476 [INFO] httpx: HTTP Request: GET https://hertsi.fi/kauppa/kirjasto/ "HTTP/1.1 200 OK"
+2026-07-26 12:22:09,491 [INFO] httpx: HTTP Request: GET https://infofinland.fi/fi/leisure/libraries "HTTP/1.1 200 OK"
+2026-07-26 12:22:09,506 [INFO] httpx: HTTP Request: GET https://www.hel.fi/fi/kulttuuri-ja-vapaa-aika/kirjastot-helsingissa "HTTP/1.1 200 OK"
+2026-07-26 12:22:09,545 [INFO] httpx: HTTP Request: GET https://www.sttinfo.fi/tiedote/69896463/helsingin-kaupunginkirjasto-julkistaa-kirjoituskilpailun?publisherId=60579873 "HTTP/1.1 200 OK"
+2026-07-26 12:22:09,639 [INFO] httpx: HTTP Request: GET https://mappa.fi/julkaisijatahot/viikin-kirjasto-helsingin-kaupunginkirjasto/ "HTTP/1.1 200 OK"
+2026-07-26 12:22:09,668 [INFO] httpx: HTTP Request: GET https://www.redi.fi/liikkeet-ja-palvelut/kalasataman-kirjasto/ "HTTP/1.1 200 OK"
+2026-07-26 12:22:11,270 [INFO] httpx: HTTP Request: GET https://www.kirjastokaista.fi/tag/helsingin_kaupunginkirjasto/ "HTTP/1.1 200 OK"
+2026-07-26 12:22:11,660 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-26 12:22:21,706 [INFO] yamlgraph.node_factory.llm_nodes: Node summarise completed successfully
+
+🚀 Running graph: graph.yaml
+   Variables: {'seed_query': 'Helsinki libraries'}
+
+🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/f889c0ec-fa9b-4025-b69c-2aa756283ef8/r/019f9dbb-1d76-75c2-8f9b-8547ebf2f982?poll=true
+============================================================
+RESULT
+============================================================
+  current_step: summarise
+  seed_query: Helsinki libraries
+  search_queries: ['Helsingin kaupunginkirjasto site:.fi', 'Helmet kirjasto aukioloajat site:.fi', 'Helsinki kirjasto tapahtumat site:.fi', 'Helsinki e-kirjasto site:.fi', 'Helsinki kirjasto uutiset site:.fi']
+  discovered_urls: ['https://www.hel.fi/fi/kulttuuri-ja-vapaa-aika/kirjastot-helsingissa', 'https://www.cylex.fi/yritys/helsingin-kaupunginkirjasto-itäkeskuksen-kirjasto-11421197.html', 'https://www.kirjastokaista.fi/tag/helsingin_kaupunginkirjasto/', 'https://mappa.fi/julkaisijatahot/viikin-kirjasto-helsingin-kaupunginkirjasto/', 'https://www.sttinfo.fi/tiedote/69896463/helsingin-kaupunginkirjasto-julkistaa-kirjoituskilpailun?publisherId=60579873', 'https://sivusto.fi/tyot/helsingin-kaupunginkirjasto/', 'https://infofinland.fi/fi/leisure/libraries', 'https://hertsi.fi/kauppa/kirjasto/', 'https://www.utu.fi/fi/yliopisto/kirjasto/aukioloajat-yhteystiedot/poikkeusaukiolot', 'https://www.redi.fi/liikkeet-ja-palvelut/kalasataman-kirjasto/', 'https://kirjasto.pieksamaki.fi/', 'https://www.vantaa.fi/fi/ajankohtaista/uutinen/kiviston-kirjasto-suljetaan-muuton-vuoksi', 'https://www.ouka.fi/kirjasto', 'https://helmet.finna.fi/Content/tapahtumat', 'https://www.suomi.fi/palvelut/kirjaston-tapahtumat-aikuisille-helsingin-kaupunki-kulttuurin-ja-vapaa-ajan-toimiala/5bbb0536-bdbe-44cf-b74d-9eafa7f3ca55', 'http://oodihelsinki.fi/tapahtumat/', 'https://helmet.finna.fi/OrganisationInfo/Home', 'https://hakemisto.kirjastot.fi/helsinki/rikhardinkatu', 'https://www.stadissa.fi/paikat/383/kallion-kirjasto', 'https://www.stoa.fi/fi/tapahtumat/tapahtumahaku#!/?time=2', 'https://www.myhelsinki.fi/fi/places/rikhardinkadun-kirjasto/', 'https://www.kiwi.fi/spaces/ekirjasto/pages/360808884/E-kirjaston+tapahtumat+ja+koulutukset', 'https://kultus.hel.fi/search?organisation=T3JnYW5pc2F0aW9uTm9kZTo0', 'https://www.suomi.fi/palvelut/verkkoasiointi/e-kirjasto-verkkosivut-helsingin-kaupunki-kulttuurin-ja-vapaa-ajan-toimiala/3644bf66-e02e-42c3-9d77-d90f79350657', 'https://helmet.finna.fi/', 'https://tunnistus.e-kirjasto.fi/', 'https://www.kansalliskirjasto.fi/fi/e-kirjasto', 'https://directory.libraries.fi/helsinki/helsinki-university-main-library', 'https://hakemisto.kirjastot.fi/helsinki/lauttasaari', 'https://www.kirjastokaista.fi/kestava-kehitys-ja-ymparistotyo/', 'https://www.kansalliskirjasto.fi/fi/e-kirjasto/e-kirjaston-tietosuoja-ja-rekisteriseloste', 'https://www.kansalliskirjasto.fi/en/e-library/e-library-instructions', 'https://www.hs.fi/aihe/helsingin-keskustakirjasto/', 'https://www.hel.fi/fi/uutiset/helsinki-kunnostaa-kirjastojaan-kesalla', 'https://yle.fi/t/18-267187/fi', 'https://www.kirjastot.fi/uutiset/uutiset/katri-vanttinen-e-kirjasto-rikastaa?language_content_entity=fi', 'https://demoshelsinki.fi/kirjasto-updated/', 'https://www.helsinki.fi/fi/helsingin-yliopiston-kirjasto/ajankohtaista-kirjastosta', 'https://helsinginkaupunginorkesteri.fi/fi/uutiset/kirjastoissa-tarjolla-kamarimusiikkia', 'https://www.kansalliskirjasto.fi/fi', 'https://oodihelsinki.fi/']
+  crawl_results: [{'_map_index': 0, '_error': 'None'}, {'_map_index': 1, '_error': "Client error '403 Forbidden' for url 'https://www.cylex.fi/yritys/helsingin-kaupunginkirjasto-it%C3%A4keskuksen-kirjasto-11421197.html'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/403"}, {'_map_index': 2, '_error': 'None'}, {'_map_index': 3, '_error': 'None'}, {'_map_index': 4, '_error': 'None'}, {'_map_index': 5, '_error': 'None'}, {'_map_index': 6, '_error': 'None'}, {'_map_index': 7, '_error': 'None'}, {'_map_index': 8, '_error': 'None'}, {'_map_index': 9, '_error': 'None'}]
+  sitemap_overview: # Sitemap Overview: Helsinki Libraries
+
+## Domain Name(s)
+
+- **cylex.fi** (partial – one page returned 403 Forbidden)
+- Other domains not identifiable from provided crawl data (likely include hel.fi, kirjastot.fi, or similar .fi domains)
+
+## Page Count
+
+- **Total pages crawled:** 10
+- **Successful pages (no error):** 9 *(indices 0, 2–9)*
+- **Erroneous pages:** 1 *(index 1 – 403 Forbidden)*
+
+## Hierarchical Link Structure
+
+The crawl data does **not include URLs or link relationships**. A hierarchical tree cannot be reconstructed from the given information. In a full crawl, a typical structure might look like:
+
+```
+helsinginkaupunginkirjasto.fi
+├── itäkeskus
+├── keskustakirjasto
+└── pääkirjasto
+```
+
+However, the actual link structure is unknown.
+
+## Content Summaries
+
+The crawl data contains only error codes and indices; no page titles, URLs, or text content were provided. A summary for each page is therefore impossible to generate.
+
+| Index | Error              | Suggested Content (placeholders) |
+|-------|--------------------|----------------------------------|
+| 0     | None               | *(unknown – likely a library page)* |
+| 1     | 403 Forbidden (cylex.fi) | Unable to access – blocked |
+| 2     | None               | *(unknown)* |
+| 3     | None               | *(unknown)* |
+| 4     | None               | *(unknown)* |
+| 5     | None               | *(unknown)* |
+| 6     | None               | *(unknown)* |
+| 7     | None               | *(unknown)* |
+| 8     | None               | *(unknown)* |
+| 9     | None               | *(unknown)* |
+
+> **Note:** To produce a meaningful sitemap, please supply the actual URLs, page titles, and preferably the crawled text or link graph. With the current input, only the error distribution can be reported.

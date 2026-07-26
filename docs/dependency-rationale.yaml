@@ -196,6 +196,11 @@ dependencies:
     modules: ["yamlgraph/utils/llm_factory.py"]
     added: "0.3.0"
 
+  litellm:
+    rationale: "FR-762 direct-import honesty: yamlgraph/utils/llm_providers.py imports litellm directly for the Replicate provider (previously only transitive via langchain-litellm)"
+    modules: ["yamlgraph/utils/llm_providers.py"]
+    added: "0.5.18"
+
   # ─── Optional: Azure AI ──────────────────────────────────────────────
 
   langchain-azure-ai:
@@ -237,15 +242,20 @@ dependencies:
     added: "0.3.0"
 
   openai:
-    rationale: "OpenAI embeddings API for RAG vector generation"
-    modules: ["examples/rag/"]
+    rationale: "OpenAI embeddings API for RAG vector generation; also imported directly by examples/openai_proxy/demo.py's OpenAI() client (PR #464 review — the openai-proxy extra must fully own its example's import surface)"
+    modules: ["examples/rag/", "examples/openai_proxy/demo.py"]
     added: "0.3.0"
+
+  pyarrow:
+    rationale: "FR-762 direct-import honesty: examples/rag/index_docs.py's LanceDB-backed pipeline touches pyarrow tables directly (previously only transitive via lancedb)"
+    modules: ["examples/rag/"]
+    added: "0.5.18"
 
   # ─── Optional: Booking ───────────────────────────────────────────────
 
   fastapi:
-    rationale: "Web framework for booking API, digest API, NPC server, and telco endpoints"
-    modules: ["examples/booking/", "examples/daily_digest/", "examples/npc/"]
+    rationale: "Web framework for booking API, digest API, NPC server, telco endpoints, dungeon_master app, and openai_proxy server"
+    modules: ["examples/booking/", "examples/daily_digest/", "examples/npc/", "examples/dungeon_master/", "examples/openai_proxy/"]
     added: "0.3.0"
 
   httpx:
@@ -254,8 +264,8 @@ dependencies:
     added: "0.3.0"
 
   uvicorn:
-    rationale: "ASGI server for FastAPI applications"
-    modules: ["examples/booking/", "examples/daily_digest/", "examples/npc/"]
+    rationale: "ASGI server for FastAPI applications (booking, digest, NPC, dungeon_master, openai_proxy)"
+    modules: ["examples/booking/", "examples/daily_digest/", "examples/npc/", "examples/dungeon_master/api/app.py", "examples/openai_proxy/api/app.py"]
     added: "0.3.0"
 
   # ─── Optional: NPC ───────────────────────────────────────────────────
@@ -313,6 +323,16 @@ dependencies:
     modules: ["yamlgraph/a2a/server.py"]
     added: "0.4.68"
 
+  starlette:
+    rationale: "FR-762 direct-import honesty: yamlgraph/a2a/server.py, examples/openai_proxy/api/app.py import starlette directly for Starlette/Request/Response types (previously only transitive via a2a-sdk/fastapi)"
+    modules: ["yamlgraph/a2a/server.py", "examples/openai_proxy/api/app.py"]
+    added: "0.5.18"
+
+  protobuf:
+    rationale: "FR-762 direct-import honesty: yamlgraph/cli/a2a_commands.py and yamlgraph/contrib/a2a_client.py import google.protobuf directly (previously only transitive via a2a-sdk)"
+    modules: ["yamlgraph/cli/a2a_commands.py", "yamlgraph/contrib/a2a_client.py"]
+    added: "0.5.18"
+
   # ─── Optional: Telco ─────────────────────────────────────────────────
 
   twilio:
@@ -331,6 +351,28 @@ dependencies:
     rationale: "Chatterbox TTS for local speech synthesis in the chatterbox demo (FR-233)"
     modules: ["examples/demos/chatterbox/"]
     added: "0.4.68"
+
+  torch:
+    rationale: "FR-762 direct-import honesty: chatterbox-tts requires torch==2.6.0 (no macOS Intel x86_64 wheel per examples/demos/chatterbox/README.md); declared directly with a platform marker instead of leaving it fully transitive"
+    modules: ["examples/demos/chatterbox/"]
+    added: "0.5.18"
+
+  torchaudio:
+    rationale: "FR-762 direct-import honesty: paired with torch for chatterbox-tts audio tensor I/O; same platform marker as torch"
+    modules: ["examples/demos/chatterbox/"]
+    added: "0.5.18"
+
+  # ─── Optional: Dungeon Master examples ────────────────────────────────
+
+  tiktoken:
+    rationale: "FR-762 example dependency taxonomy: examples/dungeon_master/api/prompt_salience.py lazily imports tiktoken for the cl100k_base prompt-mass witness (previously undeclared anywhere)"
+    modules: ["examples/dungeon_master/api/prompt_salience.py"]
+    added: "0.5.18"
+
+  unified-planning:
+    rationale: "FR-762 example dependency taxonomy: examples/dungeon_master/api/plot/up_model.py uses unified_planning's PDDL-style planner for the plot causal model (previously undeclared anywhere)"
+    modules: ["examples/dungeon_master/api/plot/up_model.py"]
+    added: "0.5.18"
 
   # ─── Optional: OpenTelemetry ─────────────────────────────────────────
 

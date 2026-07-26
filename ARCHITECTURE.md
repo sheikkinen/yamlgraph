@@ -527,6 +527,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 210 | CAP-210 Edge Shape Classification | `yamlgraph/compile/edge_compiler.py` | REQ-YG-568 |
 | 211 | CAP-211 Sole-Route Judge and Review Wrappers | `scripts/judge.sh`, `scripts/review.sh`, `.github/skills/judge-fr/adapters/graph.yaml`, `.github/skills/review-pr/adapters/graph.yaml` | REQ-YG-569 |
 | 212 | CAP-212 OpenTelemetry Observability Boundary | `yamlgraph/observability/otel.py`, `yamlgraph/compile/node_otel.py`, `yamlgraph/compile/node_compiler.py`, `yamlgraph/cli/graph_commands.py` | REQ-YG-570 |
+| 213 | CAP-213 Example Dependency Taxonomy Generator | `scripts/example_taxonomy_scan.py` | REQ-YG-571 |
 | 214 | CAP-214 Direct-Import Dependency Scanner | `scripts/direct_import_scan.py` | REQ-YG-572 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
@@ -2634,6 +2635,16 @@ Opt-in, vendor-neutral OpenTelemetry span schema for graph-run and node-executio
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-570 | OTEL observability boundary (FR-759). is_otel_enabled() is a pure env-var check (YAMLGRAPH_OTEL_EXPORT=="otlp") that imports nothing; graph_run_span()/node_execution_span() no-op when disabled; OtelExtraMissingError raised before any node executes when enabled but opentelemetry is unavailable; enabled path emits yamlgraph.graph.run (yamlgraph.run.id, yamlgraph.graph.name, yamlgraph.thread.id optional, yamlgraph.variables.hash, yamlgraph.run.outcome) and child yamlgraph.node.execute (yamlgraph.node.name, yamlgraph.node.type, yamlgraph.state.keys_written, yamlgraph.node.error optional) spans sharing one trace id with correct parent/child linkage; variables_hash() is deterministic sha256 of canonical sorted-key JSON and never contains raw values. | `yamlgraph/observability/otel.py`, `yamlgraph/compile/node_otel.py`, `yamlgraph/compile/node_compiler.py`, `yamlgraph/cli/graph_commands.py`, `tests/unit/test_otel_observability.py` |
+
+### 213. CAP-213 Example Dependency Taxonomy Generator
+
+scripts/example_taxonomy_scan.py mechanically discovers every example root under examples/ (every directory at any nesting depth is independently evaluated; a directory qualifies when it contains a structural graph YAML — top-level mapping with a `nodes` mapping key — a Python file with an `if __name__ == "__main__"` guard, or a README.md with a fenced runnable usage command; noise/hidden directories are pruned) and classifies each as extra-backed (every third-party import resolves to a distribution declared in pyproject.toml; the owning extra(s) are recorded) or externally-provisioned (at least one import remains undeclared; the specific package is cited, never silently added to pyproject.toml per FR-762 C-4). Reuses FR-761's scanner internals (import extraction, distribution resolution, PEP 503 normalization) rather than reimplementing them. Local sibling-module imports (the sys.path-insert fixture idiom common in example tests, e.g. `import tools`) are recognized as local, not third-party. Writes examples/dependency-taxonomy.yaml as the generated allowlist; --check mode fails when the committed file drifts from a fresh discovery run.
+
+**Feature Request:** FR-762
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-571 | Example dependency taxonomy contract (FR-762). Root discovery is mechanical: every directory under examples/ at any nesting depth is independently evaluated (nested roots get their own rows even inside another qualifying root); noise and hidden directories are pruned. A candidate becomes a root if it has a structural graph YAML (parsed document is a mapping with a top-level `nodes` mapping key — substring matches on `nodes:` are insufficient, per PR #464 review P1), a Python file with an `if __name__ == "__main__":` guard, or a README.md containing a fenced code block with a recognizable runnable command (python, yamlgraph, pytest, uvicorn, node, npm, docker, make, curl, or go as first token) — mere README existence is not sufficient. Classification has exactly two states, no third: extra-backed (owning extra(s) recorded, None when core-only) or externally-provisioned (specific undeclared distribution cited). Local per-example modules imported via sys.path-insert (matching a .py stem or subdirectory name anywhere under the same root) are excluded from third-party classification. build_taxonomy() and classify_root() accept overridable examples_root/pyproject_path/ repo_root so tests exercise isolated fixture trees, never the live repo. | `scripts/example_taxonomy_scan.py`, `tests/unit/test_example_taxonomy_scan.py` |
 
 ### 214. CAP-214 Direct-Import Dependency Scanner
 

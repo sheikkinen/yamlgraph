@@ -16,10 +16,7 @@ logger = logging.getLogger(__name__)
 try:
     from ddgs import DDGS
 except ImportError:
-    try:
-        from duckduckgo_search import DDGS  # type: ignore[no-redef]
-    except ImportError:
-        DDGS = None  # type: ignore[assignment,misc]
+    DDGS = None  # type: ignore[assignment,misc]
 
 MAX_RESULTS_PER_QUERY = 10
 
