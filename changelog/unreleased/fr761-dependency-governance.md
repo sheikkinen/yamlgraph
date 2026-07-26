@@ -1,7 +1,7 @@
 ---
 type: feat
 scope: governance
-req: REQ-YG-570
+req: REQ-YG-572
 ---
 - **FR-761 Reproducible Dependency Governance**: added
   `constraints/dev-py312.txt` (pip-freeze snapshot of the CI dev
@@ -39,7 +39,7 @@ req: REQ-YG-570
   first-party exclusion, alias resolution, underscore/hyphen
   normalization, owner-specific vs unrelated-extra ownership, local
   sibling module/package exclusion, report-only roots, pending gaps).
-  CAP-212 / REQ-YG-570 registered. (REQ-YG-570)
+  CAP-214 / REQ-YG-572 registered. (REQ-YG-572)
 - **Round 2 fix**: `constraints/dev-py312.txt` regenerated to cover the
   actual CI-tested extras (`.[dev,digest,websearch,a2a,fsm,verify]`),
   not just `.[dev,fsm,verify]` — the artifact previously omitted

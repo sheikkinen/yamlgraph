@@ -12,8 +12,6 @@ The scope is mostly disciplined. FR-759 limits the first schema to graph-run and
 
 The proposal is a framework primitive: local, CI, hosted, and replacement scenarios all need the same run/node trace contract, and existing route logs, LangSmith traces, and CLI output lack a common run identity (`docs/plan-research-dependency-negative-space.md` L47-L55; `feature-requests/FR-759-otel-observability-boundary.md` L20-L25). Commandment 9 supports making operational truth observable and cited (`.github/copilot-instructions.md` L222).
 
-**Prior art:** `106-otel-observability.md` (Proposed, undeveloped) and `FR-467-mission-control-unified-observability.md` (Proposed, a consuming dashboard layer) do not overlap this FR's frozen two-span schema scope. `FR-363-per-node-otel-scoping-in-copilot-node.md` (Implemented) is a narrower per-node copilot-CLI file exporter already superseded as "not the spine" in this FR's own Alternatives Considered section. `FR-231-model-provider-timing-comparison.md` (Implemented) is a one-off timing tool, not a standing trace boundary. No disposition changes required.
-
 ## Required revisions
 
 ### R-1: Separate disabled no-op from enabled missing-extra failure
@@ -71,3 +69,11 @@ Not authorized: LLM spans, tool spans, route spans, checkpoint spans, interrupt 
 | C-5 | Do not implement sibling dependency-governance or taxonomy FRs under this authority. | GATE |
 
 Authority granted: after the required revisions are folded into the FR, the enforcer may implement the opt-in OTEL extra and the first graph-run/node-execution span boundary exactly as frozen above.
+
+**Prior art:** see the dispositioned prior-art list in the FR body
+(`FR-759-otel-observability-boundary.md`, Related section) — `106-otel-observability.md`
+(broader unjudged proposal, this FR is its minimal first slice),
+`FR-362`/`FR-363` (Implemented, narrower copilot-CLI-subprocess boundary,
+not superseded), `FR-467` (Proposed, unjudged, would consume this FR's
+schema), `FR-231` (Implemented, provider-timing comparison — a different
+axis, no overlap with the span schema here).

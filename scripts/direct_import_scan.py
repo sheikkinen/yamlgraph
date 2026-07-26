@@ -92,6 +92,7 @@ IMPORT_TO_DIST: dict[str, str] = {
     "statemachine_engine": "statemachine-engine",
     "langgraph_checkpoint_sqlite": "langgraph-checkpoint-sqlite",
     "langgraph_checkpoint_redis": "langgraph-checkpoint-redis",
+    "opentelemetry": "opentelemetry-api",  # bare `import opentelemetry` / trace
 }
 
 # Dotted-prefix distribution mapping for namespace packages (PR #463
@@ -104,6 +105,12 @@ NAMESPACE_TO_DIST: dict[str, str] = {
     "langgraph.checkpoint.redis": "langgraph-checkpoint-redis",
     "langgraph.checkpoint.sqlite": "langgraph-checkpoint-sqlite",
     "google.protobuf": "protobuf",
+    # FR-759 otel extra: opentelemetry is a namespace package; sdk and
+    # exporter live in their own distributions (the umbrella
+    # opentelemetry-exporter-otlp is what pyproject declares and what
+    # pulls in the proto-http exporter).
+    "opentelemetry.sdk": "opentelemetry-sdk",
+    "opentelemetry.exporter.otlp": "opentelemetry-exporter-otlp",
 }
 
 # Known, already-dispositioned undeclared imports pending a sibling FR's

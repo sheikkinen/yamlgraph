@@ -1586,6 +1586,7 @@ These are not `# noqa` suppressions — they are documented deviations from proc
 - **Penance**: script-adjacent module reusing a sibling script's parser; path bootstrap must precede the import (CONF-392/393/394/396 idiom).
 
 
+
 ---
 
 ## Adding New Confessions

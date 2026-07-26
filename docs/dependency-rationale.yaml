@@ -303,3 +303,20 @@ dependencies:
     rationale: "Chatterbox TTS for local speech synthesis in the chatterbox demo (FR-233)"
     modules: ["examples/demos/chatterbox/"]
     added: "0.4.68"
+
+  # ─── Optional: OpenTelemetry ─────────────────────────────────────────
+
+  opentelemetry-api:
+    rationale: "OpenTelemetry tracing API for the opt-in graph-run/node-execution observability boundary (FR-759)"
+    modules: ["yamlgraph/observability/otel.py"]
+    added: "0.5.18"
+
+  opentelemetry-sdk:
+    rationale: "OpenTelemetry SDK (TracerProvider, span processors) backing the opt-in observability boundary (FR-759)"
+    modules: ["yamlgraph/observability/otel.py"]
+    added: "0.5.18"
+
+  opentelemetry-exporter-otlp:
+    rationale: "OTLP exporter used when YAMLGRAPH_OTEL_EXPORT=otlp is set, sending spans to an OTLP collector (FR-759)"
+    modules: ["yamlgraph/observability/otel.py"]
+    added: "0.5.18"
