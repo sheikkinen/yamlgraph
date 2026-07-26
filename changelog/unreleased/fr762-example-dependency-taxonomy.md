@@ -40,4 +40,9 @@ req: REQ-YG-571
   README-documented `yamlgraph <subcommand>` CLI invocations out to the
   yamlgraph/ files implementing them, so `a2a_call`/`a2a_server` correctly
   resolve to `extra: [a2a]`/`extra: [a2a, booking]` instead of `null`; 7 new
-  regression tests added. (REQ-YG-571)
+  regression tests added. CAP-213/REQ-YG-571 spec text realigned to the
+  implemented discovery rule (recursive any-depth walk, structural
+  top-level `nodes` mapping, README fenced usage command — PR #464
+  review round 2); classifier stdlib/local checks now key on the
+  top-level segment of dotted import names after merging FR-761's
+  namespace-preserving extraction (npc gains `redis` extra). (REQ-YG-571)
