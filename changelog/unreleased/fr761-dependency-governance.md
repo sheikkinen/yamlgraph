@@ -21,7 +21,12 @@ req: REQ-YG-570
   counts; nested/lazy imports (multi-provider-factory pattern) may be
   satisfied by any declared group. Top-level `try/except` imports
   execute at import time and are treated as module-level surface
-  (PR #463 review P1). Report-only findings under
+  (PR #463 review P1). Dotted namespace imports resolve to their actual
+  distribution before ownership checks (`langgraph.checkpoint.redis` →
+  `langgraph-checkpoint-redis`, `google.protobuf` → `protobuf`;
+  PR #463 review round-2 P1), and first-party modules exposed via
+  explicit `sys.path.insert` local roots in tests/examples are excluded
+  from report-only findings (round-2 P2). Report-only findings under
   `examples/`, `scripts/`, `tests/` exclude first-party local sibling
   modules/packages. A `PENDING_GAPS` table, keyed by
   (path-prefix, import-name) so dispositions are surface-scoped and

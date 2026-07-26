@@ -94,6 +94,18 @@ IMPORT_TO_DIST: dict[str, str] = {
     "langgraph_checkpoint_redis": "langgraph-checkpoint-redis",
 }
 
+# Dotted-prefix distribution mapping for namespace packages (PR #463
+# review round-2 P1): collapsing `langgraph.checkpoint.redis` to its
+# top-level `langgraph` (declared in core) would let the actual
+# `langgraph-checkpoint-redis` declaration disappear without the gate
+# noticing. Longest dotted prefix wins; anything not listed falls back
+# to top-level resolution via IMPORT_TO_DIST.
+NAMESPACE_TO_DIST: dict[str, str] = {
+    "langgraph.checkpoint.redis": "langgraph-checkpoint-redis",
+    "langgraph.checkpoint.sqlite": "langgraph-checkpoint-sqlite",
+    "google.protobuf": "protobuf",
+}
+
 # Known, already-dispositioned undeclared imports pending a sibling FR's
 # fix. Format: (path prefix, import name) -> (owning FR, human note). The
 # path prefix is an exact file path or a directory prefix relative to the
@@ -245,18 +257,31 @@ def _extract_imports(path: Path) -> list[tuple[str, int, bool]]:
         if isinstance(node, ast.Import):
             nested = id(node) not in module_level_ids
             for alias in node.names:
-                results.append((alias.name.split(".")[0], node.lineno, nested))
+                results.append((alias.name, node.lineno, nested))
         elif isinstance(node, ast.ImportFrom):
             if node.level and node.level > 0:
                 continue
             if node.module:
                 nested = id(node) not in module_level_ids
-                results.append((node.module.split(".")[0], node.lineno, nested))
+                results.append((node.module, node.lineno, nested))
     return results
 
 
 def _resolve_distribution(import_name: str) -> str:
-    return IMPORT_TO_DIST.get(import_name, import_name)
+    """Map a (possibly dotted) import name to its distribution name.
+
+    Longest dotted-prefix match in NAMESPACE_TO_DIST first (namespace
+    packages ship submodule trees from separate distributions), then
+    IMPORT_TO_DIST on the top-level segment, then the top-level segment
+    itself.
+    """
+    parts = import_name.split(".")
+    for length in range(len(parts), 0, -1):
+        prefix = ".".join(parts[:length])
+        if prefix in NAMESPACE_TO_DIST:
+            return NAMESPACE_TO_DIST[prefix]
+    top = parts[0]
+    return IMPORT_TO_DIST.get(top, top)
 
 
 def _owner_extras_for(rel_path_posix: str) -> frozenset[str] | None:
@@ -318,6 +343,76 @@ def _is_local_module(path: Path, import_name: str, repo_root: Path) -> bool:
         current = current.parent
 
 
+def _sys_path_local_roots(path: Path, repo_root: Path) -> list[Path]:
+    """Directories a file explicitly exposes via sys.path manipulation.
+
+    Tests/examples routinely do
+    ``sys.path.insert(0, str(Path(__file__).parent.parent / "src"))`` and
+    then import first-party modules from that root; those imports are not
+    third-party dependency gaps (PR #463 review round-2 P2). Deterministic
+    approximation: when the source mentions ``sys.path``, every string
+    constant (and every in-order constant segment chain of ``/``-joined
+    Path expressions, e.g. ``... / "examples" / "book_translator"``) is a
+    candidate fragment; fragments that resolve to an existing directory
+    inside the repo — joined against the repo root or any ancestor of the
+    importing file — become local roots. Evidence-based: an import only
+    gets excluded when a matching module actually exists under a root.
+    """
+    try:
+        source = path.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError):
+        return []
+    if "sys.path" not in source:
+        return []
+    try:
+        tree = ast.parse(source)
+    except SyntaxError:
+        return []
+
+    fragments: set[str] = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.BinOp) and isinstance(node.op, ast.Div):
+            segs: list[str] = []
+            cur: ast.expr = node
+            while isinstance(cur, ast.BinOp) and isinstance(cur.op, ast.Div):
+                if isinstance(cur.right, ast.Constant) and isinstance(
+                    cur.right.value, str
+                ):
+                    segs.append(cur.right.value)
+                cur = cur.left
+            if segs:
+                fragments.add("/".join(reversed(segs)))
+        elif isinstance(node, ast.Constant) and isinstance(node.value, str):
+            value = node.value
+            if value and not value.startswith((".", "/")) and " " not in value:
+                fragments.add(value)
+
+    roots: list[Path] = []
+    bases = [
+        repo_root,
+        *[p for p in path.parents if repo_root in p.parents or p == repo_root],
+    ]
+    for fragment in fragments:
+        for base in bases:
+            candidate = base / fragment
+            if candidate.is_dir() and (
+                candidate == repo_root or repo_root in candidate.parents
+            ):
+                roots.append(candidate)
+    return roots
+
+
+def _in_sys_path_roots(import_top: str, roots: list[Path]) -> bool:
+    """True when `import_top` resolves to a module/package under a local root."""
+    for root in roots:
+        if (root / f"{import_top}.py").exists():
+            return True
+        candidate = root / import_top
+        if candidate.is_dir() and any(candidate.glob("*.py")):
+            return True
+    return False
+
+
 def _normalize(name: str) -> str:
     """PEP 503 style normalization for distribution-name comparison.
 
@@ -374,13 +469,18 @@ def scan(
             continue
         rel_str = str(path.relative_to(repo_root))
         rel_posix = path.relative_to(repo_root).as_posix()
+        sys_path_roots: list[Path] | None = None
         for import_name, lineno, nested in _extract_imports(path):
-            if import_name in stdlib or import_name in FIRST_PARTY:
+            top = import_name.split(".")[0]
+            if top in stdlib or top in FIRST_PARTY:
                 continue
-            if path_class == "report_only" and _is_local_module(
-                path, import_name, repo_root
-            ):
-                continue
+            if path_class == "report_only":
+                if _is_local_module(path, top, repo_root):
+                    continue
+                if sys_path_roots is None:
+                    sys_path_roots = _sys_path_local_roots(path, repo_root)
+                if _in_sys_path_roots(top, sys_path_roots):
+                    continue
             distribution = _resolve_distribution(import_name)
             normalized = _normalize(distribution)
 
