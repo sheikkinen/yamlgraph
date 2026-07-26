@@ -1,10 +1,8 @@
-# Module Map
-
-## Metadata
-- source_root: `yamlgraph/`
+Wrote reference/module-map.md (134 modules)
+mlgraph/`
 - parser: stdlib `ast.parse()`
 - deterministic ordering: modules sorted by relative path
-- module count: 132
+- module count: 134
 
 ## Module index/tree
 - `yamlgraph/__init__.py` - 63 lines; exports: `get_schema_path()`
@@ -29,7 +27,7 @@
   - import dependencies: `yamlgraph.diary.importer`
 - `yamlgraph/cli/export_commands.py` - 70 lines; exports: `cmd_graph_export(args)`
   - import dependencies: `yamlgraph.mermaid_export`
-- `yamlgraph/cli/graph_commands.py` - 320 lines; exports: `cmd_graph_run(args)`, `cmd_graph_info(args)`, `cmd_graph_codegen(args)`, `cmd_graph_dispatch(args)`
+- `yamlgraph/cli/graph_commands.py` - 329 lines; exports: `cmd_graph_run(args)`, `cmd_graph_info(args)`, `cmd_graph_codegen(args)`, `cmd_graph_dispatch(args)`
   - import dependencies: `yamlgraph.cli`, `yamlgraph.cli.graph_validate`, `yamlgraph.cli.helpers`, `yamlgraph.executor_async`, `yamlgraph.models.state_builder`
 - `yamlgraph/cli/graph_run_helpers.py` - 282 lines; exports: _none_
   - import dependencies: `yamlgraph.cli.helpers`
@@ -42,14 +40,16 @@
 - `yamlgraph/cli/skill_commands.py` - 32 lines; exports: `cmd_skill_export(args)`, `cmd_skill_dispatch(args)`
   - import dependencies: `yamlgraph.export.skill`
 - `yamlgraph/compile/__init__.py` - 6 lines; exports: _none_
-- `yamlgraph/compile/edge_compiler.py` - 299 lines; exports: _none_
+- `yamlgraph/compile/edge_compiler.py` - 397 lines; exports: `class EdgeShape`, `classify_edge(from_node, to_node, condition, edge_type, map_node_names)`, `build_router_route_mapping(target_nodes, interrupt_nodes, subgraph_interrupt_nodes)`, `build_expression_route_mapping(expr_edges, loop_exit_target, map_nodes)`
   - import dependencies: `yamlgraph.routing`
 - `yamlgraph/compile/graph_loader.py` - 412 lines; exports: `class GraphConfig`, `load_graph_config(path)`, `compile_graph(config)`, `invoke_graph(path, variables, *, config)`, `load_and_compile(path)`, `get_checkpointer_for_graph(config)`
   - import dependencies: `yamlgraph.compile.edge_compiler`, `yamlgraph.compile.node_compiler`, `yamlgraph.data_loader`, `yamlgraph.loop_detector`, `yamlgraph.models.state_builder`, `yamlgraph.storage.checkpointer_factory`, `yamlgraph.tools.graph_tool`, `yamlgraph.tools.python_tool`, `yamlgraph.tools.schema_loader_tool`, `yamlgraph.tools.shell`, `yamlgraph.tools.write_data_file_tool`, `yamlgraph.utils.validators`
 - `yamlgraph/compile/map_compiler.py` - 368 lines; exports: `flatten_map_results(items)`, `wrap_for_reducer(node_fn, collect_key, state_key, flatten_output, timeout)`, `compile_map_node(name, config, builder, defaults, tools_registry, graph_path, python_tools, tools)`
   - import dependencies: `yamlgraph.config`, `yamlgraph.constants`, `yamlgraph.node_factory`, `yamlgraph.tools.agent`, `yamlgraph.tools.python_tool`, `yamlgraph.utils.expressions`
-- `yamlgraph/compile/node_compiler.py` - 440 lines; exports: `class GraphConfigError`, `class NodeCompileContext`, `resolve_cache_policy(cache_config)`, `compile_node(node_name, node_config, graph, config, tools, python_tools, callable_registry, graph_tool_configs)`, `compile_nodes(config, graph, tools, python_tools, callable_registry, graph_tool_configs)`
-  - import dependencies: `yamlgraph.compile.map_compiler`, `yamlgraph.constants`, `yamlgraph.models.guard_schema`, `yamlgraph.node_factory`, `yamlgraph.node_timeout`, `yamlgraph.tools.agent`, `yamlgraph.tools.nodes`, `yamlgraph.tools.python_tool`, `yamlgraph.utils.guard_runtime`
+- `yamlgraph/compile/node_compiler.py` - 449 lines; exports: `class GraphConfigError`, `class NodeCompileContext`, `resolve_cache_policy(cache_config)`, `compile_node(node_name, node_config, graph, config, tools, python_tools, callable_registry, graph_tool_configs)`, `compile_nodes(config, graph, tools, python_tools, callable_registry, graph_tool_configs)`
+  - import dependencies: `yamlgraph.compile.map_compiler`, `yamlgraph.compile.node_otel`, `yamlgraph.constants`, `yamlgraph.models.guard_schema`, `yamlgraph.node_factory`, `yamlgraph.node_timeout`, `yamlgraph.tools.agent`, `yamlgraph.tools.nodes`, `yamlgraph.tools.python_tool`, `yamlgraph.utils.guard_runtime`
+- `yamlgraph/compile/node_otel.py` - 48 lines; exports: _none_
+  - import dependencies: _none_
 - `yamlgraph/compile/pipeline_template.py` - 192 lines; exports: `expand_pipeline_templates(config)`
   - import dependencies: _none_
 - `yamlgraph/compile/verify_insert.py` - 77 lines; exports: `insert_verify_node(config)`
@@ -170,6 +170,9 @@
   - import dependencies: `yamlgraph.node_factory.base`, `yamlgraph.utils.expressions`
 - `yamlgraph/node_timeout.py` - 64 lines; exports: _none_
   - import dependencies: _none_
+- `yamlgraph/observability/__init__.py` - 1 lines; exports: _none_
+- `yamlgraph/observability/otel.py` - 236 lines; exports: `class OtelExtraMissingError`, `class GraphRunContext`, `class NodeExecutionContext`, `is_otel_enabled()`, `variables_hash(variables)`, `graph_run_span(graph_name, variables, thread_id)`, `node_execution_span(node_name, node_type)`
+  - import dependencies: _none_
 - `yamlgraph/routing.py` - 119 lines; exports: `make_router_fn(targets, source_node)`, `make_expr_router_fn(edges, source_node, loop_exit_target, map_nodes)`
   - import dependencies: `yamlgraph.utils.conditions`, `yamlgraph.utils.route_log`
 - `yamlgraph/schema_loader.py` - 269 lines; exports: `normalize_coding_keys(field)`, `resolve_type(type_str, field_name)`, `build_pydantic_model(schema)`, `build_pydantic_model_from_json_schema(schema, model_name)`, `load_schema_from_yaml(yaml_path)`
@@ -235,8 +238,6 @@
   - import dependencies: _none_
 - `yamlgraph/utils/guard_runtime.py` - 256 lines; exports: `class GuardDecision`, `extract_guard_rules(node_config)`, `evaluate_guards_once(node_name, phase, rules, state, output)`, `class GuardHaltError`, `enforce_pre_guards(node_name, rules, state)`, `enforce_post_guards(node_name, rules, state, output, *, execute)`, `create_verify_node(rules)`
   - import dependencies: `yamlgraph.models`, `yamlgraph.utils.guard_evaluator`
-- `yamlgraph/utils/id_registry.py` - 243 lines; exports: `class Reservation`, `class IdRegistry`, `load_registry(path)`, `reserve_ids(registry, fr_id, cap_count, req_count, note)`, `save_registry(registry, path)`, `validate_registry(registry)`, `format_cap_id(cap_num)`, `format_req_id(req_num)`
-  - import dependencies: _none_
 - `yamlgraph/utils/json_extract.py` - 130 lines; exports: `find_balanced_json(text, start_char, end_char)`, `extract_json(text)`
   - import dependencies: _none_
 - `yamlgraph/utils/llm_factory.py` - 263 lines; exports: `create_llm(provider, model, temperature, max_tokens, thinking_budget)`, `clear_cache()`
@@ -251,7 +252,7 @@
   - import dependencies: _none_
 - `yamlgraph/utils/prompts.py` - 247 lines; exports: `check_messages_contract(content, prompt_name)`, `resolve_prompt_path(prompt_name, prompts_dir, graph_path, prompts_relative)`, `load_prompt(prompt_name, prompts_dir, graph_path, prompts_relative)`, `load_prompt_path(prompt_name, prompts_dir, graph_path, prompts_relative)`
   - import dependencies: `yamlgraph.config`
-- `yamlgraph/utils/route_log.py` - 156 lines; exports: `enable_route_log(enabled)`, `route_log_enabled()`, `reset_route_log()`, `current_route_thread_id()`, `route_thread_id(thread_id)`, `route_thread_id_from_config(config)`, `emit_route(node, value, target, fan_out)`
+- `yamlgraph/utils/route_log.py` - 230 lines; exports: `enable_route_log(enabled)`, `route_log_enabled()`, `reset_route_log()`, `current_route_thread_id()`, `route_thread_id(thread_id)`, `route_thread_id_from_config(config)`, `emit_route(node, value, target, fan_out)`
   - import dependencies: _none_
 - `yamlgraph/utils/template.py` - 108 lines; exports: `extract_variables(template)`, `validate_variables(template, provided, prompt_name)`
   - import dependencies: _none_
@@ -270,5 +271,5 @@
 ## test_map
 
 - deterministic mapping: derive `test_<stem>.py` and `test_<flattened_path>.py`, then resolve in `tests/`.
-- mapped modules: 62/132
-- discovered tests: 64
+- mapped modules: 61/134
+- discovered tests: 63

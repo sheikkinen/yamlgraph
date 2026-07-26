@@ -1579,6 +1579,37 @@ These are not `# noqa` suppressions — they are documented deviations from proc
 - **Sin**: `subprocess.run([GIT, "show", ...])` flagged as untrusted input.
 - **Penance**: Command and args are hardcoded constants; GIT resolved via `shutil.which`; path comes from pre-commit's staged-file list. No user input reaches the call (CONF-388 idiom).
 
+### CONF-399
+- **File**: [tests/unit/test_otel_observability.py](../tests/unit/test_otel_observability.py#L19)
+- **Code**: E402
+- **Sin**: `from opentelemetry import trace` follows a module-level statement.
+- **Penance**: `pytest.importorskip("opentelemetry.sdk")` on line 17 must run first so the whole file cleanly skips when the optional `otel` extra is not installed; the OTEL imports that follow cannot precede the skip guard (CONF-A2A idiom, same as `tests/unit/test_a2a_message.py`).
+
+### CONF-400
+- **File**: [tests/unit/test_otel_observability.py](../tests/unit/test_otel_observability.py#L20)
+- **Code**: E402
+- **Sin**: `from opentelemetry.sdk.trace import TracerProvider` follows the importorskip guard.
+- **Penance**: Same as CONF-399 — must follow the skip guard.
+
+### CONF-401
+- **File**: [tests/unit/test_otel_observability.py](../tests/unit/test_otel_observability.py#L21)
+- **Code**: E402
+- **Sin**: `from opentelemetry.sdk.trace.export import SimpleSpanProcessor` follows the importorskip guard.
+- **Penance**: Same as CONF-399 — must follow the skip guard.
+
+### CONF-402
+- **File**: [tests/unit/test_otel_observability.py](../tests/unit/test_otel_observability.py#L22)
+- **Code**: E402
+- **Sin**: `from opentelemetry.sdk.trace.export.in_memory_span_exporter import InMemorySpanExporter` follows the importorskip guard.
+- **Penance**: Same as CONF-399 — must follow the skip guard.
+
+### CONF-403
+- **File**: [tests/unit/test_otel_observability.py](../tests/unit/test_otel_observability.py#L26)
+- **Code**: E402
+- **Sin**: `from yamlgraph.observability import otel` follows the importorskip guard.
+- **Penance**: Same as CONF-399 — must follow the skip guard; the module under test is imported only after confirming the optional dependency it wraps is present.
+
+
 
 ---
 

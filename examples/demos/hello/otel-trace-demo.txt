@@ -1,0 +1,76 @@
+2026-07-26 12:37:46,963 [INFO] yamlgraph.compile.node_compiler: Added node: greet (type=llm)
+2026-07-26 12:37:47,089 [INFO] yamlgraph.utils.llm_factory: Creating LLM: deepseek/deepseek-v4-flash (temp=0.7)
+2026-07-26 12:37:49,053 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-26 12:37:50,631 [INFO] yamlgraph.node_factory.llm_nodes: Node greet completed successfully
+{
+    "name": "yamlgraph.node.execute",
+    "context": {
+        "trace_id": "0xfa14b253047bd8aa6e604d5d865c98b4",
+        "span_id": "0xf1e0940fd0f80f5f",
+        "trace_state": "[]"
+    },
+    "kind": "SpanKind.INTERNAL",
+    "parent_id": "0x4538ba64332cdcf5",
+    "start_time": "2026-07-26T09:37:47.086667Z",
+    "end_time": "2026-07-26T09:37:50.631640Z",
+    "status": {
+        "status_code": "UNSET"
+    },
+    "attributes": {
+        "yamlgraph.node.name": "greet",
+        "yamlgraph.node.type": "llm",
+        "yamlgraph.state.keys_written": [
+            "greeting",
+            "current_step",
+            "_loop_counts"
+        ]
+    },
+    "events": [],
+    "links": [],
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.44.0",
+            "service.instance.id": "66743599-97cc-46a6-a2a0-ff638717dd15",
+            "service.name": "unknown_service"
+        },
+        "schema_url": ""
+    }
+}
+Node greet completed successfully
+{
+    "name": "yamlgraph.graph.run",
+    "context": {
+        "trace_id": "0xfa14b253047bd8aa6e604d5d865c98b4",
+        "span_id": "0x4538ba64332cdcf5",
+        "trace_state": "[]"
+    },
+    "kind": "SpanKind.INTERNAL",
+    "parent_id": null,
+    "start_time": "2026-07-26T09:37:46.970520Z",
+    "end_time": "2026-07-26T09:37:50.632948Z",
+    "status": {
+        "status_code": "UNSET"
+    },
+    "attributes": {
+        "yamlgraph.run.id": "0f2d3a85-2afa-4c9b-a04b-13213029d3b6",
+        "yamlgraph.graph.name": "hello-world",
+        "yamlgraph.variables.hash": "f7d9a7043bd3a44eb63b2cac058b2e894bda2228de9c4bc889477b80cc74eba9",
+        "yamlgraph.run.outcome": "success"
+    },
+    "events": [],
+    "links": [],
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.44.0",
+            "service.instance.id": "66743599-97cc-46a6-a2a0-ff638717dd15",
+            "service.name": "unknown_service"
+        },
+        "schema_url": ""
+    }
+}
+Graph execution completed successfully
+RESULT greeting: {'greeting': 'A warm and respectful salutation to the World, with hopes for harmony and prosperity.', 'emoji': '🌍', 'formality_level': 'formal'}

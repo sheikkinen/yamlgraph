@@ -30,7 +30,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -e ".[dev,digest,websearch,a2a,fsm,verify]"
+          pip install -e ".[dev,digest,websearch,a2a,fsm,verify,otel]"
 
       - name: Run core-only tests
         run: pytest tests/unit -m "not process" -q --no-cov
@@ -52,7 +52,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -e ".[dev,digest,websearch,a2a,fsm,verify]"
+          pip install -e ".[dev,digest,websearch,a2a,fsm,verify,otel]"
 
       - name: Run tests
         run: pytest tests/unit/ -v --cov=yamlgraph --cov-fail-under=80
