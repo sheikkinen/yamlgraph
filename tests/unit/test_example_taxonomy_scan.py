@@ -96,6 +96,39 @@ def test_discover_roots_finds_nested_graph_yaml_root(tmp_path):
 
 
 @pytest.mark.req("REQ-YG-571")
+def test_prompt_yaml_with_nodes_substring_is_not_a_root(tmp_path):
+    """PR #464 review P1 regression: prompt YAML files containing the
+    substring `nodes:` (schema fields like `affected_nodes:`, or `nodes`
+    nested below the top level) must NOT make their directory an example
+    root. The reviewer's concrete findings were prompt dirs such as
+    `examples/beautify/prompts/` falsely admitted as roots."""
+    examples = tmp_path / "examples"
+    _write(
+        examples / "beautify" / "prompts" / "analyze.yaml",
+        "name: analyze\nschema:\n  fields:\n"
+        "    affected_nodes: {type: str, description: 'nodes: touched'}\n",
+    )
+    _write(
+        examples / "run-analyzer" / "prompts" / "summarize.yaml",
+        "name: summarize\nmeta:\n  nodes:\n    - not-a-graph\n",
+    )
+    _write(examples / "real" / "graph.yaml", "nodes:\n  a: {}\n")
+
+    roots = discover_roots(examples)
+    rel = sorted(str(r.relative_to(tmp_path)) for r in roots)
+    assert rel == ["examples/real"]
+
+
+@pytest.mark.req("REQ-YG-571")
+def test_unparseable_yaml_is_not_a_root(tmp_path):
+    """Invalid YAML containing the substring `nodes:` must not qualify."""
+    examples = tmp_path / "examples"
+    _write(examples / "broken" / "graph.yaml", "nodes: [unclosed\n  a: {}\n")
+
+    assert discover_roots(examples) == []
+
+
+@pytest.mark.req("REQ-YG-571")
 def test_discover_roots_excludes_empty_dirs(tmp_path):
     examples = tmp_path / "examples"
     _write(examples / "empty" / "notes.txt", "no graph, no readme, no main")
