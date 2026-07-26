@@ -684,6 +684,7 @@ examples:
   status: extra-backed
   extra:
   - booking
+  - redis
   entrypoints:
   - examples/npc/demo.py
   - examples/npc/encounter-loop.yaml
@@ -695,6 +696,7 @@ examples:
   status: extra-backed
   extra:
   - booking
+  - redis
   entrypoints:
   - examples/npc/api/app.py
 - path: examples/ocr_cleanup

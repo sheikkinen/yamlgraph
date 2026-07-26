@@ -14,8 +14,10 @@ Ownership model (frozen by FR-761 judgement, R-2):
       the file is a recognized optional feature surface (see
       PATH_PREFIX_OWNERS below), in which case it may also be satisfied
       by that surface's owning extra(s).
-    - yamlgraph/ nested/lazy imports (inside a function, method, or
-      try/except body): these represent deferred, provider-selection-style
+    - yamlgraph/ nested/lazy imports (inside a function or method body
+      — NOT top-level try/except, which still executes at import time
+      and is treated as module-level): these represent deferred,
+      provider-selection-style
       loads (e.g. `utils/llm_providers.py` importing a different provider
       SDK per branch). They may be satisfied by declaration in core OR
       ANY optional extra — tightening this to per-file ownership would
@@ -40,9 +42,11 @@ files without an explicit owner mapping must be genuinely core.
 Known pending gaps: a small number of currently-undeclared imports are
 already dispositioned to a sibling FR (FR-760's langchain-core, FR-762's
 example/provider dependency taxonomy). These are tracked explicitly in
-PENDING_GAPS below — visible in every run, never silently ignored — so
+PENDING_GAPS below, scoped to the exact file or directory surface they
+were granted for — visible in every run, never silently ignored — so
 this gate does not fail CI for defects already owned and scheduled
-elsewhere, while still catching any *new* undeclared import immediately.
+elsewhere, while still catching any *new* undeclared import (including
+the same distribution name at any other surface) immediately.
 
 Usage:
     python scripts/direct_import_scan.py           # summary + all findings
@@ -92,14 +96,59 @@ IMPORT_TO_DIST: dict[str, str] = {
     "chatterbox": "chatterbox-tts",
 }
 
+# Dotted-prefix distribution mapping for namespace packages (PR #463
+# review round-2 P1): collapsing `langgraph.checkpoint.redis` to its
+# top-level `langgraph` (declared in core) would let the actual
+# `langgraph-checkpoint-redis` declaration disappear without the gate
+# noticing. Longest dotted prefix wins; anything not listed falls back
+# to top-level resolution via IMPORT_TO_DIST.
+NAMESPACE_TO_DIST: dict[str, str] = {
+    "langgraph.checkpoint.redis": "langgraph-checkpoint-redis",
+    "langgraph.checkpoint.sqlite": "langgraph-checkpoint-sqlite",
+    "google.protobuf": "protobuf",
+}
+
 # Known, already-dispositioned undeclared imports pending a sibling FR's
-# fix. Format: import name -> (owning FR, human note). These are always
-# reported (never hidden) but do not fail --strict. Remove an entry once
-# its owning FR declares the dependency — a stale entry here would then be
-# harmless (the import will simply resolve as declared and stop matching
-# the "undeclared" branch).
-PENDING_GAPS: dict[str, str] = {
-    "langchain_core": "FR-760 — declares langchain-core as an explicit core dependency (PR open at scanner authoring time); this worktree predates that merge",
+# fix. Format: (path prefix, import name) -> (owning FR, human note). The
+# path prefix is an exact file path or a directory prefix relative to the
+# repo root (POSIX-style) — the disposition applies ONLY to imports at
+# that surface (PR #463 review P2: a name-only exemption would whitelist
+# brand-new imports of the same distribution anywhere under yamlgraph/).
+# Entries are always reported (never hidden) but do not fail --strict.
+# Remove an entry once its owning FR declares the dependency.
+PENDING_GAPS: dict[tuple[str, str], str] = {
+    ("yamlgraph/utils/llm_providers.py", "litellm"): (
+        "FR-762 — Replicate provider frozen table: declare litellm explicitly"
+        " in replicate extra"
+    ),
+    ("yamlgraph/a2a", "starlette"): (
+        "FR-762 — A2A frozen table: declare starlette explicitly in a2a extra"
+    ),
+    ("yamlgraph/cli/a2a_commands.py", "starlette"): (
+        "FR-762 — A2A frozen table: declare starlette explicitly in a2a extra"
+    ),
+    ("yamlgraph/contrib/a2a_client.py", "starlette"): (
+        "FR-762 — A2A frozen table: declare starlette explicitly in a2a extra"
+    ),
+    ("yamlgraph/a2a", "protobuf"): (
+        "FR-762 — A2A frozen table: declare protobuf explicitly in a2a extra"
+        " (google.protobuf import)"
+    ),
+    ("yamlgraph/cli/a2a_commands.py", "protobuf"): (
+        "FR-762 — A2A frozen table: declare protobuf explicitly in a2a extra"
+        " (google.protobuf import)"
+    ),
+    ("yamlgraph/contrib/a2a_client.py", "protobuf"): (
+        "FR-762 — A2A frozen table: declare protobuf explicitly in a2a extra"
+        " (google.protobuf import)"
+    ),
+    ("yamlgraph", "langchain_core"): (
+        "FR-760 — declares langchain-core as an explicit core dependency"
+        " (PR open at scanner authoring time); this worktree predates that"
+        " merge. langchain_core is the effective runtime contract across"
+        " core modules (executor, llm_factory, tools, streaming), so the"
+        " disposition surface is yamlgraph/ itself; entry dies with FR-760."
+    ),
 }
 
 
@@ -121,6 +170,8 @@ PATH_PREFIX_OWNERS: dict[str, frozenset[str]] = {
     "yamlgraph/contrib/a2a_client.py": frozenset({"a2a"}),
     "yamlgraph/a2a": frozenset({"a2a"}),
     "yamlgraph/cli/a2a_commands.py": frozenset({"a2a"}),
+    "yamlgraph/export/mcp.py": frozenset({"mcp"}),
+    "yamlgraph/utils/fsm": frozenset({"fsm"}),
 }
 
 
@@ -178,33 +229,61 @@ def _extract_imports(path: Path) -> list[tuple[str, int, bool]]:
 
     Uses ast.walk (not just top-level statements) so lazy/nested imports
     inside functions or try/except blocks are caught. `is_nested` is True
-    for anything not a direct child of the module body (i.e. not a plain
-    top-level, unconditional import). Relative imports (level > 0) are
-    excluded — they are always first-party by definition.
+    only for imports that do NOT execute unconditionally at module import
+    time: anything inside a function/method body or other deferred scope.
+    Imports that are direct children of the module body, OR inside a
+    top-level try/except/else/finally block, DO execute on import and are
+    therefore module-level (PR #463 review P1: a top-level try-guarded
+    import is still part of the core import surface). Relative imports
+    (level > 0) are excluded — they are always first-party by definition.
     """
     try:
         tree = ast.parse(path.read_text(encoding="utf-8"))
     except (SyntaxError, UnicodeDecodeError):
         return []
 
-    top_level_ids = {id(node) for node in tree.body}
+    module_level_ids: set[int] = set()
+    stack: list[ast.stmt] = list(tree.body)
+    while stack:
+        node = stack.pop()
+        module_level_ids.add(id(node))
+        if isinstance(node, ast.Try):
+            stack.extend(node.body)
+            stack.extend(node.orelse)
+            stack.extend(node.finalbody)
+            for handler in node.handlers:
+                stack.extend(handler.body)
+
     results: list[tuple[str, int, bool]] = []
     for node in ast.walk(tree):
         if isinstance(node, ast.Import):
-            nested = id(node) not in top_level_ids
+            nested = id(node) not in module_level_ids
             for alias in node.names:
-                results.append((alias.name.split(".")[0], node.lineno, nested))
+                results.append((alias.name, node.lineno, nested))
         elif isinstance(node, ast.ImportFrom):
             if node.level and node.level > 0:
                 continue
             if node.module:
-                nested = id(node) not in top_level_ids
-                results.append((node.module.split(".")[0], node.lineno, nested))
+                nested = id(node) not in module_level_ids
+                results.append((node.module, node.lineno, nested))
     return results
 
 
 def _resolve_distribution(import_name: str) -> str:
-    return IMPORT_TO_DIST.get(import_name, import_name)
+    """Map a (possibly dotted) import name to its distribution name.
+
+    Longest dotted-prefix match in NAMESPACE_TO_DIST first (namespace
+    packages ship submodule trees from separate distributions), then
+    IMPORT_TO_DIST on the top-level segment, then the top-level segment
+    itself.
+    """
+    parts = import_name.split(".")
+    for length in range(len(parts), 0, -1):
+        prefix = ".".join(parts[:length])
+        if prefix in NAMESPACE_TO_DIST:
+            return NAMESPACE_TO_DIST[prefix]
+    top = parts[0]
+    return IMPORT_TO_DIST.get(top, top)
 
 
 def _owner_extras_for(rel_path_posix: str) -> frozenset[str] | None:
@@ -218,6 +297,27 @@ def _owner_extras_for(rel_path_posix: str) -> frozenset[str] | None:
     for prefix, owners in PATH_PREFIX_OWNERS.items():
         if rel_path_posix == prefix or rel_path_posix.startswith(prefix + "/"):
             return owners
+    return None
+
+
+def _pending_note_for(
+    rel_path_posix: str,
+    import_name: str,
+    distribution: str,
+    pending: dict[tuple[str, str], str],
+) -> str | None:
+    """Return the pending-gap note covering this exact surface, if any.
+
+    A pending entry (prefix, name) matches only when the finding's file is
+    the prefix itself or lives under "<prefix>/" AND the name equals the
+    import name or resolved distribution (PR #463 review P2: dispositions
+    are surface-scoped, never global by name).
+    """
+    for (prefix, name), note in pending.items():
+        if name not in (import_name, distribution):
+            continue
+        if rel_path_posix == prefix or rel_path_posix.startswith(prefix + "/"):
+            return note
     return None
 
 
@@ -243,6 +343,76 @@ def _is_local_module(path: Path, import_name: str, repo_root: Path) -> bool:
         if current == repo_root or current.parent == current:
             return False
         current = current.parent
+
+
+def _sys_path_local_roots(path: Path, repo_root: Path) -> list[Path]:
+    """Directories a file explicitly exposes via sys.path manipulation.
+
+    Tests/examples routinely do
+    ``sys.path.insert(0, str(Path(__file__).parent.parent / "src"))`` and
+    then import first-party modules from that root; those imports are not
+    third-party dependency gaps (PR #463 review round-2 P2). Deterministic
+    approximation: when the source mentions ``sys.path``, every string
+    constant (and every in-order constant segment chain of ``/``-joined
+    Path expressions, e.g. ``... / "examples" / "book_translator"``) is a
+    candidate fragment; fragments that resolve to an existing directory
+    inside the repo — joined against the repo root or any ancestor of the
+    importing file — become local roots. Evidence-based: an import only
+    gets excluded when a matching module actually exists under a root.
+    """
+    try:
+        source = path.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError):
+        return []
+    if "sys.path" not in source:
+        return []
+    try:
+        tree = ast.parse(source)
+    except SyntaxError:
+        return []
+
+    fragments: set[str] = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.BinOp) and isinstance(node.op, ast.Div):
+            segs: list[str] = []
+            cur: ast.expr = node
+            while isinstance(cur, ast.BinOp) and isinstance(cur.op, ast.Div):
+                if isinstance(cur.right, ast.Constant) and isinstance(
+                    cur.right.value, str
+                ):
+                    segs.append(cur.right.value)
+                cur = cur.left
+            if segs:
+                fragments.add("/".join(reversed(segs)))
+        elif isinstance(node, ast.Constant) and isinstance(node.value, str):
+            value = node.value
+            if value and not value.startswith((".", "/")) and " " not in value:
+                fragments.add(value)
+
+    roots: list[Path] = []
+    bases = [
+        repo_root,
+        *[p for p in path.parents if repo_root in p.parents or p == repo_root],
+    ]
+    for fragment in fragments:
+        for base in bases:
+            candidate = base / fragment
+            if candidate.is_dir() and (
+                candidate == repo_root or repo_root in candidate.parents
+            ):
+                roots.append(candidate)
+    return roots
+
+
+def _in_sys_path_roots(import_top: str, roots: list[Path]) -> bool:
+    """True when `import_top` resolves to a module/package under a local root."""
+    for root in roots:
+        if (root / f"{import_top}.py").exists():
+            return True
+        candidate = root / import_top
+        if candidate.is_dir() and any(candidate.glob("*.py")):
+            return True
+    return False
 
 
 def _normalize(name: str) -> str:
@@ -317,7 +487,7 @@ def scan(
     pyproject_path: Path | None = None,
     core_roots: tuple[str, ...] = CORE_ROOTS,
     report_only_roots: tuple[str, ...] = REPORT_ONLY_ROOTS,
-    pending_gaps: dict[str, str] | None = None,
+    pending_gaps: dict[tuple[str, str], str] | None = None,
     taxonomy_path: Path | None = None,
 ) -> ScanResult:
     """Scan a repository tree and classify every third-party import.
@@ -368,17 +538,18 @@ def scan(
                     repo_root / taxonomy_root
                 )
             local_names = local_names_cache[taxonomy_root]
+        sys_path_roots: list[Path] | None = None
         for import_name, lineno, nested in _extract_imports(path):
-            if (
-                import_name in stdlib
-                or import_name in FIRST_PARTY
-                or import_name in local_names
-            ):
+            top = import_name.split(".")[0]
+            if top in stdlib or top in FIRST_PARTY or top in local_names:
                 continue
-            if path_class == "report_only" and _is_local_module(
-                path, import_name, repo_root
-            ):
-                continue
+            if path_class == "report_only":
+                if _is_local_module(path, top, repo_root):
+                    continue
+                if sys_path_roots is None:
+                    sys_path_roots = _sys_path_local_roots(path, repo_root)
+                if _in_sys_path_roots(top, sys_path_roots):
+                    continue
             distribution = _resolve_distribution(import_name)
             normalized = _normalize(distribution)
 
@@ -415,7 +586,7 @@ def scan(
             result.findings.append(finding)
             if path_class != "core" and not strict_via_taxonomy:
                 continue
-            if distribution in pending or import_name in pending:
+            if _pending_note_for(rel_posix, import_name, distribution, pending):
                 result.pending.append(finding)
             else:
                 result.core_failures.append(finding)
@@ -469,8 +640,11 @@ def main() -> int:
         if result.pending:
             print("Core pending (see PENDING_GAPS):")
             for f in result.pending:
-                note = PENDING_GAPS.get(f.distribution) or PENDING_GAPS.get(
-                    f.import_name
+                note = _pending_note_for(
+                    f.file.replace("\\", "/"),
+                    f.import_name,
+                    f.distribution,
+                    PENDING_GAPS,
                 )
                 print(f"  ⏳ {_format_finding(f, note)}")
         if detail and report_only:

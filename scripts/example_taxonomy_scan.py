@@ -363,11 +363,8 @@ def classify_root(
     undeclared: list[str] = []
     required_norms: set[str] = set()
     for import_name in _root_imports(root, repo_root):
-        if (
-            import_name in stdlib
-            or import_name in FIRST_PARTY
-            or import_name in local_names
-        ):
+        top = import_name.split(".")[0]
+        if top in stdlib or top in FIRST_PARTY or top in local_names:
             continue
         distribution = _resolve_distribution(import_name)
         norm = _normalize(distribution)

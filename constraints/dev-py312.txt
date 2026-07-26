@@ -1,24 +1,33 @@
 # Reproducible dev/security environment constraints (FR-761).
 #
+# Extras match the CI test workflow's install command exactly
+# (.github/workflows/workflow.yml `test` and `core-test` jobs), so this
+# artifact reproduces the actual CI-tested dependency surface, not a
+# narrower approximation of it.
+#
 # Regenerate (Python 3.12, matching CI):
 #   python3.12 -m venv .venv312 && source .venv312/bin/activate
 #   pip install --upgrade pip
-#   pip install -e ".[dev,fsm,verify]"
+#   pip install -e ".[dev,digest,websearch,a2a,fsm,verify]"
 #   python -m pip freeze --exclude-editable > constraints/dev-py312.txt
 #
 # Reproduce a clean environment from this artifact:
 #   python3.12 -m venv .venv312 && source .venv312/bin/activate
 #   pip install --upgrade pip
-#   pip install -c constraints/dev-py312.txt -e ".[dev,fsm,verify]"
+#   pip install -c constraints/dev-py312.txt -e ".[dev,digest,websearch,a2a,fsm,verify]"
 #
 # Generated: 2026-07-26
+a2a-sdk==1.1.2
+aiologic==0.17.1
 aiosqlite==0.22.1
 annotated-doc==0.0.4
 annotated-types==0.8.0
 anthropic==0.120.0
 anyio==4.14.2
 bandit==1.9.4
+beautifulsoup4==4.15.0
 boolean.py==5.0
+brotli==1.2.0
 CacheControl==0.14.4
 certifi==2026.7.22
 cffi==2.1.0
@@ -28,31 +37,43 @@ click==8.4.2
 colorama==0.4.6
 coverage==7.15.2
 cryptography==49.0.0
+culsans==0.11.0
 cyclonedx-python-lib==11.11.0
+ddgs==9.14.4
 defusedxml==0.7.1
+Deprecated==1.3.1
 distlib==0.4.3
 distro==1.9.0
 docstring_parser==0.18.0
 execnet==2.1.2
+fake-useragent==2.2.0
 fastapi==0.140.0
+feedparser==6.0.12
 filelock==3.32.0
 filetype==1.2.0
 fsspec==2026.6.0
+google-api-core==2.33.0
 google-auth==2.56.2
 google-genai==2.14.0
+googleapis-common-protos==1.75.0
 grimp==3.15
+grpcio==1.83.0
 h11==0.16.0
+h2==4.4.0
 hf-xet==1.5.2
+hpack==4.2.0
 httpcore==1.0.9
 httpx==0.28.1
 httpx-sse==0.4.3
 huggingface_hub==1.24.0
+hyperframe==6.1.0
 identify==2.6.19
 idna==3.18
 import-linter==2.13
 iniconfig==2.3.0
 Jinja2==3.1.6
 jiter==0.16.0
+json-rpc==1.15.0
 jsonpatch==1.33
 jsonpointer==3.1.1
 langchain-anthropic==1.5.2
@@ -68,6 +89,8 @@ langgraph-prebuilt==1.1.0
 langgraph-sdk==0.4.2
 langsmith==0.10.10
 license-expression==30.4.4
+limits==5.8.0
+lxml==6.1.1
 mando==0.7.1
 markdown-it-py==4.2.0
 MarkupSafe==3.0.3
@@ -85,6 +108,9 @@ pip_audit==2.10.1
 platformdirs==4.11.0
 pluggy==1.6.0
 pre_commit==4.6.1
+primp==1.3.1
+proto-plus==1.28.2
+protobuf==6.33.6
 py-serializable==2.1.0
 pyasn1==0.6.4
 pyasn1_modules==0.4.2
@@ -105,12 +131,18 @@ radon==6.0.1
 regex==2026.7.19
 requests==2.34.2
 requests-toolbelt==1.0.0
+resend==2.34.0
 rich==15.0.0
 ruff==0.16.0
+sgmllib3k==1.0.0
 six==1.17.0
+slowapi==0.1.10
 sniffio==1.3.1
+socksio==1.0.0
 sortedcontainers==2.4.0
+soupsieve==2.9.1
 sqlite-vec==0.1.9
+sse-starlette==3.4.6
 starlette==1.3.1
 statemachine-engine==1.0.90
 stevedore==5.9.0
@@ -129,6 +161,7 @@ uvicorn==0.51.0
 virtualenv==21.7.0
 vulture==2.16
 websockets==15.0.1
+wrapt==2.2.2
 xxhash==3.8.1
 z3-solver==4.13.4.0
 zstandard==0.25.0
