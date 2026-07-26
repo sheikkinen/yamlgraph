@@ -388,3 +388,135 @@ def test_pending_gap_directory_prefix_scopes_matches(tmp_path: Path) -> None:
     assert result.pending[0].file.endswith("server.py")
     assert len(result.core_failures) == 1
     assert result.core_failures[0].file.endswith("other.py")
+
+
+@pytest.mark.req("REQ-YG-570")
+def test_dotted_namespace_import_requires_namespace_distribution(
+    tmp_path: Path,
+) -> None:
+    """PR #463 review P1 regression: `from langgraph.checkpoint.redis import
+    RedisSaver` must be checked against distribution
+    `langgraph-checkpoint-redis`, not collapsed to top-level `langgraph`
+    (declared in core) — the reviewer's probe showed the gate passing even
+    with the namespace distribution undeclared."""
+    _write(
+        tmp_path,
+        "yamlgraph/storage/factory.py",
+        "def make():\n    from langgraph.checkpoint.redis import RedisSaver\n"
+        "    return RedisSaver\n",
+    )
+    pyproject = _pyproject(tmp_path, core_deps=["langgraph"])
+
+    result = scan(STDLIB, repo_root=tmp_path, pyproject_path=pyproject)
+
+    assert len(result.core_failures) == 1
+    assert result.core_failures[0].distribution == "langgraph-checkpoint-redis"
+
+
+@pytest.mark.req("REQ-YG-570")
+def test_dotted_namespace_import_satisfied_by_declared_distribution(
+    tmp_path: Path,
+) -> None:
+    """The same dotted namespace import passes when its actual distribution
+    is declared (nested import: any declared extra counts)."""
+    _write(
+        tmp_path,
+        "yamlgraph/storage/factory.py",
+        "def make():\n    from langgraph.checkpoint.redis import RedisSaver\n"
+        "    return RedisSaver\n",
+    )
+    pyproject = _pyproject(
+        tmp_path,
+        core_deps=["langgraph"],
+        extras={"redis": ["langgraph-checkpoint-redis"]},
+    )
+
+    result = scan(STDLIB, repo_root=tmp_path, pyproject_path=pyproject)
+
+    assert result.core_failures == []
+    assert result.findings == []
+
+
+@pytest.mark.req("REQ-YG-570")
+def test_google_protobuf_dotted_resolution(tmp_path: Path) -> None:
+    """`from google.protobuf.json_format import ParseDict` resolves to
+    distribution `protobuf` via the dotted-prefix table."""
+    _write(
+        tmp_path,
+        "yamlgraph/mod.py",
+        "def f():\n    from google.protobuf.json_format import ParseDict\n"
+        "    return ParseDict\n",
+    )
+    pyproject = _pyproject(tmp_path, core_deps=[], extras={"a2a": ["protobuf"]})
+
+    result = scan(STDLIB, repo_root=tmp_path, pyproject_path=pyproject)
+
+    assert result.core_failures == []
+    assert result.findings == []
+
+
+@pytest.mark.req("REQ-YG-570")
+def test_report_only_excludes_sys_path_inserted_example_root(
+    tmp_path: Path,
+) -> None:
+    """PR #463 review P2 regression: a test that inserts an example root
+    onto sys.path (Path(__file__)... / "examples" / "book_translator")
+    and imports a first-party package from it must not be reported as an
+    undeclared dependency."""
+    _write(tmp_path, "examples/book_translator/nodes/__init__.py", "")
+    _write(tmp_path, "examples/book_translator/nodes/tools.py", "X = 1\n")
+    _write(
+        tmp_path,
+        "tests/unit/test_splitter.py",
+        "import sys\n"
+        "from pathlib import Path\n"
+        "sys.path.insert(0, str(Path(__file__).parent.parent.parent"
+        ' / "examples" / "book_translator"))\n'
+        "from nodes.tools import X\n",
+    )
+    pyproject = _pyproject(tmp_path, core_deps=[])
+
+    result = scan(STDLIB, repo_root=tmp_path, pyproject_path=pyproject)
+
+    assert result.findings == []
+
+
+@pytest.mark.req("REQ-YG-570")
+def test_report_only_excludes_sys_path_inserted_src_root(tmp_path: Path) -> None:
+    """PR #463 review P2 regression (rtm-hello shape): a test inserting a
+    sibling `src/` dir onto sys.path and importing a module from it is
+    first-party, not an undeclared dependency."""
+    _write(tmp_path, "examples/rtm/src/calculator.py", "def add(a, b): return a + b\n")
+    _write(
+        tmp_path,
+        "examples/rtm/tests/test_calculator.py",
+        "import sys\n"
+        "from pathlib import Path\n"
+        'sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))\n'
+        "from calculator import add\n",
+    )
+    pyproject = _pyproject(tmp_path, core_deps=[])
+
+    result = scan(STDLIB, repo_root=tmp_path, pyproject_path=pyproject)
+
+    assert result.findings == []
+
+
+@pytest.mark.req("REQ-YG-570")
+def test_sys_path_exclusion_does_not_hide_third_party(tmp_path: Path) -> None:
+    """sys.path-root exclusion is evidence-based: an import with no matching
+    module under any inserted root is still reported."""
+    _write(
+        tmp_path,
+        "tests/unit/test_thing.py",
+        "import sys\n"
+        "from pathlib import Path\n"
+        'sys.path.insert(0, str(Path(__file__).parent / "helpers"))\n'
+        "import genuinely_missing_pkg\n",
+    )
+    pyproject = _pyproject(tmp_path, core_deps=[])
+
+    result = scan(STDLIB, repo_root=tmp_path, pyproject_path=pyproject)
+
+    assert len(result.findings) == 1
+    assert result.findings[0].distribution == "genuinely_missing_pkg"
