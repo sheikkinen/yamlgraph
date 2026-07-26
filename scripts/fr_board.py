@@ -63,6 +63,28 @@ def canonical_status(raw: str) -> str:
     return CANON.get(token, "PARSE-FAILURE")
 
 
+PYPROJECT_NAME_RE = re.compile(r'(?m)^name\s*=\s*"([^"]+)"')
+
+
+def repo_display_name(repo: Path) -> str:
+    """Stable repo identifier for the board's `repo` column.
+
+    `repo.name` is the checkout directory's basename, which is wrong
+    for git worktrees (e.g. `tmp/worktrees/fr-760` has dirname "fr-760",
+    not the project name "yamlgraph") — regenerating the board from a
+    worktree silently mislabels every row. Prefer `pyproject.toml`'s
+    `[project].name`, which is identity-stable across worktrees; fall
+    back to the directory name only when no pyproject.toml is present
+    (e.g. a sibling repo in `--project` mode without one).
+    """
+    pyproject = repo / "pyproject.toml"
+    if pyproject.is_file():
+        match = PYPROJECT_NAME_RE.search(pyproject.read_text(errors="replace"))
+        if match:
+            return match.group(1)
+    return repo.name
+
+
 def collect_rows(repo: Path) -> list[dict]:
     """Parse feature-requests/*.md into rows; companions and TEMPLATE excluded."""
     fr_dir = repo / "feature-requests"
@@ -83,7 +105,7 @@ def collect_rows(repo: Path) -> list[dict]:
             {
                 "id": m_id.group(1),
                 "file": path.name,
-                "repo": repo.name,
+                "repo": repo_display_name(repo),
                 "status": canonical_status(raw) if m_status else "PARSE-FAILURE",
                 "raw": raw,
                 "parent": m_parent.group(1) if m_parent else None,

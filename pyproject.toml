@@ -23,6 +23,7 @@ classifiers = [
 ]
 dependencies = [
     "langchain-anthropic>=0.3.0",
+    "langchain-core>=1.5.1",
     "langchain-google-genai>=2.0.0",
     "langchain-mistralai>=0.2.0",
     "langchain-openai>=0.3.0",

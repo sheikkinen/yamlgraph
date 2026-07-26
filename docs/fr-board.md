@@ -27,6 +27,7 @@
 | FR-613 | PARSE-FAILURE (Raw Output Read FILLED (K=6, 2) | yamlgraph |  | FR-613-roundtrip-skeleton-p3-coherence-gate.md |
 | FR-614 | PARSE-FAILURE (REFUTED by the FR-613 K=6 Raw ) | yamlgraph |  | FR-614-roundtrip-skeleton-p4-scene-type-close-op.md |
 | FR-663 | PARSE-FAILURE (Planned) | yamlgraph |  | FR-663-changelog-req-legacy-cap-false-positive.md |
+| FR-759 | PARSE-FAILURE ((no Status header)) | yamlgraph |  | FR-759-otel-observability-boundary.md |
 | FR-111 | Judged | yamlgraph |  | FR-111-compiled-graph-cache.md |
 | FR-179 | Judged | yamlgraph |  | FR-179-asterisk-ari-audiosocket-provider.md |
 | FR-210 | Judged | yamlgraph |  | FR-210-subgraph-interrupt-state-commit.md |
@@ -92,6 +93,7 @@
 | FR-732 | Judged | yamlgraph |  | FR-732-output-schema-parity-enum-constraints.md |
 | FR-749 | Judged | yamlgraph |  | FR-749-edit-time-hygiene.md |
 | FR-750 | Judged | yamlgraph |  | FR-750-worktree-pilot.md |
+| FR-760 | Judged | yamlgraph |  | FR-760-declare-langchain-core-dependency.md |
 | FR-094 | Approved | yamlgraph |  | FR-094-memory-node.md |
 | FR-095 | Approved | yamlgraph |  | FR-095-doc-staleness-monitor.md |
 | FR-096 | Approved | yamlgraph |  | FR-096-fr-template-demo-plan.md |
@@ -406,6 +408,8 @@ graph TD
     FR-750["FR-750 Judged"]
     FR-751["FR-751 Proposed"]
     FR-757["FR-757 Proposed"]
+    FR-759["FR-759 PARSE-FAILURE"]
+    FR-760["FR-760 Judged"]
     FR-081 --> FR-082
     FR-731 --> FR-735
     FR-731 --> FR-736
