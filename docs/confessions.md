@@ -1603,6 +1603,12 @@ These are not `# noqa` suppressions — they are documented deviations from proc
 - **Sin**: `from example_taxonomy_scan import (...)` after a `sys.path.insert` — module-level import not at top.
 - **Penance**: test imports the script module directly (not via the `scripts` package) to exercise it with isolated `tmp_path` fixtures; same path-bootstrap idiom as CONF-400/401.
 
+### CONF-403
+- **File**: [tests/unit/test_example_taxonomy_scan.py](../tests/unit/test_example_taxonomy_scan.py#L12)
+- **Code**: E402
+- **Sin**: `import example_taxonomy_scan` (the module itself, not just its names) after a `sys.path.insert` — module-level import not at top.
+- **Penance**: needed alongside the `from ... import (...)` on the next line so `monkeypatch.setitem(example_taxonomy_scan.README_CLI_SUBCOMMAND_MODULES, ...)` can mutate the module's dict in place (PR #464 review, round 2); same path-bootstrap idiom as CONF-400/401/402.
+
 
 ---
 

@@ -205,3 +205,56 @@ wider discovery introduced false-positive "externally-provisioned" rows.
 `(name, line, is_nested)` that FR-761's P1 fix changed `_extract_imports()`
 to return (previously a 2-tuple), caught by rebasing this branch onto the
 updated `feat/fr-761-dependency-governance`.
+
+## PR #464 review fixes, round 2 (2026-07-26)
+
+**P1 — root import discovery blind to YAML tool-module references and
+README-documented CLI surfaces.** `examples/demos/a2a_call` and
+`examples/demos/a2a_server` were both classified `extra: null` despite
+requiring the `a2a` extra. `_root_imports()` only scanned `*.py` files
+physically located under an example root; it never saw:
+
+- `a2a_call`'s `graph.yaml` declares a `type: python` tool with
+  `module: yamlgraph.contrib.a2a_client` — the tool implementation lives
+  under `yamlgraph/contrib/`, not under the example root, so its
+  `httpx`/`a2a.types`/`google.protobuf` imports were invisible.
+- `a2a_server`'s `README.md` documents `yamlgraph a2a card` and
+  `yamlgraph a2a serve` — both implemented by
+  `yamlgraph/cli/a2a_commands.py`, invoked as a CLI subprocess (never
+  imported by any file under the example root at all).
+
+Fixed with two new resolvers feeding into `_root_imports()`:
+`_yaml_tool_module_paths(root, repo_root)` parses every graph YAML under a
+root for `tools.*.module` values starting with `yamlgraph.`, resolves the
+dotted path to its source file, and folds that file's imports into the
+root's import surface. `_readme_cli_surface_paths(root)` matches
+README-documented `yamlgraph <subcommand>` invocations against a small
+explicit table (`README_CLI_SUBCOMMAND_MODULES`, currently just
+`{"a2a": "yamlgraph/cli/a2a_commands.py"}`) and does the same. Both are
+override-free (no per-example special-casing) — they extend the same
+"discover the true import surface" logic `_root_imports()` already
+performs for local files.
+
+Regenerating the taxonomy now shows `a2a_call: extra: [a2a]` and
+`a2a_server: extra: [a2a, booking]` (the `booking` credit is
+`_extras_covering()` correctly reporting that `uvicorn` — imported inside
+`a2a_commands.py`'s `_cmd_a2a_serve()` to run the HTTP server — isn't
+declared under the `a2a` extra itself; `booking` is the smallest existing
+extra that already declares `uvicorn`). No `pyproject.toml` dependency
+changes were made (C-4 frozen-table constraint) — the two-extra answer is
+the mechanically honest one given the extras as currently declared, and is
+strictly more correct than the prior `null`.
+
+Regression tests added to `tests/unit/test_example_taxonomy_scan.py`:
+unit coverage for both new resolvers (positive and negative cases),
+`_root_imports()` folding both surfaces into its result, an end-to-end
+`classify_root()` case using a synthetic YAML tool-module reference, and a
+real-repo-tree assertion (`test_real_a2a_examples_are_extra_backed_by_a2a`)
+pinning `a2a_call`/`a2a_server` to `extra` containing `"a2a"` against the
+actual `examples/` tree — not just a tmp_path fixture — so this exact
+regression can't reappear silently.
+
+Also deleted a stray untracked duplicate diary file
+(`docs/diary/diary-2026-07-26-fr762-mechanical-taxonomy-scale.md`), a
+leftover from an earlier rename to the diary-gate-compliant filename
+(same pattern independently discovered during FR-761's round-2 fix).

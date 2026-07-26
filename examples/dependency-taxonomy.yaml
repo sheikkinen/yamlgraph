@@ -96,6 +96,7 @@ examples:
 - path: examples/demos
   status: extra-backed
   extra:
+  - a2a
   - chatterbox
   - digest
   - tavily
@@ -103,12 +104,15 @@ examples:
   entrypoints: []
 - path: examples/demos/a2a_call
   status: extra-backed
-  extra: null
+  extra:
+  - a2a
   entrypoints:
   - examples/demos/a2a_call/graph.yaml
 - path: examples/demos/a2a_server
   status: extra-backed
-  extra: null
+  extra:
+  - a2a
+  - booking
   entrypoints: []
 - path: examples/demos/agent-json
   status: extra-backed

@@ -174,12 +174,87 @@ def discover_roots(examples_root: Path = EXAMPLES_ROOT) -> list[Path]:
     return sorted(roots)
 
 
-def _root_imports(root: Path) -> list[str]:
-    """Every extracted top-level import name under a root, recursively."""
+# README `yamlgraph <subcommand>` invocations that drive an optional CLI
+# surface the example never imports directly (it's launched as a
+# subprocess, not a Python import) — mapped to the module implementing
+# that surface so its imports still count toward the root's dependency
+# footprint. PR #464 review, round 2: a2a_server's README tells users to
+# run `yamlgraph a2a card`/`yamlgraph a2a serve`, both of which import the
+# a2a/protobuf surface via yamlgraph/cli/a2a_commands.py — invisible to a
+# pure `*.py`-under-root import scan.
+README_CLI_SUBCOMMAND_MODULES: dict[str, Path] = {
+    "a2a": REPO_ROOT / "yamlgraph" / "cli" / "a2a_commands.py",
+}
+
+
+def _yaml_tool_module_paths(root: Path, repo_root: Path = REPO_ROOT) -> set[Path]:
+    """Resolve `module: yamlgraph.foo.bar` tool references in graph YAML
+    under root to their source file.
+
+    A `type: python` tool's implementation lives under yamlgraph/, not
+    under the example root, so a recursive `*.py`-under-root scan never
+    sees the imports it makes on the example's behalf (PR #464 review,
+    round 2: a2a_call's graph.yaml declares
+    `module: yamlgraph.contrib.a2a_client`, whose httpx/a2a/protobuf
+    imports were invisible to classification).
+    """
+    paths: set[Path] = set()
+    for f in root.rglob("*.yaml"):
+        if "__pycache__" in f.parts:
+            continue
+        try:
+            doc = yaml.safe_load(f.read_text(encoding="utf-8"))
+        except yaml.YAMLError:
+            continue
+        tools = doc.get("tools") if isinstance(doc, dict) else None
+        if not isinstance(tools, dict):
+            continue
+        for tool_config in tools.values():
+            if not isinstance(tool_config, dict):
+                continue
+            module = tool_config.get("module")
+            if not isinstance(module, str) or not module.startswith("yamlgraph."):
+                continue
+            candidate = repo_root / Path(*module.split(".")).with_suffix(".py")
+            if candidate.is_file():
+                paths.add(candidate)
+    return paths
+
+
+def _readme_cli_surface_paths(root: Path) -> set[Path]:
+    """Resolve README-documented `yamlgraph <subcommand>` invocations to
+    the module implementing that CLI surface (see
+    README_CLI_SUBCOMMAND_MODULES)."""
+    readme = root / "README.md"
+    if not readme.is_file():
+        return set()
+    text = readme.read_text(encoding="utf-8", errors="replace")
+    return {
+        module_path
+        for subcommand, module_path in README_CLI_SUBCOMMAND_MODULES.items()
+        if module_path.is_file()
+        and re.search(rf"\byamlgraph\s+{re.escape(subcommand)}\b", text)
+    }
+
+
+def _root_imports(root: Path, repo_root: Path = REPO_ROOT) -> list[str]:
+    """Every extracted top-level import name under a root, recursively.
+
+    Also follows YAML tool-module references and README-documented CLI
+    subcommands out to the yamlgraph/ files that implement them, so
+    imports made on the example's behalf (not physically under the
+    example root) are still counted (PR #464 review, round 2).
+    """
     names: list[str] = []
     for f in root.rglob("*.py"):
         if "__pycache__" in f.parts:
             continue
+        for import_name, _lineno, _nested in _extract_imports(f):
+            names.append(import_name)
+    referenced_files = _yaml_tool_module_paths(
+        root, repo_root
+    ) | _readme_cli_surface_paths(root)
+    for f in referenced_files:
         for import_name, _lineno, _nested in _extract_imports(f):
             names.append(import_name)
     return names
@@ -280,7 +355,7 @@ def classify_root(
     local_names = _local_module_names(root, examples_root)
     undeclared: list[str] = []
     required_norms: set[str] = set()
-    for import_name in _root_imports(root):
+    for import_name in _root_imports(root, repo_root):
         if (
             import_name in stdlib
             or import_name in FIRST_PARTY

@@ -105,3 +105,47 @@ old `_owning_extras()` output looked correct (an extra was named, imports
 did resolve) but answered a different question than the one asked — "does
 some extra cover this" instead of "which extra IS this example's."
 Shape-correct, semantically wrong.
+
+## Follow-up: PR #464 review, round 2 (2026-07-26)
+
+A third instance of the same underlying shape, one level removed: `_root_imports()`
+scanned every `*.py` file physically under an example root — a correct
+answer to "what does this DIRECTORY import" but the wrong question for
+"what does this EXAMPLE require to run." `a2a_call` runs a `type: python`
+tool whose implementation is a `module:` reference resolved by YAMLGraph's
+own graph loader at runtime, living under `yamlgraph/contrib/`, outside
+the example root entirely. `a2a_server`'s runnable surface is two shell
+commands documented in prose, backed by a CLI module the example directory
+never imports at all. Both are real, load-bearing dependency edges that a
+recursive filesystem `.py` scan structurally cannot see, because they
+don't live in the filesystem location the scan was looking at — they live
+in a YAML string and in Markdown prose.
+
+The trap this names isn't new (`downstream_fix`/`symptom_patch` cousins),
+but the specific shape is worth keeping distinct: **the artifact you're
+classifying (an "example") is not coextensive with the files sitting in
+its directory.** An example's true import surface is defined by what it
+*causes to execute* — including other files it references by string
+(a module path in YAML, a command in a README) — not by what physically
+lives under its path. The fix generalizes cleanly: any place a root
+declares "run this other thing" (a tool module, a subprocess command, a
+subgraph reference) is a pointer the classifier must follow, the same way
+a `from x import y` statement is a pointer the AST walk already follows.
+
+Also recurred independently: the exact same stray-untracked-diary-duplicate
+pattern FR-761 hit (a `git mv` rename to the diary-gate filename format
+left the old-named file behind, untracked, on disk) was found again here
+during this same follow-up — two sibling FRs, same session, same trap,
+discovered independently each time rather than checked-for proactively.
+That's the actual signal to graduate, not the individual finding: after
+any `git mv` rename of a diary file, run `git status --porcelain
+docs/diary/` before moving on, every time, as a fixed post-rename ritual —
+not something to notice only when writing the follow-up section.
+
+**Seed:** When a classifier walks a directory tree looking for "what does
+this thing depend on," ask explicitly: does this artifact reference OTHER
+files by string (config keys, prose commands, indirect module paths) that
+a pure filesystem walk would never resolve? Building the answer as an
+explicit, enumerable "reference-resolution" step (not a growing pile of
+special cases) is what let both a2a findings fall to one generalized fix
+instead of two hand-coded exceptions.

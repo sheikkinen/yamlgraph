@@ -8,12 +8,16 @@ from pathlib import Path
 import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "scripts"))
+import example_taxonomy_scan  # noqa: E402
 from example_taxonomy_scan import (  # noqa: E402
     _extras_covering,
     _has_main_entrypoint,
     _has_readme_usage_command,
     _is_example_root,
     _local_module_names,
+    _readme_cli_surface_paths,
+    _root_imports,
+    _yaml_tool_module_paths,
     build_taxonomy,
     classify_root,
     discover_roots,
@@ -278,6 +282,142 @@ def test_classify_root_partial_owner_does_not_satisfy_full_coverage(tmp_path):
     row = classify_root(root, stdlib, declared, deps_by_group, repo_root, examples_root)
     assert row["status"] == "extra-backed"
     assert row["extra"] == ["full"]
+
+
+@pytest.mark.req("REQ-YG-571")
+def test_yaml_tool_module_paths_resolves_module_reference(tmp_path):
+    """PR #464 review, round 2: a `type: python` tool's `module:` reference
+    points at a yamlgraph/ file whose imports never show up in a plain
+    `*.py`-under-root scan — the a2a_call bug (module:
+    yamlgraph.contrib.a2a_client declared in graph.yaml, but a2a_client.py
+    lives outside the example root)."""
+    repo_root = tmp_path
+    root = repo_root / "examples" / "myroot"
+    _write(
+        root / "graph.yaml",
+        "tools:\n"
+        "  send:\n"
+        "    type: python\n"
+        "    module: yamlgraph.contrib.fake_client\n"
+        "    function: send\n"
+        "nodes:\n  a: {}\n",
+    )
+    module_file = repo_root / "yamlgraph" / "contrib" / "fake_client.py"
+    _write(module_file, "import httpx\n")
+
+    paths = _yaml_tool_module_paths(root, repo_root)
+    assert paths == {module_file}
+
+
+@pytest.mark.req("REQ-YG-571")
+def test_yaml_tool_module_paths_ignores_non_yamlgraph_module(tmp_path):
+    repo_root = tmp_path
+    root = repo_root / "examples" / "myroot"
+    _write(
+        root / "graph.yaml",
+        "tools:\n"
+        "  send:\n"
+        "    type: python\n"
+        "    module: some_other_package.helper\n"
+        "nodes:\n  a: {}\n",
+    )
+    assert _yaml_tool_module_paths(root, repo_root) == set()
+
+
+@pytest.mark.req("REQ-YG-571")
+def test_readme_cli_surface_paths_resolves_documented_subcommand(tmp_path, monkeypatch):
+    """PR #464 review, round 2: a README-documented `yamlgraph <subcommand>`
+    invocation drives an optional CLI surface (subprocess launch, not a
+    Python import) whose implementing module's imports must still count —
+    the a2a_server bug (README says `yamlgraph a2a serve`/`card`, both
+    implemented in yamlgraph/cli/a2a_commands.py, but the example root has
+    no .py files of its own)."""
+    repo_root = tmp_path
+    root = repo_root / "examples" / "myroot"
+    _write(root / "README.md", "Run `yamlgraph widget serve` to start.\n")
+    module_file = repo_root / "yamlgraph" / "cli" / "widget_commands.py"
+    _write(module_file, "import uvicorn\n")
+    monkeypatch.setitem(
+        example_taxonomy_scan.README_CLI_SUBCOMMAND_MODULES, "widget", module_file
+    )
+
+    paths = _readme_cli_surface_paths(root)
+    assert paths == {module_file}
+
+
+@pytest.mark.req("REQ-YG-571")
+def test_readme_cli_surface_paths_empty_without_matching_subcommand(tmp_path):
+    root = tmp_path / "examples" / "myroot"
+    _write(root / "README.md", "No CLI commands documented here.\n")
+    assert _readme_cli_surface_paths(root) == set()
+
+
+@pytest.mark.req("REQ-YG-571")
+def test_root_imports_follows_yaml_tool_module_reference(tmp_path):
+    """classify_root-level regression: the extra import surface reached via
+    a YAML tool-module reference is folded into the same import list used
+    for undeclared/extras classification."""
+    repo_root = tmp_path
+    root = repo_root / "examples" / "myroot"
+    _write(root / "app.py", "import pyarrow\n")
+    _write(
+        root / "graph.yaml",
+        "tools:\n"
+        "  send:\n"
+        "    type: python\n"
+        "    module: yamlgraph.contrib.fake_client\n"
+        "nodes:\n  a: {}\n",
+    )
+    _write(repo_root / "yamlgraph" / "contrib" / "fake_client.py", "import httpx\n")
+
+    names = _root_imports(root, repo_root)
+    assert "pyarrow" in names
+    assert "httpx" in names
+
+
+@pytest.mark.req("REQ-YG-571")
+def test_classify_root_credits_extra_reached_via_yaml_tool_module(tmp_path):
+    """End-to-end classify_root regression mirroring the a2a_call fix: a
+    root with no local third-party imports of its own, but a graph.yaml
+    tool `module:` reference to a yamlgraph/ file that imports a
+    declared distribution, must be extra-backed by the owning extra —
+    not `extra: null`."""
+    repo_root = tmp_path
+    examples_root = repo_root / "examples"
+    root = examples_root / "myroot"
+    _write(
+        root / "graph.yaml",
+        "tools:\n"
+        "  send:\n"
+        "    type: python\n"
+        "    module: yamlgraph.contrib.fake_client\n"
+        "nodes:\n  a: {}\n",
+    )
+    _write(repo_root / "yamlgraph" / "contrib" / "fake_client.py", "import httpx\n")
+    stdlib = frozenset(sys.stdlib_module_names)
+    declared = {"httpx"}
+    deps_by_group = {"core": [], "dev": [], "a2a": ["httpx"]}
+
+    row = classify_root(root, stdlib, declared, deps_by_group, repo_root, examples_root)
+    assert row["status"] == "extra-backed"
+    assert row["extra"] == ["a2a"]
+
+
+@pytest.mark.req("REQ-YG-571")
+def test_real_a2a_examples_are_extra_backed_by_a2a():
+    """Regression guard for the exact PR #464 review finding: a2a_call and
+    a2a_server must resolve to `extra: [a2a, ...]`, never `extra: null`,
+    against the real repo tree (not a synthetic fixture)."""
+    rows = build_taxonomy()
+    by_path = {r["path"]: r for r in rows}
+
+    a2a_call = by_path["examples/demos/a2a_call"]
+    assert a2a_call["status"] == "extra-backed"
+    assert "a2a" in (a2a_call["extra"] or [])
+
+    a2a_server = by_path["examples/demos/a2a_server"]
+    assert a2a_server["status"] == "extra-backed"
+    assert "a2a" in (a2a_server["extra"] or [])
 
 
 @pytest.mark.req("REQ-YG-571")

@@ -33,4 +33,9 @@ req: REQ-YG-571
   registered; 19 taxonomy generator tests plus 12 import-level smoke tests,
   covering the recursive nested-root discovery, README usage-command
   detection, full-coverage extra preference, and ancestor-aware local-module
-  resolution added per PR #464 review. (REQ-YG-571)
+  resolution added per PR #464 review. Round 2 fix: `_root_imports()` now
+  also follows YAML tool-module (`module: yamlgraph...`) references and
+  README-documented `yamlgraph <subcommand>` CLI invocations out to the
+  yamlgraph/ files implementing them, so `a2a_call`/`a2a_server` correctly
+  resolve to `extra: [a2a]`/`extra: [a2a, booking]` instead of `null`; 7 new
+  regression tests added. (REQ-YG-571)
