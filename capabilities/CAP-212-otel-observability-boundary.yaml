@@ -1,0 +1,47 @@
+id: CAP-212
+name: OpenTelemetry Observability Boundary
+status: active
+fr: FR-759
+feature_request: FR-759
+description: >
+  Opt-in, vendor-neutral OpenTelemetry span schema for graph-run and
+  node-execution tracing. Disabled by default (no OTEL import, no
+  spans, no behavior change). Enabled via YAMLGRAPH_OTEL_EXPORT=otlp;
+  fails fast before any node executes when enabled but the `otel`
+  extra is not installed. Emits one yamlgraph.graph.run span per
+  invocation with a shared UUIDv7 run identity, sha256 variables hash
+  (never raw values), and success|error|interrupted outcome; child
+  yamlgraph.node.execute spans per node with node name/type, state
+  keys-written (names only), and optional exception-class-name-only
+  error attribute. Node spans are wrapped generically in
+  node_compiler.py (llm, router, tool, python, agent, tool_call, race,
+  passthrough, copilot, subgraph) via node_otel.py, mirroring the
+  node_timeout.py wrapping pattern. LangSmith tracing is unaffected —
+  this boundary is a parallel, vendor-neutral exporter path.
+modules:
+  - yamlgraph/observability/otel.py
+  - yamlgraph/compile/node_otel.py
+  - yamlgraph/compile/node_compiler.py
+  - yamlgraph/cli/graph_commands.py
+requirements:
+  - id: REQ-YG-570
+    description: >
+      OTEL observability boundary (FR-759). is_otel_enabled() is a pure
+      env-var check (YAMLGRAPH_OTEL_EXPORT=="otlp") that imports
+      nothing; graph_run_span()/node_execution_span() no-op when
+      disabled; OtelExtraMissingError raised before any node executes
+      when enabled but opentelemetry is unavailable; enabled path
+      emits yamlgraph.graph.run (yamlgraph.run.id, yamlgraph.graph.name,
+      yamlgraph.thread.id optional, yamlgraph.variables.hash,
+      yamlgraph.run.outcome) and child yamlgraph.node.execute
+      (yamlgraph.node.name, yamlgraph.node.type,
+      yamlgraph.state.keys_written, yamlgraph.node.error optional)
+      spans sharing one trace id with correct parent/child linkage;
+      variables_hash() is deterministic sha256 of canonical sorted-key
+      JSON and never contains raw values.
+    modules:
+      - yamlgraph/observability/otel.py
+      - yamlgraph/compile/node_otel.py
+      - yamlgraph/compile/node_compiler.py
+      - yamlgraph/cli/graph_commands.py
+      - tests/unit/test_otel_observability.py

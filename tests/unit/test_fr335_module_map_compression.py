@@ -131,8 +131,9 @@ class TestFR335ModuleMapCompression:
         # sub-packaging then ADDED three __init__ entries — the promised
         # restoration needs the generator to collapse package inits
         # (follow-up seed). Bound re-measured at rebase: 274 with both
-        # arcs landed.
-        assert line_count <= 275, f"module-map too large: {line_count} lines (max 275)"
+        # arcs landed. FR-759: 275 -> 277 for the observability package
+        # (otel.py, __init__.py) and compile/node_otel.py.
+        assert line_count <= 277, f"module-map too large: {line_count} lines (max 277)"
 
     def test_ac02_dependency_lists_contain_only_yamlgraph_imports(self) -> None:
         module_map = _run_generator()

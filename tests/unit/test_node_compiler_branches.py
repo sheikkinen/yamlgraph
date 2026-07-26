@@ -366,6 +366,96 @@ class TestCompileNodeLLMDefault:
         mock_factory.assert_called_once()
 
 
+class TestCompileNodeOtelNodeType:
+    """FR-759 P3: the OTEL node-execution span records the actual declared
+    node type. LLM and router share ``_compile_llm_node``, and race owns
+    its own timeout handling — neither exemption may hardcode or omit the
+    OTEL node-type attribute (PR #465 review)."""
+
+    @patch(
+        "yamlgraph.compile.node_compiler.create_node_function",
+        return_value=lambda s: {},
+    )
+    @patch("yamlgraph.compile.node_compiler._maybe_wrap_otel")
+    @pytest.mark.req("REQ-YG-570")
+    def test_llm_node_wrapped_with_llm_type(self, mock_wrap_otel, mock_factory):
+        mock_wrap_otel.side_effect = lambda fn, name, node_type: fn
+        config = _make_config()
+        graph = _make_graph()
+        node_cfg = {"prompt": "generate", "state_key": "generated"}
+
+        compile_node(
+            "llm",
+            node_cfg,
+            graph,
+            config,
+            tools={},
+            python_tools={},
+            callable_registry={},
+        )
+
+        _, _, node_type = mock_wrap_otel.call_args[0]
+        assert node_type == NodeType.LLM
+
+    @patch(
+        "yamlgraph.compile.node_compiler.create_node_function",
+        return_value=lambda s: {},
+    )
+    @patch("yamlgraph.compile.node_compiler._maybe_wrap_otel")
+    @pytest.mark.req("REQ-YG-570")
+    def test_router_node_wrapped_with_router_type(self, mock_wrap_otel, mock_factory):
+        """Router shares _compile_llm_node with LLM but must report its own
+        declared type, not the shared handler's previously hardcoded 'llm'."""
+        mock_wrap_otel.side_effect = lambda fn, name, node_type: fn
+        config = _make_config()
+        graph = _make_graph()
+        node_cfg = {"type": NodeType.ROUTER, "prompt": "route", "state_key": "route"}
+
+        compile_node(
+            "router",
+            node_cfg,
+            graph,
+            config,
+            tools={},
+            python_tools={},
+            callable_registry={},
+        )
+
+        _, _, node_type = mock_wrap_otel.call_args[0]
+        assert node_type == NodeType.ROUTER
+
+    @patch(
+        "yamlgraph.compile.node_compiler.create_race_node", return_value=lambda s: {}
+    )
+    @patch("yamlgraph.compile.node_compiler._maybe_wrap_otel")
+    @pytest.mark.req("REQ-YG-570")
+    def test_race_node_is_wrapped_with_race_type(self, mock_wrap_otel, mock_factory):
+        """Race nodes must be OTEL-wrapped like every other node type —
+        previously omitted, contradicting the documented coverage claim."""
+        mock_wrap_otel.side_effect = lambda fn, name, node_type: fn
+        config = _make_config()
+        graph = _make_graph()
+        node_cfg = {
+            "type": NodeType.RACE,
+            "candidates": [{"provider": "x"}],
+            "state_key": "out",
+        }
+
+        compile_node(
+            "race",
+            node_cfg,
+            graph,
+            config,
+            tools={},
+            python_tools={},
+            callable_registry={},
+        )
+
+        mock_wrap_otel.assert_called_once()
+        _, _, node_type = mock_wrap_otel.call_args[0]
+        assert node_type == NodeType.RACE
+
+
 class TestCompileNodeDefaults:
     """Defaults and loop_limits are propagated correctly."""
 

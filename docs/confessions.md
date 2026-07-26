@@ -1580,6 +1580,7 @@ These are not `# noqa` suppressions — they are documented deviations from proc
 - **Penance**: Command and args are hardcoded constants; GIT resolved via `shutil.which`; path comes from pre-commit's staged-file list. No user input reaches the call (CONF-388 idiom).
 
 
+
 ---
 
 ## Adding New Confessions
