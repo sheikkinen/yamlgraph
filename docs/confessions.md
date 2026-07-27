@@ -1586,13 +1586,13 @@ These are not `# noqa` suppressions — they are documented deviations from proc
 - **Penance**: script-adjacent module reusing a sibling script's parser; path bootstrap must precede the import (CONF-392/393/394/396 idiom).
 
 ### CONF-400
-- **File**: [scripts/example_taxonomy_scan.py](../scripts/example_taxonomy_scan.py#L61)
+- **File**: [scripts/example_taxonomy_scan.py](../scripts/example_taxonomy_scan.py#L63)
 - **Code**: E402
 - **Sin**: `from dependency_rationale import parse_pyproject_dependencies` after a `sys.path.insert` — module-level import not at top.
 - **Penance**: script-adjacent module reusing a sibling script's parser; path bootstrap must precede the import (CONF-392/393/394/396/399 idiom).
 
 ### CONF-401
-- **File**: [scripts/example_taxonomy_scan.py](../scripts/example_taxonomy_scan.py#L62)
+- **File**: [scripts/example_taxonomy_scan.py](../scripts/example_taxonomy_scan.py#L64)
 - **Code**: E402
 - **Sin**: `from direct_import_scan import (...)` after a `sys.path.insert` — module-level import not at top.
 - **Penance**: reuses FR-761's scanner internals (import extraction, distribution resolution, normalization) rather than reimplementing them; same path-bootstrap idiom as CONF-400.

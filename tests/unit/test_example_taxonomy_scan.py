@@ -220,6 +220,52 @@ def test_local_module_names_includes_ancestor_sibling_package(tmp_path):
 
 
 @pytest.mark.req("REQ-YG-571")
+def test_local_module_names_excludes_untracked_directories(tmp_path):
+    """PR #466 review P1 regression: directory names must be derived from
+    tracked content only. An untracked/ignored directory (e.g. a local
+    generator output named like a third-party package) must not become a
+    local-module name — in its own subtree or as an ancestor sibling."""
+    examples_root = tmp_path / "examples"
+    parent = examples_root / "fsm-router"
+    nested_root = parent / "tests"
+    _write(nested_root / "test_thing.py", "import requests\n")
+    # Untracked dirs, one in-subtree and one ancestor-sibling:
+    (nested_root / "requests").mkdir(parents=True)
+    (parent / "scratch_pkg").mkdir(parents=True)
+    tracked = {(nested_root / "test_thing.py").resolve()}
+
+    names = _local_module_names(nested_root, examples_root, tracked)
+    assert "requests" not in names
+    assert "scratch_pkg" not in names
+
+
+@pytest.mark.req("REQ-YG-571")
+def test_classify_root_untracked_directory_cannot_change_classification(tmp_path):
+    """PR #466 review P1 regression (reviewer's probe): with tracked
+    `app.py` importing undeclared `requests`, the row is
+    externally-provisioned; adding only an untracked `requests/` directory
+    to the same tracked tree must not flip it to extra-backed."""
+    repo_root = tmp_path
+    examples_root = repo_root / "examples"
+    root = examples_root / "real"
+    _write(root / "app.py", "import requests\n")
+    tracked = {(root / "app.py").resolve()}
+    stdlib = frozenset(sys.stdlib_module_names)
+    declared: set[str] = set()
+    deps_by_group = {"core": [], "dev": []}
+
+    clean = classify_root(
+        root, stdlib, declared, deps_by_group, repo_root, examples_root, tracked
+    )
+    (root / "requests").mkdir()
+    dirty = classify_root(
+        root, stdlib, declared, deps_by_group, repo_root, examples_root, tracked
+    )
+    assert clean["status"] == "externally-provisioned"
+    assert dirty == clean
+
+
+@pytest.mark.req("REQ-YG-571")
 def test_extras_covering_prefers_single_full_owner_over_partial_owners():
     """PR #464 review P2 regression: when one extra's declared distributions
     fully cover the root's non-core imports, use that single extra — never
@@ -476,3 +522,121 @@ def test_build_taxonomy_no_third_state(tmp_path):
         "examples/bad": "externally-provisioned",
     }
     assert all(r["status"] in ("extra-backed", "externally-provisioned") for r in rows)
+
+
+# ---------------------------------------------------------------------------
+# FR-763: root discovery must scope to the git-tracked tree, not the raw
+# filesystem. A gitignored generator-output directory containing a graph
+# YAML must not become a taxonomy row.
+# ---------------------------------------------------------------------------
+
+
+def _git(repo: Path, *args: str) -> str:
+    import subprocess
+
+    return subprocess.run(
+        ["git", "-C", str(repo), *args],
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout
+
+
+def _init_repo(repo: Path) -> None:
+    repo.mkdir(parents=True, exist_ok=True)
+    _git(repo, "init", "-q")
+    _git(repo, "config", "user.email", "t@example.com")
+    _git(repo, "config", "user.name", "Test")
+
+
+@pytest.mark.req("REQ-YG-571")
+def test_discover_roots_ignores_gitignored_directory(tmp_path):
+    """AC-01/AC-03: a gitignored directory containing a graph.yaml produces
+    no taxonomy row even though the raw filesystem walk would admit it."""
+    repo = tmp_path
+    _init_repo(repo)
+    examples = repo / "examples"
+    _write(examples / "real" / "graph.yaml", "nodes:\n  a: {}\n")
+    _write(repo / ".gitignore", "examples/yamlgraph_gen/outputs/\n")
+    _write(
+        examples / "yamlgraph_gen" / "outputs" / "agent-test" / "graph.yaml",
+        "nodes:\n  a: {}\n",
+    )
+    _git(repo, "add", "examples/real/graph.yaml", ".gitignore")
+
+    roots = discover_roots(examples)
+    rel = sorted(str(r.relative_to(repo)) for r in roots)
+    assert rel == ["examples/real"]
+
+
+@pytest.mark.req("REQ-YG-571")
+def test_discover_roots_ignores_untracked_directory(tmp_path):
+    """AC-06: an untracked-but-not-ignored root does not create a row; once
+    the file is `git add`ed it becomes eligible for discovery."""
+    repo = tmp_path
+    _init_repo(repo)
+    examples = repo / "examples"
+    _write(examples / "half_added" / "graph.yaml", "nodes:\n  a: {}\n")
+
+    assert discover_roots(examples) == []
+
+    _git(repo, "add", "examples/half_added/graph.yaml")
+    roots = discover_roots(examples)
+    rel = sorted(str(r.relative_to(repo)) for r in roots)
+    assert rel == ["examples/half_added"]
+
+
+@pytest.mark.req("REQ-YG-571")
+def test_marker_evaluated_against_tracked_files_only(tmp_path):
+    """AC-02: a directory with a tracked non-marker file but only an
+    untracked graph.yaml marker is not a root — markers are tracked-only."""
+    repo = tmp_path
+    _init_repo(repo)
+    examples = repo / "examples"
+    _write(examples / "mixed" / "notes.txt", "tracked, but not a marker")
+    _write(examples / "mixed" / "graph.yaml", "nodes:\n  a: {}\n")
+    _git(repo, "add", "examples/mixed/notes.txt")
+
+    assert discover_roots(examples) == []
+
+
+@pytest.mark.req("REQ-YG-571")
+def test_build_taxonomy_excludes_gitignored_outputs(tmp_path):
+    """AC-04/AC-05: build_taxonomy over a dirty tree (ignored outputs
+    present) is byte-identical to the same tracked tree without them."""
+    repo = tmp_path
+    _init_repo(repo)
+    examples = repo / "examples"
+    pyproject = repo / "pyproject.toml"
+    _write(
+        pyproject,
+        '[project]\nname = "x"\nversion = "0"\ndependencies = []\n',
+    )
+    _write(examples / "real" / "graph.yaml", "nodes:\n  a: {}\n")
+    _write(repo / ".gitignore", "examples/gen/outputs/\n")
+    _git(repo, "add", "examples/real/graph.yaml", ".gitignore", "pyproject.toml")
+
+    clean_rows = build_taxonomy(examples, pyproject, repo)
+
+    _write(examples / "gen" / "outputs" / "scratch" / "graph.yaml", "nodes:\n  a: {}\n")
+    dirty_rows = build_taxonomy(examples, pyproject, repo)
+
+    assert dirty_rows == clean_rows
+    assert [r["path"] for r in dirty_rows] == ["examples/real"]
+
+
+@pytest.mark.req("REQ-YG-571")
+def test_discover_roots_falls_back_outside_git_worktree(tmp_path, caplog):
+    """AC-07: outside a git work tree the scanner warns and preserves the
+    filesystem-walk behavior (used by exported archives and fixtures)."""
+    import logging
+
+    examples = tmp_path / "examples"
+    _write(examples / "demo" / "graph.yaml", "nodes:\n  a: {}\n")
+
+    with caplog.at_level(logging.WARNING):
+        roots = discover_roots(examples)
+
+    rel = sorted(str(r.relative_to(tmp_path)) for r in roots)
+    assert rel == ["examples/demo"]
+    assert any("git work tree" in rec.message for rec in caplog.records)
