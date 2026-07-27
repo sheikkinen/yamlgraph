@@ -203,3 +203,19 @@ Verification on the reporting (dirty) machine: `example_taxonomy_scan.py
 --check` now passes (135 roots) and `git diff examples/dependency-taxonomy.yaml`
 is empty — byte-identical committed taxonomy (C-6, AC-05). ruff, strict
 req-coverage, capability validation, and the changelog-req gate all green.
+
+### Review round 1 (PR #466 P1) — fixed 2026-07-27
+
+The reviewer proved a residual filesystem leak: `_local_module_names`
+derived directory-based local-module names from `root.rglob("*")` and the
+ancestor sibling scan filtered untracked *files* only — so an untracked
+directory named like a third-party package (e.g. `examples/real/requests/`)
+flipped a tracked root from externally-provisioned to extra-backed.
+
+Fix (RED 047b2f5c, GREEN e8f8a36a): a directory contributes a local-module
+name only when it has at least one tracked descendant (derived from the
+tracked set's ancestor directories); applied to both the subtree walk and
+the ancestor sibling scan. Two regressions added (reviewer's probe as
+blueprint): unit-level name exclusion and end-to-end classification
+invariance under an untracked directory. 35 module tests pass; `--check`
+green at 135 roots.
