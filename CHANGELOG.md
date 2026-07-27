@@ -8,6 +8,178 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.18]
+
+### Added
+- **FR-762 Example Dependency Taxonomy**: every `examples/` root is now
+  mechanically classified as `extra-backed` (every third-party import
+  resolves to a distribution declared in `pyproject.toml`; owning
+  extra(s) recorded, preferring a single full-coverage extra over a
+  partial-owner combination) or `externally-provisioned` (an undeclared
+  import is cited by name, never silently added).
+  `scripts/example_taxonomy_scan.py` recursively discovers every
+  independently-runnable root under `examples/` (135 roots — any directory
+  at any nesting depth whose `README.md` documents a fenced usage command,
+  not just top-level directories; graph YAML detection parses structurally,
+  requiring a top-level `nodes` mapping, so prompt files containing the
+  substring `nodes:` never create roots — PR #464 review P1), and writes the generated allowlist
+  `examples/dependency-taxonomy.yaml`; `--check` mode fails CI when the
+  committed file drifts from a fresh discovery run. `pyproject.toml`
+  gained direct declarations for `litellm` (replicate), `pyarrow` (rag),
+  `starlette`+`protobuf` (a2a), `torch`+`torchaudio` (chatterbox,
+  platform-marked), plus two new extras (`examples-dungeon-master`,
+  `openai-proxy`) — closing the frozen negative-space table from
+  `docs/plan-research-dependency-negative-space.md`. The `duckduckgo_search`
+  fallback was removed (`ddgs` only). FR-761's `direct_import_scan.py`
+  gained a `taxonomy_path` parameter (AC-08): `extra-backed` example
+  roots are now scanned at core-failure strictness; `externally-provisioned`
+  roots (currently only `examples/agent-sdk-planner`, citing
+  `claude_agent_sdk` — deliberately excluded from project extras) stay
+  excused. CI's test install gained the new lightweight extras
+  (`rag`, `replicate`, `openai-proxy`, `examples-dungeon-master`); a new
+  import-level smoke test suite verifies each actually imports.
+  `torch`/`torchaudio` remain statically verified only (no heavyweight
+  CI install without explicit human approval). CAP-213 / REQ-YG-571
+  registered; 19 taxonomy generator tests plus 12 import-level smoke tests,
+  covering the recursive nested-root discovery, README usage-command
+  detection, full-coverage extra preference, and ancestor-aware local-module
+  resolution added per PR #464 review. Round 2 fix: `_root_imports()` now
+  also follows YAML tool-module (`module: yamlgraph...`) references and
+  README-documented `yamlgraph <subcommand>` CLI invocations out to the
+  yamlgraph/ files implementing them, so `a2a_call`/`a2a_server` correctly
+  resolve to `extra: [a2a]`/`extra: [a2a, booking]` instead of `null`; 7 new
+  regression tests added. CAP-213/REQ-YG-571 spec text realigned to the
+  implemented discovery rule (recursive any-depth walk, structural
+  top-level `nodes` mapping, README fenced usage command — PR #464
+  review round 2); classifier stdlib/local checks now key on the
+  top-level segment of dotted import names after merging FR-761's
+  namespace-preserving extraction (npc gains `redis` extra). (REQ-YG-571)
+- **FR-761 Reproducible Dependency Governance**: added
+  `constraints/dev-py312.txt` (pip-freeze snapshot of the CI dev
+  environment, byte-for-byte reproduction verified), declared
+  `pip-audit>=2.7.0` as an explicit `dev` extra dependency (CI now
+  installs it via `.[dev]` instead of an ad hoc pip install), and added
+  `scripts/direct_import_scan.py` — an AST-based scanner that walks
+  `yamlgraph/` (core, strict) plus `examples/`, `scripts/`, `tests/`
+  (report-only), resolving every third-party import to a distribution
+  name (PEP 503-normalized) and verifying it is declared under the
+  correct owner: module-level (unconditional) imports in `yamlgraph/`
+  require core `[project.dependencies]` unless the file matches a
+  known optional feature surface (`PATH_PREFIX_OWNERS` — e.g.
+  `storage/simple_redis.py` → `redis-simple`, `contrib/a2a_client.py`
+  and `a2a/` → `a2a`, `export/mcp.py` → `mcp`, `utils/fsm/` → `fsm`),
+  in which case that surface's owning extra also
+  counts; nested/lazy imports (multi-provider-factory pattern) may be
+  satisfied by any declared group. Top-level `try/except` imports
+  execute at import time and are treated as module-level surface
+  (PR #463 review P1). Dotted namespace imports resolve to their actual
+  distribution before ownership checks (`langgraph.checkpoint.redis` →
+  `langgraph-checkpoint-redis`, `google.protobuf` → `protobuf`;
+  PR #463 review round-2 P1), and first-party modules exposed via
+  explicit `sys.path.insert` local roots in tests/examples are excluded
+  from report-only findings (round-2 P2). Report-only findings under
+  `examples/`, `scripts/`, `tests/` exclude first-party local sibling
+  modules/packages. A `PENDING_GAPS` table, keyed by
+  (path-prefix, import-name) so dispositions are surface-scoped and
+  never global by distribution name (PR #463 review P2), tracks imports already
+  dispositioned to sibling FRs (FR-760's `langchain-core`, FR-762's
+  `litellm`/`starlette`/`protobuf`) so the gate blocks only genuinely
+  new undeclared core imports. Wired into `.pre-commit-config.yaml` as
+  a blocking `--strict` hook. 17 unit tests exercise isolated fixture
+  trees (undeclared/declared imports, nested/lazy imports, stdlib and
+  first-party exclusion, alias resolution, underscore/hyphen
+  normalization, owner-specific vs unrelated-extra ownership, local
+  sibling module/package exclusion, report-only roots, pending gaps).
+  CAP-214 / REQ-YG-572 registered. (REQ-YG-572)
+- **Round 2 fix**: `constraints/dev-py312.txt` regenerated to cover the
+  actual CI-tested extras (`.[dev,digest,websearch,a2a,fsm,verify]`),
+  not just `.[dev,fsm,verify]` — the artifact previously omitted
+  `feedparser`, `resend`, `beautifulsoup4`, `slowapi`, `ddgs`,
+  `a2a-sdk`, and `grpcio`. Reproduction re-verified byte-for-byte
+  against the corrected command.
+- **FR-760 Declare langchain-core as Explicit Dependency**: `langchain-core`
+  is imported directly by core modules (`BaseChatModel`, message classes,
+  `StructuredTool`, `BaseCallbackHandler`, `RunnableConfig`) but previously
+  arrived only transitively via `langgraph` and the `langchain-*` provider
+  packages. It is now declared in `[project.dependencies]` with a floor of
+  `>=1.5.1` (the resolved version) and a substantive rationale entry in
+  `docs/dependency-rationale.yaml`, so future `langgraph`/provider pin
+  changes surface as an explicit dependency diff instead of silent drift.
+  Also fixes `scripts/fr_board.py`'s `repo` column, which previously used
+  the checkout directory's basename (mislabeling every row when
+  regenerated from a git worktree) instead of the stable
+  `pyproject.toml` project name.
+  (Diary reflection renamed to match the `reflection-fr-NNN` gate pattern.)
+- **FR-759 OpenTelemetry Observability Boundary**: a vendor-neutral,
+  opt-in OTEL span schema for graph runs and node executions. Disabled
+  by default (no OpenTelemetry import, no spans, no behavior change);
+  enabled via `YAMLGRAPH_OTEL_EXPORT=otlp`, which fails fast before any
+  node executes when the new `otel` extra is not installed. Emits one
+  `yamlgraph.graph.run` span per invocation (UUIDv7 run identity, sha256
+  variables hash, `success|error|interrupted` outcome) with child
+  `yamlgraph.node.execute` spans (node name/type — including `router`,
+  distinct from `llm` — state keys-written, optional error-class-name)
+  sharing one trace id with correct parent/child linkage across all 9
+  wrapped node types (`llm`, `router`, `tool`, `python`, `agent`,
+  `tool_call`, `race`, `passthrough`, `copilot`, `subgraph`). The
+  disabled/missing-extra tests run without the `otel` extra installed;
+  CI's `core-test` job validates this no-extra path directly. LangSmith
+  tracing is unaffected — this is a parallel exporter path. Round 2 fix:
+  `_configure_exporter_if_needed()`'s own SDK/exporter imports now raise
+  `OtelExtraMissingError` on a partial install instead of a raw
+  `ImportError` (previously only the top-level `opentelemetry` import
+  was guarded); 2 new regression tests. Round 3 fix: hello demo trace
+  artifact (`examples/demos/hello/otel-trace-demo.txt`) recaptured from
+  a real run of the final head so the committed run id is UUIDv7 per the
+  frozen schema (review P1: prior artifact predated UUIDv7).
+  (REQ-YG-570, CAP-212)
+- **FR-758 Sole-Route Judge/Review Traceability**: The csap-ported
+  judge/review wrappers (`scripts/judge.sh`, `scripts/review.sh`) gain
+  a local traceability spine: CAP-211 registry entry, REQ-YG-569, and
+  18 stubbed contract tests witnessing the exit-code taxonomy
+  (usage 64, missing FR 66, artifact contract 65, re-entry sentinel 70,
+  lock held 73 / stale 75, executor resolution 69, success 0), lock
+  cleanup, and `YAMLGRAPH_BIN` precedence. Real smoke of both wrappers
+  recorded in the FR. (REQ-YG-569)
+- **judge-fr skill bundle adoption (P-1 copy, csap NC-412)**: added
+  `.github/skills/judge-fr/` — canonical non-invocable `doctrine.md`
+  (8-criterion rubric extracted from `.chaplain` FR-084→257→305, CORE
+  fence for cross-repo drift diffs), thin `SKILL.md` discovery wrapper,
+  `judgement.template.md`, `MANIFEST.yaml` provenance, and thin
+  adapters (`/judge-fr` + `/review-pr` prompts, non-authoritative
+  yamlgraph graph prototype). Scripture Judge step now points at the
+  doctrine; yamlgraph-local judge extensions preserved.
+- **csap NC-414 mirror**: `allow_all_tools: true` on the judge node
+  (file-write contract) plus execution-identity recursion guard (graph
+  prompt + doctrine.md CORE re-entry section + Scripture exception) —
+  prevents the judge cascade observed on csap.
+- **csap NC-415 mirror**: `scripts/judge.sh` operator wrapper (verbatim
+  copy) — OS lock, `JUDGE_EXECUTION` lineage sentinel, artifact
+  contract check, explicit executor resolution
+  (`YAMLGRAPH_BIN` > PATH > `uv run yamlgraph`) with loud failure;
+  README/SKILL name the wrapper as the sole documented operator
+  command; graph remains the judge execution route.
+
+### Fixed
+- **FR-763 Taxonomy Git-Tracked Boundary**: `scripts/example_taxonomy_scan.py`
+  now scopes example-root discovery and marker evaluation to the git-tracked
+  tree. Gitignored generator outputs (e.g. `examples/yamlgraph_gen/outputs/*`)
+  and untracked half-added examples no longer become phantom taxonomy rows, so
+  `--check` stops failing falsely on developer machines with local artifacts.
+  Git is the sole source of truth for tracked paths (no `.gitignore`
+  reimplementation); outside a git work tree the scanner warns and falls back
+  to the raw filesystem walk. Local-module directory names are likewise
+  derived only from directories with a tracked descendant, so an untracked
+  directory named like a third-party package cannot change a root's
+  classification. (REQ-YG-571)
+- **PermissionRequest decision-hook misregistration**: the FR-743
+  plain-text session probe was registered on `PermissionRequest`, a
+  fail-closed decision hook — every permission in non-interactive
+  child CLI sessions (judge/review adapters) was denied with
+  "PermissionRequest hook failed". Probe unregistered from the
+  decision hook; witness test pins the boundary (observability probes
+  on fail-open notification events only).
+
 ## [0.5.17]
 
 ### Added
