@@ -220,6 +220,52 @@ def test_local_module_names_includes_ancestor_sibling_package(tmp_path):
 
 
 @pytest.mark.req("REQ-YG-571")
+def test_local_module_names_excludes_untracked_directories(tmp_path):
+    """PR #466 review P1 regression: directory names must be derived from
+    tracked content only. An untracked/ignored directory (e.g. a local
+    generator output named like a third-party package) must not become a
+    local-module name — in its own subtree or as an ancestor sibling."""
+    examples_root = tmp_path / "examples"
+    parent = examples_root / "fsm-router"
+    nested_root = parent / "tests"
+    _write(nested_root / "test_thing.py", "import requests\n")
+    # Untracked dirs, one in-subtree and one ancestor-sibling:
+    (nested_root / "requests").mkdir(parents=True)
+    (parent / "scratch_pkg").mkdir(parents=True)
+    tracked = {(nested_root / "test_thing.py").resolve()}
+
+    names = _local_module_names(nested_root, examples_root, tracked)
+    assert "requests" not in names
+    assert "scratch_pkg" not in names
+
+
+@pytest.mark.req("REQ-YG-571")
+def test_classify_root_untracked_directory_cannot_change_classification(tmp_path):
+    """PR #466 review P1 regression (reviewer's probe): with tracked
+    `app.py` importing undeclared `requests`, the row is
+    externally-provisioned; adding only an untracked `requests/` directory
+    to the same tracked tree must not flip it to extra-backed."""
+    repo_root = tmp_path
+    examples_root = repo_root / "examples"
+    root = examples_root / "real"
+    _write(root / "app.py", "import requests\n")
+    tracked = {(root / "app.py").resolve()}
+    stdlib = frozenset(sys.stdlib_module_names)
+    declared: set[str] = set()
+    deps_by_group = {"core": [], "dev": []}
+
+    clean = classify_root(
+        root, stdlib, declared, deps_by_group, repo_root, examples_root, tracked
+    )
+    (root / "requests").mkdir()
+    dirty = classify_root(
+        root, stdlib, declared, deps_by_group, repo_root, examples_root, tracked
+    )
+    assert clean["status"] == "externally-provisioned"
+    assert dirty == clean
+
+
+@pytest.mark.req("REQ-YG-571")
 def test_extras_covering_prefers_single_full_owner_over_partial_owners():
     """PR #464 review P2 regression: when one extra's declared distributions
     fully cover the root's non-core imports, use that single extra — never
