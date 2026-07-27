@@ -47,7 +47,16 @@ requirements:
       excluded from third-party classification. build_taxonomy() and
       classify_root() accept overridable examples_root/pyproject_path/
       repo_root so tests exercise isolated fixture trees, never the
-      live repo.
+      live repo. Root discovery is scoped to the git-tracked tree
+      (FR-763): when examples/ sits inside a git work tree, the tracked
+      file set is obtained once from git (never by reimplementing
+      .gitignore semantics) and root markers are evaluated against
+      git-tracked files only, so gitignored generator outputs (e.g.
+      examples/yamlgraph_gen/outputs/*) and untracked half-added
+      examples never become taxonomy rows. Outside a git work tree the
+      scanner warns and falls back to the raw filesystem walk; an
+      unexpected git failure inside a work tree is raised, not silently
+      swallowed.
     modules:
       - scripts/example_taxonomy_scan.py
       - tests/unit/test_example_taxonomy_scan.py

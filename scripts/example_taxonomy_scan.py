@@ -50,8 +50,10 @@ Usage:
 
 from __future__ import annotations
 
+import logging
 import os
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -66,10 +68,17 @@ from direct_import_scan import (  # noqa: E402
     _resolve_distribution,
 )
 
+logger = logging.getLogger(__name__)
+
 REPO_ROOT = Path(__file__).resolve().parent.parent
 EXAMPLES_ROOT = REPO_ROOT / "examples"
 PYPROJECT_PATH = REPO_ROOT / "pyproject.toml"
 TAXONOMY_PATH = REPO_ROOT / "examples" / "dependency-taxonomy.yaml"
+
+# Sentinel distinguishing "tracked set not supplied — compute it" (the
+# default for direct discover_roots callers) from an explicit None meaning
+# "no git work tree, walk the raw filesystem" (the warn-and-walk path).
+_UNSET: object = object()
 
 # Directories that are pure tooling/VCS noise and never example content;
 # pruned during the recursive walk so they can't be mistaken for roots
@@ -94,15 +103,70 @@ _USAGE_CMD_RE = re.compile(
 )
 
 
-def _has_graph_yaml(d: Path) -> bool:
-    """True when the directory contains a YAML file whose top level is a
-    mapping with a `nodes` mapping key — i.e. an actual graph definition.
+def _git_tracked_files(examples_root: Path) -> set[Path] | None:
+    """Absolute paths of git-tracked files under examples_root, or None when
+    examples_root is not inside a git work tree (the warn-and-walk signal).
+
+    Git is the sole source of truth for what "in the repository" means
+    (FR-763 C-2) — we never reimplement `.gitignore` matching semantics.
+    An unexpected git failure *inside* a work tree is raised, not silently
+    swallowed into a filesystem walk (FR-763 C-3); only "git unavailable"
+    or "not a work tree" fall back (with a warning) so exported archives
+    and non-git fixtures remain usable (FR-763 AC-07).
+    """
+    root = examples_root.resolve()
+    try:
+        inside = subprocess.run(
+            ["git", "-C", str(root), "rev-parse", "--is-inside-work-tree"],
+            capture_output=True,
+            text=True,
+        )
+    except (FileNotFoundError, NotADirectoryError):
+        logger.warning(
+            "git executable unavailable; falling back to raw filesystem walk "
+            "for example root discovery under %s (not a git work tree)",
+            root,
+        )
+        return None
+    if inside.returncode != 0 or inside.stdout.strip() != "true":
+        logger.warning(
+            "%s is not inside a git work tree; falling back to raw filesystem "
+            "walk for example root discovery",
+            root,
+        )
+        return None
+    result = subprocess.run(
+        ["git", "-C", str(root), "ls-files", "-z", "--", "."],
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode != 0:
+        raise RuntimeError(
+            f"git ls-files failed in {root} (exit {result.returncode}): "
+            f"{result.stderr.strip()}"
+        )
+    return {(root / rel).resolve() for rel in result.stdout.split("\0") if rel}
+
+
+def _is_tracked(path: Path, tracked: set[Path] | None) -> bool:
+    """A file counts when tracked is None (no git tree: raw filesystem) or
+    when its resolved path is in the git-tracked set."""
+    return tracked is None or path.resolve() in tracked
+
+
+def _has_graph_yaml(d: Path, tracked: set[Path] | None = None) -> bool:
+    """True when the directory contains a git-tracked YAML file whose top
+    level is a mapping with a `nodes` mapping key — i.e. an actual graph
+    definition.
 
     PR #464 review P1: a substring match on `nodes:` falsely admitted
     prompt directories (schema fields like `affected_nodes:`, or `nodes`
     nested below the top level) as example roots; parse structurally.
+    FR-763: ignored/untracked YAML is not discovery input.
     """
     for f in d.glob("*.yaml"):
+        if not _is_tracked(f, tracked):
+            continue
         try:
             doc = yaml.safe_load(f.read_text(encoding="utf-8"))
         except (UnicodeDecodeError, OSError, yaml.YAMLError):
@@ -112,9 +176,13 @@ def _has_graph_yaml(d: Path) -> bool:
     return False
 
 
-def _has_main_entrypoint(d: Path, repo_root: Path = REPO_ROOT) -> list[str]:
+def _has_main_entrypoint(
+    d: Path, repo_root: Path = REPO_ROOT, tracked: set[Path] | None = None
+) -> list[str]:
     entrypoints = []
     for f in d.glob("*.py"):
+        if not _is_tracked(f, tracked):
+            continue
         try:
             text = f.read_text(encoding="utf-8")
         except (UnicodeDecodeError, OSError):
@@ -124,9 +192,9 @@ def _has_main_entrypoint(d: Path, repo_root: Path = REPO_ROOT) -> list[str]:
     return entrypoints
 
 
-def _has_readme_usage_command(d: Path) -> bool:
+def _has_readme_usage_command(d: Path, tracked: set[Path] | None = None) -> bool:
     readme = d / "README.md"
-    if not readme.exists():
+    if not _is_tracked(readme, tracked) or not readme.exists():
         return False
     try:
         text = readme.read_text(encoding="utf-8")
@@ -143,12 +211,14 @@ def _has_readme_usage_command(d: Path) -> bool:
     return False
 
 
-def _is_example_root(d: Path) -> bool:
+def _is_example_root(d: Path, tracked: set[Path] | None = None) -> bool:
     if not d.is_dir():
         return False
-    if _has_graph_yaml(d) or _has_readme_usage_command(d):
+    if _has_graph_yaml(d, tracked) or _has_readme_usage_command(d, tracked):
         return True
     for f in d.glob("*.py"):
+        if not _is_tracked(f, tracked):
+            continue
         try:
             text = f.read_text(encoding="utf-8")
         except (UnicodeDecodeError, OSError):
@@ -158,14 +228,26 @@ def _is_example_root(d: Path) -> bool:
     return False
 
 
-def discover_roots(examples_root: Path = EXAMPLES_ROOT) -> list[Path]:
+def discover_roots(
+    examples_root: Path = EXAMPLES_ROOT, tracked: object = _UNSET
+) -> list[Path]:
     """Mechanically discover every example root (see module docstring).
 
-    Walks every directory under examples_root at any nesting depth —
-    a directory qualifies as a root independent of whether its parent or
-    a child directory also qualifies, matching FR-762 R-2's literal
-    "any directory under examples/" definition.
+    Walks every directory under examples_root at any nesting depth — a
+    directory qualifies as a root independent of whether its parent or a
+    child directory also qualifies, matching FR-762 R-2's literal "any
+    directory under examples/" definition.
+
+    FR-763: discovery is scoped to the git-tracked tree. Root markers
+    (graph YAML, Python `__main__` entrypoint, README usage command) are
+    evaluated against git-tracked files only, so gitignored generator
+    outputs and untracked half-added examples never become taxonomy rows.
+    When examples_root is not inside a git work tree, `tracked` resolves to
+    None and the raw filesystem walk is used (with a warning).
     """
+    if tracked is _UNSET:
+        tracked = _git_tracked_files(examples_root)
+    tracked_set: set[Path] | None = tracked  # type: ignore[assignment]
     roots: list[Path] = []
     for dirpath, dirnames, _filenames in os.walk(examples_root):
         dirnames[:] = sorted(
@@ -176,7 +258,7 @@ def discover_roots(examples_root: Path = EXAMPLES_ROOT) -> list[Path]:
         current = Path(dirpath)
         if current == examples_root:
             continue
-        if _is_example_root(current):
+        if _is_example_root(current, tracked_set):
             roots.append(current)
     return sorted(roots)
 
@@ -194,9 +276,11 @@ README_CLI_SUBCOMMAND_MODULES: dict[str, Path] = {
 }
 
 
-def _yaml_tool_module_paths(root: Path, repo_root: Path = REPO_ROOT) -> set[Path]:
-    """Resolve `module: yamlgraph.foo.bar` tool references in graph YAML
-    under root to their source file.
+def _yaml_tool_module_paths(
+    root: Path, repo_root: Path = REPO_ROOT, tracked: set[Path] | None = None
+) -> set[Path]:
+    """Resolve `module: yamlgraph.foo.bar` tool references in git-tracked
+    graph YAML under root to their source file.
 
     A `type: python` tool's implementation lives under yamlgraph/, not
     under the example root, so a recursive `*.py`-under-root scan never
@@ -207,7 +291,7 @@ def _yaml_tool_module_paths(root: Path, repo_root: Path = REPO_ROOT) -> set[Path
     """
     paths: set[Path] = set()
     for f in root.rglob("*.yaml"):
-        if "__pycache__" in f.parts:
+        if "__pycache__" in f.parts or not _is_tracked(f, tracked):
             continue
         try:
             doc = yaml.safe_load(f.read_text(encoding="utf-8"))
@@ -228,12 +312,14 @@ def _yaml_tool_module_paths(root: Path, repo_root: Path = REPO_ROOT) -> set[Path
     return paths
 
 
-def _readme_cli_surface_paths(root: Path) -> set[Path]:
+def _readme_cli_surface_paths(
+    root: Path, tracked: set[Path] | None = None
+) -> set[Path]:
     """Resolve README-documented `yamlgraph <subcommand>` invocations to
     the module implementing that CLI surface (see
     README_CLI_SUBCOMMAND_MODULES)."""
     readme = root / "README.md"
-    if not readme.is_file():
+    if not _is_tracked(readme, tracked) or not readme.is_file():
         return set()
     text = readme.read_text(encoding="utf-8", errors="replace")
     return {
@@ -244,23 +330,27 @@ def _readme_cli_surface_paths(root: Path) -> set[Path]:
     }
 
 
-def _root_imports(root: Path, repo_root: Path = REPO_ROOT) -> list[str]:
+def _root_imports(
+    root: Path, repo_root: Path = REPO_ROOT, tracked: set[Path] | None = None
+) -> list[str]:
     """Every extracted top-level import name under a root, recursively.
 
     Also follows YAML tool-module references and README-documented CLI
     subcommands out to the yamlgraph/ files that implement them, so
     imports made on the example's behalf (not physically under the
-    example root) are still counted (PR #464 review, round 2).
+    example root) are still counted (PR #464 review, round 2). Only
+    git-tracked files under the root contribute (FR-763); the referenced
+    yamlgraph/ files are always counted.
     """
     names: list[str] = []
     for f in root.rglob("*.py"):
-        if "__pycache__" in f.parts:
+        if "__pycache__" in f.parts or not _is_tracked(f, tracked):
             continue
         for import_name, _lineno, _nested in _extract_imports(f):
             names.append(import_name)
     referenced_files = _yaml_tool_module_paths(
-        root, repo_root
-    ) | _readme_cli_surface_paths(root)
+        root, repo_root, tracked
+    ) | _readme_cli_surface_paths(root, tracked)
     for f in referenced_files:
         for import_name, _lineno, _nested in _extract_imports(f):
             names.append(import_name)
@@ -309,14 +399,19 @@ def _extras_covering(
     return sorted(chosen)
 
 
-def _local_module_names(root: Path, examples_root: Path = EXAMPLES_ROOT) -> set[str]:
+def _local_module_names(
+    root: Path,
+    examples_root: Path = EXAMPLES_ROOT,
+    tracked: set[Path] | None = None,
+) -> set[str]:
     """Names importable as `import <name>` via a sys.path insert of this root
     or one of its subdirectories (the common example test-fixture idiom).
 
-    Includes every .py file stem and every subdirectory name found anywhere
-    under the root, so `import tools` from examples/rag/tools/__init__.py
-    or `import canon_tools` from examples/novel_fandom/nodes/canon_tools.py
-    are recognized as local, not third-party.
+    Includes every git-tracked .py file stem and every subdirectory name
+    found anywhere under the root, so `import tools` from
+    examples/rag/tools/__init__.py or `import canon_tools` from
+    examples/novel_fandom/nodes/canon_tools.py are recognized as local,
+    not third-party.
 
     Also walks upward from `root` to `examples_root`, adding each ancestor
     level's direct children as local names. This covers a nested root
@@ -328,7 +423,7 @@ def _local_module_names(root: Path, examples_root: Path = EXAMPLES_ROOT) -> set[
     """
     names: set[str] = set()
     for f in root.rglob("*.py"):
-        if "__pycache__" in f.parts:
+        if "__pycache__" in f.parts or not _is_tracked(f, tracked):
             continue
         names.add(f.stem)
     for d in root.rglob("*"):
@@ -344,6 +439,8 @@ def _local_module_names(root: Path, examples_root: Path = EXAMPLES_ROOT) -> set[
         for child in ancestor.iterdir():
             if child.name.startswith(".") or child.name in NOISE_DIR_NAMES:
                 continue
+            if child.is_file() and not _is_tracked(child, tracked):
+                continue
             names.add(child.stem if child.is_file() else child.name)
         if ancestor == examples_root:
             break
@@ -358,11 +455,12 @@ def classify_root(
     deps_by_group: dict[str, list[str]],
     repo_root: Path = REPO_ROOT,
     examples_root: Path = EXAMPLES_ROOT,
+    tracked: set[Path] | None = None,
 ) -> dict:
-    local_names = _local_module_names(root, examples_root)
+    local_names = _local_module_names(root, examples_root, tracked)
     undeclared: list[str] = []
     required_norms: set[str] = set()
-    for import_name in _root_imports(root, repo_root):
+    for import_name in _root_imports(root, repo_root, tracked):
         top = import_name.split(".")[0]
         if top in stdlib or top in FIRST_PARTY or top in local_names:
             continue
@@ -374,12 +472,12 @@ def classify_root(
         required_norms.add(norm)
 
     rel = str(root.relative_to(repo_root))
-    entrypoints = _has_main_entrypoint(root, repo_root)
-    if _has_graph_yaml(root):
+    entrypoints = _has_main_entrypoint(root, repo_root, tracked)
+    if _has_graph_yaml(root, tracked):
         entrypoints = entrypoints + [
             str(f.relative_to(repo_root))
             for f in sorted(root.glob("*.yaml"))
-            if "nodes:" in f.read_text(encoding="utf-8")
+            if _is_tracked(f, tracked) and "nodes:" in f.read_text(encoding="utf-8")
         ]
 
     if undeclared:
@@ -411,11 +509,23 @@ def build_taxonomy(
     for group_deps in deps_by_group.values():
         declared.update(_normalize(d) for d in group_deps)
 
+    # FR-763: resolve the git-tracked file set once (None when examples_root
+    # is not a git work tree — the warn-and-walk path) and thread it
+    # through discovery and classification so ignored/untracked artifacts
+    # never become taxonomy rows.
+    tracked = _git_tracked_files(examples_root)
+
     rows = []
-    for root in discover_roots(examples_root):
+    for root in discover_roots(examples_root, tracked):
         rows.append(
             classify_root(
-                root, stdlib, declared, deps_by_group, repo_root, examples_root
+                root,
+                stdlib,
+                declared,
+                deps_by_group,
+                repo_root,
+                examples_root,
+                tracked,
             )
         )
     return rows
