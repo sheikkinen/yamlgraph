@@ -408,10 +408,12 @@ def _local_module_names(
     or one of its subdirectories (the common example test-fixture idiom).
 
     Includes every git-tracked .py file stem and every subdirectory name
-    found anywhere under the root, so `import tools` from
-    examples/rag/tools/__init__.py or `import canon_tools` from
-    examples/novel_fandom/nodes/canon_tools.py are recognized as local,
-    not third-party.
+    with at least one git-tracked descendant found anywhere under the
+    root, so `import tools` from examples/rag/tools/__init__.py or
+    `import canon_tools` from examples/novel_fandom/nodes/canon_tools.py
+    are recognized as local, not third-party. Untracked directories never
+    contribute names — otherwise an ignored scratch directory named like a
+    third-party package would silently change classification (PR #466 P1).
 
     Also walks upward from `root` to `examples_root`, adding each ancestor
     level's direct children as local names. This covers a nested root
@@ -422,12 +424,22 @@ def _local_module_names(
     example package, not at the nested root itself.
     """
     names: set[str] = set()
+    tracked_dirs: set[Path] | None = (
+        None if tracked is None else {p for f in tracked for p in f.parents}
+    )
+
+    def _dir_counts(d: Path) -> bool:
+        """A directory yields a local-module name only when it has at least
+        one tracked descendant (PR #466 P1: an untracked directory must
+        never change classification)."""
+        return tracked_dirs is None or d.resolve() in tracked_dirs
+
     for f in root.rglob("*.py"):
         if "__pycache__" in f.parts or not _is_tracked(f, tracked):
             continue
         names.add(f.stem)
     for d in root.rglob("*"):
-        if d.is_dir() and "__pycache__" not in d.parts:
+        if d.is_dir() and "__pycache__" not in d.parts and _dir_counts(d):
             names.add(d.name)
 
     ancestor = root.parent
@@ -439,9 +451,11 @@ def _local_module_names(
         for child in ancestor.iterdir():
             if child.name.startswith(".") or child.name in NOISE_DIR_NAMES:
                 continue
-            if child.is_file() and not _is_tracked(child, tracked):
-                continue
-            names.add(child.stem if child.is_file() else child.name)
+            if child.is_file():
+                if _is_tracked(child, tracked):
+                    names.add(child.stem)
+            elif _dir_counts(child):
+                names.add(child.name)
         if ancestor == examples_root:
             break
         ancestor = ancestor.parent

@@ -10,4 +10,7 @@ req: REQ-YG-571
   `--check` stops failing falsely on developer machines with local artifacts.
   Git is the sole source of truth for tracked paths (no `.gitignore`
   reimplementation); outside a git work tree the scanner warns and falls back
-  to the raw filesystem walk. (REQ-YG-571)
+  to the raw filesystem walk. Local-module directory names are likewise
+  derived only from directories with a tracked descendant, so an untracked
+  directory named like a third-party package cannot change a root's
+  classification. (REQ-YG-571)
