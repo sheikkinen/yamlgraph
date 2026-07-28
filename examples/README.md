@@ -60,6 +60,7 @@ After the learning path, explore production examples below.
 | [storyboard/](storyboard/) | Visual story generator | Replicate API, image generation |
 | [batch_image_prompts/](batch_image_prompts/) | Batch image prompt generator | Map node, parallel enrichment, style consistency |
 | [image_pipeline/](image_pipeline/) | End-to-end image generation | Subgraph composition, Replicate z-image, file I/O |
+| [style_convert/](style_convert/) | Restyle a prompt file to a target art style | Map node, Mistral, count-preserving, reuses image_pipeline save node |
 | [webllm-demo/](webllm-demo/) | Prompt YAML → in-browser WebLLM | Inline-schema → JSON Schema compile, grammar-enforced output, zero-key Pages demo (FR-731) |
 | [yamlgraph_gen/](yamlgraph_gen/) | Pipeline generator | Meta-generation, snippet composition, validation |
 | [fastapi_interview.py](fastapi_interview.py) | FastAPI integration | Async execution, interrupt handling, sessions |
