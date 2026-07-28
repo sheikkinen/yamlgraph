@@ -529,6 +529,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 212 | CAP-212 OpenTelemetry Observability Boundary | `yamlgraph/observability/otel.py`, `yamlgraph/compile/node_otel.py`, `yamlgraph/compile/node_compiler.py`, `yamlgraph/cli/graph_commands.py` | REQ-YG-570 |
 | 213 | CAP-213 Example Dependency Taxonomy Generator | `scripts/example_taxonomy_scan.py` | REQ-YG-571 |
 | 214 | CAP-214 Direct-Import Dependency Scanner | `scripts/direct_import_scan.py` | REQ-YG-572 |
+| 215 | CAP-215 Style-Convert Pipeline | `examples/style_convert` | REQ-YG-573 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -2655,6 +2656,16 @@ scripts/direct_import_scan.py walks yamlgraph/ (core, strict) plus examples/, sc
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-572 | Direct-import scanner contract (FR-761). AST-based extraction catches nested/lazy imports, not just top-level statements. stdlib modules (via sys.stdlib_module_names) and first-party top-level packages are excluded. Import names are resolved to distribution names via an alias table (yaml->pyyaml, google-> protobuf, bs4->beautifulsoup4, z3->z3-solver, etc.) then compared against declared dependencies using PEP 503 normalization so underscore/hyphen variants match. yamlgraph/ imports are core (strict); examples/, scripts/, tests/ are report-only and never fail --strict. PENDING_GAPS entries are always reported but never block --strict, and a stale entry becomes harmless once its owning FR declares the dependency (no code change required — it simply stops matching the undeclared branch). scan() accepts overridable repo_root/pyproject_path/core_roots/report_only_roots/pending_gaps so tests exercise isolated fixture trees, never the live repo. | `scripts/direct_import_scan.py`, `tests/unit/test_direct_import_scan.py` |
+
+### 215. CAP-215 Style-Convert Pipeline
+
+Sibling example to image_pipeline that restyles an existing prompt file into a single target art style. It loads one prompt per nonblank line, rewrites each prompt's medium/style/artist references via a Mistral-pinned map node with a structured prompt_text schema, and reuses image_pipeline's save_prompts_node to write a one-prompt-per-line output file. The map is count-preserving: a failing conversion branch surfaces an error and is never silently dropped.
+
+**Feature Request:** FR-764
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-573 | Style-convert graph chains load_prompts (Python tool reading UTF-8 text, one prompt per nonblank line, stripping only leading "N. " enumerators, raising ValueError on missing/empty input and never writing the source) → convert_styles (map over prompts, LLM sub-node pinned to Mistral via prompt metadata with a structured schema exposing prompt_text: str) → save_prompts (reused examples.image_pipeline.nodes.save_prompts.save_prompts_node, unchanged) → END. Successful runs preserve exact prompt count; a branch failure surfaces an error entry instead of silently dropping a prompt. | `examples/style_convert`, `tests/unit/test_style_convert.py` |
 
 <!-- END GENERATED CAPABILITIES -->
 
