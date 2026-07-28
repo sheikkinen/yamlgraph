@@ -100,6 +100,14 @@ class TestStyleConvertGraphStructure:
         graph = _load_yaml(GRAPH_FILE)
         assert graph["nodes"]["convert_styles"]["collect"] == "prompts"
 
+    def test_convert_styles_maps_over_source_prompts(self):
+        # collect: prompts must fan out over a DIFFERENT key than it collects
+        # into, else the append-reducer doubles the count.
+        graph = _load_yaml(GRAPH_FILE)
+        over = graph["nodes"]["convert_styles"]["over"]
+        assert "source_prompts" in over
+        assert graph["nodes"]["load_prompts"]["state_key"] == "source_prompts"
+
     def test_convert_styles_has_no_on_error_skip(self):
         # C-4: no partial-output policy.
         graph = _load_yaml(GRAPH_FILE)
@@ -140,8 +148,10 @@ class TestStyleConvertLint:
 @pytest.mark.req("REQ-YG-573")
 class TestStyleConvertPrompt:
     def test_provider_is_mistral(self):
-        prompt = _load_yaml(PROMPTS_DIR / "convert_style.yaml")
-        assert prompt["metadata"]["provider"] == "mistral"
+        # Provider is pinned on the graph map sub-node (the executor resolves
+        # provider from node config, not prompt metadata).
+        graph = _load_yaml(GRAPH_FILE)
+        assert graph["nodes"]["convert_styles"]["node"]["provider"] == "mistral"
 
     def test_schema_has_prompt_text_str(self):
         prompt = _load_yaml(PROMPTS_DIR / "convert_style.yaml")
@@ -171,29 +181,32 @@ class TestLoadPromptsNode:
 
         return load_prompts_node
 
-    def test_returns_prompts_key(self, tmp_path):
+    def test_returns_source_prompts_key(self, tmp_path):
+        # Loader writes source_prompts (not prompts) so the map's collect: prompts
+        # target starts empty — reusing 'prompts' would double the count.
         f = tmp_path / "in.txt"
         f.write_text("A cat on a wall\nA dog in a field\n")
         result = self._node()({"input_file": str(f)})
-        assert result["prompts"] == ["A cat on a wall", "A dog in a field"]
+        assert result["source_prompts"] == ["A cat on a wall", "A dog in a field"]
+        assert "prompts" not in result
 
     def test_strips_leading_enumerator(self, tmp_path):
         f = tmp_path / "in.txt"
         f.write_text("1. A cat\n2. A dog\n10. A bird\n")
         result = self._node()({"input_file": str(f)})
-        assert result["prompts"] == ["A cat", "A dog", "A bird"]
+        assert result["source_prompts"] == ["A cat", "A dog", "A bird"]
 
     def test_preserves_internal_enumerator_and_text(self, tmp_path):
         f = tmp_path / "in.txt"
         f.write_text("3. cat, 3.5 ratio, step 2. of 4\n")
         result = self._node()({"input_file": str(f)})
-        assert result["prompts"] == ["cat, 3.5 ratio, step 2. of 4"]
+        assert result["source_prompts"] == ["cat, 3.5 ratio, step 2. of 4"]
 
     def test_skips_blank_lines(self, tmp_path):
         f = tmp_path / "in.txt"
         f.write_text("A cat\n\n   \nA dog\n")
         result = self._node()({"input_file": str(f)})
-        assert result["prompts"] == ["A cat", "A dog"]
+        assert result["source_prompts"] == ["A cat", "A dog"]
 
     def test_missing_file_raises_value_error(self, tmp_path):
         with pytest.raises(ValueError):
@@ -306,3 +319,76 @@ class TestFailurePathSurfacesError:
         assert (
             "prompt_text" not in entries[0]
         ), "a failed branch must not masquerade as a converted prompt"
+
+
+# ---------------------------------------------------------------------------
+# 8. End-to-end graph run with mocked LLM (AC-08, AC-09) — catches the
+#    count-doubling composition bug that reducer-only tests miss.
+# ---------------------------------------------------------------------------
+@pytest.mark.req("REQ-YG-573")
+class TestStyleConvertEndToEnd:
+    """Compile and invoke the real graph with a mocked LLM (C-6: no live
+    provider). Proves load -> map -> save composes without doubling the count
+    and writes converted prompt lines, not stringified dicts."""
+
+    class _FakeConverted:
+        def __init__(self, prompt_text: str):
+            self.prompt_text = prompt_text
+
+        def model_dump(self) -> dict:
+            return {"prompt_text": self.prompt_text}
+
+    def _run(self, tmp_path, prompts_text: str, target_style: str = "waterhouse"):
+        from unittest.mock import patch
+
+        from yamlgraph.compile.graph_loader import compile_graph, load_graph_config
+
+        infile = tmp_path / "prompts_in.txt"
+        infile.write_text(prompts_text, encoding="utf-8")
+
+        def fake_execute(*args, **kwargs):
+            variables = kwargs.get("variables", {})
+            original = variables.get("prompt_text", "?")
+            style = variables.get("target_style", "?")
+            return self._FakeConverted(f"{original} in the style of {style}")
+
+        config = load_graph_config(str(GRAPH_FILE))
+        state_graph = compile_graph(config)
+        graph = state_graph.compile()
+
+        with (
+            patch(
+                "yamlgraph.node_factory.llm_nodes.execute_prompt",
+                side_effect=fake_execute,
+            ),
+            patch(
+                "examples.image_pipeline.nodes.save_prompts.OUTPUT_BASE",
+                tmp_path / "outputs",
+            ),
+        ):
+            result = graph.invoke(
+                {"input_file": str(infile), "target_style": target_style}
+            )
+        saved = Path(result["prompt_file"]).read_text().splitlines()
+        return infile, saved
+
+    def test_count_preserved_end_to_end(self, tmp_path):
+        # 4 prompts in -> exactly 4 lines out (no originals + converted doubling).
+        text = "1. a cat\n2. a dog\n3. a bird\n4. a fish\n"
+        _, saved = self._run(tmp_path, text)
+        assert len(saved) == 4, f"expected 4 lines, got {len(saved)}: {saved}"
+
+    def test_saved_lines_are_converted_prompts(self, tmp_path):
+        text = "a cat\na dog\n"
+        _, saved = self._run(tmp_path, text, target_style="waterhouse")
+        assert saved == [
+            "a cat in the style of waterhouse",
+            "a dog in the style of waterhouse",
+        ]
+        # No stringified dicts / wrapper keys leaked into the file.
+        assert not any("prompt_text" in ln or "_map_index" in ln for ln in saved)
+
+    def test_source_file_unchanged_after_run(self, tmp_path):
+        text = "1. a cat\n2. a dog\n"
+        infile, _ = self._run(tmp_path, text)
+        assert infile.read_text(encoding="utf-8") == text

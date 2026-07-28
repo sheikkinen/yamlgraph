@@ -1,0 +1,25 @@
+name: convert_style
+description: Rewrite a single image prompt into a target art style
+# NOTE: provider (mistral) is pinned on the graph node convert_styles.node,
+# not here — the executor resolves provider from node config / graph defaults,
+# not from prompt metadata.
+schema:
+  name: ConvertedPrompt
+  fields:
+    prompt_text:
+      type: str
+      description: The original prompt rewritten in the target art style
+system: |
+  You rewrite image-generation prompts into a target art style. Preserve the
+  exact subject, composition, pose, and action of the original prompt. Replace
+  only the medium, style, and artist references with the target style. Do not
+  invent new subjects and do not drop any part of the scene. Output ONLY the
+  rewritten prompt — no preamble, no quotes, no numbering.
+user: |
+  Target style: {{ target_style }}
+
+  Original prompt:
+  {{ prompt_text }}
+
+  Rewrite the prompt in the target style, preserving subject, composition,
+  pose, and action:

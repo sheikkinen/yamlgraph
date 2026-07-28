@@ -1,0 +1,82 @@
+# Convert the art style of every prompt in a file to a single target style.
+#
+# Pipeline:
+#   load_prompts (python) → convert_styles (map, llm/mistral) → save_prompts (python, reused) → END
+#
+# It is the inverse-front twin of image_pipeline: instead of inventing prompts
+# from a style, it re-skins existing prompts into a style. Output is drop-in
+# compatible with image_pipeline's generate_images node.
+#
+# Usage:
+#   yamlgraph graph run examples/style_convert/graph.yaml \
+#     --var input_file="/path/to/prompts.txt" \
+#     --var target_style="John William Waterhouse, romantic Pre-Raphaelite oil painting" \
+#     --full
+
+name: style-convert
+version: "1.0"
+description: Convert the art style of every prompt in a file to a target style
+prompts_relative: true
+prompts_dir: prompts
+
+state:
+  input_file: str
+  target_style: str
+  source_prompts: list
+  prompts: list
+  prompt_file: str
+  output_dir: str
+
+tools:
+  load_prompts:
+    type: python
+    module: examples.style_convert.nodes.load_prompts
+    function: load_prompts_node
+    description: Read input_file, one prompt per nonblank line, into source_prompts
+  save_prompts:
+    # REUSED, UNCHANGED from image_pipeline (FR-764 C-3).
+    type: python
+    module: examples.image_pipeline.nodes.save_prompts
+    function: save_prompts_node
+    description: Save restyled prompts to a timestamped prompts.txt (one per line)
+
+nodes:
+  load_prompts:
+    type: python
+    tool: load_prompts
+    state_key: source_prompts
+
+  convert_styles:
+    type: map
+    over: "{state.source_prompts}"
+    as: prompt_text
+    node:
+      type: llm
+      # Provider is pinned at the graph node — the executor resolves provider
+      # from node config / graph defaults, not from prompt metadata.
+      provider: mistral
+      prompt: convert_style
+      state_key: converted_one
+      variables:
+        target_style: "{state.target_style}"
+    collect: prompts
+    flatten_output: true
+    max_items: 100
+    # R-3 / C-4: NO on_error: skip — count-preserving. A failing branch surfaces
+    # on state.errors and is retained as an _error entry, never silently dropped.
+
+  save_prompts:
+    type: python
+    tool: save_prompts
+    state_key: prompt_file
+    requires: [prompts]
+
+edges:
+  - from: START
+    to: load_prompts
+  - from: load_prompts
+    to: convert_styles
+  - from: convert_styles
+    to: save_prompts
+  - from: save_prompts
+    to: END

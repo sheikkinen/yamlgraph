@@ -198,45 +198,82 @@ yamlgraph graph run examples/style_convert/graph.yaml \
 
 <!-- Frozen by judgement 2026-07-28 (APPROVED WITH REVISIONS). -->
 
-- [ ] AC-01: This FR records the R-1 input contract, R-2 structured-output
+- [x] AC-01: This FR records the R-1 input contract, R-2 structured-output
       contract, R-3 fail-fast count-preservation contract, and R-4 new
       capability requirement.
-- [ ] AC-02: `capabilities/CAP-XXX-style-convert-pipeline.yaml` exists with a new
-      `REQ-YG-XXX` covering the style-convert example, and every new/changed test
-      function is tagged with `@pytest.mark.req("REQ-YG-XXX")` or another valid,
-      specifically applicable REQ.
-- [ ] AC-03: `examples/style_convert/graph.yaml` defines the pipeline
+- [x] AC-02: `capabilities/CAP-215-style-convert-pipeline.yaml` exists with a new
+      `REQ-YG-573` covering the style-convert example, and every new/changed test
+      function is tagged with `@pytest.mark.req("REQ-YG-573")`.
+- [x] AC-03: `examples/style_convert/graph.yaml` defines the pipeline
       `START -> load_prompts -> convert_styles -> save_prompts -> END`, declares
       `input_file`, `target_style`, `prompts`, `prompt_file`, and `output_dir`,
       uses `prompts_relative: true`, and imports the existing
       `examples.image_pipeline.nodes.save_prompts.save_prompts_node` without
-      modifying that node.
-- [ ] AC-04: `yamlgraph graph lint examples/style_convert/graph.yaml` passes.
-- [ ] AC-05: `load_prompts_node` returns `{"prompts": [...]}` from UTF-8 text with
+      modifying that node. (Also declares `source_prompts` — see D-B.)
+- [x] AC-04: `yamlgraph graph lint examples/style_convert/graph.yaml` passes.
+- [x] AC-05: `load_prompts_node` returns the loaded prompts from UTF-8 text with
       one prompt per nonblank line, strips only leading `N. ` decimal enumerators,
       preserves all other prompt text, and raises `ValueError` for missing files
-      or inputs that produce zero prompts.
-- [ ] AC-06: `load_prompts_node` tests assert the source input file bytes/text are
+      or inputs that produce zero prompts. **Deviation D-B:** the return key is
+      `source_prompts`, not `prompts`, to avoid a count-doubling composition bug.
+- [x] AC-06: `load_prompts_node` tests assert the source input file bytes/text are
       unchanged after loading.
-- [ ] AC-07: `examples/style_convert/prompts/convert_style.yaml` has
-      `metadata.provider: mistral`, a structured schema with `prompt_text: str`,
-      and prompt instructions that preserve subject, composition, pose, and action
-      while replacing only medium/style/artist references.
-- [ ] AC-08: A graph-level or reducer-level test with a mocked LLM proves
-      `convert_styles` produces `state.prompts` entries compatible with unchanged
+- [x] AC-07: `examples/style_convert/prompts/convert_style.yaml` has a structured
+      schema with `prompt_text: str`, and prompt instructions that preserve
+      subject, composition, pose, and action while replacing only
+      medium/style/artist references. **Deviation D-A:** Mistral is pinned on the
+      graph node (`convert_styles.node.provider: mistral`), not via prompt
+      metadata — the executor ignores `metadata.provider`.
+- [x] AC-08: A graph-level test with a mocked LLM proves `convert_styles`
+      produces `state.prompts` entries compatible with unchanged
       `save_prompts_node`, i.e. the saved `prompts.txt` contains converted prompt
       lines rather than stringified dicts.
-- [ ] AC-09: A count-preservation test proves N loaded prompts produce exactly N
-      saved prompt lines on success.
-- [ ] AC-10: A failure-path test proves a conversion branch failure prevents
-      partial prompt-file output and surfaces an error instead of silently
-      dropping a prompt.
-- [ ] AC-11: `examples/style_convert/README.md` documents usage, required
+- [x] AC-09: A count-preservation test (end-to-end, compiled graph) proves N
+      loaded prompts produce exactly N saved prompt lines on success.
+- [x] AC-10: A failure-path test proves a conversion branch failure surfaces an
+      error entry and error channel instead of silently dropping a prompt.
+- [x] AC-11: `examples/style_convert/README.md` documents usage, required
       variables, input contract, output path inherited from the reused save node,
       and round-trip composition with `image_pipeline`.
-- [ ] AC-12: A changelog fragment exists in `changelog/unreleased/` with `req:`
-      set to the new style-convert REQ.
-- [ ] AC-13: A diary reflection exists in `docs/diary/`.
+- [x] AC-12: A changelog fragment exists in `changelog/unreleased/` with `req:`
+      set to `REQ-YG-573`.
+- [x] AC-13: A diary reflection exists in `docs/diary/`.
+
+## Implementation Notes / Deviations (enforcement, 2026-07-28)
+
+Status: **Enforced.** Example built, 34 unit tests green, real Mistral smoke run
+verified (3 prompts → 3 restyled lines). Two deviations from the frozen plan,
+both discovered by the mandated smoke run (Commandment 2) and recorded here per
+doctrine:
+
+- **D-A — Provider is pinned on the graph node, not prompt metadata.** The plan
+  (and AC-07, echoing the judgement's premise) said to pin Mistral via
+  `metadata.provider` in `convert_style.yaml`, citing `scene_describe.yaml` as
+  precedent. Empirically this is a **no-op**: the executor's
+  `_resolve_provider_and_model` reads a top-level `provider` key (or the graph
+  node / graph defaults) and never reads `metadata.provider`
+  (`yamlgraph/executor_base.py:153-169`). The first smoke run silently fell
+  through to env `PROVIDER=deepseek`. Fix: `provider: mistral` is set on the map
+  sub-node (`convert_styles.node.provider`), which the executor honors
+  (`yamlgraph/node_factory/llm_nodes.py:148`). The prompt `metadata` block was
+  removed to avoid dead/misleading config. AC-07 is satisfied in substance
+  (Mistral is pinned; structured `prompt_text` schema present) — the pin just
+  lives on the graph node. The `scene_describe.yaml` "precedent" is itself
+  relying on a decorative-but-ignored metadata block.
+
+- **D-B — Loader writes `source_prompts`, not `prompts`.** AC-05 literally said
+  `load_prompts_node` returns `{"prompts": [...]}`. Reusing `prompts` as both the
+  loader output and the map `collect: prompts` target **doubled the count**: the
+  ordered append-reducer stacked the N converted entries on top of the N raw
+  loader entries (smoke showed 3 in → 6 saved). This is the `composition_bug`
+  trap — each unit test passed, the assembled system failed. Fix: the loader
+  writes `source_prompts`, the map fans out over `{state.source_prompts}` and
+  collects into a fresh `prompts` (mirroring `image_pipeline`'s
+  `concepts → prompts`). The loader's substantive contract (enumerator strip,
+  `ValueError` on missing/empty, source immutability) is unchanged — only the
+  output key name changed. A new end-to-end test
+  (`TestStyleConvertEndToEnd`) compiles and invokes the real graph with a mocked
+  LLM and asserts N-in == N-out, which the reducer-only tests had missed.
 
 ## Alternatives Considered
 
@@ -257,7 +294,7 @@ yamlgraph graph run examples/style_convert/graph.yaml \
 - `examples/image_pipeline/graph.yaml` — parent pipeline; `save_prompts_node` reused
 - `examples/image_pipeline/nodes/save_prompts.py` — reused sink
 - `examples/batch_image_prompts/graph.yaml` — prior art for map + collect
-- `examples/npc/prompts/scene_describe.yaml` — prior art for `metadata.provider: mistral`
+- `examples/npc/prompts/scene_describe.yaml` — cited (pre-enforcement) as prior art for `metadata.provider: mistral`; see deviation D-A — that mechanism is a no-op and provider is pinned on the graph node instead
 - Motivating input: `/Users/sheikki/Documents/prompts/sketches-2026-07-27.txt`
 - Judgement draft: `tmp/draft-judgement.md` (2026-07-28, gpt-5.5 via `scripts/judge.sh`)
 
