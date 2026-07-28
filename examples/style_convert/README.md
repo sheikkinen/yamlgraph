@@ -21,6 +21,14 @@ yamlgraph graph run examples/style_convert/graph.yaml \
   --full
 ```
 
+Or use the helper script (loads the repo-root `.env`, resolves the input path,
+runs the graph):
+
+```bash
+./examples/style_convert/run.sh /path/to/prompts.txt \
+  "John William Waterhouse, romantic Pre-Raphaelite oil painting"
+```
+
 ### Required variables
 
 | Variable | Description |
