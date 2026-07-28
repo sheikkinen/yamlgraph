@@ -40,10 +40,14 @@ are intentionally out of scope.
 
 ## Output
 
-`convert_styles` pins **Mistral** via prompt metadata
-(`prompts/convert_style.yaml`) and returns a structured `prompt_text` per
-prompt, so the flattened map output is compatible with the reused
-`save_prompts_node`. The pipeline reuses
+`convert_styles` pins **Mistral** on the graph map sub-node
+(`convert_styles.node.provider` in `graph.yaml` — the executor resolves the
+provider from node config, not from prompt metadata) and returns a structured
+`prompt_text` per prompt, so the flattened map output is compatible with the
+reused `save_prompts_node`. A `validate_conversions` gate then runs **before**
+the sink: if any conversion branch failed, it raises so the run aborts and no
+partial prompt file is written (R-3/C-4 — N in == N out or nothing written).
+The pipeline reuses
 [`image_pipeline`'s `save_prompts_node`](../image_pipeline/nodes/save_prompts.py)
 **unchanged**: it writes a timestamped `outputs/image_pipeline/<ts>/prompts.txt`
 with one restyled prompt per line and returns `prompt_file` / `output_dir`.

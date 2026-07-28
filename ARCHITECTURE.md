@@ -2659,13 +2659,13 @@ scripts/direct_import_scan.py walks yamlgraph/ (core, strict) plus examples/, sc
 
 ### 215. CAP-215 Style-Convert Pipeline
 
-Sibling example to image_pipeline that restyles an existing prompt file into a single target art style. It loads one prompt per nonblank line, rewrites each prompt's medium/style/artist references via a Mistral-pinned map node with a structured prompt_text schema, and reuses image_pipeline's save_prompts_node to write a one-prompt-per-line output file. The map is count-preserving: a failing conversion branch surfaces an error and is never silently dropped.
+Sibling example to image_pipeline that restyles an existing prompt file into a single target art style. It loads one prompt per nonblank line, rewrites each prompt's medium/style/artist references via a Mistral-pinned map node with a structured prompt_text schema, and reuses image_pipeline's save_prompts_node to write a one-prompt-per-line output file. It is fail-fast: if any conversion branch fails, a validate_conversions gate aborts the run before save_prompts writes, so N in == N out or nothing is written.
 
 **Feature Request:** FR-764
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
-| REQ-YG-573 | Style-convert graph chains load_prompts (Python tool reading UTF-8 text, one prompt per nonblank line, stripping only leading "N. " enumerators, raising ValueError on missing/empty input and never writing the source) → convert_styles (map over prompts, LLM sub-node pinned to Mistral via prompt metadata with a structured schema exposing prompt_text: str) → save_prompts (reused examples.image_pipeline.nodes.save_prompts.save_prompts_node, unchanged) → END. Successful runs preserve exact prompt count; a branch failure surfaces an error entry instead of silently dropping a prompt. | `examples/style_convert`, `tests/unit/test_style_convert.py` |
+| REQ-YG-573 | Style-convert graph chains load_prompts (Python tool reading UTF-8 text, one prompt per nonblank line, stripping only leading "N. " enumerators, raising ValueError on missing/empty input and never writing the source) → convert_styles (map over prompts, LLM sub-node pinned to Mistral on the graph node with a structured schema exposing prompt_text: str) → validate_conversions (fail-fast gate that raises if any branch failed) → save_prompts (reused examples.image_pipeline.nodes.save_prompts.save_prompts_node, unchanged) → END. Successful runs preserve exact prompt count; a branch failure aborts the run before save_prompts writes, so no partial output file is produced. | `examples/style_convert`, `tests/unit/test_style_convert.py` |
 
 <!-- END GENERATED CAPABILITIES -->
 

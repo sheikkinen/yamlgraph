@@ -39,6 +39,11 @@ tools:
     module: examples.image_pipeline.nodes.save_prompts
     function: save_prompts_node
     description: Save restyled prompts to a timestamped prompts.txt (one per line)
+  validate_conversions:
+    type: python
+    module: examples.style_convert.nodes.validate_conversions
+    function: validate_conversions_node
+    description: Fail-fast gate — abort before save if any branch failed (R-3/C-4)
 
 nodes:
   load_prompts:
@@ -62,8 +67,15 @@ nodes:
     collect: prompts
     flatten_output: true
     max_items: 100
-    # R-3 / C-4: NO on_error: skip — count-preserving. A failing branch surfaces
-    # on state.errors and is retained as an _error entry, never silently dropped.
+    # R-3 / C-4: NO on_error: skip. The map still collects one entry per input
+    # (an _error marker if a branch raises); the validate_conversions gate below
+    # then aborts the run before save_prompts writes, so N in == N out or
+    # nothing is written — never a partial/misleading output file.
+
+  validate_conversions:
+    type: python
+    tool: validate_conversions
+    requires: [prompts, source_prompts]
 
   save_prompts:
     type: python
@@ -77,6 +89,8 @@ edges:
   - from: load_prompts
     to: convert_styles
   - from: convert_styles
+    to: validate_conversions
+  - from: validate_conversions
     to: save_prompts
   - from: save_prompts
     to: END

@@ -81,11 +81,12 @@ class TestStyleConvertGraphStructure:
         ):
             assert key in state, f"state must declare '{key}'"
 
-    def test_has_three_pipeline_nodes(self):
+    def test_has_pipeline_nodes(self):
         graph = _load_yaml(GRAPH_FILE)
         nodes = graph["nodes"]
         assert "load_prompts" in nodes
         assert "convert_styles" in nodes
+        assert "validate_conversions" in nodes
         assert "save_prompts" in nodes
 
     def test_load_prompts_is_python(self):
@@ -125,7 +126,9 @@ class TestStyleConvertGraphStructure:
         edges = {(e["from"], e["to"]) for e in graph["edges"]}
         assert ("START", "load_prompts") in edges
         assert ("load_prompts", "convert_styles") in edges
-        assert ("convert_styles", "save_prompts") in edges
+        # Fail-fast gate sits between the map and the sink (R-3/C-4).
+        assert ("convert_styles", "validate_conversions") in edges
+        assert ("validate_conversions", "save_prompts") in edges
         assert ("save_prompts", "END") in edges
 
 
@@ -299,7 +302,7 @@ class TestMapOutputCompatibility:
 # ---------------------------------------------------------------------------
 @pytest.mark.req("REQ-YG-573")
 class TestFailurePathSurfacesError:
-    def test_failed_branch_surfaces_error_and_is_retained(self):
+    def test_failed_branch_surfaces_error_marker(self):
         from yamlgraph.compile.map_compiler import wrap_for_reducer
 
         def failing_node(state):
@@ -312,13 +315,56 @@ class TestFailurePathSurfacesError:
 
         # Error surfaces on the errors channel (not swallowed).
         assert out.get("errors"), "branch failure must surface on state.errors"
-        # The failed branch is retained as an error entry — not silently dropped.
+        # The failed branch is collected as an _error marker — which the
+        # validate_conversions gate then rejects (see end-to-end test below).
         entries = out["prompts"]
         assert len(entries) == 1
         assert entries[0].get("_error"), "failed entry must carry _error marker"
         assert (
             "prompt_text" not in entries[0]
         ), "a failed branch must not masquerade as a converted prompt"
+
+    def test_validate_node_raises_on_error_marker(self):
+        # R-3/C-4 unit: the gate rejects an _error marker before save runs.
+        from examples.style_convert.nodes.validate_conversions import (
+            validate_conversions_node,
+        )
+
+        state = {
+            "source_prompts": ["a", "b"],
+            "prompts": [
+                {"_map_index": 0, "prompt_text": "a in style"},
+                {"_map_index": 1, "_error": "boom", "_error_type": "RuntimeError"},
+            ],
+        }
+        with pytest.raises(ValueError, match="conversions failed"):
+            validate_conversions_node(state)
+
+    def test_validate_node_raises_on_count_mismatch(self):
+        from examples.style_convert.nodes.validate_conversions import (
+            validate_conversions_node,
+        )
+
+        state = {
+            "source_prompts": ["a", "b", "c"],
+            "prompts": [{"_map_index": 0, "prompt_text": "a in style"}],
+        }
+        with pytest.raises(ValueError, match="does not match source"):
+            validate_conversions_node(state)
+
+    def test_validate_node_passes_when_all_succeed(self):
+        from examples.style_convert.nodes.validate_conversions import (
+            validate_conversions_node,
+        )
+
+        state = {
+            "source_prompts": ["a", "b"],
+            "prompts": [
+                {"_map_index": 0, "prompt_text": "a in style"},
+                {"_map_index": 1, "prompt_text": "b in style"},
+            ],
+        }
+        assert validate_conversions_node(state) == {}
 
 
 # ---------------------------------------------------------------------------
@@ -392,3 +438,40 @@ class TestStyleConvertEndToEnd:
         text = "1. a cat\n2. a dog\n"
         infile, _ = self._run(tmp_path, text)
         assert infile.read_text(encoding="utf-8") == text
+
+    def test_branch_failure_aborts_before_any_file_written(self, tmp_path):
+        # R-3/C-4 end-to-end: one failing conversion aborts the whole run so
+        # NO prompt file is ever written — "N in == N out or nothing written".
+        from unittest.mock import patch
+
+        from yamlgraph.compile.graph_loader import compile_graph, load_graph_config
+
+        infile = tmp_path / "prompts_in.txt"
+        infile.write_text("a cat\na dog\n", encoding="utf-8")
+        outputs = tmp_path / "outputs"
+
+        def fake_execute(*args, **kwargs):
+            variables = kwargs.get("variables", {})
+            original = variables.get("prompt_text", "?")
+            if original == "a dog":
+                raise RuntimeError("mistral rejected the prompt")
+            return self._FakeConverted(f"{original} restyled")
+
+        config = load_graph_config(str(GRAPH_FILE))
+        graph = compile_graph(config).compile()
+
+        with (
+            patch(
+                "yamlgraph.node_factory.llm_nodes.execute_prompt",
+                side_effect=fake_execute,
+            ),
+            patch(
+                "examples.image_pipeline.nodes.save_prompts.OUTPUT_BASE",
+                outputs,
+            ),
+            pytest.raises(ValueError, match="conversions failed"),
+        ):
+            graph.invoke({"input_file": str(infile), "target_style": "waterhouse"})
+
+        # The sink never ran: no output directory / prompts.txt exists.
+        assert not outputs.exists(), "no prompt file may be written on failure"

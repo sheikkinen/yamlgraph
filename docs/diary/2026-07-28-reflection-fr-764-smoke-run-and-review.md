@@ -69,7 +69,7 @@ guarantee without exercising the seam that broke it (`name_the_seam`).
 
 ## Seed
 
-The provider pin propagated as an unread key across at least two examples
+**Seed:** The provider pin propagated as an unread key across at least two examples
 (`scene_describe.yaml`, `encounter_summarize.yaml`) because nothing asserts a
 node's *resolved* provider. Should the linter grow a check that flags
 `metadata.provider` in a prompt YAML as a no-op — and, more generally, warn when
@@ -77,3 +77,37 @@ any declared configuration key is never read by the code path that consumes that
 file? A config key that looks authoritative but is inert is a lie the same way a
 gate that checks shape-not-substance is a lie. Where else in this repo does a
 decorative key quietly do nothing?
+
+## Postscript: the review caught what the smoke run didn't
+
+The smoke run fixed *provider* and *count*, and I declared the fail-fast gate
+"done" on the strength of a comment (`# NO on_error: skip — count-preserving`)
+and a reducer-level test that asserted a failed branch is *retained* as an
+`_error` entry. The mandated PR review (sole route, `scripts/review.sh`)
+compiled the whole graph, failed one branch, and read the file the sink wrote:
+
+```
+a cat converted
+{'_map_index': 1, '_error': "[PipelineError(...)]"}
+```
+
+The judgement's R-3/C-4 said "N in == N out **or nothing written**." My
+implementation wrote N-1 valid lines plus a stringified error dict — the exact
+`composition_bug` I had *named in this very diary* one section up. Every unit
+passed; the policy connecting them (map collects `_error` → sink stringifies it)
+was never exercised end-to-end against the *contract*, only against the
+*mechanism*. My failure test asserted what the code did, not what the judgement
+required — `test_before_reading` inverted into test-to-confirm.
+
+The cure was an output-boundary gate (`validate_conversions`) that raises before
+the sink when any branch carries `_error`, plus an end-to-end test that asserts
+**no file exists** after a failed run. Same lesson as the smoke run, one level
+up: read the artifact the *whole* pipeline produces under the *failure* path,
+and assert against the frozen contract, not the observed behavior.
+
+**Seed:** A failure-path test that asserts "the error is retained" can look
+green while violating a "nothing written" contract — the assertion encodes the
+bug. Should count-preservation / fail-fast contracts ship with a reusable
+harness that, given any pipeline writing a file, injects a mid-stream failure
+and asserts the sink produced nothing — so the *contract* is the test subject,
+not the current code's behavior?

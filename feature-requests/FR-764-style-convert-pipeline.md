@@ -241,10 +241,10 @@ yamlgraph graph run examples/style_convert/graph.yaml \
 
 ## Implementation Notes / Deviations (enforcement, 2026-07-28)
 
-Status: **Enforced.** Example built, 34 unit tests green, real Mistral smoke run
-verified (3 prompts → 3 restyled lines). Two deviations from the frozen plan,
-both discovered by the mandated smoke run (Commandment 2) and recorded here per
-doctrine:
+Status: **Enforced.** Example built, 38 unit tests green, real Mistral smoke run
+verified (3 prompts → 3 restyled lines). Three deviations from the frozen plan —
+D-A and D-B discovered by the mandated smoke run (Commandment 2), D-C by the
+mandated PR review (`scripts/review.sh`) — all recorded here per doctrine:
 
 - **D-A — Provider is pinned on the graph node, not prompt metadata.** The plan
   (and AC-07, echoing the judgement's premise) said to pin Mistral via
@@ -274,6 +274,24 @@ doctrine:
   output key name changed. A new end-to-end test
   (`TestStyleConvertEndToEnd`) compiles and invokes the real graph with a mocked
   LLM and asserts N-in == N-out, which the reducer-only tests had missed.
+
+- **D-C — Fail-fast enforced by a `validate_conversions` gate node, not by the
+  map alone.** The plan's R-3/C-4 required "N in == N out **or nothing
+  written**": a failed conversion must abort before `save_prompts` writes. My
+  first enforcement pass mistook "no `on_error: skip`" for fail-fast and shipped
+  a comment plus a reducer-level test asserting the failed branch is *retained*
+  as an `_error` entry. The PR review (sole route, `scripts/review.sh`) compiled
+  the whole graph, failed one branch, and showed the reused sink stringifying the
+  `_error` marker into the output file — a partial result, exactly what R-3/C-4
+  forbids. The map genuinely collects one entry per input (an `_error` marker on
+  failure; core map behavior unchanged per C-2), so fail-fast belongs at the
+  **output boundary**: a new `examples/style_convert/nodes/validate_conversions.py`
+  node runs between `convert_styles` and `save_prompts` and raises (default
+  `on_error: fail`) when any collected entry carries `_error` or the count
+  mismatches, aborting the run before the sink writes. New end-to-end test
+  `test_branch_failure_aborts_before_any_file_written` asserts the output
+  directory never exists after a failed run. `save_prompts_node` remains
+  unchanged (C-3); no core map behavior was altered (C-2).
 
 ## Alternatives Considered
 
