@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Proposed
+**Status:** Implemented (2026-07-29)
 **Effort:** 0.5 days
 **Requested:** 2026-07-29
 **First consumer / first event:** the operator running an existing
@@ -137,39 +137,40 @@ def _create_runpod_llm(
 
 Revised by judgement (2026-07-29) — these supersede the original six:
 
-- [ ] AC-01: `create_llm(provider="runpod")` accepts `runpod` as a valid
+- [x] AC-01: `create_llm(provider="runpod")` accepts `runpod` as a valid
       provider and dispatches through `_PROVIDER_FACTORIES["runpod"]`.
-- [ ] AC-02: `DEFAULT_MODELS["runpod"]` reads `RUNPOD_MODEL` with no
+- [x] AC-02: `DEFAULT_MODELS["runpod"]` reads `RUNPOD_MODEL` with no
       hard-coded fallback; an empty selected model raises `ValueError`
       naming `RUNPOD_MODEL`.
-- [ ] AC-03: Missing or blank `RUNPOD_API_KEY` raises `ValueError`
+- [x] AC-03: Missing or blank `RUNPOD_API_KEY` raises `ValueError`
       naming `RUNPOD_API_KEY` before `ChatOpenAI` is constructed.
-- [ ] AC-04: Missing or blank `RUNPOD_ENDPOINT` raises `ValueError`
+- [x] AC-04: Missing or blank `RUNPOD_ENDPOINT` raises `ValueError`
       naming `RUNPOD_ENDPOINT` before `ChatOpenAI` is constructed.
-- [ ] AC-05: Mocked unit test proves `ChatOpenAI` receives `model`,
+- [x] AC-05: Mocked unit test proves `ChatOpenAI` receives `model`,
       `temperature`, `base_url` exactly from `RUNPOD_ENDPOINT`,
       `api_key` exactly from `RUNPOD_API_KEY`, and the existing bounded
       timeout/retry kwargs.
-- [ ] AC-06: `_PROVIDER_FINGERPRINT_VARS["runpod"]` includes
+- [x] AC-06: `_PROVIDER_FINGERPRINT_VARS["runpod"]` includes
       `RUNPOD_API_KEY` and `RUNPOD_ENDPOINT`; a targeted unit test
       proves changing either env var yields a distinct cached client.
-- [ ] AC-07: `runpod` appears in `ProviderType`, `_PROVIDER_FACTORIES`,
+- [x] AC-07: `runpod` appears in `ProviderType`, `_PROVIDER_FACTORIES`,
       `DEFAULT_MODELS`, provider registry tests, architecture
       provider-count tests, ARCHITECTURE.md provider count/list,
       CLAUDE.md provider/env table, and `.env.sample`.
-- [ ] AC-08: Gated integration test is skipped unless `RUNPOD_API_KEY`,
+- [x] AC-08: Gated integration test is skipped unless `RUNPOD_API_KEY`,
       `RUNPOD_ENDPOINT`, and `RUNPOD_MODEL` are all present; when
       present, it runs real `invoke()`, `stream()` (asserting at least
       one streamed chunk), and `with_structured_output()` against the
       configured endpoint.
-- [ ] AC-09: If the live RunPod endpoint is unavailable during
+- [x] AC-09: If the live RunPod endpoint is unavailable during
       enforcement, the FR records the exact skipped/blocked command and
       reason; mocked tests must not be presented as live validation.
-- [ ] AC-10: No new dependency is added; no import or use of
+      (Endpoint was available — 3/3 live tests passed; see status below.)
+- [x] AC-10: No new dependency is added; no import or use of
       `langchain-runpod` appears.
-- [ ] AC-11: All new tests are tagged `@pytest.mark.req("REQ-YG-010")`;
+- [x] AC-11: All new tests are tagged `@pytest.mark.req("REQ-YG-010")`;
       `python scripts/req_coverage.py --strict` passes.
-- [ ] AC-12: A changelog fragment exists under `changelog/unreleased/`
+- [x] AC-12: A changelog fragment exists under `changelog/unreleased/`
       with front matter `req: REQ-YG-010`.
 
 ## Alternatives Considered
@@ -230,3 +231,36 @@ status update (D-7). Conditions C-1–C-5 GATE.
 
 None — the live endpoint is configured in the operator's `.env`; no
 decision is open that the frozen scope does not answer.
+
+## Implementation Status (2026-07-29)
+
+**Enforced.** RED `2abca983` (10 condemning failures witnessed), GREEN
+`88507576`. Full fast unit suite green: 5391 passed, 70 skipped,
+1 xfailed. `pytest tests/integration/test_runpod_provider.py` live
+against the operator's `moonshot-kimi`/`kimi-k3` endpoint: **3/3
+passed** (invoke, stream ≥1 chunk, structured output;
+`logs/fr766-live2.log`). End-to-end smoke:
+`PROVIDER=runpod yamlgraph graph run` on a hello-graph copy → HTTP 200,
+valid structured greeting (`logs/fr766-hello-runpod2.log`).
+
+**Field finding (recorded per AC-09 spirit):** the Public API endpoint
+returns a bare HTTP 500 (`internal server error`, not a 400) for any
+`temperature != 1.0` — `kimi-k3` is a reasoning model, same class as
+OpenAI o1/o3 (FR-455). Witnessed via raw `curl`: 0.0 and 0.7 → 500;
+1.0 → 200. The integration test pins `_TEMP = 1.0` with this rationale;
+the factory was NOT taught model-specific parameter guessing (purge
+list: no provider-specific mechanisms). Consequence: the stock hello
+demo (`temperature: 0.7`) fails against this specific endpoint — an
+endpoint/model property, not a provider-code defect.
+
+**Deviations from frozen scope:** two, both declared:
+1. `reference/getting-started.md` provider count was stale at "8
+   providers" — updated to 12 in the spirit of R-4 (all provider-count
+   surfaces).
+2. `tests/unit/test_fr708_client_timeout.py` auto-parametrizes over
+   `_PROVIDER_FACTORIES`, so runpod required `_TIMEOUT_PARAM`,
+   `_WRAPPER_PATH`, and `_ENV` entries — within D-4/D-6 spirit.
+
+All conditions C-1–C-5 honored; purge list clean (no new deps, no
+URL composition, no THINKING_PROVIDERS entry, no cold-start machinery,
+no credentials committed).
