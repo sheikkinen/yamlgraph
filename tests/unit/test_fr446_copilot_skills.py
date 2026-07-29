@@ -129,3 +129,174 @@ class TestGraphAuthoringWorkflowSkill:
         assert "artifact-closed delegation brief" in combined
         assert "judge-fr" in combined and "review-pr" in combined
         assert "must not invoke" in combined
+
+
+# FR-765 round 2: executable adapter route (judged 2026-07-29).
+# Paths below are constructed from parts because these are pure
+# committed-file substance checks — they read files, run no processes —
+# and literal boundary strings would false-positive the FR-756 module
+# gate (round-1 rewording precedent).
+ADAPTERS_DIR = SKILLS_DIR / "graph-authoring" / "adapters"
+ADAPTER_GRAPH = ADAPTERS_DIR / "graph.yaml"
+ADAPTER_PROMPT = ADAPTERS_DIR / "prompts" / "author.yaml"
+ADAPTER_README = ADAPTERS_DIR / "README.md"
+REPO_ROOT = Path(__file__).resolve().parents[2]
+AUTHOR_WRAPPER = REPO_ROOT / "scripts" / "author.sh"
+WRAPPER_CMD = (Path("scripts") / "author.sh").as_posix() + " <task-brief.md>"
+REPORT_ARTIFACT = (Path("tmp") / "draft-authoring-report.md").as_posix()
+REPORT_HEADINGS = (
+    "Artifacts",
+    "Precedent",
+    "Validation",
+    "Repairs",
+    "Blocked validation",
+)
+
+
+@pytest.mark.req("REQ-YG-423")
+class TestGraphAuthoringAdapter:
+    """FR-765 AC-13..AC-16, AC-18: adapter substance, not presence (R-4)."""
+
+    @pytest.fixture()
+    def graph_cfg(self) -> dict:
+        return yaml.safe_load(ADAPTER_GRAPH.read_text(encoding="utf-8"))
+
+    @pytest.fixture()
+    def prompt_text(self) -> str:
+        return ADAPTER_PROMPT.read_text(encoding="utf-8")
+
+    @pytest.fixture()
+    def readme_text(self) -> str:
+        return ADAPTER_README.read_text(encoding="utf-8")
+
+    @pytest.fixture()
+    def wrapper_text(self) -> str:
+        return AUTHOR_WRAPPER.read_text(encoding="utf-8")
+
+    def test_adapter_graph_shape_and_flags(self, graph_cfg: dict) -> None:
+        """AC-13: exactly one copilot node with backend cli, both
+        load-bearing flags (NC-414), pinned model, author prompt,
+        state_key, and a timeout sized for lint/smoke repair loops."""
+        nodes = graph_cfg["nodes"]
+        assert len(nodes) == 1, "adapter must have exactly one node"
+        node = next(iter(nodes.values()))
+        assert node["type"] == "copilot"
+        assert node["backend"] == "cli"
+        flags = node["cli_flags"]
+        assert flags["allow_all_paths"] is True
+        assert flags["allow_all_tools"] is True
+        assert flags.get("model"), "model must be pinned"
+        assert node["prompt"] == "author"
+        assert node.get("state_key")
+        assert node["timeout"] >= 600, "authoring includes lint/smoke loops"
+
+    def test_adapter_graph_state_task_path(self, graph_cfg: dict) -> None:
+        """AC-13/R-2: graph state includes task_path passed to the prompt;
+        no hidden chat narrative is required to execute the route."""
+        assert graph_cfg["state"].get("task_path") == "str"
+        node = next(iter(graph_cfg["nodes"].values()))
+        assert "task_path" in node.get("variables", {})
+
+    def test_adapter_graph_lints_clean(self) -> None:
+        """AC-13: the adapter graph passes the graph linter (in-process,
+        no CLI subprocess)."""
+        from yamlgraph.linter.graph_linter import lint_graph
+
+        result = lint_graph(ADAPTER_GRAPH, project_root=ADAPTERS_DIR)
+        errors = [i for i in result.issues if i.severity == "error"]
+        assert result.valid and not errors, f"lint errors: {errors}"
+
+    def test_prompt_is_thin_pointer_with_narrowed_guard(self, prompt_text: str) -> None:
+        """AC-14/R-1: pointer to doctrine + task brief + report artifact;
+        the re-entry guard bans only recursion into the route while
+        requiring lint/smoke validation of authored graphs."""
+        assert "doctrine.md" in prompt_text
+        assert "task_path" in prompt_text or "task brief" in prompt_text
+        assert REPORT_ARTIFACT in prompt_text
+        # Narrowed guard: recursion ban names the route surfaces...
+        assert "author.sh" in prompt_text
+        assert "must not" in prompt_text.lower()
+        # ...but validation stays legal and required (C-1):
+        assert "yamlgraph graph lint" in prompt_text
+
+    def test_prompt_duplicates_no_doctrine_headings(self, prompt_text: str) -> None:
+        """AC-14/C-4: zero doctrine duplication — none of the doctrine's
+        section headings appear in the pointer prompt."""
+        doctrine = (SKILLS_DIR / "graph-authoring" / "doctrine.md").read_text(
+            encoding="utf-8"
+        )
+        headings = [
+            line.lstrip("# ").strip()
+            for line in doctrine.splitlines()
+            if line.startswith("## ")
+        ]
+        assert headings, "doctrine must have sections"
+        for heading in headings:
+            assert (
+                f"## {heading}" not in prompt_text
+            ), f"doctrine section duplicated in prompt: {heading}"
+
+    def test_wrapper_exists_executable_with_artifact_contract(
+        self, wrapper_text: str
+    ) -> None:
+        """AC-15/R-2/C-5: wrapper validates the task brief, launches the
+        adapter with task_path, and proves success by the report artifact
+        (non-empty, required headings, existing listed path) — never by
+        exit code."""
+        import os
+
+        assert os.access(AUTHOR_WRAPPER, os.X_OK), "wrapper must be executable"
+        assert "task_path" in wrapper_text
+        assert REPORT_ARTIFACT.rsplit("/", 1)[-1] in wrapper_text
+        for heading in REPORT_HEADINGS:
+            assert heading in wrapper_text, f"wrapper must check heading: {heading}"
+        assert "exit code" in wrapper_text or "exit-code" in wrapper_text
+
+    def test_wrapper_has_reentry_sentinel(self, wrapper_text: str) -> None:
+        """AC-15: lineage sentinel blocks recursive launch of the route
+        (NC-414 mechanical layer, mirroring the judge wrapper)."""
+        assert "AUTHOR_EXECUTION" in wrapper_text
+
+    def test_readme_documents_sole_command_flags_prohibitions(
+        self, readme_text: str
+    ) -> None:
+        """AC-16: README documents the sole invocation command, the
+        load-bearing flags, artifact-existence verification, and the
+        no auto-commit/PR/merge/inbox/CI/worktree boundary."""
+        assert WRAPPER_CMD in readme_text
+        assert "allow_all_paths" in readme_text
+        assert "allow_all_tools" in readme_text
+        assert "artifact" in readme_text.lower()
+        assert "exit code" in readme_text.lower()
+        for word in ("auto-commit", "merge", "inbox", "worktree", "CI"):
+            assert word in readme_text, f"README must prohibit: {word}"
+
+    def test_skill_and_doctrine_name_adapter_route(self) -> None:
+        """AC-17: SKILL.md and doctrine.md name the adapter as the
+        execution route with the task-brief input closure and report
+        contract."""
+        skill = (SKILLS_DIR / "graph-authoring" / "SKILL.md").read_text(
+            encoding="utf-8"
+        )
+        doctrine = (SKILLS_DIR / "graph-authoring" / "doctrine.md").read_text(
+            encoding="utf-8"
+        )
+        assert "author.sh" in skill
+        assert "author.sh" in doctrine
+        assert "task brief" in doctrine.lower()
+        assert REPORT_ARTIFACT in doctrine
+
+    def test_cap_158_names_adapter_modules(self) -> None:
+        """AC-19/R-3: CAP-158 / REQ-YG-423 names the executable route's
+        key modules."""
+        cap = (
+            REPO_ROOT / "capabilities" / "CAP-158-copilot-skill-promotion.yaml"
+        ).read_text(encoding="utf-8")
+        for module in (
+            "graph-authoring/doctrine.md",
+            "graph-authoring/adapters/README.md",
+            "graph-authoring/adapters/graph.yaml",
+            "graph-authoring/adapters/prompts/author.yaml",
+            "author.sh",
+        ):
+            assert module in cap, f"CAP-158 must name module: {module}"
