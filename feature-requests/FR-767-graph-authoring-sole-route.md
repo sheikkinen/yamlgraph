@@ -118,18 +118,29 @@ explicitly labeled as such.
 
 ### D-4 Mechanize: authoring sentinel hook (two-strike pre-emption)
 
-PostToolUse hook (new `.github/hooks/scripts/checks/`
-`graph-authoring-guard.sh`, wired into `post-edit-checks.json`):
-denies `create_file`/`edit` results touching `examples/**/graph.yaml`,
-`examples/**/prompts/*.yaml`, `graphs/*.yaml`, or `.chaplain/graphs/*.yaml`
-unless an authoring sentinel is armed. `scripts/author.sh` arms the
-sentinel (file under `tmp/`, mirroring the reasoning-sentinel one-shot
-pattern); the sentinel carries the adapter session identity and is
-consumed/expired on completion. Repairs to *existing* committed graphs
-during non-authoring work (e.g., version bump touching a demo) are the
-known false-positive class — scope the deny to new-file creation plus
-material edits (node/edge/prompt changes), warn-only for the rest, and
-record the discrimination rule in the hook README.
+**PreToolUse** guard (not PostToolUse — the hook contract's
+`permissionDecision: "deny"` fires *before* the tool runs, preventing
+the write rather than flagging it after): denies file-write tools
+(`create_file`, edit tools, by `tool_input.filePath`) targeting
+`examples/**/graph.yaml`, `examples/**/prompts/*.yaml`,
+`graphs/*.yaml`, or `.chaplain/graphs/*.yaml` unless an authoring
+sentinel is armed. Coverage must include the **terminal surface**: the
+2026-07-29 strike-1 bypass created the graph via `run_in_terminal`
+(`cp -r`), so the guard also denies terminal commands writing into
+governed paths (`cp`/`mv`/`tee`/shell redirection) — an additional
+pattern family in the existing `pre-command-guard.sh`, not new
+machinery. `scripts/author.sh` arms the sentinel (file under `tmp/`,
+mirroring the reasoning-sentinel one-shot pattern) carrying the
+adapter session identity, consumed/expired on completion. Repairs to
+*existing* committed graphs during non-authoring work (e.g., version
+bump touching a demo) are the known false-positive class — scope the
+deny to new-file creation plus material edits (node/edge/prompt
+changes), warn-only for the rest, and record the discrimination rule
+in the hook README. Hooks govern agent sessions only; the all-routes
+backstop (`enforcement_at_merge_boundary`) is a commit-boundary check
+that a commit introducing a new governed `graph.yaml` includes the
+authoring-report artifact — same layering as the Co-authored-by
+defense (PreToolUse → commit-msg → CI).
 
 ### Distilled constraints
 
@@ -163,11 +174,12 @@ record the discrimination rule in the hook README.
 - [ ] AC-05: Doctrine contains the session-separation rule ("never
       author in the requesting session") and the fix-the-adapter
       rationale.
-- [ ] AC-06: A PostToolUse hook denies unsentineled creation of new
-      `graph.yaml`/`prompts/*.yaml` under governed trees, with a test
-      under `.github/hooks/tests/` proving deny (no sentinel), allow
-      (sentinel armed), and warn-only (material edit to existing
-      committed graph).
+- [ ] AC-06: A PreToolUse guard denies unsentineled creation of new
+      `graph.yaml`/`prompts/*.yaml` under governed trees — on both the
+      file-write tool surface and the terminal surface (cp/mv/tee/
+      redirection) — with a test under `.github/hooks/tests/` proving
+      deny (no sentinel), allow (sentinel armed), and warn-only
+      (material edit to existing committed graph).
 - [ ] AC-07: `scripts/author.sh` arms the sentinel before the adapter
       graph runs and disarms after; a re-run of the 2026-07-29
       acceptance test ("create a graph for chinese horoscope") through
