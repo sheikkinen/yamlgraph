@@ -11,14 +11,19 @@ modules:
   - .github/skills/chaplain-ops/SKILL.md
   - .github/skills/run-code-analysis/SKILL.md
   - .github/skills/feature-request/SKILL.md
+  - .github/skills/graph-authoring/SKILL.md
 
 requirements:
   - id: REQ-YG-423
     description: >
-      Six Tier 1 skills created from reference docs: author-graph,
-      author-prompt, release-version, chaplain-ops, run-code-analysis,
-      feature-request. Each skill is a self-contained SKILL.md with
-      applyTo patterns and tool restrictions (FR-446).
+      Seven Tier 1 skills: author-graph, author-prompt, release-version,
+      chaplain-ops, run-code-analysis, feature-request (FR-446), and the
+      graph-authoring end-to-end workflow skill (FR-765). Each skill is a
+      self-contained SKILL.md with applyTo patterns and tool restrictions;
+      graph-authoring adds a doctrine.md workflow contract (input closure,
+      precedent search, artifact report, local validation, escalation,
+      anti-patterns) composing author-graph/author-prompt as syntax
+      references.
     modules:
       - .github/skills/author-graph/SKILL.md
       - .github/skills/author-prompt/SKILL.md
@@ -26,5 +31,6 @@ requirements:
       - .github/skills/chaplain-ops/SKILL.md
       - .github/skills/run-code-analysis/SKILL.md
       - .github/skills/feature-request/SKILL.md
+      - .github/skills/graph-authoring/SKILL.md
 
 fr: FR-446

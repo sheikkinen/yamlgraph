@@ -2049,7 +2049,7 @@ Promote reference docs to Copilot Skills (.github/skills/) for on-demand loading
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
-| REQ-YG-423 | Six Tier 1 skills created from reference docs: author-graph, author-prompt, release-version, chaplain-ops, run-code-analysis, feature-request. Each skill is a self-contained SKILL.md with applyTo patterns and tool restrictions (FR-446). | `.github/skills/author-graph/SKILL.md`, `.github/skills/author-prompt/SKILL.md`, `.github/skills/release-version/SKILL.md`, `.github/skills/chaplain-ops/SKILL.md`, `.github/skills/run-code-analysis/SKILL.md`, `.github/skills/feature-request/SKILL.md` |
+| REQ-YG-423 | Seven Tier 1 skills: author-graph, author-prompt, release-version, chaplain-ops, run-code-analysis, feature-request (FR-446), and the graph-authoring end-to-end workflow skill (FR-765). Each skill is a self-contained SKILL.md with applyTo patterns and tool restrictions; graph-authoring adds a doctrine.md workflow contract (input closure, precedent search, artifact report, local validation, escalation, anti-patterns) composing author-graph/author-prompt as syntax references. | `.github/skills/author-graph/SKILL.md`, `.github/skills/author-prompt/SKILL.md`, `.github/skills/release-version/SKILL.md`, `.github/skills/chaplain-ops/SKILL.md`, `.github/skills/run-code-analysis/SKILL.md`, `.github/skills/feature-request/SKILL.md`, `.github/skills/graph-authoring/SKILL.md` |
 
 ### 159. CAP-159 Standalone Planner Demo
 

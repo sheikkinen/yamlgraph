@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Judged (APPROVED WITH REVISIONS — folded)
+**Status:** Enforced (2026-07-29)
 **Effort:** 1 day
 **Requested:** 2026-07-28
 **First consumer / first event:** A maintainer repeatedly creating new YAMLGraph
@@ -253,3 +253,41 @@ verdict vocabulary or judge/review routes.
 ### Questions for the human (as options, or 'none')
 
 None.
+
+## Implementation Status (Enforced 2026-07-29)
+
+Delivered within the frozen scope; only D-1..D-8 surfaces touched (no
+`examples/yamlgraph_gen/`, judge/review doctrine, adapters, hooks, CI, or
+runtime primitives — AC-12/C-1/C-2 held).
+
+- **D-1** `.github/skills/graph-authoring/SKILL.md`: discovery wrapper with
+  frontmatter (`name`, `description` with "Use when:" triggers,
+  `argument-hint`), composition contract naming `author-graph`/`author-prompt`
+  as syntax references (AC-01/03), explicit rejection of the one-shot
+  `yamlgraph_gen` model citing `workspace_is_not_boundary`/FR-763 (AC-04),
+  and the quick lint+smoke validation loop with blocked-command honesty.
+- **D-2** `.github/skills/graph-authoring/doctrine.md`: full workflow
+  contract — Input closure, Precedent search (demos → examples →
+  `.chaplain/graphs/` → syntax skills), Artifact boundary and report,
+  Validation (`yamlgraph graph lint` mandatory, blocked commands recorded
+  verbatim), artifact-closed delegation brief with judge/review invocation
+  ban and verdict-vocabulary ban (AC-06/C-7), Escalation to Chaplain, and
+  Anti-patterns (AC-02/05).
+- **D-3** `tests/unit/test_fr446_copilot_skills.py`: RED commit 30fc5a4a —
+  `graph-authoring` added to `TIER_1_SKILLS`; presence checks upgraded to
+  substance (R-2): parametrized frontmatter parsing (name match, "Use
+  when:" triggers, argument-hint) for all seven skills, plus a
+  graph-authoring class asserting doctrine headings, composition
+  references, generator rejection with FR-763 citation, lint requirement,
+  and delegation-not-judgement language. 26 tests pass under
+  `@pytest.mark.req("REQ-YG-423")` (AC-07).
+- **D-4/D-5** `capabilities/CAP-158-copilot-skill-promotion.yaml` extended
+  to seven skills; `ARCHITECTURE.md` CAP-158 section regenerated via
+  `aggregate_capabilities.py` (AC-08/C-3).
+- **D-7** `changelog/unreleased/fr765-graph-authoring-workflow-skill.md`
+  (`type: feat`, `req: REQ-YG-423`) (AC-09).
+- **D-8** diary reflection committed with enforcement (AC-11).
+
+Deviations: none. One friction note: the FR-756 process-boundary gate
+pattern-matches the literal `examples/` in test docstrings — reworded the
+AC-04 docstring rather than marking a filesystem-only test as `process`.
