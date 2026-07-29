@@ -37,7 +37,16 @@ if ! mkdir "$LOCK" 2>/dev/null; then
   exit 73
 fi
 echo "pid=$$ started=$(date -u +%Y-%m-%dT%H:%M:%SZ)" > "$LOCK/holder"
-trap 'rm -rf "$LOCK"' EXIT INT TERM
+
+# FR-767 sentinel: per-run unpredictable token arming the pre-command-guard
+# governed-write allowance for this authoring execution only (C-2). The
+# token lives in env + a token file; both are scoped to this run and
+# removed on exit — there is no global allow-file.
+AUTHOR_TOKEN=$(od -An -N16 -tx1 /dev/urandom | tr -d ' \n')
+SENTINEL="$WORKDIR/tmp/.authoring-sentinel.$$"
+printf '{"token": "%s", "pid": %s, "started": "%s"}\n' \
+  "$AUTHOR_TOKEN" "$$" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > "$SENTINEL"
+trap 'rm -rf "$LOCK"; rm -f "$SENTINEL"' EXIT INT TERM
 
 rm -f "$ARTIFACT"
 
@@ -52,8 +61,12 @@ else
   fail "no yamlgraph executor found: activate .venv (source .venv/bin/activate), install uv, or set YAMLGRAPH_BIN" 69
 fi
 
-# Sole route: the graph authors; sentinel exported for the child only.
-AUTHOR_EXECUTION=1 "${YG[@]}" graph run "$GRAPH" --var "task_path=$TASK_PATH" --full
+# Sole route: the graph authors; re-entry guard + authoring sentinel are
+# exported for the child execution only (FR-767 C-2).
+AUTHOR_EXECUTION=1 \
+  YAMLGRAPH_AUTHORING_TOKEN="$AUTHOR_TOKEN" \
+  YAMLGRAPH_AUTHORING_SENTINEL="$SENTINEL" \
+  "${YG[@]}" graph run "$GRAPH" --var "task_path=$TASK_PATH" --full
 GRAPH_RC=$?
 
 # Artifact contract (verify by artifact, never exit code):

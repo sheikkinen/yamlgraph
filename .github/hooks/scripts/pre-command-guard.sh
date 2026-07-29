@@ -5,6 +5,7 @@
 # 3. Multiline git commit -m (use git commit -F ./tmp/msg.txt instead)
 # 4. pytest piped to head/tail without tee (output buffering) (FR-440)
 # 5. Branch creation in main worktree (FR-662)
+# 6. Unsentineled writes to governed graph artifacts (FR-767)
 # Audit: logs every tool invocation to JSONL (FR-414)
 set -euo pipefail
 
@@ -152,6 +153,137 @@ else:
   esac
   exit 0
 fi
+
+# ── Check 6: graph-authoring sole route (FR-767) ─────────────────────
+# Governed graph artifacts (examples/**/graph.yaml, examples/**/prompts/*.yaml,
+# graphs/*.yaml, .chaplain/graphs/*.yaml) may only be written under an armed
+# per-run authoring sentinel (scripts/author.sh). Path-based bright line (C-4),
+# fail closed on ambiguity (C-5). Sentinel = env token + matching token file.
+case "$TOOL_NAME" in
+  create_file|replace_string_in_file|multi_replace_string_in_file|apply_patch|run_in_terminal|send_to_terminal)
+    AUTHOR_REASON=$(HOOK_INPUT="$INPUT" python3 <<'PYEOF'
+import json, os, re, shlex
+from pathlib import Path
+
+def deny(msg):
+    print(msg)
+    raise SystemExit(0)
+
+try:
+    d = json.loads(os.environ.get("HOOK_INPUT", "{}"))
+except Exception:
+    deny("hook input unparseable (fail closed)")
+tool = d.get("tool_name", d.get("toolName", ""))
+ti = d.get("tool_input", d.get("toolInput", d.get("input", {}))) or {}
+
+def governed_path(path):
+    p = str(path).replace("\\", "/").strip()
+    return bool(
+        re.search(r"(^|/)examples/.+/graph\.ya?ml$", p)
+        or re.search(r"(^|/)examples/.+/prompts/[^/]+\.ya?ml$", p)
+        or re.search(r"(^|/)graphs/[^/]+\.ya?ml$", p)
+        or re.search(r"(^|/)\.chaplain/graphs/[^/]+\.ya?ml$", p)
+    )
+
+def sentinel_armed():
+    tok = os.environ.get("YAMLGRAPH_AUTHORING_TOKEN", "")
+    sf = os.environ.get("YAMLGRAPH_AUTHORING_SENTINEL", "")
+    if not tok or not sf:
+        return False
+    try:
+        data = json.loads(Path(sf).read_text())
+    except Exception:
+        return False
+    return data.get("token") == tok
+
+PATHISH = r"[^\s\"';|&<>]+"
+
+def terminal_reason(cmd):
+    if not re.search(r"examples/|graphs/|\.chaplain/", cmd):
+        return None
+    for m in re.finditer(r">>?\s*[\"']?(" + PATHISH + ")", cmd):
+        if governed_path(m.group(1)):
+            return "shell redirect into governed artifact " + m.group(1)
+    for m in re.finditer(r"\btee\s+(?:-a\s+)?[\"']?(" + PATHISH + ")", cmd):
+        if governed_path(m.group(1)):
+            return "tee into governed artifact " + m.group(1)
+    if re.search(r"\bsed\b[^|;&]*\s-i", cmd):
+        for m in re.finditer(PATHISH, cmd):
+            if governed_path(m.group(0)):
+                return "in-place edit of governed artifact"
+    for seg in re.split(r"&&|\|\||;|\|", cmd):
+        try:
+            toks = shlex.split(seg)
+        except ValueError:
+            toks = seg.split()
+        while toks and re.match(r"^[A-Za-z_][A-Za-z0-9_]*=", toks[0]):
+            toks.pop(0)
+        if not toks or toks[0] not in ("cp", "mv", "rsync", "install"):
+            continue
+        args = [t for t in toks[1:] if not t.startswith("-")]
+        if len(args) < 2:
+            continue
+        dest, sources = args[-1], args[:-1]
+        if governed_path(dest):
+            return "copy/move onto governed artifact " + dest
+        in_tree = re.match(r"(\./)?(examples|graphs|\.chaplain)(/|$)", dest)
+        if not in_tree:
+            continue
+        for s in sources:
+            cand = dest.rstrip("/") + "/" + os.path.basename(s.rstrip("/"))
+            if governed_path(cand):
+                return "copy/move materializes governed artifact " + cand
+            sp = Path(s)
+            if not sp.exists():
+                return ("cannot verify source " + s
+                        + " for write into governed tree (fail closed)")
+            if sp.is_dir() and (
+                list(sp.glob("**/graph.yaml"))
+                or list(sp.glob("**/graph.yml"))
+                or list(sp.glob("**/prompts/*.yaml"))
+            ):
+                return "directory copy materializes governed artifacts from " + s
+    mentions = any(
+        governed_path(m.group(0)) for m in re.finditer(PATHISH, cmd))
+    if mentions and re.search(
+        r"python3?\s+-c|perl\s+-e|ruby\s+-e|\bopen\(|\.write\(|\bdd\b|\btruncate\b",
+        cmd,
+    ):
+        return "unrecognized write shape touching governed artifact (fail closed)"
+    return None
+
+EDIT_TOOLS = {"create_file", "replace_string_in_file",
+              "multi_replace_string_in_file", "apply_patch"}
+reason = None
+if tool in EDIT_TOOLS:
+    paths = []
+    if isinstance(ti, dict):
+        if ti.get("filePath"):
+            paths.append(ti["filePath"])
+        for r in ti.get("replacements") or []:
+            if isinstance(r, dict) and r.get("filePath"):
+                paths.append(r["filePath"])
+        patch = ti.get("input") or ti.get("patch") or ""
+        if isinstance(patch, str):
+            paths += re.findall(r"\*\*\* (?:Add|Update|Move to) File: (.+)", patch)
+    hits = [p for p in paths if governed_path(p)]
+    if hits:
+        reason = "file write to governed artifact " + hits[0].replace('"', "")
+else:
+    cmd = ti.get("command", "") if isinstance(ti, dict) else ""
+    reason = terminal_reason(cmd)
+
+if reason and not sentinel_armed():
+    deny(reason.replace('"', ""))
+PYEOF
+) || AUTHOR_REASON="authoring-guard analyzer error (fail closed)"
+    if [[ -n "$AUTHOR_REASON" ]]; then
+      audit_log "deny" "authoring-route" "$AUTHOR_REASON"
+      emit_deny "Governed graph artifact write denied: ${AUTHOR_REASON}.\\n\\nGraph authoring has a sole route: scripts/author.sh <task-brief.md>\\n(.github/skills/graph-authoring/adapters/README.md). The adapter arms a\\nper-run sentinel; unsentineled writes to examples/**/graph.yaml,\\nexamples/**/prompts/*.yaml, graphs/*.yaml and .chaplain/graphs/*.yaml\\nare denied (FR-767). Do not work around this guard — write a task brief\\nand run the adapter."
+      exit 0
+    fi
+    ;;
+esac
 
 # Only inspect run_in_terminal / send_to_terminal tool calls
 if [[ "$TOOL_NAME" != "run_in_terminal" && "$TOOL_NAME" != "send_to_terminal" ]]; then
