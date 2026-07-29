@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Amended (2026-07-29) — round 1 enforced docs-only; executable adapter route pending re-judgement
+**Status:** Judged round 2 (2026-07-29): APPROVED WITH REVISIONS — R-1..R-4 folded; adapter enforcement authorized
 **Effort:** 1 day
 **Requested:** 2026-07-28
 **First consumer / first event:** A maintainer repeatedly creating new YAMLGraph
@@ -87,15 +87,29 @@ The adapter follows the `judge-fr` adapter contract exactly:
 - **Thin pointer, zero duplication**: no doctrine in the adapter; the copilot
   node's prompt instructs the agent to read
   `.github/skills/graph-authoring/doctrine.md` and follow it.
-- **Re-entry guard**: the launched agent IS the authoring execution — it must
-  author directly and never re-invoke the skill, the adapter graph, or
-  yamlgraph-launching commands (the judge-fr NC-414 recursion guard, adapted).
+- **Re-entry guard (narrowed, R-1)**: the launched agent IS the authoring
+  execution — it must author directly and must not invoke the `graph-authoring`
+  skill, `scripts/author.sh`, `.github/skills/graph-authoring/adapters/graph.yaml`,
+  or any command that launches that adapter route again. Ordinary
+  `yamlgraph graph lint <target graph>` and narrow smoke commands against the
+  authored target graphs remain required — the guard bans only recursion into
+  the route, never validation (judge-fr NC-414 recursion guard, adapted).
 - **Copilot node** with `backend: cli`, `allow_all_paths`/`allow_all_tools`
   (load-bearing for non-interactive file writes — NC-414 precedent), model
   pinned, generous timeout (authoring includes lint/smoke loops).
-- **Artifact verification by existence, not exit code**: the run is judged by
-  the authored files plus a written artifact report
-  (`tmp/draft-authoring-report.md`), never by CLI exit status.
+- **Operator input contract (R-2)**: `scripts/author.sh <task-brief.md>` is the
+  sole operator command; the wrapper validates the task brief exists; the
+  adapter graph state includes `task_path: str`; the pointer prompt instructs
+  the launched agent to read that task brief plus committed repo artifacts and
+  explicit user-provided files only. Target directories and desired artifact
+  names live inside the task brief, never in hidden chat narrative.
+- **Artifact-report contract (R-2)**: `tmp/draft-authoring-report.md` is a
+  parseable artifact, not prose: it must contain the headings `Artifacts`,
+  `Precedent`, `Validation`, `Repairs`, and `Blocked validation`, and list at
+  least one repo-relative authored/modified path under `Artifacts`.
+  `scripts/author.sh` fails unless the report is non-empty and at least one
+  listed artifact path exists; the adapter graph's exit code is never
+  sufficient proof of success.
 - **Advisory output**: authored files land in the working tree uncommitted;
   the human reviews and commits. The graph must never auto-commit, open PRs,
   poll inboxes, manage worktrees, run CI, or merge.
@@ -210,30 +224,49 @@ Round 1 (delivered 2026-07-29, commits 30fc5a4a + 6d2259fc):
       adapters, hooks, CI workflows, branch protection, or graph-generation
       runtime primitives under this FR.
 
-Round 2 (amendment — executable adapter route, pending re-judgement):
+Round 2 (executable adapter route — judged 2026-07-29, R-1..R-4 folded):
 
-- [ ] AC-13: `.github/skills/graph-authoring/adapters/graph.yaml` exists: a
-      YAMLGraph graph with a single `type: copilot` node (`backend: cli`,
-      `allow_all_paths: true`, `allow_all_tools: true`, pinned model, timeout
-      sized for lint/smoke loops) that passes `yamlgraph graph lint`.
+- [ ] AC-13: `.github/skills/graph-authoring/adapters/graph.yaml` exists,
+      passes `yamlgraph graph lint`, and defines exactly one `type: copilot`
+      node with `backend: cli`, `allow_all_paths: true`,
+      `allow_all_tools: true`, a pinned model, a prompt named `author`, a
+      `state_key`, and a timeout sized for lint/smoke repair loops. The graph
+      state includes `task_path: str` passed to the prompt; no hidden chat
+      narrative is required to execute the route.
 - [ ] AC-14: `adapters/prompts/author.yaml` is a thin pointer prompt: it
-      instructs the agent to read `../doctrine.md` and follow it, contains a
-      re-entry guard (the launched agent IS the authoring execution and must
-      never re-invoke the skill/adapter/yamlgraph), and duplicates no doctrine
-      content.
-- [ ] AC-15: `scripts/author.sh` operator wrapper exists (mirroring
-      `scripts/judge.sh`): validates arguments, launches the adapter graph,
-      and verifies success by artifact existence (authored files + non-empty
-      `tmp/draft-authoring-report.md`), never by exit code.
-- [ ] AC-16: `adapters/README.md` documents the sole invocation command, the
-      load-bearing CLI flags, the artifact-existence verification rule, and
-      the prohibition on auto-commit/PR/merge actions.
-- [ ] AC-17: `SKILL.md` and `doctrine.md` are updated to name the adapter as
-      the execution route for delegated authoring (keeping doctrine
-      non-invocable and zero-duplicated).
-- [ ] AC-18: Skill promotion tests extend to the adapter surface: graph.yaml
-      lints, prompt is a pointer (no doctrine duplication), wrapper script
-      exists and is executable.
+      instructs the agent to read `../doctrine.md` and the task brief at
+      `task_path`, follow the doctrine, and write
+      `tmp/draft-authoring-report.md`; it duplicates no doctrine content and
+      contains the narrowed re-entry guard (R-1): must not invoke the
+      `graph-authoring` skill, `scripts/author.sh`, the adapter graph, or any
+      command relaunching the route — while `yamlgraph graph lint` and narrow
+      smoke commands against authored target graphs remain required.
+- [ ] AC-15: `scripts/author.sh <task-brief.md>` exists, is executable,
+      validates the task brief exists, launches the adapter graph with
+      `task_path`, and verifies success by artifact existence, never exit
+      code: `tmp/draft-authoring-report.md` must be non-empty, contain the
+      `Artifacts`/`Precedent`/`Validation`/`Repairs`/`Blocked validation`
+      headings, and list at least one repo-relative artifact path that exists.
+- [ ] AC-16: `adapters/README.md` documents the sole invocation command
+      `scripts/author.sh <task-brief.md>`, the load-bearing CLI flags, the
+      artifact-existence verification rule, and the prohibition on
+      auto-commit, PR creation, merge, inbox polling, CI, and
+      worktree-management actions.
+- [ ] AC-17: `SKILL.md` and `doctrine.md` name the adapter as the execution
+      route for delegated authoring, including the task-brief input closure
+      and report contract (keeping doctrine non-invocable and
+      zero-duplicated).
+- [ ] AC-18: Skill promotion tests (still `@pytest.mark.req("REQ-YG-423")`)
+      assert adapter substance, not presence (R-4): graph shape/flags/model/
+      timeout, prompt pointer with narrowed guard and no doctrine-heading
+      duplication, executable wrapper documenting the task-brief command with
+      artifact-report checks, README command/flag/prohibition content, and
+      CAP-158 module synchronization.
+- [ ] AC-19: `capabilities/CAP-158-copilot-skill-promotion.yaml` updates
+      REQ-YG-423 to name the executable graph-authoring adapter route and its
+      key modules (SKILL.md, doctrine.md, adapters/README.md,
+      adapters/graph.yaml, adapters/prompts/author.yaml, scripts/author.sh),
+      and `ARCHITECTURE.md` is regenerated to match (R-3).
 
 ## Alternatives Considered
 
