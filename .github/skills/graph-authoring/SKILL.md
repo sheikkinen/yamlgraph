@@ -1,6 +1,6 @@
 ---
 name: graph-authoring
-description: "End-to-end workflow for creating a complete YAMLGraph artifact from a natural-language task. Use when: asked to create a new graph, example, or demo; turning a task description into graph + prompt files; drafting a pipeline that needs local validation before delivery; deciding whether graph work belongs in Chaplain instead. Not a syntax reference — composes reference/graph-yaml.md and reference/prompt-yaml.md."
+description: "End-to-end workflow for creating a complete YAMLGraph artifact from a natural-language task — the ONLY way to author graphs. Use when: asked to create a new graph, example, or demo; turning a task description into graph + prompt files; ANY task that results in a new or materially modified graph.yaml or prompts/*.yaml, however phrased (mv, copy, adapt, tweak); drafting a pipeline that needs local validation before delivery; deciding whether graph work belongs in Chaplain instead. Not a syntax reference — composes reference/graph-yaml.md and reference/prompt-yaml.md."
 argument-hint: "task description, or target directory like examples/demos/<name>/"
 ---
 
@@ -9,6 +9,16 @@ argument-hint: "task description, or target directory like examples/demos/<name>
 The canonical workflow contract lives in the adjacent `doctrine.md` —
 that file is the single source of graph-authoring doctrine. This wrapper
 tells you where things are and how the skill composes.
+
+**This skill is the only way.** The trigger is the artifact class, not
+the task phrasing: if the work creates or materially modifies a
+`graph.yaml` or `prompts/*.yaml` artifact — even when the request is
+worded as "mv", "copy", or "adapt" — it is graph authoring and follows
+`doctrine.md`. A copy of a working demo into a new directory is a new
+artifact, not a file move (witnessed 2026-07-29: "mv hello-runpod"
+materialized a new demo whose provider silently defaulted wrong until
+lint caught W016 — exactly the failure the doctrine's validation loop
+exists to catch).
 
 ## To author a graph
 

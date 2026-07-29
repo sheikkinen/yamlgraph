@@ -6,6 +6,16 @@ task. Governed by FR-765; registered under CAP-158 / REQ-YG-423. This
 doctrine is local to authoring — it does not modify or weaken the
 canonical Judge/Review execution routes.
 
+## Trigger boundary
+
+This doctrine binds on the **artifact class, not the task phrasing**:
+any work that creates or materially modifies a `graph.yaml` or
+`prompts/*.yaml` is graph authoring, whether the request says "create",
+"mv", "copy", or "adapt". Copying a committed graph into a new
+directory materializes a new artifact and enters this doctrine at the
+precedent-search step (the copy IS the precedent); lint + smoke +
+honest validation record remain mandatory.
+
 ## Input closure
 
 Inputs are closed: the task request, committed repository artifacts, and
