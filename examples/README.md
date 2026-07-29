@@ -76,6 +76,7 @@ Standalone demos that teach a single YAMLGraph concept. Ordered by the learning 
 | Demo | Node Types | Description |
 |------|------------|-------------|
 | [hello](demos/hello/) | `llm` | Minimal example — start here |
+| [hello-runpod](demos/hello-runpod/) | `llm` | Hello via the RunPod OpenAI-compatible provider (FR-766) |
 | [hellograph-speed](demos/hellograph-speed/) | `llm` | Provider latency comparison across Google, Vertex, and Azure |
 | [router](demos/router/) | `router` | Tone-based conditional routing |
 | [router-race-candidates](demos/router-race-candidates/) | `router`, `tool` | Router `candidates` race with default-route fallback (FR-272) |

@@ -1,0 +1,34 @@
+# Hello World (RunPod) - Minimal YAMLGraph Example against a RunPod endpoint
+# Demonstrates the runpod provider (FR-766). temperature pinned to 1.0:
+# reasoning-model endpoints (e.g. kimi-k3) return HTTP 500 for any other value.
+
+version: "1.0"
+name: hello-world-runpod
+description: Simple greeting generator via the RunPod OpenAI-compatible provider
+
+prompts_relative: true
+prompts_dir: prompts
+
+defaults:
+  provider: runpod
+  temperature: 1.0
+
+state:
+  name: str
+  style: str
+
+nodes:
+  greet:
+    type: llm
+    prompt: greet
+    parse_json: true
+    variables:
+      name: "{state.name}"
+      style: "{state.style}"
+    state_key: greeting
+
+edges:
+  - from: START
+    to: greet
+  - from: greet
+    to: END
