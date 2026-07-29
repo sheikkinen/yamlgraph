@@ -69,20 +69,26 @@ def _create_runpod_llm(
     base_url = os.getenv("RUNPOD_ENDPOINT")
     if not base_url:
         raise ValueError("RUNPOD_ENDPOINT is required for provider 'runpod'")
+    api_key = os.getenv("RUNPOD_API_KEY")
+    if not api_key:
+        raise ValueError("RUNPOD_API_KEY is required for provider 'runpod'")
     if not model:
         raise ValueError("RUNPOD_MODEL is required for provider 'runpod'")
     return ChatOpenAI(
         model=model,
         temperature=temperature,
         base_url=base_url,
-        api_key=os.getenv("RUNPOD_API_KEY"),
+        api_key=api_key,
         **_bounded(dict(kwargs)),
     )
 ```
 
-2. **`yamlgraph/utils/llm_factory.py`** — add `"runpod"` to the valid
-   provider list and `"runpod": ("RUNPOD_API_KEY", "RUNPOD_ENDPOINT")`
-   to the env-var mapping.
+2. **`yamlgraph/utils/llm_factory.py`** — add `"runpod"` to
+   `ProviderType` and add `"runpod": ("RUNPOD_API_KEY",
+   "RUNPOD_ENDPOINT")` to `_PROVIDER_FINGERPRINT_VARS` (env-fingerprinted
+   cache keys, REQ-YG-540). `RUNPOD_MODEL` stays out of the fingerprint —
+   the selected model is already part of the cache key. Not added to
+   `THINKING_PROVIDERS` (judgement C-5).
 
 3. **`yamlgraph/config.py`** — `"runpod": os.getenv("RUNPOD_MODEL", "")`
    in `DEFAULT_MODELS`. No hard-coded model: unlike lmstudio, a RunPod
@@ -94,16 +100,23 @@ def _create_runpod_llm(
    `test_lmstudio_provider.py` (`@pytest.mark.req("REQ-YG-010")`,
    mocked `ChatOpenAI`): provider valid, base_url taken verbatim from
    `RUNPOD_ENDPOINT`, api_key from `RUNPOD_API_KEY`, fail-fast on
-   missing endpoint/model. One integration test in
+   missing api-key/endpoint/model, cache-fingerprint distinctness when
+   either fingerprint env var changes. One integration test in
    `tests/integration/`, skipped unless `RUNPOD_API_KEY` +
    `RUNPOD_ENDPOINT` + `RUNPOD_MODEL` are set, that runs a real
-   `create_llm(provider="runpod").invoke(...)` and a
-   `with_structured_output` round-trip (constraint 3 below: structured
-   output must be witnessed, not assumed).
+   `create_llm(provider="runpod").invoke(...)`, a `stream(...)`
+   asserting at least one streamed chunk (R-3: the streaming claim is
+   the reason langchain-runpod was rejected — it must be witnessed
+   too), and a `with_structured_output` round-trip (constraint 3
+   below: structured output must be witnessed, not assumed).
 
-5. **Docs** — `CLAUDE.md` env-var table rows (`RUNPOD_API_KEY`,
-   `RUNPOD_ENDPOINT`, `RUNPOD_MODEL`) + `runpod` in the `PROVIDER`
-   row; changelog fragment (`req: REQ-YG-010`).
+5. **Docs & provider-count surfaces (R-4)** — every hard-coded provider
+   surface updates together: `tests/unit/test_fr680_provider_registry.py`
+   and `tests/unit/test_architecture_provider_count.py` (both hard-code
+   the eleven-provider set), `ARCHITECTURE.md` provider count/list,
+   `CLAUDE.md` env-var table rows (`RUNPOD_API_KEY`, `RUNPOD_ENDPOINT`,
+   `RUNPOD_MODEL`) + `runpod` in the `PROVIDER` row, `.env.sample`
+   RunPod rows; changelog fragment (`req: REQ-YG-010`).
 
 ### Distilled constraints (from `docs/plan-research-runpod.md`)
 
@@ -122,21 +135,42 @@ def _create_runpod_llm(
 
 ## Acceptance Criteria
 
-- [ ] AC-01: `create_llm(provider="runpod")` returns a `ChatOpenAI`
-      with `base_url` taken verbatim from `RUNPOD_ENDPOINT` and
-      `api_key` from `RUNPOD_API_KEY` (mocked unit test).
-- [ ] AC-02: Missing `RUNPOD_ENDPOINT` or empty model raises
-      `ValueError` naming the missing env var (unit test).
-- [ ] AC-03: `runpod` appears in the factory's valid provider list and
-      `DEFAULT_MODELS`; existing provider-registry tests pass unchanged.
-- [ ] AC-04: Gated integration test exercises real `invoke()` and
-      `with_structured_output()` against the live endpoint configured
-      in the local `.env` (Public API `moonshot-kimi` / `kimi-k3`), OR
-      the FR records the exact blocked command and skip reason.
-- [ ] AC-05: `CLAUDE.md` env-var table updated; changelog fragment
-      present (`req: REQ-YG-010`).
-- [ ] AC-06: Unit tests tagged `@pytest.mark.req("REQ-YG-010")`;
+Revised by judgement (2026-07-29) — these supersede the original six:
+
+- [ ] AC-01: `create_llm(provider="runpod")` accepts `runpod` as a valid
+      provider and dispatches through `_PROVIDER_FACTORIES["runpod"]`.
+- [ ] AC-02: `DEFAULT_MODELS["runpod"]` reads `RUNPOD_MODEL` with no
+      hard-coded fallback; an empty selected model raises `ValueError`
+      naming `RUNPOD_MODEL`.
+- [ ] AC-03: Missing or blank `RUNPOD_API_KEY` raises `ValueError`
+      naming `RUNPOD_API_KEY` before `ChatOpenAI` is constructed.
+- [ ] AC-04: Missing or blank `RUNPOD_ENDPOINT` raises `ValueError`
+      naming `RUNPOD_ENDPOINT` before `ChatOpenAI` is constructed.
+- [ ] AC-05: Mocked unit test proves `ChatOpenAI` receives `model`,
+      `temperature`, `base_url` exactly from `RUNPOD_ENDPOINT`,
+      `api_key` exactly from `RUNPOD_API_KEY`, and the existing bounded
+      timeout/retry kwargs.
+- [ ] AC-06: `_PROVIDER_FINGERPRINT_VARS["runpod"]` includes
+      `RUNPOD_API_KEY` and `RUNPOD_ENDPOINT`; a targeted unit test
+      proves changing either env var yields a distinct cached client.
+- [ ] AC-07: `runpod` appears in `ProviderType`, `_PROVIDER_FACTORIES`,
+      `DEFAULT_MODELS`, provider registry tests, architecture
+      provider-count tests, ARCHITECTURE.md provider count/list,
+      CLAUDE.md provider/env table, and `.env.sample`.
+- [ ] AC-08: Gated integration test is skipped unless `RUNPOD_API_KEY`,
+      `RUNPOD_ENDPOINT`, and `RUNPOD_MODEL` are all present; when
+      present, it runs real `invoke()`, `stream()` (asserting at least
+      one streamed chunk), and `with_structured_output()` against the
+      configured endpoint.
+- [ ] AC-09: If the live RunPod endpoint is unavailable during
+      enforcement, the FR records the exact skipped/blocked command and
+      reason; mocked tests must not be presented as live validation.
+- [ ] AC-10: No new dependency is added; no import or use of
+      `langchain-runpod` appears.
+- [ ] AC-11: All new tests are tagged `@pytest.mark.req("REQ-YG-010")`;
       `python scripts/req_coverage.py --strict` passes.
+- [ ] AC-12: A changelog fragment exists under `changelog/unreleased/`
+      with front matter `req: REQ-YG-010`.
 
 ## Alternatives Considered
 
@@ -165,6 +199,34 @@ def _create_runpod_llm(
 - `yamlgraph/utils/llm_providers.py` `_create_lmstudio_llm` — pattern precedent
 - https://docs.runpod.io/serverless/vllm/openai-compatibility
 
-## Judgement (pending)
+## Judgement (2026-07-29)
 
-**Verdict:** —
+**Verdict:** APPROVED WITH REVISIONS — rendered via the sole-route
+judge adapter (`scripts/judge.sh`, model gpt-5.5, session
+d1b21243); full artifact archived below from `tmp/draft-judgement.md`.
+R-1–R-4 folded into this FR 2026-07-29 (C-1 satisfied); authority
+active.
+
+| # | Finding | Resolution (binding) |
+|---|---------|----------------------|
+| R-1 | Sketch validated endpoint+model but passed `api_key=os.getenv(...)` unchecked — repeats the hidden-auth problem used to reject the lmstudio route | Fail-fast `ValueError` naming `RUNPOD_API_KEY` before `ChatOpenAI` construction (folded into Proposed Solution + AC-03) |
+| R-2 | "Env-var mapping" instruction was stale — the factory has `_PROVIDER_FINGERPRINT_VARS` (REQ-YG-540 cache fingerprints), not a validation map | Add `runpod: (RUNPOD_API_KEY, RUNPOD_ENDPOINT)` to `_PROVIDER_FINGERPRINT_VARS`; model excluded (already in cache key) (folded + AC-06) |
+| R-3 | Ideal Result promises true SSE streaming — the reason langchain-runpod was rejected — but no AC witnessed it | Integration test also exercises `stream()` asserting ≥1 chunk (folded + AC-08) |
+| R-4 | "Registry tests pass unchanged" was false — `test_fr680_provider_registry.py` and `test_architecture_provider_count.py` hard-code the eleven-provider set; ARCHITECTURE.md says 11 providers; `.env.sample` lacks RunPod rows | All provider-count and sample-env surfaces frozen into scope (folded + AC-07) |
+
+**Purge list:** `langchain-runpod` and any new dependency;
+`RUNPOD_ENDPOINT_ID` URL composition; RunPod deployment/orchestration
+support; thinking-budget support (`THINKING_PROVIDERS`);
+provider-specific retry/cold-start mechanisms beyond existing
+timeout/retry config; committing real credentials.
+
+**Scope frozen:** D-1–D-7 per `tmp/draft-judgement.md` — factory fn +
+registry (D-1), ProviderType + fingerprint vars (D-2), DEFAULT_MODELS
+(D-3), unit tests (D-4), gated integration test invoke/stream/
+structured-output (D-5), provider-count + docs surfaces (D-6), FR
+status update (D-7). Conditions C-1–C-5 GATE.
+
+### Questions for the human (as options, or 'none')
+
+None — the live endpoint is configured in the operator's `.env`; no
+decision is open that the frozen scope does not answer.
