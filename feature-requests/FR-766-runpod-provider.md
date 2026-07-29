@@ -6,10 +6,10 @@
 **Effort:** 0.5 days
 **Requested:** 2026-07-29
 **First consumer / first event:** the operator running an existing
-YAMLGraph graph against a self-hosted open-weights model on a RunPod
-serverless vLLM endpoint, at the moment
+YAMLGraph graph against a RunPod-hosted model (Public API `moonshot-kimi`
+endpoint, already configured in the local `.env`), at the moment
 `PROVIDER=runpod yamlgraph graph run examples/demos/hello/graph.yaml`
-is invoked with `RUNPOD_API_KEY` + `RUNPOD_ENDPOINT_ID` set.
+is invoked with `RUNPOD_API_KEY` + `RUNPOD_ENDPOINT` + `RUNPOD_MODEL` set.
 
 ## Summary
 
@@ -41,11 +41,11 @@ the provider name in traces.
 ## Ideal Result
 
 `provider: runpod` in any graph YAML (or `PROVIDER=runpod`) routes all
-LLM calls through a RunPod vLLM endpoint with true SSE streaming and
-Pydantic structured output, configured entirely by `RUNPOD_API_KEY`,
-`RUNPOD_ENDPOINT_ID`, and `RUNPOD_MODEL` — indistinguishable at the
-graph layer from any other provider, with a fail-fast error naming the
-missing env var when misconfigured.
+LLM calls through a RunPod OpenAI-compatible endpoint with true SSE
+streaming and Pydantic structured output, configured entirely by
+`RUNPOD_API_KEY`, `RUNPOD_ENDPOINT`, and `RUNPOD_MODEL` —
+indistinguishable at the graph layer from any other provider, with a
+fail-fast error naming the missing env var when misconfigured.
 
 ## Proposed Solution
 
@@ -58,25 +58,30 @@ which is the established zero-dependency OpenAI-compat route.
 def _create_runpod_llm(
     model: str, temperature: float, **kwargs: object
 ) -> BaseChatModel:
-    """Create RunPod serverless vLLM LLM (OpenAI-compatible API)."""
+    """Create RunPod LLM via OpenAI-compatible endpoint.
+
+    RUNPOD_ENDPOINT is the full base URL, e.g.
+    https://api.runpod.ai/v2/moonshot-kimi/openai/v1 (Public API) or
+    https://api.runpod.ai/v2/<ENDPOINT_ID>/openai/v1 (serverless vLLM).
+    """
     from langchain_openai import ChatOpenAI
 
-    endpoint_id = os.getenv("RUNPOD_ENDPOINT_ID")
-    if not endpoint_id:
-        raise ValueError("RUNPOD_ENDPOINT_ID is required for provider 'runpod'")
+    base_url = os.getenv("RUNPOD_ENDPOINT")
+    if not base_url:
+        raise ValueError("RUNPOD_ENDPOINT is required for provider 'runpod'")
     if not model:
         raise ValueError("RUNPOD_MODEL is required for provider 'runpod'")
     return ChatOpenAI(
         model=model,
         temperature=temperature,
-        base_url=f"https://api.runpod.ai/v2/{endpoint_id}/openai/v1",
+        base_url=base_url,
         api_key=os.getenv("RUNPOD_API_KEY"),
         **_bounded(dict(kwargs)),
     )
 ```
 
 2. **`yamlgraph/utils/llm_factory.py`** — add `"runpod"` to the valid
-   provider list and `"runpod": ("RUNPOD_API_KEY", "RUNPOD_ENDPOINT_ID")`
+   provider list and `"runpod": ("RUNPOD_API_KEY", "RUNPOD_ENDPOINT")`
    to the env-var mapping.
 
 3. **`yamlgraph/config.py`** — `"runpod": os.getenv("RUNPOD_MODEL", "")`
@@ -87,17 +92,17 @@ def _create_runpod_llm(
 
 4. **Tests** — `tests/unit/test_runpod_provider.py` mirroring
    `test_lmstudio_provider.py` (`@pytest.mark.req("REQ-YG-010")`,
-   mocked `ChatOpenAI`): provider valid, base_url composed from
-   `RUNPOD_ENDPOINT_ID`, api_key from `RUNPOD_API_KEY`, fail-fast on
+   mocked `ChatOpenAI`): provider valid, base_url taken verbatim from
+   `RUNPOD_ENDPOINT`, api_key from `RUNPOD_API_KEY`, fail-fast on
    missing endpoint/model. One integration test in
    `tests/integration/`, skipped unless `RUNPOD_API_KEY` +
-   `RUNPOD_ENDPOINT_ID` + `RUNPOD_MODEL` are set, that runs a real
+   `RUNPOD_ENDPOINT` + `RUNPOD_MODEL` are set, that runs a real
    `create_llm(provider="runpod").invoke(...)` and a
    `with_structured_output` round-trip (constraint 3 below: structured
    output must be witnessed, not assumed).
 
 5. **Docs** — `CLAUDE.md` env-var table rows (`RUNPOD_API_KEY`,
-   `RUNPOD_ENDPOINT_ID`, `RUNPOD_MODEL`) + `runpod` in the `PROVIDER`
+   `RUNPOD_ENDPOINT`, `RUNPOD_MODEL`) + `runpod` in the `PROVIDER`
    row; changelog fragment (`req: REQ-YG-010`).
 
 ### Distilled constraints (from `docs/plan-research-runpod.md`)
@@ -118,15 +123,16 @@ def _create_runpod_llm(
 ## Acceptance Criteria
 
 - [ ] AC-01: `create_llm(provider="runpod")` returns a `ChatOpenAI`
-      with `base_url == "https://api.runpod.ai/v2/<RUNPOD_ENDPOINT_ID>/openai/v1"`
-      and `api_key` from `RUNPOD_API_KEY` (mocked unit test).
-- [ ] AC-02: Missing `RUNPOD_ENDPOINT_ID` or empty model raises
+      with `base_url` taken verbatim from `RUNPOD_ENDPOINT` and
+      `api_key` from `RUNPOD_API_KEY` (mocked unit test).
+- [ ] AC-02: Missing `RUNPOD_ENDPOINT` or empty model raises
       `ValueError` naming the missing env var (unit test).
 - [ ] AC-03: `runpod` appears in the factory's valid provider list and
       `DEFAULT_MODELS`; existing provider-registry tests pass unchanged.
 - [ ] AC-04: Gated integration test exercises real `invoke()` and
-      `with_structured_output()` against a live endpoint, OR the FR
-      records the exact blocked command and skip reason.
+      `with_structured_output()` against the live endpoint configured
+      in the local `.env` (Public API `moonshot-kimi` / `kimi-k3`), OR
+      the FR records the exact blocked command and skip reason.
 - [ ] AC-05: `CLAUDE.md` env-var table updated; changelog fragment
       present (`req: REQ-YG-010`).
 - [ ] AC-06: Unit tests tagged `@pytest.mark.req("REQ-YG-010")`;
@@ -142,9 +148,13 @@ def _create_runpod_llm(
   `api_key="not-needed"` — RunPod requires a real key, so this route
   is actually broken, not merely dishonest. Killed by mechanism, not
   taste.
-- **`RUNPOD_BASE_URL` override** (for dedicated pods with direct URLs):
-  purged as speculative — no first consumer. A dedicated-pod user can
-  file the follow-up when the moment exists.
+- **`RUNPOD_ENDPOINT_ID` + URL composition** (original draft): rejected
+  on contact with the first consumer's actual env — the operator's
+  live config targets the RunPod **Public API**, whose URL path segment
+  is a model slug (`moonshot-kimi`), not an account endpoint ID. A full
+  `RUNPOD_ENDPOINT` base URL expresses both Public API and personal
+  serverless endpoints with zero composition logic; the value in the
+  working `.env` is the witness.
 - **New CAP file**: not needed — provider additions live under the
   existing provider capability (REQ-YG-010), per lmstudio precedent
   (`tests/unit/test_lmstudio_provider.py`).
