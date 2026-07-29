@@ -77,6 +77,39 @@ Blocks dangerous terminal patterns *before* the command runs:
 | `--no-verify` | Any git/pre-commit command with the flag | `grep`/`echo` mentioning it |
 | Multiline `-m` | `git commit -m "...\n..."` (dquote trap) | Single-line `-m`, `git commit -F` |
 | Lockdown | When `.lockdown` file is active, **all** tools denied | Only `.github/hooks/cmd unlock` passes through |
+| Authoring route (FR-767) | Unsentineled writes to governed graph artifacts | Sentineled adapter executions; reads, lint, git ops |
+
+### Graph-authoring sole-route guard (FR-767)
+
+Governed paths: `examples/**/graph.yaml`, `examples/**/prompts/*.yaml`,
+`graphs/*.yaml`, `.chaplain/graphs/*.yaml` (path-based bright line, C-4 —
+tracked artifacts included, R-2).
+
+**Write surfaces checked:** file tools (`create_file`,
+`replace_string_in_file`, `multi_replace_string_in_file`, `apply_patch` —
+all paths in `replacements[]` and patch `Add/Update/Move to File:` headers)
+and terminal shapes (`>`/`>>` redirects, `tee`, `sed -i`, `cp`/`mv`/
+`rsync`/`install` destinations including directory copies that would
+materialize governed files, and ambiguous inline writers like
+`python -c 'open(...).write(...)'`). Unparseable write shapes touching a
+governed path are **denied, never approved** (C-5).
+
+**Sentinel lifecycle (C-2):** `scripts/author.sh` generates a per-run
+random token, writes it to `tmp/.authoring-sentinel.<pid>`, and exports
+`YAMLGRAPH_AUTHORING_TOKEN` + `YAMLGRAPH_AUTHORING_SENTINEL` to the child
+authoring execution only. The guard allows a governed write only when the
+env token matches the sentinel file's token. The sentinel is removed on
+adapter exit — there is no global allow-file, and a stale env token or an
+orphaned sentinel file alone never allows.
+
+**Denial wording** names the sole route: `scripts/author.sh
+<task-brief.md>`. There is no in-session escape hatch; if the adapter
+route fails, fix the adapter. Audit reason: `authoring-route`.
+
+**Commit backstop (local-only, C-6):** the `authoring-proof` pre-commit
+hook (`scripts/check_authoring_proof.py`) requires staged NEW governed
+artifacts to be listed in `tmp/draft-authoring-report.md`. It is not a CI
+gate — `tmp/` is ignored and absent in CI.
 
 ### `post-edit-checks` (PostToolUse)
 

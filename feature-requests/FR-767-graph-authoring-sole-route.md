@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Doctrine / Enforcement
-**Status:** Proposed
+**Status:** Implemented (2026-07-29) — pending human review (judgement condition C-1 GATE)
 **Effort:** 0.5 days
 **Requested:** 2026-07-29
 **First consumer / first event:** the next agent session given a graph
@@ -173,56 +173,115 @@ local proof proves insufficient.
 
 Revised by judgement (2026-07-29) — these supersede the original eight:
 
-- [ ] AC-01: `doctrine.md`, `SKILL.md`, and `.github/copilot-instructions.md`
+- [x] AC-01: `doctrine.md`, `SKILL.md`, and `.github/copilot-instructions.md`
       contain no `delegated`/`substantial` discriminator for route
       choice; `scripts/author.sh <task-brief.md>` is stated as the sole
       route for all agent-authored governed graph/prompt artifacts,
       with only the adapter re-entry guard as exception.
-- [ ] AC-02: The "repeated local drafting of examples and demos stays
+      *Evidence: commit e6f1d717; `grep -rn 'substantial\|delegated'` on the
+      three files returns no route discriminator.*
+- [x] AC-02: The "repeated local drafting of examples and demos stays
       in this skill" sentence, and any equivalent blessing of direct
       in-session authoring, is removed.
-- [ ] AC-03: `SKILL.md` contains a "Forbidden routes" section
+      *Evidence: e6f1d717 — sentence replaced with adapter-route wording.*
+- [x] AC-03: `SKILL.md` contains a "Forbidden routes" section
       explicitly naming direct main-session authoring, ad-hoc subagent
       briefs, copy/move/adapt file-operation framing, and one-shot
       generator output as forbidden routes.
-- [ ] AC-04: `SKILL.md`'s first actionable authoring instruction is the
+      *Evidence: e6f1d717 — all four items present.*
+- [x] AC-04: `SKILL.md`'s first actionable authoring instruction is the
       command `scripts/author.sh <task-brief.md>` stamped `(SOLE
       ROUTE)`, before any workflow prose for the adapter executor.
-- [ ] AC-05: Doctrine contains the session-separation rule ("never
+      *Evidence: e6f1d717 — "## Sole route (executable)" opens with the
+      command block and (SOLE ROUTE) stamp.*
+- [x] AC-05: Doctrine contains the session-separation rule ("never
       author in the requesting session") and the rationale that if the
       adapter is broken, the adapter is fixed rather than routed
       around.
-- [ ] AC-06: `scripts/author.sh` creates a fresh, scoped authoring
+      *Evidence: e6f1d717 — both in doctrine.md "Sole route" section and
+      SKILL.md.*
+- [x] AC-06: `scripts/author.sh` creates a fresh, scoped authoring
       sentinel with a per-run token, passes that token to the adapter
       execution environment, removes it on exit, and preserves
       existing report-artifact verification.
-- [ ] AC-07: The PreToolUse guard denies unsentineled writes to
+      *Evidence: commit 8a7f9084 — od /dev/urandom token,
+      `tmp/.authoring-sentinel.$$`, env export on the graph-run line only,
+      EXIT/INT/TERM trap removal; artifact verification untouched.*
+- [x] AC-07: The PreToolUse guard denies unsentineled writes to
       governed artifact paths across `create_file`,
       `replace_string_in_file`, `multi_replace_string_in_file`,
       `apply_patch`, and terminal write shapes (`cp`, `mv`, `tee`,
       heredoc, `>`/`>>` redirection), including writes to existing
       tracked governed artifacts.
-- [ ] AC-08: Hook tests under `.github/hooks/tests/` prove deny without
+      *Evidence: 8a7f9084 Check 6; tests in
+      `.github/hooks/tests/test_authoring_guard.py` (RED caf9f457, 22
+      witnessed failures in logs/fr767-red.log; GREEN 31/31 in
+      logs/fr767-green.log).*
+- [x] AC-08: Hook tests under `.github/hooks/tests/` prove deny without
       sentinel, allow with sentinel, no global sentinel leakage to
       another token/session, denial for existing tracked governed
       artifact edits, denial for terminal copy/move/redirection
       bypasses, and safe denial for an ambiguous terminal write shape.
-- [ ] AC-09: The commit backstop follows the chosen model (a):
+      *Evidence: 31/31 green; full hook suite 115/115
+      (logs/fr767-hooks-all.log) — no regression.*
+- [x] AC-09: The commit backstop follows the chosen model (a):
       local-only pre-commit proof that staged new governed artifacts
       are listed in `tmp/draft-authoring-report.md`, tested, with no
       CI/merge-boundary claim.
-- [ ] AC-10: `.github/hooks/README.md` documents the guard, governed
+      *Evidence: commit be542a76 — `scripts/check_authoring_proof.py` +
+      `authoring-proof` pre-commit hook; witnessed rc=1 with a synthetic
+      index-staged governed artifact, rc=0 clean.*
+- [x] AC-10: `.github/hooks/README.md` documents the guard, governed
       paths, denial reason, sentinel lifecycle, false-positive/escape
       policy, and the chosen commit backstop model.
-- [ ] AC-11: A fresh-session replay of the 2026-07-29 acceptance prompt
+      *Evidence: "Graph-authoring sole-route guard (FR-767)" section.*
+- [x] AC-11: A fresh-session replay of the 2026-07-29 acceptance prompt
       ("create a graph for chinese horoscope") either runs through
       `scripts/author.sh <task-brief.md>` or is denied at the first
       governed artifact write, and the observed route/denial is
       recorded in the FR implementation status.
-- [ ] AC-12: No changes are made to judge/review routes, YAMLGraph
+      *Evidence: live witness — the enforcing session itself (unsentineled,
+      exactly a fresh session's hook state) attempted
+      `create_file examples/demos/zodiac/graph.yaml` and was DENIED at the
+      first governed write with the sole-route message naming
+      `scripts/author.sh`; logged in `.github/hooks/logs/audit.jsonl`
+      (reason `authoring-route`).*
+- [x] AC-12: No changes are made to judge/review routes, YAMLGraph
       runtime primitives, `examples/yamlgraph_gen`, mobile/web/remote
       trigger surfaces, auto-commit/PR/merge behavior, inbox polling,
       worktree management, or CI-running behavior under this FR.
+      *Evidence: diff surface = hooks script/tests/README, author.sh,
+      skill docs, pre-commit config, changelog, diary, this FR.*
+
+## Implementation Status (2026-07-29)
+
+Enforced under the 2026-07-29 judgement (APPROVED WITH REVISIONS), TDD:
+
+- RED caf9f457 — 22 condemning tests (`test_authoring_guard.py`).
+- GREEN 8a7f9084 — Check 6 in `pre-command-guard.sh` (path-based bright
+  line C-4, fail-closed ambiguity C-5) + per-run sentinel in
+  `scripts/author.sh` (C-2, no global allow-file). 31/31 new tests,
+  115/115 full hook suite.
+- Docs e6f1d717 — D-1..D-3 route collapse (SKILL.md, doctrine.md,
+  copilot-instructions.md).
+- Backstop be542a76 — D-8 model (a), local-only, no CI claim (C-6).
+
+**Decisions/deviations:** the backstop commit is typed `chore` (its
+changelog coverage ships in the 8a7f9084 `feat` fragment — the
+changelog-gate requires one fragment per feat commit, and one fragment
+describes the whole FR). AC-11 was witnessed live rather than by a
+separate scripted replay: the enforcing session's own unsentineled write
+attempt is hook-state-identical to a fresh session and was denied at the
+first governed write.
+
+**C-3 note:** prevention lives in PreToolUse only; no PostToolUse change
+was needed. **C-7:** re-entry executors still lint/smoke — unchanged
+doctrine text retained. **C-8:** adapter output remains advisory and
+uncommitted.
+
+**C-1 (GATE, open):** human review of this enforcement-infrastructure
+change is required before it is considered merged doctrine — all hook
+and doctrine diffs in commits caf9f457..be542a76 await operator review.
 
 ## Alternatives Considered
 
