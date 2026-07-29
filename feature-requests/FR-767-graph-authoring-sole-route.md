@@ -116,31 +116,44 @@ ROUTE)** and the task-brief contract; doctrine-reading and workflow
 prose follow as the adapter executor's contract (re-entry context),
 explicitly labeled as such.
 
-### D-4 Mechanize: authoring sentinel hook (two-strike pre-emption)
+### D-4 Mechanize: authoring sentinel + PreToolUse guard (revised per R-1–R-4)
 
-**PreToolUse** guard (not PostToolUse — the hook contract's
-`permissionDecision: "deny"` fires *before* the tool runs, preventing
-the write rather than flagging it after): denies file-write tools
-(`create_file`, edit tools, by `tool_input.filePath`) targeting
-`examples/**/graph.yaml`, `examples/**/prompts/*.yaml`,
-`graphs/*.yaml`, or `.chaplain/graphs/*.yaml` unless an authoring
-sentinel is armed. Coverage must include the **terminal surface**: the
-2026-07-29 strike-1 bypass created the graph via `run_in_terminal`
-(`cp -r`), so the guard also denies terminal commands writing into
-governed paths (`cp`/`mv`/`tee`/shell redirection) — an additional
-pattern family in the existing `pre-command-guard.sh`, not new
-machinery. `scripts/author.sh` arms the sentinel (file under `tmp/`,
-mirroring the reasoning-sentinel one-shot pattern) carrying the
-adapter session identity, consumed/expired on completion. Repairs to
-*existing* committed graphs during non-authoring work (e.g., version
-bump touching a demo) are the known false-positive class — scope the
-deny to new-file creation plus material edits (node/edge/prompt
-changes), warn-only for the rest, and record the discrimination rule
-in the hook README. Hooks govern agent sessions only; the all-routes
-backstop (`enforcement_at_merge_boundary`) is a commit-boundary check
-that a commit introducing a new governed `graph.yaml` includes the
-authoring-report artifact — same layering as the Co-authored-by
-defense (PreToolUse → commit-msg → CI).
+**Sentinel (R-1, scoped, non-global):** `scripts/author.sh` creates a
+per-run sentinel file under `tmp/` containing an unpredictable token
+plus route metadata, passes the token to the adapter execution
+environment, and removes the sentinel on wrapper exit. The PreToolUse
+guard allows governed writes only when the environment token matches a
+fresh sentinel. A global sentinel that allows all sessions while
+present is forbidden. Existing report-artifact verification in
+`author.sh` is preserved.
+
+**Bright-line rule (R-2, path-based, no semantic classifier):** for
+agent sessions, ANY unsentineled write to a governed artifact path is
+denied — new or tracked. Governed paths: `examples/**/graph.yaml`,
+`examples/**/prompts/*.yaml`, `graphs/*.yaml`,
+`.chaplain/graphs/*.yaml`. No "material edit" warn-only carveout — a
+PreToolUse hook cannot classify edit semantics before the edit runs;
+any maintenance escape hatch is a separate explicit operator command
+or separate FR.
+
+**Write surfaces (R-3, enumerated):** PreToolUse coverage includes
+`create_file`, `replace_string_in_file`, `multi_replace_string_in_file`,
+and `apply_patch` paths (shared parsing exists in
+`.github/hooks/scripts/checks/common.sh`), and terminal commands using
+`cp`, `mv`, `tee`, heredocs, or `>`/`>>` redirection into governed
+paths, including quoted-path variants. If a terminal command shape
+cannot be parsed safely, deny with a route-to-`scripts/author.sh`
+message — never fail open. PostToolUse is advisory only; prevention
+lives in PreToolUse.
+
+**Commit backstop (R-4, model chosen: local-only pre-commit proof):**
+a local pre-commit check verifies that any staged NEW governed
+artifact is listed in the current `tmp/draft-authoring-report.md`.
+No CI/merge-boundary claim is made — `tmp/` is ignored and invisible
+in a clean checkout; the existing `demo-gate` (demo-output.log in PR
+diff) remains the PR-boundary complement for new demos. Tracked-proof
++ CI gate (model b) is explicitly deferred to a future FR if the
+local proof proves insufficient.
 
 ### Distilled constraints
 
@@ -158,35 +171,58 @@ defense (PreToolUse → commit-msg → CI).
 
 ## Acceptance Criteria
 
-- [ ] AC-01: `doctrine.md`, `SKILL.md`, and `copilot-instructions.md`
-      contain no "delegated"/"substantial" discriminator; the adapter
-      is stated as the sole route for all governed authoring with the
-      re-entry guard as the only exception.
+Revised by judgement (2026-07-29) — these supersede the original eight:
+
+- [ ] AC-01: `doctrine.md`, `SKILL.md`, and `.github/copilot-instructions.md`
+      contain no `delegated`/`substantial` discriminator for route
+      choice; `scripts/author.sh <task-brief.md>` is stated as the sole
+      route for all agent-authored governed graph/prompt artifacts,
+      with only the adapter re-entry guard as exception.
 - [ ] AC-02: The "repeated local drafting of examples and demos stays
-      in this skill" sentence (or equivalent blessing of direct
-      in-session authoring) is removed.
-- [ ] AC-03: SKILL.md has a "Forbidden routes" section explicitly
-      naming direct main-session authoring of new graph/prompt
-      artifacts.
-- [ ] AC-04: SKILL.md's first actionable content is the
-      `scripts/author.sh` invocation stamped (SOLE ROUTE), before any
-      direct-workflow prose.
+      in this skill" sentence, and any equivalent blessing of direct
+      in-session authoring, is removed.
+- [ ] AC-03: `SKILL.md` contains a "Forbidden routes" section
+      explicitly naming direct main-session authoring, ad-hoc subagent
+      briefs, copy/move/adapt file-operation framing, and one-shot
+      generator output as forbidden routes.
+- [ ] AC-04: `SKILL.md`'s first actionable authoring instruction is the
+      command `scripts/author.sh <task-brief.md>` stamped `(SOLE
+      ROUTE)`, before any workflow prose for the adapter executor.
 - [ ] AC-05: Doctrine contains the session-separation rule ("never
-      author in the requesting session") and the fix-the-adapter
-      rationale.
-- [ ] AC-06: A PreToolUse guard denies unsentineled creation of new
-      `graph.yaml`/`prompts/*.yaml` under governed trees — on both the
-      file-write tool surface and the terminal surface (cp/mv/tee/
-      redirection) — with a test under `.github/hooks/tests/` proving
-      deny (no sentinel), allow (sentinel armed), and warn-only
-      (material edit to existing committed graph).
-- [ ] AC-07: `scripts/author.sh` arms the sentinel before the adapter
-      graph runs and disarms after; a re-run of the 2026-07-29
-      acceptance test ("create a graph for chinese horoscope") through
-      a fresh session either uses the adapter or is denied at the
-      first artifact write.
-- [ ] AC-08: Hook README documents the guard, the sentinel lifecycle,
-      and the false-positive discrimination rule.
+      author in the requesting session") and the rationale that if the
+      adapter is broken, the adapter is fixed rather than routed
+      around.
+- [ ] AC-06: `scripts/author.sh` creates a fresh, scoped authoring
+      sentinel with a per-run token, passes that token to the adapter
+      execution environment, removes it on exit, and preserves
+      existing report-artifact verification.
+- [ ] AC-07: The PreToolUse guard denies unsentineled writes to
+      governed artifact paths across `create_file`,
+      `replace_string_in_file`, `multi_replace_string_in_file`,
+      `apply_patch`, and terminal write shapes (`cp`, `mv`, `tee`,
+      heredoc, `>`/`>>` redirection), including writes to existing
+      tracked governed artifacts.
+- [ ] AC-08: Hook tests under `.github/hooks/tests/` prove deny without
+      sentinel, allow with sentinel, no global sentinel leakage to
+      another token/session, denial for existing tracked governed
+      artifact edits, denial for terminal copy/move/redirection
+      bypasses, and safe denial for an ambiguous terminal write shape.
+- [ ] AC-09: The commit backstop follows the chosen model (a):
+      local-only pre-commit proof that staged new governed artifacts
+      are listed in `tmp/draft-authoring-report.md`, tested, with no
+      CI/merge-boundary claim.
+- [ ] AC-10: `.github/hooks/README.md` documents the guard, governed
+      paths, denial reason, sentinel lifecycle, false-positive/escape
+      policy, and the chosen commit backstop model.
+- [ ] AC-11: A fresh-session replay of the 2026-07-29 acceptance prompt
+      ("create a graph for chinese horoscope") either runs through
+      `scripts/author.sh <task-brief.md>` or is denied at the first
+      governed artifact write, and the observed route/denial is
+      recorded in the FR implementation status.
+- [ ] AC-12: No changes are made to judge/review routes, YAMLGraph
+      runtime primitives, `examples/yamlgraph_gen`, mobile/web/remote
+      trigger surfaces, auto-commit/PR/merge behavior, inbox polling,
+      worktree management, or CI-running behavior under this FR.
 
 ## Alternatives Considered
 
@@ -231,3 +267,37 @@ structural template.
 - `.github/hooks/README.md`, `post-edit-checks.json` — hook wiring
 - Scripture: `two_strike_split`, `gate_checks_shape_not_substance`,
   `detection_without_enforcement`
+
+## Judgement (2026-07-29)
+
+**Verdict:** APPROVED WITH REVISIONS — rendered via the sole-route
+judge adapter (`scripts/judge.sh`, model gpt-5.5, session 7062b11f);
+full artifact archived in
+`FR-767-graph-authoring-sole-route.judgement.md`. R-1–R-4 folded into
+this FR 2026-07-29; authority active.
+
+| # | Finding | Resolution (binding) |
+|---|---------|----------------------|
+| R-1 | Sentinel undefined against concurrent sessions — a global `tmp/.authoring-sentinel` would allow ALL sessions while armed | Per-run unpredictable token in the sentinel, matched against the adapter execution environment; removed on wrapper exit (folded into D-4 + AC-06) |
+| R-2 | "Material edits" warn-only carveout contradicts sole-route claim and is not mechanically testable pre-edit | Bright line: ANY unsentineled write to a governed path is denied, new or tracked; no semantic classifier in the hook (folded + AC-07) |
+| R-3 | Write surfaces underspecified — enforcement risk of a "regex costume" | Enumerated: 4 file-write tools + terminal cp/mv/tee/heredoc/redirection incl. quoted paths; unparseable shapes deny, never fail open (folded + AC-07/08) |
+| R-4 | Commit backstop claimed merge-boundary coverage from an ignored `tmp/` artifact invisible in clean checkouts | Model (a) chosen: local-only pre-commit proof, no CI claim; demo-gate remains the PR-boundary complement; tracked-proof+CI deferred (folded + AC-09) |
+
+**Scope frozen:** D-1–D-10 per the judgement artifact (doctrine/skill/
+instructions route collapse, Forbidden routes, wrapper reorder,
+sentinel in `author.sh`, PreToolUse guard, hook tests, hook README,
+local pre-commit backstop, FR status, changelog/diary as gates
+require).
+
+**Not authorized:** changes to judge/review routes; launching another
+judge; runtime primitive or copilot-node changes; reviving
+`examples/yamlgraph_gen`; remote authoring triggers; auto-commit/PR/
+merge/inbox/worktree/CI behavior in the adapter; global hook bypasses;
+silent fallback from a denied write to in-session authoring.
+
+**Conditions C-1–C-8 GATE** — notably: C-1 human review before merge
+(enforcement infrastructure = adversarial input); C-2 token-bound
+sentinel; C-3 prevention in PreToolUse, PostToolUse advisory only;
+C-4 path-based materiality; C-5 deny on unparseable shapes; C-6 no
+PR-gate claim from ignored `tmp/` state; C-7 re-entry executor still
+lints and smokes; C-8 adapter output stays advisory and uncommitted.
