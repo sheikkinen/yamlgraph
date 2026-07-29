@@ -67,6 +67,11 @@ flowchart TB
 The loop is closed: **code produces diary entries → diary entries produce doctrine → doctrine
 constrains the next code**.
 
+For the historical lineage of this rite--feature requests as a small-batch
+descendant of waterfall-era requirements, stage-gate, change-control, V-model,
+and traceability practices--see
+[Feature-Request Methodology in Historical Context](feature-request-methodology.md).
+
 ---
 
 ## 2. The Doctrine Layer
