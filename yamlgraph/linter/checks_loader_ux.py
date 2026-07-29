@@ -56,7 +56,7 @@ def check_prompt_messages_contract(
                     message=f"Node '{node_name}': {e}",
                     fix=(
                         f"Rewrite '{prompt_name}' with top-level 'system:' "
-                        "and 'user:' keys (see author-prompt skill)."
+                        "and 'user:' keys (see reference/prompt-yaml.md)."
                     ),
                 )
             )

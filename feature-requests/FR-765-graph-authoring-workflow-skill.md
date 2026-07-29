@@ -450,3 +450,31 @@ scope-boundary pointers up to `graph-authoring`, closing the discovery
 overlap where "create a new graph" triggers matched the syntax skills
 first. No doctrine content was duplicated; all pointers reference the
 canonical files.
+
+Post-enforcement addendum 2 (2026-07-29, operator-directed skill
+retirement): the operator directed removal of the `author-graph` and
+`author-prompt` syntax skills as obsolete — they were distillations of
+`reference/graph-yaml.md` / `reference/prompt-yaml.md`, and the
+`graph-authoring` workflow skill made the intermediary layer redundant.
+A preservation audit found three unique knowledge blocks, migrated
+before deletion: (1) python-tool `path:` vs `module:` guidance with the
+FR-744 field incident → `reference/graph-yaml.md` Tools Definition
+(plus a `path` row in the property table); (2) the "NOT supported:
+`messages:` role lists" FR-744 incident → `reference/prompt-yaml.md`
+Prompt Sections callout; (3) the "one prompt = one subagent brief"
+prompt contract (5 clauses, FR-581–587 pipeline-split lesson, FR-497
+invariants, W026-as-split-signal, `examples/abstraction_span` harness)
+→ new `reference/prompt-yaml.md` "The Prompt Contract" section. Synced
+surfaces: TIER_1_SKILLS reduced to five with `RETIRED_SKILLS` absence
+tests (RED 0a58b144), AC-03's composition assertion amended to require
+`reference/graph-yaml.md`/`reference/prompt-yaml.md` in the skill text,
+CAP-158 modules/description rewritten (seven → five skills),
+ARCHITECTURE.md regenerated, `graph-authoring` SKILL.md/doctrine.md
+composition and anti-pattern language repointed at the reference docs,
+and the E006 loader-UX fix text plus `check_messages_contract` error
+message now cite `reference/prompt-yaml.md` instead of the retired
+skill. This supersedes addendum 1's scope-boundary pointers in the two
+retired SKILL.md files (deleted with the skills). Deviation note: AC-03
+and AC-07 as frozen referenced composition with the author-* skills;
+the operator-directed retirement amends those criteria to reference-doc
+composition — recorded here as the authoritative deviation.

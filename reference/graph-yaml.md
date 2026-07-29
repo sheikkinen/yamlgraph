@@ -1336,9 +1336,14 @@ Execute Python functions directly:
 
 ```yaml
 tools:
+  my_python_tool:
+    type: python
+    path: tools.py                  # GRAPH-RELATIVE file — use for graph-local tools
+    function: my_function
+
   generate_images:
     type: python
-    module: examples.storyboard.nodes.image_node
+    module: examples.storyboard.nodes.image_node   # dotted IMPORT — needs importable package
     function: generate_images_node
     description: "Generate images for each story panel"
 ```
@@ -1348,9 +1353,17 @@ tools:
 | Property | Type | Required | Description |
 |----------|------|----------|-------------|
 | `type` | `string` | Yes | Must be `"python"` |
-| `module` | `string` | Yes | Full Python module path |
+| `path` | `string` | One of `path`/`module` | Graph-relative Python file (e.g. `tools.py`) |
+| `module` | `string` | One of `path`/`module` | Full dotted Python module path |
 | `function` | `string` | Yes | Function name in the module |
 | `description` | `string` | No | Human-readable description |
+
+**`path:` vs `module:`:** graphs with a sibling `tools.py` (chaplain
+graphs, standalone graph dirs) must use `path: tools.py`; `module:`
+requires the module on `sys.path` and fails from graph directories as
+`Cannot import module 'tools': No module named 'tools'` (strict mode
+names the tool, not the fix). Field incident: FR-744 enforce,
+2026-07-17 — the philosopher precedent (`path:`) is the working form.
 
 **Function signature:**
 The Python function must accept `state: dict[str, Any]` and return a `dict` with state updates:

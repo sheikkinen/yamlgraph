@@ -38,7 +38,7 @@ def check_messages_contract(content: object, prompt_name: str) -> None:
         raise ValueError(
             f"Prompt '{prompt_name}' uses 'messages:' role list — YAMLGraph "
             "prompts use top-level 'system:' and 'user:' keys "
-            "(see author-prompt skill)."
+            "(see reference/prompt-yaml.md)."
         )
 
 

@@ -41,6 +41,12 @@ template: |
 
 ## Prompt Sections
 
+> **NOT supported: `messages:` role lists.** Prompts use TOP-LEVEL
+> `system:` / `user:` keys — an OpenAI/Anthropic-style
+> `messages: [{role, content}]` block fails at runtime as
+> `Node <name> failed: 'user'` (KeyError, no format hint). Field
+> incident: FR-744 enforce, 2026-07-17.
+
 ### `system`
 **Type:** `string` (multiline)
 **Required:** Yes
@@ -551,7 +557,61 @@ user: |
 
 ---
 
+## The Prompt Contract (one prompt = one subagent brief)
+
+A prompt is a brief handed to a worker who **cannot push back, ask a
+clarifying question, or remember its prior calls.** That makes contract
+discipline *more* essential for a prompt than for a subagent, not less.
+Every fused responsibility and ambiguity is absorbed silently and
+degrades the output silently.
+
+The project learned this the expensive way: four feature requests
+(FR-581–585) failed to lift a prompt's precision by *rewording* a single
+call that spanned **ten abstraction levels** (comprehend → causal →
+temporal-delta → salience → ontology → theory-of-mind → token-fidelity →
+serialization → self-correct). Rewording only shuffles load between
+levels; it never removes one. The fix was a **pipeline split** (FR-587):
+one node comprehends, code does the bookkeeping.
+
+**The prompt contract (5 clauses):**
+
+1. **One judgement / one abstraction level** — comprehension XOR
+   encoding, not both.
+2. **Closed inputs** — pass only the state the task needs (see the K4
+   scope gate in `examples/book_reviewer`).
+3. **One output shape, fully validator-covered** — if the validator
+   can't check a job, don't trust the model to do it alone. The
+   uncovered fraction is where output floods.
+4. **Stateless** — never "reuse the earlier token / remember what an
+   earlier call did." A per-unit LLM call is stateless across units;
+   externalize cross-unit state into the inputs or into **code**.
+5. **Bounded** — explicit "do X, **not** Y" (e.g. "do not also
+   serialize / self-correct your prior output").
+
+**The rule:** if a prompt spans abstraction levels, it is a **pipeline
+to split, not a prompt to tune.** Move the mechanizable levels (delta,
+salience, serialization, cross-unit constraints) into code; leave the
+model one judgement. Two enforced invariants from FR-497: *no LLM call
+sees the whole corpus; no LLM emits a number* — numbers come from a
+deterministic reduce.
+
+**Enforcement:** the `W026` lint rule
+([yamlgraph/linter/checks_prompts.py](../yamlgraph/linter/checks_prompts.py))
+flags prompts that fuse too many judgements — by inline-schema field
+count (≥ 4 top-level output fields) or curated multi-output /
+global-constraint prose phrases.
+[examples/abstraction_span](../examples/abstraction_span) is the
+calibration harness. Run `yamlgraph graph lint <graph>` and treat a
+W026 as a split signal, not a nuisance.
+
+---
+
 ## Best Practices
+
+### 0. One Judgement Per Prompt
+
+Honor the prompt contract above; a prompt spanning abstraction levels
+is a pipeline to split (W026), not a prompt to tune.
 
 ### 1. Always Include Descriptions
 

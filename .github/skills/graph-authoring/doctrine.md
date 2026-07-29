@@ -27,8 +27,8 @@ Before authoring anything, search committed precedent in this order:
 1. `examples/demos/` — smallest runnable patterns (start here).
 2. `examples/` — full applications with tools and tests.
 3. `.chaplain/graphs/` — process/pipeline graph shapes.
-4. `reference/graph-yaml.md` and `reference/prompt-yaml.md` via the
-   `author-graph` and `author-prompt` skills — syntax only.
+4. `reference/graph-yaml.md`, `reference/prompt-yaml.md`, and
+   `reference/expressions.md` — syntax only.
 
 Choose the smallest existing pattern and adapt it. Copying a working
 committed graph beats inventing a new shape; a new abstraction requires
@@ -118,5 +118,6 @@ one-off feature work goes Plan → Judge → Enforce via Chaplain.
   handlers that convert failure into success-shaped output.
 - **Remote/mobile create-and-run collapse**: auto-running uncommitted or
   generated graphs from remote requests.
-- **Syntax duplication**: restating `author-graph`/`author-prompt`
-  reference material here instead of consulting those skills.
+- **Syntax duplication**: restating `reference/graph-yaml.md` /
+  `reference/prompt-yaml.md` reference material here instead of
+  consulting those docs.
