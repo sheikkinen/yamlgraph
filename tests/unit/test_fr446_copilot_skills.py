@@ -4,6 +4,11 @@ FR-765 extends the registry with the `graph-authoring` workflow skill and
 upgrades the tests from presence checks to substance checks (judgement R-2:
 `substance_over_presence` — a gate that checks "does X exist?" must also
 check "does X say something?").
+
+2026-07-29 (operator-directed, FR-765 addendum): the `author-graph` and
+`author-prompt` syntax skills are retired — their unique content was folded
+into `reference/graph-yaml.md` / `reference/prompt-yaml.md`, and
+`graph-authoring` composes the reference docs directly.
 """
 
 from __future__ import annotations
@@ -16,13 +21,16 @@ import yaml
 SKILLS_DIR = Path(__file__).resolve().parent.parent.parent / ".github" / "skills"
 
 TIER_1_SKILLS = [
-    "author-graph",
-    "author-prompt",
     "release-version",
     "chaplain-ops",
     "run-code-analysis",
     "feature-request",
     "graph-authoring",
+]
+
+RETIRED_SKILLS = [
+    "author-graph",
+    "author-prompt",
 ]
 
 
@@ -51,6 +59,14 @@ class TestCopilotSkillPromotion:
         assert (
             len(content) > 100
         ), f"SKILL.md for {skill_name} too short ({len(content)} bytes)"
+
+    @pytest.mark.parametrize("skill_name", RETIRED_SKILLS)
+    def test_retired_skill_removed(self, skill_name: str) -> None:
+        """Retired syntax skills must not linger — their content lives in
+        the reference docs now (2026-07-29 retirement)."""
+        assert not (
+            SKILLS_DIR / skill_name
+        ).exists(), f"{skill_name} is retired; content belongs in reference/"
 
     @pytest.mark.parametrize("skill_name", TIER_1_SKILLS)
     def test_skill_frontmatter_substance(self, skill_name: str) -> None:
@@ -94,11 +110,12 @@ class TestGraphAuthoringWorkflowSkill:
                 heading.lower() in doctrine_text.lower()
             ), f"doctrine.md missing required section: {heading}"
 
-    def test_composes_with_author_skills(self, skill_text: str) -> None:
-        """AC-03: composes with author-graph and author-prompt as syntax
-        references instead of duplicating them."""
-        assert "author-graph" in skill_text
-        assert "author-prompt" in skill_text
+    def test_composes_with_reference_docs(self, skill_text: str) -> None:
+        """AC-03 (amended 2026-07-29): composes with the syntax reference
+        docs directly instead of duplicating them; the author-graph /
+        author-prompt intermediary skills are retired."""
+        assert "reference/graph-yaml.md" in skill_text
+        assert "reference/prompt-yaml.md" in skill_text
 
     def test_rejects_one_shot_generator_with_precedent(
         self, skill_text: str, doctrine_text: str
