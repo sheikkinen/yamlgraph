@@ -54,6 +54,7 @@ class TestArchitectureProviderCount:
             "mistral",
             "openai",
             "replicate",
+            "runpod",
             "vertex",
             "xai",
         }

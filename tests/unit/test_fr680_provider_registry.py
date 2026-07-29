@@ -19,7 +19,7 @@ from yamlgraph.utils.llm_providers import (
 
 
 @pytest.mark.req("REQ-YG-010", "REQ-YG-011")
-def test_registry_covers_all_eleven_providers():
+def test_registry_covers_all_twelve_providers():
     """Every supported provider has exactly one registry entry."""
     assert set(_PROVIDER_FACTORIES) == {
         "anthropic",
@@ -31,6 +31,7 @@ def test_registry_covers_all_eleven_providers():
         "mistral",
         "openai",
         "replicate",
+        "runpod",
         "vertex",
         "xai",
     }
