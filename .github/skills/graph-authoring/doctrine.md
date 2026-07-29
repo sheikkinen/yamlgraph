@@ -83,21 +83,26 @@ Local validation is mandatory, command-backed, and honest:
   in the artifact report. A blocked validation is a blocked validation —
   never claim success, and never substitute a weaker check silently.
 
-## Delegation (artifact-closed, not judgement)
+## Sole route (adapter execution, artifact-closed)
 
-For substantial graph creation, delegate with an **artifact-closed
-delegation brief**: closed inputs (task + named committed artifacts),
-explicit expected artifacts, no hidden chat narrative, and a returned
-artifact report per the contract above. The executable delegation route
-is the adapter: `scripts/author.sh <task-brief.md>` (see
-`adapters/README.md`). Re-entry guard (narrowed): an agent launched BY
+ALL graph authoring — there is no materiality threshold — runs through
+an **artifact-closed adapter execution**: closed inputs (task + named
+committed artifacts), explicit expected artifacts, no hidden chat
+narrative, and a returned artifact report per the contract above. The
+sole executable route is the adapter: `scripts/author.sh <task-brief.md>`
+(see `adapters/README.md`). The requesting session writes the brief and
+runs the adapter; it never authors the artifact itself. The route is
+enforced mechanically (FR-767): unsentineled writes to governed graph
+artifact paths are denied by the PreToolUse guard. If the route fails,
+fix the adapter and rerun — route failure is never a license to author
+manually. Re-entry guard (narrowed): an agent launched BY
 the adapter is the authoring execution itself — it must not invoke the
 `graph-authoring` skill, `scripts/author.sh`, the adapter graph, or any
 command relaunching the route; running `yamlgraph graph lint` and
 narrow smoke commands against the graphs it authors remains required.
 
-This is workflow delegation, not FR judgement or PR review. The brief
-and the delegate **must not invoke** `judge-fr`, `review-pr`, their
+This is workflow execution, not FR judgement or PR review. The brief
+and the authoring execution **must not invoke** `judge-fr`, `review-pr`, their
 adapters, or any judgement/review graph, and must not use verdict
 vocabulary (approved, rejected, condemned, verdict) in the report.
 
@@ -112,8 +117,9 @@ directly when:
 - Acceptance requires judged scope (multi-file feature work with
   constraints worth freezing).
 
-Repeated local drafting of examples and demos stays in this skill;
-one-off feature work goes Plan → Judge → Enforce via Chaplain.
+Graph artifact authoring — examples, demos, pipelines — goes through
+the adapter route above; one-off feature work goes Plan → Judge →
+Enforce via Chaplain.
 
 ## Anti-patterns
 

@@ -20,30 +20,51 @@ materialized a new demo whose provider silently defaulted wrong until
 lint caught W016 — exactly the failure the doctrine's validation loop
 exists to catch).
 
-## To author a graph
-
-Read `.github/skills/graph-authoring/doctrine.md` and follow its
-workflow: research precedent → name the artifact boundary → choose the
-smallest pattern → author → validate locally → repair → report the
-verified artifact. Honor its input closure: task request + committed
-repo artifacts + explicit user-provided files only.
-
-## Executable route for delegated authoring
-
-**Sole route:** delegated authoring runs ONLY through the adapter (see
-`adapters/README.md` for flags and the artifact-proof rule) — ad-hoc
-subagent briefs that bypass the wrapper are forbidden:
+## Sole route (executable)
 
 ```bash
 scripts/author.sh <task-brief.md>
 ```
 
-The adapter graph launches a copilot node that reads `doctrine.md`,
-authors the files, validates them, and writes
+**(SOLE ROUTE)** — ALL graph authoring runs through this adapter (see
+`adapters/README.md` for flags and the artifact-proof rule). There is
+no separate "direct" or "delegated" tier and no materiality
+discriminator: if the artifact class is governed, the route is the
+adapter. The adapter graph launches a copilot node that reads
+`doctrine.md`, authors the files, validates them, and writes
 `tmp/draft-authoring-report.md`. Output is advisory and uncommitted.
-Exception (re-entry guard): an agent already launched BY this adapter
-is the authoring execution itself — it authors directly and must not
-relaunch the route.
+Verify by the report artifact, never exit code.
+
+The route is mechanically enforced (FR-767): `author.sh` arms a per-run
+sentinel token, and the PreToolUse guard (`pre-command-guard.sh`) denies
+any unsentineled write to governed paths — `examples/**/graph.yaml`,
+`examples/**/prompts/*.yaml`, `graphs/*.yaml`, `.chaplain/graphs/*.yaml`
+— across file tools and terminal write shapes, failing closed on
+ambiguity. If the adapter route fails, **fix the adapter and rerun** —
+the failure of the enforcement route is a defect in the route, never a
+license to author manually.
+
+Session separation (judge parity): the requesting session writes the
+task brief and runs the adapter; it does not author the artifact itself.
+Exception (re-entry guard): an agent already launched BY this adapter is
+the authoring execution — it authors directly per `doctrine.md` (research
+precedent → name the artifact boundary → choose the smallest pattern →
+author → validate locally → repair → report), honors the input closure
+(task brief + committed repo artifacts + explicit user-provided files
+only), and must not relaunch the route.
+
+## Forbidden routes
+
+- **Direct main-session authoring** — writing governed graph artifacts
+  from the requesting session, however small the edit.
+- **Ad-hoc subagent briefs** — delegating authoring to a subagent
+  outside the adapter wrapper.
+- **Copy/move/adapt framing** — "mv", "cp", "adapt", "tweak" of a
+  governed artifact is authoring of a new artifact, not a file
+  operation (witnessed 2026-07-29: "mv hello-runpod" materialized a
+  demo whose provider silently defaulted wrong until lint caught W016).
+- **One-shot generation** — the rejected `examples/yamlgraph_gen`
+  single-synthesis model (FR-763).
 
 ## Composition — do not duplicate syntax references
 
