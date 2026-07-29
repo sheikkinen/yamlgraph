@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Enforced (2026-07-29)
+**Status:** Amended (2026-07-29) — round 1 enforced docs-only; executable adapter route pending re-judgement
 **Effort:** 1 day
 **Requested:** 2026-07-28
 **First consumer / first event:** A maintainer repeatedly creating new YAMLGraph
@@ -55,31 +55,58 @@ model to emit graph.yaml."
 
 ## Ideal Result
 
-When a user asks an agent to create a YAMLGraph example, the agent follows a
-single, repeatable graph-authoring workflow: it researches similar committed
-graphs, selects the smallest existing pattern, authors graph and prompt files,
-runs `yamlgraph graph lint` and an appropriate local smoke/demo command, fixes
-failures, and returns only a verified artifact summary. New graph creation becomes
-a delegated, evidence-producing workflow rather than a one-shot text generation
-bet.
+When a user asks for a new YAMLGraph example, one command executes the
+authoring workflow the way `scripts/judge.sh` executes judgement: a thin
+YAMLGraph adapter graph launches a copilot node that reads
+`.github/skills/graph-authoring/doctrine.md`, researches committed precedent,
+authors graph and prompt files, runs `yamlgraph graph lint` plus the narrowest
+smoke command, repairs failures, and writes an artifact report. Graph creation
+becomes a mechanized, evidence-producing execution route — not advice the
+agent may or may not follow — while the doctrine stays the single
+non-invocable source of workflow truth.
 
 ## Proposed Solution
 
-Add a new workflow skill package, tentatively:
+Wrap graph authoring as a copilot-node-styled executable skill, mirroring the
+`judge-fr` bundle shape (doctrine + thin adapter + operator wrapper):
 
 ```text
 .github/skills/graph-authoring/
-├── SKILL.md
-└── doctrine.md
+├── SKILL.md            # discovery wrapper (delivered round 1)
+├── doctrine.md         # canonical workflow contract (delivered round 1)
+└── adapters/
+    ├── README.md       # execution instructions, load-bearing flags
+    ├── graph.yaml      # copilot node, thin pointer to ../doctrine.md
+    └── prompts/
+        └── author.yaml # zero-duplication pointer prompt + re-entry guard
+scripts/author.sh       # operator wrapper (mirrors scripts/judge.sh)
 ```
 
-The skill is distinct from the current low-level skills:
+The adapter follows the `judge-fr` adapter contract exactly:
+
+- **Thin pointer, zero duplication**: no doctrine in the adapter; the copilot
+  node's prompt instructs the agent to read
+  `.github/skills/graph-authoring/doctrine.md` and follow it.
+- **Re-entry guard**: the launched agent IS the authoring execution — it must
+  author directly and never re-invoke the skill, the adapter graph, or
+  yamlgraph-launching commands (the judge-fr NC-414 recursion guard, adapted).
+- **Copilot node** with `backend: cli`, `allow_all_paths`/`allow_all_tools`
+  (load-bearing for non-interactive file writes — NC-414 precedent), model
+  pinned, generous timeout (authoring includes lint/smoke loops).
+- **Artifact verification by existence, not exit code**: the run is judged by
+  the authored files plus a written artifact report
+  (`tmp/draft-authoring-report.md`), never by CLI exit status.
+- **Advisory output**: authored files land in the working tree uncommitted;
+  the human reviews and commits. The graph must never auto-commit, open PRs,
+  poll inboxes, manage worktrees, run CI, or merge.
+
+The skill remains distinct from the current low-level skills:
 
 | Skill | Role |
 |---|---|
 | `author-graph` | Syntax reference for graph YAML fields, nodes, edges, state, tools, conditions. |
 | `author-prompt` | Syntax reference for prompt YAML, schemas, Jinja2, and prompt contracts. |
-| `graph-authoring` | End-to-end workflow for creating a complete graph artifact from a task. |
+| `graph-authoring` | Executable end-to-end workflow for creating a complete graph artifact from a task. |
 
 ### Workflow contract
 
@@ -141,45 +168,72 @@ change.
 
 ## Acceptance Criteria
 
-- [ ] AC-01: `.github/skills/graph-authoring/SKILL.md` exists with valid YAML
+Round 1 (delivered 2026-07-29, commits 30fc5a4a + 6d2259fc):
+
+- [x] AC-01: `.github/skills/graph-authoring/SKILL.md` exists with valid YAML
       frontmatter: `name: graph-authoring`, a non-empty `description` containing
       "Use when:", and a non-empty `argument-hint`.
-- [ ] AC-02: `.github/skills/graph-authoring/doctrine.md` exists and defines the
+- [x] AC-02: `.github/skills/graph-authoring/doctrine.md` exists and defines the
       graph-authoring workflow contract: input closure, precedent search,
       artifact boundary/report, local validation, escalation rules, and
       anti-patterns.
-- [ ] AC-03: `SKILL.md` explicitly composes with `author-graph` and
+- [x] AC-03: `SKILL.md` explicitly composes with `author-graph` and
       `author-prompt` as syntax/reference skills and does not duplicate their
       graph-node or prompt-schema reference material beyond brief trigger
       guidance.
-- [ ] AC-04: The skill or doctrine explicitly rejects the one-shot
+- [x] AC-04: The skill or doctrine explicitly rejects the one-shot
       `examples/yamlgraph_gen` path as the default for repeated graph authoring
       and cites the `workspace_is_not_boundary` / FR-763 precedent.
-- [ ] AC-05: The workflow requires `yamlgraph graph lint <graph.yaml>` and the
+- [x] AC-05: The workflow requires `yamlgraph graph lint <graph.yaml>` and the
       narrowest meaningful smoke/demo command when credentials and dependencies
       permit; blocked validation must record the exact blocked command and
       reason, not claim success.
-- [ ] AC-06: The workflow uses "artifact-closed delegation brief" language and
+- [x] AC-06: The workflow uses "artifact-closed delegation brief" language and
       explicitly states it is not FR judgement/review and must not invoke
       `judge-fr`, `review-pr`, their adapters, or any judgement/review graph.
-- [ ] AC-07: `tests/unit/test_fr446_copilot_skills.py` includes
+- [x] AC-07: `tests/unit/test_fr446_copilot_skills.py` includes
       `graph-authoring` under `@pytest.mark.req("REQ-YG-423")` and asserts
       frontmatter validity, non-empty substantive content, required doctrine
       headings, and composition references to `author-graph` and
       `author-prompt`.
-- [ ] AC-08: `capabilities/CAP-158-copilot-skill-promotion.yaml` updates
+- [x] AC-08: `capabilities/CAP-158-copilot-skill-promotion.yaml` updates
       REQ-YG-423 to include `graph-authoring`, and `ARCHITECTURE.md` is
       regenerated so the CAP-158 text and module list match the capability file.
-- [ ] AC-09: A changelog fragment exists in `changelog/unreleased/` with a valid
+- [x] AC-09: A changelog fragment exists in `changelog/unreleased/` with a valid
       requirement reference to REQ-YG-423.
 - [ ] AC-10: The FR is updated with implementation status, decisions, and any
       deviations from this judgement after enforcement.
-- [ ] AC-11: A diary reflection is added if the resulting PR type triggers the
+- [x] AC-11: A diary reflection is added if the resulting PR type triggers the
       repo diary gate.
 - [ ] AC-12: No changes are made to `examples/yamlgraph_gen/`, generated output
       directories, mobile/web trigger channels, judge/review doctrine or
       adapters, hooks, CI workflows, branch protection, or graph-generation
       runtime primitives under this FR.
+
+Round 2 (amendment — executable adapter route, pending re-judgement):
+
+- [ ] AC-13: `.github/skills/graph-authoring/adapters/graph.yaml` exists: a
+      YAMLGraph graph with a single `type: copilot` node (`backend: cli`,
+      `allow_all_paths: true`, `allow_all_tools: true`, pinned model, timeout
+      sized for lint/smoke loops) that passes `yamlgraph graph lint`.
+- [ ] AC-14: `adapters/prompts/author.yaml` is a thin pointer prompt: it
+      instructs the agent to read `../doctrine.md` and follow it, contains a
+      re-entry guard (the launched agent IS the authoring execution and must
+      never re-invoke the skill/adapter/yamlgraph), and duplicates no doctrine
+      content.
+- [ ] AC-15: `scripts/author.sh` operator wrapper exists (mirroring
+      `scripts/judge.sh`): validates arguments, launches the adapter graph,
+      and verifies success by artifact existence (authored files + non-empty
+      `tmp/draft-authoring-report.md`), never by exit code.
+- [ ] AC-16: `adapters/README.md` documents the sole invocation command, the
+      load-bearing CLI flags, the artifact-existence verification rule, and
+      the prohibition on auto-commit/PR/merge actions.
+- [ ] AC-17: `SKILL.md` and `doctrine.md` are updated to name the adapter as
+      the execution route for delegated authoring (keeping doctrine
+      non-invocable and zero-duplicated).
+- [ ] AC-18: Skill promotion tests extend to the adapter surface: graph.yaml
+      lints, prompt is a pointer (no doctrine duplication), wrapper script
+      exists and is executable.
 
 ## Alternatives Considered
 
@@ -254,11 +308,20 @@ verdict vocabulary or judge/review routes.
 
 None.
 
-## Implementation Status (Enforced 2026-07-29)
+## Implementation Status (Round 1 enforced 2026-07-29; amended same day)
 
-Delivered within the frozen scope; only D-1..D-8 surfaces touched (no
-`examples/yamlgraph_gen/`, judge/review doctrine, adapters, hooks, CI, or
-runtime primitives — AC-12/C-1/C-2 held).
+**Amendment (2026-07-29, human correction):** Round 1 delivered the skill as
+pattern documentation only (SKILL.md + doctrine.md + tests + CAP-158). The
+operator's intent was an *executable* copilot-node-styled skill like
+`judge-fr`: a thin YAMLGraph adapter graph whose copilot node executes the
+doctrine, launched by an operator wrapper, verified by artifact existence.
+Round 1 artifacts stand (the doctrine is the canonical contract the adapter
+points to); the missing execution surface is specified in the amended
+Proposed Solution and AC-13..AC-18, pending re-judgement. AC-12's "no new
+runtime primitives" is unaffected — the adapter reuses the existing copilot
+node type exactly as judge-fr's adapter does.
+
+Round 1 delivery (commits 30fc5a4a RED, 6d2259fc GREEN):
 
 - **D-1** `.github/skills/graph-authoring/SKILL.md`: discovery wrapper with
   frontmatter (`name`, `description` with "Use when:" triggers,
