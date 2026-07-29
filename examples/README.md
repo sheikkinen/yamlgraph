@@ -88,6 +88,7 @@ Standalone demos that teach a single YAMLGraph concept. Ordered by the learning 
 | [graph-tool](demos/graph-tool/) | `agent`, `graph` | Agent using a graph pipeline as an opaque tool (FR-658) |
 | [guards](demos/guards/) | `llm` | Deterministic pre/post node guards with explicit policy (FR-344) |
 | [horoscope](demos/horoscope/) | `map`, `llm` | Parallel daily horoscope for 12 zodiac signs |
+| [chinese-horoscope](demos/chinese-horoscope/) | `map`, `llm` | Parallel daily horoscope for the 12 Chinese zodiac animals |
 | [image-that-speaks](demos/image-that-speaks/) | `race`, `python`, `llm` | Adversarial content audit — model-judging-model blindness (FR-666) |
 | [chatterbox](demos/chatterbox/) | `map`, `python` | Multilingual TTS with Chatterbox (5 languages → WAV) |
 | [chatterbox_clone](demos/chatterbox_clone/) | `python` | Voice cloning with Chatterbox reference audio → WAV (FR-236) |

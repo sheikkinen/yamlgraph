@@ -1,0 +1,105 @@
+2026-07-29 21:45:39,651 [INFO] yamlgraph.compile.graph_loader: Parsed 1 Python tools: save_chinese_horoscope
+2026-07-29 21:45:39,655 [INFO] yamlgraph.compile.node_compiler: Added node: generate (type=map)
+2026-07-29 21:45:39,657 [INFO] yamlgraph.compile.node_compiler: Added node: assemble (type=llm)
+2026-07-29 21:45:39,658 [INFO] yamlgraph.compile.node_compiler: Added node: save (type=python)
+2026-07-29 21:45:39,913 [INFO] yamlgraph.utils.llm_factory: Creating LLM: deepseek/deepseek-v4-flash (temp=0.8)
+2026-07-29 21:45:42,160 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 400 Bad Request"
+2026-07-29 21:45:42,161 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 400 Bad Request"
+2026-07-29 21:45:42,161 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 400 Bad Request"
+2026-07-29 21:45:42,162 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 400 Bad Request"
+2026-07-29 21:45:42,162 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 400 Bad Request"
+2026-07-29 21:45:42,162 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 400 Bad Request"
+2026-07-29 21:45:42,162 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 400 Bad Request"
+2026-07-29 21:45:42,163 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 400 Bad Request"
+2026-07-29 21:45:42,163 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 400 Bad Request"
+2026-07-29 21:45:42,164 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 400 Bad Request"
+2026-07-29 21:45:42,164 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 400 Bad Request"
+2026-07-29 21:45:42,191 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 400 Bad Request"
+2026-07-29 21:45:42,223 [INFO] yamlgraph.executor_base: Structured output rejected, falling back to JSON extraction (FR-464)
+2026-07-29 21:45:42,228 [INFO] yamlgraph.executor_base: Structured output rejected, falling back to JSON extraction (FR-464)
+2026-07-29 21:45:42,229 [INFO] yamlgraph.executor_base: Structured output rejected, falling back to JSON extraction (FR-464)
+2026-07-29 21:45:42,232 [INFO] yamlgraph.executor_base: Structured output rejected, falling back to JSON extraction (FR-464)
+2026-07-29 21:45:42,233 [INFO] yamlgraph.executor_base: Structured output rejected, falling back to JSON extraction (FR-464)
+2026-07-29 21:45:42,234 [INFO] yamlgraph.executor_base: Structured output rejected, falling back to JSON extraction (FR-464)
+2026-07-29 21:45:42,239 [INFO] yamlgraph.executor_base: Structured output rejected, falling back to JSON extraction (FR-464)
+2026-07-29 21:45:42,243 [INFO] yamlgraph.executor_base: Structured output rejected, falling back to JSON extraction (FR-464)
+2026-07-29 21:45:42,257 [INFO] yamlgraph.executor_base: Structured output rejected, falling back to JSON extraction (FR-464)
+2026-07-29 21:45:42,266 [INFO] yamlgraph.executor_base: Structured output rejected, falling back to JSON extraction (FR-464)
+2026-07-29 21:45:42,270 [INFO] yamlgraph.executor_base: Structured output rejected, falling back to JSON extraction (FR-464)
+2026-07-29 21:45:42,271 [INFO] yamlgraph.executor_base: Structured output rejected, falling back to JSON extraction (FR-464)
+2026-07-29 21:45:42,574 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-29 21:45:42,581 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-29 21:45:42,581 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-29 21:45:42,582 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-29 21:45:42,583 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-29 21:45:42,585 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-29 21:45:42,586 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-29 21:45:42,586 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-29 21:45:42,592 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-29 21:45:42,684 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-29 21:45:42,684 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-29 21:45:42,684 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-29 21:45:44,270 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_generate_sub completed successfully
+2026-07-29 21:45:44,361 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_generate_sub completed successfully
+2026-07-29 21:45:44,907 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_generate_sub completed successfully
+2026-07-29 21:45:44,935 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_generate_sub completed successfully
+2026-07-29 21:45:45,307 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_generate_sub completed successfully
+2026-07-29 21:45:45,308 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_generate_sub completed successfully
+2026-07-29 21:45:45,359 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_generate_sub completed successfully
+2026-07-29 21:45:45,549 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_generate_sub completed successfully
+2026-07-29 21:45:45,559 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_generate_sub completed successfully
+2026-07-29 21:45:45,717 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_generate_sub completed successfully
+2026-07-29 21:45:45,722 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_generate_sub completed successfully
+2026-07-29 21:45:46,231 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_generate_sub completed successfully
+2026-07-29 21:45:46,540 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-29 21:45:51,077 [INFO] yamlgraph.node_factory.llm_nodes: Node assemble completed successfully
+2026-07-29 21:45:51,079 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: save -> save_chinese_horoscope
+
+🚀 Running graph: graph.yaml
+   Variables: {'date': '2026-07-29'}
+
+🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/f889c0ec-fa9b-4025-b69c-2aa756283ef8/r/019faf32-56de-7693-9e58-e7ed504627f6?poll=true
+============================================================
+RESULT
+============================================================
+  current_step: save
+  date: 2026-07-29
+  readings: [{'_map_index': 0, 'animal': 'Rat', 'reading': 'Your natural quick wit shines today, Rat. Use your charm to bring people together—someone appreciates your cleverness. Lucky number 3 adds a spark to your interactions.'}, {'_map_index': 1, 'animal': 'Ox', 'reading': 'Your steady, methodical nature helps you plow through challenges with grace today, Ox. The Earth element grounds your efforts, so trust your rhythm and avoid rushing—green or brown hues may bring extra luck. Lucky number 8 suggests a small financial opportunity if you stay alert.'}, {'_map_index': 2, 'animal': 'Tiger', 'reading': "Tiger's bold nature is ignited today, driving you to take the lead on a new project. Lucky number 3 encourages creative risks. Embrace your inner strength and charge forward with confidence."}, {'_map_index': 3, 'animal': 'Rabbit', 'reading': 'Your gentle nature and quick wit serve you well today as unexpected opportunities arise. The Wood element enhances your creativity, making it a lucky day for artistic pursuits. Lucky number 3 brings harmony to your social interactions.'}, {'_map_index': 4, 'animal': 'Dragon', 'reading': 'Today, your natural Dragon charisma shines, drawing opportunities your way. The element of Fire fuels your ambition—embrace it with confidence. Lucky number 5 brings extra luck in negotiations.'}, {'_map_index': 5, 'animal': 'Snake', 'reading': 'Your natural intuition sharpens today—trust your gut on a financial matter. The Wood element supports steady growth, so a lucky number like 6 may guide your decisions. Elegance in communication will open unexpected doors.'}, {'_map_index': 6, 'animal': 'Horse', 'reading': 'Your natural enthusiasm is amplified today, Horse. The Fire element ignites your passion for new adventures, and lucky number 3 brings opportunities for connection.'}, {'_map_index': 7, 'animal': 'Goat', 'reading': "The Goat's gentle nature finds balance today under the nourishing Wood element. Creativity flows, making it a perfect day to start an artistic project. Lucky number 3 supports harmonious connections."}, {'_map_index': 8, 'animal': 'Monkey', 'reading': 'Your quick thinking and playful energy attract good fortune today. Embrace a new idea with confidence, as your adaptability turns it into success. Lucky number 9 amplifies your charm.'}, {'_map_index': 9, 'animal': 'Rooster', 'reading': 'Your meticulous nature leads to success today. Trust your instincts and share your insights with others — they will appreciate your clarity. Lucky number 7 brings extra harmony.'}, {'_map_index': 10, 'animal': 'Dog', 'reading': 'Your steadfast loyalty brings harmony today. Trust your instincts and nurture your bonds. Lucky number 3 shines on you.'}, {'_map_index': 11, 'animal': 'Pig', 'reading': 'Your generous nature shines today, Pig, attracting harmony in relationships. Trust your instincts in creative pursuits — lucky number 3 may guide you to a joyful breakthrough. Enjoy simple pleasures with loved ones.'}]
+  document: # Chinese Zodiac Horoscopes for 2026-07-29
+
+## Rat
+Your natural quick wit shines today, Rat. Use your charm to bring people together—someone appreciates your cleverness. Lucky number 3 adds a spark to your interactions.
+
+## Ox
+Your steady, methodical nature helps you plow through challenges with grace today, Ox. The Earth element grounds your efforts, so trust your rhythm and avoid rushing—green or brown hues may bring extra luck. Lucky number 8 suggests a small financial opportunity if you stay alert.
+
+## Tiger
+Tiger's bold nature is ignited today, driving you to take the lead on a new project. Lucky number 3 encourages creative risks. Embrace your inner strength and charge forward with confidence.
+
+## Rabbit
+Your gentle nature and quick wit serve you well today as unexpected opportunities arise. The Wood element enhances your creativity, making it a lucky day for artistic pursuits. Lucky number 3 brings harmony to your social interactions.
+
+## Dragon
+Today, your natural Dragon charisma shines, drawing opportunities your way. The element of Fire fuels your ambition—embrace it with confidence. Lucky number 5 brings extra luck in negotiations.
+
+## Snake
+Your natural intuition sharpens today—trust your gut on a financial matter. The Wood element supports steady growth, so a lucky number like 6 may guide your decisions. Elegance in communication will open unexpected doors.
+
+## Horse
+Your natural enthusiasm is amplified today, Horse. The Fire element ignites your passion for new adventures, and lucky number 3 brings opportunities for connection.
+
+## Goat
+The Goat's gentle nature finds balance today under the nourishing Wood element. Creativity flows, making it a perfect day to start an artistic project. Lucky number 3 supports harmonious connections.
+
+## Monkey
+Your quick thinking and playful energy attract good fortune today. Embrace a new idea with confidence, as your adaptability turns it into success. Lucky number 9 amplifies your charm.
+
+## Rooster
+Your meticulous nature leads to success today. Trust your instincts and share your insights with others — they will appreciate your clarity. Lucky number 7 brings extra harmony.
+
+## Dog
+Your steadfast loyalty brings harmony today. Trust your instincts and nurture your bonds. Lucky number 3 shines on you.
+
+## Pig
+Your generous nature shines today, Pig, attracting harmony in relationships. Trust your instincts in creative pursuits — lucky number 3 may guide you to a joyful breakthrough. Enjoy simple pleasures with loved ones.
+  output_path: outputs/chinese-horoscope-2026-07-29.md

@@ -1,0 +1,18 @@
+schema:
+  name: ChineseHoroscope
+  fields:
+    animal:
+      type: str
+      description: "Chinese zodiac animal name"
+    reading:
+      type: str
+      description: "Daily Chinese zodiac horoscope reading (2-3 sentences)"
+
+system: |
+  You are a concise Chinese zodiac astrologer. Write short, uplifting daily
+  horoscopes grounded in Chinese zodiac tradition.
+
+user: |
+  Write a daily Chinese zodiac horoscope for the {animal} on {date}.
+  Keep it to 2-3 sentences. Include brief flavor from the animal's traditional
+  traits; an element, lucky color, or lucky number may be included if it fits.

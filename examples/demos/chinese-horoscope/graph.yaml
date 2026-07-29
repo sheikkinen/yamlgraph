@@ -1,0 +1,69 @@
+# Chinese Horoscope - Parallel Chinese Zodiac Generator
+# Adapted from examples/demos/horoscope/graph.yaml (FR-201)
+
+version: "1.0"
+name: chinese-horoscope
+description: Generate daily horoscopes for all 12 Chinese zodiac animals in parallel
+
+prompts_relative: true
+prompts_dir: prompts
+
+tools:
+  save_chinese_horoscope:
+    type: python
+    path: tools.py
+    function: save_chinese_horoscope
+    description: Save assembled Chinese zodiac horoscope markdown to outputs/
+
+defaults:
+  temperature: 0.8
+
+state:
+  date: str
+
+nodes:
+  generate:
+    type: map
+    over:
+      - Rat
+      - Ox
+      - Tiger
+      - Rabbit
+      - Dragon
+      - Snake
+      - Horse
+      - Goat
+      - Monkey
+      - Rooster
+      - Dog
+      - Pig
+    as: animal
+    node:
+      prompt: chinese_horoscope
+      state_key: reading
+      variables:
+        animal: "{state.animal}"
+        date: "{state.date}"
+    collect: readings
+
+  assemble:
+    prompt: assemble
+    state_key: document
+    variables:
+      date: "{state.date}"
+      readings: "{state.readings}"
+
+  save:
+    type: python
+    tool: save_chinese_horoscope
+    state_key: output_path
+
+edges:
+  - from: START
+    to: generate
+  - from: generate
+    to: assemble
+  - from: assemble
+    to: save
+  - from: save
+    to: END
