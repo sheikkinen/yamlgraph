@@ -120,6 +120,10 @@ class TestRunpodProvider:
         """AC-02: DEFAULT_MODELS['runpod'] = RUNPOD_MODEL, no hard-coded default."""
         from yamlgraph import config
 
+        # config re-runs load_dotenv() on reload, which would resurrect
+        # RUNPOD_MODEL from the developer's .env — neutralize it so the
+        # test observes the env contract, not the local dotfile.
+        monkeypatch.setattr("dotenv.load_dotenv", lambda *a, **k: False)
         monkeypatch.delenv("RUNPOD_MODEL", raising=False)
         importlib.reload(config)
         assert config.DEFAULT_MODELS["runpod"] == ""

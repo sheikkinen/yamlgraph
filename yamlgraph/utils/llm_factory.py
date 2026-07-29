@@ -29,6 +29,7 @@ ProviderType = Literal[
     "mistral",
     "openai",
     "replicate",
+    "runpod",
     "vertex",
     "xai",
 ]
@@ -65,6 +66,7 @@ _PROVIDER_FINGERPRINT_VARS: dict[str, tuple[str, ...]] = {
     "mistral": ("MISTRAL_API_KEY",),
     "openai": ("OPENAI_API_KEY",),
     "replicate": ("REPLICATE_API_TOKEN",),
+    "runpod": ("RUNPOD_API_KEY", "RUNPOD_ENDPOINT"),
     "vertex": (
         "VERTEX_API_KEY",
         "GOOGLE_CLOUD_PROJECT",

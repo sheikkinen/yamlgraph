@@ -471,6 +471,9 @@ The codebase uses **sync-first with async wrappers**:
 | `MISTRAL_API_KEY` | Mistral authentication |
 | `OPENAI_API_KEY` | OpenAI authentication |
 | `REPLICATE_API_TOKEN` | Replicate authentication |
+| `RUNPOD_API_KEY` | RunPod authentication |
+| `RUNPOD_ENDPOINT` | Full OpenAI-compatible base URL (`https://api.runpod.ai/v2/<slug-or-id>/openai/v1`); serverless cold starts can take tens of seconds — use per-node `timeout`/`on_error: retry` |
+| `RUNPOD_MODEL` | Served model name (required; no default — an endpoint serves exactly one deployment) |
 | `DEEPSEEK_API_KEY` | DeepSeek authentication |
 | `XAI_API_KEY` | xAI Grok authentication |
 | `LMSTUDIO_BASE_URL` | LM Studio local server URL |
@@ -480,7 +483,7 @@ The codebase uses **sync-first with async wrappers**:
 | `YAMLGRAPH_OTEL_DIR` | Optional directory for per-node copilot OTel files (`<dir>/<node_name>.otel.jsonl`); when set, `_execute_cli` exports `COPILOT_OTEL_FILE_EXPORTER_PATH` per node |
 | `YAMLGRAPH_OTEL_EXPORT` | OpenTelemetry span export (FR-759): `otlp` enables graph-run/node-execution spans (requires `pip install "yamlgraph[otel]"`; fails fast if extra missing). Unset = true no-op. See `reference/otel-observability.md` |
 | `YAMLGRAPH_ROUTE_LOG` | Route decision log opt-in (FR-723): `1` emits one JSON line per routing decision on the public `yamlgraph.route` logger; a file path also appends raw JSONL for `graph export --overlay` |
-| `PROVIDER` | Default LLM provider (anthropic/azure/deepseek/google/inception/mistral/openai/replicate/xai/lmstudio) |
+| `PROVIDER` | Default LLM provider (anthropic/azure/deepseek/google/inception/mistral/openai/replicate/runpod/xai/lmstudio) |
 | `LANGCHAIN_TRACING_V2` | Enable LangSmith observability (true/false) |
 | `LANGCHAIN_API_KEY` | LangSmith API key |
 | `LANGCHAIN_PROJECT` | LangSmith project name |

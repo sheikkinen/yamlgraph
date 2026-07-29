@@ -72,6 +72,9 @@ DEFAULT_MODELS = {
     "mistral": os.getenv("MISTRAL_MODEL", "mistral-large-latest"),
     "openai": os.getenv("OPENAI_MODEL", "gpt-4o"),
     "replicate": os.getenv("REPLICATE_MODEL", "ibm-granite/granite-4.0-h-small"),
+    # FR-766: no hard-coded default — a RunPod endpoint serves exactly the
+    # model it was deployed with; the factory fails fast on empty model.
+    "runpod": os.getenv("RUNPOD_MODEL", ""),
     "vertex": os.getenv("VERTEX_MODEL", "gemini-2.0-flash"),
     "xai": os.getenv("XAI_MODEL", "grok-4-1-fast-reasoning"),
     "azure": os.getenv("AZURE_MODEL", "gpt-4o"),

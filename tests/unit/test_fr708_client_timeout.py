@@ -30,6 +30,7 @@ _TIMEOUT_PARAM = {
     "mistral": "timeout",
     "openai": "timeout",
     "replicate": "request_timeout",
+    "runpod": "timeout",
     "vertex": "timeout",
     "xai": "timeout",
 }
@@ -45,6 +46,7 @@ _WRAPPER_PATH = {
     "mistral": "langchain_mistralai.ChatMistralAI",
     "openai": "langchain_openai.ChatOpenAI",
     "replicate": "langchain_litellm.ChatLiteLLM",
+    "runpod": "langchain_openai.ChatOpenAI",
     "vertex": "langchain_google_genai.ChatGoogleGenerativeAI",
     "xai": "langchain_openai.ChatOpenAI",
 }
@@ -54,6 +56,8 @@ _ENV = {
     "AZURE_AI_API_KEY": "k",
     "REPLICATE_API_TOKEN": "k",
     "GOOGLE_CLOUD_PROJECT": "p",
+    "RUNPOD_ENDPOINT": "https://api.runpod.ai/v2/x/openai/v1",
+    "RUNPOD_API_KEY": "k",
 }
 
 

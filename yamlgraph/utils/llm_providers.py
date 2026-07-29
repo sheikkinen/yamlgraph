@@ -378,6 +378,33 @@ def _create_xai_llm(model: str, temperature: float, **kwargs: object) -> BaseCha
     )
 
 
+def _create_runpod_llm(
+    model: str, temperature: float, **kwargs: object
+) -> BaseChatModel:
+    """Create RunPod LLM via its OpenAI-compatible endpoint (FR-766).
+
+    RUNPOD_ENDPOINT is the full base URL (Public API model slug or
+    serverless vLLM id); all three env inputs fail fast here (R-1).
+    """
+    from langchain_openai import ChatOpenAI
+
+    base_url = os.getenv("RUNPOD_ENDPOINT")
+    if not base_url:
+        raise ValueError("RUNPOD_ENDPOINT is required for provider 'runpod'")
+    api_key = os.getenv("RUNPOD_API_KEY")
+    if not api_key:
+        raise ValueError("RUNPOD_API_KEY is required for provider 'runpod'")
+    if not model:
+        raise ValueError("RUNPOD_MODEL is required for provider 'runpod'")
+    return ChatOpenAI(
+        model=model,
+        temperature=temperature,
+        base_url=base_url,
+        api_key=api_key,
+        **_bounded(dict(kwargs)),
+    )
+
+
 # Providers whose factory accepts a `thinking_budget` argument (FR-680).
 _THINKING_PROVIDERS = frozenset({"anthropic", "google", "vertex"})
 
@@ -393,6 +420,7 @@ _PROVIDER_FACTORIES = {
     "mistral": _create_mistral_llm,
     "openai": _create_openai_llm,
     "replicate": _create_replicate_llm,
+    "runpod": _create_runpod_llm,
     "vertex": _create_vertex_llm,
     "xai": _create_xai_llm,
 }

@@ -28,6 +28,15 @@ class TinyAnswer(BaseModel):
     confident: bool = Field(description="Whether the answer is certain")
 
 
+# Field finding (2026-07-29, moonshot-kimi/kimi-k3): the Public API 500s
+# (bare "internal server error", not a 400) on any temperature != 1.0 —
+# kimi-k3 is a reasoning model, same class as OpenAI o1/o3 (FR-455).
+# Witnessed by curl: temperature 0.0 and 0.7 -> HTTP 500; 1.0 -> 200.
+# Model-specific, so the witness pins the accepted value rather than
+# teaching the factory to guess reasoning-model prefixes per endpoint.
+_TEMP = 1.0
+
+
 @requires_runpod
 class TestRunpodLive:
     """Real calls against the endpoint configured in the environment."""
@@ -37,7 +46,7 @@ class TestRunpodLive:
 
     @pytest.mark.req("REQ-YG-010")
     def test_runpod_invoke(self):
-        llm = create_llm(provider="runpod", temperature=0.0)
+        llm = create_llm(provider="runpod", temperature=_TEMP)
         result = llm.invoke("Reply with the single word: pong")
         assert isinstance(result.content, str)
         assert len(result.content) > 0
@@ -45,7 +54,7 @@ class TestRunpodLive:
     @pytest.mark.req("REQ-YG-010")
     def test_runpod_stream_yields_chunks(self):
         """R-3: streaming must be witnessed, not assumed."""
-        llm = create_llm(provider="runpod", temperature=0.0)
+        llm = create_llm(provider="runpod", temperature=_TEMP)
         chunks = list(llm.stream("Count from 1 to 10, digits separated by spaces."))
         assert len(chunks) >= 1
         combined = "".join(str(c.content) for c in chunks)
@@ -54,7 +63,7 @@ class TestRunpodLive:
     @pytest.mark.req("REQ-YG-010")
     def test_runpod_structured_output(self):
         """Constraint 3: structured output witnessed against the live model."""
-        llm = create_llm(provider="runpod", temperature=0.0)
+        llm = create_llm(provider="runpod", temperature=_TEMP)
         structured = llm.with_structured_output(TinyAnswer)
         result = structured.invoke(
             "What color is a clear daytime sky? Answer in one word."
