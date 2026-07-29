@@ -12,6 +12,11 @@ modules:
   - .github/skills/run-code-analysis/SKILL.md
   - .github/skills/feature-request/SKILL.md
   - .github/skills/graph-authoring/SKILL.md
+  - .github/skills/graph-authoring/doctrine.md
+  - .github/skills/graph-authoring/adapters/README.md
+  - .github/skills/graph-authoring/adapters/graph.yaml
+  - .github/skills/graph-authoring/adapters/prompts/author.yaml
+  - scripts/author.sh
 
 requirements:
   - id: REQ-YG-423
@@ -23,7 +28,10 @@ requirements:
       graph-authoring adds a doctrine.md workflow contract (input closure,
       precedent search, artifact report, local validation, escalation,
       anti-patterns) composing author-graph/author-prompt as syntax
-      references.
+      references, plus an executable adapter route (FR-765 round 2):
+      a thin copilot-node adapter graph and pointer prompt launched by
+      the scripts/author.sh operator wrapper, verified by the
+      tmp/draft-authoring-report.md artifact contract, never exit code.
     modules:
       - .github/skills/author-graph/SKILL.md
       - .github/skills/author-prompt/SKILL.md
@@ -32,5 +40,10 @@ requirements:
       - .github/skills/run-code-analysis/SKILL.md
       - .github/skills/feature-request/SKILL.md
       - .github/skills/graph-authoring/SKILL.md
+      - .github/skills/graph-authoring/doctrine.md
+      - .github/skills/graph-authoring/adapters/README.md
+      - .github/skills/graph-authoring/adapters/graph.yaml
+      - .github/skills/graph-authoring/adapters/prompts/author.yaml
+      - scripts/author.sh
 
 fr: FR-446

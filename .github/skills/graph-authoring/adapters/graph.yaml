@@ -1,0 +1,38 @@
+# NON-AUTHORITATIVE authoring adapter (FR-765 D-4). Manual invocation
+# only via scripts/author.sh. Output is uncommitted authored files plus
+# a DRAFT artifact report — advisory until human-reviewed and committed.
+# This graph must never auto-commit, open/update PRs, poll inboxes,
+# manage worktrees, run CI, or merge (C-7).
+# Lineage: .github/skills/judge-fr/adapters/graph.yaml (FR-758 / NC-412).
+version: "1.0"
+name: graph-authoring-adapter
+description: "Thin pointer to .github/skills/graph-authoring/doctrine.md — doctrine-free"
+
+prompts_relative: true
+prompts_dir: prompts
+
+state:
+  task_path: str
+  author_result: dict
+
+nodes:
+  author:
+    type: copilot
+    backend: cli
+    cli_flags:
+      model: gpt-5.5
+      allow_all_paths: true
+      allow_all_tools: true  # NC-414: required for non-interactive tool use;
+                             # without it file writes (authored graphs, the
+                             # report) are denied while the CLI still exits 0
+    prompt: author
+    variables:
+      task_path: "{state.task_path}"
+    state_key: author_result
+    timeout: 900  # authoring includes lint/smoke repair loops (AC-13)
+
+edges:
+  - from: START
+    to: author
+  - from: author
+    to: END

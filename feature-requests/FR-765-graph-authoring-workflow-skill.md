@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Judged round 2 (2026-07-29): APPROVED WITH REVISIONS — R-1..R-4 folded; adapter enforcement authorized
+**Status:** Enforced round 2 (2026-07-29) — executable adapter route delivered per R-1..R-4
 **Effort:** 1 day
 **Requested:** 2026-07-28
 **First consumer / first event:** A maintainer repeatedly creating new YAMLGraph
@@ -215,25 +215,25 @@ Round 1 (delivered 2026-07-29, commits 30fc5a4a + 6d2259fc):
       regenerated so the CAP-158 text and module list match the capability file.
 - [x] AC-09: A changelog fragment exists in `changelog/unreleased/` with a valid
       requirement reference to REQ-YG-423.
-- [ ] AC-10: The FR is updated with implementation status, decisions, and any
+- [x] AC-10: The FR is updated with implementation status, decisions, and any
       deviations from this judgement after enforcement.
 - [x] AC-11: A diary reflection is added if the resulting PR type triggers the
       repo diary gate.
-- [ ] AC-12: No changes are made to `examples/yamlgraph_gen/`, generated output
+- [x] AC-12: No changes are made to `examples/yamlgraph_gen/`, generated output
       directories, mobile/web trigger channels, judge/review doctrine or
       adapters, hooks, CI workflows, branch protection, or graph-generation
       runtime primitives under this FR.
 
 Round 2 (executable adapter route — judged 2026-07-29, R-1..R-4 folded):
 
-- [ ] AC-13: `.github/skills/graph-authoring/adapters/graph.yaml` exists,
+- [x] AC-13: `.github/skills/graph-authoring/adapters/graph.yaml` exists,
       passes `yamlgraph graph lint`, and defines exactly one `type: copilot`
       node with `backend: cli`, `allow_all_paths: true`,
       `allow_all_tools: true`, a pinned model, a prompt named `author`, a
       `state_key`, and a timeout sized for lint/smoke repair loops. The graph
       state includes `task_path: str` passed to the prompt; no hidden chat
       narrative is required to execute the route.
-- [ ] AC-14: `adapters/prompts/author.yaml` is a thin pointer prompt: it
+- [x] AC-14: `adapters/prompts/author.yaml` is a thin pointer prompt: it
       instructs the agent to read `../doctrine.md` and the task brief at
       `task_path`, follow the doctrine, and write
       `tmp/draft-authoring-report.md`; it duplicates no doctrine content and
@@ -241,28 +241,28 @@ Round 2 (executable adapter route — judged 2026-07-29, R-1..R-4 folded):
       `graph-authoring` skill, `scripts/author.sh`, the adapter graph, or any
       command relaunching the route — while `yamlgraph graph lint` and narrow
       smoke commands against authored target graphs remain required.
-- [ ] AC-15: `scripts/author.sh <task-brief.md>` exists, is executable,
+- [x] AC-15: `scripts/author.sh <task-brief.md>` exists, is executable,
       validates the task brief exists, launches the adapter graph with
       `task_path`, and verifies success by artifact existence, never exit
       code: `tmp/draft-authoring-report.md` must be non-empty, contain the
       `Artifacts`/`Precedent`/`Validation`/`Repairs`/`Blocked validation`
       headings, and list at least one repo-relative artifact path that exists.
-- [ ] AC-16: `adapters/README.md` documents the sole invocation command
+- [x] AC-16: `adapters/README.md` documents the sole invocation command
       `scripts/author.sh <task-brief.md>`, the load-bearing CLI flags, the
       artifact-existence verification rule, and the prohibition on
       auto-commit, PR creation, merge, inbox polling, CI, and
       worktree-management actions.
-- [ ] AC-17: `SKILL.md` and `doctrine.md` name the adapter as the execution
+- [x] AC-17: `SKILL.md` and `doctrine.md` name the adapter as the execution
       route for delegated authoring, including the task-brief input closure
       and report contract (keeping doctrine non-invocable and
       zero-duplicated).
-- [ ] AC-18: Skill promotion tests (still `@pytest.mark.req("REQ-YG-423")`)
+- [x] AC-18: Skill promotion tests (still `@pytest.mark.req("REQ-YG-423")`)
       assert adapter substance, not presence (R-4): graph shape/flags/model/
       timeout, prompt pointer with narrowed guard and no doctrine-heading
       duplication, executable wrapper documenting the task-brief command with
       artifact-report checks, README command/flag/prohibition content, and
       CAP-158 module synchronization.
-- [ ] AC-19: `capabilities/CAP-158-copilot-skill-promotion.yaml` updates
+- [x] AC-19: `capabilities/CAP-158-copilot-skill-promotion.yaml` updates
       REQ-YG-423 to name the executable graph-authoring adapter route and its
       key modules (SKILL.md, doctrine.md, adapters/README.md,
       adapters/graph.yaml, adapters/prompts/author.yaml, scripts/author.sh),
@@ -387,3 +387,51 @@ Round 1 delivery (commits 30fc5a4a RED, 6d2259fc GREEN):
 Deviations: none. One friction note: the FR-756 process-boundary gate
 pattern-matches the literal `examples/` in test docstrings — reworded the
 AC-04 docstring rather than marking a filesystem-only test as `process`.
+
+Round 2 delivery (executable adapter route; judgement 2026-07-29 APPROVED
+WITH REVISIONS, R-1..R-4 folded before enforcement):
+
+- **D-4** `.github/skills/graph-authoring/adapters/graph.yaml`: single
+  copilot node, `backend: cli`, `model: gpt-5.5` pinned, both load-bearing
+  NC-414 flags, `task_path: str` state passed as a prompt variable,
+  `timeout: 900` for lint/smoke repair loops. `yamlgraph graph lint` clean
+  (AC-13).
+- **D-5** `adapters/prompts/author.yaml`: thin pointer — read doctrine +
+  task brief, write `tmp/draft-authoring-report.md` with the five required
+  headings; narrowed re-entry guard (R-1/C-1): bans only relaunching the
+  route, explicitly requires `yamlgraph graph lint` + narrow smoke against
+  authored graphs; zero doctrine-heading duplication (AC-14).
+- **D-6** `scripts/author.sh`: mirrors `scripts/judge.sh` — usage/missing
+  brief exits 64/66, `AUTHOR_EXECUTION` lineage sentinel exit 70, atomic
+  lock exits 73/75, executor resolution exit 69, artifact contract exit 65
+  verifying the report is non-empty with all five headings and at least one
+  listed repo-relative artifact path existing (R-2/C-5); exit code never
+  proof. Smoke-verified: rc 64/66/0/70 with a stubbed `YAMLGRAPH_BIN`
+  (AC-15).
+- **D-3** `adapters/README.md`: sole command, task-brief input closure,
+  load-bearing flags, artifact-existence rule, auto-commit/PR/merge/inbox/
+  CI/worktree prohibitions, judge/review-route ban (AC-16).
+- **D-1/D-2** `SKILL.md` gained the "Executable route for delegated
+  authoring" section; `doctrine.md` gained the task-brief input closure,
+  the parseable report contract, and the narrowed re-entry guard in the
+  Delegation section (AC-17).
+- **D-7** `tests/unit/test_fr446_copilot_skills.py`:
+  `TestGraphAuthoringAdapter` — 10 substance tests (graph shape/flags/
+  model/timeout, `task_path` closure, in-process `lint_graph` clean run,
+  pointer + narrowed guard, no doctrine-heading duplication, wrapper
+  executable with artifact-contract and sentinel content, README
+  command/flags/prohibitions, SKILL/doctrine route naming, CAP-158 module
+  sync). 36/36 pass (AC-18).
+- **D-8/D-9** CAP-158 modules extended with the six adapter-route surfaces;
+  REQ-YG-423 description names the executable route; `ARCHITECTURE.md`
+  regenerated (AC-19).
+
+Round-2 deviations: none from the frozen scope. Friction notes: (1) the
+FR-756 process-boundary gate pattern-matches literal boundary strings in
+test module source — adapter test paths are constructed from `Path()`
+parts because the tests are pure committed-file reads (no subprocess),
+following the round-1 rewording precedent; behavioral wrapper execution
+tests (à la FR-758's stubbed `YAMLGRAPH_BIN` suite) were smoke-verified in
+the terminal instead, staying within the frozen D-7 test surface. (2) The
+round-1 changelog fragment was updated in place to cover the executable
+route rather than adding a second fragment (D-11's "one fragment").

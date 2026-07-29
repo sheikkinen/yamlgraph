@@ -9,7 +9,11 @@ canonical Judge/Review execution routes.
 ## Input closure
 
 Inputs are closed: the task request, committed repository artifacts, and
-files the user explicitly provides. Do not treat chat narrative,
+files the user explicitly provides. When executed via the adapter route,
+the task request is a **task brief** — a markdown file passed as
+`task_path` — and any target directory or desired artifact name must be
+stated inside that brief, never inferred from hidden chat narrative. Do
+not treat chat narrative,
 uncommitted local state, or ignored generated outputs as authoring
 input. In particular, never rely on `examples/yamlgraph_gen/outputs/*`
 or any other gitignored generated tree — ignored generator outputs
@@ -47,6 +51,13 @@ The artifact report returned to the requester must contain:
 - Any blocked validation: the exact blocked command and the reason
   (missing credential, missing extra, absent service).
 
+When executed via the adapter route, the report is written to
+`tmp/draft-authoring-report.md` as a parseable artifact with the
+required headings `Artifacts`, `Precedent`, `Validation`, `Repairs`,
+and `Blocked validation`; the `Artifacts` section lists at least one
+repo-relative authored path. The wrapper verifies this report and the
+listed paths by existence — never by exit code.
+
 ## Validation
 
 Local validation is mandatory, command-backed, and honest:
@@ -67,7 +78,13 @@ Local validation is mandatory, command-backed, and honest:
 For substantial graph creation, delegate with an **artifact-closed
 delegation brief**: closed inputs (task + named committed artifacts),
 explicit expected artifacts, no hidden chat narrative, and a returned
-artifact report per the contract above.
+artifact report per the contract above. The executable delegation route
+is the adapter: `scripts/author.sh <task-brief.md>` (see
+`adapters/README.md`). Re-entry guard (narrowed): an agent launched BY
+the adapter is the authoring execution itself — it must not invoke the
+`graph-authoring` skill, `scripts/author.sh`, the adapter graph, or any
+command relaunching the route; running `yamlgraph graph lint` and
+narrow smoke commands against the graphs it authors remains required.
 
 This is workflow delegation, not FR judgement or PR review. The brief
 and the delegate **must not invoke** `judge-fr`, `review-pr`, their

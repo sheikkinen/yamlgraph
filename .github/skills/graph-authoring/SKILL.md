@@ -18,6 +18,22 @@ smallest pattern → author → validate locally → repair → report the
 verified artifact. Honor its input closure: task request + committed
 repo artifacts + explicit user-provided files only.
 
+## Executable route for delegated authoring
+
+Delegated authoring runs through the adapter (see
+`adapters/README.md` for flags and the artifact-proof rule):
+
+```bash
+scripts/author.sh <task-brief.md>
+```
+
+The adapter graph launches a copilot node that reads `doctrine.md`,
+authors the files, validates them, and writes
+`tmp/draft-authoring-report.md`. Output is advisory and uncommitted.
+Exception (re-entry guard): an agent already launched BY this adapter
+is the authoring execution itself — it authors directly and must not
+relaunch the route.
+
 ## Composition — do not duplicate syntax references
 
 - `author-graph` — graph YAML syntax: nodes, edges, routing, state keys,
