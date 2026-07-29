@@ -435,3 +435,18 @@ tests (à la FR-758's stubbed `YAMLGRAPH_BIN` suite) were smoke-verified in
 the terminal instead, staying within the frozen D-7 test surface. (2) The
 round-1 changelog fragment was updated in place to cover the executable
 route rather than adding a second fragment (D-11's "one fragment").
+
+Post-enforcement addendum (2026-07-29, operator-directed sole-path sync):
+after the route shipped and its first end-to-end smoke passed
+(`tmp/task-brief-commit-lint.md` → `examples/demos/commit_lint/`, three
+self-repairs, artifact contract verified), the operator directed a
+sole-path consistency pass across doctrine surfaces adjacent to but
+outside the frozen D-list: `.github/copilot-instructions.md` quickstart
+now names the delegated-authoring sole route + re-entry exception
+(mirroring the judge/review Sermon declarations); `graph-authoring/SKILL.md`
+upgraded "runs through the adapter" to explicit SOLE-route language;
+`author-graph` and `author-prompt` SKILL.md descriptions and bodies gained
+scope-boundary pointers up to `graph-authoring`, closing the discovery
+overlap where "create a new graph" triggers matched the syntax skills
+first. No doctrine content was duplicated; all pointers reference the
+canonical files.

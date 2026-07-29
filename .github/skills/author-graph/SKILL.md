@@ -1,12 +1,17 @@
 ---
 name: author-graph
-description: "Author YAMLGraph graph YAML files. Use when: creating or editing graph YAML, adding nodes or edges, configuring routing and conditions, setting up state keys, variables, data_files, tools, loop limits, error handling, or verification gates."
+description: "Author YAMLGraph graph YAML files. Use when: creating or editing graph YAML, adding nodes or edges, configuring routing and conditions, setting up state keys, variables, data_files, tools, loop limits, error handling, or verification gates. Syntax reference only — for end-to-end creation of a complete new graph artifact, use the graph-authoring skill."
 argument-hint: "node type, field name, or graph structure question"
 ---
 
 # Author Graph YAML
 
 Create and configure YAMLGraph graph files. Canonical source: `reference/graph-yaml.md` and `reference/expressions.md`.
+
+> **Scope boundary:** this is the graph YAML *syntax reference*. For the
+> end-to-end workflow of creating a complete new graph artifact
+> (precedent search, validation, delegation via `scripts/author.sh`), use
+> the `graph-authoring` skill — it composes this one.
 
 ## File Structure
 

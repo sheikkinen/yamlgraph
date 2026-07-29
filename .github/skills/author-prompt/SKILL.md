@@ -1,12 +1,17 @@
 ---
 name: author-prompt
-description: "Author YAMLGraph prompt YAML files. Use when: writing prompt templates, configuring inline schemas or output_schema, using Jinja2 templates, adding system/user messages, defining structured output fields, or using system_segments for prompt caching."
+description: "Author YAMLGraph prompt YAML files. Use when: writing prompt templates, configuring inline schemas or output_schema, using Jinja2 templates, adding system/user messages, defining structured output fields, or using system_segments for prompt caching. Syntax reference only — for end-to-end creation of a complete new graph artifact, use the graph-authoring skill."
 argument-hint: "prompt field, schema type, or 'Jinja2'"
 ---
 
 # Author Prompt YAML
 
 Create and configure YAMLGraph prompt files in `prompts/`. Canonical source: `reference/prompt-yaml.md`.
+
+> **Scope boundary:** this is the prompt YAML *syntax reference*. For the
+> end-to-end workflow of creating a complete new graph artifact
+> (precedent search, validation, delegation via `scripts/author.sh`), use
+> the `graph-authoring` skill — it composes this one.
 
 ## One prompt = one subagent brief (read this first)
 

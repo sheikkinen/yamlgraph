@@ -20,8 +20,9 @@ repo artifacts + explicit user-provided files only.
 
 ## Executable route for delegated authoring
 
-Delegated authoring runs through the adapter (see
-`adapters/README.md` for flags and the artifact-proof rule):
+**Sole route:** delegated authoring runs ONLY through the adapter (see
+`adapters/README.md` for flags and the artifact-proof rule) — ad-hoc
+subagent briefs that bypass the wrapper are forbidden:
 
 ```bash
 scripts/author.sh <task-brief.md>

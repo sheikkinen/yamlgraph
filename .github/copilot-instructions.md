@@ -12,6 +12,8 @@ yamlgraph graph run examples/demos/hello/graph.yaml --var name="World" --var sty
 
 Use these as smoke test for new graph development.
 
+For end-to-end creation of a complete graph artifact, the workflow contract is `.github/skills/graph-authoring/doctrine.md`; the SOLE route for delegated authoring is the YAMLGraph adapter via `scripts/author.sh <task-brief.md>` (`.github/skills/graph-authoring/adapters/README.md`) — verified by the `tmp/draft-authoring-report.md` artifact, never exit code. Exception (re-entry guard): an agent already launched BY the adapter is the authoring execution itself — it authors directly and must not relaunch the route; linting and smoking the graphs it authors remains required.
+
 ## Core Technologies
 - **LangGraph**: Pipeline orchestration with state management
 - **Pydantic v2**: Structured, validated LLM outputs
