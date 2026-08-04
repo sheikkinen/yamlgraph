@@ -8,7 +8,7 @@ from collections.abc import Callable
 from typing import Any
 
 from yamlgraph.node_factory.base import GraphState
-from yamlgraph.utils.expressions import resolve_template
+from yamlgraph.utils.expressions import resolve_node_variables, resolve_template
 
 logger = logging.getLogger(__name__)
 
@@ -32,13 +32,30 @@ def create_tool_call_node(
         Node function compatible with LangGraph
     """
     tool_expr = node_config["tool"]  # e.g., "{state.task.tool}"
-    args_expr = node_config["args"]  # e.g., "{state.task.args}"
+    args_expr = node_config["args"]  # inline mapping OR "{state.task.args}"
     state_key = node_config.get("state_key", "result")
+
+    def _resolve_args(state: dict) -> dict:
+        # FR-772: inline mapping — resolve each value (FR-252 semantics)
+        if isinstance(args_expr, dict):
+            if not args_expr:
+                return {}  # never fall back to whole-state passing
+            resolved = resolve_node_variables(args_expr, state)
+            for key, value in resolved.items():
+                if isinstance(value, str) and "{state." in value:
+                    raise ValueError(
+                        f"tool_call node '{node_name}': arg '{key}' did not "
+                        f"fully resolve: {value!r}"
+                    )
+            return resolved
+        # Existing string form: whole dict from state
+        args = resolve_template(args_expr, state)
+        return args if isinstance(args, dict) else {}
 
     def node_fn(state: dict) -> dict:
         # Resolve tool name and args from state
         tool_name = resolve_template(tool_expr, state)
-        args = resolve_template(args_expr, state)
+        args = _resolve_args(state)
 
         # Extract task_id if available
         task = state.get("task", {})
@@ -62,9 +79,6 @@ def create_tool_call_node(
 
         # Execute tool
         try:
-            # Ensure args is a dict
-            if not isinstance(args, dict):
-                args = {}
             result = tool_func(**args)
             return {
                 state_key: {

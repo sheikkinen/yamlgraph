@@ -706,12 +706,33 @@ nodes:
     state_key: tool_result
 ```
 
+**Inline dict args (FR-772)** — deterministic invocation with mixed literal
+and templated kwargs, resolved per value (FR-252 semantics):
+
+```yaml
+nodes:
+  describe:
+    type: tool_call
+    tool: describe_image
+    args:
+      image: "{state.image}"        # templated — resolved from state
+      instruction: "Title, 2-sentence description, and 8 DeviantArt tags."
+      provider: google              # literal — passed through
+    state_key: described
+```
+
+Inline values preserve non-string types; a simple missing path
+(`"{state.missing}"`) resolves to `None`; a resolved value still containing
+`{state.` (embedded interpolation of a missing path) raises `ValueError` at
+node execution — garbage kwargs never reach the tool. An empty inline
+mapping dispatches no kwargs. The string form above is unchanged.
+
 **Tool call node properties:**
 
 | Property | Type | Required | Description |
 |----------|------|----------|-------------|
-| `tool` | `string` | Yes | State expression resolving to tool name |
-| `args` | `string` | Yes | State expression resolving to args dict |
+| `tool` | `string` | Yes | Tool name or state expression resolving to it |
+| `args` | `string \| dict` | Yes | State expression resolving to args dict, or inline mapping resolved per value |
 | `state_key` | `string` | No | Where to store result |
 
 See [Tool Call Nodes Reference](tool-call-nodes.md) for agent integration patterns.

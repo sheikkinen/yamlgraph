@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Approved with revisions (judged 2026-08-04) — R-1 folded as option 2 (inline-branch validation), R-2 folded (REQ-YG-576 under CAP-05)
+**Status:** Enforced 2026-08-04 — AC-01..AC-07 delivered: inline-dict branch in `create_tool_call_node` (`_resolve_args`, ~15 lines, reuses `resolve_node_variables`), 7 tests REQ-YG-576 under CAP-05, docs, changelog. Purged the dead non-dict fallback inside the try block (both forms now guarantee a dict pre-dispatch). Empty-mapping guard added: `resolve_node_variables({})` falls back to whole-state passing — the inline branch short-circuits `{}` before it.
 **Effort:** 0.5 days
 **Requested:** 2026-08-04
 **Prior art:** FR-658 (Enforced) created the `tool_call` node with `args: "{state.X}"` — a single state-dict reference, LLM-orchestration shaped; this FR adds the deterministic-invocation shape it lacks. FR-252 (python node `variables:`) already established per-key template resolution via `resolve_node_variables` — this FR reuses that exact mechanism, honoring existing patterns rather than inventing a resolver. FR-771 (Approved with revisions, blocked) is the judged first consumer whose judgement (R-1/C-2) mandated this FR instead of an in-scope core patch.
