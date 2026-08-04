@@ -68,9 +68,16 @@ class TestLLMConfig:
 
     @pytest.mark.req("REQ-YG-043")
     def test_default_models_are_strings(self):
-        """All default models should be non-empty strings."""
+        """All default models should be non-empty strings.
+
+        Exception: runpod has no hard-coded default by design (FR-766) —
+        an endpoint serves exactly one deployment, so the model comes
+        from RUNPOD_MODEL only and may be empty in the environment.
+        """
         for provider, model in DEFAULT_MODELS.items():
             assert isinstance(model, str), f"{provider} model should be string"
+            if provider == "runpod":
+                continue
             assert len(model) > 0, f"{provider} model should not be empty"
 
     @pytest.mark.req("REQ-YG-043")
