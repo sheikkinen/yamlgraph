@@ -1,19 +1,19 @@
-2026-08-04 14:45:33,983 [INFO] yamlgraph.compile.graph_loader: Parsed 2 Python tools: describe_image, describe_demo_image
-2026-08-04 14:45:33,984 [INFO] yamlgraph.compile.node_compiler: Added node: describe (type=python)
-2026-08-04 14:45:34,116 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: describe -> describe_demo_image
-2026-08-04 14:45:34,118 [INFO] yamlgraph.utils.llm_factory: Creating LLM: google/gemini-2.5-flash (temp=0.2)
-2026-08-04 14:45:34,976 [INFO] google_genai.models: AFC is enabled with max remote calls: 10.
-2026-08-04 14:45:36,703 [INFO] httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent "HTTP/1.1 200 OK"
+2026-08-04 15:01:55,951 [INFO] yamlgraph.compile.graph_loader: Parsed 2 Python tools: describe_image, describe_demo_image
+2026-08-04 15:01:55,952 [INFO] yamlgraph.compile.node_compiler: Added node: describe (type=python)
+2026-08-04 15:01:56,139 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: describe -> describe_demo_image
+2026-08-04 15:01:56,141 [INFO] yamlgraph.utils.llm_factory: Creating LLM: google/gemini-2.5-flash (temp=0.2)
+2026-08-04 15:01:57,252 [INFO] google_genai.models: AFC is enabled with max remote calls: 10.
+2026-08-04 15:01:59,860 [INFO] httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent "HTTP/1.1 200 OK"
 
 🚀 Running graph: graph.yaml
    Variables: {'image': 'examples/demos/shared-vision-tool/fixture.png'}
 
-🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/09c0c2d4-5724-4301-bcee-e1b64ddeb80e/r/019fcc97-e325-7663-a6e7-9edd1aacb4a7?poll=true
+🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/09c0c2d4-5724-4301-bcee-e1b64ddeb80e/r/019fcca6-def8-7230-ab3a-9a06e2bd5dfe?poll=true
 ============================================================
 RESULT
 ============================================================
   current_step: describe
   image: examples/demos/shared-vision-tool/fixture.png
-  described: {'title': 'Blank Canvas', 'description': 'This image is a completely blank, white canvas, devoid of any content or imagery. It represents a fresh start or an empty space awaiting creation.', 'tags': ['blank', 'white', 'empty', 'canvas', 'minimalist', 'nothing', 'clean', 'background'], 'matches_prompt': None, 'notes': None}
+  described: {'title': 'Pure White Canvas', 'description': 'This image is a completely blank white space, offering a pristine and minimalist aesthetic. It serves as an empty canvas, ready for any creative endeavor or as a simple, clean background.', 'tags': ['white', 'blank', 'empty', 'minimalist', 'background', 'canvas', 'pure', 'void'], 'matches_prompt': None, 'notes': None}
 
 ✓ Graph execution completed successfully

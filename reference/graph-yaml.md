@@ -1446,6 +1446,9 @@ unknown or conflicting fields, extra keys next to `manifest:` in the graph
 entry, or a `name` mismatch all raise `ValueError` before any node runs —
 never at invocation.
 
+**Committed example:** `examples/demos/shared-vision-tool/graph.yaml`
+consumes `examples/shared/describe_image.tool.yaml` (FR-770).
+
 ### Web Search Tool
 
 Search the web using DuckDuckGo (no API key required):

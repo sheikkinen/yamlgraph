@@ -1,0 +1,8 @@
+# Tool manifest (FR-768) — shared vision tool (FR-769).
+# First committed manifest consumer: examples/demos/shared-vision-tool (FR-770).
+name: describe_image
+description: "Describe an image: title, description, tags"
+runtime:
+  type: python
+  module: examples.shared.vision_tool
+  function: describe_image

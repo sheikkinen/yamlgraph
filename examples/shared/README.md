@@ -56,7 +56,12 @@ result: ImageDescription = describe_image(
 ```
 
 ```yaml
-# In a graph
+# In a graph — via manifest (FR-768, preferred for shared tools)
+tools:
+  describe_image:
+    manifest: ../../shared/describe_image.tool.yaml
+
+# Or inline
 tools:
   describe_image:
     type: python
@@ -64,6 +69,9 @@ tools:
     function: describe_image
     description: "Describe an image: title, description, tags"
 ```
+
+Committed consumer: [demos/shared-vision-tool](../demos/shared-vision-tool/)
+declares the tool via [describe_image.tool.yaml](describe_image.tool.yaml).
 
 | Provider | Default model | Required env |
 |----------|---------------|--------------|

@@ -8,10 +8,7 @@ state:
 
 tools:
   describe_image:
-    type: python
-    module: examples.shared.vision_tool
-    function: describe_image
-    description: "Describe an image: title, description, tags"
+    manifest: ../../shared/describe_image.tool.yaml
   describe_demo_image:
     type: python
     path: nodes/demo.py

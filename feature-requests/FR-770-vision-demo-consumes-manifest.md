@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Proposed
+**Status:** Enforced 2026-08-04 — AC-01..AC-07 delivered: manifest committed (`examples/shared/describe_image.tool.yaml`), demo migrated via the authoring route (lint 0 errors + live smoke, marker appended on exit 0 only), 3 artifact-backed tests (REQ-YG-574), docs pointers, changelog. FR-768 has its first committed consumer.
 **Effort:** 0.5 days
 **Requested:** 2026-08-04
 **Prior art:** FR-768 (tool manifests, Enforced core) defines the `manifest:` mechanism this FR consumes — no overlap, this is its first committed consumer. FR-769 (shared vision tool, Enforced) shipped the demo this FR migrates; its judgement froze the demo to an inline `type: python` declaration because the freeze predated FR-768's implementation. FR-769's own text ("once FR-768 lands, it becomes a manifest-declared shared capability") is the deferred promise this FR redeems.
