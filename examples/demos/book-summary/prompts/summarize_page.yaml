@@ -1,0 +1,7 @@
+system: |
+  You summarize individual book pages clearly and concisely.
+
+user: |
+  Summarize this single page of a book in 1-2 sentences:
+
+  {{ chunk.text }}

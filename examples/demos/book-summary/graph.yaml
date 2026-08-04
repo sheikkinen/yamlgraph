@@ -1,0 +1,52 @@
+version: "1.0"
+name: book-summary
+description: Summarize a PDF book page by page, then combine the page summaries.
+
+prompts_relative: true
+prompts_dir: prompts
+
+state:
+  pdf: str
+  split_result: dict
+  page_summaries: list
+  book_summary: str
+
+tools:
+  split_document:
+    manifest: ../../shared/split_document.tool.yaml
+
+nodes:
+  split:
+    type: tool_call
+    tool: split_document
+    args:
+      path: "{state.pdf}"
+      mode: page
+    state_key: split_result
+
+  summarize_pages:
+    type: map
+    over: "{state.split_result.result.chunks}"
+    as: chunk
+    max_items: 100
+    node:
+      prompt: summarize_page
+      state_key: page_summary
+    collect: page_summaries
+
+  combine_summaries:
+    type: llm
+    prompt: combine_summaries
+    state_key: book_summary
+    variables:
+      page_summaries: "{state.page_summaries}"
+
+edges:
+  - from: START
+    to: split
+  - from: split
+    to: summarize_pages
+  - from: summarize_pages
+    to: combine_summaries
+  - from: combine_summaries
+    to: END

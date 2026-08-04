@@ -1,0 +1,18 @@
+# Tool manifest (FR-768) — shared document splitter (FR-773).
+# First committed manifest consumer: examples/demos/book-summary (FR-773).
+#
+# Contract: split_document(path, mode="page", start=None, end=None) -> dict
+#   path:  PDF file path (required)
+#   mode:  only "page" is supported; unknown modes raise ValueError
+#   start: first page, 1-indexed (default 1)
+#   end:   last page, 1-indexed inclusive (default: last page)
+# Returns {"chunks": [{"index": int, "text": str}, ...], "total": int}
+#   index is 0-based within the selection; total is the whole document's
+#   page count. Requires poppler (pdfinfo/pdftotext); all failures raise
+#   ValueError naming the condition — never a silent fallback.
+name: split_document
+description: "Split a PDF into per-page text chunks for map-node fan-out"
+runtime:
+  type: python
+  module: examples.shared.split_document
+  function: split_document

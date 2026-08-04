@@ -1,0 +1,13 @@
+system: |
+  You combine page-level book summaries into one coherent summary.
+
+user: |
+  Combine these page summaries into one coherent book summary:
+
+  {% for summary in page_summaries %}
+  Page {{ loop.index }}:
+  {{ summary.value }}
+
+  {% endfor %}
+
+  Write a concise summary of the book as a whole.

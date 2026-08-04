@@ -83,6 +83,37 @@ supported set) before any LLM call; missing local files raise
 `FileNotFoundError`; malformed model output raises a Pydantic validation
 error — there is no success-shaped fallback.
 
+### `split_document.py` - Document Splitter (FR-773)
+
+Splits a PDF into per-page text chunks shaped for map-node fan-out — the
+feeder half of the *feeder tool → map → reduce* pattern.
+
+```python
+from examples.shared.split_document import split_document
+
+result = split_document("book.pdf")                 # all pages
+result = split_document("book.pdf", start=2, end=5) # 1-indexed page range
+# {"chunks": [{"index": 0, "text": "..."}, ...], "total": 12}
+# index is 0-based within the selection; total is the whole document
+```
+
+```yaml
+# In a graph — via manifest (FR-768)
+tools:
+  split_document:
+    manifest: ../../shared/split_document.tool.yaml
+```
+
+Committed consumer: [demos/book-summary](../demos/book-summary/) feeds the
+chunks to a map node via `over: "{state.split_result.result.chunks}"`.
+
+**Requirements:** poppler (`brew install poppler`) for `pdfinfo`/`pdftotext`.
+
+**Failure modes:** unknown `mode` (only `page` is supported), missing
+file, missing poppler binaries, nonzero `pdfinfo`/`pdftotext` exit, and
+unparseable page count all raise `ValueError` naming the condition —
+there is no fallback-to-all-pages.
+
 ## Scripts
 
 ### `scripts/set_fly_secrets.sh`

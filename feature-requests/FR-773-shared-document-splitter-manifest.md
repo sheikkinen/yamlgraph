@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Judged 2026-08-04 — APPROVED WITH REVISIONS; R-1..R-4 folded below; authority active per judgement
+**Status:** Enforced 2026-08-04 — all AC-01..AC-12 verified; RED committed separately, 11/11 tests green; demo authored via sole route (tmp/draft-authoring-report.md) and smoke-verified (demo-output.log)
 **Effort:** 1.5 days
 **Requested:** 2026-08-04
 **First consumer / first event:** a new `examples/demos/book-summary/`
@@ -156,54 +156,80 @@ the map node, and a non-empty reduced book summary.
 
 ## Acceptance Criteria (revised per judgement — binding set)
 
-- [ ] AC-01: `examples/shared/split_document.py` exposes
+- [x] AC-01: `examples/shared/split_document.py` exposes
       `split_document(path: str, mode: str = "page", start: int | None = None, end: int | None = None) -> dict`,
       supports only `mode: "page"`, and returns
       `{"chunks": [{"index": int, "text": str}], "total": int}` with
       0-based chunk indexes and one chunk per selected PDF page.
-- [ ] AC-02: Direct splitter tests cover page-range slicing, chunk shape,
+- [x] AC-02: Direct splitter tests cover page-range slicing, chunk shape,
       unknown-mode rejection, missing-file rejection, missing
       `pdfinfo`/`pdftotext` rejection with a poppler install hint, nonzero
       subprocess rejection, and unparseable page-count rejection; marked
       `@pytest.mark.req("REQ-YG-577")`. RED committed before GREEN.
-- [ ] AC-03: `examples/shared/split_document.tool.yaml` validates as a
+- [x] AC-03: `examples/shared/split_document.tool.yaml` validates as a
       `ToolManifest`, uses `runtime.type: python` with
       `module: examples.shared.split_document` and
       `function: split_document`, and its description states the full args
       and output contract.
-- [ ] AC-04: A committed artifact test loads the book-summary graph and
+- [x] AC-04: A committed artifact test loads the book-summary graph and
       proves `tools.split_document` contains only
       `manifest: ../../shared/split_document.tool.yaml`; the expanded
       config matches the manifest module/function/description contract.
-- [ ] AC-05: A committed artifact test feeds the book-summary `split` node
+- [x] AC-05: A committed artifact test feeds the book-summary `split` node
       config to `create_tool_call_node` with a recorder and proves inline
       args resolve to real kwargs for `path`, `mode`, `start`, and `end`
       as configured, with no unresolved `{state.` placeholder and no
       state-dict callable assumption.
-- [ ] AC-06: `examples/demos/book-summary/graph.yaml` consumes the
+- [x] AC-06: `examples/demos/book-summary/graph.yaml` consumes the
       manifest-declared splitter through a `type: tool_call` node, maps
       over `"{state.split_result.result.chunks}"`, collects one page
       summary per chunk, and reduces those into one `book_summary`.
-- [ ] AC-07: The demo graph and prompt files are authored via
+- [x] AC-07: The demo graph and prompt files are authored via
       `scripts/author.sh`; the run's `tmp/draft-authoring-report.md`
       records graph lint and smoke evidence for
       `examples/demos/book-summary/graph.yaml`.
-- [ ] AC-08: The demo uses the one exact fixture strategy recorded above.
+- [x] AC-08: The demo uses the one exact fixture strategy recorded above.
       `demo-output.log` proves `split_result.success` is true,
       `total == len(chunks) == N` for `N >= 2`, `len(page_summaries) == N`,
       and a non-empty reduced book summary.
-- [ ] AC-09: `examples/shared/README.md` documents `split_document` beside
+- [x] AC-09: `examples/shared/README.md` documents `split_document` beside
       `describe_image`, including poppler dependency and failure modes;
       `reference/graph-yaml.md` adds a ≤ 10-line feeder manifest example
       showing tool output wired into `over:`.
-- [ ] AC-10: `capabilities/CAP-218-shared-document-splitter.yaml` with
+- [x] AC-10: `capabilities/CAP-218-shared-document-splitter.yaml` with
       `REQ-YG-577` is added (or the FR revised to the actual next-free
       pair before enforcement); every new or changed test has a
       requirement marker.
-- [ ] AC-11: No files under `yamlgraph/` change; existing splitters in
+- [x] AC-11: No files under `yamlgraph/` change; existing splitters in
       `examples/ocr_cleanup`, `examples/book_translator`, and
       `examples/demos/philosopher_book` are byte-unchanged.
-- [ ] AC-12: Changelog fragment + diary reflection (diary-gate).
+- [x] AC-12: Changelog fragment + diary reflection (diary-gate).
+
+## Implementation Status (2026-08-04)
+
+Enforced per judgement, conditions C-1..C-7 honored:
+
+- RED commit (11 failing tests + CAP-218) landed separately before GREEN;
+  the req-coverage gate additionally required regenerating the generated
+  ARCHITECTURE.md capabilities section (`scripts/aggregate_capabilities.py`),
+  which also backfilled foreign-arc rows REQ-YG-574/575/576.
+- `examples/shared/split_document.py` + `split_document.tool.yaml` per R-1
+  kwargs contract and R-2 failure contract (mode → binaries → file →
+  pdfinfo → page-count check order; no fallback-to-all-pages, C-3).
+- Fixture per R-4: `examples/demos/book-summary/fixture.pdf` (2 pages)
+  generated from repo-owned `examples/book_translator/sample_book.txt`
+  via cupsfilter; command + provenance recorded in the demo README (C-4).
+- Demo authored via the sole route `scripts/author.sh` (C-5);
+  `tmp/draft-authoring-report.md` records lint-clean + smoke. The in-route
+  agent added `max_items: 100` to satisfy the dynamic-fan-out lint.
+- Smoke verified by graph state evidence (C-6, demo-output.log):
+  `split_result.success: True`, total == len(chunks) == 2,
+  2 page summaries, non-empty coherent `book_summary`.
+- No `yamlgraph/` changes; ocr_cleanup / book_translator /
+  philosopher_book byte-unchanged (C-7, AC-11).
+- Deviation: none from the frozen scope. Note: readme-audit tests fail
+  locally on an untracked `chinese_horoscope/` dir owned by a parallel
+  session — attributed, not owned; absent from CI checkout.
 
 ## Alternatives Considered
 

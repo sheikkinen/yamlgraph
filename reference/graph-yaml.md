@@ -1470,6 +1470,26 @@ never at invocation.
 **Committed example:** `examples/demos/shared-vision-tool/graph.yaml`
 consumes `examples/shared/describe_image.tool.yaml` (FR-770).
 
+**Feeder pattern** — a manifest tool's output can drive map fan-out (FR-773):
+
+```yaml
+tools:
+  split_document:
+    manifest: ../../shared/split_document.tool.yaml
+nodes:
+  split:
+    type: tool_call
+    tool: split_document
+    args: {path: "{state.pdf}", mode: page}
+    state_key: split_result
+  summarize_pages:
+    type: map
+    over: "{state.split_result.result.chunks}"
+    as: chunk
+```
+
+Committed consumer: `examples/demos/book-summary/graph.yaml`.
+
 ### Web Search Tool
 
 Search the web using DuckDuckGo (no API key required):
