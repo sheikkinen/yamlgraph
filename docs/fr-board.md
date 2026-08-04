@@ -156,6 +156,8 @@
 | FR-647 | Approved | yamlgraph |  | FR-647-worldgen-event-propagation.md |
 | FR-648 | Approved | yamlgraph |  | FR-648-obsidian-wiki-output.md |
 | FR-655 | Approved | yamlgraph |  | FR-655-genesis-graph.md |
+| FR-771 | Approved | yamlgraph |  | FR-771-vision-demo-executes-manifest-tool.md |
+| FR-772 | Approved | yamlgraph |  | FR-772-tool-call-inline-dict-args.md |
 | FR-214 | Proposed | yamlgraph |  | FR-214-fix-extract-variables-nested-set.md |
 | FR-227 | Proposed | yamlgraph |  | FR-227-vertex-express-env-var-masking.md |
 | FR-267 | Proposed | yamlgraph |  | FR-267-race-node-timeout-double-wrap-2.md |
@@ -416,6 +418,8 @@ graph TD
     FR-761["FR-761 Judged"]
     FR-762["FR-762 Judged"]
     FR-764["FR-764 Judged"]
+    FR-771["FR-771 Approved"]
+    FR-772["FR-772 Approved"]
     FR-081 --> FR-082
     FR-731 --> FR-735
     FR-731 --> FR-736
