@@ -15,6 +15,17 @@ requirements:
     description: Dynamic tool node creation
     modules:
       - node_factory/tool_nodes
+  - id: REQ-YG-576
+    description: >
+      tool_call inline dict args (FR-772): an inline YAML mapping as
+      tool_call.args resolves each value via resolve_node_variables
+      (FR-252 semantics — literals pass through, non-string types
+      preserved, simple missing paths resolve to None); a resolved value
+      still containing "{state." raises ValueError naming node and key;
+      an empty inline mapping dispatches no kwargs (never whole-state);
+      the string form "{state.X}" behaves exactly as before.
+    modules:
+      - node_factory/tool_nodes
   - id: REQ-YG-018
     description: Agent-driven tool selection and execution
     modules:
