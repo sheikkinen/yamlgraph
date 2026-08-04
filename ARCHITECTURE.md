@@ -532,6 +532,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 214 | CAP-214 Direct-Import Dependency Scanner | `scripts/direct_import_scan.py` | REQ-YG-572 |
 | 215 | CAP-215 Style-Convert Pipeline | `examples/style_convert` | REQ-YG-573 |
 | 216 | CAP-216 Tool Manifests | `tools`, `graph_loader` | REQ-YG-574 |
+| 217 | CAP-217 Shared Vision Tool | `examples` | REQ-YG-575 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -2678,6 +2679,16 @@ Tool declarations reusable across graphs via manifest files: a `manifest:` key i
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-574 | `tools.<name>.manifest` resolves relative to the referencing graph; runtime paths inside a manifest resolve relative to the manifest file. Manifest YAML is validated through typed models at graph load: missing files, invalid YAML, unknown runtime types, unknown/conflicting fields, and tool-key/name mismatches fail before invocation. Shell, python (path and module), and graph runtimes translate to configs equivalent to their inline declarations; inline declarations load unchanged. | `tools`, `graph_loader` |
+
+### 217. CAP-217 Shared Vision Tool
+
+Multimodal image→text capability in examples/shared: describe_image() sends a local image or URL plus an instruction through a create_llm() chat model and returns a validated ImageDescription (title, description, tags, optional QA verdict). Provider allowlist (google, anthropic) enforced before invocation; no success-shaped fallbacks (FR-769).
+
+**Feature Request:** FR-769
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-575 | describe_image(image, instruction, *, provider, model) accepts a local path (base64 data-URL content part; missing file raises naming the path) or URL (passed through as URL content part), builds a multimodal message with the instruction as text part, constructs the model via create_llm() only, and validates output into ImageDescription. Unsupported providers raise ValueError naming the provider and the supported set before any LLM invocation; malformed output raises a validation error rather than returning a partial result. | `examples` |
 
 <!-- END GENERATED CAPABILITIES -->
 

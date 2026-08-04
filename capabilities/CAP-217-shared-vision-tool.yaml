@@ -1,0 +1,24 @@
+id: CAP-217
+name: Shared Vision Tool
+description: >
+  Multimodal image→text capability in examples/shared: describe_image()
+  sends a local image or URL plus an instruction through a create_llm()
+  chat model and returns a validated ImageDescription (title, description,
+  tags, optional QA verdict). Provider allowlist (google, anthropic)
+  enforced before invocation; no success-shaped fallbacks (FR-769).
+modules:
+  - examples
+requirements:
+  - id: REQ-YG-575
+    description: >
+      describe_image(image, instruction, *, provider, model) accepts a local
+      path (base64 data-URL content part; missing file raises naming the
+      path) or URL (passed through as URL content part), builds a multimodal
+      message with the instruction as text part, constructs the model via
+      create_llm() only, and validates output into ImageDescription.
+      Unsupported providers raise ValueError naming the provider and the
+      supported set before any LLM invocation; malformed output raises a
+      validation error rather than returning a partial result.
+    modules:
+      - examples
+fr: FR-769
