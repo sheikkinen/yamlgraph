@@ -18,6 +18,7 @@ nodes:
       image: "{state.image}"
       instruction: "Title, 2-sentence description, and 8 DeviantArt tags."
       provider: google
+      model: gemini-3.5-flash
     state_key: described
 
 edges:

@@ -1,18 +1,18 @@
-2026-08-04 15:41:23,761 [INFO] yamlgraph.compile.graph_loader: Parsed 1 Python tools: describe_image
-2026-08-04 15:41:23,761 [INFO] yamlgraph.compile.node_compiler: Added node: describe (type=tool_call)
-2026-08-04 15:41:23,887 [INFO] yamlgraph.utils.llm_factory: Creating LLM: google/gemini-2.5-flash (temp=0.2)
-2026-08-04 15:41:24,898 [INFO] google_genai.models: AFC is enabled with max remote calls: 10.
-2026-08-04 15:41:28,164 [INFO] httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent "HTTP/1.1 200 OK"
+2026-08-04 22:21:56,517 [INFO] yamlgraph.compile.graph_loader: Parsed 1 Python tools: describe_image
+2026-08-04 22:21:56,517 [INFO] yamlgraph.compile.node_compiler: Added node: describe (type=tool_call)
+2026-08-04 22:21:56,625 [INFO] yamlgraph.utils.llm_factory: Creating LLM: google/gemini-3.5-flash (temp=0.2)
+2026-08-04 22:21:58,252 [INFO] google_genai.models: AFC is enabled with max remote calls: 10.
+2026-08-04 22:22:01,699 [INFO] httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
 
 🚀 Running graph: graph.yaml
    Variables: {'image': 'examples/demos/shared-vision-tool/fixture.png'}
 
-🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/09c0c2d4-5724-4301-bcee-e1b64ddeb80e/r/019fcccb-0038-7120-a947-07afd9b84e5e?poll=true
+🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/f889c0ec-fa9b-4025-b69c-2aa756283ef8/r/019fce39-b62e-7963-95ac-e90c37454700?poll=true
 ============================================================
 RESULT
 ============================================================
   current_step: describe
   image: examples/demos/shared-vision-tool/fixture.png
-  described: {'task_id': None, 'tool': 'describe_image', 'success': True, 'result': ImageDescription(title='Blank Canvas', description='This image is entirely white, resembling a blank canvas. It offers a pristine and empty space, ready for imagination or interpretation.', tags=['blank', 'white', 'empty', 'canvas', 'minimalist', 'background', 'clean', 'void'], matches_prompt=None, notes=None), 'error': None}
+  described: {'task_id': None, 'tool': 'describe_image', 'success': True, 'result': ImageDescription(title='Pure White Canvas', description='A completely blank, solid white image representing infinite possibilities and ultimate minimalism. It serves as a clean slate, free of any distractions or details.', tags=['white', 'blank', 'minimalism', 'minimalist', 'canvas', 'empty', 'void', 'background'], matches_prompt=None, notes=None), 'error': None}
 
 ✓ Graph execution completed successfully
