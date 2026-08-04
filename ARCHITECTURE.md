@@ -533,6 +533,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 215 | CAP-215 Style-Convert Pipeline | `examples/style_convert` | REQ-YG-573 |
 | 216 | CAP-216 Tool Manifests | `tools`, `graph_loader` | REQ-YG-574 |
 | 217 | CAP-217 Shared Vision Tool | `examples` | REQ-YG-575 |
+| 218 | CAP-218 Shared Document Splitter | `examples` | REQ-YG-577 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -2690,6 +2691,16 @@ Multimodal image→text capability in examples/shared: describe_image() sends a 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-575 | describe_image(image, instruction, *, provider, model) accepts a local path (base64 data-URL content part; missing file raises naming the path) or URL (passed through as URL content part), builds a multimodal message with the instruction as text part, constructs the model via create_llm() only, and validates output into ImageDescription. Unsupported providers raise ValueError naming the provider and the supported set before any LLM invocation; malformed output raises a validation error rather than returning a partial result. | `examples` |
+
+### 218. CAP-218 Shared Document Splitter
+
+Feeder-tool capability in examples/shared: split_document() splits a document into chunks for map fan-out. mode "page" shells to poppler (pdfinfo/pdftotext) and returns {chunks: [{index, text}], total} with 0-based indexes, one chunk per selected PDF page. Declared once via an FR-768 tool manifest and consumed by the book-summary demo through a tool_call node (FR-773).
+
+**Feature Request:** FR-773
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-577 | split_document(path, mode="page", start=None, end=None) supports only mode "page", returns {chunks: [{index, text}], total} with 0-based chunk indexes and one chunk per selected PDF page, and raises ValueError naming the offending condition for unknown mode, missing input file, missing pdfinfo/pdftotext (with a poppler install hint), nonzero subprocess exit, and unparseable page-count output — no empty-list or partial-success fallback. | `examples` |
 
 <!-- END GENERATED CAPABILITIES -->
 

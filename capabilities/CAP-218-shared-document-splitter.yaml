@@ -1,0 +1,24 @@
+id: CAP-218
+name: Shared Document Splitter
+description: >
+  Feeder-tool capability in examples/shared: split_document() splits a
+  document into chunks for map fan-out. mode "page" shells to poppler
+  (pdfinfo/pdftotext) and returns {chunks: [{index, text}], total} with
+  0-based indexes, one chunk per selected PDF page. Declared once via an
+  FR-768 tool manifest and consumed by the book-summary demo through a
+  tool_call node (FR-773).
+modules:
+  - examples
+requirements:
+  - id: REQ-YG-577
+    description: >
+      split_document(path, mode="page", start=None, end=None) supports only
+      mode "page", returns {chunks: [{index, text}], total} with 0-based
+      chunk indexes and one chunk per selected PDF page, and raises
+      ValueError naming the offending condition for unknown mode, missing
+      input file, missing pdfinfo/pdftotext (with a poppler install hint),
+      nonzero subprocess exit, and unparseable page-count output — no
+      empty-list or partial-success fallback.
+    modules:
+      - examples
+fr: FR-773
