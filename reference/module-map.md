@@ -4,7 +4,7 @@
 - source_root: `yamlgraph/`
 - parser: stdlib `ast.parse()`
 - deterministic ordering: modules sorted by relative path
-- module count: 134
+- module count: 135
 
 ## Module index/tree
 - `yamlgraph/__init__.py` - 63 lines; exports: `get_schema_path()`
@@ -44,8 +44,8 @@
 - `yamlgraph/compile/__init__.py` - 6 lines; exports: _none_
 - `yamlgraph/compile/edge_compiler.py` - 397 lines; exports: `class EdgeShape`, `classify_edge(from_node, to_node, condition, edge_type, map_node_names)`, `build_router_route_mapping(target_nodes, interrupt_nodes, subgraph_interrupt_nodes)`, `build_expression_route_mapping(expr_edges, loop_exit_target, map_nodes)`
   - import dependencies: `yamlgraph.routing`
-- `yamlgraph/compile/graph_loader.py` - 412 lines; exports: `class GraphConfig`, `load_graph_config(path)`, `compile_graph(config)`, `invoke_graph(path, variables, *, config)`, `load_and_compile(path)`, `get_checkpointer_for_graph(config)`
-  - import dependencies: `yamlgraph.compile.edge_compiler`, `yamlgraph.compile.node_compiler`, `yamlgraph.data_loader`, `yamlgraph.loop_detector`, `yamlgraph.models.state_builder`, `yamlgraph.storage.checkpointer_factory`, `yamlgraph.tools.graph_tool`, `yamlgraph.tools.python_tool`, `yamlgraph.tools.schema_loader_tool`, `yamlgraph.tools.shell`, `yamlgraph.tools.write_data_file_tool`, `yamlgraph.utils.validators`
+- `yamlgraph/compile/graph_loader.py` - 414 lines; exports: `class GraphConfig`, `load_graph_config(path)`, `compile_graph(config)`, `invoke_graph(path, variables, *, config)`, `load_and_compile(path)`, `get_checkpointer_for_graph(config)`
+  - import dependencies: `yamlgraph.compile.edge_compiler`, `yamlgraph.compile.node_compiler`, `yamlgraph.data_loader`, `yamlgraph.loop_detector`, `yamlgraph.models.state_builder`, `yamlgraph.storage.checkpointer_factory`, `yamlgraph.tools.graph_tool`, `yamlgraph.tools.manifest`, `yamlgraph.tools.python_tool`, `yamlgraph.tools.schema_loader_tool`, `yamlgraph.tools.shell`, `yamlgraph.tools.write_data_file_tool`, `yamlgraph.utils.validators`
 - `yamlgraph/compile/map_compiler.py` - 368 lines; exports: `flatten_map_results(items)`, `wrap_for_reducer(node_fn, collect_key, state_key, flatten_output, timeout)`, `compile_map_node(name, config, builder, defaults, tools_registry, graph_path, python_tools, tools)`
   - import dependencies: `yamlgraph.config`, `yamlgraph.constants`, `yamlgraph.node_factory`, `yamlgraph.tools.agent`, `yamlgraph.tools.python_tool`, `yamlgraph.utils.expressions`
 - `yamlgraph/compile/node_compiler.py` - 447 lines; exports: `class GraphConfigError`, `class NodeCompileContext`, `resolve_cache_policy(cache_config)`, `compile_node(node_name, node_config, graph, config, tools, python_tools, callable_registry, graph_tool_configs)`, `compile_nodes(config, graph, tools, python_tools, callable_registry, graph_tool_configs)`
@@ -56,7 +56,7 @@
   - import dependencies: _none_
 - `yamlgraph/compile/verify_insert.py` - 77 lines; exports: `insert_verify_node(config)`
   - import dependencies: _none_
-- `yamlgraph/config.py` - 105 lines; exports: _none_
+- `yamlgraph/config.py` - 108 lines; exports: _none_
   - import dependencies: _none_
 - `yamlgraph/constants.py` - 75 lines; exports: `class NodeType`, `class ErrorHandler`, `class EdgeType`, `class SpecialNodes`
   - import dependencies: _none_
@@ -198,6 +198,8 @@
   - import dependencies: `yamlgraph.executor_base`, `yamlgraph.tools.python_tool`, `yamlgraph.tools.schema_loader_tool`, `yamlgraph.tools.shell`, `yamlgraph.tools.tool_builders`, `yamlgraph.utils.content`, `yamlgraph.utils.guard_runtime`, `yamlgraph.utils.json_extract`, `yamlgraph.utils.llm_factory`, `yamlgraph.utils.prompts`
 - `yamlgraph/tools/graph_tool.py` - 114 lines; exports: `make_graph_tool_fn(compiled, input_mapping, output_key, graph_path, loading_stack, default_variables)`, `build_graph_tool(name, config, callable_fn)`
   - import dependencies: _none_
+- `yamlgraph/tools/manifest.py` - 182 lines; exports: `class ShellRuntime`, `class PythonRuntime`, `class GraphRuntime`, `class ToolManifest`, `expand_tool_manifests(tools, source_path)`
+  - import dependencies: _none_
 - `yamlgraph/tools/nodes.py` - 155 lines; exports: `resolve_state_variable(template, state)`, `resolve_variables(variables_config, state)`, `create_tool_node(node_name, node_config, tools)`
   - import dependencies: `yamlgraph.error_handlers`, `yamlgraph.tools.shell`, `yamlgraph.utils.expressions`, `yamlgraph.utils.guard_runtime`
 - `yamlgraph/tools/python_tool.py` - 348 lines; exports: `class PythonToolConfig`, `load_python_function(config, *, graph_root, tool_name, graph_path, prompts_dir)`, `parse_python_tools(tools_config)`, `create_python_node(node_name, node_config, python_tools, *, graph_root)`
@@ -242,11 +244,11 @@
   - import dependencies: `yamlgraph.models`, `yamlgraph.utils.guard_evaluator`
 - `yamlgraph/utils/json_extract.py` - 130 lines; exports: `find_balanced_json(text, start_char, end_char)`, `extract_json(text)`
   - import dependencies: _none_
-- `yamlgraph/utils/llm_factory.py` - 263 lines; exports: `create_llm(provider, model, temperature, max_tokens, thinking_budget)`, `clear_cache()`
+- `yamlgraph/utils/llm_factory.py` - 265 lines; exports: `create_llm(provider, model, temperature, max_tokens, thinking_budget)`, `clear_cache()`
   - import dependencies: `yamlgraph.config`, `yamlgraph.utils.llm_providers`
 - `yamlgraph/utils/llm_factory_async.py` - 134 lines; exports: `get_executor()`, `async create_llm_async(provider, model, temperature, max_tokens)`, `async invoke_async(llm, messages, output_model, max_retries)`, `shutdown_executor()`
   - import dependencies: `yamlgraph.config`, `yamlgraph.executor_base`, `yamlgraph.utils.llm_factory`
-- `yamlgraph/utils/llm_providers.py` - 422 lines; exports: `dispatch_provider(provider, model, temperature, thinking_budget, **kwargs)`
+- `yamlgraph/utils/llm_providers.py` - 450 lines; exports: `dispatch_provider(provider, model, temperature, thinking_budget, **kwargs)`
   - import dependencies: _none_
 - `yamlgraph/utils/logging.py` - 112 lines; exports: `class StructuredFormatter`, `setup_logging(level, use_json)`, `get_logger(name)`
   - import dependencies: _none_
@@ -273,5 +275,5 @@
 ## test_map
 
 - deterministic mapping: derive `test_<stem>.py` and `test_<flattened_path>.py`, then resolve in `tests/`.
-- mapped modules: 61/134
+- mapped modules: 61/135
 - discovered tests: 63

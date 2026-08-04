@@ -20,6 +20,7 @@ from yamlgraph.loop_detector import apply_loop_node_defaults
 from yamlgraph.models.state_builder import build_state_class
 from yamlgraph.storage.checkpointer_factory import get_checkpointer
 from yamlgraph.tools.graph_tool import make_graph_tool_fn
+from yamlgraph.tools.manifest import expand_tool_manifests
 from yamlgraph.tools.python_tool import load_python_function, parse_python_tools
 from yamlgraph.tools.schema_loader_tool import parse_schema_loader_tools
 from yamlgraph.tools.shell import parse_tools
@@ -59,7 +60,8 @@ class GraphConfig:
         self.provider = config.get("provider") or self.defaults.get("provider")
         self.nodes = config.get("nodes", {})
         self.edges = config.get("edges", [])
-        self.tools = config.get("tools", {})
+        # FR-768: expand manifest-declared tools at the load boundary
+        self.tools = expand_tool_manifests(config.get("tools", {}), source_path)
         self.loop_limits = config.get("loop_limits", {})
         self.loop_exits = config.get("loop_exits", {})
         self.checkpointer = config.get("checkpointer")

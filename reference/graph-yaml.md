@@ -1394,6 +1394,58 @@ tools:
     parse: text
 ```
 
+### Tool Manifests (FR-768)
+
+Declare a reusable tool once in a manifest file and reference it from any
+graph. The manifest translates into the equivalent inline declaration at
+graph load — the existing shell/python/graph runtimes execute it; there is
+no separate manifest runtime.
+
+```yaml
+# In the graph — the entry may contain ONLY the manifest key
+tools:
+  reload_canon:
+    manifest: nodes/reload_canon.tool.yaml   # resolved relative to the graph
+```
+
+```yaml
+# nodes/reload_canon.tool.yaml
+name: reload_canon        # must match the tool key in the graph
+description: Reload canon pages from disk into state.
+runtime:
+  type: python
+  path: reload_canon.py   # resolved relative to the MANIFEST file
+  function: reload_canon
+```
+
+**Manifest schema:**
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `name` | Yes | Must equal the graph-local tool key; mismatch fails load |
+| `description` | Yes | Tool description surfaced to agent LLMs |
+| `runtime.type` | Yes | `shell`, `python`, or `graph` |
+
+Per-runtime fields:
+
+- `shell` — required `command`; optional `parse` (`text`/`json`/`none`,
+  default `text`) and `timeout` (default 30).
+- `python` — required `function` plus exactly one of `path` (resolved
+  relative to the manifest file) or `module`; both or neither fails load.
+- `graph` — required `path` (resolved relative to the manifest file);
+  optional `input_mapping` and `output_key` with identical semantics to
+  inline `type: graph` tools.
+
+**Path semantics:** the `manifest:` value resolves relative to the
+referencing graph; paths *inside* the manifest resolve relative to the
+manifest file, so a manifest and its implementation travel together.
+
+**Failure mode:** manifests are validated through typed models at graph
+load. A missing manifest file, invalid YAML, unknown `runtime.type`,
+unknown or conflicting fields, extra keys next to `manifest:` in the graph
+entry, or a `name` mismatch all raise `ValueError` before any node runs —
+never at invocation.
+
 ### Web Search Tool
 
 Search the web using DuckDuckGo (no API key required):

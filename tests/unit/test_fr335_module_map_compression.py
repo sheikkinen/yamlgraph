@@ -133,7 +133,8 @@ class TestFR335ModuleMapCompression:
         # (follow-up seed). Bound re-measured at rebase: 274 with both
         # arcs landed. FR-759: 275 -> 277 for the observability package
         # (otel.py, __init__.py) and compile/node_otel.py.
-        assert line_count <= 277, f"module-map too large: {line_count} lines (max 277)"
+        # FR-768: 277 -> 279 for tools/manifest.py (tool manifests).
+        assert line_count <= 279, f"module-map too large: {line_count} lines (max 279)"
 
     def test_ac02_dependency_lists_contain_only_yamlgraph_imports(self) -> None:
         module_map = _run_generator()

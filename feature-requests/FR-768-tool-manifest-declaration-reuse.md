@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Approved with revisions (judged 2026-08-04 — [FR-768-tool-manifest-declaration-reuse.judgement.md](FR-768-tool-manifest-declaration-reuse.judgement.md))
+**Status:** Enforced (core) 2026-08-04 — AC-01..AC-08, AC-10..AC-12 delivered (`yamlgraph/tools/manifest.py`, expansion in `GraphConfig.__init__`, 14 tests REQ-YG-574, CAP-216, docs, changelog). AC-09 (chaplain trio migration) pending: gated on graph-authoring route + human review per judgement C-4/C-5.
 **Effort:** 2 days
 **Requested:** 2026-08-04
 **First consumer / first event:** the chaplain planner/enforcer/judge trio
