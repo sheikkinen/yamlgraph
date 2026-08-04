@@ -531,6 +531,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 213 | CAP-213 Example Dependency Taxonomy Generator | `scripts/example_taxonomy_scan.py` | REQ-YG-571 |
 | 214 | CAP-214 Direct-Import Dependency Scanner | `scripts/direct_import_scan.py` | REQ-YG-572 |
 | 215 | CAP-215 Style-Convert Pipeline | `examples/style_convert` | REQ-YG-573 |
+| 216 | CAP-216 Tool Manifests | `tools`, `graph_loader` | REQ-YG-574 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -2667,6 +2668,16 @@ Sibling example to image_pipeline that restyles an existing prompt file into a s
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-573 | Style-convert graph chains load_prompts (Python tool reading UTF-8 text, one prompt per nonblank line, stripping only leading "N. " enumerators, raising ValueError on missing/empty input and never writing the source) → convert_styles (map over prompts, LLM sub-node pinned to Mistral on the graph node with a structured schema exposing prompt_text: str) → validate_conversions (fail-fast gate that raises if any branch failed) → save_prompts (reused examples.image_pipeline.nodes.save_prompts.save_prompts_node, unchanged) → END. Successful runs preserve exact prompt count; a branch failure aborts the run before save_prompts writes, so no partial output file is produced. | `examples/style_convert`, `tests/unit/test_style_convert.py` |
+
+### 216. CAP-216 Tool Manifests
+
+Tool declarations reusable across graphs via manifest files: a `manifest:` key in a `tools:` entry loads a typed manifest YAML and translates it into the equivalent inline shell/python/graph tool declaration at graph load. Translation only — no new execution engine (FR-768).
+
+**Feature Request:** FR-768
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-574 | `tools.<name>.manifest` resolves relative to the referencing graph; runtime paths inside a manifest resolve relative to the manifest file. Manifest YAML is validated through typed models at graph load: missing files, invalid YAML, unknown runtime types, unknown/conflicting fields, and tool-key/name mismatches fail before invocation. Shell, python (path and module), and graph runtimes translate to configs equivalent to their inline declarations; inline declarations load unchanged. | `tools`, `graph_loader` |
 
 <!-- END GENERATED CAPABILITIES -->
 

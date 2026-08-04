@@ -1,0 +1,25 @@
+id: CAP-216
+name: Tool Manifests
+description: >
+  Tool declarations reusable across graphs via manifest files: a
+  `manifest:` key in a `tools:` entry loads a typed manifest YAML and
+  translates it into the equivalent inline shell/python/graph tool
+  declaration at graph load. Translation only — no new execution engine
+  (FR-768).
+modules:
+  - tools
+  - graph_loader
+requirements:
+  - id: REQ-YG-574
+    description: >
+      `tools.<name>.manifest` resolves relative to the referencing graph;
+      runtime paths inside a manifest resolve relative to the manifest file.
+      Manifest YAML is validated through typed models at graph load: missing
+      files, invalid YAML, unknown runtime types, unknown/conflicting fields,
+      and tool-key/name mismatches fail before invocation. Shell, python
+      (path and module), and graph runtimes translate to configs equivalent
+      to their inline declarations; inline declarations load unchanged.
+    modules:
+      - tools
+      - graph_loader
+fr: FR-768
