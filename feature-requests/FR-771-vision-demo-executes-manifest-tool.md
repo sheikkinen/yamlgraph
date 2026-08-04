@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Approved with revisions (judged 2026-08-04) — BLOCKED pending FR-772: judgement R-1 verified, no YAML-only args strategy exists with current `tool_call` behavior (`resolve_template` returns inline dicts unresolved, expressions.py:192-193; passthrough uses the same single-value resolver). Per C-2, core capability goes through [FR-772](FR-772-tool-call-inline-dict-args.md); this FR's enforcement resumes after FR-772 lands.
+**Status:** Enforced 2026-08-04 — unblocked by FR-772 (enforced same day). AC-01..AC-10 delivered: demo migrated to `type: tool_call` with inline args via the authoring route (lint zero warnings — W001 gone; live smoke showing `type=tool_call` + `success: True` + populated ImageDescription), wrapper `nodes/demo.py` deleted, 5 invocation-boundary artifact tests, README, changelog.
 **Effort:** 0.5 days
 **Requested:** 2026-08-04
 **Prior art:** FR-770 (Enforced) made the demo *declare* `describe_image` via manifest — this FR makes it *execute* that declaration; same artifact, next boundary. FR-768 (manifest mechanism) untouched. FR-658 (graph-as-tool) supplied the `tool_call` node this FR routes through (AC-6: direct tool invocation). FR-769 shipped the wrapper (`nodes/demo.py`) this FR deletes.

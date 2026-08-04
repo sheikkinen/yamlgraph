@@ -9,16 +9,15 @@ state:
 tools:
   describe_image:
     manifest: ../../shared/describe_image.tool.yaml
-  describe_demo_image:
-    type: python
-    path: nodes/demo.py
-    function: describe_demo_image
-    description: Call the shared vision tool with the demo instruction
 
 nodes:
   describe:
-    type: python
-    tool: describe_demo_image
+    type: tool_call
+    tool: describe_image
+    args:
+      image: "{state.image}"
+      instruction: "Title, 2-sentence description, and 8 DeviantArt tags."
+      provider: google
     state_key: described
 
 edges:
