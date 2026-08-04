@@ -124,6 +124,7 @@ Standalone demos that teach a single YAMLGraph concept. Ordered by the learning 
 | [map-timeout](demos/map-timeout/) | `map`, `python` | Per-branch timeout for map nodes (FR-069) |
 | [safety-guards](demos/safety-guards/) | `llm`, `map` | Execution safety with recursion limits (FR-027) |
 | [session-continuation](demos/session-continuation/) | `copilot` | Session persistence across runs |
+| [shared-vision-tool](demos/shared-vision-tool/) | `python` | Image → structured description via shared vision tool (FR-769) |
 | [soul](demos/soul/) | `llm`, `data_files` | Agent personality pattern |
 | [streaming](demos/streaming/) | `llm` | Token-by-token output |
 | [system-status](demos/system-status/) | `tool` | Shell tool execution |

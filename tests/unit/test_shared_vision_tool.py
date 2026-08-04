@@ -19,6 +19,9 @@ from examples.shared.vision_tool import (
     describe_image,
 )
 
+# FR-756: imports from examples/ cross the process boundary
+pytestmark = pytest.mark.process
+
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------

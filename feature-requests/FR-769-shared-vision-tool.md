@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Approved with revisions (judged 2026-08-04 — [FR-769-shared-vision-tool.judgement.md](FR-769-shared-vision-tool.judgement.md))
+**Status:** Enforced 2026-08-04 — AC-01..AC-10 delivered: `examples/shared/vision_tool.py`, 8 unit tests + guarded integration test (REQ-YG-575), CAP-217, demo authored via the graph-authoring route (lint pass, live smoke with committed `demo-output.log`), README + changelog. Judgement C-3 not triggered: multimodal content parts worked through `create_llm()`'s chat interface unchanged.
 **Effort:** 1–2 days
 **Requested:** 2026-08-04
 **Prior art:** FR-769-shared-vision-tool.judgement.md is this FR's own judgement. FR-768 (tool manifests) is the companion declaration-reuse FR — this tool is an intended manifest consumer, no overlap in mechanism. FR-128 (yamlgraphication of enforcer), FR-571 (plot modeller schema), FR-381 (batch LLM node) match only on generic nouns (vision/tool/shared) — none concerns image understanding. See also the Prior Art section below (replicate_tool, websearch precedents).

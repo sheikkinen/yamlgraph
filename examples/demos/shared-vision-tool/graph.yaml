@@ -1,0 +1,31 @@
+version: "1.0"
+name: shared-vision-tool-demo
+description: Minimal demo for the shared image description tool.
+
+state:
+  image: str
+  described: dict
+
+tools:
+  describe_image:
+    type: python
+    module: examples.shared.vision_tool
+    function: describe_image
+    description: "Describe an image: title, description, tags"
+  describe_demo_image:
+    type: python
+    path: nodes/demo.py
+    function: describe_demo_image
+    description: Call the shared vision tool with the demo instruction
+
+nodes:
+  describe:
+    type: python
+    tool: describe_demo_image
+    state_key: described
+
+edges:
+  - from: START
+    to: describe
+  - from: describe
+    to: END
