@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Proposed
+**Status:** Judged 2026-08-05 — APPROVED WITH REVISIONS; R-1..R-5 folded below; authority active per judgement
 **Effort:** 1-2 days
 **Requested:** 2026-08-05
 
@@ -19,10 +19,12 @@ copies. None rejected this scope; all three point toward it.
 Give the book-summary demo an opt-in vision branch for scanned/image-only
 PDFs: render undecodable pages to images with poppler `pdftoppm` (shared
 render tool + `.tool.yaml` manifest), transcribe each rendered page with
-the shared vision tool (FR-769 `describe_image`), and feed transcriptions
-into the existing FR-775 per-page summarize map. The loud FR-774 default
-(`ValueError: no extractable text … vision fallback is not implemented`)
-stays the default; the fallback is explicit demo config.
+a typed page-transcription helper sharing FR-769's multimodal plumbing,
+and feed transcriptions into the existing FR-775 per-page summarize map.
+The loud FR-774 default (`ValueError: no extractable text … vision
+fallback is not implemented`) stays the default — enforced at the graph
+level across the whole document (R-1); the fallback is explicit demo
+config.
 
 ## Value Statement
 
@@ -65,78 +67,173 @@ name: render_page
 runtime: {type: python, module: examples.shared.render_page, function: render_page}
 ```
 
-`render_page(path, page, out_dir="tmp/pages", dpi=150)` shells poppler
-`pdftoppm -png -r {dpi} -f {page} -l {page}` (binary verified present)
-and returns the standard success envelope with the PNG path. Loud
-failure: missing binary, bad page, empty output all raise into the
-envelope's `success: false`.
+`render_page(path: str, page: int, out_dir: str = "tmp/pages", dpi: int
+= 150) -> dict` invokes poppler `pdftoppm -png -r {dpi} -f {page} -l
+{page}` via `subprocess.run([...], shell=False)`, writes PNGs only under
+ignored `tmp/`, and returns the result payload `{"page": page, "image":
+png_path}` on success. Loud failure: it *raises*
+(`ValueError`/`FileNotFoundError` naming the condition) for missing PDF,
+invalid page, missing `pdftoppm`, nonzero render exit, or missing output
+— the surrounding `tool_call` node owns the success envelope; the shared
+function never returns a nested envelope (R-5).
 
-### 2. Per-page vision transcription
+### 2. Typed per-page vision transcription (R-2)
 
-New shared function (or thin wrapper) `transcribe_page(image)` calling
-FR-769 `describe_image(image, instruction)` with a transcription
-instruction ("Transcribe all legible text on this book page verbatim…").
-Constraint inherited from FR-769: vision requires the provider allowlist
-(google, anthropic) — the branch fails loudly if the configured vision
-provider is unsupported, before any rendering happens.
+A typed transcription surface — in `examples/shared/vision_tool.py` or a
+new shared module — with a Pydantic model:
 
-### 3. Graph integration (authored via `scripts/author.sh` — sole route)
+```python
+class PageTranscription(BaseModel):
+    page: int
+    text: str
+    is_blank: bool = False
 
-Inside the FR-775 cursor loop, after `fetch_batch`/`gate_fetch`: a
-deterministic python node partitions the window's chunks into text-bearing
-and empty; when `vision_fallback` is true, empty-text pages route through
-`render_page` + `transcribe_page` (map, same `max_items: 10` budget,
-`on_error: retry`) and rejoin the summarize map as ordinary
-`{page, text}` chunks. Splitter change: `allow_empty_selection` /
-OCR-less raise gains a demo-config bypass ONLY when the vision flag is
-set — default behavior byte-identical to FR-774.
+def transcribe_page(image: str | Path, page: int, *,
+                    provider: str | None = None,
+                    model: str | None = None) -> PageTranscription: ...
+```
 
-No `yamlgraph/` core changes expected; this is demo + shared-tool scope.
+It may reuse `describe_image()`'s multimodal message construction and
+provider allowlist, but must NOT return or reinterpret
+`ImageDescription.description` as the transcript — the schema is page
+text, mechanically checkable (page echo, blank flag). Tests mock the LLM
+and prove local image input, unsupported provider, malformed output,
+blank page output, and page-number echo validation.
+
+### 3. Provider preflight gate (R-3)
+
+A deterministic preflight node/helper runs BEFORE any `render_page` map,
+validating the selected vision provider/model against the same allowlist
+the transcription helper uses (google, anthropic). The
+unsupported-provider test spies on the render tool and proves zero
+`pdftoppm` invocations. If a reusable `validate_vision_provider()` helper
+is exposed it stays `examples/shared` scope — no `yamlgraph.utils`
+changes.
+
+### 4. Graph integration (R-1, R-4 — authored via `scripts/author.sh`, sole route)
+
+**Default OCR-less detection moves to the graph level (R-1).** The FR-775
+loop always fetches with `allow_empty_selection: true` (a blank 10-page
+window inside a text PDF must not stop the loop), so the splitter's
+all-empty raise cannot fire per-window. Instead the graph tracks an
+aggregate text-presence flag: whether ANY fetched chunk across the whole
+document had `text.strip()`. With `vision_fallback` false, a gate at the
+final combine boundary raises the exact FR-774 scanned/image-only
+`ValueError` message before any reducer LLM runs if zero extractable text
+was observed. Blank windows inside text-bearing PDFs remain nonfatal.
+The splitter itself is untouched.
+
+**Branch contract (R-4).** After `gate_fetch`, a partition node returns
+current-window `text_chunks`, `empty_chunks`, and the aggregate
+text-presence update. With `vision_fallback=false`, only `text_chunks`
+proceed and the R-1 guard owns all-document failure. With
+`vision_fallback=true`, `empty_chunks` flow through `render_page` and
+typed `transcribe_page` maps — each with `max_items: 10`, retry policy,
+and gates rejecting `_error` entries and failed envelopes. A merge node
+filters render/transcribe collect results to `batch_start..batch_end`,
+verifies every transcribed page came from the current `empty_chunks`,
+drops truly blank transcriptions as empty summaries, combines with
+`text_chunks`, sorts by absolute `page`, and writes the single `chunks`
+list consumed by the existing `summarize_pages` map. No stale collect
+entry, out-of-window page, duplicate page, or render/transcribe failure
+may reach `summarize_pages`, `accumulate`, or `combine` as success-shaped
+state — the exact stale-collect class FR-775 fixed must not be
+reintroduced.
+
+No `yamlgraph/` core changes; this is demo + shared-tool scope.
 
 ## Constraints
 
-- C-1: Default behavior unchanged — without `vision_fallback=true`, the
-  FR-774 ValueError fires with its current message.
-- C-2: No `yamlgraph/` core changes; demo + `examples/shared/` only.
+- C-1: Default behavior unchanged in outcome — without
+  `vision_fallback=true`, a fully OCR-less PDF fails loudly with the
+  exact FR-774 ValueError message (raised by the R-1 graph-level guard
+  before `combine`); FR-775's nonfatal blank-window behavior inside
+  text-bearing PDFs is preserved.
+- C-2: No `yamlgraph/` core changes; demo + `examples/shared/` only —
+  no map reducer, `_map_index`, tool-call envelope, or provider factory
+  changes.
 - C-3: Governed graph/prompt edits go through `scripts/author.sh` only
   (FR-767), verified via `tmp/draft-authoring-report.md`.
 - C-4: Page identity end to end — transcribed pages carry absolute page
   numbers through map, accumulate, and combine exactly as text pages do
   (FR-775 accumulate gates unchanged).
-- C-5: Loud defaults — render/transcribe failures surface as envelope
-  `success: false` and are gated before the map; no silent skips.
-- C-6: Vision provider allowlist enforced before rendering begins.
-- C-7: Test PDFs and rendered PNGs live in `tmp/`, never committed;
-  a tiny committed fixture (1-2 page scanned PDF) is allowed only if
-  < 100 KB, else generated in-test.
-- C-8: README claims bounded: state the vision path is per-page,
-  provider-restricted, and budgeted like the text path; no OCR-quality
-  claims.
+- C-5: Loud defaults — render/transcribe failures raise into the
+  `tool_call`/map error surface and are gated before `summarize_pages`;
+  no silent skips. Transcription is typed (`PageTranscription`), never
+  squeezed through `ImageDescription` fields.
+- C-6: Vision provider allowlist enforced by a preflight gate before any
+  rendering; every post-loop collect result filtered and verified by
+  absolute page within the current batch window.
+- C-7: Test PDFs, rendered PNGs, and generated scanned fixtures live in
+  ignored `tmp/`, never committed; a tiny committed fixture (1-2 page
+  scanned PDF) is allowed only if named in this FR and < 100 KB.
+- C-8: README claims bounded: opt-in vision path, provider allowlist,
+  poppler `pdftoppm` requirement, finite 10-page window budget, no
+  OCR-quality guarantee.
 
 ## Acceptance Criteria
 
-- [ ] AC-01: `render_page.tool.yaml` manifest committed; unit test proves
-      manifest args resolve and the envelope contract (success PNG path;
-      loud failure on bad page/missing file).
-- [ ] AC-02: With `vision_fallback` unset/false, an image-only PDF raises
-      the exact FR-774 ValueError (regression test on message substring).
-- [ ] AC-03: With `vision_fallback=true`, a mocked witness proves
-      empty-text pages route render → transcribe → summarize while
-      text-bearing pages skip the vision path, page identity preserved.
-- [ ] AC-04: Transcribe failures (envelope `success: false`, `_error`
-      map entries) abort loudly via existing gates — test proves no
-      silent page loss.
-- [ ] AC-05: Provider allowlist violation fails before any `pdftoppm`
-      invocation (test with unsupported provider).
-- [ ] AC-06: Governed edits via `scripts/author.sh`;
-      `tmp/draft-authoring-report.md` records lint + smoke.
-- [ ] AC-07: Real witness on a scanned PDF (may be generated by rendering
-      a few book1 pages to images and re-assembling) recorded in
-      Implementation Status: pages transcribed, summarized in order,
-      non-empty `book_summary`, zero unexplained failures.
-- [ ] AC-08: Tests carry `@pytest.mark.req` markers; CAP registry updated
-      (extend CAP-217/CAP-218 or add new CAP); no `yamlgraph/` diff.
-- [ ] AC-09: Changelog fragment and diary reflection included.
+*(Revised per judgement — supersedes the proposed list.)*
+
+- [ ] AC-01: `examples/shared/render_page.py` exposes
+      `render_page(path: str, page: int, out_dir: str = "tmp/pages",
+      dpi: int = 150) -> dict`, invokes `pdftoppm` without `shell=True`,
+      writes PNGs only under ignored `tmp/`, returns
+      `{"page": page, "image": png_path}` on success, and raises naming
+      the condition for missing PDF, invalid page, missing `pdftoppm`,
+      nonzero render exit, or missing output.
+- [ ] AC-02: `examples/shared/render_page.tool.yaml` validates as a
+      `ToolManifest`; an artifact/tool-call test proves args resolve to
+      real kwargs and the node envelope carries success payload or
+      failure error without the shared function returning a nested
+      envelope.
+- [ ] AC-03: With `vision_fallback` unset or false, a fully image-only
+      PDF run raises the exact FR-774 scanned/image-only `ValueError`
+      before `combine`; a text PDF with blank internal windows still
+      completes without that guard firing.
+- [ ] AC-04: With `vision_fallback=true`, unsupported vision
+      provider/model fails in a preflight gate before any `pdftoppm`
+      invocation; the test spies on render invocation count and proves
+      zero renders.
+- [ ] AC-05: A typed transcription helper returns a Pydantic
+      `PageTranscription`-style model carrying absolute page and
+      transcript text; mocked tests cover local rendered image input,
+      provider allowlist, malformed model output, blank page output, and
+      page-number echo validation.
+- [ ] AC-06: A mixed mocked witness proves text-bearing pages skip
+      render/transcribe, empty-text pages route
+      `render_page -> transcribe_page`, and the merged `chunks` list
+      passed to `summarize_pages` is sorted by absolute page with page
+      identity preserved.
+- [ ] AC-07: Render failures, transcribe failures, `_error` map entries,
+      out-of-window pages, duplicate transcriptions, and transcriptions
+      for pages not in the current `empty_chunks` abort loudly before
+      `summarize_pages`, `accumulate`, or `combine`; no silent page loss
+      is accepted.
+- [ ] AC-08: A loop witness with at least two batches proves
+      render/transcribe collect keys are filtered to the current
+      `batch_start..batch_end` window and cannot leak stale entries
+      across iterations.
+- [ ] AC-09: Governed graph/prompt edits are authored via
+      `scripts/author.sh`; `tmp/draft-authoring-report.md` records graph
+      lint and the narrowest meaningful smoke attempt for
+      `examples/demos/book-summary/graph.yaml`.
+- [ ] AC-10: A real scanned-PDF witness is recorded in Implementation
+      Status and `demo-output.log`: pages rendered to `tmp/`, transcribed
+      with absolute page identity, summarized in order, non-empty
+      `book_summary`, zero unexplained render/transcribe/fetch failures,
+      and no generated images or large PDFs added to git.
+- [ ] AC-11: `capabilities/CAP-219-book-summary-vision-fallback.yaml`
+      with `REQ-YG-578` is added; CAP-217/CAP-218 are updated only for
+      actual contract changes; every new or changed test has an exact
+      `@pytest.mark.req(...)` marker.
+- [ ] AC-12: `examples/shared/README.md` documents `render_page` and
+      typed transcription failure modes;
+      `examples/demos/book-summary/README.md` states the opt-in vision
+      path, provider allowlist, poppler `pdftoppm` requirement, finite
+      10-page window budget, and no OCR-quality guarantee.
+- [ ] AC-13: No files under `yamlgraph/` change; changelog fragment and
+      diary reflection are included.
 
 ## Alternatives Considered
 
@@ -159,3 +256,5 @@ No `yamlgraph/` core changes expected; this is demo + shared-tool scope.
 - FR-773 (shared-tool manifest pattern), FR-775 (cursor loop, map,
   accumulate — mechanics reused)
 - FR-767 (sole authoring route)
+- Judgement: `FR-776-vision-fallback-scanned-pdf.judgement.md`
+  (APPROVED WITH REVISIONS; R-1..R-5 folded above; C-1..C-8 gates)

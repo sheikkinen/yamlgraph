@@ -1,0 +1,98 @@
+# Judgement: FR-776 Vision Fallback for Scanned (OCR-less) PDFs in Book-Summary
+
+**Prior art:** FR-776 (the FR under judgement — same territory by
+definition). FR-774 (Enforced) froze this scope as a non-goal and pointed
+at this follow-up; its detection policy is untouched. FR-775 (Enforced)
+supplies the loop/map/accumulate mechanics this FR branches inside. FR-418
+(Implemented) concerns silent-fallback *confessions* in code review, not
+scanned-PDF handling — keyword collision only, no scope overlap.
+
+**Verdict:** APPROVED WITH REVISIONS — the scanned-PDF fallback is the right follow-up and remains example-scoped, but authority activates only after the FR reconciles the FR-775 blank-window loop with the promised default OCR-less failure, defines a typed transcription contract instead of reusing the image-description schema, freezes provider preflight before rendering, and makes the graph branch/traceability mechanically testable.
+
+**Reviewed against:** `feature-requests/FR-776-vision-fallback-scanned-pdf.md`; `.github/skills/judge-fr/doctrine.md`; `.github/skills/judge-fr/judgement.template.md`; `.github/copilot-instructions.md`; `.github/skills/graph-authoring/doctrine.md`; `feature-requests/FR-769-shared-vision-tool.md`; `feature-requests/FR-769-shared-vision-tool.judgement.md`; `feature-requests/FR-773-shared-document-splitter-manifest.md`; `feature-requests/FR-773-shared-document-splitter-manifest.judgement.md`; `feature-requests/FR-774-book-summary-scale-hardening.md`; `feature-requests/FR-774-book-summary-scale-hardening.judgement.md`; `feature-requests/FR-775-book-summary-loop-redesign.md`; `feature-requests/FR-775-book-summary-loop-redesign.judgement.md`; `feature-requests/FR-767-graph-authoring-sole-route.md`; `examples/shared/split_document.py`; `examples/shared/split_document.tool.yaml`; `examples/shared/vision_tool.py`; `examples/shared/describe_image.tool.yaml`; `examples/shared/README.md`; `examples/demos/book-summary/graph.yaml`; `examples/demos/book-summary/tools.py`; `examples/demos/book-summary/README.md`; `examples/demos/book-summary/prompts/summarize_page.yaml`; `examples/demos/book-summary/prompts/combine_summaries.yaml`; `capabilities/CAP-217-shared-vision-tool.yaml`; `capabilities/CAP-218-shared-document-splitter.yaml`; `tests/unit/test_shared_vision_tool.py`; `tests/unit/test_fr775_loop_redesign.py`; repository capability/requirement scan showing `CAP-218` / `REQ-YG-577` as the current high-water mark.
+
+## What is sound
+
+The problem is real and the prior-art chain is correctly dispositioned. FR-774 explicitly made all-empty PDF extraction a loud `ValueError` and deferred rendering/vision as a follow-up (`feature-requests/FR-774-book-summary-scale-hardening.md:140-148`; `examples/shared/split_document.py:111-115`). FR-776 picks up that deferred scope without reopening FR-774's detection policy: opt-in scanned-PDF handling, default refusal unchanged, and no `yamlgraph/` core changes (`feature-requests/FR-776-vision-fallback-scanned-pdf.md:19-25`, `feature-requests/FR-776-vision-fallback-scanned-pdf.md:98-100`).
+
+The strategic classification is **Contrib/example**, not a framework primitive. The necessary primitives already exist: the book-summary graph has a cursor loop, `tool_call` nodes, map fan-out, reducers, and python gates (`examples/demos/book-summary/graph.yaml:61-148`); the shared splitter already carries absolute page identity (`examples/shared/split_document.py:135-144`; `capabilities/CAP-218-shared-document-splitter.yaml:24-31`); and the vision capability already lives as an `examples/shared` Python tool with a provider allowlist and Pydantic output (`examples/shared/vision_tool.py:33-52`, `examples/shared/vision_tool.py:72-121`; `capabilities/CAP-217-shared-vision-tool.yaml:12-21`). FR-776's "demo + shared-tool scope" line is therefore architecture-aligned (`feature-requests/FR-776-vision-fallback-scanned-pdf.md:94`).
+
+The scope rejects the right adjacent work. Tesseract OCR is excluded, whole-book flat rendering is excluded, a sibling scanned-book demo is excluded, and the existing FR-775 loop/budget is reused rather than discarded (`feature-requests/FR-776-vision-fallback-scanned-pdf.md:141-151`). The FR also recognizes graph-authoring governance for `graph.yaml` and prompt edits (`feature-requests/FR-776-vision-fallback-scanned-pdf.md:83-92`, `feature-requests/FR-776-vision-fallback-scanned-pdf.md:131-132`), matching the sole-route doctrine for governed graph artifacts (`.github/copilot-instructions.md:15`; `.github/skills/graph-authoring/doctrine.md:86-102`).
+
+## Required revisions
+
+### R-1: Reconcile the promised default OCR-less failure with the FR-775 loop fetch path
+
+Revise the default-behavior design before enforcement. FR-776 promises that without `vision_fallback=true`, the FR-774 `ValueError` fires unchanged for an image-only PDF (`feature-requests/FR-776-vision-fallback-scanned-pdf.md:23-25`, `feature-requests/FR-776-vision-fallback-scanned-pdf.md:35-40`, `feature-requests/FR-776-vision-fallback-scanned-pdf.md:121-122`). The current FR-775 graph, however, always calls `split_document` with `allow_empty_selection: true` during `fetch_batch` (`examples/demos/book-summary/graph.yaml:78-89`), and `split_document` only raises the all-empty scanned-PDF error when that bypass is false (`examples/shared/split_document.py:111-115`). FR-775 added the bypass because a blank 10-page window inside a valid text PDF must not stop the loop (`feature-requests/FR-775-book-summary-loop-redesign.md:94-100`).
+
+Fold this exact contract into the FR: add graph-level aggregate OCR-less detection compatible with the loop. The graph must track whether any fetched chunk across the whole document had `text.strip()` before vision substitution. If `vision_fallback` is false and the run reaches the final combine boundary with zero extractable text observed, a gate raises the exact FR-774 scanned/image-only `ValueError` message before any reducer LLM runs. Blank windows inside an otherwise text-bearing PDF remain nonfatal. When `vision_fallback` is true, the same empty-text chunks are eligible for the vision branch instead of causing the default guard to fire.
+
+### R-2: Replace `describe_image()` reuse with an explicit typed page-transcription contract
+
+Do not leave "transcribe page" as a loose wrapper over `describe_image()`. FR-776 currently says `transcribe_page(image)` calls FR-769 `describe_image(image, instruction)` with a transcription instruction (`feature-requests/FR-776-vision-fallback-scanned-pdf.md:74-81`). But the committed shared vision tool validates output into `ImageDescription` with `title`, `description`, `tags`, and optional QA fields (`examples/shared/vision_tool.py:40-52`), and `describe_image()` returns that model (`examples/shared/vision_tool.py:72-121`; `feature-requests/FR-769-shared-vision-tool.md:67-69`). That schema cannot mechanically prove verbatim page text, page identity, or blank-page handling.
+
+Fold this exact contract into the FR: add a typed transcription surface, either in `examples/shared/vision_tool.py` or a new shared module, with a Pydantic model such as `PageTranscription(page: int, text: str, is_blank: bool = False)` and a callable `transcribe_page(image: str | Path, page: int, *, provider: str | None = None, model: str | None = None) -> PageTranscription`. It may reuse the same multimodal message construction and provider allowlist as `describe_image()`, but it must not return or reinterpret `ImageDescription.description` as the transcript. Tests must mock the LLM and prove local image input, unsupported provider, malformed output, blank page output, and page-number echo validation.
+
+### R-3: Add a provider preflight gate that runs before `pdftoppm`
+
+Make the "unsupported provider fails before rendering" promise implementable. FR-776 requires the vision provider allowlist to fail before any rendering begins (`feature-requests/FR-776-vision-fallback-scanned-pdf.md:79-81`, `feature-requests/FR-776-vision-fallback-scanned-pdf.md:129-130`), while its graph sketch orders empty pages through `render_page` and then `transcribe_page` (`feature-requests/FR-776-vision-fallback-scanned-pdf.md:85-90`). The existing allowlist is enforced inside the vision function (`examples/shared/vision_tool.py:97-105`; `tests/unit/test_shared_vision_tool.py:147-163`), so calling it only after rendering cannot satisfy the pre-render gate.
+
+Fold this exact contract into the FR: add a deterministic preflight node or helper, before any `render_page` map, that validates the selected vision provider/model against the same allowlist the transcription helper uses. The unsupported-provider acceptance test must spy on the render tool and prove no `pdftoppm` invocation occurred. If enforcement chooses to expose a reusable `validate_vision_provider()` helper, it remains examples/shared scope and must not change `yamlgraph.utils.llm_factory` or provider APIs.
+
+### R-4: Freeze the graph branch state keys, current-window filtering, and failure gates
+
+Specify the graph integration at the same precision as FR-775's accumulate contract. FR-776 says a deterministic node partitions text-bearing and empty chunks, empty pages route through render/transcribe, and transcriptions rejoin the existing summarize map as ordinary `{page, text}` chunks (`feature-requests/FR-776-vision-fallback-scanned-pdf.md:85-90`). The current graph has one `chunks` input to `summarize_pages`, one persistent `page_summaries` collect key, and an `all_summaries` reducer (`examples/demos/book-summary/graph.yaml:22-35`, `examples/demos/book-summary/graph.yaml:95-122`); the current accumulate helper filters an ever-growing collect key by absolute page to avoid stale cross-iteration entries (`examples/demos/book-summary/tools.py:44-86`). A second render/transcribe map without named collect keys and current-window filters would recreate the exact stale-collect class FR-775 fixed.
+
+Fold this exact graph contract into the FR: after `gate_fetch`, add a partition node that returns current-window `text_chunks`, `empty_chunks`, and an update for the aggregate text-presence flag. With `vision_fallback=false`, only `text_chunks` proceed and the R-1 default guard owns all-document OCR-less failure. With `vision_fallback=true`, `empty_chunks` flow through `render_page` and typed `transcribe_page` maps, each with `max_items: 10`, retry policy, and gate nodes that reject `_error` entries and failed envelopes. A merge node must filter render/transcribe collect results to `batch_start..batch_end`, verify every transcribed page came from the current `empty_chunks`, drop truly blank transcriptions as empty summaries, combine them with `text_chunks`, sort by absolute `page`, and write the single `chunks` list consumed by the existing `summarize_pages` map. No stale collect entry, out-of-window page, duplicate page, render failure, or transcribe failure may reach `summarize_pages`, `accumulate`, or `combine` as success-shaped state.
+
+### R-5: Freeze traceability and the render tool contract
+
+Replace optional traceability and envelope wording with exact surfaces. FR-776 allows the enforcer to "extend CAP-217/CAP-218 or add new CAP" (`feature-requests/FR-776-vision-fallback-scanned-pdf.md:137-138`), but repo doctrine requires concrete requirement IDs for tests and a capability YAML for new capabilities (`.github/copilot-instructions.md:173-176`). FR-776 also says `render_page()` "returns the standard success envelope" (`feature-requests/FR-776-vision-fallback-scanned-pdf.md:68-72`), but `tool_call` nodes, not Python tool functions, own success envelopes; shared functions should return result payloads or raise so the node can envelope the outcome, matching the existing gate pattern (`examples/demos/book-summary/tools.py:16-20`, `examples/demos/book-summary/tools.py:38-41`).
+
+Fold this exact contract into the FR: add `capabilities/CAP-219-book-summary-vision-fallback.yaml` with `REQ-YG-578` covering the composite fallback (`render_page`, typed transcription branch, graph wiring, and tests). Extend CAP-217 only if the shared vision tool module gains `PageTranscription`; extend CAP-218 only if the splitter contract changes. Define `render_page(path: str, page: int, out_dir: str = "tmp/pages", dpi: int = 150) -> dict` as returning a payload such as `{"page": page, "image": "<png path>"}` on success and raising `ValueError`/`FileNotFoundError` for invalid path/page, missing `pdftoppm`, nonzero subprocess exit, or missing output. It must invoke poppler via `subprocess.run([...], shell=False)` and write generated PNGs only under ignored `tmp/`. Tests may assert the surrounding `tool_call` envelope, but the shared function itself must not return a nested success envelope.
+
+## Scope is frozen
+
+| Deliverable | Surface |
+|---|---|
+| D-1 | `feature-requests/FR-776-vision-fallback-scanned-pdf.md` revised to fold R-1 through R-5 before enforcement authority activates |
+| D-2 | `examples/shared/render_page.py` and `examples/shared/render_page.tool.yaml` implementing the page-to-PNG result-payload contract |
+| D-3 | A typed page-transcription helper/model in `examples/shared/vision_tool.py` or a new `examples/shared/` module, plus provider preflight |
+| D-4 | `examples/demos/book-summary/graph.yaml` and any `prompts/*.yaml` changes authored only through `scripts/author.sh` |
+| D-5 | Demo-local python helper changes for partitioning, aggregate text-presence detection, provider preflight, render/transcribe gates, merge, and current-window filtering |
+| D-6 | Unit/artifact tests for render tool behavior, provider preflight ordering, typed transcription, default no-flag OCR-less failure, mixed text/image routing, current-window merge, failure gates, and no stale collect leakage |
+| D-7 | `capabilities/CAP-219-book-summary-vision-fallback.yaml` / `REQ-YG-578`, with CAP-217/CAP-218 text updates only if their contracts change |
+| D-8 | `examples/shared/README.md`, `examples/demos/book-summary/README.md`, `demo-output.log`, FR Implementation Status witness, changelog fragment, and diary reflection |
+
+Not authorized: changes under `yamlgraph/`; changes to map collect reducer semantics, `_map_index` behavior, loop runtime, `tool_call` envelope semantics, provider factory APIs, hooks, CI, judge/review/authoring doctrine, or release process; Tesseract/OCR-engine integration; committing generated page PNGs or large/provenance-unclear scanned PDFs; new global dependency governance beyond documenting the existing poppler `pdftoppm` binary; migrating other demos/examples; claiming OCR-quality or unbounded scanned-book support.
+
+## Revised acceptance criteria
+
+- [ ] AC-01: `examples/shared/render_page.py` exposes `render_page(path: str, page: int, out_dir: str = "tmp/pages", dpi: int = 150) -> dict`, invokes `pdftoppm` without `shell=True`, writes PNGs only under ignored `tmp/`, returns `{"page": page, "image": png_path}` on success, and raises naming the condition for missing PDF, invalid page, missing `pdftoppm`, nonzero render exit, or missing output.
+- [ ] AC-02: `examples/shared/render_page.tool.yaml` validates as a `ToolManifest`; an artifact/tool-call test proves args resolve to real kwargs and the node envelope carries success payload or failure error without the shared function returning a nested envelope.
+- [ ] AC-03: With `vision_fallback` unset or false, a fully image-only PDF run raises the exact FR-774 scanned/image-only `ValueError` before `combine`; a text PDF with blank internal windows still completes without that guard firing.
+- [ ] AC-04: With `vision_fallback=true`, unsupported vision provider/model fails in a preflight gate before any `pdftoppm` invocation; the test spies on render invocation count and proves zero renders.
+- [ ] AC-05: A typed transcription helper returns a Pydantic `PageTranscription`-style model carrying absolute page and transcript text; mocked tests cover local rendered image input, provider allowlist, malformed model output, blank page output, and page-number echo validation.
+- [ ] AC-06: A mixed mocked witness proves text-bearing pages skip render/transcribe, empty-text pages route `render_page -> transcribe_page`, and the merged `chunks` list passed to `summarize_pages` is sorted by absolute page with page identity preserved.
+- [ ] AC-07: Render failures, transcribe failures, `_error` map entries, out-of-window pages, duplicate transcriptions, and transcriptions for pages not in the current `empty_chunks` abort loudly before `summarize_pages`, `accumulate`, or `combine`; no silent page loss is accepted.
+- [ ] AC-08: A loop witness with at least two batches proves render/transcribe collect keys are filtered to the current `batch_start..batch_end` window and cannot leak stale entries across iterations.
+- [ ] AC-09: Governed graph/prompt edits are authored via `scripts/author.sh`; `tmp/draft-authoring-report.md` records graph lint and the narrowest meaningful smoke attempt for `examples/demos/book-summary/graph.yaml`.
+- [ ] AC-10: A real scanned-PDF witness is recorded in Implementation Status and `demo-output.log`: pages rendered to `tmp/`, transcribed with absolute page identity, summarized in order, non-empty `book_summary`, zero unexplained render/transcribe/fetch failures, and no uncommitted generated images or large PDFs added to git.
+- [ ] AC-11: `capabilities/CAP-219-book-summary-vision-fallback.yaml` with `REQ-YG-578` is added; CAP-217/CAP-218 are updated only for actual contract changes; every new or changed test has an exact `@pytest.mark.req(...)` marker.
+- [ ] AC-12: `examples/shared/README.md` documents `render_page` and typed transcription failure modes; `examples/demos/book-summary/README.md` states the opt-in vision path, provider allowlist, poppler `pdftoppm` requirement, finite 10-page window budget, and no OCR-quality guarantee.
+- [ ] AC-13: No files under `yamlgraph/` change; changelog fragment and diary reflection are included.
+
+## Conditions for enforcement
+
+| # | Condition | Severity |
+|---|---|---|
+| C-1 | Authority does not activate until R-1 through R-5 are folded into `feature-requests/FR-776-vision-fallback-scanned-pdf.md`. | GATE |
+| C-2 | The implementation must remain examples/shared + book-summary demo scope. Any `yamlgraph/` runtime, map reducer, tool-call, provider factory, hook, CI, or doctrine change requires a separate judged FR. | GATE |
+| C-3 | The default no-flag path must fail loudly for a fully OCR-less PDF while preserving FR-775's nonfatal blank-window behavior inside text-bearing PDFs. | GATE |
+| C-4 | Provider allowlist failure must happen before rendering; an unsupported provider must not create PNGs or call `pdftoppm`. | GATE |
+| C-5 | Transcription must be typed as page text, not squeezed through `ImageDescription.title/description/tags`. | GATE |
+| C-6 | Every render/transcribe/map collect result used after a loop iteration must be filtered and verified by absolute page within the current batch window. | GATE |
+| C-7 | Graph and prompt edits must go through `scripts/author.sh` and retain `tmp/draft-authoring-report.md` evidence. | GATE |
+| C-8 | Generated scanned fixtures, rendered PNGs, and large PDFs remain under ignored `tmp/`; only a tiny committed fixture is allowed if the revised FR names it and keeps it under 100 KB. | GATE |
+
+Authority granted: after the required revisions are folded into the FR, enforcement may add the example-scoped render/transcribe vision fallback for the book-summary demo, its shared tools, graph-authoring artifacts, tests, capability/docs/evidence/changelog/diary, and nothing else.
