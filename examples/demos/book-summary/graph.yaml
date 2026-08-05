@@ -1,54 +1,148 @@
 version: "1.0"
 name: book-summary
-description: Summarize a PDF book page by page, then combine the page summaries.
+description: Page-windowed PDF book summary with manifest tools, python gates, map fan-out, reducer accumulation, and a bounded cursor loop.
 
 prompts_relative: true
 prompts_dir: prompts
 
+recursion_limit: 5000
+config:
+  recursion_limit: 5000
+
+loop_limits:
+  prepare_batch: 100
+  fetch_batch: 100
+  gate_fetch: 100
+  summarize_pages: 100
+  accumulate: 100
+  advance: 100
+loop_exits:
+  advance: combine
+
 state:
   pdf: str
-  split_result: dict
+  probe_result: dict
+  fetch_result: dict
+  total: int
+  cursor: int
+  batch_start: int
+  batch_end: int
+  chunks: list
   page_summaries: list
+  all_summaries:
+    type: list
+    reducer: add
   book_summary: str
 
 tools:
   split_document:
     manifest: ../../shared/split_document.tool.yaml
+  gate_probe:
+    type: python
+    path: tools.py
+    function: gate_probe
+  prepare_batch:
+    type: python
+    path: tools.py
+    function: prepare_batch
+  gate_fetch:
+    type: python
+    path: tools.py
+    function: gate_fetch
+  accumulate:
+    type: python
+    path: tools.py
+    function: accumulate
+  advance:
+    type: python
+    path: tools.py
+    function: advance
 
 nodes:
-  split:
+  probe:
+    type: tool_call
+    tool: split_document
+    args:
+      path: "{state.pdf}"
+      mode: info
+    state_key: probe_result
+
+  gate_probe:
+    type: python
+    tool: gate_probe
+
+  prepare_batch:
+    type: python
+    tool: prepare_batch
+
+  fetch_batch:
     type: tool_call
     tool: split_document
     args:
       path: "{state.pdf}"
       mode: page
-      pages_per_chunk: 10
-      min_chars: 200
-    state_key: split_result
+      start: "{state.batch_start}"
+      end: "{state.batch_end}"
+      pages_per_chunk: 1
+      min_chars: 0
+      allow_empty_selection: true
+    state_key: fetch_result
+
+  gate_fetch:
+    type: python
+    tool: gate_fetch
 
   summarize_pages:
     type: map
-    over: "{state.split_result.result.chunks}"
+    over: "{state.chunks}"
     as: chunk
-    max_items: 100
+    max_items: 10
     node:
+      type: llm
       prompt: summarize_page
       state_key: page_summary
+      skip_if_exists: false
+      on_error: retry
+      max_retries: 3
     collect: page_summaries
 
-  combine_summaries:
+  accumulate:
+    type: python
+    tool: accumulate
+
+  advance:
+    type: python
+    tool: advance
+
+  combine:
     type: llm
     prompt: combine_summaries
     state_key: book_summary
     variables:
-      page_summaries: "{state.page_summaries}"
+      all_summaries: "{state.all_summaries}"
 
 edges:
   - from: START
-    to: split
-  - from: split
+    to: probe
+  - from: probe
+    to: gate_probe
+  - from: gate_probe
+    to: prepare_batch
+  - from: prepare_batch
+    to: fetch_batch
+  - from: fetch_batch
+    to: gate_fetch
+  - from: gate_fetch
     to: summarize_pages
   - from: summarize_pages
-    to: combine_summaries
-  - from: combine_summaries
+    to: accumulate
+  - from: accumulate
+    to: advance
+  - from: advance
+    to: prepare_batch
+    condition: "cursor <= total"
+  - from: advance
+    to: combine
+    condition: "cursor > total"
+  - from: combine
     to: END

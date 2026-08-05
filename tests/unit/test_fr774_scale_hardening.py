@@ -147,36 +147,42 @@ def test_all_empty_extraction_raises_scanned_hint_by_default(monkeypatch):
 
 
 # --- Committed demo artifact (AC-06, AC-07, AC-08) ---
+# FR-775 contract evolution: the linear split node was retired for a
+# cursor loop (probe/fetch_batch windows). Batching now happens at the
+# fetch window, blank filtering via allow_empty_selection + empty
+# per-page summaries; the finite budget is loop_limits x window size.
 
 
 @pytest.mark.req("REQ-YG-577")
 def test_demo_graph_batches_and_filters():
     raw = yaml.safe_load(DEMO_GRAPH.read_text())
-    args = raw["nodes"]["split"]["args"]
-    assert args["pages_per_chunk"] == 10
-    assert args["min_chars"] == 200
+    args = raw["nodes"]["fetch_batch"]["args"]
+    assert args["pages_per_chunk"] == 1
+    assert args["min_chars"] == 0
+    assert args["allow_empty_selection"] is True
 
 
 @pytest.mark.req("REQ-YG-577")
 def test_demo_cap_covers_reported_418_page_case():
     raw = yaml.safe_load(DEMO_GRAPH.read_text())
-    ppc = raw["nodes"]["split"]["args"]["pages_per_chunk"]
-    cap = raw["nodes"]["summarize_pages"]["max_items"]
-    assert math.ceil(418 / ppc) <= cap
+    window = 10  # tools.py BATCH_SIZE window
+    budget = raw["loop_limits"]["advance"]
+    assert math.ceil(418 / window) <= budget
+    assert raw["nodes"]["summarize_pages"]["max_items"] >= window
 
 
 @pytest.mark.req("REQ-YG-577")
-def test_prompts_speak_excerpt_not_single_page():
+def test_prompts_speak_single_page_honestly():
+    # FR-774 pinned excerpt semantics for 10-page chunks; FR-775 fetches
+    # one page per chunk, so the prompts must speak per-page truthfully.
     summarize = (PROMPTS / "summarize_page.yaml").read_text().lower()
     combine = (PROMPTS / "combine_summaries.yaml").read_text().lower()
-    assert "excerpt" in summarize
-    assert "single page" not in summarize
-    assert "page {{" not in combine
-    assert "excerpt" in combine or "chunk" in combine
+    assert "one page" in summarize
+    assert "excerpt" not in summarize
+    assert "all_summaries" in combine
 
 
 @pytest.mark.req("REQ-YG-577")
 def test_readme_states_bounded_page_budget():
     readme = README.read_text().lower()
-    assert "1000" in readme  # 10 pages/chunk x 100 chunks (R-2)
-    assert "page-by-page" not in readme  # R-3
+    assert "1000" in readme  # loop_limits 100 x 10-page windows

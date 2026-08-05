@@ -127,7 +127,11 @@ def test_manifest_translates_to_shared_module():
 
 @pytest.mark.req("REQ-YG-576")
 def test_committed_split_args_resolve_to_real_kwargs():
-    """AC-05: no {} collapse, no literal '{state.' kwarg, kwargs dispatch."""
+    """AC-05: no {} collapse, no literal '{state.' kwarg, kwargs dispatch.
+
+    FR-775 contract evolution: the linear split node was retired; the
+    loop's fetch_batch node carries the state-referencing args now.
+    """
     from yamlgraph.node_factory import create_tool_call_node
 
     raw = yaml.safe_load(DEMO_GRAPH.read_text())
@@ -137,10 +141,14 @@ def test_committed_split_args_resolve_to_real_kwargs():
         received.update(kwargs)
         return {"chunks": [], "total": 0}
 
-    node_config = raw["nodes"]["split"]
-    node = create_tool_call_node("split", node_config, {"split_document": recorder})
-    node({"pdf": str(FIXTURE)})
+    node_config = raw["nodes"]["fetch_batch"]
+    node = create_tool_call_node(
+        "fetch_batch", node_config, {"split_document": recorder}
+    )
+    node({"pdf": str(FIXTURE), "batch_start": 1, "batch_end": 10})
     assert received.get("path") == str(FIXTURE)
+    assert str(received.get("start")) == "1"
+    assert str(received.get("end")) == "10"
     for value in received.values():
         assert "{state." not in str(value)
 

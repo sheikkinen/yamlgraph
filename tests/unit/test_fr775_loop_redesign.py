@@ -331,19 +331,21 @@ def test_forced_loop_limit_routes_to_combine(monkeypatch):
     from yamlgraph.compile.graph_loader import compile_graph, load_graph_config
 
     config = load_graph_config(DEMO_GRAPH)
-    config.loop_limits["advance"] = 1  # force the hit on iteration 2
+    config.loop_limits["advance"] = 1  # force the hit on advance's 2nd run
 
-    def fake_prompt(prompt_name, variables=None, **kwargs):
-        if "combine" in prompt_name:
+    def fake_prompt(**kwargs):
+        if "combine" in kwargs["prompt_name"]:
             return "combined summary"
-        page = (variables or {}).get("chunk", {}).get("page", 0)
+        page = (kwargs.get("state") or {}).get("chunk", {}).get("page", 0)
         return {"page": page, "summary": f"summary of page {page}"}
 
     with patch(
         "yamlgraph.node_factory.llm_nodes.execute_prompt", side_effect=fake_prompt
     ):
-        graph = compile_graph(config)
-        result = graph.invoke({"pdf": str(FIXTURE)}, config={"recursion_limit": 200})
+        app = compile_graph(config).compile()
+        result = app.invoke({"pdf": str(FIXTURE)}, config={"recursion_limit": 200})
     assert result.get("book_summary")  # combine reached via loop_exits
     pages = [e["page"] for e in result.get("all_summaries", [])]
-    assert pages and max(pages) <= 10  # only iteration 1 accumulated
+    # advance executed once (cursor 1->11), hit its limit before the third
+    # window: exactly batches 1-10 and 11-20 accumulated, 21-30 never ran.
+    assert sorted(pages) == list(range(1, 21))

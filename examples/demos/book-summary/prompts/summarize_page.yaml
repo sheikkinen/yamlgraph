@@ -1,8 +1,22 @@
+schema:
+  name: PageSummary
+  fields:
+    page:
+      type: int
+      description: Echo the provided page number exactly.
+    summary:
+      type: str
+      description: 2-3 sentence summary; empty string if the page has no meaningful text.
+
 system: |
-  You summarize book excerpts clearly and concisely.
+  You summarize one PDF page at a time. Use only the provided page text.
 
 user: |
-  Summarize this multi-page excerpt of a book in 3-5 sentences.
-  Output ONLY the summary text -- no preamble, headings, or commentary about blank, sparse, or repeated regions.
+  Summarize exactly one page of a book.
 
+  The provided page number is {{ chunk.page }}. Echo this page number exactly in the `page` field.
+  If the page text is blank or has no meaningful content, return an empty string in `summary`.
+  Summarize only what is on this page; never invent context from other pages.
+
+  Page {{ chunk.page }} text:
   {{ chunk.text }}
