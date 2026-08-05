@@ -1,16 +1,20 @@
 # FR-775: Book-Summary Loop Redesign — Per-Page Summaries via Batched Tool Loop
 
-**Status:** Proposed 2026-08-05
+**Status:** Judged 2026-08-05 — APPROVED WITH REVISIONS; R-1..R-5 folded below; authority active per judgement
 
 **Prior art:** FR-773 (book-summary demo + shared splitter), FR-774 (scale
 hardening: `pages_per_chunk`/`min_chars`, 1000-page budget), FR-238 (YAML
 state reducers), FR-172 (`loop_exits`), `reference/graph-yaml.md` §Sequential
 Pipeline with Shared Context (add-reducer accumulation, W021
-`skip_if_exists: false`), §Loop Limits, §Self-Correction Loop. No existing
-demo combines tool loop + map + reducer accumulation; `git log --oneline
---all -- examples/demos/ | grep -i loop` returns nothing demo-shaped. FR-774
-is superseded in demo *shape* but its splitter mechanics (batching, filtering,
-failure modes, tests) are reused unchanged as the loop's fetch primitive.
+`skip_if_exists: false`), §Loop Limits, §Self-Correction Loop. Loops as such
+are well-precedented in committed demos — five-whys, wiki-memory, reflexion,
+compaction all loop, and safety-guards already combines a loop-guarded cycle
+with a map fan-out (judgement R-5 disposition). The accurate gap is narrower:
+no cited demo combines shared splitter manifest + batched cursor loop +
+per-page map fan-out + cross-iteration reducer accumulation + final LLM
+reduction in one artifact. FR-774 is superseded in demo *shape* but its
+splitter mechanics (batching, filtering, failure modes, tests) are reused as
+the loop's fetch primitive, extended only as R-1/R-2/R-3 specify.
 
 ## Summary
 
@@ -61,53 +65,60 @@ a real 400-page book with the default provider's small model, and gets a
 coherent whole-book summary. The README names each yamlgraph component the
 graph demonstrates. The demo is the framework tour.
 
-## Proposed Solution
+## Proposed Solution (revised per judgement — R-1..R-4 folded)
 
 Graph shape (authored solely via `scripts/author.sh`, FR-767):
 
 ```
-START → probe → fetch_batch → summarize_pages (map, per page)
-              ↑                    ↓
-              └── advance (python) ← accumulate
-                     ↓ router: cursor > total?
-                  combine (LLM reducer) → END
+START → probe (mode: info) → gate_probe → prepare_batch → fetch_batch
+                                   ↑                          ↓
+                                   │                     gate_fetch
+                                   │                          ↓
+                              advance ← accumulate ← summarize_pages (map)
+                                   ↓ router: cursor > total?
+                                combine (LLM reducer) → END
 ```
 
-- **probe**: `split_document(path, start=1, end=1)` — cheap call whose
-  `total` yields the page count; python node (or the same tool result)
-  seeds `cursor: 1`.
-- **fetch_batch**: `split_document(path, mode=page, start={cursor},
-  end={cursor+9}, pages_per_chunk=1, min_chars=200)` → ≤10 per-page chunks.
-  Reuses FR-774 mechanics verbatim; `end` is clamped to `total` by the
-  existing range logic.
-- **summarize_pages**: map over batch chunks, `max_items: 10`,
-  `skip_if_exists: false` (W021), prompt summarizes ONE page in 2-3
-  sentences, summary-only output (FR-774 R-3 language retained).
-- **accumulate + advance**: python node appends the batch's ordered
-  summaries to `all_summaries` (state config `reducer: add`) and returns
-  `cursor: cursor + 10`.
-- **router**: expression router — `cursor <= total` → fetch_batch, else →
+- **probe** (R-1): `split_document(path, mode=info)` — new CAP-218 mode
+  returning `{"total": int}` from `pdfinfo` alone, no `pdftotext` call. No
+  text extraction just to learn the page count; a blank first page cannot
+  kill the run before the loop starts.
+- **gate_probe / gate_fetch** (R-4): python gate nodes that raise with the
+  envelope `error` when `tool_call` `success` is false. A failed envelope
+  never reaches `summarize_pages`, `accumulate`, or `combine`. Mechanically
+  testable failures: missing poppler, bad page range, forced fetch failure.
+- **prepare_batch** (R-1): python (or passthrough) node computing
+  `batch_start: cursor` and `batch_end: min(cursor + 9, total)`. No
+  arithmetic in `tool_call.args` — args reference only resolved state
+  values.
+- **fetch_batch** (R-1/R-2): `split_document(path, mode=page,
+  start={state.batch_start}, end={state.batch_end}, pages_per_chunk=1,
+  min_chars=0, allow_empty_selection=true)` → ≤10 per-page chunks. New
+  `allow_empty_selection: bool = False` splitter kwarg: default preserves
+  FR-774's loud all-empty/all-filtered failures; the loop fetch path opts in
+  because a blank 10-page window inside a valid 418-page book is normal, not
+  fatal. No `min_chars=200` in the loop path.
+- **summarize_pages** (R-3): map over batch chunks, `max_items: 10`,
+  `skip_if_exists: false` (W021). Per-page chunks carry absolute
+  `page: int` metadata (batched chunks: `page_start`/`page_end`) — CAP-218
+  extension. Prompt uses structured Pydantic schema `{page: int,
+  summary: str}`, echoing the *provided* absolute page number (echoing is
+  not inventing). Blank/sparse pages yield `summary: ""`.
+- **accumulate** (R-3): python node filters the map collect key to entries
+  with `batch_start <= page <= batch_end`, verifies each non-empty summary
+  page belongs to the current `fetch_batch.result.chunks`, sorts by `page`,
+  and returns ONLY that new ordered fragment as `{"all_summaries": [...]}`
+  — the `add` reducer performs the append; the node never reads existing
+  `all_summaries` and returns a combined list. This kills the `sorted_add`
+  `_map_index`-restart interleave by page identity, not by index
+  reconstruction.
+- **advance**: `cursor: cursor + 10`.
+- **router**: expression router — `cursor <= total` → prepare_batch, else →
   combine. `loop_limits: {fetch_batch: 100}` (10 pages × 100 iterations =
-  1000-page budget, README states it; FR-774 R-2 preserved) with
-  `loop_exits: {fetch_batch: combine}` so limit-hit still combines what was
-  gathered.
-- **combine**: LLM reducer over `all_summaries`, excerpt/page semantics per
-  FR-774 R-3, never inventing page numbers.
-
-**Named design risk (from research, must be resolved at judge time):** the
-map `collect` key is compiled with the `sorted_add` reducer keyed on
-`_map_index`, which restarts 0..9 each iteration — reusing one collect key
-across loop iterations interleaves batches (stable-sort artifact). Cure
-candidates:
-- (a) **Preferred**: chunks carry their absolute page numbers (small
-  CAP-218 extension: `split_document` chunk dicts gain absolute page span
-  when `start` is given); the per-page prompt uses a structured schema
-  `{page: int, summary: str}` echoing the *provided* page number (echoing
-  is not inventing — R-3 compatible); the accumulate python node sorts the
-  current batch by `_map_index` before appending, and final order is
-  batch-append order, verifiable by page fields.
-- (b) Per-iteration collect-key slicing via stable-sort reconstruction —
-  rejected: fragile, undemonstrable.
+  1000-page budget, README states it) with `loop_exits: {fetch_batch:
+  combine}` so a limit-hit still combines what was gathered.
+- **combine**: LLM reducer over `all_summaries`, ignoring empty summaries,
+  never inventing page numbers.
 
 ## Non-Goals
 
@@ -119,36 +130,50 @@ candidates:
 - No parallel batch processing — the loop is deliberately sequential; that
   is the point of demonstrating a loop.
 
-## Acceptance Criteria
+## Acceptance Criteria (revised per judgement — binding set)
 
-- [ ] AC-01: The demo graph contains, and the README names, each showcased
-      component: tool manifest, tool_call with computed args, map fan-out,
-      python node, expression router loop with `loop_limits` +
-      `loop_exits`, YAML state reducer accumulation, LLM reducer.
-- [ ] AC-02: Each summarization LLM call receives at most one page of text;
-      no prompt concatenates multiple pages.
-- [ ] AC-03: The loop fetches 10-page batches via `split_document` with
-      `pages_per_chunk=1` within a `start`/`end` window; FR-773/774
-      splitter tests remain green; any splitter extension (absolute page
-      numbers) is covered by new req-marked tests under CAP-218.
-- [ ] AC-04: Cross-iteration accumulation preserves page order — a
-      mocked-poppler witness with ≥3 batches asserts final summary order
-      matches page order (kills the sorted_add interleave risk with a test).
-- [ ] AC-05: Loop terminates: cursor witness covers exact-multiple and
-      partial final batch; `loop_limits` hit routes to combine via
-      `loop_exits`, not END, and the budget (1000 pages) is stated in the
-      README with no unbounded claim.
-- [ ] AC-06: Graph/prompt edits authored solely via `scripts/author.sh`
-      with `tmp/draft-authoring-report.md` evidence (lint + smoke).
-- [ ] AC-07: Fixture smoke committed as `demo-output.log`: success, ≥1 loop
-      iteration, non-empty accumulated summaries, non-empty book_summary,
-      no truncation warnings.
-- [ ] AC-08: Real-book witness: `tmp/book1.pdf` (418 pages) runs end-to-end
-      on the default provider — 42 loop iterations, coherent summary,
-      recorded in the FR Implementation Status (not committed as fixture).
-- [ ] AC-09: RED committed before GREEN; all new tests carry
-      `@pytest.mark.req` markers; CAP-218 updated; changelog fragment and
-      diary reflection included; no `yamlgraph/` changes.
+- [ ] AC-01: The FR prior-art section names existing loop demos and narrows
+      the novelty claim to the combined shared-splitter + batched loop +
+      per-page map + cross-iteration accumulation + final reducer shape.
+- [ ] AC-02: `split_document` supports `mode: info` without `pdftotext`,
+      `allow_empty_selection: false` by default, and absolute page metadata
+      (`page` for per-page chunks, `page_start`/`page_end` for batched
+      chunks); defaults preserve FR-774 failure behavior when
+      `allow_empty_selection` is omitted.
+- [ ] AC-03: The graph obtains total pages from `mode: info`, computes
+      `batch_start` and `batch_end` in a python or passthrough node, and
+      `fetch_batch.args` reference only state values, not inline arithmetic.
+- [ ] AC-04: `fetch_batch` uses `pages_per_chunk=1`, `min_chars=0`, and
+      `allow_empty_selection=true`; each summarization LLM call receives at
+      most one page of text and a structured `{page, summary}` output
+      schema, with blank/sparse pages represented as empty summaries.
+- [ ] AC-05: A mocked witness with at least 3 loop batches and repeated
+      `_map_index` values proves `all_summaries` contains each non-empty
+      page summary exactly once, sorted by absolute page, with no
+      interleaving or duplicate append.
+- [ ] AC-06: Loop termination tests cover exact-multiple and partial final
+      batches, plus a forced `loop_limits` hit that routes to `combine`
+      through `loop_exits`; the README states the 1000-page budget and
+      makes no unbounded claim.
+- [ ] AC-07: Probe and fetch failure envelopes are gated before map/reduce;
+      tests prove failed `tool_call` results do not reach
+      `summarize_pages`, `accumulate`, or `combine`.
+- [ ] AC-08: Governed graph/prompt edits are authored via
+      `scripts/author.sh`; `tmp/draft-authoring-report.md` records graph
+      lint and a smoke attempt for `examples/demos/book-summary/graph.yaml`.
+- [ ] AC-09: Committed `demo-output.log` proves fixture success with at
+      least one loop iteration, `split/fetch success` true for every
+      executed fetch, non-empty `all_summaries`, non-empty `book_summary`,
+      and no truncation warning.
+- [ ] AC-10: Real-book witness on `tmp/book1.pdf` is recorded in FR
+      Implementation Status with `total == 418`, 42 planned fetch windows,
+      first/middle/last absolute page summaries in increasing order,
+      non-empty `book_summary`, zero tool failures, and zero truncation
+      warnings.
+- [ ] AC-11: New/changed tests carry `@pytest.mark.req` markers;
+      CAP-218/REQ-YG-577 is updated for splitter behavior; no `yamlgraph/`
+      files change.
+- [ ] AC-12: Changelog fragment and diary reflection are included.
 
 ## Alternatives Considered
 
