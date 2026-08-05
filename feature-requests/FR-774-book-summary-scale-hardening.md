@@ -1,6 +1,6 @@
 # FR-774: Book-Summary Scale Hardening — Page Batching, Blank Chunks, OCR-less Detection
 
-**Status:** Draft — awaiting judgement
+**Status:** Judged 2026-08-05 — APPROVED WITH REVISIONS; R-1..R-4 folded below; authority active per judgement
 **Date:** 2026-08-05
 **Author:** agent session (operator-reported defects from first real-world run)
 **Parent:** FR-773 (shared document splitter + book-summary demo)
@@ -61,11 +61,14 @@ raised and justified, not removed.
 ## Ideal Result
 
 `yamlgraph graph run examples/demos/book-summary/graph.yaml --var
-pdf=<any-real-book.pdf>` summarizes the whole book — hundreds of pages,
-blank pages included — in ~N/10 LLM calls with no truncation warning, no
-blank-page commentary, and no preamble; an image-only PDF exits with a
-ValueError naming the condition and pointing at the vision-fallback
-follow-up.
+pdf=<real-book.pdf>` summarizes any text PDF **up to the declared
+supported page budget** (`pages_per_chunk × max_items` = 10 × 100 =
+1000 pages, stated in the README) — blank pages included — in ~N/10 LLM
+calls with no truncation warning, no blank-page commentary, and no
+preamble; an image-only PDF exits with a ValueError naming the condition
+and pointing at the vision-fallback follow-up. (R-2: bounded claim, not
+"any book" — the finite cap is a documented budget, and the observed
+418-page shape is mechanically witnessed by test.)
 
 ## Proposed Solution
 
@@ -88,13 +91,19 @@ def split_document(
 - `pages_per_chunk: N` — consecutive selected pages are joined
   (`"\n".join`) into one chunk; one `pdftotext -f first -l last` call
   per chunk (N× fewer subprocesses too). Default 1 preserves the FR-773
-  contract byte-for-byte.
+  normal text-PDF/page-range behavior and all existing FR-773 tests
+  (R-1: not "byte-for-byte" — all-empty extraction below is the one
+  intentional new default failure mode, documented in CAP-218 and
+  covered by a dedicated regression test).
 - `min_chars: M` — chunks whose stripped text is shorter than M are
   dropped *after* batching; `total` remains the whole-document page
   count (unchanged semantics); chunk `index` stays 0-based over the
-  returned list. Default 0 = keep everything (FR-773 contract preserved).
-  Dropping is driven by explicit caller config — this is not a silent
-  fallback; C-3 intact.
+  returned list. Default 0 = keep everything. Dropping is driven by
+  explicit caller config — this is not a silent fallback; C-3 intact.
+  (R-4) If `min_chars > 0` drops **every** chunk from a selection that
+  had extractable text before filtering, raise
+  `ValueError` naming the path and the `min_chars` threshold — never a
+  success-shaped empty chunk list.
 - `pages_per_chunk < 1` or `min_chars < 0` raise ValueError naming the
   argument.
 - **OCR-less detection:** if, after batching and *before* `min_chars`
@@ -104,7 +113,8 @@ def split_document(
   Loud failure, never a confident empty summary.
 
 Manifest description in `split_document.tool.yaml` updated to the
-extended contract.
+extended contract; CAP-218/REQ-YG-577 description extended to cover
+batching, filtering, and the new failure modes (R-1).
 
 ### 2. Demo: batch + filter + realistic cap (via sole authoring route)
 
@@ -112,12 +122,20 @@ extended contract.
 `scripts/author.sh`):
 
 - `split` args: add `pages_per_chunk: 10`, `min_chars: 200`.
-- `summarize_pages`: `max_items: 100` retained — now meaning 100 chunks
-  = 1000 pages; 418 pages → 42 chunks, headroom documented in README.
-- Prompt hardening (first strike, `two_strike_split` noted):
-  `summarize_page` — "summarize this excerpt (~10 pages) in 3-5
-  sentences; output ONLY the summary, no preamble, no commentary on
-  blank or sparse regions"; `combine_summaries` — ignore empty items.
+- `summarize_pages`: `max_items: 100` retained — a **finite supported
+  page budget** of 10 × 100 = 1000 pages, stated as such in the README
+  (R-2); no unbounded "any book" claim. An artifact test mechanically
+  witnesses the reported 418-page shape: 42 chunks at
+  `pages_per_chunk=10`, below the committed cap, so the observed
+  truncation warning cannot recur for that case.
+- Prompt hardening (first strike, `two_strike_split` noted), with
+  chunk/excerpt semantics throughout (R-3): `summarize_page` — "summarize
+  this excerpt (~10 pages of a book) in 3-5 sentences; output ONLY the
+  summary, no preamble, no commentary on blank or sparse regions";
+  `combine_summaries` — inputs are labeled excerpts/chunks (ordinals,
+  never invented page numbers) and empty items are ignored. README
+  language becomes chunk/excerpt-based ("page-by-page" → batched
+  excerpts); governed file names stay.
 
 ### 3. Non-goal (explicit): vision fallback for scanned PDFs
 
@@ -129,35 +147,48 @@ so the failure message is the signpost. This keeps the present FR
 minimal and makes the follow-up the vision tool's second committed
 consumer (`the-second-consumer-decides` diary, 2026-08-04).
 
-## Acceptance Criteria
+## Acceptance Criteria (revised per judgement — binding set)
 
-- [ ] AC-01: `pages_per_chunk=1, min_chars=0` (defaults) reproduce the
-      FR-773 contract exactly — existing 11 FR-773 tests pass unchanged.
-- [ ] AC-02: `pages_per_chunk=10` on an N-page PDF returns
-      `ceil(N_selected/10)` chunks, each chunk's text the concatenation
-      of its pages' text, `total` = whole-document page count; one
-      pdftotext invocation per chunk (asserted via subprocess recorder).
-- [ ] AC-03: `min_chars` drops sub-threshold chunks; surviving indexes
-      re-count from 0; `total` unchanged. `pages_per_chunk=0` and
-      `min_chars=-1` raise ValueError naming the argument.
-- [ ] AC-04: All-empty extraction raises ValueError naming the path,
-      "scanned"/"image-only", and the FR-774 non-goal pointer — verified
-      with a monkeypatched pdftotext returning empty stdout.
-- [ ] AC-05: Demo graph carries `pages_per_chunk: 10`, `min_chars: 200`
-      in the split args; graph + prompt edits authored via
-      `scripts/author.sh` with `tmp/draft-authoring-report.md` evidence.
-- [ ] AC-06: Demo smoke on the committed 2-page fixture still succeeds
-      end-to-end (1 chunk at pages_per_chunk=10... fixture text length
-      vs min_chars verified — fixture must survive the filter) with
-      state evidence: `split_result.success` true, non-empty
-      `book_summary`, no truncation warning.
-- [ ] AC-07: `summarize_page` output contract (summary-only, no
-      preamble/blank commentary) and `combine_summaries` empty-item
-      tolerance are in the prompts; README documents batching, the
-      filter, the 1000-page headroom, and the OCR-less failure mode.
-- [ ] AC-08: RED before GREEN; new tests marked
-      `@pytest.mark.req("REQ-YG-577")` (CAP-218 description extended);
-      no `yamlgraph/` changes; changelog fragment + diary reflection.
+- [ ] AC-01: With `pages_per_chunk=1, min_chars=0`, existing FR-773
+      normal text-PDF/page-range behavior and tests still pass;
+      all-empty extraction is documented and tested as the one
+      intentional new default failure mode.
+- [ ] AC-02: `pages_per_chunk < 1` and `min_chars < 0` raise
+      `ValueError` naming the offending argument.
+- [ ] AC-03: `pages_per_chunk=10` on an N-page selected range returns
+      `ceil(N_selected / 10)` chunks, renumbered 0..n-1, with `total`
+      equal to the whole-document page count and exactly one
+      `pdftotext -f first -l last` invocation per chunk.
+- [ ] AC-04: `min_chars` drops sub-threshold chunks after batching,
+      renumbers surviving chunks, preserves `total`, and raises
+      `ValueError` naming `min_chars` when threshold filtering removes
+      every prefilter nonempty chunk.
+- [ ] AC-05: All-empty extraction before threshold filtering raises
+      `ValueError` naming the path, "scanned" or "image-only", and the
+      FR-774 vision-fallback non-goal.
+- [ ] AC-06: A 418-page mocked/subprocess-recorded text PDF with
+      `pages_per_chunk=10` produces 42 chunks, and an artifact assertion
+      proves the committed demo graph's map cap cannot truncate that
+      case.
+- [ ] AC-07: The demo graph carries `pages_per_chunk: 10`,
+      `min_chars: 200`, and the justified finite `max_items`; the README
+      states the resulting supported page budget and does not claim
+      unbounded book support.
+- [ ] AC-08: Demo prompt/README content describes chunks/excerpts, not
+      individual pages; the reducer prompt labels inputs as
+      excerpts/chunks and ignores empty summaries without inventing page
+      numbers.
+- [ ] AC-09: Graph and prompt edits are authored via `scripts/author.sh`;
+      `tmp/draft-authoring-report.md` records graph lint and smoke
+      evidence.
+- [ ] AC-10: Demo smoke on the committed fixture succeeds with state
+      evidence: `split_result.success` true, fixture chunks survive
+      `min_chars`, non-empty `page_summaries`, non-empty `book_summary`,
+      and no truncation warning.
+- [ ] AC-11: CAP-218/REQ-YG-577 is extended to cover batching,
+      filtering, and new failure modes; new/changed tests carry
+      requirement markers; no `yamlgraph/` files change.
+- [ ] AC-12: Changelog fragment and diary reflection are added.
 
 ## Alternatives Considered
 
