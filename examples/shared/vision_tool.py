@@ -37,6 +37,26 @@ SUPPORTED_PROVIDERS: dict[str, tuple[str, str]] = {
 }
 
 
+def validate_vision_provider(
+    provider: str | None = None,
+    model: str | None = None,
+) -> tuple[str, str]:
+    """Resolve and validate the vision provider/model pair.
+
+    Raises ValueError naming the provider when it is not in
+    SUPPORTED_PROVIDERS — before any LLM construction (FR-776 R-3).
+    """
+    selected = provider or os.getenv("PROVIDER") or "google"
+    if selected not in SUPPORTED_PROVIDERS:
+        supported = ", ".join(sorted(SUPPORTED_PROVIDERS))
+        raise ValueError(
+            f"Provider '{selected}' does not support vision here. "
+            f"Supported providers: {supported}"
+        )
+    model_env, default_model = SUPPORTED_PROVIDERS[selected]
+    return selected, model or os.getenv(model_env) or default_model
+
+
 class ImageDescription(BaseModel):
     """Structured description of an image."""
 
@@ -94,18 +114,8 @@ def describe_image(
             model output that cannot be validated.
         FileNotFoundError: Local image path does not exist.
     """
-    selected = provider or os.getenv("PROVIDER") or "google"
-    if selected not in SUPPORTED_PROVIDERS:
-        supported = ", ".join(sorted(SUPPORTED_PROVIDERS))
-        raise ValueError(
-            f"Provider '{selected}' does not support vision here. "
-            f"Supported providers: {supported}"
-        )
-
+    selected, selected_model = validate_vision_provider(provider, model)
     image_part = _image_content_part(image)
-
-    model_env, default_model = SUPPORTED_PROVIDERS[selected]
-    selected_model = model or os.getenv(model_env) or default_model
 
     llm = create_llm(provider=selected, model=selected_model, temperature=0.2)
     structured = llm.with_structured_output(ImageDescription)
@@ -119,3 +129,69 @@ def describe_image(
             f"Vision model '{selected}/{selected_model}' returned no structured output"
         )
     return ImageDescription.model_validate(result)
+
+
+class PageTranscription(BaseModel):
+    """Typed transcription of one rendered PDF page (FR-776 R-2)."""
+
+    page: int = Field(description="1-indexed absolute page number, echoed back")
+    text: str = Field(description="Full transcribed text of the page")
+    is_blank: bool = Field(
+        default=False, description="True when the page contains no legible text"
+    )
+
+
+_TRANSCRIBE_INSTRUCTION = (
+    "Transcribe ALL legible text on this scanned page {page} verbatim, "
+    "preserving reading order. Echo back page={page}. If the page has no "
+    "legible text, return empty text with is_blank=true. Do not summarize, "
+    "translate, or invent text."
+)
+
+
+def transcribe_page(
+    image: str | Path,
+    page: int,
+    *,
+    provider: str | None = None,
+    model: str | None = None,
+) -> PageTranscription:
+    """Transcribe a rendered page image with a vision-capable LLM.
+
+    Args:
+        image: Rendered page PNG path or http(s) URL.
+        page: 1-indexed absolute page number; the model must echo it back.
+        provider: LLM provider; defaults to PROVIDER env var or "google".
+            Must be in SUPPORTED_PROVIDERS (validated before any LLM call).
+        model: Model override; defaults per SUPPORTED_PROVIDERS.
+
+    Returns:
+        Validated PageTranscription with matching page identity.
+
+    Raises:
+        ValueError: Unsupported provider (before any LLM call), missing or
+            malformed model output, or page-echo mismatch (FR-776 R-2).
+        FileNotFoundError: Local image path does not exist.
+    """
+    selected, selected_model = validate_vision_provider(provider, model)
+    image_part = _image_content_part(image)
+
+    llm = create_llm(provider=selected, model=selected_model, temperature=0.2)
+    structured = llm.with_structured_output(PageTranscription)
+    instruction = _TRANSCRIBE_INSTRUCTION.format(page=page)
+    message = HumanMessage(content=[{"type": "text", "text": instruction}, image_part])
+    result = structured.invoke([message])
+
+    if result is None:
+        raise ValueError(
+            f"Vision model '{selected}/{selected_model}' returned no "
+            f"transcription for page {page}"
+        )
+    if not isinstance(result, PageTranscription):
+        result = PageTranscription.model_validate(result)
+    if result.page != page:
+        raise ValueError(
+            f"Page echo mismatch: asked for page {page}, model returned "
+            f"page {result.page} — refusing unverifiable transcription"
+        )
+    return result

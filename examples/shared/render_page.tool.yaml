@@ -1,0 +1,22 @@
+# Tool manifest (FR-768) — shared PDF page renderer (FR-776, CAP-219).
+# First committed manifest consumer: examples/demos/book-summary (FR-776).
+#
+# Contract: render_page(path, page, out_dir="tmp/pages", dpi=150) -> dict
+#   path:    PDF file path (required)
+#   page:    1-indexed page number to render (required; must be >= 1)
+#   out_dir: PNG output directory (default tmp/pages — rendered PNGs are
+#            working artifacts and must never be committed, FR-776 C-7)
+#   dpi:     render resolution (default 150)
+# Returns {"page": int, "image": str} — the absolute page number echoed
+#   back and the path of the rendered PNG. Requires poppler (pdftoppm);
+#   invoked with an argument list, never a shell (FR-776 R-5). All
+#   failures raise — FileNotFoundError for a missing PDF or missing
+#   poppler binary, ValueError for an invalid page, nonzero pdftoppm
+#   exit, or absent PNG output — never a silent fallback; the tool_call
+#   node owns the error envelope.
+name: render_page
+description: "Render a single PDF page to PNG via pdftoppm for vision transcription"
+runtime:
+  type: python
+  module: examples.shared.render_page
+  function: render_page
