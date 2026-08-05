@@ -534,6 +534,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 216 | CAP-216 Tool Manifests | `tools`, `graph_loader` | REQ-YG-574 |
 | 217 | CAP-217 Shared Vision Tool | `examples` | REQ-YG-575 |
 | 218 | CAP-218 Shared Document Splitter | `examples` | REQ-YG-577 |
+| 219 | CAP-219 Book-Summary Vision Fallback | `examples` | REQ-YG-578 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -2701,6 +2702,16 @@ Feeder-tool capability in examples/shared: split_document() splits a document in
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-577 | split_document(path, mode="page", start=None, end=None, pages_per_chunk=1, min_chars=0, allow_empty_selection=False) supports mode "page" (chunking) and mode "info" (returns {total: int} from pdfinfo alone, no text extraction, FR-775). mode "page" returns {chunks, total} where each chunk carries index (0-based within the selection), text, and absolute page identity — page for single-page chunks, page_start/page_end for batched chunks (FR-775); total = whole-document page count. pages_per_chunk joins consecutive selected pages into one chunk with exactly one pdftotext -f/-l invocation per chunk; min_chars drops chunks whose stripped text is shorter, renumbering survivors while preserving absolute pages (FR-774, FR-775). ValueError naming the offending condition for: unknown mode, pages_per_chunk < 1, min_chars < 0, missing input file, missing pdfinfo/pdftotext (with a poppler install hint), nonzero subprocess exit, unparseable page-count output, all-empty extraction (scanned/image-only PDF, FR-774 vision-fallback non-goal pointer), and min_chars filtering removing every chunk — no empty-list or partial-success fallback by default; allow_empty_selection=True suppresses only the last two raises for windowed loop fetches (FR-775). The book-summary demo commits a cursor loop (10-page fetch windows, per-page LLM map with {page, summary} schema, page-identity accumulation, loop_limits 100 + loop_exits) forming a documented finite page budget covering 1000 pages. | `examples` |
+
+### 219. CAP-219 Book-Summary Vision Fallback
+
+Opt-in vision branch for scanned/image-only PDFs in the book-summary demo (FR-776): render_page() renders one PDF page to PNG via poppler pdftoppm, transcribe_page() returns a typed PageTranscription through the FR-769 multimodal plumbing, and the demo graph partitions each fetch window into text-bearing and empty chunks, routing empty pages through render/transcribe maps behind a provider preflight gate. The default (no vision_fallback flag) preserves the FR-774 loud failure for fully OCR-less documents via a graph-level aggregate guard while keeping FR-775 blank windows nonfatal.
+
+**Feature Request:** FR-776
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-578 | render_page(path, page, out_dir="tmp/pages", dpi=150) invokes pdftoppm without shell=True, writes PNGs only under tmp/, returns {"page": page, "image": png_path} on success, and raises naming the condition for missing PDF, invalid page, missing pdftoppm, nonzero render exit, or missing output — the surrounding tool_call node owns the success envelope. transcribe_page(image, page, *, provider, model) returns a typed PageTranscription (page, text, is_blank) validated against the page-number echo; the provider allowlist raises before any LLM call, and a preflight gate raises before any pdftoppm invocation when the vision path is enabled with an unsupported provider. The demo graph partitions fetch windows into text/empty chunks, tracks an aggregate text-presence flag, raises the FR-774 scanned/ image-only failure before combine when no text was observed and the flag is off, and merges window-filtered, page-verified, blank-dropped transcriptions with text chunks into the single sorted chunks list consumed by the summarize map — no stale collect entry, out-of-window page, duplicate page, or render/transcribe failure reaches summarize, accumulate, or combine as success-shaped state. | `examples` |
 
 <!-- END GENERATED CAPABILITIES -->
 

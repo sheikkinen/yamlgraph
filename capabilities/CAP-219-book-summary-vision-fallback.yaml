@@ -1,0 +1,40 @@
+id: CAP-219
+name: Book-Summary Vision Fallback
+description: >
+  Opt-in vision branch for scanned/image-only PDFs in the book-summary
+  demo (FR-776): render_page() renders one PDF page to PNG via poppler
+  pdftoppm, transcribe_page() returns a typed PageTranscription through
+  the FR-769 multimodal plumbing, and the demo graph partitions each
+  fetch window into text-bearing and empty chunks, routing empty pages
+  through render/transcribe maps behind a provider preflight gate. The
+  default (no vision_fallback flag) preserves the FR-774 loud failure
+  for fully OCR-less documents via a graph-level aggregate guard while
+  keeping FR-775 blank windows nonfatal.
+modules:
+  - examples
+requirements:
+  - id: REQ-YG-578
+    description: >
+      render_page(path, page, out_dir="tmp/pages", dpi=150) invokes
+      pdftoppm without shell=True, writes PNGs only under tmp/, returns
+      {"page": page, "image": png_path} on success, and raises naming
+      the condition for missing PDF, invalid page, missing pdftoppm,
+      nonzero render exit, or missing output — the surrounding
+      tool_call node owns the success envelope. transcribe_page(image,
+      page, *, provider, model) returns a typed PageTranscription
+      (page, text, is_blank) validated against the page-number echo;
+      the provider allowlist raises before any LLM call, and a
+      preflight gate raises before any pdftoppm invocation when the
+      vision path is enabled with an unsupported provider. The demo
+      graph partitions fetch windows into text/empty chunks, tracks an
+      aggregate text-presence flag, raises the FR-774 scanned/
+      image-only failure before combine when no text was observed and
+      the flag is off, and merges window-filtered, page-verified,
+      blank-dropped transcriptions with text chunks into the single
+      sorted chunks list consumed by the summarize map — no stale
+      collect entry, out-of-window page, duplicate page, or
+      render/transcribe failure reaches summarize, accumulate, or
+      combine as success-shaped state.
+    modules:
+      - examples
+fr: FR-776
