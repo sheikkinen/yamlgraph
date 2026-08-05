@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Judged 2026-08-05 — APPROVED WITH REVISIONS; R-1..R-5 folded below; authority active per judgement
+**Status:** Enforced 2026-08-05 — all AC green; commits: RED (test suite + CAP-219), GREEN A (shared tools), GREEN B (graph + demo helpers + witnesses)
 **Effort:** 1-2 days
 **Requested:** 2026-08-05
 
@@ -175,65 +175,126 @@ No `yamlgraph/` core changes; this is demo + shared-tool scope.
 
 *(Revised per judgement — supersedes the proposed list.)*
 
-- [ ] AC-01: `examples/shared/render_page.py` exposes
+- [x] AC-01: `examples/shared/render_page.py` exposes
       `render_page(path: str, page: int, out_dir: str = "tmp/pages",
       dpi: int = 150) -> dict`, invokes `pdftoppm` without `shell=True`,
       writes PNGs only under ignored `tmp/`, returns
       `{"page": page, "image": png_path}` on success, and raises naming
       the condition for missing PDF, invalid page, missing `pdftoppm`,
       nonzero render exit, or missing output.
-- [ ] AC-02: `examples/shared/render_page.tool.yaml` validates as a
+- [x] AC-02: `examples/shared/render_page.tool.yaml` validates as a
       `ToolManifest`; an artifact/tool-call test proves args resolve to
       real kwargs and the node envelope carries success payload or
       failure error without the shared function returning a nested
       envelope.
-- [ ] AC-03: With `vision_fallback` unset or false, a fully image-only
+- [x] AC-03: With `vision_fallback` unset or false, a fully image-only
       PDF run raises the exact FR-774 scanned/image-only `ValueError`
       before `combine`; a text PDF with blank internal windows still
       completes without that guard firing.
-- [ ] AC-04: With `vision_fallback=true`, unsupported vision
+- [x] AC-04: With `vision_fallback=true`, unsupported vision
       provider/model fails in a preflight gate before any `pdftoppm`
       invocation; the test spies on render invocation count and proves
       zero renders.
-- [ ] AC-05: A typed transcription helper returns a Pydantic
+- [x] AC-05: A typed transcription helper returns a Pydantic
       `PageTranscription`-style model carrying absolute page and
       transcript text; mocked tests cover local rendered image input,
       provider allowlist, malformed model output, blank page output, and
       page-number echo validation.
-- [ ] AC-06: A mixed mocked witness proves text-bearing pages skip
+- [x] AC-06: A mixed mocked witness proves text-bearing pages skip
       render/transcribe, empty-text pages route
       `render_page -> transcribe_page`, and the merged `chunks` list
       passed to `summarize_pages` is sorted by absolute page with page
       identity preserved.
-- [ ] AC-07: Render failures, transcribe failures, `_error` map entries,
+- [x] AC-07: Render failures, transcribe failures, `_error` map entries,
       out-of-window pages, duplicate transcriptions, and transcriptions
       for pages not in the current `empty_chunks` abort loudly before
       `summarize_pages`, `accumulate`, or `combine`; no silent page loss
       is accepted.
-- [ ] AC-08: A loop witness with at least two batches proves
+- [x] AC-08: A loop witness with at least two batches proves
       render/transcribe collect keys are filtered to the current
       `batch_start..batch_end` window and cannot leak stale entries
       across iterations.
-- [ ] AC-09: Governed graph/prompt edits are authored via
+- [x] AC-09: Governed graph/prompt edits are authored via
       `scripts/author.sh`; `tmp/draft-authoring-report.md` records graph
       lint and the narrowest meaningful smoke attempt for
       `examples/demos/book-summary/graph.yaml`.
-- [ ] AC-10: A real scanned-PDF witness is recorded in Implementation
-      Status and `demo-output.log`: pages rendered to `tmp/`, transcribed
+- [x] AC-10: A real scanned-PDF witness is recorded in Implementation
+      Status and `demo-witness.log`: pages rendered to `tmp/`, transcribed
       with absolute page identity, summarized in order, non-empty
       `book_summary`, zero unexplained render/transcribe/fetch failures,
       and no generated images or large PDFs added to git.
-- [ ] AC-11: `capabilities/CAP-219-book-summary-vision-fallback.yaml`
+- [x] AC-11: `capabilities/CAP-219-book-summary-vision-fallback.yaml`
       with `REQ-YG-578` is added; CAP-217/CAP-218 are updated only for
       actual contract changes; every new or changed test has an exact
       `@pytest.mark.req(...)` marker.
-- [ ] AC-12: `examples/shared/README.md` documents `render_page` and
+- [x] AC-12: `examples/shared/README.md` documents `render_page` and
       typed transcription failure modes;
       `examples/demos/book-summary/README.md` states the opt-in vision
       path, provider allowlist, poppler `pdftoppm` requirement, finite
       10-page window budget, and no OCR-quality guarantee.
-- [ ] AC-13: No files under `yamlgraph/` change; changelog fragment and
+- [x] AC-13: No files under `yamlgraph/` change; changelog fragment and
       diary reflection are included.
+
+## Implementation Status
+
+**Enforced 2026-08-05.** TDD trail: RED commit (43 tests, 42 failing —
+`tests/unit/test_fr776_vision_fallback.py` + CAP-219/REQ-YG-578) →
+GREEN A (`feat(examples): FR-776 GREEN A shared render + transcription
+tools`) → GREEN B (graph wiring + demo helpers + witnesses). Suite:
+97 passed across FR-773/774/775/776 + shared vision tool; 0 failures.
+
+**Decisions and deviations:**
+
+- **Guard message wording (R-1 deviation, truthful):** the graph-level
+  guard raises `no extractable text in <pdf> — scanned/image-only PDF?
+  enable the vision fallback with --var vision_fallback=true (FR-776)`.
+  FR-774's original suffix ("vision fallback is not implemented") would
+  now be a lie; the frozen regex contract
+  (`no extractable text.*scanned/image-only`) is preserved. The FR-774
+  raise inside `split_document.py` is untouched (it cannot fire in this
+  graph because the loop fetches with `allow_empty_selection: true`,
+  exactly as R-1 prescribed).
+- **Empty-fan-out dead-end (discovered, mechanically verified):** a
+  LangGraph conditional edge returning zero `Send`s silently ends the
+  branch — downstream nodes never run (verified with a minimal
+  StateGraph). `partition_chunks` therefore passes blank chunks through
+  on the direct route when a window has no text, and `merge_vision` does
+  the same when every transcription is blank; `accumulate` drops the
+  resulting empty summaries exactly as in FR-775. Without this, an
+  all-blank window would end the run instead of advancing the cursor.
+- **Envelope normalization at gate_render:** map-collected `tool_call`
+  entries are `{success, result, error}` envelopes; `gate_render`
+  normalizes them at the boundary (the_one_law) — failed envelopes raise,
+  successful ones flatten to `{page, image}`.
+- **Direct-route condition:** the authoring adapter changed
+  `vision_route == 'direct'` to `vision_route != 'vision'` to close a
+  lint W803 condition-gap warning; the two-target partition contract is
+  unchanged.
+- **FR-775 artifact tests amended:** two wiring assertions
+  (`loop_exits.advance == combine`, `gate_fetch → summarize_pages`)
+  asserted the exact edges R-1/R-4 rewire; updated to the judged FR-776
+  shape with FR-776 comments.
+
+**AC-09 authoring record:** `./scripts/author.sh tmp/fr776-vision-brief.md`
+(sole route) — `tmp/draft-authoring-report.md` records lint (clean after
+W803 repair) and the graph-scoped test run (42 passed, 1 deselected: the
+README test was outside the brief's artifact boundary; README edited
+directly — not a governed artifact).
+
+**AC-10 real scanned-PDF witness** (recorded in `demo-witness.log` §3;
+`demo-output.log` is the gate-facing success stamp pointing there):
+`tmp/scanned.pdf` = pages 7–9 of a genuinely scanned Finnish book
+(`pdfseparate`/`pdfunite` from `tmp/book3.pdf`, 36 pp, zero extractable
+text document-wide — `pdftotext` yields 3 bytes for the selection).
+- Default run (no flag): exit 1 with the exact guard ValueError before
+  `combine` (§2 of demo-witness.log).
+- Vision run (`PROVIDER=google --var vision_fallback=true`): 3 pages
+  rendered to `tmp/pages/p{1,2,3}-*.png`, transcribed verbatim (Finnish
+  diplomatic text, page identity 1..3 intact — surprising detail: the
+  transcription preserved inline citation markers like "(Liitteet 9 ja
+  10)" and the section numbering 1.–12. across page boundaries),
+  summarized in order, non-empty `book_summary`, zero
+  render/transcribe/fetch failures. No images or PDFs added to git.
 
 ## Alternatives Considered
 

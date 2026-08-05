@@ -13,11 +13,16 @@ loop_limits:
   prepare_batch: 100
   fetch_batch: 100
   gate_fetch: 100
+  partition: 100
+  render_pages: 100
+  gate_render: 100
+  transcribe_pages: 100
+  merge_vision: 100
   summarize_pages: 100
   accumulate: 100
   advance: 100
 loop_exits:
-  advance: combine
+  advance: guard_extractable
 
 state:
   pdf: str
@@ -28,6 +33,17 @@ state:
   batch_start: int
   batch_end: int
   chunks: list
+  vision_fallback: bool
+  text_chunks: list
+  empty_chunks: list
+  render_results: list
+  renders: list
+  transcriptions: list
+  text_seen: bool
+  vision_route: str
+  render_result: dict
+  render: dict
+  transcription: dict
   page_summaries: list
   all_summaries:
     type: list
@@ -37,6 +53,8 @@ state:
 tools:
   split_document:
     manifest: ../../shared/split_document.tool.yaml
+  render_page:
+    manifest: ../../shared/render_page.tool.yaml
   gate_probe:
     type: python
     path: tools.py
@@ -49,6 +67,30 @@ tools:
     type: python
     path: tools.py
     function: gate_fetch
+  preflight_vision:
+    type: python
+    path: tools.py
+    function: preflight_vision
+  partition:
+    type: python
+    path: tools.py
+    function: partition_chunks
+  gate_render:
+    type: python
+    path: tools.py
+    function: gate_render
+  transcribe_render:
+    type: python
+    path: tools.py
+    function: transcribe_render
+  merge_vision:
+    type: python
+    path: tools.py
+    function: merge_vision
+  guard_extractable:
+    type: python
+    path: tools.py
+    function: guard_extractable
   accumulate:
     type: python
     path: tools.py
@@ -71,6 +113,10 @@ nodes:
     type: python
     tool: gate_probe
 
+  preflight_vision:
+    type: python
+    tool: preflight_vision
+
   prepare_batch:
     type: python
     tool: prepare_batch
@@ -91,6 +137,47 @@ nodes:
   gate_fetch:
     type: python
     tool: gate_fetch
+
+  partition:
+    type: python
+    tool: partition
+
+  render_pages:
+    type: map
+    over: "{state.empty_chunks}"
+    as: echunk
+    max_items: 10
+    node:
+      type: tool_call
+      tool: render_page
+      args:
+        path: "{state.pdf}"
+        page: "{state.echunk.page}"
+      state_key: render_result
+      on_error: retry
+      max_retries: 3
+    collect: render_results
+
+  gate_render:
+    type: python
+    tool: gate_render
+
+  transcribe_pages:
+    type: map
+    over: "{state.renders}"
+    as: render
+    max_items: 10
+    node:
+      type: python
+      tool: transcribe_render
+      state_key: transcription
+      on_error: retry
+      max_retries: 3
+    collect: transcriptions
+
+  merge_vision:
+    type: python
+    tool: merge_vision
 
   summarize_pages:
     type: map
@@ -114,6 +201,10 @@ nodes:
     type: python
     tool: advance
 
+  guard_extractable:
+    type: python
+    tool: guard_extractable
+
   combine:
     type: llm
     prompt: combine_summaries
@@ -127,12 +218,28 @@ edges:
   - from: probe
     to: gate_probe
   - from: gate_probe
+    to: preflight_vision
+  - from: preflight_vision
     to: prepare_batch
   - from: prepare_batch
     to: fetch_batch
   - from: fetch_batch
     to: gate_fetch
   - from: gate_fetch
+    to: partition
+  - from: partition
+    to: render_pages
+    condition: "vision_route == 'vision'"
+  - from: partition
+    to: summarize_pages
+    condition: "vision_route != 'vision'"
+  - from: render_pages
+    to: gate_render
+  - from: gate_render
+    to: transcribe_pages
+  - from: transcribe_pages
+    to: merge_vision
+  - from: merge_vision
     to: summarize_pages
   - from: summarize_pages
     to: accumulate
@@ -142,7 +249,9 @@ edges:
     to: prepare_batch
     condition: "cursor <= total"
   - from: advance
-    to: combine
+    to: guard_extractable
     condition: "cursor > total"
+  - from: guard_extractable
+    to: combine
   - from: combine
     to: END

@@ -1,4 +1,4 @@
-# Book Summary Cursor-Loop Demo (FR-775)
+# Book Summary Cursor-Loop Demo (FR-775, FR-776)
 
 Summarize a PDF book one page at a time, then combine the ordered page
 summaries into a final book summary. The demo keeps per-page LLM calls small
@@ -7,9 +7,13 @@ while showing how YAMLGraph can orchestrate a finite cursor loop.
 ## Component tour
 
 ```text
-START -> probe -> gate_probe -> prepare_batch -> fetch_batch -> gate_fetch
-      -> summarize_pages -> accumulate -> advance
-      -> prepare_batch while cursor <= total, else combine -> END
+START -> probe -> gate_probe -> preflight_vision -> prepare_batch
+      -> fetch_batch -> gate_fetch -> partition
+      -> summarize_pages (direct) | render_pages -> gate_render
+         -> transcribe_pages -> merge_vision -> summarize_pages (vision)
+      -> accumulate -> advance
+      -> prepare_batch while cursor <= total, else guard_extractable
+      -> combine -> END
 ```
 
 - **Tool manifest**: `split_document` is declared through
@@ -48,6 +52,38 @@ The finite budget is 100 loop iterations times 10 pages per window, covering up
 to 1000 pages before `loop_exits` routes to `combine` with the summaries already
 accumulated.
 
+## Vision fallback for scanned PDFs (FR-776)
+
+By default a scanned/image-only PDF fails loudly: once the loop finishes
+without seeing any extractable text, `guard_extractable` raises the FR-774
+"no extractable text … scanned/image-only PDF?" error before `combine` —
+blank internal windows in a text PDF stay nonfatal.
+
+Opt in with `--var vision_fallback=true`. Each window's blank pages are
+then rendered to PNG via the shared `render_page` tool (`pdftoppm`, poppler)
+and transcribed with the shared `transcribe_page` vision tool, whose typed
+`PageTranscription` output echoes the page number back for identity
+validation. Transcriptions merge with the window's text chunks by absolute
+page before summarization — the same window discipline as `accumulate`.
+
+Constraints:
+
+- Only vision-capable providers are allowed: `google` (gemini-2.0-flash)
+  and `anthropic` (claude-haiku-4-5). `preflight_vision` validates the
+  provider BEFORE the loop starts, so an unsupported provider (e.g. the
+  repo default deepseek) fails without rendering a single page:
+  `PROVIDER=google` or `PROVIDER=anthropic` is required with the flag on.
+- Rendered PNGs go to `tmp/pages/` and are working artifacts — never
+  committed.
+- Transcription quality is bounded by the vision model: it is a best-effort
+  verbatim read of the rendered page, not OCR-grade text extraction.
+  Genuinely blank pages are dropped, exactly like empty text pages.
+
+```bash
+PROVIDER=google yamlgraph graph run examples/demos/book-summary/graph.yaml \
+  --var pdf=tmp/scanned.pdf --var vision_fallback=true --full
+```
+
 ## Run
 
 ```bash
@@ -55,8 +91,9 @@ yamlgraph graph run examples/demos/book-summary/graph.yaml \
   --var pdf=examples/demos/book-summary/fixture.pdf --full
 ```
 
-Requires poppler (`brew install poppler`) for `pdfinfo` and `pdftotext`, plus a
-configured LLM provider for the page and combine prompts.
+Requires poppler (`brew install poppler`) for `pdfinfo` and `pdftotext`
+(plus `pdftoppm` for the vision fallback), and a configured LLM provider for
+the page and combine prompts.
 
 ## Fixture provenance
 

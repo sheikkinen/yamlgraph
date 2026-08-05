@@ -300,7 +300,8 @@ def test_fetch_args_reference_state_only():
 def test_graph_declares_loop_budget_and_exit():
     raw = yaml.safe_load(DEMO_GRAPH.read_text())
     assert raw["loop_limits"]["advance"] == 100
-    assert raw["loop_exits"]["advance"] == "combine"
+    # FR-776 R-1: the loop exit routes through the document-level guard.
+    assert raw["loop_exits"]["advance"] == "guard_extractable"
     readme = README.read_text()
     assert "1000" in readme
     assert "unbounded" not in readme.lower()
@@ -313,8 +314,12 @@ def test_graph_wires_gates_before_map_and_reduce():
     edges = {(e["from"], e["to"]) for e in raw["edges"]}
     assert ("probe", "gate_probe") in edges
     assert ("fetch_batch", "gate_fetch") in edges
-    assert ("gate_fetch", "summarize_pages") in edges
-    assert ("gate_probe", "prepare_batch") in edges
+    # FR-776 R-4: partition sits between gate_fetch and the summarize map.
+    assert ("gate_fetch", "partition") in edges
+    assert ("partition", "summarize_pages") in edges
+    # FR-776 R-3: provider preflight sits between gate_probe and the loop.
+    assert ("gate_probe", "preflight_vision") in edges
+    assert ("preflight_vision", "prepare_batch") in edges
 
 
 @pytest.mark.req("REQ-YG-577")

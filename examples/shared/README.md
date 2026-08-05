@@ -83,6 +83,46 @@ supported set) before any LLM call; missing local files raise
 `FileNotFoundError`; malformed model output raises a Pydantic validation
 error — there is no success-shaped fallback.
 
+**Typed page transcription (FR-776):** `transcribe_page(image, page)`
+returns a `PageTranscription` (`page`, `text`, `is_blank`) for a rendered
+PDF page, with `validate_vision_provider()` enforcing the same allowlist
+before any LLM call. Failure modes: unsupported provider raises
+`ValueError` before the LLM; missing image raises `FileNotFoundError`;
+missing/malformed model output raises `ValueError`; a page-echo mismatch
+(model returns a different `page` than requested) raises `ValueError` —
+an unverifiable transcription is never accepted.
+
+### `render_page.py` - PDF Page Renderer (FR-776)
+
+Renders exactly one PDF page to PNG via poppler's `pdftoppm` — the render
+half of the book-summary vision fallback. Returns
+`{"page": page, "image": png_path}`; PNGs default to ignored `tmp/pages/`
+and must never be committed.
+
+```python
+from examples.shared.render_page import render_page
+
+result = render_page("book.pdf", 7)          # -> {"page": 7, "image": "tmp/pages/p7-7.png"}
+```
+
+```yaml
+# In a graph — via manifest (FR-768)
+tools:
+  render_page:
+    manifest: ../../shared/render_page.tool.yaml
+```
+
+Committed consumer: [demos/book-summary](../demos/book-summary/) maps
+`render_page` over each window's OCR-less pages when
+`vision_fallback=true`.
+
+**Requirements:** poppler (`brew install poppler`) for `pdftoppm`.
+
+**Failure modes:** missing PDF and missing `pdftoppm` binary raise
+`FileNotFoundError`; page < 1, nonzero `pdftoppm` exit, and absent PNG
+output raise `ValueError` naming the condition. The function always
+raises — the `tool_call` node owns the success/error envelope.
+
 ### `split_document.py` - Document Splitter (FR-773)
 
 Splits a PDF into per-page text chunks shaped for map-node fan-out — the
