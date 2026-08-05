@@ -1,13 +1,18 @@
-"""Shared document splitter (FR-773/FR-774, REQ-YG-577).
+"""Shared document splitter (FR-773/FR-774/FR-775, REQ-YG-577).
 
 Splits a PDF into text chunks via poppler (pdfinfo/pdftotext), shaped
-for map-node fan-out: ``{"chunks": [{"index", "text"}], "total"}``.
-Pages can be batched into multi-page chunks (``pages_per_chunk``) and
-sub-threshold chunks dropped (``min_chars``).
+for map-node fan-out: ``{"chunks": [{"index", "text", page metadata}],
+"total"}``. Pages can be batched into multi-page chunks
+(``pages_per_chunk``) and sub-threshold chunks dropped (``min_chars``).
+``mode="info"`` probes the page count only. Every chunk carries its
+absolute page identity: ``page`` for single-page chunks,
+``page_start``/``page_end`` for batched chunks (FR-775 R-3).
 
 Failure contract (FR-773 C-3, FR-774 C-3): every failure raises
 ValueError naming the failing condition — never a silent fallback and
-never a success-shaped empty chunk list.
+never a success-shaped empty chunk list. FR-775 C-3 exception:
+``allow_empty_selection=True`` opts a windowed loop fetch out of the
+all-empty/all-filtered raises; the default stays loud.
 """
 
 import shutil
@@ -22,25 +27,32 @@ def split_document(
     end: int | None = None,
     pages_per_chunk: int = 1,
     min_chars: int = 0,
+    allow_empty_selection: bool = False,
 ) -> dict:
     """Split a PDF into text chunks of consecutive pages.
 
     Args:
         path: PDF file path.
-        mode: Only "page" is supported.
+        mode: "page" splits into chunks; "info" returns page count only.
         start: First page, 1-indexed (default 1).
         end: Last page, 1-indexed inclusive (default: last page).
         pages_per_chunk: Consecutive pages joined per chunk (default 1).
         min_chars: Drop chunks whose stripped text is shorter (default 0).
+        allow_empty_selection: When True, blank windows return blank
+            chunks and fully filtered windows return an empty chunk
+            list instead of raising (loop fetches over sparse pages).
 
     Returns:
-        {"chunks": [{"index": int, "text": str}, ...], "total": int}
-        where index is 0-based within the returned selection and total
-        is the whole document's page count.
+        mode="info": {"total": int}.
+        mode="page": {"chunks": [...], "total": int} where each chunk
+        has "index" (0-based within the selection), "text", and
+        absolute page identity ("page", or "page_start"/"page_end"
+        when pages_per_chunk > 1); total is the whole document's
+        page count.
     """
-    if mode != "page":
+    if mode not in ("page", "info"):
         raise ValueError(
-            f"Unsupported mode {mode!r}: only 'page' is supported "
+            f"Unsupported mode {mode!r}: only 'page' and 'info' are supported "
             "(chapter/paragraph splitting is not implemented)"
         )
     if pages_per_chunk < 1:
@@ -61,6 +73,9 @@ def split_document(
         raise ValueError(f"pdfinfo failed for {path}: {info.stderr.strip()}")
 
     total = _parse_page_count(info.stdout, path)
+    if mode == "info":
+        return {"total": total}
+
     first = start if start is not None else 1
     last = end if end is not None else total
     if not 1 <= first <= last <= total:
@@ -91,23 +106,42 @@ def split_document(
                 f"pdftotext failed for pages {first_page}-{last_page} of {path}: "
                 f"{text.stderr.strip()}"
             )
-        chunks.append(text.stdout)
+        chunks.append((first_page, last_page, text.stdout))
 
-    if all(not text.strip() for text in chunks):
+    if not allow_empty_selection and all(not text.strip() for _, _, text in chunks):
         raise ValueError(
             f"no extractable text in {path} — scanned/image-only PDF? "
             "vision fallback is not implemented (FR-774 non-goal)"
         )
-    kept = [text for text in chunks if len(text.strip()) >= min_chars]
-    if not kept:
+    kept = [
+        (first_page, last_page, text)
+        for first_page, last_page, text in chunks
+        if len(text.strip()) >= min_chars
+    ]
+    if not kept and not allow_empty_selection:
         raise ValueError(
             f"min_chars={min_chars} filtered out every chunk of {path} — "
             "lower the threshold or inspect the document"
         )
     return {
-        "chunks": [{"index": i, "text": text} for i, text in enumerate(kept)],
+        "chunks": [
+            _chunk_dict(i, first_page, last_page, text, pages_per_chunk)
+            for i, (first_page, last_page, text) in enumerate(kept)
+        ],
         "total": total,
     }
+
+
+def _chunk_dict(
+    index: int, first_page: int, last_page: int, text: str, pages_per_chunk: int
+) -> dict:
+    chunk: dict = {"index": index, "text": text}
+    if pages_per_chunk == 1:
+        chunk["page"] = first_page
+    else:
+        chunk["page_start"] = first_page
+        chunk["page_end"] = last_page
+    return chunk
 
 
 def _parse_page_count(pdfinfo_output: str, path: str) -> int:

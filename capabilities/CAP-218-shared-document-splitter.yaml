@@ -3,32 +3,45 @@ name: Shared Document Splitter
 description: >
   Feeder-tool capability in examples/shared: split_document() splits a
   document into chunks for map fan-out. mode "page" shells to poppler
-  (pdfinfo/pdftotext) and returns {chunks: [{index, text}], total} with
-  0-based indexes; pages_per_chunk batches consecutive pages into
-  multi-page chunks and min_chars drops sub-threshold chunks (FR-774).
-  Declared once via an FR-768 tool manifest and consumed by the
-  book-summary demo through a tool_call node (FR-773).
+  (pdfinfo/pdftotext) and returns {chunks, total} with 0-based indexes
+  and absolute page identity per chunk; mode "info" probes the page
+  count only (FR-775). pages_per_chunk batches consecutive pages into
+  multi-page chunks, min_chars drops sub-threshold chunks (FR-774), and
+  allow_empty_selection opts windowed loop fetches out of the
+  all-empty/all-filtered raises (FR-775). Declared once via an FR-768
+  tool manifest and consumed by the book-summary demo through a
+  cursor-loop of tool_call windows with per-page map fan-out (FR-773,
+  FR-775).
 modules:
   - examples
 requirements:
   - id: REQ-YG-577
     description: >
       split_document(path, mode="page", start=None, end=None,
-      pages_per_chunk=1, min_chars=0) supports only mode "page" and
-      returns {chunks: [{index, text}], total} with 0-based chunk indexes
-      and total = whole-document page count. pages_per_chunk joins
-      consecutive selected pages into one chunk with exactly one pdftotext
-      -f/-l invocation per chunk; min_chars drops chunks whose stripped
-      text is shorter, renumbering survivors (FR-774). ValueError naming
-      the offending condition for: unknown mode, pages_per_chunk < 1,
-      min_chars < 0, missing input file, missing pdfinfo/pdftotext (with a
-      poppler install hint), nonzero subprocess exit, unparseable
-      page-count output, all-empty extraction (scanned/image-only PDF,
-      FR-774 vision-fallback non-goal pointer), and min_chars filtering
-      removing every chunk — no empty-list or partial-success fallback.
-      The book-summary demo commits pages_per_chunk 10 + min_chars 200
-      with a map cap forming a documented finite page budget covering the
-      reported 418-page case.
+      pages_per_chunk=1, min_chars=0, allow_empty_selection=False)
+      supports mode "page" (chunking) and mode "info" (returns
+      {total: int} from pdfinfo alone, no text extraction, FR-775).
+      mode "page" returns {chunks, total} where each chunk carries
+      index (0-based within the selection), text, and absolute page
+      identity — page for single-page chunks, page_start/page_end for
+      batched chunks (FR-775); total = whole-document page count.
+      pages_per_chunk joins consecutive selected pages into one chunk
+      with exactly one pdftotext -f/-l invocation per chunk; min_chars
+      drops chunks whose stripped text is shorter, renumbering
+      survivors while preserving absolute pages (FR-774, FR-775).
+      ValueError naming the offending condition for: unknown mode,
+      pages_per_chunk < 1, min_chars < 0, missing input file, missing
+      pdfinfo/pdftotext (with a poppler install hint), nonzero
+      subprocess exit, unparseable page-count output, all-empty
+      extraction (scanned/image-only PDF, FR-774 vision-fallback
+      non-goal pointer), and min_chars filtering removing every chunk —
+      no empty-list or partial-success fallback by default;
+      allow_empty_selection=True suppresses only the last two raises
+      for windowed loop fetches (FR-775). The book-summary demo commits
+      a cursor loop (10-page fetch windows, per-page LLM map with
+      {page, summary} schema, page-identity accumulation, loop_limits
+      100 + loop_exits) forming a documented finite page budget
+      covering 1000 pages.
     modules:
       - examples
-fr: FR-773, FR-774
+fr: FR-773, FR-774, FR-775

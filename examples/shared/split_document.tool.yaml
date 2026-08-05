@@ -1,22 +1,31 @@
-# Tool manifest (FR-768) — shared document splitter (FR-773, FR-774).
+# Tool manifest (FR-768) — shared document splitter (FR-773, FR-774, FR-775).
 # First committed manifest consumer: examples/demos/book-summary (FR-773).
 #
 # Contract: split_document(path, mode="page", start=None, end=None,
-#                          pages_per_chunk=1, min_chars=0) -> dict
+#                          pages_per_chunk=1, min_chars=0,
+#                          allow_empty_selection=False) -> dict
 #   path:  PDF file path (required)
-#   mode:  only "page" is supported; unknown modes raise ValueError
+#   mode:  "page" splits into chunks; "info" returns {"total": int}
+#          (pdfinfo only, no text extraction); unknown modes raise
 #   start: first page, 1-indexed (default 1)
 #   end:   last page, 1-indexed inclusive (default: last page)
 #   pages_per_chunk: consecutive pages joined per chunk (default 1);
 #          one pdftotext invocation per chunk; must be >= 1
 #   min_chars: drop chunks whose stripped text is shorter (default 0);
 #          must be >= 0
-# Returns {"chunks": [{"index": int, "text": str}, ...], "total": int}
-#   index is 0-based within the selection; total is the whole document's
+#   allow_empty_selection: when True, all-blank windows return blank
+#          chunks and fully min_chars-filtered windows return an empty
+#          chunk list instead of raising (for windowed loop fetches);
+#          default False keeps the FR-774 loud-failure contract
+# Returns {"chunks": [...], "total": int} where each chunk has
+#   "index" (0-based within the selection), "text", and absolute page
+#   identity: "page" when pages_per_chunk == 1, else
+#   "page_start"/"page_end" (FR-775 R-3). total is the whole document's
 #   page count. Requires poppler (pdfinfo/pdftotext); all failures raise
-#   ValueError naming the condition — never a silent fallback. All-empty
-#   extraction (scanned/image-only PDF) and all-chunks-filtered
-#   (min_chars too high) both raise instead of returning empty chunks.
+#   ValueError naming the condition — never a silent fallback. By
+#   default, all-empty extraction (scanned/image-only PDF) and
+#   all-chunks-filtered (min_chars too high) both raise instead of
+#   returning empty chunks.
 name: split_document
 description: "Split a PDF into batched per-page text chunks for map-node fan-out"
 runtime:

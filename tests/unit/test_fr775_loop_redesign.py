@@ -202,7 +202,8 @@ def test_advance_increments_cursor():
 
 
 def _summary(map_index, page, text):
-    return {"_map_index": map_index, "value": {"page": page, "summary": text}}
+    # map_compiler flattens dict results: {"_map_index": i, **model_dump}
+    return {"_map_index": map_index, "page": page, "summary": text}
 
 
 @pytest.mark.req("REQ-YG-577")

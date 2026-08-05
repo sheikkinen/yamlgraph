@@ -49,7 +49,9 @@ def test_page_mode_returns_one_chunk_per_page():
     for i, chunk in enumerate(result["chunks"]):
         assert chunk["index"] == i
         assert isinstance(chunk["text"], str)
-        assert set(chunk) == {"index", "text"}
+        # FR-775 R-3: single-page chunks carry absolute page identity
+        assert set(chunk) == {"index", "text", "page"}
+        assert chunk["page"] == i + 1
 
 
 @pytest.mark.req("REQ-YG-577")
