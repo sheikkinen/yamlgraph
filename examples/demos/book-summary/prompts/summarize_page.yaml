@@ -1,7 +1,8 @@
 system: |
-  You summarize individual book pages clearly and concisely.
+  You summarize book excerpts clearly and concisely.
 
 user: |
-  Summarize this single page of a book in 1-2 sentences:
+  Summarize this multi-page excerpt of a book in 3-5 sentences.
+  Output ONLY the summary text -- no preamble, headings, or commentary about blank, sparse, or repeated regions.
 
   {{ chunk.text }}

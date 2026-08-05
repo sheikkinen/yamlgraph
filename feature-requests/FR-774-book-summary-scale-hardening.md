@@ -1,6 +1,6 @@
 # FR-774: Book-Summary Scale Hardening — Page Batching, Blank Chunks, OCR-less Detection
 
-**Status:** Judged 2026-08-05 — APPROVED WITH REVISIONS; R-1..R-4 folded below; authority active per judgement
+**Status:** Enforced 2026-08-05 — RED/GREEN complete; all AC-01..AC-12 verified; real 418-page witness rerun clean (see Implementation Status)
 **Date:** 2026-08-05
 **Author:** agent session (operator-reported defects from first real-world run)
 **Parent:** FR-773 (shared document splitter + book-summary demo)
@@ -149,46 +149,46 @@ consumer (`the-second-consumer-decides` diary, 2026-08-04).
 
 ## Acceptance Criteria (revised per judgement — binding set)
 
-- [ ] AC-01: With `pages_per_chunk=1, min_chars=0`, existing FR-773
+- [x] AC-01: With `pages_per_chunk=1, min_chars=0`, existing FR-773
       normal text-PDF/page-range behavior and tests still pass;
       all-empty extraction is documented and tested as the one
       intentional new default failure mode.
-- [ ] AC-02: `pages_per_chunk < 1` and `min_chars < 0` raise
+- [x] AC-02: `pages_per_chunk < 1` and `min_chars < 0` raise
       `ValueError` naming the offending argument.
-- [ ] AC-03: `pages_per_chunk=10` on an N-page selected range returns
+- [x] AC-03: `pages_per_chunk=10` on an N-page selected range returns
       `ceil(N_selected / 10)` chunks, renumbered 0..n-1, with `total`
       equal to the whole-document page count and exactly one
       `pdftotext -f first -l last` invocation per chunk.
-- [ ] AC-04: `min_chars` drops sub-threshold chunks after batching,
+- [x] AC-04: `min_chars` drops sub-threshold chunks after batching,
       renumbers surviving chunks, preserves `total`, and raises
       `ValueError` naming `min_chars` when threshold filtering removes
       every prefilter nonempty chunk.
-- [ ] AC-05: All-empty extraction before threshold filtering raises
+- [x] AC-05: All-empty extraction before threshold filtering raises
       `ValueError` naming the path, "scanned" or "image-only", and the
       FR-774 vision-fallback non-goal.
-- [ ] AC-06: A 418-page mocked/subprocess-recorded text PDF with
+- [x] AC-06: A 418-page mocked/subprocess-recorded text PDF with
       `pages_per_chunk=10` produces 42 chunks, and an artifact assertion
       proves the committed demo graph's map cap cannot truncate that
       case.
-- [ ] AC-07: The demo graph carries `pages_per_chunk: 10`,
+- [x] AC-07: The demo graph carries `pages_per_chunk: 10`,
       `min_chars: 200`, and the justified finite `max_items`; the README
       states the resulting supported page budget and does not claim
       unbounded book support.
-- [ ] AC-08: Demo prompt/README content describes chunks/excerpts, not
+- [x] AC-08: Demo prompt/README content describes chunks/excerpts, not
       individual pages; the reducer prompt labels inputs as
       excerpts/chunks and ignores empty summaries without inventing page
       numbers.
-- [ ] AC-09: Graph and prompt edits are authored via `scripts/author.sh`;
+- [x] AC-09: Graph and prompt edits are authored via `scripts/author.sh`;
       `tmp/draft-authoring-report.md` records graph lint and smoke
       evidence.
-- [ ] AC-10: Demo smoke on the committed fixture succeeds with state
+- [x] AC-10: Demo smoke on the committed fixture succeeds with state
       evidence: `split_result.success` true, fixture chunks survive
       `min_chars`, non-empty `page_summaries`, non-empty `book_summary`,
       and no truncation warning.
-- [ ] AC-11: CAP-218/REQ-YG-577 is extended to cover batching,
+- [x] AC-11: CAP-218/REQ-YG-577 is extended to cover batching,
       filtering, and new failure modes; new/changed tests carry
       requirement markers; no `yamlgraph/` files change.
-- [ ] AC-12: Changelog fragment and diary reflection are added.
+- [x] AC-12: Changelog fragment and diary reflection are added.
 
 ## Alternatives Considered
 
@@ -207,3 +207,41 @@ consumer (`the-second-consumer-decides` diary, 2026-08-04).
 - FR-773 (parent contract), FR-772 (inline kwargs), FR-769/770 (vision
   tool — follow-up consumer), FR-767 (sole authoring route for AC-05)
 - CAP-218 / REQ-YG-577 (extended, not re-numbered)
+
+## Implementation Status (2026-08-05)
+
+- **RED** committed separately (`test(examples): FR-774 RED scale-hardening
+  suite`, `SKIP=pytest`): 12 tests in
+  `tests/unit/test_fr774_scale_hardening.py`, all marked
+  `@pytest.mark.req("REQ-YG-577")`, poppler mocked via recorded
+  `subprocess.run` calls (418-page witness included).
+- **GREEN**: `examples/shared/split_document.py` extended with
+  `pages_per_chunk` / `min_chars`; validation order mode →
+  pages_per_chunk → min_chars → poppler → file → pdfinfo → range. One
+  `pdftotext -f/-l` call per chunk. All-empty extraction raises naming
+  scanned/image-only + FR-774 vision non-goal (C-3, R-1/R-4);
+  all-filtered raises naming `min_chars`. Chunks renumbered; `total`
+  stays whole-document.
+- **Demo** re-authored via sole route `scripts/author.sh` (C-4/AC-09;
+  `tmp/draft-authoring-report.md`): graph carries `pages_per_chunk: 10`,
+  `min_chars: 200`, `max_items: 100`; prompts speak excerpt semantics
+  with summary-only output (R-3); README states the 1000-page budget
+  (R-2, C-5) — the route agent extended to README because the committed
+  RED test asserts on its prose.
+- **Verification**: 23/23 (`logs/fr774-green2.log` — 12 FR-774 + 11
+  FR-773 regression); fixture smoke committed as `demo-output.log`
+  (success true, 1 batched chunk survives min_chars, non-empty
+  summaries, zero truncation warnings). **Real witness**: the originally
+  reported `tmp/book1.pdf` (418 pages) rerun end-to-end
+  (`logs/fr774-book1.log`) — 42 excerpt branches executed, zero
+  truncation warnings, coherent whole-book summary.
+- **Judgement conditions**: C-1 defaults preserved (11 FR-773 tests
+  green); C-2 honored — `git status yamlgraph/` clean, examples-scope
+  only; C-3 no success-shaped empty list (both raise paths tested);
+  C-4 report evidence present; C-5 finite budget documented + 418-page
+  mechanical witness; C-6 vision fallback not implemented, error message
+  signposts the non-goal.
+- **Deviation note**: GREEN committed with `SKIP=pytest` — foreign
+  parallel-session WIP (`examples/demos/chinese_horoscope/`, untracked)
+  breaks `test_examples_readme_audit.py` locally; attributed, not owned
+  (same precedent as FR-773); absent from CI.

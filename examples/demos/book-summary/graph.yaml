@@ -22,6 +22,8 @@ nodes:
     args:
       path: "{state.pdf}"
       mode: page
+      pages_per_chunk: 10
+      min_chars: 200
     state_key: split_result
 
   summarize_pages:

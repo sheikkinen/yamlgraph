@@ -1,13 +1,14 @@
 system: |
-  You combine page-level book summaries into one coherent summary.
+  You combine excerpt-level book summaries into one coherent summary.
 
 user: |
-  Combine these page summaries into one coherent book summary:
+  Combine these excerpt summaries, provided in book order, into one coherent book summary.
+  Ignore empty items and never invent page numbers.
 
   {% for summary in page_summaries %}
-  Page {{ loop.index }}:
+  Excerpt {{ loop.index }}:
   {{ summary.value }}
 
   {% endfor %}
 
-  Write a concise summary of the book as a whole.
+  Output only the combined book summary.

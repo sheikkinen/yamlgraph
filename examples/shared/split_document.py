@@ -1,10 +1,13 @@
-"""Shared document splitter (FR-773, REQ-YG-577).
+"""Shared document splitter (FR-773/FR-774, REQ-YG-577).
 
-Splits a PDF into per-page text chunks via poppler (pdfinfo/pdftotext),
-shaped for map-node fan-out: ``{"chunks": [{"index", "text"}], "total"}``.
+Splits a PDF into text chunks via poppler (pdfinfo/pdftotext), shaped
+for map-node fan-out: ``{"chunks": [{"index", "text"}], "total"}``.
+Pages can be batched into multi-page chunks (``pages_per_chunk``) and
+sub-threshold chunks dropped (``min_chars``).
 
-Failure contract (judgement C-3): every failure raises ValueError naming
-the failing condition — never a silent fallback to all pages.
+Failure contract (FR-773 C-3, FR-774 C-3): every failure raises
+ValueError naming the failing condition — never a silent fallback and
+never a success-shaped empty chunk list.
 """
 
 import shutil
@@ -17,14 +20,18 @@ def split_document(
     mode: str = "page",
     start: int | None = None,
     end: int | None = None,
+    pages_per_chunk: int = 1,
+    min_chars: int = 0,
 ) -> dict:
-    """Split a PDF into text chunks, one per selected page.
+    """Split a PDF into text chunks of consecutive pages.
 
     Args:
         path: PDF file path.
         mode: Only "page" is supported.
         start: First page, 1-indexed (default 1).
         end: Last page, 1-indexed inclusive (default: last page).
+        pages_per_chunk: Consecutive pages joined per chunk (default 1).
+        min_chars: Drop chunks whose stripped text is shorter (default 0).
 
     Returns:
         {"chunks": [{"index": int, "text": str}, ...], "total": int}
@@ -36,6 +43,10 @@ def split_document(
             f"Unsupported mode {mode!r}: only 'page' is supported "
             "(chapter/paragraph splitting is not implemented)"
         )
+    if pages_per_chunk < 1:
+        raise ValueError(f"pages_per_chunk must be >= 1, got {pages_per_chunk}")
+    if min_chars < 0:
+        raise ValueError(f"min_chars must be >= 0, got {min_chars}")
     if shutil.which("pdfinfo") is None or shutil.which("pdftotext") is None:
         raise ValueError(
             "pdfinfo/pdftotext not found — install poppler (brew install poppler)"
@@ -58,19 +69,45 @@ def split_document(
         )
 
     chunks = []
-    for offset, page in enumerate(range(first, last + 1)):
+    for first_page in range(first, last + 1, pages_per_chunk):
+        last_page = min(first_page + pages_per_chunk - 1, last)
         text = subprocess.run(
-            ["pdftotext", "-layout", "-f", str(page), "-l", str(page), path, "-"],
+            [
+                "pdftotext",
+                "-layout",
+                "-f",
+                str(first_page),
+                "-l",
+                str(last_page),
+                path,
+                "-",
+            ],
             capture_output=True,
             text=True,
             check=False,
         )
         if text.returncode != 0:
             raise ValueError(
-                f"pdftotext failed for page {page} of {path}: " f"{text.stderr.strip()}"
+                f"pdftotext failed for pages {first_page}-{last_page} of {path}: "
+                f"{text.stderr.strip()}"
             )
-        chunks.append({"index": offset, "text": text.stdout})
-    return {"chunks": chunks, "total": total}
+        chunks.append(text.stdout)
+
+    if all(not text.strip() for text in chunks):
+        raise ValueError(
+            f"no extractable text in {path} — scanned/image-only PDF? "
+            "vision fallback is not implemented (FR-774 non-goal)"
+        )
+    kept = [text for text in chunks if len(text.strip()) >= min_chars]
+    if not kept:
+        raise ValueError(
+            f"min_chars={min_chars} filtered out every chunk of {path} — "
+            "lower the threshold or inspect the document"
+        )
+    return {
+        "chunks": [{"index": i, "text": text} for i, text in enumerate(kept)],
+        "total": total,
+    }
 
 
 def _parse_page_count(pdfinfo_output: str, path: str) -> int:

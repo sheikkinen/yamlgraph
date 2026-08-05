@@ -4,21 +4,31 @@ description: >
   Feeder-tool capability in examples/shared: split_document() splits a
   document into chunks for map fan-out. mode "page" shells to poppler
   (pdfinfo/pdftotext) and returns {chunks: [{index, text}], total} with
-  0-based indexes, one chunk per selected PDF page. Declared once via an
-  FR-768 tool manifest and consumed by the book-summary demo through a
-  tool_call node (FR-773).
+  0-based indexes; pages_per_chunk batches consecutive pages into
+  multi-page chunks and min_chars drops sub-threshold chunks (FR-774).
+  Declared once via an FR-768 tool manifest and consumed by the
+  book-summary demo through a tool_call node (FR-773).
 modules:
   - examples
 requirements:
   - id: REQ-YG-577
     description: >
-      split_document(path, mode="page", start=None, end=None) supports only
-      mode "page", returns {chunks: [{index, text}], total} with 0-based
-      chunk indexes and one chunk per selected PDF page, and raises
-      ValueError naming the offending condition for unknown mode, missing
-      input file, missing pdfinfo/pdftotext (with a poppler install hint),
-      nonzero subprocess exit, and unparseable page-count output — no
-      empty-list or partial-success fallback.
+      split_document(path, mode="page", start=None, end=None,
+      pages_per_chunk=1, min_chars=0) supports only mode "page" and
+      returns {chunks: [{index, text}], total} with 0-based chunk indexes
+      and total = whole-document page count. pages_per_chunk joins
+      consecutive selected pages into one chunk with exactly one pdftotext
+      -f/-l invocation per chunk; min_chars drops chunks whose stripped
+      text is shorter, renumbering survivors (FR-774). ValueError naming
+      the offending condition for: unknown mode, pages_per_chunk < 1,
+      min_chars < 0, missing input file, missing pdfinfo/pdftotext (with a
+      poppler install hint), nonzero subprocess exit, unparseable
+      page-count output, all-empty extraction (scanned/image-only PDF,
+      FR-774 vision-fallback non-goal pointer), and min_chars filtering
+      removing every chunk — no empty-list or partial-success fallback.
+      The book-summary demo commits pages_per_chunk 10 + min_chars 200
+      with a map cap forming a documented finite page budget covering the
+      reported 418-page case.
     modules:
       - examples
-fr: FR-773
+fr: FR-773, FR-774
