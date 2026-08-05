@@ -209,6 +209,7 @@
 | FR-307 | Draft | yamlgraph |  | FR-307-yamlgraph-async-action-logging.md |
 | FR-317 | Draft | yamlgraph |  | FR-317-retire-obsolete-watcher2-components.md |
 | FR-330 | Draft | yamlgraph |  | FR-330-fr-330-watcher-clean-stale-branches-on-retry.md |
+| FR-774 | Draft | yamlgraph |  | FR-774-book-summary-scale-hardening.md |
 
 ```mermaid
 graph TD
@@ -416,7 +417,9 @@ graph TD
     FR-761["FR-761 Judged"]
     FR-762["FR-762 Judged"]
     FR-764["FR-764 Judged"]
+    FR-774["FR-774 Draft"]
     FR-081 --> FR-082
     FR-731 --> FR-735
     FR-731 --> FR-736
+    FR-773 --> FR-774
 ```
