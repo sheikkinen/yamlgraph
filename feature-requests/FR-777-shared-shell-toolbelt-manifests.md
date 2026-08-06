@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Proposed
+**Status:** Judged 2026-08-06 — APPROVED WITH REVISIONS; R-1..R-3 folded below; authority active per judgement
 **Effort:** 0.5–1 day
 **Requested:** 2026-08-06
 **Prior art:** FR-768 (tool manifests — shipped shell/python/graph runtimes), FR-770 (first committed python manifest consumer), FR-773/FR-776 (`split_document` / `render_page` python manifests), diary 2026-08-05 "Was the Manifest Worth It?" (census: shell manifest runtime has ZERO committed consumers)
@@ -166,45 +166,76 @@ All three convert in this FR.
   are not governed paths but follow the same brief for coherence if the
   adapter run covers them, else are written directly with header-comment
   precedent.
-- C-3: Byte-for-byte behavior: each converted graph's translated tool
-  declarations must equal the prior inline declarations (modulo the
-  documented `search` description unification) — verified by test, not
-  eyeballed.
+- C-3: Effective shell-tool equivalence (R-2): the regression test
+  compares the effective parsed shell config — `command`, canonical
+  `description`, `parse`, and `timeout` — for each shared tool against
+  the manifest contract, proving `timeout == 30` unless a manifest
+  intentionally sets another value. Raw expanded-dict byte equality is
+  NOT required (manifest translation adds the explicit default
+  `timeout: 30` that inline parsing also defaults to); effective runtime
+  equivalence is the contract. Only documented delta: the canonical
+  `search` description union.
 - C-4: Demo-specific tools remain inline; the toolbelt contains only the
   four ×3-duplicated tools. No speculative additions.
 - C-5: `demo-gate` compliance: each converted demo ships a regenerated
   successful `demo-output.log` in the same commit; intentional-failure
   sections, if any, go to `demo-witness.log` (demo-proof-check rejects
   fatal markers — hook lesson 2026-08-05).
-- C-6: New CAP file + REQ-YG-XXX; all new tests carry
-  `@pytest.mark.req`.
+- C-6: `capabilities/CAP-220-shared-shell-toolbelt.yaml` with
+  `REQ-YG-579` (R-3: exact next-free IDs, verified free 2026-08-06;
+  if another merge consumes them before enforcement, revise to the
+  actual next-free pair first). All new tests carry
+  `@pytest.mark.req("REQ-YG-579")`.
+- C-7: Human-review gate (R-1): planner, enforcer, and judge participate
+  in the plan/judge/enforce workflow — the migrated graph/toolbelt diff
+  requires human review before merge, per judge doctrine on
+  enforcement-infrastructure changes and the FR-768 judgement's
+  condition for these exact graphs. Advisory output is not merge
+  authority.
+- C-8: If enforcement discovers a shell manifest translation gap
+  requiring `yamlgraph/` changes, stop and file a separate bug FR; this
+  FR may not repair the runtime (judgement C-5).
 
 ## Acceptance Criteria
 
+(Revised per judgement 2026-08-06 — this set supersedes the proposal's.)
+
 - [ ] AC-01: `examples/shared/toolbelt/{read_file,search,list_dir,git_log}.tool.yaml`
-      exist, validate against the `ToolManifest` schema
-      (`extra=forbid`), and each declares `runtime.type: shell`.
+      exist, validate against `ToolManifest` with unknown fields
+      rejected, and each declares `runtime.type: shell`.
 - [ ] AC-02: planner, enforcer, and judge `graph.yaml` reference all four
-      via `manifest:` keys; zero inline copies of the four commands
-      remain in any of the three graphs (grep-witnessed in a test).
-- [ ] AC-03: A unit test loads each converted graph and asserts the
-      translated tool declarations (command, parse, description) match
-      the canonical manifest contract — proving translation, not just
-      file presence (substance_over_presence).
+      shared tools via `manifest:` keys; zero inline copies of
+      `cat {file}`, `rg -n --glob {glob} {pattern} .`, `ls {dir}`, and
+      `git log --oneline --all --grep={pattern}` remain in those three
+      graph files.
+- [ ] AC-03: A committed test loads each converted graph and proves the
+      effective shell config for each shared tool matches the canonical
+      manifest contract: `command`, canonical `description`, `parse`,
+      and `timeout == 30`.
 - [ ] AC-04: The canonical `search` description contains the union of
       the three previously drifted glob example lists.
-- [ ] AC-05: Each converted demo runs successfully end-to-end;
-      regenerated `demo-output.log` (success markers only) committed with
-      the graph change.
-- [ ] AC-06: `yamlgraph graph lint` passes on all three converted graphs.
-- [ ] AC-07: New `capabilities/CAP-XXX-shared-shell-toolbelt.yaml` with
-      REQ-YG-XXX; tests tagged; `req_coverage --strict` green.
-- [ ] AC-08: `examples/shared/README.md` documents the toolbelt directory
-      and the fit boundary (verbatim ×2+ duplication earns a manifest;
-      demo-local variants stay inline); wording admits any manifest
-      runtime type, not shell only (per the Assumption section).
-- [ ] AC-09: No changes under `yamlgraph/`; changelog fragment in
-      `changelog/unreleased/`; diary entry committed.
+- [ ] AC-05: Demo-specific tools remain inline: planner `write_file`,
+      enforcer `git_diff`/`lint`/`run_tests`/edit-write helpers, and
+      judge `run_tests` are not moved into the toolbelt.
+- [ ] AC-06: `yamlgraph graph lint` passes for planner, enforcer, and
+      judge; the governed graph edits are authored via
+      `scripts/author.sh` and the validation artifact records lint and
+      smoke evidence.
+- [ ] AC-07: Each converted demo has a regenerated successful
+      `demo-output.log` committed with the graph change and no
+      fatal-marker-only witness substituted for success.
+- [ ] AC-08: `capabilities/CAP-220-shared-shell-toolbelt.yaml` with
+      `REQ-YG-579` is added (or the exact next-free pair if revised
+      before enforcement); every new or changed test has an exact
+      `@pytest.mark.req(...)` marker and
+      `python scripts/req_coverage.py --strict` passes.
+- [ ] AC-09: `examples/shared/README.md` documents
+      `examples/shared/toolbelt/` as shared agent tools of any manifest
+      runtime type, with the fit boundary "verbatim two-plus-consumer
+      contracts earn manifests; demo-local variants stay inline."
+- [ ] AC-10: No files under `yamlgraph/` change; no research graph
+      manifest or judge adapter branch is added; changelog fragment, FR
+      implementation status, and diary reflection are included.
 
 ## Alternatives Considered
 
@@ -226,6 +257,7 @@ All three convert in this FR.
 
 ## Related
 
+- feature-requests/FR-777-shared-shell-toolbelt-manifests.judgement.md — verdict APPROVED WITH REVISIONS (2026-08-06); scope table and conditions govern enforcement
 - FR-768 — tool manifests (shipped the shell runtime this FR witnesses)
 - FR-770 — first python manifest consumer (precedent for "first consumer" framing)
 - FR-773 / FR-776 — `split_document` / `render_page` manifest precedents
