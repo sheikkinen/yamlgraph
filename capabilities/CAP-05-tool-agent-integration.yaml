@@ -26,6 +26,19 @@ requirements:
       the string form "{state.X}" behaves exactly as before.
     modules:
       - node_factory/tool_nodes
+  - id: REQ-YG-580
+    description: >
+      tool_call on_error (FR-778): on_error defaults to skip — the
+      failure envelope {success: false, error} is byte-identical to the
+      pre-FR behavior for callable exceptions and unknown tools.
+      on_error: fail raises ValueError at the node naming the node, the
+      tool, and the original error (exception chained) for both callable
+      exceptions and unknown tools; the success-path envelope is
+      unchanged. Graph load rejects tool_call on_error values outside
+      skip/fail (including retry and fallback) naming the valid set.
+    modules:
+      - node_factory/tool_nodes
+      - utils
   - id: REQ-YG-018
     description: Agent-driven tool selection and execution
     modules:

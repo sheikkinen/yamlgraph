@@ -337,7 +337,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 2 | CAP-2 Graph Compilation | `graph_loader`, `graph_loader.apply_loop_node_defaults`, `graph_loader.compile_graph`, `graph_loader.detect_loop_nodes`, … | REQ-YG-005 – 008, 220, 239 |
 | 3 | CAP-3 Node Execution | `executor`, `executor_async`, `executor_base`, `node_factory/llm_nodes`, … | REQ-YG-009 – 011, 050, 223, 539 – 540 |
 | 4 | CAP-4 Prompt Execution | `executor.PromptExecutor`, `executor.execute_prompt`, `executor_async`, `executor_base.format_prompt`, … | REQ-YG-012 – 016, 216, 562 |
-| 5 | CAP-5 Tool & Agent Integration | `node_factory/tool_nodes`, `tools/agent`, `tools/graph_tool`, `tools/nodes`, … | REQ-YG-017 – 020, 422, 510, 576 |
+| 5 | CAP-5 Tool & Agent Integration | `node_factory/tool_nodes`, `tools/agent`, `tools/graph_tool`, `tools/nodes`, … | REQ-YG-017 – 020, 422, 510, 576, 580 |
 | 6 | CAP-6 Routing & Flow Control | `node_factory/control_nodes`, `routing`, `utils/conditions` | REQ-YG-021 – 023, 214, 552 |
 | 7 | CAP-7 State Persistence | `models/state_builder`, `storage/checkpointer`, `storage/checkpointer_factory`, `storage/simple_redis` | REQ-YG-024 – 026 |
 | 8 | CAP-8 Error Handling | `error_handlers`, `error_handlers.NodeResult`, `error_handlers.build_skip_error_state`, `error_handlers.check_loop_limit`, … | REQ-YG-027 – 031 |
@@ -602,6 +602,7 @@ Integrate shell, Python, and graph tools into graphs, enable agent loops for too
 |------------|-------------|-------------|
 | REQ-YG-017 | Dynamic tool node creation | `node_factory/tool_nodes` |
 | REQ-YG-576 | tool_call inline dict args (FR-772): an inline YAML mapping as tool_call.args resolves each value via resolve_node_variables (FR-252 semantics — literals pass through, non-string types preserved, simple missing paths resolve to None); a resolved value still containing "{state." raises ValueError naming node and key; an empty inline mapping dispatches no kwargs (never whole-state); the string form "{state.X}" behaves exactly as before. | `node_factory/tool_nodes` |
+| REQ-YG-580 | tool_call on_error (FR-778): on_error defaults to skip — the failure envelope {success: false, error} is byte-identical to the pre-FR behavior for callable exceptions and unknown tools. on_error: fail raises ValueError at the node naming the node, the tool, and the original error (exception chained) for both callable exceptions and unknown tools; the success-path envelope is unchanged. Graph load rejects tool_call on_error values outside skip/fail (including retry and fallback) naming the valid set. | `node_factory/tool_nodes`, `utils` |
 | REQ-YG-018 | Agent-driven tool selection and execution | `tools/agent` |
 | REQ-YG-019 | Shell tool integration and execution | `tools/shell`, `tools/nodes` |
 | REQ-YG-020 | Python tool integration and execution | `tools/python_tool` |
