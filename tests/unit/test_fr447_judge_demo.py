@@ -67,7 +67,10 @@ class TestJudgeDemoGraphStructure:
         raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text())
         assert len(raw["tools"]) == 5
         for tool_cfg in raw["tools"].values():
-            assert tool_cfg["type"] == "shell"
+            # FR-777: shared shell tools are declared via toolbelt manifest refs
+            assert tool_cfg.get("type") == "shell" or "toolbelt" in tool_cfg.get(
+                "manifest", ""
+            )
 
     @pytest.mark.req("REQ-YG-408")
     def test_no_head_truncation_except_run_tests(self) -> None:
@@ -79,9 +82,11 @@ class TestJudgeDemoGraphStructure:
 
     @pytest.mark.req("REQ-YG-408")
     def test_search_uses_rg(self) -> None:
-        """FR-450: search tool uses rg with --glob."""
+        """FR-450: search tool uses rg with --glob (via FR-777 manifest)."""
         raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text())
-        cmd = raw["tools"]["search"]["command"]
+        manifest_path = DEMO_DIR / raw["tools"]["search"]["manifest"]
+        manifest = yaml.safe_load(manifest_path.read_text())
+        cmd = manifest["runtime"]["command"]
         assert "rg" in cmd
         assert "--glob" in cmd
 

@@ -1,0 +1,9 @@
+# Tool manifest (FR-768) — shared agent toolbelt (FR-777, CAP-220).
+# First committed shell-runtime manifest consumers:
+#   examples/demos/planner, examples/demos/enforcer, examples/demos/judge.
+name: list_dir
+description: "List contents of a directory."
+runtime:
+  type: shell
+  command: ls {dir}
+  parse: text

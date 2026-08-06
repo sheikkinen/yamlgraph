@@ -1,0 +1,12 @@
+# Tool manifest (FR-768) — shared agent toolbelt (FR-777, CAP-220).
+# First committed shell-runtime manifest consumers:
+#   examples/demos/planner, examples/demos/enforcer, examples/demos/judge.
+#
+# Contract: precedent search over git history — prior attempts, related
+# FRs, rejected work (the ask_before_generate discipline as a tool).
+name: git_log
+description: "Search git history for commits mentioning a pattern. Find prior attempts, related FRs, rejected work."
+runtime:
+  type: shell
+  command: git log --oneline --all --grep={pattern}
+  parse: text

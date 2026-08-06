@@ -64,8 +64,13 @@ class TestPlannerDemoGraphStructure:
         """Graph tools section defines exactly 5 tools (4 shell + 1 python)."""
         raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text())
         assert len(raw["tools"]) == 5
-        shell_tools = [n for n, c in raw["tools"].items() if c["type"] == "shell"]
-        python_tools = [n for n, c in raw["tools"].items() if c["type"] == "python"]
+        # FR-777: shared shell tools are declared via toolbelt manifest refs
+        shell_tools = [
+            n
+            for n, c in raw["tools"].items()
+            if c.get("type") == "shell" or "toolbelt" in c.get("manifest", "")
+        ]
+        python_tools = [n for n, c in raw["tools"].items() if c.get("type") == "python"]
         assert len(shell_tools) == 4
         assert len(python_tools) == 1
         assert python_tools[0] == "write_file"

@@ -1,20 +1,43 @@
 yamlgraph graph run examples/demos/planner/graph.yaml \
-  --var topic_file="tmp/test-topic.md" --json
-Plan saved to /Users/sheikki/Documents/src/yamlgraph/examples/demos/planner/plan.json
-{
-  "fr_path": "tmp/plan-output.md",
-  "title": "Graph Visualization Export",
-  "summary": "Add a `yamlgraph graph export --format mermaid` command that outputs a Mermaid diagram of the graph structure. Useful for documentation and PR descriptions.",
-  "research_findings": [
-    "YAMLGraph has established export patterns: `graph codegen` (TypedDict code), `schema export` (JSON Schema), `skill export` (portable packages). All follow the same CLI dispatch pattern via `cmd_*` functions in `yamlgraph/cli/` with subcommand routing.",
-    "Mermaid diagrams are already referenced in FR-070 (GUI Web Playground uses LangGraph's built-in `get_graph().draw_mermaid()`), FR-290 (FSM state machine diagrams), and FR-100 (eBook authoring with Mermaid diagrams). No existing YAMLGraph export to Mermaid found.",
-    "LangGraph's StateGraph has a built-in `get_graph().draw_mermaid()` method that could be leveraged, but the compiled graph structure is already available via the graph config and compiled StateGraph object.",
-    "Mermaid syntax is plain text \u2014 no external rendering library needed. Output is human-readable and embeddable in Markdown.",
-    "No conflicting or duplicate proposals found in feature-requests/ directory."
-  ],
-  "scope_assessment": "single_responsibility",
-  "estimated_effort": "3 days: 0.5 days CLI integration (add subcommand, dispatch function), 1 day Mermaid generation (traverse graph, generate syntax, handle special cases), 0.25 days unit tests (test diagram generation for each node type), 0.25 days integration tests (test CLI end-to-end), 0.5 days documentation (update reference/cli.md, add examples)"
-}
+  --var topic_file=tmp/fr777-demo-topic.md --json  # PROVIDER=google (FR-777 toolbelt witness)
+2026-08-06 07:10:38,669 [INFO] yamlgraph.compile.graph_loader: Parsed 4 shell tools: read_file, search, list_dir, git_log
+2026-08-06 07:10:38,669 [INFO] yamlgraph.compile.graph_loader: Parsed 1 Python tools: write_file
+2026-08-06 07:10:38,676 [INFO] yamlgraph.compile.node_compiler: Added node: planner (type=agent)
+2026-08-06 07:10:38,797 [INFO] yamlgraph.utils.llm_factory: Creating LLM: google/gemini-3.5-flash (temp=0.3)
+2026-08-06 07:10:40,417 [INFO] yamlgraph.tools.agent: 🤖 Starting agent loop: planner (max 15 iterations)
+2026-08-06 07:10:41,665 [INFO] httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
+2026-08-06 07:10:41,667 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: read_file({'file': 'tmp/fr777-demo-topic.md'})
+2026-08-06 07:10:42,500 [INFO] httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
+2026-08-06 07:10:42,502 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: read_file({'file': 'feature-requests/TEMPLATE.md'})
+2026-08-06 07:10:43,225 [INFO] httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
+2026-08-06 07:10:43,227 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: read_file({'file': 'ARCHITECTURE.md'})
+2026-08-06 07:10:44,834 [INFO] httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
+2026-08-06 07:10:44,836 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: list_dir({'dir': 'feature-requests'})
+2026-08-06 07:10:46,262 [INFO] httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
+2026-08-06 07:10:46,271 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search({'glob': 'feature-requests/*.md', 'pattern': 'lint'})
+2026-08-06 07:10:49,343 [INFO] httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
+2026-08-06 07:10:49,346 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: read_file({'file': 'feature-requests/FR-406-lint-json-output.md'})
+2026-08-06 07:10:50,980 [INFO] httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
+2026-08-06 07:10:50,983 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search({'pattern': 'cmd_graph_lint', 'glob': 'yamlgraph/cli/graph_validate.py'})
+2026-08-06 07:10:52,380 [INFO] httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
+2026-08-06 07:10:52,382 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: read_file({'file': 'yamlgraph/cli/graph_validate.py'})
+2026-08-06 07:10:54,076 [INFO] httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
+2026-08-06 07:10:54,079 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: git_log({'pattern': 'quiet'})
+2026-08-06 07:10:55,692 [INFO] httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
+2026-08-06 07:10:55,694 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: git_log({'pattern': 'lint'})
+2026-08-06 07:10:57,432 [INFO] httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
+2026-08-06 07:10:57,434 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: read_file({'file': 'yamlgraph/cli/__init__.py'})
+2026-08-06 07:11:00,148 [INFO] httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
+2026-08-06 07:11:00,151 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: read_file({'file': 'yamlgraph/linter/graph_linter.py'})
+2026-08-06 07:11:01,733 [INFO] httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
+2026-08-06 07:11:01,735 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: read_file({'file': 'yamlgraph/linter/checks.py'})
+2026-08-06 07:11:08,780 [INFO] httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
+2026-08-06 07:11:08,783 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: read_file({'file': 'yamlgraph/cli/graph_commands.py'})
+2026-08-06 07:11:24,245 [INFO] httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
+2026-08-06 07:11:24,248 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: list_dir({'dir': 'capabilities'})
+2026-08-06 07:11:24,268 [WARNING] yamlgraph.tools.agent: Agent hit max iterations (15)
+2026-08-06 07:11:24,373 [INFO] google_genai.models: AFC is enabled with max remote calls: 10.
+2026-08-06 07:11:34,601 [INFO] httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
+Saved plan_result to examples/demos/planner/plan.json
 
 ✓ Graph execution completed successfully
-✅

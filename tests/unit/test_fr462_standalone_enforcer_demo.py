@@ -75,8 +75,13 @@ class TestEnforcerDemoGraphStructure:
         """Graph tools section defines exactly 10 tools (7 shell + 3 python)."""
         raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text())
         assert len(raw["tools"]) == 10
-        shell_tools = [n for n, c in raw["tools"].items() if c["type"] == "shell"]
-        python_tools = [n for n, c in raw["tools"].items() if c["type"] == "python"]
+        # FR-777: shared shell tools are declared via toolbelt manifest refs
+        shell_tools = [
+            n
+            for n, c in raw["tools"].items()
+            if c.get("type") == "shell" or "toolbelt" in c.get("manifest", "")
+        ]
+        python_tools = [n for n, c in raw["tools"].items() if c.get("type") == "python"]
         assert len(shell_tools) == 7
         assert len(python_tools) == 3
 

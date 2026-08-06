@@ -1,0 +1,12 @@
+# Tool manifest (FR-768) — shared agent toolbelt (FR-777, CAP-220).
+# First committed shell-runtime manifest consumers:
+#   examples/demos/planner, examples/demos/enforcer, examples/demos/judge.
+#
+# Contract: read a project file in full via cat. {file} is escaped with
+# shlex.quote by the shell runtime; parse text, default timeout 30s.
+name: read_file
+description: "Read a project file in full."
+runtime:
+  type: shell
+  command: cat {file}
+  parse: text

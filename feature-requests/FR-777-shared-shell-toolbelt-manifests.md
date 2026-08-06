@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Judged 2026-08-06 — APPROVED WITH REVISIONS; R-1..R-3 folded below; authority active per judgement
+**Status:** Enforced 2026-08-06 — all 10 ACs met; see Implementation Status
 **Effort:** 0.5–1 day
 **Requested:** 2026-08-06
 **Prior art:** FR-768 (tool manifests — shipped shell/python/graph runtimes), FR-770 (first committed python manifest consumer), FR-773/FR-776 (`split_document` / `render_page` python manifests), diary 2026-08-05 "Was the Manifest Worth It?" (census: shell manifest runtime has ZERO committed consumers)
@@ -254,6 +254,32 @@ All three convert in this FR.
 - **Python wrapper tools instead of shell manifests.** Rejected: wrapping
   `cat`/`rg`/`ls` in Python adds indirection without value; the shell
   runtime exists precisely for this shape.
+
+## Implementation Status (2026-08-06)
+
+**Commits:** RED `bd61e66f` (21-test suite `tests/unit/test_fr777_shell_toolbelt.py` + CAP-220/REQ-YG-579); GREEN follows in the same push (manifests, converted graphs, witnesses, docs).
+
+**Route (C-2):** conversion executed via `scripts/author.sh`; `tmp/draft-authoring-report.md` recorded lint 0 errors (3 pre-existing W026 warnings), per-graph validate passed, 21/21 FR-777 tests green.
+
+**AC checklist:**
+- AC-01 ✅ four manifests in `examples/shared/toolbelt/`, all validate under `ToolManifest` (extra=forbid).
+- AC-02 ✅ planner/enforcer/judge reference the four tools purely by `manifest:`; zero inline copies remain (test-asserted).
+- AC-03 ✅ effective-config equivalence test: command, description, `parse: text`, `timeout == 30` via `load_graph_config` + `parse_tools`.
+- AC-04 ✅ `search` description is the canonical union of the three drifted copies; union-extension comment in the manifest.
+- AC-05 ✅ demo-specific tools (planner `write_file`; enforcer `git_diff`/`lint`/`run_tests`/`write_file`/`edit_file`; judge `run_tests`) stay inline (test-asserted).
+- AC-06 ✅ lint + author.sh evidence per report above.
+- AC-07 ✅ all three `demo-output.log` regenerated from live successful runs (PROVIDER=google, gemini-3.5-flash), zero fatal markers, success marker present; no witness substitution. Note: `.env` pins `PROVIDER=deepseek`, which — like anthropic — timed out on the planner's large context (ARCHITECTURE.md grew ~263KB since the 2026-05-29 witness); google completed all runs. A wrapper heredoc bug (stdin hijack → broken pipe) produced one false failure before the provider was exonerated.
+- AC-08 ✅ CAP-220 + REQ-YG-579 registered; `scripts/req_coverage.py --strict` green; ARCHITECTURE.md regenerated via `aggregate_capabilities.py`.
+- AC-09 ✅ `examples/shared/README.md` toolbelt section (runtime-neutral wording, fit boundary, union rule).
+- AC-10 ✅ no `yamlgraph/` changes; no research manifest; changelog fragment `changelog/unreleased/fr-777-shell-toolbelt.md`; diary entry included.
+
+**C-7 (human-review gate):** planner/enforcer/judge are enforcement-adjacent demos; the conversion diff is presented for human review at merge — advisory note honored, no self-merge.
+
+**C-8:** no manifest→shell-config translation gap was found; `manifest.py` untouched.
+
+**Deviations (in-scope test updates, no production change):**
+- Four legacy demo-structure tests (FR-447/452/462/463) asserted the raw inline `type: shell` shape the conversion intentionally replaced; updated to accept toolbelt `manifest:` refs while keeping tool counts/names exact.
+- `test_changelog_req_cross_wiring._build_fr_to_reqs` treated a comma-list `fr:` field (CAP-218: `FR-773, FR-774, FR-775`) as a single key, so those FRs mapped to no capability once this FR's fragment made the REQ multiply-claimed; fixed at the parse boundary by splitting the list. Test-infrastructure fix, not a `yamlgraph/` change.
 
 ## Related
 

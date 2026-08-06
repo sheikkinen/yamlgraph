@@ -75,8 +75,13 @@ class TestFR463ToolSurface:
     def test_tool_type_counts(self) -> None:
         """7 shell tools + 3 python tools."""
         raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text())
-        shell = [n for n, c in raw["tools"].items() if c["type"] == "shell"]
-        python = [n for n, c in raw["tools"].items() if c["type"] == "python"]
+        # FR-777: shared shell tools are declared via toolbelt manifest refs
+        shell = [
+            n
+            for n, c in raw["tools"].items()
+            if c.get("type") == "shell" or "toolbelt" in c.get("manifest", "")
+        ]
+        python = [n for n, c in raw["tools"].items() if c.get("type") == "python"]
         assert len(shell) == 7
         assert len(python) == 3
 
@@ -85,7 +90,8 @@ class TestFR463ToolSurface:
         """git_log shell tool must exist (parity with planner/judge)."""
         raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text())
         assert "git_log" in raw["tools"]
-        assert raw["tools"]["git_log"]["type"] == "shell"
+        # FR-777: declared via shared shell-runtime toolbelt manifest
+        assert "toolbelt/git_log.tool.yaml" in raw["tools"]["git_log"]["manifest"]
 
     @pytest.mark.req("REQ-YG-427")
     def test_lint_tool_exists(self) -> None:

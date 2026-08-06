@@ -154,6 +154,37 @@ file, missing poppler binaries, nonzero `pdfinfo`/`pdftotext` exit, and
 unparseable page count all raise `ValueError` naming the condition —
 there is no fallback-to-all-pages.
 
+### `toolbelt/` - Shared Agent Toolbelt (FR-777)
+
+Tool manifests (FR-768) for the read-and-search tools every repo-exploring
+agent needs. The toolbelt holds shared agent tools of any manifest runtime
+type — the first four are shell-runtime:
+
+| Manifest | Command | Purpose |
+|----------|---------|---------|
+| `toolbelt/read_file.tool.yaml` | `cat {file}` | Read a project file in full |
+| `toolbelt/search.tool.yaml` | `rg -n --glob {glob} {pattern} .` | Glob-scoped ripgrep search |
+| `toolbelt/list_dir.tool.yaml` | `ls {dir}` | List directory contents |
+| `toolbelt/git_log.tool.yaml` | `git log --oneline --all --grep={pattern}` | Search git history for prior art |
+
+```yaml
+# In an agent node — reference by manifest, never re-inline
+tools:
+  read_file:
+    manifest: ../../shared/toolbelt/read_file.tool.yaml
+  search:
+    manifest: ../../shared/toolbelt/search.tool.yaml
+```
+
+Committed consumers: [demos/planner](../demos/planner/),
+[demos/enforcer](../demos/enforcer/), [demos/judge](../demos/judge/).
+
+**Fit boundary:** verbatim two-plus-consumer contracts earn manifests;
+demo-local variants (different command, parse mode, or description
+semantics) stay inline in their graph. The `search` description's glob
+example list is the canonical union across consumers — extend it in the
+manifest, never re-fork a per-demo copy.
+
 ## Scripts
 
 ### `scripts/set_fly_secrets.sh`

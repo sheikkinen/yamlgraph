@@ -10,28 +10,16 @@ state:
 
 tools:
   read_file:
-    type: shell
-    command: cat {file}
-    description: "Read a project file in full."
-    parse: text
+    manifest: ../../shared/toolbelt/read_file.tool.yaml
 
   search:
-    type: shell
-    command: rg -n --glob {glob} {pattern} .
-    description: "Search files matching a glob pattern. Examples: --glob 'ARCHITECTURE.md', --glob 'feature-requests/*.md', --glob 'yamlgraph/**/*.py', --glob 'tests/**/*.py'."
-    parse: text
+    manifest: ../../shared/toolbelt/search.tool.yaml
 
   list_dir:
-    type: shell
-    command: ls {dir}
-    description: "List contents of a directory."
-    parse: text
+    manifest: ../../shared/toolbelt/list_dir.tool.yaml
 
   git_log:
-    type: shell
-    command: git log --oneline --all --grep={pattern}
-    description: "Search git history for commits mentioning a pattern. Find prior attempts, related FRs, rejected work."
-    parse: text
+    manifest: ../../shared/toolbelt/git_log.tool.yaml
 
   git_diff:
     type: shell

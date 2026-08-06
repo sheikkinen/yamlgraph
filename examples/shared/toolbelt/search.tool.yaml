@@ -1,0 +1,13 @@
+# Tool manifest (FR-768) — shared agent toolbelt (FR-777, CAP-220).
+# First committed shell-runtime manifest consumers:
+#   examples/demos/planner, examples/demos/enforcer, examples/demos/judge.
+#
+# Contract: ripgrep search scoped by glob. The description's glob example
+# list is the canonical UNION of the three previously drifted per-demo
+# copies (FR-777 AC-04) — extend the union here, never re-fork per demo.
+name: search
+description: "Search files matching a glob pattern. Examples: --glob 'ARCHITECTURE.md', --glob 'feature-requests/*.md', --glob 'yamlgraph/**/*.py', --glob 'tests/**/*.py', --glob 'capabilities/*.yaml'."
+runtime:
+  type: shell
+  command: rg -n --glob {glob} {pattern} .
+  parse: text

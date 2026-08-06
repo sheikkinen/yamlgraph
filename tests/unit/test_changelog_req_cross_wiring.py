@@ -31,7 +31,10 @@ def _build_fr_to_reqs() -> dict[str, set[str]]:
         if not fr_ref or fr_ref == "legacy":
             continue
         reqs = {r["id"] for r in data.get("requirements", [])}
-        fr_to_reqs.setdefault(fr_ref, set()).update(reqs)
+        # A capability may serve multiple FRs: "FR-773, FR-774, FR-775"
+        for fr in (f.strip() for f in str(fr_ref).split(",")):
+            if fr:
+                fr_to_reqs.setdefault(fr, set()).update(reqs)
     return fr_to_reqs
 
 
