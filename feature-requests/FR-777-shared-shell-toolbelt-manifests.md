@@ -33,6 +33,29 @@ consumers at graph load with zero re-declaration; and the FR-768 shell
 runtime is exercised by committed, running graphs rather than only unit
 tests.
 
+## Assumption: Research Graph as a Toolbelt Tool (Direction, Not Scope)
+
+The toolbelt is designed on the assumption that its next resident is a
+**graph-runtime manifest**: the research graph published as
+`examples/shared/toolbelt/research.tool.yaml` (`runtime.type: graph`).
+
+- **Assumed first consumer:** the judge_fr adapter graph
+  (`.github/skills/judge-fr/adapters/graph.yaml`), invoking research as
+  an optional branch — e.g. fired when the FR's Prior-art section is
+  empty or the judge's confidence in precedent coverage is low.
+- **Rationale:** Commandment 1 requires research before coding, but in
+  practice research is seldom done and never automatically. Every other
+  Sermon step has mechanical enforcement (Judge → adapter graph,
+  Enforce → hooks/CI, Distill → diary-gate); Research has none. A
+  manifest tool makes research mechanically invocable from the graphs
+  that need it, closing the only unenforced Sermon step.
+- **Consequence for this FR:** the directory contract is
+  `examples/shared/toolbelt/` = shared *agent tools of any runtime
+  type*, not "shell manifests" — naming, README wording, and tests must
+  not assume shell-only. The research manifest itself, and any judge_fr
+  branch, are a separate FR (it also witnesses the graph runtime,
+  completing FR-768's runtime coverage).
+
 ## Problem
 
 Census (2026-08-06, `grep` over `examples/demos/*/graph.yaml`):
@@ -126,10 +149,12 @@ All three convert in this FR.
   (judge `--tb=short` vs code-analysis `--tb=no | tail`) differ
   deliberately per purpose; unifying them is a semantic decision, not an
   extraction, and dies here by `junk_drawer_cap` reasoning.
-- **research-agent / code-analysis / meta demos are OUT of scope.** Their
-  shell tools are variants, not verbatim copies; converting them would
-  require the same semantic unification. A follow-up may extend the
-  toolbelt if genuine reuse appears.
+- **research-agent / code-analysis / meta demos are OUT of scope** for
+  shell-tool conversion. Their shell tools are variants, not verbatim
+  copies; converting them would require the same semantic unification.
+  The research *graph itself* is the assumed next toolbelt resident — as
+  a graph-runtime manifest, per the Assumption section — in a follow-up
+  FR.
 
 ## Constraints
 
@@ -176,7 +201,8 @@ All three convert in this FR.
       REQ-YG-XXX; tests tagged; `req_coverage --strict` green.
 - [ ] AC-08: `examples/shared/README.md` documents the toolbelt directory
       and the fit boundary (verbatim ×2+ duplication earns a manifest;
-      demo-local variants stay inline).
+      demo-local variants stay inline); wording admits any manifest
+      runtime type, not shell only (per the Assumption section).
 - [ ] AC-09: No changes under `yamlgraph/`; changelog fragment in
       `changelog/unreleased/`; diary entry committed.
 
@@ -205,4 +231,6 @@ All three convert in this FR.
 - FR-773 / FR-776 — `split_document` / `render_page` manifest precedents
 - docs/diary/diary-2026-08-05-was-the-manifest-worth-it.md — census that found the gap; its Seed (zero-consumer surface sweep) is partially answered by this FR
 - examples/demos/{planner,enforcer,judge}/graph.yaml lines 10–32 — the duplicated blocks
+- .github/skills/judge-fr/adapters/graph.yaml — assumed first consumer of the follow-up research graph-tool manifest
+- examples/demos/research-agent/ — the graph assumed to be published as a toolbelt tool
 - yamlgraph/tools/manifest.py — translation layer (unchanged by this FR)
