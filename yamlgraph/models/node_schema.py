@@ -297,6 +297,23 @@ class NodeConfig(BaseModel):
             )
         return v
 
+    @model_validator(mode="before")
+    @classmethod
+    def validate_tool_call_on_error(cls, data: Any) -> Any:
+        """FR-778: tool_call supports only skip/fail (envelope vs raise).
+
+        Runs before field validation so every invalid value gets the
+        tool_call-specific valid set, not the generic ErrorHandler one.
+        """
+        if isinstance(data, dict) and data.get("type") == "tool_call":
+            on_error = data.get("on_error")
+            if on_error not in (None, "skip", "fail"):
+                raise ValueError(
+                    f"Invalid on_error '{on_error}' for tool_call. "
+                    "Valid values: skip, fail"
+                )
+        return data
+
     @model_validator(mode="after")
     def validate_node_requirements(self) -> "NodeConfig":
         """Validate node has required fields based on type."""

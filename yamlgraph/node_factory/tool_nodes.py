@@ -34,6 +34,13 @@ def create_tool_call_node(
     tool_expr = node_config["tool"]  # e.g., "{state.task.tool}"
     args_expr = node_config["args"]  # inline mapping OR "{state.task.args}"
     state_key = node_config.get("state_key", "result")
+    # FR-778: skip = failure envelope (default), fail = raise at the node
+    on_error = node_config.get("on_error", "skip")
+
+    def _fail(tool_name: str, error: str, cause: Exception | None = None) -> None:
+        raise ValueError(
+            f"tool_call node '{node_name}': tool '{tool_name}' failed: {error}"
+        ) from cause
 
     def _resolve_args(state: dict) -> dict:
         # FR-772: inline mapping — resolve each value (FR-252 semantics)
@@ -64,6 +71,8 @@ def create_tool_call_node(
         # Look up tool in registry
         tool_func = tools_registry.get(tool_name)
         if tool_func is None:
+            if on_error == "fail":
+                _fail(tool_name, f"Unknown tool: {tool_name}")
             # Note: "error" here is nested inside the tool result dict (state_key),
             # not state-level. This is the tool response structure pattern.
             return {
@@ -91,6 +100,8 @@ def create_tool_call_node(
                 "current_step": node_name,
             }
         except Exception as e:
+            if on_error == "fail":
+                _fail(tool_name, str(e), cause=e)
             return {
                 state_key: {
                     "task_id": task_id,

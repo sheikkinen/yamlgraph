@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Approved with revisions (judged 2026-08-05 — [FR-778-tool-call-on-error-fail.judgement.md](FR-778-tool-call-on-error-fail.judgement.md)); R-1..R-3 folded below
+**Status:** Enforced 2026-08-06 — AC-01..AC-09 delivered: `on_error` skip/fail in `create_tool_call_node` (fail raises with node+tool+original error, chained), load-boundary rejection via `mode="before"` schema validator (generic field validator otherwise wins for arbitrary values — validator order is contract surface), 13 tests REQ-YG-580 incl. the book1.pdf witnessed regression, docs, changelog, diary. Envelope default byte-identical (pinned by 5 equality tests).
 **Effort:** 0.5–1 day
 **Requested:** 2026-08-05
 **Prior art:** FR-775 (judged, unenforced) adds hand-rolled `gate_probe`/`gate_fetch` python nodes to ONE graph that raise on `success: false` envelopes — the demo-level workaround this FR mechanizes as a framework primitive; FR-778 must not touch FR-775's frozen scope and is not a blocker for it. FR-658 established the tool_call node and its error-text contract for agent loops (AC-9: agent callers must not crash) — that default stays. FR-772 added inline dict args to the same node, untouched here. `on_error: skip|retry|fail|fallback` is the existing per-node contract every other node type honors (CLAUDE.md error handling); tool_call is the outlier.

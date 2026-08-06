@@ -149,6 +149,16 @@ def validate_on_error(node_name: str, node_config: dict[str, Any]) -> None:
         ValueError: If on_error value is invalid
     """
     on_error = node_config.get("on_error")
+    # FR-778: tool_call supports only skip/fail; the retrying and
+    # substituting handlers are LLM-node semantics the envelope contract
+    # cannot honor.
+    if node_config.get("type") == "tool_call":
+        if on_error and on_error not in ("skip", "fail"):
+            raise ValueError(
+                f"Node '{node_name}' (tool_call) has invalid on_error value "
+                f"'{on_error}'. Valid values: skip, fail"
+            )
+        return
     if on_error and on_error not in ErrorHandler.all_values():
         raise ValueError(
             f"Node '{node_name}' has invalid on_error value '{on_error}'. "

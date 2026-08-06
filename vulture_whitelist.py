@@ -254,6 +254,7 @@ from yamlgraph.models.graph_schema import NodeConfig  # noqa: F401 (CONF-126)
 
 NodeConfig.schema_ref  # Pydantic field with alias="schema"; accessed via YAML key
 NodeConfig.outputs  # Alias for output; used in passthrough node fixtures
+NodeConfig.validate_tool_call_on_error  # Pydantic @model_validator; invoked by framework (FR-778)
 
 # --- tools/manifest: Pydantic discriminator fields + validator (FR-768) ---
 from yamlgraph.tools.manifest import (  # noqa: F401 (CONF-126)

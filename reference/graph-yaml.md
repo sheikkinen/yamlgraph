@@ -734,6 +734,12 @@ mapping dispatches no kwargs. The string form above is unchanged.
 | `tool` | `string` | Yes | Tool name or state expression resolving to it |
 | `args` | `string \| dict` | Yes | State expression resolving to args dict, or inline mapping resolved per value |
 | `state_key` | `string` | No | Where to store result |
+| `on_error` | `string` | No | `skip` (default): failure envelope `{success: false, error}` and the graph continues — for agent loops that must see error text. `fail`: raise at the node with the tool's actual error — for deterministic pipelines where a failed prerequisite must stop the run (FR-778). `retry`/`fallback` are rejected at graph load |
+
+Use `on_error: fail` in deterministic pipelines: without it a failed tool
+produces a success-shaped envelope that downstream nodes trip over at a
+distance (e.g. a map resolving `chunks` from a failed split). Keep the
+default envelope when an agent consumes the result.
 
 See [Tool Call Nodes Reference](tool-call-nodes.md) for agent integration patterns.
 
