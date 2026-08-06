@@ -1,11 +1,11 @@
-# Feature Request: FR-776 — tool_call `on_error: fail`: Prerequisite Failures Fail the Graph
+# Feature Request: FR-778 — tool_call `on_error: fail`: Prerequisite Failures Fail the Graph
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Approved with revisions (judged 2026-08-05 — [FR-776-tool-call-on-error-fail.judgement.md](FR-776-tool-call-on-error-fail.judgement.md)); R-1..R-3 folded below
+**Status:** Approved with revisions (judged 2026-08-05 — [FR-778-tool-call-on-error-fail.judgement.md](FR-778-tool-call-on-error-fail.judgement.md)); R-1..R-3 folded below
 **Effort:** 0.5–1 day
 **Requested:** 2026-08-05
-**Prior art:** FR-775 (judged, unenforced) adds hand-rolled `gate_probe`/`gate_fetch` python nodes to ONE graph that raise on `success: false` envelopes — the demo-level workaround this FR mechanizes as a framework primitive; FR-776 must not touch FR-775's frozen scope and is not a blocker for it. FR-658 established the tool_call node and its error-text contract for agent loops (AC-9: agent callers must not crash) — that default stays. FR-772 added inline dict args to the same node, untouched here. `on_error: skip|retry|fail|fallback` is the existing per-node contract every other node type honors (CLAUDE.md error handling); tool_call is the outlier.
+**Prior art:** FR-775 (judged, unenforced) adds hand-rolled `gate_probe`/`gate_fetch` python nodes to ONE graph that raise on `success: false` envelopes — the demo-level workaround this FR mechanizes as a framework primitive; FR-778 must not touch FR-775's frozen scope and is not a blocker for it. FR-658 established the tool_call node and its error-text contract for agent loops (AC-9: agent callers must not crash) — that default stays. FR-772 added inline dict args to the same node, untouched here. `on_error: skip|retry|fail|fallback` is the existing per-node contract every other node type honors (CLAUDE.md error handling); tool_call is the outlier.
 **First consumer / first event:** the book-summary demo run of 2026-08-05 (tmp/book1.pdf, poppler not installed): `split_document` raised a clear "pdfinfo not found" error, `tool_call` swallowed it into `{success: false, error: ...}`, the graph marched on, and the run died three nodes later with `Map node 'summarize_pages' failed: expression '{state.split_result.result.chunks}' could not be resolved` — a misleading diagnostic pointing at template resolution instead of the missing prerequisite.
 
 ## Summary
