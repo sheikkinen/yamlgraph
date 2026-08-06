@@ -535,6 +535,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 217 | CAP-217 Shared Vision Tool | `examples` | REQ-YG-575 |
 | 218 | CAP-218 Shared Document Splitter | `examples` | REQ-YG-577 |
 | 219 | CAP-219 Book-Summary Vision Fallback | `examples` | REQ-YG-578 |
+| 220 | CAP-220 Shared Shell Toolbelt Manifests | `examples` | REQ-YG-579 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -2712,6 +2713,16 @@ Opt-in vision branch for scanned/image-only PDFs in the book-summary demo (FR-77
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-578 | render_page(path, page, out_dir="tmp/pages", dpi=150) invokes pdftoppm without shell=True, writes PNGs only under tmp/, returns {"page": page, "image": png_path} on success, and raises naming the condition for missing PDF, invalid page, missing pdftoppm, nonzero render exit, or missing output — the surrounding tool_call node owns the success envelope. transcribe_page(image, page, *, provider, model) returns a typed PageTranscription (page, text, is_blank) validated against the page-number echo; the provider allowlist raises before any LLM call, and a preflight gate raises before any pdftoppm invocation when the vision path is enabled with an unsupported provider. The demo graph partitions fetch windows into text/empty chunks, tracks an aggregate text-presence flag, raises the FR-774 scanned/ image-only failure before combine when no text was observed and the flag is off, and merges window-filtered, page-verified, blank-dropped transcriptions with text chunks into the single sorted chunks list consumed by the summarize map — no stale collect entry, out-of-window page, duplicate page, or render/transcribe failure reaches summarize, accumulate, or combine as success-shaped state. | `examples` |
+
+### 220. CAP-220 Shared Shell Toolbelt Manifests
+
+First committed shell-runtime consumers of the FR-768 tool manifest feature (FR-777): the four shell tools duplicated verbatim across the planner, enforcer, and judge agent demos (read_file, search, list_dir, git_log) are extracted to examples/shared/toolbelt/ as typed shell ToolManifest files and referenced via manifest keys, unifying the previously drifted agent-facing search description into one canonical union contract. The toolbelt directory is runtime-neutral — shared agent tools of any manifest runtime type; demo-local variants stay inline per the fit boundary.
+
+**Feature Request:** FR-777
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-579 | examples/shared/toolbelt/{read_file,search,list_dir,git_log}.tool.yaml validate as shell-runtime ToolManifest files with unknown fields rejected; planner, enforcer, and judge graphs declare those four tools solely by manifest reference with zero inline copies of the four commands remaining; the effective parsed shell config of each converted tool (command, canonical description, parse, timeout == 30) equals the manifest contract; the canonical search description contains the union of the previously drifted glob example lists; and demo-specific tools (planner write_file, enforcer git_diff/ lint/run_tests/write_file/edit_file, judge run_tests) remain inline. | `examples` |
 
 <!-- END GENERATED CAPABILITIES -->
 
