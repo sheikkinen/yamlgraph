@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Bug
-**Status:** Proposed
+**Status:** Judged 2026-08-07 — APPROVED WITH REVISIONS; R-1..R-4 folded below; authority active per judgement
 **Effort:** 0.5 days
 **Requested:** 2026-08-07
 **First consumer / first event:** anyone running `examples/demos/research-agent` as a research tool — concretely, the FR-777 assumption path (research graph published as a toolbelt tool, consumed by the judge_fr adapter) inherits both defects the moment it is wired up. The first event already happened: a 2026-08-06 research run on "agent/tool integration" returned a wholesale-hallucinated OAuth2 report.
@@ -24,7 +24,38 @@ Anyone consuming the research graph gets either a grounded report or an honest f
 
 - Defect 1 is silent: the graph lints clean, runs green, and produces well-shaped output on the wrong topic. Nothing re-runs committed demos, so the binding rotted invisibly since 2026-04-07 (`recent_changes_blindness` in demo form — the witness only fails when someone next touches the demo).
 - Defect 2 is the `plausible_wrong_answer` trap made structural: the graph *has* a validation node that correctly detected the empty-findings condition, but its verdict gates nothing. `synthesize_report` runs unconditionally and the LLM fills the vacuum with fiction. Commandment 6 forbids exactly this: "when a filter yields nothing, raise — never substitute everything."
-- Evidence: `tmp/research-agent-result.json` (empty `findings`, low-confidence `validation`, fabricated `report`), `tmp/research-agent-tool-report.md` (the fabricated OAuth2-free but ungrounded second report), `logs/research-agent.err` (both loops hitting caps: plan_research 5/5, execute_research 10/10).
+
+## Evidence (admissible, R-1)
+
+Embedded excerpts from the 2026-08-06 runs; this section is the committed witness — no session-local file is required to understand the defect.
+
+**Marker run** (query `"XYZZY-MARKER how does purple frobnication work"`):
+
+```
+marker-run intent topic: "Structured research intent extraction"
+"XYZZY" appears anywhere in final graph state: False
+```
+
+The extracted intent is a paraphrase of the extract_intent system prompt — the query never reached the model. The first (pre-marker) run on an agent/tool question invented the topic `"Researching security vulnerabilities in OAuth2 implementations"` with expected artifacts `auth-config.js`, `passport-strategy.ts` — none of which exist in this repository.
+
+**Post-binding-fix run** (query on agent/tool integration, both agent loops capped):
+
+```
+2026-08-06 22:11:19 [WARNING] yamlgraph.tools.agent: Agent hit max iterations (5)    # plan_research
+2026-08-06 22:11:36 [WARNING] yamlgraph.tools.agent: Agent hit max iterations (10)   # execute_research
+findings repr: ''
+validation: {"questions_answered": [], "gaps": ["How are agent node types and tools
+  (shell, python, and FR-768 manifests) declared in YAML?", "How does the parse_tools
+  function process these YAML declarations?", "How are the parsed tools utilized and
+  executed within the agent loop?"], "confidence": "low", "notes": "No research
+  findings were provided in the input context to validate against the original intent."}
+report head: '# Architectural Report: Agent Node and Tool System Integration\n\nThis
+  report details how **agent node types** and **tool systems** (including shell too'
+```
+
+Empty `findings`, `confidence: low` with every key question listed as a gap — and a fully-structured multi-section report synthesized anyway (its YAML "examples" cite `spec_version: "FR-768"` and `config/agents/analyst_agent.yaml` shapes that exist nowhere in this codebase).
+
+The binding defect is also visible statically in the committed graph: bare `{query}`/`{scope}` at `HEAD:examples/demos/research-agent/graph.yaml` lines 42, 53, 65, 82, against the `{state.…}`-only resolver contract (`yamlgraph/utils/expressions.py` `resolve_template`, `reference/graph-yaml.md`).
 
 ## Ideal Result
 
@@ -38,7 +69,7 @@ Anyone consuming the research graph gets either a grounded report or an honest f
 
 ### 2. Gate synthesis on validation (graph-level, no new node types)
 
-Route on the existing validation verdict: `confidence: low` + empty findings must not reach `synthesize_report`. Minimal shape — a router/condition edge after `validate_findings` that ends the graph with the honest validation verdict as the terminal output (or raises via `on_error: fail` semantics), instead of unconditionally synthesizing. Implementation stays in YAML (Logic layer); no `yamlgraph/` changes expected.
+**Terminal contract (R-2, frozen):** when `findings` is empty and `validation.confidence` is `low`, the graph terminates after `validate_findings`, preserves the validation verdict in state, and does not produce `report`. `synthesize_report` runs only for non-empty findings with non-low validation confidence. Enforced by graph topology (router/condition edge after `validate_findings`), not prompt wording. Process failure is explicitly NOT the chosen behavior — the honest terminal validation state is the output.
 
 ### 3. Regenerate the demo witness
 
@@ -49,15 +80,22 @@ New `demo-output.log` from a live run whose extracted intent visibly echoes the 
 - Test: graph config binds only `{state.…}` templates in `variables:` (mechanical rot guard — greps all committed demo graphs, not just this one; `partial_remediation` guard).
 - Test: the graph's edge structure routes empty-findings/low-confidence away from `synthesize_report`.
 
-## Acceptance Criteria
+**Sequence (R-3, frozen):** RED tests are committed BEFORE any governed graph mutation is applied to the working tree destined for commit; graph edits are then generated through `scripts/author.sh` with `tmp/draft-authoring-report.md` recording lint, validate, and smoke evidence. The 2026-08-06 uncommitted draft fix is diagnostic evidence only — it is not implementation proof and will be re-derived through the authoring route after RED.
 
-- [ ] AC-1 RED: failing test proving bare `{var}` bindings exist in research-agent graph (then GREEN via the committed fix).
-- [ ] AC-2 Mechanical guard: test asserting no committed demo graph binds bare non-`{state.…}` placeholders in node `variables:` (all demos, one sweep).
-- [ ] AC-3 Empty-findings path: low-confidence validation never reaches `synthesize_report`; graph output is the honest verdict or a loud failure.
-- [ ] AC-4 Regenerated `demo-output.log` from a successful grounded run; extracted intent echoes the query topic; no fatal markers; demo-gate compliant.
-- [ ] AC-5 Graph changes via `scripts/author.sh` route only (FR-767); lint + validate green.
-- [ ] AC-6 No `yamlgraph/` production changes; if the fix genuinely requires one, stop and split per doctrine.
-- [ ] AC-7 Changelog fragment, FR status fold, diary entry.
+**Traceability (R-4, frozen):** every new or changed test carries an exact `@pytest.mark.req("REQ-YG-XXX")` marker and `python scripts/req_coverage.py --strict` passes. No existing REQ covers demo variable-binding hygiene and empty-findings routing — enforcement adds a focused capability/REQ pair (CAP-221) rather than leaving unmarked tests.
+
+## Acceptance Criteria (revised per judgement 2026-08-07)
+
+- [ ] AC-01: The FR contains committed admissible evidence showing the binding failure and empty-findings fabrication chain; no session-local `tmp/` or `logs/` file is required to understand the defect.
+- [ ] AC-02: RED test proves the committed research-agent graph contains bare non-`{state…}` node-variable bindings; GREEN changes the four affected bindings to `{state.query}` / `{state.scope}` and declares `state: {query: str, scope: str}`.
+- [ ] AC-03: A committed guard test asserts every committed demo graph uses only `{state…}` placeholders in node `variables:` mappings; if it finds violations outside research-agent, enforcement stops for split or re-judgement.
+- [ ] AC-04: A committed graph-structure or execution test proves an empty `findings` value with `validation.confidence: low` terminates after `validate_findings`, preserves the validation verdict, and never executes or produces `synthesize_report` / `report`.
+- [ ] AC-05: A committed positive-path test or demo witness proves non-empty findings with acceptable validation confidence can still reach `synthesize_report`.
+- [ ] AC-06: `examples/demos/research-agent/demo-output.log` is regenerated from a successful grounded run whose output visibly echoes the query topic, contains no fatal markers, and is committed with the graph change.
+- [ ] AC-07: Governed graph edits are authored through `scripts/author.sh`; `tmp/draft-authoring-report.md` records lint, validate, and smoke evidence for the changed graph.
+- [ ] AC-08: No `yamlgraph/` production files change; if a production change is genuinely required, enforcement stops and a separate bug FR is filed.
+- [ ] AC-09: Every new or changed test has an exact `@pytest.mark.req(...)` marker, the capability registry is updated if needed, and `python scripts/req_coverage.py --strict` passes.
+- [ ] AC-10: Changelog fragment, FR implementation-status update, and diary reflection are included.
 
 ## Alternatives Considered
 
@@ -67,12 +105,12 @@ New `demo-output.log` from a live run whose extracted intent visibly echoes the 
 
 ## Related
 
+- feature-requests/FR-779-research-agent-demo-rot.judgement.md — verdict APPROVED WITH REVISIONS (2026-08-07); scope table D-1..D-6 and conditions C-1..C-6 govern enforcement
 - feature-requests/FR-215-research-agent-demo.md — created the demo
 - feature-requests/FR-777-shared-shell-toolbelt-manifests.md — assumes this graph becomes a toolbelt tool
 - yamlgraph/utils/expressions.py `resolve_template` — the boundary that defines `{state.…}`-only
-- tmp/research-agent-result.json, tmp/research-agent-tool-report.md, logs/research-agent.err — evidence artifacts (uncommitted, session-local)
 - docs/diary/diary-2026-08-06-the-provider-was-innocent.md — the witness-rot seed this FR partially answers
 
-## Judgement (pending)
+## Judgement (2026-08-07)
 
-**Verdict:** —
+**Verdict:** APPROVED WITH REVISIONS — see feature-requests/FR-779-research-agent-demo-rot.judgement.md. R-1 (admissible evidence), R-2 (single terminal empty-findings contract), R-3 (RED-before-authoring sequence), R-4 (req traceability) folded above. Conditions C-1..C-6 are GATE.
