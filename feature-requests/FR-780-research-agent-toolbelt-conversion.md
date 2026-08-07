@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Proposed
+**Status:** Judged 2026-08-07 — APPROVED WITH REVISIONS; R-1..R-4 folded below; authority active per judgement
 **Requested:** 2026-08-07
 **First consumer / first event:** the research-agent demo itself, on its next research run — concretely, the FR-777 assumption path (research graph published as a toolbelt tool for the judge_fr adapter) needs the graph to produce grounded findings first; the 2026-08-06 dogfood run produced empty findings within 10 iterations, plausibly because its truncating tools starve the agent of context.
 
@@ -41,17 +41,26 @@ Research-agent declares read/search/list/git-history tools purely by toolbelt ma
 3. Extend the FR-777 test suite pattern: research-agent's four shared tools resolve to effective configs equal to the manifest contracts; `count_lines` stays inline.
 4. Regenerate `demo-output.log` from a grounded successful run (demo-gate; the anti-XYZZY topic-echo check from FR-779 applies).
 
+**Scope translation (R-2):** canonical `search` takes `(pattern, glob)` from `.` and `list_dir` takes `(dir)` — neither takes `scope`. The graph keeps `scope` as input; the prompts must teach the canonical names and argument names (`search(pattern, glob)`, `list_dir(dir)`, `read_file(file)`, `git_log(pattern)`, inline `count_lines(file)`) and instruct the agent to honor `scope` by translating it into `list_dir.dir` and `search.glob` prefixes — never silently broadening every search to the whole repository.
+
+**FR-779 regression boundary (R-3):** the conversion must not revert FR-779 — `state.query`/`state.scope` declarations and `{state.…}` bindings stay; the conditional `validate_findings → END` route for empty findings / low confidence stays; prompt wording alone is not an acceptable guard.
+
+**Traceability surface (R-1):** extend `CAP-220`/`REQ-YG-579` to name research-agent as the fourth consumer; update `examples/shared/README.md` and the four manifest header comments — documentation only, no runtime contract changes.
+
 **Sequencing:** enforce after FR-779 lands — both FRs touch the same graph file; FR-779's binding/routing changes are the base. RED-before-authoring per FR-779's R-3 precedent.
 
-## Acceptance Criteria
+## Acceptance Criteria (revised per judgement 2026-08-07)
 
-- [ ] AC-1 RED: failing test asserting research-agent declares read_file/search/list_dir/git_log solely by toolbelt manifest ref.
-- [ ] AC-2 GREEN via author.sh; lint + validate + authoring report evidence.
-- [ ] AC-3 Effective-config equivalence test (command, description, parse, timeout == 30) for the four converted tools; `count_lines` remains inline.
-- [ ] AC-4 Prompts reference canonical tool names; no orphan references to `search_code`/`list_files` remain anywhere in the demo.
-- [ ] AC-5 Regenerated grounded `demo-output.log` with non-empty findings; no fatal markers; topic echo visible.
-- [ ] AC-6 Tests carry `@pytest.mark.req` markers (extend REQ-YG-579/CAP-220 with the fourth consumer, or add a REQ if the judge prefers); `req_coverage --strict` green.
-- [ ] AC-7 Changelog fragment, FR fold, diary entry; no `yamlgraph/` changes.
+- [ ] AC-01: RED test proves the committed research-agent graph does not yet declare `read_file`, `search`, `list_dir`, and `git_log` solely via `manifest:` refs while keeping `count_lines` inline; GREEN converts exactly those four shared tools and no others.
+- [ ] AC-02: A committed test loads the research-agent graph and proves the effective shell config for `read_file`, `search`, `list_dir`, and `git_log` matches the shared manifest contracts: `command`, canonical `description`, `parse`, and `timeout == 30`.
+- [ ] AC-03: `plan_research` and `execute_research` tool lists use canonical names; no `search_code` or `list_files` references remain anywhere under `examples/demos/research-agent/`.
+- [ ] AC-04: The updated research-agent prompts describe the canonical tool names and argument names, remove Python-only / first-80-lines semantics, and instruct the agent to honor `scope` through `list_dir.dir` and `search.glob` rather than silently searching the whole repository.
+- [ ] AC-05: FR-779 behavior is preserved: `state.query` / `state.scope` remain declared and bound through `{state...}` templates, and empty findings or low validation confidence still terminates after `validate_findings` without producing `report`.
+- [ ] AC-06: `examples/shared/README.md`, the four shared toolbelt manifest header comments, and `CAP-220` / `REQ-YG-579` are updated to record research-agent as the fourth shell-toolbelt manifest consumer; every new or changed test carries `@pytest.mark.req("REQ-YG-579")`, and `python scripts/req_coverage.py --strict` passes.
+- [ ] AC-07: Governed graph and prompt edits are authored through `scripts/author.sh`; `tmp/draft-authoring-report.md` records lint, validate, smoke, and the relevant test evidence for the changed demo.
+- [ ] AC-08: A regenerated committed `examples/demos/research-agent/demo-output.log` from a live successful run shows non-empty `findings`, `validation.confidence` not `low`, a produced `report`, visible query/topic echo, at least one concrete in-scope file or line citation from tool findings, and no fatal markers.
+- [ ] AC-09: No files under `yamlgraph/` change; shared manifest runtime contracts are not changed; `count_lines` is not moved to the toolbelt; no research graph manifest or judge adapter branch is added; `max_iterations` is not increased as the fix.
+- [ ] AC-10: Changelog fragment, FR implementation-status update, and diary reflection are included.
 
 ## Alternatives Considered
 
@@ -61,11 +70,12 @@ Research-agent declares read/search/list/git-history tools purely by toolbelt ma
 
 ## Related
 
+- feature-requests/FR-780-research-agent-toolbelt-conversion.judgement.md — verdict APPROVED WITH REVISIONS (2026-08-07); scope D-1..D-7 and conditions C-1..C-5 govern enforcement
 - feature-requests/FR-777-shared-shell-toolbelt-manifests.md — toolbelt + fit boundary
 - feature-requests/FR-779-research-agent-demo-rot.md — same graph, bindings + synthesis gate (base for this FR)
 - examples/shared/toolbelt/ — the four manifests
 - feature-requests/FR-215-research-agent-demo.md — created the demo
 
-## Judgement (pending)
+## Judgement (2026-08-07)
 
-**Verdict:** —
+**Verdict:** APPROVED WITH REVISIONS — see feature-requests/FR-780-research-agent-toolbelt-conversion.judgement.md. R-1 (freeze CAP-220/REQ-YG-579 traceability + doc surfaces), R-2 (canonical argument names + scope translation contract in prompts), R-3 (FR-779 regression boundary named), R-4 (grounded state-evidence witness, not topic echo alone) folded above. Conditions C-1..C-5 are GATE.
