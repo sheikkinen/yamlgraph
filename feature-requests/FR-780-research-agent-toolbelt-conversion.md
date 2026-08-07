@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Judged 2026-08-07 — APPROVED WITH REVISIONS; R-1..R-4 folded below; authority active per judgement
+**Status:** Enforced 2026-08-07 — RED committed, GREEN via author.sh; all ACs met, see Implementation Status
 **Requested:** 2026-08-07
 **First consumer / first event:** the research-agent demo itself, on its next research run — concretely, the FR-777 assumption path (research graph published as a toolbelt tool for the judge_fr adapter) needs the graph to produce grounded findings first; the 2026-08-06 dogfood run produced empty findings within 10 iterations, plausibly because its truncating tools starve the agent of context.
 
@@ -51,16 +51,16 @@ Research-agent declares read/search/list/git-history tools purely by toolbelt ma
 
 ## Acceptance Criteria (revised per judgement 2026-08-07)
 
-- [ ] AC-01: RED test proves the committed research-agent graph does not yet declare `read_file`, `search`, `list_dir`, and `git_log` solely via `manifest:` refs while keeping `count_lines` inline; GREEN converts exactly those four shared tools and no others.
-- [ ] AC-02: A committed test loads the research-agent graph and proves the effective shell config for `read_file`, `search`, `list_dir`, and `git_log` matches the shared manifest contracts: `command`, canonical `description`, `parse`, and `timeout == 30`.
-- [ ] AC-03: `plan_research` and `execute_research` tool lists use canonical names; no `search_code` or `list_files` references remain anywhere under `examples/demos/research-agent/`.
-- [ ] AC-04: The updated research-agent prompts describe the canonical tool names and argument names, remove Python-only / first-80-lines semantics, and instruct the agent to honor `scope` through `list_dir.dir` and `search.glob` rather than silently searching the whole repository.
-- [ ] AC-05: FR-779 behavior is preserved: `state.query` / `state.scope` remain declared and bound through `{state...}` templates, and empty findings or low validation confidence still terminates after `validate_findings` without producing `report`.
-- [ ] AC-06: `examples/shared/README.md`, the four shared toolbelt manifest header comments, and `CAP-220` / `REQ-YG-579` are updated to record research-agent as the fourth shell-toolbelt manifest consumer; every new or changed test carries `@pytest.mark.req("REQ-YG-579")`, and `python scripts/req_coverage.py --strict` passes.
-- [ ] AC-07: Governed graph and prompt edits are authored through `scripts/author.sh`; `tmp/draft-authoring-report.md` records lint, validate, smoke, and the relevant test evidence for the changed demo.
-- [ ] AC-08: A regenerated committed `examples/demos/research-agent/demo-output.log` from a live successful run shows non-empty `findings`, `validation.confidence` not `low`, a produced `report`, visible query/topic echo, at least one concrete in-scope file or line citation from tool findings, and no fatal markers.
-- [ ] AC-09: No files under `yamlgraph/` change; shared manifest runtime contracts are not changed; `count_lines` is not moved to the toolbelt; no research graph manifest or judge adapter branch is added; `max_iterations` is not increased as the fix.
-- [ ] AC-10: Changelog fragment, FR implementation-status update, and diary reflection are included.
+- [x] AC-01: RED test proves the committed research-agent graph does not yet declare `read_file`, `search`, `list_dir`, and `git_log` solely via `manifest:` refs while keeping `count_lines` inline; GREEN converts exactly those four shared tools and no others.
+- [x] AC-02: A committed test loads the research-agent graph and proves the effective shell config for `read_file`, `search`, `list_dir`, and `git_log` matches the shared manifest contracts: `command`, canonical `description`, `parse`, and `timeout == 30`.
+- [x] AC-03: `plan_research` and `execute_research` tool lists use canonical names; no `search_code` or `list_files` references remain anywhere under `examples/demos/research-agent/`.
+- [x] AC-04: The updated research-agent prompts describe the canonical tool names and argument names, remove Python-only / first-80-lines semantics, and instruct the agent to honor `scope` through `list_dir.dir` and `search.glob` rather than silently searching the whole repository.
+- [x] AC-05: FR-779 behavior is preserved: `state.query` / `state.scope` remain declared and bound through `{state...}` templates, and empty findings or low validation confidence still terminates after `validate_findings` without producing `report`.
+- [x] AC-06: `examples/shared/README.md`, the four shared toolbelt manifest header comments, and `CAP-220` / `REQ-YG-579` are updated to record research-agent as the fourth shell-toolbelt manifest consumer; every new or changed test carries `@pytest.mark.req("REQ-YG-579")`, and `python scripts/req_coverage.py --strict` passes.
+- [x] AC-07: Governed graph and prompt edits are authored through `scripts/author.sh`; `tmp/draft-authoring-report.md` records lint, validate, smoke, and the relevant test evidence for the changed demo.
+- [x] AC-08: A regenerated committed `examples/demos/research-agent/demo-output.log` from a live successful run shows non-empty `findings`, `validation.confidence` not `low`, a produced `report`, visible query/topic echo, at least one concrete in-scope file or line citation from tool findings, and no fatal markers.
+- [x] AC-09: No files under `yamlgraph/` change; shared manifest runtime contracts are not changed; `count_lines` is not moved to the toolbelt; no research graph manifest or judge adapter branch is added; `max_iterations` is not increased as the fix.
+- [x] AC-10: Changelog fragment, FR implementation-status update, and diary reflection are included.
 
 ## Alternatives Considered
 
@@ -79,3 +79,14 @@ Research-agent declares read/search/list/git-history tools purely by toolbelt ma
 ## Judgement (2026-08-07)
 
 **Verdict:** APPROVED WITH REVISIONS — see feature-requests/FR-780-research-agent-toolbelt-conversion.judgement.md. R-1 (freeze CAP-220/REQ-YG-579 traceability + doc surfaces), R-2 (canonical argument names + scope translation contract in prompts), R-3 (FR-779 regression boundary named), R-4 (grounded state-evidence witness, not topic echo alone) folded above. Conditions C-1..C-5 are GATE.
+
+## Implementation Status (2026-08-07)
+
+**Status: Enforced.**
+
+- **RED** — `tests/unit/test_fr780_research_agent_toolbelt.py` (11 tests, `REQ-YG-579`); verified 8 failed / 3 passed before any governed mutation — the 3 passing tests are the regression guards pinning `count_lines` inline and the FR-779 boundary.
+- **GREEN** — authored via `scripts/author.sh tmp/fr780-green-brief.md` (C-2); `tmp/draft-authoring-report.md` records lint (0 errors, pre-existing W026), validate (5 nodes, 7 edges), FR-780 suite 11/11, FR-779 suite 8/8, and a live smoke that routed `validate_findings → synthesize_report` with high confidence. Adapter repairs beyond the brief: the demo README still named `search_code`/`list_files` (caught by the anywhere-in-demo test) and the first smoke over-explored out of scope — prompts tightened, rerun succeeded.
+- **Scope translation (R-2/C-3)**: canonical contracts preserved `scope` via prompt-level glob/dir translation; no toolbelt contract change was needed — C-3 stop never triggered.
+- **R-1 surfaces**: CAP-220 description + REQ-YG-579 text extended to name research-agent as fourth consumer and `count_lines` as inline demo-local; four manifest headers and `examples/shared/README.md` updated (documentation only, runtime contracts untouched).
+- **Witness (AC-08)**: `demo-output.log` regenerated (`PROVIDER=google`, query "Which LLM providers does the create_llm factory support?"); route log shows the positive condition selecting `synthesize_report`; `validation.confidence: high`, zero gaps, citations to `yamlgraph/utils/llm_factory.py` and `llm_providers.py`; the converted tools found **all 12 providers** where the FR-779-era truncated tools confirmed only 2 and flagged the rest as gaps — the tool-fidelity claim witnessed quantitatively.
+- **Deviation**: none from judged scope. Combined suites (FR-777 + FR-779 + FR-780) 40/40; `req_coverage --strict` green.

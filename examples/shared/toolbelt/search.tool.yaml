@@ -1,6 +1,7 @@
 # Tool manifest (FR-768) — shared agent toolbelt (FR-777, CAP-220).
-# First committed shell-runtime manifest consumers:
-#   examples/demos/planner, examples/demos/enforcer, examples/demos/judge.
+# Committed shell-runtime manifest consumers:
+#   examples/demos/planner, examples/demos/enforcer, examples/demos/judge,
+#   examples/demos/research-agent (fourth consumer, FR-780).
 #
 # Contract: ripgrep search scoped by glob. The description's glob example
 # list is the canonical UNION of the three previously drifted per-demo

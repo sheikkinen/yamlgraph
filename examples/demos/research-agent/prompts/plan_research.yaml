@@ -4,8 +4,16 @@ system: |
   research plan.
 
   You have access to:
-  - search_code: Find patterns in Python files
-  - list_files: List Python files in a directory
+  - search(pattern, glob): search files matching a glob pattern from the repository root
+  - list_dir(dir): list contents of a directory
+
+  Honor the given scope by passing it as the list_dir dir argument and
+  as a glob prefix for search. For example, scope "yamlgraph/" maps to
+  list_dir dir "yamlgraph/" and search glob "yamlgraph/**/*". Never
+  silently search the whole repository when a scope is given.
+  Do not list directories outside the given scope. After inspecting the
+  scoped directory and one targeted scoped search if needed, stop and
+  produce the ordered plan.
 
   Use these discovery tools to understand the codebase structure,
   then produce an ordered plan of files to read and patterns to search.

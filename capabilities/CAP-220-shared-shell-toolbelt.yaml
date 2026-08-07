@@ -7,9 +7,11 @@ description: >
   git_log) are extracted to examples/shared/toolbelt/ as typed shell
   ToolManifest files and referenced via manifest keys, unifying the
   previously drifted agent-facing search description into one canonical
-  union contract. The toolbelt directory is runtime-neutral — shared
-  agent tools of any manifest runtime type; demo-local variants stay
-  inline per the fit boundary.
+  union contract. The research-agent demo converted as the fourth
+  consumer (FR-780), replacing its truncating py-only inline variants
+  with the canonical contracts. The toolbelt directory is
+  runtime-neutral — shared agent tools of any manifest runtime type;
+  demo-local variants stay inline per the fit boundary.
 modules:
   - examples
 requirements:
@@ -17,14 +19,15 @@ requirements:
     description: >
       examples/shared/toolbelt/{read_file,search,list_dir,git_log}.tool.yaml
       validate as shell-runtime ToolManifest files with unknown fields
-      rejected; planner, enforcer, and judge graphs declare those four
-      tools solely by manifest reference with zero inline copies of the
-      four commands remaining; the effective parsed shell config of each
-      converted tool (command, canonical description, parse, timeout ==
-      30) equals the manifest contract; the canonical search description
-      contains the union of the previously drifted glob example lists;
-      and demo-specific tools (planner write_file, enforcer git_diff/
-      lint/run_tests/write_file/edit_file, judge run_tests) remain
+      rejected; planner, enforcer, judge, and research-agent graphs
+      declare those four tools solely by manifest reference with zero
+      inline copies of the four commands remaining; the effective parsed
+      shell config of each converted tool (command, canonical
+      description, parse, timeout == 30) equals the manifest contract;
+      the canonical search description contains the union of the
+      previously drifted glob example lists; and demo-specific tools
+      (planner write_file, enforcer git_diff/lint/run_tests/write_file/
+      edit_file, judge run_tests, research-agent count_lines) remain
       inline.
     modules:
       - examples

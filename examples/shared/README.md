@@ -177,7 +177,8 @@ tools:
 ```
 
 Committed consumers: [demos/planner](../demos/planner/),
-[demos/enforcer](../demos/enforcer/), [demos/judge](../demos/judge/).
+[demos/enforcer](../demos/enforcer/), [demos/judge](../demos/judge/),
+[demos/research-agent](../demos/research-agent/) (fourth consumer, FR-780).
 
 **Fit boundary:** verbatim two-plus-consumer contracts earn manifests;
 demo-local variants (different command, parse mode, or description

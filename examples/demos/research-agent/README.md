@@ -40,9 +40,10 @@ yamlgraph graph run examples/demos/research-agent/graph.yaml \
 
 | Tool | Description | Nodes |
 |------|-------------|-------|
-| `search_code` | Grep Python files for a pattern | plan, execute |
-| `list_files` | List Python files in a directory | plan, execute |
-| `read_file` | Read first 80 lines of a file | execute |
+| `search` | Search files matching a glob pattern | plan, execute |
+| `list_dir` | List directory contents | plan, execute |
+| `read_file` | Read a file in full | execute |
+| `git_log` | Search prior-art history for commits mentioning a pattern | execute |
 | `count_lines` | Count lines in a file | execute |
 
 ## Output

@@ -2718,13 +2718,13 @@ Opt-in vision branch for scanned/image-only PDFs in the book-summary demo (FR-77
 
 ### 220. CAP-220 Shared Shell Toolbelt Manifests
 
-First committed shell-runtime consumers of the FR-768 tool manifest feature (FR-777): the four shell tools duplicated verbatim across the planner, enforcer, and judge agent demos (read_file, search, list_dir, git_log) are extracted to examples/shared/toolbelt/ as typed shell ToolManifest files and referenced via manifest keys, unifying the previously drifted agent-facing search description into one canonical union contract. The toolbelt directory is runtime-neutral — shared agent tools of any manifest runtime type; demo-local variants stay inline per the fit boundary.
+First committed shell-runtime consumers of the FR-768 tool manifest feature (FR-777): the four shell tools duplicated verbatim across the planner, enforcer, and judge agent demos (read_file, search, list_dir, git_log) are extracted to examples/shared/toolbelt/ as typed shell ToolManifest files and referenced via manifest keys, unifying the previously drifted agent-facing search description into one canonical union contract. The research-agent demo converted as the fourth consumer (FR-780), replacing its truncating py-only inline variants with the canonical contracts. The toolbelt directory is runtime-neutral — shared agent tools of any manifest runtime type; demo-local variants stay inline per the fit boundary.
 
 **Feature Request:** FR-777
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
-| REQ-YG-579 | examples/shared/toolbelt/{read_file,search,list_dir,git_log}.tool.yaml validate as shell-runtime ToolManifest files with unknown fields rejected; planner, enforcer, and judge graphs declare those four tools solely by manifest reference with zero inline copies of the four commands remaining; the effective parsed shell config of each converted tool (command, canonical description, parse, timeout == 30) equals the manifest contract; the canonical search description contains the union of the previously drifted glob example lists; and demo-specific tools (planner write_file, enforcer git_diff/ lint/run_tests/write_file/edit_file, judge run_tests) remain inline. | `examples` |
+| REQ-YG-579 | examples/shared/toolbelt/{read_file,search,list_dir,git_log}.tool.yaml validate as shell-runtime ToolManifest files with unknown fields rejected; planner, enforcer, judge, and research-agent graphs declare those four tools solely by manifest reference with zero inline copies of the four commands remaining; the effective parsed shell config of each converted tool (command, canonical description, parse, timeout == 30) equals the manifest contract; the canonical search description contains the union of the previously drifted glob example lists; and demo-specific tools (planner write_file, enforcer git_diff/lint/run_tests/write_file/ edit_file, judge run_tests, research-agent count_lines) remain inline. | `examples` |
 
 ### 221. CAP-221 Demo Graph Binding Hygiene and Grounded Synthesis Gate
 

@@ -20,18 +20,14 @@ variables:
     default: yamlgraph/
 
 tools:
-  search_code:
-    type: shell
-    command: grep -rn "{pattern}" --include="*.py" {scope} | head -20
-    description: Search Python source files for a pattern
-  list_files:
-    type: shell
-    command: find {path} -name "*.py" -type f | head -30
-    description: List Python files in a directory
   read_file:
-    type: shell
-    command: head -80 {file}
-    description: Read the first 80 lines of a file
+    manifest: ../../shared/toolbelt/read_file.tool.yaml
+  search:
+    manifest: ../../shared/toolbelt/search.tool.yaml
+  list_dir:
+    manifest: ../../shared/toolbelt/list_dir.tool.yaml
+  git_log:
+    manifest: ../../shared/toolbelt/git_log.tool.yaml
   count_lines:
     type: shell
     command: wc -l {file}
@@ -48,7 +44,7 @@ nodes:
   plan_research:
     type: agent
     prompt: plan_research
-    tools: [search_code, list_files]
+    tools: [search, list_dir]
     max_iterations: 5
     state_key: plan
     requires: [intent]
@@ -59,7 +55,7 @@ nodes:
   execute_research:
     type: agent
     prompt: execute_research
-    tools: [search_code, list_files, read_file, count_lines]
+    tools: [search, list_dir, read_file, count_lines, git_log]
     max_iterations: 10
     state_key: findings
     tool_results_key: _research_tools
