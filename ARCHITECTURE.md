@@ -536,6 +536,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 218 | CAP-218 Shared Document Splitter | `examples` | REQ-YG-577 |
 | 219 | CAP-219 Book-Summary Vision Fallback | `examples` | REQ-YG-578 |
 | 220 | CAP-220 Shared Shell Toolbelt Manifests | `examples` | REQ-YG-579 |
+| 221 | CAP-221 Demo Graph Binding Hygiene and Grounded Synthesis Gate | `examples` | REQ-YG-581 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -2724,6 +2725,16 @@ First committed shell-runtime consumers of the FR-768 tool manifest feature (FR-
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-579 | examples/shared/toolbelt/{read_file,search,list_dir,git_log}.tool.yaml validate as shell-runtime ToolManifest files with unknown fields rejected; planner, enforcer, and judge graphs declare those four tools solely by manifest reference with zero inline copies of the four commands remaining; the effective parsed shell config of each converted tool (command, canonical description, parse, timeout == 30) equals the manifest contract; the canonical search description contains the union of the previously drifted glob example lists; and demo-specific tools (planner write_file, enforcer git_diff/ lint/run_tests/write_file/edit_file, judge run_tests) remain inline. | `examples` |
+
+### 221. CAP-221 Demo Graph Binding Hygiene and Grounded Synthesis Gate
+
+Hardening of the research-agent demo against two rot classes (FR-779): node variable bindings that silently fail to resolve (bare non-state placeholders like {query} fall through resolve_template as literal strings, so the model receives the placeholder and hallucinates the topic), and fabrication from empty findings (synthesize_report runs unconditionally even when the validation node reports low confidence with zero findings). Bindings use the documented {state.X} contract; synthesis is gated by graph topology so an empty-findings/low-confidence run terminates after validate_findings with the honest verdict as the terminal output. A repo-wide guard test sweeps all committed demo graphs for the binding rot class.
+
+**Feature Request:** FR-779
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-581 | Every committed demo graph binds node variables only as whole-string {state.…} templates (or embedded {state.…} interpolations) — a whole-string bare {name} placeholder in a node variables mapping is a defect; the research-agent graph binds query/scope via {state.query}/{state.scope} with declared state fields; its edge topology routes validation.confidence == 'low' or empty findings to END after validate_findings (verdict preserved, no report produced) while non-low confidence with non-empty findings reaches synthesize_report. | `examples` |
 
 <!-- END GENERATED CAPABILITIES -->
 

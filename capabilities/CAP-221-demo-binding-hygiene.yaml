@@ -1,0 +1,31 @@
+id: CAP-221
+name: Demo Graph Binding Hygiene and Grounded Synthesis Gate
+description: >
+  Hardening of the research-agent demo against two rot classes (FR-779):
+  node variable bindings that silently fail to resolve (bare non-state
+  placeholders like {query} fall through resolve_template as literal
+  strings, so the model receives the placeholder and hallucinates the
+  topic), and fabrication from empty findings (synthesize_report runs
+  unconditionally even when the validation node reports low confidence
+  with zero findings). Bindings use the documented {state.X} contract;
+  synthesis is gated by graph topology so an empty-findings/low-confidence
+  run terminates after validate_findings with the honest verdict as the
+  terminal output. A repo-wide guard test sweeps all committed demo
+  graphs for the binding rot class.
+modules:
+  - examples
+requirements:
+  - id: REQ-YG-581
+    description: >
+      Every committed demo graph binds node variables only as whole-string
+      {state.…} templates (or embedded {state.…} interpolations) — a
+      whole-string bare {name} placeholder in a node variables mapping is
+      a defect; the research-agent graph binds query/scope via
+      {state.query}/{state.scope} with declared state fields; its edge
+      topology routes validation.confidence == 'low' or empty findings to
+      END after validate_findings (verdict preserved, no report produced)
+      while non-low confidence with non-empty findings reaches
+      synthesize_report.
+    modules:
+      - examples
+fr: FR-779
