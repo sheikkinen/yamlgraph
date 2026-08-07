@@ -1,28 +1,207 @@
 ═══════════════════════════════════════════════════
-  FR-215: Research Agent Demo (5-Step Agentic Pattern)
+  FR-779: Research Agent Demo (5-Step Agentic Pattern)
 ═══════════════════════════════════════════════════
 
 📋 Part 1: Lint validation
   Command: yamlgraph graph lint examples/demos/research-agent/graph.yaml
 ---
-✅ graph.yaml - No issues found
+⚠️ graph.yaml
+   ⚠ [W026] Prompt 'validate_findings' (node 'validate_findings') declares 4 top-level output fields (>= 4) — it may fuse that many independent judgements into one call; the hardest judgement can starve under load
+      Fix: Consider splitting discrimination from bookkeeping (see FR-585 decode pattern) or pushing global cross-unit constraints to a deterministic post-pass.
 
-✅ All graphs passed linting
+Found 0 error(s) and 1 warning(s)
 
-📋 Part 2: Graph compilation (run attempt)
-  Command: yamlgraph graph run examples/demos/research-agent/graph.yaml --var query="How does the agent node type work?" --var scope="yamlgraph/" --full
+📋 Part 2: Grounded run (query echo + synthesis gate)
+  Command: yamlgraph graph run examples/demos/research-agent/graph.yaml --var query="Which LLM providers does the create_llm factory support?" --var scope="yamlgraph/utils/" --full
 ---
-2026-04-07 06:40:31,136 [INFO] yamlgraph.graph_loader: Parsed 4 shell tools: search_code, list_files, read_file, count_lines
-2026-04-07 06:40:31,139 [INFO] yamlgraph.node_compiler: Added node: extract_intent (type=llm)
-2026-04-07 06:40:31,149 [INFO] yamlgraph.node_compiler: Added node: plan_research (type=agent)
-2026-04-07 06:40:31,151 [INFO] yamlgraph.node_compiler: Added node: execute_research (type=agent)
-2026-04-07 06:40:31,154 [INFO] yamlgraph.node_compiler: Added node: validate_findings (type=llm)
-2026-04-07 06:40:31,154 [INFO] yamlgraph.node_compiler: Added node: synthesize_report (type=llm)
-2026-04-07 06:40:31,178 [INFO] yamlgraph.utils.llm_factory: Creating LLM: anthropic/claude-haiku-4-5 (temp=0.7)
-2026-04-07 06:40:31,737 [ERROR] yamlgraph.error_handlers: Node extract_intent failed: "Could not resolve authentication method. Expected either api_key or auth_token to be set. Or for one of the `X-Api-Key` or `Authorization` headers to be explicitly omitted"
-2026-04-07 06:40:31,746 [INFO] yamlgraph.tools.agent: 🤖 Starting agent loop: plan_research (max 5 iterations)
+2026-08-07 07:13:42,005 [INFO] yamlgraph.compile.graph_loader: Parsed 4 shell tools: search_code, list_files, read_file, count_lines
+2026-08-07 07:13:42,008 [INFO] yamlgraph.compile.node_compiler: Added node: extract_intent (type=llm)
+2026-08-07 07:13:42,010 [INFO] yamlgraph.compile.node_compiler: Added node: plan_research (type=agent)
+2026-08-07 07:13:42,012 [INFO] yamlgraph.compile.node_compiler: Added node: execute_research (type=agent)
+2026-08-07 07:13:42,014 [INFO] yamlgraph.compile.node_compiler: Added node: validate_findings (type=llm)
+2026-08-07 07:13:42,015 [INFO] yamlgraph.compile.node_compiler: Added node: synthesize_report (type=llm)
+2026-08-07 07:13:42,114 [INFO] yamlgraph.utils.llm_factory: Creating LLM: google/gemini-3.5-flash (temp=0.7)
+2026-08-07 07:13:43,657 [INFO] google_genai.models: AFC is enabled with max remote calls: 10.
+2026-08-07 07:13:46,125 [INFO] httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
+2026-08-07 07:13:46,128 [INFO] yamlgraph.node_factory.llm_nodes: Node extract_intent completed successfully
+2026-08-07 07:13:46,133 [INFO] yamlgraph.tools.agent: 🤖 Starting agent loop: plan_research (max 5 iterations)
+2026-08-07 07:13:47,724 [INFO] httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
+2026-08-07 07:13:47,726 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: list_files({'path': 'yamlgraph/utils/'})
+2026-08-07 07:13:49,158 [INFO] httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
+2026-08-07 07:13:49,160 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_code({'pattern': 'create_llm', 'scope': 'yamlgraph/utils/'})
+2026-08-07 07:13:50,709 [INFO] httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
+2026-08-07 07:13:50,711 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_code({'pattern': 'ProviderType', 'scope': 'yamlgraph/utils/'})
+2026-08-07 07:13:54,995 [INFO] httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
+2026-08-07 07:13:54,997 [INFO] yamlgraph.tools.agent: ✓ Agent completed after 4 iterations
+2026-08-07 07:13:55,005 [INFO] yamlgraph.tools.agent: 🤖 Starting agent loop: execute_research (max 10 iterations)
+2026-08-07 07:13:56,046 [INFO] httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
+2026-08-07 07:13:56,048 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: count_lines({'file': 'yamlgraph/utils/llm_factory.py'})
+2026-08-07 07:13:57,045 [INFO] httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
+2026-08-07 07:13:57,047 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: read_file({'file': 'yamlgraph/utils/llm_factory.py'})
+2026-08-07 07:13:59,090 [INFO] httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
+2026-08-07 07:13:59,093 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_code({'scope': 'yamlgraph/utils/llm_factory.py', 'pattern': 'def create_llm'})
+2026-08-07 07:14:00,524 [INFO] httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
+2026-08-07 07:14:00,526 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_code({'pattern': 'def create_llm', 'scope': 'yamlgraph/utils/'})
+2026-08-07 07:14:01,752 [INFO] httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
+2026-08-07 07:14:01,754 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_code({'scope': 'yamlgraph/utils/', 'pattern': 'def create_llm('})
+2026-08-07 07:14:02,880 [INFO] httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
+2026-08-07 07:14:02,882 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_code({'pattern': 'create_llm', 'scope': 'yamlgraph/utils/'})
+2026-08-07 07:14:04,388 [INFO] httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
+2026-08-07 07:14:04,390 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_code({'scope': 'yamlgraph/utils/', 'pattern': 'def '})
+2026-08-07 07:14:05,925 [INFO] httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
+2026-08-07 07:14:05,928 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_code({'scope': 'yamlgraph/utils/', 'pattern': 'def'})
+2026-08-07 07:14:08,101 [INFO] httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
+2026-08-07 07:14:08,103 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_code({'pattern': 'DEFAULT_MODELS', 'scope': 'yamlgraph/utils/'})
+2026-08-07 07:14:09,534 [INFO] httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
+2026-08-07 07:14:09,537 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_code({'scope': 'yamlgraph/utils/', 'pattern': 'selected_provider'})
+2026-08-07 07:14:09,557 [WARNING] yamlgraph.tools.agent: Agent hit max iterations (10)
+2026-08-07 07:14:09,568 [INFO] google_genai.models: AFC is enabled with max remote calls: 10.
+2026-08-07 07:14:13,531 [INFO] httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
+2026-08-07 07:14:13,536 [INFO] yamlgraph.node_factory.llm_nodes: Node validate_findings completed successfully
+2026-08-07 07:14:13,537 [INFO] yamlgraph.route: {"event": "route", "node": "validate_findings", "value": "validation.confidence != 'low' and findings != ''", "target": "synthesize_report", "thread_id": null}
+2026-08-07 07:14:13,543 [INFO] google_genai.models: AFC is enabled with max remote calls: 10.
+2026-08-07 07:14:22,027 [INFO] httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
+2026-08-07 07:14:22,029 [INFO] yamlgraph.node_factory.llm_nodes: Node synthesize_report completed successfully
 
 🚀 Running graph: graph.yaml
-   Variables: {'query': 'How does the agent node type work?', 'scope': 'yamlgraph/'}
+   Variables: {'query': 'Which LLM providers does the create_llm factory support?', 'scope': 'yamlgraph/utils/'}
 
-❌ Error: "Could not resolve authentication method. Expected either api_key or auth_token to be set. Or for one of the `X-Api-Key` or `Authorization` headers to be explicitly omitted"
+🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/f889c0ec-fa9b-4025-b69c-2aa756283ef8/r/019fda6d-450c-7232-ae3f-8c89d2355c6f?poll=true
+============================================================
+RESULT
+============================================================
+  current_step: synthesize_report
+  query: Which LLM providers does the create_llm factory support?
+  scope: yamlgraph/utils/
+  intent: {'topic': 'LLM providers supported by the create_llm factory', 'key_questions': ['Which LLM providers are supported by the create_llm factory?', 'What are the configuration requirements for each supported LLM provider in the factory?'], 'expected_artifacts': ['**/factory.py', '**/llm.py', '**/providers.py', '**/*factory*', '**/*llm*']}
+  plan: An elegant research plan has been structured based on the discovery of the files in the `yamlgraph/utils/` directory.
+
+### Relevant Files Identified
+1. `yamlgraph/utils/llm_factory.py` (Contains the main `create_llm` factory and the `ProviderType` literal definition)
+2. `yamlgraph/utils/llm_providers.py` (Contains provider-specific wrapper classes, configuration defaults, and client setup logic)
+3. `yamlgraph/utils/llm_factory_async.py` (Contains `create_llm_async` which wraps the synchronous factory and handles asynchronous execution setup)
+
+---
+
+### Research Plan
+
+#### 1. Files to Read
+
+##### **Step 1: Read `yamlgraph/utils/llm_factory.py`**
+* **Relevance:** High (Primary entrypoint).
+* **Expected Information:**
+  * The exact set of supported providers defined in `ProviderType`.
+  * The argument signature of `create_llm(...)` (e.g., `model`, `temperature`, `api_key`, `thinking_budget`).
+  * How configuration is passed down or validated for each provider.
+
+##### **Step 2: Read `yamlgraph/utils/llm_providers.py`**
+* **Relevance:** High (Provider implementations).
+* **Expected Information:**
+  * Specific environment variables required for each provider (e.g., `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, etc.).
+  * Concrete client instantiation (e.g., LangChain wrappers or custom clients used under the hood).
+  * Default models and fallback logic for each supported provider.
+  * Any advanced or provider-specific parameters (e.g., `thinking_budget` for Anthropic).
+
+##### **Step 3: Read `yamlgraph/utils/llm_factory_async.py`**
+* **Relevance:** Medium (Async wrapper).
+* **Expected Information:**
+  * How the asynchronous factory initializes the models and whether any additional config parameters are required for async execution.
+
+---
+
+#### 2. Key Patterns to Search For
+
+* **`ProviderType = Literal[`**
+  * *Purpose:* To extract the exact list of string literals representing the supported LLM providers.
+* **`def create_llm`**
+  * *Purpose:* To find the entrypoint definition and inspect its parameters, type hints, and docstring examples.
+* **`get_` or `_init_` functions inside `llm_providers.py`** (e.g., checking for functions like `_get_openai_model` or similar initialization patterns)
+  * *Purpose:* To understand how environment variables, endpoints, and provider-specific model instances are retrieved and configured.
+  findings: yamlgraph/utils/llm_factory.py:138:    selected_provider = provider or os.getenv("PROVIDER") or "anthropic"
+yamlgraph/utils/llm_factory.py:141:    if selected_provider not in DEFAULT_MODELS:
+yamlgraph/utils/llm_factory.py:143:            f"Invalid provider: {selected_provider}. "
+yamlgraph/utils/llm_factory.py:151:        and selected_provider not in THINKING_PROVIDERS
+yamlgraph/utils/llm_factory.py:155:            f"got provider='{selected_provider}'"
+yamlgraph/utils/llm_factory.py:170:        and selected_provider == "anthropic"
+yamlgraph/utils/llm_factory.py:179:    selected_model = model or DEFAULT_MODELS[selected_provider]
+yamlgraph/utils/llm_factory.py:183:        selected_provider == "openai"
+yamlgraph/utils/llm_factory.py:193:        selected_provider,
+yamlgraph/utils/llm_factory.py:198:        _env_fingerprint(selected_provider),
+yamlgraph/utils/llm_factory.py:203:        selected_provider,
+  validation: {'questions_answered': ['Identified that Anthropic and OpenAI are among the supported providers in the `create_llm` factory located in `yamlgraph/utils/llm_factory.py`.'], 'gaps': ['The complete list of supported providers is defined in `DEFAULT_MODELS`, which is not detailed in the current findings.', 'The specific configuration requirements (such as API keys or environment variables managed by `_env_fingerprint`) for each provider are not fully extracted.'], 'confidence': 'medium', 'notes': 'The findings successfully locate the factory file `yamlgraph/utils/llm_factory.py` and reveal the usage of `DEFAULT_MODELS` and `THINKING_PROVIDERS`. However, to fully answer the research questions, the definitions of these constants and the configuration/environment check logic need to be retrieved.'}
+  report: # Research Report: LLM Providers Supported by the `create_llm` Factory
+
+## Executive Summary
+
+The `create_llm` factory is located in `yamlgraph/utils/llm_factory.py`. Based on the codebase analysis, the factory explicitly supports **Anthropic** and **OpenAI** as LLM providers, with **Anthropic** serving as the default provider.
+
+While Anthropic and OpenAI are directly hardcoded into provider-specific logic blocks, the factory validates all inputs against a central registry mapping named `DEFAULT_MODELS`. Any provider not defined within `DEFAULT_MODELS` is rejected as invalid.
+
+---
+
+## Detailed Findings
+
+### 1. File Location and Entry Point
+The LLM factory is implemented in:
+* **File:** `yamlgraph/utils/llm_factory.py`
+* **Primary Interface:** `create_llm(...)` (implied by the factory logic around line 138)
+
+### 2. Provider Resolution and Defaults
+When invoking the factory, the provider is resolved using the following fallback order:
+1. An explicitly passed `provider` argument.
+2. The `PROVIDER` environment variable.
+3. The default fallback string: `"anthropic"`.
+
+```python
+# yamlgraph/utils/llm_factory.py:138
+selected_provider = provider or os.getenv("PROVIDER") or "anthropic"
+```
+
+### 3. Verification and Validation Logic
+Once the provider is selected, the factory runs several validation checks:
+* **Validation against `DEFAULT_MODELS`:** The selected provider must exist within a registry named `DEFAULT_MODELS`. If it does not, the factory raises an error:
+  ```python
+  # yamlgraph/utils/llm_factory.py:141-143
+  if selected_provider not in DEFAULT_MODELS:
+      raise ValueError(f"Invalid provider: {selected_provider}. ")
+  ```
+* **Thinking Provider Verification:** The factory evaluates if the provider is capable of "thinking" configurations using a `THINKING_PROVIDERS` collection:
+  ```python
+  # yamlgraph/utils/llm_factory.py:151-155
+  and selected_provider not in THINKING_PROVIDERS
+  # ... raises error if invalid configuration is passed for non-thinking providers
+  ```
+
+### 4. Provider-Specific Implementations
+The factory contains distinct code paths and configuration overrides tailored to specific providers:
+* **Anthropic:**
+  * Serves as the default provider.
+  * Features custom handling for specific configurations (e.g., thinking budgets or system prompt structures).
+  ```python
+  # yamlgraph/utils/llm_factory.py:170
+  and selected_provider == "anthropic"
+  ```
+* **OpenAI:**
+  * Explicitly checked to handle OpenAI-specific initialization parameters or client configurations.
+  ```python
+  # yamlgraph/utils/llm_factory.py:183
+  selected_provider == "openai"
+  ```
+
+---
+
+## Known Gaps in Current Findings
+
+While the core factory structure and primary providers (Anthropic and OpenAI) have been identified, the following details remain partially constrained by the current extraction scope:
+
+1. **Complete List of Providers in `DEFAULT_MODELS`:** The full contents of the `DEFAULT_MODELS` dictionary are not fully detailed in the current findings. While Anthropic and OpenAI are confirmed, other providers (such as Cohere, Google/Gemini, or local providers like Ollama) might be supported if they are defined inside `DEFAULT_MODELS`.
+2. **Specific Environment Variables:** The function `_env_fingerprint(selected_provider)` (line 198) is used to verify environment configurations. The exact API key environment variables required for each provider (e.g., `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`) are encapsulated within this helper and are not fully enumerated in the current code snippets.
+
+---
+
+## Summary for Developers
+
+To use the `create_llm` factory:
+* **Default Usage:** Simply calling the factory without arguments will attempt to spin up an **Anthropic** model. Ensure your environment has the appropriate Anthropic credentials configured.
+* **Switching Providers:** Pass `provider="openai"` or set the environment variable `PROVIDER=openai` to switch to OpenAI.
+* **Model Defaults:** If you do not specify a model, the factory automatically resolves the default model for your chosen provider using `DEFAULT_MODELS[selected_provider]` (line 179).

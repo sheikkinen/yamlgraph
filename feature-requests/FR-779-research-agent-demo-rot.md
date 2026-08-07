@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Bug
-**Status:** Judged 2026-08-07 — APPROVED WITH REVISIONS; R-1..R-4 folded below; authority active per judgement
+**Status:** Enforced 2026-08-07 — RED 86457da5, GREEN via author.sh; all ACs met, see Implementation Status
 **Effort:** 0.5 days
 **Requested:** 2026-08-07
 **First consumer / first event:** anyone running `examples/demos/research-agent` as a research tool — concretely, the FR-777 assumption path (research graph published as a toolbelt tool, consumed by the judge_fr adapter) inherits both defects the moment it is wired up. The first event already happened: a 2026-08-06 research run on "agent/tool integration" returned a wholesale-hallucinated OAuth2 report.
@@ -86,16 +86,16 @@ New `demo-output.log` from a live run whose extracted intent visibly echoes the 
 
 ## Acceptance Criteria (revised per judgement 2026-08-07)
 
-- [ ] AC-01: The FR contains committed admissible evidence showing the binding failure and empty-findings fabrication chain; no session-local `tmp/` or `logs/` file is required to understand the defect.
-- [ ] AC-02: RED test proves the committed research-agent graph contains bare non-`{state…}` node-variable bindings; GREEN changes the four affected bindings to `{state.query}` / `{state.scope}` and declares `state: {query: str, scope: str}`.
-- [ ] AC-03: A committed guard test asserts every committed demo graph uses only `{state…}` placeholders in node `variables:` mappings; if it finds violations outside research-agent, enforcement stops for split or re-judgement.
-- [ ] AC-04: A committed graph-structure or execution test proves an empty `findings` value with `validation.confidence: low` terminates after `validate_findings`, preserves the validation verdict, and never executes or produces `synthesize_report` / `report`.
-- [ ] AC-05: A committed positive-path test or demo witness proves non-empty findings with acceptable validation confidence can still reach `synthesize_report`.
-- [ ] AC-06: `examples/demos/research-agent/demo-output.log` is regenerated from a successful grounded run whose output visibly echoes the query topic, contains no fatal markers, and is committed with the graph change.
-- [ ] AC-07: Governed graph edits are authored through `scripts/author.sh`; `tmp/draft-authoring-report.md` records lint, validate, and smoke evidence for the changed graph.
-- [ ] AC-08: No `yamlgraph/` production files change; if a production change is genuinely required, enforcement stops and a separate bug FR is filed.
-- [ ] AC-09: Every new or changed test has an exact `@pytest.mark.req(...)` marker, the capability registry is updated if needed, and `python scripts/req_coverage.py --strict` passes.
-- [ ] AC-10: Changelog fragment, FR implementation-status update, and diary reflection are included.
+- [x] AC-01: The FR contains committed admissible evidence showing the binding failure and empty-findings fabrication chain; no session-local `tmp/` or `logs/` file is required to understand the defect.
+- [x] AC-02: RED test proves the committed research-agent graph contains bare non-`{state…}` node-variable bindings; GREEN changes the four affected bindings to `{state.query}` / `{state.scope}` and declares `state: {query: str, scope: str}`.
+- [x] AC-03: A committed guard test asserts every committed demo graph uses only `{state…}` placeholders in node `variables:` mappings; if it finds violations outside research-agent, enforcement stops for split or re-judgement.
+- [x] AC-04: A committed graph-structure or execution test proves an empty `findings` value with `validation.confidence: low` terminates after `validate_findings`, preserves the validation verdict, and never executes or produces `synthesize_report` / `report`.
+- [x] AC-05: A committed positive-path test or demo witness proves non-empty findings with acceptable validation confidence can still reach `synthesize_report`.
+- [x] AC-06: `examples/demos/research-agent/demo-output.log` is regenerated from a successful grounded run whose output visibly echoes the query topic, contains no fatal markers, and is committed with the graph change.
+- [x] AC-07: Governed graph edits are authored through `scripts/author.sh`; `tmp/draft-authoring-report.md` records lint, validate, and smoke evidence for the changed graph.
+- [x] AC-08: No `yamlgraph/` production files change; if a production change is genuinely required, enforcement stops and a separate bug FR is filed.
+- [x] AC-09: Every new or changed test has an exact `@pytest.mark.req(...)` marker, the capability registry is updated if needed, and `python scripts/req_coverage.py --strict` passes.
+- [x] AC-10: Changelog fragment, FR implementation-status update, and diary reflection are included.
 
 ## Alternatives Considered
 
@@ -114,3 +114,15 @@ New `demo-output.log` from a live run whose extracted intent visibly echoes the 
 ## Judgement (2026-08-07)
 
 **Verdict:** APPROVED WITH REVISIONS — see feature-requests/FR-779-research-agent-demo-rot.judgement.md. R-1 (admissible evidence), R-2 (single terminal empty-findings contract), R-3 (RED-before-authoring sequence), R-4 (req traceability) folded above. Conditions C-1..C-6 are GATE.
+
+## Implementation Status (2026-08-07)
+
+**Status: Enforced.**
+
+- **RED** commit `86457da5` — `tests/unit/test_fr779_research_agent_demo.py` (8 tests, `REQ-YG-581`), CAP-221 registered; verified 7 failed / 1 passed against the committed graph before any graph mutation (R-3 sequence honored).
+- **GREEN** — graph re-derived via `scripts/author.sh tmp/fr779-green-brief.md` (C-6); `tmp/draft-authoring-report.md` records lint (0 errors, 1 pre-existing W026 warning), validate (5 nodes, 7 edges), suite 8/8, and a live smoke where the empty-findings/low-confidence route selected `END`, preserved `validation`, and produced no `report` — the terminal contract exercised for real, not just structurally.
+- **Diff is exactly frozen scope**: 4 bindings → `{state.query}`/`{state.scope}`, `state: {query: str, scope: str}` declared, unconditional `validate_findings → synthesize_report` replaced by conditional gate (`validation.confidence == 'low' or findings == ''` → END; negation → synthesize_report). No prompt, tool, or `yamlgraph/` changes (C-5, AC-08).
+- **C-4 sweep result**: repo-wide demo sweep found violations only in research-agent. `security-cve-ignore` embeds literal GitHub Actions `${{ github.* }}` template text inside a variable *value*; the sweep regex anchors to whole-string bare placeholders (`^\{(?!state\.)[^{}]+\}$`), correctly excluding embedded literals. No stop triggered.
+- **Witness (AC-06)**: `demo-output.log` regenerated from a grounded run (`PROVIDER=google`, query "Which LLM providers does the create_llm factory support?"); output cites `yamlgraph/utils/llm_factory.py` with line numbers and echoes the topic; route log shows `validate_findings → synthesize_report` via the positive condition (AC-05 witnessed live); validated against `scripts/demo_log_semantics.sh` (no fatal markers, success markers present).
+- **Deviation**: none from judged scope. The lint-rule stretch (E-class bare-placeholder rule) was not taken — the AC-03 sweep test provides the blocking guard as judged.
+- Follow-up: FR-780 (toolbelt conversion) filed and sequenced after this FR.

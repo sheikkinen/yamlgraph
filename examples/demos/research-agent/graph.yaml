@@ -7,6 +7,10 @@ description: >
 prompts_relative: true
 prompts_dir: prompts
 
+state:
+  query: str
+  scope: str
+
 variables:
   query:
     description: Research question to investigate
@@ -39,7 +43,7 @@ nodes:
     prompt: extract_intent
     state_key: intent
     variables:
-      query: "{query}"
+      query: "{state.query}"
 
   plan_research:
     type: agent
@@ -50,7 +54,7 @@ nodes:
     requires: [intent]
     variables:
       intent: "{state.intent}"
-      scope: "{scope}"
+      scope: "{state.scope}"
 
   execute_research:
     type: agent
@@ -62,7 +66,7 @@ nodes:
     requires: [plan]
     variables:
       plan: "{state.plan}"
-      scope: "{scope}"
+      scope: "{state.scope}"
 
   validate_findings:
     type: llm
@@ -79,7 +83,7 @@ nodes:
     state_key: report
     requires: [intent, findings, validation]
     variables:
-      query: "{query}"
+      query: "{state.query}"
       intent: "{state.intent}"
       findings: "{state.findings}"
       validation: "{state.validation}"
@@ -94,6 +98,10 @@ edges:
   - from: execute_research
     to: validate_findings
   - from: validate_findings
+    to: END
+    condition: "validation.confidence == 'low' or findings == ''"
+  - from: validate_findings
     to: synthesize_report
+    condition: "validation.confidence != 'low' and findings != ''"
   - from: synthesize_report
     to: END
