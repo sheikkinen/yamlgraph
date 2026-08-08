@@ -85,6 +85,32 @@ def test_demo_witness_contains_no_real_paths():
     assert "SYNTHETIC-FIXTURE" in text or "fixture" in text
 
 
+@pytest.mark.req("REQ-YG-584")
+def test_committed_artifacts_contain_no_home_library_path():
+    """C-9: neither the fixture nor the witness may name a real ~/Library
+    path. Availability of a real machine's databases is itself personal
+    data — the metadata is data."""
+    artifacts = [DEMO / "demo-output.log", DEMO / "fixture" / "PPSQLDatabase.db"]
+    for artifact in artifacts:
+        assert artifact.exists(), f"{artifact} missing"
+        text = artifact.read_bytes().decode("utf-8", errors="ignore")
+        assert "~/Library" not in text, f"{artifact.name} names a real ~/Library path"
+        assert str(Path.home()) not in text, f"{artifact.name} names the real home"
+
+
+@pytest.mark.req("REQ-YG-584")
+def test_demo_witness_reports_no_real_supplementary_availability():
+    """C-9: the witness must not disclose which real supplementary
+    databases exist on the machine that produced it."""
+    text = (DEMO / "demo-output.log").read_text(encoding="utf-8")
+    for marker in ("knowledgeC.db", "History.db", "ChatStorage.sqlite"):
+        for line in text.splitlines():
+            if marker in line:
+                assert (
+                    "present" not in line.lower()
+                ), f"witness discloses real availability of {marker}: {line.strip()}"
+
+
 # ─── AC-04: typed extraction at the SQLite boundary ──────────────────────
 
 
