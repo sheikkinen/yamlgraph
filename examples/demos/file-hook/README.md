@@ -41,6 +41,13 @@ pip install -e ".[vision]"   # Pillow, for the max_dim downscale
 
 ## Install as a system hook (launchd WatchPaths)
 
+Two patterns. **If your repo lives under `~/Documents` (or Desktop/
+Downloads), Pattern A will be TCC-denied** — launchd's python cannot
+even read `.venv/pyvenv.cfg` there. Pattern B is the one verified in
+production on this machine.
+
+### Pattern A — in-repo (repo outside TCC-protected folders)
+
 ```bash
 cd examples/demos/file-hook/hooks
 
@@ -50,6 +57,50 @@ cd examples/demos/file-hook/hooks
 # Real install: renders, copies to ~/Library/LaunchAgents, loads:
 ./install-hook.sh ~/Pictures/deployed
 ```
+
+### Pattern B — deployed copy outside `~/Documents` (verified 2026-08-08)
+
+Everything the agent touches at runtime — venv, graph, tools, watched
+folder — lives outside TCC-protected locations; the repo is only read
+at install time:
+
+```bash
+DEPLOY=~/scheduled-yamlgraphs           # any dir outside Documents/Desktop/Downloads
+REPO=/path/to/yamlgraph
+
+# 1. Venv with a NON-editable install (editable would read the repo at runtime):
+python3 -m venv "$DEPLOY/.venv"
+"$DEPLOY/.venv/bin/pip" install "$REPO[vision]"
+
+# 2. Copy the demo tree, module paths intact:
+mkdir -p "$DEPLOY/file-hook/examples/"{demos,shared} "$DEPLOY/file-hook-test"
+cp -R "$REPO/examples/demos/file-hook" "$DEPLOY/file-hook/examples/demos/"
+rm -rf "$DEPLOY/file-hook/examples/demos/file-hook/hooks"
+cp "$REPO/examples/shared/vision_tool.py" "$DEPLOY/file-hook/examples/shared/"
+```
+
+3. Wrapper `$DEPLOY/run_file_hook.sh` (the `ProgramArguments` target):
+
+```bash
+#!/bin/bash
+set -e
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+cd "$SCRIPT_DIR"
+[ -f "$HOME/.env" ] && export $(grep -v '^#' "$HOME/.env" | xargs)
+export PROVIDER=google
+source .venv/bin/activate
+cd file-hook   # cwd anchors the examples.demos... module paths
+yamlgraph graph run examples/demos/file-hook/graph.yaml \
+    --var dir="$HOME/scheduled-yamlgraphs/file-hook-test" --full
+```
+
+4. Plist in `~/Library/LaunchAgents/com.yamlgraph.file-hook.plist`:
+`ProgramArguments` = `[/bin/bash, $DEPLOY/run_file_hook.sh]`,
+`WatchPaths` = `[$DEPLOY/file-hook-test]`, `ThrottleInterval` 30,
+`RunAtLoad` false, `StandardOutPath`/`StandardErrorPath` under `/tmp`.
+Then `launchctl load` it. Note the rename-event echo: publishing
+re-triggers the watcher, and pairing-as-ledger makes that second fire
+a no-op — no throttle tuning needed.
 
 ### Managing the hook
 
@@ -68,7 +119,7 @@ launchctl unload ~/Library/LaunchAgents/com.yamlgraph.file-hook.plist  # uninsta
 | `StartCalendarInterval` | Fire on a schedule (see [scheduling-agents.md](../../../reference/scheduling-agents.md)) |
 | `ThrottleInterval` | Debounce bursts (30s here); safe because the graph is idempotent |
 | `ProgramArguments` | Absolute paths only — launchd does **no** shell expansion |
-| `WorkingDirectory` | Repo root, so relative graph paths resolve |
+| `WorkingDirectory` | Where relative graph/module paths resolve (Pattern B sets cwd in the wrapper instead) |
 | `EnvironmentVariables` | API keys — launchd agents do NOT inherit your shell env |
 
 ### ⚠️ The macOS sandbox trap (Full Disk Access)
@@ -76,12 +127,16 @@ launchctl unload ~/Library/LaunchAgents/com.yamlgraph.file-hook.plist  # uninsta
 launchd agents are **denied access to `~/Documents`, `~/Desktop`, and
 `~/Downloads`** by macOS privacy protection (TCC) — the graph will fail
 with `Operation not permitted` while working perfectly in your
-terminal. Documented the hard way in
+terminal. Verified live during this demo's installation: the agent
+died on `PermissionError: .venv/pyvenv.cfg` before the graph even
+loaded. Documented the hard way in
 [docs/diary-2026-02-21.md](../../../docs/diary-2026-02-21.md). Either:
 
-- watch a folder outside protected locations (e.g. `~/Pictures/...`), or
-- grant Full Disk Access to the executing binary
-  (System Settings → Privacy & Security → Full Disk Access).
+- deploy everything outside protected locations (Pattern B above —
+  preferred; no privacy grants needed), or
+- grant Full Disk Access to the real interpreter binary
+  (`readlink -f .venv/bin/python3`; System Settings → Privacy &
+  Security → Full Disk Access) — broad grant to a shared python.
 
 ### Getting API keys into launchd
 
@@ -89,8 +144,8 @@ Pick one (in the plist template or a wrapper):
 
 1. `EnvironmentVariables` dict in the plist (simplest; plist is
    user-readable — keep it out of git).
-2. Wrapper script as `ProgramArguments[0]` that sources your `.env`
-   then execs `yamlgraph`.
+2. Wrapper script (Pattern B above) that sources `~/.env` then runs
+   `yamlgraph` — the verified pattern.
 3. `security find-generic-password` (Keychain) inside a wrapper.
 
 ## Design notes
