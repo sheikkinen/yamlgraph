@@ -2,7 +2,8 @@
 
 **Priority:** MEDIUM
 **Type:** Feature (example)
-**Status:** Judged 2026-08-08 — APPROVED WITH REVISIONS (R-1..R-6 folded below);
+**Status:** ENFORCED 2026-08-08 — all AC met; see Implementation Status below.
+Judged 2026-08-08 — APPROVED WITH REVISIONS (R-1..R-6 folded below);
 see FR-782-user-self-portrait-example.judgement.md
 **Effort:** 1–2 days
 **Requested:** 2026-08-08
@@ -228,66 +229,66 @@ Frozen by the judgement (AC-01 satisfied by this revision):
       supplementary-source phase boundary, fixture/no-real-data guard,
       Wikidata dependency/cache contract, and schema-drift row-model
       tests from R-1 through R-6.
-- [ ] AC-02: `examples/demos/self-portrait/graph.yaml` and
+- [x] AC-02: `examples/demos/self-portrait/graph.yaml` and
       `prompts/synthesize_portrait.yaml` are authored through
       `scripts/author.sh`; `tmp/draft-authoring-report.md` records
       graph lint, compile/validate, fixture smoke, and relevant test
       evidence.
-- [ ] AC-03: A deterministic synthetic `PPSQLDatabase.db` fixture or
+- [x] AC-03: A deterministic synthetic `PPSQLDatabase.db` fixture or
       fixture-builder exists with fake people, organizations,
       locations, products/events/concepts, topic Q-IDs, location rows,
       significant contacts, and provenance rows; tests assert it
       contains no real PersonalizationPortrait path, `~/Library`
       source path, or non-synthetic marker.
-- [ ] AC-04: Extraction opens SQLite via read-only URI mode and
+- [x] AC-04: Extraction opens SQLite via read-only URI mode and
       returns Pydantic-validated row models for entities, topics,
       locations, significant contacts, provenance, and source summary;
       tests cover category mapping, unknown categories, missing
       optional columns, missing required primary tables,
       unreadable/missing primary DB with named FDA remediation, and
       output-dir confinement.
-- [ ] AC-05: Supplementary DBs are limited to availability probes and
+- [x] AC-05: Supplementary DBs are limited to availability probes and
       absent-source rendering under this FR; absent `knowledgeC.db`,
       Safari, Calendar, and WhatsApp sources do not fail the portrait
       and are represented as absent/not configured in the JSON and
       narrative.
-- [ ] AC-06: Wikidata resolution batches at no more than 50 Q-IDs per
+- [x] AC-06: Wikidata resolution batches at no more than 50 Q-IDs per
       request, caches labels under the output directory, avoids
       network on cache hit, keeps Q-IDs when offline or labels are
       missing, and uses either standard-library HTTP or a
       declared/governed optional dependency.
-- [ ] AC-07: Consent gate defaults to interactive interrupt with
+- [x] AC-07: Consent gate defaults to interactive interrupt with
       checkpointer; it exposes the exact outbound synthesis payload or
       a local file containing it, plus byte count and content hash;
       resume "yes" proceeds using the same payload byte-for-byte, any
       other answer routes to extraction-only render and clean exit,
       and `auto_approve=true` is the only opt-in bypass.
-- [ ] AC-08: Synthesis uses an inline Pydantic schema with stable
+- [x] AC-08: Synthesis uses an inline Pydantic schema with stable
       `self-portrait.json` fields: `schema_version`, `portrait_date`,
       `generated_at`, `source_summary`, `identity`, `social_graph`,
       `expertise`, `geography`, `rhythms`, `evolution`,
       `agent_briefing`, and `provenance`; narrative Markdown and JSON
       both render from the validated model.
-- [ ] AC-09: Diff mode is tested by a second run against a modified
+- [x] AC-09: Diff mode is tested by a second run against a modified
       synthetic fixture and reports a new person, shifted topic score,
       and dropped location without reading prior real outputs.
-- [ ] AC-10: README documents the FDA/TCC gate with exact grant path
+- [x] AC-10: README documents the FDA/TCC gate with exact grant path
       and Pattern B deploy note, consent-gate semantics including
       exact payload preview and `auto_approve`, output directory
       default outside the repo, weekly launchd `StartCalendarInterval`
       reference to FR-781 Pattern B, local-provider note via standard
       `PROVIDER`, and the intent boundary that personal data is the
       product while real portraits are not committed.
-- [ ] AC-11: `demo-output.log` is regenerated from a grounded fixture
+- [x] AC-11: `demo-output.log` is regenerated from a grounded fixture
       run using a real LLM and synthetic data; it shows the
       auto-approved fixture witness plus one recorded interactive
       consent exchange, includes the output paths, and proves the
       committed fixture was run through a disposable copy.
-- [ ] AC-12: Every new or changed test carries an exact
+- [x] AC-12: Every new or changed test carries an exact
       `@pytest.mark.req("REQ-YG-...")`; the capability registry is
       updated for the self-portrait example;
       `python scripts/req_coverage.py --strict` passes.
-- [ ] AC-13: Changelog fragment, FR implementation-status update, and
+- [x] AC-13: Changelog fragment, FR implementation-status update, and
       diary reflection are included.
 
 ## Judgement (2026-08-08)
@@ -312,6 +313,106 @@ machinery, new node types or CLI flags, public/redacted portrait mode,
 personal-context MCP server, visualization UI, launchd installer
 scripts beyond README Pattern B documentation, supplementary parsers,
 egress of real personal data during tests or witness.
+
+## Implementation Status (2026-08-08)
+
+ENFORCED. Capability **CAP-223** / requirement **REQ-YG-584**;
+37 tests in `tests/unit/test_fr782_self_portrait.py`.
+
+**Delivered** (`examples/demos/self-portrait/`):
+
+| File | Role |
+|---|---|
+| `graph.yaml`, `prompts/synthesize_portrait.yaml` | governed artifacts, authored via `scripts/author.sh` (two runs; report `tmp/draft-authoring-report.md`) |
+| `models.py` | typed boundary — row models, `SchemaDriftError`, `DatabaseUnreadableError`, `ConsentPayloadMismatchError` |
+| `extract.py` | read-only URI SQLite extraction, category mapping, supplementary probes |
+| `wikidata.py` | stdlib `urllib`, ≤50-ID batches, disk cache, offline degradation |
+| `portrait_io.py` | payload build/hash, identity verification, render, deterministic diff |
+| `tools.py` | graph state adapters |
+| `fixture_builder.py`, `fixture/PPSQLDatabase.db` | deterministic synthetic fixture (+ drifted variant for diff mode) |
+| `README.md`, `demo-output.log` | FDA/consent/launchd docs; three-run grounded witness |
+
+**Decisions taken during enforcement:**
+
+1. **Tool loading via `module:`, not `path:`** — the graph-relative
+   `path:` form loads the file without a parent package, so the tool
+   module's relative imports fail in strict mode. Converted through a
+   second `scripts/author.sh` run (never a manual edit), following the
+   `examples/demos/file-hook/graph.yaml` precedent for hyphenated demo
+   directories.
+2. **Supplementary probe paths are home-relative (`~/Library/…`).**
+   The first grounded run leaked the account name into the outbound
+   payload through absolute probe paths — and the model duly inferred
+   an identity from it. The probe list rides inside the consent payload,
+   so the leak was cured at that boundary and pinned by
+   `test_supplementary_probe_paths_never_carry_the_account_name`.
+3. **Unknown `ne_records.category` raises** rather than being bucketed
+   as "other" (C-5: no empty-section fallbacks). Missing *optional*
+   columns degrade to `None`; missing *required* tables raise.
+4. **Wikidata labels are whatever Wikidata says.** The source plan's
+   guessed mappings (Q7913 = "artificial intelligence") did not survive
+   contact with the API (it returns "Romanian"); the resolver reports
+   the real label and never a curated one — unresolved topics keep bare
+   Q-IDs.
+5. **Diff is deterministic**, computed from a `payload-snapshot.json`
+   written each run — the LLM never authors the drift report.
+6. **W026 lint warning accepted**: the synthesis prompt declares seven
+   top-level fields because R-1 froze that contract; splitting the call
+   would break the agent-facing schema.
+
+**Scope observed:** no changes under `yamlgraph/`; no new dependency; no
+supplementary parsers; no real database, payload, or portrait committed.
+
+### Post-review remediation (2026-08-08, PR #469 review — Not approved)
+
+The independent review (`.github/skills/review-pr` graph, sole route)
+blocked the merge on two findings. Both were valid and are cured:
+
+- **P1 — the witness disclosed real supplementary availability.** The
+  C-9 guard only rejected `Library/PersonalizationPortrait`, so
+  `demo-output.log` shipped `knowledgeC.db`, Safari `History.db` and the
+  WhatsApp container as `present (not parsed)`: facts about the machine
+  that produced the witness, not about the synthetic fixture. This is
+  decision 2 recurring one layer out — the leak was cured in the payload
+  *path*, but not in the probe *result*. Cure: `SELF_PORTRAIT_PROBE_HOME`
+  (state key `probe_home`, no graph change) points fixture/demo/test runs
+  at a synthetic home; `SourceSummary.db_path` is now home-relative too,
+  since a real run would otherwise ship `/Users/<account>/Library/…`; the
+  witness was regenerated (three real-LLM runs, all sources `absent`);
+  and four guards now pin it — no real home or `/Users/` path in any
+  committed artifact, no `present (not parsed)` in the witness,
+  home-relative `db_path`, and an all-absent synthetic probe.
+- **P2 — out-of-scope FR-773 test edits.** The poppler-independence fix
+  needed to green CI was outside the frozen deliverables; split into
+  PR #470 against `main` and dropped from this branch.
+
+**Heuristic:** a guard that names one instance of a leak class will pass
+while the class continues — enumerate the class, not the instance.
+
+### Second review round (2026-08-08, head `21cf3c10` — Not approved)
+
+Re-review of the remediated head confirmed P1/P2 cured and found a
+third, unrelated violation:
+
+- **P3 — `significant_contacts` and `sources` fell back to empty.**
+  Both are named primary tables in Data Sources, but `REQUIRED_TABLES`
+  listed only three, and `_contacts`/`_provenance` caught
+  `SchemaDriftError` and returned `[]`. A drifted database therefore
+  produced a portrait with an empty inner circle and empty provenance —
+  a plausible wrong answer, which C-5 forbids ("no empty-section
+  fallbacks") and Commandment 6 condemns. The docstrings claimed the
+  tables were "optional across macOS versions"; that claim had no
+  source. Cure: both promoted to `REQUIRED_TABLES`, both fallbacks
+  deleted, and a parametrized regression drops each table and expects
+  `SchemaDriftError`. 37 tests.
+
+**Meta-heuristic from this review cycle:** all three findings share one
+shape — the author narrowed a frozen constraint to what the
+implementation already did, then wrote a guard or docstring ratifying
+the narrowing. `plausible_wrong_answer` and `gate_checks_shape_not_
+substance` compose: the artifact passes its own test because the test
+was written from the artifact. Only closed-input review caught it, and
+it caught it three times.
 
 ## Alternatives Considered
 

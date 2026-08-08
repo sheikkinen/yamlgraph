@@ -538,6 +538,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 220 | CAP-220 Shared Shell Toolbelt Manifests | `examples` | REQ-YG-579 |
 | 221 | CAP-221 Demo Graph Binding Hygiene and Grounded Synthesis Gate | `examples` | REQ-YG-581 |
 | 222 | CAP-222 macOS File-Hook Example (Folder-Triggered Graph) | `examples` | REQ-YG-582 |
+| 223 | CAP-223 User Self-Portrait Example (PersonalizationPortrait → Agent Context) | `examples` | REQ-YG-584 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -2747,6 +2748,16 @@ Event-driven local automation example (FR-781): a launchd WatchPaths agent fires
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-582 | find_unpaired(dir) returns only PNGs without an .md twin (second run after publish is a no-op; existing twin skipped without a ledger); safe_basename rejects or transforms path separators, control characters, empty and dot names, confining writes to the watched directory; duplicate titles get a numeric suffix without overwriting unrelated files; process_artwork publishes (write .md + rename PNG) only on confidence "high" — medium/low/None block and leave the source PNG unmodified with no success-shaped output; the plist template carries WatchPaths, ThrottleInterval, WorkingDirectory, StandardOutPath, StandardErrorPath, and exact ProgramArguments; install-hook.sh --render-only emits the rendered plist with absolute paths without invoking launchctl; the demo graph compiles with a map node over the unpaired set. | `examples` |
+
+### 223. CAP-223 User Self-Portrait Example (PersonalizationPortrait → Agent Context)
+
+Local-database → typed rows → consented LLM synthesis example (FR-782): the macOS PersonalizationPortrait database is read read-only, validated into Pydantic row models at the extraction boundary, enriched with Wikidata topic labels (stdlib HTTP, disk cache, offline degradation), and synthesized into an agent-first portrait whose primary consumer is a machine (`self-portrait.json` + `agent_briefing`) with the narrative as the secondary rendering. Personal data is the product, so the egress boundary is the mechanism: a deterministic payload build writes the exact outbound JSON to disk with byte count and SHA-256, an interrupt gate previews it, and synthesis re-verifies the payload byte-for-byte before any provider call. The repo ships the pipeline, a deterministic synthetic fixture, and a no-real-data guard — never a real portrait.
+
+**Feature Request:** FR-782
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-584 | extract_portrait opens the database via read-only SQLite URI mode and returns Pydantic-validated entity/topic/location/contact/ provenance rows with a source summary; schema drift is asserted at that boundary — unknown ne_records categories and missing required tables raise SchemaDriftError, a missing/unreadable database raises DatabaseUnreadableError naming the Full Disk Access remediation, and missing optional columns degrade to None without failing. Supplementary databases (knowledgeC, Safari, Calendar, WhatsApp) are availability probes only — present sources are reported as "present (not parsed)" and absent ones never fail the run. Wikidata resolution batches at no more than 50 Q-IDs per request, caches labels under the output directory keyed by Q-ID + language, performs no network call on a cache hit, keeps Q-IDs when offline or when the requested language label is missing, and uses only urllib from the standard library. build_payload writes the exact outbound JSON payload with byte count and SHA-256; verify_payload_identity re-reads that file and raises ConsentPayloadMismatchError unless the bytes are identical, so the consent interrupt previews exactly what synthesis sends; the graph declares a checkpointer, a single confirm_egress interrupt with resume_key consent_answer, and conditional edges routing auto_approve around the gate and a non-yes answer to an extraction-only render. Rendering emits the frozen self-portrait.json contract (schema_version, portrait_date, generated_at, source_summary, identity, social_graph, expertise, geography, rhythms, evolution, agent_briefing, provenance), a narrative Markdown, and a deterministic portrait-diff reporting new people, shifted topic scores, and dropped locations; all writes are confined to the output directory, and the committed fixture plus demo witness contain no real PersonalizationPortrait or ~/Library path. | `examples` |
 
 <!-- END GENERATED CAPABILITIES -->
 

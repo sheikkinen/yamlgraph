@@ -1,0 +1,132 @@
+version: "1.0"
+name: self-portrait
+description: Local PersonalizationPortrait extraction with exact-payload consent before agent-first synthesis.
+
+checkpointer:
+  type: memory
+
+prompts_relative: true
+prompts_dir: prompts
+
+defaults:
+  provider: anthropic
+  model: claude-sonnet-4-5
+  temperature: 0.3
+
+state:
+  db_path: str
+  output_dir: str
+  portrait_date: str
+  auto_approve: bool
+  extraction: dict
+  enriched: dict
+  payload: dict
+  consent: dict
+  consent_summary: str
+  consent_prompt: str
+  consent_answer: str
+  payload_json: str
+  portrait: dict
+  outputs: dict
+
+tools:
+  prepare_run:
+    type: python
+    module: examples.demos.self-portrait.tools
+    function: prepare_run
+  extract_sources:
+    type: python
+    module: examples.demos.self-portrait.tools
+    function: extract_sources
+  enrich_topics:
+    type: python
+    module: examples.demos.self-portrait.tools
+    function: enrich_topics
+  build_synthesis_payload:
+    type: python
+    module: examples.demos.self-portrait.tools
+    function: build_synthesis_payload
+  verify_consent:
+    type: python
+    module: examples.demos.self-portrait.tools
+    function: verify_consent
+  render_portrait:
+    type: python
+    module: examples.demos.self-portrait.tools
+    function: render_portrait
+  render_extraction_only:
+    type: python
+    module: examples.demos.self-portrait.tools
+    function: render_extraction_only
+
+nodes:
+  prepare:
+    type: python
+    tool: prepare_run
+
+  extract:
+    type: python
+    tool: extract_sources
+
+  enrich:
+    type: python
+    tool: enrich_topics
+
+  build_payload:
+    type: python
+    tool: build_synthesis_payload
+
+  confirm_egress:
+    type: interrupt
+    message: "{consent_summary}"
+    state_key: consent_prompt
+    resume_key: consent_answer
+
+  verify_payload:
+    type: python
+    tool: verify_consent
+
+  synthesize:
+    type: llm
+    prompt: synthesize_portrait
+    state_key: portrait
+    variables:
+      payload_json: "{state.payload_json}"
+
+  render:
+    type: python
+    tool: render_portrait
+
+  render_denied:
+    type: python
+    tool: render_extraction_only
+
+edges:
+  - from: START
+    to: prepare
+  - from: prepare
+    to: extract
+  - from: extract
+    to: enrich
+  - from: enrich
+    to: build_payload
+  - from: build_payload
+    to: verify_payload
+    condition: auto_approve == true
+  - from: build_payload
+    to: confirm_egress
+    condition: auto_approve != true
+  - from: confirm_egress
+    to: verify_payload
+    condition: consent_answer == 'yes'
+  - from: confirm_egress
+    to: render_denied
+    condition: consent_answer != 'yes'
+  - from: verify_payload
+    to: synthesize
+  - from: synthesize
+    to: render
+  - from: render
+    to: END
+  - from: render_denied
+    to: END
