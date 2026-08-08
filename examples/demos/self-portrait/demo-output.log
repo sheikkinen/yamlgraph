@@ -1,0 +1,673 @@
+# FR-782 self-portrait — grounded witness (real LLM, synthetic fixture)
+
+$ cp examples/demos/self-portrait/fixture/PPSQLDatabase.db /tmp/pp-demo.db   # disposable copy; committed fixture untouched
+
+== RUN 1/3 — headless witness (auto_approve=true) ==
+2026-08-08 13:46:39,500 [INFO] yamlgraph.compile.graph_loader: Parsed 7 Python tools: prepare_run, extract_sources, enrich_topics, build_synthesis_payload, verify_consent, render_portrait, render_extraction_only
+2026-08-08 13:46:39,501 [INFO] yamlgraph.compile.node_compiler: Added node: prepare (type=python)
+2026-08-08 13:46:39,501 [INFO] yamlgraph.compile.node_compiler: Added node: extract (type=python)
+2026-08-08 13:46:39,501 [INFO] yamlgraph.compile.node_compiler: Added node: enrich (type=python)
+2026-08-08 13:46:39,502 [INFO] yamlgraph.compile.node_compiler: Added node: build_payload (type=python)
+2026-08-08 13:46:39,502 [INFO] yamlgraph.compile.node_compiler: Added node: confirm_egress (type=interrupt)
+2026-08-08 13:46:39,502 [INFO] yamlgraph.compile.node_compiler: Added node: verify_payload (type=python)
+2026-08-08 13:46:39,507 [INFO] yamlgraph.compile.node_compiler: Added node: synthesize (type=llm)
+2026-08-08 13:46:39,507 [INFO] yamlgraph.compile.node_compiler: Added node: render (type=python)
+2026-08-08 13:46:39,508 [INFO] yamlgraph.compile.node_compiler: Added node: render_denied (type=python)
+2026-08-08 13:46:39,657 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: prepare -> prepare_run
+2026-08-08 13:46:39,658 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: extract -> extract_sources
+2026-08-08 13:46:39,661 [INFO] examples.demos.self-portrait.extract: extracted 13 entities, 6 topics, 3 locality clusters, 3 contacts from /tmp/pp-demo.db
+2026-08-08 13:46:39,662 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: enrich -> enrich_topics
+2026-08-08 13:46:40,071 [INFO] examples.demos.self-portrait.tools: resolved 6/6 topic labels
+2026-08-08 13:46:40,072 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: build_payload -> build_synthesis_payload
+2026-08-08 13:46:40,073 [INFO] examples.demos.self-portrait.portrait_io: synthesis payload: 4304 bytes, sha256=5d9a9e146efe24acaf83e6f01aef8675aef18bed51c184fd98bbae2c0a5f04fe, written to /private/tmp/self-portrait-demo/synthesis-payload.json
+2026-08-08 13:46:40,074 [INFO] yamlgraph.route: {"event": "route", "node": "build_payload", "value": "auto_approve == true", "target": "verify_payload", "thread_id": "fr782-witness-auto"}
+2026-08-08 13:46:40,075 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: verify_payload -> verify_consent
+2026-08-08 13:46:40,076 [INFO] examples.demos.self-portrait.tools: consent verified: sending 4304 bytes (sha256=5d9a9e146efe24acaf83e6f01aef8675aef18bed51c184fd98bbae2c0a5f04fe)
+2026-08-08 13:46:40,080 [INFO] yamlgraph.utils.llm_factory: Creating LLM: anthropic/claude-sonnet-4-5 (temp=0.3)
+2026-08-08 13:47:05,145 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-08-08 13:47:05,173 [INFO] yamlgraph.node_factory.llm_nodes: Node synthesize completed successfully
+2026-08-08 13:47:05,174 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: render -> render_portrait
+
+🚀 Running graph: graph.yaml
+   Variables: {'db_path': '/tmp/pp-demo.db', 'output_dir': '/tmp/self-portrait-demo', 'portrait_date': '2026-08-08', 'auto_approve': 'true'}
+
+📝 self-portrait.json → /private/tmp/self-portrait-demo/self-portrait.json
+📝 self-portrait.md   → /private/tmp/self-portrait-demo/self-portrait.md
+📝 portrait-diff.md   → /private/tmp/self-portrait-demo/portrait-diff.md
+🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/f889c0ec-fa9b-4025-b69c-2aa756283ef8/r/019fe0fb-64a9-76b3-9405-b74bdad46f99?poll=true
+============================================================
+RESULT
+============================================================
+  thread_id: fr782-witness-auto
+  current_step: render
+  db_path: /tmp/pp-demo.db
+  output_dir: /tmp/self-portrait-demo
+  portrait_date: 2026-08-08
+  auto_approve: True
+  extraction: {'entities': [{'name': 'Testeri Testinen', 'category': 'person', 'score': 0.97, 'language': 'fi'}, {'name': 'Fixture Fakename', 'category': 'person', 'score': 0.91, 'language': 'fi'}, {'name': 'Placeholder Oy', 'category': 'organization', 'score': 0.88, 'language': 'fi'}, {'name': 'Sample Samuelsson', 'category': 'person', 'score': 0.84, 'language': 'sv'}, {'name': 'Fakelinna', 'category': 'place', 'score': 0.79, 'language': 'fi'}, {'name': 'Example Industries Ltd', 'category': 'organization', 'score': 0.71, 'language': 'en'}, {'name': 'Fictional Framework', 'category': 'technology', 'score': 0.66, 'language': 'en'}, {'name': 'Dummy Dummerson', 'category': 'person', 'score': 0.62, 'language': 'en'}, {'name': 'Mocktown', 'category': 'place', 'score': 0.55, 'language': 'en'}, {'name': 'Nonexistent Notebook 9000', 'category': 'product', 'score': 0.48, 'language': 'en'}, {'name': 'Imaginary Summit 2099', 'category': 'event', 'score': 0.44, 'language': 'en'}, {'name': 'The Unwritten Novel', 'category': 'creative_work', 'score': 0.39, 'language': 'en'}, {'name': 'Synthetic Concept', 'category': 'concept', 'score': 0.33, 'language': 'en'}], 'topics': [{'topic_id': 'Q7913', 'score': 0.93, 'label': None}, {'topic_id': 'Q7163', 'score': 0.81, 'label': None}, {'topic_id': 'Q7411', 'score': 0.74, 'label': None}, {'topic_id': 'Q1860', 'score': 0.69, 'label': None}, {'topic_id': 'Q33', 'score': 0.58, 'label': None}, {'topic_id': 'Q7204', 'score': 0.41, 'label': None}], 'locations': [{'locality': 'Fakelinna', 'country': 'Testland', 'visits': 3}, {'locality': 'Mocktown', 'country': 'Testland', 'visits': 2}, {'locality': 'Sample Harbour', 'country': 'Fixtureland', 'visits': 1}], 'contacts': [{'name': 'Testeri Testinen', 'score': 0.99, 'first_seen': '2024-01-05', 'last_seen': '2026-08-01'}, {'name': 'Fixture Fakename', 'score': 0.87, 'first_seen': '2024-06-11', 'last_seen': '2026-07-30'}, {'name': 'Sample Samuelsson', 'score': 0.52, 'first_seen': '2025-02-20', 'last_seen': '2026-05-14'}], 'source_summary': {'db_path': '/tmp/pp-demo.db', 'entity_count': 13, 'topic_count': 6, 'location_count': 3, 'contact_count': 3, 'provenance': [{'source': 'SYNTHETIC-FIXTURE/Safari', 'record_count': 120}, {'source': 'SYNTHETIC-FIXTURE/AddressBook', 'record_count': 40}, {'source': 'SYNTHETIC-FIXTURE/Messages', 'record_count': 18}, {'source': 'SYNTHETIC-FIXTURE/Notes', 'record_count': 7}], 'supplementary': [{'name': 'knowledgeC.db', 'path': '~/Library/Application Support/Knowledge/knowledgeC.db', 'available': True, 'status': 'present (not parsed)'}, {'name': 'Safari History.db', 'path': '~/Library/Safari/History.db', 'available': True, 'status': 'present (not parsed)'}, {'name': 'Calendar.sqlitedb', 'path': '~/Library/Calendars/Calendar.sqlitedb', 'available': False, 'status': 'absent'}, {'name': 'WhatsApp ChatStorage.sqlite', 'path': '~/Library/Group Containers/group.net.whatsapp.WhatsApp.shared/ChatStorage.sqlite', 'available': True, 'status': 'present (not parsed)'}]}}
+  enriched: {'entities': [{'name': 'Testeri Testinen', 'category': 'person', 'score': 0.97, 'language': 'fi'}, {'name': 'Fixture Fakename', 'category': 'person', 'score': 0.91, 'language': 'fi'}, {'name': 'Placeholder Oy', 'category': 'organization', 'score': 0.88, 'language': 'fi'}, {'name': 'Sample Samuelsson', 'category': 'person', 'score': 0.84, 'language': 'sv'}, {'name': 'Fakelinna', 'category': 'place', 'score': 0.79, 'language': 'fi'}, {'name': 'Example Industries Ltd', 'category': 'organization', 'score': 0.71, 'language': 'en'}, {'name': 'Fictional Framework', 'category': 'technology', 'score': 0.66, 'language': 'en'}, {'name': 'Dummy Dummerson', 'category': 'person', 'score': 0.62, 'language': 'en'}, {'name': 'Mocktown', 'category': 'place', 'score': 0.55, 'language': 'en'}, {'name': 'Nonexistent Notebook 9000', 'category': 'product', 'score': 0.48, 'language': 'en'}, {'name': 'Imaginary Summit 2099', 'category': 'event', 'score': 0.44, 'language': 'en'}, {'name': 'The Unwritten Novel', 'category': 'creative_work', 'score': 0.39, 'language': 'en'}, {'name': 'Synthetic Concept', 'category': 'concept', 'score': 0.33, 'language': 'en'}], 'topics': [{'topic_id': 'Q7913', 'score': 0.93, 'label': 'Romanian'}, {'topic_id': 'Q7163', 'score': 0.81, 'label': 'politics'}, {'topic_id': 'Q7411', 'score': 0.74, 'label': 'Dutch'}, {'topic_id': 'Q1860', 'score': 0.69, 'label': 'English'}, {'topic_id': 'Q33', 'score': 0.58, 'label': 'Finland'}, {'topic_id': 'Q7204', 'score': 0.41, 'label': 'Middle East'}], 'locations': [{'locality': 'Fakelinna', 'country': 'Testland', 'visits': 3}, {'locality': 'Mocktown', 'country': 'Testland', 'visits': 2}, {'locality': 'Sample Harbour', 'country': 'Fixtureland', 'visits': 1}], 'contacts': [{'name': 'Testeri Testinen', 'score': 0.99, 'first_seen': '2024-01-05', 'last_seen': '2026-08-01'}, {'name': 'Fixture Fakename', 'score': 0.87, 'first_seen': '2024-06-11', 'last_seen': '2026-07-30'}, {'name': 'Sample Samuelsson', 'score': 0.52, 'first_seen': '2025-02-20', 'last_seen': '2026-05-14'}], 'source_summary': {'db_path': '/tmp/pp-demo.db', 'entity_count': 13, 'topic_count': 6, 'location_count': 3, 'contact_count': 3, 'provenance': [{'source': 'SYNTHETIC-FIXTURE/Safari', 'record_count': 120}, {'source': 'SYNTHETIC-FIXTURE/AddressBook', 'record_count': 40}, {'source': 'SYNTHETIC-FIXTURE/Messages', 'record_count': 18}, {'source': 'SYNTHETIC-FIXTURE/Notes', 'record_count': 7}], 'supplementary': [{'name': 'knowledgeC.db', 'path': '~/Library/Application Support/Knowledge/knowledgeC.db', 'available': True, 'status': 'present (not parsed)'}, {'name': 'Safari History.db', 'path': '~/Library/Safari/History.db', 'available': True, 'status': 'present (not parsed)'}, {'name': 'Calendar.sqlitedb', 'path': '~/Library/Calendars/Calendar.sqlitedb', 'available': False, 'status': 'absent'}, {'name': 'WhatsApp ChatStorage.sqlite', 'path': '~/Library/Group Containers/group.net.whatsapp.WhatsApp.shared/ChatStorage.sqlite', 'available': True, 'status': 'present (not parsed)'}]}}
+  payload: {'schema_version': '1.0', 'portrait_date': '2026-08-08', 'people': [{'name': 'Testeri Testinen', 'category': 'person', 'score': 0.97, 'language': 'fi'}, {'name': 'Fixture Fakename', 'category': 'person', 'score': 0.91, 'language': 'fi'}, {'name': 'Sample Samuelsson', 'category': 'person', 'score': 0.84, 'language': 'sv'}, {'name': 'Dummy Dummerson', 'category': 'person', 'score': 0.62, 'language': 'en'}], 'organizations': [{'name': 'Placeholder Oy', 'category': 'organization', 'score': 0.88, 'language': 'fi'}, {'name': 'Example Industries Ltd', 'category': 'organization', 'score': 0.71, 'language': 'en'}], 'other_entities': [{'name': 'Fakelinna', 'category': 'place', 'score': 0.79, 'language': 'fi'}, {'name': 'Fictional Framework', 'category': 'technology', 'score': 0.66, 'language': 'en'}, {'name': 'Mocktown', 'category': 'place', 'score': 0.55, 'language': 'en'}, {'name': 'Nonexistent Notebook 9000', 'category': 'product', 'score': 0.48, 'language': 'en'}, {'name': 'Imaginary Summit 2099', 'category': 'event', 'score': 0.44, 'language': 'en'}, {'name': 'The Unwritten Novel', 'category': 'creative_work', 'score': 0.39, 'language': 'en'}, {'name': 'Synthetic Concept', 'category': 'concept', 'score': 0.33, 'language': 'en'}], 'topics': [{'topic_id': 'Q7913', 'score': 0.93, 'label': 'Romanian'}, {'topic_id': 'Q7163', 'score': 0.81, 'label': 'politics'}, {'topic_id': 'Q7411', 'score': 0.74, 'label': 'Dutch'}, {'topic_id': 'Q1860', 'score': 0.69, 'label': 'English'}, {'topic_id': 'Q33', 'score': 0.58, 'label': 'Finland'}, {'topic_id': 'Q7204', 'score': 0.41, 'label': 'Middle East'}], 'locations': [{'locality': 'Fakelinna', 'country': 'Testland', 'visits': 3}, {'locality': 'Mocktown', 'country': 'Testland', 'visits': 2}, {'locality': 'Sample Harbour', 'country': 'Fixtureland', 'visits': 1}], 'contacts': [{'name': 'Testeri Testinen', 'score': 0.99, 'first_seen': '2024-01-05', 'last_seen': '2026-08-01'}, {'name': 'Fixture Fakename', 'score': 0.87, 'first_seen': '2024-06-11', 'last_seen': '2026-07-30'}, {'name': 'Sample Samuelsson', 'score': 0.52, 'first_seen': '2025-02-20', 'last_seen': '2026-05-14'}], 'source_summary': {'db_path': '/tmp/pp-demo.db', 'entity_count': 13, 'topic_count': 6, 'location_count': 3, 'contact_count': 3, 'provenance': [{'source': 'SYNTHETIC-FIXTURE/Safari', 'record_count': 120}, {'source': 'SYNTHETIC-FIXTURE/AddressBook', 'record_count': 40}, {'source': 'SYNTHETIC-FIXTURE/Messages', 'record_count': 18}, {'source': 'SYNTHETIC-FIXTURE/Notes', 'record_count': 7}], 'supplementary': [{'name': 'knowledgeC.db', 'path': '~/Library/Application Support/Knowledge/knowledgeC.db', 'available': True, 'status': 'present (not parsed)'}, {'name': 'Safari History.db', 'path': '~/Library/Safari/History.db', 'available': True, 'status': 'present (not parsed)'}, {'name': 'Calendar.sqlitedb', 'path': '~/Library/Calendars/Calendar.sqlitedb', 'available': False, 'status': 'absent'}, {'name': 'WhatsApp ChatStorage.sqlite', 'path': '~/Library/Group Containers/group.net.whatsapp.WhatsApp.shared/ChatStorage.sqlite', 'available': True, 'status': 'present (not parsed)'}]}}
+  consent: {'payload_path': '/private/tmp/self-portrait-demo/synthesis-payload.json', 'byte_count': 4304, 'sha256': '5d9a9e146efe24acaf83e6f01aef8675aef18bed51c184fd98bbae2c0a5f04fe', 'payload_json': '{\n  "contacts": [\n    {\n      "first_seen": "2024-01-05",\n      "last_seen": "2026-08-01",\n      "name": "Testeri Testinen",\n      "score": 0.99\n    },\n    {\n      "first_seen": "2024-06-11",\n      "last_seen": "2026-07-30",\n      "name": "Fixture Fakename",\n      "score": 0.87\n    },\n    {\n      "first_seen": "2025-02-20",\n      "last_seen": "2026-05-14",\n      "name": "Sample Samuelsson",\n      "score": 0.52\n    }\n  ],\n  "locations": [\n    {\n      "country": "Testland",\n      "locality": "Fakelinna",\n      "visits": 3\n    },\n    {\n      "country": "Testland",\n      "locality": "Mocktown",\n      "visits": 2\n    },\n    {\n      "country": "Fixtureland",\n      "locality": "Sample Harbour",\n      "visits": 1\n    }\n  ],\n  "organizations": [\n    {\n      "category": "organization",\n      "language": "fi",\n      "name": "Placeholder Oy",\n      "score": 0.88\n    },\n    {\n      "category": "organization",\n      "language": "en",\n      "name": "Example Industries Ltd",\n      "score": 0.71\n    }\n  ],\n  "other_entities": [\n    {\n      "category": "place",\n      "language": "fi",\n      "name": "Fakelinna",\n      "score": 0.79\n    },\n    {\n      "category": "technology",\n      "language": "en",\n      "name": "Fictional Framework",\n      "score": 0.66\n    },\n    {\n      "category": "place",\n      "language": "en",\n      "name": "Mocktown",\n      "score": 0.55\n    },\n    {\n      "category": "product",\n      "language": "en",\n      "name": "Nonexistent Notebook 9000",\n      "score": 0.48\n    },\n    {\n      "category": "event",\n      "language": "en",\n      "name": "Imaginary Summit 2099",\n      "score": 0.44\n    },\n    {\n      "category": "creative_work",\n      "language": "en",\n      "name": "The Unwritten Novel",\n      "score": 0.39\n    },\n    {\n      "category": "concept",\n      "language": "en",\n      "name": "Synthetic Concept",\n      "score": 0.33\n    }\n  ],\n  "people": [\n    {\n      "category": "person",\n      "language": "fi",\n      "name": "Testeri Testinen",\n      "score": 0.97\n    },\n    {\n      "category": "person",\n      "language": "fi",\n      "name": "Fixture Fakename",\n      "score": 0.91\n    },\n    {\n      "category": "person",\n      "language": "sv",\n      "name": "Sample Samuelsson",\n      "score": 0.84\n    },\n    {\n      "category": "person",\n      "language": "en",\n      "name": "Dummy Dummerson",\n      "score": 0.62\n    }\n  ],\n  "portrait_date": "2026-08-08",\n  "schema_version": "1.0",\n  "source_summary": {\n    "contact_count": 3,\n    "db_path": "/tmp/pp-demo.db",\n    "entity_count": 13,\n    "location_count": 3,\n    "provenance": [\n      {\n        "record_count": 120,\n        "source": "SYNTHETIC-FIXTURE/Safari"\n      },\n      {\n        "record_count": 40,\n        "source": "SYNTHETIC-FIXTURE/AddressBook"\n      },\n      {\n        "record_count": 18,\n        "source": "SYNTHETIC-FIXTURE/Messages"\n      },\n      {\n        "record_count": 7,\n        "source": "SYNTHETIC-FIXTURE/Notes"\n      }\n    ],\n    "supplementary": [\n      {\n        "available": true,\n        "name": "knowledgeC.db",\n        "path": "~/Library/Application Support/Knowledge/knowledgeC.db",\n        "status": "present (not parsed)"\n      },\n      {\n        "available": true,\n        "name": "Safari History.db",\n        "path": "~/Library/Safari/History.db",\n        "status": "present (not parsed)"\n      },\n      {\n        "available": false,\n        "name": "Calendar.sqlitedb",\n        "path": "~/Library/Calendars/Calendar.sqlitedb",\n        "status": "absent"\n      },\n      {\n        "available": true,\n        "name": "WhatsApp ChatStorage.sqlite",\n        "path": "~/Library/Group Containers/group.net.whatsapp.WhatsApp.shared/ChatStorage.sqlite",\n        "status": "present (not parsed)"\n      }\n    ],\n    "topic_count": 6\n  },\n  "topics": [\n    {\n      "label": "Romanian",\n      "score": 0.93,\n      "topic_id": "Q7913"\n    },\n    {\n      "label": "politics",\n      "score": 0.81,\n      "topic_id": "Q7163"\n    },\n    {\n      "label": "Dutch",\n      "score": 0.74,\n      "topic_id": "Q7411"\n    },\n    {\n      "label": "English",\n      "score": 0.69,\n      "topic_id": "Q1860"\n    },\n    {\n      "label": "Finland",\n      "score": 0.58,\n      "topic_id": "Q33"\n    },\n    {\n      "label": "Middle East",\n      "score": 0.41,\n      "topic_id": "Q7204"\n    }\n  ]\n}'}
+  consent_summary: About to send your personal portrait data to the configured LLM provider.
+  person entities  : 4 (top: Testeri Testinen, Fixture Fakename, Sample Samuelsson, Dummy Dummerson)
+  organizations    : 2
+  other entities   : 7
+  topics           : 6 (top: Romanian, politics, Dutch, English, Finland)
+  locality clusters: 3 (top: Fakelinna, Mocktown, Sample Harbour)
+  contacts         : 3
+  supplementary    : knowledgeC.db: present (not parsed), Safari History.db: present (not parsed), Calendar.sqlitedb: absent, WhatsApp ChatStorage.sqlite: present (not parsed)
+  payload file     : /private/tmp/self-portrait-demo/synthesis-payload.json
+  bytes            : 4304
+  sha256           : 5d9a9e146efe24acaf83e6f01aef8675aef18bed51c184fd98bbae2c0a5f04fe
+Read the payload file to see exactly what will be sent — synthesis verifies this hash before any provider call.
+Send it? [yes/no]
+  payload_json: {
+  "contacts": [
+    {
+      "first_seen": "2024-01-05",
+      "last_seen": "2026-08-01",
+      "name": "Testeri Testinen",
+      "score": 0.99
+    },
+    {
+      "first_seen": "2024-06-11",
+      "last_seen": "2026-07-30",
+      "name": "Fixture Fakename",
+      "score": 0.87
+    },
+    {
+      "first_seen": "2025-02-20",
+      "last_seen": "2026-05-14",
+      "name": "Sample Samuelsson",
+      "score": 0.52
+    }
+  ],
+  "locations": [
+    {
+      "country": "Testland",
+      "locality": "Fakelinna",
+      "visits": 3
+    },
+    {
+      "country": "Testland",
+      "locality": "Mocktown",
+      "visits": 2
+    },
+    {
+      "country": "Fixtureland",
+      "locality": "Sample Harbour",
+      "visits": 1
+    }
+  ],
+  "organizations": [
+    {
+      "category": "organization",
+      "language": "fi",
+      "name": "Placeholder Oy",
+      "score": 0.88
+    },
+    {
+      "category": "organization",
+      "language": "en",
+      "name": "Example Industries Ltd",
+      "score": 0.71
+    }
+  ],
+  "other_entities": [
+    {
+      "category": "place",
+      "language": "fi",
+      "name": "Fakelinna",
+      "score": 0.79
+    },
+    {
+      "category": "technology",
+      "language": "en",
+      "name": "Fictional Framework",
+      "score": 0.66
+    },
+    {
+      "category": "place",
+      "language": "en",
+      "name": "Mocktown",
+      "score": 0.55
+    },
+    {
+      "category": "product",
+      "language": "en",
+      "name": "Nonexistent Notebook 9000",
+      "score": 0.48
+    },
+    {
+      "category": "event",
+      "language": "en",
+      "name": "Imaginary Summit 2099",
+      "score": 0.44
+    },
+    {
+      "category": "creative_work",
+      "language": "en",
+      "name": "The Unwritten Novel",
+      "score": 0.39
+    },
+    {
+      "category": "concept",
+      "language": "en",
+      "name": "Synthetic Concept",
+      "score": 0.33
+    }
+  ],
+  "people": [
+    {
+      "category": "person",
+      "language": "fi",
+      "name": "Testeri Testinen",
+      "score": 0.97
+    },
+    {
+      "category": "person",
+      "language": "fi",
+      "name": "Fixture Fakename",
+      "score": 0.91
+    },
+    {
+      "category": "person",
+      "language": "sv",
+      "name": "Sample Samuelsson",
+      "score": 0.84
+    },
+    {
+      "category": "person",
+      "language": "en",
+      "name": "Dummy Dummerson",
+      "score": 0.62
+    }
+  ],
+  "portrait_date": "2026-08-08",
+  "schema_version": "1.0",
+  "source_summary": {
+    "contact_count": 3,
+    "db_path": "/tmp/pp-demo.db",
+    "entity_count": 13,
+    "location_count": 3,
+    "provenance": [
+      {
+        "record_count": 120,
+        "source": "SYNTHETIC-FIXTURE/Safari"
+      },
+      {
+        "record_count": 40,
+        "source": "SYNTHETIC-FIXTURE/AddressBook"
+      },
+      {
+        "record_count": 18,
+        "source": "SYNTHETIC-FIXTURE/Messages"
+      },
+      {
+        "record_count": 7,
+        "source": "SYNTHETIC-FIXTURE/Notes"
+      }
+    ],
+    "supplementary": [
+      {
+        "available": true,
+        "name": "knowledgeC.db",
+        "path": "~/Library/Application Support/Knowledge/knowledgeC.db",
+        "status": "present (not parsed)"
+      },
+      {
+        "available": true,
+        "name": "Safari History.db",
+        "path": "~/Library/Safari/History.db",
+        "status": "present (not parsed)"
+      },
+      {
+        "available": false,
+        "name": "Calendar.sqlitedb",
+        "path": "~/Library/Calendars/Calendar.sqlitedb",
+        "status": "absent"
+      },
+      {
+        "available": true,
+        "name": "WhatsApp ChatStorage.sqlite",
+        "path": "~/Library/Group Containers/group.net.whatsapp.WhatsApp.shared/ChatStorage.sqlite",
+        "status": "present (not parsed)"
+      }
+    ],
+    "topic_count": 6
+  },
+  "topics": [
+    {
+      "label": "Romanian",
+      "score": 0.93,
+      "topic_id": "Q7913"
+    },
+    {
+      "label": "politics",
+      "score": 0.81,
+      "topic_id": "Q7163"
+    },
+    {
+      "label": "Dutch",
+      "score": 0.74,
+      "topic_id": "Q7411"
+    },
+    {
+      "label": "English",
+      "score": 0.69,
+      "topic_id": "Q1860"
+    },
+    {
+      "label": "Finland",
+      "score": 0.58,
+      "topic_id": "Q33"
+    },
+    {
+      "label": "Middle East",
+      "score": 0.41,
+      "topic_id": "Q7204"
+    }
+  ]
+}
+  portrait: {'identity': 'Finnish-language user based in Testland. Active in Finnish (primary), Swedish, and English. Names and organizational ties (Placeholder Oy, Testeri Testinen, Fixture Fakename) indicate Finnish linguistic environment. Also engaged with Romanian (0.93), Dutch (0.74), and politics (0.81) topics.', 'social_graph': ['Testeri Testinen: contact score 0.99, person score 0.97 (Finnish), first seen 2024-01-05, last contact 2026-08-01—closest relationship in dataset', 'Fixture Fakename: contact score 0.87, person score 0.91 (Finnish), first seen 2024-06-11, last contact 2026-07-30—strong ongoing relationship', 'Sample Samuelsson: contact score 0.52, person score 0.84 (Swedish), first seen 2025-02-20, last contact 2026-05-14—relationship cooling (last contact 3 months ago)', 'Placeholder Oy: organization score 0.88 (Finnish)—primary organizational affiliation', 'Example Industries Ltd: organization score 0.71 (English)—secondary organizational tie', 'Dummy Dummerson: person score 0.62 (English), no contact record—peripheral figure'], 'expertise': ['Romanian language or culture (topic score 0.93)', 'Politics (topic score 0.81)', 'Dutch language or culture (topic score 0.74)', 'Finland-related topics (topic score 0.58)', 'Fictional Framework technology (entity score 0.66)', 'Middle East topics (topic score 0.41)'], 'geography': 'Home base: Fakelinna, Testland (3 visits, entity score 0.79). Secondary location: Mocktown, Testland (2 visits, entity score 0.55). Single visit to Sample Harbour, Fixtureland. Travel pattern: primarily domestic within Testland, minimal international movement.', 'rhythms': 'Unknown. Calendar data absent (Calendar.sqlitedb not available). Supplementary rhythm sources (knowledgeC.db, Safari History.db, WhatsApp ChatStorage.sqlite) present but not parsed. Primary data sources (185 total records across Safari, AddressBook, Messages, Notes) do not contain temporal pattern metadata.', 'evolution': 'Rising: Romanian (0.93), politics (0.81), Dutch (0.74) show high current engagement. Fakelinna (0.79) and Fictional Framework (0.66) remain moderately active. Fading: Sample Samuelsson relationship declining (0.52 contact score, no interaction since 2026-05-14). Lower-scoring entities suggest waning interest: Nonexistent Notebook 9000 (0.48), Imaginary Summit 2099 (0.44), The Unwritten Novel (0.39), Synthetic Concept (0.33), Middle East (0.41).', 'agent_briefing': 'You are working with a Finnish-language user based in Fakelinna, Testland. Assume fluency in Finnish, Swedish, and English; expect multilingual context-switching. The user has strong current interest in Romanian language/culture and politics—prioritize these when relevant. Testeri Testinen is the primary contact (score 0.99, last contact 2026-08-01); treat as inner circle. Fixture Fakename is also close (0.87). Sample Samuelsson relationship is cooling—do not assume current closeness despite historical ties. Placeholder Oy is the main organizational anchor. The user travels minimally, mostly within Testland. Never re-ask about calendar availability or daily rhythms—that data source is absent. Supplementary databases (knowledgeC, Safari History, WhatsApp) exist but are unparsed; do not reference insights from those sources. When discussing technology, note awareness of Fictional Framework. Scores below 0.50 indicate fading relevance; do not over-weight those topics unless the user reintroduces them.'}
+  outputs: {'json_path': '/private/tmp/self-portrait-demo/self-portrait.json', 'markdown_path': '/private/tmp/self-portrait-demo/self-portrait.md', 'diff_path': '/private/tmp/self-portrait-demo/portrait-diff.md', 'snapshot_path': '/private/tmp/self-portrait-demo/payload-snapshot.json'}
+
+
+== RUN 2/3 — interactive consent gate, answered 'yes' ==
+$ yamlgraph graph run … (no auto_approve) <<< yes
+2026-08-08 13:47:16,070 [INFO] yamlgraph.compile.graph_loader: Parsed 7 Python tools: prepare_run, extract_sources, enrich_topics, build_synthesis_payload, verify_consent, render_portrait, render_extraction_only
+2026-08-08 13:47:16,071 [INFO] yamlgraph.compile.node_compiler: Added node: prepare (type=python)
+2026-08-08 13:47:16,071 [INFO] yamlgraph.compile.node_compiler: Added node: extract (type=python)
+2026-08-08 13:47:16,072 [INFO] yamlgraph.compile.node_compiler: Added node: enrich (type=python)
+2026-08-08 13:47:16,072 [INFO] yamlgraph.compile.node_compiler: Added node: build_payload (type=python)
+2026-08-08 13:47:16,072 [INFO] yamlgraph.compile.node_compiler: Added node: confirm_egress (type=interrupt)
+2026-08-08 13:47:16,073 [INFO] yamlgraph.compile.node_compiler: Added node: verify_payload (type=python)
+2026-08-08 13:47:16,078 [INFO] yamlgraph.compile.node_compiler: Added node: synthesize (type=llm)
+2026-08-08 13:47:16,078 [INFO] yamlgraph.compile.node_compiler: Added node: render (type=python)
+2026-08-08 13:47:16,078 [INFO] yamlgraph.compile.node_compiler: Added node: render_denied (type=python)
+2026-08-08 13:47:16,211 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: prepare -> prepare_run
+2026-08-08 13:47:16,212 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: extract -> extract_sources
+2026-08-08 13:47:16,215 [INFO] examples.demos.self-portrait.extract: extracted 13 entities, 6 topics, 3 locality clusters, 3 contacts from /tmp/pp-demo.db
+2026-08-08 13:47:16,216 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: enrich -> enrich_topics
+2026-08-08 13:47:16,217 [INFO] examples.demos.self-portrait.tools: resolved 6/6 topic labels
+2026-08-08 13:47:16,218 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: build_payload -> build_synthesis_payload
+2026-08-08 13:47:16,219 [INFO] examples.demos.self-portrait.portrait_io: synthesis payload: 4304 bytes, sha256=d226413bd6bef89a28e9810e312aa4e326cd30a228e39752a96e6ae8737d85c4, written to /private/tmp/self-portrait-demo/synthesis-payload.json
+2026-08-08 13:47:16,223 [INFO] yamlgraph.route: {"event": "route", "node": "build_payload", "value": "auto_approve != true", "target": "confirm_egress_prepare", "thread_id": "fr782-witness-yes"}
+
+🚀 Running graph: graph.yaml
+   Variables: {'db_path': '/tmp/pp-demo.db', 'output_dir': '/tmp/self-portrait-demo', 'portrait_date': '2026-08-09'}
+
+🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/f889c0ec-fa9b-4025-b69c-2aa756283ef8/r/019fe0fb-f384-74b2-bff8-1477b8b24473?poll=true
+
+💬 About to send your personal portrait data to the configured LLM provider.
+  person entities  : 4 (top: Testeri Testinen, Fixture Fakename, Sample Samuelsson, Dummy Dummerson)
+  organizations    : 2
+  other entities   : 7
+  topics           : 6 (top: Romanian, politics, Dutch, English, Finland)
+  locality clusters: 3 (top: Fakelinna, Mocktown, Sample Harbour)
+  contacts         : 3
+  supplementary    : knowledgeC.db: present (not parsed), Safari History.db: present (not parsed), Calendar.sqlitedb: absent, WhatsApp ChatStorage.sqlite: present (not parsed)
+  payload file     : /private/tmp/self-portrait-demo/synthesis-payload.json
+  bytes            : 4304
+  sha256           : d226413bd6bef89a28e9810e312aa4e326cd30a228e39752a96e6ae8737d85c4
+Read the payload file to see exactly what will be sent — synthesis verifies this hash before any provider call.
+Send it? [yes/no]
+
+> 2026-08-08 13:47:16,413 [INFO] yamlgraph.route: {"event": "route", "node": "confirm_egress", "value": "consent_answer == 'yes'", "target": "verify_payload", "thread_id": "fr782-witness-yes"}
+2026-08-08 13:47:16,414 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: verify_payload -> verify_consent
+2026-08-08 13:47:16,414 [INFO] examples.demos.self-portrait.tools: consent verified: sending 4304 bytes (sha256=d226413bd6bef89a28e9810e312aa4e326cd30a228e39752a96e6ae8737d85c4)
+2026-08-08 13:47:16,418 [INFO] yamlgraph.utils.llm_factory: Creating LLM: anthropic/claude-sonnet-4-5 (temp=0.3)
+2026-08-08 13:47:41,862 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-08-08 13:47:41,889 [INFO] yamlgraph.node_factory.llm_nodes: Node synthesize completed successfully
+2026-08-08 13:47:41,891 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: render -> render_portrait
+📝 self-portrait.json → /private/tmp/self-portrait-demo/self-portrait.json
+📝 self-portrait.md   → /private/tmp/self-portrait-demo/self-portrait.md
+📝 portrait-diff.md   → /private/tmp/self-portrait-demo/portrait-diff.md
+🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/f889c0ec-fa9b-4025-b69c-2aa756283ef8/r/019fe0fb-f4b9-7dd1-8011-b090a30ee290?poll=true
+============================================================
+RESULT
+============================================================
+  thread_id: fr782-witness-yes
+  current_step: render
+  db_path: /tmp/pp-demo.db
+  output_dir: /tmp/self-portrait-demo
+  portrait_date: 2026-08-09
+  auto_approve: False
+  extraction: {'entities': [{'name': 'Testeri Testinen', 'category': 'person', 'score': 0.97, 'language': 'fi'}, {'name': 'Fixture Fakename', 'category': 'person', 'score': 0.91, 'language': 'fi'}, {'name': 'Placeholder Oy', 'category': 'organization', 'score': 0.88, 'language': 'fi'}, {'name': 'Sample Samuelsson', 'category': 'person', 'score': 0.84, 'language': 'sv'}, {'name': 'Fakelinna', 'category': 'place', 'score': 0.79, 'language': 'fi'}, {'name': 'Example Industries Ltd', 'category': 'organization', 'score': 0.71, 'language': 'en'}, {'name': 'Fictional Framework', 'category': 'technology', 'score': 0.66, 'language': 'en'}, {'name': 'Dummy Dummerson', 'category': 'person', 'score': 0.62, 'language': 'en'}, {'name': 'Mocktown', 'category': 'place', 'score': 0.55, 'language': 'en'}, {'name': 'Nonexistent Notebook 9000', 'category': 'product', 'score': 0.48, 'language': 'en'}, {'name': 'Imaginary Summit 2099', 'category': 'event', 'score': 0.44, 'language': 'en'}, {'name': 'The Unwritten Novel', 'category': 'creative_work', 'score': 0.39, 'language': 'en'}, {'name': 'Synthetic Concept', 'category': 'concept', 'score': 0.33, 'language': 'en'}], 'topics': [{'topic_id': 'Q7913', 'score': 0.93, 'label': None}, {'topic_id': 'Q7163', 'score': 0.81, 'label': None}, {'topic_id': 'Q7411', 'score': 0.74, 'label': None}, {'topic_id': 'Q1860', 'score': 0.69, 'label': None}, {'topic_id': 'Q33', 'score': 0.58, 'label': None}, {'topic_id': 'Q7204', 'score': 0.41, 'label': None}], 'locations': [{'locality': 'Fakelinna', 'country': 'Testland', 'visits': 3}, {'locality': 'Mocktown', 'country': 'Testland', 'visits': 2}, {'locality': 'Sample Harbour', 'country': 'Fixtureland', 'visits': 1}], 'contacts': [{'name': 'Testeri Testinen', 'score': 0.99, 'first_seen': '2024-01-05', 'last_seen': '2026-08-01'}, {'name': 'Fixture Fakename', 'score': 0.87, 'first_seen': '2024-06-11', 'last_seen': '2026-07-30'}, {'name': 'Sample Samuelsson', 'score': 0.52, 'first_seen': '2025-02-20', 'last_seen': '2026-05-14'}], 'source_summary': {'db_path': '/tmp/pp-demo.db', 'entity_count': 13, 'topic_count': 6, 'location_count': 3, 'contact_count': 3, 'provenance': [{'source': 'SYNTHETIC-FIXTURE/Safari', 'record_count': 120}, {'source': 'SYNTHETIC-FIXTURE/AddressBook', 'record_count': 40}, {'source': 'SYNTHETIC-FIXTURE/Messages', 'record_count': 18}, {'source': 'SYNTHETIC-FIXTURE/Notes', 'record_count': 7}], 'supplementary': [{'name': 'knowledgeC.db', 'path': '~/Library/Application Support/Knowledge/knowledgeC.db', 'available': True, 'status': 'present (not parsed)'}, {'name': 'Safari History.db', 'path': '~/Library/Safari/History.db', 'available': True, 'status': 'present (not parsed)'}, {'name': 'Calendar.sqlitedb', 'path': '~/Library/Calendars/Calendar.sqlitedb', 'available': False, 'status': 'absent'}, {'name': 'WhatsApp ChatStorage.sqlite', 'path': '~/Library/Group Containers/group.net.whatsapp.WhatsApp.shared/ChatStorage.sqlite', 'available': True, 'status': 'present (not parsed)'}]}}
+  enriched: {'entities': [{'name': 'Testeri Testinen', 'category': 'person', 'score': 0.97, 'language': 'fi'}, {'name': 'Fixture Fakename', 'category': 'person', 'score': 0.91, 'language': 'fi'}, {'name': 'Placeholder Oy', 'category': 'organization', 'score': 0.88, 'language': 'fi'}, {'name': 'Sample Samuelsson', 'category': 'person', 'score': 0.84, 'language': 'sv'}, {'name': 'Fakelinna', 'category': 'place', 'score': 0.79, 'language': 'fi'}, {'name': 'Example Industries Ltd', 'category': 'organization', 'score': 0.71, 'language': 'en'}, {'name': 'Fictional Framework', 'category': 'technology', 'score': 0.66, 'language': 'en'}, {'name': 'Dummy Dummerson', 'category': 'person', 'score': 0.62, 'language': 'en'}, {'name': 'Mocktown', 'category': 'place', 'score': 0.55, 'language': 'en'}, {'name': 'Nonexistent Notebook 9000', 'category': 'product', 'score': 0.48, 'language': 'en'}, {'name': 'Imaginary Summit 2099', 'category': 'event', 'score': 0.44, 'language': 'en'}, {'name': 'The Unwritten Novel', 'category': 'creative_work', 'score': 0.39, 'language': 'en'}, {'name': 'Synthetic Concept', 'category': 'concept', 'score': 0.33, 'language': 'en'}], 'topics': [{'topic_id': 'Q7913', 'score': 0.93, 'label': 'Romanian'}, {'topic_id': 'Q7163', 'score': 0.81, 'label': 'politics'}, {'topic_id': 'Q7411', 'score': 0.74, 'label': 'Dutch'}, {'topic_id': 'Q1860', 'score': 0.69, 'label': 'English'}, {'topic_id': 'Q33', 'score': 0.58, 'label': 'Finland'}, {'topic_id': 'Q7204', 'score': 0.41, 'label': 'Middle East'}], 'locations': [{'locality': 'Fakelinna', 'country': 'Testland', 'visits': 3}, {'locality': 'Mocktown', 'country': 'Testland', 'visits': 2}, {'locality': 'Sample Harbour', 'country': 'Fixtureland', 'visits': 1}], 'contacts': [{'name': 'Testeri Testinen', 'score': 0.99, 'first_seen': '2024-01-05', 'last_seen': '2026-08-01'}, {'name': 'Fixture Fakename', 'score': 0.87, 'first_seen': '2024-06-11', 'last_seen': '2026-07-30'}, {'name': 'Sample Samuelsson', 'score': 0.52, 'first_seen': '2025-02-20', 'last_seen': '2026-05-14'}], 'source_summary': {'db_path': '/tmp/pp-demo.db', 'entity_count': 13, 'topic_count': 6, 'location_count': 3, 'contact_count': 3, 'provenance': [{'source': 'SYNTHETIC-FIXTURE/Safari', 'record_count': 120}, {'source': 'SYNTHETIC-FIXTURE/AddressBook', 'record_count': 40}, {'source': 'SYNTHETIC-FIXTURE/Messages', 'record_count': 18}, {'source': 'SYNTHETIC-FIXTURE/Notes', 'record_count': 7}], 'supplementary': [{'name': 'knowledgeC.db', 'path': '~/Library/Application Support/Knowledge/knowledgeC.db', 'available': True, 'status': 'present (not parsed)'}, {'name': 'Safari History.db', 'path': '~/Library/Safari/History.db', 'available': True, 'status': 'present (not parsed)'}, {'name': 'Calendar.sqlitedb', 'path': '~/Library/Calendars/Calendar.sqlitedb', 'available': False, 'status': 'absent'}, {'name': 'WhatsApp ChatStorage.sqlite', 'path': '~/Library/Group Containers/group.net.whatsapp.WhatsApp.shared/ChatStorage.sqlite', 'available': True, 'status': 'present (not parsed)'}]}}
+  payload: {'schema_version': '1.0', 'portrait_date': '2026-08-09', 'people': [{'name': 'Testeri Testinen', 'category': 'person', 'score': 0.97, 'language': 'fi'}, {'name': 'Fixture Fakename', 'category': 'person', 'score': 0.91, 'language': 'fi'}, {'name': 'Sample Samuelsson', 'category': 'person', 'score': 0.84, 'language': 'sv'}, {'name': 'Dummy Dummerson', 'category': 'person', 'score': 0.62, 'language': 'en'}], 'organizations': [{'name': 'Placeholder Oy', 'category': 'organization', 'score': 0.88, 'language': 'fi'}, {'name': 'Example Industries Ltd', 'category': 'organization', 'score': 0.71, 'language': 'en'}], 'other_entities': [{'name': 'Fakelinna', 'category': 'place', 'score': 0.79, 'language': 'fi'}, {'name': 'Fictional Framework', 'category': 'technology', 'score': 0.66, 'language': 'en'}, {'name': 'Mocktown', 'category': 'place', 'score': 0.55, 'language': 'en'}, {'name': 'Nonexistent Notebook 9000', 'category': 'product', 'score': 0.48, 'language': 'en'}, {'name': 'Imaginary Summit 2099', 'category': 'event', 'score': 0.44, 'language': 'en'}, {'name': 'The Unwritten Novel', 'category': 'creative_work', 'score': 0.39, 'language': 'en'}, {'name': 'Synthetic Concept', 'category': 'concept', 'score': 0.33, 'language': 'en'}], 'topics': [{'topic_id': 'Q7913', 'score': 0.93, 'label': 'Romanian'}, {'topic_id': 'Q7163', 'score': 0.81, 'label': 'politics'}, {'topic_id': 'Q7411', 'score': 0.74, 'label': 'Dutch'}, {'topic_id': 'Q1860', 'score': 0.69, 'label': 'English'}, {'topic_id': 'Q33', 'score': 0.58, 'label': 'Finland'}, {'topic_id': 'Q7204', 'score': 0.41, 'label': 'Middle East'}], 'locations': [{'locality': 'Fakelinna', 'country': 'Testland', 'visits': 3}, {'locality': 'Mocktown', 'country': 'Testland', 'visits': 2}, {'locality': 'Sample Harbour', 'country': 'Fixtureland', 'visits': 1}], 'contacts': [{'name': 'Testeri Testinen', 'score': 0.99, 'first_seen': '2024-01-05', 'last_seen': '2026-08-01'}, {'name': 'Fixture Fakename', 'score': 0.87, 'first_seen': '2024-06-11', 'last_seen': '2026-07-30'}, {'name': 'Sample Samuelsson', 'score': 0.52, 'first_seen': '2025-02-20', 'last_seen': '2026-05-14'}], 'source_summary': {'db_path': '/tmp/pp-demo.db', 'entity_count': 13, 'topic_count': 6, 'location_count': 3, 'contact_count': 3, 'provenance': [{'source': 'SYNTHETIC-FIXTURE/Safari', 'record_count': 120}, {'source': 'SYNTHETIC-FIXTURE/AddressBook', 'record_count': 40}, {'source': 'SYNTHETIC-FIXTURE/Messages', 'record_count': 18}, {'source': 'SYNTHETIC-FIXTURE/Notes', 'record_count': 7}], 'supplementary': [{'name': 'knowledgeC.db', 'path': '~/Library/Application Support/Knowledge/knowledgeC.db', 'available': True, 'status': 'present (not parsed)'}, {'name': 'Safari History.db', 'path': '~/Library/Safari/History.db', 'available': True, 'status': 'present (not parsed)'}, {'name': 'Calendar.sqlitedb', 'path': '~/Library/Calendars/Calendar.sqlitedb', 'available': False, 'status': 'absent'}, {'name': 'WhatsApp ChatStorage.sqlite', 'path': '~/Library/Group Containers/group.net.whatsapp.WhatsApp.shared/ChatStorage.sqlite', 'available': True, 'status': 'present (not parsed)'}]}}
+  consent: {'payload_path': '/private/tmp/self-portrait-demo/synthesis-payload.json', 'byte_count': 4304, 'sha256': 'd226413bd6bef89a28e9810e312aa4e326cd30a228e39752a96e6ae8737d85c4', 'payload_json': '{\n  "contacts": [\n    {\n      "first_seen": "2024-01-05",\n      "last_seen": "2026-08-01",\n      "name": "Testeri Testinen",\n      "score": 0.99\n    },\n    {\n      "first_seen": "2024-06-11",\n      "last_seen": "2026-07-30",\n      "name": "Fixture Fakename",\n      "score": 0.87\n    },\n    {\n      "first_seen": "2025-02-20",\n      "last_seen": "2026-05-14",\n      "name": "Sample Samuelsson",\n      "score": 0.52\n    }\n  ],\n  "locations": [\n    {\n      "country": "Testland",\n      "locality": "Fakelinna",\n      "visits": 3\n    },\n    {\n      "country": "Testland",\n      "locality": "Mocktown",\n      "visits": 2\n    },\n    {\n      "country": "Fixtureland",\n      "locality": "Sample Harbour",\n      "visits": 1\n    }\n  ],\n  "organizations": [\n    {\n      "category": "organization",\n      "language": "fi",\n      "name": "Placeholder Oy",\n      "score": 0.88\n    },\n    {\n      "category": "organization",\n      "language": "en",\n      "name": "Example Industries Ltd",\n      "score": 0.71\n    }\n  ],\n  "other_entities": [\n    {\n      "category": "place",\n      "language": "fi",\n      "name": "Fakelinna",\n      "score": 0.79\n    },\n    {\n      "category": "technology",\n      "language": "en",\n      "name": "Fictional Framework",\n      "score": 0.66\n    },\n    {\n      "category": "place",\n      "language": "en",\n      "name": "Mocktown",\n      "score": 0.55\n    },\n    {\n      "category": "product",\n      "language": "en",\n      "name": "Nonexistent Notebook 9000",\n      "score": 0.48\n    },\n    {\n      "category": "event",\n      "language": "en",\n      "name": "Imaginary Summit 2099",\n      "score": 0.44\n    },\n    {\n      "category": "creative_work",\n      "language": "en",\n      "name": "The Unwritten Novel",\n      "score": 0.39\n    },\n    {\n      "category": "concept",\n      "language": "en",\n      "name": "Synthetic Concept",\n      "score": 0.33\n    }\n  ],\n  "people": [\n    {\n      "category": "person",\n      "language": "fi",\n      "name": "Testeri Testinen",\n      "score": 0.97\n    },\n    {\n      "category": "person",\n      "language": "fi",\n      "name": "Fixture Fakename",\n      "score": 0.91\n    },\n    {\n      "category": "person",\n      "language": "sv",\n      "name": "Sample Samuelsson",\n      "score": 0.84\n    },\n    {\n      "category": "person",\n      "language": "en",\n      "name": "Dummy Dummerson",\n      "score": 0.62\n    }\n  ],\n  "portrait_date": "2026-08-09",\n  "schema_version": "1.0",\n  "source_summary": {\n    "contact_count": 3,\n    "db_path": "/tmp/pp-demo.db",\n    "entity_count": 13,\n    "location_count": 3,\n    "provenance": [\n      {\n        "record_count": 120,\n        "source": "SYNTHETIC-FIXTURE/Safari"\n      },\n      {\n        "record_count": 40,\n        "source": "SYNTHETIC-FIXTURE/AddressBook"\n      },\n      {\n        "record_count": 18,\n        "source": "SYNTHETIC-FIXTURE/Messages"\n      },\n      {\n        "record_count": 7,\n        "source": "SYNTHETIC-FIXTURE/Notes"\n      }\n    ],\n    "supplementary": [\n      {\n        "available": true,\n        "name": "knowledgeC.db",\n        "path": "~/Library/Application Support/Knowledge/knowledgeC.db",\n        "status": "present (not parsed)"\n      },\n      {\n        "available": true,\n        "name": "Safari History.db",\n        "path": "~/Library/Safari/History.db",\n        "status": "present (not parsed)"\n      },\n      {\n        "available": false,\n        "name": "Calendar.sqlitedb",\n        "path": "~/Library/Calendars/Calendar.sqlitedb",\n        "status": "absent"\n      },\n      {\n        "available": true,\n        "name": "WhatsApp ChatStorage.sqlite",\n        "path": "~/Library/Group Containers/group.net.whatsapp.WhatsApp.shared/ChatStorage.sqlite",\n        "status": "present (not parsed)"\n      }\n    ],\n    "topic_count": 6\n  },\n  "topics": [\n    {\n      "label": "Romanian",\n      "score": 0.93,\n      "topic_id": "Q7913"\n    },\n    {\n      "label": "politics",\n      "score": 0.81,\n      "topic_id": "Q7163"\n    },\n    {\n      "label": "Dutch",\n      "score": 0.74,\n      "topic_id": "Q7411"\n    },\n    {\n      "label": "English",\n      "score": 0.69,\n      "topic_id": "Q1860"\n    },\n    {\n      "label": "Finland",\n      "score": 0.58,\n      "topic_id": "Q33"\n    },\n    {\n      "label": "Middle East",\n      "score": 0.41,\n      "topic_id": "Q7204"\n    }\n  ]\n}'}
+  consent_summary: About to send your personal portrait data to the configured LLM provider.
+  person entities  : 4 (top: Testeri Testinen, Fixture Fakename, Sample Samuelsson, Dummy Dummerson)
+  organizations    : 2
+  other entities   : 7
+  topics           : 6 (top: Romanian, politics, Dutch, English, Finland)
+  locality clusters: 3 (top: Fakelinna, Mocktown, Sample Harbour)
+  contacts         : 3
+  supplementary    : knowledgeC.db: present (not parsed), Safari History.db: present (not parsed), Calendar.sqlitedb: absent, WhatsApp ChatStorage.sqlite: present (not parsed)
+  payload file     : /private/tmp/self-portrait-demo/synthesis-payload.json
+  bytes            : 4304
+  sha256           : d226413bd6bef89a28e9810e312aa4e326cd30a228e39752a96e6ae8737d85c4
+Read the payload file to see exactly what will be sent — synthesis verifies this hash before any provider call.
+Send it? [yes/no]
+  consent_prompt: About to send your personal portrait data to the configured LLM provider.
+  person entities  : 4 (top: Testeri Testinen, Fixture Fakename, Sample Samuelsson, Dummy Dummerson)
+  organizations    : 2
+  other entities   : 7
+  topics           : 6 (top: Romanian, politics, Dutch, English, Finland)
+  locality clusters: 3 (top: Fakelinna, Mocktown, Sample Harbour)
+  contacts         : 3
+  supplementary    : knowledgeC.db: present (not parsed), Safari History.db: present (not parsed), Calendar.sqlitedb: absent, WhatsApp ChatStorage.sqlite: present (not parsed)
+  payload file     : /private/tmp/self-portrait-demo/synthesis-payload.json
+  bytes            : 4304
+  sha256           : d226413bd6bef89a28e9810e312aa4e326cd30a228e39752a96e6ae8737d85c4
+Read the payload file to see exactly what will be sent — synthesis verifies this hash before any provider call.
+Send it? [yes/no]
+  consent_answer: yes
+  payload_json: {
+  "contacts": [
+    {
+      "first_seen": "2024-01-05",
+      "last_seen": "2026-08-01",
+      "name": "Testeri Testinen",
+      "score": 0.99
+    },
+    {
+      "first_seen": "2024-06-11",
+      "last_seen": "2026-07-30",
+      "name": "Fixture Fakename",
+      "score": 0.87
+    },
+    {
+      "first_seen": "2025-02-20",
+      "last_seen": "2026-05-14",
+      "name": "Sample Samuelsson",
+      "score": 0.52
+    }
+  ],
+  "locations": [
+    {
+      "country": "Testland",
+      "locality": "Fakelinna",
+      "visits": 3
+    },
+    {
+      "country": "Testland",
+      "locality": "Mocktown",
+      "visits": 2
+    },
+    {
+      "country": "Fixtureland",
+      "locality": "Sample Harbour",
+      "visits": 1
+    }
+  ],
+  "organizations": [
+    {
+      "category": "organization",
+      "language": "fi",
+      "name": "Placeholder Oy",
+      "score": 0.88
+    },
+    {
+      "category": "organization",
+      "language": "en",
+      "name": "Example Industries Ltd",
+      "score": 0.71
+    }
+  ],
+  "other_entities": [
+    {
+      "category": "place",
+      "language": "fi",
+      "name": "Fakelinna",
+      "score": 0.79
+    },
+    {
+      "category": "technology",
+      "language": "en",
+      "name": "Fictional Framework",
+      "score": 0.66
+    },
+    {
+      "category": "place",
+      "language": "en",
+      "name": "Mocktown",
+      "score": 0.55
+    },
+    {
+      "category": "product",
+      "language": "en",
+      "name": "Nonexistent Notebook 9000",
+      "score": 0.48
+    },
+    {
+      "category": "event",
+      "language": "en",
+      "name": "Imaginary Summit 2099",
+      "score": 0.44
+    },
+    {
+      "category": "creative_work",
+      "language": "en",
+      "name": "The Unwritten Novel",
+      "score": 0.39
+    },
+    {
+      "category": "concept",
+      "language": "en",
+      "name": "Synthetic Concept",
+      "score": 0.33
+    }
+  ],
+  "people": [
+    {
+      "category": "person",
+      "language": "fi",
+      "name": "Testeri Testinen",
+      "score": 0.97
+    },
+    {
+      "category": "person",
+      "language": "fi",
+      "name": "Fixture Fakename",
+      "score": 0.91
+    },
+    {
+      "category": "person",
+      "language": "sv",
+      "name": "Sample Samuelsson",
+      "score": 0.84
+    },
+    {
+      "category": "person",
+      "language": "en",
+      "name": "Dummy Dummerson",
+      "score": 0.62
+    }
+  ],
+  "portrait_date": "2026-08-09",
+  "schema_version": "1.0",
+  "source_summary": {
+    "contact_count": 3,
+    "db_path": "/tmp/pp-demo.db",
+    "entity_count": 13,
+    "location_count": 3,
+    "provenance": [
+      {
+        "record_count": 120,
+        "source": "SYNTHETIC-FIXTURE/Safari"
+      },
+      {
+        "record_count": 40,
+        "source": "SYNTHETIC-FIXTURE/AddressBook"
+      },
+      {
+        "record_count": 18,
+        "source": "SYNTHETIC-FIXTURE/Messages"
+      },
+      {
+        "record_count": 7,
+        "source": "SYNTHETIC-FIXTURE/Notes"
+      }
+    ],
+    "supplementary": [
+      {
+        "available": true,
+        "name": "knowledgeC.db",
+        "path": "~/Library/Application Support/Knowledge/knowledgeC.db",
+        "status": "present (not parsed)"
+      },
+      {
+        "available": true,
+        "name": "Safari History.db",
+        "path": "~/Library/Safari/History.db",
+        "status": "present (not parsed)"
+      },
+      {
+        "available": false,
+        "name": "Calendar.sqlitedb",
+        "path": "~/Library/Calendars/Calendar.sqlitedb",
+        "status": "absent"
+      },
+      {
+        "available": true,
+        "name": "WhatsApp ChatStorage.sqlite",
+        "path": "~/Library/Group Containers/group.net.whatsapp.WhatsApp.shared/ChatStorage.sqlite",
+        "status": "present (not parsed)"
+      }
+    ],
+    "topic_count": 6
+  },
+  "topics": [
+    {
+      "label": "Romanian",
+      "score": 0.93,
+      "topic_id": "Q7913"
+    },
+    {
+      "label": "politics",
+      "score": 0.81,
+      "topic_id": "Q7163"
+    },
+    {
+      "label": "Dutch",
+      "score": 0.74,
+      "topic_id": "Q7411"
+    },
+    {
+      "label": "English",
+      "score": 0.69,
+      "topic_id": "Q1860"
+    },
+    {
+      "label": "Finland",
+      "score": 0.58,
+      "topic_id": "Q33"
+    },
+    {
+      "label": "Middle East",
+      "score": 0.41,
+      "topic_id": "Q7204"
+    }
+  ]
+}
+  portrait: {'identity': 'Finnish-language user based in Testland. Active in Finnish (primary), Swedish, and English. Names and organizational ties (Placeholder Oy) indicate Finnish cultural context.', 'social_graph': ['Testeri Testinen: highest-scoring contact (0.99) and person entity (0.97), Finnish-language, continuous engagement from 2024-01-05 to 2026-08-01 spanning 2.5 years', 'Fixture Fakename: second-tier contact (0.87) and person entity (0.91), Finnish-language, active from 2024-06-11 to 2026-07-30', 'Sample Samuelsson: moderate contact (0.52) and person entity (0.84), Swedish-language, shorter engagement window 2025-02-20 to 2026-05-14, score decay suggests fading relationship', 'Placeholder Oy: primary organizational tie (0.88), Finnish-language, likely employer or close business partner', 'Example Industries Ltd: secondary organization (0.71), English-language, professional connection', 'Dummy Dummerson: person entity only (0.62), English-language, no contact record suggests peripheral or historical connection'], 'expertise': ['Romanian language or culture (0.93 topic score)', 'Politics (0.81)', 'Dutch language or culture (0.74)', 'English language (0.69)', 'Finland-related topics (0.58)', 'Fictional Framework technology (0.66)', 'Middle East topics (0.41, lower engagement)'], 'geography': 'Home base: Fakelinna, Testland (3 visits, 0.79 entity score). Secondary location: Mocktown, Testland (2 visits, 0.55 entity score). Single visit to Sample Harbour, Fixtureland. Movement pattern shows concentration within Testland with minimal international travel in the record.', 'rhythms': 'unknown', 'evolution': 'Rising: Testeri Testinen (0.99 contact score, recent activity through 2026-08-01), Fixture Fakename (0.87, active through 2026-07-30), Romanian language interest (0.93), politics (0.81), Placeholder Oy (0.88). Fading: Sample Samuelsson (0.52 contact score despite 0.84 person score, last contact 2026-05-14, significant decay), Nonexistent Notebook 9000 product (0.48), Imaginary Summit 2099 event (0.44), The Unwritten Novel (0.39), Synthetic Concept (0.33), Middle East topics (0.41).', 'agent_briefing': "You are working with a Finnish-language user based in Fakelinna, Testland. Assume fluency in Finnish, Swedish, and English—code-switching is normal. Testeri Testinen is the primary contact; treat this relationship as central and current. Placeholder Oy is the key organizational context. The user has strong interest in Romanian language/culture and politics; engage these topics confidently. Sample Samuelsson's relationship is cooling (score decay from 0.84 to 0.52)—don't assume current closeness. Calendar data is unavailable (absent), so never reference calendar patterns or assume you have scheduling history. WhatsApp and additional Safari/Knowledge sources exist but were not parsed for this portrait—do not claim insight into messaging patterns, browsing habits, or app usage rhythms. When location context matters, default to Fakelinna/Testland unless the user specifies otherwise. The source data is synthetic fixture data (185 total records across Safari, AddressBook, Messages, Notes), so treat all proper nouns as placeholders rather than real-world entities."}
+  outputs: {'json_path': '/private/tmp/self-portrait-demo/self-portrait.json', 'markdown_path': '/private/tmp/self-portrait-demo/self-portrait.md', 'diff_path': '/private/tmp/self-portrait-demo/portrait-diff.md', 'snapshot_path': '/private/tmp/self-portrait-demo/payload-snapshot.json'}
+
+
+== RUN 3/3 — interactive consent gate, declined ('no') — nothing is sent ==
+$ yamlgraph graph run … (no auto_approve) <<< no
+2026-08-08 13:47:50,999 [INFO] yamlgraph.compile.graph_loader: Parsed 7 Python tools: prepare_run, extract_sources, enrich_topics, build_synthesis_payload, verify_consent, render_portrait, render_extraction_only
+2026-08-08 13:47:51,000 [INFO] yamlgraph.compile.node_compiler: Added node: prepare (type=python)
+2026-08-08 13:47:51,000 [INFO] yamlgraph.compile.node_compiler: Added node: extract (type=python)
+2026-08-08 13:47:51,001 [INFO] yamlgraph.compile.node_compiler: Added node: enrich (type=python)
+2026-08-08 13:47:51,002 [INFO] yamlgraph.compile.node_compiler: Added node: build_payload (type=python)
+2026-08-08 13:47:51,002 [INFO] yamlgraph.compile.node_compiler: Added node: confirm_egress (type=interrupt)
+2026-08-08 13:47:51,003 [INFO] yamlgraph.compile.node_compiler: Added node: verify_payload (type=python)
+2026-08-08 13:47:51,008 [INFO] yamlgraph.compile.node_compiler: Added node: synthesize (type=llm)
+2026-08-08 13:47:51,009 [INFO] yamlgraph.compile.node_compiler: Added node: render (type=python)
+2026-08-08 13:47:51,009 [INFO] yamlgraph.compile.node_compiler: Added node: render_denied (type=python)
+2026-08-08 13:47:51,141 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: prepare -> prepare_run
+2026-08-08 13:47:51,143 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: extract -> extract_sources
+2026-08-08 13:47:51,147 [INFO] examples.demos.self-portrait.extract: extracted 13 entities, 6 topics, 3 locality clusters, 3 contacts from /tmp/pp-demo.db
+2026-08-08 13:47:51,150 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: enrich -> enrich_topics
+2026-08-08 13:47:51,152 [INFO] examples.demos.self-portrait.tools: resolved 6/6 topic labels
+2026-08-08 13:47:51,153 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: build_payload -> build_synthesis_payload
+2026-08-08 13:47:51,154 [INFO] examples.demos.self-portrait.portrait_io: synthesis payload: 4304 bytes, sha256=5e4245f25de372ced024fe72e9a036da937a15f1c1918c347141234d52952ae9, written to /private/tmp/self-portrait-demo/synthesis-payload.json
+2026-08-08 13:47:51,155 [INFO] yamlgraph.route: {"event": "route", "node": "build_payload", "value": "auto_approve != true", "target": "confirm_egress_prepare", "thread_id": "fr782-witness-no"}
+
+🚀 Running graph: graph.yaml
+   Variables: {'db_path': '/tmp/pp-demo.db', 'output_dir': '/tmp/self-portrait-demo', 'portrait_date': '2026-08-10'}
+
+🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/f889c0ec-fa9b-4025-b69c-2aa756283ef8/r/019fe0fc-7bf9-7321-8f5e-b82591a72c44?poll=true
+
+💬 About to send your personal portrait data to the configured LLM provider.
+  person entities  : 4 (top: Testeri Testinen, Fixture Fakename, Sample Samuelsson, Dummy Dummerson)
+  organizations    : 2
+  other entities   : 7
+  topics           : 6 (top: Romanian, politics, Dutch, English, Finland)
+  locality clusters: 3 (top: Fakelinna, Mocktown, Sample Harbour)
+  contacts         : 3
+  supplementary    : knowledgeC.db: present (not parsed), Safari History.db: present (not parsed), Calendar.sqlitedb: absent, WhatsApp ChatStorage.sqlite: present (not parsed)
+  payload file     : /private/tmp/self-portrait-demo/synthesis-payload.json
+  bytes            : 4304
+  sha256           : 5e4245f25de372ced024fe72e9a036da937a15f1c1918c347141234d52952ae9
+Read the payload file to see exactly what will be sent — synthesis verifies this hash before any provider call.
+Send it? [yes/no]
+
+> 2026-08-08 13:47:51,411 [INFO] yamlgraph.route: {"event": "route", "node": "confirm_egress", "value": "consent_answer != 'yes'", "target": "render_denied", "thread_id": "fr782-witness-no"}
+2026-08-08 13:47:51,412 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: render_denied -> render_extraction_only
+🚫 consent declined — extraction summary → /private/tmp/self-portrait-demo/extraction-summary.md
+🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/f889c0ec-fa9b-4025-b69c-2aa756283ef8/r/019fe0fc-7d70-73d3-88e2-e5724793bc1b?poll=true
+============================================================
+RESULT
+============================================================
+  thread_id: fr782-witness-no
+  current_step: render_denied
+  db_path: /tmp/pp-demo.db
+  output_dir: /tmp/self-portrait-demo
+  portrait_date: 2026-08-10
+  auto_approve: False
+  extraction: {'entities': [{'name': 'Testeri Testinen', 'category': 'person', 'score': 0.97, 'language': 'fi'}, {'name': 'Fixture Fakename', 'category': 'person', 'score': 0.91, 'language': 'fi'}, {'name': 'Placeholder Oy', 'category': 'organization', 'score': 0.88, 'language': 'fi'}, {'name': 'Sample Samuelsson', 'category': 'person', 'score': 0.84, 'language': 'sv'}, {'name': 'Fakelinna', 'category': 'place', 'score': 0.79, 'language': 'fi'}, {'name': 'Example Industries Ltd', 'category': 'organization', 'score': 0.71, 'language': 'en'}, {'name': 'Fictional Framework', 'category': 'technology', 'score': 0.66, 'language': 'en'}, {'name': 'Dummy Dummerson', 'category': 'person', 'score': 0.62, 'language': 'en'}, {'name': 'Mocktown', 'category': 'place', 'score': 0.55, 'language': 'en'}, {'name': 'Nonexistent Notebook 9000', 'category': 'product', 'score': 0.48, 'language': 'en'}, {'name': 'Imaginary Summit 2099', 'category': 'event', 'score': 0.44, 'language': 'en'}, {'name': 'The Unwritten Novel', 'category': 'creative_work', 'score': 0.39, 'language': 'en'}, {'name': 'Synthetic Concept', 'category': 'concept', 'score': 0.33, 'language': 'en'}], 'topics': [{'topic_id': 'Q7913', 'score': 0.93, 'label': None}, {'topic_id': 'Q7163', 'score': 0.81, 'label': None}, {'topic_id': 'Q7411', 'score': 0.74, 'label': None}, {'topic_id': 'Q1860', 'score': 0.69, 'label': None}, {'topic_id': 'Q33', 'score': 0.58, 'label': None}, {'topic_id': 'Q7204', 'score': 0.41, 'label': None}], 'locations': [{'locality': 'Fakelinna', 'country': 'Testland', 'visits': 3}, {'locality': 'Mocktown', 'country': 'Testland', 'visits': 2}, {'locality': 'Sample Harbour', 'country': 'Fixtureland', 'visits': 1}], 'contacts': [{'name': 'Testeri Testinen', 'score': 0.99, 'first_seen': '2024-01-05', 'last_seen': '2026-08-01'}, {'name': 'Fixture Fakename', 'score': 0.87, 'first_seen': '2024-06-11', 'last_seen': '2026-07-30'}, {'name': 'Sample Samuelsson', 'score': 0.52, 'first_seen': '2025-02-20', 'last_seen': '2026-05-14'}], 'source_summary': {'db_path': '/tmp/pp-demo.db', 'entity_count': 13, 'topic_count': 6, 'location_count': 3, 'contact_count': 3, 'provenance': [{'source': 'SYNTHETIC-FIXTURE/Safari', 'record_count': 120}, {'source': 'SYNTHETIC-FIXTURE/AddressBook', 'record_count': 40}, {'source': 'SYNTHETIC-FIXTURE/Messages', 'record_count': 18}, {'source': 'SYNTHETIC-FIXTURE/Notes', 'record_count': 7}], 'supplementary': [{'name': 'knowledgeC.db', 'path': '~/Library/Application Support/Knowledge/knowledgeC.db', 'available': True, 'status': 'present (not parsed)'}, {'name': 'Safari History.db', 'path': '~/Library/Safari/History.db', 'available': True, 'status': 'present (not parsed)'}, {'name': 'Calendar.sqlitedb', 'path': '~/Library/Calendars/Calendar.sqlitedb', 'available': False, 'status': 'absent'}, {'name': 'WhatsApp ChatStorage.sqlite', 'path': '~/Library/Group Containers/group.net.whatsapp.WhatsApp.shared/ChatStorage.sqlite', 'available': True, 'status': 'present (not parsed)'}]}}
+  enriched: {'entities': [{'name': 'Testeri Testinen', 'category': 'person', 'score': 0.97, 'language': 'fi'}, {'name': 'Fixture Fakename', 'category': 'person', 'score': 0.91, 'language': 'fi'}, {'name': 'Placeholder Oy', 'category': 'organization', 'score': 0.88, 'language': 'fi'}, {'name': 'Sample Samuelsson', 'category': 'person', 'score': 0.84, 'language': 'sv'}, {'name': 'Fakelinna', 'category': 'place', 'score': 0.79, 'language': 'fi'}, {'name': 'Example Industries Ltd', 'category': 'organization', 'score': 0.71, 'language': 'en'}, {'name': 'Fictional Framework', 'category': 'technology', 'score': 0.66, 'language': 'en'}, {'name': 'Dummy Dummerson', 'category': 'person', 'score': 0.62, 'language': 'en'}, {'name': 'Mocktown', 'category': 'place', 'score': 0.55, 'language': 'en'}, {'name': 'Nonexistent Notebook 9000', 'category': 'product', 'score': 0.48, 'language': 'en'}, {'name': 'Imaginary Summit 2099', 'category': 'event', 'score': 0.44, 'language': 'en'}, {'name': 'The Unwritten Novel', 'category': 'creative_work', 'score': 0.39, 'language': 'en'}, {'name': 'Synthetic Concept', 'category': 'concept', 'score': 0.33, 'language': 'en'}], 'topics': [{'topic_id': 'Q7913', 'score': 0.93, 'label': 'Romanian'}, {'topic_id': 'Q7163', 'score': 0.81, 'label': 'politics'}, {'topic_id': 'Q7411', 'score': 0.74, 'label': 'Dutch'}, {'topic_id': 'Q1860', 'score': 0.69, 'label': 'English'}, {'topic_id': 'Q33', 'score': 0.58, 'label': 'Finland'}, {'topic_id': 'Q7204', 'score': 0.41, 'label': 'Middle East'}], 'locations': [{'locality': 'Fakelinna', 'country': 'Testland', 'visits': 3}, {'locality': 'Mocktown', 'country': 'Testland', 'visits': 2}, {'locality': 'Sample Harbour', 'country': 'Fixtureland', 'visits': 1}], 'contacts': [{'name': 'Testeri Testinen', 'score': 0.99, 'first_seen': '2024-01-05', 'last_seen': '2026-08-01'}, {'name': 'Fixture Fakename', 'score': 0.87, 'first_seen': '2024-06-11', 'last_seen': '2026-07-30'}, {'name': 'Sample Samuelsson', 'score': 0.52, 'first_seen': '2025-02-20', 'last_seen': '2026-05-14'}], 'source_summary': {'db_path': '/tmp/pp-demo.db', 'entity_count': 13, 'topic_count': 6, 'location_count': 3, 'contact_count': 3, 'provenance': [{'source': 'SYNTHETIC-FIXTURE/Safari', 'record_count': 120}, {'source': 'SYNTHETIC-FIXTURE/AddressBook', 'record_count': 40}, {'source': 'SYNTHETIC-FIXTURE/Messages', 'record_count': 18}, {'source': 'SYNTHETIC-FIXTURE/Notes', 'record_count': 7}], 'supplementary': [{'name': 'knowledgeC.db', 'path': '~/Library/Application Support/Knowledge/knowledgeC.db', 'available': True, 'status': 'present (not parsed)'}, {'name': 'Safari History.db', 'path': '~/Library/Safari/History.db', 'available': True, 'status': 'present (not parsed)'}, {'name': 'Calendar.sqlitedb', 'path': '~/Library/Calendars/Calendar.sqlitedb', 'available': False, 'status': 'absent'}, {'name': 'WhatsApp ChatStorage.sqlite', 'path': '~/Library/Group Containers/group.net.whatsapp.WhatsApp.shared/ChatStorage.sqlite', 'available': True, 'status': 'present (not parsed)'}]}}
+  payload: {'schema_version': '1.0', 'portrait_date': '2026-08-10', 'people': [{'name': 'Testeri Testinen', 'category': 'person', 'score': 0.97, 'language': 'fi'}, {'name': 'Fixture Fakename', 'category': 'person', 'score': 0.91, 'language': 'fi'}, {'name': 'Sample Samuelsson', 'category': 'person', 'score': 0.84, 'language': 'sv'}, {'name': 'Dummy Dummerson', 'category': 'person', 'score': 0.62, 'language': 'en'}], 'organizations': [{'name': 'Placeholder Oy', 'category': 'organization', 'score': 0.88, 'language': 'fi'}, {'name': 'Example Industries Ltd', 'category': 'organization', 'score': 0.71, 'language': 'en'}], 'other_entities': [{'name': 'Fakelinna', 'category': 'place', 'score': 0.79, 'language': 'fi'}, {'name': 'Fictional Framework', 'category': 'technology', 'score': 0.66, 'language': 'en'}, {'name': 'Mocktown', 'category': 'place', 'score': 0.55, 'language': 'en'}, {'name': 'Nonexistent Notebook 9000', 'category': 'product', 'score': 0.48, 'language': 'en'}, {'name': 'Imaginary Summit 2099', 'category': 'event', 'score': 0.44, 'language': 'en'}, {'name': 'The Unwritten Novel', 'category': 'creative_work', 'score': 0.39, 'language': 'en'}, {'name': 'Synthetic Concept', 'category': 'concept', 'score': 0.33, 'language': 'en'}], 'topics': [{'topic_id': 'Q7913', 'score': 0.93, 'label': 'Romanian'}, {'topic_id': 'Q7163', 'score': 0.81, 'label': 'politics'}, {'topic_id': 'Q7411', 'score': 0.74, 'label': 'Dutch'}, {'topic_id': 'Q1860', 'score': 0.69, 'label': 'English'}, {'topic_id': 'Q33', 'score': 0.58, 'label': 'Finland'}, {'topic_id': 'Q7204', 'score': 0.41, 'label': 'Middle East'}], 'locations': [{'locality': 'Fakelinna', 'country': 'Testland', 'visits': 3}, {'locality': 'Mocktown', 'country': 'Testland', 'visits': 2}, {'locality': 'Sample Harbour', 'country': 'Fixtureland', 'visits': 1}], 'contacts': [{'name': 'Testeri Testinen', 'score': 0.99, 'first_seen': '2024-01-05', 'last_seen': '2026-08-01'}, {'name': 'Fixture Fakename', 'score': 0.87, 'first_seen': '2024-06-11', 'last_seen': '2026-07-30'}, {'name': 'Sample Samuelsson', 'score': 0.52, 'first_seen': '2025-02-20', 'last_seen': '2026-05-14'}], 'source_summary': {'db_path': '/tmp/pp-demo.db', 'entity_count': 13, 'topic_count': 6, 'location_count': 3, 'contact_count': 3, 'provenance': [{'source': 'SYNTHETIC-FIXTURE/Safari', 'record_count': 120}, {'source': 'SYNTHETIC-FIXTURE/AddressBook', 'record_count': 40}, {'source': 'SYNTHETIC-FIXTURE/Messages', 'record_count': 18}, {'source': 'SYNTHETIC-FIXTURE/Notes', 'record_count': 7}], 'supplementary': [{'name': 'knowledgeC.db', 'path': '~/Library/Application Support/Knowledge/knowledgeC.db', 'available': True, 'status': 'present (not parsed)'}, {'name': 'Safari History.db', 'path': '~/Library/Safari/History.db', 'available': True, 'status': 'present (not parsed)'}, {'name': 'Calendar.sqlitedb', 'path': '~/Library/Calendars/Calendar.sqlitedb', 'available': False, 'status': 'absent'}, {'name': 'WhatsApp ChatStorage.sqlite', 'path': '~/Library/Group Containers/group.net.whatsapp.WhatsApp.shared/ChatStorage.sqlite', 'available': True, 'status': 'present (not parsed)'}]}}
+  consent: {'payload_path': '/private/tmp/self-portrait-demo/synthesis-payload.json', 'byte_count': 4304, 'sha256': '5e4245f25de372ced024fe72e9a036da937a15f1c1918c347141234d52952ae9', 'payload_json': '{\n  "contacts": [\n    {\n      "first_seen": "2024-01-05",\n      "last_seen": "2026-08-01",\n      "name": "Testeri Testinen",\n      "score": 0.99\n    },\n    {\n      "first_seen": "2024-06-11",\n      "last_seen": "2026-07-30",\n      "name": "Fixture Fakename",\n      "score": 0.87\n    },\n    {\n      "first_seen": "2025-02-20",\n      "last_seen": "2026-05-14",\n      "name": "Sample Samuelsson",\n      "score": 0.52\n    }\n  ],\n  "locations": [\n    {\n      "country": "Testland",\n      "locality": "Fakelinna",\n      "visits": 3\n    },\n    {\n      "country": "Testland",\n      "locality": "Mocktown",\n      "visits": 2\n    },\n    {\n      "country": "Fixtureland",\n      "locality": "Sample Harbour",\n      "visits": 1\n    }\n  ],\n  "organizations": [\n    {\n      "category": "organization",\n      "language": "fi",\n      "name": "Placeholder Oy",\n      "score": 0.88\n    },\n    {\n      "category": "organization",\n      "language": "en",\n      "name": "Example Industries Ltd",\n      "score": 0.71\n    }\n  ],\n  "other_entities": [\n    {\n      "category": "place",\n      "language": "fi",\n      "name": "Fakelinna",\n      "score": 0.79\n    },\n    {\n      "category": "technology",\n      "language": "en",\n      "name": "Fictional Framework",\n      "score": 0.66\n    },\n    {\n      "category": "place",\n      "language": "en",\n      "name": "Mocktown",\n      "score": 0.55\n    },\n    {\n      "category": "product",\n      "language": "en",\n      "name": "Nonexistent Notebook 9000",\n      "score": 0.48\n    },\n    {\n      "category": "event",\n      "language": "en",\n      "name": "Imaginary Summit 2099",\n      "score": 0.44\n    },\n    {\n      "category": "creative_work",\n      "language": "en",\n      "name": "The Unwritten Novel",\n      "score": 0.39\n    },\n    {\n      "category": "concept",\n      "language": "en",\n      "name": "Synthetic Concept",\n      "score": 0.33\n    }\n  ],\n  "people": [\n    {\n      "category": "person",\n      "language": "fi",\n      "name": "Testeri Testinen",\n      "score": 0.97\n    },\n    {\n      "category": "person",\n      "language": "fi",\n      "name": "Fixture Fakename",\n      "score": 0.91\n    },\n    {\n      "category": "person",\n      "language": "sv",\n      "name": "Sample Samuelsson",\n      "score": 0.84\n    },\n    {\n      "category": "person",\n      "language": "en",\n      "name": "Dummy Dummerson",\n      "score": 0.62\n    }\n  ],\n  "portrait_date": "2026-08-10",\n  "schema_version": "1.0",\n  "source_summary": {\n    "contact_count": 3,\n    "db_path": "/tmp/pp-demo.db",\n    "entity_count": 13,\n    "location_count": 3,\n    "provenance": [\n      {\n        "record_count": 120,\n        "source": "SYNTHETIC-FIXTURE/Safari"\n      },\n      {\n        "record_count": 40,\n        "source": "SYNTHETIC-FIXTURE/AddressBook"\n      },\n      {\n        "record_count": 18,\n        "source": "SYNTHETIC-FIXTURE/Messages"\n      },\n      {\n        "record_count": 7,\n        "source": "SYNTHETIC-FIXTURE/Notes"\n      }\n    ],\n    "supplementary": [\n      {\n        "available": true,\n        "name": "knowledgeC.db",\n        "path": "~/Library/Application Support/Knowledge/knowledgeC.db",\n        "status": "present (not parsed)"\n      },\n      {\n        "available": true,\n        "name": "Safari History.db",\n        "path": "~/Library/Safari/History.db",\n        "status": "present (not parsed)"\n      },\n      {\n        "available": false,\n        "name": "Calendar.sqlitedb",\n        "path": "~/Library/Calendars/Calendar.sqlitedb",\n        "status": "absent"\n      },\n      {\n        "available": true,\n        "name": "WhatsApp ChatStorage.sqlite",\n        "path": "~/Library/Group Containers/group.net.whatsapp.WhatsApp.shared/ChatStorage.sqlite",\n        "status": "present (not parsed)"\n      }\n    ],\n    "topic_count": 6\n  },\n  "topics": [\n    {\n      "label": "Romanian",\n      "score": 0.93,\n      "topic_id": "Q7913"\n    },\n    {\n      "label": "politics",\n      "score": 0.81,\n      "topic_id": "Q7163"\n    },\n    {\n      "label": "Dutch",\n      "score": 0.74,\n      "topic_id": "Q7411"\n    },\n    {\n      "label": "English",\n      "score": 0.69,\n      "topic_id": "Q1860"\n    },\n    {\n      "label": "Finland",\n      "score": 0.58,\n      "topic_id": "Q33"\n    },\n    {\n      "label": "Middle East",\n      "score": 0.41,\n      "topic_id": "Q7204"\n    }\n  ]\n}'}
+  consent_summary: About to send your personal portrait data to the configured LLM provider.
+  person entities  : 4 (top: Testeri Testinen, Fixture Fakename, Sample Samuelsson, Dummy Dummerson)
+  organizations    : 2
+  other entities   : 7
+  topics           : 6 (top: Romanian, politics, Dutch, English, Finland)
+  locality clusters: 3 (top: Fakelinna, Mocktown, Sample Harbour)
+  contacts         : 3
+  supplementary    : knowledgeC.db: present (not parsed), Safari History.db: present (not parsed), Calendar.sqlitedb: absent, WhatsApp ChatStorage.sqlite: present (not parsed)
+  payload file     : /private/tmp/self-portrait-demo/synthesis-payload.json
+  bytes            : 4304
+  sha256           : 5e4245f25de372ced024fe72e9a036da937a15f1c1918c347141234d52952ae9
+Read the payload file to see exactly what will be sent — synthesis verifies this hash before any provider call.
+Send it? [yes/no]
+  consent_prompt: About to send your personal portrait data to the configured LLM provider.
+  person entities  : 4 (top: Testeri Testinen, Fixture Fakename, Sample Samuelsson, Dummy Dummerson)
+  organizations    : 2
+  other entities   : 7
+  topics           : 6 (top: Romanian, politics, Dutch, English, Finland)
+  locality clusters: 3 (top: Fakelinna, Mocktown, Sample Harbour)
+  contacts         : 3
+  supplementary    : knowledgeC.db: present (not parsed), Safari History.db: present (not parsed), Calendar.sqlitedb: absent, WhatsApp ChatStorage.sqlite: present (not parsed)
+  payload file     : /private/tmp/self-portrait-demo/synthesis-payload.json
+  bytes            : 4304
+  sha256           : 5e4245f25de372ced024fe72e9a036da937a15f1c1918c347141234d52952ae9
+Read the payload file to see exactly what will be sent — synthesis verifies this hash before any provider call.
+Send it? [yes/no]
+  consent_answer: no
+  outputs: {'markdown_path': '/private/tmp/self-portrait-demo/extraction-summary.md'}
+
+
+== Outputs ==
+cache
+extraction-summary.md
+payload-snapshot.json
+portrait-diff.md
+self-portrait.json
+self-portrait.md
+synthesis-payload.json

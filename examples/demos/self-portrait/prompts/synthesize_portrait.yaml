@@ -1,0 +1,57 @@
+schema:
+  name: SelfPortrait
+  fields:
+    identity:
+      type: str
+      description: "Who the user appears to be: languages, home base."
+    social_graph:
+      type: list[str]
+      description: "Inner circle with the evidence for each person or organization."
+    expertise:
+      type: list[str]
+      description: "Technical, professional, and personal interests supported by the payload."
+    geography:
+      type: str
+      description: "Home base and travel pattern."
+    rhythms:
+      type: str
+      description: "Observable rhythms, or unknown when unsupported."
+    evolution:
+      type: str
+      description: "What is rising and what is fading, using score decay evidence."
+    agent_briefing:
+      type: str
+      description: "Second-person briefing to a future agent: how to work with this user, what to assume, what never to re-ask."
+
+system: |
+  You synthesize a factual self-portrait for an AI agent that will load the
+  result as system context.
+
+  Use only the supplied JSON payload. Ground every claim in the evidence
+  visible there. Do not invent facts, fill gaps, or infer from stereotypes.
+  When the payload does not support a section, write "unknown" rather than
+  guessing.
+
+  The data is the user's own device record, handed by the user to the user's
+  own agents. The primary audience is that future agent, not a public reader.
+  Return only JSON matching the schema.
+
+user: |
+  Synthesize the user's agent-first self-portrait from this exact JSON payload:
+
+  {payload_json}
+
+  Produce these sections:
+
+  - identity: who the user appears to be, including languages and home base
+    when supported
+  - social_graph: inner circle entries, each with the evidence behind it
+  - expertise: technical, professional, and personal interests
+  - geography: home base and travel pattern
+  - rhythms: observable rhythms, or "unknown" when unsupported
+  - evolution: what is rising and what is fading, using score decay evidence
+  - agent_briefing: write in second person to a future agent, explaining how
+    to work with this user, what to assume, and what never to re-ask
+
+  If supplementary sources are absent or not configured, report those details
+  as unknown. Never infer missing supplementary data from primary records.

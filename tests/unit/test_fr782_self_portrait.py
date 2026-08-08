@@ -215,6 +215,19 @@ def test_present_supplementary_source_is_not_parsed(tmp_path: Path):
     assert knowledge.status == "present (not parsed)"
 
 
+@pytest.mark.req("REQ-YG-584")
+def test_supplementary_probe_paths_never_carry_the_account_name(
+    tmp_path: Path, db: Path
+):
+    """The probe list rides along in the outbound payload — no home paths."""
+    io_mod = _mod("portrait_io")
+    extraction = _mod("extract").extract_portrait(str(db))
+    _, envelope = io_mod.build_payload(extraction, tmp_path, portrait_date="2026-08-08")
+    home = str(Path.home())
+    assert home not in envelope.payload_json
+    assert all(s.path.startswith("~/") for s in extraction.source_summary.supplementary)
+
+
 # ─── AC-06: Wikidata batching, cache, offline degradation ────────────────
 
 

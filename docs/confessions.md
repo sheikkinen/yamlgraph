@@ -695,6 +695,48 @@ These are E402 suppressions and are acceptable as "glue code" patterns.
 - **Sin**: Broad `except Exception` in validation fallback.
 - **Penance**: FR-649 design decision: persist work product even when Pydantic validation fails. The broad catch is intentional — any validation error (type mismatch, missing field, extra field) should trigger the warning-and-persist fallback, not crash the pipeline. The exception is logged with full context.
 
+### CONF-146
+- **File**: [examples/demos/self-portrait/extract.py](../examples/demos/self-portrait/extract.py#L78)
+- **Code**: S608
+- **Sin**: `PRAGMA table_info({table})` interpolates a table name into SQL.
+- **Penance**: FR-782. `table` is never user input — every call site passes a literal from the module's own `REQUIRED_TABLES` / fixed table names (`ne_records`, `tp_records`, `loc_records`, `significant_contacts`, `sources`). SQLite forbids parameter binding for identifiers, so PRAGMA introspection (the schema-drift assertion this example depends on) has no parameterized form. The connection is read-only URI mode, so even a hypothetical injection could not write.
+
+### CONF-147
+- **File**: [examples/demos/self-portrait/extract.py](../examples/demos/self-portrait/extract.py#L101)
+- **Code**: S608
+- **Sin**: Entity query concatenates an optional-column fragment (`language` or `NULL AS language`) into the SELECT list.
+- **Penance**: FR-782. The fragment comes from `_optional()`, which chooses between two module-literal strings based on whether the column exists — no external value reaches the SQL. The row limit is bound as a parameter. Read-only connection. This is the assert-and-adapt boundary that lets missing optional columns degrade to `None` instead of failing the run.
+
+### CONF-148
+- **File**: [examples/demos/self-portrait/extract.py](../examples/demos/self-portrait/extract.py#L146)
+- **Code**: S608
+- **Sin**: Location query interpolates the optional `clp_country` fragment.
+- **Penance**: FR-782. Same mechanism and same guarantees as CONF-147 — literal fragment chosen by `_optional()`, read-only connection, no user input.
+
+### CONF-149
+- **File**: [examples/demos/self-portrait/extract.py](../examples/demos/self-portrait/extract.py#L168)
+- **Code**: S608
+- **Sin**: Significant-contacts query interpolates three optional-column fragments.
+- **Penance**: FR-782. Same mechanism and same guarantees as CONF-147 — `significant_contacts` varies most across macOS versions, so all three columns are optional-by-construction.
+
+### CONF-150
+- **File**: [examples/demos/self-portrait/extract.py](../examples/demos/self-portrait/extract.py#L195)
+- **Code**: S608
+- **Sin**: Provenance query interpolates the optional `record_count` fragment into both the SELECT list and the ORDER BY.
+- **Penance**: FR-782. Same mechanism and same guarantees as CONF-147.
+
+### CONF-151
+- **File**: [examples/demos/self-portrait/wikidata.py](../examples/demos/self-portrait/wikidata.py#L62)
+- **Code**: S310
+- **Sin**: `urllib.request.Request(url)` flagged for possible non-HTTP(S) scheme.
+- **Penance**: FR-782. `url` is built from the module constant `WIKIDATA_API` (`https://www.wikidata.org/w/api.php`) plus `urlencode`d Q-IDs; the scheme is fixed and no caller supplies a URL. Stdlib `urllib` is used deliberately — the judgement (C-4/C-7) forbids adding an undeclared HTTP dependency for this example.
+
+### CONF-152
+- **File**: [examples/demos/self-portrait/wikidata.py](../examples/demos/self-portrait/wikidata.py#L65)
+- **Code**: S310
+- **Sin**: `urllib.request.urlopen(request)` flagged for possible non-HTTP(S) scheme.
+- **Penance**: FR-782. Opens the `Request` built two lines above from the fixed HTTPS constant (CONF-151); a timeout is set and failures degrade to bare Q-IDs rather than propagating.
+
 ### CONF-306
 - **File**: [examples/plot_modeller/spike_salience_gate.py](../examples/plot_modeller/spike_salience_gate.py#L39)
 - **Code**: E402
