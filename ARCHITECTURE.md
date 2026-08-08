@@ -2722,7 +2722,7 @@ Opt-in vision branch for scanned/image-only PDFs in the book-summary demo (FR-77
 
 First committed shell-runtime consumers of the FR-768 tool manifest feature (FR-777): the four shell tools duplicated verbatim across the planner, enforcer, and judge agent demos (read_file, search, list_dir, git_log) are extracted to examples/shared/toolbelt/ as typed shell ToolManifest files and referenced via manifest keys, unifying the previously drifted agent-facing search description into one canonical union contract. The research-agent demo converted as the fourth consumer (FR-780), replacing its truncating py-only inline variants with the canonical contracts. The toolbelt directory is runtime-neutral — shared agent tools of any manifest runtime type; demo-local variants stay inline per the fit boundary.
 
-**Feature Request:** FR-777
+**Feature Request:** FR-777, FR-780
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
