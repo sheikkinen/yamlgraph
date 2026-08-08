@@ -21,4 +21,19 @@ requirements:
       validation error rather than returning a partial result.
     modules:
       - examples
+  - id: REQ-YG-583
+    description: >
+      Opt-in vision boundary cost control and schema extension (FR-781):
+      describe_image/_image_content_part accept max_dim — a local image
+      is downscaled (Pillow, "vision" extra) so its longest side is
+      <= max_dim before base64 encoding, shrinking the payload;
+      max_dim=None preserves the full-size path byte-identically; URL
+      inputs ignore max_dim with a logged warning and are never
+      downloaded; requesting max_dim without the Pillow extra fails
+      before any LLM invocation naming pip install "yamlgraph[vision]".
+      ImageDescription gains optional quote and constrained confidence
+      (Literal high|medium|low, default None) fields preserving
+      existing consumers.
+    modules:
+      - examples
 fr: FR-769

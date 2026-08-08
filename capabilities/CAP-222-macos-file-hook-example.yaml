@@ -1,0 +1,33 @@
+id: CAP-222
+name: macOS File-Hook Example (Folder-Triggered Graph)
+description: >
+  Event-driven local automation example (FR-781): a launchd WatchPaths
+  agent fires the file-hook demo graph when a watched folder changes.
+  The graph reimplements the deviant-working ancestor with typed
+  boundaries — scan for PNGs lacking an .md twin (pairing is the ledger;
+  no persistent processed-files ledger), vision-describe via the shared
+  describe_image manifest, gate on constrained confidence (only "high"
+  publishes), write <safe-title>.md and rename the PNG fail-safe within
+  the watched directory. Hook installer is testable without launchd via
+  a render-only mode.
+modules:
+  - examples
+requirements:
+  - id: REQ-YG-582
+    description: >
+      find_unpaired(dir) returns only PNGs without an .md twin (second
+      run after publish is a no-op; existing twin skipped without a
+      ledger); safe_basename rejects or transforms path separators,
+      control characters, empty and dot names, confining writes to the
+      watched directory; duplicate titles get a numeric suffix without
+      overwriting unrelated files; process_artwork publishes (write .md
+      + rename PNG) only on confidence "high" — medium/low/None block
+      and leave the source PNG unmodified with no success-shaped
+      output; the plist template carries WatchPaths, ThrottleInterval,
+      WorkingDirectory, StandardOutPath, StandardErrorPath, and exact
+      ProgramArguments; install-hook.sh --render-only emits the
+      rendered plist with absolute paths without invoking launchctl;
+      the demo graph compiles with a map node over the unpaired set.
+    modules:
+      - examples
+fr: FR-781

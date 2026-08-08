@@ -532,11 +532,12 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 214 | CAP-214 Direct-Import Dependency Scanner | `scripts/direct_import_scan.py` | REQ-YG-572 |
 | 215 | CAP-215 Style-Convert Pipeline | `examples/style_convert` | REQ-YG-573 |
 | 216 | CAP-216 Tool Manifests | `tools`, `graph_loader` | REQ-YG-574 |
-| 217 | CAP-217 Shared Vision Tool | `examples` | REQ-YG-575 |
+| 217 | CAP-217 Shared Vision Tool | `examples` | REQ-YG-575, 583 |
 | 218 | CAP-218 Shared Document Splitter | `examples` | REQ-YG-577 |
 | 219 | CAP-219 Book-Summary Vision Fallback | `examples` | REQ-YG-578 |
 | 220 | CAP-220 Shared Shell Toolbelt Manifests | `examples` | REQ-YG-579 |
 | 221 | CAP-221 Demo Graph Binding Hygiene and Grounded Synthesis Gate | `examples` | REQ-YG-581 |
+| 222 | CAP-222 macOS File-Hook Example (Folder-Triggered Graph) | `examples` | REQ-YG-582 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -2695,6 +2696,7 @@ Multimodal image→text capability in examples/shared: describe_image() sends a 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-575 | describe_image(image, instruction, *, provider, model) accepts a local path (base64 data-URL content part; missing file raises naming the path) or URL (passed through as URL content part), builds a multimodal message with the instruction as text part, constructs the model via create_llm() only, and validates output into ImageDescription. Unsupported providers raise ValueError naming the provider and the supported set before any LLM invocation; malformed output raises a validation error rather than returning a partial result. | `examples` |
+| REQ-YG-583 | Opt-in vision boundary cost control and schema extension (FR-781): describe_image/_image_content_part accept max_dim — a local image is downscaled (Pillow, "vision" extra) so its longest side is <= max_dim before base64 encoding, shrinking the payload; max_dim=None preserves the full-size path byte-identically; URL inputs ignore max_dim with a logged warning and are never downloaded; requesting max_dim without the Pillow extra fails before any LLM invocation naming pip install "yamlgraph[vision]". ImageDescription gains optional quote and constrained confidence (Literal high\|medium\|low, default None) fields preserving existing consumers. | `examples` |
 
 ### 218. CAP-218 Shared Document Splitter
 
@@ -2735,6 +2737,16 @@ Hardening of the research-agent demo against two rot classes (FR-779): node vari
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-581 | Every committed demo graph binds node variables only as whole-string {state.…} templates (or embedded {state.…} interpolations) — a whole-string bare {name} placeholder in a node variables mapping is a defect; the research-agent graph binds query/scope via {state.query}/{state.scope} with declared state fields; its edge topology routes validation.confidence == 'low' or empty findings to END after validate_findings (verdict preserved, no report produced) while non-low confidence with non-empty findings reaches synthesize_report. | `examples` |
+
+### 222. CAP-222 macOS File-Hook Example (Folder-Triggered Graph)
+
+Event-driven local automation example (FR-781): a launchd WatchPaths agent fires the file-hook demo graph when a watched folder changes. The graph reimplements the deviant-working ancestor with typed boundaries — scan for PNGs lacking an .md twin (pairing is the ledger; no persistent processed-files ledger), vision-describe via the shared describe_image manifest, gate on constrained confidence (only "high" publishes), write <safe-title>.md and rename the PNG fail-safe within the watched directory. Hook installer is testable without launchd via a render-only mode.
+
+**Feature Request:** FR-781
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-582 | find_unpaired(dir) returns only PNGs without an .md twin (second run after publish is a no-op; existing twin skipped without a ledger); safe_basename rejects or transforms path separators, control characters, empty and dot names, confining writes to the watched directory; duplicate titles get a numeric suffix without overwriting unrelated files; process_artwork publishes (write .md + rename PNG) only on confidence "high" — medium/low/None block and leave the source PNG unmodified with no success-shaped output; the plist template carries WatchPaths, ThrottleInterval, WorkingDirectory, StandardOutPath, StandardErrorPath, and exact ProgramArguments; install-hook.sh --render-only emits the rendered plist with absolute paths without invoking launchctl; the demo graph compiles with a map node over the unpaired set. | `examples` |
 
 <!-- END GENERATED CAPABILITIES -->
 
