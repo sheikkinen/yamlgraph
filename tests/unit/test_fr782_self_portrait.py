@@ -86,29 +86,32 @@ def test_demo_witness_contains_no_real_paths():
 
 
 @pytest.mark.req("REQ-YG-584")
-def test_committed_artifacts_contain_no_home_library_path():
-    """C-9: neither the fixture nor the witness may name a real ~/Library
-    path. Availability of a real machine's databases is itself personal
-    data — the metadata is data."""
+def test_committed_artifacts_carry_no_real_home_path():
+    """C-9: no committed artifact may name the real home.
+
+    The generic `~/Library/...` probe constants are not personal data —
+    they are identical on every macOS install and already live in
+    `extract.py`. What must never be committed is the *account* path or
+    real probe results (the availability guard below).
+    """
     artifacts = [DEMO / "demo-output.log", DEMO / "fixture" / "PPSQLDatabase.db"]
     for artifact in artifacts:
         assert artifact.exists(), f"{artifact} missing"
         text = artifact.read_bytes().decode("utf-8", errors="ignore")
-        assert "~/Library" not in text, f"{artifact.name} names a real ~/Library path"
         assert str(Path.home()) not in text, f"{artifact.name} names the real home"
+        assert "/Users/" not in text, f"{artifact.name} names an account path"
 
 
 @pytest.mark.req("REQ-YG-584")
 def test_demo_witness_reports_no_real_supplementary_availability():
     """C-9: the witness must not disclose which real supplementary
-    databases exist on the machine that produced it."""
+    databases exist on the machine that produced it — availability is
+    itself personal data. The witness probes a synthetic home, so every
+    supplementary source must read as absent."""
     text = (DEMO / "demo-output.log").read_text(encoding="utf-8")
-    for marker in ("knowledgeC.db", "History.db", "ChatStorage.sqlite"):
-        for line in text.splitlines():
-            if marker in line:
-                assert (
-                    "present" not in line.lower()
-                ), f"witness discloses real availability of {marker}: {line.strip()}"
+    assert (
+        "present (not parsed)" not in text
+    ), "witness discloses real supplementary database availability"
 
 
 # ─── AC-04: typed extraction at the SQLite boundary ──────────────────────
@@ -252,6 +255,31 @@ def test_supplementary_probe_paths_never_carry_the_account_name(
     home = str(Path.home())
     assert home not in envelope.payload_json
     assert all(s.path.startswith("~/") for s in extraction.source_summary.supplementary)
+
+
+@pytest.mark.req("REQ-YG-584")
+def test_db_path_in_payload_is_home_relative(tmp_path: Path):
+    """The primary database path rides in the payload too — a real run
+    must not ship /Users/<account>/Library/... to the provider."""
+    fixture = _mod("fixture_builder").build_fixture(
+        Path.home() / ".yamlgraph-fr782-probe.db"
+    )
+    try:
+        extraction = _mod("extract").extract_portrait(str(fixture))
+        assert extraction.source_summary.db_path.startswith("~/")
+        assert str(Path.home()) not in extraction.source_summary.db_path
+    finally:
+        fixture.unlink(missing_ok=True)
+
+
+@pytest.mark.req("REQ-YG-584")
+def test_probe_home_override_keeps_real_availability_out_of_runs(tmp_path: Path):
+    """Fixture/demo runs consult a synthetic home, so the witness never
+    discloses which real databases exist (C-9)."""
+    probes = _mod("extract").probe_supplementary(home=tmp_path)
+    assert probes, "probe list empty"
+    assert all(not p.available for p in probes)
+    assert all(p.status == "absent" for p in probes)
 
 
 # ─── AC-06: Wikidata batching, cache, offline degradation ────────────────

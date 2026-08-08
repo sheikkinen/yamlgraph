@@ -200,6 +200,15 @@ def _provenance(conn: sqlite3.Connection) -> list[ProvenanceRow]:
     ]
 
 
+def _display_path(path: Path) -> str:
+    """Home-relative rendering for anything that rides in the outbound
+    payload: an absolute path carries the account name (C-9)."""
+    try:
+        return f"~/{path.relative_to(Path.home())}"
+    except ValueError:
+        return str(path)
+
+
 def probe_supplementary(home: Path | str | None = None) -> list[SupplementarySource]:
     """Availability probes for supplementary databases — never parsers (R-3).
 
@@ -249,7 +258,7 @@ def extract_portrait(
         provenance = _provenance(conn)
 
     summary = SourceSummary(
-        db_path=str(path),
+        db_path=_display_path(path),
         entity_count=len(entities),
         topic_count=len(topics),
         location_count=len(locations),

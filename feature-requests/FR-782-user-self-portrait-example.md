@@ -317,7 +317,7 @@ egress of real personal data during tests or witness.
 ## Implementation Status (2026-08-08)
 
 ENFORCED. Capability **CAP-223** / requirement **REQ-YG-584**;
-31 tests in `tests/unit/test_fr782_self_portrait.py`.
+35 tests in `tests/unit/test_fr782_self_portrait.py`.
 
 **Delivered** (`examples/demos/self-portrait/`):
 
@@ -362,6 +362,32 @@ ENFORCED. Capability **CAP-223** / requirement **REQ-YG-584**;
 
 **Scope observed:** no changes under `yamlgraph/`; no new dependency; no
 supplementary parsers; no real database, payload, or portrait committed.
+
+### Post-review remediation (2026-08-08, PR #469 review — Not approved)
+
+The independent review (`.github/skills/review-pr` graph, sole route)
+blocked the merge on two findings. Both were valid and are cured:
+
+- **P1 — the witness disclosed real supplementary availability.** The
+  C-9 guard only rejected `Library/PersonalizationPortrait`, so
+  `demo-output.log` shipped `knowledgeC.db`, Safari `History.db` and the
+  WhatsApp container as `present (not parsed)`: facts about the machine
+  that produced the witness, not about the synthetic fixture. This is
+  decision 2 recurring one layer out — the leak was cured in the payload
+  *path*, but not in the probe *result*. Cure: `SELF_PORTRAIT_PROBE_HOME`
+  (state key `probe_home`, no graph change) points fixture/demo/test runs
+  at a synthetic home; `SourceSummary.db_path` is now home-relative too,
+  since a real run would otherwise ship `/Users/<account>/Library/…`; the
+  witness was regenerated (three real-LLM runs, all sources `absent`);
+  and four guards now pin it — no real home or `/Users/` path in any
+  committed artifact, no `present (not parsed)` in the witness,
+  home-relative `db_path`, and an all-absent synthetic probe.
+- **P2 — out-of-scope FR-773 test edits.** The poppler-independence fix
+  needed to green CI was outside the frozen deliverables; split into
+  PR #470 against `main` and dropped from this branch.
+
+**Heuristic:** a guard that names one instance of a leak class will pass
+while the class continues — enumerate the class, not the instance.
 
 ## Alternatives Considered
 

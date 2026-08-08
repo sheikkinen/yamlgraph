@@ -8,6 +8,7 @@ state in and partial state updates out.
 from __future__ import annotations
 
 import logging
+import os
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -24,6 +25,18 @@ _TRUTHY = {"true", "1", "yes", "y", "on"}
 
 def _db_path(state: dict) -> str:
     return str(state.get("db_path") or DEFAULT_DB_PATH)
+
+
+def _probe_home(state: dict) -> str | None:
+    """Home directory the supplementary availability probes consult (C-9).
+
+    Fixture, demo, and test runs point this at a synthetic home so the
+    committed witness never discloses which databases exist on the real
+    machine — availability is itself personal data. `SELF_PORTRAIT_PROBE_HOME`
+    overrides; unset means the real home, which is correct for a real run.
+    """
+    override = state.get("probe_home") or os.environ.get("SELF_PORTRAIT_PROBE_HOME")
+    return str(override) if override else None
 
 
 def _output_dir(state: dict) -> Path:
@@ -61,7 +74,7 @@ def prepare_run(state: dict) -> dict:
 
 def extract_sources(state: dict) -> dict:
     """Read the primary database into validated rows (fails loud on drift)."""
-    extraction = extract_portrait(_db_path(state))
+    extraction = extract_portrait(_db_path(state), home=_probe_home(state))
     return {"extraction": extraction.model_dump()}
 
 

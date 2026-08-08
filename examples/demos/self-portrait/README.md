@@ -82,6 +82,10 @@ Against the committed synthetic fixture (safe, no real data):
 # The demo witness runs a disposable copy so the committed fixture stays pristine
 cp examples/demos/self-portrait/fixture/PPSQLDatabase.db /tmp/pp-demo.db
 
+# C-9: probe a synthetic home so the witness never records real database availability
+mkdir -p /tmp/fr782-synthetic-home
+export SELF_PORTRAIT_PROBE_HOME=/tmp/fr782-synthetic-home
+
 yamlgraph graph run examples/demos/self-portrait/graph.yaml \
   --var db_path=/tmp/pp-demo.db \
   --var output_dir=/tmp/self-portrait-demo \
@@ -121,6 +125,25 @@ Wikidata resolution batches at ≤ 50 Q-IDs, caches under
 `<output_dir>/cache/wikidata-labels.json` keyed by Q-ID + language, makes
 no network call on a cache hit, and uses only `urllib` from the standard
 library (no new dependency).
+
+### Availability is data
+
+The supplementary probe reports *whether* those databases exist. That is
+a fact about your machine, so it rides inside the consent payload like
+any other personal datum — and it must never be committed. Two controls
+enforce this:
+
+- every path in the payload is home-relative (`~/Library/…`), never
+  `/Users/<account>/…`, so the payload cannot carry your account name;
+- `SELF_PORTRAIT_PROBE_HOME` points the probe at a synthetic home. The
+  committed witness and the test suite set it, so `demo-output.log`
+  records every supplementary source as `absent` regardless of what is
+  installed on the machine that generated it. Leave it unset for a real
+  run.
+
+```bash
+export SELF_PORTRAIT_PROBE_HOME=/tmp/fr782-synthetic-home   # fixture/demo runs only
+```
 
 ## Weekly refresh (launchd)
 
