@@ -116,7 +116,7 @@ the database enters, never patched downstream:
 |---|---|
 | database missing / TCC-blocked | `DatabaseUnreadableError` naming the Full Disk Access path |
 | unknown `ne_records.category` | `SchemaDriftError` naming the category id |
-| required table missing | `SchemaDriftError` naming the table |
+| required table missing | `SchemaDriftError` naming the table — all five primary tables (`ne_records`, `tp_records`, `loc_records`, `significant_contacts`, `sources`) are required; an empty inner circle or empty provenance would be a plausible wrong answer |
 | optional column missing | field is `None` — run continues |
 | Wikidata offline / label missing | bare Q-IDs kept, never a fabricated label |
 | `knowledgeC.db`, Safari, Calendar, WhatsApp | **availability probe only** — reported as absent / "present (not parsed)"; FR-782 ships no parsers for them |

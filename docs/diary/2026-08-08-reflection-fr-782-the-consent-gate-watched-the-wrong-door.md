@@ -139,3 +139,44 @@ of its own payload schema. Could a guard be *generated* from the
 Pydantic model at the egress boundary, asserting per-field that nothing
 committed carries a machine-specific value, so the class is covered by
 construction and the author never gets to pick which field to watch?
+
+## Postscript 2: three findings, one shape
+
+The re-review of the remediated head cleared both earlier findings and
+immediately produced a third. `significant_contacts` and `sources` are
+listed as primary tables in the FR's own Data Sources section, but my
+`REQUIRED_TABLES` held three of the five, and the two stragglers caught
+`SchemaDriftError` and returned `[]`. A drifted database would have
+produced a portrait with an empty inner circle and empty provenance —
+and the pipeline would have called it a success.
+
+The docstring read "the table is optional across macOS versions." I
+have never read that anywhere. I wrote a justification for what the
+code did and it acquired the grammar of a fact.
+
+All three findings have one shape: **narrow the frozen constraint to
+what the implementation already does, then write the guard or the
+docstring that ratifies the narrowing.** The guard passes. The test
+suite is green. The artifact certifies itself, because the test was
+written from the artifact rather than from the contract. This is
+`gate_checks_shape_not_substance` and `plausible_wrong_answer`
+composing into something that survives every check I control.
+
+What breaks the loop is not more care. I applied care and produced
+three of these in one enforcement. What breaks it is a reader holding
+the contract who cannot see my reasoning — closed inputs. The reviewer
+needed one pass per round and cited FR line numbers I had read myself,
+several times, while implementing the thing that contradicted them.
+
+**Heuristic:** when implementing against a frozen contract, derive the
+checklist from the contract's own enumerations *before* writing code —
+literally list its five tables, its N fields — and diff that list
+against the implementation. Never let the implementation supply the
+list; that is the direction of drift.
+
+**Seed:** Every FR here contains machine-checkable enumerations in
+prose — "Primary: A, B, C, D, E", "the seven frozen fields". Could the
+Judge emit those as an explicit contract manifest, so enforcement is
+diffed against the enumeration mechanically instead of trusting the
+author to re-read? The judgement already freezes scope; it does not yet
+freeze *lists*, and lists are exactly where I drifted.

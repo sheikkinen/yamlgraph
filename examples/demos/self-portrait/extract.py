@@ -43,7 +43,13 @@ FDA_REMEDIATION = (
     "then restart that binary and re-run."
 )
 
-REQUIRED_TABLES = ("ne_records", "tp_records", "loc_records")
+REQUIRED_TABLES = (
+    "ne_records",
+    "tp_records",
+    "loc_records",
+    "significant_contacts",
+    "sources",
+)
 
 #: Supplementary sources are probed, never parsed under FR-782 (R-3).
 SUPPLEMENTARY_SOURCES: dict[str, str] = {
@@ -155,12 +161,8 @@ def _locations(conn: sqlite3.Connection) -> list[LocationRow]:
 
 
 def _contacts(conn: sqlite3.Connection) -> list[ContactRow]:
-    """Significant contacts; the table is optional across macOS versions."""
-    try:
-        columns = _columns(conn, "significant_contacts")
-    except SchemaDriftError:
-        logger.info("significant_contacts absent — inner circle section will be empty")
-        return []
+    """Significant contacts — a primary table (C-5): absence is drift."""
+    columns = _columns(conn, "significant_contacts")
     score = _optional(columns, "score")
     first_seen = _optional(columns, "first_seen")
     last_seen = _optional(columns, "last_seen")
@@ -180,12 +182,8 @@ def _contacts(conn: sqlite3.Connection) -> list[ContactRow]:
 
 
 def _provenance(conn: sqlite3.Connection) -> list[ProvenanceRow]:
-    """Where the device learned things; `sources` is optional."""
-    try:
-        columns = _columns(conn, "sources")
-    except SchemaDriftError:
-        logger.info("sources absent — provenance section will be empty")
-        return []
+    """Where the device learned things — a primary table (C-5)."""
+    columns = _columns(conn, "sources")
     if "source" not in columns:
         raise SchemaDriftError(
             "sources is missing required column 'source' — schema drift"

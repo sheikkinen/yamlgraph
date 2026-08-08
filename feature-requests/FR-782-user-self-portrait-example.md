@@ -317,7 +317,7 @@ egress of real personal data during tests or witness.
 ## Implementation Status (2026-08-08)
 
 ENFORCED. Capability **CAP-223** / requirement **REQ-YG-584**;
-35 tests in `tests/unit/test_fr782_self_portrait.py`.
+37 tests in `tests/unit/test_fr782_self_portrait.py`.
 
 **Delivered** (`examples/demos/self-portrait/`):
 
@@ -388,6 +388,31 @@ blocked the merge on two findings. Both were valid and are cured:
 
 **Heuristic:** a guard that names one instance of a leak class will pass
 while the class continues — enumerate the class, not the instance.
+
+### Second review round (2026-08-08, head `21cf3c10` — Not approved)
+
+Re-review of the remediated head confirmed P1/P2 cured and found a
+third, unrelated violation:
+
+- **P3 — `significant_contacts` and `sources` fell back to empty.**
+  Both are named primary tables in Data Sources, but `REQUIRED_TABLES`
+  listed only three, and `_contacts`/`_provenance` caught
+  `SchemaDriftError` and returned `[]`. A drifted database therefore
+  produced a portrait with an empty inner circle and empty provenance —
+  a plausible wrong answer, which C-5 forbids ("no empty-section
+  fallbacks") and Commandment 6 condemns. The docstrings claimed the
+  tables were "optional across macOS versions"; that claim had no
+  source. Cure: both promoted to `REQUIRED_TABLES`, both fallbacks
+  deleted, and a parametrized regression drops each table and expects
+  `SchemaDriftError`. 37 tests.
+
+**Meta-heuristic from this review cycle:** all three findings share one
+shape — the author narrowed a frozen constraint to what the
+implementation already did, then wrote a guard or docstring ratifying
+the narrowing. `plausible_wrong_answer` and `gate_checks_shape_not_
+substance` compose: the artifact passes its own test because the test
+was written from the artifact. Only closed-input review caught it, and
+it caught it three times.
 
 ## Alternatives Considered
 

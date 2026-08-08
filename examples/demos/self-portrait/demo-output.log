@@ -4,30 +4,30 @@ $ cp examples/demos/self-portrait/fixture/PPSQLDatabase.db /tmp/pp-demo.db   # d
 $ export SELF_PORTRAIT_PROBE_HOME=/tmp/fr782-synthetic-home                  # C-9: probe a synthetic home, never the real one
 
 == RUN 1/3 — headless witness (auto_approve=true) ==
-2026-08-08 14:37:23,195 [INFO] yamlgraph.compile.graph_loader: Parsed 7 Python tools: prepare_run, extract_sources, enrich_topics, build_synthesis_payload, verify_consent, render_portrait, render_extraction_only
-2026-08-08 14:37:23,195 [INFO] yamlgraph.compile.node_compiler: Added node: prepare (type=python)
-2026-08-08 14:37:23,196 [INFO] yamlgraph.compile.node_compiler: Added node: extract (type=python)
-2026-08-08 14:37:23,196 [INFO] yamlgraph.compile.node_compiler: Added node: enrich (type=python)
-2026-08-08 14:37:23,196 [INFO] yamlgraph.compile.node_compiler: Added node: build_payload (type=python)
-2026-08-08 14:37:23,197 [INFO] yamlgraph.compile.node_compiler: Added node: confirm_egress (type=interrupt)
-2026-08-08 14:37:23,197 [INFO] yamlgraph.compile.node_compiler: Added node: verify_payload (type=python)
-2026-08-08 14:37:23,202 [INFO] yamlgraph.compile.node_compiler: Added node: synthesize (type=llm)
-2026-08-08 14:37:23,202 [INFO] yamlgraph.compile.node_compiler: Added node: render (type=python)
-2026-08-08 14:37:23,203 [INFO] yamlgraph.compile.node_compiler: Added node: render_denied (type=python)
-2026-08-08 14:37:23,330 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: prepare -> prepare_run
-2026-08-08 14:37:23,331 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: extract -> extract_sources
-2026-08-08 14:37:23,333 [INFO] examples.demos.self-portrait.extract: extracted 13 entities, 6 topics, 3 locality clusters, 3 contacts from /tmp/pp-demo.db
-2026-08-08 14:37:23,335 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: enrich -> enrich_topics
-2026-08-08 14:37:23,815 [INFO] examples.demos.self-portrait.tools: resolved 6/6 topic labels
-2026-08-08 14:37:23,818 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: build_payload -> build_synthesis_payload
-2026-08-08 14:37:23,818 [INFO] examples.demos.self-portrait.portrait_io: synthesis payload: 4265 bytes, sha256=50cdcee761cc12e53564082321fe8138235ed5735ee7991383986bbeda016e9d, written to /private/tmp/self-portrait-demo/synthesis-payload.json
-2026-08-08 14:37:23,819 [INFO] yamlgraph.route: {"event": "route", "node": "build_payload", "value": "auto_approve == true", "target": "verify_payload", "thread_id": "fr782-witness-auto"}
-2026-08-08 14:37:23,821 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: verify_payload -> verify_consent
-2026-08-08 14:37:23,821 [INFO] examples.demos.self-portrait.tools: consent verified: sending 4265 bytes (sha256=50cdcee761cc12e53564082321fe8138235ed5735ee7991383986bbeda016e9d)
-2026-08-08 14:37:23,826 [INFO] yamlgraph.utils.llm_factory: Creating LLM: anthropic/claude-sonnet-4-5 (temp=0.3)
-2026-08-08 14:37:50,700 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
-2026-08-08 14:37:50,728 [INFO] yamlgraph.node_factory.llm_nodes: Node synthesize completed successfully
-2026-08-08 14:37:50,729 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: render -> render_portrait
+2026-08-08 15:12:22,539 [INFO] yamlgraph.compile.graph_loader: Parsed 7 Python tools: prepare_run, extract_sources, enrich_topics, build_synthesis_payload, verify_consent, render_portrait, render_extraction_only
+2026-08-08 15:12:22,540 [INFO] yamlgraph.compile.node_compiler: Added node: prepare (type=python)
+2026-08-08 15:12:22,540 [INFO] yamlgraph.compile.node_compiler: Added node: extract (type=python)
+2026-08-08 15:12:22,540 [INFO] yamlgraph.compile.node_compiler: Added node: enrich (type=python)
+2026-08-08 15:12:22,541 [INFO] yamlgraph.compile.node_compiler: Added node: build_payload (type=python)
+2026-08-08 15:12:22,541 [INFO] yamlgraph.compile.node_compiler: Added node: confirm_egress (type=interrupt)
+2026-08-08 15:12:22,541 [INFO] yamlgraph.compile.node_compiler: Added node: verify_payload (type=python)
+2026-08-08 15:12:22,546 [INFO] yamlgraph.compile.node_compiler: Added node: synthesize (type=llm)
+2026-08-08 15:12:22,546 [INFO] yamlgraph.compile.node_compiler: Added node: render (type=python)
+2026-08-08 15:12:22,546 [INFO] yamlgraph.compile.node_compiler: Added node: render_denied (type=python)
+2026-08-08 15:12:22,742 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: prepare -> prepare_run
+2026-08-08 15:12:22,743 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: extract -> extract_sources
+2026-08-08 15:12:22,746 [INFO] examples.demos.self-portrait.extract: extracted 13 entities, 6 topics, 3 locality clusters, 3 contacts from /tmp/pp-demo.db
+2026-08-08 15:12:22,747 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: enrich -> enrich_topics
+2026-08-08 15:12:23,131 [INFO] examples.demos.self-portrait.tools: resolved 6/6 topic labels
+2026-08-08 15:12:23,133 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: build_payload -> build_synthesis_payload
+2026-08-08 15:12:23,134 [INFO] examples.demos.self-portrait.portrait_io: synthesis payload: 4265 bytes, sha256=50cdcee761cc12e53564082321fe8138235ed5735ee7991383986bbeda016e9d, written to /private/tmp/self-portrait-demo/synthesis-payload.json
+2026-08-08 15:12:23,135 [INFO] yamlgraph.route: {"event": "route", "node": "build_payload", "value": "auto_approve == true", "target": "verify_payload", "thread_id": "fr782-w1-1786191141"}
+2026-08-08 15:12:23,137 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: verify_payload -> verify_consent
+2026-08-08 15:12:23,137 [INFO] examples.demos.self-portrait.tools: consent verified: sending 4265 bytes (sha256=50cdcee761cc12e53564082321fe8138235ed5735ee7991383986bbeda016e9d)
+2026-08-08 15:12:23,141 [INFO] yamlgraph.utils.llm_factory: Creating LLM: anthropic/claude-sonnet-4-5 (temp=0.3)
+2026-08-08 15:12:45,922 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-08-08 15:12:45,948 [INFO] yamlgraph.node_factory.llm_nodes: Node synthesize completed successfully
+2026-08-08 15:12:45,950 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: render -> render_portrait
 
 🚀 Running graph: graph.yaml
    Variables: {'db_path': '/tmp/pp-demo.db', 'output_dir': '/tmp/self-portrait-demo', 'portrait_date': '2026-08-08', 'auto_approve': 'true'}
@@ -35,11 +35,11 @@ $ export SELF_PORTRAIT_PROBE_HOME=/tmp/fr782-synthetic-home                  # C
 📝 self-portrait.json → /private/tmp/self-portrait-demo/self-portrait.json
 📝 self-portrait.md   → /private/tmp/self-portrait-demo/self-portrait.md
 📝 portrait-diff.md   → /private/tmp/self-portrait-demo/portrait-diff.md
-🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/f889c0ec-fa9b-4025-b69c-2aa756283ef8/r/019fe129-d617-70e0-a036-f07565e0fbe2?poll=true
+🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/f889c0ec-fa9b-4025-b69c-2aa756283ef8/r/019fe149-dea7-7750-8772-4a34390f49cc?poll=true
 ============================================================
 RESULT
 ============================================================
-  thread_id: fr782-witness-auto
+  thread_id: fr782-w1-1786191141
   current_step: render
   db_path: /tmp/pp-demo.db
   output_dir: /tmp/self-portrait-demo
@@ -270,35 +270,35 @@ Send it? [yes/no]
     }
   ]
 }
-  portrait: {'identity': 'Finnish-language user based in Testland. Operates in Finnish (primary), Swedish, and English. Name patterns and language distribution suggest Nordic/Finnish identity.', 'social_graph': ['Testeri Testinen (score 0.99, contacts 0.97): Strongest relationship, first seen 2024-01-05, active through 2026-08-01. Finnish-language contact with sustained engagement over 2.5 years.', 'Fixture Fakename (score 0.87, contacts 0.91): Second-tier relationship, first seen 2024-06-11, active through 2026-07-30. Finnish-language contact with high consistency.', 'Placeholder Oy (score 0.88): Primary organizational affiliation, Finnish-language entity suggesting employment or close business relationship.', 'Sample Samuelsson (score 0.52, contacts 0.84): Moderate relationship strength, first seen 2025-02-20, last seen 2026-05-14. Swedish-language contact with declining engagement (contact score higher than relationship score suggests fading connection).', 'Example Industries Ltd (score 0.71): Secondary organizational connection, English-language entity indicating international business involvement.', 'Dummy Dummerson (score 0.62): English-language contact with moderate engagement, no contact record suggests professional rather than personal connection.'], 'expertise': ['Romanian language (score 0.93)', 'Politics (score 0.81)', 'Dutch language (score 0.74)', 'English language (score 0.69)', 'Finland-related topics (score 0.58)', 'Fictional Framework technology (score 0.66)', 'Middle East topics (score 0.41)'], 'geography': 'Home base: Fakelinna, Testland (3 visits, score 0.79 as place entity). Secondary location: Mocktown, Testland (2 visits, score 0.55). International travel: Sample Harbour, Fixtureland (1 visit). Pattern suggests Testland resident with limited international movement.', 'rhythms': 'unknown - supplementary sources (knowledgeC.db, Safari History.db, Calendar.sqlitedb, WhatsApp ChatStorage.sqlite) all absent, preventing temporal pattern analysis', 'evolution': 'Rising: Testeri Testinen (0.99 relationship, 0.97 people score - sustained high engagement), Fixture Fakename (0.87 relationship, 0.91 people score - growing connection), Placeholder Oy (0.88 - strong organizational tie). Fading: Sample Samuelsson (0.52 relationship vs 0.84 people score, last contact 2026-05-14 vs portrait date 2026-08-08 - 3-month gap indicates declining engagement), Middle East topics (0.41 - lowest topic score), creative works and synthetic concepts (scores 0.39, 0.33 - minimal recent engagement), Imaginary Summit 2099 event (0.44 - past event losing relevance).', 'agent_briefing': "You are working with a Finnish-language user based in Testland (Fakelinna primary, Mocktown secondary). Communicate in Finnish by default; the user is multilingual (Swedish, English) and engages with Romanian, Dutch, and political content. Assume familiarity with Placeholder Oy (primary org) and Example Industries Ltd. Testeri Testinen and Fixture Fakename are the inner circle - treat them as known context. Sample Samuelsson is a fading connection; do not assume current relevance. The user works with Fictional Framework technology and has interest in Nonexistent Notebook 9000 product. Data sources are limited to 185 synthetic fixture records (Safari 120, AddressBook 40, Messages 18, Notes 7) - all supplementary behavioral databases are absent, so never reference calendar patterns, browsing habits, app usage rhythms, or WhatsApp history. Do not ask about daily routines, meeting schedules, or temporal preferences - this data does not exist. When location context matters, assume Fakelinna unless stated otherwise. The user's professional world spans Finnish and English contexts; code-switch appropriately."}
+  portrait: {'identity': 'Finnish-language user based in Testland. Primary languages: Finnish (fi), with exposure to Swedish (sv) and English (en) evident in contact and entity records. Name patterns and organizational language (Placeholder Oy) confirm Finnish as dominant working language.', 'social_graph': ['Testeri Testinen: contact score 0.99, person score 0.97, Finnish-language, first seen 2024-01-05, last contact 2026-08-01 (most recent), sustained engagement over 2.5 years—primary relationship', 'Fixture Fakename: contact score 0.87, person score 0.91, Finnish-language, first seen 2024-06-11, last contact 2026-07-30, consistent engagement over 2+ years—close secondary relationship', 'Placeholder Oy: organization score 0.88, Finnish-language, category organization—primary professional affiliation', 'Sample Samuelsson: contact score 0.52, person score 0.84, Swedish-language, first seen 2025-02-20, last contact 2026-05-14, engagement dropped off in mid-2026—declining relationship', 'Example Industries Ltd: organization score 0.71, English-language, category organization—secondary professional connection', 'Dummy Dummerson: person score 0.62, English-language, no contact record—peripheral acquaintance'], 'expertise': ['Romanian language (topic score 0.93)', 'politics (topic score 0.81)', 'Dutch language (topic score 0.74)', 'English language (topic score 0.69)', 'Finland-related topics (topic score 0.58)', 'Fictional Framework technology (entity score 0.66)', 'Nonexistent Notebook 9000 product (entity score 0.48)'], 'geography': 'Home base: Fakelinna, Testland (3 visits, entity score 0.79). Secondary location: Mocktown, Testland (2 visits, entity score 0.55). International travel: Sample Harbour, Fixtureland (1 visit). Pattern shows concentration in Testland with limited international movement.', 'rhythms': 'unknown—no calendar, knowledge, or temporal activity data available. Supplementary sources (knowledgeC.db, Calendar.sqlitedb, Safari History.db, WhatsApp ChatStorage.sqlite) all absent.', 'evolution': 'Rising: Romanian (0.93), politics (0.81), Dutch (0.74) show highest topic scores, suggesting recent or growing focus. Fakelinna place entity (0.79) and Placeholder Oy (0.88) maintain strong presence. Fading: Middle East (0.41 lowest topic), creative work "The Unwritten Novel" (0.39), Synthetic Concept (0.33), event "Imaginary Summit 2099" (0.44), and product "Nonexistent Notebook 9000" (0.48) all show decay below 0.50. Sample Samuelsson contact dropped to 0.52 with no activity since 2026-05-14.', 'agent_briefing': 'You are working with a Finnish-language user based in Fakelinna, Testland. Default to Finnish for communication unless context suggests otherwise; they work across Finnish, Swedish, and English. Their closest contacts are Testeri Testinen (most recent, strongest tie) and Fixture Fakename—treat these as inner circle. Placeholder Oy is their primary organizational affiliation. They have strong current interests in Romanian language, politics, and Dutch language; do not spend time on Middle East topics or older creative/event references that have faded. Geography centers on Testland with rare international travel. Never re-ask about calendar rhythms, browsing patterns, or messaging cadence—those data sources are absent from their device configuration and you will not have that visibility. When you lack temporal context, state it directly rather than inferring. Provenance is synthetic fixture data (185 records across Safari, AddressBook, Messages, Notes) so treat all entities as test data for demonstration purposes.'}
   outputs: {'json_path': '/private/tmp/self-portrait-demo/self-portrait.json', 'markdown_path': '/private/tmp/self-portrait-demo/self-portrait.md', 'diff_path': '/private/tmp/self-portrait-demo/portrait-diff.md', 'snapshot_path': '/private/tmp/self-portrait-demo/payload-snapshot.json'}
 
 
 == RUN 2/3 — interactive consent gate, answered 'yes' ==
 $ yamlgraph graph run … (no auto_approve) <<< yes
-2026-08-08 14:38:06,815 [INFO] yamlgraph.compile.graph_loader: Parsed 7 Python tools: prepare_run, extract_sources, enrich_topics, build_synthesis_payload, verify_consent, render_portrait, render_extraction_only
-2026-08-08 14:38:06,815 [INFO] yamlgraph.compile.node_compiler: Added node: prepare (type=python)
-2026-08-08 14:38:06,816 [INFO] yamlgraph.compile.node_compiler: Added node: extract (type=python)
-2026-08-08 14:38:06,816 [INFO] yamlgraph.compile.node_compiler: Added node: enrich (type=python)
-2026-08-08 14:38:06,816 [INFO] yamlgraph.compile.node_compiler: Added node: build_payload (type=python)
-2026-08-08 14:38:06,817 [INFO] yamlgraph.compile.node_compiler: Added node: confirm_egress (type=interrupt)
-2026-08-08 14:38:06,817 [INFO] yamlgraph.compile.node_compiler: Added node: verify_payload (type=python)
-2026-08-08 14:38:06,822 [INFO] yamlgraph.compile.node_compiler: Added node: synthesize (type=llm)
-2026-08-08 14:38:06,822 [INFO] yamlgraph.compile.node_compiler: Added node: render (type=python)
-2026-08-08 14:38:06,822 [INFO] yamlgraph.compile.node_compiler: Added node: render_denied (type=python)
-2026-08-08 14:38:06,930 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: prepare -> prepare_run
-2026-08-08 14:38:06,931 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: extract -> extract_sources
-2026-08-08 14:38:06,937 [INFO] examples.demos.self-portrait.extract: extracted 13 entities, 6 topics, 3 locality clusters, 3 contacts from /tmp/pp-demo.db
-2026-08-08 14:38:06,938 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: enrich -> enrich_topics
-2026-08-08 14:38:07,478 [INFO] examples.demos.self-portrait.tools: resolved 6/6 topic labels
-2026-08-08 14:38:07,481 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: build_payload -> build_synthesis_payload
-2026-08-08 14:38:07,482 [INFO] examples.demos.self-portrait.portrait_io: synthesis payload: 4265 bytes, sha256=50cdcee761cc12e53564082321fe8138235ed5735ee7991383986bbeda016e9d, written to /private/tmp/self-portrait-demo2/synthesis-payload.json
-2026-08-08 14:38:07,483 [INFO] yamlgraph.route: {"event": "route", "node": "build_payload", "value": "auto_approve != true", "target": "confirm_egress_prepare", "thread_id": "fr782-witness-yes"}
+2026-08-08 15:12:55,602 [INFO] yamlgraph.compile.graph_loader: Parsed 7 Python tools: prepare_run, extract_sources, enrich_topics, build_synthesis_payload, verify_consent, render_portrait, render_extraction_only
+2026-08-08 15:12:55,602 [INFO] yamlgraph.compile.node_compiler: Added node: prepare (type=python)
+2026-08-08 15:12:55,603 [INFO] yamlgraph.compile.node_compiler: Added node: extract (type=python)
+2026-08-08 15:12:55,603 [INFO] yamlgraph.compile.node_compiler: Added node: enrich (type=python)
+2026-08-08 15:12:55,603 [INFO] yamlgraph.compile.node_compiler: Added node: build_payload (type=python)
+2026-08-08 15:12:55,604 [INFO] yamlgraph.compile.node_compiler: Added node: confirm_egress (type=interrupt)
+2026-08-08 15:12:55,604 [INFO] yamlgraph.compile.node_compiler: Added node: verify_payload (type=python)
+2026-08-08 15:12:55,608 [INFO] yamlgraph.compile.node_compiler: Added node: synthesize (type=llm)
+2026-08-08 15:12:55,609 [INFO] yamlgraph.compile.node_compiler: Added node: render (type=python)
+2026-08-08 15:12:55,609 [INFO] yamlgraph.compile.node_compiler: Added node: render_denied (type=python)
+2026-08-08 15:12:55,695 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: prepare -> prepare_run
+2026-08-08 15:12:55,696 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: extract -> extract_sources
+2026-08-08 15:12:55,698 [INFO] examples.demos.self-portrait.extract: extracted 13 entities, 6 topics, 3 locality clusters, 3 contacts from /tmp/pp-demo.db
+2026-08-08 15:12:55,700 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: enrich -> enrich_topics
+2026-08-08 15:12:56,193 [INFO] examples.demos.self-portrait.tools: resolved 6/6 topic labels
+2026-08-08 15:12:56,194 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: build_payload -> build_synthesis_payload
+2026-08-08 15:12:56,195 [INFO] examples.demos.self-portrait.portrait_io: synthesis payload: 4265 bytes, sha256=50cdcee761cc12e53564082321fe8138235ed5735ee7991383986bbeda016e9d, written to /private/tmp/self-portrait-demo2/synthesis-payload.json
+2026-08-08 15:12:56,196 [INFO] yamlgraph.route: {"event": "route", "node": "build_payload", "value": "auto_approve != true", "target": "confirm_egress_prepare", "thread_id": "fr782-w2-1786191174"}
 
 🚀 Running graph: graph.yaml
    Variables: {'db_path': '/tmp/pp-demo.db', 'output_dir': '/tmp/self-portrait-demo2', 'portrait_date': '2026-08-08'}
 
-🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/f889c0ec-fa9b-4025-b69c-2aa756283ef8/r/019fe12a-807a-7b70-bf3a-480f30a25aba?poll=true
+🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/f889c0ec-fa9b-4025-b69c-2aa756283ef8/r/019fe14a-5fc9-7433-80e0-d54c9ceb906b?poll=true
 
 💬 About to send your personal portrait data to the configured LLM provider.
   person entities  : 4 (top: Testeri Testinen, Fixture Fakename, Sample Samuelsson, Dummy Dummerson)
@@ -314,21 +314,21 @@ $ yamlgraph graph run … (no auto_approve) <<< yes
 Read the payload file to see exactly what will be sent — synthesis verifies this hash before any provider call.
 Send it? [yes/no]
 
-> 2026-08-08 14:38:07,672 [INFO] yamlgraph.route: {"event": "route", "node": "confirm_egress", "value": "consent_answer == 'yes'", "target": "verify_payload", "thread_id": "fr782-witness-yes"}
-2026-08-08 14:38:07,673 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: verify_payload -> verify_consent
-2026-08-08 14:38:07,673 [INFO] examples.demos.self-portrait.tools: consent verified: sending 4265 bytes (sha256=50cdcee761cc12e53564082321fe8138235ed5735ee7991383986bbeda016e9d)
-2026-08-08 14:38:07,677 [INFO] yamlgraph.utils.llm_factory: Creating LLM: anthropic/claude-sonnet-4-5 (temp=0.3)
-2026-08-08 14:38:32,797 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
-2026-08-08 14:38:32,827 [INFO] yamlgraph.node_factory.llm_nodes: Node synthesize completed successfully
-2026-08-08 14:38:32,829 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: render -> render_portrait
+> 2026-08-08 15:12:56,386 [INFO] yamlgraph.route: {"event": "route", "node": "confirm_egress", "value": "consent_answer == 'yes'", "target": "verify_payload", "thread_id": "fr782-w2-1786191174"}
+2026-08-08 15:12:56,387 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: verify_payload -> verify_consent
+2026-08-08 15:12:56,387 [INFO] examples.demos.self-portrait.tools: consent verified: sending 4265 bytes (sha256=50cdcee761cc12e53564082321fe8138235ed5735ee7991383986bbeda016e9d)
+2026-08-08 15:12:56,391 [INFO] yamlgraph.utils.llm_factory: Creating LLM: anthropic/claude-sonnet-4-5 (temp=0.3)
+2026-08-08 15:13:19,916 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-08-08 15:13:19,942 [INFO] yamlgraph.node_factory.llm_nodes: Node synthesize completed successfully
+2026-08-08 15:13:19,944 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: render -> render_portrait
 📝 self-portrait.json → /private/tmp/self-portrait-demo2/self-portrait.json
 📝 self-portrait.md   → /private/tmp/self-portrait-demo2/self-portrait.md
 📝 portrait-diff.md   → /private/tmp/self-portrait-demo2/portrait-diff.md
-🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/f889c0ec-fa9b-4025-b69c-2aa756283ef8/r/019fe12a-83b5-7282-af32-0fa3d5e023f9?poll=true
+🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/f889c0ec-fa9b-4025-b69c-2aa756283ef8/r/019fe14a-62bf-7523-8662-ae2a6f72ccea?poll=true
 ============================================================
 RESULT
 ============================================================
-  thread_id: fr782-witness-yes
+  thread_id: fr782-w2-1786191174
   current_step: render
   db_path: /tmp/pp-demo.db
   output_dir: /tmp/self-portrait-demo2
@@ -573,35 +573,35 @@ Send it? [yes/no]
     }
   ]
 }
-  portrait: {'identity': 'Finnish-language user based in Testland. Active in Finnish (primary), Swedish, and English. Names and organizational language patterns (Placeholder Oy, Testeri Testinen, Fixture Fakename) confirm Finnish as dominant working language.', 'social_graph': ['Testeri Testinen: highest-scoring contact (0.99) and person entity (0.97), Finnish-language, continuous engagement from 2024-01-05 to 2026-08-01 (most recent contact), appears to be closest relationship', 'Fixture Fakename: second-highest contact score (0.87) and person entity (0.91), Finnish-language, active from 2024-06-11 to 2026-07-30, sustained relationship', 'Sample Samuelsson: moderate contact score (0.52), Swedish-language person entity (0.84), relationship from 2025-02-20 to 2026-05-14, score divergence suggests declining engagement', 'Placeholder Oy: primary organizational affiliation, Finnish-language, score 0.88, likely employer or main professional entity', 'Example Industries Ltd: secondary organization, English-language, score 0.71, possible client or partner', 'Dummy Dummerson: person entity only (0.62), English-language, no contact record suggests peripheral or historical connection'], 'expertise': ['Romanian language (topic score 0.93, highest-ranked interest)', 'Politics (0.81)', 'Dutch language (0.74)', 'English language (0.69)', 'Finland-related topics (0.58)', 'Middle East topics (0.41)', 'Fictional Framework technology (0.66)', 'Nonexistent Notebook 9000 product (0.48)'], 'geography': 'Home base: Fakelinna, Testland (3 visits, highest frequency; also highest-scoring place entity at 0.79). Secondary location: Mocktown, Testland (2 visits, score 0.55). International travel: Sample Harbour, Fixtureland (1 visit). Pattern shows Testland-centric activity with limited international movement.', 'rhythms': 'unknown (supplementary sources absent: knowledgeC.db, Safari History.db, Calendar.sqlitedb, WhatsApp ChatStorage.sqlite all unavailable; cannot determine daily patterns, meeting cadences, or temporal habits from available data)', 'evolution': 'Rising: Testeri Testinen (0.99 contact score, recent activity through 2026-08-01), Fixture Fakename (0.87, active through 2026-07-30), Romanian language interest (0.93), politics (0.81), Placeholder Oy (0.88). Fading: Sample Samuelsson (contact score 0.52 vs person entity 0.84, last contact 2026-05-14, significant decay), Middle East topics (0.41, lowest topic score), creative work and concept categories (0.39 and 0.33, lowest entity scores), Imaginary Summit 2099 event (0.44, declining relevance).', 'agent_briefing': "You are working with a Finnish-language user based in Fakelinna, Testland. Communicate primarily in Finnish; accept Swedish and English as secondary languages. The user's closest contacts are Testeri Testinen and Fixture Fakename—treat these as high-priority relationships. Placeholder Oy is the primary organizational context; assume professional queries relate to this entity unless specified otherwise. The user has strong interest in Romanian language and politics; surface relevant content in these domains. Do not ask about daily routines, calendar patterns, or browsing habits—supplementary data sources are unavailable and you cannot infer these rhythms. Sample Samuelsson's relationship is declining (last contact May 2026); do not assume current engagement. The user's geographic footprint is narrow (mostly Fakelinna and Mocktown); do not assume extensive travel experience. Data is synthetic fixture data from 185 records across Safari, AddressBook, Messages, and Notes; treat all entities as test data for demonstration purposes."}
+  portrait: {'identity': 'Finnish-language user based in Testland. Active in Finnish (primary), Swedish, and English across contacts and entities. Finnish-language entities (Testeri Testinen, Fixture Fakename, Fakelinna, Placeholder Oy) dominate high-score records.', 'social_graph': ['Testeri Testinen: contact score 0.99, last seen 2026-08-01, first seen 2024-01-05; entity score 0.97 (fi). Sustained highest-priority relationship over 2.5 years.', 'Fixture Fakename: contact score 0.87, last seen 2026-07-30, first seen 2024-06-11; entity score 0.91 (fi). Strong ongoing relationship over 2+ years.', 'Placeholder Oy: organization score 0.88 (fi). Primary organizational affiliation.', 'Sample Samuelsson: contact score 0.52, last seen 2026-05-14, first seen 2025-02-20; entity score 0.84 (sv). Moderate contact strength, fading engagement (last seen 3 months prior to portrait date).', 'Example Industries Ltd: organization score 0.71 (en). Secondary organizational connection.', 'Dummy Dummerson: entity score 0.62 (en), no contact record. Known person without direct contact history.'], 'expertise': ['Romanian language or culture (topic score 0.93)', 'Politics (topic score 0.81)', 'Dutch language or culture (topic score 0.74)', 'English language (topic score 0.69)', 'Finland (topic score 0.58)', 'Fictional Framework technology (entity score 0.66)', 'Nonexistent Notebook 9000 product (entity score 0.48)', 'Imaginary Summit 2099 event (entity score 0.44)', 'The Unwritten Novel creative work (entity score 0.39)', 'Synthetic Concept (entity score 0.33)'], 'geography': 'Home base: Fakelinna, Testland (3 visits, entity score 0.79 fi). Secondary location: Mocktown, Testland (2 visits, entity score 0.55 en). Single visit to Sample Harbour, Fixtureland. Travel pattern shows concentration in Testland with minimal international movement.', 'rhythms': 'unknown', 'evolution': 'Rising: Romanian (0.93), politics (0.81), Dutch (0.74) show highest topic scores, indicating current focus areas. Fakelinna (0.79) and Fictional Framework (0.66) maintain mid-high entity engagement. Fading: Sample Samuelsson relationship declining (contact score 0.52, last seen 2026-05-14, three months before portrait). Middle East (0.41), Synthetic Concept (0.33), The Unwritten Novel (0.39), Imaginary Summit 2099 (0.44) show lowest scores, indicating waning or peripheral interest. Nonexistent Notebook 9000 (0.48) and Mocktown (0.55) in mid-fade range.', 'agent_briefing': 'You are working with a Finnish-language user based in Fakelinna, Testland. Assume fluency in Finnish, Swedish, and English; default to Finnish for primary interactions unless context suggests otherwise. Testeri Testinen and Fixture Fakename are the user\'s core relationships—treat them as high-priority contacts. Placeholder Oy is the primary organizational context. The user engages with Romanian language/culture, politics, and Dutch topics at high intensity; these are current focus areas, not background interests. Sample Samuelsson\'s engagement has declined significantly; do not assume active collaboration. Geography centers on Testland with rare international travel. Supplementary data sources (knowledgeC.db, Safari History.db, Calendar.sqlitedb, WhatsApp ChatStorage.sqlite) are absent—never infer calendar patterns, browsing habits, detailed app usage, or messaging rhythms. When temporal patterns are needed, state "unknown" rather than guessing. The source data is synthetic fixture data (185 total records across Safari, AddressBook, Messages, Notes); treat all entities as test data for demonstration purposes.'}
   outputs: {'json_path': '/private/tmp/self-portrait-demo2/self-portrait.json', 'markdown_path': '/private/tmp/self-portrait-demo2/self-portrait.md', 'diff_path': '/private/tmp/self-portrait-demo2/portrait-diff.md', 'snapshot_path': '/private/tmp/self-portrait-demo2/payload-snapshot.json'}
 
 
 == RUN 3/3 — interactive consent gate, declined ('no') — nothing is sent ==
 $ yamlgraph graph run … (no auto_approve) <<< no
-2026-08-08 14:38:44,870 [INFO] yamlgraph.compile.graph_loader: Parsed 7 Python tools: prepare_run, extract_sources, enrich_topics, build_synthesis_payload, verify_consent, render_portrait, render_extraction_only
-2026-08-08 14:38:44,871 [INFO] yamlgraph.compile.node_compiler: Added node: prepare (type=python)
-2026-08-08 14:38:44,871 [INFO] yamlgraph.compile.node_compiler: Added node: extract (type=python)
-2026-08-08 14:38:44,872 [INFO] yamlgraph.compile.node_compiler: Added node: enrich (type=python)
-2026-08-08 14:38:44,872 [INFO] yamlgraph.compile.node_compiler: Added node: build_payload (type=python)
-2026-08-08 14:38:44,872 [INFO] yamlgraph.compile.node_compiler: Added node: confirm_egress (type=interrupt)
-2026-08-08 14:38:44,872 [INFO] yamlgraph.compile.node_compiler: Added node: verify_payload (type=python)
-2026-08-08 14:38:44,878 [INFO] yamlgraph.compile.node_compiler: Added node: synthesize (type=llm)
-2026-08-08 14:38:44,878 [INFO] yamlgraph.compile.node_compiler: Added node: render (type=python)
-2026-08-08 14:38:44,879 [INFO] yamlgraph.compile.node_compiler: Added node: render_denied (type=python)
-2026-08-08 14:38:44,985 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: prepare -> prepare_run
-2026-08-08 14:38:44,987 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: extract -> extract_sources
-2026-08-08 14:38:44,989 [INFO] examples.demos.self-portrait.extract: extracted 13 entities, 6 topics, 3 locality clusters, 3 contacts from /tmp/pp-demo.db
-2026-08-08 14:38:44,990 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: enrich -> enrich_topics
-2026-08-08 14:38:45,499 [INFO] examples.demos.self-portrait.tools: resolved 6/6 topic labels
-2026-08-08 14:38:45,500 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: build_payload -> build_synthesis_payload
-2026-08-08 14:38:45,501 [INFO] examples.demos.self-portrait.portrait_io: synthesis payload: 4265 bytes, sha256=50cdcee761cc12e53564082321fe8138235ed5735ee7991383986bbeda016e9d, written to /private/tmp/self-portrait-demo3/synthesis-payload.json
-2026-08-08 14:38:45,502 [INFO] yamlgraph.route: {"event": "route", "node": "build_payload", "value": "auto_approve != true", "target": "confirm_egress_prepare", "thread_id": "fr782-witness-no"}
+2026-08-08 15:13:21,567 [INFO] yamlgraph.compile.graph_loader: Parsed 7 Python tools: prepare_run, extract_sources, enrich_topics, build_synthesis_payload, verify_consent, render_portrait, render_extraction_only
+2026-08-08 15:13:21,568 [INFO] yamlgraph.compile.node_compiler: Added node: prepare (type=python)
+2026-08-08 15:13:21,568 [INFO] yamlgraph.compile.node_compiler: Added node: extract (type=python)
+2026-08-08 15:13:21,569 [INFO] yamlgraph.compile.node_compiler: Added node: enrich (type=python)
+2026-08-08 15:13:21,569 [INFO] yamlgraph.compile.node_compiler: Added node: build_payload (type=python)
+2026-08-08 15:13:21,569 [INFO] yamlgraph.compile.node_compiler: Added node: confirm_egress (type=interrupt)
+2026-08-08 15:13:21,570 [INFO] yamlgraph.compile.node_compiler: Added node: verify_payload (type=python)
+2026-08-08 15:13:21,573 [INFO] yamlgraph.compile.node_compiler: Added node: synthesize (type=llm)
+2026-08-08 15:13:21,574 [INFO] yamlgraph.compile.node_compiler: Added node: render (type=python)
+2026-08-08 15:13:21,574 [INFO] yamlgraph.compile.node_compiler: Added node: render_denied (type=python)
+2026-08-08 15:13:21,664 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: prepare -> prepare_run
+2026-08-08 15:13:21,666 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: extract -> extract_sources
+2026-08-08 15:13:21,668 [INFO] examples.demos.self-portrait.extract: extracted 13 entities, 6 topics, 3 locality clusters, 3 contacts from /tmp/pp-demo.db
+2026-08-08 15:13:21,669 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: enrich -> enrich_topics
+2026-08-08 15:13:22,213 [INFO] examples.demos.self-portrait.tools: resolved 6/6 topic labels
+2026-08-08 15:13:22,214 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: build_payload -> build_synthesis_payload
+2026-08-08 15:13:22,215 [INFO] examples.demos.self-portrait.portrait_io: synthesis payload: 4265 bytes, sha256=50cdcee761cc12e53564082321fe8138235ed5735ee7991383986bbeda016e9d, written to /private/tmp/self-portrait-demo3/synthesis-payload.json
+2026-08-08 15:13:22,216 [INFO] yamlgraph.route: {"event": "route", "node": "build_payload", "value": "auto_approve != true", "target": "confirm_egress_prepare", "thread_id": "fr782-w3-1786191200"}
 
 🚀 Running graph: graph.yaml
    Variables: {'db_path': '/tmp/pp-demo.db', 'output_dir': '/tmp/self-portrait-demo3', 'portrait_date': '2026-08-08'}
 
-🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/f889c0ec-fa9b-4025-b69c-2aa756283ef8/r/019fe12b-1523-7140-bae7-c6caa0274fb7?poll=true
+🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/f889c0ec-fa9b-4025-b69c-2aa756283ef8/r/019fe14a-c537-7fc1-a194-01ea2edafe90?poll=true
 
 💬 About to send your personal portrait data to the configured LLM provider.
   person entities  : 4 (top: Testeri Testinen, Fixture Fakename, Sample Samuelsson, Dummy Dummerson)
@@ -617,14 +617,14 @@ $ yamlgraph graph run … (no auto_approve) <<< no
 Read the payload file to see exactly what will be sent — synthesis verifies this hash before any provider call.
 Send it? [yes/no]
 
-> 2026-08-08 14:38:45,681 [INFO] yamlgraph.route: {"event": "route", "node": "confirm_egress", "value": "consent_answer != 'yes'", "target": "render_denied", "thread_id": "fr782-witness-no"}
-2026-08-08 14:38:45,682 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: render_denied -> render_extraction_only
+> 2026-08-08 15:13:22,395 [INFO] yamlgraph.route: {"event": "route", "node": "confirm_egress", "value": "consent_answer != 'yes'", "target": "render_denied", "thread_id": "fr782-w3-1786191200"}
+2026-08-08 15:13:22,396 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: render_denied -> render_extraction_only
 🚫 consent declined — extraction summary → /private/tmp/self-portrait-demo3/extraction-summary.md
-🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/f889c0ec-fa9b-4025-b69c-2aa756283ef8/r/019fe12b-182e-76e0-98d2-23edbb16e21e?poll=true
+🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/f889c0ec-fa9b-4025-b69c-2aa756283ef8/r/019fe14a-c858-70e2-8958-258c1aed1dfb?poll=true
 ============================================================
 RESULT
 ============================================================
-  thread_id: fr782-witness-no
+  thread_id: fr782-w3-1786191200
   current_step: render_denied
   db_path: /tmp/pp-demo.db
   output_dir: /tmp/self-portrait-demo3

@@ -186,6 +186,20 @@ def test_missing_required_table_raises_schema_drift(db: Path):
 
 
 @pytest.mark.req("REQ-YG-584")
+@pytest.mark.parametrize("table", ["significant_contacts", "sources"])
+def test_missing_primary_metadata_table_raises_schema_drift(db: Path, table: str):
+    """C-5: every primary table is required — a missing one is drift, not
+    an empty section. An empty inner circle or empty provenance is a
+    plausible wrong answer, which is harder to catch than a crash."""
+    conn = sqlite3.connect(db)
+    conn.executescript(f"DROP TABLE {table};")
+    conn.close()
+    models = _mod("models")
+    with pytest.raises(models.SchemaDriftError, match=table):
+        _mod("extract").extract_portrait(str(db))
+
+
+@pytest.mark.req("REQ-YG-584")
 def test_missing_database_names_full_disk_access_remediation(tmp_path: Path):
     models = _mod("models")
     with pytest.raises(models.DatabaseUnreadableError) as excinfo:
