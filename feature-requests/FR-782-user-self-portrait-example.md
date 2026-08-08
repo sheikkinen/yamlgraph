@@ -49,9 +49,16 @@ honest boundaries instead:
 - Everything stays local: outputs land in a local folder, never
   committed (the repo ships the *pipeline*, a schema, and a synthetic
   fixture — never a real portrait).
-- Synthesis sends extracted data to the configured LLM provider like
-  every other graph; `provider: lmstudio` documented as the fully
-  local option for those who want zero egress.
+- **Explicit consent gate before egress**: the graph pauses at a
+  native `type: interrupt` node showing exactly what will be sent to
+  the LLM — "here is the payload, proceed?" — before synthesis. The
+  user sees the extracted record of themselves before any provider
+  does. (Verified feasible: interrupt nodes + checkpointer + the CLI's
+  built-in resume loop already support this shape.)
+- Provider selection is the standard `PROVIDER` mechanism — not a
+  feature of this FR; the README merely notes that local providers
+  exist for zero-egress preferences (documentation only, no recipe,
+  no testing surface).
 - The committed demo witness runs on the synthetic fixture DB, not on
   the author's real databases.
 
@@ -97,8 +104,8 @@ examples/demos/self-portrait/
                                 # extract_locations, resolve_wikidata,
                                 # cross_reference, render_outputs
   fixture/PPSQLDatabase.db      # small synthetic fixture (generated)
-  README.md                     # FDA gate, local-provider option,
-                                # weekly launchd recipe (FR-781 Pattern B)
+  README.md                     # FDA gate, consent gate, weekly
+                                # launchd recipe (FR-781 Pattern B)
 ```
 
 Pipeline:
@@ -109,6 +116,13 @@ extract (SQLite, read-only URI mode)
     → enrich: Wikidata batch label resolution (Q-ID → label, cached
       to disk; offline = keep Q-IDs, degrade gracefully)
     → cross-reference where supplementary DBs are readable
+  → confirm_egress (type: interrupt, requires checkpointer):
+      payload = compact summary of what synthesis will send — counts
+      per category, top-N names/topics/places, total byte estimate;
+      resume answer routed: yes → synthesize, anything else → abort
+      node that renders extraction-only outputs and exits cleanly.
+      Scheduled/headless runs pass --var auto_approve=true to route
+      around the interrupt (explicit opt-in; interactive default asks)
   → synthesize (LLM, inline schema):
       identity, social_graph (inner circle w/ evidence), expertise,
       geography (home base, travel), rhythms, evolution (score decay =
@@ -151,6 +165,12 @@ install guide; trigger-manifest mechanization stays in its seed).
   JSON rendering is schema-stable so agents can depend on it.
 - C-7: No changes under `yamlgraph/` — pure example; if the framework
   needs a change, stop and split the FR.
+- C-8: The consent interrupt is the default path; `auto_approve` is an
+  explicit opt-in variable for headless/scheduled runs, never the
+  default. The interrupt payload must summarize the actual outbound
+  payload (counts, top-N, byte estimate), not a generic prompt — a
+  consent gate that doesn't show the payload is compliance theatre
+  (substance_over_presence).
 
 ## Acceptance Criteria
 
@@ -171,16 +191,27 @@ install guide; trigger-manifest mechanization stays in its seed).
       rendered.
 - [ ] AC-06: Diff mode: second run against modified fixture reports
       new person / shifted topic / dropped location.
-- [ ] AC-07: graph.yaml + prompt authored via `scripts/author.sh`,
+- [ ] AC-07: Consent gate: interactive run pauses at `confirm_egress`
+      with a payload summary derived from the actual extracted data
+      (counts, top-N, byte estimate); resume "yes" proceeds to
+      synthesis, any other answer routes to clean extraction-only
+      exit; `--var auto_approve=true` skips the interrupt (tested via
+      checkpointer + Command(resume=...) without CLI interaction).
+- [ ] AC-08: graph.yaml + prompt authored via `scripts/author.sh`,
       lint clean, smoke on fixture; `tmp/draft-authoring-report.md`
       retained as evidence.
-- [ ] AC-08: `demo-output.log` from a grounded fixture run (real LLM,
-      synthetic data); committed fixture unconsumed.
-- [ ] AC-09: README: FDA gate with exact grant path, lmstudio
-      local-provider recipe, weekly launchd install referencing
-      FR-781 Pattern B, and the intent boundary stated (personal data
-      is the product; pipeline is shared, portraits are not).
-- [ ] AC-10: Capability registry entry + REQ tags;
+- [ ] AC-09: `demo-output.log` from a grounded fixture run (real LLM,
+      synthetic data, auto_approve route for the witness plus one
+      recorded interactive consent exchange); committed fixture
+      unconsumed.
+- [ ] AC-10: README: FDA gate with exact grant path, consent-gate
+      semantics (payload shown before egress; auto_approve for
+      scheduled runs), weekly launchd install referencing FR-781
+      Pattern B, one-line note that local providers exist via the
+      standard PROVIDER mechanism (documentation only), and the
+      intent boundary stated (personal data is the product; pipeline
+      is shared, portraits are not).
+- [ ] AC-11: Capability registry entry + REQ tags;
       `req_coverage.py --strict` passes; changelog fragment + diary
       reflection included.
 
@@ -206,3 +237,6 @@ install guide; trigger-manifest mechanization stays in its seed).
   (trigger × graph × actuator frame; TCC-gate-first heuristic)
 - `examples/demos/file-hook/README.md` (Pattern B deploy — canonical
   launchd install guide)
+- `reference/interrupt-nodes.md` + `examples/demos/interrupt` (the
+  consent-gate primitive: interrupt node, checkpointer, CLI resume
+  loop in `yamlgraph/cli/graph_run_helpers.py`)
