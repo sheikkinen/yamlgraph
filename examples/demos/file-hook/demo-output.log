@@ -1,0 +1,55 @@
+=== FR-781 demo witness 2026-08-08 09:39 — disposable copy of fixture.png ===
+--- run 1: expect one publish ---
+2026-08-08 09:39:39,171 [INFO] yamlgraph.compile.graph_loader: Parsed 2 Python tools: find_unpaired, process_artwork
+2026-08-08 09:39:39,172 [INFO] yamlgraph.compile.node_compiler: Added node: scan (type=tool_call)
+2026-08-08 09:39:39,172 [INFO] yamlgraph.compile.node_compiler: Added node: process (type=map)
+2026-08-08 09:39:39,325 [INFO] examples.demos.file-hook.tools: find_unpaired: 1 unpaired PNG(s) in /tmp/fr781-witness
+2026-08-08 09:39:39,507 [INFO] yamlgraph.utils.llm_factory: Creating LLM: google/gemini-3.5-flash (temp=0.2)
+2026-08-08 09:39:41,145 [INFO] google_genai.models: AFC is enabled with max remote calls: 10.
+2026-08-08 09:39:49,950 [INFO] httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
+2026-08-08 09:39:49,955 [INFO] examples.demos.file-hook.tools: published: fixture.png -> The Slumber of the Naiad.png + The Slumber of the Naiad.md
+
+🚀 Running graph: graph.yaml
+   Variables: {'dir': '/tmp/fr781-witness'}
+
+🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/f889c0ec-fa9b-4025-b69c-2aa756283ef8/r/019fe019-40b2-77a2-953e-73648f238efe?poll=true
+============================================================
+RESULT
+============================================================
+  current_step: scan
+  dir: /tmp/fr781-witness
+  unpaired: {'task_id': None, 'tool': 'find_unpaired', 'success': True, 'result': ['/tmp/fr781-witness/fixture.png'], 'error': None}
+  results: [{'_map_index': 0, 'task_id': None, 'tool': 'process_artwork', 'success': True, 'result': {'file': '/tmp/fr781-witness/fixture.png', 'status': 'published', 'title': 'The Slumber of the Naiad', 'md': '/tmp/fr781-witness/The Slumber of the Naiad.md', 'png': '/tmp/fr781-witness/The Slumber of the Naiad.png'}, 'error': None}]
+
+--- folder after run 1 ---
+The Slumber of the Naiad.md
+The Slumber of the Naiad.png
+--- run 2: expect pairing no-op (zero unpaired) ---
+2026-08-08 09:39:52,096 [INFO] yamlgraph.compile.graph_loader: Parsed 2 Python tools: find_unpaired, process_artwork
+2026-08-08 09:39:52,096 [INFO] yamlgraph.compile.node_compiler: Added node: scan (type=tool_call)
+2026-08-08 09:39:52,097 [INFO] yamlgraph.compile.node_compiler: Added node: process (type=map)
+2026-08-08 09:39:52,204 [INFO] examples.demos.file-hook.tools: find_unpaired: 0 unpaired PNG(s) in /tmp/fr781-witness
+
+🚀 Running graph: graph.yaml
+   Variables: {'dir': '/tmp/fr781-witness'}
+
+🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/f889c0ec-fa9b-4025-b69c-2aa756283ef8/r/019fe019-732e-7f80-b9a0-fd3938071c71?poll=true
+============================================================
+RESULT
+============================================================
+  current_step: scan
+  dir: /tmp/fr781-witness
+  unpaired: {'task_id': None, 'tool': 'find_unpaired', 'success': True, 'result': [], 'error': None}
+  results: []
+
+--- published post ---
+# The Slumber of the Naiad
+
+She rests where the current slows, a creature born of the river's slow breath and the damp earth, where the moss beneath her body is a soft, living velvet cradling her form as the day begins its long retreat. In the distance, the sun hangs low and heavy, a golden eye casting its warm, amber gaze across the winding waters while the reeds sway in silent homage to the fading day. To look upon her is to witness the quietude of a forgotten age, an eternal guardian of the quiet places waiting for the stars to claim the sky. Be Art. Be Unique.
+
+> The river remembers every shadow that has ever crossed its waters, and so do I.
+
+#mythology #nude-art #classical-drawing #river-nymph #sunset #nature-goddess #fine-art #academic-study #serene-landscape #mossy-bank
+
+--- witness summary ---
+✅ Graph execution completed successfully: run 1 published 1 artwork (confidence gate: high), run 2 found 0 unpaired (pairing no-op)

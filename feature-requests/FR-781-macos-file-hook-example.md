@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Judged 2026-08-08 — APPROVED WITH REVISIONS (R-1..R-5 folded below);
+**Status:** Enforced 2026-08-08 — all AC-01..AC-14 satisfied; judged APPROVED WITH REVISIONS (R-1..R-5 folded below);
 see `FR-781-macos-file-hook-example.judgement.md`
 **Effort:** 3 days
 **Requested:** 2026-08-08
@@ -235,60 +235,94 @@ Frozen by the judgement (AC-01 satisfied by this revision):
       contract, filename/collision/idempotence contract, constrained
       confidence semantics, chosen Pillow extra/dependency-governance
       surface, and demo-witness requirements (R-1..R-5).
-- [ ] AC-02: `examples/demos/file-hook/graph.yaml` and
+- [x] AC-02: `examples/demos/file-hook/graph.yaml` and
       `prompts/describe_artwork.yaml` authored through
       `scripts/author.sh`; `tmp/draft-authoring-report.md` records
       lint, compile/validate, smoke, and test evidence.
-- [ ] AC-03: Pairing idempotence proven by tests on a temporary folder:
+- [x] AC-03: Pairing idempotence proven by tests on a temporary folder:
       first run processes a PNG with no `.md` twin, second run
       processes zero files, existing `.md` twin skipped without a
       ledger.
-- [ ] AC-04: Filename-safety tests prove title normalization confines
+- [x] AC-04: Filename-safety tests prove title normalization confines
       outputs to the watched directory, handles path separators/
       control characters/empty or dot names, and applies the frozen
       duplicate-title collision policy without overwriting unrelated
       files.
-- [ ] AC-05: Confidence-gate tests prove low, missing, or otherwise
+- [x] AC-05: Confidence-gate tests prove low, missing, or otherwise
       blocked confidence writes no markdown and performs no rename,
       while `"high"` writes `<safe-title>.md` and renames the PNG.
-- [ ] AC-06: `ImageDescription` gains optional `quote` and constrained
+- [x] AC-06: `ImageDescription` gains optional `quote` and constrained
       optional `confidence` fields with defaults preserving existing
       shared-vision consumers; existing shared-vision tests remain
       green without weakened assertions.
-- [ ] AC-07: `describe_image(max_dim=...)` downscales before base64
+- [x] AC-07: `describe_image(max_dim=...)` downscales before base64
       encoding (longest side ≤ `max_dim`, payload bytes shrink);
       `max_dim=None` preserves current full-size behavior; URL inputs
       not downloaded, documented warning when `max_dim` requested.
-- [ ] AC-08: `max_dim` without the Pillow extra fails before LLM
+- [x] AC-08: `max_dim` without the Pillow extra fails before LLM
       invocation naming `pip install "yamlgraph[vision]"`; tests
       simulate the missing-extra path independent of ambient state.
-- [ ] AC-09: `pyproject.toml`, `docs/dependency-rationale.yaml`,
+- [x] AC-09: `pyproject.toml`, `docs/dependency-rationale.yaml`,
       dependency-scan metadata, and CI install surfaces updated
       consistently for the `vision` extra;
       `python scripts/dependency_rationale.py --strict` and
       `python scripts/direct_import_scan.py --strict` pass.
-- [ ] AC-10: Plist template contains `WatchPaths`, `ThrottleInterval`,
+- [x] AC-10: Plist template contains `WatchPaths`, `ThrottleInterval`,
       `WorkingDirectory`, `StandardOutPath`, `StandardErrorPath`, and
       exact executable `ProgramArguments`; install-script tests verify
       absolute-path rendering and load/unload command construction via
       dry-run/fake launchctl without requiring macOS in CI.
-- [ ] AC-11: README documents install, uninstall, status, manual test,
+- [x] AC-11: README documents install, uninstall, status, manual test,
       logs, environment/API-key setup, `WatchPaths` vs
       `StartCalendarInterval`, the Full Disk Access/TCC trap, this
       example, and the receipt-renamer as documentation-only recipe;
       `reference/scheduling-agents.md` links the example as the
       canonical WatchPaths demo.
-- [ ] AC-12: `demo-output.log` regenerated from a grounded
+- [x] AC-12: `demo-output.log` regenerated from a grounded
       `PROVIDER=google` run on a disposable copy of `fixture.png`:
       shows typed schema output, confidence routing, write/rename
       effects, second-run no-op; no fatal markers; committed fixture
       not consumed or renamed.
-- [ ] AC-13: Every new/changed test has exact
+- [x] AC-13: Every new/changed test has exact
       `@pytest.mark.req("REQ-YG-...")`; capability registry updated for
       the file-hook example and vision downscale;
       `python scripts/req_coverage.py --strict` passes.
-- [ ] AC-14: Changelog fragment, FR implementation-status update, and
+- [x] AC-14: Changelog fragment, FR implementation-status update, and
       diary reflection included.
+
+## Implementation Status (2026-08-08)
+
+Enforced RED→GREEN. RED commit: `test(examples): FR-781 RED — file-hook
+demo + vision max_dim suite` (26 tests + CAP-222 + CAP-217 REQ-YG-583).
+GREEN delivers:
+
+- `examples/shared/vision_tool.py`: `quote`/`confidence`
+  (`Literal["high","medium","low"] | None`) fields, `max_dim` downscale
+  via Pillow (`_downscale_png_bytes`), missing-extra fail-fast naming
+  `yamlgraph[vision]`, URL warning.
+- `vision` extra in `pyproject.toml` + dependency-rationale +
+  direct-import-scan metadata + CI `test` job extras (core-test
+  deliberately excluded — exercises the missing-extra path, mirroring
+  the otel precedent). Both `--strict` governance scans pass.
+- `examples/demos/file-hook/`: `tools.py` (pairing-as-ledger,
+  safe_basename, numeric-suffix collision, confidence gate), plist
+  template + `install-hook.sh --render-only`, README (canonical
+  install-graphs-as-hooks guide, TCC trap per diary-2026-02-21,
+  receipt-renamer docs-only recipe), grounded `demo-output.log`
+  witness ("The Slumber of the Naiad" publish + second-run no-op).
+- `graph.yaml` + `prompts/describe_artwork.yaml` authored SOLELY via
+  `scripts/author.sh` (C-2); `tmp/draft-authoring-report.md` records
+  adapter repairs: map `max_items` lint, `tool_call` result-key
+  binding (`over: "{state.unpaired.result}"`), tool_call sub-node with
+  explicit args instead of python sub-node.
+- `reference/scheduling-agents.md` gains a WatchPaths section linking
+  this demo as canonical.
+
+Deviations: none from frozen scope. One test
+(`test_demo_graph_compiles_with_map_over_unpaired`) was adjusted to
+assert graph shape via `yaml.safe_load` + `load_graph_config`
+validation, since `GraphConfig.nodes` holds raw dicts — a test-side
+fix, not a scope change.
 
 ## Alternatives Considered
 

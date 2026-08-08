@@ -95,6 +95,7 @@ IMPORT_TO_DIST: dict[str, str] = {
     "tavily": "tavily-python",
     "chatterbox": "chatterbox-tts",
     "opentelemetry": "opentelemetry-api",  # bare `import opentelemetry` / trace
+    "PIL": "Pillow",  # FR-781 vision extra (describe_image max_dim)
 }
 
 # Dotted-prefix distribution mapping for namespace packages (PR #463

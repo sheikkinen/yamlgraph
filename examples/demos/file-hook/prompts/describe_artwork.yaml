@@ -1,0 +1,28 @@
+name: describe_artwork
+description: DeviantArt-style artwork publishing instruction for the file-hook demo.
+template: |
+  Describe the artwork for a DeviantArt-style publication post in the sheikkinen
+  mythic publishing voice.
+
+  Return the structured fields by name: title, description, tags, quote, and
+  confidence.
+
+  title: Write a poetic, evocative English title. Do not echo, paraphrase, or
+  sanitize the filename, and do not use a generic inventory label.
+
+  description: Write 3-4 atmospheric paragraphs of myth-building prose that
+  evokes the artwork's world, mood, and story. Do not produce a dry enumeration
+  of visible elements. Let the description feel like a fragment from the
+  subject's legend, grounded in what is clearly visible. End the final paragraph
+  with the exact epigram: "Be Art. Be Unique."
+
+  tags: Provide 8-12 lowercase keyword tags suitable for DeviantArt discovery.
+  Use concise words or short hyphenated phrases, without leading hash marks.
+
+  quote: Provide one short in-character quote from the artwork's subject.
+
+  confidence: Choose exactly one of high, medium, or low. Use high only when the
+  image is clearly legible and the title, prose, tags, and quote are grounded in
+  visible evidence. Use medium or low for uncertainty, ambiguity, illegibility,
+  weak grounding, or any case where you would be inventing a myth for an image
+  you cannot read.

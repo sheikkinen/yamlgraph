@@ -82,6 +82,7 @@ Standalone demos that teach a single YAMLGraph concept. Ordered by the learning 
 | [router-race-candidates](demos/router-race-candidates/) | `router`, `tool` | Router `candidates` race with default-route fallback (FR-272) |
 | [promptfoo-router](demos/promptfoo-router/) | `router` | Promptfoo evaluation suite for tone router (FR-299) |
 | [map](demos/map/) | `map`, `llm` | Parallel fan-out processing |
+| [file-hook](demos/file-hook/) | `tool_call`, `map` | macOS launchd WatchPaths hook — vision-described artwork publishing with confidence gate (FR-781) |
 | [reflexion](demos/reflexion/) | `llm` | Self-correction with loop limits |
 | [research-agent](demos/research-agent/) | `agent`, `llm` | 5-step agentic research (extract → plan → execute → validate → respond) |
 | [git-report](demos/git-report/) | `agent` | Git analysis with tools |

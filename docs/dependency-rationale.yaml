@@ -390,3 +390,10 @@ dependencies:
     rationale: "OTLP exporter used when YAMLGRAPH_OTEL_EXPORT=otlp is set, sending spans to an OTLP collector (FR-759)"
     modules: ["yamlgraph/observability/otel.py"]
     added: "0.5.18"
+
+  # ─── Optional: Vision ────────────────────────────────────────────────
+
+  Pillow:
+    rationale: "Opt-in image downscale for describe_image(max_dim=...) — shrinks vision payloads before base64 encoding (FR-781); fails fast when max_dim is requested without the vision extra"
+    modules: ["examples/shared/vision_tool.py"]
+    added: "0.5.18"

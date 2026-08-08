@@ -284,8 +284,10 @@ def test_install_hook_render_only_substitutes_absolute_paths(tmp_path):
 
 @pytest.mark.req("REQ-YG-582")
 def test_demo_graph_compiles_with_map_over_unpaired():
+    import yaml
+
     from yamlgraph.compile.graph_loader import load_graph_config
 
-    config = load_graph_config(str(DEMO / "graph.yaml"))
-    node_types = {n.type for n in config.nodes.values()}
-    assert "map" in node_types
+    load_graph_config(str(DEMO / "graph.yaml"))  # must validate
+    raw = yaml.safe_load((DEMO / "graph.yaml").read_text())
+    assert any(n["type"] == "map" for n in raw["nodes"].values())

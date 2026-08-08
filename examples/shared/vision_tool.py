@@ -21,14 +21,18 @@ Requirements: GOOGLE_API_KEY (default provider) or ANTHROPIC_API_KEY.
 from __future__ import annotations
 
 import base64
+import logging
 import mimetypes
 import os
 from pathlib import Path
+from typing import Literal
 
 from langchain_core.messages import HumanMessage
 from pydantic import BaseModel, Field
 
 from yamlgraph.utils.llm_factory import create_llm
+
+logger = logging.getLogger(__name__)
 
 # Initial support matrix (FR-769 R-1): provider -> (model env var, default).
 SUPPORTED_PROVIDERS: dict[str, tuple[str, str]] = {
@@ -70,17 +74,69 @@ class ImageDescription(BaseModel):
     notes: str | None = Field(
         default=None, description="QA notes when matches_prompt is set"
     )
+    quote: str | None = Field(
+        default=None, description="Short in-character quote for the artwork"
+    )
+    confidence: Literal["high", "medium", "low"] | None = Field(
+        default=None,
+        description="Analysis confidence; only 'high' permits publication (FR-781)",
+    )
 
 
-def _image_content_part(image: str | Path) -> dict:
-    """Build the image content part: URL passthrough or base64 data URL."""
+def _pillow_missing() -> None:
+    """Fail fast when max_dim is requested without the vision extra."""
+    raise ImportError(
+        "max_dim requires Pillow \u2014 install the vision extra: "
+        'pip install "yamlgraph[vision]"'
+    )
+
+
+def _load_pillow():
+    try:
+        from PIL import Image
+    except ImportError:
+        _pillow_missing()
+    return Image
+
+
+def _downscale_png_bytes(path: Path, max_dim: int) -> bytes:
+    """Downscale so the longest side <= max_dim; encode as PNG bytes."""
+    import io
+
+    image_cls = _load_pillow()
+    with image_cls.open(path) as img:
+        img.thumbnail((max_dim, max_dim))
+        buf = io.BytesIO()
+        img.save(buf, format="PNG")
+    return buf.getvalue()
+
+
+def _image_content_part(image: str | Path, max_dim: int | None = None) -> dict:
+    """Build the image content part: URL passthrough or base64 data URL.
+
+    max_dim (FR-781): downscale a local image before encoding so its
+    longest side is <= max_dim — cost engineering at the boundary.
+    Ignored with a warning for URLs; None preserves full-size behavior.
+    """
     ref = str(image)
     if ref.startswith(("http://", "https://")):
+        if max_dim is not None:
+            logger.warning(
+                "max_dim=%s ignored for URL image %s (no download side effect)",
+                max_dim,
+                ref,
+            )
         return {"type": "image_url", "image_url": {"url": ref}}
 
     path = Path(image)
     if not path.is_file():
         raise FileNotFoundError(f"Image not found: {path}")
+    if max_dim is not None:
+        data = base64.b64encode(_downscale_png_bytes(path, max_dim)).decode()
+        return {
+            "type": "image_url",
+            "image_url": {"url": f"data:image/png;base64,{data}"},
+        }
     mime = mimetypes.guess_type(path.name)[0] or "image/png"
     data = base64.b64encode(path.read_bytes()).decode()
     return {
@@ -95,6 +151,7 @@ def describe_image(
     *,
     provider: str | None = None,
     model: str | None = None,
+    max_dim: int | None = None,
 ) -> ImageDescription:
     """Describe an image with a vision-capable LLM.
 
@@ -105,6 +162,8 @@ def describe_image(
             Must be in SUPPORTED_PROVIDERS.
         model: Model override; defaults to the provider's model env var or
             its vision-capable default.
+        max_dim: Optional downscale bound for local images (FR-781);
+            requires the Pillow "vision" extra, fails fast without it.
 
     Returns:
         Validated ImageDescription.
@@ -112,10 +171,11 @@ def describe_image(
     Raises:
         ValueError: Unsupported provider (raised before any LLM call), or
             model output that cannot be validated.
+        ImportError: max_dim requested without the Pillow extra installed.
         FileNotFoundError: Local image path does not exist.
     """
     selected, selected_model = validate_vision_provider(provider, model)
-    image_part = _image_content_part(image)
+    image_part = _image_content_part(image, max_dim=max_dim)
 
     llm = create_llm(provider=selected, model=selected_model, temperature=0.2)
     structured = llm.with_structured_output(ImageDescription)

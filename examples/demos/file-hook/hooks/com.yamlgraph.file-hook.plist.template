@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.yamlgraph.file-hook</string>
+
+    <!-- launchd does no shell expansion: every path must be absolute -->
+    <key>ProgramArguments</key>
+    <array>
+        <string>{{YAMLGRAPH_BIN}}</string>
+        <string>graph</string>
+        <string>run</string>
+        <string>{{REPO_ROOT}}/examples/demos/file-hook/graph.yaml</string>
+        <string>--var</string>
+        <string>dir={{WATCHED_DIR}}</string>
+    </array>
+
+    <key>WorkingDirectory</key>
+    <string>{{REPO_ROOT}}</string>
+
+    <!-- Fire on any change in the watched folder -->
+    <key>WatchPaths</key>
+    <array>
+        <string>{{WATCHED_DIR}}</string>
+    </array>
+
+    <!-- Debounce bursts; the graph is idempotent (.md twin is the ledger) -->
+    <key>ThrottleInterval</key>
+    <integer>30</integer>
+
+    <key>StandardOutPath</key>
+    <string>/tmp/com.yamlgraph.file-hook.log</string>
+    <key>StandardErrorPath</key>
+    <string>/tmp/com.yamlgraph.file-hook.err</string>
+
+    <!-- API keys: fill in here, or use a wrapper script sourcing .env -->
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PROVIDER</key>
+        <string>google</string>
+    </dict>
+</dict>
+</plist>

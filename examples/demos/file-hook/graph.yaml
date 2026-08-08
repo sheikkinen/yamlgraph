@@ -1,0 +1,49 @@
+version: "1.0"
+name: file-hook-demo
+description: macOS folder-triggered PNG description and publishing demo
+
+state:
+  dir: str
+  unpaired: list
+  results: list
+
+tools:
+  find_unpaired:
+    type: python
+    module: examples.demos.file-hook.tools
+    function: find_unpaired
+    description: Return PNG files in the watched directory that lack an .md twin
+  process_artwork:
+    type: python
+    module: examples.demos.file-hook.tools
+    function: process_artwork
+    description: Describe one PNG and publish only high-confidence artwork posts
+
+nodes:
+  scan:
+    type: tool_call
+    tool: find_unpaired
+    args:
+      dir: "{state.dir}"
+    state_key: unpaired
+
+  process:
+    type: map
+    over: "{state.unpaired.result}"
+    as: file
+    collect: results
+    max_items: 100
+    node:
+      type: tool_call
+      tool: process_artwork
+      args:
+        file: "{state.file}"
+      state_key: result
+
+edges:
+  - from: START
+    to: scan
+  - from: scan
+    to: process
+  - from: process
+    to: END

@@ -118,6 +118,23 @@ cd /path/to/yamlgraph
 <integer>14400</integer>
 ```
 
+### File hooks (WatchPaths) — event-driven, not scheduled
+
+To fire a graph when a **folder changes** instead of on a schedule,
+replace `StartCalendarInterval` with `WatchPaths`:
+
+```xml
+<key>WatchPaths</key>
+<array><string>/ABS/PATH/TO/watched-folder</string></array>
+<key>ThrottleInterval</key>
+<integer>30</integer>  <!-- debounce bursts; pair with an idempotent graph -->
+```
+
+Canonical demo with installer, sandbox-trap notes, and an idempotent
+graph: [examples/demos/file-hook/](../examples/demos/file-hook/README.md)
+(FR-781). Beware the TCC trap: launchd agents are denied
+`~/Documents`/`~/Desktop`/`~/Downloads` without Full Disk Access.
+
 ## GitHub Actions: Cron
 
 For CI-based scheduling, use GitHub Actions with `workflow_dispatch` for manual triggers.

@@ -157,6 +157,10 @@ otel = [
     "opentelemetry-sdk>=1.0.0",
     "opentelemetry-exporter-otlp>=1.0.0",
 ]
+vision = [
+    # FR-781: opt-in image downscale (describe_image max_dim). Never a core dep.
+    "Pillow>=10.0.0",
+]
 
 [project.scripts]
 yamlgraph = "yamlgraph.cli:main"
