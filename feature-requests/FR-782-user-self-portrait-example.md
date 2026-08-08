@@ -2,7 +2,8 @@
 
 **Priority:** MEDIUM
 **Type:** Feature (example)
-**Status:** Proposed
+**Status:** Judged 2026-08-08 — APPROVED WITH REVISIONS (R-1..R-6 folded below);
+see FR-782-user-self-portrait-example.judgement.md
 **Effort:** 1–2 days
 **Requested:** 2026-08-08
 
@@ -38,6 +39,19 @@ The operator's thesis made concrete: software's primary consumers are
 agents — and an agent that doesn't know its user re-asks questions the
 device answered years ago.
 
+**First consumer / first event (R-1):** a Copilot/agent session in this
+workspace loading `~/.yamlgraph/self-portrait/self-portrait.json` (or
+its `agent_briefing` section) as system context at session start —
+first event is the first manual `yamlgraph graph run` after merge,
+producing the portrait that replaces the hand-curated
+operator-calibration foundation.
+
+**Frozen agent JSON contract (R-1):** `self-portrait.json` top-level
+fields, schema-stable: `schema_version`, `portrait_date`,
+`generated_at`, `source_summary`, `identity`, `social_graph`,
+`expertise`, `geography`, `rhythms`, `evolution`, `agent_briefing`,
+`provenance`.
+
 ## Intent Boundary (explicit)
 
 **Personal data is the core intent, not something to filter out.**
@@ -49,12 +63,15 @@ honest boundaries instead:
 - Everything stays local: outputs land in a local folder, never
   committed (the repo ships the *pipeline*, a schema, and a synthetic
   fixture — never a real portrait).
-- **Explicit consent gate before egress**: the graph pauses at a
-  native `type: interrupt` node showing exactly what will be sent to
-  the LLM — "here is the payload, proceed?" — before synthesis. The
-  user sees the extracted record of themselves before any provider
-  does. (Verified feasible: interrupt nodes + checkpointer + the CLI's
-  built-in resume loop already support this shape.)
+- **Exact-payload consent gate before egress (R-2)**: a deterministic
+  `build_synthesis_payload` step produces the exact JSON payload that
+  `synthesize` will send, plus byte count and SHA-256 content hash.
+  The `type: interrupt` node renders a compact human summary AND the
+  path to a local file containing the full outbound payload; the
+  resumed synthesis consumes that same payload byte-for-byte (tested
+  by hash comparison). A consent gate that summarizes different data
+  is not authorized — summary-only preview is compliance theatre
+  (substance_over_presence).
 - Provider selection is the standard `PROVIDER` mechanism — not a
   feature of this FR; the README merely notes that local providers
   exist for zero-egress preferences (documentation only, no recipe,
@@ -83,10 +100,16 @@ Primary: `PPSQLDatabase.db` (PersonalizationPortrait) —
 `tp_records` (Wikidata Q-ID topics with relevance), `loc_records`
 (GPS + locality), `significant_contacts`, `sources` (provenance).
 
-Supplementary (phase-2 enrichment, behind availability checks):
-`knowledgeC.db` (app usage rhythms), Safari `History.db`,
-`Calendar.sqlitedb`, WhatsApp `ChatStorage.sqlite` (message volume per
-contact).
+Supplementary (R-3 — **deferred, availability probes only under this
+FR**): `knowledgeC.db` (app usage rhythms), Safari `History.db`,
+`Calendar.sqlitedb`, WhatsApp `ChatStorage.sqlite`. FR-782 may probe
+these for availability and render them as "absent/not configured"
+sections only; implementing their parsers or message-volume
+cross-reference requires a re-judged FR revision with exact synthetic
+fixtures, schema assertions, and per-source tests. The primary DB
+already includes significant contacts and provenance, so the
+local-DB → typed rows → LLM synthesis pattern is provable without
+bundling four orthogonal private-app schemas.
 
 **TCC gate (named per the FR-781 heuristic):** these DBs live under
 `~/Library` — the *executing binary* needs Full Disk Access; graph
@@ -100,10 +123,10 @@ by portrait-date.
 examples/demos/self-portrait/
   graph.yaml                    # authored via scripts/author.sh (C-2)
   prompts/synthesize_portrait.yaml
-  tools.py                      # extract_entities, extract_topics,
-                                # extract_locations, resolve_wikidata,
-                                # cross_reference, render_outputs
-  fixture/PPSQLDatabase.db      # small synthetic fixture (generated)
+  tools.py                      # extract_* (typed rows), resolve_wikidata,
+                                # build_synthesis_payload, render_outputs
+  fixture_builder.py            # deterministic synthetic DB generator (R-4)
+  fixture/PPSQLDatabase.db      # committed synthetic fixture (built by it)
   README.md                     # FDA gate, consent gate, weekly
                                 # launchd recipe (FR-781 Pattern B)
 ```
@@ -112,15 +135,20 @@ Pipeline:
 
 ```
 extract (SQLite, read-only URI mode)
-  → {people[], topics[], locations[], contacts[], provenance{}}
+  → Pydantic row models (R-6): EntityRow, TopicRow, LocationRow,
+    ContactRow, ProvenanceRow, SourceSummary
     → enrich: Wikidata batch label resolution (Q-ID → label, cached
       to disk; offline = keep Q-IDs, degrade gracefully)
-    → cross-reference where supplementary DBs are readable
+    → supplementary sources: availability probe → absent/not-configured
+      descriptors only (R-3; no parsers under this FR)
+  → build_synthesis_payload (R-2): deterministic exact JSON payload for
+    synthesis + byte count + SHA-256 hash, written to the output dir
   → confirm_egress (type: interrupt, requires checkpointer):
-      payload = compact summary of what synthesis will send — counts
-      per category, top-N names/topics/places, total byte estimate;
-      resume answer routed: yes → synthesize, anything else → abort
-      node that renders extraction-only outputs and exits cleanly.
+      shows compact summary (counts per category, top-N, byte count,
+      hash) AND the path to the full payload file; resume answer
+      routed: yes → synthesize consuming that same payload
+      byte-for-byte (hash-verified), anything else → abort node that
+      renders extraction-only outputs and exits cleanly.
       Scheduled/headless runs pass --var auto_approve=true to route
       around the interrupt (explicit opt-in; interactive default asks)
   → synthesize (LLM, inline schema):
@@ -130,7 +158,8 @@ extract (SQLite, read-only URI mode)
       agent: how to work with this user)
   → render:
       self-portrait.md        # narrative, for the human
-      self-portrait.json      # typed, for agents (the primary output)
+      self-portrait.json      # typed, for agents (the primary output;
+                              # frozen contract fields per R-1)
       portrait-diff.md        # vs previous run: new people, shifted
                               # interests, dropped locations
 ```
@@ -154,66 +183,135 @@ install guide; trigger-manifest mechanization stays in its seed).
 - C-3: Real portrait outputs and real DBs never enter git; tests and
   demo witness run against the synthetic fixture only. Output dir
   default `~/.yamlgraph/self-portrait/` (outside repo).
-- C-4: Wikidata resolution is batch (≤50 IDs/call), disk-cached, and
-  optional — offline runs degrade to Q-IDs, never fail.
+- C-4: Wikidata resolution (R-5): batch ≤50 IDs/call, disk cache under
+  the output directory keyed by Q-ID + language, no network on cache
+  hit, offline/HTTP-failure degradation keeps Q-IDs, never fails the
+  run. HTTP client is either Python standard library ONLY, or an
+  exactly declared optional extra with full dependency governance
+  (rationale, direct-import scan, CI surfaces) — no undeclared
+  `requests`.
 - C-5: Missing/unreadable DB (no FDA, different macOS version, absent
   schema) → fail fast with named remediation for primary; skip with
   logged notice for supplementary. Schema drift across macOS versions
   is expected: assert-and-adapt at the extraction boundary
-  (the_one_law), not downstream.
+  (the_one_law), not downstream — typed row models (R-6) with explicit
+  failure tests for unknown categories, missing optional columns, and
+  missing required tables; no broad `except`, no empty-section
+  fallbacks. If the real schema demands framework behavior, stop and
+  re-enter planning.
 - C-6: Synthesis output is a Pydantic-validated inline schema; the
-  JSON rendering is schema-stable so agents can depend on it.
+  JSON rendering is schema-stable (frozen R-1 contract) so agents can
+  depend on it.
 - C-7: No changes under `yamlgraph/` — pure example; if the framework
   needs a change, stop and split the FR.
 - C-8: The consent interrupt is the default path; `auto_approve` is an
   explicit opt-in variable for headless/scheduled runs, never the
-  default. The interrupt payload must summarize the actual outbound
-  payload (counts, top-N, byte estimate), not a generic prompt — a
-  consent gate that doesn't show the payload is compliance theatre
-  (substance_over_presence).
+  default. The gate must prove exact outbound-payload identity (R-2):
+  preview exposes the full payload (file path) + byte count + SHA-256;
+  synthesis consumes the previewed payload byte-for-byte. Summary-only
+  preview is compliance theatre (substance_over_presence).
+- C-9: Synthetic fixture (R-4): built deterministically by a committed
+  `fixture_builder.py` with obviously fake names/paths and minimum row
+  coverage (person, org, location, product/topic, event/concept
+  categories; topic Q-IDs; locations; significant contacts;
+  provenance). A guard test asserts the committed fixture and demo
+  witness contain no `~/Library` path, no real PersonalizationPortrait
+  path, and no non-synthetic marker.
 
 ## Acceptance Criteria
 
-- [ ] AC-01: `tools.py` extraction functions return typed rows from a
-      fixture `PPSQLDatabase.db`; tests cover entity categories,
-      topic scores, location clustering (REQ tag per registry).
-- [ ] AC-02: Wikidata resolver: batch ≤50, disk cache hit avoids
-      network (tested with mocked HTTP), offline degradation keeps
-      Q-IDs.
-- [ ] AC-03: Read-only enforcement tested: extraction against a
-      read-only fixture copy succeeds; no write side effects outside
-      the output dir.
-- [ ] AC-04: Missing-DB path: primary DB absent → fails fast naming
-      the FDA remediation; supplementary absent → portrait still
-      renders with the section marked absent.
-- [ ] AC-05: Synthesis schema includes `agent_briefing`; JSON output
-      validates against the schema; narrative + JSON + diff all
-      rendered.
-- [ ] AC-06: Diff mode: second run against modified fixture reports
-      new person / shifted topic / dropped location.
-- [ ] AC-07: Consent gate: interactive run pauses at `confirm_egress`
-      with a payload summary derived from the actual extracted data
-      (counts, top-N, byte estimate); resume "yes" proceeds to
-      synthesis, any other answer routes to clean extraction-only
-      exit; `--var auto_approve=true` skips the interrupt (tested via
-      checkpointer + Command(resume=...) without CLI interaction).
-- [ ] AC-08: graph.yaml + prompt authored via `scripts/author.sh`,
-      lint clean, smoke on fixture; `tmp/draft-authoring-report.md`
-      retained as evidence.
-- [ ] AC-09: `demo-output.log` from a grounded fixture run (real LLM,
-      synthetic data, auto_approve route for the witness plus one
-      recorded interactive consent exchange); committed fixture
-      unconsumed.
-- [ ] AC-10: README: FDA gate with exact grant path, consent-gate
-      semantics (payload shown before egress; auto_approve for
-      scheduled runs), weekly launchd install referencing FR-781
-      Pattern B, one-line note that local providers exist via the
-      standard PROVIDER mechanism (documentation only), and the
-      intent boundary stated (personal data is the product; pipeline
-      is shared, portraits are not).
-- [ ] AC-11: Capability registry entry + REQ tags;
-      `req_coverage.py --strict` passes; changelog fragment + diary
-      reflection included.
+Frozen by the judgement (AC-01 satisfied by this revision):
+
+- [x] AC-01: The FR is revised to include a concrete first
+      consumer/first event, the stable agent JSON contract, exact
+      outbound-payload consent semantics, the primary-only
+      supplementary-source phase boundary, fixture/no-real-data guard,
+      Wikidata dependency/cache contract, and schema-drift row-model
+      tests from R-1 through R-6.
+- [ ] AC-02: `examples/demos/self-portrait/graph.yaml` and
+      `prompts/synthesize_portrait.yaml` are authored through
+      `scripts/author.sh`; `tmp/draft-authoring-report.md` records
+      graph lint, compile/validate, fixture smoke, and relevant test
+      evidence.
+- [ ] AC-03: A deterministic synthetic `PPSQLDatabase.db` fixture or
+      fixture-builder exists with fake people, organizations,
+      locations, products/events/concepts, topic Q-IDs, location rows,
+      significant contacts, and provenance rows; tests assert it
+      contains no real PersonalizationPortrait path, `~/Library`
+      source path, or non-synthetic marker.
+- [ ] AC-04: Extraction opens SQLite via read-only URI mode and
+      returns Pydantic-validated row models for entities, topics,
+      locations, significant contacts, provenance, and source summary;
+      tests cover category mapping, unknown categories, missing
+      optional columns, missing required primary tables,
+      unreadable/missing primary DB with named FDA remediation, and
+      output-dir confinement.
+- [ ] AC-05: Supplementary DBs are limited to availability probes and
+      absent-source rendering under this FR; absent `knowledgeC.db`,
+      Safari, Calendar, and WhatsApp sources do not fail the portrait
+      and are represented as absent/not configured in the JSON and
+      narrative.
+- [ ] AC-06: Wikidata resolution batches at no more than 50 Q-IDs per
+      request, caches labels under the output directory, avoids
+      network on cache hit, keeps Q-IDs when offline or labels are
+      missing, and uses either standard-library HTTP or a
+      declared/governed optional dependency.
+- [ ] AC-07: Consent gate defaults to interactive interrupt with
+      checkpointer; it exposes the exact outbound synthesis payload or
+      a local file containing it, plus byte count and content hash;
+      resume "yes" proceeds using the same payload byte-for-byte, any
+      other answer routes to extraction-only render and clean exit,
+      and `auto_approve=true` is the only opt-in bypass.
+- [ ] AC-08: Synthesis uses an inline Pydantic schema with stable
+      `self-portrait.json` fields: `schema_version`, `portrait_date`,
+      `generated_at`, `source_summary`, `identity`, `social_graph`,
+      `expertise`, `geography`, `rhythms`, `evolution`,
+      `agent_briefing`, and `provenance`; narrative Markdown and JSON
+      both render from the validated model.
+- [ ] AC-09: Diff mode is tested by a second run against a modified
+      synthetic fixture and reports a new person, shifted topic score,
+      and dropped location without reading prior real outputs.
+- [ ] AC-10: README documents the FDA/TCC gate with exact grant path
+      and Pattern B deploy note, consent-gate semantics including
+      exact payload preview and `auto_approve`, output directory
+      default outside the repo, weekly launchd `StartCalendarInterval`
+      reference to FR-781 Pattern B, local-provider note via standard
+      `PROVIDER`, and the intent boundary that personal data is the
+      product while real portraits are not committed.
+- [ ] AC-11: `demo-output.log` is regenerated from a grounded fixture
+      run using a real LLM and synthetic data; it shows the
+      auto-approved fixture witness plus one recorded interactive
+      consent exchange, includes the output paths, and proves the
+      committed fixture was run through a disposable copy.
+- [ ] AC-12: Every new or changed test carries an exact
+      `@pytest.mark.req("REQ-YG-...")`; the capability registry is
+      updated for the self-portrait example;
+      `python scripts/req_coverage.py --strict` passes.
+- [ ] AC-13: Changelog fragment, FR implementation-status update, and
+      diary reflection are included.
+
+## Judgement (2026-08-08)
+
+APPROVED WITH REVISIONS — R-1..R-6 folded above; full verdict in
+`FR-782-user-self-portrait-example.judgement.md`. Enforcement gates:
+
+- C-1 (GATE): authority active only now that R-1..R-6 are folded.
+- C-2 (GATE): governed artifacts only via `scripts/author.sh`.
+- C-3 (GATE): no real DBs/payloads/portraits/diffs in git; synthetic
+  fixtures + disposable copies only.
+- C-4 (GATE): consent must prove exact outbound-payload identity;
+  summary-only interrupt or `auto_approve` default not authorized.
+- C-5 (GATE): no changes under `yamlgraph/`; split a new FR if needed.
+- C-6 (GATE): supplementary DB parsers/cross-reference out of scope
+  without re-judgement.
+- C-7 (GATE): any third-party dependency must be declared with full
+  governance; undeclared imports not authorized.
+
+Not authorized (from frozen scope): framework privacy/consent
+machinery, new node types or CLI flags, public/redacted portrait mode,
+personal-context MCP server, visualization UI, launchd installer
+scripts beyond README Pattern B documentation, supplementary parsers,
+egress of real personal data during tests or witness.
 
 ## Alternatives Considered
 
