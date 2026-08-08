@@ -1,0 +1,55 @@
+id: CAP-223
+name: User Self-Portrait Example (PersonalizationPortrait → Agent Context)
+description: >
+  Local-database → typed rows → consented LLM synthesis example (FR-782):
+  the macOS PersonalizationPortrait database is read read-only, validated
+  into Pydantic row models at the extraction boundary, enriched with
+  Wikidata topic labels (stdlib HTTP, disk cache, offline degradation),
+  and synthesized into an agent-first portrait whose primary consumer is
+  a machine (`self-portrait.json` + `agent_briefing`) with the narrative
+  as the secondary rendering. Personal data is the product, so the
+  egress boundary is the mechanism: a deterministic payload build writes
+  the exact outbound JSON to disk with byte count and SHA-256, an
+  interrupt gate previews it, and synthesis re-verifies the payload
+  byte-for-byte before any provider call. The repo ships the pipeline,
+  a deterministic synthetic fixture, and a no-real-data guard — never a
+  real portrait.
+modules:
+  - examples
+requirements:
+  - id: REQ-YG-584
+    description: >
+      extract_portrait opens the database via read-only SQLite URI mode
+      and returns Pydantic-validated entity/topic/location/contact/
+      provenance rows with a source summary; schema drift is asserted at
+      that boundary — unknown ne_records categories and missing required
+      tables raise SchemaDriftError, a missing/unreadable database raises
+      DatabaseUnreadableError naming the Full Disk Access remediation,
+      and missing optional columns degrade to None without failing.
+      Supplementary databases (knowledgeC, Safari, Calendar, WhatsApp)
+      are availability probes only — present sources are reported as
+      "present (not parsed)" and absent ones never fail the run.
+      Wikidata resolution batches at no more than 50 Q-IDs per request,
+      caches labels under the output directory keyed by Q-ID + language,
+      performs no network call on a cache hit, keeps Q-IDs when offline
+      or when the requested language label is missing, and uses only
+      urllib from the standard library. build_payload writes the exact
+      outbound JSON payload with byte count and SHA-256;
+      verify_payload_identity re-reads that file and raises
+      ConsentPayloadMismatchError unless the bytes are identical, so the
+      consent interrupt previews exactly what synthesis sends; the graph
+      declares a checkpointer, a single confirm_egress interrupt with
+      resume_key consent_answer, and conditional edges routing
+      auto_approve around the gate and a non-yes answer to an
+      extraction-only render. Rendering emits the frozen
+      self-portrait.json contract (schema_version, portrait_date,
+      generated_at, source_summary, identity, social_graph, expertise,
+      geography, rhythms, evolution, agent_briefing, provenance), a
+      narrative Markdown, and a deterministic portrait-diff reporting
+      new people, shifted topic scores, and dropped locations; all
+      writes are confined to the output directory, and the committed
+      fixture plus demo witness contain no real PersonalizationPortrait
+      or ~/Library path.
+    modules:
+      - examples
+fr: FR-782
