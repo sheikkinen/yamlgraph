@@ -71,8 +71,15 @@ def test_unknown_mode_raises_naming_mode():
         _split_document()(path=str(FIXTURE), mode="chapter")
 
 
+def _stub_poppler(monkeypatch):
+    """Make the binary probe succeed so downstream error paths are reachable
+    on hosts without poppler installed (CI runners)."""
+    monkeypatch.setattr(shutil, "which", lambda name: f"/usr/bin/{name}")
+
+
 @pytest.mark.req("REQ-YG-577")
-def test_missing_file_raises_naming_path():
+def test_missing_file_raises_naming_path(monkeypatch):
+    _stub_poppler(monkeypatch)
     with pytest.raises(ValueError, match="no-such-book.pdf"):
         _split_document()(path="tmp/no-such-book.pdf")
 
@@ -86,6 +93,8 @@ def test_missing_poppler_raises_with_install_hint(monkeypatch):
 
 @pytest.mark.req("REQ-YG-577")
 def test_nonzero_subprocess_raises(monkeypatch):
+    _stub_poppler(monkeypatch)
+
     def failing_run(cmd, **kwargs):
         return subprocess.CompletedProcess(cmd, 1, stdout="", stderr="boom")
 
@@ -96,6 +105,8 @@ def test_nonzero_subprocess_raises(monkeypatch):
 
 @pytest.mark.req("REQ-YG-577")
 def test_unparseable_page_count_raises(monkeypatch):
+    _stub_poppler(monkeypatch)
+
     def pageless_run(cmd, **kwargs):
         return subprocess.CompletedProcess(cmd, 0, stdout="Title: x\n", stderr="")
 
