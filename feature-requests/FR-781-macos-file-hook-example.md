@@ -2,7 +2,8 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Proposed
+**Status:** Judged 2026-08-08 — APPROVED WITH REVISIONS (R-1..R-5 folded below);
+see `FR-781-macos-file-hook-example.judgement.md`
 **Effort:** 3 days
 **Requested:** 2026-08-08
 **First consumer / first event:** the 15 orphaned PNGs in
@@ -113,14 +114,41 @@ nodes:
 
 - **Idempotence by pairing, not ledger**: a file is "new" iff it has no
   `.md` twin. Cures the ancestor's duplicate-ledger and
-  rename-then-reprocess bugs (its todo.md is the test plan).
+  rename-then-reprocess bugs (its todo.md is the test plan). No
+  persistent processed-files ledger may be introduced (judgement C-7).
 - **Confidence gate** (FR-779 pattern): schema includes a confidence
   field; low confidence routes past write/rename — the file stays
   unpaired and is retried on the next event, visibly.
 - **Schema at the boundary**: `ImageDescription` extended with optional
-  `quote: str | None` and `confidence: str | None` (default None —
-  additive, `matches_prompt`/`notes` set the precedent) replaces
-  grep-from-prose.
+  `quote: str | None` and a **constrained** confidence field (default
+  None — additive, `matches_prompt`/`notes` set the precedent)
+  replacing grep-from-prose.
+
+### Confidence semantics (R-3, frozen)
+
+- `confidence: Literal["high", "medium", "low"] | None = None`.
+- **Only `"high"` permits write + rename.** `"medium"`, `"low"`, and
+  `None`/missing all block — fail-safe: absence of confidence must not
+  publish. The gate is structural (typed field + deterministic
+  condition), never prompt-only.
+
+### Filename, collision, and idempotence boundary (R-2, frozen)
+
+- Title → basename normalization is deterministic: reject or transform
+  path separators, control characters, empty names, `.`/`..`, and any
+  name escaping the watched directory. All writes and renames are
+  confined to the watched directory.
+- Duplicate-title collision policy: if `<safe-title>.md` or
+  `<safe-title>.png` already exists for a DIFFERENT source file, append
+  a numeric suffix (`<safe-title>-2`); never overwrite unrelated files.
+- A failed safety check leaves the source PNG unmodified with a visible
+  error — no fallback to a risky name, no success-shaped output
+  (judgement C-3).
+- Idempotence contract beyond the happy path, all tested: second-run
+  no-op, existing `.md` twin skipped, unsafe title skipped, duplicate
+  collision handled, low-confidence no-write/no-rename. The demo runs
+  against a disposable copy of `fixture.png` so the witness never
+  consumes the committed fixture.
 
 ### `describe_image` manifest enhancement (in scope)
 
@@ -131,34 +159,60 @@ def describe_image(image, instruction, *, max_dim: int | None = None, ...):
     # max_dim unset: current full-size path, byte-identical behavior.
 ```
 
-- Downscaling uses Pillow, declared as a new optional extra (or added
-  to an existing one — judge decides); requesting `max_dim` without the
-  extra fails fast naming the install command (FR-759 otel precedent:
-  explicit opt-in fails loud, unset is a true no-op).
+- Downscaling uses Pillow under a **new `vision` optional extra**
+  (`Pillow>=10.0.0`) — frozen by judgement R-4. Governance surface:
+  entry in `docs/dependency-rationale.yaml`; direct-import scan
+  metadata maps `PIL` → `Pillow`; the extra is added to the CI
+  unit-test install surface so the positive downscale test runs in CI.
+  Requesting `max_dim` without the extra fails fast — before LLM
+  invocation — naming `pip install "yamlgraph[vision]"` (FR-759 otel
+  precedent: explicit opt-in fails loud, unset is a true no-op); the
+  missing-extra path is tested by import simulation, not ambient
+  environment.
 - URL images: `max_dim` is ignored with a logged warning (no download
   side effect in scope).
 - The manifest description and headers updated to name this demo as the
   second committed consumer.
 
-### launchd hook
+### launchd hook (R-1, frozen contract)
+
+Plist template contains `WatchPaths`, `ThrottleInterval` (30s debounce;
+the graph is idempotent anyway), `WorkingDirectory` (repo root),
+`StandardOutPath`/`StandardErrorPath`, and an exact executable
+`ProgramArguments` — launchd does no shell expansion:
 
 ```xml
+<key>ProgramArguments</key>
+<array>
+  <string>/ABS/REPO/.venv/bin/yamlgraph</string>
+  <string>graph</string>
+  <string>run</string>
+  <string>/ABS/REPO/examples/demos/file-hook/graph.yaml</string>
+  <string>--var</string>
+  <string>dir=/ABS/PATH/TO/watched-folder</string>
+</array>
 <key>WatchPaths</key>
 <array><string>/ABS/PATH/TO/watched-folder</string></array>
 <key>ThrottleInterval</key>
-<integer>30</integer>   <!-- debounce bursts; graph is idempotent anyway -->
+<integer>30</integer>
 ```
 
-`ProgramArguments` = absolute venv python → `yamlgraph graph run
-examples/demos/file-hook/graph.yaml --var dir=<watched>`.
-`install-hook.sh <watched-dir>` renders the template (launchd does no
-shell expansion), copies to `~/Library/LaunchAgents/`, and loads it.
+- API keys/env reach launchd via the README-documented options
+  (`EnvironmentVariables` dict, wrapper script sourcing `.env`, or
+  Keychain) — never assumed from an interactive shell.
+- `install-hook.sh <watched-dir>` renders the template with absolute
+  paths, copies to `~/Library/LaunchAgents/`, and loads it. It has a
+  `--render-only` (dry-run) mode so CI tests path substitution and
+  load/unload command construction without launchctl; real `launchctl`
+  execution is optional/manual, never required in Linux CI
+  (judgement C-4).
 
 ### README contract (the actual deliverable for "system hooks")
 
 1. **Install a yamlgraph graph as a macOS file hook** — plist anatomy
-   (`WatchPaths` vs `StartCalendarInterval`), install/uninstall/test/
-   logs commands, and the **sandbox trap callout**: launchd agents need
+   (`WatchPaths` vs `StartCalendarInterval`), install/uninstall/status/
+   manual-test/logs commands, environment/API-key setup for launchd,
+   and the **sandbox trap callout**: launchd agents need
    Full Disk Access (or a watch dir outside `~/Documents`/`~/Desktop`)
    — cite diary-2026-02-21 so nobody re-derives it.
 2. **This example**: the DeviantArt post generator, run manually or via
@@ -175,36 +229,66 @@ shell expansion), copies to `~/Library/LaunchAgents/`, and loads it.
 
 ## Acceptance Criteria
 
-- [ ] `examples/demos/file-hook/graph.yaml` lints
-      (`yamlgraph graph lint`) and compiles; authored via
-      `scripts/author.sh` (FR-767 governed route)
-- [ ] Pairing idempotence: running the graph twice on the same folder
-      processes zero files the second run (unit test on the
-      `find_unpaired` tool semantics + witnessed in demo-output.log)
-- [ ] Low-confidence gate: condition strings verified by unit test
-      (FR-779 pattern); low-confidence file is neither written nor
-      renamed
-- [ ] `describe_image(max_dim=...)`: unit test proves the encoded image's
-      longest side ≤ `max_dim` and payload bytes shrink vs full-size;
-      `max_dim=None` leaves the current path untouched (existing
-      shared-vision-tool tests stay green unmodified)
-- [ ] `max_dim` without the Pillow extra raises a fail-fast error naming
-      the extra; `ImageDescription.quote`/`.confidence` optional fields
-      added with defaults
-- [ ] `hooks/com.yamlgraph.file-hook.plist.template` contains
-      `WatchPaths` + `ThrottleInterval`; `install-hook.sh` renders
-      absolute paths and loads the agent
-- [ ] README documents install/uninstall/status/log commands, the
-      Full-Disk-Access sandbox trap, and the receipt-renamer recipe
-- [ ] `reference/scheduling-agents.md` extended with a WatchPaths
-      section referencing the example
-- [ ] Grounded `demo-output.log` witness on `fixture.png`
-      (PROVIDER=google): shows schema output and the write/rename
-      effects
-- [ ] Tests tagged with new REQ-YG-XXX; new `capabilities/CAP-XXX`
-      file; `python scripts/req_coverage.py --strict` green
-- [ ] Changelog fragment in `changelog/unreleased/`
-- [ ] Diary entry
+Frozen by the judgement (AC-01 satisfied by this revision):
+
+- [x] AC-01: FR revised to include the exact launchd runner/env/test
+      contract, filename/collision/idempotence contract, constrained
+      confidence semantics, chosen Pillow extra/dependency-governance
+      surface, and demo-witness requirements (R-1..R-5).
+- [ ] AC-02: `examples/demos/file-hook/graph.yaml` and
+      `prompts/describe_artwork.yaml` authored through
+      `scripts/author.sh`; `tmp/draft-authoring-report.md` records
+      lint, compile/validate, smoke, and test evidence.
+- [ ] AC-03: Pairing idempotence proven by tests on a temporary folder:
+      first run processes a PNG with no `.md` twin, second run
+      processes zero files, existing `.md` twin skipped without a
+      ledger.
+- [ ] AC-04: Filename-safety tests prove title normalization confines
+      outputs to the watched directory, handles path separators/
+      control characters/empty or dot names, and applies the frozen
+      duplicate-title collision policy without overwriting unrelated
+      files.
+- [ ] AC-05: Confidence-gate tests prove low, missing, or otherwise
+      blocked confidence writes no markdown and performs no rename,
+      while `"high"` writes `<safe-title>.md` and renames the PNG.
+- [ ] AC-06: `ImageDescription` gains optional `quote` and constrained
+      optional `confidence` fields with defaults preserving existing
+      shared-vision consumers; existing shared-vision tests remain
+      green without weakened assertions.
+- [ ] AC-07: `describe_image(max_dim=...)` downscales before base64
+      encoding (longest side ≤ `max_dim`, payload bytes shrink);
+      `max_dim=None` preserves current full-size behavior; URL inputs
+      not downloaded, documented warning when `max_dim` requested.
+- [ ] AC-08: `max_dim` without the Pillow extra fails before LLM
+      invocation naming `pip install "yamlgraph[vision]"`; tests
+      simulate the missing-extra path independent of ambient state.
+- [ ] AC-09: `pyproject.toml`, `docs/dependency-rationale.yaml`,
+      dependency-scan metadata, and CI install surfaces updated
+      consistently for the `vision` extra;
+      `python scripts/dependency_rationale.py --strict` and
+      `python scripts/direct_import_scan.py --strict` pass.
+- [ ] AC-10: Plist template contains `WatchPaths`, `ThrottleInterval`,
+      `WorkingDirectory`, `StandardOutPath`, `StandardErrorPath`, and
+      exact executable `ProgramArguments`; install-script tests verify
+      absolute-path rendering and load/unload command construction via
+      dry-run/fake launchctl without requiring macOS in CI.
+- [ ] AC-11: README documents install, uninstall, status, manual test,
+      logs, environment/API-key setup, `WatchPaths` vs
+      `StartCalendarInterval`, the Full Disk Access/TCC trap, this
+      example, and the receipt-renamer as documentation-only recipe;
+      `reference/scheduling-agents.md` links the example as the
+      canonical WatchPaths demo.
+- [ ] AC-12: `demo-output.log` regenerated from a grounded
+      `PROVIDER=google` run on a disposable copy of `fixture.png`:
+      shows typed schema output, confidence routing, write/rename
+      effects, second-run no-op; no fatal markers; committed fixture
+      not consumed or renamed.
+- [ ] AC-13: Every new/changed test has exact
+      `@pytest.mark.req("REQ-YG-...")`; capability registry updated for
+      the file-hook example and vision downscale;
+      `python scripts/req_coverage.py --strict` passes.
+- [ ] AC-14: Changelog fragment, FR implementation-status update, and
+      diary reflection included.
 
 ## Alternatives Considered
 
@@ -241,3 +325,14 @@ shell expansion), copies to `~/Library/LaunchAgents/`, and loads it.
 - docs/diary-2026-02-21.md (launchd sandbox trap — must be in README)
 - FR-117 (fswatch rejection precedent)
 - FR-779 (confidence-gate pattern reused here)
+
+## Judgement (2026-08-08)
+
+**Verdict:** APPROVED WITH REVISIONS — see
+`FR-781-macos-file-hook-example.judgement.md` for the full rubric.
+R-1..R-5 folded into this FR above (C-1 satisfied). Enforcement gates
+C-2..C-7: governed authoring only; fail-safe write boundary; installer
+testable without launchd; `max_dim` requiring `yamlgraph/` changes or
+core-Pillow promotion stops for re-judgement; receipt-renamer stays
+documentation-only; no fswatch/polling/ledger — the `.md` twin is the
+ledger.
