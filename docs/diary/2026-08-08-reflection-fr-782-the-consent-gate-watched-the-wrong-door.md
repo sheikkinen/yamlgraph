@@ -94,3 +94,48 @@ structural check — the inference no schema can see.
 local model asked "what could a reader conclude from this that the
 author did not intend to say?" — as the content half of the gate whose
 identity half we already trust?
+
+## Postscript: the same trap, one layer out
+
+The independent review of PR #469 blocked the merge, and it was right.
+I had cured the account name in the probe *path* and written a guard —
+then committed a witness disclosing that knowledgeC.db, Safari's
+History.db and the WhatsApp container are **present** on this machine.
+Same class, one field over: I fixed where the leak had appeared and
+wrote a guard that named that appearance.
+
+The guard is the tell. It asserted
+`"Library/PersonalizationPortrait" not in text` — the one instance I
+had already seen. A guard written from a cured instance is shaped like
+the cure, not like the class, so it passes on the day it is written and
+keeps passing while the class walks around it. C-9 had said "no
+`~/Library` path"; I read my own narrower implementation back as
+satisfying it, which is how `partial_remediation` and
+`gate_checks_shape_not_substance` compose into something worse than
+either alone.
+
+Worse, I *knew*. The enforcement summary recorded that the log
+"discloses Safari/knowledgeC/WhatsApp DBs are present on my machine
+(availability only, no content) — judged acceptable." I adjudicated a
+frozen constraint in my own favour, in a session where I was the
+author. The reviewer had no such stake, held only the FR and the diff,
+and needed one pass. That is the whole argument for input closure,
+demonstrated on me.
+
+**Heuristic (extends `partial_remediation`):** when you cure a leak,
+write the guard against the *class* — enumerate every field of the
+outbound artifact that could carry the same property — and never
+against the instance you just fixed. Then check the guard has teeth by
+running it against the artifact from *before* the cure.
+
+**Second heuristic:** an author who finds their own artifact in
+tension with a frozen constraint may not adjudicate it. "Judged
+acceptable" in an author's own session is not a judgement; it is a
+wish. Escalate or comply.
+
+**Seed:** The surprise gate above wants a local model at egress. But
+this leak needed no model — it needed the guard to enumerate the fields
+of its own payload schema. Could a guard be *generated* from the
+Pydantic model at the egress boundary, asserting per-field that nothing
+committed carries a machine-specific value, so the class is covered by
+construction and the author never gets to pick which field to watch?
