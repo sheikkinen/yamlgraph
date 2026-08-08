@@ -3,7 +3,7 @@
 **Priority:** MEDIUM
 **Type:** Feature
 **Status:** Proposed
-**Effort:** 2 days
+**Effort:** 3 days
 **Requested:** 2026-08-08
 **First consumer / first event:** the 15 orphaned PNGs in
 `~/Documents/deviant-working/deployed/` (newest 2026-08-05), which have
@@ -33,6 +33,13 @@ description, tags, quote) → confidence gate → write `<Title>.md` and
 rename the PNG. The README doubles as the canonical guide for
 installing ANY yamlgraph graph as a system hook, with recipes for other
 use cases (receipt PDF renaming — prefixing sender name).
+
+**In scope — shared manifest enhancement:** `describe_image`
+(`examples/shared/vision_tool.py`, CAP-217) is the reusable boundary
+this demo consumes; it gains (a) an optional `max_dim` downscale
+parameter — the ancestor's 10%-shrink cost trick generalized — and
+(b) optional `quote` and `confidence` schema fields the gate needs.
+Both additive; existing consumers unchanged.
 
 ## Value Statement
 
@@ -95,7 +102,7 @@ tools:
   find_unpaired:      # shell: find "$dir" pngs lacking "<base>.md"
     command: ...      # pairing check replaces the ancestor's ledger
   describe_image:
-    manifest: ../../shared/describe_image.tool.yaml
+    manifest: ../../shared/describe_image.tool.yaml   # args: max_dim: 512
   write_post: ...     # shell: write <Title>.md
   rename_image: ...   # shell: mv original -> <Title>.png (idempotent)
 
@@ -110,9 +117,28 @@ nodes:
 - **Confidence gate** (FR-779 pattern): schema includes a confidence
   field; low confidence routes past write/rename — the file stays
   unpaired and is retried on the next event, visibly.
-- **Schema at the boundary**: inline schema
-  `{title, description, tags: list[str], quote, confidence}` replaces
+- **Schema at the boundary**: `ImageDescription` extended with optional
+  `quote: str | None` and `confidence: str | None` (default None —
+  additive, `matches_prompt`/`notes` set the precedent) replaces
   grep-from-prose.
+
+### `describe_image` manifest enhancement (in scope)
+
+```python
+def describe_image(image, instruction, *, max_dim: int | None = None, ...):
+    # max_dim set: downscale a temp copy so its longest side <= max_dim
+    # BEFORE base64 encoding — token/cost engineering at the boundary.
+    # max_dim unset: current full-size path, byte-identical behavior.
+```
+
+- Downscaling uses Pillow, declared as a new optional extra (or added
+  to an existing one — judge decides); requesting `max_dim` without the
+  extra fails fast naming the install command (FR-759 otel precedent:
+  explicit opt-in fails loud, unset is a true no-op).
+- URL images: `max_dim` is ignored with a logged warning (no download
+  side effect in scope).
+- The manifest description and headers updated to name this demo as the
+  second committed consumer.
 
 ### launchd hook
 
@@ -158,6 +184,13 @@ shell expansion), copies to `~/Library/LaunchAgents/`, and loads it.
 - [ ] Low-confidence gate: condition strings verified by unit test
       (FR-779 pattern); low-confidence file is neither written nor
       renamed
+- [ ] `describe_image(max_dim=...)`: unit test proves the encoded image's
+      longest side ≤ `max_dim` and payload bytes shrink vs full-size;
+      `max_dim=None` leaves the current path untouched (existing
+      shared-vision-tool tests stay green unmodified)
+- [ ] `max_dim` without the Pillow extra raises a fail-fast error naming
+      the extra; `ImageDescription.quote`/`.confidence` optional fields
+      added with defaults
 - [ ] `hooks/com.yamlgraph.file-hook.plist.template` contains
       `WatchPaths` + `ThrottleInterval`; `install-hook.sh` renders
       absolute paths and loads the agent
@@ -185,10 +218,15 @@ shell expansion), copies to `~/Library/LaunchAgents/`, and loads it.
 4. **Implement the receipt renamer as a second enforced graph** —
    doubles witness/test surface for a recipe whose hook mechanics are
    identical; documented sketch suffices until it has a first consumer.
-5. **In-graph 10%-shrink preprocessing** — the ancestor downscaled
-   images before analysis to cut cost. Deferred: belongs in
-   `describe_image.tool.yaml` as a shared-manifest enhancement, its own
-   FR if measurement shows it pays.
+5. **In-graph shrink via shell tool (`sips`)** — keeps the manifest
+   untouched but couples the pattern to macOS and leaves every future
+   vision consumer to re-derive the trick; rejected in favor of the
+   in-scope `max_dim` parameter on the shared manifest, where the
+   optimization is reusable and portable (Pillow).
+6. **Deferring the manifest enhancement to its own FR** — original
+   draft's position; overturned: the demo is the concrete second
+   consumer that justifies the parameter now, and shipping the demo
+   full-size would embed the cost bug the ancestor had already solved.
 
 ## Related
 
