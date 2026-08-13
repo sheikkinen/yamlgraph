@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Feature
-**Status:** In Progress
+**Status:** Enforced 2026-08-13 — AC-01..AC-08 delivered; 19/19 tests green (REQ-YG-586, CAP-225)
 **Effort:** 1 day
 **Requested:** 2026-08-13
 **First consumer / first event:** FR-791 API discovery orchestrator,
