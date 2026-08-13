@@ -1,0 +1,12 @@
+# Graph-runtime tool manifest for endpoint-probe step (FR-785)
+# Consumed by the orchestrator (FR-791) via type: tool_call node.
+
+name: endpoint_probe
+description: "Probe candidate URLs for live API endpoints with adaptive retry"
+runtime:
+  type: graph
+  path: endpoint-probe/graph.yaml
+  input_mapping:
+    candidate_urls: candidate_urls
+    max_iterations: max_iterations
+  output_key: probe_result

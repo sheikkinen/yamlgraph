@@ -1,0 +1,37 @@
+version: "1.0"
+name: endpoint-probe
+description: "Probe candidate URLs for live API endpoints with adaptive retry"
+
+prompts_relative: true
+prompts_dir: prompts
+
+state:
+  candidate_urls:
+    type: list[str]
+    description: "URLs to probe for API endpoints"
+  max_iterations:
+    type: int
+    default: 10
+    description: "Maximum tool-call iterations for the agent"
+  probe_result:
+    type: dict
+    description: "Structured ProbeResult with live endpoints and HTML pages"
+
+tools:
+  curl_probe:
+    manifest: ../../tools/curl_probe.tool.yaml
+
+nodes:
+  probe_agent:
+    type: agent
+    prompt: probe
+    tools:
+      - curl_probe
+    max_iterations: 10
+    state_key: probe_result
+
+edges:
+  - from: START
+    to: probe_agent
+  - from: probe_agent
+    to: END

@@ -1,0 +1,20 @@
+id: CAP-225
+name: API Discovery Endpoint-Probe Step
+description: >
+  Agent-based endpoint probing step for the API discovery pipeline (FR-785).
+  A single agent node with curl_probe tool adaptively probes candidate URLs
+  to identify live API endpoints, HTML portal pages, and connectivity issues.
+  Response taxonomy doctrine encodes 403→UA retry, 404→path variants,
+  200+HTML/JSON/XML classification, and 000→geo_blocked.
+modules:
+  - examples
+fr: FR-785
+requirements:
+  - id: REQ-YG-586
+    description: >
+      Endpoint-probe step graph with adaptive retry doctrine, bounded
+      max_iterations, curl_probe tool reference, and ProbeResult schema.
+    modules:
+      - examples
+    tests:
+      - tests/unit/test_fr785_endpoint_probe.py

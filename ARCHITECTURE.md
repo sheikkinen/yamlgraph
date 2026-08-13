@@ -540,6 +540,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 222 | CAP-222 macOS File-Hook Example (Folder-Triggered Graph) | `examples` | REQ-YG-582 |
 | 223 | CAP-223 User Self-Portrait Example (PersonalizationPortrait → Agent Context) | `examples` | REQ-YG-584 |
 | 224 | CAP-224 API Discovery Leaf Tool Manifests | `examples` | REQ-YG-585 |
+| 225 | CAP-225 API Discovery Endpoint-Probe Step | `examples` | REQ-YG-586 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -2769,6 +2770,16 @@ Shared tool manifest library for the API discovery pipeline (FR-783): curl_probe
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-585 | API discovery leaf tools exist as validated FR-768 manifests, curl_probe and parse_openapi have Python implementations with typed return contracts, and all manifests load without runtime or schema changes. | `examples` |
+
+### 225. CAP-225 API Discovery Endpoint-Probe Step
+
+Agent-based endpoint probing step for the API discovery pipeline (FR-785). A single agent node with curl_probe tool adaptively probes candidate URLs to identify live API endpoints, HTML portal pages, and connectivity issues. Response taxonomy doctrine encodes 403→UA retry, 404→path variants, 200+HTML/JSON/XML classification, and 000→geo_blocked.
+
+**Feature Request:** FR-785
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-586 | Endpoint-probe step graph with adaptive retry doctrine, bounded max_iterations, curl_probe tool reference, and ProbeResult schema. | `examples` |
 
 <!-- END GENERATED CAPABILITIES -->
 

@@ -194,7 +194,6 @@
 | FR-751 | Proposed | yamlgraph |  | FR-751-liquid-safety-precommit-gate.md |
 | FR-757 | Proposed | yamlgraph |  | FR-757-fsm-contrib-relocation.md |
 | FR-784 | Proposed | yamlgraph |  | FR-784-playwright-network-sniff-utility.md |
-| FR-785 | Proposed | yamlgraph |  | FR-785-api-discovery-endpoint-probe-step.md |
 | FR-786 | Proposed | yamlgraph |  | FR-786-api-discovery-page-analysis-step.md |
 | FR-787 | Proposed | yamlgraph |  | FR-787-api-discovery-recon-step.md |
 | FR-788 | Proposed | yamlgraph |  | FR-788-api-discovery-platform-confirm-step.md |
@@ -214,6 +213,7 @@
 | FR-643 | In Progress | yamlgraph |  | FR-643v2-novel-fandom-world-expansion.md |
 | FR-735 | In Progress | yamlgraph |  | FR-735-webllm-demo-evidence-ergonomics.md |
 | FR-736 | In Progress | yamlgraph |  | FR-736-webllm-demo-trace-capture.md |
+| FR-785 | In Progress | yamlgraph |  | FR-785-api-discovery-endpoint-probe-step.md |
 | FR-273 | Draft | yamlgraph |  | FR-273-watcher2-pipeline.md |
 | FR-307 | Draft | yamlgraph |  | FR-307-yamlgraph-async-action-logging.md |
 | FR-317 | Draft | yamlgraph |  | FR-317-retire-obsolete-watcher2-components.md |
@@ -426,7 +426,7 @@ graph TD
     FR-762["FR-762 Judged"]
     FR-764["FR-764 Judged"]
     FR-784["FR-784 Proposed"]
-    FR-785["FR-785 Proposed"]
+    FR-785["FR-785 In Progress"]
     FR-786["FR-786 Proposed"]
     FR-787["FR-787 Proposed"]
     FR-788["FR-788 Proposed"]
