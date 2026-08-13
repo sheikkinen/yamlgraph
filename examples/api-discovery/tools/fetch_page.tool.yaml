@@ -1,0 +1,8 @@
+# Tool manifest (FR-768) — full page fetch for API discovery (FR-783).
+name: fetch_page
+description: "Fetch full page source with custom User-Agent"
+runtime:
+  type: shell
+  command: "curl -sL -A {user_agent} {url}"
+  parse: text
+  timeout: 30

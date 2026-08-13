@@ -539,6 +539,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 221 | CAP-221 Demo Graph Binding Hygiene and Grounded Synthesis Gate | `examples` | REQ-YG-581 |
 | 222 | CAP-222 macOS File-Hook Example (Folder-Triggered Graph) | `examples` | REQ-YG-582 |
 | 223 | CAP-223 User Self-Portrait Example (PersonalizationPortrait → Agent Context) | `examples` | REQ-YG-584 |
+| 224 | CAP-224 API Discovery Leaf Tool Manifests | `examples` | REQ-YG-585 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -2758,6 +2759,16 @@ Local-database → typed rows → consented LLM synthesis example (FR-782): the 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-584 | extract_portrait opens the database via read-only SQLite URI mode and returns Pydantic-validated entity/topic/location/contact/ provenance rows with a source summary; schema drift is asserted at that boundary — unknown ne_records categories and missing required tables raise SchemaDriftError, a missing/unreadable database raises DatabaseUnreadableError naming the Full Disk Access remediation, and missing optional columns degrade to None without failing. Supplementary databases (knowledgeC, Safari, Calendar, WhatsApp) are availability probes only — present sources are reported as "present (not parsed)" and absent ones never fail the run. Wikidata resolution batches at no more than 50 Q-IDs per request, caches labels under the output directory keyed by Q-ID + language, performs no network call on a cache hit, keeps Q-IDs when offline or when the requested language label is missing, and uses only urllib from the standard library. build_payload writes the exact outbound JSON payload with byte count and SHA-256; verify_payload_identity re-reads that file and raises ConsentPayloadMismatchError unless the bytes are identical, so the consent interrupt previews exactly what synthesis sends; the graph declares a checkpointer, a single confirm_egress interrupt with resume_key consent_answer, and conditional edges routing auto_approve around the gate and a non-yes answer to an extraction-only render. Rendering emits the frozen self-portrait.json contract (schema_version, portrait_date, generated_at, source_summary, identity, social_graph, expertise, geography, rhythms, evolution, agent_briefing, provenance), a narrative Markdown, and a deterministic portrait-diff reporting new people, shifted topic scores, and dropped locations; all writes are confined to the output directory, and the committed fixture plus demo witness contain no real PersonalizationPortrait or ~/Library path. | `examples` |
+
+### 224. CAP-224 API Discovery Leaf Tool Manifests
+
+Shared tool manifest library for the API discovery pipeline (FR-783): curl_probe (Python wrapper returning status/redirect/content_type/body_head), fetch_page (shell, full page source), gh_code_search (shell, GitHub code search JSON), and parse_openapi (Python, deterministic OpenAPI spec parsing). Each is an FR-768 tool manifest under examples/api-discovery/tools/, consumed by step graphs FR-785..FR-790 via manifest: references.
+
+**Feature Request:** FR-783
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-585 | API discovery leaf tools exist as validated FR-768 manifests, curl_probe and parse_openapi have Python implementations with typed return contracts, and all manifests load without runtime or schema changes. | `examples` |
 
 <!-- END GENERATED CAPABILITIES -->
 

@@ -41,6 +41,7 @@ After the learning path, explore production examples below.
 | [codegen/](codegen/) | Implementation agent | Tool nodes, code analysis, 24 Python tools |
 | [cost-router/](cost-router/) | Multi-provider routing | Router nodes, Granite/Mistral/Claude |
 | [cwe-classifier/](cwe-classifier/) | CVE→CWE weakness coding | Coded-classification pattern 2nd instance, NVD gold labels, MITRE usage caps (FR-733) |
+| [api-discovery/](api-discovery/) | API discovery pipeline | Shared tool manifests, agent steps, orchestrator routing (FR-783..FR-791) |
 | [daily_digest/](daily_digest/) | Scheduled news digest | Fly.io deployment, background tasks, email |
 | [diary_digest/](diary_digest/) | Automated diary digest | Data files, feed topics, parallel processing (FR-046) |
 | [dungeon_master/](dungeon_master/) | Interactive DM turn loop | Interrupt loop, parallel character planning (map), conditional-to-map routing (FR-466/467) |

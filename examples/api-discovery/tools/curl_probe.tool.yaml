@@ -1,0 +1,10 @@
+# Tool manifest (FR-768) — curl URL probe for API discovery (FR-783).
+# Python wrapper: curl -w format braces conflict with shell runtime
+# str.format() substitution. This callable handles body capture + JSON
+# assembly without temp files.
+name: curl_probe
+description: "Probe a URL: returns {status, redirect, content_type, body_head}"
+runtime:
+  type: python
+  path: curl_probe.py
+  function: curl_probe

@@ -1,0 +1,8 @@
+# Tool manifest (FR-768) — OpenAPI spec parser for API discovery (FR-783).
+# Deterministic parsing, no LLM. tool_call-compatible kwargs callable.
+name: parse_openapi
+description: "Parse an OpenAPI/Swagger JSON spec into an endpoint inventory"
+runtime:
+  type: python
+  path: parse_openapi.py
+  function: parse_openapi

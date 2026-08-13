@@ -193,6 +193,15 @@
 | FR-729 | Proposed | yamlgraph |  | FR-729-landing-page-metrics-generated.md |
 | FR-751 | Proposed | yamlgraph |  | FR-751-liquid-safety-precommit-gate.md |
 | FR-757 | Proposed | yamlgraph |  | FR-757-fsm-contrib-relocation.md |
+| FR-784 | Proposed | yamlgraph |  | FR-784-playwright-network-sniff-utility.md |
+| FR-785 | Proposed | yamlgraph |  | FR-785-api-discovery-endpoint-probe-step.md |
+| FR-786 | Proposed | yamlgraph |  | FR-786-api-discovery-page-analysis-step.md |
+| FR-787 | Proposed | yamlgraph |  | FR-787-api-discovery-recon-step.md |
+| FR-788 | Proposed | yamlgraph |  | FR-788-api-discovery-platform-confirm-step.md |
+| FR-789 | Proposed | yamlgraph |  | FR-789-api-discovery-browser-sniff-step.md |
+| FR-790 | Proposed | yamlgraph |  | FR-790-api-discovery-schema-extract-step.md |
+| FR-791 | Proposed | yamlgraph |  | FR-791-api-discovery-orchestrator.md |
+| FR-792 | Proposed | yamlgraph |  | FR-792-multi-step-investigation-template.md |
 | FR-078 | In Progress | yamlgraph |  | FR-078-relocate-project-tests.md |
 | FR-100 | In Progress | yamlgraph |  | FR-100-yamlgraph-development-pipeline-ebook.md |
 | FR-169 | In Progress | yamlgraph |  | FR-169-enforce-reflexion-loop.md |
@@ -416,6 +425,15 @@ graph TD
     FR-761["FR-761 Judged"]
     FR-762["FR-762 Judged"]
     FR-764["FR-764 Judged"]
+    FR-784["FR-784 Proposed"]
+    FR-785["FR-785 Proposed"]
+    FR-786["FR-786 Proposed"]
+    FR-787["FR-787 Proposed"]
+    FR-788["FR-788 Proposed"]
+    FR-789["FR-789 Proposed"]
+    FR-790["FR-790 Proposed"]
+    FR-791["FR-791 Proposed"]
+    FR-792["FR-792 Proposed"]
     FR-081 --> FR-082
     FR-731 --> FR-735
     FR-731 --> FR-736

@@ -1,0 +1,21 @@
+id: CAP-224
+name: API Discovery Leaf Tool Manifests
+description: >
+  Shared tool manifest library for the API discovery pipeline (FR-783):
+  curl_probe (Python wrapper returning status/redirect/content_type/body_head),
+  fetch_page (shell, full page source), gh_code_search (shell, GitHub code
+  search JSON), and parse_openapi (Python, deterministic OpenAPI spec parsing).
+  Each is an FR-768 tool manifest under examples/api-discovery/tools/,
+  consumed by step graphs FR-785..FR-790 via manifest: references.
+modules:
+  - examples
+fr: FR-783
+requirements:
+  - id: REQ-YG-585
+    description: >
+      API discovery leaf tools exist as validated FR-768 manifests,
+      curl_probe and parse_openapi have Python implementations with
+      typed return contracts, and all manifests load without runtime
+      or schema changes.
+    modules:
+      - examples

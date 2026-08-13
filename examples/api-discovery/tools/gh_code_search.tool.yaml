@@ -1,0 +1,10 @@
+# Tool manifest (FR-768) — GitHub code search for API discovery (FR-783).
+# Requires authenticated `gh` CLI. Tests validate manifest shape only;
+# live execution is gated on gh auth availability.
+name: gh_code_search
+description: "Search GitHub code repositories, returns JSON results"
+runtime:
+  type: shell
+  command: "gh search code {query} --limit 20 --json path,repository,textMatches"
+  parse: json
+  timeout: 30
