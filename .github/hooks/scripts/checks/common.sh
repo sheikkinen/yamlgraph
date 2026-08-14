@@ -14,6 +14,19 @@ is_edit_tool() {
   esac
 }
 
+resolve_ruff() {
+  # FR-793: HOOK_RUFF_BIN seam -> PATH -> hook-repo .venv; fails silently.
+  if [[ -n "${HOOK_RUFF_BIN:-}" ]]; then
+    [[ -x "$HOOK_RUFF_BIN" ]] && { echo "$HOOK_RUFF_BIN"; return 0; }
+    return 1
+  fi
+  command -v ruff 2>/dev/null && return 0
+  local root
+  root=$(git -C "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)" rev-parse --show-toplevel 2>/dev/null) || return 1
+  [[ -x "$root/.venv/bin/ruff" ]] && { echo "$root/.venv/bin/ruff"; return 0; }
+  return 1
+}
+
 parse_tool_input() {
   local input="$1"
 

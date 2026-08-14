@@ -125,7 +125,7 @@ if [[ "$TOOL_NAME" == "run_in_terminal" || "$TOOL_NAME" == "send_to_terminal" ]]
       ;;
     status)
       SUMMARY=$(python3 -c "
-import json, collections, pathlib
+import json, collections, pathlib, datetime as dt
 logfile = pathlib.Path('$LOG_DIR') / 'audit.jsonl'
 if not logfile.exists():
     print('No audit log found.')
@@ -133,15 +133,27 @@ else:
     lines = logfile.read_text().strip().splitlines()
     decisions = collections.Counter()
     tools = collections.Counter()
+    errors = collections.Counter()
+    cutoff = dt.datetime.now(dt.timezone.utc) - dt.timedelta(days=7)
     for line in lines:
         d = json.loads(line)
         decisions[d.get('decision','')] += 1
         tools[d.get('tool','')] += 1
+        if d.get('decision') == 'error':
+            try:
+                ts = dt.datetime.fromisoformat(d.get('ts',''))
+            except ValueError:
+                continue
+            if ts.tzinfo is None:
+                ts = ts.replace(tzinfo=dt.timezone.utc)
+            if ts >= cutoff:
+                errors[d.get('hook','?') + '/' + d.get('reason','?')] += 1
     total = sum(decisions.values())
     dec_str = ', '.join(f'{k}={v}' for k,v in decisions.most_common())
     tool_str = ', '.join(f'{k}={v}' for k,v in tools.most_common(5))
+    err_str = ', '.join(f'{k}={v}' for k,v in errors.most_common()) if errors else 'none'
     lockdown = 'YES' if pathlib.Path('$LOCKFILE').exists() else 'no'
-    print(f'Audit: {total} total entries. Decisions: {dec_str}. Top tools: {tool_str}. Lockdown: {lockdown}')
+    print(f'Audit: {total} total entries. Decisions: {dec_str}. Top tools: {tool_str}. Hook errors (7d): {err_str}. Lockdown: {lockdown}')
 " 2>/dev/null)
       audit_log "deny" "lockdown-status" "status requested"
       emit_deny "$SUMMARY"

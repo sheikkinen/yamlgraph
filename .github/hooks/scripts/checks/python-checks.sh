@@ -13,6 +13,8 @@ parse_tool_input "$INPUT"
 is_edit_tool "$TOOL_NAME" || exit 0
 [[ ${#FILE_PATHS[@]} -gt 0 ]] || exit 0
 
+RUFF_BIN=$(resolve_ruff || true)
+
 build_python_issues() {
   local file_path="$1"
   local file_issues=""
@@ -20,34 +22,32 @@ build_python_issues() {
   [[ -f "$file_path" ]] || return 0
   [[ "$file_path" == *.py ]] || return 0
 
-  if [[ "${POST_EDIT_AUTO_RUFF:-}" == "1" ]] && command -v ruff &>/dev/null; then
-    local before_sig
-    local after_sig
-    before_sig=$(cksum "$file_path" | awk '{print $1":"$2}')
-    ruff check --fix --quiet "$file_path" >/dev/null 2>&1 || true
-    ruff format --quiet "$file_path" >/dev/null 2>&1 || true
-    after_sig=$(cksum "$file_path" | awk '{print $1":"$2}')
-    if [[ "$before_sig" != "$after_sig" ]]; then
-      audit_log "$HOOK_NAME" "feedback" "ruff-autofix-applied" "$file_path"
+  if [[ -n "$RUFF_BIN" ]]; then
+    if [[ "${POST_EDIT_AUTO_RUFF:-}" == "1" ]]; then
+      local before_sig
+      local after_sig
+      before_sig=$(cksum "$file_path" | awk '{print $1":"$2}')
+      "$RUFF_BIN" check --fix --quiet "$file_path" >/dev/null 2>&1 || true
+      "$RUFF_BIN" format --quiet "$file_path" >/dev/null 2>&1 || true
+      after_sig=$(cksum "$file_path" | awk '{print $1":"$2}')
+      if [[ "$before_sig" != "$after_sig" ]]; then
+        audit_log "$HOOK_NAME" "feedback" "ruff-autofix-applied" "$file_path"
+      fi
     fi
-  fi
 
-  if command -v ruff &>/dev/null; then
     local ruff_lint
-    ruff_lint=$(ruff check --no-fix --quiet "$file_path" 2>/dev/null || true)
+    ruff_lint=$("$RUFF_BIN" check --no-fix --quiet "$file_path" 2>/dev/null || true)
     if [[ -n "$ruff_lint" ]]; then
       file_issues="${file_issues}⚠ Ruff lint errors:\n${ruff_lint}\n\n"
     fi
-  else
-    audit_log "$HOOK_NAME" "error" "ruff-missing" "$file_path"
-  fi
 
-  if command -v ruff &>/dev/null; then
     local ruff_fmt
-    ruff_fmt=$(ruff format --check --quiet "$file_path" 2>&1 || true)
+    ruff_fmt=$("$RUFF_BIN" format --check --quiet "$file_path" 2>&1 || true)
     if echo "$ruff_fmt" | grep -q "would reformat\|reformatted"; then
       file_issues="${file_issues}⚠ Ruff format: file needs reformatting. Run: ruff format ${file_path}\n\n"
     fi
+  else
+    audit_log "$HOOK_NAME" "error" "ruff-missing" "$file_path"
   fi
 
   local forbidden

@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Bug
-**Status:** In Progress (judged APPROVED WITH REVISIONS 2026-08-14; R-1..R-5 folded below)
+**Status:** Enforced (2026-08-14; pending C-2 human review before merge)
 **Effort:** 0.5 days
 **Requested:** 2026-08-14
 **First consumer / first event:** the very next agent `.py` edit in this
@@ -112,28 +112,46 @@ mechanically checkable.
 
 ## Acceptance Criteria (frozen by judgement 2026-08-14)
 
-- [ ] AC-01: A test demonstrates that when `ruff` is absent from PATH but
+- [x] AC-01: A test demonstrates that when `ruff` is absent from PATH but
       present at a deterministic fixture path, a Python edit with a ruff
       violation produces ruff feedback instead of `ruff-missing`.
-- [ ] AC-02: A test demonstrates that when `ruff` is absent from both PATH
+- [x] AC-02: A test demonstrates that when `ruff` is absent from both PATH
       and the fallback, `post-edit-python-checks` logs exactly one
       `decision: "error", reason: "ruff-missing"` entry per inspected file.
-- [ ] AC-03: A test demonstrates `POST_EDIT_AUTO_RUFF=1` uses the same
+- [x] AC-03: A test demonstrates `POST_EDIT_AUTO_RUFF=1` uses the same
       resolved binary and still emits `ruff-autofix-applied` on change.
-- [ ] AC-04: All ruff invocations in `python-checks.sh` use the shared
+- [x] AC-04: All ruff invocations in `python-checks.sh` use the shared
       resolved command; no `command -v ruff`, bare `ruff check`, or bare
       `ruff format` calls remain in that script.
-- [ ] AC-05: `.github/hooks/cmd status` output (produced by
+- [x] AC-05: `.github/hooks/cmd status` output (produced by
       `pre-command-guard.sh`) includes last-7-days hook error counts
       grouped by hook and reason when synthetic recent errors exist.
-- [ ] AC-06: Status output includes an explicit zero-error line when the
+- [x] AC-06: Status output includes an explicit zero-error line when the
       synthetic audit log contains no recent error entries.
-- [ ] AC-07: The status test proves the 7-day window by excluding an
+- [x] AC-07: The status test proves the 7-day window by excluding an
       older-than-7-days synthetic error from the displayed count.
-- [ ] AC-08: `.github/hooks/README.md` documents the venv fallback, the
+- [x] AC-08: `.github/hooks/README.md` documents the venv fallback, the
       retained `ruff-missing` failure mode, and the status output shape.
-- [ ] AC-09: The FR records implementation decisions and deviations before
+- [x] AC-09: The FR records implementation decisions and deviations before
       enforcement is marked complete.
+
+## Implementation Notes (2026-08-14)
+
+- RED commit 588a8117 (5 failing witnesses; AC-02 passed pre-fix as the
+  FR-414 contract-preservation test); GREEN in the follow-up commit.
+  27/27 hook tests pass — the two previously-skipped fixture tests now
+  run because the fixture falls back to the repo venv binary.
+- Deviations from judgement literal text, both recorded in Proposed
+  Solution: (1) `HOOK_RUFF_BIN` env seam added — required by R-4's own
+  determinism demand, since the venv fallback anchors to the hook
+  script's repo, which in tests IS the real repo; (2) the advisory
+  message line `Run: ruff format <file>` is exempted from AC-04's
+  bare-invocation scan (it is a message to the agent, not an invocation).
+- Status line format: `Hook errors (7d): <hook>/<reason>=<n>, ...` or
+  `Hook errors (7d): none`; malformed `ts` rows are skipped
+  (ValueError), naive timestamps normalized to UTC.
+- Purge check: no daemons, no jq, no global installs, no changes outside
+  the hook subsystem. C-2 (human review) is the remaining gate.
 
 ## Alternatives Considered
 

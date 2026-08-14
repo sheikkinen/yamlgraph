@@ -164,6 +164,16 @@ Both hooks log every invocation to `.github/hooks/logs/audit.jsonl` (gitignored,
 | `post-edit-markdown-checks` | Edit tools, non-FR `.md` hygiene checks | `approve` (all-checks-clean), `feedback` (issues found) |
 | `post-edit-fr-checks` | Edit tools, `feature-requests/*.md` checks | `approve` (all-checks-clean), `feedback` (issues found) |
 
+### Ruff resolution (FR-793)
+
+`python-checks.sh` resolves ruff via `resolve_ruff` in `common.sh`:
+`HOOK_RUFF_BIN` env override (test seam) → PATH → `<hook repo>/.venv/bin/ruff`
+(anchored to the hook script's own repo, not the cwd). Only when all three
+fail is `error/ruff-missing` logged — once per inspected Python file — and
+the ruff lint/format/auto-fix checks skipped. Before FR-793 the lookup was
+PATH-only, which silently skipped ruff feedback 1,818 times over 3 months
+because ruff lives only in the repo venv.
+
 ### Prior-art check (FR-737)
 
 On **newly created** FR files (not in `git ls-files` — tracked status
@@ -236,7 +246,7 @@ Since VS Code has no user-prompt hook, the command channel uses a sentinel patte
 |---------|--------|
 | `lockdown` | Deny **all** tool calls until unlocked. Creates `.lockdown` state file. |
 | `unlock` | Lift lockdown. Resume normal operations. |
-| `status` | Return audit summary (total entries, decisions, top tools, lockdown state). |
+| `status` | Return audit summary (total entries, decisions, top tools, **hook error counts for the last 7 days grouped by hook/reason** — explicit `none` when clean (FR-793) — lockdown state). |
 
 ### How it works
 
