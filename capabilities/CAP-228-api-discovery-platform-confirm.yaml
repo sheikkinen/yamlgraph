@@ -1,0 +1,25 @@
+id: CAP-228
+name: API Discovery Platform-Confirm Step
+description: >
+  Agent-based platform confirmation step for the API discovery pipeline
+  (FR-788). A single agent node with the shared curl_probe tool confirms
+  platform family candidates (CKAN, PxWeb, OData, OpenAPI, WordPress
+  REST, JSON-stat) against family-specific substance predicates —
+  proving real data was returned, not just a 200 status — and returns
+  exactly one PlatformConfirmation result, stopping at the first
+  satisfied candidate/base-URL pair.
+modules:
+  - examples
+fr: FR-788
+requirements:
+  - id: REQ-YG-589
+    description: >
+      Platform-confirm step graph with shared curl_probe tool reference,
+      frozen list[str] input cardinality, family confirmation matrix
+      covering six platform families, and a single PlatformConfirmation
+      output proven by live positive (CKAN) and negative (non-matching
+      URL) smoke evidence.
+    modules:
+      - examples
+    tests:
+      - tests/unit/test_fr788_platform_confirm.py

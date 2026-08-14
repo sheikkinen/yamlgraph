@@ -1,0 +1,13 @@
+# Graph-runtime tool manifest for platform-confirm step (FR-788)
+# Consumed by the orchestrator (FR-791) via type: tool_call node.
+
+name: platform_confirm
+description: "Confirm platform family candidates with family-specific substance queries"
+runtime:
+  type: graph
+  path: platform-confirm/graph.yaml
+  input_mapping:
+    platform_candidates: platform_candidates
+    base_urls: base_urls
+    max_iterations: max_iterations
+  output_key: platform_confirmation

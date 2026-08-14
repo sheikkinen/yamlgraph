@@ -543,6 +543,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 225 | CAP-225 API Discovery Endpoint-Probe Step | `examples` | REQ-YG-586 |
 | 226 | CAP-226 API Discovery Page-Analysis Step | `examples` | REQ-YG-587 |
 | 227 | CAP-227 Shared Python Tool Manifest Root Confinement Fix | `tools` | REQ-YG-588 |
+| 228 | CAP-228 API Discovery Platform-Confirm Step | `examples` | REQ-YG-589 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -2802,6 +2803,16 @@ Fixes a composition bug between CAP-216 (tool manifest declaration reuse, FR-768
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-588 | Manifest-sourced `type: python` tool paths are confined to their declaring manifest's own directory (not the consuming graph's); manifests whose own path escapes their own directory are rejected at graph-load time; inline (non-manifest) `type: python` tools keep FR-445 graph-root confinement unchanged. | `tools` |
+
+### 228. CAP-228 API Discovery Platform-Confirm Step
+
+Agent-based platform confirmation step for the API discovery pipeline (FR-788). A single agent node with the shared curl_probe tool confirms platform family candidates (CKAN, PxWeb, OData, OpenAPI, WordPress REST, JSON-stat) against family-specific substance predicates — proving real data was returned, not just a 200 status — and returns exactly one PlatformConfirmation result, stopping at the first satisfied candidate/base-URL pair.
+
+**Feature Request:** FR-788
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-589 | Platform-confirm step graph with shared curl_probe tool reference, frozen list[str] input cardinality, family confirmation matrix covering six platform families, and a single PlatformConfirmation output proven by live positive (CKAN) and negative (non-matching URL) smoke evidence. | `examples` |
 
 <!-- END GENERATED CAPABILITIES -->
 

@@ -1,0 +1,40 @@
+version: "1.0"
+name: platform-confirm
+description: "Confirm platform family candidates with family-specific substance queries"
+
+prompts_relative: true
+prompts_dir: prompts
+
+state:
+  platform_candidates:
+    type: list[str]
+    description: "Candidate platform family names to confirm (e.g. CKAN, PxWeb)"
+  base_urls:
+    type: list[str]
+    description: "Base URLs to probe for each candidate"
+  max_iterations:
+    type: int
+    default: 8
+    description: "Maximum tool-call iterations for the agent"
+  platform_confirmation:
+    type: dict
+    description: "Structured PlatformConfirmation result"
+
+tools:
+  curl_probe:
+    manifest: ../../tools/curl_probe.tool.yaml
+
+nodes:
+  confirm:
+    type: agent
+    prompt: confirm
+    tools:
+      - curl_probe
+    max_iterations: 8
+    state_key: platform_confirmation
+
+edges:
+  - from: START
+    to: confirm
+  - from: confirm
+    to: END

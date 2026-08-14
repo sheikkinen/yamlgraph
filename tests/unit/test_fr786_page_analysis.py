@@ -196,16 +196,22 @@ def test_spa_fixture_has_no_static_api_references():
 
 
 @pytest.mark.req("REQ-YG-587")
-def test_no_sibling_step_artifacts_introduced():
-    """AC-09: FR-786 does not create browser-sniff/orchestrator/platform-confirm/schema-extract artifacts."""
-    forbidden = [
-        STEPS_DIR / "browser-sniff",
-        STEPS_DIR / "orchestrator",
-        STEPS_DIR / "platform-confirm",
-        STEPS_DIR / "schema-extract",
-    ]
-    for path in forbidden:
-        assert not path.exists()
+def test_no_sibling_step_dependency_introduced():
+    """AC-09: page-analysis's own graph doesn't reference sibling steps.
+
+    Directory existence for browser-sniff/orchestrator/platform-confirm/
+    schema-extract is NOT asserted here: those are separate FRs (e.g.
+    FR-788) that legitimately create their own directories over time.
+    The FR-786 boundary is that ITS graph doesn't depend on them.
+    """
+    graph_text = (GRAPH_DIR / "graph.yaml").read_text()
+    for forbidden in (
+        "browser-sniff",
+        "orchestrator",
+        "platform-confirm",
+        "schema-extract",
+    ):
+        assert forbidden not in graph_text
 
 
 @pytest.mark.req("REQ-YG-587")

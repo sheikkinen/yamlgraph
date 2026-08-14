@@ -195,7 +195,6 @@
 | FR-757 | Proposed | yamlgraph |  | FR-757-fsm-contrib-relocation.md |
 | FR-784 | Proposed | yamlgraph |  | FR-784-playwright-network-sniff-utility.md |
 | FR-787 | Proposed | yamlgraph |  | FR-787-api-discovery-recon-step.md |
-| FR-788 | Proposed | yamlgraph |  | FR-788-api-discovery-platform-confirm-step.md |
 | FR-789 | Proposed | yamlgraph |  | FR-789-api-discovery-browser-sniff-step.md |
 | FR-790 | Proposed | yamlgraph |  | FR-790-api-discovery-schema-extract-step.md |
 | FR-791 | Proposed | yamlgraph |  | FR-791-api-discovery-orchestrator.md |
@@ -425,7 +424,6 @@ graph TD
     FR-764["FR-764 Judged"]
     FR-784["FR-784 Proposed"]
     FR-787["FR-787 Proposed"]
-    FR-788["FR-788 Proposed"]
     FR-789["FR-789 Proposed"]
     FR-790["FR-790 Proposed"]
     FR-791["FR-791 Proposed"]
