@@ -94,7 +94,19 @@ def _translate(manifest: ToolManifest, manifest_dir: Path) -> dict[str, Any]:
             "description": manifest.description,
         }
         if rt.path is not None:
-            translated["path"] = str((manifest_dir / rt.path).resolve())
+            resolved = (manifest_dir / rt.path).resolve()
+            try:
+                resolved.relative_to(manifest_dir.resolve())
+            except ValueError:
+                raise ValueError(
+                    f"Python manifest tool: path '{rt.path}' escapes its own "
+                    f"manifest directory '{manifest_dir.resolve()}' "
+                    f"(resolved: {resolved})"
+                ) from None
+            translated["path"] = str(resolved)
+            # FR-794: confine against the manifest's own directory, not the
+            # consuming graph's — a manifest legitimately lives elsewhere.
+            translated["declared_root"] = str(manifest_dir.resolve())
         else:
             translated["module"] = rt.module
         return translated

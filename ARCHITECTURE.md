@@ -542,6 +542,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 224 | CAP-224 API Discovery Leaf Tool Manifests | `examples` | REQ-YG-585 |
 | 225 | CAP-225 API Discovery Endpoint-Probe Step | `examples` | REQ-YG-586 |
 | 226 | CAP-226 API Discovery Page-Analysis Step | `examples` | REQ-YG-587 |
+| 227 | CAP-227 Shared Python Tool Manifest Root Confinement Fix | `tools` | REQ-YG-588 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -2791,6 +2792,16 @@ Agent-based page-source inspection step for the API discovery pipeline (FR-786).
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-587 | Page-analysis step graph with shared fetch_page tool reference, data_files-backed platform catalog, and PageAnalysis schema distinguishing API-found portal pages from SPA shells. | `examples` |
+
+### 227. CAP-227 Shared Python Tool Manifest Root Confinement Fix
+
+Fixes a composition bug between CAP-216 (tool manifest declaration reuse, FR-768) and FR-445's graph-root confinement for `type: python` file-path tools: a manifest-declared Python tool living outside the consuming graph's directory always failed FR-445's confinement check because it validated against the wrong root. Confinement is relocated to the manifest's own declaration root for manifest-sourced paths, while inline (non-manifest) `type: python` tools keep graph-root confinement unchanged. Also closes a previously-unguarded gap: a manifest's own `runtime.path` is now validated against its own manifest directory (FR-794).
+
+**Feature Request:** FR-794
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-588 | Manifest-sourced `type: python` tool paths are confined to their declaring manifest's own directory (not the consuming graph's); manifests whose own path escapes their own directory are rejected at graph-load time; inline (non-manifest) `type: python` tools keep FR-445 graph-root confinement unchanged. | `tools` |
 
 <!-- END GENERATED CAPABILITIES -->
 

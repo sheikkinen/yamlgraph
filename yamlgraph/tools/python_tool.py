@@ -45,12 +45,16 @@ class PythonToolConfig:
               confined within it. Mutually exclusive with ``module``.
         function: Function name within the module
         description: Human-readable description
+        declared_root: Confinement root for ``path``, when it differs from
+              the consuming graph (FR-794: manifest-shared tools are
+              confined to their own manifest directory, not the graph's).
     """
 
     function: str
     module: str | None = None
     path: str | None = None
     description: str = ""
+    declared_root: str | None = None
 
 
 def load_python_function(
@@ -108,9 +112,10 @@ def load_python_function(
         raise ValueError("PythonToolConfig: one of 'path' or 'module' is required")
 
     if config.path:
+        declared_root = getattr(config, "declared_root", None)
         resolved = _resolve_python_tool_path(
             config.path,
-            graph_root=graph_root,
+            graph_root=Path(declared_root) if declared_root else graph_root,
             tool_name=tool_name,
         )
         if not resolved.is_file():
@@ -215,6 +220,7 @@ def parse_python_tools(tools_config: dict[str, Any]) -> dict[str, PythonToolConf
             path=config.get("path"),
             function=config["function"],
             description=config.get("description", ""),
+            declared_root=config.get("declared_root"),
         )
 
     return registry

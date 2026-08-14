@@ -1,0 +1,28 @@
+id: CAP-227
+name: Shared Python Tool Manifest Root Confinement Fix
+description: >
+  Fixes a composition bug between CAP-216 (tool manifest declaration
+  reuse, FR-768) and FR-445's graph-root confinement for `type: python`
+  file-path tools: a manifest-declared Python tool living outside the
+  consuming graph's directory always failed FR-445's confinement check
+  because it validated against the wrong root. Confinement is relocated
+  to the manifest's own declaration root for manifest-sourced paths,
+  while inline (non-manifest) `type: python` tools keep graph-root
+  confinement unchanged. Also closes a previously-unguarded gap: a
+  manifest's own `runtime.path` is now validated against its own
+  manifest directory (FR-794).
+modules:
+  - tools
+requirements:
+  - id: REQ-YG-588
+    description: >
+      Manifest-sourced `type: python` tool paths are confined to their
+      declaring manifest's own directory (not the consuming graph's);
+      manifests whose own path escapes their own directory are rejected
+      at graph-load time; inline (non-manifest) `type: python` tools
+      keep FR-445 graph-root confinement unchanged.
+    modules:
+      - tools
+    tests:
+      - tests/unit/test_fr794_python_tool_manifest_root_fix.py
+fr: FR-794
