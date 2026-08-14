@@ -1,0 +1,23 @@
+id: CAP-226
+name: API Discovery Page-Analysis Step
+description: >
+  Agent-based page-source inspection step for the API discovery pipeline
+  (FR-786). A single agent node with the shared fetch_page tool inspects
+  HTML page source for embedded API references (script bodies,
+  data-api-url attributes, explicit paths) and platform fingerprints
+  (CKAN, PxWeb, SwaggerUI, OData, Liferay, JSF, WordPress REST,
+  EntryScape) loaded from a data_files platform catalog, distinguishing
+  API-bearing portal pages from SPA shells requiring browser-sniff.
+modules:
+  - examples
+fr: FR-786
+requirements:
+  - id: REQ-YG-587
+    description: >
+      Page-analysis step graph with shared fetch_page tool reference,
+      data_files-backed platform catalog, and PageAnalysis schema
+      distinguishing API-found portal pages from SPA shells.
+    modules:
+      - examples
+    tests:
+      - tests/unit/test_fr786_page_analysis.py

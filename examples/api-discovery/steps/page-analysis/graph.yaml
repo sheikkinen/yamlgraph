@@ -1,0 +1,40 @@
+version: "1.0"
+name: page-analysis
+description: "Inspect HTML page source for embedded API references and platform fingerprints"
+
+prompts_relative: true
+prompts_dir: prompts
+
+data_files:
+  platform_catalog: data/platform_catalog.yaml
+
+state:
+  html_pages:
+    type: list[str]
+    description: "Portal page URLs to inspect for embedded API references"
+  max_iterations:
+    type: int
+    default: 5
+    description: "Maximum tool-call iterations for the agent"
+  page_analysis:
+    type: dict
+    description: "Structured PageAnalysis with API URLs and platform candidates"
+
+tools:
+  fetch_page:
+    manifest: ../../tools/fetch_page.tool.yaml
+
+nodes:
+  analyze:
+    type: agent
+    prompt: analyze
+    tools:
+      - fetch_page
+    max_iterations: 5
+    state_key: page_analysis
+
+edges:
+  - from: START
+    to: analyze
+  - from: analyze
+    to: END

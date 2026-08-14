@@ -1,0 +1,37 @@
+platforms:
+  - name: CKAN
+    markers:
+      - "/api/3/action/"
+      - "ckan.js"
+      - "data-module=\"ckan\""
+  - name: PxWeb
+    markers:
+      - "pxweb"
+      - "/PXWeb/api/"
+      - "px_default"
+  - name: SwaggerUI
+    markers:
+      - "swagger-ui"
+      - "SwaggerUIBundle"
+  - name: OData
+    markers:
+      - "$metadata"
+      - "application/atom+xml"
+      - "odata"
+  - name: Liferay
+    markers:
+      - "Liferay."
+      - "p_p_id"
+      - "/o/api/"
+  - name: JSF
+    markers:
+      - "javax.faces"
+      - "ViewState"
+      - "jsf.js"
+  - name: WordPress REST
+    markers:
+      - "/wp-json/"
+  - name: EntryScape
+    markers:
+      - "entryscape"
+      - "rowstore"

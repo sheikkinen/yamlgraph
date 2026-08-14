@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Open Data Portal</title>
+  <link rel="alternate" type="application/atom+xml" href="https://data.example.gov/odata/$metadata" />
+</head>
+<body data-module="ckan">
+  <div id="swagger-ui"></div>
+  <script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist/swagger-ui-bundle.js"></script>
+  <div class="pxweb-table-selector" data-api-url="https://data.example.gov/PXWeb/api/v1/en/db"></div>
+  <script>
+    fetch('https://data.example.gov/api/3/action/package_search?rows=0')
+      .then((r) => r.json())
+      .then((data) => console.log(data));
+  </script>
+</body>
+</html>

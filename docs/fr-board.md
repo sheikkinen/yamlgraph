@@ -194,7 +194,6 @@
 | FR-751 | Proposed | yamlgraph |  | FR-751-liquid-safety-precommit-gate.md |
 | FR-757 | Proposed | yamlgraph |  | FR-757-fsm-contrib-relocation.md |
 | FR-784 | Proposed | yamlgraph |  | FR-784-playwright-network-sniff-utility.md |
-| FR-786 | Proposed | yamlgraph |  | FR-786-api-discovery-page-analysis-step.md |
 | FR-787 | Proposed | yamlgraph |  | FR-787-api-discovery-recon-step.md |
 | FR-788 | Proposed | yamlgraph |  | FR-788-api-discovery-platform-confirm-step.md |
 | FR-789 | Proposed | yamlgraph |  | FR-789-api-discovery-browser-sniff-step.md |
@@ -425,7 +424,6 @@ graph TD
     FR-762["FR-762 Judged"]
     FR-764["FR-764 Judged"]
     FR-784["FR-784 Proposed"]
-    FR-786["FR-786 Proposed"]
     FR-787["FR-787 Proposed"]
     FR-788["FR-788 Proposed"]
     FR-789["FR-789 Proposed"]

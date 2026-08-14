@@ -541,6 +541,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 223 | CAP-223 User Self-Portrait Example (PersonalizationPortrait → Agent Context) | `examples` | REQ-YG-584 |
 | 224 | CAP-224 API Discovery Leaf Tool Manifests | `examples` | REQ-YG-585 |
 | 225 | CAP-225 API Discovery Endpoint-Probe Step | `examples` | REQ-YG-586 |
+| 226 | CAP-226 API Discovery Page-Analysis Step | `examples` | REQ-YG-587 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -2780,6 +2781,16 @@ Agent-based endpoint probing step for the API discovery pipeline (FR-785). A sin
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-586 | Endpoint-probe step graph with adaptive retry doctrine, bounded max_iterations, curl_probe tool reference, and ProbeResult schema. | `examples` |
+
+### 226. CAP-226 API Discovery Page-Analysis Step
+
+Agent-based page-source inspection step for the API discovery pipeline (FR-786). A single agent node with the shared fetch_page tool inspects HTML page source for embedded API references (script bodies, data-api-url attributes, explicit paths) and platform fingerprints (CKAN, PxWeb, SwaggerUI, OData, Liferay, JSF, WordPress REST, EntryScape) loaded from a data_files platform catalog, distinguishing API-bearing portal pages from SPA shells requiring browser-sniff.
+
+**Feature Request:** FR-786
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-587 | Page-analysis step graph with shared fetch_page tool reference, data_files-backed platform catalog, and PageAnalysis schema distinguishing API-found portal pages from SPA shells. | `examples` |
 
 <!-- END GENERATED CAPABILITIES -->
 

@@ -1,0 +1,12 @@
+# Graph-runtime tool manifest for page-analysis step (FR-786)
+# Consumed by the orchestrator (FR-791) via type: tool_call node.
+
+name: page_analysis
+description: "Inspect HTML page source for embedded API references and platform fingerprints"
+runtime:
+  type: graph
+  path: page-analysis/graph.yaml
+  input_mapping:
+    html_pages: html_pages
+    max_iterations: max_iterations
+  output_key: page_analysis
