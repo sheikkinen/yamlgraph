@@ -5,11 +5,52 @@ from __future__ import annotations
 
 import json
 import os
+import re
+import shutil
 import subprocess
 import tempfile
 from pathlib import Path
 
-from conftest import make_apply_patch_payload, make_payload, read_audit_log, run_hook
+import pytest
+from conftest import (
+    CHECKS_DIR,
+    HOOKS_ROOT,
+    make_apply_patch_payload,
+    make_payload,
+    read_audit_log,
+    run_hook,
+)
+
+
+def _fixture_ruff(tmpdir: str) -> str:
+    """Symlink a real ruff into tmpdir as a deterministic fixture path (FR-793 R-4)."""
+    real = shutil.which("ruff") or str(HOOKS_ROOT.parents[1] / ".venv" / "bin" / "ruff")
+    if not Path(real).is_file():
+        pytest.skip("no ruff available to build fixture")
+    link = Path(tmpdir) / "ruff"
+    link.symlink_to(real)
+    return str(link)
+
+
+def _run_hook_bare_env(
+    payload: dict, log_dir: str, extra_env: dict[str, str] | None = None
+) -> tuple[int, str]:
+    """Run python-checks.sh with a stripped PATH (no venv, no ruff)."""
+    env = {
+        "PATH": "/usr/bin:/bin",
+        "HOME": os.environ["HOME"],
+        "HOOK_LOG_DIR": log_dir,
+    }
+    if extra_env:
+        env.update(extra_env)
+    r = subprocess.run(
+        [str(CHECKS_DIR / "python-checks.sh")],
+        input=json.dumps(payload),
+        capture_output=True,
+        text=True,
+        env=env,
+    )
+    return r.returncode, r.stdout.strip()
 
 
 def test_skips_non_edit_tools() -> None:
@@ -140,36 +181,82 @@ def test_apply_patch_autofix_enabled_applies_ruff_fixes() -> None:
 
 
 def test_ruff_missing_logs_error() -> None:
+    """AC-02 (FR-793): ruff absent from PATH and fallback -> exactly one entry per file."""
     with tempfile.NamedTemporaryFile(suffix=".py", mode="w", delete=False) as f:
         f.write("x = 1\ny = 2\n")
         f.flush()
         try:
             with tempfile.TemporaryDirectory() as tmpdir:
                 payload = make_payload("replace_string_in_file", f.name)
-                inp = json.dumps(payload)
-                env = {
-                    "PATH": "/usr/bin:/bin",
-                    "HOME": os.environ["HOME"],
-                    "HOOK_LOG_DIR": tmpdir,
-                }
-                r = subprocess.run(
-                    [
-                        str(
-                            Path(__file__).resolve().parents[1]
-                            / "scripts"
-                            / "checks"
-                            / "python-checks.sh"
-                        )
-                    ],
-                    input=inp,
-                    capture_output=True,
-                    text=True,
-                    env=env,
+                code, _ = _run_hook_bare_env(
+                    payload,
+                    tmpdir,
+                    extra_env={"HOOK_RUFF_BIN": str(Path(tmpdir) / "absent-ruff")},
                 )
-                assert r.returncode == 0
+                assert code == 0
                 entries = read_audit_log(tmpdir)
                 ruff_missing = [e for e in entries if e.get("reason") == "ruff-missing"]
-                assert len(ruff_missing) >= 1
+                assert len(ruff_missing) == 1
                 assert ruff_missing[0]["decision"] == "error"
         finally:
             os.unlink(f.name)
+
+
+def test_ruff_resolved_from_fallback_when_path_missing() -> None:
+    """AC-01 (FR-793): stripped PATH + fixture binary -> real ruff feedback, no ruff-missing."""
+    with tempfile.NamedTemporaryFile(suffix=".py", mode="w", delete=False) as f:
+        f.write("import os\nimport sys\n\nx = 1\n")
+        f.flush()
+        try:
+            with tempfile.TemporaryDirectory() as tmpdir:
+                ruff_bin = _fixture_ruff(tmpdir)
+                payload = make_payload("create_file", f.name)
+                code, out = _run_hook_bare_env(
+                    payload, tmpdir, extra_env={"HOOK_RUFF_BIN": ruff_bin}
+                )
+                assert code == 0
+                parsed = json.loads(out)
+                msg = parsed.get("systemMessage", "")
+                assert "F401" in msg or "ruff" in msg.lower()
+                entries = read_audit_log(tmpdir)
+                assert not [e for e in entries if e.get("reason") == "ruff-missing"]
+        finally:
+            os.unlink(f.name)
+
+
+def test_auto_ruff_uses_resolved_binary() -> None:
+    """AC-03 (FR-793): POST_EDIT_AUTO_RUFF=1 works via the resolved binary."""
+    with tempfile.NamedTemporaryFile(suffix=".py", mode="w", delete=False) as f:
+        original = "import os\nx=1\n"
+        f.write(original)
+        f.flush()
+        try:
+            with tempfile.TemporaryDirectory() as tmpdir:
+                ruff_bin = _fixture_ruff(tmpdir)
+                payload = make_payload("create_file", f.name)
+                code, _ = _run_hook_bare_env(
+                    payload,
+                    tmpdir,
+                    extra_env={
+                        "HOOK_RUFF_BIN": ruff_bin,
+                        "POST_EDIT_AUTO_RUFF": "1",
+                    },
+                )
+                assert code == 0
+                assert Path(f.name).read_text(encoding="utf-8") != original
+                entries = read_audit_log(tmpdir)
+                autofix = [
+                    e for e in entries if e.get("reason") == "ruff-autofix-applied"
+                ]
+                assert len(autofix) >= 1
+        finally:
+            os.unlink(f.name)
+
+
+def test_no_bare_ruff_invocations_in_script() -> None:
+    """AC-04 (FR-793): all ruff invocations go through the resolved binary."""
+    text = (CHECKS_DIR / "python-checks.sh").read_text(encoding="utf-8")
+    assert "command -v ruff" not in text
+    for line in text.splitlines():
+        if re.search(r"\bruff (check|format)\b", line) and "Run:" not in line:
+            assert '"$RUFF_BIN"' in line, f"bare ruff invocation: {line.strip()}"

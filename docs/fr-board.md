@@ -212,6 +212,7 @@
 | FR-643 | In Progress | yamlgraph |  | FR-643v2-novel-fandom-world-expansion.md |
 | FR-735 | In Progress | yamlgraph |  | FR-735-webllm-demo-evidence-ergonomics.md |
 | FR-736 | In Progress | yamlgraph |  | FR-736-webllm-demo-trace-capture.md |
+| FR-793 | In Progress | yamlgraph |  | FR-793-hook-ruff-venv-fallback-and-error-surfacing.md |
 | FR-273 | Draft | yamlgraph |  | FR-273-watcher2-pipeline.md |
 | FR-307 | Draft | yamlgraph |  | FR-307-yamlgraph-async-action-logging.md |
 | FR-317 | Draft | yamlgraph |  | FR-317-retire-obsolete-watcher2-components.md |
@@ -430,6 +431,7 @@ graph TD
     FR-790["FR-790 Proposed"]
     FR-791["FR-791 Proposed"]
     FR-792["FR-792 Proposed"]
+    FR-793["FR-793 In Progress"]
     FR-081 --> FR-082
     FR-731 --> FR-735
     FR-731 --> FR-736

@@ -12,6 +12,7 @@ import os
 import subprocess
 import sys
 import tempfile
+from datetime import UTC
 from pathlib import Path
 
 import pytest
@@ -668,6 +669,96 @@ def test_lockdown_unknown_command():
         assert len(entries) >= 1
         e = entries[-1]
         assert e["reason"] == "lockdown-unknown", f"wrong reason: {e}"
+
+
+# ── Hook-error surfacing in status (FR-793) ──────────────────────────
+
+
+def _write_synthetic_audit(log_dir: str, entries: list[dict]) -> None:
+    """Write synthetic audit.jsonl rows (FR-793 R-3: no live-log dependency)."""
+    logfile = Path(log_dir) / "audit.jsonl"
+    with logfile.open("a", encoding="utf-8") as fh:
+        for entry in entries:
+            fh.write(json.dumps(entry) + "\n")
+
+
+def _status_reason(out: str) -> str:
+    parsed = json.loads(out)
+    return parsed.get("hookSpecificOutput", {}).get("permissionDecisionReason", "")
+
+
+def _error_row(ts: str, reason: str = "ruff-missing") -> dict:
+    return {
+        "ts": ts,
+        "hook": "post-edit-python-checks",
+        "tool": "create_file",
+        "decision": "error",
+        "reason": reason,
+        "detail": "synthetic/x.py",
+    }
+
+
+def test_status_reports_recent_hook_errors():
+    """AC-05 + AC-07 (FR-793): status shows 7-day error counts, excluding older rows."""
+    from datetime import datetime, timedelta
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        now = datetime.now(UTC)
+        _write_synthetic_audit(
+            tmpdir,
+            [
+                _error_row(now.isoformat()),
+                _error_row((now - timedelta(days=10)).isoformat()),
+                {
+                    "ts": now.isoformat(),
+                    "hook": "pre-command-guard",
+                    "tool": "run_in_terminal",
+                    "decision": "approve",
+                    "reason": "clean",
+                    "detail": "ls",
+                },
+            ],
+        )
+        code, out, _ = run_hook(
+            {
+                "tool_name": "run_in_terminal",
+                "tool_input": {"command": ".github/hooks/cmd status"},
+            },
+            log_dir=tmpdir,
+        )
+        assert code == 0
+        reason = _status_reason(out)
+        assert "post-edit-python-checks/ruff-missing=1" in reason, reason
+
+
+def test_status_reports_zero_hook_errors():
+    """AC-06 (FR-793): explicit zero line when no recent errors exist."""
+    from datetime import datetime
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        _write_synthetic_audit(
+            tmpdir,
+            [
+                {
+                    "ts": datetime.now(UTC).isoformat(),
+                    "hook": "pre-command-guard",
+                    "tool": "run_in_terminal",
+                    "decision": "approve",
+                    "reason": "clean",
+                    "detail": "ls",
+                }
+            ],
+        )
+        code, out, _ = run_hook(
+            {
+                "tool_name": "run_in_terminal",
+                "tool_input": {"command": ".github/hooks/cmd status"},
+            },
+            log_dir=tmpdir,
+        )
+        assert code == 0
+        reason = _status_reason(out)
+        assert "Hook errors (7d): none" in reason, reason
 
 
 # ── Pipe-buffer guard tests (FR-440) ─────────────────────────────────
