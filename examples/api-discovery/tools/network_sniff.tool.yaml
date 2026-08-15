@@ -1,0 +1,11 @@
+# Tool manifest (FR-768) — Playwright network sniff for API discovery (FR-784).
+# Consumed by the FR-789 browser-sniff step graph. Output contract, filter
+# denylist, and redaction policy: feature-requests/FR-784-*.md.
+# Setup: cd examples/api-discovery/tools && npm ci && npx playwright install chromium
+name: network_sniff
+description: "Load a URL in headless Chromium, capture XHR/fetch requests, return JSON inventory of data-carrying API calls"
+runtime:
+  type: shell
+  command: "node examples/api-discovery/tools/network-sniff.js {url} --timeout {timeout}"
+  parse: json
+  timeout: 30

@@ -1,0 +1,8 @@
+{
+  "name": "api-discovery-tools",
+  "private": true,
+  "description": "Pinned Node dependencies for FR-784 network-sniff.js (Playwright network capture)",
+  "dependencies": {
+    "playwright": "1.62.1"
+  }
+}

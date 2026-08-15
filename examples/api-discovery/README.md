@@ -17,7 +17,11 @@ examples/api-discovery/
 │   ├── fetch_page.tool.yaml        full page fetch (shell)
 │   ├── gh_code_search.tool.yaml    GitHub code search (shell)
 │   ├── parse_openapi.tool.yaml     OpenAPI spec parser (Python)
-│   └── parse_openapi.py            implementation
+│   ├── parse_openapi.py            implementation
+│   ├── network_sniff.tool.yaml     browser XHR/fetch capture (shell)
+│   ├── network-sniff.js            implementation (Playwright)
+│   ├── package.json                pinned Node deps for network-sniff.js
+│   └── package-lock.json           lockfile (FR-784 dependency contract)
 └── steps/                          (future: step graphs FR-785..FR-790)
 ```
 
@@ -29,6 +33,19 @@ examples/api-discovery/
 | `fetch_page` | shell | Full page source with custom User-Agent |
 | `gh_code_search` | shell | GitHub code search (requires `gh` auth) |
 | `parse_openapi` | python | OpenAPI JSON → endpoint inventory |
+| `network_sniff` | shell | Headless Chromium XHR/fetch capture → JSON inventory (FR-784) |
+
+### network_sniff setup (one-time)
+
+```bash
+cd examples/api-discovery/tools
+npm ci
+npx playwright install chromium
+```
+
+Output contract: `{requests, auth_required, needs_manual_reason, warnings}`
+with telemetry demoted behind data requests and token values redacted.
+Missing package or browser fails loudly with the install command.
 
 ## Usage
 
