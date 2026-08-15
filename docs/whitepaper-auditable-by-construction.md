@@ -85,7 +85,7 @@ present risk and facilitate post-market monitoring. Note the phrase
 *technically allow*: this is a **system capability requirement**, not an
 operations policy. A system whose logging is a bolt-on script does not
 technically allow it; a system that emits its run record by construction
-does.
+does.[^1]
 
 **Article 13 — Transparency and provision of information to deployers.**
 High-risk systems must be "sufficiently transparent to enable deployers to
@@ -165,7 +165,7 @@ version executes in production, it passes a judgement: a documented review
 with acceptance criteria, rendered against the artifact (not against a chat
 narrative or a commit message), producing a verdict that is itself versioned.
 The artifact-plus-judgement pair is the "approved design" of Article 11 and
-the design-transfer input of IEC 62304.
+the design-transfer input of IEC 62304.[^2]
 
 **P3 — Execution emits decisions in the artifact's vocabulary.** Every
 routing decision the running system takes is recorded as a structured event
@@ -181,7 +181,7 @@ executed transition either exists in the approved artifact or it does not.
 The output is renderable as a per-run flowchart — the approved topology with
 the actual path highlighted — legible to a deployer, an auditor, or a
 clinician, none of whom read code. Deviations are not "anomalies to
-investigate"; they are *defects by definition*, detected at run end.
+investigate"; they are *defects by definition*, detected at run end.[^3]
 
 Two architectural corollaries make P1–P4 practical for LLM systems:
 
@@ -258,7 +258,7 @@ Three properties of the run-time layer deserve emphasis:
 The architecture is not hypothetical. A production voice-agent deployment in
 European regulated healthcare — live telephony, clinical context, its own
 formal change-control pipeline of several hundred judged change requests —
-operates the full loop today:
+operates the full loop today:[^4]
 
 - Pipeline and prompt artifacts are authored declaratively and pass a
   recorded judgement before deployment; the framework version is pinned per
@@ -379,6 +379,38 @@ approved artifact can tell an auditor what it was *allowed* to do — and only
 the diff between the two is conformance.
 
 ---
+
+## Notes and Disclaimers
+
+[^1]: **Regulatory interpretation.** The mapping of the per-run record to
+    Article 12 (and the related readings of Articles 11, 13–14, 26, 72–73)
+    is the authors' interpretation of the Regulation's text. At the time of
+    writing, no notified body, market-surveillance authority, or harmonised
+    standard has assessed this specific mechanism. This paper is not legal
+    advice; conformity claims for any specific system must be validated with
+    qualified counsel under the applicable conformity-assessment procedure.
+
+[^2]: **Approval substance.** The evidentiary strength of the approval event
+    is bounded by the competence and independence of the reviewer. Where the
+    judgement is machine-assisted, accountability must rest with a named
+    natural or legal person; the artifact economy records *that* a review
+    occurred and against *what* — it does not by itself certify the
+    reviewer's qualification.
+
+[^3]: **Scope of the conformance claim.** The overlay evidences
+    *control-plane* conformance: that execution followed approved routes
+    through the approved topology. It does not evaluate the content produced
+    within a conforming step; content-level quality and safety require
+    complementary controls — typed output validation, evaluation suites, and
+    human oversight under Article 14 — which this architecture hosts and
+    records but does not replace. A run can be fully route-conformant while
+    its content requires those separate controls to assure.
+
+[^4]: **Evidence base.** The production pattern describes a single
+    deployment, operated within the same engineering practice that produced
+    the reference implementation. It demonstrates the pattern's operability
+    in live regulated service — not independent third-party adoption, and
+    not acceptance of the evidence format by a regulator or auditor.
 
 *References: Regulation (EU) 2024/1689 (AI Act), Arts. 9, 11–14, 26, 72–73,
 Annexes III–IV; IEC 62304:2006+A1:2015; ISO 13485:2016; GDPR Art. 22.
