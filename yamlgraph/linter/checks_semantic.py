@@ -112,40 +112,6 @@ def check_passthrough_nodes(graph_path: Path) -> list[LintIssue]:
     return issues
 
 
-def check_tool_call_nodes(graph_path: Path) -> list[LintIssue]:
-    """Check tool_call nodes have required tool and args fields.
-
-    E701 — tool_call node missing 'tool' field
-    E702 — tool_call node missing 'args' field
-    """
-    issues: list[LintIssue] = []
-    graph = load_graph(graph_path)
-
-    for node_name, node_config in graph.get("nodes", {}).items():
-        if node_config.get("type") != "tool_call":
-            continue
-        if "tool" not in node_config:
-            issues.append(
-                LintIssue(
-                    severity="error",
-                    code="E701",
-                    message=f"tool_call node '{node_name}' missing required 'tool' field",
-                    fix=f"Add 'tool: <tool_name>' to node '{node_name}'",
-                )
-            )
-        if "args" not in node_config:
-            issues.append(
-                LintIssue(
-                    severity="error",
-                    code="E702",
-                    message=f"tool_call node '{node_name}' missing required 'args' field",
-                    fix=f"Add 'args:' mapping to node '{node_name}'",
-                )
-            )
-
-    return issues
-
-
 def _build_known_state_fields(graph: dict) -> set[str]:
     """Build the complete set of known state field names from a parsed graph.
 
@@ -425,7 +391,6 @@ def check_dynamic_map_without_max_items(
 __all__ = [
     "check_cross_references",
     "check_passthrough_nodes",
-    "check_tool_call_nodes",
     "check_expression_syntax",
     "check_error_handling",
     "check_edge_types",

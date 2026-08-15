@@ -186,7 +186,10 @@ def _compile_map_node(ctx: NodeCompileContext) -> tuple[str, Any]:
 
 def _compile_tool_call_node(ctx: NodeCompileContext) -> None:
     node_fn = create_tool_call_node(
-        ctx.node_name, ctx.node_config, ctx.callable_registry
+        ctx.node_name,
+        ctx.node_config,
+        ctx.callable_registry,
+        graph_tool_names=set(ctx.graph_tool_configs or {}),
     )
     node_fn = _maybe_wrap_timeout(node_fn, ctx.node_config, ctx.node_name)
     node_fn = _maybe_wrap_otel(node_fn, ctx.node_name, NodeType.TOOL_CALL)

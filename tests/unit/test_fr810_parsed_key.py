@@ -216,7 +216,7 @@ class TestStateSurface:
 
 class TestLinter:
     def _lint(self, tmp_path, tool_decl):
-        from yamlgraph.linter.checks_semantic import check_tool_call_nodes
+        from yamlgraph.linter.checks_tool_call import check_tool_call_nodes
 
         graph = tmp_path / "graph.yaml"
         graph.write_text(

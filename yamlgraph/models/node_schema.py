@@ -197,6 +197,13 @@ class NodeConfig(BaseModel):
     tool_results_key: str | None = Field(
         default=None, description="State key for agent tool results"
     )
+    parsed_key: str | None = Field(
+        default=None,
+        description=(
+            "FR-810: state key exposing the parsed dict output of a "
+            "graph-runtime tool_call, routable by edge conditions"
+        ),
+    )
 
     # Map node limits
     max_items: int | None = Field(

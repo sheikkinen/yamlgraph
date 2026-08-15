@@ -1176,19 +1176,19 @@ These are E402 suppressions and are acceptable as "glue code" patterns.
 - **Penance**: Retained intentionally for domain semantics or existing contract wording; explicitly allowlisted and audited.
 
 ### CONF-235
-- **File**: [yamlgraph/linter/checks_semantic.py](../yamlgraph/linter/checks_semantic.py#L266)
+- **File**: [yamlgraph/linter/checks_semantic.py](../yamlgraph/linter/checks_semantic.py#L232)
 - **Code**: FB001
 - **Sin**: Contains lexical `fallback` token flagged by FR-418 fallback-token hygiene gate.
 - **Penance**: Retained intentionally for domain semantics or existing contract wording; explicitly allowlisted and audited.
 
 ### CONF-236
-- **File**: [yamlgraph/linter/checks_semantic.py](../yamlgraph/linter/checks_semantic.py#L278)
+- **File**: [yamlgraph/linter/checks_semantic.py](../yamlgraph/linter/checks_semantic.py#L244)
 - **Code**: FB001
 - **Sin**: Contains lexical `fallback` token flagged by FR-418 fallback-token hygiene gate.
 - **Penance**: Retained intentionally for domain semantics or existing contract wording; explicitly allowlisted and audited.
 
 ### CONF-237
-- **File**: [yamlgraph/linter/checks_semantic.py](../yamlgraph/linter/checks_semantic.py#L289)
+- **File**: [yamlgraph/linter/checks_semantic.py](../yamlgraph/linter/checks_semantic.py#L255)
 - **Code**: FB001
 - **Sin**: Contains lexical `fallback` token flagged by FR-418 fallback-token hygiene gate.
 - **Penance**: Retained intentionally for domain semantics or existing contract wording; explicitly allowlisted and audited.

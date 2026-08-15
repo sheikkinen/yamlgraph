@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Approved with revisions (judgement folded 2026-08-15)
+**Status:** Enforced (2026-08-15)
 **Effort:** 1 day
 **Requested:** 2026-08-15
 **First consumer / first event:** FR-809 (orchestrator v2), the moment it
@@ -109,15 +109,15 @@ edges:
 
 ## Acceptance Criteria (revised per judgement)
 
-- [ ] AC-01: `tool_call` node config accepts exactly one new optional field, `parsed_key`; `parse_result`, `result_key`, and other aliases are rejected or absent from the public schema.
-- [ ] AC-02: A graph-runtime tool call with `parsed_key` exposes the child graph's object output under that state key, and a unit test routes an edge condition on a parsed field.
-- [ ] AC-03: Without `parsed_key`, the observable `tool_call` behavior and wrapper shape under `state_key` remain unchanged; existing `tool_call` tests stay green.
-- [ ] AC-04: JSON-string graph outputs parse only when they are JSON objects; dict outputs pass through; invalid JSON, lists, scalars, missing child output, and failed child wrappers are parse failures with no empty-dict substitution.
-- [ ] AC-05: Parse failures with `parsed_key` have explicit tests for `on_error: fail` and `on_error: skip`; `skip` returns a failure envelope under `state_key` and does not set `parsed_key`.
-- [ ] AC-06: Lint warns when `parsed_key` is configured on a statically known shell/python tool, and runtime fails under the node `on_error` policy when a dynamic tool expression resolves to a non-graph tool.
-- [ ] AC-07: `reference/graph-yaml.md` documents `parsed_key` with a routing example, graph-tool-only eligibility, wrapper preservation, and failure behavior.
-- [ ] AC-08: `capabilities/CAP-236-router-visible-tool-outputs.yaml` exists supplying `REQ-YG-597`, every new test has the exact `@pytest.mark.req("REQ-YG-597")` marker, `python scripts/req_coverage.py --strict` passes, and a changelog fragment is added.
-- [ ] AC-09: A deterministic committed witness uses `parsed_key` for a real skip condition (unit-test fixture graph routing on `parsed_key`); FR-810 enforcement does not depend on FR-809 being implemented.
+- [x] AC-01: `tool_call` node config accepts exactly one new optional field, `parsed_key`; `parse_result`, `result_key`, and other aliases are rejected or absent from the public schema.
+- [x] AC-02: A graph-runtime tool call with `parsed_key` exposes the child graph's object output under that state key, and a unit test routes an edge condition on a parsed field.
+- [x] AC-03: Without `parsed_key`, the observable `tool_call` behavior and wrapper shape under `state_key` remain unchanged; existing `tool_call` tests stay green.
+- [x] AC-04: JSON-string graph outputs parse only when they are JSON objects; dict outputs pass through; invalid JSON, lists, scalars, missing child output, and failed child wrappers are parse failures with no empty-dict substitution.
+- [x] AC-05: Parse failures with `parsed_key` have explicit tests for `on_error: fail` and `on_error: skip`; `skip` returns a failure envelope under `state_key` and does not set `parsed_key`.
+- [x] AC-06: Lint warns when `parsed_key` is configured on a statically known shell/python tool, and runtime fails under the node `on_error` policy when a dynamic tool expression resolves to a non-graph tool.
+- [x] AC-07: `reference/graph-yaml.md` documents `parsed_key` with a routing example, graph-tool-only eligibility, wrapper preservation, and failure behavior.
+- [x] AC-08: `capabilities/CAP-236-router-visible-tool-outputs.yaml` exists supplying `REQ-YG-597`, every new test has the exact `@pytest.mark.req("REQ-YG-597")` marker, `python scripts/req_coverage.py --strict` passes, and a changelog fragment is added.
+- [x] AC-09: A deterministic committed witness uses `parsed_key` for a real skip condition (unit-test fixture graph routing on `parsed_key`); FR-810 enforcement does not depend on FR-809 being implemented.
 
 ## Alternatives Considered
 
@@ -144,3 +144,34 @@ outcomes, deterministic unit-test witness independent of FR-809).
 Gates C-1..C-6 accepted: fail-closed on parse errors and misuse; wrapper
 shape and `state_key` semantics unchanged; any governed demo artifact
 via the authoring route; req-traceable positive and negative witnesses.
+
+## Implementation Record
+
+Enforced 2026-08-15. RED commit `49ae35da` (25 witnesses, 22 confirmed
+failing), GREEN in the same session.
+
+- `yamlgraph/models/node_schema.py`: `parsed_key: str | None` on
+  `NodeConfig`; `extra: "forbid"` already rejects `parse_result`/`result_key`.
+- `yamlgraph/node_factory/tool_nodes.py`: new `graph_tool_names` parameter;
+  module-level `_parse_output` (dict pass-through, JSON-object-string parse,
+  everything else fail-closed) and `_envelope`; parse failures and
+  dynamic non-graph misuse honor `on_error` (fail raises with node name /
+  parsed_key in message, skip returns failure envelope without `parsed_key`).
+  Refactored closures to module level to satisfy C901.
+- `yamlgraph/compile/node_compiler.py`: passes
+  `graph_tool_names=set(ctx.graph_tool_configs or {})`; map-compiler call
+  site unchanged (default keeps map sub-nodes graph-tool-free).
+- `yamlgraph/models/state_builder.py`: `parsed_key` joins the generated
+  state surface (`Any`).
+- `yamlgraph/linter/checks_semantic.py`: `W703` on statically known
+  non-graph tool with `parsed_key`.
+- `yamlgraph/tools/graph_tool.py`: **deviation (in spirit of AC-04)** —
+  graph tools serialized dict outputs via `str()` (Python repr, unparseable);
+  normalized at the boundary to `json.dumps` for dict/list outputs. Without
+  this the compiled-graph witness cannot parse any real child output;
+  existing graph-tool tests unaffected (scalar outputs still `str()`).
+- Docs: `reference/graph-yaml.md` § tool_call; changelog fragment
+  `changelog/unreleased/fr-810-parsed-key.md`.
+- Witness: `tests/unit/test_fr810_parsed_key.py` — 25 tests incl. compiled
+  parent/child fixture graphs routing `page_findings.is_spa == true`
+  through sniff/no_sniff. Full fast suite green (5822+ passed).

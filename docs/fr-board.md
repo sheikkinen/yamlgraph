@@ -158,7 +158,6 @@
 | FR-655 | Approved | yamlgraph |  | FR-655-genesis-graph.md |
 | FR-806 | Approved | yamlgraph |  | FR-806-author-sh-brief-preflight.md |
 | FR-809 | Approved | yamlgraph |  | FR-809-api-discovery-orchestrator-v2-recon-browser-sniff.md |
-| FR-810 | Approved | yamlgraph |  | FR-810-router-visible-tool-call-outputs.md |
 | FR-214 | Proposed | yamlgraph |  | FR-214-fix-extract-variables-nested-set.md |
 | FR-227 | Proposed | yamlgraph |  | FR-227-vertex-express-env-var-masking.md |
 | FR-267 | Proposed | yamlgraph |  | FR-267-race-node-timeout-double-wrap-2.md |
@@ -427,7 +426,6 @@ graph TD
     FR-807["FR-807 Proposed"]
     FR-808["FR-808 Proposed"]
     FR-809["FR-809 Approved"]
-    FR-810["FR-810 Approved"]
     FR-081 --> FR-082
     FR-731 --> FR-735
     FR-731 --> FR-736

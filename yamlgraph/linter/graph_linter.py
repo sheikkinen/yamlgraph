@@ -50,9 +50,9 @@ from yamlgraph.linter.checks_semantic import (
     check_expression_syntax,
     check_passthrough_nodes,
     check_skip_if_exists_in_cycle,
-    check_tool_call_nodes,
     check_unguarded_cycles,
 )
+from yamlgraph.linter.checks_tool_call import check_tool_call_nodes
 from yamlgraph.linter.patterns import (
     check_agent_patterns,
     check_condition_smt,

@@ -14,6 +14,7 @@ AC-9:  Pipeline errors caught → error text, never crash caller.
 
 from __future__ import annotations
 
+import json
 import logging
 from collections.abc import Callable
 from contextvars import ContextVar
@@ -63,7 +64,12 @@ def make_graph_tool_fn(
             variables = dict(default_variables or {})
             variables.update({input_mapping.get(k, k): v for k, v in kwargs.items()})
             result = compiled.invoke(variables)
-            return str(result.get(output_key, result))
+            value = result.get(output_key, result)
+            # FR-810: dict/list outputs serialize as JSON (parseable by
+            # parsed_key), not Python repr — normalize at the boundary
+            if isinstance(value, dict | list):
+                return json.dumps(value, default=str)
+            return str(value)
         except Exception as e:
             # AC-9: surface error text, don't crash parent
             return f"Error: {e}"

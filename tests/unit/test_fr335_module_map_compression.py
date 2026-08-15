@@ -137,7 +137,9 @@ class TestFR335ModuleMapCompression:
         # FR-797: 279 -> 285 for the size-gate extraction of the subgraph
         # interrupt relay (compile/subgraph_relay.py, models/relay_fields.py,
         # models/state_codegen.py).
-        assert line_count <= 285, f"module-map too large: {line_count} lines (max 285)"
+        # FR-810: 285 -> 287 for linter/checks_tool_call.py (size-gate split
+        # of check_tool_call_nodes out of checks_semantic.py at the cap).
+        assert line_count <= 287, f"module-map too large: {line_count} lines (max 287)"
 
     def test_ac02_dependency_lists_contain_only_yamlgraph_imports(self) -> None:
         module_map = _run_generator()

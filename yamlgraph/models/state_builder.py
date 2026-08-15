@@ -239,6 +239,10 @@ def extract_node_fields(
         if state_key := node_config.get("state_key"):
             fields[state_key] = Any
 
+        # FR-810: parsed_key → Any (routable parsed tool output)
+        if parsed_key := node_config.get("parsed_key"):
+            fields[parsed_key] = Any
+
         # Node type-specific fields
         node_type = node_config.get("type", "llm")
 

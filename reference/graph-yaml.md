@@ -734,12 +734,51 @@ mapping dispatches no kwargs. The string form above is unchanged.
 | `tool` | `string` | Yes | Tool name or state expression resolving to it |
 | `args` | `string \| dict` | Yes | State expression resolving to args dict, or inline mapping resolved per value |
 | `state_key` | `string` | No | Where to store result |
+| `parsed_key` | `string` | No | FR-810: state key exposing the **parsed dict** output of a graph-runtime tool, routable by edge conditions (see below). Graph tools only |
 | `on_error` | `string` | No | `skip` (default): failure envelope `{success: false, error}` and the graph continues — for agent loops that must see error text. `fail`: raise at the node with the tool's actual error — for deterministic pipelines where a failed prerequisite must stop the run (FR-778). `retry`/`fallback` are rejected at graph load |
 
 Use `on_error: fail` in deterministic pipelines: without it a failed tool
 produces a success-shaped envelope that downstream nodes trip over at a
 distance (e.g. a map resolving `chunks` from a failed split). Keep the
 default envelope when an agent consumes the result.
+
+**Router-visible tool outputs (`parsed_key`, FR-810)** — a graph-runtime
+tool's output is normally a JSON string buried inside the wrapper under
+`state_key`, invisible to edge conditions. `parsed_key` exposes the parsed
+dict as its own state key so edges can route on its fields:
+
+```yaml
+tools:
+  analyzer:
+    type: graph
+    path: child/graph.yaml
+    output_key: findings
+
+nodes:
+  page_analysis:
+    type: tool_call
+    tool: analyzer
+    args: {}
+    state_key: page_analysis     # wrapper preserved unchanged
+    parsed_key: page_findings    # parsed dict, routable
+    on_error: fail
+
+edges:
+  - from: page_analysis
+    to: sniff
+    condition: "page_findings.is_spa == true"
+  - from: page_analysis
+    to: no_sniff
+    condition: "page_findings.is_spa != true"
+```
+
+Contract: graph-runtime tools only (lint `W703` warns on statically known
+shell/python misuse; dynamically resolved non-graph tools fail at runtime
+per `on_error`). Dict outputs pass through; JSON-object strings parse;
+anything else (invalid JSON, lists, scalars, missing output) is a parse
+failure — never an empty-dict substitute. On failure, `on_error: fail`
+raises and `skip` returns the failure envelope without setting
+`parsed_key`. The wrapper under `state_key` keeps the raw output either way.
 
 See [Tool Call Nodes Reference](tool-call-nodes.md) for agent integration patterns.
 

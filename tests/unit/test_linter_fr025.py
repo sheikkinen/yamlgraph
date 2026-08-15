@@ -15,8 +15,8 @@ from yamlgraph.linter.checks_semantic import (
     check_error_handling,
     check_expression_syntax,
     check_passthrough_nodes,
-    check_tool_call_nodes,
 )
+from yamlgraph.linter.checks_tool_call import check_tool_call_nodes
 
 FIXTURES = Path(__file__).resolve().parent.parent / "fixtures" / "linter"
 
