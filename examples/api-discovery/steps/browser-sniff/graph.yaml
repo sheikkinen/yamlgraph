@@ -1,0 +1,41 @@
+version: "1.0"
+name: browser-sniff
+description: "Headless-browser network sniff for SPAs that hide APIs behind client-side rendering"
+
+prompts_relative: true
+prompts_dir: prompts
+
+state:
+  url:
+    type: str
+    description: "SPA page URL to load and observe"
+  timeout:
+    type: str
+    default: "15000"
+    description: "Sniff timeout in milliseconds"
+  max_iterations:
+    type: int
+    default: 4
+    description: "Maximum tool-call iterations for the agent"
+  sniff_result:
+    type: dict
+    description: "Structured SniffResult with data API calls and manual-intervention hints"
+
+tools:
+  network_sniff:
+    manifest: ../../tools/network_sniff.tool.yaml
+
+nodes:
+  sniff_agent:
+    type: agent
+    prompt: sniff
+    tools:
+      - network_sniff
+    max_iterations: 4
+    state_key: sniff_result
+
+edges:
+  - from: START
+    to: sniff_agent
+  - from: sniff_agent
+    to: END

@@ -547,6 +547,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 229 | CAP-229 Playwright Network Sniff Utility | `examples` | REQ-YG-590 |
 | 230 | CAP-230 Provider Readiness Preflight | `tests` | REQ-YG-591 |
 | 231 | CAP-231 API Discovery Recon Step | `examples` | REQ-YG-592 |
+| 232 | CAP-232 API Discovery Browser-Sniff Step | `examples` | REQ-YG-593 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -2846,6 +2847,16 @@ Example-level recon step for the API discovery pipeline (FR-787): a single-agent
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-592 | The recon step graph compiles, references the shared FR-783 gh_code_search manifest without duplication, instructs domain/service/country search-term variant generation within a bounded iteration budget, and emits ReconResult via the output_schema JSON-Schema dialect with exactly candidate_urls, auth_hints, schema_hints, and evidence as required string arrays; evidence strings carry repository, path, and URL source identity, all-empty results validate, and no orchestrator artifact exists or references recon. | `examples` |
+
+### 232. CAP-232 API Discovery Browser-Sniff Step
+
+Example-level browser-sniff step for the API discovery pipeline (FR-789): a single-agent graph under examples/api-discovery/steps/browser-sniff/ that loads a SPA URL in headless Chromium via the FR-784 network_sniff shell manifest, retains only data-classified XHR/fetch requests as CapturedRequest entries, excludes telemetry/analytics noise, and maps auth/CAPTCHA evidence to a typed needs_manual verdict hint instead of an error. Exposed to the FR-791 orchestrator as a graph-runtime tool manifest (browser_sniff.tool.yaml) — the expensive last resort when page-analysis finds a SPA with no visible API.
+
+**Feature Request:** FR-789
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-593 | The browser-sniff step graph compiles, references the shared FR-784 network_sniff manifest without reimplementation, and emits SniffResult via the output_schema JSON-Schema dialect: api_calls items require url/method/status/content_type/ body_preview, auth_required is a required boolean, and the needs_manual path is typed (verdict_hint enum + manual_reason) with prompt doctrine retaining only data-classified requests, excluding telemetry, and treating auth/CAPTCHA as a legitimate result rather than an error. | `examples` |
 
 <!-- END GENERATED CAPABILITIES -->
 

@@ -1,0 +1,92 @@
+system: |
+  You are an API discovery browser-sniff agent. Your task is to load a
+  client-rendered page with the network_sniff tool, inspect captured XHR/fetch
+  requests, and return only data-carrying API calls in a structured SniffResult.
+
+  ## Tools available
+  - network_sniff(url, timeout): Load the page in headless Chromium and return
+    captured requests, whether authentication is required, an optional manual
+    reason, and warnings.
+
+  ## Sniff doctrine
+
+  Call network_sniff exactly once for the provided URL and timeout. Retry once
+  only if the tool call itself fails and returns no usable tool response. Do
+  not retry just because the page requires authentication, shows a CAPTCHA,
+  returns warnings, or returns zero data-classified requests.
+
+  Interpret the tool response this way:
+
+  - The tool returns requests with url, method, status, content_type,
+    body_preview, and classification fields.
+  - Keep only requests whose classification is exactly data.
+  - Exclude telemetry, analytics, beacons, assets, and other noise entirely.
+  - For each retained data request, carry url, method, status, content_type, and
+    body_preview into api_calls. Never drop body_preview.
+  - auth_required must mirror the tool's boolean value.
+  - If the tool reports a manual reason or auth_required is true, set
+    verdict_hint to needs_manual and set manual_reason to the tool's reason
+    string such as auth_token or captcha.
+  - If no manual step is needed, omit verdict_hint and manual_reason or return
+    them empty.
+  - An auth wall or CAPTCHA is a legitimate result, not an error. Always return
+    a well-formed SniffResult.
+  - Preserve warnings only as reasoning context. Do not add warnings to the
+    final SniffResult because the schema has no warnings field.
+
+  ## Output
+  Return only structured JSON matching the SniffResult schema. Always include
+  api_calls and auth_required. api_calls may be empty when no data request is
+  observed or a manual step is required.
+
+user: |
+  Sniff this SPA page for hidden data API calls: {{ url }}
+
+  Use timeout {{ timeout }} milliseconds and at most {{ max_iterations }}
+  tool-call iterations from the requested runtime budget.
+
+output_schema:
+  type: object
+  properties:
+    api_calls:
+      type: array
+      description: "Data-carrying API requests captured from browser XHR/fetch traffic"
+      items:
+        type: object
+        properties:
+          url:
+            type: string
+            description: "Captured request URL"
+          method:
+            type: string
+            description: "HTTP method"
+          status:
+            type: integer
+            description: "HTTP status code"
+          content_type:
+            type: string
+            description: "Response content type"
+          body_preview:
+            type: string
+            description: "Redacted response body preview"
+        required:
+          - url
+          - method
+          - status
+          - content_type
+          - body_preview
+    auth_required:
+      type: boolean
+      description: "Whether the page requires authentication or a manual gate"
+    verdict_hint:
+      type: string
+      enum:
+        - needs_manual
+      description: "Optional hint to route the discovery case to manual handling"
+    manual_reason:
+      type: string
+      description: "Optional reason such as auth_token or captcha"
+  required:
+    - api_calls
+    - auth_required
+  additionalProperties: false

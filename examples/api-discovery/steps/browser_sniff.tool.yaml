@@ -1,0 +1,13 @@
+# Graph-runtime tool manifest for browser-sniff step (FR-789)
+# Consumed by the orchestrator (FR-791) via type: tool_call node.
+
+name: browser_sniff
+description: "Load a SPA page in headless Chromium and return data API calls from browser network traffic"
+runtime:
+  type: graph
+  path: browser-sniff/graph.yaml
+  input_mapping:
+    url: url
+    timeout: timeout
+    max_iterations: max_iterations
+  output_key: sniff_result
