@@ -2,7 +2,8 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement (garden curation)
-**Status:** Proposed
+**Status:** Judged 2026-08-15 — APPROVED WITH REVISIONS (R-1..R-3 folded below);
+see FR-796-reclassify-watcher2-witness-demos.judgement.md
 **Effort:** 0.5–1 day
 **Requested:** 2026-08-15
 
@@ -96,43 +97,105 @@ disposition; bundling them here recreates the stalled mega-plan.
 
 ## Constraints
 
-- C-1: Pure relocation/deletion — no graph.yaml or prompt content changes
-  (no authoring-route trigger; `git mv` preserves content byte-for-byte).
-  If any relocated graph needs a content change to run from its new path,
-  stop: that is authoring and takes the `scripts/author.sh` route.
-- C-2: Relocated demos must still lint and run from `.chaplain/demos/`
+- C-1 (R-1): Moving or deleting governed `graph.yaml` and `prompts/*.yaml`
+  artifacts must be performed through the graph-authoring route/sentinel —
+  doctrine's trigger is the artifact class, explicitly including `mv`. The
+  content-preservation goal remains in scope, but it does not bypass the
+  route. If the route fails, enforcement stops and fixes the route rather
+  than moving graph artifacts manually.
+- C-2 (R-2): For relocated demos, `graph.yaml`, `prompts/**`, Python node
+  files, scripts, and existing `demo-output.log` files are byte-for-byte
+  identical after relocation; README files may change only to update old
+  `examples/demos/...` command paths to `.chaplain/demos/...`. Any other
+  content change is unauthorized — stop and re-enter planning.
+- C-3: Relocated demos must still lint and run from `.chaplain/demos/`
   (witness one representative run, not all seven).
-- C-3: Demo-gate interaction: the PR diff deletes/renames files under
+- C-4: Demo-gate interaction: the PR diff deletes/renames files under
   `examples/demos/<name>/`. Verify the gate's behavior on pure
   deletions/renames before pushing; if it blocks, the moved
   demo-output.log files travel in the same diff — do not weaken the gate.
-- C-4: No claims removed without their evidence surviving: deleted demos'
-  FRs get a one-line note (demo retired, witness in git history at the
-  deleting commit SHA).
-- C-5: Changelog fragment type `removal` for deletions; the relocation is
+- C-5 (R-3): Deleted demos' governing FRs receive one-line retirement notes
+  naming FR-796, the retired path, and the fact that witness evidence
+  remains in git history; FR-796 implementation notes record the PR URL
+  and, after it exists, the relevant deleting or merge commit identifier.
+- C-6: Changelog fragment type `removal` for deletions; the relocation is
   `chore` scope.
 
 ## Acceptance Criteria
 
-- [ ] AC-01: The three Tier-1 directories are deleted; their FR files note
-      the retirement and the witnessing commit SHA.
-- [ ] AC-02: The seven watcher2 directories exist under `.chaplain/demos/`
-      with git history preserved (rename detection intact) and no content
-      diff.
-- [ ] AC-03: `yamlgraph graph lint` passes on all seven relocated graphs;
-      one representative demo runs successfully from the new path with
-      output captured.
-- [ ] AC-04: `grep -r "examples/demos/watcher2\|examples/demos/script-retirement\|examples/demos/security-cve-ignore"`
-      over tracked files (excluding git history, diary entries, and FR
-      documents, which are records) returns no live references — indexes,
-      taxonomy, CAP registry, and demo READMEs all updated.
-- [ ] AC-05: MCP tool discovery no longer lists the relocated/deleted demos
-      as tools.
-- [ ] AC-06: `examples/README.md` Utility Demos table reflects the new
-      state; `examples/demos/README.md` stale row removed.
-- [ ] AC-07: Full test suite green; no test references the old paths.
-- [ ] AC-08: Changelog fragment(s) + diary reflection included; the
-      2026-07-01 plan document is annotated with what this FR executed.
+Frozen by the judgement (AC-01 satisfied by this revision):
+
+- [x] AC-01: FR-796 is amended with R-1 through R-3 before enforcement
+      authority is used.
+- [ ] AC-02: The three delete-target directories are removed from
+      `examples/demos/`; their governing FR records contain one-line
+      retirement notes naming FR-796, the retired path, and git-history
+      witness retention.
+- [ ] AC-03: The seven watcher2 directories exist under `.chaplain/demos/`;
+      `git diff --find-renames` reports them as renames/moves rather than
+      unrelated delete/add churn where Git can detect it.
+- [ ] AC-04: For each relocated watcher2 demo, `graph.yaml`, `prompts/**`,
+      node files, scripts, and existing `demo-output.log` files are
+      byte-for-byte preserved; README changes are limited to path updates
+      for runnable commands.
+- [ ] AC-05: `yamlgraph graph lint` passes for all seven relocated graphs,
+      and one representative relocated demo run succeeds with output
+      captured under its new `.chaplain/demos/...` directory.
+- [ ] AC-06: A tracked-file search for
+      `examples/demos/(watcher2-|script-retirement|security-cve-ignore)`
+      returns no live references outside record artifacts
+      (`feature-requests/**`, `docs/diary/**`, and git history); indexes,
+      taxonomy, relocated READMEs, tests, and CAP registry files are
+      updated or confirmed clean.
+- [ ] AC-07: MCP graph/tool discovery no longer lists the deleted or
+      relocated demos, including `Watcher2DeduplicationGateDemo`,
+      `Watcher2HookPreflightGateDemo`,
+      `Watcher2MergedBranchCollisionGuardDemo`,
+      `Watcher2PostMergeInboxConsumptionDemo`, and
+      `Security CVE Ignore Demo`.
+- [ ] AC-08: `examples/README.md` removes the ten Utility Demo rows and
+      adds a concise pointer to `.chaplain/demos/` for infrastructure
+      witnesses; `examples/demos/README.md` removes the stale
+      `watcher2-deduplication-gate` row.
+- [ ] AC-09: `examples/dependency-taxonomy.yaml` no longer records deleted
+      paths and records relocated watcher2 entrypoints at
+      `.chaplain/demos/...` only if that taxonomy intentionally covers
+      `.chaplain` witnesses; otherwise the entries are removed with
+      rationale in FR-796 implementation notes.
+- [ ] AC-10: Full tests pass, and no test file references the retired
+      `examples/demos/...` paths.
+- [ ] AC-11: Changelog fragment(s), diary reflection, and an annotation to
+      `examples/2026-07-01-plan-cleanup.md` are included in the
+      implementation diff.
+- [ ] AC-12: FR-796 implementation notes record the PR URL and, after
+      available, the deleting or merge commit identifier that preserves
+      deleted witness evidence in git history.
+
+## Judgement (2026-08-15)
+
+APPROVED WITH REVISIONS — R-1..R-3 folded above; full verdict in
+`FR-796-reclassify-watcher2-witness-demos.judgement.md`. Enforcement gates:
+
+- C-1 (GATE): R-1..R-3 folded before implementation — satisfied by this
+  revision.
+- C-2 (GATE): any relocation/deletion of `graph.yaml`/`prompts/*.yaml`
+  proceeds through the graph-authoring route/sentinel.
+- C-3 (GATE): if a relocated graph needs graph/prompt/node-code/behavior
+  changes to run from `.chaplain/demos/`, stop — not authorized here.
+- C-4 (GATE): do not add `.chaplain/demos/` to `DEFAULT_GRAPH_PATTERNS`;
+  disappearance from MCP discovery is the intended outcome.
+- C-5 (GATE): do not weaken or bypass demo-gate, hooks, CI, or branch
+  protection; gate defects exposed by pure deletes/renames get their own
+  FR.
+- C-6 (GATE): no other item from the 2026-07-01 cleanup plan under this
+  authority.
+
+Not authorized: other cleanup-plan tiers; moving `enforcer`,
+`req-cross-check`, `pipeline_audit`, `run-analyzer`, `system-status`,
+`forensic-failure-diary`, `hook_classifier`, or `code-analysis`; adding
+`.chaplain/demos/*/*.yaml` to discovery; converting witnesses into tests;
+moving these demos to `purgatory/`; changing graph semantics, prompts,
+node code, or demo behavior.
 
 ## Alternatives Considered
 
