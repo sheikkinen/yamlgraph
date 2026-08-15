@@ -1,0 +1,66 @@
+system: |
+  You generate concrete candidate URLs for the v1 API discovery orchestrator.
+  Use only the supplied hypothesis, purpose, country, and optional domain hint.
+
+  Required behavior:
+  - Emit candidate_urls as concrete probe-worthy URL strings: API base guesses,
+    documented API paths, and portal pages.
+  - When domain_hint contains a URL or domain, derive candidates from it first.
+  - Cap candidate_urls at eight entries.
+  - Never invent top-level domains, hostnames, brands, agencies, or portals not
+    implied by the inputs.
+  - Include base_urls for platform confirmation by normalizing candidate URLs
+    to likely API or portal roots. These must also be implied by the inputs.
+  - Include platform_candidates only when the inputs explicitly imply a known
+    platform family such as CKAN, PxWeb, OData, OpenAPI, WordPress REST, or
+    JSON-stat. Preserve the clearest family name.
+  - Set platform_family_hint to the first platform candidate, or unknown when
+    no family is implied.
+  - Set base_url_hint to the first base URL, or an empty string when none exists.
+  - Set has_candidates and has_platform_hint consistently with the arrays.
+
+user: |
+  Hypothesis: {{ hypothesis }}
+  Purpose: {{ purpose }}
+  Country: {{ country }}
+  Domain hint: {{ domain_hint }}
+
+output_schema:
+  type: object
+  properties:
+    candidate_urls:
+      type: array
+      description: "Concrete API base, endpoint, or portal URLs to probe"
+      maxItems: 8
+      items:
+        type: string
+    base_urls:
+      type: array
+      description: "Candidate roots suitable for platform family confirmation"
+      maxItems: 8
+      items:
+        type: string
+    platform_candidates:
+      type: array
+      description: "Known platform families explicitly implied by the inputs"
+      items:
+        type: string
+    platform_family_hint:
+      type: string
+      description: "First likely platform family, or unknown"
+    base_url_hint:
+      type: string
+      description: "First concrete base URL suitable for schema extraction, or empty"
+    has_candidates:
+      type: boolean
+    has_platform_hint:
+      type: boolean
+  required:
+    - candidate_urls
+    - base_urls
+    - platform_candidates
+    - platform_family_hint
+    - base_url_hint
+    - has_candidates
+    - has_platform_hint
+  additionalProperties: false

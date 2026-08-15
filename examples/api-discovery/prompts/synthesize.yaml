@@ -1,0 +1,138 @@
+system: |
+  You synthesize the v1 API discovery run into one terminal structured result.
+  Consume only the supplied state and the intermediate step outputs. Tool-call
+  step outputs are wrappers with success, result, and error fields; graph-tool
+  results may be text representations of the child graph output.
+
+  Rules:
+  - Return found only when the platform was confirmed and real data was
+    observed. Platform confirmation evidence may be either a successful
+    platform-confirm result or platform-specific substance in endpoint-probe
+    live endpoint data that matches an explicit platform candidate from the
+    inputs. For PxWeb, a live JSON array containing dbid/text or id/text entries
+    from a PxWeb API URL is platform-specific substance.
+  - When returning found, profile is mandatory. Its url must come from an
+    actual probed or confirmed URL in the intermediate state. Its endpoints must
+    be non-empty and come from endpoint-probe live endpoints, page-analysis API
+    URLs, or the capability report.
+  - The profile object must use the exact key platform_family for the platform
+    name. Never use a profile key named platform.
+  - Never invent URLs, endpoints, sample data, authentication, counts,
+    languages, freshness, or limitations.
+  - Use not_found when candidates were exhausted, no API was found, or only a
+    static/SPA portal without usable API evidence was observed.
+  - Use needs_manual when authentication, CAPTCHA, rate limiting, transport
+    blocking, or another manual intervention prevents confirmation and there is
+    no platform-specific live endpoint data.
+  - reason is empty for found. Otherwise, name the stop condition in plain
+    language.
+  - steps_tried must copy the exact labels from the "Actual steps that ran"
+    section. Do not add a step whose wrapper is absent or empty.
+  - alternatives may be empty for found. For not_found or needs_manual, include
+    concrete next probes or manual sources when evidenced by the run.
+  - Do not downgrade a found result only because page-analysis or schema-extract
+    failed when endpoint-probe already returned platform-specific live data.
+  - If a raw sample is text, place it inside sample_response as an object field
+    rather than returning a bare string.
+
+user: |
+  Inputs:
+  - hypothesis: {{ hypothesis }}
+  - purpose: {{ purpose }}
+  - country: {{ country }}
+  - domain_hint: {{ domain_hint }}
+
+  Actual steps that ran:
+  - candidate generation
+  {% if probe_result | default({}) %}
+  - endpoint-probe
+  {% endif %}
+  {% if page_analysis | default({}) %}
+  - page-analysis
+  {% endif %}
+  {% if platform_confirmation | default({}) %}
+  - platform-confirm
+  {% endif %}
+  {% if capability_report | default({}) %}
+  - schema-extract
+  {% endif %}
+
+  Candidate generation:
+  {{ candidate_urls | tojson(indent=2) }}
+
+  Endpoint probe:
+  {{ probe_result | default({}) | tojson(indent=2) }}
+
+  Page analysis:
+  {{ page_analysis | default({}) | tojson(indent=2) }}
+
+  Platform confirmation:
+  {{ platform_confirmation | default({}) | tojson(indent=2) }}
+
+  Capability report:
+  {{ capability_report | default({}) | tojson(indent=2) }}
+
+output_schema:
+  type: object
+  properties:
+    verdict:
+      type: string
+      enum:
+        - found
+        - not_found
+        - needs_manual
+    profile:
+      type: object
+      properties:
+        url:
+          type: string
+        platform_family:
+          type: string
+        auth_model:
+          type: string
+        endpoints:
+          type: array
+          items:
+            type: string
+          minItems: 1
+        sample_response:
+          type: object
+          additionalProperties: true
+        total_records:
+          type: string
+        languages:
+          type: array
+          items:
+            type: string
+        data_freshness:
+          type: string
+        confidence:
+          type: string
+        limitations:
+          type: array
+          items:
+            type: string
+        probe_suggestion:
+          type: string
+      required:
+        - url
+        - platform_family
+        - endpoints
+      additionalProperties: false
+    reason:
+      type: string
+    steps_tried:
+      type: array
+      items:
+        type: string
+      minItems: 1
+    alternatives:
+      type: array
+      items:
+        type: string
+  required:
+    - verdict
+    - reason
+    - steps_tried
+    - alternatives
+  additionalProperties: false

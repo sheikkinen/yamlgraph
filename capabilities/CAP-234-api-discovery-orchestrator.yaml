@@ -1,0 +1,35 @@
+id: CAP-234
+name: API Discovery Orchestrator
+description: >
+  Example-level v1 orchestrator for the API discovery pipeline
+  (FR-791): examples/api-discovery/graph.yaml composes the four
+  enforced step graph-runtime manifests (endpoint-probe,
+  page-analysis, platform-confirm, schema-extract) through tool_call
+  nodes with conditional skip routing, plus llm candidate generation
+  and a terminal synthesize node. One command turns a hypothesis +
+  purpose + country (+ optional domain_hint) into a single terminal
+  result: a found APIProfile or a not-found/needs-manual verdict with
+  honest steps_tried. Live-smoked both ways: stat.fi PxWeb found with
+  real StatFin sample data; example.invalid not_found with only the
+  actually executed steps reported. Recon and browser-sniff are
+  excluded from v1 by judgement.
+modules:
+  - examples
+fr: FR-791
+requirements:
+  - id: REQ-YG-595
+    description: >
+      The orchestrator compiles against the four committed step
+      manifests via tool_call nodes only (no subgraph nodes, no
+      recon/browser-sniff references), documents the
+      hypothesis/purpose/country/domain_hint input contract in state,
+      routes absent-candidate and unconfirmed-platform paths to the
+      single synthesize terminal instead of failing, gates
+      schema-extract on platform_confirmation.success, and pins the
+      terminal result schema: verdict enum found/not_found/
+      needs_manual, required reason/steps_tried/alternatives with
+      steps_tried minItems 1, profile requiring url/platform_family/
+      non-empty endpoints, additionalProperties false throughout;
+      llm nodes fail loudly on schema drift.
+    modules:
+      - examples

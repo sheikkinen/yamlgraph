@@ -1,0 +1,165 @@
+version: "1.0"
+name: api-discovery
+description: "Orchestrate v1 API discovery steps into a terminal API profile or manual/not-found result"
+
+prompts_relative: true
+prompts_dir: prompts
+
+data_files:
+  platform_catalog: steps/page-analysis/data/platform_catalog.yaml
+
+state:
+  hypothesis:
+    type: str
+    description: "Natural-language hypothesis about the API or data service to find"
+  purpose:
+    type: str
+    description: "Intended lookup or data-access purpose"
+  country:
+    type: str
+    description: "Country or jurisdiction code/context for the API search"
+  domain_hint:
+    type: str
+    default: ""
+    description: "Optional domain, URL, product name, or portal clue"
+  platform_catalog:
+    type: dict
+    description: "Committed page-analysis platform catalog"
+  candidate_urls:
+    type: dict
+    description: "Structured candidate URL generation result"
+  probe_result:
+    type: dict
+    default: {}
+    description: "Endpoint probe tool-call wrapper"
+  page_analysis:
+    type: dict
+    default: {}
+    description: "Page analysis tool-call wrapper"
+  platform_confirmation:
+    type: dict
+    default: {}
+    description: "Platform confirmation tool-call wrapper"
+  capability_report:
+    type: dict
+    default: {}
+    description: "Schema extraction tool-call wrapper"
+  result:
+    type: dict
+    description: "Terminal API discovery result"
+
+tools:
+  endpoint_probe:
+    manifest: steps/endpoint_probe.tool.yaml
+  page_analysis:
+    manifest: steps/page_analysis.tool.yaml
+  platform_confirm:
+    manifest: steps/platform_confirm.tool.yaml
+  schema_extract:
+    manifest: steps/schema_extract.tool.yaml
+
+nodes:
+  init_defaults:
+    type: passthrough
+    output:
+      probe_result: {}
+      page_analysis: {}
+      platform_confirmation: {}
+      capability_report: {}
+
+  generate_candidates:
+    type: llm
+    prompt: generate_candidates
+    state_key: candidate_urls
+    variables:
+      hypothesis: "{state.hypothesis}"
+      purpose: "{state.purpose}"
+      country: "{state.country}"
+      domain_hint: "{state.domain_hint}"
+    on_error: fail
+
+  endpoint_probe:
+    type: tool_call
+    tool: endpoint_probe
+    args:
+      candidate_urls: "{state.candidate_urls.candidate_urls}"
+      max_iterations: 10
+    state_key: probe_result
+    on_error: fail
+
+  page_analysis:
+    type: tool_call
+    tool: page_analysis
+    args:
+      html_pages: "{state.candidate_urls.candidate_urls}"
+      max_iterations: 5
+      platform_catalog: "{state.platform_catalog}"
+    state_key: page_analysis
+    on_error: fail
+
+  platform_confirm:
+    type: tool_call
+    tool: platform_confirm
+    args:
+      platform_candidates: "{state.candidate_urls.platform_candidates}"
+      base_urls: "{state.candidate_urls.base_urls}"
+      max_iterations: 8
+    state_key: platform_confirmation
+    on_error: fail
+
+  schema_extract:
+    type: tool_call
+    tool: schema_extract
+    args:
+      family: "{state.candidate_urls.platform_family_hint}"
+      base_url: "{state.candidate_urls.base_url_hint}"
+      sample_response: "{state.platform_confirmation.result}"
+      openapi_spec_json: ""
+    state_key: capability_report
+    on_error: fail
+
+  synthesize:
+    type: llm
+    prompt: synthesize
+    state_key: result
+    on_error: fail
+
+edges:
+  - from: START
+    to: init_defaults
+
+  - from: init_defaults
+    to: generate_candidates
+
+  - from: generate_candidates
+    to: endpoint_probe
+    condition: "candidate_urls.has_candidates == true"
+
+  - from: generate_candidates
+    to: synthesize
+    condition: "candidate_urls.has_candidates != true"
+
+  - from: endpoint_probe
+    to: page_analysis
+
+  - from: page_analysis
+    to: platform_confirm
+    condition: "candidate_urls.has_platform_hint == true"
+
+  - from: page_analysis
+    to: synthesize
+    condition: "candidate_urls.has_platform_hint != true"
+
+  - from: platform_confirm
+    to: schema_extract
+    condition: "platform_confirmation.success == true and candidate_urls.has_platform_hint == true"
+
+  - from: platform_confirm
+    to: synthesize
+    condition: "platform_confirmation.success != true or candidate_urls.has_platform_hint != true"
+
+  - from: schema_extract
+    to: synthesize
+
+  - from: synthesize
+    to: END

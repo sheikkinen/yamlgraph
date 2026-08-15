@@ -549,6 +549,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 231 | CAP-231 API Discovery Recon Step | `examples` | REQ-YG-592 |
 | 232 | CAP-232 API Discovery Browser-Sniff Step | `examples` | REQ-YG-593 |
 | 233 | CAP-233 API Discovery Schema-Extract Step | `examples` | REQ-YG-594 |
+| 234 | CAP-234 API Discovery Orchestrator | `examples` | REQ-YG-595 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -2868,6 +2869,16 @@ Example-level schema-extract step for the API discovery pipeline (FR-790): a rou
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-594 | The schema-extract graph compiles, routes on family with no agent node, calls the shared parse_openapi manifest via a deterministic tool_call, and pins CapabilityReport in every prompt's output_schema: nine required fields with EndpointInfo items requiring path and parameters as string arrays; invalid output fails Pydantic validation; the input mapping consumes exactly the FR-788 PlatformConfirmation fields plus the openapi_spec_json fixture input; committed fixtures carry the known /pets path with limit parameter and the CKAN count/organization/freshness/language signals. | `examples` |
+
+### 234. CAP-234 API Discovery Orchestrator
+
+Example-level v1 orchestrator for the API discovery pipeline (FR-791): examples/api-discovery/graph.yaml composes the four enforced step graph-runtime manifests (endpoint-probe, page-analysis, platform-confirm, schema-extract) through tool_call nodes with conditional skip routing, plus llm candidate generation and a terminal synthesize node. One command turns a hypothesis + purpose + country (+ optional domain_hint) into a single terminal result: a found APIProfile or a not-found/needs-manual verdict with honest steps_tried. Live-smoked both ways: stat.fi PxWeb found with real StatFin sample data; example.invalid not_found with only the actually executed steps reported. Recon and browser-sniff are excluded from v1 by judgement.
+
+**Feature Request:** FR-791
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-595 | The orchestrator compiles against the four committed step manifests via tool_call nodes only (no subgraph nodes, no recon/browser-sniff references), documents the hypothesis/purpose/country/domain_hint input contract in state, routes absent-candidate and unconfirmed-platform paths to the single synthesize terminal instead of failing, gates schema-extract on platform_confirmation.success, and pins the terminal result schema: verdict enum found/not_found/ needs_manual, required reason/steps_tried/alternatives with steps_tried minItems 1, profile requiring url/platform_family/ non-empty endpoints, additionalProperties false throughout; llm nodes fail loudly on schema drift. | `examples` |
 
 <!-- END GENERATED CAPABILITIES -->
 

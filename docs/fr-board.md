@@ -193,7 +193,6 @@
 | FR-729 | Proposed | yamlgraph |  | FR-729-landing-page-metrics-generated.md |
 | FR-751 | Proposed | yamlgraph |  | FR-751-liquid-safety-precommit-gate.md |
 | FR-757 | Proposed | yamlgraph |  | FR-757-fsm-contrib-relocation.md |
-| FR-791 | Proposed | yamlgraph |  | FR-791-api-discovery-orchestrator.md |
 | FR-792 | Proposed | yamlgraph |  | FR-792-multi-step-investigation-template.md |
 | FR-078 | In Progress | yamlgraph |  | FR-078-relocate-project-tests.md |
 | FR-100 | In Progress | yamlgraph |  | FR-100-yamlgraph-development-pipeline-ebook.md |
@@ -419,7 +418,6 @@ graph TD
     FR-761["FR-761 Judged"]
     FR-762["FR-762 Judged"]
     FR-764["FR-764 Judged"]
-    FR-791["FR-791 Proposed"]
     FR-792["FR-792 Proposed"]
     FR-796["FR-796 In Progress"]
     FR-081 --> FR-082
