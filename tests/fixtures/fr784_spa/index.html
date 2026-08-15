@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html>
+<head><title>FR-784 SPA fixture</title></head>
+<body>
+<h1>SPA fixture: data + telemetry + token fetches</h1>
+<script>
+  fetch("/api/data");
+  fetch("/analytics/collect", { method: "POST", body: "e=pageview" });
+  fetch("/api/item?token=SECRET_TOKEN_VALUE_123");
+</script>
+</body>
+</html>

@@ -1,0 +1,26 @@
+id: CAP-229
+name: Playwright Network Sniff Utility
+description: >
+  Example-level deterministic browser probe for the API discovery
+  pipeline (FR-784): network-sniff.js loads a URL in headless Chromium,
+  captures XHR/fetch traffic, classifies data vs telemetry requests,
+  flags auth/CAPTCHA walls, redacts token material, and emits one
+  stable JSON object. Exposed as an FR-768 shell tool manifest
+  (network_sniff.tool.yaml) with a pinned Node/Playwright package
+  boundary under examples/api-discovery/tools/, consumed by the
+  FR-789 browser-sniff step graph.
+modules:
+  - examples
+fr: FR-784
+requirements:
+  - id: REQ-YG-590
+    description: >
+      network-sniff.js captures XHR/fetch requests from a local SPA
+      fixture into a typed JSON contract (requests, auth_required,
+      needs_manual_reason, warnings) with telemetry demotion, hard
+      timeout, auth/CAPTCHA flagging, and token redaction; its FR-768
+      shell manifest declares parse json and a bounding timeout, and
+      the Playwright dependency is pinned in a committed package
+      boundary that fails loudly when missing.
+    modules:
+      - examples

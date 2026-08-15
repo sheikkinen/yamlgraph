@@ -544,6 +544,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 226 | CAP-226 API Discovery Page-Analysis Step | `examples` | REQ-YG-587 |
 | 227 | CAP-227 Shared Python Tool Manifest Root Confinement Fix | `tools` | REQ-YG-588 |
 | 228 | CAP-228 API Discovery Platform-Confirm Step | `examples` | REQ-YG-589 |
+| 229 | CAP-229 Playwright Network Sniff Utility | `examples` | REQ-YG-590 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -2813,6 +2814,16 @@ Agent-based platform confirmation step for the API discovery pipeline (FR-788). 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-589 | Platform-confirm step graph with shared curl_probe tool reference, frozen list[str] input cardinality, family confirmation matrix covering six platform families, and a single PlatformConfirmation output proven by live positive (CKAN) and negative (non-matching URL) smoke evidence. | `examples` |
+
+### 229. CAP-229 Playwright Network Sniff Utility
+
+Example-level deterministic browser probe for the API discovery pipeline (FR-784): network-sniff.js loads a URL in headless Chromium, captures XHR/fetch traffic, classifies data vs telemetry requests, flags auth/CAPTCHA walls, redacts token material, and emits one stable JSON object. Exposed as an FR-768 shell tool manifest (network_sniff.tool.yaml) with a pinned Node/Playwright package boundary under examples/api-discovery/tools/, consumed by the FR-789 browser-sniff step graph.
+
+**Feature Request:** FR-784
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-590 | network-sniff.js captures XHR/fetch requests from a local SPA fixture into a typed JSON contract (requests, auth_required, needs_manual_reason, warnings) with telemetry demotion, hard timeout, auth/CAPTCHA flagging, and token redaction; its FR-768 shell manifest declares parse json and a bounding timeout, and the Playwright dependency is pinned in a committed package boundary that fails loudly when missing. | `examples` |
 
 <!-- END GENERATED CAPABILITIES -->
 
