@@ -1,0 +1,29 @@
+id: CAP-231
+name: API Discovery Recon Step
+description: >
+  Example-level recon step for the API discovery pipeline (FR-787):
+  a single-agent graph under examples/api-discovery/steps/recon/ that
+  mines GitHub code search (FR-783 gh_code_search shell manifest) for
+  prior-art evidence about a hypothesized API — candidate URLs, auth
+  patterns, and schema hints — returning a ReconResult of four
+  required list[str] fields where empty lists are a valid outcome.
+  Exposed to the FR-791 orchestrator as an optional graph-runtime
+  tool manifest (recon.tool.yaml); the orchestrator never depends
+  on it.
+modules:
+  - examples
+fr: FR-787
+requirements:
+  - id: REQ-YG-592
+    description: >
+      The recon step graph compiles, references the shared FR-783
+      gh_code_search manifest without duplication, instructs
+      domain/service/country search-term variant generation within a
+      bounded iteration budget, and emits ReconResult via the
+      output_schema JSON-Schema dialect with exactly candidate_urls,
+      auth_hints, schema_hints, and evidence as required string
+      arrays; evidence strings carry repository, path, and URL source
+      identity, all-empty results validate, and no orchestrator
+      artifact exists or references recon.
+    modules:
+      - examples

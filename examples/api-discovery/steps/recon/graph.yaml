@@ -1,0 +1,37 @@
+version: "1.0"
+name: recon
+description: "GitHub code-search recon for API discovery"
+
+prompts_relative: true
+prompts_dir: prompts
+
+state:
+  hypothesis:
+    type: str
+    description: "What API/service is being investigated"
+  max_iterations:
+    type: int
+    default: 8
+    description: "Maximum tool-call iterations for the agent"
+  recon_result:
+    type: dict
+    description: "Structured ReconResult with candidate URLs, auth hints, schema hints, and evidence"
+
+tools:
+  gh_code_search:
+    manifest: ../../tools/gh_code_search.tool.yaml
+
+nodes:
+  recon_agent:
+    type: agent
+    prompt: recon
+    tools:
+      - gh_code_search
+    max_iterations: 8
+    state_key: recon_result
+
+edges:
+  - from: START
+    to: recon_agent
+  - from: recon_agent
+    to: END

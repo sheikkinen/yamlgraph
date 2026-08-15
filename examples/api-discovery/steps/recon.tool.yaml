@@ -1,0 +1,12 @@
+# Graph-runtime tool manifest for recon step (FR-787)
+# Consumed by the orchestrator (FR-791) via type: tool_call node.
+
+name: recon
+description: "Search GitHub code for API discovery prior art"
+runtime:
+  type: graph
+  path: recon/graph.yaml
+  input_mapping:
+    hypothesis: hypothesis
+    max_iterations: max_iterations
+  output_key: recon_result

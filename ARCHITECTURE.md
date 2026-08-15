@@ -546,6 +546,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 228 | CAP-228 API Discovery Platform-Confirm Step | `examples` | REQ-YG-589 |
 | 229 | CAP-229 Playwright Network Sniff Utility | `examples` | REQ-YG-590 |
 | 230 | CAP-230 Provider Readiness Preflight | `tests` | REQ-YG-591 |
+| 231 | CAP-231 API Discovery Recon Step | `examples` | REQ-YG-592 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -2835,6 +2836,16 @@ Test-infrastructure preflight for live-provider integration tests (FR-801): key 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-591 | Live-provider integration tests consume a fixture-based readiness precondition that probes each provider at most once per pytest session, reads credentials after the yamlgraph.config dotenv boundary, skips before the test body with a reason naming provider, exception class, and HTTP status (never key material, response bodies, or account/request identifiers), and never converts provider errors to skips after product execution begins. | `tests` |
+
+### 231. CAP-231 API Discovery Recon Step
+
+Example-level recon step for the API discovery pipeline (FR-787): a single-agent graph under examples/api-discovery/steps/recon/ that mines GitHub code search (FR-783 gh_code_search shell manifest) for prior-art evidence about a hypothesized API — candidate URLs, auth patterns, and schema hints — returning a ReconResult of four required list[str] fields where empty lists are a valid outcome. Exposed to the FR-791 orchestrator as an optional graph-runtime tool manifest (recon.tool.yaml); the orchestrator never depends on it.
+
+**Feature Request:** FR-787
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-592 | The recon step graph compiles, references the shared FR-783 gh_code_search manifest without duplication, instructs domain/service/country search-term variant generation within a bounded iteration budget, and emits ReconResult via the output_schema JSON-Schema dialect with exactly candidate_urls, auth_hints, schema_hints, and evidence as required string arrays; evidence strings carry repository, path, and URL source identity, all-empty results validate, and no orchestrator artifact exists or references recon. | `examples` |
 
 <!-- END GENERATED CAPABILITIES -->
 
