@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Bug
-**Status:** Judged — APPROVED WITH REVISIONS (revisions folded below; see `FR-800-memory-demo-mock-seam-correction.judgement.md`)
+**Status:** Enforced — 2026-08-15 (see Implementation Record)
 **Effort:** 0.5 hours
 **Requested:** 2026-08-15
 **First consumer / first event:** the next enforcer running `tests/integration/test_memory_demo.py` — the first event is the current deterministic `AttributeError: <module 'yamlgraph.tools.agent'> does not have the attribute 'execute_shell_tool'` in `test_tool_results_stored_in_state`, red on every run since FR-660 (2026-07-03).
@@ -65,17 +65,33 @@ Commandment 8 — no compat shims). No production files change.
 
 (Revised per judgement — supersedes the proposed set.)
 
-- [ ] AC-01: `test_tool_results_stored_in_state` patches
+- [x] AC-01: `test_tool_results_stored_in_state` patches
   `yamlgraph.tools.tool_builders.execute_shell_tool`.
-- [ ] AC-02: The test asserts `mock_exec.assert_called_once_with(tool_config,
+- [x] AC-02: The test asserts `mock_exec.assert_called_once_with(tool_config,
   {"count": "5"})`, proving the call resolved through the patched seam.
-- [ ] AC-03: The test asserts `_tool_results[0]` includes `tool == "git_log"`,
+- [x] AC-03: The test asserts `_tool_results[0]` includes `tool == "git_log"`,
   the mocked output, and `success is True`.
-- [ ] AC-04: The full `tests/integration/test_memory_demo.py` module passes.
-- [ ] AC-05: No production files change, and no re-export/shim is added to
+- [x] AC-04: The full `tests/integration/test_memory_demo.py` module passes.
+- [x] AC-05: No production files change, and no re-export/shim is added to
   `yamlgraph.tools.agent`.
-- [ ] AC-06: FR-800 cites only committed evidence or explicitly marks
+- [x] AC-06: FR-800 cites only committed evidence or explicitly marks
   unavailable prior art as unavailable.
+
+## Implementation Record (2026-08-15)
+
+- Test-only change in `tests/integration/test_memory_demo.py::TestMemoryDemoEndToEnd::test_tool_results_stored_in_state`:
+  patch target retargeted to `yamlgraph.tools.tool_builders.execute_shell_tool`
+  (C-3); seam-proof assertions added per judgement R-1
+  (`assert_called_once_with(tool_config, {"count": "5"})`, mocked output
+  equality, `success is True`).
+- RED evidence: the pre-fix test failed deterministically with
+  `AttributeError: <module 'yamlgraph.tools.agent'> does not have the
+  attribute 'execute_shell_tool'` (every run since FR-660 `085f3aad`;
+  committed record in `docs/investigations/fr798-full-suite-failures.md`
+  Class B).
+- GREEN: named test passes; full module 16/16 passed (C-4).
+- No production files changed; no re-export added (C-2). No deviations from
+  the judged scope.
 
 ## Alternatives Considered
 

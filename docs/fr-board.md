@@ -98,7 +98,6 @@
 | FR-762 | Judged | yamlgraph |  | FR-762-example-dependency-taxonomy.md |
 | FR-764 | Judged | yamlgraph |  | FR-764-style-convert-pipeline.md |
 | FR-799 | Judged | yamlgraph |  | FR-799-fr432-fixture-sys-modules-orphan.md |
-| FR-800 | Judged | yamlgraph |  | FR-800-memory-demo-mock-seam-correction.md |
 | FR-801 | Judged | yamlgraph |  | FR-801-provider-readiness-preflight.md |
 | FR-094 | Approved | yamlgraph |  | FR-094-memory-node.md |
 | FR-095 | Approved | yamlgraph |  | FR-095-doc-staleness-monitor.md |
@@ -432,7 +431,6 @@ graph TD
     FR-792["FR-792 Proposed"]
     FR-796["FR-796 In Progress"]
     FR-799["FR-799 Judged"]
-    FR-800["FR-800 Judged"]
     FR-801["FR-801 Judged"]
     FR-081 --> FR-082
     FR-731 --> FR-735

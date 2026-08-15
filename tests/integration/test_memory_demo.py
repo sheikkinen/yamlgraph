@@ -264,7 +264,7 @@ class TestMemoryDemoEndToEnd:
         with (
             patch("yamlgraph.tools.agent.create_llm", return_value=mock_llm),
             patch("yamlgraph.tools.agent.load_prompt", return_value=mock_prompt),
-            patch("yamlgraph.tools.agent.execute_shell_tool") as mock_exec,
+            patch("yamlgraph.tools.tool_builders.execute_shell_tool") as mock_exec,
         ):
             mock_exec.return_value = MagicMock(
                 success=True, output="abc123 First commit\ndef456 Second commit"
@@ -281,9 +281,15 @@ class TestMemoryDemoEndToEnd:
             )
             result = node_fn({"input": "Show commits"})
 
+        mock_exec.assert_called_once_with(tool_config, {"count": "5"})
         assert "_tool_results" in result
         assert len(result["_tool_results"]) == 1
         assert result["_tool_results"][0]["tool"] == "git_log"
+        assert (
+            result["_tool_results"][0]["output"]
+            == "abc123 First commit\ndef456 Second commit"
+        )
+        assert result["_tool_results"][0]["success"] is True
 
     @pytest.mark.req("REQ-YG-025", "REQ-YG-026")
     def test_export_creates_files(self, tmp_path: Path):
