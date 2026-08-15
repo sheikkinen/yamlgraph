@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement (subtractive)
-**Status:** Judged — APPROVED WITH REVISIONS (2026-08-15, R-1..R-6 folded below)
+**Status:** Enforced (2026-08-15)
 **Effort:** 1 day (census + disposition doc; retirements are follow-up FRs)
 **Requested:** 2026-08-15
 **Prior art:** FR-802-node-type-usage-census.judgement.md — this FR's own judgement (self-pair). FR-708-llm-client-request-timeout.md, FR-777-shared-shell-toolbelt-manifests.md, FR-709-race-loser-teardown-integration.md, FR-713-persistent-bridge-loop.md — lexical noise on generic nouns (type/census); none concerns node-type inventory or retirement; unrelated. Substantive prior art (FR-465/FR-466 retirement lifecycle, FR-797) is dispositioned by exact path in Related below.
@@ -35,15 +35,33 @@ One committed document ranks every node type by (a) usage count per consumer cla
 
 ## Acceptance Criteria (revised per judgement)
 
-- [ ] AC-01: FR-802 amended with R-1..R-6 before enforcement (this revision)
-- [ ] AC-02: census lists the node factory dispatch registry source; one row per registered node type; no hand-written type list
-- [ ] AC-03: source inventory discovers committed graph artifacts by YAML structure, classifies every counted artifact by consumer class, lists excluded YAML candidates with reasons
-- [ ] AC-04: each usage row cites raw evidence (`file`, `node name`, `node type`, `consumer class`) plus exact no-network reproduction commands
-- [ ] AC-05: incident density computed from the explicit formula; each incident cites path + node-type-specific reason; ambiguous hits excluded or listed as non-incidents
-- [ ] AC-06: future-consumer claims cite committed evidence + named first event; secondary evidence labeled; `subgraph` dispositioned against the FR-797 backlog-navigator citation, not current runtime usage
-- [ ] AC-07: every disposition ∈ {KEEP, KEEP-with-consumer, MERGE, RETIRE}; MERGE names target + migration note; RETIRE names the FR-466 lifecycle step
-- [ ] AC-08: table states explicitly it is evidence for future FRs, not authority to change code or remove node types
-- [ ] AC-09: only `docs/node-type-census-2026-08.md` and this FR are changed
+- [x] AC-01: FR-802 amended with R-1..R-6 before enforcement (this revision)
+- [x] AC-02: census lists the node factory dispatch registry source; one row per registered node type; no hand-written type list
+- [x] AC-03: source inventory discovers committed graph artifacts by YAML structure, classifies every counted artifact by consumer class, lists excluded YAML candidates with reasons
+- [x] AC-04: each usage row cites raw evidence (`file`, `node name`, `node type`, `consumer class`) plus exact no-network reproduction commands
+- [x] AC-05: incident density computed from the explicit formula; each incident cites path + node-type-specific reason; ambiguous hits excluded or listed as non-incidents
+- [x] AC-06: future-consumer claims cite committed evidence + named first event; secondary evidence labeled; `subgraph` dispositioned against the FR-797 backlog-navigator citation, not current runtime usage
+- [x] AC-07: every disposition ∈ {KEEP, KEEP-with-consumer, MERGE, RETIRE}; MERGE names target + migration note; RETIRE names the FR-466 lifecycle step
+- [x] AC-08: table states explicitly it is evidence for future FRs, not authority to change code or remove node types
+- [x] AC-09: only `docs/node-type-census-2026-08.md` and this FR are changed
+
+## Enforcement Record (2026-08-15)
+
+Delivered `docs/node-type-census-2026-08.md`. Structural extraction over 966
+committed YAML candidates found 232 graph artifacts, 709 typed entries, 704
+dispatch-registry entries, and 734 excluded candidates. The final evidence
+table dispositions are:
+
+| Disposition | Node types |
+|---|---|
+| KEEP | `copilot`, `interrupt`, `llm`, `python`, `race`, `tool` |
+| KEEP-with-consumer | `subgraph` |
+| MERGE | `passthrough` → `python`; `router` → `llm` |
+| RETIRE | `agent`, `map`, `tool_call`, `verify` |
+
+No runtime, graph, prompt, test, CAP, CI, hook, requirement, or permanent-tool
+surface changed. RETIRE and MERGE rows remain evidence for separately planned,
+judged, and enforced follow-up FRs; they do not authorize implementation here.
 
 ## Alternatives Considered
 
