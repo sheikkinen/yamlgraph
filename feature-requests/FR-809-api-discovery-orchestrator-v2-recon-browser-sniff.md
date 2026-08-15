@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Proposed
+**Status:** Approved with revisions (judgement folded 2026-08-15; blocked on FR-810 Enforced)
 **Effort:** 1 day
 **Requested:** 2026-08-15
 **First consumer / first event:** the first control-plane investigation
@@ -63,32 +63,53 @@ recon and browser-sniff were consulted.
 
 ## Proposed Solution
 
+- **Hard dependency (R-1):** FR-810 must be Enforced first. The
+  page-analysis `tool_call` exposes a parsed state key `page_findings`;
+  the browser-sniff edge condition is exactly
+  `page_findings.is_spa == true and page_findings.api_found != true`.
+  Candidate-hints routing is NOT authorized for this FR.
 - **Recon (optional front):** `tool_call` on `steps/recon.tool.yaml`
-  gated by an input flag (`use_recon`, default true) or a cheap
-  hypothesis-shape condition; its `recon_result` (candidate URLs, auth
-  hints, schema hints) feeds `generate_candidates` as additional
-  evidence.
+  gated by input flag `use_recon` (optional boolean, default true); its
+  `recon_result` (candidate URLs, auth hints, schema hints) feeds
+  `generate_candidates` as additional evidence.
 - **Browser-sniff (conditional last resort):** `tool_call` on
   `steps/browser_sniff.tool.yaml` entered only on the SPA-without-API
-  path (routing-visible signal per the FR-791 deviation pattern —
-  candidate hints or a dedicated router-visible flag; see FR-810 for the
-  general cure). Its `sniff_result.api_calls` re-enter the
-  platform-confirm path as live endpoint evidence; its `needs_manual`
+  path per R-1. Its sniffed `api_calls` become candidate endpoint
+  evidence for the confirmation/synthesis path; its `needs_manual`
   verdict hint routes to synthesize with verdict `needs_manual`.
+- **Cross-step state handoff table (R-2):**
+
+  | State key | Producer | Consumer | Contract |
+  |---|---|---|---|
+  | `use_recon` | run input (optional bool, default true) | recon gate edge | recon runs before `generate_candidates` only when true |
+  | `recon_result` | recon tool_call wrapper | `generate_candidates` prompt | consumed alongside original hypothesis/domain inputs |
+  | `probe_findings` | endpoint-probe tool_call (`parsed_key`) | routing + downstream prompts | parsed probe output (FR-810) |
+  | `page_findings` | page-analysis tool_call (`parsed_key`) | browser-sniff entry edge | fields `is_spa`, `api_found`, `platform_candidates`, `api_urls` |
+  | `sniff_url` | deterministic selection from the HTML page list page-analysis received (first HTML page probed) | browser-sniff tool_call args | single URL, no LLM choice |
+  | `sniff_findings` | browser-sniff tool_call (`parsed_key`) | confirmation/synthesis | `api_calls` become candidate endpoint evidence |
+
+- **Terminal schema (R-3):** add explicit `manual_reason` field to the
+  synthesize result schema, required when `verdict == "needs_manual"`,
+  carrying the browser-sniff manual reason verbatim.
 - **Synthesize prompt:** extend the "Actual steps that ran" evidence
   section (FR-791 repair) to cover the two new wrappers; `steps_tried`
   stays copy-only.
 - **Authoring route:** all graph/prompt changes via `scripts/author.sh`
   with validation record (FR-767).
+- **Traceability:** `capabilities/CAP-238-api-discovery-orchestrator-v2.yaml`
+  providing `REQ-YG-599`; tests marked `@pytest.mark.req("REQ-YG-599")`.
 
-## Acceptance Criteria
+## Acceptance Criteria (revised per judgement)
 
-- [ ] AC-01: Orchestrator references `steps/recon.tool.yaml` and `steps/browser_sniff.tool.yaml` via `type: tool_call`; no subgraph nodes; graph lint passes.
-- [ ] AC-02: Recon can be disabled per run; with it disabled, the v1 route and both FR-791 smoke outcomes are preserved (regression smokes re-run with identical assertions).
-- [ ] AC-03: Browser-sniff is entered only on the SPA-without-API path; a deterministic smoke against the committed FR-784 SPA fixture (served with its dynamic handler) reaches browser-sniff and carries sniffed `/api/*` calls into the terminal result.
-- [ ] AC-04: A CAPTCHA/auth fixture smoke terminates `needs_manual` with `manual_reason` propagated into the result.
-- [ ] AC-05: `steps_tried` lists recon/browser-sniff only when their wrappers are non-empty (copy-only discipline preserved).
-- [ ] AC-06: Authored via `scripts/author.sh`; report records lint, smoke commands, and honest outcomes; tests updated (FR-791 test module extended or sibling module added) with req markers.
+- [ ] AC-01: `examples/api-discovery/graph.yaml` references `steps/recon.tool.yaml` and `steps/browser_sniff.tool.yaml` through `type: tool_call` nodes, uses no subgraph nodes, and `yamlgraph graph lint examples/api-discovery/graph.yaml` passes.
+- [ ] AC-02: The graph declares `use_recon` defaulting true; when run with recon disabled, the FR-791 v1 route and both FR-791 smoke outcomes are preserved with the same assertions.
+- [ ] AC-03: With FR-810 parsed output support available, endpoint-probe/page-analysis/browser-sniff expose parsed state keys; browser-sniff is entered only when parsed `page_findings.is_spa == true` and `page_findings.api_found != true`, never from candidate hints.
+- [ ] AC-04: Recon-enabled candidate generation consumes `recon_result`; a deterministic test proves recon candidates are included when `use_recon == true` and recon is absent from `steps_tried` when `use_recon == false`.
+- [ ] AC-05: The committed FR-784 SPA fixture served by the dynamic handler (`_SpaHandler` semantics from tests/unit/test_fr784_network_sniff.py) routes through browser-sniff, includes `browser-sniff` in `steps_tried`, carries `/api/data`, `/api/item`, and `/api/search` into terminal API evidence/profile, and excludes `/analytics/collect` from API evidence.
+- [ ] AC-06: The committed CAPTCHA fixture served by the dynamic handler terminates with `verdict == "needs_manual"` and `manual_reason == "captcha"` per the R-3 schema.
+- [ ] AC-07: `steps_tried` lists recon and browser-sniff only when their wrappers are non-empty, preserving the FR-791 copy-only discipline for every old and new step.
+- [ ] AC-08: Authored via `scripts/author.sh`; `tmp/draft-authoring-report.md` records the graph lint, FR-791 regression smokes, FR-784 SPA/CAPTCHA fixture smokes, exact commands, outcomes, repairs, and any blocked validation honestly.
+- [ ] AC-09: Tests are updated or added with `@pytest.mark.req("REQ-YG-599")`, traceability closes under `scripts/req_coverage.py --strict`, and the feature diff includes required changelog and diary artifacts.
 
 ## Alternatives Considered
 
@@ -99,7 +120,18 @@ recon and browser-sniff were consulted.
 
 - FR-791 (v1 orchestrator — the surface being extended; its judgement explicitly deferred recon/browser-sniff to v2)
 - FR-787 (recon step — Enforced 2026-08-15), FR-789 (browser-sniff step — Enforced 2026-08-15)
-- FR-810 (router-visible step outputs — the clean mechanism for AC-03's entry condition; this FR can ship with the candidate-hints workaround if FR-810 is not yet enforced)
-- FR-784 (SPA fixture + dynamic handler used by AC-03/AC-04 smokes)
+- FR-810 (router-visible step outputs — HARD DEPENDENCY per judgement R-1; browser-sniff entry routes on `parsed_key` ground truth, never candidate hints)
+- FR-784 (SPA fixture + dynamic handler used by AC-05/AC-06 smokes)
 
 **Prior art:** FR-791's judgement (R-1) excluded recon/browser-sniff from v1 because both were then unenforced — a sequencing gate, not a rejection. Both are now Enforced with committed smokes; this FR is the planned re-entry named in FR-791's Implementation Record and diary.
+
+## Judgement
+
+See `feature-requests/FR-809-api-discovery-orchestrator-v2-recon-browser-sniff.judgement.md` —
+APPROVED WITH REVISIONS; R-1..R-4 folded above (FR-810 hard dependency
+with exact `page_findings` edge condition, frozen cross-step handoff
+table, explicit `manual_reason` terminal field, exact deterministic
+fixture assertions). Gates C-1..C-6 accepted: blocked until FR-810 is
+Enforced; authoring route with substance-verified report; dynamic-handler
+fixture semantics mandatory; no step-graph/leaf-tool/framework changes
+under this FR; no shape-only validation.
