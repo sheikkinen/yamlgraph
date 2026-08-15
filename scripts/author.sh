@@ -5,6 +5,15 @@
 # Lineage: scripts/judge.sh (FR-758 / NC-415).
 set -u
 
+# FR-806: parse flags before the positional brief path
+NO_PREFLIGHT=0
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --no-preflight) NO_PREFLIGHT=1; shift ;;
+    *) break ;;
+  esac
+done
+
 TASK_PATH="${1:-}"
 WORKDIR="${AUTHOR_WORKDIR:-$(pwd)}"
 LOCK="$WORKDIR/tmp/.author.lock"
@@ -14,8 +23,19 @@ STALE_MIN=15  # 900s = graph timeout
 
 fail() { echo "author.sh: $1" >&2; exit "$2"; }
 
-[ -n "$TASK_PATH" ] || fail "usage: scripts/author.sh <task-brief.md>" 64
+[ -n "$TASK_PATH" ] || fail "usage: scripts/author.sh [--no-preflight] <task-brief.md>" 64
 [ -f "$TASK_PATH" ] || fail "task brief not found: $TASK_PATH" 66
+
+# FR-806: mechanical brief pre-flight before any tokens are spent.
+# Premise violations exit 64; budget findings warn and proceed.
+# --no-preflight skips ONLY this block — sentinel arming and the
+# report gate below are unconditional (automation_inherits_doctrine).
+if [ "$NO_PREFLIGHT" -eq 0 ]; then
+  PYBIN=$(command -v python3 || command -v python) \
+    || fail "python3 required for brief pre-flight (or use --no-preflight)" 69
+  "$PYBIN" "$(dirname "$0")/author_preflight.py" "$TASK_PATH" --workdir "$WORKDIR" \
+    || fail "brief pre-flight failed — fix the brief or re-run with --no-preflight" 64
+fi
 
 # Lineage sentinel (NC-414 recursion guard, mechanical layer):
 if [ -n "${AUTHOR_EXECUTION:-}" ]; then

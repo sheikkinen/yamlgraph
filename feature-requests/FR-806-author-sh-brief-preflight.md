@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Tooling
-**Status:** Approved with revisions (judgement folded 2026-08-15)
+**Status:** Enforced (2026-08-15)
 **Effort:** 0.5–1 day
 **Requested:** 2026-08-15
 **First consumer / first event:** the next `scripts/author.sh` invocation
@@ -97,15 +97,15 @@ Keep it mechanical and cheap — no LLM in the pre-flight:
 
 ## Acceptance Criteria (revised per judgement)
 
-- [ ] AC-01: A brief with a validation prerequisite path asserted as an existing input/fixture/server, where that path is absent, exits 64 before the copilot CLI/backend is spawned and quotes the violated line.
-- [ ] AC-02: A brief naming a not-yet-created output graph/prompt path, without asserting it as an existing prerequisite, passes pre-flight.
-- [ ] AC-03: A validation-section command whose executable cannot be resolved exits 64 before backend spawn and quotes the violated line.
-- [ ] AC-04: Command checking is static: tests prove pre-flight resolves valid executable forms including `python -m ...` and `./relative-script`, and does not execute shell substitutions or command bodies from the brief.
-- [ ] AC-05: A brief reproducing the FR-791 class with two live full-pipeline `yamlgraph graph run` smokes prints a 900s-ceiling warning and still proceeds.
-- [ ] AC-06: A clean brief passes pre-flight with all mechanically checked premises marked pass and no behavior change to sentinel arming, report-gate verification, or existing route exit semantics.
-- [ ] AC-07: `--no-preflight` skips only the pre-flight; report-gate verification remains mandatory.
-- [ ] AC-08: Pre-flight logic is unit-tested with `@pytest.mark.req("REQ-YG-598")`; `capabilities/CAP-237-author-brief-preflight.yaml` supplies that requirement; no LLM call exists in the pre-flight path.
-- [ ] AC-09: `.github/skills/graph-authoring/SKILL.md` teaches the checked premise forms, the budget warning trigger, and the `--no-preflight` boundary.
+- [x] AC-01: A brief with a validation prerequisite path asserted as an existing input/fixture/server, where that path is absent, exits 64 before the copilot CLI/backend is spawned and quotes the violated line.
+- [x] AC-02: A brief naming a not-yet-created output graph/prompt path, without asserting it as an existing prerequisite, passes pre-flight.
+- [x] AC-03: A validation-section command whose executable cannot be resolved exits 64 before backend spawn and quotes the violated line.
+- [x] AC-04: Command checking is static: tests prove pre-flight resolves valid executable forms including `python -m ...` and `./relative-script`, and does not execute shell substitutions or command bodies from the brief.
+- [x] AC-05: A brief reproducing the FR-791 class with two live full-pipeline `yamlgraph graph run` smokes prints a 900s-ceiling warning and still proceeds.
+- [x] AC-06: A clean brief passes pre-flight with all mechanically checked premises marked pass and no behavior change to sentinel arming, report-gate verification, or existing route exit semantics.
+- [x] AC-07: `--no-preflight` skips only the pre-flight; report-gate verification remains mandatory.
+- [x] AC-08: Pre-flight logic is unit-tested with `@pytest.mark.req("REQ-YG-598")`; `capabilities/CAP-237-author-brief-preflight.yaml` supplies that requirement; no LLM call exists in the pre-flight path.
+- [x] AC-09: `.github/skills/graph-authoring/SKILL.md` teaches the checked premise forms, the budget warning trigger, and the `--no-preflight` boundary.
 
 ## Alternatives Considered
 
@@ -131,3 +131,31 @@ exact doc surface named). Gates C-1..C-6 accepted: human review before
 merge; sentinel/report gate untouched by `--no-preflight`; no execution
 of brief commands; failures only on mechanically violated premises;
 budget warnings stay advisory; scope stays at launch-time pre-flight.
+
+## Implementation Record
+
+Enforced 2026-08-15. RED commit `6da313fa` (19 witnesses), GREEN in the
+same session.
+
+- `scripts/author_preflight.py` (new, stdlib-only — purity asserted by
+  an AST test): premise extraction (input-marker lines with
+  workspace-relative path tokens; output-marker lines skipped — fail
+  open on ambiguity since a false failure kills a legitimate run),
+  static command resolution over fenced validation-section blocks
+  (env-assignment prefixes stripped via shlex, `python -m` resolves the
+  interpreter, `./script` checked in workdir, substitution-headed
+  commands skipped never evaluated), budget heuristic (2+ full-pipeline
+  `graph run …/graph.yaml` or 3+ total live graph-run smokes → 900s
+  warning, advisory).
+- `scripts/author.sh`: `--no-preflight` flag parsing; pre-flight runs
+  after brief-exists check, before lock/sentinel/backend; violation →
+  exit 64. Sentinel arming and report gate untouched.
+- Docs: `.github/skills/graph-authoring/SKILL.md` § Brief pre-flight;
+  changelog fragment `changelog/unreleased/fr-806-author-preflight.md`.
+- Witness: `tests/unit/test_fr806_author_preflight.py` — 19 tests incl.
+  shell-level stub-backend proofs: doomed brief exits 64 with no
+  backend spawn; `--no-preflight` spawns backend and still dies at the
+  report gate (65); clean brief reaches backend.
+- Note: module loading via `spec_from_file_location` requires
+  registering the module in `sys.modules` on Python 3.14 for dataclass
+  string-annotation resolution.

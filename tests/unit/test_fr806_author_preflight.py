@@ -29,6 +29,7 @@ AUTHOR_SH = REPO_ROOT / "scripts" / "author.sh"
 def _load_module():
     spec = importlib.util.spec_from_file_location("author_preflight", PREFLIGHT_PY)
     module = importlib.util.module_from_spec(spec)
+    sys.modules["author_preflight"] = module  # dataclass annotation resolution
     spec.loader.exec_module(module)
     return module
 

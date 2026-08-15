@@ -53,6 +53,32 @@ author → validate locally → repair → report), honors the input closure
 (task brief + committed repo artifacts + explicit user-provided files
 only), and must not relaunch the route.
 
+## Brief pre-flight (FR-806)
+
+`author.sh` mechanically dry-runs the brief before the backend spawns
+(no LLM, no execution of brief text). Write briefs so the checks can
+see your premises:
+
+- **Checked premise forms:** a line naming a workspace-relative path
+  (`dir/file.ext`) alongside an input assertion — "existing", "fixture",
+  "prerequisite", "serves", "against", "input", "located at" — must
+  point at an existing file, or the run exits 64 quoting the line.
+  Lines with output language ("create", "write", "generate", "output",
+  "new") are treated as deliverables and never fail pre-flight.
+- **Command resolution:** every command line in a fenced block under a
+  Validation heading must have a statically resolvable executable
+  (PATH lookup; `VAR=x` prefixes stripped; `python -m ...` resolves the
+  interpreter; `./script` must exist in the workdir). Substitution-
+  headed commands are skipped, never evaluated.
+- **Budget warning trigger:** 2+ live full-pipeline
+  `yamlgraph graph run …/graph.yaml` smokes — or 3+ narrower graph-run
+  smokes — in the validation plan warn against the backend's 900s
+  ceiling (the FR-791 timeout class). Advisory only: split validation
+  into a resumed brief when it fires.
+- **`--no-preflight` boundary:** skips only the pre-flight block.
+  Sentinel arming, the report gate, and every other route exit
+  semantic remain mandatory (`automation_inherits_doctrine`).
+
 ## Forbidden routes
 
 - **Direct main-session authoring** — writing governed graph artifacts
