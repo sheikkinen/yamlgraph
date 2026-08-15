@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Amended 2026-08-15 — C-2 gate FIRED during enforcement; single-node relay refuted by witness, returned for rejudgement with the two-node split design below (prior verdict: APPROVED WITH REVISIONS, R-1..R-5 folded)
+**Status:** Judged 2026-08-15 (rejudged after C-2 return) — APPROVED WITH REVISIONS; R-1..R-7 of the rejudgement folded below, enforcement authority active
 **Effort:** 1–2 days
 **Requested:** 2026-08-15
 **First consumer / first event:** any graph using `type: subgraph` with an interrupt node in the child (`examples/demos/interrupt/interrupt-parent.yaml`, `interrupt-parent-redis.yaml`) — the first event is the next human-in-loop pipeline that expects the parent to pause on a child interrupt and instead silently runs to completion. Named forward demand: `projects/ninchat_voice/backlog.txt:48-58` plans a navigator router → active-subgraph architecture ("booking → type: subgraph, interrupt-based"; "questionnaire → type: subgraph, multi-turn") — the exact mechanism this FR repairs; ninchat_voice never adopted it precisely because FR-210 was rejected and the mechanism stayed broken. Cross-checked 2026-08-15: ninchat_voice today uses only top-level `type: interrupt` + `Command(resume)` (`actions/real/yamlgraph_async_action.py:95`) — untouched by this FR (C-3), so the consumer is unaffected by the fix and unblocked by it.
@@ -58,7 +58,9 @@ Verdict per the binding gate: the load-bearing assumption is false. AC-04 ("comm
 
 ## Proposed Solution (revised after C-2 gate)
 
-**Chosen mechanism (replaces the refuted single-node relay): compile-time two-node split**, the FR-060 pattern applied to subgraph nodes, importing FR-210 J-11..J-15 mitigations. Scoped to **relay-capable** nodes only: `mode: invoke` AND (`interrupt_output_mapping` configured OR the child graph declares a `type: interrupt` node). All other subgraph nodes compile exactly as today (AC-09).
+**Chosen mechanism (replaces the refuted single-node relay): compile-time two-node split**, the FR-060 pattern applied to subgraph nodes, importing FR-210 J-11..J-15 mitigations.
+
+**Relay scope contract (rejudgement R-1, one contract):** invoke-mode subgraph nodes whose child graph **can interrupt** (child declares a `type: interrupt` node OR `interrupt_output_mapping` is configured on the node) are deliberately changed to pause/resume through the parent — whether or not `interrupt_output_mapping` is configured (a no-mapping child-interrupt witness covers the broadened path). Invoke-mode children that cannot interrupt, and all `mode: direct` subgraphs, retain existing behavior exactly.
 
 Per relay-capable node `{name}`, `node_compiler` emits two parent nodes:
 
@@ -73,12 +75,14 @@ Edges (`edge_compiler` — the FR-211 rails already exist and are currently dead
 
 - Incoming edges to `{name}` redirect to `{name}__run` — string/START/expression edges by rewrite, router edges via the existing `route_mapping` branch (J-14 mitigation is already in code; original names remain router labels).
 - The outgoing edge from `{name}` becomes a conditional keyed on `__{name}_paused__` (J-12): `True` → `{name}__pause`, `False` → original target. Plus the loop-back edge `{name}__pause` → `{name}__run` that relays the resume into the child.
-- Phase-1 scope constraint (J-13/J-15, adopted): outgoing edges from relay-capable subgraph nodes must be simple — no `condition`, no `type: conditional`; `graph lint` errors otherwise, and the check sits before all edge-type handling. The demo fixture complies (`run_child → done`).
-- J-11: `compile_nodes()` grows a third return element `subgraph_interrupt_nodes: set[str]`; `graph_loader` threads it into `add_edges`/`_add_conditional_edges` (parameters already exist; one destructuring call site updates).
+- Phase-1 scope constraint (J-13/J-15, adopted; rejudgement R-3 makes it a tested gate — AC-10): outgoing edges from relay-capable subgraph nodes must be simple — no `condition`, no `type: conditional`; lint/compile errors otherwise, and the check sits before all edge-type handling. The demo fixture complies (`run_child → done`).
+- Exact compiler API delta (rejudgement R-2): `compile_nodes()` returns `(map_nodes, interrupt_nodes, subgraph_interrupt_nodes)`; `graph_loader` passes the new set to `_process_edge()` and `_add_conditional_edges()`; `_process_edge()` and `_EdgeContext` gain the `subgraph_interrupt_nodes` parameter and perform the subgraph incoming/outgoing rewrite **before** ordinary edge-shape dispatch (J-15 position). `build_router_route_mapping()` and `_add_conditional_edges()` already accept the set (FR-211 rails, currently dead — no call site populates it).
 
-State plumbing: `state_builder` synthesizes `__{name}_paused__: bool`, `__{name}_payload__: Any`, `__{name}_resume__: Any` per relay-capable subgraph node — FR-210's dynamic pause-flag state, accepted here as the irreducible price of commit-before-pause (C-2 evidence closes the cheaper route). Loop-protection note: `{name}__run` legitimately executes once per pause cycle; the loop-back edge must not trip `check_loop_limit` for multi-interrupt children.
+State plumbing (rejudgement R-4): `state_builder` synthesizes `__{name}_paused__: bool`, `__{name}_payload__: Any`, `__{name}_resume__: Any` per relay-capable subgraph node — in BOTH the runtime `build_state_class()` path and the codegen TypedDict path; witnesses prove inclusion for relay-capable nodes and exclusion for non-relay subgraphs (AC-08). FR-210's dynamic pause-flag state is accepted here as the irreducible price of commit-before-pause (C-2 evidence closes the cheaper route). Loop-protection note: `{name}__run` legitimately executes once per pause cycle; the loop-back edge must not trip `check_loop_limit` for multi-interrupt children (multi-interrupt witness — AC-06, rejudgement R-5).
 
-**Child checkpoint contract (R-3, one delta):** precedence stays `parent_checkpointer` → child YAML `checkpointer:` via `get_checkpointer_for_graph(subgraph_config)`; **delta:** when the node is relay-capable and both are absent, default to an in-process `MemorySaver` — `get_checkpointer(None)` returns `None`, and without this default the frozen AC-02 fixture (`interrupt-child.yaml` declares no `checkpointer:`) could only pass by editing the graph artifact, which C-4 forbids. Non-relay-capable children keep today's behavior (no checkpointer). The `ValueError` path remains reachable for children that interrupt without being relay-capable by detection (e.g. a python node calling `interrupt()` in a child with no interrupt-type nodes and no mapping).
+**Child checkpoint contract (rejudgement R-7, persistence made explicit by class):** precedence stays `parent_checkpointer` → child YAML `checkpointer:` via `get_checkpointer_for_graph(subgraph_config)` (configured child checkpointers are honored — Redis/SQLite persistence is claimed ONLY when the child graph declares that checkpointer). When the node is relay-capable and both are absent, default to an in-process `MemorySaver` — non-durable, in-process relay only; `get_checkpointer(None)` returns `None`, and without this default the AC-02 fixture (`interrupt-child.yaml` declares no `checkpointer:`) could only pass by editing the graph artifact, which C-4 forbids. Non-relay-capable children keep today's behavior (no checkpointer). Fail-loud: a child that interrupts without a resumable checkpointer (e.g. a python node calling `interrupt()` in a child that is not relay-capable by detection) → `ValueError` naming the child graph and the missing `checkpointer:` config. All three cases tested (AC-07).
+
+**Demo evidence inventory (rejudgement R-6):** the ONLY committed child graph under the interrupt demo tree is `subgraphs/interrupt-child.yaml`; the sole valid smoke evidence is `interrupt-parent.yaml`. Excluded until their missing child graphs are repaired through an authorized route: `interrupt-parent-with-checkpointer-child.yaml` (references missing `subgraphs/interrupt-child-with-checkpointer.yaml`) and `interrupt-parent-redis.yaml` (references missing `subgraphs/interrupt-child-with-checkpointer-redis.yaml`).
 
 Retained R-3 mechanics (unchanged by the revision):
 
@@ -91,21 +95,21 @@ Other mechanics:
 - `interrupt_output_mapping` semantics preserved exactly (parent sees `child_phase`/`child_data` while paused — this is what `test_get_state_can_access_child_state` and the FR-006 doc promise).
 - `mode: direct` subgraphs (child compiled into parent, native propagation) are untouched (frozen AC-09).
 
-## Acceptance Criteria (frozen by Judgement 2026-08-15; pending re-freeze after C-2 return)
+## Acceptance Criteria (frozen by Rejudgement 2026-08-15)
 
-(The criteria below are mechanism-neutral and survive the design revision unchanged; the rejudgement re-freezes or amends them. AC-04's pause-boundary commitment is satisfied by construction in the split design — `{name}__run` returns normally before `{name}__pause` interrupts.)
-
-- [x] AC-01: FR-797 amended with explicit FR-210 disposition and a single chosen commit-before-pause design before enforcement begins (this fold).
-- [ ] AC-02: `tests/integration/test_subgraph_interrupt.py` passes unmodified in behavior: parent first invocation pauses with `"__interrupt__"` present, mapped `child_phase == "processing"` and `child_data == "partial result from child"` are visible, parent resume reaches the child, and the parent completes. (R-4 note: completion is proven by `final_result == "all done"` — the `done` node intentionally overwrites the `output_mapping` value in this fixture; no AC asserts an overwritten key.)
-- [ ] AC-03: A unit test named for the seam, e.g. `test_subgraph_interrupt_relay_langgraph_1x`, proves a child `invoke()` returning `"__interrupt__"` causes a real parent `interrupt(payload)`, not a returned reserved state key.
-- [ ] AC-04: A state-persistence witness proves mapped interrupt output is committed to parent state at the pause boundary, not only present in a transient result dict. (This is the C-2 gate witness — first enforcement step.)
-- [ ] AC-05: A resume witness proves `invoke(Command(resume=...))` on the parent relays exactly once into the paused child and does not restart the child from scratch.
-- [ ] AC-06: A replay-safety witness asserts the child pre-interrupt work executes once across pause/resume.
-- [ ] AC-07: Child-checkpointer behavior is mechanically covered: configured child checkpointers are honored or parent checkpointer propagation is proven; no-checkpointer behavior is explicit and tested.
-- [ ] AC-08: The dead `except GraphInterrupt` path and any reserved-key-as-state-update path are deleted, or every retained line is justified in the amended FR.
-- [ ] AC-09: `mode: direct` subgraphs and subgraphs without `interrupt_output_mapping` retain existing behavior.
-- [ ] AC-10: Existing valid interrupt demos are smoke-validated with an output log; the missing checkpointer-child demo (`interrupt-parent-with-checkpointer-child.yaml` references a child graph absent from the tree — R-5) is NOT counted as evidence until its child graph exists through an authorized route.
-- [ ] AC-11: Changelog fragment uses `type: fix` with `REQ-YG-042`; diary entry records the boundary-contract lesson.
+- [x] AC-01: FR-797 folds R-1 through R-7 before enforcement authority activates. (This fold.)
+- [ ] AC-02: `tests/integration/test_subgraph_interrupt.py` passes with intent preserved: first parent invocation pauses with `__interrupt__`, mapped `child_phase == "processing"` and `child_data == "partial result from child"` are visible and committed at the parent pause boundary, parent resume reaches the child, and completion reaches `final_result == "all done"`.
+- [ ] AC-03: A seam unit test proves a child `invoke()` returning `__interrupt__` causes a real parent `interrupt(payload)`, not a returned reserved state key.
+- [ ] AC-04: A state-persistence witness proves mapped interrupt output is committed to parent `get_state().values` at the pause boundary, not only present in a transient result dict.
+- [ ] AC-05: A resume witness proves parent `Command(resume=...)` relays exactly once into the paused child and does not restart pre-interrupt work.
+- [ ] AC-06: A multi-interrupt child witness proves two parent pause/resume cycles commit mapped state at both boundaries and preserve replay safety.
+- [ ] AC-07: Child-checkpointer behavior is mechanically covered for configured child checkpointer, default in-process MemorySaver, and fail-loud non-resumable interrupt cases.
+- [ ] AC-08: Runtime state construction and generated TypedDict code include relay internal fields for relay-capable subgraph nodes and exclude them for non-relay subgraphs.
+- [ ] AC-09: `mode: direct` subgraphs and invoke-mode child graphs that cannot interrupt retain existing behavior; invoke-mode child graphs that can interrupt are covered by explicit pause/resume tests whether or not `interrupt_output_mapping` is configured.
+- [ ] AC-10: Conditional outgoing edges from relay-capable subgraph nodes fail at lint or compile time; a simple outgoing edge from the relay node routes paused → pause node and complete → original target.
+- [ ] AC-11: The dead `except GraphInterrupt` path and any reserved-key-as-parent-update path are deleted, or every retained line is justified in the amended FR and covered by a direct regression test.
+- [ ] AC-12: Only valid existing interrupt demos are smoke-validated with output logs; `interrupt-parent-with-checkpointer-child.yaml` and `interrupt-parent-redis.yaml` are excluded until their missing child graphs are repaired through an authorized route.
+- [ ] AC-13: Changelog fragment uses `type: fix` with `REQ-YG-042`; diary entry records the boundary-contract lesson.
 
 ## Non-Goals
 
@@ -133,7 +137,9 @@ Other mechanics:
 
 **Verdict:** APPROVED WITH REVISIONS — see `FR-797-subgraph-interrupt-propagation-langgraph-1x.judgement.md` for the full verdict, frozen scope (D-1..D-6), and revised acceptance criteria (adopted above).
 
-**C-2 return (2026-08-15):** enforcement executed the C-2 gate as its first step; the gate FIRED (see C-2 Gate Evidence). Per the gate's own protocol the FR was returned for rejudgement with the two-node split design importing FR-210 J-11..J-15. Enforcement authority is suspended until the rejudgement rules on the revised mechanism.
+**C-2 return (2026-08-15):** enforcement executed the C-2 gate as its first step; the gate FIRED (see C-2 Gate Evidence). Per the gate's own protocol the FR was returned for rejudgement with the two-node split design importing FR-210 J-11..J-15.
+
+**Rejudgement (2026-08-15, via `scripts/judge.sh`):** APPROVED WITH REVISIONS — R-1..R-7 folded above; frozen scope D-1..D-9 and conditions C-1..C-6 per the Rejudgement section of the judgement file. Enforcement authority active.
 
 Conditions for enforcement (binding gates):
 
