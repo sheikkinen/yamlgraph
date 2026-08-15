@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Investigation
-**Status:** Proposed
+**Status:** Judged 2026-08-15 - APPROVED WITH REVISIONS (R-1..R-3 folded below)
 **Effort:** 0.5-1 day
 **Requested:** 2026-08-15
 **First consumer / first event:** the next enforcer whose otherwise-valid commit
@@ -14,6 +14,15 @@ isolation defect, provider unavailability, or environment mismatch.
 (reproducible Python 3.12 dependency environment), FR-796 (the validation run
 that exposed these failures), and FR-797 (the separately judged subgraph
 interrupt regression, explicitly excluded here).
+
+### Prior-art disposition (R-1)
+
+| Prior art | Binding disposition for FR-798 |
+|---|---|
+| FR-756 | Supplies the process/core classification precedent; FR-798 may classify failures across test surfaces but must not change the `process` marker, core-test job, or boundary lint. |
+| FR-761 | Supplies the Python 3.12 constrained environment and dependency reproducibility command; FR-798 may run that environment and record blockers but must not regenerate constraints or alter dependency governance. |
+| FR-796 | Supplies the validation-run source and observed non-retired-path failures; FR-798 owns only classification of the non-subgraph failures exposed there, not reopening FR-796's demo relocation scope. |
+| FR-797 | Owns the three subgraph-interrupt failures; FR-798 may cite them only as excluded context and must not modify subgraph runtime, subgraph tests, interrupt demos, or FR-797 acceptance criteria. |
 
 ## Summary
 
@@ -82,6 +91,19 @@ classification exists.
 Create `docs/investigations/fr798-full-suite-failures.md` and supporting minimal
 test harnesses only where needed to preserve a reproduction. Run this matrix:
 
+### Reproduction-harness collection policy (R-2)
+
+- The primary deliverable is
+  `docs/investigations/fr798-full-suite-failures.md`.
+- Raw command outputs may be quoted in that report or stored under
+  `docs/investigations/fr798/` if too large for the report.
+- Any committed pytest witness under `tests/**` must either pass, be explicitly
+  `xfail`/`skip` with an FR-798 reason and owning follow-up disposition, and
+  carry normal `@pytest.mark.req(...)`, or be returned to planning before
+  commit.
+- No default test selection, CI workflow, hook, marker policy, or
+  retry/serialization mechanism may change to accommodate the investigation.
+
 ### A. RunPod module identity under xdist
 
 - Run the named test serially at least 10 times.
@@ -101,8 +123,8 @@ test harnesses only where needed to preserve a reproduction. Run this matrix:
   execution owner.
 - Determine whether the test is stale, the production seam moved without a
   supported patch boundary, or both.
-- Produce a minimal RED witness at the owning symbol; do not restore a dead
-  re-export merely to satisfy the old patch path.
+- Produce a minimal witness at the owning symbol under the R-2 collection
+  policy; do not restore a dead re-export merely to satisfy the old patch path.
 
 ### C. Multi-turn/provider separation
 
@@ -110,7 +132,8 @@ test harnesses only where needed to preserve a reproduction. Run this matrix:
   checkpoint state for each failing turn instead of asserting only the empty
   destination field.
 - Run the multi-turn and guard graphs with OpenAI unavailable, with a controlled
-  failing LLM, and with one available provider without editing graph artifacts.
+  failing LLM, and, when an operator-selected healthy credential is already
+  available, with that provider without editing graph artifacts.
 - Determine whether provider exceptions are correctly surfaced, silently
   converted to success-shaped state, or independent from the checkpoint
   behavior.
@@ -121,6 +144,14 @@ test harnesses only where needed to preserve a reproduction. Run this matrix:
 
 - Demonstrate the distinction between absent key, present-but-exhausted key,
   and a successful provider request.
+- Successful readiness may use only an operator-selected provider credential
+  already available in the environment. Do not create, purchase, rotate, or
+  paste credentials under this FR. If no healthy credential is available,
+  record that exact blocker while still evidencing absent-key and exhausted-key
+  behavior.
+- Redact provider error bodies, account identifiers, keys, and request IDs in
+  committed artifacts while preserving error class, HTTP status, provider name,
+  and command.
 - Decide whether live integration tests should use a documented readiness
   preflight, a dedicated CI credential lane, or explicit operator selection.
 - Do not treat arbitrary provider errors as skips after execution begins, and do
@@ -132,35 +163,46 @@ counts, outputs, and commit identity.
 
 ## Acceptance Criteria
 
-- [ ] AC-01: `docs/investigations/fr798-full-suite-failures.md` records the git
-      SHA, Python/dependency environment, exact commands, and raw outcomes for
-      all four classes.
-- [ ] AC-02: The RunPod test has serial (>=10) and xdist (>=20) reproduction
+- [x] AC-01: FR-798 is amended with R-1 through R-3 before enforcement authority
+  is used.
+- [ ] AC-02: `docs/investigations/fr798-full-suite-failures.md` records the git
+  SHA, Python/dependency environment, exact commands, and raw outcomes for
+  all four non-subgraph classes.
+- [ ] AC-03: The RunPod test has serial (>=10) and xdist (>=20) reproduction
       counts; the report identifies the operation that breaks module identity
       or states the bounded search that failed to reproduce it.
-- [ ] AC-03: A deterministic witness proves or falsifies the hypothesis that a
+- [ ] AC-04: A deterministic witness proves or falsifies the hypothesis that a
       foreign test/fixture removes or replaces `yamlgraph.config` in
       `sys.modules`; retries and suite serialization are not accepted as the
       investigation result.
-- [ ] AC-04: The memory-demo failure is traced from its stale patch target to
+- [ ] AC-05: The memory-demo failure is traced from its stale patch target to
       the current shell-tool owner, with a minimal reproduction and a proposed
       owning test seam.
-- [ ] AC-05: Multi-turn failure artifacts include `errors`, response/intent,
+- [ ] AC-06: Any committed reproduction harness follows the R-2 collection
+  policy and does not add a new unclassified default-suite failure.
+- [ ] AC-07: Multi-turn failure artifacts include `errors`, response/intent,
       interrupt state, and checkpoint state for every turn, and distinguish LLM
       failure from checkpoint behavior.
-- [ ] AC-06: OpenAI absent-key, exhausted-key, and successful-readiness states
-      are separately evidenced; the report recommends one explicit integration
-      test execution policy without silently skipping runtime failures.
-- [ ] AC-07: The relevant matrix is run under the FR-761 Python 3.12 constrained
+- [ ] AC-08: OpenAI absent-key, exhausted-key, and successful-readiness states
+  are separately evidenced when a healthy operator-selected credential is
+  available; if not available, the report records the exact readiness
+  blocker while still evidencing absent-key and exhausted-key behavior.
+- [ ] AC-09: The relevant matrix is run under the FR-761 Python 3.12 constrained
       environment as well as the active local environment, or the exact setup
       blocker is recorded.
-- [ ] AC-08: Each confirmed defect receives one disposition: existing FR,
+- [ ] AC-10: Each confirmed defect receives one disposition: existing FR,
       proposed follow-up FR with first consumer and boundary, test correction,
       environment/operations action, or no-action with evidence.
-- [ ] AC-09: FR-797's subgraph interrupt scope is not modified or duplicated.
-- [ ] AC-10: No production files under `yamlgraph/**`, graph/prompt artifacts,
-      CI workflows, hooks, or test-gate policy change under this investigation.
-- [ ] AC-11: The investigation report ends with a recommended enforcement
+- [ ] AC-11: FR-797's subgraph interrupt scope is not modified, duplicated, or
+  used as evidence of FR-798 completion.
+- [ ] AC-12: No production files under `yamlgraph/**`, graph/prompt artifacts,
+  CI workflows, hooks, branch-protection policy, pytest marker policy,
+  dependency governance, or test-gate policy change under this
+  investigation.
+- [ ] AC-13: Committed artifacts redact provider secrets and account/request
+  identifiers while preserving enough error class/status/provider detail to
+  reproduce the classification.
+- [ ] AC-14: The investigation report ends with a recommended enforcement
       order based on causal dependency, not failure count.
 
 ## Constraints
@@ -200,3 +242,16 @@ counts, outputs, and commit identity.
 - `yamlgraph/tools/tool_builders.py`
 - `examples/demos/multi-turn/graph.yaml`
 - `examples/demos/multi-turn/guard.yaml`
+
+## Judgement (2026-08-15)
+
+**Verdict:** APPROVED WITH REVISIONS - R-1 through R-3 are folded above;
+authority is active for the frozen investigation scope. See
+`FR-798-full-suite-failure-classification-investigation.judgement.md`.
+
+| # | Condition | Severity |
+|---|---|---|
+| C-1 | Treat this as investigation authority only: classify, reproduce, report, and disposition; do not repair product/runtime behavior or weaken tests/gates. | GATE |
+| C-2 | Any committed reproduction harness must follow the revised collection policy and must not create a new default-suite red unrelated to the existing classified failures. | GATE |
+| C-3 | Provider-success evidence may use only operator-selected existing credentials; absence of a healthy credential is a reportable blocker, not permission to create or expose secrets. | GATE |
+| C-4 | If work touches FR-797's subgraph scope, graph/prompt artifacts, CI/hooks, dependency governance, or test-selection policy, stop and return for a separate judged FR. | GATE |

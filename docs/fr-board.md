@@ -98,6 +98,7 @@
 | FR-762 | Judged | yamlgraph |  | FR-762-example-dependency-taxonomy.md |
 | FR-764 | Judged | yamlgraph |  | FR-764-style-convert-pipeline.md |
 | FR-797 | Judged | yamlgraph |  | FR-797-subgraph-interrupt-propagation-langgraph-1x.md |
+| FR-798 | Judged | yamlgraph |  | FR-798-full-suite-failure-classification-investigation.md |
 | FR-094 | Approved | yamlgraph |  | FR-094-memory-node.md |
 | FR-095 | Approved | yamlgraph |  | FR-095-doc-staleness-monitor.md |
 | FR-096 | Approved | yamlgraph |  | FR-096-fr-template-demo-plan.md |
@@ -199,7 +200,6 @@
 | FR-790 | Proposed | yamlgraph |  | FR-790-api-discovery-schema-extract-step.md |
 | FR-791 | Proposed | yamlgraph |  | FR-791-api-discovery-orchestrator.md |
 | FR-792 | Proposed | yamlgraph |  | FR-792-multi-step-investigation-template.md |
-| FR-798 | Proposed | yamlgraph |  | FR-798-full-suite-failure-classification-investigation.md |
 | FR-078 | In Progress | yamlgraph |  | FR-078-relocate-project-tests.md |
 | FR-100 | In Progress | yamlgraph |  | FR-100-yamlgraph-development-pipeline-ebook.md |
 | FR-169 | In Progress | yamlgraph |  | FR-169-enforce-reflexion-loop.md |
@@ -431,7 +431,7 @@ graph TD
     FR-792["FR-792 Proposed"]
     FR-796["FR-796 In Progress"]
     FR-797["FR-797 Judged"]
-    FR-798["FR-798 Proposed"]
+    FR-798["FR-798 Judged"]
     FR-081 --> FR-082
     FR-731 --> FR-735
     FR-731 --> FR-736
