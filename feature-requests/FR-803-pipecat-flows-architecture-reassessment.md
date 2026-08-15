@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Research (no code)
-**Status:** Judged — APPROVED WITH REVISIONS (2026-08-15, R-1..R-3 folded below)
+**Status:** Enforced 2026-08-15 - THREAT-DORMANT; AC-01..AC-08 delivered
 **Effort:** 1 day
 **Requested:** 2026-08-15
 **Prior art:** FR-803-pipecat-flows-architecture-reassessment.judgement.md — this FR's own judgement (self-pair). FR-359-pipecat-frame-processor-integration.md — substantive prior art, dispositioned in Proposed Solution step 5 (COMPOSES/CONFLICTS/SUPERSEDES verdict required by AC-06). docs/diary/pipecat-assessment-2026-04.md — superseded at architecture level by this FR's output.
@@ -35,14 +35,14 @@ A one-day research report answers, with evidence from Pipecat Flows' actual sour
 
 ## Acceptance Criteria (revised per judgement)
 
-- [ ] AC-01: report cites the Pipecat Flows repository URL plus immutable commit SHA/tag used
-- [ ] AC-02: ≥3 real Flows example files/URLs named, each read end-to-end before docs prose, one concrete surprising detail each
-- [ ] AC-03: ninchat_voice mode-switch source artifact identified, or a bounded ~10-state transition table reproduced in the report before translation
-- [ ] AC-04: paper-translation artifact includes source transition table, Flows representation/pseudocode, construct mapping table, and PASS/PARTIAL/FAIL rows for: static diffable transitions, deterministic non-LLM dispatch, guard/action semantics, self-hosted execution
-- [ ] AC-05: exactly one of THREAT-LIVE / THREAT-DORMANT / NOT-A-THREAT rendered, citing the specific evidence line or mapping row that decides it
-- [ ] AC-06: FR-359 dispositioned as COMPOSES / CONFLICTS / SUPERSEDES with one explanatory paragraph
-- [ ] AC-07: kill-risk #3 in docs/diary/2026-08-15-market-research.md updated with verdict + concrete re-check trigger
-- [ ] AC-08: diff contains zero code, dependency, graph, prompt, CI, hook, or doctrine changes
+- [x] AC-01: report cites the Pipecat Flows repository URL plus immutable commit SHA/tag used
+- [x] AC-02: ≥3 real Flows example files/URLs named, each read end-to-end before docs prose, one concrete surprising detail each
+- [x] AC-03: ninchat_voice mode-switch source artifact identified, or a bounded ~10-state transition table reproduced in the report before translation
+- [x] AC-04: paper-translation artifact includes source transition table, Flows representation/pseudocode, construct mapping table, and PASS/PARTIAL/FAIL rows for: static diffable transitions, deterministic non-LLM dispatch, guard/action semantics, self-hosted execution
+- [x] AC-05: exactly one of THREAT-LIVE / THREAT-DORMANT / NOT-A-THREAT rendered, citing the specific evidence line or mapping row that decides it
+- [x] AC-06: FR-359 dispositioned as COMPOSES / CONFLICTS / SUPERSEDES with one explanatory paragraph
+- [x] AC-07: kill-risk #3 in docs/diary/2026-08-15-market-research.md updated with verdict + concrete re-check trigger
+- [x] AC-08: diff contains zero code, dependency, graph, prompt, CI, hook, or doctrine changes
 
 ## Alternatives Considered
 
@@ -60,3 +60,11 @@ A one-day research report answers, with evidence from Pipecat Flows' actual sour
 ## Judgement (2026-08-15)
 
 **Verdict:** APPROVED WITH REVISIONS — see [FR-803-pipecat-flows-architecture-reassessment.judgement.md](FR-803-pipecat-flows-architecture-reassessment.judgement.md). R-1..R-3 folded above. Gates: C-1 fold-first (done), C-2 no mutable marketing pages as deciding evidence, C-3 stop-and-block rather than substitute a generic comparison, C-4 any code/prototype/vendor conclusion parks as a separate FR.
+
+## Implementation Notes (2026-08-15)
+
+- Assessed the live integrated Pipecat Flows source at `pipecat-ai/pipecat` commit `a5bb7867e1a08595dac1a778948bbdb49e0549b2`; recorded the frozen predecessor and v1.0 static-flow removal provenance.
+- Read `food_ordering.py`, `patient_intake.py`, and `multi_worker_handoff.py` end-to-end before relying on documentation prose.
+- Translated a bounded 10-state cluster from `projects/ninchat_voice/config/voice_coordinator_navigator.yaml` and rendered construct/property matrices.
+- Verdict: **THREAT-DORMANT**. Static diffable transitions and deterministic non-LLM dispatch fail; guard/action semantics are partial; self-hosted execution passes.
+- FR-359 disposition: **COMPOSES**. The no-code assessment is in `docs/diary/2026-08-15-pipecat-flows-architecture-assessment.md`; kill-risk #3 now carries the concrete recheck trigger.

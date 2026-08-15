@@ -87,7 +87,7 @@ The cross-check shows the actual production architecture is a **two-plane split*
 
 1. LangChain ships a first-party declarative DSL.
 2. gh-aw grows repo-local (non-Actions) pipeline execution.
-3. Pipecat Flows matures into an auditable conversation FSM — it then absorbs the control plane for the voice vertical, the pair's home turf.
+3. **Pipecat Flows: THREAT-DORMANT** (FR-803, assessed at Pipecat commit `a5bb7867e1a08595dac1a778948bbdb49e0549b2`). Flows is self-hosted and action-capable, but v1.0 removed static flows; live transitions are Python handlers advertised as LLM tools and returning the next `NodeConfig`. It therefore fails static diffable transitions and deterministic non-LLM dispatch for the ninchat_voice control plane. Recheck when Pipecat ships either a first-class static transition/event schema or an export API for the complete dynamic transition relation, including guards, wildcard events, timeouts, and actions, without executing LLM-selected handlers. See [the architecture assessment](2026-08-15-pipecat-flows-architecture-assessment.md).
 
 Any fires → the runtime half of this repo becomes commodity within a release cycle; the governance spine and platform-independence remain.
 

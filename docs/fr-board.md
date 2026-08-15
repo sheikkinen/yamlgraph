@@ -98,7 +98,6 @@
 | FR-762 | Judged | yamlgraph |  | FR-762-example-dependency-taxonomy.md |
 | FR-764 | Judged | yamlgraph |  | FR-764-style-convert-pipeline.md |
 | FR-802 | Judged | yamlgraph |  | FR-802-node-type-usage-census.md |
-| FR-803 | Judged | yamlgraph |  | FR-803-pipecat-flows-architecture-reassessment.md |
 | FR-094 | Approved | yamlgraph |  | FR-094-memory-node.md |
 | FR-095 | Approved | yamlgraph |  | FR-095-doc-staleness-monitor.md |
 | FR-096 | Approved | yamlgraph |  | FR-096-fr-template-demo-plan.md |
@@ -431,7 +430,6 @@ graph TD
     FR-792["FR-792 Proposed"]
     FR-796["FR-796 In Progress"]
     FR-802["FR-802 Judged"]
-    FR-803["FR-803 Judged"]
     FR-081 --> FR-082
     FR-731 --> FR-735
     FR-731 --> FR-736
