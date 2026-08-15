@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Bug
-**Status:** Proposed
+**Status:** Judged — APPROVED WITH REVISIONS (revisions folded below; see `FR-799-fr432-fixture-sys-modules-orphan.judgement.md`)
 **Effort:** 0.5 hours
 **Requested:** 2026-08-15
 **First consumer / first event:** the next enforcer whose pre-commit pytest hook (xdist, `-n auto`) schedules `test_fr432_dotenv_upward_search.py` on the same worker as `test_runpod_provider.py` without an intervening `yamlgraph.config` import — the first event is a red `ImportError: module yamlgraph.config not in sys.modules` blocking an unrelated commit (~5% per full-suite run, measured 1/20 in FR-798).
@@ -71,19 +71,41 @@ pytest tests/unit/test_fr432_dotenv_upward_search.py \
   -q --no-cov -p no:randomly
 ```
 
+**Witness contract (judgement R-1, binding):** The RED/GREEN witness is the
+two-module pytest command above. Enforcement must run it before the fix and
+record the RED output in the implementation notes or commit trail, then run
+the identical command after the fix and record GREEN. If a new test or
+helper is added to make the witness permanent, it must live under
+`tests/unit/`, carry `@pytest.mark.req("REQ-YG-043")` or another valid
+existing requirement ID, and must not invoke nested pytest from the default
+suite.
+
 No retries, no suite serialization, no marker changes (per FR-798 AC-04
 boundary). No production files change.
 
 ## Acceptance Criteria
 
-- [ ] AC-01: A committed regression witness reproduces the ImportError before
-  the fix (RED commit) and passes after (GREEN commit); the witness runs the
-  fr432 module before the runpod reload test in one process.
-- [ ] AC-02: The fr432 fixture teardown restores `sys.modules["yamlgraph.config"]`
-  identity with the `yamlgraph.config` package attribute.
-- [ ] AC-03: All fr432 tests still pass (their fresh-import semantics preserved).
-- [ ] AC-04: Full fast unit suite green serially and under `-n auto`.
-- [ ] AC-05: No retries, serialization, markers, or production changes.
+(Revised per judgement — supersedes the proposed set.)
+
+- [ ] AC-01: FR-799 is amended with R-1 and R-2 before enforcement authority
+  is used.
+- [ ] AC-02: The two-module witness command is run before the fix and fails
+  with `ImportError: module yamlgraph.config not in sys.modules`, matching
+  the cited FR-798 witness.
+- [ ] AC-03: The fr432 fixture teardown restores `sys.modules["yamlgraph.config"]`
+  and the `yamlgraph.config` package attribute to the same live module
+  object after every fr432 test.
+- [ ] AC-04: The same two-module witness command passes after the fixture fix.
+- [ ] AC-05: All tests in `tests/unit/test_fr432_dotenv_upward_search.py` pass
+  with their fresh-import semantics preserved.
+- [ ] AC-06: The targeted RunPod reload test still passes when run after the
+  fr432 module in one process.
+- [ ] AC-07: The fast unit suite passes serially and under `-n auto`.
+- [ ] AC-08: No retries, sleeps, serialization, test deselection, marker/lane
+  changes, production changes, graph/prompt edits, CI/hook edits, or
+  dependency changes are made.
+- [ ] AC-09: A changelog fragment, diary entry, and FR-799 completion note
+  are included (judgement R-2).
 
 ## Alternatives Considered
 

@@ -2,12 +2,12 @@
 
 **Priority:** MEDIUM
 **Type:** Bug
-**Status:** Proposed
+**Status:** Judged — APPROVED WITH REVISIONS (revisions folded below; see `FR-800-memory-demo-mock-seam-correction.judgement.md`)
 **Effort:** 0.5 hours
 **Requested:** 2026-08-15
 **First consumer / first event:** the next enforcer running `tests/integration/test_memory_demo.py` — the first event is the current deterministic `AttributeError: <module 'yamlgraph.tools.agent'> does not have the attribute 'execute_shell_tool'` in `test_tool_results_stored_in_state`, red on every run since FR-660 (2026-07-03).
 
-**Prior art:** FR-798 (Class B investigation — owns the trace and this disposition: "patch-target correction"; explicitly forbids restoring a dead re-export), FR-660 (`085f3aad` — moved shell execution out of `agent.py` into the unified bind/execute path), FR-006 (the memory-demo feature the test covers).
+**Prior art:** FR-798 (Class B investigation — owns the trace and this disposition: "patch-target correction"; explicitly forbids restoring a dead re-export), FR-660 (`085f3aad` — moved shell execution out of `agent.py` into the unified bind/execute path). FR-006 (memory demo) has no committed FR artifact under that ID (judgement R-2); the governing contract for this correction is the test's existing `REQ-YG-025` / `REQ-YG-026` requirement markers.
 
 ## Summary
 
@@ -30,8 +30,10 @@ The test raises before exercising any behavior — the `_tool_results`
 storage contract (REQ-YG-025/026) has been unwitnessed since `085f3aad`.
 FR-798 proved the corrected seam works: patching
 `yamlgraph.tools.tool_builders.execute_shell_tool` runs the identical test
-body green with the full agent loop executing
-(`logs/fr798-classB-seam.log`), on both Python 3.14.6 and 3.12.11.
+body green with the full agent loop executing, on both Python 3.14.6 and
+3.12.11 (committed evidence: `docs/investigations/fr798-full-suite-failures.md`,
+Class B section — judgement R-2: uncommitted session logs removed from the
+evidentiary record).
 
 ## Ideal Result
 
@@ -47,6 +49,13 @@ One-line change in `tests/integration/test_memory_demo.py:267`:
 patch("yamlgraph.tools.tool_builders.execute_shell_tool") as mock_exec,
 ```
 
+**Seam-proof assertions (judgement R-1, binding):** after
+`result = node_fn({"input": "Show commits"})`, the test must assert
+`mock_exec.assert_called_once_with(tool_config, {"count": "5"})`, and assert
+the stored tool result includes the mocked output and `success is True` —
+proving the call resolved through the patched seam, so a future seam move
+fails loudly instead of silently orphaning the contract.
+
 The current red run is the RED evidence (Scripture 7: the bug is already
 condemned by the failing test — the fix makes it witness the contract
 again). No re-export in `yamlgraph.tools.agent` (FR-798 disposition;
@@ -54,12 +63,19 @@ Commandment 8 — no compat shims). No production files change.
 
 ## Acceptance Criteria
 
-- [ ] AC-01: `test_tool_results_stored_in_state` passes; the mock is called
-  and `_tool_results` assertions execute (not skipped by an earlier raise).
-- [ ] AC-02: The patch target is the module that resolves the name at call
-  time (`yamlgraph.tools.tool_builders`), not a restored re-export.
-- [ ] AC-03: Full `tests/integration/test_memory_demo.py` module green.
-- [ ] AC-04: No production files change.
+(Revised per judgement — supersedes the proposed set.)
+
+- [ ] AC-01: `test_tool_results_stored_in_state` patches
+  `yamlgraph.tools.tool_builders.execute_shell_tool`.
+- [ ] AC-02: The test asserts `mock_exec.assert_called_once_with(tool_config,
+  {"count": "5"})`, proving the call resolved through the patched seam.
+- [ ] AC-03: The test asserts `_tool_results[0]` includes `tool == "git_log"`,
+  the mocked output, and `success is True`.
+- [ ] AC-04: The full `tests/integration/test_memory_demo.py` module passes.
+- [ ] AC-05: No production files change, and no re-export/shim is added to
+  `yamlgraph.tools.agent`.
+- [ ] AC-06: FR-800 cites only committed evidence or explicitly marks
+  unavailable prior art as unavailable.
 
 ## Alternatives Considered
 
@@ -72,5 +88,5 @@ Commandment 8 — no compat shims). No production files change.
 
 ## Related
 
-- `docs/investigations/fr798-full-suite-failures.md` (Class B)
-- `logs/fr798-classB-seam.log`, `logs/fr798-py312-classB.log`
+- `docs/investigations/fr798-full-suite-failures.md` (Class B — committed
+  evidentiary record; seam experiment and py312 confirmation documented there)
