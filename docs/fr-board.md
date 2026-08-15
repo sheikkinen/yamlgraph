@@ -193,6 +193,11 @@
 | FR-729 | Proposed | yamlgraph |  | FR-729-landing-page-metrics-generated.md |
 | FR-751 | Proposed | yamlgraph |  | FR-751-liquid-safety-precommit-gate.md |
 | FR-757 | Proposed | yamlgraph |  | FR-757-fsm-contrib-relocation.md |
+| FR-806 | Proposed | yamlgraph |  | FR-806-author-sh-brief-preflight.md |
+| FR-807 | Proposed | yamlgraph |  | FR-807-route-evidence-record-hardening.md |
+| FR-808 | Proposed | yamlgraph |  | FR-808-regulated-evidence-profile.md |
+| FR-809 | Proposed | yamlgraph |  | FR-809-api-discovery-orchestrator-v2-recon-browser-sniff.md |
+| FR-810 | Proposed | yamlgraph |  | FR-810-router-visible-tool-call-outputs.md |
 | FR-078 | In Progress | yamlgraph |  | FR-078-relocate-project-tests.md |
 | FR-100 | In Progress | yamlgraph |  | FR-100-yamlgraph-development-pipeline-ebook.md |
 | FR-169 | In Progress | yamlgraph |  | FR-169-enforce-reflexion-loop.md |
@@ -418,6 +423,11 @@ graph TD
     FR-762["FR-762 Judged"]
     FR-764["FR-764 Judged"]
     FR-796["FR-796 In Progress"]
+    FR-806["FR-806 Proposed"]
+    FR-807["FR-807 Proposed"]
+    FR-808["FR-808 Proposed"]
+    FR-809["FR-809 Proposed"]
+    FR-810["FR-810 Proposed"]
     FR-081 --> FR-082
     FR-731 --> FR-735
     FR-731 --> FR-736
