@@ -551,6 +551,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 233 | CAP-233 API Discovery Schema-Extract Step | `examples` | REQ-YG-594 |
 | 234 | CAP-234 API Discovery Orchestrator | `examples` | REQ-YG-595 |
 | 235 | CAP-235 Multi-Step Investigation Scaffold | `scripts` | REQ-YG-596 |
+| 236 | CAP-236 Router-Visible Tool-Call Outputs | `node_factory`, `models`, `linter` | REQ-YG-597 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -2890,6 +2891,16 @@ Operator scaffolding script (FR-792): scripts/scaffold_investigation.py generate
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-596 | The scaffold script generates, for both 3-step and 6-step requests into non-governed directories, the exact skeleton file set (orchestrator graph.yaml, steps/{step}.tool.yaml, steps/{step}/graph.yaml, prompt stubs, tools/README.md) where the orchestrator composes steps via tool_call nodes referencing graph-runtime manifests whose paths resolve from the manifest location, step prompts pin a typed findings/confidence output schema, every generated graph passes lint, the --stub skeleton runs end-to-end deterministically with an asserted final state shape, and the README documents leaf manifests, conditional edges, and prompt replacement. | `scripts` |
+
+### 236. CAP-236 Router-Visible Tool-Call Outputs
+
+Opt-in parsed_key field on tool_call nodes (FR-810): when the resolved tool is a graph-runtime tool, the node parses the child graph's object output (JSON-object strings parse; dicts pass through) and exposes it under parsed_key as addressable state, so edge conditions route on the step's actual findings instead of upstream hints. The wrapper under state_key is preserved unchanged. Fail-closed: invalid JSON, lists, scalars, missing child output, failed child wrappers, and non-graph tool misuse are node failures governed by on_error (fail raises; skip returns the failure envelope and never sets parsed_key). Lint warns when parsed_key targets a statically known shell/python tool.
+
+**Feature Request:** FR-810
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-597 | A tool_call node with parsed_key on a graph-runtime tool exposes the child's object output under parsed_key while returning the wrapper under state_key unchanged, and an edge condition routes on a parsed field in a compiled graph; without parsed_key the observable behavior is unchanged; JSON-object strings parse and dicts pass through while invalid JSON, lists, scalars, missing output, and failed child wrappers are parse failures with no empty-dict substitution, honored per on_error (fail raises, skip returns the failure envelope without parsed_key); non-graph tools with parsed_key fail at runtime per on_error and warn at lint when statically known; parse_result/result_key aliases are rejected by the node config schema. | `node_factory`, `models`, `linter` |
 
 <!-- END GENERATED CAPABILITIES -->
 
