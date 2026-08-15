@@ -198,6 +198,9 @@
 | FR-790 | Proposed | yamlgraph |  | FR-790-api-discovery-schema-extract-step.md |
 | FR-791 | Proposed | yamlgraph |  | FR-791-api-discovery-orchestrator.md |
 | FR-792 | Proposed | yamlgraph |  | FR-792-multi-step-investigation-template.md |
+| FR-799 | Proposed | yamlgraph |  | FR-799-fr432-fixture-sys-modules-orphan.md |
+| FR-800 | Proposed | yamlgraph |  | FR-800-memory-demo-mock-seam-correction.md |
+| FR-801 | Proposed | yamlgraph |  | FR-801-provider-readiness-preflight.md |
 | FR-078 | In Progress | yamlgraph |  | FR-078-relocate-project-tests.md |
 | FR-100 | In Progress | yamlgraph |  | FR-100-yamlgraph-development-pipeline-ebook.md |
 | FR-169 | In Progress | yamlgraph |  | FR-169-enforce-reflexion-loop.md |
@@ -428,6 +431,9 @@ graph TD
     FR-791["FR-791 Proposed"]
     FR-792["FR-792 Proposed"]
     FR-796["FR-796 In Progress"]
+    FR-799["FR-799 Proposed"]
+    FR-800["FR-800 Proposed"]
+    FR-801["FR-801 Proposed"]
     FR-081 --> FR-082
     FR-731 --> FR-735
     FR-731 --> FR-736
