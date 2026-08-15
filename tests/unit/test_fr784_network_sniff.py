@@ -34,6 +34,21 @@ FIXTURE_DIR = REPO_ROOT / "tests" / "fixtures" / "fr784_spa"
 
 # Canary value planted by the fixture's token-bearing fetch (AC-09)
 CANARY = "SECRET_TOKEN_VALUE_123"
+# 32-hex canary mimicking the x-algolia-api-key leak found live (2026-08-15)
+HEX_CANARY = "cafebabe0123456789abcdef01234567"
+
+
+def _node_helper(expr: str) -> str:
+    """Evaluate an expression against network-sniff.js exported helpers."""
+    result = subprocess.run(
+        ["node", "-e", f"const m = require({str(SCRIPT)!r}); console.log({expr});"],
+        capture_output=True,
+        text=True,
+        timeout=30,
+    )
+    assert result.returncode == 0, f"stderr: {result.stderr}"
+    return result.stdout.strip()
+
 
 # ---------------------------------------------------------------------------
 # Skip guards for browser-dependent tests (AC-02 setup contract)
@@ -96,6 +111,8 @@ class _SpaHandler(BaseHTTPRequestHandler):
             self._send(200, body, "application/json")
         elif path == "/api/item":
             self._send(200, json.dumps({"id": 1}).encode(), "application/json")
+        elif path == "/api/search":
+            self._send(200, json.dumps({"hits": []}).encode(), "application/json")
         elif path == "/analytics/collect":
             self._send(204, b"", "text/plain")
         elif path == "/api/secure":
@@ -205,6 +222,42 @@ def test_missing_playwright_gives_diagnostic(tmp_path):
     assert "npm ci" in result.stderr
 
 
+@pytest.mark.req("REQ-YG-590")
+def test_vendor_prefixed_key_param_redacted():
+    """AC-09: x-vendor-api-key style params are redacted (live leak, hn.algolia.com)."""
+    if shutil.which("node") is None:
+        pytest.skip("node not on PATH")
+    url = f"https://api.example.com/query?x-fixture-api-key={HEX_CANARY}&q=climate"
+    out = _node_helper(f"m.redactUrl({url!r})")
+    assert HEX_CANARY not in out, "vendor-prefixed api key leaked"
+    assert "q=climate" in out, "non-token params must survive redaction"
+
+
+@pytest.mark.req("REQ-YG-590")
+def test_token_shaped_query_value_redacted():
+    """AC-09: 32+ hex query values are redacted regardless of param name."""
+    if shutil.which("node") is None:
+        pytest.skip("node not on PATH")
+    url = f"https://api.example.com/query?oddly_named={HEX_CANARY}"
+    out = _node_helper(f"m.redactUrl({url!r})")
+    assert HEX_CANARY not in out, "token-shaped value leaked via unlisted param name"
+
+
+@pytest.mark.req("REQ-YG-590")
+def test_telemetry_hostname_label_classified():
+    """R-4: telemetry.<vendor> hosts are telemetry (live miss, telemetry.algolia.com)."""
+    if shutil.which("node") is None:
+        pytest.skip("node not on PATH")
+    out = _node_helper(
+        "m.classify('https://telemetry.example.com/1/settings', 200, 'application/json')"
+    )
+    assert out == "telemetry"
+    keep = _node_helper(
+        "m.classify('https://api.example.com/1/data', 200, 'application/json')"
+    )
+    assert keep == "data", "label check must not over-classify plain api hosts"
+
+
 # ---------------------------------------------------------------------------
 # Browser witnesses against the committed fixture (AC-03..AC-09)
 # ---------------------------------------------------------------------------
@@ -255,6 +308,7 @@ def test_token_redaction(spa_server: str):
     )
     assert result.returncode == 0
     assert CANARY not in result.stdout, "raw token leaked into output"
+    assert HEX_CANARY not in result.stdout, "vendor api-key canary leaked into output"
     out = json.loads(result.stdout)
     token_reqs = [r for r in out["requests"] if "/api/item" in r["url"]]
     assert token_reqs, "token-bearing request must still be inventoried"
