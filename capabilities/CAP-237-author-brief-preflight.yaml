@@ -1,0 +1,34 @@
+id: CAP-237
+name: Author Brief Pre-Flight
+description: >
+  Launch-time pre-flight in the sole authoring route (FR-806):
+  scripts/author.sh mechanically dry-runs the task brief before the
+  copilot CLI backend is spawned. Workspace-relative paths the brief
+  asserts as existing inputs (fixtures, fixture servers, validation
+  prerequisites) are checked for existence; validation-section commands
+  are statically resolved (env assignments, python -m, ./relative-script)
+  without ever executing brief-controlled text; validation plans whose
+  live full-pipeline smoke count risks the backend's 900s ceiling
+  produce an advisory warning. Premise violations exit 64 quoting the
+  violated line before any tokens are spent; --no-preflight skips only
+  the pre-flight while sentinel arming and report-gate verification
+  remain mandatory. No LLM call exists in the pre-flight path.
+modules:
+  - scripts
+fr: FR-806
+requirements:
+  - id: REQ-YG-598
+    description: >
+      author.sh pre-flights the brief before backend spawn: a brief
+      asserting an absent path as an existing input/fixture/server
+      exits 64 quoting the violated line; output paths the run is
+      supposed to create pass; a validation command whose executable
+      cannot be statically resolved exits 64; resolution handles env
+      assignments, python -m, and ./relative-script forms without
+      executing brief text; two or more live full-pipeline graph-run
+      smokes warn citing the 900s ceiling and proceed; a clean brief
+      passes with premises marked; --no-preflight skips only the
+      pre-flight with sentinel and report-gate semantics unchanged;
+      the pre-flight contains no LLM call.
+    modules:
+      - scripts

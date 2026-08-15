@@ -552,6 +552,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 234 | CAP-234 API Discovery Orchestrator | `examples` | REQ-YG-595 |
 | 235 | CAP-235 Multi-Step Investigation Scaffold | `scripts` | REQ-YG-596 |
 | 236 | CAP-236 Router-Visible Tool-Call Outputs | `node_factory`, `models`, `linter` | REQ-YG-597 |
+| 237 | CAP-237 Author Brief Pre-Flight | `scripts` | REQ-YG-598 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -2901,6 +2902,16 @@ Opt-in parsed_key field on tool_call nodes (FR-810): when the resolved tool is a
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-597 | A tool_call node with parsed_key on a graph-runtime tool exposes the child's object output under parsed_key while returning the wrapper under state_key unchanged, and an edge condition routes on a parsed field in a compiled graph; without parsed_key the observable behavior is unchanged; JSON-object strings parse and dicts pass through while invalid JSON, lists, scalars, missing output, and failed child wrappers are parse failures with no empty-dict substitution, honored per on_error (fail raises, skip returns the failure envelope without parsed_key); non-graph tools with parsed_key fail at runtime per on_error and warn at lint when statically known; parse_result/result_key aliases are rejected by the node config schema. | `node_factory`, `models`, `linter` |
+
+### 237. CAP-237 Author Brief Pre-Flight
+
+Launch-time pre-flight in the sole authoring route (FR-806): scripts/author.sh mechanically dry-runs the task brief before the copilot CLI backend is spawned. Workspace-relative paths the brief asserts as existing inputs (fixtures, fixture servers, validation prerequisites) are checked for existence; validation-section commands are statically resolved (env assignments, python -m, ./relative-script) without ever executing brief-controlled text; validation plans whose live full-pipeline smoke count risks the backend's 900s ceiling produce an advisory warning. Premise violations exit 64 quoting the violated line before any tokens are spent; --no-preflight skips only the pre-flight while sentinel arming and report-gate verification remain mandatory. No LLM call exists in the pre-flight path.
+
+**Feature Request:** FR-806
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-598 | author.sh pre-flights the brief before backend spawn: a brief asserting an absent path as an existing input/fixture/server exits 64 quoting the violated line; output paths the run is supposed to create pass; a validation command whose executable cannot be statically resolved exits 64; resolution handles env assignments, python -m, and ./relative-script forms without executing brief text; two or more live full-pipeline graph-run smokes warn citing the 900s ceiling and proceed; a clean brief passes with premises marked; --no-preflight skips only the pre-flight with sentinel and report-gate semantics unchanged; the pre-flight contains no LLM call. | `scripts` |
 
 <!-- END GENERATED CAPABILITIES -->
 
