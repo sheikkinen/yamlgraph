@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement (garden curation)
-**Status:** In Progress — implementation complete 2026-08-15; enforcement blocked on AC-10 full-suite integration failures; AC-12 commit/PR identifiers pending
+**Status:** In Progress — implementation complete 2026-08-15; enforcement blocked on AC-10 full-suite integration failures
 **Effort:** 0.5–1 day
 **Requested:** 2026-08-15
 
@@ -166,7 +166,7 @@ Frozen by the judgement (AC-01 satisfied by this revision):
 - [x] AC-11: Changelog fragment(s), diary reflection, and an annotation to
       `examples/2026-07-01-plan-cleanup.md` are included in the
       implementation diff.
-- [ ] AC-12: FR-796 implementation notes record the PR URL and, after
+- [x] AC-12: FR-796 implementation notes record the PR URL and, after
       available, the deleting or merge commit identifier that preserves
       deleted witness evidence in git history.
 
@@ -229,4 +229,4 @@ node code, or demo behavior.
 - The adapter's initial deduplication witness exposed historical rot: it references removed `.chaplain/watcher2.sh`. A post-merge witness also failed its stale README contract. Neither graph was changed; the unchanged CI-remediation witness supplied the required representative run.
 - With `.venv` activated, the complete unit suite passes: 5,819 passed, 91 skipped, 1 xfailed. The full suite reaches 6,013 passed but has eight stable integration failures reproduced in isolation: memory-demo mocking, three multi-turn/checkpointer assertions, three subgraph-interrupt assertions, and OpenAI `insufficient_quota`. None references the retired paths, but AC-10 remains open because the frozen criterion requires a fully green suite.
 - `scripts/check_demo_proof.sh` passes against the staged pure rename/delete shape without weakening or bypassing the gate.
-- PR URL: pending until a PR exists. Deleting or merge commit: pending until the implementation is committed.
+- PR URL: none; the operator requested a direct push to `main`. Deleting commit: `bdf3ad3c` (`chore(examples): FR-796 relocate watcher2 witnesses`).
