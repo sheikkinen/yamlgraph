@@ -13,13 +13,21 @@ _ENV_KEY = "FR432_ENV_PROBE"
 _ORIGINAL_CWD = Path.cwd()
 
 
+def _restore_module_identity() -> None:
+    """FR-799: pop then re-import so the yamlgraph package attribute and
+    sys.modules point at the same live module — a bare pop orphans the
+    attribute and breaks any later importlib.reload(config) elsewhere."""
+    sys.modules.pop("yamlgraph.config", None)
+    importlib.import_module("yamlgraph.config")
+
+
 @pytest.fixture(autouse=True)
 def _restore_config_module_state() -> None:
     """Prevent config module state from leaking cwd-derived constants across tests."""
     yield
-    sys.modules.pop("yamlgraph.config", None)
-    os.environ.pop(_ENV_KEY, None)
     os.chdir(_ORIGINAL_CWD)
+    _restore_module_identity()
+    os.environ.pop(_ENV_KEY, None)
 
 
 def _import_config_fresh():
@@ -127,3 +135,23 @@ def test_no_env_anywhere_keeps_env_unset(
     _import_config_fresh()
 
     assert _ENV_KEY not in __import__("os").environ
+
+
+@pytest.mark.req("REQ-YG-043")
+def test_teardown_restores_module_identity() -> None:
+    """FR-799 witness: after teardown, a victim's reload(config) must work.
+
+    Replays the exact victim operation (from-import via the package
+    attribute, then importlib.reload) that raised
+    `ImportError: module yamlgraph.config not in sys.modules` when the
+    teardown popped without re-importing.
+    """
+    import yamlgraph
+
+    _restore_module_identity()
+
+    from yamlgraph import config
+
+    reloaded = importlib.reload(config)
+    assert sys.modules["yamlgraph.config"] is reloaded
+    assert yamlgraph.config is reloaded
