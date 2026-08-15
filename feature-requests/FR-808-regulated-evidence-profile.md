@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Proposed
+**Status:** Judged — APPROVED WITH REVISIONS (R-1..R-7 folded below; see FR-808-regulated-evidence-profile.judgement.md). Enforcement BLOCKED until FR-807 is Enforced (C-2).
 **Effort:** 1 day
 **Requested:** 2026-08-15
 **First consumer / first event:** the csap VoiceBot deployment (Tervola pilot, autumn 2026) declaring `observability.profile: regulated` in its graph YAML — the first run where route-log emission cannot be silently absent, ahead of the AI Act Annex III application date of 2 Aug 2026 for the deployer's Art. 26(6) log-retention duty.
@@ -28,28 +28,40 @@ A graph author writes one line — `observability.profile: regulated` — and ev
 
 ## Proposed Solution
 
+**Dependency gate (R-1):** enforcement is blocked until FR-807 is Enforced and its run header, artifact hash, run identity, run-end, and dropped-event counter contracts are available. This FR consumes those contracts; it must not reimplement missing FR-807 record hardening.
+
 ```yaml
 # graph.yaml
 observability:
-  profile: regulated          # implies route_log: true
-  route_log_sink: logs/route/ # required under the profile; refuses to start without a writable sink
-  strict_evidence: true       # optional: dropped_events > 0 fails the run at run_end
+  profile: regulated          # implies route_log: true; route_log: false is invalid under the profile
+  route_log_sink: logs/route/ # REQUIRED: filesystem directory; preflighted writable before execution
+  judgement_ref: FR-XXX       # REQUIRED under the profile (feeds the FR-807 header judgement field)
+  strict_evidence: true       # optional, default false: dropped_events > 0 fails the run
 ```
 
-- `profile: regulated` sets `route_log: true` at compile time and **validates at load** that a sink is resolvable and writable — fail at startup, not mid-incident.
-- Env `YAMLGRAPH_ROUTE_LOG=0` under the regulated profile does **not** silently disable: it logs a WARNING `regulated profile: route log disable requested via env — recorded exception` and keeps emitting, unless `YAMLGRAPH_ROUTE_LOG_OVERRIDE=1` is also set (the recorded exception: both lines land in the normal log).
-- `strict_evidence: true`: at run end, `dropped_events > 0` raises a `PipelineError` — evidence loss is a run failure, per Commandment 6.
-- `graph lint` warns when a graph names AI-Act-flavored metadata (judgement ref, regulated profile fields) inconsistently — advisory only, no new gate in this FR.
+- **Profile schema (R-2):** under `profile: regulated`, `route_log_sink` and `judgement_ref` are required; `route_log` is implied true and `route_log: false` fails validation. Failure phases are pinned: schema/load validation for missing or contradictory fields, then sink preflight before graph execution — fail at startup, not mid-incident, with no header emitted.
+- **Sink semantics (R-3):** `route_log_sink` is a filesystem *directory*. Preflight requires it resolvable and writable; missing, file-valued, or non-writable sinks fail before execution. Each run writes a single per-run JSONL file named `<run_id>.route.jsonl` (FR-807 `run_id`) — a per-run retention target, never a shared file or logger-only surface.
+- **Override precedence (R-4):**
+  1. Under the profile, `YAMLGRAPH_ROUTE_LOG=0` alone is ignored for emission; the run still writes to `route_log_sink`.
+  2. The ignored disable emits a stable WARNING with structured fields (profile, graph, sink, env source) assertable via `caplog`.
+  3. `YAMLGRAPH_ROUTE_LOG=0` + `YAMLGRAPH_ROUTE_LOG_OVERRIDE=1` disables emission **only when `strict_evidence` is false**, emitting the same stable WARNING plus `override=true` / `recorded_exception=true` markers.
+  4. With `strict_evidence: true`, any disable request — including the override pair — is a startup failure: a strict run with knowingly absent evidence must not exist.
+- **Strict failure contract (R-5):** with `strict_evidence: true`, after graph execution and after the best-effort FR-807 `run_end` emission attempt, `dropped_events > 0` raises a `PipelineError` naming the count and sink. If `run_end` itself fails, that failure increments the counter and strict mode raises. With `strict_evidence` false, the same injected failure completes the run and leaves `dropped_events` observable through the FR-807 counter surface. (Commandment 6.)
+- **Lint (R-6):** exact static diagnostics only, scoped to fields this FR introduces: `profile: regulated` with `route_log: false`; missing `route_log_sink`; missing `judgement_ref`; `strict_evidence`/`route_log_sink` used without the regulated profile. No generic "AI-Act-flavored metadata" scanner.
+- **Documentation bound (R-7):** docs update only after behavior ships; wording claims on-by-default route-evidence emission and strict-fatal evidence-loss behavior — never AI Act compliance, conformity, or legal sufficiency; the whitepaper's disclaimers (notes 1, 3) are preserved.
 
 ## Acceptance Criteria
 
-- [ ] `observability.profile: regulated` enables route logging with no env var set (test: run graph, log exists)
-- [ ] Startup fails with a clear error when the profile is set and no writable sink resolves
-- [ ] `YAMLGRAPH_ROUTE_LOG=0` alone does not disable emission under the profile; warning line recorded; override env pair disables and records the exception
-- [ ] `strict_evidence: true` + injected emission failure → run fails; without the flag the same run completes and reports `dropped_events` (depends on FR-807 counter)
-- [ ] Non-regulated graphs are byte-for-byte unaffected (opt-in behavior regression test)
-- [ ] Whitepaper §5/§7 updated: on-by-default claims re-upgraded from "specified work" to shipped, citing this FR
-- [ ] Tests tagged `@pytest.mark.req(...)`; changelog fragment in `changelog/unreleased/`
+- [ ] AC-01: With FR-807 Enforced, a fixture graph declaring `profile: regulated`, `route_log_sink: <tmp_dir>`, `judgement_ref: FR-808-test` emits a per-run route JSONL with no env var set; the file begins with the FR-807 `event:"run"` header including the declared judgement reference
+- [ ] AC-02: Validation fails before execution, with clear diagnostics and no emitted header, when `route_log_sink` is missing/file-valued/non-writable or `judgement_ref` is missing
+- [ ] AC-03: The profile implies route logging; `route_log: false` under it fails validation; non-regulated graphs retain existing opt-in/off behavior
+- [ ] AC-04: `YAMLGRAPH_ROUTE_LOG=0` alone does not disable emission under the profile (stable ignored-disable WARNING); the env pair disables only when `strict_evidence` is false (stable recorded-exception WARNING)
+- [ ] AC-05: Under `strict_evidence: true`, any disable request fails startup; injected serialization/sink failure during an enabled run raises `PipelineError` at the run boundary after best-effort `run_end`, naming the dropped-event count
+- [ ] AC-06: Same injected failure with `strict_evidence` false: run completes; FR-807 run-end/counter surface reports `dropped_events > 0`
+- [ ] AC-07: Existing FR-723 non-regulated route-log tests pass unchanged (env logger-only, env file path, graph flag, disabled zero-overhead); no global route logging introduced
+- [ ] AC-08: Lint changes limited to the exact R-6 diagnostics, with tests; no generic AI Act metadata scanner
+- [ ] AC-09: Reference docs and the whitepaper describe shipped behavior and preserve the control-plane and legal-advice disclaimers
+- [ ] AC-10: Tests marked `@pytest.mark.req(...)`; capability file defines the governing requirement; `python scripts/req_coverage.py --strict` passes; changelog and diary artifacts in diff
 
 ## Alternatives Considered
 

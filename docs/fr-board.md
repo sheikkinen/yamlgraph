@@ -97,6 +97,8 @@
 | FR-761 | Judged | yamlgraph |  | FR-761-reproducible-dependency-governance.md |
 | FR-762 | Judged | yamlgraph |  | FR-762-example-dependency-taxonomy.md |
 | FR-764 | Judged | yamlgraph |  | FR-764-style-convert-pipeline.md |
+| FR-807 | Judged | yamlgraph |  | FR-807-route-evidence-record-hardening.md |
+| FR-808 | Judged | yamlgraph |  | FR-808-regulated-evidence-profile.md |
 | FR-094 | Approved | yamlgraph |  | FR-094-memory-node.md |
 | FR-095 | Approved | yamlgraph |  | FR-095-doc-staleness-monitor.md |
 | FR-096 | Approved | yamlgraph |  | FR-096-fr-template-demo-plan.md |
@@ -195,8 +197,6 @@
 | FR-729 | Proposed | yamlgraph |  | FR-729-landing-page-metrics-generated.md |
 | FR-751 | Proposed | yamlgraph |  | FR-751-liquid-safety-precommit-gate.md |
 | FR-757 | Proposed | yamlgraph |  | FR-757-fsm-contrib-relocation.md |
-| FR-807 | Proposed | yamlgraph |  | FR-807-route-evidence-record-hardening.md |
-| FR-808 | Proposed | yamlgraph |  | FR-808-regulated-evidence-profile.md |
 | FR-078 | In Progress | yamlgraph |  | FR-078-relocate-project-tests.md |
 | FR-100 | In Progress | yamlgraph |  | FR-100-yamlgraph-development-pipeline-ebook.md |
 | FR-169 | In Progress | yamlgraph |  | FR-169-enforce-reflexion-loop.md |
@@ -423,8 +423,8 @@ graph TD
     FR-764["FR-764 Judged"]
     FR-796["FR-796 In Progress"]
     FR-806["FR-806 Approved"]
-    FR-807["FR-807 Proposed"]
-    FR-808["FR-808 Proposed"]
+    FR-807["FR-807 Judged"]
+    FR-808["FR-808 Judged"]
     FR-809["FR-809 Approved"]
     FR-081 --> FR-082
     FR-731 --> FR-735
