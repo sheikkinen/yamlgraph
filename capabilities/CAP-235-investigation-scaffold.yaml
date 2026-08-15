@@ -1,0 +1,32 @@
+id: CAP-235
+name: Multi-Step Investigation Scaffold
+description: >
+  Operator scaffolding script (FR-792): scripts/scaffold_investigation.py
+  generates a working N-step investigation pipeline skeleton — routing
+  orchestrator with tool_call nodes, per-step graph-runtime tool
+  manifests, per-step agent graph stubs with typed output schemas,
+  prompt stubs, and a tools/README.md — extracting the architectural
+  contract proven by the enforced API discovery instance (FR-783..
+  FR-791). A --stub variant emits deterministic passthrough steps so
+  the generated orchestrator runs end-to-end without provider keys.
+  Script surface only: no CLI subcommand, no runtime primitives; the
+  scaffold is not an agent-side bypass of the graph-authoring route.
+modules:
+  - scripts
+fr: FR-792
+requirements:
+  - id: REQ-YG-596
+    description: >
+      The scaffold script generates, for both 3-step and 6-step
+      requests into non-governed directories, the exact skeleton file
+      set (orchestrator graph.yaml, steps/{step}.tool.yaml,
+      steps/{step}/graph.yaml, prompt stubs, tools/README.md) where
+      the orchestrator composes steps via tool_call nodes referencing
+      graph-runtime manifests whose paths resolve from the manifest
+      location, step prompts pin a typed findings/confidence output
+      schema, every generated graph passes lint, the --stub skeleton
+      runs end-to-end deterministically with an asserted final state
+      shape, and the README documents leaf manifests, conditional
+      edges, and prompt replacement.
+    modules:
+      - scripts

@@ -550,6 +550,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 232 | CAP-232 API Discovery Browser-Sniff Step | `examples` | REQ-YG-593 |
 | 233 | CAP-233 API Discovery Schema-Extract Step | `examples` | REQ-YG-594 |
 | 234 | CAP-234 API Discovery Orchestrator | `examples` | REQ-YG-595 |
+| 235 | CAP-235 Multi-Step Investigation Scaffold | `scripts` | REQ-YG-596 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -2879,6 +2880,16 @@ Example-level v1 orchestrator for the API discovery pipeline (FR-791): examples/
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-595 | The orchestrator compiles against the four committed step manifests via tool_call nodes only (no subgraph nodes, no recon/browser-sniff references), documents the hypothesis/purpose/country/domain_hint input contract in state, routes absent-candidate and unconfirmed-platform paths to the single synthesize terminal instead of failing, gates schema-extract on platform_confirmation.success, and pins the terminal result schema: verdict enum found/not_found/ needs_manual, required reason/steps_tried/alternatives with steps_tried minItems 1, profile requiring url/platform_family/ non-empty endpoints, additionalProperties false throughout; llm nodes fail loudly on schema drift. | `examples` |
+
+### 235. CAP-235 Multi-Step Investigation Scaffold
+
+Operator scaffolding script (FR-792): scripts/scaffold_investigation.py generates a working N-step investigation pipeline skeleton — routing orchestrator with tool_call nodes, per-step graph-runtime tool manifests, per-step agent graph stubs with typed output schemas, prompt stubs, and a tools/README.md — extracting the architectural contract proven by the enforced API discovery instance (FR-783.. FR-791). A --stub variant emits deterministic passthrough steps so the generated orchestrator runs end-to-end without provider keys. Script surface only: no CLI subcommand, no runtime primitives; the scaffold is not an agent-side bypass of the graph-authoring route.
+
+**Feature Request:** FR-792
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-596 | The scaffold script generates, for both 3-step and 6-step requests into non-governed directories, the exact skeleton file set (orchestrator graph.yaml, steps/{step}.tool.yaml, steps/{step}/graph.yaml, prompt stubs, tools/README.md) where the orchestrator composes steps via tool_call nodes referencing graph-runtime manifests whose paths resolve from the manifest location, step prompts pin a typed findings/confidence output schema, every generated graph passes lint, the --stub skeleton runs end-to-end deterministically with an asserted final state shape, and the README documents leaf manifests, conditional edges, and prompt replacement. | `scripts` |
 
 <!-- END GENERATED CAPABILITIES -->
 
