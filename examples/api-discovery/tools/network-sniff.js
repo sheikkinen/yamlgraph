@@ -33,12 +33,15 @@ const TELEMETRY_HOSTS = [
   "clarity.ms",
 ];
 const TELEMETRY_PATHS = ["/analytics/", "/telemetry/", "/collect", "/track", "/beacon", "/pixel"];
+const TELEMETRY_HOST_LABELS = new Set(["telemetry", "analytics", "metrics", "tracking", "stats", "beacon", "collect"]);
 const DATA_CONTENT_TYPES = /application\/json|\+json|application\/xml|text\/xml|\+xml/i;
 const CAPTCHA_MARKERS = /recaptcha|hcaptcha|turnstile/i;
 const TOKEN_PARAMS = new Set([
   "token", "key", "apikey", "api_key", "access_token", "auth", "authorization",
   "session", "secret", "password", "sig", "signature", "jwt", "bearer",
 ]);
+// Prefix match for compound segments: sessionid, authcode, apikey2 (live: x-algolia-api-key)
+const TOKEN_SEGMENT_PREFIXES = ["token", "secret", "passw", "session", "auth", "apikey", "signature", "bearer"];
 const PREVIEW_LIMIT = 500;
 const RANK = { data: 0, other: 1, telemetry: 2 };
 
@@ -52,16 +55,31 @@ function classify(rawUrl, status, contentType) {
   const host = url.hostname.toLowerCase();
   const path = url.pathname.toLowerCase();
   if (TELEMETRY_HOSTS.some((h) => host === h || host.endsWith(`.${h}`))) return "telemetry";
+  if (host.split(".").some((label) => TELEMETRY_HOST_LABELS.has(label))) return "telemetry";
   if (TELEMETRY_PATHS.some((p) => path.includes(p))) return "telemetry";
   if (status === 200 && DATA_CONTENT_TYPES.test(contentType)) return "data";
   return "other";
+}
+
+function isTokenParam(name) {
+  const lower = name.toLowerCase();
+  if (TOKEN_PARAMS.has(lower)) return true;
+  const segments = lower.split(/[-_.]/);
+  return segments.some(
+    (s) => TOKEN_PARAMS.has(s) || TOKEN_SEGMENT_PREFIXES.some((p) => s.startsWith(p))
+  );
 }
 
 function redactUrl(rawUrl) {
   try {
     const url = new URL(rawUrl);
     for (const key of [...url.searchParams.keys()]) {
-      if (TOKEN_PARAMS.has(key.toLowerCase())) url.searchParams.set(key, "[REDACTED]");
+      if (isTokenParam(key)) {
+        url.searchParams.set(key, "[REDACTED]");
+      } else {
+        // Token-shaped values leak under arbitrary names (live: 32-hex api keys)
+        url.searchParams.set(key, redactText(url.searchParams.get(key) || ""));
+      }
     }
     return url.toString();
   } catch {
@@ -164,4 +182,8 @@ async function main() {
   process.stdout.write(JSON.stringify(result));
 }
 
-main().catch((err) => fail(err.message));
+if (require.main === module) {
+  main().catch((err) => fail(err.message));
+} else {
+  module.exports = { classify, redactUrl, redactText, isTokenParam };
+}

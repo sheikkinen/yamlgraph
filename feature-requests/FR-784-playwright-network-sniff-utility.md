@@ -161,6 +161,27 @@ committed setup has not been installed.
   classified `telemetry`, and ranked behind `data` in the output.
 - Deviation: none — scope exactly D-1..D-6.
 
+### Live validation (2026-08-15, post-enforcement)
+
+Operator-requested smoke against live sites (not part of the test
+suite; C-2 tests remain fixture-only):
+
+- `avoindata.fi` (server-rendered CKAN): 0 XHR/fetch captured — the
+  correct negative signal for FR-789's routing.
+- `hn.algolia.com` (real SPA): captured the hidden Algolia query API,
+  and exposed two defects the fixture missed:
+  1. `x-algolia-api-key=<32-hex>` leaked — exact-name matching missed
+     vendor-prefixed params. Fixed: segment-based param-name matching
+     (`x-algolia-api-key` → segment `key`) plus token-shaped value
+     redaction (32+ hex / base64 / JWT) under any param name.
+  2. `telemetry.algolia.com/1/settings` classified `data` — hostname
+     labels now checked against telemetry vocabulary (telemetry,
+     analytics, metrics, tracking, stats, beacon, collect).
+  Both condemned RED-first in `test_fr784_network_sniff.py` (Node-level
+  helper units via exported `classify`/`redactUrl` + fixture canary);
+  14/14 green after fix; live re-run confirms zero token material and
+  correct demotion.
+
 ## Alternatives Considered
 
 - **Python + selenium:** heavier, worse network interception API

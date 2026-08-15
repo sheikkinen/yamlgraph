@@ -52,3 +52,30 @@ the drift. Sequence, don't fight.
 (staged FR contents) instead of the working tree, making the gate a
 pure function of the commit under judgement and immune to sibling
 sessions' WIP?
+
+## Addendum — live validation (same day)
+
+The operator asked for a live-site check after enforcement. Five words;
+two defects. The deterministic fixture proved the *mechanism* (params
+named `token` get redacted) but encoded my own naming assumptions — the
+wild immediately presented `x-algolia-api-key`, which exact-name
+matching missed, and `telemetry.algolia.com`, which the domain denylist
+missed. The fixture tests what you thought of; the live run tests what
+vendors actually do. This is `read_raw_output_first` in network form:
+one `cat` of real captured traffic exposed what no amount of fixture
+elaboration would have. The cure was structural, not enumerative —
+segment-based name matching plus *shape-based* value redaction, so the
+next unlisted vendor prefix is caught by the value's own geometry.
+
+Heuristic: for any boundary normalizer (redactor, classifier,
+sanitizer), the acceptance suite proves the mechanism; ship it, then
+immediately fire ONE live probe and diff reality against the fixture's
+vocabulary. Deterministic tests keep the contract; the live probe
+finds the vocabulary you didn't know you were missing. RED-first still
+holds — the live findings became fixture canaries before the fix.
+
+**Seed:** should the API-discovery family grow a standing
+`live-vocabulary-probe` ritual — a manual, non-CI script that runs each
+boundary tool against one rotating real site and diffs the
+classification/redaction decisions against expectations — catching
+vendor-vocabulary drift before consumers do?
