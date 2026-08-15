@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Investigation
-**Status:** Judged 2026-08-15 - APPROVED WITH REVISIONS (R-1..R-3 folded below)
+**Status:** Enforced 2026-08-15 - investigation complete; report at docs/investigations/fr798-full-suite-failures.md
 **Effort:** 0.5-1 day
 **Requested:** 2026-08-15
 **First consumer / first event:** the next enforcer whose otherwise-valid commit
@@ -165,44 +165,44 @@ counts, outputs, and commit identity.
 
 - [x] AC-01: FR-798 is amended with R-1 through R-3 before enforcement authority
   is used.
-- [ ] AC-02: `docs/investigations/fr798-full-suite-failures.md` records the git
+- [x] AC-02: `docs/investigations/fr798-full-suite-failures.md` records the git
   SHA, Python/dependency environment, exact commands, and raw outcomes for
   all four non-subgraph classes.
-- [ ] AC-03: The RunPod test has serial (>=10) and xdist (>=20) reproduction
+- [x] AC-03: The RunPod test has serial (>=10) and xdist (>=20) reproduction
       counts; the report identifies the operation that breaks module identity
       or states the bounded search that failed to reproduce it.
-- [ ] AC-04: A deterministic witness proves or falsifies the hypothesis that a
+- [x] AC-04: A deterministic witness proves or falsifies the hypothesis that a
       foreign test/fixture removes or replaces `yamlgraph.config` in
       `sys.modules`; retries and suite serialization are not accepted as the
       investigation result.
-- [ ] AC-05: The memory-demo failure is traced from its stale patch target to
+- [x] AC-05: The memory-demo failure is traced from its stale patch target to
       the current shell-tool owner, with a minimal reproduction and a proposed
       owning test seam.
-- [ ] AC-06: Any committed reproduction harness follows the R-2 collection
+- [x] AC-06: Any committed reproduction harness follows the R-2 collection
   policy and does not add a new unclassified default-suite failure.
-- [ ] AC-07: Multi-turn failure artifacts include `errors`, response/intent,
+- [x] AC-07: Multi-turn failure artifacts include `errors`, response/intent,
       interrupt state, and checkpoint state for every turn, and distinguish LLM
       failure from checkpoint behavior.
-- [ ] AC-08: OpenAI absent-key, exhausted-key, and successful-readiness states
+- [x] AC-08: OpenAI absent-key, exhausted-key, and successful-readiness states
   are separately evidenced when a healthy operator-selected credential is
   available; if not available, the report records the exact readiness
   blocker while still evidencing absent-key and exhausted-key behavior.
-- [ ] AC-09: The relevant matrix is run under the FR-761 Python 3.12 constrained
+- [x] AC-09: The relevant matrix is run under the FR-761 Python 3.12 constrained
       environment as well as the active local environment, or the exact setup
       blocker is recorded.
-- [ ] AC-10: Each confirmed defect receives one disposition: existing FR,
+- [x] AC-10: Each confirmed defect receives one disposition: existing FR,
       proposed follow-up FR with first consumer and boundary, test correction,
       environment/operations action, or no-action with evidence.
-- [ ] AC-11: FR-797's subgraph interrupt scope is not modified, duplicated, or
+- [x] AC-11: FR-797's subgraph interrupt scope is not modified, duplicated, or
   used as evidence of FR-798 completion.
-- [ ] AC-12: No production files under `yamlgraph/**`, graph/prompt artifacts,
+- [x] AC-12: No production files under `yamlgraph/**`, graph/prompt artifacts,
   CI workflows, hooks, branch-protection policy, pytest marker policy,
   dependency governance, or test-gate policy change under this
   investigation.
-- [ ] AC-13: Committed artifacts redact provider secrets and account/request
+- [x] AC-13: Committed artifacts redact provider secrets and account/request
   identifiers while preserving enough error class/status/provider detail to
   reproduce the classification.
-- [ ] AC-14: The investigation report ends with a recommended enforcement
+- [x] AC-14: The investigation report ends with a recommended enforcement
       order based on causal dependency, not failure count.
 
 ## Constraints
@@ -255,3 +255,15 @@ authority is active for the frozen investigation scope. See
 | C-2 | Any committed reproduction harness must follow the revised collection policy and must not create a new default-suite red unrelated to the existing classified failures. | GATE |
 | C-3 | Provider-success evidence may use only operator-selected existing credentials; absence of a healthy credential is a reportable blocker, not permission to create or expose secrets. | GATE |
 | C-4 | If work touches FR-797's subgraph scope, graph/prompt artifacts, CI/hooks, dependency governance, or test-selection policy, stop and return for a separate judged FR. | GATE |
+
+## Completion Record (Enforced 2026-08-15)
+
+Report: `docs/investigations/fr798-full-suite-failures.md` at `fd9cd8fc`.
+All four classes classified; zero product defects; no files under
+`yamlgraph/**` changed (AC-12). Dispositions: A = test correction
+(fr432 fixture re-import), B = test correction (patch target ->
+`yamlgraph.tools.tool_builders.execute_shell_tool`), C = folded into D,
+D = operations (OpenAI credit) + proposed readiness-preflight follow-up FR.
+xdist matrix reproduced Class A in run 20/20 (~5%/run), confirming the
+deterministic 2-module witness. No reproduction harness committed under
+tests/** (R-2: report-preserved commands suffice).
