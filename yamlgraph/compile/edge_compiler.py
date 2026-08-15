@@ -105,6 +105,7 @@ class _EdgeContext:
     router_edges: dict[str, list]
     expression_edges: dict[str, list[tuple[str, str]]]
     interrupt_nodes: set[str] | None = None
+    subgraph_interrupt_nodes: set[str] | None = None
     map_fanout_sources: set[str] | None = field(default=None)
 
 
@@ -200,12 +201,20 @@ def _compile_start(ctx: _EdgeContext) -> None:
             f"{t}_prepare" if ctx.interrupt_nodes and t in ctx.interrupt_nodes else t
             for t in to
         ]
+        # FR-797: relay-capable subgraph targets enter at their run node
+        sgi = ctx.subgraph_interrupt_nodes
+        to = [f"{t}__run" if sgi and t in sgi else t for t in to]
     _handle_start_edge(ctx.graph, to, ctx.map_nodes)
 
 
 def _compile_parallel_fanout(ctx: _EdgeContext) -> None:
     _add_parallel_fanout_edges(
-        ctx.graph, ctx.from_node, ctx.to_node, ctx.map_nodes, ctx.interrupt_nodes
+        ctx.graph,
+        ctx.from_node,
+        ctx.to_node,
+        ctx.map_nodes,
+        ctx.interrupt_nodes,
+        ctx.subgraph_interrupt_nodes,
     )
 
 
@@ -264,12 +273,24 @@ def _process_edge(
     expression_edges: dict[str, list[tuple[str, str]]],
     interrupt_nodes: set[str] | None = None,
     map_fanout_sources: set[str] | None = None,
+    subgraph_interrupt_nodes: set[str] | None = None,
 ) -> None:
     """Classify one edge, then dispatch to its shape compiler (FR-718)."""
     from_node = edge["from"]
     to_node = edge["to"]
     condition = edge.get("condition")
     edge_type = edge.get("type")
+
+    # FR-797: relay-capable subgraph rewrite happens BEFORE all edge-shape
+    # dispatch (J-15); outgoing edges may be fully handled there.
+    if subgraph_interrupt_nodes:
+        from yamlgraph.compile.subgraph_relay import relay_rewrite
+
+        handled, to_node = relay_rewrite(
+            graph, from_node, to_node, condition, edge_type, subgraph_interrupt_nodes
+        )
+        if handled:
+            return
 
     # FR-060: Redirect incoming edges to interrupt prepare node (before
     # membership classification — a *_prepare name is never a map node).
@@ -289,6 +310,7 @@ def _process_edge(
             router_edges=router_edges,
             expression_edges=expression_edges,
             interrupt_nodes=interrupt_nodes,
+            subgraph_interrupt_nodes=subgraph_interrupt_nodes,
             map_fanout_sources=map_fanout_sources,
         )
     )
@@ -300,6 +322,7 @@ def _add_parallel_fanout_edges(
     targets: list[str],
     map_nodes: dict[str, tuple],
     interrupt_nodes: set[str] | None = None,
+    subgraph_interrupt_nodes: set[str] | None = None,
 ) -> None:
     """Add parallel fan-out edges from one source to multiple targets (FR-234).
 
@@ -310,6 +333,10 @@ def _add_parallel_fanout_edges(
         # FR-060: Redirect interrupt targets to prepare node
         if interrupt_nodes and target in interrupt_nodes:
             target = f"{target}_prepare"
+
+        # FR-797: Redirect relay-capable subgraph targets to run node
+        if subgraph_interrupt_nodes and target in subgraph_interrupt_nodes:
+            target = f"{target}__run"
 
         # Map node targets use conditional edge with map function
         if target in map_nodes:

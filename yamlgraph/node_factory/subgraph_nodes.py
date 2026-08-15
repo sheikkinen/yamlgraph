@@ -97,13 +97,32 @@ def _build_child_config(
     }
 
 
+def _guard_unrelayed_interrupt(
+    child_output: Any, node_name: str, graph_path: Path
+) -> None:
+    """FR-797 fail-loud: a child interrupt reached a non-relay subgraph node.
+
+    Raises:
+        ValueError: naming the child graph and the missing relay config.
+    """
+    if isinstance(child_output, dict) and "__interrupt__" in child_output:
+        raise ValueError(
+            f"Subgraph node {node_name!r} received an interrupt from child "
+            f"graph {graph_path} but is not relay-capable: the child declares "
+            "no 'type: interrupt' node and the parent node has no "
+            "'interrupt_output_mapping'. Declare the interrupt in the child "
+            "graph (with a resumable 'checkpointer:') so the parent can "
+            "relay the pause."
+        )
+
+
 def create_subgraph_node(
     node_name: str,
     node_config: dict[str, Any],
     parent_graph_path: Path,
     parent_checkpointer: Any | None = None,
-) -> Callable[[dict, dict], dict] | Any:
-    """Create a node that invokes a compiled subgraph.
+) -> Callable[[dict, dict], dict] | tuple[Callable, Callable] | Any:
+    """Create node function(s) that invoke a compiled subgraph.
 
     Args:
         node_name: Name of this node in parent graph
@@ -112,13 +131,21 @@ def create_subgraph_node(
         parent_checkpointer: Checkpointer to inherit (if any)
 
     Returns:
-        Node function that invokes subgraph (or CompiledGraph for mode=direct)
+        - CompiledGraph for mode=direct
+        - (run_fn, pause_fn) tuple for relay-capable nodes (FR-797
+          two-node split: run commits, pause interrupts)
+        - single node function otherwise
 
     Raises:
         FileNotFoundError: If subgraph YAML doesn't exist
         ValueError: If circular reference detected
     """
-    from yamlgraph.compile.graph_loader import compile_graph, load_graph_config
+    from yamlgraph.compile.graph_loader import (
+        compile_graph,
+        get_checkpointer_for_graph,
+        load_graph_config,
+    )
+    from yamlgraph.models.relay_fields import subgraph_relay_capable
 
     # Resolve path relative to parent graph file
     graph_rel_path = node_config["graph"]
@@ -133,6 +160,8 @@ def create_subgraph_node(
     if not graph_path.exists():
         raise FileNotFoundError(f"Subgraph not found: {graph_path}")
 
+    relay = mode == "invoke" and subgraph_relay_capable(node_config, parent_graph_path)
+
     # Circular reference detection (thread-safe)
     # Use .get([]) to provide default without sharing mutable state
     stack = _loading_stack.get([])
@@ -145,8 +174,17 @@ def create_subgraph_node(
     try:
         subgraph_config = load_graph_config(graph_path)
         state_graph = compile_graph(subgraph_config)
-        # Compile with checkpointer (if provided)
-        compiled = state_graph.compile(checkpointer=parent_checkpointer)
+        # FR-797 checkpointer precedence: parent-provided → child-declared →
+        # (relay only) in-process MemorySaver default so pause/resume works
+        # without durable claims. get_checkpointer(None) returns None.
+        checkpointer = parent_checkpointer or get_checkpointer_for_graph(
+            subgraph_config
+        )
+        if relay and checkpointer is None:
+            from langgraph.checkpoint.memory import MemorySaver
+
+            checkpointer = MemorySaver()
+        compiled = state_graph.compile(checkpointer=checkpointer)
     finally:
         _loading_stack.reset(token)
 
@@ -156,63 +194,113 @@ def create_subgraph_node(
         # CompiledStateGraph objects and handles them natively
         return compiled
 
-    # Mode: Invoke - explicit state mapping
+    if relay:
+        return _create_relay_pair(
+            node_name,
+            compiled,
+            graph_path,
+            input_mapping,
+            output_mapping,
+            interrupt_output_mapping,
+        )
+
+    # Mode: Invoke, child cannot interrupt - single node, unchanged behavior
     from langchain_core.runnables import RunnableConfig
 
     def subgraph_node(state: dict, config: RunnableConfig | None = None) -> dict:
         """Execute the subgraph with mapped state."""
-        from langgraph.errors import GraphInterrupt
-
         config = config or {}
-
-        # Build child input from parent state
         child_input = _map_input_state(state, input_mapping)
-
-        # Build child config with propagated thread ID
         child_config = _build_child_config(config, node_name)
 
-        # Invoke subgraph - may raise GraphInterrupt
-        try:
-            child_output = compiled.invoke(child_input, child_config)
-            is_interrupted = "__interrupt__" in child_output
-        except GraphInterrupt:
-            # FR-006: Child hit an interrupt
-            if interrupt_output_mapping:
-                # Get child state from checkpointer
-                child_state = compiled.get_state(child_config)
-                child_output = dict(child_state.values) if child_state else {}
+        child_output = compiled.invoke(child_input, child_config)
+        # langgraph 1.x returns __interrupt__ instead of raising (FR-797);
+        # a non-relay child has no resumable pause path — fail loud.
+        _guard_unrelayed_interrupt(child_output, node_name, graph_path)
 
-                # Apply interrupt_output_mapping
-                parent_updates = _map_output_state(
-                    child_output, interrupt_output_mapping
-                )
-                parent_updates["current_step"] = node_name
-
-                # Use __pregel_send to update parent state before re-raising
-                # This allows the mapped state to be included in the result
-                send = config.get("configurable", {}).get("__pregel_send")
-                if send:
-                    # Convert dict to list of (key, value) tuples
-                    updates = [(k, v) for k, v in parent_updates.items()]
-                    send(updates)
-                    logger.info(
-                        f"FR-006: Subgraph {node_name} mapped state: "
-                        f"{list(parent_updates.keys())}"
-                    )
-
-            # Re-raise to pause the graph
-            raise
-
-        # Normal completion path
-        if is_interrupted and interrupt_output_mapping:
-            parent_updates = _map_output_state(child_output, interrupt_output_mapping)
-            parent_updates["__interrupt__"] = child_output["__interrupt__"]
-        else:
-            parent_updates = _map_output_state(child_output, output_mapping)
-
+        parent_updates = _map_output_state(child_output, output_mapping)
         parent_updates["current_step"] = node_name
-
         return parent_updates
 
     subgraph_node.__name__ = f"{node_name}_subgraph"
     return subgraph_node
+
+
+def _create_relay_pair(
+    node_name: str,
+    compiled: Any,
+    graph_path: Path,
+    input_mapping: dict[str, str] | str,
+    output_mapping: dict[str, str] | str,
+    interrupt_output_mapping: dict[str, str] | str,
+) -> tuple[Callable, Callable]:
+    """FR-797 two-node split: run commits state, pause interrupts.
+
+    ``{name}__run`` invokes (or resumes) the child and RETURNS normally,
+    committing mapped interrupt state plus relay internals to the parent
+    checkpoint. ``{name}__pause`` then performs the parent-native
+    ``interrupt(payload)``. Commit-before-pause — the FR-060 model.
+    """
+    from langchain_core.runnables import RunnableConfig
+    from langgraph.types import Command
+
+    paused_key = f"__{node_name}_paused__"
+    payload_key = f"__{node_name}_payload__"
+    resume_key = f"__{node_name}_resume__"
+
+    def run_fn(state: dict, config: RunnableConfig | None = None) -> dict:
+        """Invoke or resume the child; commit outcome, never pause here."""
+        config = config or {}
+        child_config = _build_child_config(config, node_name)
+
+        # J-1 replay guard: a paused child gets ONLY the resume command,
+        # never a re-send of its original input.
+        child_paused = False
+        try:
+            snapshot = compiled.get_state(child_config)
+            child_paused = bool(snapshot and snapshot.next)
+        except (AttributeError, NotImplementedError, ValueError):
+            child_paused = False
+
+        if child_paused:
+            child_output = compiled.invoke(
+                Command(resume=state.get(resume_key)), child_config
+            )
+        else:
+            child_input = _map_input_state(state, input_mapping)
+            child_output = compiled.invoke(child_input, child_config)
+
+        if isinstance(child_output, dict) and "__interrupt__" in child_output:
+            payload = _interrupt_payload(child_output["__interrupt__"])
+            updates = (
+                _map_output_state(child_output, interrupt_output_mapping)
+                if interrupt_output_mapping
+                else {}
+            )
+            updates[paused_key] = True
+            updates[payload_key] = payload
+        else:
+            updates = _map_output_state(child_output, output_mapping)
+            updates[paused_key] = False
+
+        updates["current_step"] = node_name
+        return updates
+
+    def pause_fn(state: dict) -> dict:
+        """Perform the parent-native pause; relay the resume value."""
+        from langgraph.types import interrupt
+
+        resume_value = interrupt(state.get(f"__{node_name}_payload__"))
+        return {resume_key: resume_value, "current_step": node_name}
+
+    run_fn.__name__ = f"{node_name}__run"
+    pause_fn.__name__ = f"{node_name}__pause"
+    return run_fn, pause_fn
+
+
+def _interrupt_payload(interrupts: Any) -> Any:
+    """Extract the human-facing payload from a child __interrupt__ value."""
+    if isinstance(interrupts, list | tuple) and interrupts:
+        first = interrupts[0]
+        return getattr(first, "value", first)
+    return interrupts

@@ -268,7 +268,7 @@ class TestCompileNodeSubgraph:
     """type=subgraph → create_subgraph_node."""
 
     @patch(
-        "yamlgraph.compile.node_compiler.create_subgraph_node",
+        "yamlgraph.compile.subgraph_relay.create_subgraph_node",
         return_value=lambda s: {},
     )
     @pytest.mark.req("REQ-YG-007")

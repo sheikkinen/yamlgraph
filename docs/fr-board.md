@@ -97,7 +97,6 @@
 | FR-761 | Judged | yamlgraph |  | FR-761-reproducible-dependency-governance.md |
 | FR-762 | Judged | yamlgraph |  | FR-762-example-dependency-taxonomy.md |
 | FR-764 | Judged | yamlgraph |  | FR-764-style-convert-pipeline.md |
-| FR-797 | Judged | yamlgraph |  | FR-797-subgraph-interrupt-propagation-langgraph-1x.md |
 | FR-798 | Judged | yamlgraph |  | FR-798-full-suite-failure-classification-investigation.md |
 | FR-094 | Approved | yamlgraph |  | FR-094-memory-node.md |
 | FR-095 | Approved | yamlgraph |  | FR-095-doc-staleness-monitor.md |
@@ -430,7 +429,6 @@ graph TD
     FR-791["FR-791 Proposed"]
     FR-792["FR-792 Proposed"]
     FR-796["FR-796 In Progress"]
-    FR-797["FR-797 Judged"]
     FR-798["FR-798 Judged"]
     FR-081 --> FR-082
     FR-731 --> FR-735

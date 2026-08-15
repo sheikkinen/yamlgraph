@@ -12,11 +12,11 @@ import pytest
 
 from yamlgraph.models.state_builder import (
     build_state_class,
-    generate_typeddict_code,
     last_value,
     parse_state_config,
     sorted_add,
 )
+from yamlgraph.models.state_codegen import generate_typeddict_code
 
 
 class TestParseStateConfigDictSyntax:

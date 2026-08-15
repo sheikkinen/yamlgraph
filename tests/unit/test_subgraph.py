@@ -539,21 +539,27 @@ edges:
             patch("yamlgraph.compile.graph_loader.compile_graph") as mock_compile_graph,
             patch("yamlgraph.compile.graph_loader.load_graph_config") as mock_load,
         ):
-            mock_load.return_value = MagicMock()
+            mock_load.return_value = MagicMock(checkpointer=None)
             mock_state_graph = MagicMock()
             mock_state_graph.compile.return_value = mock_compiled
             mock_compile_graph.return_value = mock_state_graph
 
             node_fn = create_subgraph_node("demographics", config, parent_path)
-            result = node_fn({"user_input": "hello"}, {})
+            # FR-797: interrupt-capable node compiles to a (run, pause) pair
+            run_fn, pause_fn = node_fn
+            mock_compiled.get_state.side_effect = ValueError("no checkpoint")
+            result = run_fn({"user_input": "hello"}, {})
 
         # Should use interrupt_output_mapping, not output_mapping
         assert "current_phase" in result
         assert result["current_phase"] == "probing"
         # Should NOT have the completion mapping
         assert "final_result" not in result
-        # Should forward the interrupt marker
-        assert "__interrupt__" in result
+        # FR-797: no reserved __interrupt__ key — relay internals committed,
+        # the pause node performs the parent-native interrupt.
+        assert "__interrupt__" not in result
+        assert result["__demographics_paused__"] is True
+        assert result["__demographics_payload__"] == {"question": "What?"}
 
     @pytest.mark.req("REQ-YG-042")
     def test_applies_output_mapping_when_subgraph_completes(self, tmp_path):
@@ -603,16 +609,21 @@ edges:
             patch("yamlgraph.compile.graph_loader.compile_graph") as mock_compile_graph,
             patch("yamlgraph.compile.graph_loader.load_graph_config") as mock_load,
         ):
-            mock_load.return_value = MagicMock()
+            mock_load.return_value = MagicMock(checkpointer=None)
             mock_state_graph = MagicMock()
             mock_state_graph.compile.return_value = mock_compiled
             mock_compile_graph.return_value = mock_state_graph
 
             node_fn = create_subgraph_node("demographics", config, parent_path)
-            result = node_fn({"user_input": "hello"}, {})
+            # FR-797: interrupt_output_mapping makes the node relay-capable
+            run_fn, _pause_fn = node_fn
+            mock_compiled.get_state.side_effect = ValueError("no checkpoint")
+            result = run_fn({"user_input": "hello"}, {})
 
         # Should use output_mapping, not interrupt_output_mapping
         assert "final_result" in result
         assert result["final_result"] == "Analysis done"
         # Should NOT have the interrupt mapping
         assert "current_phase" not in result
+        # FR-797: completion commits the relay flag as False
+        assert result["__demographics_paused__"] is False

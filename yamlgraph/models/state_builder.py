@@ -6,7 +6,13 @@ the need for state_class coupling between YAML and Python.
 
 import logging
 from operator import add
+from pathlib import Path
 from typing import Annotated, Any, TypedDict
+
+from yamlgraph.models.relay_fields import (
+    relay_state_fields,
+    subgraph_relay_capable,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -165,7 +171,7 @@ def parse_state_config(state_config: dict) -> dict[str, type]:
     return fields
 
 
-def build_state_class(config: dict) -> type:
+def build_state_class(config: dict, source_path: "Path | None" = None) -> type:
     """Build TypedDict state class from graph configuration.
 
     Dynamically generates a TypedDict with:
@@ -200,14 +206,16 @@ def build_state_class(config: dict) -> type:
 
     # Extract fields from nodes
     nodes = config.get("nodes", {})
-    node_fields = extract_node_fields(nodes)
+    node_fields = extract_node_fields(nodes, source_path=source_path)
     fields.update(node_fields)
 
     # Build TypedDict programmatically
     return TypedDict("GraphState", fields, total=False)
 
 
-def extract_node_fields(nodes: dict) -> dict[str, type]:
+def extract_node_fields(
+    nodes: dict, source_path: "Path | None" = None
+) -> dict[str, type]:
     """Extract state fields from node configurations.
 
     Analyzes node configs to determine required state fields:
@@ -252,6 +260,12 @@ def extract_node_fields(nodes: dict) -> dict[str, type]:
         elif node_type == "race":
             fields["_race_winner"] = Any
 
+        elif node_type == "subgraph" and subgraph_relay_capable(
+            node_config, source_path
+        ):
+            # FR-797: relay internals for the two-node interrupt split
+            fields.update(relay_state_fields(_node_name))
+
     return fields
 
 
@@ -289,150 +303,3 @@ def create_initial_state(
         "completed_at": None,
         **kwargs,
     }
-
-
-# =============================================================================
-# TypedDict Code Generation (FR-008)
-# =============================================================================
-
-# Type mapping for code generation (YAML type -> Python type string)
-CODEGEN_TYPE_MAP: dict[str, str] = {
-    "str": "str",
-    "string": "str",
-    "int": "int",
-    "integer": "int",
-    "float": "float",
-    "bool": "bool",
-    "boolean": "bool",
-    "list": "list",
-    "dict": "dict",
-    "any": "Any",
-}
-
-
-def _normalize_class_name(name: str) -> str:
-    """Convert graph name to PascalCase class name.
-
-    Examples:
-        "interview" -> "Interview"
-        "my-awesome-graph" -> "MyAwesomeGraph"
-        "web_research" -> "WebResearch"
-    """
-    # Replace hyphens and underscores with spaces, then title-case
-    normalized = name.replace("-", " ").replace("_", " ")
-    return "".join(word.capitalize() for word in normalized.split())
-
-
-def _codegen_state_fields(state_config: dict) -> dict[str, str]:
-    """Extract code generation type strings from state config.
-
-    Handles both simple string syntax and dict-syntax state definitions.
-    """
-    fields: dict[str, str] = {}
-    for field_name, type_spec in state_config.items():
-        if isinstance(type_spec, str):
-            fields[field_name] = CODEGEN_TYPE_MAP.get(type_spec.lower(), "Any")
-        elif isinstance(type_spec, dict):
-            type_str = type_spec.get("type", "any")
-            fields[field_name] = CODEGEN_TYPE_MAP.get(type_str.lower(), "Any")
-    return fields
-
-
-def generate_typeddict_code(
-    config: dict,
-    source_path: str | None = None,
-    include_base_fields: bool = False,
-) -> str:
-    """Generate TypedDict Python code from graph configuration.
-
-    Args:
-        config: Parsed YAML graph configuration dict
-        source_path: Optional source file path for generation comment
-        include_base_fields: Include infrastructure fields (thread_id, etc.)
-
-    Returns:
-        Python source code string defining the TypedDict
-    """
-    # Determine class name
-    graph_name = config.get("name", "Graph")
-    class_name = _normalize_class_name(graph_name) + "State"
-
-    # Collect fields (custom state + node state_keys)
-    fields: dict[str, str] = {}
-
-    # Add base fields if requested
-    if include_base_fields:
-        fields["thread_id"] = "str"
-        fields["current_step"] = "str"
-
-        fields["errors"] = "list"
-        fields["messages"] = "list"
-        fields["_loop_counts"] = "dict"
-        fields["_loop_limit_reached"] = "bool"
-        fields["_agent_iterations"] = "int"
-        fields["_agent_limit_reached"] = "bool"
-        fields["started_at"] = "Any"
-        fields["completed_at"] = "Any"
-
-    # Parse custom state fields
-    state_config = config.get("state", {})
-    fields.update(_codegen_state_fields(state_config))
-
-    # Extract fields from nodes
-    nodes = config.get("nodes", {})
-    for node_config in nodes.values():
-        if not isinstance(node_config, dict):
-            continue
-
-        # state_key → Any
-        if state_key := node_config.get("state_key"):
-            fields[state_key] = "Any"
-
-        # Node type-specific fields
-        node_type = node_config.get("type", "llm")
-        if node_type == "agent":
-            fields["input"] = "str"
-            fields["_tool_results"] = "list"
-        elif node_type == "router":
-            fields["_route"] = "str"
-            # FR-272: router with candidates also emits _race_winner
-            if node_config.get("candidates"):
-                fields["_race_winner"] = "dict"
-        elif node_type == "map":
-            if collect_key := node_config.get("collect"):
-                fields[collect_key] = "list"
-        elif node_type == "race":
-            fields["_race_winner"] = "dict"
-
-    # Generate code
-    lines = []
-
-    # Header comment
-    if source_path:
-        lines.append(f"# Auto-generated by yamlgraph codegen from {source_path}")
-    else:
-        lines.append("# Auto-generated by yamlgraph codegen")
-    lines.append(
-        "# Do not edit manually - regenerate with: yamlgraph codegen <graph.yaml>"
-    )
-    lines.append("")
-
-    # Imports
-    lines.append("from typing import Any, TypedDict")
-    lines.append("")
-    lines.append("")
-
-    # Class definition
-    lines.append(f"class {class_name}(TypedDict, total=False):")
-    lines.append(f'    """State for {graph_name} graph."""')
-    lines.append("")
-
-    # Fields
-    if fields:
-        for field_name, field_type in sorted(fields.items()):
-            lines.append(f"    {field_name}: {field_type}")
-    else:
-        lines.append("    pass")
-
-    lines.append("")
-    return "\n".join(lines)

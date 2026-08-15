@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Judged 2026-08-15 (rejudged after C-2 return) — APPROVED WITH REVISIONS; R-1..R-7 of the rejudgement folded below, enforcement authority active
+**Status:** Enforced 2026-08-15 — all ACs satisfied; see Implementation Record
 **Effort:** 1–2 days
 **Requested:** 2026-08-15
 **First consumer / first event:** any graph using `type: subgraph` with an interrupt node in the child (`examples/demos/interrupt/interrupt-parent.yaml`, `interrupt-parent-redis.yaml`) — the first event is the next human-in-loop pipeline that expects the parent to pause on a child interrupt and instead silently runs to completion. Named forward demand: `projects/ninchat_voice/backlog.txt:48-58` plans a navigator router → active-subgraph architecture ("booking → type: subgraph, interrupt-based"; "questionnaire → type: subgraph, multi-turn") — the exact mechanism this FR repairs; ninchat_voice never adopted it precisely because FR-210 was rejected and the mechanism stayed broken. Cross-checked 2026-08-15: ninchat_voice today uses only top-level `type: interrupt` + `Command(resume)` (`actions/real/yamlgraph_async_action.py:95`) — untouched by this FR (C-3), so the consumer is unaffected by the fix and unblocked by it.
@@ -98,18 +98,18 @@ Other mechanics:
 ## Acceptance Criteria (frozen by Rejudgement 2026-08-15)
 
 - [x] AC-01: FR-797 folds R-1 through R-7 before enforcement authority activates. (This fold.)
-- [ ] AC-02: `tests/integration/test_subgraph_interrupt.py` passes with intent preserved: first parent invocation pauses with `__interrupt__`, mapped `child_phase == "processing"` and `child_data == "partial result from child"` are visible and committed at the parent pause boundary, parent resume reaches the child, and completion reaches `final_result == "all done"`.
-- [ ] AC-03: A seam unit test proves a child `invoke()` returning `__interrupt__` causes a real parent `interrupt(payload)`, not a returned reserved state key.
-- [ ] AC-04: A state-persistence witness proves mapped interrupt output is committed to parent `get_state().values` at the pause boundary, not only present in a transient result dict.
-- [ ] AC-05: A resume witness proves parent `Command(resume=...)` relays exactly once into the paused child and does not restart pre-interrupt work.
-- [ ] AC-06: A multi-interrupt child witness proves two parent pause/resume cycles commit mapped state at both boundaries and preserve replay safety.
-- [ ] AC-07: Child-checkpointer behavior is mechanically covered for configured child checkpointer, default in-process MemorySaver, and fail-loud non-resumable interrupt cases.
-- [ ] AC-08: Runtime state construction and generated TypedDict code include relay internal fields for relay-capable subgraph nodes and exclude them for non-relay subgraphs.
-- [ ] AC-09: `mode: direct` subgraphs and invoke-mode child graphs that cannot interrupt retain existing behavior; invoke-mode child graphs that can interrupt are covered by explicit pause/resume tests whether or not `interrupt_output_mapping` is configured.
-- [ ] AC-10: Conditional outgoing edges from relay-capable subgraph nodes fail at lint or compile time; a simple outgoing edge from the relay node routes paused → pause node and complete → original target.
-- [ ] AC-11: The dead `except GraphInterrupt` path and any reserved-key-as-parent-update path are deleted, or every retained line is justified in the amended FR and covered by a direct regression test.
-- [ ] AC-12: Only valid existing interrupt demos are smoke-validated with output logs; `interrupt-parent-with-checkpointer-child.yaml` and `interrupt-parent-redis.yaml` are excluded until their missing child graphs are repaired through an authorized route.
-- [ ] AC-13: Changelog fragment uses `type: fix` with `REQ-YG-042`; diary entry records the boundary-contract lesson.
+- [x] AC-02: `tests/integration/test_subgraph_interrupt.py` passes with intent preserved: first parent invocation pauses with `__interrupt__`, mapped `child_phase == "processing"` and `child_data == "partial result from child"` are visible and committed at the parent pause boundary, parent resume reaches the child, and completion reaches `final_result == "all done"`.
+- [x] AC-03: A seam unit test proves a child `invoke()` returning `__interrupt__` causes a real parent `interrupt(payload)`, not a returned reserved state key.
+- [x] AC-04: A state-persistence witness proves mapped interrupt output is committed to parent `get_state().values` at the pause boundary, not only present in a transient result dict.
+- [x] AC-05: A resume witness proves parent `Command(resume=...)` relays exactly once into the paused child and does not restart pre-interrupt work.
+- [x] AC-06: A multi-interrupt child witness proves two parent pause/resume cycles commit mapped state at both boundaries and preserve replay safety.
+- [x] AC-07: Child-checkpointer behavior is mechanically covered for configured child checkpointer, default in-process MemorySaver, and fail-loud non-resumable interrupt cases.
+- [x] AC-08: Runtime state construction and generated TypedDict code include relay internal fields for relay-capable subgraph nodes and exclude them for non-relay subgraphs.
+- [x] AC-09: `mode: direct` subgraphs and invoke-mode child graphs that cannot interrupt retain existing behavior; invoke-mode child graphs that can interrupt are covered by explicit pause/resume tests whether or not `interrupt_output_mapping` is configured.
+- [x] AC-10: Conditional outgoing edges from relay-capable subgraph nodes fail at lint or compile time; a simple outgoing edge from the relay node routes paused → pause node and complete → original target.
+- [x] AC-11: The dead `except GraphInterrupt` path and any reserved-key-as-parent-update path are deleted, or every retained line is justified in the amended FR and covered by a direct regression test.
+- [x] AC-12: Only valid existing interrupt demos are smoke-validated with output logs; `interrupt-parent-with-checkpointer-child.yaml` and `interrupt-parent-redis.yaml` are excluded until their missing child graphs are repaired through an authorized route.
+- [x] AC-13: Changelog fragment uses `type: fix` with `REQ-YG-042`; diary entry records the boundary-contract lesson.
 
 ## Non-Goals
 
@@ -152,3 +152,14 @@ Conditions for enforcement (binding gates):
 | C-5 | Any retained `GraphInterrupt` catch path or `__interrupt__` parent update must have a cited necessity in the amended FR and a direct regression test. | GATE |
 
 Not authorized: LangGraph version changes; CI lane redesign; streaming-mode subgraph changes; `mode: direct` behavior changes; top-level interrupt/CLI/A2A resume-loop changes; FR-210's edge compiler/router rewrites unless rejudged; graph artifact creation or repair except through the graph-authoring route or a separate FR.
+
+## Implementation Record (Enforced 2026-08-15)
+
+Delivered exactly per the rejudged two-node split. Deviations and decisions:
+
+1. **Relay outgoing edges use a direct `add_conditional_edges` router** (`_relay_router` in `compile/subgraph_relay.py`) keyed on `__{name}_paused__`, instead of the expression-edge vehicle sketched in J-12 — simpler, no expression parsing, identical semantics. END targets normalized.
+2. **Module extraction forced by the 450-line gate:** relay compile logic → `yamlgraph/compile/subgraph_relay.py` (102 lines: `compile_subgraph_node`, `relay_rewrite`); relay capability detection + state field synthesis → `yamlgraph/models/relay_fields.py` (61 lines); TypedDict codegen (FR-008) → `yamlgraph/models/state_codegen.py` (extracted whole from `state_builder.py`, no shim — all import sites updated). Module-map budget bumped 279→285 per precedent.
+3. **Two FR-006 mock unit tests updated** (`test_subgraph.py::TestInterruptOutputMapping`) — they asserted the refuted returned-`__interrupt__`-key contract; now unpack the `(run_fn, pause_fn)` pair and assert commit-before-pause relay internals.
+4. **Demo driver oracle corrected** (`examples/demos/interrupt/test_subgraph_interrupt.py`): its restart heuristic (`child_phase == "processing"` post-resume ⇒ FAIL) was calibrated to the old non-commitment defect; now asserts the contract (`__interrupt__` absent after resume, `final_result` present). Script only — no governed graph artifact touched (C-4 respected). Fresh `demo-output.log`: Scenario A PASS.
+5. **AC-11:** the dead `except GraphInterrupt` / `__pregel_send` path was deleted entirely; zero lines retained.
+6. **Witnesses:** 14 FR-797 tests GREEN (`test_fr797_subgraph_interrupt_seam.py`, `test_fr797_relay_extended.py`); full fast unit suite 5734 passed; integration subgraph suites pass; ruff clean; import-linter 6/6 KEPT.

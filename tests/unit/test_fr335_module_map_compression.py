@@ -134,7 +134,10 @@ class TestFR335ModuleMapCompression:
         # arcs landed. FR-759: 275 -> 277 for the observability package
         # (otel.py, __init__.py) and compile/node_otel.py.
         # FR-768: 277 -> 279 for tools/manifest.py (tool manifests).
-        assert line_count <= 279, f"module-map too large: {line_count} lines (max 279)"
+        # FR-797: 279 -> 285 for the size-gate extraction of the subgraph
+        # interrupt relay (compile/subgraph_relay.py, models/relay_fields.py,
+        # models/state_codegen.py).
+        assert line_count <= 285, f"module-map too large: {line_count} lines (max 285)"
 
     def test_ac02_dependency_lists_contain_only_yamlgraph_imports(self) -> None:
         module_map = _run_generator()

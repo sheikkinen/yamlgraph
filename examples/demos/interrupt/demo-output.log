@@ -1,23 +1,54 @@
-2026-07-18 20:07:45,011 [INFO] yamlgraph.compile.node_compiler: Added node: process (type=passthrough)
-2026-07-18 20:07:45,011 [INFO] yamlgraph.compile.node_compiler: Added node: ask_user (type=interrupt)
-2026-07-18 20:07:45,011 [INFO] yamlgraph.compile.node_compiler: Added node: finalize (type=passthrough)
-2026-07-18 20:07:45,015 [INFO] yamlgraph.compile.node_compiler: Added node: run_child (type=subgraph)
-2026-07-18 20:07:45,015 [INFO] yamlgraph.compile.node_compiler: Added node: done (type=passthrough)
-2026-07-18 20:07:45,094 [INFO] yamlgraph.node_factory.control_nodes: Node process completed successfully
-2026-07-18 20:07:45,102 [INFO] yamlgraph.node_factory.subgraph_nodes: FR-006: Subgraph run_child mapped state: ['child_phase', 'child_data', 'current_step']
+2026-08-15 11:12:21,062 [INFO] yamlgraph.compile.node_compiler: Added node: process (type=passthrough)
+2026-08-15 11:12:21,062 [INFO] yamlgraph.compile.node_compiler: Added node: ask_user (type=interrupt)
+2026-08-15 11:12:21,062 [INFO] yamlgraph.compile.node_compiler: Added node: finalize (type=passthrough)
+2026-08-15 11:12:21,068 [INFO] yamlgraph.compile.node_compiler: Added node: run_child (type=subgraph)
+2026-08-15 11:12:21,069 [INFO] yamlgraph.compile.node_compiler: Added node: done (type=passthrough)
+2026-08-15 11:12:21,143 [INFO] yamlgraph.node_factory.control_nodes: Node process completed successfully
+2026-08-15 11:12:21,155 [INFO] yamlgraph.node_factory.control_nodes: Node finalize completed successfully
+2026-08-15 11:12:21,157 [INFO] yamlgraph.node_factory.control_nodes: Node done completed successfully
 
-🚀 Running graph: interrupt-parent.yaml
+🧪🧪🧪🧪🧪🧪🧪🧪🧪🧪🧪🧪🧪🧪🧪🧪🧪🧪🧪🧪🧪🧪🧪🧪🧪🧪🧪🧪🧪🧪🧪🧪🧪🧪🧪
+  TDD Test: Subgraph + Interrupt Checkpointer Inheritance (FR-006)
+🧪🧪🧪🧪🧪🧪🧪🧪🧪🧪🧪🧪🧪🧪🧪🧪🧪🧪🧪🧪🧪🧪🧪🧪🧪🧪🧪🧪🧪🧪🧪🧪🧪🧪🧪
 
-🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/f889c0ec-fa9b-4025-b69c-2aa756283ef8/r/019f7632-befc-7533-bf50-a0474856a047?poll=true
+======================================================================
+  SCENARIO A: Child WITHOUT checkpointer config (memory)
+======================================================================
 
-💬 What is your answer?
+----------------------------------------------------------------------
+  Scenario A: Child WITHOUT checkpointer (memory)
+----------------------------------------------------------------------
+   Child has no checkpointer config - relies on runtime propagation
 
-> 2026-07-18 20:07:45,314 [INFO] yamlgraph.node_factory.control_nodes: Node finalize completed successfully
-2026-07-18 20:07:45,316 [INFO] yamlgraph.node_factory.control_nodes: Node done completed successfully
-🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/f889c0ec-fa9b-4025-b69c-2aa756283ef8/r/019f7632-c01e-7363-9c60-c79bda4cf951?poll=true
-============================================================
-RESULT
-============================================================
-  thread_id: demo717d
-  current_step: done
-  final_result: all done
+📍 Step 0: Load and compile graph
+   Graph: interrupt-parent
+   Parent checkpointer: {'type': 'memory'}
+   Child graph (run_child): interrupt-child
+   Child checkpointer: None
+   Thread ID: test-fr006-scenario-a
+
+📍 Step 1: Invoke with initial input (expect interrupt)
+   ✅ Interrupt received from subgraph
+   Interrupt message: What is your answer?
+
+📍 Step 2: Resume with user answer (subgraph should NOT restart)
+   child_phase: processing
+   final_result: all done
+   ✅ Subgraph completed successfully (did not restart)
+
+📍 Step 3: Verify final state
+   ✅ final_result populated from subgraph
+   ✅ No pending interrupts (graph completed)
+
+======================================================================
+  TEST SUMMARY
+======================================================================
+
+✅ Scenario A: PASS
+
+----------------------------------------------------------------------
+
+🎉 ALL TESTS PASSED!
+
+   FR-006 behavior:
+   - Scenario A: Child without checkpointer works (runtime propagation)

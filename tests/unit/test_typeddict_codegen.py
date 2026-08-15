@@ -6,7 +6,7 @@ Python file for IDE autocomplete and static type checking.
 
 import pytest
 
-from yamlgraph.models.state_builder import generate_typeddict_code
+from yamlgraph.models.state_codegen import generate_typeddict_code
 
 
 class TestGenerateTypedDictCode:

@@ -191,14 +191,20 @@ def run_scenario(scenario: dict) -> tuple[bool, str]:
     print_result("child_phase", child_phase)
     print_result("final_result", final_result)
 
-    if child_phase == "processing":
+    # FR-797: mapped pause-time state is now COMMITTED to the parent
+    # checkpoint, so child_phase == "processing" legitimately persists after
+    # resume. Restart detection: a restarted child re-interrupts, so the
+    # honest witness is completion (final_result set, no pending interrupt).
+    if result.get("__interrupt__"):
         error_msg = "Subgraph restarted from init instead of resuming!"
         print(f"   ❌ FAIL: {error_msg}")
         return False, error_msg
     elif final_result:
         print("   ✅ Subgraph completed successfully (did not restart)")
     else:
-        print("   ⚠️  Unexpected state (but may be OK)")
+        error_msg = "Resume produced neither completion nor interrupt"
+        print(f"   ❌ FAIL: {error_msg}")
+        return False, error_msg
 
     # =========================================================================
     # FINAL ASSERTIONS

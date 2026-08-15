@@ -285,7 +285,7 @@ class TestStateFieldSynthesis:
     @pytest.mark.req("REQ-YG-042")
     def test_codegen_includes_relay_fields_for_relay_nodes_only(self):
         """AC-08: generated TypedDict code has the same include/exclude."""
-        from yamlgraph.models.state_builder import generate_typeddict_code
+        from yamlgraph.models.state_codegen import generate_typeddict_code
 
         code = generate_typeddict_code(self.PARENT_CONFIG)
         assert "__run_child_paused__" in code

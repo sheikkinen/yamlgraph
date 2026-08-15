@@ -23,7 +23,6 @@ from yamlgraph.node_factory import (
     create_node_function,
     create_passthrough_node,
     create_race_node,
-    create_subgraph_node,
     create_tool_call_node,
 )
 from yamlgraph.node_timeout import _maybe_wrap_timeout
@@ -235,19 +234,12 @@ def _compile_copilot_node(ctx: NodeCompileContext) -> None:
     ctx.graph.add_node(ctx.node_name, node_fn, cache_policy=ctx.cache_policy)
 
 
-def _compile_subgraph_node(ctx: NodeCompileContext) -> None:
-    if not ctx.config.source_path:
-        raise ValueError(
-            f"Cannot resolve subgraph path for node '{ctx.node_name}': "
-            "parent graph has no source_path"
-        )
-    node_fn = create_subgraph_node(
-        ctx.node_name,
-        ctx.node_config,
-        parent_graph_path=ctx.config.source_path,
-    )
-    node_fn = _maybe_wrap_otel(node_fn, ctx.node_name, NodeType.SUBGRAPH)
-    ctx.graph.add_node(ctx.node_name, node_fn, cache_policy=ctx.cache_policy)
+def _compile_subgraph_node(ctx: NodeCompileContext) -> tuple[str, Any] | None:
+    # FR-797: single node, or a {run, pause} relay pair for interrupt-capable
+    # children — full mechanism in yamlgraph.compile.subgraph_relay.
+    from yamlgraph.compile.subgraph_relay import compile_subgraph_node
+
+    return compile_subgraph_node(ctx)
 
 
 def _compile_llm_node(ctx: NodeCompileContext) -> None:
@@ -397,7 +389,7 @@ def compile_nodes(
     python_tools: dict[str, Any],
     callable_registry: dict[str, Callable],
     graph_tool_configs: dict[str, Any] | None = None,
-) -> tuple[dict[str, tuple], set[str]]:
+) -> tuple[dict[str, tuple], set[str], set[str]]:
     """Compile all nodes and add to graph.
 
     Args:
@@ -409,10 +401,12 @@ def compile_nodes(
         graph_tool_configs: FR-658 graph-tool metadata for agent binding
 
     Returns:
-        Tuple of (map_nodes dict, interrupt_nodes set).
+        Tuple of (map_nodes dict, interrupt_nodes set,
+        subgraph_interrupt_nodes set — FR-797 relay-capable subgraphs).
     """
     map_nodes: dict[str, tuple] = {}
     interrupt_nodes: set[str] = set()
+    subgraph_interrupt_nodes: set[str] = set()
 
     for node_name, node_config in config.nodes.items():
         result = compile_node(
@@ -429,10 +423,12 @@ def compile_nodes(
             name, info = result
             if info == "interrupt_prepare":
                 interrupt_nodes.add(name)
+            elif info == "subgraph_interrupt":
+                subgraph_interrupt_nodes.add(name)
             else:
                 map_nodes[name] = info
 
-    return map_nodes, interrupt_nodes
+    return map_nodes, interrupt_nodes, subgraph_interrupt_nodes
 
 
 __all__ = [

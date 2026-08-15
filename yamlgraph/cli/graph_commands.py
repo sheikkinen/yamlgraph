@@ -23,7 +23,7 @@ from yamlgraph.cli.helpers import (
     require_graph_config,
 )
 from yamlgraph.executor_async import run_graph_streaming_native
-from yamlgraph.models.state_builder import generate_typeddict_code
+from yamlgraph.models.state_codegen import generate_typeddict_code
 
 _setup_timeout = _graph_run_helpers._setup_timeout
 _teardown_timeout = _graph_run_helpers._teardown_timeout

@@ -159,7 +159,7 @@ def _resolve_state_class(config: GraphConfig) -> type:
     Returns:
         TypedDict class for graph state
     """
-    return build_state_class(config.raw_config)
+    return build_state_class(config.raw_config, source_path=config.source_path)
 
 
 def _parse_graph_tools(
@@ -322,7 +322,7 @@ def compile_graph(config: GraphConfig) -> StateGraph:
     )
 
     # Compile all nodes
-    map_nodes, interrupt_nodes = compile_nodes(
+    map_nodes, interrupt_nodes, subgraph_interrupt_nodes = compile_nodes(
         config, graph, tools, python_tools, callable_registry, graph_tool_configs
     )
 
@@ -340,6 +340,7 @@ def compile_graph(config: GraphConfig) -> StateGraph:
             expression_edges,
             interrupt_nodes,
             map_fanout_sources,
+            subgraph_interrupt_nodes=subgraph_interrupt_nodes,
         )
 
     # Add conditional edges (FR-211: pass interrupt_nodes for route mapping redirect)
@@ -349,6 +350,7 @@ def compile_graph(config: GraphConfig) -> StateGraph:
         expression_edges,
         config.loop_exits,
         interrupt_nodes=interrupt_nodes,
+        subgraph_interrupt_nodes=subgraph_interrupt_nodes,
         map_nodes=map_nodes,
         map_fanout_sources=map_fanout_sources,
     )
