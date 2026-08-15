@@ -450,6 +450,34 @@ the diff between the two is conformance.
 
 ---
 
+## Implementation Note
+
+The concepts in this paper were not designed on paper and implemented after;
+they were extracted from concrete work on **YAMLGraph**, an open-source,
+YAML-first pipeline framework (github.com/sheikkinen/yamlgraph, MIT
+license), and on a production deployment built with it. The mapping from
+the paper's vocabulary to the implementation, for readers who want to
+inspect or reproduce the mechanism rather than take it on argument:
+
+| Paper concept | Implementation surface |
+|---|---|
+| Declarative artifact (P1) | `graph.yaml` + `prompts/*.yaml`, schema-validated |
+| Static lint, closed failure surface | `yamlgraph graph lint` |
+| Route decision log (P3) | `YAMLGRAPH_ROUTE_LOG` / `observability.route_log` — one JSON line per routing decision, in artifact vocabulary |
+| Conformance overlay (P4) | `yamlgraph graph export --overlay <route.jsonl>` |
+| Run identity correlation | OpenTelemetry export (`yamlgraph[otel]`) |
+| Version binding + regulated profile (§7) | specified as judged, unimplemented change requests in the public repository — the required-work status stated in this paper is verifiable there |
+
+The judgement workflow of P2 is the repository's own development process:
+every feature enters through a written change request judged against
+acceptance criteria before implementation authority is granted — including
+the two change requests this paper's §7 identifies as required work. The
+framework is cited here for provenance and reproducibility; nothing in the
+paper's argument depends on this particular implementation, and §9's
+checklist is stated so that any stack can be assessed against it.
+
+---
+
 ## Notes and Disclaimers
 
 [^1]: **Regulatory interpretation.** The mapping of the per-run record to
@@ -494,6 +522,4 @@ the diff between the two is conformance.
 *References: Regulation (EU) 2024/1689 (AI Act), Arts. 9, 11–14, 26, 72–73,
 Annexes III–IV; IEC 62304:2006+A1:2015; ISO 13485:2016; GDPR Arts. 13–15,
 22.
-Reference implementation: open-source YAML-first pipeline framework with
-static graph lint, route-decision logging, run-identity correlation
-(OpenTelemetry), and authored-vs-executed overlay export.*
+Reference implementation: YAMLGraph (see Implementation Note).*
