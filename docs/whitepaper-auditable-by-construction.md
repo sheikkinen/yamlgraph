@@ -164,8 +164,11 @@ itself*: changing the pipeline means changing the artifact.
 version executes in production, it passes a judgement: a documented review
 with acceptance criteria, rendered against the artifact (not against a chat
 narrative or a commit message), producing a verdict that is itself versioned.
-The artifact-plus-judgement pair is the "approved design" of Article 11 and
-the design-transfer input of IEC 62304.[^2]
+In practice the judgement gates *changes* — each change request carries its
+own review — and deployment pinning binds the running system to a judged
+artifact version: the classical design-control pattern of gated change plus
+frozen baseline. The artifact-plus-judgement pair is the "approved design"
+of Article 11 and the design-transfer input of IEC 62304.[^2]
 
 **P3 — Execution emits decisions in the artifact's vocabulary.** Every
 routing decision the running system takes is recorded as a structured event
@@ -182,19 +185,30 @@ The output is renderable as a per-run flowchart — the approved topology with
 the actual path highlighted — legible to a deployer, an auditor, or a
 clinician, none of whom read code. Deviations are not "anomalies to
 investigate"; they are *defects by definition*, detected at run end.[^3]
+The diff presumes the executed artifact *is* the approved version; today
+that binding is established by deployment pinning rather than carried
+inside the run record itself.[^5]
 
 Two architectural corollaries make P1–P4 practical for LLM systems:
 
-**Deterministic control plane, confined stochastic steps.** The transitions
-between pipeline stages are decided by the declared artifact — a static
-transition table, condition expressions over typed state — never by
-free-form model output. The LLM operates only *inside* nodes, as a typed,
-schema-validated atomic task with a versioned prompt artifact. The
-consequence for audit: *"why did the run reach the escalation state?"* is
-answerable from the transition table and the event log alone, with no model
-in the explanatory path. The model's contribution to any decision is
-reproducible (exact prompt version + typed output), even though its interior
-is not explained (see §7).
+**Closed routing surface, confined stochastic steps.** Every transition a
+run can take is declared in the artifact; off-artifact routing is impossible
+by construction. Within that closed surface, two grades of control plane
+exist. In the **strong form**, transitions are decided by declared logic
+alone — a static transition table, condition expressions over typed state —
+with no model in the explanatory path: *"why did the run reach the
+escalation state?"* is answerable from the transition table and the event
+log, full stop. In the **confined form**, a declared routing step may let
+the model select *among the declared edges*: the selection is a typed,
+schema-validated output, validated against the closed target set with a
+deterministic fallback, so the choice cannot leave the approved set and the
+recorded reason for it is the typed output itself. Both grades are
+auditable; they are not the same claim, and regulated deployments should
+use — as the production pattern in §6 does — the strong form on
+safety-relevant paths. In either grade the LLM otherwise operates only
+*inside* nodes, as a typed, schema-validated atomic task with a versioned
+prompt artifact, its contribution reproducible (exact prompt version +
+typed output) even though its interior is not explained (see §7).
 
 **Closed failure surface at authoring time.** Because the artifact is
 declarative and schema-bound, the ways an author — human or, increasingly,
@@ -226,7 +240,8 @@ are stack-independent; the pipeline is:
 │ RUN TIME                                                         │
 │  runtime executes the approved artifact                          │
 │    → route log: one structured JSON event per routing decision,  │
-│      in artifact vocabulary (node/edge ids), auto-emitted        │
+│      in artifact vocabulary (node/edge ids), emitted by the      │
+│      runtime — on by default in the regulated profile (§7)       │
 │    → run identity correlates route log, traces, and outputs      │
 │      (OpenTelemetry-compatible)                                  │
 ├──────────────────────────────────────────────────────────────────┤
@@ -244,7 +259,9 @@ Three properties of the run-time layer deserve emphasis:
 - **Uniformity.** The route log is emitted by the framework, below every
   pipeline. No per-application logging code exists to be forgotten, and
   every pipeline in the estate produces evidence in the same format —
-  Article 12 as an inherited property.
+  Article 12 as an inherited property. (As of this writing, emission is
+  enabled by configuration; the on-by-default regulated profile is
+  specified in §7 as required work, not shipped behavior.)
 - **Self-hosting.** Logs, checkpoints, and overlays are files and databases
   the operator owns. No conformance-relevant record transits a third-party
   platform; data-residency and procurement constraints common in healthcare
@@ -292,7 +309,9 @@ model-internal explainability. No attention map, no feature attribution, no
 answer to "why did the model produce this token." What it provides: every
 stochastic step is confined, typed, schema-validated, and reproducible (the
 exact versioned prompt and the exact typed output are on record), and no
-stochastic step controls routing. Under the AI Act this is the right target
+stochastic step can route outside the approved set — where the strong-form
+control plane is used, no stochastic step is in the routing path at all.
+Under the AI Act this is the right target
 — Articles 12–14 demand system-level traceability and interpretability of
 *outputs and functioning*, not mechanistic interpretability of weights — but
 the words "explainable AI" should never appear in a claim about this
@@ -302,7 +321,13 @@ property. Say *traceable*; say *auditable*; do not say *explained*.
 capability that is opt-in is a conformance capability that will be found
 disabled during the incident that mattered. Regulated deployment profiles
 must enable route logging and overlay retention by default, with disabling —
-not enabling — as the recorded, justified exception.
+not enabling — as the recorded, justified exception. The profile must also
+invert the failure posture: evidence loss must be loud (counted, or fatal in
+strict mode), never silently swallowed; each event must carry a timestamp
+(Article 12(3) period-of-use recording; Article 73 incident timelines); and
+each run record must open with the artifact's content hash and judgement
+reference, so the record binds itself to the approved version by equality
+instead of relying on deployment state.
 
 **Uncertainty is not yet surfaced.** The record shows *what* each stochastic
 step produced, not how confident the system was. Surfacing calibrated
@@ -320,10 +345,11 @@ The same artifact economy discharges obligations beyond the AI Act:
   to the approved design. Requirement-to-test traceability (each test marked
   with the requirement it witnesses, coverage gated in CI) extends the same
   spine upstream to the specification.
-- **GDPR Article 22.** Where automated decisions have legal or similarly
-  significant effect, the deterministic control plane provides the
-  "meaningful information about the logic involved" that a black-box
-  pipeline cannot: the logic *is* the artifact.
+- **GDPR Arts. 13–15 and 22.** Where automated decisions have legal or
+  similarly significant effect, the closed routing surface provides the
+  "meaningful information about the logic involved" (Arts. 13(2)(f),
+  14(2)(g), 15(1)(h)) that a black-box pipeline cannot: the logic *is* the
+  artifact.
 - **General change control.** Because the artifact is line-diffable, every
   change to system behavior has a minimal reviewable representation — the
   precondition for any change-control regime, regulated or not.
@@ -410,10 +436,20 @@ the diff between the two is conformance.
     deployment, operated within the same engineering practice that produced
     the reference implementation. It demonstrates the pattern's operability
     in live regulated service — not independent third-party adoption, and
-    not acceptance of the evidence format by a regulator or auditor.
+    not acceptance of the evidence format by a regulator or auditor. The
+    deployment is anonymized stylistically, not contractually, and is
+    identified to auditors and prospective customers on request.
+
+[^5]: **Version binding.** In the reference implementation the
+    executed-equals-approved binding rests on deployment pinning; the run
+    record does not yet carry the artifact content hash or judgement
+    reference. Stamping the record with both — so the binding is checked by
+    equality rather than inferred from deployment state — is specified as
+    required work for the regulated profile (§7).
 
 *References: Regulation (EU) 2024/1689 (AI Act), Arts. 9, 11–14, 26, 72–73,
-Annexes III–IV; IEC 62304:2006+A1:2015; ISO 13485:2016; GDPR Art. 22.
+Annexes III–IV; IEC 62304:2006+A1:2015; ISO 13485:2016; GDPR Arts. 13–15,
+22.
 Reference implementation: open-source YAML-first pipeline framework with
 static graph lint, route-decision logging, run-identity correlation
 (OpenTelemetry), and authored-vs-executed overlay export.*
