@@ -15,6 +15,8 @@ from pathlib import Path
 import pytest
 import yaml
 
+from yamlgraph.compile.graph_loader import load_and_compile
+
 STEPS_DIR = Path(__file__).resolve().parents[2] / "examples" / "api-discovery" / "steps"
 GRAPH_DIR = STEPS_DIR / "endpoint-probe"
 
@@ -56,16 +58,17 @@ def test_prompt_file_exists():
 
 
 @pytest.mark.req("REQ-YG-586")
-def test_prompt_has_schema():
-    """AC-05: prompt defines ProbeResult schema inline."""
+def test_prompt_has_output_schema():
+    """AC-05: prompt defines its result with the JSON-Schema dialect."""
     prompt = yaml.safe_load((GRAPH_DIR / "prompts" / "probe.yaml").read_text())
-    assert "schema" in prompt
-    schema = prompt["schema"]
-    assert schema["name"] == "ProbeResult"
-    fields = schema["fields"]
-    assert "live_endpoints" in fields
-    assert "html_pages" in fields
-    assert "verdict_hint" in fields
+    assert "schema" not in prompt
+    schema = prompt["output_schema"]
+    assert schema["type"] == "object"
+    assert set(schema["properties"]) == {
+        "live_endpoints",
+        "html_pages",
+        "verdict_hint",
+    }
 
 
 @pytest.mark.req("REQ-YG-586")
@@ -106,17 +109,26 @@ def test_tool_manifest_structure():
 def test_probe_result_schema_endpoint_hit_fields():
     """AC-05: EndpointHit items have url, status, content_type, body_preview."""
     prompt = yaml.safe_load((GRAPH_DIR / "prompts" / "probe.yaml").read_text())
-    items_fields = prompt["schema"]["fields"]["live_endpoints"]["items"]["fields"]
+    items_fields = prompt["output_schema"]["properties"]["live_endpoints"]["items"]
+    assert items_fields["type"] == "object"
     required_fields = {"url", "status", "content_type", "body_preview"}
-    assert required_fields.issubset(set(items_fields.keys()))
+    assert set(items_fields["properties"]) == required_fields
+    assert set(items_fields["required"]) == required_fields
 
 
 @pytest.mark.req("REQ-YG-586")
 def test_probe_result_schema_verdict_hint_optional():
-    """AC-05: verdict_hint is optional (required: false)."""
+    """AC-05: verdict_hint is omitted from the required field list."""
     prompt = yaml.safe_load((GRAPH_DIR / "prompts" / "probe.yaml").read_text())
-    verdict = prompt["schema"]["fields"]["verdict_hint"]
-    assert verdict.get("required") is False
+    schema = prompt["output_schema"]
+    assert set(schema["required"]) == {"live_endpoints", "html_pages"}
+    assert "verdict_hint" not in schema["required"]
+
+
+@pytest.mark.req("REQ-YG-586")
+def test_endpoint_probe_graph_compiles():
+    """FR-795: the shipped endpoint-probe graph compiles end to end."""
+    load_and_compile(GRAPH_DIR / "graph.yaml")
 
 
 # ---------------------------------------------------------------------------

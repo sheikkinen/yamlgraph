@@ -37,31 +37,40 @@ user: |
   Use at most {{ max_iterations }} tool-call iterations from the requested
   runtime budget.
 
-schema:
-  name: ProbeResult
-  fields:
+output_schema:
+  type: object
+  properties:
     live_endpoints:
-      type: list
+      type: array
       description: "Confirmed live API endpoints"
       items:
         type: object
-        fields:
+        properties:
           url:
-            type: str
+            type: string
             description: "Confirmed endpoint URL"
           status:
-            type: int
+            type: integer
             description: "HTTP status code"
           content_type:
-            type: str
+            type: string
             description: "Response content type"
           body_preview:
-            type: str
+            type: string
             description: "First ~200 chars of response body"
+        required:
+          - url
+          - status
+          - content_type
+          - body_preview
     html_pages:
-      type: list[str]
+      type: array
       description: "URLs returning HTML that need page-analysis"
+      items:
+        type: string
     verdict_hint:
-      type: str
+      type: string
       description: "Optional hint like geo_blocked, auth_required, or null"
-      required: false
+  required:
+    - live_endpoints
+    - html_pages

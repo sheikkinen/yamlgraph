@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Judged - APPROVED (revisions folded 2026-08-14; advisory, pending human review)
+**Status:** Enforced 2026-08-15 - AC-01..AC-07 delivered; authoring adapter report verified, graph lint and smoke passed, and 20/20 endpoint-probe tests passed (REQ-YG-586)
 **Effort:** 0.25 day
 **Requested:** 2026-08-14
 **First consumer / first event:** any caller of
@@ -139,13 +139,13 @@ direct manual edit.
 
 ## Acceptance Criteria
 
-- [ ] AC-01: `examples/api-discovery/steps/endpoint-probe/prompts/probe.yaml` uses `output_schema:` with top-level properties `live_endpoints`, `html_pages`, and `verdict_hint`; `live_endpoints.items.properties` preserves `url`, `status`, `content_type`, and `body_preview`; `verdict_hint` is omitted from top-level `required`.
-- [ ] AC-02: `tmp/draft-authoring-report.md` exists, is non-empty, contains headings `Artifacts`, `Precedent`, `Validation`, `Repairs`, and `Blocked validation`, and lists `examples/api-discovery/steps/endpoint-probe/prompts/probe.yaml` under authored artifacts.
-- [ ] AC-03: `yamlgraph graph lint examples/api-discovery/steps/endpoint-probe/graph.yaml` passes, or `tmp/draft-authoring-report.md` records that exact blocked command and reason.
-- [ ] AC-04: A regression test using `yamlgraph.compile.graph_loader.load_and_compile("examples/api-discovery/steps/endpoint-probe/graph.yaml")` passes without raising on the repaired prompt.
-- [ ] AC-05: No framework runtime files under `yamlgraph/**` change under this FR.
-- [ ] AC-06: No API-discovery artifact changes occur outside `examples/api-discovery/steps/endpoint-probe/prompts/probe.yaml`.
-- [ ] AC-07: Changelog fragment and diary reflection are added.
+- [x] AC-01: `examples/api-discovery/steps/endpoint-probe/prompts/probe.yaml` uses `output_schema:` with top-level properties `live_endpoints`, `html_pages`, and `verdict_hint`; `live_endpoints.items.properties` preserves `url`, `status`, `content_type`, and `body_preview`; `verdict_hint` is omitted from top-level `required`.
+- [x] AC-02: `tmp/draft-authoring-report.md` exists, is non-empty, contains headings `Artifacts`, `Precedent`, `Validation`, `Repairs`, and `Blocked validation`, and lists `examples/api-discovery/steps/endpoint-probe/prompts/probe.yaml` under authored artifacts.
+- [x] AC-03: `yamlgraph graph lint examples/api-discovery/steps/endpoint-probe/graph.yaml` passes, or `tmp/draft-authoring-report.md` records that exact blocked command and reason.
+- [x] AC-04: A regression test using `yamlgraph.compile.graph_loader.load_and_compile("examples/api-discovery/steps/endpoint-probe/graph.yaml")` passes without raising on the repaired prompt.
+- [x] AC-05: No framework runtime files under `yamlgraph/**` change under this FR.
+- [x] AC-06: No API-discovery artifact changes occur outside `examples/api-discovery/steps/endpoint-probe/prompts/probe.yaml`.
+- [x] AC-07: Changelog fragment and diary reflection are added.
 
 ## Conditions for Enforcement
 
@@ -164,3 +164,10 @@ direct manual edit.
 **Prior art:** No existing FR addresses this dialect mismatch. FR-794 attempted to bundle this repair into its own scope; the judge's SPLIT verdict (2026-08-14, `feature-requests/FR-794-python-tool-manifest-root-confinement-fix.judgement.md`) required it to re-enter the pipeline as this separate, graph-authoring-scoped FR.
 
 **Judgement revisions folded:** R-1 (preserve nested `live_endpoints` item `properties` — `url`/`status`/`content_type`/`body_preview` — in the JSON-Schema conversion instead of collapsing to a bare `type: object`), R-2 (corrected optionality rationale: the JSON-Schema dialect expresses "optional" via omission from top-level `required:`, not a `required: false` marker) — see `feature-requests/FR-795-endpoint-probe-schema-dialect-repair.judgement.md`.
+
+## Implementation Notes (2026-08-15)
+
+- Added the compile regression witness first; it failed at `resolve_type()` with `Unknown type: 'list'`, confirming the mixed schema dialect as the remaining blocker.
+- Ran `scripts/author.sh tmp/fr-795-authoring-brief.md` with `YAMLGRAPH_BIN` bound to the repository venv. The adapter converted only the governed prompt and produced a substantive `tmp/draft-authoring-report.md`.
+- Preserved all three output fields and nested endpoint properties; `verdict_hint` remains optional through omission from top-level `required`.
+- Verified graph lint, direct `load_and_compile()`, a structured-variable graph smoke, and the full endpoint-probe unit module. No files under `yamlgraph/**` and no other API-discovery artifacts changed.
