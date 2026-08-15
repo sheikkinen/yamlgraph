@@ -170,7 +170,7 @@ def test_stub_skeleton_runs_end_to_end_without_providers(scaffold, tmp_path: Pat
     home = _generate(scaffold, tmp_path / "invest", THREE_STEPS, stub=True)
     from yamlgraph.compile.graph_loader import load_and_compile
 
-    compiled = load_and_compile(str(home / "graph.yaml"))
+    compiled = load_and_compile(str(home / "graph.yaml")).compile()
     final = compiled.invoke({"objective": "smoke objective"})
     result = final["result"]
     assert result["verdict"] == "stub"

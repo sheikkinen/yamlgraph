@@ -2,7 +2,7 @@
 
 **Priority:** LOW
 **Type:** Feature
-**Status:** Judged — APPROVED WITH REVISIONS (2026-08-15); R-1..R-5 folded; R-1 source-instance gate satisfied by FR-791 (Enforced 2026-08-15)
+**Status:** Enforced 2026-08-15 — AC-01..AC-12 delivered; 12/12 tests green incl. deterministic stub end-to-end smoke (REQ-YG-596, CAP-235)
 **Effort:** 2 days
 **Requested:** 2026-08-13
 **First consumer / first event:** the next investigation pipeline after
@@ -181,18 +181,18 @@ artifacts.
 
 ## Acceptance Criteria (revised per judgement)
 
-- [ ] AC-01: FR-792 cites a committed, linted, smoke-run source investigation instance demonstrating the orchestrator → graph-runtime step manifest → step graph → shared leaf tool manifest shape; until that evidence exists, enforcement remains blocked.
-- [ ] AC-02: The revised FR names exactly one script invocation surface, and no `yamlgraph graph scaffold` CLI or entry-point change is included.
-- [ ] AC-03: The scaffold script generates the full directory structure for a requested home path: orchestrator `graph.yaml`, one `steps/{step}.tool.yaml` per step, one `steps/{step}/graph.yaml` per step, one prompt stub per step, and a generated `tools/README.md`.
-- [ ] AC-04: Generated orchestrator graph uses `type: tool_call` nodes that reference graph-runtime step manifests, not subgraph nodes.
-- [ ] AC-05: Generated step manifests use `runtime.type: graph` with paths that resolve correctly from the manifest location.
-- [ ] AC-06: Generated step graphs contain the authorized placeholder node shape and a typed output schema for each step result.
-- [ ] AC-07: Tests generate both 3-step and 6-step skeletons in temporary directories, assert exact file paths, validate manifest path references, and run graph lint on all generated graphs.
-- [ ] AC-08: The end-to-end smoke criterion uses the exact stub model defined by R-4 and asserts final state shape, not merely process exit.
-- [ ] AC-09: Generated README documentation explains how to add shared leaf tool manifests, customize conditional edges, and replace TODO prompts.
-- [ ] AC-10: Any committed generated graph or prompt artifact under governed paths is authored through `scripts/author.sh` and has validation evidence; ordinary scaffold tests do not write governed paths.
-- [ ] AC-11: A capability/requirement entry exists for the scaffold capability, every new test has the exact requirement marker, and requirement coverage passes for the new mapping.
-- [ ] AC-12: No files under YAMLGraph runtime/CLI surfaces change, and no API-discovery implementation work from FR-783..FR-791 is performed under this FR.
+- [x] AC-01: FR-792 cites a committed, linted, smoke-run source investigation instance demonstrating the orchestrator → graph-runtime step manifest → step graph → shared leaf tool manifest shape; until that evidence exists, enforcement remains blocked.
+- [x] AC-02: The revised FR names exactly one script invocation surface, and no `yamlgraph graph scaffold` CLI or entry-point change is included.
+- [x] AC-03: The scaffold script generates the full directory structure for a requested home path: orchestrator `graph.yaml`, one `steps/{step}.tool.yaml` per step, one `steps/{step}/graph.yaml` per step, one prompt stub per step, and a generated `tools/README.md`.
+- [x] AC-04: Generated orchestrator graph uses `type: tool_call` nodes that reference graph-runtime step manifests, not subgraph nodes.
+- [x] AC-05: Generated step manifests use `runtime.type: graph` with paths that resolve correctly from the manifest location.
+- [x] AC-06: Generated step graphs contain the authorized placeholder node shape and a typed output schema for each step result.
+- [x] AC-07: Tests generate both 3-step and 6-step skeletons in temporary directories, assert exact file paths, validate manifest path references, and run graph lint on all generated graphs.
+- [x] AC-08: The end-to-end smoke criterion uses the exact stub model defined by R-4 and asserts final state shape, not merely process exit.
+- [x] AC-09: Generated README documentation explains how to add shared leaf tool manifests, customize conditional edges, and replace TODO prompts.
+- [x] AC-10: Any committed generated graph or prompt artifact under governed paths is authored through `scripts/author.sh` and has validation evidence; ordinary scaffold tests do not write governed paths.
+- [x] AC-11: A capability/requirement entry exists for the scaffold capability, every new test has the exact requirement marker, and requirement coverage passes for the new mapping.
+- [x] AC-12: No files under YAMLGraph runtime/CLI surfaces change, and no API-discovery implementation work from FR-783..FR-791 is performed under this FR.
 
 ## Conditions for Enforcement
 
@@ -222,3 +222,42 @@ artifacts.
 **Prior art:** FR-783..FR-792 are sibling sub-FRs of the same API discovery pipeline (docs/adaptive-probing-plan.md §6). Each addresses a distinct step; no overlap in scope.
 
 **Judgement revisions folded:** R-1 (extraction gated on an enforced source instance — satisfied by FR-791, commit fd36b773), R-2 (surface frozen to `python scripts/scaffold_investigation.py`; no CLI subcommand), R-3 (generation tests use temp non-governed dirs; committed governed artifacts require the authoring route), R-4 (deterministic `--stub` smoke model asserting final state shape), R-5 (CAP-235/REQ-YG-596 traceability with 3-step and 6-step generation tests) — see `feature-requests/FR-792-multi-step-investigation-template.judgement.md`.
+
+## Implementation Record (2026-08-15)
+
+- TDD: RED commit 7a72503a (12 failing witnesses, `logs/fr792-red.log`,
+  SKIP=pytest) preceded the implementation; GREEN followed in the next
+  commit. One witness repair during GREEN: `load_and_compile` returns an
+  uncompiled `StateGraph` — invoke requires `.compile()` first
+  (precedent: test_fr794).
+- `scripts/scaffold_investigation.py` (D-2): templates embedded as
+  `string.Template` constants (no external template deps, D-3 within the
+  script; `$`-substitution avoids brace collisions with `{state.*}` and
+  Jinja2 syntax in generated YAML). Slug validation, unique-step check,
+  `--stub` flag per R-4.
+- Generated skeleton: orchestrator (tool_call node per step → synthesize;
+  TODO skip-condition edge markers), per-step `runtime.type: graph`
+  manifests (`output_key: investigation_result`), per-step agent stubs
+  (`tools: []` TODO, `max_iterations: 5`) with `findings`/`confidence`
+  `output_schema`, synthesize prompt (verdict enum found/not_found/
+  needs_manual), `tools/README.md` covering leaf manifests, conditional
+  edges, prompt replacement, and the AC-10 governance note.
+- `--stub` model (R-4): passthrough steps emit canned findings naming the
+  step; synthesize passthrough emits `verdict: stub`. Pytest smoke
+  invokes the compiled stub orchestrator in-process and asserts final
+  state shape: `result.verdict == "stub"` plus per-step wrapper
+  `success is True` with the step name in the child result — no provider
+  keys, no process-exit-only check.
+- Tests: `tests/unit/test_fr792_investigation_scaffold.py` 12/12 green
+  (REQ-YG-596, CAP-235): 3-step and 6-step generation, exact file paths,
+  manifest path resolution, lint (zero errors) on default AND stub
+  variants of both sizes, orchestrator compile, stub e2e, README
+  contract. All generation in `tmp_path` (AC-10). `req_coverage --strict`
+  passes.
+- Operator-surface demo: the exact documented command scaffolded a 4-step
+  `company-research` skeleton under `tmp/scaffold-demo/` matching the
+  FR's ideal-result tree; lint green out of the box.
+- D-6: `docs/investigation-scaffold.md` documents invocation, skeleton
+  contract, stub mode, and governance.
+- No CLI/runtime/API-discovery files changed (AC-12); no governed paths
+  written by tests or demo (AC-10).
