@@ -424,6 +424,18 @@ Test suppressions are acceptable when they enable testing patterns that conflict
 - **Sin**: Missing return type annotation on `_load()` helper.
 - **Penance**: Same pattern as CONF-037 et al. Returns dynamically-loaded module whose type is `types.ModuleType` but annotating gains nothing in test helper context.
 
+### CONF-051
+- **File**: [tests/integration/conftest.py](../tests/integration/conftest.py#L42)
+- **Code**: F401
+- **Sin**: `import yamlgraph.config` with no name used from it.
+- **Penance**: The import is executed for its module-level side effect — dotenv upward-search loading of `.env` — so the readiness probe checks credential presence AFTER the same boundary the tests themselves cross (FR-801 judgement R-2). Binding a name would be a lie about usage.
+
+### CONF-052
+- **File**: [tests/integration/test_fr801_readiness_preflight.py](../tests/integration/test_fr801_readiness_preflight.py#L32)
+- **Code**: F401
+- **Sin**: `import yamlgraph.config` with no name used from it.
+- **Penance**: Same side-effect idiom as CONF-051, in the witness: dotenv must already be loaded before `monkeypatch.delenv` so the absent-key path is proven absent *after* dotenv, matching the conftest probe's boundary semantics.
+
 ### CONF-301
 - **File**: [tests/unit/test_fr346_fsm_bridge_shared_module_red.py](../tests/unit/test_fr346_fsm_bridge_shared_module_red.py#L19)
 - **Code**: PLC0415

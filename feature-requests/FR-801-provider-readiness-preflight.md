@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Judged — APPROVED WITH REVISIONS (revisions folded below; see `FR-801-provider-readiness-preflight.judgement.md`)
+**Status:** Enforced — 2026-08-15 (see Implementation Record)
 **Effort:** 1 day
 **Requested:** 2026-08-15
 **First consumer / first event:** the next enforcer running `tests/integration/` with any unhealthy live credential — the first event is today's reality: `OPENAI_API_KEY` is present but exhausted (HTTP 429 `insufficient_quota`), so `test_execute_prompt_with_openai_provider` and the three `test_multi_turn_streaming.py` tests run and fail as if the product were broken, costing a full FR-798-scale classification effort to prove otherwise.
@@ -100,40 +100,64 @@ executes every live test unchanged.
 
 (Revised per judgement — supersedes the proposed set.)
 
-- [ ] AC-01: With an exhausted OpenAI readiness probe mocked to raise a
+- [x] AC-01: With an exhausted OpenAI readiness probe mocked to raise a
   provider exception, each named OpenAI live test skips during fixture setup
   before the test body invokes product code; the skip reason includes
   provider, error class, and HTTP status.
-- [ ] AC-02: With credentials absent after `yamlgraph.config` dotenv loading,
+- [x] AC-02: With credentials absent after `yamlgraph.config` dotenv loading,
   each named OpenAI live test skips during fixture setup with an
   absent-credential reason; the dotenv resurrection path is covered without
   committing or exposing secrets.
-- [ ] AC-03: With a healthy mocked probe, each named test executes its
+- [x] AC-03: With a healthy mocked probe, each named test executes its
   original product invocation and assertions unchanged except for optional
   failure-message additions.
-- [ ] AC-04: Readiness is memoized at most once per provider per pytest
+- [x] AC-04: Readiness is memoized at most once per provider per pytest
   session; a regression test witnesses the call count.
-- [ ] AC-05: No provider error is converted to skip after product execution
+- [x] AC-05: No provider error is converted to skip after product execution
   begins; fixture-before-body behavior is mechanically tested with a
   sentinel proving the body did not run.
-- [ ] AC-06: Skip reasons and committed artifacts contain no key material,
+- [x] AC-06: Skip reasons and committed artifacts contain no key material,
   provider response body, account identifier, request identifier, or
   credential value.
-- [ ] AC-07: The exact tests listed in the frozen provider/test inventory
+- [x] AC-07: The exact tests listed in the frozen provider/test inventory
   consume the readiness fixture; no unlisted integration tests are modified.
-- [ ] AC-08: The three named `test_multi_turn_streaming.py` tests and
+- [x] AC-08: The three named `test_multi_turn_streaming.py` tests and
   `test_execute_prompt_with_openai_provider` keep their content/intent
   assertions semantically intact; any assertion edit only adds
   `result["errors"]` to the failure message.
-- [ ] AC-09: The readiness probe timeout/cache behavior follows the exact
+- [x] AC-09: The readiness probe timeout/cache behavior follows the exact
   mechanism above (`LLM_REQUEST_TIMEOUT` set/restore + `clear_cache()`
   bracketing) and does not require production API or provider-factory
   changes.
-- [ ] AC-10: Unit lane, pytest marker policy, CI workflows, hooks, graph
+- [x] AC-10: Unit lane, pytest marker policy, CI workflows, hooks, graph
   artifacts, prompt artifacts, and production code remain unchanged.
-- [ ] AC-11: All new tests are requirement-tagged with `REQ-YG-591`;
+- [x] AC-11: All new tests are requirement-tagged with `REQ-YG-591`;
   `capabilities/CAP-230-provider-readiness-preflight.yaml` is added under
   this FR.
+
+## Implementation Record (2026-08-15)
+
+- New `tests/integration/conftest.py`: `probe_provider` (dotenv-boundary
+  credential read, one minimal `create_llm(provider).invoke("ping")`,
+  `LLM_REQUEST_TIMEOUT=15` set/restore bracketed by `clear_cache()`,
+  redacted reason = exception class + HTTP status only),
+  `provider_readiness` (session memoization), `require_provider_ready`,
+  and the `openai_ready` fixture (skip in setup, C-2).
+- Wired the four frozen-inventory tests; multi-turn failure messages now
+  include `result["errors"]` (D-4); assertions otherwise unchanged.
+- Witnesses: `tests/integration/test_fr801_readiness_preflight.py` — 7
+  mocked-probe tests (absent-after-dotenv, exhausted class+status,
+  message-body redaction, healthy, timeout/cache restore, memoization
+  call-count, and a pytester sentinel proving setup-time skip with the
+  body never running), all `@pytest.mark.req("REQ-YG-591")` (C-4).
+- `capabilities/CAP-230-provider-readiness-preflight.yaml` added;
+  ARCHITECTURE.md capabilities section regenerated;
+  `req_coverage.py --strict` passes.
+- Live verification against the real exhausted credential: one probe,
+  then all four named tests skip with
+  `provider openai not ready: RateLimitError/429` — the FR-798 Class C/D
+  failure shape is now one legible skip line.
+- No production, marker-policy, CI, or hook changes (C-3). No deviations.
 
 ## Alternatives Considered
 

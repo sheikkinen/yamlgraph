@@ -70,7 +70,7 @@ class TestProviderIntegration:
         not os.getenv("OPENAI_API_KEY"), reason="OPENAI_API_KEY not set"
     )
     @pytest.mark.req("REQ-YG-010")
-    def test_execute_prompt_with_openai_provider(self):
+    def test_execute_prompt_with_openai_provider(self, openai_ready):
         """Should execute prompt with OpenAI provider."""
         result = execute_prompt(
             prompt_name="greet",

@@ -1,0 +1,27 @@
+id: CAP-230
+name: Provider Readiness Preflight
+description: >
+  Test-infrastructure preflight for live-provider integration tests
+  (FR-801): key presence is not readiness (FR-798 Classes C/D). A
+  session-memoized probe — one minimal completion per provider per
+  pytest session, bounded via LLM_REQUEST_TIMEOUT and bracketed by
+  clear_cache() — classifies each provider as ready, absent-after-dotenv,
+  or erroring; consuming tests skip during fixture setup, before any
+  product invocation, with a redacted reason (exception class + HTTP
+  status only). No production surface: the preflight lives entirely in
+  tests/integration/conftest.py.
+modules:
+  - tests
+fr: FR-801
+requirements:
+  - id: REQ-YG-591
+    description: >
+      Live-provider integration tests consume a fixture-based readiness
+      precondition that probes each provider at most once per pytest
+      session, reads credentials after the yamlgraph.config dotenv
+      boundary, skips before the test body with a reason naming
+      provider, exception class, and HTTP status (never key material,
+      response bodies, or account/request identifiers), and never
+      converts provider errors to skips after product execution begins.
+    modules:
+      - tests

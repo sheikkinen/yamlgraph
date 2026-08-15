@@ -545,6 +545,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 227 | CAP-227 Shared Python Tool Manifest Root Confinement Fix | `tools` | REQ-YG-588 |
 | 228 | CAP-228 API Discovery Platform-Confirm Step | `examples` | REQ-YG-589 |
 | 229 | CAP-229 Playwright Network Sniff Utility | `examples` | REQ-YG-590 |
+| 230 | CAP-230 Provider Readiness Preflight | `tests` | REQ-YG-591 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -2824,6 +2825,16 @@ Example-level deterministic browser probe for the API discovery pipeline (FR-784
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-590 | network-sniff.js captures XHR/fetch requests from a local SPA fixture into a typed JSON contract (requests, auth_required, needs_manual_reason, warnings) with telemetry demotion, hard timeout, auth/CAPTCHA flagging, and token redaction; its FR-768 shell manifest declares parse json and a bounding timeout, and the Playwright dependency is pinned in a committed package boundary that fails loudly when missing. | `examples` |
+
+### 230. CAP-230 Provider Readiness Preflight
+
+Test-infrastructure preflight for live-provider integration tests (FR-801): key presence is not readiness (FR-798 Classes C/D). A session-memoized probe — one minimal completion per provider per pytest session, bounded via LLM_REQUEST_TIMEOUT and bracketed by clear_cache() — classifies each provider as ready, absent-after-dotenv, or erroring; consuming tests skip during fixture setup, before any product invocation, with a redacted reason (exception class + HTTP status only). No production surface: the preflight lives entirely in tests/integration/conftest.py.
+
+**Feature Request:** FR-801
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-591 | Live-provider integration tests consume a fixture-based readiness precondition that probes each provider at most once per pytest session, reads credentials after the yamlgraph.config dotenv boundary, skips before the test body with a reason naming provider, exception class, and HTTP status (never key material, response bodies, or account/request identifiers), and never converts provider errors to skips after product execution begins. | `tests` |
 
 <!-- END GENERATED CAPABILITIES -->
 
