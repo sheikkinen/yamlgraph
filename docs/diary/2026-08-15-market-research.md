@@ -111,3 +111,29 @@ Probe: if the argument is "open source, self-hosted, no commercial execution pla
 **Haystack cross-check (verified against docs.haystack.deepset.ai/docs/serialization and repo, 2026-08-15):** the earlier "closest artifact-class competitor" assessment was too generous. Haystack's YAML is a **round-trip serialization format** (`Pipeline.dumps()`/`loads()`), not an authoring surface: pipelines are authored in Python; the YAML embeds fully-qualified Python class paths (`type: haystack.components...DocumentCleaner`) plus `init_parameters` mirrors of constructor signatures. Loading YAML instantiates classes — hence their trusted-module allowlist, blocked builtins, and `unsafe=True` escape hatch. Their own docs warn of "stale snapshots from older Haystack versions" breaking deserialization. It is a pickle wearing YAML clothes: machine-diffable, but coupled to Python class internals, version-brittle, and not schema-lintable independent of the installed package. No judge, no gates, no traceability. Closer to Dify's JSON blobs than to a declarative DSL. Notable counterpoint: deepset's Enterprise Platform *is offered self-hosted* — so even the "no self-hosted governance offering" line must be argued on lock-in and artifact class, not deployment topology alone.
 
 **Surviving one-liner:** not "open source, self-hosted" — everyone claims that. It is: *self-hosted governed pipelines where the vendor's business model does not require execution to leave the building, and the pipeline artifact is declarative-first — authored as YAML, lintable without executing Python, constrained enough for an agent to author and a machine to judge.* Raw Python + LangGraph fails the artifact clause; Haystack fails it too (serialization ≠ authoring) plus the governance clause; the visual builders fail human-judgeability; gh-aw fails self-hosting. For a competent *human* team the null hypothesis (raw LangGraph + house conventions) genuinely wins — the differentiator only binds when the authors are agents and the reviewers are machines (`constraint_over_code`).
+
+## Addendum 2026-08-15 (2): core-claim probe — "LLM-friendly: lint + local execution"
+
+The one-liner's artifact clause was tested empirically, not asserted (`read_raw_output_first` applied to our own marketing). Four defect classes injected into `examples/demos/hello/graph.yaml`, linted with `yamlgraph graph lint` — ~1.2 s, no API key, no network, no execution:
+
+| Defect injected | Caught | Feedback |
+|---|---|---|
+| Invalid node type `lmm` | E005 | names the node + enumerates all 14 valid types — mechanically applicable fix |
+| Dangling edge target `gret` | E006 + W002 | spelling hint with defined-node list, plus reachability analysis flagging the orphaned node |
+| Undeclared state ref `{state.nmae}` | E007 | cross-checks template variables against the `state:` section — semantic, not syntactic |
+| Missing prompt file | E004 | cross-artifact graph→prompts resolution with exact path to create |
+
+Every error carries a `Fix:` line; `--json` emits NDJSON explicitly for machine consumers. The error surface is **closed**: an agent's failure modes are enumerable and each has a canned remediation.
+
+Competitor comparison on the two claim halves:
+
+| | Static artifact lint | Semantic cross-checks | Local execution |
+|---|---|---|---|
+| yamlgraph | yes, no execution, ~1 s, keyless | yes (probed above) | yes, one CLI |
+| Raw LangGraph | no artifact; edge typos surface only at `graph.compile()` runtime, string node names invisible to mypy | runtime-only | yes |
+| Haystack | no — loading YAML instantiates classes | at `connect()`, in-process | yes |
+| Dify/Langflow/Flowise | no CLI lint of exports | inside the running platform | must boot the platform |
+| gh-aw | yes — `gh aw compile` is a real lint/compile | frontmatter/tool validation | **no** — Actions-side |
+| Pipecat Flows | no static transition artifact exists to lint (FR-803) | none — wildcard omission invisible | yes |
+
+Only gh-aw matches the lint half; it fails the local-execution half. **Nobody has both.** Honest caveat, restated: Python+ruff/mypy/pytest is the richest feedback ecosystem in existence, so the claim is not "better tooling" — it is *bounded failure modes with canned remediations*, which for agent authors beats richer-but-open tooling. The claim HOLDS in that narrower form and should be marketed in that form only.
