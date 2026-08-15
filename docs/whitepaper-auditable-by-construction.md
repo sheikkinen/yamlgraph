@@ -22,8 +22,9 @@ design artifact to compare an execution against.
 We describe an alternative property, **auditable-by-construction**: the
 pipeline's design exists as a declarative, reviewable, versioned artifact;
 the design is approved *before* execution through a recorded judgement; every
-run emits its decisions in the artifact's own vocabulary; and conformance is
-therefore a mechanical diff between the approved artifact and the run record
+run emits its decisions in the artifact's own vocabulary; and **control-plane
+conformance** is therefore a mechanical diff between the approved artifact
+and the run record
 — producible per run, at run end, without forensic reconstruction. We present
 a reference architecture implementing the property, report an anonymized
 production deployment in regulated healthcare that renders a conformance
@@ -50,7 +51,16 @@ what happened, with no approved design to compare it against, is a diary, not
 an audit. A perfectly approved design, with no per-run record in the design's
 own terms, is a promise, not an audit.
 
-Classical software regulation solved this decades ago. IEC 62304 (medical
+One scope statement governs everything that follows. What the mechanism in
+this paper evidences is **control-plane conformance**: that execution stayed
+within the approved routes and topology. It does not evidence that the
+content produced within a conforming step was safe, correct, or appropriate
+— a run can traverse only approved edges and still produce output that
+requires separate content-level controls to assure (§7, note 3). The two
+assurances compose; neither substitutes for the other.
+
+Classical software regulation institutionalized a working pattern for the
+design half decades ago. IEC 62304 (medical
 device software) and ISO 13485 design controls institutionalize **design
 transfer**: the design is documented, reviewed, and frozen; verification then
 demonstrates that the built and operating system conforms to the frozen
@@ -75,17 +85,19 @@ to this paper:
 **Article 11 & Annex IV — Technical documentation.** Providers of high-risk
 systems must maintain documentation including "the design specifications of
 the system," "the general logic of the AI system," and descriptions of what
-the system is designed to do and how. This presumes a design that *exists as
-a document* — kept up to date, not reverse-engineered from code on request.
+the system is designed to do and how. The obligation is easiest to satisfy —
+and its evidence strongest — when the design *exists as a document* kept up
+to date, rather than being reverse-engineered from code on request.
 
 **Article 12 — Record-keeping.** High-risk AI systems "shall technically
 allow for the automatic recording of events (logs) over the lifetime of the
 system," and the logging must enable identification of situations that may
 present risk and facilitate post-market monitoring. Note the phrase
 *technically allow*: this is a **system capability requirement**, not an
-operations policy. A system whose logging is a bolt-on script does not
-technically allow it; a system that emits its run record by construction
-does.[^1]
+operations policy. A properly integrated application-level logging subsystem
+can satisfy it; framework-level emission provides *stronger and more
+uniform* evidence of the capability than application-specific logging that
+depends on each implementation remembering to write it.[^1]
 
 **Article 13 — Transparency and provision of information to deployers.**
 High-risk systems must be "sufficiently transparent to enable deployers to
@@ -110,10 +122,19 @@ incidents. Incident analysis of an LLM system without a per-run design-vs-
 execution record means reconstructing behavior from raw traces — precisely
 the forensic mode these articles are meant to make unnecessary.
 
-Read together, the articles describe a specific artifact economy: **an
-approved design document (Art. 11), automatic per-run records (Art. 12),
-records interpretable by non-authors (Arts. 13–14), retained by deployers
-(Art. 26), and usable for monitoring and incident response (Arts. 72–73).**
+Read together, the articles do not prescribe any particular design
+representation — no declarative artifact, approval object, or graph diff is
+mandated. What they create is a strong engineering incentive for a specific
+artifact economy: **an approved design document (Art. 11), automatic per-run
+records (Art. 12), records interpretable by non-authors (Arts. 13–14),
+retained by deployers (Art. 26), and usable for monitoring and incident
+response (Arts. 72–73)** — obligations that become cheap and mechanical
+when a machine-comparable relationship exists between documented design and
+runtime evidence, and expensive and forensic when it does not. This paper
+keeps three layers deliberately distinct: what the Regulation obliges, what
+we interpret those obligations to reward as engineering, and what the
+mechanism concretely provides. The second and third layers are the authors'
+(note 1), not the Regulation's.
 
 ## 3. Why Tracing Is Not Conformance
 
@@ -178,22 +199,35 @@ decision, correlated to a run identity, written automatically by the runtime
 the framework layer*, uniformly, for every pipeline built on it.
 
 **P4 — Conformance is a mechanical diff.** Because the design (P1) and the
-run record (P3) share a vocabulary, the conformance check is a set
-comparison: overlay the executed transitions on the approved graph. Every
+run record (P3) share a vocabulary, the control-plane conformance check is a
+set comparison: overlay the executed transitions on the approved graph. Every
 executed transition either exists in the approved artifact or it does not.
 The output is renderable as a per-run flowchart — the approved topology with
 the actual path highlighted — legible to a deployer, an auditor, or a
 clinician, none of whom read code. Deviations are not "anomalies to
 investigate"; they are *defects by definition*, detected at run end.[^3]
-The diff presumes the executed artifact *is* the approved version; today
-that binding is established by deployment pinning rather than carried
-inside the run record itself.[^5]
+The diff presumes the executed artifact *is* the approved version. Today
+that binding is established by deployment pinning; carrying it inside the
+run record itself — a run header stating the artifact's content hash and
+judgement reference, checked by equality — is **required for the strong
+form of the property**, not an optional refinement: without it, the
+evidence package asks the auditor to trust a separate configuration
+layer.[^5]
 
 Two architectural corollaries make P1–P4 practical for LLM systems:
 
 **Closed routing surface, confined stochastic steps.** Every transition a
 run can take is declared in the artifact; off-artifact routing is impossible
-by construction. Within that closed surface, two grades of control plane
+by construction. One qualification is essential: a general-purpose
+orchestration framework will typically also offer escape hatches —
+imperative nodes, agent loops, dynamically selected tools — whose behavior
+lies outside this property. The property therefore attaches to a
+**constrained, enforceable profile** of the framework, not to the framework
+wholesale: the regulated profile (§7) admits only declared transitions over
+typed state, versioned prompt artifacts, mandatory route logging, and
+record-level version binding, and claiming the property for an artifact
+means the artifact validates against that profile. Within the closed
+surface, two grades of control plane
 exist. In the **strong form**, transitions are decided by declared logic
 alone — a static transition table, condition expressions over typed state —
 with no model in the explanatory path: *"why did the run reach the
@@ -207,8 +241,11 @@ auditable; they are not the same claim, and regulated deployments should
 use — as the production pattern in §6 does — the strong form on
 safety-relevant paths. In either grade the LLM otherwise operates only
 *inside* nodes, as a typed, schema-validated atomic task with a versioned
-prompt artifact, its contribution reproducible (exact prompt version +
-typed output) even though its interior is not explained (see §7).
+prompt artifact, its contribution reconstructable from the record (the
+exact prompt artifact version, the model configuration, and the recorded
+typed output) even though its interior is not explained — and, for
+API-backed models, not necessarily *reproducible*, since the provider's
+implementation may change beneath a stable identifier (see §7).
 
 **Closed failure surface at authoring time.** Because the artifact is
 declarative and schema-bound, the ways an author — human or, increasingly,
@@ -307,8 +344,10 @@ claimed:
 **Traceable is not explained.** This architecture does *not* provide
 model-internal explainability. No attention map, no feature attribution, no
 answer to "why did the model produce this token." What it provides: every
-stochastic step is confined, typed, schema-validated, and reproducible (the
-exact versioned prompt and the exact typed output are on record), and no
+stochastic step is confined, typed, schema-validated, and reconstructable
+from the record (the exact versioned prompt and the exact typed output are
+on record — *reconstructable*, not reproducible: an API-backed model may
+not produce the same output later even at fixed parameters), and no
 stochastic step can route outside the approved set — where the strong-form
 control plane is used, no stochastic step is in the routing path at all.
 Under the AI Act this is the right target
@@ -339,17 +378,23 @@ Article 14 claim that overseers can know *when to distrust* the system.
 
 The same artifact economy discharges obligations beyond the AI Act:
 
-- **IEC 62304 / ISO 13485 (medical device software).** The judged artifact
-  is the design output; the per-run overlay is continuous design-transfer
-  verification — evidence, on every run, that the operating system conforms
-  to the approved design. Requirement-to-test traceability (each test marked
+- **IEC 62304 / ISO 13485 (medical device software).** The pattern *adapts*
+  the design-control logic these standards institutionalize — establish a
+  controlled design baseline, verify implementation against it, maintain
+  traceable evidence through change. The judged artifact plays the
+  design-output role; the per-run overlay extends design-transfer
+  verification into operation — an extension the standards do not themselves
+  prescribe, offered here as an engineering strengthening of their logic.
+  Requirement-to-test traceability (each test marked
   with the requirement it witnesses, coverage gated in CI) extends the same
   spine upstream to the specification.
 - **GDPR Arts. 13–15 and 22.** Where automated decisions have legal or
-  similarly significant effect, the closed routing surface provides the
+  similarly significant effect, the artifact can *contribute to* the
   "meaningful information about the logic involved" (Arts. 13(2)(f),
-  14(2)(g), 15(1)(h)) that a black-box pipeline cannot: the logic *is* the
-  artifact.
+  14(2)(g), 15(1)(h)) by making workflow-level routing rules and decision
+  points inspectable. It does not by itself explain model-level reasoning
+  where the consequential judgement happens inside an LLM node, and it does
+  not necessarily discharge the transparency obligations on its own.
 - **General change control.** Because the artifact is line-diffable, every
   change to system behavior has a minimal reviewable representation — the
   precondition for any change-control regime, regulated or not.
@@ -387,14 +432,13 @@ decision to make the design a first-class, judgeable artifact.
 ## 10. Conclusion
 
 The AI Act's record-keeping and transparency articles are widely read as a
-logging burden. They are better read as a **design-artifact requirement in
-disguise**: automatic records that deployers can interpret, against
-documentation that reflects the system's actual logic, usable for monitoring
-and incident response — none of it is satisfiable at reasonable cost unless
-the system's design exists as an approved, machine-comparable artifact and
-the runtime emits its decisions in that artifact's terms.
-
-Auditable-by-construction is that reading made operational: declare the
+logging burden. Taken together, they create a strong engineering incentive
+for something more specific: a **machine-comparable relationship between
+documented design and runtime evidence** — automatic records that deployers
+can interpret, against documentation that reflects the system's actual
+logic, usable for monitoring and incident response. The Regulation does not
+prescribe how that relationship is established. Auditable-by-construction is
+one concrete mechanism for establishing it: declare the
 design, judge it, execute it, and let every run testify — mechanically, in
 the design's own vocabulary — that it stayed inside the approved lines. The
 pattern runs in production, in regulated healthcare, today; every call ends
