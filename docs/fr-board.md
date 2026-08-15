@@ -97,6 +97,8 @@
 | FR-761 | Judged | yamlgraph |  | FR-761-reproducible-dependency-governance.md |
 | FR-762 | Judged | yamlgraph |  | FR-762-example-dependency-taxonomy.md |
 | FR-764 | Judged | yamlgraph |  | FR-764-style-convert-pipeline.md |
+| FR-802 | Judged | yamlgraph |  | FR-802-node-type-usage-census.md |
+| FR-803 | Judged | yamlgraph |  | FR-803-pipecat-flows-architecture-reassessment.md |
 | FR-094 | Approved | yamlgraph |  | FR-094-memory-node.md |
 | FR-095 | Approved | yamlgraph |  | FR-095-doc-staleness-monitor.md |
 | FR-096 | Approved | yamlgraph |  | FR-096-fr-template-demo-plan.md |
@@ -198,8 +200,6 @@
 | FR-790 | Proposed | yamlgraph |  | FR-790-api-discovery-schema-extract-step.md |
 | FR-791 | Proposed | yamlgraph |  | FR-791-api-discovery-orchestrator.md |
 | FR-792 | Proposed | yamlgraph |  | FR-792-multi-step-investigation-template.md |
-| FR-802 | Proposed | yamlgraph |  | FR-802-node-type-usage-census.md |
-| FR-803 | Proposed | yamlgraph |  | FR-803-pipecat-flows-architecture-reassessment.md |
 | FR-078 | In Progress | yamlgraph |  | FR-078-relocate-project-tests.md |
 | FR-100 | In Progress | yamlgraph |  | FR-100-yamlgraph-development-pipeline-ebook.md |
 | FR-169 | In Progress | yamlgraph |  | FR-169-enforce-reflexion-loop.md |
@@ -430,8 +430,8 @@ graph TD
     FR-791["FR-791 Proposed"]
     FR-792["FR-792 Proposed"]
     FR-796["FR-796 In Progress"]
-    FR-802["FR-802 Proposed"]
-    FR-803["FR-803 Proposed"]
+    FR-802["FR-802 Judged"]
+    FR-803["FR-803 Judged"]
     FR-081 --> FR-082
     FR-731 --> FR-735
     FR-731 --> FR-736
