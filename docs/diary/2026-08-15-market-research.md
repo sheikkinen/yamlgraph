@@ -92,3 +92,22 @@ The cross-check shows the actual production architecture is a **two-plane split*
 Any fires → the runtime half of this repo becomes commodity within a release cycle; the governance spine and platform-independence remain.
 
 **Seed:** If the product is the governed pipeline and platform-independence, can the traceability spine (CAP/REQ/judge/gates) be packaged to govern *foreign* runtimes — LangGraph-native code, gh-aw workflows — so the moat survives even if the YAML runtime dies?
+
+## Addendum 2026-08-15: "Why not just Python + LangGraph?" — the self-hosting null hypothesis
+
+Probe: if the argument is "open source, self-hosted, no commercial execution platform," what stops a buyer from taking raw LangGraph (MIT, fully self-hostable) and their own conventions?
+
+**Finding: OSS + self-hosted is table stakes, not a moat.** Nearly every competitor's runtime is OSS and runs anywhere. What differs is (a) vendor incentive and (b) artifact class:
+
+| Alternative | Self-hosted | Commercial gravity | Artifact class |
+|---|---|---|---|
+| Raw Python + LangGraph | fully | LangSmith/Platform is the funnel; OSS runtime is its top | Python code — not lintable as config |
+| Haystack 3.0 (Apache-2, 26.2k stars) | fully | Haystack Enterprise Starter/Platform (managed **or self-hosted**); deepset Studio; telemetry on by default | **YAML is serialization, not authoring** — see below |
+| Dify / Langflow / Flowise | yes | cloud editions are the business | visual-editor JSON blobs |
+| CrewAI | yes (MIT core) | AMP/Enterprise push | Python code |
+| gh-aw | no — structurally GitHub Actions | GitHub billing *is* the platform | md+frontmatter, lintable but platform-bound |
+| Pipecat Flows | fully (BSD-2) | Daily transport funnel | Python dicts/handler code |
+
+**Haystack cross-check (verified against docs.haystack.deepset.ai/docs/serialization and repo, 2026-08-15):** the earlier "closest artifact-class competitor" assessment was too generous. Haystack's YAML is a **round-trip serialization format** (`Pipeline.dumps()`/`loads()`), not an authoring surface: pipelines are authored in Python; the YAML embeds fully-qualified Python class paths (`type: haystack.components...DocumentCleaner`) plus `init_parameters` mirrors of constructor signatures. Loading YAML instantiates classes — hence their trusted-module allowlist, blocked builtins, and `unsafe=True` escape hatch. Their own docs warn of "stale snapshots from older Haystack versions" breaking deserialization. It is a pickle wearing YAML clothes: machine-diffable, but coupled to Python class internals, version-brittle, and not schema-lintable independent of the installed package. No judge, no gates, no traceability. Closer to Dify's JSON blobs than to a declarative DSL. Notable counterpoint: deepset's Enterprise Platform *is offered self-hosted* — so even the "no self-hosted governance offering" line must be argued on lock-in and artifact class, not deployment topology alone.
+
+**Surviving one-liner:** not "open source, self-hosted" — everyone claims that. It is: *self-hosted governed pipelines where the vendor's business model does not require execution to leave the building, and the pipeline artifact is declarative-first — authored as YAML, lintable without executing Python, constrained enough for an agent to author and a machine to judge.* Raw Python + LangGraph fails the artifact clause; Haystack fails it too (serialization ≠ authoring) plus the governance clause; the visual builders fail human-judgeability; gh-aw fails self-hosting. For a competent *human* team the null hypothesis (raw LangGraph + house conventions) genuinely wins — the differentiator only binds when the authors are agents and the reviewers are machines (`constraint_over_code`).
