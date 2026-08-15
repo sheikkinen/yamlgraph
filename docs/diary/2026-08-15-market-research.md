@@ -137,3 +137,22 @@ Competitor comparison on the two claim halves:
 | Pipecat Flows | no static transition artifact exists to lint (FR-803) | none — wildcard omission invisible | yes |
 
 Only gh-aw matches the lint half; it fails the local-execution half. **Nobody has both.** Honest caveat, restated: Python+ruff/mypy/pytest is the richest feedback ecosystem in existence, so the claim is not "better tooling" — it is *bounded failure modes with canned remediations*, which for agent authors beats richer-but-open tooling. The claim HOLDS in that narrower form and should be marketed in that form only.
+
+## Addendum 2026-08-15 (3): "explainable AI" claim — fails broad, converts to conformance evidence
+
+Probed against the corporate production twin (`terveystalo/customer-service-agent-platform`, cloned and cross-checked 2026-08-15; yamlgraph pin **0.5.16** — five versions ahead of the stale ninchat_voice mirror at 0.5.10).
+
+**Production evidence found, not hypothesized.** The route-overlay line shipped as a judged NC arc — NC-373 (route overlay) → NC-374 (migrate route facts to the framework FR-723 hook) → NC-376 (route artifact at teardown): `services/route_overlay.py` renders a per-call execution flowchart at teardown, call_sid-correlated, `ROUTE_LOG_SOURCE`-fed, with a `_route_artifact_rendered` guard and its own test (`test_nc376_route_artifact.py`). Every production call emits an execution artifact today. The FSM has also moved past the FR-803 snapshot (NC-364 `wrapping_up` ceiling wildcard — a new `from: "*"` safety row, reinforcing the wildcard-visibility argument).
+
+**Why the broad claim fails:** "explainable AI" is a term of art — model-internal attribution (SHAP, attention, "why did the model say X"). This stack logs, types, and reproduces every LLM decision but does not *explain* the model's interior. Claiming XAI invites the one audience guaranteed to shred it.
+
+**The narrowed claim that binds — auditable-by-construction, per-run conformance evidence against an approved artifact:**
+
+- The overlay is not a trace tree; it is a **diff between the judged design and the actual execution**. LangSmith/Langfuse trees (Langfuse OSS/self-hosted — the honest competitor on this axis) show what happened but have no authored artifact to compare against, so they cannot answer the regulator's actual question: *did execution stay within the approved design?* This stack answers it per call, mechanically, at teardown.
+- Deterministic control plane: "why did this call reach `crisis_handoff`" is answerable from the static transition table + event log — no LLM in the control path (FR-803's deciding evidence, inverted into a strength).
+- Confined stochastic steps: each LLM act is a typed, schema-validated atomic task with a versioned prompt artifact — the exact prompt behind any decision is reproducible.
+- Regulatory mapping: EU AI Act **Art. 12** (automatic record-keeping — the route artifact *is* this), **Art. 13** (system-level traceability, which is what the text demands), IEC 62304 design-transfer verification (execution conforms to approved design).
+
+**Gaps before marketing:** (1) say "every decision is traceable," never "explained" — the LLM interior stays black-box; (2) route logging is opt-in (`YAMLGRAPH_ROUTE_LOG`) — a conformance claim needs an on-by-default regulated profile, a one-line FR; (3) no uncertainty surfacing on stochastic steps.
+
+**Standing:** the strongest claim in this document, because it is the only one already proven by production code at a healthcare enterprise with a named regulatory buyer. Fourth instance of the day's pattern: the broad claim ties or dies; the narrow claim has an empty competitive field.
