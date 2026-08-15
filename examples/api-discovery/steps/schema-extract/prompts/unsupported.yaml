@@ -1,0 +1,79 @@
+system: |
+  You are the unsupported-family capability reporter for the API discovery
+  pipeline. The v1 schema-extract step supports exactly openapi and ckan.
+  For every other family, return a well-formed CapabilityReport without
+  making network calls, parsing guesses, or inferring capabilities.
+
+  Required behavior:
+  - Set family and base_url to the supplied values exactly.
+  - Set endpoints to an empty list.
+  - Set auth_model to unsupported family.
+  - Set rate_limits and freshness to empty strings.
+  - Set languages to an empty list.
+  - Set sample_response to an object containing the supplied sample response
+    text, if any.
+  - Add one limitation that names the unsupported family and states that v1
+    supports exactly openapi and ckan.
+
+  Return only structured data matching the CapabilityReport schema.
+
+user: |
+  Platform family: {{ family }}
+  Base URL: {{ base_url }}
+  Sample response text:
+  {{ sample_response }}
+
+output_schema:
+  type: object
+  properties:
+    family:
+      type: string
+    base_url:
+      type: string
+    endpoints:
+      type: array
+      items:
+        type: object
+        properties:
+          method:
+            type: string
+          path:
+            type: string
+          description:
+            type: string
+          parameters:
+            type: array
+            items:
+              type: string
+        required:
+          - path
+          - parameters
+        additionalProperties: false
+    auth_model:
+      type: string
+    rate_limits:
+      type: string
+    freshness:
+      type: string
+    languages:
+      type: array
+      items:
+        type: string
+    sample_response:
+      type: object
+      additionalProperties: true
+    limitations:
+      type: array
+      items:
+        type: string
+  required:
+    - family
+    - base_url
+    - endpoints
+    - auth_model
+    - rate_limits
+    - freshness
+    - languages
+    - sample_response
+    - limitations
+  additionalProperties: false

@@ -1,0 +1,92 @@
+version: "1.0"
+name: schema-extract
+description: "Extract API capability reports from confirmed OpenAPI or CKAN platform evidence"
+
+prompts_relative: true
+prompts_dir: prompts
+
+state:
+  family:
+    type: str
+    description: "Confirmed platform family, currently openapi or ckan"
+  base_url:
+    type: str
+    description: "Confirmed API or portal base URL"
+  sample_response:
+    type: str
+    default: ""
+    description: "Singular sample response text from platform confirmation"
+  openapi_spec_json:
+    type: str
+    default: ""
+    description: "OpenAPI spec JSON text for the OpenAPI path"
+  openapi_inventory:
+    type: dict
+    description: "Wrapped parse_openapi tool result"
+  capability_report:
+    type: dict
+    description: "Structured CapabilityReport output"
+
+tools:
+  parse_openapi:
+    manifest: ../../tools/parse_openapi.tool.yaml
+
+nodes:
+  route_family:
+    type: passthrough
+    output:
+      family: "{state.family}"
+
+  parse_openapi_spec:
+    type: tool_call
+    tool: parse_openapi
+    args:
+      spec_json: "{state.openapi_spec_json}"
+    state_key: openapi_inventory
+    on_error: fail
+
+  summarize_openapi:
+    type: llm
+    prompt: openapi
+    state_key: capability_report
+    on_error: fail
+
+  extract_ckan:
+    type: llm
+    prompt: ckan
+    state_key: capability_report
+    on_error: fail
+
+  unsupported_family:
+    type: llm
+    prompt: unsupported
+    state_key: capability_report
+    on_error: fail
+
+edges:
+  - from: START
+    to: route_family
+
+  - from: route_family
+    to: parse_openapi_spec
+    condition: "family == 'openapi'"
+
+  - from: route_family
+    to: extract_ckan
+    condition: "family == 'ckan'"
+
+  - from: route_family
+    to: unsupported_family
+    condition: "family != 'openapi' and family != 'ckan'"
+
+  - from: parse_openapi_spec
+    to: summarize_openapi
+
+  - from: summarize_openapi
+    to: END
+
+  - from: extract_ckan
+    to: END
+
+  - from: unsupported_family
+    to: END

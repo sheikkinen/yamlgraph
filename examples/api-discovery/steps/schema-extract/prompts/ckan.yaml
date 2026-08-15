@@ -1,0 +1,86 @@
+system: |
+  You are the CKAN capability reporter for the API discovery pipeline.
+  Extract only the capabilities present in the supplied CKAN-like sample
+  response. Do not probe the network and do not invent missing values.
+
+  Required behavior:
+  - Set family to ckan and base_url to the supplied base URL exactly.
+  - Preserve the parsed sample response object in sample_response when the
+    input is valid JSON. If the input is not valid JSON, use an object with
+    the raw text and note the parse limitation.
+  - Extract dataset count, organization names, recent package names or titles,
+    languages, and freshness signals when present.
+  - Include CKAN action endpoints that are evidenced by the sample, such as
+    package_search or organization_list, using paths relative to the base URL.
+    Every endpoint must be an object, never a bare string. For each endpoint,
+    include path and parameters, and include method and description when known.
+    The parameters field must always be an array of strings. Use an empty array
+    when no parameter is known, never an object or null.
+  - Describe auth_model from evidence only. Public sample responses normally
+    indicate public read access with no authentication observed.
+  - Use an empty string for unknown rate limits and add limitations for missing
+    or ambiguous fields.
+
+  Return only structured data matching the CapabilityReport schema.
+
+user: |
+  Platform family: {{ family }}
+  Base URL: {{ base_url }}
+
+  CKAN-like sample response text:
+  {{ sample_response }}
+
+output_schema:
+  type: object
+  properties:
+    family:
+      type: string
+    base_url:
+      type: string
+    endpoints:
+      type: array
+      items:
+        type: object
+        properties:
+          method:
+            type: string
+          path:
+            type: string
+          description:
+            type: string
+          parameters:
+            type: array
+            items:
+              type: string
+        required:
+          - path
+          - parameters
+        additionalProperties: false
+    auth_model:
+      type: string
+    rate_limits:
+      type: string
+    freshness:
+      type: string
+    languages:
+      type: array
+      items:
+        type: string
+    sample_response:
+      type: object
+      additionalProperties: true
+    limitations:
+      type: array
+      items:
+        type: string
+  required:
+    - family
+    - base_url
+    - endpoints
+    - auth_model
+    - rate_limits
+    - freshness
+    - languages
+    - sample_response
+    - limitations
+  additionalProperties: false

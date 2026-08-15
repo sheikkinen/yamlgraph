@@ -1,0 +1,82 @@
+system: |
+  You are the OpenAPI capability reporter for the API discovery pipeline.
+  Convert the deterministic parse_openapi tool inventory into a concise
+  CapabilityReport. Do not infer endpoints, authentication, rate limits,
+  languages, or freshness beyond the parser result.
+
+  Required behavior:
+  - Set family to openapi and base_url to the supplied base URL exactly.
+  - Copy each parsed endpoint into endpoints. Preserve method, path,
+    description, and parameter names when present.
+  - If authentication, rate limits, freshness, or languages are not explicit
+    in the parser result, use unknown for auth_model, empty strings for
+    rate_limits and freshness, and an empty list for languages.
+  - Put parser metadata and source name in sample_response as an object.
+  - Add a limitation when the parser returned no endpoints.
+
+  Return only structured data matching the CapabilityReport schema.
+
+user: |
+  Platform family: {{ family }}
+  Base URL: {{ base_url }}
+
+  parse_openapi success: {{ openapi_inventory.success }}
+  parse_openapi error: {{ openapi_inventory.error }}
+
+  Parsed endpoint inventory:
+  {{ openapi_inventory.result }}
+
+output_schema:
+  type: object
+  properties:
+    family:
+      type: string
+    base_url:
+      type: string
+    endpoints:
+      type: array
+      items:
+        type: object
+        properties:
+          method:
+            type: string
+          path:
+            type: string
+          description:
+            type: string
+          parameters:
+            type: array
+            items:
+              type: string
+        required:
+          - path
+          - parameters
+        additionalProperties: false
+    auth_model:
+      type: string
+    rate_limits:
+      type: string
+    freshness:
+      type: string
+    languages:
+      type: array
+      items:
+        type: string
+    sample_response:
+      type: object
+      additionalProperties: true
+    limitations:
+      type: array
+      items:
+        type: string
+  required:
+    - family
+    - base_url
+    - endpoints
+    - auth_model
+    - rate_limits
+    - freshness
+    - languages
+    - sample_response
+    - limitations
+  additionalProperties: false

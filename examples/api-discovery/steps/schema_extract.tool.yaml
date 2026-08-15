@@ -1,0 +1,14 @@
+# Graph-runtime tool manifest for schema-extract step (FR-790)
+# Consumed by the orchestrator (FR-791) via type: tool_call node.
+
+name: schema_extract
+description: "Extract API capability reports from confirmed OpenAPI or CKAN platform evidence"
+runtime:
+  type: graph
+  path: schema-extract/graph.yaml
+  input_mapping:
+    family: family
+    base_url: base_url
+    sample_response: sample_response
+    openapi_spec_json: openapi_spec_json
+  output_key: capability_report

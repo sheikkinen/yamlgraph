@@ -1,0 +1,35 @@
+{
+  "success": true,
+  "result": {
+    "count": 42,
+    "organizations": [
+      {
+        "name": "statistics-finland",
+        "title": "Statistics Finland"
+      },
+      {
+        "name": "transport-agency",
+        "title": "Finnish Transport Infrastructure Agency"
+      }
+    ],
+    "results": [
+      {
+        "name": "road-traffic-counts",
+        "title": "Road traffic counts",
+        "metadata_modified": "2026-07-31T10:15:00Z",
+        "resources": [
+          {
+            "format": "CSV",
+            "language": "fi"
+          },
+          {
+            "format": "JSON",
+            "language": "en"
+          }
+        ]
+      }
+    ],
+    "language": "fi",
+    "freshness": "metadata_modified 2026-07-31T10:15:00Z"
+  }
+}

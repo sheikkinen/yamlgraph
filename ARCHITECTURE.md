@@ -548,6 +548,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 230 | CAP-230 Provider Readiness Preflight | `tests` | REQ-YG-591 |
 | 231 | CAP-231 API Discovery Recon Step | `examples` | REQ-YG-592 |
 | 232 | CAP-232 API Discovery Browser-Sniff Step | `examples` | REQ-YG-593 |
+| 233 | CAP-233 API Discovery Schema-Extract Step | `examples` | REQ-YG-594 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -2857,6 +2858,16 @@ Example-level browser-sniff step for the API discovery pipeline (FR-789): a sing
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-593 | The browser-sniff step graph compiles, references the shared FR-784 network_sniff manifest without reimplementation, and emits SniffResult via the output_schema JSON-Schema dialect: api_calls items require url/method/status/content_type/ body_preview, auth_required is a required boolean, and the needs_manual path is typed (verdict_hint enum + manual_reason) with prompt doctrine retaining only data-classified requests, excluding telemetry, and treating auth/CAPTCHA as a legitimate result rather than an error. | `examples` |
+
+### 233. CAP-233 API Discovery Schema-Extract Step
+
+Example-level schema-extract step for the API discovery pipeline (FR-790): a routed llm graph under examples/api-discovery/steps/schema-extract/ that turns a confirmed platform identification into a CapabilityReport. v1 family coverage is frozen to OpenAPI (deterministic tool_call on the FR-783 parse_openapi manifest, then llm mapping into EndpointInfo entries) and CKAN (llm extraction of dataset count, organizations, freshness, and languages from the FR-788 sample_response); every other family returns a structured limitations entry instead of inference or error. All llm nodes fail loudly (on_error: fail). Exposed to the FR-791 orchestrator as schema_extract.tool.yaml with committed OpenAPI and CKAN smoke fixtures.
+
+**Feature Request:** FR-790
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-594 | The schema-extract graph compiles, routes on family with no agent node, calls the shared parse_openapi manifest via a deterministic tool_call, and pins CapabilityReport in every prompt's output_schema: nine required fields with EndpointInfo items requiring path and parameters as string arrays; invalid output fails Pydantic validation; the input mapping consumes exactly the FR-788 PlatformConfirmation fields plus the openapi_spec_json fixture input; committed fixtures carry the known /pets path with limit parameter and the CKAN count/organization/freshness/language signals. | `examples` |
 
 <!-- END GENERATED CAPABILITIES -->
 
