@@ -267,3 +267,9 @@ D = operations (OpenAI credit) + proposed readiness-preflight follow-up FR.
 xdist matrix reproduced Class A in run 20/20 (~5%/run), confirming the
 deterministic 2-module witness. No reproduction harness committed under
 tests/** (R-2: report-preserved commands suffice).
+
+**Class C/D revalidation (2026-08-15, post-recharge):** operator recharged
+OpenAI credit (FR-801 C-5). Live rerun of the four FR-801-gated tests
+(`test_multi_turn_streaming.py` + `test_execute_prompt_with_openai_provider`):
+6 passed, 0 skipped in 7.55s (`logs/fr801-c5-recheck.log`). Readiness probe
+healthy; Classes C and D closed with live-green evidence.
