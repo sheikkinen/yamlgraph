@@ -418,15 +418,6 @@ examples:
   extra: null
   entrypoints:
   - examples/demos/safety-guards/graph.yaml
-- path: examples/demos/script-retirement
-  status: extra-backed
-  extra: null
-  entrypoints: []
-- path: examples/demos/security-cve-ignore
-  status: extra-backed
-  extra: null
-  entrypoints:
-  - examples/demos/security-cve-ignore/graph.yaml
 - path: examples/demos/session-continuation
   status: extra-backed
   extra: null
@@ -497,46 +488,6 @@ examples:
   extra: null
   entrypoints:
   - examples/demos/verified-search/graph.yaml
-- path: examples/demos/watcher2-changelog-gen
-  status: extra-backed
-  extra: null
-  entrypoints:
-  - examples/demos/watcher2-changelog-gen/graph.yaml
-- path: examples/demos/watcher2-ci-remediation
-  status: extra-backed
-  extra: null
-  entrypoints:
-  - examples/demos/watcher2-ci-remediation/graph.yaml
-- path: examples/demos/watcher2-deduplication-gate
-  status: extra-backed
-  extra: null
-  entrypoints:
-  - examples/demos/watcher2-deduplication-gate/graph.yaml
-- path: examples/demos/watcher2-hook-preflight-gate
-  status: extra-backed
-  extra: null
-  entrypoints:
-  - examples/demos/watcher2-hook-preflight-gate/graph.yaml
-- path: examples/demos/watcher2-merged-branch-collision-guard
-  status: extra-backed
-  extra: null
-  entrypoints:
-  - examples/demos/watcher2-merged-branch-collision-guard/graph.yaml
-- path: examples/demos/watcher2-post-merge-inbox-consumption
-  status: extra-backed
-  extra: null
-  entrypoints:
-  - examples/demos/watcher2-post-merge-inbox-consumption/graph.yaml
-- path: examples/demos/watcher2-red-verification
-  status: extra-backed
-  extra: null
-  entrypoints:
-  - examples/demos/watcher2-red-verification/graph.yaml
-- path: examples/demos/watcher2-remediation
-  status: extra-backed
-  extra: null
-  entrypoints:
-  - examples/demos/watcher2-remediation/graph.yaml
 - path: examples/demos/web-research
   status: extra-backed
   extra: null

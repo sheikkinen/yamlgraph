@@ -30,8 +30,8 @@ This demo executes concrete checks and runtime scenarios to prove watcher2 now s
 ## Run
 
 ```bash
-yamlgraph graph lint examples/demos/watcher2-deduplication-gate/graph.yaml
+yamlgraph graph lint .chaplain/demos/watcher2-deduplication-gate/graph.yaml
 
-yamlgraph graph run examples/demos/watcher2-deduplication-gate/graph.yaml \
-  --full 2>&1 | tee examples/demos/watcher2-deduplication-gate/demo-output.log
+yamlgraph graph run .chaplain/demos/watcher2-deduplication-gate/graph.yaml \
+  --full 2>&1 | tee .chaplain/demos/watcher2-deduplication-gate/demo-output.log
 ```

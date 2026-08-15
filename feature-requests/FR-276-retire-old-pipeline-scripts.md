@@ -6,6 +6,8 @@
 **Effort:** 2-3 days
 **Requested:** 2026-04-23
 
+**FR-796 retirement note (2026-08-15):** Retired `examples/demos/script-retirement/`; its witness evidence remains available in git history.
+
 ## Verdict
 
 **APPROVED** - Scope frozen, authority granted to implement.

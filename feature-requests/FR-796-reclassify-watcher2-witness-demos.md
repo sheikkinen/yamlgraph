@@ -2,8 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement (garden curation)
-**Status:** Judged 2026-08-15 — APPROVED WITH REVISIONS (R-1..R-3 folded below);
-see FR-796-reclassify-watcher2-witness-demos.judgement.md
+**Status:** In Progress — implementation complete 2026-08-15; enforcement blocked on AC-10 full-suite integration failures; AC-12 commit/PR identifiers pending
 **Effort:** 0.5–1 day
 **Requested:** 2026-08-15
 
@@ -127,44 +126,44 @@ Frozen by the judgement (AC-01 satisfied by this revision):
 
 - [x] AC-01: FR-796 is amended with R-1 through R-3 before enforcement
       authority is used.
-- [ ] AC-02: The three delete-target directories are removed from
+- [x] AC-02: The three delete-target directories are removed from
       `examples/demos/`; their governing FR records contain one-line
       retirement notes naming FR-796, the retired path, and git-history
       witness retention.
-- [ ] AC-03: The seven watcher2 directories exist under `.chaplain/demos/`;
+- [x] AC-03: The seven watcher2 directories exist under `.chaplain/demos/`;
       `git diff --find-renames` reports them as renames/moves rather than
       unrelated delete/add churn where Git can detect it.
-- [ ] AC-04: For each relocated watcher2 demo, `graph.yaml`, `prompts/**`,
+- [x] AC-04: For each relocated watcher2 demo, `graph.yaml`, `prompts/**`,
       node files, scripts, and existing `demo-output.log` files are
       byte-for-byte preserved; README changes are limited to path updates
       for runnable commands.
-- [ ] AC-05: `yamlgraph graph lint` passes for all seven relocated graphs,
+- [x] AC-05: `yamlgraph graph lint` passes for all seven relocated graphs,
       and one representative relocated demo run succeeds with output
       captured under its new `.chaplain/demos/...` directory.
-- [ ] AC-06: A tracked-file search for
+- [x] AC-06: A tracked-file search for
       `examples/demos/(watcher2-|script-retirement|security-cve-ignore)`
       returns no live references outside record artifacts
       (`feature-requests/**`, `docs/diary/**`, and git history); indexes,
       taxonomy, relocated READMEs, tests, and CAP registry files are
       updated or confirmed clean.
-- [ ] AC-07: MCP graph/tool discovery no longer lists the deleted or
+- [x] AC-07: MCP graph/tool discovery no longer lists the deleted or
       relocated demos, including `Watcher2DeduplicationGateDemo`,
       `Watcher2HookPreflightGateDemo`,
       `Watcher2MergedBranchCollisionGuardDemo`,
       `Watcher2PostMergeInboxConsumptionDemo`, and
       `Security CVE Ignore Demo`.
-- [ ] AC-08: `examples/README.md` removes the ten Utility Demo rows and
+- [x] AC-08: `examples/README.md` removes the ten Utility Demo rows and
       adds a concise pointer to `.chaplain/demos/` for infrastructure
       witnesses; `examples/demos/README.md` removes the stale
       `watcher2-deduplication-gate` row.
-- [ ] AC-09: `examples/dependency-taxonomy.yaml` no longer records deleted
+- [x] AC-09: `examples/dependency-taxonomy.yaml` no longer records deleted
       paths and records relocated watcher2 entrypoints at
       `.chaplain/demos/...` only if that taxonomy intentionally covers
       `.chaplain` witnesses; otherwise the entries are removed with
       rationale in FR-796 implementation notes.
 - [ ] AC-10: Full tests pass, and no test file references the retired
       `examples/demos/...` paths.
-- [ ] AC-11: Changelog fragment(s), diary reflection, and an annotation to
+- [x] AC-11: Changelog fragment(s), diary reflection, and an annotation to
       `examples/2026-07-01-plan-cleanup.md` are included in the
       implementation diff.
 - [ ] AC-12: FR-796 implementation notes record the PR URL and, after
@@ -220,3 +219,14 @@ node code, or demo behavior.
 - FR-279, FR-280, FR-281, FR-283, FR-286, FR-287, FR-288, FR-289 — witnessed FRs
 - Diary seed: gate_checks_shape_not_substance — the gate forced these into
   demo costume; this FR is the substance correction
+
+## Implementation Notes (2026-08-15)
+
+- Routed all governed graph and prompt moves/deletions through `scripts/author.sh tmp/fr-796-authoring-brief.md`; an independent audit records 26/26 non-README byte matches and seven graph-local lint passes.
+- Deleted the three one-shot witnesses and relocated seven watcher2 witnesses to `.chaplain/demos/`. Only README runnable paths changed inside retained directories; Git detects all unchanged retained files as renames.
+- Removed all ten records from the examples-only dependency taxonomy rather than extending that taxonomy beyond its `examples/` ownership boundary.
+- Verified default discovery excludes all nine deleted/relocated graph names. A graph-local run of `.chaplain/demos/watcher2-ci-remediation/graph.yaml --var failure_type=ruff --full` completed successfully and was captured in `.chaplain/demos/watcher2-ci-remediation/fr796-verification.log`.
+- The adapter's initial deduplication witness exposed historical rot: it references removed `.chaplain/watcher2.sh`. A post-merge witness also failed its stale README contract. Neither graph was changed; the unchanged CI-remediation witness supplied the required representative run.
+- With `.venv` activated, the complete unit suite passes: 5,819 passed, 91 skipped, 1 xfailed. The full suite reaches 6,013 passed but has eight stable integration failures reproduced in isolation: memory-demo mocking, three multi-turn/checkpointer assertions, three subgraph-interrupt assertions, and OpenAI `insufficient_quota`. None references the retired paths, but AC-10 remains open because the frozen criterion requires a fully green suite.
+- `scripts/check_demo_proof.sh` passes against the staged pure rename/delete shape without weakening or bypassing the gate.
+- PR URL: pending until a PR exists. Deleting or merge commit: pending until the implementation is committed.

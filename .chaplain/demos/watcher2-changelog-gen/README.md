@@ -26,7 +26,7 @@ This demo simulates the watcher2 environment and shows how changelog fragments a
 ## Running the Demo
 
 ```bash
-yamlgraph graph run examples/demos/watcher2-changelog-gen/graph.yaml \
+yamlgraph graph run .chaplain/demos/watcher2-changelog-gen/graph.yaml \
   --var fr_path="feature-requests/FR-283-auto-generate-changelog-fragments-watcher2.md" \
   --full
 ```

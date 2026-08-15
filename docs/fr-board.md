@@ -97,7 +97,6 @@
 | FR-761 | Judged | yamlgraph |  | FR-761-reproducible-dependency-governance.md |
 | FR-762 | Judged | yamlgraph |  | FR-762-example-dependency-taxonomy.md |
 | FR-764 | Judged | yamlgraph |  | FR-764-style-convert-pipeline.md |
-| FR-796 | Judged | yamlgraph |  | FR-796-reclassify-watcher2-witness-demos.md |
 | FR-797 | Judged | yamlgraph |  | FR-797-subgraph-interrupt-propagation-langgraph-1x.md |
 | FR-094 | Approved | yamlgraph |  | FR-094-memory-node.md |
 | FR-095 | Approved | yamlgraph |  | FR-095-doc-staleness-monitor.md |
@@ -212,6 +211,7 @@
 | FR-643 | In Progress | yamlgraph |  | FR-643v2-novel-fandom-world-expansion.md |
 | FR-735 | In Progress | yamlgraph |  | FR-735-webllm-demo-evidence-ergonomics.md |
 | FR-736 | In Progress | yamlgraph |  | FR-736-webllm-demo-trace-capture.md |
+| FR-796 | In Progress | yamlgraph |  | FR-796-reclassify-watcher2-witness-demos.md |
 | FR-273 | Draft | yamlgraph |  | FR-273-watcher2-pipeline.md |
 | FR-307 | Draft | yamlgraph |  | FR-307-yamlgraph-async-action-logging.md |
 | FR-317 | Draft | yamlgraph |  | FR-317-retire-obsolete-watcher2-components.md |
@@ -428,7 +428,7 @@ graph TD
     FR-790["FR-790 Proposed"]
     FR-791["FR-791 Proposed"]
     FR-792["FR-792 Proposed"]
-    FR-796["FR-796 Judged"]
+    FR-796["FR-796 In Progress"]
     FR-797["FR-797 Judged"]
     FR-081 --> FR-082
     FR-731 --> FR-735

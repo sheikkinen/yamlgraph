@@ -34,7 +34,7 @@ This demo simulates the CI remediation process by:
 ## Usage
 
 ```bash
-yamlgraph graph run examples/demos/watcher2-ci-remediation/graph.yaml \
+yamlgraph graph run .chaplain/demos/watcher2-ci-remediation/graph.yaml \
   --var failure_type="syntax" \
   --full
 ```

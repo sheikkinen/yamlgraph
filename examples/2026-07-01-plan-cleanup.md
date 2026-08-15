@@ -2,6 +2,8 @@
 
 The `examples/README.md` references `purgatory/` but it doesn't exist. The inclusion criteria are aspirational, not enforced. This plan establishes purgatory and trims the directory from 101 examples to a defensible set.
 
+**FR-796 execution note (2026-08-15):** The three Tier 1 watcher/script/security witnesses named below were deleted, and the seven watcher2 entries at the start of Tier 3 were relocated to `.chaplain/demos/`. All other plan items remain undispositioned by FR-796.
+
 ## Tier 1: DELETE (violate inclusion criteria)
 
 | Example | Reason |

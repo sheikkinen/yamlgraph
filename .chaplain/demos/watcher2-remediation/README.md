@@ -35,15 +35,15 @@ The enhanced remediation pipeline:
 
 ```bash
 # Lint the demo graph
-yamlgraph graph lint examples/demos/watcher2-remediation/graph.yaml
+yamlgraph graph lint .chaplain/demos/watcher2-remediation/graph.yaml
 
 # Run the demo
-yamlgraph graph run examples/demos/watcher2-remediation/graph.yaml \
+yamlgraph graph run .chaplain/demos/watcher2-remediation/graph.yaml \
   --var topic="file processing" \
-  --full 2>&1 | tee examples/demos/watcher2-remediation/demo-output.log
+  --full 2>&1 | tee .chaplain/demos/watcher2-remediation/demo-output.log
 
 # Show the remediation script in action
-./examples/demos/watcher2-remediation/demo-script.sh
+./.chaplain/demos/watcher2-remediation/demo-script.sh
 ```
 
 ## Expected Behavior

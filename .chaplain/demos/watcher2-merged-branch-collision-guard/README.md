@@ -26,8 +26,8 @@ This demo executes concrete checks against the live watcher2 scripts and README 
 ## Run
 
 ```bash
-yamlgraph graph lint examples/demos/watcher2-merged-branch-collision-guard/graph.yaml
+yamlgraph graph lint .chaplain/demos/watcher2-merged-branch-collision-guard/graph.yaml
 
-yamlgraph graph run examples/demos/watcher2-merged-branch-collision-guard/graph.yaml \
-  --full 2>&1 | tee examples/demos/watcher2-merged-branch-collision-guard/demo-output.log
+yamlgraph graph run .chaplain/demos/watcher2-merged-branch-collision-guard/graph.yaml \
+  --full 2>&1 | tee .chaplain/demos/watcher2-merged-branch-collision-guard/demo-output.log
 ```

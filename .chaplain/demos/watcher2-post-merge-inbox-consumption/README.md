@@ -28,8 +28,8 @@ This demo executes concrete script-contract checks and runtime scenarios against
 ## Run
 
 ```bash
-yamlgraph graph lint examples/demos/watcher2-post-merge-inbox-consumption/graph.yaml
+yamlgraph graph lint .chaplain/demos/watcher2-post-merge-inbox-consumption/graph.yaml
 
-yamlgraph graph run examples/demos/watcher2-post-merge-inbox-consumption/graph.yaml \
-  --full 2>&1 | tee examples/demos/watcher2-post-merge-inbox-consumption/demo-output.log
+yamlgraph graph run .chaplain/demos/watcher2-post-merge-inbox-consumption/graph.yaml \
+  --full 2>&1 | tee .chaplain/demos/watcher2-post-merge-inbox-consumption/demo-output.log
 ```

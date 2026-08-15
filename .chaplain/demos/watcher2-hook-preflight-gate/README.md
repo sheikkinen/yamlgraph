@@ -30,8 +30,8 @@ This demo executes concrete runtime scenarios proving watcher2 preflight now blo
 ## Run
 
 ```bash
-yamlgraph graph lint examples/demos/watcher2-hook-preflight-gate/graph.yaml
+yamlgraph graph lint .chaplain/demos/watcher2-hook-preflight-gate/graph.yaml
 
-yamlgraph graph run examples/demos/watcher2-hook-preflight-gate/graph.yaml \
-  --full 2>&1 | tee examples/demos/watcher2-hook-preflight-gate/demo-output.log
+yamlgraph graph run .chaplain/demos/watcher2-hook-preflight-gate/graph.yaml \
+  --full 2>&1 | tee .chaplain/demos/watcher2-hook-preflight-gate/demo-output.log
 ```

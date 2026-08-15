@@ -152,18 +152,10 @@ Tools for codebase analysis — useful for maintainers, not for learning.
 | [pipeline_audit](demos/pipeline_audit/) | Cross-pipeline structural analysis |
 | [req-cross-check](demos/req-cross-check/) | Architecture requirement traceability audit |
 | [run-analyzer](demos/run-analyzer/) | Run output analysis utilities |
-| [script-retirement](demos/script-retirement/) | Pipeline script retirement verification (FR-276) |
-| [security-cve-ignore](demos/security-cve-ignore/) | Security workflow CVE ignore implementation verification (FR-282) |
-| [watcher2-changelog-gen](demos/watcher2-changelog-gen/) | Changelog fragment auto-generation demonstration (FR-283) |
-| [watcher2-ci-remediation](demos/watcher2-ci-remediation/) | CI failure remediation loop demonstration (FR-279) |
-| [watcher2-deduplication-gate](demos/watcher2-deduplication-gate/) | Deduplication gate skip for already-merged FR topics (FR-287) |
-| [watcher2-hook-preflight-gate](demos/watcher2-hook-preflight-gate/) | Hook integrity preflight fail-closed gate demonstration (FR-288) |
-| [watcher2-merged-branch-collision-guard](demos/watcher2-merged-branch-collision-guard/) | Merged-PR branch collision skip guard demonstration (FR-286) |
-| [watcher2-post-merge-inbox-consumption](demos/watcher2-post-merge-inbox-consumption/) | Post-merge inbox FR-token consumption into done queue (FR-289) |
-| [watcher2-red-verification](demos/watcher2-red-verification/) | RED verification timestamp fix demo (FR-280) |
-| [watcher2-remediation](demos/watcher2-remediation/) | Progressive ruff fixing for SIM117 remediation (FR-281) |
 | [hook_classifier](demos/hook_classifier/) | FSM daemon for async hook event classification (FR-425) |
 | [agent-json](demos/agent-json/) | Agent structured JSON output (FR-449) |
+
+Chaplain and watcher2 infrastructure witnesses live under [`.chaplain/demos/`](../.chaplain/demos/).
 
 ### FR Validation Demos
 

@@ -6,6 +6,8 @@
 **Effort:** 0.5 days
 **Requested:** 2026-04-25
 
+**FR-796 retirement note (2026-08-15):** Retired `examples/demos/watcher2-red-verification/`; its witness evidence remains available in git history.
+
 ## Summary
 
 The RED verification step in watcher2.sh never detects new test files because `find -newer` compares against the pipeline state file, which is always updated *after* the test files are written during the acceptance step.
