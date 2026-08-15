@@ -1,4 +1,4 @@
-# Feature Request: FR-795 Reclassify watcher2 witness demos out of the examples garden
+# Feature Request: FR-796 Reclassify watcher2 witness demos out of the examples garden
 
 **Priority:** MEDIUM
 **Type:** Enhancement (garden curation)

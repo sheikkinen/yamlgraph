@@ -199,7 +199,7 @@
 | FR-790 | Proposed | yamlgraph |  | FR-790-api-discovery-schema-extract-step.md |
 | FR-791 | Proposed | yamlgraph |  | FR-791-api-discovery-orchestrator.md |
 | FR-792 | Proposed | yamlgraph |  | FR-792-multi-step-investigation-template.md |
-| FR-795 | Proposed | yamlgraph |  | FR-795-reclassify-watcher2-witness-demos.md |
+| FR-796 | Proposed | yamlgraph |  | FR-796-reclassify-watcher2-witness-demos.md |
 | FR-078 | In Progress | yamlgraph |  | FR-078-relocate-project-tests.md |
 | FR-100 | In Progress | yamlgraph |  | FR-100-yamlgraph-development-pipeline-ebook.md |
 | FR-169 | In Progress | yamlgraph |  | FR-169-enforce-reflexion-loop.md |
@@ -429,7 +429,7 @@ graph TD
     FR-790["FR-790 Proposed"]
     FR-791["FR-791 Proposed"]
     FR-792["FR-792 Proposed"]
-    FR-795["FR-795 Proposed"]
+    FR-796["FR-796 Proposed"]
     FR-081 --> FR-082
     FR-731 --> FR-735
     FR-731 --> FR-736
