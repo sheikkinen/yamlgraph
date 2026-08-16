@@ -8,6 +8,122 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.19]
+
+### Added
+- **FR-810 Router-Visible Tool Call Outputs**: `parsed_key` on tool_call nodes exposes the parsed dict output of a graph-runtime tool as its own state key, routable by edge conditions. Dict outputs pass through, JSON-object strings parse, everything else fails closed per `on_error` (fail raises, skip returns the failure envelope without `parsed_key`); wrapper under `state_key` preserved unchanged. Graph tools now serialize dict/list outputs as JSON instead of Python repr. Lint `W703` warns on statically known non-graph misuse; `parse_result`/`result_key` aliases rejected by schema. (REQ-YG-597)
+- **FR-809 API Discovery Orchestrator v2**: `examples/api-discovery/graph.yaml`
+  now composes the FR-787 recon and FR-789 browser-sniff steps as `tool_call`
+  nodes. Recon is gated on a `use_recon` flag (default true; `use_recon=false`
+  preserves the FR-791 v1 route exactly). Browser-sniff is entered only on
+  parsed FR-810 ground truth (`page_findings.is_spa == true and
+  page_findings.api_found != true`), never on candidate hints; its target URL
+  is selected by a deterministic Python node, not an LLM. The terminal schema
+  gains `manual_reason`; `steps_tried` copy-only discipline extends to both
+  new wrappers. Boundary hardening found during live smokes: `fetch_page`
+  output is byte-capped (unbounded HTML overflowed the 200k-token LLM
+  context), `_parse_output` failures quote the raw offending output, and
+  structured-output fallback tiers cover providers rejecting `response_format`
+  and `tool_choice`. (REQ-YG-599)
+- **FR-808 Regulated evidence profile**: Graphs can require on-by-default per-run route evidence with judgement binding, sink preflight, recorded disable exceptions, and strict run-boundary failure on counted evidence loss. (REQ-YG-552)
+- **FR-807 Route evidence record hardening**: Route logs now carry content-bound run headers, UUIDv7 identity, UTC timestamps, best-effort run-end loss counts, and fail-closed overlay hash validation while preserving the existing route grammar. (REQ-YG-552)
+- **FR-806 Author Brief Pre-Flight**: `scripts/author.sh` mechanically dry-runs the task brief before the copilot backend spawns. Paths asserted as existing inputs must exist (exit 64 quoting the violated line); validation-section command executables must statically resolve (`python -m`, env prefixes, `./relative-script`; brief text never executed); 2+ live full-pipeline smokes warn against the 900s ceiling. `--no-preflight` skips only the pre-flight — sentinel arming and the report gate remain mandatory. No LLM in the pre-flight path. (REQ-YG-598)
+- **FR-801 Provider Readiness Preflight**: live-provider integration tests gate on a session-memoized readiness probe (one minimal completion per provider per session, `LLM_REQUEST_TIMEOUT` bracketed by `clear_cache()`); unhealthy providers surface as one legible fixture-setup skip (`provider openai not ready: RateLimitError/429`) instead of N misleading product-failure reds. (REQ-YG-591)
+- **FR-792 Multi-Step Investigation Scaffold**: `python scripts/scaffold_investigation.py --name <slug> --steps <csv> --home <path> [--stub]` generates a lintable N-step investigation skeleton from the pattern proven by the API discovery family — tool_call orchestrator with TODO skip-condition edges, per-step graph-runtime manifests, agent graph stubs with typed `findings`/`confidence` schemas, prompt stubs, and a governance-aware `tools/README.md`. `--stub` emits deterministic passthrough steps so the orchestrator runs end-to-end without provider keys (pytest smoke asserts final state shape). Script surface only — no CLI subcommand, no runtime changes; committing generated governed artifacts still requires the graph-authoring route. (REQ-YG-596)
+- **FR-791 API Discovery Orchestrator**: `examples/api-discovery/graph.yaml` composes the four enforced step manifests (endpoint-probe, page-analysis, platform-confirm, schema-extract) via `tool_call` nodes with conditional skip routing, llm candidate generation, and a single synthesize terminal emitting `found`/`not_found`/`needs_manual` with honest `steps_tried`. One command replaces the 10–30 min manual probe: live smokes returned `found` with real StatFin PxWeb data (fi/en/sv endpoints) and `not_found` for `example.invalid` reporting only executed steps. Recon/browser-sniff excluded from v1 per judgement. (REQ-YG-595)
+- **FR-790 API Discovery Schema-Extract Step**: routed llm graph under `examples/api-discovery/steps/schema-extract/` turns a confirmed platform into a nine-field `CapabilityReport`. v1 frozen to OpenAPI (deterministic `tool_call` on FR-783 `parse_openapi` → llm mapping into `EndpointInfo` entries) and CKAN (llm extraction of dataset count, orgs, freshness, languages from the FR-788 `sample_response`); other families return a structured `limitations` entry, never inference or error. All llm nodes `on_error: fail`. Committed OpenAPI/CKAN fixtures; exposed to the orchestrator as `schema_extract.tool.yaml`. (REQ-YG-594)
+- **FR-789 API Discovery Browser-Sniff Step**: single-agent graph under `examples/api-discovery/steps/browser-sniff/` loads a SPA URL in headless Chromium via the FR-784 `network_sniff` manifest, retains only data-classified XHR/fetch requests as `CapturedRequest` entries, excludes telemetry noise, and maps auth/CAPTCHA evidence to a typed `needs_manual` verdict (`verdict_hint`/`manual_reason`) instead of an error. Deterministic fixture smokes proved retained `/api/*` data, excluded `/analytics/collect`, and the CAPTCHA `needs_manual` path. Exposed to the orchestrator as `browser_sniff.tool.yaml`. (REQ-YG-593)
+- **FR-788 API Discovery Platform-Confirm Step**: Agent graph that confirms platform family candidates (CKAN, PxWeb, OData, OpenAPI, WordPress REST, JSON-stat) against family-specific substance predicates via the shared `curl_probe` tool — proving real data was returned, not just a 200 status — returning exactly one `PlatformConfirmation` result. Live positive smoke against CKAN's public demo (`demo.ckan.org`) and negative smoke against `example.com` both verified. (REQ-YG-589)
+- **FR-787 API Discovery Recon Step**: single-agent recon graph under `examples/api-discovery/steps/recon/` mines GitHub code search (FR-783 `gh_code_search`) for prior-art evidence — candidate URLs, auth patterns, schema hints — returning `ReconResult` (four required `list[str]` fields; empty lists valid; evidence strings carry repo/path/URL identity). Exposed to the orchestrator as an optional graph-runtime manifest `recon.tool.yaml`. Live smoke reproduced the THL Sotkanet case: `sotkanet.fi/rest/1.1` endpoints, no-auth pattern, JSON/CSV hints. (REQ-YG-592)
+- **FR-786 API Discovery Page-Analysis Step**: Agent graph that inspects HTML page source via the shared `fetch_page` tool, extracting embedded API URLs (script bodies, `data-api-url` attributes, explicit paths) and fingerprinting platforms (CKAN, PxWeb, SwaggerUI, OData, Liferay, JSF, WordPress REST, EntryScape) from a `data_files`-backed catalog, distinguishing API-bearing portal pages from SPA shells requiring browser-sniff. (REQ-YG-587)
+- **FR-785 API Discovery Endpoint-Probe Step**: Agent graph that probes candidate URLs with adaptive retry doctrine (403→UA, 404→paths, 200+HTML/JSON/XML classification, 000→geo_blocked). (REQ-YG-586)
+- **FR-784 Playwright Network Sniff Utility**: `network-sniff.js` loads a URL in headless Chromium, captures XHR/fetch traffic, classifies data vs telemetry, flags auth/CAPTCHA walls, redacts token material, and emits one stable JSON object; exposed as FR-768 shell manifest `network_sniff.tool.yaml` with a pinned Playwright package boundary under `examples/api-discovery/tools/`. (REQ-YG-590)
+- **FR-783 API Discovery Leaf Tool Manifests**: Shared tool manifests
+  (`curl_probe`, `fetch_page`, `gh_code_search`, `parse_openapi`) under
+  `examples/api-discovery/tools/` — the foundation layer for the API
+  discovery pipeline. `curl_probe` uses a Python wrapper (curl `-w`
+  braces conflict with shell runtime `str.format()`); `parse_openapi`
+  provides deterministic OpenAPI spec parsing. (REQ-YG-585)
+- **FR-782 User Self-Portrait Example**: `examples/demos/self-portrait/` — macOS PersonalizationPortrait → typed rows → consented LLM synthesis → agent-first portrait (`self-portrait.json` + `agent_briefing`, narrative and diff as secondary renderings). Read-only SQLite with drift asserted at the boundary (named FDA remediation, `SchemaDriftError` on unknown categories and on any missing primary table — every primary table is required, so a drifted database stops at the boundary instead of yielding an empty inner circle), stdlib-only batched+cached Wikidata label resolution, supplementary DBs as availability probes only, and an exact-payload consent gate: the outbound JSON is written and hashed before the interrupt, then re-verified byte-for-byte before any provider call (`auto_approve=true` is the only opt-in bypass). Every path in the payload is home-relative and `SELF_PORTRAIT_PROBE_HOME` points fixture/demo/test runs at a synthetic home, so neither the account name nor real database availability can reach the provider or the repository. Ships a deterministic synthetic fixture and a no-real-data guard — never a real portrait. (REQ-YG-584)
+- **FR-781 macOS File-Hook Example**: `examples/demos/file-hook/` — launchd `WatchPaths` demo publishing artwork descriptions via the shared vision manifest; confidence gate (only `high` publishes), pairing-as-ledger idempotence, fail-safe filenames, plist template + `install-hook.sh --render-only`, canonical install-graphs-as-system-hooks README. Shared `describe_image` gains `max_dim` downscale, `quote`/`confidence` fields, and a `vision` extra (Pillow). (REQ-YG-582)
+- **FR-780 Research-Agent Toolbelt Conversion**: research-agent becomes the fourth shell-manifest consumer — inline truncating variants (`head -80` reads, py-only capped grep/find) replaced by the canonical `examples/shared/toolbelt/` manifests (`read_file`, `search`, `list_dir`) plus `git_log`; `count_lines` stays inline per the fit boundary. Prompts teach canonical tool names/args and scope-to-glob translation. Grounded witness: the converted agent found all 12 LLM providers with high confidence where the truncated tools previously confirmed 2. (REQ-YG-579)
+- **FR-778 tool_call `on_error: fail`**: prerequisite failures fail the graph
+  at the tool node with the tool's actual error (exception chained) instead of
+  a swallowed `{success: false}` envelope that downstream nodes trip over at a
+  distance. Default `skip` keeps the envelope byte-identical for agent loops;
+  graph load rejects `retry`/`fallback`/arbitrary values for tool_call naming
+  the valid set `skip, fail`. (REQ-YG-580)
+- **FR-777 Shared Shell Toolbelt Manifests**: `examples/shared/toolbelt/` now holds four shell-runtime tool manifests (`read_file`, `search`, `list_dir`, `git_log`); the planner, enforcer, and judge demos consume them by manifest reference instead of byte-duplicated inline copies, with the `search` glob-example description unified as the canonical union. (REQ-YG-579)
+- **FR-776 Vision Fallback for Scanned PDFs**: book-summary demo gains an opt-in `vision_fallback` branch — OCR-less pages are rendered via shared `render_page` (pdftoppm) and transcribed with typed `PageTranscription` page-echo validation through vision-capable providers (google, anthropic); provider preflight fires before any rendering; the FR-774 default guard moves to the graph level (raises only when the whole document yields no text and the flag is off, keeping blank windows nonfatal). Witnessed end-to-end on a genuinely scanned Finnish book (3 pages rendered, transcribed, summarized; default run guards with exit 1). (REQ-YG-578)
+- **FR-775 Book-Summary Loop Redesign**: split_document gains `mode: info` (pdfinfo-only page-count probe), `allow_empty_selection` (windowed loop fetches opt out of all-empty/all-filtered raises; default stays loud), and absolute page identity per chunk (`page`, or `page_start`/`page_end` when batched). The book-summary demo becomes a cursor-loop showcase: tool manifest probe/fetch, python-node gates and batch planning, per-page LLM map with `{page, summary}` schema, page-identity accumulation through an `add` reducer, and `loop_limits`/`loop_exits` termination — small-model-friendly one-page LLM calls with a documented 1000-page budget. Map subnode carries `on_error: retry` (transient truncated-JSON responses absorbed; witnessed at 418-page scale with zero tool failures). (REQ-YG-577)
+- **FR-774 Book-Summary Scale Hardening**: `split_document` gains `pages_per_chunk` (batch consecutive pages into one chunk, one pdftotext call each) and `min_chars` (drop sub-threshold chunks) with new explicit failures: all-empty extraction raises naming scanned/image-only (vision fallback stays a signposted non-goal) and all-filtered-by-threshold raises naming `min_chars` — never a success-shaped empty chunk list. The book-summary demo batches 10 pages/chunk with `min_chars: 200` under a documented 1000-page budget; prompts speak excerpt semantics with summary-only output. Fixes the reported 418-page truncation-to-100 and blank-page commentary. (REQ-YG-577)
+- **FR-773 Shared Document Splitter Manifest**: `examples/shared/split_document.py` splits a PDF into per-page text chunks (`{"chunks": [{"index", "text"}], "total"}`) via poppler, with an explicit ValueError failure contract (unknown mode, missing file, missing binaries, subprocess failure, unparseable page count — no fallback). Declared once in `examples/shared/split_document.tool.yaml` (FR-768 manifest) and consumed by the new `examples/demos/book-summary` demo: tool_call with inline kwargs (FR-772) → map over chunks → reduce to book summary. (REQ-YG-577)
+- **FR-772 tool_call Inline Dict Args**: `tool_call.args` accepts an inline
+  YAML mapping resolved per value (FR-252 semantics) — mixed literal and
+  templated kwargs without a Python wrapper. Resolved values still containing
+  `{state.` raise `ValueError`; empty mappings dispatch no kwargs; the string
+  form is unchanged. (REQ-YG-576)
+- **FR-770 Vision Demo Consumes the Tool Manifest**: the shared-vision-tool
+  demo now declares `describe_image` via `manifest:` referencing
+  `examples/shared/describe_image.tool.yaml` — the first committed consumer
+  of the FR-768 manifest mechanism (REQ-YG-574, CAP-216), pinned by
+  artifact-backed round-trip tests.
+- **FR-769 Shared Vision Tool**: `describe_image()` in `examples/shared/vision_tool.py`
+  sends a local image or URL plus an instruction through a `create_llm()` chat
+  model and returns a validated `ImageDescription` (title, description, tags,
+  optional QA verdict). Provider allowlist (google, anthropic) enforced before
+  invocation. First read-direction complement to `replicate_tool.py` —
+  consumers: image pipeline QA and DeviantArt caption generation. (REQ-YG-575)
+- **FR-768 Tool Manifests**: `manifest:` key in `tools:` entries loads a typed
+  manifest YAML and translates it into the equivalent inline shell/python/graph
+  tool declaration at graph load. Manifest paths resolve relative to the graph;
+  runtime paths resolve relative to the manifest. Invalid manifests fail at
+  load, never at invocation. Translation only — no new execution engine.
+  (REQ-YG-574)
+- **FR-767 Graph-Authoring Sole Route**: PreToolUse guard denies unsentineled writes to governed graph artifacts (`examples/**/graph.yaml`, `examples/**/prompts/*.yaml`, `graphs/*.yaml`, `.chaplain/graphs/*.yaml`) across file-write tools and terminal write shapes, failing closed on ambiguity; `scripts/author.sh` arms a per-run sentinel token scoped to the adapter execution; doctrine collapsed to one route; pre-commit backstop requires authoring-report proof for new governed artifacts. (REQ-YG-527)
+- **FR-766 RunPod Provider**: New `runpod` provider targeting RunPod's OpenAI-compatible endpoints (Public API and serverless vLLM workers) via the existing `ChatOpenAI + base_url` pattern — zero new dependencies. Configured by `RUNPOD_API_KEY`, `RUNPOD_ENDPOINT` (full base URL), and `RUNPOD_MODEL` (no hard-coded default); all three fail fast at the provider boundary. Cache keys are env-fingerprinted on key + endpoint (REQ-YG-540). The unmaintained `langchain-runpod` package was rejected: simulated streaming and skipped structured-output tests (see `docs/plan-research-runpod.md`). (REQ-YG-010)
+- **FR-765 Graph Authoring Workflow Skill**: New `.github/skills/graph-authoring/`
+  workflow skill (SKILL.md + doctrine.md) turning graph creation into a repeatable
+  agent procedure — precedent search, smallest-pattern selection, authoring via
+  the `reference/graph-yaml.md`/`reference/prompt-yaml.md` syntax references,
+  mandatory `yamlgraph graph lint` + smoke
+  validation with blocked-command honesty, artifact-closed delegation brief
+  (never judge/review routes), and Chaplain escalation rules. Rejects the
+  one-shot `examples/yamlgraph_gen` model (FR-763 `workspace_is_not_boundary`
+  precedent). Round 2 adds the executable adapter route (judge-fr shape):
+  `scripts/author.sh <task-brief.md>` launches a thin copilot-node adapter
+  graph that reads the doctrine, authors and validates the files, and writes
+  a parseable `tmp/draft-authoring-report.md` artifact verified by existence,
+  never exit code. CAP-158/REQ-YG-423 extended; skill promotion tests
+  upgraded from presence to substance checks. Retires the `author-graph` and
+  `author-prompt` syntax skills (operator-directed, 2026-07-29): their unique
+  content (python-tool `path:` vs `module:` trap, `messages:` role-list
+  incident, the one-prompt-one-subagent-brief prompt contract with FR-581–587
+  provenance) migrated into `reference/graph-yaml.md` /
+  `reference/prompt-yaml.md`; `graph-authoring` and loader/linter error
+  messages now point at the reference docs directly. (REQ-YG-423)
+- **FR-764 Style-Convert Pipeline**: New `examples/style_convert/` — the inverse-front twin of `image_pipeline`. It loads an existing prompt file (one prompt per nonblank line, stripping only leading `N. ` enumerators, never mutating the source), restyles each prompt into a target art style via a Mistral-pinned map node with a structured `prompt_text` schema, and reuses `image_pipeline`'s `save_prompts_node` unchanged. A `validate_conversions` gate runs before the sink so a failed conversion branch aborts the run before any file is written (fail-fast: N in == N out or nothing written). (REQ-YG-573)
+
+### Removed
+- **FR-796 Watcher2 witness curation**: Removed three obsolete one-shot verification demos and relocated seven retained watcher2 regression witnesses from the user-facing examples garden to `.chaplain/demos/`, removing their MCP discovery noise while preserving runnable infrastructure evidence.
+
+### Fixed
+- **FR-800 Memory-Demo Mock Seam Correction**: retarget the shell-tool mock in `test_tool_results_stored_in_state` to the FR-660 seam (`yamlgraph.tools.tool_builders.execute_shell_tool`) and assert the mock call, restoring the `_tool_results` witness broken since 085f3aad. (REQ-YG-025)
+- **FR-799 fr432 Fixture Module-Identity Restore**: the fr432 autouse teardown re-imports `yamlgraph.config` after popping it, healing the orphaned package attribute that made a later `importlib.reload(config)` raise ImportError under xdist scheduling (~5%/run); permanent identity witness added. (REQ-YG-043)
+- **FR-797 Subgraph Interrupt Relay**: Repair subgraph interrupt propagation under LangGraph 1.x via a compile-time two-node split (`{name}__run` commits mapped child state and relay internals; `{name}__pause` performs a parent-native `interrupt`). Child interrupts now surface to the parent with pause-state committed before the pause, resume replays into the paused child, and unrelayed child interrupts fail loud with `ValueError`. Conditional outgoing edges from relay nodes are rejected at compile time (phase 1). (REQ-YG-042)
+- **FR-795 Endpoint-Probe Prompt Schema Dialect Repair**: Converted the shipped endpoint-probe prompt from a mixed native/JSON schema declaration to the supported `output_schema` dialect, preserving nested endpoint guidance and allowing the graph to compile and run. (REQ-YG-586)
+- **FR-794 Shared Python Tool Manifest Root Confinement Fix**: `type: python` tool manifests referenced via `manifest:` from a different directory than the consuming graph (the "one tool, many consumers" pattern) no longer fail FR-445's graph-root confinement check — confinement is relocated to the manifest's own declaration root, closing a previously-unguarded gap where a manifest's own path was never validated. Inline (non-manifest) Python tools keep FR-445 behavior unchanged. Repairs the already-merged FR-785 `endpoint-probe` graph's `curl_probe` tool loading. (REQ-YG-588)
+- **FR-793 Hook ruff venv fallback + error surfacing**: `post-edit-python-checks` now resolves ruff via `HOOK_RUFF_BIN` → PATH → hook-repo `.venv/bin/ruff`, ending 3 months of silently skipped edit-time lint feedback (1,818 `ruff-missing` errors); `.github/hooks/cmd status` now reports last-7-days hook error counts grouped by hook/reason with an explicit `none` line, so a silently failing hook can no longer accrue errors invisibly.
+- **FR-784 network-sniff live-found hardening**: redact vendor-prefixed key params (segment-based name matching) and token-shaped query values under any name; classify telemetry hostname labels (e.g. `telemetry.<vendor>`) as telemetry. Found by live validation against hn.algolia.com. (REQ-YG-590)
+- **FR-779 Research-Agent Demo Rot**: Fixed bare `{query}`/`{scope}` bindings (model received literal placeholders and hallucinated topics) with `{state.*}` paths and state declarations; replaced the unconditional `validate_findings → synthesize_report` edge with a conditional gate so empty findings or low confidence terminate honestly without fabricating a report. Repo-wide demo binding-hygiene sweep test added (CAP-221). (REQ-YG-581)
+- **FR-771 Vision Demo Executes the Manifest Tool**: the shared-vision demo's
+  node is now `type: tool_call` invoking the manifest-declared `describe_image`
+  through the tool registry with FR-772 inline args — the Python wrapper
+  (registry bypass) is deleted and lint W001 is gone. Completes the FR-768
+  smoke at the invocation boundary (reuses REQ-YG-574/REQ-YG-576 — no new
+  requirement).
+- **Shared Vision Tool Demo**: Pin the Google vision model used by the shared vision tool demo and refresh its demo proof log.
+
 ## [0.5.18]
 
 ### Added

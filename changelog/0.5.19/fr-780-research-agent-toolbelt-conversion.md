@@ -1,5 +1,5 @@
 ---
-type: changed
+type: feat
 scope: examples
 req: REQ-YG-579
 ---
