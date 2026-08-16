@@ -1644,6 +1644,53 @@ Line grammar (frozen):
 
 Render routes with `yamlgraph graph export --mermaid --overlay route.jsonl` — see [CLI Reference](cli.md).
 
+### Route evidence record
+
+An opted-in graph run writes a JSONL evidence record, not bare route lines:
+
+1. `event: run` binds the record to a UUIDv7 `run_id`, graph path, YAMLGraph
+  version, optional judgement reference, and `artifact_hash`.
+2. Each `event: route` keeps the original `event`, `node`, `value`, `target`,
+  and `thread_id` contract and adds an ISO-8601 UTC `ts`.
+3. `event: run_end` reports the best-effort `dropped_events` count.
+
+`artifact_hash` is SHA-256 over canonical JSON containing the graph YAML and
+every resolved prompt YAML path plus each file's raw-byte SHA-256. Missing
+referenced prompts fail hash generation; an incomplete identity is never
+emitted. `graph export --overlay` requires exactly one leading run header and
+refuses missing, malformed, duplicate, or graph-mismatched headers.
+
+The default posture remains non-strict: route evidence delivery failures are
+counted but do not fail graph execution. FR-808's regulated profile is the
+separate policy layer that may make evidence loss fatal.
+
+### Regulated evidence profile
+
+```yaml
+observability:
+  profile: regulated
+  route_log_sink: logs/routes
+  judgement_ref: FR-123
+  strict_evidence: true  # optional; default false
+```
+
+The profile implies route logging and requires a filesystem directory sink plus
+a judgement reference. Each run preflights the directory and writes exactly one
+`<run_id>.route.jsonl`. Missing fields, `route_log: false`, a file-valued or
+non-writable sink, or profile fields outside `profile: regulated` fail before
+graph execution and before a run header is emitted.
+
+`YAMLGRAPH_ROUTE_LOG=0` alone is ignored under the profile and emits a warning.
+Together with `YAMLGRAPH_ROUTE_LOG_OVERRIDE=1`, it records an exception and
+disables emission only when `strict_evidence` is false. Strict runs reject every
+disable request at startup. If an enabled strict run loses evidence, it first
+attempts `run_end`, then raises `EvidenceLossError` carrying a structured
+`PipelineError` record with the dropped count and sink. Non-strict runs preserve
+FR-807 behavior: complete normally and expose the counted loss.
+
+This profile implements an engineering evidence posture. It does not establish
+AI Act compliance, conformity, retention sufficiency, or legal adequacy.
+
 ---
 
 ## Exports

@@ -639,7 +639,7 @@ Route across nodes using explicit routes, expression evaluation, and control nod
 | REQ-YG-022 | Conditional routing functions | `routing` |
 | REQ-YG-023 | Condition expression evaluation | `utils/conditions` |
 | REQ-YG-214 | Router route mapping redirects interrupt targets to *_prepare and subgraph interrupt targets to *__run in conditional edge route mappings (FR-211) | `edge_compiler`, `graph_loader` |
-| REQ-YG-552 | Route decision hook (FR-723). Every routing decision — simple router, expression match, loop-limit exit, map fan-out, no-match fallthrough — emits one JSON line on the public yamlgraph.route logger when opted in (YAMLGRAPH_ROUTE_LOG env or observability.route_log graph flag). Map fan-outs emit map-node name + count, never Send payloads (R-2 privacy). thread_id carried by a contextvar set at run entrypoints, null never fabricated (R-1). Zero serialization when off; emission never raises. | `routing`, `utils/route_log` |
+| REQ-YG-552 | Route evidence record and regulated profile (FR-723/FR-807/FR-808). Opted-in runs emit a content-bound run header, timestamped frozen-grammar routes, and a run_end loss count; route and OTEL surfaces share UUIDv7 identity. Overlay export requires a matching header. The regulated artifact profile requires a preflighted per-run filesystem sink and judgement reference, enables evidence by default, records permitted disable overrides, and can fail strict runs on counted evidence loss. Ordinary graphs remain opt-in and non-strict. | `routing`, `utils/route_log` |
 
 ### 7. CAP-7 State Persistence
 

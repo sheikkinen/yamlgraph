@@ -109,7 +109,7 @@ def variables_hash(variables: dict[str, Any]) -> str:
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 
-def _generate_run_id() -> str:
+def generate_run_id() -> str:
     """Generate a UUIDv7 (RFC 9562) run id — time-ordered, so run ids sort
     chronologically and embed their creation time, unlike UUIDv4's pure
     randomness. ``uuid.uuid7()`` is stdlib-only from Python 3.14; this repo
@@ -196,6 +196,7 @@ def graph_run_span(
     graph_name: str,
     variables: dict[str, Any],
     thread_id: str | None = None,
+    run_id: str | None = None,
 ) -> Iterator[GraphRunContext]:
     """Start the ``yamlgraph.graph.run`` span (no-op when OTEL is disabled).
 
@@ -204,13 +205,13 @@ def graph_run_span(
     caller's block, and therefore every node, never runs in that case.
     """
     if not is_otel_enabled():
-        yield GraphRunContext(run_id=None)
+        yield GraphRunContext(run_id=run_id)
         return
 
     trace = _ensure_otel_available()
     _configure_exporter_if_needed(trace)
 
-    run_id = _generate_run_id()
+    run_id = run_id or generate_run_id()
     tracer = trace.get_tracer("yamlgraph")
     with tracer.start_as_current_span(GRAPH_RUN_SPAN) as span:
         span.set_attribute("yamlgraph.run.id", run_id)

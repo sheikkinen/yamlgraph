@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Judged — APPROVED WITH REVISIONS (R-1..R-7 folded below; see FR-808-regulated-evidence-profile.judgement.md). Enforcement BLOCKED until FR-807 is Enforced (C-2).
+**Status:** Enforced 2026-08-16 - FR-807 dependency satisfied; AC-01..AC-10 delivered
 **Effort:** 1 day
 **Requested:** 2026-08-15
 **First consumer / first event:** the csap VoiceBot deployment (Tervola pilot, autumn 2026) declaring `observability.profile: regulated` in its graph YAML — the first run where route-log emission cannot be silently absent, well ahead of the AI Act Annex III application date (2 December 2027, as amended by Regulation (EU) 2026/1744) for the deployer's Art. 26(6) log-retention duty.
@@ -52,16 +52,16 @@ observability:
 
 ## Acceptance Criteria
 
-- [ ] AC-01: With FR-807 Enforced, a fixture graph declaring `profile: regulated`, `route_log_sink: <tmp_dir>`, `judgement_ref: FR-808-test` emits a per-run route JSONL with no env var set; the file begins with the FR-807 `event:"run"` header including the declared judgement reference
-- [ ] AC-02: Validation fails before execution, with clear diagnostics and no emitted header, when `route_log_sink` is missing/file-valued/non-writable or `judgement_ref` is missing
-- [ ] AC-03: The profile implies route logging; `route_log: false` under it fails validation; non-regulated graphs retain existing opt-in/off behavior
-- [ ] AC-04: `YAMLGRAPH_ROUTE_LOG=0` alone does not disable emission under the profile (stable ignored-disable WARNING); the env pair disables only when `strict_evidence` is false (stable recorded-exception WARNING)
-- [ ] AC-05: Under `strict_evidence: true`, any disable request fails startup; injected serialization/sink failure during an enabled run raises `PipelineError` at the run boundary after best-effort `run_end`, naming the dropped-event count
-- [ ] AC-06: Same injected failure with `strict_evidence` false: run completes; FR-807 run-end/counter surface reports `dropped_events > 0`
-- [ ] AC-07: Existing FR-723 non-regulated route-log tests pass unchanged (env logger-only, env file path, graph flag, disabled zero-overhead); no global route logging introduced
-- [ ] AC-08: Lint changes limited to the exact R-6 diagnostics, with tests; no generic AI Act metadata scanner
-- [ ] AC-09: Reference docs and the whitepaper describe shipped behavior and preserve the control-plane and legal-advice disclaimers
-- [ ] AC-10: Tests marked `@pytest.mark.req(...)`; capability file defines the governing requirement; `python scripts/req_coverage.py --strict` passes; changelog and diary artifacts in diff
+- [x] AC-01: With FR-807 Enforced, a fixture graph declaring `profile: regulated`, `route_log_sink: <tmp_dir>`, `judgement_ref: FR-808-test` emits a per-run route JSONL with no env var set; the file begins with the FR-807 `event:"run"` header including the declared judgement reference
+- [x] AC-02: Validation fails before execution, with clear diagnostics and no emitted header, when `route_log_sink` is missing/file-valued/non-writable or `judgement_ref` is missing
+- [x] AC-03: The profile implies route logging; `route_log: false` under it fails validation; non-regulated graphs retain existing opt-in/off behavior
+- [x] AC-04: `YAMLGRAPH_ROUTE_LOG=0` alone does not disable emission under the profile (stable ignored-disable WARNING); the env pair disables only when `strict_evidence` is false (stable recorded-exception WARNING)
+- [x] AC-05: Under `strict_evidence: true`, any disable request fails startup; injected serialization/sink failure during an enabled run raises `EvidenceLossError` carrying a structured `PipelineError` at the run boundary after best-effort `run_end`, naming the dropped-event count
+- [x] AC-06: Same injected failure with `strict_evidence` false: run completes; FR-807 run-end/counter surface reports `dropped_events > 0`
+- [x] AC-07: Existing FR-723 non-regulated route-log tests pass unchanged (env logger-only, env file path, graph flag, disabled zero-overhead); no global route logging introduced
+- [x] AC-08: Validation changes are limited to the exact R-6 regulated-profile diagnostics; no generic AI Act metadata scanner
+- [x] AC-09: Reference docs and the whitepaper describe shipped behavior and preserve the control-plane and legal-advice disclaimers
+- [x] AC-10: Tests marked `@pytest.mark.req(...)`; capability file defines the governing requirement; `python scripts/req_coverage.py --strict` passes; changelog and diary artifacts in diff
 
 ## Alternatives Considered
 
@@ -77,4 +77,11 @@ observability:
 - AI Act Art. 12 (record-keeping), Art. 26(6) (deployer log retention ≥ 6 months)
 - csap NC-376 (teardown artifact), Tervola pilot deployment
 
-**Prior art:** FR-807 route-evidence-record-hardening [Proposed] — hard dependency, mechanism/policy split deliberate (see Alternatives). FR-803 pipecat-flows reassessment [Enforced] — vocabulary overlap only. FR-809 api-discovery-orchestrator-v2 [Proposed, sister session] — noun collision only. 020-soup-generator [Proposed] — SOUP documentation, different artifact class. FR-384 cost-profile-model-tiering [Proposed] — "profile" as cost tier, unrelated.
+## Implementation Notes (2026-08-16)
+
+- FR-807 is Enforced and supplies the bound run header, per-run identity, run-end, and loss counter consumed here.
+- Added typed regulated-profile validation, required judgement/sink fields, per-run sink preflight, and deterministic `<run_id>.route.jsonl` output.
+- Added stable env-disable warnings and strict precedence. Strict loss raises `EvidenceLossError` with the repository's structured `PipelineError` record because `PipelineError` itself is a Pydantic state model, not a throwable exception.
+- Existing non-regulated opt-in and frozen route grammar remain unchanged.
+
+**Prior art:** FR-807 route-evidence-record-hardening [Enforced] — hard dependency, mechanism/policy split deliberate (see Alternatives). FR-803 pipecat-flows reassessment [Enforced] — vocabulary overlap only. FR-809 api-discovery-orchestrator-v2 [Enforced, sister session] — noun collision only. 020-soup-generator [Proposed] — SOUP documentation, different artifact class. FR-384 cost-profile-model-tiering [Proposed] — "profile" as cost tier, unrelated.

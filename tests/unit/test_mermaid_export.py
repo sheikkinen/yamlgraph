@@ -223,9 +223,14 @@ class TestCliExport:
         from argparse import Namespace
 
         from yamlgraph.cli.export_commands import cmd_graph_export
+        from yamlgraph.utils.artifact_hash import compute_artifact_hash
 
         route_file = tmp_path / "route.jsonl"
-        route_file.write_text("\n".join(json.dumps(e) for e in ROUTE) + "\n")
+        header = {
+            "event": "run",
+            "artifact_hash": compute_artifact_hash(REFLEXION),
+        }
+        route_file.write_text("\n".join(json.dumps(e) for e in [header, *ROUTE]) + "\n")
         cmd_graph_export(
             Namespace(
                 graph_path=str(REFLEXION),

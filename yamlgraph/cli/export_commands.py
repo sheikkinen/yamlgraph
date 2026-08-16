@@ -6,6 +6,7 @@ Implements:
 - graph export --diff a.jsonl b.jsonl   (exit 1 on divergence)
 """
 
+import json
 import sys
 from argparse import Namespace
 from pathlib import Path
@@ -18,6 +19,7 @@ from yamlgraph.mermaid_export import (
     render_mermaid,
     render_overlay,
 )
+from yamlgraph.utils.artifact_hash import compute_artifact_hash
 
 
 def cmd_graph_export(args: Namespace) -> None:
@@ -44,7 +46,9 @@ def cmd_graph_export(args: Namespace) -> None:
     config = yaml.safe_load(Path(args.graph_path).read_text())
     overlay = getattr(args, "overlay", None)
     if overlay:
-        route = parse_route_lines(Path(overlay).read_text().splitlines())
+        lines = Path(overlay).read_text().splitlines()
+        _validate_overlay_header(Path(args.graph_path), lines)
+        route = parse_route_lines(lines)
         text = render_overlay(config, route)
     else:
         text = render_mermaid(config)
@@ -55,6 +59,29 @@ def cmd_graph_export(args: Namespace) -> None:
         print(f"📁 {output}")
     else:
         print(text, end="")
+
+
+def _validate_overlay_header(graph_path: Path, lines: list[str]) -> None:
+    try:
+        records = [json.loads(line) for line in lines if line.strip()]
+    except json.JSONDecodeError as exc:
+        _overlay_error(f"malformed JSON: {exc}")
+    headers = [record for record in records if record.get("event") == "run"]
+    if len(headers) != 1 or not records or records[0].get("event") != "run":
+        _overlay_error("route overlay requires exactly one leading run header")
+    actual = headers[0].get("artifact_hash")
+    if not isinstance(actual, str) or not actual.startswith("sha256:"):
+        _overlay_error("run header has missing or malformed artifact_hash")
+    expected = compute_artifact_hash(graph_path)
+    if actual != expected:
+        _overlay_error(
+            f"artifact hash mismatch: route log has {actual}, graph has {expected}"
+        )
+
+
+def _overlay_error(message: str) -> None:
+    print(f"❌ invalid route overlay: {message}", file=sys.stderr)
+    raise SystemExit(1)
 
 
 def _run_diff(a_path: Path, b_path: Path) -> None:

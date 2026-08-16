@@ -137,6 +137,11 @@ ordered route is reconstructible from the render.
 yamlgraph graph export <graph.yaml> --mermaid --overlay route.jsonl
 ```
 
+Overlay input must be a bound route evidence record produced by a graph run.
+The first JSONL record is `event: run`; its `artifact_hash` must match the graph
+being exported. Headerless legacy logs and malformed, duplicate, or mismatched
+headers are rejected before rendering.
+
 Diff two routes, occurrence-aligned per `(node, Nth firing)` — exits 1 on
 divergence, so an empty diff is a cheap determinism witness:
 

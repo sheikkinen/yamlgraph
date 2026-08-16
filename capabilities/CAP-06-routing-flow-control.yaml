@@ -26,7 +26,7 @@ requirements:
       - edge_compiler
       - graph_loader
   - id: REQ-YG-552
-    description: "Route decision hook (FR-723). Every routing decision — simple router, expression match, loop-limit exit, map fan-out, no-match fallthrough — emits one JSON line on the public yamlgraph.route logger when opted in (YAMLGRAPH_ROUTE_LOG env or observability.route_log graph flag). Map fan-outs emit map-node name + count, never Send payloads (R-2 privacy). thread_id carried by a contextvar set at run entrypoints, null never fabricated (R-1). Zero serialization when off; emission never raises."
+    description: "Route evidence record and regulated profile (FR-723/FR-807/FR-808). Opted-in runs emit a content-bound run header, timestamped frozen-grammar routes, and a run_end loss count; route and OTEL surfaces share UUIDv7 identity. Overlay export requires a matching header. The regulated artifact profile requires a preflighted per-run filesystem sink and judgement reference, enables evidence by default, records permitted disable overrides, and can fail strict runs on counted evidence loss. Ordinary graphs remain opt-in and non-strict."
     modules:
       - routing
       - utils/route_log

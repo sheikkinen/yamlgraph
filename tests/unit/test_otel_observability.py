@@ -232,6 +232,18 @@ def test_enabled_success_emits_parent_and_child_spans(in_memory_exporter):
 
 
 @requires_otel_sdk
+@pytest.mark.req("REQ-YG-552", "REQ-YG-570")
+def test_graph_run_span_uses_supplied_route_run_id(in_memory_exporter):
+    """FR-807: route evidence and OTEL share one caller-generated UUIDv7."""
+    supplied = otel.generate_run_id()
+    with otel.graph_run_span("shared", {}, run_id=supplied) as run_ctx:
+        assert run_ctx.run_id == supplied
+
+    (span,) = in_memory_exporter.get_finished_spans()
+    assert span.attributes["yamlgraph.run.id"] == supplied
+
+
+@requires_otel_sdk
 @pytest.mark.req("REQ-YG-570")
 def test_enabled_with_thread_id_sets_optional_attribute(in_memory_exporter):
     """AC-06: yamlgraph.thread.id is set when a checkpointer thread id is

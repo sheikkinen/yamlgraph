@@ -1,11 +1,4 @@
-"""Async Prompt Executor - Async interface for LLM calls.
-
-This module provides async versions of execute_prompt for use in
-async contexts like web servers or concurrent pipelines.
-
-Note: This is a foundation module. The underlying LLM calls still
-use sync HTTP clients wrapped with run_in_executor.
-"""
+"""Async prompt execution for web servers and concurrent pipelines."""
 
 from __future__ import annotations
 
@@ -221,8 +214,21 @@ async def run_graph_async(
         resume by calling again with Command(resume=...) and the same
         thread_id config.
     """
+    from contextlib import nullcontext
+
+    from yamlgraph.utils.route_log import route_log_enabled, route_run_context
+
     config = config or {}
-    with route_thread_id_from_config(config):
+    graph_path = getattr(app, "_yamlgraph_source_path", None)
+    if not isinstance(graph_path, str | Path):
+        graph_path = None
+    thread_id = (config.get("configurable") or {}).get("thread_id")
+    run_context = (
+        route_run_context(graph_path, thread_id=thread_id)
+        if graph_path and route_log_enabled()
+        else nullcontext()
+    )
+    with run_context, route_thread_id_from_config(config):
         return await app.ainvoke(initial_state, config)
 
 
@@ -283,6 +289,7 @@ async def load_and_compile_async(
 
     state_graph = compile_graph(config)
     compiled = await compile_graph_async(state_graph, config)
+    compiled._yamlgraph_source_path = str(config.source_path)  # type: ignore[attr-defined]
 
     if cache is not None:
         cache[path] = compiled

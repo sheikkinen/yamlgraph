@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Enhancement
-**Status:** Judged — APPROVED WITH REVISIONS (R-1..R-5 folded below; see FR-807-route-evidence-record-hardening.judgement.md)
+**Status:** Enforced 2026-08-16 - AC-01..AC-08 delivered; route/OTEL/overlay regression suite green
 **Effort:** 1.5 days
 **Requested:** 2026-08-15
 **First consumer / first event:** `yamlgraph graph export --overlay` refusing a route log whose run-header artifact hash does not match the exported graph — the first time a conformance diff can *prove* rather than presume that the executed artifact is the approved one. Second consumer: csap teardown artifact (NC-376) correlating `call_sid` → artifact version from the header.
@@ -53,14 +53,14 @@ A route log file is self-authenticating: its first line names the exact artifact
 
 ## Acceptance Criteria
 
-- [ ] AC-01: With route logging enabled on each R-5 entrypoint path, the first persisted JSON record is `{"event":"run"}` carrying `run_id` (UUIDv7), `artifact_hash`, `graph`, `yamlgraph_version`, `thread_id` (nullable), `started_at` (ISO-8601 UTC seconds); `judgement` appears only when `observability.judgement_ref` is declared
-- [ ] AC-02: With OTel enabled, route-log `run_id` equals OTel `yamlgraph.run.id`; with OTel disabled, the route log still gets a UUIDv7 `run_id` from the same helper
-- [ ] AC-03: Artifact-hash helper is stable across runs of an unchanged graph, changes on graph or referenced-prompt change, and fails clearly (no incomplete hash) on unresolvable referenced artifacts
-- [ ] AC-04: Every `route` record carries `ts` (ISO-8601 UTC seconds) and preserves the five existing fields' names/types/meanings; grammar regression test proves existing consumers ignore `run`, `run_end`, and additive fields
-- [ ] AC-05: `graph export --overlay` succeeds only with exactly one leading run header whose `artifact_hash` matches the graph's computed hash; clear diagnostics for missing/malformed/duplicate/mismatched headers
-- [ ] AC-06: Injected serialization and sink-delivery failures increment `dropped_events` exactly once per failed record, never raise from the run, and are reported best-effort in `{"event":"run_end","run_id":…,"dropped_events":N}`; tests prove reset / no cross-run leakage
-- [ ] AC-07: Tests tagged `@pytest.mark.req(...)`; `python scripts/req_coverage.py --strict` closes; changelog fragment in `changelog/unreleased/`
-- [ ] AC-08: Reference docs describe the record grammar, hash-manifest algorithm, header validation, and the non-strict relationship to FR-808
+- [x] AC-01: With route logging enabled on each R-5 entrypoint path, the first persisted JSON record is `{"event":"run"}` carrying `run_id` (UUIDv7), `artifact_hash`, `graph`, `yamlgraph_version`, `thread_id` (nullable), `started_at` (ISO-8601 UTC seconds); `judgement` appears only when `observability.judgement_ref` is declared
+- [x] AC-02: With OTel enabled, route-log `run_id` equals OTel `yamlgraph.run.id`; with OTel disabled, the route log still gets a UUIDv7 `run_id` from the same helper
+- [x] AC-03: Artifact-hash helper is stable across runs of an unchanged graph, changes on graph or referenced-prompt change, and fails clearly (no incomplete hash) on unresolvable referenced artifacts
+- [x] AC-04: Every `route` record carries `ts` (ISO-8601 UTC seconds) and preserves the five existing fields' names/types/meanings; grammar regression test proves existing consumers ignore `run`, `run_end`, and additive fields
+- [x] AC-05: `graph export --overlay` succeeds only with exactly one leading run header whose `artifact_hash` matches the graph's computed hash; clear diagnostics for missing/malformed/duplicate/mismatched headers
+- [x] AC-06: Injected serialization and sink-delivery failures increment `dropped_events` exactly once per failed record, never raise from the run, and are reported best-effort in `{"event":"run_end","run_id":…,"dropped_events":N}`; tests prove reset / no cross-run leakage
+- [x] AC-07: Tests tagged `@pytest.mark.req(...)`; `python scripts/req_coverage.py --strict` closes; changelog fragment in `changelog/unreleased/`
+- [x] AC-08: Reference docs describe the record grammar, hash-manifest algorithm, header validation, and the non-strict relationship to FR-808
 
 ## Alternatives Considered
 
@@ -77,3 +77,10 @@ A route log file is self-authenticating: its first line names the exact artifact
 - FR-808 (regulated evidence profile — composes this record)
 
 **Prior art:** FR-723/FR-753/FR-759 are the substrate this extends (route log, overlay, run identity) — built upon, not duplicated. FR-803 pipecat-flows reassessment [Enforced] shares only the regulated/evidence vocabulary (voice-stack architecture, no route-record overlap). FR-809 api-discovery-orchestrator-v2 [Proposed, sister session] — noun collision only (evidence = recon findings). 020-soup-generator [Proposed] — IEC 62304 SOUP dependency documentation, not runtime evidence. FR-384 cost-profile-model-tiering [Proposed] — "profile" as cost tier, unrelated domain.
+
+## Implementation Notes (2026-08-16)
+
+- Added a shared canonical graph/prompt artifact hash used by run headers and overlay validation.
+- Added UUIDv7 run context, timestamped additive route fields, best-effort run-end records, and exact loss accounting without changing the five frozen route fields.
+- CLI and async entrypoints establish evidence contexts; CLI route and OTEL records share one generated run ID.
+- Overlay export now fails closed on missing, malformed, duplicate, or mismatched headers while downstream `parse_route_lines()` remains tolerant.

@@ -5,7 +5,8 @@ messages. Node-level config models live in node_schema (FR-716 split);
 this module holds the graph-level models and validation entry points.
 """
 
-from typing import Any
+from pathlib import Path
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field, model_validator
 
@@ -31,6 +32,35 @@ class EdgeConfig(BaseModel):
     condition: str | None = Field(default=None, description="Condition expression")
 
     model_config = {"populate_by_name": True}
+
+
+class ObservabilityConfig(BaseModel):
+    """Graph evidence posture (FR-807/FR-808)."""
+
+    profile: Literal["regulated"] | None = None
+    route_log: bool | None = None
+    route_log_sink: Path | None = None
+    judgement_ref: str | None = None
+    strict_evidence: bool = False
+
+    model_config = {"extra": "allow"}
+
+    @model_validator(mode="after")
+    def validate_regulated_profile(self) -> "ObservabilityConfig":
+        regulated = self.profile == "regulated"
+        profile_fields = self.strict_evidence or self.route_log_sink is not None
+        if profile_fields and not regulated:
+            raise ValueError(
+                "strict_evidence and route_log_sink require profile: regulated"
+            )
+        if regulated:
+            if self.route_log_sink is None:
+                raise ValueError("route_log_sink is required for profile: regulated")
+            if not self.judgement_ref:
+                raise ValueError("judgement_ref is required for profile: regulated")
+            if self.route_log is False:
+                raise ValueError("route_log: false is invalid for profile: regulated")
+        return self
 
 
 class GraphConfigSchema(BaseModel):
@@ -59,6 +89,7 @@ class GraphConfigSchema(BaseModel):
         default_factory=list,
         description="Graph-level terminal verification rules (FR-677)",
     )
+    observability: ObservabilityConfig = Field(default_factory=ObservabilityConfig)
 
     model_config = {"extra": "allow"}
 

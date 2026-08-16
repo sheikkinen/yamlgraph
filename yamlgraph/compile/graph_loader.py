@@ -311,7 +311,7 @@ def compile_graph(config: GraphConfig) -> StateGraph:
 
     # FR-723: graph-YAML opt-in for the route decision log (process-wide).
     observability = config.raw_config.get("observability") or {}
-    if observability.get("route_log"):
+    if observability.get("route_log") or observability.get("profile") == "regulated":
         from yamlgraph.utils.route_log import enable_route_log
 
         enable_route_log(True)

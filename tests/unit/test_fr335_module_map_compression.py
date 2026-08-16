@@ -139,7 +139,9 @@ class TestFR335ModuleMapCompression:
         # models/state_codegen.py).
         # FR-810: 285 -> 287 for linter/checks_tool_call.py (size-gate split
         # of check_tool_call_nodes out of checks_semantic.py at the cap).
-        assert line_count <= 287, f"module-map too large: {line_count} lines (max 287)"
+        # FR-807/808: 287 -> 291 for artifact_hash.py and
+        # regulated_evidence.py (content identity + policy split).
+        assert line_count <= 291, f"module-map too large: {line_count} lines (max 291)"
 
     def test_ac02_dependency_lists_contain_only_yamlgraph_imports(self) -> None:
         module_map = _run_generator()

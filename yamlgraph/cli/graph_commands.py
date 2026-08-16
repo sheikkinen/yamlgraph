@@ -174,12 +174,24 @@ def cmd_graph_run(args: Namespace) -> None:
         # FR-027: Set up timeout guard (signal.alarm on Unix)
         timeout_ctx = _setup_timeout(timeout)
 
-        from yamlgraph.observability.otel import graph_run_span
+        from contextlib import nullcontext
+
+        from yamlgraph.observability.otel import generate_run_id, graph_run_span
+        from yamlgraph.utils.route_log import route_log_enabled, route_run_context
 
         thread_id = config.get("configurable", {}).get("thread_id")
-        with graph_run_span(
-            graph_config.name, initial_state, thread_id=thread_id
-        ) as run_ctx:
+        run_id = generate_run_id()
+        route_context = (
+            route_run_context(graph_path, thread_id=thread_id, run_id=run_id)
+            if route_log_enabled() and graph_path.is_file()
+            else nullcontext()
+        )
+        with (
+            graph_run_span(
+                graph_config.name, initial_state, thread_id=thread_id, run_id=run_id
+            ) as run_ctx,
+            route_context,
+        ):
             try:
                 result = _run_graph_until_complete(
                     app,

@@ -313,9 +313,9 @@ Three properties of the run-time layer deserve emphasis:
 - **Uniformity.** The route log is emitted by the framework, below every
   pipeline. No per-application logging code exists to be forgotten, and
   every pipeline in the estate produces evidence in the same format —
-  Article 12 as an inherited property. (As of this writing, emission is
-  enabled by configuration; the on-by-default regulated profile is
-  specified in §7 as required work, not shipped behavior.)
+  Article 12 as an inherited property. Ordinary artifacts retain explicit
+  opt-in; artifacts declaring the shipped regulated evidence profile emit
+  to a required per-run sink by default.
 - **Self-hosting.** Logs, checkpoints, and overlays are files and databases
   the operator owns. No conformance-relevant record transits a third-party
   platform; data-residency and procurement constraints common in healthcare
@@ -384,6 +384,13 @@ strict mode), never silently swallowed; each event must carry a timestamp
 each run record must open with the artifact's content hash and judgement
 reference, so the record binds itself to the approved version by equality
 instead of relying on deployment state.
+
+The reference implementation now ships that engineering profile: the artifact
+must declare a writable route-log directory and judgement reference; each run
+writes a content-bound record under its UUIDv7 identity; strict mode fails at
+the run boundary on counted evidence loss. This is an evidence-control
+mechanism, not a claim of legal compliance, conformity assessment, regulator
+acceptance, or sufficient retention policy.
 
 **Uncertainty is not yet surfaced.** The record shows *what* each stochastic
 step produced, not how confident the system was. Surfacing calibrated
@@ -484,10 +491,10 @@ inspect or reproduce the mechanism rather than take it on argument:
 |---|---|
 | Declarative artifact (P1) | `graph.yaml` + `prompts/*.yaml`, schema-validated |
 | Static lint, closed failure surface | `yamlgraph graph lint` |
-| Route decision log (P3) | `YAMLGRAPH_ROUTE_LOG` / `observability.route_log` — one JSON line per routing decision, in artifact vocabulary |
-| Conformance overlay (P4) | `yamlgraph graph export --overlay <route.jsonl>` |
-| Run identity correlation | OpenTelemetry export (`yamlgraph[otel]`) |
-| Version binding (P5) + regulated profile (§7) | specified as judged, unimplemented change requests in the public repository — the required-work status stated in this paper is verifiable there |
+| Route decision log (P3) | `YAMLGRAPH_ROUTE_LOG` / `observability.route_log` — content-bound run header, timestamped route records, run-end loss count |
+| Conformance overlay (P4) | `yamlgraph graph export --overlay <route.jsonl>` — rejects missing or artifact-mismatched headers |
+| Run identity correlation | Shared UUIDv7 route/OTel run identity (`yamlgraph[otel]` optional) |
+| Version binding (P5) + regulated profile (§7) | `observability.profile: regulated` — required judgement reference and per-run sink; optional strict evidence-loss failure |
 
 The judgement workflow of P2 is the repository's own development process:
 every feature enters through a written change request judged against
@@ -533,12 +540,12 @@ checklist is stated so that any stack can be assessed against it.
     deployment is anonymized stylistically, not contractually, and is
     identified to auditors and prospective customers on request.
 
-[^5]: **Version binding.** In the reference implementation the
-    executed-equals-approved binding rests on deployment pinning; the run
-    record does not yet carry the artifact content hash or judgement
-    reference. Stamping the record with both — so the binding is checked by
-    equality rather than inferred from deployment state — is specified as
-    required work for the regulated profile (§7).
+[^5]: **Version binding.** The reference implementation's run record carries a
+  canonical graph/prompt artifact content hash and optional judgement
+  reference. The regulated evidence profile requires the judgement reference,
+  so overlay verification checks executed-equals-reviewed binding by hash
+  equality rather than inferring it from deployment state. This technical
+  binding does not establish legal or regulatory acceptance.
 
 *References: Regulation (EU) 2024/1689 (AI Act), Arts. 9, 11–14, 26, 72–73,
 Annexes III–IV, as amended by Regulation (EU) 2026/1744 (application dates,

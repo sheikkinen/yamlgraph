@@ -97,7 +97,9 @@ class TestSimpleRouterEmission:
             "value": "negative",
             "target": "negative",
             "thread_id": None,
+            "ts": line["ts"],
         }
+        assert line["ts"].endswith("Z")
 
     @pytest.mark.req("REQ-YG-552")
     def test_default_route_emits_default_value(self, monkeypatch, route_records):

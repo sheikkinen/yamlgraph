@@ -112,6 +112,7 @@ from yamlgraph.models.graph_schema import (  # noqa: F401 (CONF-126)
     CheckpointConfig,
     DefaultsConfig,
     NodeConfig,
+    ObservabilityConfig,
     PostGuardRule,
     VerificationConfig,
 )
@@ -136,6 +137,7 @@ VerificationConfig.validate_on_fail
 DefaultsConfig.validate_defaults_thinking_budget
 GraphConfig.validate_router_targets
 GraphConfig.validate_edge_nodes
+ObservabilityConfig.validate_regulated_profile
 
 # --- schemas.py: Pydantic fields accessed in tests ---
 from yamlgraph.models.schemas import (  # noqa: F401 (CONF-126)
