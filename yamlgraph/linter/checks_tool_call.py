@@ -7,9 +7,30 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import yaml
+
 from yamlgraph.linter.checks import LintIssue, load_graph
 
 __all__ = ["check_tool_call_nodes"]
+
+
+def _is_statically_non_graph(tool_decl: dict, graph_dir: Path) -> bool:
+    """True only when the declaration provably resolves to a non-graph tool.
+
+    Inline declarations carry their type directly. Manifest-backed tools
+    are resolved by reading the manifest's runtime.type; an unreadable or
+    malformed manifest is unknown, not non-graph (fail open — W703 is
+    advisory and a false warning misdirects authors).
+    """
+    manifest_ref = tool_decl.get("manifest")
+    if not manifest_ref:
+        return tool_decl.get("type") != "graph"
+    try:
+        manifest = yaml.safe_load((graph_dir / manifest_ref).read_text())
+        runtime_type = manifest["runtime"]["type"]
+    except (OSError, yaml.YAMLError, KeyError, TypeError):
+        return False
+    return runtime_type != "graph"
 
 
 def check_tool_call_nodes(graph_path: Path) -> list[LintIssue]:
@@ -29,7 +50,9 @@ def check_tool_call_nodes(graph_path: Path) -> list[LintIssue]:
         if node_config.get("parsed_key"):
             tool_ref = node_config.get("tool")
             tool_decl = tools.get(tool_ref) if isinstance(tool_ref, str) else None
-            if isinstance(tool_decl, dict) and tool_decl.get("type") != "graph":
+            if isinstance(tool_decl, dict) and _is_statically_non_graph(
+                tool_decl, graph_path.parent
+            ):
                 issues.append(
                     LintIssue(
                         severity="warning",

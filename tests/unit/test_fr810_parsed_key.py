@@ -137,6 +137,24 @@ class TestParseFailures:
         assert "page_findings" not in update
         assert update["page_analysis"]["success"] is False
 
+    @pytest.mark.req("REQ-YG-597")
+    def test_parse_failure_quotes_the_offending_output(self):
+        """Error transparency: a parse abort must carry a preview of the raw
+        output, or a child error string masquerades as a JSON defect
+        (fr809 orphan misdiagnosis, 2026-08-16)."""
+        node = _make_node("Error: child graph exploded upstream", on_error="fail")
+        with pytest.raises(ValueError) as exc:
+            node({})
+        assert "Error: child graph exploded upstream" in str(exc.value)
+
+    @pytest.mark.req("REQ-YG-597")
+    def test_parse_failure_preview_is_truncated(self):
+        node = _make_node("x" * 5000, on_error="fail")
+        with pytest.raises(ValueError) as exc:
+            node({})
+        assert len(str(exc.value)) < 800
+        assert "xxxx" in str(exc.value)
+
 
 # ---------------------------------------------------------------------------
 # AC-06 (runtime half): dynamic non-graph tool with parsed_key
@@ -252,6 +270,30 @@ class TestLinter:
         issues = self._lint(
             tmp_path, "type: graph\n                path: child/graph.yaml"
         )
+        assert not any(i.code == "W703" for i in issues)
+
+    @pytest.mark.req("REQ-YG-597")
+    def test_no_warning_on_manifest_backed_graph_tool(self, tmp_path):
+        """A manifest declaring runtime type graph is not a non-graph tool."""
+        manifest = tmp_path / "step.tool.yaml"
+        manifest.write_text(
+            "name: mytool\nruntime:\n  type: graph\n  path: child/graph.yaml\n"
+        )
+        issues = self._lint(tmp_path, "manifest: step.tool.yaml")
+        assert not any(i.code == "W703" for i in issues)
+
+    @pytest.mark.req("REQ-YG-597")
+    def test_warns_on_manifest_backed_shell_tool(self, tmp_path):
+        """A manifest declaring a non-graph runtime still warns."""
+        manifest = tmp_path / "step.tool.yaml"
+        manifest.write_text("name: mytool\nruntime:\n  type: shell\n  command: echo\n")
+        issues = self._lint(tmp_path, "manifest: step.tool.yaml")
+        assert any(i.code == "W703" for i in issues)
+
+    @pytest.mark.req("REQ-YG-597")
+    def test_unreadable_manifest_does_not_warn(self, tmp_path):
+        """Unknown is not statically known non-graph — no warning."""
+        issues = self._lint(tmp_path, "manifest: missing.tool.yaml")
         assert not any(i.code == "W703" for i in issues)
 
 

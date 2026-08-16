@@ -155,15 +155,15 @@ def test_sniff_url_selection_is_deterministic():
     """R-2: sniff_url is produced without LLM choice and feeds browser_sniff args."""
     graph = _graph()
     nodes = graph["nodes"]
-    producers = [
-        name
-        for name, node in nodes.items()
-        if "sniff_url" in (node.get("output") or {})
-        or node.get("state_key") == "sniff_url"
-    ]
-    assert len(producers) == 1
-    assert nodes[producers[0]]["type"] != "llm"
-    assert "sniff_url" in str(nodes["browser_sniff"]["args"])
+    # the producer is the pure python selector (dict-merge return), never an llm
+    selector = nodes["select_sniff_url"]
+    assert selector["type"] == "python"
+    assert graph["tools"][selector["tool"]]["type"] == "python"
+    assert (EXAMPLE_DIR / graph["tools"][selector["tool"]]["path"]).exists()
+    for name, node in nodes.items():
+        if node["type"] == "llm":
+            assert node.get("state_key") != "sniff_url", name
+    assert nodes["browser_sniff"]["args"]["url"] == "{state.sniff_url}"
 
 
 # ---------------------------------------------------------------------------
@@ -194,3 +194,14 @@ def test_steps_tried_evidence_covers_new_wrappers():
     # copy-only discipline: each new label sits inside a wrapper-gated block
     for wrapper in ("recon_result", "sniff_result"):
         assert f"{{% if {wrapper}" in user, wrapper
+
+
+@pytest.mark.req("REQ-YG-599")
+def test_fetch_page_output_is_byte_capped():
+    """Boundary: unbounded page HTML overflowed the LLM context (smoke pos5,
+    213k tokens > 200k anthropic limit). fetch_page must cap its output."""
+    raw = yaml.safe_load((EXAMPLE_DIR / "tools" / "fetch_page.tool.yaml").read_text())
+    cmd = raw["runtime"]["command"]
+    assert "head -c" in cmd, "fetch_page command must byte-cap its output"
+    cap = int(cmd.split("head -c")[1].split()[0])
+    assert 4_000 <= cap <= 40_000, cap

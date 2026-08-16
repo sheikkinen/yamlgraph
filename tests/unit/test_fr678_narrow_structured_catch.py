@@ -127,6 +127,93 @@ class TestNarrowedStructuredOutputCatch:
         assert result["verdict"] == "REJECT"
 
     @pytest.mark.req("REQ-YG-422")
+    def test_response_format_unavailable_falls_back_to_function_calling(self):
+        """FR-809 field defect: DeepSeek rejects response_format with a 400
+        ('This response_format type is unavailable now'); the structured
+        re-invoke must fall back to method=function_calling like the FR-458
+        invalid_json_schema class, not surface the provider 400."""
+        output_model = _output_model()
+        content = "This is prose with no JSON at all."
+
+        deepseek_400 = Exception(
+            "Error code: 400 - {'error': {'message': 'This response_format "
+            "type is unavailable now', 'type': 'invalid_request_error', "
+            "'param': None, 'code': 'invalid_request_error'}}"
+        )
+        strict_llm = MagicMock()
+        strict_llm.invoke.side_effect = deepseek_400
+        fc_llm = MagicMock()
+        fc_llm.invoke.return_value = output_model(
+            verdict="APPROVE", reasoning="recovered via function_calling"
+        )
+        llm_base = MagicMock()
+        llm_base.with_structured_output.side_effect = [strict_llm, fc_llm]
+
+        result = _try_structured_output(
+            content, msgs=[], output_model=output_model, llm_base=llm_base
+        )
+
+        assert isinstance(result, dict)
+        assert result["verdict"] == "APPROVE"
+        assert llm_base.with_structured_output.call_args_list[1].kwargs == {
+            "method": "function_calling"
+        }
+
+    @pytest.mark.req("REQ-YG-422")
+    def test_tool_choice_rejected_falls_back_to_plain_reinvoke(self):
+        """FR-809 field defect: DeepSeek thinking mode rejects BOTH
+        response_format and tool_choice; with no partial dict available the
+        agent must fall back to a plain re-invoke and parse the JSON from
+        raw content, not surface the provider 400."""
+        output_model = _output_model()
+        content = "This is prose with no JSON at all."
+
+        strict_llm = MagicMock()
+        strict_llm.invoke.side_effect = Exception(
+            "Error code: 400 - {'error': {'message': 'This response_format "
+            "type is unavailable now'}}"
+        )
+        fc_llm = MagicMock()
+        fc_llm.invoke.side_effect = Exception(
+            "Error code: 400 - {'error': {'message': 'Thinking mode does not "
+            "support this tool_choice'}}"
+        )
+        llm_base = MagicMock()
+        llm_base.with_structured_output.side_effect = [strict_llm, fc_llm]
+        plain_response = MagicMock()
+        plain_response.content = '{"verdict": "APPROVE", "reasoning": "plain"}'
+        llm_base.invoke.return_value = plain_response
+
+        result = _try_structured_output(
+            content, msgs=[], output_model=output_model, llm_base=llm_base
+        )
+
+        assert isinstance(result, dict)
+        assert result["verdict"] == "APPROVE"
+        llm_base.invoke.assert_called_once()
+
+    @pytest.mark.req("REQ-YG-422")
+    def test_plain_reinvoke_unparseable_raises(self):
+        """The plain re-invoke tier must not hedge: unparseable content
+        raises rather than returning a fabricated result (Commandment 6)."""
+        output_model = _output_model()
+
+        strict_llm = MagicMock()
+        strict_llm.invoke.side_effect = Exception("response_format unavailable")
+        fc_llm = MagicMock()
+        fc_llm.invoke.side_effect = Exception("does not support this tool_choice")
+        llm_base = MagicMock()
+        llm_base.with_structured_output.side_effect = [strict_llm, fc_llm]
+        plain_response = MagicMock()
+        plain_response.content = "still prose, no JSON"
+        llm_base.invoke.return_value = plain_response
+
+        with pytest.raises(Exception, match="tool_choice"):
+            _try_structured_output(
+                "prose", msgs=[], output_model=output_model, llm_base=llm_base
+            )
+
+    @pytest.mark.req("REQ-YG-422")
     def test_validation_fallback_logs_at_warning(self, caplog):
         """The fallback trigger must be observable at WARNING with the
         exception class name (Commandment 9 — the re-invoke costs money)."""

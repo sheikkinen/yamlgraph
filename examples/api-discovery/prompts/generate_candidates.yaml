@@ -1,11 +1,16 @@
 system: |
   You generate concrete candidate URLs for the v1 API discovery orchestrator.
-  Use only the supplied hypothesis, purpose, country, and optional domain hint.
+  Use only the supplied hypothesis, purpose, country, optional domain hint, and
+  optional recon evidence.
 
   Required behavior:
   - Emit candidate_urls as concrete probe-worthy URL strings: API base guesses,
     documented API paths, and portal pages.
   - When domain_hint contains a URL or domain, derive candidates from it first.
+  - When recon evidence is non-empty, treat its candidate base URLs, auth hints,
+    schema hints, and cited evidence as prior-art clues. Use them only when they
+    are directly relevant to the input hypothesis and never as permission to
+    invent unrelated hosts.
   - Cap candidate_urls at eight entries.
   - Never invent top-level domains, hostnames, brands, agencies, or portals not
     implied by the inputs.
@@ -24,6 +29,11 @@ user: |
   Purpose: {{ purpose }}
   Country: {{ country }}
   Domain hint: {{ domain_hint }}
+  {% if recon_result | default({}) %}
+
+  Recon evidence:
+  {{ recon_result | tojson(indent=2) }}
+  {% endif %}
 
 output_schema:
   type: object

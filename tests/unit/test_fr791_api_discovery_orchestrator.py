@@ -128,11 +128,12 @@ def test_absent_candidates_route_to_terminal_synthesize():
 
 @pytest.mark.req("REQ-YG-595")
 def test_platform_confirm_skipped_without_candidates():
-    """AC-05: page-analysis exits to synthesize when no platform hint exists."""
+    """AC-05: page-analysis preserves confirm/synthesize exits under v2 sniffing."""
     edges = _edges_from(_graph(), "page_analysis")
     by_target = {e["to"]: e.get("condition", "") for e in edges}
-    assert set(by_target) == {"platform_confirm", "synthesize"}
+    assert set(by_target) == {"browser_sniff", "platform_confirm", "synthesize"}
     assert "has_platform_hint" in by_target["platform_confirm"]
+    assert "page_findings.is_spa == true" in by_target["browser_sniff"]
 
 
 @pytest.mark.req("REQ-YG-595")

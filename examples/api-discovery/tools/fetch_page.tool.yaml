@@ -1,8 +1,9 @@
 # Tool manifest (FR-768) — full page fetch for API discovery (FR-783).
 name: fetch_page
-description: "Fetch full page source with custom User-Agent"
+description: "Fetch page source with custom User-Agent (byte-capped for LLM context)"
 runtime:
   type: shell
-  command: "curl -sL -A {user_agent} {url}"
+  # head -c caps unbounded HTML at the boundary (FR-809 smoke: 213k tokens > 200k limit)
+  command: "curl -sL -A {user_agent} {url} | head -c 20000"
   parse: text
   timeout: 30

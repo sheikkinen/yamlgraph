@@ -28,19 +28,27 @@ def _envelope(
 
 
 def _parse_output(result: Any, parsed_key: str) -> tuple[dict | None, str | None]:
-    """FR-810: dict passes through; JSON-object string parses; else fail."""
+    """FR-810: dict passes through; JSON-object string parses; else fail.
+
+    Failure messages quote a truncated preview of the offending output —
+    a child error string must never masquerade as a bare JSON defect.
+    """
     if isinstance(result, dict):
         return result, None
     if isinstance(result, str):
+        preview = result[:400]
         try:
             parsed = json.loads(result)
         except (json.JSONDecodeError, ValueError):
-            return None, f"parsed_key '{parsed_key}': output is not valid JSON"
+            return None, (
+                f"parsed_key '{parsed_key}': output is not valid JSON — "
+                f"raw output: {preview!r}"
+            )
         if isinstance(parsed, dict):
             return parsed, None
         return None, (
             f"parsed_key '{parsed_key}': JSON output is "
-            f"{type(parsed).__name__}, expected object"
+            f"{type(parsed).__name__}, expected object — raw output: {preview!r}"
         )
     return None, (
         f"parsed_key '{parsed_key}': output is "

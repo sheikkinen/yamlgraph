@@ -203,10 +203,16 @@ def test_empty_recon_result_validates():
 
 
 @pytest.mark.req("REQ-YG-592")
-def test_orchestrator_does_not_reference_recon():
-    """AC-10: recon stays optional — the FR-791 orchestrator never references it."""
+def test_orchestrator_references_recon_as_v2_stage():
+    """AC-10 superseded by FR-809: orchestrator v2 integrates recon as a stage.
+
+    FR-787 froze "orchestrator never references recon" while recon was an
+    optional standalone step. FR-809 (judged) integrates recon into the v2
+    orchestrator; the standalone step graph remains intact and runnable.
+    """
     orchestrator = GRAPH_DIR.parents[1] / "graph.yaml"
     if not orchestrator.exists():
         return  # pre-FR-791: absence itself proves no coupling
     text = orchestrator.read_text()
-    assert "recon" not in text
+    assert "recon" in text  # FR-809 AC-01: recon is an orchestrator stage
+    assert (GRAPH_DIR / "graph.yaml").exists()  # standalone step preserved

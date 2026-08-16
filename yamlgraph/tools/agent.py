@@ -75,12 +75,39 @@ def _try_structured_output(
     except Exception as reinvoke_err:
         err_str = str(reinvoke_err)
         # FR-458: OpenAI strict mode rejects schemas without additionalProperties
-        if "invalid_json_schema" in err_str or "additionalProperties" in err_str:
+        # FR-809: DeepSeek rejects response_format outright ("This
+        # response_format type is unavailable now") — same cure
+        if (
+            "invalid_json_schema" in err_str
+            or "additionalProperties" in err_str
+            or "response_format" in err_str
+        ):
             logger.warning("Strict schema rejected, retrying with function_calling")
             fc_llm = llm_base.with_structured_output(
                 output_model, method="function_calling"
             )
-            return fc_llm.invoke(retry_msgs).model_dump()
+            try:
+                return fc_llm.invoke(retry_msgs).model_dump()
+            except Exception as fc_err:
+                # FR-456: If extract_json found a dict, use lenient construction
+                if isinstance(parsed, dict):
+                    logger.warning(
+                        "Structured output API rejected, returning best-effort "
+                        "parse: %s",
+                        fc_err,
+                    )
+                    return output_model.model_construct(**parsed).model_dump()
+                # FR-809: DeepSeek thinking mode rejects tool_choice too —
+                # last tier is a plain re-invoke, parsing JSON from raw text.
+                # Unparseable output raises; nothing is fabricated.
+                logger.warning(
+                    "Structured retry rejected (%s), plain re-invoke", fc_err
+                )
+                plain = _normalize_content(llm_base.invoke(retry_msgs).content)
+                plain_parsed = extract_json(plain)
+                if isinstance(plain_parsed, dict):
+                    return output_model.model_validate(plain_parsed).model_dump()
+                raise
         # FR-456: If extract_json found a dict, use lenient construction
         if isinstance(parsed, dict):
             logger.warning(

@@ -22,9 +22,17 @@ state:
     type: str
     default: ""
     description: "Optional domain, URL, product name, or portal clue"
+  use_recon:
+    type: bool
+    default: true
+    description: "Run optional GitHub code-search recon before candidate generation"
   platform_catalog:
     type: dict
     description: "Committed page-analysis platform catalog"
+  recon_result:
+    type: dict
+    default: {}
+    description: "Recon tool-call wrapper"
   candidate_urls:
     type: dict
     description: "Structured candidate URL generation result"
@@ -32,10 +40,18 @@ state:
     type: dict
     default: {}
     description: "Endpoint probe tool-call wrapper"
+  sniff_url:
+    type: str
+    default: ""
+    description: "First HTML page URL selected deterministically for browser sniffing"
   page_analysis:
     type: dict
     default: {}
     description: "Page analysis tool-call wrapper"
+  sniff_result:
+    type: dict
+    default: {}
+    description: "Browser sniff tool-call wrapper"
   platform_confirmation:
     type: dict
     default: {}
@@ -49,10 +65,19 @@ state:
     description: "Terminal API discovery result"
 
 tools:
+  recon:
+    manifest: steps/recon.tool.yaml
   endpoint_probe:
     manifest: steps/endpoint_probe.tool.yaml
+  select_sniff_url:
+    type: python
+    path: nodes/select_sniff_url.py
+    function: select_sniff_url
+    description: "Select the first page-analysis URL for browser sniffing"
   page_analysis:
     manifest: steps/page_analysis.tool.yaml
+  browser_sniff:
+    manifest: steps/browser_sniff.tool.yaml
   platform_confirm:
     manifest: steps/platform_confirm.tool.yaml
   schema_extract:
@@ -62,10 +87,21 @@ nodes:
   init_defaults:
     type: passthrough
     output:
+      recon_result: {}
       probe_result: {}
       page_analysis: {}
+      sniff_result: {}
       platform_confirmation: {}
       capability_report: {}
+
+  recon:
+    type: tool_call
+    tool: recon
+    args:
+      hypothesis: "{state.hypothesis}"
+      max_iterations: 8
+    state_key: recon_result
+    on_error: fail
 
   generate_candidates:
     type: llm
@@ -76,6 +112,7 @@ nodes:
       purpose: "{state.purpose}"
       country: "{state.country}"
       domain_hint: "{state.domain_hint}"
+      recon_result: "{state.recon_result}"
     on_error: fail
 
   endpoint_probe:
@@ -85,6 +122,14 @@ nodes:
       candidate_urls: "{state.candidate_urls.candidate_urls}"
       max_iterations: 10
     state_key: probe_result
+    parsed_key: probe_findings
+    on_error: fail
+
+  select_sniff_url:
+    type: python
+    tool: select_sniff_url
+    variables:
+      html_pages: "{state.candidate_urls.candidate_urls}"
     on_error: fail
 
   page_analysis:
@@ -95,6 +140,18 @@ nodes:
       max_iterations: 5
       platform_catalog: "{state.platform_catalog}"
     state_key: page_analysis
+    parsed_key: page_findings
+    on_error: fail
+
+  browser_sniff:
+    type: tool_call
+    tool: browser_sniff
+    args:
+      url: "{state.sniff_url}"
+      timeout: "15000"
+      max_iterations: 4
+    state_key: sniff_result
+    parsed_key: sniff_findings
     on_error: fail
 
   platform_confirm:
@@ -129,6 +186,14 @@ edges:
     to: init_defaults
 
   - from: init_defaults
+    to: recon
+    condition: "use_recon == true"
+
+  - from: init_defaults
+    to: generate_candidates
+    condition: "use_recon != true"
+
+  - from: recon
     to: generate_candidates
 
   - from: generate_candidates
@@ -140,15 +205,25 @@ edges:
     condition: "candidate_urls.has_candidates != true"
 
   - from: endpoint_probe
+    to: select_sniff_url
+
+  - from: select_sniff_url
     to: page_analysis
 
   - from: page_analysis
+    to: browser_sniff
+    condition: "page_findings.is_spa == true and page_findings.api_found != true"
+
+  - from: page_analysis
     to: platform_confirm
-    condition: "candidate_urls.has_platform_hint == true"
+    condition: "candidate_urls.has_platform_hint == true and page_findings.is_spa != true or candidate_urls.has_platform_hint == true and page_findings.api_found == true"
 
   - from: page_analysis
     to: synthesize
-    condition: "candidate_urls.has_platform_hint != true"
+    condition: "candidate_urls.has_platform_hint != true and page_findings.is_spa != true or candidate_urls.has_platform_hint != true and page_findings.api_found == true"
+
+  - from: browser_sniff
+    to: synthesize
 
   - from: platform_confirm
     to: schema_extract

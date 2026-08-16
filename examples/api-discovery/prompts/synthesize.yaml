@@ -24,6 +24,9 @@ system: |
   - Use needs_manual when authentication, CAPTCHA, rate limiting, transport
     blocking, or another manual intervention prevents confirmation and there is
     no platform-specific live endpoint data.
+  - When verdict is needs_manual, manual_reason is mandatory and must carry the
+    browser-sniff manual reason verbatim, such as captcha. Otherwise omit it or
+    return an empty string.
   - reason is empty for found. Otherwise, name the stop condition in plain
     language.
   - steps_tried must copy the exact labels from the "Actual steps that ran"
@@ -44,11 +47,17 @@ user: |
 
   Actual steps that ran:
   - candidate generation
+  {% if recon_result | default({}) %}
+  - recon
+  {% endif %}
   {% if probe_result | default({}) %}
   - endpoint-probe
   {% endif %}
   {% if page_analysis | default({}) %}
   - page-analysis
+  {% endif %}
+  {% if sniff_result | default({}) %}
+  - browser-sniff
   {% endif %}
   {% if platform_confirmation | default({}) %}
   - platform-confirm
@@ -60,11 +69,17 @@ user: |
   Candidate generation:
   {{ candidate_urls | tojson(indent=2) }}
 
+  Recon:
+  {{ recon_result | default({}) | tojson(indent=2) }}
+
   Endpoint probe:
   {{ probe_result | default({}) | tojson(indent=2) }}
 
   Page analysis:
   {{ page_analysis | default({}) | tojson(indent=2) }}
+
+  Browser sniff:
+  {{ sniff_result | default({}) | tojson(indent=2) }}
 
   Platform confirmation:
   {{ platform_confirmation | default({}) | tojson(indent=2) }}
@@ -120,6 +135,8 @@ output_schema:
         - endpoints
       additionalProperties: false
     reason:
+      type: string
+    manual_reason:
       type: string
     steps_tried:
       type: array
