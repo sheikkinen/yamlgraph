@@ -1,0 +1,35 @@
+id: CAP-238
+name: API Discovery Orchestrator v2 — Recon and Browser-Sniff Routing
+description: >
+  Extends the FR-791 API discovery orchestrator with the two steps its
+  judgement deferred to v2: recon (FR-787) as an optional front-of-pipe
+  evidence source gated by a use_recon input flag defaulting true, and
+  browser-sniff (FR-789) as the conditional last resort entered only when
+  parsed page-analysis output proves a SPA without visible API
+  (page_findings.is_spa == true and page_findings.api_found != true, per
+  the FR-810 parsed_key mechanism — never candidate hints). Cross-step
+  state handoff is frozen: recon_result feeds candidate generation,
+  probe_findings/page_findings/sniff_findings are parsed tool outputs,
+  sniff_url is a deterministic first-HTML-page selection with no LLM
+  choice. The terminal schema adds manual_reason, required when the
+  verdict is needs_manual. steps_tried remains copy-only from the
+  actual-steps evidence section for every old and new step.
+modules:
+  - examples
+fr: FR-809
+requirements:
+  - id: REQ-YG-599
+    description: >
+      The api-discovery orchestrator references steps/recon.tool.yaml and
+      steps/browser_sniff.tool.yaml through type tool_call nodes with no
+      subgraph nodes and passes graph lint; use_recon defaults true and
+      disabling it preserves the FR-791 v1 route; endpoint-probe,
+      page-analysis, and browser-sniff expose parsed state keys via
+      parsed_key; browser-sniff is entered only on
+      page_findings.is_spa == true and page_findings.api_found != true;
+      candidate generation consumes recon_result when recon ran;
+      sniff_url selection is deterministic; the synthesize schema carries
+      manual_reason for needs_manual verdicts; steps_tried lists recon
+      and browser-sniff only when their wrappers are non-empty.
+    modules:
+      - examples

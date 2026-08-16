@@ -87,14 +87,16 @@ def test_tool_call_composition_on_committed_step_manifests():
 
 @pytest.mark.req("REQ-YG-595")
 def test_no_subgraph_nodes_and_no_v2_step_references():
-    """AC-03/AC-04: no subgraph node type; no recon or browser-sniff references."""
+    """AC-03/AC-04: no subgraph node type.
+
+    The original v1 exclusion of recon/browser-sniff references is
+    superseded by FR-809 (orchestrator v2) — the FR-791 judgement froze
+    them out of v1 as sequencing, not architecture. Route-preservation
+    with recon disabled is witnessed in test_fr809_orchestrator_v2.py.
+    """
     graph = _graph()
     node_types = {node["type"] for node in graph["nodes"].values()}
     assert "subgraph" not in node_types
-    text = (EXAMPLE_DIR / "graph.yaml").read_text()
-    assert "recon" not in text
-    assert "browser_sniff" not in text
-    assert "browser-sniff" not in text
 
 
 @pytest.mark.req("REQ-YG-595")

@@ -11,11 +11,12 @@ been installed.
 
 from __future__ import annotations
 
+import importlib.util
 import json
 import shutil
 import subprocess
-import time
-from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+import sys
+from http.server import ThreadingHTTPServer
 from pathlib import Path
 from threading import Thread
 
@@ -87,51 +88,22 @@ browser = pytest.mark.skipif(
 # ---------------------------------------------------------------------------
 # Local fixture server (R-2: one data fetch, one telemetry fetch, one
 # token-bearing fetch, an auth wall, a CAPTCHA page, a hanging request)
+# Handler semantics live in tests/fixtures/fr784_spa/spa_server.py (shared
+# with FR-809 live authoring smokes) — single source of truth.
 # ---------------------------------------------------------------------------
 
 
-class _SpaHandler(BaseHTTPRequestHandler):
-    def _send(self, status: int, body: bytes, content_type: str, **headers):
-        self.send_response(status)
-        self.send_header("Content-Type", content_type)
-        self.send_header("Content-Length", str(len(body)))
-        for key, value in headers.items():
-            self.send_header(key.replace("_", "-"), value)
-        self.end_headers()
-        self.wfile.write(body)
+def _load_spa_server():
+    spec = importlib.util.spec_from_file_location(
+        "fr784_spa_server", FIXTURE_DIR / "spa_server.py"
+    )
+    module = importlib.util.module_from_spec(spec)
+    sys.modules["fr784_spa_server"] = module
+    spec.loader.exec_module(module)
+    return module
 
-    def _route(self):
-        path = self.path.split("?")[0]
-        if path in ("/", "/index.html", "/auth.html", "/captcha.html", "/hang.html"):
-            name = "index.html" if path == "/" else path.lstrip("/")
-            body = (FIXTURE_DIR / name).read_bytes()
-            self._send(200, body, "text/html")
-        elif path == "/api/data":
-            body = json.dumps({"items": [{"id": 1, "name": "fixture-row"}]}).encode()
-            self._send(200, body, "application/json")
-        elif path == "/api/item":
-            self._send(200, json.dumps({"id": 1}).encode(), "application/json")
-        elif path == "/api/search":
-            self._send(200, json.dumps({"hits": []}).encode(), "application/json")
-        elif path == "/analytics/collect":
-            self._send(204, b"", "text/plain")
-        elif path == "/api/secure":
-            self._send(
-                401,
-                json.dumps({"error": "unauthorized"}).encode(),
-                "application/json",
-                WWW_Authenticate="Bearer",
-            )
-        elif path == "/hang":
-            time.sleep(120)  # never answers within any test timeout
-        else:
-            self._send(404, b"not found", "text/plain")
 
-    do_GET = _route
-    do_POST = _route
-
-    def log_message(self, fmt, *args):
-        pass
+_SpaHandler = _load_spa_server().SpaHandler
 
 
 @pytest.fixture(scope="module")

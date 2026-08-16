@@ -553,6 +553,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 235 | CAP-235 Multi-Step Investigation Scaffold | `scripts` | REQ-YG-596 |
 | 236 | CAP-236 Router-Visible Tool-Call Outputs | `node_factory`, `models`, `linter` | REQ-YG-597 |
 | 237 | CAP-237 Author Brief Pre-Flight | `scripts` | REQ-YG-598 |
+| 238 | CAP-238 API Discovery Orchestrator v2 — Recon and Browser-Sniff Routing | `examples` | REQ-YG-599 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -2912,6 +2913,16 @@ Launch-time pre-flight in the sole authoring route (FR-806): scripts/author.sh m
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-598 | author.sh pre-flights the brief before backend spawn: a brief asserting an absent path as an existing input/fixture/server exits 64 quoting the violated line; output paths the run is supposed to create pass; a validation command whose executable cannot be statically resolved exits 64; resolution handles env assignments, python -m, and ./relative-script forms without executing brief text; two or more live full-pipeline graph-run smokes warn citing the 900s ceiling and proceed; a clean brief passes with premises marked; --no-preflight skips only the pre-flight with sentinel and report-gate semantics unchanged; the pre-flight contains no LLM call. | `scripts` |
+
+### 238. CAP-238 API Discovery Orchestrator v2 — Recon and Browser-Sniff Routing
+
+Extends the FR-791 API discovery orchestrator with the two steps its judgement deferred to v2: recon (FR-787) as an optional front-of-pipe evidence source gated by a use_recon input flag defaulting true, and browser-sniff (FR-789) as the conditional last resort entered only when parsed page-analysis output proves a SPA without visible API (page_findings.is_spa == true and page_findings.api_found != true, per the FR-810 parsed_key mechanism — never candidate hints). Cross-step state handoff is frozen: recon_result feeds candidate generation, probe_findings/page_findings/sniff_findings are parsed tool outputs, sniff_url is a deterministic first-HTML-page selection with no LLM choice. The terminal schema adds manual_reason, required when the verdict is needs_manual. steps_tried remains copy-only from the actual-steps evidence section for every old and new step.
+
+**Feature Request:** FR-809
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-599 | The api-discovery orchestrator references steps/recon.tool.yaml and steps/browser_sniff.tool.yaml through type tool_call nodes with no subgraph nodes and passes graph lint; use_recon defaults true and disabling it preserves the FR-791 v1 route; endpoint-probe, page-analysis, and browser-sniff expose parsed state keys via parsed_key; browser-sniff is entered only on page_findings.is_spa == true and page_findings.api_found != true; candidate generation consumes recon_result when recon ran; sniff_url selection is deterministic; the synthesize schema carries manual_reason for needs_manual verdicts; steps_tried lists recon and browser-sniff only when their wrappers are non-empty. | `examples` |
 
 <!-- END GENERATED CAPABILITIES -->
 
