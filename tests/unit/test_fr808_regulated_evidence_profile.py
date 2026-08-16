@@ -131,6 +131,8 @@ def test_regulated_disable_override_and_strict_precedence(
 def test_strict_evidence_raises_at_run_boundary_after_counted_loss(
     tmp_path, monkeypatch
 ):
+    monkeypatch.delenv("YAMLGRAPH_ROUTE_LOG", raising=False)
+    monkeypatch.delenv("YAMLGRAPH_ROUTE_LOG_OVERRIDE", raising=False)
     graph_path = tmp_path / "graph.yaml"
     sink_dir = tmp_path / "routes"
     graph_path.write_text(

@@ -41,7 +41,8 @@ def resolve_regulated_policy(
     """Resolve regulated emission and env override precedence."""
     sink_dir = Path(str(observability["route_log_sink"]))
     strict = bool(observability.get("strict_evidence", False))
-    disable = os.environ.get(ENV_VAR, "").strip().lower() in _OFF_VALUES
+    raw_route_log = os.environ.get(ENV_VAR)
+    disable = raw_route_log is not None and raw_route_log.strip().lower() in _OFF_VALUES
     override = os.environ.get(OVERRIDE_ENV_VAR, "").strip().lower()
     override_requested = override in _ON_VALUES
     if disable and strict:

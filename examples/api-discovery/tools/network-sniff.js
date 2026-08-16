@@ -11,13 +11,6 @@ function fail(message) {
   process.exit(2);
 }
 
-let chromium;
-try {
-  ({ chromium } = require("playwright"));
-} catch (err) {
-  fail(`playwright package not found (${err.code || err.message}). Run npm ci first.`);
-}
-
 // Filter policy (judgement R-4)
 const TELEMETRY_HOSTS = [
   "google-analytics.com",
@@ -131,6 +124,12 @@ async function capture(response, result) {
 
 async function main() {
   const { url, timeoutMs } = parseArgs(process.argv.slice(2));
+  let chromium;
+  try {
+    ({ chromium } = require("playwright"));
+  } catch (err) {
+    fail(`playwright package not found (${err.code || err.message}). Run npm ci first.`);
+  }
   const deadline = Date.now() + timeoutMs;
   const remaining = () => Math.max(deadline - Date.now(), 1);
   const result = {

@@ -51,6 +51,27 @@ def _node_helper(expr: str) -> str:
     return result.stdout.strip()
 
 
+@pytest.mark.req("REQ-YG-590")
+def test_pure_helpers_import_without_playwright_dependency():
+    """Pure redaction/classification helpers do not require browser setup."""
+    if shutil.which("node") is None:
+        pytest.skip("node not on PATH")
+    script = (
+        "const Module=require('module');"
+        "const original=Module._load;"
+        "Module._load=function(request,...rest){"
+        "if(request==='playwright'){const e=new Error();e.code='MODULE_NOT_FOUND';throw e;}"
+        "return original.call(this,request,...rest);};"
+        f"const m=require({str(SCRIPT)!r});"
+        "console.log(m.classify('https://telemetry.example.com/x',200,'application/json'));"
+    )
+    result = subprocess.run(
+        ["node", "-e", script], capture_output=True, text=True, timeout=30
+    )
+    assert result.returncode == 0, result.stderr
+    assert result.stdout.strip() == "telemetry"
+
+
 # ---------------------------------------------------------------------------
 # Skip guards for browser-dependent tests (AC-02 setup contract)
 # ---------------------------------------------------------------------------

@@ -218,5 +218,6 @@ def test_no_sibling_step_dependency_introduced():
 def test_no_yamlgraph_package_changes():
     """AC-09: FR-786 artifacts live under the example tree, not the package."""
     graph_path = GRAPH_DIR / "graph.yaml"
-    assert "examples" in str(graph_path)
-    assert "yamlgraph" + "/yamlgraph" not in str(graph_path)
+    parts = graph_path.parts
+    assert "examples" in parts
+    assert "yamlgraph" not in parts[parts.index("examples") + 1 :]
