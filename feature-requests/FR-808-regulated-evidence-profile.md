@@ -5,7 +5,7 @@
 **Status:** Judged — APPROVED WITH REVISIONS (R-1..R-7 folded below; see FR-808-regulated-evidence-profile.judgement.md). Enforcement BLOCKED until FR-807 is Enforced (C-2).
 **Effort:** 1 day
 **Requested:** 2026-08-15
-**First consumer / first event:** the csap VoiceBot deployment (Tervola pilot, autumn 2026) declaring `observability.profile: regulated` in its graph YAML — the first run where route-log emission cannot be silently absent, ahead of the AI Act Annex III application date of 2 Aug 2026 for the deployer's Art. 26(6) log-retention duty.
+**First consumer / first event:** the csap VoiceBot deployment (Tervola pilot, autumn 2026) declaring `observability.profile: regulated` in its graph YAML — the first run where route-log emission cannot be silently absent, well ahead of the AI Act Annex III application date (2 December 2027, as amended by Regulation (EU) 2026/1744) for the deployer's Art. 26(6) log-retention duty.
 
 ## Summary
 
