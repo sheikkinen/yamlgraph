@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.20]
+
+### Fixed
+- **Release CI portability**: Pure network-sniff helpers no longer require Playwright at import time, example ownership tests use path components instead of checkout-name substrings, and regulated strict-evidence tests distinguish an unset route-log env from an explicit disable.
+
 ## [0.5.19]
 
 ### Added
