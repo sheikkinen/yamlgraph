@@ -16,6 +16,40 @@ YAMLGraph untouched (FR-812).
 | `adapter.py` | Pure mapping: options → graph state, greeting result → embed fields, error text. No discord.py import — unit-testable with zero network (`tests/unit/test_discord_hello_adapter.py`) |
 | `bot.py` | Gateway client: compiles the graph once at startup, syncs the guild command, defers → runs graph → followup embed |
 
+## Traffic Architecture
+
+There is **no server on your side** — the bot is one local process and every
+connection is outbound:
+
+```mermaid
+flowchart LR
+    subgraph host [Your machine - one process: bot.py]
+      D[discord.py client] -->|in-process call| Y[yamlgraph runtime]
+    end
+    D <-->|1 outbound WSS - persistent gateway| G[Discord Gateway]
+    D -->|2 outbound HTTPS REST - sync, defer, followup| R[Discord REST API]
+    Y -->|3 outbound HTTPS| A[LLM provider endpoint]
+    U[User in Discord client] --> G
+```
+
+1. **Discord Gateway (WSS, persistent):** at startup discord.py logs in with
+   the bot token and holds one outbound WebSocket. `/hello` arrives as an
+   `INTERACTION_CREATE` event *down that socket* — Discord never connects to
+   you, so no public IP, port, cert, or webhook URL is needed.
+2. **Discord REST (HTTPS, per-action):** command sync, the `defer()` ack
+   (3-second deadline), and `followup.send(embed=...)` are plain POSTs to
+   `discord.com/api`; the interaction token acts as a 15-minute webhook that
+   routes the reply to the right chat message.
+3. **YAMLGraph (no network):** the bot↔graph "connection" is a Python function
+   call in the same process — the graph is compiled once in `setup_hook` and
+   each interaction awaits `run_graph_async`. The only network yamlgraph
+   generates is the `greet` node's HTTPS call to the configured LLM provider.
+
+Contrast: telephony stacks (Twilio Media Streams) require *inbound*
+webhooks/WSS and thus a public endpoint. Discord also offers such an
+"interactions endpoint" mode (HTTPS + Ed25519 signature verification) — the
+production option deliberately not used by this PoC.
+
 ## Setup
 
 One-time manual steps (external account + secrets):
