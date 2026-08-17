@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Proposed
+**Status:** Judged
 **Effort:** 0.5 days
 **Requested:** 2026-08-17
 **First consumer / first event:** ninchat_voice (csap) NC-434 — the moment it
@@ -152,10 +152,11 @@ Canonical `{}` is explicitly forbidden for this path; its distinct hash is
   invocation, native streaming, span schema, route grammar, and exporter
   configuration remain unchanged.
 
-## Judgement (date)
+## Judgement (2026-08-17)
 
-**Verdict:** —
+**Verdict:** APPROVED — authority is active within the scope frozen in
+`FR-813-run-graph-async-none-input-regression.judgement.md`.
 
 ### Questions for the human (as options, or 'none')
 
-—
+None.
