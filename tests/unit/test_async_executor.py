@@ -4,6 +4,7 @@ TDD: RED phase - write tests first.
 """
 
 import asyncio
+from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -264,7 +265,7 @@ async def test_compile_graph_async_uses_async_factory():
 
 
 @pytest.mark.asyncio
-@pytest.mark.req("REQ-YG-015")
+@pytest.mark.req("REQ-YG-015", "REQ-YG-570")
 async def test_load_and_compile_async_returns_compiled_graph():
     """load_and_compile_async loads YAML and returns compiled graph."""
     from yamlgraph.executor_async import load_and_compile_async
@@ -278,6 +279,7 @@ async def test_load_and_compile_async_returns_compiled_graph():
         mock_config.name = "test-graph"
         mock_config.version = "1.0"
         mock_config.checkpointer = {"type": "memory"}
+        mock_config.source_path = Path("graphs/test.yaml")
         mock_load.return_value = mock_config
 
         mock_state_graph = MagicMock()
@@ -288,8 +290,12 @@ async def test_load_and_compile_async_returns_compiled_graph():
         mock_cp.return_value = None
 
         result = await load_and_compile_async("graphs/test.yaml")
+        cached = await load_and_compile_async("graphs/test.yaml")
 
         assert result == mock_compiled
+        assert cached is result
+        assert result._yamlgraph_graph_name == "test-graph"
+        assert result._yamlgraph_source_path == "graphs/test.yaml"
         mock_load.assert_called_once_with("graphs/test.yaml")
 
 

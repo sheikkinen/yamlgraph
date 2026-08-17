@@ -46,6 +46,35 @@ With no `OTEL_*` variables set, spans are POSTed to
 collector (e.g. Jaeger all-in-one, `grafana/otel-lgtm`, or an
 OpenTelemetry Collector) to receive them.
 
+### Programmatic async runs
+
+`run_graph_async` is the supported non-streaming programmatic boundary:
+
+```python
+from yamlgraph.executor_async import load_and_compile_async, run_graph_async
+
+app = await load_and_compile_async("graphs/my-graph.yaml")
+result = await run_graph_async(
+  app,
+  {"input": "hello"},
+  {"configurable": {"thread_id": "conversation-42"}},
+)
+```
+
+Each call, including a `Command(resume=...)` call, creates a new graph-run
+span. Resume data is normalized and hashed; raw values are never exported. A
+returned `__interrupt__` records `interrupted`, a raised exception records
+`error`, and other returns record `success`. When route logging is also
+enabled, its run record and the OTEL span share one UUIDv7 run id.
+
+Apps loaded by `load_and_compile_async` carry the validated graph name required
+by the frozen span schema. With OTEL enabled, passing another app-like object
+without non-empty `_yamlgraph_graph_name` metadata raises before `ainvoke`;
+YAMLGraph never fabricates a graph name. Direct calls to `app.ainvoke` or
+`app.invoke`, and `run_graph_streaming_native`, are not instrumented by this
+boundary. Hosts that intentionally own direct invocation can continue to wrap
+it with the public `graph_run_span` context manager.
+
 ## Span schema (frozen)
 
 | Span | Attribute | Type | Required | Source / rule |
@@ -74,19 +103,19 @@ graph-run span via OpenTelemetry's own context propagation (same trace
 id, `parent_id` equal to the graph-run span's id) — no explicit linkage
 threading is required.
 
-## Coverage (first increment, R-3)
+## Coverage
 
 The graph-run span wraps the CLI's `yamlgraph graph run` entry point.
+It also wraps non-streaming programmatic calls through `run_graph_async`.
 Node-execution spans wrap the `llm`, `router`, `tool`, `python`, `agent`,
 `tool_call`, `race`, `passthrough`, `copilot`, and `subgraph` node
 types — the set compiled through a single `add_node` call in
 `yamlgraph/compile/node_compiler.py`. `map`, `interrupt`, and `verify`
 nodes are out of scope for this increment.
 
-Out of scope for this FR (later increments): LLM/tool/route/checkpoint
-/interrupt/verification span types, metrics, LangSmith-as-exporter
-migration, async/streaming execution paths, and the MCP server /
-programmatic (non-CLI) entry points.
+Out of scope for this boundary: LLM/tool/route/checkpoint/interrupt/verification
+span types, metrics, LangSmith-as-exporter migration, native streaming, direct
+compiled-object invocation, and the MCP server entry point.
 
 ## Testing
 
@@ -112,6 +141,8 @@ patching within an environment that has it installed.
   fail-fast guard, variables hash.
 - `yamlgraph/compile/node_otel.py` — generic node-execution span wrapper,
   mirroring `yamlgraph/node_timeout.py`'s wrapping pattern.
+- `yamlgraph/executor_async.py` / `yamlgraph/observability/otel.py` — async
+  graph metadata loading and non-streaming invocation lifecycle.
 - `yamlgraph/utils/tracing.py` — the existing LangSmith integration
   (separate, unaffected).
 - `YAMLGRAPH_ROUTE_LOG` (FR-723) — route decision log; future route

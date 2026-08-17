@@ -17,9 +17,12 @@ skipping the whole file.
 
 from __future__ import annotations
 
+import asyncio
+import json
 import sys
 import uuid
 from types import SimpleNamespace
+from unittest.mock import AsyncMock
 
 import pytest
 
@@ -309,3 +312,236 @@ def test_variables_hash_is_deterministic_and_key_order_independent():
     assert h1 != h3
     assert "World" not in h1
     assert len(h1) == 64  # sha256 hex digest length
+
+
+@requires_otel_sdk
+@pytest.mark.asyncio
+@pytest.mark.req("REQ-YG-015", "REQ-YG-570")
+async def test_run_graph_async_emits_root_and_child_spans(in_memory_exporter):
+    """FR-811: the supported async runner owns the programmatic root span."""
+    from yamlgraph.executor_async import run_graph_async
+
+    async def invoke_with_node_span(initial_state, config):
+        with otel.node_execution_span("greet", "python") as node_ctx:
+            node_ctx.keys_written = ["result"]
+        return {"result": "hello"}
+
+    app = AsyncMock()
+    app._yamlgraph_graph_name = "async-hello"
+    app.ainvoke.side_effect = invoke_with_node_span
+
+    result = await run_graph_async(
+        app,
+        {"name": "World"},
+        {"configurable": {"thread_id": "thread-42"}},
+    )
+
+    assert result == {"result": "hello"}
+    spans = in_memory_exporter.get_finished_spans()
+    by_name = {span.name: span for span in spans}
+    run_span = by_name[otel.GRAPH_RUN_SPAN]
+    node_span = by_name[otel.NODE_EXECUTE_SPAN]
+    assert node_span.parent.span_id == run_span.context.span_id
+    assert run_span.attributes["yamlgraph.graph.name"] == "async-hello"
+    assert run_span.attributes["yamlgraph.thread.id"] == "thread-42"
+    assert run_span.attributes["yamlgraph.variables.hash"] == otel.variables_hash(
+        {"name": "World"}
+    )
+    assert run_span.attributes["yamlgraph.run.outcome"] == "success"
+
+
+@requires_otel_sdk
+@pytest.mark.asyncio
+@pytest.mark.req("REQ-YG-015", "REQ-YG-570")
+async def test_run_graph_async_rejects_missing_graph_metadata(in_memory_exporter):
+    """FR-811: enabled OTEL never fabricates a programmatic graph name."""
+    from yamlgraph.executor_async import run_graph_async
+
+    app = AsyncMock()
+
+    with pytest.raises(
+        ValueError,
+        match=r"_yamlgraph_graph_name.*load_and_compile_async",
+    ):
+        await run_graph_async(app, {})
+
+    app.ainvoke.assert_not_awaited()
+    assert in_memory_exporter.get_finished_spans() == ()
+
+
+@requires_otel_sdk
+@pytest.mark.asyncio
+@pytest.mark.req("REQ-YG-015", "REQ-YG-570")
+async def test_run_graph_async_records_interrupted_outcome(in_memory_exporter):
+    """FR-811: an interrupt result marks its invocation root span."""
+    from yamlgraph.executor_async import run_graph_async
+
+    app = AsyncMock()
+    app._yamlgraph_graph_name = "interruptible"
+    app.ainvoke.return_value = {"__interrupt__": ("pause",)}
+
+    await run_graph_async(app, {})
+
+    (run_span,) = in_memory_exporter.get_finished_spans()
+    assert run_span.attributes["yamlgraph.run.outcome"] == "interrupted"
+
+
+@requires_otel_sdk
+@pytest.mark.asyncio
+@pytest.mark.req("REQ-YG-015", "REQ-YG-570")
+async def test_run_graph_async_hashes_command_resume(in_memory_exporter):
+    """FR-811: resume payloads are normalized and exported only as a hash."""
+    from dataclasses import asdict
+
+    from langgraph.types import Command
+
+    from yamlgraph.executor_async import run_graph_async
+
+    app = AsyncMock()
+    app._yamlgraph_graph_name = "resumable"
+    app.ainvoke.return_value = {"result": "done"}
+    command = Command(resume="private answer")
+
+    await run_graph_async(
+        app,
+        command,
+        {"configurable": {"thread_id": "thread-42"}},
+    )
+
+    (run_span,) = in_memory_exporter.get_finished_spans()
+    assert run_span.attributes["yamlgraph.variables.hash"] == otel.variables_hash(
+        asdict(command)
+    )
+    assert "private answer" not in str(run_span.attributes.values())
+
+
+@pytest.mark.asyncio
+@pytest.mark.req("REQ-YG-015", "REQ-YG-570")
+async def test_run_graph_async_missing_extra_fails_before_invoke(monkeypatch):
+    """FR-811: requested telemetry fails before programmatic execution."""
+    from unittest.mock import patch
+
+    from yamlgraph.executor_async import run_graph_async
+
+    app = AsyncMock()
+    app._yamlgraph_graph_name = "missing-extra"
+    monkeypatch.setenv(otel.ENV_VAR, otel.ENABLED_VALUE)
+    monkeypatch.setitem(sys.modules, "opentelemetry", None)
+
+    with (
+        patch.object(otel, "_provider_configured", False),
+        pytest.raises(otel.OtelExtraMissingError, match="otel"),
+    ):
+        await run_graph_async(app, {})
+
+    app.ainvoke.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+@pytest.mark.req("REQ-YG-015", "REQ-YG-570")
+async def test_run_graph_async_disabled_needs_no_opentelemetry(monkeypatch):
+    """FR-811: disabled programmatic execution remains a true no-op."""
+    from yamlgraph.executor_async import run_graph_async
+
+    monkeypatch.setitem(sys.modules, "opentelemetry", None)
+    app = AsyncMock()
+    app.ainvoke.return_value = {"result": "unchanged"}
+
+    result = await run_graph_async(app, {"private": "value"})
+
+    assert result == {"result": "unchanged"}
+    app.ainvoke.assert_awaited_once_with({"private": "value"}, {})
+
+
+@requires_otel_sdk
+@pytest.mark.asyncio
+@pytest.mark.req("REQ-YG-015", "REQ-YG-570")
+async def test_run_graph_async_records_error_outcome(in_memory_exporter):
+    """FR-811: propagated exceptions mark the programmatic root as error."""
+    from yamlgraph.executor_async import run_graph_async
+
+    app = AsyncMock()
+    app._yamlgraph_graph_name = "failing"
+    app.ainvoke.side_effect = RuntimeError("private failure detail")
+
+    with pytest.raises(RuntimeError, match="private failure detail"):
+        await run_graph_async(app, {})
+
+    (run_span,) = in_memory_exporter.get_finished_spans()
+    assert run_span.attributes["yamlgraph.run.outcome"] == "error"
+    assert "private failure detail" not in str(run_span.attributes.values())
+
+
+@requires_otel_sdk
+@pytest.mark.asyncio
+@pytest.mark.req("REQ-YG-015", "REQ-YG-552", "REQ-YG-570")
+async def test_run_graph_async_shares_route_and_otel_run_id(
+    in_memory_exporter, tmp_path, monkeypatch
+):
+    """FR-811: route evidence and OTEL use one programmatic run identity."""
+    from yamlgraph.executor_async import run_graph_async
+    from yamlgraph.utils import route_log
+
+    graph_path = tmp_path / "graph.yaml"
+    graph_path.write_text("name: routed\n", encoding="utf-8")
+    route_path = tmp_path / "route.jsonl"
+    monkeypatch.setenv("YAMLGRAPH_ROUTE_LOG", str(route_path))
+
+    class App:
+        _yamlgraph_graph_name = "routed"
+        _yamlgraph_source_path = str(graph_path)
+
+        async def ainvoke(self, state, config):
+            route_log.emit_route("choose", "default", "END")
+            return state
+
+    await run_graph_async(App(), {})
+
+    records = [json.loads(line) for line in route_path.read_text().splitlines()]
+    run_record = next(record for record in records if record["event"] == "run")
+    (run_span,) = in_memory_exporter.get_finished_spans()
+    assert run_record["run_id"] == run_span.attributes["yamlgraph.run.id"]
+
+
+@requires_otel_sdk
+@pytest.mark.asyncio
+@pytest.mark.req("REQ-YG-015", "REQ-YG-570")
+async def test_concurrent_run_graph_async_spans_keep_parentage(in_memory_exporter):
+    """FR-811: concurrent invocations do not cross-parent node spans."""
+    from yamlgraph.executor_async import run_graph_async
+
+    entered = asyncio.Event()
+    release = asyncio.Event()
+    invocation_count = 0
+
+    class App:
+        def __init__(self, name):
+            self._yamlgraph_graph_name = name
+
+        async def ainvoke(self, state, config):
+            nonlocal invocation_count
+            invocation_count += 1
+            if invocation_count == 2:
+                entered.set()
+            await entered.wait()
+            with otel.node_execution_span(self._yamlgraph_graph_name, "python"):
+                await release.wait()
+            return state
+
+    tasks = [
+        asyncio.create_task(run_graph_async(App("first"), {})),
+        asyncio.create_task(run_graph_async(App("second"), {})),
+    ]
+    await entered.wait()
+    release.set()
+    await asyncio.gather(*tasks)
+
+    spans = in_memory_exporter.get_finished_spans()
+    roots = {span.context.trace_id: span for span in spans if span.parent is None}
+    children = [span for span in spans if span.parent is not None]
+    assert len(roots) == 2
+    assert len(children) == 2
+    assert all(
+        child.parent.span_id == roots[child.context.trace_id].context.span_id
+        for child in children
+    )

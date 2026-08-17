@@ -14,6 +14,7 @@ from yamlgraph.config import DEFAULT_TEMPERATURE
 from yamlgraph.executor_base import prepare_messages, prepare_messages_async
 from yamlgraph.graph_cache import GRAPH_CACHE as _DEFAULT_CACHE
 from yamlgraph.models.streaming import StreamEvent
+from yamlgraph.observability.otel import run_graph_async
 from yamlgraph.streaming_events import check_interrupt, translate_message_event
 from yamlgraph.utils.llm_factory import create_llm
 from yamlgraph.utils.llm_factory_async import invoke_async
@@ -192,46 +193,6 @@ async def execute_prompt_streaming(
 # ==============================================================================
 
 
-async def run_graph_async(
-    app,
-    initial_state: dict,
-    config: dict | None = None,
-) -> dict:
-    """Execute a compiled graph asynchronously.
-
-    Thin wrapper around LangGraph's ainvoke for consistent API.
-    Supports interrupt handling and Command resume. Sets the route-log
-    thread_id contextvar around invocation (FR-723 R-1).
-
-    Args:
-        app: Compiled LangGraph app (from graph.compile())
-        initial_state: Initial state dict or Command(resume=...) for resuming
-        config: LangGraph config with thread_id, e.g.
-                {"configurable": {"thread_id": "my-thread"}}
-
-    Returns:
-        Final state dict. If interrupted, contains "__interrupt__" key —
-        resume by calling again with Command(resume=...) and the same
-        thread_id config.
-    """
-    from contextlib import nullcontext
-
-    from yamlgraph.utils.route_log import route_log_enabled, route_run_context
-
-    config = config or {}
-    graph_path = getattr(app, "_yamlgraph_source_path", None)
-    if not isinstance(graph_path, str | Path):
-        graph_path = None
-    thread_id = (config.get("configurable") or {}).get("thread_id")
-    run_context = (
-        route_run_context(graph_path, thread_id=thread_id)
-        if graph_path and route_log_enabled()
-        else nullcontext()
-    )
-    with run_context, route_thread_id_from_config(config):
-        return await app.ainvoke(initial_state, config)
-
-
 async def compile_graph_async(
     graph,
     config,
@@ -289,6 +250,7 @@ async def load_and_compile_async(
 
     state_graph = compile_graph(config)
     compiled = await compile_graph_async(state_graph, config)
+    compiled._yamlgraph_graph_name = config.name  # type: ignore[attr-defined]
     compiled._yamlgraph_source_path = str(config.source_path)  # type: ignore[attr-defined]
 
     if cache is not None:

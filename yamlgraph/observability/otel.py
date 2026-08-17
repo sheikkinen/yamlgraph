@@ -48,9 +48,12 @@ import secrets
 import time
 import uuid
 from collections.abc import Iterator
-from contextlib import contextmanager
-from dataclasses import dataclass, field
+from contextlib import contextmanager, nullcontext
+from dataclasses import asdict, dataclass, field
+from pathlib import Path
 from typing import Any
+
+from langgraph.types import Command
 
 logger = logging.getLogger(__name__)
 
@@ -261,6 +264,58 @@ def node_execution_span(
             span.set_attribute("yamlgraph.state.keys_written", node_ctx.keys_written)
 
 
+async def run_graph_async(
+    app: Any,
+    initial_state: dict[str, Any] | Command,
+    config: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Execute one compiled-graph invocation with route and OTEL contexts."""
+    from yamlgraph.utils.route_log import (
+        route_log_enabled,
+        route_run_context,
+        route_thread_id_from_config,
+    )
+
+    config = config or {}
+    otel_enabled = is_otel_enabled()
+    graph_name = getattr(app, "_yamlgraph_graph_name", None)
+    if otel_enabled and (not isinstance(graph_name, str) or not graph_name.strip()):
+        raise ValueError(
+            "OTEL-enabled run_graph_async requires non-empty "
+            "_yamlgraph_graph_name metadata; create the app with "
+            "load_and_compile_async"
+        )
+
+    graph_path = getattr(app, "_yamlgraph_source_path", None)
+    if not isinstance(graph_path, str | Path):
+        graph_path = None
+    thread_id = (config.get("configurable") or {}).get("thread_id")
+    route_enabled = bool(graph_path and route_log_enabled())
+    run_id = generate_run_id() if otel_enabled or route_enabled else None
+    run_context = (
+        route_run_context(graph_path, thread_id=thread_id, run_id=run_id)
+        if route_enabled
+        else nullcontext()
+    )
+    variables = (
+        initial_state if isinstance(initial_state, dict) else asdict(initial_state)
+    )
+    with (
+        graph_run_span(
+            graph_name or "",
+            variables,
+            thread_id=thread_id,
+            run_id=run_id,
+        ) as otel_context,
+        run_context,
+        route_thread_id_from_config(config),
+    ):
+        result = await app.ainvoke(initial_state, config)
+        if "__interrupt__" in result:
+            otel_context.outcome = "interrupted"
+        return result
+
+
 __all__ = [
     "ENV_VAR",
     "ENABLED_VALUE",
@@ -273,4 +328,5 @@ __all__ = [
     "variables_hash",
     "graph_run_span",
     "node_execution_span",
+    "run_graph_async",
 ]

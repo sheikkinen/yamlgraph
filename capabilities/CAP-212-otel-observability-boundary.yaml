@@ -17,12 +17,15 @@ description: >
   node_compiler.py (llm, router, tool, python, agent, tool_call, race,
   passthrough, copilot, subgraph) via node_otel.py, mirroring the
   node_timeout.py wrapping pattern. LangSmith tracing is unaffected —
-  this boundary is a parallel, vendor-neutral exporter path.
+  this boundary is a parallel, vendor-neutral exporter path. FR-811
+  extends the root-span boundary to non-streaming programmatic calls
+  made through run_graph_async.
 modules:
   - yamlgraph/observability/otel.py
   - yamlgraph/compile/node_otel.py
   - yamlgraph/compile/node_compiler.py
   - yamlgraph/cli/graph_commands.py
+  - yamlgraph/executor_async.py
 requirements:
   - id: REQ-YG-570
     description: >
@@ -38,10 +41,18 @@ requirements:
       yamlgraph.state.keys_written, yamlgraph.node.error optional)
       spans sharing one trace id with correct parent/child linkage;
       variables_hash() is deterministic sha256 of canonical sorted-key
-      JSON and never contains raw values.
+      JSON and never contains raw values. FR-811: load_and_compile_async
+      attaches validated graph name/source metadata before caching;
+      run_graph_async emits one root span per initial or resume call,
+      shares its UUIDv7 with route evidence, records interrupt/error
+      outcomes, and fails before invocation when enabled OTEL lacks the
+      extra or required graph-name metadata. Direct invocation and native
+      streaming remain outside the boundary.
     modules:
       - yamlgraph/observability/otel.py
       - yamlgraph/compile/node_otel.py
       - yamlgraph/compile/node_compiler.py
       - yamlgraph/cli/graph_commands.py
+      - yamlgraph/executor_async.py
       - tests/unit/test_otel_observability.py
+      - tests/unit/test_async_executor.py
