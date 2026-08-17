@@ -453,6 +453,47 @@ async def test_run_graph_async_disabled_needs_no_opentelemetry(monkeypatch):
     app.ainvoke.assert_awaited_once_with({"private": "value"}, {})
 
 
+@pytest.mark.asyncio
+@pytest.mark.req("REQ-YG-570")
+async def test_run_graph_async_disabled_passes_none_to_checkpoint(monkeypatch):
+    """FR-813: disabled OTEL preserves checkpoint re-run input semantics."""
+    from yamlgraph.executor_async import run_graph_async
+
+    monkeypatch.setitem(sys.modules, "opentelemetry", None)
+    app = AsyncMock()
+    app.ainvoke.return_value = {"result": "recovered"}
+    config = {"configurable": {"thread_id": "thread-42"}}
+
+    result = await run_graph_async(app, None, config)
+
+    assert result == {"result": "recovered"}
+    app.ainvoke.assert_awaited_once_with(None, config)
+
+
+@requires_otel_sdk
+@pytest.mark.asyncio
+@pytest.mark.req("REQ-YG-570")
+async def test_run_graph_async_hashes_none_as_canonical_null(in_memory_exporter):
+    """FR-813: checkpoint re-runs hash canonical null, never an empty input."""
+    from yamlgraph.executor_async import run_graph_async
+
+    app = AsyncMock()
+    app._yamlgraph_graph_name = "checkpoint-retry"
+    app.ainvoke.return_value = {"result": "recovered"}
+
+    result = await run_graph_async(app, None)
+
+    assert result == {"result": "recovered"}
+    app.ainvoke.assert_awaited_once_with(None, {})
+    (run_span,) = in_memory_exporter.get_finished_spans()
+    none_hash = "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"
+    empty_hash = "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    assert run_span.attributes["yamlgraph.variables.hash"] == none_hash
+    assert run_span.attributes["yamlgraph.variables.hash"] != empty_hash
+    assert "None" not in str(run_span.attributes.values())
+    assert "null" not in str(run_span.attributes.values())
+
+
 @requires_otel_sdk
 @pytest.mark.asyncio
 @pytest.mark.req("REQ-YG-015", "REQ-YG-570")
