@@ -225,9 +225,10 @@ approval/judgement reference — so the binding is checked by equality from
 the evidence package itself, not inferred from a separate deployment
 configuration layer the auditor must additionally trust. The full chain
 reads: **design → judgement → identity → execution → conformance**. In the
-reference implementation P5 is the one property not yet shipped: today the
-binding rests on deployment pinning, and the record-level stamp is a judged,
-unimplemented change request (§7).[^5]
+reference implementation the run record carries the artifact content hash,
+and the regulated profile requires the judgement reference — both were the
+last properties shipped, entering through the same judged change-request
+pipeline the paper describes (§7).[^5]
 
 Two architectural corollaries make P1–P5 practical for LLM systems:
 
@@ -499,7 +500,8 @@ inspect or reproduce the mechanism rather than take it on argument:
 The judgement workflow of P2 is the repository's own development process:
 every feature enters through a written change request judged against
 acceptance criteria before implementation authority is granted — including
-the two change requests this paper's §7 identifies as required work. The
+the two change requests that delivered P5 and the regulated profile (§7),
+whose judgement-to-enforcement trail is verifiable in the repository. The
 framework is cited here for provenance and reproducibility; nothing in the
 paper's argument depends on this particular implementation, and §9's
 checklist is stated so that any stack can be assessed against it.
