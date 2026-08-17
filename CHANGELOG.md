@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.22]
+
+### Fixed
+- **FR-813 None checkpoint input**: Preserve `None` through `run_graph_async` checkpoint retries and hash it as canonical JSON `null` for OTel evidence. (REQ-YG-570)
+
 ## [0.5.21]
 
 ### Added
