@@ -102,7 +102,7 @@ def is_otel_enabled() -> bool:
     return os.environ.get(ENV_VAR) == ENABLED_VALUE
 
 
-def variables_hash(variables: dict[str, Any]) -> str:
+def variables_hash(variables: dict[str, Any] | None) -> str:
     """SHA-256 hex digest of canonical (sorted-key) JSON of ``variables``.
 
     Never emits raw values (judgement C-4) — only this deterministic
@@ -197,7 +197,7 @@ def _configure_exporter_if_needed(trace: Any) -> None:
 @contextmanager
 def graph_run_span(
     graph_name: str,
-    variables: dict[str, Any],
+    variables: dict[str, Any] | None,
     thread_id: str | None = None,
     run_id: str | None = None,
 ) -> Iterator[GraphRunContext]:
@@ -266,10 +266,14 @@ def node_execution_span(
 
 async def run_graph_async(
     app: Any,
-    initial_state: dict[str, Any] | Command,
+    initial_state: dict[str, Any] | Command | None,
     config: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    """Execute one compiled-graph invocation with route and OTEL contexts."""
+    """Execute one compiled-graph invocation with route and OTEL contexts.
+
+    ``None`` preserves LangGraph checkpoint continuation semantics: it is hashed
+    as canonical JSON null and passed unchanged to ``ainvoke``.
+    """
     from yamlgraph.utils.route_log import (
         route_log_enabled,
         route_run_context,
@@ -298,7 +302,9 @@ async def run_graph_async(
         else nullcontext()
     )
     variables = (
-        initial_state if isinstance(initial_state, dict) else asdict(initial_state)
+        initial_state
+        if initial_state is None or isinstance(initial_state, dict)
+        else asdict(initial_state)
     )
     with (
         graph_run_span(

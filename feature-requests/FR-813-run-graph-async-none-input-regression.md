@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Judged
+**Status:** Enforced 2026-08-17
 **Effort:** 0.5 days
 **Requested:** 2026-08-17
 **First consumer / first event:** ninchat_voice (csap) NC-434 — the moment it
@@ -103,23 +103,23 @@ Canonical `{}` is explicitly forbidden for this path; its distinct hash is
 
 ## Acceptance Criteria
 
-- [ ] AC-01: `run_graph_async(app, None, config)` with OTel disabled returns
+- [x] AC-01: `run_graph_async(app, None, config)` with OTel disabled returns
       `ainvoke`'s result; no OpenTelemetry import, no exception — RED test
       first (condemns v0.5.21 behavior).
-- [ ] AC-02: Same call with OTel enabled and an in-memory exporter emits one
+- [x] AC-02: Same call with OTel enabled and an in-memory exporter emits one
   root span whose `yamlgraph.variables.hash` equals the SHA-256 of canonical
   JSON `null`
   (`74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b`),
   and exports no raw values. The hash of `{}` is not accepted.
-- [ ] AC-03: dict and `Command` inputs unchanged (existing FR-811 tests
+- [x] AC-03: dict and `Command` inputs unchanged (existing FR-811 tests
       stay green).
-- [ ] AC-04: `run_graph_async`, `graph_run_span`, and `variables_hash` type
+- [x] AC-04: `run_graph_async`, `graph_run_span`, and `variables_hash` type
   annotations admit the `None` hashing path without weakening unrelated
   public contracts; the runner docstring documents `None` as checkpoint
   re-run input.
-- [ ] AC-05: Tests are marked with existing REQ-YG-570; CAP-212 remains the
+- [x] AC-05: Tests are marked with existing REQ-YG-570; CAP-212 remains the
   governing capability and strict requirement coverage passes.
-- [ ] AC-06: Changelog fragment and diary entry are included.
+- [x] AC-06: Changelog fragment and diary entry are included.
 
 ## Alternatives Considered
 
@@ -160,3 +160,23 @@ Canonical `{}` is explicitly forbidden for this path; its distinct hash is
 ### Questions for the human (as options, or 'none')
 
 None.
+
+## Implementation Status (enforced 2026-08-17)
+
+All acceptance criteria are complete. `run_graph_async` now admits `None` in
+its public annotation, preserves it unchanged for LangGraph checkpoint
+continuation, and hashes it through the existing canonical JSON path. The
+evidence hash is the frozen SHA-256 of `null`, remains distinct from the hash
+of `{}`, and exposes no raw input value. `graph_run_span` and `variables_hash`
+admit the same evidence shape without changing exporter or span behavior.
+
+Validation evidence:
+
+- RED commit `eeafeb34`: both direct witnesses failed at `asdict(None)` before
+  `ainvoke`, reproducing the v0.5.21 regression.
+- Focused FR-813 witnesses: 2 passed.
+- Complete OTel and async executor suites: 51 passed.
+- Route-evidence and structural module-boundary witnesses: 23 passed.
+- Full fast unit suite: 5,817 passed, 97 skipped, 1 xfailed.
+- Strict requirement coverage: 405/405 requirements covered.
+- Ruff format/check, Radon grade-D scan, and generated FR-board check passed.
