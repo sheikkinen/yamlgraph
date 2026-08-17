@@ -318,6 +318,156 @@ not by implementing two chat platforms prematurely.
 | Transcript or audit retention lacks an owner | Keep the proof on synthetic data |
 | Operator workflow is not reused after the demo | Stop before Teams, Slack, or WhatsApp adapters |
 
+## Alternative: Operator Computer Audio via Voice Runtime (Three-Party Bridge)
+
+**Date added:** 2026-08-17
+
+Discord handles **chat only** — text commands, transcripts, macros,
+transliteration display. The operator's live voice travels through
+`voice_runtime` as a local computer audio transport (mic in, speaker out),
+**not** through a Discord voice channel. This keeps Discord as a pure text
+control plane and puts all audio ownership in the runtime where echo, codec,
+and mixing are already solved problems.
+
+### Architecture
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  Operator workstation                                    │
+│                                                          │
+│  ┌──────────────────────┐   ┌─────────────────────────┐ │
+│  │ Discord (chat only)  │   │ voice_runtime            │ │
+│  │ /call, macros, text  │   │ (computer audio transport│ │
+│  │ transcripts, translit│   │  mic → bridge            │ │
+│  │                      │   │  bridge → speaker)       │ │
+│  └──────────┬───────────┘   └────────────┬────────────┘ │
+└─────────────┼────────────────────────────┼──────────────┘
+              │ commands/events             │ audio (PCM)
+              │                            │
+    ┌─────────▼────────────────────────────▼────────┐
+    │                 Call Hub                        │
+    │   command routing, FSM, mix policy, audit      │
+    └────────┬──────────────┬──────────────┬────────┘
+             │              │              │
+   ┌─────────▼──────┐ ┌────▼───────┐ ┌───▼────────┐
+   │ Twilio PSTN    │ │ TTS engine │ │ STT engine │
+   │ (remote party) │ │ (typed/    │ │ (remote →  │
+   │                │ │  macros)   │ │  transcript)│
+   └────────────────┘ └────────────┘ └────────────┘
+```
+
+### Input/Output Paths
+
+| Direction | Path | Owner |
+|-----------|------|-------|
+| **Operator speaks** | Physical mic → voice_runtime computer audio transport → bridge → Twilio | voice_runtime |
+| **Operator types** | Discord text → Call Hub → TTS → bridge → Twilio | Call Hub + TTS |
+| **Operator clicks macro** | Discord button → Call Hub → pre-rendered/TTS → bridge → Twilio | Call Hub |
+| **Remote party speaks** | Twilio → bridge → STT → transcript → Discord thread | voice_runtime + Discord |
+| **Remote party heard** | Twilio → bridge → voice_runtime computer audio transport → physical speaker | voice_runtime |
+
+The operator hears the remote party through their speaker (via voice_runtime)
+and sees the transcript in Discord (via STT). They respond by speaking into
+their mic OR typing in Discord — both reach the same PSTN call.
+
+### Why Voice Runtime Owns Audio (Not Discord Voice)
+
+| Concern | Discord voice channel | voice_runtime computer audio |
+|---------|----------------------|------------------------------|
+| Echo cancellation | Discord's built-in (not tuned for bridged PSTN) | Runtime's proven echo suppression from production telephony |
+| Codec path | 48 kHz Opus → bridge → 8 kHz µ-law (double transcode) | Direct PCM ↔ µ-law (one transcode, same as current Twilio path) |
+| Playback completion | No mark equivalent; timing guesses | Twilio mark echo already implemented |
+| Mix policy | Discord mixes all channel participants | Runtime controls exactly what enters the PSTN stream |
+| Latency | Discord relay servers add hop | Local process, direct to Twilio |
+| Separation of concerns | Discord owns audio AND chat | Discord = chat; runtime = audio (clean boundary) |
+
+### Computer Audio Transport (New in voice_runtime)
+
+A new transport alongside `transports/twilio_call.py`:
+
+```python
+# transports/computer_audio.py
+class ComputerAudioTransport:
+    """Bridges local mic/speaker to the call session."""
+
+    def __init__(self, input_device: str, output_device: str): ...
+    def start(self) -> None: ...        # open audio streams
+    def send_audio(self, frames) -> None:  # play to speaker
+    def receive_audio(self) -> bytes: ...   # read from mic
+    def stop(self) -> None: ...
+```
+
+Uses PyAudio, sounddevice, or Core Audio bindings. Operates at the runtime's
+native frame rate. The session treats it identically to a Twilio stream —
+same FSM, same echo handling, same mark/completion model.
+
+### Voice Mode State
+
+```yaml
+voice_mode:
+  muted: Text and macros only; mic not bridged to call
+  live: Operator mic streams to remote party in real time
+  push_to_talk: Mic bridged only while PTT key held
+
+mix_policy:
+  preempt: Operator voice interrupts queued TTS immediately
+  complete_then_voice: Current TTS utterance finishes, then mic opens
+  exclusive: Only one source active at a time (safest default)
+```
+
+Default: `muted`. Operator escalates to voice with `/call unmute` or a PTT
+keybind. The FSM tracks which input source is active for audit.
+
+### Transliteration
+
+Operates purely in the text domain within Discord:
+
+- Remote party transcript displayed in original script + romanized form
+- Operator types in Latin; optional reverse-transliteration before TTS
+  (TTS handles native script better)
+- No audio-domain transformation — zero added latency
+- ICU/CLDR deterministic transforms for known script pairs;
+  LLM fallback only for ambiguous cases
+
+### Challenges
+
+| Challenge | Mitigation |
+|-----------|-----------|
+| **Echo:** remote party audio from speaker re-enters mic | Runtime's existing echo suppression; headphones for first proof; PTT eliminates the path |
+| **Device selection:** must pick correct mic/speaker | Config or auto-detect; same problem as any VoIP client |
+| **Platform dependency:** Core Audio (macOS), WASAPI (Windows), ALSA (Linux) | Use `sounddevice` (PortAudio wrapper) for cross-platform; or platform-specific for lowest latency |
+| **Mix of voice + TTS:** both reach PSTN | FSM enforces exclusive or priority policy; bridge tags source |
+| **Audit:** which words were live voice vs. TTS | Transport logs mic-active intervals; STT of operator's own voice provides ground truth |
+
+### Relation to Primary Plan
+
+- **Phases 1–2** (contracts, mock voice loop): unchanged — computer audio
+  transport is just another mock-replaceable transport.
+- **Phase 3** (Discord adapter): Discord remains chat-only as already planned.
+  No voice channel commands needed.
+- **Phase 4** (isolation): must additionally prove operator audio and TTS
+  do not cross; transport device locking prevents two calls sharing one mic.
+- **Phase 5** (live proof): can start in muted mode (text-only, identical to
+  primary plan) and add live voice as a follow-up with measured echo.
+
+### Phased Voice Proof
+
+| Step | What | Gate |
+|------|------|------|
+| 5a | Muted mode: text + macros only (= primary plan Phase 5) | Call completes, audit clean |
+| 5b | Speaker output: operator hears remote party through local speaker | Audio quality acceptable, no echo when muted |
+| 5c | Push-to-talk: operator speaks, remote hears, no echo | Round-trip latency < 500ms, echo suppression holds |
+| 5d | Live mode: open mic with echo cancellation | Conversation flows naturally; fallback to PTT if echo |
+
+### Decision Summary
+
+- **Discord** = chat control plane (commands, transcripts, transliteration,
+  macros, buttons). No audio. No voice channel.
+- **voice_runtime** = audio plane (operator mic/speaker + Twilio PSTN).
+  New `computer_audio` transport, same session model.
+- **Call Hub** = coordination (routes commands from Discord to the runtime
+  session, projects events back to Discord threads).
+
 ## Definition Of Done
 
 The internal proof is complete when an authorized Discord operator can place
@@ -340,9 +490,34 @@ session, STT, TTS, mixer, and playback completion contracts are built around
 48 kHz stereo Opus, per-user streams, RTP/UDP, and mandatory DAVE end-to-end
 encryption.
 
-The PSTN proof remains the priority and is unchanged. A direct Discord
-voicebot starts with a separate media feasibility spike, not a sixth delivery
-phase of this plan:
+The PSTN proof remains the priority and is unchanged. For Discord-native voice,
+Discord remains the audio transport through its official clients. External
+sidecars process endpoint audio around that transport:
+
+```mermaid
+flowchart LR
+  M[Microphone] --> X[Optional STT transform TTS]
+  X --> V[Virtual microphone]
+  V --> D[Official Discord client]
+  D --> N[Discord encrypted voice transport]
+  N --> R[Remote Discord client]
+  R --> O[Output tap or transform]
+  O --> P[Speaker]
+```
+
+The official Discord clients own DAVE, Opus, RTP, reconnect, channel identity,
+and audio delivery. A sidecar uses OS audio taps or virtual devices and receives
+no bot token. Passive mode transcribes microphone and speaker audio in parallel
+without altering it. Transform mode performs STT -> translation or YAMLGraph ->
+TTS before a virtual microphone sends the resulting audio through Discord.
+
+This requires sidecar software at each processed endpoint. It does create a
+communal voice because Discord carries the transformed audio to everyone in the
+channel; it does not require a bot to receive or transmit voice.
+
+Only a named requirement for centralized operation without endpoint software
+justifies a separate bot media feasibility spike, not a sixth delivery phase of
+this plan:
 
 1. Join one private voice channel through a DAVE-capable media edge.
 2. Play one fixed local fixture and receive one consenting user's audio.
