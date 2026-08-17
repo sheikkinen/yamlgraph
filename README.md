@@ -173,6 +173,7 @@ yamlgraph graph run examples/demos/yamlgraph/graph.yaml --var topic="AI" --share
 - Human-in-the-loop interview flows
 - Code quality analysis pipelines
 - FastAPI integrations
+- Discord slash-command bot ([examples/discord_bot](examples/discord_bot/))
 
 ## Documentation
 
