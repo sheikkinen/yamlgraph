@@ -1,0 +1,19 @@
+id: CAP-239
+name: Discord Hello Slash-Command Example
+description: >
+  Minimal Discord gateway-bot example executing the unmodified hello demo
+  graph from a guild-scoped /hello slash command via the async seam
+  (load_and_compile_async + run_graph_async), with a pure adapter slice
+  mapping interaction options to graph state and graph results to embeds.
+modules:
+  - examples/discord_bot
+requirements:
+  - id: REQ-YG-600
+    description: >
+      Discord hello example: pure adapter maps /hello options (name, style)
+      to hello-graph initial state with validation, renders the structured
+      greeting result as embed fields, and renders visible correlated error
+      messages instead of fallback greetings.
+    modules:
+      - examples/discord_bot
+fr: FR-812

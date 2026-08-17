@@ -554,6 +554,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 236 | CAP-236 Router-Visible Tool-Call Outputs | `node_factory`, `models`, `linter` | REQ-YG-597 |
 | 237 | CAP-237 Author Brief Pre-Flight | `scripts` | REQ-YG-598 |
 | 238 | CAP-238 API Discovery Orchestrator v2 — Recon and Browser-Sniff Routing | `examples` | REQ-YG-599 |
+| 239 | CAP-239 Discord Hello Slash-Command Example | `examples/discord_bot` | REQ-YG-600 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -2923,6 +2924,16 @@ Extends the FR-791 API discovery orchestrator with the two steps its judgement d
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-599 | The api-discovery orchestrator references steps/recon.tool.yaml and steps/browser_sniff.tool.yaml through type tool_call nodes with no subgraph nodes and passes graph lint; use_recon defaults true and disabling it preserves the FR-791 v1 route; endpoint-probe, page-analysis, and browser-sniff expose parsed state keys via parsed_key; browser-sniff is entered only on page_findings.is_spa == true and page_findings.api_found != true; candidate generation consumes recon_result when recon ran; sniff_url selection is deterministic; the synthesize schema carries manual_reason for needs_manual verdicts; steps_tried lists recon and browser-sniff only when their wrappers are non-empty. | `examples` |
+
+### 239. CAP-239 Discord Hello Slash-Command Example
+
+Minimal Discord gateway-bot example executing the unmodified hello demo graph from a guild-scoped /hello slash command via the async seam (load_and_compile_async + run_graph_async), with a pure adapter slice mapping interaction options to graph state and graph results to embeds.
+
+**Feature Request:** FR-812
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-600 | Discord hello example: pure adapter maps /hello options (name, style) to hello-graph initial state with validation, renders the structured greeting result as embed fields, and renders visible correlated error messages instead of fallback greetings. | `examples/discord_bot` |
 
 <!-- END GENERATED CAPABILITIES -->
 
