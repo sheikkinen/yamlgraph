@@ -327,8 +327,50 @@ redacted audit trail. Mock tests must additionally prove two-call isolation and
 fail-closed stale routing. The proof must add no Discord dependency to
 `voice_runtime` or the core Ninchat Voice bridge.
 
+## Future Direction: Discord Voice Channel Voicebot
+
+**Date added:** 2026-08-17
+**Status:** Exploratory; transport feasibility not yet proven
+
+The outbound-calls plan routes PSTN audio through Twilio Media Streams. The
+same product architecture may eventually support a direct Discord voice
+session, but the current `voice_runtime` is not a media-neutral substrate. Its
+session, STT, TTS, mixer, and playback completion contracts are built around
+8 kHz G.711 mu-law and Twilio mark echoes. Discord voice instead requires
+48 kHz stereo Opus, per-user streams, RTP/UDP, and mandatory DAVE end-to-end
+encryption.
+
+The PSTN proof remains the priority and is unchanged. A direct Discord
+voicebot starts with a separate media feasibility spike, not a sixth delivery
+phase of this plan:
+
+1. Join one private voice channel through a DAVE-capable media edge.
+2. Play one fixed local fixture and receive one consenting user's audio.
+3. Record frame counts and format metadata only; use no STT, TTS, LLM, or audio
+  retention.
+4. Prove sender identity, playback completion, disconnect, and resume behavior.
+
+Only after that witness should a judged FR define a shared behavioral contract
+for session lifecycle, transcripts, speak, interrupt, playback completion, and
+failure events. Twilio marks and codec frames remain transport details. Current
+evidence favors a separate `@discordjs/voice` media edge; Python voice receive
+support has not yet demonstrated DAVE compatibility.
+
+Translation, transliteration, and TTS pronunciation preparation are separate
+operations. Transliteration should use a named ICU transform, preserve the
+original text, and record transform provenance. It should first serve transcript
+display or cross-script search; romanizing source text before TTS may degrade
+pronunciation.
+
+Full evidence, opportunity ranking, proof gates, and kill criteria:
+[`research-discord-voice-runtime-yamlgraph-2026-08-17.md`](research-discord-voice-runtime-yamlgraph-2026-08-17.md).
+
 ## Seed
 
 If typed chat becomes speech, should the durable operator primitive be
 "send text now" or an explicit draft-and-commit turn that can support review,
 translation, and compliance without changing the voice worker?
+
+If the Discord media edge proves stable, should the shared product be a voice
+runtime package or a governed session protocol that keeps each transport
+independently replaceable?
