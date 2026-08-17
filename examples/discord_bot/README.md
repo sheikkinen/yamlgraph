@@ -56,9 +56,22 @@ never a fallback greeting.
 
 ## Manual acceptance log (AC-04)
 
-To be pasted after the live guild run:
+Executed 2026-08-17 in the private test guild (fresh application, FR-812 R-2);
+provider `azure/aaa-gpt-5.4-mini`; full logs in `logs/fr812-bot*.log`.
 
 ```text
-(pending — all three styles, two overlapping invocations, unset provider key
-error path, restart re-sync)
+13:42:46 Synced 1 guild command(s)                       # initial start
+13:43:44 greet ok  /hello style:formal
+13:44:15 greet ok  /hello style:casual
+13:44:37 greet ok  /hello style:playful                  # embed: "✨ Hey Maija! …" footer: informal
+13:46:25.073 + 13:46:25.451 greet ok ×2                  # overlapping invocations, replies not crossed
+13:47:17 Synced 1 guild command(s)                       # restart re-sync, no duplicate command
+13:49:39 Synced 1 guild command(s)                       # restart with invalid AZURE_AI_API_KEY
+13:50:05 401 PermissionDenied → /hello failed
+         (correlation_id=f24fd16ac50c)                   # ephemeral error shown, no fallback greeting
 ```
+
+Gotcha for reproducing the error path: `yamlgraph/config.py` calls
+`load_dotenv` at import, so *unsetting* the provider key gets silently undone
+from `.env`. Override with an invalid value instead
+(`export AZURE_AI_API_KEY=invalid`) — dotenv does not overwrite existing vars.

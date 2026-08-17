@@ -40,6 +40,21 @@ marker (my CAP id) → `git apply --cached` mine → commit the index bare.
 And: the req registry entry ships in the RED commit — the gate is right that
 an unregistered condemning test is an orphan.
 
+## Addendum: the negative test that couldn't fail
+
+Live acceptance produced a second boundary lesson. To exercise the error path
+I unset every provider key and restarted the bot — and `/hello` *succeeded*.
+Not a bug in the test target but in the test: `yamlgraph/config.py` calls
+`load_dotenv` at import, so the unset key was silently restored from `.env`
+inside the process. The absence I engineered in the shell was repaired by the
+boundary I was testing through. The raw record (a 200 in the bot log where I
+expected a 401) was the only tell — the Discord-side symptom ("response as
+before") looked exactly like a broken error handler. Cure: to break a
+dotenv-backed credential, *override* with an invalid value (dotenv never
+overwrites existing vars); unsetting is not a negative test in any process
+that self-loads config. The 401 then produced the correlated ephemeral error
+exactly as designed.
+
 **Seed:** `now.py` shows live sessions and staged files, but the collision
 that almost happened here was *unstaged* working-tree overlap on a generated
 file. Should the interleave tripwire also flag "two sessions have uncommitted

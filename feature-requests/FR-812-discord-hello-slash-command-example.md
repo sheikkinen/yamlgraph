@@ -2,7 +2,7 @@
 
 **Priority:** LOW
 **Type:** Feature
-**Status:** Enforced 2026-08-17 — rungs 1–2 code complete; AC-04 manual guild acceptance pending
+**Status:** Enforced 2026-08-17 — AC-04 live guild acceptance PASSED (log in examples/discord_bot/README.md)
 **Effort:** 1 day
 **Requested:** 2026-08-17
 **First consumer / first event:** an internal test-guild member types
@@ -162,3 +162,9 @@ judgement time.
 - Deviation: none from frozen scope; D-6 (CAP-239) exercised as authorized.
 - Pending: AC-04 manual acceptance log in the example README after the live
   guild run (fresh app + private guild per R-2).
+- AC-04 completed 2026-08-17: three styles, overlap (replies 380ms apart, not
+  crossed), restart re-sync (1 command, no duplicates), invalid-key 401 →
+  ephemeral error with correlation_id=f24fd16ac50c. Post-judgement fix: bot.py
+  inserts repo root into sys.path (script-path execution defect found live).
+  Error-path testing gotcha: yamlgraph config.py load_dotenv restores unset
+  provider keys from .env — override with an invalid value instead.

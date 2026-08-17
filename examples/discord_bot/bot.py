@@ -23,18 +23,15 @@ try:
 except ImportError:  # pragma: no cover - guarded for environments without the pin
     sys.exit('discord.py not installed: pip install "discord.py==2.7.1"')
 
-from examples.discord_bot.adapter import (
-    STYLE_CHOICES,
-    error_message,
-    greeting_to_embed,
-    options_to_state,
-)
-from yamlgraph.executor_async import load_and_compile_async, run_graph_async
+REPO_ROOT = Path(__file__).resolve().parents[2]
+# Script-path execution (`python examples/discord_bot/bot.py`) puts only the
+# script dir on sys.path; the `examples` package needs the repo root.
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
 HELLO_GRAPH = str(REPO_ROOT / "examples" / "demos" / "hello" / "graph.yaml")
 GRAPH_TIMEOUT_S = 120.0
 
@@ -47,6 +44,8 @@ class HelloBot(discord.Client):
         self.app_graph = None
 
     async def setup_hook(self) -> None:
+        from yamlgraph.executor_async import load_and_compile_async
+
         self.app_graph = await load_and_compile_async(HELLO_GRAPH)
         self.tree.copy_global_to(guild=self.guild)
         synced = await self.tree.sync(guild=self.guild)
@@ -54,6 +53,14 @@ class HelloBot(discord.Client):
 
 
 def main() -> None:
+    from examples.discord_bot.adapter import (
+        STYLE_CHOICES,
+        error_message,
+        greeting_to_embed,
+        options_to_state,
+    )
+    from yamlgraph.executor_async import run_graph_async
+
     token = os.environ.get("DISCORD_BOT_TOKEN", "")
     guild_id = os.environ.get("DISCORD_GUILD_ID", "")
     if not token or not guild_id.isdigit():
