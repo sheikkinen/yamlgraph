@@ -8,6 +8,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.21]
+
+### Added
+- **FR-812 Discord `/hello` Slash-Command Example**: `examples/discord_bot/` gateway bot executes the unmodified hello demo graph from a guild-scoped slash command via `load_and_compile_async` + `run_graph_async`; pure adapter slice (options→state, greeting→embed, correlated errors) unit-tested with zero network. (REQ-YG-600)
+- **FR-811 Programmatic OTel export**: Instrument non-streaming `run_graph_async` invocations with graph-run spans, shared route identities, fail-fast metadata validation, and private resume hashing. (REQ-YG-570)
+
+### Fixed
+- **FR-812 Discord example launch fix**: `bot.py` bootstraps the repo root onto `sys.path` so the documented `python examples/discord_bot/bot.py` invocation works; AC-04 live guild acceptance log recorded in the example README. (REQ-YG-600)
+
 ## [0.5.20]
 
 ### Fixed
