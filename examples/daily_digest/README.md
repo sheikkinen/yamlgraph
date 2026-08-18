@@ -4,6 +4,11 @@ A YAMLGraph example that showcases scheduled, long-running agents deployed on Fl
 
 > ✅ **Tested & Working** - Fetches ~50 HN articles, analyzes with Claude, and delivers HTML digest via email.
 
+> 🌐 **GitHub-native variant**: [yamlgraph-daily-digest](https://github.com/sheikkinen/yamlgraph-daily-digest)
+> runs this pipeline entirely in GitHub Actions — no Fly.io, no Docker, no email.
+> The bulletin is committed back to the repo as markdown; the repo is the runtime,
+> state store, and publication channel (FR-819).
+
 ## What It Does
 
 1. **Fetches** articles from Hacker News front page (~50 articles)
