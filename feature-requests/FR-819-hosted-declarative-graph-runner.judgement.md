@@ -1,10 +1,10 @@
-# Judgement: FR-815 YAMLGraph Serve — Hosted Declarative Graph Runner
+# Judgement: FR-819 YAMLGraph Serve — Hosted Declarative Graph Runner
 
 **Verdict:** APPROVED WITH REVISIONS — the hosted declarative runner is a real contrib/reference-deployment boundary; R-1 through R-6 have been folded into the FR, so authority is active within the frozen non-production scope below.
 
-**Reviewed against:** `feature-requests/FR-815-hosted-declarative-graph-runner.md`; `feature-requests/070-gui-web-playground.md`; `feature-requests/FR-246-a2a-server-reference-docs.md`; `feature-requests/FR-766-runpod-provider.md`; `feature-requests/FR-766-runpod-provider.judgement.md`; `reference/a2a-server.md`; `yamlgraph/a2a/server.py`; `yamlgraph/compile/graph_loader.py`; `yamlgraph/compile/verify_insert.py`; `yamlgraph/compile/node_compiler.py`; `yamlgraph/constants.py`; `ARCHITECTURE.md`; `feature-requests/TEMPLATE.md`; `.github/copilot-instructions.md`; `.github/skills/judge-fr/doctrine.md`; `.github/skills/judge-fr/judgement.template.md`.
+**Reviewed against:** `feature-requests/FR-819-hosted-declarative-graph-runner.md`; `feature-requests/070-gui-web-playground.md`; `feature-requests/FR-246-a2a-server-reference-docs.md`; `feature-requests/FR-766-runpod-provider.md`; `feature-requests/FR-766-runpod-provider.judgement.md`; `reference/a2a-server.md`; `yamlgraph/a2a/server.py`; `yamlgraph/compile/graph_loader.py`; `yamlgraph/compile/verify_insert.py`; `yamlgraph/compile/node_compiler.py`; `yamlgraph/constants.py`; `ARCHITECTURE.md`; `feature-requests/TEMPLATE.md`; `.github/copilot-instructions.md`; `.github/skills/judge-fr/doctrine.md`; `.github/skills/judge-fr/judgement.template.md`.
 
-**Prior art:** FR-815 is the judged target, not an earlier proposal. FR-263
+**Prior art:** FR-819 is the judged target, not an earlier proposal. FR-263
 (Azure OpenAI provider), FR-259 (pipeline inlining fast path),
 106-otel-observability, and FR-759 (OTel observability boundary) match only the
 generic word "hosted"; none accepts tenant-authored graph bundles, creates an
@@ -13,13 +13,13 @@ isolated execution boundary, or reserves and settles prepaid credits.
 ## What is sound
 
 The problem is real and distinct from rejected GUI work. FR-070 rejected a
-human-facing browser playground; FR-815 serves an agent/API consumer and adds
+human-facing browser playground; FR-819 serves an agent/API consumer and adds
 no GUI.
 
 The A2A distinction is sound. The current A2A server exposes trusted,
 operator-selected graph paths, emits unauthenticated agent cards, delegates
 production authentication to a reverse proxy, and executes discovered graphs
-in-process. FR-815 correctly refuses to add hostile tenant ingestion and
+in-process. FR-819 correctly refuses to add hostile tenant ingestion and
 metering to that server.
 
 The strategic classification is correct: this belongs under

@@ -1,10 +1,14 @@
-# Feature Request: FR-815 YAMLGraph Serve — Hosted Declarative Graph Runner
+# Feature Request: FR-819 YAMLGraph Serve — Hosted Declarative Graph Runner
 
 **Priority:** MEDIUM
 **Type:** Feature
 **Status:** Judged — Approved with revisions folded (2026-08-18)
 **Effort:** 8–12 days
 **Requested:** 2026-08-18
+**Renumbered:** originally filed as FR-815; renamed to FR-819 on 2026-08-18
+to resolve an ID collision with FR-815 (knowledge-graph-phase2-cluster-naming-judge-narrowing),
+which landed on origin first (commit `669fead3`) and keeps the ID per the
+one_session_one_repo collision-resolution convention.
 **First consumer / first event:** a YAMLGraph author who has a graph and
 prompts but no deployment, at the moment they submit that bundle with input
 variables and a maximum credit spend to receive a streamed result from an
@@ -337,7 +341,7 @@ refundable credits; multiple regions/providers; durable sessions; SLA or
 production-readiness claims.
 
 **Scope frozen:** D-1 through D-7 and conditions C-1 through C-7 in
-`feature-requests/FR-815-hosted-declarative-graph-runner.judgement.md`.
+`feature-requests/FR-819-hosted-declarative-graph-runner.judgement.md`.
 
 ## Related
 

@@ -1,11 +1,11 @@
 meta:
   schema_version: 2
-  corpus_fingerprint: sha256:30f1bf8906c98b348ea16e4dbd8604d9c3202d192e312cb08cc6018319e7569f
-  fr_count: 688
+  corpus_fingerprint: sha256:4b8b01940fe6086b49f5520474b778addf579dc4ccef3a9684c59af22b05a9d0
+  fr_count: 689
   edge_count: 1683
   causal_edge_count: 211
   cluster_count: 65
-  mentions_excluded: 1630
+  mentions_excluded: 1631
 nodes:
   FR-071:
     status: complete
@@ -3620,6 +3620,11 @@ nodes:
     type: enhancement
     requested: '2026-08-18'
     cluster: cluster-20
+  FR-819:
+    status: judged
+    priority: medium
+    type: feature
+    requested: '2026-08-18'
 edges:
 - s: FR-076
   t: FR-068
@@ -15256,20 +15261,6 @@ edges:
   ln: 38
   rule: depends_on_keyword_exact
 - s: FR-815
-  t: FR-070
-  type: prior_art
-  causal: false
-  conf: 1.0
-  ln: 13
-  rule: prior_art_marker
-- s: FR-815
-  t: FR-246
-  type: prior_art
-  causal: false
-  conf: 1.0
-  ln: 345
-  rule: prior_art_section
-- s: FR-815
   t: FR-248
   type: prior_art
   causal: false
@@ -15310,13 +15301,6 @@ edges:
   causal: false
   conf: 1.0
   ln: 126
-  rule: prior_art_section
-- s: FR-815
-  t: FR-766
-  type: prior_art
-  causal: false
-  conf: 1.0
-  ln: 346
   rule: prior_art_section
 - s: FR-815
   t: FR-814
@@ -15401,6 +15385,27 @@ edges:
   causal: false
   conf: 1.0
   ln: 118
+  rule: prior_art_section
+- s: FR-819
+  t: FR-070
+  type: prior_art
+  causal: false
+  conf: 1.0
+  ln: 17
+  rule: prior_art_marker
+- s: FR-819
+  t: FR-246
+  type: prior_art
+  causal: false
+  conf: 1.0
+  ln: 349
+  rule: prior_art_section
+- s: FR-819
+  t: FR-766
+  type: prior_art
+  causal: false
+  conf: 1.0
+  ln: 350
   rule: prior_art_section
 closures:
   FR-097:
@@ -15589,10 +15594,13 @@ closures:
   - FR-573
   - FR-574
   - FR-575
-  - FR-577
   - FR-578
   FR-578:
+  - FR-573
+  - FR-574
+  - FR-575
   - FR-577
+  - FR-578
   FR-581:
   - FR-573
   - FR-574
@@ -16823,14 +16831,13 @@ cycles:
   - FR-550
 - chain:
   - FR-573
-  - FR-576
   - FR-575
   - FR-574
   - FR-573
 - chain:
-  - FR-577
   - FR-578
   - FR-577
+  - FR-578
 - chain:
   - FR-761
   - FR-762
