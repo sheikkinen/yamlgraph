@@ -196,6 +196,7 @@
 | FR-751 | Proposed | yamlgraph |  | FR-751-liquid-safety-precommit-gate.md |
 | FR-757 | Proposed | yamlgraph |  | FR-757-fsm-contrib-relocation.md |
 | FR-818 | Proposed | yamlgraph |  | FR-818-judge-prior-art-context-narrowing.md |
+| FR-820 | Proposed | yamlgraph |  | FR-820-stripe-prepaid-credit-purchase.md |
 | FR-078 | In Progress | yamlgraph |  | FR-078-relocate-project-tests.md |
 | FR-100 | In Progress | yamlgraph |  | FR-100-yamlgraph-development-pipeline-ebook.md |
 | FR-169 | In Progress | yamlgraph |  | FR-169-enforce-reflexion-loop.md |
@@ -424,6 +425,7 @@ graph TD
     FR-815["FR-815 PARSE-FAILURE"]
     FR-818["FR-818 Proposed"]
     FR-819["FR-819 Judged"]
+    FR-820["FR-820 Proposed"]
     FR-081 --> FR-082
     FR-731 --> FR-735
     FR-731 --> FR-736
