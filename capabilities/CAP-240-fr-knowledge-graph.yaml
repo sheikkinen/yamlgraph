@@ -25,4 +25,20 @@ requirements:
       - reference/fr-knowledge-graph.yaml
       - .github/hooks/scripts/checks/prior_art.py
       - tests/unit/test_fr_graph.py
+  - id: REQ-YG-602
+    description: >
+      FR-816: Each cluster in the knowledge graph has a semantic display
+      name derived from member filename nouns. Stable cluster-N keys
+      preserved. Naming is deterministic with collision resolution.
+    modules:
+      - scripts/extract_fr_graph.py
+      - tests/unit/test_fr_graph.py
+  - id: REQ-YG-603
+    description: >
+      FR-817: Cross-cluster mention section in the knowledge graph
+      contains only mention edges where source and target are in
+      different clusters. Count < 500, artifact < 500KB.
+    modules:
+      - scripts/extract_fr_graph.py
+      - tests/unit/test_fr_graph.py
 fr: FR-814

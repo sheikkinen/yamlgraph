@@ -247,3 +247,94 @@ class TestStaleness:
         # Modify source
         fr_file.write_text("**Status:** Implemented\n")
         assert check_staleness(fr_dir, output) is False
+
+
+@pytest.mark.req("REQ-YG-602")
+class TestClusterNaming:
+    """FR-816: Cluster display names from member filename nouns."""
+
+    @pytest.fixture
+    def graph_data(self):
+        path = Path("reference/fr-knowledge-graph.yaml")
+        if not path.exists():
+            pytest.skip("Generated graph not present")
+        return yaml.safe_load(path.read_text())
+
+    def test_schema_version_2(self, graph_data):
+        assert graph_data["meta"]["schema_version"] == 2
+
+    def test_clusters_have_name_and_members(self, graph_data):
+        for cid, cdata in graph_data["clusters"].items():
+            assert isinstance(cdata, dict), f"{cid} is not v2 schema"
+            assert "name" in cdata, f"{cid} missing name"
+            assert "members" in cdata, f"{cid} missing members"
+            assert isinstance(cdata["members"], list)
+            assert len(cdata["members"]) >= 2
+
+    def test_cluster_keys_remain_stable(self, graph_data):
+        for cid in graph_data["clusters"]:
+            assert cid.startswith("cluster-"), f"Key {cid} not stable format"
+
+    def test_naming_deterministic(self):
+        from scripts.extract_fr_graph import name_cluster
+
+        fr_map = {
+            "FR-723": Path("FR-723-execution-path-visualization.md"),
+            "FR-808": Path("FR-808-regulated-evidence-profile.md"),
+        }
+        name1 = name_cluster(["FR-723", "FR-808"], fr_map)
+        name2 = name_cluster(["FR-723", "FR-808"], fr_map)
+        assert name1 == name2
+
+    def test_known_clusters_named(self, graph_data):
+        named = [
+            cid for cid, c in graph_data["clusters"].items() if c["name"] != "unnamed"
+        ]
+        assert len(named) >= 3
+
+    def test_node_cluster_ids_stable(self, graph_data):
+        for _fr_id, meta in graph_data["nodes"].items():
+            if "cluster" in meta:
+                assert meta["cluster"].startswith("cluster-")
+
+
+@pytest.mark.req("REQ-YG-603")
+class TestCrossClusterMentions:
+    """FR-817: Cross-cluster mention report."""
+
+    @pytest.fixture
+    def graph_data(self):
+        path = Path("reference/fr-knowledge-graph.yaml")
+        if not path.exists():
+            pytest.skip("Generated graph not present")
+        return yaml.safe_load(path.read_text())
+
+    def test_section_present(self, graph_data):
+        assert "cross_cluster_mentions" in graph_data
+
+    def test_count_matches_edges(self, graph_data):
+        ccm = graph_data["cross_cluster_mentions"]
+        assert ccm["count"] == len(ccm["edges"])
+
+    def test_count_under_500(self, graph_data):
+        assert graph_data["cross_cluster_mentions"]["count"] < 500
+
+    def test_all_edges_cross_cluster(self, graph_data):
+        nodes = graph_data["nodes"]
+        for e in graph_data["cross_cluster_mentions"]["edges"]:
+            src_cluster = nodes.get(e["s"], {}).get("cluster")
+            tgt_cluster = nodes.get(e["t"], {}).get("cluster")
+            assert src_cluster is not None, f"{e['s']} has no cluster"
+            assert tgt_cluster is not None, f"{e['t']} has no cluster"
+            assert (
+                src_cluster != tgt_cluster
+            ), f"{e['s']}({src_cluster}) and {e['t']}({tgt_cluster}) same cluster"
+
+    def test_edges_deterministic_order(self, graph_data):
+        edges = graph_data["cross_cluster_mentions"]["edges"]
+        keys = [(e["s"], e["t"], e["ln"]) for e in edges]
+        assert keys == sorted(keys)
+
+    def test_artifact_under_500kb(self):
+        path = Path("reference/fr-knowledge-graph.yaml")
+        assert path.stat().st_size < 500 * 1024

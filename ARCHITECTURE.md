@@ -555,7 +555,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 237 | CAP-237 Author Brief Pre-Flight | `scripts` | REQ-YG-598 |
 | 238 | CAP-238 API Discovery Orchestrator v2 — Recon and Browser-Sniff Routing | `examples` | REQ-YG-599 |
 | 239 | CAP-239 Discord Hello Slash-Command Example | `examples/discord_bot` | REQ-YG-600 |
-| 240 | CAP-240 FR Knowledge Graph Extraction | `scripts/extract_fr_graph.py`, `reference/fr-knowledge-graph.yaml`, `reference/fr-knowledge-graph.md`, `.github/hooks/scripts/checks/prior_art.py` | REQ-YG-601 |
+| 240 | CAP-240 FR Knowledge Graph Extraction | `scripts/extract_fr_graph.py`, `reference/fr-knowledge-graph.yaml`, `reference/fr-knowledge-graph.md`, `.github/hooks/scripts/checks/prior_art.py` | REQ-YG-601 – 603 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -2945,6 +2945,8 @@ Deterministic extraction of typed causal and associative edges from the FR corpu
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-601 | scripts/extract_fr_graph.py deterministically generates reference/fr-knowledge-graph.yaml with typed edges (causal: depends_on, regression_of, spawned_by, substrate, supersedes; associative: prior_art, first_consumer_of, mentions), transitive closures over causal edges, cycle detection reporting exact chains, cluster identification, and corpus fingerprint for staleness detection. Prior-art hook augmented with graph-backed cluster boost. | `scripts/extract_fr_graph.py`, `reference/fr-knowledge-graph.yaml`, `.github/hooks/scripts/checks/prior_art.py`, `tests/unit/test_fr_graph.py` |
+| REQ-YG-602 | FR-816: Each cluster in the knowledge graph has a semantic display name derived from member filename nouns. Stable cluster-N keys preserved. Naming is deterministic with collision resolution. | `scripts/extract_fr_graph.py`, `tests/unit/test_fr_graph.py` |
+| REQ-YG-603 | FR-817: Cross-cluster mention section in the knowledge graph contains only mention edges where source and target are in different clusters. Count < 500, artifact < 500KB. | `scripts/extract_fr_graph.py`, `tests/unit/test_fr_graph.py` |
 
 <!-- END GENERATED CAPABILITIES -->
 

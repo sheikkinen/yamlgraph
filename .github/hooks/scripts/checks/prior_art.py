@@ -161,8 +161,13 @@ def _graph_prior_art(new_file: Path, graph: dict) -> list[str]:
     if fr_id in node_data:
         cluster = node_data[fr_id].get("cluster")
         if cluster:
-            cluster_members = graph.get("clusters", {}).get(cluster, [])
-            return [fid for fid in cluster_members if fid != fr_id]
+            cluster_data = graph.get("clusters", {}).get(cluster, {})
+            # v2 schema: cluster is {name, members}; v1: cluster is list
+            if isinstance(cluster_data, dict):
+                members = cluster_data.get("members", [])
+            else:
+                members = cluster_data
+            return [fid for fid in members if fid != fr_id]
 
     return []
 

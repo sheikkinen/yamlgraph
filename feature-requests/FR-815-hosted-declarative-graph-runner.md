@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Proposed
+**Status:** Judged — Approved with revisions folded (2026-08-18)
 **Effort:** 8–12 days
 **Requested:** 2026-08-18
 **First consumer / first event:** a YAMLGraph author who has a graph and
@@ -97,11 +97,22 @@ API tokens map to one tenant. Every graph/run lookup is tenant-scoped.
 
 ### 2. Hosted graph profile
 
-After normal YAMLGraph schema/lint validation, a second fail-closed validator
-walks the parsed `GraphConfig` and permits only an enumerated data-only node
-and configuration subset. The initial allowlist is `llm`, `router`, `map`,
-`passthrough`, and declarative verification nodes whose execution path neither
-imports tenant code nor invokes tools. The validator rejects at minimum:
+Validation starts before the normal graph loader can expand manifests, load
+data paths, import code, or parse tools:
+
+1. Canonicalize and path-confine every bundle member in memory.
+2. Parse `graph_yaml` with `yaml.safe_load()` and require a mapping.
+3. Validate the raw mapping against a hosted schema that performs no imports,
+      filesystem reads, manifest expansion, or template rewrites.
+4. Validate both raw and normalized mappings against the fail-closed hosted
+      profile.
+5. Only after acceptance, materialize the immutable bundle and call the normal
+      YAMLGraph loader inside the isolated run pod.
+
+The initial exact node allowlist is `llm`, `router`, `map`, `passthrough`, and
+the inserted `verify` node only when derived by the service from supported
+top-level `verify:` rules. Tenant-authored `__verify__` nodes are rejected.
+The validator rejects at minimum:
 
 - `python`, `shell`, `copilot`, `agent`, `tool_call`, MCP, A2A-call, and any
   node or tool configuration outside the allowlist;
@@ -132,12 +143,38 @@ by model, run ID, deadline, and reserved credits. The gateway rejects calls
 after cancellation or exhaustion and records provider-reported token usage.
 The Job and writable volume are deleted after terminal receipt persistence.
 
+Isolation has two separate witnesses. Hosted-profile tests prove tenant YAML
+that asks for code, path, tool, provider, or network capabilities is rejected
+before reservation or scheduling. A fixed service-owned diagnostic image,
+which tenant YAML can never select, probes the generated namespace, Job, and
+NetworkPolicy: cluster DNS/API, cloud metadata, public internet, another run's
+storage, and control-plane endpoints must fail while the model-gateway route
+succeeds.
+
 ### 4. Prepaid reservation ledger
 
 Use integer microcredits and an append-only transactional ledger. This FR
 supports admin-issued test credits only; purchasing credits, Stripe/payment
 integration, refunds to payment instruments, tax/VAT, invoices, and cash
 withdrawal are explicitly deferred.
+
+The model catalog is typed service-owned configuration. Each entry contains
+model ID, integer microcredits per one million input and output tokens,
+maximum input/output tokens, and per-call overhead. Charges use integer
+ceiling division per provider request; no floating-point money enters the
+ledger. Before forwarding a call, the gateway reserves the catalog-priced
+maximum output plus known input/overhead from the run's remaining reservation.
+During streaming it counts output tokens and cancels before the next token
+would exceed that call reservation. Cancellation settles reported consumed
+tokens and releases unused call reservation; provider usage that contradicts
+the gateway count enters `settlement_review`.
+
+Run states are `reserved`, `scheduled`, `running`, `canceling`, `succeeded`,
+`failed`, and `settlement_review`; terminal states are immutable except an
+operator-reviewed transition from `settlement_review`. Ledger entry types are
+`credit_grant`, `run_reserve`, `run_debit`, and `run_release`, each keyed by
+tenant, run, and unique source event. A terminal transaction writes at most
+one debit and one release against one reservation.
 
 `POST /v1/runs` performs one serializable transaction keyed by tenant and
 idempotency key: reject insufficient available balance, otherwise create the
@@ -147,7 +184,24 @@ the original result without creating another reservation or debit. A run with
 missing or irreconcilable provider usage fails settlement into an operator
 review state; it does not invent zero usage or debit an estimate silently.
 
-### 5. Bounded proof deployment
+### 5. Tenant content retention
+
+| Artifact | Storage | Retention/deletion | Visibility | Content risk |
+|---|---|---|---|---|
+| Graph bundle and prompts | Tenant-scoped object store | Until tenant deletion; blocked by active runs | Owning tenant | Tenant graph/prompt content |
+| Run inputs | Encrypted run record | 24 hours | Owning tenant until deletion | Tenant content |
+| Run output and SSE events | Encrypted run/event store | 24 hours | Owning tenant until deletion | Model/tenant content |
+| Provider request ID and token counts | Receipt database | 90 days | Tenant and operator | Metadata only |
+| Credit receipt and ledger entries | Ledger database | 7 years unless shortened before external use | Tenant and operator | No prompt/input/output content |
+| Service logs | Operator log store | 7 days | Operator | IDs/status only; content forbidden |
+| Diagnostic probe artifacts | Test namespace/log store | Delete after witness | Operator | Synthetic service-owned data |
+| Run pod and writable volume | Kubernetes | Delete after terminal receipt | Not exposed | Ephemeral tenant content |
+
+"No tenant content survives the pod" means no content remains in pod files,
+volumes, environment, or Kubernetes resources after cleanup. It does not
+exclude the tenant-scoped bundle and 24-hour API result records above.
+
+### 6. Bounded proof deployment
 
 Provide a local `kind` deployment and an automated end-to-end witness. The
 MVP is single-region, invitation-only, and non-production. It supports one
@@ -155,13 +209,29 @@ OpenAI-compatible service-owned gateway and a fixed model catalog. It proves
 the execution, isolation, and accounting boundaries; it does not claim a
 general serverless platform or commercial payment readiness.
 
+The deployment has a configured integer operator spend ceiling. Scheduling
+stops before aggregate provider reservations exceed it. This FR authorizes
+only local `kind` and operator-controlled invitation-only test tenants. No
+public endpoint, external tenant, real-money payment, SLA, production launch,
+or provider spend above that ceiling is permitted without a separate
+human-approved FR.
+
+### 7. Project-local traceability
+
+Because implementation remains in `projects/hosted_runner/`, it uses a
+project-local requirement namespace and checker. It does not add a framework
+`REQ-YG-XXX` or capability. `python scripts/req_coverage.py --strict` must
+still pass to prove framework coverage was not regressed.
+
 ## Acceptance Criteria
 
 - [ ] AC-01: `POST /v1/graphs` stores a valid data-only bundle under a stable
       SHA-256 graph ID; byte-identical canonical content returns the same ID.
-- [ ] AC-02: Table-driven tests reject every forbidden node/configuration
-      class named in the hosted profile with a stable reason code before a Job
-      or credit reservation is created.
+- [ ] AC-02: Hosted-profile validation follows the raw-YAML parse order in
+      Section 2 and table-driven tests reject every forbidden class with a
+      stable reason code before normal graph loading, a Job, or reservation.
+- [ ] AC-02a: `verify` is accepted only when service-inserted from supported
+      top-level `verify:` rules; tenant-authored `__verify__` nodes fail closed.
 - [ ] AC-03: Bundle tests reject absolute paths, traversal, duplicate
       canonical paths, symlinks, binary payloads, and configured size/count
       limit violations without writing outside tenant-scoped storage.
@@ -169,8 +239,9 @@ general serverless platform or commercial payment readiness.
       integration test proves tenant B receives `404` for tenant A's IDs.
 - [ ] AC-05: A valid run atomically reserves integer `max_credits` before Job
       creation; insufficient balance creates neither reservation nor Job.
-- [ ] AC-06: Twenty concurrent requests with one idempotency key produce one
-      run, one Job, one reservation, and one terminal debit.
+- [ ] AC-06: Twenty concurrent requests with one idempotency key converge on
+      the same run/reservation/Job/settlement; duplicate terminal events write
+      at most one `run_debit` and one `run_release` for that reservation.
 - [ ] AC-07: The gateway rejects an LLM call whose run token is expired,
       canceled, uses a different model/run ID, or would exceed reserved
       credits; provider credentials are absent from the run pod environment,
@@ -178,15 +249,18 @@ general serverless platform or commercial payment readiness.
 - [ ] AC-08: The generated Job manifest mechanically satisfies all pod
       restrictions in Section 3 and contains no tenant-controlled pod-spec
       field.
-- [ ] AC-09: In the `kind` witness, a malicious hosted-profile fixture cannot
-      reach cluster DNS/API, cloud metadata addresses, the public internet,
-      another run's writable volume, or a control-plane endpoint; the allowed
-      gateway path still succeeds.
+- [ ] AC-09: Hosted-profile tests reject tenant YAML requesting network, path,
+      code, subprocess, tool, MCP, A2A, provider-key/URL, or unsupported-model
+      capabilities before scheduling.
+- [ ] AC-09a: A fixed service-owned diagnostic Job proves cluster DNS/API,
+      cloud metadata, public internet, another run's storage, and control-plane
+      endpoints are unreachable while the model-gateway path succeeds.
 - [ ] AC-10: CPU, memory, storage, wall-clock, map, retry, and credit limits
       each have a test proving a terminal bounded failure and Job cleanup.
 - [ ] AC-11: Successful settlement records provider request ID, input/output
       token counts, reserved credits, consumed credits, and released credits;
-      ledger entries sum to the tenant balance exactly using integer math.
+      pricing, rounding, gateway cutoff, cancellation, and ledger transitions
+      use the exact integer algorithm and state machine in Section 4.
 - [ ] AC-12: Missing or contradictory provider usage enters a named
       `settlement_review` state, preserves the reservation, alerts the
       operator, and never records fabricated usage.
@@ -196,12 +270,15 @@ general serverless platform or commercial payment readiness.
 - [ ] AC-14: The end-to-end witness uploads a graph, grants test credits,
       starts it through the API, observes streamed events, verifies its
       output/receipt, and confirms the Job and writable volume are deleted.
-- [ ] AC-15: A new capability/requirement pair covers the hosted runner tests;
-      `python scripts/req_coverage.py --strict` and the project test suite pass.
-- [ ] AC-16: Documentation states the exact hosted profile, pricing unit,
-      isolation assumptions, data retention, invitation-only status, and the
-      deferred commercial/payment concerns without claiming arbitrary-code
-      safety.
+- [ ] AC-15: Hosted-runner tests map to project-local requirements and its
+      checker passes; `python scripts/req_coverage.py --strict` also passes
+      without adding a framework `REQ-YG-XXX`.
+- [ ] AC-16: Documentation states the hosted profile, pricing/rounding,
+      isolation assumptions, retention matrix, operator ceiling,
+      invitation-only status, and deferred commercial/payment concerns without
+      claiming arbitrary-code safety.
+- [ ] AC-17: Scheduling halts before aggregate reservations exceed the
+      configured operator ceiling; no external/public deployment path exists.
 
 ## Alternatives Considered
 
@@ -240,6 +317,27 @@ Not authorized: GUI/editor work; changes to A2A or MCP protocols; arbitrary
 code or package execution; public signup; payment processing; cash-valued or
 transferable credits; multiple regions/providers; durable multi-turn sessions;
 custom domains; SLA claims; production launch.
+
+## Questions For The Human
+
+None for this enforcement. Scope is strictly local `kind` plus
+operator-controlled invitation-only test tenants and a configured spend
+ceiling. External exposure, real-money payment, production claims, an SLA, or
+a ceiling increase requires a separate human-approved FR.
+
+## Judgement (2026-08-18)
+
+**Verdict:** APPROVED WITH REVISIONS — R-1 through R-6 from the canonical
+judge artifact are folded above; authority is active for the frozen
+non-production `projects/hosted_runner/` reference deployment only.
+
+**Purge list:** core node types; A2A/MCP upload changes; arbitrary execution;
+tenant pod/provider configuration; external launch; payments; transferable or
+refundable credits; multiple regions/providers; durable sessions; SLA or
+production-readiness claims.
+
+**Scope frozen:** D-1 through D-7 and conditions C-1 through C-7 in
+`feature-requests/FR-815-hosted-declarative-graph-runner.judgement.md`.
 
 ## Related
 

@@ -32,10 +32,37 @@ a quality defect.
 - 4 genuine cycles (documented mutual dependencies)
 - >85% accuracy on 20-reference validation fixture
 
-## Seed
+## Phase 2: FR-816/FR-817 (cluster naming + cross-cluster mentions)
 
-The cluster detection names groups numerically (cluster-1, cluster-2).
-Could the clusters be auto-named from their member FRs' shared nouns?
-"otel-observability" is more useful than "cluster-47". And: now that
-the graph exists, can the judge pre-load only the cluster's FRs
-instead of grepping the full corpus for prior art?
+**Date:** 2026-08-18
+
+### Trap: phantom cluster members
+
+The cross-cluster mention filter passed nodes that existed in the DAG
+(as edge targets) but had no `.md` file and therefore no entry in the
+`nodes` dict. The test caught it: FR-105 was in a cluster but had
+`cluster=None` in the written output. Fix: require both endpoints to
+exist in `nodes` AND have cluster assignments.
+
+### Insight: cluster naming quality
+
+Auto-naming from filename nouns produces decent results for technical
+clusters (`dependency-route-boundary`, `api-discovery-step`) but weak
+results for creative/domain clusters (`fandom-novel-canon`). The naming
+algorithm is a 80/20 solution — good enough for diagnostics, not
+publication quality.
+
+### Metrics (phase 2)
+
+- Schema upgraded to v2 (clusters as objects with name + members)
+- 65 clusters named, 0 collisions
+- 174 cross-cluster mentions (well under 500 cap)
+- Artifact size: 265KB (under 500KB)
+- 29 tests total (12 new for FR-816/FR-817)
+
+### Seed
+
+The cross-cluster mentions are the "bridging" FRs — the ones that
+connect distant feature arcs. Could a "bridge score" (ratio of
+cross-cluster to same-cluster edges) identify FRs that are
+architectural pivots vs implementation details?

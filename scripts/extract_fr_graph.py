@@ -22,10 +22,50 @@ import yaml
 
 FR_DIR = Path("feature-requests")
 OUTPUT_PATH = Path("reference/fr-knowledge-graph.yaml")
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 
 FR_REF_RE = re.compile(r"\bFR-(\d+)\b")
 SECTION_RE = re.compile(r"^(#{1,3})\s+(.+)$", re.MULTILINE)
+
+# Noun extraction stopwords (local copy — R-3: no cross-import from hooks)
+_NOUN_STOPWORDS = {
+    "fix",
+    "add",
+    "support",
+    "node",
+    "nodes",
+    "graph",
+    "graphs",
+    "yaml",
+    "demo",
+    "the",
+    "and",
+    "for",
+    "with",
+    "from",
+    "into",
+    "new",
+    "test",
+    "tests",
+    "update",
+    "improve",
+    "refactor",
+    "remove",
+    "enable",
+    "disable",
+}
+_FR_PREFIX = re.compile(r"^(fr|nc)-\d+-?", re.IGNORECASE)
+
+
+def extract_filename_nouns(filename: str) -> list[str]:
+    """Extract nouns from FR filename for cluster naming."""
+    stem = Path(filename).stem
+    stem = _FR_PREFIX.sub("", stem)
+    tokens = [t.lower() for t in stem.split("-")]
+    return [
+        t for t in tokens if len(t) > 2 and not t.isdigit() and t not in _NOUN_STOPWORDS
+    ]
+
 
 # Edge typing rules (ordered by specificity)
 CAUSAL_KEYWORDS = {
@@ -298,6 +338,27 @@ def find_clusters(
     return {f"cluster-{i+1}": members for i, members in enumerate(clusters)}
 
 
+def name_cluster(members: list[str], fr_file_map: dict[str, Path]) -> str:
+    """FR-816: Derive semantic name from member filename nouns.
+
+    Algorithm: count nouns across all member filenames, sort by
+    descending count then lexical order, take top 3, join with hyphen.
+    """
+    from collections import Counter
+
+    nouns: list[str] = []
+    for fr_id in members:
+        path = fr_file_map.get(fr_id)
+        if path:
+            nouns.extend(extract_filename_nouns(path.name))
+    if not nouns:
+        return "unnamed"
+    counts = Counter(nouns)
+    # Descending count, then lexical for ties
+    top = [n for n, _ in sorted(counts.items(), key=lambda x: (-x[1], x[0]))[:3]]
+    return "-".join(top)
+
+
 # ---------------------------------------------------------------------------
 # Corpus fingerprint
 # ---------------------------------------------------------------------------
@@ -358,15 +419,48 @@ def extract_graph(fr_dir: Path = FR_DIR) -> dict:
     all_node_ids = set(nodes.keys())
     clusters = find_clusters(dag, all_node_ids)
 
-    # Assign cluster names to nodes
+    # FR-816: Build FR-ID → file path map for cluster naming
+    fr_file_map: dict[str, Path] = {}
+    for fr_file in fr_files:
+        fr_id = parse_fr_id(fr_file.name)
+        if fr_id:
+            fr_file_map[fr_id] = fr_file
+
+    # FR-816: Name clusters and produce v2 schema (object with name + members)
+    used_names: set[str] = set()
+    named_clusters: dict[str, dict] = {}
+    for cluster_id, members in clusters.items():
+        name = name_cluster(members, fr_file_map)
+        # Collision resolution: append cluster numeric suffix
+        if name in used_names:
+            suffix = cluster_id.split("-")[-1]
+            name = f"{name}-{suffix}"
+        used_names.add(name)
+        named_clusters[cluster_id] = {"name": name, "members": members}
+
+    # Assign cluster IDs to nodes
     node_cluster_map: dict[str, str] = {}
-    for cluster_name, members in clusters.items():
-        for member in members:
-            node_cluster_map[member] = cluster_name
+    for cluster_id, cluster_data in named_clusters.items():
+        for member in cluster_data["members"]:
+            node_cluster_map[member] = cluster_id
 
     for fr_id, meta in nodes.items():
         if fr_id in node_cluster_map:
             meta["cluster"] = node_cluster_map[fr_id]
+
+    # FR-817: Cross-cluster mentions (from deduplicated edge set)
+    # Both endpoints must be in nodes AND have cluster assignments
+    cross_cluster = [
+        e
+        for e in unique_edges
+        if e["type"] == "mentions"
+        and e["source"] in node_cluster_map
+        and e["target"] in node_cluster_map
+        and e["source"] in nodes
+        and e["target"] in nodes
+        and node_cluster_map[e["source"]] != node_cluster_map[e["target"]]
+    ]
+    cross_cluster.sort(key=lambda e: (e["source"], e["target"], e["line"]))
 
     fingerprint = corpus_fingerprint(fr_files)
 
@@ -377,12 +471,13 @@ def extract_graph(fr_dir: Path = FR_DIR) -> dict:
             "fr_count": len(nodes),
             "edge_count": len(unique_edges),
             "causal_edge_count": sum(1 for e in unique_edges if e["causal"]),
-            "cluster_count": len(clusters),
+            "cluster_count": len(named_clusters),
         },
         "nodes": dict(sorted(nodes.items())),
         "edges": unique_edges,
         "closures": closures,
-        "clusters": clusters,
+        "clusters": named_clusters,
+        "cross_cluster_mentions": cross_cluster,
     }
 
     if cycles:
@@ -424,6 +519,22 @@ def write_graph(graph: dict, output: Path = OUTPUT_PATH) -> None:
         "closures": graph.get("closures", {}),
         "clusters": graph.get("clusters", {}),
     }
+
+    # FR-817: Cross-cluster mentions (compact)
+    cross_cluster = graph.get("cross_cluster_mentions", [])
+    if cross_cluster:
+        compact_cross = sorted(
+            [
+                {"s": e["source"], "t": e["target"], "ln": e["line"]}
+                for e in cross_cluster
+            ],
+            key=lambda e: (e["s"], e["t"], e["ln"]),
+        )
+        output_graph["cross_cluster_mentions"] = {
+            "count": len(compact_cross),
+            "edges": compact_cross,
+        }
+
     if "cycles" in graph:
         output_graph["cycles"] = graph["cycles"]
 

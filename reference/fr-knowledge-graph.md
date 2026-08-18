@@ -41,7 +41,14 @@ closures:
   FR-XXX: [FR-YYY, FR-ZZZ]            # Transitive causal dependencies
 
 clusters:
-  cluster-1: [FR-XXX, FR-YYY]         # Connected component members
+  cluster-1:
+    name: observability-evidence-route    # FR-816: semantic display name
+    members: [FR-XXX, FR-YYY]             # Cluster member list
+
+cross_cluster_mentions:                    # FR-817: weak ties between clusters
+  count: 178
+  edges:
+    - {s: FR-XXX, t: FR-YYY, ln: 45}      # Compact: source, target, line
 
 cycles:                                # Present only if cycles detected
   - chain: [FR-A, FR-B, FR-A]         # Exact cycle path
