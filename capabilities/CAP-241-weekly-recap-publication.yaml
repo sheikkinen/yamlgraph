@@ -1,0 +1,31 @@
+name: Weekly Recap Publication
+id: CAP-241
+status: active
+fr: FR-821
+feature_request: FR-821
+description: >
+  Scheduled self-publication of a weekly repository recap to the protected
+  main branch (scripts/weekly_recap.py + .github/workflows/weekly-recap.yml).
+  Reuses the recap demo graph (CAP-195) unmodified; renders workstreams,
+  orphans, and hotspots into docs/recaps/<ISO-week>.md and lands it via an
+  automation PR (docs(recap): ...) with auto-merge, gated by the required
+  checks. Quiet weeks are detected deterministically before any LLM call:
+  the substantive commit window excludes prior recap-only automation
+  commits, so the feature's own output never makes the next week noisy.
+modules:
+  - scripts
+requirements:
+  - id: REQ-YG-604
+    description: >
+      scripts/weekly_recap.py exposes --repo-path, --since, --output-dir,
+      and --dry-run; names output files by ISO week (%G-W%V); renders a
+      frozen section contract (# Weekly Recap <ISO-week>, ## Workstreams,
+      ## Orphans, ## Hotspots) from recap graph state (dict or Pydantic
+      model, normalized at the boundary); and applies a deterministic
+      substantive-window no-op guard before invoking the graph — commits
+      whose subject starts with "docs(recap): weekly recap" and whose
+      changed paths are all under docs/recaps/ are excluded, and an empty
+      substantive set exits 0 writing nothing. Dry-run prints and never
+      writes.
+    modules:
+      - scripts

@@ -556,6 +556,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 238 | CAP-238 API Discovery Orchestrator v2 — Recon and Browser-Sniff Routing | `examples` | REQ-YG-599 |
 | 239 | CAP-239 Discord Hello Slash-Command Example | `examples/discord_bot` | REQ-YG-600 |
 | 240 | CAP-240 FR Knowledge Graph Extraction | `scripts/extract_fr_graph.py`, `reference/fr-knowledge-graph.yaml`, `reference/fr-knowledge-graph.md`, `.github/hooks/scripts/checks/prior_art.py` | REQ-YG-601 – 603 |
+| 241 | CAP-241 Weekly Recap Publication | `scripts` | REQ-YG-604 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -2947,6 +2948,16 @@ Deterministic extraction of typed causal and associative edges from the FR corpu
 | REQ-YG-601 | scripts/extract_fr_graph.py deterministically generates reference/fr-knowledge-graph.yaml with typed edges (causal: depends_on, regression_of, spawned_by, substrate, supersedes; associative: prior_art, first_consumer_of, mentions), transitive closures over causal edges, cycle detection reporting exact chains, cluster identification, and corpus fingerprint for staleness detection. Prior-art hook augmented with graph-backed cluster boost. | `scripts/extract_fr_graph.py`, `reference/fr-knowledge-graph.yaml`, `.github/hooks/scripts/checks/prior_art.py`, `tests/unit/test_fr_graph.py` |
 | REQ-YG-602 | FR-816: Each cluster in the knowledge graph has a semantic display name derived from member filename nouns. Stable cluster-N keys preserved. Naming is deterministic with collision resolution. | `scripts/extract_fr_graph.py`, `tests/unit/test_fr_graph.py` |
 | REQ-YG-603 | FR-817: Cross-cluster mention section in the knowledge graph contains only mention edges where source and target are in different clusters. Count < 500, artifact < 500KB. | `scripts/extract_fr_graph.py`, `tests/unit/test_fr_graph.py` |
+
+### 241. CAP-241 Weekly Recap Publication
+
+Scheduled self-publication of a weekly repository recap to the protected main branch (scripts/weekly_recap.py + .github/workflows/weekly-recap.yml). Reuses the recap demo graph (CAP-195) unmodified; renders workstreams, orphans, and hotspots into docs/recaps/<ISO-week>.md and lands it via an automation PR (docs(recap): ...) with auto-merge, gated by the required checks. Quiet weeks are detected deterministically before any LLM call: the substantive commit window excludes prior recap-only automation commits, so the feature's own output never makes the next week noisy.
+
+**Feature Request:** FR-821
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-604 | scripts/weekly_recap.py exposes --repo-path, --since, --output-dir, and --dry-run; names output files by ISO week (%G-W%V); renders a frozen section contract (# Weekly Recap <ISO-week>, ## Workstreams, ## Orphans, ## Hotspots) from recap graph state (dict or Pydantic model, normalized at the boundary); and applies a deterministic substantive-window no-op guard before invoking the graph — commits whose subject starts with "docs(recap): weekly recap" and whose changed paths are all under docs/recaps/ are excluded, and an empty substantive set exits 0 writing nothing. Dry-run prints and never writes. | `scripts` |
 
 <!-- END GENERATED CAPABILITIES -->
 

@@ -1679,3 +1679,9 @@ The ID ranges are:
 - **CONF-010 to CONF-099**: Test code
 - **CONF-100 to CONF-199**: Example code
 - **CONF-200 to CONF-299**: Scripts
+
+### CONF-404
+- **File**: [tests/unit/test_weekly_recap.py](../tests/unit/test_weekly_recap.py#L20)
+- **Code**: E402
+- **Sin**: `import weekly_recap` after a `sys.path.insert` — module-level import not at top.
+- **Penance**: test imports the script module directly to monkeypatch `run_recap_graph` and exercise the render/no-op contract LLM-free; same path-bootstrap idiom as CONF-400/401/402/403.
