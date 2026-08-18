@@ -1685,3 +1685,9 @@ The ID ranges are:
 - **Code**: E402
 - **Sin**: `import weekly_recap` after a `sys.path.insert` — module-level import not at top.
 - **Penance**: test imports the script module directly to monkeypatch `run_recap_graph` and exercise the render/no-op contract LLM-free; same path-bootstrap idiom as CONF-400/401/402/403.
+
+### CONF-405
+- **File**: [scripts/weekly_recap.py](../scripts/weekly_recap.py#L44)
+- **Code**: S603
+- **Sin**: `subprocess.run([GIT, "-C", repo_path, ...])` flagged as untrusted input.
+- **Penance**: Command and args are hardcoded constants; GIT resolved via `shutil.which`; repo_path comes from the operator's CLI flag or the workflow's own checkout. No user input reaches the call (CONF-388/397 idiom).

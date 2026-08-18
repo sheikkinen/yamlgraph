@@ -111,7 +111,9 @@ class TestSubstantiveWindow:
 
     @pytest.mark.req("REQ-YG-604")
     def test_empty_window_is_empty(self, tmp_repo: Path) -> None:
-        assert weekly_recap.substantive_commits(str(tmp_repo), "2999-01-01") == []
+        # 2099 not 2999: git approxidate overflows past ~2100 and
+        # silently includes everything (verified git 2.50.1).
+        assert weekly_recap.substantive_commits(str(tmp_repo), "2099-01-01") == []
 
     @pytest.mark.req("REQ-YG-604")
     def test_recap_subject_with_code_changes_is_substantive(
@@ -125,6 +127,26 @@ class TestSubstantiveWindow:
         commits = weekly_recap.substantive_commits(str(tmp_repo), "1 hour ago")
         subjects = [c.split("|", 1)[1] for c in commits]
         assert "docs(recap): weekly recap 2026-W99" in subjects
+
+
+class TestGraphErrorBoundary:
+    @pytest.mark.req("REQ-YG-604")
+    def test_node_failure_raises_never_renders(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """A failed synthesize node leaves errors in state and a partial
+        recap (orphans bypass the model, FR-704) — the script must raise,
+        not publish a recap with silently empty workstreams."""
+        monkeypatch.setattr(
+            weekly_recap,
+            "_invoke_graph",
+            lambda *a, **k: {
+                "errors": [{"node": "synthesize", "message": "timeout"}],
+                "recap": {"workstreams": [], "orphans": ["x"], "hotspots": []},
+            },
+        )
+        with pytest.raises(RuntimeError, match="synthesize"):
+            weekly_recap.run_recap_graph(".", "1 week ago")
 
 
 class TestMainNoOpAndDryRun:
