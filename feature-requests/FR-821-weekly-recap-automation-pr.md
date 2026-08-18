@@ -240,3 +240,32 @@ settings unchanged.
 
 None — the two human-set prerequisites (RECAP_PAT secret, auto-merge repo
 setting) are execution steps, not open decisions.
+
+## Implementation Notes (2026-08-18)
+
+**Status:** D-1/D-2/D-3/D-5 delivered; dispatch proof (AC-07/AC-08)
+blocked on human-set `RECAP_PAT`; cron observation pending.
+
+- RED 9af06b82 (11 tests, `tests/unit/test_weekly_recap.py`,
+  REQ-YG-604/CAP-241) → GREEN 3117c178 (`scripts/weekly_recap.py`) →
+  ci c8d21d24 (workflow) → docs 4a726a18 (README pointer + demo proof).
+- **Defect caught by `read_raw_output_first`:** first real dry-run
+  rendered `## Workstreams\n(none)` on a 109-commit week. Raw log showed
+  the `synthesize` node had FAILED (local `PROVIDER=deepseek` timeout),
+  the graph error handler swallowed it, and orphans still rendered
+  (they bypass the model, FR-704) — a shapely, plausible, wrong recap.
+  Condemned with `test_node_failure_raises_never_renders`; cure:
+  `run_recap_graph` raises on any `errors` in final state. Workflow pins
+  `PROVIDER: anthropic`.
+- **Git quirk:** `--since=2999-01-01` overflows approxidate and silently
+  includes *everything* (git 2.50.1); test uses 2099. Noted in-test.
+- Demo-proof hook fired locally on the README pointer (R-5 anticipated
+  the CI gate; the local hook is stricter) — `demo-output.log`
+  regenerated from a real anthropic run.
+- Second real dry-run (anthropic): full sectioned recap with joined
+  `[Status: …]` tags — `logs/fr821-dryrun2.log`.
+- Prerequisites: `allow_auto_merge=true` verified via API;
+  `ANTHROPIC_API_KEY` secret set from operator vault via stdin (value
+  never displayed, FR-819 pattern). `RECAP_PAT` awaits human creation:
+  fine-grained, resource = sheikkinen/yamlgraph only, permissions
+  Contents RW + Pull requests RW.
