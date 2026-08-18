@@ -27,6 +27,7 @@
 | FR-613 | PARSE-FAILURE (Raw Output Read FILLED (K=6, 2) | yamlgraph |  | FR-613-roundtrip-skeleton-p3-coherence-gate.md |
 | FR-614 | PARSE-FAILURE (REFUTED by the FR-613 K=6 Raw ) | yamlgraph |  | FR-614-roundtrip-skeleton-p4-scene-type-close-op.md |
 | FR-663 | PARSE-FAILURE (Planned) | yamlgraph |  | FR-663-changelog-req-legacy-cap-false-positive.md |
+| FR-815 | PARSE-FAILURE (Split — see judgement; replace) | yamlgraph |  | FR-815-knowledge-graph-phase2-cluster-naming-judge-narrowing.md |
 | FR-111 | Judged | yamlgraph |  | FR-111-compiled-graph-cache.md |
 | FR-179 | Judged | yamlgraph |  | FR-179-asterisk-ari-audiosocket-provider.md |
 | FR-210 | Judged | yamlgraph |  | FR-210-subgraph-interrupt-state-commit.md |
@@ -193,6 +194,7 @@
 | FR-729 | Proposed | yamlgraph |  | FR-729-landing-page-metrics-generated.md |
 | FR-751 | Proposed | yamlgraph |  | FR-751-liquid-safety-precommit-gate.md |
 | FR-757 | Proposed | yamlgraph |  | FR-757-fsm-contrib-relocation.md |
+| FR-815 | Proposed | yamlgraph |  | FR-815-hosted-declarative-graph-runner.md |
 | FR-078 | In Progress | yamlgraph |  | FR-078-relocate-project-tests.md |
 | FR-100 | In Progress | yamlgraph |  | FR-100-yamlgraph-development-pipeline-ebook.md |
 | FR-169 | In Progress | yamlgraph |  | FR-169-enforce-reflexion-loop.md |
@@ -418,6 +420,8 @@ graph TD
     FR-762["FR-762 Judged"]
     FR-764["FR-764 Judged"]
     FR-796["FR-796 In Progress"]
+    FR-815["FR-815 Proposed"]
+    FR-815["FR-815 PARSE-FAILURE"]
     FR-081 --> FR-082
     FR-731 --> FR-735
     FR-731 --> FR-736
