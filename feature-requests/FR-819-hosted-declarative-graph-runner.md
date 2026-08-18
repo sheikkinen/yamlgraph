@@ -83,6 +83,68 @@ Implement this as a reference deployment under `projects/hosted_runner/`, not
 as a new core node type and not by adding upload handling to the existing A2A
 server.
 
+### High-level architecture (amended A-1: Fly Machines)
+
+```mermaid
+flowchart TB
+    subgraph Client["Tenant (agent/API consumer)"]
+        C[API client<br/>bearer token → tenant_id]
+    end
+
+    subgraph CP["Control Plane — Fly app: yamlgraph-serve"]
+        API["FastAPI control plane<br/>POST /v1/graphs · POST /v1/runs<br/>GET /v1/runs/:id · SSE /events"]
+        VAL["Hosted-profile validator<br/>safe_load → schema → fail-closed profile<br/>allowlist: llm/router/map/passthrough/verify*"]
+        SCHED["Scheduler + deadline watchdog<br/>Machines API client"]
+        LED[("Credit ledger (integer µcredits)<br/>credit_grant · run_reserve<br/>run_debit · run_release<br/>catalog_version stamped")]
+        STORE[("Tenant-scoped storage<br/>bundles (SHA-256 IDs)<br/>runs/events 24h · receipts 90d")]
+    end
+
+    subgraph GW["Model Gateway — Fly app (control-plane side)"]
+        G["OpenAI-compatible gateway<br/>scoped run tokens · per-call reservation<br/>streaming cutoff · usage recording<br/>PROVIDER KEYS LIVE HERE ONLY"]
+    end
+
+    subgraph RUN["Runner Fly app — one ephemeral Machine per run"]
+        M["Firecracker microVM (own kernel)<br/>service-owned image · no public IP<br/>no Fly API token · autodestroy<br/>nftables: deny-all egress except gateway (6PN)<br/>YAMLGraph loader runs bundle here"]
+    end
+
+    P["LLM provider(s)"]
+
+    C -->|"1· upload bundle"| API
+    API --> VAL
+    VAL -->|"reject w/ reason code<br/>(before any spend)"| C
+    C -->|"2· start run + max_credits<br/>+ idempotency key"| API
+    API -->|"3· atomic reserve"| LED
+    API --> STORE
+    LED -->|"reserved"| SCHED
+    SCHED -->|"4· create machine<br/>(fixed config + run-scoped token)"| M
+    M -->|"5· LLM calls (6PN only)"| G
+    G -->|"metered, capped"| P
+    G -->|"usage → settle/review"| LED
+    M -->|"events/result"| STORE
+    STORE -->|"6· SSE stream + receipt"| C
+    SCHED -->|"7· destroy at terminal/deadline"| M
+
+    DIAG["Diagnostic machine (service-owned image,<br/>identical config) — witnesses egress deny:<br/>internet ✗ · _api.internal ✗ · other 6PN ✗ · gateway ✓"]
+    DIAG -.->|"AC-09a isolation witness"| RUN
+
+    STRIPE["Payments (deferred, separate FR)<br/>Stripe webhook → credit_grant<br/>user accounts → tenant_id"]
+    STRIPE -.-> LED
+```
+
+Boundary summary:
+
+- **Three Fly apps, three trust zones:** control plane (tenant data, ledger,
+  future payment secrets), gateway (provider keys, nowhere else), runner
+  (hostile tenant content, no secrets, no identity — cannot reach the
+  Machines API).
+- **Money before machines:** validation → atomic reservation → machine
+  creation, strictly ordered; nothing schedulable without a reserved ceiling
+  (C-3), and the scheduler halts at the operator ceiling (C-7).
+- **Egress deny is image-enforced**, not platform-enforced — the diagnostic
+  machine is a first-class component, not a test detail (C-5, AC-09a).
+- **Payments bolt on at one seam:** a `credit_grant` source event plus an
+  identity layer above `tenant_id`; no runner or gateway arrows change.
+
 ### 1. Typed control-plane API
 
 Add a FastAPI service with Pydantic request/response models:
