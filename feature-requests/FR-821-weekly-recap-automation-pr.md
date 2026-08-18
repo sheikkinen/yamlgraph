@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Approved with revisions (judged 2026-08-18; R-1–R-5 folded)
+**Status:** Completed (AC-09 cron observation pending)
 **Effort:** 1 day
 **Requested:** 2026-08-18
 **First consumer / first event:** The operator, Monday morning, opening
@@ -269,3 +269,17 @@ blocked on human-set `RECAP_PAT`; cron observation pending.
   never displayed, FR-819 pattern). `RECAP_PAT` awaits human creation:
   fine-grained, resource = sheikkinen/yamlgraph only, permissions
   Contents RW + Pull requests RW.
+
+### Dispatch proof (2026-08-18, AC-07/AC-08)
+
+- `RECAP_PAT` set by operator 19:52Z; dispatched run
+  <https://github.com/sheikkinen/yamlgraph/actions/runs/32179603846>
+  completed green.
+- PR #473 `docs(recap): weekly recap 2026-W34` created by the workflow;
+  required checks `commitlint`, `test (3.11)`, `test (3.12)` **triggered**
+  (the PAT route works — GITHUB_TOKEN PRs would have stayed checkless);
+  changelog/diary/demo gates correctly skipped for `docs` type.
+- Auto-merge fired with no human click: MERGED 2026-08-18T20:04:22Z,
+  squash commit c060fa0a. `docs/recaps/2026-W34.md` on `main` — sectioned,
+  97 items, workstreams carry joined `[Status: …]` tags.
+- Remaining: AC-09 first real cron run (next Monday 06:00 UTC).
