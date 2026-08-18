@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Proposed
+**Status:** Approved with revisions (judged 2026-08-18; R-1–R-5 folded)
 **Effort:** 1 day
 **Requested:** 2026-08-18
 **First consumer / first event:** The operator, Monday morning, opening
@@ -56,14 +56,22 @@ secrets.
 
 ### 1. Render script — `scripts/weekly_recap.py`
 
-- Runs the recap graph (`repo_path=.`, `since="1 week ago"`) via the
+- CLI contract (R-3): `--repo-path`, `--since`, `--output-dir`, `--dry-run`.
+- Runs the recap graph (`repo_path`, `since="1 week ago"`) via the
   Python API.
 - Renders `workstreams`, `orphans`, `hotspots` state into
-  `docs/recaps/<ISO-week>.md` (ISO week from `date +%G-W%V` semantics).
-- **No-op guard:** if the window contains zero commits, exit 0 with a
-  distinct message and write nothing (empty-window LLM output is not
-  trusted — FR-819 lesson: guard on deterministic input, not on model
-  output).
+  `docs/recaps/<ISO-week>.md` (ISO week `%G-W%V`) with a frozen section
+  contract: `# Weekly Recap <ISO-week>`, `## Workstreams`, `## Orphans`,
+  `## Hotspots` — tested against fixtured graph state, asserting
+  non-empty sections, not mere file presence (R-3).
+- **Substantive-window no-op guard (R-2):** before invoking the LLM,
+  compute the candidate commit window and exclude prior recap automation
+  commits (subject `docs(recap): weekly recap <ISO-week>`, changed paths
+  only under `docs/recaps/`). Empty substantive set → exit 0, distinct
+  message, no file, no branch, no PR. Literal zero-commit is
+  insufficient: last week's recap merge is itself a commit in the next
+  window. Guard on deterministic input, never on model output (FR-819
+  lesson).
 
 ### 2. Workflow — `.github/workflows/weekly-recap.yml`
 
@@ -78,7 +86,13 @@ concurrency:
 ```
 
 - Checkout with `token: ${{ secrets.RECAP_PAT }}` and `fetch-depth: 0`
-  (recap needs history).
+  (recap needs history); the persisted credential authenticates git push.
+- Every `gh pr create` / `gh pr merge --auto --squash` step runs with
+  `GH_TOKEN: ${{ secrets.RECAP_PAT }}` (R-1) — the PAT binds *all*
+  GitHub operations, not just checkout.
+- **Repo prerequisite (R-1, human-set):** auto-merge must be enabled in
+  repository settings; if not, enforcement stops before relying on
+  `gh pr merge --auto`.
 - `pip install -e .` + graph deps; run `scripts/weekly_recap.py`.
 - If a recap file was written: branch `recap/<ISO-week>`, commit, push,
   `gh pr create --title "docs(recap): weekly recap <ISO-week>"`,
@@ -118,26 +132,49 @@ UTC on a single-dev repo this is rare; mitigation is a manual
 `workflow_dispatch` re-run or updating the branch — no machinery is added
 for it.
 
-## Acceptance Criteria
+## Acceptance Criteria (revised by judgement)
 
-- [ ] AC-01: `scripts/weekly_recap.py` runs the recap graph and writes
-      `docs/recaps/<ISO-week>.md`; zero-commit window → exit 0, no file.
-- [ ] AC-02: `.github/workflows/weekly-recap.yml` exists with weekly cron,
-      `workflow_dispatch`, and `concurrency: cancel-in-progress: false`.
-- [ ] AC-03: A `workflow_dispatch` run creates a `docs(recap):` PR whose
-      required checks **actually trigger** (proof the PAT route works).
-- [ ] AC-04: That PR auto-merges with no human click; the recap file is on
-      `main` (run URL + merge commit cited in Implementation Notes).
-- [ ] AC-05: No-op path evidenced: a run with an empty window (or dry-run
-      flag) produces no branch and no PR.
-- [ ] AC-06: Secrets documented; PAT scope recorded in the FR — never the
-      value.
-- [ ] AC-07: First scheduled (cron) run observed green.
-- [ ] AC-08: Pointer added to `examples/demos/recap/README.md` (the graph
-      now has a scheduled consumer).
-- [ ] AC-09: Changelog fragment + diary entry (this FR lands as `feat` in
-      its own enforcement PR or direct push; the *weekly output* PRs are
-      `docs`).
+- [ ] AC-01: `scripts/weekly_recap.py --repo-path . --since "1 week ago"
+      --output-dir docs/recaps` invokes the existing recap graph
+      unmodified and writes `docs/recaps/<ISO-week>.md` only when the
+      substantive commit window is non-empty.
+- [ ] AC-02: The generated markdown contains a non-empty
+      `# Weekly Recap <ISO-week>` heading and `## Workstreams`,
+      `## Orphans`, `## Hotspots` sections derived from graph state.
+- [ ] AC-03: A window with zero substantive commits exits 0, logs a
+      distinct no-op message, writes no file; workflow creates no branch
+      and no PR.
+- [ ] AC-04: A recap-only prior automation commit does not make a quiet
+      week non-quiet; covered by an LLM-free test or fixture.
+- [ ] AC-05: `.github/workflows/weekly-recap.yml` has Monday 06:00 UTC
+      cron, `workflow_dispatch`, `concurrency: group: weekly-recap`,
+      `cancel-in-progress: false`.
+- [ ] AC-06: The workflow uses `RECAP_PAT` for checkout, push,
+      `gh pr create`, and `gh pr merge --auto --squash`;
+      `ANTHROPIC_API_KEY` available only to the graph run; secret values
+      never logged or committed.
+- [ ] AC-07: A `workflow_dispatch` run creates a
+      `docs(recap): weekly recap <ISO-week>` PR whose required checks
+      `commitlint`, `test (3.11)`, `test (3.12)` actually trigger.
+- [ ] AC-08: That PR auto-merges by squash with no human click after
+      checks green; recap file on `main`; run URL + merge commit cited in
+      Implementation Notes.
+- [ ] AC-09: First real scheduled cron run observed green and recorded;
+      until then FR status carries "cron observation pending" — a
+      dispatched run is not cron evidence (R-4).
+- [ ] AC-10: Secrets documented by name and purpose; PAT scope recorded
+      (`contents: write`, `pull-requests: write`) plus human-confirmed
+      auto-merge prerequisite; never secret values.
+- [ ] AC-11: `examples/demos/recap/README.md` points to the scheduled
+      consumer; `examples/demos/recap/demo-output.log` refreshed if the
+      enforcement PR is `feat`/`fix` touching the demo dir (R-5,
+      demo-gate).
+- [ ] AC-12: Changelog fragment and diary entry exist; weekly output PRs
+      remain `docs(recap): ...` with no feature/changelog/diary
+      obligations.
+- [ ] AC-13: No `graph.yaml` or `prompts/*.yaml` modified. If a
+      graph/prompt change becomes necessary, enforcement stops and a
+      separate graph-authoring FR enters the governed route.
 
 ## Alternatives Considered
 
@@ -170,6 +207,36 @@ for it.
 - CLAUDE.md § Branch Protection — the automation-PR route this exercises
 - `docs/plan-github-chaplain-arbitrary-repo.md` — downstream consumer
 
-## Judgement (pending)
+## Judgement (2026-08-18)
 
-**Verdict:** —
+**Verdict:** APPROVED WITH REVISIONS — authority active now that R-1–R-5
+are folded (this revision). Judge: gpt-5.5 via `scripts/judge.sh`; draft
+at `tmp/draft-judgement.md`.
+
+| # | Revision | Folded as |
+|---|----------|-----------|
+| R-1 | Bind `GH_TOKEN: RECAP_PAT` to every `gh` step; auto-merge repo setting is a human-set prerequisite | Workflow §2, AC-06/AC-10 |
+| R-2 | Quiet week = zero *substantive* commits (exclude prior recap-only automation commits), not literal zero | Render script §1, AC-03/AC-04 |
+| R-3 | Freeze render CLI + markdown section contract; test substance, not presence | Render script §1, AC-01/AC-02 |
+| R-4 | Dispatch proof merges; cron evidence recorded later — dispatched run ≠ cron evidence | AC-09 |
+| R-5 | README pointer trips demo-gate on `feat` PRs → refresh `demo-output.log` in scope | AC-11 |
+
+**Scope frozen (D-1…D-6):** render script + tests + workflow + first recap
+artifact on `main` + demo README pointer (with demo-output refresh) +
+changelog/diary/FR notes.
+
+**Not authorized:** modifying recap graph/prompts; doctrine or
+required-check changes; direct pushes to `main`; admin/bypass PATs;
+notification layers; issues/email/RSS output; generalizing to other repos
+or the chaplain plan; a `yamlgraph recap` CLI command.
+
+**Conditions (all GATE):** C-1 revisions folded before authority (done);
+C-2 graph/prompts unmodified; C-3 only the fine-grained repo-scoped PAT;
+C-4 human review of workflow/secret/auto-merge changes before reliance;
+C-5 not fully complete until real cron evidence; C-6 branch-protection
+settings unchanged.
+
+### Questions for the human
+
+None — the two human-set prerequisites (RECAP_PAT secret, auto-merge repo
+setting) are execution steps, not open decisions.
