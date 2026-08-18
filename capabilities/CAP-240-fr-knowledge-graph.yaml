@@ -1,0 +1,28 @@
+id: CAP-240
+name: FR Knowledge Graph Extraction
+description: >
+  Deterministic extraction of typed causal and associative edges from the
+  FR corpus into a machine-queryable YAML artifact. Supports cycle detection,
+  transitive closure computation, cluster identification, and staleness gating.
+  Augments the prior-art hook with graph-backed cluster lookup.
+modules:
+  - scripts/extract_fr_graph.py
+  - reference/fr-knowledge-graph.yaml
+  - reference/fr-knowledge-graph.md
+  - .github/hooks/scripts/checks/prior_art.py
+requirements:
+  - id: REQ-YG-601
+    description: >
+      scripts/extract_fr_graph.py deterministically generates
+      reference/fr-knowledge-graph.yaml with typed edges (causal: depends_on,
+      regression_of, spawned_by, substrate, supersedes; associative: prior_art,
+      first_consumer_of, mentions), transitive closures over causal edges,
+      cycle detection reporting exact chains, cluster identification, and
+      corpus fingerprint for staleness detection. Prior-art hook augmented
+      with graph-backed cluster boost.
+    modules:
+      - scripts/extract_fr_graph.py
+      - reference/fr-knowledge-graph.yaml
+      - .github/hooks/scripts/checks/prior_art.py
+      - tests/unit/test_fr_graph.py
+fr: FR-814

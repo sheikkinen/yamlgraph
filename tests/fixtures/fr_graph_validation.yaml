@@ -1,0 +1,138 @@
+# FR-814: Validation fixture for knowledge graph edge typing.
+# 20+ manually labelled FR references with expected edge types.
+# Accuracy formula: correct_typed / (total - ambiguous)
+# Ambiguous edges are marked with expected_type: ambiguous
+
+references:
+  # FR-813 (bug: run_graph_async None regression) references FR-811
+  - source: FR-813
+    target: FR-811
+    expected_type: regression_of
+    evidence: "FR-811 introduced this regression (line ~137)"
+
+  # FR-813 references FR-811 as prior art
+  - source: FR-813
+    target: FR-811
+    expected_type: prior_art
+    evidence: "Prior art line in front matter (line 13)"
+
+  # FR-808 depends on FR-807 (hard gate)
+  - source: FR-808
+    target: FR-807
+    expected_type: depends_on
+    evidence: "Status line says 'FR-807 dependency satisfied' (line 5)"
+
+  # FR-808 cites FR-723 as prior art
+  - source: FR-808
+    target: FR-723
+    expected_type: prior_art
+    evidence: "Listed in ## Related section (line 75)"
+
+  # FR-807 uses FR-723 as substrate
+  - source: FR-807
+    target: FR-723
+    expected_type: substrate
+    evidence: "'substrate consumed' in ## Related (line 79)"
+
+  # FR-807 uses FR-759 as substrate
+  - source: FR-807
+    target: FR-759
+    expected_type: substrate
+    evidence: "'substrate consumed' in ## Related (line 79)"
+
+  # FR-431 depends on FR-429 (explicit)
+  - source: FR-431
+    target: FR-429
+    expected_type: depends_on
+    evidence: "'Depends on FR-429' in Problem section (line 75)"
+
+  # FR-429 mentions FR-431 with 'prerequisite for' (inverse — not depends_on)
+  - source: FR-429
+    target: FR-431
+    expected_type: mentions
+    evidence: "'prerequisite for FR-431' — inverse signal (line 9)"
+
+  # FR-811 cites FR-759 as prior art
+  - source: FR-811
+    target: FR-759
+    expected_type: prior_art
+    evidence: "Listed in ## Related (line 155)"
+
+  # FR-811 cites FR-807 as prior art
+  - source: FR-811
+    target: FR-807
+    expected_type: prior_art
+    evidence: "Listed in ## Related (line 160)"
+
+  # FR-814 mentions FR-723 in Related section
+  - source: FR-814
+    target: FR-723
+    expected_type: prior_art
+    evidence: "## Related section"
+
+  # FR-814 mentions FR-807 in Related section
+  - source: FR-814
+    target: FR-807
+    expected_type: prior_art
+    evidence: "## Related section"
+
+  # FR-808 cites FR-759 as prior art
+  - source: FR-808
+    target: FR-759
+    expected_type: prior_art
+    evidence: "## Related (line 75)"
+
+  # FR-574 depends on FR-573 (scheduling dependency)
+  - source: FR-574
+    target: FR-573
+    expected_type: depends_on
+    evidence: "'Scheduling dependency: FR-573' (line 12)"
+
+  # FR-573 depends on FR-574 (mutual — genuine cycle)
+  - source: FR-573
+    target: FR-574
+    expected_type: depends_on
+    evidence: "'Depends on: FR-574' (line 47)"
+
+  # FR-762 depends on FR-761 scanner
+  - source: FR-762
+    target: FR-761
+    expected_type: depends_on
+    evidence: "'depend on FR-761's scanner' (line 57)"
+
+  # FR-761 mentions FR-762 (scope boundary, not dependency)
+  - source: FR-761
+    target: FR-762
+    expected_type: mentions
+    evidence: "'FR-762 owns example dependency fixes' — scope statement not dependency"
+    note: "keyword 'dependency' fires but semantic direction is scope assignment"
+    ambiguous: true
+
+  # FR-429 mentions FR-431 in Related section
+  - source: FR-429
+    target: FR-431
+    expected_type: prior_art
+    evidence: "## Related section (line 135)"
+
+  # FR-813 first consumer references NC-434 (not an FR, skip)
+  # FR-807 mentions FR-808 in Related
+  - source: FR-807
+    target: FR-808
+    expected_type: prior_art
+    evidence: "## Related section (line 69)"
+
+  # FR-082 (minesweeper) - no FR refs expected
+  # FR-073 (fast unit tests) - no FR refs expected
+
+  # FR-578 depends on FR-577 (predecessor)
+  - source: FR-578
+    target: FR-577
+    expected_type: depends_on
+    evidence: "'Predecessor: FR-577' with scheduling dependency (line 10)"
+
+  # FR-577 mentions FR-578 (not a dependency on it)
+  - source: FR-577
+    target: FR-578
+    expected_type: mentions
+    evidence: "FR-577 executes before FR-578 (line 291) — states ordering, not dependency"
+    ambiguous: true

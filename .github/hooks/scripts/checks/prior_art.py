@@ -30,6 +30,8 @@ import re
 import sys
 from pathlib import Path
 
+import yaml
+
 RARE_MAX_FILES = 20  # A1: absolute count, not a corpus percentage
 TOP_N = 5
 
@@ -115,10 +117,66 @@ def _is_orphan_judgement(path: Path) -> bool:
     return not parent.is_file()
 
 
+GRAPH_PATH = Path("reference/fr-knowledge-graph.yaml")
+
+
+def _load_graph() -> dict | None:
+    """Load the knowledge graph if present and current.
+
+    FR-814 AC-07: missing/stale graph → diagnostic on stderr, never silent fallback.
+    Returns None only if the graph file does not exist at all (first-run scenario).
+    """
+    if not GRAPH_PATH.exists():
+        return None
+    try:
+        graph = yaml.safe_load(GRAPH_PATH.read_text(encoding="utf-8"))
+        if not graph or "edges" not in graph:
+            print(
+                f"⚠ FR knowledge graph at {GRAPH_PATH} is malformed — "
+                "run: python scripts/extract_fr_graph.py",
+                file=sys.stderr,
+            )
+            return None
+        return graph
+    except Exception as exc:  # noqa: BLE001
+        print(f"⚠ FR knowledge graph read error: {exc}", file=sys.stderr)
+        return None
+
+
+def _graph_prior_art(new_file: Path, graph: dict) -> list[str]:
+    """Query graph for FRs related to the new FR via typed edges.
+
+    Returns candidate filenames from graph edges where the new FR's nouns
+    match existing FR IDs that share causal/prior_art connections.
+    """
+    # Extract FR-ID from the new file
+    m = re.match(r"(FR-\d+)", new_file.name, re.IGNORECASE)
+    if not m:
+        return []
+    fr_id = m.group(1).upper()
+
+    # Find FRs that reference the same targets or are referenced by same sources
+    # Look for edges where source/target overlaps with this FR's cluster
+    node_data = graph.get("nodes", {})
+    if fr_id in node_data:
+        cluster = node_data[fr_id].get("cluster")
+        if cluster:
+            cluster_members = graph.get("clusters", {}).get(cluster, [])
+            return [fid for fid in cluster_members if fid != fr_id]
+
+    return []
+
+
 def build_prior_art(new_file: Path) -> str:
     nouns = extract_nouns(new_file.name)
     if not nouns:
         return ""
+
+    # FR-814: graph-backed augmentation
+    graph = _load_graph()
+    graph_hits: set[str] = set()
+    if graph:
+        graph_hits = set(_graph_prior_art(new_file, graph))
 
     corpus = [
         p
@@ -168,14 +226,27 @@ def build_prior_art(new_file: Path) -> str:
     def score(item: tuple[Path, list[str]]) -> float:
         path, matched = item
         weights = file_weights[path]
-        return sum(weights[n] / freq[n] for n in matched)  # F1 × FR-738 F3
+        base = sum(weights[n] / freq[n] for n in matched)  # F1 × FR-738 F3
+        # FR-814: boost candidates in the same knowledge graph cluster
+        if graph_hits:
+            fr_m = re.match(r"(FR-\d+)", path.name, re.IGNORECASE)
+            if fr_m and fr_m.group(1).upper() in graph_hits:
+                base *= 1.5
+        return base
 
     candidates.sort(key=lambda item: (-score(item), -len(item[1]), item[0].name))
 
     lines = [f"⚠ prior art for {new_file.name} (nouns: {', '.join(nouns)}):"]
     for path, matched in candidates[:TOP_N]:
         status = read_status(path)
-        lines.append(f"  {path.name}  [{status}]  matches: {', '.join(matched)}")
+        # FR-814: annotate graph-backed hits
+        fr_m = re.match(r"(FR-\d+)", path.name, re.IGNORECASE)
+        graph_tag = ""
+        if graph_hits and fr_m and fr_m.group(1).upper() in graph_hits:
+            graph_tag = " [graph:cluster]"
+        lines.append(
+            f"  {path.name}  [{status}]{graph_tag}  matches: {', '.join(matched)}"
+        )
     lines.append(
         "Disposition required in the FR or its judgement (Scripture: Judge step)."
     )

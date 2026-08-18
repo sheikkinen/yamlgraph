@@ -555,6 +555,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 237 | CAP-237 Author Brief Pre-Flight | `scripts` | REQ-YG-598 |
 | 238 | CAP-238 API Discovery Orchestrator v2 — Recon and Browser-Sniff Routing | `examples` | REQ-YG-599 |
 | 239 | CAP-239 Discord Hello Slash-Command Example | `examples/discord_bot` | REQ-YG-600 |
+| 240 | CAP-240 FR Knowledge Graph Extraction | `scripts/extract_fr_graph.py`, `reference/fr-knowledge-graph.yaml`, `reference/fr-knowledge-graph.md`, `.github/hooks/scripts/checks/prior_art.py` | REQ-YG-601 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -2934,6 +2935,16 @@ Minimal Discord gateway-bot example executing the unmodified hello demo graph fr
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-600 | Discord hello example: pure adapter maps /hello options (name, style) to hello-graph initial state with validation, renders the structured greeting result as embed fields, and renders visible correlated error messages instead of fallback greetings. | `examples/discord_bot` |
+
+### 240. CAP-240 FR Knowledge Graph Extraction
+
+Deterministic extraction of typed causal and associative edges from the FR corpus into a machine-queryable YAML artifact. Supports cycle detection, transitive closure computation, cluster identification, and staleness gating. Augments the prior-art hook with graph-backed cluster lookup.
+
+**Feature Request:** FR-814
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-601 | scripts/extract_fr_graph.py deterministically generates reference/fr-knowledge-graph.yaml with typed edges (causal: depends_on, regression_of, spawned_by, substrate, supersedes; associative: prior_art, first_consumer_of, mentions), transitive closures over causal edges, cycle detection reporting exact chains, cluster identification, and corpus fingerprint for staleness detection. Prior-art hook augmented with graph-backed cluster boost. | `scripts/extract_fr_graph.py`, `reference/fr-knowledge-graph.yaml`, `.github/hooks/scripts/checks/prior_art.py`, `tests/unit/test_fr_graph.py` |
 
 <!-- END GENERATED CAPABILITIES -->
 

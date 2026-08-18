@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Judged
+**Status:** Enforced 2026-08-18
 **Effort:** 2 days
 **Requested:** 2026-08-17
 **First consumer / first event:** the prior-art hook, the moment it
