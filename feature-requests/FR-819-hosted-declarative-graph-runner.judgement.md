@@ -140,3 +140,31 @@ Authority granted: build the non-production `projects/hosted_runner/`
 reference deployment that accepts declarative hosted-profile bundles, runs
 them in isolated quota-bound Jobs through a service-owned model gateway, and
 proves tenant isolation, streaming, cleanup, and prepaid-credit settlement.
+
+## Amendment A-1 (2026-08-18, operator decision)
+
+Platform substitution: Kubernetes pod-per-run → Fly Machines machine-per-run.
+The operator runs an existing Fly.io fleet (daily_digest, openai_proxy,
+booking, ninchat_voice) and operates no Kubernetes cluster; the human selected
+this substitution in session on 2026-08-18. Read the frozen scope with this
+mapping:
+
+- D-4 "fixed Job/NetworkPolicy" → fixed Machines API config (no public IP, no
+  Fly API token, `autodestroy`) plus in-image nftables default-deny egress
+  with a 6PN-only gateway route.
+- C-5 / AC-12 "service diagnostic Job" → service-owned diagnostic machine
+  booted with the identical run-machine configuration; it remains a GATE and
+  is now the load-bearing isolation proof, since egress deny moves from
+  platform policy into the service-owned image.
+- `activeDeadlineSeconds` → machine-local timeout plus control-plane deadline
+  watchdog, both mandatory.
+- AC-17 local `kind` witness → local docker-compose functional harness plus
+  isolation witness on a dedicated non-production Fly runner app within the
+  operator ceiling (C-7 unchanged).
+
+Amendment A-2 (same date): catalog entries carry `catalog_version`;
+`run_reserve` stamps it and receipts cite it (extends D-5/AC-14 semantics) to
+keep settlement reconcilable against the price authorized — prerequisite for
+the deferred payments FR. Amendment A-3: the 24-hour output retention is a
+documented deliberate MVP limit. All other gates, deliverables, and the
+not-authorized list are unchanged; payments remain forbidden under C-7.

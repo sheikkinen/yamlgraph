@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Judged — Approved with revisions folded (2026-08-18)
+**Status:** Judged — Approved with revisions folded (2026-08-18); amended A-1–A-3 (2026-08-18, operator decision — Fly Machines execution platform)
 **Effort:** 8–12 days
 **Requested:** 2026-08-18
 **Renumbered:** originally filed as FR-815; renamed to FR-819 on 2026-08-18
@@ -26,7 +26,8 @@ execution. These are adjacent mechanisms, not substitutes.
 
 Build a deployable reference service, branded **YAMLGraph Serve**, that accepts
 an immutable declarative graph bundle, validates it against a restrictive
-hosted profile, and executes each run in a fresh quota-bound Kubernetes pod.
+hosted profile, and executes each run in a fresh quota-bound ephemeral Fly
+Machine (Firecracker microVM).
 Before scheduling, the service atomically reserves the caller's declared
 maximum spend from a manually funded prepaid-credit ledger. It streams run
 events, terminates at the budget/deadline boundary, and settles actual usage
@@ -40,7 +41,8 @@ arbitrary network access.
 ## Value Statement
 
 Graph authors can execute and share their own YAMLGraph pipelines through an
-agent-friendly API without operating YAMLGraph, Kubernetes, or provider
+agent-friendly API without operating YAMLGraph, execution infrastructure, or
+provider
 credentials, while prepaid reservation gives both the author and operator a
 hard spend boundary.
 
@@ -69,11 +71,11 @@ must answer four coupled questions before it can schedule a job:
 An authenticated client uploads a portable declarative bundle once, receives
 its content-addressed graph ID, and starts any run with inputs, model choice,
 and `max_credits`. The API either rejects the request before spend or reserves
-that ceiling exactly once, starts a fresh isolated pod, streams typed events,
-and returns a terminal receipt containing reserved, consumed, and released
-credits plus provider usage. No tenant content or provider secret survives the
-pod, no duplicate request can double-charge, and no run can exceed its
-reserved balance.
+that ceiling exactly once, starts a fresh isolated run machine, streams typed
+events, and returns a terminal receipt containing reserved, consumed, and
+released credits plus provider usage. No tenant content or provider secret
+survives the run machine, no duplicate request can double-charge, and no run
+can exceed its reserved balance.
 
 ## Proposed Solution
 
@@ -111,7 +113,7 @@ data paths, import code, or parse tools:
 4. Validate both raw and normalized mappings against the fail-closed hosted
       profile.
 5. Only after acceptance, materialize the immutable bundle and call the normal
-      YAMLGraph loader inside the isolated run pod.
+      YAMLGraph loader inside the isolated run machine.
 
 The initial exact node allowlist is `llm`, `router`, `map`, `passthrough`, and
 the inserted `verify` node only when derived by the service from supported
@@ -131,29 +133,43 @@ The validator rejects at minimum:
 Unknown present or future graph fields fail validation; they are never ignored
 or silently stripped. Validation emits stable machine-readable reason codes.
 
-### 3. Pod-per-run execution boundary
+### 3. Machine-per-run execution boundary (Fly Machines — amended A-1)
 
 The scheduler materializes only the validated immutable bundle into a fresh
-Kubernetes Job. The pod specification is fixed by the service, not merged from
-tenant input: unprivileged UID, read-only root filesystem, dropped Linux
-capabilities, `RuntimeDefault` seccomp, no host namespaces or volumes, no
-service-account token, bounded CPU/memory/ephemeral storage, and
-`activeDeadlineSeconds`. A default-deny NetworkPolicy allows egress only to a
-service-owned model gateway and the minimum result/event channel.
+ephemeral Fly Machine created through the Machines API in a dedicated
+non-production runner Fly app. Firecracker hardware virtualization gives each
+run its own kernel — a stronger per-run boundary than a shared-kernel pod.
+The machine configuration is fixed by the service, not merged from tenant
+input: service-owned runner image, unprivileged runtime user, no public IPs
+(dedicated or shared), bounded CPU/memory, no attached volumes (ephemeral
+rootfs only), `autodestroy` on exit, and a wall-clock deadline enforced twice —
+a machine-local timeout plus a control-plane watchdog that force-stops and
+destroys the machine at the deadline (Fly has no `activeDeadlineSeconds`
+equivalent; both layers are mandatory).
 
-Provider credentials remain in the model gateway and are never mounted into
-the run pod. The pod receives a short-lived, run-scoped gateway token capped
-by model, run ID, deadline, and reserved credits. The gateway rejects calls
-after cancellation or exhaustion and records provider-reported token usage.
-The Job and writable volume are deleted after terminal receipt persistence.
+Fly has no NetworkPolicy analogue and machines get outbound NAT egress by
+default, so default-deny is enforced inside the service-owned image: an init
+stage installs an nftables ruleset — deny all egress except the model gateway
+and the minimum result/event channel on the private 6PN network — before the
+runner starts. Tenant bundles contain no executable content that could alter
+it. Run machines carry no Fly API token; the Machines API (`_api.internal`),
+other Fly apps' 6PN addresses, and control-plane endpoints are in the deny
+set.
+
+Provider credentials remain in the model gateway (control-plane app) and never
+enter the run machine. The machine receives a short-lived, run-scoped gateway
+token capped by model, run ID, deadline, and reserved credits. The gateway
+rejects calls after cancellation or exhaustion and records provider-reported
+token usage. The machine and its ephemeral rootfs are destroyed after terminal
+receipt persistence.
 
 Isolation has two separate witnesses. Hosted-profile tests prove tenant YAML
 that asks for code, path, tool, provider, or network capabilities is rejected
 before reservation or scheduling. A fixed service-owned diagnostic image,
-which tenant YAML can never select, probes the generated namespace, Job, and
-NetworkPolicy: cluster DNS/API, cloud metadata, public internet, another run's
-storage, and control-plane endpoints must fail while the model-gateway route
-succeeds.
+which tenant YAML can never select, boots with the identical machine
+configuration and probes: public internet, the Fly Machines API
+(`_api.internal`), other apps' and other runs' 6PN addresses, and
+control-plane endpoints must all fail while the model-gateway route succeeds.
 
 ### 4. Prepaid reservation ledger
 
@@ -162,9 +178,14 @@ supports admin-issued test credits only; purchasing credits, Stripe/payment
 integration, refunds to payment instruments, tax/VAT, invoices, and cash
 withdrawal are explicitly deferred.
 
-The model catalog is typed service-owned configuration. Each entry contains
+The model catalog is typed service-owned configuration carrying a
+monotonically increasing `catalog_version` (amended A-2). Each entry contains
 model ID, integer microcredits per one million input and output tokens,
-maximum input/output tokens, and per-call overhead. Charges use integer
+maximum input/output tokens, and per-call overhead. Every `run_reserve` stamps
+the `catalog_version` in force at reservation, and receipts cite it, so a
+settlement is always reconcilable against the price the caller authorized —
+a prerequisite for the deferred payments integration (disputes, refunds,
+price changes mid-run). Charges use integer
 ceiling division per provider request; no floating-point money enters the
 ledger. Before forwarding a call, the gateway reserves the catalog-priced
 maximum output plus known input/overhead from the run's remaining reservation.
@@ -198,24 +219,31 @@ review state; it does not invent zero usage or debit an estimate silently.
 | Provider request ID and token counts | Receipt database | 90 days | Tenant and operator | Metadata only |
 | Credit receipt and ledger entries | Ledger database | 7 years unless shortened before external use | Tenant and operator | No prompt/input/output content |
 | Service logs | Operator log store | 7 days | Operator | IDs/status only; content forbidden |
-| Diagnostic probe artifacts | Test namespace/log store | Delete after witness | Operator | Synthetic service-owned data |
-| Run pod and writable volume | Kubernetes | Delete after terminal receipt | Not exposed | Ephemeral tenant content |
+| Diagnostic probe artifacts | Staging runner app/log store | Delete after witness | Operator | Synthetic service-owned data |
+| Run machine and ephemeral rootfs | Fly Machines | Destroy after terminal receipt | Not exposed | Ephemeral tenant content |
 
-"No tenant content survives the pod" means no content remains in pod files,
-volumes, environment, or Kubernetes resources after cleanup. It does not
-exclude the tenant-scoped bundle and 24-hour API result records above.
+"No tenant content survives the run machine" means no content remains in
+machine files, environment, or Fly resources after destruction. It does not
+exclude the tenant-scoped bundle and 24-hour API result records above. The
+24-hour output retention is a deliberate MVP limit (amended A-3), stated in
+documentation; longer paid-tier retention is deferred with payments.
 
 ### 6. Bounded proof deployment
 
-Provide a local `kind` deployment and an automated end-to-end witness. The
-MVP is single-region, invitation-only, and non-production. It supports one
-OpenAI-compatible service-owned gateway and a fixed model catalog. It proves
-the execution, isolation, and accounting boundaries; it does not claim a
-general serverless platform or commercial payment readiness.
+Provide a docker-compose functional harness for local development (control
+plane, gateway, and a simulated runner container) plus an automated end-to-end
+witness against a dedicated non-production Fly runner app within the operator
+ceiling (amended A-1; Fly has no local emulator, so the isolation witness runs
+on real Fly Machines). The MVP is single-region, invitation-only, and
+non-production. It supports one OpenAI-compatible service-owned gateway and a
+fixed model catalog. It proves the execution, isolation, and accounting
+boundaries; it does not claim a general serverless platform or commercial
+payment readiness.
 
 The deployment has a configured integer operator spend ceiling. Scheduling
 stops before aggregate provider reservations exceed it. This FR authorizes
-only local `kind` and operator-controlled invitation-only test tenants. No
+only the local compose harness plus the dedicated non-production Fly
+runner/staging apps with operator-controlled invitation-only test tenants. No
 public endpoint, external tenant, real-money payment, SLA, production launch,
 or provider spend above that ceiling is permitted without a separate
 human-approved FR.
@@ -241,30 +269,36 @@ still pass to prove framework coverage was not regressed.
       limit violations without writing outside tenant-scoped storage.
 - [ ] AC-04: Every graph, run, event, and receipt lookup is tenant-scoped; an
       integration test proves tenant B receives `404` for tenant A's IDs.
-- [ ] AC-05: A valid run atomically reserves integer `max_credits` before Job
-      creation; insufficient balance creates neither reservation nor Job.
+- [ ] AC-05: A valid run atomically reserves integer `max_credits` before
+      machine creation; insufficient balance creates neither reservation nor
+      machine.
 - [ ] AC-06: Twenty concurrent requests with one idempotency key converge on
-      the same run/reservation/Job/settlement; duplicate terminal events write
-      at most one `run_debit` and one `run_release` for that reservation.
+      the same run/reservation/machine/settlement; duplicate terminal events
+      write at most one `run_debit` and one `run_release` for that
+      reservation.
 - [ ] AC-07: The gateway rejects an LLM call whose run token is expired,
       canceled, uses a different model/run ID, or would exceed reserved
-      credits; provider credentials are absent from the run pod environment,
-      files, and Kubernetes Job manifest.
-- [ ] AC-08: The generated Job manifest mechanically satisfies all pod
-      restrictions in Section 3 and contains no tenant-controlled pod-spec
-      field.
+      credits; provider credentials and Fly API tokens are absent from the run
+      machine environment, files, and generated machine configuration.
+- [ ] AC-08: The generated Machines API configuration mechanically satisfies
+      all machine restrictions in Section 3 and contains no tenant-controlled
+      machine-config field.
 - [ ] AC-09: Hosted-profile tests reject tenant YAML requesting network, path,
       code, subprocess, tool, MCP, A2A, provider-key/URL, or unsupported-model
       capabilities before scheduling.
-- [ ] AC-09a: A fixed service-owned diagnostic Job proves cluster DNS/API,
-      cloud metadata, public internet, another run's storage, and control-plane
-      endpoints are unreachable while the model-gateway path succeeds.
+- [ ] AC-09a: A fixed service-owned diagnostic machine, booted with the
+      identical run-machine configuration, proves public internet, the Fly
+      Machines API (`_api.internal`), other apps'/runs' 6PN addresses, and
+      control-plane endpoints are unreachable while the model-gateway path
+      succeeds.
 - [ ] AC-10: CPU, memory, storage, wall-clock, map, retry, and credit limits
-      each have a test proving a terminal bounded failure and Job cleanup.
+      each have a test proving a terminal bounded failure and machine
+      destruction.
 - [ ] AC-11: Successful settlement records provider request ID, input/output
-      token counts, reserved credits, consumed credits, and released credits;
-      pricing, rounding, gateway cutoff, cancellation, and ledger transitions
-      use the exact integer algorithm and state machine in Section 4.
+      token counts, reserved credits, consumed credits, released credits, and
+      the `catalog_version` stamped at reservation; pricing, rounding, gateway
+      cutoff, cancellation, and ledger transitions use the exact integer
+      algorithm and state machine in Section 4.
 - [ ] AC-12: Missing or contradictory provider usage enters a named
       `settlement_review` state, preserves the reservation, alerts the
       operator, and never records fabricated usage.
@@ -273,12 +307,15 @@ still pass to prove framework coverage was not regressed.
       another tenant's content are redacted.
 - [ ] AC-14: The end-to-end witness uploads a graph, grants test credits,
       starts it through the API, observes streamed events, verifies its
-      output/receipt, and confirms the Job and writable volume are deleted.
+      output/receipt, and confirms the run machine and its ephemeral rootfs
+      are destroyed.
 - [ ] AC-15: Hosted-runner tests map to project-local requirements and its
       checker passes; `python scripts/req_coverage.py --strict` also passes
       without adding a framework `REQ-YG-XXX`.
-- [ ] AC-16: Documentation states the hosted profile, pricing/rounding,
-      isolation assumptions, retention matrix, operator ceiling,
+- [ ] AC-16: Documentation states the hosted profile, pricing/rounding and
+      catalog versioning, Fly Machines isolation assumptions (microVM
+      boundary, in-image egress deny, dual deadline enforcement), retention
+      matrix including the deliberate 24-hour output limit, operator ceiling,
       invitation-only status, and deferred commercial/payment concerns without
       claiming arbitrary-code safety.
 - [ ] AC-17: Scheduling halts before aggregate reservations exceed the
@@ -324,19 +361,65 @@ custom domains; SLA claims; production launch.
 
 ## Questions For The Human
 
-None for this enforcement. Scope is strictly local `kind` plus
-operator-controlled invitation-only test tenants and a configured spend
-ceiling. External exposure, real-money payment, production claims, an SLA, or
-a ceiling increase requires a separate human-approved FR.
+None for this enforcement. Scope is strictly the local compose harness plus
+dedicated non-production Fly runner/staging apps with operator-controlled
+invitation-only test tenants and a configured spend ceiling. External
+exposure, real-money payment, production claims, an SLA, or a ceiling
+increase requires a separate human-approved FR.
+
+## Amendments (2026-08-18, operator decision)
+
+Architectural cross-check against the existing Fly.io fleet (daily_digest,
+openai_proxy, booking, ninchat_voice) and the stated payments intent produced
+three amendments. The human operator selected option (b) — Fly Machines — in
+session on 2026-08-18.
+
+### A-1: Fly Machines replaces Kubernetes as the execution platform
+
+The judged text specified Kubernetes pod-per-run with a local `kind` witness.
+The operator runs an existing Fly.io fleet and operates no Kubernetes cluster.
+Mapping (also appended to the judgement artifact):
+
+| Judged (Kubernetes) | Amended (Fly Machines) |
+|---|---|
+| Kubernetes Job per run | Ephemeral Fly Machine per run (`autodestroy`) |
+| Fixed pod spec (seccomp, caps, no SA token) | Fixed Machines API config; Firecracker microVM (own kernel); no Fly API token; no public IP |
+| Default-deny NetworkPolicy | In-image nftables default-deny egress + 6PN-only gateway route (Fly has no NetworkPolicy analogue) |
+| `activeDeadlineSeconds` | Machine-local timeout + control-plane deadline watchdog (both mandatory) |
+| Diagnostic Job (AC-09a) | Diagnostic machine with identical run-machine config |
+| Local `kind` witness | Local docker-compose functional harness + isolation witness on a dedicated non-production Fly runner app within the operator ceiling |
+
+Note the trade: per-run kernel isolation is stronger (microVM vs shared
+kernel), but egress deny moves from platform-enforced policy to the
+service-owned image — the diagnostic witness (AC-09a) is therefore the
+load-bearing proof and remains a GATE (C-5).
+
+### A-2: Catalog price versioning
+
+Every catalog entry carries `catalog_version`; `run_reserve` stamps it and
+receipts cite it (Section 4, AC-11). Motivated by the deferred payments
+integration: disputes, refunds, and mid-run price changes require the price in
+force at reservation to be provable. The tenant-identity and ledger design
+were checked against the payments intent and need no change: API tokens are
+credentials over a first-class `tenant_id` (user accounts attach later without
+schema change), and a Stripe `payment_intent.succeeded` event ID slots into
+`credit_grant`'s unique-source-event key.
+
+### A-3: Retention limit is deliberate
+
+The 24-hour run input/output retention is a documented deliberate MVP limit
+(Section 5, AC-16); paid-tier retention is deferred with payments.
 
 ## Judgement (2026-08-18)
 
 **Verdict:** APPROVED WITH REVISIONS — R-1 through R-6 from the canonical
 judge artifact are folded above; authority is active for the frozen
 non-production `projects/hosted_runner/` reference deployment only.
+Amendments A-1–A-3 (above) are operator-approved deviations recorded in the
+judgement artifact.
 
 **Purge list:** core node types; A2A/MCP upload changes; arbitrary execution;
-tenant pod/provider configuration; external launch; payments; transferable or
+tenant machine/provider configuration; external launch; payments; transferable or
 refundable credits; multiple regions/providers; durable sessions; SLA or
 production-readiness claims.
 
