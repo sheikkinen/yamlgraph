@@ -387,18 +387,27 @@ For the full bump → commit → push → tag flow including pre-commit hook cas
 
 ## Branch Protection
 
-The `main` branch is protected by GitHub branch protection rules (FR-150). These rules are the **primary enforcement gate** — all other checks (pre-commit hooks, CI workflows) operate within this structure.
+**Default flow: single dev, push to `main` directly.** The operator (admin)
+pushes to `main`; `enforce_admins` is off, so protection rules do not apply
+to admin pushes. The PR flow below is for automation (watcher2/chaplain
+pipelines) and optional review passes — do not add PR ceremony to ordinary
+changes.
 
-### Rules enforced on `main`
+### Rules actually enforced on `main` (verified 2026-08-18)
 
-| Rule | Setting | Purpose |
-|------|---------|---------|
-| Require pull request | Enabled (0 approvals) | No direct pushes to `main` |
-| Squash merge only | Merge commits and rebase disabled | PR title = commit message; enforces Conventional Commits |
-| Required status checks | `commitlint`, `test`, `conflict-check`, `copilot-trailer-gate`, `wip-gate`, `changelog-gate`, `changelog-req-gate`, `demo-gate`, `diary-gate`, `security` | PR cannot merge with failing CI |
-| Require up to date | Enabled | PRs must be rebased on latest `main` before merge |
+| Rule | Setting | Applies to |
+|------|---------|-----------|
+| Require pull request | Enabled (0 approvals) | Non-admin pushes and bots |
+| Squash merge only | Merge commits and rebase disabled | All PRs; PR title = commit message (Conventional Commits) |
+| Required status checks | `commitlint`, `test (3.11)`, `test (3.12)` | PRs cannot merge with these failing |
+| Require up to date | Enabled (strict) | PRs must be current with `main` |
+| `enforce_admins` | **Disabled** | Admin direct pushes bypass everything |
 
-### Required status checks
+### CI checks
+
+`commitlint` and `test` (both Python versions) are required contexts; the
+rest run in CI on PRs but are NOT in the required-contexts set — they
+report, and the human (or automation policy) decides:
 
 - **`commitlint`** (`.github/workflows/commitlint.yml`): Validates PR title follows Conventional Commits format. `feat` PRs must include `FR-XXX` reference.
 - **`test`** (`.github/workflows/workflow.yml`): Runs `pytest` with 85% coverage threshold (measured 90.36% on 2026-07-12; gate raised from 70 by FR-714) and `ruff` linting.
@@ -413,7 +422,9 @@ The `main` branch is protected by GitHub branch protection rules (FR-150). These
 
 ### Emergency bypass
 
-Admin overrides are available for legitimate emergencies (broken CI, security hotfix, backup recovery). **Every bypass must be documented** — see [`reference/break-glass.md`](reference/break-glass.md) for the full procedure and audit trail requirements.
+Admin overrides are the default single-dev flow, not an emergency measure.
+For bypasses of a *failing required check* on automation PRs, document per
+[`reference/break-glass.md`](reference/break-glass.md).
 
 ## Testing Patterns
 
