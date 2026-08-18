@@ -9,6 +9,11 @@ changelog fragment.
 Mechanizes the Scripture's `changelog_first_diagnostic` cure: enumerate what
 changed before reproducing anything.
 
+> **Scheduled consumer (FR-821):** this graph runs every Monday via
+> [.github/workflows/weekly-recap.yml](../../../.github/workflows/weekly-recap.yml)
+> and publishes `docs/recaps/<ISO-week>.md` to `main` through an
+> auto-merged automation PR. Renderer: `scripts/weekly_recap.py`.
+
 ## Run
 
 ```bash
