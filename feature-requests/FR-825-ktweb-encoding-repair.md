@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug fix
-**Status:** Proposed
+**Status:** Judged — APPROVED; human review pending
 **Effort:** 0.5–1 day
 **Requested:** 2026-08-19
 **Consumer repository:** `https://github.com/sheikkinen/hva-weekly-bulletin`
