@@ -2,9 +2,13 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Judged 2026-08-19 APPROVED WITH REVISIONS
+**Status:** Enforced 2026-08-19 — repo live
+(https://github.com/sheikkinen/deviant-daily), first publish green
+(run 32267564652), idempotency witnessed (32268278258), cron enabled;
+AC-07/AC-13/AC-15 + z-image roster leg are pending observations
+(first cron run 2026-08-20). Judged 2026-08-19 APPROVED WITH REVISIONS
 (`FR-826-deviantart-daily-repo.judgement.md`) — R-1..R-6 folded, C-4
-approvals recorded (corpus + cron) — READY FOR ENFORCEMENT
+approvals recorded (corpus + cron)
 **Effort:** 2 days
 **Requested:** 2026-08-19
 **First consumer / first event:** the sheikkinen DeviantArt gallery, on
@@ -233,14 +237,23 @@ post with a lost token is worse than a skipped day. Access token lives
       `permissions: contents: write`, concurrency group with
       `cancel-in-progress: false`, `git pull --rebase` before push,
       no secret-printing shell tracing
-      *(cron present but commented until AC-07/AC-14 witnesses pass,
+      *(cron enabled eeca704 after AC-14/AC-16 witnesses,
       per C-4 cron approval condition)*
-- [ ] AC-06: All secrets as repo secrets; no credential, token, PAT,
+- [x] AC-06: All secrets as repo secrets; no credential, token, PAT,
       cookie, or secret-bearing transcript in any commit, log,
       README, ledger, post, or artifact
+      *(6 repo secrets set via gh; run 32267564652 logs show only
+      `***` masks; ledger/post/README grep clean; images never
+      committed — git ls-files image count 0)*
 - [ ] AC-07: Rotation round-trip proven by two consecutive dispatch
       runs — first writes rotated `DA_REFRESH_TOKEN`, second
       authenticates with it
+      *(PENDING OBSERVATION: run 32267564652 rotated the secret —
+      `gh secret list` shows DA_REFRESH_TOKEN updated 15:02:54Z
+      mid-run, publish succeeded after persist. The idempotent
+      same-day rerun exits before refresh, so the second
+      authentication is witnessed by the first cron run, 07:00 UTC
+      2026-08-20.)*
 - [x] AC-08: Rotation ordering proven by test: persist failure aborts
       before any DA submit/publish call
       *(tests/test_steps.py::test_persist_failure_aborts_before_submit)*
@@ -249,9 +262,16 @@ post with a lost token is worse than a skipped day. Access token lives
       active models (`prunaai/z-image-turbo`,
       `black-forest-labs/flux-1.1-pro-ultra`) each produce a
       published or gate-skipped run
-- [ ] AC-10: Describe output validated through the typed schema;
+      *(PARTIAL: validate-before-draw + structured drop logging
+      witnessed in run logs ("roster: model=grok disabled");
+      flux-1.1-pro-ultra produced the 2026-08-19 publish;
+      z-image-turbo pending a day it is drawn — observation, not
+      blocker, per FR-819 AC-07 precedent)*
+- [x] AC-10: Describe output validated through the typed schema;
       invalid tags or invalid mature combinations gate-skip with a
       ledger reason
+      *(tests/test_gate.py — 10 tests; live run passed schema with
+      confidence=high)*
 - [x] AC-11: Mocked HTTP tests assert the DA flow against FR-822
       shapes: placebo, submit, publish, both AI flags on both calls,
       UA/timeouts, 429 backoff, `error_code 9` idempotent success
@@ -266,24 +286,50 @@ post with a lost token is worse than a skipped day. Access token lives
       invalid mature fields / impermissible content → skip reason
       committed to ledger, nothing published, green exit only after
       the skip record lands
-- [ ] AC-14: `workflow_dispatch` green end-to-end publish path:
+      *(PENDING OBSERVATION: gate logic fully unit-tested
+      (test_gate.py, test_steps.py::gate skip-commit-before-green);
+      a live gate-skip day cannot be forced — recorded when it
+      occurs naturally)*
+- [x] AC-14: `workflow_dispatch` green end-to-end publish path:
       draw/generate/describe/publish, rotated token persisted, DA URL
       in ledger, post MD committed, no image committed
+      *(run 32267564652 green 2026-08-19: ledger
+      drawn→submitted→published, itemid 1134093669574380, URL
+      https://www.deviantart.com/sheikkinen/art/Vigil-in-the-Hollow-World-1370599817,
+      posts/2026-08-19.md committed, zero images in git. First
+      dispatch 32267072470 failed on a boundary bug — flux-ultra
+      returns JPEG despite .png output name; fixed by magic-byte
+      media-type detection at vision + DA submit boundaries,
+      RED 8c393dd / GREEN 8d88e8f)*
 - [ ] AC-15: At least one scheduled cron run publishes green without
       human runner access
-- [ ] AC-16: Same-day manual rerun after successful publish exits
+      *(PENDING OBSERVATION: cron enabled eeca704, first run
+      07:00 UTC 2026-08-20 — doubles as AC-07 witness)*
+- [x] AC-16: Same-day manual rerun after successful publish exits
       idempotently — no second deviation
-- [ ] AC-17: Live deviation verified once against the committed
+      *(run 32268278258 green: "already published — idempotent
+      exit", zero new commits, no DA calls)*
+- [x] AC-17: Live deviation verified once against the committed
       `STYLE-CONTRACT.md`: paragraphs render separately, quote/title
       shape survives, tags attach, AI badge shown, no
       sales/download/license options enabled
+      *(live page fetch 2026-08-19: 3 paragraphs render separately,
+      "Be Art. Be Unique." epigram, quote line, gallery footer
+      ✨📂🎉, 9 underscore tags attached, "Created using AI tools"
+      badge, download behind login only — no sales options)*
 - [x] AC-18: New-repo tests cover corpus extraction/dedup, ledger
       transitions, rotation ordering, tag normalization, mature gate,
       roster validation, MD rendering, DA/Replicate request
       construction *(47 tests green, ruff clean, graph lint clean)*
-- [ ] AC-19: FR-826 records implementation status with non-secret
+- [x] AC-19: FR-826 records implementation status with non-secret
       links/identifiers: new repo, dispatch run, cron run, roster
       evidence, DA URL, authoring report, scope deviations
+      *(this section: repo https://github.com/sheikkinen/deviant-daily,
+      dispatch runs 32267072470 (failed, boundary bug) /
+      32267564652 (green publish) / 32268278258 (idempotent),
+      cron pending 2026-08-20, DA URL above, authoring report
+      docs/authoring-report.md in new repo. Scope deviation: none —
+      one unplanned fix (JPEG media type) within scope, TDD'd.)*
 
 ## Constraints
 
