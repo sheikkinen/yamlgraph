@@ -31,15 +31,18 @@ pattern of the *allocation mechanism*, not of any one session's care.
 
 ## The consequence is silent, which makes it worse
 
-`docs/fr-board.md` renders exactly one FR-819 row. The digest-poc FR —
-Completed, with a pending cron-observation obligation — is invisible on
-the board. The collision doesn't crash; it *shadows*. A gate that checked
-"does the FR file exist / have a status" passes for both; nothing checks
-"is the ID a unique key." Classic `gate_checks_shape_not_substance`: the
-board's implicit primary key is unenforced at the write boundary, so the
-violation manifests downstream as a missing row nobody notices — found
-here only because a routine sweep counted files (`ls | grep -c "^FR-819"`
-→ 3).
+`docs/fr-board.md` renders exactly one FR-819 row. **Correction (same
+day, during the repair):** the missing row was *terminal-status
+filtering* (Completed FRs are excluded by default; `--all` includes
+them), not ID-based dedup — I asserted the shadowing mechanism before
+reading `fr_board.py`, a small `quick_confidence` instance inside the
+very entry that preaches against it. The collision is still real and
+still harmful — two FRs sharing one ID corrupts every cross-reference
+(FR-820 cited "FR-819" fourteen times meaning Serve, while FR-821 cited
+"FR-819" meaning the digest PoC), and the FR-814 knowledge graph would
+merge the two into one node. Nothing checks "is the ID a unique key" at
+the write boundary; the violation was found only because a routine sweep
+counted files (`ls | grep -c "^FR-819"` → 3).
 
 ## Heuristic
 

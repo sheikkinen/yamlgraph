@@ -2,19 +2,19 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Proposed — blocked on FR-819 enforcement; this is the separate
-human-approved FR that FR-819 C-7 requires before any real-money payment
-**Effort:** 5–8 days (after FR-819 ships)
+**Status:** Proposed — blocked on FR-823 enforcement; this is the separate
+human-approved FR that FR-823 C-7 requires before any real-money payment
+**Effort:** 5–8 days (after FR-823 ships)
 **Requested:** 2026-08-18
 **First consumer / first event:** an invited YAMLGraph Serve tenant whose
 admin-issued test credits are exhausted, at the moment they pay real money on
 a Stripe-hosted checkout page and see their credit balance increase without
 operator involvement.
 
-**Prior art:** FR-819 (hosted declarative graph runner) explicitly defers
+**Prior art:** FR-823 (hosted declarative graph runner) explicitly defers
 payments: its judgement C-7 forbids real-money payment without a separate
 human-approved FR — this FR is that instrument, not a violation of it.
-FR-819 amendment A-2 prepared the seams this FR uses: `catalog_version`
+FR-823 amendment A-2 prepared the seams this FR uses: `catalog_version`
 stamped on `run_reserve`, `tenant_id` as the first-class key under API
 tokens, and `credit_grant` keyed by unique source event. No other FR touches
 payments, billing, or stored value.
@@ -24,7 +24,7 @@ payments, billing, or stored value.
 Let YAMLGraph Serve tenants purchase prepaid credits with real money through
 Stripe Checkout. A verified Stripe webhook event becomes exactly one
 `credit_grant` ledger entry; everything downstream (reserve → debit →
-release) is the existing FR-819 ledger, unchanged. Stripe never meters runs;
+release) is the existing FR-823 ledger, unchanged. Stripe never meters runs;
 the ledger never touches cards.
 
 ## Value Statement
@@ -36,10 +36,10 @@ PCI scope) entirely out of the control plane.
 
 ## Problem
 
-FR-819 supports admin-issued test credits only. Every tenant top-up is a
+FR-823 supports admin-issued test credits only. Every tenant top-up is a
 manual operator action, which caps the service at hand-held pilot scale and
 makes the operator spend ceiling a personal subsidy. The ledger, identity,
-and pricing seams were deliberately built payments-ready (FR-819 A-2), but no
+and pricing seams were deliberately built payments-ready (FR-823 A-2), but no
 purchase path exists.
 
 ## Ideal Result
@@ -48,13 +48,13 @@ A tenant with an empty balance clicks "buy credits", pays on a Stripe-hosted
 page, and returns to a balance that reflects the purchase — granted exactly
 once regardless of webhook retries, refunded only from unspent balance,
 reconciled nightly against Stripe payouts, and evidenced end-to-end (Stripe
-receipt for the money, FR-819 receipt chain for the usage, joined by
+receipt for the money, FR-823 receipt chain for the usage, joined by
 `catalog_version`). The operator's manual role reduces to policy: pack
 pricing, freeze/refund decisions, and dispute responses.
 
 ## Proposed Solution
 
-All new code lives in the FR-819 control plane (`projects/hosted_runner/`);
+All new code lives in the FR-823 control plane (`projects/hosted_runner/`);
 the gateway and runner are untouched — no new arrows into either trust zone.
 
 ### 1. Identity layer above tenant_id
@@ -70,7 +70,7 @@ credentials over `tenant_id`; graph/run/ledger schemas do not change.
   redirect URL. Card data never touches the control plane (SAQ-A scope).
 - Credit packs are service-owned configuration: € price ↔ integer
   microcredits granted. Two price systems on purpose: € per pack (Stripe),
-  microcredits per token (FR-819 catalog, versioned by `catalog_version`).
+  microcredits per token (FR-823 catalog, versioned by `catalog_version`).
 
 ### 3. Webhook-only fulfilment
 
@@ -92,13 +92,13 @@ credentials over `tenant_id`; graph/run/ledger schemas do not change.
 
 Nightly job sums `credit_grant`/`credit_revoke` against Stripe balance
 transactions; any mismatch alerts the operator and blocks further checkout
-sessions — mirroring FR-819 `settlement_review`: never silently fabricate or
+sessions — mirroring FR-823 `settlement_review`: never silently fabricate or
 absorb a discrepancy.
 
 ### 6. Compliance posture
 
 - Credits are non-transferable, non-cash-valued, non-withdrawable (already in
-  FR-819's purge list) — avoiding the stored-value/e-money regulatory cliff.
+  FR-823's purge list) — avoiding the stored-value/e-money regulatory cliff.
 - Stripe Tax handles VAT at purchase (credits = electronically supplied
   service).
 - Stripe keys live in the control plane only, same custody rule as provider
@@ -134,7 +134,7 @@ absorb a discrepancy.
 
 ## Alternatives Considered
 
-- **Metered/post-paid billing (Stripe usage records):** rejected — FR-819
+- **Metered/post-paid billing (Stripe usage records):** rejected — FR-823
   chose reserve-then-settle precisely because post-hoc charging cannot bound
   overspend; prepaid packs keep that invariant.
 - **Payment Links instead of Checkout Sessions:** rejected — no per-session
@@ -149,7 +149,7 @@ absorb a discrepancy.
 
 ## Dependencies
 
-- FR-819 enforced through at least D-1, D-5, D-6 (control plane, ledger,
+- FR-823 enforced through at least D-1, D-5, D-6 (control plane, ledger,
   tenant storage) with A-2 (`catalog_version`) in place.
 - Human decisions below resolved before enforcement.
 
@@ -168,7 +168,7 @@ absorb a discrepancy.
 
 ## Related
 
-- `feature-requests/FR-819-hosted-declarative-graph-runner.md` (Sections 4–5,
+- `feature-requests/FR-823-hosted-declarative-graph-runner.md` (Sections 4–5,
   Amendments A-1–A-3)
-- `feature-requests/FR-819-hosted-declarative-graph-runner.judgement.md`
+- `feature-requests/FR-823-hosted-declarative-graph-runner.judgement.md`
   (C-7: the gate this FR is designed to lift)
