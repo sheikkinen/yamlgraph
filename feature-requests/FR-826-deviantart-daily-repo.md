@@ -3,8 +3,8 @@
 **Priority:** MEDIUM
 **Type:** Feature
 **Status:** Judged 2026-08-19 APPROVED WITH REVISIONS
-(`FR-826-deviantart-daily-repo.judgement.md`) — R-1..R-6 folded below;
-awaiting operator approval of corpus publication (C-4) before enforce
+(`FR-826-deviantart-daily-repo.judgement.md`) — R-1..R-6 folded, C-4
+approvals recorded (corpus + cron) — READY FOR ENFORCEMENT
 **Effort:** 2 days
 **Requested:** 2026-08-19
 **First consumer / first event:** the sheikkinen DeviantArt gallery, on
@@ -107,6 +107,18 @@ Contents:
   secret/private-data scan runs over the extraction before commit and
   the operator sample-reviews a random slice; prompts that cannot be
   public are redacted or excluded.
+  **APPROVED by operator 2026-08-19** with this redaction policy:
+  - LoRA syntax (`<lora:...>` and weight tags) STRIPPED from prompts
+    (kept prompts, removed tags — model-internal noise, not content)
+  - prompts containing personal names EXCLUDED — name blocklist
+    seeded with Katja, Tuija, Nina; extensible in the extraction
+    script; sample review watches for misses
+  - prompts containing non-consent/violence terms EXCLUDED — term
+    blocklist seeded with "rape"; extensible; these are
+    DA-impermissible regardless of corpus policy
+  - both blocklists live in the extraction script and are themselves
+    committed to the new repo (the policy is public, the raw
+    unsanitized corpus never is)
 - `state/published.jsonl` — committed ledger, see idempotency
   contract below.
 - `posts/YYYY-MM-DD.md` — the published post text committed back
@@ -328,10 +340,12 @@ changes or a reusable publisher library here → stop for a new FR (C-8).
 
 ### Questions for the human
 
-1. **Corpus publication approval (C-4, blocking):** OK to publish the
-   sanitized prompt corpus (13,682 entries pre-dedup) as a public
-   artifact in `sheikkinen/deviant-daily`? Recommended: yes after
-   sample review of a random slice.
-2. **Cron enablement (C-4):** enable daily cron immediately after the
-   dispatch witnesses pass, or hold cron until N manual days?
-   Recommended: enable after AC-07/AC-14 pass.
+1. **Corpus publication approval (C-4, blocking):** ANSWERED
+   2026-08-19 — approved with sanitization: strip LoRA tags, exclude
+   prompts with personal names (Katja, Tuija, Nina, extensible
+   blocklist), exclude non-consent terms ("rape", extensible
+   blocklist). Policy recorded in the corpus gate above.
+2. **Cron enablement (C-4):** ANSWERED 2026-08-19 — cron approved;
+   enable after the dispatch witnesses (AC-07/AC-14) pass.
+
+C-4 is fully satisfied — enforcement unblocked.
