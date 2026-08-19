@@ -1691,3 +1691,15 @@ The ID ranges are:
 - **Code**: S603
 - **Sin**: `subprocess.run([GIT, "-C", repo_path, ...])` flagged as untrusted input.
 - **Penance**: Command and args are hardcoded constants; GIT resolved via `shutil.which`; repo_path comes from the operator's CLI flag or the workflow's own checkout. No user input reaches the call (CONF-388/397 idiom).
+
+### CONF-406
+- **File**: [scripts/spikes/da_publish_spike.py](../scripts/spikes/da_publish_spike.py#L22)
+- **Code**: S105
+- **Sin**: `TOKEN_URL = "https://www.deviantart.com/oauth2/token"` flagged as hardcoded password.
+- **Penance**: False positive — the string is the public OAuth token endpoint URL; the variable name merely contains "token". No secret is stored.
+
+### CONF-407
+- **File**: [scripts/spikes/da_publish_spike.py](../scripts/spikes/da_publish_spike.py#L78)
+- **Code**: N802
+- **Sin**: `do_GET` method name is not snake_case.
+- **Penance**: `http.server.BaseHTTPRequestHandler` dispatches on this exact name; the stdlib contract dictates the casing.
