@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Proposed
+**Status:** Judged — APPROVED WITH REVISIONS folded; human review pending
 **Effort:** 4–6 days
 **Requested:** 2026-08-19
 **First consumer / first event:** The operator, Monday morning, opening
@@ -101,6 +101,7 @@ hva-weekly-bulletin/
 ├── config/hvas.*                # canonical 22-HVA/platform mapping
 ├── state/source-items.jsonl     # compact latest-seen state
 ├── events/<YYYY-Www>.jsonl      # append-only weekly event ledger
+├── source_health/<YYYY-Www>.jsonl # bounded operational observations
 ├── bulletins/<YYYY-Www>.md      # published human artifact
 ├── tests/                       # fixtures; no live network in unit tests
 ├── pyproject.toml
@@ -213,9 +214,10 @@ candidate links, but topic similarity alone cannot merge threads. Every rendered
 thread carries `link_basis` and its member event IDs.
 
 The weekly graph receives only the seven-day typed event window plus confirmed
-thread edges. Its prompt has one judgement: select and summarize the most
-material changes into the frozen output schema. It does not fetch, deduplicate,
-link, serialize, or self-correct source data.
+thread edges, source-health records, and the deterministically ordered narrative
+candidate list. Its prompt has one judgement: summarize the supplied candidates
+into the frozen output schema. It does not fetch, deduplicate, link, rank,
+serialize, or self-correct source data.
 
 Creating or adapting `graph.yaml` or `prompts/*.yaml` is graph authoring and must
 use YAMLGraph's governed `scripts/author.sh` route. The authoring report, lint,
@@ -244,6 +246,20 @@ effective date, lifecycle stage/transition when known, link basis, and the next
 expected observable event. The `Event ledger` appendix lists every event in the
 window even when the narrative is capped.
 
+Narrative selection is deterministic and happens before the graph:
+
+1. source-health degradation and MAO disputes;
+2. confirmed lifecycle transitions;
+3. deadlines within 14 days, earliest first;
+4. cross-HVA recurrence, most organizations first;
+5. known value, highest euro amount first;
+6. remaining events by effective date descending, then stable event ID.
+
+Each narrative section is capped at 10 entries. An event matching multiple
+tiers takes its highest tier and appears once. Ties follow the later ordering
+keys and finally stable event ID. Capped events remain in the complete event
+ledger appendix; materiality never deletes evidence.
+
 A seven-day window with zero substantive events exits 0, writes no bulletin,
 and makes no commit. A recap/bulletin commit from the prior week is never itself
 an input event.
@@ -259,8 +275,9 @@ an input event.
 - `permissions: contents: write` only;
 - one shared `concurrency` group, `hva-bulletin-state`, with
   `cancel-in-progress: false`;
-- after collection, stage only `state/` and `events/`; no diff -> explicit green
-  no-op; otherwise pull/rebase and push one bot commit.
+- after collection, stage only `state/`, `events/`, and `source_health/`; no
+      substantive or health-state diff -> explicit green no-op; otherwise
+      pull/rebase and push one bot commit.
 
 `bulletin.yml`:
 
@@ -279,9 +296,31 @@ fine-grained-PAT automation-PR route requires human review and separate scope.
 
 ### 8. Source health
 
-Every collection produces a typed census with configured/attempted/succeeded
-counts, item count, duration, and errors per source/HVA. No arbitrary aggregate
-success threshold is introduced.
+Every collection produces a typed census and persists one record per configured
+source/HVA in `source_health/<YYYY-Www>.jsonl`:
+
+```python
+class SourceHealth(BaseModel):
+      source: str
+      organization: str | None
+      window_date: date
+      configured: int
+      attempted: int
+      succeeded: int
+      item_count: int
+      status: Literal["healthy", "degraded", "failed"]
+      error_codes: list[str]
+```
+
+The deterministic record key is `(window_date, source, organization)`. Duration,
+run timestamp, exception prose, ordering, and retry count stay in short-lived
+workflow logs/artifacts and cannot create a committed diff. A retry replaces the
+same key only when `configured`, `attempted`, `succeeded`, `item_count`, `status`,
+or normalized `error_codes` changed. Weekly files are retained with the event
+ledger and staged explicitly by `collect.yml`; this lets Monday's bulletin prove
+that a Wednesday endpoint failed even when no source item changed.
+
+No arbitrary aggregate success threshold is introduced.
 
 - schema-invalid output or a total family execution failure makes collection
   fail visibly;
@@ -303,50 +342,62 @@ success threshold is introduced.
 - [ ] AC-03: Fixture-backed unit tests validate all six normalized source values
       (`ktweb`, `dynasty`, `casem`, `hilma`, `ted`, `mao`) through Pydantic and
       reject missing stable IDs, titles, organizations, or source URL maps.
-- [ ] AC-04: First collection seeds state and emits zero events; second changed
+- [ ] AC-04: The model module imports cleanly; the corrected `SourceItem`,
+      `SourceEvent`, thread, bulletin, and source-health contracts are exercised
+      by unit tests.
+- [ ] AC-05: First collection seeds state and emits zero events; second changed
       fixture emits exactly one deterministic event; third identical run emits
-      zero events and changes no tracked file.
-- [ ] AC-05: Hash tests prove fetch timestamp, ordering, and whitespace noise do
-      not emit `updated`; a substantive deadline/status/value/title change does
-      emit `updated` with exact `changed_fields`.
-- [ ] AC-06: Hilma/TED fixtures sharing a publication ID normalize to one
+      zero events and changes no tracked state/event/health file except as
+      explicitly allowed by the health contract.
+- [ ] AC-06: Hash tests prove fetch timestamp, ordering, whitespace, duration,
+      and observation-only noise do not emit `updated`; a substantive
+      deadline/status/value/title change emits `updated` with exact
+      `changed_fields`.
+- [ ] AC-07: Hilma/TED fixtures sharing a publication ID normalize to one
       procurement item retaining both source URLs; no fuzzy match is needed.
-- [ ] AC-07: The canonical configuration enumerates exactly 22 HVAs and maps
+- [ ] AC-08: The canonical configuration enumerates exactly 22 HVAs and maps
       every one to a supported governance adapter; workflow census attempts all
       configured entries and exposes every failure.
-- [ ] AC-08: No source adapter or delta code emits `removed`; a fixture absent
+- [ ] AC-09: No source adapter or delta code emits `removed`; a fixture absent
       from a bounded follow-up index remains state, not a fabricated withdrawal.
-- [ ] AC-09: Confirmed thread tests cover exact docket, explicit prior handling,
+- [ ] AC-10: Confirmed thread tests cover exact docket, explicit prior handling,
       and Hilma/TED publication-ID edges; topical similarity alone remains a
       candidate and cannot merge threads.
-- [ ] AC-10: A fixture seven-day event window renders all frozen bulletin
-      sections, source links, event IDs, link bases, and complete event-ledger
-      appendix; no section claims healthy coverage when census errors exist.
-- [ ] AC-11: An empty seven-day event window exits 0, writes no bulletin, and the
+- [ ] AC-11: A fixture seven-day event window renders all frozen bulletin
+      sections, source links, event IDs, link bases, source-health status, and
+      complete event-ledger appendix; no section claims healthy coverage when
+      committed health records contain errors.
+- [ ] AC-12: Materiality fixture tests prove deterministic ordering/capping of
+      narrative sections and prove capped-out events remain in the event-ledger
+      appendix.
+- [ ] AC-13: An empty seven-day event window exits 0, writes no bulletin, and the
       workflow logs a distinct no-op without committing.
-- [ ] AC-12: `collect.yml` has daily cron, dispatch, contents-write permission,
-      hard adapter allowlist, shared non-cancelling concurrency, scoped staging,
-      safe pull/rebase, and explicit no-op behavior.
-- [ ] AC-13: `bulletin.yml` has Monday 06:00 UTC cron, dispatch, the same
+- [ ] AC-14: `collect.yml` has daily cron, dispatch, contents-write permission,
+      hard adapter allowlist, shared non-cancelling concurrency, scoped staging
+      for state/events/health only, safe pull/rebase, and explicit no-op behavior.
+- [ ] AC-15: `bulletin.yml` has Monday 06:00 UTC cron, dispatch, the same
       concurrency group, exact seven-day UTC window, scoped secret exposure,
-      scoped staging, safe pull/rebase, and no-op behavior.
-- [ ] AC-14: A dispatched baseline collector run completes green; a later
+      scoped staging for `bulletins/` only, safe pull/rebase, and no-op behavior.
+- [ ] AC-16: A dispatched baseline collector run completes green; a later
       dispatched run proves durable cross-run delta/no-op behavior, with run URLs
       and commit SHAs recorded in Implementation Notes.
-- [ ] AC-15: A dispatched bulletin run publishes one non-empty real-source
+- [ ] AC-17: A dispatched bulletin run publishes one non-empty real-source
       bulletin; a repeated unchanged dispatch produces no duplicate bulletin or
       event, with evidence recorded.
-- [ ] AC-16: The first real scheduled collector and Monday bulletin runs are
+- [ ] AC-18: The first real scheduled collector and Monday bulletin runs are
       observed and recorded; until both occur, status explicitly carries "cron
       observation pending" — dispatch evidence is not cron evidence.
-- [ ] AC-17: `graph.yaml` and prompts are authored/adapted through
+- [ ] AC-19: `graph.yaml` and prompts are authored/adapted through
       `scripts/author.sh`; retained report records lint and smoke results. The
-      graph consumes typed events and does not perform source fetching, delta,
-      deterministic linking, or Markdown serialization.
-- [ ] AC-18: README documents consumer, source coverage, cadence, state/event
-      contracts, privacy boundary, source-health semantics, local fixture test,
-      manual dispatch, and the direct-commit security model.
-- [ ] AC-19: YAMLGraph repository changes for enforcement are limited to this
+      graph consumes typed events, confirmed thread edges, source-health records,
+      and the frozen materiality contract; it does not perform source fetching,
+      delta, deterministic linking, health persistence, ranking, or Markdown
+      serialization.
+- [ ] AC-20: README documents consumer, source coverage, cadence,
+      state/event/health contracts, privacy boundary, materiality policy,
+      source-health semantics, local fixture test, manual dispatch, and the
+      direct-commit security model.
+- [ ] AC-21: YAMLGraph repository changes for enforcement are limited to this
       FR's status/implementation notes and required diary evidence; no
       package, CAP/REQ, graph, prompt, example, or `control-plane` source change
       is smuggled into this FR.
@@ -408,9 +459,33 @@ success threshold is introduced.
 - `../control-plane/scripts/hva-probe-orchestrator.sh`
 - `../control-plane/scripts/hva-procurement-bulletin.sh`
 
-## Judgement
+## Judgement (2026-08-19)
 
-Pending independent judge via the governed `scripts/judge.sh` route.
+**Verdict:** APPROVED WITH REVISIONS — R-1 through R-3 are folded above;
+authority remains inactive until a human reviews the advisory judgement.
+
+| # | Binding revision | Folded as |
+|---|---|---|
+| R-1 | Persist a bounded, noise-free source-health contract | Repository layout, Source Health section, workflow staging, AC-04/05/11/14/19/20 |
+| R-2 | Freeze mechanically testable materiality and ordering | Weekly Bulletin contract, pre-graph boundary, AC-12/19/20 |
+| R-3 | Correct and test the normalized model contract | `source_urls` indentation fixed, AC-03/04 |
+
+**Scope frozen:** D-1 new public repo; D-2 six public source adapters; D-3
+Pydantic item/event/thread/bulletin/health models; D-4 compact state plus event
+and health ledgers; D-5/D-6 daily and weekly workflows; D-7 governed graph and
+prompt authoring evidence; D-8 README, fixtures, dispatch/cron evidence, FR
+notes, and diary evidence.
+
+**Not authorized:** YAMLGraph package/CAP/REQ changes; `control-plane` behavior
+changes; device/personal-data probes; sources outside HVA governance,
+Hilma/TED, and MAO; removal inference; branch protection, PATs, admin
+credentials, notifications, dashboards, hosted APIs, or generalized probe work.
+
+**Gates:** repository and public-data boundaries are load-bearing; graph/prompt
+work uses `scripts/author.sh`; no new public-repo secret or permission beyond
+`ANTHROPIC_API_KEY` and scoped default `GITHUB_TOKEN` without human decision;
+dispatch is not cron evidence; this FR is not complete until both real scheduled
+runs are recorded.
 
 ### Questions for the human
 
