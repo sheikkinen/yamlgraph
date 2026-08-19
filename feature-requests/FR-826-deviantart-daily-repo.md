@@ -172,7 +172,14 @@ post with a lost token is worse than a skipped day. Access token lives
    `examples/shared/replicate_tool.py` default) and
    `black-forest-labs/flux-1.1-pro-ultra` (the my-replicate-app pin);
    grok is DISABLED until its exact Replicate slug is committed to the
-   roster config by a recorded FR update. The runner validates the
+   roster config by a recorded FR update. **R-4 update 2026-08-19:**
+   grok ENABLED — operator supplied `xai/grok-imagine-image-2`
+   (an earlier agent probe wrongly concluded no Replicate grok exists;
+   the search API missed it, direct GET returns the schema). Params
+   frozen from the model schema: aspect_ratio 16:9, resolution 2k,
+   quality medium (enum is low|medium — no high). Local generation
+   smoke green (PNG, 7.6 MB). Commit d8ebd54 in deviant-daily.
+   The runner validates the
    roster before drawing: zero active models is a hard failure BEFORE
    any corpus draw or DA side effect — never a green skipped day; an
    unavailable optional model is dropped only with a structured log of
@@ -265,8 +272,9 @@ post with a lost token is worse than a skipped day. Access token lives
       *(PARTIAL: validate-before-draw + structured drop logging
       witnessed in run logs ("roster: model=grok disabled");
       flux-1.1-pro-ultra produced the 2026-08-19 publish;
-      z-image-turbo pending a day it is drawn — observation, not
-      blocker, per FR-819 AC-07 precedent)*
+      z-image-turbo and grok (enabled d8ebd54 per R-4) pending days
+      they are drawn — observation, not blocker, per FR-819 AC-07
+      precedent)*
 - [x] AC-10: Describe output validated through the typed schema;
       invalid tags or invalid mature combinations gate-skip with a
       ledger reason
