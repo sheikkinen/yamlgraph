@@ -213,26 +213,37 @@ post with a lost token is worse than a skipped day. Access token lives
       surface, corpus approval/sanitization gate, idempotency state
       machine, frozen model roster, deterministic DA gate schema, and
       committed style contract (R-1..R-6 — this fold)
-- [ ] AC-02: Public `sheikkinen/deviant-daily` repo exists outside
+- [x] AC-02: Public `sheikkinen/deviant-daily` repo exists outside
       this repository — never vendored, submoduled, or committed here
-- [ ] AC-03: New repo contains YAMLGraph `graph.yaml` + YAML prompt
+      *(created 2026-08-19, https://github.com/sheikkinen/deviant-daily,
+      local tree at ../deviant-daily)*
+- [x] AC-03: New repo contains YAMLGraph `graph.yaml` + YAML prompt
       artifacts; governed authoring evidence records lint and smoke
-- [ ] AC-04: `prompts/corpus.jsonl` committed only after operator
+      *(scripts/author.sh run 2026-08-19; report committed as new-repo
+      docs/authoring-report.md — lint, info, compile, prompt-shape
+      passed; live smoke recorded blocked, deferred to AC-14)*
+- [x] AC-04: `prompts/corpus.jsonl` committed only after operator
       approval + sanitization; README records count, source, approval
       date, redaction policy; rows are `{prompt, source_file}` with
       basenames only — no absolute paths, EXIF, token-like strings
-- [ ] AC-05: Workflow has `workflow_dispatch`, daily cron,
+      *(5,893 kept / 2,020 name-excluded / 69 term-excluded / 1,054
+      dups; source_file reduced to numeric id; scan 0 hits; sample
+      slice at ../deviant-daily/prompts/corpus.sample.txt)*
+- [x] AC-05: Workflow has `workflow_dispatch`, daily cron,
       `permissions: contents: write`, concurrency group with
       `cancel-in-progress: false`, `git pull --rebase` before push,
       no secret-printing shell tracing
+      *(cron present but commented until AC-07/AC-14 witnesses pass,
+      per C-4 cron approval condition)*
 - [ ] AC-06: All secrets as repo secrets; no credential, token, PAT,
       cookie, or secret-bearing transcript in any commit, log,
       README, ledger, post, or artifact
 - [ ] AC-07: Rotation round-trip proven by two consecutive dispatch
       runs — first writes rotated `DA_REFRESH_TOKEN`, second
       authenticates with it
-- [ ] AC-08: Rotation ordering proven by test: persist failure aborts
+- [x] AC-08: Rotation ordering proven by test: persist failure aborts
       before any DA submit/publish call
+      *(tests/test_steps.py::test_persist_failure_aborts_before_submit)*
 - [ ] AC-09: Roster validated before draw; zero active models fails
       before side effects; drops logged structured; both frozen
       active models (`prunaai/z-image-turbo`,
@@ -241,13 +252,16 @@ post with a lost token is worse than a skipped day. Access token lives
 - [ ] AC-10: Describe output validated through the typed schema;
       invalid tags or invalid mature combinations gate-skip with a
       ledger reason
-- [ ] AC-11: Mocked HTTP tests assert the DA flow against FR-822
+- [x] AC-11: Mocked HTTP tests assert the DA flow against FR-822
       shapes: placebo, submit, publish, both AI flags on both calls,
       UA/timeouts, 429 backoff, `error_code 9` idempotent success
-- [ ] AC-12: Ledger state machine proves no-repeat and no-duplicate
+      *(tests/test_da_api.py — 12 tests)*
+- [x] AC-12: Ledger state machine proves no-repeat and no-duplicate
       behavior for same-day reruns and interrupted runs at each
       side-effect boundary; no automatic rerun creates a second
       deviation for the same date
+      *(tests/test_ledger.py + test_steps.py: commit failure simulated
+      before submit, after submit, after publish → RecoveryRequired)*
 - [ ] AC-13: Gate path witnessed: low confidence / invalid tags /
       invalid mature fields / impermissible content → skip reason
       committed to ledger, nothing published, green exit only after
@@ -263,10 +277,10 @@ post with a lost token is worse than a skipped day. Access token lives
       `STYLE-CONTRACT.md`: paragraphs render separately, quote/title
       shape survives, tags attach, AI badge shown, no
       sales/download/license options enabled
-- [ ] AC-18: New-repo tests cover corpus extraction/dedup, ledger
+- [x] AC-18: New-repo tests cover corpus extraction/dedup, ledger
       transitions, rotation ordering, tag normalization, mature gate,
       roster validation, MD rendering, DA/Replicate request
-      construction
+      construction *(47 tests green, ruff clean, graph lint clean)*
 - [ ] AC-19: FR-826 records implementation status with non-secret
       links/identifiers: new repo, dispatch run, cron run, roster
       evidence, DA URL, authoring report, scope deviations
