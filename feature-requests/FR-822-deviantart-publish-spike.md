@@ -2,7 +2,8 @@
 
 **Priority:** MEDIUM
 **Type:** Research Spike
-**Status:** Completed 2026-08-19 — all AC-01..AC-08 satisfied on first run;
+**Status:** Completed 2026-08-19; Judged 2026-08-19 APPROVED WITH REVISIONS
+(`FR-822-deviantart-publish-spike.judgement.md`) — R-1..R-4 folded below;
 deviation live: <https://www.deviantart.com/sheikkinen/art/API-Spike-Veil-and-Vow-1370448491>
 **Effort:** 0.5 days
 **Requested:** 2026-08-19
@@ -81,20 +82,34 @@ Human prerequisite (one-time): register a confidential OAuth 2.1 app at
 <https://www.deviantart.com/developers/register> with redirect URI
 `http://localhost:8721/cb`, put `DA_CLIENT_ID`/`DA_CLIENT_SECRET` in `~/.env`.
 
-## Acceptance Criteria
+## Acceptance Criteria (revised per Judgement R-2)
 
-- [x] AC-01 PKCE flow completes; token JSON persisted with 0600 perms
-- [x] AC-02 `placebo` returns success
-- [x] AC-03 `stash/submit` returns `itemid` (response body recorded here)
-- [x] AC-04 `stash/publish` returns deviation URL (recorded here); deviation
-      visible on the account with AI flags set
-- [x] AC-05 Question 1 answered: error 0/1 behavior recorded
-- [x] AC-06 Question 2 answered: `artist_comments` paragraph rendering
-      observed on the live deviation and recorded
-- [x] AC-07 Second run refreshes the token (proves rotation persistence);
-      recorded
-- [x] AC-08 Spike disposition noted: script stays in `scripts/spikes/` marked
-      throwaway; Phase-2 FR inherits its findings, not its code
+- [x] AC-01 OAuth/token exchange recorded without secret values: scope
+      `"basic publish stash"`, 1 h access-token expiry, refresh token present;
+      token at `~/.deviantart/token.json`, mode witnessed
+      `-rw-------` (0600) at 2026-08-19 07:08
+- [x] AC-02 `placebo` response body recorded exactly: `{"status":"success"}`
+- [x] AC-03 `stash/submit` response body recorded exactly (itemid, stack,
+      stackid — see Implementation Notes); no bearer token in record
+- [x] AC-04 `stash/publish` response body recorded exactly (deviation URL,
+      deviationid — see Implementation Notes); no bearer token in record
+- [x] AC-05 ToS question answered explicitly: publish error codes 0/1 did
+      NOT fire for the tested account (website-accepted); Phase 2 surfaces
+      them if they appear for a fresh account
+- [x] AC-06 Live-page witness proves `\n\n` plain text renders as separate
+      paragraphs — see "Live page witness" note (timestamp, method, URL,
+      three paragraph-start snippets)
+- [x] AC-07 Second-run refresh witness: refresh returned a NEW
+      `refresh_token` and `~/.deviantart/token.json` was rewritten
+      (mtime 2026-08-19 07:08); token values not stored here
+- [x] AC-08 Visible flags/tags evidence: "Created using AI tools" badge and
+      all five tags on the live page (see witness note); NoAI is metadata
+      only, not surfaced on the public page
+- [x] AC-09 Spike disposition recorded: script is non-production, Phase 2
+      inherits findings only (see Disposition)
+- [x] AC-10 Credential disposition recorded: no repo-committed
+      credential/token artifacts; runtime path outside the repository (see
+      Credential disposition)
 
 ## Constraints
 
@@ -124,8 +139,16 @@ Human prerequisite (one-time): register a confidential OAuth 2.1 app at
 
 One-time app registration: confidential OAuth 2.1 client `client_id=75301`
 (`yamlgraph-publisher`), redirect `http://localhost:8721/cb` — the form
-accepted plain-http localhost despite its https warning text. Creds in repo
-`.env` (gitignored); token at `~/.deviantart/token.json` (0600).
+accepted plain-http localhost despite its https warning text.
+
+**Credential disposition (Judgement R-1):** credentials live outside the
+repository — `DA_CLIENT_ID`/`DA_CLIENT_SECRET` in `~/.env` (0600), token at
+`~/.deviantart/token.json` (0600). During the spike run the creds sat
+briefly in the repo-root `.env`; that file is gitignored and was verified
+never committed (`git log --all -- .env` empty); the two entries were moved
+to `~/.env` and removed from the repo-root file on 2026-08-19 as part of
+this fold. No committed artifact contains access tokens, refresh tokens, or
+the client secret.
 
 Run transcript (all HTTP 200, first attempt):
 
@@ -149,10 +172,23 @@ paragraph structure survives as-is.
 `refresh_token` was returned and persisted, old one superseded — rotation
 confirmed, publisher must always persist the response (as designed).
 
-Live page also confirmed: all 5 tags attached, "Created using AI tools"
-badge shown. Access/refresh tokens were printed to terminal scrollback by
-design (spike verbosity); both rotated out by the AC-07 refresh, so nothing
-live leaked.
+**Live page witness (Judgement R-4):** observed 2026-08-19 (twice: shortly
+after publish, and re-verified ~07:45 EEST during judgement fold), method:
+anonymous server-side HTTP fetch of the public deviation page (no session,
+no cookies), URL as in Status. Three distinct paragraphs rendered, starting:
+"First paragraph of the spike description…", "Second paragraph after a
+blank line…", "Be Art. Be Unique." — no merge, no HTML needed. All five
+tags visible as links: gothic, ai, digitalart, aiart, inkpunk. "Created
+using AI tools" badge shown beside image metadata. NoAI is not surfaced on
+the public page (metadata-only flag).
 
-**Disposition:** script remains `scripts/spikes/da_publish_spike.py`,
-throwaway; Phase-2 publisher inherits findings only.
+Access/refresh tokens were printed to terminal scrollback by design (spike
+verbosity); both rotated out by the AC-07 refresh, so nothing live leaked.
+No transcript containing token values is committed.
+
+**Disposition (Judgement R-3):** `scripts/spikes/da_publish_spike.py` is a
+non-production witness script — it must not be imported or reused by
+Phase 2. Phase 2 inherits only the recorded findings and endpoint/auth
+contracts, not the code. Any reusable DeviantArt publisher, queue processor,
+token store, or retry/idempotency implementation requires its own judged FR
+and normal TDD.
