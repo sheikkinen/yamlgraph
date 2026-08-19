@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Completed (AC-07 cron observation pending)
+**Status:** Completed 2026-08-19 — AC-07 cron observation satisfied
 **Effort:** 1 day
 **Requested:** 2026-08-18
 **First consumer / first event:** the operator, on the first morning a
@@ -153,7 +153,7 @@ The only yamlgraph-repo change authorized by this FR is the
       email-delivery, or HTTP-server runtime references
 - [ ] AC-06: `workflow_dispatch` completes green and commits
       `digests/YYYY-MM-DD.md`, `digest.db`, and an updated README index
-- [ ] AC-07: At least one scheduled cron run completes green and
+- [x] AC-07: At least one scheduled cron run completes green and
       commits a bulletin without human runner access
 - [ ] AC-08: A second same-day run proves committed-state dedup — no
       duplicate story entries, no conflicting state commit
@@ -264,7 +264,10 @@ Enforced same day. Repo: <https://github.com/sheikkinen/yamlgraph-daily-digest>
   green: `After filtering: 0`, logged `digest: no-op — no new stories,
   nothing to commit`, pushed no commit — committed-state dedup proven
   across ephemeral runners.
-- **AC-07** — cron 06:00 UTC observation pending first scheduled run.
+- **AC-07** — satisfied 2026-08-19: first scheduled run (event
+  `schedule`, run 32224291170) completed green in 1m04s and committed
+  `digests/2026-08-19.md` ("digest 2026-08-19") with no human runner
+  access.
 - **AC-04/R-2** — install line is
   `pip install yamlgraph feedparser beautifulsoup4 httpx python-dotenv`
   (yamlgraph 0.5.22 from PyPI); no FastAPI/SlowAPI/Uvicorn/Resend.
