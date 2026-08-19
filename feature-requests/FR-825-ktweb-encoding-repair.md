@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug fix
-**Status:** Judged — APPROVED; human review pending
+**Status:** Enforced — 2026-08-19; all ACs met (see Implementation Notes)
 **Effort:** 0.5–1 day
 **Requested:** 2026-08-19
 **Consumer repository:** `https://github.com/sheikkinen/hva-weekly-bulletin`
@@ -169,3 +169,52 @@ All consumer code, tests, state repair, and workflow evidence belong in
 `hva-weekly-bulletin`. YAMLGraph changes are limited to this FR's status,
 judgement, and implementation evidence. No YAMLGraph package or capability
 change is required.
+
+## Implementation Notes
+
+Enforced in public consumer commit
+[`936a5b7`](https://github.com/sheikkinen/hva-weekly-bulletin/commit/936a5b77945df9418a52771758390c1ab2114d33).
+The implementation adds deterministic HTTP/meta charset resolution, strict
+UTF-8 followed by the evidenced Windows-1252 fallback, explicit unsupported or
+contradictory charset failures, event-safe repair keys, bounded migration
+metadata, and a pre-YAMLGraph U+FFFD candidate guard. It adds no dependency and
+does not change graph, prompt, schema, source-family, permission, or historical
+event-ledger contracts.
+
+Local verification on 2026-08-19:
+
+- focused UTF-8, Windows-1252, declared/meta charset, malformed-byte,
+  URL-mismatch, migration, simultaneous-change, retry, and publication-guard
+  tests passed;
+- full suite: 36 passed;
+- Ruff passed; Radon reported no grade-D-or-worse function;
+- largest touched source file: `sources.py`, 435 lines (below the 450 gate);
+- live six-family smoke: CaseM 193, Dynasty 700, Hilma 79, KTweb 365, MAO 26,
+  TED 20 items;
+- live health: CaseM 7 healthy, Dynasty 7 healthy, Hilma healthy, KTweb 6
+  healthy/2 failed, MAO healthy, TED healthy;
+- newly collected KTweb records containing U+FFFD: zero.
+
+Production migration dispatch
+[`32251814548`](https://github.com/sheikkinen/hva-weekly-bulletin/actions/runs/32251814548)
+completed successfully and produced bot commit
+[`b29aedd`](https://github.com/sheikkinen/hva-weekly-bulletin/commit/b29aedd6c07ad882736588b8b40c9bcef5561c9c).
+The committed state census changed from 293 corrupt KTweb records to zero:
+Etelä-Pohjanmaa 41, HUS-yhtymä 36, Kanta-Häme 37, Kymenlaakso 34, Lappi 70,
+Päijät-Häme 24, and Varsinais-Suomi 51 were repaired. Metadata records
+`status: complete`, `repaired_count: 293`, an empty unresolved list, and bounded
+start/completion timestamps.
+
+The migration emitted zero KTweb events and removed or changed zero historical
+event lines. The same collection added 47 genuine non-KTweb events accumulated
+since the prior run: 27 CaseM, 19 Dynasty, and one Hilma.
+
+Replay dispatch
+[`32252044126`](https://github.com/sheikkinen/hva-weekly-bulletin/actions/runs/32252044126)
+completed successfully with remote `main` unchanged at `b29aedd`, proving no
+encoding-only state, metadata, health, or event replay churn.
+
+A next-scheduled-window rehearsal at 2026-08-24 06:00 UTC selected 48 events and
+10 ranked narrative candidates for `2026-W35`; zero candidates contained
+U+FFFD. The production publication guard therefore accepts the current Monday
+input while remaining fail-closed for a future regression.
