@@ -1699,7 +1699,7 @@ The ID ranges are:
 - **Penance**: False positive — the string is the public OAuth token endpoint URL; the variable name merely contains "token". No secret is stored.
 
 ### CONF-407
-- **File**: [scripts/spikes/da_publish_spike.py](../scripts/spikes/da_publish_spike.py#L78)
+- **File**: [scripts/spikes/da_publish_spike.py](../scripts/spikes/da_publish_spike.py#L81)
 - **Code**: N802
 - **Sin**: `do_GET` method name is not snake_case.
 - **Penance**: `http.server.BaseHTTPRequestHandler` dispatches on this exact name; the stdlib contract dictates the casing.

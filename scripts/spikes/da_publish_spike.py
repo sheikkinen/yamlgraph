@@ -30,13 +30,16 @@ TIMEOUT = 180  # upload of a 1.4 MB PNG on a slow link
 
 def load_env() -> tuple[str, str]:
     env: dict[str, str] = {}
-    for line in (Path.home() / ".env").read_text().splitlines():
-        if "=" in line and not line.startswith("#"):
-            k, _, v = line.partition("=")
-            env[k.strip()] = v.strip().strip('"')
+    for envfile in (Path(".env"), Path.home() / ".env"):
+        if not envfile.exists():
+            continue
+        for line in envfile.read_text().splitlines():
+            if "=" in line and not line.startswith("#"):
+                k, _, v = line.partition("=")
+                env.setdefault(k.strip(), v.strip().strip('"'))
     cid, csec = env.get("DA_CLIENT_ID"), env.get("DA_CLIENT_SECRET")
     if not cid or not csec:
-        sys.exit("DA_CLIENT_ID / DA_CLIENT_SECRET missing from ~/.env")
+        sys.exit("DA_CLIENT_ID / DA_CLIENT_SECRET missing from .env / ~/.env")
     return cid, csec
 
 

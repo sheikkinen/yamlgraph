@@ -2,7 +2,8 @@
 
 **Priority:** MEDIUM
 **Type:** Research Spike
-**Status:** Proposed
+**Status:** Completed 2026-08-19 — all AC-01..AC-08 satisfied on first run;
+deviation live: <https://www.deviantart.com/sheikkinen/art/API-Spike-Veil-and-Vow-1370448491>
 **Effort:** 0.5 days
 **Requested:** 2026-08-19
 **First consumer / first event:** the Phase-2 publisher of the
@@ -82,17 +83,17 @@ Human prerequisite (one-time): register a confidential OAuth 2.1 app at
 
 ## Acceptance Criteria
 
-- [ ] AC-01 PKCE flow completes; token JSON persisted with 0600 perms
-- [ ] AC-02 `placebo` returns success
-- [ ] AC-03 `stash/submit` returns `itemid` (response body recorded here)
-- [ ] AC-04 `stash/publish` returns deviation URL (recorded here); deviation
+- [x] AC-01 PKCE flow completes; token JSON persisted with 0600 perms
+- [x] AC-02 `placebo` returns success
+- [x] AC-03 `stash/submit` returns `itemid` (response body recorded here)
+- [x] AC-04 `stash/publish` returns deviation URL (recorded here); deviation
       visible on the account with AI flags set
-- [ ] AC-05 Question 1 answered: error 0/1 behavior recorded
-- [ ] AC-06 Question 2 answered: `artist_comments` paragraph rendering
+- [x] AC-05 Question 1 answered: error 0/1 behavior recorded
+- [x] AC-06 Question 2 answered: `artist_comments` paragraph rendering
       observed on the live deviation and recorded
-- [ ] AC-07 Second run refreshes the token (proves rotation persistence);
+- [x] AC-07 Second run refreshes the token (proves rotation persistence);
       recorded
-- [ ] AC-08 Spike disposition noted: script stays in `scripts/spikes/` marked
+- [x] AC-08 Spike disposition noted: script stays in `scripts/spikes/` marked
       throwaway; Phase-2 FR inherits its findings, not its code
 
 ## Constraints
@@ -118,3 +119,40 @@ Human prerequisite (one-time): register a confidential OAuth 2.1 app at
 
 - `docs/research-deviantart-api-2026-08-19.md` (desk research)
 - `.chaplain/inbox/deviantart-auto-publish-pipeline.md` (consumer proposal)
+
+## Implementation Notes (2026-08-19)
+
+One-time app registration: confidential OAuth 2.1 client `client_id=75301`
+(`yamlgraph-publisher`), redirect `http://localhost:8721/cb` — the form
+accepted plain-http localhost despite its https warning text. Creds in repo
+`.env` (gitignored); token at `~/.deviantart/token.json` (0600).
+
+Run transcript (all HTTP 200, first attempt):
+
+- token exchange: `scope: "basic publish stash"`, 1 h expiry, refresh token
+  returned.
+- placebo: `{"status":"success"}`
+- submit: `{"status":"success","itemid":6311111935494244,"stack":"Sta.sh","stackid":8654406562271036}`
+- publish: `{"status":"success","url":"https://www.deviantart.com/sheikkinen/art/API-Spike-Veil-and-Vow-1370448491","deviationid":"FCD30B6B-9173-A4E1-AB5B-81EEA06E2C86"}`
+
+**Q1 (ToS/submission-policy errors 0/1):** did NOT fire — acceptance is
+account-level for an account that accepted via the website. No `agree_*`
+params needed. Phase 2 needs no ToS handling beyond surfacing the error if it
+ever appears for a fresh account.
+
+**Q2 (`artist_comments` rendering):** plain text with `\n\n` renders as
+separate paragraphs on the live deviation — verified by fetching the page:
+all three paragraphs distinct, no merge, no HTML needed. The julkaisuohje
+paragraph structure survives as-is.
+
+**Q3 (refresh rotation):** second run refreshed successfully; a NEW
+`refresh_token` was returned and persisted, old one superseded — rotation
+confirmed, publisher must always persist the response (as designed).
+
+Live page also confirmed: all 5 tags attached, "Created using AI tools"
+badge shown. Access/refresh tokens were printed to terminal scrollback by
+design (spike verbosity); both rotated out by the AC-07 refresh, so nothing
+live leaked.
+
+**Disposition:** script remains `scripts/spikes/da_publish_spike.py`,
+throwaway; Phase-2 publisher inherits findings only.
