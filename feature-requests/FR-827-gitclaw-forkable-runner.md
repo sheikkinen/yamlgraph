@@ -2,7 +2,9 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Proposed
+**Status:** Judged 2026-08-20 APPROVED WITH REVISIONS
+(`FR-827-gitclaw-forkable-runner.judgement.md`) — R-1..R-6 folded
+2026-08-20 — READY FOR ENFORCEMENT (C-1 satisfied)
 **Effort:** 3 days
 **Requested:** 2026-08-20
 
@@ -48,13 +50,16 @@ PAT creation — the only two manual steps.
 
 ## Ideal Result
 
-Fork gitclaw, create one fine-grained PAT, paste it as a secret, file
-an issue: "daily horoscope for Aries in the style of a weather
-report." Tomorrow morning the fork contains
-`features/horoscope/graph.yaml` (planned, judged, enforced, reviewed
-by the pipeline, with FR + judgement + review artifacts committed as
-provenance) and `outputs/2026-08-21-horoscope.md` (the cron ran it).
-The human touched: fork button, PAT page, one issue form.
+Fork gitclaw, create one fine-grained PAT, paste it as a secret. The
+pre-shipped horoscope feature proves the cron lane on day one:
+`outputs/<date>-horoscope.md` lands without touching anything. Then
+file an issue — e.g. "daily haiku about the weather in Oulu" — and the
+pipeline plans, judges, enforces, reviews, and pushes
+`features/haiku/` with FR + judgement + review + authoring-report
+artifacts as provenance; next morning its output joins the cron
+commit. The human touched: fork button, PAT page, one issue form.
+*(R-3 fold: horoscope is PRE-SHIPPED and proves cron; a separate
+canned issue proves issue-to-feature generation.)*
 
 ## Value Statement
 
@@ -90,12 +95,16 @@ gitclaw/
 │       ├── intake.yml         # on: issues (opened, label 'gitclaw')
 │       └── cron.yml           # daily: run all features, commit outputs
 ├── features/
-│   └── horoscope/             # canned acceptance feature (pre-shipped)
-│       ├── graph.yaml
-│       └── prompts/
+│   └── horoscope/             # PRE-SHIPPED cron fixture (R-3: proves the
+│       ├── graph.yaml         #  cron lane; issue-to-feature generation is
+│       └── prompts/           #  proven by a separate canned issue)
+├── scripts/
+│   └── author.sh              # gitclaw-local executable authoring route
+│                              #  (R-2: writes authoring-report.md; lint +
+│                              #   smoke evidence per generated feature)
 ├── outputs/                   # cron results, committed back
 ├── state/
-│   └── issues.jsonl           # idempotency ledger: issue# → status
+│   └── issues.jsonl           # intake ledger (frozen state machine, R-5)
 └── tools/                     # thin git/gh helpers for the push node
 ```
 
@@ -115,21 +124,57 @@ nodes:
                 # judgement.md; verdict routes: REJECTED → close issue
                 # with rationale, END
   enforce:      # copilot/cli — resumes session A (FR-105); TDD:
-                # authors features/<name>/graph.yaml + prompts per the
-                # graph-authoring skill; runs `yamlgraph graph lint`
-                # + smoke as its own gate
+                # authors features/<name>/graph.yaml + prompts VIA THE
+                # GITCLAW-LOCAL EXECUTABLE ROUTE scripts/author.sh
+                # (R-2 fold: vendored adapter writing
+                # authoring-report.md; lint + smoke evidence committed
+                # under the feature's provenance dir — doctrine prose
+                # alone is not a route)
   review:       # copilot/cli — FRESH session; reviews diff against FR
                 # + judgement per review-pr skill; verdict routes:
                 # REJECTED → one remediation lap back to enforce, then
                 # hard fail with review.md posted to the issue
-  push:         # tool_call — git add features/<name> outputs state,
-                # commit "feat(gitclaw): #<issue> <name>", push;
-                # register feature in cron manifest; comment on issue
-                # with commit SHA + file links; close issue
+  contain:      # tool_call — DIFF CONTAINMENT GATE (R-4 fold): fail
+                # closed unless every changed path is in the run's
+                # allowlist (features/<name>/**, provenance artifacts,
+                # feature registry, state/issues.jsonl). Refuses
+                # .github/workflows/**, .github/skills/**, dependency
+                # manifests, secret config, any out-of-feature path.
+  push:         # tool_call — git add with EXPLICIT path arguments
+                # (never broad add), commit
+                # "feat(gitclaw): #<issue> <name>", push; register
+                # feature in cron manifest; comment on issue with
+                # commit SHA + file links; close issue
 ```
 
 Conditional edges mirror deviant-daily: every stage's failure commits
 a ledger transition before exiting non-zero, so reruns resume.
+
+### Frozen state machines (R-5 fold)
+
+**Intake ledger** (`state/issues.jsonl`, one JSONL line per
+transition, committed BEFORE the next external side effect — the
+FR-826 shape):
+
+```
+seen → planned → judged_approved | judged_rejected
+judged_approved → enforced → reviewed_approved | reviewed_rejected
+reviewed_rejected → enforced (exactly one remediation lap)
+              → reviewed_rejected_final (fail closed, review.md posted)
+reviewed_approved → pushed → closed
+any stage → failed_recovery_required (side effect done, record lost)
+```
+
+Rerun action per state: terminal states (`closed`,
+`judged_rejected`, `reviewed_rejected_final`) → idempotent exit;
+non-terminal → resume at the next stage; `failed_recovery_required`
+→ hard stop, human recovers. Replay of a processed issue event never
+starts a second pipeline.
+
+**Cron runner** (per-feature, in the run log + structured output
+record): `running → succeeded | failed_recorded`; `failed_recorded`
+writes a structured failure output and CONTINUES to the next feature
+— one poisoned feature must not starve the rest.
 
 ### Trigger and trust boundary
 
@@ -156,10 +201,14 @@ workflow — one broken feature must not starve the rest.
 The copilot nodes use `backend: cli`, which requires the `copilot`
 CLI on the Actions runner (`npm install -g @github/copilot`) and
 authentication tied to a Copilot-subscribed account (the PAT owner).
-**This must be spiked FIRST** (AC-01): if CLI auth on a headless
-runner proves impossible, fallback is `backend: api` with
-`ANTHROPIC_API_KEY` as an alternative secret — the graph is written so
-the backend is the only change. The README documents both paths.
+**This must be spiked FIRST** (AC-01). **R-1 fold:** if headless CLI
+auth proves impossible, enforcement STOPS — there is no silent
+`backend: api` fallback, because FR-383's API mode cannot author
+files, run tools, or resume sessions; the agentic enforce stage is
+architecturally CLI-only. A redesign (api-mode reasoning for
+plan/judge/review plus a separate specified artifact-materialization
+mechanism for enforce) would change the core architecture and must
+re-enter judgement as a revised FR.
 
 ### Secrets (README PAT instructions)
 
@@ -168,9 +217,11 @@ the backend is the only change. The README documents both paths.
 | `GH_PAT` | push, issue comment/close, cron commit-back | fine-grained, this repo only: contents RW, issues RW |
 | Copilot auth | copilot CLI on runner | PAT owner's Copilot subscription (or `ANTHROPIC_API_KEY` on the api fallback) |
 
-README walks through: fork → Settings→Secrets → PAT creation
-screenshots-level steps (fine-grained, single-repo, minimal scopes) →
-file the canned horoscope issue → watch Actions → see the commit.
+README walks through: fork → enable workflows (if GitHub requires the
+extra click on forks — R-6: documented, not hidden) →
+Settings→Secrets → PAT creation (fine-grained, single-repo, minimal
+scopes) → watch the first cron horoscope land → file the canned
+haiku issue → watch Actions → see the commit.
 
 ### Skills vendoring
 
@@ -182,40 +233,73 @@ re-snapshotted deliberately.
 
 ## Acceptance Criteria
 
-- [ ] AC-01: SPIKE FIRST — copilot CLI authenticates and answers one
-      prompt on a plain `ubuntu-latest` runner using only repo
-      secrets; findings recorded in this FR before any other work
-      (if impossible: `backend: api` fallback recorded and used)
-- [ ] AC-02: Repo `sheikkinen/gitclaw` public, marked as template;
-      layout as specified; skills snapshot present with SNAPSHOT.md
-      recording the yamlgraph source SHA
-- [ ] AC-03: `gitclaw.yaml` passes `yamlgraph graph lint`; judge and
-      review nodes are fresh sessions (no `resume`), enforce resumes
-      plan's session — verified by graph inspection test
-- [ ] AC-04: Intake is idempotent: replayed issue event exits via
-      ledger without a second pipeline run (unit test + witnessed
-      rerun)
-- [ ] AC-05: Trust boundary enforced: non-owner issue without the
-      `gitclaw` label does not start the pipeline (workflow condition
-      witnessed by a run that skips)
-- [ ] AC-06: Horoscope acceptance walkthrough green end-to-end on the
-      canonical repo: canned issue filed → pipeline commits
-      `features/horoscope/` with FR + judgement + review artifacts →
-      issue commented and closed with commit SHA (run ID recorded)
-- [ ] AC-07: Cron run executes the horoscope feature and commits
-      `outputs/<date>-horoscope.md` (run ID recorded)
-- [ ] AC-08: A REJECTED judgement closes the issue with rationale and
-      commits the ledger transition — witnessed with a deliberately
-      unjudgeable issue
-- [ ] AC-09: Failure of one feature in cron does not block others
-      (test with a poisoned feature fixture)
-- [ ] AC-10: README contains complete fork + PAT instructions; a
-      fresh-eyes read-through finds no undocumented manual step
-      (operator or second session verifies)
-- [ ] AC-11: No secret value in any commit, log, output, or issue
-      comment (grep + run-log inspection, FR-826 AC-06 pattern)
-- [ ] AC-12: FR-827 updated with run IDs, repo URL, snapshot SHA,
-      scope deviations; diary entry lands
+*(Replaced wholesale by the judgement's revised list — R-1..R-6 folds.)*
+
+- [ ] AC-01: A headless-runner Copilot CLI spike completes before
+      other implementation work: workflow log records install, auth
+      method, one successful prompt, and non-secret evidence. If CLI
+      auth fails, enforcement stops unless a revised FR is judged.
+- [ ] AC-02: Public `sheikkinen/gitclaw` exists outside this
+      repository, is marked as a template, and is not committed here
+      as a nested repo, submodule, vendored directory, archive, or
+      generated artifact.
+- [ ] AC-03: The skills snapshot exists with `SNAPSHOT.md` recording
+      yamlgraph source SHA and the exact vendored contract files;
+      graph-authoring is backed by an executable gitclaw-local
+      route/report contract, not only prose.
+- [ ] AC-04: `gitclaw.yaml` passes `yamlgraph graph lint`; graph
+      inspection proves judge and review start fresh sessions and
+      enforce resumes the plan session only when CLI backend is
+      active.
+- [ ] AC-05: Intake trust gate runs before any LLM call: non-owner
+      issue without owner-applied `gitclaw` label exits skipped,
+      records no feature, and has a witnessed skipped Actions run.
+- [ ] AC-06: Issue body is rendered only inside a fenced user-request
+      block in copilot prompts; a prompt-injection fixture attempting
+      to modify workflow/skills/secrets files is rejected by the diff
+      containment gate before commit.
+- [ ] AC-07: Intake ledger state machine is tested for replay after
+      success and interruption before/after plan, judge, enforce,
+      review, push, issue comment, and issue close; no replay starts
+      a second independent pipeline for the same issue.
+- [ ] AC-08: Rejected judgement path closes or comments on the issue
+      with rationale, commits the rejection ledger transition, and
+      registers no cron feature.
+- [ ] AC-09: Rejected review path permits exactly one remediation lap
+      back to enforce; the second rejected review fails closed with
+      `review.md` posted or linked and no push of generated feature
+      code.
+- [ ] AC-10: Generated diff containment allowlist is enforced before
+      push; push uses explicit path arguments and refuses
+      `.github/workflows/**`, `.github/skills/**`, dependency
+      manifests, secret configuration, and paths outside the current
+      feature/provenance/state allowlist.
+- [ ] AC-11: The horoscope fixture model is consistent: pre-shipped
+      horoscope proves cron; a separate canned issue proves feature
+      generation (Option A chosen, R-3).
+- [ ] AC-12: The issue-to-feature witness on the canonical repo
+      records issue URL, Actions run ID, generated feature path,
+      FR/judgement/review artifacts, commit SHA, issue close/comment
+      link, and no secrets in committed/logged output.
+- [ ] AC-13: Cron workflow runs all registered features, commits
+      `outputs/<date>-<name>.md` for successes, writes structured
+      failure records for failures, and continues past a poisoned
+      feature fixture.
+- [ ] AC-14: Fork/template witness proves the documented adopter path
+      with only documented manual steps and records fork/template
+      repo URL, run IDs, generated commit SHA, closed issue link, and
+      cron output; README is corrected if any extra manual step is
+      required.
+- [ ] AC-15: README contains complete fork/template, Actions
+      enablement if required, PAT/secret scopes, issue-label trust
+      model, Copilot CLI/auth spike limitations, API-fallback
+      limitations, and cron best-effort cadence.
+- [ ] AC-16: Secret scan and run-log inspection prove no secret value
+      appears in commits, outputs, issue comments, ledgers, workflow
+      logs, or uploaded artifacts.
+- [ ] AC-17: FR-827 records implementation status with repo URL,
+      fork/template witness, run IDs, snapshot SHA, authoring
+      reports, scope deviations, and diary entry.
 
 ## Constraints
 
@@ -238,6 +322,17 @@ re-snapshotted deliberately.
 - Skills snapshot is pruned to the four consumed contracts; no
   chaplain FSM, no hooks — hooks are local enforcement, wrong layer
   for a fork (operator correction 2026-08-20: skills, not hooks).
+
+## Judgement gates (C-1..C-7, frozen 2026-08-20)
+
+- C-1 authority active only now that R-1..R-6 are folded (this
+  revision). C-2 never re-run the judge during enforcement. C-3 CLI
+  auth failure = hard stop, no silent api swap. C-4 every generated
+  graph/prompt needs lint + smoke evidence from the executable
+  authoring route. C-5 diff containment gate before every push,
+  fail closed. C-6 gitclaw never vendored into yamlgraph. C-7 core
+  changes / new node types / broader permissions → separate judged
+  FR.
 
 ## Alternatives Considered
 
