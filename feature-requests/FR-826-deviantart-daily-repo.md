@@ -2,8 +2,9 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Proposed (revised 2026-08-19 — pivoted from local publisher
-tool to GitHub-Actions-native repo per operator direction)
+**Status:** Judged 2026-08-19 APPROVED WITH REVISIONS
+(`FR-826-deviantart-daily-repo.judgement.md`) — R-1..R-6 folded below;
+awaiting operator approval of corpus publication (C-4) before enforce
 **Effort:** 2 days
 **Requested:** 2026-08-19
 **First consumer / first event:** the sheikkinen DeviantArt gallery, on
@@ -72,21 +73,60 @@ anything the gallery shouldn't keep.
 ### Repo scaffold (FR-819 pattern)
 
 `sheikkinen/deviant-daily` — public; `pip install yamlgraph` in the
-workflow; committed state; `workflow_dispatch` + daily cron. Contents:
+workflow; committed state; `workflow_dispatch` + daily cron.
 
+**Execution surface (Judgement R-1):** the daily pipeline IS a
+YAMLGraph graph in the new repo — `graph.yaml` orchestrates
+draw → generate → describe → gate → publish → commit; Python tools
+exist only for side effects (corpus draw, Replicate call, DA API,
+ledger/post writes); the describe step uses YAML prompt artifacts. A
+plain-Python entrypoint may bootstrap `yamlgraph graph run` but must
+not be the orchestration layer — the repo's Proclaim claim is
+"yamlgraph runs unattended", so yamlgraph must actually run it. All
+`graph.yaml`/`prompts/*.yaml` artifacts are authored from this
+workspace through the governed route (`scripts/author.sh`), with the
+authoring evidence report copied into the enforcement record.
+
+Contents:
+
+- `graph.yaml` + `prompts/*.yaml` — the pipeline (authored via the
+  governed route, lint + smoke evidenced).
+- `STYLE-CONTRACT.md` — committed snapshot of
+  `DEVIANTART-JULKAISUOHJE.md` (Judgement R-6): the style source of
+  truth lives IN the new repo, not on the iMac; AC witnesses check
+  against this committed copy.
 - `prompts/corpus.jsonl` — one-time local extraction from
   `signed.log` (13,682 `==== File:` entries; prompt = free text of the
   `parameters:` field before `Steps:`); dedup'd, one JSON object per
-  line `{prompt, source_file}`. Extraction script is a throwaway run
-  locally in this workspace; only the corpus lands in the new repo.
-- `state/published.jsonl` — committed ledger: date, corpus line drawn,
-  model used, deviation URL. Doubles as the no-repeat filter (drawn
-  prompts are excluded from future draws) and the dedup guard
-  (a date already in the ledger → run exits idempotently, FR-819
-  AC-08 pattern).
+  line `{prompt, source_file}` where `source_file` is a basename only,
+  never an absolute path. **Corpus publication gate (Judgement R-2):**
+  the corpus is a public artifact of the operator's prompt history —
+  before the repo is created or populated, the operator must approve
+  publication explicitly; the approval date, corpus count, and
+  redaction policy are recorded in the new-repo README; a mechanical
+  secret/private-data scan runs over the extraction before commit and
+  the operator sample-reviews a random slice; prompts that cannot be
+  public are redacted or excluded.
+- `state/published.jsonl` — committed ledger, see idempotency
+  contract below.
 - `posts/YYYY-MM-DD.md` — the published post text committed back
   (title, paragraphs, quote, tags, DA URL). Images are NOT committed —
   DA hosts them; the repo stays light.
+
+**Idempotency state machine (Judgement R-3):** DA publish is an
+external side effect; the ledger is the only guard, so it must commit
+at every transition that protects one. Ledger entries carry a status:
+`drawn` → `submitted` → `published` (or `skipped`), and each
+transition guarding an external call is committed-and-pushed (FR-819
+concurrency group, `git pull --rebase` before push) BEFORE the next
+side effect. A rerun that finds an incomplete same-day record resumes
+from its status or fails safely — it never draws a new prompt. If the
+post-publish commit fails and cannot self-heal, the run fails visibly
+as `RECOVERY_REQUIRED` with the non-secret DA URL/itemid in the log,
+and automatic republish is blocked until the ledger is repaired.
+Tests simulate commit/push failure before publish, after submit, and
+after publish — proving no path creates a second public deviation for
+the same date.
 
 ### Secrets (all GitHub repo secrets, no files)
 
@@ -109,36 +149,42 @@ post with a lost token is worse than a skipped day. Access token lives
 
 ### Daily pipeline (one workflow run)
 
-1. **draw** — random corpus line not in the ledger; record the draw.
-2. **generate** — Replicate, model drawn at random from a roster
-   config: `z-image` (`prunaai/z-image-turbo`, the
-   `examples/shared/replicate_tool.py` default), FLUX
-   (`black-forest-labs/flux-1.1-pro-ultra`, the my-replicate-app pin),
-   grok (xAI image model — exact Replicate slug verified at enforce
-   time; roster is config, absent models are dropped with a logged
-   notice, never a crash).
+1. **draw** — random corpus line not in the ledger; ledger transition
+   `drawn` committed.
+2. **generate** — Replicate. **Frozen roster (Judgement R-4):** two
+   ACTIVE models — `prunaai/z-image-turbo` (the
+   `examples/shared/replicate_tool.py` default) and
+   `black-forest-labs/flux-1.1-pro-ultra` (the my-replicate-app pin);
+   grok is DISABLED until its exact Replicate slug is committed to the
+   roster config by a recorded FR update. The runner validates the
+   roster before drawing: zero active models is a hard failure BEFORE
+   any corpus draw or DA side effect — never a green skipped day; an
+   unavailable optional model is dropped only with a structured log of
+   model ID and reason.
 3. **describe** — vision LLM over the generated image PLUS the
    original prompt text (prompt states intent, image states outcome),
-   julkaisuohje voice per the FR-781 prompt precedent. Schema carries
-   `{title, paragraphs, quote, tags, confidence, mature, mature_level,
-   mature_classification}`.
-4. **gate** — `confidence != high` OR mature classification beyond
-   what DA permits for API publishing → skip the day: ledger records
-   the skip + reason, nothing publishes, run exits green. A skipped
-   day is a correct outcome, not a failure.
+   voice per the committed `STYLE-CONTRACT.md`.
+4. **gate** — mechanical, typed (Judgement R-5). Pydantic output
+   model with deterministic validators:
+   - `confidence`: enum `high|medium|low`; only `high` may publish
+   - `tags`: normalized to `[a-z0-9_]+` or the result is rejected
+   - `mature_level`: `strict | moderate | None`
+   - `mature_classification`: subset of DA's allowed enum
+   - `mature=true` requires level + ≥1 classification;
+     `mature=false` requires neither
+   - invalid or policy-forbidden results gate-skip: ledger records
+     `skipped` + reason, nothing publishes, run exits green only
+     after the skip record is committed
 5. **publish** — FR-822 flow: refresh (+rotate persist, step order
    above) → placebo → `stash/submit` (file, title, comments, `tags[i]`,
    `is_ai_generated=true`, `noai=true`) → `stash/publish` (`is_mature`
-   + level/classification from the describe schema). UA header,
-   timeouts, 429 backoff, `error_code 9` = idempotent success.
-6. **commit** — post MD + ledger entry pushed back (FR-819
+   + level/classification from the schema; `is_ai_generated=true` and
+   `noai=true` passed on BOTH calls). UA header, timeouts, 429
+   backoff, `error_code 9` = idempotent success. Ledger transitions
+   `submitted` and `published` committed around the calls per the
+   state machine.
+6. **commit** — post MD + final ledger entry pushed back (FR-819
    commit-back pattern, `[skip ci]`).
-
-Pipeline implementation reuses `examples/shared/replicate_tool.py`
-patterns and the file-hook describe prompt as precedent. If any
-`graph.yaml`/`prompts/*.yaml` artifact is authored for the new repo
-from this workspace, it goes through the graph-authoring route
-(FR-767) — plain-Python steps need no such rite.
 
 ### Testing (in the new repo, mirroring FR-819)
 
@@ -149,37 +195,69 @@ from this workspace, it goes through the graph-authoring route
 - Live path proven by `workflow_dispatch` first (AC-05), cron second
   (AC-06) — the FR-819 two-step.
 
-## Acceptance Criteria
+## Acceptance Criteria (revised by Judgement)
 
-- [ ] AC-01: `prompts/corpus.jsonl` committed to the new repo —
-      dedup'd extraction of the signed.log `parameters:` prompts;
-      count recorded in the repo README; no other signed.log content
-      (no EXIF dumps, no file paths beyond `source_file` names)
-- [ ] AC-02: All five secrets configured as repo secrets; no
-      credential, token value, or token file appears in any commit,
-      log output, or committed artifact
-- [ ] AC-03: Refresh rotation round-trip proven: a run refreshes,
-      writes the rotated token via `gh secret set`, and the NEXT run
-      authenticates successfully with it (two consecutive
-      dispatch runs witnessed)
-- [ ] AC-04: Rotation ordering witnessed by test: secret-persist
-      failure aborts before publish
-- [ ] AC-05: `workflow_dispatch` run completes green end-to-end:
-      draw → generate → describe → publish; deviation URL in the
-      ledger and post MD committed back
-- [ ] AC-06: At least one scheduled cron run completes green and
-      publishes without human involvement (FR-819 AC-07 pattern)
-- [ ] AC-07: Gate path witnessed: a low-confidence or
-      DA-impermissible-mature result skips publication, records the
-      skip in the ledger, and exits green
-- [ ] AC-08: Same-day rerun is idempotent — ledger dedup prevents a
-      second publish (dispatch twice on one day to witness)
-- [ ] AC-09: Model roster exercised: at least two roster models have
-      each produced a published (or gate-skipped) run; absent/renamed
-      Replicate models degrade to a logged drop, not a crash
-- [ ] AC-10: Post MD on the live deviation page verified once against
-      the julkaisuohje contract (paragraphs render, tags attached,
-      AI badge shown — FR-822 witness method)
+- [x] AC-01: FR-826 revised with the exact YAMLGraph execution
+      surface, corpus approval/sanitization gate, idempotency state
+      machine, frozen model roster, deterministic DA gate schema, and
+      committed style contract (R-1..R-6 — this fold)
+- [ ] AC-02: Public `sheikkinen/deviant-daily` repo exists outside
+      this repository — never vendored, submoduled, or committed here
+- [ ] AC-03: New repo contains YAMLGraph `graph.yaml` + YAML prompt
+      artifacts; governed authoring evidence records lint and smoke
+- [ ] AC-04: `prompts/corpus.jsonl` committed only after operator
+      approval + sanitization; README records count, source, approval
+      date, redaction policy; rows are `{prompt, source_file}` with
+      basenames only — no absolute paths, EXIF, token-like strings
+- [ ] AC-05: Workflow has `workflow_dispatch`, daily cron,
+      `permissions: contents: write`, concurrency group with
+      `cancel-in-progress: false`, `git pull --rebase` before push,
+      no secret-printing shell tracing
+- [ ] AC-06: All secrets as repo secrets; no credential, token, PAT,
+      cookie, or secret-bearing transcript in any commit, log,
+      README, ledger, post, or artifact
+- [ ] AC-07: Rotation round-trip proven by two consecutive dispatch
+      runs — first writes rotated `DA_REFRESH_TOKEN`, second
+      authenticates with it
+- [ ] AC-08: Rotation ordering proven by test: persist failure aborts
+      before any DA submit/publish call
+- [ ] AC-09: Roster validated before draw; zero active models fails
+      before side effects; drops logged structured; both frozen
+      active models (`prunaai/z-image-turbo`,
+      `black-forest-labs/flux-1.1-pro-ultra`) each produce a
+      published or gate-skipped run
+- [ ] AC-10: Describe output validated through the typed schema;
+      invalid tags or invalid mature combinations gate-skip with a
+      ledger reason
+- [ ] AC-11: Mocked HTTP tests assert the DA flow against FR-822
+      shapes: placebo, submit, publish, both AI flags on both calls,
+      UA/timeouts, 429 backoff, `error_code 9` idempotent success
+- [ ] AC-12: Ledger state machine proves no-repeat and no-duplicate
+      behavior for same-day reruns and interrupted runs at each
+      side-effect boundary; no automatic rerun creates a second
+      deviation for the same date
+- [ ] AC-13: Gate path witnessed: low confidence / invalid tags /
+      invalid mature fields / impermissible content → skip reason
+      committed to ledger, nothing published, green exit only after
+      the skip record lands
+- [ ] AC-14: `workflow_dispatch` green end-to-end publish path:
+      draw/generate/describe/publish, rotated token persisted, DA URL
+      in ledger, post MD committed, no image committed
+- [ ] AC-15: At least one scheduled cron run publishes green without
+      human runner access
+- [ ] AC-16: Same-day manual rerun after successful publish exits
+      idempotently — no second deviation
+- [ ] AC-17: Live deviation verified once against the committed
+      `STYLE-CONTRACT.md`: paragraphs render separately, quote/title
+      shape survives, tags attach, AI badge shown, no
+      sales/download/license options enabled
+- [ ] AC-18: New-repo tests cover corpus extraction/dedup, ledger
+      transitions, rotation ordering, tag normalization, mature gate,
+      roster validation, MD rendering, DA/Replicate request
+      construction
+- [ ] AC-19: FR-826 records implementation status with non-secret
+      links/identifiers: new repo, dispatch run, cron run, roster
+      evidence, DA URL, authoring report, scope deviations
 
 ## Constraints
 
@@ -229,4 +307,31 @@ from this workspace, it goes through the graph-authoring route
 - `../my-replicate-app` + `examples/image_pipeline` — generation
   precedents
 
-## Judgement (pending)
+## Judgement (2026-08-19)
+
+**Verdict:** APPROVED WITH REVISIONS — full text in
+`FR-826-deviantart-daily-repo.judgement.md`. Six revisions, all folded
+above: R-1 YAMLGraph execution surface frozen (graph orchestrates,
+Python only for side effects, governed authoring route); R-2 corpus
+publication is a human-approved, sanitized artifact; R-3 idempotency
+state machine with committed transitions and `RECOVERY_REQUIRED`;
+R-4 roster frozen to two active models, grok disabled until slug
+committed, zero-active fails closed; R-5 typed gate schema with
+deterministic validators; R-6 style contract committed to the new repo
+as `STYLE-CONTRACT.md`.
+
+**Gates:** authority active only now that R-1..R-6 are folded (C-1);
+corpus release and cron enablement need explicit operator approval
+recorded first (C-4); the new repo is never committed into yamlgraph
+(C-6); zero-model config fails closed, never green (C-7); core/runtime
+changes or a reusable publisher library here → stop for a new FR (C-8).
+
+### Questions for the human
+
+1. **Corpus publication approval (C-4, blocking):** OK to publish the
+   sanitized prompt corpus (13,682 entries pre-dedup) as a public
+   artifact in `sheikkinen/deviant-daily`? Recommended: yes after
+   sample review of a random slice.
+2. **Cron enablement (C-4):** enable daily cron immediately after the
+   dispatch witnesses pass, or hold cron until N manual days?
+   Recommended: enable after AC-07/AC-14 pass.

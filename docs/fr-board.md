@@ -100,6 +100,7 @@
 | FR-764 | Judged | yamlgraph |  | FR-764-style-convert-pipeline.md |
 | FR-823 | Judged | yamlgraph |  | FR-823-hosted-declarative-graph-runner.md |
 | FR-824 | Judged | yamlgraph |  | FR-824-hva-weekly-bulletin-new-repo.md |
+| FR-826 | Judged | yamlgraph |  | FR-826-deviantart-daily-repo.md |
 | FR-094 | Approved | yamlgraph |  | FR-094-memory-node.md |
 | FR-095 | Approved | yamlgraph |  | FR-095-doc-staleness-monitor.md |
 | FR-096 | Approved | yamlgraph |  | FR-096-fr-template-demo-plan.md |
@@ -198,7 +199,6 @@
 | FR-757 | Proposed | yamlgraph |  | FR-757-fsm-contrib-relocation.md |
 | FR-818 | Proposed | yamlgraph |  | FR-818-judge-prior-art-context-narrowing.md |
 | FR-820 | Proposed | yamlgraph |  | FR-820-stripe-prepaid-credit-purchase.md |
-| FR-826 | Proposed | yamlgraph |  | FR-826-deviantart-daily-repo.md |
 | FR-078 | In Progress | yamlgraph |  | FR-078-relocate-project-tests.md |
 | FR-100 | In Progress | yamlgraph |  | FR-100-yamlgraph-development-pipeline-ebook.md |
 | FR-169 | In Progress | yamlgraph |  | FR-169-enforce-reflexion-loop.md |
@@ -429,7 +429,7 @@ graph TD
     FR-820["FR-820 Proposed"]
     FR-823["FR-823 Judged"]
     FR-824["FR-824 Judged"]
-    FR-826["FR-826 Proposed"]
+    FR-826["FR-826 Judged"]
     FR-081 --> FR-082
     FR-731 --> FR-735
     FR-731 --> FR-736
