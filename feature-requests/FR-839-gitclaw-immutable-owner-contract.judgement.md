@@ -1,9 +1,10 @@
 # Judgement: FR-839 GitClaw Immutable Owner Contract
 
-**Verdict:** APPROVED - FR-839 identifies a repeated authority-boundary failure
-and freezes a minimal, mechanically testable immutable-owner contract. Human
-review approved publication and tests-first local canonical implementation on
-2026-08-20; canonical and consumer pushes remain separately gated.
+**Verdict:** REJECTED - Human review rejected the approve-or-reject design on
+2026-08-20 because it removes the common `APPROVED WITH REVISIONS` judgement
+vocabulary instead of preserving revisions with safe authority and routing
+semantics. The uncommitted canonical implementation was rolled back; no
+canonical or consumer rollout is authorized.
 
 **Prior art:** FR-829 established generated-feature security policy; FR-830
 established repository-scoped ledger identity; FR-835 and FR-836 established
@@ -86,6 +87,7 @@ YAMLGraph core, or human FR judgement doctrine changes.
 | C-6 | Human reviews exact canonical enforcement-infrastructure diff before push. | GATE |
 | C-7 | Consumer rollout is exact parity only with separate human approval. | GATE |
 
-Authority granted: implement locally only the immutable request artifact,
-per-stage verification, autonomous approve-or-reject routing, aligned
-policy/prompts/docs, tests, and later separately gated parity rollout.
+Authority granted: none. Preserve the rolled-back canonical baseline. Any
+replacement must be separately planned and judged, retain
+`APPROVED WITH REVISIONS`, prevent revisions from contradicting immutable owner
+requirements, and require another enforcement/review cycle before publication.

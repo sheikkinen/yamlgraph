@@ -2,8 +2,8 @@
 
 **Priority:** CRITICAL
 **Type:** Platform / GitClaw authority boundary
-**Status:** Judged - APPROVED; human-reviewed for publication and tests-first
-local canonical implementation on 2026-08-20
+**Status:** Rejected 2026-08-20 - local canonical implementation rolled back;
+no rollout authorized
 **Effort:** 1 day
 **Requested:** 2026-08-20
 **Parent:** FR-838
@@ -268,8 +268,18 @@ contain issue #6 and authorize a third exact-title consumer issue.
 
 ## Scope Fence
 
-FR-839 authorizes one tests-first canonical authority-boundary repair and one
-exact consumer parity rollout after separate gates. It authorizes no issue #6
-artifact deletion, third Task 6 issue, manual consumer feature repair, Task 7,
-source access/change, cron/composition/candidate/containment/ledger behavior
-change, dependency, secret, notification, or publication.
+The proposed scope was one tests-first canonical authority-boundary repair and
+one exact consumer parity rollout after separate gates. Rejection withdraws
+that scope and authorizes no implementation or rollout. It also authorizes no
+issue #6 artifact deletion, third Task 6 issue, manual consumer feature repair,
+Task 7, source access/change, cron/composition/candidate/containment/ledger
+behavior change, dependency, secret, notification, or publication.
+
+## Rejection Record
+
+Human review rejected FR-839 on 2026-08-20. The immutable request evidence was
+directionally sound, but the proposed approve-or-reject restriction removed the
+common `APPROVED WITH REVISIONS` judgement vocabulary instead of repairing its
+unsafe routing and authority semantics. The uncommitted canonical implementation
+was rolled back in full. No canonical or consumer implementation commit was
+created, and no third Task 6 issue is authorized by this FR.
