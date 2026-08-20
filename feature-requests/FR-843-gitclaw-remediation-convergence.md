@@ -2,7 +2,9 @@
 
 **Priority:** HIGH
 **Type:** Platform / GitClaw pipeline semantics
-**Status:** Judged - APPROVED WITH REVISIONS; R-1 through R-4 folded 2026-08-20
+**Status:** Enforced 2026-08-20 - canonical `a983bf1`, smoke parity `ada0c83`;
+live witness issue #2 published `yle-news-haiku-digest` at `dc71bde` with
+first-pass exact APPROVED and all four stages on `claude-sonnet-5`
 **Effort:** 0.5 day
 **Requested:** 2026-08-20
 **Parent:** FR-840
@@ -166,30 +168,56 @@ Loop limits stay consistent with exactly one remediation lap; the
 
 ## Acceptance Criteria
 
-- [ ] AC-01: Red evidence captures the unreachable `reject_final`, missing
+- [x] AC-01: Red evidence captures the unreachable `reject_final`, missing
       prompt clauses, and unpinned models on the current baseline
-- [ ] AC-02: Judge prompt forbids revisions that require editing authority
+- [x] AC-02: Judge prompt forbids revisions that require editing authority
       artifacts; such needs are `REJECTED`
-- [ ] AC-03: Review prompt treats judgement revisions as controlling over
+- [x] AC-03: Review prompt treats judgement revisions as controlling over
       frozen `FR.md` prose and never blocks on unfolded prose
-- [ ] AC-04: Routing gives exactly one remediation lap; both parseable
+- [x] AC-04: Routing gives exactly one remediation lap; both parseable
       non-approved verdicts at `enforce == null` reach only
       `ledger_reviewed_rejected`, at `enforce >= 1` (evaluated at 1 and 2)
       only `reject_final`; unknown verdicts only `END`
-- [ ] AC-05: `reject_final` posts the review, records the terminal ledger
+- [x] AC-05: `reject_final` posts the review, records the terminal ledger
       states, and closes the issue; no parseable verdict/loop-count
       combination ends at a bare loop-limit stop
-- [ ] AC-06: All conditions remain flat and the graph passes real compile
+- [x] AC-06: All conditions remain flat and the graph passes real compile
       (scratch-dir run) and lint (now parity-checked per FR-842)
-- [ ] AC-07: All four copilot nodes pin exactly `claude-sonnet-5` via
+- [x] AC-07: All four copilot nodes pin exactly `claude-sonnet-5` via
       `cli_flags.model`, and README documents the pin and portability
       trade-off
-- [ ] AC-08: Focused and full canonical suites plus quality gates pass
-- [ ] AC-09: Human approves the exact canonical diff before commit/push
-- [ ] AC-10: Fresh smoke issue reaches a visible terminal outcome with no
+- [x] AC-08: Focused and full canonical suites plus quality gates pass
+- [x] AC-09: Human approves the exact canonical diff before commit/push
+- [x] AC-10: Fresh smoke issue reaches a visible terminal outcome with no
       silent END; issue #1 remains untouched evidence
-- [ ] AC-11: FR records commits, tests, logs, gates, deviations, and failed
+- [x] AC-11: FR records commits, tests, logs, gates, deviations, and failed
       attempts
+
+## Enforcement Record (2026-08-20)
+
+- Canonical GitClaw commit `a983bf10773a2ca0c95f31e9696ee14d5783370b`; smoke
+  consumer parity at `ada0c83` (byte-verified; one stray root test file from
+  an earlier shell mishap was swept in by `git add -A` and removed in the
+  next commit — recorded deviation).
+- Red: 5 targeted failures (`tmp/fr843-canonical-red.log`, local). Green:
+  144/144 full suite (`tmp/fr843-canonical-full.log`), lint 0 errors and
+  0 warnings, scratch-dir compile 20 nodes.
+- Deviation (defensive, semantics-identical for integer counters): the FR-842
+  lint gap checker (W803) explores non-integer and negative counter states,
+  so the frozen `== null | >= 1` matrix ships as the total partition
+  `== null | < 1 | >= 1`; the evaluator test pins verdicts at
+  `null/0/1/2`.
+- Live witness (AC-10/AC-13): fresh issue #2 `Yle news haiku digest` → run
+  `32366594247` (13m57s) → first-pass exact `APPROVED` → feature
+  `yle-news-haiku-digest` published at
+  `dc71bdea46bc814ddac3531e57391ec4ad2f98c9`, issue closed with the
+  implementation comment; ledger seen→planned→judged_approved→enforced→
+  reviewed_approved→pushed→closed. All four stages logged
+  `model='claude-sonnet-5'` (4/4). No silent END. Interrupted issue #1
+  untouched.
+- Note: the remediation path itself was not exercised live (the witness
+  approved first-pass); its behavior is proven by the evaluator matrix and
+  the real verdict-extraction fixture.
 
 ## Prior Art Disposition
 
