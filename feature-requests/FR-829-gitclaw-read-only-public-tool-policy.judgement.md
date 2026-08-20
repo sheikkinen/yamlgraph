@@ -81,4 +81,6 @@ sandbox; FR-828 cookbook creation or execution.
 4. Restrict FR-828 activity to its static preflight note and AC-05 update.
 5. Stay within the frozen surfaces above.
 
-Authority remains advisory pending human review.
+**Human review:** APPROVED by the operator on 2026-08-20 after reviewing the
+scope and pushed gitclaw commit `1854622`; remote tests were green. Authority
+activated and enforcement completed within the frozen scope.

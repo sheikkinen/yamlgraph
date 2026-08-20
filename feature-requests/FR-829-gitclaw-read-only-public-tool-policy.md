@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Judged — APPROVED WITH REVISIONS folded; human review pending
+**Status:** ENFORCED 2026-08-20 — 13/13 ACs satisfied; human-reviewed
 **Effort:** 0.5 day
 **Requested:** 2026-08-20
 **Prior art:** FR-827 created and governs gitclaw's generated-feature pipeline;
@@ -239,49 +239,80 @@ authorized by FR-829.
 
 ## Acceptance Criteria
 
-- [ ] AC-01: gitclaw contains one local `policy/generated-features.md` governing
+- [x] AC-01: gitclaw contains one local `policy/generated-features.md` governing
   issue-pipeline features, defining required graph/prompt/provenance
   artifacts and optional contained tools/tests/docs, while explicitly
   excluding pre-shipped fixtures from retroactive provenance migration
-- [ ] AC-02: Policy permits only unauthenticated, bounded HTTP GET/HEAD to
+- [x] AC-02: Policy permits only unauthenticated, bounded HTTP GET/HEAD to
       public origins explicitly frozen in the feature FR/judgement, with finite
       timeouts, bounded data, structured parsing, untrusted-data handling, and
       explicit failure behavior
-- [ ] AC-03: Policy forbids secret/token/credential/cookie/arbitrary-environment
+- [x] AC-03: Policy forbids secret/token/credential/cookie/arbitrary-environment
       access, authenticated retrieval, external writes, downloaded-code
       execution, remote shell interpolation, workflow/dependency/runtime/policy
       mutation, out-of-feature changes, and private/unbounded persistence
-- [ ] AC-04: `prompts/plan.yaml`, `judge.yaml`, `enforce.yaml`, and `review.yaml`
+- [x] AC-04: `prompts/plan.yaml`, `judge.yaml`, `enforce.yaml`, and `review.yaml`
       all reference the exact shared policy and state their distinct binding
       responsibility
-- [ ] AC-05: Judge and enforce contain none of the exact banned strings
+- [x] AC-05: Judge and enforce contain none of the exact banned strings
   `YAMLGraph-only artifacts`, `graph.yaml plus prompts/`,
   `YAML-only implementation`, or `graph + prompts only`
-- [ ] AC-06: `tests/test_generated_feature_policy.py` uses pytest plus standard
+- [x] AC-06: `tests/test_generated_feature_policy.py` uses pytest plus standard
   library only and a RED commit proves it fails against the current
   contradictory prompts before implementation
-- [ ] AC-07: GREEN commit passes all policy-contract tests and the full gitclaw
+- [x] AC-07: GREEN commit passes all policy-contract tests and the full gitclaw
       test suite without changing existing ledger, slug, timeout, containment,
       attribution, or workflow behavior
-- [ ] AC-08: Containment tests explicitly accept representative feature-local
+- [x] AC-08: Containment tests explicitly accept representative feature-local
       tool/test paths and reject root policy/prompt/workflow/dependency and
       sibling-feature paths
-- [ ] AC-09: README links the policy, describes the allowed read-only public
+- [x] AC-09: README links the policy, describes the allowed read-only public
       retrieval class and forbidden classes, preserves security honesty, and
       records upstream source drift as an observable limitation
-- [ ] AC-10: No static gate rejects a feature merely because it declares tools;
+- [x] AC-10: No static gate rejects a feature merely because it declares tools;
       no arbitrary-code semantic scanner or new runtime sandbox is introduced
-- [ ] AC-11: No YAMLGraph core/capability/requirement/example, gitclaw workflow,
+- [x] AC-11: No YAMLGraph core/capability/requirement/example, gitclaw workflow,
       dependency, secret, permission, ledger, containment implementation, or
       existing generated feature changes under FR-829
-- [ ] AC-12: FR-828 static preflight cites the pushed gitclaw SHA and output of
+- [x] AC-12: FR-828 static preflight cites the pushed gitclaw SHA and output of
   `python -m pytest tests/test_generated_feature_policy.py
   tests/test_contain.py -q`; FR-828 records policy/prompt references and
   updated AC-05 without creating the cookbook repo or using its secrets
-- [ ] AC-13: FR-829 records RED/GREEN SHAs, test output, decisions, deviations,
+- [x] AC-13: FR-829 records RED/GREEN SHAs, test output, decisions, deviations,
   and exact evidence files; a human reviews the final judgement and complete
   gitclaw policy/prompt diff before FR-828 is unblocked or a public issue is
   processed under the new contract
+
+## Implementation Status (2026-08-20)
+
+**RED:** gitclaw `bba1842` — added standard-library policy-contract tests and
+feature-local tool/test containment witnesses. Focused command failed 4 tests:
+missing policy, no stage references, missing stage duties, and explicit
+tool-excluding language. Containment witnesses passed.
+
+**GREEN:** gitclaw `1854622` — added `policy/generated-features.md`, aligned
+plan/judge/enforce/review, and linked the policy plus source-drift limitation
+from README.
+
+Validation:
+
+```text
+python -m pytest tests/test_generated_feature_policy.py tests/test_contain.py -q
+22 passed in 0.03s
+
+python -m pytest tests/ -q
+47 passed in 0.09s
+```
+
+The static contract check found all four prompt references and zero occurrences
+of the four banned strings. Diff review confirmed no workflow, dependency,
+secret, permission, ledger, cron, containment implementation, vendored skill,
+fixture, or generated-feature change. No deviations from frozen scope.
+
+**Human review:** The operator reviewed and approved gitclaw commit `1854622`
+after implementation and remote CI. FR-829 is complete. This approval clears
+only FR-828's policy prerequisite; it does not authorize cookbook repo creation,
+secret use, issue filing, or feature execution.
 
 ## Prior Art Disposition
 

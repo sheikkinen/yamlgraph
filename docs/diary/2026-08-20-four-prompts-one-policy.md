@@ -23,3 +23,7 @@ The consumer environment, not the author's environment, owns test feasibility.
 **Seed:** should policy files eventually become typed capability manifests that
 prompt stages render from, so allowed artifacts and effects cannot diverge as
 free prose?
+
+**Outcome:** RED `bba1842`, GREEN `1854622`; 22 focused and 47 full tests
+passed, remote CI passed, and the operator approved the final policy/prompt
+diff. The cookbook policy prerequisite is now mechanical rather than implied.

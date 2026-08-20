@@ -2,9 +2,8 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Judged — APPROVED WITH REVISIONS folded; human review pending;
-BLOCKED pending a separate judged gitclaw policy correction and human approval
-for public repo creation
+**Status:** Judged — APPROVED WITH REVISIONS folded; policy prerequisite
+satisfied; human review and approval for public repo creation pending
 **Effort:** 1 day
 **Requested:** 2026-08-20
 **Prior art:** FR-827 is the direct gitclaw platform dependency; FR-824 is the
@@ -85,22 +84,23 @@ read-only, unauthenticated HTTP retrieval without new secrets. Inspect the
 actual judge/review/authoring contracts used by the template; README prose is
 not sufficient evidence.
 
-**Preflight result, 2026-08-20: FAILED/BLOCKED.** The current README says
-generated feature graphs may declare and use tools, and the vendored graph
-authoring doctrine permits optional tools. However,
-`sheikkinen/gitclaw/prompts/judge.yaml` requires generated features to be
-“YAMLGraph-only artifacts: graph.yaml plus prompts/” and says they must not
-require “external side effects beyond the commit-back workflow layer.” A
-read-only public HTTP fetch is not explicitly distinguished from a forbidden
-external side effect. The cookbook must not rely on a favorable model
-interpretation of contradictory policy.
+**Preflight result, 2026-08-20: PASSED AND HUMAN-REVIEWED.**
+FR-829 corrected gitclaw at commit `1854622`. The binding policy is
+`policy/generated-features.md`; `prompts/plan.yaml`, `judge.yaml`,
+`enforce.yaml`, and `review.yaml` all reference it. The mechanical witness:
 
-Enforcement stops before public repo creation. A separate judged gitclaw policy
-FR must define bounded read-only public retrieval as permitted, align the
-judge/review/authoring contracts, and retain the prohibition on new secrets and
-external writes. FR-828 may resume only after that correction is committed and
-its template SHA is recorded. FR-828 must not patch gitclaw, bypass its judge,
-or hand-repair a rejected generated feature.
+```text
+python -m pytest tests/test_generated_feature_policy.py tests/test_contain.py -q
+22 passed in 0.03s
+```
+
+The full gitclaw suite passed 47 tests, the four banned tool-excluding strings
+are absent from judge/enforce, and GitHub Actions run
+`32330316282` (`https://github.com/sheikkinen/gitclaw/actions/runs/32330316282`)
+completed green in 17 seconds. The operator reviewed and approved commit
+`1854622`, clearing this FR's policy prerequisite. No cookbook repo, secret,
+issue, or feature has been created; those actions remain behind this FR's own
+gates.
 
 ### 2. Fresh public template instance
 
@@ -267,7 +267,7 @@ Validation has four layers:
       artifact
 - [ ] AC-04: The Copilot spike workflow completes green before issue intake and
       its run URL is recorded in the cookbook
-- [ ] AC-05: Corrected gitclaw policy explicitly permits bounded, read-only,
+- [x] AC-05: Corrected gitclaw policy explicitly permits bounded, read-only,
       unauthenticated public HTTP retrieval without new secrets; otherwise
       FR-828 remains stopped without manual repair
 - [ ] AC-06: The owner files the exact revised issue contract without adding
