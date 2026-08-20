@@ -2,8 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Feature / GitClaw acceptance task
-**Status:** Judged — APPROVED and human-reviewed (2026-08-20); enforcement
-authorized
+**Status:** Enforced 2026-08-20 — issue #3 completed; 11/11 ACs satisfied
 **Effort:** 0.5 day
 **Requested:** 2026-08-20
 **Parent:** FR-831
@@ -215,26 +214,56 @@ predicate, or weaker fixtures.
 
 - [x] AC-01: The governed judgement is human-reviewed and published before
   public issue creation
-- [ ] AC-02: Exact unlabelled owner-authored issue contains public FR-831,
+- [x] AC-02: Exact unlabelled owner-authored issue contains public FR-831,
       FR-833, and judgement provenance without private access
-- [ ] AC-03: Intake reaches terminal closed ledger state without modifying
+- [x] AC-03: Intake reaches terminal closed ledger state without modifying
       interrupted issue #1 or completed issue #2
-- [ ] AC-04: Generated provenance, graph, prompt, contained tool, tests,
+- [x] AC-04: Generated provenance, graph, prompt, contained tool, tests,
       synthetic fixtures, report, and review exist under the expected slug
-- [ ] AC-05: One exact Hilma query uses finite timeout and decompressed-byte
+- [x] AC-05: One exact Hilma query uses finite timeout and decompressed-byte
       bounds, strict UTF-8/U+FFFD rejection, structured JSON, and no raw body
-- [ ] AC-06: Stable ID, invalid-record handling, deterministic deduplication,
+- [x] AC-06: Stable ID, invalid-record handling, deterministic deduplication,
       publication ordering, and five-record output cap match the frozen contract
-- [ ] AC-07: Relevance tests prove both accepted branches and reject substring,
+- [x] AC-07: Relevance tests prove both accepted branches and reject substring,
       NUTS-only, title-only, description-only, and query-hit false positives
-- [ ] AC-08: Stable procedure/notice links and encoded fallback links are tested;
+- [x] AC-08: Stable procedure/notice links and encoded fallback links are tested;
       output marks SPA and bounded-coverage limitations
-- [ ] AC-09: Focused tests, graph lint, synthetic fixture smoke, bounded live
+- [x] AC-09: Focused tests, graph lint, synthetic fixture smoke, bounded live
       smoke, containment, and independent review pass
-- [ ] AC-10: No other source, query variant, CPV loop, composition, shared
+- [x] AC-10: No other source, query variant, CPV loop, composition, shared
       library, synthesis, workflow/runtime/policy, secret, or publication change
-- [ ] AC-11: FR-833 records issue, run, generated commit, ledger close,
+- [x] AC-11: FR-833 records issue, run, generated commit, ledger close,
       validation evidence, deviations, and failed attempts
+
+## Implementation Evidence (2026-08-20)
+
+The exact unlabelled owner-authored issue
+[`sheikkinen/gitclaw-oulu-civic-intelligence#3`](https://github.com/sheikkinen/gitclaw-oulu-civic-intelligence/issues/3)
+triggered intake run
+[`32338288632`](https://github.com/sheikkinen/gitclaw-oulu-civic-intelligence/actions/runs/32338288632).
+The workflow completed successfully in 15.4 minutes and closed the issue as
+`COMPLETED`. GitClaw reported implementation commit
+[`de85c8bb512476c37da2b8c3e86cbcb8471f21e4`](https://github.com/sheikkinen/gitclaw-oulu-civic-intelligence/commit/de85c8bb512476c37da2b8c3e86cbcb8471f21e4).
+
+The repository-scoped ledger reached `seen -> planned -> judged_approved ->
+enforced -> reviewed_approved -> pushed -> closed`. Interrupted issue #1 and
+completed issue #2 were not modified. The generated tree is confined to
+`features/oulu-procurement-source-snapshot/` apart from normal append-only
+ledger commits.
+
+The generated judgement required one revision: make the postal-locality branch
+use whole-word, same-line discipline and add an explicit postal false-positive
+test. GitClaw folded that revision into its generated FR before implementation.
+Independent review then reproduced all 33 focused tests and clean graph lint,
+confirmed the synthetic fixture smoke, and approved the feature. The bounded
+live Hilma smoke returned `Source health: ok`, qualifying Oulu notices capped
+at five, and the required bounded-coverage warning without retaining a raw
+response.
+
+Containment and review found no credential or environment reads, non-allowlisted
+hosts, external writes, other source, query variant, CPV loop, shared-library
+change, LLM fact selection, runtime/policy/workflow change, or publication
+work. No deviation or failed enforcement attempt occurred.
 
 ## Prior Art Disposition
 
