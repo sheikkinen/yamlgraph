@@ -2,25 +2,31 @@
 
 **Priority:** HIGH
 **Type:** Platform / GitClaw input channel
-**Status:** Judged - APPROVED WITH REVISIONS; R-1 through R-3 folded
-2026-08-20; human publication gate pending
+**Status:** Replanned 2026-08-20 after consumer deletion - canonical-only
+scope; re-judged APPROVED WITH REVISIONS with both revisions folded; human
+publication gate pending
 **Effort:** 0.5 day
 **Requested:** 2026-08-20
 **Parent:** FR-831
-**Depends on:** FR-829, FR-830, FR-838, FR-840
-**Blocks:** Any third FR-837 consumer attempt that adapts existing probe code
+**Depends on:** FR-829, FR-830, FR-840
+**Blocks:** Any future fresh consumer instantiation that adapts existing probe
+code
 **Prior art:** FR-831 dispositioned the working control-plane probes as
 "Reuse contract; port implementation later" while its transfer packet ruled
 "evidence input, not executable code" — porting was promised with no vehicle.
 Every Oulu issue therefore carried a prose-only reimplementation contract;
 issues #5 and #6 drifted at exactly the clauses the existing scripts already
 encoded, and from-scratch retrieval design occasionally triggered LLM consent
-refusals. FR-840 supplies the immutable `request.json` and per-stage hash
-verification this FR extends. FR-829's untrusted-issue-prose rule is preserved:
-trust here derives from owner-committed repository files, not from issue text.
-**First consumer / first event:** The next Oulu source or composer issue, when
-the pipeline must adapt an owner-committed working script instead of
-reimplementing its behavior from prose.
+refusals. The Oulu consumer repository was deleted by the owner on 2026-08-20
+for a later fresh start; its #5/#6 evidence survives in FR-837/FR-838 records
+and a local orphan clone. FR-840 supplies the immutable `request.json` and
+per-stage hash verification this FR extends, enforced canonically at
+`a7621f21`. FR-829's untrusted-issue-prose rule is preserved: trust here
+derives from owner-committed repository files, not from issue text.
+**First consumer / first event:** The first owner issue that names a
+reference set — in canonical GitClaw or in a future consumer instantiated
+fresh from the template — when the pipeline must adapt an owner-committed
+working script instead of reimplementing its behavior from prose.
 
 ## Summary
 
@@ -43,11 +49,13 @@ it by name.
 This FR adds the input channel only. It does not file any consumer issue, does
 not modify source adapters or composition, and does not alter FR-840 semantics.
 
-Hard prerequisite (R-1): implementation may not start until FR-840 is judged,
-enforced in canonical GitClaw, and rolled out to the consumer with exact
-reviewed parity, so its per-stage `request_contract verify` points exist.
-FR-841 attaches reference-manifest verification to those concrete points; it
-must not implement a parallel or replacement verification lifecycle.
+Hard prerequisite (R-1, replanned): FR-840 must be enforced in canonical
+GitClaw so its per-stage `request_contract verify` points exist — satisfied at
+canonical commit `a7621f21`. FR-841 attaches reference-manifest verification
+to those concrete points; it must not implement a parallel or replacement
+verification lifecycle. There is no consumer rollout: the previous consumer
+was deleted, and any future consumer is instantiated fresh from the canonical
+template and inherits this channel with it.
 
 ## Value Statement
 
@@ -66,6 +74,10 @@ Operator side:
   default branch, committed by the operator through normal review. `<set-name>`
   uses the canonical slug charset.
 - Files are UTF-8 text (scripts, configs, docs). Binaries are rejected.
+- `manifest.json` is a reserved name: a source set containing a file named
+  `manifest.json` is rejected at staging so the generated
+  `features/<slug>/reference/manifest.json` can never be shadowed or confused
+  with owner content (re-judgement R-1).
 - Bounds: at most 8 files per set, 256 KiB per file, 1 MiB per set.
 
 Issue side (exact parsing semantics, R-2):
@@ -86,10 +98,16 @@ Issue side (exact parsing semantics, R-2):
 Workflow side (new `tools/reference_assets.py`, standard library only):
 
 ```text
+python -m tools.reference_assets select
 python -m tools.reference_assets stage <feature> <set-name>
 python -m tools.reference_assets verify <feature> <expected-sha256>
 ```
 
+- `select` owns the R-2 parsing matrix in tested code (re-judgement R-2): it
+  reads the issue body only from the `ISSUE_BODY` environment variable,
+  applies the exact full-line semantics above, prints the single selected
+  set name or an empty line, and exits nonzero on multiple or malformed
+  selection lines. The workflow never parses owner text in shell.
 - `stage` proves every staged byte comes from committed repository content
   (R-3): it enumerates the selected set from Git-tracked regular files under
   `references/<set-name>/` at the checked-out HEAD and rejects untracked,
@@ -156,8 +174,9 @@ documents that fallback in the README; it adds no automation for it.
 12. `README.md` reference-channel documentation.
 
 No cron, composition, candidate extraction, containment, ledger, source
-adapter, consumer feature, dependency, secret, or cadence change. Consumer
-rollout is exact reviewed-file parity after separate human approval.
+adapter, consumer feature, dependency, secret, or cadence change. There is no
+consumer rollout: future consumers inherit the channel by fresh template
+instantiation from canonical GitClaw.
 
 ## Validation
 
@@ -166,16 +185,17 @@ Tests-first canonical validation must prove:
 - `stage`: exact copy and manifest bytes/hash, Unicode round-trip, only the
   manifest hash on stdout; rejection of unknown/empty sets, slug violations,
   traversal, symlinks (file and parent), binaries/non-UTF-8, every count/size
-  bound, pre-existing `reference/`, and untracked, locally modified, deleted,
-  or ignored files (R-3); manifest records the checked-out commit SHA;
-  atomic failure leaves no partial `reference/`;
+  bound, reserved `manifest.json` in a source set, pre-existing `reference/`,
+  and untracked, locally modified, deleted, or ignored files (R-3); manifest
+  records the checked-out commit SHA; atomic failure leaves no partial
+  `reference/`;
 - `verify`: rejection of manifest edit/replacement, per-file tamper, added and
   removed files, wrong hash, malformed JSON, and bounds;
 - workflow: staging occurs after slug resolution and before graph run; the
-  `Reference-set:` line is parsed exactly per the R-2 semantics and only from
-  the issue body via `env:`; zero lines stage nothing and pass empty
-  `reference_sha256`; two or more exact lines, or malformed names, fail before
-  staging;
+  `Reference-set:` line is parsed only by `tools.reference_assets select` in
+  tested code from the `ISSUE_BODY` environment variable, never by workflow
+  shell; zero lines stage nothing and pass empty `reference_sha256`; two or
+  more exact lines, or malformed names, fail before staging;
 - graph: reference verification joins every FR-840 per-stage point, including
   the remediation lap; tamper between stages fails before transition;
 - prompts/policy: mechanically checkable markers for reference authority,
@@ -188,16 +208,14 @@ Tests-first canonical validation must prove:
 
 ## Human Gates
 
-1. FR-840 must be enforced in canonical GitClaw and parity-rolled out to the
-   consumer before FR-841 implementation starts (R-1).
-2. Human approves the FR-841 judgement before implementation.
-3. Human reviews the exact canonical diff and red/green evidence before
+1. Human approves the re-judged FR-841 before implementation.
+2. Human reviews the exact canonical diff and red/green evidence before
    canonical commit/push.
-4. Human separately reviews the exact consumer parity diff and hashes before
-   consumer commit/push.
-5. Any reference set for Oulu (probe script transfer from control-plane) is a
+3. Any reference set for Oulu (probe script transfer from control-plane) is a
    separate operator commit with its own redaction review; FR-841 does not
    authorize copying private control-plane content.
+4. Instantiating a fresh consumer from the template is a later separate
+   decision outside this FR.
 
 ## Acceptance Criteria
 
@@ -216,17 +234,19 @@ Tests-first canonical validation must prove:
 - [ ] AC-09: Tamper witness fails before the next transition
 - [ ] AC-10: Focused and full canonical suites plus quality gates pass
 - [ ] AC-11: Human approves the exact canonical diff before commit/push
-- [ ] AC-12: Exact consumer parity with hashes, full suite, audit, and separate
-      human approval
-- [ ] AC-13: No forbidden platform or consumer behavior changes
+- [ ] AC-12: No consumer repository is created, modified, or assumed; the
+      channel ships in canonical GitClaw only and future consumers inherit it
+      by template instantiation
+- [ ] AC-13: No forbidden platform behavior changes
 - [ ] AC-14: FR records commits, tests, logs, hashes, gates, deviations, and
       failed attempts
-- [ ] AC-15: FR-840 is enforced and parity-rolled out before implementation;
-      FR-841 extends its concrete per-stage verification points and creates no
-      parallel verification lifecycle
+- [ ] AC-15: FR-840's canonical enforcement (`a7621f21`) is the verification
+      substrate; FR-841 extends its concrete per-stage verification points and
+      creates no parallel verification lifecycle
 - [ ] AC-16: The staging manifest proves tracked-at-HEAD provenance (commit
-      SHA, ordered paths, per-file hashes) and the R-2 parsing matrix is
-      covered by exact tests
+      SHA, ordered paths, per-file hashes); the R-2 parsing matrix is owned by
+      tested `select` code, never workflow shell; and a source set containing
+      the reserved name `manifest.json` is rejected
 
 ## Prior Art Disposition
 
@@ -237,7 +257,7 @@ Tests-first canonical validation must prove:
 | FR-829 | Preserve untrusted-issue-prose and read-only policy; trust derives from owner-committed tracked files only |
 | FR-830 | Preserve ledger semantics unchanged |
 | FR-835 / FR-836 | Preserve composition and candidate contracts; references do not create a cross-feature read channel (copies are contained per feature) |
-| FR-837 / FR-838 | Issues #5/#6 remain immutable evidence; any third attempt may use a reference set only after FR-838's separate gate |
+| FR-837 / FR-838 | The deleted consumer's #5/#6 drift evidence survives in those FR records and a local orphan clone; FR-838's remaining consumer-recovery gates are obsolete with the repository's deletion |
 | Private control-plane | No private content transfers under this FR; an Oulu reference set requires its own operator redaction review |
 
 ## Alternatives Rejected
@@ -256,8 +276,8 @@ Tests-first canonical validation must prove:
 
 ## Scope Fence
 
-FR-841 authorizes one tests-first canonical reference-channel implementation
-and one exact consumer parity rollout after separate gates. It authorizes no
-consumer issue, no reference-set content decision, no private control-plane
-transfer, no Task 6/7 work, and no cron/composition/candidate/containment/
-ledger behavior, dependency, secret, notification, or publication change.
+FR-841 authorizes one tests-first canonical reference-channel implementation.
+It authorizes no consumer repository creation or rollout, no consumer issue,
+no reference-set content decision, no private control-plane transfer, no
+Task 6/7 work, and no cron/composition/candidate/containment/ledger behavior,
+dependency, secret, notification, or publication change.
