@@ -2,8 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Feature / GitClaw acceptance task
-**Status:** Judged - APPROVED and human-reviewed (2026-08-20); enforcement
-authorized
+**Status:** Enforced 2026-08-20 - GitClaw issue #4 closed; 11/11 ACs satisfied
 **Effort:** 0.5 day
 **Requested:** 2026-08-20
 **Parent:** FR-831
@@ -222,27 +221,61 @@ decoding, weaker parser fixtures, a broader route, or invented data.
 
 - [x] AC-01: Governed judgement is human-reviewed and published before public
       issue creation
-- [ ] AC-02: Exact unlabelled owner-authored issue contains public FR-831,
+- [x] AC-02: Exact unlabelled owner-authored issue contains public FR-831,
       FR-834, and judgement provenance without private access
-- [ ] AC-03: Intake reaches terminal closed ledger state without modifying
+- [x] AC-03: Intake reaches terminal closed ledger state without modifying
       interrupted issue #1 or completed issues #2/#3
-- [ ] AC-04: Generated provenance, graph, prompt, contained tool, tests,
+- [x] AC-04: Generated provenance, graph, prompt, contained tool, tests,
       synthetic fixtures, report, and review exist under the expected slug
-- [ ] AC-05: One exact KTweb GET uses finite timeout and decompressed-byte
+- [x] AC-05: One exact KTweb GET uses finite timeout and decompressed-byte
       bounds, redirect/media validation, and no raw response retention
-- [ ] AC-06: Charset declaration precedence, strict decoding, contradiction,
+- [x] AC-06: Charset declaration precedence, strict decoding, contradiction,
       unsupported declaration, UTF-8 fallback, and U+FFFD cases are tested
-- [ ] AC-07: Structured table parsing, `docid` identity, visibility dates,
+- [x] AC-07: Structured table parsing, `docid` identity, visibility dates,
       optional type, official links, invalid rows, and deduplication are tested
-- [ ] AC-08: Deterministic ordering, five-item cap, explicit health, charset,
+- [x] AC-08: Deterministic ordering, five-item cap, explicit health, charset,
       counts, and bounded-index/no-removal limitations match the contract
-- [ ] AC-09: Focused tests, graph lint, synthetic fixture smoke, bounded live
+- [x] AC-09: Focused tests, graph lint, synthetic fixture smoke, bounded live
       smoke, containment, and independent review pass
-- [ ] AC-10: No other route/source, detail fetch, composition, shared library,
+- [x] AC-10: No other route/source, detail fetch, composition, shared library,
       synthesis, removal inference, workflow/runtime/policy, secret, or
       publication change
-- [ ] AC-11: FR-834 records issue, run, generated commit, ledger close,
+- [x] AC-11: FR-834 records issue, run, generated commit, ledger close,
       validation evidence, deviations, and failed attempts
+
+## Implementation Status (2026-08-20)
+
+The exact unlabelled owner-authored issue was filed as
+`https://github.com/sheikkinen/gitclaw-oulu-civic-intelligence/issues/4`.
+GitClaw intake run
+`https://github.com/sheikkinen/gitclaw-oulu-civic-intelligence/actions/runs/32340020274`
+completed successfully in 16 minutes. The repository-scoped ledger reached
+`seen -> planned -> judged_approved -> enforced -> reviewed_approved -> pushed
+-> closed`; interrupted issue #1 and completed issues #2/#3 were unchanged.
+
+The generated feature commit is
+`fe8bfd11c4616e1771b7f3bb8198dca72c4e0ddf` under
+`features/oulu-municipal-notice-source-snapshot/`. It contains the governed
+FR and judgement, graph, deterministic KTweb tool, no-synthesis prompt
+contract, synthetic Windows-1252 fixture, tests, authoring report, and
+independent review. The terminal ledger commit is `b4fb13059cca` and the issue
+closed as `COMPLETED` with the implementation SHA recorded by GitHub Actions.
+
+The generated judge required one revision: distinguish structurally detected
+candidate rows from the later valid/invalid split so candidate, valid, and
+invalid counts are implementable. Enforcement folded that revision before
+writing implementation code. Independent review reproduced all 38 hermetic
+tests, clean graph lint, the synthetic fixture smoke, and a bounded live KTweb
+smoke. The live output matched the report's charset, counts, selected `docid`
+values, visibility dates, and link modes. Containment passed with no file
+outside the feature directory, no secret or environment read, no external
+write, no detail or attachment fetch, and no LLM fact handling.
+
+Review recorded one non-blocking prose observation about redirect-path
+wording. The binding contract is satisfied: every hop remains HTTPS on
+`asiakirjat.ouka.fi`, and the final path is exactly
+`/ktwebscr/kuullist_tweb.htm`. There were no failed enforcement attempts,
+manual repairs, reruns, relabels, or scope deviations.
 
 ## Prior Art Disposition
 
