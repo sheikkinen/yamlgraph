@@ -231,11 +231,34 @@ consumes. No submodule, no fetch-at-runtime — forks must work with
 zero references back to the mothership. Drift is accepted and
 re-snapshotted deliberately.
 
+## Implementation Status
+
+**2026-08-20 — AC-01 spike GREEN (first attempt).** Repo
+`sheikkinen/gitclaw` created (public); spike workflow
+`spike-copilot-cli.yml` on plain `ubuntu-latest`, run ID
+**32317560089**, conclusion `success`. Findings:
+
+- Install: `npm install -g @github/copilot` via setup-node@v4
+  (node 22) — clean.
+- Auth: `COPILOT_GITHUB_TOKEN` env var (documented in
+  `copilot help environment` as taking precedence over stored
+  credentials) — secret `COPILOT_CLI_TOKEN` holds a gh OAuth token of
+  the Copilot-subscribed owner, set via
+  `gh auth token | gh secret set` (value never displayed or logged).
+- Prompt round-trip: `copilot --silent -p ...` returned exactly
+  `GITCLAW-SPIKE-OK`; log line
+  `copilot output: GITCLAW-SPIKE-OK` at 00:30:51Z.
+- Pre-spike local control: same auth path with clean `COPILOT_HOME`
+  (no stored creds) green locally — token is the sole credential.
+- C-3 gate: PASSED — no api fallback needed; CLI backend confirmed
+  viable on runners. Auto-update is disabled by default in CI (CLI
+  detects `CI` env) — pin-friendly.
+
 ## Acceptance Criteria
 
 *(Replaced wholesale by the judgement's revised list — R-1..R-6 folds.)*
 
-- [ ] AC-01: A headless-runner Copilot CLI spike completes before
+- [x] AC-01: A headless-runner Copilot CLI spike completes before
       other implementation work: workflow log records install, auth
       method, one successful prompt, and non-secret evidence. If CLI
       auth fails, enforcement stops unless a revised FR is judged.
