@@ -77,4 +77,6 @@ or write credentials inside Copilot/adapters.
 5. Mixed authority and implementation revision fails closed.
 6. Enforcement-infrastructure diff requires human review.
 
-Authority remains blocked until FR-846 is enforced.
+FR-846 was human-reviewed and enforced at GitClaw `8bb8763`; implementation
+authority is active. The final FR-845 enforcement-infrastructure diff still
+requires human review before push.

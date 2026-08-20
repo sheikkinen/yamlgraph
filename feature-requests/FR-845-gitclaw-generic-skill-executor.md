@@ -3,7 +3,7 @@
 **Priority:** CRITICAL
 **Type:** Platform simplification
 **Status:** Judged — APPROVED WITH REVISIONS folded; FR-846 prerequisite
-satisfied; ready for separate enforcement approval
+satisfied; implementation authority active
 **Effort:** 1 day
 **Requested:** 2026-08-20
 **Depends on:** FR-846 ENFORCED, not merely judged
@@ -235,7 +235,7 @@ is superseded by the exact criteria in the Judgement section below.
 ## Judgement (2026-08-20)
 
 **Verdict:** APPROVED WITH REVISIONS — R-1 through R-4 folded above; authority
-remains blocked until FR-846 is human-reviewed and enforced.
+is active because FR-846 is human-reviewed and enforced at GitClaw `8bb8763`.
 
 | # | Finding | Resolution (binding) |
 |---|---|---|
@@ -252,5 +252,5 @@ feature-request adapter; absent chat/uncommitted judgement authority.
 
 ### Questions for the human
 
-Human reviews FR-846 first, then separately reviews the FR-845 replacement and
-deletion diff before push.
+None. Human review is required on the completed FR-845 replacement/deletion
+diff before push, not before implementation.

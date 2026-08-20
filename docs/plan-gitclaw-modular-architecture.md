@@ -445,10 +445,8 @@ the current branch under unchanged judged scope.
 | [FR-846](../feature-requests/FR-846-gitclaw-executable-control-bundle.md) | Prove minimal executable mirrored doctrine bundle | none |
 | [FR-845](../feature-requests/FR-845-gitclaw-generic-skill-executor.md) | Replace custom semantic harness with one generic node and deterministic outer mechanics | FR-846 |
 
-FR-846 is independently judged `APPROVED WITH REVISIONS`, with all revisions
-folded and human review pending. FR-845 is independently judged and folded but
-remains hard-blocked until FR-846 is human-reviewed and enforced in canonical
-GitClaw.
+FR-846 is enforced and human-reviewed at GitClaw `8bb8763`. FR-845 is
+independently judged, folded, and now has active implementation authority.
 
 ## Retirement Plan
 
@@ -475,12 +473,12 @@ consumer.
 ### Stage 0 — Planning cleanup
 
 1. Remove obsolete Oulu phased-delivery FR.
-2. Human-review FR-846's folded judgement.
-3. Enforce FR-846 and record clean-clone bundle witnesses.
-4. Activate FR-845 only after FR-846 is complete; human-review FR-845's folded
-  judgement before implementation.
+2. ~~Human-review FR-846's folded judgement.~~ Complete.
+3. ~~Enforce FR-846 and record clean-clone bundle witnesses.~~ Complete.
+4. Enforce FR-845; human-review its exact replacement/deletion diff before
+  canonical push.
 
-### Stage 1 — Executable bundle spike
+### Stage 1 — Executable bundle spike — Complete
 
 Enforce FR-846 in a disposable clean clone. Stop if canonical adapters or hooks
 cannot retain their guarantees without broad YAMLGraph-monorepo coupling.
