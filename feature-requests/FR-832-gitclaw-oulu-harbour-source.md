@@ -2,8 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Feature / GitClaw acceptance task
-**Status:** Judged — APPROVED WITH REVISIONS folded (2026-08-20); enforcement
-authorized
+**Status:** Enforced 2026-08-20 — GitClaw issue #2 closed; 13/13 ACs satisfied
 **Effort:** 0.5 day
 **Requested:** 2026-08-20
 **Parent:** FR-831
@@ -179,36 +178,58 @@ satisfy the positive acceptance witness.
 
 - [x] AC-01: FR-832 is governed-judged and R-1 through R-3 are folded before
       public issue creation
-- [ ] AC-02: Exact owner-authored issue `Oulu harbour source snapshot` is filed
+- [x] AC-02: Exact owner-authored issue `Oulu harbour source snapshot` is filed
       without a label and contains public FR-831, FR-832, and judgement
       provenance without requiring private control-plane access
-- [ ] AC-03: Intake reaches plan, judge, enforce, review, containment, push, and
+- [x] AC-03: Intake reaches plan, judge, enforce, review, containment, push, and
       closed terminal ledger state without touching interrupted issue #1
-- [ ] AC-04: Generated provenance includes `FR.md`, `judgement.md`, `review.md`,
+- [x] AC-04: Generated provenance includes `FR.md`, `judgement.md`, `review.md`,
       `authoring-report.md`, `graph.yaml`, prompts, contained tool, tests, and
       bounded fixtures
-- [ ] AC-05: Retrieval uses only the frozen FIOUL origin, gzip, finite timeouts,
+- [x] AC-05: Retrieval uses only the frozen FIOUL origin, gzip, finite timeouts,
       strict 1 MiB decompressed bound, strict UTF-8, and structured JSON parsing
-- [ ] AC-06: Graph accepts `date` and `run_instant`; fixtures freeze the latter;
+- [x] AC-06: Graph accepts `date` and `run_instant`; fixtures freeze the latter;
       live execution may default current UTC; selection uses earliest ETA after
       `run_instant` and deterministic `portCallId` tie-breaking; valid no-future
       input remains explicit `ok`
-- [ ] AC-07: Output exposes exact source URL, selected run instant, and health,
+- [x] AC-07: Output exposes exact source URL, selected run instant, and health,
       preserves normalized facts, uses only the folded code-only hint format,
       and contains no cargo claim or invented type label
-- [ ] AC-08: Tests cover all exact issue cases, including unknown/missing vessel
+- [x] AC-08: Tests cover all exact issue cases, including unknown/missing vessel
       type code and cargo-inference absence, and pass
-- [ ] AC-09: Graph lint and fixture smoke pass; fixture smoke freezes
+- [x] AC-09: Graph lint and fixture smoke pass; fixture smoke freezes
       `run_instant` and asserts the expected selected call
-- [ ] AC-10: Bounded live smoke records no raw response and records health, item
+- [x] AC-10: Bounded live smoke records no raw response and records health, item
       count, selected stable ID if any, and run instant without weakening
       deterministic validation
-- [ ] AC-11: Diff containment proves all generated implementation paths stay
+- [x] AC-11: Diff containment proves all generated implementation paths stay
       under `features/oulu-harbour-source-snapshot/` plus ledger state
-- [ ] AC-12: No Hilma, KTweb, composition, shared-library, synthesis, workflow,
+- [x] AC-12: No Hilma, KTweb, composition, shared-library, synthesis, workflow,
       runtime, policy, secret, notification, or final-publication change occurs
-- [ ] AC-13: FR-832 records issue, intake run, generated commit, ledger close,
+- [x] AC-13: FR-832 records issue, intake run, generated commit, ledger close,
       validation evidence, deviations, and any failed attempt
+
+## Enforcement Evidence
+
+- Public issue: `sheikkinen/gitclaw-oulu-civic-intelligence#2`, closed as
+      `COMPLETED` on 2026-08-20.
+- Intake run: `32336555029`, successful in 17 minutes 44 seconds.
+- Generated feature commit: `cbe65ccc80b3d7d7b4beaa03a207519c5d4ef00d`.
+- Terminal ledger commit: `7e08e9fea096`; issue #2 traversed `seen -> planned
+      -> judged_approved -> enforced -> reviewed_approved -> pushed -> closed`.
+- Generated path: `features/oulu-harbour-source-snapshot/`; containment passed
+      with no implementation path outside that directory and ledger state.
+- Independent review reproduced 21 focused passing tests, clean graph lint, a
+      byte-identical frozen fixture smoke, and a fresh bounded live smoke reporting
+      `Source health: ok`.
+- Review confirmed only the frozen Digitraffic host, no secrets or environment
+      reads, no write HTTP verbs, and no Hilma, KTweb, composition, workflow,
+      runtime, policy, notification, or publication change.
+- The generated judge required decompressed-stream enforcement and explicitly
+      synthetic fixtures; GitClaw folded both revisions before implementation.
+- Deviations: none from the folded FR-832 contract. GitHub emitted a non-blocking
+      Node.js 20 action-runtime deprecation warning. The intentionally interrupted
+      issue #1 and its ledger entries were not modified.
 
 ## Prior Art Disposition
 
