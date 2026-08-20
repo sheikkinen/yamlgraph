@@ -483,7 +483,7 @@ consumer.
 Enforce FR-846 in a disposable clean clone. Stop if canonical adapters or hooks
 cannot retain their guarantees without broad YAMLGraph-monorepo coupling.
 
-### Stage 2 — Generic issue executor
+### Stage 2 — Generic issue executor — Complete
 
 Enforce FR-845 RED/GREEN:
 

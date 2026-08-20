@@ -78,5 +78,5 @@ or write credentials inside Copilot/adapters.
 6. Enforcement-infrastructure diff requires human review.
 
 FR-846 was human-reviewed and enforced at GitClaw `8bb8763`; implementation
-authority is active. The final FR-845 enforcement-infrastructure diff still
-requires human review before push.
+authority activated. The operator approved the final enforcement-infrastructure
+replacement/deletion diff before push; enforcement completed at `9ef6b9e`.

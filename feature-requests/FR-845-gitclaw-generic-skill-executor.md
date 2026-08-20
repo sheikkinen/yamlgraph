@@ -2,8 +2,7 @@
 
 **Priority:** CRITICAL
 **Type:** Platform simplification
-**Status:** Judged — APPROVED WITH REVISIONS folded; FR-846 prerequisite
-satisfied; implementation authority active
+**Status:** ENFORCED 2026-08-20 — 17/17 revised ACs satisfied; human-reviewed
 **Effort:** 1 day
 **Requested:** 2026-08-20
 **Depends on:** FR-846 ENFORCED, not merely judged
@@ -252,5 +251,67 @@ feature-request adapter; absent chat/uncommitted judgement authority.
 
 ### Questions for the human
 
-None. Human review is required on the completed FR-845 replacement/deletion
-diff before push, not before implementation.
+None. The operator approved the completed replacement/deletion diff before push.
+
+## Implementation Status (2026-08-20)
+
+Canonical GitClaw RED/GREEN sequence:
+
+- `f4da05b`: RED — 11 focused failures proved absent command parser, generic
+   node/prompt, credential isolation, revision gate, and old-harness deletion.
+- `49b6496`: replaced the four-stage semantic harness with one generic node,
+   deterministic command/artifact/publisher code, and deleted prompts/policy/
+   semantic ledger/remediation tests.
+- `1626ff6`: expanded untracked directories into concrete hashable artifacts.
+- `0c7158a`, `6265a57`: separated executor input HEAD from PR head and allowed
+   canonical read-only GitHub evidence access while forbidding mutations.
+- `dc83fe7`, `dca4ad5`: prepared real PR context and made implementation
+   revisions update the existing PR while replans use separate authority.
+- `9ef6b9e`: persisted validated graph-authoring reports as durable artifacts.
+
+Final GitClaw head: `9ef6b9e7c61460106e763ed70f5c4a97e65a174b`.
+Remote CI run `32402294919` passed in 19 seconds. Local dependency-honest suite:
+142 tests passed; bundle verification, graph lint, workflow YAML parse, cron
+hash parity, whitespace, and token-shaped history/current scans passed.
+
+Subtraction evidence: current semantic graph+prompt surface fell from 656 to
+117 lines. Final reviewed diff removed 1,934 lines and added 1,022 lines,
+primarily deterministic contracts and tests. The four stage prompts, semantic
+policy, resume/remediation graph, semantic ledger, and duplicate tests are gone.
+Cron workflow and runner remained byte-identical at hashes `c242d800...` and
+`aedafd7e...`.
+
+Clean acceptance witnesses:
+
+- **Plan:** generic run `01a0201a-6c1c-7ca7-a411-82f0d715fa67` selected the
+   feature-request skill, invoked the independent judge, produced exactly one
+   FR plus sibling judgement, changed no HEAD, and passed deterministic verify.
+- **Fail-closed Enforce:** an `APPROVED WITH REVISIONS` FR with unfolded gates
+   produced no implementation and was rejected by deterministic verification.
+- **Replan:** a Revise command produced only a new versioned FR + judgement;
+   the independent judge returned APPROVED and the report classified `replan`.
+- **Enforce:** generic run `e8fa0db5-f5ed-46dc-980f-5ffdcaf5820e` invoked
+   `scripts/author.sh`, authored graph/prompt, linted, recorded honest blocked
+   smoke, and passed concrete-file verification after one directory-expansion
+   defect was fixed.
+- **Review:** generic run `c2465d86-085e-4161-bf70-b9913b8b1d6c` consumed real
+   PR head `fb83de8c82af23be23662f45f0da5f120d8cd090`, wrote one head-linked
+   review artifact, and left the PR open with zero comments/reviews/merge.
+- **Publisher:** deterministic publisher created commit `5d5fa24`, PR #3, and
+   a factual issue comment only after report hash verification.
+- **Revision:** scope-changing feedback repeatedly selected `replan`; unit
+   witnesses prove implementation revisions target the existing PR branch and
+   replans cannot mutate it.
+
+Human review approved the exact destructive diff before push. The agent step
+has no `GH_TOKEN` or persisted checkout credential. Canonical judge/review
+adapters may use read-only GitHub evidence access through
+`COPILOT_CLI_TOKEN`; unattended deployments must use a dedicated Copilot
+credential/account with no repository-write access. Prompt/containment are not
+a sandbox against a malicious model.
+
+Cleanup limitation: private disposable repositories
+`sheikkinen/gitclaw-fr846-witness-1787241733` and
+`sheikkinen/gitclaw-fr845-accept-1787246340` remain because the current OAuth
+token lacks `delete_repo`; refreshing it would invalidate GitClaw's stored
+Copilot token. They should be deleted manually from repository settings.
