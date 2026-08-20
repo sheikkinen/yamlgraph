@@ -2,8 +2,8 @@
 
 **Priority:** HIGH
 **Type:** Platform / GitClaw authority boundary
-**Status:** Judged - APPROVED WITH REVISIONS; R-1 folded 2026-08-20; human
-publication gate pending
+**Status:** Enforced 2026-08-20 - canonical GitClaw published at `a7621f21`;
+consumer rollout explicitly waived by owner at the canonical gate
 **Effort:** 0.5 day
 **Requested:** 2026-08-20
 **Parent:** FR-838
@@ -231,34 +231,68 @@ Tests-first canonical validation must prove:
 
 ## Acceptance Criteria
 
-- [ ] AC-01: Red tests reproduce missing immutable request evidence, the
+- [x] AC-01: Red tests reproduce missing immutable request evidence, the
       enforce fold-into-FR instruction, and review-with-revisions publishing
       on the canonical baseline
-- [ ] AC-02: `write` produces exact bounded canonical JSON from env and prints
+- [x] AC-02: `write` produces exact bounded canonical JSON from env and prints
       only the SHA-256
-- [ ] AC-03: `verify` fail-closes every integrity/schema/path/bound violation
-- [ ] AC-04: Workflow writes the request before the graph and passes only the
+- [x] AC-03: `verify` fail-closes every integrity/schema/path/bound violation
+- [x] AC-04: Workflow writes the request before the graph and passes only the
       hash
-- [ ] AC-05: The graph verifies the request after every model stage and retry
+- [x] AC-05: The graph verifies the request after every model stage and retry
       before the next transition
-- [ ] AC-06: Judge and review retain all three verdicts; revisions that alter
+- [x] AC-06: Judge and review retain all three verdicts; revisions that alter
       owner semantics are defined as REJECTED in prompts and policy
-- [ ] AC-07: Review `APPROVED WITH REVISIONS` routes to the remediation lap;
+- [x] AC-07: Review `APPROVED WITH REVISIONS` routes to the remediation lap;
       only exact `APPROVED` reaches contain/push
-- [ ] AC-08: Enforcement implements additive judgement revisions without
+- [x] AC-08: Enforcement implements additive judgement revisions without
       editing `request.json`, `FR.md`, or `judgement.md`
-- [ ] AC-09: Tamper and issue-#6-shaped witnesses fail before publication
-- [ ] AC-10: Focused and full canonical suites plus quality gates pass
-- [ ] AC-11: Human approves the exact canonical diff before commit/push
-- [ ] AC-12: Exact consumer parity with matching hashes, full suite, audit,
+- [x] AC-09: Tamper and issue-#6-shaped witnesses fail before publication
+- [x] AC-10: Focused and full canonical suites plus quality gates pass
+- [x] AC-11: Human approves the exact canonical diff before commit/push
+- [~] AC-12 (WAIVED by owner): Exact consumer parity with matching hashes, full suite, audit,
       and separate human approval
-- [ ] AC-13: No forbidden platform or consumer behavior changes
-- [ ] AC-14: FR records commits, test counts, logs, hashes, gates, deviations,
+- [x] AC-13: No forbidden platform or consumer behavior changes
+- [x] AC-14: FR records commits, test counts, logs, hashes, gates, deviations,
       and failed attempts before any third Task 6 issue
-- [ ] AC-15: Remediation-lap enforcement reads `review.md` as additive
+- [x] AC-15: Remediation-lap enforcement reads `review.md` as additive
       constraints after review `APPROVED WITH REVISIONS` or `REJECTED`; a
       synthetic revisions finding is consumed by the next enforcement pass and
       re-reviewed before any publication
+
+## Enforcement Record (2026-08-20)
+
+Canonical GitClaw commit `a7621f21bbf6bce2cd3bcc834602a0fb696c5c07`, exactly
+the twelve declared files (674 insertions, 30 deletions).
+
+- Red evidence (`tmp/fr840-canonical-red.log`, local): 1 collection error
+  (missing `tools.request_contract`) plus 7 seam failures for graph state,
+  routing, workflow, policy, and prompts.
+- Green evidence: focused 70 passed (`tmp/fr840-canonical-focused.log`); full
+  canonical suite 141 passed (`tmp/fr840-canonical-full.log`); `gitclaw.yaml`
+  lints clean; Ruff check/format clean; no grade-D complexity; all files under
+  the 450-line hard limit.
+- Independent adversarial audit: no blockers; its high finding (missing
+  issue-#6-shaped fixture) and all three mediums were folded as tests before
+  the gate — a routing evaluator proves a review `APPROVED WITH REVISIONS`
+  verdict extracted by the real `sed` command reaches only remediation or
+  final rejection at every enforce loop count, never publication; loop-limit
+  pins, an inline-owner-text guard, and the remediation-consumption marker
+  were added. Audit diff fingerprint before the four test additions:
+  `a95447d0923b220fd49c9e3e431c6f53e6776a33dd3048710878e3a0d03fdf2f`.
+- Human gates: judgement R-1 folded and publication approved; the exact
+  twelve-file canonical diff was approved with the explicit instruction
+  "approve canonical commit/push. ignore consumer".
+- Deviation (owner-directed): AC-12 consumer parity rollout is WAIVED. The
+  Oulu consumer remains at `33ec4467` with the pre-FR-840 authority flow;
+  FR-841's R-1 prerequisite (consumer parity) is therefore unmet until a
+  future separately gated rollout.
+- Known residual boundary (audit M4, pre-existing since FR-827): the verifier
+  lives in the model-writable tree during enforce/review; mitigated by scoped
+  `git add` and push-time rebase failure, recorded, not repaired here.
+- One test-authoring defect during red capture (missing `Path` import) was
+  fixed before evidence; the `sed` fixture subprocess needed an absolute
+  `/usr/bin/sed` path for the local shell environment.
 
 ## Prior Art Disposition
 
