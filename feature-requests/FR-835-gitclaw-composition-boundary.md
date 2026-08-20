@@ -2,8 +2,8 @@
 
 **Priority:** HIGH
 **Type:** Platform / GitClaw runtime policy
-**Status:** Judged - APPROVED WITH REVISIONS folded and human-reviewed
-(2026-08-20); tests-first canonical implementation authorized
+**Status:** Enforced 2026-08-20 - canonical and consumer composition boundary
+published after both human review gates; 16/16 acceptance criteria satisfied
 **Effort:** 1 day
 **Requested:** 2026-08-20
 **Parent:** FR-831
@@ -115,8 +115,10 @@ Rules:
   summarize, relabel, or repair source facts.
 - Failure reasons retain the existing bounded diagnostic tail and must not
   expose environment values or command arguments containing secrets.
-- Enforce a 256 KiB UTF-8 limit per candidate and 768 KiB limit for the encoded
-  envelope. Oversize becomes a failed dependency result; it is never truncated
+- Enforce a 32 KiB UTF-8 limit per candidate and 96 KiB limit for the encoded
+  envelope. The envelope stays below Linux's approximately 128 KiB
+  single-argument ceiling because YAMLGraph receives it through one `--var`
+  argument. Oversize becomes a failed dependency result; it is never truncated
   into plausible content.
 - Results exist only in memory for the current cron invocation. A composer must
   not read prior output files, and cron must not substitute stale success for a
@@ -126,6 +128,10 @@ Rules:
   the existing `.failed.json` mechanism.
 - Each graph executes at most once per cron invocation even when multiple
   composers depend on it. Its one result is reused in memory.
+- `composition.json` must be a non-symlink regular file of at most 16 KiB.
+  Process stdout and stderr are bounded while the child runs; reaching a bound
+  terminates that graph and records a bounded failure instead of exhausting
+  runner memory or disk. Process-spawn errors are recorded per feature.
 
 ## Validation-Failure Semantics
 
@@ -191,7 +197,10 @@ Focused tests must prove:
 - success, partial failure, and all-failure envelopes;
 - composers still run on dependency failure;
 - exact candidate preservation, Unicode/newline JSON round-trip, per-candidate
-  and aggregate byte limits, and oversize-as-failure behavior;
+  and aggregate byte limits, Linux single-argument feasibility, bounded
+  in-flight process output, spawn errors, and oversize-as-failure behavior;
+- non-regular, symlinked, oversized, and non-UTF-8 manifests fail only the
+  affected feature/dependents while unrelated features continue;
 - no stale `outputs/` read and no filesystem access granted to generated code;
 - existing containment and generated-feature-policy tests remain green; and
 - the full GitClaw test suite passes in canonical and consumer repositories.
@@ -206,41 +215,92 @@ fixtures or create the Task 6 feature.
 
 - [x] AC-01: Human review approves this judgement and the folded FR before
   implementation starts
-- [ ] AC-02: FR records the explicit decision that cross-directory imports,
+- [x] AC-02: FR records the explicit decision that cross-directory imports,
       adapter duplication, source re-fetching, and stale output reads remain
   forbidden, and the platform does not parse source Markdown
-- [ ] AC-03: `composition.json` has the frozen strict schema and fixed
+- [x] AC-03: `composition.json` has the frozen strict schema and fixed
       `source_snapshots` variable
-- [ ] AC-04: Cron validates the complete graph before execution, schedules
+- [x] AC-04: Cron validates the complete graph before execution, schedules
   dependency-first deterministically, executes each runnable graph at most
   once, and preserves sorted independent legacy ordering
-- [ ] AC-05: Invalid manifests, missing dependencies, and cycles fail closed
+- [x] AC-05: Invalid manifests, missing dependencies, and cycles fail closed
   with bounded deterministic diagnostics and failed artifacts; dependents
   are blocked while unrelated valid features still run
-- [ ] AC-06: Same-run envelopes contain direct dependencies only, in manifest
+- [x] AC-06: Same-run envelopes contain direct dependencies only, in manifest
   order, with exact succeeded/failed shapes and unchanged candidate text
-- [ ] AC-07: Partial and all-source failures still run the composer; its own
+- [x] AC-07: Partial and all-source failures still run the composer; its own
   failure uses the existing failed-artifact mechanism
-- [ ] AC-08: Per-candidate and aggregate UTF-8 limits fail closed without
+- [x] AC-08: Per-candidate and aggregate UTF-8 limits fail closed without
       truncating candidate content
-- [ ] AC-09: Legacy feature behavior, ordering, outputs, exit status, and
+- [x] AC-09: Legacy feature behavior, ordering, outputs, exit status, and
   failure recording remain unchanged
-- [ ] AC-10: Policy and all four pipeline prompts enforce the same composition
+- [x] AC-10: Policy and all four pipeline prompts enforce the same composition
       boundary without weakening containment or public retrieval restrictions
-- [ ] AC-11: Focused composition tests and the full canonical GitClaw suite pass
-- [ ] AC-12: A human reviews the canonical runtime/policy/prompt/test/README
+- [x] AC-11: Focused composition tests and the full canonical GitClaw suite pass
+- [x] AC-12: A human reviews the canonical runtime/policy/prompt/test/README
   diff and validation evidence before canonical completion or push
-- [ ] AC-13: Exact reviewed platform files are rolled out to the Oulu consumer
+- [x] AC-13: Exact reviewed platform files are rolled out to the Oulu consumer
       and verified by content hash and full consumer suite
-- [ ] AC-14: Synthetic consumer witness proves ordering, caching, deterministic
+- [x] AC-14: Synthetic consumer witness proves ordering, caching, deterministic
   envelope bytes, partial and all-source failure, and output recording
   without network, LLM, live Oulu adapters, or Task 6
-- [ ] AC-15: No workflow, dependency, ledger, containment allowlist, timeout,
+- [x] AC-15: No workflow, dependency, ledger, containment allowlist, timeout,
   secret, source adapter, issue #1, live output, notification, or
   publication change
-- [ ] AC-16: FR-835 records canonical and consumer commits, tests, witness,
+- [x] AC-16: FR-835 records canonical and consumer commits, tests, witness,
   parity hashes, both human reviews, deviations, and failed attempts before
   Task 6 is filed
+
+## Implementation Status (2026-08-20)
+
+Canonical GitClaw published the composition boundary at
+`a99f7b90f0be547beb1115dabf7731a40aae45d6`. The human canonical gate approved
+the exact runtime, policy, four prompts, README, and focused-test diff after
+independent review reported no blocker or high finding. The post-rebase full
+suite passed 92 tests; Ruff lint/format, the grade-D complexity scan, editor
+diagnostics, file-size checks, and `git diff --check` were clean. Canonical
+`main` was verified at the full SHA. The push created no GitHub Actions run.
+
+The exact eleven reviewed files were rolled out to the Oulu consumer at
+`eb640cc1f496f9c7b599301560ff4f3f440c4351` after a separate human parity-diff
+approval. The consumer full suite also passed 92 tests, and every file matched
+canonical byte-for-byte:
+
+| Platform file | SHA-256 |
+|---|---|
+| `README.md` | `73240459e3e8931a97878004f0342b99ad82d87964bf22f0f2cf03cf84f619dd` |
+| `policy/generated-features.md` | `b45cddbb522064bea540163b2c9e599de829e6531a7bbbf3a21a1e821154f3ec` |
+| `prompts/enforce.yaml` | `a4a9cf4da478d771750163994da5a8e83cec8214a9b6376db4b4ef70c695824c` |
+| `prompts/judge.yaml` | `d43c17e3c8933e759d7fb631aef29bba4eeaaf7597aff8b325df0910d90924a0` |
+| `prompts/plan.yaml` | `59ad941a61c50162bd5868b208b580b45a0509f5dadec67a0da104ea4484fb90` |
+| `prompts/review.yaml` | `7534cb4abf706fe35c52a5142d4c70c6f39ce6fe7fa5aac1880d0ba1b90917d5` |
+| `tests/test_generated_feature_policy.py` | `8c1c61dd16d5401a41a3009cc4fd9b123b5fc2e7d9f83e728a7f1fb495590f78` |
+| `tests/test_intake_tools.py` | `3ed4b1ddad755af83185b4aecd2edc922d17550a08ea5a82a3c4a7571a69b195` |
+| `tools/cron_run.py` | `3b4d2de0cb5d17da960dbc92a791d02ad6fdf1f3604b98bbf128dcac405b3192` |
+| `tests/test_cron_run.py` | `3f18dc4c5820ea0bd5dcaeb81277f2b06fd6c1a80f9a53a2f485bdceed7d0106` |
+| `tests/test_cron_run_process.py` | `16c58acbc0aba561802c578b5a2ac46100f44b35414664dddda6a4bfb4540c74` |
+
+A bounded consumer witness used three temporary synthetic source graphs and one
+synthetic composer, with graph execution replaced locally so no network, LLM,
+live adapter, or Task 6 feature was involved. Partial-failure and all-source-
+failure runs proved sorted dependency execution, one execution per graph,
+manifest-order deterministic envelope bytes, composer execution, successful
+Markdown recording, and failed JSON recording.
+
+Independent reviews and red-first tests found and repaired non-UTF-8 manifest
+handling, recursive deep-graph traversal, Linux-infeasible envelope sizing,
+symlink/TOCTOU manifest reads, post-capture-only process bounds, surviving
+descendant processes, closed-pipe timeout bypass, leader-exit cleanup races,
+and invisible pipe-closing descendants. The first canonical push was rejected
+non-fast-forward because cron had advanced `main`; the approved commit was
+rebased over that unrelated output-only commit and the 92-test suite reran
+before a normal push. The initial 525-line focused test file was split into
+386- and 131-line modules before commit and independently re-reviewed.
+
+No workflow, dependency, ledger, state, containment allowlist, timeout, secret,
+source adapter, issue #1, live output, notification, publication, YAMLGraph
+core, or Task 6 change was made. The only deviations from the initial proposal
+were stricter resource limits and lifecycle containment required by review.
 
 ## Prior Art Disposition
 

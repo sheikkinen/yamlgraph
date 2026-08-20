@@ -1,8 +1,8 @@
 # Judgement: FR-835 GitClaw Composition Boundary
 
-**Verdict:** APPROVED WITH REVISIONS - R-1 through R-3 are folded in the
-reviewed FR. Human review approved tests-first canonical implementation on
-2026-08-20. Canonical push and consumer rollout remain separately gated.
+**Verdict:** ENFORCED - APPROVED WITH REVISIONS. R-1 through R-3 and the
+resource/lifecycle enforcement corrections were folded. Human review approved
+the canonical diff and the exact consumer parity diff separately on 2026-08-20.
 
 **Prior art:** FR-831 is the direct staged-source parent and makes a separate
 platform FR mandatory when cross-feature reuse is forbidden. FR-829 preserves
@@ -62,6 +62,16 @@ completion.
 **Folded.** The FR requires legacy behavior, ordering, outputs, exit status, and
 failure recording to remain unchanged; it does not use compatibility framing.
 
+### Enforcement correction: feasible transport and bounded local input
+
+Independent canonical-diff review found that the original 768 KiB envelope
+could not be passed as one Linux command argument and that post-process file
+measurement did not bound output while the child ran. The folded FR now caps
+candidates at 32 KiB and envelopes at 96 KiB, requires a non-symlink regular
+manifest capped at 16 KiB, bounds process output in flight, and records spawn
+errors per feature. These corrections tighten the approved boundary and must be
+included in the canonical human diff review before push.
+
 ## Scope is frozen
 
 | Deliverable | Surface |
@@ -98,3 +108,15 @@ or publication changes; YAMLGraph core changes; or broader runtime redesign.
 Authority granted: only after C-1, implement the frozen canonical GitClaw
 composition boundary. Consumer rollout and Task 6 remain separately gated by
 C-5 through C-8.
+
+## Enforcement Outcome (2026-08-20)
+
+Conditions C-1 through C-8 are satisfied. Canonical GitClaw published
+`a99f7b90f0be547beb1115dabf7731a40aae45d6`; the exact eleven-file consumer
+rollout published `eb640cc1f496f9c7b599301560ff4f3f440c4351`. Both full suites
+passed 92 tests. Content hashes matched for every rolled-out file, both human
+review gates approved their exact diffs, and the bounded synthetic consumer
+witness proved ordering, execute-once caching, deterministic envelopes,
+partial/all-source failure, and output recording without network or LLM use.
+No forbidden surface changed. FR-831 Task 6 may proceed only under its own
+separate governed task.
