@@ -2,8 +2,8 @@
 
 **Priority:** HIGH
 **Type:** Platform / GitClaw runtime contract repair
-**Status:** Judged - APPROVED WITH REVISIONS R-1 through R-3 folded and
-human-reviewed 2026-08-20; tests-first local implementation authorized
+**Status:** Enforced 2026-08-20 - canonical and consumer rollout published;
+20/20 acceptance criteria satisfied; FR-831 Task 6 unblocked
 **Effort:** 0.5 day
 **Requested:** 2026-08-20
 **Parent:** FR-831
@@ -254,44 +254,84 @@ waive either gate.
 
 ## Acceptance Criteria
 
-- [ ] AC-01: Direct red test reproduces plain `candidate` rejection against the
+- [x] AC-01: Direct red test reproduces plain `candidate` rejection against the
       canonical baseline
-- [ ] AC-02: FR records `candidate` as the exact generated-feature output key
+- [x] AC-02: FR records `candidate` as the exact generated-feature output key
       while preserving legacy feature-slug and self-nested extraction
-- [ ] AC-03: Canonical `extract_output` accepts non-empty plain `candidate`
+- [x] AC-03: Canonical `extract_output` accepts non-empty plain `candidate`
       output unchanged after the feature-slug path
-- [ ] AC-04: Supported nested `candidate` output remains accepted through the
+- [x] AC-04: Supported nested `candidate` output remains accepted through the
       existing coercion rules
-- [ ] AC-05: Empty, missing, whitespace-only, list, numeric, multi-field
+- [x] AC-05: Empty, missing, whitespace-only, list, numeric, multi-field
       invalid, or otherwise invalid candidate output fails closed
-- [ ] AC-06: `date`, `run_instant`, `source_snapshots`, errors, and built-in
+- [x] AC-06: `date`, `run_instant`, `source_snapshots`, errors, and built-in
       runtime state cannot be selected as output
-- [ ] AC-07: Existing feature-slug plain/nested extraction remains unchanged
-- [ ] AC-08: The committed self-nested custom-key fallback remains unchanged
-- [ ] AC-09: A failed node with no valid output retains the existing bounded
+- [x] AC-07: Existing feature-slug plain/nested extraction remains unchanged
+- [x] AC-08: The committed self-nested custom-key fallback remains unchanged
+- [x] AC-09: A failed node with no valid output retains the existing bounded
       failure recording
-- [ ] AC-10: Exact policy and plan/judge/enforce/review prompt files require
+- [x] AC-10: Exact policy and plan/judge/enforce/review prompt files require
       `state_key: candidate` and prohibit arbitrary-state inference
-- [ ] AC-11: Synthetic composition test proves a plain source candidate becomes
+- [x] AC-11: Synthetic composition test proves a plain source candidate becomes
       an unchanged successful envelope entry and its composer executes
-- [ ] AC-12: Recorded canonical focused and full-suite commands pass
-- [ ] AC-13: Human approves the exact canonical diff before canonical
+- [x] AC-12: Recorded canonical focused and full-suite commands pass
+- [x] AC-13: Human approves the exact canonical diff before canonical
       commit/push
-- [ ] AC-14: Exact reviewed canonical files reach the Oulu consumer with
+- [x] AC-14: Exact reviewed canonical files reach the Oulu consumer with
       matching recorded hashes
-- [ ] AC-15: Recorded full consumer-suite command passes
-- [ ] AC-16: Human approves the exact consumer parity diff before consumer
+- [x] AC-15: Recorded full consumer-suite command passes
+- [x] AC-16: Human approves the exact consumer parity diff before consumer
       commit/push
-- [ ] AC-17: Synthetic consumer witness proves all three plain source states,
+- [x] AC-17: Synthetic consumer witness proves all three plain source states,
       metadata exclusion, exact bytes, and ordered composition
-- [ ] AC-18: Bounded actual `run_feature` witnesses recognize all three
+- [x] AC-18: Bounded actual `run_feature` witnesses recognize all three
       committed Oulu source outputs without retaining live candidate text
-- [ ] AC-19: No source graph/adapter, composition feature, workflow, dependency,
+- [x] AC-19: No source graph/adapter, composition feature, workflow, dependency,
       ledger/state, containment, secret, issue #1, output, notification, or
       publication change
-- [ ] AC-20: FR records canonical/consumer commits, commands, logs, hashes,
+- [x] AC-20: FR records canonical/consumer commits, commands, logs, hashes,
       both human reviews, witnesses, deviations, and failed attempts before
       Task 6 filing
+
+## Enforcement Record
+
+Enforced and independently audited on 2026-08-20.
+
+- Canonical GitClaw commit:
+  `2a0a3c4fbb53d81884ca162dcf3c714b96a99e9b`.
+- Oulu consumer parity commit:
+  `33ec4467f7ed06d3b156695af7959b2e9fa35c77`.
+- A human approved the exact nine-file canonical commit/push after reviewing
+  red/green evidence and an audit with no blocker or high finding.
+- A human separately approved the exact nine-file consumer commit/push after
+  SHA-256 parity and an independent audit with no finding.
+- Canonical focused suite: 60 passed in
+  `tmp/fr836-canonical-focused.log`; canonical full suite: 101 passed in
+  `tmp/fr836-canonical-full.log`.
+- Consumer synthetic witness: 1 passed and 29 deselected in
+  `tmp/fr836-consumer-synthetic.log`; consumer full suite: 101 passed in
+  `tmp/fr836-consumer-full.log`.
+- Exact consumer file hashes are retained in
+  `tmp/fr836-consumer-parity.sha256`; the independent audit confirmed every
+  reviewed consumer blob matches canonical commit `2a0a3c4` byte-for-byte.
+- Actual `run_feature` evidence is retained as metadata only in
+  `tmp/fr836-actual-source-witness.json` and
+  `tmp/fr836-actual-source-retry.json`. All three committed source slugs were
+  recognized with declared source health `ok`: harbour 336 bytes,
+  procurement 2613 bytes, and municipal notices 2548 bytes. No candidate text
+  or raw response was retained. The one contract-permitted retry resolved
+  transient unavailable health from harbour and procurement.
+- Ruff check/format, Radon grade-D scan, editor diagnostics, and
+  `git diff --check` passed. Runtime and composition test files remain below
+  the 450-line hard limit.
+- Initial red evidence was three failures; adversarial review then exposed two
+  fail-closed gaps for malformed candidate dictionaries and reserved nested
+  metadata. Both were repaired before publication. A final low audit request
+  for explicit precedence, arbitrary-string, and underscore-metadata tests was
+  also folded before either commit.
+- No source graph/adapter, composer, issue, workflow, dependency, ledger/state,
+  containment, secret, output, notification, publication, or cadence surface
+  changed. FR-831 Task 6 was not filed during this enforcement.
 
 ## Prior Art Disposition
 

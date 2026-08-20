@@ -101,7 +101,6 @@
 | FR-764 | Judged | yamlgraph |  | FR-764-style-convert-pipeline.md |
 | FR-823 | Judged | yamlgraph |  | FR-823-hosted-declarative-graph-runner.md |
 | FR-824 | Judged | yamlgraph |  | FR-824-hva-weekly-bulletin-new-repo.md |
-| FR-836 | Judged | yamlgraph |  | FR-836-gitclaw-candidate-output-contract.md |
 | FR-094 | Approved | yamlgraph |  | FR-094-memory-node.md |
 | FR-095 | Approved | yamlgraph |  | FR-095-doc-staleness-monitor.md |
 | FR-096 | Approved | yamlgraph |  | FR-096-fr-template-demo-plan.md |
@@ -431,9 +430,7 @@ graph TD
     FR-823["FR-823 Judged"]
     FR-824["FR-824 Judged"]
     FR-828["FR-828 PARSE-FAILURE"]
-    FR-836["FR-836 Judged"]
     FR-081 --> FR-082
     FR-731 --> FR-735
     FR-731 --> FR-736
-    FR-831 --> FR-836
 ```

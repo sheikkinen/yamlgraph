@@ -1,9 +1,11 @@
 # Judgement: FR-836 GitClaw Candidate Output Contract
 
-**Verdict:** APPROVED WITH REVISIONS - R-1 through R-3 are folded in the
-reviewed FR. Human review approved plan publication and tests-first local
-implementation on 2026-08-20. Canonical and consumer pushes remain separately
-gated.
+**Verdict:** ENFORCED - R-1 through R-3 were folded before implementation;
+canonical commit `2a0a3c4fbb53d81884ca162dcf3c714b96a99e9b` and consumer
+commit `33ec4467f7ed06d3b156695af7959b2e9fa35c77` were separately
+human-approved and published on 2026-08-20. All 20 acceptance criteria pass,
+including three recognized actual-source witnesses, so FR-831 Task 6 is
+unblocked.
 
 **Prior art:** FR-827 and FR-828 establish the forkable runner and failed
 monolithic Oulu predecessor; preserve their runner/product evidence without
