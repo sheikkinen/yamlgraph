@@ -2,8 +2,8 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Judged — APPROVED WITH REVISIONS folded; policy prerequisite
-satisfied; human review and approval for public repo creation pending
+**Status:** Enforcement attempted 2026-08-20 — BLOCKED by copied-ledger issue
+identity collision; FR-830 required before fresh retry
 **Effort:** 1 day
 **Requested:** 2026-08-20
 **Prior art:** FR-827 is the direct gitclaw platform dependency; FR-824 is the
@@ -309,6 +309,29 @@ Validation has four layers:
 - [ ] AC-18: Implementation status, witness links, decisions, deviations, and
       failed attempts are recorded in FR-828; required changelog and diary
       evidence close the YAMLGraph-side work
+
+## Enforcement Attempt 1 (2026-08-20)
+
+- Public template instance created:
+      `https://github.com/sheikkinen/gitclaw-oulu-civic-intelligence`, initial
+      commit `6bc2af0`, source template commit `1854622`.
+- Exactly `COPILOT_CLI_TOKEN` and `ANTHROPIC_API_KEY` were configured.
+- Copilot spike run `32331787864` completed green in 23 seconds.
+- Exact owner-authored, unlabeled issue:
+      `https://github.com/sheikkinen/gitclaw-oulu-civic-intelligence/issues/1`.
+- Intake run `32331842032` completed green but skipped Feature slug and Run
+      pipeline. Issue #1 remained open with no comment.
+- Root cause: `state/issues.jsonl` was copied byte-for-byte from the live source
+      template (blob `13aa80ca4b35660417f5d0b44d9be8f72f123df4`) and already contained
+      source-repo issue #1 in terminal state `judged_rejected`. Ledger identity is
+      only the integer issue number, so the fresh repo's issue #1 was mistaken for
+      the source repo's issue #1.
+
+No generated implementation exists and no implementation file was edited
+manually. Creating placeholder issues until an unused number appears would game
+the first-adopter acceptance criterion and leave every new fork broken for its
+first three issues. Enforcement stops for FR-830; the failed public witness
+remains visible.
 
 ## Prior Art Disposition
 

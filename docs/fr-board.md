@@ -28,6 +28,7 @@
 | FR-614 | PARSE-FAILURE (REFUTED by the FR-613 K=6 Raw ) | yamlgraph |  | FR-614-roundtrip-skeleton-p4-scene-type-close-op.md |
 | FR-663 | PARSE-FAILURE (Planned) | yamlgraph |  | FR-663-changelog-req-legacy-cap-false-positive.md |
 | FR-815 | PARSE-FAILURE (Split — see judgement; replace) | yamlgraph |  | FR-815-knowledge-graph-phase2-cluster-naming-judge-narrowing.md |
+| FR-828 | PARSE-FAILURE (Enforcement attempted 2026-08-) | yamlgraph |  | FR-828-gitclaw-oulu-civic-intelligence-cookbook.md |
 | FR-111 | Judged | yamlgraph |  | FR-111-compiled-graph-cache.md |
 | FR-179 | Judged | yamlgraph |  | FR-179-asterisk-ari-audiosocket-provider.md |
 | FR-210 | Judged | yamlgraph |  | FR-210-subgraph-interrupt-state-commit.md |
@@ -100,7 +101,6 @@
 | FR-764 | Judged | yamlgraph |  | FR-764-style-convert-pipeline.md |
 | FR-823 | Judged | yamlgraph |  | FR-823-hosted-declarative-graph-runner.md |
 | FR-824 | Judged | yamlgraph |  | FR-824-hva-weekly-bulletin-new-repo.md |
-| FR-828 | Judged | yamlgraph |  | FR-828-gitclaw-oulu-civic-intelligence-cookbook.md |
 | FR-094 | Approved | yamlgraph |  | FR-094-memory-node.md |
 | FR-095 | Approved | yamlgraph |  | FR-095-doc-staleness-monitor.md |
 | FR-096 | Approved | yamlgraph |  | FR-096-fr-template-demo-plan.md |
@@ -429,7 +429,7 @@ graph TD
     FR-820["FR-820 Proposed"]
     FR-823["FR-823 Judged"]
     FR-824["FR-824 Judged"]
-    FR-828["FR-828 Judged"]
+    FR-828["FR-828 PARSE-FAILURE"]
     FR-081 --> FR-082
     FR-731 --> FR-735
     FR-731 --> FR-736
