@@ -2,8 +2,8 @@
 
 **Priority:** CRITICAL
 **Type:** Platform simplification
-**Status:** Judged — APPROVED WITH REVISIONS folded; BLOCKED until FR-846 is
-human-reviewed and enforced in canonical GitClaw
+**Status:** Judged — APPROVED WITH REVISIONS folded; FR-846 prerequisite
+satisfied; ready for separate enforcement approval
 **Effort:** 1 day
 **Requested:** 2026-08-20
 **Depends on:** FR-846 ENFORCED, not merely judged

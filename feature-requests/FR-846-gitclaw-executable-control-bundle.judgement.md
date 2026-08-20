@@ -57,4 +57,6 @@ production generic executor; or Git/GitHub side effects inside adapters.
 5. Witnesses run from documented setup in a disposable clean clone.
 6. Human review precedes push because controls are enforcement infrastructure.
 
-Authority remains advisory pending human review.
+**Human review:** APPROVED by the operator after the complete mirror/adaptation,
+hook, verifier, clean-clone witness, and secret-scan evidence was presented.
+Authority activated and enforcement completed at GitClaw `8bb8763`.

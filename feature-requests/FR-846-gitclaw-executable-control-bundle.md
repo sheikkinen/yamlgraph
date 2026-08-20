@@ -2,7 +2,7 @@
 
 **Priority:** CRITICAL
 **Type:** Spike / enforcement infrastructure
-**Status:** Judged — APPROVED WITH REVISIONS folded; human review pending
+**Status:** ENFORCED 2026-08-20 — 14/14 ACs satisfied; human-reviewed
 **Effort:** 0.5 day
 **Requested:** 2026-08-20
 **Blocks:** FR-845
@@ -218,4 +218,59 @@ side effects inside adapters.
 
 ### Questions for the human
 
-Human review of the folded judgement is required before enforcement.
+None. The operator approved the final enforcement diff before push.
+
+## Implementation Status (2026-08-20)
+
+Canonical GitClaw commits:
+
+- RED `5ade913`: seven focused failures proved manifest, adapters, hooks, and
+   verifier absent.
+- GREEN `79b26e6`: pinned executable bundle, manifest, trace, three documented
+   adaptations, verifier, hooks, wrappers, tests, and README setup.
+- Validation fixes `47329b0`, `50fd0a0`, `795a923`, `8bb8763`: remove
+   undeclared PyYAML test dependency, add planning template dependency, cover
+   every verifier fail-closed class, and surface missing YAML parser feedback
+   rather than silently approving edits.
+
+Pinned YAMLGraph source:
+`15f134d8ddf8e16266170ed57fdebfd3d67e11de`. Final GitClaw head:
+`8bb876313603a95ff1f9a1e38170d6cd6c034968`.
+
+Bundle evidence:
+
+- 33 manifest entries: 29 byte/mode-identical mirrors and 4 reviewed local
+   adaptations;
+- six closed bundle roots plus explicit instruction/wrapper/template targets;
+- manifest verifier passed; source content and executable-mode parity passed;
+- standard-library/pytest-only Python 3.12 environment: 195 tests passed;
+- token-pattern scan: zero current files and zero history revisions matched.
+
+Disposable clean-clone witnesses at local evidence path
+`gitclaw/tmp/fr-846-witness/`:
+
+- skill probe named all four skills and quoted YAMLGraph's distinctive
+   `backward compatibility` doctrine invariant;
+- judge wrapper run `01a01fe4-72a6-7e5a-bbad-140dfe6b22f7` produced a valid
+   judgement artifact;
+- author wrapper runs `01a01fe5-e60a-7ff6-ac7a-b64c341e7ac2` and
+   `01a01feb-1350-7147-a721-ad79f945fcdd` produced valid reports and lint/smoke
+   outputs, including the adapted `features/<slug>/graph.yaml` path;
+- direct unsentineled writes and forbidden command forms were denied;
+   sentineled writes, audit/lockdown, and YAML post-edit feedback passed;
+- review wrapper run `01a01fe8-d2ea-7bdf-8de7-d3c54c2f10bf` consumed real PR
+   head `a521edf6f92bd193b7a4dde9ab962553caf05b01`, produced a valid review
+   artifact, and left the PR open with zero comments/reviews and no merge;
+- wrappers created no Git/GitHub side effect.
+
+Human review approved the enforcement bundle before canonical push. First CI
+run `32390685205` exposed that the YAML post-edit hook silently approved edits
+when PyYAML was absent. Repair `8bb8763` made parser absence explicit and was
+reproduced with an isolated PATH. Final CI run `32391111527` passed in 14
+seconds for the final head.
+
+Cleanup limitation: the disposable private repository
+`sheikkinen/gitclaw-fr846-witness-1787241733` remains because the current OAuth
+token lacks `delete_repo`; refreshing it would invalidate the token stored as
+GitClaw's `COPILOT_CLI_TOKEN`. It contains no secret material and should be
+deleted manually from repository settings.
