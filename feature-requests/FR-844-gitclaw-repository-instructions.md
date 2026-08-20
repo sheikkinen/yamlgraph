@@ -2,8 +2,9 @@
 
 **Priority:** MEDIUM
 **Type:** Platform / GitClaw prompt surface + operator docs
-**Status:** Judged - APPROVED 2026-08-20; human-approved for publication and
-tests-first implementation
+**Status:** Enforced 2026-08-20 - canonical `71619bd`; injection witness
+POSITIVE (CLI quoted the file's heading and the `candidate` key in a
+no-tools non-interactive probe)
 **Effort:** 0.25 day
 **Requested:** 2026-08-20
 **Parent:** FR-840
@@ -106,18 +107,39 @@ prompts or `policy/generated-features.md`; it restates, never legislates.
 
 ## Acceptance Criteria
 
-- [ ] AC-01: Red evidence shows no repository instructions and failing marker
+- [x] AC-01: Red evidence shows no repository instructions and failing marker
       tests on the baseline
-- [ ] AC-02: The file is ≤60 lines, two sections, stage-neutral, and restates
+- [x] AC-02: The file is ≤60 lines, two sections, stage-neutral, and restates
       only rules already present in prompts/policy
-- [ ] AC-03: Marker tests pin every invariant line and fail on drift
-- [ ] AC-04: The injection witness records whether the Copilot CLI loads the
+- [x] AC-03: Marker tests pin every invariant line and fail on drift
+- [x] AC-04: The injection witness records whether the Copilot CLI loads the
       file in non-interactive runs, with the evidence path
-- [ ] AC-05: Full canonical suite and lint pass; no other file changes beyond
+- [x] AC-05: Full canonical suite and lint pass; no other file changes beyond
       the three-file surface
-- [ ] AC-06: Human approves the exact diff before push; the file propagates
+- [x] AC-06: Human approves the exact diff before push; the file propagates
       to future forks by template only
-- [ ] AC-07: FR records commits, tests, witness result, and deviations
+- [x] AC-07: FR records commits, tests, witness result, and deviations
+
+## Enforcement Record (2026-08-20)
+
+- Canonical commit `71619bdb4d4c02437df7d2e208a56b9a50c76903`: exactly
+  `.github/copilot-instructions.md` (36 lines, two sections),
+  `tests/test_generated_feature_policy.py` markers, and one README Layout
+  line. 74 insertions, no other change.
+- Red: 2 marker-test failures on the baseline (file absent). Green: full
+  canonical suite 177 passed (`tmp/fr844-canonical-full.log`, local); one
+  marker case-mismatch (`Never`/`never`) fixed during green.
+- Injection witness (AC-04, POSITIVE): a non-interactive
+  `copilot -p` probe in the canonical checkout, with tools denied, answered
+  by quoting the file's heading and the `state_key: candidate` invariant —
+  the CLI does load repository instructions for `-p` runs, so the file is a
+  real fifth prompt surface and its marker tests are enforcement, not
+  documentation hygiene.
+- Human gates: judgement APPROVED (no revisions); publication+implementation
+  approved in one gate; exact diff approved ("Approved").
+- Propagation: forks inherit the file by template instantiation; existing
+  consumers (yle-haiku, oulu) can pick it up in a later parity pass — not
+  required by this FR.
 
 ## Prior Art Disposition
 
