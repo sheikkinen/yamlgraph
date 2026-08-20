@@ -13,6 +13,7 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 
+import yaml
 from pydantic import BaseModel
 
 from yamlgraph.linter.checks import (
@@ -76,6 +77,35 @@ class LintResult(BaseModel):
     valid: bool
 
 
+def check_compile_validation(graph_path: Path) -> list[LintIssue]:
+    """FR-842 (REQ-YG-605): lint is a strict superset of load-time validation.
+
+    Runs the loader's validate_config on the parsed graph and converts each
+    rejection into an E000 error carrying the unchanged validator message.
+    YAML read/parse failures are left to the existing CLI exception path.
+    """
+    from yamlgraph.utils.validators import validate_config
+
+    try:
+        with open(graph_path) as handle:
+            config = yaml.safe_load(handle) or {}
+    except (OSError, yaml.YAMLError):
+        return []
+    try:
+        validate_config(config)
+    except ValueError as exc:
+        return [LintIssue(severity="error", code="E000", message=str(exc))]
+    except KeyError as exc:
+        return [
+            LintIssue(
+                severity="error",
+                code="E000",
+                message=f"missing required section: {exc}",
+            )
+        ]
+    return []
+
+
 def lint_graph(
     graph_path: Path | str, project_root: Path | str | None = None
 ) -> LintResult:
@@ -93,6 +123,10 @@ def lint_graph(
         project_root = Path(project_root)
 
     all_issues: list[LintIssue] = []
+
+    # FR-842: loader validators run first; a compile failure is appended and
+    # the remaining checks still run so it never hides unrelated findings.
+    all_issues.extend(check_compile_validation(graph_path))
 
     # Run all checks
     all_issues.extend(check_state_declarations(graph_path, project_root))

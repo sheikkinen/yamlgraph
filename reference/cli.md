@@ -110,6 +110,12 @@ yamlgraph graph validate examples/demos/*/graph.yaml
 
 Lint graph for common issues (missing state keys, unused tools, etc.).
 
+Lint is a strict superset of load-time validation (FR-842): the loader's
+`validate_config` runs first and any rejection is reported as an `E000`
+error with the loader's message, so a graph that lints clean is guaranteed
+to load. Note the condition grammar has no parenthesized grouping — express
+`(A or B) and C` as separate flat edges, one condition per branch.
+
 ```bash
 yamlgraph graph lint <graph_paths...>
 ```

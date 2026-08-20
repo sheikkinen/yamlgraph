@@ -1,0 +1,30 @@
+name: Lint/Compile Validation Parity
+id: CAP-242
+status: active
+fr: FR-842
+feature_request: FR-842
+description: >
+  yamlgraph graph lint is a strict superset of compile-time validation:
+  lint_graph executes the loader's validate_config on the parsed graph and
+  converts each ValueError into a severity=error LintIssue with frozen code
+  E000, before the style/semantic checks run. Lint can no longer approve a
+  graph the loader refuses (live witness: GitClaw intake run 32361594593
+  failed at compile on a grouped edge condition that lint had passed).
+  Existing checks still run alongside a compile-validation error; JSON output
+  and exit-code semantics are unchanged; the condition grammar is unchanged
+  (parenthesized grouping stays rejected everywhere, flat per-branch edges
+  are the documented workaround).
+modules:
+  - linter
+requirements:
+  - id: REQ-YG-605
+    description: >
+      lint_graph calls the same validate_config path used by graph loading
+      and reports each ValueError as a LintIssue(severity=error, code=E000)
+      whose message contains the unchanged validator text; existing lint
+      checks still run when the parsed YAML shape allows; CLI exit codes and
+      LintResult JSON schema are unchanged; parity is regression-tested for
+      grouped condition syntax, missing edge from/to, invalid tool_call
+      on_error, and graph-schema violations.
+    modules:
+      - linter

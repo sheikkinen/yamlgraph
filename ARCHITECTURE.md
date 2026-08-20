@@ -557,6 +557,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 239 | CAP-239 Discord Hello Slash-Command Example | `examples/discord_bot` | REQ-YG-600 |
 | 240 | CAP-240 FR Knowledge Graph Extraction | `scripts/extract_fr_graph.py`, `reference/fr-knowledge-graph.yaml`, `reference/fr-knowledge-graph.md`, `.github/hooks/scripts/checks/prior_art.py` | REQ-YG-601 – 603 |
 | 241 | CAP-241 Weekly Recap Publication | `scripts` | REQ-YG-604 |
+| 242 | CAP-242 Lint/Compile Validation Parity | `linter` | REQ-YG-605 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -2958,6 +2959,16 @@ Scheduled self-publication of a weekly repository recap to the protected main br
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-604 | scripts/weekly_recap.py exposes --repo-path, --since, --output-dir, and --dry-run; names output files by ISO week (%G-W%V); renders a frozen section contract (# Weekly Recap <ISO-week>, ## Workstreams, ## Orphans, ## Hotspots) from recap graph state (dict or Pydantic model, normalized at the boundary); and applies a deterministic substantive-window no-op guard before invoking the graph — commits whose subject starts with "docs(recap): weekly recap" and whose changed paths are all under docs/recaps/ are excluded, and an empty substantive set exits 0 writing nothing. Dry-run prints and never writes. | `scripts` |
+
+### 242. CAP-242 Lint/Compile Validation Parity
+
+yamlgraph graph lint is a strict superset of compile-time validation: lint_graph executes the loader's validate_config on the parsed graph and converts each ValueError into a severity=error LintIssue with frozen code E000, before the style/semantic checks run. Lint can no longer approve a graph the loader refuses (live witness: GitClaw intake run 32361594593 failed at compile on a grouped edge condition that lint had passed). Existing checks still run alongside a compile-validation error; JSON output and exit-code semantics are unchanged; the condition grammar is unchanged (parenthesized grouping stays rejected everywhere, flat per-branch edges are the documented workaround).
+
+**Feature Request:** FR-842
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-605 | lint_graph calls the same validate_config path used by graph loading and reports each ValueError as a LintIssue(severity=error, code=E000) whose message contains the unchanged validator text; existing lint checks still run when the parsed YAML shape allows; CLI exit codes and LintResult JSON schema are unchanged; parity is regression-tested for grouped condition syntax, missing edge from/to, invalid tool_call on_error, and graph-schema violations. | `linter` |
 
 <!-- END GENERATED CAPABILITIES -->
 
