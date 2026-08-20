@@ -178,15 +178,30 @@ writes a structured failure output and CONTINUES to the next feature
 
 ### Trigger and trust boundary
 
-`intake.yml` fires on `issues: [opened, labeled]` but the job runs
-ONLY when `github.event.issue.author_association` is `OWNER` or the
-issue carries the `gitclaw` label applied by the owner. Issue bodies
-are untrusted input crossing the instruction boundary — on a public
-fork, anyone can file an issue, and the body flows into copilot
-prompts. Restricting to owner-authored/owner-labeled issues is the
-minimum viable injection defense; the README states this explicitly.
-Concurrency group serializes intake runs (single-writer ledger, the
-FR-826 shape).
+`intake.yml` fires on `issues: [opened, labeled]` but the gate is a
+**job-level `if:`** — `on: issues` workflows always run in the trusted
+context with secrets (unlike fork PRs), so this condition is the ONLY
+barrier between anonymous input and the LLM + PAT; it must evaluate
+before any step executes:
+
+- `opened`: `github.event.issue.author_association` ∈
+  `OWNER|MEMBER|COLLABORATOR`. **Never `CONTRIBUTOR`** — that
+  association is granted to anyone with one merged commit and, on
+  forks, to upstream committers in shared history.
+- `labeled`: `github.event.label.name == 'gitclaw'` AND
+  `github.event.sender` is the trusted party (owner login or
+  write-permission check). **Label presence alone is insufficient**:
+  issue forms can auto-apply labels (`labels:` in template YAML), so
+  an anon issue can arrive pre-labeled; the gate verifies WHO applied
+  the label, not that it exists. Corollary: gitclaw must never ship
+  an issue template that auto-applies `gitclaw`.
+
+Issue bodies are untrusted input crossing the instruction boundary —
+on a public fork, anyone can file an issue, and the body flows into
+copilot prompts. Restricting to owner-authored/owner-labeled issues
+is the minimum viable injection defense; the README states this
+explicitly. Concurrency group serializes intake runs (single-writer
+ledger, the FR-826 shape).
 
 ### Cron runner
 
@@ -274,9 +289,12 @@ re-snapshotted deliberately.
       inspection proves judge and review start fresh sessions and
       enforce resumes the plan session only when CLI backend is
       active.
-- [ ] AC-05: Intake trust gate runs before any LLM call: non-owner
-      issue without owner-applied `gitclaw` label exits skipped,
-      records no feature, and has a witnessed skipped Actions run.
+- [ ] AC-05: Intake trust gate is a job-level `if` running before any
+      step: non-owner issue without trusted-sender `gitclaw` label
+      exits skipped, records no feature, and has a witnessed skipped
+      Actions run. Gate rejects `CONTRIBUTOR` association and
+      template-auto-applied labels (sender check on `labeled`
+      events); no issue template auto-applies `gitclaw`.
 - [ ] AC-06: Issue body is rendered only inside a fenced user-request
       block in copilot prompts; a prompt-injection fixture attempting
       to modify workflow/skills/secrets files is rejected by the diff
