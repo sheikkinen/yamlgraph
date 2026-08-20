@@ -2,7 +2,9 @@
 
 **Priority:** HIGH
 **Type:** Bug / Linter completeness
-**Status:** Judged - APPROVED WITH REVISIONS; R-1 through R-4 folded 2026-08-20
+**Status:** Enforced 2026-08-20 - implemented at `34e0fce0`; red 8 targeted
+failures then 9/9 green; full unit suite 5963 passed at 89.97% coverage; all
+pre-commit gates green; lint issue code frozen as `E000`
 **Effort:** 0.5 day
 **Requested:** 2026-08-20
 **Depends on:** FR-025 (linter cross-ref checks), FR-047 (lint CLI)
@@ -111,28 +113,28 @@ suite asserts only the desired behavior and never expects the defective one.
 
 ## Acceptance Criteria
 
-- [ ] AC-01: A committed regression test constructs or loads a graph containing
+- [x] AC-01: A committed regression test constructs or loads a graph containing
       the FR-840 grouped condition and asserts `lint_graph(...).valid is False`
-- [ ] AC-02: That regression test asserts the lint result contains one
+- [x] AC-02: That regression test asserts the lint result contains one
       `severity == "error"` issue with code `E000` whose `message` includes the
       unchanged validator text `invalid condition syntax`
-- [ ] AC-03: A CLI-level test proves `yamlgraph graph lint
+- [x] AC-03: A CLI-level test proves `yamlgraph graph lint
       <invalid-compile-graph>` exits nonzero through the normal lint error
       path, not by an uncaught exception
-- [ ] AC-04: `lint_graph` calls the same `validate_config` path used by graph
+- [x] AC-04: `lint_graph` calls the same `validate_config` path used by graph
       loading; no duplicate condition, edge-field, `on_error`, or node-schema
       grammar is introduced in linter code
-- [ ] AC-05: Parity tests cover grouped condition syntax, missing edge `from`,
+- [x] AC-05: Parity tests cover grouped condition syntax, missing edge `from`,
       missing edge `to`, invalid `on_error`, and graph-schema validation error
-- [ ] AC-06: Existing linter checks still run when a compile-validation error
+- [x] AC-06: Existing linter checks still run when a compile-validation error
       is appended and the parsed YAML shape allows them to run
-- [ ] AC-07: JSON mode still emits `LintResult` JSON with compile-validation
+- [x] AC-07: JSON mode still emits `LintResult` JSON with compile-validation
       failures as normal lint issues; errors exit 1, warnings-only or clean
       runs exit 0
-- [ ] AC-08: Parenthesized grouping remains rejected by compile validation,
+- [x] AC-08: Parenthesized grouping remains rejected by compile validation,
       lint, and runtime; the flat-edge workaround is documented in the lint
       reference
-- [ ] AC-09: A changelog fragment is added, targeted linter/CLI tests pass,
+- [x] AC-09: A changelog fragment is added, targeted linter/CLI tests pass,
       and the full unit suite plus lint gates pass
 
 ## Prior Art Disposition
