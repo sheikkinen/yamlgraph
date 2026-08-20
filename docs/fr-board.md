@@ -28,7 +28,7 @@
 | FR-614 | PARSE-FAILURE (REFUTED by the FR-613 K=6 Raw ) | yamlgraph |  | FR-614-roundtrip-skeleton-p4-scene-type-close-op.md |
 | FR-663 | PARSE-FAILURE (Planned) | yamlgraph |  | FR-663-changelog-req-legacy-cap-false-positive.md |
 | FR-815 | PARSE-FAILURE (Split — see judgement; replace) | yamlgraph |  | FR-815-knowledge-graph-phase2-cluster-naming-judge-narrowing.md |
-| FR-828 | PARSE-FAILURE (Enforcement attempted 2026-08-) | yamlgraph |  | FR-828-gitclaw-oulu-civic-intelligence-cookbook.md |
+| FR-828 | PARSE-FAILURE (Enforcement attempt 2 stopped ) | yamlgraph |  | FR-828-gitclaw-oulu-civic-intelligence-cookbook.md |
 | FR-111 | Judged | yamlgraph |  | FR-111-compiled-graph-cache.md |
 | FR-179 | Judged | yamlgraph |  | FR-179-asterisk-ari-audiosocket-provider.md |
 | FR-210 | Judged | yamlgraph |  | FR-210-subgraph-interrupt-state-commit.md |

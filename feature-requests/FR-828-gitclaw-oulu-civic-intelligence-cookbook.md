@@ -2,8 +2,9 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Enforcement attempted 2026-08-20 — BLOCKED by copied-ledger issue
-identity collision; FR-830 required before fresh retry
+**Status:** Enforcement attempt 2 stopped 2026-08-20 — FR-830 fixed copied-ledger
+identity; fresh intake reached enforcement, which timed out after 900 seconds;
+FR-831 decomposition required before downstream work
 **Effort:** 1 day
 **Requested:** 2026-08-20
 **Prior art:** FR-827 is the direct gitclaw platform dependency; FR-824 is the
@@ -332,6 +333,30 @@ manually. Creating placeholder issues until an unused number appears would game
 the first-adopter acceptance criterion and leave every new fork broken for its
 first three issues. Enforcement stops for FR-830; the failed public witness
 remains visible.
+
+## Enforcement Attempt 2 (2026-08-20)
+
+- FR-830 was enforced and the corrected source template reached commit
+      `fc5a844`.
+- A fresh replacement repository was created at
+      `https://github.com/sheikkinen/gitclaw-oulu-civic-intelligence`, initial
+      commit `b7e0bcf`.
+- Repository tests run `32332856441` and Copilot authentication run
+      `32332872063` completed green.
+- Exact owner-authored issue #1 triggered intake run `32332927531`.
+- Repository-scoped ledger identity worked: the fresh issue advanced through
+      `seen -> planned -> judged_approved` without colliding with copied canonical
+      issue records.
+- The `enforce` Copilot node then consumed its 900-second allowance and timed
+      out. The issue remains open and the ledger remains intentionally interrupted.
+- No generated implementation was committed and no manual repair, rerun,
+      relabel, timeout increase, or synthetic terminal ledger transition occurred.
+
+FR-831 records the stop decision: the issue combined private prior-art recall,
+three source implementations, normalization, failure policy, graph authoring,
+and publication proof in one enforcement call. Further work is blocked pending
+the separately judged staged source-reuse plan; this failed witness remains
+preserved.
 
 ## Prior Art Disposition
 
