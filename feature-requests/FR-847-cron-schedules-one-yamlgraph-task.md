@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Removal / responsibility correction
-**Status:** Proposed
+**Status:** Completed 2026-08-21 — enforced in GitClaw at `a01250622f0566b588099c6b72e8bd03ba0eb94c`
 **Effort:** 0.5 day
 **Requested:** 2026-08-20
 **Depends on:** FR-845
@@ -95,7 +95,7 @@ example; no horoscope or software-craft aphorism example remains.
 
 `.github/workflows/cron.yml` retains:
 
-- `schedule` at `0 6 * * *`;
+- `schedule` at `0 4 * * *` (human override during enforcement);
 - `workflow_dispatch`;
 - `permissions: contents: read`;
 - `actions/checkout@v4` with `persist-credentials: false`;
@@ -248,7 +248,7 @@ Authorized in `sheikkinen/gitclaw`:
 
 The focused workflow tests mechanically assert:
 
-1. schedule remains `0 6 * * *` and `workflow_dispatch` remains present;
+1. schedule is `0 4 * * *` and `workflow_dispatch` remains present;
 2. task-path validation occurs before every `yamlgraph` invocation;
 3. empty, absolute, traversal, missing, untracked, directory, symlink, and
   non-`.yaml` paths fail before execution;
@@ -279,21 +279,63 @@ Not authorized:
 
 ## Acceptance Criteria
 
-- [ ] AC-01: RED proves the current cron path runs `python -m tools.cron_run`, discovers multiple feature graphs, interprets graph output state, supports composition scheduling/envelopes, writes rendered output/failure artifacts, and commits outputs instead of only scheduling one configured task
-- [ ] AC-02: `.github/workflows/cron.yml` retains the `0 6 * * *` schedule and `workflow_dispatch`
-- [ ] AC-03: The workflow defines `YAMLGRAPH_TASK: ${{ vars.YAMLGRAPH_TASK }}` and validates it before execution
-- [ ] AC-04: Empty, absolute, traversal, missing, untracked, directory, symlink, and non-`.yaml` task paths fail before `yamlgraph`; exactly one tracked regular relative `.yaml` path is accepted
-- [ ] AC-05: The workflow has `permissions: contents: read`, checkout uses `persist-credentials: false`, and no generic git identity, `git add`, `git commit`, `git push`, output commit, or generic failure-publication step remains
-- [ ] AC-06: The execution line is exactly `yamlgraph graph run "$YAMLGRAPH_TASK" --full`; there is no wrapper, `--json`, scheduler-provided `date`/`city`, `source_snapshots`, output parser, feature discovery, or state interpretation
-- [ ] AC-07: The execution step exposes only `ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}` for the starter graph; no `GH_TOKEN`, generic secret forwarding, new secret, or write-capable credential is introduced
-- [ ] AC-08: README documents setting the repository variable to starter value `YAMLGRAPH_TASK=features/haiku/graph.yaml`, with no workflow fallback, followed by `yamlgraph graph run "$YAMLGRAPH_TASK" --full`; the local execution command byte-for-byte matches the workflow command
-- [ ] AC-09: `features/haiku/graph.yaml` is authored through the canonical adapter, defaults `city` to `Oulu, Finland`, permits CLI city override, resolves `date` through a `type: tool` shell command exactly `date +%Y-%m-%d`, passes city/date state to the haiku prompt, contains no `type: python`, and runs independently with the exact no-argument scheduler command
-- [ ] AC-10: `features/haiku/` is the sole remaining example feature directory; all 6 tracked software-craft aphorism files and all 3 tracked horoscope files are deleted; no replacement example or graph/prompt change outside AC-09 is introduced
-- [ ] AC-11: `tools/cron_run.py`, its focused tests, multi-feature discovery, composition scheduling, output/failure rendering, attribution footer, state-output compatibility parsing, and output Git commit machinery are absent
-- [ ] AC-12: GitClaw generic executor/intake/control-bundle surfaces and YAMLGraph source are unchanged
-- [ ] AC-13: Production scheduled-execution code decreases from workflow plus Python runner to workflow-only implementation; final production line count, deleted cron-test count, and 9 deleted example files are recorded
-- [ ] AC-14: Focused workflow contract tests, the full remaining GitClaw suite, haiku graph lint, no-argument Oulu run, city-override run, workflow text/parse checks, authoring-report verification, and token/secret scans pass with commands or log paths recorded; unavailable provider credentials are recorded as blocked, not successful
-- [ ] AC-15: A human reviews the destructive workflow/runtime/test/example deletion diff, graph-authoring diff/report, and validation evidence before push
+- [x] AC-01: RED proves the current cron path runs `python -m tools.cron_run`, discovers multiple feature graphs, interprets graph output state, supports composition scheduling/envelopes, writes rendered output/failure artifacts, and commits outputs instead of only scheduling one configured task
+- [x] AC-02: `.github/workflows/cron.yml` uses the human-approved `0 4 * * *` schedule and retains `workflow_dispatch`
+- [x] AC-03: The workflow defines `YAMLGRAPH_TASK: ${{ vars.YAMLGRAPH_TASK }}` and validates it before execution
+- [x] AC-04: Empty, absolute, traversal, missing, untracked, directory, symlink, and non-`.yaml` task paths fail before `yamlgraph`; exactly one tracked regular relative `.yaml` path is accepted
+- [x] AC-05: The workflow has `permissions: contents: read`, checkout uses `persist-credentials: false`, and no generic git identity, `git add`, `git commit`, `git push`, output commit, or generic failure-publication step remains
+- [x] AC-06: The execution line is exactly `yamlgraph graph run "$YAMLGRAPH_TASK" --full`; there is no wrapper, `--json`, scheduler-provided `date`/`city`, `source_snapshots`, output parser, feature discovery, or state interpretation
+- [x] AC-07: The execution step exposes only `ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}` for the starter graph; no `GH_TOKEN`, generic secret forwarding, new secret, or write-capable credential is introduced
+- [x] AC-08: README documents setting the repository variable to starter value `YAMLGRAPH_TASK=features/haiku/graph.yaml`, with no workflow fallback, followed by `yamlgraph graph run "$YAMLGRAPH_TASK" --full`; the local execution command byte-for-byte matches the workflow command
+- [x] AC-09: `features/haiku/graph.yaml` is authored through the canonical adapter, defaults `city` to `Oulu, Finland`, permits CLI city override, resolves `date` through a `type: tool` shell command exactly `date +%Y-%m-%d`, passes city/date state to the haiku prompt, contains no `type: python`, and runs independently with the exact no-argument scheduler command
+- [x] AC-10: `features/haiku/` is the sole remaining example feature directory; all 6 tracked software-craft aphorism files and all 3 tracked horoscope files are deleted; no replacement example or graph/prompt change outside AC-09 is introduced
+- [x] AC-11: `tools/cron_run.py`, its focused tests, multi-feature discovery, composition scheduling, output/failure rendering, attribution footer, state-output compatibility parsing, and output Git commit machinery are absent
+- [x] AC-12: GitClaw generic executor/intake/control-bundle surfaces and YAMLGraph source are unchanged
+- [x] AC-13: Production scheduled-execution code decreases from workflow plus Python runner to workflow-only implementation; final production line count, deleted cron-test count, and 9 deleted example files are recorded
+- [x] AC-14: Focused workflow contract tests, the full remaining GitClaw suite, haiku graph lint, no-argument Oulu run, city-override run, workflow text/parse checks, authoring-report verification, and token/secret scans pass with commands or log paths recorded; unavailable provider credentials are recorded as blocked, not successful
+- [x] AC-15: A human reviews the destructive workflow/runtime/test/example deletion diff, graph-authoring diff/report, and validation evidence before push
+
+## Implementation Status — 2026-08-21
+
+Implemented locally in `sheikkinen/gitclaw` with separate TDD commits:
+
+- RED `f8af6f1`: 11 focused contract failures against the old scheduler/runtime;
+- GREEN `6714fd0`: one-task workflow, self-sufficient haiku, README update,
+  runner/test/example deletion, and obsolete-test purge;
+- follow-up `a012506`: align README's documented run time with the human-
+  approved 04:00 UTC schedule and add its contract assertion.
+
+Validation evidence:
+
+- `python -m pytest tests/test_cron_contract.py -q --no-header`: 11 passed;
+- `python -m pytest tests/ -q`: 112 passed;
+- `yamlgraph graph lint features/haiku/graph.yaml`: no issues;
+- no-argument Oulu run: date tool completed, city was `Oulu, Finland`, and a
+  non-empty weather haiku was produced;
+- city-override run: date tool completed, city was `Rovaniemi, Finland`, and a
+  non-empty weather haiku was produced;
+- `python -m tools.control_bundle`: verified;
+- token-shaped secret scan: zero findings;
+- protected generic executor/intake/control-bundle implementation surfaces:
+  unchanged.
+
+Subtraction evidence:
+
+- scheduled production: 50-line workflow + 439-line runner (489) to 49-line
+  workflow only;
+- focused cron tests: 563 lines / 26 test functions deleted;
+- examples: 9 tracked files deleted; only `features/haiku/` remains;
+- GREEN diff: 90 insertions, 1,619 deletions across 20 files.
+
+**Human schedule override:** During enforcement, a concurrent edit changed the
+schedule from `0 6 * * *` to `0 4 * * *`. The human explicitly selected “Keep
+04:00 UTC.” This is the only deviation from the amended judgement; no new
+schedule was added.
+
+**Human review:** The operator reviewed the immutable three-commit range
+`f8af6f1..a012506` (218 insertions, 1,617 deletions across 20 files) and selected
+“Approve push.” GitClaw `main` was pushed and local/remote heads both resolve to
+`a01250622f0566b588099c6b72e8bd03ba0eb94c`.
 
 ## Prior Art Disposition
 
