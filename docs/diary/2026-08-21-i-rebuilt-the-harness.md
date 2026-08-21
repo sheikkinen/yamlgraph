@@ -41,6 +41,6 @@ global incoherence becomes permanent.
 
 ## Seed
 
-What is the smallest typed publication intent that would let a YAMLGraph task
-remain semantic, a GitOps adapter remain mechanical, and an acceptance script
-remain an observer?
+What is the smallest task result GitOps needs to publish mechanically while the
+issue remains the lifecycle record and acceptance only reports the run and
+changed files?

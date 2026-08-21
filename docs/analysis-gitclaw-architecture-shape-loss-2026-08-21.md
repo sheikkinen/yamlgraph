@@ -64,21 +64,138 @@ packaging, contract reconciliation, publication, and observation evolved as
 implementation details. They now make product decisions without an architecture
 contract.
 
-The missing document would have needed to answer:
+The operator decisions answer those ownership questions directly.
 
-1. Who owns interpretation of an issue command?
-2. Is an issue itself the immutable request, or must it become a repository
-   artifact?
-3. Which artifacts constitute authority for each operation?
-4. Who may inspect artifact semantics: the skill, the model, or deterministic
-   code?
-5. Does intake own Git commits, or does a GitOps component receive a publication
-   intent?
-6. What partial side effects are possible, and who reconciles them?
-7. Is acceptance an observer or another lifecycle orchestrator?
+### 1. YAMLGraph owns issue-command interpretation
 
-Because these questions were unanswered, the code answered them repeatedly and
-inconsistently.
+A small classification graph interprets the issue. This is a direct dogfood use
+of YAMLGraph: issue title/body enter one graph and a structured result names the
+operation plus its inputs. Command interpretation is not a Python regex API and
+does not belong in the intake workflow.
+
+The classifier should be deliberately small. It does not execute the operation,
+inspect output files, or publish Git. Its only responsibility is translating an
+issue into a named task invocation. Classification failure is an ordinary task
+failure reported on the issue.
+
+### 2. The issue is the request and owns its lifecycle
+
+The premise that a request must be made immutable as a repository file is
+wrong. The GitHub issue is the request object. It already has stable identity,
+author, timestamps, edit events, labels, comments, open/closed state, and links
+to runs and PRs. Those are its lifecycle.
+
+An execution consumes the issue snapshot associated with its GitHub event and
+run. An edit creates a later lifecycle event; it does not mutate a supposedly
+immutable repository request. There is no need to create, hash, commit, and
+reverify `features/issue-<n>-<run>/request.json`. That duplicate record is what
+allowed intake state to leak into the Plan branch.
+
+The issue can be cited by repository/number and run ID. If exact input bytes are
+needed for diagnosis, they belong in run evidence, not in the product diff.
+
+### 3. Separate artifact authority is probably invented
+
+GitClaw needs operation inputs and outputs, not an additional authority engine.
+For example:
+
+- Plan consumes an issue and produces a feature request.
+- Judge consumes a feature request and produces a judgement.
+- Enforce consumes the plan/judgement selected by the issue and produces a
+  code diff or PR.
+- Review consumes the PR and governing plan/judgement and produces a review.
+
+Calling these files “authority artifacts” encouraged a second policy layer:
+freeze sets, classify paths, reject mixed authority, verify headings, and decide
+which files may coexist. Most of that is invented ceremony around ordinary task
+inputs and outputs.
+
+Semantic artifacts still matter. The simplification is that their producing and
+consuming tasks define their contracts. GitHub merge remains the human authority
+boundary. No independent Python subsystem needs to infer authority from path
+prefixes.
+
+### 4. Skills and models inspect semantics; code checks mechanics
+
+The skill and model own semantic inspection because Plan, Judge, Enforce, and
+Review are semantic operations. If a plan is incomplete, invoke the judge skill.
+If an implementation does not satisfy the plan, invoke the review skill.
+
+Deterministic code should check only mechanical facts that it can know with
+certainty:
+
+- command/process success;
+- file and Git object existence;
+- repository, branch, commit, and PR identity;
+- changed-file lists;
+- credential separation; and
+- whether a requested GitHub side effect completed.
+
+It should not inspect Markdown headings, verdict phrases, first-line formats,
+or semantic combinations of files. Those checks are weaker duplicates of the
+skills and turn incidental formatting into product policy.
+
+### 5. Intake does not own Git; GitOps starts after task completion
+
+Intake has three responsibilities: authorize the event, pass the issue to the
+classification graph, and invoke the selected task. It does not create request
+files, configure Git identity, commit, switch branches, push, create PRs, or
+comment on publication results.
+
+GitOps is a separate mechanical component. It receives a completed task result:
+the operation, repository/issue identity, changed-file set or existing PR head,
+and publication message. It then owns branch, commit, push, PR create/update,
+and factual issue comment. The semantic task does not need GitHub write
+credentials; intake does not need to understand publication sequencing.
+
+This separation removes the shared-history defect. Intake cannot accidentally
+place request bookkeeping in a product PR because it never commits anything.
+
+### 6. GitOps owns partial-side-effect reconciliation
+
+GitHub publication cannot be atomic. The possible sequence includes:
+
+1. local branch/commit created;
+2. branch pushed;
+3. PR created or updated;
+4. issue comment written; and
+5. issue state or labels updated.
+
+Failure may occur after any step. Rollback is usually the wrong response because
+the remote branch or PR is already durable evidence. GitOps should reconcile
+forward using deterministic identities:
+
+- branch exists but PR does not: create the PR;
+- PR exists but comment does not: write the factual comment;
+- rerun sees both: report the existing result without duplicating either;
+- target PR head changed: stop with an explicit conflict;
+- branch cannot be published: report the local/remote boundary reached.
+
+This is GitOps state, not intake state and not semantic task state. The live
+issue #4 branch-without-PR is the concrete reconciliation case.
+
+### 7. Acceptance is an observer
+
+Acceptance does not reproduce the lifecycle. Its structure is small:
+
+1. create the issue named by the test case;
+2. monitor the resulting workflow;
+3. report workflow conclusion, linked PR, and changed files; and
+4. return success/failure according to the declared external expectation.
+
+It does not classify commands, inspect semantic file content, merge authority
+PRs, propagate skip state, reconstruct publication state, or reconcile GitHub
+side effects. If a later phase requires a committed result, that transition is
+owned by the product lifecycle or an explicit operator action, not by the
+observer.
+
+The current 291-line script violates this decision and should be treated as RED
+evidence, not a foundation. Better product structure should make the acceptance
+observer shorter, not require more script gates.
+
+These decisions expose why the code answered the earlier questions repeatedly
+and inconsistently: responsibilities that belong to YAMLGraph, issue lifecycle,
+semantic skills, and GitOps were all collapsed into intake and verifier code.
 
 ## Mixed Intake and GitOps
 
@@ -212,8 +329,9 @@ load-bearing:
 1. **Trusted trigger:** decide who may spend credentials and inference budget.
 2. **Credential separation:** the reasoning process must not receive repository
    write authority; Git publication remains deterministic.
-3. **Explicit operation artifacts:** each operation must name its required
-   input and produced output, including PR/head identity where relevant.
+3. **Explicit operation contracts:** each YAMLGraph task names its inputs and
+   outputs, including PR/head identity where mechanically relevant; no separate
+   authority classifier infers them from paths.
 4. **Human merge authority:** generated implementation is not automatically
    merged.
 
@@ -227,20 +345,22 @@ No implementation is proposed here. The shape suggested by the evidence is:
 
 ```mermaid
 flowchart LR
-    E[GitHub event adapter] --> T[Named YAMLGraph task]
-    T --> I[Typed publication intent]
-    I --> G[GitOps adapter]
+      I[GitHub issue lifecycle] --> C[Classification graph]
+      C --> T[Named YAMLGraph task / skill]
+      T --> G[GitOps adapter]
     G --> A[GitHub artifact]
     A --> O[Read-only observer]
 ```
 
-- The event adapter authorizes and translates; it does not commit files.
-- A named YAMLGraph task owns one operation and its semantic artifacts.
-- The task returns a typed publication intent rather than leaving arbitrary
-  working-tree state for a scanner to interpret.
+- The issue is the request and lifecycle record; intake only authorizes and
+   invokes.
+- A small YAMLGraph classifier selects one named task.
+- The named YAMLGraph task and its skill own semantics and produce ordinary
+   operation outputs.
 - GitOps owns branch/commit/push/PR/comment and partial-side-effect
   reconciliation.
-- Acceptance observes typed outcomes; it does not reproduce lifecycle logic.
+- Acceptance creates an issue, monitors the run, and reports changed files; it
+   does not reproduce lifecycle logic.
 
 Whether this exact shape is adopted requires a separately researched and judged
 feature request. The immediate conclusion is narrower: adding more gates to the
