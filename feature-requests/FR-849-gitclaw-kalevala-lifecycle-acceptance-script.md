@@ -2,12 +2,12 @@
 
 **Priority:** HIGH
 **Type:** Acceptance test / investigation
-**Status:** Proposed
+**Status:** Completed 2026-08-21 - script published in GitClaw at `69fc2ce`
 **Effort:** 0.5 day
 **Requested:** 2026-08-21
 **Depends on:** FR-845, FR-847, FR-848
-**First consumer / first event:** The operator runs one shell script against an
-explicit disposable GitClaw repository and receives a durable RED witness at
+**First consumer / first event:** The operator runs one shell script against the
+GitClaw repository named by its required parameter and receives a durable RED witness at
 the first unsupported lifecycle command.
 
 **Prior art:** FR-845 introduced exact `Plan`, `Enforce`, `Review`, and `Revise`
@@ -19,7 +19,7 @@ current consumer: a repeatable shell witness for the full desired lifecycle.
 ## Summary
 
 Add one executable shell acceptance script to GitClaw. It creates six GitHub
-issues sequentially in a preconfigured disposable GitClaw repository:
+issues sequentially in the GitClaw repository supplied as its parameter:
 
 1. plan conversion of the haiku example to Kalevala runic format;
 2. judge the committed plan;
@@ -78,9 +78,9 @@ their declared expectations.
 
 Before lifecycle support exists, the same script exits nonzero with a durable
 RED evidence directory identifying the first failed expectation and preserving
-workflow logs and changed-file observations. It never mutates canonical
-`sheikkinen/gitclaw` and never supplies a GitHub credential through environment
-variables or command arguments.
+workflow logs and changed-file observations. The operator-selected repository
+is the mutation boundary; the script never supplies a GitHub credential through
+environment variables or command arguments.
 
 ## Proposed Solution
 
@@ -100,10 +100,12 @@ shell tools plus `git` and `gh`. It is not part of production intake execution.
 Invocation:
 
 ```bash
-acceptance/kalevala-lifecycle.sh owner/disposable-gitclaw-repo
+acceptance/kalevala-lifecycle.sh owner/repo
 ```
 
-The target repository must already:
+The repository parameter is required and is the sole target authority. The
+operator is responsible for selecting and configuring the repository. It must
+already:
 
 - contain the GitClaw template under test;
 - have Actions enabled;
@@ -113,14 +115,10 @@ The target repository must already:
 The script:
 
 - rejects missing or malformed `owner/repo`;
-- refuses `sheikkinen/gitclaw` exactly;
 - fails before mutation if inherited `GH_TOKEN`, `GITHUB_TOKEN`, or another
   GitHub token variable used by the script is set;
-- verifies `gh auth status` and repository visibility before creating issues;
-- verifies Actions availability and committed target paths
-  `.github/workflows/intake.yml`, `gitclaw.yaml`, the current control-bundle
-  verifier surface, `features/haiku/graph.yaml`, and
-  `features/haiku/prompts/haiku.yaml` before creating issues;
+- verifies `gh auth status` and that the named repository exists before
+  creating issues;
 - does not read, print, export, forward, create, or update secrets;
 - does not set `GH_TOKEN`, `GITHUB_TOKEN`, or another token variable;
 - does not call `gh auth login`; and
@@ -209,8 +207,7 @@ pairs judgement with planning. The first execution must:
 - exit nonzero;
 - identify failed/skipped expectations;
 - preserve all evidence gathered before failure;
-- avoid repairing parser/workflow/executor behavior; and
-- leave the canonical GitClaw repository untouched.
+- avoid repairing parser/workflow/executor behavior.
 
 The RED result is not a failed implementation of FR-849. It is FR-849's primary
 acceptance artifact and input to a later feature request.
@@ -223,7 +220,7 @@ Authorized:
 - FR-849, sibling judgement, generated FR board, and diary reflection in
   YAMLGraph;
 - creation of issues, intake runs, authority PR merges, implementation PR, and
-  evidence in the explicitly supplied disposable repository during execution.
+  evidence in the explicitly supplied repository during execution.
 
 Not authorized in GitClaw:
 
@@ -236,20 +233,60 @@ Not authorized in GitClaw:
 
 ## Acceptance Criteria
 
-- [ ] AC-01: GitClaw diff contains exactly one new tracked executable file, `acceptance/kalevala-lifecycle.sh`; no existing tracked file changes
-- [ ] AC-02: Script passes `bash -n`; `shellcheck` passes when available, and absence is recorded
-- [ ] AC-03: Missing/malformed/canonical repository, failed keyring auth, unavailable repository/Actions, or missing intake, executor, control-verifier, haiku graph, or prompt fails before GitHub mutation
-- [ ] AC-04: Script rejects or explicitly unsets inherited `GH_TOKEN`, `GITHUB_TOKEN`, and every GitHub token variable it could consume; it never sets, prints, forwards, creates, or updates tokens/secrets and never calls `gh auth login`
-- [ ] AC-05: Script encodes the six exact dynamic issue titles in required order and never creates a later issue until the preceding workflow and phase gates pass
-- [ ] AC-06: Plan records changed files and fails before merge unless exactly one new FR exists with no judgement, implementation, workflow, graph, prompt, or runtime path
-- [ ] AC-07: Judge dynamically uses the committed FR, requires and records a judgement-only authority PR, and only Plan/Judge PRs may be squash-merged
-- [ ] AC-08: Enforce dynamically discovers and records the implementation PR, which remains unmerged
-- [ ] AC-09: Review, Test, and Run observe the implementation PR head without direct file, Git, secret, permission, workflow, issue-close, or merge mutation
-- [ ] AC-10: Every phase records full logs, URLs, conclusion, changed-file-list path, and machine-readable status/reason; later phases are explicitly skipped after RED
-- [ ] AC-11: Run YAMLGraph requires lint exit zero, graph-run exit nonzero, both outputs/exit codes, and an empty changed-file list; graph-run zero or missing evidence is RED
-- [ ] AC-12: First real disposable-repository execution exits nonzero at the first unsupported/mismatched lifecycle expectation and preserves all gathered RED evidence
-- [ ] AC-13: Existing GitClaw suite, haiku lint, and control-bundle verification remain green with evidence recorded
-- [ ] AC-14: Human reviews mutation boundary, token guard, target preflight, authority merges, and first RED evidence before push
+- [x] AC-01: GitClaw diff contains exactly one new tracked executable file, `acceptance/kalevala-lifecycle.sh`; no existing tracked file changes
+- [x] AC-02: Script passes `bash -n`; `shellcheck` passes when available, and absence is recorded
+- [x] AC-03: Missing or malformed repository parameter, failed keyring auth, or unavailable named repository fails before GitHub mutation; the script applies no canonical/disposable classification
+- [x] AC-04: Script rejects or explicitly unsets inherited `GH_TOKEN`, `GITHUB_TOKEN`, and every GitHub token variable it could consume; it never sets, prints, forwards, creates, or updates tokens/secrets and never calls `gh auth login`
+- [x] AC-05: Script encodes the six exact dynamic issue titles in required order and never creates a later issue until the preceding workflow and phase gates pass
+- [x] AC-06: Plan records changed files and fails before merge unless exactly one new FR exists with no judgement, implementation, workflow, graph, prompt, or runtime path
+- [x] AC-07: Judge dynamically uses the committed FR, requires and records a judgement-only authority PR, and only Plan/Judge PRs may be squash-merged
+- [x] AC-08: Enforce dynamically discovers and records the implementation PR, which remains unmerged
+- [x] AC-09: Review, Test, and Run observe the implementation PR head without direct file, Git, secret, permission, workflow, issue-close, or merge mutation
+- [x] AC-10: Every phase records full logs, URLs, conclusion, changed-file-list path, and machine-readable status/reason; later phases are explicitly skipped after RED
+- [x] AC-11: Run YAMLGraph requires lint exit zero, graph-run exit nonzero, both outputs/exit codes, and an empty changed-file list; graph-run zero or missing evidence is RED
+- [x] AC-12: First real execution against the operator-selected repository exits nonzero at the first unsupported/mismatched lifecycle expectation and preserves all gathered RED evidence
+- [x] AC-13: Existing GitClaw suite, haiku lint, and control-bundle verification remain green with evidence recorded
+- [x] AC-14: Human reviews mutation boundary, token guard, repository-parameter authority, authority merges, and first RED evidence before push
+
+## Implementation Status - 2026-08-21
+
+GitClaw implementation is exactly one untracked executable artifact:
+`acceptance/kalevala-lifecycle.sh`. No existing tracked GitClaw file changed.
+
+Static/local validation:
+
+- `bash -n acceptance/kalevala-lifecycle.sh`: passed;
+- ShellCheck: unavailable and recorded;
+- inherited `GH_TOKEN` refusal: passed;
+- full GitClaw suite: 117 passed;
+- haiku graph lint: no issues;
+- control bundle: verified.
+
+First real execution targeted the operator-supplied `sheikkinen/gitclaw`:
+
+- issue: `https://github.com/sheikkinen/gitclaw/issues/4`;
+- run: `https://github.com/sheikkinen/gitclaw/actions/runs/32443301071`;
+- evidence: `gitclaw-kalevala-acceptance-20260821T062500-8398` under the
+  platform temporary directory;
+- result: RED at Plan; Judge, Enforce, Review, Test, and Run YAMLGraph skipped;
+- workflow: generic agent and artifact verification succeeded; publisher failed
+  while creating the PR after pushing branch `gitclaw/issue-4-plan`;
+- orphan branch head: `a4076a9f4f90cb174df0d75cf83a97536c0e310d`;
+- Plan semantic gate also failed: the branch contains immutable request, FR,
+  and sibling judgement rather than exactly one FR;
+- no PR was created or merged; no later issue was created.
+
+The first execution exposed an interactive `gh run watch` defect in the test
+script itself. The sole script was repaired to use noninteractive API polling;
+the product RED was preserved rather than repaired. No GitClaw lifecycle or
+publisher code changed.
+
+**Human review and publication:** The operator reviewed the sole executable
+script, repository-parameter mutation boundary, keyring-only token guard,
+Plan/Judge authority merge gates, and first RED evidence, then selected
+“Approve commit and push.” GitClaw `main` was pushed at
+`69fc2ce` (`acceptance/kalevala-lifecycle.sh`, mode `100755`, no other GitClaw
+path changed).
 
 ## Alternatives Considered
 
@@ -259,8 +296,8 @@ Not authorized in GitClaw:
   violate the requested one-command-per-issue sequence.
 - **Use direct local function calls:** rejected; the subject under test is
   GitHub issue intake, workflow execution, publication, and observable diffs.
-- **Run against canonical GitClaw:** rejected; acceptance creates issues, PRs,
-  branches, commits, and two authority merges.
+- **Script-selected safe repository list:** rejected; the required repository
+  parameter is the operator's explicit target authority.
 - **Inject a temporary token:** rejected; the operator's existing `gh` keyring
   session is the explicit boundary.
 - **Treat graph failure as overall failure:** rejected; this scenario tests
@@ -282,7 +319,7 @@ for the acceptance script only.
 |---|---|---|
 | R-1 | Coupled current Plan could be merged before Judge RED | Require exactly one FR and no judgement/implementation/platform path before Plan merge |
 | R-2 | “Does not set token” did not prevent inherited token consumption | Fail before mutation on inherited GitHub token variables or explicitly unset them for every `gh` call |
-| R-3 | Wrong/unconfigured repository could masquerade as lifecycle RED | Preflight repository, Actions, intake, executor/control, and retained haiku artifacts before issue creation |
+| R-3 | Wrong/unconfigured repository could masquerade as lifecycle RED | Superseded by operator direction: the required repository parameter is authoritative; only syntax, keyring auth, and repository existence are checked |
 | R-4 | Workflow success did not prove phase semantics | Require machine-readable phase summaries and substantive Run exit-code/output/no-diff evidence |
 
 **Purge list:** No product repair, helper library, workflow, parser, prompt,
