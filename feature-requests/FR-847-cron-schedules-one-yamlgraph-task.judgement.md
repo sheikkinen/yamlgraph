@@ -1,6 +1,11 @@
 # Judgement: FR-847 Cron Schedules One YAMLGraph Task
 
-**Verdict:** APPROVED WITH REVISIONS — the subtraction is strategically correct, but authority activates only after R-1 through R-3 are folded into the FR.
+**Original verdict (superseded 2026-08-21):** APPROVED WITH REVISIONS — the
+subtraction was strategically correct, with R-1 through R-3 folded into the FR.
+
+**Amended verdict:** APPROVED WITH REVISIONS — the responsibility correction,
+Oulu weather haiku self-sufficiency, and example pruning are sound. Authority is
+active after amended revisions A-1 and A-2 were folded into the FR.
 
 **Reviewed against:** `feature-requests/FR-847-cron-schedules-one-yamlgraph-task.md`; `.github/skills/judge-fr/doctrine.md`; `.github/skills/judge-fr/judgement.template.md`; `.github/copilot-instructions.md`; `feature-requests/FR-827-gitclaw-forkable-runner.md`; `feature-requests/FR-835-gitclaw-composition-boundary.md`; `feature-requests/FR-836-gitclaw-candidate-output-contract.md`; `feature-requests/FR-819-github-native-digest-poc-repo.md`; `feature-requests/FR-845-gitclaw-generic-skill-executor.md`; `feature-requests/FR-298-marketing-e2e-test-outcaller.md`; `/Users/sheikki/.copilot/skills/call-me-maybe/SKILL.md`; `../gitclaw/.github/workflows/cron.yml`; `../gitclaw/tools/cron_run.py`.
 
@@ -8,6 +13,58 @@
 FR-836 output compatibility are retired from the basic template; FR-819 remains
 the application-owned output precedent; call-me-maybe is the direct one-graph
 side-effect precedent; FR-845 deliberately deferred cron to this separate FR.
+
+## Amended Judgement — 2026-08-21
+
+The amended scope exposes the design error in the previous approach: cron
+injected `date`, so the supposed task was not independently runnable. The
+scheduler must invoke a complete task. The retained haiku graph therefore owns
+current-date resolution through deterministic shell tooling, while an optional
+`city` variable defaults to `Oulu, Finland`. No scheduler wrapper or Python date
+node is justified for `date +%Y-%m-%d`.
+
+The target tree grounds the pruning scope: retain the six tracked files under
+`features/haiku/`; delete the six software-craft aphorism files and three
+horoscope files. Material haiku graph/prompt changes must use the canonical
+graph-authoring adapter and verified authoring report.
+
+### Amended required revisions
+
+| # | Finding | Folded resolution |
+|---|---|---|
+| A-1 | The direct haiku task still requires a provider credential | Preserve exactly the existing non-write `ANTHROPIC_API_KEY` execution-step mapping; forbid `GH_TOKEN`, write credentials, generic secret forwarding, and new secrets |
+| A-2 | “Documented default” could imply a hidden workflow fallback | Call `features/haiku/graph.yaml` the README starter task value; require owners to set `vars.YAMLGRAPH_TASK`; keep empty configuration as a pre-execution failure |
+
+### Amended frozen scope
+
+- Simplify `.github/workflows/cron.yml` to one validated direct
+	`yamlgraph graph run "$YAMLGRAPH_TASK" --full` invocation with read-only
+	repository permission and only the explicit provider environment.
+- Delete `tools/cron_run.py`, focused runner tests, composition/output parsing,
+	generic publication machinery, horoscope, and software-craft aphorism.
+- Retain only `features/haiku/`; only its graph, prompt, and authoring report may
+	change, through the canonical graph-authoring route.
+- Make the graph default `city` to `Oulu, Finland`, allow CLI city override,
+	resolve `date` with a `type: tool` command exactly `date +%Y-%m-%d`, and pass
+	city/date state to the haiku prompt. No `type: python` date node.
+- Update README and focused contract tests. Record line/test/example deletion,
+	graph lint/run, city override, authoring proof, secret scan, and human review.
+
+Not authorized: YAMLGraph core; generic executor/intake/control bundle; new
+examples, secrets, dependencies, schedules, write permission, output
+publication, scheduler-provided task variables, wrapper scripts, retained haiku
+FR/judgement/review mutation, or semantic expansion beyond optional city and
+self-resolved current date.
+
+### Amended enforcement gates
+
+1. Do not re-run the judge during enforcement.
+2. Use the canonical authoring adapter for the haiku graph/prompt change.
+3. Keep cron repository access read-only and provider environment explicit.
+4. Stop for replanning if the exact direct command cannot run the task; do not
+	 restore scheduler-owned inputs or a wrapper.
+5. Human review of deletion, graph-authoring diff/report, and validation
+	 evidence is mandatory before push.
 
 ## What is sound
 

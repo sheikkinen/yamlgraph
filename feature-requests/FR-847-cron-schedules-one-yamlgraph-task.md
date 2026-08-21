@@ -10,6 +10,9 @@
 path and sees the scheduled workflow execute the same `yamlgraph graph run`
 command they can run manually from the repository checkout.
 
+**Amended:** 2026-08-21 — prune GitClaw's examples to the existing Oulu weather
+haiku and use it as the sole scheduled-task witness.
+
 **Prior art:** FR-827 introduced a small daily runner, but FR-835 expanded it
 into a multi-feature composition DAG and process supervisor; FR-836 added output
 compatibility parsing. Those mechanisms served the abandoned Oulu composition
@@ -31,6 +34,11 @@ Delete `tools/cron_run.py`, its multi-feature composition/process tests, output
 attribution/commit machinery, and automatic feature discovery. Configure one
 graph path and invoke it directly from `.github/workflows/cron.yml` with
 `yamlgraph graph run`.
+
+Prune GitClaw's three example feature directories to one: retain the existing
+`features/haiku/` Oulu weather haiku and delete the horoscope and software-craft
+aphorism examples. One task, one example, and one scheduler command demonstrate
+the boundary without carrying a catalogue.
 
 The YAMLGraph task is independently runnable using the exact same command. The
 task—not cron—owns its outputs and effects: phone calls, emails, files,
@@ -78,7 +86,8 @@ It installs YAMLGraph and runs one configured graph using one direct command.
 The README shows the identical local command. Running locally or from cron
 produces the same task-owned effects and artifacts. GitClaw contains no Python
 cron runner, graph discovery, composition scheduler, state-output parser,
-output formatter, or output commit step.
+output formatter, or output commit step. `features/haiku/` is the only retained
+example; no horoscope or software-craft aphorism example remains.
 
 ## Proposed Solution
 
@@ -96,6 +105,18 @@ output formatter, or output commit step.
 The workflow removes `permissions: contents: write`, git identity setup,
 `git add`, `git commit`, `git push`, and generic output/failure publication.
 The basic scheduler receives no generic repository write credential.
+
+The direct execution step retains exactly the starter graph's existing
+non-write provider mapping:
+
+```yaml
+env:
+  ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+```
+
+It receives no `GH_TOKEN`, generic secret forwarding, new secret, or other
+credential. The provider key enables the graph's LLM call; it grants no
+repository publication authority.
 
 It defines one repository-configurable task path:
 
@@ -115,9 +136,11 @@ yamlgraph graph run "$YAMLGRAPH_TASK" --full
 ```
 
 No generic `date` variable is injected. Task inputs belong to the task: it may
-derive current time itself, use prompt/tool configuration, or be wrapped by a
-task-specific script if its domain genuinely requires arguments. The scheduler
-does not invent a universal task schema.
+derive current time itself or use prompt/tool configuration. The scheduler does
+not invent a universal task schema or call a task-specific wrapper. The fact
+that the previous haiku command required cron to pass `date` is the design error
+this FR corrects: a scheduled task must be complete before a scheduler invokes
+it.
 
 ### 2. Independent execution
 
@@ -132,12 +155,31 @@ That command must run from a normal checkout without GitHub event context. The
 scheduled workflow invokes the same command. GitHub Actions is one trigger, not
 the task runtime API.
 
-The deterministic validation fixture is the existing tracked regular graph
-`features/horoscope/graph.yaml`. Enforcement sets `YAMLGRAPH_TASK` to that path
-for both the local and workflow-equivalent run. If that file is absent,
-untracked, symlinked, or no longer a regular YAML graph at enforcement time,
-stop for replanning; this FR does not authorize creating or modifying a graph
-or prompt artifact.
+The deterministic validation fixture and documented **starter task value** are
+the existing tracked regular graph `features/haiku/graph.yaml`. README instructs
+template owners to set the repository variable `YAMLGRAPH_TASK` to that value.
+The workflow has no hidden fallback: an empty variable fails before execution.
+The graph generates one 5-7-5 haiku about Oulu weather in a dry Finnish stoic
+tone. Enforcement sets `YAMLGRAPH_TASK` to that path for both the local and
+workflow-equivalent run.
+
+The haiku graph is made self-sufficient through the canonical graph-authoring
+route (`scripts/author.sh` and its verified authoring report):
+
+1. top-level graph `variables` defines `city: "Oulu, Finland"` as the default;
+2. callers may override it independently with `--var city="Rovaniemi, Finland"`;
+3. a deterministic `type: tool` node invokes a named shell tool whose command
+  is exactly `date +%Y-%m-%d` and stores stdout in `state.date`;
+4. the LLM node receives `city` and the tool-produced `date` from graph state;
+5. the prompt describes weather for that city/date and preserves the one-haiku,
+  5-7-5, dry Finnish stoicism, no-commentary contract; and
+6. the graph's no-argument execution path remains
+  `yamlgraph graph run "$YAMLGRAPH_TASK" --full`.
+
+No `type: python` node is added. If future domain behavior needs Python, it must
+be a named tool implementation referenced by the graph, never scheduler or
+inline orchestration. Current-date resolution is trivial shell tooling and does
+not justify Python.
 
 ### 3. Task-owned output
 
@@ -174,7 +216,16 @@ Delete in the same reviewed change:
 - generic repository write permission and persisted checkout credentials;
 - multi-feature discovery and `composition.json` scheduling support from the
   basic GitClaw template; and
-- README claims that cron runs and commits every accepted feature.
+- README claims that cron runs and commits every accepted feature;
+- all 6 tracked files under
+  `features/daily-aphorism-about-software-craft/`; and
+- all 3 tracked files under `features/horoscope/`.
+
+Retain only the 6 tracked files under `features/haiku/`: its FR, judgement,
+authoring report, review, graph, and prompt. Only `graph.yaml`,
+`prompts/haiku.yaml`, and `authoring-report.md` may change, and only through the
+canonical graph-authoring route. Do not rename or supplement the directory.
+Pruning the other examples is deletion-only.
 
 Do not preserve the old runner as fallback. FR-835/836 remain historical
 evidence and candidate design input for a separately named advanced composition
@@ -187,6 +238,11 @@ Authorized in `sheikkinen/gitclaw`:
 - `.github/workflows/cron.yml`;
 - deletion of `tools/cron_run.py`;
 - deletion/reduction of cron-specific tests;
+- deletion of `features/daily-aphorism-about-software-craft/` and
+  `features/horoscope/`;
+- canonical authoring-route modification of `features/haiku/graph.yaml`,
+  `features/haiku/prompts/haiku.yaml`, and its authoring report so the task owns
+  current-date resolution and optional city configuration;
 - README scheduled-task setup and responsibility documentation; and
 - focused workflow contract tests using standard-library text/YAML-safe checks.
 
@@ -210,10 +266,16 @@ Not authorized:
 - generic issue executor, command parser, publisher, control bundle, skills,
   hooks, request/reference handling, or intake workflow;
 - YAMLGraph core changes;
-- task graph creation or modification;
+- task graph creation outside the canonical graph-authoring route;
+- modification of retained `features/haiku/FR.md`, `judgement.md`, or
+  `review.md`;
+- creation of replacement/example feature directories;
+- scheduler-provided `date`/`city`, task wrapper scripts, inline Python, or a
+  `type: python` node for date resolution;
 - output formatting/publication code;
-- new secrets, permissions, dependencies, or schedules; or
-- Oulu feature work.
+- generic secret forwarding, new secrets, permissions, dependencies, or
+  schedules; or
+- semantic expansion beyond optional city plus self-resolved current date.
 
 ## Acceptance Criteria
 
@@ -222,20 +284,22 @@ Not authorized:
 - [ ] AC-03: The workflow defines `YAMLGRAPH_TASK: ${{ vars.YAMLGRAPH_TASK }}` and validates it before execution
 - [ ] AC-04: Empty, absolute, traversal, missing, untracked, directory, symlink, and non-`.yaml` task paths fail before `yamlgraph`; exactly one tracked regular relative `.yaml` path is accepted
 - [ ] AC-05: The workflow has `permissions: contents: read`, checkout uses `persist-credentials: false`, and no generic git identity, `git add`, `git commit`, `git push`, output commit, or generic failure-publication step remains
-- [ ] AC-06: The execution line is exactly `yamlgraph graph run "$YAMLGRAPH_TASK" --full`; there is no wrapper Python, `--json`, universal `date` variable, `source_snapshots`, output parser, feature discovery, or state interpretation
-- [ ] AC-07: README documents `YAMLGRAPH_TASK=<path>` followed by `yamlgraph graph run "$YAMLGRAPH_TASK" --full`, byte-for-byte matching the workflow execution command after variable assignment
-- [ ] AC-08: Existing tracked `features/horoscope/graph.yaml` runs independently with the documented local command and through workflow-equivalent shell setup; no graph or prompt artifact is created or modified
-- [ ] AC-09: `tools/cron_run.py`, its focused tests, multi-feature discovery, composition scheduling, output/failure rendering, attribution footer, state-output compatibility parsing, and output Git commit machinery are absent
-- [ ] AC-10: GitClaw generic executor/intake/control-bundle surfaces and YAMLGraph source are unchanged
-- [ ] AC-11: Production scheduled-execution code decreases from workflow plus Python runner to workflow-only implementation; final production line count and deleted test count are recorded
-- [ ] AC-12: Focused workflow contract tests, the full remaining GitClaw suite, the deterministic fixture run, workflow text/parse checks, and token/secret scans pass with commands or log paths recorded
-- [ ] AC-13: A human reviews the destructive workflow/runtime/test deletion diff and validation evidence before push
+- [ ] AC-06: The execution line is exactly `yamlgraph graph run "$YAMLGRAPH_TASK" --full`; there is no wrapper, `--json`, scheduler-provided `date`/`city`, `source_snapshots`, output parser, feature discovery, or state interpretation
+- [ ] AC-07: The execution step exposes only `ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}` for the starter graph; no `GH_TOKEN`, generic secret forwarding, new secret, or write-capable credential is introduced
+- [ ] AC-08: README documents setting the repository variable to starter value `YAMLGRAPH_TASK=features/haiku/graph.yaml`, with no workflow fallback, followed by `yamlgraph graph run "$YAMLGRAPH_TASK" --full`; the local execution command byte-for-byte matches the workflow command
+- [ ] AC-09: `features/haiku/graph.yaml` is authored through the canonical adapter, defaults `city` to `Oulu, Finland`, permits CLI city override, resolves `date` through a `type: tool` shell command exactly `date +%Y-%m-%d`, passes city/date state to the haiku prompt, contains no `type: python`, and runs independently with the exact no-argument scheduler command
+- [ ] AC-10: `features/haiku/` is the sole remaining example feature directory; all 6 tracked software-craft aphorism files and all 3 tracked horoscope files are deleted; no replacement example or graph/prompt change outside AC-09 is introduced
+- [ ] AC-11: `tools/cron_run.py`, its focused tests, multi-feature discovery, composition scheduling, output/failure rendering, attribution footer, state-output compatibility parsing, and output Git commit machinery are absent
+- [ ] AC-12: GitClaw generic executor/intake/control-bundle surfaces and YAMLGraph source are unchanged
+- [ ] AC-13: Production scheduled-execution code decreases from workflow plus Python runner to workflow-only implementation; final production line count, deleted cron-test count, and 9 deleted example files are recorded
+- [ ] AC-14: Focused workflow contract tests, the full remaining GitClaw suite, haiku graph lint, no-argument Oulu run, city-override run, workflow text/parse checks, authoring-report verification, and token/secret scans pass with commands or log paths recorded; unavailable provider credentials are recorded as blocked, not successful
+- [ ] AC-15: A human reviews the destructive workflow/runtime/test/example deletion diff, graph-authoring diff/report, and validation evidence before push
 
 ## Prior Art Disposition
 
 | Prior art | Disposition |
 |---|---|
-| FR-827 | Retain the schedule/dispatch idea; retire application-level runner |
+| FR-827 | Retain the schedule/dispatch idea; retire application-level runner and horoscope fixture |
 | FR-835 | Historical advanced composition implementation; no current basic-template consumer, removed here |
 | FR-836 | Preserve the lesson that tasks need explicit output contracts; YAMLGraph task owns that contract, not cron |
 | FR-819 | Reuse GitHub schedule/manual trigger precedent; distinguish application-owned digest output from scheduler responsibility |
@@ -278,22 +342,35 @@ R-3 are folded. All revisions are folded in this document.
 | R-1 | Generic scheduler publication was removed but inherited repository write authority was not explicitly forbidden | Require `contents: read`, non-persisted checkout credentials, and removal of all generic git publication steps |
 | R-2 | The deterministic fixture was not named while graph changes are forbidden | Fix validation to existing tracked `features/horoscope/graph.yaml`; stop for replanning if unavailable |
 | R-3 | Workflow test evidence was underspecified | Freeze the seven exact mechanical assertions in Exact Change Surface and revised ACs |
+| A-1 | The direct task still needs its non-write LLM provider credential | Preserve only the existing `ANTHROPIC_API_KEY` execution-step mapping; forbid write credentials and generic secret forwarding |
+| A-2 | “Documented default” could imply a hidden workflow fallback | Define `features/haiku/graph.yaml` as the README starter value while empty `vars.YAMLGRAPH_TASK` remains a hard failure |
 
-**Purge list:** `tools/cron_run.py`; its focused tests; multi-feature discovery;
+**Purge list:** `tools/cron_run.py`; its focused tests; scheduler-provided date;
+task wrapper scripts; multi-feature discovery;
 composition scheduling/envelopes; output/failure rendering; attribution footer;
 state-output compatibility parsing; generic output Git publication; generic
 write permission; persisted checkout credentials; wrapper/fallback variants.
 
 **Scope frozen:** Yes. Deliverables are the simplified read-only cron workflow,
-runner/test deletion, focused workflow contract tests, README responsibility
-documentation, and recorded line-count/test/validation/human-review evidence.
-No graph/prompt, YAMLGraph core, intake/executor/control-bundle, Oulu, secret,
-schedule, write-permission, or generic publication change is authorized.
+runner/test/example pruning, sole retained self-sufficient Oulu weather haiku
+authored through the canonical adapter,
+focused workflow contract tests, README responsibility documentation, and
+recorded line-count/test/validation/human-review evidence. No YAMLGraph core,
+intake/executor/control-bundle, new example, Python date node, Oulu semantic
+beyond optional city/date ownership, secret, schedule, write-permission, or
+generic publication change is authorized.
 
-**Enforcement gates:** Do not re-run the judge during enforcement. If the named
-fixture needs creation or modification, stop for separately judged graph
-authoring. Human review of the destructive deletion diff and validation evidence
-is mandatory before push.
+The existing `ANTHROPIC_API_KEY` provider mapping is explicitly retained for
+the starter task and is not repository-write authority.
+
+**Enforcement gates:** Do not re-run the judge during enforcement. Material
+changes to the named graph and prompt must use the canonical graph-authoring
+adapter and verified report. Human review of the destructive deletion and
+graph-authoring diff plus validation evidence is mandatory before push.
+
+**Amendment authority:** The 2026-08-21 example-pruning and self-sufficient
+haiku addition was independently judged APPROVED WITH REVISIONS. A-1 and A-2
+are folded above; enforcement authority is active within the amended scope.
 
 ### Questions for the human
 
