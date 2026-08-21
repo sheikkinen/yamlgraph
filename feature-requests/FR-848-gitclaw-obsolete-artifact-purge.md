@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Removal / repository hygiene
-**Status:** Proposed
+**Status:** Completed 2026-08-21 - enforced in GitClaw at `800045d233582b496339b1bfd0208a02464b65c0`
 **Effort:** 0.5 day
 **Requested:** 2026-08-21
 **Depends on:** FR-847
@@ -168,16 +168,52 @@ Not authorized:
 
 ## Acceptance Criteria
 
-- [ ] AC-01: RED commit adds `tests/test_repository_hygiene.py` and fails because the 13 obsolete tracked paths exist and exact `.gitignore` entries `tmp/` and `logs/*.log` are absent
-- [ ] AC-02: GREEN deletes exactly the 13 named obsolete tracked paths / 538 lines, with no replacement archive, supersession, index, or migration artifact
-- [ ] AC-03: `features/haiku/` contains exactly `graph.yaml`, `prompts/haiku.yaml`, and `authoring-report.md`; its old FR, judgement, and review are absent
-- [ ] AC-04: `.gitignore` contains exact standalone entries `tmp/` and `logs/*.log`; `outputs/routes/` remains ignored; no bare `outputs/` or equivalent broad output ignore is introduced
-- [ ] AC-05: The hygiene test defines all 13 paths in `OBSOLETE_PATHS` and proves no live consumer surface references any entry, excluding only authority/history artifacts and the test constant itself
-- [ ] AC-06: Generic executor, intake workflow, control-bundle files, canonical skills/adapters/hooks, cron workflow, README, retained haiku graph/prompt/authoring report, and `tools/__init__.py` are byte-unchanged
-- [ ] AC-07: Local cleanup is preceded by a tracked-file guard and followed by `git status --porcelain --untracked-files=all --ignored` evidence showing no residue matching `tmp/`, `logs/*.log`, `outputs/routes/`, `policy/`, or `state/`
-- [ ] AC-08: `python -m pytest tests/test_repository_hygiene.py -q`, `python -m pytest tests/ -q`, `yamlgraph graph lint features/haiku/graph.yaml`, and `python -m tools.control_bundle` pass
-- [ ] AC-09: Human review approves the destructive 13-file deletion and workflow removal before push
-- [ ] AC-10: FR-848 records implementation status, decisions/deviations, validation evidence, and the required diary reflection
+- [x] AC-01: RED commit adds `tests/test_repository_hygiene.py` and fails because the 13 obsolete tracked paths exist and exact `.gitignore` entries `tmp/` and `logs/*.log` are absent
+- [x] AC-02: GREEN deletes exactly the 13 named obsolete tracked paths / 538 lines, with no replacement archive, supersession, index, or migration artifact
+- [x] AC-03: `features/haiku/` contains exactly `graph.yaml`, `prompts/haiku.yaml`, and `authoring-report.md`; its old FR, judgement, and review are absent
+- [x] AC-04: `.gitignore` contains exact standalone entries `tmp/` and `logs/*.log`; `outputs/routes/` remains ignored; no bare `outputs/` or equivalent broad output ignore is introduced
+- [x] AC-05: The hygiene test defines all 13 paths in `OBSOLETE_PATHS` and proves no live consumer surface references any entry, excluding only authority/history artifacts and the test constant itself
+- [x] AC-06: Generic executor, intake workflow, control-bundle files, canonical skills/adapters/hooks, cron workflow, README, retained haiku graph/prompt/authoring report, and `tools/__init__.py` are byte-unchanged
+- [x] AC-07: Local cleanup is preceded by a tracked-file guard and followed by `git status --porcelain --untracked-files=all --ignored` evidence showing no residue matching `tmp/`, `logs/*.log`, `outputs/routes/`, `policy/`, or `state/`
+- [x] AC-08: `python -m pytest tests/test_repository_hygiene.py -q`, `python -m pytest tests/ -q`, `yamlgraph graph lint features/haiku/graph.yaml`, and `python -m tools.control_bundle` pass
+- [x] AC-09: Human review approves the destructive 13-file deletion and workflow removal before push
+- [x] AC-10: FR-848 records implementation status, decisions/deviations, validation evidence, and the required diary reflection
+
+## Implementation Status - 2026-08-21
+
+Implemented locally in `sheikkinen/gitclaw` with separate TDD commits:
+
+- RED `9ec97f9`: five-test hygiene witness produced four expected failures;
+- GREEN `800045d`: exact 13-file / 538-line purge plus two `.gitignore`
+  entries.
+
+Validation:
+
+- focused hygiene suite: 5 passed;
+- full GitClaw suite: 117 passed;
+- haiku graph lint: no issues;
+- control bundle: verified;
+- GREEN path audit: exactly 14 changed paths (13 deletions + `.gitignore`);
+- protected runtime/control path audit: zero changed paths.
+
+Local cleanup evidence:
+
+- repository boundary inventory: only `./.git`;
+- pre-clean tracked guard: exactly `logs/green.log` and `logs/red.log`, both
+  authorized deletions;
+- post-GREEN tracked guard: zero tracked files under cleanup targets;
+- post-clean ignored/untracked residue scan: zero entries under `tmp/`,
+  `logs/*.log`, `outputs/routes/`, `policy/`, or `state/`;
+- final GitClaw worktree: clean, ahead of `origin/main` by RED and GREEN only.
+
+No deviations from judged scope.
+
+**Human review and publication:** The operator reviewed the immutable range
+`9ec97f9..800045d` (96 insertions, 538 deletions across 15 changed paths) and
+selected “Approve push.” GitClaw `main` was pushed; local and remote heads both
+resolve to `800045d233582b496339b1bfd0208a02464b65c0`. The immediate GitHub
+Actions query returned no run for the commit, so no remote CI claim is made;
+the recorded focused/full/lint/control-bundle checks are the validation proof.
 
 ## Alternatives Considered
 
