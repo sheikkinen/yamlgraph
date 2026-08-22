@@ -236,3 +236,12 @@ migrated content before the migration commit.
 - C-4: no sources missing — all 34 manifest entries migrated.
 - C-5: no wrapper/hook/graph/prompt changes.
 - Deviation: none from judged scope.
+- **Landing commit (provenance correction):** the FR-852 enforcement
+  landed in `fc655173` under the sibling session's message
+  `docs(fr): FR-853 instrument registry, FR-854 subagent census` — a
+  `one_session_one_repo` interleave swept this session's staged work
+  into the parallel session's commit mid-hook-cycle. Verified complete:
+  64 files, all 34 briefs + INDEX + judgement + doctrine edits + 20 FR
+  notes + changelog + diary; `git diff HEAD` empty afterward. History
+  is published; not rewritten. This FR file is the authoritative
+  provenance record for that commit's FR-852 content.
