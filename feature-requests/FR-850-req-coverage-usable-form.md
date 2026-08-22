@@ -12,10 +12,14 @@ building at all. First event: a manual
 `python scripts/req_coverage.py --implementation` run in the working
 tree — no new script, no cron, no CI.
 
-**Prior art:** FR-851-requirement-witness-audit (sibling, same arc: consumes
-this report's linkage as LLM audit input and owns its own minimum
-resolution-class derivation per its judgement C-2 — no overlap, this FR fixes
-the report's own honesty); FR-450-judge-demo-hardening,
+**Prior art:** FR-851-requirement-witness-audit (enforced 2026-08-22, now
+**partially covers this FR**: its `scripts/req_audit_questions.py`
+`derive_resolution` ships the 5-class split — coverage/ast/doc-witness/
+no-link-ran/no-link-unrecorded — answering this FR's original split,
+cause-partition, and doc-witness questions; its report is the anomaly-first
+view. This FR is rescoped to the residue: instrument tripwire, shared-loader
+normalization, module reconciliation, and disposition of the now-duplicated
+weaker derivation in `req_coverage.py`); FR-450-judge-demo-hardening,
 FR-269-cli-inter-run-state-chaining, FR-490-dm-v2-chapter-outline-ui,
 FR-364-copilot-instrumentation-gap-closure (noun-level matches only — none
 touches `req_coverage.py` output or coverage-context integrity; no scope
@@ -105,42 +109,41 @@ justifies the drift-report follow-up or kills it.
 
 ## Proposed Solution
 
-All changes inside `scripts/req_coverage.py` — no new script, the
-gated `--strict` path untouched:
+Rescoped 2026-08-22 after FR-851 enforcement: the resolution split,
+no-link cause partition, doc-witness class, and anomaly-first report
+now exist in `scripts/req_audit_questions.py` / `req_audit_report.py`.
+What remains is the residue FR-851 did not answer, plus the duplication
+it created. The gated `--strict` path untouched:
 
-1. **Honest summary.** Print the full split with denominators:
-   `coverage: 3339 / AST: 509 / no-link: 2707 of 6555 pairs`. The
-   primary path's count leads.
-2. **Poisoning tripwire.** When the `.coverage` DB shows
+1. **Poisoning tripwire.** When the `.coverage` DB shows
    first-test-wins symptoms (distinct contexts ≪ tagged tests), refuse
    with the exact remedy line
    (`COVERAGE_CORE=ctrace pytest ... --cov-context=test`, sequential).
    Same for missing/context-free DBs — today's ⚠️-and-continue becomes
-   a visible degraded-mode banner in the summary.
-3. **Parametrized normalization.** Strip `[param]` suffixes from
-   coverage context ids before matching marker keys.
-4. **Anomaly-first mode** (`--implementation --anomalies`): suppress
-   the healthy census; print only:
-   - the no-link bucket **partitioned by cause** — (a) ran but touched
-     no measured source (present in coverage contexts, zero yamlgraph
-     files), (b) absent from the recording run entirely (no context row
-     — integration/slow/subprocess-escape), each an aggregate count
-     with examples. Probe evidence: only 3173 of 5957 passing tests
-     left any context — one bucket currently hides three meanings;
-   - **REQs witnessed only by no-link tests** — the per-REQ projection;
-     a REQ whose entire evidence never touches source is
-     `gate_checks_shape_not_substance` passing the gate daily;
-   - zero-file REQs partitioned doc-witness (resolved targets outside
-     `yamlgraph/`) vs genuine no-link;
-   - CAPs whose declared `modules:` were never hit by any of their
-     tagged tests' resolved files.
-   Full census stays default for existing consumers.
-5. **Question-first sections.** Every report section is headed by the
-   question it answers — e.g. "How is each test-req pair linked to
-   code?" (resolution split), "Which declared modules does no tagged
-   test exercise?" (reconciliation), "Can these numbers be trusted?"
-   (instrument status: DB provenance, context count sanity). A datum
-   answering no section question is cut, not printed.
+   a hard refusal or visible degraded-mode banner. Applies at the
+   **shared loader** so the FR-851 audit constructor is protected too —
+   it currently accepts a poisoned DB silently.
+2. **Shared context-loader boundary.** `req_audit_questions.py`
+   `_load_recorded_contexts` duplicates `req_coverage.py`'s DB read.
+   Extract one loader (normalize at the boundary): context read +
+   `[param]` suffix stripping + poisoning tripwire, consumed by both.
+   Probe evidence: ~26 parametrized contexts are misfiled in **both**
+   scripts today, including the enforced FR-851 run.
+3. **Derivation disposition (subtraction).** `req_coverage.py
+   --implementation` now carries a weaker 3-class derivation beside the
+   enforced 5-class `derive_resolution`. Disposition: make
+   `req_coverage.py` consume the shared 5-class derivation, or retire
+   the `--implementation` census path in favor of the constructor's
+   questions output. Keeping both is `false_duplicate` in reverse —
+   one boundary, two truths.
+4. **Module reconciliation.** CAPs whose declared `modules:` were never
+   hit by any of their tagged tests' resolved files — the one
+   mechanical anomaly question no existing output answers.
+5. **Question-first sections.** Every remaining report section is
+   headed by the question it answers — e.g. "Which declared modules
+   does no tagged test exercise?" (reconciliation), "Can these numbers
+   be trusted?" (instrument status). A datum answering no section
+   question is cut, not printed.
 
 ```bash
 # Correct recording (documented in the script's --help and CLAUDE.md)
@@ -161,28 +164,30 @@ The decision input for the deferred drift FR. Seeded from today's runs:
 
 ## Acceptance Criteria
 
-- [ ] AC-01: Summary line prints coverage/AST/no-link counts with the
-  total-pairs denominator; coverage-resolved leads.
+- [ ] AC-01: One shared context-loader used by both `req_coverage.py`
+  and `req_audit_questions.py`; `_load_recorded_contexts` duplication
+  removed.
 - [ ] AC-02: First-test-wins-poisoned DB (contexts ≪ tagged tests) →
-  hard refusal naming `COVERAGE_CORE=ctrace`; missing/context-free DB →
-  degraded-mode banner in the summary, not just a scroll-away warning.
-- [ ] AC-03: `[param]`-suffixed contexts match their marker keys;
-  witnessed with `test_chaplain_graph_compile` parametrized contexts.
-- [ ] AC-04: `--anomalies` prints the no-link cause partition
-  (ran-untouched vs not-recorded), the REQs-witnessed-only-by-no-link
-  list, the doc-witness vs genuine-no-link partition, and
-  declared-module-never-hit CAPs — one screen for the current tree;
-  `test_race_pipeline_docs` lands in doc-witness.
+  hard refusal in the shared loader naming `COVERAGE_CORE=ctrace`;
+  missing/context-free DB → hard refusal or explicit degraded-mode
+  banner, not a scroll-away warning. Witnessed for both consumers.
+- [ ] AC-03: `[param]`-suffixed contexts match their marker keys in
+  both consumers; witnessed with parametrized contexts.
+- [ ] AC-04: Declared-module-never-hit CAP reconciliation exists in
+  exactly one output, headed by its question.
 - [ ] AC-05: `--strict` behavior byte-identical (gate untouched);
-  existing full-census output unchanged without `--anomalies`.
-- [ ] AC-06: Tests tagged with the ADR-001 REQ covering this script;
+  FR-851 constructor output byte-identical except for param-normalized
+  and tripwire-refused cases.
+- [ ] AC-06: Tests tagged with the ADR-001 REQ covering these scripts;
   changelog fragment included.
-- [ ] AC-06b: Each section of the `--anomalies` output (and the
-  summary block) is headed by the question it answers; no unheaded
-  data blocks.
+- [ ] AC-06b: Every report section is headed by the question it
+  answers; no unheaded data blocks.
 - [ ] AC-07: The value/issues table above has ≥2 post-implementation
   entries before any drift-report FR is filed — usage evidence, not
   design enthusiasm, decides the follow-up.
+- [ ] AC-08: The 3-class vs 5-class derivation duplication is
+  dispositioned (merge or retire) with the decision recorded in this
+  FR — keeping both untouched fails this AC.
 
 ## Alternatives Considered
 
