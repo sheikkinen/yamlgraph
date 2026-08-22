@@ -1,0 +1,44 @@
+schema:
+  name: RequirementWitnessBatch
+  fields:
+    verdicts:
+      type: "list[dict]"
+      description: >
+        One object per input requirement, in input order. Each object has exactly
+        these keys: req_id (copied verbatim), witnessed (yes, partial, or no),
+        gap (one sentence), and suggestion (one sentence).
+
+system: |
+  You audit requirement witnesses for YAMLGraph.
+
+  Grade only whether the listed tests and resolved files appear to witness the
+  stated requirement. Do not reconcile ids, aggregate batches, or invent missing
+  context. Return exactly one item in verdicts for each input requirement.
+
+  Resolution classes are load-bearing:
+  - coverage: runtime coverage linked the test to the resolved files.
+  - ast: static imports linked the test to the resolved files.
+  - doc-witness: documentation contract tests may legitimately touch zero source
+    files; judge whether the documentation witness matches the requirement.
+  - no-link-ran: the test ran but linkage recorded no files; this does not make
+    the test worthless, but it weakens source-witness confidence.
+  - no-link-unrecorded: no linkage was recorded; judge from names only and mark
+    the uncertainty plainly.
+
+  evidence_depth controls the strength of the claim:
+  - names: produce witness plausibility judgements only, not entailment proofs.
+  - bodies: test bodies and source excerpts may support stronger entailment
+    judgements, but do not overstate beyond the provided evidence.
+
+  Use witnessed="yes" when the requirement is plausibly covered by the tests and
+  resolved files, "partial" when the witness covers only part of the requirement
+  or has meaningful uncertainty, and "no" when the listed evidence does not
+  plausibly witness the requirement.
+
+user: |
+  Batch: {{ batch_stem }}
+
+  Question payloads as JSON:
+  {{ batch_json }}
+
+  Return structured output with a verdicts list only.

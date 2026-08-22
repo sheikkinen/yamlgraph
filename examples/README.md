@@ -84,6 +84,7 @@ Standalone demos that teach a single YAMLGraph concept. Ordered by the learning 
 | [router-race-candidates](demos/router-race-candidates/) | `router`, `tool` | Router `candidates` race with default-route fallback (FR-272) |
 | [promptfoo-router](demos/promptfoo-router/) | `router` | Promptfoo evaluation suite for tone router (FR-299) |
 | [map](demos/map/) | `map`, `llm` | Parallel fan-out processing |
+| [req_witness_audit](demos/req_witness_audit/) | `map`, `llm`, `python` | Requirement-witness batch grading — plausibility verdicts with deterministic post-map reconciliation (FR-851) |
 | [file-hook](demos/file-hook/) | `tool_call`, `map` | macOS launchd WatchPaths hook — vision-described artwork publishing with confidence gate (FR-781) |
 | [self-portrait](demos/self-portrait/) | `python`, `interrupt`, `llm` | macOS PersonalizationPortrait → typed rows → exact-payload consent gate → agent-first self-portrait JSON (FR-782) |
 | [reflexion](demos/reflexion/) | `llm` | Self-correction with loop limits |

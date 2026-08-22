@@ -1,0 +1,75 @@
+version: "1.0"
+name: req-witness-audit
+description: >
+  Grade requirement-witness batches with a haiku-tier LLM and write one raw
+  structured result per input batch for deterministic reconciliation.
+
+prompts_relative: true
+prompts_dir: prompts
+
+config:
+  max_map_items: 1000
+
+defaults:
+  provider: anthropic
+  model: claude-haiku-4-5
+  temperature: 0.2
+
+state:
+  batches_dir: str
+  raw_dir: str
+  batch_files: list
+  audit_results:
+    type: list
+    reducer: sorted_add
+  raw_files: list
+
+tools:
+  list_batches:
+    type: python
+    path: tools.py
+    function: list_batches
+    description: "List batch-NNN.json files in deterministic order and load their payloads."
+  write_raw_results:
+    type: python
+    path: tools.py
+    function: write_raw_results
+    description: "Write each structured batch result to raw_dir using the input batch stem."
+
+nodes:
+  list_batches:
+    type: python
+    tool: list_batches
+    state_key: batch_files
+
+  audit_batches:
+    type: map
+    over: "{state.batch_files}"
+    as: batch
+    max_items: 1000
+    timeout: 180
+    node:
+      type: llm
+      prompt: audit_batch
+      state_key: batch_result
+      on_error: retry
+      max_retries: 2
+      variables:
+        batch_stem: "{state.batch.stem}"
+        batch_json: "{state.batch.content}"
+    collect: audit_results
+
+  persist_raw:
+    type: python
+    tool: write_raw_results
+    state_key: raw_files
+
+edges:
+  - from: START
+    to: list_batches
+  - from: list_batches
+    to: audit_batches
+  - from: audit_batches
+    to: persist_raw
+  - from: persist_raw
+    to: END
