@@ -558,7 +558,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 240 | CAP-240 FR Knowledge Graph Extraction | `scripts/extract_fr_graph.py`, `reference/fr-knowledge-graph.yaml`, `reference/fr-knowledge-graph.md`, `.github/hooks/scripts/checks/prior_art.py` | REQ-YG-601 – 603 |
 | 241 | CAP-241 Weekly Recap Publication | `scripts` | REQ-YG-604 |
 | 242 | CAP-242 Lint/Compile Validation Parity | `linter` | REQ-YG-605 |
-| 243 | CAP-243 Requirement Witness Audit | `scripts` | REQ-YG-606 – 607 |
+| 243 | CAP-243 Requirement Witness Audit | `scripts` | REQ-YG-606 – 608 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -2981,6 +2981,7 @@ LLM batch review of REQ-test-code triples answering the spine's one non-mechanic
 |------------|-------------|-------------|
 | REQ-YG-606 | scripts/req_audit_questions.py deterministically emits one JSON question file per current registry requirement (never a hard-coded count) with the frozen schema — req_id, req_text, cap_id, cap_name, declared_modules, tests each carrying a resolution class from the frozen enum coverage\|ast\|no-link-ran\|no-link-unrecorded\|doc-witness, resolved_files, evidence_depth, and the fixed audit question — plus batches ordered by req_id under a chars/4 token estimator with a configurable maximum (default 8000) where an oversized requirement is isolated in its own batch untruncated; output is byte-identical for the same tree; stage-2 emission includes test bodies for flagged requirements; no LLM is invoked. | `scripts` |
 | REQ-YG-607 | scripts/req_audit_report.py reconciles model verdicts against batch inputs at the boundary: a returned req_id outside the batch's input set rejects that batch result and re-queues its inputs, duplicate req_ids keep the first occurrence and are logged, missing req_ids re-queue once then surface as unaudited; no input requirement disappears silently (audited plus unaudited equals inputs); the rendered report ranks no, partial, and unaudited first with gap and suggestion, collapses yes to counts, and carries model/provider, tree SHA, batch count, reconciliation summary, and the stage labeling (plausibility vs entailment). | `scripts` |
+| REQ-YG-608 | scripts/coverage_contexts.py is the single coverage-context boundary (FR-850) consumed by both req_coverage.py --implementation and req_audit_questions.py: it hard-refuses missing, context-free, or first-test-wins-poisoned .coverage DBs (distinct contexts below 0.25 of tagged tests) with a remedy naming COVERAGE_CORE=ctrace, --cov-context=test, and sequential recording; normalizes [param]-suffixed context ids to marker keys; owns the shared five-class derive_resolution so no second resolution truth exists; and partitions declared-module reconciliation into measured yamlgraph/ never-hit findings versus unmeasured declarations, with the implementation report emitting a question-headed five-class split whose counts sum to the test-req pair denominator. | `scripts` |
 
 <!-- END GENERATED CAPABILITIES -->
 

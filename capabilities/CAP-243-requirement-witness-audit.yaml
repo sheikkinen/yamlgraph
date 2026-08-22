@@ -48,3 +48,20 @@ requirements:
       labeling (plausibility vs entailment).
     modules:
       - scripts
+  - id: REQ-YG-608
+    description: >
+      scripts/coverage_contexts.py is the single coverage-context
+      boundary (FR-850) consumed by both req_coverage.py
+      --implementation and req_audit_questions.py: it hard-refuses
+      missing, context-free, or first-test-wins-poisoned .coverage DBs
+      (distinct contexts below 0.25 of tagged tests) with a remedy
+      naming COVERAGE_CORE=ctrace, --cov-context=test, and sequential
+      recording; normalizes [param]-suffixed context ids to marker
+      keys; owns the shared five-class derive_resolution so no second
+      resolution truth exists; and partitions declared-module
+      reconciliation into measured yamlgraph/ never-hit findings versus
+      unmeasured declarations, with the implementation report emitting
+      a question-headed five-class split whose counts sum to the
+      test-req pair denominator.
+    modules:
+      - scripts
