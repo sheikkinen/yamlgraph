@@ -136,3 +136,7 @@ depend on recon. Recon remains optional to the orchestrator.
   prompt's own schema, empty-result validation, and orchestrator-absence
   check (AC-10). `req_coverage --strict` passes.
 - Deviation from original plan: none; scope stayed inside judgement D-1..D-5.
+
+**Brief provenance (FR-852):** authoring brief committed at
+`feature-requests/authoring-briefs/fr-787-authoring-brief.md`
+(formerly `tmp/fr-787-authoring-brief.md`).

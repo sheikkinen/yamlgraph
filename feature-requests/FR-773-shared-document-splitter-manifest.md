@@ -276,3 +276,6 @@ C-1..C-7 (all GATE): `FR-773-shared-document-splitter-manifest.judgement.md`
 **Scope frozen:** D-1..D-8 per judgement. Not authorized: any `yamlgraph/`
 change, manifest schema changes, new PDF dependencies, chapter/paragraph
 modes, or migration of existing splitter projects.
+
+**Brief provenance (FR-852):** authoring brief committed at
+`feature-requests/authoring-briefs/fr-773-book-summary-brief.md`.

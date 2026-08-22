@@ -22,7 +22,12 @@ Inputs are closed: the task request, committed repository artifacts, and
 files the user explicitly provides. When executed via the adapter route,
 the task request is a **task brief** — a markdown file passed as
 `task_path` — and any target directory or desired artifact name must be
-stated inside that brief, never inferred from hidden chat narrative. Do
+stated inside that brief, never inferred from hidden chat narrative.
+FR-bound task briefs live committed under
+`feature-requests/authoring-briefs/` (`fr-XXX-<slug>-brief.md`;
+standalone briefs `<slug>-brief.md`), and the governing FR cites that
+committed path — the brief is the artifact's input-closure record and
+must survive tmp/ cleanup (FR-852). Do
 not treat chat narrative,
 uncommitted local state, or ignored generated outputs as authoring
 input. In particular, never rely on `examples/yamlgraph_gen/outputs/*`

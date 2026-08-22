@@ -185,3 +185,7 @@ fixture assertions). Gates C-1..C-6 accepted: blocked until FR-810 is
 Enforced; authoring route with substance-verified report; dynamic-handler
 fixture semantics mandatory; no step-graph/leaf-tool/framework changes
 under this FR; no shape-only validation.
+
+**Brief provenance (FR-852):** authoring briefs committed at
+`feature-requests/authoring-briefs/fr-809-brief-a.md` through `-d.md`
+and `fr-809-brief-final.md` (formerly `tmp/fr809-brief-*.md`).

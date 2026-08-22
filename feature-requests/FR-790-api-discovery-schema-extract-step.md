@@ -156,3 +156,7 @@ the FR-788 platform-confirm output contract is implemented (FR-788 Enforced
   invalid output, deterministic fixture parse, input-mapping contract.
   `req_coverage --strict` passes.
 - Deviation from original plan: none; scope stayed inside judgement D-1..D-5.
+
+**Brief provenance (FR-852):** authoring brief committed at
+`feature-requests/authoring-briefs/fr-790-authoring-brief.md`
+(formerly `tmp/fr-790-authoring-brief.md`).

@@ -126,3 +126,7 @@ New `demo-output.log` from a live run whose extracted intent visibly echoes the 
 - **Witness (AC-06)**: `demo-output.log` regenerated from a grounded run (`PROVIDER=google`, query "Which LLM providers does the create_llm factory support?"); output cites `yamlgraph/utils/llm_factory.py` with line numbers and echoes the topic; route log shows `validate_findings → synthesize_report` via the positive condition (AC-05 witnessed live); validated against `scripts/demo_log_semantics.sh` (no fatal markers, success markers present).
 - **Deviation**: none from judged scope. The lint-rule stretch (E-class bare-placeholder rule) was not taken — the AC-03 sweep test provides the blocking guard as judged.
 - Follow-up: FR-780 (toolbelt conversion) filed and sequenced after this FR.
+
+**Brief provenance (FR-852):** authoring brief committed at
+`feature-requests/authoring-briefs/fr-779-green-brief.md`
+(formerly `tmp/fr779-green-brief.md`).

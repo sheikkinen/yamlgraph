@@ -370,3 +370,6 @@ testable without launchd; `max_dim` requiring `yamlgraph/` changes or
 core-Pillow promotion stops for re-judgement; receipt-renamer stays
 documentation-only; no fswatch/polling/ledger — the `.md` twin is the
 ledger.
+
+**Brief provenance (FR-852):** authoring brief committed at
+`feature-requests/authoring-briefs/fr-781-authoring-brief.md`.

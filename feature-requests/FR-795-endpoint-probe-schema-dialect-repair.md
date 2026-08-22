@@ -171,3 +171,7 @@ direct manual edit.
 - Ran `scripts/author.sh tmp/fr-795-authoring-brief.md` with `YAMLGRAPH_BIN` bound to the repository venv. The adapter converted only the governed prompt and produced a substantive `tmp/draft-authoring-report.md`.
 - Preserved all three output fields and nested endpoint properties; `verdict_hint` remains optional through omission from top-level `required`.
 - Verified graph lint, direct `load_and_compile()`, a structured-variable graph smoke, and the full endpoint-probe unit module. No files under `yamlgraph/**` and no other API-discovery artifacts changed.
+
+**Brief provenance (FR-852):** authoring brief committed at
+`feature-requests/authoring-briefs/fr-795-authoring-brief.md`
+(formerly `tmp/fr-795-authoring-brief.md`).

@@ -161,3 +161,6 @@ FR-788 2026-08-14, FR-790 2026-08-15).
   judgement's "or the equivalent … prompt/schema artifact used by the
   graph" — the pipeline cannot start from the bare input contract without
   candidate generation, and no step FR owns it.
+
+**Brief provenance (FR-852):** authoring brief committed at
+`feature-requests/authoring-briefs/fr-791-authoring-brief.md`.

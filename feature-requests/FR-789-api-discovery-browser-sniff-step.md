@@ -126,3 +126,8 @@ telemetry/noise request, and one `needs_manual` path (C-4).
   `req_coverage --strict` passes.
 - Deviation from original plan: none beyond the two-run authoring route
   (recorded above); scope stayed inside judgement D-1..D-5.
+
+**Brief provenance (FR-852):** authoring brief committed at
+`feature-requests/authoring-briefs/fr-789-authoring-brief.md`
+(the brief that carried the FR-789 static-server bug; see
+`docs/diary/diary-2026-08-15-fr789-brief-is-code.md`).

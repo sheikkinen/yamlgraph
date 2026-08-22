@@ -277,3 +277,7 @@ changes, CI/pre-commit gates, scheduled automation, doctrine changes.
 None — the two open choices in the draft (FR-850 gate vs ownership;
 evidence location) had clear defaults and were resolved per the
 judgement's own recommendations.
+
+**Brief provenance (FR-852):** authoring brief committed at
+`feature-requests/authoring-briefs/fr-851-audit-graph-brief.md`
+(formerly `tmp/fr851-audit-graph-brief.md`).

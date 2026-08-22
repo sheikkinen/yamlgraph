@@ -319,3 +319,7 @@ text document-wide — `pdftotext` yields 3 bytes for the selection).
 - FR-767 (sole authoring route)
 - Judgement: `FR-776-vision-fallback-scanned-pdf.judgement.md`
   (APPROVED WITH REVISIONS; R-1..R-5 folded above; C-1..C-8 gates)
+
+**Brief provenance (FR-852):** authoring brief committed at
+`feature-requests/authoring-briefs/fr-776-vision-brief.md`
+(formerly `tmp/fr776-vision-brief.md`).

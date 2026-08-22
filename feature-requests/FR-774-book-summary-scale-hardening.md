@@ -245,3 +245,6 @@ consumer (`the-second-consumer-decides` diary, 2026-08-04).
   parallel-session WIP (`examples/demos/chinese_horoscope/`, untracked)
   breaks `test_examples_readme_audit.py` locally; attributed, not owned
   (same precedent as FR-773); absent from CI.
+
+**Brief provenance (FR-852):** authoring brief committed at
+`feature-requests/authoring-briefs/fr-774-book-summary-harden-brief.md`.

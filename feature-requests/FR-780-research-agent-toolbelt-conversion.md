@@ -90,3 +90,7 @@ Research-agent declares read/search/list/git-history tools purely by toolbelt ma
 - **R-1 surfaces**: CAP-220 description + REQ-YG-579 text extended to name research-agent as fourth consumer and `count_lines` as inline demo-local; four manifest headers and `examples/shared/README.md` updated (documentation only, runtime contracts untouched).
 - **Witness (AC-08)**: `demo-output.log` regenerated (`PROVIDER=google`, query "Which LLM providers does the create_llm factory support?"); route log shows the positive condition selecting `synthesize_report`; `validation.confidence: high`, zero gaps, citations to `yamlgraph/utils/llm_factory.py` and `llm_providers.py`; the converted tools found **all 12 providers** where the FR-779-era truncated tools confirmed only 2 and flagged the rest as gaps — the tool-fidelity claim witnessed quantitatively.
 - **Deviation**: none from judged scope. Combined suites (FR-777 + FR-779 + FR-780) 40/40; `req_coverage --strict` green.
+
+**Brief provenance (FR-852):** authoring brief committed at
+`feature-requests/authoring-briefs/fr-780-green-brief.md`
+(formerly `tmp/fr780-green-brief.md`).

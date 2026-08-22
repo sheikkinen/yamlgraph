@@ -439,3 +439,7 @@ it caught it three times.
 - `reference/interrupt-nodes.md` + `examples/demos/interrupt` (the
   consent-gate primitive: interrupt node, checkpointer, CLI resume
   loop in `yamlgraph/cli/graph_run_helpers.py`)
+
+**Brief provenance (FR-852):** authoring briefs committed at
+`feature-requests/authoring-briefs/fr-782-author-brief.md`, `-2.md`,
+and `-3.md` (three iterations).

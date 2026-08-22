@@ -507,3 +507,8 @@ never vendored here — C-6 honored).
   distinguished), FR-081/FR-383/FR-105 (copilot node),
   `examples/demos/horoscope`, diary 2026-08-19 (one-tree test),
   `.github/skills/{feature-request,judge-fr,review-pr,graph-authoring}`
+
+**Brief provenance (FR-852):** authoring briefs committed at
+`feature-requests/authoring-briefs/fr-827-gitclaw-authoring-brief.md`,
+`fr-827-gitclaw-push-race-brief.md`, `fr-827-gitclaw-toolnodes-brief.md`,
+and `fr-827-gitclaw-verdict-gate-brief.md` (formerly `tmp/gitclaw-*.md`).

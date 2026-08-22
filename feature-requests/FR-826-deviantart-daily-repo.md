@@ -417,3 +417,7 @@ changes or a reusable publisher library here → stop for a new FR (C-8).
    enable after the dispatch witnesses (AC-07/AC-14) pass.
 
 C-4 is fully satisfied — enforcement unblocked.
+
+**Brief provenance (FR-852):** authoring brief committed at
+`feature-requests/authoring-briefs/fr-826-deviant-daily-brief.md`
+(formerly `tmp/task-brief-deviant-daily.md`).

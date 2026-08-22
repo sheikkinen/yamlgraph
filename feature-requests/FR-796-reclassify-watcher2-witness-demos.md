@@ -230,3 +230,7 @@ node code, or demo behavior.
 - With `.venv` activated, the complete unit suite passes: 5,819 passed, 91 skipped, 1 xfailed. The full suite reaches 6,013 passed but has eight stable integration failures reproduced in isolation: memory-demo mocking, three multi-turn/checkpointer assertions, three subgraph-interrupt assertions, and OpenAI `insufficient_quota`. None references the retired paths, but AC-10 remains open because the frozen criterion requires a fully green suite.
 - `scripts/check_demo_proof.sh` passes against the staged pure rename/delete shape without weakening or bypassing the gate.
 - PR URL: none; the operator requested a direct push to `main`. Deleting commit: `bdf3ad3c` (`chore(examples): FR-796 relocate watcher2 witnesses`).
+
+**Brief provenance (FR-852):** authoring brief committed at
+`feature-requests/authoring-briefs/fr-796-authoring-brief.md`
+(formerly `tmp/fr-796-authoring-brief.md`).

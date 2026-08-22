@@ -46,6 +46,9 @@ license to author manually.
 
 Session separation (judge parity): the requesting session writes the
 task brief and runs the adapter; it does not author the artifact itself.
+FR-bound briefs are written under `feature-requests/authoring-briefs/`
+(`fr-XXX-<slug>-brief.md`) and cited by the governing FR — the brief is
+the committed input-closure record (FR-852).
 Exception (re-entry guard): an agent already launched BY this adapter is
 the authoring execution — it authors directly per `doctrine.md` (research
 precedent → name the artifact boundary → choose the smallest pattern →

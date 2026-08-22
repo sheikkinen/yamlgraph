@@ -244,3 +244,7 @@ with "FR-775 contract evolution" comments. First real-book run exposed a
 truncated-JSON failure on page 24 that the accumulate gate caught loudly;
 cure was `on_error: retry` on the map subnode (second author.sh run). See
 `docs/diary/diary-2026-08-05-fr775-gate-fired-on-page-24.md`.
+
+**Brief provenance (FR-852):** authoring briefs committed at
+`feature-requests/authoring-briefs/fr-775-book-summary-loop-brief.md` and
+`feature-requests/authoring-briefs/fr-775-book-summary-retry-brief.md`.

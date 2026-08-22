@@ -281,3 +281,7 @@ Enforced same day. Repo: <https://github.com/sheikkinen/yamlgraph-daily-digest>
   untrusted — the runner treats it as no-op regardless (guards AC-09).
 - **C-6** — no yamlgraph package-metadata change; yamlgraph diff is
   docs-only (this FR file, example README pointer, diary).
+
+**Brief provenance (FR-852):** authoring brief committed at
+`feature-requests/authoring-briefs/fr-819-digest-graph-brief.md`
+(formerly `tmp/task-brief-fr819-digest-graph.md`).

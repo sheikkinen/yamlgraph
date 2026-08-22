@@ -292,3 +292,6 @@ All three convert in this FR.
 - .github/skills/judge-fr/adapters/graph.yaml — assumed first consumer of the follow-up research graph-tool manifest
 - examples/demos/research-agent/ — the graph assumed to be published as a toolbelt tool
 - yamlgraph/tools/manifest.py — translation layer (unchanged by this FR)
+
+**Brief provenance (FR-852):** authoring brief committed at
+`feature-requests/authoring-briefs/fr-777-convert-brief.md`.

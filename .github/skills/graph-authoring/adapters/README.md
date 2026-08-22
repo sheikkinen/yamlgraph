@@ -12,6 +12,10 @@ scripts/author.sh <task-brief.md>
 The task brief is a committed or explicitly provided markdown file that
 closes the input: the task description, target directory, and desired
 artifact names live inside the brief — never in hidden chat narrative.
+The committed home for FR-bound briefs is
+`feature-requests/authoring-briefs/` (`fr-XXX-<slug>-brief.md`); the
+governing FR cites that path (FR-852). `author.sh` accepts any path —
+the commit requirement is on the requesting session.
 
 Direct invocation (what the wrapper runs; use the wrapper instead):
 
