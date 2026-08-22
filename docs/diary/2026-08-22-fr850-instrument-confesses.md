@@ -164,3 +164,24 @@ cluster) was a false lead that dissolved under inspection, while the
 true defect (phantom tag) sat unclassified inside a *green*
 coverage-linked section — visible only because the report prints every
 witness name under its REQ. Aggregates flag; rosters convict.
+
+## Reflection: is stale-REQ analysis needed?
+
+No — it already ran; what's owed is **disposition**. FR-851's Stage-1
+audit (haiku, 412/412 reconciled, `tmp/req-audit/report.md`) rendered
+10 `[no]` + 235 `[partial]` verdicts, and it caught the SIM117 phantom
+independently of my read (REQ-YG-287 `[partial]`: "two unrelated tests
+(SIM117) appear misclassified"). Two instruments converging on the same
+defect from different directions — roster reading and LLM audit — is
+the traceability spine working.
+
+But most flagged verdicts cite `no-link-unrecorded ... resolved_files
+empty`: they are the FR-850 recording gap (64 unrecorded-only REQs)
+wearing an audit-verdict costume, not semantic staleness. Triaging 235
+partials by hand before closing the instrument gap would be
+`metric_archaeology_before_reading_output` in reverse — human effort
+spent on what a mechanical re-recording clears. The disposition order
+is: (1) full-suite `ctrace` recording, (2) re-run the FR-851 audit
+against the honest DB, (3) triage the residue — those are the genuine
+SIM117-class phantoms. FR-859 takes the one proven phantom now;
+the residue triage waits for the deflated report.
