@@ -14,7 +14,17 @@ and report" task.
 
 A reusable map-node graph: file-list partitions in, per-partition LLM
 analysis fanned out in parallel, merged findings artifact out — the
-graph-native form of the 8-subagent hand-run corpus audit.
+graph-native form of the 8-subagent hand-run corpus audit. Two modes of
+the same machinery, selected by question + schema:
+
+1. **Exhaustive audit** — "analyze every file against Q"; the contract
+   is coverage (reconciliation proves nothing was skipped).
+2. **Semantic grep** — "I want to know X; find related information";
+   per-batch schema is `relevant: bool + excerpts + why`, most batches
+   return nothing, the deliverable is the needles. Brute-force parallel
+   read with a cheap model: no embedding index, no staleness, no
+   retrieval misses — the complement to the RAG examples, affordable at
+   repo scale (FR-851 precedent: 412 questions / 41 haiku batches).
 
 ## Value Statement
 
@@ -62,6 +72,9 @@ Authored via the governed route (`scripts/author.sh`), precedent
       authoring report artifact
 - [ ] Map-node parallel execution over partitions; per-batch typed
       findings
+- [ ] Both modes demonstrated: one exhaustive-audit run and one
+      semantic-grep run ("find information related to Q" over docs/,
+      needles cited with paths)
 - [ ] Reconciliation invariant: every input file appears in findings or
       is listed unanalyzed; no silent drops
 - [ ] Demo run against a real corpus partition with demo-output.log
@@ -82,7 +95,10 @@ recommendation 1 (C1) — filed verbatim after 24 days dormant;
 `examples/demos/map/graph.yaml` — node pattern precedent, kept; FR-851
 `req_witness_audit` graph — reconciliation discipline reused,
 specialized graph kept; `pipeline_audit` / code-analysis agent —
-adjacent but corpus-agnostic parametrization distinguishes this FR.
+adjacent but corpus-agnostic parametrization distinguishes this FR;
+RAG examples (`rag_example`, `tavily_rag`) — kept: embedding retrieval
+for large/external corpora, this graph is the exhaustive-read
+complement for repo-scale corpora where recall must be total.
 
 ## Related
 
