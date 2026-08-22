@@ -1038,6 +1038,37 @@ def test_race_returns_on_first_success_not_after_slowest(monkeypatch):
     assert result["_race_winner"]["provider"] == "fake-fast"
 
 
+@pytest.mark.req("REQ-YG-233")
+@patch("yamlgraph.node_factory.race_node.create_llm")
+@patch("yamlgraph.node_factory.race_node.prepare_messages")
+def test_race_success_logs_completed_marker(
+    mock_prepare, mock_create_llm, sample_state, caplog
+):
+    """Race success must log 'Node <name> completed successfully' like other
+    node types — the FR-325 demo-log gate requires it, and a race-only graph
+    otherwise produces no recognized success evidence."""
+    import logging
+
+    from yamlgraph.node_factory.race_node import create_race_node
+
+    mock_prepare.return_value = ([MagicMock()], "anthropic", None)
+    mock_create_llm.side_effect = [_make_mock_llm("winning answer")]
+
+    node_config = {
+        "type": "race",
+        "prompt": "test_prompt",
+        "state_key": "response",
+        "candidates": [{"provider": "anthropic"}],
+    }
+
+    node_fn = create_race_node("fastest_answer", node_config, {})
+    with caplog.at_level(logging.INFO, logger="yamlgraph.node_factory.race_node"):
+        result = node_fn(sample_state)
+
+    assert result["response"] == "winning answer"
+    assert "Node fastest_answer completed successfully" in caplog.text
+
+
 # =============================================================================
 # FR-271: Async race node with cancellable candidates (REQ-YG-270)
 # =============================================================================
