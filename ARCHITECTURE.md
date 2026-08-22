@@ -558,6 +558,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 240 | CAP-240 FR Knowledge Graph Extraction | `scripts/extract_fr_graph.py`, `reference/fr-knowledge-graph.yaml`, `reference/fr-knowledge-graph.md`, `.github/hooks/scripts/checks/prior_art.py` | REQ-YG-601 – 603 |
 | 241 | CAP-241 Weekly Recap Publication | `scripts` | REQ-YG-604 |
 | 242 | CAP-242 Lint/Compile Validation Parity | `linter` | REQ-YG-605 |
+| 243 | CAP-243 Requirement Witness Audit | `scripts` | REQ-YG-606 – 607 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -2969,6 +2970,17 @@ yamlgraph graph lint is a strict superset of compile-time validation: lint_graph
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-605 | lint_graph calls the same validate_config path used by graph loading and reports each ValueError as a LintIssue(severity=error, code=E000) whose message contains the unchanged validator text; existing lint checks still run when the parsed YAML shape allows; CLI exit codes and LintResult JSON schema are unchanged; parity is regression-tested for grouped condition syntax, missing edge from/to, invalid tool_call on_error, and graph-schema violations. | `linter` |
+
+### 243. CAP-243 Requirement Witness Audit
+
+LLM batch review of REQ-test-code triples answering the spine's one non-mechanical question: does the tagged test actually witness its requirement (citation vs entailment)? A deterministic constructor (scripts/req_audit_questions.py) emits one frozen-schema question file per registry requirement plus token-budgeted batches; a map-node graph (examples/demos/req_witness_audit/, authored via the governed route) grades each batch with a haiku-tier model; deterministic reconciliation (scripts/req_audit_report.py) verifies returned req_ids against batch inputs at the boundary and renders a ranked report — no, partial, unaudited first; yes collapsed to counts. Stage 1 verdicts are labeled witness plausibility (names-only payloads); Stage 2 escalation carries test bodies for entailment claims.
+
+**Feature Request:** FR-851
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-606 | scripts/req_audit_questions.py deterministically emits one JSON question file per current registry requirement (never a hard-coded count) with the frozen schema — req_id, req_text, cap_id, cap_name, declared_modules, tests each carrying a resolution class from the frozen enum coverage\|ast\|no-link-ran\|no-link-unrecorded\|doc-witness, resolved_files, evidence_depth, and the fixed audit question — plus batches ordered by req_id under a chars/4 token estimator with a configurable maximum (default 8000) where an oversized requirement is isolated in its own batch untruncated; output is byte-identical for the same tree; stage-2 emission includes test bodies for flagged requirements; no LLM is invoked. | `scripts` |
+| REQ-YG-607 | scripts/req_audit_report.py reconciles model verdicts against batch inputs at the boundary: a returned req_id outside the batch's input set rejects that batch result and re-queues its inputs, duplicate req_ids keep the first occurrence and are logged, missing req_ids re-queue once then surface as unaudited; no input requirement disappears silently (audited plus unaudited equals inputs); the rendered report ranks no, partial, and unaudited first with gap and suggestion, collapses yes to counts, and carries model/provider, tree SHA, batch count, reconciliation summary, and the stage labeling (plausibility vs entailment). | `scripts` |
 
 <!-- END GENERATED CAPABILITIES -->
 

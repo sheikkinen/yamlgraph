@@ -1703,3 +1703,15 @@ The ID ranges are:
 - **Code**: N802
 - **Sin**: `do_GET` method name is not snake_case.
 - **Penance**: `http.server.BaseHTTPRequestHandler` dispatches on this exact name; the stdlib contract dictates the casing.
+
+### CONF-408
+- **File**: [tests/unit/test_fr851_req_audit_red.py](../tests/unit/test_fr851_req_audit_red.py#L22)
+- **Code**: E402
+- **Sin**: Import after `sys.path.insert` for scripts module.
+- **Penance**: Test imports from scripts/ which is not a package (CONF-019 idiom).
+
+### CONF-409
+- **File**: [tests/unit/test_fr851_req_audit_red.py](../tests/unit/test_fr851_req_audit_red.py#L32)
+- **Code**: E402
+- **Sin**: Import after `sys.path.insert` for scripts module.
+- **Penance**: Test imports from scripts/ which is not a package (CONF-019 idiom).
