@@ -209,6 +209,7 @@
 | FR-857 | Proposed | yamlgraph |  | FR-857-corpus-analysis-fanout-graph.md |
 | FR-858 | Proposed | yamlgraph |  | FR-858-retire-committed-fr-board.md |
 | FR-859 | Proposed | yamlgraph |  | FR-859-delete-orphaned-sim117-phantom-req-tag.md |
+| FR-860 | Proposed | yamlgraph |  | FR-860-req-audit-run-scaffolding.md |
 | FR-078 | In Progress | yamlgraph |  | FR-078-relocate-project-tests.md |
 | FR-100 | In Progress | yamlgraph |  | FR-100-yamlgraph-development-pipeline-ebook.md |
 | FR-169 | In Progress | yamlgraph |  | FR-169-enforce-reflexion-loop.md |
@@ -450,6 +451,7 @@ graph TD
     FR-857["FR-857 Proposed"]
     FR-858["FR-858 Proposed"]
     FR-859["FR-859 Proposed"]
+    FR-860["FR-860 Proposed"]
     FR-081 --> FR-082
     FR-731 --> FR-735
     FR-731 --> FR-736
