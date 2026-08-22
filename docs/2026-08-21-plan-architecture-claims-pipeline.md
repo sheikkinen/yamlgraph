@@ -3,7 +3,7 @@
 **Date:** 2026-08-21 / Copied from YAMLGraph
 **Status:** Revised 2026-08-21 — review findings C1–C7 folded into the body; the review is retained below as record. Implementation FRs are repo-specific and live in adopting repositories (they own richer artifact sets: issue tracker, infra manifests, their own PR workflow).
 **Scope:** Generic process design; no project-specific bindings
-**Mirroring:** This plan is mirrored in two repos — `customer-service-agent-platform/docs/architecture-claims-pipeline-plan.md` and `yamlgraph/docs/2026-08-21-plan-architecture-claims-pipeline.md`. Edit both or note the divergence.
+**Mirroring:** This plan is mirrored in two repos — `customer-service-agent-platform/docs/architecture-claims-pipeline-plan.md` and `yamlgraph/docs/2026-08-21-plan-architecture-claims-pipeline.md`. Edit both or note the divergence. Divergence: this copy carries a yamlgraph-local "Current status — 2026-08-22" section not mirrored to csap.
 
 ## Problem
 
@@ -498,3 +498,229 @@ store:
 The join and mismatch report stay deterministic; LLM extraction (parsing AC
 prose into typed assertions) is the only LLM-dependent stage and can lag. The
 human reads the two anomaly lists, not the store.
+
+## Current status — 2026-08-22 (yamlgraph)
+
+YAMLGraph-local section (not mirrored to csap). Records the edge audit of the
+existing traceability spine read through this plan's vocabulary, and the core
+steps for adoption here. Full reflection:
+`docs/diary/diary-2026-08-22-the-spine-is-a-claim-store.md`.
+
+### Where yamlgraph already stands
+
+The spine (CAP → REQ → test → changelog, `docs/development-process.md` §4) is
+already a claim store whose verification strategy is **total re-observation
+per commit** rather than invalidation selectors. `stale` cannot exist on
+gated edges because every commit re-runs every verifier — viable because
+those verifiers are cheap, hermetic AST/YAML walks. The csap machinery
+(revision-addressed observations, selectors, stale/refuted) targets the
+opposite regime: evidence too expensive to re-run per commit. The two designs
+are duals; adoption here means applying selector machinery **only to the
+expensive edges**, not replacing the gates.
+
+Edge audit:
+
+| Edge | Mechanism | Verification |
+|---|---|---|
+| CAP → REQ | `capabilities/` registry (225 files) | Gated: id uniqueness, schema validation, `cap-architecture-sync` renders the RTM |
+| CAP/REQ → FR | `fr:` field | Presence only; 23 CAPs say `fr: legacy`; FR statuses frozen at enforcement, never decay |
+| REQ → test | `@pytest.mark.req` (ADR-001) | Gated both directions: `req-coverage-strict` (REQ without test) + phantom-marker detection (test citing nonexistent REQ) |
+| test → code | `.coverage` contexts + AST import resolution (`req_coverage.py --implementation`) | **Advisory only** — DB not committed, not revision-addressed, degrades silently |
+
+The weak edges are exactly the expensive-evidence edges — the
+`detection_without_enforcement` pattern inside the flagship spine. Also: a
+`req` marker is a citation, not an entailment (C4 in different clothes);
+nothing verifies a tagged test meaningfully exercises its requirement. The
+spine is modality-monochrome: every REQ implicitly claims `tested`; CAP
+`modules:` bindings are declared-modality claims never reconciled against
+observed coverage.
+
+### Core steps for yamlgraph (reusing existing contents)
+
+0. **No re-spike.** The deterministic middle is proven (csap VBOT-101-A,
+   PASS 2026-08-21). The premise/assertion layer here is already populated:
+   CAP files are premise slots, REQ entries are assertions, `req` markers are
+   assertion→evidence bindings, `req_coverage --strict` is the accounting
+   gate at HEAD.
+1. **Classify edges by re-verification cost.** Cheap edges (CAP→REQ,
+   REQ→test presence, both mismatch directions) keep their gates — no claims
+   machinery, no regression.
+2. **Re-observe the expensive edge weekly by cron — frequency replaces
+   invalidation.** yamlgraph's human flow is direct pushes to main, so
+   csap's per-PR advisory check (VBOT-101-B) has no trigger surface here;
+   a scheduled workflow samples main regardless of how commits arrived. At
+   weekly cadence, full `pytest --cov` with contexts is affordable again —
+   no invalidation selectors, no observation voiding, no incremental
+   machinery. The cron is the third regime alongside per-commit gates and
+   selector-based invalidation: re-observe everything, weekly. Staleness
+   bounded by one week — acceptable for an advisory drift report whose
+   subject is drift. Local mold: `.github/workflows/weekly-recap.yml`
+   (FR-821) — schedule + workflow_dispatch, concurrency group, PAT-created
+   automation PR with `--auto --squash` (branch protection here exists for
+   automation; gitclaw's `cron.yml` is the thinner no-commit-back variant).
+   Cron is best-effort ("roughly weekly", satellite-mold diary 2026-08-19) —
+   fine for this reader.
+3. **Bootstrap = the first cron run, manually dispatched.** Full suite with
+   coverage contexts → per-test file map → `req_coverage.py
+   --implementation` + `modules:` reconciliation → mismatch report stamped
+   with the producing git SHA (Scripture seed
+   `artifact_carries_code_identity`), committed back via automation PR as
+   the seed snapshot. Every later weekly report diffs against the previous
+   snapshot, so the report shows drift, not just state.
+4. **Reconcile `modules:` declarations against observations.** Declared vs
+   implemented mismatch report per CAP: declared module never hit by any
+   tagged test's coverage → anomaly. First cross-modality cell of the
+   mismatch grid, computable from artifacts that already exist.
+5. **Disposition `fr: legacy`.** 23 CAPs with unknown FR provenance — a
+   triage list, not a backfill project; disposition each (link, or record
+   provenance-unknown as an accepted state).
+6. **Deferred: FR residue extraction at merge** (each AC → standing
+   assertion with selectors). Gated on `would_you_use_this`: name the first
+   reader of the mismatch report before building the extractor.
+
+Deliverable at every step is the mismatch list, not the populated store.
+Selector machinery (csap C1) stays out of yamlgraph entirely unless a
+consumer needs per-commit freshness the weekly snapshot cannot give.
+
+### Weekly re-observation flow
+
+```mermaid
+flowchart TB
+    CRON["Actions cron (weekly)<br/>+ workflow_dispatch (bootstrap)"] --> CO["checkout main @ SHA"]
+    CO --> COV["pytest --cov with contexts<br/>(the expensive evidence)"]
+    CO --> REG["capabilities/ registry<br/>CAP · REQ · modules: · fr:"]
+    CO --> MARK["@pytest.mark.req markers<br/>(AST walk)"]
+    COV --> JOIN["deterministic join<br/>req_coverage.py --implementation"]
+    REG --> JOIN
+    MARK --> JOIN
+    JOIN --> REP["mismatch report<br/>SHA-stamped snapshot"]
+    PREV["previous snapshot<br/>(committed)"] --> DIFF["drift diff<br/>report = Δ, not state"]
+    REP --> DIFF
+    DIFF --> PR["automation PR<br/>--auto --squash (weekly-recap mold)"]
+    PR --> MAIN["main: docs/claims/<br/>report + snapshot"]
+    MAIN -.->|next week| PREV
+    DIFF -.->|"anomaly worth acting on"| INBOX[".chaplain/inbox/<br/>proposal (human-triggered)"]
+```
+
+The gated per-commit edges (id uniqueness, req-coverage-strict,
+phantom-marker detection) are not in this flow — they keep running in
+pre-commit/CI and need nothing from the cron.
+
+### Sample report (short version, envisioned)
+
+```markdown
+# Claims drift report — 2026-W40
+
+**Snapshot:** a1b2c3d (main, 2026-10-01) · previous: 9f8e7d6 (2026-W39)
+**Suite:** 1613 passed · coverage contexts: 1240 tests mapped
+
+## Drift since last week (the part a human reads)
+
+- NEW modules-without-coverage-hit: `utils/retry_backoff` (CAP-08,
+  REQ-YG-031) — declared in registry, no tagged test touched it.
+  Introduced by 6f05d33d.
+- RESOLVED: `linter/patterns/subgraph` (CAP-01) — now exercised by
+  test_lint_subgraph_edges (was anomalous 3 weeks).
+- NEW test-without-REQ-relevance candidate: test_executor_timeout hits
+  only `utils/timeouts.py`, but is tagged REQ-YG-014 (retry) — citation
+  may not entail the requirement.
+
+## Standing anomalies (unchanged, aging)
+
+| Anomaly | Count | Oldest |
+|---|---|---|
+| Declared module, no coverage hit | 7 | 2026-W37 |
+| fr: legacy (provenance unknown) | 23 | pre-registry |
+| REQ tested by exactly one test | 41 | — |
+
+## Totals
+
+225 CAPs · 580 REQs · 0 REQ-without-test (gated) · 0 phantom markers
+(gated) · 7/1240 declared-module anomalies (0.6%)
+```
+
+The "Drift since last week" section is the deliverable; standing anomalies
+age visibly until dispositioned; totals exist to prove the gated edges stay
+at zero. An empty drift section is a no-op week — the mold's no-PR path.
+
+### Implementation FR breakdown
+
+Four FRs, ordered so each is independently shippable and the first two have
+no dependency on the claims work at all.
+
+1. **FR: GitHub-cron automation cookbook.** Promote the pattern already
+   proven three times (`weekly-recap.yml` FR-821, `daily-digest.yml` FR-819,
+   gitclaw `cron.yml`) from instances to a recipe: a reference doc plus a
+   template workflow whose fixed steps are repeated verbatim — `schedule:` +
+   `workflow_dispatch:`, concurrency group (single-writer by construction),
+   scoped PAT (PAT-created PRs trigger required checks; `GITHUB_TOKEN` PRs
+   do not), checkout → setup-python → install, run payload, no-op detection
+   (skip PR on empty output), automation PR with `--auto --squash`. **All
+   variability is confined to the payload** — named in one place; the mold
+   itself contains no LLM and no per-instance logic. **Payload contract,
+   decided by one question — does the payload need an LLM?**
+   - **LLM use case → the payload is a yamlgraph graph** (governed authoring
+     route) with all side effects via tools; a thin deterministic wrapper
+     may precede it for no-op detection so quiet runs cost zero LLM calls —
+     the exact shape of `scripts/weekly_recap.py` delegating to the
+     `examples/demos/recap` graph, and of gitclaw's `cron.yml` running its
+     graph directly.
+   - **No LLM → plain Python/shell suffices.** Wrapping a deterministic
+     script in a graph is the `framework_costume` trap (<50% of nodes using
+     core features = wrong tool). The claims report (2b below) is this
+     branch.
+   Cookbook style per the repo's own precedent
+   (documenting the pattern beat implementing URL prompt loading,
+   `reference/prompt-deployment.md`). Deliverable: `reference/` recipe +
+   template; acceptance = a new cron automation instantiable by editing only
+   the payload line and the schedule.
+2. **FR: polish the existing report into usable form.** → **Filed as
+   [FR-850](../feature-requests/FR-850-req-coverage-usable-form.md)** — the
+   first executable step, before any new tool: `req_coverage.py
+   --implementation` currently omits its own primary-path count (summary
+   reports only AST/no-link), silently accepts a sysmon-poisoned coverage DB
+   (Py3.14 + coverage 7.15 first-test-wins contexts — found 2026-08-22, no
+   warning emitted), misfiles parametrized tests as no-link, and offers no
+   anomaly-first view. Fix in place; the gated `--strict` path untouched.
+   The existing report must earn its place: FR-850 carries a value-added /
+   issues-learned table (AC-07) that becomes the decision input for the
+   deferred drift script below.
+
+2a. **FR: requirement-witness audit.** → **Filed as
+   [FR-851](../feature-requests/FR-851-requirement-witness-audit.md)** —
+   the citation-vs-entailment question (diary Addendum 4, question 7),
+   tackled first because in this repo it is the *easiest*: deterministic
+   constructor emits one question file per REQ (full text, tests,
+   resolution class, resolved files) into `tmp/req-audit/`; a map-node
+   graph batches them to a haiku-tier model for typed
+   `witnessed: yes|partial|no` verdicts with improvement suggestions.
+   Instantiates both payload-contract branches in one feature; graph
+   authored solely via `scripts/author.sh`.
+
+2b. **Deferred: claims snapshot + drift report script** — gated on FR-850's
+   usage evidence, not filed until the polished census has taught something
+   ≥2 more times. The deterministic payload, no LLM: a sibling
+   `scripts/claims_report.py` reusing `req_coverage.py`'s AST/registry
+   loaders (sibling chosen over extending, to keep the gated `--strict`
+   path untouched) to emit (a)
+   a SHA-stamped per-test coverage snapshot, (b) the `modules:`
+   declared-vs-observed reconciliation, (c) the drift diff against the
+   previous committed snapshot, (d) the three-part report above. Bootstrap
+   semantics in the same FR: no previous snapshot → emit seed snapshot,
+   report is state-not-drift, exit no-op-false so the first PR commits the
+   baseline. Testable entirely offline with fixture snapshots (the csap
+   spike's fixture-diff method).
+3. **FR: instantiate the cron for claims.** Apply FR-1's cookbook with
+   the drift script (2b) as payload: weekly schedule, `workflow_dispatch`
+   for the bootstrap run, output committed to `docs/claims/` via automation
+   PR. Should be a near-trivial FR — if it isn't, FR-1's recipe failed its
+   own acceptance criterion.
+4. **FR: `fr: legacy` disposition.** Consume the first real report: triage
+   the 23 unknown-provenance CAPs (link an FR, or record provenance-unknown
+   as accepted), plus disposition of the initial declared-module anomalies.
+   Pure registry edits; the report is the input, the shrunk standing-anomaly
+   table is the witness.
+
+Deferred (unnumbered until `would_you_use_this` is answered by FR-4's
+triage experience): FR-residue extraction at merge — each AC becoming a
+standing assertion. The first four FRs need no LLM anywhere.

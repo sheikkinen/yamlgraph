@@ -163,6 +163,7 @@
 | FR-647 | Approved | yamlgraph |  | FR-647-worldgen-event-propagation.md |
 | FR-648 | Approved | yamlgraph |  | FR-648-obsidian-wiki-output.md |
 | FR-655 | Approved | yamlgraph |  | FR-655-genesis-graph.md |
+| FR-852 | Approved | yamlgraph |  | FR-852-preserve-authoring-briefs.md |
 | FR-214 | Proposed | yamlgraph |  | FR-214-fix-extract-variables-nested-set.md |
 | FR-227 | Proposed | yamlgraph |  | FR-227-vertex-express-env-var-masking.md |
 | FR-267 | Proposed | yamlgraph |  | FR-267-race-node-timeout-double-wrap-2.md |
@@ -203,7 +204,6 @@
 | FR-818 | Proposed | yamlgraph |  | FR-818-judge-prior-art-context-narrowing.md |
 | FR-820 | Proposed | yamlgraph |  | FR-820-stripe-prepaid-credit-purchase.md |
 | FR-850 | Proposed | yamlgraph |  | FR-850-req-coverage-usable-form.md |
-| FR-852 | Proposed | yamlgraph |  | FR-852-preserve-authoring-briefs.md |
 | FR-078 | In Progress | yamlgraph |  | FR-078-relocate-project-tests.md |
 | FR-100 | In Progress | yamlgraph |  | FR-100-yamlgraph-development-pipeline-ebook.md |
 | FR-169 | In Progress | yamlgraph |  | FR-169-enforce-reflexion-loop.md |
@@ -439,7 +439,7 @@ graph TD
     FR-838["FR-838 Judged"]
     FR-841["FR-841 PARSE-FAILURE"]
     FR-850["FR-850 Proposed"]
-    FR-852["FR-852 Proposed"]
+    FR-852["FR-852 Approved"]
     FR-081 --> FR-082
     FR-731 --> FR-735
     FR-731 --> FR-736
