@@ -1,6 +1,7 @@
 # Feature Request: Generic Corpus-Analysis Fan-Out Graph
 
-**Priority:** MEDIUM
+**Priority:** LOW — PARKED 2026-08-22: demand-driven; do not judge until a
+firing moment recurs after FR-855 lands (see Devil's Advocate note)
 **Type:** Feature
 **Status:** Proposed
 **Effort:** 1 day
@@ -119,6 +120,19 @@ adjacent but corpus-agnostic parametrization distinguishes this FR;
 RAG examples (`rag_example`, `tavily_rag`) — kept: embedding retrieval
 for large/external corpora, this graph is the exhaustive-read
 complement for repo-scale corpora where recall must be total.
+
+## Devil's Advocate (2026-08-22, operator-prompted)
+
+Would FR-855's index suffice? Mostly yes. The enumerable clusters (13 +
+10 recurrences) are covered by FR-855/FR-856 at zero LLM cost; the delta
+census shows only 2 corpus-ish audits in 3.5 weeks; the one witnessed
+novel-question incident (FR-854's prior-art miss) is cured cheaper by
+FR-856's mechanical noun search at judge time. The semantic-grep pitch
+is one incident away from `growth_as_default`. Disposition: PARKED at
+LOW — the two-strike clock restarts now that the environment changed
+(adapter migration + FR-855/856 absorb the known demand). Judge this FR
+only when an agent hits the firing moment (grep futility / N-file read)
+after FR-855 is enforced, and cite that occurrence here.
 
 ## Related
 
