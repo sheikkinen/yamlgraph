@@ -1715,3 +1715,9 @@ The ID ranges are:
 - **Code**: E402
 - **Sin**: Import after `sys.path.insert` for scripts module.
 - **Penance**: Test imports from scripts/ which is not a package (CONF-019 idiom).
+
+### CONF-410
+- **File**: [scripts/req_audit_questions.py](../scripts/req_audit_questions.py#L28)
+- **Code**: E402
+- **Sin**: Import after `sys.path.insert` for sibling scripts module.
+- **Penance**: scripts/ is not a package; req_audit_questions reuses req_coverage loaders per FR-851 (CONF-019 idiom).
