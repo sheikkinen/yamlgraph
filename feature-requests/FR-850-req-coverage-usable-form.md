@@ -115,35 +115,48 @@ now exist in `scripts/req_audit_questions.py` / `req_audit_report.py`.
 What remains is the residue FR-851 did not answer, plus the duplication
 it created. The gated `--strict` path untouched:
 
-1. **Poisoning tripwire.** When the `.coverage` DB shows
-   first-test-wins symptoms (distinct contexts ≪ tagged tests), refuse
-   with the exact remedy line
-   (`COVERAGE_CORE=ctrace pytest ... --cov-context=test`, sequential).
-   Same for missing/context-free DBs — today's ⚠️-and-continue becomes
-   a hard refusal or visible degraded-mode banner. Applies at the
-   **shared loader** so the FR-851 audit constructor is protected too —
-   it currently accepts a poisoned DB silently.
-2. **Shared context-loader boundary.** `req_audit_questions.py`
-   `_load_recorded_contexts` duplicates `req_coverage.py`'s DB read.
-   Extract one loader (normalize at the boundary): context read +
-   `[param]` suffix stripping + poisoning tripwire, consumed by both.
-   Probe evidence: ~26 parametrized contexts are misfiled in **both**
-   scripts today, including the enforced FR-851 run.
-3. **Derivation disposition (subtraction).** `req_coverage.py
-   --implementation` now carries a weaker 3-class derivation beside the
-   enforced 5-class `derive_resolution`. Disposition: make
-   `req_coverage.py` consume the shared 5-class derivation, or retire
-   the `--implementation` census path in favor of the constructor's
-   questions output. Keeping both is `false_duplicate` in reverse —
-   one boundary, two truths.
-4. **Module reconciliation.** CAPs whose declared `modules:` were never
-   hit by any of their tagged tests' resolved files — the one
-   mechanical anomaly question no existing output answers.
+1. **Poisoning tripwire (binding, R-1).** For `--implementation` and
+   `req_audit_questions.py`, missing `.coverage`, zero non-empty
+   contexts, or a poisoned coverage-context DB is a **hard refusal** —
+   one explicit exception type whose message names
+   `COVERAGE_CORE=ctrace`, `--cov-context=test`, and sequential
+   recording (no `-n auto`). Non-implementation `req_coverage.py`
+   modes, including `--strict`, must not read this loader. Mechanical
+   poisoning predicate: distinct non-empty context test-ids
+   < 0.25 × distinct req-tagged test ids supplied by the caller
+   (observed: sysmon-poisoned ratio 1017/5957 ≈ 0.17, healthy ctrace
+   3446/5957 ≈ 0.58) — testable from a synthetic SQLite fixture plus a
+   marker set.
+2. **Shared context-loader boundary (R-1).** One shared helper under
+   `scripts/`, consumed by both `req_coverage.py --implementation` and
+   `req_audit_questions.py` (removing `_load_recorded_contexts`):
+   returns normalized `test_id -> source files` and normalized recorded
+   context ids, strips `[param]` suffixes from the final test-id
+   component, and raises the R-1 exception on invalid DBs. Probe
+   evidence: ~26 parametrized contexts are misfiled in **both** scripts
+   today, including the enforced FR-851 run.
+3. **Derivation merge (R-3 — retirement not authorized).** Keep
+   `req_coverage.py --implementation`; make it consume the shared
+   5-class `derive_resolution` and remove the weaker local 3-class
+   truth. No second resolution truth remains.
+4. **Module reconciliation (R-2, measured scope only).** CAPs whose
+   declared `modules:` were never hit by any of their tagged tests'
+   resolved files — limited to declared modules that normalize to
+   measured `yamlgraph/` paths. Non-`yamlgraph/` declarations are
+   reported, if at all, as "unmeasured by this coverage run", never as
+   never-hit anomalies. Expanding the coverage source set is not
+   authorized here.
 5. **Question-first sections.** Every remaining report section is
    headed by the question it answers — e.g. "Which declared modules
    does no tagged test exercise?" (reconciliation), "Can these numbers
    be trusted?" (instrument status). A datum answering no section
    question is cut, not printed.
+6. **Traceability registration (R-4).** Add or update a
+   capability/requirement entry for the implementation-traceability
+   report behavior (shared loader, poisoning refusal, param
+   normalization, 5-class split, module reconciliation); all new tests
+   tagged with that REQ id. CAP-243 (audit constructor) and CAP-18
+   (marker enforcement) do not cover this surface.
 
 ```bash
 # Correct recording (documented in the script's --help and CLAUDE.md)
@@ -164,30 +177,54 @@ The decision input for the deferred drift FR. Seeded from today's runs:
 
 ## Acceptance Criteria
 
-- [ ] AC-01: One shared context-loader used by both `req_coverage.py`
-  and `req_audit_questions.py`; `_load_recorded_contexts` duplication
-  removed.
-- [ ] AC-02: First-test-wins-poisoned DB (contexts ≪ tagged tests) →
-  hard refusal in the shared loader naming `COVERAGE_CORE=ctrace`;
-  missing/context-free DB → hard refusal or explicit degraded-mode
-  banner, not a scroll-away warning. Witnessed for both consumers.
-- [ ] AC-03: `[param]`-suffixed contexts match their marker keys in
-  both consumers; witnessed with parametrized contexts.
-- [ ] AC-04: Declared-module-never-hit CAP reconciliation exists in
-  exactly one output, headed by its question.
-- [ ] AC-05: `--strict` behavior byte-identical (gate untouched);
-  FR-851 constructor output byte-identical except for param-normalized
-  and tripwire-refused cases.
-- [ ] AC-06: Tests tagged with the ADR-001 REQ covering these scripts;
-  changelog fragment included.
-- [ ] AC-06b: Every report section is headed by the question it
-  answers; no unheaded data blocks.
-- [ ] AC-07: The value/issues table above has ≥2 post-implementation
-  entries before any drift-report FR is filed — usage evidence, not
-  design enthusiasm, decides the follow-up.
-- [ ] AC-08: The 3-class vs 5-class derivation duplication is
-  dispositioned (merge or retire) with the decision recorded in this
-  FR — keeping both untouched fails this AC.
+Revised per judgement (R-1…R-5 folded 2026-08-22):
+
+- [ ] AC-01: A single shared coverage-context loader under `scripts/`
+  is used by both `req_coverage.py --implementation` and
+  `req_audit_questions.py`; the duplicated `_load_recorded_contexts`
+  DB read is removed.
+- [ ] AC-02: `req_coverage.py` summary, `--detail`, and `--strict`
+  behavior are byte-identical when `--implementation` is not requested.
+- [ ] AC-03: Missing `.coverage`, zero non-empty contexts, and the
+  poisoned-context predicate hard-fail both consumers, with an error
+  naming `COVERAGE_CORE=ctrace`, `--cov-context=test`, and
+  sequential/no-`-n auto` recording.
+- [ ] AC-04: Synthetic SQLite coverage fixtures cover missing DB,
+  context-free DB, poisoned DB, and healthy DB cases for both
+  consumers.
+- [ ] AC-05: Parametrized coverage context ids with `[param]` suffixes
+  normalize to the same marker keys in both consumers, covered by a
+  parametrized test fixture.
+- [ ] AC-06: `req_coverage.py --implementation` reports the full
+  five-class split `coverage|ast|doc-witness|no-link-ran|
+  no-link-unrecorded` with totals whose sum equals the
+  implementation-mode test-REQ pair denominator.
+- [ ] AC-07: The local three-class derivation is removed or reduced to
+  a thin call into the shared five-class derivation; no second
+  resolution truth remains.
+- [ ] AC-08: Declared-module reconciliation is emitted in exactly one
+  question-headed output section and applies only to measured
+  `yamlgraph/` module declarations; unmeasured non-`yamlgraph/`
+  declarations are not reported as never-hit anomalies.
+- [ ] AC-09: Every implementation report section is headed by the
+  human question it answers; no unheaded data block remains in the
+  `--implementation` output.
+- [ ] AC-10: FR-851 constructor output is unchanged except where
+  parametrized contexts normalize or the shared loader correctly
+  refuses an invalid coverage DB.
+- [ ] AC-11: Capability/ARCHITECTURE registry entries describe the new
+  implementation-traceability behavior, and all new/changed tests are
+  tagged with the corresponding REQ id.
+- [ ] AC-12: The script help or adjacent documented command shows the
+  correct recording command with `COVERAGE_CORE=ctrace`,
+  `--cov-context=test`, and sequential execution; a changelog fragment
+  is included.
+
+### Deferred follow-up gate (not an implementation AC, per R-5)
+
+The value/issues table above must have ≥2 post-implementation entries
+before any drift-report FR is filed — usage evidence, not design
+enthusiasm, decides the follow-up.
 
 ## Alternatives Considered
 
@@ -195,7 +232,7 @@ The decision input for the deferred drift FR. Seeded from today's runs:
   rejected by the operator's `would_you_use_this` — a new ledger on top
   of an untrustworthy census inherits its defects, and the drift
   machinery's value is a forecast until the polished census has been
-  used. Deferred; decision input is AC-07's table.
+  used. Deferred; decision input is the deferred follow-up gate's table.
 - **Per-PR advisory check (csap VBOT-101-B shape):** no trigger surface —
   yamlgraph's human flow is direct pushes to main.
 - **Gate `--implementation` in pre-commit:** full coverage-with-contexts
@@ -209,12 +246,15 @@ The decision input for the deferred drift FR. Seeded from today's runs:
 - Reflection: `docs/diary/diary-2026-08-22-the-spine-is-a-claim-store.md`
 - Precedents: `scripts/req_coverage.py` (ADR-001), csap VBOT-101-A spike
   (PASS), `weekly-recap.yml` FR-821 (future consumer via cookbook FR)
-- Deferred follow-ups, gated on AC-07 evidence: claims snapshot + drift
-  report script, cron cookbook FR, instantiation FR, `fr: legacy`
-  disposition FR
+- Deferred follow-ups, gated on the follow-up gate's evidence: claims
+  snapshot + drift report script, cron cookbook FR, instantiation FR,
+  `fr: legacy` disposition FR
 
-## Judgement (pending)
+## Judgement
 
-**Verdict:** —
-
-Not judged in the author's session; submit via the judge adapter route.
+**Verdict:** APPROVED WITH REVISIONS (2026-08-22, judge adapter route,
+gpt-5.5) — revisions R-1…R-5 folded above. Full judgement:
+`feature-requests/FR-850-req-coverage-usable-form.judgement.md`.
+Authority active within the frozen scope (D-1…D-7); not authorized:
+`claims_report.py`, snapshot/drift/cron machinery, CI/pre-commit gates,
+doctrine edits, coverage-source expansion, `--strict` changes.
