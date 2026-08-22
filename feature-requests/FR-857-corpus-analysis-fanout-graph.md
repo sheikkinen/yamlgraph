@@ -82,6 +82,26 @@ Authored via the governed route (`scripts/author.sh`), precedent
       tools
 - [ ] README documents the manifest contract and one worked example
 
+## Agent Contract (the sell)
+
+The consumer is an agent at tool-selection time; it matches its current
+question against tool descriptions, so the description IS the retrieval
+key. Binding presentation requirements:
+
+- **Question-first naming:** the MCP/registry surface presents as
+  `semantic_grep` semantics — "Ask a question about a set of files; get
+  cited excerpts back; guaranteed nothing skipped" — not as the
+  mechanism ("map-node fan-out").
+- **Firing moment = the default's failure signature:** the description
+  and the FR-853 instruction name the trigger as: grep returned nothing
+  (concept, not string), grep returned too much, or the plan says "read
+  N files to answer one question."
+- **Sell the evidence, not the search:** output is a citable artifact
+  (paths + excerpts + coverage guarantee "all N read, K relevant") —
+  admissible in FRs and judgements where subagent narrative is not
+  (input closure). The reconciliation invariant is the product, not an
+  internal detail.
+
 ## Alternatives Considered
 
 - **Keep hand-running subagent batches**: sequential, unmerged,
