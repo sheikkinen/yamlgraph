@@ -204,7 +204,6 @@
 | FR-757 | Proposed | yamlgraph |  | FR-757-fsm-contrib-relocation.md |
 | FR-818 | Proposed | yamlgraph |  | FR-818-judge-prior-art-context-narrowing.md |
 | FR-820 | Proposed | yamlgraph |  | FR-820-stripe-prepaid-credit-purchase.md |
-| FR-850 | Proposed | yamlgraph |  | FR-850-req-coverage-usable-form.md |
 | FR-855 | Proposed | yamlgraph |  | FR-855-generated-pattern-index.md |
 | FR-856 | Proposed | yamlgraph |  | FR-856-judge-claim-verification-stage.md |
 | FR-857 | Proposed | yamlgraph |  | FR-857-corpus-analysis-fanout-graph.md |
@@ -443,7 +442,6 @@ graph TD
     FR-837["FR-837 Judged"]
     FR-838["FR-838 Judged"]
     FR-841["FR-841 PARSE-FAILURE"]
-    FR-850["FR-850 Proposed"]
     FR-853["FR-853 Judged"]
     FR-854["FR-854 PARSE-FAILURE"]
     FR-855["FR-855 Proposed"]

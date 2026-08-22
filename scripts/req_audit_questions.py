@@ -2,8 +2,9 @@
 """Construct requirement-witness audit question files (FR-851, no LLM).
 
 Deterministic constructor: walks the requirements-test-code mapping
-(req_coverage.py loaders) and emits one frozen-schema JSON question per
-registry requirement plus token-budgeted batches for the audit graph
+(shared coverage_contexts boundary + req_coverage marker walker) and
+emits one frozen-schema JSON question per registry requirement plus
+token-budgeted batches for the audit graph
 (examples/demos/req_witness_audit/).
 
 Usage:
@@ -18,34 +19,30 @@ import argparse
 import ast
 import json
 import re
-import sqlite3
 import sys
 from pathlib import Path
 
 import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from req_coverage import (  # noqa: E402
+from coverage_contexts import (  # noqa: E402  # CONF-413
+    RESOLUTION_CLASSES,
+    derive_resolution,
+    load_coverage_contexts,
+)
+from req_coverage import (  # noqa: E402  # CONF-410
     CAPABILITIES_DIR,
     FRAMEWORK_TEST_DIRS,
-    _extract_imports_from_test,
-    _load_coverage_map,
     _load_req_descriptions,
     extract_req_markers,
 )
 
+__all__ = ["RESOLUTION_CLASSES", "derive_resolution"]  # shared-truth re-exports
+
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
 FIXED_QUESTION = (
-    "Are requirement, test, and code properly covered — "
-    "what would improve the witness?"
-)
-RESOLUTION_CLASSES = (
-    "coverage",
-    "ast",
-    "no-link-ran",
-    "no-link-unrecorded",
-    "doc-witness",
+    "Are requirement, test, and code properly covered — what would improve the witness?"
 )
 # chars/4: documented approximation, deterministic by construction (R-4)
 TOKEN_DIVISOR = 4
@@ -61,43 +58,6 @@ def estimate_tokens(text: str) -> int:
 def _req_sort_key(req_id: str) -> int:
     match = re.search(r"(\d+)$", req_id)
     return int(match.group(1)) if match else 0
-
-
-def _reads_repo_docs(test_file: Path) -> bool:
-    """True when the test file references .md documents (doc-witness)."""
-    try:
-        tree = ast.parse(test_file.read_text(), filename=str(test_file))
-    except (OSError, SyntaxError):
-        return False
-    for node in ast.walk(tree):
-        if (
-            isinstance(node, ast.Constant)
-            and isinstance(node.value, str)
-            and node.value.endswith(".md")
-        ):
-            return True
-    return False
-
-
-def derive_resolution(
-    test_key: str,
-    coverage_map: dict[str, set[str]],
-    recorded_contexts: set[str],
-    test_file: Path | None,
-) -> tuple[str, list[str]]:
-    """Classify one test's witness link (frozen enum) and resolved files."""
-    cov_files = coverage_map.get(test_key, set())
-    if cov_files:
-        return "coverage", sorted(cov_files)
-    if test_file is not None:
-        ast_files = _extract_imports_from_test(test_file, test_key)
-        if ast_files:
-            return "ast", sorted(ast_files)
-        if _reads_repo_docs(test_file):
-            return "doc-witness", []
-    if test_key in recorded_contexts:
-        return "no-link-ran", []
-    return "no-link-unrecorded", []
 
 
 def build_question(
@@ -254,33 +214,15 @@ def _load_req_registry() -> dict[str, tuple[str, str, list[str]]]:
     return registry
 
 
-def _load_recorded_contexts(root: Path) -> set[str]:
-    """All test ids present in the .coverage context table (normalized)."""
-    db_path = root / ".coverage"
-    if not db_path.exists():
-        return set()
-    conn = sqlite3.connect(str(db_path))
-    try:
-        rows = conn.execute(
-            "SELECT context FROM context WHERE context != ''"
-        ).fetchall()
-    finally:
-        conn.close()
-    contexts: set[str] = set()
-    for (context,) in rows:
-        test_id = context.split("|")[0]
-        parts = test_id.split("::", 1)
-        stem = Path(parts[0]).stem
-        contexts.add(f"{stem}::{parts[1]}" if len(parts) > 1 else stem)
-    return contexts
-
-
 def collect_questions(root: Path = REPO_ROOT) -> list[dict]:
-    """Build all question payloads from the current tree (no LLM)."""
+    """Build all question payloads from the current tree (no LLM).
+
+    Raises CoverageContextError when the .coverage instrument is missing,
+    context-free, or poisoned (FR-850 AC-03 — hard refusal, never a
+    silent substitute).
+    """
     registry = _load_req_registry()
     descriptions = _load_req_descriptions(root)
-    coverage_map = _load_coverage_map(root)
-    recorded = _load_recorded_contexts(root)
 
     all_markers: dict[str, list[str]] = {}
     test_key_to_file: dict[str, Path] = {}
@@ -293,6 +235,9 @@ def collect_questions(root: Path = REPO_ROOT) -> list[dict]:
                 all_markers.setdefault(req, []).extend(tests)
                 for t in tests:
                     test_key_to_file[t] = filepath
+
+    tagged = {t for tests in all_markers.values() for t in tests}
+    coverage_map, recorded = load_coverage_contexts(root, tagged or None)
 
     questions: list[dict] = []
     for req_id in sorted(registry, key=_req_sort_key):

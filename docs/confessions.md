@@ -287,7 +287,7 @@ Test suppressions are acceptable when they enable testing patterns that conflict
 - **Penance**: Same as CONF-015.
 
 ### CONF-019
-- **File**: [tests/unit/test_req_coverage_ast.py](../tests/unit/test_req_coverage_ast.py#L19)
+- **File**: [tests/unit/test_req_coverage_ast.py](../tests/unit/test_req_coverage_ast.py#L20)
 - **Code**: E402
 - **Sin**: Import after `sys.path.insert` for scripts module.
 - **Penance**: Test file needs to import from scripts/ which is not a package.
@@ -1717,7 +1717,7 @@ The ID ranges are:
 - **Penance**: Test imports from scripts/ which is not a package (CONF-019 idiom).
 
 ### CONF-410
-- **File**: [scripts/req_audit_questions.py](../scripts/req_audit_questions.py#L28)
+- **File**: [scripts/req_audit_questions.py](../scripts/req_audit_questions.py#L33)
 - **Code**: E402
 - **Sin**: Import after `sys.path.insert` for sibling scripts module.
 - **Penance**: scripts/ is not a package; req_audit_questions reuses req_coverage loaders per FR-851 (CONF-019 idiom).
@@ -1727,3 +1727,15 @@ The ID ranges are:
 - **Code**: E402
 - **Sin**: Import after `sys.path.insert` for scripts module.
 - **Penance**: Test imports the FR-850 shared loader from scripts/ flat path (CONF-019 idiom).
+
+### CONF-412
+- **File**: [scripts/req_coverage.py](../scripts/req_coverage.py#L34)
+- **Code**: E402
+- **Sin**: Import after `sys.path.insert` for sibling scripts module.
+- **Penance**: scripts/ is not a package; req_coverage consumes the shared coverage_contexts boundary per FR-850 (CONF-019 idiom).
+
+### CONF-413
+- **File**: [scripts/req_audit_questions.py](../scripts/req_audit_questions.py#L28)
+- **Code**: E402
+- **Sin**: Import after `sys.path.insert` for sibling scripts module.
+- **Penance**: scripts/ is not a package; req_audit_questions consumes the shared coverage_contexts boundary per FR-850 (CONF-019 idiom).

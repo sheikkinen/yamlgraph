@@ -9,6 +9,12 @@ Usage:
 
 FR-178: Loads capabilities from YAML registry under capabilities/
 
+--implementation requires a healthy .coverage DB with test contexts.
+Recording command (FR-850 — sequential, ctrace core; -n auto and the
+sysmon core silently poison contexts):
+    COVERAGE_CORE=ctrace pytest tests/unit tests/integration -q \\
+        --cov=yamlgraph --cov-context=test
+
 Scope contract (FR-436):
 - Includes framework test scope only: tests/unit and tests/integration
 - Excludes infrastructure hook scope: .github/hooks/tests
@@ -18,12 +24,20 @@ from __future__ import annotations
 
 import ast
 import re
-import sqlite3
 import sys
 from collections import defaultdict
 from pathlib import Path
 
 import yaml
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from coverage_contexts import (  # noqa: E402  # CONF-412
+    RESOLUTION_CLASSES,
+    CoverageContextError,
+    derive_resolution,
+    load_coverage_contexts,
+    reconcile_modules,
+)
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 CAPABILITIES_DIR = REPO_ROOT / "capabilities"
@@ -156,123 +170,45 @@ def _is_req_marker(node: ast.expr) -> bool:
     )
 
 
-def _module_to_path(module: str) -> str:
-    """Convert dotted module name to filesystem path.
+# Question-first section headings for --implementation (FR-850 AC-09)
+QUESTION_LINKAGE = (
+    "Q1: How is each requirement's witness linked to implementation code?"
+)
+QUESTION_TRUST = "Q2: Can these linkage numbers be trusted?"
+QUESTION_MODULES = (
+    "Q3: Which declared modules are never exercised by their capability's tagged tests?"
+)
 
-    ``yamlgraph.utils.llm_factory`` → ``yamlgraph/utils/llm_factory.py``
-    ``yamlgraph.cli`` → ``yamlgraph/cli/__init__.py`` (if directory exists)
+
+def format_resolution_summary(counts: dict[str, int], total: int) -> str:
+    """One-line five-class witness split with an honest denominator (AC-06).
+
+    Raises ValueError when the class counts do not sum to *total* —
+    a dishonest denominator is a defect, not a formatting choice.
     """
-    parts = module.split(".")
-    candidate = "/".join(parts) + ".py"
-    pkg_init = "/".join(parts) + "/__init__.py"
-    root = Path(__file__).parent.parent
-    if (root / candidate).exists():
-        return candidate
-    if (root / pkg_init).exists():
-        return pkg_init
-    # Default: assume .py file (even if missing — the import may be removed code)
-    return candidate
-
-
-def _collect_yamlgraph_imports(nodes: list[ast.stmt]) -> set[str]:
-    """Extract yamlgraph/ file paths from import statements in AST nodes."""
-    paths: set[str] = set()
-    for node in ast.walk(ast.Module(body=nodes, type_ignores=[])):
-        if (
-            isinstance(node, ast.ImportFrom)
-            and node.module
-            and node.module.startswith("yamlgraph")
-        ):
-            paths.add(_module_to_path(node.module))
-        elif isinstance(node, ast.Import):
-            for alias in node.names:
-                if alias.name.startswith("yamlgraph"):
-                    paths.add(_module_to_path(alias.name))
-    return paths
-
-
-def _collect_mock_patch_targets(nodes: list[ast.stmt]) -> set[str]:
-    """Extract yamlgraph/ file paths from mock.patch("yamlgraph...") calls."""
-    paths: set[str] = set()
-    for node in ast.walk(ast.Module(body=nodes, type_ignores=[])):
-        if not isinstance(node, ast.Call):
-            continue
-        # Match @patch("yamlgraph.x.y.z") or mock.patch("yamlgraph.x.y.z")
-        func = node.func
-        is_patch = (isinstance(func, ast.Attribute) and func.attr == "patch") or (
-            isinstance(func, ast.Name) and func.id == "patch"
+    if sum(counts.values()) != total:
+        raise ValueError(
+            f"resolution counts sum to {sum(counts.values())}, "
+            f"but total test-req pairs is {total}"
         )
-        if not is_patch or not node.args:
+    parts = [f"{cls}: {counts.get(cls, 0)}" for cls in RESOLUTION_CLASSES]
+    return f"Witness split ({total} test-req pairs): " + " | ".join(parts)
+
+
+def _load_cap_modules() -> dict[str, list[str]]:
+    """CAP-ID → declared modules (cap-level ∪ req-level) from capabilities/."""
+    modules: dict[str, list[str]] = {}
+    for filepath in sorted(CAPABILITIES_DIR.glob("CAP-*.yaml")):
+        data = yaml.safe_load(filepath.read_text())
+        if data.get("status") == "retired":
             continue
-        arg = node.args[0]
-        if (
-            isinstance(arg, ast.Constant)
-            and isinstance(arg.value, str)
-            and arg.value.startswith("yamlgraph")
-        ):
-            # "yamlgraph.utils.llm_factory.create_llm" → "yamlgraph.utils.llm_factory"
-            dotted = arg.value.rsplit(".", 1)[0]
-            paths.add(_module_to_path(dotted))
-    return paths
-
-
-def _extract_imports_from_test(filepath: Path, test_key: str) -> set[str]:
-    """Extract yamlgraph/ source file paths from a test file using AST analysis.
-
-    Parses both module-level imports and inline imports within the specific
-    test function identified by *test_key* (``stem::Class::method`` or
-    ``stem::function``).  Also resolves ``mock.patch("yamlgraph.X.Y.func")``
-    targets.
-
-    Returns set of relative paths like ``{"yamlgraph/utils/llm_factory.py"}``.
-    """
-    try:
-        tree = ast.parse(filepath.read_text(), filename=str(filepath))
-    except SyntaxError:
-        return set()
-
-    # Parse test_key: "test_foo::ClassName::method" or "test_foo::func"
-    parts = test_key.split("::")
-    # parts[0] is stem (ignored — we already have filepath)
-    class_name = parts[1] if len(parts) == 3 else None
-    func_name = parts[-1]
-
-    # 1. Module-level imports (always included)
-    module_nodes = [n for n in tree.body if isinstance(n, ast.Import | ast.ImportFrom)]
-    paths = _collect_yamlgraph_imports(module_nodes)
-
-    # 2. Find the specific test function and extract inline imports + mock targets
-    func_body: list[ast.stmt] = []
-    for node in ast.iter_child_nodes(tree):
-        if class_name and isinstance(node, ast.ClassDef) and node.name == class_name:
-            for item in node.body:
-                if (
-                    isinstance(item, ast.FunctionDef | ast.AsyncFunctionDef)
-                    and item.name == func_name
-                ):
-                    func_body = item.body + item.decorator_list  # type: ignore[operator]
-                    break
-            break
-        elif (
-            not class_name
-            and isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef)
-            and node.name == func_name
-        ):
-            func_body = node.body + node.decorator_list  # type: ignore[operator]
-            break
-
-    if func_body:
-        paths |= _collect_yamlgraph_imports(func_body)
-        paths |= _collect_mock_patch_targets(func_body)
-
-    # Also check class-level decorators for mock.patch
-    if class_name:
-        for node in ast.iter_child_nodes(tree):
-            if isinstance(node, ast.ClassDef) and node.name == class_name:
-                paths |= _collect_mock_patch_targets(node.decorator_list)
-                break
-
-    return paths
+        declared = list(data.get("modules") or [])
+        for req in data.get("requirements", []):
+            for mod in req.get("modules") or []:
+                if mod not in declared:
+                    declared.append(mod)
+        modules[data["id"]] = declared
+    return modules
 
 
 def _load_req_descriptions(root: Path) -> dict[str, str]:
@@ -294,61 +230,6 @@ def _load_req_descriptions(root: Path) -> dict[str, str]:
             if req_id not in descriptions:
                 descriptions[req_id] = desc
     return descriptions
-
-
-def _load_coverage_map(root: Path) -> dict[str, set[str]]:
-    """Load test→source file mapping from .coverage SQLite DB.
-
-    Requires a prior run of ``pytest --cov=yamlgraph --cov-context=test``.
-    Returns mapping of test node id → set of source files (relative paths).
-    """
-    db_path = root / ".coverage"
-    if not db_path.exists():
-        print(
-            "⚠️  No .coverage database found. Run first:\n"
-            "    pytest --cov=yamlgraph --cov-context=test\n"
-        )
-        return {}
-
-    conn = sqlite3.connect(str(db_path))
-    cursor = conn.cursor()
-
-    # Check that contexts were recorded
-    cursor.execute("SELECT COUNT(*) FROM context WHERE context != ''")
-    if cursor.fetchone()[0] == 0:
-        print(
-            "⚠️  .coverage DB has no test contexts. Re-run with:\n"
-            "    pytest --cov=yamlgraph --cov-context=test\n"
-        )
-        conn.close()
-        return {}
-
-    # line_bits stores (file_id, context_id, numbits) — existence = test touched file
-    cursor.execute(
-        "SELECT DISTINCT f.path, ctx.context "
-        "FROM line_bits lb "
-        "JOIN file f ON lb.file_id = f.id "
-        "JOIN context ctx ON lb.context_id = ctx.id "
-        "WHERE ctx.context != ''"
-    )
-
-    test_files: dict[str, set[str]] = defaultdict(set)
-    root_str = str(root) + "/"
-    for file_path, context in cursor.fetchall():
-        # context format: "tests/unit/test_foo.py::Class::method|run"
-        # Normalize to match AST marker keys: "test_foo::Class::method"
-        test_id = context.split("|")[0]
-        # Strip path prefix and .py extension from test file part
-        parts = test_id.split("::", 1)
-        test_stem = Path(parts[0]).stem  # "tests/unit/test_foo.py" → "test_foo"
-        test_id = f"{test_stem}::{parts[1]}" if len(parts) > 1 else test_stem
-        # Convert absolute source path to relative, filter to yamlgraph/ source only
-        rel_path = file_path.replace(root_str, "")
-        if rel_path.startswith("yamlgraph/") and "/test" not in rel_path:
-            test_files[test_id].add(rel_path)
-
-    conn.close()
-    return dict(test_files)
 
 
 def main() -> None:
@@ -416,7 +297,6 @@ def main() -> None:
 
     # Implementation: req → source files (from coverage + AST import resolution) → tests
     if "--implementation" in sys.argv:
-        coverage_map = _load_coverage_map(root)
         req_descriptions = _load_req_descriptions(root)
 
         # Build test_key → filepath index for AST import resolution
@@ -430,13 +310,24 @@ def main() -> None:
                     for test_key in tests:
                         test_key_to_file[test_key] = filepath
 
+        # Hard refusal on a missing/context-free/poisoned instrument (AC-03)
+        try:
+            coverage_map, recorded = load_coverage_contexts(root, unique_tests)
+        except CoverageContextError as exc:
+            print(f"\n✗ {exc}")
+            sys.exit(1)
+
         print("\nIMPLEMENTATION TRACEABILITY")
         print("=" * 70)
-        ast_resolved_count = 0
-        still_unresolved_count = 0
 
+        counts: dict[str, int] = dict.fromkeys(RESOLUTION_CLASSES, 0)
+        total_linked_pairs = 0
+        cap_resolved: dict[str, set[str]] = {}
+
+        print(f"\n{QUESTION_LINKAGE}")
         for cap_id, (cap_name, cap_reqs) in CAPABILITIES.items():
             cap_tests_total = sum(len(all_markers.get(r, [])) for r in cap_reqs)
+            resolved_for_cap: set[str] = set()
             print(
                 f"\n── {cap_id} {cap_name} ({len(cap_reqs)} reqs, "
                 f"{cap_tests_total} tests) {'─' * 20}"
@@ -450,28 +341,17 @@ def main() -> None:
                     print("      NO TESTS")
                     continue
 
-                # Aggregate source files across all tests for this req
                 source_files: set[str] = set()
-                matched_tests: list[str] = []
-                ast_tests: list[str] = []
-                unmatched_tests: list[str] = []
+                by_class: dict[str, list[str]] = {c: [] for c in RESOLUTION_CLASSES}
                 for test in tests:
-                    files = coverage_map.get(test, set())
-                    if files:
-                        source_files.update(files)
-                        matched_tests.append(test)
-                    else:
-                        # AST import resolution: parse imports from test file
-                        test_file = test_key_to_file.get(test)
-                        if test_file:
-                            ast_files = _extract_imports_from_test(test_file, test)
-                            if ast_files:
-                                source_files.update(ast_files)
-                                ast_tests.append(test)
-                                ast_resolved_count += 1
-                                continue
-                        unmatched_tests.append(test)
-                        still_unresolved_count += 1
+                    cls, files = derive_resolution(
+                        test, coverage_map, recorded, test_key_to_file.get(test)
+                    )
+                    by_class[cls].append(test)
+                    counts[cls] += 1
+                    total_linked_pairs += 1
+                    source_files.update(files)
+                resolved_for_cap |= source_files
 
                 print(f"\n    {req}  {desc}")
                 print(f"      ({len(source_files)} files, {len(tests)} tests)")
@@ -479,22 +359,42 @@ def main() -> None:
                     print("      Implementation:")
                     for sf in sorted(source_files):
                         print(f"        {sf}")
-                if matched_tests:
-                    print("      Tests (coverage):")
-                    for t in matched_tests:
-                        print(f"        {t}")
-                if ast_tests:
-                    print("      Tests (AST imports):")
-                    for t in ast_tests:
-                        print(f"        {t}")
-                if unmatched_tests:
-                    print("      Tests (no link):")
-                    for t in unmatched_tests:
-                        print(f"        {t}")
+                for cls in RESOLUTION_CLASSES:
+                    if by_class[cls]:
+                        print(f"      Tests ({cls}):")
+                        for t in by_class[cls]:
+                            print(f"        {t}")
+            cap_resolved[cap_id] = resolved_for_cap
 
+        print(f"\n{QUESTION_TRUST}")
         print(
-            f"\n  Summary: {ast_resolved_count} tests resolved via AST fallback, "
-            f"{still_unresolved_count} unresolvable"
+            f"  Instrument: {len(recorded)} recorded test contexts for "
+            f"{len(unique_tests)} tagged tests (.coverage accepted)"
+        )
+        print("  " + format_resolution_summary(counts, total_linked_pairs))
+
+        print(f"\n{QUESTION_MODULES}")
+        cap_modules = _load_cap_modules()
+        any_never_hit = False
+        unmeasured_total = 0
+        for cap_id, (cap_name, _cap_reqs) in CAPABILITIES.items():
+            never_hit, unmeasured = reconcile_modules(
+                cap_modules.get(cap_id, []), cap_resolved.get(cap_id, set())
+            )
+            unmeasured_total += len(unmeasured)
+            if never_hit:
+                any_never_hit = True
+                print(f"  ⚠ {cap_id} {cap_name} — declared but never hit:")
+                for mod in never_hit:
+                    print(f"      {mod}")
+        if not any_never_hit:
+            print(
+                "  ✓ every measured declared module is exercised by its "
+                "capability's tagged tests"
+            )
+        print(
+            f"  ({unmeasured_total} declarations outside yamlgraph/ are "
+            f"unmeasured by this coverage run — not flagged)"
         )
 
     # Reverse check: phantom requirement detection (FR-145)

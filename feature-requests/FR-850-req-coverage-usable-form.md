@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Tooling
-**Status:** Proposed
+**Status:** Implemented
 **Effort:** 0.5–1 day
 **Requested:** 2026-08-22
 **First consumer / first event:** the operator, reading the first
@@ -174,48 +174,76 @@ The decision input for the deferred drift FR. Seeded from today's runs:
 | 2026-08-22 | 3 manual runs | sysmon core silently poisons contexts on Py3.14 | this FR (tripwire) |
 | 2026-08-22 | ctrace run | summary omits its own primary-path count | this FR (honest summary) |
 | 2026-08-22 | ctrace run | ~2707 no-link pairs; doc-witness is a legitimate class | this FR (anomaly partition) |
+| 2026-08-22 | post-impl `--implementation` run | five-class split sums honestly: 6593 pairs = coverage 3376 + ast 475 + no-link-ran 0 + no-link-unrecorded 1279 + doc-witness 1463; instrument 3052 contexts / 6190 tagged accepted | AC-06 evidence |
+| 2026-08-22 | post-impl reconciliation read | extensionless file declarations (`yamlgraph/edge_compiler`, `models/__init__`) were false never-hits under prefix-only matching; matcher now tries `<mod>.py`; remaining never-hits incl. dotted function-level registry declarations (`edge_compiler._add_conditional_edges`) are genuine registry data-quality signals | matcher fix in `reconcile_modules` |
+
+## Implementation Status (2026-08-22)
+
+Enforced RED (d9f72708) → GREEN in this session. Decisions and deviations:
+
+- **New module** `scripts/coverage_contexts.py`: `CoverageContextError`,
+  `POISON_RATIO = 0.25`, `normalize_context`, `load_coverage_contexts`,
+  `reconcile_modules`, plus the AST witness helpers
+  (`_extract_imports_from_test` et al.) and the five-class
+  `derive_resolution` — both **moved** here from their former homes.
+- `req_coverage.py`: `_load_coverage_map` and AST helpers deleted;
+  `--implementation` rewritten with question headings (Q1 linkage census
+  via shared `derive_resolution`, Q2 instrument status +
+  `format_resolution_summary` with ValueError on dishonest denominator,
+  Q3 per-CAP `reconcile_modules`). Summary/`--detail`/`--strict` verified
+  **byte-identical** against HEAD (AC-02, diff = empty).
+- `req_audit_questions.py`: `_load_recorded_contexts`, local
+  `derive_resolution`/`RESOLUTION_CLASSES`/`_reads_repo_docs` deleted;
+  re-exports shared names for FR-851 test compatibility; markers walked
+  first so the loader's poisoning tripwire sees the tagged set.
+- **Deviation:** the sketched `--anomalies` flag was not added — all
+  anomaly reporting lives inside `--implementation` (smallest sufficient
+  change; a second mode would need its own AC-02 identity contract).
+- Tests: `tests/unit/test_fr850_coverage_contexts_red.py` (21 tests,
+  REQ-YG-608); `test_req_coverage_ast.py` / `test_req_coverage.py`
+  retargeted to the moved helpers. Full fast unit suite: 5995 passed.
 
 ## Acceptance Criteria
 
 Revised per judgement (R-1…R-5 folded 2026-08-22):
 
-- [ ] AC-01: A single shared coverage-context loader under `scripts/`
+- [x] AC-01: A single shared coverage-context loader under `scripts/`
   is used by both `req_coverage.py --implementation` and
   `req_audit_questions.py`; the duplicated `_load_recorded_contexts`
   DB read is removed.
-- [ ] AC-02: `req_coverage.py` summary, `--detail`, and `--strict`
+- [x] AC-02: `req_coverage.py` summary, `--detail`, and `--strict`
   behavior are byte-identical when `--implementation` is not requested.
-- [ ] AC-03: Missing `.coverage`, zero non-empty contexts, and the
+- [x] AC-03: Missing `.coverage`, zero non-empty contexts, and the
   poisoned-context predicate hard-fail both consumers, with an error
   naming `COVERAGE_CORE=ctrace`, `--cov-context=test`, and
   sequential/no-`-n auto` recording.
-- [ ] AC-04: Synthetic SQLite coverage fixtures cover missing DB,
+- [x] AC-04: Synthetic SQLite coverage fixtures cover missing DB,
   context-free DB, poisoned DB, and healthy DB cases for both
   consumers.
-- [ ] AC-05: Parametrized coverage context ids with `[param]` suffixes
+- [x] AC-05: Parametrized coverage context ids with `[param]` suffixes
   normalize to the same marker keys in both consumers, covered by a
   parametrized test fixture.
-- [ ] AC-06: `req_coverage.py --implementation` reports the full
+- [x] AC-06: `req_coverage.py --implementation` reports the full
   five-class split `coverage|ast|doc-witness|no-link-ran|
   no-link-unrecorded` with totals whose sum equals the
   implementation-mode test-REQ pair denominator.
-- [ ] AC-07: The local three-class derivation is removed or reduced to
+- [x] AC-07: The local three-class derivation is removed or reduced to
   a thin call into the shared five-class derivation; no second
   resolution truth remains.
-- [ ] AC-08: Declared-module reconciliation is emitted in exactly one
+- [x] AC-08: Declared-module reconciliation is emitted in exactly one
   question-headed output section and applies only to measured
   `yamlgraph/` module declarations; unmeasured non-`yamlgraph/`
   declarations are not reported as never-hit anomalies.
-- [ ] AC-09: Every implementation report section is headed by the
+- [x] AC-09: Every implementation report section is headed by the
   human question it answers; no unheaded data block remains in the
   `--implementation` output.
-- [ ] AC-10: FR-851 constructor output is unchanged except where
+- [x] AC-10: FR-851 constructor output is unchanged except where
   parametrized contexts normalize or the shared loader correctly
   refuses an invalid coverage DB.
-- [ ] AC-11: Capability/ARCHITECTURE registry entries describe the new
+- [x] AC-11: Capability/ARCHITECTURE registry entries describe the new
   implementation-traceability behavior, and all new/changed tests are
   tagged with the corresponding REQ id.
-- [ ] AC-12: The script help or adjacent documented command shows the
+- [x] AC-12: The script help or adjacent documented command shows the
   correct recording command with `COVERAGE_CORE=ctrace`,
   `--cov-context=test`, and sequential execution; a changelog fragment
   is included.

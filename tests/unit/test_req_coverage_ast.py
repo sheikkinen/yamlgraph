@@ -1,7 +1,8 @@
-"""Tests for AST-based import fallback in req_coverage.py.
+"""Tests for AST-based import fallback (scripts/coverage_contexts.py).
 
 When coverage DB has no data for a test, fall back to parsing
 ``from yamlgraph.X.Y import Z`` statements to resolve implementation files.
+Moved from req_coverage.py to the shared coverage_contexts boundary (FR-850).
 """
 
 from __future__ import annotations
@@ -10,13 +11,13 @@ import sys
 import textwrap
 from pathlib import Path
 
-# Add scripts/ to path so we can import req_coverage directly
+# Add scripts/ to path so we can import coverage_contexts directly
 import pytest
 
 pytestmark = pytest.mark.process
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "scripts"))
-from req_coverage import _extract_imports_from_test  # noqa: E402
+from coverage_contexts import _extract_imports_from_test  # noqa: E402
 
 
 @pytest.mark.req("REQ-YG-063")

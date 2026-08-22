@@ -8,7 +8,7 @@ from unittest.mock import patch
 
 import pytest
 
-from scripts import req_coverage
+from scripts import coverage_contexts, req_coverage
 
 pytestmark = pytest.mark.process
 
@@ -116,12 +116,16 @@ class TestModuleToPath:
 
         with patch.object(Path, "__new__", return_value=tmp_path):
             # The function uses Path(__file__).parent.parent as root
-            original_file = req_coverage.__file__
+            original_file = coverage_contexts.__file__
             try:
-                req_coverage.__file__ = str(tmp_path / "scripts" / "req_coverage.py")
-                result = req_coverage._module_to_path("yamlgraph.utils.llm_factory")
+                coverage_contexts.__file__ = str(
+                    tmp_path / "scripts" / "coverage_contexts.py"
+                )
+                result = coverage_contexts._module_to_path(
+                    "yamlgraph.utils.llm_factory"
+                )
             finally:
-                req_coverage.__file__ = original_file
+                coverage_contexts.__file__ = original_file
 
         assert result == "yamlgraph/utils/llm_factory.py"
 
@@ -142,9 +146,9 @@ import yamlgraph.models
         tree = ast.parse(source)
         nodes = [n for n in tree.body if isinstance(n, ast.Import | ast.ImportFrom)]
 
-        with patch.object(req_coverage, "_module_to_path") as mock_to_path:
+        with patch.object(coverage_contexts, "_module_to_path") as mock_to_path:
             mock_to_path.side_effect = lambda m: m.replace(".", "/") + ".py"
-            paths = req_coverage._collect_yamlgraph_imports(nodes)
+            paths = coverage_contexts._collect_yamlgraph_imports(nodes)
 
         assert len(paths) == 3
         assert "yamlgraph/executor.py" in paths
