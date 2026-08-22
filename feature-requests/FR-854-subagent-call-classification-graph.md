@@ -2,9 +2,8 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Judged 2026-08-22 (APPROVED WITH REVISIONS) — AUTHORITY SUSPENDED:
-undispositioned prior art discovered post-judgement (see Prior Art
-Disposition below); requires re-judgement or rescope
+**Status:** WITHDRAWN 2026-08-22 — census rerun killed the premise; superseded
+by FR-855/FR-856/FR-857 (the dormant 07-29 recommendations, filed)
 **Effort:** 1 day
 **Requested:** 2026-08-22
 **First consumer / first event:** the doctrine itself — the report either
@@ -150,6 +149,36 @@ None of the four recommendations was ever filed as an FR or proposal
 **Recorded irony (evidence for FR-853):** this FR is itself the second
 firing of the exact investigation it proposes — the 07-29 analysis was
 forgotten because no index made it findable at planning time.
+
+## Census Rerun (2026-08-22) — the delta that closed this FR
+
+Method: same as 07-29 — full extraction of subagent launches from
+`.github/hooks/logs/audit.jsonl`, raw records read end-to-end
+(`tmp/census-delta.md`).
+
+- **Population:** 82 launches total; **delta since 07-29: 11 matches,
+  of which only 5 are genuine launches** — the other 6 are the census's
+  own grep/analysis commands (the instrument observing itself).
+- **All 5 genuine launches are `Explore` research briefs:** agent/tool
+  integration research (08-06), FR-784+ claims audit (08-15),
+  yamlgraph differentiators + ninchat_voice usage audit (08-15),
+  GitClaw plan review (08-21).
+- **Cluster mapping:** C2 claim-verification fired its 10th recurrence;
+  C3 pattern-lookup its 13th; C1's corpus shape recurs in the two 08-15
+  audits. No new cluster.
+- **Volume collapse:** 68 launches/10 weeks → 5/3.5 weeks — the
+  enforcement-tier migration to graph adapters (FR-758/765/767) already
+  absorbed the bulk.
+- **Brief hygiene fixed itself:** all 5 delta launches carry
+  descriptions (was ~30/68 empty) — 07-29 recommendation 4 de-ranked.
+
+**Verdict:** a classification graph over this corpus would be
+instrumentation of a solved question. The base rate is known, the
+clusters are stable, and the correct action was always to file the
+dormant recommendations. Filed as: **FR-855** (pattern index, C3+C4,
+13 recurrences), **FR-856** (judge claim-verification stage, C2, 10
+recurrences — the very gap that suspended this FR's judgement),
+**FR-857** (corpus-analysis fan-out graph, C1).
 
 ## Related
 
