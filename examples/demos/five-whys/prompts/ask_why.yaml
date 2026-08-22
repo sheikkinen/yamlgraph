@@ -20,7 +20,7 @@ system: |
   the underlying cause. Each answer should be a concise causal statement.
 
 user: |
-  Problem: {problem}
+  Problem: {{ problem }}
 
   {% if previous and previous.chain %}
   Previous analysis:

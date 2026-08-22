@@ -1,0 +1,46 @@
+2026-08-22 12:34:28,234 [INFO] yamlgraph.compile.node_compiler: Added node: ask_why (type=llm)
+2026-08-22 12:34:28,238 [INFO] yamlgraph.compile.node_compiler: Added node: summarise (type=llm)
+2026-08-22 12:34:28,255 [INFO] yamlgraph.route: {"event": "run", "run_id": "01a028d2-5595-76f1-ac57-f860cce188db", "artifact_hash": "sha256:5ac680f80a46cf68695da03740494fdf759012065fc79285ec9d54d331c4ff1f", "graph": "/Users/sheikki/Documents/src/yamlgraph/examples/demos/five-whys/graph.yaml", "yamlgraph_version": "0.5.17", "thread_id": null, "started_at": "2026-08-22T09:34:28Z"}
+2026-08-22 12:34:28,518 [INFO] yamlgraph.utils.llm_factory: Creating LLM: deepseek/deepseek-v4-flash (temp=0.7)
+2026-08-22 12:34:30,790 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 400 Bad Request"
+2026-08-22 12:34:30,804 [INFO] yamlgraph.executor_base: Structured output rejected, falling back to JSON extraction (FR-464)
+2026-08-22 12:34:31,128 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-22 12:34:33,483 [INFO] yamlgraph.node_factory.llm_nodes: Node ask_why completed successfully
+2026-08-22 12:34:33,484 [INFO] yamlgraph.route: {"event": "route", "node": "ask_why", "value": "_loop_counts.ask_why < 5", "target": "ask_why", "thread_id": null, "ts": "2026-08-22T09:34:33Z"}
+2026-08-22 12:34:33,809 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 400 Bad Request"
+2026-08-22 12:34:33,815 [INFO] yamlgraph.executor_base: Structured output rejected, falling back to JSON extraction (FR-464)
+2026-08-22 12:34:34,215 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-22 12:34:36,439 [INFO] yamlgraph.node_factory.llm_nodes: Node ask_why completed successfully
+2026-08-22 12:34:36,440 [INFO] yamlgraph.route: {"event": "route", "node": "ask_why", "value": "_loop_counts.ask_why < 5", "target": "ask_why", "thread_id": null, "ts": "2026-08-22T09:34:36Z"}
+2026-08-22 12:34:36,757 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 400 Bad Request"
+2026-08-22 12:34:36,778 [INFO] yamlgraph.executor_base: Structured output rejected, falling back to JSON extraction (FR-464)
+2026-08-22 12:34:37,100 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-22 12:34:39,588 [INFO] yamlgraph.node_factory.llm_nodes: Node ask_why completed successfully
+2026-08-22 12:34:39,588 [INFO] yamlgraph.route: {"event": "route", "node": "ask_why", "value": "_loop_counts.ask_why < 5", "target": "ask_why", "thread_id": null, "ts": "2026-08-22T09:34:39Z"}
+2026-08-22 12:34:39,922 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 400 Bad Request"
+2026-08-22 12:34:39,928 [INFO] yamlgraph.executor_base: Structured output rejected, falling back to JSON extraction (FR-464)
+2026-08-22 12:34:40,250 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-22 12:34:45,492 [INFO] yamlgraph.node_factory.llm_nodes: Node ask_why completed successfully
+2026-08-22 12:34:45,493 [INFO] yamlgraph.route: {"event": "route", "node": "ask_why", "value": "_loop_counts.ask_why < 5", "target": "ask_why", "thread_id": null, "ts": "2026-08-22T09:34:45Z"}
+2026-08-22 12:34:45,819 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 400 Bad Request"
+2026-08-22 12:34:45,825 [INFO] yamlgraph.executor_base: Structured output rejected, falling back to JSON extraction (FR-464)
+2026-08-22 12:34:46,155 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-22 12:34:50,474 [INFO] yamlgraph.node_factory.llm_nodes: Node ask_why completed successfully
+2026-08-22 12:34:50,475 [INFO] yamlgraph.route: {"event": "route", "node": "ask_why", "value": "_loop_counts.ask_why >= 5", "target": "summarise", "thread_id": null, "ts": "2026-08-22T09:34:50Z"}
+2026-08-22 12:34:50,797 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 400 Bad Request"
+2026-08-22 12:34:50,804 [INFO] yamlgraph.executor_base: Structured output rejected, falling back to JSON extraction (FR-464)
+2026-08-22 12:34:51,122 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-22 12:34:55,119 [INFO] yamlgraph.node_factory.llm_nodes: Node summarise completed successfully
+2026-08-22 12:34:55,291 [INFO] yamlgraph.route: {"event": "run_end", "run_id": "01a028d2-5595-76f1-ac57-f860cce188db", "ended_at": "2026-08-22T09:34:55Z", "dropped_events": 0}
+
+🚀 Running graph: graph.yaml
+   Variables: {'problem': 'The nightly backup job silently stopped running last week'}
+
+🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/f889c0ec-fa9b-4025-b69c-2aa756283ef8/r/01a028d2-55a3-7003-8f73-8dde957984be?poll=true
+============================================================
+RESULT
+============================================================
+  current_step: summarise
+  problem: The nightly backup job silently stopped running last week
+  ask_why: {'why_number': 5, 'question': 'Why was there no change-management process requiring runbooks to be reviewed and revised whenever operational procedures or environment configurations change?', 'answer': 'Because organizational leadership did not prioritize process maturity or allocate resources to build and enforce a change-management framework, treating operational changes as ad hoc tasks rather than as risks requiring formal controls.', 'chain': ['The scheduled task was disabled by an administrator during a maintenance window and not re-enabled.', "Because re-enabling the task was not included in the maintenance procedure's checklist or runbook.", 'Because the runbook was written based on an earlier environment where the backup task was not disabled during maintenance, so the need to re-enable it was never identified.', 'Because there was no change-management process requiring runbooks to be reviewed and revised whenever operational procedures or environment configurations change.', 'Because organizational leadership did not prioritize process maturity or allocate resources to build and enforce a change-management framework, treating operational changes as ad hoc tasks rather than as risks requiring formal controls.']}
+  summary: {'problem': 'The nightly backup job silently stopped running last week', 'root_cause': 'Organizational leadership did not prioritize process maturity or allocate resources to build and enforce a change-management framework, treating operational changes as ad hoc tasks rather than as risks requiring formal controls.', 'chain': ['The scheduled task was disabled by an administrator during a maintenance window and not re-enabled.', "Because re-enabling the task was not included in the maintenance procedure's checklist or runbook.", 'Because the runbook was written based on an earlier environment where the backup task was not disabled during maintenance, so the need to re-enable it was never identified.', 'Because there was no change-management process requiring runbooks to be reviewed and revised whenever operational procedures or environment configurations change.', 'Because organizational leadership did not prioritize process maturity or allocate resources to build and enforce a change-management framework, treating operational changes as ad hoc tasks rather than as risks requiring formal controls.'], 'recommendations': ['Establish and enforce a formal change-management framework for all operational changes, including maintenance windows, with required review, approval, and post-change verification steps.', 'Mandate that all runbooks and checklists are reviewed and updated whenever environment configurations or operational procedures change, with version control and owner accountability.', 'Add explicit pre- and post-maintenance verification steps to backup-related runbooks, including confirming the scheduled task is enabled and a test backup completes successfully.', 'Implement automated monitoring and alerting for backup job status, including alerts for disabled tasks, missed executions, or failed backups.', 'Provide leadership-sponsored training and resources to build process maturity, emphasizing operational changes as risks requiring formal controls.']}

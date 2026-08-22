@@ -19,7 +19,7 @@ system: |
   into a clear report identifying the root cause and recommending actions.
 
 user: |
-  Problem: {problem}
+  Problem: {{ problem }}
 
   Five Whys analysis:
   {% for answer in analysis.chain %}
