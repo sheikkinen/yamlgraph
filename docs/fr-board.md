@@ -104,6 +104,8 @@
 | FR-824 | Judged | yamlgraph |  | FR-824-hva-weekly-bulletin-new-repo.md |
 | FR-837 | Judged | yamlgraph |  | FR-837-gitclaw-oulu-source-health-assembly.md |
 | FR-838 | Judged | yamlgraph |  | FR-838-gitclaw-oulu-assembly-recovery.md |
+| FR-853 | Judged | yamlgraph |  | FR-853-agent-instrument-registry.md |
+| FR-854 | Judged | yamlgraph |  | FR-854-subagent-call-classification-graph.md |
 | FR-094 | Approved | yamlgraph |  | FR-094-memory-node.md |
 | FR-095 | Approved | yamlgraph |  | FR-095-doc-staleness-monitor.md |
 | FR-096 | Approved | yamlgraph |  | FR-096-fr-template-demo-plan.md |
@@ -203,8 +205,6 @@
 | FR-818 | Proposed | yamlgraph |  | FR-818-judge-prior-art-context-narrowing.md |
 | FR-820 | Proposed | yamlgraph |  | FR-820-stripe-prepaid-credit-purchase.md |
 | FR-850 | Proposed | yamlgraph |  | FR-850-req-coverage-usable-form.md |
-| FR-853 | Proposed | yamlgraph |  | FR-853-agent-instrument-registry.md |
-| FR-854 | Proposed | yamlgraph |  | FR-854-subagent-call-classification-graph.md |
 | FR-078 | In Progress | yamlgraph |  | FR-078-relocate-project-tests.md |
 | FR-100 | In Progress | yamlgraph |  | FR-100-yamlgraph-development-pipeline-ebook.md |
 | FR-169 | In Progress | yamlgraph |  | FR-169-enforce-reflexion-loop.md |
@@ -440,8 +440,8 @@ graph TD
     FR-838["FR-838 Judged"]
     FR-841["FR-841 PARSE-FAILURE"]
     FR-850["FR-850 Proposed"]
-    FR-853["FR-853 Proposed"]
-    FR-854["FR-854 Proposed"]
+    FR-853["FR-853 Judged"]
+    FR-854["FR-854 Judged"]
     FR-081 --> FR-082
     FR-731 --> FR-735
     FR-731 --> FR-736

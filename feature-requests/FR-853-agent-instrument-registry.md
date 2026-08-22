@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Proposed
+**Status:** Judged — APPROVED WITH REVISIONS (2026-08-22), revisions folded
 **Effort:** 0.5 days
 **Requested:** 2026-08-22
 **First consumer / first event:** every agent session in this repo, at
@@ -54,26 +54,56 @@ never again has to point at an unused instrument.
    each item, ask the model', a multi-stage LLM pipeline, or parallel
    subagent fan-out" — map node is the native map-reduce, race the native
    hedging, router the native dispatch; scripts/subagents are the
-   fallback, not the default. Second witnessed recurrence of
-   `builders_never_call` justifies graduation per the two-strike process.
+   fallback, not the default.
 
-2. **Instrument index**: task-shape → graph mapping surfaced where the
-   agent already looks (graph metadata consumed by `graph list` /
-   MCP descriptions), e.g. "N items × LLM call" → map pattern
-   (`examples/demos/map_demo`), "hedged generation" → `race_demo`,
-   "root-cause chain" → `five_whys`, "structured ideation" →
-   `innovation_matrix`. No new top-level directory: a folder without a
-   named reader and firing moment is archived at birth
-   (`who_reads_this_when`).
+   **Graduation threshold (R-1 resolution):** per the Scripture process
+   rule ("Heuristic appears twice → create FR; confirmed recurrence →
+   graduate to Scripture"), the first recurrence is the Scripture's own
+   `builders_never_call` record (2026-07-17), the second — confirmed —
+   recurrence is the 2026-08-22 operator-witnessed case. This FR is the
+   graduation vehicle and its enforcement performs the graduation now;
+   the diary's "a third firing graduates it" line is superseded and the
+   diary cross-reference is updated in scope (D-3) to remove the
+   contradiction.
 
-## Acceptance Criteria
+2. **Instrument index (R-2 frozen surface)**: existing graph YAML
+   `description` metadata gains a literal `Task shapes:` clause, and
+   `.github/copilot-instructions.md` tells agents to consult the
+   existing graph list / MCP discovery surface for that clause. This
+   rides the already-consumed description field
+   (`yamlgraph/discovery.py` → `yamlgraph/export/mcp.py`); no new
+   reference table, no new top-level directory, no new discovery
+   command (`who_reads_this_when`).
 
-- [ ] `copilot-instructions.md` questions canon gains `is_this_a_graph`
-      with its firing moment and the two recurrence citations
-- [ ] Instrument index exists in graph metadata or a single reference
-      table reachable from the instruction (one hop, no new folder)
-- [ ] At least 5 task shapes mapped to existing registered graphs
-- [ ] Diary entry cross-references updated (graduation recorded)
+   **First index targets (R-3 corrected names/paths):** `map-demo`
+   (`examples/demos/map/graph.yaml`), `fan-out-demo`
+   (`examples/demos/fan-out/graph.yaml`), `race-demo`
+   (`examples/demos/race/graph.yaml`), `five-whys`
+   (`examples/demos/five-whys/graph.yaml`), `innovation-matrix`
+   (`examples/demos/innovation_matrix/graph.yaml`), and optionally
+   `tone-router-demo` (`examples/demos/router/graph.yaml`).
+
+## Acceptance Criteria (revised per judgement)
+
+- [ ] AC-01: `.github/copilot-instructions.md` contains an
+      `is_this_a_graph` questions-canon entry with the firing moment
+      "the instant a plan contains 'for each item, ask the model', a
+      multi-stage LLM pipeline, or parallel subagent fan-out" and cites
+      both recurrence witnesses.
+- [ ] AC-02: `docs/diary/2026-08-22-the-cobblers-children-have-no-graphs.md`
+      cross-references FR-853 and no longer contradicts the FR's
+      graduation threshold.
+- [ ] AC-03: At least five existing registered graph descriptions
+      contain a literal `Task shapes:` clause mapping a task shape to
+      the graph; the first set includes `map-demo`, `fan-out-demo`,
+      `race-demo`, `five-whys`, and `innovation-matrix`.
+- [ ] AC-04: A targeted test proves `Task shapes:` text is returned
+      through `discover_graphs()` and the MCP `yamlgraph_list_graphs`
+      payload (R-4 mechanical witness).
+- [ ] AC-05: The implementation creates no new registry directory, no
+      new MCP tool, and no live interception/nudge mechanism.
+- [ ] AC-06: Any touched graph YAML files pass the existing graph lint
+      path required for graph-artifact edits.
 
 ## Alternatives Considered
 
@@ -97,3 +127,27 @@ build on all three, supersede none.
 - .github/copilot-instructions.md (questions canon)
 - yamlgraph/mcp_server.py (CAP-19 graph registration)
 - Companion FR: FR-854 (subagent-call classification graph)
+
+## Judgement (2026-08-22)
+
+**Verdict:** APPROVED WITH REVISIONS — full judgement in
+`feature-requests/FR-853-agent-instrument-registry.judgement.md`.
+Revisions R-1 (graduation-threshold resolution), R-2 (index surface
+frozen to `Task shapes:` in graph descriptions), R-3 (graph names/paths
+corrected), and R-4 (discovery/MCP visibility witness) are folded above.
+
+**Scope frozen:** D-1 copilot-instructions questions-canon entry; D-2
+`Task shapes:` clauses in the six named demo graph descriptions; D-3
+diary cross-reference/graduation status; D-4 targeted discovery/MCP-list
+test. Not authorized: new directories/registries, new graph or prompt
+files, live interception or PreToolUse nudges, new MCP tools, execution
+semantics changes, any FR-854 implementation.
+
+**Gates:** C-1 revisions folded before authority (done above); C-2
+graph description edits go through the governed authoring route; C-3
+copilot-instructions change requires human review before merge; C-4
+CAP-19 discovery/list behavior preserved; C-5 no FR-854 work here.
+
+### Questions for the human
+
+None — revisions were mechanically foldable.

@@ -2,7 +2,9 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Proposed
+**Status:** Judged 2026-08-22 (APPROVED WITH REVISIONS) — AUTHORITY SUSPENDED:
+undispositioned prior art discovered post-judgement (see Prior Art
+Disposition below); requires re-judgement or rescope
 **Effort:** 1 day
 **Requested:** 2026-08-22
 **First consumer / first event:** the doctrine itself — the report either
@@ -112,10 +114,67 @@ reconciliation discipline over a different corpus, superseding nothing.
 Chronicle/session-store tooling (`session_store_sql`,
 `scripts/vscode/now.py`) — kept as the extraction substrate.
 
+## Prior Art Disposition (discovered 2026-08-22, post-judgement)
+
+**`docs/2026-07-29-research-subagent-promotion.md` — this census was
+already run.** Full `read_raw_output_first` dump of every subagent
+launch in `.github/hooks/logs/audit.jsonl` (68 launches, 2026-05-21 →
+07-28, 19 sessions), clustered into 6 classes with promote/keep
+verdicts and a 4-row recommendations table (corpus-analysis fan-out
+graph; claim-verification artifact in the judge pipeline; pattern
+index; empty-description PostToolUse advisory). Companion discriminators
+in `docs/diary/diary-2026-07-29-subagent-or-graph-delegation-boundary.md`.
+None of the four recommendations was ever filed as an FR or proposal
+(verified by grep 2026-08-22) — the analysis died in the doc.
+
+**Impact on this FR:**
+
+1. The Problem statement's "we have no measurement" is FALSE. A base
+   rate exists: post-early-July, enforcement-tier delegation already
+   migrated to graph adapters (FR-758/765/767); the residual promotion
+   surface is the research tier only.
+2. The judgement's R-1 raw-read gate is substantially satisfied by the
+   07-29 full-dump analysis; only the 07-28 → present delta window is
+   unread.
+3. The extraction substrate question is answered: `audit.jsonl` logs
+   every `runSubagent` PreToolUse with session, timestamp, and brief
+   head (500-char truncation caveat) — not the chronicle session store
+   this FR assumed.
+4. Per the Sermon (FR-737 rule): a proposal re-entering prior-art
+   territory must distinguish itself or die by the same rationale. The
+   only distinguishing claims available: (a) mechanized/repeatable vs.
+   one-shot manual, (b) 07-28 → present delta. Whether those justify a
+   graph, or whether the correct action is to file the four dormant
+   07-29 recommendations directly, is the re-judgement question.
+
+**Recorded irony (evidence for FR-853):** this FR is itself the second
+firing of the exact investigation it proposes — the 07-29 analysis was
+forgotten because no index made it findable at planning time.
+
 ## Related
 
 - Companion FR: FR-853 (agent instrument registry + instruction)
 - feature-requests/FR-851-requirement-witness-audit.md (pipeline
   precedent)
+- docs/2026-07-29-research-subagent-promotion.md (prior census — see
+  Prior Art Disposition)
+- docs/diary/diary-2026-07-29-subagent-or-graph-delegation-boundary.md
+  (delegation discriminators)
 - docs/diary/2026-08-22-the-cobblers-children-have-no-graphs.md
 - .github/skills/session-introspection/SKILL.md
+
+## Judgement (2026-08-22)
+
+**Verdict:** APPROVED WITH REVISIONS — full judgement in
+`feature-requests/FR-854-subagent-call-classification-graph.judgement.md`
+(R-1 raw read before authority; R-2 frozen extraction contract; R-3
+per-stratum base rates; R-4 graph-registry reconciliation; R-5
+committed authoring brief; R-6 mechanical ACs).
+
+**Post-judgement suspension:** the judgement's input set did not include
+`docs/2026-07-29-research-subagent-promotion.md`, which already contains
+the census this FR proposes. Prior-art disposition is a pre-authority
+gate (Sermon, FR-737); authority is suspended until the FR is re-judged
+against the disposition above — expected outcomes: REJECT in favor of
+filing the four dormant 07-29 recommendations, or rescope to
+"mechanize the 07-29 census as a repeatable delta-window graph."
