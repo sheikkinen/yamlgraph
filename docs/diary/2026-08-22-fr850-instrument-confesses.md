@@ -135,3 +135,32 @@ pairing itself: never publish a linkage number without its instrument
 line. **Seed:** should the fast-suite recording gap be closed by a
 scheduled full-suite `ctrace` run whose `.coverage` artifact is the
 one the report consumes — making no-link-unrecorded structurally zero?
+
+## CAP-131 investigated: the anomaly dissolves, and a phantom surfaces
+
+Reading the CAP-131 census closed the anomaly and opened a better one:
+
+- **The 4 doc-witness-only REQs are correctly classified.** REQ-YG-302/
+  304/305/306 are FR-219 *demo-artifact* contracts (demo dir exists,
+  prompts share cached segments, README explains benefits,
+  demo-output.log proves execution). Their witnesses inspect artifacts,
+  not code — doc-witness is their honest class. CAP-131 is simply a
+  mixed capability: 8 code REQs (all coverage-linked) + 4 artifact REQs.
+  Not a defect; the census separating them IS the feature.
+
+- **The real find was one line up.** REQ-YG-287's witness list includes
+  `test_sim117_auto_fix` — ruff SIM117 auto-fix tests tagged to "System
+  segments schema validation". Provenance: FR-281 (watcher2 ruff
+  --unsafe-fixes, 127d5077) reused REQ-YG-287 without registering its
+  own requirement; FR-465 (caf6c034) deleted the retired watcher2 tests
+  and "fixed REQ traceability" — but missed this sibling integration
+  test. Textbook `partial_remediation`. Liveness: zero consumers of
+  SIM117/unsafe-fixes remain in yamlgraph/, scripts/, or .github/; the
+  test exercises *ruff's* behavior against temp files. Subtraction
+  proposal filed: `.chaplain/inbox/delete-orphaned-sim117-test-phantom-req-tag.md`.
+
+The pattern worth keeping: the census's first-order flag (doc-witness
+cluster) was a false lead that dissolved under inspection, while the
+true defect (phantom tag) sat unclassified inside a *green*
+coverage-linked section — visible only because the report prints every
+witness name under its REQ. Aggregates flag; rosters convict.
