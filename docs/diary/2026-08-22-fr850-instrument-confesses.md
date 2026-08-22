@@ -88,3 +88,50 @@ and *says so* (no-link-unrecorded: 1279) instead of counting those
 pairs as covered. The 18 Q3 flags are actionable registry-hygiene
 leads, not noise: each is either a stale declaration or a genuinely
 untested seam.
+
+## Key findings from reading the stored reports
+
+Read the raw census (not just the headline) per
+`read_raw_output_first`. The headline and the census *disagree*, and
+the disagreement is the product working:
+
+1. **Presence says 100%, substance says 66%.** The header reports
+   413/413 requirements covered — the presence gate. The Q1 census
+   shows **141 of 413 REQs (34%) have zero code-linked witnesses** in
+   this coverage DB. Split by cause:
+   - **73 doc-witness only** — every tagged test reads repo docs,
+     never executes yamlgraph code. Structural for docs/process CAPs;
+     a defect signal elsewhere.
+   - **64 unrecorded only** — witnesses exist but were skipped by the
+     fast recording run (slow/process/integration). A full
+     `COVERAGE_CORE=ctrace` recording would resolve these; the honest
+     ceiling is therefore ~82% code-linked, not 66%.
+   - 4 mixed.
+
+2. **Doc-witness-only clusters name their own explanations — and one
+   anomaly.** Top owners: CAP-145 Copilot Instrumentation (7 — scripts
+   outside `yamlgraph/`, structurally unmeasurable), CAP-71/74/79/82/99
+   (docs/gate CAPs — doc-witness is their correct class). The anomaly:
+   **CAP-131 Anthropic Prompt Caching has 4 doc-witness-only REQs** —
+   a core code capability whose witnesses for those REQs never touch
+   the code they certify. Registry-hygiene lead, same class as the Q3
+   never-hits.
+
+3. **The five-class split converts a boolean into a distribution, and
+   the distribution is the finding.** Before FR-850 the report could
+   only say "covered". Now `coverage: 3376 | ast: 475 | no-link-ran: 0
+   | no-link-unrecorded: 1279 | doc-witness: 1463` — and no-link-ran
+   at exactly **0** is the strongest line: every tagged test that
+   actually ran under recording touched linkable code or a repo doc.
+   No witness ran and touched *nothing*. The instrument's confession
+   (3052/6190 contexts) bounds every claim above.
+
+**Reflection:** the trap this report retires is
+`gate_checks_shape_not_substance` — but the report itself demonstrates
+the trap's successor: a *substance* census still inherits its
+instrument's blind spots (the 64 unrecorded REQs look identical to
+missing witnesses until Q2 is read alongside Q1). The cure is the
+pairing itself: never publish a linkage number without its instrument
+line. **Seed:** should the fast-suite recording gap be closed by a
+scheduled full-suite `ctrace` run whose `.coverage` artifact is the
+one the report consumes — making no-link-unrecorded structurally zero?
