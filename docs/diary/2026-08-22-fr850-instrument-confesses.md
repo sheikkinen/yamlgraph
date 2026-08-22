@@ -55,3 +55,29 @@ refusal is also the documentation.
 can resolve. Should the registry schema forbid sub-file declarations, or
 should reconciliation learn to resolve them via AST? Which side of the
 boundary owns that normalization?
+
+## Demo run (post-merge, real `.coverage`)
+
+`python scripts/req_coverage.py --implementation` — exit 0, 12,400 lines.
+
+- **Header:** 413/413 requirements covered; 6,190 unique tagged tests,
+  6,593 test-req pairs.
+- **Q1** (linkage census): per-CAP, per-REQ witness classification for
+  every requirement — each test named under its resolution class.
+- **Q2** (trust): `Instrument: 3052 recorded test contexts for 6190
+  tagged tests (.coverage accepted)` — above the 0.25 tripwire, so the
+  report runs; the gap (fast suite skips slow/process tests) is stated,
+  not hidden. Witness split sums exactly:
+  `coverage: 3376 | ast: 475 | no-link-ran: 0 | no-link-unrecorded:
+  1279 | doc-witness: 1463` = 6,593.
+- **Q3** (reconciliation): 18 capabilities flagged with declared-but-
+  never-hit yamlgraph modules (e.g. CAP-171 `llm_factory_async.py`,
+  CAP-209 root-package seams); 623 declarations outside `yamlgraph/`
+  correctly reported as unmeasured rather than falsely never-hit.
+
+What the demo proves: the report now answers its three questions with
+an honest denominator — half the tagged suite has no recorded context
+and *says so* (no-link-unrecorded: 1279) instead of counting those
+pairs as covered. The 18 Q3 flags are actionable registry-hygiene
+leads, not noise: each is either a stale declaration or a genuinely
+untested seam.
