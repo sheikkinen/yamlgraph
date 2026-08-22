@@ -60,6 +60,13 @@ boundary owns that normalization?
 
 `python scripts/req_coverage.py --implementation` — exit 0, 12,400 lines.
 
+Stored reports:
+- [2026-08-22-fr850-implementation-report.txt.gz](2026-08-22-fr850-implementation-report.txt.gz)
+  — full `--implementation` output, gzipped (12,400 lines / 888 KB raw
+  exceeds the 500 KB hook; `gunzip -k` to read) (Q1/Q2/Q3)
+- [2026-08-22-fr850-summary-report.txt](2026-08-22-fr850-summary-report.txt)
+  — default summary report (230 lines)
+
 - **Header:** 413/413 requirements covered; 6,190 unique tagged tests,
   6,593 test-req pairs.
 - **Q1** (linkage census): per-CAP, per-REQ witness classification for

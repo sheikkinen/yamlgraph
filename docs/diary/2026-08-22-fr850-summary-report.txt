@@ -1,0 +1,230 @@
+======================================================================
+REQUIREMENT TRACEABILITY REPORT
+======================================================================
+
+Scope: framework tests only (tests/unit, tests/integration); excludes infrastructure tests (.github/hooks/tests)
+
+Requirements: 413/413 covered
+Tagged tests: 6190 unique, 6593 test-req pairs
+
+CAPABILITY COVERAGE
+----------------------------------------------------------------------
+  ✅ CAP-01 Config Loading & Validation: 5/5 reqs, 331 tests
+  ✅ CAP-02 Graph Compilation: 6/6 reqs, 133 tests
+  ✅ CAP-03 Node Execution: 7/7 reqs, 233 tests
+  ✅ CAP-04 Prompt Execution: 7/7 reqs, 368 tests
+  ✅ CAP-05 Tool & Agent Integration: 8/8 reqs, 248 tests
+  ✅ CAP-06 Routing & Flow Control: 5/5 reqs, 163 tests
+  ✅ CAP-07 State Persistence: 3/3 reqs, 201 tests
+  ✅ CAP-08 Error Handling: 5/5 reqs, 107 tests
+  ✅ CAP-09 CLI Interface: 4/4 reqs, 156 tests
+  ✅ CAP-10 Export & Serialization: 5/5 reqs, 209 tests
+  ✅ CAP-100 Chatterbox Multilingual CLI: 1/1 reqs, 6 tests
+  ✅ CAP-101 A2A Consumer Contrib Client: 1/1 reqs, 12 tests
+  ✅ CAP-102 Complete Worktree Teardown Self-Heal: 1/1 reqs, 4 tests
+  ✅ CAP-103 A2A SDK v1.0 Compatibility: 1/1 reqs, 1 tests
+  ✅ CAP-104 A2A Server Reference Documentation: 1/1 reqs, 46 tests
+  ✅ CAP-105 A2A Consumer Phase 2 — Agent Card, Skill Selection & Streaming: 4/4 reqs, 17 tests
+  ✅ CAP-106 GitHub Issues Remote Inbox: 1/1 reqs, 18 tests
+  ✅ CAP-107 Guardrails Pattern Documentation: 1/1 reqs, 14 tests
+  ✅ CAP-108 Changelog REQ Cross-Validation Gate: 1/1 reqs, 17 tests
+  ✅ CAP-109 Harden GitHub Issues Remote Inbox: 1/1 reqs, 18 tests
+  ✅ CAP-11 Subgraph & Map: 3/3 reqs, 117 tests
+  ✅ CAP-110 Diary Index Graph: 1/1 reqs, 19 tests
+  ✅ CAP-111 Shared Graph Invocation: 1/1 reqs, 6 tests
+  ✅ CAP-113 Chaplain Research Step: 1/1 reqs, 12 tests
+  ✅ CAP-114 Automated Post-Merge Finalization: 1/1 reqs, 25 tests
+  ✅ CAP-116 Acceptance Tests Before Enforce: 1/1 reqs, 23 tests
+  ✅ CAP-117 Race Node parse_json & Content Normalization: 1/1 reqs, 11 tests
+  ✅ CAP-118 Copilot Node Model Selection: 1/1 reqs, 12 tests
+  ✅ CAP-119 Race Node Timeout Fix: 1/1 reqs, 10 tests
+  ✅ CAP-12 Utilities: 4/4 reqs, 143 tests
+  ✅ CAP-120 CLI Inter-Run State Chaining: 2/2 reqs, 13 tests
+  ✅ CAP-121 Async Race Node with Cancellable Candidates: 1/1 reqs, 7 tests
+  ✅ CAP-122 Router Node with Candidates Race Support: 1/1 reqs, 21 tests
+  ✅ CAP-124 Watcher2 PR Reuse (FR-275): 1/1 reqs, 13 tests
+  ✅ CAP-125 Pipeline Script Retirement (FR-276): 1/1 reqs, 29 tests
+  ✅ CAP-126 Test Speed Optimization: 1/1 reqs, 13 tests
+  ✅ CAP-127 CI Hardening Consolidation: 1/1 reqs, 15 tests
+  ✅ CAP-128 Chaplain Documentation: 1/1 reqs, 12 tests
+  ✅ CAP-13 LangSmith Tracing: 2/2 reqs, 32 tests
+  ✅ CAP-131 Anthropic Prompt Caching Support: 12/12 reqs, 38 tests
+  ✅ CAP-135 Watcher2 Forensic Failure Diary: 1/1 reqs, 2 tests
+  ✅ CAP-136 Per-Graph Typed MCP Tools: 5/5 reqs, 25 tests
+  ✅ CAP-137 Watcher FSM System Startup Script: 1/1 reqs, 19 tests
+  ✅ CAP-138 Watcher Pipeline FSM Simplification: 1/1 reqs, 68 tests
+  ✅ CAP-139 Root README Accuracy Contract: 1/1 reqs, 3 tests
+  ✅ CAP-14 Graph-Level Streaming: 4/4 reqs, 34 tests
+  ✅ CAP-140 Watcher2 Validate Split Fix/Gate: 1/1 reqs, 49 tests
+  ✅ CAP-141 Shared FSM Bridge Module: 1/1 reqs, 67 tests
+  ✅ CAP-142 Skill Export Portable Packaging: 7/7 reqs, 7 tests
+  ✅ CAP-143 Agent Export Tool-Scoped Personas: 6/6 reqs, 12 tests
+  ✅ CAP-145 Copilot Instrumentation Gap Closure: 7/7 reqs, 8 tests
+  ✅ CAP-146 FSM Snapshot Hooks Phase 2 Subclassing: 1/1 reqs, 18 tests
+  ✅ CAP-147 Graph Run JSON Stdout + TypeScript Node Integration: 8/8 reqs, 9 tests
+  ✅ CAP-148 CI Co-authored-by Trailer Gate: 1/1 reqs, 16 tests
+  ✅ CAP-149 Prompt Theme Analyzer Demo: 1/1 reqs, 12 tests
+  ✅ CAP-15 Expression Language: 2/2 reqs, 154 tests
+  ✅ CAP-150 Philosopher's Book Demo: 2/2 reqs, 23 tests
+  ✅ CAP-151 Graph Lint JSON Output: 1/1 reqs, 5 tests
+  ✅ CAP-152 Watcher2 Dispatcher Audit Cadence: 1/1 reqs, 9 tests
+  ✅ CAP-153 Built-in Questionnaire Gap Utilities: 2/2 reqs, 9 tests
+  ✅ CAP-154 Hook Classification Daemon: 6/6 reqs, 41 tests
+  ✅ CAP-155 Schema Loader Tool Type: 2/2 reqs, 33 tests
+  ✅ CAP-156 WIP Commit Subject Gate: 1/1 reqs, 7 tests
+  ✅ CAP-157 Graph Loader Strict Tool Load Fail Fast: 2/2 reqs, 4 tests
+  ✅ CAP-158 Copilot Skill Promotion: 1/1 reqs, 19 tests
+  ✅ CAP-159 Standalone Planner Demo: 1/1 reqs, 15 tests
+  ✅ CAP-16 Linter Cross-Reference: 5/5 reqs, 64 tests
+  ✅ CAP-160 CAP Architecture Auto-Sync: 1/1 reqs, 9 tests
+  ✅ CAP-161 Standalone Enforcer Demo: 1/1 reqs, 20 tests
+  ✅ CAP-162 Enforcer Demo Safety Hardening: 1/1 reqs, 25 tests
+  ✅ CAP-163 CAP Retirement Support: 1/1 reqs, 5 tests
+  ✅ CAP-164 Structured Output JSON Fallback: 2/2 reqs, 5 tests
+  ✅ CAP-165 Watcher2 Baseline Dead Code Removal: 1/1 reqs, 18 tests
+  ✅ CAP-166 Meta Self-Reflective Demo: 1/1 reqs, 16 tests
+  ✅ CAP-168 Conditional Edge to Map Node: 1/1 reqs, 7 tests
+  ✅ CAP-17 Execution Safety Guards: 10/10 reqs, 67 tests
+  ✅ CAP-171 Executor Plain-Text Content Normalization: 1/1 reqs, 1 tests
+  ✅ CAP-172 Prompt-Monolith Linter Check (W026): 1/1 reqs, 7 tests
+  ✅ CAP-173 Write Data File Tool: 4/4 reqs, 9 tests
+  ✅ CAP-174 Data Files Glob Support: 2/2 reqs, 9 tests
+  ✅ CAP-175 Novel Fandom Canon Schema: 4/4 reqs, 25 tests
+  ✅ CAP-176 Novel Fandom Enriched World Model: 3/3 reqs, 12 tests
+  ✅ CAP-177 Novel Fandom Plot Pathfinder: 2/2 reqs, 14 tests
+  ✅ CAP-178 Novel Fandom Prose and Close Loop: 3/3 reqs, 16 tests
+  ✅ CAP-179 Novel Fandom Wiki Core Types: 2/2 reqs, 14 tests
+  ✅ CAP-18 Testing & Quality: 1/1 reqs, 75 tests
+  ✅ CAP-180 Novel Fandom World Expansion: 11/11 reqs, 106 tests
+  ✅ CAP-181 Novel Fandom Genesis Pipeline: 3/3 reqs, 9 tests
+  ✅ CAP-182 Agentic Event Deepening: 1/1 reqs, 16 tests
+  ✅ CAP-183 First-Class Verification: 1/1 reqs, 45 tests
+  ✅ CAP-184 Novel Fandom Duplicate Entity Prevention: 3/3 reqs, 22 tests
+  ✅ CAP-185 Novel Fandom Ref Integrity Graph-Tool: 1/1 reqs, 13 tests
+  ✅ CAP-186 Novel Fandom Genesis Self-Correcting Pipeline: 1/1 reqs, 1 tests
+  ✅ CAP-187 Novel Fandom Semantic Dedup Graph-Tool: 1/1 reqs, 9 tests
+  ✅ CAP-188 Novel Fandom Agent-First Architecture: 5/5 reqs, 54 tests
+  ✅ CAP-189 Worktree CLI Contract: 1/1 reqs, 5 tests
+  ✅ CAP-19 MCP Server Interface: 3/3 reqs, 17 tests
+  ✅ CAP-191 Instrumentation Worktree Delegation: 1/1 reqs, 2 tests
+  ✅ CAP-192 Branch Deny Guidance Manual Worktree Lane: 1/1 reqs, 1 tests
+  ✅ CAP-193 Watcher Wrapper JSON Envelope: 1/1 reqs, 2 tests
+  ✅ CAP-194 Novel Fandom Plot Threads and Throughlines: 1/1 reqs, 27 tests
+  ✅ CAP-195 Timeframe Recap Demo: 4/4 reqs, 50 tests
+  ✅ CAP-196 Novel Fandom World Pressure: 2/2 reqs, 15 tests
+  ✅ CAP-197 Novel Fandom Event Revision: 2/2 reqs, 14 tests
+  ✅ CAP-198 Persistent Bridge Loop: 1/1 reqs, 8 tests
+  ✅ CAP-199 Security and Coverage Gate Truth: 1/1 reqs, 3 tests
+  ✅ CAP-20 Contrib Utilities: 2/2 reqs, 15 tests
+  ✅ CAP-200 Prompt Request Front Door: 1/1 reqs, 4 tests
+  ✅ CAP-201 Pre-emptive Module Splits: 1/1 reqs, 6 tests
+  ✅ CAP-202 SMT Condition Verification: 1/1 reqs, 11 tests
+  ✅ CAP-203 ICPC-2 RFE Classifier Example: 7/7 reqs, 50 tests
+  ✅ CAP-204 CWE Vulnerability Classifier Example: 5/5 reqs, 33 tests
+  ✅ CAP-205 World Distill Graph: 1/1 reqs, 4 tests
+  ✅ CAP-206 FR Triage Graph: 1/1 reqs, 5 tests
+  ✅ CAP-207 Loader Error UX: 1/1 reqs, 7 tests
+  ✅ CAP-208 FR Atlas Onboarding Demo: 1/1 reqs, 16 tests
+  ✅ CAP-209 Root Package Seams: 1/1 reqs, 5 tests
+  ✅ CAP-21 Diary Digest Tools: 1/1 reqs, 30 tests
+  ✅ CAP-210 Edge Shape Classification: 1/1 reqs, 6 tests
+  ✅ CAP-211 Sole-Route Judge and Review Wrappers: 1/1 reqs, 18 tests
+  ✅ CAP-212 OpenTelemetry Observability Boundary: 1/1 reqs, 28 tests
+  ✅ CAP-213 Example Dependency Taxonomy Generator: 1/1 reqs, 45 tests
+  ✅ CAP-214 Direct-Import Dependency Scanner: 1/1 reqs, 28 tests
+  ✅ CAP-215 Style-Convert Pipeline: 1/1 reqs, 38 tests
+  ✅ CAP-216 Tool Manifests: 1/1 reqs, 22 tests
+  ✅ CAP-217 Shared Vision Tool: 2/2 reqs, 15 tests
+  ✅ CAP-218 Shared Document Splitter: 1/1 reqs, 43 tests
+  ✅ CAP-219 Book-Summary Vision Fallback: 1/1 reqs, 43 tests
+  ✅ CAP-22 Code Quality Lints: 1/1 reqs, 10 tests
+  ✅ CAP-220 Shared Shell Toolbelt Manifests: 1/1 reqs, 16 tests
+  ✅ CAP-221 Demo Graph Binding Hygiene and Grounded Synthesis Gate: 1/1 reqs, 8 tests
+  ✅ CAP-222 macOS File-Hook Example (Folder-Triggered Graph): 1/1 reqs, 12 tests
+  ✅ CAP-223 User Self-Portrait Example (PersonalizationPortrait → Agent Context): 1/1 reqs, 36 tests
+  ✅ CAP-224 API Discovery Leaf Tool Manifests: 1/1 reqs, 14 tests
+  ✅ CAP-225 API Discovery Endpoint-Probe Step: 1/1 reqs, 20 tests
+  ✅ CAP-226 API Discovery Page-Analysis Step: 1/1 reqs, 17 tests
+  ✅ CAP-227 Shared Python Tool Manifest Root Confinement Fix: 1/1 reqs, 4 tests
+  ✅ CAP-228 API Discovery Platform-Confirm Step: 1/1 reqs, 14 tests
+  ✅ CAP-229 Playwright Network Sniff Utility: 1/1 reqs, 15 tests
+  ✅ CAP-23 Skip-If-Exists Truthiness: 1/1 reqs, 13 tests
+  ✅ CAP-230 Provider Readiness Preflight: 1/1 reqs, 7 tests
+  ✅ CAP-231 API Discovery Recon Step: 1/1 reqs, 15 tests
+  ✅ CAP-232 API Discovery Browser-Sniff Step: 1/1 reqs, 13 tests
+  ✅ CAP-233 API Discovery Schema-Extract Step: 1/1 reqs, 11 tests
+  ✅ CAP-234 API Discovery Orchestrator: 1/1 reqs, 12 tests
+  ✅ CAP-235 Multi-Step Investigation Scaffold: 1/1 reqs, 8 tests
+  ✅ CAP-236 Router-Visible Tool-Call Outputs: 1/1 reqs, 20 tests
+  ✅ CAP-237 Author Brief Pre-Flight: 1/1 reqs, 19 tests
+  ✅ CAP-238 API Discovery Orchestrator v2 — Recon and Browser-Sniff Routing: 1/1 reqs, 12 tests
+  ✅ CAP-239 Discord Hello Slash-Command Example: 1/1 reqs, 12 tests
+  ✅ CAP-24 Interactive Tool Node: 1/1 reqs, 54 tests
+  ✅ CAP-240 FR Knowledge Graph Extraction: 3/3 reqs, 29 tests
+  ✅ CAP-241 Weekly Recap Publication: 1/1 reqs, 11 tests
+  ✅ CAP-242 Lint/Compile Validation Parity: 1/1 reqs, 6 tests
+  ✅ CAP-243 Requirement Witness Audit: 3/3 reqs, 38 tests
+  ✅ CAP-25 Tavily Domain RAG Demo: 1/1 reqs, 11 tests
+  ✅ CAP-26 Streaming Error Resilience: 1/1 reqs, 8 tests
+  ✅ CAP-28 Graph-Level Thinking Budget: 1/1 reqs, 19 tests
+  ✅ CAP-30 Copilot Node: 5/5 reqs, 55 tests
+  ✅ CAP-31 Chaplain Diary Append: 1/1 reqs, 3 tests
+  ✅ CAP-32 eBook Authoring Pipeline: 2/2 reqs, 18 tests
+  ✅ CAP-33 Worktree Pipeline: 1/1 reqs, 35 tests
+  ✅ CAP-34 Compiled Graph Cache: 1/1 reqs, 10 tests
+  ✅ CAP-36 Inquisitor Auto-Propose: 1/1 reqs, 15 tests
+  ✅ CAP-37 Architecture Provider Count Guard: 1/1 reqs, 3 tests
+  ✅ CAP-38 Post-Merge Finalization: 1/1 reqs, 20 tests
+  ✅ CAP-39 Inquisitor Commit-Delta Gate: 1/1 reqs, 40 tests
+  ✅ CAP-41 Clean GIT Env Test Fixture: 1/1 reqs, 9 tests
+  ✅ CAP-42 Inquisitor Worktree Gate: 1/1 reqs, 7 tests
+  ✅ CAP-43 Copilot Session GC: 1/1 reqs, 14 tests
+  ✅ CAP-44 Judge SPLIT Verdict: 1/1 reqs, 17 tests
+  ✅ CAP-45 Diary Reflection Enforcement: 1/1 reqs, 41 tests
+  ✅ CAP-46 Diary Import CLI: 1/1 reqs, 20 tests
+  ✅ CAP-47 Phantom Requirement Detection: 1/1 reqs, 6 tests
+  ✅ CAP-48 CHANGELOG Removal Completeness: 1/1 reqs, 5 tests
+  ✅ CAP-49 Examples Documentation Audit: 1/1 reqs, 7 tests
+  ✅ CAP-50 CI CHANGELOG Gate: 1/1 reqs, 17 tests
+  ✅ CAP-51 Branch Protection Documentation: 1/1 reqs, 9 tests
+  ✅ CAP-53 CI Conflict Marker Gate: 1/1 reqs, 18 tests
+  ✅ CAP-54 CI Diary Existence Gate: 1/1 reqs, 18 tests
+  ✅ CAP-55 Chaplain Inbox Documentation: 1/1 reqs, 7 tests
+  ✅ CAP-56 Verification Gate Pattern: 1/1 reqs, 84 tests
+  ✅ CAP-57 Verification Count Range Pydantic: 1/1 reqs, 9 tests
+  ✅ CAP-59 Configurable Loop Exit Target: 1/1 reqs, 12 tests
+  ✅ CAP-60 Worktree Venv Corruption Guard: 1/1 reqs, 15 tests
+  ✅ CAP-64 Concurrency Safety Map: 1/1 reqs, 7 tests
+  ✅ CAP-65 Append-Only Capability Registry: 1/1 reqs, 21 tests
+  ✅ CAP-66 Append-Only Changelog: 1/1 reqs, 25 tests
+  ✅ CAP-67 Philosopher Daemon: 3/3 reqs, 50 tests
+  ✅ CAP-68 CI Dependency Security Scan: 1/1 reqs, 20 tests
+  ✅ CAP-69 Knowledge Graph Graduation (FR-190): 1/1 reqs, 6 tests
+  ✅ CAP-70 Knowledge Graph Graduation (FR-191): 1/1 reqs, 7 tests
+  ✅ CAP-71 Release Changelog Sync Gate: 3/3 reqs, 21 tests
+  ✅ CAP-72 Knowledge Graph Mass Graduation (FR-193): 1/1 reqs, 11 tests
+  ✅ CAP-73 Philosopher Challenge Node (FR-195): 1/1 reqs, 36 tests
+  ✅ CAP-74 FSM Scripture CLAUDE.md (FR-199): 1/1 reqs, 50 tests
+  ✅ CAP-75 Portable Chaplain (FR-196): 2/2 reqs, 27 tests
+  ✅ CAP-76 Horoscope Demo: 1/1 reqs, 11 tests
+  ✅ CAP-77 Image Generation Pipeline: 1/1 reqs, 34 tests
+  ✅ CAP-78 .fi Domain Crawl Demo: 1/1 reqs, 19 tests
+  ✅ CAP-79 Demo Proof Gate: 1/1 reqs, 29 tests
+  ✅ CAP-81 A2A Protocol Server: 8/8 reqs, 85 tests
+  ✅ CAP-82 Block AI Co-Author Trailers: 1/1 reqs, 12 tests
+  ✅ CAP-83 Research Agent Demo: 1/1 reqs, 19 tests
+  ✅ CAP-84 Import-Linter Architectural Boundary Enforcement: 1/1 reqs, 6 tests
+  ✅ CAP-85 Dependency Rationale Audit: 1/1 reqs, 29 tests
+  ✅ CAP-86 Ruff Security Rules: 1/1 reqs, 3 tests
+  ✅ CAP-87 Ruff C901 Cognitive Complexity Gate: 1/1 reqs, 4 tests
+  ✅ CAP-88 Google/Vertex Thinking Budget Support: 1/1 reqs, 23 tests
+  ✅ CAP-89 Execution Timing Callback: 1/1 reqs, 11 tests
+  ✅ CAP-90 Graph Bench Command: 1/1 reqs, 22 tests
+  ✅ CAP-91 Race Node Type: 2/2 reqs, 29 tests
+  ✅ CAP-92 Chatterbox TTS Demo: 1/1 reqs, 20 tests
+  ✅ CAP-93 Chatterbox Voice Clone Demo: 2/2 reqs, 13 tests
+  ✅ CAP-94 Compile-Time Pipeline Templates: 1/1 reqs, 30 tests
+  ✅ CAP-95 Parallel Fan-Out Edges: 1/1 reqs, 11 tests
+  ✅ CAP-96 Per-Node Timeout: 1/1 reqs, 20 tests
+  ✅ CAP-98 Pipeline Accumulated State: 1/1 reqs, 18 tests
+  ✅ CAP-99 Race and Pipeline Node Type Documentation: 1/1 reqs, 16 tests
