@@ -36,7 +36,7 @@ class TestSlowMarkerInfrastructure:
         """Pytest should recognize the slow marker without warnings."""
         # This will fail until the marker is properly configured
         result = subprocess.run(
-            [sys.executable, "-m", "pytest", "--markers"],
+            [sys.executable, "-m", "pytest", "--no-cov", "--markers"],
             capture_output=True,
             text=True,
             cwd=Path(__file__).parent.parent.parent,
@@ -114,6 +114,7 @@ class TestSlowTestFiltering:
                 sys.executable,
                 "-m",
                 "pytest",
+                "--no-cov",
                 "tests/unit/",
                 "-m",
                 "not slow",
@@ -139,6 +140,7 @@ class TestSlowTestFiltering:
                 sys.executable,
                 "-m",
                 "pytest",
+                "--no-cov",
                 "tests/unit/",
                 "-m",
                 "slow",
@@ -244,7 +246,7 @@ class TestMarkerFunctionality:
         """Verify that pytest marker selection syntax works correctly."""
         # Test that -m "slow" and -m "not slow" syntax is valid
         result = subprocess.run(
-            [sys.executable, "-m", "pytest", "--help"],
+            [sys.executable, "-m", "pytest", "--no-cov", "--help"],
             capture_output=True,
             text=True,
             cwd=Path(__file__).parent.parent.parent,
@@ -268,6 +270,7 @@ class TestNoTestBehaviorChanges:
                 sys.executable,
                 "-m",
                 "pytest",
+                "--no-cov",
                 "tests/unit/test_map_node_timeout.py",
                 "--collect-only",
             ],

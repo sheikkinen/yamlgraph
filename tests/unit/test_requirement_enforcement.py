@@ -36,7 +36,15 @@ def test_untagged_test_is_rejected(tmp_path: Path):
 
     # Run pytest via subprocess - should fail at collection
     result = subprocess.run(
-        [sys.executable, "-m", "pytest", str(test_file), "-v", "--tb=short"],
+        [
+            sys.executable,
+            "-m",
+            "pytest",
+            "--no-cov",
+            str(test_file),
+            "-v",
+            "--tb=short",
+        ],
         capture_output=True,
         text=True,
     )
@@ -75,7 +83,15 @@ def test_tagged_test_is_accepted(tmp_path: Path):
 
     # Run pytest via subprocess - should pass
     result = subprocess.run(
-        [sys.executable, "-m", "pytest", str(test_file), "-v", "--tb=short"],
+        [
+            sys.executable,
+            "-m",
+            "pytest",
+            "--no-cov",
+            str(test_file),
+            "-v",
+            "--tb=short",
+        ],
         capture_output=True,
         text=True,
     )
@@ -111,7 +127,15 @@ def test_unmarked_process_boundary_module_is_rejected(tmp_path: Path):
     conftest_dst.write_text(conftest_src.read_text())
 
     result = subprocess.run(
-        [sys.executable, "-m", "pytest", str(test_file), "-v", "--tb=short"],
+        [
+            sys.executable,
+            "-m",
+            "pytest",
+            "--no-cov",
+            str(test_file),
+            "-v",
+            "--tb=short",
+        ],
         capture_output=True,
         text=True,
         cwd=tmp_path,

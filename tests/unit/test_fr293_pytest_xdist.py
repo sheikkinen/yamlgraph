@@ -86,6 +86,7 @@ def test_xdist_n_flag_accepted():
             sys.executable,
             "-m",
             "pytest",
+            "--no-cov",
             "--co",
             "-q",
             "-n",
