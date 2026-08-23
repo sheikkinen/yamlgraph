@@ -65,3 +65,23 @@ requirements:
       test-req pair denominator.
     modules:
       - scripts
+  - id: REQ-YG-609
+    description: >
+      scripts/req_audit.sh (FR-860) orchestrates the audit as four
+      fail-fast sequential phases — record, construct, audit, report —
+      each tee'd to a per-phase log under the output directory; the
+      record phase is exactly the full sequential framework-suite
+      coverage command (COVERAGE_CORE=ctrace pytest tests/unit
+      tests/integration -q --no-cov-report --cov=yamlgraph
+      --cov-context=test, no -n, no mark exclusions); --skip-record
+      reuses .coverage only through the FR-850 boundary whose hard
+      refusal exits non-zero with the remedy and no report; the CLI is
+      --out/--skip-record/--model/--provider with frozen defaults
+      (claude-haiku-4-5/anthropic) and no environment precedence; the
+      script writes a frozen-schema manifest.json carrying git SHA,
+      dirty flag, pytest command, coverage core, recorded-context and
+      tagged-test counts, skip count, versions, provider, model, and
+      per-phase command/exit/log; the report header embeds the same
+      provenance; no report.md exists unless every phase succeeded.
+    modules:
+      - scripts
