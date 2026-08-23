@@ -105,7 +105,6 @@
 | FR-824 | Judged | yamlgraph |  | FR-824-hva-weekly-bulletin-new-repo.md |
 | FR-837 | Judged | yamlgraph |  | FR-837-gitclaw-oulu-source-health-assembly.md |
 | FR-838 | Judged | yamlgraph |  | FR-838-gitclaw-oulu-assembly-recovery.md |
-| FR-853 | Judged | yamlgraph |  | FR-853-agent-instrument-registry.md |
 | FR-094 | Approved | yamlgraph |  | FR-094-memory-node.md |
 | FR-095 | Approved | yamlgraph |  | FR-095-doc-staleness-monitor.md |
 | FR-096 | Approved | yamlgraph |  | FR-096-fr-template-demo-plan.md |
@@ -444,7 +443,6 @@ graph TD
     FR-837["FR-837 Judged"]
     FR-838["FR-838 Judged"]
     FR-841["FR-841 PARSE-FAILURE"]
-    FR-853["FR-853 Judged"]
     FR-854["FR-854 PARSE-FAILURE"]
     FR-855["FR-855 Proposed"]
     FR-856["FR-856 Proposed"]

@@ -5,7 +5,7 @@
 
 version: "1.0"
 name: fan-out-demo
-description: Parallel fan-out edges running three branches concurrently
+description: "Parallel fan-out edges running three branches concurrently. Task shapes: run several different analyses of one input concurrently."
 
 prompts_relative: true
 prompts_dir: prompts

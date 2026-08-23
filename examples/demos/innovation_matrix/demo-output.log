@@ -1,0 +1,120 @@
+2026-08-23 07:52:49,641 [INFO] yamlgraph.compile.node_compiler: Added node: generate (type=llm)
+2026-08-23 07:52:49,660 [INFO] yamlgraph.route: {"event": "run", "run_id": "01a02cf6-d774-70cd-989f-cc7d1c25e674", "artifact_hash": "sha256:cb24b085d104b87c398f11fbef979196da69c0e118d4cadcc5bd4bdd45b766ac", "graph": "/Users/sheikki/Documents/src/yamlgraph/examples/demos/innovation_matrix/graph.yaml", "yamlgraph_version": "0.5.17", "thread_id": null, "started_at": "2026-08-23T04:52:49Z"}
+2026-08-23 07:52:50,063 [INFO] yamlgraph.utils.llm_factory: Creating LLM: anthropic/claude-haiku-4-5 (temp=0.85)
+2026-08-23 07:53:21,935 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-08-23 07:53:22,378 [INFO] yamlgraph.node_factory.llm_nodes: Node generate completed successfully
+2026-08-23 07:53:22,637 [INFO] yamlgraph.route: {"event": "run_end", "run_id": "01a02cf6-d774-70cd-989f-cc7d1c25e674", "ended_at": "2026-08-23T04:53:22Z", "dropped_events": 0}
+
+🚀 Running graph: graph.yaml
+   Variables: {'domain': 'home energy storage'}
+
+🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/f889c0ec-fa9b-4025-b69c-2aa756283ef8/r/01a02cf6-d77f-7df0-b0d8-e6a497ae42f5?poll=true
+============================================================
+RESULT
+============================================================
+  current_step: generate
+  domain: home energy storage
+  matrix: # Innovation Matrix: Home Energy Storage
+
+## Step 1: Identify Dimensions
+
+### Capabilities (C1-C5)
+
+| ID | Capability | Description |
+|---|---|---|
+| **C1** | Smart software & analytics | Real-time monitoring, ML-based demand forecasting, IoT integration, predictive algorithms |
+| **C2** | Multiple storage chemistries | Lithium-ion, solid-state, thermal, mechanical (flywheel), hydrogen fuel cells, supercapacitors |
+| **C3** | Distributed grid architecture | Microgrids, peer-to-peer energy trading, vehicle-to-home (V2H), aggregation platforms |
+| **C4** | Modular hardware design | Stackable batteries, plug-and-play systems, standardized interfaces, scalable configurations |
+| **C5** | Behavioral intervention tools | Gamification, real-time feedback, community challenges, incentive structures, transparent pricing |
+
+### Constraints (S1-S5)
+
+| ID | Constraint | Description |
+|---|---|---|
+| **S1** | High upfront capital cost | $5k-15k+ per system; long ROI periods (7-12 years); financing barriers for lower-income households |
+| **S2** | Space & physical limitations | Apartment living, small plots, aesthetic concerns, weight/structural limits, installation complexity |
+| **S3** | Grid regulatory uncertainty | Unclear tariffs, uncertain incentive programs, varying interconnection standards, liability gray zones |
+| **S4** | Battery degradation & lifespan | Cycle limits (5,000-10,000 cycles), capacity fade, temperature sensitivity, replacement costs, recycling complexity |
+| **S5** | User technical literacy | Installation complexity, maintenance requirements, software interfaces, troubleshooting barriers, adoption friction |
+
+---
+
+## Step 2: Generate Matrix (All 25 Cells)
+
+| Cell | Capability | Constraint | Creative Tension | Idea | Potential |
+|------|---|---|---|---|---|
+| **C1S1** | Smart software & analytics | High upfront cost | Data value offsets capital | **"Energy ROI Marketplace"** – Sell anonymized usage data & predictive insights to utilities/grid operators to subsidize home systems | ⭐⭐⭐⭐ |
+| **C1S2** | Smart software & analytics | Space limitations | Optimize what little exists | **"Virtual Storage"** – Software-only service: customers pay for algorithmic load-shifting without owning hardware; utility owns distributed batteries | ⭐⭐⭐⭐⭐ |
+| **C1S3** | Smart software & analytics | Grid regulatory uncertainty | Anticipate & navigate complexity | **"Regulatory Simulation Engine"** – AI model that tests storage strategies against future tariff scenarios, auto-adjusts contracts preemptively | ⭐⭐⭐ |
+| **C1S4** | Smart software & analytics | Battery degradation | Monitor & adapt to decay | **"Adaptive Discharge Scheduling"** – ML system learns degradation patterns in real-time, optimizes remaining lifespan, predicts end-of-life | ⭐⭐⭐⭐⭐ |
+| **C1S5** | Smart software & analytics | User technical literacy | Simplify via intelligence | **"Autonomous Energy Butler"** – Set-and-forget AI that manages everything; users only see energy savings, not complexity | ⭐⭐⭐⭐ |
+| **C2S1** | Multiple storage chemistries | High upfront cost | Mix technologies strategically | **"Hybrid Tiered Storage"** – Cheap thermal storage (hot water) handles daily loads; premium battery only for peak arbitrage (reduces capital 40%) | ⭐⭐⭐⭐⭐ |
+| **C2S2** | Multiple storage chemistries | Space limitations | Fit form to constraint | **"Embedded Storage"** – Integrate batteries into walls, ceilings, furniture; thermal storage in building mass itself (PCM drywall) | ⭐⭐⭐⭐ |
+| **C2S3** | Multiple storage chemistries | Grid regulatory uncertainty | Diversify regulatory risk | **"Chemistry Switching"** – Design systems to swap between chemistries (thermal↔battery) as tariffs/incentives change; modular swappable cores | ⭐⭐⭐ |
+| **C2S4** | Multiple storage chemistries | Battery degradation | Choose longest-lasting option | **"Multi-Decade Hybrid"** – Pair long-life tech (mechanical flywheel, thermal mass) with short-life (replaceable lithium); separate replacement cycles | ⭐⭐⭐⭐ |
+| **C2S5** | Multiple storage chemistries | User technical literacy | Pick the simplest | **"Plug-and-Play Thermal-First"** – Default to water heaters/thermal storage (intuitive, familiar); battery only as optional upgrade for tech-savvy | ⭐⭐⭐ |
+| **C3S1** | Distributed grid architecture | High upfront cost | Share costs across network | **"Community Battery Cooperatives"** – Neighborhood collectively owns/operates one large system; members pay per kWh used; 70% cost reduction vs. individual | ⭐⭐⭐⭐⭐ |
+| **C3S2** | Distributed grid architecture | Space limitations | Centralize storage, distribute benefits | **"Anchor Battery Hub"** – One large battery per block/neighborhood; all homes tap via smart controls; solves space for dense areas | ⭐⭐⭐⭐⭐ |
+| **C3S3** | Distributed grid architecture | Grid regulatory uncertainty | Turn uncertainty into asset | **"Regulatory Arbitrage Network"** – Aggregate homes across jurisdictions; route energy/contracts to most favorable regulations dynamically | ⭐⭐⭐ |
+| **C3S4** | Distributed grid architecture | Battery degradation | Distribute wear across fleet | **"Degradation Pooling"** – Aggregate storage degrades unevenly; software balances load across healthiest batteries; extends fleet lifespan 30%+ | ⭐⭐⭐⭐ |
+| **C3S5** | Distributed grid architecture | User technical literacy | Delegate to the network | **"Plug-Into-Network Model"** – Users install dumb battery; central AI manages everything across the grid; zero user decisions needed | ⭐⭐⭐⭐⭐ |
+| **C4S1** | Modular hardware design | High upfront cost | Start small, grow payment | **"Starter Battery Leasing"** – Rent 2kWh battery (pay $30/mo); add modules quarterly as ROI justifies (avoid $10k upfront) | ⭐⭐⭐⭐ |
+| **C4S2** | Modular hardware design | Space limitations | Stack vertically, expand later | **"Stackable Vertical Systems"** – Batteries designed as slim panels mounting on walls/railings; add units as space/budget allows | ⭐⭐⭐ |
+| **C4S3** | Modular hardware design | Grid regulatory uncertainty | Swap modules for compliance | **"Plug-Compatible Regulation Modules"** – Core system + swappable firmware/hardware packs for different tariff regimes; update as rules change | ⭐⭐⭐ |
+| **C4S4** | Modular hardware design | Battery degradation | Replace only failed modules | **"Modular Degradation Management"** – Design so failed cells/modules swap out individually; extend system life 50%; reduce replacement waste | ⭐⭐⭐⭐ |
+| **C4S5** | Modular hardware design | User technical literacy | Simplify via standardization | **"Lego-Style Battery Kits"** – Fully standardized connectors; users add modules without technical knowledge; visual guides, no wiring | ⭐⭐⭐⭐ |
+| **C5S1** | Behavioral intervention tools | High upfront cost | Monetize behavior change | **"Energy Savings Bonds"** – Gamify savings; users earn tokenized rewards for optimal storage use; trade on secondary market; subsidize hardware purchase | ⭐⭐⭐⭐ |
+| **C5S2** | Behavioral intervention tools | Space limitations | Optimize what's there | **"Micro-Feedback Loops"** – Real-time app shows cost/carbon per kWh; nudge users to shift loads into tiny storage windows; psychological not hardware solution | ⭐⭐⭐⭐ |
+| **C5S3** | Behavioral intervention tools | Grid regulatory uncertainty | Educate users as advocates | **"Tariff Transparency Gamification"** – App visualizes how regulations affect *their* bill; community campaigns for favorable rules; turn users into lobbyists | ⭐⭐⭐ |
+| **C5S4** | Behavioral intervention tools | Battery degradation | Crowdsource longevity science | **"Citizen Battery Lab"** – Users contribute degradation data via app; collective dataset trains models; top contributors get free replacements | ⭐⭐⭐ |
+| **C5S5** | Behavioral intervention tools | User technical literacy | Gamify learning | **"Energy Education Quests"** – Micro-lessons unlock storage features; users learn by doing; badges for mastery; complex system feels like a game | ⭐⭐⭐⭐ |
+
+---
+
+## Step 3: Top 3 Recommendations
+
+### 🥇 **#1: Virtual Storage (C1S2)**
+**Why it wins:**
+- **Addresses the biggest pain point** – space limitations are a *hard constraint* in apartments/urban areas (40%+ of addressable market)
+- **Inverts the problem** – instead of "I need space for a battery," it's "I get storage benefits without hardware"
+- **Immediately actionable** – utilities already operate distributed batteries; this is a business model pivot, not R&D
+- **Scales horizontally** – doesn't require hardware standardization or consumer adoption of new tech
+- **Opens a new market** – renters, apartment dwellers, space-constrained homes suddenly viable customers
+
+**Next step:** Partner with 1-2 utilities to pilot "virtual battery subscription" in dense urban area; measure vs. hardware baseline.
+
+---
+
+### 🥈 **#2: Community Battery Cooperatives (C3S1)**
+**Why it wins:**
+- **Solves capital cost** – the #1 barrier to adoption; 70% reduction via pooling is transformative
+- **Creates network effects** – early adopters recruit neighbors; viral growth potential
+- **Taps existing social infrastructure** – HOAs, neighborhood associations, municipal energy programs
+- **Regulatory favorable** – cooperatives have favorable tax/policy treatment in most jurisdictions
+- **Generates data moat** – community-level insights more valuable than individual homes
+
+**Next step:** Pilot with 3-5 neighborhoods (mix of income levels); develop co-op operating manual & software platform; measure adoption velocity vs. individual systems.
+
+---
+
+### 🟥 **#3: Hybrid Tiered Storage (C2S1)**
+**Why it wins:**
+- **Immediately cost-competitive** – thermal storage (water heaters) are 10-20% the cost of batteries; cuts total system cost 40%
+- **Familiar technology** – not a consumer adoption barrier; thermal storage is proven, low-risk
+- **Stacks with other solutions** – works in cooperatives, virtual models, modular designs
+- **Solves degradation partially** – thermal systems degrade much slower than batteries
+- **Addressable now** – no regulatory changes or new materials needed
+
+**Next step:** Design reference architecture (thermal + battery combo); calculate total cost of ownership vs. battery-only; market to retrofit installers.
+
+---
+
+## Strategic Insight
+
+The matrix reveals a **fundamental pattern:** The three highest-potential ideas all **redistribute or reframe the problem** rather than solve it head-on:
+- **Virtual Storage** = redistribute ownership
+- **Community Cooperatives** = distribute cost
+- **Hybrid Tiered** = distribute technology
+
+This suggests the next wave of innovation in home storage isn't about better batteries—it's about **better business models and systems design**.

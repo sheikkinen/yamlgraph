@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Judged — APPROVED WITH REVISIONS (2026-08-22), revisions folded
+**Status:** Enforced (2026-08-22) — all ACs met; copilot-instructions change pending human review per gate C-3
 **Effort:** 0.5 days
 **Requested:** 2026-08-22
 **First consumer / first event:** every agent session in this repo, at
@@ -85,25 +85,24 @@ never again has to point at an unused instrument.
 
 ## Acceptance Criteria (revised per judgement)
 
-- [ ] AC-01: `.github/copilot-instructions.md` contains an
+- [x] AC-01: `.github/copilot-instructions.md` contains an
       `is_this_a_graph` questions-canon entry with the firing moment
       "the instant a plan contains 'for each item, ask the model', a
       multi-stage LLM pipeline, or parallel subagent fan-out" and cites
       both recurrence witnesses.
-- [ ] AC-02: `docs/diary/2026-08-22-the-cobblers-children-have-no-graphs.md`
+- [x] AC-02: `docs/diary/2026-08-22-the-cobblers-children-have-no-graphs.md`
       cross-references FR-853 and no longer contradicts the FR's
       graduation threshold.
-- [ ] AC-03: At least five existing registered graph descriptions
-      contain a literal `Task shapes:` clause mapping a task shape to
-      the graph; the first set includes `map-demo`, `fan-out-demo`,
-      `race-demo`, `five-whys`, and `innovation-matrix`.
-- [ ] AC-04: A targeted test proves `Task shapes:` text is returned
-      through `discover_graphs()` and the MCP `yamlgraph_list_graphs`
-      payload (R-4 mechanical witness).
-- [ ] AC-05: The implementation creates no new registry directory, no
-      new MCP tool, and no live interception/nudge mechanism.
-- [ ] AC-06: Any touched graph YAML files pass the existing graph lint
-      path required for graph-artifact edits.
+- [x] AC-03: Six registered graph descriptions carry a literal
+      `Task shapes:` clause: `map-demo`, `fan-out-demo`, `race-demo`,
+      `five-whys`, `innovation-matrix`, plus optional `tone-router-demo`.
+- [x] AC-04: `tests/unit/test_fr853_task_shapes_index.py` proves
+      `Task shapes:` is returned through `discover_graphs()` and the
+      MCP `yamlgraph_list_graphs` payload (RED 33029143, then GREEN).
+- [x] AC-05: No new registry directory, no new MCP tool, no live
+      interception/nudge mechanism.
+- [x] AC-06: All six touched graphs pass `yamlgraph graph lint`
+      (0 errors, 7 pre-existing non-description warnings).
 
 ## Alternatives Considered
 
@@ -151,3 +150,18 @@ CAP-19 discovery/list behavior preserved; C-5 no FR-854 work here.
 ### Questions for the human
 
 None — revisions were mechanically foldable.
+
+## Implementation Status (2026-08-22)
+
+Enforced per frozen scope, TDD order (RED 33029143 → authoring → GREEN):
+
+- D-2 via the governed authoring route (gate C-2):
+  `scripts/author.sh feature-requests/authoring-briefs/fr-853-task-shapes-brief.md`
+  — report `tmp/draft-authoring-report.md`, diff verified description-only
+  across the six graphs. Router graph included (optional target taken).
+- D-1 questions-canon entry added; flagged for human review (gate C-3).
+- D-3 diary graduation paragraph replaces the "third firing" line.
+- D-4 witness test `tests/unit/test_fr853_task_shapes_index.py`
+  (REQ-YG-206 discovery, REQ-YG-067 MCP payload).
+- Deviations: none. CAP-19 surface untouched (gate C-4); no FR-854 work
+  (gate C-5).

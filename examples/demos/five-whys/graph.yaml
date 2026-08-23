@@ -3,7 +3,7 @@
 
 version: "1.0"
 name: five-whys
-description: Five Whys root cause analysis — iterative deepening loop
+description: "Five Whys root cause analysis — iterative deepening loop. Task shapes: iterative root-cause drill-down of a defect, incident, or symptom."
 prompts_relative: true
 prompts_dir: prompts
 

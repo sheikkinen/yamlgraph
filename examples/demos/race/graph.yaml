@@ -4,7 +4,7 @@
 
 version: "1.0"
 name: race-demo
-description: Race multiple LLM providers for the fastest response
+description: "Race multiple LLM providers for the fastest response. Task shapes: same question to multiple providers or models, take the fastest good answer (hedging)."
 
 prompts_relative: true
 prompts_dir: prompts

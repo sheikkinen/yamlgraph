@@ -1,44 +1,43 @@
-Disabling PyTorch because PyTorch >= 2.4 is required but found 2.2.2
-PyTorch was not found. Models won't be available and only tokenizers, configuration and file/data utilities can be used.
-2026-04-19 06:54:46,017 [INFO] yamlgraph.node_compiler: Added node: generate (type=llm)
-2026-04-19 06:54:46,018 [INFO] yamlgraph.node_compiler: Added node: analyze (type=llm)
-2026-04-19 06:54:46,019 [INFO] yamlgraph.node_compiler: Added node: summarize (type=llm)
-2026-04-19 06:54:46,020 [INFO] yamlgraph.node_compiler: Added node: translate (type=llm)
-2026-04-19 06:54:46,020 [INFO] yamlgraph.node_compiler: Added node: combine (type=llm)
-2026-04-19 06:54:46,121 [INFO] yamlgraph.utils.llm_factory: Creating LLM: inception/mercury-2 (temp=0.7)
-2026-04-19 06:54:49,250 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-04-19 06:54:49,263 [INFO] yamlgraph.node_factory.llm_nodes: Node generate completed successfully
-2026-04-19 06:54:50,300 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-04-19 06:54:50,302 [INFO] yamlgraph.node_factory.llm_nodes: Node analyze completed successfully
-2026-04-19 06:54:50,322 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-04-19 06:54:50,323 [INFO] yamlgraph.node_factory.llm_nodes: Node summarize completed successfully
-2026-04-19 06:54:50,393 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-04-19 06:54:50,394 [INFO] yamlgraph.node_factory.llm_nodes: Node translate completed successfully
-2026-04-19 06:54:51,348 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-04-19 06:54:51,350 [INFO] yamlgraph.node_factory.llm_nodes: Node combine completed successfully
+2026-08-22 12:06:29,338 [INFO] yamlgraph.compile.node_compiler: Added node: generate (type=llm)
+2026-08-22 12:06:29,339 [INFO] yamlgraph.compile.node_compiler: Added node: analyze (type=llm)
+2026-08-22 12:06:29,340 [INFO] yamlgraph.compile.node_compiler: Added node: summarize (type=llm)
+2026-08-22 12:06:29,348 [INFO] yamlgraph.compile.node_compiler: Added node: translate (type=llm)
+2026-08-22 12:06:29,350 [INFO] yamlgraph.compile.node_compiler: Added node: combine (type=llm)
+2026-08-22 12:06:29,379 [INFO] yamlgraph.route: {"event": "run", "run_id": "01a028b8-b773-7b52-a12e-8cf76598d31d", "artifact_hash": "sha256:aa1386a461ea184f3f3ff1275a7ecd3a324cc5c5b7d157e2c6e6509d5a7240a5", "graph": "/Users/sheikki/Documents/src/yamlgraph/examples/demos/fan-out/graph.yaml", "yamlgraph_version": "0.5.17", "thread_id": null, "started_at": "2026-08-22T09:06:29Z"}
+2026-08-22 12:06:29,543 [INFO] yamlgraph.utils.llm_factory: Creating LLM: deepseek/deepseek-v4-flash (temp=0.7)
+2026-08-22 12:06:31,650 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-22 12:06:33,557 [INFO] yamlgraph.node_factory.llm_nodes: Node generate completed successfully
+2026-08-22 12:06:33,892 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-22 12:06:33,924 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-22 12:06:33,926 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-22 12:06:35,106 [INFO] yamlgraph.node_factory.llm_nodes: Node summarize completed successfully
+2026-08-22 12:06:35,760 [INFO] yamlgraph.node_factory.llm_nodes: Node analyze completed successfully
+2026-08-22 12:06:51,986 [INFO] yamlgraph.node_factory.llm_nodes: Node translate completed successfully
+2026-08-22 12:06:52,301 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-22 12:06:56,740 [INFO] yamlgraph.node_factory.llm_nodes: Node combine completed successfully
+2026-08-22 12:06:56,910 [INFO] yamlgraph.route: {"event": "run_end", "run_id": "01a028b8-b773-7b52-a12e-8cf76598d31d", "ended_at": "2026-08-22T09:06:56Z", "dropped_events": 0}
 
 🚀 Running graph: graph.yaml
-   Variables: {'topic': 'artificial intelligence'}
+   Variables: {'topic': 'urban beekeeping'}
 
-🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/f889c0ec-fa9b-4025-b69c-2aa756283ef8/r/019da3e0-6792-7a50-9638-c7f00a5466df?poll=true
+🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/f889c0ec-fa9b-4025-b69c-2aa756283ef8/r/01a028b8-b787-7a80-9bf3-43b2a0a576ef?poll=true
 ============================================================
 RESULT
 ============================================================
   current_step: combine
-  topic: artificial intelligence
-  content: Artificial intelligence (AI) refers to computer systems that can perform tasks that normally require human intelligence, such as learning, reasoning, and perception. By leveraging large datasets and sophisticated algorithms, AI can recognize patterns, make predictions, and automate complex processes across fields ranging from healthcare to finance. Recent advances in machine learning, especially deep learning and diffusion models, have dramatically expanded AI’s capabilities, enabling more accurate language understanding, image generation, and real‑time decision making. As AI continues to evolve, it promises to reshape industries while raising important ethical and societal considerations.
-  analysis: The passage foregrounds AI as data‑driven, algorithmic systems that emulate human cognition—learning, reasoning, and perception—and highlights how large datasets and advanced models (especially deep learning and diffusion techniques) now enable high‑precision language understanding, image generation, and real‑time decision making. It underscores AI’s transformative potential across sectors such as healthcare and finance, while simultaneously flagging the attendant ethical and societal challenges that accompany its rapid deployment.
-  summary: AI, computer systems that emulate human intelligence through learning, reasoning, and perception, now leverage large data and advanced algorithms—especially deep learning and diffusion models—to recognize patterns, automate complex tasks across sectors, and while reshaping industries, also raise significant ethical and societal concerns.
-  translation: Tekoäly (AI) viittaa tietokonejärjestelmiin, jotka pystyvät suorittamaan tehtäviä, jotka normaalisti vaativat ihmisen älykkyyttä, kuten oppimista, päättelyä ja havaitsemista. Hyödyntämällä suuria tietoaineistoja ja kehittyneitä algoritmeja, tekoäly voi tunnistaa malleja, tehdä ennusteita ja automatisoida monimutkaisia prosesseja eri aloilla terveydenhuollosta rahoitukseen. Koneoppimisen viimeaikaiset edistysaskeleet, erityisesti syväoppiminen ja diffuusiomallit, ovat merkittävästi laajentaneet tekoälyn kykyjä, mahdollistamalla tarkemman kielen ymmärtämisen, kuvageneroinnin ja reaaliaikaisen päätöksenteon. Kun tekoäly kehittyy edelleen, se lupaa muokata toimialoja samalla kun se herättää tärkeitä eettisiä ja yhteiskunnallisia kysymyksiä.
-  result: **Report on AI Overview**
+  topic: urban beekeeping
+  content: Urban beekeeping brings essential pollinators into cities, where they thrive on a diverse mix of flowers from parks, gardens, and balconies. This practice supports local biodiversity and food production, while also providing urban dwellers with fresh honey and a deeper connection to nature. Though beekeepers must manage limited space and potential neighbor concerns, city hives often prove healthier and more productive than rural ones due to fewer pesticide exposures. As a result, urban beekeeping is growing as a sustainable way to bolster ecosystems in concrete landscapes.
+  analysis: Key themes include urban biodiversity and sustainability, as beekeeping bolsters ecosystems and food production in cities, and the reconnection of urban dwellers with nature through local honey and pollinator stewardship.
+  summary: Urban beekeeping boosts city biodiversity and food production by providing healthy, productive hives with diverse flowers and fewer pesticides, while offering fresh honey and nature connection, despite space and neighbor challenges, making it a growing sustainable practice in urban areas.
+  translation: Kaupunkimehiläistarhaus tuo välttämättömiä pölyttäjiä kaupunkeihin, joissa ne viihtyvät monipuolisessa kukkavalikoimassa, jota tarjoavat puistot, puutarhat ja parvekkeet. Tämä käytäntö tukee paikallista luonnon monimuotoisuutta ja ruoantuotantoa, ja tarjoaa samalla kaupunkilaisille tuoretta hunajaa ja syvemmän yhteyden luontoon. Vaikka mehiläishoitajien on pärjättävä rajallisen tilan kanssa ja otettava huomioon naapureiden mahdolliset huolenaiheet, kaupunkipesät osoittautuvat usein terveemmiksi ja tuottavammiksi kuin maaseudun pesät, koska torjunta-aineille altistuminen on vähäisempää. Tämän vuoksi kaupunkimehiläistarhaus on kasvamassa kestäväksi keinoksi vahvistaa ekosysteemejä betonimaisemissa.
+  result: ## Analysis
 
----
+Urban beekeeping supports urban biodiversity and sustainability by strengthening ecosystems and local food production in cities. It also helps reconnect city residents with nature through access to fresh local honey and firsthand pollinator stewardship.
 
-### 1. Analysis
-The passage frames AI as data‑driven, algorithmic systems that mimic human cognition—learning, reasoning, and perception. Large datasets and sophisticated models, particularly deep learning and diffusion techniques, now enable high‑precision language understanding, image generation, and real‑time decision making. This technological surge is reshaping sectors such as healthcare and finance, but it also brings ethical and societal challenges that must be addressed as AI is deployed at scale.
+## Summary
 
-### 2. Summary
-AI comprises computer systems that emulate human intelligence through learning, reasoning, and perception. Leveraging massive data and advanced algorithms—especially deep learning and diffusion models—AI can recognize patterns, automate complex tasks, and transform industries. However, its rapid expansion raises significant ethical and societal concerns.
+Urban beekeeping boosts city biodiversity and food production by providing healthy, productive hives with access to diverse flowers and fewer pesticides. In return, it offers fresh honey and a meaningful connection to nature. Despite challenges such as limited space and neighbor concerns, urban beekeeping is a growing sustainable practice that supports ecosystems within city environments.
 
-### 3. Finnish Translation
-Tekoäly (AI) viittaa tietokonejärjestelmiin, jotka pystyvät suorittamaan tehtäviä, jotka normaalisti vaativat ihmisen älykkyyttä, kuten oppimista, päättelyä ja havaitsemista. Hyödyntämällä suuria tietoaineistoja ja kehittyneitä algoritmeja, tekoäly voi tunnistaa malleja, tehdä ennusteita ja automatisoida monimutkaisia prosesseja eri aloilla terveydenhuollosta rahoitukseen. Koneoppimisen viimeaikaiset edistysaskeleet, erityisesti syväoppiminen ja diffuusiomallit, ovat merkittävästi laajentaneet tekoälyn kykyjä, mahdollistamalla tarkemman kielen ymmärtämisen, kuvageneroinnin ja reaaliaikaisen päätöksenteon. Kun tekoäly kehittyy edelleen, se lupaa muokata toimialoja samalla kun se herättää tärkeitä eettisiä ja yhteiskunnallisia kysymyksiä.
+## Finnish Translation
+
+Kaupunkimehiläistarhaus tuo välttämättömiä pölyttäjiä kaupunkeihin, joissa ne viihtyvät monipuolisessa kukkavalikoimassa, jota tarjoavat puistot, puutarhat ja parvekkeet. Tämä käytäntö tukee paikallista luonnon monimuotoisuutta ja ruoantuotantoa, ja tarjoaa samalla kaupunkilaisille tuoretta hunajaa ja syvemmän yhteyden luontoon. Vaikka mehiläishoitajien on pärjättävä rajallisen tilan kanssa ja otettava huomioon naapureiden mahdolliset huolenaiheet, kaupunkipesät osoittautuvat usein terveemmiksi ja tuottavammiksi kuin maaseudun pesät, koska torjunta-aineille altistuminen on vähäisempää. Tämän vuoksi kaupunkimehiläistarhaus on kasvamassa kestäväksi keinoksi vahvistaa ekosysteemejä betonimaisemissa.

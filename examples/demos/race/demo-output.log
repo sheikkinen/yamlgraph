@@ -1,20 +1,22 @@
-2026-04-18 08:47:17,952 [INFO] yamlgraph.node_compiler: Added node: fastest_answer (type=race)
-2026-04-18 08:47:18,022 [INFO] yamlgraph.utils.llm_factory: Creating LLM: mistral/mistral-small-latest (temp=0.7)
-2026-04-18 08:47:18,151 [INFO] yamlgraph.utils.llm_factory: Creating LLM: openai/gpt-4o-mini (temp=0.7)
-2026-04-18 08:47:19,066 [INFO] yamlgraph.utils.llm_factory: Creating LLM: google/gemini-2.0-flash (temp=0.7)
-2026-04-18 08:47:20,217 [INFO] google_genai.models: AFC is enabled with max remote calls: 10.
-2026-04-18 08:47:21,032 [INFO] httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent "HTTP/1.1 200 OK"
-2026-04-18 08:47:21,035 [INFO] yamlgraph.node_factory.race_node: Race node fastest_answer: winner google/gemini-2.0-flash
-2026-04-18 08:47:21,434 [INFO] httpx: HTTP Request: POST https://api.mistral.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-04-18 08:47:22,713 [INFO] httpx: HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-23 07:47:26,868 [INFO] yamlgraph.compile.node_compiler: Added node: fastest_answer (type=race)
+2026-08-23 07:47:26,994 [INFO] yamlgraph.route: {"event": "run", "run_id": "01a02cf1-eac0-7e46-8cf3-882c4bfab402", "artifact_hash": "sha256:14b0ddbc0f66b55ccfcb3e6d1d706704fccfc0f1f0faa415673d1fef216c5a01", "graph": "/Users/sheikki/Documents/src/yamlgraph/examples/demos/race/graph.yaml", "yamlgraph_version": "0.5.17", "thread_id": null, "started_at": "2026-08-23T04:47:26Z"}
+2026-08-23 07:47:27,439 [INFO] yamlgraph.utils.llm_factory: Creating LLM: mistral/mistral-small-latest (temp=0.7)
+2026-08-23 07:47:27,623 [INFO] yamlgraph.utils.llm_factory: Creating LLM: openai/gpt-4o-mini (temp=0.7)
+2026-08-23 07:47:29,425 [INFO] yamlgraph.utils.llm_factory: Creating LLM: google/gemini-2.0-flash (temp=0.7)
+2026-08-23 07:47:31,552 [INFO] google_genai.models: AFC is enabled with max remote calls: 10.
+2026-08-23 07:47:31,892 [WARNING] yamlgraph.node_factory.race_node: Race candidate google/gemini-2.0-flash failed: Error calling model 'gemini-2.0-flash' (NOT_FOUND): 404 NOT_FOUND. {'error': {'code': 404, 'message': 'This model models/gemini-2.0-flash is no longer available. Please update your code to use models/gemini-3.6-flash for the latest features and improvements.', 'status': 'NOT_FOUND'}}
+2026-08-23 07:47:32,851 [INFO] httpx: HTTP Request: POST https://api.mistral.ai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-23 07:47:32,873 [INFO] yamlgraph.node_factory.race_node: Race winner: mistral/mistral-small-latest
+2026-08-23 07:47:32,873 [INFO] yamlgraph.node_factory.race_node: Node fastest_answer completed successfully
+2026-08-23 07:47:33,074 [INFO] yamlgraph.route: {"event": "run_end", "run_id": "01a02cf1-eac0-7e46-8cf3-882c4bfab402", "ended_at": "2026-08-23T04:47:33Z", "dropped_events": 0}
 
 🚀 Running graph: graph.yaml
-   Variables: {'topic': 'quantum computing'}
+   Variables: {'topic': 'the northern lights'}
 
-🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/f889c0ec-fa9b-4025-b69c-2aa756283ef8/r/019d9f21-1247-7661-a668-cd69b12376d0?poll=true
+🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/f889c0ec-fa9b-4025-b69c-2aa756283ef8/r/01a02cf1-eb24-7b01-a717-85c59f12d9d7?poll=true
 ============================================================
 RESULT
 ============================================================
   current_step: fastest_answer
-  topic: quantum computing
-  answer: Quantum computing uses quantum mechanics principles like superposition and entanglement to solve complex problems that are intractable for classical computers. By using qubits, which can exist in multiple states simultaneously, quantum computers can explore many possibilities at once. This enables them to potentially revolutionize fields like medicine, materials science, and artificial intelligence.
+  topic: the northern lights
+  answer: The Northern Lights, or Aurora Borealis, are a natural light display caused by collisions between charged particles from the sun and Earth's atmosphere, guided by the magnetic field. These collisions emit light, creating vibrant, dancing ribbons of color, typically green, pink, or purple, visible near the polar regions. They are most commonly seen in high-latitude locations like Norway, Canada, and Alaska during winter nights.

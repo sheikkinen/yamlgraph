@@ -3,7 +3,7 @@
 
 version: "1.0"
 name: tone-router-demo
-description: Route responses based on detected message tone
+description: "Route responses based on detected message tone. Task shapes: classify an input, then dispatch to a specialized handler (conditional routing)."
 prompts_relative: true
 prompts_dir: prompts
 

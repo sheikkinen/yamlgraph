@@ -54,8 +54,13 @@ item, ask the model." If yes → propose a yamlgraph implementation first
 dispatch), via the governed authoring route. Scripts and subagents are the
 fallback, not the default.
 
-Candidate for the Scripture's questions canon — this entry is the second
-witnessed recurrence of `builders_never_call`; a third firing graduates it.
+Graduated via FR-853 (judged APPROVED WITH REVISIONS 2026-08-22): per
+the Scripture's process rule — "Heuristic appears twice → create FR;
+confirmed recurrence → graduate to Scripture" — the 2026-07-17
+`builders_never_call` record is the first witness and this entry is the
+confirmed recurrence, so `is_this_a_graph` enters the questions canon
+now. FR-853 also adds the `Task shapes:` instrument index to the demo
+graph descriptions the question consults.
 
 ## Seed
 

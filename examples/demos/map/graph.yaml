@@ -3,7 +3,7 @@
 
 name: map-demo
 version: "1.0"
-description: "Demonstrates parallel fan-out with type: map"
+description: "Demonstrates parallel fan-out with type: map. Task shapes: for each item in a list, ask the model — parallel map-reduce over N items."
 prompts_relative: true
 prompts_dir: prompts
 

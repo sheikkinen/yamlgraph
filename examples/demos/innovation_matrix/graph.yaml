@@ -1,5 +1,5 @@
 name: innovation-matrix
-description: Generate an Innovation Matrix crossing capabilities with constraints
+description: "Generate an Innovation Matrix crossing capabilities with constraints. Task shapes: structured ideation — cross domain capabilities with constraints to surface non-obvious directions."
 version: "1.0"
 
 prompts_relative: true
