@@ -454,6 +454,11 @@ pressure, not adoption. Where the paths still diverge: Spec Kit has no
 independent judge (the author's agent approves its own artifacts at every
 checkpoint, with the human as sole verifier), and its specs are launch
 documents, not case law — rejected specs bind nothing.
+The divergence was later measured (FR-870): Spec Kit's own
+`/speckit.constitution`, run against a sanitized copy of this repo,
+rediscovered 14 of the Scripture's 108 normative units — all by transcribing
+enforcement config, none of the judge or the incident-paid case law
+([constitution-diff.md](constitution-diff.md)).
 
 ### Agent loops — the same motif, different trust model
 

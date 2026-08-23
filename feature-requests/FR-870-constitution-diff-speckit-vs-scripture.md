@@ -2,7 +2,7 @@
 
 **Priority:** LOW
 **Type:** Enhancement (research experiment, docs deliverable)
-**Status:** Judged
+**Status:** Completed (2026-08-23)
 **Effort:** 0.5 days
 **Requested:** 2026-08-23
 **First consumer / first event:** the "Judged Fork of Spec-Driven Development"
@@ -128,32 +128,34 @@ As revised by the judgement (authoritative list in
 `FR-870-constitution-diff-speckit-vs-scripture.judgement.md`):
 
 - [x] AC-01: FR revised to fold R-1 through R-6 (this revision)
-- [ ] AC-02: Spec Kit run occurs only in a sanitized scratch worktree, with
+- [x] AC-02: Spec Kit run occurs only in a sanitized scratch worktree, with
       the deny-listed doctrine/history inputs removed first
-- [ ] AC-03: `docs/constitution-diff.md` records full provenance: date,
+- [x] AC-03: `docs/constitution-diff.md` records full provenance: date,
       operator/agent, model/provider, Spec Kit version/commit, init command,
       constitution prompt, generated path, sanitized input manifest
-- [ ] AC-04: generated constitution included verbatim before any analysis
-- [ ] AC-05: source-unit manifest with included/excluded sections, stable
-      unit IDs, total count, count reconciliation
-- [ ] AC-06: every included source unit appears exactly once with one
+- [x] AC-04: generated constitution included verbatim before any analysis
+      (one word elided to pass the repo forbid-terms hook; elision noted
+      in the exhibit)
+- [x] AC-05: source-unit manifest with included/excluded sections, stable
+      unit IDs, total count, count reconciliation (108 units, 12 families)
+- [x] AC-06: every included source unit appears exactly once with one
       exhaustive source-side label
-- [ ] AC-07: every `REDISCOVERED` row quotes/cites the equivalent generated
-      clause
-- [ ] AC-08: every `SOURCE_ONLY_INCIDENT_PAID` row cites a graduating diary
+- [x] AC-07: every `REDISCOVERED` row quotes/cites the equivalent generated
+      clause (14 rows)
+- [x] AC-08: every `SOURCE_ONLY_INCIDENT_PAID` row cites a graduating diary
       entry, FR, or source-text witness; uncited rows never count as
-      incident-paid
-- [ ] AC-09: every generated-only clause appears in a separate table with one
-      exhaustive generator-side label
-- [ ] AC-10: measured fractions state numerator, denominator, label family;
-      source-side and generator-only rates separated
-- [ ] AC-11: conclusion ≤3 sentences, explicitly strengthens/weakens/
-      invalidates the origin-story claim
-- [ ] AC-12: `docs/origin-story.md` External Record links the exhibit in one
+      incident-paid (29 rows, conservative floor)
+- [x] AC-09: every generated-only clause appears in a separate table with one
+      exhaustive generator-side label (G-01..G-05)
+- [x] AC-10: measured fractions state numerator, denominator, label family;
+      source-side and generator-only rates separated (14/29/65 of 108)
+- [x] AC-11: conclusion ≤3 sentences, explicitly strengthens/weakens/
+      invalidates the origin-story claim (strengthens)
+- [x] AC-12: `docs/origin-story.md` External Record links the exhibit in one
       line, claiming no more than the measured result
-- [ ] AC-13: zero Spec Kit scaffolding files (`.specify/`, `memory/`,
+- [x] AC-13: zero Spec Kit scaffolding files (`.specify/`, `memory/`,
       `.speckit*`, integration command files) committed to the live repo
-- [ ] AC-14: cleanup evidence included (diff --name-only, worktree list,
+- [x] AC-14: cleanup evidence included (diff --name-only, worktree list,
       prune --dry-run) proving only authorized files changed and no scratch
       worktree remains
 
@@ -216,3 +218,34 @@ contaminated input. Gates C-1..C-7 per judgement file.
 
 None — the judgement raised no human questions; output advisory until
 human-reviewed.
+
+## Implementation Status (2026-08-23)
+
+Enforced same day. Deliverables: D-2 sanitized run (scratch worktree
+`/tmp/yg-speckit` at HEAD 8e34f4de, removed after), D-3
+`docs/constitution-diff.md`, D-4 one-line cross-link in
+`docs/origin-story.md`, D-5 this status.
+
+**Result:** 14/108 units REDISCOVERED (13.0%), 29/108
+SOURCE_ONLY_INCIDENT_PAID (26.9%, cited floor), 65/108
+SOURCE_ONLY_UNTRACED_GENERIC (60.2%). All 14 rediscoveries are
+enforcement-fingerprint transcriptions of hooks/CI config; zero rediscovery
+of the Judge (S-03), Sermon, Rite, traps/cures/questions canon, or
+`the_one_law`. Verdict: **strengthens** the origin-story claim. One genuine
+generator find: G-02 (test-only Pydantic models as implicit genericity
+norm).
+
+**Deviations from plan:**
+- `uvx` unavailable on the machine → pinned `pip install
+  "git+...spec-kit.git@v1.0.0"` into a throwaway venv (same pin, same CLI).
+- The frozen deny-list was insufficient: leak grep found verbatim doctrine
+  text in `examples/ebook/`, `examples/demos/philosopher_book/`,
+  `examples/dungeon_master/docs/` → extended deny, logged in the exhibit's
+  input manifest (R-1's own procedure caught it; the list is a floor, the
+  leak grep is the gate).
+- One word of the generated constitution elided in the verbatim capture
+  because it contains a repo-forbidden term; noted inline in the exhibit.
+
+Gates honored: C-2 (fractions from the sanitized run only), C-3 (judge not
+re-invoked), C-5 (no scaffolding committed; worktree removed with evidence),
+C-7 (run succeeded; N/A).
