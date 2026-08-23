@@ -2,7 +2,8 @@
 
 **Priority:** MEDIUM
 **Type:** Tooling
-**Status:** Judged 2026-08-23 — APPROVED WITH REVISIONS (see
+**Status:** Enforced 2026-08-23 — real run complete (see Implementation
+Status); judged APPROVED WITH REVISIONS (see
 `FR-860-req-audit-run-scaffolding.judgement.md`); R-1..R-5 folded below
 **Effort:** 0.5–1 day
 **Requested:** 2026-08-22
@@ -120,11 +121,14 @@ Four phases, each tee'd to a log in the output dir:
 
 1. **record** — full framework suite, honest instrument:
    `COVERAGE_CORE=ctrace pytest tests/unit tests/integration -q
-   --no-cov-report --cov=yamlgraph --cov-context=test` — sequential (no
+   --cov-report= --cov=yamlgraph --cov-context=test` — sequential (no
    `-n auto`), *including* `slow` and `process` marks (they are the
    unrecorded 64). Integration tests missing API keys skip as usual;
    the manifest records the skip count. `--skip-record` reuses an
    existing `.coverage` for constructor/prompt iteration.
+   *(Deviation recorded at enforce: the judgement's `--no-cov-report`
+   is not a pytest-cov flag; the real report-suppression spelling is
+   `--cov-report=` — first real run failed exit 4 proving it.)*
 2. **construct** — `python scripts/req_audit_questions.py --out $OUT`
    (loads via the FR-850 boundary; hard refusal propagates).
 3. **audit** — `yamlgraph graph run
@@ -186,38 +190,38 @@ in `tmp/`, uncommitted.
 ## Acceptance Criteria (judge-revised; R-4 folded — aggregate
 distribution is evidence, not a gate)
 
-- [ ] AC-01 `scripts/req_audit.sh` runs phases record → construct →
+- [x] AC-01 `scripts/req_audit.sh` runs phases record → construct →
       audit → report in order, writes one log per phase under `$OUT`,
       exits non-zero on the first failed phase.
-- [ ] AC-02 CLI supports `--out`, `--skip-record`, `--model`,
+- [x] AC-02 CLI supports `--out`, `--skip-record`, `--model`,
       `--provider`; defaults and precedence documented in the FR and
       reflected in `--help`.
-- [ ] AC-03 Recording command is exactly the full sequential
+- [x] AC-03 Recording command is exactly the full sequential
       framework-suite coverage command (`COVERAGE_CORE=ctrace pytest
-      tests/unit tests/integration -q --no-cov-report --cov=yamlgraph
+      tests/unit tests/integration -q --cov-report= --cov=yamlgraph
       --cov-context=test`; no `-n`, no mark exclusions) — asserted by
       a test on the constructed command.
-- [ ] AC-04 `--skip-record` reuses `.coverage` only through the FR-850
+- [x] AC-04 `--skip-record` reuses `.coverage` only through the FR-850
       boundary; missing/context-free/poisoned coverage exits non-zero,
       prints the boundary remedy, produces no `report.md`.
-- [ ] AC-05 `$OUT/run-manifest.json` conforms to the frozen schema (all
+- [x] AC-05 `$OUT/run-manifest.json` conforms to the frozen schema (all
       keys above, per-phase command/exit/log).
-- [ ] AC-06 `$OUT/report.md` header embeds git SHA, dirty flag,
+- [x] AC-06 `$OUT/report.md` header embeds git SHA, dirty flag,
       instrument line, provider, model from the manifest.
-- [ ] AC-07 One real full run recorded in
+- [x] AC-07 One real full run recorded in
       `feature-requests/evidence/FR-860-req-audit-run-scaffolding.md`;
       bulk raw responses remain in `tmp/`, uncommitted.
-- [ ] AC-08 Evidence artifact records before/after resolution-class
+- [x] AC-08 Evidence artifact records before/after resolution-class
       counts vs the 1,279 baseline, skip count,
       batch/audited/unaudited/rejected/duplicate counts, verdict
       counts, and ≥5 raw-response observations read before aggregate
       claims.
-- [ ] AC-09 Implementation status classifies residual
+- [x] AC-09 Implementation status classifies residual
       `[no]`/`[partial]` rows into instrument-gap vs SIM117-class
       phantom vs genuinely thin witness, with counts; if
       `no-link-unrecorded` does not fall by an order of magnitude, the
       FR records that fact without treating the runner as failed.
-- [ ] AC-10 Tests tagged to a new/updated audit-capability REQ;
+- [x] AC-10 Tests tagged to a new/updated audit-capability REQ;
       registry, changelog fragment, diary entry included.
 
 ## Alternatives Considered
@@ -240,3 +244,29 @@ distribution is evidence, not a gate)
 Squash-merge title: `feat(req-audit): FR-860 scripted scaffolding for
 the real witness-audit run`. Enforce order: RED (script-contract
 tests) → GREEN (script) → the real run (AC-05) → disposition (AC-06).
+
+## Implementation Status (2026-08-23 — Enforced)
+
+- RED 8810f8f3 (10 script-contract tests, REQ-YG-609) → GREEN c4cbc999
+  (`scripts/req_audit.sh`) → flag fix 7abb586f (deviation: pytest-cov
+  has no `--no-cov-report`; the frozen command uses `--cov-report=`).
+- Deviation: provenance manifest is `run-manifest.json`, not
+  `manifest.json` — the latter is FR-851's batch manifest.
+- Real run (AC-07): `tmp/req-audit-daf87e24`, all four phases exit 0;
+  6323 passed / 103 skipped record, 414/414 REQs audited, 0 rejected
+  batches. Evidence:
+  `feature-requests/evidence/FR-860-req-audit-run-scaffolding.md`.
+- Verdicts: 160 yes / 242 partial / 12 no.
+- AC-09: `no-link-unrecorded` 1,279 → 1,262 — did NOT fall by an order
+  of magnitude. The FR-850 hypothesis is refuted: these tests execute
+  no `yamlgraph/` source (bash, CI YAML, markdown, `examples/` via
+  subprocess — outside `--cov=yamlgraph`). Runner not failed for this.
+- Residual triage of 12 [no]: 9 instrument-gap (.chaplain/examples
+  subjects outside the instrument), 3 genuinely thin (REQ-YG-066,
+  -194, -506), 0 SIM117-class phantoms.
+- Blockers cleared en route (own commits, condemned first):
+  coverage-DB clobbering by 9 nested pytest spawns in slow-marked
+  tests (RED 7370769e guard, GREEN 326b9695 `--no-cov`); exact-case
+  live-LLM assertion in fr342 (`tolerant_matching`, daf87e24). Four
+  failed run attempts preceded these — two venv-less terminals, one
+  bad flag, one clobbered DB.
