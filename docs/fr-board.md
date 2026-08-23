@@ -31,6 +31,7 @@
 | FR-828 | PARSE-FAILURE (Enforcement attempt 2 stopped ) | yamlgraph |  | FR-828-gitclaw-oulu-civic-intelligence-cookbook.md |
 | FR-841 | PARSE-FAILURE (Replanned 2026-08-20 after con) | yamlgraph |  | FR-841-gitclaw-reference-assets.md |
 | FR-854 | PARSE-FAILURE (WITHDRAWN 2026-08-22 — census ) | yamlgraph |  | FR-854-subagent-call-classification-graph.md |
+| FR-862 | PARSE-FAILURE (Partially superseded 2026-08-2) | yamlgraph |  | FR-862-deviant-daily-on-demand-publish.md |
 | FR-111 | Judged | yamlgraph |  | FR-111-compiled-graph-cache.md |
 | FR-179 | Judged | yamlgraph |  | FR-179-asterisk-ari-audiosocket-provider.md |
 | FR-210 | Judged | yamlgraph |  | FR-210-subgraph-interrupt-state-commit.md |
@@ -105,7 +106,6 @@
 | FR-824 | Judged | yamlgraph |  | FR-824-hva-weekly-bulletin-new-repo.md |
 | FR-837 | Judged | yamlgraph |  | FR-837-gitclaw-oulu-source-health-assembly.md |
 | FR-838 | Judged | yamlgraph |  | FR-838-gitclaw-oulu-assembly-recovery.md |
-| FR-862 | Judged | yamlgraph |  | FR-862-deviant-daily-on-demand-publish.md |
 | FR-094 | Approved | yamlgraph |  | FR-094-memory-node.md |
 | FR-095 | Approved | yamlgraph |  | FR-095-doc-staleness-monitor.md |
 | FR-096 | Approved | yamlgraph |  | FR-096-fr-template-demo-plan.md |
@@ -210,6 +210,7 @@
 | FR-858 | Proposed | yamlgraph |  | FR-858-retire-committed-fr-board.md |
 | FR-859 | Proposed | yamlgraph |  | FR-859-delete-orphaned-sim117-phantom-req-tag.md |
 | FR-861 | Proposed | yamlgraph |  | FR-861-shared-repo-write-discipline.md |
+| FR-864 | Proposed | yamlgraph |  | FR-864-ramp-spike-to-governed.md |
 | FR-078 | In Progress | yamlgraph |  | FR-078-relocate-project-tests.md |
 | FR-100 | In Progress | yamlgraph |  | FR-100-yamlgraph-development-pipeline-ebook.md |
 | FR-169 | In Progress | yamlgraph |  | FR-169-enforce-reflexion-loop.md |
@@ -451,7 +452,8 @@ graph TD
     FR-858["FR-858 Proposed"]
     FR-859["FR-859 Proposed"]
     FR-861["FR-861 Proposed"]
-    FR-862["FR-862 Judged"]
+    FR-862["FR-862 PARSE-FAILURE"]
+    FR-864["FR-864 Proposed"]
     FR-081 --> FR-082
     FR-731 --> FR-735
     FR-731 --> FR-736

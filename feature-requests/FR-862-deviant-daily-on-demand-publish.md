@@ -2,9 +2,32 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Judged — APPROVED WITH REVISIONS (2026-08-23), revisions folded
+**Status:** Partially superseded 2026-08-23 by FR-863 S-5 — see "Superseded" below
 **Effort:** 1 day
 **Requested:** 2026-08-23
+
+## Superseded (2026-08-23, same day)
+
+The operator ruled the `dry_run` and `force` flags paternalistic:
+*"if the script is executed it needs to do what it is supposed to."*
+Both are removed. What this FR got right — the reusable workflow, the
+manual caller, slot identity, explicit model pinning, the shared
+concurrency group — stands. What it got wrong was aiming guards at the
+repo owner.
+
+**Void:** AC-02 (flag inputs), AC-06/AC-07 (dry-run behaviour and
+artifact), AC-10 (force semantics), AC-13 (idempotent-exit regression
+pin), AC-18 (forced-publish witness), and condition **C-6** (operator
+approval before a forced live publish) — a permission system this FR
+invented to gate the owner from his own gallery.
+
+**Still binding:** AC-03 (shared concurrency group), AC-05 (input
+normalization, minus `parse_flag`), AC-08/AC-09/AC-11/AC-12 (slot
+identity and corpus no-repeat), AC-14 (governed graph authoring),
+AC-15 (documentation), and conditions C-2, C-3, C-4, C-5, C-7, C-8.
+
+See `feature-requests/FR-863-deviant-daily-publish-policy-boundary-mirroring.md`
+P-5 and S-5.
 **First consumer / first event:** the operator, at the moment a roster
 change lands. On 2026-08-23 `flux-ultra` was retired and
 `flux-2-flex` + `google/nano-banana-2` were added to

@@ -79,6 +79,38 @@ every future draw. Silently: no error, no log line, just a corpus
 quietly two-thirds its stated size. Slot `2026-08-23#1` drew one and
 reached `submitted` before this was caught.
 
+### P-5: the publisher had been fitted with guards against its owner
+
+Operator finding, same day: "we are working in a sibling repo and have
+lost most of the process controls … severe hedging in place —
+complicated dry-run and force flags 'protecting' user from executing
+the script."
+
+The sibling repo has no pre-commit hooks and no CI running the suite.
+With the real controls absent, FR-862 manufactured substitutes at
+runtime and aimed them at the wrong party:
+
+| Hedge | Effect |
+|---|---|
+| `dry_run` default `true` | the publish button published nothing unless argued with |
+| `force` default `false` | a second argument was required to publish after any prior run that day, including a skipped one |
+| terminal-slot "idempotent exit" | a deliberate dispatch silently did nothing |
+| FR-862 AC-18 "operator approval gate" | a permission system gating the repo owner from his own gallery, written into a judged FR as a GATE condition |
+| `outputs/dry-run-post.json` + artifact step | infrastructure existing only to serve the dry-run |
+| `parse_flag` + 6 tests | boundary parsing for flags that should not exist |
+
+The ceremony generated its own defect: `-f force=true` silently arrived
+as `force: false` (runs 32624905387, 32624943253), a bug that could only
+exist because the flag existed.
+
+Related, and the deeper finding: **the absence of acceptance criteria is
+what lost the downscaling feature.** FR-863's changes were made before
+this FR existed, so no AC pinned "every image is downscaled". Under
+pressure from an unrelated failing fixture, the invariant was quietly
+traded down to "downscale only when bytes exceed the ceiling" — and only
+the operator's review caught it. An AC is the thing that survives
+refactoring pressure; FR prose is not.
+
 ## Ideal Result
 
 Every constraint imposed by an external system — provider payload
@@ -148,6 +180,24 @@ code-side normalization, so FR-826 R-2's provenance and redaction record
 still holds. The one already-committed `"unknown"` ledger row now
 matches no corpus row and excludes nothing.
 
+### S-5: delete the guards; if it runs, it publishes
+
+`dry_run` and `force` are removed from the workflows, the graph state
+and args, and every step function. `parse_flag` is deleted with them.
+`publish-now` takes `model` and `date` only — capabilities, not guards,
+neither having a "safe" default that disables the tool. Every run takes
+the next slot for the day and publishes it; a terminal slot is not a
+stop sign.
+
+One behaviour is deliberately kept and is **not** hedging: an in-flight
+slot (`drawn`/`submitted`) is resumed rather than duplicated, because
+its committed row may already guard a DeviantArt call in flight. That is
+FR-826 R-3 external-side-effect correctness, not protection of the
+operator from himself.
+
+This **supersedes FR-862's** AC-02, AC-06, AC-07, AC-10, AC-13 and
+AC-18, and voids its C-6 approval condition.
+
 ## Acceptance Criteria
 
 All witnessed before this FR was written (see Honesty note).
@@ -171,11 +221,23 @@ All witnessed before this FR was written (see Honesty note).
 - [x] AC-10: 145 tests green, `ruff` clean.
 - [x] AC-11: live publication witness — run 32624747449,
       `2026-08-23#1 published`, title 39 chars.
+- [x] AC-13: no `dry_run` or `force` appears in any workflow, the graph,
+      or any step signature; pinned by
+      `test_no_guard_flags_survive_anywhere` and signature tests.
+- [x] AC-14: a run whose latest slot is `published` or `skipped` takes
+      the next slot and publishes; only an in-flight slot is resumed.
+- [x] AC-15: `publish-now` exposes exactly `{model, date}`.
+- [x] AC-16: `graph.yaml` change authored through the governed route,
+      lint clean; report at `tmp/draft-authoring-report.md`.
 - [ ] AC-12: **open** — the describe prompt still overloads
       `confidence` with legibility and policy risk (P-2 root cause).
       S-2 treats the symptom; the field should be split into
       `confidence` (legibility) and `publishable` (policy) so the
       ledger records *which* one blocked. Deferred to its own FR.
+- [ ] AC-17: **open** — the sibling repo still has no CI running the
+      test suite and no pre-commit hooks. This is the real control whose
+      absence P-5 describes; inventing runtime guards was the
+      substitute. Deferred to its own FR.
 
 ## Risks
 
@@ -230,7 +292,8 @@ catch. This FR should be judged on whether the shipped behaviour is
 **Commits** (`sheikkinen/deviant-daily`):
 `8f32c30` RED → `65bba45` downscale; `fa3a512` edge cap restored;
 `23785e7` RED → `60c15b3` publish policy + unconditional downscale;
-`ada1b0d` RED → `550a123` title cap + corpus keys.
+`ada1b0d` RED → `550a123` title cap + corpus keys;
+`cbdc81b` guards removed.
 
 ## Related
 
