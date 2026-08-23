@@ -560,6 +560,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 242 | CAP-242 Lint/Compile Validation Parity | `linter` | REQ-YG-605 |
 | 243 | CAP-243 Requirement Witness Audit | `scripts` | REQ-YG-606 – 609 |
 | 244 | CAP-244 Ramp Installer | `scripts` | REQ-YG-610 – 613 |
+| 245 | CAP-245 Ramp Tailoring Graphs | `examples` | REQ-YG-614 – 617 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -2997,6 +2998,19 @@ Mechanical, idempotent, reversible installer (scripts/ramp.sh → scripts/ramp_i
 | REQ-YG-611 | The installer plans create/skip-exists/overwrite actions per tier; --dry-run prints every action plus any would-be consumer row and writes zero files with exit 0; a Tier-1 install into a scratch supported repo creates all Tier-1 destinations byte-identical to curated sources; a second identical run changes no asset content or mtime and reports skips; the installer prints the pre-commit install command for the operator and never executes it. | `scripts` |
 | REQ-YG-612 | The installer refuses with non-zero exit and zero writes: a non-repo path, a linked worktree (.git file), a nested subdirectory, this repository itself, an unsupported target shape (Tier-1 contract: pyproject.toml + pytest tests/ + ruff config), and any destination escaping the target root; an already-present AGENTS.md survives without --force; --force backs up before overwriting and records before/after hashes; <target>/docs/ramp-manifest.md records destination, source, action, source commit SHA and content hashes sufficient for rollback; and rollback deletes only created files and restores forced-overwrite backups. | `scripts` |
 | REQ-YG-613 | Consumption and provenance stay mechanical: the curated Tier-1 pre-commit config is validated and executed against the committed fixture scratch repo in the test path; every mirror_exact entry matches its live counterpart byte-for-byte and every curation_diff entry has a record in ramp/curation-diffs.md naming live source, curated asset, removed/changed material and reason; source scans prove the installer performs no LLM/network call and no target-mutating git command and Tier-1 assets carry no yamlgraph-only path assumptions; ramp/consumers.md has a documented slug-only row schema with idempotent append/update keyed on (target, tier, manifest hash) and rejects absolute paths and credential-bearing URLs. | `scripts` |
+
+### 245. CAP-245 Ramp Tailoring Graphs
+
+Three demo graphs derive target-specific governance artifacts a copier cannot produce: ramp_doctrine (tailored AGENTS.md draft, strict subset of source Scripture by stable id), ramp_rtm (proposed requirement registry derived from existing tests), and ramp_incidents (incident records repatriated from the source repo's FR/diary corpus). All drafts land under tmp/ramp/ only; landing in a target is a human act (FR-867), never a graph act.
+
+**Feature Request:** FR-866
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-614 | ramp_doctrine derives a doctrine draft whose entries are selected from the source Scripture by stable id across all three families (trap, cure, question); invented ids, missing target evidence on applies/tailor verdicts, and missing reasons on rejections are validation errors; kept entries form a strict per-family subset. | `examples` |
+| REQ-YG-615 | ramp_rtm derives requirement candidates from a target's test inventory: every emitted entry has status proposed and cites at least one witness test that exists in the inventory; tests witnessing no requirement are reported as gaps; low counts are reported, never padded. | `examples` |
+| REQ-YG-616 | ramp_incidents classifies every corpus document as an incident record (date, defect, root_cause, cure, witness, resolvable source_ref) or not_an_incident; the disposition reconciles count-in == count-out over the scanned corpus with no silently dropped documents. | `examples` |
+| REQ-YG-617 | Shared runtime contract: all three graphs lint clean, write drafts only to tmp/ramp/ (doctrine-draft, rtm-draft, incidents-draft .md/.json), and contain no git commit, git push, or gh invocation in any graph, prompt, or node source. | `examples` |
 
 <!-- END GENERATED CAPABILITIES -->
 

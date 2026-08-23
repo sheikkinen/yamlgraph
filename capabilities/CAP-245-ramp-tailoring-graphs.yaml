@@ -1,0 +1,51 @@
+name: Ramp Tailoring Graphs
+id: CAP-245
+status: active
+fr: FR-866
+feature_request: feature-requests/FR-866-ramp-tailoring-graphs.md
+description: >
+  Three demo graphs derive target-specific governance artifacts a copier
+  cannot produce: ramp_doctrine (tailored AGENTS.md draft, strict subset
+  of source Scripture by stable id), ramp_rtm (proposed requirement
+  registry derived from existing tests), and ramp_incidents (incident
+  records repatriated from the source repo's FR/diary corpus). All
+  drafts land under tmp/ramp/ only; landing in a target is a human act
+  (FR-867), never a graph act.
+modules:
+  - examples
+requirements:
+  - id: REQ-YG-614
+    description: >
+      ramp_doctrine derives a doctrine draft whose entries are selected
+      from the source Scripture by stable id across all three families
+      (trap, cure, question); invented ids, missing target evidence on
+      applies/tailor verdicts, and missing reasons on rejections are
+      validation errors; kept entries form a strict per-family subset.
+    modules:
+      - examples
+  - id: REQ-YG-615
+    description: >
+      ramp_rtm derives requirement candidates from a target's test
+      inventory: every emitted entry has status proposed and cites at
+      least one witness test that exists in the inventory; tests
+      witnessing no requirement are reported as gaps; low counts are
+      reported, never padded.
+    modules:
+      - examples
+  - id: REQ-YG-616
+    description: >
+      ramp_incidents classifies every corpus document as an incident
+      record (date, defect, root_cause, cure, witness, resolvable
+      source_ref) or not_an_incident; the disposition reconciles
+      count-in == count-out over the scanned corpus with no silently
+      dropped documents.
+    modules:
+      - examples
+  - id: REQ-YG-617
+    description: >
+      Shared runtime contract: all three graphs lint clean, write drafts
+      only to tmp/ramp/ (doctrine-draft, rtm-draft, incidents-draft
+      .md/.json), and contain no git commit, git push, or gh invocation
+      in any graph, prompt, or node source.
+    modules:
+      - examples

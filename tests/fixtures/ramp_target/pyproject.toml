@@ -1,0 +1,11 @@
+[project]
+name = "fixture-target"
+version = "0.1.0"
+description = "Committed fixture repo for ramp tailoring graph tests (FR-866)"
+requires-python = ">=3.11"
+
+[tool.ruff]
+line-length = 88
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

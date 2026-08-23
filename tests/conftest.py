@@ -16,6 +16,9 @@ from pydantic import BaseModel, Field
 
 from yamlgraph.models import create_initial_state
 
+# Fixture repos are inventory surfaces, not test suites (FR-866).
+collect_ignore = ["fixtures/ramp_target"]
+
 # Suppress langsmith client finalizer "Logging error" noise during xdist
 # worker shutdown (atexit race: stderr closed before logger.debug fires).
 logging.getLogger("langsmith.client").setLevel(logging.WARNING)
