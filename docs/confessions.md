@@ -1739,3 +1739,9 @@ The ID ranges are:
 - **Code**: E402
 - **Sin**: Import after `sys.path.insert` for sibling scripts module.
 - **Penance**: scripts/ is not a package; req_audit_questions consumes the shared coverage_contexts boundary per FR-850 (CONF-019 idiom).
+
+### CONF-414
+- **File**: [tests/unit/test_ramp_installer.py](../tests/unit/test_ramp_installer.py#L24)
+- **Code**: E402
+- **Sin**: Import after `sys.path.insert` for scripts module.
+- **Penance**: Test imports the FR-865 ramp installer from the scripts/ flat path (CONF-019 idiom).

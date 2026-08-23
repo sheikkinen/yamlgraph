@@ -1,0 +1,11 @@
+[project]
+name = "ramp-fixture-target"
+version = "0.0.1"
+description = "Committed fixture scratch repo for ramp installer tests (FR-865)"
+requires-python = ">=3.11"
+
+[tool.ruff]
+line-length = 88
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
