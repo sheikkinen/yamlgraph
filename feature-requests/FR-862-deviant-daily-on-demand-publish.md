@@ -395,3 +395,52 @@ Revisions folded into this FR:
 **Authority:** activates now that R-1…R-5 are folded (C-1 satisfied).
 Enforcement modifies only `sheikkinen/deviant-daily`. Do not re-invoke
 the judge while enforcing (C-2).
+
+## Implementation status (2026-08-23)
+
+**Enforced** in `sheikkinen/deviant-daily`, commits `87a03bb` (RED),
+`a41de65` (feat), `721bbc8`, `b8fb3fd` (fixes). Suite 124 tests green,
+`ruff` clean.
+
+| AC | Status | Evidence |
+|---|---|---|
+| AC-01 | ✅ | R-1…R-5 folded above |
+| AC-02 | ✅ | `.github/workflows/publish-now.yml`; `test_publish_now_input_shape` |
+| AC-03 | ✅ | `test_both_callers_share_one_concurrency_group`, `test_both_callers_use_the_reusable_body` |
+| AC-04 | ⏳ | `test_daily_passes_no_overrides` green; live cron witness pending 07:00 UTC |
+| AC-05 | ✅ | `tools/inputs.py`; `tests/test_inputs.py` (17 cases) |
+| AC-06 | ✅ | `Boom` fail-fast runner/session; run 32623376014 committed nothing |
+| AC-07 | ✅ | run 32623376014 — "2 files uploaded" (PNG + `dry-run-post.json`) |
+| AC-08 | ✅ | `test_read_ledger_normalizes_the_live_committed_ledger` (real file) |
+| AC-09 | ✅ | every `record_transition` carries `slot`; `entry_for_date` deleted |
+| AC-10 | ✅ | `tests/test_dispatch.py` — all four force cases |
+| AC-11 | ✅ | `post_path()`; `- slot:` line in post markdown |
+| AC-12 | ✅ | `test_draw_prompt_new_slot_never_reuses_published_source` |
+| AC-13 | ✅ | `test_scheduled_path_regression_pin` |
+| AC-14 | ✅ | `scripts/author.sh` run; `docs/authoring-{brief,report}-fr862.md` in target repo; lint passed |
+| AC-15 | ✅ | `README.md` — Workflows/Inputs/Slots sections |
+| AC-16 | ✅ | RED `87a03bb` → GREEN `a41de65`, separate commits |
+| AC-17 | ✅ | run 32623139791 (`nano-banana-2`, no DA secrets used, no publish URL) |
+| AC-18 | ⛔ | blocked on operator approval (R-5) — not attempted |
+
+### Deviations and findings
+
+1. **Caller permission ceiling.** The first dispatch died at
+   `startup_failure` with no job logs. A called workflow cannot
+   escalate beyond its caller's permissions, and moving the job body
+   out of `daily.yml` moved `permissions: contents: write` with it.
+   Both callers now declare the ceiling, pinned by
+   `test_callers_declare_the_write_ceiling` (`721bbc8`).
+2. **AC-07 was under-specified by me, not by the judge.** The first
+   green dry run uploaded only the PNG — the post dict existed only in
+   the run log. `publish_step` now writes
+   `outputs/dry-run-post.json` on dry runs (`b8fb3fd`).
+3. **Third dispatch gate-skipped at `confidence: medium`** and
+   therefore produced no post dict — correct behaviour, and an
+   incidental witness that a dry-run skip commits nothing.
+4. **Authoring wrapper reports a contract violation for sibling-repo
+   targets.** `author.sh` checks that a listed artifact exists under
+   its own workdir; the artifact was `deviant-daily/graph.yaml`.
+   Verified by artifact per the adapter README ("never by exit code"):
+   diff correct, `yamlgraph graph lint` passed. Worth a follow-up FR if
+   sibling-repo authoring recurs.
