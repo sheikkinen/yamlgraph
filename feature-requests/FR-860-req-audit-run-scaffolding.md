@@ -2,7 +2,8 @@
 
 **Priority:** MEDIUM
 **Type:** Tooling
-**Status:** Proposed
+**Status:** Judged 2026-08-23 — APPROVED WITH REVISIONS (see
+`FR-860-req-audit-run-scaffolding.judgement.md`); R-1..R-5 folded below
 **Effort:** 0.5–1 day
 **Requested:** 2026-08-22
 **First consumer / first event:** the operator, running one command to
@@ -43,10 +44,12 @@ by two instruments the same day:
 
 - FR-850 census: 1,279 of 6,593 test-req pairs are
   `no-link-unrecorded`; 64 REQs have *only* unrecorded witnesses.
-- FR-851 report (`tmp/req-audit/report.md`): 10 `[no]` + 235
-  `[partial]` verdicts — the majority citing "no-link-unrecorded ...
-  resolved_files empty". These are the recording gap wearing an
-  audit-verdict costume, not stale witnesses.
+- FR-851 first run (durable record:
+  `feature-requests/evidence/FR-851-req-witness-audit.md`, run summary
+  table): verdicts 167 yes / 235 partial / 10 no — and nine of the ten
+  `[no]` REQs are `no-link-unrecorded` with empty `resolved_files`.
+  These are the recording gap wearing an audit-verdict costume, not
+  stale witnesses.
 
 Triaging 235 partials by hand before closing the instrument gap wastes
 judge effort on what a re-recording clears mechanically. The recording
@@ -54,6 +57,31 @@ environment is also easy to get wrong silently: Py3.14 + coverage 7.15
 sysmon core breaks `--cov-context=test` without warning (repo memory,
 2026-08-22) — `ctrace` + sequential is mandatory and must be encoded in
 a script, not remembered.
+
+## Raw Output Read (R-1)
+
+- **Samples read:** raw model responses of the FR-851 first run
+  (`tmp/req-audit/raw/batch-*.json`, 41 files), read before the ranked
+  report was trusted; durable citations committed in
+  `feature-requests/evidence/FR-851-req-witness-audit.md`
+  (Raw-response citations section, ≥5 entries).
+- **What I saw** (per the committed evidence artifact):
+  1. REQ-YG-001 `[yes]`, batch-000 — the model volunteered
+     "resolved files include 29 modules but the declared modules list
+     only 3": unprompted declared-vs-resolved drift detection.
+  2. REQ-YG-072 `[partial]`, batch-013 — "resolved_files lists only
+     logging.py": a coverage link that is itself a false witness;
+     execution reach ≠ evidence relevance.
+  3. REQ-YG-492–495 all `[partial]`, batch-031 — a worldgen batch
+     uniformly downgraded with "witness plausibility depends entirely
+     on test names": the Stage-1 framing demonstrably constrained
+     verdict semantics.
+  4. REQ-YG-575 `[no]` — "the witness is purely nominal", plus the
+     model guessed where the implementation likely lives — a grade
+     that doubled as a repair pointer.
+  5. REQ-YG-601–603 `[partial]`, batch-040 — doc-witness REQs *not*
+     punished for touching zero source (the resolution-class label did
+     its load-bearing job) while thinness stayed visible.
 
 ## Ideal Result
 
@@ -68,8 +96,25 @@ missing, context-free, or poisoned.
 ## Proposed Solution
 
 ```bash
-scripts/req_audit.sh [--skip-record] [--out tmp/req-audit-<shortsha>]
+scripts/req_audit.sh [--out DIR] [--skip-record] [--model M] [--provider P]
 ```
+
+**CLI contract (R-2, frozen):**
+
+- `--out DIR` — output directory; default `tmp/req-audit-<shortsha>`
+  (short SHA of HEAD at launch).
+- `--skip-record` — reuse the existing `.coverage` (still loaded via
+  the FR-850 boundary; refusal propagates).
+- `--model M` / `--provider P` — defaults `claude-haiku-4-5` /
+  `anthropic` (the FR-851 real-run pin). No environment-variable
+  precedence: flags or defaults only — the manifest must record what
+  actually ran, and env indirection makes that lie-prone.
+- The SAME resolved model/provider values are passed to both the graph
+  run (`--var model=… --var provider=…` if the graph accepts them, else
+  the graph's pinned model is read back from its YAML) and
+  `req_audit_report.py --model … --provider …`; the manifest records
+  the exact pair used per phase.
+- `--help` documents all of the above.
 
 Four phases, each tee'd to a log in the output dir:
 
@@ -86,40 +131,94 @@ Four phases, each tee'd to a log in the output dir:
    examples/demos/req_witness_audit/graph.yaml --var
    batches_dir=$OUT/batches --var raw_dir=$OUT/raw --full`.
 4. **report** — `python scripts/req_audit_report.py --audit-dir $OUT
-   --model ... --provider ...`.
+   --model $MODEL --provider $PROVIDER`.
 
-Provenance (graduates the `artifact_carries_code_identity` seed for
-this artifact family): the script writes `$OUT/manifest.json` with git
-SHA (+ dirty flag), recorded-context count vs tagged-test count,
-Python/coverage versions, model, and phase exit codes. `report.md`
-header embeds the same line. A report whose SHA does not match the
-tree it is read against is self-evidently stale.
+**Manifest schema (R-3, frozen):** `$OUT/run-manifest.json` with exactly
+these keys — *(deviation from the judgement's `manifest.json` name,
+recorded at enforce: `$OUT/manifest.json` is already the FR-851 batch
+manifest written by `req_audit_questions.py` and read by
+`req_audit_report.py`; the provenance file is therefore
+`run-manifest.json` — schema below unchanged)* —
 
-Script follows automation doctrine: no `--no-verify`, fails on first
-phase error, sequential phases, logs tee'd not swallowed.
+```json
+{
+  "git_sha": "<full sha>",
+  "git_dirty": false,
+  "output_dir": "tmp/req-audit-<shortsha>",
+  "skip_record": false,
+  "pytest_command": "COVERAGE_CORE=ctrace pytest ...",
+  "coverage_core": "ctrace",
+  "recorded_context_count": 0,
+  "tagged_test_count": 0,
+  "skip_count": 0,
+  "python_version": "3.x.y",
+  "coverage_version": "x.y",
+  "provider": "anthropic",
+  "model": "claude-haiku-4-5",
+  "phases": {
+    "record":    {"command": "…", "exit_code": 0, "log": "record.log"},
+    "construct": {"command": "…", "exit_code": 0, "log": "construct.log"},
+    "audit":     {"command": "…", "exit_code": 0, "log": "audit.log"},
+    "report":    {"command": "…", "exit_code": 0, "log": "report.log"}
+  }
+}
+```
 
-## Acceptance Criteria
+`git_dirty: true` is allowed (single-dev flow runs mid-work), but the
+`report.md` header must display it plainly (`DIRTY TREE`). No
+`report.md` is produced when any phase fails — the report's existence
+is itself the all-phases-green witness (graduates
+`artifact_carries_code_identity` for this artifact family).
 
-- [ ] AC-01 `scripts/req_audit.sh` runs phases record→construct→audit→
-      report end-to-end; non-zero exit on any phase failure.
-- [ ] AC-02 Recording phase uses `COVERAGE_CORE=ctrace`, sequential,
-      `--cov-context=test`, and includes slow/process marks — asserted
-      by a test on the script's command construction, not by prose.
-- [ ] AC-03 `$OUT/manifest.json` carries git SHA + dirty flag,
-      instrument line (recorded contexts / tagged tests), model,
-      versions; `report.md` header embeds SHA + instrument line.
-- [ ] AC-04 FR-850 hard refusal propagates: with a poisoned or missing
-      `.coverage` and `--skip-record`, the script exits non-zero
-      printing the boundary's remedy — no report is produced.
-- [ ] AC-05 One real full run committed as evidence: instrument line
-      shows the framework suite recorded (no-link-unrecorded pairs
-      reduced by an order of magnitude vs the 1,279 baseline), report
-      read raw before aggregates are cited (`read_raw_output_first`).
-- [ ] AC-06 Post-run disposition recorded in the FR: residual
-      `[no]`/`[partial]` REQs triaged into instrument-gap vs
-      SIM117-class phantom vs genuinely thin witness, with counts.
-- [ ] Tests tagged to a new REQ under the audit capability; changelog
-      fragment; diary entry.
+Script follows automation doctrine: `set -euo pipefail`, quoted paths,
+no `--no-verify`, fails on first phase error, sequential phases, logs
+tee'd not swallowed.
+
+**Durable evidence artifact (R-5, frozen):**
+`feature-requests/evidence/FR-860-req-audit-run-scaffolding.md` —
+manifest excerpt, report header, batch count,
+audited/unaudited/rejected/duplicate counts, verdict counts,
+before/after resolution-class counts vs the 1,279
+`no-link-unrecorded` baseline, skip count, and ≥5 raw-response
+observations read before any aggregate claim. Bulk raw responses stay
+in `tmp/`, uncommitted.
+
+## Acceptance Criteria (judge-revised; R-4 folded — aggregate
+distribution is evidence, not a gate)
+
+- [ ] AC-01 `scripts/req_audit.sh` runs phases record → construct →
+      audit → report in order, writes one log per phase under `$OUT`,
+      exits non-zero on the first failed phase.
+- [ ] AC-02 CLI supports `--out`, `--skip-record`, `--model`,
+      `--provider`; defaults and precedence documented in the FR and
+      reflected in `--help`.
+- [ ] AC-03 Recording command is exactly the full sequential
+      framework-suite coverage command (`COVERAGE_CORE=ctrace pytest
+      tests/unit tests/integration -q --no-cov-report --cov=yamlgraph
+      --cov-context=test`; no `-n`, no mark exclusions) — asserted by
+      a test on the constructed command.
+- [ ] AC-04 `--skip-record` reuses `.coverage` only through the FR-850
+      boundary; missing/context-free/poisoned coverage exits non-zero,
+      prints the boundary remedy, produces no `report.md`.
+- [ ] AC-05 `$OUT/run-manifest.json` conforms to the frozen schema (all
+      keys above, per-phase command/exit/log).
+- [ ] AC-06 `$OUT/report.md` header embeds git SHA, dirty flag,
+      instrument line, provider, model from the manifest.
+- [ ] AC-07 One real full run recorded in
+      `feature-requests/evidence/FR-860-req-audit-run-scaffolding.md`;
+      bulk raw responses remain in `tmp/`, uncommitted.
+- [ ] AC-08 Evidence artifact records before/after resolution-class
+      counts vs the 1,279 baseline, skip count,
+      batch/audited/unaudited/rejected/duplicate counts, verdict
+      counts, and ≥5 raw-response observations read before aggregate
+      claims.
+- [ ] AC-09 Implementation status classifies residual
+      `[no]`/`[partial]` rows into instrument-gap vs SIM117-class
+      phantom vs genuinely thin witness, with counts; if
+      `no-link-unrecorded` does not fall by an order of magnitude, the
+      FR records that fact without treating the runner as failed.
+- [ ] AC-10 Tests tagged to a new/updated audit-capability REQ;
+      registry, changelog fragment, diary entry included.
 
 ## Alternatives Considered
 
