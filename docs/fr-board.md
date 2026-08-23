@@ -216,6 +216,7 @@
 | FR-858 | Proposed | yamlgraph |  | FR-858-retire-committed-fr-board.md |
 | FR-859 | Proposed | yamlgraph |  | FR-859-delete-orphaned-sim117-phantom-req-tag.md |
 | FR-861 | Proposed | yamlgraph |  | FR-861-shared-repo-write-discipline.md |
+| FR-871 | Proposed | yamlgraph |  | FR-871-graduate-g02-test-local-schemas-genericity-witness.md |
 | FR-078 | In Progress | yamlgraph |  | FR-078-relocate-project-tests.md |
 | FR-100 | In Progress | yamlgraph |  | FR-100-yamlgraph-development-pipeline-ebook.md |
 | FR-169 | In Progress | yamlgraph |  | FR-169-enforce-reflexion-loop.md |
@@ -464,6 +465,7 @@ graph TD
     FR-867["FR-867 Judged"]
     FR-868["FR-868 Judged"]
     FR-869["FR-869 Judged"]
+    FR-871["FR-871 Proposed"]
     FR-081 --> FR-082
     FR-731 --> FR-735
     FR-731 --> FR-736
