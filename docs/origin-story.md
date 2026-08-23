@@ -268,6 +268,104 @@ files (FR numbering at 869), 1,244 diary entries.
 
 ---
 
+## The Evolution of the Law
+
+Two files carry the doctrine: `.pre-commit-config.yaml` (the mechanical law,
+60 commits) and `.github/copilot-instructions.md` (the written law, 103
+commits). Sampling both at month-ends shows how the constitution grew:
+
+| Month-end | Pre-commit hooks | Instruction lines | Named traps |
+|-----------|-----------------:|------------------:|------------:|
+| 2026-01-31 | 7 | 97 | 0 |
+| 2026-02-28 | 27 | 130 | 0 |
+| 2026-03-31 | 33 | 181 | 12 |
+| 2026-04-30 | 36 | 189 | 16 |
+| 2026-05-31 | 39 | 221 | 26 |
+| 2026-06-30 | 39 | 223 | 27 |
+| 2026-07-31 | 45 | 259 | 28 |
+| 2026-08-23 | 45 | 260 | 28 |
+
+### The mechanical law: what each month added
+
+- **January — hygiene.** Born 2026-01-17 (`74d47497`) as a ruff-only config,
+  during the ungoverned spike itself. By month-end: 7 hooks — formatting,
+  YAML checks, and (from 2026-01-29, week two of the FR era) **the full unit
+  test suite on every commit**. TDD was mechanized before the Judge existed.
+- **February — the law gets teeth.** 7 → 27 in one month, the largest
+  expansion ever, synchronized with the Chaplain's birth: `forbid-terms`
+  (the "backward compatibility" phrase ban), `hedging-check`,
+  `inline-llm-check`, `feat-requires-fr`, `changelog-required`,
+  `req-coverage-strict`, `noqa-confession`, `absolution`,
+  `inquisitor-background`, `diary-rotate`, plus the entropy triad
+  (`jscpd`, `radon`, `vulture`). Doctrine-specific enforcement — hooks no
+  generic project would have — all landed in the month self-government
+  shipped.
+- **March — provenance.** `block-ai-coauthor`, `demo-proof-check`,
+  `diary-reflection-check`, `validate-capabilities`, `validate-id-registry`.
+  The vendor-trailer block predates the April adversarial turn by a month —
+  the immune system reacted before the crisis was articulated.
+- **April — architecture as contract.** `import-linter` (the three-layer
+  pattern moves from diagram to gate), `changelog-req-cross-check`,
+  `dependency-rationale`.
+- **May — boundary guards, and a new enforcement layer.** `gitignore-boundary-guard`,
+  `cap-architecture-sync`, `block-wip-main-subject` — and, outside
+  pre-commit entirely, the **Copilot hooks layer** (`.github/hooks/`,
+  PreToolUse/PostToolUse, FR-414 audit logging). Enforcement migrated
+  upstream: from the merge boundary (CI, Feb–Mar) to the commit boundary
+  (pre-commit) to the **tool-call boundary** — the earliest point where an
+  agent's action enters the world. The One Law applied to enforcement
+  itself: normalize where the action enters, not downstream where it lands.
+- **June — zero additions.** First consolidation plateau.
+- **July — process governance.** `prior-art-gate`, `fr-board-check`,
+  `triage-gate`, `authoring-proof`, `bandit-security`,
+  `direct-import-scan`. The gates stop policing code and start policing
+  *how decisions are made* — prior art must be dispositioned, authoring must
+  go through the governed route.
+- **August — zero additions.** The law is stable; new energy flows into
+  skills and adapters instead.
+
+### The written law: prose leads, mechanism follows
+
+`copilot-instructions.md` predates the FR era — born 2026-01-14, mid-spike,
+as ~90 lines of conventions. Its milestones consistently *precede* their
+mechanical enforcement:
+
+- **2026-02-05** (`d8c828ca`): **The 10 Commandments** arrive — fifteen days
+  before the Chaplain, in the same month the hook count quadrupled. The
+  constitution was written first; the police force was hired the same month.
+- **2026-02-21** (`a7b8a6a6`): **The Knowledge Graph of the Diary** and
+  `the_one_law` appear — *one day after* the Chaplain shipped. The moment
+  the system could enforce, it began compressing diary experience into
+  machine-readable doctrine (boundaries, traps, cures).
+- Traps grow 0 → 12 → 16 → 26 → 27 → 28 and then saturate. The deceleration
+  is informative: either the trap space is finite, or graduated traps stop
+  recurring because their cures became hooks — the Scripture's own
+  `two_strike_split` (instruction text that fails twice becomes code)
+  drains the prose catalogue into the mechanical one.
+
+### The macro-shape
+
+Three observations fall out of the curves:
+
+1. **The constraint stays compact while the system grows.** Instructions
+   grew 2.7× in seven months (97 → 260 lines) while the codebase grew an
+   order of magnitude and the hook count 6×. This is `constraint_over_code`
+   measured longitudinally: the written law compresses; the mechanical law
+   accumulates.
+2. **Every enforcement wave follows an incident wave.** Hygiene follows the
+   spike; doctrine hooks follow the Chaplain; provenance hooks precede-echo
+   the adversarial turn; process gates follow the FR-737 prior-art
+   resurrection. The pre-commit config is a fossil record of what went
+   wrong, one month delayed — the graduation pipeline
+   (diary → Scripture → hook) rendered as YAML.
+3. **Plateaus are synchronized.** June and August show near-zero growth in
+   *both* files simultaneously. The system alternates between expansion
+   (February, July) and consolidation — the same rhythm the diary notes as
+   `growth_as_default` resistance: mature systems prune claims instead of
+   planting features.
+
+---
+
 ## Timeline
 
 | Date | Event | Evidence |
