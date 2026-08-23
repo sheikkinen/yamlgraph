@@ -72,13 +72,13 @@ requirements:
       each tee'd to a per-phase log under the output directory; the
       record phase is exactly the full sequential framework-suite
       coverage command (COVERAGE_CORE=ctrace pytest tests/unit
-      tests/integration -q --no-cov-report --cov=yamlgraph
+      tests/integration -q --cov-report= --cov=yamlgraph
       --cov-context=test, no -n, no mark exclusions); --skip-record
       reuses .coverage only through the FR-850 boundary whose hard
       refusal exits non-zero with the remedy and no report; the CLI is
       --out/--skip-record/--model/--provider with frozen defaults
       (claude-haiku-4-5/anthropic) and no environment precedence; the
-      script writes a frozen-schema manifest.json carrying git SHA,
+      script writes a frozen-schema run-manifest.json carrying git SHA,
       dirty flag, pytest command, coverage core, recorded-context and
       tagged-test counts, skip count, versions, provider, model, and
       per-phase command/exit/log; the report header embeds the same

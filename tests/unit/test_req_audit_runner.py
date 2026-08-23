@@ -211,7 +211,7 @@ def test_record_command_is_exact_full_suite_instrument(skeleton):
     calls = (skeleton / "calls-pytest.txt").read_text()
     assert "COVERAGE_CORE=ctrace" in calls
     assert (
-        "tests/unit tests/integration -q --no-cov-report "
+        "tests/unit tests/integration -q --cov-report= "
         "--cov=yamlgraph --cov-context=test" in calls
     )
     assert " -n" not in calls

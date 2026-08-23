@@ -13,7 +13,7 @@ PROVIDER="anthropic"
 SKIP_RECORD=0
 OUT=""
 
-PYTEST_CMD="COVERAGE_CORE=ctrace pytest tests/unit tests/integration -q --no-cov-report --cov=yamlgraph --cov-context=test"
+PYTEST_CMD="COVERAGE_CORE=ctrace pytest tests/unit tests/integration -q --cov-report= --cov=yamlgraph --cov-context=test"
 
 usage() {
   cat <<EOF
