@@ -1,9 +1,9 @@
 # Plan: Ramp — installing the process into a repo that has gone live
 
 **Status:** planning frozen 2026-08-23; FR-865…FR-868 judged, revisions
-folded. **FR-865 amended post-judgement (A-1 consumption gate, A-2
-consumer registry) — awaiting re-judgement.** FR-869 (spike-end
-detector) filed, awaiting judgement. No implementation started.
+folded, authority active. FR-865 amendments A-1/A-2 re-judged APPROVED
+WITH REVISIONS, folded. FR-869 (spike-end detector) judged APPROVED
+WITH REVISIONS, folded. No implementation started.
 **Reader / moment:** whoever picks up ramp implementation, and whoever
 is standing in front of a *new* repo that just went to production.
 Read this first, then the child FR you are about to enforce.

@@ -3,7 +3,8 @@
 **Priority:** HIGH
 **Type:** Feature
 **Status:** Judged — APPROVED WITH REVISIONS (2026-08-23), R-1…R-6 folded;
-**amended 2026-08-23 post-judgement (A-1, A-2 below) — awaiting re-judgement**
+amendments A-1/A-2 re-judged APPROVED WITH REVISIONS (2026-08-23,
+`FR-865-ramp-installer.amendment.judgement.md`), amendment R-1/R-2 folded
 **Effort:** 0.5 day
 **Requested:** 2026-08-23
 **Parent:** FR-864 (SPLIT) — child A per R-1
@@ -144,32 +145,44 @@ otherwise. Documented limitation: linked worktrees (where `.git` is a
 file) are refused rather than guessed. Tests cover normal repo, non-repo
 directory, worktree, nested subdirectory, and self-repo refusal.
 
-### Curated assets are consumed here (A-1, amendment)
+### Curated assets are consumed here (A-1, amendment R-2 folded)
 
 R-1 fixed domain leakage but silently traded away the architecture's
 founding property: this repo runs its **root** config on every commit,
 not the curated copies — making `ramp/assets/` a photograph, the FR-207
 template mechanism reintroduced one level down. Restoration is
-mechanical: this repo's CI runs the curated Tier-1
-`.pre-commit-config.yaml` against a committed fixture scratch repo on
-every push, and a drift test asserts that every curated asset that
-mirrors a live root counterpart either matches it or carries a recorded
-curation diff (what was removed and why). A curated asset that fails to
-run, or drifts without a recorded reason, is a red build — the source
-consumes what it ships again.
+mechanical and lives **inside the existing test path** — it is not a
+change to this repo's live hook or CI enforcement policy:
 
-### Consumer registry (A-2, amendment)
+- The existing test workflow runs the curated Tier-1
+  `.pre-commit-config.yaml` against a committed fixture scratch repo;
+  a failing curated config is a red build.
+- **Drift evidence format:** every curated asset that mirrors a live
+  root counterpart carries, in `ramp/manifest.yaml`, exactly one of
+  `mirror_exact: <live path>` (byte equality asserted) or
+  `curation_diff: <record path>` pointing at a record in
+  `ramp/curation-diffs.md` naming the live source, curated destination,
+  the removed/changed sections, and why each removal is
+  domain-specific. A mirrored asset with neither fails the drift test.
 
-Every non-scratch install appends a row to **`ramp/consumers.md`** in
-this repo: target repo, install date, tier, this repo's commit SHA,
-manifest hash. Two consumers, both named by the plan's measure of
-success: the diary-graduation sweep (`cross_project_graduation`) needs
-to know which repos may contribute traps back, and a future
-`ramp.sh --check` staleness diff needs the install SHA to diff against.
-The registry is written by the operator running the ramp, in this repo,
-as part of the install transcript — the installer itself still never
-runs `git` against anything. `--check` itself is deferred to a follow-up
-FR; only the registry row is in scope.
+### Consumer registry (A-2, amendment R-1 folded)
+
+A **generic source-repo registry**, decoupled from FR-867. Contract:
+
+- `scripts/ramp.sh <target> --tier N --record-consumer <owner/repo>`
+  appends or idempotently updates exactly one row in
+  `ramp/consumers.md` after a successful non-dry-run install; row
+  identity is `(target, tier, manifest hash)`.
+- `--dry-run` prints the would-be row and writes nothing; scratch tests
+  may omit `--record-consumer`.
+- The target field is a repository slug — never an absolute local path
+  or a credential-bearing URL.
+- Two consumers: the diary-graduation sweep (`cross_project_graduation`)
+  and a future `ramp.sh --check` staleness diff (follow-up FR; only the
+  registry row is in scope here).
+
+FR-867 may later provide the first real row; **FR-865 enforcement does
+not depend on FR-867 or on any non-scratch target.**
 
 ### Human-review gate (R-6)
 
@@ -200,13 +213,13 @@ detector behaviour.
 
 Superseded by the judgement's revised set (2026-08-23); folded verbatim.
 
-- [ ] AC-01: FR-865 is revised to define the supported target contract, curated asset source tree, exact manifest schema, overwrite/rollback model, git-root detection contract, and human-review gate from R-1 through R-6.
+- [ ] AC-01: FR-865 is revised to define the supported target contract, curated asset source tree, exact manifest schema, overwrite/rollback model, git-root detection contract, human-review gate, curated-asset drift evidence format, and consumer-registry contract from R-1 through R-6 and amendment R-1/R-2.
 - [ ] AC-02: `ramp/manifest.yaml` schema validation runs in CI/test, and every entry has relative normalized `source`, relative normalized `destination`, `tier`, executable-mode metadata where needed, and an overwrite policy whose values match the implemented behavior.
 - [ ] AC-03: Manifest validation rejects absolute paths, `..` traversal, directory sources, missing source files, symlink sources unless explicitly allowed, generated/cache/log paths, and duplicate destinations.
 - [ ] AC-04: Tier expansion is mechanical and monotonic: Tier 2 installs Tier 1 plus Tier 2, Tier 3 installs Tier 1 plus Tier 2 plus Tier 3; tests assert set containment from the manifest rather than hardcoded lists.
-- [ ] AC-05: `--tier {1,2,3} --dry-run` each prints every action it would take from the manifest, including `create`, `skip exists`, or `overwrite` status as applicable, writes zero files, and exits 0.
+- [ ] AC-05: `--tier {1,2,3} --dry-run` each prints every action it would take from the manifest, including `create`, `skip exists`, or `overwrite` status as applicable, writes zero files, prints any would-be consumer row when `--record-consumer` is provided, and exits 0.
 - [ ] AC-06: A Tier-1 install into a scratch supported repo creates all Tier-1 destinations from curated ramp sources; installed files match those curated sources byte-for-byte except documented templated/stub fields such as the `AGENTS.md` stub.
-- [ ] AC-07: A second identical run changes no file content or mtime and reports every already-present destination as skipped; exit 0.
+- [ ] AC-07: A second identical run changes no file content or mtime and reports every already-present destination as skipped; if `--record-consumer` is used, `ramp/consumers.md` is idempotently updated rather than duplicated; exit 0.
 - [ ] AC-08: A pre-existing `AGENTS.md` with sentinel content survives without `--force`; the with-`--force` behavior is tested according to the revised backup/restore/refusal contract.
 - [ ] AC-09: `docs/ramp-manifest.md` records every destination, source path, action taken, source commit SHA, and source/installed hashes; a test parses it and verifies it is sufficient for the documented rollback behavior.
 - [ ] AC-10: Rollback is documented and tested against a scratch repo: it deletes only files created by the installer and either restores forced-overwrite backups or refuses forced overwrite when restoration is not supported.
@@ -215,9 +228,9 @@ Superseded by the judgement's revised set (2026-08-23); folded verbatim.
 - [ ] AC-13: If a CI workflow is installed, fixture tests prove the exact supported target suite command and ruff command run as documented; otherwise the workflow is an explicit setup stub and is not described as an active gate.
 - [ ] AC-14: The manifest and curated enforcement assets are human-reviewed before first non-scratch use; the FR records the reviewed source commit SHA and any approved deviations.
 - [ ] AC-15: Tests are added before implementation for the installer behavior above, with RED/GREEN evidence recorded in the FR.
-- [ ] AC-16 (A-1): This repo's CI runs the curated Tier-1 `.pre-commit-config.yaml` against a committed fixture scratch repo on every push; a failing curated config is a red build.
-- [ ] AC-17 (A-1): A drift test asserts every curated asset mirroring a live root counterpart either matches it or carries a recorded curation diff naming what was removed and why; unexplained drift fails.
-- [ ] AC-18 (A-2): `ramp/consumers.md` exists with a documented row schema (target, date, tier, source SHA, manifest hash); a test validates its format, and FR-867's install must append its row.
+- [ ] AC-16 (A-1): Existing yamlgraph test/CI execution runs the curated Tier-1 `.pre-commit-config.yaml` against a committed fixture scratch repo; a failing curated config is a red build without changing yamlgraph's live hook or CI enforcement policy.
+- [ ] AC-17 (A-1): A drift test asserts every curated asset mirroring a live root counterpart either matches it exactly or carries a recorded curation diff naming the live source, curated destination, removed/changed material, and reason; unexplained drift fails.
+- [ ] AC-18 (A-2): `ramp/consumers.md` exists with a documented row schema: target repository slug, install date, tier, source SHA, manifest hash, and optional reviewed-source SHA; tests validate the format, reject absolute paths/credential-bearing URLs, and prove idempotent append/update behavior using scratch metadata only.
 
 ## Risks
 

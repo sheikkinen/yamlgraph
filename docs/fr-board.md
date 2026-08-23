@@ -111,6 +111,7 @@
 | FR-866 | Judged | yamlgraph |  | FR-866-ramp-tailoring-graphs.md |
 | FR-867 | Judged | yamlgraph |  | FR-867-ramp-deviant-daily.md |
 | FR-868 | Judged | yamlgraph |  | FR-868-scripture-dev-salvage.md |
+| FR-869 | Judged | yamlgraph |  | FR-869-spike-end-detector.md |
 | FR-094 | Approved | yamlgraph |  | FR-094-memory-node.md |
 | FR-095 | Approved | yamlgraph |  | FR-095-doc-staleness-monitor.md |
 | FR-096 | Approved | yamlgraph |  | FR-096-fr-template-demo-plan.md |
@@ -232,7 +233,6 @@
 | FR-307 | Draft | yamlgraph |  | FR-307-yamlgraph-async-action-logging.md |
 | FR-317 | Draft | yamlgraph |  | FR-317-retire-obsolete-watcher2-components.md |
 | FR-330 | Draft | yamlgraph |  | FR-330-fr-330-watcher-clean-stale-branches-on-retry.md |
-| FR-869 | Draft | yamlgraph |  | FR-869-spike-end-detector.md |
 
 ```mermaid
 graph TD
@@ -463,7 +463,7 @@ graph TD
     FR-866["FR-866 Judged"]
     FR-867["FR-867 Judged"]
     FR-868["FR-868 Judged"]
-    FR-869["FR-869 Draft"]
+    FR-869["FR-869 Judged"]
     FR-081 --> FR-082
     FR-731 --> FR-735
     FR-731 --> FR-736

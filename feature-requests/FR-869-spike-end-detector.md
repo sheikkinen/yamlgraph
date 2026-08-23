@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Draft — awaiting judgement
+**Status:** Judged — APPROVED WITH REVISIONS (2026-08-23), R-1…R-5 folded
 **Effort:** 0.25 day
 **Requested:** 2026-08-23
 **Parent:** none — deliberately excluded from FR-864's family (parent
@@ -66,45 +66,96 @@ days and four incidents later.
 
 ## Proposed Solution
 
-- Detection lives in `pre-command-guard.sh` (or a check script it
-  sources), keyed on `git commit` commands whose cwd resolves to a repo
-  other than this one.
-- **Check 1 — unenforced repo:** `.git/hooks/pre-commit` missing or
-  empty → warn: `⚠ this repo has no pre-commit hooks — scripts/ramp.sh
-  <repo> --tier 1 exists`.
-- **Check 2 — spike ending:** staged diff (`git diff --cached`) adds
-  `schedule:` or `secrets.` under `.github/workflows/` → warn: `⚠ this
-  commit takes an unenforced repo live`. Fires only when Check 1 also
-  fires — a repo with gates going live is not a finding.
-- Filesystem inspection only, mirroring FR-865 R-5: no mutating git
-  command against the foreign repo; `git diff --cached` is read-only.
+### Warning delivery channel (R-1)
+
+The hook contract returns JSON on stdout; a raw warning line would
+corrupt the hook response. Contract: **warnings go to stderr; stdout
+remains exactly the approve JSON.** Exact shapes — no warning: approve
+JSON only; one warning: one `⚠ ...` line on stderr; two warnings: two
+lines, unenforced-repo first. Tests prove the warning is visible in
+captured hook output, stdout stays parseable JSON, and no
+`permissionDecision: "deny"` appears in any FR-869 trigger case. If the
+Copilot hook runtime later documents an approve-JSON warning field,
+switching to it is a mechanical follow-up, not a scope change.
+
+### Foreign-repo and command-form resolution (R-2)
+
+| Case | Resolution |
+|---|---|
+| hook-owning repo root | resolved from `pre-command-guard.sh`'s own location |
+| command repo root | resolved from the hook payload `cwd`, walking up to the nearest `.git` |
+| nested dir inside either repo | normalized to its repo root |
+| this repo | never warns |
+| non-git cwd | never warns |
+| supported command form | plain `git commit` (any flags) with repo taken from payload `cwd` |
+| `git -C <path> commit`, leading `cd <path> && git commit` | **out of scope, named limitation** — a known bypass, not accidental behavior; revisit if witnessed in practice |
+
+### Check 1 — unenforced repo: exact predicate (R-3)
+
+The governance witness is **`pre-commit` alone**. The predicate is:
+`.git/hooks/pre-commit` missing, **or** zero bytes, **or** the entire
+`.git/hooks/` directory absent/empty. Other hooks (`commit-msg` etc.)
+do not count — a repo whose only gate is a commit-msg hook is still
+unenforced for this detector's purpose. Warn:
+`⚠ this repo has no pre-commit hooks — scripts/ramp.sh <repo> --tier 1 exists`.
+
+### Check 2 — spike ending: exact matcher (R-4)
+
+Inspects **staged added lines only** (`git diff --cached`, `+` lines,
+excluding `+++` metadata) in `.github/workflows/*.yml` and
+`*.yaml`. Match terms: an added `schedule:` key or an added `secrets.`
+reference. Deleted lines, context lines, comments outside workflow
+files, and non-workflow paths never trigger. Fires only when Check 1
+also fires — a repo with gates going live is not a finding. Warn:
+`⚠ this commit takes an unenforced repo live`.
+
+**Data-leakage boundary:** warning text and audit entries never include
+diff content, secret names, secret values, or workflow line text — only
+repo identity, a stable reason code, and whether the spike-end
+condition was present.
+
+### Shared constraints
+
+- Filesystem inspection plus read-only `git diff --cached` only,
+  mirroring FR-865 R-5: no mutating git command against the foreign
+  repo; the guard never creates files there.
 - Exit code is never affected: **warn-only, permanently** — not
   warn-then-block-later. A blocking version would be a new FR.
-- One-line suppression: a repo can opt out via a marker file
-  (e.g. `.ramp-declined`), so a deliberate Tier-0 spike is not nagged
-  on every commit; the marker's presence is itself greppable.
+- Suppression: a repo-root `.ramp-declined` marker — never created by
+  the guard — suppresses both warnings but still writes a non-secret
+  audit entry (`reason=ramp-declined`), so suppression stays
+  forensically visible.
+- Every emitted warning writes an audit entry with a stable reason
+  name, answering "was the operator told?" after the fact.
+- Common path untouched: no new subprocess unless the command is a
+  foreign-cwd commit.
+
+### Human-review gate (R-5)
+
+This edits the guard that edits everything else. The final guard diff,
+exact warning strings, suppression semantics, and audit reason names
+receive **recorded human review before activation**, logged in this
+FR's implementation section. That review authorizes only this guard
+change — no ramp installer, CI, graph, judge/review doctrine, or
+target-repo changes.
 
 ## Acceptance Criteria
 
-- [ ] AC-01: Committing in a foreign repo with empty `.git/hooks/`
-      prints the unenforced-repo warning and exits with the guard's
-      normal allow decision; test via fixture scratch repo.
-- [ ] AC-02: A staged workflow diff adding `schedule:` or `secrets.` in
-      an unenforced fixture repo prints the spike-end warning; the same
-      diff in a hooked fixture repo prints nothing.
-- [ ] AC-03: Neither check ever changes the guard's exit code or denies
-      a command; tests assert allow-with-warning for every trigger case.
-- [ ] AC-04: No mutating git command runs against the foreign repo;
-      source scan asserts read-only inspection only.
-- [ ] AC-05: A `.ramp-declined` marker in the foreign repo suppresses
-      both warnings; test covers presence and absence.
-- [ ] AC-06: Commits inside this repo, and non-commit commands, are
-      unaffected — guard latency for the common path is unchanged
-      (no new subprocess unless the command is a foreign-cwd commit).
-- [ ] AC-07: Tests added before implementation (RED/GREEN), following
-      `.github/hooks/` existing test conventions.
-- [ ] AC-08: The guard's audit log records each warning emitted, so
-      "was the operator told?" is answerable after the fact.
+Superseded by the judgement's revised set (2026-08-23); folded verbatim.
+
+- [ ] AC-01: FR-869 is revised to define the warning output channel, foreign-repo resolution table, hook-state predicate, suppression marker contract, staged diff matcher, audit reason names, data-leakage boundary, and human-review gate from R-1 through R-5.
+- [ ] AC-02: A fixture foreign repo with `pre-commit` missing according to the revised predicate, invoked through the supported plain `git commit`/payload-cwd command form, emits exactly the unenforced-repo warning through the approved non-blocking channel and returns parseable approve JSON with no deny decision.
+- [ ] AC-03: A fixture foreign repo with a zero-byte or otherwise in-scope missing/empty `pre-commit` state emits the unenforced-repo warning; a fixture repo outside that predicate does not.
+- [ ] AC-04: A staged added line matching `schedule:` in `.github/workflows/*.yml` or `.github/workflows/*.yaml` in an unenforced foreign repo emits the spike-end warning in addition to the unenforced-repo warning.
+- [ ] AC-05: A staged added line matching `secrets.` in `.github/workflows/*.yml` or `.github/workflows/*.yaml` in an unenforced foreign repo emits the spike-end warning in addition to the unenforced-repo warning.
+- [ ] AC-06: The same staged workflow diff in a fixture repo with the revised hook-state predicate satisfied as "enforced" emits no FR-869 warnings and still returns approve JSON.
+- [ ] AC-07: Deleted lines, context lines, diff metadata, comments if excluded by the revised matcher, and non-workflow files do not trigger the spike-end warning.
+- [ ] AC-08: Commits inside this repo, non-commit terminal commands, and non-terminal tools do not run the new foreign-repo git-diff inspection path and preserve the existing approve/pass behavior.
+- [ ] AC-09: A repo-root `.ramp-declined` marker suppresses both FR-869 warnings, is never created by the guard, and records a non-secret suppression audit entry.
+- [ ] AC-10: Every emitted warning records a non-secret audit entry with a stable reason name; audit details include no staged diff content, secret names, secret values, absolute paths outside the minimum repo identity policy, hook logs, or token-bearing text.
+- [ ] AC-11: Source scans or targeted tests prove the implementation performs no mutating git command against the foreign repo and never changes the guard's deny/allow decision for FR-869 trigger cases.
+- [ ] AC-12: Tests are added before implementation for the revised behavior above, using fixture scratch repos and isolated `HOOK_LOG_DIR`, with RED/GREEN evidence recorded in the FR.
+- [ ] AC-13: The final guard diff, warning strings, suppression behavior, and audit schema receive recorded human review before activation.
 
 ## Risks
 
@@ -119,7 +170,12 @@ untouched.
 **Enforcement-infrastructure surface.** This edits the guard that
 edits everything else (`infrastructure_self_exempt` applies in reverse:
 the guard gets the same TDD and review rigor it enforces). Warn-only
-scope keeps the blast radius at one printed line.
+scope, the stderr channel (stdout JSON untouched), and AC-13's human
+review keep the blast radius at printed lines.
+
+**Known bypass.** `git -C <path> commit` and `cd <path> && git commit`
+are out of scope by the R-2 resolution table — a named limitation,
+revisited if witnessed in practice.
 
 ## Alternatives Considered
 
