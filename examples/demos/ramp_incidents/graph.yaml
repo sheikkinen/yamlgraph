@@ -1,0 +1,83 @@
+version: "1.0"
+name: ramp_incidents
+description: >
+  FR-866 RAMP incidents — scan this repo's feature-request and diary corpus
+  for target-repo mentions, classify each mentioned document as an operational
+  incident or reconciliation-only non-incident, and write draft artifacts under
+  tmp/ramp for target doctrine repatriation.
+prompts_relative: true
+prompts_dir: prompts
+
+state:
+  target_name: str
+  source:
+    type: str
+    default: "."
+  corpus: list
+  documents: list
+  has_corpus: bool
+  map_results:
+    type: list
+    reducer: sorted_add
+  incidents: list
+  not_an_incident: list
+  validation_errors: list
+  draft: dict
+  draft_paths: dict
+
+tools:
+  collect_corpus:
+    type: python
+    path: nodes/incident_tools.py
+    function: collect_corpus
+    description: "Collect repo-relative FR and diary paths mentioning the target repo, plus source text for map classification."
+
+  merge_incidents:
+    type: python
+    path: nodes/incident_tools.py
+    function: merge_incidents
+    description: "Validate classification coverage/source refs and write tmp/ramp incident draft artifacts."
+
+nodes:
+  collect:
+    type: python
+    tool: collect_corpus
+    state_key: documents
+    variables:
+      source_repo: "{state.source}"
+      target_name: "{state.target_name}"
+
+  classify_documents:
+    type: map
+    over: "{state.documents}"
+    as: document
+    max_items: 1000
+    node:
+      type: llm
+      prompt: classify_incident
+      state_key: incident_classification
+      temperature: 0.1
+      variables:
+        target_name: "{state.target_name}"
+        path: "{state.document.path}"
+        document_text: "{state.document.text}"
+    collect: map_results
+
+  merge:
+    type: python
+    tool: merge_incidents
+    state_key: draft
+
+edges:
+  - from: START
+    to: collect
+  - from: collect
+    to: classify_documents
+    condition: has_corpus == true
+  - from: collect
+    to: merge
+    condition: has_corpus != true
+  - from: classify_documents
+    to: merge
+  - from: merge
+    to: END

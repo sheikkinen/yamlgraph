@@ -1,0 +1,165 @@
+2026-08-23 21:27:00,646 [INFO] yamlgraph.compile.graph_loader: Parsed 2 Python tools: collect_corpus, merge_incidents
+2026-08-23 21:27:00,647 [INFO] yamlgraph.compile.node_compiler: Added node: collect (type=python)
+2026-08-23 21:27:00,653 [INFO] yamlgraph.compile.node_compiler: Added node: classify_documents (type=map)
+2026-08-23 21:27:00,654 [INFO] yamlgraph.compile.node_compiler: Added node: merge (type=python)
+2026-08-23 21:27:00,677 [INFO] yamlgraph.route: {"event": "run", "run_id": "01a02fe0-3fb8-7586-91d2-cedf9141033a", "artifact_hash": "sha256:1237e921b1eb4d8a585482df648d889de2da0c897362b642cba7dc8f1b68f39b", "graph": "/Users/sheikki/Documents/src/yamlgraph/examples/demos/ramp_incidents/graph.yaml", "yamlgraph_version": "0.5.17", "thread_id": null, "started_at": "2026-08-23T18:27:00Z"}
+2026-08-23 21:27:00,880 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: collect -> collect_corpus
+2026-08-23 21:27:01,617 [INFO] yamlgraph.route: {"event": "route", "node": "collect", "value": "has_corpus == true", "target": "classify_documents", "thread_id": null, "ts": "2026-08-23T18:27:01Z", "fan_out": 33}
+2026-08-23 21:27:01,860 [INFO] yamlgraph.utils.llm_factory: Creating LLM: deepseek/deepseek-v4-flash (temp=0.1)
+2026-08-23 21:27:03,969 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 400 Bad Request"
+2026-08-23 21:27:03,971 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 400 Bad Request"
+2026-08-23 21:27:03,980 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 400 Bad Request"
+2026-08-23 21:27:03,987 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 400 Bad Request"
+2026-08-23 21:27:03,993 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 400 Bad Request"
+2026-08-23 21:27:04,001 [INFO] yamlgraph.executor_base: Structured output rejected, falling back to JSON extraction (FR-464)
+2026-08-23 21:27:04,002 [INFO] yamlgraph.executor_base: Structured output rejected, falling back to JSON extraction (FR-464)
+2026-08-23 21:27:04,005 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 400 Bad Request"
+2026-08-23 21:27:04,005 [INFO] yamlgraph.executor_base: Structured output rejected, falling back to JSON extraction (FR-464)
+2026-08-23 21:27:04,016 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 400 Bad Request"
+2026-08-23 21:27:04,016 [INFO] yamlgraph.executor_base: Structured output rejected, falling back to JSON extraction (FR-464)
+2026-08-23 21:27:04,020 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 400 Bad Request"
+2026-08-23 21:27:04,024 [INFO] yamlgraph.executor_base: Structured output rejected, falling back to JSON extraction (FR-464)
+2026-08-23 21:27:04,026 [INFO] yamlgraph.executor_base: Structured output rejected, falling back to JSON extraction (FR-464)
+2026-08-23 21:27:04,034 [INFO] yamlgraph.executor_base: Structured output rejected, falling back to JSON extraction (FR-464)
+2026-08-23 21:27:04,041 [INFO] yamlgraph.executor_base: Structured output rejected, falling back to JSON extraction (FR-464)
+2026-08-23 21:27:04,058 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 400 Bad Request"
+2026-08-23 21:27:04,061 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 400 Bad Request"
+2026-08-23 21:27:04,065 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 400 Bad Request"
+2026-08-23 21:27:04,065 [INFO] yamlgraph.executor_base: Structured output rejected, falling back to JSON extraction (FR-464)
+2026-08-23 21:27:04,069 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 400 Bad Request"
+2026-08-23 21:27:04,069 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 400 Bad Request"
+2026-08-23 21:27:04,072 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 400 Bad Request"
+2026-08-23 21:27:04,086 [INFO] yamlgraph.executor_base: Structured output rejected, falling back to JSON extraction (FR-464)
+2026-08-23 21:27:04,089 [INFO] yamlgraph.executor_base: Structured output rejected, falling back to JSON extraction (FR-464)
+2026-08-23 21:27:04,090 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 400 Bad Request"
+2026-08-23 21:27:04,093 [INFO] yamlgraph.executor_base: Structured output rejected, falling back to JSON extraction (FR-464)
+2026-08-23 21:27:04,096 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 400 Bad Request"
+2026-08-23 21:27:04,096 [INFO] yamlgraph.executor_base: Structured output rejected, falling back to JSON extraction (FR-464)
+2026-08-23 21:27:04,108 [INFO] yamlgraph.executor_base: Structured output rejected, falling back to JSON extraction (FR-464)
+2026-08-23 21:27:04,117 [INFO] yamlgraph.executor_base: Structured output rejected, falling back to JSON extraction (FR-464)
+2026-08-23 21:27:04,118 [INFO] yamlgraph.executor_base: Structured output rejected, falling back to JSON extraction (FR-464)
+2026-08-23 21:27:04,342 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-23 21:27:04,343 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-23 21:27:04,347 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-23 21:27:04,347 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-23 21:27:04,359 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-23 21:27:04,360 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-23 21:27:04,360 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-23 21:27:04,398 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-23 21:27:04,445 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-23 21:27:04,479 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-23 21:27:04,501 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-23 21:27:04,517 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-23 21:27:04,525 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-23 21:27:04,528 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-23 21:27:04,528 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-23 21:27:04,536 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-23 21:27:06,013 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_classify_documents_sub completed successfully
+2026-08-23 21:27:06,416 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 400 Bad Request"
+2026-08-23 21:27:06,422 [INFO] yamlgraph.executor_base: Structured output rejected, falling back to JSON extraction (FR-464)
+2026-08-23 21:27:06,593 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_classify_documents_sub completed successfully
+2026-08-23 21:27:06,824 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-23 21:27:06,914 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_classify_documents_sub completed successfully
+2026-08-23 21:27:06,975 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 400 Bad Request"
+2026-08-23 21:27:06,981 [INFO] yamlgraph.executor_base: Structured output rejected, falling back to JSON extraction (FR-464)
+2026-08-23 21:27:07,294 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 400 Bad Request"
+2026-08-23 21:27:07,299 [INFO] yamlgraph.executor_base: Structured output rejected, falling back to JSON extraction (FR-464)
+2026-08-23 21:27:07,371 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-23 21:27:07,708 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-23 21:27:09,074 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_classify_documents_sub completed successfully
+2026-08-23 21:27:09,461 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 400 Bad Request"
+2026-08-23 21:27:09,466 [INFO] yamlgraph.executor_base: Structured output rejected, falling back to JSON extraction (FR-464)
+2026-08-23 21:27:09,728 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_classify_documents_sub completed successfully
+2026-08-23 21:27:09,877 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-23 21:27:09,882 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_classify_documents_sub completed successfully
+2026-08-23 21:27:10,132 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 400 Bad Request"
+2026-08-23 21:27:10,138 [INFO] yamlgraph.executor_base: Structured output rejected, falling back to JSON extraction (FR-464)
+2026-08-23 21:27:10,176 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 400 Bad Request"
+2026-08-23 21:27:10,182 [INFO] yamlgraph.executor_base: Structured output rejected, falling back to JSON extraction (FR-464)
+2026-08-23 21:27:10,429 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_classify_documents_sub completed successfully
+2026-08-23 21:27:10,539 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-23 21:27:10,587 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-23 21:27:10,668 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_classify_documents_sub completed successfully
+2026-08-23 21:27:10,799 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_classify_documents_sub completed successfully
+2026-08-23 21:27:10,820 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 400 Bad Request"
+2026-08-23 21:27:10,830 [INFO] yamlgraph.executor_base: Structured output rejected, falling back to JSON extraction (FR-464)
+2026-08-23 21:27:11,063 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 400 Bad Request"
+2026-08-23 21:27:11,068 [INFO] yamlgraph.executor_base: Structured output rejected, falling back to JSON extraction (FR-464)
+2026-08-23 21:27:11,177 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_classify_documents_sub completed successfully
+2026-08-23 21:27:11,187 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 400 Bad Request"
+2026-08-23 21:27:11,192 [INFO] yamlgraph.executor_base: Structured output rejected, falling back to JSON extraction (FR-464)
+2026-08-23 21:27:11,231 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-23 21:27:11,363 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_classify_documents_sub completed successfully
+2026-08-23 21:27:11,461 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-23 21:27:11,576 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-23 21:27:11,579 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 400 Bad Request"
+2026-08-23 21:27:11,584 [INFO] yamlgraph.executor_base: Structured output rejected, falling back to JSON extraction (FR-464)
+2026-08-23 21:27:11,735 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 400 Bad Request"
+2026-08-23 21:27:11,741 [INFO] yamlgraph.executor_base: Structured output rejected, falling back to JSON extraction (FR-464)
+2026-08-23 21:27:12,005 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-23 21:27:12,151 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-23 21:27:12,816 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_classify_documents_sub completed successfully
+2026-08-23 21:27:13,203 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 400 Bad Request"
+2026-08-23 21:27:13,209 [INFO] yamlgraph.executor_base: Structured output rejected, falling back to JSON extraction (FR-464)
+2026-08-23 21:27:13,607 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-23 21:27:13,880 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_classify_documents_sub completed successfully
+2026-08-23 21:27:14,165 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_classify_documents_sub completed successfully
+2026-08-23 21:27:14,177 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 400 Bad Request"
+2026-08-23 21:27:14,183 [INFO] yamlgraph.executor_base: Structured output rejected, falling back to JSON extraction (FR-464)
+2026-08-23 21:27:14,358 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_classify_documents_sub completed successfully
+2026-08-23 21:27:14,470 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 400 Bad Request"
+2026-08-23 21:27:14,475 [INFO] yamlgraph.executor_base: Structured output rejected, falling back to JSON extraction (FR-464)
+2026-08-23 21:27:14,500 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-23 21:27:14,675 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 400 Bad Request"
+2026-08-23 21:27:14,680 [INFO] yamlgraph.executor_base: Structured output rejected, falling back to JSON extraction (FR-464)
+2026-08-23 21:27:14,789 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-23 21:27:15,000 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-23 21:27:15,236 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_classify_documents_sub completed successfully
+2026-08-23 21:27:15,530 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 400 Bad Request"
+2026-08-23 21:27:15,535 [INFO] yamlgraph.executor_base: Structured output rejected, falling back to JSON extraction (FR-464)
+2026-08-23 21:27:15,838 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-23 21:27:15,854 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_classify_documents_sub completed successfully
+2026-08-23 21:27:16,150 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 400 Bad Request"
+2026-08-23 21:27:16,156 [INFO] yamlgraph.executor_base: Structured output rejected, falling back to JSON extraction (FR-464)
+2026-08-23 21:27:16,342 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_classify_documents_sub completed successfully
+2026-08-23 21:27:16,458 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-23 21:27:16,728 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_classify_documents_sub completed successfully
+2026-08-23 21:27:16,928 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_classify_documents_sub completed successfully
+2026-08-23 21:27:17,134 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_classify_documents_sub completed successfully
+2026-08-23 21:27:17,220 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_classify_documents_sub completed successfully
+2026-08-23 21:27:17,707 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_classify_documents_sub completed successfully
+2026-08-23 21:27:18,206 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_classify_documents_sub completed successfully
+2026-08-23 21:27:18,958 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_classify_documents_sub completed successfully
+2026-08-23 21:27:19,060 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_classify_documents_sub completed successfully
+2026-08-23 21:27:19,635 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_classify_documents_sub completed successfully
+2026-08-23 21:27:22,726 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_classify_documents_sub completed successfully
+2026-08-23 21:27:25,312 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_classify_documents_sub completed successfully
+2026-08-23 21:27:28,156 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_classify_documents_sub completed successfully
+2026-08-23 21:27:29,637 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_classify_documents_sub completed successfully
+2026-08-23 21:27:40,541 [INFO] openai._base_client: Retrying request to /chat/completions in 0.401075 seconds
+2026-08-23 21:27:41,376 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-23 21:27:43,608 [INFO] openai._base_client: Retrying request to /chat/completions in 0.464653 seconds
+2026-08-23 21:27:44,496 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-23 21:27:55,761 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_classify_documents_sub completed successfully
+2026-08-23 21:28:09,034 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_classify_documents_sub completed successfully
+2026-08-23 21:28:09,036 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: merge -> merge_incidents
+2026-08-23 21:28:09,244 [INFO] yamlgraph.route: {"event": "run_end", "run_id": "01a02fe0-3fb8-7586-91d2-cedf9141033a", "ended_at": "2026-08-23T18:28:09Z", "dropped_events": 0}
+
+🚀 Running graph: graph.yaml
+   Variables: {'target_name': 'deviant-daily'}
+
+🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/f889c0ec-fa9b-4025-b69c-2aa756283ef8/r/01a02fe0-3fc8-7f52-bd30-3be6eb56ca85?poll=true
+============================================================
+RESULT
+============================================================
+  current_step: merge
+  target_name: deviant-daily
+  corpus: ['docs/diary/2026-08-20-weeks-repos-are-the-acceptance-suite.md', 'docs/diary/diary-2026-08-19-the-providers-type-lie-photographed.md', 'docs/diary/diary-2026-08-19-the-satellite-mold-github-cron-yaml...
+  documents: [{'path': 'docs/diary/2026-08-20-weeks-repos-are-the-acceptance-suite.md', 'text': '# 2026-08-20 — The Week\'s Repos Are the Acceptance Suite\n\nFour public repos in three days: `yamlgraph-daily-diges...
+  has_corpus: True
+  map_results: [{'_map_index': 0, 'verdict': 'not_an_incident', 'path': 'docs/diary/2026-08-20-weeks-repos-are-the-acceptance-suite.md', 'date': '', 'defect': '', 'root_cause': '', 'cure': '', 'witness': '', 'source...
+  incidents: [{'verdict': 'incident', 'path': 'docs/diary/diary-2026-08-19-the-providers-type-lie-photographed.md', 'date': '2026-08-19', 'defect': 'First dispatch witness failed because flux-1.1-pro-ultra returne...
+  not_an_incident: [{'verdict': 'not_an_incident', 'path': 'docs/diary/2026-08-20-weeks-repos-are-the-acceptance-suite.md', 'date': '', 'defect': '', 'root_cause': '', 'cure': '', 'witness': '', 'source_ref': ''}, {'ver...
+  validation_errors: []
+  draft: {'target': 'deviant-daily', 'source': '.', 'corpus': ['docs/diary/2026-08-20-weeks-repos-are-the-acceptance-suite.md', 'docs/diary/diary-2026-08-19-the-providers-type-lie-photographed.md', 'docs/diary...
+  draft_paths: {'markdown': 'tmp/ramp/incidents-draft.md', 'json': 'tmp/ramp/incidents-draft.json'}

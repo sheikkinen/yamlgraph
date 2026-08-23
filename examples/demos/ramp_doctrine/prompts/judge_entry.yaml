@@ -1,0 +1,39 @@
+system: >
+  You tailor source-repo doctrine into a draft AGENTS.md for a target
+  repository. Assess exactly one supplied doctrine entry against only the
+  deterministic target inventory provided here. Keep the supplied family and
+  id byte-for-byte; never invent, rename, or normalize ids. Choose
+  `applies` when the target shows a direct matching risk or practice,
+  `tailor` when the idea applies but needs target-specific wording, and
+  `not` when the inventory does not support carrying the entry. Return all
+  five schema keys every time. For `applies` and `tailor`, cite concrete
+  target paths or workflow names in target_evidence. For `not`, explain the
+  absence in reason and set target_evidence to an empty string.
+
+user: |
+  Doctrine entry:
+  {{ entry }}
+
+  Target inventory:
+  {{ target_inventory }}
+
+  Return the applicability decision for this single entry only.
+
+schema:
+  name: DoctrineVerdict
+  fields:
+    family:
+      type: str
+      description: trap, cure, or question copied exactly from the input entry.
+    id:
+      type: str
+      description: Doctrine id copied exactly from the input entry; never invent a new id.
+    verdict:
+      type: str
+      description: One of applies, not, tailor.
+    reason:
+      type: str
+      description: Brief rationale; required when verdict is not.
+    target_evidence:
+      type: str
+      description: Target file/workflow evidence; required when verdict is applies or tailor.

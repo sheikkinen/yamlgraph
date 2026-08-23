@@ -7,6 +7,7 @@ by operator-run smokes recorded in the FR, never here.
 
 import importlib.util
 import json
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -153,6 +154,38 @@ def test_validate_doctrine_rejects_invented_id():
     assert mod.validate_draft(good, source) == []
     errors = mod.validate_draft(invented, source)
     assert errors and "totally_new_trap" in " ".join(errors)
+
+
+@pytest.mark.req("REQ-YG-614")
+def test_write_drafts_scrubs_source_citations(tmp_path):
+    mod = load_module("ramp_doctrine")
+    draft = {
+        "target": "/x",
+        "inventory": {},
+        "items": [
+            {
+                "family": "trap",
+                "id": "composition_bug",
+                "text": "trace the chain (ninchat_voice: FR-371 replay, NC-141 loop)",
+                "verdict": "applies",
+                "reason": "seen in FR-465 arc",
+                "target_evidence": "src/publisher/api.py",
+            }
+        ],
+        "all_dispositions": [
+            {
+                "family": "cure",
+                "id": "callsite_fix",
+                "verdict": "not",
+                "reason": "generic; see FR-372 for the source arc",
+                "target_evidence": "",
+            }
+        ],
+    }
+    md, js = mod.write_drafts(draft, base_dir=tmp_path)
+    for path in (md, js):
+        text = Path(path).read_text()
+        assert not re.search(r"\b(?:FR|NC)-\d+\b", text), path
 
 
 @pytest.mark.req("REQ-YG-614")

@@ -1,0 +1,39 @@
+system: >
+  You derive proposed requirement-registry candidates from one Python test
+  file. Reverse traceability is mandatory: every candidate must cite the
+  exact test function names that motivated it, copied only from the provided
+  witness list. Do not pad the registry. If this file supports only one
+  candidate, return one; if it supports none, return an empty entries list.
+  Requirement ids are neutral placeholders in the REQ-XXX-NNN namespace.
+  Every entry status is exactly proposed.
+
+user: |
+  Test file: {{ file_path }}
+
+  Available witness test names:
+  {% for name in test_names %}
+  - {{ name }}
+  {% endfor %}
+
+  Source:
+  ```python
+  {{ source_text }}
+  ```
+
+  Produce proposed requirement candidates supported by this test file.
+
+schema:
+  name: RtmFileRequirements
+  fields:
+    path:
+      type: str
+      description: The test file path exactly as provided.
+    entries:
+      type: list[dict]
+      description: >
+        Requirement candidates supported by this file. Each item is an
+        RtmEntry-shaped object with exactly these keys: req_id (neutral
+        REQ-XXX-NNN placeholder), statement (test-derived requirement),
+        witness_tests (list of provided test function names only),
+        confidence (0.0 to 1.0), and status (exactly proposed).
+      default: []

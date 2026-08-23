@@ -1,0 +1,71 @@
+version: "1.0"
+name: ramp_doctrine
+description: >
+  FR-866 ramp doctrine draft — tailor this repo's Scripture traps, cures,
+  and questions into a target-repo AGENTS.md draft. Deterministic collection
+  feeds one map judgement per doctrine entry; code reconciles ids and writes
+  draft artifacts only under tmp/ramp.
+
+prompts_relative: true
+prompts_dir: prompts
+
+variables:
+  source: "."
+
+state:
+  target: str
+  source: str
+  source_items: list
+  target_inventory: dict
+  draft: dict
+  draft_errors: list
+  draft_paths: dict
+
+tools:
+  collect_inputs:
+    type: python
+    path: nodes/doctrine_tools.py
+    function: collect_inputs
+    description: "Collect Scripture entries from source and deterministic target inventory before any LLM call."
+
+  merge_doctrine:
+    type: python
+    path: nodes/doctrine_tools.py
+    function: merge_doctrine
+    description: "Reconcile map output count and ids, validate applicability decisions, and write tmp/ramp doctrine drafts."
+
+nodes:
+  collect:
+    type: python
+    tool: collect_inputs
+    state_key: source_items
+
+  judge_entries:
+    type: map
+    over: "{state.source_items}"
+    as: entry
+    max_items: 100
+    node:
+      type: llm
+      prompt: judge_entry
+      state_key: doctrine_decision
+      temperature: 0.1
+      variables:
+        entry: "{state.entry}"
+        target_inventory: "{state.target_inventory}"
+    collect: map_results
+
+  merge:
+    type: python
+    tool: merge_doctrine
+    state_key: draft_paths
+
+edges:
+  - from: START
+    to: collect
+  - from: collect
+    to: judge_entries
+  - from: judge_entries
+    to: merge
+  - from: merge
+    to: END

@@ -1,0 +1,34 @@
+2026-08-23 20:46:31,243 [INFO] yamlgraph.compile.graph_loader: Parsed 2 Python tools: collect_tests, merge_rtm
+2026-08-23 20:46:31,244 [INFO] yamlgraph.compile.node_compiler: Added node: collect (type=python)
+2026-08-23 20:46:31,248 [INFO] yamlgraph.compile.node_compiler: Added node: derive (type=map)
+2026-08-23 20:46:31,249 [INFO] yamlgraph.compile.node_compiler: Added node: merge (type=python)
+2026-08-23 20:46:31,272 [INFO] yamlgraph.route: {"event": "run", "run_id": "01a02fbb-2ddd-7bdc-aa20-00e6f0a2f751", "artifact_hash": "sha256:e9b88f26b1ce9ba1c3a0d4a5a90d4daceef0190bb1d88f6f3c0612e59ac9db21", "graph": "/Users/sheikki/Documents/src/yamlgraph/examples/demos/ramp_rtm/graph.yaml", "yamlgraph_version": "0.5.17", "thread_id": null, "started_at": "2026-08-23T17:46:31Z"}
+2026-08-23 20:46:31,419 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: collect -> collect_tests
+2026-08-23 20:46:31,524 [INFO] yamlgraph.utils.llm_factory: Creating LLM: deepseek/deepseek-v4-flash (temp=0.2)
+2026-08-23 20:46:33,492 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 400 Bad Request"
+2026-08-23 20:46:33,495 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 400 Bad Request"
+2026-08-23 20:46:33,513 [INFO] yamlgraph.executor_base: Structured output rejected, falling back to JSON extraction (FR-464)
+2026-08-23 20:46:33,514 [INFO] yamlgraph.executor_base: Structured output rejected, falling back to JSON extraction (FR-464)
+2026-08-23 20:46:33,810 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-23 20:46:33,810 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-23 20:46:39,823 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_derive_sub completed successfully
+2026-08-23 20:46:42,298 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_derive_sub completed successfully
+2026-08-23 20:46:42,299 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: merge -> merge_rtm
+2026-08-23 20:46:42,467 [INFO] yamlgraph.route: {"event": "run_end", "run_id": "01a02fbb-2ddd-7bdc-aa20-00e6f0a2f751", "ended_at": "2026-08-23T17:46:42Z", "dropped_events": 0}
+
+🚀 Running graph: graph.yaml
+   Variables: {'target': 'tests/fixtures/ramp_target'}
+
+🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/f889c0ec-fa9b-4025-b69c-2aa756283ef8/r/01a02fbb-2deb-7920-ad9d-eedfe94eac3f?poll=true
+============================================================
+RESULT
+============================================================
+  current_step: merge
+  target: tests/fixtures/ramp_target
+  test_inventory: [{'path': 'tests/test_api.py', 'tests': ['test_title_cap_enforced', 'test_token_read_from_env', 'test_post_returns_status'], 'source': '"""Fixture tests: api client."""\n\n\ndef test_title_cap_enforced():\n    assert True\n\n\ndef test_token_read_from_env():\n    assert True\n\n\ndef test_post_returns_status():\n    assert True\n'}, {'path': 'tests/test_render.py', 'tests': ['test_edge_clamped_to_max', 'test_caption_contains_topic'], 'source': '"""Fixture tests: render pipeline."""\n\n\ndef test_edge_clamped_to_max():\n    assert True\n\n\ndef test_caption_contains_topic():\n    assert True\n'}]
+  map_results: [{'_map_index': 0, 'path': 'tests/test_api.py', 'entries': [{'req_id': 'REQ-XXX-001', 'statement': 'The API client must enforce title capitalization.', 'witness_tests': ['test_title_cap_enforced'], 'confidence': 0.2, 'status': 'proposed'}, {'req_id': 'REQ-XXX-002', 'statement': 'The API client must read authentication tokens from the environment.', 'witness_tests': ['test_token_read_from_env'], 'confidence': 0.2, 'status': 'proposed'}, {'req_id': 'REQ-XXX-003', 'statement': 'The API client must return a status for POST requests.', 'witness_tests': ['test_post_returns_status'], 'confidence': 0.2, 'status': 'proposed'}]}, {'_map_index': 1, 'path': 'tests/test_render.py', 'entries': []}]
+  rtm_entries: [{'req_id': 'REQ-XXX-001', 'statement': 'The API client must enforce title capitalization.', 'witness_tests': ['test_title_cap_enforced'], 'confidence': 0.2, 'status': 'proposed'}, {'req_id': 'REQ-XXX-002', 'statement': 'The API client must read authentication tokens from the environment.', 'witness_tests': ['test_token_read_from_env'], 'confidence': 0.2, 'status': 'proposed'}, {'req_id': 'REQ-XXX-003', 'statement': 'The API client must return a status for POST requests.', 'witness_tests': ['test_post_returns_status'], 'confidence': 0.2, 'status': 'proposed'}]
+  validation_errors: []
+  gaps: ['test_caption_contains_topic', 'test_edge_clamped_to_max']
+  draft: {'target': 'tests/fixtures/ramp_target', 'entries': [{'req_id': 'REQ-XXX-001', 'statement': 'The API client must enforce title capitalization.', 'witness_tests': ['test_title_cap_enforced'], 'confidence': 0.2, 'status': 'proposed'}, {'req_id': 'REQ-XXX-002', 'statement': 'The API client must read authentication tokens from the environment.', 'witness_tests': ['test_token_read_from_env'], 'confidence': 0.2, 'status': 'proposed'}, {'req_id': 'REQ-XXX-003', 'statement': 'The API client must return a status for POST requests.', 'witness_tests': ['test_post_returns_status'], 'confidence': 0.2, 'status': 'proposed'}], 'gaps': ['test_caption_contains_topic', 'test_edge_clamped_to_max'], 'validation_errors': [], 'test_count': 5, 'candidate_count': 3}
+  draft_paths: {'markdown': 'tmp/ramp/rtm-draft.md', 'json': 'tmp/ramp/rtm-draft.json'}

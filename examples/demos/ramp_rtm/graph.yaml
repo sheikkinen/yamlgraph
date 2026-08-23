@@ -1,0 +1,76 @@
+version: "1.0"
+name: ramp_rtm
+description: >
+  FR-866 RAMP RTM — derive proposed requirement candidates from a target
+  repository's existing test suite. Collection is deterministic, one map
+  branch reasons over one test file, and the merge writes an honest draft
+  with validation errors and unwitnessed-test gaps preserved.
+prompts_relative: true
+prompts_dir: prompts
+
+state:
+  target: str
+  source:
+    type: str
+    default: "."
+  test_inventory: list
+  map_results:
+    type: list
+    reducer: sorted_add
+  rtm_entries: list
+  validation_errors: list
+  gaps: list
+  draft: dict
+  draft_paths: dict
+
+tools:
+  collect_tests:
+    type: python
+    path: nodes/rtm_tools.py
+    function: collect_tests
+    description: "Collect tests/**/test_*.py inventory from the target repository."
+
+  merge_rtm:
+    type: python
+    path: nodes/rtm_tools.py
+    function: merge_rtm
+    description: "Validate model-produced RTM entries, calculate gaps, and write draft artifacts."
+
+nodes:
+  collect:
+    type: python
+    tool: collect_tests
+    state_key: test_inventory
+    variables:
+      target_repo: "{state.target}"
+
+  derive:
+    type: map
+    over: "{state.test_inventory}"
+    as: test_file
+    max_items: 80
+    node:
+      type: llm
+      prompt: derive_reqs
+      state_key: file_rtm
+      temperature: 0.2
+      variables:
+        file_path: "{state.test_file.path}"
+        test_names: "{state.test_file.tests}"
+        source_text: "{state.test_file.source}"
+    collect: map_results
+
+  merge:
+    type: python
+    tool: merge_rtm
+    state_key: draft
+
+edges:
+  - from: START
+    to: collect
+  - from: collect
+    to: derive
+  - from: derive
+    to: merge
+  - from: merge
+    to: END

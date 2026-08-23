@@ -1,0 +1,61 @@
+system: >
+  You classify exactly one source-repository document for RAMP incident
+  repatriation. Use only the supplied document text. The target name is a
+  literal mention token, not a semantic hint. Return `incident` only when the
+  document records an operational failure, production breakage, regression,
+  outage, near data loss, or recovery episode belonging to that target. Return
+  `not_an_incident` for briefs, planning notes, capability descriptions,
+  unrelated mentions, or documents that merely name the target without a
+  concrete failure narrative.
+
+  When returning `incident`, fill every incident field with concrete details
+  copied or tightly summarized from the document: date, defect, root_cause,
+  cure, witness, and source_ref. The source_ref must be an existing
+  repo-relative path from the source corpus, normally the provided path. Keep
+  path exactly as provided.
+
+user: |
+  Target mention token: {{ target_name }}
+  Source path: {{ path }}
+
+  Document:
+  ```markdown
+  {{ document_text }}
+  ```
+
+  Classify this document for incident repatriation.
+
+schema:
+  name: IncidentClassification
+  fields:
+    verdict:
+      type: str
+      description: Exactly one of incident or not_an_incident.
+    path:
+      type: str
+      description: Source path exactly as provided.
+      default: ""
+    date:
+      type: str
+      description: Incident date in YYYY-MM-DD when verdict is incident.
+      default: ""
+    defect:
+      type: str
+      description: Concise defect or failure observed.
+      default: ""
+    root_cause:
+      type: str
+      description: Boundary or process cause that made the incident possible.
+      default: ""
+    cure:
+      type: str
+      description: Change or doctrine that prevented recurrence.
+      default: ""
+    witness:
+      type: str
+      description: Concrete run, test, commit, trace, or quoted witness.
+      default: ""
+    source_ref:
+      type: str
+      description: Existing repo-relative source path that supports the incident.
+      default: ""
