@@ -291,3 +291,26 @@ After extraction, YAMLGraph can adopt `scripture-dev` as its own upstream method
 - **FR-076/FR-118/FR-131**: Inquisitor audit loop (pattern to document, not extract)
 - **ADR-001**: Requirement traceability architecture decision
 - **FR-206**: Demo proof gate (YAMLGraph-specific, not extracted)
+
+## Outcome (2026-08-23, FR-868)
+
+**Implemented, unconsumed, superseded.** The repo delivered what this FR
+promised — 16 hooks, templates, render.sh, two consumers bootstrapped
+(my-minesweeper, my-minesweeper2). Then it stopped: last commit
+2026-03-29, zero contributions back, while this repo grew to 45 hooks.
+Its `scripture.yaml` still says `project_name: my-minesweeper`.
+
+**Mechanism diagnosis: `asset_source_must_be_a_consumer`.** A
+distributor that does not consume its own assets has nothing forcing it
+to stay true. The extraction was a snapshot, not a living upstream —
+five months later it is the repo whose *name* claims the process while
+holding a stale third of it.
+
+**Superseded by the FR-864 child family**: FR-865 (ramp installer —
+assets rendered from this repo, which consumes them), FR-866 (tailoring
+graphs), FR-867 (first target), FR-868 (this salvage/retirement).
+
+**Salvage record**: every tracked file at `9d4677a9d501b686d1408d69145debc5c116dd99`
+(49 files) classified by the `salvage_classify` graph
+(`tmp/ramp/salvage-disposition.{md,json}`); disposition and archive
+decision tracked in FR-868.

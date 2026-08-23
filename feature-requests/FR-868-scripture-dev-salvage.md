@@ -144,23 +144,103 @@ version, command and result are recorded in this FR.
 
 Superseded by the judgement's revised set (2026-08-23); folded verbatim.
 
-- [ ] AC-01: FR-868 is revised to define the exact `scripture-dev` repository URL, commit SHA, enumeration mechanism, tracked-file count, artifact-population evidence path, graph artifact paths, schemas, authoring-record paths, lift namespace, archive approval gate, and secret-scan command from R-1 through R-6.
-- [ ] AC-02: The source artifact manifest for the classified `scripture-dev` commit exists as committed evidence or an FR section; the manifest count equals the enumerator's count and is the complete population consumed by `salvage_classify`.
-- [ ] AC-03: `salvage_classify` is authored through the governed graph-authoring route with a committed task brief and a retained report naming artifacts, precedent, lint command, smoke command, repairs, and blocked validation if any.
-- [ ] AC-04: `salvage_classify` passes `yamlgraph graph lint` against its final committed `graph.yaml`.
-- [ ] AC-05: The graph declares Pydantic schemas for per-artifact classifications and final disposition JSON; tests validate representative fixture outputs against those schemas.
-- [ ] AC-06: Draft paths are exactly `tmp/ramp/salvage-disposition.md` and `tmp/ramp/salvage-disposition.json`; tests assert the graph/tool writes no file outside `tmp/ramp/`.
-- [ ] AC-07: Classification reports count-in == count-out over the source artifact manifest, emits zero `unknown` verdicts, and explicitly classifies every item as `duplicate`, `lift`, or `obsolete`.
-- [ ] AC-08: Every `duplicate` verdict names a `yamlgraph_equivalent` path that exists in this repo and passes a test over the generated disposition JSON.
-- [ ] AC-09: Every `lift` verdict names an authorized destination path, source SHA, and rationale; tests reject destinations outside the revised lift namespace.
-- [ ] AC-10: Before any lift is committed, the FR records a raw-output read of at least three disposition entries, each quoted with a concrete detail and the human decision made from it.
-- [ ] AC-11: If the lift list is empty, the FR records that explicitly with rationale; an empty lift list is a valid finding only after the raw-output read.
-- [ ] AC-12: Lifted assets, if any, are committed here with attribution to `scripture-dev` and the classified SHA recorded in the FR implementation section and commit evidence.
-- [ ] AC-13: The named secret-scan command(s) run over every lifted file and final diff; the FR records the command, result, and any reviewed false-positive disposition.
-- [ ] AC-14: FR-207 is updated with the outcome, the `asset_source_must_be_a_consumer` mechanism diagnosis, the classified SHA, and a pointer to the FR-864 child family.
-- [ ] AC-15: `my-minesweeper` and `my-minesweeper2` dependence checks are recorded before archive approval; if either would break or the check cannot complete, a fresh human approval line after that finding is required.
-- [ ] AC-16: `scripture-dev` is archived only after explicit recorded human approval and is verified afterward as archived/read-only, not deleted.
-- [ ] AC-17: Tests are added before implementation for the graph behavior and validation checks above, with RED/GREEN evidence recorded in the FR.
+- [x] AC-01: FR-868 is revised to define the exact `scripture-dev` repository URL, commit SHA, enumeration mechanism, tracked-file count, artifact-population evidence path, graph artifact paths, schemas, authoring-record paths, lift namespace, archive approval gate, and secret-scan command from R-1 through R-6.
+- [x] AC-02: The source artifact manifest for the classified `scripture-dev` commit exists as committed evidence or an FR section; the manifest count equals the enumerator's count and is the complete population consumed by `salvage_classify`.
+- [x] AC-03: `salvage_classify` is authored through the governed graph-authoring route with a committed task brief and a retained report naming artifacts, precedent, lint command, smoke command, repairs, and blocked validation if any.
+- [x] AC-04: `salvage_classify` passes `yamlgraph graph lint` against its final committed `graph.yaml`.
+- [x] AC-05: The graph declares Pydantic schemas for per-artifact classifications and final disposition JSON; tests validate representative fixture outputs against those schemas.
+- [x] AC-06: Draft paths are exactly `tmp/ramp/salvage-disposition.md` and `tmp/ramp/salvage-disposition.json`; tests assert the graph/tool writes no file outside `tmp/ramp/`.
+- [x] AC-07: Classification reports count-in == count-out over the source artifact manifest, emits zero `unknown` verdicts, and explicitly classifies every item as `duplicate`, `lift`, or `obsolete`.
+- [x] AC-08: Every `duplicate` verdict names a `yamlgraph_equivalent` path that exists in this repo and passes a test over the generated disposition JSON.
+- [x] AC-09: Every `lift` verdict names an authorized destination path, source SHA, and rationale; tests reject destinations outside the revised lift namespace.
+- [x] AC-10: Before any lift is committed, the FR records a raw-output read of at least three disposition entries, each quoted with a concrete detail and the human decision made from it. *(raw read recorded below; human lift decision PENDING)*
+- [ ] AC-11: If the lift list is empty, the FR records that explicitly with rationale; an empty lift list is a valid finding only after the raw-output read. *(N/A unless human decision empties the list)*
+- [ ] AC-12: Lifted assets, if any, are committed here with attribution to `scripture-dev` and the classified SHA recorded in the FR implementation section and commit evidence. *(awaits human lift decision)*
+- [ ] AC-13: The named secret-scan command(s) run over every lifted file and final diff; the FR records the command, result, and any reviewed false-positive disposition. *(runs with the lift commit)*
+- [x] AC-14: FR-207 is updated with the outcome, the `asset_source_must_be_a_consumer` mechanism diagnosis, the classified SHA, and a pointer to the FR-864 child family.
+- [x] AC-15: `my-minesweeper` and `my-minesweeper2` dependence checks are recorded before archive approval; if either would break or the check cannot complete, a fresh human approval line after that finding is required. *(finding: no impact — recorded below)*
+- [ ] AC-16: `scripture-dev` is archived only after explicit recorded human approval and is verified afterward as archived/read-only, not deleted. *(HUMAN GATE — awaiting written approval)*
+- [x] AC-17: Tests are added before implementation for the graph behavior and validation checks above, with RED/GREEN evidence recorded in the FR.
+
+## Implementation Record (2026-08-23)
+
+**RED:** commit `93040147` — 11 contract tests
+(`tests/unit/test_salvage_classify.py`), fixture
+`tests/fixtures/salvage/disposition-valid.json`, CAP-246
+(REQ-YG-618/619), committed brief
+`feature-requests/authoring-briefs/fr-868-salvage-classify-brief.md`,
+frozen input closure. All 11 failed (nodes module not yet authored).
+
+**Authoring:** sole route (`scripts/author.sh`), report retained at
+`tmp/fr868-authoring-report.md`. Artifacts:
+`examples/demos/salvage_classify/{graph.yaml, prompts/classify_asset.yaml,
+nodes/salvage_tools.py}`. Route repaired one defect itself (deferred
+annotations broke Pydantic resolution). Lint clean, ruff clean.
+
+**Defect cycle (identity echo — strike two of the FR-866 family):**
+first live run failed at merge: `count mismatch: 49 manifest paths, 49
+classifications; missing: hooks/diary-reflection-check.sh` — twin
+filenames (`hooks/x.sh` vs `_templates/hooks/x.sh`) made one branch
+echo its sibling's path. Per `two_strike_split` the cure went into CODE
+at the merge boundary, not the prompt: condemned by
+`test_merge_repairs_echoed_path_from_manifest` (RED
+`logs/fr868-repair-red.log`), then `_normalize_map_results` now treats
+the model's echoed `path` as a claim and repairs it from branch
+identity (`_map_index` → manifest order). 12/12 GREEN
+(`logs/fr868-green.log`).
+
+**Live run (R-4, recorded, never gates CI):** 49/49 classified at
+`9d4677a9d5`, zero validation errors, drafts at
+`tmp/ramp/salvage-disposition.{md,json}`
+(`examples/demos/salvage_classify/demo-output.log`). Verdicts:
+**25 lift / 22 duplicate / 2 obsolete**.
+
+**AC-10 raw-output read (4 entries, agent read — human decision pending):**
+
+1. `scripture.yaml` → lift, "concise, valid config template … missing
+   from the current repo". **Suspect**: it says `project_name:
+   my-minesweeper` — the FR's own Problem table calls this the smoking
+   gun of staleness; the parameterisation *idea* is the value, not the
+   stale instance.
+2. `render.sh` → obsolete, "rendering is handled by Python-based render
+   scripts such as examples/shared/render_page.py". **Wrong rationale**
+   (render_page.py is unrelated) but arguably right verdict for a
+   different reason: FR-865's installer supersedes the render
+   mechanism. This is the ONE asset the FR said to check, not assume —
+   flagged for the human read.
+3. `hooks/vulture-check.sh` (and its `_templates/` twin, both → lift):
+   "vulture dead-code detection … absent from YAMLGraph's candidate
+   equivalents". **Wrong**: this repo runs vulture via pre-commit
+   (Commandment 8); the candidate-equivalent list simply didn't
+   surface `.pre-commit-config.yaml`. Twin pairs lifted twice is also
+   double-counting.
+4. `docs/diary/2026-03-29-reflection-linkedin-article.md` and FR-002/
+   003/004 → lift as "governance history". **Suspect**: archive
+   (read-only) already preserves history in place; lifting records
+   into `ramp/salvage/` duplicates what the archive keeps.
+
+**Agent recommendation from the raw read:** the 25-lift list is
+over-generous (`plausible_wrong_answer`); the genuinely lift-worthy
+candidates are at most `render.sh` + `scripture.yaml` *as a pattern
+pair* (the parameterised-rendering idea) — possibly zero given FR-865.
+The lift bar is "missing here and still correct"; most lifts fail the
+"still correct/needed" half. **Human decision required** on the final
+lift list (may legitimately be empty → AC-11 path).
+
+**AC-15 consumer-impact finding: no impact.** Both
+`~/Documents/src/my-minesweeper{,2}` reference `scripture-dev` only in
+their own README/render.sh/docs (rendered local copies); both
+`.pre-commit-config.yaml` files use `repo: local` hooks — nothing
+fetches from `scripture-dev` at runtime. Archive is read-only, so even
+re-rendering keeps working.
+
+**Human gates outstanding:**
+
+- [ ] Lift decision over `tmp/ramp/salvage-disposition.md`
+      (then AC-11/12/13 execute: lift or record-empty + secret scan
+      `gitleaks detect --no-git` over `ramp/salvage/`)
+- [ ] Written archive approval line here (then AC-16: archive via
+      GitHub settings, verify read-only)
 
 ## Risks
 

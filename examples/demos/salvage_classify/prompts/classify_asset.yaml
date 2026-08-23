@@ -1,0 +1,60 @@
+system: |
+  You classify exactly one tracked file from a frozen scripture-dev checkout for
+  human salvage review into the current YAMLGraph repository.
+
+  Use only the supplied source path, file content excerpt, and candidate
+  YAMLGraph equivalents. Return exactly one of these verdicts:
+  - duplicate: YAMLGraph already covers the asset. Set yamlgraph_equivalent to
+    an existing repo-relative equivalent path from the candidates or a clearly
+    matching supplied path. Leave target_path null.
+  - lift: the asset is genuinely missing here and still correct. Set
+    target_path to ramp/salvage/<original-path>. Leave yamlgraph_equivalent
+    null unless a partial equivalent helps the rationale.
+  - obsolete: the asset is dead by design for YAMLGraph. Leave
+    yamlgraph_equivalent and target_path null.
+
+  Never return unknown. Keep path byte-for-byte as supplied. Keep rationale
+  concrete and concise.
+
+user: |
+  Source SHA: {{ source_sha }}
+  Source path: {{ path }}
+  Category hint: {{ category_hint }}
+
+  Candidate YAMLGraph equivalents:
+  {{ candidate_equivalents }}
+
+  Source file content excerpt:
+  ```text
+  {{ content }}
+  ```
+
+  Classify this single asset for the salvage disposition draft.
+
+schema:
+  name: AssetClassification
+  fields:
+    path:
+      type: str
+      description: Source path copied exactly from the input.
+    category:
+      type: str
+      description: Short category such as hook, workflow, docs, script, config, test, source, or asset.
+    verdict:
+      type: str
+      description: Exactly one of duplicate, lift, obsolete.
+    rationale:
+      type: str
+      description: Non-empty reason for the disposition.
+      constraints:
+        min_length: 1
+    yamlgraph_equivalent:
+      type: str
+      optional: true
+      default: null
+      description: Existing YAMLGraph repo-relative path required for duplicate; otherwise null unless useful as partial evidence.
+    target_path:
+      type: str
+      optional: true
+      default: null
+      description: ramp/salvage/<original-path> required for lift; otherwise null.

@@ -1,0 +1,84 @@
+version: "1.0"
+name: salvage_classify
+description: >
+  FR-868 scripture-dev salvage classifier — collect every tracked source file,
+  classify each against this repository's committed equivalents, and write a
+  human-review disposition draft under tmp/ramp.
+
+prompts_relative: true
+prompts_dir: prompts
+
+state:
+  source_repo: str
+  source_sha: str
+  manifest:
+    type: list
+  manifest_count: int
+  assets:
+    type: list
+  has_manifest: bool
+  classifications:
+    type: list
+    reducer: sorted_add
+  disposition: dict
+  validation_errors: list
+  draft_paths: dict
+
+tools:
+  collect_manifest:
+    type: python
+    path: nodes/salvage_tools.py
+    function: collect_manifest
+    description: "Read the frozen source checkout manifest and prepare per-file classification payloads."
+
+  merge_disposition:
+    type: python
+    path: nodes/salvage_tools.py
+    function: merge_disposition
+    description: "Validate count reconciliation and write tmp/ramp salvage disposition drafts."
+
+nodes:
+  collect_manifest:
+    type: python
+    tool: collect_manifest
+    state_key: manifest
+    variables:
+      source_repo: "{state.source_repo}"
+      source_sha: "{state.source_sha}"
+
+  classify_assets:
+    type: map
+    over: "{state.assets}"
+    as: asset
+    max_items: 10000
+    node:
+      type: llm
+      prompt: classify_asset
+      state_key: classification
+      temperature: 0.1
+      variables:
+        path: "{state.asset.path}"
+        category_hint: "{state.asset.category_hint}"
+        content: "{state.asset.content}"
+        candidate_equivalents: "{state.asset.candidate_equivalents}"
+        source_sha: "{state.source_sha}"
+    collect: classifications
+
+  merge:
+    type: python
+    tool: merge_disposition
+    state_key: disposition
+
+edges:
+  - from: START
+    to: collect_manifest
+  - from: collect_manifest
+    to: classify_assets
+    condition: has_manifest == true
+  - from: collect_manifest
+    to: merge
+    condition: has_manifest != true
+  - from: classify_assets
+    to: merge
+  - from: merge
+    to: END

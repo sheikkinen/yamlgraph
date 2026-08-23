@@ -160,3 +160,31 @@ def test_disposition_requires_source_sha():
     data["source_sha"] = ""
     with pytest.raises(ValidationError):
         mod.SalvageDisposition.model_validate(data)
+
+
+@pytest.mark.req("REQ-YG-618")
+def test_merge_repairs_echoed_path_from_manifest(tmp_path, monkeypatch):
+    """The model's echoed path is a CLAIM; branch identity (_map_index →
+    manifest order) is the source of truth. Twin filenames
+    (hooks/x.sh vs _templates/hooks/x.sh) made a branch echo its
+    sibling's path in the live run — repair at the merge boundary."""
+    mod = load_module()
+    monkeypatch.chdir(tmp_path)
+    data = fixture_data()
+    manifest = [i["path"] for i in data["items"]]
+    classifications = []
+    for idx, item in enumerate(data["items"]):
+        c = dict(item, _map_index=idx)
+        classifications.append({"classification": c, "_map_index": idx})
+    # branch 0 echoes branch 1's path (wrong identity, valid shape)
+    classifications[0]["classification"]["path"] = manifest[1]
+    state = {
+        "source_repo": data["source_repo"],
+        "source_sha": data["source_sha"],
+        "manifest": manifest,
+        "manifest_count": len(manifest),
+        "classifications": classifications,
+    }
+    result = mod.merge_disposition(state)
+    paths = [i["path"] for i in result["disposition"]["items"]]
+    assert sorted(paths) == sorted(manifest)
