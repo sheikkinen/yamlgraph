@@ -196,7 +196,10 @@ implemented feature requests, add template"*), twelve completed FRs were
 
 Numbering was chaotic: two files both claimed 011 (split into 011a/011b),
 012 fragmented into 012-0/012-1/012-2/012-3, numbers 021 and 030 were each
-issued twice, and gaps abound. The oldest FR still alive in the tree is
+issued twice, and gaps abound. All 39 devoured FRs have since been recovered
+from git and preserved in
+[docs/memento/feature-requests/](memento/feature-requests/README.md).
+The oldest FR still alive in the tree is
 [feature-requests/005-session-manager.md](../feature-requests/005-session-manager.md) —
 deferred on 2026-01-23 and untouched since: the coelacanth of the
 collection. The modern discipline — `FR-XXX-` prefix, FR as permanent
