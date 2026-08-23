@@ -32,6 +32,7 @@
 | FR-841 | PARSE-FAILURE (Replanned 2026-08-20 after con) | yamlgraph |  | FR-841-gitclaw-reference-assets.md |
 | FR-854 | PARSE-FAILURE (WITHDRAWN 2026-08-22 — census ) | yamlgraph |  | FR-854-subagent-call-classification-graph.md |
 | FR-862 | PARSE-FAILURE (Partially superseded 2026-08-2) | yamlgraph |  | FR-862-deviant-daily-on-demand-publish.md |
+| FR-864 | PARSE-FAILURE (**SPLIT** (judged 2026-08-23) ) | yamlgraph |  | FR-864-ramp-spike-to-governed.md |
 | FR-111 | Judged | yamlgraph |  | FR-111-compiled-graph-cache.md |
 | FR-179 | Judged | yamlgraph |  | FR-179-asterisk-ari-audiosocket-provider.md |
 | FR-210 | Judged | yamlgraph |  | FR-210-subgraph-interrupt-state-commit.md |
@@ -210,7 +211,10 @@
 | FR-858 | Proposed | yamlgraph |  | FR-858-retire-committed-fr-board.md |
 | FR-859 | Proposed | yamlgraph |  | FR-859-delete-orphaned-sim117-phantom-req-tag.md |
 | FR-861 | Proposed | yamlgraph |  | FR-861-shared-repo-write-discipline.md |
-| FR-864 | Proposed | yamlgraph |  | FR-864-ramp-spike-to-governed.md |
+| FR-865 | Proposed | yamlgraph |  | FR-865-ramp-installer.md |
+| FR-866 | Proposed | yamlgraph |  | FR-866-ramp-tailoring-graphs.md |
+| FR-867 | Proposed | yamlgraph |  | FR-867-ramp-deviant-daily.md |
+| FR-868 | Proposed | yamlgraph |  | FR-868-scripture-dev-salvage.md |
 | FR-078 | In Progress | yamlgraph |  | FR-078-relocate-project-tests.md |
 | FR-100 | In Progress | yamlgraph |  | FR-100-yamlgraph-development-pipeline-ebook.md |
 | FR-169 | In Progress | yamlgraph |  | FR-169-enforce-reflexion-loop.md |
@@ -453,11 +457,19 @@ graph TD
     FR-859["FR-859 Proposed"]
     FR-861["FR-861 Proposed"]
     FR-862["FR-862 PARSE-FAILURE"]
-    FR-864["FR-864 Proposed"]
+    FR-864["FR-864 PARSE-FAILURE"]
+    FR-865["FR-865 Proposed"]
+    FR-866["FR-866 Proposed"]
+    FR-867["FR-867 Proposed"]
+    FR-868["FR-868 Proposed"]
     FR-081 --> FR-082
     FR-731 --> FR-735
     FR-731 --> FR-736
     FR-831 --> FR-837
     FR-837 --> FR-838
     FR-831 --> FR-841
+    FR-864 --> FR-865
+    FR-864 --> FR-866
+    FR-864 --> FR-867
+    FR-864 --> FR-868
 ```

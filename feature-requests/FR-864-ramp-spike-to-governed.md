@@ -2,9 +2,32 @@
 
 **Priority:** HIGH
 **Type:** Feature
-**Status:** Proposed
-**Effort:** 1.5 days
+**Status:** **SPLIT** (judged 2026-08-23) — no implementation authority; see child FRs
+**Effort:** 1.5 days (across children)
 **Requested:** 2026-08-23
+
+## Split (2026-08-23)
+
+Judged **SPLIT**: this FR bundled four independent enforcement
+surfaces — reusable tooling, target-repo application, graph authoring,
+and an external-repo retirement — into one pass. The problem statement,
+prior-art diagnosis, tier model and graph-shaped direction were found
+sound and are inherited by the children; the bundling was not.
+
+| Child | Surface |
+|---|---|
+| **FR-865** | generic ramp installer + copyable asset manifest (no target, no graphs, no archival) |
+| **FR-866** | target-tailoring graph suite: `ramp_doctrine`, `ramp_rtm`, `ramp_incidents` |
+| **FR-867** | applying the ramp to `sheikkinen/deviant-daily` |
+| **FR-868** | `scripture-dev` salvage (`salvage_classify`) and retirement |
+
+This FR retains **no** implementation authority. It stands as the
+problem statement and the design rationale the children cite. See
+`FR-864-ramp-spike-to-governed.judgement.md` for the seven GATE
+conditions binding all four children — notably C-3 (governed graph
+authoring), C-4 (no `scripture-dev` state change without human
+approval), C-5 (no enforcement-infrastructure edits), C-6 (repo
+boundaries), C-7 (drafts only, no auto-commit).
 **First consumer / first event:** `sheikkinen/deviant-daily`, today. It
 crossed into production on 2026-08-19 (commits `71e80b9` first public
 publish, `eeca704` cron enabled) and has run four days unattended with
