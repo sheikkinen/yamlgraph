@@ -1,7 +1,9 @@
 # Plan: Ramp — installing the process into a repo that has gone live
 
 **Status:** planning frozen 2026-08-23; FR-865…FR-868 judged, revisions
-folded, authority active. No implementation started.
+folded. **FR-865 amended post-judgement (A-1 consumption gate, A-2
+consumer registry) — awaiting re-judgement.** FR-869 (spike-end
+detector) filed, awaiting judgement. No implementation started.
 **Reader / moment:** whoever picks up ramp implementation, and whoever
 is standing in front of a *new* repo that just went to production.
 Read this first, then the child FR you are about to enforce.
@@ -76,7 +78,9 @@ composes.
 ## Tier model
 
 Tiers are keyed to the **event that triggered the ramp**, not to
-perceived maturity, and are monotonic — Tier 3 installs 1 + 2 + 3.
+perceived maturity, and are monotonic — Tier 3 installs 1 + 2 + 3. An
+explicit operator ruling may set the tier above the triggering event;
+the ruling is recorded verbatim and counts as the trigger.
 
 | Tier | Trigger | Installs |
 |---|---|---|
@@ -124,37 +128,53 @@ These were argued and settled in judgement. Reopening one needs a new FR.
    approval *and* a consumer-impact finding that is either "no impact"
    or explicitly accepted. Archive, never delete. (FR-868 R-5)
 
+Two post-judgement amendments to FR-865 await re-judgement — they are
+proposals, not frozen:
+
+- **A-1: the curated tree must be consumed here.** Decision 1 fixed
+  domain leakage but severed the founding property — this repo runs its
+  root config, not the curated copies, making `ramp/assets/` a
+  photograph (the FR-207 mechanism one level down). Cure: CI runs the
+  curated Tier-1 config against a fixture repo on every push, plus a
+  drift test against live counterparts. (FR-865 AC-16/AC-17)
+- **A-2: `ramp/consumers.md`.** The flow-back measure below has no
+  mechanism without a registry of ramped repos; it also feeds a future
+  `ramp.sh --check` staleness diff. (FR-865 AC-18)
+
 ## Explicitly out of scope
 
-- **The spike detector** — a guard that notices `schedule:`/`secrets.`
-  entering a workflow in an unenforced repo. Its own FR: it modifies
-  `pre-command-guard.sh`, which is enforcement infrastructure.
-- **The unenforced-repo warning** — "committing to a repo with no
-  pre-commit hooks". Same reason. Warn, never block: inform the human,
-  constrain the agent.
+- **The spike detector and unenforced-repo warning** — out of the
+  *family's* scope because they modify `pre-command-guard.sh`,
+  enforcement infrastructure. Now filed as their own FR:
+  [FR-869](../feature-requests/FR-869-spike-end-detector.md), warn-only,
+  both checks. Without it the "next repo, same week" measure is
+  unreachable — detection is the trigger, the ramp is the response.
 - **Branch protection on `deviant-daily`** — repository administration,
   the operator's decision.
 - **Changing this repo's live hooks, CI, or judge/review/authoring
   doctrine.** The ramp adds a curated asset set; it does not touch the
-  apparatus it copies from.
+  apparatus it copies from. (FR-869 touches the guard and is therefore
+  judged separately, as parent C-5 requires.)
 
 ## Sequence
 
-1. **FR-865** — installer + curated assets. Nothing else can be
+1. **Re-judge FR-865** (A-1/A-2 amendments), **judge FR-869**.
+2. **FR-865** — installer + curated assets. Nothing else can be
    witnessed without it.
-2. **FR-866** — the three graphs, fixture-tested. Parallelisable with 1.
-3. **FR-868** — salvage, lift into `ramp/salvage/`, close out FR-207,
+3. **FR-866** — the three graphs, fixture-tested. Parallelisable with 2.
+4. **FR-868** — salvage, lift into `ramp/salvage/`, close out FR-207,
    gated archive. Independent.
-4. **FR-867** — apply to `deviant-daily`. Composes 1 and 2; requires the
+5. **FR-867** — apply to `deviant-daily`. Composes 2 and 3; requires the
    activation record filled in with paths and SHAs.
-5. Then the two out-of-scope guards, as their own FRs.
+6. **FR-869** — the detector, once judged. Independent of 2–5.
 
 ## The measure of success
 
 Not "the ramp exists". The measure is that the **next** repo to go live
-gets its gates the same week, and that `deviant-daily`'s cron still
+gets its gates the same week — which requires FR-869's warning to fire
+at the transition commit — and that `deviant-daily`'s cron still
 publishes the morning after it is ramped — gates must not break the
-product that pays for them (FR-867 AC-11).
+product that pays for them (FR-867 AC-16).
 
 The longer-term measure is the one csap passes and `scripture-dev`
 failed: does anything ever flow *back*? A ramped repo that eventually

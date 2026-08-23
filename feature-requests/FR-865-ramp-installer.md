@@ -2,7 +2,8 @@
 
 **Priority:** HIGH
 **Type:** Feature
-**Status:** Judged — APPROVED WITH REVISIONS (2026-08-23), R-1…R-6 folded
+**Status:** Judged — APPROVED WITH REVISIONS (2026-08-23), R-1…R-6 folded;
+**amended 2026-08-23 post-judgement (A-1, A-2 below) — awaiting re-judgement**
 **Effort:** 0.5 day
 **Requested:** 2026-08-23
 **Parent:** FR-864 (SPLIT) — child A per R-1
@@ -143,6 +144,33 @@ otherwise. Documented limitation: linked worktrees (where `.git` is a
 file) are refused rather than guessed. Tests cover normal repo, non-repo
 directory, worktree, nested subdirectory, and self-repo refusal.
 
+### Curated assets are consumed here (A-1, amendment)
+
+R-1 fixed domain leakage but silently traded away the architecture's
+founding property: this repo runs its **root** config on every commit,
+not the curated copies — making `ramp/assets/` a photograph, the FR-207
+template mechanism reintroduced one level down. Restoration is
+mechanical: this repo's CI runs the curated Tier-1
+`.pre-commit-config.yaml` against a committed fixture scratch repo on
+every push, and a drift test asserts that every curated asset that
+mirrors a live root counterpart either matches it or carries a recorded
+curation diff (what was removed and why). A curated asset that fails to
+run, or drifts without a recorded reason, is a red build — the source
+consumes what it ships again.
+
+### Consumer registry (A-2, amendment)
+
+Every non-scratch install appends a row to **`ramp/consumers.md`** in
+this repo: target repo, install date, tier, this repo's commit SHA,
+manifest hash. Two consumers, both named by the plan's measure of
+success: the diary-graduation sweep (`cross_project_graduation`) needs
+to know which repos may contribute traps back, and a future
+`ramp.sh --check` staleness diff needs the install SHA to diff against.
+The registry is written by the operator running the ramp, in this repo,
+as part of the install transcript — the installer itself still never
+runs `git` against anything. `--check` itself is deferred to a follow-up
+FR; only the registry row is in scope.
+
 ### Human-review gate (R-6)
 
 The curated asset tree and manifest are **enforcement infrastructure**
@@ -187,11 +215,19 @@ Superseded by the judgement's revised set (2026-08-23); folded verbatim.
 - [ ] AC-13: If a CI workflow is installed, fixture tests prove the exact supported target suite command and ruff command run as documented; otherwise the workflow is an explicit setup stub and is not described as an active gate.
 - [ ] AC-14: The manifest and curated enforcement assets are human-reviewed before first non-scratch use; the FR records the reviewed source commit SHA and any approved deviations.
 - [ ] AC-15: Tests are added before implementation for the installer behavior above, with RED/GREEN evidence recorded in the FR.
+- [ ] AC-16 (A-1): This repo's CI runs the curated Tier-1 `.pre-commit-config.yaml` against a committed fixture scratch repo on every push; a failing curated config is a red build.
+- [ ] AC-17 (A-1): A drift test asserts every curated asset mirroring a live root counterpart either matches it or carries a recorded curation diff naming what was removed and why; unexplained drift fails.
+- [ ] AC-18 (A-2): `ramp/consumers.md` exists with a documented row schema (target, date, tier, source SHA, manifest hash); a test validates its format, and FR-867's install must append its row.
 
 ## Risks
 
 **The manifest drifts from reality.** An asset renamed here silently
 breaks the installer. AC-09 makes it a CI failure.
+
+**The curated tree decays like `scripture-dev` did.** The curation step
+severs the consumption link that was the whole argument for shipping
+from this repo. AC-16/AC-17 restore it mechanically; without them this
+FR rebuilds FR-207 with extra steps.
 
 **Tier 1 is still too heavy.** If a target rejects it, the tier
 boundaries are wrong, not the installer. Recorded as a follow-up

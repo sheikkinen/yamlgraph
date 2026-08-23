@@ -189,16 +189,16 @@ Superseded by the judgement's revised set (2026-08-23); folded verbatim.
 
 **Derived requirements read as authoritative.** A plausible-but-wrong
 requirement statement is worse than a gap: it gets traced against
-forever. Mitigated by `status: proposed` (AC-10) and mandatory test
-citation (AC-08).
+forever. Mitigated by `status: proposed` and mandatory test
+citation (AC-09).
 
 **Doctrine tailoring becomes doctrine invention.** The graph must only
-subset and annotate, never author new traps. AC-06's strict-subset
-assertion is the mechanical guard.
+subset and annotate, never author new traps. AC-07's stable-id selection
+and AC-08's strict-subset assertion are the mechanical guards.
 
 **Tier 3 on a 14-test repo may be theatre.** If `ramp_rtm` yields fewer
 than 10 defensible requirements, the honest result is to report that and
-stop, not to pad. AC-08's floor is a *detector*, not a quota — failing
+stop, not to pad. AC-10's floor is a *detector*, not a quota — failing
 it is a finding.
 
 **Three graphs is three surfaces.** If they cannot share the runtime

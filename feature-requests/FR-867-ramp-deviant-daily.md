@@ -166,7 +166,7 @@ Superseded by the judgement's revised set (2026-08-23); folded verbatim.
 ## Risks
 
 **The ramp breaks the product.** The repo publishes daily; a gate that
-fails the pipeline costs a post. AC-11 makes the next successful cron
+fails the pipeline costs a post. AC-16 makes the next successful cron
 run a hard criterion, and the ramp installs no gate that runs inside the
 publish workflow.
 
@@ -174,8 +174,8 @@ publish workflow.
 they do not, record it — a short honest registry beats a padded one.
 
 **Cross-repo index collisions.** Two repos, one operator, parallel
-sessions. AC-13 and parent C-6 make boundaries explicit; work in one
-repo at a time with explicit file lists.
+sessions. AC-02/AC-19 and parent C-6 make boundaries explicit; work in
+one repo at a time with explicit file lists.
 
 **Doctrine drift on day one.** `AGENTS.md` will be wrong in places. It
 is a draft that gets corrected by incidents — which is the mechanism,

@@ -232,6 +232,7 @@
 | FR-307 | Draft | yamlgraph |  | FR-307-yamlgraph-async-action-logging.md |
 | FR-317 | Draft | yamlgraph |  | FR-317-retire-obsolete-watcher2-components.md |
 | FR-330 | Draft | yamlgraph |  | FR-330-fr-330-watcher-clean-stale-branches-on-retry.md |
+| FR-869 | Draft | yamlgraph |  | FR-869-spike-end-detector.md |
 
 ```mermaid
 graph TD
@@ -462,6 +463,7 @@ graph TD
     FR-866["FR-866 Judged"]
     FR-867["FR-867 Judged"]
     FR-868["FR-868 Judged"]
+    FR-869["FR-869 Draft"]
     FR-081 --> FR-082
     FR-731 --> FR-735
     FR-731 --> FR-736
@@ -472,4 +474,5 @@ graph TD
     FR-864 --> FR-866
     FR-864 --> FR-867
     FR-864 --> FR-868
+    FR-864 --> FR-869
 ```

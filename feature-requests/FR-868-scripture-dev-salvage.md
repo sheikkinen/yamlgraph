@@ -165,15 +165,15 @@ Superseded by the judgement's revised set (2026-08-23); folded verbatim.
 ## Risks
 
 **Archiving something still in use.** Archive is read-only, not
-deletion, and AC-12 checks the two known consumers. Reversible by the
+deletion, and AC-15 checks the two known consumers. Reversible by the
 owner at any time.
 
 **Classifying by filename rather than content.** A hook with the same
 name may differ materially after five months. The rationale field and
-AC-04's equivalence validation force the comparison to be stated.
+AC-08's equivalence validation force the comparison to be stated.
 
 **Lifting stale code back into a current repo.** The `lift` bar is
-"missing here and still correct", not "different". AC-06's raw read is
+"missing here and still correct", not "different". AC-10's raw read is
 the check against a plausible-sounding disposition list.
 
 **FR-207 was judged APPROVED and implemented.** Closing it out is not a
