@@ -561,6 +561,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 243 | CAP-243 Requirement Witness Audit | `scripts` | REQ-YG-606 – 609 |
 | 244 | CAP-244 Ramp Installer | `scripts` | REQ-YG-610 – 613 |
 | 245 | CAP-245 Ramp Tailoring Graphs | `examples` | REQ-YG-614 – 617 |
+| 246 | CAP-246 Scripture-dev Salvage Classification | `examples` | REQ-YG-618 – 619 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -3011,6 +3012,17 @@ Three demo graphs derive target-specific governance artifacts a copier cannot pr
 | REQ-YG-615 | ramp_rtm derives requirement candidates from a target's test inventory: every emitted entry has status proposed and cites at least one witness test that exists in the inventory; tests witnessing no requirement are reported as gaps; low counts are reported, never padded. | `examples` |
 | REQ-YG-616 | ramp_incidents classifies every corpus document as an incident record (date, defect, root_cause, cure, witness, resolvable source_ref) or not_an_incident; the disposition reconciles count-in == count-out over the scanned corpus with no silently dropped documents. | `examples` |
 | REQ-YG-617 | Shared runtime contract: all three graphs lint clean, write drafts only to tmp/ramp/ (doctrine-draft, rtm-draft, incidents-draft .md/.json), and contain no git commit, git push, or gh invocation in any graph, prompt, or node source. | `examples` |
+
+### 246. CAP-246 Scripture-dev Salvage Classification
+
+salvage_classify demo graph classifies every tracked file of a frozen scripture-dev ref against this repo's current equivalents, emitting a human-review disposition draft (duplicate|lift|obsolete) under tmp/ramp/ only. Lifts land at ramp/salvage/<original-path>; archive of the source repo is hard-gated on written human approval (FR-868).
+
+**Feature Request:** FR-868
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-618 | salvage_classify's disposition reconciles count-in == count-out over the frozen source manifest with zero unknown verdicts; every verdict is duplicate, lift, or obsolete; every duplicate names a yamlgraph_equivalent path that exists in this repo; every lift names a destination under ramp/salvage/ plus source SHA and rationale; destinations outside the namespace are validation errors. | `examples` |
+| REQ-YG-619 | salvage_classify shared runtime contract: the graph lints clean, writes drafts only to tmp/ramp/salvage-disposition.md and tmp/ramp/salvage-disposition.json, and contains no git commit, git push, or gh invocation in any graph, prompt, or node source. | `examples` |
 
 <!-- END GENERATED CAPABILITIES -->
 

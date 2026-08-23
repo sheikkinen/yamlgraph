@@ -1,0 +1,33 @@
+name: Scripture-dev Salvage Classification
+id: CAP-246
+status: active
+fr: FR-868
+feature_request: feature-requests/FR-868-scripture-dev-salvage.md
+description: >
+  salvage_classify demo graph classifies every tracked file of a frozen
+  scripture-dev ref against this repo's current equivalents, emitting a
+  human-review disposition draft (duplicate|lift|obsolete) under
+  tmp/ramp/ only. Lifts land at ramp/salvage/<original-path>; archive of
+  the source repo is hard-gated on written human approval (FR-868).
+modules:
+  - examples
+requirements:
+  - id: REQ-YG-618
+    description: >
+      salvage_classify's disposition reconciles count-in == count-out
+      over the frozen source manifest with zero unknown verdicts; every
+      verdict is duplicate, lift, or obsolete; every duplicate names a
+      yamlgraph_equivalent path that exists in this repo; every lift
+      names a destination under ramp/salvage/ plus source SHA and
+      rationale; destinations outside the namespace are validation
+      errors.
+    modules:
+      - examples
+  - id: REQ-YG-619
+    description: >
+      salvage_classify shared runtime contract: the graph lints clean,
+      writes drafts only to tmp/ramp/salvage-disposition.md and
+      tmp/ramp/salvage-disposition.json, and contains no git commit,
+      git push, or gh invocation in any graph, prompt, or node source.
+    modules:
+      - examples

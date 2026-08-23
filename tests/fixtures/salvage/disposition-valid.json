@@ -1,0 +1,31 @@
+{
+  "source_repo": "sheikkinen/scripture-dev",
+  "source_sha": "9d4677a9d501b686d1408d69145debc5c116dd99",
+  "manifest_count": 3,
+  "items": [
+    {
+      "path": "hooks/forbid-terms.sh",
+      "category": "hook",
+      "verdict": "duplicate",
+      "rationale": "This repo's pre-commit forbidden-phrase hook covers the same terms and more.",
+      "yamlgraph_equivalent": ".pre-commit-config.yaml",
+      "target_path": null
+    },
+    {
+      "path": "render.sh",
+      "category": "script",
+      "verdict": "lift",
+      "rationale": "Parameterised rendering of governance assets has no equivalent here.",
+      "yamlgraph_equivalent": null,
+      "target_path": "ramp/salvage/render.sh"
+    },
+    {
+      "path": "scripture.yaml",
+      "category": "config",
+      "verdict": "obsolete",
+      "rationale": "Points at my-minesweeper; parameterisation idea captured by the lifted render.sh.",
+      "yamlgraph_equivalent": null,
+      "target_path": null
+    }
+  ]
+}

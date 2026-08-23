@@ -73,8 +73,8 @@ Authority does not activate until these are recorded here:
 | Field | Value |
 |---|---|
 | repository | `sheikkinen/scripture-dev` |
-| ref | `9d4677a` (local HEAD, 2026-03-29) — re-confirm and record the SHA at enforcement time |
-| population | `git ls-files` at that ref, **exact count recorded before the run**; the earlier "27 artifacts" was an estimate and is withdrawn |
+| ref | `9d4677a9d501b686d1408d69145debc5c116dd99` — re-confirmed at enforcement time 2026-08-23 (`git -C ~/Documents/src/scripture-dev rev-parse HEAD`) |
+| population | **49 tracked files** (`git -C ~/Documents/src/scripture-dev ls-files | wc -l` at that ref, recorded before the run); the earlier "27 artifacts" estimate is withdrawn |
 | exclusions | none — every tracked file receives a verdict |
 
 ### `salvage_classify` graph artifacts (R-2)
@@ -202,3 +202,57 @@ record, not a verdict on the original decision.
 - `feature-requests/FR-865-ramp-installer.md` — destination for lifted assets
 - `feature-requests/FR-858-retire-committed-fr-board.md` — retirement-FR precedent
 - `docs/diary/diary-2026-08-23-process-transfers-by-practice.md` — the mechanism diagnosis
+
+## Source Artifact Manifest (AC-02) — 9d4677a9d5, 49 files
+
+```
+.github/copilot-instructions.md
+.github/workflows/commitlint.yml
+.github/workflows/quality.yml
+.github/workflows/security.yml
+.gitignore
+.jscpd.json
+.pre-commit-config.yaml
+LICENSE
+README.md
+_templates/.github/copilot-instructions.md
+_templates/.github/workflows/commitlint.yml
+_templates/.github/workflows/quality.yml
+_templates/.github/workflows/security.yml
+_templates/.pre-commit-config.yaml
+_templates/hooks/changelog-required.sh
+_templates/hooks/diary-reflection-check.sh
+_templates/hooks/feat-requires-fr.sh
+_templates/hooks/file-size-check.sh
+_templates/hooks/forbid-terms.sh
+_templates/hooks/jscpd-check.sh
+_templates/hooks/radon-check.sh
+_templates/hooks/vulture-check.sh
+changelog/README.md
+changelog/unreleased/.gitkeep
+docs/diary/.gitkeep
+docs/diary/2026-03-29-reflection-linkedin-article.md
+docs/reviewer-checklist.md
+feature-requests/.gitignore
+feature-requests/FR-001-fix-changelog-hook-stage.md
+feature-requests/FR-002-branch-agnostic-ci-diff-gates.md
+feature-requests/FR-003-ci-quality-parity-and-coverage-gate.md
+feature-requests/FR-004-no-verify-policy-alignment.md
+feature-requests/linkedin-article-scripture-dev.md
+hooks/changelog-required.sh
+hooks/diary-reflection-check.sh
+hooks/feat-requires-fr.sh
+hooks/file-size-check.sh
+hooks/forbid-terms.sh
+hooks/jscpd-check.sh
+hooks/radon-check.sh
+hooks/vulture-check.sh
+render.sh
+scripts/aggregate_changelog.py
+scripts/aggregate_changelog.sh
+scripts/req_coverage.py
+scripture.yaml
+templates/diary-entry.md
+templates/feature-request.md
+templates/knowledge-graph.yaml
+```
