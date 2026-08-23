@@ -1,0 +1,18 @@
+# Ramp Tier-1 CI asset — INERT SETUP STUB, not an active gate.
+# Installed by scripts/ramp.sh. It runs only on manual dispatch and
+# prints the operator steps for the supported target contract
+# (Python + pyproject.toml + pytest tests/ + ruff). Replace this job
+# with the real suite to activate CI.
+name: ci-setup-stub
+on: workflow_dispatch
+jobs:
+  setup-instructions:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          echo "This workflow is the ramp CI setup stub — CI is NOT active yet."
+          echo "To activate, replace this job with the documented command path:"
+          echo "  pip install -e '.[dev]'"
+          echo "  ruff check ."
+          echo "  pytest tests/ -q"
+          echo "and add push/pull_request triggers."

@@ -1,0 +1,121 @@
+# Ramp asset manifest — FR-865.
+# Every shipped asset enumerated file-by-file (no directories, no live
+# root pointers). Paths are relative to ramp/. Provenance: exactly one of
+#   authored: true          — written for the ramp, no live counterpart
+#   mirror_exact: <path>    — byte-equal to a live file (drift-tested)
+#   curation_diff: <anchor> — curated from a live file; record in
+#                             ramp/curation-diffs.md
+# overwrite: never = existing destinations are always skipped;
+# force-backup = with --force, back up the destination then overwrite.
+schema_version: 1
+entries:
+  # ── Tier 1 — live ──────────────────────────────────────────────────
+  - source: assets/tier1/pre-commit-config.yaml
+    destination: .pre-commit-config.yaml
+    tier: 1
+    overwrite: force-backup
+    curation_diff: curation-diffs.md#pre-commit-config
+  - source: assets/tier1/github/hooks/pre-command-guard.json
+    destination: .github/hooks/pre-command-guard.json
+    tier: 1
+    overwrite: force-backup
+    mirror_exact: .github/hooks/pre-command-guard.json
+  - source: assets/tier1/github/hooks/scripts/pre-command-guard.sh
+    destination: .github/hooks/scripts/pre-command-guard.sh
+    tier: 1
+    overwrite: force-backup
+    executable: true
+    curation_diff: curation-diffs.md#pre-command-guard
+  - source: assets/tier1/github/hooks/README.md
+    destination: .github/hooks/README.md
+    tier: 1
+    overwrite: force-backup
+    authored: true
+  - source: assets/tier1/github/workflows/tests.yml
+    destination: .github/workflows/tests.yml
+    tier: 1
+    overwrite: force-backup
+    authored: true
+  - source: assets/tier1/AGENTS.md
+    destination: AGENTS.md
+    tier: 1
+    overwrite: force-backup
+    authored: true
+
+  # ── Tier 2 — governed ──────────────────────────────────────────────
+  - source: assets/tier2/feature-requests/TEMPLATE.md
+    destination: feature-requests/TEMPLATE.md
+    tier: 2
+    overwrite: force-backup
+    mirror_exact: feature-requests/TEMPLATE.md
+  - source: assets/tier2/github/skills/judge-fr/SKILL.md
+    destination: .github/skills/judge-fr/SKILL.md
+    tier: 2
+    overwrite: force-backup
+    mirror_exact: .github/skills/judge-fr/SKILL.md
+  - source: assets/tier2/github/skills/judge-fr/doctrine.md
+    destination: .github/skills/judge-fr/doctrine.md
+    tier: 2
+    overwrite: force-backup
+    mirror_exact: .github/skills/judge-fr/doctrine.md
+  - source: assets/tier2/github/skills/judge-fr/judgement.template.md
+    destination: .github/skills/judge-fr/judgement.template.md
+    tier: 2
+    overwrite: force-backup
+    mirror_exact: .github/skills/judge-fr/judgement.template.md
+  - source: assets/tier2/github/skills/review-pr/SKILL.md
+    destination: .github/skills/review-pr/SKILL.md
+    tier: 2
+    overwrite: force-backup
+    mirror_exact: .github/skills/review-pr/SKILL.md
+  - source: assets/tier2/github/skills/review-pr/doctrine.md
+    destination: .github/skills/review-pr/doctrine.md
+    tier: 2
+    overwrite: force-backup
+    mirror_exact: .github/skills/review-pr/doctrine.md
+  - source: assets/tier2/github/skills/review-pr/review.template.md
+    destination: .github/skills/review-pr/review.template.md
+    tier: 2
+    overwrite: force-backup
+    mirror_exact: .github/skills/review-pr/review.template.md
+  - source: assets/tier2/scripts/judge.sh
+    destination: scripts/judge.sh
+    tier: 2
+    overwrite: force-backup
+    executable: true
+    curation_diff: curation-diffs.md#judge-sh
+  - source: assets/tier2/scripts/review.sh
+    destination: scripts/review.sh
+    tier: 2
+    overwrite: force-backup
+    executable: true
+    curation_diff: curation-diffs.md#review-sh
+  - source: assets/tier2/scripts/gates/changelog_gate.sh
+    destination: scripts/gates/changelog_gate.sh
+    tier: 2
+    overwrite: force-backup
+    executable: true
+    authored: true
+  - source: assets/tier2/scripts/gates/diary_gate.sh
+    destination: scripts/gates/diary_gate.sh
+    tier: 2
+    overwrite: force-backup
+    executable: true
+    authored: true
+  - source: assets/tier2/docs/diary/TEMPLATE.md
+    destination: docs/diary/TEMPLATE.md
+    tier: 2
+    overwrite: force-backup
+    authored: true
+
+  # ── Tier 3 — regulated ─────────────────────────────────────────────
+  - source: assets/tier3/capabilities/README.md
+    destination: capabilities/README.md
+    tier: 3
+    overwrite: force-backup
+    authored: true
+  - source: assets/tier3/scripts/req_coverage.py
+    destination: scripts/req_coverage.py
+    tier: 3
+    overwrite: force-backup
+    curation_diff: curation-diffs.md#req-coverage

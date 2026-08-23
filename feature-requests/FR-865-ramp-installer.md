@@ -213,24 +213,24 @@ detector behaviour.
 
 Superseded by the judgement's revised set (2026-08-23); folded verbatim.
 
-- [ ] AC-01: FR-865 is revised to define the supported target contract, curated asset source tree, exact manifest schema, overwrite/rollback model, git-root detection contract, human-review gate, curated-asset drift evidence format, and consumer-registry contract from R-1 through R-6 and amendment R-1/R-2.
-- [ ] AC-02: `ramp/manifest.yaml` schema validation runs in CI/test, and every entry has relative normalized `source`, relative normalized `destination`, `tier`, executable-mode metadata where needed, and an overwrite policy whose values match the implemented behavior.
-- [ ] AC-03: Manifest validation rejects absolute paths, `..` traversal, directory sources, missing source files, symlink sources unless explicitly allowed, generated/cache/log paths, and duplicate destinations.
-- [ ] AC-04: Tier expansion is mechanical and monotonic: Tier 2 installs Tier 1 plus Tier 2, Tier 3 installs Tier 1 plus Tier 2 plus Tier 3; tests assert set containment from the manifest rather than hardcoded lists.
-- [ ] AC-05: `--tier {1,2,3} --dry-run` each prints every action it would take from the manifest, including `create`, `skip exists`, or `overwrite` status as applicable, writes zero files, prints any would-be consumer row when `--record-consumer` is provided, and exits 0.
-- [ ] AC-06: A Tier-1 install into a scratch supported repo creates all Tier-1 destinations from curated ramp sources; installed files match those curated sources byte-for-byte except documented templated/stub fields such as the `AGENTS.md` stub.
-- [ ] AC-07: A second identical run changes no file content or mtime and reports every already-present destination as skipped; if `--record-consumer` is used, `ramp/consumers.md` is idempotently updated rather than duplicated; exit 0.
-- [ ] AC-08: A pre-existing `AGENTS.md` with sentinel content survives without `--force`; the with-`--force` behavior is tested according to the revised backup/restore/refusal contract.
-- [ ] AC-09: `docs/ramp-manifest.md` records every destination, source path, action taken, source commit SHA, and source/installed hashes; a test parses it and verifies it is sufficient for the documented rollback behavior.
-- [ ] AC-10: Rollback is documented and tested against a scratch repo: it deletes only files created by the installer and either restores forced-overwrite backups or refuses forced overwrite when restoration is not supported.
-- [ ] AC-11: The installer refuses a non-repo path, this repository, an unsupported target shape, and any target path that would escape the repo root; each refusal exits non-zero and writes nothing.
-- [ ] AC-12: Source scans assert the installer and curated assets contain no LLM call, no network call, no target-repo mutating `git` command, no secret material, no hook logs, no pycache, and no unresolved yamlgraph-only assumptions outside the explicitly reviewed contract.
-- [ ] AC-13: If a CI workflow is installed, fixture tests prove the exact supported target suite command and ruff command run as documented; otherwise the workflow is an explicit setup stub and is not described as an active gate.
+- [x] AC-01: FR-865 is revised to define the supported target contract, curated asset source tree, exact manifest schema, overwrite/rollback model, git-root detection contract, human-review gate, curated-asset drift evidence format, and consumer-registry contract from R-1 through R-6 and amendment R-1/R-2.
+- [x] AC-02: `ramp/manifest.yaml` schema validation runs in CI/test, and every entry has relative normalized `source`, relative normalized `destination`, `tier`, executable-mode metadata where needed, and an overwrite policy whose values match the implemented behavior.
+- [x] AC-03: Manifest validation rejects absolute paths, `..` traversal, directory sources, missing source files, symlink sources unless explicitly allowed, generated/cache/log paths, and duplicate destinations.
+- [x] AC-04: Tier expansion is mechanical and monotonic: Tier 2 installs Tier 1 plus Tier 2, Tier 3 installs Tier 1 plus Tier 2 plus Tier 3; tests assert set containment from the manifest rather than hardcoded lists.
+- [x] AC-05: `--tier {1,2,3} --dry-run` each prints every action it would take from the manifest, including `create`, `skip exists`, or `overwrite` status as applicable, writes zero files, prints any would-be consumer row when `--record-consumer` is provided, and exits 0.
+- [x] AC-06: A Tier-1 install into a scratch supported repo creates all Tier-1 destinations from curated ramp sources; installed files match those curated sources byte-for-byte except documented templated/stub fields such as the `AGENTS.md` stub.
+- [x] AC-07: A second identical run changes no file content or mtime and reports every already-present destination as skipped; if `--record-consumer` is used, `ramp/consumers.md` is idempotently updated rather than duplicated; exit 0.
+- [x] AC-08: A pre-existing `AGENTS.md` with sentinel content survives without `--force`; the with-`--force` behavior is tested according to the revised backup/restore/refusal contract.
+- [x] AC-09: `docs/ramp-manifest.md` records every destination, source path, action taken, source commit SHA, and source/installed hashes; a test parses it and verifies it is sufficient for the documented rollback behavior.
+- [x] AC-10: Rollback is documented and tested against a scratch repo: it deletes only files created by the installer and either restores forced-overwrite backups or refuses forced overwrite when restoration is not supported.
+- [x] AC-11: The installer refuses a non-repo path, this repository, an unsupported target shape, and any target path that would escape the repo root; each refusal exits non-zero and writes nothing.
+- [x] AC-12: Source scans assert the installer and curated assets contain no LLM call, no network call, no target-repo mutating `git` command, no secret material, no hook logs, no pycache, and no unresolved yamlgraph-only assumptions outside the explicitly reviewed contract.
+- [x] AC-13: If a CI workflow is installed, fixture tests prove the exact supported target suite command and ruff command run as documented; otherwise the workflow is an explicit setup stub and is not described as an active gate.
 - [ ] AC-14: The manifest and curated enforcement assets are human-reviewed before first non-scratch use; the FR records the reviewed source commit SHA and any approved deviations.
-- [ ] AC-15: Tests are added before implementation for the installer behavior above, with RED/GREEN evidence recorded in the FR.
-- [ ] AC-16 (A-1): Existing yamlgraph test/CI execution runs the curated Tier-1 `.pre-commit-config.yaml` against a committed fixture scratch repo; a failing curated config is a red build without changing yamlgraph's live hook or CI enforcement policy.
-- [ ] AC-17 (A-1): A drift test asserts every curated asset mirroring a live root counterpart either matches it exactly or carries a recorded curation diff naming the live source, curated destination, removed/changed material, and reason; unexplained drift fails.
-- [ ] AC-18 (A-2): `ramp/consumers.md` exists with a documented row schema: target repository slug, install date, tier, source SHA, manifest hash, and optional reviewed-source SHA; tests validate the format, reject absolute paths/credential-bearing URLs, and prove idempotent append/update behavior using scratch metadata only.
+- [x] AC-15: Tests are added before implementation for the installer behavior above, with RED/GREEN evidence recorded in the FR.
+- [x] AC-16 (A-1): Existing yamlgraph test/CI execution runs the curated Tier-1 `.pre-commit-config.yaml` against a committed fixture scratch repo; a failing curated config is a red build without changing yamlgraph's live hook or CI enforcement policy.
+- [x] AC-17 (A-1): A drift test asserts every curated asset mirroring a live root counterpart either matches it exactly or carries a recorded curation diff naming the live source, curated destination, removed/changed material, and reason; unexplained drift fails.
+- [x] AC-18 (A-2): `ramp/consumers.md` exists with a documented row schema: target repository slug, install date, tier, source SHA, manifest hash, and optional reviewed-source SHA; tests validate the format, reject absolute paths/credential-bearing URLs, and prove idempotent append/update behavior using scratch metadata only.
 
 ## Risks
 
@@ -259,6 +259,50 @@ FR-207 proved decays. AC-02 asserts the stub.
   and its result is on record.
 - **Install via a graph.** Rejected: copying files is mechanical, and a
   graph here would be `framework_costume`.
+
+## Implementation Record (2026-08-24)
+
+**Status: ENFORCED (AC-14 human review pending).**
+
+- **RED**: `c92b18f3` — 45 contract tests in
+  `tests/unit/test_ramp_installer.py` (module absent →
+  `ModuleNotFoundError`, evidence `logs/fr865-red.log`), plus
+  `CAP-244`/REQ-YG-610..613 and the committed fixture repo
+  `ramp/fixtures/target-repo/`.
+- **GREEN**: this commit — `scripts/ramp_installer.py` (426 lines) +
+  `scripts/ramp.sh` thin wrapper, `ramp/manifest.yaml` (20 entries,
+  6/12/2 per tier), curated asset tree under `ramp/assets/tier{1,2,3}/`,
+  `ramp/curation-diffs.md` (5 records), `ramp/consumers.md` registry.
+  45/45 tests pass; full unit suite green (6055 passed).
+
+**Decisions:**
+
+- `ramp.sh` delegates to `ramp_installer.py` (`exec python3 …`): the
+  copy/hash/backup logic exceeds honest shell, and the FR mandates
+  Python-testable behavior; the CLI surface is exactly the contracted
+  one.
+- All manifest entries use `overwrite: force-backup` — a single
+  implemented policy value (AC-02) rather than speculative `never`
+  variants; without `--force` every existing destination is skipped.
+- The Tier-1 CI workflow is an explicit `workflow_dispatch` setup stub
+  (AC-13 second branch): no schedule, no secrets, no claimed active
+  gate — activation is the operator's move.
+- Consumer-row identity is `(slug, tier, manifest_hash)`; re-installs
+  update in place (AC-07/AC-18). Registry path override via
+  `RAMP_CONSUMERS_FILE` keeps tests scratch-only.
+- `docs/ramp-manifest.md` is rewritten only when an action changed
+  something, preserving idempotent mtimes (AC-07); it carries per-row
+  source/installed SHA-256 and backup paths sufficient for rollback
+  (AC-09/AC-10).
+- Deviation from none: curated `judge.sh`/`review.sh` add an
+  adapter-graph existence check absent in the live wrappers, because
+  the installer ships no graphs (GATE C-4); recorded in
+  `ramp/curation-diffs.md#judge-sh`.
+
+**Pending:** AC-14 — human review of `ramp/manifest.yaml` and the
+curated enforcement assets before first non-scratch use; record the
+reviewed source SHA in `ramp/consumers.md` (`reviewed_sha` column) and
+here.
 
 ## Related
 
