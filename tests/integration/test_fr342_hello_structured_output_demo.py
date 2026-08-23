@@ -92,6 +92,5 @@ class TestFR342HelloStructuredOutputDemo:
         greeting = result["greeting"]
         assert isinstance(greeting, dict)
 
-        # For backward compatibility tests that look for "World" in greeting,
-        # the actual greeting text should contain "World"
-        assert "World" in greeting["greeting"]
+        # Tolerant matching: live LLM may inflect case ("the world")
+        assert "world" in greeting["greeting"].lower()
