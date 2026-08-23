@@ -112,20 +112,34 @@ def render_report(result: ReconcileResult, metadata: dict) -> str:
         "# Requirement Witness Audit",
         "",
         f"- Stage: {metadata.get('stage', '1')}",
-        f"- Model: {metadata.get('model', '?')} " f"({metadata.get('provider', '?')})",
+        f"- Model: {metadata.get('model', '?')} ({metadata.get('provider', '?')})",
         f"- Tree: {metadata.get('tree_sha', '?')}",
         f"- Batches: {metadata.get('batch_count', '?')}",
         f"- Reconciliation: {len(result.audited)} audited, "
         f"{len(result.unaudited)} unaudited, "
         f"{len(result.rejected_batches)} rejected batches, "
         f"{len(result.duplicates)} duplicates",
+    ]
+    run_manifest = metadata.get("run_manifest") or {}
+    if run_manifest:  # FR-860: provenance header from run-manifest.json
+        dirty = "DIRTY TREE" if run_manifest.get("git_dirty") else "clean"
+        lines += [
+            f"- Provenance: git {run_manifest.get('git_sha', '?')} ({dirty})",
+            "- Instrument: "
+            f"{run_manifest.get('recorded_context_count', '?')} recorded "
+            f"contexts / {run_manifest.get('tagged_test_count', '?')} "
+            "tagged tests",
+            f"- Run model: {run_manifest.get('model', '?')} "
+            f"({run_manifest.get('provider', '?')})",
+        ]
+    lines += [
         "",
         "## Flagged (no, then partial)",
         "",
     ]
     for v in flagged:
         lines.append(
-            f"- **{v['req_id']}** [{v['witnessed']}] {v['gap']} " f"→ {v['suggestion']}"
+            f"- **{v['req_id']}** [{v['witnessed']}] {v['gap']} → {v['suggestion']}"
         )
     if not flagged:
         lines.append("(none)")
@@ -162,6 +176,12 @@ def main() -> None:
         "--stage", default="1 (witness plausibility from names and declared links)"
     )
     parser.add_argument("--tree-sha", default="")
+    parser.add_argument(
+        "--run-manifest",
+        type=Path,
+        default=None,
+        help="FR-860 run-manifest.json to embed as report provenance",
+    )
     args = parser.parse_args()
 
     manifest = json.loads((args.audit_dir / "manifest.json").read_text())
@@ -179,6 +199,9 @@ def main() -> None:
     )
 
     result = reconcile(manifest, responses, retry_responses)
+    run_manifest = (
+        json.loads(args.run_manifest.read_text()) if args.run_manifest else {}
+    )
     report = render_report(
         result,
         metadata={
@@ -187,6 +210,7 @@ def main() -> None:
             "stage": args.stage,
             "tree_sha": tree_sha,
             "batch_count": len(manifest),
+            "run_manifest": run_manifest,
         },
     )
     out_path = args.audit_dir / "report.md"
