@@ -55,13 +55,28 @@ existing skill (Commandment 4 — conform before extending):
    generators (`fr_board.py`, `aggregate_capabilities.py`, changelog
    aggregation), mirroring how `judge.sh`/`review.sh` are sole routes.
    ~60 lines of bash; failure leaves the main tree untouched.
-3. **Guard** — extend `.github/hooks/scripts/pre-command-guard.sh` with
-   deny rules for the mechanically detectable ritual violations:
-   - bare `git stash pop` / `git stash apply` without an explicit
-     `stash@{n}` ref;
-   - `git add -A`, `git add .`, `git add --all`, `git commit -a[m]`
-     (index sweeps — the root mechanism of shapes 1 and 6);
-   - denial messages point at the doctrine file (teach, not just block).
+3. **Guard** — extend `.github/hooks/scripts/pre-command-guard.sh`,
+   boundary-first (operator revision 2026-08-23: "should it start sooner —
+   write to main prohibited"):
+   - **Primary rule: agent commits in the primary checkout are denied.**
+     `git commit` is refused when the repo's `.git` is a directory (primary
+     worktree; linked worktrees carry a `.git` file — one stat, no
+     session-detection dependency). Denial message names
+     `scripts/worktree.sh` and the doctrine. This makes shapes 1, 4, 5,
+     and 6 structurally impossible instead of individually parried;
+     PreToolUse binds agents only, so the operator's push-to-main flow is
+     untouched.
+   - Defense-in-depth (still reachable inside a private worktree): bare
+     `git stash pop` / `git stash apply` without an explicit `stash@{n}`
+     ref remains denied.
+   - Index-sweep rules (`git add -A/.`, `git commit -a`) are DROPPED —
+     they were choreography around the shared index the primary rule
+     removes.
+   - Known residual (named, not solved here): file EDITS still land in
+     the shared tree while sessions are anchored to the main folder; the
+     commit denial forces worktree adoption over time but cannot see
+     edits. Doctrine mandates opening writing sessions in worktrees;
+     mechanical edit-guarding is out of scope.
 4. **Memory disposition (subtraction)** — after the doctrine lands, the
    interleave content of local `hook-lessons.md` is superseded; the memory
    file shrinks to a one-line pointer at the doctrine. Repo is truth,
@@ -74,7 +89,11 @@ existing skill (Commandment 4 — conform before extending):
 - Session-locking or preventing parallel sessions (the operator runs them
   deliberately; the goal is safe interleaving, not exclusion).
 - Guarding `git push`/`git fetch` ordering (advisory in doctrine only —
-  too many legitimate shapes to deny mechanically).
+  push races serialize at origin, where git fails loudly; the silent
+  failure class is the shared index/tree, which the primary rule removes).
+- Mechanically guarding file edits in the primary checkout (PostToolUse
+  edit-warning is a candidate follow-up FR once worktree-per-session is
+  the observed norm).
 
 ## Deliverables
 
@@ -88,23 +107,34 @@ existing skill (Commandment 4 — conform before extending):
 
 ## Acceptance Criteria
 
-- AC-1: A grep for `stash pop`, `add -A`, `commit -a` in the guard shows
-  deny rules; each denial message names the doctrine path.
+- AC-1: In the primary checkout, an agent `git commit` tool call is denied
+  with a message naming `scripts/worktree.sh` and the doctrine path; the
+  identical command inside a linked worktree is allowed.
 - AC-2: `scripts/hermetic.sh 'python scripts/fr_board.py'` regenerates
   docs/fr-board.md (or its FR-858 successor) with a dirty sibling working
   tree present, and the main tree's non-output files are untouched.
 - AC-3: Doctrine file contains all six shapes with cures; SKILL.md
   description advertises write rituals.
-- AC-4: Guard tests cover at least one allowed and one denied form per rule
-  (e.g. `git stash pop stash@{0}` allowed, `git stash pop` denied).
+- AC-4: Guard tests cover allowed/denied pairs per rule: commit in linked
+  worktree allowed vs primary denied; `git stash pop stash@{0}` allowed vs
+  bare `git stash pop` denied.
 - AC-5: No new required CI checks (operator git-flow constraint: single-dev
   push-to-main remains the default; guard is local PreToolUse only).
 
 ## Risks
 
-- Guard false positives on chaplain/watcher automation that legitimately
-  uses swept adds — mitigation: audit automation scripts for the denied
-  forms before enabling; convert findings to pathspec form first.
+- Worktree friction for small docs/diary commits — mitigation:
+  `scripts/worktree.sh` provisioning already exists; doctrine includes a
+  short-lived "commit worktree" recipe (add, commit, push, remove) whose
+  cost is comparable to the airlock ritual it replaces.
+- Worktree venv/symlink traps are known prior incidents (FR-174 venv
+  corruption, FR-199 CLAUDE.md symlink) — mitigation: doctrine cites both
+  cures; hermetic.sh and worktree.sh use the main repo's venv python
+  explicitly.
+- Chaplain/watcher automation committing in the primary checkout would be
+  denied — mitigation: they already operate in worktrees (FR-241
+  teardown lineage); verify with an audit-log dry run before enabling the
+  deny (guard supports warn-then-deny rollout via its audit trail).
 - Doctrine drift vs Scripture summary — mitigation: Scripture
   `one_session_one_repo` entry gains a pointer to the doctrine as its
   canonical expansion (one-line edit, within scope).
