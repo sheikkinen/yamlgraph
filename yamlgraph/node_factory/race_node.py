@@ -405,6 +405,7 @@ def create_race_node(
                 }
             raise
 
+        logger.info(f"Node {node_name} completed successfully")
         return {
             state_key: result,
             "_race_winner": {
