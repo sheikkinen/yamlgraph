@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Proposed
+**Status:** Judged — APPROVED WITH REVISIONS (2026-08-23), R-1…R-6 folded
 **Effort:** 0.25 day
 **Requested:** 2026-08-23
 **Parent:** FR-864 (SPLIT) — child D per R-3
@@ -66,61 +66,101 @@ while its name stops competing.
 
 ## Proposed Solution
 
-### `salvage_classify` graph
+### Frozen input closure (R-1)
 
-- python node enumerates the target ref's tracked files (the count is
-  determined by the run, not asserted in advance)
-- **map** over each artifact → `{path, category, verdict:
-  duplicate|lift|obsolete, rationale, yamlgraph_equivalent, target_path}`
-- for `duplicate`, the equivalent path here must exist (validated
-  mechanically after the run)
-- merge → `tmp/ramp/salvage-disposition.{md,json}`, count-in ==
-  count-out over enumerated files
+Authority does not activate until these are recorded here:
 
-Authored through the governed route; writes drafts only; no commits
-(parent C-3, C-7).
+| Field | Value |
+|---|---|
+| repository | `sheikkinen/scripture-dev` |
+| ref | `9d4677a` (local HEAD, 2026-03-29) — re-confirm and record the SHA at enforcement time |
+| population | `git ls-files` at that ref, **exact count recorded before the run**; the earlier "27 artifacts" was an estimate and is withdrawn |
+| exclusions | none — every tracked file receives a verdict |
+
+### `salvage_classify` graph artifacts (R-2)
+
+| Artifact | Path |
+|---|---|
+| graph | `examples/demos/salvage_classify/graph.yaml` |
+| prompts | `examples/demos/salvage_classify/prompts/classify_asset.yaml` |
+| collection node | python node listing tracked files at the frozen ref |
+| task brief | `feature-requests/authoring-briefs/fr-868-salvage-classify-brief.md` (committed) |
+| authoring report | retained from `tmp/draft-authoring-report.md` |
+| drafts | `tmp/ramp/salvage-disposition.md`, `tmp/ramp/salvage-disposition.json` |
+
+Per-item schema: `{path, category, verdict:
+duplicate|lift|obsolete, rationale, yamlgraph_equivalent, target_path}`.
+Merge reports count-in == count-out over enumerated files. Authored
+through the governed route; drafts only; no commits (parent C-3, C-7).
+
+### Lift destinations, decoupled from FR-865 (R-3)
+
+Lifted artifacts land at **`ramp/salvage/<original-path>`** in this
+repo, with a `SALVAGE.md` index recording source path, source SHA and
+rationale. This destination exists independently of FR-865's manifest;
+whether a salvaged asset is later *promoted* into `ramp/assets/` is
+FR-865's decision, not this FR's. FR-868 can therefore complete even if
+FR-865 has not started.
+
+### Validation without a sibling checkout (R-4)
+
+Committed tests run against a **fixture disposition file** under
+`tests/fixtures/salvage/`: they assert schema validity, that every
+`duplicate` names an equivalent path existing in this repo, that every
+`lift` names a destination under `ramp/salvage/`, and that counts
+reconcile. Live evidence against the real `scripture-dev` checkout is
+**operator-run and recorded in this FR**; it never gates CI.
 
 ### Lift and close
 
 1. Human reviews the disposition list.
-2. `lift` items are merged into this repo's ramp assets (FR-865's
-   manifest) with attribution in the commit message.
+2. `lift` items are copied to `ramp/salvage/` with attribution.
 3. FR-207 gains an outcome section: implemented, unconsumed, superseded
-   by FR-864's family, mechanism diagnosis (`asset_source_must_be_a_consumer`).
-4. **Human approves**; then the repo is archived on GitHub.
+   by FR-864's family, mechanism diagnosis
+   (`asset_source_must_be_a_consumer`).
+4. **Human approves in writing here**; only then is the repo archived.
+
+### Archive gate (R-5)
+
+Archive is **hard-gated**, not default-proceed:
+
+- recorded human approval line in this FR — **and**
+- a consumer-impact finding for `my-minesweeper` / `my-minesweeper2`
+  that is either "no impact" or **explicitly accepted by the operator**
+
+If a consumer would be affected and no acceptance is recorded, the
+archive **does not proceed**. The earlier wording ("the archive still
+proceeds") is withdrawn: it made a finding decorative.
+
+### Secret check (R-6)
+
+Named mechanical check, not "scan the diff": `detect-secrets` (or the
+repo's existing `detect-private-key` pre-commit hook plus
+`gitleaks detect --no-git`) run over `ramp/salvage/` **before** the lift
+commit. Failure condition: any finding blocks the lift. The tool name,
+version, command and result are recorded in this FR.
 
 ## Acceptance Criteria
 
-Exhaustive for this surface alone.
+Superseded by the judgement's revised set (2026-08-23); folded verbatim.
 
-- [ ] AC-01: the classified ref (commit SHA) of `scripture-dev` is
-      recorded in this FR before the run.
-- [ ] AC-02: `salvage_classify` passes `yamlgraph graph lint` and was
-      authored through the governed route, report retained.
-- [ ] AC-03: **every** enumerated tracked file receives a verdict; zero
-      `unknown`; count-in == count-out reported.
-- [ ] AC-04: every `duplicate` verdict names an equivalent path that
-      exists in this repo; a test validates each.
-- [ ] AC-05: every `lift` verdict names a concrete destination path
-      under this repo's ramp assets.
-- [ ] AC-06: the disposition draft is read raw before any lift decision
-      is executed — ≥ 3 entries quoted in the FR with a concrete detail
-      each (`read_raw_output_first`).
-- [ ] AC-07: lifted artifacts are committed here with attribution to
-      `scripture-dev` and its SHA.
-- [ ] AC-08: if the lift list is empty, the FR states that explicitly
-      with the rationale — an empty result is a finding, not a failure.
-- [ ] AC-09: FR-207 is updated with the outcome, the mechanism
-      diagnosis, and a pointer to FR-864's family.
-- [ ] AC-10: **archive happens only after recorded human approval**;
-      the approval line is in this FR before the action (parent C-4).
-- [ ] AC-11: `scripture-dev` is archived, **not deleted**; its history
-      and FR record remain readable, verified after the fact.
-- [ ] AC-12: `my-minesweeper` and `my-minesweeper2` are checked for
-      dependence on it; if either would break, the FR records the impact
-      and the archive still proceeds (archive is read-only, not removal).
-- [ ] AC-13: no secrets or token-bearing content are lifted; the diff is
-      scanned.
+- [ ] AC-01: FR-868 is revised to define the exact `scripture-dev` repository URL, commit SHA, enumeration mechanism, tracked-file count, artifact-population evidence path, graph artifact paths, schemas, authoring-record paths, lift namespace, archive approval gate, and secret-scan command from R-1 through R-6.
+- [ ] AC-02: The source artifact manifest for the classified `scripture-dev` commit exists as committed evidence or an FR section; the manifest count equals the enumerator's count and is the complete population consumed by `salvage_classify`.
+- [ ] AC-03: `salvage_classify` is authored through the governed graph-authoring route with a committed task brief and a retained report naming artifacts, precedent, lint command, smoke command, repairs, and blocked validation if any.
+- [ ] AC-04: `salvage_classify` passes `yamlgraph graph lint` against its final committed `graph.yaml`.
+- [ ] AC-05: The graph declares Pydantic schemas for per-artifact classifications and final disposition JSON; tests validate representative fixture outputs against those schemas.
+- [ ] AC-06: Draft paths are exactly `tmp/ramp/salvage-disposition.md` and `tmp/ramp/salvage-disposition.json`; tests assert the graph/tool writes no file outside `tmp/ramp/`.
+- [ ] AC-07: Classification reports count-in == count-out over the source artifact manifest, emits zero `unknown` verdicts, and explicitly classifies every item as `duplicate`, `lift`, or `obsolete`.
+- [ ] AC-08: Every `duplicate` verdict names a `yamlgraph_equivalent` path that exists in this repo and passes a test over the generated disposition JSON.
+- [ ] AC-09: Every `lift` verdict names an authorized destination path, source SHA, and rationale; tests reject destinations outside the revised lift namespace.
+- [ ] AC-10: Before any lift is committed, the FR records a raw-output read of at least three disposition entries, each quoted with a concrete detail and the human decision made from it.
+- [ ] AC-11: If the lift list is empty, the FR records that explicitly with rationale; an empty lift list is a valid finding only after the raw-output read.
+- [ ] AC-12: Lifted assets, if any, are committed here with attribution to `scripture-dev` and the classified SHA recorded in the FR implementation section and commit evidence.
+- [ ] AC-13: The named secret-scan command(s) run over every lifted file and final diff; the FR records the command, result, and any reviewed false-positive disposition.
+- [ ] AC-14: FR-207 is updated with the outcome, the `asset_source_must_be_a_consumer` mechanism diagnosis, the classified SHA, and a pointer to the FR-864 child family.
+- [ ] AC-15: `my-minesweeper` and `my-minesweeper2` dependence checks are recorded before archive approval; if either would break or the check cannot complete, a fresh human approval line after that finding is required.
+- [ ] AC-16: `scripture-dev` is archived only after explicit recorded human approval and is verified afterward as archived/read-only, not deleted.
+- [ ] AC-17: Tests are added before implementation for the graph behavior and validation checks above, with RED/GREEN evidence recorded in the FR.
 
 ## Risks
 

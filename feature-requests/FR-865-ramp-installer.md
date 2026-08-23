@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Feature
-**Status:** Proposed
+**Status:** Judged — APPROVED WITH REVISIONS (2026-08-23), R-1…R-6 folded
 **Effort:** 0.5 day
 **Requested:** 2026-08-23
 **Parent:** FR-864 (SPLIT) — child A per R-1
@@ -48,28 +48,66 @@ forward.
 
 ## Ideal Result
 
-One command, under a minute, against any path. It writes only files
-that do not already exist, prints exactly what it would do under
-`--dry-run`, leaves a manifest naming every asset and the source commit
-SHA, and can be re-run safely. It contains no judgement whatsoever —
-everything requiring a decision about the target belongs to FR-866.
+One command, under a minute, against a target matching the **supported
+contract** (below). It writes only files that do not already exist,
+prints exactly what it would do under `--dry-run`, leaves a manifest
+naming every asset, action, source commit SHA and content hashes, and
+can be re-run safely. It contains no judgement whatsoever — everything
+requiring a decision about the target belongs to FR-866.
 
 ## Proposed Solution
 
-### Asset manifest (source of truth: `ramp/manifest.yaml` in this repo)
+### Supported target contract (R-3)
 
-Each entry: source path, destination path, tier, and `overwrite: never`.
+Tier 1 supports **Python repositories with `pyproject.toml`, a `tests/`
+suite runnable by pytest, and ruff configured**. Any other shape is
+refused with a non-zero exit and no writes. "Any path" was an
+overclaim: a generic copier cannot know a target's package manager,
+test command, or dependency install step.
 
-**Tier 1 (live)**
-- `.pre-commit-config.yaml` — basics only: ruff, file-size,
-  trailing-whitespace, end-of-file, merge-conflict, private-key,
-  forbidden phrases, `--no-verify` block
-- `.github/hooks/` — the Copilot guard set (`pre-command-guard.sh`,
-  `post-edit-checks`, config JSON). Domain-free: it fired twice on
-  2026-08-23 from a foreign cwd.
-- `.github/workflows/tests.yml` — runs the target's suite + ruff
-- `AGENTS.md` — **stub only**, naming the three rules and pointing at
-  FR-866 for tailoring. The installer must never write doctrine content.
+Fixture scratch repos must cover: passing suite, missing tests,
+missing ruff config — each with the documented refusal or skip.
+
+### Curated asset source (R-1, R-2)
+
+Assets live in **`ramp/assets/tier{1,2,3}/...`** in this repo, enumerated
+file-by-file in `ramp/manifest.yaml`. **No manifest entry may be a
+directory, and no entry may point at this repo's live root files**
+unless the FR states why that exact file is domain-free and a source
+scan proves it.
+
+This is the revision that matters most: this repo's root
+`.pre-commit-config.yaml` is **not** "basics only" — it carries
+authoring proof, capability/requirement validation, radon and bandit
+against `yamlgraph/`, demo proof, prior-art and FR-board gates. Copying
+it byte-for-byte would install a yamlgraph-specific config while this FR
+promises domain-free basics. The shipped `.pre-commit-config.yaml` is
+therefore a **curated ramp file**, authored for the purpose.
+
+Same for `.github/hooks/`: the manifest names each JSON, script and
+check file individually and **excludes** `logs/`, `audit.jsonl`,
+`tests/`, `__pycache__/` and any generated state. `pre-command-guard.sh`
+contains graph-authoring enforcement for `examples/**/graph.yaml` and
+`.chaplain/graphs/*.yaml`; that is not automatically domain-free for a
+Tier-1 target and must be either curated out or declared part of the
+contract.
+
+### Manifest schema
+
+Each entry: relative normalized `source`, relative normalized
+`destination`, `tier`, executable-mode metadata where needed, and an
+`overwrite` policy whose values match implemented behaviour. Validation
+rejects absolute paths, `..` traversal, directory sources, missing
+sources, symlinks (unless explicitly allowed), generated/cache/log
+paths, and duplicate destinations.
+
+### Tier assets
+
+**Tier 1 (live)** — curated `.pre-commit-config.yaml` (ruff, file-size,
+trailing-whitespace, end-of-file, merge-conflict, private-key,
+forbidden phrases, `--no-verify` block); the enumerated Copilot guard
+files; a CI workflow per R-3 below; `AGENTS.md` **stub only** — the
+installer never writes doctrine content.
 
 **Tier 2 (governed)** — adds FR/judgement/diary templates,
 `scripts/judge.sh` + `scripts/review.sh` + their skill directories,
@@ -79,45 +117,76 @@ diary and changelog gates.
 directory + schema, no entries), `scripts/req_coverage.py`, and the
 `--strict` pre-commit gate.
 
+### CI asset (R-3)
+
+Either the workflow runs the **exact documented command path** for the
+supported contract, proven by fixture tests — or it ships as a
+deliberately **inert setup stub** that prints the operator steps and is
+**not described as an active gate**. Note that no
+`.github/workflows/tests.yml` exists in this repo today; the CI asset is
+authored for the ramp, not copied.
+
+### Overwrite and rollback (R-4)
+
+Manifest action records: `created`, `skipped_exists`, `overwritten`.
+A forced overwrite records before/after hashes and **either** a backup
+path sufficient to restore **or** the action is refused. Rollback
+deletes only `created` files and restores backups where the contract
+provides them; deletion alone is not claimed to reverse a forced
+overwrite.
+
+### Git-root detection (R-5)
+
+Contract chosen: **filesystem inspection only** — `<target>/.git` plus
+path identity. No `git` process is run against the target, mutating or
+otherwise. Documented limitation: linked worktrees (where `.git` is a
+file) are refused rather than guessed. Tests cover normal repo, non-repo
+directory, worktree, nested subdirectory, and self-repo refusal.
+
+### Human-review gate (R-6)
+
+The curated asset tree and manifest are **enforcement infrastructure**
+being shipped into other repositories, and judge doctrine treats
+enforcement-infrastructure changes as adversarial input. They must be
+human-reviewed before first non-scratch use, with the reviewed source
+commit SHA recorded in `docs/ramp-manifest.md`. This FR authorizes
+adding a curated asset set and tests — **not** changing this repo's live
+hooks, CI, judge/review doctrine, graph-authoring doctrine, or
+detector behaviour.
+
 ### Behaviour
 
-- `--dry-run` prints the full plan, writes nothing, exits 0
-- default: writes only missing files; existing files are reported as
-  `skipped (exists)`
-- `--force` overwrites, and only with an explicit flag
-- always writes `<target>/docs/ramp-manifest.md`: asset list, source
-  paths, **this repo's commit SHA** (`artifact_carries_code_identity`)
-- never runs `git` in the target, never installs hooks by executing
-  `pre-commit install` — it prints the command for the operator
-- refuses to run if `<target>` is not a git repo root, or is this repo
+- `--dry-run` prints every action (`create` / `skip exists` /
+  `overwrite`), writes nothing, exits 0
+- default: writes only missing files
+- `--force`: per the R-4 contract
+- always writes `<target>/docs/ramp-manifest.md`: destinations, sources,
+  actions, this repo's commit SHA, and content hashes
+  (`artifact_carries_code_identity`)
+- never installs hooks by executing `pre-commit install` — it prints the
+  command for the operator
+- refuses: non-repo path, this repo, unsupported target shape, any
+  destination escaping the target root
 
 ## Acceptance Criteria
 
-Exhaustive for this surface alone (parent judgement R-5); no criterion
-depends on FR-866/867/868.
+Superseded by the judgement's revised set (2026-08-23); folded verbatim.
 
-- [ ] AC-01: `--tier {1,2,3} --dry-run` each print a plan listing every
-      manifest asset for that tier and write zero files; exit 0.
-- [ ] AC-02: after `--tier 1` on a scratch repo, all Tier-1 asset paths
-      exist and match their sources byte-for-byte (except `AGENTS.md`,
-      asserted to be the stub).
-- [ ] AC-03: Tier 2 installs everything in Tier 1 plus its own; Tier 3
-      plus Tier 2's — asserted as set containment, not a hardcoded list.
-- [ ] AC-04: a second identical run changes no file mtime and reports
-      every asset as `skipped (exists)`; exit 0.
-- [ ] AC-05: a pre-existing `AGENTS.md` with sentinel content survives a
-      run without `--force`, and is replaced with it.
-- [ ] AC-06: `docs/ramp-manifest.md` contains every installed
-      destination path and this repo's commit SHA; a test parses it.
-- [ ] AC-07: running against a non-repo path, or against this repo,
-      exits non-zero with a message and writes nothing.
-- [ ] AC-08: the installer contains no LLM call, no network call, and no
-      `git` invocation in the target — asserted by a source scan.
-- [ ] AC-09: `ramp/manifest.yaml` is schema-validated in CI; every
-      declared source path exists in this repo.
-- [ ] AC-10: rollback is documented and tested: the manifest is
-      sufficient to delete exactly what was installed.
-- [ ] AC-11: tests added before implementation (RED/GREEN commits).
+- [ ] AC-01: FR-865 is revised to define the supported target contract, curated asset source tree, exact manifest schema, overwrite/rollback model, git-root detection contract, and human-review gate from R-1 through R-6.
+- [ ] AC-02: `ramp/manifest.yaml` schema validation runs in CI/test, and every entry has relative normalized `source`, relative normalized `destination`, `tier`, executable-mode metadata where needed, and an overwrite policy whose values match the implemented behavior.
+- [ ] AC-03: Manifest validation rejects absolute paths, `..` traversal, directory sources, missing source files, symlink sources unless explicitly allowed, generated/cache/log paths, and duplicate destinations.
+- [ ] AC-04: Tier expansion is mechanical and monotonic: Tier 2 installs Tier 1 plus Tier 2, Tier 3 installs Tier 1 plus Tier 2 plus Tier 3; tests assert set containment from the manifest rather than hardcoded lists.
+- [ ] AC-05: `--tier {1,2,3} --dry-run` each prints every action it would take from the manifest, including `create`, `skip exists`, or `overwrite` status as applicable, writes zero files, and exits 0.
+- [ ] AC-06: A Tier-1 install into a scratch supported repo creates all Tier-1 destinations from curated ramp sources; installed files match those curated sources byte-for-byte except documented templated/stub fields such as the `AGENTS.md` stub.
+- [ ] AC-07: A second identical run changes no file content or mtime and reports every already-present destination as skipped; exit 0.
+- [ ] AC-08: A pre-existing `AGENTS.md` with sentinel content survives without `--force`; the with-`--force` behavior is tested according to the revised backup/restore/refusal contract.
+- [ ] AC-09: `docs/ramp-manifest.md` records every destination, source path, action taken, source commit SHA, and source/installed hashes; a test parses it and verifies it is sufficient for the documented rollback behavior.
+- [ ] AC-10: Rollback is documented and tested against a scratch repo: it deletes only files created by the installer and either restores forced-overwrite backups or refuses forced overwrite when restoration is not supported.
+- [ ] AC-11: The installer refuses a non-repo path, this repository, an unsupported target shape, and any target path that would escape the repo root; each refusal exits non-zero and writes nothing.
+- [ ] AC-12: Source scans assert the installer and curated assets contain no LLM call, no network call, no target-repo mutating `git` command, no secret material, no hook logs, no pycache, and no unresolved yamlgraph-only assumptions outside the explicitly reviewed contract.
+- [ ] AC-13: If a CI workflow is installed, fixture tests prove the exact supported target suite command and ruff command run as documented; otherwise the workflow is an explicit setup stub and is not described as an active gate.
+- [ ] AC-14: The manifest and curated enforcement assets are human-reviewed before first non-scratch use; the FR records the reviewed source commit SHA and any approved deviations.
+- [ ] AC-15: Tests are added before implementation for the installer behavior above, with RED/GREEN evidence recorded in the FR.
 
 ## Risks
 

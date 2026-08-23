@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Feature
-**Status:** Proposed
+**Status:** Judged — APPROVED WITH REVISIONS (2026-08-23), R-1…R-6 folded
 **Effort:** 0.5 day
 **Requested:** 2026-08-23
 **Parent:** FR-864 (SPLIT) — child B per R-2
@@ -76,20 +76,47 @@ review before landing.** Concretely —
   from that node
 - a **map** node fans out one LLM call per item with a Pydantic schema
 - a merge node reconciles and reports **count-in == count-out**
-- output: `tmp/ramp/<name>-draft.md` plus `tmp/ramp/<name>-draft.json`
 - graphs live in `examples/demos/ramp_<name>/`, prompts in
-  `examples/demos/ramp_<name>/prompts/`, authored through the governed
-  route (parent C-3), never auto-committing (parent C-7)
+  `examples/demos/ramp_<name>/prompts/`
+
+**Draft paths are the only destinations (R-1).** No graph, node, tool or
+prompt may name a final target artifact path. Exact outputs:
+
+| Graph | Draft artifacts |
+|---|---|
+| `ramp_doctrine` | `tmp/ramp/doctrine-draft.md`, `tmp/ramp/doctrine-draft.json` |
+| `ramp_rtm` | `tmp/ramp/rtm-draft.md`, `tmp/ramp/rtm-draft.json` |
+| `ramp_incidents` | `tmp/ramp/incidents-draft.md`, `tmp/ramp/incidents-draft.json` |
+
+Landing a draft as `AGENTS.md`, `capabilities/*.yaml` or
+`docs/incidents.md` in a target is **FR-867's** act, performed by a
+human, never by these graphs.
+
+### Authoring records (R-2)
+
+One committed task brief and one retained authoring report **per
+graph** — not one for the suite:
+
+| Graph | Brief | Report |
+|---|---|---|
+| `ramp_doctrine` | `feature-requests/authoring-briefs/fr-866-ramp-doctrine-brief.md` | retained from `tmp/draft-authoring-report.md` |
+| `ramp_rtm` | `feature-requests/authoring-briefs/fr-866-ramp-rtm-brief.md` | ″ |
+| `ramp_incidents` | `feature-requests/authoring-briefs/fr-866-ramp-incidents-brief.md` | ″ |
 
 ### `ramp_doctrine`
 
 Inventory: languages, entry points, external effect sites (network/API
-writes), existing gates, workflow triggers. Map over this repo's
-Scripture traps/cures/questions → `{id, verdict: applies|not|tailor,
-reason, target_evidence}`. Merge → render an `AGENTS.md` draft whose
-trap list is a **strict subset**, with **witness citations emptied** and
-a "Local incidents" section left explicitly blank for FR-866's sibling
-graph to fill.
+writes), existing gates, workflow triggers.
+
+**Maps over all three Scripture families — traps, cures, and questions
+(R-3)** — not traps alone. Per item:
+`{family: trap|cure|question, id, verdict: applies|not|tailor, reason,
+target_evidence}`. The rendered draft carries a section per family, and
+the strict-subset assertion applies to each family independently.
+
+Merge → render an `AGENTS.md` **draft** whose lists are strict subsets,
+with **witness citations emptied** and a "Local incidents" section left
+explicitly blank for `ramp_incidents` to fill.
 
 ### `ramp_rtm`
 
@@ -99,57 +126,64 @@ statement similarity → emit registry YAML in the `capabilities/*.yaml`
 shape with `status: proposed` on **every** entry, plus a gap list of
 tests witnessing nothing. IEC-62304-styled RTM table in the draft.
 
+**Honest-failure behaviour is the contract, not a floor (R-4).** There
+is no minimum candidate count. The graph emits what it can defend and
+**reports the number**; a low count is a finding about the target, not a
+failure of the graph, and must never be padded. Acceptance tests assert
+the *reporting*, never a quota.
+
 Deliberately stricter than the successful replicant: csap has 985
 `@pytest.mark.req` tags with no registry and no coverage gate, so
 nothing detects a requirement losing its last witness.
 
-### `ramp_incidents`
+### `ramp_incidents` — `fr_atlas` reuse decision (R-5)
+
+**Decision, made here rather than deferred: author a separate graph,
+reusing `fr_atlas`'s node topology but not its prompts or schema.**
+
+Rationale: `fr_atlas` maps a corpus to an *onboarding narrative* for the
+repo that owns it — one audience, one repo, prose output. `ramp_incidents`
+filters a corpus by *relevance to a different repo* and emits typed
+incident records with `source_ref`s that must resolve. The collection
+node, chunked map and count reconciliation are the same shape and are
+copied as precedent; the prompts and output schema are not compatible.
+If authoring reveals a parameterisation that serves both, that is a
+follow-up FR, not a scope expansion here.
 
 Inventory: source-repo FRs and diary entries mentioning the target by
 name or path. Map per document → `{date, defect, root_cause, cure,
-witness, source_ref}` or `not_an_incident`. Merge → dedupe → render
-`docs/incidents.md`. Must justify itself against `fr_atlas` in the FR
-before implementation: if `fr_atlas` can be parameterised to do this,
-parameterise it.
+witness, source_ref}` or `not_an_incident`. Merge → dedupe → render the
+draft.
+
+### Tests: committed fixtures, not sibling checkouts (R-6)
+
+**No test, CI job or acceptance criterion may require
+`/Users/sheikki/Documents/src/deviant-daily` to exist.** Committed
+fixture repos under `tests/fixtures/ramp_target/` provide the inventory
+surface for all automated tests. Smoke runs against the real sibling are
+**local, operator-run evidence** recorded in this FR — they prove the
+graphs work on a real target; they do not gate CI.
 
 ## Acceptance Criteria
 
-Exhaustive for this surface alone; no criterion depends on FR-865/867/868.
+Superseded by the judgement's revised set (2026-08-23); folded verbatim.
 
-- [ ] AC-01: all three graphs pass `yamlgraph graph lint`.
-- [ ] AC-02: all three were authored through the governed authoring
-      route; reports retained in `feature-requests/authoring-briefs/`
-      and the enforcement record.
-- [ ] AC-03: each graph declares its output schema; a test validates a
-      sample output against it.
-- [ ] AC-04: draft paths are exactly `tmp/ramp/<name>-draft.{md,json}`;
-      a test asserts nothing is written outside `tmp/`.
-- [ ] AC-05: zero auto-commit — a source scan asserts no graph or tool
-      invokes `git commit`, `git push`, or `gh`.
-- [ ] AC-06: `ramp_doctrine` smoke on `deviant-daily` emits a trap list
-      that is a strict subset of the source's, contains **zero** foreign
-      witness citations (asserted by regex for `NC-\d+`, `FR-\d+`), and
-      names ≥ 1 target-specific boundary.
-- [ ] AC-07: every trap kept by `ramp_doctrine` carries a
-      `target_evidence` field naming a file or symbol in the target.
-- [ ] AC-08: `ramp_rtm` smoke on `deviant-daily` emits ≥ 10 candidates,
-      each citing ≥ 1 existing test **by name**; a test asserts every
-      cited test name exists in the target.
-- [ ] AC-09: `ramp_rtm` reports count-in == count-out over test files
-      and lists tests witnessing no requirement.
-- [ ] AC-10: every `ramp_rtm` entry carries `status: proposed`.
-- [ ] AC-11: `ramp_incidents` smoke emits all four 2026-08-23
-      `deviant-daily` failures (vision payload ceiling, DA title cap,
-      degenerate corpus key, guard-flag hedging) each with root cause,
-      cure, and a `source_ref` that resolves.
-- [ ] AC-12: `ramp_incidents` count-in == count-out over scanned
-      documents, with non-incidents explicitly classified.
-- [ ] AC-13: the FR records a **raw-output read** before merge tuning —
-      ≥ 3 raw map-node outputs per graph read end-to-end, each with a
-      concrete surprising detail (`read_raw_output_first`).
-- [ ] AC-14: `ramp_incidents` either reuses `fr_atlas` or the FR states
-      in one sentence why it cannot.
-- [ ] AC-15: tests added before implementation (RED/GREEN commits).
+- [ ] AC-01: FR-866 is revised to define exact draft paths, per-graph authoring records, doctrine-entry semantics, `ramp_rtm` honest-failure semantics, the `fr_atlas` reuse decision, and fixture-vs-live-smoke boundaries from R-1 through R-6.
+- [ ] AC-02: Each graph is authored through the governed graph-authoring route with a committed task brief and a uniquely retained report naming artifacts, precedent, validation commands, repairs, and blocked validation if any.
+- [ ] AC-03: All three graphs pass `yamlgraph graph lint` against their final committed `graph.yaml` files.
+- [ ] AC-04: Each graph declares Pydantic output schemas for its map and final JSON output; tests validate representative fixture outputs against those schemas.
+- [ ] AC-05: Draft paths are exactly `tmp/ramp/doctrine-draft.{md,json}`, `tmp/ramp/rtm-draft.{md,json}`, and `tmp/ramp/incidents-draft.{md,json}`; tests assert no graph/tool writes outside `tmp/ramp/`.
+- [ ] AC-06: Source scans assert no graph, prompt, or tool invokes `git commit`, `git push`, `gh`, or writes into a target repository.
+- [ ] AC-07: `ramp_doctrine` fixture tests prove every retained doctrine entry is selected from the source doctrine by stable id, no new doctrine ids are invented, and every retained entry has target evidence or an explicit rejection/tailoring reason.
+- [ ] AC-08: `ramp_doctrine` smoke on `deviant-daily`, when that target is available, emits a strict subset of the source doctrine, contains zero foreign witness citations matching `NC-\d+` or `FR-\d+`, and names at least one target-specific boundary.
+- [ ] AC-09: `ramp_rtm` fixture tests prove every emitted requirement has `status: proposed`, cites at least one existing test by name, and rejects or flags any cited test name absent from the target inventory.
+- [ ] AC-10: `ramp_rtm` reports count-in == count-out over test files, lists tests witnessing no requirement, and either emits at least ten cited candidates for the smoke target or an explicit insufficiency finding without padding.
+- [ ] AC-11: `ramp_incidents` fixture tests prove document classification emits either an incident object with `date`, `defect`, `root_cause`, `cure`, `witness`, and resolvable `source_ref`, or `not_an_incident`.
+- [ ] AC-12: `ramp_incidents` smoke on `deviant-daily`, when that target is available, emits the four 2026-08-23 failures named by FR-866: vision payload ceiling, DA title cap, degenerate corpus key, and guard-flag hedging.
+- [ ] AC-13: `ramp_incidents` count-in == count-out covers every scanned FR/diary document, with non-incidents explicitly classified and no silently dropped files.
+- [ ] AC-14: The FR records the `fr_atlas` reuse decision before authoring; implementation follows that decision or records a judged deviation before changing course.
+- [ ] AC-15: Before merge tuning for each graph, the FR records at least three raw map-node outputs read end-to-end, each with a concrete surprising detail a generated dump could not supply.
+- [ ] AC-16: Tests are added before implementation for the graph behavior above, with RED/GREEN evidence recorded in the FR.
 
 ## Risks
 
