@@ -206,6 +206,48 @@ collection. The modern discipline — `FR-XXX-` prefix, FR as permanent
 source of truth, judgement before enforcement — solidifies only around
 FR-071 (the earliest surviving prefixed FR).
 
+Reading the recovered corpus itself (not just its deletion record) revises
+the picture — the FR mechanic was born far more mature than the numbering
+chaos suggests:
+
+**The FR was a customer channel before it was a governance mechanic.**
+FR-001 and FR-002 were not introspective planning — they were demands from
+a real external consumer: `questionnaire-api`, a sibling application running
+on Fly.io whose auto-scaling instances needed interrupts and a Redis
+checkpointer. Twelve of the 39 recovered FRs cite questionnaire-api by file
+path (`src/questionnaire/recap/checkpointer.py`, `graph_handlers.py`). The
+first FRs were bug reports and feature demands from downstream — the
+"agents-first consumer" thesis in practice before it was a thesis.
+
+**The anatomy predates the doctrine.** Across the 39 recovered files:
+Summary (31), Related (30), Proposed Solution (29), **Acceptance Criteria
+(24)**, Problem (23), **Alternatives Considered (18)**. The modern FR
+template's skeleton was already the de-facto norm in week one — what was
+missing was not structure but *permanence* and *independence*.
+
+**Zero-latency governance.** FRs 001–004 all record `Requested: 2026-01-19,
+Implemented: 2026-01-19, Commit: 3508b80` — requested, written, implemented,
+and closed in a single commit. The FR was documentation *of* a decision, not
+a gate *before* it. The entire modern pipeline (freeze scope → judge →
+enforce) exists to insert daylight into that same-day loop.
+
+**Rejection came before the Judge.** 011a/011b were REJECTED on their
+request day (2026-01-28) with structured rationale — "Duplicates existing
+functionality", "Scope creep… LangSmith exists… Maintenance treadmill" —
+proto-verdicts written by the same hand that proposed them. Then, on
+**2026-02-17**, FR-040 and FR-042 gain explicit `## Judgment` sections with
+`**Verdict:** DEFER` / `**Verdict:** REJECT` and reasoning about framework
+surface area — **three days before the Chaplain shipped** (FR-055,
+2026-02-20). The Judge existed as a written ritual before it existed as a
+pipeline; the Chaplain automated a practice, it did not invent one. Both
+verdicts already apply what would become doctrine: "users can already wire
+this from existing primitives" — spec_kill avant la lettre.
+
+**Even FR-040's rejection is self-referential:** it proposed LLM-as-judge
+quality gates as default pipeline behavior, was itself judged and deferred —
+and its core idea (judge, threshold, regenerate) is precisely the mechanic
+the project later adopted for governing *itself* rather than its map nodes.
+
 ## Act V — Self-Government (2026-02-20 →)
 
 The machinery that builds features arrives a month into the FR era:
@@ -239,9 +281,11 @@ files (FR numbering at 869), 1,244 diary entries.
 | 2026-01-15/16 | Demo models purged; dynamic state generation — showcase becomes framework | `b2767eaa`, `ce6ee9ce` |
 | 2026-01-17 | Renamed showcase → yamlgraph; PyPI; v0.1.1 | `956b62a3`, `8e53d139` |
 | 2026-01-18 | First self-analysis; Self-Awareness Clause added to LICENSE | `6a513628`, `acb53860` |
-| 2026-01-19 | FR era begins (FR-001/002) | `3508b805` |
+| 2026-01-19 | FR era begins — FR-001/002 requested, implemented, and closed same day, driven by questionnaire-api | `3508b805` |
 | 2026-01-23 | Twelve completed FRs deleted; TEMPLATE.md added; FRs not yet permanent | `944ca655` |
-| 2026-02-20/23 | Chaplain (FR-055) and Inquisitor (FR-076) — self-government begins | `a87bc7e1`, `180f5d58` |
+| 2026-01-28 | First rejections (011a/011b) — structured rationale, same-day, self-judged | `5eab27b7` |
+| 2026-02-17 | First explicit `## Judgment` + `**Verdict:**` sections (FR-040 DEFER, FR-042 REJECT) — the Judge as ritual, pre-Chaplain | memento corpus |
+| 2026-02-20/23 | Chaplain (FR-055) and Inquisitor (FR-076) — self-government begins; the ritual becomes a pipeline | `a87bc7e1`, `180f5d58` |
 
 ---
 
@@ -256,7 +300,10 @@ it:
    spine** (FR → REQ → CAP → test).
 4. The **self-awareness joke** in the LICENSE became the **Chaplain,
    Inquisitor, and Philosopher**.
-5. The **ungoverned four-week spike** that built the framework became the
+5. The hand-written **`## Judgment` sections** of mid-February became the
+   **automated Judge** three days later — every pipeline stage was a manual
+   ritual before it was code.
+6. The **ungoverned four-week spike** that built the framework became the
    reason the framework refuses to let anything be built that way again.
 
 The deepest irony is structural: YAMLGraph's most consequential code — the
