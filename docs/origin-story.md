@@ -387,6 +387,112 @@ Three observations fall out of the curves:
 
 ---
 
+## The External Record
+
+The internal history maps onto a public one. Placing the acts against dated
+external sources shows which parts of the story were convergent evolution and
+which were zeitgeist. (Analysis in
+[diary/diary-2026-08-23-the-spike-was-vibe-coding-before-the-word-reached-us.md](diary/diary-2026-08-23-the-spike-was-vibe-coding-before-the-word-reached-us.md).)
+
+### Vibe coding — the named ground state
+
+Andrej Karpathy coined the term on 2025-02-02: *"fully give in to the vibes,
+embrace exponentials, and forget that the code even exists… I 'Accept All'
+always, I don't read the diffs anymore"* — explicitly scoped to "throwaway
+weekend projects" ([tweet](https://x.com/karpathy/status/1886192184808149383);
+[Wikipedia](https://en.wikipedia.org/wiki/Vibe_coding)). Collins Dictionary
+made it 2025 Word of the Year. The December 2025 spike that birthed this repo
+is a textbook specimen — ten months after the coining, with no evidence the
+term had reached the practice. Simon Willison's boundary ("if you've
+reviewed, tested, and understood it all, that's not vibe coding") is exactly
+the line the spike crossed and the doctrine later refused to re-cross.
+
+The external evidence against staying in that ground state accumulated in
+parallel with our own gates:
+
+- GitClear's longitudinal analysis (early 2025): refactoring collapsed from
+  25% of changed lines (2021) to under 10% (2024), code duplication ~4×.
+- Y Combinator (2025-03): 25% of the W25 batch had codebases ~95%
+  AI-generated ([TechCrunch](https://techcrunch.com/2025/03/06/a-quarter-of-startups-in-ycs-current-cohort-have-codebases-that-are-almost-entirely-ai-generated/)).
+- METR's RCT ([2025-07-10](https://metr.org/blog/2025-07-10-early-2025-ai-experienced-os-dev-study/),
+  arXiv:2507.09089): experienced OSS devs were **19% slower** with early-2025
+  AI tools while predicting a 24% speedup — the quantified form of
+  `quick_confidence`.
+- CodeRabbit (2025-12): AI co-authored PRs carried ~1.7× more major issues,
+  2.74× more security vulnerabilities.
+- "Vibe Coding Kills Open Source" (arXiv:2601.15494, 2026-01) and GitHub's
+  own "[Eternal September of open source](https://github.blog/open-source/maintainers/welcome-to-the-eternal-september-of-open-source-heres-what-we-plan-to-do-for-maintainers/)"
+  (2026-02): the ecosystem-level costs.
+- The rsync 3.4.x row (2026-06, [The Register](https://www.theregister.com/ai-and-ml/2026/06/04/please-do-not-vibe-f-up-this-software-broken-backups-spark-ai-coding-row-in-rsync-project/5251189)/[LWN](https://lwn.net/Articles/1076040/))
+  and the WSJ "vibe slop crisis" warning (2026-05): AI-assisted commits in
+  critical infrastructure without governance artifacts that would let
+  outsiders audit them — precisely the gap the FR/diary/gate spine exists to
+  close.
+
+### Spec-driven development — the convergent answer
+
+- **GitHub Spec Kit** ([github/spec-kit](https://github.com/github/spec-kit);
+  announced [2025-09-02](https://github.blog/ai-and-ml/generative-ai/spec-driven-development-with-ai-get-started-with-a-new-open-source-toolkit/),
+  1.0.0 on its first anniversary, 2026-08-21): constitution → specify →
+  plan → tasks → implement → converge. Its thesis — *"specifications become
+  executable… intent is the source of truth"* — and its framing as the
+  antidote to vibe coding mirror the FR pipeline one-for-one:
+  `/speckit.constitution` ↔ the Scripture, `/speckit.analyze` (cross-artifact
+  consistency) ↔ the traceability spine, `/speckit.checklist` ("unit tests
+  for English") ↔ acceptance-criteria gating, `/speckit.converge` ↔
+  enforce + inquisitor.
+- **AWS Kiro** ([kiro.dev](https://kiro.dev), previewed mid-2025):
+  requirements.md → design.md → tasks.md per feature — the same three-artifact
+  decomposition the FR template reached in week one (Summary/Problem →
+  Proposed Solution → Acceptance Criteria).
+
+The dating matters: Spec Kit launched 2025-09, our spike ran 2025-12, our FR
+era began 2026-01. The tooling existed, yet the recovered FR corpus carries
+none of its vocabulary (specify/plan/tasks vs FR/judgement/enforce) and none
+of its structure — independent convergence under the same selective
+pressure, not adoption. Where the paths still diverge: Spec Kit has no
+independent judge (the author's agent approves its own artifacts at every
+checkpoint, with the human as sole verifier), and its specs are launch
+documents, not case law — rejected specs bind nothing.
+
+### Agent loops — the same motif, different trust model
+
+Geoffrey Huntley's "Ralph Wiggum" technique
+([ghuntley.com/ralph](https://ghuntley.com/ralph/), 2025-07-14) is the
+external twin of the Chaplain: `while :; do cat PROMPT.md | claude-code; done`.
+The deep parallels are striking — "backpressure" (tests, type systems,
+static analysis rejecting bad generations) ↔ the enforcement rings; tuning
+Ralph by "erecting signs" ↔ the traps catalogue; "Ralph can take himself to
+university" (the agent updates its own AGENT.md with learnings) ↔ the
+diary-graduation pipeline; "capture why the test matters, because future
+loops won't have the reasoning in their context window" ↔ the diary as
+memory for successor sessions. So is the divergence: Ralph is
+faith-based ("believe in eventual consistency", greenfield-only by its
+author's own admission, "you will wake up to a broken code base"), while the
+Chaplain is verdict-based — frozen scope, independent judgement, and gates
+that block rather than tune. Ralph writes signs; the Scripture writes signs
+*and hires police*.
+
+### Reference index
+
+| Source | Date | Anchors |
+|--------|------|---------|
+| Karpathy, vibe-coding tweet | 2025-02-02 | [x.com/karpathy/1886192184808149383](https://x.com/karpathy/status/1886192184808149383) |
+| Huntley, "Ralph Wiggum as a software engineer" | 2025-07-14 | [ghuntley.com/ralph](https://ghuntley.com/ralph/) |
+| METR RCT on AI dev productivity | 2025-07-10 | [metr.org](https://metr.org/blog/2025-07-10-early-2025-ai-experienced-os-dev-study/), arXiv:2507.09089 |
+| AWS Kiro spec-driven IDE preview | mid-2025 | [kiro.dev](https://kiro.dev) |
+| GitHub Spec Kit announcement (Delimarsky) | 2025-09-02 | [github.blog](https://github.blog/ai-and-ml/generative-ai/spec-driven-development-with-ai-get-started-with-a-new-open-source-toolkit/) |
+| Fast Company, "vibe coding hangover" | 2025-09-09 | [fastcompany.com](https://www.fastcompany.com/91398622/the-vibe-coding-hangover-is-upon-us) |
+| Collins Word of the Year: "vibe coding" | 2025-11-06 | [BBC](https://www.bbc.com/news/articles/cpd2y053nleo) |
+| CodeRabbit, AI vs human code report | 2025-12-17 | [coderabbit.ai](https://www.coderabbit.ai/blog/state-of-ai-vs-human-code-generation-report) |
+| "Vibe Coding Kills Open Source" | 2026-01-21 | arXiv:2601.15494 |
+| GitHub, "Eternal September of open source" | 2026-02-12 | [github.blog](https://github.blog/open-source/maintainers/welcome-to-the-eternal-september-of-open-source-heres-what-we-plan-to-do-for-maintainers/) |
+| WSJ, "vibe slop" crisis (Zechner/Ronacher) | 2026-05-22 | [wsj.com](https://www.wsj.com/tech/ai/vibe-coding-slop-ai-tools-e6a99394) |
+| rsync AI-commit row | 2026-06-04 | [The Register](https://www.theregister.com/ai-and-ml/2026/06/04/please-do-not-vibe-f-up-this-software-broken-backups-spark-ai-coding-row-in-rsync-project/5251189), [LWN](https://lwn.net/Articles/1076040/) |
+| Spec Kit 1.0.0, first anniversary | 2026-08-21 | [github/spec-kit](https://github.com/github/spec-kit) |
+
+---
+
 ## The shape of the story
 
 Every layer of today's doctrine is a fossilized reaction to the era beneath
