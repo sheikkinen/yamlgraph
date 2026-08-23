@@ -61,7 +61,8 @@ try:
     detail = json.dumps(inp)[:500] if inp else '{}'
     sid = d.get('session_id', '')
     tuid = d.get('tool_use_id', '')
-    for value in (tool, cmd, detail, sid, tuid):
+    cwd = d.get('cwd', '')
+    for value in (tool, cmd, detail, sid, tuid, cwd):
         sys.stdout.write(value if isinstance(value, str) else str(value))
         sys.stdout.write('\0')
 except Exception:
@@ -74,7 +75,8 @@ if ! {
   IFS= read -r -d '' COMMAND &&
   IFS= read -r -d '' DETAIL &&
   IFS= read -r -d '' SESSION_ID &&
-  IFS= read -r -d '' TOOL_USE_ID
+  IFS= read -r -d '' TOOL_USE_ID &&
+  IFS= read -r -d '' HOOK_CWD
 } < <(printf '%s' "$INPUT" | parse_hook_input 2>/dev/null); then
   TOOL_NAME="unknown"
   audit_log "deny" "parse-error" "JSON parse failed"
@@ -367,6 +369,41 @@ if echo "$COMMAND" | grep -qE 'git\s+(checkout\s+-b|switch\s+-c|branch\s+[^-])';
     exit 0
   fi
 fi
+
+# ── Check 7: ramp spike-end detector (FR-869) — warn-only, forever ───
+# Plain foreign-cwd commits only; never changes the decision.
+# Detector-local git usage is read-only (diff --cached); no repo mutation.
+RAMP_W1=""
+RAMP_W2=""
+case "$COMMAND" in
+  "git commit"*)
+    RAMP_ROOT=""
+    if [[ -n "${HOOK_CWD:-}" && -d "${HOOK_CWD:-}" ]]; then
+      RAMP_D=$(cd "$HOOK_CWD" 2>/dev/null && pwd -P) || RAMP_D=""
+      while [[ -n "$RAMP_D" && "$RAMP_D" != "/" ]]; do
+        if [[ -e "$RAMP_D/.git" ]]; then RAMP_ROOT="$RAMP_D"; break; fi
+        RAMP_D=$(dirname "$RAMP_D")
+      done
+    fi
+    OWN_ROOT=$(cd "$(dirname "$0")/../../.." 2>/dev/null && pwd -P) || OWN_ROOT=""
+    # Foreign plain repo only: worktree .git-files and this repo are skipped.
+    if [[ -n "$RAMP_ROOT" && -d "$RAMP_ROOT/.git" && "$RAMP_ROOT" != "$OWN_ROOT" ]]; then
+      if [[ -f "$RAMP_ROOT/.ramp-declined" ]]; then
+        audit_log "warn" "ramp-declined" "$RAMP_ROOT"
+      elif [[ ! -s "$RAMP_ROOT/.git/hooks/pre-commit" ]]; then
+        RAMP_W1="⚠ this repo has no pre-commit hooks — scripts/ramp.sh <repo> --tier 1 exists"
+        audit_log "warn" "ramp-unenforced" "$RAMP_ROOT"
+        if git -C "$RAMP_ROOT" diff --cached -- '.github/workflows/*.yml' '.github/workflows/*.yaml' 2>/dev/null \
+           | grep '^+' | grep -v '^+++' | grep -qE 'schedule:|secrets\.'; then
+          RAMP_W2="⚠ this commit takes an unenforced repo live"
+          audit_log "warn" "ramp-spike-end" "$RAMP_ROOT"
+        fi
+      fi
+    fi
+    ;;
+esac
+if [[ -n "$RAMP_W1" ]]; then echo "$RAMP_W1" >&2; fi
+if [[ -n "$RAMP_W2" ]]; then echo "$RAMP_W2" >&2; fi
 
 audit_log "approve" "clean" "${COMMAND:0:200}"
 echo '{"decision":"approve"}'
