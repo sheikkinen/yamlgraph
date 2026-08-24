@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Proposed
+**Status:** Approved with revisions (judged 2026-08-24, R-1..R-4 folded)
 **Effort:** 0.25 day (investigation only)
 **Requested:** 2026-08-24
 **First consumer / first event:** the next repo to be ramped. The first
@@ -23,10 +23,15 @@ No REJECTED prior art occupies this territory.
 ## Summary
 
 The Tier-3 ramp of `sheikkinen/deviant-daily` (commit `e9595b6`)
-installed 20 hash-verified assets, but seven governance surfaces are
-placeholders or non-functional. Determine, per gap, whether the cause is
-an **installer defect (FR-865)**, an **unfinished FR-867 step**, or a
-**deliberate design outcome** \u2014 then route each to the right FR.
+installed 20 hash-verified assets. The investigation row set is
+**closed at the nine surfaces** in the Problem table: seven gap rows
+plus two **positive controls** (the live pre-commit hook set and the
+Copilot guard set), which are in scope as controls and excluded from
+the gap count. Determine, per row, a `primary_disposition` — exactly
+one of **`installer-defect` (FR-865)**, **`fr-867-step`**, or
+**`deliberate`** — plus optional `secondary_dispositions` for
+contributing causes, each label citing the deciding artifact — then
+route each row to its `route_target`.
 
 ## Value Statement
 
@@ -47,10 +52,10 @@ Verified at `deviant-daily@12bd530` on 2026-08-24:
 | `docs/incidents.md` | **absent** | `ramp_incidents` never run against target |
 | `capabilities/` | README only, **0 entries** | `ramp_rtm` output never landed |
 | requirement tags in tests | **0** | FR-867 step 5 not performed |
-| `scripts/judge.sh` | **cannot run** | installer defect \u2014 see below |
+| `scripts/judge.sh` | **cannot run** | contested — see hypothesis below |
 | `docs/ramp-manifest.md` | `reviewed_source_sha: pending-human-review` | FR-865 AC-14 gate unsatisfied |
 
-### The one unambiguous defect
+### The judge/review launcher question (hypothesis, not verdict)
 
 `scripts/judge.sh` was installed and invokes:
 
@@ -59,13 +64,28 @@ Verified at `deviant-daily@12bd530` on 2026-08-24:
 ```
 
 The installed skill directory contains `SKILL.md`, `doctrine.md` and
-`judgement.template.md` \u2014 **no `adapters/` directory**. The launcher
+`judgement.template.md` — **no `adapters/` directory**. The launcher
 shipped without the graph it launches. The same question must be asked
 of `scripts/review.sh`.
 
-Consequence: `deviant-daily` cannot judge its own FRs, which is why this
-FR and FR-873 are filed in yamlgraph rather than in the repo whose code
-they concern.
+This is a **hypothesis to investigate, not a pre-judged installer
+defect**: FR-865's record says the curated wrappers intentionally add
+an adapter-graph existence check because the installer ships no graphs
+(`feature-requests/FR-865-ramp-installer.md`, Decisions), and
+`ramp/curation-diffs.md` states the adapter graph "must be authored in
+the target per its own doctrine" — while the installed `SKILL.md`
+bundle maps name `adapters/` and declare the adapter the sole route.
+The rows for `judge.sh`/`review.sh` are ordinary investigation rows
+whose disposition must reconcile all four artifacts: manifest entries,
+curation-diff rationale, installed script references, and installed
+skill bundle maps. If `installer-defect`, state why FR-865's curation
+rationale is insufficient; if `deliberate` or `fr-867-step`, state the
+concrete route by which the target obtains usable judge/review
+adapters before it can govern its own FRs.
+
+Consequence meanwhile: `deviant-daily` cannot judge its own FRs, which
+is why this FR and FR-873 are filed in yamlgraph rather than in the
+repo whose code they concern.
 
 ### Why this is an investigation, not a fix
 
@@ -93,31 +113,70 @@ discovery exercise, and FR-865 gains a defect list if it has one.
    declares it.
 3. Check whether `ramp/manifest.yaml` declares any other **launcher
    without its dependencies** \u2014 the defect class, not just the instance.
-4. Record the disposition table in this FR.
-5. Route: installer defects \u2192 an FR-865 follow-up; unfinished steps \u2192
-   FR-867's remaining witnesses; deliberate outcomes \u2192 documented as
+4. Record the disposition table in this FR, one row per surface, with
+   fields: `primary_disposition`, optional `secondary_dispositions`,
+   deciding artifact citation (path + line/section), and
+   `route_target` — an existing FR plus AC number, a new follow-up
+   FR/proposal path, or a documentation section with no implementation
+   action.
+5. Route: installer defects → an FR-865 follow-up; unfinished steps →
+   FR-867's remaining witnesses; deliberate outcomes → documented as
    such in `docs/plan-ramp-spike-to-governed.md`.
+
+### Evidence boundary (frozen, R-3)
+
+The target repository is **read-only**. YAMLGraph runtime code, ramp
+assets, graph artifacts, prompts, hooks, CI, and skill doctrine are
+**read-only**. Permitted yamlgraph writes: this FR, the FR-867
+reference, and any documentation/proposal artifact explicitly named as
+a `route_target` in the disposition table. Cross-repo evidence must be
+from committed artifacts or a recorded clean checkout state. The
+enforcement record must include before/after `git status --short` and
+HEAD for both repositories, proving the target did not change.
 
 ## Acceptance Criteria
 
-- [ ] AC-01: every surface in the Problem table has a disposition of
-      exactly one of `installer-defect`, `fr-867-step`, `deliberate`,
-      with the artifact that decided it cited by path.
-- [ ] AC-02: `scripts/judge.sh` and `scripts/review.sh` have their full
-      referenced-path closure enumerated; every missing path is listed.
-- [ ] AC-03: `ramp/manifest.yaml` is scanned for other launcher-without-
-      dependency cases; the result is stated even if empty.
-- [ ] AC-04: a mechanical check is proposed (not implemented here) that
-      would have caught the `judge.sh` gap at install time.
-- [ ] AC-05: each `installer-defect` row names the FR-865 acceptance
-      criterion that should have caught it, or states that none exists.
-- [ ] AC-06: each `fr-867-step` row names the FR-867 acceptance
-      criterion it belongs to.
-- [ ] AC-07: no source file in either repository is modified under this
-      FR \u2014 investigation only; a `git status` in both repos is recorded
-      clean at completion.
-- [ ] AC-08: the disposition table is added to this FR and referenced
-      from FR-867.
+*(revised per judgement 2026-08-24; R-1..R-4 folded)*
+
+- [ ] AC-01: FR-872 is revised to define the closed investigation row
+      set, primary/secondary disposition schema, evidence boundary,
+      permitted write set, and per-row routing contract from R-1
+      through R-4.
+- [ ] AC-02: Before evidence collection, the record captures yamlgraph
+      HEAD/status and `deviant-daily` HEAD/status; the target repo
+      must be clean and remains read-only throughout the investigation.
+- [ ] AC-03: Every in-scope row has `primary_disposition` exactly one
+      of `installer-defect`, `fr-867-step`, or `deliberate`, optional
+      `secondary_dispositions`, and at least one deciding committed
+      artifact cited by path and line/section.
+- [ ] AC-04: `scripts/judge.sh` and `scripts/review.sh` have their
+      referenced-path closure enumerated from the installed scripts
+      and skill files; every absent referenced path is listed and
+      reconciled against `ramp/manifest.yaml` and
+      `ramp/curation-diffs.md`.
+- [ ] AC-05: `ramp/manifest.yaml` is scanned for every shipped
+      launcher or instruction artifact that references paths not
+      shipped by the manifest; the result is stated even if empty.
+- [ ] AC-06: A mechanical follow-up check is proposed, not implemented
+      here, that would catch launcher-without-dependency or
+      instruction-without-bundle closure gaps at install validation
+      time.
+- [ ] AC-07: Each `installer-defect` row names the FR-865 acceptance
+      criterion that should have caught it, or states that no existing
+      criterion covers it and names the follow-up route.
+- [ ] AC-08: Each `fr-867-step` row names the FR-867 acceptance
+      criterion or remaining-step record it belongs to.
+- [ ] AC-09: Each `deliberate` row cites the controlling design
+      decision, judgement condition, curation record, or accepted
+      limitation that makes it deliberate.
+- [ ] AC-10: The completed disposition table is added to FR-872 and
+      referenced from FR-867; any deliberate-outcome documentation or
+      installer-defect follow-up proposal is limited to the route
+      target named in the table.
+- [ ] AC-11: Completion records final yamlgraph and `deviant-daily`
+      HEAD/status; `deviant-daily` is unchanged, and yamlgraph changes
+      are limited to the revised FR/documentation/proposal artifacts
+      authorized by AC-10.
 
 ## Risks
 
@@ -126,9 +185,10 @@ discovery exercise, and FR-865 gains a defect list if it has one.
 the fix belongs to whichever FR the attribution routes it to.
 
 **Attribution is contested.** The inert CI stub is both "deliberate"
-(FR-865 R-3) and "unfinished" (FR-867 was to activate it). Such rows get
-**both** labels with the reasoning recorded, rather than being forced
-into one.
+(FR-865 R-3) and "unfinished" (FR-867 was to activate it). Such rows
+get one `primary_disposition` plus `secondary_dispositions` with the
+reasoning recorded, rather than being forced into one label or given
+two contradictory primaries.
 
 **The gaps are treated as an indictment of the ramp.** They are not: 20
 assets installed correctly and the pre-commit gate is live and firing.
@@ -147,6 +207,7 @@ The investigation is about the delta, not the whole.
 
 ## Related
 
+- `feature-requests/FR-872-investigate-incomplete-ramp-install.judgement.md` — verdict, frozen scope, C-1..C-6
 - `feature-requests/FR-865-ramp-installer.md`, `FR-866-ramp-tailoring-graphs.md`, `FR-867-ramp-deviant-daily.md`
 - `docs/plan-ramp-spike-to-governed.md` \u2014 family overview
 - `docs/diary/diary-2026-08-24-twenty-gates-and-a-human-found-the-fire.md` \u2014 the observation that produced this FR

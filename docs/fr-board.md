@@ -172,6 +172,7 @@
 | FR-647 | Approved | yamlgraph |  | FR-647-worldgen-event-propagation.md |
 | FR-648 | Approved | yamlgraph |  | FR-648-obsidian-wiki-output.md |
 | FR-655 | Approved | yamlgraph |  | FR-655-genesis-graph.md |
+| FR-872 | Approved | yamlgraph |  | FR-872-investigate-incomplete-ramp-install.md |
 | FR-214 | Proposed | yamlgraph |  | FR-214-fix-extract-variables-nested-set.md |
 | FR-227 | Proposed | yamlgraph |  | FR-227-vertex-express-env-var-masking.md |
 | FR-267 | Proposed | yamlgraph |  | FR-267-race-node-timeout-double-wrap-2.md |
@@ -217,7 +218,6 @@
 | FR-858 | Proposed | yamlgraph |  | FR-858-retire-committed-fr-board.md |
 | FR-859 | Proposed | yamlgraph |  | FR-859-delete-orphaned-sim117-phantom-req-tag.md |
 | FR-861 | Proposed | yamlgraph |  | FR-861-shared-repo-write-discipline.md |
-| FR-872 | Proposed | yamlgraph |  | FR-872-investigate-incomplete-ramp-install.md |
 | FR-873 | Proposed | yamlgraph |  | FR-873-vision-provider-type-lie.md |
 | FR-078 | In Progress | yamlgraph |  | FR-078-relocate-project-tests.md |
 | FR-100 | In Progress | yamlgraph |  | FR-100-yamlgraph-development-pipeline-ebook.md |
@@ -468,7 +468,7 @@ graph TD
     FR-868["FR-868 Judged"]
     FR-869["FR-869 Judged"]
     FR-871["FR-871 Judged"]
-    FR-872["FR-872 Proposed"]
+    FR-872["FR-872 Approved"]
     FR-873["FR-873 Proposed"]
     FR-081 --> FR-082
     FR-731 --> FR-735
