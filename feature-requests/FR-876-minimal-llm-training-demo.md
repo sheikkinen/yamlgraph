@@ -57,16 +57,21 @@ drift toward quality goals the data cannot support.
 
 ## Raw Output Read
 
-- **Samples read:** `tmp/deviant-daily/corpus.jsonl` (fetched from
-  `sheikkinen/deviant-daily@main`), head rows read in full 2026-08-24.
-- **What I saw:** the first row is a rotting-patriot Marvel pastiche
+- **Samples read (R-1):**
+  `sheikkinen/deviant-daily@30bf8c1a5ae66df8374bf3ba0d366138af83cb15:prompts/corpus.jsonl`,
+  rows 1–5 read in full 2026-08-24. Stats verified against that
+  committed file with
+  `python3 -c "import json;rows=[json.loads(l) for l in open('prompts/corpus.jsonl')];print(len(rows),sum(len(r['prompt']) for r in rows),sum(1 for r in rows if r['source_file']=='unknown'))"`
+  → 5,893 rows / 2,384,581 prompt chars / 1,937 `unknown` source ids.
+- **What I saw:** row 1 is a rotting-patriot Marvel pastiche
   whose parenthetical tag list mixes render-pipeline vocabulary
   (`vfx_render, game_asset, no_watermark`) into the aesthetic tags — a
   generator must learn that register mixing, not just English. Row 3
   embeds markdown emphasis (`*memento mori*`) inside a prompt —
-  shape-gate design must not assume plain text. `tools/corpus.py`
-  documents that the 1,937 `unknown` rows would share one dedup key and
-  are therefore content-hashed (`unknown-<sha1[:12]>`) — the exact id
+  shape-gate design must not assume plain text.
+  `sheikkinen/deviant-daily@30bf8c1:tools/corpus.py:18-30` documents
+  that the 1,937 `unknown` rows would share one dedup key and are
+  therefore content-hashed (`unknown-<sha1[:12]>`) — the exact id
   scheme generated prompts should reuse.
 
 ## Ideal Result
@@ -117,10 +122,22 @@ is a claim, not a prompt; normalize at the boundary:
    the regurgitation-rate-vs-temperature curve is itself a demo output.
 3. Shape gates: 100–800 chars, non-empty, no truncation mid-word.
 
+**Boundary covers every persisted sample (R-2):** `train.py`,
+`generate.py`, and `eval.py` route ANY sample written to stdout, logs,
+markdown, or committed artifacts through `training/boundary.py` first.
+Rejected samples are counted by reason; their raw text is never
+persisted.
+
+**Dependency freeze (R-3):** PyTorch enters ONLY as a `training`
+optional extra in `pyproject.toml`; a base-install import probe proves
+the publish modules import without `torch`; no publish workflow
+installs the extra.
+
 **Evaluation = rejection statistics per rung** (`training/eval.py`):
 for 200 samples per rung × temperature, a table of pass / redaction-hit
-/ novelty-hit / shape-hit. Markov fails novelty rarely and coherence
-always; the transformer trades those — the table is the demonstration.
+/ novelty-hit / shape-hit — the table is the demonstration. Coherence
+is NOT a mechanical claim (R-5): any coherence observation lives in an
+explicitly non-gating human-read sample note, never in a gate.
 
 ```bash
 # The three commands (ideal-result path)
@@ -131,30 +148,21 @@ python training/generate.py --ckpt training/ckpt/ --n 20 --temp 0.8
 
 ## Acceptance Criteria
 
-- [ ] AC-01: `training/markov.py` generates prompts from the corpus with
-      stdlib only; unit test witnesses determinism under a seeded RNG.
-- [ ] AC-02: `training/train.py` trains the char-level transformer on
-      `prompts/corpus.jsonl`; run log committed as evidence showing
-      val loss < 1.5 (from ~4.6 start) within 30 min wall clock on the
-      operator's machine.
-- [ ] AC-03: `training/generate.py` emits samples that stop at
-      `<|end|>` and honor `<tag>`/`<prose>` conditioning; sample sheet
-      at three temperatures committed and READ (per-sample note in the
-      enforcement record — `read_raw_output_first`).
-- [ ] AC-04: `training/boundary.py` re-applies NAME/TERM blocklists and
-      SCAN_PATTERNS by importing them from `scripts/extract_corpus.py`
-      (no duplicated regexes); unit tests witness one rejection per
-      category on synthetic samples.
-- [ ] AC-05: Novelty floor rejects a verbatim training row and any
-      sample sharing an 8-gram with the corpus; witnessed by test.
-- [ ] AC-06: `training/eval.py` produces the rejection-statistics table
-      for Markov vs transformer; committed as a markdown artifact.
-- [ ] AC-07: `training/README.md` documents the three-command path, the
-      600 K-token honesty note (demo, not quality), and the public-data
-      provenance (train ONLY on the redacted corpus, never signed.log).
-- [ ] AC-08: No changes to `tools/corpus.py` / `draw_prompt()` — the
-      exhaustion-fallback integration is explicitly deferred to a
-      future FR with its own consumer evidence.
+Superseded by the judgement's revised AC-01..AC-13
+(`feature-requests/FR-876-minimal-llm-training-demo.judgement.md`) —
+the judgement list is binding. Key deltas from the original list:
+
+- AC-05 (was AC-02): training witness is reproducible — `--seed`,
+  deterministic split, logged device/params/hyperparams/wall-clock/git
+  SHA; the threshold (val loss < 1.5 within 30 min) fails the FR if
+  missed, never silently lowered (R-4).
+- AC-06 (was AC-03): sample sheets contain only boundary-passing or
+  policy-redacted entries (R-2).
+- AC-08: rejected raw text is proven (by test) not to persist into
+  sample/eval artifacts (R-2).
+- AC-11: `training` optional extra + base-install import probe (R-3).
+- AC-13: any need to touch `tools/corpus.py`, `draw_prompt()`, publish
+  workflows, or graph/prompt YAML stops enforcement for a separate FR.
 
 ## Alternatives Considered
 

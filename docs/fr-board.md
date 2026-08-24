@@ -221,6 +221,7 @@
 | FR-873 | Proposed | yamlgraph |  | FR-873-vision-provider-type-lie.md |
 | FR-876 | Proposed | yamlgraph |  | FR-876-minimal-llm-training-demo.md |
 | FR-877 | Proposed | yamlgraph |  | FR-877-memory-curation-staleness-advisory.md |
+| FR-878 | Proposed | yamlgraph |  | FR-878-reversible-amnesia-tiered-approval.md |
 | FR-078 | In Progress | yamlgraph |  | FR-078-relocate-project-tests.md |
 | FR-100 | In Progress | yamlgraph |  | FR-100-yamlgraph-development-pipeline-ebook.md |
 | FR-169 | In Progress | yamlgraph |  | FR-169-enforce-reflexion-loop.md |
@@ -474,6 +475,7 @@ graph TD
     FR-873["FR-873 Proposed"]
     FR-876["FR-876 Proposed"]
     FR-877["FR-877 Proposed"]
+    FR-878["FR-878 Proposed"]
     FR-081 --> FR-082
     FR-731 --> FR-735
     FR-731 --> FR-736
