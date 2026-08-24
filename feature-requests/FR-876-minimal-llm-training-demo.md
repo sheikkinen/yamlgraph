@@ -222,3 +222,42 @@ training a model from the deviant-daily corpus.
 1. **Host repo:** deviant-daily `training/` — confirmed.
 2. **PyTorch dependency:** approved as a `training` extra only; never
    imported by the publish pipeline.
+
+## Implementation Status (2026-08-24)
+
+Enforced in `sheikkinen/deviant-daily` (cloned at judged SHA 30bf8c1,
+sibling dir — C-3 honored). Commits: RED 24e081a (26-test witness
+suite), GREEN 830ccca (`training/` package + `training` extra; full
+suite 154 passed), docs 5c0c8c2, evidence 3e05633.
+
+**Training witness (AC-05):** seed 42, MPS, 3,299,328 params, vocab
+145, block 256, batch 32, 5000 steps; val loss 5.1227 → **1.0175** in
+**764.7 s** (12.7 min) — gate < 1.5 / 30 min passed with margin. Log:
+`training/evidence/train-run.log` (git SHA + full config in header).
+Periodic samples boundary-filtered (R-2); the step-4250 sample was
+rejected `novelty:shared_8gram` — memorization onset caught live.
+
+**Sample sheets (AC-06):** `training/evidence/samples-t{0.5,0.8,1.2}.md`
+with per-sample read notes. Regurgitation-vs-temperature confirmed:
+t0.5 → 6/20 attempts novelty-rejected; t0.8 → 0 (sweet spot); t1.2 →
+word salad with intact syntax skeleton.
+
+**Prediction falsified by data:** the FR guessed "Markov fails novelty
+rarely" — measured: **167/200 novelty rejections** for the trigram
+baseline. A trigram chain can only follow observed transitions, so its
+outputs are corpus-8-gram mosaics. The rejection table demonstrates
+training's value in the opposite direction from the author's intuition
+— honest evaluation working as designed.
+
+**Deviations (recorded, all within scope):**
+- `pip install -e .` was broken at 30bf8c1 (flat-layout autodiscovery
+  error, upstream) — AC-11's installable extra required a minimal
+  `[build-system]`/`[tool.setuptools] packages` fix in pyproject.
+- Mid-word truncation is generation-time truth: `boundary.check(...,
+  ended=)` flag set by the sampler (token budget elapsed without
+  `<|end|>`); text-only detection would be a dishonest heuristic. The
+  RED test was updated with rationale before GREEN.
+- Module named `training/evaluate.py` (judgement D-2 wrote `eval.py`;
+  same deliverable, avoids the `eval` builtin name).
+- Corpus 30bf8c1 has vocab 145 (unicode chars) vs the estimated ~100 —
+  no design impact.
