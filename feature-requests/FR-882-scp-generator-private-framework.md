@@ -87,10 +87,21 @@ extraction policy):
   split), train (the FR-876 recipe, scaled: block 512, ~10M params
   budget permitting), score (per-register calibration, FR-879
   contract: JSONL rows, provenance stamps, truncation flags).
-- `generate/`: frontier-LLM drafting node + critic reranker + a
-  deterministic SCP structure gate (sections, redaction syntax, item
-  number registry) — the code-not-model gate the register uniquely
-  affords.
+- `generate/`: a **yamlgraph pipeline** (`graph.yaml` + `prompts/` +
+  `tools/`), mirroring deviant-daily's consumer structure — scp-lab
+  becomes the third yamlgraph consumer repo, not just a governed
+  neighbor (amendment 2026-08-24; the original draft left this stage
+  shapeless — `builders_never_call`):
+  `draft_candidates` (llm, `.env` provider, no overrides) →
+  `score_filter` (python tool → critic subprocess, FR-879 contract) →
+  `structure_gate` (python tool, deterministic: required sections,
+  redaction syntax, item-number registry — the code-not-model gate the
+  register uniquely affords) → `save_survivor`. yamlgraph enters as a
+  pip dependency. Future keep/reject-into-canon uses
+  `interrupt_before` + resume — the graph shape earns its place.
+  Graph authoring inside scp-lab follows scp-lab's own conventions
+  (the FR-767 sentinel governs yamlgraph's tree, not the private
+  repo's).
 - `eval/`: R-1-style fixture set (genuine SCP held-out / frontier
   pastiche / off-register prose / degenerate) + the vote-correlation
   study: does critic NLL correlate with community rating? (Prediction
@@ -128,7 +139,9 @@ contributions.
       by tests.
 - [ ] AC-07: End-to-end private read: N candidates → rejection table →
       top survivor; the table read with per-candidate notes; evidence
-      stays in scp-lab (private).
+      stays in scp-lab (private). The generate stage runs as a
+      yamlgraph graph (`yamlgraph graph run generate/graph.yaml`),
+      provider resolved from `.env` with no per-node overrides.
 - [ ] AC-08: Vote-correlation fixture run and READ (spearman + scatter
       + 5 raw outlier reads); result recorded whatever it shows.
 - [ ] AC-09: yamlgraph gains no code; this FR + judgement + status
