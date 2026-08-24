@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Judged — APPROVED WITH REVISIONS (2026-08-24); R-1…R-7 folded below
+**Status:** Enforced (2026-08-24)
 **Effort:** 1 day
 **Requested:** 2026-08-24
 **First consumer / first event:** the operator and agent at the next
@@ -219,3 +219,21 @@ moving anything off-machine; FR-874 transport; user/session scope; LLM or
 network calls in apply/restore/tier/advisory paths; fuzzy premise
 detection; graph/prompt YAML changes (C-8: code/docs/tests only);
 CI/hook/doctrine changes.
+
+## Implementation (2026-08-24)
+
+RED `a4b74468` (16 condemning tests, SKIP=pytest) → GREEN this change.
+
+- `apply.py`: tier computation (`premise_kind != hygiene` → tier 3 fail
+  closed), tiered sign-off verification, op-id archive shelf, tombstone
+  rows, protected `_tombstones.md`, `restore` subcommand (conflict-safe,
+  idempotent-when-recorded), tier≥1 audit JSONL
+  (`MEMORY_CURATION_AUDIT_LOG`, default `.github/hooks/logs/`).
+- `reconcile.py`: validated `--premise-kind` enum recorded in
+  disposition.json.
+- `collect.py`: re-derivation advisory — forget-tombstones only,
+  restored refs excluded, filename or pre-hash match; pure stdlib.
+- FR-875 suite updated to the amended contract (`HUMAN=` sign-offs,
+  `--premise-kind hygiene`); 17 + 16 = 33 tests green. REQ-YG-621
+  (CAP-247 extension). No graph/prompt YAML touched (C-8 honored).
+- Deviation: none — all R-1…R-7 implemented as folded.

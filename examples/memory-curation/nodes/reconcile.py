@@ -68,7 +68,12 @@ class NoteDisposition(BaseModel):
         return self
 
 
-def reconcile(manifest_path: Path, dispositions_path: Path, out_dir: Path) -> dict:
+def reconcile(
+    manifest_path: Path,
+    dispositions_path: Path,
+    out_dir: Path,
+    premise_kind: str | None = None,
+) -> dict:
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     rows = json.loads(dispositions_path.read_text(encoding="utf-8"))
     validated: dict[str, NoteDisposition] = {}
@@ -92,6 +97,10 @@ def reconcile(manifest_path: Path, dispositions_path: Path, out_dir: Path) -> di
             for key in sorted(validated)
         },
     }
+    if premise_kind is not None:
+        if premise_kind not in ("hygiene", "export_publication"):
+            raise ValueError(f"invalid premise_kind: {premise_kind!r}")
+        disposition["premise_kind"] = premise_kind
     (out_dir / "disposition.json").write_text(
         json.dumps(disposition, indent=2, sort_keys=True) + "\n", encoding="utf-8"
     )
@@ -130,10 +139,16 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--manifest", required=True)
     parser.add_argument("--dispositions", required=True)
     parser.add_argument("--out-dir", required=True)
+    parser.add_argument(
+        "--premise-kind", choices=["hygiene", "export_publication"], default=None
+    )
     args = parser.parse_args(argv)
     try:
         disposition = reconcile(
-            Path(args.manifest), Path(args.dispositions), Path(args.out_dir)
+            Path(args.manifest),
+            Path(args.dispositions),
+            Path(args.out_dir),
+            premise_kind=args.premise_kind,
         )
     except (ValueError, OSError, json.JSONDecodeError) as exc:
         print(f"reconcile: {exc}", file=sys.stderr)

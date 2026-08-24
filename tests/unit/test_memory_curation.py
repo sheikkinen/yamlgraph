@@ -208,6 +208,8 @@ class TestApply:
             str(dispositions),
             "--out-dir",
             str(out_dir),
+            "--premise-kind",
+            "hygiene",
         )
 
     def _sign(self, out_dir: Path) -> None:
@@ -216,7 +218,7 @@ class TestApply:
         review = out_dir / "disposition.md"
         review.write_text(
             review.read_text()
-            + f"\nSIGN-OFF: approved by operator manifest={h_m} disposition={h_d}\n"
+            + f"\nSIGN-OFF: approved HUMAN=operator manifest={h_m} disposition={h_d}\n"
         )
 
     def _apply(self, memory_root: Path, out_dir: Path) -> subprocess.CompletedProcess:
@@ -257,7 +259,7 @@ class TestApply:
         review = out_dir / "disposition.md"
         review.write_text(
             review.read_text()
-            + f"\nSIGN-OFF: approved manifest={'0' * 64} disposition={'0' * 64}\n"
+            + f"\nSIGN-OFF: approved HUMAN=operator manifest={'0' * 64} disposition={'0' * 64}\n"
         )
         result = self._apply(memory_root, out_dir)
         assert result.returncode != 0

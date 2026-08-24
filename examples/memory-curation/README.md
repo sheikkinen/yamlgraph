@@ -5,7 +5,7 @@ note against a declared audience premise, render a human-review
 disposition draft, and — only after hash-bound written sign-off —
 execute the amnesia.
 
-## Contract (judgement-frozen)
+## Contract (judgement-frozen; FR-878 amended)
 
 - **Repo scope only** (v1). User/session scope needs its own FR.
 - **Outputs only under `tmp/memory-curation/`** — never committed.
@@ -13,9 +13,26 @@ execute the amnesia.
   LLM provider. Real-corpus runs require a local-only provider or the
   FR's recorded approval (vertex/azure approved 2026-08-24). Fixture
   runs may use any test-safe provider.
-- **Apply is gated**: refuses without a `SIGN-OFF:` line binding the
-  manifest and disposition hashes; refuses ALL mutation on any
-  live-file drift (re-collect and re-judge instead); idempotent.
+- **Amnesia is reversible (FR-878)**: `forget` archives to
+  `<memory-root>/.archive/<op_id>/…` and `redact` stashes its original
+  there; every event appends a schema row to `repo/_tombstones.md`
+  (protected — apply refuses to forget/redact it); nothing is ever
+  hard-deleted. `apply.py restore <op_id>/<path>` brings a note back,
+  conflict-safe. Collect warns when a live note resembles a forgotten
+  one (re-derivation — the forecast-was-wrong signal).
+- **Approval is tiered by residual risk (FR-878)**, computed from the
+  disposition content; hash-binding and drift refusal unchanged:
+
+  | Tier | Trigger (precedence top-down) | Sign-off requirement |
+  |---|---|---|
+  | 3 | `premise_kind: export_publication` — or missing/unknown (fail closed) | `HUMAN=<name>` + `EXPORT_PUBLICATION_APPROVED`; non-delegable |
+  | 2 | any `forget` | `HUMAN=<name>` |
+  | 1 | any `redact`, zero forgets | `HUMAN=<name>` or `DELEGATION: FR-878 tier-1 standing (operator 2026-08-24)`; audit line appended |
+  | 0 | keep-only | none |
+
+  `premise_kind` is set by reconcile's `--premise-kind` flag
+  (`hygiene | export_publication`) — an explicit variable, never inferred
+  from premise prose.
 
 ## Usage
 

@@ -47,6 +47,43 @@ def collect(memory_root: Path, out_dir: Path) -> dict:
     return manifest
 
 
+def rederivation_advisories(memory_root: Path, notes: dict) -> list[str]:
+    """Warn when a live note resembles a forget-tombstoned archive entry (FR-878)."""
+    tomb = memory_root / "repo" / "_tombstones.md"
+    if not tomb.exists():
+        return []
+    forget_rows: list[tuple[str, str, str, str]] = []
+    restored_refs: set[str] = set()
+    for line in tomb.read_text(encoding="utf-8").splitlines():
+        parts = [part.strip() for part in line.split("|")]
+        if len(parts) < 10:
+            continue
+        op_id, key, verdict, archive, pre_sha, status = (
+            parts[0],
+            parts[1],
+            parts[2],
+            parts[4],
+            parts[5],
+            parts[9],
+        )
+        if status == "restored":
+            restored_refs.add(archive)
+        elif verdict == "forget":
+            forget_rows.append((op_id, key, archive, pre_sha))
+    live_hashes = {entry["sha256"]: key for key, entry in notes.items()}
+    advisories = []
+    for op_id, key, archive, pre_sha in forget_rows:
+        if archive in restored_refs:
+            continue
+        if key in notes or pre_sha in live_hashes:
+            date = op_id.split("T")[0]
+            advisories.append(
+                f"note {key} resembles archived {archive}"
+                f" (forgotten {date}) — consider restore"
+            )
+    return advisories
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--memory-root", required=True)
@@ -58,6 +95,8 @@ def main(argv: list[str] | None = None) -> int:
         print(f"collect: {exc}", file=sys.stderr)
         return 1
     print(f"collected {len(manifest['notes'])} notes")
+    for advisory in rederivation_advisories(Path(args.memory_root), manifest["notes"]):
+        print(advisory)
     return 0
 
 

@@ -113,7 +113,6 @@
 | FR-868 | Judged | yamlgraph |  | FR-868-scripture-dev-salvage.md |
 | FR-869 | Judged | yamlgraph |  | FR-869-spike-end-detector.md |
 | FR-871 | Judged | yamlgraph |  | FR-871-graduate-g02-test-local-schemas-genericity-witness.md |
-| FR-878 | Judged | yamlgraph |  | FR-878-reversible-amnesia-tiered-approval.md |
 | FR-094 | Approved | yamlgraph |  | FR-094-memory-node.md |
 | FR-095 | Approved | yamlgraph |  | FR-095-doc-staleness-monitor.md |
 | FR-096 | Approved | yamlgraph |  | FR-096-fr-template-demo-plan.md |
@@ -475,7 +474,6 @@ graph TD
     FR-873["FR-873 Proposed"]
     FR-876["FR-876 Proposed"]
     FR-877["FR-877 Proposed"]
-    FR-878["FR-878 Judged"]
     FR-081 --> FR-082
     FR-731 --> FR-735
     FR-731 --> FR-736

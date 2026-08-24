@@ -148,3 +148,33 @@ about memory — does it belong as a note in the corpus it indexes
 (self-reference, curated by the same graph) or outside it? And: can
 the SessionStart hook log which memory files each session actually
 reads, making the fire-count a query instead of a self-report?
+
+---
+
+## Addendum 4: the gate the operator killed
+
+The operator challenged the C-6 sign-off directly: "superficial at
+best — long document for a manual review", and the disposition itself
+is "more forecasting". Both charges held against the record — the
+human-skims doctrine, and the fact that neither real catch of the day
+came from document review. FR-878 (judged, enforced same day) is the
+structural answer: **remove irreversibility instead of approving
+through it** (archive + restore + tombstones), **validate forecasts by
+outcome** (re-derivation advisory: a re-created forgotten note is the
+mechanical "forecast was wrong" signal, with a restore), and **tier
+human attention to residual irreversibility** (none / delegated /
+structured question / non-delegable for export). The judge added the
+detail that survives contact: `premise_kind` as a validated enum
+failing closed to the strictest tier — never substring-matching prose
+— and the tombstone index protected from curating itself away.
+
+Heuristic, candidate for graduation: *a human gate that reviews a
+document is theatre; a human gate that answers a decision-shaped
+question at an irreversibility boundary is control. When a gate feels
+superficial, first try to delete the irreversibility it guards.*
+
+**Seed 4:** tier-1 standing delegation is now a machine-checked string
+citing this FR. Delegations accumulate; nothing today lists or expires
+them. Is a delegation registry (who may sign what, granted when,
+witnessed where) the next `_tombstones.md` — case law about authority
+instead of about forgetting?
