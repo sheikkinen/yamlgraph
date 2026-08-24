@@ -1,0 +1,30 @@
+name: Cross-Device Agent Memory Sync
+id: CAP-247
+status: active
+fr: FR-874
+feature_request: feature-requests/FR-874-cross-device-agent-memory-sync.md
+description: >
+  scripts/memory_sync.py mirrors the machine-local memory-tool scopes
+  through the git-tracked docs/agent-memory/ store so agent intel
+  propagates across devices, peers, and subrepos. Export publishes
+  repo-scope notes plus explicitly promoted user notes only; import
+  applies a manifest base-hash conflict contract (never mtime) and is
+  wired into SessionStart fail-open with bounded audit evidence.
+modules:
+  - scripts
+requirements:
+  - id: REQ-YG-620
+    description: >
+      memory_sync contract: export copies repo-scope and explicitly
+      promoted user-scope notes into the store with a deterministic
+      manifest (path, scope, sha256, promotion source) and never
+      exports unpromoted user notes; import reproduces store bytes,
+      records base hashes, refuses overwrite when both local and store
+      diverged from the recorded base unless --force, keeps local-ahead
+      notes, and sanitizes all note paths (no traversal, absolute
+      paths, symlink escape, or non-md payloads); store discovery via
+      YAMLGRAPH_AGENT_MEMORY_ROOT is read-only and errors observably
+      when invalid; the SessionStart hook wrapper exits 0 on any
+      failure while appending a bounded JSONL audit record.
+    modules:
+      - scripts

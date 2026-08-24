@@ -12,7 +12,7 @@ from pathlib import Path
 
 import pytest
 
-pytestmark = [pytest.mark.process, pytest.mark.req("REQ-YG-620")]
+pytestmark = pytest.mark.process
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 SCRIPT = REPO_ROOT / "scripts" / "memory_sync.py"
@@ -48,6 +48,7 @@ def manifest_of(store: Path) -> dict:
     return json.loads((store / "manifest.json").read_text())
 
 
+@pytest.mark.req("REQ-YG-620")
 class TestExport:
     def test_export_repo_notes_and_manifest(self, memory_root, store):
         result = run_sync(
@@ -92,6 +93,7 @@ class TestExport:
         assert entry["promoted_from"] == "practice.md"
 
 
+@pytest.mark.req("REQ-YG-620")
 class TestImportRoundtrip:
     def test_export_wipe_import_reproduces_bytes(self, memory_root, store, tmp_path):
         run_sync("export", "--memory-root", str(memory_root), "--store", str(store))
@@ -109,6 +111,7 @@ class TestImportRoundtrip:
         )
 
 
+@pytest.mark.req("REQ-YG-620")
 class TestImportConflicts:
     def _sync_two_roots(self, memory_root, store, tmp_path):
         """Export from root A, import into root B; return B."""
@@ -153,6 +156,7 @@ class TestImportConflicts:
         assert (other / "repo" / "fact.md").read_text() == "local progress\n"
 
 
+@pytest.mark.req("REQ-YG-620")
 class TestSanitization:
     @pytest.mark.parametrize(
         "bad_key",
@@ -194,6 +198,7 @@ class TestSanitization:
         assert result.returncode != 0
 
 
+@pytest.mark.req("REQ-YG-620")
 class TestSubrepoDiscovery:
     def test_env_var_discovery_import_works(self, memory_root, store, tmp_path):
         run_sync("export", "--memory-root", str(memory_root), "--store", str(store))
@@ -232,6 +237,7 @@ class TestSubrepoDiscovery:
         assert "YAMLGRAPH_AGENT_MEMORY_ROOT" in (result.stdout + result.stderr)
 
 
+@pytest.mark.req("REQ-YG-620")
 class TestSessionStartHook:
     """AC-08: hook wrapper is fail-open but leaves bounded audit evidence."""
 

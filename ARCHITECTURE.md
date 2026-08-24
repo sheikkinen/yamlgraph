@@ -562,6 +562,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 244 | CAP-244 Ramp Installer | `scripts` | REQ-YG-610 – 613 |
 | 245 | CAP-245 Ramp Tailoring Graphs | `examples` | REQ-YG-614 – 617 |
 | 246 | CAP-246 Scripture-dev Salvage Classification | `examples` | REQ-YG-618 – 619 |
+| 247 | CAP-247 Cross-Device Agent Memory Sync | `scripts` | REQ-YG-620 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -3023,6 +3024,16 @@ salvage_classify demo graph classifies every tracked file of a frozen scripture-
 |------------|-------------|-------------|
 | REQ-YG-618 | salvage_classify's disposition reconciles count-in == count-out over the frozen source manifest with zero unknown verdicts; every verdict is duplicate, lift, or obsolete; every duplicate names a yamlgraph_equivalent path that exists in this repo; every lift names a destination under ramp/salvage/ plus source SHA and rationale; destinations outside the namespace are validation errors. | `examples` |
 | REQ-YG-619 | salvage_classify shared runtime contract: the graph lints clean, writes drafts only to tmp/ramp/salvage-disposition.md and tmp/ramp/salvage-disposition.json, and contains no git commit, git push, or gh invocation in any graph, prompt, or node source. | `examples` |
+
+### 247. CAP-247 Cross-Device Agent Memory Sync
+
+scripts/memory_sync.py mirrors the machine-local memory-tool scopes through the git-tracked docs/agent-memory/ store so agent intel propagates across devices, peers, and subrepos. Export publishes repo-scope notes plus explicitly promoted user notes only; import applies a manifest base-hash conflict contract (never mtime) and is wired into SessionStart fail-open with bounded audit evidence.
+
+**Feature Request:** FR-874
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-620 | memory_sync contract: export copies repo-scope and explicitly promoted user-scope notes into the store with a deterministic manifest (path, scope, sha256, promotion source) and never exports unpromoted user notes; import reproduces store bytes, records base hashes, refuses overwrite when both local and store diverged from the recorded base unless --force, keeps local-ahead notes, and sanitizes all note paths (no traversal, absolute paths, symlink escape, or non-md payloads); store discovery via YAMLGRAPH_AGENT_MEMORY_ROOT is read-only and errors observably when invalid; the SessionStart hook wrapper exits 0 on any failure while appending a bounded JSONL audit record. | `scripts` |
 
 <!-- END GENERATED CAPABILITIES -->
 
