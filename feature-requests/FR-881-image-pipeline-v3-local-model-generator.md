@@ -167,11 +167,10 @@ demos, no overlap).
 - `sheikkinen/deviant-daily@5bd0bab:training/` — generator + evidence
 - examples/image_pipeline/ (v1), examples/image_pipeline_v2/ (v2)
 
-## Open Questions (for the human, inline)
+## Decisions (operator, 2026-08-24)
 
-1. **Ranking source** — fewest-attempts proxy (zero new deps) vs
-   FR-879's NLL calibration (better signal, couples to its landing).
-   Recommended: decide at enforce time, floor = first-k-passers. A: ___
-2. **Sequencing** — enforce only after FR-879 merges (clean chassis
-   reuse), or in parallel with copied nodes reconciled later?
-   Recommended: after FR-879. A: ___
+1. **Ranking:** first k passers — no ranking machinery; the boundary is
+   the only gate. (Kills the fewest-attempts proxy and the NLL-coupling
+   option; Proposed Solution's "ranking" paragraph resolves to this.)
+2. **Sequencing:** judge/enforce only after FR-879 merges — clean
+   chassis reuse, no copied nodes.
