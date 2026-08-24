@@ -5,10 +5,11 @@
 **Status:** Proposed
 **Requested:** 2026-08-24
 **Effort:** 0.5–1 day
-**Depends on:** FR-879 (in flight — v2 critic-filter pipeline; shares
-`DEVIANT_DAILY_DIR` wiring, report shape, and z-image render node)
+**Depends on:** FR-879 (Enforced — v2 critic-filter pipeline delivered:
+`examples/image_pipeline_v2/` graph, nodes, evidence; shares
+`DEVIANT_DAILY_DIR` wiring and z-image render node) (R-1)
 **First consumer / first event:** the operator (sheikkinen), the first
-run after FR-879 lands: one command generates 10 candidate prompts
+run after enforcement: one command generates 10 candidate prompts
 **from the FR-876 trained 3.3 M-param local model** (zero LLM API
 cost, zero network for generation), boundary-filters them, renders the
 survivors via Replicate z-image — the full loop from "corpus of old
@@ -67,21 +68,25 @@ deviant-daily owns model + sampling; yamlgraph orchestrates).
 **D-A: batch-generation CLI contract in `sheikkinen/deviant-daily`**
 (extend `training/generate.py`, ~30 lines):
 
-- `--json` mode: emit JSONL (`{prompt, attempts, verdict_counts,
-  seed, temp, cond, start, ckpt_sha}`) instead of human text — the
-  machine-readable twin of the existing CLI, stamped with checkpoint
-  provenance (`artifact_carries_code_identity`).
+- `--json` mode (contract frozen by R-3): stdout carries ONLY JSON
+  lines — one `candidate` object per accepted prompt in generation
+  order (`ordinal`, `prompt`, `attempts_for_candidate`,
+  `verdict_counts`, `seed`, `temp`, `top_k`, `cond`, `start`,
+  `ckpt_sha`, `corpus_sha`, `git_sha`) plus one final `summary` object
+  (total attempts, aggregate verdict counts). Rejected raw text never
+  appears on stdout, stderr, JSONL, reports, or committed evidence —
+  only rejection reason counts (`artifact_carries_code_identity`).
 - Honors existing `--n/--temp/--cond/--start/--seed`; no new sampling
   logic — the boundary loop already exists and is witnessed.
-- Tests: JSONL shape, provenance stamp, rejected-text-never-emitted
-  (R-2 inheritance) on a tiny fixture checkpoint.
+- Tests: parseable JSONL, provenance stamping, deterministic seed
+  behavior, absence of rejected raw text.
 
 **D-B: `examples/image_pipeline_v3/` in yamlgraph** — authored ONLY
 via the graph-authoring sole route (`scripts/author.sh`, FR-767):
 
 ```
 START → sample_candidates (python tool → subprocess: training/generate.py --json)
-      → save_report (reuse v2 node — same scored/report shape)
+      → save_report (v3 report node → outputs/image_pipeline_v3; R-4)
       → generate_images (reuse v1 node — z-image, survivors only)
       → END
 ```
@@ -95,10 +100,15 @@ START → sample_candidates (python tool → subprocess: training/generate.py --
   commands when clone/ckpt missing — no fallback to an LLM generator
   (Commandment 6: a silent LLM substitute would be a plausible wrong
   answer for a demo about NOT needing one).
-- Ranking without a critic: v3 orders candidates by fewest attempts
-  needed (cheap proxy), OR — if FR-879's `training/score.py`
-  calibration ships first — by in-band NLL. Decide at enforce time
-  based on what FR-879 has landed; record the choice in the FR.
+- Selection (R-2, frozen): the first `top_k` boundary-passing
+  candidates in generation order. No `training/score.py`, no NLL, no
+  fewest-attempts ranking, no LLM judge — attempt counts appear in the
+  report as generation diagnostics only, never as selection criteria.
+- Report node (R-4): v3 gets its own `save_report` writing to
+  `outputs/image_pipeline_v3` (v2's node hardcodes
+  `outputs/image_pipeline_v2`); shared table helpers may be imported
+  from v2 only if v2 behavior is provably unchanged (regression check
+  on the v2 output path).
 - v1 and v2 untouched.
 
 ```bash
@@ -110,22 +120,20 @@ yamlgraph graph run examples/image_pipeline_v3/graph.yaml \
 
 ## Acceptance Criteria
 
-- [ ] AC-01: `training/generate.py --json` (deviant-daily) emits JSONL
-      with prompt, verdict counts, sampling params, and ckpt SHA;
-      tests witness shape, provenance, and no rejected raw text.
-- [ ] AC-02: `examples/image_pipeline_v3/` authored via the sole
-      authoring route with lint + smoke evidence
-      (`tmp/draft-authoring-report.md`).
-- [ ] AC-03: The graph contains NO `llm` node (witnessed by lint /
-      graph inspection); prompt generation runs offline.
-- [ ] AC-04: `sample_candidates` fails fast with actionable train/setup
-      commands when `DEVIANT_DAILY_DIR`, checkpoint, or corpus is
-      missing; no LLM fallback path exists.
-- [ ] AC-05: Demo run evidence committed: rejection table + k rendered
-      images from a `--start`-seeded run; per-sample read note in the
-      enforcement record (`read_raw_output_first`).
-- [ ] AC-06: v1/v2 diffs empty; shared nodes reused by import, not
-      copied.
+Superseded by the judgement's revised AC-01..AC-12
+(`feature-requests/FR-881-image-pipeline-v3-local-model-generator.judgement.md`)
+— the judgement list is binding. Key deltas from the original list:
+
+- AC-02/AC-03: `--json` JSONL schema frozen (candidate + summary
+  records, provenance SHAs, no rejected raw text on any stream).
+- AC-06: selection is exactly first-`top_k`-passers in generator order.
+- AC-09 (was AC-05): committed evidence is the sanitized table +
+  excerpt + image paths/checksums + read notes — generated PNGs and
+  full-prompt sidecars stay out of git (R-5, matches FR-879 precedent).
+- AC-10: v2 must still write to `outputs/image_pipeline_v2` (R-4
+  regression witness).
+- AC-12: no Replicate credentials → enforcement stops; no mocked
+  images.
 
 ## Alternatives Considered
 
@@ -146,9 +154,9 @@ yamlgraph graph run examples/image_pipeline_v3/graph.yaml \
 
 ## Prior Art Disposition
 
-**Prior art:** FR-879 (in flight — chassis and inversion partner:
+**Prior art:** FR-879 (Enforced — chassis and inversion partner:
 LLM-generator/local-critic vs this FR's local-generator; shares
-`DEVIANT_DAILY_DIR` seam, report artifact, render node; dispositioned
+`DEVIANT_DAILY_DIR` seam and render node; dispositioned
 as dependency, not duplicate); FR-876 (Enforced — built the generator,
 boundary, and sampling CLI this FR consumes; its deferred
 `draw_prompt()` integration is NOT taken up here); FR-109 (In Progress,
@@ -162,8 +170,8 @@ demos, no overlap).
 
 - feature-requests/FR-876-minimal-llm-training-demo.md (+ judgement) —
   the model, boundary, evidence
-- feature-requests/FR-879-image-pipeline-v2-critic-filter.md (+
-  judgement) — the chassis
+- feature-requests/FR-879-image-pipeline-v2-critic-filter.md — the
+  chassis (no separate judgement file exists in-repo; R-1)
 - `sheikkinen/deviant-daily@5bd0bab:training/` — generator + evidence
 - examples/image_pipeline/ (v1), examples/image_pipeline_v2/ (v2)
 
@@ -171,6 +179,6 @@ demos, no overlap).
 
 1. **Ranking:** first k passers — no ranking machinery; the boundary is
    the only gate. (Kills the fewest-attempts proxy and the NLL-coupling
-   option; Proposed Solution's "ranking" paragraph resolves to this.)
-2. **Sequencing:** judge/enforce only after FR-879 merges — clean
-   chassis reuse, no copied nodes.
+   option; frozen repo-wide by judgement R-2/AC-06.)
+2. **Sequencing:** judge/enforce only after FR-879 merges — satisfied:
+   FR-879 records Status Enforced with delivered v2 chassis (R-1).
