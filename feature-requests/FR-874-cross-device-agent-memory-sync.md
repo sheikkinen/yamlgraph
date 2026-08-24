@@ -1,8 +1,41 @@
 # Feature Request: Cross-Device Agent Memory Sync via Git-Tracked Note Store
 
+## Rejection (2026-08-24, human verdict — overrides the judgement)
+
+Enforced and rolled back the same day (RED `7aa7ac3d`, GREEN `78119e46`,
+both reverted before push). Two independent fatal findings from the
+post-enforcement security review of the seed corpus:
+
+1. **The target repo is PUBLIC** (`gh repo view`: visibility PUBLIC). The
+   FR's entire privacy model — and the judgement's R-1/R-5 — assumed a
+   peer-shared repo; neither author, judge, nor enforcer checked
+   visibility. The seed corpus contained customer-critical material with
+   zero prior public baseline: customer-confidential material.
+   Details are intentionally omitted from this
+   public record. The controlling
+   root cause
+   is `workspace_is_not_boundary`: the memory tool's "repo" scope is
+   actually workspace scope, and this workspace spans customer projects.
+2. **The corpus is unjudged.** The notes are accumulated glimpses — no
+   note ever passed a curation gate. Building the transport before the
+   curation pipeline published randomness at scale. The correct order is
+   a yamlgraph judgement graph over the corpus first (verdict per note:
+   keep / redact / forget — selective amnesia), transport second, if
+   ever. The pipeline-before-pipe lesson: FR-874 shipped the pipe.
+
+**Precedent value (why this file survives):** any future proposal to
+commit memory-tool contents to a git-tracked store must (a) verify repo
+visibility as a written precondition, (b) route the corpus through a
+judgement/selective-amnesia graph before any export exists, and (c)
+treat note classification (public / peer / customer-private /
+machine-local) as a boundary requirement, not an implementation detail.
+Successor proposal: see `.chaplain/inbox/memory-corpus-judgement-graph.md`.
+
+---
+
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Enforced (2026-08-24) — implementation complete, seed pending human review (C-2)
+**Status:** REJECTED (2026-08-24) — enforced same day, then rolled back on post-enforcement security review; see Rejection below
 **Effort:** 1–2 days
 **Requested:** 2026-08-24
 **First consumer / first event:** the Copilot agent starting a session on the

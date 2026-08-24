@@ -44,3 +44,44 @@ promotion → committed artifact. Should the memory-sync manifest track
 recurrence counts per note, making graduation to Scripture a query
 (`notes seen on N devices, imported M times`) instead of a manual
 sweep?
+
+---
+
+## Addendum (same day): rejected and reverted
+
+Everything above was written at GREEN, before the security review. The
+operator's review request surfaced the fact that invalidated the arc:
+**the repo is public**, and neither author, judge, nor enforcer ever
+checked. The seed corpus staged for commit contained a customer
+customer-confidential material. security findings,
+all intentionally omitted here — none with prior public baseline. Both
+commits reverted unpushed; FR-874 is now REJECTED precedent.
+
+**The trap, precisely:** `threat_model_inherited_unverified` — every
+stage validated against the threat model stated in the FR (peer-shared
+repo) and none re-derived it from the world (`gh repo view` is one
+call). The judgement even wrote the right correction (R-5: exclude
+customer-private data) and the enforcer executed it against the wrong
+adversary: I scanned for secret *values* when the leak class was
+*facts*. A grep for tokens cannot identify a sensitive operational
+fact — only a judgement over meaning can.
+
+**The deeper defect the operator named:** the corpus itself is
+unjudged — "random memory glimpses from the past." I built transport
+for content that had never passed a gate. That is the pipe before the
+pipeline: selective amnesia (judge each note: keep / redact / forget)
+is the prerequisite mechanism, and it is a yamlgraph graph by nature —
+per-note LLM judgement over a manifest is exactly the map-node shape
+(`is_this_a_graph` fired late, again). Proposal filed to the chaplain
+inbox.
+
+**Revised heuristic:** the day's original heuristic ("second witness
+converts a diary fact into a mechanism FR") survives, but gains a
+guard: *the mechanism inherits every unverified premise of the
+observation.* Verify the premises — especially visibility/audience —
+before building the mechanism, not after.
+
+**Seed (replacing the one above):** should the judge doctrine require
+a "blast radius" line in every FR that moves data across a boundary —
+stating audience, visibility, and worst-case reader — the way
+measurement FRs require a raw-output read?

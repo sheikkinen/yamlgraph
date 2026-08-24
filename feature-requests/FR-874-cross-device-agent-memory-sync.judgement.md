@@ -1,5 +1,12 @@
 # Judgement: FR-874 Cross-Device Agent Memory Sync via Git-Tracked Note Store
 
+> **Human override (2026-08-24): REJECTED.** This judgement granted
+> conditional authority on a false premise — it never verified repo
+> visibility (PUBLIC), and its R-5 seed review, though correctly aimed,
+> was executed against the wrong threat model (peer-shared, not
+> world-readable). The enforced implementation was reverted unpushed.
+> Rationale and precedent rules: see the Rejection section of the FR.
+
 **Verdict:** APPROVED WITH REVISIONS — the portability defect is real and the git-transport shape is minimal, but authority activates only after the FR pins opt-in privacy, conflict metadata, subrepo discovery, and observable fail-open behavior.
 
 **Reviewed against:** `feature-requests/FR-874-cross-device-agent-memory-sync.md`; `.github/skills/judge-fr/doctrine.md`; `.github/skills/judge-fr/judgement.template.md`; `feature-requests/TEMPLATE.md`; `.github/copilot-instructions.md`; `docs/diary/diary-2026-07-16-a-map-for-the-amnesiac.md`; `scripts/vscode/README.md`; `scripts/vscode/MAP.md`; `feature-requests/FR-617-memory-note-taking-primitive.md`; `feature-requests/FR-743-sessionstart-briefing-hook.md`. The cited `/memories/repo/where-repo-notes-live.md` was not consumed because it is not a committed artifact found in this repo.

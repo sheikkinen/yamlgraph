@@ -10,11 +10,6 @@
         "type": "command",
         "command": ".github/hooks/scripts/session-briefing.sh",
         "timeout": 8
-      },
-      {
-        "type": "command",
-        "command": ".github/hooks/scripts/memory-import.sh",
-        "timeout": 10
       }
     ],
     "UserPromptSubmit": [
