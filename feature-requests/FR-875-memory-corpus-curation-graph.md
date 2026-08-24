@@ -280,6 +280,23 @@ where the witness-disagreement cross-checker pattern predicts. Follow-up
 candidates: premise-pair runs (hygiene + export) and a
 disagreement-diff over their dispositions.
 
+**AC-14 run 2 — hygiene premise, APPLIED (2026-08-24, provider=vertex):**
+premise "machine-local working memory; redact means COMPRESS keeping every
+fact; forget only if mechanized elsewhere or unrepeatable". 57 notes:
+54 keep / 3 redact-as-compress / 0 forget; zero validation errors. All
+three compression drafts read in full before sign-off (FR-467 map-edge
+bug 2353→500 chars, FR-563 mechanics 3280→1624, NC-332 flakiness
+3327→1359 — triggers and framework mechanics preserved; dropped text was
+narrative around already-mechanized fixes). Signed via recorded operator
+delegation; applied against the live memory root; idempotent re-run
+witnessed (0/0/57, exit 0). The premise-pair hypothesis from run 1 is
+confirmed: the same graph produces the export view (run 1: 6
+publication-redactions) or the hygiene view (run 2: 3 compressions) purely
+by premise — verdict semantics are premise-scoped, no graph change needed.
+Tombstone convention unexercised (zero forgets this run) — first
+exercised forget should add the `_tombstones.md` line per the diary
+addendum-3 policy.
+
 ### Questions for the human
 
 None open — the judgement resolved provider policy (R-1 mechanism) and
