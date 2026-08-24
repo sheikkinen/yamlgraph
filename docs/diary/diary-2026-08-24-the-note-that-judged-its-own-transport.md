@@ -85,3 +85,30 @@ before building the mechanism, not after.
 a "blast radius" line in every FR that moves data across a boundary —
 stating audience, visibility, and worst-case reader — the way
 measurement FRs require a raw-output read?
+
+---
+
+## Addendum 2: the successor shipped the same day
+
+FR-875 (the curation graph the rejection demanded) was judged and
+enforced within hours: collect/reconcile/apply as tested code, the
+judge stage authored through the sole route, fixture smoke green on
+first pass. Two details worth recording. First, the FR-875 judge
+caught *me* re-committing the FR-874 sin at smaller scale: my draft's
+blast-radius line claimed "tmp/ only" while the map node ships every
+note body to a cloud provider — the egress was in plain sight and the
+author's eye slid off it again. The R-1 gate (provider approval as a
+recorded human line) is the mechanized fix. Second, the fixture smoke
+validated the mechanism the honest way: the planted sensitive note —
+synthetic customer-confidential operational details, the
+exact FR-874 leak classes — came back `redact` with a correct
+rationale on the first run. The graph that exists because pattern
+scanning missed a fact-leak was witnessed catching a fact-leak.
+
+**Seed 2:** apply's drift refusal is validate-all-then-apply-all — an
+all-or-nothing transaction over the memory root. The same shape
+(frozen manifest → judged plan → hash-gated execution) fits any
+agent-driven destructive operation: worktree cleanup, branch pruning,
+config migration. Is there a general "gated apply" primitive hiding
+here, or is three instances (FR-868, FR-875, next) the graduation
+bar?

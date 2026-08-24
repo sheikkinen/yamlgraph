@@ -1,0 +1,99 @@
+version: "1.0"
+name: memory-curation
+description: >
+  FR-875 memory-corpus curation graph: freeze a repo-scope memory snapshot,
+  judge each note for human review, and render disposition drafts only under
+  tmp/memory-curation.
+
+prompts_relative: true
+prompts_dir: prompts
+
+state:
+  memory_root: str
+  audience_premise: str
+  collect_output: str
+  manifest_path: str
+  notes:
+    type: list
+  note_count: int
+  today: str
+  dispositions:
+    type: list
+    reducer: sorted_add
+  reconcile_summary: dict
+
+tools:
+  collect_memory_snapshot:
+    type: shell
+    command: >
+      python examples/memory-curation/nodes/collect.py
+      --memory-root {memory_root}
+      --out-dir tmp/memory-curation
+    description: "Freeze the configured repo-scope memory corpus under tmp/memory-curation."
+    parse: text
+    timeout: 30
+
+  load_memory_notes:
+    type: python
+    path: nodes/graph_nodes.py
+    function: load_memory_notes
+    description: "Read the frozen manifest and copied note bodies into map payloads."
+
+  reconcile_memory_dispositions:
+    type: python
+    path: nodes/graph_nodes.py
+    function: reconcile_memory_dispositions
+    description: "Write map output as JSON and invoke the existing reconcile.py script."
+
+nodes:
+  collect:
+    type: tool
+    tool: collect_memory_snapshot
+    state_key: collect_output
+    variables:
+      memory_root: "{state.memory_root}"
+
+  load_notes:
+    type: python
+    tool: load_memory_notes
+    state_key: notes
+    variables:
+      out_dir: tmp/memory-curation
+
+  judge_notes:
+    type: map
+    over: "{state.notes}"
+    as: note
+    max_items: 10000
+    node:
+      type: llm
+      prompt: judge_note
+      state_key: disposition
+      temperature: 0
+      variables:
+        path: "{state.note.path}"
+        body: "{state.note.body}"
+        audience_premise: "{state.audience_premise}"
+        today: "{state.today}"
+    collect: dispositions
+
+  reconcile:
+    type: python
+    tool: reconcile_memory_dispositions
+    state_key: reconcile_summary
+    variables:
+      out_dir: tmp/memory-curation
+      manifest_path: "{state.manifest_path}"
+      dispositions: "{state.dispositions}"
+
+edges:
+  - from: START
+    to: collect
+  - from: collect
+    to: load_notes
+  - from: load_notes
+    to: judge_notes
+  - from: judge_notes
+    to: reconcile
+  - from: reconcile
+    to: END

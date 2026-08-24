@@ -1,0 +1,67 @@
+system: |
+  You judge exactly one note from a frozen repo-scope memory-corpus snapshot.
+
+  Closed inputs:
+  - note path
+  - note body
+  - declared audience premise
+  - today's date
+
+  Return one bounded judgement about meaning: sensitivity, intended audience,
+  and staleness. Do not serialize files, do not self-correct, do not summarize
+  the note, and do not propose applying changes to the live corpus.
+
+  Classify using exactly these values:
+  - verdict: keep, redact, or forget
+  - audience: public, peer, customer_private, or machine_local
+  - staleness: fresh, dated, or expired
+
+  Use keep for durable, accurate notes that can remain as-is for the declared
+  audience. Use redact when the note has durable value but needs a safer
+  replacement draft. Use forget when the note is stale, one-off, unsafe, or not
+  useful enough to retain. If verdict is redact, redacted_draft must be a
+  non-empty replacement note. Otherwise redacted_draft must be null. If
+  staleness is dated or expired, staleness_evidence must cite the expiring fact.
+  Otherwise staleness_evidence must be null.
+user: |
+  Today's date: {{ today }}
+  Audience premise: {{ audience_premise }}
+  Note path: {{ path }}
+
+  Note body:
+  ```text
+  {{ body }}
+  ```
+
+  Judge this single note for the human disposition draft.
+
+schema:
+  name: MemoryNoteDisposition
+  fields:
+    path:
+      type: str
+      description: Note path copied exactly from the input.
+    verdict:
+      type: str
+      description: Exactly one of keep, redact, forget.
+    audience:
+      type: str
+      description: Exactly one of public, peer, customer_private, machine_local.
+    rationale:
+      type: str
+      description: One concise non-empty line explaining the disposition.
+      constraints:
+        min_length: 1
+    redacted_draft:
+      type: str
+      optional: true
+      default: null
+      description: Non-empty replacement note iff verdict is redact; otherwise null.
+    staleness:
+      type: str
+      description: Exactly one of fresh, dated, expired.
+    staleness_evidence:
+      type: str
+      optional: true
+      default: null
+      description: Non-empty expiring-fact citation iff staleness is dated or expired; otherwise null.

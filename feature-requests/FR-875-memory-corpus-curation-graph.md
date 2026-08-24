@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Enforcing (2026-08-24) — R-1 provider approval recorded (vertex/azure); authority active
+**Status:** Enforced (2026-08-24) — fixture-validated; first real-corpus run pending operator scheduling
 **Effort:** 1–2 days
 **Requested:** 2026-08-24
 **First consumer / first event:** the operator, running the graph over this
@@ -238,6 +238,32 @@ this document.
 cross-device sync; user/session-scope curation; automatic apply; applying
 on hash drift; real-corpus egress without recorded approval; framework
 primitives; CI/hook/doctrine changes.
+
+## Implementation (2026-08-24)
+
+RED `91293e93` (17 condemning tests, SKIP=pytest) → GREEN this change.
+
+| Deliverable | Artifact |
+|---|---|
+| D-2 | `feature-requests/authoring-briefs/fr-875-memory-curation-brief.md` |
+| D-3 | `examples/memory-curation/graph.yaml`, `prompts/judge_note.yaml`, `nodes/graph_nodes.py` — authored via the SOLE route (`scripts/author.sh`), report retained below |
+| D-4 | `examples/memory-curation/apply.py` (hash-bound sign-off, validate-all-then-apply-all drift refusal, idempotent) |
+| D-5 | `examples/memory-curation/nodes/{collect,reconcile}.py`; 3-note fixture corpus; `tests/unit/test_memory_curation.py` (17 tests, temp roots only per C-5) |
+| D-7 | `capabilities/CAP-247-memory-corpus-curation.yaml` / REQ-YG-620 |
+
+**Authoring record (C-3, from `tmp/draft-authoring-report.md`):** precedent
+`examples/demos/salvage_classify` (+ python-map, research-agent shell-tool
+conventions); `yamlgraph graph lint` clean first pass; fixture smoke
+`--var memory_root=examples/memory-curation/fixtures/memories` completed —
+3/3 notes covered, zero unknown verdicts; no repairs; no blocked
+validation. Independently cross-checked post-run: lint re-run clean; raw
+disposition read (`read_raw_output_first`) — the judge correctly rendered
+keep (durable fact), forget/expired (version pin, evidence cited), and
+redact (planted endpoint + credential-workaround note): the exact FR-874
+leak classes.
+
+**AC-14 (first real run):** pending — operator schedules the vertex/azure
+run over the live corpus; aggregates to be recorded here.
 
 ### Questions for the human
 

@@ -49,6 +49,7 @@ After the learning path, explore production examples below.
 | [ebook/](ebook/) | eBook authoring pipeline | File-based write→judge→amend pattern |
 | [fsm-router/](fsm-router/) | FSM + YAMLGraph integration | statemachine-engine, LLM routing, job orchestration |
 | [icpc-2-rfe/](icpc-2-rfe/) | ICPC-2 Reason-for-Encounter classifier | Cluster map fan-out, generated Tier-1 catalog (never committed), deterministic reducer (FR-722) |
+| [memory-curation/](memory-curation/) | Memory-corpus selective amnesia | Frozen-snapshot collect, map-node judgement (keep/redact/forget), hash-gated apply (FR-875) |
 | [npc/](npc/) | D&D NPC generator | Multi-graph, map nodes, parallel NPCs |
 | [novel_fandom/](novel_fandom/) | Fiction canon management | Typed canon schema, ref gate, lane immutability (FR-637) |
 | [ocr_cleanup/](ocr_cleanup/) | OCR text cleanup | Map nodes, PDF extraction, parallel LLM cleanup |
