@@ -296,7 +296,11 @@ by premise — verdict semantics are premise-scoped, no graph change needed.
 Tombstone convention unexercised (zero forgets this run) — first
 exercised forget should add the `_tombstones.md` line per the diary
 addendum-3 policy.
-
+**C-6 amendment (2026-08-24):** the operator challenged the per-run
+human sign-off as superficial (a skimmed 57-row document approving a
+forecast). FR-878 supersedes the uniform sign-off with reversible
+amnesia (archive + restore + tombstones) and tiered approval — hash
+mechanics unchanged; export premise becomes strictly human (tier 3).
 ### Questions for the human
 
 None open — the judgement resolved provider policy (R-1 mechanism) and
