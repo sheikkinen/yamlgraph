@@ -143,11 +143,11 @@ records are never committed into the target.
 
 Superseded by the judgement's revised set (2026-08-23); folded verbatim.
 
-- [ ] AC-01: FR-867 is revised to define dependency activation evidence, exact install command/asset set, draft-review handoff, CI-block semantics, target RTM identity, and cross-repo transcript requirements from R-1 through R-6.
-- [ ] AC-02: Before any target write, FR-867 records the target repo URL/path, branch, exact HEAD, clean target git status, clean yamlgraph git status for relevant files, and the explicit file list expected to change in each repo.
-- [ ] AC-03: Before any target write, FR-867 records the yamlgraph commit SHA and validation evidence for the enforced FR-865 installer assets and the enforced FR-866 graph draft artifacts; both sibling judgements' revision gates are satisfied.
-- [ ] AC-04: The chosen install path is exact: either `scripts/ramp.sh <target> --tier 3` or `scripts/ramp.sh <target> --tier 2` plus an explicitly listed RTM asset subset. The dry-run transcript is pasted into FR-867 before install and shows the planned target paths.
-- [ ] AC-05: The curated ramp manifest and enforcement asset set have a recorded human-review approval before first non-scratch use against `deviant-daily`.
+- [x] AC-01: FR-867 is revised to define dependency activation evidence, exact install command/asset set, draft-review handoff, CI-block semantics, target RTM identity, and cross-repo transcript requirements from R-1 through R-6.
+- [ ] AC-02: Before any target write, FR-867 records the target repo URL/path, branch, exact HEAD, clean target git status, clean yamlgraph git status for relevant files, and the explicit file list expected to change in each repo. *(BLOCKED: target tree dirty — see Execution Record)*
+- [x] AC-03: Before any target write, FR-867 records the yamlgraph commit SHA and validation evidence for the enforced FR-865 installer assets and the enforced FR-866 graph draft artifacts; both sibling judgements' revision gates are satisfied.
+- [x] AC-04: The chosen install path is exact: either `scripts/ramp.sh <target> --tier 3` or `scripts/ramp.sh <target> --tier 2` plus an explicitly listed RTM asset subset. The dry-run transcript is pasted into FR-867 before install and shows the planned target paths.
+- [ ] AC-05: The curated ramp manifest and enforcement asset set have a recorded human-review approval before first non-scratch use against `deviant-daily`. *(HUMAN GATE)*
 - [ ] AC-06: The installer writes only the approved paths from AC-04; the install transcript records created/skipped/overwritten actions and source commit SHA without secrets.
 - [ ] AC-07: After install, `.git/hooks/pre-commit` exists in the target and `pre-commit run --all-files` executes; the target transcript records command, exit status, and non-secret summary.
 - [ ] AC-08: The FR-866 graph runs used for this application record source commit SHA, command, draft paths, and draft hashes; no graph/tool writes directly into the target repo.
@@ -198,3 +198,104 @@ not a defect.
 - `feature-requests/FR-865-ramp-installer.md`, `feature-requests/FR-866-ramp-tailoring-graphs.md`
 - `feature-requests/FR-826-deviantart-daily-repo.md` — target repo contracts, unchanged here
 - `feature-requests/FR-863-deviant-daily-publish-policy-boundary-mirroring.md` — the four incidents
+
+## Execution Record (2026-08-23, up to the human gates)
+
+### Activation record (R-1) — all four artifacts recorded
+
+| Artifact | Evidence |
+|---|---|
+| FR-865 judgement | `feature-requests/FR-865-ramp-installer.judgement.md` — authority granted, revisions folded; enforced RED `c92b18f3` / GREEN `cea3e49f` |
+| `scripts/ramp.sh` + `ramp/manifest.yaml` | committed in `cea3e49f`, tests green |
+| FR-866 judgement | `feature-requests/FR-866-ramp-tailoring-graphs.judgement.md` — authority granted, revisions folded; enforced RED `3dae424c` / GREEN `8e34f4de` |
+| `examples/demos/ramp_{doctrine,rtm,incidents}/graph.yaml` | committed in `8e34f4de`, lint clean (witnessed by `test_graph_lints_clean` ×3) |
+
+### AC-02 status — BLOCKED on dirty target tree
+
+Ran in: **yamlgraph** (read-only against target).
+
+- Target: `/Users/sheikki/Documents/src/deviant-daily`
+  (`https://github.com/sheikkinen/deviant-daily`), branch `main`,
+  HEAD `cbdc81b7e308486be7071c6bd4e49cd5996bddeb` (matches the FR's
+  authoring-time HEAD — no new commits landed).
+- **Target `git status -sb` is NOT clean**: 15 modified files
+  (`.github/workflows/daily.yml`, `.gitignore`, `README.md`,
+  `pyproject.toml`, 4 test files, 7 `tools/*.py`) + untracked `logs/`
+  — foreign in-progress work, −342/+106 lines. Not this session's WIP;
+  per `workspace_is_not_boundary` it will not be stashed, committed,
+  or reverted by this FR. **Install does not proceed until the
+  operator resolves the target tree.**
+
+### AC-04 dry-run transcript (read-only; verified nothing written)
+
+Ran in: **yamlgraph**, `scripts/ramp.sh ~/Documents/src/deviant-daily --tier 3 --dry-run`
+(full log: `logs/fr867-dryrun.log`; target status identical before/after):
+
+```
+dry-run: tier 3 into /Users/sheikki/Documents/src/deviant-daily — nothing will be written
+create .pre-commit-config.yaml
+create .github/hooks/pre-command-guard.json
+create .github/hooks/scripts/pre-command-guard.sh
+create .github/hooks/README.md
+create .github/workflows/tests.yml
+create AGENTS.md
+create feature-requests/TEMPLATE.md
+create .github/skills/judge-fr/SKILL.md
+create .github/skills/judge-fr/doctrine.md
+create .github/skills/judge-fr/judgement.template.md
+create .github/skills/review-pr/SKILL.md
+create .github/skills/review-pr/doctrine.md
+create .github/skills/review-pr/review.template.md
+create scripts/judge.sh
+create scripts/review.sh
+create scripts/gates/changelog_gate.sh
+create scripts/gates/diary_gate.sh
+create docs/diary/TEMPLATE.md
+create capabilities/README.md
+create scripts/req_coverage.py
+```
+
+Chosen install path: `scripts/ramp.sh /Users/sheikki/Documents/src/deviant-daily --tier 3`.
+
+### AC-08 graph runs (fresh, against target HEAD working tree)
+
+Ran in: **yamlgraph** at `412b4c68`; graphs write only `tmp/ramp/`.
+An earlier pair of drafts was overwritten by FR-866's fixture demo runs;
+these are regenerated against the real target (freshness matters —
+draft provenance is part of the record):
+
+| Draft | Command var | sha256 (12) | Content |
+|---|---|---|---|
+| `tmp/ramp/doctrine-draft.md` | `target=<path>` | `6e03df7a0ff2` | 29 of 55 Scripture entries kept; zero foreign FR/NC citations (AC-09 precondition holds) |
+| `tmp/ramp/rtm-draft.md` | `target=<path>` | `3e40d715d571` | 51 REQ candidates from 108 inventoried tests; 25 gap tests honestly listed; 0 validation errors |
+| `tmp/ramp/incidents-draft.md` | `target_name=deviant-daily` | `686e86a2eff5` | 10 incidents from 33 corpus docs, incl. all four 2026-08-23 failures (FR-863) |
+
+Note: RTM inventoried 108 tests vs the baseline's 145 — the dirty
+working tree modifies 4 test files; re-run after the tree is resolved
+if the count matters to the review.
+
+### Human-review handoff table (R-3 / AC-09) — awaiting reviewer
+
+| Draft | Hash | Reviewer | Date | Disposition per section | Final target path |
+|---|---|---|---|---|---|
+| `tmp/ramp/doctrine-draft.md` | `6e03df7a0ff2` | *(pending)* | | | `AGENTS.md` (planned) |
+| `tmp/ramp/rtm-draft.md` | `3e40d715d571` | *(pending)* | | | `capabilities/` + test tags (planned) |
+| `tmp/ramp/incidents-draft.md` | `686e86a2eff5` | *(pending)* | | | `docs/incidents.md` (planned) |
+
+### Review note carried from FR-866 (AC-15 raw read)
+
+`collect_inventory` does not surface a root `graph.yaml`, so the
+`is_this_a_graph` question was judged `not applicable` against the
+fixture — verify the doctrine draft's question dispositions against
+the real target before landing.
+
+### Remaining steps (blocked in order)
+
+1. **Operator**: resolve the dirty target tree (commit/stash the 15-file WIP).
+2. **Operator**: AC-05 approval line here for the Tier 3 asset set above.
+3. Install (`--tier 3`), transcript per R-6 → AC-06/07.
+4. Draft review rows filled → land `AGENTS.md`, registry (`REQ-DD-XXX`), `docs/incidents.md` → AC-09/10/11.
+5. Tag tests / record gaps → AC-12.
+6. Enable CI, witness push run ≥145 tests → AC-13.
+7. Blocked-commit witness + CI-detects witness → AC-14/15 (AC-15 stays "detected by CI" unless a branch-protection FR lands).
+8. Next cron green → AC-16; secret/direction scan → AC-17; FR-863 cross-refs → AC-18; dual clean statuses → AC-19.

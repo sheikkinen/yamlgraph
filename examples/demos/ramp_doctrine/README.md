@@ -13,7 +13,7 @@ yamlgraph graph lint examples/demos/ramp_doctrine/graph.yaml
 
 # Run against a target repo
 yamlgraph graph run examples/demos/ramp_doctrine/graph.yaml \
-  --var target_path=tests/fixtures/ramp_target --full
+  --var target=tests/fixtures/ramp_target --full
 ```
 
 ## What It Does
