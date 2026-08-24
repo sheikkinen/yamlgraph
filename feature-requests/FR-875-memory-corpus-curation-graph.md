@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Proposed
+**Status:** Judged — APPROVED WITH REVISIONS (2026-08-24); R-1…R-6 folded below
 **Effort:** 1–2 days
 **Requested:** 2026-08-24
 **First consumer / first event:** the operator, running the graph over this
@@ -13,9 +13,13 @@ consumer: periodic memory hygiene (notes rot — "voice_runtime now v0.1.13"
 class facts are stale within weeks).
 
 **Blast radius:** notes move from the machine-local memory-tool root to
-`tmp/` (gitignored) only. Nothing is committed; worst-case reader is the
-local operator. Verdict *execution* (deletion/redaction of live memory
-files) happens only after written human sign-off.
+`tmp/` (gitignored) — AND, during the judge stage, note bodies transit to
+the configured LLM provider (R-1: that is egress, not a tmp-local move).
+Real-corpus runs therefore require either a local-only provider or a
+recorded human approval line naming the external provider/model and the
+data-handling premise; fixture runs may use any test-safe provider.
+Nothing is committed; verdict *execution* (deletion/redaction of live
+memory files) happens only after written, hash-bound human sign-off.
 
 ## Summary
 
@@ -67,35 +71,55 @@ deltas. Nothing sensitive ever touches a committed path.
 
 Three stages; only the middle one is an LLM.
 
-1. **Collect (code):** enumerate the memory root's repo scope (and
-   optionally user scope) into a frozen manifest under
+1. **Collect (code):** enumerate the memory root's **repo scope only**
+   (R-4: user/session scope is a separate FR after repo-scope curation
+   exists) into a frozen manifest under
    `tmp/memory-curation/manifest.json` — path, sha256, size, mtime —
-   and copy note bodies alongside. The run judges the frozen snapshot,
-   never the live root.
+   and copy note bodies alongside. The memory root is passed explicitly
+   (`--var memory_root=…` / env var) in all tests and smoke runs (R-6);
+   the operator convenience default to the real local root must print
+   the resolved root. Every relative path is sanitized. The run judges
+   the frozen snapshot, never the live root.
 2. **Judge (map node):** per note, one judgement with closed inputs
    (note body + the declared audience premise + today's date). Output
-   schema per note:
+   schema per note (Pydantic-validated, exact enums — R-5):
    - `verdict: keep | redact | forget`
    - `audience: public | peer | customer_private | machine_local`
    - `rationale: str` (one line)
-   - `redacted_draft: str | null` (required iff verdict=redact)
-   - `staleness: fresh | dated | expired` (dated/expired must cite the
-     expiring fact)
+   - `redacted_draft: str | null` — non-empty iff verdict=redact
+   - `staleness: fresh | dated | expired`
+   - `staleness_evidence: str | null` — non-empty iff staleness is
+     dated/expired; cites the expiring fact
    Prompt bounded per the prompt-contract discipline: one judgement, no
    serialization jobs, validator-covered shape.
 3. **Reconcile + render (code):** count-in == count-out over the frozen
-   manifest; zero unknown verdicts; every `redact` has a draft. Render
+   manifest; every manifest path appears exactly once; zero unknown
+   verdicts; every `redact` has a non-empty draft. Render
    `tmp/memory-curation/disposition.md` (human review surface) +
-   `disposition.json` (apply input).
+   `disposition.json` (apply input), both stamped with the manifest
+   hash.
 
-**Apply step (code, gated):** `apply` refuses to run unless the
-disposition file carries an explicit human sign-off marker (edited-in
-line, same pattern as FR-868's written-approval hard gate). Executes
-against the live memory root: `forget` deletes, `redact` replaces,
-`keep` untouched. Prints a summary; idempotent.
+**Apply step (code, gated — R-2 hash-bound contract):** `apply` refuses
+unless (a) the signed review artifact names the manifest hash and
+disposition hash and the JSON input matches both; (b) every live target
+still has its manifest sha256 before `forget`/`redact` executes — a note
+edited after collection is drift and fails with a clear summary requiring
+re-collect/re-judge; (c) idempotent re-run succeeds only for rows whose
+current bytes equal the expected post-apply state (or whose forgotten
+file is already absent). `forget` deletes, `redact` replaces, `keep`
+untouched; prints a summary.
 
+**Artifact boundary (R-3):** committed task brief
+`feature-requests/authoring-briefs/fr-875-memory-curation-brief.md`;
+graph `examples/memory-curation/graph.yaml`; prompts under
+`examples/memory-curation/prompts/`; tools/nodes under
+`examples/memory-curation/nodes/` if needed; `examples/memory-curation/README.md`;
+apply tool `examples/memory-curation/apply.py`; fixture corpus
+`examples/memory-curation/fixtures/`; authoring report retained as FR
+evidence. Run outputs: `tmp/memory-curation/{manifest.json,notes/,disposition.md,disposition.json}`.
 Graph authoring itself follows the sole authoring route
-(`scripts/author.sh`, FR-767) at enforce time.
+(`scripts/author.sh`, FR-767) at enforce time; no hand-authored
+graph/prompt YAML outside it.
 
 ```bash
 # run (draft only, everything under tmp/)
@@ -106,25 +130,46 @@ yamlgraph graph run examples/memory-curation/graph.yaml \
 python examples/memory-curation/apply.py tmp/memory-curation/disposition.json
 ```
 
-## Acceptance Criteria
+## Acceptance Criteria (revised per judgement)
 
-- [ ] AC-01: Collect stage freezes the corpus (manifest + bodies) under
-      `tmp/memory-curation/`; live memory root is read-only to the graph.
-- [ ] AC-02: Disposition covers every manifest note — count-in ==
-      count-out, zero unknown verdicts (validation error otherwise).
-- [ ] AC-03: Every `redact` verdict carries a non-empty redacted draft;
-      every `dated`/`expired` staleness cites the expiring fact.
-- [ ] AC-04: Apply refuses without the human sign-off marker; with it,
-      `forget` deletes and `redact` replaces in the live root; idempotent
-      on re-run.
-- [ ] AC-05: No stage writes outside `tmp/memory-curation/` and the live
-      memory root (apply only); nothing under a committed path.
-- [ ] AC-06: Graph lints clean; smoke run on a fixture corpus (temp
-      memory root — never the operator's real one in tests) with
-      `demo-output.log` if under `examples/demos/`.
-- [ ] AC-07: Tests tagged with a new `REQ-YG-XXX`; capability file added.
-- [ ] AC-08: First real run's disposition reviewed by the operator; the
-      FR records the aggregate outcome (kept/redacted/forgotten counts).
+- [ ] AC-01: FR revised with provider/egress policy, repo-scope-only
+      input, memory-root discovery, exact artifact paths, retained
+      authoring evidence, signed apply contract, and exact schemas
+      (R-1…R-6) — this document.
+- [ ] AC-02: Collect reads only the configured repo-scope memory root,
+      writes manifest + note bodies under `tmp/memory-curation/`
+      (path, sha256, size, mtime), sanitizes every relative path.
+- [ ] AC-03: Automated tests and smoke runs use fixture/temp memory
+      roots only — never the operator's real memory directories.
+- [ ] AC-04: Graph authored via the governed route with committed task
+      brief and retained authoring report (artifacts, precedent, lint,
+      smoke, repairs).
+- [ ] AC-05: `graph.yaml` lints clean; fixture smoke run recorded as FR
+      or example evidence.
+- [ ] AC-06: Per-note output Pydantic-validated, exact enums;
+      `redacted_draft` non-empty iff redact; `staleness_evidence`
+      non-empty iff dated/expired.
+- [ ] AC-07: Reconciliation proves count-in == count-out, each manifest
+      path exactly once, zero unknown verdicts, every redact has a
+      non-empty draft.
+- [ ] AC-08: No run stage writes outside `tmp/memory-curation/`; tests
+      assert out-of-tree writes are refused.
+- [ ] AC-09: Real-corpus execution blocked unless provider is local-only
+      or the FR records human approval naming provider/model and data
+      premise.
+- [ ] AC-10: Apply refuses unless the signed review artifact binds
+      manifest hash + disposition hash and the JSON matches both.
+- [ ] AC-11: Apply refuses destructive changes on live-hash drift
+      (except documented already-applied idempotent states); drift
+      requires re-collect/re-judge.
+- [ ] AC-12: With a valid signed disposition on a fixture root: forget
+      deletes, redact replaces, keep untouched, summary printed,
+      idempotent re-run.
+- [ ] AC-13: Tests tagged with a new `REQ-YG-XXX`; capability file added.
+- [ ] AC-14: First real run records only aggregates in the FR (note
+      count, kept/redacted/forgotten, audience counts, provider
+      decision, sign-off status); raw bodies and drafts stay under
+      `tmp/` or the live root.
 
 ## Alternatives Considered
 
@@ -167,7 +212,27 @@ this document.
 - Graph authoring doctrine: `.github/skills/graph-authoring/doctrine.md`
   (sole route at enforce time)
 
-## Judgement (pending)
+## Judgement (2026-08-24)
 
-Not judged in the author's session; route:
-`.github/skills/judge-fr/adapters/README.md`.
+**Verdict: APPROVED WITH REVISIONS** — rendered via the sole judge route
+(`scripts/judge.sh`, copilot graph, gpt-5.5); full artifact:
+`feature-requests/FR-875-memory-corpus-curation-graph.judgement.md`.
+
+| # | Revision (folded above) |
+|---|---|
+| R-1 | Provider/data-egress gate: the judge stage IS egress; local-only provider or recorded human approval for real-corpus runs |
+| R-2 | Apply is hash-bound: signed artifact names manifest+disposition hashes; live-hash drift refuses destructive change |
+| R-3 | Graph-authoring artifact boundary frozen (task brief, graph/prompt/tool/fixture/README paths, retained report) |
+| R-4 | v1 is repo-scope only; user/session scope needs its own FR |
+| R-5 | Exact schema: `staleness_evidence` field, exact enums, Pydantic cross-field invariants |
+| R-6 | Memory-root discovery explicit in all tests/smoke; fixtures only; convenience default prints resolved root |
+
+**Not authorized:** committing note contents; rebuilding FR-874 transport;
+cross-device sync; user/session-scope curation; automatic apply; applying
+on hash drift; real-corpus egress without recorded approval; framework
+primitives; CI/hook/doctrine changes.
+
+### Questions for the human
+
+None open — the judgement resolved provider policy (R-1 mechanism) and
+scope (R-4). Advisory until human-reviewed.
