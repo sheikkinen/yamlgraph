@@ -48,3 +48,18 @@ requirements:
       network calls.
     modules:
       - examples
+  - id: REQ-YG-622
+    description: >
+      FR-877 staleness advisory: apply writes a versioned post-apply
+      .curation-state.json baseline (live repo notes only — forgotten
+      paths absent, so a forget-run yields zero immediate drift);
+      advisory.py is pure stdlib, compares the live corpus (regular
+      non-symlink repo/*.md incl. _tombstones.md, marker excluded) to
+      the baseline by sha256, is silent below threshold, prints exactly
+      one line at/above threshold or for a never-curated non-empty
+      corpus, and exits nonzero with bounded stderr on malformed
+      markers; the SessionStart hook wrapper is env-overridable and
+      fail-open with one bounded JSONL failure record, never blocking a
+      session and never faking no-drift.
+    modules:
+      - examples

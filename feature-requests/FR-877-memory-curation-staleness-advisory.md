@@ -2,7 +2,7 @@
 
 **Priority:** LOW
 **Type:** Enhancement
-**Status:** Proposed
+**Status:** Judged — APPROVED WITH REVISIONS (2026-08-24); R-1…R-4 folded below
 **Effort:** 0.5 days
 **Requested:** 2026-08-24
 **First consumer / first event:** the agent at SessionStart, reading the
@@ -55,52 +55,73 @@ check never blocks a session and never fakes silence-as-health
 
 ## Proposed Solution
 
-1. **Curation-state marker:** `apply.py` (FR-875), after a successful
-   apply, writes `.curation-state.json` into the memory root:
-   `{applied_at, manifest_sha256, notes: {path: sha256}}` — the frozen
-   manifest's note hashes plus the post-apply hashes of redacted notes.
-   Hidden file (dotfile) so collect.py's `*.md` glob never sweeps it
-   into a future manifest.
-2. **Advisory check:** `examples/memory-curation/advisory.py` — pure
-   stdlib, no LLM. Inputs: `--memory-root` (explicit in tests; the
-   hook passes the discovered workspace root), `--threshold` (default
-   5). Compares live `repo/*.md` hashes vs the marker: counts new,
-   edited, deleted. Prints ONE line to stdout iff
-   `new+edited+deleted >= threshold` or the marker is absent and the
-   corpus is non-empty ("never curated"); prints nothing otherwise.
-   Exit 0 in all advisory outcomes; nonzero only on real errors.
-3. **Briefing integration:** `session-briefing.sh` (FR-743) additionally
-   runs the advisory fail-open (timeout-guarded, `|| true`), same as its
-   existing pattern; a failure appends one bounded line to the hook log,
-   never blocks the session.
+1. **Curation-state marker (R-1: post-apply live baseline):** `apply.py`
+   (FR-875/878), after the full apply transaction (mutations + tombstone
+   rows) succeeds, writes `.curation-state.json` into the memory root:
+   `{version, applied_at, manifest_sha256, disposition_sha256, notes}`
+   where `notes` maps only LIVE post-apply repo-note paths to their live
+   sha256 — kept notes at their current hash, redacted notes at their
+   post-redaction hash, **forgotten paths absent** (else the first
+   advisory after curation counts intentional forgets as deleted drift
+   — the false-fire the judge caught). Dotfile: never collected.
+2. **Advisory check (R-2: frozen corpus predicate):**
+   `examples/memory-curation/advisory.py` — pure stdlib, no LLM/network.
+   Inputs: `--memory-root` (explicit in tests), `--threshold` (default
+   5). Corpus predicate: regular, non-symlink `*.md` files directly
+   under `<memory-root>/repo/`, **including `_tombstones.md`** — and
+   symmetrically, the marker's `notes` includes it — so tombstone
+   appends count as ordinary edits toward drift (they are corpus
+   changes; a tombstone-only update below threshold stays silent —
+   tested). `.curation-state.json` excluded by path. Compares sha256,
+   never mtime; counts new + edited + deleted. Prints exactly ONE line
+   iff count >= threshold, or the marker is absent and the corpus is
+   non-empty ("never curated"); silence and exit 0 otherwise.
+   Malformed/unreadable marker or unreadable corpus paths are REAL
+   errors: nonzero exit + bounded stderr — never faked as no-drift
+   (`plausible_wrong_answer` guard).
+3. **Briefing integration (R-3: observable fail-open):**
+   `session-briefing.sh` (FR-743) runs the advisory with env-overridable
+   memory root, threshold, timeout, and log path
+   (`MEMORY_ADVISORY_ROOT/THRESHOLD/LOG`); uses `timeout` only when
+   present (Darwin may lack it). Failure never blocks SessionStart and
+   prints no user-facing line, but appends ONE bounded JSONL record to
+   the log (default `.github/hooks/logs/memory-sync.jsonl` family,
+   200-line cap) — fail-open, never silent-success-shaped.
 
 ```bash
 # printed at SessionStart only when drift ≥ threshold
 memory: 6 notes new/edited since last curation (2026-08-24) — consider a hygiene pass
 ```
 
-## Acceptance Criteria
+## Acceptance Criteria (revised per judgement)
 
-- [ ] AC-01: `apply.py` writes `.curation-state.json` (applied_at,
-      manifest_sha256, per-note sha256 reflecting post-apply bytes) into
-      the memory root on successful apply; dotfile excluded from collect
-      manifests (test).
-- [ ] AC-02: advisory prints nothing below threshold, one line at/above
-      threshold, and a "never curated" line when the marker is absent
-      and notes exist (tests, temp roots only — never the operator's
-      real store).
-- [ ] AC-03: edited/new/deleted are counted by sha256 comparison, not
-      mtime.
-- [ ] AC-04: `session-briefing.sh` runs the advisory fail-open with a
-      timeout; a broken advisory leaves one bounded log line and exits 0
-      (test via env-overridable paths, FR-874-era hook-test pattern).
-- [ ] AC-05: zero LLM calls / zero network in the advisory path (pure
-      stdlib; test asserts no provider imports).
-- [ ] AC-06: tests tagged `REQ-YG-XXX` (extend CAP-247 with a new REQ);
-      docs: `examples/memory-curation/README.md` gains a Recurrence
-      section stating the advisory model and why scheduling is
-      deliberately absent.
-- [ ] AC-07: diary reflection.
+- [ ] AC-01: `apply.py` writes the versioned marker only after a fully
+      successful apply; forgotten paths absent; kept/redacted at live
+      hashes (test: a curation WITH forgets produces zero immediate
+      drift — C-2).
+- [ ] AC-02: marker excluded from collection/advisory enumeration;
+      `_tombstones.md` handled symmetrically (in marker AND comparison);
+      tombstone-only update below threshold stays silent (test).
+- [ ] AC-03: advisory pure stdlib, `--memory-root`/`--threshold`
+      (default 5), sha256 not mtime, counts new/edited/deleted.
+- [ ] AC-04: silence + exit 0 below threshold; exactly one line + exit 0
+      at/above threshold; one line + exit 0 for never-curated non-empty
+      corpus (tests).
+- [ ] AC-05: malformed/unreadable marker or corpus → nonzero exit +
+      bounded stderr; never fakes no-drift (test).
+- [ ] AC-06: briefing hook env-overridable (root/threshold/timeout/log);
+      failure exits 0, no user line, one bounded JSONL record (test via
+      env overrides).
+- [ ] AC-07: tests use temp/fixture roots only — never the operator's
+      real store.
+- [ ] AC-08: test asserts zero LLM/network/provider imports in the
+      advisory path.
+- [ ] AC-09: CAP-247 extended with a new REQ; all new/changed tests
+      tagged.
+- [ ] AC-10: README gains a Recurrence section (advisory model,
+      threshold, marker location, fail-open, why no scheduling).
+- [ ] AC-11: FR records implementation status/deviations; diary
+      reflection.
 
 ## Alternatives Considered
 
@@ -134,7 +155,15 @@ intentionally the human sign-off.
   addendum 3 (recall-time value law; fire-count seed remains separate)
 - `.github/hooks/scripts/session-briefing.sh` (FR-743)
 
-## Judgement (pending)
+## Judgement (2026-08-24)
 
-Not judged in the author's session; route:
-`.github/skills/judge-fr/adapters/README.md`.
+**Verdict: APPROVED WITH REVISIONS** — rendered via the sole judge route;
+full artifact:
+`feature-requests/FR-877-memory-curation-staleness-advisory.judgement.md`.
+R-1 marker = post-apply live baseline (forgets absent — kills the
+false-drift false-fire); R-2 frozen corpus predicate incl. symmetric
+`_tombstones.md`; R-3 observable fail-open (bounded JSONL, no silent
+success); R-4 exact test matrix. All folded above. Authority active.
+Gates: C-2 forget-run zero-drift proof; C-3 zero LLM/network; C-4 temp
+roots only; C-5 hook change needs human review as durable policy; C-6 no
+judge/YAMLGraph invocation during enforcement.
