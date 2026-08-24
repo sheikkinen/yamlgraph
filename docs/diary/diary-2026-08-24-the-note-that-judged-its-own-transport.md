@@ -178,3 +178,25 @@ citing this FR. Delegations accumulate; nothing today lists or expires
 them. Is a delegation registry (who may sign what, granted when,
 witnessed where) the next `_tombstones.md` — case law about authority
 instead of about forgetting?
+
+---
+
+## Addendum 5: the marker that almost cried wolf
+
+FR-877 closed the family: detection mechanical, execution deliberate.
+The judge's R-1 catch deserves its own line — my draft marker kept the
+pre-apply manifest as the baseline, so the very first advisory after a
+forget-curation would have counted the intentional forgets as deleted
+drift and fired "consider a hygiene pass" on the heels of one. An
+advisory that false-fires immediately after the action it recommends
+is worse than none: it trains the reader to skim past it — the same
+attention-erosion that killed the C-6 sign-off. The cure was to define
+the baseline as the *post-apply live corpus* (enumerate what exists,
+not what was planned) — `read_raw_output_first` applied to state
+design: record the world, not the intention. Witnessed by
+`test_forget_run_yields_zero_immediate_drift`.
+
+**Seed 5:** the advisory's threshold (5) is a guess — a
+`threshold_encodes_forecast` in miniature. When field data exists
+(how many drifted notes typically precede a curation-worthy pass?),
+the number should be re-derived from the record, not defended.

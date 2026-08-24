@@ -2,7 +2,7 @@
 
 **Priority:** LOW
 **Type:** Enhancement
-**Status:** Judged — APPROVED WITH REVISIONS (2026-08-24); R-1…R-4 folded below
+**Status:** Enforced (2026-08-24)
 **Effort:** 0.5 days
 **Requested:** 2026-08-24
 **First consumer / first event:** the agent at SessionStart, reading the
@@ -154,6 +154,25 @@ intentionally the human sign-off.
 - `docs/diary/diary-2026-08-24-the-note-that-judged-its-own-transport.md`
   addendum 3 (recall-time value law; fire-count seed remains separate)
 - `.github/hooks/scripts/session-briefing.sh` (FR-743)
+
+## Implementation (2026-08-24)
+
+RED `a5e4f89b` (10 condemning tests, SKIP=pytest) → GREEN this change.
+
+- `apply.py`: `write_curation_state()` after the full transaction —
+  live enumeration of `repo/*.md` post-apply (forgotten paths absent by
+  construction; `_tombstones.md` included symmetrically).
+- `examples/memory-curation/advisory.py`: pure stdlib; new/edited/deleted
+  by sha256; one-line-or-silence contract; malformed marker → nonzero +
+  stderr.
+- `.github/hooks/scripts/memory-advisory.sh`: env-overridable
+  (`MEMORY_ADVISORY_ROOT/THRESHOLD/TIMEOUT/LOG`), fail-open, bounded
+  JSONL evidence (200-line cap); invoked from `session-briefing.sh`
+  (C-5: hook change rides this FR's human review at push).
+- REQ-YG-622 (CAP-247 extension); 10 new tests, 43 green across the
+  three curation suites; C-2 witnessed by
+  `test_forget_run_yields_zero_immediate_drift`.
+- Deviation: none — R-1…R-4 implemented as folded.
 
 ## Judgement (2026-08-24)
 

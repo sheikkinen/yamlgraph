@@ -164,6 +164,26 @@ def append_audit(tier: int, hashes: tuple[str, str]) -> None:
         handle.write(json.dumps(record) + "\n")
 
 
+def write_curation_state(memory_root: Path, hashes: tuple[str, str]) -> None:
+    """FR-877: record the post-apply live baseline for the staleness advisory."""
+    notes = {}
+    repo_dir = memory_root / "repo"
+    for path in sorted(repo_dir.glob("*.md")):
+        if path.is_symlink() or not path.is_file():
+            continue
+        notes[f"repo/{path.name}"] = sha256_file(path)
+    marker = {
+        "version": 1,
+        "applied_at": datetime.datetime.now(datetime.UTC).isoformat(),
+        "manifest_sha256": hashes[0],
+        "disposition_sha256": hashes[1],
+        "notes": notes,
+    }
+    (memory_root / ".curation-state.json").write_text(
+        json.dumps(marker, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
+
+
 def run_apply(args: argparse.Namespace) -> int:
     memory_root = Path(args.memory_root)
     disposition_path = Path(args.disposition)
@@ -186,6 +206,7 @@ def run_apply(args: argparse.Namespace) -> int:
     forgotten, redacted = execute(actions, disposition, memory_root, hashes)
     if tier > 0:
         append_audit(tier, hashes)
+    write_curation_state(memory_root, hashes)
     kept = len(disposition["notes"]) - forgotten - redacted
     print(
         f"applied (tier {tier}): {forgotten} forgotten (archived),"

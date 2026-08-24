@@ -12,4 +12,6 @@ if command -v timeout >/dev/null 2>&1; then
 else
   "$PY" scripts/vscode/now.py --brief 2>/dev/null || true
 fi
+# FR-877: memory-curation staleness advisory (fail-open with bounded evidence)
+sh "$REPO/.github/hooks/scripts/memory-advisory.sh" || true
 exit 0

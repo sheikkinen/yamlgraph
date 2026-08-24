@@ -54,6 +54,21 @@ python examples/memory-curation/apply.py \
   --memory-root /path/to/memory-tool/memories
 ```
 
+## Recurrence (FR-877)
+
+Curation has no schedule by design: a cron'd draft is voided by the hash
+chain the moment any note changes, and per-session judge runs would be
+egress multiplied by session frequency. Instead, detection is mechanical
+and execution stays deliberate: every successful apply writes a
+post-apply live baseline (`.curation-state.json`, forgotten paths
+absent), and `advisory.py` — pure stdlib, zero egress — diffs the live
+corpus against it by sha256 at SessionStart (via
+`.github/hooks/scripts/memory-advisory.sh`, env-overridable, fail-open
+with one bounded JSONL record on failure). One line at/above the
+threshold (default 5 drifted notes) or for a never-curated corpus;
+silence otherwise. A malformed marker is a real error, never faked as
+no-drift.
+
 ## Verdicts
 
 | verdict | meaning | apply action |
