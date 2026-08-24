@@ -262,8 +262,23 @@ keep (durable fact), forget/expired (version pin, evidence cited), and
 redact (planted endpoint + credential-workaround note): the exact FR-874
 leak classes.
 
-**AC-14 (first real run):** pending — operator schedules the vertex/azure
-run over the live corpus; aggregates to be recorded here.
+**AC-14 (first real run, 2026-08-24, provider=vertex):** 57 notes judged,
+zero validation errors; verdicts 51 keep / 6 redact / 0 forget; audience
+43 public / 14 peer / 0 customer_private / 0 machine_local; staleness
+56 fresh / 1 dated. **Disposition NOT signed off** — two findings:
+(1) *premise determines verdict semantics*: the run used the
+publication premise ("public repo workspace"), so redacted drafts strip
+locally-useful facts from local working notes — applying it would degrade
+local memory; local-hygiene runs need a machine-local premise, and the
+README should document the two run modes. (2) *witness disagreement*: the
+judge caught 4/8 notes from the operator-session manual security review
+plus 2 the manual review missed, but passed 4 customer-identifier notes
+(fly-log-census, nc383, persona-suite, voice-runtime-test-env) and rated
+56/57 fresh despite version-pin content — single-judge recall is real but
+incomplete; the FR-874-era manual review and this graph disagree exactly
+where the witness-disagreement cross-checker pattern predicts. Follow-up
+candidates: premise-pair runs (hygiene + export) and a
+disagreement-diff over their dispositions.
 
 ### Questions for the human
 
