@@ -29,7 +29,7 @@ visibility as a written precondition, (b) route the corpus through a
 judgement/selective-amnesia graph before any export exists, and (c)
 treat note classification (public / peer / customer-private /
 machine-local) as a boundary requirement, not an implementation detail.
-Successor proposal: see `.chaplain/inbox/memory-corpus-judgement-graph.md`.
+Successor proposal: FR-875 (memory-corpus curation graph).
 
 ---
 
