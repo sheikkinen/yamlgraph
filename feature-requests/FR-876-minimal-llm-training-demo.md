@@ -2,7 +2,7 @@
 
 **Priority:** LOW
 **Type:** Feature
-**Status:** Proposed
+**Status:** Enforced (2026-08-24; sheikkinen/deviant-daily 30bf8c1..5bd0bab)
 **Effort:** 1–2 days
 **Requested:** 2026-08-24
 **First consumer / first event:** the operator, at the moment of
@@ -248,6 +248,25 @@ baseline. A trigram chain can only follow observed transitions, so its
 outputs are corpus-8-gram mosaics. The rejection table demonstrates
 training's value in the opposite direction from the author's intuition
 — honest evaluation working as designed.
+
+**Final rejection-statistics table (AC-10, 200 samples/cell,
+`training/evidence/rejection-stats.md`, pushed 5bd0bab):**
+
+| rung | temp | pass | redaction | novelty | shape |
+|------|------|------|-----------|---------|-------|
+| markov | — | 15 | 0 | 167 | 18 |
+| transformer | 0.5 | 88 | 0 | 37 | 75 |
+| transformer | 0.8 | 165 | 0 | 2 | 33 |
+| transformer | 1.2 | 164 | 0 | 3 | 33 |
+
+Reading: what 5,000 steps of training buys is an 11× pass-rate gain
+over the baseline (15 → 165 at t0.8), and the mechanism is visible —
+the baseline's failure is memorization (novelty), the transformer's
+residual failure is form (shape). Zero redaction hits across all 800
+samples: the corpus's own redaction held through model recombination.
+All ACs (judgement AC-01..AC-13) witnessed; scope additions:
+`--start` seed-text flag (operator request, d044c14), numpy in the
+training extra (5bac5f9). Pushed: 30bf8c1..5bd0bab.
 
 **Deviations (recorded, all within scope):**
 - `pip install -e .` was broken at 30bf8c1 (flat-layout autodiscovery

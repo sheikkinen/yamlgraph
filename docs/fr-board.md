@@ -219,7 +219,6 @@
 | FR-859 | Proposed | yamlgraph |  | FR-859-delete-orphaned-sim117-phantom-req-tag.md |
 | FR-861 | Proposed | yamlgraph |  | FR-861-shared-repo-write-discipline.md |
 | FR-873 | Proposed | yamlgraph |  | FR-873-vision-provider-type-lie.md |
-| FR-876 | Proposed | yamlgraph |  | FR-876-minimal-llm-training-demo.md |
 | FR-879 | Proposed | yamlgraph |  | FR-879-image-pipeline-v2-critic-filter.md |
 | FR-078 | In Progress | yamlgraph |  | FR-078-relocate-project-tests.md |
 | FR-100 | In Progress | yamlgraph |  | FR-100-yamlgraph-development-pipeline-ebook.md |
@@ -472,7 +471,6 @@ graph TD
     FR-871["FR-871 Judged"]
     FR-872["FR-872 Approved"]
     FR-873["FR-873 Proposed"]
-    FR-876["FR-876 Proposed"]
     FR-879["FR-879 Proposed"]
     FR-081 --> FR-082
     FR-731 --> FR-735
