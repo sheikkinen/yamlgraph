@@ -209,12 +209,8 @@ training a model from the deviant-daily corpus.
 - Reflection recorded in session 2026-08-24 (corpus stats, three-rung
   ladder, boundary design)
 
-## Open Questions (for the human, inline)
+## Decisions (operator, 2026-08-24)
 
-1. **Host repo** — recommended: deviant-daily `training/` (data
-   locality, public-by-design). Alternative: a fresh
-   `sheikkinen/llm-training-demo` repo if the teaching artifact should
-   stand alone. A: ___
-2. **PyTorch dependency** — deviant-daily is currently dependency-light;
-   PyTorch enters as a `training` extra only, never imported by the
-   pipeline. Acceptable? A: ___
+1. **Host repo:** deviant-daily `training/` — confirmed.
+2. **PyTorch dependency:** approved as a `training` extra only; never
+   imported by the publish pipeline.
