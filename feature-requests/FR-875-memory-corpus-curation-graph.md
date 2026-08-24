@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Judged — APPROVED WITH REVISIONS (2026-08-24); R-1…R-6 folded below
+**Status:** Enforcing (2026-08-24) — R-1 provider approval recorded (vertex/azure); authority active
 **Effort:** 1–2 days
 **Requested:** 2026-08-24
 **First consumer / first event:** the operator, running the graph over this
@@ -18,6 +18,13 @@ the configured LLM provider (R-1: that is egress, not a tmp-local move).
 Real-corpus runs therefore require either a local-only provider or a
 recorded human approval line naming the external provider/model and the
 data-handling premise; fixture runs may use any test-safe provider.
+
+> **R-1 provider approval (operator, 2026-08-24):** `vertex` (Gemini via
+> GCP) and `azure` (Azure AI Foundry) are APPROVED for real-corpus runs —
+> both run in operator-controlled enterprise tenants. All other external
+> providers remain blocked for real-corpus content without a new recorded
+> approval.
+
 Nothing is committed; verdict *execution* (deletion/redaction of live
 memory files) happens only after written, hash-bound human sign-off.
 

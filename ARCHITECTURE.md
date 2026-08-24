@@ -562,6 +562,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 244 | CAP-244 Ramp Installer | `scripts` | REQ-YG-610 – 613 |
 | 245 | CAP-245 Ramp Tailoring Graphs | `examples` | REQ-YG-614 – 617 |
 | 246 | CAP-246 Scripture-dev Salvage Classification | `examples` | REQ-YG-618 – 619 |
+| 247 | CAP-247 Memory-Corpus Curation (Selective Amnesia) | `examples` | REQ-YG-620 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -3023,6 +3024,16 @@ salvage_classify demo graph classifies every tracked file of a frozen scripture-
 |------------|-------------|-------------|
 | REQ-YG-618 | salvage_classify's disposition reconciles count-in == count-out over the frozen source manifest with zero unknown verdicts; every verdict is duplicate, lift, or obsolete; every duplicate names a yamlgraph_equivalent path that exists in this repo; every lift names a destination under ramp/salvage/ plus source SHA and rationale; destinations outside the namespace are validation errors. | `examples` |
 | REQ-YG-619 | salvage_classify shared runtime contract: the graph lints clean, writes drafts only to tmp/ramp/salvage-disposition.md and tmp/ramp/salvage-disposition.json, and contains no git commit, git push, or gh invocation in any graph, prompt, or node source. | `examples` |
+
+### 247. CAP-247 Memory-Corpus Curation (Selective Amnesia)
+
+examples/memory-curation judges every repo-scope memory note against a declared audience premise and renders a human-review disposition draft (keep/redact/forget + audience + staleness) under tmp/memory-curation/ only. Deterministic collect freezes the corpus (manifest + copies); a map-node graph judges the frozen snapshot; reconcile validates count-in == count-out with zero unknown verdicts; apply executes amnesia only under a hash-bound written human sign-off and refuses on live-file drift.
+
+**Feature Request:** FR-875
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-620 | memory-curation code-stage contract: collect reads only the repo scope of an explicitly configured memory root, writes manifest (path, sha256, size, mtime) plus note copies strictly under the out-dir, and rejects symlink escapes; reconcile Pydantic-validates dispositions with exact enums and cross-field invariants (redacted_draft iff redact, staleness_evidence iff dated/expired), proves count-in == count-out with each manifest path exactly once and zero unknown verdicts, and stamps outputs with the manifest hash; apply refuses without a sign-off line binding manifest and disposition hashes, refuses all mutation on any live-hash drift, executes forget=delete / redact=replace / keep=untouched, and is idempotent on re-run. | `examples` |
 
 <!-- END GENERATED CAPABILITIES -->
 

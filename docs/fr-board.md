@@ -113,7 +113,6 @@
 | FR-868 | Judged | yamlgraph |  | FR-868-scripture-dev-salvage.md |
 | FR-869 | Judged | yamlgraph |  | FR-869-spike-end-detector.md |
 | FR-871 | Judged | yamlgraph |  | FR-871-graduate-g02-test-local-schemas-genericity-witness.md |
-| FR-875 | Judged | yamlgraph |  | FR-875-memory-corpus-curation-graph.md |
 | FR-094 | Approved | yamlgraph |  | FR-094-memory-node.md |
 | FR-095 | Approved | yamlgraph |  | FR-095-doc-staleness-monitor.md |
 | FR-096 | Approved | yamlgraph |  | FR-096-fr-template-demo-plan.md |
@@ -233,6 +232,7 @@
 | FR-735 | In Progress | yamlgraph |  | FR-735-webllm-demo-evidence-ergonomics.md |
 | FR-736 | In Progress | yamlgraph |  | FR-736-webllm-demo-trace-capture.md |
 | FR-796 | In Progress | yamlgraph |  | FR-796-reclassify-watcher2-witness-demos.md |
+| FR-875 | In Progress | yamlgraph |  | FR-875-memory-corpus-curation-graph.md |
 | FR-273 | Draft | yamlgraph |  | FR-273-watcher2-pipeline.md |
 | FR-307 | Draft | yamlgraph |  | FR-307-yamlgraph-async-action-logging.md |
 | FR-317 | Draft | yamlgraph |  | FR-317-retire-obsolete-watcher2-components.md |
@@ -471,7 +471,7 @@ graph TD
     FR-871["FR-871 Judged"]
     FR-872["FR-872 Approved"]
     FR-873["FR-873 Proposed"]
-    FR-875["FR-875 Judged"]
+    FR-875["FR-875 In Progress"]
     FR-081 --> FR-082
     FR-731 --> FR-735
     FR-731 --> FR-736

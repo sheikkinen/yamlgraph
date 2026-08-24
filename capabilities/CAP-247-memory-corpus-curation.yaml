@@ -1,0 +1,33 @@
+name: Memory-Corpus Curation (Selective Amnesia)
+id: CAP-247
+status: active
+fr: FR-875
+feature_request: feature-requests/FR-875-memory-corpus-curation-graph.md
+description: >
+  examples/memory-curation judges every repo-scope memory note against a
+  declared audience premise and renders a human-review disposition draft
+  (keep/redact/forget + audience + staleness) under tmp/memory-curation/
+  only. Deterministic collect freezes the corpus (manifest + copies);
+  a map-node graph judges the frozen snapshot; reconcile validates
+  count-in == count-out with zero unknown verdicts; apply executes
+  amnesia only under a hash-bound written human sign-off and refuses on
+  live-file drift.
+modules:
+  - examples
+requirements:
+  - id: REQ-YG-620
+    description: >
+      memory-curation code-stage contract: collect reads only the
+      repo scope of an explicitly configured memory root, writes
+      manifest (path, sha256, size, mtime) plus note copies strictly
+      under the out-dir, and rejects symlink escapes; reconcile
+      Pydantic-validates dispositions with exact enums and cross-field
+      invariants (redacted_draft iff redact, staleness_evidence iff
+      dated/expired), proves count-in == count-out with each manifest
+      path exactly once and zero unknown verdicts, and stamps outputs
+      with the manifest hash; apply refuses without a sign-off line
+      binding manifest and disposition hashes, refuses all mutation on
+      any live-hash drift, executes forget=delete / redact=replace /
+      keep=untouched, and is idempotent on re-run.
+    modules:
+      - examples
