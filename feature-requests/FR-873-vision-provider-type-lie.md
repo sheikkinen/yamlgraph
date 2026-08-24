@@ -2,13 +2,15 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Proposed
+**Status:** Judged — APPROVED WITH REVISIONS (2026-08-24), R-1…R-5 folded
 **Effort:** 0.25 day
 **Requested:** 2026-08-24
-**First consumer / first event:** `sheikkinen/deviant-daily`'s daily
-publish. The first event already happened — run `32688775537`
-(2026-08-24 04:07) died at the describe step and published nothing.
-It will recur on the next malformed structured output.
+**First consumer / first event:** `sheikkinen/deviant-daily`'s publish
+pipeline. The first event already happened — run `32688775537`
+(2026-08-24 04:07), a **`workflow_dispatch` / `publish-now`** attempt,
+drew slot `2026-08-24#1`, failed red at the describe step, and left
+**no `skipped` row for that slot**. It will recur on the next malformed
+structured output, on either trigger.
 
 **Prior art:** **FR-826** froze the describe→gate contract this FR
 repairs; the gate's role as sole decider is preserved, not changed.
@@ -35,7 +37,8 @@ publication and an unexplained red pipeline.
 
 ## Problem
 
-Run `32688775537`, 2026-08-24 04:07 UTC:
+Run `32688775537`, 2026-08-24 04:07 UTC — a manual `publish-now`
+dispatch, not the scheduled cron. It drew `2026-08-24#1` and then died:
 
 ```
 tool_call node 'describe': tool 'describe_step' failed:
@@ -49,6 +52,10 @@ The content was **correct**. The container was wrong: a JSON array
 serialized to a string. `with_structured_output(PostDescription)` is a
 request, not a guarantee — the provider's type lie
 (Scripture: `schema` / `provider` boundary, FR-059).
+
+The day was not lost — a later run published `2026-08-24#0` at the same
+ref — but slot `#1` was left `drawn` with no terminal row, which is the
+ledger state this FR is really about.
 
 ### D-1: no normalization at the vision boundary
 
@@ -82,77 +89,103 @@ pipeline goes red only when something is actually broken.
 
 ## Proposed Solution
 
-### S-1: normalize at the vision boundary (D-1)
+### S-1: two-stage capture, then repair, then validate (R-2)
 
-In `tools/vision.py`, before validation, attempt a **narrow, explicit**
-repair on list-typed fields (`paragraphs`, `tags`,
-`mature_classification`):
+**The original proposal was not mechanically possible.**
+`with_structured_output(PostDescription)` validates *inside*
+`structured.invoke()`, so by the time `describe_image()` receives
+anything the `ValidationError` has already been raised — there is no
+point at which the raw payload is in hand to repair. The repair must
+move upstream of final validation.
+
+Exact contract:
+
+1. **Capture stage.** Request structured output against a permissive
+   capture schema whose three list-typed fields (`paragraphs`, `tags`,
+   `mature_classification`) accept `list[str] | str`; all other fields
+   keep their strict types. The provider's payload is now in hand,
+   unvalidated on exactly the axis that lies.
+2. **Repair stage.** Run the narrow repair on those three fields only.
+3. **Validation stage.** Validate the repaired payload against the real
+   `PostDescription`. Its existing validators — tag normalization, the
+   50-char title cap, mature consistency, the `mature_classification`
+   enum — are unchanged and still authoritative.
 
 ```python
-def _repair_list_field(value):
+def _repair_list_field(field: str, value):
     """Providers sometimes serialize a list as a JSON string (run 32688775537)."""
     if not isinstance(value, str):
         return value
-    parsed = json.loads(value)          # raises -> no repair, caller records skip
+    try:
+        parsed = json.loads(value)
+    except json.JSONDecodeError as e:
+        raise InvalidDescription(field=field, reason=f"schema: {field} is not valid JSON") from e
     if not isinstance(parsed, list) or not all(isinstance(x, str) for x in parsed):
-        raise ValueError("not a list of strings")
+        raise InvalidDescription(field=field, reason=f"schema: {field} is not a list of strings")
+    logger.info("vision: repaired %s from JSON string", field)
     return parsed
 ```
 
 Repair only when `json.loads` succeeds **and** yields `list[str]`.
-Anything else is not guessed at. Every repair is logged with the field
-name so the frequency is observable rather than silent — if this becomes
-routine, the prompt or the provider is the problem and the log is the
-evidence.
+Anything else is not guessed at. Every repair logs the field name so
+frequency is observable — if this becomes routine, the prompt or the
+provider is the problem and the log is the evidence.
 
-### S-2: route shape failures through the gate (D-2)
+### S-2: a typed invalid-description value, routed through the gate (R-3, R-4)
 
-`describe_step` catches `ValidationError` and returns a structured
-failure the gate understands, rather than raising:
+An ad-hoc `{"__invalid__": True}` dict would be mis-diagnosed by
+`PostDescription.model_validate()`. Instead a **narrow exception and a
+typed result**:
 
 ```python
-{"__invalid__": True, "reason": "schema: paragraphs must be a list"}
+class InvalidDescription(Exception):
+    """Schema-shaped, unrecoverable description. Never a transport error."""
+    def __init__(self, field: str, reason: str): ...
+
+class DescribeResult(BaseModel):
+    valid: bool
+    reason: str | None = None   # "schema: paragraphs is not valid JSON"
+    field: str | None = None
+    payload: dict | None = None
 ```
 
-`gate_step` already returns `publish=False` with a `schema:` reason on
-validation failure and commits a `skipped` row. Extend it to recognise
-the marker, so **one code path** classifies unusable descriptions
-whatever their cause. The graph edges are unchanged: `gate → END` on
-`publish != true` already exists.
+- `describe_step` catches **only** `InvalidDescription` and
+  `ValidationError` — never a bare `Exception` — and returns
+  `DescribeResult(valid=False, ...)`.
+- `evaluate_gate()` checks for the typed value **before** attempting
+  `PostDescription.model_validate()`, and returns `publish=False` with
+  the supplied `schema:` reason.
+- `gate_step` commits its usual `skipped` row for the same
+  `(date, slot)`.
 
-Non-goal: making `describe` never fail. A missing API key, a timeout, or
-an unparseable image must still go red. Only *schema-shaped* failures
-become skips.
+One code path classifies unusable descriptions whatever their cause, and
+the gate remains the sole decider (FR-826 R-5). Graph edges are
+unchanged: `gate → END` on `publish != true` already exists.
+
+Non-goal: making `describe` never fail. Missing API key, provider or
+network error, undecodable image bytes, roster failure, ledger commit
+failure and publish failure all stay **red**. Only schema-shaped
+failures become skips.
 
 ## Acceptance Criteria
 
-- [ ] AC-01: a condemning test reproduces run `32688775537` — a provider
-      response with `paragraphs` as a JSON-encoded string — and fails
-      before the fix (RED committed separately).
-- [ ] AC-02: after the fix, that response yields a valid
-      `PostDescription` with `paragraphs` as a `list[str]` whose
-      elements match the original content exactly.
-- [ ] AC-03: repair applies to `paragraphs`, `tags` and
-      `mature_classification`; a test covers each.
-- [ ] AC-04: a string that is not valid JSON is **not** repaired and
-      produces a gate `skipped`, not an exception escaping the step.
-- [ ] AC-05: valid JSON that is not `list[str]` (object, list of ints,
-      nested list) is **not** repaired; same skip path; a test per case.
-- [ ] AC-06: every repair emits one log line naming the field; a test
-      asserts the log.
-- [ ] AC-07: a well-formed response is byte-identical after the repair
-      path — no repair, no log line (regression pin).
-- [ ] AC-08: an unusable description commits exactly one `skipped`
-      ledger row with a `schema:` reason naming the offending field.
-- [ ] AC-09: the run exits **green** on a schema skip and **red** on a
-      genuine error (missing key, network failure, undecodable image);
-      a test per branch.
-- [ ] AC-10: the gate remains the sole publish decider — a source scan
-      asserts `describe_step` contains no publish/skip decision beyond
-      producing the marker.
-- [ ] AC-11: 128 existing tests stay green; `ruff` clean.
-- [ ] AC-12: witnessed live — a real publish run completes green after
-      the fix, run id and ledger row recorded.
+Superseded by the judgement's revised set (2026-08-24); folded verbatim.
+
+- [ ] AC-01: The FR is revised to state the exact witness: run `32688775537` was `workflow_dispatch` / `publish-now`, failed on `2026-08-24#1` after draw, and left no `skipped` row for that slot.
+- [ ] AC-02: A condemning test reproduces the cited provider type lie: a raw describe payload with `paragraphs` as a JSON-encoded string fails before the fix and, after the fix, produces a valid `PostDescription` whose `paragraphs` is `list[str]` with the same element text.
+- [ ] AC-03: The same narrow repair is covered for `tags` and `mature_classification`; repaired `mature_classification` still passes through the existing allowed-enum validation.
+- [ ] AC-04: The repair helper attempts `json.loads` only for string values in the three authorized list fields, repairs only JSON arrays where every element is `str`, and leaves non-string already-valid list values to final validation unchanged.
+- [ ] AC-05: Invalid JSON strings in each authorized field do not escape the describe node; they produce the typed invalid-description value with a `schema:` reason naming the field.
+- [ ] AC-06: Valid JSON that is not `list[str]` is not repaired; object JSON, list-of-int JSON, and nested-list JSON each produce the same typed invalid-description path with field-specific reasons.
+- [ ] AC-07: A well-formed provider response follows the same final `PostDescription` validation semantics as before; no repair log is emitted and no new mutation occurs beyond existing validators such as title trimming and tag normalization.
+- [ ] AC-08: Every successful repair emits exactly one structured log line naming the repaired field; tests assert the field names and assert no log for the no-repair path.
+- [ ] AC-09: `evaluate_gate()` recognizes the typed invalid-description value and returns `publish=False` with the supplied `schema:` reason without attempting normal `PostDescription` validation first.
+- [ ] AC-10: `gate_step()` commits exactly one additional `skipped` ledger row for the same `(date, slot)` when it receives an invalid-description result; the row reason starts with `schema:` and names the offending field.
+- [ ] AC-11: A graph/tool-level test proves a schema-shaped describe failure exits green after the skipped row is committed, following the existing `gate -> END` non-publish edge.
+- [ ] AC-12: Missing API key, provider/network error, undecodable image bytes, roster failure, ledger commit failure, and publish failure each remain red; no broad exception handler converts them to skips.
+- [ ] AC-13: A source-level test asserts `describe_step` contains no publish/skip decision and no ledger write; only `gate_step` records skipped rows.
+- [ ] AC-14: Target-repo tests and formatter/linter commands that already exist for `sheikkinen/deviant-daily` pass; the FR records the actual test count observed, not a stale hard-coded count.
+- [ ] AC-15: A live post-fix `workflow_dispatch` run completes green; the FR records the run ID and the resulting ledger transition (`published` or `skipped`). If the live run does not exercise a repair, the unit/graph tests remain the repair proof.
 
 ## Risks
 
