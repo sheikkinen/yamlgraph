@@ -332,6 +332,15 @@ the real target before landing.
 
 ### Remaining steps
 
+> **Gap attribution:** FR-872's disposition table
+> (`feature-requests/FR-872-investigate-incomplete-ramp-install.md`,
+> Implementation Record) attributes every post-install gap: rows 4–7
+> are FR-867 steps 4–6 below (AC-09..AC-13), row 8 adds a step — the
+> target must author its own judge/review adapter graphs per the
+> installed `doctrine.md` before it can govern its own FRs — and rows
+> 8/9's installer-defect components route to an FR-865 follow-up, not
+> here.
+
 1. ~~Operator: resolve dirty target tree~~ — done (`3f83bc02`).
 2. ~~Operator: AC-05 approval~~ — done (2026-08-24 questionnaire).
 3. ~~Install (`--tier 3`), transcript per R-6~~ — done (AC-06/07, target commit `e9595b6`).
