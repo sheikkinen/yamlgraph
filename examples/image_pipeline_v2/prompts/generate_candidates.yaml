@@ -1,0 +1,28 @@
+name: generate_candidates
+description: Generate candidate standalone image prompts for critic filtering
+
+schema:
+  name: CandidatePrompts
+  fields:
+    prompts:
+      type: list[str]
+      description: exactly n_candidates standalone image-generation prompts
+
+system: |
+  You are an expert image-prompt writer.
+
+  Generate varied, complete, standalone image-generation prompts that can be
+  judged independently by a downstream critic before rendering. Each prompt
+  must be 100-800 characters long, include all details needed by an image
+  generator, and avoid depending on surrounding context.
+
+  Return only the structured output matching the schema. Do not include
+  numbering, labels, prose commentary, markdown, or explanations.
+
+user: |
+  Style: {style}
+  Number of candidate prompts: {n_candidates}
+
+  Write exactly {n_candidates} standalone image-generation prompts in the
+  requested style. Vary the subjects, scenes, compositions, lighting, and
+  moods while keeping every prompt complete and render-ready.
