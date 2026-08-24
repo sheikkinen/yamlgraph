@@ -113,6 +113,7 @@
 | FR-868 | Judged | yamlgraph |  | FR-868-scripture-dev-salvage.md |
 | FR-869 | Judged | yamlgraph |  | FR-869-spike-end-detector.md |
 | FR-871 | Judged | yamlgraph |  | FR-871-graduate-g02-test-local-schemas-genericity-witness.md |
+| FR-880 | Judged | yamlgraph |  | FR-880-memory-curation-premise-wiring-and-baseline-bootstrap.md |
 | FR-094 | Approved | yamlgraph |  | FR-094-memory-node.md |
 | FR-095 | Approved | yamlgraph |  | FR-095-doc-staleness-monitor.md |
 | FR-096 | Approved | yamlgraph |  | FR-096-fr-template-demo-plan.md |
@@ -220,7 +221,6 @@
 | FR-861 | Proposed | yamlgraph |  | FR-861-shared-repo-write-discipline.md |
 | FR-873 | Proposed | yamlgraph |  | FR-873-vision-provider-type-lie.md |
 | FR-879 | Proposed | yamlgraph |  | FR-879-image-pipeline-v2-critic-filter.md |
-| FR-880 | Proposed | yamlgraph |  | FR-880-memory-curation-premise-wiring-and-baseline-bootstrap.md |
 | FR-078 | In Progress | yamlgraph |  | FR-078-relocate-project-tests.md |
 | FR-100 | In Progress | yamlgraph |  | FR-100-yamlgraph-development-pipeline-ebook.md |
 | FR-169 | In Progress | yamlgraph |  | FR-169-enforce-reflexion-loop.md |
@@ -473,7 +473,7 @@ graph TD
     FR-872["FR-872 Approved"]
     FR-873["FR-873 Proposed"]
     FR-879["FR-879 Proposed"]
-    FR-880["FR-880 Proposed"]
+    FR-880["FR-880 Judged"]
     FR-081 --> FR-082
     FR-731 --> FR-735
     FR-731 --> FR-736

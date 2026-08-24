@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Proposed
+**Status:** Judged — APPROVED WITH REVISIONS (2026-08-24); R-1…R-3 folded, authority active
 **Effort:** 0.5 day
 **Requested:** 2026-08-24
 **First consumer / first event:** the agent running the next real
@@ -84,6 +84,12 @@ Frozen artifact boundary:
 - Retained authoring report: summarized in this FR's implementation record;
   raw report remains `tmp/draft-authoring-report.md`
 
+The committed input-closure brief now exists at
+`feature-requests/authoring-briefs/fr-880-premise-wiring-brief.md`
+(R-1). It names the exact artifacts, no-prompt-change constraint,
+transport witnesses, and lint/test/smoke commands. Enforcement must use
+that file unchanged as the `scripts/author.sh` input.
+
 Required wiring:
 
 ```yaml
@@ -112,6 +118,12 @@ Add behavior-scoped tests/smokes using fixture roots only:
   reconcile validation); never silently default to hygiene.
 - Existing graph lint and 3-note fixture smoke remain green.
 
+R-2 tightens the witness boundary: tests must exercise the graph/config
+and `reconcile_memory_dispositions()` glue path, not only call
+`reconcile.py` directly. Both exact values must reach the final JSON;
+missing graph/glue state must fail before any apply call, and unknown
+value must reach deterministic reconcile validation and fail there.
+
 ### 3. Live baseline bootstrap
 
 After implementation/fixture validation, run the graph against the live
@@ -136,6 +148,16 @@ run `memory-advisory.sh` at threshold 1 and require silence (zero drift).
 Record aggregate verdict/audience/staleness counts only in the FR; no raw
 note bodies or drafts.
 
+R-3 freezes the durable evidence record. The FR implementation section
+must record: exact command shape; provider; exact hygiene premise text;
+manifest and disposition hashes; aggregate verdict/audience/staleness
+counts; computed tier; action taken; and a bounded list of non-keep
+relative paths with draft byte counts plus an explicit read-in-full
+attestation. If tier 2/3 occurs, write
+`tmp/memory-curation/fr-880-human-question.md` (options, evidence,
+recommended default), record that path here, stop before apply, and do
+not claim marker-bootstrap success.
+
 ### 4. Record correction
 
 Update FR-875 header to reflect completed real runs and the marker
@@ -143,35 +165,44 @@ bootstrap result. Add the implementation evidence and any deviation to
 this FR; extend CAP-247 with a new requirement only if REQ-YG-620..622 do
 not already cover the end-to-end metadata transport contract.
 
-## Acceptance Criteria
+## Acceptance Criteria (revised per judgement)
 
-- [ ] AC-01: Graph authoring runs through `scripts/author.sh` using the
-      committed FR-880 brief; report records artifact paths, precedent,
-      lint/smoke commands, repairs, and blocked validation.
-- [ ] AC-02: `graph.yaml` declares required `premise_kind` and passes it
+- [ ] AC-01: R-1…R-3 are folded and the committed authoring brief exists
+  before enforcement (satisfied at judgement fold).
+- [ ] AC-02: Graph authoring runs through `scripts/author.sh` using the
+  committed FR-880 brief; report records artifact paths, precedent,
+  lint/smoke commands, repairs, and blocked validation.
+- [ ] AC-03: `graph.yaml` declares required `premise_kind` and passes it
       explicitly into the reconcile node; no prompt YAML changes.
-- [ ] AC-03: `graph_nodes.py` passes `premise_kind` to reconcile as the
+- [ ] AC-04: `graph_nodes.py` passes `premise_kind` to reconcile as the
       exact `--premise-kind` argument; no default or free-text inference.
-- [ ] AC-04: Fixture-level end-to-end witnesses prove hygiene and
+- [ ] AC-05: Fixture graph/glue witnesses prove hygiene and
       export_publication values appear unchanged in final
       `disposition.json`; missing/unknown premise fails closed.
-- [ ] AC-05: `yamlgraph graph lint examples/memory-curation/graph.yaml`
+- [ ] AC-06: Missing graph/glue state fails before any apply invocation;
+  unknown value is rejected by deterministic reconcile validation.
+- [ ] AC-07: `yamlgraph graph lint examples/memory-curation/graph.yaml`
       and the 3-note fixture smoke pass; all existing memory suites stay
       green.
-- [ ] AC-06: Tests use temp/fixture memory roots only and are tagged to a
+- [ ] AC-08: Tests use temp/fixture memory roots only and are tagged to a
       CAP-247 requirement; no automated test reads the real memory store.
-- [ ] AC-07: README run commands require both `premise_kind` and
+- [ ] AC-09: README run commands require both `premise_kind` and
       `audience_premise`, explaining policy-vs-judgement roles.
-- [ ] AC-08: One real Vertex hygiene run is executed after fixture
+- [ ] AC-10: One real Vertex hygiene run is executed after fixture
       validation. Every non-keep row is read. Tier 0/1 may apply per
       FR-878; tier 2 stops for a structured human decision; tier 3 is a
       witness failure.
-- [ ] AC-09: After successful tier 0/1 apply,
+- [ ] AC-11: Live-run evidence records command/provider/exact premise,
+  hashes, aggregate counts, tier/action, and non-keep paths plus
+  draft byte counts/read attestation; no raw memory content committed.
+- [ ] AC-12: After successful tier 0/1 apply,
       `.curation-state.json` exists and `memory-advisory.sh` at threshold
       1 emits no line; marker count equals the live corpus predicate.
-- [ ] AC-10: FR-875's status header and FR-880 implementation record match
+- [ ] AC-13: Tier 2/3 writes the structured gitignored question artifact,
+  stops before apply, and does not claim bootstrap success.
+- [ ] AC-14: FR-875's status header and FR-880 implementation record match
       observed reality; only aggregate real-run counts are committed.
-- [ ] AC-11: Diary reflection records the component-green/system-red
+- [ ] AC-15: Diary reflection records the component-green/system-red
       composition trap and why end-to-end metadata transport needs its own
       witness.
 
@@ -208,7 +239,17 @@ composition correction, not a new curation capability.
 - `examples/memory-curation/advisory.py`
 - CAP-247 / REQ-YG-620..622
 
-## Judgement (pending)
+## Judgement (2026-08-24)
 
-Not judged in the author's session; route:
-`.github/skills/judge-fr/adapters/README.md`.
+**Verdict: APPROVED WITH REVISIONS.** Full artifact:
+`feature-requests/FR-880-memory-curation-premise-wiring-and-baseline-bootstrap.judgement.md`.
+
+- **R-1:** committed authoring brief required before authority — created
+  and cited above.
+- **R-2:** prove exact/missing/unknown behavior through graph/config and
+  glue, not only direct reconcile tests — folded into witnesses/ACs.
+- **R-3:** freeze bounded live evidence and tier-2/3 stop artifact —
+  folded into bootstrap/ACs.
+
+Authority is active. Enforcement remains pending and must not re-run the
+judge (C-7).
