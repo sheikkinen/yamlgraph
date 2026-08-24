@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Judged — APPROVED WITH REVISIONS (2026-08-24), R-1…R-5 folded
+**Status:** Enforced (2026-08-24) — judged APPROVED WITH REVISIONS, R-1…R-5 folded
 **Effort:** 0.25 day
 **Requested:** 2026-08-24
 **First consumer / first event:** `sheikkinen/deviant-daily`'s publish
@@ -222,7 +222,45 @@ countable; if skips cluster on one cause, that is its own FR.
   bind provider serialization (`two_strike_split` — mechanize at the
   boundary rather than reword).
 
-## Related
+## Implementation status (2026-08-24)
+
+**Enforced** in `sheikkinen/deviant-daily`: `2628f41` (RED) →
+`f9a7fd7` (fix). **149 tests** green (the FR's earlier "128" was stale,
+per AC-14), `ruff` clean.
+
+| AC | Evidence |
+|---|---|
+| AC-01 | witness corrected in the header and Problem section |
+| AC-02 | `test_repair_restores_paragraphs` — the exact failing payload |
+| AC-03 | `tags`, `mature_classification` parametrized; enum still enforced after repair |
+| AC-04 | `test_non_string_values_pass_through_untouched`, `test_unauthorized_string_field_is_never_parsed` |
+| AC-05 | `test_invalid_json_is_not_repaired` per field |
+| AC-06 | `test_valid_json_that_is_not_list_of_str_is_not_repaired` — object, list-of-int, nested, scalar |
+| AC-07 | `test_well_formed_payload_is_not_touched` — no repair, no log |
+| AC-08 | log assertion in AC-02's test; absence asserted in AC-07's |
+| AC-09 | `test_gate_recognises_the_typed_invalid_value` |
+| AC-10 | `test_gate_step_commits_one_skipped_row_for_the_typed_failure` — exactly one row, `slot: 1`, `schema:` reason naming the field |
+| AC-11 | gate returns `publish=False`; existing `gate → END` edge unchanged |
+| AC-12 | `test_describe_step_lets_transport_errors_stay_red` |
+| AC-13 | `test_describe_step_makes_no_publish_decision_and_writes_no_ledger` (source scan) |
+| AC-14 | 149 tests, `ruff` clean — count observed, not assumed |
+| AC-15 | run `32735619001` green → `2026-08-24#3 published` — [Halo and Horns](https://www.deviantart.com/sheikkinen/art/Halo-and-Horns-1372484737) |
+
+### Deviations
+
+1. **`CaptureDescription` keeps `confidence` and `mature_level` as
+   `str`, not `Literal`.** A permissive capture schema must not reject
+   on an axis it is not repairing; `PostDescription` still enforces both
+   enums at the validation stage.
+2. **`repair_payload` iterates the payload, not a field whitelist
+   lookup.** Non-authorized fields are copied untouched, which is what
+   AC-04 asserts; a whitelist walk would silently drop unknown keys.
+3. **AC-15's live run did not exercise a repair** — the provider
+   returned well-formed lists. The run proves the path is not broken;
+   the repair itself is proved by AC-02/03. The judgement's AC-15
+   anticipated this case.
+
+
 
 - `sheikkinen/deviant-daily` run `32688775537` — the witness
 - `feature-requests/FR-863-deviant-daily-publish-policy-boundary-mirroring.md` — same defect class, different boundary
