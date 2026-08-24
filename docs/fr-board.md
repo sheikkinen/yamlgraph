@@ -221,7 +221,6 @@
 | FR-861 | Proposed | yamlgraph |  | FR-861-shared-repo-write-discipline.md |
 | FR-873 | Proposed | yamlgraph |  | FR-873-vision-provider-type-lie.md |
 | FR-879 | Proposed | yamlgraph |  | FR-879-image-pipeline-v2-critic-filter.md |
-| FR-881 | Proposed | yamlgraph |  | FR-881-image-pipeline-v3-local-model-generator.md |
 | FR-882 | Proposed | yamlgraph |  | FR-882-scp-generator-private-framework.md |
 | FR-078 | In Progress | yamlgraph |  | FR-078-relocate-project-tests.md |
 | FR-100 | In Progress | yamlgraph |  | FR-100-yamlgraph-development-pipeline-ebook.md |
@@ -476,7 +475,6 @@ graph TD
     FR-873["FR-873 Proposed"]
     FR-879["FR-879 Proposed"]
     FR-880["FR-880 Judged"]
-    FR-881["FR-881 Proposed"]
     FR-882["FR-882 Proposed"]
     FR-081 --> FR-082
     FR-731 --> FR-735

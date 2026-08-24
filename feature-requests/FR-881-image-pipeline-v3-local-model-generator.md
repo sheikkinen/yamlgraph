@@ -2,7 +2,7 @@
 
 **Priority:** LOW
 **Type:** Feature
-**Status:** Proposed
+**Status:** Enforced (2026-08-24)
 **Requested:** 2026-08-24
 **Effort:** 0.5–1 day
 **Depends on:** FR-879 (Enforced — v2 critic-filter pipeline delivered:
@@ -182,3 +182,24 @@ demos, no overlap).
    option; frozen repo-wide by judgement R-2/AC-06.)
 2. **Sequencing:** judge/enforce only after FR-879 merges — satisfied:
    FR-879 records Status Enforced with delivered v2 chassis (R-1).
+
+## Implementation Status (2026-08-24)
+
+Enforced same day. deviant-daily: RED c76b72f, GREEN 6c30063 (`--json`
+JSONL contract; 166 tests), pushed. yamlgraph: RED 5aa8259d, GREEN
+f31a19da (nodes + graph authored via sole route with
+`tmp/draft-authoring-report.md`; 11 v3 tests; full suite green through
+pre-commit pytest hook).
+
+**Demo run (AC-12, witnessed):** `--start "tom of sweden, "`,
+n_candidates=10, top_k=3 → 10 candidates in 12 attempts (2 shape
+rejections — consistent with the 165/200 t0.8 witness), first 3
+rendered via z-image. Trace 01a033d8-520d-7503-8803-b4a6b130c1cc.
+Evidence: `examples/image_pipeline_v3/evidence/` (sanitized
+generation table, excerpt with image sha256s, per-sample read notes).
+Every candidate stamped `ckpt_sha cd0fb5c2f171 / corpus_sha
+5907e2848ca3 / git_sha 6c30063` — provenance verified in the wild.
+
+**Deviations:** none of substance; v2's `save_report` was not shared
+(v3 has its own 60-line node; helper extraction judged not worth
+touching v2 — AC-10 regression test pins v2's output path instead).

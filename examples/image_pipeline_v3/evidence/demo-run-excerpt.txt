@@ -1,0 +1,11 @@
+# Demo run excerpt (FR-881 AC-12) — 2026-08-24, sanitized
+
+Command: yamlgraph graph run examples/image_pipeline_v3/graph.yaml --var start="tom of sweden, " --var n_candidates=10 --var top_k=3 --full
+Trace: 01a033d8-520d-7503-8803-b4a6b130c1cc
+
+'record': 'summary', 'attempts': 12, 'verdict_counts': {'pass': 10, 'shape': 2
+
+Rendered survivors (paths + sha256):
+bf7972022a9fc66fd9abf74667bf858f7b77309508a5b3252cb7dbb15054278b  outputs/image_pipeline_v3/20260824_155727/zimage_01_1787576247808.png
+16f0b19184f425c1265a266f180b13392005efe55197187a4da290b39d6dc9ac  outputs/image_pipeline_v3/20260824_155727/zimage_02_1787576247809.png
+55ee6a84e969854b48b20c1eb13552b07c0a1803b20dfc738b611043b7276853  outputs/image_pipeline_v3/20260824_155727/zimage_03_1787576247809.png
