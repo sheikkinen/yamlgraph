@@ -11,3 +11,4 @@ diary-graduation sweep (`cross_project_graduation`) and a future
 
 | target | date | tier | source_sha | manifest_hash | reviewed_sha |
 |---|---|---|---|---|---|
+| sheikkinen/deviant-daily | 2026-08-24 | 3 | 560a27145f3d | fcdee1b04548 | cea3e49f |

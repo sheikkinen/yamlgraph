@@ -155,7 +155,7 @@ Superseded by the judgement's revised set (2026-08-23); folded verbatim.
 - [x] AC-10: Every emitted warning records a non-secret audit entry with a stable reason name; audit details include no staged diff content, secret names, secret values, absolute paths outside the minimum repo identity policy, hook logs, or token-bearing text.
 - [x] AC-11: Source scans or targeted tests prove the implementation performs no mutating git command against the foreign repo and never changes the guard's deny/allow decision for FR-869 trigger cases.
 - [x] AC-12: Tests are added before implementation for the revised behavior above, using fixture scratch repos and isolated `HOOK_LOG_DIR`, with RED/GREEN evidence recorded in the FR.
-- [ ] AC-13: The final guard diff, warning strings, suppression behavior, and audit schema receive recorded human review before activation.
+- [x] AC-13: The final guard diff, warning strings, suppression behavior, and audit schema receive recorded human review before activation.
 
 ## Risks
 
@@ -190,7 +190,7 @@ revisited if witnessed in practice.
 
 ## Implementation Record (2026-08-24)
 
-**Status: ENFORCED — inactive pending AC-13 human review.**
+**Status: ENFORCED — ACTIVE (AC-13 approved 2026-08-24).**
 
 - **RED**: `a8721614` — 21 tests in
   `.github/hooks/tests/test_fr869_spike_detector.py` (fixture `git init`
@@ -220,7 +220,13 @@ revisited if witnessed in practice.
   no secret names (AC-10 witnessed by
   `test_audit_entries_contain_no_diff_content`).
 
-**AC-13 human-review handoff (pending):**
+**AC-13 human review (approved 2026-08-24):** operator approved the
+guard diff (`git diff a8721614..HEAD -- .github/hooks/scripts/pre-command-guard.sh`),
+both warning strings, the `.ramp-declined` suppression behavior, and
+the audit schema as handed off below. Check 7 is active as of this
+record.
+
+Reviewed handoff:
 
 - guard diff: `git diff a8721614..HEAD -- .github/hooks/scripts/pre-command-guard.sh`
 - warning strings: `⚠ this repo has no pre-commit hooks — scripts/ramp.sh <repo> --tier 1 exists`, `⚠ this commit takes an unenforced repo live`

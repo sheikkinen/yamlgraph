@@ -144,12 +144,12 @@ records are never committed into the target.
 Superseded by the judgement's revised set (2026-08-23); folded verbatim.
 
 - [x] AC-01: FR-867 is revised to define dependency activation evidence, exact install command/asset set, draft-review handoff, CI-block semantics, target RTM identity, and cross-repo transcript requirements from R-1 through R-6.
-- [ ] AC-02: Before any target write, FR-867 records the target repo URL/path, branch, exact HEAD, clean target git status, clean yamlgraph git status for relevant files, and the explicit file list expected to change in each repo. *(BLOCKED: target tree dirty — see Execution Record)*
+- [x] AC-02: Before any target write, FR-867 records the target repo URL/path, branch, exact HEAD, clean target git status, clean yamlgraph git status for relevant files, and the explicit file list expected to change in each repo. *(resolved — see Execution Record)*
 - [x] AC-03: Before any target write, FR-867 records the yamlgraph commit SHA and validation evidence for the enforced FR-865 installer assets and the enforced FR-866 graph draft artifacts; both sibling judgements' revision gates are satisfied.
 - [x] AC-04: The chosen install path is exact: either `scripts/ramp.sh <target> --tier 3` or `scripts/ramp.sh <target> --tier 2` plus an explicitly listed RTM asset subset. The dry-run transcript is pasted into FR-867 before install and shows the planned target paths.
-- [ ] AC-05: The curated ramp manifest and enforcement asset set have a recorded human-review approval before first non-scratch use against `deviant-daily`. *(HUMAN GATE)*
-- [ ] AC-06: The installer writes only the approved paths from AC-04; the install transcript records created/skipped/overwritten actions and source commit SHA without secrets.
-- [ ] AC-07: After install, `.git/hooks/pre-commit` exists in the target and `pre-commit run --all-files` executes; the target transcript records command, exit status, and non-secret summary.
+- [x] AC-05: The curated ramp manifest and enforcement asset set have a recorded human-review approval before first non-scratch use against `deviant-daily`. *(approved 2026-08-24 — see FR-865 AC-14 record; reviewed_sha `cea3e49f`)*
+- [x] AC-06: The installer writes only the approved paths from AC-04; the install transcript records created/skipped/overwritten actions and source commit SHA without secrets. *(logs/fr867-install.log — 20 create, 0 skip/overwrite)*
+- [x] AC-07: After install, `.git/hooks/pre-commit` exists in the target and `pre-commit run --all-files` executes; the target transcript records command, exit status, and non-secret summary. *(logs/fr867-precommit.log — green on third pass)*
 - [ ] AC-08: The FR-866 graph runs used for this application record source commit SHA, command, draft paths, and draft hashes; no graph/tool writes directly into the target repo.
 - [ ] AC-09: Before landing each generated governance artifact, FR-867 records draft path, draft hash, reviewer/date, accepted edits, final target path, and comparison statement. `AGENTS.md` names at least one target-specific boundary and contains zero foreign witness citations.
 - [ ] AC-10: `docs/incidents.md` in the target contains all four 2026-08-23 failures from FR-863 -- vision payload ceiling, DA title cap, degenerate corpus key, and guard-flag hedging -- each with root cause, cure, and source reference.
@@ -210,7 +210,24 @@ not a defect.
 | FR-866 judgement | `feature-requests/FR-866-ramp-tailoring-graphs.judgement.md` — authority granted, revisions folded; enforced RED `3dae424c` / GREEN `8e34f4de` |
 | `examples/demos/ramp_{doctrine,rtm,incidents}/graph.yaml` | committed in `8e34f4de`, lint clean (witnessed by `test_graph_lints_clean` ×3) |
 
-### AC-02 status — BLOCKED on dirty target tree
+### AC-02 status — RESOLVED (2026-08-24)
+
+The original block stands as history below; the operator resolved it by
+committing the WIP in the target (`3f83bc02` "chore: tests") and
+authorized install via the gate questionnaire ("Install anyway on dirty
+tree" — moot by install time: `git status --short` in the target was
+**empty** immediately before install).
+
+- Target: `/Users/sheikki/Documents/src/deviant-daily`
+  (`https://github.com/sheikkinen/deviant-daily`), branch `main`,
+  HEAD `3f83bc02e9dd373489ea95e82b48168ddd5ddc97`, status clean
+  (snapshot: `tmp/fr867-target-status-before.txt`, 0 lines).
+- YAMLGraph at `560a27145f3d`; ramp assets unchanged since `cea3e49f`.
+- Expected target changes: exactly the 20 AC-04 create paths plus
+  `docs/ramp-manifest.md` (installer-written). Expected yamlgraph
+  change: one row in `ramp/consumers.md`.
+
+### Original AC-02 block (historical, 2026-08-23)
 
 Ran in: **yamlgraph** (read-only against target).
 
@@ -279,8 +296,16 @@ if the count matters to the review.
 | Draft | Hash | Reviewer | Date | Disposition per section | Final target path |
 |---|---|---|---|---|---|
 | `tmp/ramp/doctrine-draft.md` | `6e03df7a0ff2` | *(pending)* | | | `AGENTS.md` (planned) |
-| `tmp/ramp/rtm-draft.md` | `3e40d715d571` | *(pending)* | | | `capabilities/` + test tags (planned) |
+| `tmp/ramp/rtm-draft.md` | `465708c3d04a` | *(pending)* | | | `capabilities/` + test tags (planned) |
 | `tmp/ramp/incidents-draft.md` | `686e86a2eff5` | *(pending)* | | | `docs/incidents.md` (planned) |
+
+RTM re-run (2026-08-24) against clean target HEAD `3f83bc02`:
+**80 REQ candidates / 108 tests / 0 gaps / 0 validation errors**
+(`logs/fr867-rtm-rerun.log`); the dirty-tree draft (`3e40d715d571`,
+51/108/25) is archived at `tmp/ramp/archive-cbdc81b7/`. The baseline's
+145-test count did not survive the operator's "chore: tests" commit —
+AC-13's "at least 145" needs revision or the target suite regrew; flag
+for the AC-13 witness step.
 
 ### Review note carried from FR-866 (AC-15 raw read)
 
@@ -289,13 +314,29 @@ if the count matters to the review.
 fixture — verify the doctrine draft's question dispositions against
 the real target before landing.
 
-### Remaining steps (blocked in order)
+### Install record (AC-06/AC-07, 2026-08-24)
 
-1. **Operator**: resolve the dirty target tree (commit/stash the 15-file WIP).
-2. **Operator**: AC-05 approval line here for the Tier 3 asset set above.
-3. Install (`--tier 3`), transcript per R-6 → AC-06/07.
+- Command: `scripts/ramp.sh ~/Documents/src/deviant-daily --tier 3
+  --record-consumer sheikkinen/deviant-daily`, exit 0
+  (`logs/fr867-install.log`): 20 `create` actions, 0 skip/overwrite,
+  source `560a27145f3d`, manifest `fcdee1b04548`; consumer row written
+  to `ramp/consumers.md`.
+- `pre-commit install` + `pre-commit run --all-files`
+  (`logs/fr867-precommit.log`): pass 1 — ruff-format reformatted 18
+  files; pass 2 — trailing-whitespace fixed 2 logs; pass 3 — **all
+  hooks green, exit 0**. `.git/hooks/pre-commit` exists and is
+  non-empty.
+- Target commit `e9595b6` — 41 files (20 installed + manifest +
+  first-contact fixer pass), gated by the target's own freshly
+  installed hooks.
+
+### Remaining steps
+
+1. ~~Operator: resolve dirty target tree~~ — done (`3f83bc02`).
+2. ~~Operator: AC-05 approval~~ — done (2026-08-24 questionnaire).
+3. ~~Install (`--tier 3`), transcript per R-6~~ — done (AC-06/07, target commit `e9595b6`).
 4. Draft review rows filled → land `AGENTS.md`, registry (`REQ-DD-XXX`), `docs/incidents.md` → AC-09/10/11.
 5. Tag tests / record gaps → AC-12.
-6. Enable CI, witness push run ≥145 tests → AC-13.
+6. Enable CI, witness push run → AC-13 (baseline needs revisit: clean tree has 108 tests, not 145).
 7. Blocked-commit witness + CI-detects witness → AC-14/15 (AC-15 stays "detected by CI" unless a branch-protection FR lands).
 8. Next cron green → AC-16; secret/direction scan → AC-17; FR-863 cross-refs → AC-18; dual clean statuses → AC-19.

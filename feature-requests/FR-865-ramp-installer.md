@@ -226,7 +226,7 @@ Superseded by the judgement's revised set (2026-08-23); folded verbatim.
 - [x] AC-11: The installer refuses a non-repo path, this repository, an unsupported target shape, and any target path that would escape the repo root; each refusal exits non-zero and writes nothing.
 - [x] AC-12: Source scans assert the installer and curated assets contain no LLM call, no network call, no target-repo mutating `git` command, no secret material, no hook logs, no pycache, and no unresolved yamlgraph-only assumptions outside the explicitly reviewed contract.
 - [x] AC-13: If a CI workflow is installed, fixture tests prove the exact supported target suite command and ruff command run as documented; otherwise the workflow is an explicit setup stub and is not described as an active gate.
-- [ ] AC-14: The manifest and curated enforcement assets are human-reviewed before first non-scratch use; the FR records the reviewed source commit SHA and any approved deviations.
+- [x] AC-14: The manifest and curated enforcement assets are human-reviewed before first non-scratch use; the FR records the reviewed source commit SHA and any approved deviations.
 - [x] AC-15: Tests are added before implementation for the installer behavior above, with RED/GREEN evidence recorded in the FR.
 - [x] AC-16 (A-1): Existing yamlgraph test/CI execution runs the curated Tier-1 `.pre-commit-config.yaml` against a committed fixture scratch repo; a failing curated config is a red build without changing yamlgraph's live hook or CI enforcement policy.
 - [x] AC-17 (A-1): A drift test asserts every curated asset mirroring a live root counterpart either matches it exactly or carries a recorded curation diff naming the live source, curated destination, removed/changed material, and reason; unexplained drift fails.
@@ -262,7 +262,7 @@ FR-207 proved decays. AC-02 asserts the stub.
 
 ## Implementation Record (2026-08-24)
 
-**Status: ENFORCED (AC-14 human review pending).**
+**Status: ENFORCED (AC-14 approved 2026-08-24).**
 
 - **RED**: `c92b18f3` — 45 contract tests in
   `tests/unit/test_ramp_installer.py` (module absent →
@@ -299,10 +299,14 @@ FR-207 proved decays. AC-02 asserts the stub.
   the installer ships no graphs (GATE C-4); recorded in
   `ramp/curation-diffs.md#judge-sh`.
 
-**Pending:** AC-14 — human review of `ramp/manifest.yaml` and the
-curated enforcement assets before first non-scratch use; record the
-reviewed source SHA in `ramp/consumers.md` (`reviewed_sha` column) and
-here.
+**AC-14 approval (2026-08-24):** operator approved the curated
+`ramp/manifest.yaml` and enforcement asset tree for non-scratch use.
+Reviewed source SHA: `cea3e49f` (last commit touching `ramp/`;
+unchanged since GREEN). Approved deviations: only those already
+recorded in `ramp/curation-diffs.md` (5 records, incl. the
+adapter-graph existence check in curated `judge.sh`/`review.sh`).
+`reviewed_sha` is recorded in the `ramp/consumers.md` row at first
+install (FR-867).
 
 ## Related
 

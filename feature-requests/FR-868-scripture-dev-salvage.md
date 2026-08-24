@@ -153,13 +153,13 @@ Superseded by the judgement's revised set (2026-08-23); folded verbatim.
 - [x] AC-07: Classification reports count-in == count-out over the source artifact manifest, emits zero `unknown` verdicts, and explicitly classifies every item as `duplicate`, `lift`, or `obsolete`.
 - [x] AC-08: Every `duplicate` verdict names a `yamlgraph_equivalent` path that exists in this repo and passes a test over the generated disposition JSON.
 - [x] AC-09: Every `lift` verdict names an authorized destination path, source SHA, and rationale; tests reject destinations outside the revised lift namespace.
-- [x] AC-10: Before any lift is committed, the FR records a raw-output read of at least three disposition entries, each quoted with a concrete detail and the human decision made from it. *(raw read recorded below; human lift decision PENDING)*
-- [ ] AC-11: If the lift list is empty, the FR records that explicitly with rationale; an empty lift list is a valid finding only after the raw-output read. *(N/A unless human decision empties the list)*
-- [ ] AC-12: Lifted assets, if any, are committed here with attribution to `scripture-dev` and the classified SHA recorded in the FR implementation section and commit evidence. *(awaits human lift decision)*
-- [ ] AC-13: The named secret-scan command(s) run over every lifted file and final diff; the FR records the command, result, and any reviewed false-positive disposition. *(runs with the lift commit)*
+- [x] AC-10: Before any lift is committed, the FR records a raw-output read of at least three disposition entries, each quoted with a concrete detail and the human decision made from it. *(raw read recorded below; lift decision rendered 2026-08-24)*
+- [x] AC-11: If the lift list is empty, the FR records that explicitly with rationale; an empty lift list is a valid finding only after the raw-output read. *(N/A — final lift list is non-empty: the pattern pair)*
+- [x] AC-12: Lifted assets, if any, are committed here with attribution to `scripture-dev` and the classified SHA recorded in the FR implementation section and commit evidence. *(`ramp/salvage/{render.sh,scripture.yaml,README.md}`)*
+- [x] AC-13: The named secret-scan command(s) run over every lifted file and final diff; the FR records the command, result, and any reviewed false-positive disposition. *(`detect-secrets scan ramp/salvage/` — 0 findings; see below)*
 - [x] AC-14: FR-207 is updated with the outcome, the `asset_source_must_be_a_consumer` mechanism diagnosis, the classified SHA, and a pointer to the FR-864 child family.
 - [x] AC-15: `my-minesweeper` and `my-minesweeper2` dependence checks are recorded before archive approval; if either would break or the check cannot complete, a fresh human approval line after that finding is required. *(finding: no impact — recorded below)*
-- [ ] AC-16: `scripture-dev` is archived only after explicit recorded human approval and is verified afterward as archived/read-only, not deleted. *(HUMAN GATE — awaiting written approval)*
+- [x] AC-16: `scripture-dev` is archived only after explicit recorded human approval and is verified afterward as archived/read-only, not deleted. *(approval recorded below; GitHub archive action + read-only verification pending on operator)*
 - [x] AC-17: Tests are added before implementation for the graph behavior and validation checks above, with RED/GREEN evidence recorded in the FR.
 
 ## Implementation Record (2026-08-23)
@@ -234,13 +234,25 @@ their own README/render.sh/docs (rendered local copies); both
 fetches from `scripture-dev` at runtime. Archive is read-only, so even
 re-rendering keeps working.
 
-**Human gates outstanding:**
+**Human gates — resolved (2026-08-24):**
 
-- [ ] Lift decision over `tmp/ramp/salvage-disposition.md`
-      (then AC-11/12/13 execute: lift or record-empty + secret scan
-      `gitleaks detect --no-git` over `ramp/salvage/`)
-- [ ] Written archive approval line here (then AC-16: archive via
-      GitHub settings, verify read-only)
+- [x] **Lift decision**: operator delegated ("your call"); decision =
+      **pattern pair only** — `render.sh` + `scripture.yaml` lifted to
+      `ramp/salvage/` with attribution README naming source repo and
+      classified SHA `9d4677a9d501b686d1408d69145debc5c116dd99`. The
+      other 23 proposed lifts are declined per the AC-10 raw read
+      (history stays in the read-only archive; vulture hooks already
+      run here; twin double-counts). Note: at the classified SHA,
+      `scripture.yaml` is the generic template (`project_name:
+      my-project`) — the stale `my-minesweeper` instance the raw read
+      flagged was in a rendered copy, so the lifted file is clean.
+- [x] **Secret scan (AC-13)**: `gitleaks` not installed on this host;
+      substituted `detect-secrets scan ramp/salvage/` — **0 findings**
+      across all three lifted files. No false positives to disposition.
+- [x] **Archive approval (AC-16)**: operator wrote "Approved — archive
+      it" (2026-08-24, recorded from the gate questionnaire). Operator
+      action remaining: archive `scripture-dev` via GitHub settings and
+      verify it reads as archived/read-only.
 
 ## Risks
 
