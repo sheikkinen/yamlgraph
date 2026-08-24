@@ -1,0 +1,20 @@
+2026-08-24 14:59:46,604 [INFO] yamlgraph.compile.graph_loader: Parsed 3 Python tools: score_filter, save_report, generate_images
+2026-08-24 14:59:46,607 [INFO] yamlgraph.compile.node_compiler: Added node: generate_candidates (type=llm)
+2026-08-24 14:59:46,607 [INFO] yamlgraph.compile.node_compiler: Added node: score_filter (type=python)
+2026-08-24 14:59:46,607 [INFO] yamlgraph.compile.node_compiler: Added node: save_report (type=python)
+2026-08-24 14:59:46,607 [INFO] yamlgraph.compile.node_compiler: Added node: generate_images (type=python)
+2026-08-24 14:59:55,989 [INFO] examples.image_pipeline_v2.nodes.score_filter: 🧪 critic verdicts: {'pass': 10}
+2026-08-24 14:59:55,992 [INFO] examples.image_pipeline.nodes.generate_images: 🚀 Starting parallel generation of 3 images...
+2026-08-24 14:59:59,379 [INFO] examples.shared.replicate_tool: 📥 Downloading image to outputs/image_pipeline_v2/20260824_145955/zimage_03_1787572795993.png
+2026-08-24 15:00:00,191 [INFO] examples.shared.replicate_tool: 📥 Downloading image to outputs/image_pipeline_v2/20260824_145955/zimage_02_1787572795993.png
+2026-08-24 15:00:00,329 [INFO] examples.shared.replicate_tool: ✓ Image saved: outputs/image_pipeline_v2/20260824_145955/zimage_03_1787572795993.png
+2026-08-24 15:00:00,545 [INFO] examples.shared.replicate_tool: 📥 Downloading image to outputs/image_pipeline_v2/20260824_145955/zimage_01_1787572795993.png
+2026-08-24 15:00:00,644 [INFO] examples.shared.replicate_tool: ✓ Image saved: outputs/image_pipeline_v2/20260824_145955/zimage_02_1787572795993.png
+2026-08-24 15:00:01,164 [INFO] examples.shared.replicate_tool: ✓ Image saved: outputs/image_pipeline_v2/20260824_145955/zimage_01_1787572795993.png
+2026-08-24 15:00:01,172 [INFO] examples.image_pipeline.nodes.generate_images: 📄 Fallback sidecar written: zimage_01_1787572795993.txt
+2026-08-24 15:00:01,179 [INFO] examples.image_pipeline.nodes.generate_images: 📄 Fallback sidecar written: zimage_02_1787572795993.txt
+2026-08-24 15:00:01,186 [INFO] examples.image_pipeline.nodes.generate_images: 📄 Fallback sidecar written: zimage_03_1787572795993.txt
+2026-08-24 15:00:01,186 [INFO] examples.image_pipeline.nodes.generate_images: ✅ Generated 3/3 images
+  report_file: outputs/image_pipeline_v2/20260824_145955/rejection-table.md
+  local_report_file: outputs/image_pipeline_v2/20260824_145955/rejection-table-local.md
+  images: ['outputs/image_pipeline_v2/20260824_145955/zimage_01_1787572795993.png', 'outputs/image_pipeline_v2/20260824_145955/zimage_02_1787572795993.png', 'outputs/image_pipeline_v2/20260824_145955/zimage_03_1787572795993.png']

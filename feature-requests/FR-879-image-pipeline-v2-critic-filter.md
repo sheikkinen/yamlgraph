@@ -174,3 +174,30 @@ publishing v2 outputs to DeviantArt is explicitly out of scope here).
    preset documented in README only.
 2. **Rejected prompt text:** local rejection table may carry full text
    for debugging; committed evidence carries reason codes only.
+
+## Implementation Status (2026-08-24)
+
+Enforced. deviant-daily: RED ca23ed3 + GREEN a51e7ca (score.py,
+per-register calibration.json committed via gitignore carve-out),
+pushed. yamlgraph: RED 35c1776d, GREEN 356b7a50 (nodes + graph via sole
+authoring route, lint passed, authoring report verified; 6052 tests
+green).
+
+**E2E witness:** 10 candidates (azure gpt-5.4-mini via .env) → all 10
+scored in_band/boundary-pass → top-3 by NLL (0.971/1.1395/1.1451)
+rendered via z-image, sidecar fallback (no exiftool). Sanitized
+rejection table + read notes: `examples/image_pipeline_v2/evidence/`.
+
+**Findings from the witnessed run (read notes):** zero rejections —
+a frontier LLM given a corpus-adjacent brief writes in-distribution, so
+the filter's live value is ranking + spend cap (rejection bites on
+off-style briefs, per the R-1 fixture); all candidates exceeded the
+256-char context (truncated=True per row, critic judges openings); one
+candidate carried a Cyrillic leak, scored on its Latin subset (tokenizer
+skips unknown chars — documented limit).
+
+**Deviations:** committed demo evidence is a structurally-filtered
+excerpt (`demo-run-excerpt.txt`) because raw run logs embed full prompt
+text in state dumps (C-6); calibration.json lives in gitignored
+training/ckpt/ via a `!` carve-out (judgement D-2's "equivalent
+committed artifact").
