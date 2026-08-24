@@ -168,13 +168,9 @@ publishing v2 outputs to DeviantArt is explicitly out of scope here).
 - Session reflection 2026-08-24: critic use cases (best-of-N, band-pass,
   drift alarm) — this FR is Tier-1 item 1 + Tier-2 item 7 merged.
 
-## Open Questions (for the human, inline)
+## Decisions (operator, 2026-08-24)
 
-1. **Style default** — should the example default `style` to the
-   sheikkinen corpus aesthetic (making the critic maximally relevant),
-   or stay neutral ("dark fantasy") with a README note? Recommended:
-   neutral default, sheikkinen preset in README. A: ___
-2. **Where do rejected prompts go** — rejection table only (recommended,
-   R-2 spirit: full text of rejected candidates appears in the local
-   table but is never committed), or also suppressed from the local
-   table? A: ___
+1. **Style default:** neutral ("dark fantasy"); sheikkinen corpus
+   preset documented in README only.
+2. **Rejected prompt text:** local rejection table may carry full text
+   for debugging; committed evidence carries reason codes only.
