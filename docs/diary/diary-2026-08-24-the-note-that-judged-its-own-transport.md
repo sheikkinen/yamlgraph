@@ -112,3 +112,39 @@ agent-driven destructive operation: worktree cleanup, branch pruning,
 config migration. Is there a general "gated apply" primitive hiding
 here, or is three instances (FR-868, FR-875, next) the graduation
 bar?
+
+---
+
+## Addendum 3: whose memories are these — the recall-time value law
+
+The operator read the first real disposition and asked the right
+question: the corpus is *agent* memory, so the curation policy is
+mine to state. Introspecting on how I actually use these notes
+exposed what the judge cannot see: **a note's value is determined at
+recall time, not at write time.** I do not browse this corpus; I hit
+it by filename when a situation matches (judge-sh-uv-fallback fired
+twice today and paid for itself both times). The filename is the
+index; the trigger-recognizability of the name is most of the value;
+the content is read only after the name matches. A content-only
+judge — which is what FR-875 built — measures plausible durability,
+not fired-ness. That is why it rated 56/57 fresh: it judges text,
+and staleness lives in the world, not the text.
+
+Consequences, stated as the policy I want: hygiene verdicts are
+keep / compress / forget-with-tombstone, where "compress" is redact
+under a machine-local premise (same schema, the premise re-scopes the
+meaning — no graph change needed); forgetting requires a tombstone
+line (date, name, reason, superseded-by) because negative knowledge
+is case law — the graveyard doctrine applied to my own memory; and
+forget is earned only by mechanization (cure graduated to
+Scripture/code/test) or impossibility of recurrence, never by mere
+age. The missing instrument is a fire-count: recall events are
+observable (memory tool reads) but unrecorded — incident_density_
+ranking wants to apply here and cannot yet.
+
+**Seed 3:** the reception hierarchy (skills → memory → READMEs →
+scripts) governs *discovery*; the tombstone index would be memory
+about memory — does it belong as a note in the corpus it indexes
+(self-reference, curated by the same graph) or outside it? And: can
+the SessionStart hook log which memory files each session actually
+reads, making the fire-count a query instead of a self-report?
