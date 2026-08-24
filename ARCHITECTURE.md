@@ -562,7 +562,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 244 | CAP-244 Ramp Installer | `scripts` | REQ-YG-610 – 613 |
 | 245 | CAP-245 Ramp Tailoring Graphs | `examples` | REQ-YG-614 – 617 |
 | 246 | CAP-246 Scripture-dev Salvage Classification | `examples` | REQ-YG-618 – 619 |
-| 247 | CAP-247 Memory-Corpus Curation (Selective Amnesia) | `examples` | REQ-YG-620 |
+| 247 | CAP-247 Memory-Corpus Curation (Selective Amnesia) | `examples` | REQ-YG-620 – 621 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -3034,6 +3034,7 @@ examples/memory-curation judges every repo-scope memory note against a declared 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-620 | memory-curation code-stage contract: collect reads only the repo scope of an explicitly configured memory root, writes manifest (path, sha256, size, mtime) plus note copies strictly under the out-dir, and rejects symlink escapes; reconcile Pydantic-validates dispositions with exact enums and cross-field invariants (redacted_draft iff redact, staleness_evidence iff dated/expired), proves count-in == count-out with each manifest path exactly once and zero unknown verdicts, and stamps outputs with the manifest hash; apply refuses without a sign-off line binding manifest and disposition hashes, refuses all mutation on any live-hash drift, executes forget=delete / redact=replace / keep=untouched, and is idempotent on re-run. | `examples` |
+| REQ-YG-621 | FR-878 reversible amnesia and tiered approval: forget archives to an op-id collision-safe shelf and redact stashes its original as a backup, both tombstoned with schema rows in a protected _tombstones.md that apply refuses to forget or redact; restore is conflict-safe (refuses diverged live bytes) and idempotent only for recorded restorations; approval tier is computed from disposition content with precedence export_publication > forget > redact > keep-only, where premise_kind is a validated enum failing closed to tier 3, tier 1 requires a machine-checked DELEGATION provenance line plus an audit record, tiers 2/3 require recorded human response artifacts; re-derivation advisory fires only against forget tombstones (never redaction backups) with zero LLM or network calls. | `examples` |
 
 <!-- END GENERATED CAPABILITIES -->
 

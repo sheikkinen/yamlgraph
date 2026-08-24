@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Proposed
+**Status:** Judged — APPROVED WITH REVISIONS (2026-08-24); R-1…R-7 folded below
 **Effort:** 1 day
 **Requested:** 2026-08-24
 **First consumer / first event:** the operator and agent at the next
@@ -68,58 +68,105 @@ Amends `examples/memory-curation/apply.py` and collect; adds a restore
 mode; extends the FR-877 advisory.
 
 1. **Archive shelf (soft delete):**
-   - `forget` → move note to `<memory_root>/.archive/<YYYY-MM-DD>/repo/<name>`
-     (never unlink); `redact` → stash the original there before replacing.
-   - Append one line per archived note to `<memory_root>/repo/_tombstones.md`:
-     date, name, verdict, one-line reason, archive path, manifest hash.
-     The tombstone file is a normal note (curated by the same graph;
-     self-referential by design — the graveyard is case law).
+   - `forget` → move note to
+     `<memory_root>/.archive/<op_id>/<original-relative-path>` where
+     `op_id = <UTC timestamp YYYYMMDDTHHMMSSZ>-<manifest_sha256[:8]>`
+     (R-1: collision-safe across same-day repeats and repeated filenames;
+     original relative path preserved under the op directory). `redact`
+     → stash the original at the same layout with the op record marked
+     `backup` (R-3: backups are NOT re-derivation candidates).
+   - Append one row per archive/restore event to
+     `<memory_root>/repo/_tombstones.md` — schema (R-1): `op_id |
+     original path | verdict (forget|redact-backup) | one-line reason |
+     archive path | pre-apply sha256 | post-apply sha256 (redact only) |
+     manifest sha256 | disposition sha256 | restore status`.
+   - **Tombstone protection (R-7):** `_tombstones.md` is collected as
+     context but is never a `forget`/`redact` target — apply refuses any
+     disposition row addressing it; the restore index cannot be destroyed
+     by ordinary curation (test).
    - Dot-directory is invisible to the memory tool's listing and excluded
      from `collect.py` by construction (repo/*.md glob).
-   - No retention purge in v1 — the corpus is kilobytes; deletion of the
-     archive is a future human act, not a mechanism.
-2. **Restore:** `apply.py restore <archive-path>` — moves a note back
-   into the live scope and appends a restore line to the tombstone index.
-3. **Tiered approval (replaces the uniform C-6 sign-off):**
-   | Tier | Disposition contents | Requirement |
+   - No retention purge in v1 — archive deletion is a future human act,
+     not a mechanism (judgement C-4).
+2. **Restore (R-2, conflict-safe):** `apply.py restore <op_id>/<path>`
+   validates the tombstone/archive record, restores only to the recorded
+   live path, and refuses when the live destination exists with bytes
+   that are neither the expected post-apply state nor already the
+   archived bytes (conflict → clear report, human action). Idempotent
+   only when live bytes already equal archived bytes AND the tombstone
+   records restoration; any other repeat fails visibly. Every restore
+   appends its tombstone row.
+3. **Tiered approval (replaces the uniform C-6 sign-off; R-4/R-5 exact):**
+   | Tier | Trigger (content-computed, precedence top-down) | Requirement |
    |---|---|---|
+   | 3 | `premise_kind: export_publication` in the disposition | non-delegable recorded human response artifact |
+   | 2 | any `forget` verdict | recorded human response artifact naming the human, covering the forget rows |
+   | 1 | any `redact`, zero forgets | sign-off line with machine-checked standing-delegation provenance: `DELEGATION: <source-ref>` where source-ref cites this FR's recorded delegation section; audit line appended to `.github/hooks/logs/memory-curation-audit.jsonl` |
    | 0 | keep-only | none (no-op) |
-   | 1 | compress/redact only, zero forgets | agent-signable under recorded standing delegation; sign-off line carries provenance; audit line appended to hook log |
-   | 2 | any `forget` | human answer to a structured question (evidence: the forget rows + tombstone preview + recommended default); sign-off names the human |
-   | 3 | export/publication premise | always human, non-delegable — publication is the one act soft-delete cannot undo |
-   The hash-binding mechanics (manifest + disposition sha256, live-hash
-   drift refusal, validate-all-then-apply-all, idempotence) are unchanged
-   at every tier — the amendment relocates *who approves*, not *what is
-   verified*.
-4. **Re-derivation detection (forecast validation):** `collect.py`
-   compares each live note name and content hash against the archive;
-   on similarity (same filename, or identical hash) it emits an advisory
-   line — "note X resembles archived Y (forgotten <date>) — consider
-   restore". Rides the FR-877 briefing seam; zero LLM.
+   - **Premise metadata (R-5):** reconcile records a validated
+     `premise_kind: hygiene | export_publication` field in
+     disposition.json/md, set from an explicit graph variable — never
+     substring-matched from freeform premise text. Missing/unknown
+     premise_kind → apply fails closed to tier 3.
+   - **Standing delegation source (R-4):** the operator's recorded
+     delegation for tier-1 applies is this FR's approval plus the run-2
+     precedent recorded in FR-875 ("proceed — I feel this is your call",
+     2026-08-24); the sign-off line must cite it as
+     `DELEGATION: FR-878 tier-1 standing (operator 2026-08-24)`.
+   - Hash-binding mechanics (manifest + disposition sha256, live-hash
+     drift refusal, validate-all-then-apply-all, idempotence) unchanged
+     at every tier — the amendment relocates *who approves*, not *what
+     is verified*.
+4. **Re-derivation detection (forecast validation; R-3 scoped):**
+   `collect.py` compares live note filenames and content hashes against
+   tombstone rows whose verdict class is `forget` ONLY — redaction
+   backups never trigger it (test proves a redacted note emits no
+   warning). On match it emits one advisory line — "note X resembles
+   archived Y (forgotten <date>) — consider restore". Pure stdlib, zero
+   LLM/network. **FR-877 dependency (R-6):** FR-878 implements this as
+   collect output (its own authorized surface) with tests; if/when
+   FR-877 lands, the briefing seam consumes the same line without
+   changing FR-877's drift-marker semantics.
 
-## Acceptance Criteria
+## Acceptance Criteria (revised per judgement)
 
-- [ ] AC-01: `forget` archives + tombstones instead of unlinking; `redact`
-      stashes the original; archive is invisible to memory recall and to
-      collect manifests (tests, temp roots only).
-- [ ] AC-02: restore moves an archived note back and records the restore
-      in the tombstone index; idempotent (test).
-- [ ] AC-03: apply computes the tier from the disposition contents and
-      enforces the matching sign-off requirement: tier 1 accepts
-      delegation-provenance lines; tier 2 refuses unless the sign-off
-      names a human approver; tier detection is content-based, not
-      flag-based (tests).
-- [ ] AC-04: export-premise dispositions (premise recorded in the
-      disposition by reconcile) are always tier 3 regardless of verdicts
-      (test).
-- [ ] AC-05: hash-binding, drift refusal, and idempotence behavior are
-      unchanged at all tiers (existing tests stay green).
-- [ ] AC-06: re-derivation advisory fires on filename or content-hash
-      match against the archive; zero LLM/network (test).
-- [ ] AC-07: FR-875's C-6 amendment is recorded in FR-875 (pointer to
-      this FR) and `examples/memory-curation/README.md` documents the
-      tier table.
-- [ ] AC-08: tests req-tagged (extend CAP-247); diary reflection.
+- [ ] AC-01: FR revised with archive identity, tombstone schema, restore
+      conflict rules, re-derivation scope, tier computation, sign-off
+      provenance, export-premise metadata, FR-877 handling (R-1…R-7) —
+      this document.
+- [ ] AC-02: `forget` archives rather than unlinks; `redact` stashes the
+      original; archive paths are op-id collision-safe and preserve
+      original relative paths; `.archive/` invisible to recall and
+      collect (tests, temp roots only).
+- [ ] AC-03: `_tombstones.md` gains one schema-valid row per
+      archive/restore event (op id, path, verdict, reason, archive path,
+      pre/post hashes, manifest hash, disposition hash, restore status);
+      tests validate schema.
+- [ ] AC-04: restore validates the record, restores only to the recorded
+      path, refuses unsafe overwrite/drift with a clear conflict report,
+      idempotent only for already-restored matching bytes (tests).
+- [ ] AC-05: tier computed content-based with exact precedence
+      export_publication > any forget > any redact > keep-only (tests).
+- [ ] AC-06: tier 1 accepts only the machine-checked `DELEGATION:` line
+      and appends the audit record; tier 2 refuses without a recorded
+      human response artifact; tier 3 refuses without a non-delegable
+      one (tests).
+- [ ] AC-07: `premise_kind` is a validated enum recorded by reconcile
+      from an explicit variable; apply derives tier 3 from it only;
+      missing/unknown fails closed to tier 3 (tests).
+- [ ] AC-08: hash-binding, drift refusal, validate-all-then-apply-all,
+      and idempotence unchanged at every tier (existing tests green).
+- [ ] AC-09: re-derivation advisory fires only against `forget`
+      tombstones; redaction backups never trigger it; pure stdlib
+      (tests).
+- [ ] AC-10: the advisory is implemented as collect output with tests
+      (FR-877-independent); tombstone file is never a forget/redact
+      target (test).
+- [ ] AC-11: FR-875 C-6 pointer recorded; README documents
+      archive/restore, tombstones, tier table, delegation provenance,
+      export non-delegability.
+- [ ] AC-12: tests req-tagged via CAP-247 extension; diary reflection
+      records the approval-theatre trap and the correction.
 
 ## Alternatives Considered
 
@@ -156,7 +203,19 @@ tier 2 names a human).
 - Named follow-up (not scope): premise-pair disagreement-diff; fire-count
   instrumentation (diary seed 3)
 
-## Judgement (pending)
+## Judgement (2026-08-24)
 
-Not judged in the author's session; route:
-`.github/skills/judge-fr/adapters/README.md`.
+**Verdict: APPROVED WITH REVISIONS** — rendered via the sole judge route
+(gpt-5.5); full artifact:
+`feature-requests/FR-878-reversible-amnesia-tiered-approval.judgement.md`.
+R-1 archive identity/tombstone schema; R-2 conflict-safe restore; R-3
+re-derivation scoped to forget-tombstones only; R-4 machine-checkable
+tier provenance; R-5 exact `premise_kind` enum, fail-closed to tier 3;
+R-6 FR-877 decoupled (advisory is collect output); R-7 tombstone index
+protected from self-erasure. All folded above. Authority active.
+
+**Not authorized:** hard-deleting archive content; retention purges;
+moving anything off-machine; FR-874 transport; user/session scope; LLM or
+network calls in apply/restore/tier/advisory paths; fuzzy premise
+detection; graph/prompt YAML changes (C-8: code/docs/tests only);
+CI/hook/doctrine changes.

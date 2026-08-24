@@ -31,3 +31,20 @@ requirements:
       keep=untouched, and is idempotent on re-run.
     modules:
       - examples
+  - id: REQ-YG-621
+    description: >
+      FR-878 reversible amnesia and tiered approval: forget archives to
+      an op-id collision-safe shelf and redact stashes its original as a
+      backup, both tombstoned with schema rows in a protected
+      _tombstones.md that apply refuses to forget or redact; restore is
+      conflict-safe (refuses diverged live bytes) and idempotent only for
+      recorded restorations; approval tier is computed from disposition
+      content with precedence export_publication > forget > redact >
+      keep-only, where premise_kind is a validated enum failing closed to
+      tier 3, tier 1 requires a machine-checked DELEGATION provenance
+      line plus an audit record, tiers 2/3 require recorded human
+      response artifacts; re-derivation advisory fires only against
+      forget tombstones (never redaction backups) with zero LLM or
+      network calls.
+    modules:
+      - examples
