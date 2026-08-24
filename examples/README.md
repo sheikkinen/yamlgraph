@@ -64,6 +64,7 @@ After the learning path, explore production examples below.
 | [batch_image_prompts/](batch_image_prompts/) | Batch image prompt generator | Map node, parallel enrichment, style consistency |
 | [image_pipeline/](image_pipeline/) | End-to-end image generation | Subgraph composition, Replicate z-image, file I/O |
 | [image_pipeline_v2/](image_pipeline_v2/) | Critic-filtered image generation (FR-879) | Frozen local critic vs LLM-judge, cross-repo scorer subprocess, top-k spend cap |
+| [image_pipeline_v3/](image_pipeline_v3/) | Local-model-generated prompts (FR-881) | No-LLM graph, trained 3.3M-param generator subprocess, boundary-gated first-k selection |
 | [style_convert/](style_convert/) | Restyle a prompt file to a target art style | Map node, Mistral, count-preserving, reuses image_pipeline save node |
 | [webllm-demo/](webllm-demo/) | Prompt YAML → in-browser WebLLM | Inline-schema → JSON Schema compile, grammar-enforced output, zero-key Pages demo (FR-731) |
 | [yamlgraph_gen/](yamlgraph_gen/) | Pipeline generator | Meta-generation, snippet composition, validation |
