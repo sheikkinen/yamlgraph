@@ -52,9 +52,9 @@ sweep?
 Everything above was written at GREEN, before the security review. The
 operator's review request surfaced the fact that invalidated the arc:
 **the repo is public**, and neither author, judge, nor enforcer ever
-checked. The seed corpus staged for commit contained a customer
-customer-confidential material. security findings,
-all intentionally omitted here — none with prior public baseline. Both
+checked. The seed corpus staged for commit contained customer-confidential
+material with no prior public baseline; its details are intentionally
+omitted here. Both
 commits reverted unpushed; FR-874 is now REJECTED precedent.
 
 **The trap, precisely:** `threat_model_inherited_unverified` — every

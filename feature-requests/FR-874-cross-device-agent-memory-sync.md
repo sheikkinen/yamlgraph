@@ -10,11 +10,9 @@ post-enforcement security review of the seed corpus:
    FR's entire privacy model — and the judgement's R-1/R-5 — assumed a
    peer-shared repo; neither author, judge, nor enforcer checked
    visibility. The seed corpus contained customer-critical material with
-   zero prior public baseline: customer-confidential material.
-   Details are intentionally omitted from this
-   public record. The controlling
-   root cause
-   is `workspace_is_not_boundary`: the memory tool's "repo" scope is
+      zero prior public baseline. Its operational and security details are
+      intentionally omitted from this public record. The controlling root
+      cause is `workspace_is_not_boundary`: the memory tool's "repo" scope is
    actually workspace scope, and this workspace spans customer projects.
 2. **The corpus is unjudged.** The notes are accumulated glimpses — no
    note ever passed a curation gate. Building the transport before the
