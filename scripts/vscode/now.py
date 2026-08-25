@@ -38,6 +38,67 @@ def _git(repo: Path, *args: str) -> str:
     return r.stdout.strip()
 
 
+def orphan_worktree_lines(repo: Path, gh_available: bool | None = None) -> list[str]:
+    """FR-888 AC-10: linked worktrees with no open PR — flagged, never deleted.
+
+    Age + untracked-file count per tree; PR state via gh when available,
+    reported as 'pr=?' when not (unknown is not assumed absent-safe).
+    """
+    if gh_available is None:
+        gh_available = shutil.which("gh") is not None
+    lines: list[str] = []
+    porcelain = _git(repo, "worktree", "list", "--porcelain")
+    tree, branch = None, None
+    entries = []
+    for raw in porcelain.splitlines() + [""]:
+        if raw.startswith("worktree "):
+            tree = raw.split(" ", 1)[1]
+        elif raw.startswith("branch "):
+            branch = raw.split(" ", 1)[1].removeprefix("refs/heads/")
+        elif not raw:
+            if tree and branch and Path(tree).resolve() != repo.resolve():
+                entries.append((tree, branch))
+            tree, branch = None, None
+    for tree, branch in entries:
+        age = _git(Path(tree), "log", "-1", "--format=%cr") or "unknown"
+        untracked = sum(
+            1
+            for line in _git(
+                Path(tree), "status", "--porcelain", "--untracked-files=all"
+            ).splitlines()
+            if line.startswith("??")
+        )
+        pr = "?"
+        if gh_available:
+            out = subprocess.run(  # noqa: S603  # CONF-390
+                [
+                    "gh",
+                    "pr",
+                    "list",
+                    "--head",
+                    branch,
+                    "--state",
+                    "open",  # noqa: S607  # CONF-390
+                    "--json",
+                    "number",
+                    "--jq",
+                    "length",
+                ],
+                capture_output=True,
+                text=True,
+                check=False,
+                cwd=repo,
+            ).stdout.strip()
+            pr = out if out else "?"
+        if pr in ("0", "?"):
+            lines.append(
+                f"  ⚠ orphan worktree {tree} [{branch}] age={age} "
+                f"untracked={untracked} pr={pr} — disposition manually "
+                f"(rm-safe refuses untracked)"
+            )
+    return lines
+
+
 def workspace_folder(hash_dir: Path) -> Path | None:
     meta = hash_dir / "workspace.json"
     if not meta.is_file():
@@ -284,6 +345,11 @@ def main() -> None:
     repos = find_repos({s["folder"] for s in sessions if s["folder"]})
     print("\n== repo state ==")
     hazards = _print_repo_state(repos, sessions, args.window)
+
+    # FR-888 AC-10: orphan worktrees — flagged for disposition, never deleted
+    for repo in sorted(repos):
+        for line in orphan_worktree_lines(repo):
+            print(line)
 
     print("\n== FRs in motion (files touched in window) ==")
     for repo, name, status in frs_in_motion(repos, window_s):
