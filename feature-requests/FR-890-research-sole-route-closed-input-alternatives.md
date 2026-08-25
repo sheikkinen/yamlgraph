@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Feature
-**Status:** Proposed
+**Status:** Judged (APPROVED WITH REVISIONS 2026-08-25, R-1..R-6 folded)
 **Effort:** 2 days
 **Requested:** 2026-08-25
 **First consumer / first event:** the next solution-bearing FR — its author
@@ -33,8 +33,16 @@ map+reduce graph — N planner personas with orthogonal priors, each
 receiving ONLY the problem brief (never the author's draft solution) —
 producing `tmp/draft-alternatives.md`: a dispositioned alternatives table
 with precedent citations and planner disagreement preserved. A Judge
-doctrine clause withholds authority from solution-bearing FRs that lack a
-genuine alternatives analysis.
+doctrine clause kills **any newly created plan** lacking committed
+research evidence (R-1: one rule — the earlier "solution-bearing"
+narrowing is superseded by the operator amendment).
+
+**Activation boundary (R-1, frozen):** the rule is prospective from the
+commit that lands the template field and doctrine clause; it does not
+retro-gate already judged or completed FRs; **FR-890 itself is the
+bootstrap case, judged under the prior doctrine** — without this clause
+the FR would self-invalidate (the template it amends has no Research
+field yet).
 
 ## Value Statement
 
@@ -77,11 +85,15 @@ by operator intervention.
 `examples/demos/research-route/` — map+reduce, pinned cheap model
 (haiku-class), FR-884 classifier architecture:
 
-- **Input contract (the closure):** a problem brief with mandatory
-  fields — problem statement, problem classification (see §3), constraints,
-  witnessed incidents — and a mandatory ABSENCE: no draft solution, no
-  candidate list. A code preflight rejects briefs containing
-  solution-shaped sections (the closure is checkable).
+- **Input contract (the closure, R-2 mechanical):** the brief carries
+  required headings — `## Problem statement`, `## Classification` (enum
+  value from §3), `## Constraints`, `## Witnessed incidents` — and no
+  others from the forbidden set: `Proposed Solution`, `Candidates`,
+  `Alternatives`, `Design`, or bullet lists naming implementation
+  technologies as candidates. The preflight is a **deterministic stdlib
+  check in the wrapper** (never an LLM — enforcement infrastructure);
+  fixtures witness one rejected contaminated brief and one accepted
+  clean brief.
 - **Map — 5 personas, orthogonal priors, one judgement each:**
   1. *OS/infra primitivist* — what does the platform/kernel already enforce?
   2. *Data & process planner* — what schema/process change dissolves it?
@@ -91,11 +103,17 @@ by operator intervention.
   5. *Librarian (web-grounded)* — reuses `search_web` from the
      web-research toolbelt (FR-780): how has the world solved this class;
      names prior art outside the repo.
-- **Reduce (code, LLM-free):** alternatives table — candidate, class,
-  verdict, precedent citation, effort guess — with **disagreement
+- **Reduce (code, LLM-free):** alternatives table written to
+  `tmp/draft-alternatives.md` with the **frozen schema (R-3)**: columns
+  candidate / persona / class / verdict / precedent citation /
+  `is_this_a_graph` / effort-risk; 4–6 distinct solution classes; one row
+  per persona output unless explicitly marked duplicate; **disagreement
   preserved as rows, never voted away** (ambiguity is information,
-  FR-726). Written to `tmp/draft-alternatives.md`; verified by artifact,
-  never exit code.
+  FR-726); no empty required cells; a `Error:`/`No results` string is not
+  a citation (R-4 — the librarian fails closed; its row must carry a
+  URL-bearing external citation). The wrapper checks presence + schema
+  shape; the Judge checks substance — both named, never blurred
+  (`gate_checks_shape_not_substance`).
 
 ### 2. The wrapper — `scripts/research.sh <problem-brief.md>`
 
@@ -120,6 +138,14 @@ alternatively reference an equivalent committed record (e.g. FR-889's
 in-body tool-space table) — the field must point at SOMETHING committed;
 a dangling or absent reference is a gate failure.
 
+**Lifecycle (R-6, frozen):** the FR author promotes
+`tmp/draft-alternatives.md` to `feature-requests/FR-XXX.research.md` at
+FR filing (or amendment) time, adding a header with brief filename, run
+date, and personas executed; dangling links are detected by the Judge
+(substance) and may later gain a lint check (not authorized here, C-6).
+`.github/skills/feature-request/SKILL.md` is updated to the new
+template/lifecycle as a named deliverable (D-6), not a footnote.
+
 ### 3. Problem classification (the regex-vs-yamlgraph settlement)
 
 The brief's classification field is a closed enum, applied by the author
@@ -132,47 +158,36 @@ and checked by the personas:
 
 ### 4. The demand side — Judge doctrine clause (one paragraph)
 
-Extend `.github/skills/judge-fr/doctrine.md`: **the Judge kills any plan
-without research evidence** (operator decision 2026-08-25 — hardened from
-"withhold for solution-bearing FRs"): an FR whose `**Research:**` field is
-absent, dangling, or references a strawman record receives no authority —
-verdict REJECTED or returned-to-plan, exactly as the raw-read clause kills
-unevidenced measurement FRs. The Judge checks substance (genuine solution
-classes, precedent lines, the `is_this_a_graph` answer); the template
-field plus an optional hook check presence. Doctrine edit = enforcement
-infrastructure = human review gate.
+Extend **`.github/skills/judge-fr/doctrine.md` only** (R-5: the sole
+pinned doctrine surface; no judge.sh output-shape change, no new judge
+invocation path): **the Judge kills any newly created plan without
+research evidence** — an FR whose `**Research:**` field is absent,
+dangling, or references a strawman record receives no authority —
+verdict REJECTED or returned-to-plan, exactly as the raw-read clause
+kills unevidenced measurement FRs; prospective per the R-1 activation
+boundary. The Judge checks substance (genuine solution classes,
+precedent lines, the `is_this_a_graph` answer); the template field plus
+an optional future hook check presence. Doctrine edit = enforcement
+infrastructure = **human review recorded before the clause is binding**
+(AC-14).
 
-## Acceptance Criteria
+## Acceptance Criteria (revised per judgement)
 
-- [ ] AC-01: Research graph authored via `scripts/author.sh` (lint clean,
-      synthetic-brief smoke, demo-output.log); all LLM nodes pinned
-      cheap-model
-- [ ] AC-02: Brief preflight rejects solution-contaminated briefs
-      (closure is mechanical) — witnessed by a fixture brief containing a
-      draft solution
-- [ ] AC-03: The librarian persona performs real web search via the
-      reused `search_web` tool and its row carries an external citation —
-      witnessed in the exemplar run
-- [ ] AC-04: Reduce preserves planner disagreement as separate rows;
-      no voting/collapse — witnessed by a fixture with conflicting verdicts
-- [ ] AC-05: `scripts/research.sh` verifies by artifact
-      (`tmp/draft-alternatives.md` non-empty with table markers), never
-      exit code
-- [ ] AC-06: **Exemplar run:** the FR-888 problem brief (write-guard,
-      pre-solution) run through the route; the FR records whether the
-      OS-permissions class surfaces without operator help — an honest
-      witness either way
-- [ ] AC-07: Judge doctrine clause added (human-reviewed per enforcement-
-      infrastructure gate); judge.sh output shape unchanged
-- [ ] AC-08: `feature-requests/TEMPLATE.md` carries the mandatory
-      `**Research:**` file-reference field; the research artifact
-      convention (`FR-XXX.research.md`, committed sibling of
-      `.judgement.md`) is documented in the template and the
-      feature-request skill
-- [ ] AC-09: The kill is witnessed: one fixture FR without a Research
-      reference is judged via the sole route and receives no authority,
-      with the missing-research finding named in the verdict
-- [ ] AC-10: Changelog fragment; diary reflection
+- [ ] AC-01: `examples/demos/research-route/` is authored through `scripts/author.sh`; `tmp/draft-authoring-report.md` lists the graph/prompt artifacts and records graph lint plus a synthetic-brief smoke; all LLM nodes explicitly pin a cheap model.
+- [ ] AC-02: A deterministic problem-brief preflight rejects a fixture brief containing forbidden solution/candidate sections and accepts a fixture containing only problem statement, classification enum value, constraints, and witnessed incidents.
+- [ ] AC-03: The route runs five orthogonal personas: OS/infra primitivist, data/process planner, YAMLGraph-native planner, subtractionist, and web-grounded librarian.
+- [ ] AC-04: The YAMLGraph-native planner records the `is_this_a_graph` answer and consults available graph `Task shapes:` descriptions; the exemplar or test output names the matching graph shape or says none.
+- [ ] AC-05: The librarian row uses the reused `search_web` tool and carries at least one URL-bearing external citation; `Error:`, `No results found`, or empty URL output fails the exemplar.
+- [ ] AC-06: The reducer writes `tmp/draft-alternatives.md` with the required columns: candidate, planner/persona, class, verdict, precedent citation, `is_this_a_graph`, effort/risk; the artifact has 4-6 distinct solution classes and no empty required cells.
+- [ ] AC-07: Conflicting planner outputs are preserved as separate rows; a fixture with conflicting verdicts does not collapse them by vote or summary.
+- [ ] AC-08: `scripts/research.sh <problem-brief.md>` serializes runs, exports a lineage sentinel, invokes only the research graph, and verifies the artifact by schema/shape rather than graph exit code.
+- [ ] AC-09: The FR-888 pre-solution problem brief is run through the route; the FR records whether the OS-permissions class surfaced without operator help, with the resulting artifact or summarized table cited.
+- [ ] AC-10: `feature-requests/TEMPLATE.md` adds a mandatory `**Research:** [FR-XXX.research.md](FR-XXX.research.md)` field and documents the committed sibling artifact convention plus allowed equivalent committed records.
+- [ ] AC-11: `.github/skills/feature-request/SKILL.md` is updated to match the research-reference lifecycle and no longer presents a template that omits first-consumer or research evidence.
+- [ ] AC-12: `.github/skills/judge-fr/doctrine.md` gains a prospective research-evidence clause: after FR-890 activation, newly created FRs without a non-dangling committed research reference receive no authority; already judged/completed FRs and this bootstrap FR are not retro-gated.
+- [ ] AC-13: A fixture FR lacking `**Research:**` is judged through the sole route and the draft judgement grants no authority with a named missing-research finding; the existing judge output artifact shape remains unchanged.
+- [ ] AC-14: Human review of the judge-doctrine edit is recorded before the doctrine change is treated as binding.
+- [ ] AC-15: Changelog fragment, FR implementation-status update, and diary reflection are included.
 
 ## Out of Scope
 
