@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Feature
-**Status:** Enforced 2026-08-25 (PR pending human review — R-7/AC-13 gate)
+**Status:** Completed 2026-08-25 — PR #476 squash-merged fc349777 by operator decision (AC-13 satisfied); guard live on main; worktree torn down via rm-safe --merged-confirmed (dogfood)
 **Effort:** 2 days
 **Requested:** 2026-08-25
 **First consumer / first event:** the next enforcement-class FR arc — the
@@ -247,3 +247,13 @@ human-review gate is satisfied via **PR + the sole review route**
 - Deviations: none from judged scope; AC-13 (human review) pending on
   the PR; live arc measurement (inherited FR-750 table) recorded after
   merge+first routed arc.
+
+**Merge record (2026-08-25):** 5 review rounds via the sole review route
+(advisory), 14 defect classes fixed from reviewer probes (rm-safe
+merge-state + squash path, dir-copy materialization, executable cure,
+guard-root scoping, Delete/Move-to hunks, time/whitespace wrappers,
+direct writers, sed variants, interpreter inner paths). Operator issued
+the merge decision explicitly ("force merge") — the human gate is the
+merge click, not the review loop's convergence. 181 hook tests green at
+merge. Lifecycle dogfood complete: born by `worktree.sh new`, died by
+`rm-safe --merged-confirmed`.
