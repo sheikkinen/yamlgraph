@@ -310,7 +310,7 @@ case "$TOOL_NAME" in
     # (FR-442 python-invocation budget — clean calls must not pay)
     FR888_RELEVANT=1
     if [[ "$TOOL_NAME" == "run_in_terminal" || "$TOOL_NAME" == "send_to_terminal" ]]; then
-      if ! echo "$COMMAND" | grep -qE '>|\btee\b|\bcp\b|\bmv\b|\brsync\b|\binstall\b|\bsed\b|\bdd\b|\btruncate\b|python3?[[:space:]]+-c|perl[[:space:]]+-e|ruby[[:space:]]+-e'; then
+      if ! echo "$COMMAND" | grep -qE '>|\btee\b|\bcp\b|\bmv\b|\brsync\b|\binstall\b|\bsed\b|\bdd\b|\btruncate\b|\btouch\b|\bmkdir\b|\brm\b|\bln\b|\bchmod\b|python3?[[:space:]]+-c|perl[[:space:]]+-e|ruby[[:space:]]+-e'; then
         FR888_RELEVANT=0
       fi
     fi
@@ -447,6 +447,9 @@ else:
                         base = os.path.basename(s.rstrip("/"))
                         if base:
                             targets.append(dest.rstrip("/") + "/" + base)
+            # direct write/delete commands (review round 8 P1)
+            if toks and toks[0] in ("touch", "mkdir", "rm", "ln", "chmod", "truncate"):
+                targets += [t for t in toks[1:] if not t.startswith("-")]
             if toks and toks[0] == "sed" and "-i" in toks:
                 targets += [t for t in toks[1:] if "/" in t and not t.startswith("-")]
         # opaque writers: any mentioned path is a potential target

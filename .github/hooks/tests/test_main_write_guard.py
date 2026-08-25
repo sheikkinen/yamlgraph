@@ -296,6 +296,23 @@ def test_pwd_expanded_redirect_denied(repo):
     assert decision_of(out) == "deny"
 
 
+@pytest.mark.parametrize(
+    "cmd",
+    [
+        "touch yamlgraph/x.py",
+        "mkdir -p tests/newdir",
+        "rm -rf scripts/old.py",
+    ],
+)
+def test_direct_write_commands_on_main_denied(repo, cmd):
+    # review round 8 P1: direct write/delete commands are write-shaped
+    _, out = run_hook(
+        terminal_payload(cmd, repo["main"]),
+        guard_root=repo["main"],
+    )
+    assert decision_of(out) == "deny"
+
+
 def test_time_prefixed_readonly_allowed(repo):
     _, out = run_hook(
         terminal_payload("time cat yamlgraph/f.py", repo["main"]),
