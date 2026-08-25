@@ -57,6 +57,20 @@ the session that launched it (FR-743 witnessed channel). Optional
 `--notify` hook appends to the session-briefing surface. No graph needed —
 `is_this_a_graph` answered: no judgement, no LLM, script is the right tool.
 
+**Launch mechanism (frozen 2026-08-25 — "no one remembers the script"):**
+the watcher is **auto-armed by a PostToolUse hook** that observes a
+`gh pr merge` command in the tool stream: the hook launches
+`rollout_watch.py` detached (nohup) and reports in its system message
+`watcher armed → tmp/rollout-<sha>.status` plus the optional async-tail
+one-liner for sessions that want push notification. Rationale: the merge
+command is the mechanically observable moment — a trigger nobody has to
+remember. A deny-mode sole path (`scripts/merge.sh`) was rejected: denial
+is for hazards (FR-888's shared index), not missed conveniences; and an
+advisory reminder is the adoption failure mode itself (FR-884 evidence).
+Manual launch remains available. Auto-arm degradations accepted: detached
+means no terminal-completion push (artifact + hook message compensate);
+GitHub-UI merges bypass the hook entirely (board backstop catches both).
+
 **Lifecycle (frozen):** a one-shot process per merge arm — NOT a daemon
 (the chaplain's death mode; July plan Q2 "no daemon dependency") and NOT
 hook-spawned (5s hook budget, and the async-notification seam belongs only
@@ -79,8 +93,10 @@ step performs the FR-888 merged-path teardown (verify zero untracked →
       (fail-open ≠ fail-silent — FR-884 diary lesson)
 - [ ] One recorded live witness: a real rollout watched end-to-end with the
       artifact transitions captured in the FR
-- [ ] Adoption trigger documented where enforce workflows are described:
-      rollout waits are delegated to the watcher
+- [ ] Adoption is mechanical, not documented: PostToolUse hook auto-arms
+      the watcher on an observed `gh pr merge` — witnessed by a hook test
+      (fixture command stream, no live merge); hook message contains the
+      artifact path
 - [ ] Changelog fragment; diary reflection
 
 ## Alternatives Considered
