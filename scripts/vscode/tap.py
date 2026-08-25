@@ -87,22 +87,33 @@ def attrs_of(record: dict) -> dict:
     return a
 
 
-def load_events(path: Path) -> list[dict]:
-    """Parsed records: {ts, trace, attrs}, in file order."""
+def load_events(path: Path, tail_bytes: int | None = None) -> list[dict]:
+    """Parsed records: {ts, trace, attrs}, in file order.
+
+    tail_bytes: read only the file tail (bounded parse for the 5s
+    briefing budget — the tap file grows without rotation). The first
+    partial line after the seek is discarded.
+    """
     events = []
-    for line in path.open(errors="replace"):
-        try:
-            rec = json.loads(line)
-        except ValueError:
-            continue
-        hr = rec.get("hrTime") or [0, 0]
-        events.append(
-            {
-                "ts": hr[0] + hr[1] / 1e9,
-                "trace": (rec.get("spanContext") or {}).get("traceId"),
-                "attrs": attrs_of(rec),
-            }
-        )
+    with path.open(errors="replace") as fh:
+        if tail_bytes is not None:
+            size = path.stat().st_size
+            if size > tail_bytes:
+                fh.seek(size - tail_bytes)
+                fh.readline()  # drop partial line
+        for line in fh:
+            try:
+                rec = json.loads(line)
+            except ValueError:
+                continue
+            hr = rec.get("hrTime") or [0, 0]
+            events.append(
+                {
+                    "ts": hr[0] + hr[1] / 1e9,
+                    "trace": (rec.get("spanContext") or {}).get("traceId"),
+                    "attrs": attrs_of(rec),
+                }
+            )
     return events
 
 

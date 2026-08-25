@@ -1763,3 +1763,9 @@ The ID ranges are:
 - **Code**: PLC0415
 - **Sin**: `from ledger import load_prices` inside `main()` — import not at top.
 - **Penance**: sibling-spike reuse needs a sys.path bootstrap first and must not break library import of the module under test; CLI-only dependency stays in the CLI path.
+
+### CONF-418
+- **File**: [scripts/vscode/fr884_skeletons.py](../scripts/vscode/fr884_skeletons.py#L17)
+- **Code**: E402
+- **Sin**: `from session_shapes import ...` after a `sys.path.insert` — module-level import not at top.
+- **Penance**: sibling-spike reuse; the path bootstrap must precede the import (same idiom as CONF-392).

@@ -227,7 +227,7 @@ def replay(path: Path) -> dict | None:
             if state is None or kind not in (1, 2):
                 continue
             keys = op.get("k") or []
-            if not keys:
+            if not keys or "v" not in op:
                 continue
             node = _descend(state, keys)
             last = keys[-1]

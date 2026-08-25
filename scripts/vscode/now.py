@@ -153,7 +153,9 @@ def tap_ground_truth() -> list[str]:
     path = Path(os.environ.get("COPILOT_OTEL_FILE_EXPORTER_PATH", tap.DEFAULT_PATH))
     if not path.is_file():
         return ["  (no tap file — arm with otel-tap-on.sh and restart VS Code)"]
-    sessions = tap.join_sessions(tap.load_events(path))
+    # bounded tail: the tap file grows without rotation and full parse
+    # broke the 5s briefing budget (witnessed 10.5s at 91K lines)
+    sessions = tap.join_sessions(tap.load_events(path, tail_bytes=24_000_000))
     live = tap.live_session_ids(sessions)
     now = time.time()
     lines = []
@@ -244,7 +246,11 @@ def brief_lines() -> list[str]:
     try:
         import tap
 
-        t_sessions = tap.join_sessions(tap.load_events(tap.DEFAULT_PATH))
+        # bounded tail — full parse of the unrotated tap file broke the
+        # 5s briefing budget (10.5s witnessed at 942MB / 91K lines)
+        t_sessions = tap.join_sessions(
+            tap.load_events(tap.DEFAULT_PATH, tail_bytes=24_000_000)
+        )
         alti = tap.altimeter_lines(t_sessions)
         lines.extend(alti[:4])
     except Exception:
