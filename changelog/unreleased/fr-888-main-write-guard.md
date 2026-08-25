@@ -8,3 +8,4 @@ scope: hooks
 - Round-2 review fixes: time/nohup/nice wrappers classified; rm-safe --merged-confirmed for squash merges.
 - Round-3 review fixes: guard-root scoping (foreign repos never policed), apply_patch Delete hunks denied, hooks-README runbook.
 - Round-4 review fixes: apply_patch Move-to header denied; whitespace-variant inline writers classified.
+- Round-4 followup: Move-to findall verified landed by probe.

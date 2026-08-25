@@ -403,6 +403,8 @@ if tool in EDIT_TOOLS:
         patch = ti.get("input") or ti.get("patch") or ""
         if isinstance(patch, str):
             paths += re.findall(r"\*\*\* (?:Add|Update|Delete|Move to) File: (.+)", patch)
+            # actual move header shape has no ' File' (review round 4 P1)
+            paths += re.findall(r"\*\*\* Move to: (.+)", patch)
     for p in paths:
         c = classify(resolve(p))
         if c in ("deny", "deny-parse"):
