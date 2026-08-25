@@ -337,7 +337,27 @@ def test_escape_prefix_allows_and_audits(repo, tmp_path):
     )
     assert decision_of(out) == "approve"
     rows = (log_dir / "audit.jsonl").read_text().splitlines()
-    assert any("fr888-main-write-override" in r for r in rows)
+    override = [r for r in rows if "fr888-main-write-override" in r]
+    assert override
+    # review round 5 P2: audit row records the NORMALIZED target path
+    assert str((repo["main"] / "yamlgraph" / "f.py").resolve()) in override[-1]
+
+
+def test_rm_safe_refuses_gitignore_with_real_edits(wt_repo):
+    # review round 5 P1: only the setup's own '.venv' append is tolerated
+    subprocess.run(
+        [str(WORKTREE_SH), "new", "t6"], cwd=wt_repo, capture_output=True, text=True
+    )
+    wt = wt_repo / "tmp/worktrees/feat/t6"
+    (wt / ".gitignore").write_text(".venv\nmy-real-work-pattern/\n")
+    r = subprocess.run(
+        [str(WORKTREE_SH), "rm-safe", "t6"],
+        cwd=wt_repo,
+        capture_output=True,
+        text=True,
+    )
+    assert r.returncode != 0
+    assert wt.exists()
 
 
 def test_escape_does_not_bypass_authoring_guard(repo):

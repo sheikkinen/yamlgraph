@@ -314,17 +314,33 @@ safe_remove_worktree() {
     wt_branch="feat/${name}"
     wt_dir="tmp/worktrees/${wt_branch}"
     [[ -d "$wt_dir" ]] || fail "No worktree at $wt_dir"
-    # setup artifacts (.env/.venv symlinks, .gitignore append) are
-    # reproducible — they never block removal
+    # setup artifacts (.env/.venv symlinks) are reproducible — never block.
+    # .gitignore is excluded ONLY when it is exactly the setup's own append
+    # (review round 5: a blanket exclusion would eat real user edits)
     untracked=$(git -C "$wt_dir" status --porcelain --untracked-files=all \
-        | grep '^??' | grep -cvE '\s\.(env|venv|gitignore)$' || true)
+        | grep '^??' | grep -vE '\s\.(env|venv)$' | while read -r _ f; do
+            if [[ "$f" == ".gitignore" ]] \
+                && [[ "$(cat "$wt_dir/.gitignore" 2>/dev/null)" == ".venv" ]]; then
+                continue
+            fi
+            echo "$f"
+        done | grep -c . || true)
     if [[ "$untracked" -gt 0 ]]; then
         log_warn "rm-safe refused: $untracked untracked file(s) in $wt_dir — disposition manually"
         exit 1
     fi
+    # tracked .gitignore: tolerate ONLY the setup's own '.venv' append
     if ! git -C "$wt_dir" diff --quiet HEAD -- ':!.gitignore' 2>/dev/null; then
         log_warn "rm-safe refused: uncommitted changes in $wt_dir"
         exit 1
+    fi
+    if ! git -C "$wt_dir" diff --quiet HEAD -- .gitignore 2>/dev/null; then
+        added=$(git -C "$wt_dir" diff HEAD -- .gitignore | grep -c '^+[^+]' || true)
+        venv_added=$(git -C "$wt_dir" diff HEAD -- .gitignore | grep -c '^+\.venv$' || true)
+        if [[ "$added" != "$venv_added" ]]; then
+            log_warn "rm-safe refused: .gitignore has non-setup edits in $wt_dir"
+            exit 1
+        fi
     fi
     # P1 (review PR#476): committed-but-unmerged work is unrecoverable
     # after branch -D — refuse unless the branch tip is an ancestor of main

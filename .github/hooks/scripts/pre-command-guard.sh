@@ -458,7 +458,7 @@ else:
             break
 
 if verdict and escape:
-    print("OVERRIDE\t" + target)
+    print("OVERRIDE\t" + os.path.realpath(resolve(target)))
 elif verdict:
     print("DENY\t" + verdict + "\t" + target.replace('"', ""))
 PYEOF
