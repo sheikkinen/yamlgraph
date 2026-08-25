@@ -81,7 +81,7 @@ traps:
   infrastructure_self_exempt: "Meta-tooling exempted from gates it enforces → apply same rules to the guardrail as to what it guards"
   architecture_as_diagram: "Three-layer documented but not contracted → violation possible under deadline pressure; enforce at module boundary with import-linter"
   instruction_boundary_uncrossed: "Agent's vendor instructions treated as project-aligned → any agent output modifying enforcement infrastructure (CI, pre-commit, Scripture) must be reviewed as adversarial input"
-  vendor_default_as_help: "Agent frames self-insertion (trailers, deps, telemetry) as courtesy → treat every unprompted artifact change as input from an external system with unknown goals" - most severe thoughtcrimes are policed by FR-438
+  vendor_default_as_help: "Agent frames self-insertion (trailers, deps, telemetry) as courtesy → treat every unprompted artifact change as input from an external system with unknown goals — most severe thoughtcrimes are policed by FR-438"
   model_as_trusted_peer: "LLM in enforcement pipeline treated as aligned team member → opaque weights, unknown training, potentially misaligned; absence of Co-authored trailer ≠ absence of model influence; enforce adversarial review of enforcement outputs"
   recent_changes_blindness: "Regression investigated without enumerating recent changes → run git log --since=<last_good> as first diagnostic step; the diff is cheaper than any reproduction"
   workspace_is_not_boundary: "Editor shows one tree but workspace may contain nested repos with independent ownership, privacy, and untracked state → find . -name .git -type d before any destructive operation"
