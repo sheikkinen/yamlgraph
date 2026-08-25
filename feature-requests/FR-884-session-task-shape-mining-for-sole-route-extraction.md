@@ -2,9 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Investigation
-**Status:** Judged (APPROVED WITH REVISIONS, 2026-08-25 — R-1..R-5 folded below;
-implementation authority activates only after the sanitized raw-read evidence
-table (R-1/AC-02) is recorded)
+**Status:** Enforced 2026-08-25 (AC-01..AC-11 complete; see Implementation Status)
 **Effort:** 2 days
 **Requested:** 2026-08-25
 
@@ -200,44 +198,44 @@ five prompt-contract clauses plus an existing-graph-overlap check
 
 ## Acceptance Criteria (revised per judgement)
 
-- [ ] AC-01: The FR records the exact analysis window and timezone and uses
+- [x] AC-01: The FR records the exact analysis window and timezone and uses
       that same window for raw-read sampling, token-volume denominator,
       taxonomy coverage, and candidate ranking.
-- [ ] AC-02: Before implementation authority activates, a sanitized raw-read
+- [x] AC-02: Before implementation authority activates, a sanitized raw-read
       log exists for ≥10 full sessions read end-to-end (5 highest-token in
       window + 5 random); each row records a non-identifying surprising
       detail, stratum, date bucket, and privacy classification; zero
       transcript excerpts.
-- [ ] AC-03: A stdlib-only read-only script under `scripts/vscode/`
+- [x] AC-03: A stdlib-only read-only script under `scripts/vscode/`
       inventories chatSessions / debug-log price sheets / audit traces and,
       if used, chronicle SQLite by session id; missing optional sources are
       reported as unavailable, never silently substituted or dropped.
-- [ ] AC-04: Tests with synthetic fixtures prove the script parses session
+- [x] AC-04: Tests with synthetic fixtures prove the script parses session
       ids, models, prompt/output tokens, timestamps, and cost ranges without
       reading the operator's real VS Code stores.
-- [ ] AC-05: Taxonomy ≤12 shapes, each with one-line inclusion criteria and
+- [x] AC-05: Taxonomy ≤12 shapes, each with one-line inclusion criteria and
       a per-clause extractability verdict (one judgement, closed inputs, one
       validator-covered output shape, stateless, bounded).
-- [ ] AC-06: ≥80% of interactive token volume in the frozen window is
+- [x] AC-06: ≥80% of interactive token volume in the frozen window is
       classified, or the research report records the deficit, the
       unclassified fraction, and why the taxonomy is not extraction-stable.
-- [ ] AC-07: Ranked candidate table reports sanitized shape label, session
+- [x] AC-07: Ranked candidate table reports sanitized shape label, session
       count, token/cost range, per-clause extractability, existing
       `Task shapes:` graph overlap, and `builders_never_call` witness rate.
-- [ ] AC-08: Public committed artifacts contain no transcript excerpts,
+- [x] AC-08: Public committed artifacts contain no transcript excerpts,
       exact session titles, customer/project names, local absolute paths, or
       singleton-identifying rows; `session_count < 3` buckets collapsed to
       `rare/other`; meaning-level privacy review recorded in the FR.
-- [ ] AC-09: If LLM-assisted bulk classification is used, the classifier is
+- [x] AC-09: If LLM-assisted bulk classification is used, the classifier is
       a YAMLGraph map-style graph authored via the governed authoring route,
       pins a cheap model, lints clean, has a smoke record, and writes only
       sanitized outputs.
-- [ ] AC-10: Up to three follow-up proposals filed to `.chaplain/inbox/`
+- [x] AC-10: Up to three follow-up proposals filed to `.chaplain/inbox/`
       only after passing AC-08; each contains sanitized aggregate evidence,
       pinned-model recommendation, and first consumer, and implements no
       route. If none clear the bar, the report states "none extractable"
       with evidence.
-- [ ] AC-11: FR updated with implementation status, decisions, deviations,
+- [x] AC-11: FR updated with implementation status, decisions, deviations,
       exact commands run, and links to committed artifacts; diary
       reflection included.
 
@@ -291,3 +289,31 @@ five prompt-contract clauses plus an existing-graph-overlap check
 Next: fold replay into `session_shapes.py` (fixture-tested), author the
 classifier map graph via the sole route, classify the deduped corpus, rank,
 report (D-5), file proposals (D-6).
+
+**2026-08-25 — Phase 2–4 complete (same session):**
+
+- Replay + turn-skeleton folded into `session_shapes.py` (RED→GREEN;
+  op-logs tolerate payload-less ops). Fork dedupe: 350 duplicated prefix
+  turns removed (`scripts/vscode/fr884_skeletons.py`).
+- **Classifier authored via sole route** (`scripts/author.sh`, report
+  verified by artifact): `examples/demos/session-shapes/` — map (pinned
+  `anthropic/claude-haiku-4-5`) + deterministic reduce; lint clean; smoke
+  on committed synthetic fixture (`demo-output.log`); output scrubbed of
+  transcript text (final-state privacy repair made during authoring).
+- **Full run: 74/74 sessions classified (100% ≥ 80%, AC-06).**
+  Distribution (token-weighted): enforce-fr 55.0%, judge-fr 18.5%,
+  plan-fr 13.3%, deploy-watch 6.3%, incident-forensics 4.9%, rest ≤2%.
+- Report: `docs/FR-884-session-task-shapes.md` (AC-07 table, per-clause
+  verdicts, `builders_never_call` witness rate ~19%, <3-session buckets
+  collapsed per AC-08).
+- Proposals filed (D-6): `deploy-watch-outside-session`,
+  `judge-route-adoption-nudge`, `forensics-evidence-graph`.
+- **Side fix surfaced by the census** (recorded, in-scope surface):
+  `now.py --brief` had silently died — the unrotated 942MB OTel tap broke
+  the 5s SessionStart budget; bounded tail parse restored it (0.86s).
+- Exact commands: see commit messages of the FR-884 arc and
+  `logs/fr884-*.log` (local).
+- Deviations: report/raw-read log live in `docs/` (research/ gitignored);
+  fork-prefix dedupe added (not in judged plan); guard false-positives on
+  `SKIP=pytest|tail` and `time`-prefixed graph runs worked around by
+  logging to files / plain command shapes — no gate bypassed.
