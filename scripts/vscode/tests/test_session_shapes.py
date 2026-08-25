@@ -204,3 +204,62 @@ def test_extract_transcript_text(tmp_path: Path) -> None:
     text = session_shapes.extract_transcript(path)
     assert "user asks a thing" in text
     assert "agent answers a thing" in text
+
+
+def make_oplog(tmp_path: Path, session_id: str = "s-op") -> Path:
+    """Synthetic op-log session file (kind 0 snapshot / 1 set / 2 extend)."""
+    snapshot = {
+        "sessionId": session_id,
+        "customTitle": "op-log synthetic",
+        "requests": [
+            {
+                "message": {"text": "first user message"},
+                "response": [{"value": "first agent reply"}],
+                "promptTokens": 100,
+            }
+        ],
+    }
+    ops = [
+        {"kind": 0, "v": snapshot},
+        {"kind": 1, "k": ["requests", 0, "promptTokens"], "v": 111},
+        {
+            "kind": 2,
+            "k": ["requests"],
+            "v": [{"message": {"text": "second user message"}, "response": []}],
+        },
+        {
+            "kind": 2,
+            "k": ["requests", 1, "response"],
+            "v": [{"value": "second "}, {"value": "agent reply"}],
+        },
+        {"kind": 1, "k": ["requests", 1, "promptTokens"], "v": 222},
+    ]
+    path = tmp_path / f"{session_id}.jsonl"
+    path.write_text("\n".join(json.dumps(op) for op in ops))
+    return path
+
+
+def test_replay_oplog_applies_set_and_extend(tmp_path: Path) -> None:
+    state = session_shapes.replay(make_oplog(tmp_path))
+    assert state is not None
+    reqs = state["requests"]
+    assert len(reqs) == 2
+    assert reqs[0]["promptTokens"] == 111  # kind-1 set over snapshot value
+    assert reqs[1]["promptTokens"] == 222  # kind-1 set on extended entry
+    assert [p["value"] for p in reqs[1]["response"]] == ["second ", "agent reply"]
+
+
+def test_replay_non_oplog_returns_none(tmp_path: Path) -> None:
+    path = tmp_path / "plain.jsonl"
+    path.write_text(json.dumps({"sessionId": "x", "requests": []}))
+    assert session_shapes.replay(path) is None
+
+
+def test_turn_skeleton_user_text_and_agent_head(tmp_path: Path) -> None:
+    state = session_shapes.replay(make_oplog(tmp_path))
+    turns = session_shapes.turn_skeleton(state, cap=10)
+    assert [t["index"] for t in turns] == [0, 1]
+    assert turns[0]["user"] == "first user message"
+    assert turns[0]["prompt_tokens"] == 111
+    assert turns[1]["agent"] == "second agi"[:10] or len(turns[1]["agent"]) <= 10
+    assert turns[1]["agent"].startswith("second")  # concatenated response parts
