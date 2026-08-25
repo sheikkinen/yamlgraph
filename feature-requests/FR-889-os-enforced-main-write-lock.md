@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Refactor
-**Status:** Proposed
+**Status:** Judged (APPROVED WITH REVISIONS 2026-08-25, R-1..R-6 folded)
 **Effort:** 1 day
 **Requested:** 2026-08-25
 **First consumer / first event:** the next terminal command that would
@@ -76,25 +76,48 @@ that remains is lintable Python.
 
 ### 1. The lock (`scripts/worktree.sh` verbs, ~40 lines)
 
-- `lock-main`: `chmod -R a-w` **directories and files** under
+- `lock-main`: **owner-only `chmod -R u-w`** (R-1: preserves group/other
+  and executable bits by construction — no manifest needed, no blanket
+  widening possible on unlock via `u+w`) on
   `yamlgraph/ tests/ scripts/ capabilities/ .github/hooks/` in the main
   checkout — with two carve-outs kept writable: `.github/hooks/logs/`
-  (audit trail) and `.github/hooks/state/` (sentinels).
-- `unlock-main`: reverses it, writes an audit row
-  (`fr889-main-unlock`), and flags the unlocked state.
-- `sync`: `unlock-main` → `git pull --ff-only` → `lock-main` — the one
-  legitimate reason main's enforcement tree changes. Release flow uses
-  the same verb.
-- `now.py` board line when main is unlocked (age of unlock) — same
-  flag-not-fix pattern as the orphan board.
+  (audit trail) and `.github/hooks/state/` (lock metadata, sentinels).
+- `unlock-main`: `chmod -R u+w` on the same roots, writes an audit row
+  (`fr889-main-unlock`) and an unlock-age marker.
+- **State contract (R-3):** marker `.github/hooks/state/main-lock.json`
+  ({state: locked|unlocked, ts, by}) — survives `chmod -R` (carve-out);
+  `lock-main` and `unlock-main` are idempotent; `sync` relocks in a
+  trap/finally path on BOTH pull success and failure; `now.py` reads the
+  marker read-only and flags stale unlocked state with age
+  (flag-not-fix, orphan-board style).
+- `sync`: `unlock-main` → `git pull --ff-only` → `lock-main` (trap
+  guarantees relock) — the one legitimate route for main enforcement-tree
+  updates. Release flow uses the same verb.
+- **Lock-mutator fence (R-2, the ONLY terminal check this FR keeps):**
+  raw `chmod`/`chflags`/`setfacl` (and `sudo` forms) targeting the five
+  governed roots on the main checkout are denied with the cure
+  `scripts/worktree.sh unlock-main` (audited route). Verbs-only over five
+  fixed roots — mechanically prevented from growing into a write-shape
+  grammar by the R-6 structural test. Without this fence the self-service
+  `chmod` would silently bypass the audited unlock; with it, the escape
+  hatch is the only door, as claimed.
 - Worktrees: `git worktree add` produces writable trees naturally; no
   change.
+- **Ergonomics under lock (R-4, smoke-witnessed):** Python import/pytest
+  (with `PYTHONDONTWRITEBYTECODE=1` documented if required), hook test
+  execution, `git status`/`git diff`, docs-lane `git add`, and
+  `worktree.sh new` all function on locked main.
 
 ### 2. The deletion (the point)
 
 - Remove the entire terminal write-grammar from Check 7 (redirects, tee,
   cp/mv, sed, wrappers, interpreter paths — all of it). Terminal writes
-  are the kernel's problem now.
+  are the kernel's problem now. **R-6: deletion is witnessed
+  structurally** — a test fails if any terminal write-target analyzer
+  (redirect/tee/cp/mv/sed-i/interpreter/direct-writer parsing) remains in
+  `pre-command-guard.sh`; the R-2 lock-mutator fence is the sole
+  permitted terminal check. FR-888's grammar tests are rewritten into
+  OS-lock witnesses, never kept as parser tests.
 - Keep the **edit-tool** path check (create_file / replace / apply_patch)
   solely for UX: its denial carries the executable worktree cure. Extract
   it from the heredoc into `.github/hooks/scripts/checks/main_write.py`
@@ -103,6 +126,11 @@ that remains is lintable Python.
 - `FR888_ALLOW_MAIN=1` escape retires for terminal commands (use
   `unlock-main`, which is audited and board-visible); stays for edit
   tools.
+- **Boundary (R-5):** FR-889 may update runbook text and add interface
+  smoke tests proving `sync` is the main-update route; it must NOT alter
+  release versioning, rollout-watch behavior, merge flow, branch
+  protection, or FR-885 teardown logic unless a failing interface test
+  proves the lock broke an approved contract.
 
 ### 3. The gate repair
 
@@ -110,25 +138,39 @@ that remains is lintable Python.
   and `*.sh` (post-mortem finding: enforcement infrastructure was
   self-exempt).
 
-## Acceptance Criteria (non-enumerative — the post-mortem lesson)
+## Acceptance Criteria (revised per judgement)
 
-- [ ] AC-01: With main locked, ONE witness terminal write to a locked
-      path fails with EACCES and the tree is unchanged — no hook
-      involvement asserted (the shape doesn't matter; that's the design)
-- [ ] AC-02: `sync` updates main from origin and leaves it locked;
-      the docs lane (docs/, feature-requests/, changelog/) remains
-      writable throughout
-- [ ] AC-03: Edit-tool write on locked main is denied by the extracted
-      Python check with the executable cure; the same write in a worktree
-      is allowed (existing witnesses keep passing)
-- [ ] AC-04: `unlock-main` audits and the board flags unlocked state with
-      age; `lock-main` clears the flag
-- [ ] AC-05: Hook suite green with the grammar deleted; the guard shell
-      shrinks below the (now widened) size gate; heredoc Python count in
-      `pre-command-guard.sh` decreases by at least one
-- [ ] AC-06: pytest/imports on locked main still function (no `__pycache__`
-      write needed — witnessed by one full unit run on locked main)
-- [ ] AC-07: Changelog fragment; diary reflection
+- [ ] AC-01: One terminal write witness to a governed path on locked main
+      fails with filesystem permission denial, tree unchanged; test does
+      not depend on the deleted grammar
+- [ ] AC-02: `lock-main`/`unlock-main` idempotent; unlock audited
+      (`fr889-main-unlock`); state under `.github/hooks/state/`; exec
+      bits preserved; no group/world write bits added
+- [ ] AC-03: `sync` = unlock → `git pull --ff-only` → relock; relocks on
+      pull failure too; docs lane writable throughout
+- [ ] AC-04: Edit-tool writes on locked main denied by the extracted
+      lintable Python check with executable cure; identical writes in
+      linked worktrees allowed
+- [ ] AC-05: Raw permission-mutating commands (`chmod`/`chflags`/
+      `setfacl`) targeting governed roots on main are denied by the
+      narrow R-2 fence — tested; fence recognizes verbs, never write
+      shapes
+- [ ] AC-06: Old terminal write grammar removed; structural test fails if
+      redirect/tee/cp/mv/sed-i/interpreter/direct-writer target parsing
+      remains outside the R-2 fence
+- [ ] AC-07: Hook suite green with grammar tests retired/rewritten;
+      `pre-command-guard.sh` below the widened size gate; heredoc count
+      decreases by ≥1
+- [ ] AC-08: Locked-main smoke: Python import/pytest, hook tests,
+      `git status`/`git diff`, docs-lane `git add`, `worktree.sh new` all
+      function; bytecode suppression documented if used
+- [ ] AC-09: `.github/hooks/logs/` and `.github/hooks/state/` writable
+      under lock — audit and state writes tested
+- [ ] AC-10: `now.py` reports unlocked main with age from the marker,
+      read-only, never fixes
+- [ ] AC-11: Widened size gate covers `scripts/**`, `.github/**`, `*.sh`
+      with no hook-infrastructure exemption
+- [ ] AC-12: Changelog fragment; diary reflection
 
 ## Blast Radius
 
