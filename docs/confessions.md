@@ -1751,3 +1751,15 @@ The ID ranges are:
 - **Code**: E402
 - **Sin**: `import session_shapes` after a `sys.path.insert` — module-level import not at top.
 - **Penance**: script-adjacent test outside the installable package; path bootstrap must precede the import (CONF-392/393/394 idiom).
+
+### CONF-416
+- **File**: [scripts/vscode/session_shapes.py](../scripts/vscode/session_shapes.py#L176)
+- **Code**: S311
+- **Sin**: `random.Random(seed)` flagged as non-cryptographic PRNG.
+- **Penance**: sampling is deliberately deterministic (seeded, AC-02 reproducible stratum), not security-sensitive.
+
+### CONF-417
+- **File**: [scripts/vscode/session_shapes.py](../scripts/vscode/session_shapes.py#L242)
+- **Code**: PLC0415
+- **Sin**: `from ledger import load_prices` inside `main()` — import not at top.
+- **Penance**: sibling-spike reuse needs a sys.path bootstrap first and must not break library import of the module under test; CLI-only dependency stays in the CLI path.
