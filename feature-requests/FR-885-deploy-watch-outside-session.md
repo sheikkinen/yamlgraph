@@ -83,4 +83,7 @@ the session that launched it (FR-743 witnessed channel). Optional
 
 - FR-884 census + raw-read log (evidence)
 - FR-743 (notification seam, fail-open pattern), FR-739 (tap/altimeter)
+- FR-888: the watcher's terminal step owns merged-FR worktree teardown
+  (verify merged + zero untracked → remove) — duty defined there, executed
+  here; scope both FRs together at judgement
 - Scripture: `is_this_a_graph`, `would_you_use_this`

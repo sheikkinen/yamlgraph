@@ -117,14 +117,21 @@ Work in an FR worktree:
 - Known limitation pinned, not hidden: the shared `.venv` means `pip
   install` from any tree mutates all trees (recorded environment hazard) —
   the setup banner says so; dependency changes belong on main-lane commits.
-- Teardown remains `scripts/worktree.sh` + FR-241 self-heal; prune on
-  FR rejection. **Orphan detection added** (evidence 2026-08-25: two
-  chaplain trees sat orphaned for 7 weeks after the watcher died
-  mid-flight, holding untracked FR drafts — including a duplicate FR-697
-  id allocated independently by both — invisible to FR-241's
-  completion-path teardown): a tree whose branch has no open PR and no
-  live pipeline is flagged for human disposition by the situation board
-  (`now.py`), never auto-deleted (untracked files have no recovery path).
+- Teardown ownership — every creation path has a named pruner (gap found
+  2026-08-25: the auto-merge tail removes the blocking pipeline that used
+  to be alive at merge time, so the happy path would otherwise leave an
+  unowned tree per merged FR):
+
+  | Path | When | How | By whom |
+  |---|---|---|---|
+  | Merged FR | watcher observes merge confirmed | verify branch merged + zero untracked files → `worktree.sh remove`; else flag on board | **FR-885 watcher** (terminal step, zero-LLM) |
+  | Rejected FR | at rejection fold | same verify-then-remove | the session folding the rejection (witnessed, AC-11) |
+  | Pipeline died mid-flight | board refresh | flag with age + untracked count; human dispositions | `now.py` board → human (AC-10) |
+
+  Safety invariant on all paths: **a tree with untracked files is never
+  auto-removed** — flagged instead (untracked = no recovery; the FR-697
+  orphans are the witness). FR-241 self-heal remains the repair layer
+  under all three.
 
 ### 3. The integration tail (no premium waiting)
 
@@ -165,6 +172,11 @@ auto-merge alone likely suffices at current concurrency).
       PR and no live pipeline appears on the `now.py` board with age and
       untracked-file count — witnessed by a fixture; auto-deletion
       explicitly absent
+- [ ] AC-11: Every creation path has a witnessed pruner: merged-path
+      teardown executed by the FR-885 watcher terminal step (verify
+      merged + zero untracked → remove, else flag); rejected-path
+      teardown recorded in the rejection fold; the untracked-files
+      never-auto-remove invariant witnessed by a fixture on both paths
 
 ## Alternatives Considered
 
