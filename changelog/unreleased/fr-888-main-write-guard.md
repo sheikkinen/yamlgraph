@@ -10,3 +10,4 @@ scope: hooks
 - Round-4 review fixes: apply_patch Move-to header denied; whitespace-variant inline writers classified.
 - Round-4 followup: Move-to findall verified landed by probe.
 - Round-5 review fixes: rm-safe .gitignore edit safety; normalized escape-audit targets.
+- Round-6: diary renamed to gate pattern; quoted-redirect/mv/env-prefixed witnesses added.

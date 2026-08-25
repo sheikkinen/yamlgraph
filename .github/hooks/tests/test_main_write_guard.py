@@ -262,6 +262,31 @@ def test_whitespace_variant_inline_writer_denied(repo):
     assert decision_of(out) == "deny"
 
 
+def test_quoted_redirect_to_enforcement_path_denied(repo):
+    _, out = run_hook(
+        terminal_payload('echo x > "yamlgraph/f.py"', repo["main"]),
+        guard_root=repo["main"],
+    )
+    assert decision_of(out) == "deny"
+
+
+def test_mv_onto_enforcement_path_denied(repo):
+    _, out = run_hook(
+        terminal_payload("mv /tmp/x.py tests/x.py", repo["main"]),
+        guard_root=repo["main"],
+    )
+    assert decision_of(out) == "deny"
+
+
+def test_env_prefixed_writer_denied(repo):
+    # a non-escape env assignment must not hide the writer token
+    _, out = run_hook(
+        terminal_payload("FOO=1 cp /tmp/x.py yamlgraph/x.py", repo["main"]),
+        guard_root=repo["main"],
+    )
+    assert decision_of(out) == "deny"
+
+
 def test_time_prefixed_readonly_allowed(repo):
     _, out = run_hook(
         terminal_payload("time cat yamlgraph/f.py", repo["main"]),
