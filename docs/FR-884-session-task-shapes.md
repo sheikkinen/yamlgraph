@@ -49,9 +49,11 @@ this: **every proposal below names its adoption trigger, not just its graph.**
 
 ## Proposals filed (D-6)
 
-1. `.chaplain/inbox/deploy-watch-outside-session.md` — zero-LLM rollout
+Converted to full FRs 2026-08-25 (inbox drafts superseded and withdrawn):
+
+1. [FR-885](../feature-requests/FR-885-deploy-watch-outside-session.md) — zero-LLM rollout
    watcher; first consumer: any enforce session awaiting CD.
-2. `.chaplain/inbox/judge-route-adoption-nudge.md` — mechanical nudge when
+2. [FR-886](../feature-requests/FR-886-judge-route-adoption-nudge.md) — mechanical nudge when
    interactive judging is detected; first consumer: the next "judge NNN" turn.
-3. `.chaplain/inbox/forensics-evidence-graph.md` — SID-keyed evidence+timeline
+3. [FR-887](../feature-requests/FR-887-forensics-evidence-timeline-graph.md) — SID-keyed evidence+timeline
    assembly graph; first consumer: the next production-incident session.
