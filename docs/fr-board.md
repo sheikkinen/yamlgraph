@@ -220,6 +220,7 @@
 | FR-861 | Proposed | yamlgraph |  | FR-861-shared-repo-write-discipline.md |
 | FR-879 | Proposed | yamlgraph |  | FR-879-image-pipeline-v2-critic-filter.md |
 | FR-882 | Proposed | yamlgraph |  | FR-882-scp-generator-private-framework.md |
+| FR-884 | Proposed | yamlgraph |  | FR-884-session-task-shape-mining-for-sole-route-extraction.md |
 | FR-078 | In Progress | yamlgraph |  | FR-078-relocate-project-tests.md |
 | FR-100 | In Progress | yamlgraph |  | FR-100-yamlgraph-development-pipeline-ebook.md |
 | FR-169 | In Progress | yamlgraph |  | FR-169-enforce-reflexion-loop.md |
@@ -472,6 +473,7 @@ graph TD
     FR-879["FR-879 Proposed"]
     FR-880["FR-880 Judged"]
     FR-882["FR-882 Proposed"]
+    FR-884["FR-884 Proposed"]
     FR-081 --> FR-082
     FR-731 --> FR-735
     FR-731 --> FR-736
