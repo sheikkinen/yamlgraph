@@ -152,6 +152,16 @@ new_or_spike() {
         log_info "Symlinked .venv"
     fi
 
+    # FR-888: credentials must survive the worktree dance — fresh trees
+    # without .env fail late and confusingly (dotenv loads yield nothing)
+    if [[ -f "$main_dir/.env" ]]; then
+        ln -snf "$main_dir/.env" "$wt_dir/.env"
+        [[ -r "$wt_dir/.env" ]] && log_info "Symlinked .env" \
+            || log_warn ".env symlink created but unreadable"
+    else
+        log_warn "No .env in main checkout — worktree has no credentials"
+    fi
+
     if ! grep -q "^\.venv$" "$wt_dir/.gitignore" 2>/dev/null; then
         echo ".venv" >>"$wt_dir/.gitignore"
     fi
@@ -166,6 +176,8 @@ EOF
         echo "{\"wt_dir\": \"$wt_dir\", \"wt_branch\": \"$wt_branch\", \"main_dir\": \"$main_dir\", \"work_dir\": \"$work_dir\"}"
     else
         log_info "Worktree ready: $wt_dir"
+        # FR-888: the final stdout line IS the denial cure's cd target
+        echo "cd $main_dir/$wt_dir"
     fi
 }
 
@@ -281,6 +293,36 @@ EOF
     log_info "Teardown complete"
 }
 
+safe_remove_worktree() {
+    # FR-888 AC-11: automatic-prune mode — refuses trees with untracked
+    # files (no recovery path) and unmerged branches; used by the FR-885
+    # watcher and rejection folds. Manual `rm` keeps its --force behavior.
+    local name="${1:-}"
+    [[ -n "$name" ]] || fail "Missing <name> for rm-safe"
+    local main_dir wt_branch wt_dir untracked
+    main_dir=$(repo_root)
+    cd "$main_dir"
+    wt_branch="feat/${name}"
+    wt_dir="tmp/worktrees/${wt_branch}"
+    [[ -d "$wt_dir" ]] || fail "No worktree at $wt_dir"
+    # setup artifacts (.env/.venv symlinks, .gitignore append) are
+    # reproducible — they never block removal
+    untracked=$(git -C "$wt_dir" status --porcelain --untracked-files=all \
+        | grep '^??' | grep -cvE '\s\.(env|venv|gitignore)$' || true)
+    if [[ "$untracked" -gt 0 ]]; then
+        log_warn "rm-safe refused: $untracked untracked file(s) in $wt_dir — disposition manually"
+        exit 1
+    fi
+    if ! git -C "$wt_dir" diff --quiet HEAD -- ':!.gitignore' 2>/dev/null; then
+        log_warn "rm-safe refused: uncommitted changes in $wt_dir"
+        exit 1
+    fi
+    log_info "Safe-removing worktree: $wt_dir"
+    git worktree remove --force "$wt_dir"
+    git branch -D "$wt_branch" 2>/dev/null || true
+    log_info "Safe removal complete"
+}
+
 main() {
     local verb
     verb="${1:-}"
@@ -302,6 +344,9 @@ main() {
             ;;
         rm)
             remove_worktree "$@"
+            ;;
+        rm-safe)
+            safe_remove_worktree "$@"
             ;;
         -h|--help|help)
             usage

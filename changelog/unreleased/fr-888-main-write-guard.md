@@ -1,0 +1,5 @@
+---
+type: feat
+scope: hooks
+---
+- **FR-888 Main-Write Guard**: enforcement-class writes on the main checkout are denied with an executable worktree cure; git-plumbing worktree detection; audited `FR888_ALLOW_MAIN=1` escape; `worktree.sh` gains `.env` symlink, final `cd` line, and `rm-safe` (untracked files never auto-removed).
