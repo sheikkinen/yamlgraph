@@ -233,6 +233,35 @@ def test_denial_cure_is_placeholder_free_and_executable(repo):
     assert "eval" in reason  # self-contained create-and-cd form
 
 
+def test_apply_patch_move_to_enforcement_path_denied(repo):
+    # review round 4 P1: real move header is '*** Move to: <path>'
+    payload = {
+        "tool_name": "apply_patch",
+        "tool_input": {
+            "input": (
+                f"*** Update File: {repo['main'] / 'docs' / 'foo.md'}\n"
+                f"*** Move to: {repo['main'] / 'yamlgraph' / 'foo.py'}\n"
+            )
+        },
+        "session_id": "s888",
+        "cwd": str(repo["main"]),
+    }
+    _, out = run_hook(payload, guard_root=repo["main"])
+    assert decision_of(out) == "deny"
+
+
+def test_whitespace_variant_inline_writer_denied(repo):
+    # review round 4 P2: extra spaces must not skip the analyzer
+    _, out = run_hook(
+        terminal_payload(
+            "python3    -c \"open('yamlgraph/x.py','w').write('x')\"",
+            repo["main"],
+        ),
+        guard_root=repo["main"],
+    )
+    assert decision_of(out) == "deny"
+
+
 def test_time_prefixed_readonly_allowed(repo):
     _, out = run_hook(
         terminal_payload("time cat yamlgraph/f.py", repo["main"]),

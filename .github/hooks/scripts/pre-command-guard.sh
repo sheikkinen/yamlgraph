@@ -310,7 +310,7 @@ case "$TOOL_NAME" in
     # (FR-442 python-invocation budget — clean calls must not pay)
     FR888_RELEVANT=1
     if [[ "$TOOL_NAME" == "run_in_terminal" || "$TOOL_NAME" == "send_to_terminal" ]]; then
-      if ! echo "$COMMAND" | grep -qE '>|\btee\b|\bcp\b|\bmv\b|\brsync\b|\binstall\b|\bsed\b|\bdd\b|\btruncate\b|python3? -c|perl -e|ruby -e'; then
+      if ! echo "$COMMAND" | grep -qE '>|\btee\b|\bcp\b|\bmv\b|\brsync\b|\binstall\b|\bsed\b|\bdd\b|\btruncate\b|python3?[[:space:]]+-c|perl[[:space:]]+-e|ruby[[:space:]]+-e'; then
         FR888_RELEVANT=0
       fi
     fi
@@ -443,7 +443,9 @@ else:
             if toks and toks[0] == "sed" and "-i" in toks:
                 targets += [t for t in toks[1:] if "/" in t and not t.startswith("-")]
         # opaque writers: any mentioned path is a potential target
-        if re.search(r"python3?\s+-c|perl\s+-e|ruby\s+-e|\bdd\b|\btruncate\b", cmd):
+        if re.search(
+            r"python3?\s+-c|perl\s+-e|ruby\s+-e|\bdd\b|\btruncate\b", cmd
+        ):
             targets += [m.group(0) for m in PATHISH.finditer(cmd)]
         return targets
 
