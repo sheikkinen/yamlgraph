@@ -313,6 +313,23 @@ def test_direct_write_commands_on_main_denied(repo, cmd):
     assert decision_of(out) == "deny"
 
 
+@pytest.mark.parametrize(
+    "cmd",
+    [
+        "sed -i.bak s/a/b/ yamlgraph/f.py",
+        "sed -i'' s/a/b/ yamlgraph/f.py",
+        "perl -e 'open my $fh, q(>), q(yamlgraph/x.py); print $fh q(x);'",
+    ],
+)
+def test_interpreter_and_sed_variant_writers_denied(repo, cmd):
+    # review round 9 P1: -i suffix variants and quoted interpreter paths
+    _, out = run_hook(
+        terminal_payload(cmd, repo["main"]),
+        guard_root=repo["main"],
+    )
+    assert decision_of(out) == "deny"
+
+
 def test_time_prefixed_readonly_allowed(repo):
     _, out = run_hook(
         terminal_payload("time cat yamlgraph/f.py", repo["main"]),

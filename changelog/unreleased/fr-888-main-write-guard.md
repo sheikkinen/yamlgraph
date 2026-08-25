@@ -13,3 +13,4 @@ scope: hooks
 - Round-6: diary renamed to gate pattern; quoted-redirect/mv/env-prefixed witnesses added.
 - Round-7: $PWD-expanded targets denied; quoted cd cure; AC-10 live-pipeline suppression input.
 - Round-8: touch/mkdir/rm/ln/chmod classified as writers; 3 witnesses.
+- Round-9: sed -i variant flags; interpreter inner-path extraction.

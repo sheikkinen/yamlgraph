@@ -450,13 +450,20 @@ else:
             # direct write/delete commands (review round 8 P1)
             if toks and toks[0] in ("touch", "mkdir", "rm", "ln", "chmod", "truncate"):
                 targets += [t for t in toks[1:] if not t.startswith("-")]
-            if toks and toks[0] == "sed" and "-i" in toks:
+            if toks and toks[0] == "sed" and any(t.startswith("-i") for t in toks):
                 targets += [t for t in toks[1:] if "/" in t and not t.startswith("-")]
-        # opaque writers: any mentioned path is a potential target
+        # opaque writers: any mentioned path is a potential target;
+        # ALSO extract enforcement-relative substrings hidden inside
+        # quoting constructs like perl q(yamlgraph/x.py) (round 9 P1)
         if re.search(
             r"python3?\s+-c|perl\s+-e|ruby\s+-e|\bdd\b|\btruncate\b", cmd
         ):
             targets += [m.group(0) for m in PATHISH.finditer(cmd)]
+            targets += re.findall(
+                r"(?:yamlgraph|tests|scripts|capabilities|\.github/hooks)"
+                r"/[^\s\"'();|&<>]*",
+                cmd,
+            )
         return targets
 
     for t in write_targets(cmd or ""):
