@@ -118,7 +118,13 @@ Work in an FR worktree:
   install` from any tree mutates all trees (recorded environment hazard) —
   the setup banner says so; dependency changes belong on main-lane commits.
 - Teardown remains `scripts/worktree.sh` + FR-241 self-heal; prune on
-  FR rejection.
+  FR rejection. **Orphan detection added** (evidence 2026-08-25: two
+  chaplain trees sat orphaned for 7 weeks after the watcher died
+  mid-flight, holding untracked FR drafts — including a duplicate FR-697
+  id allocated independently by both — invisible to FR-241's
+  completion-path teardown): a tree whose branch has no open PR and no
+  live pipeline is flagged for human disposition by the situation board
+  (`now.py`), never auto-deleted (untracked files have no recovery path).
 
 ### 3. The integration tail (no premium waiting)
 
@@ -155,6 +161,10 @@ auto-merge alone likely suffices at current concurrency).
       the next 30-day window; escape-hatch use frequency reported
 - [ ] AC-09: FR-750 marked Superseded with pointer; changelog fragment;
       diary reflection
+- [ ] AC-10: Orphan-tree detection: a worktree whose branch has no open
+      PR and no live pipeline appears on the `now.py` board with age and
+      untracked-file count — witnessed by a fixture; auto-deletion
+      explicitly absent
 
 ## Alternatives Considered
 
