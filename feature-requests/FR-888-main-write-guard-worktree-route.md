@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Feature
-**Status:** Proposed
+**Status:** Judged (APPROVED WITH REVISIONS 2026-08-25, R-1..R-7 folded)
 **Effort:** 2 days
 **Requested:** 2026-08-25
 **First consumer / first event:** the next enforcement-class FR arc — the
@@ -82,9 +82,16 @@ PreToolUse check in the `pre-command-guard.sh` family:
   `replace_string_in_file`, `multi_replace_string_in_file`) or a recognized
   terminal write-redirect targets **enforcement-class paths** —
   `yamlgraph/**`, `tests/**`, `scripts/**`, `capabilities/**`,
-  `.github/hooks/**` — AND the target resolves inside the **main checkout**
-  (not a `git worktree` — detected mechanically via `git rev-parse
-  --git-common-dir` vs `--git-dir` divergence, not path heuristics).
+  `.github/hooks/**` — AND the target resolves inside the **main checkout**.
+- **Worktree detection predicate (frozen, R-2):** main checkout ⇔
+  `git rev-parse --path-format=absolute --git-common-dir` resolves (after
+  symlink normalization, `pwd -P`) to the same directory as
+  `git rev-parse --path-format=absolute --git-dir`; linked worktree ⇔ the
+  resolved paths differ. Non-git or parse-error contexts fail closed ONLY
+  when an enforcement-class write target is present, with an audit row
+  naming the parse failure. Nested git repositories under the checkout are
+  fixture-tested so a foreign repo is never misclassified as the main
+  checkout.
 - **Never fires on:** docs lane (`docs/**`, `feature-requests/**`,
   `changelog/**`, `research/`, `tmp/**`, `logs/**`) — the current healthy
   direct-to-main flow for FRs, judgements, diaries, boards stays untouched;
@@ -95,17 +102,28 @@ PreToolUse check in the `pre-command-guard.sh` family:
 ```
 Enforcement write to the main checkout denied (FR-888).
 Work in an FR worktree:
-  scripts/worktree.sh create fr-<nnn> && cd <printed-path>
+  scripts/worktree.sh new fr-<nnn> && cd <printed-path>
 (one_session_one_repo — details: feature-requests/FR-888-*.md)
 ```
 
-- **Grammar-poverty guard:** unlike FR-767's fail-closed-on-unparseable,
-  unrecognized command shapes are ALLOWED here with an audit row —
-  a false deny on `time`-prefixed commands (witnessed 2026-08-25) is worse
-  for this guard than a rare miss, because the CI/PR ring catches escapes.
-- **Escape hatch:** `FR888_ALLOW_MAIN=1` env prefix, audited to
-  `audit.jsonl` — for genuine main-lane maintenance; every use is a logged
-  datum for the re-census.
+(R-1: the cure uses the EXISTING `new` verb — `scripts/worktree.sh`
+supports `new|spike|rm|list`, not `create`; the script must print an
+unambiguous final `cd <path>` line the denial quotes. No alias is added.)
+
+- **Write-shape grammar (R-3 — CI is NOT the safety net; the hazard is
+  local and pre-CI):** unrecognized **read-only/non-write** shapes are
+  allowed with an audit row (anti-`time`-prefix). But a terminal command
+  that both mentions an enforcement-class path AND contains an
+  unclassified write signal (`>`, `>>`, `tee`, `cp`, `mv`, `rsync`,
+  `install`, `sed -i`, `python/perl/ruby -c|-e` with `open`/`write`,
+  `dd`, `truncate`) is DENIED with the worktree cure unless the escape
+  hatch is present.
+- **Escape hatch (R-4):** `FR888_ALLOW_MAIN=1` env prefix — allows ONLY
+  the FR-888 main-write denial class. Audit row carries `session_id`,
+  `tool_use_id` (when available), cwd, normalized target path(s),
+  command/tool name, reason `fr888-main-write-override`. It must not
+  bypass unrelated guards (Co-authored-by, `--no-verify`, branch
+  creation, FR-767 authoring route) — witnessed by tests.
 
 ### 2. The worktree dance completed (`scripts/worktree.sh`)
 
@@ -124,14 +142,17 @@ Work in an FR worktree:
 
   | Path | When | How | By whom |
   |---|---|---|---|
-  | Merged FR | watcher observes merge confirmed | verify branch merged + zero untracked files → `worktree.sh remove`; else flag on board | **FR-885 watcher** (terminal step, zero-LLM) |
+  | Merged FR | watcher observes merge confirmed | verify branch merged + zero untracked files → safe removal; else flag on board | **FR-885 watcher** — ONLY under FR-885's own authority (R-5); under FR-888, this path is proven by fixture/stub contract |
   | Rejected FR | at rejection fold | same verify-then-remove | the session folding the rejection (witnessed, AC-11) |
   | Pipeline died mid-flight | board refresh | flag with age + untracked count; human dispositions | `now.py` board → human (AC-10) |
 
   Safety invariant on all paths: **a tree with untracked files is never
   auto-removed** — flagged instead (untracked = no recovery; the FR-697
-  orphans are the witness). FR-241 self-heal remains the repair layer
-  under all three.
+  orphans are the witness). **R-6:** the current `worktree.sh rm` uses
+  `git worktree remove --force` + branch delete — unsafe for automatic
+  pruning; this FR adds a narrow **safe-removal mode** (verify merged +
+  zero untracked, else flag) used by the automatic paths; manual `rm`
+  behavior is unchanged. FR-241 self-heal remains the repair layer.
 
 ### 3. The integration tail (no premium waiting)
 
@@ -142,41 +163,48 @@ weekly-recap workflow) → optional `scripts/vscode/rollout_watch.py`
 parallel-branch update collisions are observed (strict up-to-date is on;
 auto-merge alone likely suffices at current concurrency).
 
-## Acceptance Criteria
+## Acceptance Criteria (revised per judgement)
 
-- [ ] AC-01: Guard denies an edit-tool write to `yamlgraph/**` on the main
-      checkout and ALLOWS the byte-identical write inside a worktree —
-      both witnessed by hook tests in `.github/hooks/tests/` (fixture
-      repos, never live)
-- [ ] AC-02: Docs-lane writes (`docs/`, `feature-requests/`, `changelog/`)
-      on main are never denied — witnessed by tests
-- [ ] AC-03: Worktree detection uses git plumbing (`--git-common-dir`),
-      not path string matching — witnessed by a test with a nested-repo
-      fixture
-- [ ] AC-04: Denial message contains the executable cure (create command +
-      cd target); a fresh worktree created via the cure has readable
-      `.env` and importable `.venv` — witnessed by an integration test
-- [ ] AC-05: Unrecognized command shapes are allowed-with-audit, not
-      denied (anti-`time`-prefix regression test)
-- [ ] AC-06: `FR888_ALLOW_MAIN=1` escape works and writes an audit row
-- [ ] AC-07: One real FR arc executed end-to-end through the guard:
-      denial → worktree → enforce → PR → auto-merge — recorded in this FR
-      with the wall-clock and bounce counts FR-750 wanted (its measurement
-      table inherited here)
-- [ ] AC-08: Re-census criterion recorded: zero shared-index incidents and
-      the FR-884 classifier's repo-ops/deploy-watch interactive share over
-      the next 30-day window; escape-hatch use frequency reported
+- [ ] AC-01: PreToolUse hook denies an unsentineled edit-tool write to an
+      enforcement-class path when cwd is the main checkout and allows the
+      byte-identical write in a linked worktree — fixture tests, never
+      live repo mutation
+- [ ] AC-02: Docs-lane writes (`docs/**`, `feature-requests/**`,
+      `changelog/**`, `research/**`, `tmp/**`, `logs/**`) on main allowed
+      and tested
+- [ ] AC-03: Worktree detection via normalized git plumbing
+      (`--path-format=absolute --git-common-dir` vs `--git-dir`); tested
+      for main checkout, linked worktree, nested repo, parse-error cases
+- [ ] AC-04: Denial message: first line verdict, body contains one
+      executable cure using the canonical `scripts/worktree.sh new` verb
+      plus a concrete `cd` target, last line doctrine pointer
+- [ ] AC-05: `worktree.sh` produces a tree with readable `.env` (when main
+      has one) and importable `.venv`; final stdout line is the `cd`
+      command/path the denial cure quotes
+- [ ] AC-06: Terminal write grammar tested: redirect, quoted redirect,
+      `tee`, `cp`/`mv`, directory copy materializing an enforcement path,
+      `sed -i`, env-prefixed command, `time`-prefixed read-only ALLOWED,
+      `time`-prefixed write DENIED or explicitly classified
+- [ ] AC-07: `FR888_ALLOW_MAIN=1` allows only the FR-888 denial class,
+      emits the full audit row (session/tool/cwd/targets, reason
+      `fr888-main-write-override`), and bypasses no other guard
+- [ ] AC-08: Unrecognized non-write shapes allowed-with-audit; unrecognized
+      write-shaped commands targeting enforcement paths denied without the
+      escape hatch
 - [ ] AC-09: FR-750 marked Superseded with pointer; changelog fragment;
       diary reflection
-- [ ] AC-10: Orphan-tree detection: a worktree whose branch has no open
-      PR and no live pipeline appears on the `now.py` board with age and
-      untracked-file count — witnessed by a fixture; auto-deletion
+- [ ] AC-10: Orphan-tree detection on the `now.py` board (no open PR + no
+      live pipeline → age + untracked count), fixtures; auto-deletion
       explicitly absent
-- [ ] AC-11: Every creation path has a witnessed pruner: merged-path
-      teardown executed by the FR-885 watcher terminal step (verify
-      merged + zero untracked → remove, else flag); rejected-path
-      teardown recorded in the rejection fold; the untracked-files
-      never-auto-remove invariant witnessed by a fixture on both paths
+- [ ] AC-11: Teardown ownership witnessed WITHOUT depending on unapproved
+      FR-885: rejected-path teardown and a merged-path stub/fixture both
+      verify branch state + zero untracked before removal, both flag
+      instead of remove on untracked; live watcher teardown stays FR-885's
+      acceptance
+- [ ] AC-12: Existing hook suites (FR-767 authoring guard, pre-command
+      guard) still pass; no guard weakened
+- [ ] AC-13: Human review of the hook/worktree enforcement diff recorded
+      before it is treated as merged policy (R-7 gate)
 
 ## Alternatives Considered
 
