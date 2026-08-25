@@ -1745,3 +1745,9 @@ The ID ranges are:
 - **Code**: E402
 - **Sin**: Import after `sys.path.insert` for scripts module.
 - **Penance**: Test imports the FR-865 ramp installer from the scripts/ flat path (CONF-019 idiom).
+
+### CONF-415
+- **File**: [scripts/vscode/tests/test_session_shapes.py](../scripts/vscode/tests/test_session_shapes.py#L22)
+- **Code**: E402
+- **Sin**: `import session_shapes` after a `sys.path.insert` — module-level import not at top.
+- **Penance**: script-adjacent test outside the installable package; path bootstrap must precede the import (CONF-392/393/394 idiom).
