@@ -38,14 +38,20 @@ def _git(repo: Path, *args: str) -> str:
     return r.stdout.strip()
 
 
-def orphan_worktree_lines(repo: Path, gh_available: bool | None = None) -> list[str]:
-    """FR-888 AC-10: linked worktrees with no open PR — flagged, never deleted.
+def orphan_worktree_lines(
+    repo: Path,
+    gh_available: bool | None = None,
+    live_branches: set[str] | None = None,
+) -> list[str]:
+    """FR-888 AC-10: linked worktrees with no open PR and no live pipeline.
 
-    Age + untracked-file count per tree; PR state via gh when available,
-    reported as 'pr=?' when not (unknown is not assumed absent-safe).
+    live_branches: branches owned by a live pipeline (the caller's
+    contract — chaplain runtime or FR-885 watcher supplies them);
+    suppressed from the orphan list. Flagged, never deleted.
     """
     if gh_available is None:
         gh_available = shutil.which("gh") is not None
+    live_branches = live_branches or set()
     lines: list[str] = []
     porcelain = _git(repo, "worktree", "list", "--porcelain")
     tree, branch = None, None
@@ -60,6 +66,8 @@ def orphan_worktree_lines(repo: Path, gh_available: bool | None = None) -> list[
                 entries.append((tree, branch))
             tree, branch = None, None
     for tree, branch in entries:
+        if branch in live_branches:
+            continue  # live pipeline owns this tree — not an orphan
         age = _git(Path(tree), "log", "-1", "--format=%cr") or "unknown"
         untracked = sum(
             1

@@ -385,6 +385,11 @@ def classify(abs_path):
 
 def resolve(p):
     p = str(p).strip().strip("'\"")
+    # shell would expand these to cwd before writing (review round 7 P1)
+    for pwd_form in ("$PWD", "${PWD}", "$(pwd)"):
+        if p.startswith(pwd_form):
+            p = cwd + p[len(pwd_form):]
+            break
     return p if os.path.isabs(p) else os.path.join(cwd, p)
 
 EDIT_TOOLS = {"create_file", "replace_string_in_file",

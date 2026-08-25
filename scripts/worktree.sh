@@ -177,7 +177,8 @@ EOF
     else
         log_info "Worktree ready: $wt_dir"
         # FR-888: the final stdout line IS the denial cure's cd target
-        echo "cd $main_dir/$wt_dir"
+        # (single-quoted so paths with spaces stay executable as written)
+        echo "cd '$main_dir/$wt_dir'"
     fi
 }
 

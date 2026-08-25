@@ -45,6 +45,25 @@ def test_orphan_worktree_flagged_with_age_and_untracked(tmp_path):
     assert "pr=?" in line  # gh unavailable → unknown, reported not assumed
 
 
+def test_live_pipeline_branch_suppressed(tmp_path):
+    # AC-10 second branch: a tree owned by a live pipeline is not an orphan
+    main = tmp_path / "repo"
+    main.mkdir()
+    _git(main, "init", "-b", "main")
+    _git(main, "config", "user.email", "t@t")
+    _git(main, "config", "user.name", "t")
+    (main / "README.md").write_text("x")
+    _git(main, "add", "-A")
+    _git(main, "commit", "-m", "init")
+    wt = tmp_path / "wt-live"
+    _git(main, "worktree", "add", str(wt), "-b", "feat/live", "main")
+    assert (
+        now.orphan_worktree_lines(main, gh_available=False, live_branches={"feat/live"})
+        == []
+    )
+    assert len(now.orphan_worktree_lines(main, gh_available=False)) == 1
+
+
 def test_main_checkout_never_listed_as_orphan(tmp_path):
     main = tmp_path / "repo"
     main.mkdir()

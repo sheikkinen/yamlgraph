@@ -1586,7 +1586,7 @@ These are not `# noqa` suppressions — they are documented deviations from proc
 - **Penance**: GIT resolved via `shutil.which`; subcommands are hardcoded read-only queries (branch/diff/log); repo paths come from workspace.json enumeration, list-form argv, no shell.
 
 ### CONF-391
-- **File**: [scripts/vscode/now.py](../scripts/vscode/now.py#L121)
+- **File**: [scripts/vscode/now.py](../scripts/vscode/now.py#L129)
 - **Code**: B007
 - **Sin**: loop variable `model` reused after the loop — B007 flags the unused loop body.
 - **Penance**: deliberate last-match idiom (want the final modelId in the tail window); a `pass` body with the value read after the loop is the cheapest form.
@@ -1771,13 +1771,13 @@ The ID ranges are:
 - **Penance**: sibling-spike reuse; the path bootstrap must precede the import (same idiom as CONF-392).
 
 ### CONF-419
-- **File**: [scripts/vscode/now.py](../scripts/vscode/now.py#L73)
+- **File**: [scripts/vscode/now.py](../scripts/vscode/now.py#L81)
 - **Code**: S603
 - **Sin**: `subprocess.run` with dynamic args in `orphan_worktree_lines`.
 - **Penance**: read-only git plumbing on fixture-verified paths; same idiom as CONF-390.
 
 ### CONF-420
-- **File**: [scripts/vscode/now.py](../scripts/vscode/now.py#L81)
+- **File**: [scripts/vscode/now.py](../scripts/vscode/now.py#L89)
 - **Code**: S607
 - **Sin**: `gh` invoked by partial path.
 - **Penance**: gh is PATH-resolved by design (user-installed CLI); availability is pre-checked and unknown is reported as pr=?, never assumed.

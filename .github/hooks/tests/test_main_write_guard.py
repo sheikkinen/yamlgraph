@@ -287,6 +287,15 @@ def test_env_prefixed_writer_denied(repo):
     assert decision_of(out) == "deny"
 
 
+def test_pwd_expanded_redirect_denied(repo):
+    # review round 7 P1: the shell expands $PWD before writing
+    _, out = run_hook(
+        terminal_payload("echo x > $PWD/yamlgraph/f.py", repo["main"]),
+        guard_root=repo["main"],
+    )
+    assert decision_of(out) == "deny"
+
+
 def test_time_prefixed_readonly_allowed(repo):
     _, out = run_hook(
         terminal_payload("time cat yamlgraph/f.py", repo["main"]),
@@ -427,7 +436,7 @@ def test_worktree_new_symlinks_env_and_prints_cd(wt_repo):
     wt = wt_repo / "tmp/worktrees/feat/t1"
     assert (wt / ".env").is_file() or (wt / ".env").is_symlink()
     last = r.stdout.strip().splitlines()[-1]
-    assert last.startswith("cd ") and "feat/t1" in last
+    assert last.startswith("cd '") and "feat/t1" in last  # quoted, executable
 
 
 # ── AC-11: safe removal — untracked files block automatic prune ──────

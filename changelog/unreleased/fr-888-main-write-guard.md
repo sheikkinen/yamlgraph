@@ -11,3 +11,4 @@ scope: hooks
 - Round-4 followup: Move-to findall verified landed by probe.
 - Round-5 review fixes: rm-safe .gitignore edit safety; normalized escape-audit targets.
 - Round-6: diary renamed to gate pattern; quoted-redirect/mv/env-prefixed witnesses added.
+- Round-7: $PWD-expanded targets denied; quoted cd cure; AC-10 live-pipeline suppression input.
