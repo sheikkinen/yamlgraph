@@ -152,6 +152,16 @@ new_or_spike() {
         log_info "Symlinked .venv"
     fi
 
+    # FR-888: credentials must survive the worktree dance — fresh trees
+    # without .env fail late and confusingly (dotenv loads yield nothing)
+    if [[ -f "$main_dir/.env" ]]; then
+        ln -snf "$main_dir/.env" "$wt_dir/.env"
+        [[ -r "$wt_dir/.env" ]] && log_info "Symlinked .env" \
+            || log_warn ".env symlink created but unreadable"
+    else
+        log_warn "No .env in main checkout — worktree has no credentials"
+    fi
+
     if ! grep -q "^\.venv$" "$wt_dir/.gitignore" 2>/dev/null; then
         echo ".venv" >>"$wt_dir/.gitignore"
     fi
@@ -166,6 +176,9 @@ EOF
         echo "{\"wt_dir\": \"$wt_dir\", \"wt_branch\": \"$wt_branch\", \"main_dir\": \"$main_dir\", \"work_dir\": \"$work_dir\"}"
     else
         log_info "Worktree ready: $wt_dir"
+        # FR-888: the final stdout line IS the denial cure's cd target
+        # (single-quoted so paths with spaces stay executable as written)
+        echo "cd '$main_dir/$wt_dir'"
     fi
 }
 
@@ -281,6 +294,69 @@ EOF
     log_info "Teardown complete"
 }
 
+safe_remove_worktree() {
+    # FR-888 AC-11: automatic-prune mode — refuses trees with untracked
+    # files (no recovery path) and unmerged branches; used by the FR-885
+    # watcher and rejection folds. Manual `rm` keeps its --force behavior.
+    # --merged-confirmed: caller has verified the PR merged (squash merges
+    # never make the branch tip an ancestor of main — review PR#476 P2);
+    # skips the ancestor check, keeps every work-preservation check.
+    local name="" merged_confirmed=false
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --merged-confirmed) merged_confirmed=true; shift ;;
+            *) name="$1"; shift ;;
+        esac
+    done
+    [[ -n "$name" ]] || fail "Missing <name> for rm-safe"
+    local main_dir wt_branch wt_dir untracked
+    main_dir=$(repo_root)
+    cd "$main_dir"
+    wt_branch="feat/${name}"
+    wt_dir="tmp/worktrees/${wt_branch}"
+    [[ -d "$wt_dir" ]] || fail "No worktree at $wt_dir"
+    # setup artifacts (.env/.venv symlinks) are reproducible — never block.
+    # .gitignore is excluded ONLY when it is exactly the setup's own append
+    # (review round 5: a blanket exclusion would eat real user edits)
+    untracked=$(git -C "$wt_dir" status --porcelain --untracked-files=all \
+        | grep '^??' | grep -vE '\s\.(env|venv)$' | while read -r _ f; do
+            if [[ "$f" == ".gitignore" ]] \
+                && [[ "$(cat "$wt_dir/.gitignore" 2>/dev/null)" == ".venv" ]]; then
+                continue
+            fi
+            echo "$f"
+        done | grep -c . || true)
+    if [[ "$untracked" -gt 0 ]]; then
+        log_warn "rm-safe refused: $untracked untracked file(s) in $wt_dir — disposition manually"
+        exit 1
+    fi
+    # tracked .gitignore: tolerate ONLY the setup's own '.venv' append
+    if ! git -C "$wt_dir" diff --quiet HEAD -- ':!.gitignore' 2>/dev/null; then
+        log_warn "rm-safe refused: uncommitted changes in $wt_dir"
+        exit 1
+    fi
+    if ! git -C "$wt_dir" diff --quiet HEAD -- .gitignore 2>/dev/null; then
+        added=$(git -C "$wt_dir" diff HEAD -- .gitignore | grep -c '^+[^+]' || true)
+        venv_added=$(git -C "$wt_dir" diff HEAD -- .gitignore | grep -c '^+\.venv$' || true)
+        if [[ "$added" != "$venv_added" ]]; then
+            log_warn "rm-safe refused: .gitignore has non-setup edits in $wt_dir"
+            exit 1
+        fi
+    fi
+    # P1 (review PR#476): committed-but-unmerged work is unrecoverable
+    # after branch -D — refuse unless the branch tip is an ancestor of main
+    # or the caller confirmed the (squash) merge upstream
+    if [[ "$merged_confirmed" != "true" ]] \
+        && ! git merge-base --is-ancestor "$wt_branch" main 2>/dev/null; then
+        log_warn "rm-safe refused: branch $wt_branch is not merged into main (use --merged-confirmed after verifying the PR merged)"
+        exit 1
+    fi
+    log_info "Safe-removing worktree: $wt_dir"
+    git worktree remove --force "$wt_dir"
+    git branch -D "$wt_branch" 2>/dev/null || true
+    log_info "Safe removal complete"
+}
+
 main() {
     local verb
     verb="${1:-}"
@@ -302,6 +378,9 @@ main() {
             ;;
         rm)
             remove_worktree "$@"
+            ;;
+        rm-safe)
+            safe_remove_worktree "$@"
             ;;
         -h|--help|help)
             usage

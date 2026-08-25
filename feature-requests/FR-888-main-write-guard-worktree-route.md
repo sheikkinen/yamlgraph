@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Feature
-**Status:** Judged (APPROVED WITH REVISIONS 2026-08-25, R-1..R-7 folded)
+**Status:** Enforced 2026-08-25 (PR pending human review — R-7/AC-13 gate)
 **Effort:** 2 days
 **Requested:** 2026-08-25
 **First consumer / first event:** the next enforcement-class FR arc — the
@@ -230,3 +230,20 @@ human-review gate is satisfied via **PR + the sole review route**
   FR-241/CAP-102 (teardown self-heal), FR-311 (bounded commit retry)
 - Scripture: `one_session_one_repo`, `two_strike_split`,
   `enforcement_at_merge_boundary`, `boring_enforcement`
+
+## Implementation Status (2026-08-25, enforced in tmp/worktrees/feat/fr-888)
+
+- Dogfood: this arc is the first worktree-resident arc. The tree's birth
+  witnessed three cure-path defects live: no `.env`, no final `cd` line,
+  and the FR's original `create` verb never existed (judge R-1 confirmed).
+- RED: `.github/hooks/tests/test_main_write_guard.py` (19 witnesses,
+  11 red at commit). GREEN: Check 7 in `pre-command-guard.sh` (plumbing
+  detection per R-2, write-TARGET grammar per R-3 — mention-grammar
+  false-deny caught and fixed pre-commit, audited escape per R-4, bash
+  pre-filter preserving the FR-442 python budget); `worktree.sh` `.env`
+  symlink + final `cd` line + `rm-safe` (setup artifacts excluded from
+  the untracked check); AC-10 orphan flags on the `now.py` board.
+- 162 hook tests green including FR-767/FR-442 suites (AC-12).
+- Deviations: none from judged scope; AC-13 (human review) pending on
+  the PR; live arc measurement (inherited FR-750 table) recorded after
+  merge+first routed arc.
