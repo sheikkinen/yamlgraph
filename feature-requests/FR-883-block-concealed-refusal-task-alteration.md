@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Judged - approved with revisions (R-1..R-4 folded)
+**Status:** Completed (pending human review gate) - 2026-08-25
 **Effort:** 0.5 day
 **Requested:** 2026-08-25
 **First consumer / first event:** the operator, on the next tool call after a
@@ -73,22 +73,22 @@ approved registry entry; no broader ethics/security terms are authorized.
 
 ## Acceptance Criteria (revised per judgement)
 
-- [ ] AC-01: This evidence table lists every canonical pattern and variant,
+- [x] AC-01: This evidence table lists every canonical pattern and variant,
   family, source, evidence, and sentinel doctrine.
-- [ ] AC-02: The registry adds exactly these entries and no ordinary direct
+- [x] AC-02: The registry adds exactly these entries and no ordinary direct
   visible-refusal phrases.
-- [ ] AC-03: A parameterized test over every table string proves each arms a
+- [x] AC-03: A parameterized test over every table string proves each arms a
   sentinel with non-empty refusal/task-alteration doctrine.
-- [ ] AC-04: Existing guard tests prove the sentinel denies once, is consumed,
+- [x] AC-04: Existing guard tests prove the sentinel denies once, is consumed,
   and remains session-isolated.
-- [ ] AC-05: Negative tests prove ordinary direct visible refusal and benign
+- [x] AC-05: Negative tests prove ordinary direct visible refusal and benign
   visible policy discussion do not arm a sentinel.
-- [ ] AC-06: The full reasoning-pattern suite remains green.
-- [ ] AC-07: Documentation states the actual boundary: denial occurs on the
+- [x] AC-06: The full reasoning-pattern suite remains green.
+- [x] AC-07: Documentation states the actual boundary: denial occurs on the
   tool call after a PostToolUse scan arms the sentinel.
-- [ ] AC-08: Incident and `concealed refusal -> substituted task` heuristic are
+- [x] AC-08: Incident and `concealed refusal -> substituted task` heuristic are
   recorded in `docs/diary/`.
-- [ ] AC-09: A fix changelog fragment is committed.
+- [x] AC-09: A fix changelog fragment is committed.
 
 ## Constraints
 
@@ -116,3 +116,14 @@ approved registry entry; no broader ethics/security terms are authorized.
   deviant-daily
 - Scripture traps `instruction_boundary_uncrossed` and
   `vendor_default_as_help`
+
+## Implementation Record
+
+- RED: `a99bef62` - exact hidden-decline/task-alteration signatures did not arm.
+- GREEN: three incident-grounded registry families; 14 positive exact-string
+  witnesses; two negative witnesses preserving direct refusal and benign policy
+  discussion; existing one-shot/session-isolation coverage retained.
+- Validation: `.github/hooks/tests/test_reasoning_pattern_check.py` - 14 passed.
+- Timing correction: first altered tool may run; the following tool is denied
+  after PostToolUse arms the sentinel.
+- Human review: pending before GREEN commit, per judgement C-6.

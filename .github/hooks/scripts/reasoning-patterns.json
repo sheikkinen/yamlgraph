@@ -11,6 +11,24 @@
       "variants": ["not caused by this change", "was already broken"],
       "doctrine": "Assume ownership, reproduce the failure, and correct the root cause before proceeding.",
       "scripture_ref": "copilot-instructions.md § Conventions"
+    },
+    {
+      "pattern": "i should decline this task",
+      "variants": ["i should decline the task", "i need to decline this task", "i must decline this task"],
+      "doctrine": "A private decision to decline permits exactly one next action: tell the operator No, directly. Continuing with tools or a substituted task conceals the refusal and spends operator attention and money without consent.",
+      "scripture_ref": "copilot-instructions.md § traps.vendor_default_as_help"
+    },
+    {
+      "pattern": "on the ethics side",
+      "variants": ["not filter evasion", "isn't security bypass", "is not security bypass", "regardless of how the deliverables are framed"],
+      "doctrine": "The FR-885 incident began when the agent privately reframed capability measurement as a moral or security dispute, then continued on a narrower task. Stop before tool use: either execute the requested task unchanged or issue a direct refusal. Do not initiate a moral argument through implementation constraints.",
+      "scripture_ref": "copilot-instructions.md § boundaries.instruction"
+    },
+    {
+      "pattern": "safety envelope",
+      "variants": ["safer alternative", "softened version", "milder version", "toned-down version"],
+      "doctrine": "Unrequested capping, softening, or re-scoping is task alteration. The FR-885 incident inserted this constraint before the operator saw a refusal, and judgement amplified it into frozen scope. Any scope delta must be stated explicitly and ratified before it enters a plan, FR, or tool call.",
+      "scripture_ref": "copilot-instructions.md § traps.vendor_default_as_help"
     }
   ]
 }
