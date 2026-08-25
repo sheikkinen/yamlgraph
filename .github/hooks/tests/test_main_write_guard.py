@@ -174,6 +174,23 @@ def test_cp_onto_enforcement_path_on_main_denied(repo):
     assert decision_of(out) == "deny"
 
 
+def test_directory_copy_materializing_enforcement_path_denied(repo, tmp_path):
+    # review PR#476 P2: cp -r /tmp/src/yamlgraph . materializes ./yamlgraph
+    src = tmp_path / "src" / "yamlgraph"
+    src.mkdir(parents=True)
+    _, out = run_hook(terminal_payload(f"cp -r {src} .", repo["main"]))
+    assert decision_of(out) == "deny"
+
+
+def test_denial_cure_is_placeholder_free_and_executable(repo):
+    # review PR#476 P3: the cure must be copy-pasteable as written
+    _, out = run_hook(edit_payload(repo["main"] / "yamlgraph" / "x.py", repo["main"]))
+    reason = reason_of(out)
+    assert "worktree.sh new" in reason
+    assert "<nnn>" not in reason and "<path" not in reason
+    assert "eval" in reason  # self-contained create-and-cd form
+
+
 def test_time_prefixed_readonly_allowed(repo):
     _, out = run_hook(terminal_payload("time cat yamlgraph/f.py", repo["main"]))
     assert decision_of(out) == "approve"
@@ -268,6 +285,25 @@ def test_rm_safe_refuses_tree_with_untracked_files(wt_repo):
     )
     assert r.returncode != 0
     assert wt.exists()  # never auto-removed with untracked files
+
+
+def test_rm_safe_refuses_unmerged_committed_branch(wt_repo):
+    # review PR#476 P1: committed-but-unmerged work must never be deleted
+    subprocess.run(
+        [str(WORKTREE_SH), "new", "t4"], cwd=wt_repo, capture_output=True, text=True
+    )
+    wt = wt_repo / "tmp/worktrees/feat/t4"
+    (wt / "work.py").write_text("committed but unmerged")
+    _git(wt, "add", "-A")
+    _git(wt, "commit", "-m", "unmerged work")
+    r = subprocess.run(
+        [str(WORKTREE_SH), "rm-safe", "t4"],
+        cwd=wt_repo,
+        capture_output=True,
+        text=True,
+    )
+    assert r.returncode != 0
+    assert wt.exists()
 
 
 def test_rm_safe_removes_clean_merged_tree(wt_repo):

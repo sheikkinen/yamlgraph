@@ -4,3 +4,4 @@ scope: hooks
 ---
 - **FR-888 Main-Write Guard**: enforcement-class writes on the main checkout are denied with an executable worktree cure; git-plumbing worktree detection; audited `FR888_ALLOW_MAIN=1` escape; `worktree.sh` gains `.env` symlink, final `cd` line, and `rm-safe` (untracked files never auto-removed).
 - Orphan-worktree flags on the `now.py` board (no open PR → age + untracked count; never auto-deleted).
+- Review fixes: rm-safe merge-state check; directory-copy materialization denied; executable placeholder-free denial cure.

@@ -366,7 +366,7 @@ def classify(abs_path):
     rel = rel.replace("\\", "/")
     if any(rel == dl.rstrip("/") or rel.startswith(dl) for dl in DOCS):
         return None
-    if any(rel.startswith(e) for e in ENFORCE):
+    if any(rel == e.rstrip("/") or rel.startswith(e) for e in ENFORCE):
         return "deny"
     return None
 
@@ -414,7 +414,14 @@ else:
             if toks and toks[0] in ("cp", "mv", "rsync", "install"):
                 args = [t for t in toks[1:] if not t.startswith("-")]
                 if len(args) >= 2:
-                    targets.append(args[-1])
+                    dest, sources = args[-1], args[:-1]
+                    targets.append(dest)
+                    # P2 (review PR#476): a directory dest materializes
+                    # dest/basename(src) — classify the materialized paths
+                    for s in sources:
+                        base = os.path.basename(s.rstrip("/"))
+                        if base:
+                            targets.append(dest.rstrip("/") + "/" + base)
             if toks and toks[0] == "sed" and "-i" in toks:
                 targets += [t for t in toks[1:] if "/" in t and not t.startswith("-")]
         # opaque writers: any mentioned path is a potential target
@@ -440,7 +447,7 @@ PYEOF
     elif [[ "${FR888_OUT:-}" == DENY* ]]; then
       FR888_TARGET="${FR888_OUT##*	}"
       audit_log "deny" "fr888-main-write" "cwd=$HOOK_CWD target=$FR888_TARGET tool=$TOOL_NAME"
-      emit_deny "Enforcement write to the main checkout denied (FR-888): ${FR888_TARGET}.\\n\\nWork in an FR worktree:\\n  scripts/worktree.sh new fr-<nnn>\\n  cd <path printed on the last line>\\n\\nEscape for genuine main-lane maintenance (audited):\\n  FR888_ALLOW_MAIN=1 <command>\\n(one_session_one_repo — details: feature-requests/FR-888-main-write-guard-worktree-route.md)"
+      emit_deny "Enforcement write to the main checkout denied (FR-888): ${FR888_TARGET}.\\n\\nWork in an FR worktree (executable as written; rename the arc after):\\n  eval \$(scripts/worktree.sh new arc-\$(date +%H%M%S) | tail -1)\\n\\nEscape for genuine main-lane maintenance (audited):\\n  FR888_ALLOW_MAIN=1 <command>\\n(one_session_one_repo — details: feature-requests/FR-888-main-write-guard-worktree-route.md)"
       exit 0
     fi
     ;;

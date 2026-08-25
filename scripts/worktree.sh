@@ -317,6 +317,12 @@ safe_remove_worktree() {
         log_warn "rm-safe refused: uncommitted changes in $wt_dir"
         exit 1
     fi
+    # P1 (review PR#476): committed-but-unmerged work is unrecoverable
+    # after branch -D — refuse unless the branch tip is an ancestor of main
+    if ! git merge-base --is-ancestor "$wt_branch" main 2>/dev/null; then
+        log_warn "rm-safe refused: branch $wt_branch is not merged into main"
+        exit 1
+    fi
     log_info "Safe-removing worktree: $wt_dir"
     git worktree remove --force "$wt_dir"
     git branch -D "$wt_branch" 2>/dev/null || true
