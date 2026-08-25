@@ -124,7 +124,7 @@ Privacy).
 
 **R-1 gate:** implementation authority activates only after a sanitized
 raw-read evidence table is recorded in this FR or
-`research/FR-884-raw-read-log.md` — per row: session pseudonym (never the
+`docs/FR-884-raw-read-log.md` — per row: session pseudonym (never the
 real UUID or title), sampled stratum, date bucket, task-shape clue, one
 non-identifying surprising detail, privacy classification. Zero
 transcript excerpts. Manual reading here seeds the taxonomy but must not
@@ -157,7 +157,7 @@ five prompt-contract clauses plus an existing-graph-overlap check
 
 ### Phase 4 — Deliver
 
-- Ranked candidate table in `research/FR-884-session-task-shapes.md`
+- Ranked candidate table in `docs/FR-884-session-task-shapes.md`
   (sanitized — shapes and counts, no transcript content).
 - Top-3 candidates each get a one-paragraph proposal to
   `.chaplain/inbox/` naming: the task shape, its measured frequency/cost,
@@ -260,3 +260,34 @@ five prompt-contract clauses plus an existing-graph-overlap check
 - `.github/skills/{graph-authoring,judge-fr,review-pr}/adapters/` — sole-route pattern being extended
 - `scripts/vscode/` (`now.py`, `ledger.py`, `portrait.py`) — read-only introspection suite to extend
 - `.github/hooks/logs/audit.jsonl` — per-session tool-call traces
+
+## Implementation Status
+
+**2026-08-25 — Phase 0/1 (enforcement session):**
+
+- AC-03/AC-04 done first (TDD): `scripts/vscode/session_shapes.py` —
+  stdlib-only read-only inventory over chatSessions + price sheets + audit
+  traces, window-filtered; synthetic-fixture tests committed RED→GREEN.
+- Census: **74 sessions, ~650M prompt tokens** in the frozen window.
+- **AC-02 done — authority unlocked:** all 10 sampled sessions read
+  end-to-end (472-turn max). Sanitized log: `docs/FR-884-raw-read-log.md`.
+  Chat-session files are op-logs (kind 0 snapshot / 1 set / 2 extend), not
+  plain JSON — turn reconstruction requires replay; replay helper to be
+  folded into `session_shapes.py` with fixture test.
+- **Deviation (recorded):** 2 of 10 sampled sessions are forks duplicating
+  long shared prefixes; token accounting and classification must dedupe by
+  shared turn-prefix before the AC-06 denominator is computed. Not in the
+  judged plan; surfaced only by the raw read.
+- **Operator decision (R-4 route confirmed):** Phase-2 bulk classification
+  runs as a yamlgraph **map** (per-session skeleton → shape verdict) +
+  **reduce** (aggregate counts) with an explicit cheap mini-model pin
+  (aaa-gpt-x.x-mini class) — this is what makes the full 74-session corpus
+  (and larger windows) affordable, vs. the 10-session manual ceiling.
+- Privacy review of committed artifacts: raw-read log carries pseudonyms,
+  buckets, and paraphrased shape clues only; skeletons and any
+  customer-adjacent content remain in `tmp/` (gitignored). Repo visibility
+  re-verified: PUBLIC.
+
+Next: fold replay into `session_shapes.py` (fixture-tested), author the
+classifier map graph via the sole route, classify the deduped corpus, rank,
+report (D-5), file proposals (D-6).
