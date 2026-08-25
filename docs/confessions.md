@@ -1759,7 +1759,7 @@ The ID ranges are:
 - **Penance**: sampling is deliberately deterministic (seeded, AC-02 reproducible stratum), not security-sensitive.
 
 ### CONF-417
-- **File**: [scripts/vscode/session_shapes.py](../scripts/vscode/session_shapes.py#L242)
+- **File**: [scripts/vscode/session_shapes.py](../scripts/vscode/session_shapes.py#L333)
 - **Code**: PLC0415
 - **Sin**: `from ledger import load_prices` inside `main()` — import not at top.
 - **Penance**: sibling-spike reuse needs a sys.path bootstrap first and must not break library import of the module under test; CLI-only dependency stays in the CLI path.

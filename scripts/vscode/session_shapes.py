@@ -189,6 +189,97 @@ def _collect_text(node: object, out: list[str]) -> None:
             _collect_text(item, out)
 
 
+def _descend(state: dict, keys: list) -> object:
+    """Walk to the parent of the last key, creating intermediates."""
+    node: object = state
+    for key in keys[:-1]:
+        if isinstance(node, dict):
+            node = node.setdefault(key, {})
+        elif isinstance(node, list):
+            while len(node) <= key:
+                node.append({})
+            node = node[key]
+    return node
+
+
+def replay(path: Path) -> dict | None:
+    """Reconstruct session state from a chatSessions op-log.
+
+    Line format: kind 0 = snapshot (v), kind 1 = set at path k,
+    kind 2 = extend list at path k. Returns None when no kind-0
+    snapshot is present (not an op-log).
+    """
+    state: dict | None = None
+    try:
+        fh = path.open(errors="replace")
+    except OSError:
+        return None
+    with fh:
+        for line in fh:
+            try:
+                op = json.loads(line)
+            except ValueError:
+                continue
+            kind = op.get("kind") if isinstance(op, dict) else None
+            if kind == 0:
+                state = op["v"]
+                continue
+            if state is None or kind not in (1, 2):
+                continue
+            keys = op.get("k") or []
+            if not keys:
+                continue
+            node = _descend(state, keys)
+            last = keys[-1]
+            if kind == 1:
+                if isinstance(node, list):
+                    while len(node) <= last:
+                        node.append(None)
+                    node[last] = op["v"]
+                elif isinstance(node, dict):
+                    node[last] = op["v"]
+            else:  # kind == 2: extend
+                target = node.get(last) if isinstance(node, dict) else node[last]
+                if not isinstance(target, list):
+                    target = []
+                    if isinstance(node, dict):
+                        node[last] = target
+                    else:
+                        node[last] = target
+                value = op["v"]
+                target.extend(value if isinstance(value, list) else [value])
+    return state
+
+
+def turn_skeleton(state: dict | None, cap: int = 300) -> list[dict]:
+    """Per-turn rows (index, user, agent head, prompt_tokens) from replayed state."""
+    turns = []
+    for i, req in enumerate((state or {}).get("requests") or []):
+        if not isinstance(req, dict):
+            continue
+        parts: list[str] = []
+        total = 0
+        for part in req.get("response") or []:
+            if isinstance(part, dict):
+                value = part.get("value")
+                if isinstance(value, dict):
+                    value = value.get("value")
+                if isinstance(value, str) and value.strip():
+                    parts.append(value)
+                    total += len(value)
+                    if total > cap:
+                        break
+        turns.append(
+            {
+                "index": i,
+                "user": ((req.get("message") or {}).get("text") or "")[:500],
+                "agent": "".join(parts)[:cap],
+                "prompt_tokens": req.get("promptTokens"),
+            }
+        )
+    return turns
+
+
 def extract_transcript(path: Path) -> str:
     """Human-visible narrative (message text + response values) of a session."""
     out: list[str] = []
