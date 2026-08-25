@@ -425,3 +425,40 @@ PASSPHRASE= → PASSPHRASE=REDACTED
 - **Auto-start**: Launch daemon on `SessionStart` hook event (requires `statemachine_engine` in PATH)
 - **Dashboard**: Aggregate classifications across sessions for pattern detection (e.g., "3 hostile classifications in 5 minutes")
 - **Prompt tuning**: Refine `classify-tool-intent.yaml` prompt based on real-world false positive/negative rates
+
+## Main-Write Guard (FR-888)
+
+Enforcement-class writes (`yamlgraph/**`, `tests/**`, `scripts/**`,
+`capabilities/**`, `.github/hooks/**`) on the **main checkout of this
+repository** are denied by Check 7 in `pre-command-guard.sh`. The docs
+lane (`docs/`, `feature-requests/`, `changelog/`, `research/`, `tmp/`,
+`logs/`) is exempt; linked worktrees and nested foreign repositories are
+never policed. Detection is git plumbing (`--git-common-dir` vs
+`--git-dir`, guard-root scoped), not path heuristics.
+
+**Denial contract:** first line verdict, body carries the executable cure
+(no placeholders), last line doctrine pointer:
+
+```
+eval $(scripts/worktree.sh new arc-$(date +%H%M%S) | tail -1)
+```
+
+creates the worktree (with `.env`/`.venv` symlinked) and cd's into it —
+rename the arc afterwards if desired.
+
+**Escape hatch (audited):** prefix the command with `FR888_ALLOW_MAIN=1`
+for genuine main-lane maintenance. Every use writes a
+`fr888-main-write-override` row to `logs/audit.jsonl`. The escape does
+NOT bypass other guards (FR-767 authoring route, trailer/no-verify
+checks).
+
+**Dependency warning:** worktrees share the main checkout's `.venv` by
+symlink — `pip install` from ANY tree mutates ALL trees. Dependency
+changes belong on main-lane commits.
+
+**Cleanup ownership:** merged-path teardown belongs to the FR-885 watcher
+(`worktree.sh rm-safe <name> --merged-confirmed` after verifying the PR
+merged); rejection folds run `rm-safe <name>`; orphaned trees (no open
+PR, no live pipeline) are flagged on the `now.py` board and dispositioned
+by a human. `rm-safe` never removes trees with untracked files or
+unmerged committed work.

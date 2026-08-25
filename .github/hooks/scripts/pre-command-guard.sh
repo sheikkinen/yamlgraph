@@ -315,7 +315,8 @@ case "$TOOL_NAME" in
       fi
     fi
     if [[ "$FR888_RELEVANT" == "1" ]]; then
-    FR888_OUT=$(HOOK_INPUT="$INPUT" python3 <<'PYEOF'
+    HOOK_GUARD_ROOT="${HOOK_GUARD_ROOT:-$(cd "$(dirname "$0")/../../.." 2>/dev/null && pwd -P)}"
+    FR888_OUT=$(HOOK_INPUT="$INPUT" HOOK_GUARD_ROOT="$HOOK_GUARD_ROOT" python3 <<'PYEOF'
 import json, os, re, subprocess, sys
 from pathlib import Path
 
@@ -330,6 +331,16 @@ except Exception:
 tool = d.get("tool_name", d.get("toolName", ""))
 ti = d.get("tool_input", d.get("toolInput", d.get("input", {}))) or {}
 cwd = d.get("cwd", "") or "."
+
+# The guard protects THIS repository only (review PR#476 round 3 P1):
+# nested foreign repos are not ours to police. Root computed by the bash
+# wrapper from the hook's own location; HOOK_GUARD_ROOT overrides for
+# fixtures.
+GUARD_ROOT = (
+    os.path.realpath(os.environ["HOOK_GUARD_ROOT"])
+    if os.environ.get("HOOK_GUARD_ROOT")
+    else ""
+)
 
 def textual_enforcement(p):
     s = str(p).replace("\\", "/")
@@ -359,6 +370,8 @@ def classify(abs_path):
     is_main = os.path.realpath(common) == os.path.realpath(gitdir)
     if not is_main:
         return None  # linked worktree: allowed
+    if GUARD_ROOT and os.path.realpath(top) != GUARD_ROOT:
+        return None  # foreign repository: not ours to police (round 3 P1)
     try:
         rel = str(Path(os.path.realpath(abs_path)).relative_to(os.path.realpath(top)))
     except ValueError:
@@ -389,7 +402,7 @@ if tool in EDIT_TOOLS:
                 paths.append(r["filePath"])
         patch = ti.get("input") or ti.get("patch") or ""
         if isinstance(patch, str):
-            paths += re.findall(r"\*\*\* (?:Add|Update|Move to) File: (.+)", patch)
+            paths += re.findall(r"\*\*\* (?:Add|Update|Delete|Move to) File: (.+)", patch)
     for p in paths:
         c = classify(resolve(p))
         if c in ("deny", "deny-parse"):

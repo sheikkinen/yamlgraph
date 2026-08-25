@@ -28,7 +28,7 @@ GIT = shutil.which("git") or "/usr/bin/git"
 pytestmark = pytest.mark.req("REQ-YG-527")
 
 
-def run_hook(payload, *, env_extra=None, log_dir=None):
+def run_hook(payload, *, env_extra=None, log_dir=None, guard_root=None):
     env = {**os.environ}
     env.pop("FR888_ALLOW_MAIN", None)
     env.pop("YAMLGRAPH_AUTHORING_TOKEN", None)
@@ -36,6 +36,8 @@ def run_hook(payload, *, env_extra=None, log_dir=None):
         env.update(env_extra)
     if log_dir:
         env["HOOK_LOG_DIR"] = str(log_dir)
+    if guard_root:
+        env["HOOK_GUARD_ROOT"] = str(guard_root)
     r = subprocess.run(
         [str(HOOK)],
         input=json.dumps(payload),
@@ -106,13 +108,19 @@ def terminal_payload(command, cwd):
 
 
 def test_edit_write_to_enforcement_path_on_main_denied(repo):
-    _, out = run_hook(edit_payload(repo["main"] / "yamlgraph" / "x.py", repo["main"]))
+    _, out = run_hook(
+        edit_payload(repo["main"] / "yamlgraph" / "x.py", repo["main"]),
+        guard_root=repo["main"],
+    )
     assert decision_of(out) == "deny"
     assert "worktree.sh new" in reason_of(out)  # denial carries the cure
 
 
 def test_identical_write_in_linked_worktree_allowed(repo):
-    _, out = run_hook(edit_payload(repo["wt"] / "yamlgraph" / "x.py", repo["wt"]))
+    _, out = run_hook(
+        edit_payload(repo["wt"] / "yamlgraph" / "x.py", repo["wt"]),
+        guard_root=repo["main"],
+    )
     assert decision_of(out) == "approve"
 
 
@@ -121,7 +129,10 @@ def test_identical_write_in_linked_worktree_allowed(repo):
 
 @pytest.mark.parametrize("lane", ["docs", "feature-requests"])
 def test_docs_lane_on_main_allowed(repo, lane):
-    _, out = run_hook(edit_payload(repo["main"] / lane / "note.md", repo["main"]))
+    _, out = run_hook(
+        edit_payload(repo["main"] / lane / "note.md", repo["main"]),
+        guard_root=repo["main"],
+    )
     assert decision_of(out) == "approve"
 
 
@@ -129,14 +140,27 @@ def test_docs_lane_on_main_allowed(repo, lane):
 
 
 def test_nested_repo_not_misclassified_as_main_checkout(repo):
-    # nested repo IS its own main checkout but has no enforcement history
-    # with the guard's repo — enforcement-class rel path inside it must be
-    # judged against ITS root, where yamlgraph/ exists → denied in its own
-    # right only if it is a main checkout (it is): the guard is repo-agnostic.
+    # review PR#476 round 3 P1: a nested FOREIGN repo is not ours to
+    # police — the guard protects the guard-root repository only
     _, out = run_hook(
-        edit_payload(repo["nested"] / "yamlgraph" / "x.py", repo["nested"])
+        edit_payload(repo["nested"] / "yamlgraph" / "x.py", repo["nested"]),
+        guard_root=repo["main"],
     )
-    assert decision_of(out) == "deny"  # foreign MAIN checkout, same protection
+    assert decision_of(out) == "approve"
+
+
+def test_apply_patch_delete_hunk_on_main_denied(repo):
+    # review PR#476 round 3 P2: deletion is an enforcement-class write
+    payload = {
+        "tool_name": "apply_patch",
+        "tool_input": {
+            "input": f"*** Delete File: {repo['main'] / 'yamlgraph' / 'x.py'}\n"
+        },
+        "session_id": "s888",
+        "cwd": str(repo["main"]),
+    }
+    _, out = run_hook(payload, guard_root=repo["main"])
+    assert decision_of(out) == "deny"
 
 
 def test_parse_error_with_enforcement_target_fails_closed(repo, tmp_path):
@@ -155,22 +179,34 @@ def test_parse_error_without_enforcement_target_allowed(repo, tmp_path):
 
 
 def test_redirect_to_enforcement_path_on_main_denied(repo):
-    _, out = run_hook(terminal_payload("echo x > yamlgraph/f.py", repo["main"]))
+    _, out = run_hook(
+        terminal_payload("echo x > yamlgraph/f.py", repo["main"]),
+        guard_root=repo["main"],
+    )
     assert decision_of(out) == "deny"
 
 
 def test_tee_to_enforcement_path_on_main_denied(repo):
-    _, out = run_hook(terminal_payload("echo x | tee tests/f.py", repo["main"]))
+    _, out = run_hook(
+        terminal_payload("echo x | tee tests/f.py", repo["main"]),
+        guard_root=repo["main"],
+    )
     assert decision_of(out) == "deny"
 
 
 def test_sed_inplace_on_main_denied(repo):
-    _, out = run_hook(terminal_payload("sed -i '' s/a/b/ yamlgraph/f.py", repo["main"]))
+    _, out = run_hook(
+        terminal_payload("sed -i '' s/a/b/ yamlgraph/f.py", repo["main"]),
+        guard_root=repo["main"],
+    )
     assert decision_of(out) == "deny"
 
 
 def test_cp_onto_enforcement_path_on_main_denied(repo):
-    _, out = run_hook(terminal_payload("cp /tmp/x.py yamlgraph/x.py", repo["main"]))
+    _, out = run_hook(
+        terminal_payload("cp /tmp/x.py yamlgraph/x.py", repo["main"]),
+        guard_root=repo["main"],
+    )
     assert decision_of(out) == "deny"
 
 
@@ -178,13 +214,19 @@ def test_directory_copy_materializing_enforcement_path_denied(repo, tmp_path):
     # review PR#476 P2: cp -r /tmp/src/yamlgraph . materializes ./yamlgraph
     src = tmp_path / "src" / "yamlgraph"
     src.mkdir(parents=True)
-    _, out = run_hook(terminal_payload(f"cp -r {src} .", repo["main"]))
+    _, out = run_hook(
+        terminal_payload(f"cp -r {src} .", repo["main"]),
+        guard_root=repo["main"],
+    )
     assert decision_of(out) == "deny"
 
 
 def test_denial_cure_is_placeholder_free_and_executable(repo):
     # review PR#476 P3: the cure must be copy-pasteable as written
-    _, out = run_hook(edit_payload(repo["main"] / "yamlgraph" / "x.py", repo["main"]))
+    _, out = run_hook(
+        edit_payload(repo["main"] / "yamlgraph" / "x.py", repo["main"]),
+        guard_root=repo["main"],
+    )
     reason = reason_of(out)
     assert "worktree.sh new" in reason
     assert "<nnn>" not in reason and "<path" not in reason
@@ -192,13 +234,17 @@ def test_denial_cure_is_placeholder_free_and_executable(repo):
 
 
 def test_time_prefixed_readonly_allowed(repo):
-    _, out = run_hook(terminal_payload("time cat yamlgraph/f.py", repo["main"]))
+    _, out = run_hook(
+        terminal_payload("time cat yamlgraph/f.py", repo["main"]),
+        guard_root=repo["main"],
+    )
     assert decision_of(out) == "approve"
 
 
 def test_time_prefixed_write_denied(repo):
     _, out = run_hook(
-        terminal_payload("time sh -c 'echo x > yamlgraph/f.py'", repo["main"])
+        terminal_payload("time sh -c 'echo x > yamlgraph/f.py'", repo["main"]),
+        guard_root=repo["main"],
     )
     assert decision_of(out) == "deny"
 
@@ -206,7 +252,8 @@ def test_time_prefixed_write_denied(repo):
 def test_time_prefixed_cp_denied(repo):
     # review PR#476 round 2 P1: the time wrapper hid the writer token
     _, out = run_hook(
-        terminal_payload("time cp /tmp/source.py yamlgraph/target.py", repo["main"])
+        terminal_payload("time cp /tmp/source.py yamlgraph/target.py", repo["main"]),
+        guard_root=repo["main"],
     )
     assert decision_of(out) == "deny"
 
@@ -240,7 +287,10 @@ def test_rm_safe_merged_confirmed_removes_squash_merged_tree(wt_repo):
 
 
 def test_redirect_inside_worktree_allowed(repo):
-    _, out = run_hook(terminal_payload("echo x > yamlgraph/f.py", repo["wt"]))
+    _, out = run_hook(
+        terminal_payload("echo x > yamlgraph/f.py", repo["wt"]),
+        guard_root=repo["main"],
+    )
     assert decision_of(out) == "approve"
 
 
@@ -254,6 +304,7 @@ def test_escape_prefix_allows_and_audits(repo, tmp_path):
             "FR888_ALLOW_MAIN=1 sh -c 'echo x > yamlgraph/f.py'", repo["main"]
         ),
         log_dir=log_dir,
+        guard_root=repo["main"],
     )
     assert decision_of(out) == "approve"
     rows = (log_dir / "audit.jsonl").read_text().splitlines()
@@ -265,7 +316,8 @@ def test_escape_does_not_bypass_authoring_guard(repo):
         terminal_payload(
             "FR888_ALLOW_MAIN=1 sh -c 'echo x > examples/demos/hello/graph.yaml'",
             repo["main"],
-        )
+        ),
+        guard_root=repo["main"],
     )
     assert decision_of(out) == "deny"  # FR-767 still owns governed artifacts
 

@@ -6,3 +6,4 @@ scope: hooks
 - Orphan-worktree flags on the `now.py` board (no open PR → age + untracked count; never auto-deleted).
 - Review fixes: rm-safe merge-state check; directory-copy materialization denied; executable placeholder-free denial cure.
 - Round-2 review fixes: time/nohup/nice wrappers classified; rm-safe --merged-confirmed for squash merges.
+- Round-3 review fixes: guard-root scoping (foreign repos never policed), apply_patch Delete hunks denied, hooks-README runbook.
