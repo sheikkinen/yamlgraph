@@ -409,7 +409,12 @@ else:
             targets.append(m.group(1))
         for seg in re.split(r"&&|\|\||;|\|", cmd):
             toks = seg.split()
-            while toks and re.match(r"^[A-Za-z_][A-Za-z0-9_]*=", toks[0]):
+            # strip env assignments and command wrappers (time/nohup/nice)
+            # in any order — review PR#476 round 2 P1: 'time cp …' escaped
+            while toks and (
+                re.match(r"^[A-Za-z_][A-Za-z0-9_]*=", toks[0])
+                or toks[0] in ("time", "nohup", "nice")
+            ):
                 toks.pop(0)
             if toks and toks[0] in ("cp", "mv", "rsync", "install"):
                 args = [t for t in toks[1:] if not t.startswith("-")]

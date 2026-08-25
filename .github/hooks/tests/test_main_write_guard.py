@@ -203,6 +203,42 @@ def test_time_prefixed_write_denied(repo):
     assert decision_of(out) == "deny"
 
 
+def test_time_prefixed_cp_denied(repo):
+    # review PR#476 round 2 P1: the time wrapper hid the writer token
+    _, out = run_hook(
+        terminal_payload("time cp /tmp/source.py yamlgraph/target.py", repo["main"])
+    )
+    assert decision_of(out) == "deny"
+
+
+def test_rm_safe_merged_confirmed_removes_squash_merged_tree(wt_repo):
+    # review PR#476 round 2 P2: squash merges never make the branch tip an
+    # ancestor of main — the confirmed mode trusts the caller's PR check
+    subprocess.run(
+        [str(WORKTREE_SH), "new", "t5"], cwd=wt_repo, capture_output=True, text=True
+    )
+    wt = wt_repo / "tmp/worktrees/feat/t5"
+    (wt / "work.py").write_text("squashed upstream")
+    _git(wt, "add", "-A")
+    _git(wt, "commit", "-m", "work")
+    # simulate the squash: main gets an equivalent commit, branch tip is no ancestor
+    (wt_repo / "work.py").write_text("squashed upstream")
+    _git(wt_repo, "add", "-A")
+    _git(wt_repo, "commit", "-m", "squash: work (#1)")
+    default = subprocess.run(
+        [str(WORKTREE_SH), "rm-safe", "t5"], cwd=wt_repo, capture_output=True, text=True
+    )
+    assert default.returncode != 0  # unconfirmed still refused
+    confirmed = subprocess.run(
+        [str(WORKTREE_SH), "rm-safe", "t5", "--merged-confirmed"],
+        cwd=wt_repo,
+        capture_output=True,
+        text=True,
+    )
+    assert confirmed.returncode == 0, confirmed.stderr
+    assert not wt.exists()
+
+
 def test_redirect_inside_worktree_allowed(repo):
     _, out = run_hook(terminal_payload("echo x > yamlgraph/f.py", repo["wt"]))
     assert decision_of(out) == "approve"

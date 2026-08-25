@@ -297,7 +297,16 @@ safe_remove_worktree() {
     # FR-888 AC-11: automatic-prune mode — refuses trees with untracked
     # files (no recovery path) and unmerged branches; used by the FR-885
     # watcher and rejection folds. Manual `rm` keeps its --force behavior.
-    local name="${1:-}"
+    # --merged-confirmed: caller has verified the PR merged (squash merges
+    # never make the branch tip an ancestor of main — review PR#476 P2);
+    # skips the ancestor check, keeps every work-preservation check.
+    local name="" merged_confirmed=false
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --merged-confirmed) merged_confirmed=true; shift ;;
+            *) name="$1"; shift ;;
+        esac
+    done
     [[ -n "$name" ]] || fail "Missing <name> for rm-safe"
     local main_dir wt_branch wt_dir untracked
     main_dir=$(repo_root)
@@ -319,8 +328,10 @@ safe_remove_worktree() {
     fi
     # P1 (review PR#476): committed-but-unmerged work is unrecoverable
     # after branch -D — refuse unless the branch tip is an ancestor of main
-    if ! git merge-base --is-ancestor "$wt_branch" main 2>/dev/null; then
-        log_warn "rm-safe refused: branch $wt_branch is not merged into main"
+    # or the caller confirmed the (squash) merge upstream
+    if [[ "$merged_confirmed" != "true" ]] \
+        && ! git merge-base --is-ancestor "$wt_branch" main 2>/dev/null; then
+        log_warn "rm-safe refused: branch $wt_branch is not merged into main (use --merged-confirmed after verifying the PR merged)"
         exit 1
     fi
     log_info "Safe-removing worktree: $wt_dir"
