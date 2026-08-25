@@ -57,6 +57,19 @@ the session that launched it (FR-743 witnessed channel). Optional
 `--notify` hook appends to the session-briefing surface. No graph needed —
 `is_this_a_graph` answered: no judgement, no LLM, script is the right tool.
 
+**Lifecycle (frozen):** a one-shot process per merge arm — NOT a daemon
+(the chaplain's death mode; July plan Q2 "no daemon dependency") and NOT
+hook-spawned (5s hook budget, and the async-notification seam belongs only
+to terminals the agent itself started — FR-743 finding). Born when the
+enforcing session runs `gh pr merge --auto` and launches it as its last
+act; dies at DEPLOYED/TIMEOUT; the status artifact is the interface —
+the launcher gets the terminal notification, everyone else reads the
+file. If the watcher dies with its VS Code window, no resurrection: the
+FR-888 AC-10/AC-11 board path re-derives merge/deploy/prune state
+read-only at next refresh. On DEPLOYED with the PR merged, its terminal
+step performs the FR-888 merged-path teardown (verify zero untracked →
+`worktree.sh remove`, else flag).
+
 ## Acceptance Criteria
 
 - [ ] Watcher script with synthetic-fixture tests (fake endpoint + fake
