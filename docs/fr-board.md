@@ -97,7 +97,6 @@
 | FR-731 | Judged | yamlgraph |  | FR-731-webllm-browser-prompt-demo-spike.md |
 | FR-732 | Judged | yamlgraph |  | FR-732-output-schema-parity-enum-constraints.md |
 | FR-749 | Judged | yamlgraph |  | FR-749-edit-time-hygiene.md |
-| FR-750 | Judged | yamlgraph |  | FR-750-worktree-pilot.md |
 | FR-759 | Judged | yamlgraph |  | FR-759-otel-observability-boundary.md |
 | FR-760 | Judged | yamlgraph |  | FR-760-declare-langchain-core-dependency.md |
 | FR-761 | Judged | yamlgraph |  | FR-761-reproducible-dependency-governance.md |
@@ -223,6 +222,7 @@
 | FR-885 | Proposed | yamlgraph |  | FR-885-deploy-watch-outside-session.md |
 | FR-886 | Proposed | yamlgraph |  | FR-886-judge-route-adoption-nudge.md |
 | FR-887 | Proposed | yamlgraph |  | FR-887-forensics-evidence-timeline-graph.md |
+| FR-888 | Proposed | yamlgraph |  | FR-888-main-write-guard-worktree-route.md |
 | FR-078 | In Progress | yamlgraph |  | FR-078-relocate-project-tests.md |
 | FR-100 | In Progress | yamlgraph |  | FR-100-yamlgraph-development-pipeline-ebook.md |
 | FR-169 | In Progress | yamlgraph |  | FR-169-enforce-reflexion-loop.md |
@@ -439,7 +439,6 @@ graph TD
     FR-735["FR-735 In Progress"]
     FR-736["FR-736 In Progress"]
     FR-749["FR-749 Judged"]
-    FR-750["FR-750 Judged"]
     FR-751["FR-751 Proposed"]
     FR-757["FR-757 Proposed"]
     FR-759["FR-759 Judged"]
@@ -478,6 +477,7 @@ graph TD
     FR-885["FR-885 Proposed"]
     FR-886["FR-886 Proposed"]
     FR-887["FR-887 Proposed"]
+    FR-888["FR-888 Proposed"]
     FR-081 --> FR-082
     FR-731 --> FR-735
     FR-731 --> FR-736

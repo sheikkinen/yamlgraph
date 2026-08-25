@@ -2,7 +2,11 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement (workflow pilot; measurement before mandate)
-**Status:** Judged
+**Status:** Superseded by FR-888 (2026-08-25, operator decision) — the
+voluntary pilot got zero subjects in 5 weeks while every enforcement arc ran
+on main; FR-888 replaces measurement-before-mandate with a deny-mode
+main-write guard whose denial routes arcs into worktrees, inheriting this
+FR's measurement table as its AC-07/AC-08.
 **Effort:** 1 day (the pilot arc's overhead + instrumentation)
 **Requested:** 2026-07-18
 **First consumer / first event:** the next enforcement-class FR after
