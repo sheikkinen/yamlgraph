@@ -174,6 +174,7 @@ Used primarily to validate specific feature requests.
 |------|-----|-------------|
 | [interrupt](demos/interrupt/) | FR-006 | Subgraph interrupt integration tests |
 | [verification-gate](demos/verification-gate/) | FR-164 | Deterministic post-execution verification gates |
+| [session-shapes](demos/session-shapes/) | FR-884 | Task-shape classification of chat-session skeletons (map+reduce, pinned mini model) |
 
 > **Archived:** `commit-delta-gate` and `session-test` moved to `purgatory/` — see [purgatory/README.md](../purgatory/README.md).
 

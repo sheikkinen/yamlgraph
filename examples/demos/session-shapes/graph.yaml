@@ -1,0 +1,74 @@
+version: "1.0"
+name: session-shapes
+description: >
+  FR-884 session task-shape classifier: load session skeleton JSONL, classify
+  each session with map fan-out, and aggregate shape coverage deterministically.
+
+prompts_relative: true
+prompts_dir: prompts
+
+defaults:
+  provider: anthropic
+  model: claude-haiku-4-5
+  temperature: 0.0
+
+state:
+  input_file: str
+  sessions:
+    type: list
+  session_count: int
+  classifications:
+    type: list
+    reducer: sorted_add
+  result: dict
+
+tools:
+  load_sessions:
+    type: python
+    path: nodes/session_shape_tools.py
+    function: load_sessions
+    description: "Read FR-884 session skeleton JSONL into map payloads."
+  aggregate_classifications:
+    type: python
+    path: nodes/session_shape_tools.py
+    function: aggregate_classifications
+    description: "Merge per-session shape judgements and write tmp/fr884-classified.json."
+
+nodes:
+  load:
+    type: python
+    tool: load_sessions
+    state_key: sessions
+
+  classify:
+    type: map
+    over: "{state.sessions}"
+    as: session
+    max_items: 10000
+    timeout: 180
+    node:
+      type: llm
+      prompt: classify_session_shape
+      state_key: classification
+      variables:
+        session_id: "{state.session.session_id}"
+        requests: "{state.session.requests}"
+        prompt_tokens: "{state.session.prompt_tokens}"
+        fork_prefix_dropped: "{state.session.fork_prefix_dropped}"
+        skeleton: "{state.session.skeleton}"
+    collect: classifications
+
+  aggregate:
+    type: python
+    tool: aggregate_classifications
+    state_key: result
+
+edges:
+  - from: START
+    to: load
+  - from: load
+    to: classify
+  - from: classify
+    to: aggregate
+  - from: aggregate
+    to: END

@@ -1,0 +1,27 @@
+2026-08-25 13:35:35,854 [INFO] yamlgraph.compile.graph_loader: Parsed 2 Python tools: load_sessions, aggregate_classifications
+2026-08-25 13:35:35,856 [INFO] yamlgraph.compile.node_compiler: Added node: load (type=python)
+2026-08-25 13:35:35,860 [INFO] yamlgraph.compile.node_compiler: Added node: classify (type=map)
+2026-08-25 13:35:35,862 [INFO] yamlgraph.compile.node_compiler: Added node: aggregate (type=python)
+2026-08-25 13:35:35,960 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: load -> load_sessions
+2026-08-25 13:35:36,043 [INFO] yamlgraph.utils.llm_factory: Creating LLM: anthropic/claude-haiku-4-5 (temp=0.0)
+2026-08-25 13:35:37,624 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-08-25 13:35:37,652 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_classify_sub completed successfully
+2026-08-25 13:35:37,803 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-08-25 13:35:37,803 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-08-25 13:35:37,806 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_classify_sub completed successfully
+2026-08-25 13:35:37,808 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_classify_sub completed successfully
+2026-08-25 13:35:37,810 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: aggregate -> aggregate_classifications
+
+🚀 Running graph: graph.yaml
+   Variables: {'input_file': 'examples/demos/session-shapes/fixtures/synthetic-sessions.jsonl'}
+
+🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/09c0c2d4-5724-4301-bcee-e1b64ddeb80e/r/01a0387d-603e-7221-85a4-3a1ee42f659b?poll=true
+============================================================
+RESULT
+============================================================
+  current_step: aggregate
+  input_file: examples/demos/session-shapes/fixtures/synthetic-sessions.jsonl
+  sessions: []
+  session_count: 3
+  classifications: [{'_map_index': 0, 'primary_shape': 'plan-fr', 'shape_mix': [{'shape': 'plan-fr', 'fraction': 1.0}]}, {'_map_index': 1, 'primary_shape': 'test-orchestration', 'shape_mix': [{'shape': 'test-orchestrati...
+  result: {'session_count': 3, 'classified_count': 3, 'primary_counts': [{'shape': 'plan-fr', 'count': 1}, {'shape': 'test-orchestration', 'count': 1}, {'shape': 'introspection', 'count': 1}], 'token_weighted_s...

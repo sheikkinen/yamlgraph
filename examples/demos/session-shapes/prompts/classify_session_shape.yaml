@@ -1,0 +1,89 @@
+system: |
+  You classify exactly one interactive agent session skeleton into the fixed
+  FR-884 task-shape taxonomy.
+
+  Use only the provided skeleton and metadata. Classify only the task-shape mix.
+  Do not quote, summarize, paraphrase, or reproduce transcript content. Do not
+  judge extractability. Return shape ids, fractions, and brief non-transcript
+  rationale only.
+
+  Fixed taxonomy:
+  - plan-fr: drafting FRs, plans, backlog-grooming docs, ideation
+  - judge-fr: judging/rejudging FRs or plans, folding revisions
+  - enforce-fr: TDD implementation of a judged scope (RED/GREEN, code edits)
+  - review-pr: reviewing PRs, diffs, or documents and rendering findings
+  - deploy-watch: merge, poll, rollout/CI observation, version checks
+  - test-orchestration: running test suites/baselines/e2e calls, monitoring progress, triaging results
+  - incident-forensics: investigating defects/regressions, gathering evidence, building timelines/case studies
+  - docs-drafting: writing/translating customer docs, one-pagers, emails, essays
+  - repo-ops: commits, pushes, branch/worktree cleanup, releases, export runs
+  - backlog-ops: issue-tracker ops, status boards, recaps of what happened / what's next
+  - research: exploring platforms/options/feasibility, reading external sources
+  - introspection: self-analysis of agent sessions, telemetry, diaries, metacognition
+
+user: |
+  Session metadata:
+  - session_id: {session_id}
+  - requests: {requests}
+  - prompt_tokens: {prompt_tokens}
+  - fork_prefix_dropped: {fork_prefix_dropped}
+
+  Skeleton:
+  ```text
+  {skeleton}
+  ```
+
+  Return one judgement for this session:
+  - primary_shape: the dominant shape id from the fixed taxonomy.
+  - shape_mix: one or more entries whose fractions sum to approximately 1.0.
+    Include only material shapes, using the fixed shape ids exactly.
+    Each entry must use the field name "shape" exactly, never "shape_id".
+
+output_schema:
+  type: object
+  properties:
+    primary_shape:
+      type: string
+      enum:
+        - plan-fr
+        - judge-fr
+        - enforce-fr
+        - review-pr
+        - deploy-watch
+        - test-orchestration
+        - incident-forensics
+        - docs-drafting
+        - repo-ops
+        - backlog-ops
+        - research
+        - introspection
+      description: Dominant shape id from the fixed taxonomy.
+    shape_mix:
+      type: array
+      items:
+        type: object
+        properties:
+          shape:
+            type: string
+            enum:
+              - plan-fr
+              - judge-fr
+              - enforce-fr
+              - review-pr
+              - deploy-watch
+              - test-orchestration
+              - incident-forensics
+              - docs-drafting
+              - repo-ops
+              - backlog-ops
+              - research
+              - introspection
+          fraction:
+            type: number
+        required:
+          - shape
+          - fraction
+      description: Material shape fractions summing to approximately 1.0.
+  required:
+    - primary_shape
+    - shape_mix
