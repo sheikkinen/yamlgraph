@@ -2,9 +2,15 @@
 
 **Priority:** HIGH
 **Type:** Investigation
-**Status:** Proposed
+**Status:** Judged (APPROVED WITH REVISIONS, 2026-08-25 — R-1..R-5 folded below;
+implementation authority activates only after the sanitized raw-read evidence
+table (R-1/AC-02) is recorded)
 **Effort:** 2 days
 **Requested:** 2026-08-25
+
+**Frozen analysis window (R-2):** 2026-06-26 through 2026-08-25 inclusive,
+Europe/Helsinki local time. This one window is the denominator for raw-read
+sampling, token volume, taxonomy coverage, and candidate ranking.
 
 **Prior art:** FR-362/FR-364 (Implemented) mined process events from a
 *single governed copilot run* (OTel spans → normalized event schema) to
@@ -89,14 +95,14 @@ instrumenting:
 |---|---|
 | `~/Library/.../workspaceStorage/<hash>/chatSessions/*.jsonl` | Per-request timestamps, `modelId`, `promptTokens`/`outputTokens`, full turn text |
 | `debug-logs/*/models.json` | Price sheet per model |
-| Chronicle DB (`session_store_sql`) | Session titles, turns, files touched, FR/PR refs, FTS index |
+| Chronicle SQLite (`globalStorage/github.copilot-chat/session-store.db`) | Session titles, turns, files touched, FR/PR refs, FTS index — read via a committed `scripts/vscode/` script (R-2; `portrait.py` precedent), NOT the chat-only `session_store_sql` tool; if unavailable, reported as unavailable and excluded from mandatory joins |
 | `.github/hooks/logs/audit.jsonl` | Per-tool-call trace with `session_id` — the action shape of each session |
 | `scripts/vscode/ledger.py --by-model` | Requests/tokens/cost-range per day per model |
 
 ## Investigation Questions
 
 1. What are the recurring task shapes in interactive sessions over the
-   last 60–90 days? (taxonomy, ≤12 shapes)
+   frozen window? (taxonomy, ≤12 shapes)
 2. Which shapes are graph-extractable — i.e. satisfy the five
    prompt-contract clauses (one judgement, closed inputs, one
    validator-covered output shape, stateless, bounded)?
@@ -111,9 +117,18 @@ instrumenting:
 
 Per `read_raw_output_first` and the Judge's measurement-FR gate: read
 **K ≥ 10 full session transcripts end-to-end** before building any
-classifier or metric. Stratified sample: the 5 highest-token sessions plus
-5 random. Record for each a concrete surprising detail a generated dump
-could not produce. Raw reads stay in `tmp/` (see Privacy).
+classifier or metric. Stratified sample: the 5 highest-token sessions in
+the frozen window plus 5 random. Record for each a concrete surprising
+detail a generated dump could not produce. Raw reads stay in `tmp/` (see
+Privacy).
+
+**R-1 gate:** implementation authority activates only after a sanitized
+raw-read evidence table is recorded in this FR or
+`research/FR-884-raw-read-log.md` — per row: session pseudonym (never the
+real UUID or title), sampled stratum, date bucket, task-shape clue, one
+non-identifying surprising detail, privacy classification. Zero
+transcript excerpts. Manual reading here seeds the taxonomy but must not
+be used to claim the AC-06 coverage threshold (R-4).
 
 ### Phase 1 — Inventory and join
 
@@ -125,9 +140,13 @@ audit.jsonl (tool-call sequence) on `session_id`. Extend `scripts/vscode/`
 
 Derive the taxonomy from the Phase-0 raw reads, then classify sessions
 with a **map-node graph pinned to a cheap model** (haiku-class) — dogfood,
-not regex (Scripture: YAMLGraph + LLM over complex regex). If a classifier
-graph is built, it goes through the sole authoring route
-(`scripts/author.sh`) like any other graph.
+not regex (Scripture: YAMLGraph + LLM over complex regex).
+
+**R-4 (frozen):** LLM-assisted bulk classification MUST use a classifier
+graph authored via the governed authoring route (`scripts/author.sh`),
+with explicit cheap-model pin, lint, smoke record, and sanitized
+fixture/sample output. Manual classification is allowed only for the
+Phase-0 seed and cannot satisfy the 80% token-volume threshold.
 
 ### Phase 3 — Rank
 
@@ -138,11 +157,16 @@ five prompt-contract clauses plus an existing-graph-overlap check
 
 ### Phase 4 — Deliver
 
-- Ranked candidate table in `research/` (sanitized — shapes and counts,
-  no transcript content).
+- Ranked candidate table in `research/FR-884-session-task-shapes.md`
+  (sanitized — shapes and counts, no transcript content).
 - Top-3 candidates each get a one-paragraph proposal to
   `.chaplain/inbox/` naming: the task shape, its measured frequency/cost,
   the pinned model, and the first consumer (`would_you_use_this`).
+- **R-5:** proposals are sanitized drafts only — shape label, aggregate
+  counts/ranges, per-clause extractability verdict, pinned-model
+  recommendation, first consumer. FR-884 must not implement, author,
+  judge, or review any extracted route, and no transcript-derived
+  specifics or customer-identifying facts may enter the inbox.
 - If no shape clears the extractability bar, that verdict — with
   evidence — is an acceptable outcome.
 
@@ -155,33 +179,67 @@ five prompt-contract clauses plus an existing-graph-overlap check
 
 ## Constraints
 
-- **Privacy (FR-874 precedent — binding):** yamlgraph is a PUBLIC repo and
-  the workspace spans customer projects; session transcripts contain
-  customer-operational facts that secret-grepping cannot catch. Committed
-  artifacts carry task shapes, counts, and cost ranges ONLY — never
-  transcript excerpts. Raw reads and intermediate dumps live in `tmp/`
-  (gitignored) and are meaning-level reviewed before any aggregate is
-  committed.
+- **Privacy (FR-874 precedent — binding, mechanized per R-3):** yamlgraph
+  is a PUBLIC repo and the workspace spans customer projects; session
+  transcripts contain customer-operational facts that secret-grepping
+  cannot catch. Publication rules for every committed artifact:
+  - repo visibility recorded in the FR before any research artifact is
+    committed;
+  - no transcript excerpts, exact session titles, prompt snippets,
+    customer/project names, or local absolute paths;
+  - aggregation buckets with `session_count < 3` collapsed into
+    `rare/other`;
+  - a meaning-level privacy checklist completed and recorded in this FR
+    before each commit.
+  Raw reads and intermediate dumps live in `tmp/` (gitignored).
 - Read-only over all session stores.
 - Cost figures reported as ranges (cache-read conflation).
 - Classification graph must pin its model explicitly — an unpinned
   copilot node inherits the CLI's ambient default, which is the very
   failure mode under investigation.
 
-## Acceptance Criteria
+## Acceptance Criteria (revised per judgement)
 
-- [ ] Raw-read log: ≥10 sessions read end-to-end, each with a cited
-      surprising detail (sanitized summary in the FR or `research/`)
-- [ ] Task-shape taxonomy (≤12 shapes) with one-line inclusion criteria each
-- [ ] ≥80% of last-60-day interactive token volume classified into the taxonomy
-- [ ] Ranked candidate table: shape, session count, token/cost range,
-      per-clause extractability verdict, existing-graph overlap
-- [ ] Top-3 candidates filed to `.chaplain/inbox/` (or explicit
-      "none extractable" verdict with evidence)
-- [ ] Zero customer-identifying content in committed artifacts (meaning-level
-      review recorded in the FR)
-- [ ] If a classifier graph is built: authored via sole route, lints clean,
-      smoke run recorded, model pinned
+- [ ] AC-01: The FR records the exact analysis window and timezone and uses
+      that same window for raw-read sampling, token-volume denominator,
+      taxonomy coverage, and candidate ranking.
+- [ ] AC-02: Before implementation authority activates, a sanitized raw-read
+      log exists for ≥10 full sessions read end-to-end (5 highest-token in
+      window + 5 random); each row records a non-identifying surprising
+      detail, stratum, date bucket, and privacy classification; zero
+      transcript excerpts.
+- [ ] AC-03: A stdlib-only read-only script under `scripts/vscode/`
+      inventories chatSessions / debug-log price sheets / audit traces and,
+      if used, chronicle SQLite by session id; missing optional sources are
+      reported as unavailable, never silently substituted or dropped.
+- [ ] AC-04: Tests with synthetic fixtures prove the script parses session
+      ids, models, prompt/output tokens, timestamps, and cost ranges without
+      reading the operator's real VS Code stores.
+- [ ] AC-05: Taxonomy ≤12 shapes, each with one-line inclusion criteria and
+      a per-clause extractability verdict (one judgement, closed inputs, one
+      validator-covered output shape, stateless, bounded).
+- [ ] AC-06: ≥80% of interactive token volume in the frozen window is
+      classified, or the research report records the deficit, the
+      unclassified fraction, and why the taxonomy is not extraction-stable.
+- [ ] AC-07: Ranked candidate table reports sanitized shape label, session
+      count, token/cost range, per-clause extractability, existing
+      `Task shapes:` graph overlap, and `builders_never_call` witness rate.
+- [ ] AC-08: Public committed artifacts contain no transcript excerpts,
+      exact session titles, customer/project names, local absolute paths, or
+      singleton-identifying rows; `session_count < 3` buckets collapsed to
+      `rare/other`; meaning-level privacy review recorded in the FR.
+- [ ] AC-09: If LLM-assisted bulk classification is used, the classifier is
+      a YAMLGraph map-style graph authored via the governed authoring route,
+      pins a cheap model, lints clean, has a smoke record, and writes only
+      sanitized outputs.
+- [ ] AC-10: Up to three follow-up proposals filed to `.chaplain/inbox/`
+      only after passing AC-08; each contains sanitized aggregate evidence,
+      pinned-model recommendation, and first consumer, and implements no
+      route. If none clear the bar, the report states "none extractable"
+      with evidence.
+- [ ] AC-11: FR updated with implementation status, decisions, deviations,
+      exact commands run, and links to committed artifacts; diary
+      reflection included.
 
 ## Alternatives Considered
 
