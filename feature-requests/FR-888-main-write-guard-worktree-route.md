@@ -206,6 +206,11 @@ auto-merge alone likely suffices at current concurrency).
 - [ ] AC-13: Human review of the hook/worktree enforcement diff recorded
       before it is treated as merged policy (R-7 gate)
 
+**Decisions (operator, 2026-08-25):** enforcement starts immediately and
+this FR's own arc is the first worktree-resident arc (dogfood); the R-7
+human-review gate is satisfied via **PR + the sole review route**
+(`scripts/review.sh`) followed by the operator's merge decision.
+
 ## Alternatives Considered
 
 - **Advisory-first (FR-886 ladder)** — rejected by operator decision

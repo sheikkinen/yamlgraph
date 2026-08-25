@@ -124,6 +124,9 @@ or board under this FR.
       command formation, bounded runtime; no live merge or rollout in tests
 - [ ] AC-06: One real rollout witness recorded in the FR with artifact
       transitions first poll → terminal state
+      *(operator decision 2026-08-25: the witness runs in the fully armed
+      environment — the NEXT FR arc after 888+885 land serves as the live
+      acceptance test; its merge auto-arms the watcher)*
 - [ ] AC-07: If FR-888 authority exists, merged-path teardown tested with
       safe-removal and untracked-never-auto-remove fixtures; absent that
       authority, no teardown code under this FR

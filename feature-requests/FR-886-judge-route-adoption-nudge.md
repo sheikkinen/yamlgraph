@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Enhancement
-**Status:** Proposed
+**Status:** Judged (APPROVED WITH REVISIONS 2026-08-25, R-1..R-5 folded)
 **Effort:** 1 day
 **Requested:** 2026-08-25
 **First consumer / first event:** the next interactive "judge NNN" turn in
@@ -53,32 +53,63 @@ shift.
 
 ## Proposed Solution
 
-1. **Detection (code, not prompt):** PostToolUse check in `fr-checks.sh`
-   territory — a write to `feature-requests/*.judgement.md` (or a
-   `**Verdict:**` line into an FR) without the judge sentinel armed for
-   this run.
-2. **Delivery:** arm the existing one-shot reasoning sentinel with an
-   advisory pointing at `scripts/judge.sh <fr-path>`; consumed on next tool
-   call. Advisory (allow + message), not deny, in phase 1.
-3. **Escape hatch:** re-entry guard preserved — an agent launched BY the
-   adapter carries the sentinel and is never nudged (csap NC-414 class
-   exception already in doctrine).
-4. **Measurement:** AC ties to the FR-884 classifier re-run; the nudge is
-   judged by the instrument that justified it.
+1. **Detection (code, not prompt — R-3 mechanical rules):** a dedicated
+   PostToolUse check (in `fr-checks.sh` or a sibling script wired into the
+   hook runner) fires ONLY on: (a) writes creating/updating
+   `feature-requests/*.judgement.md`, or (b) writes adding a
+   verdict-taxonomy line (`**Verdict:** APPROVED | APPROVED WITH
+   REVISIONS | REJECTED | SPLIT`) to a feature-request file. Explicit
+   exclusions: ordinary FR prose, cited prior judgements, template text,
+   and `tmp/*.md` drafts.
+2. **Lineage sentinel (R-1 — judge.sh amendment authorized):** the current
+   `JUDGE_EXECUTION=1` env is child-process-only and invisible to hooks;
+   `scripts/judge.sh` is amended to write a per-run sentinel file
+   (`.github/hooks/state/judge-sentinel` pattern per FR-767: token +
+   fr-path + timestamp, created at launch, validated by token match and
+   freshness, cleaned at exit). Tests: matching token exempts; missing,
+   stale, or mismatched token does not; adapter-launched re-entry carries
+   the sentinel and is never nudged.
+3. **Delivery (R-2 — advisory channel, NOT the deny-path):** the existing
+   reasoning-pattern sentinel DENIES its next tool call, so it is not
+   reused; phase 1 emits either immediate PostToolUse feedback or a new
+   one-shot advisory sentinel that returns allow + message. Phase 1 never
+   denies. At most one advisory per unsentineled judgement write.
+4. **Measurement (R-4 — follow-up, not an implementation gate):** the
+   30-day re-census is a documented follow-up. Exact command:
+   `yamlgraph graph run examples/demos/session-shapes/graph.yaml --var
+   input_file=tmp/fr884-skeletons.jsonl` over a fresh skeleton corpus
+   (`scripts/vscode/fr884_skeletons.py`, window = last 30 days), output
+   `tmp/fr884-classified.json`; the metric is judge-fr token-weighted
+   share (target < 5%), computed as in `docs/FR-884-session-task-shapes.md`.
 
-## Acceptance Criteria
+## Acceptance Criteria (revised per judgement)
 
-- [ ] Hook detects judgement-shaped writes without lineage sentinel; unit
-      tests in `.github/hooks/tests/` (fixture writes, no live judging)
-- [ ] Advisory fires at most once per session run (one-shot), never blocks
-      in phase 1; re-entry (adapter-launched) sessions exempt — witnessed
-      by a test
-- [ ] Audit trail rows in `.github/hooks/logs/audit.jsonl` for every fire
-- [ ] Re-census criterion recorded: interactive judge-fr share < 5% over
-      the next 30-day window via the FR-884 classifier; measurement command
-      documented in the FR
-- [ ] Deny-mode implemented but shipped OFF, flag documented
-- [ ] Changelog fragment; diary reflection
+- [ ] AC-01: Unsentineled writes creating/updating
+      `feature-requests/*.judgement.md` trigger exactly one advisory naming
+      `scripts/judge.sh <fr-path>`
+- [ ] AC-02: Unsentineled verdict-taxonomy additions to
+      `feature-requests/*.md` trigger exactly one advisory; FR prose, cited
+      judgement text, templates, and `tmp/*.md` drafts do not
+- [ ] AC-03: judge.sh-launched executions carry a hook-visible lineage
+      sentinel and are exempt; missing/stale/mismatched sentinel does not
+      exempt
+- [ ] AC-04: Phase 1 never denies; one advisory per unsentineled judgement
+      write, no repeats within the session absent a new trigger
+- [ ] AC-05: Every fire writes an audit row (hook, session id, FR path,
+      decision, reason)
+- [ ] AC-06: Deny-mode behind a documented flag, default OFF; both modes
+      tested
+- [ ] AC-07: Hook tests cover detection, false positives, lineage
+      exemption, one-shot behavior, audit, deny-default
+- [ ] AC-08: FR records the exact re-census command, window semantics, and
+      artifact path for the <5% follow-up measurement
+- [ ] AC-09: Changelog fragment; diary reflection
+
+**Enforcement gates (judgement):** phase-1 advisory only (deny needs a new
+scope); no chat-transcript reading — detection inputs are the tool event,
+path, content, sentinel, repo files; hook/sentinel diffs require human
+review (PR + sole review route per operator decision); no existing guard
+weakened.
 
 ## Alternatives Considered
 
