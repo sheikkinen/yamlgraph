@@ -211,6 +211,47 @@ failure catalogue.
 - **Gap:** longest sales cycle, deepest workflow integration; a Tier-2
   follow-on once P1/P3 prove the ledger primitives commercially.
 
+### P0 family — corpus cartography (operator additions, 2026-08-26)
+
+P0 generalizes: *distill a corpus the org already owns into a navigable
+model*. Same architecture (crawl/enumerate → per-item cheap distillation →
+code-assembled map + index), different corpus:
+
+- **P0a — Document-library summarizer (PDF census):** per-page/per-window
+  mercury summarization over PDF libraries (contracts, manuals, reports,
+  tenders) → library index + per-document abstracts + RAG feed. In-repo
+  v0: `examples/demos/book-summary` (page-windowed PDF summary with
+  manifest tools, map fan-out, reducer accumulation) — the graph already
+  exists; the product is pointing it at a folder instead of a book.
+- **P0b — Enterprise-architecture cartographer:** map over a corp GitHub
+  organization (the "repo garden") → per-repo distillation (purpose,
+  stack, interfaces, dependencies, activity, owners) → code-assembled
+  architecture map nobody currently maintains by hand. In-repo v0s:
+  `reference/module-map.md` generator (single-repo), diary_index,
+  fr-atlas. Buyer: any org whose architecture documentation is stale by
+  definition — i.e. all of them. Caveat: output is corp-confidential by
+  nature; ownership/visibility check before any committed artifact.
+
+### The time axis (operator addition — a dimension, not a use case)
+
+Every candidate so far treats its corpus as a SNAPSHOT. Adding time as
+the map axis turns census into **trend census**: the same per-item
+judgement over a time-ordered corpus, reduced into drift/trajectory.
+
+- **Git history analysis** (the exemplar): map over PRs/commits →
+  per-item classification (intent, risk, subsystem, review depth,
+  incident linkage) → engineering-health timeline: where complexity
+  accretes, review coverage drifts, which subsystems eat incidents.
+  In-repo precedent: `scripts/extract_fr_graph.py` (FR causal DAG),
+  fr_board, chronicle session mining, incident_density_ranking (the
+  Scripture cure IS a time-axis census done manually).
+- Generalizes across the P-series: call QA over quarters (agent drift),
+  coding quality over years (P2's strongest sales artifact — show the
+  drift), policy compliance before/after a rule change.
+- Convergence link: the run-6 top pick "real-time drift radar" is this
+  dimension at streaming timescale; git-PR analysis is the same product
+  at repository timescale. One reduce layer, two clock speeds.
+
 ### Deprioritized (real, no wedge from here)
 ObligationRadar (run-4 civic scanner — govtech/nonprofit funding model, not
 this portfolio), LivingReview (guideline bodies; tiny market), e-discovery,
