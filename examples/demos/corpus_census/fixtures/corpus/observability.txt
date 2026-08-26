@@ -1,0 +1,2 @@
+Observability notes describe trace collection, evidence logs, latency, and
+operational metrics for graph runs.

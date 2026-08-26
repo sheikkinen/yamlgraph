@@ -7,4 +7,6 @@ scope: tools
   FR-768 manifests at invocation via repeatable `--tool SLOT=manifest.yaml`.
   Contaminated bindings (missing, duplicate, undeclared, invalid manifest,
   contract mismatch) fail closed with `ToolSlotBindingError` before any
-  LLM call. (REQ-YG-018)
+  LLM call. Ships `examples/demos/corpus_census/` — the shared
+  discover–extract–map–reduce census pipeline consuming the slots, with a
+  fail-closed 8-column evidence ledger (md+jsonl). (REQ-YG-018)

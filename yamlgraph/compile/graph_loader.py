@@ -68,9 +68,10 @@ class GraphConfig:
         self.nodes = config.get("nodes", {})
         self.edges = config.get("edges", [])
         # FR-892: resolve slot declarations against invocation bindings
-        # BEFORE manifest expansion — slots become {"manifest": path} entries.
-        base_dir = source_path.parent if source_path else Path.cwd()
-        slotted = resolve_tool_slots(config.get("tools", {}), tool_bindings, base_dir)
+        # BEFORE manifest expansion — slots become inline declarations.
+        # Binding paths resolve relative to CWD (R-1 frozen contract):
+        # the binding is the caller's input, not the graph author's.
+        slotted = resolve_tool_slots(config.get("tools", {}), tool_bindings, Path.cwd())
         # FR-768: expand manifest-declared tools at the load boundary
         self.tools = expand_tool_manifests(slotted, source_path)
         self.loop_limits = config.get("loop_limits", {})

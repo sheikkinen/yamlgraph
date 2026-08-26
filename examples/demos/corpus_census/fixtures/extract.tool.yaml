@@ -1,0 +1,6 @@
+name: fixture_extract
+description: "Read one fixture corpus item."
+runtime:
+  type: python
+  path: fixture_tools.py
+  function: extract

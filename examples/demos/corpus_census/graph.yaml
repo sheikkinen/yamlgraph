@@ -1,0 +1,102 @@
+version: "1.0"
+name: corpus-census
+description: >
+  Shared discover-extract-map-reduce census pipeline. Corpus-specific discovery
+  and extraction are bound at invocation time through FR-892 tool slots.
+
+prompts_relative: true
+prompts_dir: prompts
+
+defaults:
+  provider: anthropic
+  model: claude-haiku-4-5
+  temperature: 0.0
+
+config:
+  max_map_items: 200
+
+state:
+  source: str
+  rubric: str
+  output_path: str
+  items:
+    type: list
+  contents:
+    type: list
+    reducer: sorted_add
+  findings:
+    type: list
+    reducer: sorted_add
+  ledger: dict
+
+tools:
+  discover:
+    slot: true
+    contract:
+      args: [source]
+  extract:
+    slot: true
+    contract:
+      args: [item]
+  reduce_ledger:
+    type: python
+    path: tools.py
+    function: reduce_ledger
+    description: "Validate census findings and write markdown plus JSONL ledger artifacts."
+
+nodes:
+  discover:
+    type: python
+    tool: discover
+    variables:
+      source: "{state.source}"
+    state_key: items
+    on_error: fail
+
+  extract_items:
+    type: map
+    over: "{state.items}"
+    as: item
+    max_items: 200
+    node:
+      type: python
+      tool: extract
+      state_key: content
+      on_error: fail
+    collect: contents
+
+  judge_items:
+    type: map
+    over: "{state.contents}"
+    as: judged_content
+    max_items: 200
+    node:
+      type: llm
+      prompt: judge_item
+      provider: anthropic
+      model: claude-haiku-4-5
+      temperature: 0.0
+      state_key: finding
+      on_error: skip
+      variables:
+        rubric: "{state.rubric}"
+        content: "{state.judged_content.value}"
+        source_index: "{state.judged_content._map_index}"
+    collect: findings
+
+  reduce_ledger:
+    type: python
+    tool: reduce_ledger
+    state_key: ledger
+
+edges:
+  - from: START
+    to: discover
+  - from: discover
+    to: extract_items
+  - from: extract_items
+    to: judge_items
+  - from: judge_items
+    to: reduce_ledger
+  - from: reduce_ledger
+    to: END

@@ -1,0 +1,2 @@
+Security notes describe input validation, fail-closed reducers, shell escaping,
+and hostile manifest handling.

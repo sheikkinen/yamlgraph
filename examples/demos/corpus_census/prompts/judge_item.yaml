@@ -1,0 +1,44 @@
+system: >
+  You classify one corpus item under the caller-provided rubric. Use only the
+  supplied item content as evidence. If the content cannot support a judgement,
+  abstain instead of guessing.
+
+user: |
+  Rubric:
+  {rubric}
+
+  Item content:
+  {content}
+
+  Source index: {source_index}
+
+  Return one judgement for this item. Set source_index to the exact Source
+  index value above. The evidence_span must be a short exact span from the item
+  content when not abstained. If abstained, set judgement to "abstain",
+  confidence to 0, evidence_span to "", abstained to true, and give a concise
+  abstain_reason.
+
+schema:
+  name: CorpusCensusFinding
+  fields:
+    source_index:
+      type: int
+      ge: 0
+      description: "Exact source index supplied in the prompt"
+    judgement:
+      type: str
+      description: "Rubric judgement, or 'abstain' when abstained is true"
+    confidence:
+      type: float
+      ge: 0
+      le: 1
+      description: "Confidence from 0 to 1"
+    evidence_span:
+      type: str
+      description: "Exact content span supporting the judgement; empty only when abstained"
+    abstained:
+      type: bool
+      description: "True when the model cannot make a supported judgement"
+    abstain_reason:
+      type: str
+      description: "Concise reason when abstained, otherwise empty"
