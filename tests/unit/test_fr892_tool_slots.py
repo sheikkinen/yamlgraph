@@ -90,7 +90,9 @@ class TestResolveToolSlots:
         out = resolve_tool_slots(
             dict(SLOT_TOOLS), {"discover": str(manifest)}, tmp_path
         )
-        assert out["discover"] == {"manifest": str(manifest)}
+        # slot translated to inline shell declaration (FR-768 translation)
+        assert out["discover"]["type"] == "shell"
+        assert out["discover"]["command"] == "ls {folder}"
         assert out["plain"] == SLOT_TOOLS["plain"]  # non-slots pass through
 
     @pytest.mark.req("REQ-YG-018")

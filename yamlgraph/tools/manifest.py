@@ -123,6 +123,16 @@ def _translate(manifest: ToolManifest, manifest_dir: Path) -> dict[str, Any]:
     }
 
 
+def translate_manifest(manifest: ToolManifest, manifest_dir: Path) -> dict[str, Any]:
+    """Public translation entry for explicit bindings (FR-892 slots).
+
+    Identical to inline expansion minus the name/key match check, which
+    guards copy-paste drift in inline refs and does not apply when the
+    binding is explicit.
+    """
+    return _translate(manifest, manifest_dir)
+
+
 def expand_tool_manifests(
     tools: dict[str, Any], source_path: Path | None
 ) -> dict[str, Any]:

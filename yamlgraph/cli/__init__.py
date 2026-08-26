@@ -62,6 +62,13 @@ def create_parser() -> argparse.ArgumentParser:
         help="Load variables from YAML/JSON file (--var overrides)",
     )
     graph_run_parser.add_argument(
+        "--tool",
+        action="append",
+        default=[],
+        dest="tool_bindings",
+        help="Bind a tool slot to an FR-768 manifest (SLOT=manifest.yaml), can repeat",
+    )
+    graph_run_parser.add_argument(
         "--thread", "-t", type=str, default=None, help="Thread ID for persistence"
     )
     graph_run_parser.add_argument(

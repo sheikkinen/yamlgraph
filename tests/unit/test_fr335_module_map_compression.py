@@ -141,7 +141,9 @@ class TestFR335ModuleMapCompression:
         # of check_tool_call_nodes out of checks_semantic.py at the cap).
         # FR-807/808: 287 -> 291 for artifact_hash.py and
         # regulated_evidence.py (content identity + policy split).
-        assert line_count <= 291, f"module-map too large: {line_count} lines (max 291)"
+        # FR-892: 291 -> 293 for tools/tool_slots.py (invocation-time
+        # tool-slot binding).
+        assert line_count <= 293, f"module-map too large: {line_count} lines (max 293)"
 
     def test_ac02_dependency_lists_contain_only_yamlgraph_imports(self) -> None:
         module_map = _run_generator()
