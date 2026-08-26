@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Judged — APPROVED WITH REVISIONS (2026-08-26); R-1..R-5 folded below; see [FR-893-diary-trap-census.judgement.md](FR-893-diary-trap-census.judgement.md)
+**Status:** Completed (enforced 2026-08-26 on worktree feat/fr-893; RED 18435eff, GREEN follows)
 **Effort:** 1 day
 **Requested:** 2026-08-26
 **First consumer / first event:** the next Scripture graduation — instead
@@ -183,3 +183,61 @@ optimization deferred until cost evidence demands it).
 - Scripture: `diary_graduation_pipeline` seed, `graduation` process,
   hidden-canary mechanism (canary-recall inbox proposal); disposition of
   inquisitor-audit-64's `audit_dedup.py` seed (raw-read sample 4)
+
+## Implementation Record (2026-08-26)
+
+Enforced on worktree `feat/fr-893` from merged main (C-2 verified). TDD:
+RED 18435eff (10 aggregator witnesses), GREEN follows. REQ-YG-624
+(CAP-249 extended to FR-892, FR-893).
+
+**Deliverables:**
+
+- D-1/D-2: `diary_adapters.py` + manifests (python-runtime, FR-892
+  convention); discovery is month×decade batchable (`source
+  "docs/diary:<needle>"`) because the corpus (1271 entries) exceeds the
+  graph's 200-item map cap — three months alone exceed it (312/242/250).
+- D-3: rubric as a `--var` (zero prompt YAML, C-3): comma-separated
+  canonical snake_case labels in the judgement field; abstain when the
+  entry names no trap. Genre handling verified: git-reports and digests
+  abstain with reasoned justifications.
+- D-4: `diary_recurrence.py` — LLM-free aggregator: distinct-entry
+  counting (R-4), public-safe table (no evidence-span column by
+  construction, R-3), Scripture-key exclusion (graduated labels are
+  measured, never re-proposed), inbox emission threshold separate from
+  the table threshold (the chaplain consumes inbox on pickup — flood is
+  operational).
+- D-5: **canary gate fired for real**: the first full-corpus aggregation
+  FAILED — exact-label canaries found 0 entries because the vocabulary
+  drift predicted by raw-read sample 2 is total (`tmp_msg_txt`,
+  `stale_tmp_msg_file`, `tmp_msg_file_loss` — never the literal). Gate
+  upgraded to family-substring matching ('|' alternatives). Observed:
+  msg family = exactly 3 distinct entries (at the bar); line-pin family
+  ≈6 across 4 label variants.
+- D-6: 2 inbox drafts committed (protocol_archaeology, invisible
+  _decisions — 12 entries each) with a genre caveat: both are
+  world-digest themes, not first-person incident traps; judge weighs.
+  3 alias drafts pruned manually (silent_fallback ×2 = Commandment 6;
+  boundary_normalization = the_one_law) — synonym resolution recorded
+  as future work, not built (C-6 discipline).
+- D-7: `scripts/diary_census.sh` — 24 batches, 1266/1271 entries
+  censused (5 files lack date-matching names), 144 abstentions,
+  1700 distinct labels, **duration 1560s (~26 min), model
+  claude-haiku-4-5, est. cost ≈ $1**; run metadata embedded in the
+  committed table (git SHA 18435eff).
+- D-8: 12 deterministic witnesses incl. family-canary drift test and
+  Scripture-exclusion test; changelog fragment; this record; diary
+  reflection.
+
+**Decisions / deviations:**
+
+- Canary spec upgraded from exact label to family alternation — the
+  judgement's own word "family" (R-4/AC-06) made this a clarification,
+  not a scope change; witnessed by test_canary_family_matches_drifted_labels.
+- Inbox emission bar set to 10 (table bar stays 3): 33 threshold-3
+  candidates would flood the consumed-on-pickup inbox. Recorded as
+  operational-hazard deviation; the full candidate list is in the
+  committed table.
+- Headline census finding (beyond the FR's goal): the top ungraduated
+  recurrence signals are ALIASES of graduated doctrine (silent_fallback
+  family 34+ entries under 4+ names) — vocabulary consolidation, not new
+  graduation, is the corpus's loudest request. Seeded in the diary.

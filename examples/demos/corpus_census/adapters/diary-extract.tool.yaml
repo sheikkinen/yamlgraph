@@ -1,0 +1,6 @@
+name: diary-extract
+description: "FR-893 diary census: read one diary entry"
+runtime:
+  type: python
+  path: diary_adapters.py
+  function: diary_extract
