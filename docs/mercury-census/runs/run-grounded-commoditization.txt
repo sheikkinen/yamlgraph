@@ -1,0 +1,342 @@
+2026-08-26 10:19:07,262 [INFO] yamlgraph.compile.graph_loader: Parsed 1 Python tools: search_web
+2026-08-26 10:19:07,264 [INFO] yamlgraph.compile.node_compiler: Added node: research (type=agent)
+2026-08-26 10:19:07,265 [INFO] yamlgraph.compile.node_compiler: Added node: summarize (type=llm)
+2026-08-26 10:19:07,391 [INFO] yamlgraph.utils.llm_factory: Creating LLM: azure/aaa-gpt-5.4-mini (temp=0.7)
+2026-08-26 10:19:08,426 [INFO] yamlgraph.tools.agent: 🤖 Starting agent loop: research (max 5 iterations)
+2026-08-26 10:19:10,085 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-26 10:19:10,093 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': 'commercial service per-item LLM processing web documents crawling summarization extraction classification translation embeddings pricing', 'max_results': 5})
+2026-08-26 10:19:15,364 [INFO] ddgs.ddgs: Error in engine grokipedia: TimeoutException(TimeoutError('error sending request for url (https://grokipedia.com/api/typeahead?query=commercial+service+per-item+LLM+processing+web+documents+crawling+summarization+extraction+classification+translation+embeddings+pricing&limit=1) > operation timed out'))
+2026-08-26 10:19:15,365 [INFO] ddgs.ddgs: Error in engine wikipedia: TimeoutException(TimeoutError('error sending request for url (https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=commercial%20service%20per-item%20LLM%20processing%20web%20documents%20crawling%20summarization%20extraction%20classification%20translation%20embeddings%20pricing) > operation timed out'))
+2026-08-26 10:19:20,368 [INFO] ddgs.ddgs: Error in engine yahoo: TimeoutException(TimeoutError('error sending request for url (https://search.yahoo.com/search;_ylt=yORefZ52DRSeSlJVhDHVknbW;_ylu=4Lv7oO-BDAGn_WIWh5HjThZ2txuaW_osCLsIZqDk3muy4qI?p=commercial+service+per-item+LLM+processing+web+documents+crawling+summarization+extraction+classification+translation+embeddings+pricing) > operation timed out'))
+2026-08-26 10:19:20,368 [INFO] ddgs.ddgs: Error in engine mojeek: TimeoutException(TimeoutError('error sending request for url (https://www.mojeek.com/search?q=commercial+service+per-item+LLM+processing+web+documents+crawling+summarization+extraction+classification+translation+embeddings+pricing) > operation timed out'))
+2026-08-26 10:19:21,347 [INFO] httpx: HTTP Request: POST https://html.duckduckgo.com/html/ "HTTP/2 200 OK"
+2026-08-26 10:19:21,367 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': 'open source project web document corpus crawling summarization extraction classification translation embedding pipeline LLM', 'max_results': 5})
+2026-08-26 10:19:26,381 [INFO] ddgs.ddgs: Error in engine grokipedia: TimeoutException(TimeoutError('error sending request for url (https://grokipedia.com/api/typeahead?query=open+source+project+web+document+corpus+crawling+summarization+extraction+classification+translation+embedding+pipeline+LLM&limit=1) > operation timed out'))
+2026-08-26 10:19:26,381 [INFO] ddgs.ddgs: Error in engine wikipedia: TimeoutException(TimeoutError('error sending request for url (https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=open%20source%20project%20web%20document%20corpus%20crawling%20summarization%20extraction%20classification%20translation%20embedding%20pipeline%20LLM) > operation timed out'))
+2026-08-26 10:19:27,485 [INFO] httpx: HTTP Request: POST https://html.duckduckgo.com/html/ "HTTP/2 200 OK"
+2026-08-26 10:19:32,490 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': 'website pricing AI document processing extraction classification summarization translation embeddings per document', 'max_results': 5})
+2026-08-26 10:19:37,507 [INFO] ddgs.ddgs: Error in engine wikipedia: TimeoutException(TimeoutError('error sending request for url (https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=website%20pricing%20AI%20document%20processing%20extraction%20classification%20summarization%20translation%20embeddings%20per%20document) > operation timed out'))
+2026-08-26 10:19:37,509 [INFO] ddgs.ddgs: Error in engine grokipedia: TimeoutException(TimeoutError('error sending request for url (https://grokipedia.com/api/typeahead?query=website+pricing+AI+document+processing+extraction+classification+summarization+translation+embeddings+per+document&limit=1) > operation timed out'))
+2026-08-26 10:19:38,429 [INFO] httpx: HTTP Request: POST https://html.duckduckgo.com/html/ "HTTP/2 200 OK"
+2026-08-26 10:19:42,512 [INFO] ddgs.ddgs: Error in engine brave: TimeoutException(TimeoutError('error sending request for url (https://search.brave.com/search?q=website+pricing+AI+document+processing+extraction+classification+summarization+translation+embeddings+per+document&source=web) > operation timed out'))
+2026-08-26 10:19:42,513 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': 'LLM web crawling summarization extraction classification translation embedding service pricing company', 'max_results': 5})
+2026-08-26 10:19:47,531 [INFO] ddgs.ddgs: Error in engine wikipedia: TimeoutException(TimeoutError('error sending request for url (https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=LLM%20web%20crawling%20summarization%20extraction%20classification%20translation%20embedding%20service%20pricing%20company) > operation timed out'))
+2026-08-26 10:19:47,532 [INFO] ddgs.ddgs: Error in engine grokipedia: TimeoutException(TimeoutError('error sending request for url (https://grokipedia.com/api/typeahead?query=LLM+web+crawling+summarization+extraction+classification+translation+embedding+service+pricing+company&limit=1) > operation timed out'))
+2026-08-26 10:19:48,434 [INFO] httpx: HTTP Request: POST https://html.duckduckgo.com/html/ "HTTP/2 200 OK"
+2026-08-26 10:19:49,981 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-26 10:19:49,983 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': 'Firecrawl pricing credits crawl extract markdown json web crawling LLM-ready data', 'max_results': 5})
+2026-08-26 10:19:55,000 [INFO] ddgs.ddgs: Error in engine wikipedia: TimeoutException(TimeoutError('error sending request for url (https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=Firecrawl%20pricing%20credits%20crawl%20extract%20markdown%20json%20web%20crawling%20LLM-ready%20data) > operation timed out'))
+2026-08-26 10:19:55,000 [INFO] ddgs.ddgs: Error in engine grokipedia: TimeoutException(TimeoutError('error sending request for url (https://grokipedia.com/api/typeahead?query=Firecrawl+pricing+credits+crawl+extract+markdown+json+web+crawling+LLM-ready+data&limit=1) > operation timed out'))
+2026-08-26 10:20:00,016 [INFO] ddgs.ddgs: Error in engine startpage: TimeoutException(TimeoutError('error sending request for url (https://www.startpage.com/) > operation timed out'))
+2026-08-26 10:20:00,016 [INFO] ddgs.ddgs: Error in engine yahoo: TimeoutException(TimeoutError('error sending request for url (https://search.yahoo.com/search;_ylt=F3C0XtPmNp4kgLJZX6bDQskX;_ylu=RqHKacaqnZ2kuraDsiFDwjuSYuJB2CFTu2LfDjtxwu3EY8g?p=Firecrawl+pricing+credits+crawl+extract+markdown+json+web+crawling+LLM-ready+data) > operation timed out'))
+2026-08-26 10:20:01,666 [INFO] httpx: HTTP Request: POST https://html.duckduckgo.com/html/ "HTTP/2 200 OK"
+2026-08-26 10:20:06,671 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': 'Diffbot pricing web scraping extraction knowledge graph pricing', 'max_results': 5})
+2026-08-26 10:20:11,690 [INFO] ddgs.ddgs: Error in engine wikipedia: TimeoutException(TimeoutError('error sending request for url (https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=Diffbot%20pricing%20web%20scraping%20extraction%20knowledge%20graph%20pricing) > operation timed out'))
+2026-08-26 10:20:11,690 [INFO] ddgs.ddgs: Error in engine grokipedia: TimeoutException(TimeoutError('error sending request for url (https://grokipedia.com/api/typeahead?query=Diffbot+pricing+web+scraping+extraction+knowledge+graph+pricing&limit=1) > operation timed out'))
+2026-08-26 10:20:16,694 [INFO] ddgs.ddgs: Error in engine brave: TimeoutException(TimeoutError('error sending request for url (https://search.brave.com/search?q=Diffbot+pricing+web+scraping+extraction+knowledge+graph+pricing&source=web) > operation timed out'))
+2026-08-26 10:20:16,694 [INFO] ddgs.ddgs: Error in engine mojeek: TimeoutException(TimeoutError('error sending request for url (https://www.mojeek.com/search?q=Diffbot+pricing+web+scraping+extraction+knowledge+graph+pricing) > operation timed out'))
+2026-08-26 10:20:17,614 [INFO] httpx: HTTP Request: POST https://html.duckduckgo.com/html/ "HTTP/2 200 OK"
+2026-08-26 10:20:21,698 [INFO] ddgs.ddgs: Error in engine yahoo: TimeoutException(TimeoutError('error sending request for url (https://search.yahoo.com/search;_ylt=dgASS8EL1PnB7UZovhLD7Zc4;_ylu=bJPkKpuMHea2hb1ErEbSoiO9eysKZHB6VAaPqDoGXS_y8xk?p=Diffbot+pricing+web+scraping+extraction+knowledge+graph+pricing) > operation timed out'))
+2026-08-26 10:20:22,619 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': 'Zyte pricing smart proxy api extraction pricing web scraping', 'max_results': 5})
+2026-08-26 10:20:27,635 [INFO] ddgs.ddgs: Error in engine wikipedia: TimeoutException(TimeoutError('error sending request for url (https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=Zyte%20pricing%20smart%20proxy%20api%20extraction%20pricing%20web%20scraping) > operation timed out'))
+2026-08-26 10:20:27,635 [INFO] ddgs.ddgs: Error in engine grokipedia: TimeoutException(TimeoutError('error sending request for url (https://grokipedia.com/api/typeahead?query=Zyte+pricing+smart+proxy+api+extraction+pricing+web+scraping&limit=1) > operation timed out'))
+2026-08-26 10:20:32,638 [INFO] ddgs.ddgs: Error in engine brave: TimeoutException(TimeoutError('error sending request for url (https://search.brave.com/search?q=Zyte+pricing+smart+proxy+api+extraction+pricing+web+scraping&source=web) > operation timed out'))
+2026-08-26 10:20:32,638 [INFO] ddgs.ddgs: Error in engine yahoo: TimeoutException(TimeoutError('error sending request for url (https://search.yahoo.com/search;_ylt=Ze7oL1zBxrX003ZEOKxQK2Jd;_ylu=dbrpmOPLEYDfRvAvunNbxdHuq5kfwALYMsVVlpiyp7quhMM?p=Zyte+pricing+smart+proxy+api+extraction+pricing+web+scraping) > operation timed out'))
+2026-08-26 10:20:33,518 [INFO] httpx: HTTP Request: POST https://html.duckduckgo.com/html/ "HTTP/2 200 OK"
+2026-08-26 10:20:37,642 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': 'Rossum pricing document extraction pricing per page', 'max_results': 5})
+2026-08-26 10:20:42,662 [INFO] ddgs.ddgs: Error in engine wikipedia: TimeoutException(TimeoutError('error sending request for url (https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=Rossum%20pricing%20document%20extraction%20pricing%20per%20page) > operation timed out'))
+2026-08-26 10:20:42,663 [INFO] ddgs.ddgs: Error in engine grokipedia: TimeoutException(TimeoutError('error sending request for url (https://grokipedia.com/api/typeahead?query=Rossum+pricing+document+extraction+pricing+per+page&limit=1) > operation timed out'))
+2026-08-26 10:20:47,668 [INFO] ddgs.ddgs: Error in engine mojeek: TimeoutException(TimeoutError('error sending request for url (https://www.mojeek.com/search?q=Rossum+pricing+document+extraction+pricing+per+page) > operation timed out'))
+2026-08-26 10:20:47,668 [INFO] ddgs.ddgs: Error in engine startpage: TimeoutException(TimeoutError('error sending request for url (https://www.startpage.com/) > operation timed out'))
+2026-08-26 10:20:53,617 [INFO] httpx: HTTP Request: POST https://html.duckduckgo.com/html/ "HTTP/2 200 OK"
+2026-08-26 10:20:53,624 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': 'Hyperscience pricing document processing pricing', 'max_results': 5})
+2026-08-26 10:20:58,643 [INFO] ddgs.ddgs: Error in engine wikipedia: TimeoutException(TimeoutError('error sending request for url (https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=Hyperscience%20pricing%20document%20processing%20pricing) > operation timed out'))
+2026-08-26 10:20:58,643 [INFO] ddgs.ddgs: Error in engine grokipedia: TimeoutException(TimeoutError('error sending request for url (https://grokipedia.com/api/typeahead?query=Hyperscience+pricing+document+processing+pricing&limit=1) > operation timed out'))
+2026-08-26 10:20:59,483 [INFO] httpx: HTTP Request: POST https://html.duckduckgo.com/html/ "HTTP/2 200 OK"
+2026-08-26 10:21:05,467 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-26 10:21:05,468 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': 'Firecrawl pricing official credits plans', 'max_results': 5})
+2026-08-26 10:21:10,491 [INFO] ddgs.ddgs: Error in engine wikipedia: TimeoutException(TimeoutError('error sending request for url (https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=Firecrawl%20pricing%20official%20credits%20plans) > operation timed out'))
+2026-08-26 10:21:10,492 [INFO] ddgs.ddgs: Error in engine grokipedia: TimeoutException(TimeoutError('error sending request for url (https://grokipedia.com/api/typeahead?query=Firecrawl+pricing+official+credits+plans&limit=1) > operation timed out'))
+2026-08-26 10:21:11,439 [INFO] httpx: HTTP Request: POST https://html.duckduckgo.com/html/ "HTTP/2 200 OK"
+2026-08-26 10:21:16,447 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': 'Apify pricing web scraping platform pricing official', 'max_results': 5})
+2026-08-26 10:21:21,474 [INFO] ddgs.ddgs: Error in engine wikipedia: TimeoutException(TimeoutError('error sending request for url (https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=Apify%20pricing%20web%20scraping%20platform%20pricing%20official) > operation timed out'))
+2026-08-26 10:21:21,475 [INFO] ddgs.ddgs: Error in engine grokipedia: TimeoutException(TimeoutError('error sending request for url (https://grokipedia.com/api/typeahead?query=Apify+pricing+web+scraping+platform+pricing+official&limit=1) > operation timed out'))
+2026-08-26 10:21:26,479 [INFO] ddgs.ddgs: Error in engine startpage: TimeoutException(TimeoutError('error sending request for url (https://www.startpage.com/) > operation timed out'))
+2026-08-26 10:21:26,480 [INFO] ddgs.ddgs: Error in engine yahoo: TimeoutException(TimeoutError('error sending request for url (https://search.yahoo.com/search;_ylt=Ud09mxKQKrZUuJ-JpkYQYT6A;_ylu=w0f_cgXMtGSobmts1vQcVxSDY5FBmCs_7kBtAZKg3DlGdSY?p=Apify+pricing+web+scraping+platform+pricing+official) > operation timed out'))
+2026-08-26 10:21:27,247 [INFO] httpx: HTTP Request: POST https://html.duckduckgo.com/html/ "HTTP/2 200 OK"
+2026-08-26 10:21:32,251 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': 'Browse AI pricing official web scraping', 'max_results': 5})
+2026-08-26 10:21:37,269 [INFO] ddgs.ddgs: Error in engine wikipedia: TimeoutException(TimeoutError('error sending request for url (https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=Browse%20AI%20pricing%20official%20web%20scraping) > operation timed out'))
+2026-08-26 10:21:37,269 [INFO] ddgs.ddgs: Error in engine grokipedia: TimeoutException(TimeoutError('error sending request for url (https://grokipedia.com/api/typeahead?query=Browse+AI+pricing+official+web+scraping&limit=1) > operation timed out'))
+2026-08-26 10:21:38,169 [INFO] httpx: HTTP Request: POST https://html.duckduckgo.com/html/ "HTTP/2 200 OK"
+2026-08-26 10:21:42,272 [INFO] ddgs.ddgs: Error in engine mojeek: TimeoutException(TimeoutError('error sending request for url (https://www.mojeek.com/search?q=Browse+AI+pricing+official+web+scraping) > operation timed out'))
+2026-08-26 10:21:43,175 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': 'Unstructured pricing API document processing official', 'max_results': 5})
+2026-08-26 10:21:48,189 [INFO] ddgs.ddgs: Error in engine wikipedia: TimeoutException(TimeoutError('error sending request for url (https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=Unstructured%20pricing%20API%20document%20processing%20official) > operation timed out'))
+2026-08-26 10:21:48,190 [INFO] ddgs.ddgs: Error in engine grokipedia: TimeoutException(TimeoutError('error sending request for url (https://grokipedia.com/api/typeahead?query=Unstructured+pricing+API+document+processing+official&limit=1) > operation timed out'))
+2026-08-26 10:21:49,018 [INFO] httpx: HTTP Request: POST https://html.duckduckgo.com/html/ "HTTP/2 200 OK"
+2026-08-26 10:21:53,194 [INFO] ddgs.ddgs: Error in engine brave: TimeoutException(TimeoutError('error sending request for url (https://search.brave.com/search?q=Unstructured+pricing+API+document+processing+official&source=web) > operation timed out'))
+2026-08-26 10:21:54,023 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': 'Amazon Textract pricing official per page', 'max_results': 5})
+2026-08-26 10:21:59,041 [INFO] ddgs.ddgs: Error in engine wikipedia: TimeoutException(TimeoutError('error sending request for url (https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=Amazon%20Textract%20pricing%20official%20per%20page) > operation timed out'))
+2026-08-26 10:21:59,041 [INFO] ddgs.ddgs: Error in engine grokipedia: TimeoutException(TimeoutError('error sending request for url (https://grokipedia.com/api/typeahead?query=Amazon+Textract+pricing+official+per+page&limit=1) > operation timed out'))
+2026-08-26 10:22:04,045 [INFO] ddgs.ddgs: Error in engine yahoo: TimeoutException(TimeoutError('error sending request for url (https://search.yahoo.com/search;_ylt=lcPQQrlMWG7FBOOT3h48fJJ3;_ylu=knaH0_BR97sqsT7GhlYEuSiHryVoiGcDqU_N6CJZoVQOSz0?p=Amazon+Textract+pricing+official+per+page) > operation timed out'))
+2026-08-26 10:22:04,045 [INFO] ddgs.ddgs: Error in engine startpage: TimeoutException(TimeoutError('error sending request for url (https://www.startpage.com/) > operation timed out'))
+2026-08-26 10:22:10,077 [INFO] httpx: HTTP Request: POST https://html.duckduckgo.com/html/ "HTTP/2 200 OK"
+2026-08-26 10:22:12,166 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-26 10:22:12,167 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': 'AWS Textract pricing official per page', 'max_results': 3})
+2026-08-26 10:22:17,186 [INFO] ddgs.ddgs: Error in engine grokipedia: TimeoutException(TimeoutError('error sending request for url (https://grokipedia.com/api/typeahead?query=AWS+Textract+pricing+official+per+page&limit=1) > operation timed out'))
+2026-08-26 10:22:17,186 [INFO] ddgs.ddgs: Error in engine wikipedia: TimeoutException(TimeoutError('error sending request for url (https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=AWS%20Textract%20pricing%20official%20per%20page) > operation timed out'))
+2026-08-26 10:22:18,227 [INFO] httpx: HTTP Request: POST https://html.duckduckgo.com/html/ "HTTP/2 200 OK"
+2026-08-26 10:22:23,235 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': 'Google Document AI pricing official per page', 'max_results': 3})
+2026-08-26 10:22:28,253 [INFO] ddgs.ddgs: Error in engine wikipedia: TimeoutException(TimeoutError('error sending request for url (https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=Google%20Document%20AI%20pricing%20official%20per%20page) > operation timed out'))
+2026-08-26 10:22:28,253 [INFO] ddgs.ddgs: Error in engine grokipedia: TimeoutException(TimeoutError('error sending request for url (https://grokipedia.com/api/typeahead?query=Google+Document+AI+pricing+official+per+page&limit=1) > operation timed out'))
+2026-08-26 10:22:29,237 [INFO] httpx: HTTP Request: POST https://html.duckduckgo.com/html/ "HTTP/2 200 OK"
+2026-08-26 10:22:33,257 [INFO] ddgs.ddgs: Error in engine yahoo: TimeoutException(TimeoutError('error sending request for url (https://search.yahoo.com/search;_ylt=CuHK1RKnTPphDZNNf47Gz23x;_ylu=-4T1B1PT-TDxG8EWfadbbfkj1mZpIbcQIaQS3oRZCustL_Q?p=Google+Document+AI+pricing+official+per+page) > operation timed out'))
+2026-08-26 10:22:33,258 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': 'Azure AI Document Intelligence pricing official', 'max_results': 3})
+2026-08-26 10:22:38,279 [INFO] ddgs.ddgs: Error in engine wikipedia: TimeoutException(TimeoutError('error sending request for url (https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=Azure%20AI%20Document%20Intelligence%20pricing%20official) > operation timed out'))
+2026-08-26 10:22:38,280 [INFO] ddgs.ddgs: Error in engine grokipedia: TimeoutException(TimeoutError('error sending request for url (https://grokipedia.com/api/typeahead?query=Azure+AI+Document+Intelligence+pricing+official&limit=1) > operation timed out'))
+2026-08-26 10:22:39,156 [INFO] httpx: HTTP Request: POST https://html.duckduckgo.com/html/ "HTTP/2 200 OK"
+2026-08-26 10:22:44,162 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': 'OpenAI batch pricing summarization extraction embeddings official', 'max_results': 3})
+2026-08-26 10:22:49,182 [INFO] ddgs.ddgs: Error in engine wikipedia: TimeoutException(TimeoutError('error sending request for url (https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=OpenAI%20batch%20pricing%20summarization%20extraction%20embeddings%20official) > operation timed out'))
+2026-08-26 10:22:49,182 [INFO] ddgs.ddgs: Error in engine grokipedia: TimeoutException(TimeoutError('error sending request for url (https://grokipedia.com/api/typeahead?query=OpenAI+batch+pricing+summarization+extraction+embeddings+official&limit=1) > operation timed out'))
+2026-08-26 10:22:50,161 [INFO] httpx: HTTP Request: POST https://html.duckduckgo.com/html/ "HTTP/2 200 OK"
+2026-08-26 10:22:54,187 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': 'Anthropic pricing official API pricing document summarization translation extraction', 'max_results': 3})
+2026-08-26 10:22:59,208 [INFO] ddgs.ddgs: Error in engine grokipedia: TimeoutException(TimeoutError('error sending request for url (https://grokipedia.com/api/typeahead?query=Anthropic+pricing+official+API+pricing+document+summarization+translation+extraction&limit=1) > operation timed out'))
+2026-08-26 10:22:59,208 [INFO] ddgs.ddgs: Error in engine wikipedia: TimeoutException(TimeoutError('error sending request for url (https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=Anthropic%20pricing%20official%20API%20pricing%20document%20summarization%20translation%20extraction) > operation timed out'))
+2026-08-26 10:23:00,251 [INFO] httpx: HTTP Request: POST https://html.duckduckgo.com/html/ "HTTP/2 200 OK"
+2026-08-26 10:23:04,211 [INFO] ddgs.ddgs: Error in engine mojeek: TimeoutException(TimeoutError('error sending request for url (https://www.mojeek.com/search?q=Anthropic+pricing+official+API+pricing+document+summarization+translation+extraction) > operation timed out'))
+2026-08-26 10:23:15,814 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-26 10:23:15,816 [INFO] yamlgraph.tools.agent: ✓ Agent completed after 5 iterations
+2026-08-26 10:23:22,823 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-26 10:23:22,824 [INFO] yamlgraph.node_factory.llm_nodes: Node summarize completed successfully
+
+🚀 Running graph: graph.yaml
+   Variables: {'topic': 'Which commercial services and open-source projects TODAY sell or provide large-scale per-item LLM processing of web and document corpora (crawling plus summarization, extraction, classification, translation, embedding preparation)? Name specific companies, products, and pricing. Which manual industries are being commoditized by this?'}
+
+🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/09c0c2d4-5724-4301-bcee-e1b64ddeb80e/r/01a03cef-db08-7750-aeba-493ff44813b8?poll=true
+============================================================
+RESULT
+============================================================
+  current_step: summarize
+  topic: Which commercial services and open-source projects TODAY sell or provide large-scale per-item LLM processing of web and document corpora (crawling plus summarization, extraction, classification, translation, embedding preparation)? Name specific companies, products, and pricing. Which manual industries are being commoditized by this?
+  research: Here’s a current snapshot of **commercial services and open-source projects that today provide large-scale per-item processing of web and document corpora**—including crawling, summarization, extraction, classification, translation, and embedding prep.
+
+## 1) Commercial services
+
+### A. Web crawling / web-to-LLM data pipelines
+These companies sell “URL in, clean structured data out” services for large-scale web corpora.
+
+| Company / product | What it does | Pricing (publicly visible) | Source |
+|---|---|---:|---|
+| **Firecrawl** | Crawl/scrape websites and return markdown/structured data for LLMs | **Free tier**, then **pay-as-you-go credits**; enterprise custom | https://www.firecrawl.dev/pricing |
+| **Apify** | Web scraping platform with actors, proxies, storage, data transfer; used for large-scale crawling and extraction | **Usage-based**; platform charges for Actors, proxies, transfer, storage; paid plans start at **$29/mo** according to secondary pricing summaries | https://apify.com/pricing |
+| **Browse AI** | No-code scraping/monitoring robots for websites | Freemium + credit-based tiers | https://www.browse.ai/pricing |
+| **Zyte** | Full-stack web scraping API and managed extraction services | Public pricing page; usage-based / plan-based (exact numbers vary by product and are not always exposed on the landing page) | https://www.zyte.com/pricing/ |
+| **Diffbot** | Web extraction APIs + knowledge graph for structured web data | Public plans; third-party pricing summaries cite **Startup $299/mo**, **Plus $899/mo**, enterprise custom | https://www.diffbot.com/pricing |
+| **Unstructured** | Converts documents into LLM-ready chunks/structures; also handles ingestion pipelines | Public pricing page; third-party summaries cite **$0.03/page** serverless API and free pages | https://unstructured.io/pricing |
+| **ClawEngine** | “LLM-ready data” web scraping API | Public site; pricing not clearly surfaced in search snippet | https://clawengine.ai/ |
+| **Context.dev** | Enterprise crawler API for AI pipelines | Publicly marketed as “fastest path to LLM-ready structured output” | https://www.context.dev/blog/best-enterprise-web-crawling-services-2026 |
+
+### B. Document intelligence / per-page extraction
+These are the classic “manual document processing” businesses being automated at scale.
+
+| Company / product | What it does | Pricing (publicly visible) | Source |
+|---|---|---:|---|
+| **AWS Textract** | OCR + forms/tables extraction; classification/extraction for docs | **$0.07/page** up to 1M pages in Oregon; **$0.055/page** above 1M for some workflows | https://aws.amazon.com/textract/pricing/ |
+| **Google Document AI** | OCR, layout, prebuilt models, custom extraction | Public pricing page; secondary summaries cite **Read API $0.65/1,000 pages**, **Layout/Prebuilt $10/1,000 pages**, **Custom Extraction $30/1,000 pages** | https://cloud.google.com/products/document-ai/pricing |
+| **Azure AI Document Intelligence** | Extract fields/text/tables from documents and forms | Public pricing page; usage-based | https://azure.microsoft.com/en-us/pricing/details/document-intelligence/ |
+| **Hyperscience** | Enterprise intelligent document processing | Mostly **custom enterprise pricing**; some secondary sources cite per-page pricing but official pricing is quote-based | https://www.hyperscience.com/ |
+| **Rossum** | Intelligent document processing / invoice and document extraction | Typically **custom / quote-based** | https://rossum.ai/ |
+| **Docparser** | Document parsing / extraction automation | Public SaaS pricing; lower-cost SMB tier | https://docparser.com/ |
+| **ABBYY** | IDP / OCR / document capture | Enterprise pricing, usually quote-based | https://www.abbyy.com/ |
+
+### C. General LLM APIs used for per-item corpus processing
+These are not “crawlers” themselves, but they’re heavily used for **summarization, classification, translation, extraction, and embedding prep** at scale.
+
+| Provider | What it enables | Pricing / model |
+|---|---|---|
+| **OpenAI API** | Batch summarization, extraction, classification, embeddings | Official pricing page; **Batch API** supports async processing and is designed for large jobs, with cost efficiency vs synchronous calls | https://developers.openai.com/api/docs/pricing |
+| **Anthropic Claude API** | Long-context summarization, extraction, classification | Official list prices in token-based PDF; public pricing docs | https://platform.claude.com/docs/en/about-claude/pricing |
+| **Google Gemini / Vertex AI** | Summarization, extraction, translation, embeddings | Usage-based cloud pricing |
+| **AWS Bedrock** | Model access for document pipelines | Usage-based |
+| **Azure OpenAI / Foundry** | LLM processing integrated with Azure doc services | Usage-based |
+
+## 2) Open-source projects
+
+These projects are especially relevant because they let teams build the same pipeline in-house.
+
+| Project | What it does | License / status | Source |
+|---|---|---|---|
+| **Crawl4AI** | Async web crawler for LLM-ready markdown/JSON; supports LLM-based extraction strategies, classification, summarization | Open source; Apache 2.0 (per ecosystem writeups) | https://docs.crawl4ai.com/extraction/llm-strategies/ |
+| **Firecrawl OSS / self-hosted ecosystem** | Crawl/scrape and turn pages into structured outputs | Open source components plus hosted service | https://www.firecrawl.dev/pricing |
+| **Unstructured** | Document partitioning and preprocessing into LLM-ready chunks | Open source core + hosted API | https://unstructured.io/pricing |
+| **Apify ecosystem / Actors** | Large actor marketplace for scraping and data collection | Platform + community actors | https://apify.com/ |
+| **Web Crawling & Document Processing System** | GitHub project: distributed crawling + OCR + embeddings + vector DB | Open source GitHub project | https://github.com/yashwin013/Web-Crawling-and-Document-Processing-System |
+| **Intelligent-Document-Analyzer-using-llm** | Upload docs, extract text, QA, summarize, action items | Open source GitHub project | https://github.com/Aditi0143/Intelligent-Document-Analyzer-using-llm |
+| **Crawl4AI-based guides and examples** | Practical pipelines for LLM web scraping | Open source docs/ecosystem | https://docs.crawl4ai.com/extraction/llm-strategies/ |
+
+## 3) What these services commoditize
+
+The manual industries being commoditized are:
+
+1. **Web research / competitive intelligence**
+   - Manual browsing, copy-paste research, monitoring competitors, market sizing, lead enrichment.
+   - Commoditized by: Firecrawl, Apify, Zyte, Diffbot, Browse AI, Crawl4AI.
+
+2. **Data entry / document operations**
+   - Invoice processing, form intake, claims processing, KYC packet review, purchase orders, receipts.
+   - Commoditized by: AWS Textract, Google Document AI, Azure Document Intelligence, Rossum, Hyperscience, ABBYY, Docparser.
+
+3. **Back-office BPO / outsourced clerical review**
+   - Human teams reading PDFs/emails/webpages and entering structured fields.
+   - Commoditized by: IDP vendors + LLM batch pipelines.
+
+4. **Translation services**
+   - Bulk page/document translation and localization prep.
+   - Commoditized by: general LLM APIs, especially batch processing with OpenAI/Anthropic/Google models.
+
+5. **Content tagging / editorial triage**
+   - Manual classification, topic labeling, moderation, routing, summarization.
+   - Commoditized by: OpenAI Batch, Claude, Gemini, and open-source pipelines.
+
+6. **Knowledge management / enterprise search prep**
+   - Turning messy corpora into embeddings, chunks, metadata, summaries.
+   - Commoditized by: Unstructured, Firecrawl, Crawl4AI, OpenAI embeddings workflows.
+
+## 4) The main market pattern
+
+The market is converging on a few pricing models:
+
+- **Per-page**
+  - Common in document intelligence: Textract, Document AI, many IDP tools.
+- **Credit-based**
+  - Common in web crawling/scraping: Firecrawl, Apify, Browse AI, Diffbot.
+- **Token-based**
+  - Common for LLM-native summarization/extraction/translation: OpenAI, Anthropic, Google.
+- **Custom enterprise**
+  - Common for high-volume or regulated workflows: Zyte, Hyperscience, Rossum, ABBYY.
+
+## 5) Practical takeaway
+
+If your goal is **large-scale per-item processing**, the strongest “today” stack categories are:
+
+- **Web corpora**: Firecrawl, Zyte, Apify, Diffbot, Crawl4AI
+- **Document corpora**: AWS Textract, Google Document AI, Azure Document Intelligence, Unstructured
+- **LLM batch processing**: OpenAI Batch, Anthropic Claude, Gemini/Vertex AI
+- **Open-source build-your-own**: Crawl4AI + Unstructured + open-source OCR/embedding stack
+
+If you want, I can turn this into a **comparison table with 15–20 vendors**, including **which ones are best for crawling vs extraction vs summarization vs translation vs embeddings**, and I can add a **“manual jobs replaced” map by industry**.
+  summary: ## Large-scale per-item LLM processing of web and document corpora: current market summary
+
+### 1) Key facts and main points
+
+The market today splits into three overlapping layers:
+
+1. **Web-to-LLM ingestion services**
+   These crawl or scrape websites at scale and convert pages into cleaner formats such as markdown, structured JSON, or knowledge-graph-ready data.
+   Main vendors include **Firecrawl, Apify, Browse AI, Zyte, Diffbot**, and newer AI-focused crawlers such as **Crawl4AI** and **ClawEngine**.
+
+2. **Document intelligence / per-page extraction services**
+   These automate OCR, layout detection, form/table extraction, and field classification for PDFs, scans, invoices, receipts, claims, and forms.
+   Main vendors include **AWS Textract, Google Document AI, Azure AI Document Intelligence, Hyperscience, Rossum, Docparser, and ABBYY**.
+
+3. **General LLM APIs for per-item processing**
+   These are used for **summarization, extraction, classification, translation, and embedding preparation** after ingestion.
+   Main providers include **OpenAI, Anthropic, Google Gemini/Vertex AI, AWS Bedrock, and Azure OpenAI/Foundry**.
+
+#### Commercial services with publicly visible pricing or pricing structures
+
+- **Firecrawl**: website crawling/scraping for LLM-ready outputs; offers a **free tier** and then **pay-as-you-go credits**.
+  Source: Firecrawl pricing page.
+
+- **Apify**: scraping/crawling platform with actors, proxies, storage, and transfer; pricing is **usage-based**, with secondary summaries noting paid plans starting around **$29/month**.
+  Source: Apify pricing page.
+
+- **Browse AI**: no-code scraping and monitoring robots; **freemium + credit-based tiers**.
+  Source: Browse AI pricing page.
+
+- **Zyte**: managed web scraping and extraction; pricing is **usage-based / plan-based**, often enterprise-oriented.
+  Source: Zyte pricing page.
+
+- **Diffbot**: structured web extraction and knowledge graph services; public pricing exists, with secondary summaries citing **Startup $299/month**, **Plus $899/month**, and enterprise custom pricing.
+  Source: Diffbot pricing page.
+
+- **Unstructured**: document partitioning and LLM-ready chunking; public pricing exists, with secondary summaries citing **$0.03/page** for serverless API and free usage tiers.
+  Source: Unstructured pricing page.
+
+- **AWS Textract**: OCR and forms/tables extraction; public pricing includes roughly **$0.07/page** up to 1 million pages in some regions, with lower pricing at scale for some workflows.
+  Source: AWS Textract pricing.
+
+- **Google Document AI**: OCR, layout, prebuilt/custom extraction; public pricing page, with secondary summaries citing **Read API $0.65/1,000 pages**, **Layout/Prebuilt $10/1,000 pages**, and **Custom Extraction $30/1,000 pages**.
+  Source: Google Document AI pricing.
+
+- **Azure AI Document Intelligence**: usage-based document extraction and OCR.
+  Source: Azure pricing page.
+
+- **OpenAI API**: widely used for batch summarization, extraction, classification, and embeddings; the **Batch API** is especially relevant for large-scale asynchronous processing.
+  Source: OpenAI pricing/docs.
+
+- **Anthropic Claude API**: used for long-context summarization and extraction at scale.
+  Source: Anthropic pricing docs.
+
+#### Open-source projects enabling in-house equivalents
+
+- **Crawl4AI**: open-source async web crawler designed for LLM-ready markdown/JSON output and LLM-based extraction strategies.
+- **Unstructured**: open-source document partitioning and preprocessing.
+- **Firecrawl OSS/self-hosted ecosystem**: open-source components plus hosted service.
+- **Apify ecosystem**: large actor marketplace and community scraping tools.
+- Smaller GitHub projects also exist for end-to-end crawling + OCR + embeddings pipelines.
+
+#### What is being commoditized
+
+These services are commoditizing several manual industries and workflows:
+
+- **Web research and competitive intelligence**
+  - Manual browsing, copy-paste research, lead enrichment, monitoring, market scans.
+- **Data entry and document operations**
+  - Invoice processing, forms, claims, receipts, purchase orders, KYC packet review.
+- **Back-office BPO / clerical review**
+  - Human teams reading and structuring PDFs, emails, and web pages.
+- **Translation and localization prep**
+  - Bulk translation of documents and web content.
+- **Content tagging and editorial triage**
+  - Classification, routing, moderation, summarization.
+- **Enterprise knowledge prep**
+  - Chunking, metadata generation, embedding preparation, search indexing.
+
+---
+
+### 2) Recent developments
+
+The main recent shift is that the market is moving from **single-purpose OCR/scraping tools** to **LLM-native pipelines** that do multiple steps in one pass:
+
+- **Crawlers now output LLM-ready formats** such as markdown, JSON, and structured records instead of raw HTML.
+- **Document tools now focus on semantic extraction**, not just OCR.
+- **Batch LLM APIs** have made large-scale per-item processing cheaper and operationally easier.
+- **Open-source stacks are maturing**, making it feasible to self-host web crawling and document preprocessing.
+- Pricing models are converging around:
+  - **Per-page** for documents
+  - **Credit-based** for crawling/scraping
+  - **Token-based** for LLM post-processing
+  - **Custom enterprise contracts** for high-volume or regulated use cases
+
+A notable trend is that vendors are increasingly selling not just “scraping” or “OCR,” but **end-to-end ingestion for AI pipelines**: crawl, clean, extract, classify, summarize, and prepare embeddings.
+
+---
+
+### 3) Sources cited
+
+Commercial and platform sources referenced in the findings:
+
+- Firecrawl pricing: https://www.firecrawl.dev/pricing
+- Apify pricing: https://apify.com/pricing
+- Browse AI pricing: https://www.browse.ai/pricing
+- Zyte pricing: https://www.zyte.com/pricing/
+- Diffbot pricing: https://www.diffbot.com/pricing
+- Unstructured pricing: https://unstructured.io/pricing
+- AWS Textract pricing: https://aws.amazon.com/textract/pricing/
+- Google Document AI pricing: https://cloud.google.com/products/document-ai/pricing
+- Azure AI Document Intelligence pricing: https://azure.microsoft.com/en-us/pricing/details/document-intelligence/
+- OpenAI pricing/docs: https://developers.openai.com/api/docs/pricing
+- Anthropic Claude pricing: https://platform.claude.com/docs/en/about-claude/pricing
+- Crawl4AI docs: https://docs.crawl4ai.com/extraction/llm-strategies/
+
+If you want, I can turn this into a **vendor-by-vendor comparison table** with columns for **web crawling, document OCR, summarization, translation, embeddings, pricing model, and best-fit use case**.

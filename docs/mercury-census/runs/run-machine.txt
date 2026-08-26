@@ -1,0 +1,101 @@
+2026-08-26 08:29:01,785 [INFO] yamlgraph.compile.node_compiler: Added node: generate (type=llm)
+2026-08-26 08:29:01,895 [INFO] yamlgraph.utils.llm_factory: Creating LLM: azure/aaa-gpt-5.4-mini (temp=0.85)
+2026-08-26 08:29:12,576 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-26 08:29:12,585 [INFO] yamlgraph.node_factory.llm_nodes: Node generate completed successfully
+
+🚀 Running graph: graph.yaml
+   Variables: {'domain': 'Use cases of the cheap-map/code-reduce LLM pattern where the CONSUMER of the output is another MACHINE or AI system, not a human: preparing, distilling, structuring, or annotating corpora and streams so that downstream agents, models, pipelines, and automated systems can consume them. What infrastructure, standards, and services emerge?'}
+
+🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/09c0c2d4-5724-4301-bcee-e1b64ddeb80e/r/01a03c8b-105e-7133-af6d-9dff4e47681a?poll=true
+============================================================
+RESULT
+============================================================
+  current_step: generate
+  domain: Use cases of the cheap-map/code-reduce LLM pattern where the CONSUMER of the output is another MACHINE or AI system, not a human: preparing, distilling, structuring, or annotating corpora and streams so that downstream agents, models, pipelines, and automated systems can consume them. What infrastructure, standards, and services emerge?
+  matrix: ## 1) Capabilities (C1-C5)
+
+**C1. Cheap large-scale semantic compression**
+LLMs can map long, messy, multimodal, or high-volume inputs into shorter representations: summaries, labels, embeddings-adjacent text, schemas, extracts, and canonical forms.
+
+**C2. Flexible schema induction and transformation**
+LLMs can infer structure from unstructured data and convert it into JSON, tables, event records, RDF-like triples, annotations, or task-specific fields.
+
+**C3. Weak supervision and auto-annotation**
+LLMs can generate pseudo-labels, span annotations, classifications, rationales, entity links, and relation tags at scale, bootstrapping downstream ML systems.
+
+**C4. Content filtering, normalization, and triage**
+LLMs can detect duplicates, near-duplicates, policy violations, noise, low-quality records, language variants, and inconsistencies, then route, redact, or standardize them.
+
+**C5. Context-aware routing and enrichment**
+LLMs can decide what downstream machine should consume a record, attach metadata, select tools, and enrich items with citations, confidence, provenance, or retrieval hints.
+
+---
+
+**S1. Latency and throughput pressure**
+Machine-consumed pipelines often need high throughput, low latency, and predictable processing windows, limiting how much reasoning can happen per item.
+
+**S2. Precision, calibration, and error tolerance**
+Downstream systems may fail catastrophically on bad structure or mislabeled data; small errors can propagate through automation chains.
+
+**S3. Cost and token-budget constraints**
+Cheap map/reduce exists because full-context LLM processing is expensive; token limits, compute budgets, and per-item economics remain central.
+
+**S4. Governance, auditability, and provenance requirements**
+Machine-facing outputs often need traceability: why a label was produced, which source supported it, what model version generated it, and whether it can be reproduced.
+
+**S5. Format rigidity and interoperability**
+Downstream machines require strict schemas, stable interfaces, versioned contracts, and predictable encodings across heterogeneous pipelines.
+
+---
+
+## 2) Matrix Table
+
+| Cell | Capability | Constraint | Tension | Idea | Potential |
+|------|------------|------------|---------|------|-----------|
+| C1S1 | Cheap large-scale semantic compression | Latency and throughput pressure | Compressing meaning fast enough for streaming systems | **Streaming semantic reducers** that turn event firehoses into rolling “machine abstracts” for each entity/session/window in near real time | ⭐⭐⭐⭐⭐ |
+| C1S2 | Cheap large-scale semantic compression | Precision, calibration, and error tolerance | Shortening content can erase critical nuance | **Loss-aware compression tiers** that emit multiple summaries: safe, detailed, and exception-focused versions with confidence tags | ⭐⭐⭐⭐ |
+| C1S3 | Cheap large-scale semantic compression | Cost and token-budget constraints | Better compression may cost more than the data is worth | **Budget-aware reducers** that adapt summary depth dynamically based on item value, novelty, and downstream SLA | ⭐⭐⭐⭐⭐ |
+| C1S4 | Cheap large-scale semantic compression | Governance, auditability, and provenance requirements | Compressed outputs are harder to audit than originals | **Traceable summary artifacts** with source spans, provenance hashes, and “summary receipts” linking every sentence to evidence | ⭐⭐⭐⭐ |
+| C1S5 | Cheap large-scale semantic compression | Format rigidity and interoperability | Human-style summaries are not machine-friendly | **Dual-layer compression**: machine-readable structured summary plus optional natural-language gloss for debugging | ⭐⭐⭐⭐ |
+
+| C2S1 | Flexible schema induction and transformation | Latency and throughput pressure | Schema inference is useful but can be slow on heterogeneous inputs | **Schema-on-read agents** that infer a lightweight record schema in one pass and refine later in batch | ⭐⭐⭐⭐ |
+| C2S2 | Flexible schema induction and transformation | Precision, calibration, and error tolerance | Induced schemas can be subtly wrong yet look valid | **Schema validation loops** where LLMs propose structure and deterministic validators reject, repair, or quarantine uncertain fields | ⭐⭐⭐⭐⭐ |
+| C2S3 | Flexible schema induction and transformation | Cost and token-budget constraints | Full extraction for every record can be too expensive | **Progressive structuring** that extracts only high-value fields first, then expands selectively on demand | ⭐⭐⭐⭐ |
+| C2S4 | Flexible schema induction and transformation | Governance, auditability, and provenance requirements | Auto-generated structure lacks accountable lineage | **Provenance-aware extraction graphs** that store field-level lineage, prompts, model versions, and source offsets | ⭐⭐⭐⭐ |
+| C2S5 | Flexible schema induction and transformation | Format rigidity and interoperability | Different downstream systems want different schemas | **Schema translation layers** that map one canonical extraction into many target contracts and versions | ⭐⭐⭐⭐⭐ |
+
+| C3S1 | Weak supervision and auto-annotation | Latency and throughput pressure | Labeling at scale competes with real-time needs | **Fast pseudo-label streams** that annotate incoming data with “good enough now, better later” labels for online learning | ⭐⭐⭐⭐ |
+| C3S2 | Weak supervision and auto-annotation | Precision, calibration, and error tolerance | Noisy labels can poison training and automation | **Confidence-gated annotation services** that emit labels only when model agreement or evidence thresholds are met | ⭐⭐⭐⭐⭐ |
+| C3S3 | Weak supervision and auto-annotation | Cost and token-budget constraints | Rich annotation per item is expensive | **Annotation compression** that uses minimal labels, sparse rationales, and active-learning prioritization to maximize label value per token | ⭐⭐⭐⭐ |
+| C3S4 | Weak supervision and auto-annotation | Governance, auditability, and provenance requirements | Pseudo-labels need explainable origin for compliance and debugging | **Label lineage ledgers** capturing source text, prompt template, annotator model, confidence, and revision history | ⭐⭐⭐⭐ |
+| C3S5 | Weak supervision and auto-annotation | Format rigidity and interoperability | Training pipelines need stable label ontologies | **Ontology-constrained annotators** that map free-form LLM judgments into fixed taxonomies and versioned label sets | ⭐⭐⭐⭐⭐ |
+
+| C4S1 | Content filtering, normalization, and triage | Latency and throughput pressure | Filtering must happen before queues overflow | **Real-time intake gates** that triage, dedupe, and normalize streams before they hit storage or expensive models | ⭐⭐⭐⭐⭐ |
+| C4S2 | Content filtering, normalization, and triage | Precision, calibration, and error tolerance | Over-filtering can delete valuable edge cases | **Risk-tiered triage** that routes uncertain items to human or higher-cost machine review instead of dropping them | ⭐⭐⭐⭐ |
+| C4S3 | Content filtering, normalization, and triage | Cost and token-budget constraints | Normalization can be wasteful if done uniformly | **Selective normalization pipelines** that only spend tokens on records likely to matter, with cheap heuristics for the rest | ⭐⭐⭐⭐ |
+| C4S4 | Content filtering, normalization, and triage | Governance, auditability, and provenance requirements | Redaction and filtering decisions need defensible records | **Policy-explained filtering** with machine-readable policy citations and reversible redaction tokens | ⭐⭐⭐⭐ |
+| C4S5 | Content filtering, normalization, and triage | Format rigidity and interoperability | Normalized output must fit many downstream consumers | **Canonical event envelopes** that standardize payload, metadata, dedupe keys, and policy flags across pipelines | ⭐⭐⭐⭐⭐ |
+
+| C5S1 | Context-aware routing and enrichment | Latency and throughput pressure | Routing decisions must be made instantly as data arrives | **Adaptive router microservices** that classify items and dispatch them to the right model, queue, or workflow in one hop | ⭐⭐⭐⭐⭐ |
+| C5S2 | Context-aware routing and enrichment | Precision, calibration, and error tolerance | Wrong routing can waste compute or cause missed actions | **Confidence-aware routing** with fallback paths, quorum decisions, and “hold for more context” states | ⭐⭐⭐⭐⭐ |
+| C5S3 | Context-aware routing and enrichment | Cost and token-budget constraints | Enrichment can become a token sink if done indiscriminately | **Value-of-information enricher** that only adds metadata likely to improve downstream utility | ⭐⭐⭐⭐ |
+| C5S4 | Context-aware routing and enrichment | Governance, auditability, and provenance requirements | Routing and enrichment decisions must be explainable | **Decision provenance APIs** that expose why a record was routed, enriched, or withheld, with model and policy traces | ⭐⭐⭐⭐ |
+| C5S5 | Context-aware routing and enrichment | Format rigidity and interoperability | Different consumers require different envelopes and metadata | **Multi-target payload composer** that emits tailored representations for search, training, workflow, and analytics systems | ⭐⭐⭐⭐⭐ |
+
+---
+
+## 3) Top 3 Picks
+
+### 1) **C5S1 — Adaptive router microservices**
+**Why it stands out:** This is a high-leverage infrastructure layer for the entire ecosystem. If machines consume machine-prepared data, routing becomes the control plane: deciding which model, pipeline, or agent gets each item. Strong fit with real-time automation and easy to productize.
+
+### 2) **C2S2 — Schema validation loops**
+**Why it stands out:** One of the most important bottlenecks in machine-to-machine LLM use is that outputs must be structurally correct, not just semantically plausible. Combining LLM inference with deterministic validators is practical, necessary, and broadly reusable.
+
+### 3) **C4S5 — Canonical event envelopes**
+**Why it stands out:** This is a likely “boring but huge” standard. A universal machine-facing envelope for normalized, annotated, policy-aware data could become foundational infrastructure across pipelines, tools, and vendors.
+
+If you want, I can next turn these top 3 into:
+- a **service blueprint**
+- a **reference architecture**
+- or a **startup opportunity map** with buyers, moat, and MVP scope.

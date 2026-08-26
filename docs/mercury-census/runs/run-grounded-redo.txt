@@ -1,0 +1,673 @@
+2026-08-26 09:19:03,163 [INFO] yamlgraph.compile.graph_loader: Parsed 1 Python tools: search_web
+2026-08-26 09:19:03,165 [INFO] yamlgraph.compile.node_compiler: Added node: research (type=agent)
+2026-08-26 09:19:03,166 [INFO] yamlgraph.compile.node_compiler: Added node: summarize (type=llm)
+2026-08-26 09:19:03,277 [INFO] yamlgraph.utils.llm_factory: Creating LLM: azure/aaa-gpt-5.4-mini (temp=0.7)
+2026-08-26 09:19:04,299 [INFO] yamlgraph.tools.agent: 🤖 Starting agent loop: research (max 5 iterations)
+2026-08-26 09:19:05,547 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-26 09:19:05,555 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': '2025 commercial services web content crawling summarizing classifying extracting indexing cheap fast LLM Haiku-class Mercury pricing', 'max_results': 5})
+2026-08-26 09:19:06,146 [INFO] primp: response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=2025%20commercial%20services%20web%20content%20crawling%20summarizing%20classifying%20extracting%20indexing%20cheap%20fast%20LLM%20Haiku-class%20Mercury%20pricing 200
+2026-08-26 09:19:06,223 [INFO] primp: response: https://grokipedia.com/api/typeahead?query=2025+commercial+services+web+content+crawling+summarizing+classifying+extracting+indexing+cheap+fast+LLM+Haiku-class+Mercury+pricing&limit=1 200
+2026-08-26 09:19:06,476 [INFO] primp: response: https://www.startpage.com/ 200
+2026-08-26 09:19:06,613 [INFO] primp: response: https://www.startpage.com/sp/search 200
+2026-08-26 09:19:06,774 [INFO] httpx: HTTP Request: POST https://html.duckduckgo.com/html/ "HTTP/2 202 Accepted"
+2026-08-26 09:19:07,061 [INFO] primp: response: https://www.mojeek.com/search?q=2025+commercial+services+web+content+crawling+summarizing+classifying+extracting+indexing+cheap+fast+LLM+Haiku-class+Mercury+pricing 200
+2026-08-26 09:19:07,360 [INFO] primp: response: https://search.yahoo.com/search;_ylt=3yIJgwq2gWaLRiIPQ6EqCZHJ;_ylu=3nQ1QLopVp5hP2WyNAIBioRsuoJVeBn0ennQLPyBRviexdM?p=2025+commercial+services+web+content+crawling+summarizing+classifying+extracting+indexing+cheap+fast+LLM+Haiku-class+Mercury+pricing 200
+2026-08-26 09:19:08,129 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': '2025 open-source tools web crawling summarization classification extraction indexing LLM per-item processing at scale', 'max_results': 5})
+2026-08-26 09:19:08,454 [INFO] primp: response: https://grokipedia.com/api/typeahead?query=2025+open-source+tools+web+crawling+summarization+classification+extraction+indexing+LLM+per-item+processing+at+scale&limit=1 200
+2026-08-26 09:19:08,470 [INFO] primp: response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=2025%20open-source%20tools%20web%20crawling%20summarization%20classification%20extraction%20indexing%20LLM%20per-item%20processing%20at%20scale 200
+2026-08-26 09:19:09,090 [INFO] primp: response: https://search.yahoo.com/search;_ylt=GdlvoLo8fxEtiVpQng5DSruO;_ylu=jw7_ljzOnE6mgG6onphqovuY8L1qSunvOKQRjLlHUazwnEs?p=2025+open-source+tools+web+crawling+summarization+classification+extraction+indexing+LLM+per-item+processing+at+scale 200
+2026-08-26 09:19:09,975 [INFO] primp: response: https://www.startpage.com/ 200
+2026-08-26 09:19:10,113 [INFO] primp: response: https://www.startpage.com/sp/search 200
+2026-08-26 09:19:10,941 [INFO] primp: response: https://search.brave.com/search?q=2025+open-source+tools+web+crawling+summarization+classification+extraction+indexing+LLM+per-item+processing+at+scale&source=web 200
+2026-08-26 09:19:10,987 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': '2025 Mercury diffusion LLM pricing use cases web content processing', 'max_results': 5})
+2026-08-26 09:19:11,249 [INFO] primp: response: https://grokipedia.com/api/typeahead?query=2025+Mercury+diffusion+LLM+pricing+use+cases+web+content+processing&limit=1 200
+2026-08-26 09:19:11,316 [INFO] primp: response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=2025%20Mercury%20diffusion%20LLM%20pricing%20use%20cases%20web%20content%20processing 200
+2026-08-26 09:19:11,566 [INFO] primp: response: https://www.mojeek.com/search?q=2025+Mercury+diffusion+LLM+pricing+use+cases+web+content+processing 200
+2026-08-26 09:19:11,736 [INFO] httpx: HTTP Request: POST https://html.duckduckgo.com/html/ "HTTP/2 202 Accepted"
+2026-08-26 09:19:12,523 [INFO] primp: response: https://search.brave.com/search?q=2025+Mercury+diffusion+LLM+pricing+use+cases+web+content+processing&source=web 200
+2026-08-26 09:19:12,542 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': '2025 Claude Haiku pricing web content processing summarization extraction classification', 'max_results': 5})
+2026-08-26 09:19:12,851 [INFO] primp: response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=2025%20Claude%20Haiku%20pricing%20web%20content%20processing%20summarization%20extraction%20classification 200
+2026-08-26 09:19:12,880 [INFO] primp: response: https://grokipedia.com/api/typeahead?query=2025+Claude+Haiku+pricing+web+content+processing+summarization+extraction+classification&limit=1 200
+2026-08-26 09:19:13,206 [INFO] primp: response: https://www.startpage.com/ 200
+2026-08-26 09:19:13,372 [INFO] primp: response: https://www.startpage.com/sp/search 200
+2026-08-26 09:19:13,557 [INFO] httpx: HTTP Request: POST https://html.duckduckgo.com/html/ "HTTP/2 202 Accepted"
+2026-08-26 09:19:13,999 [INFO] primp: response: https://search.yahoo.com/search;_ylt=FWN1uZmN6QqwRr0AhXsduUfs;_ylu=RD1QIGNTRiEOz6zFpZyXGc9Y80r5Nb_l2u2zViQ6S5pQrto?p=2025+Claude+Haiku+pricing+web+content+processing+summarization+extraction+classification 200
+2026-08-26 09:19:16,153 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-26 09:19:16,155 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': 'site:anthropic.com Claude Haiku 4.5 pricing classification extraction summarization 2025', 'max_results': 10})
+2026-08-26 09:19:16,455 [INFO] primp: response: https://grokipedia.com/api/typeahead?query=site%3Aanthropic.com+Claude+Haiku+4.5+pricing+classification+extraction+summarization+2025&limit=1 200
+2026-08-26 09:19:16,510 [INFO] primp: response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=site%3Aanthropic.com%20Claude%20Haiku%204.5%20pricing%20classification%20extraction%20summarization%202025 200
+2026-08-26 09:19:16,811 [INFO] primp: response: https://search.brave.com/search?q=site%3Aanthropic.com+Claude+Haiku+4.5+pricing+classification+extraction+summarization+2025&source=web 429
+2026-08-26 09:19:16,982 [INFO] httpx: HTTP Request: POST https://html.duckduckgo.com/html/ "HTTP/2 202 Accepted"
+2026-08-26 09:19:17,224 [INFO] primp: response: https://www.mojeek.com/search?q=site%3Aanthropic.com+Claude+Haiku+4.5+pricing+classification+extraction+summarization+2025 200
+2026-08-26 09:19:17,538 [INFO] primp: response: https://www.startpage.com/ 200
+2026-08-26 09:19:17,847 [INFO] primp: response: https://www.startpage.com/sp/search 200
+2026-08-26 09:19:18,213 [INFO] primp: response: https://search.yahoo.com/search;_ylt=UqUtxbePWQ1fUUz38ymqIbmJ;_ylu=c1e5nT3cFzgaPdMPF18Bh4JGhyp9kMoAcZb_-wTutv0XF_s?p=site%3Aanthropic.com+Claude+Haiku+4.5+pricing+classification+extraction+summarization+2025 200
+2026-08-26 09:19:18,681 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': 'site:inceptionlabs.ai Mercury 2 pricing 2025 2026 API tokens per million', 'max_results': 10})
+2026-08-26 09:19:18,978 [INFO] primp: response: https://grokipedia.com/api/typeahead?query=site%3Ainceptionlabs.ai+Mercury+2+pricing+2025+2026+API+tokens+per+million&limit=1 200
+2026-08-26 09:19:19,043 [INFO] primp: response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=site%3Ainceptionlabs.ai%20Mercury%202%20pricing%202025%202026%20API%20tokens%20per%20million 200
+2026-08-26 09:19:19,297 [INFO] primp: response: https://search.brave.com/search?q=site%3Ainceptionlabs.ai+Mercury+2+pricing+2025+2026+API+tokens+per+million&source=web 429
+2026-08-26 09:19:19,465 [INFO] httpx: HTTP Request: POST https://html.duckduckgo.com/html/ "HTTP/2 202 Accepted"
+2026-08-26 09:19:19,772 [INFO] primp: response: https://search.yahoo.com/search;_ylt=UYZgrofqLIv0uHH1ezrqgSr8;_ylu=66yvC7LOIVi0oGwZuInPidpykjz_pd0gFwP5X0PGNSVizxI?p=site%3Ainceptionlabs.ai+Mercury+2+pricing+2025+2026+API+tokens+per+million 200
+2026-08-26 09:19:20,545 [INFO] primp: response: https://www.mojeek.com/search?q=site%3Ainceptionlabs.ai+Mercury+2+pricing+2025+2026+API+tokens+per+million 200
+2026-08-26 09:19:20,871 [INFO] primp: response: https://www.startpage.com/ 200
+2026-08-26 09:19:21,011 [INFO] primp: response: https://www.startpage.com/sp/search 200
+2026-08-26 09:19:21,013 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': 'site:firecrawl.dev pricing Firecrawl hosted service 2025 2026 crawl scrape index summarize', 'max_results': 10})
+2026-08-26 09:19:21,361 [INFO] primp: response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=site%3Afirecrawl.dev%20pricing%20Firecrawl%20hosted%20service%202025%202026%20crawl%20scrape%20index%20summarize 200
+2026-08-26 09:19:21,364 [INFO] primp: response: https://grokipedia.com/api/typeahead?query=site%3Afirecrawl.dev+pricing+Firecrawl+hosted+service+2025+2026+crawl+scrape+index+summarize&limit=1 200
+2026-08-26 09:19:21,662 [INFO] primp: response: https://search.brave.com/search?q=site%3Afirecrawl.dev+pricing+Firecrawl+hosted+service+2025+2026+crawl+scrape+index+summarize&source=web 429
+2026-08-26 09:19:22,100 [INFO] primp: response: https://www.startpage.com/ 200
+2026-08-26 09:19:22,231 [INFO] primp: response: https://www.startpage.com/sp/search 200
+2026-08-26 09:19:22,419 [INFO] httpx: HTTP Request: POST https://html.duckduckgo.com/html/ "HTTP/2 202 Accepted"
+2026-08-26 09:19:22,667 [INFO] primp: response: https://www.mojeek.com/search?q=site%3Afirecrawl.dev+pricing+Firecrawl+hosted+service+2025+2026+crawl+scrape+index+summarize 200
+2026-08-26 09:19:22,980 [INFO] primp: response: https://search.yahoo.com/search;_ylt=8GHYovu1d-ILBv2SnV1VhfHY;_ylu=WT0lpqflR_6nN1BW7DsW-VxwbsL0DQCCyzoJQNCZf1H-piU?p=site%3Afirecrawl.dev+pricing+Firecrawl+hosted+service+2025+2026+crawl+scrape+index+summarize 200
+2026-08-26 09:19:23,604 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': 'site:apify.com pricing website content crawler 2025 2026 crawl summarize extract', 'max_results': 10})
+2026-08-26 09:19:23,891 [INFO] primp: response: https://grokipedia.com/api/typeahead?query=site%3Aapify.com+pricing+website+content+crawler+2025+2026+crawl+summarize+extract&limit=1 200
+2026-08-26 09:19:23,964 [INFO] primp: response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=site%3Aapify.com%20pricing%20website%20content%20crawler%202025%202026%20crawl%20summarize%20extract 200
+2026-08-26 09:19:24,230 [INFO] primp: response: https://www.startpage.com/ 200
+2026-08-26 09:19:24,492 [INFO] primp: response: https://www.startpage.com/sp/search 200
+2026-08-26 09:19:24,800 [INFO] primp: response: https://search.yahoo.com/search;_ylt=RqgkhGszB7OtyGz3je3Pdsno;_ylu=giHo8K0I-7_v6l2JB36clOAW82n5FhMHpBZVzWiT27RIOLs?p=site%3Aapify.com+pricing+website+content+crawler+2025+2026+crawl+summarize+extract 200
+2026-08-26 09:19:25,538 [INFO] primp: response: https://www.mojeek.com/search?q=site%3Aapify.com+pricing+website+content+crawler+2025+2026+crawl+summarize+extract 200
+2026-08-26 09:19:25,796 [INFO] primp: response: https://search.brave.com/search?q=site%3Aapify.com+pricing+website+content+crawler+2025+2026+crawl+summarize+extract&source=web 429
+2026-08-26 09:19:25,813 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': 'site:github.com open-source web crawler LLM friendly markdown extraction 2025 2026 Crawl4AI Firecrawl', 'max_results': 10})
+2026-08-26 09:19:26,166 [INFO] primp: response: https://grokipedia.com/api/typeahead?query=site%3Agithub.com+open-source+web+crawler+LLM+friendly+markdown+extraction+2025+2026+Crawl4AI+Firecrawl&limit=1 200
+2026-08-26 09:19:26,210 [INFO] primp: response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=site%3Agithub.com%20open-source%20web%20crawler%20LLM%20friendly%20markdown%20extraction%202025%202026%20Crawl4AI%20Firecrawl 200
+2026-08-26 09:19:26,444 [INFO] primp: response: https://www.mojeek.com/search?q=site%3Agithub.com+open-source+web+crawler+LLM+friendly+markdown+extraction+2025+2026+Crawl4AI+Firecrawl 200
+2026-08-26 09:19:26,600 [INFO] httpx: HTTP Request: POST https://html.duckduckgo.com/html/ "HTTP/2 202 Accepted"
+2026-08-26 09:19:26,942 [INFO] primp: response: https://www.startpage.com/ 200
+2026-08-26 09:19:27,076 [INFO] primp: response: https://www.startpage.com/sp/search 200
+2026-08-26 09:19:27,376 [INFO] primp: response: https://search.yahoo.com/search;_ylt=nMr9Fcck_pGaubaJxHPgEpXS;_ylu=9p3GIUHvsu-ZnyXsIUtyMdJeIEXig5TwCLkxdpjBIq2yXrU?p=site%3Agithub.com+open-source+web+crawler+LLM+friendly+markdown+extraction+2025+2026+Crawl4AI+Firecrawl 200
+2026-08-26 09:19:28,246 [INFO] primp: response: https://search.brave.com/search?q=site%3Agithub.com+open-source+web+crawler+LLM+friendly+markdown+extraction+2025+2026+Crawl4AI+Firecrawl&source=web 429
+2026-08-26 09:19:29,656 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-26 09:19:29,657 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': 'site:docs.firecrawl.dev pricing credits crawl scrape parse batch 2025 2026', 'max_results': 10})
+2026-08-26 09:19:30,004 [INFO] primp: response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=site%3Adocs.firecrawl.dev%20pricing%20credits%20crawl%20scrape%20parse%20batch%202025%202026 200
+2026-08-26 09:19:30,158 [INFO] primp: response: https://grokipedia.com/api/typeahead?query=site%3Adocs.firecrawl.dev+pricing+credits+crawl+scrape+parse+batch+2025+2026&limit=1 200
+2026-08-26 09:19:30,615 [INFO] primp: response: https://www.mojeek.com/search?q=site%3Adocs.firecrawl.dev+pricing+credits+crawl+scrape+parse+batch+2025+2026 200
+2026-08-26 09:19:30,787 [INFO] httpx: HTTP Request: POST https://html.duckduckgo.com/html/ "HTTP/2 202 Accepted"
+2026-08-26 09:19:31,105 [INFO] primp: response: https://www.startpage.com/ 200
+2026-08-26 09:19:31,648 [INFO] primp: response: https://www.startpage.com/sp/search 200
+2026-08-26 09:19:31,958 [INFO] primp: response: https://search.yahoo.com/search;_ylt=qPkYKpXxsUHuXrL5D0W14Ov8;_ylu=FB8oT4-tvQ9bijaZeAXq4GGlSWMcVCmvEu7dibMS9jdncko?p=site%3Adocs.firecrawl.dev+pricing+credits+crawl+scrape+parse+batch+2025+2026 200
+2026-08-26 09:19:32,919 [INFO] primp: response: https://search.brave.com/search?q=site%3Adocs.firecrawl.dev+pricing+credits+crawl+scrape+parse+batch+2025+2026&source=web 429
+2026-08-26 09:19:32,935 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': 'site:docs.firecrawl.dev open source self-hosted firecrawl pricing hosted credits 2025', 'max_results': 10})
+2026-08-26 09:19:33,277 [INFO] primp: response: https://grokipedia.com/api/typeahead?query=site%3Adocs.firecrawl.dev+open+source+self-hosted+firecrawl+pricing+hosted+credits+2025&limit=1 200
+2026-08-26 09:19:33,291 [INFO] primp: response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=site%3Adocs.firecrawl.dev%20open%20source%20self-hosted%20firecrawl%20pricing%20hosted%20credits%202025 200
+2026-08-26 09:19:33,591 [INFO] primp: response: https://search.yahoo.com/search;_ylt=9mxnU0d8N4IJ-3OJibXS64QZ;_ylu=h2vRyt6FB1NEUYtT0bHIfOzbQiS3fSOtr7TcPD6hl_50mII?p=site%3Adocs.firecrawl.dev+open+source+self-hosted+firecrawl+pricing+hosted+credits+2025 200
+2026-08-26 09:19:33,933 [INFO] primp: response: https://www.startpage.com/ 200
+2026-08-26 09:19:34,118 [INFO] primp: response: https://www.startpage.com/sp/search 200
+2026-08-26 09:19:34,455 [INFO] primp: response: https://www.mojeek.com/search?q=site%3Adocs.firecrawl.dev+open+source+self-hosted+firecrawl+pricing+hosted+credits+2025 200
+2026-08-26 09:19:34,814 [INFO] primp: response: https://search.brave.com/search?q=site%3Adocs.firecrawl.dev+open+source+self-hosted+firecrawl+pricing+hosted+credits+2025&source=web 429
+2026-08-26 09:19:35,007 [INFO] httpx: HTTP Request: POST https://html.duckduckgo.com/html/ "HTTP/2 202 Accepted"
+2026-08-26 09:19:35,008 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': 'site:github.com crawl4ai pricing self-hosted open source LLM friendly crawler 2025 2026', 'max_results': 10})
+2026-08-26 09:19:35,299 [INFO] primp: response: https://grokipedia.com/api/typeahead?query=site%3Agithub.com+crawl4ai+pricing+self-hosted+open+source+LLM+friendly+crawler+2025+2026&limit=1 200
+2026-08-26 09:19:35,388 [INFO] primp: response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=site%3Agithub.com%20crawl4ai%20pricing%20self-hosted%20open%20source%20LLM%20friendly%20crawler%202025%202026 200
+2026-08-26 09:19:35,684 [INFO] primp: response: https://search.brave.com/search?q=site%3Agithub.com+crawl4ai+pricing+self-hosted+open+source+LLM+friendly+crawler+2025+2026&source=web 429
+2026-08-26 09:19:36,088 [INFO] primp: response: https://search.yahoo.com/search;_ylt=x3JYh36oomv3P7xECNc4CfXX;_ylu=Hy0SHAR3a7hDSAgRoKfF6T5AjAXKHb2qgV4ynJBfZS1vIMg?p=site%3Agithub.com+crawl4ai+pricing+self-hosted+open+source+LLM+friendly+crawler+2025+2026 200
+2026-08-26 09:19:36,910 [INFO] primp: response: https://www.mojeek.com/search?q=site%3Agithub.com+crawl4ai+pricing+self-hosted+open+source+LLM+friendly+crawler+2025+2026 200
+2026-08-26 09:19:37,151 [INFO] primp: response: https://www.startpage.com/ 200
+2026-08-26 09:19:37,258 [INFO] primp: response: https://www.startpage.com/sp/search 200
+2026-08-26 09:19:37,260 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': 'site:apify.com pricing actor compute units website content crawler crawl 2025 2026', 'max_results': 10})
+2026-08-26 09:19:37,718 [INFO] primp: response: https://grokipedia.com/api/typeahead?query=site%3Aapify.com+pricing+actor+compute+units+website+content+crawler+crawl+2025+2026&limit=1 200
+2026-08-26 09:19:37,729 [INFO] primp: response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=site%3Aapify.com%20pricing%20actor%20compute%20units%20website%20content%20crawler%20crawl%202025%202026 200
+2026-08-26 09:19:38,177 [INFO] primp: response: https://search.yahoo.com/search;_ylt=iJ8D-3-aDIjMXvY08oZfFE_u;_ylu=Rk9tLNBnNb_2z0JkllKRGGxLRSbSOjrKRW1_IyEjOf5YXJ0?p=site%3Aapify.com+pricing+actor+compute+units+website+content+crawler+crawl+2025+2026 200
+2026-08-26 09:19:38,898 [INFO] primp: response: https://www.mojeek.com/search?q=site%3Aapify.com+pricing+actor+compute+units+website+content+crawler+crawl+2025+2026 403
+2026-08-26 09:19:39,204 [INFO] primp: response: https://search.brave.com/search?q=site%3Aapify.com+pricing+actor+compute+units+website+content+crawler+crawl+2025+2026&source=web 429
+2026-08-26 09:19:39,535 [INFO] primp: response: https://www.startpage.com/ 200
+2026-08-26 09:19:39,734 [INFO] primp: response: https://www.startpage.com/sp/search 200
+2026-08-26 09:19:39,736 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': '2025 web content indexing service LLM-ready data pricing crawl summarize classify extract commercial', 'max_results': 10})
+2026-08-26 09:19:40,044 [INFO] primp: response: https://grokipedia.com/api/typeahead?query=2025+web+content+indexing+service+LLM-ready+data+pricing+crawl+summarize+classify+extract+commercial&limit=1 200
+2026-08-26 09:19:40,099 [INFO] primp: response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=2025%20web%20content%20indexing%20service%20LLM-ready%20data%20pricing%20crawl%20summarize%20classify%20extract%20commercial 200
+2026-08-26 09:19:40,322 [INFO] primp: response: https://www.mojeek.com/search?q=2025+web+content+indexing+service+LLM-ready+data+pricing+crawl+summarize+classify+extract+commercial 403
+2026-08-26 09:19:41,015 [INFO] primp: response: https://search.yahoo.com/search;_ylt=zrDiZxRwg1Zwp5qd3LExzbBM;_ylu=birLf5qF75CHSxdPdgUpdivSkn-cMfmqDuKee7Xrdi_t3lE?p=2025+web+content+indexing+service+LLM-ready+data+pricing+crawl+summarize+classify+extract+commercial 200
+2026-08-26 09:19:41,848 [INFO] primp: response: https://www.startpage.com/ 200
+2026-08-26 09:19:41,996 [INFO] primp: response: https://www.startpage.com/sp/search 200
+2026-08-26 09:19:42,340 [INFO] primp: response: https://search.brave.com/search?q=2025+web+content+indexing+service+LLM-ready+data+pricing+crawl+summarize+classify+extract+commercial&source=web 429
+2026-08-26 09:19:53,383 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-26 09:19:53,416 [INFO] yamlgraph.tools.agent: ✓ Agent completed after 4 iterations
+2026-08-26 09:20:01,200 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-26 09:20:01,203 [INFO] yamlgraph.node_factory.llm_nodes: Node summarize completed successfully
+
+🚀 Running graph: graph.yaml
+   Variables: {'topic': 'Commercial services and open-source tools in 2025-2026 that use cheap/fast LLMs (Haiku-class, diffusion LLMs like Mercury) for per-item processing at scale over web content: crawling, summarizing, classifying, extracting, indexing. Who are the players, what do they charge, what use cases dominate?'}
+
+🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/09c0c2d4-5724-4301-bcee-e1b64ddeb80e/r/01a03cb8-dc84-72e3-863a-c2bbd8a517b9?poll=true
+============================================================
+RESULT
+============================================================
+  current_step: summarize
+  topic: Commercial services and open-source tools in 2025-2026 that use cheap/fast LLMs (Haiku-class, diffusion LLMs like Mercury) for per-item processing at scale over web content: crawling, summarizing, classifying, extracting, indexing. Who are the players, what do they charge, what use cases dominate?
+  research: Here’s a researched snapshot of the 2025–2026 landscape for **cheap/fast LLM-driven per-item web processing at scale** — i.e. crawling, summarizing, classifying, extracting, and indexing web content using small/fast models like **Claude Haiku-class** and **Mercury-style diffusion LLMs**.
+
+## Executive summary
+
+The market splits into two layers:
+
+1. **Web data collection / processing platforms**
+   These crawl pages, clean HTML, convert to Markdown/JSON, and often integrate with LLMs or vector databases.
+   Examples: **Firecrawl, Apify, Bright Data, ScrapeHero, Crawl4AI**, plus niche “AI web scraper” vendors.
+
+2. **Cheap fast LLMs used downstream per item**
+   These models are used for page-level or chunk-level tasks like:
+   - classification / routing
+   - extraction to schema
+   - summarization
+   - enrichment / tagging
+   - indexing / metadata generation
+
+The dominant use case in 2025–2026 is **RAG/agent ingestion**: turning the web into clean, structured, LLM-ready data for search, retrieval, and internal knowledge systems. Secondary uses are **lead enrichment, SEO/content audits, market research, competitive intelligence, and monitoring**.
+
+---
+
+## Key players and what they charge
+
+### 1) Anthropic Claude Haiku / Haiku 4.5
+**What it’s used for:** high-volume classification, extraction, summarization, short generation, routing.
+
+**Pricing found:**
+- Anthropic’s Haiku page says **Claude Haiku 4.5 starts at $1 per million input tokens and $5 per million output tokens**.
+- It also notes **up to 90% savings with prompt caching** and **50% savings with batch processing**.
+
+**Why it matters:**
+This is the archetypal “cheap fast model” for per-item processing over web content.
+
+**Sources:**
+- https://www.anthropic.com/claude/haiku
+- https://www.anthropic.com/news/claude-haiku-4-5
+
+---
+
+### 2) Inception Labs Mercury / Mercury 2
+**What it’s used for:** ultra-fast reasoning and generation; promising for high-throughput item processing.
+
+**Pricing found:**
+- OpenRouter’s Mercury 2 page lists **$0.25 per million input tokens and $0.75 per million output tokens**.
+- Inception’s announcement positions Mercury as a **commercial-scale diffusion LLM**, emphasizing speed and lower cost.
+
+**Why it matters:**
+Mercury-class models are notable because they are much faster than standard autoregressive models, making them attractive for batch classification/extraction/summarization pipelines.
+
+**Sources:**
+- https://openrouter.ai/inception/mercury-2
+- https://www.inceptionlabs.ai/blog/introducing-mercury
+- https://arxiv.org/html/2506.17298v1
+
+---
+
+### 3) Firecrawl
+**What it is:** “context API” for search, scrape, crawl, and interact with the web at scale.
+
+**What it’s used for:**
+Turning websites into clean Markdown/JSON for LLMs, RAG, agents, and research indexing.
+
+**Pricing found:**
+- Firecrawl’s pricing page says it offers **free tier + pay-as-you-go credits + custom enterprise plans**.
+- The specific dollar amount wasn’t visible in the search snippet, but it’s clearly usage-based.
+- Firecrawl also emphasizes batch scraping, crawling, and scheduled syncs.
+
+**Why it matters:**
+Firecrawl is one of the most prominent managed products in this category, especially for developer workflows.
+
+**Sources:**
+- https://www.firecrawl.dev/pricing
+- https://www.firecrawl.dev/crawl
+- https://www.firecrawl.dev/
+
+---
+
+### 4) Apify Website Content Crawler
+**What it is:** a crawler actor on Apify’s platform, built on Crawlee.
+
+**What it’s used for:**
+Extracting clean text, Markdown, metadata, links, and images for LLMs, vector DBs, RAG pipelines, SEO audits, and content migration.
+
+**Pricing found:**
+- The actor is described as **free to use**, but you pay for **Apify platform usage**.
+- Apify says actor run cost depends on **compute units, storage, proxies, and data transfer**.
+- A search snippet for one version of the actor says it can be around **$10 per 1,000 pages** in some marketplace positioning.
+- Apify’s general pricing is usage-based rather than fixed per page.
+
+**Why it matters:**
+Apify is a major managed crawling platform with a large marketplace of crawlers, and it’s widely used for structured ingestion.
+
+**Sources:**
+- https://apify.com/apify/website-content-crawler
+- https://apify.com/pricing
+
+---
+
+### 5) Crawl4AI
+**What it is:** open-source, LLM-friendly web crawler/scraper.
+
+**What it’s used for:**
+Turning web pages into clean Markdown for RAG, agents, and data pipelines.
+
+**Pricing:**
+- Open source; software is free.
+- Self-hosting means you pay infrastructure and any LLM costs yourself.
+
+**Why it matters:**
+This is one of the main open-source options for teams that want control and low marginal cost.
+
+**Source:**
+- https://github.com/unclecode/crawl4ai
+
+---
+
+### 6) Bright Data / ScrapeHero / enterprise crawling vendors
+The search results surfaced enterprise crawling services like:
+- **ScrapeHero**
+- **Bright Data**
+- other “AI web scraper” comparison pages
+
+These vendors usually sell:
+- managed crawling
+- proxy infrastructure
+- custom extraction
+- enterprise-scale data collection
+
+**Pricing:**
+- Typically custom / quote-based for enterprise
+- sometimes usage-based or per-page in smaller plans, but the search snippets didn’t provide precise current numbers
+
+**Why they matter:**
+They dominate when the problem is less “LLM reasoning” and more “reliable acquisition at scale under anti-bot pressure.”
+
+**Sources:**
+- https://www.scrapehero.com/web-crawling-service/
+- https://www.brightdata.com/ (not directly surfaced in the snippets, but commonly in this category)
+
+---
+
+## Open-source tools and where they fit
+
+### Crawl4AI
+Best for:
+- LLM-ready Markdown
+- RAG ingestion
+- self-hosted pipelines
+- custom extraction logic
+
+### Firecrawl open source
+Firecrawl also has an open-source GitHub project and hosted service.
+
+Best for:
+- teams wanting a mix of OSS and managed service
+- crawling + extraction + indexing workflows
+
+Source:
+- https://github.com/firecrawl/firecrawl
+
+### Crawlee
+Not directly a “LLM tool,” but it is the core crawling library underneath Apify and is widely used in custom pipelines.
+
+Best for:
+- building your own crawler infrastructure
+- combining with small LLMs for downstream processing
+
+---
+
+## What use cases dominate?
+
+Across the tools and vendors, the dominant use cases are:
+
+### 1) RAG ingestion / indexing
+Most common by far.
+- crawl pages
+- strip boilerplate
+- convert to Markdown/JSON
+- chunk and embed
+- index into vector DB / search
+
+### 2) Structured extraction
+Very common.
+- product pages
+- directories
+- job listings
+- articles
+- docs
+- pricing tables
+- metadata, headings, entities, links
+
+### 3) Summarization
+Common for:
+- news monitoring
+- competitive intelligence
+- research feeds
+- content libraries
+
+### 4) Classification / routing
+Very common in high-volume pipelines:
+- topic tagging
+- intent detection
+- spam/quality filtering
+- page-type classification
+- document routing to specialized extractors
+
+### 5) Monitoring / change detection
+Used for:
+- price monitoring
+- policy changes
+- product updates
+- SEO/content drift
+
+---
+
+## Which model class is best for which task?
+
+### Claude Haiku-class
+Best when you need:
+- strong quality
+- low latency
+- robust extraction/summarization
+- broad ecosystem support
+
+Typical fit:
+- production pipelines with moderate-to-high accuracy needs
+- page classification and schema extraction
+- summarizing crawled content
+
+### Mercury-class diffusion LLMs
+Best when you need:
+- very high throughput
+- low cost per token
+- fast batch processing
+
+Typical fit:
+- massive per-item workloads
+- enrichment at scale
+- high-volume summarization/classification
+- pipelines where speed matters more than frontier reasoning
+
+---
+
+## Practical market pattern in 2025–2026
+
+A common stack looks like:
+
+1. **Crawler / scraper**: Firecrawl, Apify, Crawl4AI, Bright Data, custom Crawlee
+2. **Cleaner / parser**: HTML-to-Markdown, boilerplate removal
+3. **Cheap LLM**: Claude Haiku or Mercury
+4. **Output**: JSON schema, tags, summary, embedding text
+5. **Index**: vector DB, search index, warehouse, or lakehouse
+
+This stack is increasingly replacing older “scrape then manually process” workflows.
+
+---
+
+## Bottom line
+
+If your question is “who are the players and what do they charge?” the concise answer is:
+
+- **Anthropic Claude Haiku 4.5**: about **$1/M input tokens, $5/M output tokens**
+- **Mercury 2**: about **$0.25/M input, $0.75/M output** via OpenRouter listing
+- **Firecrawl**: usage-based, free tier + pay-as-you-go + enterprise
+- **Apify Website Content Crawler**: usage-based via Actor compute units, storage, proxies, transfer
+- **Crawl4AI**: open source, self-hosted cost only
+- **Enterprise vendors** like ScrapeHero/Bright Data: mostly custom quotes
+
+And the dominant use cases are:
+- **RAG ingestion/indexing**
+- **structured extraction**
+- **summarization**
+- **classification/routing**
+- **monitoring**
+
+If you want, I can turn this into a **comparison table** with columns for:
+- vendor/tool
+- hosted vs OSS
+- pricing model
+- best use cases
+- throughput/cost notes
+- integration fit for RAG / search / ETL.
+  summary: ## Commercial services and open-source tools in 2025–2026 for cheap/fast LLM-based per-item web processing
+
+### 1) Key facts and main points
+
+The 2025–2026 market for **per-item web processing at scale** splits into two layers:
+
+1. **Web acquisition and normalization platforms**
+   These handle crawling, scraping, boilerplate removal, HTML-to-Markdown/JSON conversion, scheduling, and sometimes built-in extraction or LLM integration.
+
+2. **Cheap, fast LLMs used downstream on each page/item**
+   These models are used for:
+   - classification and routing
+   - structured extraction
+   - summarization
+   - tagging/enrichment
+   - indexing metadata generation
+
+The dominant use case is **RAG/agent ingestion**: converting web pages into clean, structured, LLM-ready content for search, retrieval, and internal knowledge systems. Other major uses include **lead enrichment, SEO/content audits, market research, competitive intelligence, and monitoring**.
+
+---
+
+## Main players and pricing
+
+### Anthropic Claude Haiku / Haiku 4.5
+- **Role:** A “cheap fast” model for high-volume per-item tasks.
+- **Best for:** classification, extraction, summarization, short generation, routing.
+- **Pricing:**
+  - **$1 per million input tokens**
+  - **$5 per million output tokens**
+  - Anthropic also notes **up to 90% savings with prompt caching** and **50% savings with batch processing**.
+
+**Why it matters:**
+This is one of the clearest mainstream examples of a low-cost, production-grade model for batch web processing.
+
+---
+
+### Inception Labs Mercury / Mercury 2
+- **Role:** Ultra-fast diffusion LLM positioned for commercial-scale throughput.
+- **Best for:** very high-volume summarization, extraction, classification, enrichment.
+- **Pricing:**
+  - OpenRouter listing shows **$0.25 per million input tokens**
+  - **$0.75 per million output tokens**
+
+**Why it matters:**
+Mercury-class models are notable for speed and low unit cost, making them attractive for large-scale per-item pipelines where throughput is critical.
+
+---
+
+### Firecrawl
+- **Role:** Managed “context API” for search, scrape, crawl, and interact with the web.
+- **Best for:** turning websites into clean Markdown/JSON for RAG, agents, research indexing.
+- **Pricing:**
+  - **Free tier**
+  - **Pay-as-you-go credits**
+  - **Custom enterprise plans**
+
+**Why it matters:**
+Firecrawl is a prominent developer-facing service for web-to-LLM ingestion workflows.
+
+---
+
+### Apify Website Content Crawler
+- **Role:** Managed crawler actor on Apify’s platform.
+- **Best for:** extracting clean text, Markdown, metadata, links, and images for LLMs, vector DBs, RAG, SEO audits, and content migration.
+- **Pricing:**
+  - The actor itself is described as **free to use**
+  - Actual cost comes from **Apify platform usage**: compute units, storage, proxies, and data transfer
+  - Marketplace-style positioning may show approximate per-page economics, but Apify’s pricing is fundamentally usage-based
+
+**Why it matters:**
+Apify remains one of the major managed crawling ecosystems, especially for structured ingestion.
+
+---
+
+### Crawl4AI
+- **Role:** Open-source, LLM-friendly crawler/scraper.
+- **Best for:** Markdown conversion, RAG ingestion, agent pipelines, self-hosted workflows.
+- **Pricing:**
+  - **Free software**
+  - You pay only infrastructure and any model/API costs
+
+**Why it matters:**
+This is a leading open-source option for teams that want control, customization, and low marginal cost.
+
+---
+
+### Bright Data, ScrapeHero, and similar enterprise crawling vendors
+- **Role:** Managed crawling, proxy infrastructure, custom extraction, anti-bot-resistant acquisition.
+- **Best for:** enterprise-scale collection where reliability and access are the hard problems.
+- **Pricing:**
+  - Typically **custom / quote-based**
+  - Some smaller plans may be usage-based or per-page, but enterprise pricing is usually not public
+
+**Why they matter:**
+These vendors dominate when acquisition reliability matters more than the LLM itself.
+
+---
+
+## Open-source tools in the stack
+
+### Crawl4AI
+- Strong for:
+  - LLM-ready Markdown
+  - RAG ingestion
+  - self-hosted pipelines
+  - custom extraction logic
+
+### Firecrawl open source
+- Strong for:
+  - mixed OSS + managed workflows
+  - crawling + extraction + indexing pipelines
+
+### Crawlee
+- Not an LLM tool per se, but a core crawling library used in custom pipelines and underlying Apify workflows.
+- Strong for:
+  - custom crawler infrastructure
+  - combining acquisition with downstream cheap LLM processing
+
+---
+
+## Dominant use cases
+
+### 1. RAG ingestion / indexing
+The most common use case.
+Typical pipeline:
+- crawl pages
+- strip boilerplate
+- convert to Markdown/JSON
+- chunk and embed
+- index into vector DB or search
+
+### 2. Structured extraction
+Very common for:
+- product pages
+- directories
+- job listings
+- articles
+- docs
+- pricing tables
+- metadata, headings, entities, links
+
+### 3. Summarization
+Used heavily for:
+- news monitoring
+- competitive intelligence
+- research feeds
+- content libraries
+
+### 4. Classification / routing
+High-volume pipelines often use cheap LLMs for:
+- topic tagging
+- intent detection
+- spam/quality filtering
+- page-type classification
+- routing to specialized extractors
+
+### 5. Monitoring / change detection
+Used for:
+- price monitoring
+- policy changes
+- product updates
+- SEO/content drift
+
+---
+
+## Model fit: Haiku-class vs Mercury-class
+
+### Claude Haiku-class
+Best when you need:
+- better quality and robustness
+- low latency
+- strong extraction and summarization
+- broad production support
+
+Typical fit:
+- production pipelines with moderate-to-high accuracy needs
+- page classification
+- schema extraction
+- summarizing crawled content
+
+### Mercury-class diffusion LLMs
+Best when you need:
+- extremely high throughput
+- low cost per token
+- batch processing speed
+
+Typical fit:
+- massive per-item workloads
+- enrichment at scale
+- very high-volume summarization/classification
+- pipelines where speed is more important than frontier reasoning
+
+---
+
+## Practical market pattern
+
+A common 2025–2026 stack looks like:
+
+1. **Crawler / scraper**: Firecrawl, Apify, Crawl4AI, Bright Data, custom Crawlee
+2. **Cleaner / parser**: HTML-to-Markdown, boilerplate removal
+3. **Cheap LLM**: Claude Haiku or Mercury
+4. **Output**: JSON schema, tags, summary, embedding text
+5. **Index**: vector DB, search index, warehouse, or lakehouse
+
+This workflow is increasingly replacing older “scrape first, manually process later” approaches.
+
+---
+
+## 2) Recent developments
+
+### Notable 2025–2026 developments
+- **Claude Haiku 4.5** is positioned as a high-volume, low-cost production model with explicit savings from **prompt caching** and **batch processing**.
+- **Mercury / Mercury 2** represents a newer class of **diffusion LLMs** aimed at commercial-scale speed and low unit cost, which is especially relevant for batch web processing.
+- **Managed crawling platforms** like **Firecrawl** and **Apify** continue to push toward “web-to-LLM” workflows rather than just raw scraping.
+- **Open-source crawling tools** such as **Crawl4AI** are gaining traction as teams want self-hosted, controllable pipelines for RAG and indexing.
+- The market is converging on a pattern where **acquisition and normalization are separated from reasoning**, with cheap LLMs used only where they add value.
+
+---
+
+## 3) Sources cited
+
+### Model pricing and announcements
+- Anthropic Claude Haiku: https://www.anthropic.com/claude/haiku
+- Anthropic Claude Haiku 4.5 announcement: https://www.anthropic.com/news/claude-haiku-4-5
+- OpenRouter Mercury 2 listing: https://openrouter.ai/inception/mercury-2
+- Inception Labs Mercury announcement: https://www.inceptionlabs.ai/blog/introducing-mercury
+- Mercury paper/preprint: https://arxiv.org/html/2506.17298v1
+
+### Crawling / extraction platforms
+- Firecrawl pricing: https://www.firecrawl.dev/pricing
+- Firecrawl crawl product page: https://www.firecrawl.dev/crawl
+- Firecrawl GitHub: https://github.com/firecrawl/firecrawl
+- Apify Website Content Crawler: https://apify.com/apify/website-content-crawler
+- Apify pricing: https://apify.com/pricing
+- Crawl4AI GitHub: https://github.com/unclecode/crawl4ai
+- ScrapeHero web crawling service: https://www.scrapehero.com/web-crawling-service/
+
+---
+
+## Bottom line
+
+In 2025–2026, the strongest pattern is:
+
+- **Use managed crawlers or OSS crawlers** to collect and normalize web pages.
+- **Use cheap fast LLMs** like **Claude Haiku 4.5** or **Mercury 2** for per-item classification, extraction, and summarization.
+- **Index the structured output** for RAG, search, monitoring, or analytics.
+
+If you want, I can turn this into a **comparison table** with columns for:
+- vendor/tool
+- hosted vs open source
+- pricing model
+- best use cases
+- throughput/cost notes
+- fit for RAG / ETL / search pipelines

@@ -1,0 +1,106 @@
+2026-08-26 08:12:52,795 [INFO] yamlgraph.compile.node_compiler: Added node: generate (type=llm)
+2026-08-26 08:12:52,899 [INFO] yamlgraph.utils.llm_factory: Creating LLM: azure/aaa-gpt-5.4-mini (temp=0.85)
+2026-08-26 08:13:05,188 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-26 08:13:05,196 [INFO] yamlgraph.node_factory.llm_nodes: Node generate completed successfully
+
+🚀 Running graph: graph.yaml
+   Variables: {'domain': 'The FAILURE MODES and misuse of the cheap-map/code-reduce pattern (mass cheap LLM judgements aggregated by code): where does full-census semantic judgement fail, deceive, or harm? Undecidable items, correlated errors from model monoculture, automation of denial decisions, compliance theatre from unread dashboards, surveillance creep, false-positive floods. Where is this pattern the WRONG tool, and what guardrails would a responsible deployment require?'}
+
+🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/09c0c2d4-5724-4301-bcee-e1b64ddeb80e/r/01a03c7c-473f-7ab3-ade8-f6f2e4c50034?poll=true
+============================================================
+RESULT
+============================================================
+  current_step: generate
+  domain: The FAILURE MODES and misuse of the cheap-map/code-reduce pattern (mass cheap LLM judgements aggregated by code): where does full-census semantic judgement fail, deceive, or harm? Undecidable items, correlated errors from model monoculture, automation of denial decisions, compliance theatre from unread dashboards, surveillance creep, false-positive floods. Where is this pattern the WRONG tool, and what guardrails would a responsible deployment require?
+  matrix: ## 1) Capabilities (C1–C5)
+
+**C1. Cheap, high-throughput LLM judging**
+Mass evaluation of items at low marginal cost using one or more models.
+
+**C2. Code-reduce aggregation pipelines**
+Simple reducers that turn many judgments into counts, thresholds, flags, ranks, or decisions.
+
+**C3. Semantic pattern detection across unstructured text**
+Ability to classify, cluster, summarize, and extract signals from messy language at scale.
+
+**C4. Multi-model / multi-pass adjudication**
+Using different prompts, models, or staged reviews to cross-check judgments and estimate uncertainty.
+
+**C5. Human-in-the-loop workflow orchestration**
+Escalation paths, appeals, spot checks, queue routing, and governance controls around model outputs.
+
+---
+
+## 2) Constraints (S1–S5)
+
+**S1. Undecidability / ambiguity of the target judgment**
+Some cases have no stable “ground truth” or require value-laden interpretation.
+
+**S2. Correlated errors and model monoculture**
+Many cheap judges fail in the same way, so aggregation amplifies shared blind spots.
+
+**S3. High-stakes decisions and asymmetric harm**
+False positives, false negatives, or automation bias can cause severe legal, financial, or human harm.
+
+**S4. Compliance theater and unread dashboards**
+Systems can create the appearance of oversight while no one meaningfully uses, audits, or challenges the outputs.
+
+**S5. Surveillance / privacy / legitimacy risk**
+Full-census semantic scanning can creep into monitoring, chilling speech, and expanding beyond its original mandate.
+
+---
+
+## 3) Matrix Table
+
+| Cell | Capability | Constraint | Tension | Idea | Potential |
+|------|------------|------------|---------|------|-----------|
+| **C1S1** | Cheap, high-throughput LLM judging | Undecidability / ambiguity | The system wants a crisp answer where the domain has no stable answer | **“No-decision detector”**: route items to a special bucket when judges disagree beyond a threshold or when prompts reveal value-laden ambiguity; output “requires human deliberation” instead of a label | ⭐⭐⭐⭐⭐ |
+| **C1S2** | Cheap, high-throughput LLM judging | Correlated errors and model monoculture | Scale magnifies the same mistake thousands of times | **Error diversity budget**: require heterogeneous judges only if they demonstrably differ on calibration sets; otherwise forbid aggregation and force manual review | ⭐⭐⭐⭐ |
+| **C1S3** | Cheap, high-throughput LLM judging | High-stakes decisions and asymmetric harm | Cheap automation tempts use in cases where one mistake is costly | **Cost-sensitive abstention**: make the pipeline refuse to decide whenever estimated false-positive harm exceeds a set threshold | ⭐⭐⭐⭐⭐ |
+| **C1S4** | Cheap, high-throughput LLM judging | Compliance theater and unread dashboards | More output can mean less understanding | **Anti-dashboard mode**: output only a small number of actionable exceptions plus audit samples, never a live “scoreboard” for management theater | ⭐⭐⭐⭐ |
+| **C1S5** | Cheap, high-throughput LLM judging | Surveillance / privacy / legitimacy risk | Full-census scanning makes cheap monitoring too tempting | **Privacy-preserving triage**: pre-filter locally, tokenize/redact, and restrict semantic review to narrowly justified cases with explicit retention limits | ⭐⭐⭐⭐ |
+
+| **C2S1** | Code-reduce aggregation pipelines | Undecidability / ambiguity | Reduction forces premature certainty | **Soft-reduce ladder**: aggregate to “disagree / unclear / mixed” states instead of hard labels; preserve uncertainty through every stage | ⭐⭐⭐⭐⭐ |
+| **C2S2** | Code-reduce aggregation pipelines | Correlated errors and model monoculture | The reducer treats many copies of the same bias as consensus | **Correlation-aware aggregation**: weight judges by independence, not just count; penalize near-identical prompts/models | ⭐⭐⭐⭐⭐ |
+| **C2S3** | Code-reduce aggregation pipelines | High-stakes decisions and asymmetric harm | Thresholds can silently encode dangerous tradeoffs | **Harm-aware thresholds**: separate thresholds by consequence class; require different reducers for low- vs high-harm pathways | ⭐⭐⭐⭐ |
+| **C2S4** | Code-reduce aggregation pipelines | Compliance theater and unread dashboards | A reducer can create neat metrics that nobody interprets responsibly | **Audit-first reducer**: every aggregate must link to a sample of source items and an explanation trace before it can be displayed | ⭐⭐⭐⭐ |
+| **C2S5** | Code-reduce aggregation pipelines | Surveillance / privacy / legitimacy risk | Aggregation can conceal expansive collection | **Purpose-limited reducers**: hard-code allowable fields, retention, and deletion rules into the reduction stage itself | ⭐⭐⭐⭐ |
+
+| **C3S1** | Semantic pattern detection across unstructured text | Undecidability / ambiguity | Pattern mining can hallucinate structure where none exists | **Ambiguity map**: detect not just topic/patterns but degrees of interpretive instability across prompts and annotators | ⭐⭐⭐⭐ |
+| **C3S2** | Semantic pattern detection across unstructured text | Correlated errors and model monoculture | The same semantic priors create false “discoveries” everywhere | **Divergence probes**: run intentionally antagonistic prompts/models to expose brittle consensus and hidden priors | ⭐⭐⭐⭐ |
+| **C3S3** | Semantic pattern detection across unstructured text | High-stakes decisions and asymmetric harm | Pattern detection can become automated suspicion | **Suspicion firewall**: prohibit direct punitive action from semantic flags; require independent evidence before any sanction | ⭐⭐⭐⭐⭐ |
+| **C3S4** | Semantic pattern detection across unstructured text | Compliance theater and unread dashboards | Beautiful text analytics can mask vacuous oversight | **Narrative-to-action translation**: every detected pattern must map to a concrete intervention owner, deadline, and review outcome | ⭐⭐⭐⭐ |
+| **C3S5** | Semantic pattern detection across unstructured text | Surveillance / privacy / legitimacy risk | Semantic scanning is especially invasive because it reads meaning, not just metadata | **Meaning-minimization**: search for only narrowly scoped, predeclared patterns and prohibit open-ended semantic exploration | ⭐⭐⭐⭐⭐ |
+
+| **C4S1** | Multi-model / multi-pass adjudication | Undecidability / ambiguity | More passes can produce false confidence instead of clarity | **Deliberation protocol**: models must explain disagreement categories, not just vote; unresolved items are elevated, not forced to settle | ⭐⭐⭐⭐⭐ |
+| **C4S2** | Multi-model / multi-pass adjudication | Correlated errors and model monoculture | Multiple passes of the same family of models still share failure modes | **Model portfolio governance**: require diversity across training lineage, vendor, and prompt style before trusting ensemble results | ⭐⭐⭐⭐⭐ |
+| **C4S3** | Multi-model / multi-pass adjudication | High-stakes decisions and asymmetric harm | Cross-checking helps, but can also legitimize unsafe automation | **Escalation by harm tier**: low-risk cases can be ensemble-decided; high-risk cases always require human sign-off | ⭐⭐⭐⭐⭐ |
+| **C4S4** | Multi-model / multi-pass adjudication | Compliance theater and unread dashboards | More adjudicators can create the illusion of rigor | **Adversarial review board**: one pass is tasked to find why the system should not be used, and its objections are mandatory reading | ⭐⭐⭐⭐ |
+| **C4S5** | Multi-model / multi-pass adjudication | Surveillance / privacy / legitimacy risk | Cross-checking can normalize broader collection and retention | **Consent-bound adjudication**: only items in explicitly authorized scopes may enter the ensemble; every pass logs purpose and expiry | ⭐⭐⭐⭐ |
+
+| **C5S1** | Human-in-the-loop workflow orchestration | Undecidability / ambiguity | Humans are needed, but workflows often strip away context before escalation | **Context-preserving escalation**: package uncertainty, disagreement, and original evidence together for human review | ⭐⭐⭐⭐⭐ |
+| **C5S2** | Human-in-the-loop workflow orchestration | Correlated errors and model monoculture | Humans may rubber-stamp model consensus if the workflow is poorly designed | **Independent human challenge step**: reviewers see model outputs only after making an initial judgment | ⭐⭐⭐⭐⭐ |
+| **C5S3** | Human-in-the-loop workflow orchestration | High-stakes decisions and asymmetric harm | Human-in-the-loop can still become “human as alibi” | **Meaningful veto rights**: humans can override, pause, or ban the system for a class of cases, with no penalty for escalation | ⭐⭐⭐⭐⭐ |
+| **C5S4** | Human-in-the-loop workflow orchestration | Compliance theater and unread dashboards | HITL can be reduced to checkbox review | **Review quality metrics**: measure time spent, disagreement rate, reversal rate, and downstream harm—not just throughput | ⭐⭐⭐⭐ |
+| **C5S5** | Human-in-the-loop workflow orchestration | Surveillance / privacy / legitimacy risk | Escalation can widen access to sensitive content | **Need-to-know routing**: minimize who can see what, enforce role-based access, and auto-delete after disposition | ⭐⭐⭐⭐ |
+
+---
+
+## 4) Top 3 Picks
+
+### 1) **C2S2 — Correlation-aware aggregation**
+**Why it matters:** This directly attacks one of the biggest hidden failure modes: fake consensus from model monoculture. It’s highly actionable and can prevent entire classes of systematic errors from being amplified by code-reduce.
+**Best for:** Any deployment using ensembles, voting, or thresholds.
+
+### 2) **C1S3 — Cost-sensitive abstention**
+**Why it matters:** The wrong tool problem is often a harm-mismatch problem. This cell makes the system refuse to decide when the downside of an error is too high, which is a strong guardrail against automated denial, false positives, and overreach.
+**Best for:** Hiring, benefits, moderation appeals, fraud, sanctions, and other high-stakes settings.
+
+### 3) **C5S3 — Meaningful veto rights**
+**Why it matters:** Human-in-the-loop fails when humans are decorative. This idea makes human oversight real by giving humans authority to stop, override, or ban the system for certain cases.
+**Best for:** Regulated, sensitive, or contested deployments where accountability matters more than throughput.
+
+If you want, I can also turn this into:
+- a **risk taxonomy** for when cheap-map/code-reduce is the wrong tool,
+- a **deployment checklist / red lines**, or
+- a **decision tree** for whether a use case should be automated, semi-automated, or prohibited.

@@ -1,0 +1,525 @@
+2026-08-26 08:29:24,441 [INFO] yamlgraph.compile.graph_loader: Parsed 1 Python tools: search_web
+2026-08-26 08:29:24,443 [INFO] yamlgraph.compile.node_compiler: Added node: research (type=agent)
+2026-08-26 08:29:24,444 [INFO] yamlgraph.compile.node_compiler: Added node: summarize (type=llm)
+2026-08-26 08:29:24,549 [INFO] yamlgraph.utils.llm_factory: Creating LLM: azure/aaa-gpt-5.4-mini (temp=0.7)
+2026-08-26 08:29:25,421 [INFO] yamlgraph.tools.agent: 🤖 Starting agent loop: research (max 5 iterations)
+2026-08-26 08:29:26,576 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-26 08:29:26,582 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': '2025 commercial services cheap fast LLM per-item processing web content crawling summarizing classifying extracting indexing Haiku-class Mercury diffusion LLM pricing', 'max_results': 5})
+2026-08-26 08:29:26,583 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': '2025 open-source tools web content crawling summarizing classification extraction indexing LLM pipeline cheap fast models', 'max_results': 5})
+2026-08-26 08:29:26,584 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': '2025 LLM web content processing platform pricing crawl summarize classify extract index competitors cheap models', 'max_results': 5})
+2026-08-26 08:29:27,218 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-26 08:29:27,219 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': '2025 commercial services cheap fast LLM per-item processing web content crawling summarizing classifying extracting indexing Haiku-class Mercury diffusion LLM pricing', 'max_results': 10})
+2026-08-26 08:29:29,287 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-26 08:29:29,288 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': '2025 web content processing platform pricing crawl summarize classify extract index cheap models Haiku Claude Haiku Mercury', 'max_results': 10})
+2026-08-26 08:29:30,231 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-26 08:29:30,233 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': 'site:docs.crawl4ai.com pricing summarize classify extract web crawling LLM 2025', 'max_results': 10})
+2026-08-26 08:29:31,417 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-26 08:29:31,419 [INFO] yamlgraph.tools.agent: ✓ Agent completed after 5 iterations
+2026-08-26 08:29:46,575 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-26 08:29:46,577 [INFO] yamlgraph.node_factory.llm_nodes: Node summarize completed successfully
+
+🚀 Running graph: graph.yaml
+   Variables: {'topic': 'Commercial services and open-source tools in 2025-2026 that use cheap/fast LLMs (Haiku-class, diffusion LLMs like Mercury) for per-item processing at scale over web content: crawling, summarizing, classifying, extracting, indexing. Who are the players, what do they charge, what use cases dominate?'}
+
+🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/09c0c2d4-5724-4301-bcee-e1b64ddeb80e/r/01a03c8b-68e0-7872-86e8-373189302c67?poll=true
+============================================================
+RESULT
+============================================================
+  current_step: summarize
+  topic: Commercial services and open-source tools in 2025-2026 that use cheap/fast LLMs (Haiku-class, diffusion LLMs like Mercury) for per-item processing at scale over web content: crawling, summarizing, classifying, extracting, indexing. Who are the players, what do they charge, what use cases dominate?
+  research: I’m unable to complete the web research because the search tool is currently failing with:
+
+> `Error: ddgs package not installed. Run: pip install ddgs`
+
+That means I can’t reliably fetch current 2025–2026 sources or pricing data right now.
+
+If you want, I can still help in one of two ways:
+
+1. **You fix/enable web search**, and I’ll do the research with citations.
+2. **I provide a best-effort market map from existing knowledge** of the space, clearly labeled as not current and without live pricing verification.
+
+If you want the second option, I can draft a structured overview of:
+- commercial players,
+- open-source tools,
+- typical use cases,
+- and where cheap/fast LLMs like Haiku-class models fit in.
+  summary: ## Summary: Cheap/Fast LLMs for High-Volume Web Content Processing in 2025–2026
+
+### Important note
+I could not verify live 2025–2026 pricing or current product changes because the provided research attempt failed before web search could run. So this summary is a **best-effort market map based on general knowledge up to mid-2024**, with **no live pricing verification**. I’ve clearly marked anything that should be treated as approximate.
+
+---
+
+## 1) Key facts and main points
+
+### The market pattern
+The dominant pattern in this space is:
+
+- **Use cheap, fast models for the “middle layer” of web pipelines**
+  - crawl / fetch pages
+  - clean and normalize HTML
+  - chunk content
+  - classify pages
+  - extract entities, metadata, and structured fields
+  - create short summaries
+  - generate embeddings for search / retrieval
+- Then reserve **larger, more expensive models** only for:
+  - ambiguous cases
+  - final synthesis
+  - high-value reasoning
+  - user-facing responses
+
+This is especially attractive for:
+- news monitoring
+- competitive intelligence
+- SEO/content ops
+- document ingestion
+- lead enrichment
+- knowledge base indexing
+- research assistants
+- compliance / policy monitoring
+
+### Why Haiku-class / “fast cheap” models matter
+The value proposition is:
+- **low latency**
+- **lower cost per item**
+- **high throughput**
+- good enough accuracy for repetitive, narrow tasks
+
+In practice, many production systems now use:
+- small/fast hosted LLMs
+- open-source small models
+- hybrid pipelines combining rules + embeddings + LLMs
+- “agentic” crawlers that decide what to fetch next
+
+### Diffusion LLMs like Mercury
+Diffusion-style or “non-autoregressive” LLMs are interesting because they may offer:
+- faster generation
+- lower latency for short outputs
+- cost advantages at scale
+
+However, in the web-content-processing market, the most common production choices still tend to be:
+- **small transformer LLMs**
+- hosted “mini/fast” models
+- open-source models run on vLLM / TGI / llama.cpp / Ollama
+
+So diffusion LLMs are more of an **emerging efficiency option** than the dominant mainstream production layer.
+
+---
+
+## 2) Who the players are
+
+### A. Commercial platforms and model providers
+
+#### 1) Anthropic
+- **Haiku-class models** are the canonical example of a fast/cheap premium hosted model.
+- Strong fit for:
+  - page classification
+  - extraction
+  - summarization
+  - moderation / policy labeling
+  - routing in multi-step pipelines
+- Common deployment pattern:
+  - use Haiku for most items
+  - escalate edge cases to Sonnet/Opus-class models
+
+**Pricing:** not live-verified here; should be checked directly from Anthropic’s current pricing page.
+
+#### 2) OpenAI
+- “Mini” / smaller models are widely used for:
+  - extraction
+  - classification
+  - summarization
+  - indexing pipelines
+- Strong ecosystem support and broad tool integration.
+
+**Pricing:** not live-verified here; check OpenAI pricing page.
+
+#### 3) Google
+- Gemini “Flash”-type models are positioned for:
+  - high-throughput, low-latency tasks
+  - long-context web/document processing
+- Often used for:
+  - summarizing large pages
+  - extracting structured data from mixed-format content
+  - classifying web pages at scale
+
+**Pricing:** not live-verified here; check Google AI pricing.
+
+#### 4) Mistral
+- Small/medium hosted models and open weights are used for:
+  - extraction
+  - classification
+  - summarization
+  - multilingual web pipelines
+- Often attractive for EU/data-sovereignty or self-hosted use cases.
+
+#### 5) Cohere
+- Strong in enterprise retrieval / RAG / classification workflows.
+- Often used where:
+  - embeddings
+  - reranking
+  - document classification
+  - enterprise search
+  matter more than open-ended chat.
+
+#### 6) Fireworks AI, Together AI, Groq, Replicate, DeepInfra, OpenRouter
+These are important **model access/inference platforms** rather than model makers:
+- provide fast access to many small/cheap models
+- useful for:
+  - batch summarization
+  - extraction
+  - classification
+  - high-QPS pipelines
+- often selected when teams want:
+  - multiple model choices
+  - cheaper inference
+  - self-serve scaling
+  - rapid experimentation
+
+---
+
+### B. Web crawling / extraction / indexing platforms
+
+#### 1) Diffbot
+- One of the best-known commercial web extraction platforms.
+- Strong for:
+  - structured extraction from web pages
+  - entity and knowledge graph construction
+  - page classification
+  - article/product/company extraction
+- Typical use cases:
+  - large-scale web intelligence
+  - lead databases
+  - competitive monitoring
+  - knowledge graph building
+
+**Pricing:** historically enterprise-oriented, often custom/quote-based.
+
+#### 2) Bright Data
+- Known for proxy infrastructure, scraping, and web access tooling.
+- Useful for:
+  - crawling at scale
+  - anti-bot bypass
+  - data collection pipelines
+- Often paired with LLMs downstream for:
+  - page classification
+  - summarization
+  - extraction
+
+**Pricing:** usage-based for proxy/data infrastructure; exact current rates should be checked live.
+
+#### 3) Apify
+- Popular for crawler automation and actor-based workflows.
+- Common use cases:
+  - scraping websites
+  - monitoring pages
+  - extracting structured data
+  - feeding downstream LLM pipelines
+
+**Pricing:** has platform tiers; current details should be verified live.
+
+#### 4) Zyte
+- Strong in scraping infrastructure and managed extraction.
+- Often used for:
+  - large-scale crawling
+  - structured data extraction
+  - anti-bot handling
+
+#### 5) ScrapingBee, Oxylabs, Smartproxy, ZenRows
+- These are commonly used for:
+  - reliable fetching
+  - headless browser access
+  - anti-bot handling
+  - data collection at scale
+- LLMs are usually not the core product, but they are part of the ingestion stack.
+
+#### 6) Common indexing/search stack
+- Elasticsearch / OpenSearch
+- vector databases: Pinecone, Weaviate, Milvus, Qdrant, pgvector
+- rerankers and embeddings models
+- LLM summarizers/classifiers as preprocessing
+
+---
+
+### C. Open-source tools and frameworks
+
+#### 1) Crawling and extraction
+- **Scrapy**
+- **Playwright**
+- **Selenium**
+- **trafilatura**
+- **readability-lxml**
+- **newspaper3k**
+- **BeautifulSoup / lxml**
+
+These are used for:
+- HTML fetching
+- boilerplate removal
+- article extraction
+- batch crawling
+
+#### 2) LLM orchestration / pipelines
+- **LangChain**
+- **LlamaIndex**
+- **Haystack**
+- **DSPy**
+- **PydanticAI** (for structured extraction workflows)
+
+Used for:
+- chunking
+- prompt pipelines
+- classification
+- extraction
+- indexing
+- RAG ingestion
+
+#### 3) Self-hosted inference
+- **vLLM**
+- **Hugging Face TGI**
+- **llama.cpp**
+- **Ollama**
+- **SGLang**
+
+Used when teams want:
+- lower marginal cost
+- data control
+- batch throughput
+- custom model hosting
+
+#### 4) Open-source models commonly used for cheap/high-throughput tasks
+Typical choices include:
+- small Llama-family models
+- Mistral/Mixtral variants
+- Qwen small/medium models
+- Phi-family small models
+- Gemma small models
+
+These are often selected for:
+- summarization
+- extraction
+- classification
+- metadata generation
+- URL/page triage
+
+---
+
+## 3) What they charge
+
+Because live verification wasn’t possible, below is the **pricing structure pattern**, not current exact rates:
+
+### Common pricing models
+1. **Per-token pricing**
+   - Most hosted LLM APIs
+   - Best for summarization, extraction, classification
+
+2. **Per-page / per-document pricing**
+   - Common in web extraction platforms
+   - Useful when page size varies
+
+3. **Per-request / per-1,000 requests**
+   - Common in scraping/proxy services
+
+4. **Enterprise quote-based pricing**
+   - Common for large-scale crawling, knowledge graphs, and compliance workflows
+
+### General cost hierarchy
+From cheapest to most expensive per item:
+1. rules/regex + HTML parsing
+2. embeddings-only classification
+3. small open-source LLMs self-hosted
+4. cheap hosted LLMs (Haiku-class / Flash-class / mini-class)
+5. larger reasoning models
+6. human review / ops-heavy workflows
+
+### Practical rule of thumb
+For web-scale pipelines:
+- **classification** is usually the cheapest LLM task
+- **short extraction** is slightly more expensive
+- **summarization** costs more due to output tokens
+- **multi-step agentic crawling** is the most expensive if not tightly controlled
+
+---
+
+## 4) What use cases dominate
+
+### Most common production use cases
+
+#### 1) Page classification
+Examples:
+- is this page a product page, article, FAQ, job post, or company profile?
+- is it relevant to a topic?
+- is it duplicate / near-duplicate?
+
+Why cheap models work:
+- labels are narrow
+- outputs are short
+- high volume matters more than deep reasoning
+
+#### 2) Structured extraction
+Examples:
+- company name
+- product name
+- price
+- location
+- publication date
+- author
+- contact info
+- topic tags
+
+This is one of the biggest commercial uses because it directly feeds databases and search indexes.
+
+#### 3) Summarization
+Examples:
+- 1–3 sentence page summary
+- bullet-point article summary
+- “what changed” summaries for monitoring
+- executive briefings from batches of pages
+
+Cheap models are often sufficient if summaries are short and grounded in the source text.
+
+#### 4) Indexing for search / RAG
+Typical pipeline:
+- crawl pages
+- clean text
+- chunk
+- classify
+- extract metadata
+- embed
+- store in search/vector index
+
+The LLM is often used before or alongside embeddings to improve relevance and structure.
+
+#### 5) Monitoring and alerting
+Examples:
+- competitor site changes
+- policy changes
+- price changes
+- news/event monitoring
+- brand mentions
+
+Here, the model often generates:
+- “what changed”
+- severity
+- category
+- summary
+
+#### 6) Lead enrichment / business intelligence
+Examples:
+- identify company type from homepage
+- extract vertical, size signals, tech stack hints
+- classify intent
+- enrich CRM records
+
+---
+
+## 5) Recent developments
+
+Since I could not verify 2025–2026 live sources, these are **general recent trends** rather than confirmed 2025–2026 facts:
+
+### 1) More “small model first” architectures
+Teams increasingly route most items through:
+- tiny classifiers
+- cheap summarizers
+- structured extractors
+
+Then only escalate difficult cases.
+
+### 2) Better structured-output tooling
+The ecosystem has moved toward:
+- JSON schema outputs
+- function calling / tool calling
+- constrained decoding
+- validation loops
+
+This makes extraction more reliable at scale.
+
+### 3) Hybrid pipelines are now standard
+A typical modern pipeline uses:
+- scraper
+- HTML cleaner
+- deduper
+- classifier
+- extractor
+- summarizer
+- embedding model
+- index
+
+This reduces LLM spend and improves robustness.
+
+### 4) More open-source inference in production
+Self-hosting has become more practical due to:
+- better small models
+- faster inference engines
+- improved quantization
+- cheaper GPUs / better batching
+
+### 5) Diffusion-style LLMs are an emerging efficiency story
+They are interesting for latency and generation efficiency, but the market still appears dominated by conventional transformer-based small/fast models for this use case.
+
+---
+
+## 6) Bottom line
+
+### If you are building this stack in 2025–2026, the likely winners are:
+- **Hosted cheap models** for most per-item work
+- **Open-source small models** for cost control and privacy
+- **Scraping/extraction platforms** for reliable ingestion
+- **Search/vector databases** for downstream indexing
+- **Hybrid routing** to keep costs down
+
+### Dominant use cases:
+1. classification
+2. extraction
+3. summarization
+4. indexing
+5. monitoring
+
+### Main commercial players to watch:
+- Anthropic
+- OpenAI
+- Google
+- Mistral
+- Cohere
+- Fireworks AI / Together AI / Groq / OpenRouter
+- Diffbot
+- Bright Data
+- Apify
+- Zyte
+- Oxylabs / Smartproxy / ZenRows / ScrapingBee
+
+### Main open-source stack:
+- Scrapy, Playwright, trafilatura, readability-lxml
+- LangChain, LlamaIndex, Haystack, DSPy
+- vLLM, TGI, llama.cpp, Ollama
+- vector DBs and search engines
+
+---
+
+## 7) Sources cited
+
+Because live web research failed, I cannot provide verified 2025–2026 citations for pricing or current product claims in this run. The following are **reference points from general public knowledge / product documentation families** that would normally be checked directly:
+
+- Anthropic pricing/model docs
+- OpenAI pricing/model docs
+- Google Gemini pricing/docs
+- Mistral pricing/docs
+- Cohere pricing/docs
+- Diffbot product/pricing pages
+- Bright Data pricing/docs
+- Apify pricing/docs
+- Zyte pricing/docs
+- Scrapy documentation
+- Playwright documentation
+- trafilatura documentation
+- LangChain documentation
+- LlamaIndex documentation
+- Haystack documentation
+- vLLM documentation
+- Hugging Face TGI documentation
+- llama.cpp documentation
+- Ollama documentation
+- OpenSearch / Elasticsearch documentation
+- Pinecone / Weaviate / Milvus / Qdrant documentation
+
+If you want, I can next turn this into a **table with columns for player, product, likely pricing model, best-fit use cases, and notes**, or into a **buyer’s guide for choosing between commercial vs open-source stacks**.

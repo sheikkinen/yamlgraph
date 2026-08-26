@@ -1,0 +1,100 @@
+2026-08-26 08:28:22,127 [INFO] yamlgraph.compile.node_compiler: Added node: generate (type=llm)
+2026-08-26 08:28:22,241 [INFO] yamlgraph.utils.llm_factory: Creating LLM: azure/aaa-gpt-5.4-mini (temp=0.85)
+2026-08-26 08:28:33,310 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-26 08:28:33,317 [INFO] yamlgraph.node_factory.llm_nodes: Node generate completed successfully
+
+🚀 Running graph: graph.yaml
+   Variables: {'domain': 'WEB-related use cases of the cheap-map/code-reduce LLM pattern: many cheap per-item LLM calls (any operation — classify, summarize, extract, transform, translate, verify, monitor, repair) over web-scale corpora: websites, pages, links, feeds, archives, forms, APIs — aggregated by deterministic code. What products and services for site owners, publishers, agencies, e-commerce, search, and the open web?'}
+
+🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/09c0c2d4-5724-4301-bcee-e1b64ddeb80e/r/01a03c8a-7576-7f40-ac15-478ceb7ec47e?poll=true
+============================================================
+RESULT
+============================================================
+  current_step: generate
+  domain: WEB-related use cases of the cheap-map/code-reduce LLM pattern: many cheap per-item LLM calls (any operation — classify, summarize, extract, transform, translate, verify, monitor, repair) over web-scale corpora: websites, pages, links, feeds, archives, forms, APIs — aggregated by deterministic code. What products and services for site owners, publishers, agencies, e-commerce, search, and the open web?
+  matrix: ## 1) Capabilities (C1-C5)
+
+**C1. Cheap per-item LLM operations at scale**
+Low-cost classify/summarize/extract/translate/verify/repair calls applied to millions of web items, where each individual call can be simple but the aggregate yields large value.
+
+**C2. Deterministic aggregation and orchestration**
+Code handles batching, deduping, scoring, routing, retries, provenance, and rollups across LLM outputs, making the system auditable and operationally reliable.
+
+**C3. Web-native ingestion and monitoring**
+Crawling, feeds, sitemaps, APIs, archives, link graphs, forms, and periodic snapshots enable continuous monitoring of websites and content surfaces.
+
+**C4. Structured transformation of messy web content**
+LLMs can convert unstructured pages into normalized objects: product catalogs, FAQs, entities, citations, page intents, policies, issue lists, metadata, and alerts.
+
+**C5. Human-in-the-loop and workflow integration**
+Outputs can feed CMSs, CRMs, ticketing systems, SEO tools, commerce platforms, editorial workflows, moderation queues, and agency dashboards for review and action.
+
+---
+
+## 2) Constraints (S1-S5)
+
+**S1. Scale and cost pressure**
+Web-scale corpora can be huge, so per-item cost, latency, and compute budgets matter intensely.
+
+**S2. Noise, variability, and low-quality source material**
+Pages differ wildly in structure, language, freshness, and completeness; many are duplicated, broken, spammy, or partially rendered.
+
+**S3. Accuracy, trust, and provenance requirements**
+Users need reliable outputs, traceability, confidence scores, and evidence because hallucinations or misreads can cause business harm.
+
+**S4. Change velocity and temporal drift**
+Web content changes constantly; yesterday’s extraction or classification may already be stale, especially for commerce, news, pricing, and policy pages.
+
+**S5. Compliance, permissions, and operational risk**
+Robots rules, terms of service, privacy laws, copyright, brand safety, and platform restrictions constrain what can be collected, transformed, and published.
+
+---
+
+## 3) Matrix Table
+
+| Cell | Capability | Constraint | Tension | Idea | Potential |
+|------|------------|------------|---------|------|-----------|
+| **C1S1** | Cheap per-item LLM operations at scale | Scale and cost pressure | The value is in volume, but volume destroys margins if every item is overprocessed | **Adaptive triage engine**: cheap first-pass LLMs classify pages into “ignore / summarize / deep inspect / human review” to minimize spend | ⭐⭐⭐⭐⭐ |
+| **C1S2** | Cheap per-item LLM operations at scale | Noise, variability, and low-quality source material | Cheap calls become brittle when input quality is chaotic | **Noise-tolerant extraction pipeline** that uses lightweight LLM normalization to repair HTML, boilerplate, encoding, and language before downstream tasks | ⭐⭐⭐⭐ |
+| **C1S3** | Cheap per-item LLM operations at scale | Accuracy, trust, and provenance requirements | Low cost invites low rigor, but customers need defensible outputs | **Confidence-scored micro-claims**: each item gets atomic extracted facts with evidence snippets and confidence thresholds | ⭐⭐⭐⭐⭐ |
+| **C1S4** | Cheap per-item LLM operations at scale | Change velocity and temporal drift | Cheap batch processing is easy; keeping it current is hard | **Incremental recrawl triggers** that re-run only on changed sections, diffed entities, or monitored signals | ⭐⭐⭐⭐ |
+| **C1S5** | Cheap per-item LLM operations at scale | Compliance, permissions, and operational risk | The most scalable system can also be the most legally dangerous | **Policy-aware web worker** that blocks, redacts, or scopes tasks based on robots, jurisdiction, and content class | ⭐⭐⭐⭐ |
+| **C2S1** | Deterministic aggregation and orchestration | Scale and cost pressure | Orchestration overhead can erase savings if pipelines become too elaborate | **Cost governor and route planner** that dynamically chooses model, batch size, retry depth, and human escalation based on expected ROI | ⭐⭐⭐⭐⭐ |
+| **C2S2** | Deterministic aggregation and orchestration | Noise, variability, and low-quality source material | Deterministic code needs consistent inputs, but web content is messy | **Consensus reducer**: multiple cheap LLM passes plus deterministic voting, normalization, and conflict resolution | ⭐⭐⭐⭐⭐ |
+| **C2S3** | Deterministic aggregation and orchestration | Accuracy, trust, and provenance requirements | Aggregation can hide uncertainty unless the system preserves lineage | **Provenance graph builder** that records prompt, source fragment, model, timestamp, and downstream transformations for every output | ⭐⭐⭐⭐⭐ |
+| **C2S4** | Deterministic aggregation and orchestration | Change velocity and temporal drift | Static pipelines miss the web’s constant churn | **Event-driven refresh system** using diffs, hashes, and content fingerprints to trigger minimal reprocessing | ⭐⭐⭐⭐ |
+| **C2S5** | Deterministic aggregation and orchestration | Compliance, permissions, and operational risk | Automation must enforce policy centrally, not ad hoc per job | **Compliance router** that gates tasks by domain, consent status, content sensitivity, and retention policy | ⭐⭐⭐⭐ |
+| **C3S1** | Web-native ingestion and monitoring | Scale and cost pressure | Monitoring everything is impossible; selection must be smart | **High-signal crawl prioritization** using sitemaps, link authority, traffic hints, and anomaly scores to target valuable pages | ⭐⭐⭐⭐ |
+| **C3S2** | Web-native ingestion and monitoring | Noise, variability, and low-quality source material | Ingestion breaks on dynamic pages, JS, embeds, and junk markup | **Render-aware collector** that uses LLMs to label page types and choose extraction strategies per template | ⭐⭐⭐⭐ |
+| **C3S3** | Web-native ingestion and monitoring | Accuracy, trust, and provenance requirements | Monitoring needs evidence, not just alerts | **Web change auditor** that stores before/after snapshots and explains why a page changed, with cited deltas | ⭐⭐⭐⭐⭐ |
+| **C3S4** | Web-native ingestion and monitoring | Change velocity and temporal drift | Continuous change demands continuous observation | **Real-time drift radar** for price, policy, availability, and content changes across monitored sites | ⭐⭐⭐⭐⭐ |
+| **C3S5** | Web-native ingestion and monitoring | Compliance, permissions, and operational risk | Ingestion itself may violate rules if not constrained | **Permission-aware crawler** that respects robots, rate limits, jurisdiction, and publisher opt-outs automatically | ⭐⭐⭐⭐ |
+| **C4S1** | Structured transformation of messy web content | Scale and cost pressure | Rich normalization can be expensive if every page gets full schema extraction | **Progressive schema builder** that only deep-extracts pages that pass business-value thresholds | ⭐⭐⭐⭐ |
+| **C4S2** | Structured transformation of messy web content | Noise, variability, and low-quality source material | Messy inputs require robust transformation into stable representations | **Universal page-to-object converter** for products, articles, jobs, policies, people, and events | ⭐⭐⭐⭐⭐ |
+| **C4S3** | Structured transformation of messy web content | Accuracy, trust, and provenance requirements | Structured outputs are useful only if they can be audited and verified | **Claim-extraction with citations** that outputs machine-readable facts linked to exact source spans | ⭐⭐⭐⭐⭐ |
+| **C4S4** | Structured transformation of messy web content | Change velocity and temporal drift | Structured data becomes stale as soon as the source changes | **Living content objects** that maintain versioned records and field-level update history | ⭐⭐⭐⭐ |
+| **C4S5** | Structured transformation of messy web content | Compliance, permissions, and operational risk | Transforming content can create rights issues, especially for copyrighted or personal data | **Rights-filtered transformation layer** that redacts, aggregates, or paraphrases based on policy | ⭐⭐⭐⭐ |
+| **C5S1** | Human-in-the-loop and workflow integration | Scale and cost pressure | Human review is expensive, so it must be reserved for the highest-leverage cases | **Exception-only workbench** that routes only uncertain, high-impact items to editors, merchants, or analysts | ⭐⭐⭐⭐⭐ |
+| **C5S2** | Human-in-the-loop and workflow integration | Noise, variability, and low-quality source material | Humans are better at ambiguity, but they need clean context to be efficient | **Review-ready evidence packs** that summarize context, highlight diffs, and pre-fill suggested actions | ⭐⭐⭐⭐ |
+| **C5S3** | Human-in-the-loop and workflow integration | Accuracy, trust, and provenance requirements | Reviewers need to see why the system recommended an action | **Decision trace UI** showing source text, model rationale, confidence, and prior edits for each item | ⭐⭐⭐⭐⭐ |
+| **C5S4** | Human-in-the-loop and workflow integration | Change velocity and temporal drift | Review queues can become obsolete before action is taken | **Time-sensitive tasking system** that reprioritizes items based on freshness, impact, and SLA decay | ⭐⭐⭐⭐ |
+| **C5S5** | Human-in-the-loop and workflow integration | Compliance, permissions, and operational risk | Human workflows still need guardrails to avoid policy breaches | **Policy-bounded editor** that prevents publishing disallowed transformations or unsafe redactions | ⭐⭐⭐⭐ |
+
+---
+
+## 4) Top 3 Picks
+
+### 1) **C3S4 — Real-time drift radar** ⭐⭐⭐⭐⭐
+Best fit for the domain because web-scale monitoring becomes most valuable when it detects change as it happens: prices, availability, policy updates, outages, editorial edits, and compliance drift. Strong product pull for e-commerce, search, agencies, and publishers.
+
+### 2) **C2S3 — Provenance graph builder** ⭐⭐⭐⭐⭐
+A foundational trust layer. Cheap LLM outputs are only commercially useful when they’re auditable. Provenance unlocks enterprise adoption, regulated use cases, and downstream automation with confidence.
+
+### 3) **C5S1 — Exception-only workbench** ⭐⭐⭐⭐⭐
+A very practical wedge product: let code + cheap LLMs handle 95% of items, and route only the uncertain/high-value cases to humans. This directly converts scale pressure into a labor-saving workflow for site owners, agencies, and commerce teams.
+
+If you want, I can turn the top 3 into:
+- product concepts,
+- target customers,
+- pricing models,
+- or MVP feature sets.

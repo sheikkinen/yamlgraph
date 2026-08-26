@@ -1,0 +1,96 @@
+2026-08-26 08:12:14,140 [INFO] yamlgraph.compile.node_compiler: Added node: generate (type=llm)
+2026-08-26 08:12:14,249 [INFO] yamlgraph.utils.llm_factory: Creating LLM: azure/aaa-gpt-5.4-mini (temp=0.85)
+2026-08-26 08:12:27,182 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-26 08:12:27,190 [INFO] yamlgraph.node_factory.llm_nodes: Node generate completed successfully
+
+🚀 Running graph: graph.yaml
+   Variables: {'domain': 'Value to INDIVIDUALS and CIVIL SOCIETY (not enterprises) when a semantic judgement costs a fraction of a cent: personal data audits, consumer rights, civic participation, education, accessibility, health literacy, scam protection, public-decision transparency. What becomes possible for a person or community that only corporations could afford before?'}
+
+🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/09c0c2d4-5724-4301-bcee-e1b64ddeb80e/r/01a03c7b-b041-7cf2-8a26-28d3da769198?poll=true
+============================================================
+RESULT
+============================================================
+  current_step: generate
+  domain: Value to INDIVIDUALS and CIVIL SOCIETY (not enterprises) when a semantic judgement costs a fraction of a cent: personal data audits, consumer rights, civic participation, education, accessibility, health literacy, scam protection, public-decision transparency. What becomes possible for a person or community that only corporations could afford before?
+  matrix: ## 1) Capabilities (C1-C5)
+
+**C1. Ultra-low-cost semantic judgment at scale**
+A model can classify, compare, summarize, detect, and reason over text, images, audio transcripts, forms, policies, and notices for a fraction of a cent.
+
+**C2. Personal data ingestion and contextualization**
+Users can connect emails, bills, receipts, medical info, school notices, government letters, app permissions, bank alerts, contracts, and browsing history into a coherent personal profile.
+
+**C3. Natural-language guidance and explanation**
+Systems can translate dense language into plain language, multiple reading levels, different languages, and accessible formats; they can also explain “why this matters” in context.
+
+**C4. Pattern detection across many cases**
+Models can spot scams, unfair terms, discriminatory patterns, recurring fees, missed deadlines, contradictory claims, and anomalies across large volumes of documents or public records.
+
+**C5. Automated action support**
+Systems can draft appeals, complaints, comparisons, summaries, reminders, forms, testimony, and questions for humans to review and submit.
+
+---
+
+## 2) Constraints (S1-S5)
+
+**S1. High stakes and trust requirements**
+Mistakes can harm health, finances, rights, or civic participation; users need confidence, provenance, and accountability.
+
+**S2. Privacy, consent, and data minimization**
+Personal and civic data are sensitive; people may want help without exposing everything to a platform.
+
+**S3. Unequal digital access and literacy**
+Users differ in device quality, connectivity, language, disability access needs, and ability to evaluate outputs.
+
+**S4. Institutional friction and procedural complexity**
+Government, healthcare, education, and consumer systems are bureaucratic, deadline-driven, and often designed to discourage navigation.
+
+**S5. Adversarial manipulation and information overload**
+Scammers, dark patterns, propaganda, misleading notices, and content floods create noise and exploit attention limits.
+
+---
+
+## 3) Matrix Table
+
+| Cell | Capability | Constraint | Tension | Idea | Potential |
+|------|------------|------------|---------|------|-----------|
+| **C1S1** | Ultra-low-cost semantic judgment at scale | High stakes and trust requirements | Cheap judgments are useful, but dangerous if users cannot trust them. | **Verified micro-advice layer**: every low-cost judgment is paired with confidence, citations, and “what would change my mind” flags for rights/health/finance notices. | ⭐⭐⭐⭐⭐ |
+| **C1S2** | Ultra-low-cost semantic judgment at scale | Privacy, consent, and data minimization | The more it analyzes, the more it may expose. | **On-device triage classifier**: a local model screens sensitive messages first, only escalating minimal snippets for deeper help. | ⭐⭐⭐⭐ |
+| **C1S3** | Ultra-low-cost semantic judgment at scale | Unequal digital access and literacy | Cheap intelligence only helps if it is usable by everyone. | **Universal accessibility interpreter**: instantly rewrites any notice into plain language, audio, large print, and easy-read formats. | ⭐⭐⭐⭐ |
+| **C1S4** | Ultra-low-cost semantic judgment at scale | Institutional friction and procedural complexity | Bureaucracy is too tedious for humans, but cheap enough for machines to map. | **Deadline and obligation scanner**: scans letters/contracts for deadlines, required actions, and hidden traps, then generates a step-by-step plan. | ⭐⭐⭐⭐⭐ |
+| **C1S5** | Ultra-low-cost semantic judgment at scale | Adversarial manipulation and information overload | The same cheap analysis that helps users can also be overwhelmed by noise. | **Scam and manipulation radar**: flags suspicious phrasing, urgency tactics, and pattern matches against known fraud and dark-pattern templates. | ⭐⭐⭐⭐⭐ |
+| **C2S1** | Personal data ingestion and contextualization | High stakes and trust requirements | Personal context makes advice better, but also increases liability. | **Personal rights ledger**: a living record of bills, subscriptions, claims, symptoms, school notices, and civic deadlines with risk scoring. | ⭐⭐⭐⭐ |
+| **C2S2** | Personal data ingestion and contextualization | Privacy, consent, and data minimization | Useful context often sits in the most sensitive places. | **Selective disclosure vault**: a system that lets users prove facts or get help by revealing only the smallest necessary data slice. | ⭐⭐⭐⭐⭐ |
+| **C2S3** | Personal data ingestion and contextualization | Unequal digital access and literacy | Context-rich tools can become inaccessible to the people who need them most. | **Family/community proxy mode**: trusted helpers can manage a person’s data with granular permissions and accessible handoff flows. | ⭐⭐⭐ |
+| **C2S4** | Personal data ingestion and contextualization | Institutional friction and procedural complexity | Personal records are scattered across institutions that do not talk to each other. | **Life-admin assembler**: merges records from school, health, benefits, taxes, and utilities into a single timeline of obligations and opportunities. | ⭐⭐⭐⭐⭐ |
+| **C2S5** | Personal data ingestion and contextualization | Adversarial manipulation and information overload | The more sources you ingest, the more attack surface you create. | **Noise-filtered inbox for life**: prioritizes what matters, suppresses spam, and highlights urgent legitimate actions across all channels. | ⭐⭐⭐⭐ |
+| **C3S1** | Natural-language guidance and explanation | High stakes and trust requirements | Explanations must be understandable without overselling certainty. | **Plain-language decision companion**: explains rights, options, tradeoffs, and confidence levels before a user acts. | ⭐⭐⭐⭐⭐ |
+| **C3S2** | Natural-language guidance and explanation | Privacy, consent, and data minimization | Helpful explanations may require sensitive context that users do not want shared. | **Private query explainer**: answers questions from local context without transmitting raw documents, using privacy-preserving summarization. | ⭐⭐⭐⭐ |
+| **C3S3** | Natural-language guidance and explanation | Unequal digital access and literacy | Explanation must adapt to different reading levels, languages, and abilities. | **Multimodal civic tutor**: turns any public notice into speech, visuals, examples, and stepwise prompts tailored to the user. | ⭐⭐⭐⭐⭐ |
+| **C3S4** | Natural-language guidance and explanation | Institutional friction and procedural complexity | People fail not from lack of rights, but from not understanding process language. | **Procedure translator**: converts administrative steps into “what to do today,” “what to keep,” and “what happens if you don’t.” | ⭐⭐⭐⭐⭐ |
+| **C3S5** | Natural-language guidance and explanation | Adversarial manipulation and information overload | Bad actors exploit ambiguity, jargon, and attention scarcity. | **Deception de-jargonizer**: rewrites suspicious messages into blunt plain language, exposing persuasion tactics and hidden asks. | ⭐⭐⭐⭐ |
+| **C4S1** | Pattern detection across many cases | High stakes and trust requirements | Pattern detection can reveal injustice, but false positives can damage reputations. | **Fairness anomaly detector**: compares a user’s case against peer cases to spot likely overcharging, discrimination, or irregular denial. | ⭐⭐⭐⭐⭐ |
+| **C4S2** | Pattern detection across many cases | Privacy, consent, and data minimization | Detecting patterns across lives risks becoming surveillance. | **Federated harm detector**: learns scam, abuse, or unfairness patterns across users without centralizing raw personal data. | ⭐⭐⭐⭐⭐ |
+| **C4S3** | Pattern detection across many cases | Unequal digital access and literacy | Pattern insights are useless if they are not delivered in an accessible way. | **Community dashboard for rights and risks**: local groups see recurring issues in utilities, schools, clinics, or landlords in simple visual form. | ⭐⭐⭐⭐ |
+| **C4S4** | Pattern detection across many cases | Institutional friction and procedural complexity | Systemic problems hide inside lots of small bureaucratic failures. | **Bureaucracy heatmap**: aggregates missed deadlines, recurring denials, and confusing forms to show where institutions fail most. | ⭐⭐⭐⭐⭐ |
+| **C4S5** | Pattern detection across many cases | Adversarial manipulation and information overload | Scams and propaganda evolve faster than manual moderation. | **Adaptive fraud signature engine**: continuously spots emerging scam templates across texts, calls, emails, and notices. | ⭐⭐⭐⭐⭐ |
+| **C5S1** | Automated action support | High stakes and trust requirements | Automation can help people act, but wrong actions can be costly. | **Human-in-the-loop appeals copilot**: drafts complaints, claims, and appeals with mandatory user review and evidence checklists. | ⭐⭐⭐⭐⭐ |
+| **C5S2** | Automated action support | Privacy, consent, and data minimization | Acting on someone’s behalf requires careful boundaries and minimal disclosure. | **Consent-bounded form filler**: completes applications and requests only with the smallest necessary data permissions. | ⭐⭐⭐⭐ |
+| **C5S3** | Automated action support | Unequal digital access and literacy | Action tools must work for users who cannot easily navigate forms or portals. | **Voice-first civic agent**: helps users call, file, book, and submit requests through speech and guided prompts. | ⭐⭐⭐⭐⭐ |
+| **C5S4** | Automated action support | Institutional friction and procedural complexity | Institutions are optimized to make action hard; automation can reverse that. | **One-click bureaucratic escalation**: auto-generates the exact complaint path, evidence packet, and filing sequence for a specific institution. | ⭐⭐⭐⭐⭐ |
+| **C5S5** | Automated action support | Adversarial manipulation and information overload | Users are exhausted and likely to click the wrong thing. | **Safe-action gatekeeper**: intercepts risky clicks, suspicious forms, and urgent requests, then offers verified alternatives. | ⭐⭐⭐⭐ |
+
+---
+
+## 4) Top 3 Picks
+
+### 1) **C2S2 — Selective disclosure vault** ⭐⭐⭐⭐⭐
+**Why it stands out:** This directly unlocks a major new category of consumer and civic help: people can get assistance without surrendering full control of their sensitive data. It’s both privacy-preserving and enabling, which is a rare combination.
+
+### 2) **C1S4 — Deadline and obligation scanner** ⭐⭐⭐⭐⭐
+**Why it stands out:** This is immediately actionable and broadly useful across benefits, housing, education, healthcare, taxes, and consumer rights. It turns bureaucratic complexity into a navigable to-do list, which is exactly the kind of capability individuals could not afford before.
+
+### 3) **C5S4 — One-click bureaucratic escalation** ⭐⭐⭐⭐⭐
+**Why it stands out:** This converts understanding into action. The leap from “I know my rights” to “I can actually enforce them” is huge for civil society, especially for people with limited time, literacy, or legal support.
+
+If you want, I can also turn this into a **2×2 strategic map**, or expand the top 3 into **product concepts, user journeys, and potential risks**.

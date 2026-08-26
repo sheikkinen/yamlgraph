@@ -22,14 +22,17 @@ philosopher rework (WIP, concurrent device).
 | # | Angle | Artifact | Status |
 |---|-------|----------|--------|
 | 0 | Repo investigation: map-node census, model pinning, semantic-work-in-regex sites | chat analysis 2026-08-26 | done |
-| 1 | Broad: repo workflow, ingestion, ops, outside software | `runs/run-mercury.log` | done |
-| 2 | Outward/commercial: sampling→census framing, regulated buyers | `runs/run-outward.log` | done |
-| 3 | Latency-specific: what only millisecond judgements enable (real-time interposition) | `runs/run-latency.log` | done |
-| 4 | Individual/civic/consumer: value to persons and society, not enterprises | `runs/run-civic.log` | done |
-| 5 | Forced opposite: where the pattern fails, harms, or is the wrong tool | `runs/run-inverse.log` | done |
-| 6 | Web use cases, operation-class-open verbs; **first canary-gated run** (canaries precommitted in `canaries-rounds-6-8.md`, withheld from prompt) | `runs/run-web.log` | done — **canary FAIL** |
-| 7 | Machine-consumer angle (output consumed by AI systems) | `runs/run-machine.log` | done — canary partial |
-| 8 | Web-grounded via web-research agent graph | `runs/run-grounded-FAILED-OPEN.log` | **INVALID — search never ran, graph failed open** → REDONE post-FR-891, see below |
+| 1 | Broad: repo workflow, ingestion, ops, outside software | `runs/run-mercury.txt` | done |
+| 2 | Outward/commercial: sampling→census framing, regulated buyers | `runs/run-outward.txt` | done |
+| 3 | Latency-specific: what only millisecond judgements enable (real-time interposition) | `runs/run-latency.txt` | done |
+| 4 | Individual/civic/consumer: value to persons and society, not enterprises | `runs/run-civic.txt` | done |
+| 5 | Forced opposite: where the pattern fails, harms, or is the wrong tool | `runs/run-inverse.txt` | done |
+| 6 | Web use cases, operation-class-open verbs; **first canary-gated run** (canaries precommitted in `canaries-rounds-6-8.md`, withheld from prompt) | `runs/run-web.txt` | done — **canary FAIL** |
+| 7 | Machine-consumer angle (output consumed by AI systems) | `runs/run-machine.txt` | done — canary partial |
+| 8 | Web-grounded via web-research agent graph | `runs/run-grounded-FAILED-OPEN.txt` | **INVALID — search never ran, graph failed open** → REDONE post-FR-891, see below |
+| 9 | Operation class TRANSFORM (rewrite/redact/personalize per unit) | `runs/run-transform.txt` | done — canary partial |
+| 10 | Grounded commoditization map (fail-closed librarian, post-FR-891) | `runs/run-grounded-commoditization.txt` | done — **canary PASS** |
+| 11 | Operation class GENERATE (per-item synthesis at scale) | `runs/run-generate.txt` | done — canary PASS |
 
 ## Findings so far (pre-convergence)
 
@@ -367,22 +370,79 @@ this shape (personas + librarian); innovation_matrix alone never will.
 The fail-open defect was fixed under FR-891 (fail-closed agent tool
 boundary; judgement-approved). Evidence pair:
 
-- **ddgs absent** (`runs/run-grounded-redo-ddgs-absent.log`): exit 1, no
+- **ddgs absent** (`runs/run-grounded-redo-ddgs-absent.txt`): exit 1, no
   summary — `AllToolCallsFailedError: Agent node 'research': all 3 tool
   call(s) failed … first failure: Error: ddgs not installed`. The run 8
   incident class is now mechanically impossible.
-- **ddgs present** (`runs/run-grounded-redo.log`): exit 0, live search
+- **ddgs present** (`runs/run-grounded-redo.txt`): exit 0, live search
   executed, 26 non-log URL citations in the artifact. Grounded canary
   (commercial crawl-and-index practice) satisfied: the summary names real
   prior art with URLs. Command: `yamlgraph graph run
   examples/demos/web-research/graph.yaml --var topic="Commercial services
   and open-source tools …" --full`.
 
+## Rounds 9–11: operation-class axis + trustworthy grounding (2026-08-26)
+
+Canaries precommitted in `canaries-rounds-9-11.md`. First rounds run AFTER
+FR-891 made the grounded librarian fail-closed — run 10 is the study's
+first trustworthy web-grounded round.
+
+### Canary verdicts
+- **Run 9 (TRANSFORM class, `runs/run-transform.txt`) — PARTIAL.** The
+  localization/translation canary surfaced as a cell ("policy-aware
+  localization engine", ⭐5) but not as the named whole-book/catalog
+  market. Top picks: audit-native transformation system, audience-safe
+  mass personalization, compliance-safe rewriting/redaction.
+- **Run 10 (grounded commoditization, `runs/run-grounded-commoditization.txt`)
+  — PASS.** Firecrawl named 21×, plus Apify, Diffbot, Zyte, Browse AI,
+  Unstructured, Crawl4AI; 36 URL-bearing citations, real pricing.
+  (First attempt hung: all search engines timed out and ddgs blocked in
+  its thread pool with no overall timeout — a NEW defect class the FR-891
+  boundary does not cover: bounded against errors, unbounded against
+  hangs. The demo declares no node `timeout:`; FR-069 exists unused.
+  Seed for a follow-up fix. Retry after network recovery succeeded.)
+- **Run 11 (GENERATE class, `runs/run-generate.txt`) — PASS.** "Synthetic
+  data marketplaces" (schema-conformant records for training/testing)
+  surfaced as a ⭐5 cell — the canary recalled.
+
+### What the grounded round adds (market facts, cited in-artifact)
+- The market has three layers: web-to-LLM ingestion (Firecrawl, Apify,
+  Diffbot, Zyte, Crawl4AI), document intelligence (Textract ~$0.07/page,
+  Google DocAI $0.65–30/1k pages, Unstructured ~$0.03/page, Hyperscience,
+  Rossum, ABBYY), and general LLM APIs (commodity).
+- **Nobody in the named market sells the evidence-stamped reduce layer.**
+  Incumbents sell ingestion (getting data OUT of pages) and OCR-grade
+  extraction; the convergent census products sell *judgement with audit
+  trail*. Mercury-class semantic judgement prices BELOW incumbent
+  OCR/extraction per-page rates — semantic processing at OCR prices is
+  the quantified wedge. This grounds the F2/portfolio thesis ("the reduce
+  layer is the product") in named-competitor pricing for the first time.
+
+### Convergence updates
+- Evidence-stamped ledger/provenance: now ~7 of 8 valid runs (run 9's #1
+  pick is literally "audit-native transformation system").
+- NEW two-run class: **mass personalization** (run 9 audience-safe
+  personalization; run 11 composable assembly lines / personalized
+  catalogs) — per-audience variants of one artifact at near-zero cost.
+- NEW coupling insight (run 11): "evaluation is the bottleneck of cheap
+  generation" — hybrid scoring stacks. Generate-class markets create
+  demand for judge-class products; the P-series census/QA products are
+  upstream of every generation market. The portfolio is self-reinforcing.
+- P4 (semantic DLP) reinforced from the transform side: compliance-safe
+  rewriting/redaction is its rewrite-mode twin (detect → redact is one
+  product with two verbs).
+
 ## Sources
 - Raw run artifacts preserved in `docs/mercury-census/runs/`:
-  `run-mercury.log` (1), `run-outward.log` (2), `run-latency.log` (3),
-  `run-civic.log` (4), `run-inverse.log` (5), `run-web.log` (6),
-  `run-machine.log` (7), `run-grounded-FAILED-OPEN.log` (8)
-- Canary precommitment: `canaries-rounds-6-8.md`
+  `run-mercury.txt` (1), `run-outward.txt` (2), `run-latency.txt` (3),
+  `run-civic.txt` (4), `run-inverse.txt` (5), `run-web.txt` (6),
+  `run-machine.txt` (7), `run-grounded-FAILED-OPEN.txt` (8),
+  `run-transform.txt` (9), `run-grounded-commoditization.txt` (10),
+  `run-generate.txt` (11) — .txt because `*.log` is gitignored; rounds
+  1–8 were silently excluded from PR #478 by that rule and recovered
+  here (dangling-evidence defect, the study's own
+  `gate_checks_shape_not_substance` class).
+- Canary precommitments: `canaries-rounds-6-8.md`, `canaries-rounds-9-11.md`,
+  `canary-fr-891.md`
 - diary 2026-08-26-cheap-map-code-reduce-the-mercury-pattern.md
 - docs/analysis-fr888-post-mortem-2026-08-25.md (the priced counter-case)

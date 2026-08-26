@@ -1,0 +1,96 @@
+2026-08-26 07:59:15,639 [INFO] yamlgraph.compile.node_compiler: Added node: generate (type=llm)
+2026-08-26 07:59:15,771 [INFO] yamlgraph.utils.llm_factory: Creating LLM: azure/aaa-gpt-5.4-mini (temp=0.85)
+2026-08-26 07:59:28,295 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-26 07:59:28,306 [INFO] yamlgraph.node_factory.llm_nodes: Node generate completed successfully
+
+🚀 Running graph: graph.yaml
+   Variables: {'domain': "Applying the cheap-map/code-reduce LLM pattern (fan out many one-judgement calls on an ultra-cheap fast model like Mercury diffusion LLM or Haiku, aggregate with deterministic LLM-free code, at most one expensive synthesis call). Where does this pattern unlock NEW value: in a software repo's own development workflow (audits, triage, diaries, dead-code, logs, tests), in web/data ingestion, in operations, and in domains outside software?"}
+
+🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/09c0c2d4-5724-4301-bcee-e1b64ddeb80e/r/01a03c6f-cf3c-7692-908f-dc604c3ad110?poll=true
+============================================================
+RESULT
+============================================================
+  current_step: generate
+  domain: Applying the cheap-map/code-reduce LLM pattern (fan out many one-judgement calls on an ultra-cheap fast model like Mercury diffusion LLM or Haiku, aggregate with deterministic LLM-free code, at most one expensive synthesis call). Where does this pattern unlock NEW value: in a software repo's own development workflow (audits, triage, diaries, dead-code, logs, tests), in web/data ingestion, in operations, and in domains outside software?
+  matrix: ## 1) Capabilities (C1-C5)
+
+**C1. Ultra-cheap per-item judgment at massive scale**
+Fast, low-cost LLM calls can label, score, classify, extract, or flag millions of small units: files, diffs, log lines, tickets, events, paragraphs, records, or test failures.
+
+**C2. Deterministic aggregation and rule-based post-processing**
+Code can merge, vote, threshold, dedupe, cluster, rank, route, and reconcile model outputs without paying for a larger model to do the synthesis.
+
+**C3. Structured decomposition of messy corpora into “judgable atoms”**
+Repositories, logs, web pages, documents, traces, and datasets can be split into small units that are independently assessable.
+
+**C4. Domain-specific rubrics and lightweight prompts**
+A system can encode standards like “is this dead code?”, “is this suspicious?”, “does this test indicate flaky behavior?”, “is this record PII?”, or “is this content policy-violating?” in compact prompts.
+
+**C5. One expensive synthesis call for final interpretation**
+After cheap fan-out and deterministic aggregation, a single strong model call can produce a final narrative, recommendation, or executive summary.
+
+---
+
+## 2) Constraints (S1-S5)
+
+**S1. Cost and latency pressure**
+This pattern only shines when the work is too large or too frequent for expensive-model-only workflows.
+
+**S2. Need for high precision in some decisions**
+False positives can create operational noise, developer distrust, or bad automated actions.
+
+**S3. Heterogeneous, noisy, and evolving inputs**
+Repos, logs, web content, and enterprise data are inconsistent, ambiguous, and constantly changing.
+
+**S4. Limited context per cheap call**
+Cheap models often see only a small slice of the full system, so cross-item reasoning must be externalized into code.
+
+**S5. Requirement for explainability, auditability, and governance**
+Many workflows need traceable decisions, reproducibility, and defensible actioning.
+
+---
+
+## 3) Matrix Table
+
+| Cell | Capability | Constraint | Tension | Idea | Potential |
+|------|------------|------------|---------|------|-----------|
+| **C1S1** | Ultra-cheap per-item judgment | Cost and latency pressure | If every item is too expensive to inspect with a strong model, can cheap judgments unlock whole new continuous workflows? | **Always-on repo and ops sentry**: classify every commit, log burst, PR comment, or data row in near real time and only escalate outliers. | ⭐⭐⭐⭐⭐ |
+| **C1S2** | Ultra-cheap per-item judgment | Need for high precision | Cheap judgments are fast but imperfect; how do you safely use them when bad calls are costly? | **Multi-pass quorum triage**: run 3–5 cheap judgments per item, use agreement thresholds, and route only uncertain cases upward. | ⭐⭐⭐⭐ |
+| **C1S3** | Ultra-cheap per-item judgment | Noisy, evolving inputs | When inputs are messy and change constantly, can low-cost classification keep up better than manual review? | **Drift-aware ingestion filter**: continuously score incoming web/data items for schema shift, spam, novelty, or relevance before indexing. | ⭐⭐⭐⭐⭐ |
+| **C1S4** | Ultra-cheap per-item judgment | Limited context per cheap call | A single item may not tell the whole story, but cheap calls can’t hold the whole repo or dataset. | **Atomized evidence scoring**: judge each file, paragraph, trace span, or test failure independently, then compute cross-item summaries in code. | ⭐⭐⭐⭐ |
+| **C1S5** | Ultra-cheap per-item judgment | Explainability and governance | You can scale judgments, but can you make them auditable enough for teams or regulators? | **Decision ledger pipeline**: store every cheap label with prompt version, model version, confidence, and downstream action for audit trails. | ⭐⭐⭐⭐⭐ |
+| **C2S1** | Deterministic aggregation | Cost and latency pressure | If the bottleneck is volume, can code aggregation turn weak signals into a useful product? | **Signal compressor**: convert millions of cheap annotations into a small set of ranked issues, alerts, or summaries. | ⭐⭐⭐⭐ |
+| **C2S2** | Deterministic aggregation | Need for high precision | Aggregation can reduce noise, but how do you make the final system reliable enough to act on? | **Confidence math for workflows**: weighted voting, abstention, and escalation rules that only auto-act when evidence exceeds strict thresholds. | ⭐⭐⭐⭐⭐ |
+| **C2S3** | Deterministic aggregation | Noisy, evolving inputs | When the world changes fast, can code-based clustering and dedupe reveal patterns the model alone would miss? | **Emergent anomaly buckets**: group similar log events, failing tests, or content violations into stable clusters even as wording shifts. | ⭐⭐⭐⭐⭐ |
+| **C2S4** | Deterministic aggregation | Limited context per cheap call | Since the model can’t see everything, can code provide the missing global view? | **Cross-item graph reasoning**: infer repo hotspots, incident chains, or spam campaigns by aggregating local judgments into graph features. | ⭐⭐⭐⭐ |
+| **C2S5** | Deterministic aggregation | Explainability and governance | Can a code-first aggregation layer make LLM outputs easier to defend than end-to-end generation? | **Reproducible policy engine**: deterministic rules convert labels into actions, with full traceability from input to decision. | ⭐⭐⭐⭐⭐ |
+| **C3S1** | Structured decomposition | Cost and latency pressure | The more massive the corpus, the more decomposition matters—what can be turned into cheap atoms? | **Repo-wide atomization**: split codebases into functions, symbols, tests, diffs, and comments for bulk review at near-zero marginal cost. | ⭐⭐⭐⭐⭐ |
+| **C3S2** | Structured decomposition | Need for high precision | Granularity can improve precision, but tiny units can lose meaning. | **Fine-grained risk slicing**: separate “safe” from “needs review” at line/function/record level, then only inspect the suspicious fragments. | ⭐⭐⭐⭐ |
+| **C3S3** | Structured decomposition | Noisy, evolving inputs | How do you preserve structure when content is inconsistent across sources and time? | **Universal segmentation layer**: convert logs, docs, tickets, webpages, and traces into a common atom format for shared downstream scoring. | ⭐⭐⭐⭐⭐ |
+| **C3S4** | Structured decomposition | Limited context per cheap call | Small context windows force you to decide what the atom boundaries should be. | **Context-aware chunking policy**: dynamically choose chunk sizes using code based on file type, trace boundaries, semantic headings, or event windows. | ⭐⭐⭐⭐ |
+| **C3S5** | Structured decomposition | Explainability and governance | Decomposed decisions can be more auditable, but only if the boundary choices are visible. | **Inspectable evidence slices**: every judgment links to the exact span, diff hunk, or record fields that were evaluated. | ⭐⭐⭐⭐⭐ |
+| **C4S1** | Domain-specific rubrics | Cost and latency pressure | If the rubric is compact, can you continuously run it everywhere instead of sampling? | **Always-on rubric scanners**: cheap models enforce code review, policy, PII, or incident rubrics across every incoming artifact. | ⭐⭐⭐⭐⭐ |
+| **C4S2** | Domain-specific rubrics | Need for high precision | Rubrics help, but edge cases still cause mistakes. | **Layered rubric gates**: cheap first-pass rubric + deterministic checks + escalation on borderline cases. | ⭐⭐⭐⭐ |
+| **C4S3** | Domain-specific rubrics | Noisy, evolving inputs | Can a rubric survive changing jargon, templates, and data shapes? | **Self-updating rubric packs**: periodically mine false positives/negatives and refresh prompt templates and rules from labeled drift examples. | ⭐⭐⭐⭐ |
+| **C4S4** | Domain-specific rubrics | Limited context per cheap call | A rubric may depend on hidden context not present in one chunk. | **Rule decomposition by evidence type**: separate checks for syntax, semantics, provenance, and policy signals, then combine them deterministically. | ⭐⭐⭐⭐ |
+| **C4S5** | Domain-specific rubrics | Explainability and governance | A rubric-based decision system is naturally auditable if the rubric itself is explicit. | **Policy-as-code review engine**: encode standards as prompts and rules, with every decision tied to a named policy clause. | ⭐⭐⭐⭐⭐ |
+| **C5S1** | One expensive synthesis call | Cost and latency pressure | If cheap fan-out does the grunt work, what high-value synthesis remains worth paying for? | **Executive incident brief**: cheap calls gather facts from logs, commits, tickets, and docs; one synthesis call writes the final narrative and recommendation. | ⭐⭐⭐⭐⭐ |
+| **C5S2** | One expensive synthesis call | Need for high precision | When the final decision is high stakes, can the synthesis step safely arbitrate edge cases? | **Escalation adjudicator**: only the top uncertain or conflicting cases reach the expensive model for final tie-breaking. | ⭐⭐⭐⭐ |
+| **C5S3** | One expensive synthesis call | Noisy, evolving inputs | Can a single synthesis call make sense of a chaotic, shifting evidence pile? | **Adaptive situation report**: aggregate noisy cheap labels into a compact evidence table, then synthesize trend, root cause, and next action. | ⭐⭐⭐⭐ |
+| **C5S4** | One expensive synthesis call | Limited context per cheap call | If local judgments are fragmented, can synthesis recover the whole story? | **Cross-source narrative assembly**: combine judgments from repo, CI, logs, web, and support data into one coherent diagnosis. | ⭐⭐⭐⭐⭐ |
+| **C5S5** | One expensive synthesis call | Explainability and governance | Can the final synthesis be both useful and defensible? | **Audited final memo**: synthesis cites the deterministic evidence ledger and produces a human-reviewable rationale. | ⭐⭐⭐⭐⭐ |
+
+---
+
+## 4) Top 3 Picks
+
+### 1) **C1S3 — Drift-aware ingestion filter**
+**Why it stands out:** This is a strong “new value” zone outside software repos: web/data ingestion, compliance screening, spam detection, and content moderation all benefit from cheap continuous scoring on noisy, evolving streams. It directly exploits scale and ambiguity.
+
+### 2) **C2S3 — Emergent anomaly buckets**
+**Why it stands out:** Deterministic clustering over cheap labels is a powerful unlock for operations and observability. It can turn torrents of logs, failures, or incidents into stable, actionable buckets without expensive model reasoning on every event.
+
+### 3) **C5S1 — Executive incident brief**
+**Why it stands out:** This is the cleanest “cheap map, one expensive synth” end-to-end workflow. It creates real value in software ops, security, support, and business intelligence by turning many low-cost judgments into a high-quality human decision artifact.
+
+If you want, I can also turn this into a **priority map by domain**: repo workflow vs ingestion vs ops vs non-software, showing where each cell is most likely to pay off.

@@ -1,0 +1,16 @@
+2026-08-26 09:16:34,683 [INFO] yamlgraph.compile.graph_loader: Parsed 1 Python tools: search_web
+2026-08-26 09:16:34,686 [INFO] yamlgraph.compile.node_compiler: Added node: research (type=agent)
+2026-08-26 09:16:34,686 [INFO] yamlgraph.compile.node_compiler: Added node: summarize (type=llm)
+2026-08-26 09:16:34,785 [INFO] yamlgraph.utils.llm_factory: Creating LLM: azure/aaa-gpt-5.4-mini (temp=0.7)
+2026-08-26 09:16:35,501 [INFO] yamlgraph.tools.agent: 🤖 Starting agent loop: research (max 5 iterations)
+2026-08-26 09:16:36,539 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-26 09:16:36,546 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': 'test topic overview current information', 'max_results': 5})
+2026-08-26 09:16:36,548 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': 'test topic latest developments news', 'max_results': 5})
+2026-08-26 09:16:36,549 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': 'test topic key facts sources', 'max_results': 5})
+2026-08-26 09:16:37,682 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-26 09:16:37,683 [INFO] yamlgraph.tools.agent: ✓ Agent completed after 2 iterations
+
+🚀 Running graph: graph.yaml
+   Variables: {'topic': 'test topic'}
+
+❌ Error: Agent node 'research': all 3 tool call(s) failed (3 failure(s); tools: search_web; first failure: Error: ddgs not installed — pip install 'yamlgraph[websearch]')
