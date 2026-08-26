@@ -59,7 +59,7 @@ convention is not one change; it is one change per enumerator.
 
 ## Seed
 
-The route proved a cheap model with clean closure beats an expensive
+**Seed:** The route proved a cheap model with clean closure beats an expensive
 model with dirty context — for PLANNING. Where else is the repo paying
 frontier-model prices for a contamination problem? Candidate: the
 review route reads the full PR diff plus FR plus judgement in one
