@@ -1,22 +1,22 @@
-2026-08-26 13:13:00,951 [INFO] yamlgraph.compile.graph_loader: Parsed 3 Python tools: discover, extract, reduce_ledger
-2026-08-26 13:13:00,952 [INFO] yamlgraph.compile.node_compiler: Added node: discover (type=python)
-2026-08-26 13:13:00,953 [INFO] yamlgraph.compile.node_compiler: Added node: extract_items (type=map)
-2026-08-26 13:13:00,955 [INFO] yamlgraph.compile.node_compiler: Added node: judge_items (type=map)
-2026-08-26 13:13:00,956 [INFO] yamlgraph.compile.node_compiler: Added node: reduce_ledger (type=python)
-2026-08-26 13:13:01,076 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: discover -> discover
-2026-08-26 13:13:01,198 [INFO] yamlgraph.utils.llm_factory: Creating LLM: anthropic/claude-haiku-4-5 (temp=0.0)
-2026-08-26 13:13:03,990 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
-2026-08-26 13:13:04,014 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-08-26 13:13:04,043 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
-2026-08-26 13:13:04,045 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-08-26 13:13:09,608 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
-2026-08-26 13:13:09,610 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-08-26 13:13:09,611 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: reduce_ledger -> reduce_ledger
+2026-08-26 15:03:34,622 [INFO] yamlgraph.compile.graph_loader: Parsed 3 Python tools: discover, extract, reduce_ledger
+2026-08-26 15:03:34,623 [INFO] yamlgraph.compile.node_compiler: Added node: discover (type=python)
+2026-08-26 15:03:34,623 [INFO] yamlgraph.compile.node_compiler: Added node: extract_items (type=map)
+2026-08-26 15:03:34,626 [INFO] yamlgraph.compile.node_compiler: Added node: judge_items (type=map)
+2026-08-26 15:03:34,627 [INFO] yamlgraph.compile.node_compiler: Added node: reduce_ledger (type=python)
+2026-08-26 15:03:34,752 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: discover -> discover
+2026-08-26 15:03:34,867 [INFO] yamlgraph.utils.llm_factory: Creating LLM: anthropic/claude-haiku-4-5 (temp=0.0)
+2026-08-26 15:03:36,860 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-08-26 15:03:36,877 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-08-26 15:03:36,916 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-08-26 15:03:36,918 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-08-26 15:03:36,928 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-08-26 15:03:36,930 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-08-26 15:03:36,931 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: reduce_ledger -> reduce_ledger
 
 🚀 Running graph: graph.yaml
    Variables: {'source': 'examples/demos/corpus_census/fixtures/corpus', 'rubric': "classify each document's main topic in one word", 'output_path': 'tmp/corpus-census-ledger.md'}
 
-🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/09c0c2d4-5724-4301-bcee-e1b64ddeb80e/r/01a03d8f-0fa7-7e00-b1d6-5ad9b6a2ce35?poll=true
+🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/09c0c2d4-5724-4301-bcee-e1b64ddeb80e/r/01a03df4-486e-7a23-8d75-79edb823c1fe?poll=true
 ============================================================
 RESULT
 ============================================================

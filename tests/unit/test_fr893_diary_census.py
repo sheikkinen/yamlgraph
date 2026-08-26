@@ -7,6 +7,7 @@ threshold filtering, abstention exclusion, public-safe committed output
 """
 
 import json
+from pathlib import Path
 
 import pytest
 
@@ -45,7 +46,7 @@ ROWS = [
     _row("docs/diary/2026-08-22-f.md", "none", abstained=True, reason="no traps"),
 ]
 
-CANARIES = {"stale_msg_file": 3, "line_pinned_gates": 3}
+CANARIES = {"msg_file|msg_txt": 3, "line_pin": 3}
 
 
 def _aggregate(tmp_path, rows=None, canaries=None, threshold=3):
@@ -120,6 +121,29 @@ class TestPublicSafeArtifact:
         assert "graduation" in text.lower()
         assert "span from" not in text
 
+    @pytest.mark.req("REQ-YG-624")
+    def test_graduated_labels_excluded_from_drafts(self, tmp_path):
+        """Scripture-graduated labels are measured but not re-proposed."""
+        from examples.demos.corpus_census.adapters.diary_recurrence import (
+            aggregate,
+        )
+
+        ledger = _ledger(tmp_path, "ledger.jsonl", ROWS)
+        result = aggregate(
+            [str(ledger)],
+            str(tmp_path / "census"),
+            threshold=3,
+            canaries=CANARIES,
+            inbox_dir=str(tmp_path / "inbox"),
+            graduated={"stale_msg_file"},
+        )
+        drafted = {Path(d).stem for d in result["inbox_drafts"]}
+        assert "diary-census-stale_msg_file" not in drafted
+        assert "diary-census-line_pinned_gates" in drafted
+        # still measured in the table
+        labels = {c["label"] for c in result["candidates"]}
+        assert "stale_msg_file" in labels
+
 
 class TestCanaryGate:
     @pytest.mark.req("REQ-YG-624")
@@ -130,9 +154,22 @@ class TestCanaryGate:
 
     @pytest.mark.req("REQ-YG-624")
     def test_canary_below_threshold_fails(self, tmp_path):
-        canaries = {"stale_msg_file": 5}
+        canaries = {"msg_file": 5}
         with pytest.raises(ValueError, match="[Cc]anary"):
             _aggregate(tmp_path, canaries=canaries)
+
+    @pytest.mark.req("REQ-YG-624")
+    def test_canary_family_matches_drifted_labels(self, tmp_path):
+        """Vocabulary drift: family substring matches label variants."""
+        rows = [
+            _row("docs/diary/2026-03-07-a.md", "tmp_msg_txt"),
+            _row("docs/diary/2026-03-07-b.md", "stale_tmp_msg_file"),
+            _row("docs/diary/2026-07-15-c.md", "tmp_msg_file_loss"),
+        ]
+        result = _aggregate(
+            tmp_path, rows=rows, canaries={"msg_txt|msg_file": 3}, threshold=5
+        )
+        assert result["rows"] == 3  # gate passed on family match
 
     @pytest.mark.req("REQ-YG-624")
     def test_no_inbox_drafts_when_canary_fails(self, tmp_path):

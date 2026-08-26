@@ -3053,7 +3053,7 @@ scripts/research.sh runs the examples/demos/research-route map+reduce graph — 
 
 Graph `tools:` entries may declare `slot: true` with a `contract:` block (runtime allowlist, required args); callers bind FR-768 tool manifests at invocation via repeatable `--tool SLOT=manifest.yaml`. Contaminated bindings (missing, duplicate, undeclared slot, missing/invalid manifest, contract mismatch) fail closed with ToolSlotBindingError before any node or LLM executes. Translation and execution reuse the FR-768 manifest runtimes exactly; binding paths resolve relative to CWD. Reference consumer: examples/demos/corpus_census (discover–extract–map–reduce census pipeline with fail-closed 8-column evidence ledger).
 
-**Feature Request:** FR-892
+**Feature Request:** FR-892, FR-893
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|

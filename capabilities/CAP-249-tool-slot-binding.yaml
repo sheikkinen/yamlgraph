@@ -1,6 +1,6 @@
 id: CAP-249
 name: Invocation-time tool-slot binding
-fr: FR-892
+fr: FR-892, FR-893
 description: >
   Graph `tools:` entries may declare `slot: true` with a `contract:` block
   (runtime allowlist, required args); callers bind FR-768 tool manifests at

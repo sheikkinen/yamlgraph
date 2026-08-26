@@ -1,0 +1,6 @@
+name: diary-discover
+description: "FR-893 diary census: enumerate diary entries (month-batchable)"
+runtime:
+  type: python
+  path: diary_adapters.py
+  function: diary_discover
