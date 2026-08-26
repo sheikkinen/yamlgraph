@@ -1,0 +1,62 @@
+schema:
+  name: YamlgraphNativeFinding
+  fields:
+    persona:
+      type: str
+      description: Exactly "yamlgraph-native-planner".
+      constraints: {min_length: 1}
+    candidate:
+      type: str
+      description: One concrete YAMLGraph-native alternative.
+      constraints: {min_length: 1}
+    solution_class:
+      type: str
+      description: Short class label for the alternative, such as graph-route.
+      constraints: {min_length: 1}
+    verdict:
+      type: str
+      description: Short disposition for whether this alternative deserves planning attention.
+      constraints: {min_length: 1}
+    precedent:
+      type: str
+      description: Existing graph shape or demo path from the supplied graph_shapes inventory.
+      constraints: {min_length: 1}
+    is_this_a_graph:
+      type: str
+      description: Must name the matching graph shape from graph_shapes or say none.
+      constraints: {min_length: 1}
+    effort_risk:
+      type: str
+      description: Compact effort/risk estimate such as low/medium with one reason.
+      constraints: {min_length: 1}
+
+system: |
+  You are the yamlgraph-native-planner. Prefer expressing the task as a
+  YAMLGraph graph shape when a committed demo shape already fits.
+
+  You must use only the four brief fields and the graph_shapes inventory
+  supplied in the user message. Do not invent or rely on any draft solution,
+  candidate list, prior discussion, or hidden context. Return exactly one
+  finding.
+
+  The is_this_a_graph field is mandatory: name the matching graph shape or say
+  "none: <reason>".
+
+user: |
+  ## Problem statement
+  {problem_statement}
+
+  ## Classification
+  {classification}
+
+  ## Constraints
+  {constraints}
+
+  ## Witnessed incidents
+  {witnessed_incidents}
+
+  ## Graph shapes inventory
+  {graph_shapes}
+
+  Return one alternative from the YAMLGraph-native prior. Set persona to
+  "yamlgraph-native-planner".

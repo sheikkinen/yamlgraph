@@ -1,0 +1,195 @@
+version: "1.0"
+name: research-route
+description: >
+  FR-890 closed-input alternatives route: load a problem brief, collect known
+  graph task shapes, fan out to orthogonal planner personas, and reduce their
+  findings into a deterministic alternatives table.
+
+prompts_relative: true
+prompts_dir: prompts
+
+defaults:
+  provider: anthropic
+  model: claude-haiku-4-5
+  temperature: 0.0
+
+state:
+  brief_path: str
+  problem_statement: str
+  classification: str
+  constraints: str
+  witnessed_incidents: str
+  graph_shapes: str
+  os_infra_finding: dict
+  data_process_finding: dict
+  yamlgraph_native_finding: dict
+  subtractionist_finding: dict
+  librarian_research: str
+  librarian_tool_results:
+    type: list
+    reducer: add
+  librarian_finding: dict
+  findings:
+    type: list
+  result: dict
+
+tools:
+  load_brief:
+    type: python
+    path: nodes/research_tools.py
+    function: load_brief
+    description: "Parse a closed FR-890 problem brief into the four allowed fields."
+  collect_graph_shapes:
+    type: python
+    path: nodes/research_tools.py
+    function: collect_graph_shapes
+    description: "Collect one-line task-shape descriptions from demo graphs."
+  gather_findings:
+    type: python
+    path: nodes/research_tools.py
+    function: gather_findings
+    description: "Gather the five persona findings without merging disagreement."
+  write_alternatives:
+    type: python
+    path: nodes/research_tools.py
+    function: write_alternatives
+    description: "Validate findings and write tmp/draft-alternatives.md."
+  search_web:
+    type: python
+    module: examples.shared.websearch
+    function: search_web
+    description: "Search the web for current information on any topic. Returns titles, URLs, and snippets."
+
+nodes:
+  load_brief:
+    type: python
+    tool: load_brief
+
+  collect_graph_shapes:
+    type: python
+    tool: collect_graph_shapes
+    state_key: graph_shapes
+
+  os_infra_primitivist:
+    type: llm
+    prompt: os_infra_primitivist
+    state_key: os_infra_finding
+    variables:
+      problem_statement: "{state.problem_statement}"
+      classification: "{state.classification}"
+      constraints: "{state.constraints}"
+      witnessed_incidents: "{state.witnessed_incidents}"
+
+  data_process_planner:
+    type: llm
+    prompt: data_process_planner
+    state_key: data_process_finding
+    variables:
+      problem_statement: "{state.problem_statement}"
+      classification: "{state.classification}"
+      constraints: "{state.constraints}"
+      witnessed_incidents: "{state.witnessed_incidents}"
+
+  yamlgraph_native_planner:
+    type: llm
+    prompt: yamlgraph_native_planner
+    state_key: yamlgraph_native_finding
+    variables:
+      problem_statement: "{state.problem_statement}"
+      classification: "{state.classification}"
+      constraints: "{state.constraints}"
+      witnessed_incidents: "{state.witnessed_incidents}"
+      graph_shapes: "{state.graph_shapes}"
+
+  subtractionist:
+    type: llm
+    prompt: subtractionist
+    state_key: subtractionist_finding
+    variables:
+      problem_statement: "{state.problem_statement}"
+      classification: "{state.classification}"
+      constraints: "{state.constraints}"
+      witnessed_incidents: "{state.witnessed_incidents}"
+
+  librarian_research:
+    type: agent
+    prompt: librarian
+    tools: [search_web]
+    max_iterations: 4
+    state_key: librarian_research
+    tool_results_key: librarian_tool_results
+
+  os_infra_ready:
+    type: passthrough
+    output: {}
+
+  data_process_ready:
+    type: passthrough
+    output: {}
+
+  yamlgraph_native_ready:
+    type: passthrough
+    output: {}
+
+  subtractionist_ready:
+    type: passthrough
+    output: {}
+
+  librarian_structure:
+    type: llm
+    prompt: librarian_structure
+    state_key: librarian_finding
+    variables:
+      problem_statement: "{state.problem_statement}"
+      classification: "{state.classification}"
+      constraints: "{state.constraints}"
+      witnessed_incidents: "{state.witnessed_incidents}"
+      librarian_research: "{state.librarian_research}"
+      librarian_tool_results: "{state.librarian_tool_results}"
+
+  gather_findings:
+    type: python
+    tool: gather_findings
+    state_key: findings
+
+  reduce_findings:
+    type: python
+    tool: write_alternatives
+    state_key: result
+
+edges:
+  - from: START
+    to: load_brief
+  - from: load_brief
+    to: collect_graph_shapes
+  - from: collect_graph_shapes
+    to:
+      - os_infra_primitivist
+      - data_process_planner
+      - yamlgraph_native_planner
+      - subtractionist
+      - librarian_research
+  - from: os_infra_primitivist
+    to: os_infra_ready
+  - from: data_process_planner
+    to: data_process_ready
+  - from: yamlgraph_native_planner
+    to: yamlgraph_native_ready
+  - from: subtractionist
+    to: subtractionist_ready
+  - from: librarian_research
+    to: librarian_structure
+  - from: os_infra_ready
+    to: gather_findings
+  - from: data_process_ready
+    to: gather_findings
+  - from: yamlgraph_native_ready
+    to: gather_findings
+  - from: subtractionist_ready
+    to: gather_findings
+  - from: librarian_structure
+    to: gather_findings
+  - from: gather_findings
+    to: reduce_findings
+  - from: reduce_findings
+    to: END

@@ -1,0 +1,15 @@
+# Demo run: research-route (FR-890)
+
+Command:
+  scripts/research.sh tests/fixtures/fr890/clean-brief.md
+
+Result:
+  ✅ Demo succeeded — five personas (os-infra-primitivist,
+  data-process-planner, yamlgraph-native-planner, subtractionist,
+  librarian) produced findings from the closed brief; the LLM-free
+  reducer wrote tmp/draft-alternatives.md with the frozen 7-column
+  schema, 5 distinct solution classes, and a URL-bearing librarian
+  citation; scripts/research_preflight.py --verify-artifact passed.
+
+Committed exemplar of a full run (FR-888 problem brief):
+  feature-requests/FR-888.research.md

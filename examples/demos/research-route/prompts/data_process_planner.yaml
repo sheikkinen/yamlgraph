@@ -1,0 +1,56 @@
+schema:
+  name: DataProcessFinding
+  fields:
+    persona:
+      type: str
+      description: Exactly "data-process-planner".
+      constraints: {min_length: 1}
+    candidate:
+      type: str
+      description: One concrete schema, data, or workflow-process change that dissolves the problem.
+      constraints: {min_length: 1}
+    solution_class:
+      type: str
+      description: Short class label for the alternative, such as schema/process.
+      constraints: {min_length: 1}
+    verdict:
+      type: str
+      description: Short disposition for whether this alternative deserves planning attention.
+      constraints: {min_length: 1}
+    precedent:
+      type: str
+      description: Concrete precedent or source from the supplied brief constraints and incidents.
+      constraints: {min_length: 1}
+    is_this_a_graph:
+      type: str
+      description: Answer whether the process change itself requires a graph.
+      constraints: {min_length: 1}
+    effort_risk:
+      type: str
+      description: Compact effort/risk estimate such as low/medium with one reason.
+      constraints: {min_length: 1}
+
+system: |
+  You are the data-process-planner. Prefer changing the input shape, schema,
+  checklist, lifecycle, or handoff so the problem is dissolved before any guard
+  must catch it.
+
+  You must use only the four brief fields supplied in the user message. Do not
+  invent or rely on any draft solution, candidate list, prior discussion, or
+  hidden context. Return exactly one finding.
+
+user: |
+  ## Problem statement
+  {problem_statement}
+
+  ## Classification
+  {classification}
+
+  ## Constraints
+  {constraints}
+
+  ## Witnessed incidents
+  {witnessed_incidents}
+
+  Return one alternative from the schema/process prior. Set persona to
+  "data-process-planner".

@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Feature
-**Status:** Judged (APPROVED WITH REVISIONS 2026-08-25, R-1..R-6 folded)
+**Status:** Completed (enforced 2026-08-26; AC-14 human review of the judge-doctrine edit pending — clause advisory until recorded)
 **Effort:** 2 days
 **Requested:** 2026-08-25
 **First consumer / first event:** the next solution-bearing FR — its author
@@ -222,3 +222,73 @@ infrastructure = **human review recorded before the clause is binding**
 - Scripture: `capability_constraint_matrix`, `is_this_a_graph`,
   `does_the_platform_already_do_this`, `builders_never_call`,
   `ask_before_generate`
+
+## Implementation Record (2026-08-26)
+
+Enforced on worktree `feat/fr-890` (FR-888 route). TDD: RED c23c49e9
+(contract witnesses, SKIP=pytest), GREEN follows. CAP-248 / REQ-YG-623.
+
+**Deliverables:**
+
+- D-1: `examples/demos/research-route/` authored through
+  `scripts/author.sh` (sole route, C-2); `tmp/draft-authoring-report.md`
+  recorded lint (0 errors), 22/22 tests, and a clean-brief smoke whose
+  artifact passed `research_preflight.py --verify-artifact`. All LLM
+  nodes pin `claude-haiku-4-5`, temperature 0. Brief:
+  `feature-requests/authoring-briefs/fr-890-research-route-brief.md`.
+- D-2: `scripts/research.sh` — judge.sh lineage: lock (73/75), lineage
+  sentinel `RESEARCH_EXECUTION` (70), deterministic brief preflight
+  before any tokens (64), artifact verified by frozen schema never exit
+  code (65). `scripts/research_preflight.py` is the stdlib closure +
+  schema checker (no LLM in this path, R-2).
+- D-3: `tests/fixtures/fr890/clean-brief.md` (accepted) and
+  `contaminated-brief.md` (rejected: Proposed Solution heading +
+  candidate bullets).
+- D-4: `tests/unit/test_fr890_research_route.py` — 22 tests: closure
+  preflight, frozen artifact schema, disagreement preservation (AC-07:
+  6 findings → 6 rows), librarian fail-closed (error string / no URL),
+  class-count bounds, wrapper exit taxonomy with stubbed
+  `YAMLGRAPH_BIN`.
+- D-5: `feature-requests/TEMPLATE.md` gained the mandatory
+  `**Research:**` field with the promotion lifecycle (R-6).
+- D-6: `.github/skills/feature-request/SKILL.md` updated: template shows
+  first-consumer + Research fields; new Research Evidence section.
+- D-7: `.github/skills/judge-fr/doctrine.md` gained the prospective
+  research-evidence clause (local conventions only, R-5). **AC-14:
+  advisory until human review is recorded here.**
+- D-8: `tests/fixtures/fr890/FR-998-fixture-missing-research.md` judged
+  through `scripts/judge.sh`; committed draft verdict
+  (`FR-998-fixture-missing-research.judgement.md`): **REJECTED — "no
+  implementation authority because this post-activation FR has no
+  `**Research:**` field or committed research record"**. Output
+  artifact shape unchanged (AC-13).
+- D-9: FR-888 pre-solution brief
+  (`feature-requests/research-briefs/fr-888-problem-brief.md`) run
+  through `scripts/research.sh`. **The OS-permissions class surfaced
+  without operator help**: os-infra-primitivist proposed kernel-enforced
+  read-only/bind-mount boundaries; the subtractionist independently
+  proposed making the main checkout read-only via filesystem
+  permissions; the librarian cited external worktree-isolation prior
+  art (URL-bearing). No persona proposed the 601-line terminal grammar.
+  Promoted witness: `feature-requests/FR-888.research.md` (AC-09).
+- D-10: changelog fragment `changelog/unreleased/fr-890-research-sole-route.md`;
+  diary reflection committed alongside.
+
+**Decisions / deviations:**
+
+- `scripts/fr_board.py` gained a one-line `.research.` filename
+  exclusion (sibling of the existing `.judgement.` exclusion): without
+  it every promoted `FR-XXX.research.md` would render as a
+  PARSE-FAILURE board row. Mechanical consequence of D-5, smallest
+  sufficient change.
+- The librarian is an agent node (search_web) followed by a pinned llm
+  structuring node that must copy a result URL into `precedent`; the
+  LLM-free reducer and the wrapper verifier both fail closed on error
+  strings and missing URLs (C-4 enforced twice, boundary and shape).
+- Personas receive only the four brief fields (plus graph shapes for
+  the yamlgraph-native seat); no draft solution can enter the prompts
+  because the preflight rejects solution-shaped briefs before the graph
+  launches (C-3).
+
+**AC status:** AC-01..AC-13, AC-15 satisfied; AC-14 pending operator
+review of the doctrine edit (recorded here when given).

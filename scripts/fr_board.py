@@ -92,7 +92,11 @@ def collect_rows(repo: Path) -> list[dict]:
     if not fr_dir.is_dir():
         return rows
     for path in sorted(fr_dir.glob("*.md")):
-        if ".judgement." in path.name or path.name == "TEMPLATE.md":
+        if (
+            ".judgement." in path.name
+            or ".research." in path.name
+            or path.name == "TEMPLATE.md"
+        ):
             continue
         m_id = ID_RE.match(path.name)
         if not m_id:
