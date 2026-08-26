@@ -473,6 +473,52 @@ first trustworthy web-grounded round.
   rewriting/redaction is its rewrite-mode twin (detect → redact is one
   product with two verbs).
 
+## The pattern, fleshed out (operator reflection, 2026-08-26): discover–extract–map–reduce
+
+Eleven rounds and the P0-family additions expose that "cheap-map,
+code-reduce" under-describes the pattern. Every witness instance is FIVE
+stages, and the census products are all the same pipeline with two
+sockets swapped:
+
+| Stage | What it does | Who supplies it | Witness examples |
+|---|---|---|---|
+| **Discover** | Enumerate the corpus into items | **USER (socket 1)** | crawl .fi domains; list PRs; walk PDF pages; list org repos; fetch RSS feeds; list prompt files |
+| **Extract** | Get one item's content, boundary-normalized | **USER (socket 2)** | fetch page; git show; read page window; read repo manifest |
+| **Map** | One cheap judgement/transform per item | pipeline (pinned mercury/haiku, `on_error: skip`, abstention) | classify theme; score relevance; summarize page; label PR |
+| **Reduce** | LLM-free fail-closed aggregation + evidence ledger | pipeline (the sellable IP) | count/threshold; schema-validate; disagreement rows; citation checks |
+| **Tail** | ≤1 expensive synthesis, or none | pipeline (optional) | group themes; diary entry; sitemap |
+
+Decomposition check against in-repo witnesses: prompt_theme_analyzer
+(list_prompts / inline read / classify / aggregate / group), diary_digest
+(feeds / fetch / score / filter / write), book-summary (manifest / page
+window / summarize / accumulate / —), fi_domain_crawl (crawl / fetch /
+summarize / sitemap / —), icpc2+cwe classifiers (dataset rows / — /
+classify / score / —). **Five instances, zero shared code**: each
+re-authors the map/reduce skeleton by hand, and only discover+extract
+genuinely differ. The pattern name that should be codified:
+**discover–extract–map(mercury)–reduce** — a prebaked analysis pipeline
+with user-supplied discovery and extraction tools.
+
+### The codification implication: tool passing
+
+- The tool-declaration FORMAT already exists: FR-768 tool manifests
+  (`manifest:` key; typed shell/python/graph runtimes; translation-only,
+  existing runtimes execute). A discovery tool or extraction tool is
+  exactly one manifest file.
+- The MISSING capability is invocation-time binding: graphs declare tools
+  statically at load; there is no `--tool discover=./crawler.manifest.yaml`
+  style injection into a shared pipeline graph. Today the only reuse
+  routes are copy-the-graph (drift, witnessed 5×) or graph-as-tool
+  composition (FR-658/CAP-111 — inverts the ownership: the user writes
+  the outer graph, which is the skeleton re-authoring problem again).
+- Codification therefore = one parametric `corpus_census` pipeline
+  (pinned map model, frozen reduce/ledger schema, canary/abstention
+  hooks) + manifest injection at invocation. The P-series verticals and
+  the P0 family become CONFIGURATIONS: a discovery manifest, an
+  extraction manifest, a rubric prompt, a reduce schema.
+- Doctrine route: closed problem brief → `scripts/research.sh` → FR
+  (filed as `feature-requests/research-briefs/corpus-census-skeleton-reuse.md`).
+
 ## Status & next steps (as of 2026-08-26, after round 11)
 
 **State:** 11 rounds + repo census. Canary discipline active since round 6
