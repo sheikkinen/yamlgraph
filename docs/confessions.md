@@ -407,7 +407,7 @@ Test suppressions are acceptable when they enable testing patterns that conflict
 - **Penance**: Same pattern as CONF-037. The `statemachine_engine` package is a local dependency not installed in CI; `importorskip` must execute before the action import to skip gracefully.
 
 ### CONF-048
-- **File**: [yamlgraph/tools/agent.py](../yamlgraph/tools/agent.py#L121)
+- **File**: [yamlgraph/tools/agent.py](../yamlgraph/tools/agent.py#L142)
 - **Code**: C901
 - **Sin**: `create_agent_node` has high cyclomatic complexity due to tool registration loop, LLM config resolution, multi-turn message handling, agent iteration loop with tool calls, and structured output extraction.
 - **Penance**: The function is a factory that builds a closure capturing configuration. The inner `node_fn` orchestrates the agent loop which is inherently sequential and branching. Splitting further would scatter the closure's captured variables across multiple functions with no clarity gain.
@@ -1296,7 +1296,7 @@ These are E402 suppressions and are acceptable as "glue code" patterns.
 - **Penance**: Retained intentionally for domain semantics or existing contract wording; explicitly allowlisted and audited.
 
 ### CONF-304
-- **File**: [yamlgraph/tools/agent.py](../yamlgraph/tools/agent.py#L42)
+- **File**: [yamlgraph/tools/agent.py](../yamlgraph/tools/agent.py#L63)
 - **Code**: FB001
 - **Sin**: Docstring of `_try_structured_output` contains `fallback` — describes the try-parse-first, fallback-to-LLM strategy (FR-448).
 - **Penance**: The word describes the actual algorithmic pattern. Renaming would obscure intent.
@@ -1351,7 +1351,7 @@ These are not `# noqa` suppressions — they are documented deviations from proc
 - **Penance**: Consistent with CONF-247..256 pattern across test_fr637..654 files. Test-only utility.
 
 ### CONF-350
-- **File**: [yamlgraph/tools/agent.py](../yamlgraph/tools/agent.py#L51)
+- **File**: [yamlgraph/tools/agent.py](../yamlgraph/tools/agent.py#L72)
 - **Code**: FB001
 - **Sin**: Comment uses `fallback` token describing a legitimate fallback trigger condition.
 - **Penance**: Documents the structured-output mismatch recovery path. Renaming would obscure intent.
