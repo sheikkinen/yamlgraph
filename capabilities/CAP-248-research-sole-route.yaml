@@ -1,0 +1,35 @@
+name: Research Sole Route (Closed-Input Alternatives)
+id: CAP-248
+status: active
+fr: FR-890
+feature_request: feature-requests/FR-890-research-sole-route-closed-input-alternatives.md
+description: >
+  scripts/research.sh runs the examples/demos/research-route map+reduce
+  graph — five personas with orthogonal priors (OS/infra primitivist,
+  data/process planner, YAMLGraph-native planner, subtractionist,
+  web-grounded librarian), each receiving only a closed problem brief —
+  producing tmp/draft-alternatives.md: a dispositioned alternatives
+  table with precedent citations and planner disagreement preserved as
+  rows. A deterministic stdlib preflight rejects solution-contaminated
+  briefs before any tokens are spent; the wrapper serializes runs,
+  exports a lineage sentinel, and verifies the artifact by schema shape
+  rather than graph exit code.
+modules:
+  - examples
+requirements:
+  - id: REQ-YG-623
+    description: >
+      Research route contract: the brief preflight is deterministic
+      stdlib code requiring problem statement, closed-enum
+      classification, constraints, and witnessed incidents while
+      rejecting proposed-solution/candidate sections (exit 64); the
+      LLM-free reducer writes tmp/draft-alternatives.md with the frozen
+      columns candidate/persona/class/verdict/precedent/is_this_a_graph/
+      effort-risk, 4-6 distinct solution classes, no empty required
+      cells, disagreement preserved as separate rows, and fails closed
+      when the librarian row carries an error string or no URL-bearing
+      citation; scripts/research.sh enforces usage (64), missing brief
+      (66), re-entry sentinel (70), lock (73/75), and artifact contract
+      (65) taxonomy, verifying the artifact by schema shape.
+    modules:
+      - examples

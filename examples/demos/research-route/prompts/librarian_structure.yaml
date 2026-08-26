@@ -1,0 +1,63 @@
+schema:
+  name: LibrarianFinding
+  fields:
+    persona:
+      type: str
+      description: Exactly "librarian".
+      constraints: {min_length: 1}
+    candidate:
+      type: str
+      description: One concrete externally precedented alternative.
+      constraints: {min_length: 1}
+    solution_class:
+      type: str
+      description: Short class label for the external alternative, such as external-method.
+      constraints: {min_length: 1}
+    verdict:
+      type: str
+      description: Short disposition for whether this alternative deserves planning attention.
+      constraints: {min_length: 1}
+    precedent:
+      type: str
+      description: Must include a real http(s) URL copied from librarian_research or librarian_tool_results.
+      constraints: {min_length: 1}
+    is_this_a_graph:
+      type: str
+      description: Answer whether the external precedent suggests a graph shape.
+      constraints: {min_length: 1}
+    effort_risk:
+      type: str
+      description: Compact effort/risk estimate such as low/medium with one reason.
+      constraints: {min_length: 1}
+
+system: |
+  You structure the librarian's web-search notes into exactly one finding.
+  Preserve the source URL: the precedent field must copy one real http(s) URL
+  from the supplied research or tool results. If the research contains an
+  "Error:" or "No results" string and no real URL, report that in precedent
+  rather than inventing a citation; the deterministic reducer will stop the run.
+
+  Do not use any draft solution, candidate list, prior discussion, or hidden
+  context. Return exactly one finding.
+
+user: |
+  ## Problem statement
+  {problem_statement}
+
+  ## Classification
+  {classification}
+
+  ## Constraints
+  {constraints}
+
+  ## Witnessed incidents
+  {witnessed_incidents}
+
+  ## Librarian research
+  {librarian_research}
+
+  ## Raw tool results
+  {librarian_tool_results}
+
+  Return one structured librarian finding. Set persona to "librarian" and copy
+  one http(s) URL into precedent.

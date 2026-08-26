@@ -132,6 +132,7 @@ Standalone demos that teach a single YAMLGraph concept. Ordered by the learning 
 | [ramp_doctrine](demos/ramp_doctrine/) | `python`, `map`, `llm` | Scripture transferability judgement → draft disposition for a target repo (FR-866) |
 | [ramp_rtm](demos/ramp_rtm/) | `python`, `map`, `llm` | Derive candidate requirements + coverage gaps for a target repo (FR-866) |
 | [ramp_incidents](demos/ramp_incidents/) | `python`, `map`, `llm` | Reconcile target failure narratives into an incident register draft (FR-866) |
+| [research-route](demos/research-route/) | `python`, `llm`, `agent` | Closed-input alternatives research: five orthogonal personas + LLM-free reduce to a dispositioned table (FR-890) |
 | [salvage_classify](demos/salvage_classify/) | `python`, `map`, `llm` | Classify a stale source repo's assets for retirement — duplicate/lift/obsolete disposition draft (FR-868) |
 | [python-variables](demos/python-variables/) | `python` | Variables expression resolution on python nodes (FR-252) |
 | [map-timeout](demos/map-timeout/) | `map`, `python` | Per-branch timeout for map nodes (FR-069) |

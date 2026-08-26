@@ -8,6 +8,16 @@
 **First consumer / first event:** who uses this first, and at what
 concrete moment? An FR that cannot complete this sentence is
 `growth_as_default` (FR-746 F1; the consumer test).
+**Research:** [FR-XXX.research.md](FR-XXX.research.md)
+<!-- FR-890: mandatory for FRs created after FR-890 activation. Run
+     scripts/research.sh <problem-brief.md> and promote the accepted
+     tmp/draft-alternatives.md to feature-requests/FR-XXX.research.md —
+     a committed sibling of .judgement.md, same lifecycle. At promotion
+     add a header with brief filename, run date, and personas executed.
+     An equivalent committed record (e.g. an in-body dispositioned
+     alternatives table, FR-889 style) may be referenced instead. The
+     field must point at SOMETHING committed; a dangling or absent
+     reference is a gate failure — the Judge grants no authority. -->
 
 ## Summary
 

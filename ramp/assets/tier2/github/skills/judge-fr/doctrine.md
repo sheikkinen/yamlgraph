@@ -115,6 +115,19 @@ Write `<fr-path-without-.md>.judgement.md` following the adjacent
   `read_raw_output_first` (N cited samples with surprising detail)
   before authority; prior art including REJECTED FRs must be
   dispositioned before authority (FR-737 precedent rule).
+- Research evidence (FR-890, prospective): a newly created FR whose
+  `**Research:**` field is absent, dangling, or references a strawman
+  record receives NO authority — verdict REJECTED or returned-to-plan,
+  exactly as the raw-read clause kills unevidenced measurement FRs.
+  The field must point at a committed record: normally
+  `feature-requests/FR-XXX.research.md` (the promoted output of
+  `scripts/research.sh`), alternatively an equivalent committed
+  dispositioned alternatives table. The Judge checks SUBSTANCE:
+  genuine solution classes (4-6), precedent lines, disagreement
+  preserved, and the `is_this_a_graph` answer — a table that merely
+  shape-checks is `gate_checks_shape_not_substance`. Prospective from
+  FR-890 activation: FRs judged or completed before it, and FR-890
+  itself (the bootstrap case), are not retro-gated.
 - Judgement artifact: `feature-requests/<ID>-<slug>.judgement.md`,
   committed alongside the FR (see FR-723 for shape precedent).
 - Verdict vocabulary note: chaplain-era prompts used APPROVE/AMEND;

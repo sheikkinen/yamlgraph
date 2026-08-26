@@ -10,9 +10,9 @@ Create, judge, and enforce feature requests. Sources: `feature-requests/TEMPLATE
 
 ## The Sermon: Plan → Judge → Enforce
 
-1. **Research** — Let agents explore; distill into constraints. Cheapest code is unwritten code.
-2. **Plan** — Write FR in `feature-requests/FR-XXX-name.md`. Define objectives, constraints, acceptance criteria.
-3. **Judge** — Critically examine the FR. Resolve contradictions, eliminate ambiguity. If clear and minimal, freeze scope.
+1. **Research** — Run `scripts/research.sh <problem-brief.md>` (FR-890 sole route): a closed problem brief fans out to five orthogonal personas; the accepted `tmp/draft-alternatives.md` is promoted to `feature-requests/FR-XXX.research.md`. Cheapest code is unwritten code.
+2. **Plan** — Write FR in `feature-requests/FR-XXX-name.md`. Define objectives, constraints, acceptance criteria, first consumer, and the `**Research:**` reference.
+3. **Judge** — Critically examine the FR. Resolve contradictions, eliminate ambiguity. If clear and minimal, freeze scope. An FR without a committed research reference receives no authority (FR-890, prospective).
 4. **Enforce** — Write failing test first. Make smallest sufficient change. Update FR with decisions.
 5. **Purge** — Remove invented interfaces, speculative flags. If not required and not tested, delete.
 6. **Submit** — Bump. Commit. Push. Release. Tag.
@@ -28,6 +28,8 @@ Create, judge, and enforce feature requests. Sources: `feature-requests/TEMPLATE
 **Status:** Proposed
 **Effort:** X days
 **Requested:** YYYY-MM-DD
+**First consumer / first event:** who uses this first, at what moment
+**Research:** [FR-XXX.research.md](FR-XXX.research.md)
 
 ## Summary
 Brief description.
@@ -52,6 +54,28 @@ What other approaches were considered?
 ## Related
 - Links to issues, PRs, files
 ```
+
+## Research Evidence (FR-890)
+
+Every FR created after FR-890 activation must carry a `**Research:**`
+header pointing at a COMMITTED record — normally
+`feature-requests/FR-XXX.research.md`, the promoted output of the
+research sole route:
+
+```bash
+scripts/research.sh feature-requests/research-briefs/my-problem.md
+# accepted → promote:
+cp tmp/draft-alternatives.md feature-requests/FR-XXX.research.md
+```
+
+Lifecycle (R-6): the FR author promotes the artifact at FR filing or
+amendment time, adding a header with brief filename, run date, and
+personas executed. An equivalent committed record (an in-body
+dispositioned alternatives table) may be referenced instead. Dangling
+or absent references are gate failures — the Judge grants no authority.
+The problem brief itself must be closed input: problem statement,
+classification enum, constraints, witnessed incidents — no
+solution-shaped sections (the preflight rejects them, exit 64).
 
 ## Status Lifecycle
 
