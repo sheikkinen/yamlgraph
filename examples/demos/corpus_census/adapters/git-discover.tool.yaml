@@ -1,0 +1,6 @@
+name: git-discover
+description: "FR-892 proof adapter: git_discover"
+runtime:
+  type: python
+  path: corpus_adapters.py
+  function: git_discover

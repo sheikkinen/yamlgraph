@@ -1787,3 +1787,15 @@ The ID ranges are:
 - **Code**: E402
 - **Sin**: `import now` after `sys.path.insert` — module-level import not at top.
 - **Penance**: sibling-spike reuse; the path bootstrap must precede the import (CONF-392 idiom).
+
+### CONF-422
+- **File**: [examples/demos/corpus_census/adapters/corpus_adapters.py](../examples/demos/corpus_census/adapters/corpus_adapters.py#L59)
+- **Code**: S603
+- **Sin**: `subprocess.run` invoking git for the FR-892 git-timeline census adapter.
+- **Penance**: Fixed argv list (`git -C <repo> ...`), no shell, 30s timeout, check=True; repo path comes from the operator's --var input, never from LLM output.
+
+### CONF-423
+- **File**: [examples/demos/corpus_census/adapters/corpus_adapters.py](../examples/demos/corpus_census/adapters/corpus_adapters.py#L60)
+- **Code**: S607
+- **Sin**: `git` invoked by partial path in the FR-892 census adapter.
+- **Penance**: git is PATH-resolved by design (developer tooling); same pattern as CONF-421.

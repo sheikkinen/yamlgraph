@@ -1,0 +1,6 @@
+name: pdf-discover
+description: "FR-892 proof adapter: pdf_discover"
+runtime:
+  type: python
+  path: corpus_adapters.py
+  function: pdf_discover

@@ -9,4 +9,6 @@ scope: tools
   contract mismatch) fail closed with `ToolSlotBindingError` before any
   LLM call. Ships `examples/demos/corpus_census/` — the shared
   discover–extract–map–reduce census pipeline consuming the slots, with a
-  fail-closed 8-column evidence ledger (md+jsonl). (REQ-YG-018)
+  fail-closed 8-column evidence ledger (md+jsonl). Two proof
+  configurations shipped as manifest pairs + rubric only: PDF-library
+  census and git-history intent-timeline census. (REQ-YG-018)
