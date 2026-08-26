@@ -432,6 +432,36 @@ first trustworthy web-grounded round.
   rewriting/redaction is its rewrite-mode twin (detect → redact is one
   product with two verbs).
 
+## Status & next steps (as of 2026-08-26, after round 11)
+
+**State:** 11 rounds + repo census. Canary discipline active since round 6
+(scoreboard: 6 FAIL, 7 partial, 8 invalid→redone PASS, 9 partial, 10 PASS,
+11 PASS). Rounds 1–5 remain a hypothesis catalogue — never canary-gated.
+Instrument pair established: divergent generator (innovation_matrix) +
+fail-closed grounded librarian (web-research, post-FR-891); the canary
+gates the pair. Product candidates P0–P6 stand; the reduce-layer thesis is
+now grounded in named-competitor pricing (round 10).
+
+**Open options, ranked:**
+1. **Write the P1 wedge brief** (contact-center census QA) and run it
+   through `scripts/research.sh` — the study's own recommendation, twice
+   deferred; eleven rounds in, marginal ideation yield is falling and
+   `builders_never_call` now applies to this study's own conclusions.
+2. RETRIEVE operation-class round — the last unexplored verb (canary
+   candidate: RAG re-ranking / retrieval filtering with cheap per-chunk
+   relevance judgements).
+3. Re-run rounds 1–5 canary-gated to upgrade the convergence table from
+   hypothesis to evidence (cheap, but mostly confirms what 6–11 already
+   re-witnessed).
+
+**Named capability gaps awaiting FRs:** cost-sensitive abstention;
+correlation-aware aggregation; agent tool-call hang bound (run-10 incident
+— FR-069 per-node timeout exists unused; FR-891 bounds errors, not hangs).
+
+**Pending elsewhere:** `.chaplain/inbox/canary-recall-gate-for-ideation-runs.md`
+(graduation proposal); cheap_map_code_reduce Scripture entry waits for the
+philosopher commit (4th witness) to land from the concurrent device.
+
 ## Sources
 - Raw run artifacts preserved in `docs/mercury-census/runs/`:
   `run-mercury.txt` (1), `run-outward.txt` (2), `run-latency.txt` (3),
