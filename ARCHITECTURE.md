@@ -563,6 +563,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 245 | CAP-245 Ramp Tailoring Graphs | `examples` | REQ-YG-614 – 617 |
 | 246 | CAP-246 Scripture-dev Salvage Classification | `examples` | REQ-YG-618 – 619 |
 | 247 | CAP-247 Memory-Corpus Curation (Selective Amnesia) | `examples` | REQ-YG-620 – 622 |
+| 248 | CAP-248 Research Sole Route (Closed-Input Alternatives) | `examples` | REQ-YG-623 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -3036,6 +3037,16 @@ examples/memory-curation judges every repo-scope memory note against a declared 
 | REQ-YG-620 | memory-curation code-stage contract: collect reads only the repo scope of an explicitly configured memory root, writes manifest (path, sha256, size, mtime) plus note copies strictly under the out-dir, and rejects symlink escapes; reconcile Pydantic-validates dispositions with exact enums and cross-field invariants (redacted_draft iff redact, staleness_evidence iff dated/expired), proves count-in == count-out with each manifest path exactly once and zero unknown verdicts, and stamps outputs with the manifest hash; apply refuses without a sign-off line binding manifest and disposition hashes, refuses all mutation on any live-hash drift, executes forget=delete / redact=replace / keep=untouched, and is idempotent on re-run. | `examples` |
 | REQ-YG-621 | FR-878 reversible amnesia and tiered approval: forget archives to an op-id collision-safe shelf and redact stashes its original as a backup, both tombstoned with schema rows in a protected _tombstones.md that apply refuses to forget or redact; restore is conflict-safe (refuses diverged live bytes) and idempotent only for recorded restorations; approval tier is computed from disposition content with precedence export_publication > forget > redact > keep-only, where premise_kind is a validated enum failing closed to tier 3, tier 1 requires a machine-checked DELEGATION provenance line plus an audit record, tiers 2/3 require recorded human response artifacts; re-derivation advisory fires only against forget tombstones (never redaction backups) with zero LLM or network calls. | `examples` |
 | REQ-YG-622 | FR-877 staleness advisory: apply writes a versioned post-apply .curation-state.json baseline (live repo notes only — forgotten paths absent, so a forget-run yields zero immediate drift); advisory.py is pure stdlib, compares the live corpus (regular non-symlink repo/*.md incl. _tombstones.md, marker excluded) to the baseline by sha256, is silent below threshold, prints exactly one line at/above threshold or for a never-curated non-empty corpus, and exits nonzero with bounded stderr on malformed markers; the SessionStart hook wrapper is env-overridable and fail-open with one bounded JSONL failure record, never blocking a session and never faking no-drift. | `examples` |
+
+### 248. CAP-248 Research Sole Route (Closed-Input Alternatives)
+
+scripts/research.sh runs the examples/demos/research-route map+reduce graph — five personas with orthogonal priors (OS/infra primitivist, data/process planner, YAMLGraph-native planner, subtractionist, web-grounded librarian), each receiving only a closed problem brief — producing tmp/draft-alternatives.md: a dispositioned alternatives table with precedent citations and planner disagreement preserved as rows. A deterministic stdlib preflight rejects solution-contaminated briefs before any tokens are spent; the wrapper serializes runs, exports a lineage sentinel, and verifies the artifact by schema shape rather than graph exit code.
+
+**Feature Request:** FR-890
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-623 | Research route contract: the brief preflight is deterministic stdlib code requiring problem statement, closed-enum classification, constraints, and witnessed incidents while rejecting proposed-solution/candidate sections (exit 64); the LLM-free reducer writes tmp/draft-alternatives.md with the frozen columns candidate/persona/class/verdict/precedent/is_this_a_graph/ effort-risk, 4-6 distinct solution classes, no empty required cells, disagreement preserved as separate rows, and fails closed when the librarian row carries an error string or no URL-bearing citation; scripts/research.sh enforces usage (64), missing brief (66), re-entry sentinel (70), lock (73/75), and artifact contract (65) taxonomy, verifying the artifact by schema shape. | `examples` |
 
 <!-- END GENERATED CAPABILITIES -->
 
