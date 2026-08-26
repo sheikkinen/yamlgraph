@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Feature
-**Status:** Judged — APPROVED WITH REVISIONS (2026-08-26); R-1..R-6 folded below; see [FR-892-corpus-census-pipeline-injected-adapters.judgement.md](FR-892-corpus-census-pipeline-injected-adapters.judgement.md)
+**Status:** Completed (enforced 2026-08-26 on worktree feat/fr-892; RED 3cbf9581, GREEN 4c40393a/a895cb16/a67c7729)
 **Effort:** 3 days
 **Requested:** 2026-08-26
 **First consumer / first event:** the P0a PDF-library census — its author
@@ -136,3 +136,59 @@ not a dependency), status quo copy-the-graph (the witnessed defect).
 - FR-768, FR-658/CAP-111, FR-884, FR-890, FR-891
 - Scripture: `constraint_over_code`, `normalize at the boundary`,
   `is_this_a_graph`, cheap-map/code-reduce diary 2026-08-26
+
+## Implementation Record (2026-08-26)
+
+Enforced on worktree `feat/fr-892` (FR-888 route). TDD: RED 3cbf9581
+(13 slot-binding witnesses, SKIP=pytest), GREEN across three commits.
+CAP-249 / REQ-YG-624. All judgement gates C-1..C-7 honored.
+
+**Deliverables (judgement D-1..D-9):**
+
+- D-1/D-2/D-3: `yamlgraph/tools/tool_slots.py` — `slot: true` +
+  `contract:` declaration, `parse_tool_bindings` (`--tool SLOT=path`,
+  repeatable), `resolve_tool_slots` preflight (five fatal cases, typed
+  `ToolSlotBindingError`, before any node executes); FR-768 translation
+  reused via new public `translate_manifest` (key-match check skipped
+  for explicit bindings — a reusable manifest legitimately has its own
+  name). CLI wired in `cli/__init__.py` + `graph_commands.py`;
+  `load_graph_config(path, tool_bindings=...)`.
+- D-4: `examples/demos/corpus_census/` authored via `scripts/author.sh`
+  (C-3); authoring report recorded lint pass + 3-row fixture smoke.
+  Authoring discovered and repaired two real constraints: map sub-nodes
+  cannot invoke shell tools (python-runtime manifests used for map-stage
+  slots) and per-item index needed preserving through the structured
+  schema.
+- D-5: LLM-free reducer (demo tools.py) with abstention cross-validation;
+  9 deterministic witnesses in tests/unit/test_fr892_census_reducer.py
+  (frozen columns, abstention-as-row, dropped/duplicate finding
+  rejection, error-string and empty-cell rejection, map-error rejection)
+  + hostile shell-variable injection witness (AC-10).
+- D-6: PDF-library proof (`proofs/pdf-library/`): committed 3-PDF
+  bounded fixture (pages split from book-summary's fixture.pdf), pypdf
+  extraction adapter, 3-row ledger + run evidence. Real extraction
+  verified: German Rotkäppchen text, correctly classified.
+- D-7: Git-timeline proof (`proofs/git-timeline/`): bounded 10-commit
+  window of this repo, subprocess-git adapter (fixed argv, no shell,
+  confessed CONF-422/423), 10-row intent ledger + run evidence.
+- D-8: reference/graph-yaml.md "Tool Slots — Invocation-Time Binding"
+  section: slot schema, binding semantics table, failure modes,
+  committed consumer.
+- D-9: CAP-249/REQ-YG-624 wiring, ARCHITECTURE.md regenerated, changelog
+  fragment, diary reflection.
+
+**Decisions / deviations:**
+
+- Binding-path resolution bug caught by the demo run itself: paths
+  initially resolved against the graph directory; R-1 froze CWD
+  resolution — fixed and witnessed (the authoring smoke had silently
+  adapted to the bug by using graph-relative paths).
+- Slot entries translate at load to inline declarations (not re-entering
+  `expand_tool_manifests`) to skip only the name/key-match check; every
+  other FR-768 semantic identical.
+- Module-map ratchet 291→293 for tools/tool_slots.py (documented
+  convention).
+- Shell-runtime slots are invocable only from top-level `type: tool`
+  nodes (current map execution surface) — documented as a constraint,
+  not silently worked around; a follow-up FR may extend map sub-node
+  tool support if a consumer needs it (C-6 discipline: not built here).

@@ -1,0 +1,6 @@
+name: git-extract
+description: "FR-892 proof adapter: git_extract"
+runtime:
+  type: python
+  path: corpus_adapters.py
+  function: git_extract

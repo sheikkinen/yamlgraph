@@ -1,0 +1,2 @@
+Architecture notes describe graph boundaries, deterministic reducers, and
+tool-slot adapters for reusable pipelines.

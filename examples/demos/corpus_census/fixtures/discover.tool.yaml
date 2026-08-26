@@ -1,0 +1,6 @@
+name: fixture_discover
+description: "List fixture corpus text files as a JSON array."
+runtime:
+  type: python
+  path: fixture_tools.py
+  function: discover

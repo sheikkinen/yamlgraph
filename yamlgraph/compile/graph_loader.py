@@ -24,6 +24,7 @@ from yamlgraph.tools.manifest import expand_tool_manifests
 from yamlgraph.tools.python_tool import load_python_function, parse_python_tools
 from yamlgraph.tools.schema_loader_tool import parse_schema_loader_tools
 from yamlgraph.tools.shell import parse_tools
+from yamlgraph.tools.tool_slots import resolve_tool_slots
 from yamlgraph.tools.write_data_file_tool import parse_write_data_file_tools
 from yamlgraph.utils.validators import validate_config
 
@@ -40,12 +41,18 @@ VALID_TOOL_LOAD_MODES = {TOOL_LOAD_MODE_STRICT, TOOL_LOAD_MODE_WARN}
 class GraphConfig:
     """Parsed graph configuration from YAML."""
 
-    def __init__(self, config: dict, source_path: Path | None = None):
+    def __init__(
+        self,
+        config: dict,
+        source_path: Path | None = None,
+        tool_bindings: dict[str, str] | None = None,
+    ):
         """Initialize from parsed YAML dict.
 
         Args:
             config: Parsed YAML configuration dictionary
             source_path: Path to the source YAML file (for subgraph resolution)
+            tool_bindings: FR-892 slot name → manifest path bindings
 
         Raises:
             ValueError: If config is invalid
@@ -60,8 +67,13 @@ class GraphConfig:
         self.provider = config.get("provider") or self.defaults.get("provider")
         self.nodes = config.get("nodes", {})
         self.edges = config.get("edges", [])
+        # FR-892: resolve slot declarations against invocation bindings
+        # BEFORE manifest expansion — slots become inline declarations.
+        # Binding paths resolve relative to CWD (R-1 frozen contract):
+        # the binding is the caller's input, not the graph author's.
+        slotted = resolve_tool_slots(config.get("tools", {}), tool_bindings, Path.cwd())
         # FR-768: expand manifest-declared tools at the load boundary
-        self.tools = expand_tool_manifests(config.get("tools", {}), source_path)
+        self.tools = expand_tool_manifests(slotted, source_path)
         self.loop_limits = config.get("loop_limits", {})
         self.loop_exits = config.get("loop_exits", {})
         self.checkpointer = config.get("checkpointer")
@@ -100,7 +112,9 @@ class GraphConfig:
             self.data = {}
 
 
-def load_graph_config(path: str | Path) -> GraphConfig:
+def load_graph_config(
+    path: str | Path, tool_bindings: dict[str, str] | None = None
+) -> GraphConfig:
     """Load and parse a YAML graph definition.
 
     Args:
@@ -147,7 +161,7 @@ def load_graph_config(path: str | Path) -> GraphConfig:
 
     config = insert_verify_node(config)
 
-    return GraphConfig(config, source_path=path.resolve())
+    return GraphConfig(config, source_path=path.resolve(), tool_bindings=tool_bindings)
 
 
 def _resolve_state_class(config: GraphConfig) -> type:

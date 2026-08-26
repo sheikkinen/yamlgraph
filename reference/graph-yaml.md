@@ -1535,6 +1535,58 @@ nodes:
 
 Committed consumer: `examples/demos/book-summary/graph.yaml`.
 
+### Tool Slots — Invocation-Time Binding (FR-892)
+
+A graph may declare a tool as a **slot**: the declaration names the
+contract, and the caller supplies the implementation as an FR-768 tool
+manifest at invocation. This is how one pipeline graph serves many
+corpora without re-authoring.
+
+```yaml
+# In the graph — the slot declares the contract, not the implementation
+tools:
+  discover:
+    slot: true
+    contract:
+      runtimes: [python]     # optional allowlist: shell | python | graph
+      args: [source]         # required inputs the implementation must accept
+  extract:
+    slot: true
+    contract:
+      args: [item]
+```
+
+```bash
+# At invocation — bind each slot to a manifest (repeatable)
+yamlgraph graph run examples/demos/corpus_census/graph.yaml \
+  --tool discover=adapters/pdf-discover.tool.yaml \
+  --tool extract=adapters/pdf-extract.tool.yaml \
+  --var source=./my-library --var rubric="..." --var output_path=out/ledger.md
+```
+
+**Slot binding semantics:**
+
+| Rule | Behavior |
+|------|----------|
+| Binding path resolution | Relative to the **caller's CWD** (the binding is the caller's input, not the graph author's) |
+| Runtime types | All FR-768 runtimes allowed unless `contract.runtimes` narrows |
+| Translation | Reuses FR-768 manifest translation exactly; no new execution engine; the manifest `name` need not match the slot name |
+| Contract `args` (shell) | Each arg must appear as a `{placeholder}` in the manifest command |
+| Contract `args` (python/graph) | Duck-typed at invocation; the runtime allowlist is the mechanical check |
+
+**Failure modes (all typed `ToolSlotBindingError`, raised before any node
+or LLM executes):** missing binding for a declared slot; `--tool` binding
+for an undeclared slot; duplicate `--tool` for one slot; missing or
+invalid manifest file; manifest runtime outside `contract.runtimes`;
+contract args absent from a shell command.
+
+**Committed consumer:** `examples/demos/corpus_census/` — the shared
+discover–extract–map–reduce census pipeline; its `proofs/` directory
+shows two corpora (PDF library, git history) served by manifest pairs
+with zero graph changes. Map sub-nodes invoke slot tools through python
+nodes; shell-runtime slots are only invocable from top-level `type: tool`
+nodes (current map execution surface).
+
 ### Web Search Tool
 
 Search the web using DuckDuckGo (no API key required):

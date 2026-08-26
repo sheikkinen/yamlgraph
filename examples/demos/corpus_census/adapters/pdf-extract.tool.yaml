@@ -1,0 +1,6 @@
+name: pdf-extract
+description: "FR-892 proof adapter: pdf_extract"
+runtime:
+  type: python
+  path: corpus_adapters.py
+  function: pdf_extract

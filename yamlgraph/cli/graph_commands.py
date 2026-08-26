@@ -153,8 +153,20 @@ def cmd_graph_run(args: Namespace) -> None:
         print()
 
     try:
-        # Load config and compile with checkpointer
-        graph_config = load_graph_config(str(graph_path))
+        # FR-892: parse slot bindings before load — fail before any tokens
+        from yamlgraph.tools.tool_slots import (
+            ToolSlotBindingError,
+            parse_tool_bindings,
+        )
+
+        try:
+            bindings = parse_tool_bindings(getattr(args, "tool_bindings", []))
+            graph_config = load_graph_config(
+                str(graph_path), tool_bindings=bindings or None
+            )
+        except ToolSlotBindingError as e:
+            print(f"❌ Tool slot binding: {e}", file=error_stream)
+            sys.exit(1)
         graph = compile_graph(graph_config)
         checkpointer = get_checkpointer_for_graph(graph_config)
         app = graph.compile(checkpointer=checkpointer)
