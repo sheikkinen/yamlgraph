@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Proposed
+**Status:** Judged — APPROVED WITH REVISIONS (2026-08-26); R-1..R-5 folded below; see [FR-893-diary-trap-census.judgement.md](FR-893-diary-trap-census.judgement.md)
 **Effort:** 1 day
 **Requested:** 2026-08-26
 **First consumer / first event:** the next Scripture graduation — instead
@@ -59,6 +59,50 @@ philosopher's scan samples markers; the graduation seed has been unbuilt
 for months; three recurring traps witnessed THIS WEEK are uncounted
 anywhere in the repo.
 
+## Ideal Result
+
+A maintainer runs one bounded command over the full diary corpus and,
+minutes later, inspects committed artifacts under `docs/diary/census/`:
+a recurrence table where every row carries canonical label, distinct-entry
+count, first/last seen dates, and entry citations. Attaching a
+graduation-candidate row to a `.chaplain/inbox` proposal is a copy-paste
+act requiring no agent memory. The doctrine's own bars (2× → FR,
+confirmed recurrence → Scripture) become queries over a committed table
+instead of acts of recollection — and a trap's strike count survives
+devices, sessions, and agents because it lives in the repo it governs.
+
+## Raw-output read evidence (R-2, read 2026-08-26 before authority)
+
+Five raw entries read end-to-end; each detail below is something a
+generated summary could not fabricate:
+
+1. `docs/diary/` holds **1271 entries, not the "300+" the brief assumed**
+   — and at least four structural genres: reflections, inquisitor audits
+   (✓/⚠ finding lists), daily digests, git-reports. Cost and rubric
+   design must handle 4× the assumed volume and non-reflection formats.
+2. `diary-2026-08-25-the-census-taker-reads-its-own-ledger.md:28-33`
+   describes the msg-file trap WITHOUT the literal token "tmp/msg.txt
+   trap": "a `&&`-chain aborted at a failed `git add`, so the later
+   `printf > tmp/msg.txt` never executed — three subsequent commits
+   reused a stale message file." Vocabulary drift is concrete, not
+   hypothetical: exact-match counting would miss this canary instance.
+3. `diary-2026-08-26-reflection-fr-892-…:33-36` names the line-pinned
+   gate trap AS an instance of an existing Scripture trap
+   (`gate_checks_shape_not_substance` — "the gate checks WHERE, not
+   WHAT"): recurrence labels have instance-of relations to Scripture
+   entries; the rubric must capture the specific label, not collapse to
+   the parent.
+4. `2026-03-09-inquisitor-audit-64.md` already PROPOSED this FR's
+   mechanism five months ago: "any finding flagged ≥3 times without a
+   fix should auto-escalate to an FR" and seeded `audit_dedup.py` — the
+   census must also mine audit-genre entries, and this FR dispositions
+   that seed.
+5. `2025-04-23-reflection-fr-273-…` uses an older header dialect
+   (`# Reflection — FR-273`, `## Trap encountered`) — marker extraction
+   cannot key on today's header conventions. Mechanical priors: 772/1271
+   entries carry `Seed:`; only 11 mention `msg.txt` by string — the
+   distinct-entry canary bar of ≥3 is realistic but not slack.
+
 ## Proposed Solution
 
 Per the research table (5 classes; 3-persona convergence on the census
@@ -74,27 +118,39 @@ shape; both dissents folded as constraints, not builds):
    the model normalizes label variants; exact-match is the known
    failure), one evidence span each, abstain when an entry names none.
 3. **Recurrence aggregator** (LLM-free, sibling of the census reducer):
-   consumes the census JSONL ledger; groups by canonical label; emits
-   `docs/diary/census/recurrence-YYYY-MM-DD.md` (label, count, entry
-   citations, first/last seen) + a draft inbox proposal file per
-   candidate at ≥3 count. Fail-closed: a label without citations is
-   rejected; the canary check runs here.
+   consumes the census JSONL ledger; groups by canonical label; **count
+   unit = distinct diary entries (R-4)** — multiple evidence spans within
+   one entry are preserved in the ledger but count once; emits
+   `docs/diary/census/recurrence-YYYY-MM-DD.md` (label, distinct-entry
+   count, entry citations, first/last seen) + a draft inbox proposal per
+   candidate at ≥3 distinct entries. Fail-closed: a label without
+   citations is rejected; the canary check runs here.
+   **Public-safe artifact contract (R-3):** committed artifacts
+   (recurrence table, inbox drafts) contain ONLY canonical label, count,
+   entry paths, line ranges/headings, first/last seen, abstention counts,
+   and short non-sensitive rationale; raw evidence spans stay in the
+   uncommitted run ledger (tmp/) referenced by path — no diary prose is
+   quoted into committed census artifacts (deterministic by construction:
+   the committed writer has no span column).
 4. **Canary gate (RW-2 acceptance)**: the run is valid only if the
    stale-commit-message-file trap and the line-pinned-gate trap surface
-   with plausible counts; absence fails the aggregator loudly (the
-   census's own hidden-canary discipline, FR-890 lineage).
+   with ≥3 distinct-entry citations each (R-4 unit); absence fails the
+   aggregator loudly (the census's own hidden-canary discipline, FR-890
+   lineage).
 5. **Cadence**: manual/scripted re-run (scripts/diary_census.sh thin
    wrapper); NO daemon (CAP-113).
 
-## Acceptance Criteria
+## Acceptance Criteria (revised per judgement — supersede the original set)
 
-- [ ] AC-01: RED first — failing test for the recurrence aggregator contract (grouping, citation requirement, canary gate).
-- [ ] AC-02: Diary adapters + manifests bind to the unchanged corpus_census graph; the census runs over the full docs/diary/ corpus on a cheap pinned model.
-- [ ] AC-03: The aggregator is LLM-free; deterministic tests witness grouping, count thresholds, citation preservation, label-without-citation rejection, and abstention rows passing through uncounted.
-- [ ] AC-04: Canary gate: a fixture ledger missing the known-truth traps fails the aggregator; the real run surfaces both 2026-08-26 traps with ≥3 citations each — recorded in the FR.
-- [ ] AC-05: Committed artifacts: census ledger + recurrence table under docs/diary/census/ (in-repo recurrence state, os-infra dissent adopted); at least one real graduation-candidate draft written to .chaplain/inbox/ with entry citations.
-- [ ] AC-06: The run record notes cost and duration (cadence feasibility evidence).
-- [ ] AC-07: Changelog fragment, FR status update, diary reflection.
+- [ ] AC-01: RED first — failing tests: grouping by canonical label, citation preservation, threshold filtering, label-without-citation rejection, abstention rows excluded from counts, canary failure.
+- [ ] AC-02: FR carries `## Ideal Result` and `## Raw-output read evidence` (≥5 cited samples incl. both canary families) before enforcement — DONE above.
+- [ ] AC-03: Diary manifests bind to the unchanged FR-892 corpus_census graph; the full committed corpus (1271 entries) runs on a cheap pinned model with only manifests + rubric/config.
+- [ ] AC-04: Rubric output schema requires canonical label, evidence span, item ref/source index, confidence, abstention marker+reason; diary-index vocabulary as normalization hints; abstention when no named trap present.
+- [ ] AC-05: Aggregator LLM-free; deterministic tests prove grouping, distinct-entry counting, citation preservation, first/last seen, label-without-citation rejection, public-safe output (no span column in committed artifacts), abstentions uncounted.
+- [ ] AC-06: Canary gate fails loudly on a fixture ledger missing either family; the real run surfaces both 2026-08-26 traps at ≥3 distinct entries; observed counts recorded in the FR.
+- [ ] AC-07: Committed artifacts under docs/diary/census/: public-safe recurrence table + run evidence with model, prompt version, cost, duration, corpus bounds, git SHA.
+- [ ] AC-08: ≥1 real graduation-candidate draft written to .chaplain/inbox/ only after the canary gate passes, with label, count, citations, and an explicit graduation-stays-human statement.
+- [ ] AC-09: Changelog fragment, REQ tagging on new tests, FR status update, diary reflection.
 
 ## Out of Scope
 
@@ -120,8 +176,10 @@ optimization deferred until cost evidence demands it).
 
 ## Related
 
-- FR-892 (pipeline + slot binding, PR #479 — **dependency: this FR
-  enforces only after #479 merges or on its branch**)
+- FR-892 (pipeline + slot binding) — **enforcement gate (R-5/C-2): FR-892
+  is MERGED to main (#479, 06d1dfe4); enforcement branches from main and
+  verifies corpus_census + slot binding present before running**
 - docs/mercury-census/findings.md (RW-2 in the acceptance-test table)
 - Scripture: `diary_graduation_pipeline` seed, `graduation` process,
-  hidden-canary mechanism (canary-recall inbox proposal)
+  hidden-canary mechanism (canary-recall inbox proposal); disposition of
+  inquisitor-audit-64's `audit_dedup.py` seed (raw-read sample 4)
