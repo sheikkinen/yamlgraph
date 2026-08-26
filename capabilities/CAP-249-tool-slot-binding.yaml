@@ -1,0 +1,26 @@
+id: CAP-249
+name: Invocation-time tool-slot binding
+fr: FR-892
+description: >
+  Graph `tools:` entries may declare `slot: true` with a `contract:` block
+  (runtime allowlist, required args); callers bind FR-768 tool manifests at
+  invocation via repeatable `--tool SLOT=manifest.yaml`. Contaminated
+  bindings (missing, duplicate, undeclared slot, missing/invalid manifest,
+  contract mismatch) fail closed with ToolSlotBindingError before any node
+  or LLM executes. Translation and execution reuse the FR-768 manifest
+  runtimes exactly; binding paths resolve relative to CWD. Reference
+  consumer: examples/demos/corpus_census (discover–extract–map–reduce
+  census pipeline with fail-closed 8-column evidence ledger).
+modules:
+  - tools/tool_slots
+  - compile/graph_loader
+requirements:
+  - id: REQ-YG-624
+    description: >
+      Tool slots bind FR-768 manifests at invocation; all contaminated
+      bindings fail closed with a typed error before execution; the
+      corpus-census reducer enforces the frozen ledger contract
+      (abstention rows, error-string and empty-cell rejection)
+    modules:
+      - tools/tool_slots
+      - compile/graph_loader

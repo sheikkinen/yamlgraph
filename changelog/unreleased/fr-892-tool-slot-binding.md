@@ -1,6 +1,7 @@
 ---
 type: feat
 scope: tools
+req: REQ-YG-624
 ---
 - **FR-892 Corpus-Census Pipeline — Tool-Slot Binding**: graph `tools:`
   entries may declare `slot: true` with a `contract:` block; callers bind

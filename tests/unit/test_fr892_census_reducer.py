@@ -42,7 +42,7 @@ def _run(tmp_path, findings, items=ITEMS):
 
 
 class TestLedgerContract:
-    @pytest.mark.req("REQ-YG-018")
+    @pytest.mark.req("REQ-YG-624")
     def test_frozen_columns_in_md_and_jsonl(self, tmp_path):
         result = _run(tmp_path, [GOOD_A, ABSTAIN_B])["ledger"]
         md = (tmp_path / "ledger.md").read_text()
@@ -75,7 +75,7 @@ class TestLedgerContract:
             "disagreement",
         }
 
-    @pytest.mark.req("REQ-YG-018")
+    @pytest.mark.req("REQ-YG-624")
     def test_abstention_becomes_ledger_row(self, tmp_path):
         """AC-06: abstentions are rows, never omissions."""
         _run(tmp_path, [GOOD_A, ABSTAIN_B])
@@ -87,37 +87,37 @@ class TestLedgerContract:
         assert len(abstained) == 1
         assert abstained[0]["abstain_reason"] == "document empty"
 
-    @pytest.mark.req("REQ-YG-018")
+    @pytest.mark.req("REQ-YG-624")
     def test_dropped_finding_rejected(self, tmp_path):
         """A missing per-item finding fails the whole reduce (fail closed)."""
         with pytest.raises(ValueError, match="missing findings"):
             _run(tmp_path, [GOOD_A])
 
-    @pytest.mark.req("REQ-YG-018")
+    @pytest.mark.req("REQ-YG-624")
     def test_duplicate_finding_rejected(self, tmp_path):
         with pytest.raises(ValueError, match="duplicate"):
             _run(tmp_path, [GOOD_A, {**GOOD_A}, ABSTAIN_B])
 
-    @pytest.mark.req("REQ-YG-018")
+    @pytest.mark.req("REQ-YG-624")
     def test_error_string_judgement_rejected(self, tmp_path):
         bad = {**GOOD_A, "judgement": "Error: search failed"}
         with pytest.raises(ValueError, match="error string"):
             _run(tmp_path, [bad, ABSTAIN_B])
 
-    @pytest.mark.req("REQ-YG-018")
+    @pytest.mark.req("REQ-YG-624")
     def test_empty_required_cell_rejected(self, tmp_path):
         bad = {**GOOD_A, "evidence_span": "   "}
         with pytest.raises(ValueError, match="evidence_span|invalid ledger row"):
             _run(tmp_path, [bad, ABSTAIN_B])
 
-    @pytest.mark.req("REQ-YG-018")
+    @pytest.mark.req("REQ-YG-624")
     def test_abstained_with_evidence_rejected(self, tmp_path):
         """Abstention cross-validation: no evidence smuggling."""
         bad = {**ABSTAIN_B, "evidence_span": "actually has evidence"}
         with pytest.raises(ValueError, match="invalid ledger row"):
             _run(tmp_path, [GOOD_A, bad])
 
-    @pytest.mark.req("REQ-YG-018")
+    @pytest.mark.req("REQ-YG-624")
     def test_map_error_row_rejected(self, tmp_path):
         bad = {"_error": "boom", "source_index": 1}
         with pytest.raises(ValueError, match="map error"):
@@ -127,7 +127,7 @@ class TestLedgerContract:
 class TestSecurityWitness:
     """AC-10: hostile variable through the shlex-quoted shell path."""
 
-    @pytest.mark.req("REQ-YG-018")
+    @pytest.mark.req("REQ-YG-624")
     def test_hostile_shell_variable_no_injection(self, tmp_path):
         from yamlgraph.tools.shell import ShellToolConfig, execute_shell_tool
 

@@ -51,14 +51,14 @@ SLOT_TOOLS = {
 class TestParseToolBindings:
     """CLI `--tool NAME=PATH` parsing."""
 
-    @pytest.mark.req("REQ-YG-018")
+    @pytest.mark.req("REQ-YG-624")
     def test_parses_bindings(self):
         from yamlgraph.tools.tool_slots import parse_tool_bindings
 
         out = parse_tool_bindings(["discover=a.yaml", "extract=b.yaml"])
         assert out == {"discover": "a.yaml", "extract": "b.yaml"}
 
-    @pytest.mark.req("REQ-YG-018")
+    @pytest.mark.req("REQ-YG-624")
     def test_duplicate_binding_fatal(self):
         from yamlgraph.tools.tool_slots import (
             ToolSlotBindingError,
@@ -68,7 +68,7 @@ class TestParseToolBindings:
         with pytest.raises(ToolSlotBindingError, match="[Dd]uplicate"):
             parse_tool_bindings(["discover=a.yaml", "discover=b.yaml"])
 
-    @pytest.mark.req("REQ-YG-018")
+    @pytest.mark.req("REQ-YG-624")
     def test_malformed_binding_fatal(self):
         from yamlgraph.tools.tool_slots import (
             ToolSlotBindingError,
@@ -82,7 +82,7 @@ class TestParseToolBindings:
 class TestResolveToolSlots:
     """Slot resolution: five fatal preflight cases + happy path."""
 
-    @pytest.mark.req("REQ-YG-018")
+    @pytest.mark.req("REQ-YG-624")
     def test_happy_path_translates_to_manifest_entry(self, tmp_path):
         from yamlgraph.tools.tool_slots import resolve_tool_slots
 
@@ -95,7 +95,7 @@ class TestResolveToolSlots:
         assert out["discover"]["command"] == "ls {folder}"
         assert out["plain"] == SLOT_TOOLS["plain"]  # non-slots pass through
 
-    @pytest.mark.req("REQ-YG-018")
+    @pytest.mark.req("REQ-YG-624")
     def test_missing_binding_fatal(self, tmp_path):
         from yamlgraph.tools.tool_slots import (
             ToolSlotBindingError,
@@ -105,7 +105,7 @@ class TestResolveToolSlots:
         with pytest.raises(ToolSlotBindingError, match="discover"):
             resolve_tool_slots(dict(SLOT_TOOLS), {}, tmp_path)
 
-    @pytest.mark.req("REQ-YG-018")
+    @pytest.mark.req("REQ-YG-624")
     def test_undeclared_slot_binding_fatal(self, tmp_path):
         from yamlgraph.tools.tool_slots import (
             ToolSlotBindingError,
@@ -120,7 +120,7 @@ class TestResolveToolSlots:
                 tmp_path,
             )
 
-    @pytest.mark.req("REQ-YG-018")
+    @pytest.mark.req("REQ-YG-624")
     def test_missing_manifest_file_fatal(self, tmp_path):
         from yamlgraph.tools.tool_slots import (
             ToolSlotBindingError,
@@ -132,7 +132,7 @@ class TestResolveToolSlots:
                 dict(SLOT_TOOLS), {"discover": str(tmp_path / "nope.yaml")}, tmp_path
             )
 
-    @pytest.mark.req("REQ-YG-018")
+    @pytest.mark.req("REQ-YG-624")
     def test_invalid_manifest_yaml_fatal(self, tmp_path):
         from yamlgraph.tools.tool_slots import (
             ToolSlotBindingError,
@@ -143,7 +143,7 @@ class TestResolveToolSlots:
         with pytest.raises(ToolSlotBindingError):
             resolve_tool_slots(dict(SLOT_TOOLS), {"discover": str(manifest)}, tmp_path)
 
-    @pytest.mark.req("REQ-YG-018")
+    @pytest.mark.req("REQ-YG-624")
     def test_wrong_runtime_type_fatal(self, tmp_path):
         from yamlgraph.tools.tool_slots import (
             ToolSlotBindingError,
@@ -154,7 +154,7 @@ class TestResolveToolSlots:
         with pytest.raises(ToolSlotBindingError, match="runtime"):
             resolve_tool_slots(dict(SLOT_TOOLS), {"discover": str(manifest)}, tmp_path)
 
-    @pytest.mark.req("REQ-YG-018")
+    @pytest.mark.req("REQ-YG-624")
     def test_contract_args_missing_from_shell_command_fatal(self, tmp_path):
         from yamlgraph.tools.tool_slots import (
             ToolSlotBindingError,
@@ -166,7 +166,7 @@ class TestResolveToolSlots:
         with pytest.raises(ToolSlotBindingError, match="contract|args"):
             resolve_tool_slots(dict(SLOT_TOOLS), {"discover": str(manifest)}, tmp_path)
 
-    @pytest.mark.req("REQ-YG-018")
+    @pytest.mark.req("REQ-YG-624")
     def test_no_slots_no_bindings_passthrough(self, tmp_path):
         from yamlgraph.tools.tool_slots import resolve_tool_slots
 
@@ -201,7 +201,7 @@ edges:
     to: END
 """
 
-    @pytest.mark.req("REQ-YG-018")
+    @pytest.mark.req("REQ-YG-624")
     def test_load_without_bindings_fatal(self, tmp_path):
         from yamlgraph.compile.graph_loader import load_graph_config
         from yamlgraph.tools.tool_slots import ToolSlotBindingError
@@ -210,7 +210,7 @@ edges:
         with pytest.raises(ToolSlotBindingError, match="discover"):
             load_graph_config(str(graph))
 
-    @pytest.mark.req("REQ-YG-018")
+    @pytest.mark.req("REQ-YG-624")
     def test_load_with_binding_expands_manifest(self, tmp_path):
         from yamlgraph.compile.graph_loader import load_graph_config
 

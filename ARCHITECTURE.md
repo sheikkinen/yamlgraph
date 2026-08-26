@@ -564,6 +564,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 246 | CAP-246 Scripture-dev Salvage Classification | `examples` | REQ-YG-618 – 619 |
 | 247 | CAP-247 Memory-Corpus Curation (Selective Amnesia) | `examples` | REQ-YG-620 – 622 |
 | 248 | CAP-248 Research Sole Route (Closed-Input Alternatives) | `examples` | REQ-YG-623 |
+| 249 | CAP-249 Invocation-time tool-slot binding | `tools/tool_slots`, `compile/graph_loader` | REQ-YG-624 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -3047,6 +3048,16 @@ scripts/research.sh runs the examples/demos/research-route map+reduce graph — 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-623 | Research route contract: the brief preflight is deterministic stdlib code requiring problem statement, closed-enum classification, constraints, and witnessed incidents while rejecting proposed-solution/candidate sections (exit 64); the LLM-free reducer writes tmp/draft-alternatives.md with the frozen columns candidate/persona/class/verdict/precedent/is_this_a_graph/ effort-risk, 4-6 distinct solution classes, no empty required cells, disagreement preserved as separate rows, and fails closed when the librarian row carries an error string or no URL-bearing citation; scripts/research.sh enforces usage (64), missing brief (66), re-entry sentinel (70), lock (73/75), and artifact contract (65) taxonomy, verifying the artifact by schema shape. | `examples` |
+
+### 249. CAP-249 Invocation-time tool-slot binding
+
+Graph `tools:` entries may declare `slot: true` with a `contract:` block (runtime allowlist, required args); callers bind FR-768 tool manifests at invocation via repeatable `--tool SLOT=manifest.yaml`. Contaminated bindings (missing, duplicate, undeclared slot, missing/invalid manifest, contract mismatch) fail closed with ToolSlotBindingError before any node or LLM executes. Translation and execution reuse the FR-768 manifest runtimes exactly; binding paths resolve relative to CWD. Reference consumer: examples/demos/corpus_census (discover–extract–map–reduce census pipeline with fail-closed 8-column evidence ledger).
+
+**Feature Request:** FR-892
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-624 | Tool slots bind FR-768 manifests at invocation; all contaminated bindings fail closed with a typed error before execution; the corpus-census reducer enforces the frozen ledger contract (abstention rows, error-string and empty-cell rejection) | `tools/tool_slots`, `compile/graph_loader` |
 
 <!-- END GENERATED CAPABILITIES -->
 
