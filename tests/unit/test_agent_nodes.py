@@ -708,11 +708,13 @@ class TestToolExecutionUnification:
             "tool_results_key": "tool_outputs",
         }
         node_fn = create_agent_node("agent", node_config, tools)
-        result = node_fn({"input": "Run failing tool"})
+        # FR-891: an all-failed run now raises instead of completing;
+        # the FR-660 'Error: ' format is preserved inside the census.
+        from yamlgraph.tools.agent import AllToolCallsFailedError
 
-        assert len(result["tool_outputs"]) == 1
-        assert result["tool_outputs"][0]["output"].startswith("Error: ")
-        assert result["tool_outputs"][0]["success"] is False
+        with pytest.raises(AllToolCallsFailedError) as exc:
+            node_fn({"input": "Run failing tool"})
+        assert "Error: " in str(exc.value)
 
     @patch("yamlgraph.tools.agent.create_llm")
     @pytest.mark.req("REQ-YG-018")
@@ -744,8 +746,9 @@ class TestToolExecutionUnification:
             "tool_results_key": "tool_outputs",
         }
         node_fn = create_agent_node("agent", node_config, {}, python_tools=python_tools)
-        result = node_fn({"input": "Call it"})
+        # FR-891: all-failed run raises; format preserved in the census.
+        from yamlgraph.tools.agent import AllToolCallsFailedError
 
-        assert len(result["tool_outputs"]) == 1
-        assert result["tool_outputs"][0]["output"].startswith("Error: ")
-        assert result["tool_outputs"][0]["success"] is False
+        with pytest.raises(AllToolCallsFailedError) as exc:
+            node_fn({"input": "Call it"})
+        assert "Error: " in str(exc.value)

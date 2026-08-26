@@ -1,0 +1,279 @@
+2026-08-26 09:17:06,566 [INFO] yamlgraph.compile.graph_loader: Parsed 1 Python tools: search_web
+2026-08-26 09:17:06,567 [INFO] yamlgraph.compile.node_compiler: Added node: research (type=agent)
+2026-08-26 09:17:06,568 [INFO] yamlgraph.compile.node_compiler: Added node: summarize (type=llm)
+2026-08-26 09:17:06,684 [INFO] yamlgraph.utils.llm_factory: Creating LLM: azure/aaa-gpt-5.4-mini (temp=0.7)
+2026-08-26 09:17:07,429 [INFO] yamlgraph.tools.agent: 🤖 Starting agent loop: research (max 5 iterations)
+2026-08-26 09:17:08,435 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-26 09:17:08,441 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': 'YAML-first LLM pipeline frameworks orchestration prompt workflow framework YAML configuration', 'max_results': 5})
+2026-08-26 09:17:09,031 [INFO] primp: response: https://grokipedia.com/api/typeahead?query=YAML-first+LLM+pipeline+frameworks+orchestration+prompt+workflow+framework+YAML+configuration&limit=1 200
+2026-08-26 09:17:09,066 [INFO] primp: response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=YAML-first%20LLM%20pipeline%20frameworks%20orchestration%20prompt%20workflow%20framework%20YAML%20configuration 200
+2026-08-26 09:17:09,338 [INFO] primp: response: https://www.mojeek.com/search?q=YAML-first+LLM+pipeline+frameworks+orchestration+prompt+workflow+framework+YAML+configuration 200
+2026-08-26 09:17:10,032 [INFO] primp: response: https://search.brave.com/search?q=YAML-first+LLM+pipeline+frameworks+orchestration+prompt+workflow+framework+YAML+configuration&source=web 200
+2026-08-26 09:17:10,055 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': 'LLM pipeline framework YAML declarative workflows prompt engineering YAML config', 'max_results': 5})
+2026-08-26 09:17:10,396 [INFO] primp: response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=LLM%20pipeline%20framework%20YAML%20declarative%20workflows%20prompt%20engineering%20YAML%20config 200
+2026-08-26 09:17:10,511 [INFO] primp: response: https://grokipedia.com/api/typeahead?query=LLM+pipeline+framework+YAML+declarative+workflows+prompt+engineering+YAML+config&limit=1 200
+2026-08-26 09:17:11,260 [INFO] primp: response: https://search.brave.com/search?q=LLM+pipeline+framework+YAML+declarative+workflows+prompt+engineering+YAML+config&source=web 200
+2026-08-26 09:17:11,286 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': 'site:github.com YAML LLM framework pipeline prompt workflow', 'max_results': 5})
+2026-08-26 09:17:11,649 [INFO] primp: response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=site%3Agithub.com%20YAML%20LLM%20framework%20pipeline%20prompt%20workflow 200
+2026-08-26 09:17:11,715 [INFO] primp: response: https://grokipedia.com/api/typeahead?query=site%3Agithub.com+YAML+LLM+framework+pipeline+prompt+workflow&limit=1 200
+2026-08-26 09:17:12,205 [INFO] primp: response: https://search.yahoo.com/search;_ylt=Fh-9e3c1_dUbOyAHwS1WurvD;_ylu=wsBtHbDNARn1x5cZXFfm6XfuAZBjCdzv177erlr_DL0vUvU?p=site%3Agithub.com+YAML+LLM+framework+pipeline+prompt+workflow 200
+2026-08-26 09:17:13,775 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-26 09:17:13,776 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': 'PromptFlow YAML workflow definition docs YAML Microsoft promptflow', 'max_results': 5})
+2026-08-26 09:17:14,028 [INFO] primp: response: https://grokipedia.com/api/typeahead?query=PromptFlow+YAML+workflow+definition+docs+YAML+Microsoft+promptflow&limit=1 200
+2026-08-26 09:17:14,118 [INFO] primp: response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=PromptFlow%20YAML%20workflow%20definition%20docs%20YAML%20Microsoft%20promptflow 200
+2026-08-26 09:17:14,445 [INFO] primp: response: https://www.startpage.com/ 200
+2026-08-26 09:17:14,590 [INFO] primp: response: https://www.startpage.com/sp/search 200
+2026-08-26 09:17:14,839 [INFO] primp: response: https://www.mojeek.com/search?q=PromptFlow+YAML+workflow+definition+docs+YAML+Microsoft+promptflow 200
+2026-08-26 09:17:15,196 [INFO] primp: response: https://search.yahoo.com/search;_ylt=dcAH31GPqQm9mtlGVrgOQ4lJ;_ylu=GsWLBjK9u9l3KUbM0mKBIOilTBJrTmjzYy-b8mDz87rPIfQ?p=PromptFlow+YAML+workflow+definition+docs+YAML+Microsoft+promptflow 200
+2026-08-26 09:17:16,644 [INFO] httpx: HTTP Request: POST https://html.duckduckgo.com/html/ "HTTP/2 200 OK"
+2026-08-26 09:17:16,648 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': 'yamlgraph documentation define workflow in YAML LLM', 'max_results': 5})
+2026-08-26 09:17:16,969 [INFO] primp: response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=yamlgraph%20documentation%20define%20workflow%20in%20YAML%20LLM 200
+2026-08-26 09:17:17,106 [INFO] primp: response: https://grokipedia.com/api/typeahead?query=yamlgraph+documentation+define+workflow+in+YAML+LLM&limit=1 200
+2026-08-26 09:17:17,449 [INFO] primp: response: https://www.startpage.com/ 200
+2026-08-26 09:17:17,582 [INFO] primp: response: https://www.startpage.com/sp/search 200
+2026-08-26 09:17:17,891 [INFO] primp: response: https://search.yahoo.com/search;_ylt=YOiSywVIOyF-VGbN46zimRJT;_ylu=6_KV7J5-9OAadl86hdGfRSAKH_9A1dKr4aEbpsRQ9rusuqY?p=yamlgraph+documentation+define+workflow+in+YAML+LLM 200
+2026-08-26 09:17:18,655 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': 'PDL YAML prompt language LLM framework documentation', 'max_results': 5})
+2026-08-26 09:17:19,005 [INFO] primp: response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=PDL%20YAML%20prompt%20language%20LLM%20framework%20documentation 200
+2026-08-26 09:17:19,085 [INFO] primp: response: https://grokipedia.com/api/typeahead?query=PDL+YAML+prompt+language+LLM+framework+documentation&limit=1 200
+2026-08-26 09:17:19,828 [INFO] httpx: HTTP Request: POST https://html.duckduckgo.com/html/ "HTTP/2 200 OK"
+2026-08-26 09:17:19,830 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': 'Langflow YAML export import workflow LLM framework', 'max_results': 5})
+2026-08-26 09:17:20,096 [INFO] primp: response: https://grokipedia.com/api/typeahead?query=Langflow+YAML+export+import+workflow+LLM+framework&limit=1 200
+2026-08-26 09:17:20,178 [INFO] primp: response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=Langflow%20YAML%20export%20import%20workflow%20LLM%20framework 200
+2026-08-26 09:17:21,019 [INFO] httpx: HTTP Request: POST https://html.duckduckgo.com/html/ "HTTP/2 200 OK"
+2026-08-26 09:17:21,788 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-26 09:17:21,789 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': 'YAML-first LLM pipeline frameworks comparison PromptFlow PDL yamlgraph Kestra Langflow declarative workflow', 'max_results': 10})
+2026-08-26 09:17:22,090 [INFO] primp: response: https://grokipedia.com/api/typeahead?query=YAML-first+LLM+pipeline+frameworks+comparison+PromptFlow+PDL+yamlgraph+Kestra+Langflow+declarative+workflow&limit=1 200
+2026-08-26 09:17:22,131 [INFO] primp: response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=YAML-first%20LLM%20pipeline%20frameworks%20comparison%20PromptFlow%20PDL%20yamlgraph%20Kestra%20Langflow%20declarative%20workflow 200
+2026-08-26 09:17:22,377 [INFO] primp: response: https://www.startpage.com/ 200
+2026-08-26 09:17:22,480 [INFO] primp: response: https://www.startpage.com/sp/search 200
+2026-08-26 09:17:24,037 [INFO] primp: response: https://search.brave.com/search?q=YAML-first+LLM+pipeline+frameworks+comparison+PromptFlow+PDL+yamlgraph+Kestra+Langflow+declarative+workflow&source=web 200
+2026-08-26 09:17:29,002 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-26 09:17:29,003 [INFO] yamlgraph.tools.agent: ✓ Agent completed after 4 iterations
+2026-08-26 09:17:33,773 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-26 09:17:33,774 [INFO] yamlgraph.node_factory.llm_nodes: Node summarize completed successfully
+
+🚀 Running graph: graph.yaml
+   Variables: {'topic': 'YAML-first LLM pipeline frameworks'}
+
+🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/09c0c2d4-5724-4301-bcee-e1b64ddeb80e/r/01a03cb7-150c-7622-960a-a1d23c29123b?poll=true
+============================================================
+RESULT
+============================================================
+  current_step: summarize
+  topic: YAML-first LLM pipeline frameworks
+  research: I found several current frameworks and references that fit the “YAML-first LLM pipeline frameworks” theme. The space seems to split into two categories:
+
+1. **True YAML-first orchestration frameworks** — workflows/pipelines are authored primarily in YAML.
+2. **Declarative prompt/pipeline specs** — YAML is used heavily for prompts, steps, and configs, but the runtime may still rely on code.
+
+## Key frameworks and projects
+
+### 1) Microsoft Promptflow
+- **What it is:** A framework for building executable LLM flows, with DAG flows defined in YAML.
+- **Why it matters:** It’s one of the clearest examples of YAML-centered LLM pipeline authoring.
+- **Evidence:** The docs state that a flow is “represented as a YAML file” and is “a DAG of functions” connected by input/output dependencies.
+- **Source:**
+  https://github.com/microsoft/promptflow/blob/main/docs/how-to-guides/develop-a-dag-flow/quick-start.md
+  https://learn.microsoft.com/en-us/azure/machine-learning/prompt-flow/how-to-develop-flow?view=azureml-api-2
+
+### 2) PDL (Prompt Declaration Language)
+- **What it is:** A declarative language for reliable, composable LLM prompts and integration with traditional software systems.
+- **Why it matters:** More prompt-spec than full pipeline orchestrator, but it is strongly declarative and YAML-based in community usage/discussion.
+- **Evidence:** Official docs describe PDL as a declarative language for specifying prompt structure and composing LLM calls with rule-based systems.
+- **Source:**
+  https://ibm.github.io/prompt-declaration-language/
+  https://github.com/IBM/prompt-declaration-language
+
+### 3) YAMLGraph
+- **What it is:** A declarative LLM pipeline orchestration framework where workflows are defined entirely in YAML.
+- **Why it matters:** This is probably the most directly “YAML-first” project I found.
+- **Evidence:** Project description says you can define complex AI workflows entirely in YAML, with support for routing, loops, agents, and human-in-the-loop.
+- **Source:**
+  https://pypi.org/project/yamlgraph/
+  https://github.com/sheikkinen/yamlgraph
+  https://sheikkinen.github.io/yamlgraph/
+
+### 4) Langflow
+- **What it is:** A visual AI workflow builder for LLM apps.
+- **Why it matters:** Not strictly YAML-first, but it supports import/export of flows and is often used in declarative workflow discussions.
+- **Source:**
+  https://docs.langflow.org/
+  https://docs.langflow.org/concepts-flows-import
+
+### 5) Kestra
+- **What it is:** General workflow orchestration, not LLM-specific, but increasingly relevant for AI/LLM pipelines.
+- **Why it matters:** Their YAML-first workflow philosophy is directly applicable to LLM pipelines.
+- **Source:**
+  https://kestra.io/blogs/yaml-for-workflow-orchestration
+  https://kestra.io/blogs/yaml-vs-python-workflow
+
+## What the current landscape suggests
+
+### YAML-first is appealing because:
+- It is **version-controllable**
+- It is **human-readable**
+- It is easier to **generate, validate, and diff**
+- It can make workflows more **portable** and **auditable**
+
+### Typical YAML-first capabilities include:
+- Prompt templates
+- DAG or graph workflows
+- Tool calls / function calls
+- Conditional branching
+- Loops / retries
+- Human-in-the-loop steps
+- Multi-model routing
+- Evaluation or red-teaming configs
+
+### Tradeoffs:
+- YAML can become verbose for complex logic
+- Some frameworks still require custom Python for advanced behavior
+- Debugging and schema validation matter a lot
+- Visual builders often complement YAML rather than replace it
+
+## Best-fit interpretation of “YAML-first LLM pipeline frameworks”
+If you mean frameworks where the **primary source of truth is YAML**, the strongest matches are:
+
+- **Promptflow**
+- **YAMLGraph**
+- **PDL** (more prompt declaration than full pipeline orchestration)
+
+If you mean broader orchestration stacks that are **YAML-friendly and AI-ready**, then:
+
+- **Kestra**
+- **Langflow**
+- **DeepTeam** for YAML-based LLM red-teaming configs
+
+## Useful sources
+- Promptflow: https://github.com/microsoft/promptflow/blob/main/docs/how-to-guides/develop-a-dag-flow/quick-start.md
+- Promptflow docs: https://learn.microsoft.com/en-us/azure/machine-learning/prompt-flow/how-to-develop-flow?view=azureml-api-2
+- PDL docs: https://ibm.github.io/prompt-declaration-language/
+- YAMLGraph: https://sheikkinen.github.io/yamlgraph/
+- YAMLGraph PyPI: https://pypi.org/project/yamlgraph/
+- Langflow docs: https://docs.langflow.org/concepts-flows-import
+- Kestra YAML orchestration: https://kestra.io/blogs/yaml-for-workflow-orchestration
+
+If you want, I can next turn this into:
+1. a **comparison table** of these frameworks, or
+2. a **shortlist of the best options for production use**.
+  summary: ## YAML-first LLM pipeline frameworks: summary
+
+### 1) Key facts and main points
+
+The current landscape for **YAML-first LLM pipeline frameworks** splits into two broad groups:
+
+1. **True YAML-first orchestration frameworks**
+   These let you define workflows or pipelines primarily in YAML, with YAML acting as the main source of truth.
+
+2. **Declarative prompt/pipeline specifications**
+   These use YAML heavily for prompts, steps, and configuration, but the runtime may still depend on code or a separate orchestration layer.
+
+#### Most relevant frameworks
+
+- **Microsoft Promptflow**
+  A strong example of a YAML-centered LLM workflow framework. Its flows are represented as YAML files and modeled as DAGs of connected functions. This makes it well-suited for building executable LLM pipelines with explicit dependencies and modular steps.
+
+- **YAMLGraph**
+  Probably the most directly YAML-first project in this space. It allows users to define complex AI workflows entirely in YAML, including features like routing, loops, agents, and human-in-the-loop steps.
+
+- **PDL (Prompt Declaration Language)**
+  More of a declarative prompt specification language than a full pipeline orchestrator, but important because it formalizes prompt structure and composition with other systems. It is a strong fit for teams wanting structured, reliable LLM prompt definitions.
+
+- **Langflow**
+  Primarily a visual builder for LLM apps, not strictly YAML-first. However, it supports flow import/export and is often part of declarative workflow discussions.
+
+- **Kestra**
+  A general workflow orchestration platform, not LLM-specific, but relevant because of its YAML-first philosophy. It can be adapted for AI/LLM pipeline orchestration.
+
+#### Common YAML-first capabilities
+
+Across these frameworks and adjacent tools, YAML is commonly used to express:
+
+- Prompt templates
+- DAG/graph workflows
+- Tool/function calls
+- Conditional branching
+- Loops and retries
+- Human-in-the-loop steps
+- Multi-model routing
+- Evaluation or red-teaming setups
+
+#### Why YAML-first is attractive
+
+YAML-first approaches are appealing because they are:
+
+- **Version-controllable**
+- **Human-readable**
+- Easier to **diff**, **validate**, and **generate**
+- More **portable** and **auditable**
+
+#### Main tradeoffs
+
+- YAML can become **verbose**, especially for complex logic
+- Advanced behavior may still require **custom Python**
+- **Debugging** and **schema validation** are important
+- Visual builders often **complement** YAML rather than fully replace it
+
+---
+
+### 2) Recent developments
+
+Based on the findings, the recent direction of the field is:
+
+- A stronger push toward **declarative LLM workflow definitions**
+- Broader use of **YAML as the control plane** for prompts, routing, and orchestration
+- Increasing support for **hybrid systems** where YAML defines the pipeline but code handles specialized logic
+- More attention to **human-in-the-loop**, **evaluation**, and **multi-agent** workflow patterns
+
+The strongest current examples of this trend are **Promptflow** and **YAMLGraph**, with **PDL** representing the declarative prompt-spec side of the spectrum.
+
+---
+
+### 3) Sources cited
+
+- Microsoft Promptflow quick start:
+  https://github.com/microsoft/promptflow/blob/main/docs/how-to-guides/develop-a-dag-flow/quick-start.md
+
+- Microsoft Promptflow docs:
+  https://learn.microsoft.com/en-us/azure/machine-learning/prompt-flow/how-to-develop-flow?view=azureml-api-2
+
+- PDL official docs:
+  https://ibm.github.io/prompt-declaration-language/
+
+- PDL GitHub repository:
+  https://github.com/IBM/prompt-declaration-language
+
+- YAMLGraph project site:
+  https://sheikkinen.github.io/yamlgraph/
+
+- YAMLGraph PyPI page:
+  https://pypi.org/project/yamlgraph/
+
+- YAMLGraph GitHub repository:
+  https://github.com/sheikkinen/yamlgraph
+
+- Langflow docs:
+  https://docs.langflow.org/
+
+- Langflow flow import concepts:
+  https://docs.langflow.org/concepts-flows-import
+
+- Kestra on YAML workflow orchestration:
+  https://kestra.io/blogs/yaml-for-workflow-orchestration
+
+- Kestra YAML vs Python workflow discussion:
+  https://kestra.io/blogs/yaml-vs-python-workflow
+
+---
+
+### Bottom line
+
+If “YAML-first LLM pipeline frameworks” means **YAML is the primary authoring format**, the best matches are:
+
+1. **Promptflow**
+2. **YAMLGraph**
+3. **PDL** for declarative prompt composition
+
+If you want broader orchestration tools that are **YAML-friendly and AI-ready**, then **Kestra** and **Langflow** are also relevant.
+
+If helpful, I can next turn this into a **comparison table** or a **recommendation shortlist for production use**.

@@ -33,6 +33,27 @@ from yamlgraph.utils.prompts import load_prompt
 logger = logging.getLogger(__name__)
 
 
+class AllToolCallsFailedError(Exception):
+    """Every tool call in an agent run failed (FR-891, fail-closed).
+
+    Mirrors race_node.AllCandidatesFailedError: raised before final
+    synthesis so error strings are never laundered into fluent output.
+    """
+
+
+def _check_all_tools_failed(node_name: str, tool_results: list[dict]) -> None:
+    """Raise when tool_results is non-empty and every call failed (FR-891)."""
+    if not tool_results or any(r["success"] for r in tool_results):
+        return
+    tool_names = sorted({r["tool"] for r in tool_results})
+    first_failure = tool_results[0]["output"]
+    raise AllToolCallsFailedError(
+        f"Agent node '{node_name}': all {len(tool_results)} tool call(s) "
+        f"failed ({len(tool_results)} failure(s); tools: {', '.join(tool_names)}; "
+        f"first failure: {first_failure})"
+    )
+
+
 def _try_structured_output(
     content: str | list,
     msgs: list,
@@ -306,6 +327,9 @@ def create_agent_node(  # noqa: C901
             if not response.tool_calls:
                 # Done - LLM finished reasoning
                 logger.info(f"✓ Agent completed after {iteration + 1} iterations")
+                # FR-891: fail closed before synthesis — the witnessed
+                # incident finalized on this path with 6/6 failed calls.
+                _check_all_tools_failed(node_name, tool_results)
                 # Return only NEW messages (delta) — the add reducer
                 # appends to existing state, so returning the full list
                 # would cause quadratic growth (FR-057).
@@ -363,6 +387,8 @@ def create_agent_node(  # noqa: C901
 
         # Hit max iterations
         logger.warning(f"Agent hit max iterations ({max_iterations})")
+        # FR-891: fail closed on the max-iterations path too (judgement R-1).
+        _check_all_tools_failed(node_name, tool_results)
         last_content = messages[-1].content if hasattr(messages[-1], "content") else ""
         final_value = _try_structured_output(
             last_content, messages, output_model, llm_base

@@ -40,7 +40,10 @@ requirements:
       - node_factory/tool_nodes
       - utils
   - id: REQ-YG-018
-    description: Agent-driven tool selection and execution
+    description: >
+      Agent-driven tool selection and execution; all-tool-calls-failed
+      runs raise with a failure census before synthesis (FR-891
+      fail-closed boundary)
     modules:
       - tools/agent
   - id: REQ-YG-019

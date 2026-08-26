@@ -41,35 +41,37 @@ def search_web(query: str, max_results: int = 5) -> str:
         max_results: Maximum number of results (default: 5)
 
     Returns:
-        Formatted string with search results or error message
+        Formatted string with search results, or a "No results found"
+        data string for genuinely empty result sets.
+
+    Raises:
+        ValueError: Empty or whitespace-only query (FR-891).
+        ImportError: ddgs not installed (FR-891, fail-closed at call time).
+        Exception: Transport/search failures propagate (FR-891) — the
+            agent boundary aggregates them; no error-string returns.
     """
     if not query or not query.strip():
-        return "Error: Search query is empty"
+        raise ValueError("Search query is empty")
 
     if not DUCKDUCKGO_AVAILABLE:
-        return "Error: ddgs package not installed. Run: pip install ddgs"
+        raise ImportError("ddgs not installed — pip install 'yamlgraph[websearch]'")
 
-    try:
-        with DDGS() as ddgs:
-            results = list(ddgs.text(query, max_results=max_results))
+    with DDGS() as ddgs:
+        results = list(ddgs.text(query, max_results=max_results))
 
-        if not results:
-            return f"No results found for: '{query}'"
+    if not results:
+        return f"No results found for: '{query}'"
 
-        lines = [f"Search results for '{query}':\n"]
-        for i, item in enumerate(results, 1):
-            title = item.get("title", "No title")
-            url = item.get("href", item.get("url", "No URL"))
-            body = item.get("body", item.get("snippet", ""))
+    lines = [f"Search results for '{query}':\n"]
+    for i, item in enumerate(results, 1):
+        title = item.get("title", "No title")
+        url = item.get("href", item.get("url", "No URL"))
+        body = item.get("body", item.get("snippet", ""))
 
-            lines.append(f"{i}. {title}")
-            lines.append(f"   URL: {url}")
-            if body:
-                lines.append(f"   {body}")
-            lines.append("")
+        lines.append(f"{i}. {title}")
+        lines.append(f"   URL: {url}")
+        if body:
+            lines.append(f"   {body}")
+        lines.append("")
 
-        return "\n".join(lines)
-
-    except Exception as e:
-        logger.warning(f"Web search failed: {e}")
-        return f"Error: Search failed - {e}"
+    return "\n".join(lines)

@@ -48,14 +48,14 @@ def _final_response(content: str = "fluent answer") -> MagicMock:
     return resp
 
 
-def _make_node(tools: dict, max_iterations: int = 3):
+def _make_node(py_tools: dict, max_iterations: int = 3):
     node_config = {
         "prompt": "agent",
-        "tools": list(tools),
+        "tools": list(py_tools),
         "max_iterations": max_iterations,
         "state_key": "result",
     }
-    return create_agent_node("agent", node_config, tools)
+    return create_agent_node("agent", node_config, {}, python_tools=py_tools)
 
 
 PY_FAIL = {
