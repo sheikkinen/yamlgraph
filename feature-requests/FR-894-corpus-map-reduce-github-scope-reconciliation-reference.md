@@ -2,13 +2,15 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement (documentation only)
-**Status:** Proposed
+**Status:** Judged - APPROVED WITH REVISIONS (R-1/R-2/R-3 folded)
 **Effort:** 0.5 day
 **Requested:** 2026-08-26
+**Judged:** 2026-08-27
 **First consumer / first event:** the next agent asked to "read every commit or
 PR and summarize it" or "find what changed beyond intended scope." At that
 tool-selection moment, the agent finds one proven corpus pattern instead of
 building an ad-hoc agent loop or treating a single global summary as exhaustive.
+**Research:** [FR-894.research.md](FR-894.research.md)
 
 ## Summary
 
@@ -220,6 +222,11 @@ before the model boundary.
 
 ## Acceptance Criteria
 
+- [ ] `feature-requests/FR-894.research.md` records five genuine solution
+  classes, precedents, preserved disagreement, and `is_this_a_graph`
+  answers from the sole research route.
+- [ ] Every generated triage claim is dispositioned; no `[pending]` claim
+  remains.
 - [ ] `reference/patterns/corpus-map-reduce.md` exists and is linked from
       `reference/README.md`.
 - [ ] Pattern 8 and Pattern 10 in `reference/patterns.md` link to the new
@@ -248,11 +255,50 @@ before the model boundary.
       requirement, or GitHub API integration is added or changed under this FR.
 - [ ] Exact validation records these commands and results:
   `rg -n '[[:blank:]]+$' reference/patterns/corpus-map-reduce.md reference/README.md reference/patterns.md` (no matches);
-  a script that resolves every workspace-relative Markdown link in the
-  three touched reference files and exits nonzero for a missing target;
+    the complete inline link resolver in Validation Commands below;
   and `git diff --check -- reference/patterns/corpus-map-reduce.md reference/README.md reference/patterns.md`.
 
+## Validation Commands (R-3)
+
+Workspace-relative Markdown link resolution is frozen to this exact command:
+
+```bash
+.venv/bin/python - <<'PY'
+from pathlib import Path
+import re
+
+files = [
+  Path("reference/patterns/corpus-map-reduce.md"),
+  Path("reference/README.md"),
+  Path("reference/patterns.md"),
+]
+pattern = re.compile(r"\]\(([^)]+)\)")
+missing = []
+for path in files:
+  for raw_target in pattern.findall(path.read_text(encoding="utf-8")):
+    target = raw_target.split("#", 1)[0]
+    if not target or target.startswith(("http://", "https://", "mailto:")):
+      continue
+    resolved = path.parent / target
+    if not resolved.exists():
+      missing.append(f"{path}: {raw_target}")
+if missing:
+  raise SystemExit("missing workspace links:\n" + "\n".join(missing))
+print("missing_links=0")
+PY
+```
+
 ## Alternatives Considered
+
+### Research-route disposition (R-1)
+
+| Class | Disposition | Reason |
+|---|---|---|
+| Reference contract (`yamlgraph-native-planner`) | Selected | Fills the discoverable evidence/authority gap without duplicating FR-892 or changing executable surfaces. |
+| Caller-responsibility note (`subtractionist`) | Folded | The reference states that topology is not an exhaustiveness guarantee and makes the seven invariants caller/reducer obligations. |
+| Evidence schema plus executor checklist (`data-process-planner`) | Deferred | The documentation/schema insight is retained; modifying FR-892's executor is outside this documentation-only FR. |
+| Append-only audit log (`os-infra-primitivist`) | Rejected for this scope | Adds persistence machinery when the existing ledger/dossier artifacts already carry the required evidence. |
+| EviSearch provenance reconciliation (`librarian`) | Precedent only | Confirms the provenance principle; no dependency or multi-agent extraction system is needed. |
 
 ### Extend only `reference/map-nodes.md`
 
@@ -316,14 +362,27 @@ separately judged first consumer.
   graph independently over runtime-selected files. Kept; this FR maps bounded
   semantic judgements inside one corpus run and reconciles them collectively.
 
-## Triage (generated — claims requiring disposition)
+## Triage (generated - dispositioned 2026-08-27)
 
-- [pending] canon: would_you_use_this: agent operators building corpus analysis tasks (first consumer named in Summary and Value Statement)
-- [pending] canon: who_reads_this_when: agent operators at tool-selection moment when asked to summarize corpus or find scope drift (delivery rung named in Summary)
-- [pending] canon: does_the_platform_already_do_this: FR-892 ships reusable discover-extract-map-reduce skeleton; FR-402, FR-748, FR-851, FR-884 demonstrate the pattern; this FR documents the architecture and authority contract missing from reference (prior art dispositioned)
-- [pending] pre-mortem: Reference document ships but links in reference/patterns.md and reference/README.md are broken or point to nonexistent anchors, breaking discoverability at tool-selection moment
-- [pending] pre-mortem: Acceptance criterion on trailing whitespace or link validation fails: rg or link-resolver script finds missing targets or whitespace in touched files, blocking merge
-- [pending] pre-mortem: Authority hierarchy section omits explicit guidance that commit messages are self-description not independent authority, allowing agents to call changes 'unauthorized' without frozen scope artifact
-- [pending] pre-mortem: Worked application for scope reconciliation names fields but does not show how to mechanically distinguish path drift from semantic drift, leaving agent operators to invent reconciliation logic anyway
-- [pending] pre-mortem: Reference document cites FR-892 but does not explain how to use its discover-extract-map-reduce skeleton with injected adapters, forcing operators to reverse-engineer from corpus_census graph.yaml instead of following pattern
-- [pending] value-prop: For agent operators (whom), kills silent omissions and falsely-authorized changes in corpus analysis (pain), vs ad-hoc agent loops or treating single global summary as exhaustive (alternative) — completable from FR text as stated
+- [accepted] `would_you_use_this`: agent operators building corpus analyses are
+  the named consumer in the Value Statement.
+- [accepted] `who_reads_this_when`: the first event is the next commit/PR or
+  enumerable-corpus request at tool-selection time.
+- [satisfied-by] `does_the_platform_already_do_this`: FR-892 owns execution;
+  this FR is limited to the missing reference/authority contract.
+- [satisfied-by] discoverability pre-mortem: D-2/D-3 require links from
+  `reference/README.md` and both relevant sections of `reference/patterns.md`.
+- [satisfied-by] validation pre-mortem: the three exact commands are frozen in
+  Acceptance Criteria and Validation Commands.
+- [satisfied-by] authority pre-mortem: the authority hierarchy explicitly
+  classifies PR bodies and commit messages as self-description and reserves
+  `unauthorized` for independent authority.
+- [satisfied-by] drift-class pre-mortem: the worked application separately
+  defines path drift, semantic drift, omission, and metadata drift, with
+  deterministic path checks and cited semantic claims.
+- [satisfied-by] FR-892-use pre-mortem: the reference must explain discovery and
+  extraction adapters as the Freeze-stage executable precedent and cite the
+  shipped `corpus_census` graph/README.
+- [accepted] value proposition: operators avoid silent omission and unsupported
+  authority claims versus ad-hoc loops or global summaries presented as
+  exhaustive.
