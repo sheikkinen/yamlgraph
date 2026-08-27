@@ -28,6 +28,12 @@ state:
     type: list
     reducer: sorted_add
   ledger: dict
+  brief_path: str
+  brief_rubric: str
+  brief_input:
+    type: list
+  claims: dict
+  brief: dict
 
 tools:
   discover:
@@ -43,6 +49,16 @@ tools:
     path: tools.py
     function: reduce_ledger
     description: "Validate census findings and write markdown plus JSONL ledger artifacts."
+  prepare_brief_input:
+    type: python
+    path: tools.py
+    function: prepare_brief_input
+    description: "Load reduced ledger JSONL and build bounded public-safe synthesis input."
+  render_brief:
+    type: python
+    path: tools.py
+    function: render_brief
+    description: "Validate synthesized citations and render accepted or rejected brief artifact."
 
 nodes:
   discover:
@@ -89,6 +105,27 @@ nodes:
     tool: reduce_ledger
     state_key: ledger
 
+  prepare_brief_input:
+    type: python
+    tool: prepare_brief_input
+    state_key: brief_input
+
+  synthesize:
+    type: llm
+    prompt: synthesize_brief
+    provider: anthropic
+    model: claude-haiku-4-5
+    temperature: 0.0
+    state_key: claims
+    variables:
+      rubric: "{state.brief_rubric}"
+      rows: "{state.brief_input}"
+
+  render_brief:
+    type: python
+    tool: render_brief
+    state_key: brief
+
 edges:
   - from: START
     to: discover
@@ -99,4 +136,10 @@ edges:
   - from: judge_items
     to: reduce_ledger
   - from: reduce_ledger
+    to: prepare_brief_input
+  - from: prepare_brief_input
+    to: synthesize
+  - from: synthesize
+    to: render_brief
+  - from: render_brief
     to: END

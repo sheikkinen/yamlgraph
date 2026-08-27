@@ -44,11 +44,11 @@ def _boundary(claims, rows=None):
 
 
 class TestCitationBoundary:
-    @pytest.mark.req("REQ-YG-624")
+    @pytest.mark.req("REQ-YG-625")
     def test_valid_claims_pass(self):
         assert _boundary(GOOD_CLAIMS) == []
 
-    @pytest.mark.req("REQ-YG-624")
+    @pytest.mark.req("REQ-YG-625")
     def test_fabricated_label_citation_rejected(self):
         bad = GOOD_CLAIMS + [
             {
@@ -60,7 +60,7 @@ class TestCitationBoundary:
         errors = _boundary(bad)
         assert errors and "ghost_trap_never_seen" in str(errors)
 
-    @pytest.mark.req("REQ-YG-624")
+    @pytest.mark.req("REQ-YG-625")
     def test_claim_without_citation_rejected(self):
         bad = GOOD_CLAIMS + [
             {"claim_id": "c3", "text": "Everything is fine.", "citations": []}
@@ -68,7 +68,7 @@ class TestCitationBoundary:
         errors = _boundary(bad)
         assert errors and "c3" in str(errors)
 
-    @pytest.mark.req("REQ-YG-624")
+    @pytest.mark.req("REQ-YG-625")
     def test_citation_outside_source_rejected(self):
         bad = [
             {
@@ -80,7 +80,7 @@ class TestCitationBoundary:
         errors = _boundary(bad)
         assert errors
 
-    @pytest.mark.req("REQ-YG-624")
+    @pytest.mark.req("REQ-YG-625")
     def test_malformed_claim_rejected(self):
         errors = _boundary([{"text": "no id, no citations"}])
         assert errors
@@ -99,7 +99,7 @@ class TestBriefEmission:
             run_meta={"model": "test-model", "source_hash": "abc123"},
         )
 
-    @pytest.mark.req("REQ-YG-624")
+    @pytest.mark.req("REQ-YG-625")
     def test_accepted_brief_contains_head_narrative_and_meta(self, tmp_path):
         result = self._emit(tmp_path, GOOD_CLAIMS)
         assert result["accepted"] is True
@@ -108,7 +108,7 @@ class TestBriefEmission:
         assert "symptom site" in text  # rendered narrative
         assert "test-model" in text and "abc123" in text  # provenance
 
-    @pytest.mark.req("REQ-YG-624")
+    @pytest.mark.req("REQ-YG-625")
     def test_rejected_narrative_emits_no_brief_only_failure_artifact(self, tmp_path):
         bad = [
             {
@@ -128,7 +128,7 @@ class TestBriefEmission:
 
 
 class TestBoundedPublicSafeInput:
-    @pytest.mark.req("REQ-YG-624")
+    @pytest.mark.req("REQ-YG-625")
     def test_input_bounded_by_ceiling_top_n(self):
         from examples.demos.corpus_census.adapters.census_brief import (
             build_synthesis_input,
@@ -138,7 +138,7 @@ class TestBoundedPublicSafeInput:
         assert len(out) == 2
         assert out[0]["label"] == "downstream_fix"  # top-N by entries
 
-    @pytest.mark.req("REQ-YG-624")
+    @pytest.mark.req("REQ-YG-625")
     def test_disallowed_columns_stripped(self):
         from examples.demos.corpus_census.adapters.census_brief import (
             build_synthesis_input,

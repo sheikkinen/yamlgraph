@@ -565,6 +565,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 247 | CAP-247 Memory-Corpus Curation (Selective Amnesia) | `examples` | REQ-YG-620 – 622 |
 | 248 | CAP-248 Research Sole Route (Closed-Input Alternatives) | `examples` | REQ-YG-623 |
 | 249 | CAP-249 Invocation-time tool-slot binding | `tools/tool_slots`, `compile/graph_loader` | REQ-YG-624 |
+| 250 | CAP-250 Corpus-census synthesize tail | `examples/demos/corpus_census` | REQ-YG-625 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -3058,6 +3059,16 @@ Graph `tools:` entries may declare `slot: true` with a `contract:` block (runtim
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-624 | Tool slots bind FR-768 manifests at invocation; all contaminated bindings fail closed with a typed error before execution; the corpus-census reducer enforces the frozen ledger contract (abstention rows, error-string and empty-cell rejection) | `tools/tool_slots`, `compile/graph_loader` |
+
+### 250. CAP-250 Corpus-census synthesize tail
+
+The corpus-census pipeline ends in a human-readable brief: a bounded, column-allowlisted synthesis input (top-N ledger rows), a single pinned structured-claims LLM call, and an LLM-free citation boundary that validates every claim citation against the source artifact before rendering. Validation failure emits no brief — only a .REJECTED.md artifact carrying the deterministic summary head and rejection reasons. Missing brief inputs fail loudly before any synthesis call.
+
+**Feature Request:** FR-895
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-625 | Census brief emission is fail-closed: claims with fabricated, missing, or out-of-source citations are rejected mechanically (LLM-free); accepted briefs carry the deterministic summary head, cited findings, and run provenance; synthesis input is bounded and restricted to the public-safe column allowlist | `examples/demos/corpus_census` |
 
 <!-- END GENERATED CAPABILITIES -->
 

@@ -1,0 +1,23 @@
+id: CAP-250
+name: Corpus-census synthesize tail
+fr: FR-895
+description: >
+  The corpus-census pipeline ends in a human-readable brief: a bounded,
+  column-allowlisted synthesis input (top-N ledger rows), a single pinned
+  structured-claims LLM call, and an LLM-free citation boundary that
+  validates every claim citation against the source artifact before
+  rendering. Validation failure emits no brief — only a .REJECTED.md
+  artifact carrying the deterministic summary head and rejection reasons.
+  Missing brief inputs fail loudly before any synthesis call.
+modules:
+  - examples/demos/corpus_census
+requirements:
+  - id: REQ-YG-625
+    description: >
+      Census brief emission is fail-closed: claims with fabricated,
+      missing, or out-of-source citations are rejected mechanically
+      (LLM-free); accepted briefs carry the deterministic summary head,
+      cited findings, and run provenance; synthesis input is bounded and
+      restricted to the public-safe column allowlist
+    modules:
+      - examples/demos/corpus_census
