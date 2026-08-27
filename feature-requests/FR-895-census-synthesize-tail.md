@@ -12,9 +12,15 @@ answering "what does this corpus say?" with row citations; the operator's
 regenerable yes. Second consumer: the PDF/git proof configurations.
 **Research:** [FR-895.research.md](FR-895.research.md)
 
-**Prior art:** FR-892 (census pipeline — its Proposed Solution carried
-this stage as "optional tail synthesis node"; the authoring brief deleted
-it as scope creep — this FR is the restoration, optional-no-more; diary
+**Prior art:** **[reference/patterns/corpus-map-reduce.md](../reference/patterns/corpus-map-reduce.md)
+(FR-894) is the canonical pattern guide this FR extends** — its six-stage
+topology ends at "render"; this FR adds the cited-narrative synthesis the
+guide's own reduce rule constrains ("no reduction may erase the primary
+per-item findings") and must satisfy its eight invariants, including the
+hidden-canary invariant (#8) this lane contributed. FR-892 (census
+pipeline — its Proposed Solution carried this stage as "optional tail
+synthesis node"; the authoring brief deleted it as scope creep — this FR
+is the restoration, optional-no-more; diary
 2026-08-27-optional-is-where-value-goes-to-die.md is the loss post-mortem).
 FR-893 (diary census — its headline finding was hand-written prose,
 irreproducible on re-run; the motivating consumer). fr_atlas demo
@@ -113,6 +119,9 @@ dependency); status quo hand-written prose (the witnessed defect).
 
 ## Related
 
+- **reference/patterns/corpus-map-reduce.md (FR-894)** — the canonical
+  guide; this FR's brief must satisfy its eight invariants, and the
+  citation boundary implements its render-stage evidence contract
 - FR-892/FR-893 (the pipeline and its first consumer), fr_atlas (shape
   precedent), diary 2026-08-27-optional-is-where-value-goes-to-die.md
 - Scripture: `who_reads_this_when` (per-stage application), cheap-map
