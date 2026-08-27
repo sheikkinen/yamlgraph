@@ -241,3 +241,23 @@ RED 18435eff (10 aggregator witnesses), GREEN follows. REQ-YG-624
   recurrence signals are ALIASES of graduated doctrine (silent_fallback
   family 34+ entries under 4+ names) — vocabulary consolidation, not new
   graduation, is the corpus's loudest request. Seeded in the diary.
+
+## Post-merge reconciliation vs reference/patterns/corpus-map-reduce.md (2026-08-27)
+
+The FR-894 reference (concurrent lane) codified the pattern this FR
+instantiates; cross-checking exposed two implementation gaps against its
+freeze/arithmetic invariants, recorded here as candidate follow-ups (not
+built — no authority under this FR):
+
+- **Per-item content hashes absent**: the ledger records item_ref + run
+  git SHA, but not a content hash per entry — rows are not tied to item
+  content identity across runs (reference freeze stage; invariant 5
+  "hashes"; `artifact_carries_code_identity` seed).
+- **Cost/call totals not computed in code**: duration and cost were
+  recorded via manual `--meta`; primary/reduction call counts should be
+  computed by the wrapper (reference cost contract).
+
+Contribution in the other direction: this FR's canary-gate firing (exact
+labels → 0 hits under total vocabulary drift) graduated into the
+reference as its 8th required invariant (withheld known-truth, family
+matching) — coverage arithmetic alone cannot prove semantic validity.

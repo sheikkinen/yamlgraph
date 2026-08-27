@@ -195,7 +195,7 @@ without the dossier is failure.
 
 ## Required invariants
 
-A corpus map-reduce run must satisfy all seven invariants:
+A corpus map-reduce run must satisfy all eight invariants:
 
 1. Every frozen input item or byte span belongs to exactly one primary map
    payload.
@@ -206,6 +206,15 @@ A corpus map-reduce run must satisfy all seven invariants:
 5. Counts, coverage, hashes, and cost/call totals are computed in code.
 6. Provider, model, corpus identity, and run identity are recorded.
 7. No map failure or missing result is silently dropped.
+8. At least one withheld known-truth (a hidden canary the initiator can
+   verify independently) must surface in the results, matched by FAMILY
+   rather than exact token; its absence invalidates the run before any
+   artifact is emitted. Invariants 1–7 prove the run covered everything;
+   only this one proves it judged anything correctly. Witnessed necessity
+   (FR-893): a full-diary census satisfied invariants 1–7 while exact-label
+   canaries found ZERO hits — total label drift (`tmp_msg_txt`,
+   `stale_tmp_msg_file`, `tmp_msg_file_loss` for one trap) made the run
+   semantically invalid despite perfect coverage arithmetic.
 
 These are requirements, not optional hardening. If any invariant cannot be
 proved, the output may still be a sample, but it is not an exhaustive corpus
@@ -380,7 +389,7 @@ Before running:
 
 After running:
 
-- [ ] Verify all seven invariants.
+- [ ] Verify all eight invariants.
 - [ ] Read raw primary findings before trusting reductions.
 - [ ] Confirm the complete dossier exists and carries provenance.
 - [ ] Treat reduced totals as code-computed context, not model testimony.
@@ -406,6 +415,14 @@ After running:
   [graph](../../examples/demos/corpus_census/graph.yaml): the shipped reusable
   discover-extract-map-reduce skeleton with invocation-bound adapters and a
   fail-closed ledger reducer.
+- [FR-893 Diary Trap Census](../../feature-requests/FR-893-diary-trap-census.md)
+  and its [aggregator](../../examples/demos/corpus_census/adapters/diary_recurrence.py):
+  the pipeline's first production consumer — 1,266 entries in 24 batches
+  (~$1, 26 min), distinct-entry recurrence counting, Scripture-key
+  exclusion, public-safe committed artifact, and the witnessed firing of
+  the hidden-canary invariant (exact-label match → 0 hits under total
+  vocabulary drift; family matching required). Run via
+  [scripts/diary_census.sh](../../scripts/diary_census.sh).
 - [Recap graph](../../examples/demos/recap/graph.yaml): deterministic Git
   collection and one bounded synthesis judgement; useful for quiet windows,
   narrower than exhaustive per-item reconciliation.
