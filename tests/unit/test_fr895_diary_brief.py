@@ -112,6 +112,20 @@ def test_emit_diary_brief_flags_uncited_headline(tmp_path: Path):
 
 
 @pytest.mark.req("REQ-YG-625")
+def test_synthesize_prompt_schema_builds_output_model():
+    """Regression: direct execute_prompt calls need the inline schema
+    materialized as output_model — first census run returned raw str."""
+    from pathlib import Path
+
+    from yamlgraph.schema_loader import load_schema_from_yaml
+
+    prompt = Path("examples/demos/corpus_census/prompts") / "synthesize_brief.yaml"
+    model = load_schema_from_yaml(prompt)
+    assert model is not None
+    assert "claims" in model.model_fields
+
+
+@pytest.mark.req("REQ-YG-625")
 def test_diary_brief_input_is_public_safe(tmp_path: Path):
     dirty = [dict(CANDIDATES[0], evidence_span="RAW SECRET TEXT")]
     seen: list[list[dict]] = []

@@ -181,11 +181,14 @@ def _default_synthesize(
 ) -> list[dict[str, Any]]:
     """One pinned structured-claims call on the census prompt artifact."""
     from yamlgraph.executor import execute_prompt
+    from yamlgraph.schema_loader import load_schema_from_yaml
 
     prompts_dir = Path(__file__).resolve().parents[1] / "prompts"
+    output_model = load_schema_from_yaml(prompts_dir / "synthesize_brief.yaml")
     result = execute_prompt(
         "synthesize_brief",
         variables={"rubric": rubric, "rows": json.dumps(rows, ensure_ascii=False)},
+        output_model=output_model,
         provider="anthropic",
         model="claude-haiku-4-5",
         temperature=0.0,

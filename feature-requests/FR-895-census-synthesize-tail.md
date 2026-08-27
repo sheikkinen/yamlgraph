@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Judged — APPROVED WITH REVISIONS (2026-08-27); R-1..R-6 folded below; see [FR-895-census-synthesize-tail.judgement.md](FR-895-census-synthesize-tail.judgement.md)
+**Status:** Enforced (2026-08-27) — implemented on `feat/fr-895`; see Implementation Record; judgement: [FR-895-census-synthesize-tail.judgement.md](FR-895-census-synthesize-tail.judgement.md)
 **Effort:** 0.5 day
 **Requested:** 2026-08-27
 **First consumer / first event:** the diary census re-run — after
@@ -147,3 +147,43 @@ dependency); status quo hand-written prose (the witnessed defect).
   precedent), diary 2026-08-27-optional-is-where-value-goes-to-die.md
 - Scripture: `who_reads_this_when` (per-stage application), cheap-map
   tail discipline, `plausible_wrong_answer` (the boundary's reason)
+
+## Implementation Record (2026-08-27)
+
+Enforced on `feat/fr-895` from 83e02941, strictly within frozen scope.
+
+- **RED**: dbb5a01c (9 citation-boundary witnesses) and a second RED
+  (6 diary-brief/top-finding witnesses) committed before their cures.
+- **Citation boundary** (`examples/demos/corpus_census/adapters/census_brief.py`,
+  LLM-free): `build_synthesis_input` (top-N-by-entries ceiling,
+  DEFAULT_MAX_ROWS=60, public-safe column allowlist), `validate_claims`
+  (empty text / no citations / unknown citation / zero claims),
+  `emit_brief` (accepted brief = deterministic summary head + cited
+  findings + run provenance; rejection writes `*.REJECTED.md` only),
+  `top_finding_cited` (AC-07 family check, substring both ways).
+- **Graph tail** authored via `scripts/author.sh`
+  (tmp/draft-authoring-report.md: lint pass, success smoke, loud
+  preflight-failure smoke): `prepare_brief_input` (requires
+  `brief_path`/`brief_rubric`, raises before any synthesis) →
+  `synthesize` (one pinned claude-haiku-4-5 call, temp 0, structured
+  claims schema) → `render_brief`. Authoring repair recorded: repo-root
+  sys.path insert for path-loaded tool imports.
+- **Wiring (C-6)**: diary_census.sh passes brief vars to every batched
+  run and gains the aggregate `--brief-path/--brief-rubric` step
+  (exit 1 if brief rejected or headline uncited); PDF-library and
+  git-timeline proof commands updated; README documents the required
+  invocation.
+- **Registry**: CAP-250 / REQ-YG-625 allocated (REQ-YG-624 reuse was
+  rejected by the cross-FR wiring test — correct behavior); tests
+  tagged; ARCHITECTURE.md rows regenerated.
+- **Deviation**: none of substance. Per-batch briefs (tmp artifacts) are
+  a consequence of R-3's required-variables contract applied to the
+  batched wrapper — recorded, cheap (one haiku call per batch).
+- **Known limit (recorded, in-scope boundary honesty)**: the citation
+  boundary verifies citations exist, not graduation status — the
+  2026-08-27 diary brief's "should graduate" claims include labels
+  already in Scripture (read_raw_output_first, one_session_one_repo).
+  The recurrence table's Scripture exclusion applies to inbox drafts,
+  not to synthesis input; cross-checking claims against graduated
+  labels is a candidate follow-up, out of this FR's frozen scope.
+- Suite: 6145 passed / 98 skipped fast-suite green post-change.
