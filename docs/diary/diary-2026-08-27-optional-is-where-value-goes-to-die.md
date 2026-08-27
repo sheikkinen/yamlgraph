@@ -35,7 +35,7 @@ product; it is a different product.
 
 ## Cure applied
 
-FR-894 filed same day (research-route lifecycle): optional-no-more —
+FR-895 filed same day (research-route lifecycle): optional-no-more —
 the synthesize tail as a first-class stage with the diary census as
 first consumer.
 

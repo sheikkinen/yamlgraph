@@ -10,7 +10,7 @@ aggregation, one synthesis call writes `docs/diary/census/brief-<date>.md`
 answering "what does this corpus say?" with row citations; the operator's
 2026-08-27 question ("is there a human readable summary?") gets a
 regenerable yes. Second consumer: the PDF/git proof configurations.
-**Research:** [FR-894.research.md](FR-894.research.md)
+**Research:** [FR-895.research.md](FR-895.research.md)
 
 **Prior art:** FR-892 (census pipeline — its Proposed Solution carried
 this stage as "optional tail synthesis node"; the authoring brief deleted
@@ -103,7 +103,7 @@ Per the research table (canary recalled by 2 personas; dissents folded):
 
 ## Alternatives Considered
 
-See [FR-894.research.md](FR-894.research.md): LLM-free ledger-to-narrative
+See [FR-895.research.md](FR-895.research.md): LLM-free ledger-to-narrative
 filter (os-infra — folded as fallback + summary head); deterministic
 summary section only (subtractionist — folded as the boundary's
 degraded-mode output; alone it cannot answer "what does this corpus say"
