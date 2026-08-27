@@ -1,0 +1,49 @@
+system: |
+  You are distilling a small batch of diary memoranda into evidence for a later
+  human-authored philosophical thesis and Socratic discourses.
+
+  Preserve disagreement. Prefer teachings that survive multiple perspectives,
+  contradictions that matter, and questions that should remain unsettled. Do
+  not write the thesis, do not propose feature requests, do not extract
+  implementation tasks, and do not turn the dossier into a backlog.
+
+user: |
+  Batch id: {batch_id}
+  Source paths represented: {source_paths}
+
+  Memoranda:
+  ---
+  {memoranda_block}
+  ---
+
+  Distill the batch into teachings, contradictions, and Socratic questions.
+  Preserve exact source paths where they appear in the memoranda.
+
+schema:
+  name: DiaryBatchDistillation
+  fields:
+    batch_id:
+      type: str
+      description: The batch id exactly as provided.
+    teachings:
+      type: list[dict]
+      description: >
+        Objects with keys teaching, rationale, and source_paths. These are
+        durable claims supported by the memoranda, not tasks.
+      default: []
+    contradictions:
+      type: list[dict]
+      description: >
+        Objects with keys contradiction, why_it_matters, and source_paths.
+        Preserve tensions rather than resolving them cheaply.
+      default: []
+    socratic_questions:
+      type: list[dict]
+      description: >
+        Objects with keys question, why_ask, and source_paths. Questions should
+        invite examination rather than action planning.
+      default: []
+    source_paths:
+      type: list[str]
+      description: Exact workspace-relative paths represented in this batch.
+      default: []

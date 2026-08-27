@@ -1,0 +1,195 @@
+{
+  "collection_summary": {
+    "source_files": 2,
+    "non_empty_files": 2,
+    "empty_files": 0,
+    "source_bytes": 591,
+    "covered_non_empty_bytes": 591
+  },
+  "run_budget": {
+    "target_chunk_chars": 60000,
+    "primary_chunks": 1,
+    "max_primary_chunks": 96,
+    "estimated_reduction_batches": 1,
+    "max_reduction_batches": 12,
+    "estimated_llm_calls": 2,
+    "max_llm_calls": 108,
+    "actual_reduction_batches": 1,
+    "actual_llm_calls": 2
+  },
+  "corpus_manifest": [
+    {
+      "path": "tmp/diary-discourse-analysis/fixtures/2026-08-26-first.md",
+      "sha256": "59f775e07f1960a5f5071adbf2f6ef0fa7e8d7ebcca11f1328ffa64a9a9293c8",
+      "bytes": 298,
+      "chars": 298
+    },
+    {
+      "path": "tmp/diary-discourse-analysis/fixtures/2026-08-26-second.md",
+      "sha256": "835726dce119d923e877b1cd0837ca91bfcbd27671e003b4fed693993992c7dd",
+      "bytes": 293,
+      "chars": 293
+    }
+  ],
+  "empty_files": [],
+  "primary_chunks": [
+    {
+      "chunk_id": "c001",
+      "source_paths": [
+        "tmp/diary-discourse-analysis/fixtures/2026-08-26-first.md",
+        "tmp/diary-discourse-analysis/fixtures/2026-08-26-second.md"
+      ],
+      "span_summary": [
+        {
+          "path": "tmp/diary-discourse-analysis/fixtures/2026-08-26-first.md",
+          "start_byte": 0,
+          "end_byte": 298,
+          "start_char": 0,
+          "end_char": 298
+        },
+        {
+          "path": "tmp/diary-discourse-analysis/fixtures/2026-08-26-second.md",
+          "start_byte": 0,
+          "end_byte": 293,
+          "start_char": 0,
+          "end_char": 293
+        }
+      ],
+      "char_count": 591,
+      "byte_count": 591,
+      "text": "--- SOURCE tmp/diary-discourse-analysis/fixtures/2026-08-26-first.md bytes=0..298 ---\n# First diary fragment\n\nThe agent noticed that a metric can become a substitute for reading. The\nlesson was not that measurement is useless, but that the raw artifact must be\nseen before the ruler is trusted.\n\nSeed: What practice would make reading the artifact cheaper than building a\nnew metric?\n\n\n--- SOURCE tmp/diary-discourse-analysis/fixtures/2026-08-26-second.md bytes=0..293 ---\n# Second diary fragment\n\nThe same failure returned under a kinder name: summarizing the process rather\nthan deciding what the process meant. The correction was to preserve uncertainty\ninstead of laundering it into confidence.\n\nSeed: Which disagreements deserve to survive the first synthesis?\n"
+    }
+  ],
+  "chunk_memoranda": [
+    {
+      "chunk_id": "c001",
+      "interpretive_memorandum": "The writer repeatedly substitutes metrics or summaries for direct engagement with the original artifact, later realizing that this obscures uncertainty and creates false confidence; the corrective move is to keep the raw artifact and its uncertainty visible.",
+      "central_tension": "Trust in abstract measurements versus direct observation of the original artifact; confidence versus preserved uncertainty.",
+      "durable_lesson": "Metrics and summaries are aids, not replacements for the primary source; preserving uncertainty is essential for authentic understanding.",
+      "correction_or_contradiction": "Initially valuing measurement as useful, then correcting that stance by preserving uncertainty instead of laundering it into confidence.",
+      "unresolved_question": "Which disagreements deserve to survive the first synthesis?",
+      "evidence_excerpts": [
+        {
+          "path": "tmp/diary-discourse-analysis/fixtures/2026-08-26-first.md",
+          "excerpt": "The agent noticed that a metric can become a substitute for reading."
+        },
+        {
+          "path": "tmp/diary-discourse-analysis/fixtures/2026-08-26-second.md",
+          "excerpt": "The correction was to preserve uncertainty instead of laundering it into confidence."
+        },
+        {
+          "path": "tmp/diary-discourse-analysis/fixtures/2026-08-26-second.md",
+          "excerpt": "Which disagreements deserve to survive the first synthesis?"
+        }
+      ]
+    }
+  ],
+  "reduction_batches": [
+    {
+      "batch_id": "b01",
+      "chunk_ids": [
+        "c001"
+      ],
+      "source_paths": [
+        "tmp/diary-discourse-analysis/fixtures/2026-08-26-first.md",
+        "tmp/diary-discourse-analysis/fixtures/2026-08-26-second.md"
+      ],
+      "memoranda_block": "## c001\nCentral tension: Trust in abstract measurements versus direct observation of the original artifact; confidence versus preserved uncertainty.\nDurable lesson: Metrics and summaries are aids, not replacements for the primary source; preserving uncertainty is essential for authentic understanding.\nCorrection or contradiction: Initially valuing measurement as useful, then correcting that stance by preserving uncertainty instead of laundering it into confidence.\nUnresolved question: Which disagreements deserve to survive the first synthesis?\nMemorandum:\nThe writer repeatedly substitutes metrics or summaries for direct engagement with the original artifact, later realizing that this obscures uncertainty and creates false confidence; the corrective move is to keep the raw artifact and its uncertainty visible.\nEvidence excerpts:\n[{\"excerpt\": \"The agent noticed that a metric can become a substitute for reading.\", \"path\": \"tmp/diary-discourse-analysis/fixtures/2026-08-26-first.md\"}, {\"excerpt\": \"The correction was to preserve uncertainty instead of laundering it into confidence.\", \"path\": \"tmp/diary-discourse-analysis/fixtures/2026-08-26-second.md\"}, {\"excerpt\": \"Which disagreements deserve to survive the first synthesis?\", \"path\": \"tmp/diary-discourse-analysis/fixtures/2026-08-26-second.md\"}]"
+    }
+  ],
+  "batch_distillations": [
+    {
+      "batch_id": "b01",
+      "teachings": [
+        {
+          "teaching": "Metrics and summaries are useful aids but should not replace direct engagement with the original artifact; preserving uncertainty is essential for authentic understanding.",
+          "rationale": "The writer observes that substituting metrics for direct reading obscures uncertainty and creates false confidence, and later corrects this by keeping the raw artifact and its uncertainty visible.",
+          "source_paths": [
+            "tmp/diary-discourse-analysis/fixtures/2026-08-26-first.md",
+            "tmp/diary-discourse-analysis/fixtures/2026-08-26-second.md"
+          ]
+        }
+      ],
+      "contradictions": [
+        {
+          "contradiction": "Trust in abstract measurements versus trust in direct observation of the original artifact.",
+          "why_it_matters": "This tension reveals how confidence can be artificially inflated when uncertainty is hidden, affecting the fidelity of knowledge and decision‑making.",
+          "source_paths": [
+            "tmp/diary-discourse-analysis/fixtures/2026-08-26-first.md",
+            "tmp/diary-discourse-analysis/fixtures/2026-08-26-second.md"
+          ]
+        },
+        {
+          "contradiction": "Initially valuing measurement as a definitive tool, then correcting to preserve uncertainty instead of laundering it into confidence.",
+          "why_it_matters": "The shift illustrates the risk of over‑reliance on quantification and the need to maintain epistemic humility.",
+          "source_paths": [
+            "tmp/diary-discourse-analysis/fixtures/2026-08-26-first.md",
+            "tmp/diary-discourse-analysis/fixtures/2026-08-26-second.md"
+          ]
+        }
+      ],
+      "socratic_questions": [
+        {
+          "question": "Which disagreements deserve to survive the first synthesis?",
+          "why_ask": "It prompts reflection on criteria for retaining conflict in philosophical integration, preventing premature resolution that may erase valuable perspectives.",
+          "source_paths": [
+            "tmp/diary-discourse-analysis/fixtures/2026-08-26-second.md"
+          ]
+        },
+        {
+          "question": "How should we decide when to trust a metric versus the original artifact?",
+          "why_ask": "Encourages examination of the epistemic standards governing the use of abstract representations and the role of uncertainty.",
+          "source_paths": [
+            "tmp/diary-discourse-analysis/fixtures/2026-08-26-first.md",
+            "tmp/diary-discourse-analysis/fixtures/2026-08-26-second.md"
+          ]
+        }
+      ],
+      "source_paths": [
+        "tmp/diary-discourse-analysis/fixtures/2026-08-26-first.md",
+        "tmp/diary-discourse-analysis/fixtures/2026-08-26-second.md"
+      ]
+    }
+  ],
+  "control_documents": [
+    {
+      "path": "docs/FR-884-session-task-shapes.md",
+      "sha256": "914f688e250456f9c1f48e7063994fa7e0cf694ef719a3f2bdd6400761301c62",
+      "bytes": 4625,
+      "text": "# FR-884 Session Task-Shape Report (D-5)\n\n**Window:** 2026-06-26..2026-08-25 Europe/Helsinki. **Corpus:** 74 interactive\nsessions, **652M prompt tokens** after fork-prefix dedupe (350 duplicated\nturns removed across 2 fork groups). **Classifier:** yamlgraph map+reduce\n([examples/demos/session-shapes](../examples/demos/session-shapes/README.md)),\npinned `anthropic/claude-haiku-4-5`, authored via the sole route.\n**Coverage: 74/74 sessions = 100% of window token volume classified (AC-06 ≥80% met).**\nToken attribution uses per-session shape-mix fractions — treat shares as\nestimates (fractions are model judgements; tokens conflate cache reads).\nBuckets with fewer than 3 primary sessions are collapsed to *rare/other*\n(AC-08).\n\n## Ranked shape table (AC-07)\n\n| Shape | Sessions (primary) | Token share | Prompt-contract clauses (1 judgement / closed / validated / stateless / bounded) | Existing `Task shapes:` overlap | Verdict |\n|---|---|---|---|---|---|\n| enforce-fr | 21 | 55.0% (~359M) | ✗ / ✗ / ✗ / ✗ / ✗ — multi-judgement, stateful, open-ended tool use | none (agentic core) | NOT extractable as a whole; its embedded deploy-watch/status micro-turns are (see below) |\n| judge-fr | 9 | 18.5% (~120M) | ✓ / ✓ / ✓ / ✓ / ✓ | **already extracted** — judge graph, pinned gpt-5.5 | **Adoption gap, not construction gap** — the `builders_never_call` witness in cost form: a governed route existed while 18.5% of premium tokens judged interactively |\n| plan-fr | 14 | 13.3% (~87M) | ✗ / ✗ / partial / ✓ / ✗ — ideation is human-in-loop by design | fr_triage graph (partial) | Not extractable; the human dialogue IS the value. Sub-shape \"FR skeleton from decided brief\" is graph-shaped but low volume |\n| deploy-watch | 3 | 6.3% (~41M) | no judgement at all — pure polling | none | **Top construction candidate**: zero-LLM watcher; every poll/merge/check micro-turn in a mega-session pays full context for a yes/no |\n| incident-forensics | 4 | 4.9% (~32M) | ✓ / ✓ (SID-keyed sources) / ✓ / ✓ / ✓ | none (two ad-hoc scripts born mid-incident in the raw read) | **Construction candidate**: evidence-gather + timeline assembly graph |\n| docs-drafting | 4 | 0.2% (~1M) | ✓ / ✓ / partial / ✓ / ✓ | none | Extractable but cheap already — low priority by volume |\n| rare/other (5 shapes × <3 sessions: test-orchestration, introspection, review-pr, backlog-ops, repo-ops) | 9 | 1.5% (~10M) | mixed | review graph exists (review-pr); recap graph exists (backlog-ops) | Below action threshold this window; review/recap adoption already underway |\n| research | 9 | 0.4% (~2M) | ✗ open-ended | world_distill (partial) | Many sessions, negligible tokens — short explorations; leave interactive |\n\n## The three findings that matter\n\n1. **The premium interactive surface is ~87% enforce+judge+plan.** Of that,\n   judge (18.5%) already has a pinned sole route — the cheapest intervention\n   in this report is routing discipline, not new construction.\n2. **The micro-turn tax is real and measurable.** Deploy-watch is only 6.3%\n   as a *primary* shape, but the raw read (see\n   [FR-884-raw-read-log.md](FR-884-raw-read-log.md)) showed poll/merge/check\n   turns *inside* enforce sessions costing 200K–700K prompt tokens each.\n   A watcher that answers outside the session attacks both buckets.\n3. **Forensics extraction has organic precedent**: two evidence shapes were\n   scripted mid-incident by the operator during the window. The pattern\n   (SID-keyed gather → join → timeline) is closed-input, one-output —\n   graph-shaped.\n\n## `builders_never_call` witness rate\n\nOf the 12 shapes, 4 had an existing governed instrument during the window\n(judge, review, recap, world_distill). Token volume that flowed interactively\nthrough those 4 shapes anyway: **~121M of 652M ≈ 19%** — almost entirely\njudge-fr. Constructing new routes without an adoption mechanism would repeat\nthis: **every proposal below names its adoption trigger, not just its graph.**\n\n## Proposals filed (D-6)\n\nConverted to full FRs 2026-08-25 (inbox drafts superseded and withdrawn):\n\n1. [FR-885](../feature-requests/FR-885-deploy-watch-outside-session.md) — zero-LLM rollout\n   watcher; first consumer: any enforce session awaiting CD.\n2. [FR-886](../feature-requests/FR-886-judge-route-adoption-nudge.md) — mechanical nudge when\n   interactive judging is detected; first consumer: the next \"judge NNN\" turn.\n3. [FR-887](../feature-requests/FR-887-forensics-evidence-timeline-graph.md) — SID-keyed evidence+timeline\n   assembly graph; first consumer: the next production-incident session.\n"
+    },
+    {
+      "path": "docs/FR-884-raw-read-log.md",
+      "sha256": "bc026a5bf87dd92e87afe8e9ea51c769e49b868a461841224cdbfdbc45fbd1de",
+      "bytes": 5557,
+      "text": "# FR-884 Raw-Read Log (AC-02 / R-1 gate)\n\n**Read:** 2026-08-25, all 10 sessions end-to-end as reconstructed turn skeletons\n(full user text + response head per turn, replayed from the op-log store).\n**Window:** 2026-06-26..2026-08-25 Europe/Helsinki. **Corpus:** 74 sessions,\n~650M prompt tokens. **Strata:** 5 highest-token + 5 random.\n**Privacy:** session pseudonyms only; no UUIDs, no titles, no transcript\nexcerpts, no customer identifiers. Raw skeletons remain in `tmp/` (gitignored).\n\n| # | Stratum | Date bucket | Turns | Task-shape clue | Surprising detail (non-identifying) | Privacy class |\n|---|---|---|---|---|---|---|\n| S-H1 | high-token | 2026-07..08 | 472 | Operator command console for a customer voice project: judge/enforce/merge/deploy-watch/e2e-witness/forensics/board ops | Single-word turns (\"poll\", \"merge\", \"check\") each cost 200K–700K prompt tokens because context grows monotonically in a weeks-long session; ~30 merge turns and ~10 poll turns are near-pure context resend. The operator organically extracted two recurring shapes into scripts mid-session (an evidence gatherer and a case-study checker) — sole-route extraction already happens under pressure, unsystematically | CUSTOMER-SENSITIVE (skeleton stays local) |\n| S-H2 | high-token | 2026-07 | 171 | Voice-project test-suite orchestration + bulk FR filing/judging + analysis docs | A 42-case LLM persona suite runs ~30+ min sequentially while the premium session polls it with \"check status/results\" turns; separately the session *manually evaluates the output of the recap graph* — a graph consuming a premium session to verify what a cheap judge could | CUSTOMER-SENSITIVE |\n| S-H3 | high-token | 2026-07 | 135 | Framework FR ladder: ~20 alternating judge-N/enforce-N cycles in one session, plus 3 releases and classifier baseline runs | The dominant repeated unit is the judge→enforce pair; deterministic 30-run baseline batches were monitored by repeated \"whats the status of baseline\" turns at full-context price — watching a progress bar with a frontier model | INTERNAL (public-repo work) |\n| S-H4 | high-token | 2026-07 | 146 | Demo spike arc → self-introspection arc that BUILT the very telemetry tooling FR-884 consumes | Contains the origin of `builders_never_call`: the operator states the agent has never delegated work to the framework it builds; FR-884's own lineage sits inside its sample. Also the cost-calibration arc (credits-per-operation) that produced the ledger tooling | INTERNAL |\n| S-H5 | high-token | 2026-07..08 | 160 | FORK of S-H1 (identical first ~128 turns) | Forked sessions duplicate the entire shared prefix in the store — naive session-level token accounting double-counts fork prefixes; the high-token stratum contains near-duplicates. 2 of 10 sampled sessions were forks | CUSTOMER-SENSITIVE |\n| S-R1 | random | 2026-08 | 21 | Research → plan doc → FR → sole-route judge → enforce for a chat-integration proof of concept | The sole judge route was correctly invoked from the interactive session; enforcement blocked mid-flow on human-only steps (external account registration) — some interactive work is irreducibly human-gated | INTERNAL |\n| S-R2 | random | 2026-08 | 1 | Review a planning doc, append findings to the doc | A complete task in ONE turn: closed input (the doc), one judgement, one output shape — the purest graph-shaped session in the sample, running on the most expensive model | INTERNAL |\n| S-R3 | random | 2026-07 | 30 | Dedicated judge session: ~29 of 30 turns are \"judge NNN\"/\"rejudge NNN\" over a content-pipeline FR ladder | An entire premium session doing nothing but serial judging — a map shape (judge each FR) executed by hand, predating systematic use of the pinned judge graph; includes two rejudge loops after author amendments | INTERNAL |\n| S-R4 | random | 2026-08 | 5 | Iterative essay evaluation against a repo source doc (v1→v3 + tagline) | The agent detected that \"v2\" was byte-identical to v1 — an eval-against-source loop with a mechanizable diff pre-check in front of one judgement per version | INTERNAL |\n| S-R5 | random | 2026-07 | 44 | FORK of S-H2 (identical first 43 turns) | Second fork in a 10-session sample — forking after long shared prefixes is a recurring workflow pattern, not an anomaly; any corpus analysis must dedupe by (session, turn-index) prefix | CUSTOMER-SENSITIVE |\n\n## What the raw read establishes (input to the taxonomy)\n\n1. **Micro-turn tax dominates the mega-sessions.** The most expensive shape is\n   not complex reasoning but cheap questions asked in expensive places:\n   poll/merge/check/status turns late in long sessions, each paying full\n   context. Extraction target: a deploy/rollout watcher and a status board\n   that answer OUTSIDE the premium session (script or pinned mini-model\n   graph), not inside it.\n2. **judge/enforce pairs are the atomic unit of the interactive workflow.**\n   Judging is already governed (pinned graph); the raw read shows large\n   historical interactive judging (S-H3, S-R3) that the sole route has since\n   absorbed — validating the extraction model this FR generalizes.\n3. **Extraction already happens organically under pressure** (S-H1 scripted\n   two recurring evidence shapes mid-incident). FR-884's job is to make that\n   systematic and ahead-of-need instead of mid-incident.\n4. **Forks require prefix dedupe** before any token accounting (2/10 sampled).\n5. **Single-judgement doc tasks** (S-R2, S-R4) are complete graph candidates\n   as-is: closed inputs, one output, no session state.\n"
+    }
+  ],
+  "coverage_reconciliation": {
+    "source_files": 2,
+    "non_empty_source_files": 2,
+    "empty_files_reported": 0,
+    "source_bytes": 591,
+    "non_empty_source_bytes": 591,
+    "chunk_count": 1,
+    "memorandum_count": 1,
+    "reduction_batch_count": 1,
+    "distillation_count": 1,
+    "every_non_empty_source_byte_covered_once": true,
+    "every_primary_chunk_has_one_memorandum": true,
+    "every_memorandum_belongs_to_one_reduction_batch": true,
+    "map_errors_skipped": false,
+    "path_coverage": [
+      {
+        "path": "tmp/diary-discourse-analysis/fixtures/2026-08-26-first.md",
+        "bytes": 298,
+        "span_count": 1
+      },
+      {
+        "path": "tmp/diary-discourse-analysis/fixtures/2026-08-26-second.md",
+        "bytes": 293,
+        "span_count": 1
+      }
+    ]
+  }
+}

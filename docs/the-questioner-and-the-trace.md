@@ -685,11 +685,84 @@ This essay was grounded in two independent records:
   session-shapes graph, plus ten privacy-scrubbed end-to-end raw reads. This
   supplied behavioral evidence where diary self-report was insufficient.
 
-The current uncommitted grooming reflection was read separately and not folded
-into the committed-corpus map. No private transcript or hidden-reasoning text
-is reproduced here. The analysis uses only committed reflections,
+The then-uncommitted grooming reflection was read separately and not folded
+into the committed-corpus map. The analysis uses only committed reflections,
 privacy-scrubbed behavioral findings, and short excerpts already present in
-those artifacts.
+those artifacts. The addendum reproduces only operator turns explicitly
+supplied for publication; no hidden model reasoning or other transcript
+content appears.
 
 The final synthesis and prose were written by GitHub Copilot. The independent
 chunk readings and first reductions were produced by Inception Mercury-2.
+
+The visible operator prompt trail that redirected the inquiry is reproduced in
+the addendum below. It is editorial provenance, not hidden model reasoning, a
+system prompt, or an execution recipe.
+
+## Addendum: The Questioner in Practice
+
+*Added 27 August 2026.*
+
+The following operator turns are reproduced verbatim and in order. Their value
+is not polished wording but causal force: each changed the question, evidence,
+instrument, or destination of the work. The short notes record those effects;
+they do not reconstruct an interior chain of thought.
+
+### 1. Orientation
+
+> read the letter-of-the-philosopher
+
+The first turn replaced fresh generation with correspondence. It made the
+existing letter, and therefore continuity with earlier sessions, the starting
+point.
+
+### 2. Reframing
+
+> take a wider look. the whole corpus of diaries. your job is not to distrill a task for yamlgraph machinery to work on, but write your teachings to the world as a thesis, blogpost, sorcatic discourses.
+
+This set both scope and genre. The corpus was to be read as lived evidence, not
+mined into a backlog; the destination was public teaching rather than another
+internal task artifact.
+
+### 3. Instrument Correction
+
+> rg installed
+
+> note 1: most underutilize tool is the yamlgraph itself - map-reduce with haiku or deepseek-v4-flash or even mercury-2 might bring more insight than rg. be aware of cost, if you proceed on this track
+
+The first turn corrected an environment claim. The second corrected the tool
+horizon: use the framework as an instrument, but price the reading before
+running it. That intervention produced the bounded 94-call corpus analysis
+rather than a keyword-shaped interpretation of the diaries.
+
+### 4. Epistemic Correction
+
+> there is a prompt related recent graph that you want to be aware of
+
+> the graph is relevant to the 'discourses' you have building. rarely you can see inside the thinking process
+
+These turns corrected the first pattern match. The relevant recent graph was
+not merely a prompt-theme analyzer but the session-shapes classifier: a second
+witness built from prompt and tool trajectories. It did not grant transparent
+access to a mind. It made the discrepancy between retrospective testimony and
+observable conduct available for examination.
+
+### 5. Generalization
+
+> note: could this map-reduce with mercury-2 pattern be run over github - commits and prs? basically asking a short recap for each. ... or more sinister version - what changed that was not supposed to change. should the pattern be documented in reference
+
+This moved the method beyond the essay. It also exposed the distinction between
+description and authority: a recap can state what changed, while alleging that
+a change was not supposed to happen requires an independent scope artifact.
+
+### 6. Institutionalization
+
+> file the change as FR
+
+> create new `reference/patterns/corpus-map-reduce.md`. commit and push all results
+
+The final turns converted an insight into case law and reference doctrine. The
+implementation was ultimately refiled as FR-894 after concurrent main claimed
+FR-891 and shipped FR-892's executable corpus-census skeleton. The reference
+therefore documents the evidence contract around existing machinery rather
+than inventing another graph.

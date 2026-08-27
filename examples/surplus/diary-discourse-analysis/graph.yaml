@@ -1,0 +1,124 @@
+version: "1.0"
+name: diary-discourse-analysis
+description: >
+  Disposable research instrument: read the committed diary corpus, map
+  interpretive memoranda over chunks, distill batches, and write an evidence
+  dossier for human-authored philosophical discourse.
+
+prompts_relative: true
+prompts_dir: prompts
+
+defaults:
+  provider: inception
+  model: mercury-2
+  temperature: 0.1
+
+state:
+  corpus_dir: str
+  include_legacy: str
+  output_dir: str
+  corpus_manifest:
+    type: list
+  empty_files:
+    type: list
+  primary_chunks:
+    type: list
+  control_documents:
+    type: list
+  collection_summary: dict
+  run_budget: dict
+  chunk_memoranda:
+    type: list
+    reducer: sorted_add
+  normalized_memoranda:
+    type: list
+  reduction_batches:
+    type: list
+  batch_distillations:
+    type: list
+    reducer: sorted_add
+  coverage_reconciliation: dict
+  dossier: dict
+  dossier_json_path: str
+  dossier_md_path: str
+  written: bool
+
+tools:
+  collect_corpus:
+    type: python
+    path: nodes/tools.py
+    function: collect_corpus
+    description: "Collect committed diary files, normalize UTF-8 text, chunk with byte-span coverage, and package FR-884 controls separately."
+  batch_memoranda:
+    type: python
+    path: nodes/tools.py
+    function: batch_memoranda
+    description: "Validate one memorandum per chunk and build reduction batches of at most eight."
+  write_dossier:
+    type: python
+    path: nodes/tools.py
+    function: write_dossier
+    description: "Validate coverage and write dossier.json plus compact dossier.md index."
+
+nodes:
+  collect:
+    type: python
+    tool: collect_corpus
+    state_key: corpus_manifest
+
+  read_chunks:
+    type: map
+    over: "{state.primary_chunks}"
+    as: chunk
+    max_items: 96
+    timeout: 240
+    node:
+      type: llm
+      prompt: read_chunk
+      state_key: memorandum
+      variables:
+        chunk_id: "{state.chunk.chunk_id}"
+        source_paths: "{state.chunk.source_paths}"
+        span_summary: "{state.chunk.span_summary}"
+        chunk_text: "{state.chunk.text}"
+    collect: chunk_memoranda
+
+  batch:
+    type: python
+    tool: batch_memoranda
+    state_key: normalized_memoranda
+
+  distill_batches:
+    type: map
+    over: "{state.reduction_batches}"
+    as: batch
+    max_items: 12
+    timeout: 240
+    node:
+      type: llm
+      prompt: distill_batch
+      state_key: distillation
+      variables:
+        batch_id: "{state.batch.batch_id}"
+        source_paths: "{state.batch.source_paths}"
+        memoranda_block: "{state.batch.memoranda_block}"
+    collect: batch_distillations
+
+  write:
+    type: python
+    tool: write_dossier
+    state_key: dossier
+
+edges:
+  - from: START
+    to: collect
+  - from: collect
+    to: read_chunks
+  - from: read_chunks
+    to: batch
+  - from: batch
+    to: distill_batches
+  - from: distill_batches
+    to: write
+  - from: write
+    to: END
