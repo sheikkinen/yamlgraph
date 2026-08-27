@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -11,6 +12,12 @@ from pydantic import BaseModel, Field, ValidationError, field_validator, model_v
 ERROR_STRINGS = ("Error:", "No results")
 MODEL = "claude-haiku-4-5"
 PROMPT_VERSION = "judge_item.v1"
+SYNTHESIS_MODEL = "claude-haiku-4-5"
+SYNTHESIS_PROMPT_VERSION = "synthesize_brief.v1"
+
+REPO_ROOT = Path(__file__).resolve().parents[3]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
 
 
 class LedgerRow(BaseModel):
@@ -163,3 +170,78 @@ def reduce_ledger(state: dict[str, Any] | None = None, **kwargs: Any) -> dict[st
 
     rows = _rows_by_index([str(item) for item in items], findings)
     return {"ledger": _write_artifacts(rows, output_path)}
+
+
+def _require_non_empty_string(state: dict[str, Any], key: str) -> str:
+    value = state.get(key)
+    if not isinstance(value, str) or not value.strip():
+        raise ValueError(f"missing required variable: {key}")
+    return value.strip()
+
+
+def _load_jsonl_rows(jsonl_path: str) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    with Path(jsonl_path).open(encoding="utf-8") as handle:
+        for line_number, line in enumerate(handle, start=1):
+            text = line.strip()
+            if not text:
+                continue
+            row = json.loads(text)
+            if not isinstance(row, dict):
+                raise ValueError(f"ledger row {line_number} must be a JSON object")
+            rows.append(row)
+    return rows
+
+
+def prepare_brief_input(
+    state: dict[str, Any] | None = None, **kwargs: Any
+) -> dict[str, Any]:
+    """Load the reduced ledger and prepare bounded synthesis input."""
+    from examples.demos.corpus_census.adapters import census_brief
+
+    effective_state = state if isinstance(state, dict) else kwargs
+    _require_non_empty_string(effective_state, "brief_path")
+    _require_non_empty_string(effective_state, "brief_rubric")
+
+    ledger = effective_state.get("ledger")
+    if not isinstance(ledger, dict):
+        raise ValueError("ledger must be a dict")
+    jsonl_path = _require_non_empty_string(ledger, "jsonl_path")
+    rows = _load_jsonl_rows(jsonl_path)
+    return {"brief_input": census_brief.build_synthesis_input(rows)}
+
+
+def render_brief(state: dict[str, Any] | None = None, **kwargs: Any) -> dict[str, Any]:
+    """Render a citation-checked human brief from structured claims."""
+    from examples.demos.corpus_census.adapters import census_brief
+
+    effective_state = state if isinstance(state, dict) else kwargs
+    brief_path = _require_non_empty_string(effective_state, "brief_path")
+    brief_input = effective_state.get("brief_input")
+    if not isinstance(brief_input, list):
+        raise ValueError("brief_input must be a list")
+
+    claims_output = effective_state.get("claims")
+    if not isinstance(claims_output, dict):
+        raise ValueError("claims must be a dict")
+    claims = claims_output.get("claims")
+    if not isinstance(claims, list):
+        raise ValueError("claims.claims must be a list")
+
+    ledger = effective_state.get("ledger")
+    if not isinstance(ledger, dict):
+        raise ValueError("ledger must be a dict")
+    source_jsonl_path = _require_non_empty_string(ledger, "jsonl_path")
+
+    result = census_brief.emit_brief(
+        claims,
+        brief_input,
+        brief_path,
+        run_meta={
+            "model": SYNTHESIS_MODEL,
+            "prompt_version": SYNTHESIS_PROMPT_VERSION,
+            "rows": len(brief_input),
+            "source_jsonl_path": source_jsonl_path,
+        },
+    )
+    return {"brief": result}

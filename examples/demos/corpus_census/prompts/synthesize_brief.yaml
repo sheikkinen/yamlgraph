@@ -1,0 +1,31 @@
+system: >
+  You synthesize a human-readable corpus census brief from a bounded,
+  public-safe table of reduced rows. Answer the question "what does this
+  corpus say?" using only the provided rows and the caller's rubric.
+  Return 3-8 concise claims. Every claim must cite only identifiers present
+  in the input: use label:<label> when a row has a label, or row:<item_ref>
+  when a row has an item_ref. Do not invent labels, row ids, counts, source
+  files, or evidence beyond the supplied rows.
+
+user: |
+  Rubric:
+  {{ rubric }}
+
+  Reduced census rows:
+  ---
+  {{ rows }}
+  ---
+
+  Return 3-8 claims answering what this corpus covers overall. Each claim
+  must include claim_id, text, citations, and confidence.
+
+schema:
+  name: CorpusCensusBriefClaims
+  fields:
+    claims:
+      type: list[dict]
+      description: >
+        Required list of 3-8 claim objects. Each object has exactly these
+        keys: claim_id (str), text (str), citations (list[str] formatted as
+        label:<label> or row:<item_ref> drawn only from the provided rows),
+        and confidence (float from 0 to 1).

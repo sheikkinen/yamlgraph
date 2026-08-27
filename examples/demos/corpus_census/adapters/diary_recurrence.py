@@ -10,9 +10,12 @@ from __future__ import annotations
 
 import json
 import re
+from collections.abc import Callable
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
+
+from examples.demos.corpus_census.adapters import census_brief
 
 _DATE_RE = re.compile(r"(\d{4}-\d{2}-\d{2})")
 _ERROR_MARKERS = ("Error:", "No results")
@@ -173,6 +176,55 @@ def aggregate(
     }
 
 
+def _default_synthesize(
+    rows: list[dict[str, Any]], rubric: str
+) -> list[dict[str, Any]]:
+    """One pinned structured-claims call on the census prompt artifact."""
+    from yamlgraph.executor import execute_prompt
+    from yamlgraph.schema_loader import load_schema_from_yaml
+
+    prompts_dir = Path(__file__).resolve().parents[1] / "prompts"
+    output_model = load_schema_from_yaml(prompts_dir / "synthesize_brief.yaml")
+    result = execute_prompt(
+        "synthesize_brief",
+        variables={"rubric": rubric, "rows": json.dumps(rows, ensure_ascii=False)},
+        output_model=output_model,
+        provider="anthropic",
+        model="claude-haiku-4-5",
+        temperature=0.0,
+        prompts_dir=prompts_dir,
+    )
+    payload = result.model_dump() if hasattr(result, "model_dump") else result
+    if not isinstance(payload, dict) or not isinstance(payload.get("claims"), list):
+        raise ValueError(f"synthesis returned no claims list: {type(payload)}")
+    return payload["claims"]
+
+
+def emit_diary_brief(
+    candidates: list[dict[str, Any]],
+    brief_path: str,
+    brief_rubric: str,
+    *,
+    run_meta: dict[str, Any] | None = None,
+    synthesize_fn: Callable[[list[dict[str, Any]], str], list[dict[str, Any]]]
+    | None = None,
+) -> dict[str, Any]:
+    """FR-895 D-5: one synthesis call over the recurrence table.
+
+    Bounded, allowlisted input; fail-closed citation boundary; AC-07
+    top-finding family check recorded in the result and brief metadata.
+    """
+    synth = synthesize_fn or _default_synthesize
+    rows = census_brief.build_synthesis_input(candidates)
+    claims = synth(rows, brief_rubric)
+    top_cited = census_brief.top_finding_cited(claims, rows)
+    meta = dict(run_meta or {})
+    meta["top_finding_cited"] = top_cited
+    result = census_brief.emit_brief(claims, rows, brief_path, run_meta=meta)
+    result["top_finding_cited"] = top_cited
+    return result
+
+
 def main(argv: list[str] | None = None) -> int:
     """CLI: aggregate ledgers, enforce canaries, write artifacts."""
     import argparse
@@ -201,6 +253,16 @@ def main(argv: list[str] | None = None) -> int:
         "--exclude-scripture",
         default="",
         help="Scripture file; its knowledge-graph keys are excluded from drafts",
+    )
+    parser.add_argument(
+        "--brief-path",
+        default="",
+        help="FR-895: write a citation-checked brief here (requires --brief-rubric)",
+    )
+    parser.add_argument(
+        "--brief-rubric",
+        default="",
+        help="FR-895: the question the brief answers",
     )
     args = parser.parse_args(argv)
 
@@ -231,6 +293,27 @@ def main(argv: list[str] | None = None) -> int:
         f"{len(result['inbox_drafts'])} inbox drafts, "
         f"table {args.output_dir}/{result['table_name']}"
     )
+
+    if bool(args.brief_path) != bool(args.brief_rubric):
+        parser.error("--brief-path and --brief-rubric must be passed together")
+    if args.brief_path:
+        brief = emit_diary_brief(
+            result["candidates"],
+            args.brief_path,
+            args.brief_rubric,
+            run_meta=dict(
+                run_meta,
+                prompt_version="synthesize_brief.v1",
+                rows_total=len(result["candidates"]),
+            ),
+        )
+        print(
+            f"brief: accepted={brief['accepted']} "
+            f"top_finding_cited={brief['top_finding_cited']} "
+            f"artifact={brief['artifact']}"
+        )
+        if not brief["accepted"] or not brief["top_finding_cited"]:
+            return 1
     return 0
 
 
