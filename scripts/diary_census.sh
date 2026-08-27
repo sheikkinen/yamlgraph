@@ -28,6 +28,8 @@ for ym in $months; do
       --var source="$DIARY:$needle" \
       --var rubric="$RUBRIC" \
       --var output_path="$batch.md" \
+      --var brief_path="$batch-brief.md" \
+      --var brief_rubric="What trap vocabulary dominates this batch?" \
       --json > "$OUT/run-$needle.json" 2> "$OUT/run-$needle.log"
     ledgers+=("$batch.jsonl")
   done
@@ -40,6 +42,8 @@ PYTHONPATH=$PWD python -m examples.demos.corpus_census.adapters.diary_recurrence
   --canary 'msg_txt|msg_file|msgfile=3' --canary 'line_pin|line_number|stale_line=3' \
   --exclude-scripture .github/copilot-instructions.md \
   --inbox-threshold 10 \
+  --brief-path "docs/diary/census/brief-$(date +%Y-%m-%d).md" \
+  --brief-rubric 'What does the diary corpus say: which trap families recur most, what should graduate, and what is already doctrine?' \
   --meta model=claude-haiku-4-5 --meta git_sha="$sha" \
   --meta duration_s="$duration" --meta corpus="$DIARY (all months, decade-batched)"
 echo "diary_census: done in ${duration}s"

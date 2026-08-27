@@ -40,6 +40,27 @@ def build_synthesis_input(
     ]
 
 
+def top_finding_cited(claims: list[dict[str, Any]], rows: list[dict[str, Any]]) -> bool:
+    """AC-07 mechanical check: the top-entries label family is cited.
+
+    Family match (substring either way), never prose match: vocabulary
+    drifts between the aggregate table and the synthesized claim.
+    """
+    ranked = sorted(rows, key=lambda r: int(r.get("entries", 0) or 0), reverse=True)
+    if not ranked or not ranked[0].get("label"):
+        return False
+    top = str(ranked[0]["label"])
+    for claim in claims:
+        for cite in claim.get("citations") or []:
+            text = str(cite)
+            if not text.startswith("label:"):
+                continue
+            label = text.removeprefix("label:")
+            if top in label or label in top:
+                return True
+    return False
+
+
 def _known_ids(rows: list[dict[str, Any]]) -> set[str]:
     ids: set[str] = set()
     for row in rows:

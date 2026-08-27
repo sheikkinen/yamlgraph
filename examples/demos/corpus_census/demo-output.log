@@ -1,29 +1,29 @@
-2026-08-27 09:11:54,869 [INFO] yamlgraph.compile.graph_loader: Parsed 5 Python tools: discover, extract, reduce_ledger, prepare_brief_input, render_brief
-2026-08-27 09:11:54,869 [INFO] yamlgraph.compile.node_compiler: Added node: discover (type=python)
-2026-08-27 09:11:54,870 [INFO] yamlgraph.compile.node_compiler: Added node: extract_items (type=map)
-2026-08-27 09:11:54,874 [INFO] yamlgraph.compile.node_compiler: Added node: judge_items (type=map)
-2026-08-27 09:11:54,876 [INFO] yamlgraph.compile.node_compiler: Added node: reduce_ledger (type=python)
-2026-08-27 09:11:54,877 [INFO] yamlgraph.compile.node_compiler: Added node: prepare_brief_input (type=python)
-2026-08-27 09:11:54,879 [INFO] yamlgraph.compile.node_compiler: Added node: synthesize (type=llm)
-2026-08-27 09:11:54,880 [INFO] yamlgraph.compile.node_compiler: Added node: render_brief (type=python)
-2026-08-27 09:11:55,038 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: discover -> discover
-2026-08-27 09:11:55,196 [INFO] yamlgraph.utils.llm_factory: Creating LLM: anthropic/claude-haiku-4-5 (temp=0.0)
-2026-08-27 09:11:57,133 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
-2026-08-27 09:11:57,148 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-08-27 09:11:57,152 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
-2026-08-27 09:11:57,154 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-08-27 09:11:57,264 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
-2026-08-27 09:11:57,266 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-08-27 09:11:57,267 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: reduce_ledger -> reduce_ledger
-2026-08-27 09:11:57,269 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: prepare_brief_input -> prepare_brief_input
-2026-08-27 09:12:00,133 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
-2026-08-27 09:12:00,135 [INFO] yamlgraph.node_factory.llm_nodes: Node synthesize completed successfully
-2026-08-27 09:12:00,135 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: render_brief -> render_brief
+2026-08-27 09:47:05,912 [INFO] yamlgraph.compile.graph_loader: Parsed 5 Python tools: discover, extract, reduce_ledger, prepare_brief_input, render_brief
+2026-08-27 09:47:05,913 [INFO] yamlgraph.compile.node_compiler: Added node: discover (type=python)
+2026-08-27 09:47:05,913 [INFO] yamlgraph.compile.node_compiler: Added node: extract_items (type=map)
+2026-08-27 09:47:05,915 [INFO] yamlgraph.compile.node_compiler: Added node: judge_items (type=map)
+2026-08-27 09:47:05,917 [INFO] yamlgraph.compile.node_compiler: Added node: reduce_ledger (type=python)
+2026-08-27 09:47:05,919 [INFO] yamlgraph.compile.node_compiler: Added node: prepare_brief_input (type=python)
+2026-08-27 09:47:05,920 [INFO] yamlgraph.compile.node_compiler: Added node: synthesize (type=llm)
+2026-08-27 09:47:05,922 [INFO] yamlgraph.compile.node_compiler: Added node: render_brief (type=python)
+2026-08-27 09:47:06,045 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: discover -> discover
+2026-08-27 09:47:06,140 [INFO] yamlgraph.utils.llm_factory: Creating LLM: anthropic/claude-haiku-4-5 (temp=0.0)
+2026-08-27 09:47:08,113 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-08-27 09:47:08,115 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-08-27 09:47:08,134 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-08-27 09:47:08,135 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-08-27 09:47:08,170 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-08-27 09:47:08,172 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-08-27 09:47:08,173 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: reduce_ledger -> reduce_ledger
+2026-08-27 09:47:08,174 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: prepare_brief_input -> prepare_brief_input
+2026-08-27 09:47:10,944 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-08-27 09:47:10,947 [INFO] yamlgraph.node_factory.llm_nodes: Node synthesize completed successfully
+2026-08-27 09:47:10,949 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: render_brief -> render_brief
 
 🚀 Running graph: graph.yaml
    Variables: {'source': 'examples/demos/corpus_census/fixtures/corpus', 'rubric': "classify each document's main topic in one word", 'output_path': 'tmp/corpus-census-ledger.md', 'brief_path': 'tmp/census-brief-demo.md', 'brief_rubric': 'What does this corpus cover overall?'}
 
-🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/09c0c2d4-5724-4301-bcee-e1b64ddeb80e/r/01a041d8-af8e-79c3-a137-2e971d9fd97f?poll=true
+🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/09c0c2d4-5724-4301-bcee-e1b64ddeb80e/r/01a041f8-e5ce-7351-9886-5ed620cb49cf?poll=true
 ============================================================
 RESULT
 ============================================================
@@ -38,5 +38,5 @@ RESULT
   brief_path: tmp/census-brief-demo.md
   brief_rubric: What does this corpus cover overall?
   brief_input: [{'confidence': 0.95, 'item_ref': 'examples/demos/corpus_census/fixtures/corpus/architecture.txt', 'judgement': 'Architecture'}, {'confidence': 0.95, 'item_ref': 'examples/demos/corpus_census/fixtures/corpus/observability.txt', 'judgement': 'Observability'}, {'confidence': 0.95, 'item_ref': 'examples/demos/corpus_census/fixtures/corpus/security.txt', 'judgement': 'Security'}]
-  claims: {'claims': [{'claim_id': 'coverage_001', 'text': 'The corpus covers three primary technical domains: Architecture, Observability, and Security.', 'citations': ['row:examples/demos/corpus_census/fixtures/corpus/architecture.txt', 'row:examples/demos/corpus_census/fixtures/corpus/observability.txt', 'row:examples/demos/corpus_census/fixtures/corpus/security.txt'], 'confidence': 0.95}, {'claim_id': 'coverage_002', 'text': 'Architecture is represented as a core topic in the corpus with high confidence.', 'citations': ['row:examples/demos/corpus_census/fixtures/corpus/architecture.txt'], 'confidence': 0.95}, {'claim_id': 'coverage_003', 'text': 'Observability practices and approaches are documented within the corpus.', 'citations': ['row:examples/demos/corpus_census/fixtures/corpus/observability.txt'], 'confidence': 0.95}, {'claim_id': 'coverage_004', 'text': 'Security considerations and best practices are included in the corpus.', 'citations': ['row:examples/demos/corpus_census/fixtures/corpus/security.txt'], 'confidence': 0.95}, {'claim_id': 'coverage_005', 'text': 'All three identified topics in the corpus demonstrate equally high confidence levels (0.95), indicating consistent coverage quality across domains.', 'citations': ['row:examples/demos/corpus_census/fixtures/corpus/architecture.txt', 'row:examples/demos/corpus_census/fixtures/corpus/observability.txt', 'row:examples/demos/corpus_census/fixtures/corpus/security.txt'], 'confidence': 0.95}]}
+  claims: {'claims': [{'claim_id': 'coverage_001', 'text': 'The corpus covers three primary technical domains: Architecture, Observability, and Security.', 'citations': ['row:examples/demos/corpus_census/fixtures/corpus/architecture.txt', 'row:examples/demos/corpus_census/fixtures/corpus/observability.txt', 'row:examples/demos/corpus_census/fixtures/corpus/security.txt'], 'confidence': 0.95}, {'claim_id': 'coverage_002', 'text': 'Architecture is represented as a core topic in the corpus with high confidence.', 'citations': ['row:examples/demos/corpus_census/fixtures/corpus/architecture.txt'], 'confidence': 0.95}, {'claim_id': 'coverage_003', 'text': 'Observability practices and approaches are documented within the corpus.', 'citations': ['row:examples/demos/corpus_census/fixtures/corpus/observability.txt'], 'confidence': 0.95}, {'claim_id': 'coverage_004', 'text': 'Security considerations and best practices are included in the corpus.', 'citations': ['row:examples/demos/corpus_census/fixtures/corpus/security.txt'], 'confidence': 0.95}, {'claim_id': 'coverage_005', 'text': 'The corpus demonstrates balanced coverage across infrastructure, operational, and protective technical domains.', 'citations': ['row:examples/demos/corpus_census/fixtures/corpus/architecture.txt', 'row:examples/demos/corpus_census/fixtures/corpus/observability.txt', 'row:examples/demos/corpus_census/fixtures/corpus/security.txt'], 'confidence': 0.95}]}
   brief: {'accepted': True, 'errors': [], 'artifact': 'tmp/census-brief-demo.md'}
