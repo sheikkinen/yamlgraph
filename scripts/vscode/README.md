@@ -150,6 +150,7 @@ watches *graph workflows*, this tap watches *editor sessions*.
 | `portrait.py` | Memory | What was worked on: chronicle summaries + session titles + most-touched files + measured session parallelism per day |
 | `now.py` | Situation board | Live sessions (titles, models, recency) × git state per implicated repo (branch, STAGED files, recent commits with FR/NC refs) × FRs in motion × interleave-hazard flags. The session-start briefing, reception rung 2 |
 | `todos.py` | Last-known intentions | Every session's frozen todo list (memento/chat-todo-list, all workspaces): CLEAN CLOSE / DIED OPEN / LIVE OPEN, orphaned open intentions with title + recency. The graveyard of plans |
+| `timesheet.py --month YYYY-MM` | Timesheet | Day-grouped report of what was worked on over a date range — repo, branch, agent, one-line description (chronicle summary, falling back to touched files for bare-verb summaries like "merge"/"doc"). `--repo <substr>` to scope to one project. Only script in this folder resolving the VS Code user dir cross-platform (macOS/Linux/Windows), not just cross-user |
 
 ## First-run findings (2026-07-16)
 
