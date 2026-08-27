@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Proposed
+**Status:** Judged — APPROVED WITH REVISIONS (2026-08-27); R-1..R-6 folded below; see [FR-895-census-synthesize-tail.judgement.md](FR-895-census-synthesize-tail.judgement.md)
 **Effort:** 0.5 day
 **Requested:** 2026-08-27
 **First consumer / first event:** the diary census re-run — after
@@ -72,31 +72,52 @@ Per the research table (canary recalled by 2 personas; dissents folded):
 1. **Synthesis stage** — one LLM call (pinned model; synthesis tier may
    exceed map tier per cheap-map discipline: single call over an
    aggregated artifact), consuming the recurrence table / ledger and
-   emitting a markdown brief with `[label]`/`[row:item_ref]` citations.
-   Graph change (adding the tail node to corpus_census) goes through the
-   sole authoring route (C-3 lineage).
-2. **Citation boundary (LLM-free)** — validates every citation resolves
-   to a real row/label in the source artifact; uncited claims and
-   dangling citations fail the brief (fail closed, no partial narrative).
-   Subtractionist dissent folded: the boundary ALSO prepends a
-   deterministic summary head (top-N table) so the brief degrades to
-   useful even if the narrative is rejected.
-3. **Public-safe inheritance** — the brief consumes only the aggregated
-   public-safe artifacts (never raw evidence spans) for committed
-   outputs; os-infra dissent (pure filter, no LLM) recorded as the
-   fallback if narrative fidelity proves untrustworthy at scale.
-4. **Wiring** — diary census wrapper gains the brief step; proof
-   configurations regenerate briefs as demo evidence.
+   emitting **structured claim blocks (R-1): each claim carries
+   `claim_id`, `text`, `citations` ([label] / [row:item_ref]), optional
+   `confidence`** — never free markdown. Graph change (adding the tail
+   node to corpus_census) goes through the sole authoring route; this FR
+   may modify ONLY `examples/demos/corpus_census/graph.yaml` and its
+   prompt files, plus code-side citation/brief helpers and wrappers (R-6).
+   **Bounded input (R-4): a deterministic rows/chars ceiling with a
+   top-N-by-count selection rule compacts the aggregate before the call;
+   provider, model, prompt version, source-artifact hash, run id, call
+   count, timeout, and output path are recorded in brief metadata.**
+2. **Citation boundary (LLM-free, R-1 mechanical rule)** — validates:
+   every cited label/row exists in the source artifact; every claim block
+   has ≥1 citation; no citation points outside the source. Markdown is
+   RENDERED only after validation passes — the boundary checks structure,
+   never interprets prose.
+   **Fail-closed contract (R-2, frozen): on validation failure NO
+   `brief-<date>.md` is emitted; the deterministic summary head (top-N
+   table, code-generated) is written to a separate
+   `brief-<date>.REJECTED.md` failure artifact with the rejection
+   reasons.** The accepted brief = deterministic summary head + validated
+   rendered narrative.
+3. **Public-safe inheritance (R-5, mechanical)** — the synthesis input is
+   the aggregated public-safe artifact ONLY; the brief renderer has no
+   access to raw evidence-span text for committed outputs; tests assert
+   the input fixture contains only allowed columns. os-infra dissent
+   (pure LLM-free filter) recorded as fallback.
+4. **Wiring (R-3, exact invocation)** — the census graph tail requires
+   new variables `brief_path` and `brief_rubric` (with the synthesis
+   prompt as a graph prompt artifact); missing brief inputs fail loudly
+   before synthesis. `scripts/diary_census.sh` gains the brief step
+   passing them; the PDF-library and git-timeline proof commands are
+   updated to pass them (C-6: silent omission of the human output is not
+   allowed for named consumers).
 
-## Acceptance Criteria
+## Acceptance Criteria (revised per judgement — supersede the original set)
 
-- [ ] AC-01: RED first — failing tests for the citation boundary: dangling citation rejected, uncited-claim policy enforced, deterministic summary head present, brief rejected without partial output.
-- [ ] AC-02: The synthesis tail is added to corpus_census via the sole authoring route with lint+smoke evidence; single call, pinned model, never fan-out.
-- [ ] AC-03: Proof regeneration: PDF-library and git-timeline briefs committed alongside their ledgers; 3-row corpus yields a proportionate brief.
-- [ ] AC-04: Diary census brief: re-run aggregation + tail produces docs/diary/census/brief-<date>.md whose top finding matches the known headline (alias-of-doctrine recurrences) with verified citations — the canary for this FR.
-- [ ] AC-05: Citation boundary witnessed: a fixture brief with a fabricated citation fails closed; committed briefs contain zero unverifiable citations.
-- [ ] AC-06: Public-safe: committed briefs contain no raw evidence spans; witnessed by test.
-- [ ] AC-07: Changelog fragment, REQ tagging, FR status update, diary reflection.
+- [ ] AC-01: RED first — failing citation-boundary tests: fabricated row citation, fabricated label citation, claim without citation, citation outside source — each rejected; no accepted narrative artifact emitted on failure (R-2 contract).
+- [ ] AC-02: Brief output is structured claim blocks; markdown rendered only after the boundary accepts them.
+- [ ] AC-03: Synthesize tail authored via scripts/author.sh with lint+smoke in the authoring report; exactly one pinned synthesis call over the reduced artifact, never over raw corpus items.
+- [ ] AC-04: Invocation semantics documented and tested: brief_path/brief_rubric named; missing inputs fail loudly before synthesis; PDF, git-timeline, and diary commands all pass them.
+- [ ] AC-05: Synthesis input bounded by a deterministic ceiling + selection rule; provider/model/prompt version/source hash/run id/call count/timeout/output path recorded in proof metadata.
+- [ ] AC-06: Regenerated PDF-library and git-timeline briefs committed alongside ledgers; the 3-row corpus yields a proportionate brief, zero dangling citations.
+- [ ] AC-07: Diary brief docs/diary/census/brief-<date>.md: top finding mechanically checked against the known alias-of-doctrine headline via cited label families, not prose match.
+- [ ] AC-08: Public-safe tests: briefs generated only from aggregated fields; no raw evidence-span text.
+- [ ] AC-09: Summary-head/fallback behavior tested for both accepted and rejected narrative cases.
+- [ ] AC-10: Changelog fragment, REQ tagging, FR status update, diary reflection.
 
 ## Out of Scope
 
