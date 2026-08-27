@@ -73,6 +73,7 @@ See [CHANGELOG.md](../CHANGELOG.md) for version history.
 | [LLM-as-Gate Pattern](patterns/llm-as-gate.md) | Semantic pass/fail gating with router edges |
 | [Coded-Classification Pattern](patterns/coded-classification.md) | Classify free text against a controlled vocabulary: cluster fan-out, claim-reconciliation reducer, junk-drawer caps, labeled crosscheck harness |
 | [Batch-Runner Pattern](patterns/batch-runner.md) | Run a graph over runtime-selected input files; transform on load, collect per-input results |
+| [Corpus Map-Reduce Pattern](patterns/corpus-map-reduce.md) | Exhaustive bounded corpus analysis: freeze, typed map, deterministic reconciliation, hierarchical reduce, cited artifact |
 
 ### Example Architectures
 

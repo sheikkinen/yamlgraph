@@ -650,6 +650,8 @@ edges:
 - Sub-nodes can be `llm`, `router`, or `python` type
 
 See [Map Nodes Reference](map-nodes.md) for comprehensive documentation.
+For exhaustive analysis where every corpus item must be accounted for, see the
+[Corpus Map-Reduce Pattern](patterns/corpus-map-reduce.md).
 
 ---
 
@@ -950,6 +952,10 @@ def process_batch(state: dict) -> dict:
 
     return {"batch_result": results}
 ```
+
+  For corpus-scale semantic analysis, batching alone is insufficient: freeze
+  source identities, reconcile every result, and preserve primary findings as
+  described in the [Corpus Map-Reduce Pattern](patterns/corpus-map-reduce.md).
 
 ---
 
