@@ -116,7 +116,6 @@
 | FR-885 | Judged | yamlgraph |  | FR-885-deploy-watch-outside-session.md |
 | FR-886 | Judged | yamlgraph |  | FR-886-judge-route-adoption-nudge.md |
 | FR-889 | Judged | yamlgraph |  | FR-889-os-enforced-main-write-lock.md |
-| FR-894 | Judged | yamlgraph |  | FR-894-corpus-map-reduce-github-scope-reconciliation-reference.md |
 | FR-094 | Approved | yamlgraph |  | FR-094-memory-node.md |
 | FR-095 | Approved | yamlgraph |  | FR-095-doc-staleness-monitor.md |
 | FR-096 | Approved | yamlgraph |  | FR-096-fr-template-demo-plan.md |
@@ -479,7 +478,6 @@ graph TD
     FR-886["FR-886 Judged"]
     FR-887["FR-887 Proposed"]
     FR-889["FR-889 Judged"]
-    FR-894["FR-894 Judged"]
     FR-081 --> FR-082
     FR-731 --> FR-735
     FR-731 --> FR-736

@@ -2,10 +2,11 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement (documentation only)
-**Status:** Judged - APPROVED WITH REVISIONS (R-1/R-2/R-3 folded)
+**Status:** Completed
 **Effort:** 0.5 day
 **Requested:** 2026-08-26
 **Judged:** 2026-08-27
+**Implemented:** 2026-08-27
 **First consumer / first event:** the next agent asked to "read every commit or
 PR and summarize it" or "find what changed beyond intended scope." At that
 tool-selection moment, the agent finds one proven corpus pattern instead of
@@ -222,38 +223,38 @@ before the model boundary.
 
 ## Acceptance Criteria
 
-- [ ] `feature-requests/FR-894.research.md` records five genuine solution
+- [x] `feature-requests/FR-894.research.md` records five genuine solution
   classes, precedents, preserved disagreement, and `is_this_a_graph`
   answers from the sole research route.
-- [ ] Every generated triage claim is dispositioned; no `[pending]` claim
+- [x] Every generated triage claim is dispositioned; no `[pending]` claim
   remains.
-- [ ] `reference/patterns/corpus-map-reduce.md` exists and is linked from
+- [x] `reference/patterns/corpus-map-reduce.md` exists and is linked from
       `reference/README.md`.
-- [ ] Pattern 8 and Pattern 10 in `reference/patterns.md` link to the new
+- [x] Pattern 8 and Pattern 10 in `reference/patterns.md` link to the new
       reference without duplicating its content.
-- [ ] The reference documents freeze, partition, typed map, deterministic
+- [x] The reference documents freeze, partition, typed map, deterministic
       reconciliation, optional hierarchical reduce, and render stages.
-- [ ] The seven coverage/provenance invariants above are stated as requirements,
+- [x] The seven coverage/provenance invariants above are stated as requirements,
       not optional advice.
-- [ ] A commit/PR recap worked application names immutable GitHub identities and
+- [x] A commit/PR recap worked application names immutable GitHub identities and
       preserves one primary result per semantic unit.
-- [ ] A scope-reconciliation worked application separates authority from
+- [x] A scope-reconciliation worked application separates authority from
       reality and covers path drift, semantic drift, omission, and metadata
       drift.
-- [ ] The wording rule is explicit: absent independent authority, findings are
+- [x] The wording rule is explicit: absent independent authority, findings are
       `surprising` or `unexplained`, never `unauthorized`.
-- [ ] The reference states that PRs are the preferred semantic unit and commits
+- [x] The reference states that PRs are the preferred semantic unit and commits
       are a fallback/transport unit.
-- [ ] The reference states that cheap-model corpus triage cannot issue a merge
+- [x] The reference states that cheap-model corpus triage cannot issue a merge
       verdict and points live findings to `scripts/review.sh`.
-- [ ] Cost ceilings, call-count arithmetic, provider pinning, privacy, secret,
+- [x] Cost ceilings, call-count arithmetic, provider pinning, privacy, secret,
       and binary-patch boundaries are documented.
-- [ ] The pattern cites at least the FR-402 prompt-theme analyzer, FR-748 atlas,
+- [x] The pattern cites at least the FR-402 prompt-theme analyzer, FR-748 atlas,
       FR-851 requirement-witness audit, FR-884 session-shapes classifier,
       FR-892 corpus census, `recap`, and review-pr precedents.
-- [ ] No `graph.yaml`, prompt, Python tool, runtime, CLI, hook, CI, capability,
+- [x] No `graph.yaml`, prompt, Python tool, runtime, CLI, hook, CI, capability,
       requirement, or GitHub API integration is added or changed under this FR.
-- [ ] Exact validation records these commands and results:
+- [x] Exact validation records these commands and results:
   `rg -n '[[:blank:]]+$' reference/patterns/corpus-map-reduce.md reference/README.md reference/patterns.md` (no matches);
     the complete inline link resolver in Validation Commands below;
   and `git diff --check -- reference/patterns/corpus-map-reduce.md reference/README.md reference/patterns.md`.
@@ -287,6 +288,43 @@ if missing:
 print("missing_links=0")
 PY
 ```
+
+## Implementation Record
+
+Implemented in `d158b526` (`docs(patterns): FR-894 document corpus map-reduce`):
+
+- Added `reference/patterns/corpus-map-reduce.md` with the six-stage topology,
+  seven required invariants, FR-892 discover/extract adapter mapping,
+  cost/privacy boundaries, and worked GitHub recap and authority-aware
+  reconciliation applications.
+- Linked the pattern from `reference/README.md` and from Pattern 8 and Pattern
+  10 in `reference/patterns.md`.
+- Preserved the live-review boundary: corpus findings are claims; flagged live
+  PRs still enter `scripts/review.sh`.
+- No executable graph, prompt, Python, runtime, CLI, hook, CI, capability,
+  requirement, GitHub API, scorer, merge gate, judge, or review surface changed.
+
+Validation run before the implementation commit:
+
+- `rg -n '[[:blank:]]+$' reference/patterns/corpus-map-reduce.md reference/README.md reference/patterns.md` -> no matches (`trailing_whitespace=0`).
+- The exact inline workspace-relative link resolver above ->
+  `missing_links=0`.
+- `git diff --check -- reference/patterns/corpus-map-reduce.md reference/README.md reference/patterns.md` -> passed with no output.
+- Stale-reference guard for the collided FR-891 path, pre-FR-892 executable
+  claim, and direct prohibition of skip semantics -> `stale_reference_claims=0`.
+- VS Code diagnostics over all three touched reference files -> no errors.
+
+Planning and research trail:
+
+- `34717376` proposed the triaged FR on current remote main.
+- `feature-requests/FR-894.research.md` records five research-route classes;
+  the selected reference contract preserves the subtractionist caller-owned
+  responsibility boundary and rejects new executable machinery.
+- `706b4513` preserved the independent judgement and folded R-1 through R-3.
+- Concurrent correction: FR-892 shipped before this branch integrated, so the
+  final reference treats it as the executable implementation instead of
+  claiming FR-857 remained the generic graph.
+- Deviation from judged scope: none.
 
 ## Alternatives Considered
 
