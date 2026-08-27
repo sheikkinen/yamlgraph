@@ -1799,3 +1799,9 @@ The ID ranges are:
 - **Code**: S607
 - **Sin**: `git` invoked by partial path in the FR-892 census adapter.
 - **Penance**: git is PATH-resolved by design (developer tooling); same pattern as CONF-421.
+
+### CONF-424
+- **File**: [scripts/vscode/timesheet.py](../scripts/vscode/timesheet.py#L94)
+- **Code**: S608
+- **Sin**: `session_id IN (...)` placeholder fragment interpolated into the SQL string.
+- **Penance**: The interpolated fragment is only a fixed count of `?` characters generated from `len(session_ids)` — never a value. All actual values (`session_ids`) are bound as query parameters. Read-only connection (`mode=ro`) to the local chronicle DB.
