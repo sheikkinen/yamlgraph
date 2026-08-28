@@ -567,6 +567,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 249 | CAP-249 Invocation-time tool-slot binding | `tools/tool_slots`, `compile/graph_loader` | REQ-YG-624 |
 | 250 | CAP-250 Corpus-census synthesize tail | `examples/demos/corpus_census` | REQ-YG-625 |
 | 251 | CAP-251 Copilot cost ledger — priced attribution | `scripts/vscode` | REQ-YG-626 |
+| 251 | CAP-251 Org repository census with pinned-Azure delegation | `examples/demos/repo_census`, `examples/demos/corpus_census` | REQ-YG-626 |
 | 252 | CAP-252 Shared SMTP Email Tool | `examples` | REQ-YG-627 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
@@ -3081,6 +3082,16 @@ The scripts/vscode/ledger.py cost estimator prices prompt tokens with the real m
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-626 | Cost estimation reads cache_read_price and cache_write_price from the price sheet (never the nonexistent cache_price key); the best bound charges fresh tokens input+cache-write and cached tokens cache-read; requests carry workspace/repo attribution; --month/--by-repo prints a repo-by-model cost table with totals; CLI --help/--tap remain green | `scripts/vscode` |
+
+### 251. CAP-251 Org repository census with pinned-Azure delegation
+
+Repository-census invocation of the corpus-census pipeline: gh-backed discover/extract adapters enumerate an organization's repositories and build bounded per-repo evidence bundles; an Azure preflight node fails loudly before any discovery when the pinned endpoint configuration is missing; every LLM node pins provider azure; the LLM judges only one-sentence repository purpose while activity and persons are computed deterministically in an LLM-free fail-closed reducer; the corp brief is rendered through the existing citation boundary; committed demo artifacts are mechanically audited for the pinned public-safe org.
+
+**Feature Request:** FR-899
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-626 | Org repo census is compliance-pinned and fail-closed: Azure preflight runs before gh discovery; gh adapters use fixed argument vectors with mechanical bounds and loud failures; every LLM node carries provider azure with no fallback; activity and persons are code-owned (never LLM-judged); the RepoLedgerRow reducer rejects missing, duplicate, empty-purpose, malformed-activity, and dangling-citation findings; committed demo artifacts carry only the pinned public-safe org | `examples/demos/repo_census`, `examples/demos/corpus_census` |
 
 ### 252. CAP-252 Shared SMTP Email Tool
 

@@ -1,0 +1,30 @@
+id: CAP-251
+name: Org repository census with pinned-Azure delegation
+fr: FR-899
+description: >
+  Repository-census invocation of the corpus-census pipeline: gh-backed
+  discover/extract adapters enumerate an organization's repositories and
+  build bounded per-repo evidence bundles; an Azure preflight node fails
+  loudly before any discovery when the pinned endpoint configuration is
+  missing; every LLM node pins provider azure; the LLM judges only
+  one-sentence repository purpose while activity and persons are computed
+  deterministically in an LLM-free fail-closed reducer; the corp brief is
+  rendered through the existing citation boundary; committed demo
+  artifacts are mechanically audited for the pinned public-safe org.
+modules:
+  - examples/demos/repo_census
+  - examples/demos/corpus_census
+requirements:
+  - id: REQ-YG-626
+    description: >
+      Org repo census is compliance-pinned and fail-closed: Azure
+      preflight runs before gh discovery; gh adapters use fixed argument
+      vectors with mechanical bounds and loud failures; every LLM node
+      carries provider azure with no fallback; activity and persons are
+      code-owned (never LLM-judged); the RepoLedgerRow reducer rejects
+      missing, duplicate, empty-purpose, malformed-activity, and
+      dangling-citation findings; committed demo artifacts carry only the
+      pinned public-safe org
+    modules:
+      - examples/demos/repo_census
+      - examples/demos/corpus_census
