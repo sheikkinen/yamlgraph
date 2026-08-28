@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Enhancement
-**Status:** Proposed
+**Status:** Implemented (2026-08-28, branch feat/fr-896)
 **Effort:** 2 days
 **Requested:** 2026-08-28
 **Judged:** 2026-08-28 — APPROVED WITH REVISIONS (R-1..R-4 folded; see
@@ -289,3 +289,44 @@ entirely); post-hoc contamination-flagging gate (librarian — subsumed by
   (seed, partially implemented here)
 - `tmp/research-echo-run.log` (the observed run), 2026-08-28 review
   session
+
+## Implementation Record (2026-08-28, branch feat/fr-896)
+
+TDD: RED d2549dff (25 witnesses, SKIP=pytest), GREEN in the enforce
+commit. All 48 research-route witnesses green; full fast suite passed.
+
+- **D-1/D-2/D-3 Python side** — `research_tools.py`: closed enums
+  (`echo` reducer-only), required bounded `rationale`, max_length=400
+  rejection, shared `is_librarian`, three-case precedent validation,
+  librarian URL reconciled against `librarian_tool_results` fail-closed,
+  `convergent xN`, gate = ≥3 non-echo traceable findings (class count
+  advisory), `collect_committed_context` (bounded), widened
+  `collect_graph_shapes` with count threshold. `research_preflight.py`:
+  new artifact semantics + `verify_promotion` (matching/missing/
+  mismatched; integrity, not execution — C-4/R-3).
+- **D-3/D-4 governed artifacts** — via `scripts/author.sh` (three passes,
+  reports in `tmp/draft-authoring-report.md`): committed-context node
+  wired to all five personas, enum/rationale/precedent contract in
+  schemas, librarian pinned to external precedent, brevity phrasing,
+  `on_error: retry` on persona nodes.
+- **D-5 provenance** — `research.sh` appends
+  `feature-requests/research-runs.jsonl` line (brief/artifact SHA-256,
+  code git SHA, UTC, graph).
+- **Deviations (witnessed live, within scope):**
+  1. First live run: three personas overflowed 400 chars — rejected, not
+     truncated (mechanism correct); repaired with word/sentence phrasing
+     via authoring route.
+  2. Second run: one persona still overflowed → per `two_strike_split`,
+     mechanized with node-level `on_error: retry` instead of a third
+     rewording.
+  3. Third run: reducer false positive — `corpus_census` (a committed
+     demo dir) rejected as "unknown Scripture key". Witness test added;
+     validator now accepts bare snake tokens naming committed demo/graph
+     dirs.
+- **AC-10 rerun** (self-referential brief, upgraded route): 5 rows, 5
+  non-echo, zero echo rows — every internal precedent cites validated
+  committed identifiers (CAP-17, CAP-56, CAP-237, FR-598, Scripture
+  keys), convergence annotated `convergent x2`, librarian returned
+  genuine external precedent (Registered Reports) with a reconciled URL.
+  The baseline run's null-information echo row class is extinct in this
+  run. Log: `examples/demos/research-route/demo-output.log`.

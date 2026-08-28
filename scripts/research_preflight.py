@@ -1,6 +1,6 @@
-"""FR-890: deterministic closure checks for the research sole route.
+"""FR-890/FR-896: deterministic closure checks for the research sole route.
 
-Two stdlib-only checks, no LLM in this path (judgement R-2, R-3):
+Stdlib-only checks, no LLM in this path (FR-890 R-2/R-3, FR-896 C-6):
 
 1. ``check_brief``: a problem brief is closed input — it must carry the
    four required headings (problem statement, closed-enum
@@ -10,16 +10,23 @@ Two stdlib-only checks, no LLM in this path (judgement R-2, R-3):
    contamination boundary: a draft solution in the brief anchors every
    persona (C-3).
 2. ``verify_artifact``: shape check for ``tmp/draft-alternatives.md`` —
-   frozen columns, no empty required cells, 4-6 distinct solution
-   classes, and a librarian row whose citation carries a URL and is not
-   an error string (R-4). The wrapper checks shape; the Judge checks
-   substance.
+   frozen columns, no empty required cells, closed class/verdict enums
+   (echo permitted only as the reducer's demotion), at least 3 non-echo
+   rows, and a librarian row whose citation carries a URL and is not an
+   error string. Distinct-class count is advisory, never blocking
+   (FR-896 R-2). The wrapper checks shape; the Judge checks substance.
+3. ``verify_promotion``: integrity check for a promoted research record
+   against the committed run log (FR-896 R-3) — recomputes the brief and
+   table-body hashes and reports matching / missing / mismatched. This
+   proves hash consistency, not execution.
 
-Exit codes: 64 brief violation, 65 artifact violation.
+Exit codes: 64 brief violation, 65 artifact or promotion violation.
 """
 
 from __future__ import annotations
 
+import hashlib
+import json
 import re
 import sys
 from pathlib import Path
@@ -59,10 +66,31 @@ COLUMNS = (
     "precedent",
     "is_this_a_graph",
     "effort-risk",
+    "rationale",
 )
+
+# Closed enums — must mirror research_tools.py (witnessed by a test).
+SOLUTION_CLASSES = frozenset(
+    {
+        "os-permissions",
+        "process-boundary",
+        "schema-data",
+        "graph-pipeline",
+        "subtraction",
+        "external-method",
+        "boundary-enforcement",
+    }
+)
+ARTIFACT_VERDICTS = frozenset({"pursue", "dissent", "duplicate", "echo"})
+CONVERGENT_SUFFIX = re.compile(r"\s*\(convergent x\d+\)$")
 
 URL_RE = re.compile(r"https?://\S+")
 ERROR_STRINGS = ("Error:", "No results")
+
+
+def is_librarian(persona: str) -> bool:
+    """Shared librarian predicate (FR-896 AC-02) — substring, not equality."""
+    return "librarian" in persona.lower()
 
 
 def _section(text: str, heading: str) -> str:
@@ -137,7 +165,7 @@ def verify_artifact(text: str) -> list[str]:
         violations.append(f"expected >= 4 rows, found {len(rows)}")
 
     idx = {name: header.index(name) for name in COLUMNS}
-    classes: set[str] = set()
+    non_echo_rows = 0
     librarian_rows = 0
     for row in rows:
         if len(row) < len(header):
@@ -146,8 +174,15 @@ def verify_artifact(text: str) -> list[str]:
         for name in COLUMNS:
             if not row[idx[name]]:
                 violations.append(f"empty required cell {name!r} in row: {row!r}")
-        classes.add(row[idx["class"]])
-        if "librarian" in row[idx["persona"]].lower():
+        class_cell = CONVERGENT_SUFFIX.sub("", row[idx["class"]])
+        if class_cell and class_cell not in SOLUTION_CLASSES:
+            violations.append(f"unknown solution class: {class_cell!r}")
+        verdict = row[idx["verdict"]]
+        if verdict and verdict not in ARTIFACT_VERDICTS:
+            violations.append(f"unknown verdict: {verdict!r}")
+        if verdict != "echo":
+            non_echo_rows += 1
+        if is_librarian(row[idx["persona"]]):
             librarian_rows += 1
             citation = row[idx["precedent"]]
             if any(err in citation for err in ERROR_STRINGS):
@@ -157,9 +192,12 @@ def verify_artifact(text: str) -> list[str]:
             elif not URL_RE.search(citation):
                 violations.append(f"librarian citation carries no URL: {citation!r}")
 
-    if not 4 <= len(classes) <= 6:
+    # Distinct-class count is advisory (FR-896 R-2): convergence is
+    # information, never a gate. The gate is non-echo grounding.
+    if rows and non_echo_rows < 3:
         violations.append(
-            f"expected 4-6 distinct solution classes, found {len(classes)}"
+            f"fewer than 3 non-echo rows: {non_echo_rows} — too little "
+            "committed-state grounding"
         )
     if librarian_rows == 0:
         violations.append("no librarian row present")
@@ -167,7 +205,53 @@ def verify_artifact(text: str) -> list[str]:
     return violations
 
 
+def verify_promotion(record_text: str, log_text: str, repo_root: str = ".") -> str:
+    """Integrity verdict for a promoted research record (FR-896 R-3).
+
+    Returns ``matching`` (a committed run-log line reproduces both the
+    record's table-body hash and the committed brief's hash), ``missing``
+    (no run-log lines at all), or ``mismatched`` (log lines exist but
+    none reconcile). Same-actor log: this proves hash consistency, not
+    that the graph executed.
+    """
+    records = [json.loads(line) for line in log_text.splitlines() if line.strip()]
+    if not records:
+        return "missing"
+
+    start = record_text.find("# Draft alternatives")
+    if start == -1:
+        return "mismatched"
+    body_sha = hashlib.sha256(record_text[start:].encode("utf-8")).hexdigest()
+
+    for entry in records:
+        if entry.get("artifact_sha256") != body_sha:
+            continue
+        brief = Path(entry.get("brief_path", ""))
+        if not brief.is_absolute():
+            brief = Path(repo_root) / brief
+        if brief.is_file() and hashlib.sha256(
+            brief.read_bytes()
+        ).hexdigest() == entry.get("brief_sha256"):
+            return "matching"
+        return "mismatched"
+    return "mismatched"
+
+
 def main(argv: list[str]) -> int:
+    if argv and argv[0] == "--verify-promotion":
+        if len(argv) not in (3, 4):
+            print(
+                "usage: research_preflight.py --verify-promotion "
+                "<record.md> <research-runs.jsonl> [repo_root]",
+                file=sys.stderr,
+            )
+            return 2
+        record = Path(argv[1]).read_text(encoding="utf-8")
+        log = Path(argv[2]).read_text(encoding="utf-8")
+        root = argv[3] if len(argv) == 4 else "."
+        status = verify_promotion(record, log, root)
+        print(f"research_preflight: promotion {status}")
+        return 0 if status == "matching" else EXIT_ARTIFACT
     if argv and argv[0] == "--verify-artifact":
         if len(argv) != 2:
             print(

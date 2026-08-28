@@ -68,4 +68,17 @@ GRAPH_RC=$?
 "$PYBIN" "$(dirname "$0")/research_preflight.py" --verify-artifact "$ARTIFACT" \
   || fail "contract violated (graph rc=$GRAPH_RC): $ARTIFACT fails the frozen schema" 65
 
+# Provenance stamp (FR-896 R-3): committed run log line. Same-actor log —
+# this records hash consistency for later integrity checks, not proof of
+# execution. Verify with: research_preflight.py --verify-promotion.
+RUN_LOG="$WORKDIR/feature-requests/research-runs.jsonl"
+mkdir -p "$WORKDIR/feature-requests"
+sha256() { "$PYBIN" -c 'import hashlib,sys;print(hashlib.sha256(open(sys.argv[1],"rb").read()).hexdigest())' "$1"; }
+BRIEF_SHA=$(sha256 "$BRIEF_PATH")
+ARTIFACT_SHA=$(sha256 "$ARTIFACT")
+CODE_SHA=$(git -C "$(dirname "$0")/.." rev-parse HEAD 2>/dev/null || echo unknown)
+printf '{"timestamp":"%s","brief_path":"%s","brief_sha256":"%s","artifact_sha256":"%s","code_git_sha":"%s","graph":"%s"}\n' \
+  "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$BRIEF_PATH" "$BRIEF_SHA" "$ARTIFACT_SHA" "$CODE_SHA" "$GRAPH" >> "$RUN_LOG"
+echo "research.sh: provenance line appended: $RUN_LOG"
+
 echo "research.sh: draft written: $ARTIFACT (promote to feature-requests/FR-XXX.research.md on acceptance)"

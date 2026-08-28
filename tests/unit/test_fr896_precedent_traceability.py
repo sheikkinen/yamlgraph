@@ -105,7 +105,7 @@ def _five_findings() -> list[dict]:
             candidate="map+reduce graph over personas",
             solution_class="graph-pipeline",
             is_this_a_graph="yes: map node",
-            precedent="examples/demos/map-demo/graph.yaml",
+            precedent="examples/demos/map/graph.yaml",
         ),
         _finding(
             persona="subtractionist",
@@ -173,6 +173,9 @@ def test_shared_predicate_exists_in_both_modules(tools, preflight):
     assert tools.is_librarian("Web-Librarian (grounded)")
     assert preflight.is_librarian("Web-Librarian (grounded)")
     assert not tools.is_librarian("subtractionist")
+    assert (
+        tools.SOLUTION_CLASSES == preflight.SOLUTION_CLASSES
+    ), "enum drift between reducer and verifier"
 
 
 # --- AC-03/AC-04: precedent three-way validation (R-1) ------------------------
@@ -223,6 +226,15 @@ def test_no_identifier_no_marker_fails(tools, tmp_path):
 def test_scripture_key_is_a_valid_identifier(tools, tmp_path):
     findings = _five_findings()
     findings[1]["precedent"] = "two_strike_split"
+    result = _reduce(tools, findings, tmp_path)
+    assert result["non_echo_rows"] == 5
+
+
+@pytest.mark.req("REQ-YG-623")
+def test_committed_demo_dir_name_is_a_valid_identifier(tools, tmp_path):
+    """Live false positive 2026-08-28: 'corpus_census' names a committed demo."""
+    findings = _five_findings()
+    findings[1]["precedent"] = "corpus_census demo reducer"
     result = _reduce(tools, findings, tmp_path)
     assert result["non_echo_rows"] == 5
 
@@ -396,7 +408,7 @@ def test_verify_promotion_matching_missing_mismatched(preflight, tmp_path):
     assert (
         preflight.verify_promotion(record.read_text(), "", str(tmp_path)) == "missing"
     )
-    tampered = record.read_text().replace("policy-as-code", "different claim")
+    tampered = record.read_text().replace("FR-889", "FR-000")
     assert (
         preflight.verify_promotion(tampered, log.read_text(), str(tmp_path))
         == "mismatched"
