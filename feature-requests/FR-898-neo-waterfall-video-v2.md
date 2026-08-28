@@ -3,7 +3,7 @@
 **Priority:** MEDIUM
 **Type:** Feature
 **Status:** Proposed
-**Effort:** 4 days
+**Effort:** 5 days (extended 2026-08-28 with cross-project beat 4 + alias audit)
 **Requested:** 2026-08-28
 **First consumer / first event:** the operator, at the moment of uploading the
 rendered `final.mp4` to the @voiceresponse YouTube channel as the successor to
@@ -81,7 +81,9 @@ run**: real terminal footage of an FR being researched, filed, judged,
 enforced against bouncing gates, and merged — narrated by a synthesized
 voice reading a script the pipeline distilled from the repo's own committed
 record. The closing frames show the newest organs (census, situation board,
-gitclaw) with their measured numbers. Every asset in the video is
+gitclaw) with their measured numbers, then widen to the field: the same
+process operating a production platform, told entirely in aliased mechanisms
+and identity-free numbers. Every asset in the video is
 reproducible by a command committed in this repo; both video URLs are
 committed historical references in the methodology doc. The Proposed
 Solution below is the minimal path back from this.
@@ -94,7 +96,10 @@ graph-authoring route, `scripts/author.sh`, per FR-767):
 **Stage 1 — Script (LLM graph).** Distill a scene-by-scene narration script
 (~1,400–2,100 words for 10–15 min at ~140 wpm) from closed inputs:
 `docs/feature-request-methodology.md`, `docs/development-process.md`, the
-Scripture, and a curated newest-additions digest (FR-888–897 one-liners).
+Scripture, a curated newest-additions digest (FR-888–897 one-liners), and
+the aliased `## Cross-Project Learnings` digest in this FR (beat 4's sole
+narration source — the input closure for field material is this committed
+text, never the private repos).
 Output: typed `script.json` — scenes with `narration`, `visual_spec`
 (command to run or file to frame), `duration_hint`. One judgement per scene
 (prompt-as-subagent-contract); deterministic assembler validates total
@@ -104,8 +109,13 @@ length and coverage of the mandatory beats:
    real pre-commit bounces → RED/GREEN commits → merge-on-green
 3. Newest additions: main-write guard, census arc + synthesize tail,
    `now.py` situation board, gitclaw export
-4. Evidence close: measured numbers only (census cost, diary count, gate
-   counts) — no aspirational claims.
+4. Field deployment arc (aliased — see `## Cross-Project Learnings`): the
+   same process operating a production voice-AI platform — infra-as-code
+   witness tests, evidence-based capacity sizing, GitOps rollout with
+   post-deploy evidence artifacts, browser-controlled enterprise surfaces,
+   and black-box verification by real phone calls
+5. Evidence close: measured numbers only (census cost, diary count, gate
+   counts, load-test ceilings) — no aspirational claims.
 
 **Stage 2 — Screens (deterministic Python tool).** For each scene, capture
 stills from actual usage: terminal captures of the real commands running
@@ -131,12 +141,65 @@ and the video pointer to `docs/development-process.md`.
 State/redaction boundary: script inputs are committed public docs only; the
 screens tool must run in a sanitized demo checkout state (no customer repo
 names, no sibling-project paths in framed terminal output) — alias at first
-capture, not at review (FR-896 R-4 lesson).
+capture, not at review (FR-896 R-4 lesson). Beat 4 is the highest-risk beat:
+its source material lives in private customer repositories and enters this
+public repo as narration text only, pre-aliased per the rules in
+`## Cross-Project Learnings` — no source doc links, no customer or project
+names, no PR/issue numbers from private trackers, no phone numbers,
+hostnames, or GCP project ids. Numbers and mechanisms are the payload;
+identities are not (FR-874 rejection precedent: meaning-level leaks survive
+secret-value grepping, so the alias pass is judged, not grepped).
+
+## Cross-Project Learnings (2026-08-28 extension)
+
+The operator ran the neo-waterfall process for months on a production
+voice-AI customer platform (referred to here and in all video assets only as
+"the field deployment"). Four learnings graduate into beat 4 — each is a
+*process* claim demonstrable with aliased numbers, not a customer story:
+
+1. **Infra is enforceable like code.** Kubernetes overlays (kustomize) got
+   the full RED/GREEN treatment: rendered-manifest witness tests assert
+   worker counts, resource limits, ConfigMap fields, and protected
+   invariants of sibling environments (33 witnesses on the latest change).
+   The video shows a rendered-manifest test bouncing RED against the live
+   overlay, then GREEN after a three-file change — infrastructure inside the
+   same judged-FR pipeline as Python.
+2. **Sizing rules come from live falsification, not local probes.** A local
+   N=15 memory probe was falsified by a live 8-batch load-test series
+   (idle baseline 975 MiB, ~157 MiB per processing call, hard ceiling 6
+   concurrent at a 2 GiB limit — crashed from both sides as predicted).
+   The graduated rule is a *coherence inequality* (`limit ≥ baseline +
+   pool_size × per-call + headroom`) encoded as a witness test, so the
+   defect class is unrepresentable, not just fixed. Strongest available
+   demonstration of Commandment 9 (operational truth) on real money.
+3. **GitOps closes the loop with evidence, not hope.** Merges deploy via
+   ArgoCD; the FR is not closable until a post-rollout evidence artifact
+   records read-only observations (worker readiness, deployed limits,
+   OOM/restart status) from the live environment. Plan → judge → enforce →
+   **observe** — the R-1 evidence stage is the process's answer to "it
+   merged, ship it."
+4. **The boundary extends to browsers and phone lines.** Enterprise web
+   surfaces were driven by agent browser control (Playwright-instrumented
+   integrated browser, per-frame UA normalization to defeat embedded-client
+   detection), and the platform itself is verified black-box by a sibling
+   harness that places *real phone calls*: LLM persona callers (elderly,
+   intoxicated, Swedish-speaking, jailbreak probes), live TTS/STT over
+   Twilio, diarised offline transcription, and LLM judges scoring
+   data-capture and safety — behaviour assertions, not string matches.
+   `mock_escape_hatch` at system scale: the test exercises the physical
+   phenomenon (a phone call), and parallel-call stress batches found the
+   capacity ceiling that unit tests never could.
+
+Scene sourcing for beat 4: narration distilled from the aliased digest above
+(committed in this FR); visuals are freshly rendered *generic* frames — a
+kustomize witness test run against a sanitized fixture overlay committed
+under the example, an inequality graphic, and a redrawn call-harness
+diagram — never screenshots of customer repos, dashboards, or reports.
 
 ## Acceptance Criteria
 
 - [ ] `script.json` generated by the graph from committed inputs only; all
-      four mandatory beats covered (deterministic beat-coverage check)
+      five mandatory beats covered (deterministic beat-coverage check)
 - [ ] Every terminal still traceable to a command actually executed during
       the build run (capture manifest maps PNG → command → exit code)
 - [ ] Narration audio synthesized per scene via chatterbox; no human
@@ -146,6 +209,11 @@ capture, not at review (FR-896 R-4 lesson).
 - [ ] Redaction check: no sibling-repo names, customer identifiers, or
       absolute home paths visible in any frame (mechanical grep of capture
       manifest + script text)
+- [ ] Beat-4 alias audit: script text and all beat-4 frames contain no
+      customer/project names, private PR/issue ids, phone numbers,
+      hostnames, or cloud project ids; beat-4 visuals rendered only from
+      fixtures committed under the example (meaning-level review recorded
+      in the authoring report — grep alone is insufficient per FR-874)
 - [ ] `demo-output.log` committed proving the pipeline ran end to end
       (FR-206 demo gate)
 - [ ] v1 and v2 YouTube URLs committed in `docs/feature-request-methodology.md`;
@@ -162,6 +230,7 @@ capture, not at review (FR-896 R-4 lesson).
 | Storyboard pipeline with generated imagery (z-image/wan-2.2 as v1-style visuals) | REJECTED for the usage arc: generated imagery cannot show *actual usage*; real terminal frames are the point. Retained only as optional title-card garnish — not in scope. |
 | Shorts-first (2–3 cut-downs, no long-form) | DEFERRED: operator chose long-form. Shorts are a natural follow-up FR once `script.json` scene structure exists to cut from. |
 | Extend `generate_videos.py` in place | REJECTED: that tool is image-pair interpolation via Replicate; this is stills+audio slideshow. Shared ffmpeg concat idea, different contract — new example, honest precedent citation. |
+| Show field-deployment material directly (real load-test reports, ArgoCD UI, call-harness recordings) | REJECTED: source repos are private and the artifacts carry customer identity at the meaning level; beat 4 ships aliased narration + generic fixture visuals only (FR-874 precedent). |
 | Do nothing (docs are enough) | REJECTED: `missing_last_leg` — the methodology doc reaches only people already reading the repo; the channels research shows the proclamation calendar is empty and the thesis of external signal requires an artifact in an external channel. |
 
 ## Related
@@ -172,6 +241,9 @@ capture, not at review (FR-896 R-4 lesson).
 - [docs/research-publication-channels-2026-08-18.md](../docs/research-publication-channels-2026-08-18.md)
 - [examples/storyboard/generate_videos.py](../examples/storyboard/generate_videos.py)
 - v1: https://www.youtube.com/watch?v=HNZRFub137I ("Neo-waterfall Behind YAMLGraph")
+- Beat-4 sources are deliberately uncited: they live in private customer
+  repositories; the aliased digest in `## Cross-Project Learnings` is the
+  complete public-side record (this repo is public — FR-874).
 
 ## Judgement (pending)
 
