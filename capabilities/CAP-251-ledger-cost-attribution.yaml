@@ -1,0 +1,22 @@
+id: CAP-251
+name: Copilot cost ledger — priced attribution
+fr: FR-900
+description: >
+  The scripts/vscode/ledger.py cost estimator prices prompt tokens with the
+  real models.json schema keys (cache_read_price, cache_write_price), adds
+  the cache-write term to the calibrated best bound, attributes requests to
+  workspaces/repos via workspace.json, and reports monthly cost split by
+  (repo, model) with per-repo and grand totals. Verified against the
+  August 2026 invoice within ~5% (FR-900 evidence).
+modules:
+  - scripts/vscode
+requirements:
+  - id: REQ-YG-626
+    description: >
+      Cost estimation reads cache_read_price and cache_write_price from the
+      price sheet (never the nonexistent cache_price key); the best bound
+      charges fresh tokens input+cache-write and cached tokens cache-read;
+      requests carry workspace/repo attribution; --month/--by-repo prints a
+      repo-by-model cost table with totals; CLI --help/--tap remain green
+    modules:
+      - scripts/vscode

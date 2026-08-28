@@ -566,6 +566,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 248 | CAP-248 Research Sole Route (Closed-Input Alternatives) | `examples` | REQ-YG-623 |
 | 249 | CAP-249 Invocation-time tool-slot binding | `tools/tool_slots`, `compile/graph_loader` | REQ-YG-624 |
 | 250 | CAP-250 Corpus-census synthesize tail | `examples/demos/corpus_census` | REQ-YG-625 |
+| 251 | CAP-251 Copilot cost ledger — priced attribution | `scripts/vscode` | REQ-YG-626 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -3069,6 +3070,16 @@ The corpus-census pipeline ends in a human-readable brief: a bounded, column-all
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-625 | Census brief emission is fail-closed: claims with fabricated, missing, or out-of-source citations are rejected mechanically (LLM-free); accepted briefs carry the deterministic summary head, cited findings, and run provenance; synthesis input is bounded and restricted to the public-safe column allowlist | `examples/demos/corpus_census` |
+
+### 251. CAP-251 Copilot cost ledger — priced attribution
+
+The scripts/vscode/ledger.py cost estimator prices prompt tokens with the real models.json schema keys (cache_read_price, cache_write_price), adds the cache-write term to the calibrated best bound, attributes requests to workspaces/repos via workspace.json, and reports monthly cost split by (repo, model) with per-repo and grand totals. Verified against the August 2026 invoice within ~5% (FR-900 evidence).
+
+**Feature Request:** FR-900
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-626 | Cost estimation reads cache_read_price and cache_write_price from the price sheet (never the nonexistent cache_price key); the best bound charges fresh tokens input+cache-write and cached tokens cache-read; requests carry workspace/repo attribution; --month/--by-repo prints a repo-by-model cost table with totals; CLI --help/--tap remain green | `scripts/vscode` |
 
 <!-- END GENERATED CAPABILITIES -->
 

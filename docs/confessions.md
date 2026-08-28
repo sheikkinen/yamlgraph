@@ -1817,3 +1817,9 @@ The ID ranges are:
 - **Code**: S607
 - **Sin**: `git` invoked by partial path in the FR-896 census adapter.
 - **Penance**: git is PATH-resolved by design (developer tooling); same pattern as CONF-423.
+
+### CONF-427
+- **File**: [tests/unit/test_vscode_ledger.py](../tests/unit/test_vscode_ledger.py#L25)
+- **Code**: E402
+- **Sin**: `import ledger` after a `sys.path.insert` — module-level import not at top.
+- **Penance**: script-adjacent test for the scripts/vscode spike suite; the path bootstrap must precede the import (CONF-415 idiom).
