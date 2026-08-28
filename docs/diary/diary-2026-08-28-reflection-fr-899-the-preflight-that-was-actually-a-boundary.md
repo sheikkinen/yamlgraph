@@ -38,7 +38,7 @@ constraint's NAME (Azure pinning) points at the LLM; the constraint's SUBJECT
 
 ## Seed
 
-The judge falsified a factual claim about execution order by reading code the
-author didn't cite. Could the judge graph mechanically extract every
+Seed: The judge falsified a factual claim about execution order by reading code
+the author didn't cite. Could the judge graph mechanically extract every
 "existing behavior X guarantees Y" claim from an FR and require a file:line
 witness for each — a claim-evidence table the enforcer inherits as assertions?
