@@ -33,6 +33,7 @@
 | FR-854 | PARSE-FAILURE (WITHDRAWN 2026-08-22 — census ) | yamlgraph |  | FR-854-subagent-call-classification-graph.md |
 | FR-862 | PARSE-FAILURE (Partially superseded 2026-08-2) | yamlgraph |  | FR-862-deviant-daily-on-demand-publish.md |
 | FR-864 | PARSE-FAILURE (**SPLIT** (judged 2026-08-23) ) | yamlgraph |  | FR-864-ramp-spike-to-governed.md |
+| FR-900 | PARSE-FAILURE ((no Status header)) | yamlgraph |  | FR-900-evidence.md |
 | FR-111 | Judged | yamlgraph |  | FR-111-compiled-graph-cache.md |
 | FR-179 | Judged | yamlgraph |  | FR-179-asterisk-ari-audiosocket-provider.md |
 | FR-210 | Judged | yamlgraph |  | FR-210-subgraph-interrupt-state-commit.md |
@@ -178,6 +179,7 @@
 | FR-647 | Approved | yamlgraph |  | FR-647-worldgen-event-propagation.md |
 | FR-648 | Approved | yamlgraph |  | FR-648-obsidian-wiki-output.md |
 | FR-655 | Approved | yamlgraph |  | FR-655-genesis-graph.md |
+| FR-900 | Approved | yamlgraph |  | FR-900-ledger-cache-price-fix-repo-report.md |
 | FR-214 | Proposed | yamlgraph |  | FR-214-fix-extract-variables-nested-set.md |
 | FR-227 | Proposed | yamlgraph |  | FR-227-vertex-express-env-var-masking.md |
 | FR-267 | Proposed | yamlgraph |  | FR-267-race-node-timeout-double-wrap-2.md |
@@ -488,6 +490,8 @@ graph TD
     FR-897["FR-897 Judged"]
     FR-898["FR-898 Judged"]
     FR-899["FR-899 Judged"]
+    FR-900["FR-900 PARSE-FAILURE"]
+    FR-900["FR-900 Approved"]
     FR-081 --> FR-082
     FR-731 --> FR-735
     FR-731 --> FR-736
