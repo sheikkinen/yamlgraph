@@ -1,0 +1,6 @@
+name: pattern-model-git-extract
+description: "Extract bounded commit metadata for one SHA."
+runtime:
+  type: python
+  path: git_tools.py
+  function: extract

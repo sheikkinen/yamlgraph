@@ -1,0 +1,37 @@
+[
+  {
+    "repo": "fixture-repo",
+    "sha": "1111111111111111111111111111111111111111",
+    "date": "2026-01-15T08:00:00+00:00",
+    "subject": "feat(graph): add map-reduce adapter census using mercury-2",
+    "shortstat": "3 files changed, 48 insertions(+), 2 deletions(-)"
+  },
+  {
+    "repo": "fixture-repo",
+    "sha": "2222222222222222222222222222222222222222",
+    "date": "2026-03-20T12:30:00+00:00",
+    "subject": "fix(provider): pin inception model routing for judge maps",
+    "shortstat": "2 files changed, 17 insertions(+), 4 deletions(-)"
+  },
+  {
+    "repo": "fixture-repo",
+    "sha": "3333333333333333333333333333333333333333",
+    "date": "2026-04-02T09:15:00+00:00",
+    "subject": "refactor(fsm): split state machine transition guards",
+    "shortstat": "5 files changed, 93 insertions(+), 41 deletions(-)"
+  },
+  {
+    "repo": "fixture-repo",
+    "sha": "4444444444444444444444444444444444444444",
+    "date": "2026-07-11T16:45:00+00:00",
+    "subject": "docs: record redaction gate for public census summary",
+    "shortstat": "1 file changed, 12 insertions(+)"
+  },
+  {
+    "repo": "fixture-repo",
+    "sha": "5555555555555555555555555555555555555555",
+    "date": "2026-08-21T18:10:00+00:00",
+    "subject": "test(llm): cover anthropic claude fallback removal",
+    "shortstat": "4 files changed, 36 insertions(+), 9 deletions(-)"
+  }
+]

@@ -1,0 +1,147 @@
+version: "1.0"
+name: pattern-model-census
+description: >
+  Read-only commit-metadata census for architectural/design patterns and
+  LLM model/provider mentions. Structurally mirrors corpus_census with
+  invocation-time discover/extract slots and an LLM-free reducer.
+
+prompts_relative: true
+prompts_dir: prompts
+
+defaults:
+  temperature: 0.0
+
+config:
+  max_map_items: 200
+
+state:
+  source: str
+  repo_alias: str
+  output_path: str
+  items:
+    type: list
+  contents:
+    type: list
+    reducer: sorted_add
+  pattern_findings:
+    type: list
+    reducer: sorted_add
+  model_findings:
+    type: list
+    reducer: sorted_add
+  ledger: dict
+
+tools:
+  discover:
+    slot: true
+    contract:
+      args: [source]
+  extract:
+    slot: true
+    contract:
+      args: [item]
+  reduce_ledger:
+    type: python
+    path: tools.py
+    function: reduce_ledger
+    description: "Join pattern/model findings with commit metadata and write ledger artifacts."
+  mark_patterns_complete:
+    type: python
+    path: tools.py
+    function: mark_patterns_complete
+    description: "Deterministic barrier between the two map lenses."
+  mark_extraction_complete:
+    type: python
+    path: tools.py
+    function: mark_extraction_complete
+    description: "Deterministic barrier between extraction and judge maps."
+
+nodes:
+  discover:
+    type: python
+    tool: discover
+    variables:
+      source: "{state.source}"
+    state_key: items
+    on_error: fail
+
+  extract_items:
+    type: map
+    over: "{state.items}"
+    as: item
+    max_items: 200
+    node:
+      type: python
+      tool: extract
+      state_key: content
+      on_error: fail
+    collect: contents
+
+  judge_pattern:
+    type: map
+    over: "{state.contents}"
+    as: judged_content
+    max_items: 200
+    node:
+      type: llm
+      prompt: judge_pattern
+      provider: inception
+      model: mercury-2
+      temperature: 0
+      state_key: finding
+      skip_if_exists: false
+      on_error: skip
+      variables:
+        content: "{state.judged_content}"
+    collect: pattern_findings
+
+  judge_model:
+    type: map
+    over: "{state.contents}"
+    as: judged_content
+    max_items: 200
+    node:
+      type: llm
+      prompt: judge_model
+      provider: inception
+      model: mercury-2
+      temperature: 0
+      state_key: finding
+      skip_if_exists: false
+      on_error: skip
+      variables:
+        content: "{state.judged_content}"
+    collect: model_findings
+
+  reduce_ledger:
+    type: python
+    tool: reduce_ledger
+    state_key: ledger
+
+  pattern_barrier:
+    type: python
+    tool: mark_patterns_complete
+    state_key: pattern_pass_complete
+
+  extraction_barrier:
+    type: python
+    tool: mark_extraction_complete
+    state_key: extraction_complete
+
+edges:
+  - from: START
+    to: discover
+  - from: discover
+    to: extract_items
+  - from: extract_items
+    to: extraction_barrier
+  - from: extraction_barrier
+    to: judge_pattern
+  - from: judge_pattern
+    to: pattern_barrier
+  - from: pattern_barrier
+    to: judge_model
+  - from: judge_model
+    to: reduce_ledger
+  - from: reduce_ledger
+    to: END

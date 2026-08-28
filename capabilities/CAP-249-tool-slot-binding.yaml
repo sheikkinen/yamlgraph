@@ -1,6 +1,6 @@
 id: CAP-249
 name: Invocation-time tool-slot binding
-fr: FR-892, FR-893
+fr: FR-892, FR-893, FR-896
 description: >
   Graph `tools:` entries may declare `slot: true` with a `contract:` block
   (runtime allowlist, required args); callers bind FR-768 tool manifests at
@@ -10,7 +10,10 @@ description: >
   or LLM executes. Translation and execution reuse the FR-768 manifest
   runtimes exactly; binding paths resolve relative to CWD. Reference
   consumer: examples/demos/corpus_census (discover–extract–map–reduce
-  census pipeline with fail-closed 8-column evidence ledger).
+  census pipeline with fail-closed 8-column evidence ledger). Sibling
+  consumer: examples/demos/pattern_model_census (FR-896; same slot
+  mechanism, mercury-pinned dual-lens map fan-out, LLM-free reducer with
+  a path-prefix guard and repo-alias public-safe summary).
 modules:
   - tools/tool_slots
   - compile/graph_loader

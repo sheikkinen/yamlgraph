@@ -1805,3 +1805,15 @@ The ID ranges are:
 - **Code**: S608
 - **Sin**: `session_id IN (...)` placeholder fragment interpolated into the SQL string.
 - **Penance**: The interpolated fragment is only a fixed count of `?` characters generated from `len(session_ids)` — never a value. All actual values (`session_ids`) are bound as query parameters. Read-only connection (`mode=ro`) to the local chronicle DB.
+
+### CONF-425
+- **File**: [examples/demos/pattern_model_census/tools/git_tools.py](../examples/demos/pattern_model_census/tools/git_tools.py#L20)
+- **Code**: S603
+- **Sin**: `subprocess.run` invoking git for the FR-896 pattern/model census discover/extract adapters.
+- **Penance**: Fixed argv list (`git -C <repo> ...`), no shell, 30s timeout, check=True; repo path comes from the operator's `--var source=...` input, never from LLM output — same pattern as CONF-422.
+
+### CONF-426
+- **File**: [examples/demos/pattern_model_census/tools/git_tools.py](../examples/demos/pattern_model_census/tools/git_tools.py#L21)
+- **Code**: S607
+- **Sin**: `git` invoked by partial path in the FR-896 census adapter.
+- **Penance**: git is PATH-resolved by design (developer tooling); same pattern as CONF-423.

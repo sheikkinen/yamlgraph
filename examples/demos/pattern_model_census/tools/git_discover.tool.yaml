@@ -1,0 +1,6 @@
+name: pattern-model-git-discover
+description: "List non-merge commit SHAs from the last twelve months for one repo."
+runtime:
+  type: python
+  path: git_tools.py
+  function: discover

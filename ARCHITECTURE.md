@@ -3052,9 +3052,9 @@ scripts/research.sh runs the examples/demos/research-route map+reduce graph — 
 
 ### 249. CAP-249 Invocation-time tool-slot binding
 
-Graph `tools:` entries may declare `slot: true` with a `contract:` block (runtime allowlist, required args); callers bind FR-768 tool manifests at invocation via repeatable `--tool SLOT=manifest.yaml`. Contaminated bindings (missing, duplicate, undeclared slot, missing/invalid manifest, contract mismatch) fail closed with ToolSlotBindingError before any node or LLM executes. Translation and execution reuse the FR-768 manifest runtimes exactly; binding paths resolve relative to CWD. Reference consumer: examples/demos/corpus_census (discover–extract–map–reduce census pipeline with fail-closed 8-column evidence ledger).
+Graph `tools:` entries may declare `slot: true` with a `contract:` block (runtime allowlist, required args); callers bind FR-768 tool manifests at invocation via repeatable `--tool SLOT=manifest.yaml`. Contaminated bindings (missing, duplicate, undeclared slot, missing/invalid manifest, contract mismatch) fail closed with ToolSlotBindingError before any node or LLM executes. Translation and execution reuse the FR-768 manifest runtimes exactly; binding paths resolve relative to CWD. Reference consumer: examples/demos/corpus_census (discover–extract–map–reduce census pipeline with fail-closed 8-column evidence ledger). Sibling consumer: examples/demos/pattern_model_census (FR-896; same slot mechanism, mercury-pinned dual-lens map fan-out, LLM-free reducer with a path-prefix guard and repo-alias public-safe summary).
 
-**Feature Request:** FR-892, FR-893
+**Feature Request:** FR-892, FR-893, FR-896
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|

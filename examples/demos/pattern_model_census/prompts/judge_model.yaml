@@ -1,0 +1,20 @@
+system: >
+  You identify literal LLM provider or model mentions in one commit metadata
+  record. Use only the supplied subject and shortstat.
+
+user: |
+  Commit metadata:
+  {content}
+
+  Return one literal LLM provider/model token mentioned or changed by the commit
+  subject plus shortstat, such as anthropic, claude, inception, mercury-2,
+  openai, gpt, mistral, gemini, vertex, deepseek, xai, grok, or null when no
+  literal provider/model token is present.
+
+schema:
+  name: PatternModelCensusModelFinding
+  fields:
+    model_mentioned:
+      type: str
+      optional: true
+      description: "Literal LLM provider/model token, or null"

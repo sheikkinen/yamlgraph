@@ -238,6 +238,7 @@
 | FR-735 | In Progress | yamlgraph |  | FR-735-webllm-demo-evidence-ergonomics.md |
 | FR-736 | In Progress | yamlgraph |  | FR-736-webllm-demo-trace-capture.md |
 | FR-796 | In Progress | yamlgraph |  | FR-796-reclassify-watcher2-witness-demos.md |
+| FR-896 | In Progress | yamlgraph |  | FR-896-cross-repo-pattern-model-census.md |
 | FR-273 | Draft | yamlgraph |  | FR-273-watcher2-pipeline.md |
 | FR-307 | Draft | yamlgraph |  | FR-307-yamlgraph-async-action-logging.md |
 | FR-317 | Draft | yamlgraph |  | FR-317-retire-obsolete-watcher2-components.md |
@@ -480,7 +481,7 @@ graph TD
     FR-886["FR-886 Judged"]
     FR-887["FR-887 Proposed"]
     FR-889["FR-889 Judged"]
-    FR-896["FR-896 Proposed"]
+    FR-896["FR-896 In Progress"]
     FR-897["FR-897 Judged"]
     FR-081 --> FR-082
     FR-731 --> FR-735

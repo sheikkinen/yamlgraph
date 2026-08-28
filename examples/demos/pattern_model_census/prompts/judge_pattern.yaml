@@ -1,0 +1,20 @@
+system: >
+  You classify one commit metadata record. Use only the supplied subject and
+  shortstat. Do not infer from repository names, SHA values, or outside context.
+
+user: |
+  Commit metadata:
+  {content}
+
+  Return the dominant architectural or design pattern implied by the commit
+  subject plus shortstat. Examples include map-reduce, adapter, state machine,
+  routing, schema migration, retry/backoff, CI gate, redaction gate, or null
+  when no architectural/design pattern is supported.
+
+schema:
+  name: PatternModelCensusPatternFinding
+  fields:
+    pattern:
+      type: str
+      optional: true
+      description: "Dominant architectural/design pattern label, or null"

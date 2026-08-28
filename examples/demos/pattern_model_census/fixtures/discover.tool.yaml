@@ -1,0 +1,6 @@
+name: pattern-model-fixture-discover
+description: "List fixture commit SHAs from commits.json."
+runtime:
+  type: python
+  path: fixture_tools.py
+  function: discover

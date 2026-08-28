@@ -1,0 +1,52 @@
+2026-08-28 09:51:44,661 [INFO] yamlgraph.compile.graph_loader: Parsed 5 Python tools: discover, extract, reduce_ledger, mark_patterns_complete, mark_extraction_complete
+2026-08-28 09:51:44,662 [INFO] yamlgraph.compile.node_compiler: Added node: discover (type=python)
+2026-08-28 09:51:44,662 [INFO] yamlgraph.compile.node_compiler: Added node: extract_items (type=map)
+2026-08-28 09:51:44,664 [INFO] yamlgraph.compile.node_compiler: Added node: judge_pattern (type=map)
+2026-08-28 09:51:44,665 [INFO] yamlgraph.compile.node_compiler: Added node: judge_model (type=map)
+2026-08-28 09:51:44,667 [INFO] yamlgraph.compile.node_compiler: Added node: reduce_ledger (type=python)
+2026-08-28 09:51:44,670 [INFO] yamlgraph.compile.node_compiler: Added node: pattern_barrier (type=python)
+2026-08-28 09:51:44,672 [INFO] yamlgraph.compile.node_compiler: Added node: extraction_barrier (type=python)
+2026-08-28 09:51:44,807 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: discover -> discover
+2026-08-28 09:51:44,812 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: extraction_barrier -> mark_extraction_complete
+2026-08-28 09:51:44,815 [INFO] yamlgraph.utils.llm_factory: Creating LLM: inception/mercury-2 (temp=0)
+2026-08-28 09:51:46,316 [INFO] httpx2: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-28 09:51:46,328 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_pattern_sub completed successfully
+2026-08-28 09:51:46,407 [INFO] httpx2: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-28 09:51:46,409 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_pattern_sub completed successfully
+2026-08-28 09:51:46,509 [INFO] httpx2: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-28 09:51:46,511 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_pattern_sub completed successfully
+2026-08-28 09:51:46,542 [INFO] httpx2: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-28 09:51:46,543 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_pattern_sub completed successfully
+2026-08-28 09:51:46,661 [INFO] httpx2: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-28 09:51:46,711 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_pattern_sub completed successfully
+2026-08-28 09:51:46,712 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: pattern_barrier -> mark_patterns_complete
+2026-08-28 09:51:47,130 [INFO] httpx2: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-28 09:51:47,132 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_model_sub completed successfully
+2026-08-28 09:51:47,166 [INFO] httpx2: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-28 09:51:47,169 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_model_sub completed successfully
+2026-08-28 09:51:47,295 [INFO] httpx2: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-28 09:51:47,297 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_model_sub completed successfully
+2026-08-28 09:51:47,392 [INFO] httpx2: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-28 09:51:47,393 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_model_sub completed successfully
+2026-08-28 09:51:47,763 [INFO] httpx2: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-08-28 09:51:47,766 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_model_sub completed successfully
+2026-08-28 09:51:47,768 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: reduce_ledger -> reduce_ledger
+
+🚀 Running graph: graph.yaml
+   Variables: {'source': 'examples/demos/pattern_model_census/fixtures/commits.json', 'repo_alias': 'fixture-demo', 'output_path': 'tmp/pattern-model-census-fixture-ledger.md'}
+
+🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/09c0c2d4-5724-4301-bcee-e1b64ddeb80e/r/01a04723-82ad-79a2-a008-6584208cc2e4?poll=true
+============================================================
+RESULT
+============================================================
+  current_step: reduce_ledger
+  source: examples/demos/pattern_model_census/fixtures/commits.json
+  repo_alias: fixture-demo
+  output_path: tmp/pattern-model-census-fixture-ledger.md
+  items: ['1111111111111111111111111111111111111111', '2222222222222222222222222222222222222222', '3333333333333333333333333333333333333333', '4444444444444444444444444444444444444444', '5555555555555555555555...
+  contents: [{'_map_index': 0, 'repo': 'fixture-repo', 'sha': '1111111111111111111111111111111111111111', 'date': '2026-01-15T08:00:00+00:00', 'subject': 'feat(graph): add map-reduce adapter census using mercury-...
+  pattern_findings: [{'_map_index': 0, 'pattern': 'adapter'}, {'_map_index': 1, 'pattern': 'routing'}, {'_map_index': 2, 'pattern': 'state machine'}, {'_map_index': 3, 'pattern': 'redaction gate'}, {'_map_index': 4, 'pat...
+  model_findings: [{'_map_index': 0, 'model_mentioned': 'mercury-2'}, {'_map_index': 1, 'model_mentioned': 'inception'}, {'_map_index': 2, 'model_mentioned': None}, {'_map_index': 3, 'model_mentioned': None}, {'_map_in...
+  ledger: {'markdown_path': 'tmp/pattern-model-census-fixture-ledger.md', 'jsonl_path': 'tmp/pattern-model-census-fixture-ledger.jsonl', 'rows': 10, 'summary_rows': 10}
+  pattern_pass_complete: True
+  extraction_complete: True

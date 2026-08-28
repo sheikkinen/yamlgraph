@@ -1,0 +1,6 @@
+name: pattern-model-fixture-extract
+description: "Extract one fixture commit metadata record from commits.json."
+runtime:
+  type: python
+  path: fixture_tools.py
+  function: extract
