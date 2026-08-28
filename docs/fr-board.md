@@ -118,6 +118,7 @@
 | FR-889 | Judged | yamlgraph |  | FR-889-os-enforced-main-write-lock.md |
 | FR-897 | Judged | yamlgraph |  | FR-897-kurkistusopinnot-fresh-look-agent.md |
 | FR-898 | Judged | yamlgraph |  | FR-898-neo-waterfall-video-v2.md |
+| FR-899 | Judged | yamlgraph |  | FR-899-org-repo-census-azure.md |
 | FR-094 | Approved | yamlgraph |  | FR-094-memory-node.md |
 | FR-095 | Approved | yamlgraph |  | FR-095-doc-staleness-monitor.md |
 | FR-096 | Approved | yamlgraph |  | FR-096-fr-template-demo-plan.md |
@@ -486,6 +487,7 @@ graph TD
     FR-896["FR-896 Proposed"]
     FR-897["FR-897 Judged"]
     FR-898["FR-898 Judged"]
+    FR-899["FR-899 Judged"]
     FR-081 --> FR-082
     FR-731 --> FR-735
     FR-731 --> FR-736
