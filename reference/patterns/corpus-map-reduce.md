@@ -423,6 +423,14 @@ After running:
   the hidden-canary invariant (exact-label match → 0 hits under total
   vocabulary drift; family matching required). Run via
   [scripts/diary_census.sh](../../scripts/diary_census.sh).
+- [FR-895 Census Synthesize Tail](../../feature-requests/FR-895-census-synthesize-tail.md)
+  (enforced 2026-08-27): the render stage's human-reader half —
+  one pinned synthesis call over the REDUCED artifact producing a cited
+  brief, validated by an LLM-free citation boundary (every narrative
+  claim must resolve to a real ledger row; fail closed). Restores the
+  stage lost through the optional→deleted lineage (diary
+  2026-08-27-optional-is-where-value-goes-to-die.md): every shipped
+  stage had a machine reader; none had the human.
 - [Recap graph](../../examples/demos/recap/graph.yaml): deterministic Git
   collection and one bounded synthesis judgement; useful for quiet windows,
   narrower than exhaustive per-item reconciliation.
