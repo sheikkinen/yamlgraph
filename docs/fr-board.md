@@ -116,6 +116,7 @@
 | FR-885 | Judged | yamlgraph |  | FR-885-deploy-watch-outside-session.md |
 | FR-886 | Judged | yamlgraph |  | FR-886-judge-route-adoption-nudge.md |
 | FR-889 | Judged | yamlgraph |  | FR-889-os-enforced-main-write-lock.md |
+| FR-897 | Judged | yamlgraph |  | FR-897-kurkistusopinnot-fresh-look-agent.md |
 | FR-094 | Approved | yamlgraph |  | FR-094-memory-node.md |
 | FR-095 | Approved | yamlgraph |  | FR-095-doc-staleness-monitor.md |
 | FR-096 | Approved | yamlgraph |  | FR-096-fr-template-demo-plan.md |
@@ -223,6 +224,7 @@
 | FR-879 | Proposed | yamlgraph |  | FR-879-image-pipeline-v2-critic-filter.md |
 | FR-882 | Proposed | yamlgraph |  | FR-882-scp-generator-private-framework.md |
 | FR-887 | Proposed | yamlgraph |  | FR-887-forensics-evidence-timeline-graph.md |
+| FR-896 | Proposed | yamlgraph |  | FR-896-research-route-precedent-traceability.md |
 | FR-078 | In Progress | yamlgraph |  | FR-078-relocate-project-tests.md |
 | FR-100 | In Progress | yamlgraph |  | FR-100-yamlgraph-development-pipeline-ebook.md |
 | FR-169 | In Progress | yamlgraph |  | FR-169-enforce-reflexion-loop.md |
@@ -478,6 +480,8 @@ graph TD
     FR-886["FR-886 Judged"]
     FR-887["FR-887 Proposed"]
     FR-889["FR-889 Judged"]
+    FR-896["FR-896 Proposed"]
+    FR-897["FR-897 Judged"]
     FR-081 --> FR-082
     FR-731 --> FR-735
     FR-731 --> FR-736
