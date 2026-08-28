@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Bug + Enhancement
-**Status:** Approved (with revisions folded) — 2026-08-28
+**Status:** Enforced — 2026-08-28 (all ACs green; report reconciles with the August invoice within ~5%)
 **Effort:** 0.5 days
 **Requested:** 2026-08-28
 **First consumer / first event:** The operator, reconciling the August 2026
@@ -108,36 +108,36 @@ Minimal path back from the ideal, all inside `scripts/vscode/ledger.py`
 
 ## Acceptance Criteria (revised per judgement, binding)
 
-- [ ] AC-01: `parse_price_sheet(data)` on a fixture containing
+- [x] AC-01: `parse_price_sheet(data)` on a fixture containing
   `token_prices.default.cache_read_price: 100`, `cache_write_price: 1250`,
   `input_price: 1000`, `output_price: 5000` returns
   `{"in": 1000, "out": 5000, "cache": 100, "cache_w": 1250}` — RED first
   against the current `cache_price` reader.
-- [ ] AC-02: `load_prices()` delegates JSON parsing to `parse_price_sheet`
+- [x] AC-02: `load_prices()` delegates JSON parsing to `parse_price_sheet`
   after selecting the newest models.json; filesystem absence / unreadable
   JSON preserves existing empty-price behavior; parse errors are not hidden
   inside `parse_price_sheet`.
-- [ ] AC-03: `credits(prices, "claude-fable-5", 1_000_000, 0)` best ≈ 143 cr
+- [x] AC-03: `credits(prices, "claude-fable-5", 1_000_000, 0)` best ≈ 143 cr
   (`0.02×(1000+1250) + 0.98×100`), worst exactly 1000 cr before output.
-- [ ] AC-04: `UNKNOWN_MODEL_PRICE` includes `cache_w`; unknown-model
+- [x] AC-04: `UNKNOWN_MODEL_PRICE` includes `cache_w`; unknown-model
   estimation remains conservative relative to fable.
-- [ ] AC-05: workspace/repo resolution tested from tmp `workspace.json`
+- [x] AC-05: workspace/repo resolution tested from tmp `workspace.json`
   fixtures for `folder`, `workspace`, `configuration` forms, with
   hash-prefix fallback.
-- [ ] AC-06: `iter_requests()` yields the resolved repo name in addition to
+- [x] AC-06: `iter_requests()` yields the resolved repo name in addition to
   its current fields; `tap_seam_report()` unpacks the new shape and still
   returns a report instead of raising.
-- [ ] AC-07: `--month 2026-08 --by-repo` groups fixture requests by
+- [x] AC-07: `--month 2026-08 --by-repo` groups fixture requests by
   `(repo, model)`, sorts by best-bound cost descending, prints per-repo
   totals and a grand total (exercised with monkeypatched `WS_STORAGE`).
-- [ ] AC-08: stale anchor-2 cache-pricing claim removed/rewritten; August
+- [x] AC-08: stale anchor-2 cache-pricing claim removed/rewritten; August
   2026 invoice anchor ($7,500, two devices, this device $3,927 best-bound)
   recorded in the module docstring.
-- [ ] AC-09: `python3 scripts/vscode/ledger.py --help` and `--tap` exit 0.
-- [ ] AC-10: tests in `tests/unit/test_vscode_ledger.py` with
+- [x] AC-09: `python3 scripts/vscode/ledger.py --help` and `--tap` exit 0.
+- [x] AC-10: tests in `tests/unit/test_vscode_ledger.py` with
   `@pytest.mark.req("REQ-YG-626")`; `capabilities/CAP-251-*.yaml` defines
   that requirement.
-- [ ] AC-11: `changelog/unreleased/*.md` fix fragment names FR-900 and
+- [x] AC-11: `changelog/unreleased/*.md` fix fragment names FR-900 and
   REQ-YG-626.
 
 ## Alternatives Considered
