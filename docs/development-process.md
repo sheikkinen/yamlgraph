@@ -32,6 +32,7 @@ flowchart TB
         C[CLAUDE.md<br/>dev commands + rules]
         R[reference/*.md<br/>canonical patterns]
         A[ARCHITECTURE.md<br/>generated REQ table]
+        SK[.github/skills/<br/>doctrine.md + adapters]
     end
 
     subgraph PIPELINE["Chaplain pipeline (autonomous)"]
@@ -96,6 +97,24 @@ Doctrine is not advisory. Every rule maps to a mechanical gate:
 | 3-layer architecture (cli → logic → tools) | `import-linter` (`.importlinter`), CI `lint-imports` |
 | Linter must stay LLM-free | forbidden-import contract on `yamlgraph.linter` |
 | Reflection after every FR | CI `diary-gate` + `diary-reflection-check` (substance, not presence) |
+
+### 2.1 Doctrine is federated: the skills layer
+
+Since the sole-route FRs (FR-767 and the judge/review contracts), doctrine no longer lives in
+one file. Three skills under [.github/skills/](../.github/skills/) carry their own canonical
+`doctrine.md` that the Scripture *defers to* — the Scripture names the contract, the skill
+defines it, an adapter script executes it, and a mechanical layer enforces the route:
+
+| Skill | Canonical contract | Sole execution route | Enforcing mechanism |
+|---|---|---|---|
+| `graph-authoring` | `doctrine.md` (the ONLY way to author graphs) | `scripts/author.sh` via adapter | FR-767 PreToolUse sentinel guard: adapter arms a per-run sentinel; unsentineled writes to governed graph paths denied |
+| `judge-fr` | `doctrine.md` (rubric, verdicts, input closure) | `scripts/judge.sh` → judge graph | Atomic lock, `JUDGE_EXECUTION` lineage sentinel (NC-414 re-entry guard), artifact contract (`tmp/draft-judgement.md` with verdict line — verified by artifact, never exit code) |
+| `review-pr` | `doctrine.md` (review vs frozen scope) | `scripts/review.sh` → review graph | Same pattern: lock + lineage sentinel + draft-review artifact contract |
+| `chaplain-ops` · `check-langsmith-trace` · `feature-request` · `release-version` · `run-code-analysis` · `session-introspection` | SKILL.md only (operational knowledge) | none — procedures, not routes | ordinary Ring 2–4 gates |
+| [.github/agents/code-analysis.agent.md](../.github/agents/code-analysis.agent.md) | agent definition (autonomous analysis) | `runSubagent` | read-only analysis; recommendations enter via inbox/FRs |
+
+The skills↔hooks edge is the notable one: the FR-767 guard is a Ring-1 hook whose *policy is
+defined in a skill* — hook-side detail in [.github/hooks/README.md](../.github/hooks/README.md).
 
 ---
 
@@ -238,7 +257,8 @@ flowchart TB
     subgraph R1["Ring 1 — Copilot hooks (per tool call)"]
         h1["pre-command-guard: blocks --no-verify,<br/>Co-authored-by, multiline commit -m"]
         h2["post-edit checks: python/yaml/markdown/FR"]
-        h3["audit trail: hooks/logs/audit.jsonl"]
+        h3["sole-route guard (FR-767): sentineled adapter<br/>runs allowed; unsentineled writes to governed<br/>graph artifacts denied"]
+        h4["audit trail: hooks/logs/audit.jsonl"]
     end
     subgraph R2["Ring 2 — pre-commit (per commit)"]
         p1["ruff · radon · vulture · jscpd · import-linter"]
