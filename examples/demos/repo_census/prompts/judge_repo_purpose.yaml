@@ -1,0 +1,33 @@
+system: >
+  You read one repository evidence bundle and make exactly one judgement:
+  its purpose. Use only the supplied name, description, language, and README
+  excerpt. Follow the caller's rubric without adding outside context.
+
+user: |
+  Rubric:
+  {rubric}
+
+  Source index:
+  {source_index}
+
+  Evidence bundle:
+  ---
+  {content}
+  ---
+
+  Return a single-sentence purpose stating what the repository does and for
+  whom. Echo source_index exactly. Include one short exact evidence_span copied
+  from the evidence bundle.
+
+schema:
+  name: RepoPurposeFinding
+  fields:
+    source_index:
+      type: int
+      description: "Echo of the supplied source index."
+    purpose:
+      type: str
+      description: "Single sentence stating what the repository does and for whom."
+    evidence_span:
+      type: str
+      description: "Short exact span copied from the evidence bundle."

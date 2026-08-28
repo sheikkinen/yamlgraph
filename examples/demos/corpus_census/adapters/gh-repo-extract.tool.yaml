@@ -1,0 +1,6 @@
+name: gh-repo-extract
+description: "FR-899 org repo census adapter: gh_repo_extract"
+runtime:
+  type: python
+  path: corpus_adapters.py
+  function: gh_repo_extract

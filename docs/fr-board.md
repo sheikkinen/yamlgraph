@@ -121,7 +121,6 @@
 | FR-889 | Judged | yamlgraph |  | FR-889-os-enforced-main-write-lock.md |
 | FR-897 | Judged | yamlgraph |  | FR-897-kurkistusopinnot-fresh-look-agent.md |
 | FR-898 | Judged | yamlgraph |  | FR-898-neo-waterfall-video-v2.md |
-| FR-899 | Judged | yamlgraph |  | FR-899-org-repo-census-azure.md |
 | FR-902 | Judged | yamlgraph |  | FR-902-session-worktree-lifecycle.md |
 | FR-909 | Judged | yamlgraph |  | FR-909-retire-a2a-surface.md |
 | FR-910 | Judged | yamlgraph |  | FR-910-retire-mcp-surface.md |
@@ -251,6 +250,7 @@
 | FR-736 | In Progress | yamlgraph |  | FR-736-webllm-demo-trace-capture.md |
 | FR-796 | In Progress | yamlgraph |  | FR-796-reclassify-watcher2-witness-demos.md |
 | FR-896 | In Progress | yamlgraph |  | FR-896-cross-repo-pattern-model-census.md |
+| FR-899 | In Progress | yamlgraph |  | FR-899-org-repo-census-azure.md |
 | FR-273 | Draft | yamlgraph |  | FR-273-watcher2-pipeline.md |
 | FR-307 | Draft | yamlgraph |  | FR-307-yamlgraph-async-action-logging.md |
 | FR-317 | Draft | yamlgraph |  | FR-317-retire-obsolete-watcher2-components.md |
@@ -498,7 +498,7 @@ graph TD
     FR-897["FR-897 Judged"]
     FR-898["FR-898 Judged"]
     FR-898["FR-898 PARSE-FAILURE"]
-    FR-899["FR-899 Judged"]
+    FR-899["FR-899 In Progress"]
     FR-900["FR-900 PARSE-FAILURE"]
     FR-902["FR-902 Judged"]
     FR-903["FR-903 Proposed"]
