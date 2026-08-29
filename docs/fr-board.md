@@ -122,6 +122,9 @@
 | FR-897 | Judged | yamlgraph |  | FR-897-kurkistusopinnot-fresh-look-agent.md |
 | FR-898 | Judged | yamlgraph |  | FR-898-neo-waterfall-video-v2.md |
 | FR-899 | Judged | yamlgraph |  | FR-899-org-repo-census-azure.md |
+| FR-902 | Judged | yamlgraph |  | FR-902-session-worktree-lifecycle.md |
+| FR-909 | Judged | yamlgraph |  | FR-909-retire-a2a-surface.md |
+| FR-910 | Judged | yamlgraph |  | FR-910-retire-mcp-surface.md |
 | FR-094 | Approved | yamlgraph |  | FR-094-memory-node.md |
 | FR-095 | Approved | yamlgraph |  | FR-095-doc-staleness-monitor.md |
 | FR-096 | Approved | yamlgraph |  | FR-096-fr-template-demo-plan.md |
@@ -497,11 +500,14 @@ graph TD
     FR-898["FR-898 PARSE-FAILURE"]
     FR-899["FR-899 Judged"]
     FR-900["FR-900 PARSE-FAILURE"]
+    FR-902["FR-902 Judged"]
     FR-903["FR-903 Proposed"]
     FR-904["FR-904 Proposed"]
     FR-905["FR-905 Proposed"]
     FR-906["FR-906 Proposed"]
     FR-908["FR-908 PARSE-FAILURE"]
+    FR-909["FR-909 Judged"]
+    FR-910["FR-910 Judged"]
     FR-081 --> FR-082
     FR-731 --> FR-735
     FR-731 --> FR-736
