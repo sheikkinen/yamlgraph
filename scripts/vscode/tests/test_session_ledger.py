@@ -82,7 +82,7 @@ def write_store(
             "v": _request("first prompt", "copilot/model-a", ts),
         },
         # intermediate credits patch — must NEVER be summed with the final
-        {"kind": 1, "k": ["requests", 0, "copilotCredits"], "v": 10.0},
+        # (inserted below only when credits=True; a credits-less turn has none)
         {"kind": 1, "k": ["requests", 0, "promptTokens"], "v": 1000},
         {"kind": 1, "k": ["requests", 0, "completionTokens"], "v": 200},
         # two response parts, then splice-delete the first
@@ -118,6 +118,7 @@ def write_store(
         {"kind": 1, "k": ["customTitle"], "v": "Fixture Session Title"},
     ]
     if credits:
+        recs.insert(2, {"kind": 1, "k": ["requests", 0, "copilotCredits"], "v": 10.0})
         recs.append({"kind": 1, "k": ["requests", 0, "copilotCredits"], "v": 42.5})
         recs.append({"kind": 1, "k": ["requests", 1, "copilotCredits"], "v": 7.5})
     path = chat / f"{session_id}.jsonl"

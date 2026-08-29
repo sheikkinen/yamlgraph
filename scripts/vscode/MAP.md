@@ -93,9 +93,11 @@ this file when territory changes state (dark → probed → instrumented).
 1. **Flush advisory at ~650K** (86% of witnessed floor) in now.py —
    the one signal protecting agent memory; calibration exists, seed
    named in two diaries. Cheap; FR-739 territory (amendment).
-2. **Third UI anchor** — one manual reading of the UI credit figure vs
-   tap total for the same window. If within ~2%, calibration is
-   invoice-grade and strike 2 dies unneeded. Cheapest possible step.
+2. **Third UI anchor** — CLOSED by FR-898 (2026-08-29): chatSessions
+   persists exact per-request `copilotCredits` (visible only under
+   full patch replay — kind 0/1/2 incl. splice-delete). No manual UI
+   reading needed; `session_ledger.py` reports exact figures and
+   strike 2 dies unneeded for costing.
 3. **CLI sessions into the ledger** — `copilotcli:/` entries in
    ChatSessionStore.index are costed nowhere today; chaplain/watcher
    runs are invisible spend. Probe first: do CLI sessions write

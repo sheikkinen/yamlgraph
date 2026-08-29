@@ -1829,3 +1829,9 @@ The ID ranges are:
 - **Code**: E402
 - **Sin**: `import session_ledger` after a `sys.path.insert` — module-level import not at top.
 - **Penance**: script-adjacent test outside the installable package; path bootstrap must precede the import (CONF-392/393/394/396 idiom).
+
+### CONF-426
+- **File**: [scripts/vscode/session_ledger.py](../scripts/vscode/session_ledger.py#L40)
+- **Code**: E402
+- **Sin**: `from ledger import ...` after a `sys.path.insert` — module-level import not at top.
+- **Penance**: script-adjacent module reusing the sibling ledger's price machinery (judged "reuse, don't fork"); path bootstrap must precede the import (CONF-392/393/394/396 idiom).

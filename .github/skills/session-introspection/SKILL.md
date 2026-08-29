@@ -33,6 +33,7 @@ Answers before you act:
 |---|---|
 | `scripts/vscode/stores.py` | Where does session data live, how big, which workspaces active? |
 | `scripts/vscode/ledger.py --by-model` | Requests/tokens/cost-range per day and per model, all workspaces |
+| `scripts/vscode/session_ledger.py --csv --all-workspaces` | **What did each session do and cost, per request?** — exact vendor-persisted `copilotCredits` via full patch replay; prompts, per-turn summaries, model, workspace per row (FR-898). Markdown per session or pivot-ready CSV; `--session <id>`, `--window <hours>` |
 | `scripts/vscode/portrait.py` | Recent session titles + measured same-hour concurrency per day |
 | `scripts/vscode/timesheet.py --month YYYY-MM` | Day-grouped "what did I work on" report across a date range — repo, branch, one-line description per session (`--repo <substr>` to scope one project) |
 | `docs/fr-board.md` (or `python3 scripts/fr_board.py --project projects/ninchat_voice` for the cross-repo view) | **What's next?** — the plan-state board (FR-740): active FRs, gates with owners and pre-drafted questions, parse-failure rows exposing status lag. Read this BEFORE re-deriving priorities from FR files by hand |

@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Judged — APPROVED WITH REVISIONS (2026-08-29); R-1…R-5 folded below (operator decisions: intent classification OUT — deferred to a follow-up FR; verbatim prompts IN — local-only policy). Judgement: [FR-898-session-accountability-report.judgement.md](FR-898-session-accountability-report.judgement.md)
+**Status:** Implemented — enforced 2026-08-29 on `feat/fr-898` (RED→GREEN, 10 fixture witnesses). Judged APPROVED WITH REVISIONS (2026-08-29); R-1…R-5 folded below (operator decisions: intent classification OUT — deferred to a follow-up FR; verbatim prompts IN — local-only policy). Judgement: [FR-898-session-accountability-report.judgement.md](FR-898-session-accountability-report.judgement.md)
 **Effort:** 0.5 day
 **Requested:** 2026-08-29
 **First consumer / first event:** the operator answering "what did today's sessions do and what did each cost" — at the first invocation of the report after merge, per session: prompts, per-turn summaries, models, repo, credits
@@ -172,41 +172,41 @@ the seam is the `--csv` row schema, which a hook writer would have to match.
 
 ## Acceptance Criteria (revised per judgement)
 
-- [ ] AC-01: fixture tests materialize a `chatSessions/*.jsonl` patch
+- [x] AC-01: fixture tests materialize a `chatSessions/*.jsonl` patch
       log by replaying kind 0 snapshot, kind 1 set, kind 2 insert, and
       kind 2 splice-delete records with last-write-wins semantics;
       intermediate `copilotCredits` patches are never summed.
-- [ ] AC-02: fixture tests prove prompt, request timestamp, per-request
+- [x] AC-02: fixture tests prove prompt, request timestamp, per-request
       `modelId`, final `copilotCredits`, token counts, `generatedTitle`
       summary, session title, session ID, creation date, and
       workspace/repo mapping are joined into request rows.
-- [ ] AC-03: a fixture with absent `copilotCredits` reports a
+- [x] AC-03: a fixture with absent `copilotCredits` reports a
       token-price fallback range from `models.json` and marks the row
       with `unavailable_reason`; never a fabricated point value.
-- [ ] AC-04: malformed/truncated JSONL fixtures exercise the R-2
+- [x] AC-04: malformed/truncated JSONL fixtures exercise the R-2
       policy: explicit-request → hard error; scan → skip with stderr
       report + `unavailable_reason` row excluded from totals; never
       silent omission.
-- [ ] AC-05: running against the real store reproduces the receipt
+- [x] AC-05: running against the real store reproduces the receipt
       ([FR-898.receipt.md](FR-898.receipt.md)): request 1 final credits
       378.70 (not the intermediate 69.76/46.77 an unpatched scan
       returns) and the mid-session model switch labeled per request via
       `requests[].modelId`.
-- [ ] AC-06: `--csv` emits exactly one header and one row per request
+- [x] AC-06: `--csv` emits exactly one header and one row per request
       across multiple session files with the column set in §1 including
       `unavailable_reason`.
-- [ ] AC-07: the default report includes replay-recovered per-turn
+- [x] AC-07: the default report includes replay-recovered per-turn
       `generatedTitle` values as `summary`; no `intent` field is
       emitted (deferred per R-3).
-- [ ] AC-08: read-only witnessed — stores opened read-only; output only
+- [x] AC-08: read-only witnessed — stores opened read-only; output only
       to stdout or `--out` under the R-4 policy (`--out` refuses
       repo-internal paths without `--allow-repo-output`).
-- [ ] AC-09: session-introspection skill table gains the
+- [x] AC-09: session-introspection skill table gains the
       `session_ledger.py` row; `scripts/vscode/README.md` updated;
       `ledger.py` docstring's "not persisted locally" claim corrected
       and MAP.md's third-anchor entry closed (upgrading `ledger.py`
       itself is a separate follow-up, not this FR).
-- [ ] AC-10: changelog fragment in `changelog/unreleased/`.
+- [x] AC-10: changelog fragment in `changelog/unreleased/`.
 
 ## Out of scope (purge list)
 
@@ -294,3 +294,24 @@ deferred out (operator decision); verbatim prompts in with local-only
 `--out` policy (operator decision); monthly aggregation + anomaly
 section ruled OUT of FR-898 — the diary Seed graduates to a follow-up
 FR, not this one.
+
+**2026-08-29 (enforced, worktree `feat/fr-898`):** RED first —
+`scripts/vscode/tests/test_session_ledger.py`, 10 witnesses on
+synthetic fixtures exercising all four record shapes (snapshot / set /
+insert / splice-delete), last-write-wins credits, title→answer-line
+summary chain, CSV schema (14 columns incl. `unavailable_reason`),
+credits-absent estimate RANGE, R-2 malformed policy (explicit → hard
+error; scan → skip + stderr + reason row), `--window` scoping,
+read-only stores, and the R-4 `--out` repo-path refusal. GREEN —
+`scripts/vscode/session_ledger.py` absorbs the prototype (which is
+deleted, not shipped) and reuses `ledger.py` price machinery
+(`load_prices`, `CACHE_RATIO_BEST`, `UNKNOWN_MODEL_PRICE`; import, not
+fork). AC-05 live receipt re-run with the shipped script: all stable
+assertions reproduced (378.70 final credits, model switch at request
+23, "Blocked by hook" title, untitled turns 17/18/21/23 summarized
+from answer first line); session had grown to 34 requests / 3517.9 cr,
+zero estimated rows. D-4 docs updated: session-introspection SKILL
+row, scripts/vscode/README.md (cookbook + spikes table), ledger.py
+stale "no local spend record" docstring corrected, MAP.md third-anchor
+direction CLOSED. D-5 changelog fragment added. Deviations: none
+beyond the judged fold.

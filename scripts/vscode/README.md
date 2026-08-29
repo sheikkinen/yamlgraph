@@ -42,6 +42,25 @@ python3 scripts/vscode/ledger.py --by-model # + per-model breakdown
 python3 scripts/vscode/ledger.py --tap      # + seam reconciliation vs tap
 ```
 
+**Per-session accountability — exact credits, prompts, per-turn
+summaries** (FR-898; full patch replay, so figures are final values,
+not stale intermediates):
+
+```bash
+python3 scripts/vscode/session_ledger.py <session.jsonl>        # markdown
+python3 scripts/vscode/session_ledger.py --csv --all-workspaces # pivot-ready CSV
+python3 scripts/vscode/session_ledger.py --csv --session <id>
+python3 scripts/vscode/session_ledger.py --csv --all-workspaces --window 24
+```
+
+The platform DOES persist exact per-request `copilotCredits` in
+chatSessions (discovered 2026-08-29 — supersedes the "no local spend
+record" assumption below); session_ledger.py reads them via full
+replay and only falls to a price-sheet estimate RANGE
+(`unavailable_reason` column) when a turn carries none. Rows carry
+verbatim prompts: stdout/`--out` only, `--out` refuses repo-internal
+paths (R-4), reports are never committed.
+
 **How the two relate:** ledger.py estimates from chatSessions
 (`promptTokens` records only the LAST tool-call round → billed ≈
 rounds × recorded; anchor-2 calibration). tap.py reads exact per-call
@@ -146,7 +165,8 @@ watches *graph workflows*, this tap watches *editor sessions*.
 | Script | Angle | Question it answers |
 |---|---|---|
 | `stores.py` | Habitat | Where does session data live, how big, which workspaces, what's active now? |
-| `ledger.py --by-model` | Metabolism | Requests/tokens per period (today / this month / previous month / all-time) and per model, all workspaces; **estimated credits** from the per-model price sheets (1 cr = $0.01, calibrated 2026-07-16). No balance history is persisted locally (verified) — the UI's credit figure is fetched live, so absolute credits need one calibration anchor; relative attribution is solid |
+| `ledger.py --by-model` | Metabolism | Requests/tokens per period (today / this month / previous month / all-time) and per model, all workspaces; **estimated credits** from the per-model price sheets (1 cr = $0.01, calibrated 2026-07-16). Predates the FR-898 discovery that chatSessions persists exact per-request `copilotCredits` (full replay required); relative attribution is solid |
+| `session_ledger.py` | Accountability | Per-request ledger from full patch replay (FR-898): exact vendor-persisted `copilotCredits`, verbatim prompt, per-turn summaries, model, workspace. Markdown per session or pivot-ready CSV (`--csv`, `--all-workspaces`, `--session`, `--window`); malformed stores skip-with-reason on scans, fail hard when named |
 | `portrait.py` | Memory | What was worked on: chronicle summaries + session titles + most-touched files + measured session parallelism per day |
 | `now.py` | Situation board | Live sessions (titles, models, recency) × git state per implicated repo (branch, STAGED files, recent commits with FR/NC refs) × FRs in motion × interleave-hazard flags. The session-start briefing, reception rung 2 |
 | `todos.py` | Last-known intentions | Every session's frozen todo list (memento/chat-todo-list, all workspaces): CLEAN CLOSE / DIED OPEN / LIVE OPEN, orphaned open intentions with title + recency. The graveyard of plans |
