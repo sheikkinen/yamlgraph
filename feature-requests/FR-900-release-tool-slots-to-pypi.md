@@ -73,41 +73,76 @@ itself is unremarkable: the existing checklist, run.
 
 ## Proposed Solution
 
-Follow `reference/release-checklist.md` verbatim. No new mechanism.
+Use the canonical release path. No new mechanism, and no hand-rolled
+sequence — `scripts/release.sh` owns every state change (R-1):
 
 ```bash
-VERSION="0.5.23"
-mkdir -p "changelog/${VERSION}"
-mv changelog/unreleased/*.md "changelog/${VERSION}/"
-python scripts/aggregate_changelog.py > CHANGELOG.md
-# bump pyproject, commit, push, tag — hook cascade per the checklist
+scripts/release.sh <version>
+git push && git push --tags
 ```
 
-Verification that the release actually carries the feature, rather than
-trusting the version number:
+`<version>` must be the next unclaimed version **above the current source
+version** (`pyproject.toml` reads `0.5.22` while the `v0.5.22` tag points
+at an older commit, so the bump is against the file, not the tag) and
+absent from PyPI and from local/remote tags.
+
+`scripts/release.sh` freezes `changelog/unreleased/` into
+`changelog/<version>/`, bumps **both** `pyproject.toml` and
+`yamlgraph/__init__.py`, regenerates `CHANGELOG.md`, commits exactly those
+files, and creates the `v<version>` tag. The tag then triggers the
+existing build/publish workflow. There is no manual fallback in this FR:
+reproducing those steps by hand is how the `__init__.py` bump gets missed.
+
+### Verification, by artifact rather than by version number
+
+Help surface:
 
 ```bash
-python -m venv /tmp/relcheck && /tmp/relcheck/bin/pip install 'yamlgraph==0.5.23'
-/tmp/relcheck/bin/yamlgraph graph run --help | grep -- --tool
+python -m venv /tmp/yamlgraph-relcheck
+/tmp/yamlgraph-relcheck/bin/pip install "yamlgraph==<version>"
+/tmp/yamlgraph-relcheck/bin/yamlgraph graph run --help | grep -- '--tool'
 ```
 
-`pyproject.toml` already reads `version = "0.5.22"` while the `v0.5.22`
-tag points at an older commit, so the bump must land on a number above
-the current file value, not above the tag.
+Slot smoke, run from **outside any yamlgraph checkout** — necessary
+because `examples*` is excluded from the wheel, so the fixture must be
+copied rather than imported (R-2):
+
+```bash
+tmpdir="$(mktemp -d)"
+cp -R examples/demos/corpus_census "$tmpdir/corpus_census"
+cd "$tmpdir/corpus_census"
+/tmp/yamlgraph-relcheck/bin/yamlgraph graph run graph.yaml \
+  --tool discover=fixtures/discover.tool.yaml \
+  --tool extract=fixtures/extract.tool.yaml \
+  --var source=fixtures/corpus \
+  --var rubric="classify each document's main topic in one word" \
+  --var output_path="$tmpdir/corpus-census-ledger.md" \
+  --var brief_path="$tmpdir/census-brief.md" \
+  --var brief_rubric="What does this corpus cover overall?"
+```
 
 ## Acceptance Criteria
 
+- [ ] `scripts/release.sh <version>` runs with `<version>` above the
+      current source version and absent from PyPI and from git tags
+- [ ] The release commit changes only release-owned surfaces:
+      `changelog/<version>/`, `CHANGELOG.md`, `pyproject.toml`,
+      `yamlgraph/__init__.py`
+- [ ] `pyproject.toml` and `yamlgraph/__init__.py` both carry
+      `<version>`, and `changelog/unreleased/` holds no `.md` fragments
 - [ ] A release tag exists whose commit has `06d1dfe4` as an ancestor
-      (`git merge-base --is-ancestor 06d1dfe4 <tag>` exits 0)
-- [ ] `pip install yamlgraph==<version>` into a clean venv, and
-      `yamlgraph graph run --help` lists `--tool`
-- [ ] A slot-bound graph runs end to end from that clean venv — the
-      `examples/demos/corpus_census` fixture pair is the smoke, executed
-      from a directory that is **not** a yamlgraph checkout
-- [ ] `changelog/unreleased/` is frozen into `changelog/<version>/` and
-      `CHANGELOG.md` regenerated
-- [ ] The `examples*`-excluded-from-wheel finding is recorded in the FR
-      Related section, with no code change in this FR
+      (`git merge-base --is-ancestor 06d1dfe4 v<version>` exits 0)
+- [ ] The tag workflow publishes `yamlgraph==<version>`, or enforcement
+      records the failed workflow URL and stops without bypassing release
+      infrastructure
+- [ ] In a fresh venv outside the repository,
+      `pip install "yamlgraph==<version>"` succeeds and
+      `yamlgraph graph run --help | grep -- '--tool'` exits 0
+- [ ] The exact R-2 smoke, run from a copied `corpus_census` directory
+      outside any yamlgraph checkout, exits 0 and writes both the ledger
+      and the brief
+- [ ] The `examples*` wheel-exclusion finding remains recorded in Related,
+      with no packaging-policy code change in this FR
 
 ## Alternatives Considered
 
