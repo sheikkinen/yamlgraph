@@ -325,10 +325,32 @@ def brief_lines() -> list[str]:
     except Exception:
         lines.append("altimeter: unavailable (tap not armed?)")
     for repo in sorted(repos):
-        if (repo / "docs/fr-board.md").is_file():
-            lines.append(f"plan state: {repo / 'docs/fr-board.md'}")
+        state = live_plan_state(repo)
+        if state:
+            lines.append(state)
             break
     return lines[:15]
+
+
+def live_plan_state(repo: Path) -> str | None:
+    """Active-FR count computed live (FR-858: the committed board is retired).
+
+    C-5: a failure is surfaced, never silently downgraded to stale state.
+    """
+    board = repo / "scripts" / "fr_board.py"
+    if not board.is_file():
+        return None
+    try:
+        import sys as _sys
+
+        _sys.path.insert(0, str(repo / "scripts"))
+        import fr_board  # noqa: PLC0415  # CONF-435
+
+        gates = fr_board.load_gates(repo / "feature-requests" / "gates.yaml")
+        rows = fr_board.active_rows(fr_board.collect_rows(repo))
+        return f"plan state: {len(rows)} active FRs, {len(gates)} gates (live)"
+    except Exception as exc:  # noqa: BLE001  # CONF-436
+        return f"plan state: unavailable ({type(exc).__name__}: {exc})"
 
 
 def main() -> None:
@@ -363,14 +385,12 @@ def main() -> None:
     for repo, name, status in frs_in_motion(repos, window_s):
         print(f"  {repo:<16} {status:<22} {name}")
 
-    # FR-740: plan-state pointer — live state is here, plan state is the board
+    # FR-740 plan state, computed live (FR-858 retired the committed board)
     for repo in sorted(repos):
-        board = repo / "docs/fr-board.md"
-        if board.is_file():
-            n_rows = sum(
-                1 for ln in board.open(errors="replace") if ln.startswith("| ")
-            )
-            print(f"\nplan state: {board} ({max(n_rows - 1, 0)} active rows)")
+        state = live_plan_state(repo)
+        if state:
+            print(f"\n{state}")
+            print("  full board: python scripts/fr_board.py")
 
     # deep history is a graph away (examples/demos/recap): narrative recap
     # of any window — workstreams + orphan commits, one LLM judgement

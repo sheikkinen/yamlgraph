@@ -1598,7 +1598,7 @@ These are not `# noqa` suppressions — they are documented deviations from proc
 - **Penance**: the spike suite lives outside the package; the path bootstrap must precede the import. Same idiom as any script-adjacent test without an installable package.
 
 ### CONF-393
-- **File**: [scripts/tests/test_fr_board.py](../scripts/tests/test_fr_board.py#L29)
+- **File**: [scripts/tests/test_fr_board.py](../scripts/tests/test_fr_board.py#L30)
 - **Code**: E402
 - **Sin**: `import fr_board` after a `sys.path.insert` — module-level import not at top.
 - **Penance**: script-adjacent test outside the installable package; path bootstrap must precede the import (CONF-392 idiom).
@@ -1847,3 +1847,33 @@ The ID ranges are:
 - **Code**: S607
 - **Sin**: `gh` invoked by partial path in the FR-899 census adapters.
 - **Penance**: gh is PATH-resolved by design (developer tooling); same pattern as CONF-423/426.
+
+### CONF-432
+- **File**: [scripts/tests/test_fr858_board_retirement.py](../scripts/tests/test_fr858_board_retirement.py#L27)
+- **Code**: S603
+- **Sin**: `subprocess.run(["git", "ls-files", ...])` without shell escaping analysis.
+- **Penance**: fixed argument list, no user input; `git` is PATH-resolved by design in developer tooling (CONF-423/426/431 pattern). The test must ask git the tracking question — no library answer exists.
+
+### CONF-433
+- **File**: [scripts/tests/test_fr858_board_retirement.py](../scripts/tests/test_fr858_board_retirement.py#L45)
+- **Code**: S603
+- **Sin**: `subprocess.run([sys.executable, "scripts/fr_board.py"])` in the stdout/no-write witness.
+- **Penance**: FR-858 AC-04/AC-07 witness the *CLI contract* (stdout only, writes nothing); invoking the module in-process would not exercise the surface under test. `sys.executable` and a literal script path, no user input.
+
+### CONF-434
+- **File**: [scripts/tests/test_fr858_board_retirement.py](../scripts/tests/test_fr858_board_retirement.py#L59)
+- **Code**: S603
+- **Sin**: `subprocess.run([sys.executable, "scripts/fr_board.py", *flag])` proving retired flags are rejected.
+- **Penance**: same CLI-contract rationale as CONF-433; `flag` iterates a literal tuple defined in the test, never external input.
+
+### CONF-435
+- **File**: [scripts/vscode/now.py](../scripts/vscode/now.py#L347)
+- **Code**: PLC0415
+- **Sin**: `import fr_board` inside `live_plan_state()` rather than at module top.
+- **Penance**: FR-858 — `now.py` is a standalone script; `fr_board` lives in a sibling directory reachable only after a per-repo `sys.path` insert, and the repo under inspection is a runtime argument. A top-level import would bind one repo at import time and break the multi-repo scan.
+
+### CONF-436
+- **File**: [scripts/vscode/now.py](../scripts/vscode/now.py#L352)
+- **Code**: BLE001
+- **Sin**: bare `except Exception` around the live plan-state computation.
+- **Penance**: FR-858 C-5 requires that a live-computation failure be *surfaced*, never silently downgraded to stale committed state. The handler names the exception type and message in the output line; a narrower except would let an unanticipated parser error crash a situational-awareness tool whose whole job is to keep reporting.

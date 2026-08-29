@@ -104,6 +104,9 @@ docs/fsm-diagrams/
 # Generated files (FR-179: append-only changelog fragments)
 CHANGELOG.md
 
+# Generated view (FR-858: computed on demand by scripts/fr_board.py)
+docs/fr-board.md
+
 # Audio files
 *.wav
 node_modules/

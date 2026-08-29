@@ -11,8 +11,9 @@ Pins witnessed (judgement 2026-07-16):
 - F1 active-set scoping: terminal statuses excluded by default,
   included with all=True (723-file census: default board must not be
   a 700-row board).
-- AC-02 drift lint: regenerate-and-diff; edited board fails, fresh
-  board passes.
+- AC-02 drift lint: RETIRED by FR-858 — the committed board and its
+  freshness ceremony are gone; the stdout/no-write contract is witnessed
+  in test_fr858_board_retirement.py.
 - AC-03 gates.yaml schema: open gate missing owner/ask_by/question
   fails; answered gates exempt.
 - AC-04 cross-repo: absent project path = notice + skip, never error (F6).
@@ -138,18 +139,6 @@ def test_board_renders_table_and_dag_with_parent_edge(tmp_path):
     assert "FR-001" in text and "```mermaid" in text
     assert "FR-001 --> FR-005" in text  # Parent header edge
     assert "FR-002" not in text.split("```mermaid")[0]  # terminal not in table
-
-
-# ---------------------------------------------------------------- AC-02 drift
-
-
-def test_check_passes_on_fresh_board_and_fails_on_drift(tmp_path):
-    repo = corpus(tmp_path)
-    board = tmp_path / "fr-board.md"
-    board.write_text(fr_board.render_board([repo]))
-    assert fr_board.check_board([repo], board) == []
-    board.write_text(board.read_text().replace("FR-001", "FR-999"))
-    assert fr_board.check_board([repo], board) != []
 
 
 # ---------------------------------------------------------------- AC-04 / F6
