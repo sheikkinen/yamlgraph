@@ -7,7 +7,7 @@ name = "yamlgraph"
 version = "0.5.23"
 description = "YAML-first framework for building LLM pipelines with LangGraph"
 readme = "README.md"
-requires-python = ">=3.11,<3.15"
+requires-python = ">=3.11,<3.14"
 license = {text = "MIT"}
 authors = [{name = "Sami Heikkinen"}]
 keywords = ["yaml", "llm", "langgraph", "pipeline", "ai", "agent"]

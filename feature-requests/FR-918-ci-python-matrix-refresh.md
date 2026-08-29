@@ -173,3 +173,21 @@ not by automation.
   [.github/workflows/security.yml](../.github/workflows/security.yml)
 
 ## Judgement (date)
+
+See [FR-918-ci-python-matrix-refresh.judgement.md](FR-918-ci-python-matrix-refresh.judgement.md) (2026-08-30): APPROVED WITH REVISIONS. All four revisions (R-1 bracket-policy wording, R-2 build job, R-3 strict preservation, R-4 constraints prose) folded 2026-08-30 before enforcement.
+
+## Implementation Status (2026-08-30)
+
+Enforced same day:
+
+- `workflow.yml`: matrix `['3.11', '3.13']`; `core-test` and `build` → 3.13.
+- `security.yml`: → 3.13.
+- `pyproject.toml`: `requires-python = ">=3.11,<3.14"`; classifiers untouched.
+- `CLAUDE.md`: Branch Protection table → `test (3.13)`; FR-761 constraints prose corrected (py312 artifact retained, py313 regeneration deferred).
+- Changelog fragment: `changelog/unreleased/fr-918-ci-python-matrix-refresh.md`.
+
+**Pending operator actions (human review gate, C-2/C-4):**
+
+1. Review the workflow diff before landing on `main`.
+2. After landing, run the read-modify-write PATCH above and paste the `{strict, contexts}` verification output here.
+3. Cite the first post-merge PR's green `test (3.11)` + `test (3.13)` runs here.

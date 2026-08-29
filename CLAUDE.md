@@ -59,13 +59,16 @@ pre-commit install --hook-type commit-msg
 
 ### Reproducible Dependency Governance (FR-761)
 
-`constraints/dev-py312.txt` pins the exact resolved environment CI tests
-against — matching the `test`/`core-test` jobs' install command
-(`.[dev,digest,websearch,fsm,verify]`) exactly, so a failure can be
-reproduced locally instead of depending on ambient resolver state:
+`constraints/dev-py312.txt` is the FR-761 Python 3.12 reproducibility
+artifact — a pinned resolved environment for the
+`.[dev,digest,websearch,fsm,verify]` install. Since FR-918 moved CI's
+single-version jobs to Python 3.13 (matrix: 3.11 + 3.13), this artifact
+no longer mirrors the exact CI interpreter; regenerating an equivalent
+`dev-py313.txt` is a follow-up, out of scope for FR-918. It remains
+useful for reproducing a clean 3.12 environment:
 
 ```bash
-# Regenerate the constraints artifact (Python 3.12, matching CI)
+# Regenerate the constraints artifact (Python 3.12)
 python3.12 -m venv .venv312 && source .venv312/bin/activate
 pip install --upgrade pip
 pip install -e ".[dev,digest,websearch,fsm,verify]"
@@ -398,7 +401,7 @@ changes.
 |------|---------|-----------|
 | Require pull request | Enabled (0 approvals) | Non-admin pushes and bots |
 | Squash merge only | Merge commits and rebase disabled | All PRs; PR title = commit message (Conventional Commits) |
-| Required status checks | `commitlint`, `test (3.11)`, `test (3.12)` | PRs cannot merge with these failing |
+| Required status checks | `commitlint`, `test (3.11)`, `test (3.13)` | PRs cannot merge with these failing |
 | Require up to date | Enabled (strict) | PRs must be current with `main` |
 | `enforce_admins` | **Disabled** | Admin direct pushes bypass everything |
 
