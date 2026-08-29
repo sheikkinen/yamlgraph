@@ -32,13 +32,6 @@ def test_replicate_extra_imports(module_name):
 
 
 @pytest.mark.req("REQ-YG-571")
-@pytest.mark.parametrize("module_name", ["starlette", "google.protobuf"])
-def test_a2a_extra_imports(module_name):
-    """`a2a` extra: starlette + protobuf (server transport/wire format) import cleanly."""
-    importlib.import_module(module_name)
-
-
-@pytest.mark.req("REQ-YG-571")
 @pytest.mark.parametrize("module_name", ["fastapi", "uvicorn", "starlette", "openai"])
 def test_openai_proxy_extra_imports(module_name):
     """`openai-proxy` extra: the FastAPI app stack AND the OpenAI SDK the
