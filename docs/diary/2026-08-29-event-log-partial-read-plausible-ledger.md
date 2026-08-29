@@ -117,3 +117,58 @@ tested; the word is banned. Naming pressure produced clearer names.
 estimate machinery is now redundant for history (only live/in-flight
 turns need estimation). Should ledger.py be rebuilt on replayed
 copilotCredits, demoting price sheets to the in-flight edge?
+
+## Usage addendum (same day): the ledger's first hour, and the trap it almost taught me
+
+The tool's first real consumer event happened within the hour of GREEN:
+all-workspaces CSV → most expensive request ever recorded (11,504.37 cr,
+45 minutes, 561K prompt tokens, prompt text literally `Continue:
+"Continue to iterate?"`) → full report of its session → narrative recap
+of a week of July work, reconstructed entirely from the store. The FR's
+first-consumer clause was answered by use, not forecast.
+
+Three observations from the archaeology, one of them corrected:
+
+**Operator's reflection on the record turn (verbatim):** "the single
+most expensive single query: customer related yamlgraph development
+(needed by csap), complex parallel operation refactoring / bug fix,
+fable 5 usage justified — the operation was pushing even fable to the
+limits, operation successful."
+
+1. **Continuation turns are where credits go.** In the Judge-713
+   session, three "Continue to iterate?" turns cost ~19,800 cr — 46%
+   of the session — because a continuation inherits a context near the
+   ceiling and every tool round re-bills the full prompt. Meanwhile
+   the four judgement turns that *authorized* ~27K cr of enforcement
+   cost under 1 cr combined. Cheap judgement steers expensive
+   enforcement.
+
+2. **The trap I walked into: cost read as pathology.** I framed the
+   11.5K-cr record turn as a batching pathology. The operator's
+   reflection above corrects it: FR-713 was customer-driven (csap), a
+   complex parallel-operation refactoring and bug fix that pushed even
+   fable-5 to its limits — and *the operation succeeded*. The ledger
+   shows cost, never value. An expensive turn that ships a hard fix is
+   the budget working as intended; a cheap turn that ships nothing is
+   the waste. Any anomaly view built on this data must flag for
+   *review*, not render verdicts — a cost outlier is a question, not a
+   finding. This is `threshold_encodes_forecast` wearing a financial
+   costume: a credit threshold encodes a forecast about value
+   distribution that the number alone cannot support.
+
+3. **Historical estimates are dishonest at ~100× scale.** Pre-credits
+   turns in the same session show "est 0.0471–0.0471 cr" for turns
+   comparable to later 326-cr ones — the known single-round
+   promptTokens undercount collapses the range to a false point value
+   that reads as precision. A lower bound presented as a range is a
+   lie of format. The reason string should say "lower bound", and the
+   Seed above (rebuild on replayed copilotCredits) would retire the
+   estimate path for history entirely.
+
+**Seed:** the ledger now attaches a cost to every past decision, but
+value attribution still lives only in the operator's memory ("that
+turn was justified — csap needed it"). Could the FR spine supply the
+missing column — join request rows to the FR each session enforced,
+so the question becomes "what did FR-713 cost end-to-end" instead of
+"which turn was expensive"? Cost-per-FR is the unit at which
+justified/waste judgements are actually made.
