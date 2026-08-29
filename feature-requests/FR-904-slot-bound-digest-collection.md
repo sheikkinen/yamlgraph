@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Proposed — **GATED on FR-900**
+**Status:** Proposed — **GATED on FR-906**
 **Effort:** 1 day
 **Requested:** 2026-08-29
 **First consumer / first event:** the `yamlgraph-daily-digest` scheduled
@@ -12,11 +12,11 @@ Second consumer, in this same FR: the second source manifest, bound to the
 same graph with no graph edit.
 **Research:** in-body `## Alternatives Considered` dispositioned table
 (FR-889 style — an equivalent committed record per the TEMPLATE note).
-**Prior art:** child of FR-902, which the Judge returned **SPLIT**
+**Prior art:** child of FR-908, which the Judge returned **SPLIT**
 (2026-08-29) with R-2 requiring Phase 2 to re-enter as its own FR. FR-892
 supplies the slot semantics, which this FR reuses **exactly** — it defines
 no digest-specific slot mechanism. FR-768 supplies the manifest contract
-unchanged. FR-900 is a hard gate: `--tool` is absent from every published
+unchanged. FR-906 is a hard gate: `--tool` is absent from every published
 yamlgraph. Siblings FR-903 and FR-905 share no surface with this one.
 
 ## Summary
@@ -58,12 +58,12 @@ subject area.
 
 ## Blocking dependency
 
-**FR-900 must be enforced first.** FR-892 `--tool` merged 2026-08-26
+**FR-906 must be enforced first.** FR-892 `--tool` merged 2026-08-26
 (`06d1dfe4`); the latest PyPI release `v0.5.22` is tagged 2026-08-17, and
 `git merge-base --is-ancestor 06d1dfe4 v0.5.22` is false. The workflow
 installs yamlgraph from PyPI, so the failure is an argparse error before
 the graph loads — not a subtle degradation. Do not start this FR until
-`pip install yamlgraph==<FR-900 version>` provides `--tool`.
+`pip install yamlgraph==<FR-906 version>` provides `--tool`.
 
 ## Proposed Solution
 
@@ -110,7 +110,7 @@ through the governed authoring route with an authoring report.
 
 ## Acceptance Criteria
 
-- [ ] `pip install yamlgraph==<FR-900 version>` provides `--tool`,
+- [ ] `pip install yamlgraph==<FR-906 version>` provides `--tool`,
       verified before work starts
 - [ ] `collect` is declared as a slot with an explicit `contract`
 - [ ] **Two** source manifests bind it, one preserving current behaviour
@@ -122,7 +122,7 @@ through the governed authoring route with an authoring report.
 - [ ] A missing binding, an undeclared slot, and a runtime outside the
       allowlist each raise `ToolSlotBindingError` before any node runs
 - [ ] `run_digest.py` no longer mutates `sys.path`
-- [ ] The workflow pins `yamlgraph>=<FR-900 version>`
+- [ ] The workflow pins `yamlgraph>=<FR-906 version>`
 - [ ] An authoring report exists for the `graph.yaml` change
 - [ ] One real scheduled run succeeds with the slot-bound graph, evidenced
       by run ID and commit SHA
@@ -147,12 +147,12 @@ authoring route applies.
 - Delivery ordering and the email node (FR-903)
 - Rank→format validation (FR-905)
 - The committed-SQLite question and the JSONL ledger
-- Packaging `examples/shared/` into the yamlgraph wheel (noted in FR-900)
+- Packaging `examples/shared/` into the yamlgraph wheel (noted in FR-906)
 
 ## Related
 
-- FR-902 — parent; SPLIT verdict 2026-08-29, R-2 and R-6
-- FR-900 — hard gate; publishes `--tool`
+- FR-908 — parent; SPLIT verdict 2026-08-29, R-2 and R-6
+- FR-906 — hard gate; publishes `--tool`
 - FR-892 — the slot semantics reused verbatim
 - FR-768 — the manifest contract
 - `examples/demos/corpus_census/` — the committed proof that one pipeline

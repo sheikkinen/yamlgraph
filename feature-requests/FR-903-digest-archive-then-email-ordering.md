@@ -10,11 +10,11 @@ run, at the first cron after merge — the run that writes
 `digests/<date>.md` and then emails it, in that order.
 **Research:** in-body `## Alternatives Considered` dispositioned table
 (FR-889 style — an equivalent committed record per the TEMPLATE note).
-**Prior art:** child of FR-902, which the Judge returned **SPLIT**
+**Prior art:** child of FR-908, which the Judge returned **SPLIT**
 (2026-08-29) with R-1 requiring Phase 1 to re-enter as its own FR. This is
 that instrument. FR-819 created the repo and its "no email" scope; this FR
 is the deliberate reversal of that deferral, adding email *alongside* the
-committed bulletin rather than replacing it. FR-901 owns the SMTP
+committed bulletin rather than replacing it. FR-907 owns the SMTP
 transport and is a hard dependency; this FR must not implement transport.
 Siblings FR-904 (slot collection) and FR-905 (rank→format boundary) are
 independent and share no surface with this one.
@@ -66,7 +66,7 @@ publish.
 
 ### The no-op predicate (R-5)
 
-FR-902 contradicted itself by using "empty markdown" as both the legitimate
+FR-908 contradicted itself by using "empty markdown" as both the legitimate
 no-new-articles signal and the failure signal. This FR uses an **explicit
 status**, never emptiness:
 
@@ -95,7 +95,7 @@ re-litigating the routing.
 
 | File | Action |
 |---|---|
-| `tools/smtp_email.py`, `tools/smtp_email.tool.yaml` | **New (vendored).** Verbatim copy of `examples/shared/smtp_email.*` from the yamlgraph repo, which excludes `examples*` from its wheel. The copy is recorded as a vendored artifact with its upstream FR-901 provenance in a header comment. |
+| `tools/smtp_email.py`, `tools/smtp_email.tool.yaml` | **New (vendored).** Verbatim copy of `examples/shared/smtp_email.*` from the yamlgraph repo, which excludes `examples*` from its wheel. The copy is recorded as a vendored artifact with its upstream FR-907 provenance in a header comment. |
 | `tools/write_bulletin.py`, `tools/write_bulletin.tool.yaml` | **New.** Moves the file write and `update_readme_index()` out of `run_digest.py`; returns `{"path": str}`. |
 | `graph.yaml` | **Changed.** Manifest tool refs; `write_bulletin` + `send_email` nodes; gate edge on `digest_status`; new state keys `digest_status`, `bulletin_path`, `sent`. Subject and body assembly live here — the email tool receives strings. |
 | `nodes/formatting.py` | **Changed.** Emits `digest_status` alongside `digest_markdown`. |
@@ -129,7 +129,7 @@ this repo's original graph adaptation.
       `digest_status == ready` and requires it **not** to be treated as a
       no-op
 - [ ] `run_digest.py` contains no file-writing and no delivery logic
-- [ ] The vendored `tools/smtp_email.py` is byte-identical to the FR-901
+- [ ] The vendored `tools/smtp_email.py` is byte-identical to the FR-907
       upstream, with provenance recorded in a header comment
 - [ ] The workflow passes all five `SMTP_*` secrets; README documents them
 - [ ] `tests/test_workflow.py` asserts the cron value, the concurrency
@@ -146,10 +146,10 @@ this repo's original graph adaptation.
 | A1 | Send from `run_digest.py` after `invoke()` | **Rejected.** The ordering guarantee is the point, and ordering belongs in graph edges. A runner-script send also cannot be reused by a second digest without copying the script. |
 | A2 | Send first, write after | **Rejected.** Inverts the recovery property: a write failure after a successful send leaves mail referencing an artifact that does not exist, with nothing to re-send from. |
 | A3 | Keep "empty markdown" as the no-op signal | **Rejected on judgement R-5.** It cannot distinguish "no new articles" from "the ranker returned garbage", so invalid model output launders into a green no-op. An explicit status cannot be faked by an empty string. |
-| A4 | Implement the SMTP tool here instead of vendoring FR-901 | **Rejected.** FR-901 owns transport; duplicating it forks the security contract (header-injection refusal, unchained exceptions) into two places. |
-| A5 | Depend on FR-901 by package rather than vendoring | **Rejected as currently impossible.** `pyproject.toml` excludes `examples*` from the yamlgraph wheel, so `examples/shared/` is unreachable from a PyPI consumer. Vendoring is the honest option; a distribution mechanism is a separate decision. |
+| A4 | Implement the SMTP tool here instead of vendoring FR-907 | **Rejected.** FR-907 owns transport; duplicating it forks the security contract (header-injection refusal, unchained exceptions) into two places. |
+| A5 | Depend on FR-907 by package rather than vendoring | **Rejected as currently impossible.** `pyproject.toml` excludes `examples*` from the yamlgraph wheel, so `examples/shared/` is unreachable from a PyPI consumer. Vendoring is the honest option; a distribution mechanism is a separate decision. |
 | A6 | Include the workflow-test baseline in a separate FR | **Rejected on judgement R-4.** This is the first child to edit `.github/workflows/digest.yml`, so the assertions attach here rather than blocking siblings that never touch the workflow. |
-| A7 | Send HTML as well as text | **Deferred.** FR-901's tool accepts `html`; rendering it is a follow-on. Text-first keeps this FR to one new capability. |
+| A7 | Send HTML as well as text | **Deferred.** FR-907's tool accepts `html`; rendering it is a follow-on. Text-first keeps this FR to one new capability. |
 
 **`is_this_a_graph`: yes, and it already is one.** This FR changes the
 existing pipeline's edges and nodes rather than adding a script, which is
@@ -157,7 +157,7 @@ the whole argument of A1. The authoring route applies (R-6).
 
 ## Out of Scope
 
-- SMTP transport implementation (FR-901)
+- SMTP transport implementation (FR-907)
 - Slot-bound collection (FR-904)
 - Rank→format validation and the `invalid` status value (FR-905)
 - The committed-SQLite question and the JSONL ledger
@@ -165,7 +165,7 @@ the whole argument of A1. The authoring route applies (R-6).
 
 ## Related
 
-- FR-902 — parent; SPLIT verdict 2026-08-29, R-1 and R-4 and R-5 and R-6
-- FR-901 — the SMTP tool this vendors; hard dependency
+- FR-908 — parent; SPLIT verdict 2026-08-29, R-1 and R-4 and R-5 and R-6
+- FR-907 — the SMTP tool this vendors; hard dependency
 - FR-904, FR-905 — independent siblings
 - FR-819 — created the repo and the "no email" scope this reverses

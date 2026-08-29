@@ -154,7 +154,7 @@ file, missing poppler binaries, nonzero `pdfinfo`/`pdftotext` exit, and
 unparseable page count all raise `ValueError` naming the condition —
 there is no fallback-to-all-pages.
 
-### `smtp_email.py` - Email Delivery (FR-901)
+### `smtp_email.py` - Email Delivery (FR-907)
 
 Sends email over SMTP. Transport only — it accepts already-rendered
 strings and has no opinion about what it carries, so digests, audit
@@ -198,7 +198,7 @@ nodes:
 | `SMTP_FROM` | no | overrides `From:` when it differs from the login |
 | `SMTP_TO` | when `to` is omitted | default recipient |
 
-First consumer: `yamlgraph-daily-digest` (FR-902 delivery child).
+First consumer: `yamlgraph-daily-digest` (FR-908 delivery child).
 
 **Failure modes:** every missing `SMTP_*` key is reported in one
 `SmtpSendError` *before* a socket opens; a missing recipient and a missing

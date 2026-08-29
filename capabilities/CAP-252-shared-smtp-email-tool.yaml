@@ -1,7 +1,7 @@
 id: CAP-252
 name: Shared SMTP Email Tool
 description: >
-  FR-901: a reusable FR-768 python-runtime tool manifest that sends email
+  FR-907: a reusable FR-768 python-runtime tool manifest that sends email
   over SMTP for any graph that has produced text a human should receive.
   The tool is transport only — it accepts already-rendered strings and has
   no opinion about what it carries, so digests, audit findings, review
@@ -30,4 +30,4 @@ requirements:
       nor exception strings, with the raw smtplib exception unchained.
     modules:
       - examples
-fr: FR-901
+fr: FR-907

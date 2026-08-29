@@ -5,15 +5,15 @@
 **Status:** Enforced
 **Effort:** 1 day
 **Requested:** 2026-08-29
-**First consumer / first event:** `yamlgraph-daily-digest` (FR-902), at the
+**First consumer / first event:** `yamlgraph-daily-digest` (FR-908), at the
 `send_email` node of its 06:00 UTC scheduled run — the first run after
-FR-902 Phase 1 merges emails the bulletin it has been committing silently
+FR-908 Phase 1 merges emails the bulletin it has been committing silently
 since 2026-08-18.
 **Research:** in-body `## Alternatives Considered` dispositioned table
 (FR-889 style — an equivalent committed record per the TEMPLATE note).
-**Prior art:** FR-902 is a sibling filed in the same arc, not precedent —
-it is the first consumer, and the boundary is that FR-901 owns email and
-knows nothing about digests, while FR-902 owns what it sends and when.
+**Prior art:** FR-908 is a sibling filed in the same arc, not precedent —
+it is the first consumer, and the boundary is that FR-907 owns email and
+knows nothing about digests, while FR-908 owns what it sends and when.
 FR-819 (GitHub-native digest PoC) explicitly scoped email *out* ("no
 Fly.io, no Docker, no email"); this FR is the deliberate reversal of that
 deferral now that SMTP config exists, not a violation of it. No prior FR
@@ -47,7 +47,7 @@ established home for reusable cross-example tools with FR-768 manifests
 manifest is **not** shipped in the yamlgraph wheel and is **not**
 reachable from a PyPI consumer. That is accepted, not overlooked. A
 standalone repo consumes it by vendoring the two files; changing
-packaging policy is a separate decision recorded in FR-900 and explicitly
+packaging policy is a separate decision recorded in FR-906 and explicitly
 out of scope here.
 
 The manifest uses `module:` rather than `path:` because the shared tools
@@ -56,7 +56,7 @@ are imported as `examples.shared.*` by in-repo consumers, matching
 
 No change is authorized in `yamlgraph-daily-digest` by this FR. That
 repository's adoption — vendoring these files and wiring the node — is
-owned by the FR-902 delivery child.
+owned by the FR-908 delivery child.
 
 ## Value Statement
 
@@ -86,7 +86,7 @@ Meanwhile the operator's `.env` already carries `SMTP_SERVER`, `SMTP_PORT`,
 account, and no domain verification, and `smtplib` is standard library, so
 the dependency footprint of email drops to zero.
 
-The immediate driver is FR-902 — eleven digest bulletins committed since
+The immediate driver is FR-908 — eleven digest bulletins committed since
 2026-08-18 that nobody is pushed. But framing the tool around that consumer
 would be a mistake. The plausible near-term senders are not digests:
 
@@ -268,6 +268,26 @@ renumbered on rebase: a parallel session claimed those IDs on `main`
 first. Numeric ID allocation is not collision-safe across concurrent
 sessions (`one_session_one_repo`); the test suite caught it, not review.
 
+**This FR was itself renumbered from FR-901 to FR-907** for the same
+reason, and this time nothing caught it — the concurrent session's
+`FR-901-skills-layer-in-process-overview.md` merged alongside
+`FR-901-smtp-email-tool.md`, and both were on `main` before anyone
+noticed. Sibling FR-906 (was FR-900) and FR-908 (was FR-902) collided
+identically. The merged squash commit for this work still reads
+`feat(examples): FR-901 shared SMTP email tool (#488)`; git history is
+not rewritten, so that commit subject is the one durable place the old
+number survives. A `test_no_duplicate_fr_ids` guard now makes the
+recurrence a commit-time failure rather than an archaeology problem.
+
+Writing that guard surfaced the real scale: **36 FR numbers were already
+duplicated**, the earliest at FR-082, including FR-896 and FR-898 from
+other recent concurrent sessions. This collision was the 37th instance,
+not an anomaly — the ID namespace has been colliding quietly for the
+entire life of the repo, because nothing ever compared. The 36 are
+grandfathered as a ratchet that may shrink but never grow; renumbering
+them would rewrite references in merged judgements and commit subjects
+for no present benefit.
+
 RED was proven: `tests/unit/test_smtp_email.py` failed at collection with
 `ModuleNotFoundError: examples.shared.smtp_email` before the module
 existed. GREEN: 18 passed in 0.17s.
@@ -277,7 +297,7 @@ implicit-TLS branch is the exercised path:
 
 ```
 $ PYTHONPATH=. python tmp/live_send.py
-INFO:examples.shared.smtp_email:📬 Sent 'FR-901 live send evidence - shared SMTP email tool' to sheikki@yahoo.com
+INFO:examples.shared.smtp_email:📬 Sent 'FR-907 live send evidence - shared SMTP email tool' to sheikki@yahoo.com
 RESULT: {'sent': True, 'to': ['sheikki@yahoo.com']}
 SERVER: mail.ovr.fi PORT: 465
 ```
@@ -291,9 +311,9 @@ recipient and no credential, as contract 4 requires.
 
 ## Related
 
-- FR-902 daily-digest refactor — the first consumer; owns the
+- FR-908 daily-digest refactor — the first consumer; owns the
   persist-before-deliver ordering that decides *when* this is called
-- FR-900 release tool slots to PyPI — sibling; **not** a blocker, since
+- FR-906 release tool slots to PyPI — sibling; **not** a blocker, since
   FR-768 manifests are already published in `v0.5.22`
 - `examples/daily_digest/nodes/email.py` — the Resend implementation this
   supersedes, and the source of the import-time-credential defect

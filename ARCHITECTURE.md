@@ -3084,9 +3084,9 @@ The scripts/vscode/ledger.py cost estimator prices prompt tokens with the real m
 
 ### 252. CAP-252 Shared SMTP Email Tool
 
-FR-901: a reusable FR-768 python-runtime tool manifest that sends email over SMTP for any graph that has produced text a human should receive. The tool is transport only — it accepts already-rendered strings and has no opinion about what it carries, so digests, audit findings, review verdicts, and pipeline failure notices share one delivery primitive. Replaces the vendor-bound Resend node in examples/daily_digest, whose module-level API-key read made a late-set key silently unauthenticated. Configuration is validated before any socket is opened, credentials are read at call time, header injection is refused, and every failure raises rather than returning a success-shaped result.
+FR-907: a reusable FR-768 python-runtime tool manifest that sends email over SMTP for any graph that has produced text a human should receive. The tool is transport only — it accepts already-rendered strings and has no opinion about what it carries, so digests, audit findings, review verdicts, and pipeline failure notices share one delivery primitive. Replaces the vendor-bound Resend node in examples/daily_digest, whose module-level API-key read made a late-set key silently unauthenticated. Configuration is validated before any socket is opened, credentials are read at call time, header injection is refused, and every failure raises rather than returning a success-shaped result.
 
-**Feature Request:** FR-901
+**Feature Request:** FR-907
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
