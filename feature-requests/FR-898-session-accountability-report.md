@@ -261,7 +261,7 @@ after the store measurement:
   `vscode.implicit.selection` variables are what made the .env leak
   provable request-by-request; the report surfaces them)
 - `scripts/vscode/session_report.py` (prototype, 2026-08-29) and diary
-  `2026-08-29-event-log-partial-read-plausible-ledger.md`
+  `2026-08-29-reflection-fr-898-event-log-plausible-ledger.md`
 
 ## Implementation record
 
