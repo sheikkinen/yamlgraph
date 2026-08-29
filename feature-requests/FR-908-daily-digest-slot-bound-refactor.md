@@ -15,8 +15,8 @@ and changes no graph.
 **Prior art:** FR-819 created this repo and is the direct precedent —
 its "repo is the runtime, state store, and publication channel" premise is
 preserved, not overturned; email is added alongside the committed bulletin
-(see Out of Scope). FR-900 and FR-901 are siblings filed in the same arc:
-FR-900 blocks Phase 2, FR-901 supplies the Phase 1 email tool. FR-892
+(see Out of Scope). FR-906 and FR-907 are siblings filed in the same arc:
+FR-906 blocks Phase 2, FR-907 supplies the Phase 1 email tool. FR-892
 (corpus-census injected adapters) is the slot pattern Phase 2 copies
 verbatim — this FR adds no slot mechanism, only a second application of
 it. FR-768 supplies the manifest contract unchanged. No prior FR was
@@ -30,8 +30,8 @@ rejected in this territory.
 >
 > | Child | Scope | Gate |
 > |---|---|---|
-> | FR-903 | archive-then-email ordering, no-op predicate, workflow tests (R-1, R-4, R-5) | FR-901 |
-> | FR-904 | slot-bound collection, two source manifests (R-2) | **FR-900** |
+> | FR-903 | archive-then-email ordering, no-op predicate, workflow tests (R-1, R-4, R-5) | FR-907 |
+> | FR-904 | slot-bound collection, two source manifests (R-2) | **FR-906** |
 > | FR-905 | rank→format boundary validation, `invalid` status (R-3, R-5) | none |
 >
 > This document is retained as the problem statement and the evidence
@@ -66,7 +66,7 @@ Four defects, in descending order of consequence:
 
 **1. Nobody is delivered the report.** Eleven bulletins sit in a repo. The
 FR-819 design explicitly had "no email"; the operator now has SMTP config
-and wants delivery. Addressed by FR-901 plus the ordering below.
+and wants delivery. Addressed by FR-907 plus the ordering below.
 
 **2. The rank→format seam is probabilistic.** `prompts/rank_stories.yaml`
 declares `stories: type: list[Any]`. `yamlgraph/schema_loader.py` resolves
@@ -128,14 +128,14 @@ The failure algebra this produces, without any new state machinery:
 
 | File | Action |
 |---|---|
-| `tools/smtp_email.py`, `tools/smtp_email.tool.yaml` | **New.** Per FR-901 — a general email tool, not digest-shaped. |
+| `tools/smtp_email.py`, `tools/smtp_email.tool.yaml` | **New.** Per FR-907 — a general email tool, not digest-shaped. |
 | `tools/write_bulletin.py`, `tools/write_bulletin.tool.yaml` | **New.** Moves the file write and `update_readme_index()` out of `run_digest.py`; returns `{"path": str}`. |
 | `graph.yaml` | **Changed.** Manifest tool refs; `write_bulletin` + `send_email` nodes; gate edge on empty `digest_markdown`; state keys `bulletin_path`, `sent`. The subject line and body are assembled here — the email tool receives strings. |
 | `run_digest.py` | **Changed.** Shrinks to arg parsing, `invoke()`, summary print. `--dry-run` keeps working by not binding a recipient — not by a new guard flag. |
 | `.github/workflows/digest.yml` | **Changed.** Five `SMTP_*` secrets added to the run step `env:`. |
 | `README.md` | **Changed.** SMTP env contract documented. |
 
-### Phase 2 — reusable collection (requires FR-900)
+### Phase 2 — reusable collection (requires FR-906)
 
 Manifest-ise the four existing node modules, then convert collection to a
 slot:
@@ -164,7 +164,7 @@ Manifest-ising also removes the `sys.path.insert` hack, since manifest
 paths resolve relative to the manifest file.
 
 **Hard dependency:** FR-892 `--tool` is absent from every published
-yamlgraph. Phase 2 cannot start until FR-900 ships. Phase 1 is unaffected
+yamlgraph. Phase 2 cannot start until FR-906 ships. Phase 1 is unaffected
 — FR-768 manifests are in `v0.5.22`.
 
 ### Phase 3 — close the rank→format seam
@@ -198,11 +198,11 @@ what the schema later becomes.
 - [ ] One real scheduled run archives **and** emails a bulletin, evidenced
       in the FR by run ID and commit SHA
 
-**Phase 2** (after FR-900)
+**Phase 2** (after FR-906)
 - [ ] `collect` is a slot; at least **two** source manifests bind it
 - [ ] Switching sources requires no edit to `graph.yaml`
 - [ ] `run_digest.py` no longer mutates `sys.path`
-- [ ] Workflow pins `yamlgraph>=<FR-900 version>`
+- [ ] Workflow pins `yamlgraph>=<FR-906 version>`
 
 **Phase 3**
 - [ ] Condemning test committed RED before the fix (separate commit)
@@ -226,7 +226,7 @@ what the schema later becomes.
 | A4 | Keep collection inline; make reuse a documentation pattern | **Rejected.** The stated intent is reusable tools for other digests. Documentation does not stop the second repo from forking `nodes/sources.py`; a slot contract does. |
 | A5 | Do Phase 2 first (reuse before delivery) | **Rejected.** Phase 2 is blocked on an unreleased feature; Phase 1 is not, and delivery is the acknowledged user-visible gap. |
 | A6 | Fix `list[Any]` in `schema_loader.py` (nested schemas) instead of guarding at the boundary | **Out of scope here, worth its own FR.** A framework change judged in a consumer FR is scope creep, and the boundary guard is required regardless — the model can always return a well-typed lie. |
-| A7 | Send HTML mail in Phase 1 | **Deferred.** FR-901's tool accepts `html`; rendering it is a follow-on node. Text-first keeps Phase 1 to one new capability. |
+| A7 | Send HTML mail in Phase 1 | **Deferred.** FR-907's tool accepts `html`; rendering it is a follow-on node. Text-first keeps Phase 1 to one new capability. |
 | A8 | Remove `digest.db` from git (4 KB binary churn/day) | **Deferred.** Real (`.git` at 592 KB after 11 days) but not urgent, and it is subsumed by A3 whenever that is taken. |
 
 ## Out of Scope
@@ -241,9 +241,9 @@ what the schema later becomes.
 
 ## Related
 
-- FR-901 SMTP email tool — supplies the `send_email` node (Phase 1); it is
+- FR-907 SMTP email tool — supplies the `send_email` node (Phase 1); it is
   a general email tool, so this FR owns the subject and body assembly
-- FR-900 release tool slots to PyPI — blocks Phase 2
+- FR-906 release tool slots to PyPI — blocks Phase 2
 - FR-819 GitHub-native digest PoC repo — created the repo being refactored
 - FR-892 corpus-census pipeline — the slot pattern Phase 2 copies
 - FR-768 tool manifests — the declaration mechanism

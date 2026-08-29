@@ -1,4 +1,4 @@
-# 2026-08-29 — Reflection: FR-901, and the clone that lied
+# 2026-08-29 — Reflection: FR-907, and the clone that lied
 
 ## The trap: a local checkout is not the record
 
@@ -50,7 +50,7 @@ deterministic break because it accrues confidence while it waits.
 
 ## The Judge earned its keep three times
 
-I authored three FRs and thought them tight. The Judge found, in FR-901
+I authored three FRs and thought them tight. The Judge found, in FR-907
 alone: a self-contradiction (manifest sketch in this repo vs. an A7 saying
 it lives in the consumer repo), and a citation to
 `deviant-daily/tools/steps.py` — a file I had genuinely read in this
@@ -58,7 +58,7 @@ session but which is outside the repo's input closure, so neither the Judge
 nor any future enforcer could verify it. My session context had leaked into
 an artifact that must stand alone.
 
-On FR-902 it found the contradiction I am most annoyed to have missed: I
+On FR-908 it found the contradiction I am most annoyed to have missed: I
 authorized a gate routing an empty bulletin to END *and* a rule that no
 path emits an empty bulletin as success. Those collide. A malformed ranker
 response would have laundered into a green no-op — precisely the failure
@@ -86,3 +86,37 @@ record. What other private context am I currently treating as public
 ground truth, and what would a mechanical check for "cited artifact is
 reachable from the repo under judgement" have caught before the Judge
 did?
+
+## Addendum — the 37th collision
+
+The PR merged clean, and then main showed `FR-901-smtp-email-tool.md`
+sitting next to `FR-901-skills-layer-in-process-overview.md`. Two
+sessions, same repo, same allocation method: `ls feature-requests | tail`,
+increment. Deterministic collision. FR-900 and FR-902 too.
+
+Writing the guard was the interesting part. I expected to find my three
+and freeze nothing. I found **36 duplicated numbers going back to
+FR-082** — including FR-896 and FR-898 from other sessions this same
+week. Mine was the 37th instance of a defect that has been present for
+the entire life of the repository and was never once noticed, because
+no artifact ever compared two filenames.
+
+That reframes it. `one_session_one_repo` names the shared index and the
+working tree as collision surfaces and prescribes rituals for both. The
+ID namespace is a third surface, and it had no ritual and no guard — so
+it degraded silently while the guarded surfaces got louder. **The
+unguarded surface is not the one that fails loudly; it is the one that
+never fails at all, until you write the check.**
+
+The CAP-251 collision two hours earlier was the same defect with a
+different outcome: the registry *had* a uniqueness test, so it failed at
+rebase and I fixed it in five minutes. Same hazard, same day, same
+session — one caught mechanically, one caught by a human reading a
+directory listing after the merge. The delta between those two outcomes
+is one test file.
+
+**Seed:** What else in this repo has no comparison test — not "is it
+valid?" but "is it the same as its neighbour?" Capability IDs and REQ IDs
+have one; FR numbers now do. Diary filenames, changelog fragment names,
+CAP names, prompt names, and graph `name:` fields do not. Which of those
+would show 36 silent duplicates the first time anyone looked?

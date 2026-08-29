@@ -1,6 +1,6 @@
-# Tool manifest (FR-768) — shared SMTP email tool (FR-901, CAP-252).
+# Tool manifest (FR-768) — shared SMTP email tool (FR-907, CAP-252).
 # First consumer: yamlgraph-daily-digest, which emails the bulletin it
-# archives (FR-902 delivery child).
+# archives (FR-908 delivery child).
 #
 # Contract: send_email(subject, text, html=None, to=None, cc=None,
 #                      attachments=None) -> {"sent": True, "to": [...]}

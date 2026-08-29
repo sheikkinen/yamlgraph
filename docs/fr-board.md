@@ -35,7 +35,7 @@
 | FR-864 | PARSE-FAILURE (**SPLIT** (judged 2026-08-23) ) | yamlgraph |  | FR-864-ramp-spike-to-governed.md |
 | FR-898 | PARSE-FAILURE ((no Status header)) | yamlgraph |  | FR-898.receipt.md |
 | FR-900 | PARSE-FAILURE ((no Status header)) | yamlgraph |  | FR-900-evidence.md |
-| FR-902 | PARSE-FAILURE (Split — superseded by FR-903, ) | yamlgraph |  | FR-902-daily-digest-slot-bound-refactor.md |
+| FR-908 | PARSE-FAILURE (Split — superseded by FR-903, ) | yamlgraph |  | FR-908-daily-digest-slot-bound-refactor.md |
 | FR-111 | Judged | yamlgraph |  | FR-111-compiled-graph-cache.md |
 | FR-179 | Judged | yamlgraph |  | FR-179-asterisk-ari-audiosocket-provider.md |
 | FR-210 | Judged | yamlgraph |  | FR-210-subgraph-interrupt-state-commit.md |
@@ -230,10 +230,10 @@
 | FR-882 | Proposed | yamlgraph |  | FR-882-scp-generator-private-framework.md |
 | FR-887 | Proposed | yamlgraph |  | FR-887-forensics-evidence-timeline-graph.md |
 | FR-896 | Proposed | yamlgraph |  | FR-896-research-route-precedent-traceability.md |
-| FR-900 | Proposed | yamlgraph |  | FR-900-release-tool-slots-to-pypi.md |
 | FR-903 | Proposed | yamlgraph |  | FR-903-digest-archive-then-email-ordering.md |
 | FR-904 | Proposed | yamlgraph |  | FR-904-slot-bound-digest-collection.md |
 | FR-905 | Proposed | yamlgraph |  | FR-905-ranked-story-boundary-validation.md |
+| FR-906 | Proposed | yamlgraph |  | FR-906-release-tool-slots-to-pypi.md |
 | FR-078 | In Progress | yamlgraph |  | FR-078-relocate-project-tests.md |
 | FR-100 | In Progress | yamlgraph |  | FR-100-yamlgraph-development-pipeline-ebook.md |
 | FR-169 | In Progress | yamlgraph |  | FR-169-enforce-reflexion-loop.md |
@@ -497,11 +497,11 @@ graph TD
     FR-898["FR-898 PARSE-FAILURE"]
     FR-899["FR-899 Judged"]
     FR-900["FR-900 PARSE-FAILURE"]
-    FR-900["FR-900 Proposed"]
-    FR-902["FR-902 PARSE-FAILURE"]
     FR-903["FR-903 Proposed"]
     FR-904["FR-904 Proposed"]
     FR-905["FR-905 Proposed"]
+    FR-906["FR-906 Proposed"]
+    FR-908["FR-908 PARSE-FAILURE"]
     FR-081 --> FR-082
     FR-731 --> FR-735
     FR-731 --> FR-736

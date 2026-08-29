@@ -1,4 +1,4 @@
-"""Tests for the shared SMTP email tool (FR-901)."""
+"""Tests for the shared SMTP email tool (FR-907)."""
 
 import logging
 import smtplib

@@ -11,7 +11,7 @@ ranked response is rejected loudly instead of crashing the renderer or
 being laundered into a green no-op.
 **Research:** in-body `## Alternatives Considered` dispositioned table
 (FR-889 style — an equivalent committed record per the TEMPLATE note).
-**Prior art:** child of FR-902, which the Judge returned **SPLIT**
+**Prior art:** child of FR-908, which the Judge returned **SPLIT**
 (2026-08-29) with R-3 requiring Phase 3 to re-enter as its own FR, and R-5
 requiring the no-op/invalid distinction to be explicit. FR-894
 (corpus-map-reduce reconciliation reference) is the governing pattern for
@@ -169,7 +169,7 @@ authored — `prompts/rank_stories.yaml` is deliberately left unchanged
 
 ## Related
 
-- FR-902 — parent; SPLIT verdict 2026-08-29, R-3 and R-5
+- FR-908 — parent; SPLIT verdict 2026-08-29, R-3 and R-5
 - FR-894 — corpus-map-reduce reconciliation; the governing pattern
 - FR-903 — establishes the `digest_status` field this extends
 - `examples/daily_digest/nodes/formatting.py` — the sibling renderer with
