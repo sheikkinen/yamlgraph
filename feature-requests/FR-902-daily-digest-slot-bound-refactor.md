@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Proposed
+**Status:** Split — superseded by FR-903, FR-904, FR-905
 **Effort:** 2 days
 **Requested:** 2026-08-29
 **First consumer / first event:** the `yamlgraph-daily-digest` scheduled run
@@ -23,6 +23,19 @@ it. FR-768 supplies the manifest contract unchanged. No prior FR was
 rejected in this territory.
 
 ## Summary
+
+> **SPLIT 2026-08-29.** The Judge returned SPLIT: this FR bundled three
+> independently deliverable changes plus a workflow-test baseline behind
+> one verdict. No authority was granted here. The work re-entered as:
+>
+> | Child | Scope | Gate |
+> |---|---|---|
+> | FR-903 | archive-then-email ordering, no-op predicate, workflow tests (R-1, R-4, R-5) | FR-901 |
+> | FR-904 | slot-bound collection, two source manifests (R-2) | **FR-900** |
+> | FR-905 | rank→format boundary validation, `invalid` status (R-3, R-5) | none |
+>
+> This document is retained as the problem statement and the evidence
+> record the children cite. Do not enforce it directly.
 
 `yamlgraph-daily-digest` (created by FR-819) has run green 11/11 days since
 2026-08-18, committing a markdown bulletin per day. Refactor it so that
