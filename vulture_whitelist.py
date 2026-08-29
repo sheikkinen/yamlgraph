@@ -269,3 +269,11 @@ ShellRuntime.type  # Pydantic discriminator field; read by framework
 PythonRuntime.type  # Pydantic discriminator field; read by framework
 GraphRuntime.type  # Pydantic discriminator field; read by framework
 PythonRuntime._exactly_one_source  # Pydantic @model_validator; invoked by framework
+
+# --- discovery: public API with no in-package consumer after FR-910 ---
+# The MCP server was the last in-package caller. C-3 of the FR-910
+# judgement forbids deleting discovery.py under this FR; its disposition
+# (retire or find a consumer) belongs to a follow-up FR.
+
+DEFAULT_GRAPH_PATTERNS
+discover_graphs

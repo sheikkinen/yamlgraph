@@ -14,7 +14,7 @@ class TestSeams:
     @pytest.mark.req("REQ-YG-567")
     def test_packages_exist_with_members(self):
         for pkg, member in [
-            ("export", "mcp.py"),
+            ("export", "skill.py"),
             ("compile", "graph_loader.py"),
         ]:
             assert (REPO_ROOT / "yamlgraph" / pkg / member).exists()
@@ -49,7 +49,6 @@ class TestSeams:
                 "yamlgraph.a2a_server",
                 "yamlgraph.a2a_message",
                 "yamlgraph.skill_export",
-                "yamlgraph.mcp_server",
                 "yamlgraph.graph_loader",
                 "yamlgraph.node_compiler",
             ):

@@ -1,10 +1,10 @@
 """Shared graph discovery for graph-listing consumers.
 
-Extracted from mcp_server.py (Phase 0 of FR-208) so every consumer shares
-the same discovery logic.
+Extracted from the former protocol server (Phase 0 of FR-208) so every
+consumer shares the same discovery logic.
 
-FR-291 / CAP-136: Per-graph typed MCP tools — adds input_vars, tool_name,
-and input_schema derivation from graph YAML state block.
+FR-291: adds input_vars, tool_name, and input_schema derivation from the
+graph YAML state block, consumed by the skill exporter.
 """
 
 from __future__ import annotations

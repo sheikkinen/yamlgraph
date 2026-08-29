@@ -1,7 +1,6 @@
 """Tests for shared graph discovery — REQ-YG-206.
 
-Verifies that discover_graphs() works from the shared module,
-and that mcp_server.py re-exports it correctly.
+Verifies that discover_graphs() works from the shared module.
 """
 
 from pathlib import Path
@@ -28,16 +27,6 @@ def test_default_patterns_importable_from_discovery():
 
     assert isinstance(DEFAULT_GRAPH_PATTERNS, list)
     assert len(DEFAULT_GRAPH_PATTERNS) > 0
-
-
-@pytest.mark.req("REQ-YG-206")
-def test_mcp_server_uses_shared_discovery():
-    """mcp_server.discover_graphs is the same function as discovery.discover_graphs."""
-    mcp = pytest.importorskip("mcp")  # noqa: F841 (CONF-034)
-    from yamlgraph.discovery import discover_graphs as shared_discover
-    from yamlgraph.export.mcp import discover_graphs as mcp_discover
-
-    assert shared_discover is mcp_discover
 
 
 @pytest.mark.req("REQ-YG-206")

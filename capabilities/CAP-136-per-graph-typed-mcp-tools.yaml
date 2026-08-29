@@ -1,6 +1,10 @@
 id: CAP-136
+status: retired
 name: Per-Graph Typed MCP Tools
 description: >
+  RETIRED by FR-910. Registration was broken for six weeks without a
+  single failure report; the surface was unconsumed even while it worked.
+  Agents reach graphs through the CLI adapters instead. Historical record only.
   Derive per-graph typed MCP tool definitions from graph YAML metadata
   (name, description, state) so each graph appears as its own named tool
   with a typed JSON Schema. Shared schema derivation in discovery.py.

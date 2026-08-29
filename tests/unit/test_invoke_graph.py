@@ -3,7 +3,7 @@
 RED phase: tests written before implementation.
 Verifies that graph_loader.invoke_graph provides a single entry point
 for synchronous graph invocation, replacing duplicated _invoke_graph
-functions in mcp_server and the retired A2A server.
+functions in the former protocol servers.
 """
 
 from unittest.mock import MagicMock, patch
@@ -98,24 +98,3 @@ def test_invoke_graph_accepts_path_object():
         result = invoke_graph(Path("/fake/graph.yaml"), {"key": "val"})
 
     assert result == {"out": "ok"}
-
-
-# ---------------------------------------------------------------------------
-# Consumer delegation tests
-# ---------------------------------------------------------------------------
-
-
-@pytest.mark.req("REQ-YG-258")
-def test_mcp_server_delegates_to_shared_invoke_graph():
-    """mcp_server._invoke_graph delegates to graph_loader.invoke_graph."""
-    pytest.importorskip("mcp")
-
-    with patch(
-        "yamlgraph.compile.graph_loader.invoke_graph", return_value={"greeting": "Hi"}
-    ) as mock_invoke:
-        from yamlgraph.export.mcp import _invoke_graph
-
-        result = _invoke_graph("/path/graph.yaml", {"name": "Test"})
-
-    mock_invoke.assert_called_once_with("/path/graph.yaml", {"name": "Test"})
-    assert result == {"greeting": "Hi"}

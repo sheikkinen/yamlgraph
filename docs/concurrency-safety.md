@@ -18,7 +18,6 @@ This document classifies every concurrency pattern in YAMLGraph as safe, conditi
 | Checkpoint writes | ⚠️ Conditional | SQLite: file-level locking; Redis: atomic SET, last-write-wins |
 | Graph cache | ⚠️ Conditional | TOCTOU race causes duplicate compilation (not corruption) |
 | Inquisitor diary writes | ⚠️ Conditional | No flock; filename collision possible on concurrent runs |
-| MCP server | ✓ Safe | Single-worker `ThreadPoolExecutor` serializes all invocations |
 | Async executor | ✓ Safe | `asyncio.gather()` over stateless LLM calls; cache race is benign |
 
 ---
@@ -91,7 +90,7 @@ This document classifies every concurrency pattern in YAMLGraph as safe, conditi
 2. **Duplicate work:** Extra compilation wastes CPU but produces identical results (same YAML → same compiled graph).
 3. **Stale read:** Not possible — graphs are never mutated after insertion. `clear_cache()` is called only in tests.
 
-**Verdict:** ⚠️ **CONDITIONAL** — Duplicate compilation is wasteful but harmless. A `threading.Lock` would eliminate waste but adds contention. Current design is acceptable for the expected concurrency level (MCP server serializes invocations via `max_workers=1`). No follow-up FR needed unless profiling reveals compilation as a bottleneck.
+**Verdict:** ⚠️ **CONDITIONAL** — Duplicate compilation is wasteful but harmless. A `threading.Lock` would eliminate waste but adds contention. Current design is acceptable for the expected concurrency level (graph compilation is not a hot path). No follow-up FR needed unless profiling reveals compilation as a bottleneck.
 
 ---
 
@@ -115,25 +114,6 @@ This document classifies every concurrency pattern in YAMLGraph as safe, conditi
 3. **Manual invocation:** Running `inquisitor.sh` manually while `watch.sh` is active could still race. This is an operator error, not a design flaw.
 
 **Verdict:** ⚠️ **CONDITIONAL** — Safe under normal operation (FR-175 sequential mode). Manual concurrent invocation would race but is not a supported workflow. Follow-up FR for `flock` is deferred — the sequential enforcement is the correct fix at the spawn point (The One Law: normalize at the boundary).
-
----
-
-## MCP Server
-
-**Model:** Single-worker `ThreadPoolExecutor` serializes all graph invocations. The MCP protocol handler is async, but the actual graph execution is delegated to a single thread.
-
-**Shared State:**
-- `_executor`: Module-global `ThreadPoolExecutor(max_workers=1)` — immutable after creation
-- `graph_lookup`: Read-only dict populated at server startup
-
-**Safety Invariant:** `max_workers=1` guarantees sequential execution. Only one `_invoke_graph` call runs at any time. Graph state lives in the checkpointer, not in the executor.
-
-**Evidence:**
-- Executor creation: `yamlgraph/export/mcp.py:55` (`ThreadPoolExecutor(max_workers=1)`)
-- Graph invocation: `yamlgraph/export/mcp.py:277` (`loop.run_in_executor(_executor, _invoke_graph, ...)`)
-- Import: `yamlgraph/export/mcp.py:26` (`from concurrent.futures import ThreadPoolExecutor`)
-
-**Verdict:** ✓ **SAFE** — Serialized by design. Single-worker pool eliminates all concurrency concerns within graph execution.
 
 ---
 
