@@ -29,6 +29,35 @@ credentials from `SMTP_*` environment variables; raises on every failure.
 
 It is an email tool. It has no opinion about what it carries.
 
+## Target surface (R-1)
+
+The tool is created in **this repository**, at `examples/shared/` — the
+established home for reusable cross-example tools with FR-768 manifests
+(`examples/shared/README.md`; the toolbelt, `describe_image`,
+`split_document`, `render_page` all live there).
+
+| Path | Artifact |
+|---|---|
+| `examples/shared/smtp_email.py` | implementation |
+| `examples/shared/smtp_email.tool.yaml` | FR-768 manifest (`runtime.type: python`, `module: examples.shared.smtp_email`) |
+| `tests/unit/test_smtp_email.py` | unit tests |
+
+**Distribution behaviour, stated explicitly:** `pyproject.toml`
+`[tool.setuptools.packages.find] exclude` lists `examples*`, so this
+manifest is **not** shipped in the yamlgraph wheel and is **not**
+reachable from a PyPI consumer. That is accepted, not overlooked. A
+standalone repo consumes it by vendoring the two files; changing
+packaging policy is a separate decision recorded in FR-900 and explicitly
+out of scope here.
+
+The manifest uses `module:` rather than `path:` because the shared tools
+are imported as `examples.shared.*` by in-repo consumers, matching
+`examples/shared/describe_image.tool.yaml`.
+
+No change is authorized in `yamlgraph-daily-digest` by this FR. That
+repository's adoption — vendoring these files and wiring the node — is
+owned by the FR-902 delivery child.
+
 ## Value Statement
 
 Any graph that has produced text a human should receive — a digest, an
@@ -92,9 +121,17 @@ def send_email(
     to: str | None = None,
     cc: str | None = None,
     attachments: list[str] | None = None,
+    *,
+    smtp_factory: Callable[..., smtplib.SMTP] = smtplib.SMTP,
+    smtp_ssl_factory: Callable[..., smtplib.SMTP_SSL] = smtplib.SMTP_SSL,
 ) -> dict:
     """Send one email over SMTP. Returns {"sent": True, "to": [...]}."""
 ```
+
+The two keyword-only factories are the **test seam** (R-4): unit tests
+inject a double and never open a socket. They are not part of the
+graph-facing surface — a `tool_call` node passes only the six positional
+parameters, so the manifest API is unchanged.
 
 `to` and `cc` accept a single address or a comma-separated list.
 `attachments` are filesystem paths; each is attached with a guessed MIME
@@ -112,12 +149,12 @@ type, and a missing path raises.
 ### Manifest
 
 ```yaml
-# tools/smtp_email.tool.yaml
+# examples/shared/smtp_email.tool.yaml
 name: send_email
 description: "Send an email over SMTP (text, optional HTML alternative, optional attachments)"
 runtime:
   type: python
-  path: smtp_email.py
+  module: examples.shared.smtp_email
   function: send_email
 ```
 
@@ -125,7 +162,7 @@ runtime:
 # In any consuming graph
 tools:
   send_email:
-    manifest: tools/smtp_email.tool.yaml
+    manifest: ../../shared/smtp_email.tool.yaml
 
 nodes:
   notify:
@@ -140,17 +177,20 @@ nodes:
 
 ### Behavioural contracts
 
-1. **Config validated before the socket.** Collect all missing `SMTP_*`
-   keys and raise once, naming them — the `publish_step` pattern from
-   `deviant-daily/tools/steps.py`. Not one-at-a-time, not at import.
+1. **Config validated before the socket.** Every missing `SMTP_*` key is
+   collected and reported in **one** `ValueError` naming all of them,
+   raised before any socket is opened. Not one-at-a-time, not at import.
 2. **Credentials read at call time**, never at module import — the defect
    in `examples/daily_digest/nodes/email.py`.
 3. **No silent success.** Every failure raises; there is no
    `return {"sent": False}` path. `on_error` at the node is the caller's
    decision, not the tool's (Commandment 6).
 4. **Secrets never surface.** `SMTP_PASSWORD` appears in no log record and
-   no exception message. `smtplib` errors are re-raised with server, port,
-   and recipient context only.
+   no exception message. `smtplib` errors are re-raised as a sanitized
+   exception carrying server, port, and recipient only, and the raw
+   provider exception is **not chained** (`raise ... from None`) — a
+   chained `SMTPAuthenticationError` can echo the credential back in its
+   server response (R-4).
 5. **Multipart when `html` is given.** `set_content(text)` then
    `add_alternative(html, subtype="html")` — the text part is always
    present, so a plain-text client is never served an empty body.
@@ -164,13 +204,14 @@ nodes:
 
 ## Acceptance Criteria
 
-- [ ] `send_email` implemented with the signature above
-- [ ] `tools/smtp_email.tool.yaml` FR-768 manifest, header comment naming
-      the first committed consumer (the shared-manifest convention)
+- [ ] `send_email` implemented at `examples/shared/smtp_email.py` with the
+      signature above
+- [ ] `examples/shared/smtp_email.tool.yaml` FR-768 manifest, header
+      comment naming the first consumer (the shared-manifest convention)
 - [ ] Missing `SMTP_*` config raises a single error naming **every**
       missing key, before any socket is opened — condemning test first
 - [ ] Port `465` selects `SMTP_SSL`; any other port selects `SMTP` +
-      `starttls()` — asserted with an injected SMTP double
+      `starttls()` — asserted through the injected factories
 - [ ] `html=None` produces a single text part; `html` given produces a
       multipart/alternative whose text part is non-empty
 - [ ] `to`/`cc` accept a single address and a comma-separated list;
@@ -178,12 +219,13 @@ nodes:
 - [ ] Attachments: a present file attaches with a guessed MIME type;
       a missing path raises before connecting
 - [ ] CR/LF in `subject`, `to`, or `cc` raises — header-injection test
-- [ ] `SMTP_PASSWORD` appears in no log record and no exception string —
-      asserted, not reviewed
+- [ ] `SMTP_PASSWORD` appears in no log record and no exception string,
+      and the raw `smtplib` exception is not chained — asserted, not
+      reviewed
 - [ ] Send failure propagates as a raise; no success-shaped return exists
       on any path
-- [ ] Tests use an injected SMTP double (`sender=` parameter or
-      equivalent seam); **no live SMTP connection in unit tests**
+- [ ] Tests inject `smtp_factory`/`smtp_ssl_factory` doubles;
+      **no live SMTP connection in unit tests**
 - [ ] One recorded live send, evidenced in the FR, before it is called done
 - [ ] Nothing in the module, the manifest, or the tests references digests
 
@@ -197,8 +239,13 @@ nodes:
 | A4 | Tool also renders markdown → HTML | **Rejected.** Couples transport to presentation. HTML rendering is a separate node feeding `html`. |
 | A5 | Tool returns `{"sent": False}` on failure instead of raising | **Rejected.** A plausible wrong answer is harder to catch than a crash (Commandment 6); an unattended cron would report green while delivering nothing. |
 | A6 | Omit attachments and `cc` from v1 | **Rejected, narrowly.** Both are a few lines against the same `EmailMessage`, and their absence is exactly what forces the second consumer to fork. Not extended further: no templating, no queueing, no retry, no address book. |
-| A7 | Place the manifest in `examples/shared/` for cross-repo reuse | **Rejected for now.** `pyproject.toml` excludes `examples*` from the wheel, so `examples/shared/` is unreachable from a PyPI consumer (FR-900). The manifest lives in the consumer repo until a second consumer and a distribution mechanism both exist — the `examples/shared/README.md` fit boundary. |
+| A7 | Place the manifest in the consumer repo (`yamlgraph-daily-digest/tools/`) instead of `examples/shared/` | **Rejected on judgement R-1.** The FR originally said this and simultaneously showed a repo-local manifest sketch — a contradiction the Judge caught. `examples/shared/` is the established home for reusable tools here, and `examples/daily_digest` is an in-repo consumer. The wheel-exclusion consequence is stated in Target surface rather than hidden. |
 | A8 | Retry/backoff on transient SMTP failures | **Rejected.** `on_error: retry` at the node is the caller's decision and already exists; a retry loop inside the tool would be a second, invisible policy. |
+
+**`is_this_a_graph`: no.** This is a deterministic side-effect tool
+invoked *by* a graph. There is no LLM orchestration, no map/reduce, no
+routing, and no prompt artifact being authored — the graph-shaped work is
+the caller's pipeline, not this transport. (R-3)
 
 ## Out of Scope
 
@@ -215,7 +262,6 @@ nodes:
   FR-768 manifests are already published in `v0.5.22`
 - `examples/daily_digest/nodes/email.py` — the Resend implementation this
   supersedes, and the source of the import-time-credential defect
-- `deviant-daily/tools/steps.py` `publish_step` — the
-  collect-missing-secrets-and-raise pattern
 - `examples/shared/README.md` — the two-plus-consumer manifest fit boundary
+  and the home of this tool
 - `reference/graph-yaml.md` "Tool Manifests (FR-768)" — the manifest contract

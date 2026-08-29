@@ -2,10 +2,17 @@
 
 import logging
 import smtplib
+from pathlib import Path
 
 import pytest
+import yaml
 
 from examples.shared.smtp_email import SmtpSendError, send_email
+from yamlgraph.tools.manifest import ToolManifest
+
+MANIFEST = (
+    Path(__file__).parent.parent.parent / "examples" / "shared" / "smtp_email.tool.yaml"
+)
 
 SMTP_ENV = {
     "SMTP_SERVER": "mail.example.com",
@@ -68,6 +75,21 @@ def call(**kwargs):
     kwargs.setdefault("smtp_factory", FakeSMTP)
     kwargs.setdefault("smtp_ssl_factory", FakeSMTP)
     return send_email(**kwargs)
+
+
+@pytest.mark.req("REQ-YG-626")
+class TestManifest:
+    def test_manifest_validates_as_python_runtime_tool(self):
+        raw = yaml.safe_load(MANIFEST.read_text())
+        manifest = ToolManifest.model_validate(raw)
+
+        assert manifest.name == "send_email"
+        assert manifest.runtime.type == "python"
+        assert manifest.runtime.module == "examples.shared.smtp_email"
+        assert manifest.runtime.function == "send_email"
+
+    def test_manifest_names_its_first_consumer(self):
+        assert "First consumer:" in MANIFEST.read_text()
 
 
 @pytest.mark.req("REQ-YG-626")
