@@ -8,6 +8,132 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.23]
+
+### Added
+- **FR-907 Shared SMTP Email Tool**: `examples/shared/smtp_email.py` plus an FR-768 manifest send email over SMTP for any graph that has produced text a human should receive — transport only, with no opinion about what it carries. Config is validated before any socket opens, credentials are read at call time (not at import, the defect in the Resend node it supersedes), CR/LF header injection is refused, and every failure raises rather than returning a success-shaped result. (REQ-YG-627)
+- **FR-899 Org Repository Census with Pinned-Azure Delegation**: repo_census demo graph — gh discover/extract slot adapters, Azure preflight before any discovery, every LLM node pinned to `provider: azure`, LLM-free `RepoLedgerRow` reducer owning activity/persons mechanically, corp brief through the FR-895 citation boundary, public-org demo mechanically audited for data locality. (REQ-YG-628)
+- **FR-898 Session Accountability Ledger**: `scripts/vscode/session_ledger.py` renders chat session stores as per-request reports (markdown or pivot-ready CSV) via full patch replay — exact vendor-persisted `copilotCredits`, verbatim prompts, per-turn summaries, model, workspace; price-sheet estimate range when a turn carries no credits; judged malformed-store and prompt-privacy (R-4) policies.
+- **FR-896 Pattern/Model Census Demo**: ships
+  `examples/demos/pattern_model_census/` — a read-only, invocation-time
+  discover/extract slot pipeline (reusing the FR-892 tool-slot mechanism)
+  that classifies architectural/design patterns and LLM model/provider
+  mentions from commit metadata via two `inception`/`mercury-2`-pinned
+  map lenses. Extraction is metadata-only (`repo`, `sha`, `date`,
+  `subject`, `shortstat` — no diff/file content, enforced by a
+  `extra="forbid"` schema). The LLM-free reducer fails closed on any
+  output path inside `yamlgraph` outside `tmp/`, and its public-safe
+  markdown summary carries only `repo_alias`, `quarter`, `lens`, `label`,
+  `count` — raw repo names, commit subjects, and SHAs stay in the private
+  JSONL working ledger only. (REQ-YG-624)
+- **FR-895 Census Synthesize Tail**: corpus_census gains the human-readable brief stage — bounded, allowlisted synthesis input; one pinned structured-claims LLM call; LLM-free citation boundary that fail-closes to a .REJECTED.md artifact instead of emitting an unverified brief. diary_census.sh gains the aggregate brief step with a mechanical top-finding family check; first live diary brief committed (1272 rows, headline cited). (REQ-YG-625)
+- **FR-893 Diary Trap Census**: diary adapters + rubric bind to the
+  unchanged corpus_census pipeline; an LLM-free recurrence aggregator
+  groups census ledgers by canonical trap label with distinct-entry
+  counting, enforces a hidden-canary run gate, writes a public-safe
+  recurrence table under docs/diary/census/ (no evidence spans committed),
+  and drafts .chaplain/inbox graduation proposals for candidates at the
+  Scripture bar. `scripts/diary_census.sh` runs the month×decade-batched
+  full-corpus census. (REQ-YG-624)
+- **FR-892 Corpus-Census Pipeline — Tool-Slot Binding**: graph `tools:`
+  entries may declare `slot: true` with a `contract:` block; callers bind
+  FR-768 manifests at invocation via repeatable `--tool SLOT=manifest.yaml`.
+  Contaminated bindings (missing, duplicate, undeclared, invalid manifest,
+  contract mismatch) fail closed with `ToolSlotBindingError` before any
+  LLM call. Ships `examples/demos/corpus_census/` — the shared
+  discover–extract–map–reduce census pipeline consuming the slots, with a
+  fail-closed 8-column evidence ledger (md+jsonl). Two proof
+  configurations shipped as manifest pairs + rubric only: PDF-library
+  census and git-history intent-timeline census. (REQ-YG-018)
+- **FR-890 Research Sole Route**: `scripts/research.sh <problem-brief.md>` runs the `examples/demos/research-route` map+reduce graph — five personas with orthogonal priors receiving only a closed problem brief — producing `tmp/draft-alternatives.md`, a dispositioned alternatives table with precedent citations and planner disagreement preserved. Deterministic brief-closure preflight; artifact verified by frozen schema, never exit code; librarian citation fails closed on error strings. FR template gains a mandatory `**Research:**` field; the judge doctrine gains a prospective research-evidence clause. (REQ-YG-623)
+- **FR-888 Main-Write Guard**: enforcement-class writes on the main checkout are denied with an executable worktree cure; git-plumbing worktree detection; audited `FR888_ALLOW_MAIN=1` escape; `worktree.sh` gains `.env` symlink, final `cd` line, and `rm-safe` (untracked files never auto-removed).
+- Orphan-worktree flags on the `now.py` board (no open PR → age + untracked count; never auto-deleted).
+- Review fixes: rm-safe merge-state check; directory-copy materialization denied; executable placeholder-free denial cure.
+- Round-2 review fixes: time/nohup/nice wrappers classified; rm-safe --merged-confirmed for squash merges.
+- Round-3 review fixes: guard-root scoping (foreign repos never policed), apply_patch Delete hunks denied, hooks-README runbook.
+- Round-4 review fixes: apply_patch Move-to header denied; whitespace-variant inline writers classified.
+- Round-4 followup: Move-to findall verified landed by probe.
+- Round-5 review fixes: rm-safe .gitignore edit safety; normalized escape-audit targets.
+- Round-6: diary renamed to gate pattern; quoted-redirect/mv/env-prefixed witnesses added.
+- Round-7: $PWD-expanded targets denied; quoted cd cure; AC-10 live-pipeline suppression input.
+- Round-8: touch/mkdir/rm/ln/chmod classified as writers; 3 witnesses.
+- Round-9: sed -i variant flags; interpreter inner-path extraction.
+- **FR-884 Session-Shapes Classifier**: `examples/demos/session-shapes/` — map+reduce task-shape classification of chat-session skeletons (pinned `claude-haiku-4-5`), deterministic aggregation, privacy-scrubbed output; authored via the sole route.
+- **FR-884 Session Task-Shape Census**: `scripts/vscode/session_shapes.py` — read-only, stdlib-only inventory of interactive chat sessions (tokens, models, cost ranges, tool-call profiles) joined by session id within a frozen window, with seeded stratified sampling for raw-read evidence.
+- Op-log replay + per-turn skeleton extraction (`replay`, `turn_skeleton`) — classifier map input.
+- **FR-881 Image Pipeline v3**: local-model prompt generator example — the FR-876 trained deviant-daily model proposes prompts offline via a `--json` subprocess contract (no `llm` node in the graph), the generation boundary gates them, and Replicate z-image renders only the first top-k passers.
+- **FR-879 Image Pipeline v2**: critic-filtered prompt pipeline — one
+  LLM node generates candidates, the FR-876 deviant-daily critic scores
+  them (per-register NLL band + boundary), only top-k survivors render
+  via Replicate z-image. Frozen-critic alternative to LLM-as-judge.
+- **FR-878 Reversible Amnesia & Tiered Approval**: memory-curation apply now archives `forget` targets and stashes `redact` originals under an op-id shelf with schema tombstone rows in a protected `_tombstones.md`; `restore` is conflict-safe and idempotent-when-recorded; approval tier is computed from disposition content (`premise_kind` enum fails closed to tier 3) — delegated tier 1 with audit trail, human-named tier 2 for forgets, non-delegable tier 3 for export; collect emits a re-derivation advisory against forget-tombstones only. Amends FR-875 C-6. (REQ-YG-621)
+- **FR-877 Memory Curation Staleness Advisory**: apply now records a post-apply live baseline (`.curation-state.json`, forgotten paths absent — a forget-run yields zero immediate drift); `advisory.py` (pure stdlib, zero egress) diffs the live corpus by sha256 and prints one line at/above threshold or for a never-curated corpus; SessionStart runs it fail-open via `memory-advisory.sh` with bounded JSONL failure evidence. Detection mechanical, execution deliberate. (REQ-YG-622)
+- **FR-875 Memory-Corpus Curation Graph (selective amnesia)**: `examples/memory-curation/` judges every repo-scope memory note (map node; keep/redact/forget + audience + staleness with cited evidence) and renders a human-review disposition draft under `tmp/memory-curation/` only. Deterministic collect freezes the corpus; reconcile proves count-in == count-out with Pydantic cross-field invariants; apply executes amnesia only under a hash-bound written sign-off and refuses all mutation on live-file drift. Judge-stage egress is provider-gated (vertex/azure approved). (REQ-YG-620)
+- **FR-869 Spike-End Detector**: the PreToolUse command guard now warns (stderr, never blocking) when a plain `git commit` runs in a foreign repo with no `pre-commit` hook — and escalates the warning when the staged diff adds `schedule:` or `secrets.` lines to `.github/workflows/*`, i.e. the commit takes an unenforced repo live. A repo-root `.ramp-declined` marker suppresses both with an audited reason; every warning writes a stable non-secret audit entry (`ramp-unenforced`, `ramp-spike-end`, `ramp-declined`). (REQ-YG-527)
+- **FR-868 scripture-dev Salvage**: `salvage_classify` demo graph classifies every tracked file of the frozen `scripture-dev` ref against this repo's equivalents (duplicate/lift/obsolete), reconciling count-in == count-out into a human-review draft under `tmp/ramp/`. (REQ-YG-618)
+- **FR-866 Ramp Tailoring Graphs**: Three demo graphs derive target-specific governance drafts under `tmp/ramp/` only — `ramp_doctrine` (Scripture subset by stable id, witness citations scrubbed at the write boundary), `ramp_rtm` (proposed requirements from test inventory with honest gap list), `ramp_incidents` (incident repatriation from FR/diary corpus with count reconciliation). Authored via the sole route with committed briefs. (REQ-YG-614)
+- **FR-865 Ramp Installer**: `scripts/ramp.sh <target> --tier {1|2|3}` copies a curated, manifest-enumerated enforcement asset tree (pre-commit config, Copilot command guard, FR/judge/review skills, diary/changelog gates, capability registry shape) into a supported target repo — dry-run, idempotent skip, force-backup overwrite, target-side `docs/ramp-manifest.md` receipt, rollback, and a consumer registry in `ramp/consumers.md`. Curated assets carry drift evidence (`ramp/curation-diffs.md`) and the curated Tier-1 pre-commit config is consumed in this repo's own test path. (REQ-YG-610, REQ-YG-611, REQ-YG-612, REQ-YG-613)
+- **FR-860 Scripted Witness-Audit Runner**: `scripts/req_audit.sh` runs the
+  FR-851 audit end to end — record (full sequential `COVERAGE_CORE=ctrace`
+  framework suite, report suppression spelled `--cov-report=`), construct,
+  audit graph, report — fail-fast with per-phase
+  logs, a frozen-schema `run-manifest.json` (git SHA, dirty flag, instrument
+  line, provider/model, per-phase command/exit/log), and provenance embedded
+  in the report header via `req_audit_report.py --run-manifest`. The FR-850
+  coverage boundary's hard refusal propagates under `--skip-record`.
+  (REQ-YG-609)
+- **FR-853 Agent Instrument Registry**: Graduated `is_this_a_graph` to the questions canon and added a literal `Task shapes:` clause to six demo graph descriptions (map, fan-out, race, five-whys, innovation-matrix, router), visible through `discover_graphs()` and the MCP `yamlgraph_list_graphs` payload.
+- **FR-852 Preserve Authoring Briefs**: graph-authoring task briefs get a
+  committed home at `feature-requests/authoring-briefs/` with a provenance
+  INDEX mapping old tmp/ paths; 34 historical briefs migrated per exact
+  manifest; graph-authoring doctrine/SKILL/adapters README updated to
+  require the committed location for future runs.
+- **FR-851 Requirement-Witness Audit**: deterministic constructor
+  (`scripts/req_audit_questions.py`) emits one frozen-schema question file
+  per registry requirement with per-test resolution classes
+  (coverage/ast/no-link-ran/no-link-unrecorded/doc-witness) and
+  token-budgeted batches; boundary reconciliation + ranked report
+  (`scripts/req_audit_report.py`) rejects hallucinated req_ids, keeps first
+  duplicates, re-queues missing once then surfaces unaudited. (REQ-YG-606)
+- **FR-851 witness-audit demo**: `examples/demos/req_witness_audit/` —
+  map-node graph grading requirement-witness batches with a haiku-tier
+  model (authored via the sole authoring route); raw per-batch verdicts
+  feed the deterministic reconciliation report. First real run: 412 REQs,
+  41 batches, 0 hallucinated ids, 167 yes / 235 partial / 10 no.
+  (REQ-YG-607)
+- **FR-850 Coverage-Context Boundary**: Single shared loader (`scripts/coverage_contexts.py`) for `.coverage` context data with hard refusal on missing/context-free/poisoned DBs (0.25 tripwire naming `COVERAGE_CORE=ctrace`), `[param]` normalization, shared five-class `derive_resolution`, question-headed `--implementation` report with honest witness-split denominator, and measured-vs-unmeasured module reconciliation. (REQ-YG-608)
+- **FR-821 Weekly Recap Publication**: `scripts/weekly_recap.py` renders the recap graph (CAP-195, unmodified) into `docs/recaps/<ISO-week>.md` with a frozen section contract; deterministic substantive-window guard excludes recap-only automation commits before any LLM call; node errors raise instead of publishing a partial recap. Scheduled publication via `.github/workflows/weekly-recap.yml` automation PR + auto-merge. (REQ-YG-604)
+- **FR-814 FR Knowledge Graph Extraction**: Deterministic extraction of typed causal/associative edges from the FR corpus into `reference/fr-knowledge-graph.yaml`. Supports cycle detection, transitive closures, cluster identification, and staleness gating. Prior-art hook augmented with graph-backed cluster boost. (REQ-YG-601)
+- **FR-816 Cluster Display Names**: Semantic cluster names derived from member filename nouns (schema v2). Stable `cluster-N` keys preserved. (REQ-YG-602)
+- **FR-817 Cross-Cluster Mentions**: Weak-tie report of mention edges crossing cluster boundaries (178 edges). (REQ-YG-603)
+
+### Fixed
+- **FR-907 FR number uniqueness guard**: `tests/unit/test_fr_numbering.py` fails when two feature requests claim the same number. Concurrent sessions allocate FR numbers by reading the directory and incrementing, so they reliably collide — 36 duplicated numbers had accumulated since FR-082, and FR-900/901/902 each landed on `main` twice. The 36 are grandfathered as a ratchet that may shrink but never grow; every new collision now fails at commit time. (REQ-YG-627)
+- **FR-907 FR-number guard reads git, not the filesystem**: the uniqueness guard globbed `feature-requests/`, so a parallel session's *uncommitted* FR failed the suite on `main` for a file that was never in `main`. It now enumerates via `git ls-files`, with a test that plants an untracked probe and asserts it is invisible. (REQ-YG-627)
+- **FR-900 Ledger cache-price fix + repo×model report**: `load_prices()` read
+  the nonexistent `cache_price` key (schema: `cache_read_price`), pricing all
+  cache reads at 0 — a ~5× best-bound underestimate ($796 vs $7,500 August
+  invoice). Parser fixed, cache-write term added to the best bound, requests
+  attributed to workspaces, and `--month --by-repo` prints cost split by
+  (repo, model) with totals. Reconciles with the invoice within ~5%. (REQ-YG-626)
+- **FR-899 corpus-census PDF dependency declared**: `pypdf` — imported by the corpus-census PDF extract adapter since FR-892 — was undeclared, and `examples/demos` is `extra-backed`, so the direct-import scan treated it as core-strict. It never blocked a commit because the hook only fires when the scanned paths or `pyproject.toml` change; the first release attempt, which always touches `pyproject.toml`, surfaced it. Declared as a `corpus-census` extra with its own taxonomy row.
+- **FR-898 ledger --tap on store-less machines**: `iter_requests()` no longer crashes when the VS Code workspaceStorage directory is absent (Linux CI); absent store dir yields an empty report.
+- **FR-898 ledger --tap on store-less machines**: `iter_requests()` no longer crashes when the VS Code `workspaceStorage` directory is absent (Linux CI); absent store dir yields an empty report. Witness: `test_cli_tap_exits_zero_without_stores`.
+- **FR-896 Research Route Precedent Traceability**: precedent claims are now reconciled in code at the reducer boundary — committed FR/CAP/path/Scripture identifiers must exist, explicit `brief-echo` rows are demoted (retained, excluded from scoring), fabricated identifiers fail with named violations, librarian URLs are reconciled against recorded tool results, closed class/verdict enums replace free text, `convergent xN` annotation replaces the label-entropy class gate, personas receive a deterministic committed-context block, and every run appends an integrity provenance line to `feature-requests/research-runs.jsonl` verifiable via `research_preflight.py --verify-promotion`. (REQ-YG-623)
+- **FR-891 Fail-Closed Agent Tool Boundary**: an agent run whose tool calls
+  all failed now raises `AllToolCallsFailedError` (with failure census)
+  before final synthesis, on both finalization paths, instead of handing
+  error strings to the LLM as evidence; `search_web` raises for empty
+  query/missing ddgs and propagates transport errors instead of returning
+  "Error: ..." strings. (REQ-YG-018)
+- **FR-884 briefing budget**: bounded tail parse of the unrotated OTel tap (942MB broke the 5s SessionStart budget — briefing silently died); replay hardened for ops without payloads.
+- **FR-883 Concealed Refusal Guard**: Detect hidden decline decisions and
+  unratified task alteration before a second tool call, while preserving honest
+  direct refusals.
+- **FR-842 Lint/Compile Validation Parity**: `yamlgraph graph lint` now runs the loader's `validate_config` before its style/semantic checks and reports each rejection as an `E000` error carrying the unchanged validator message — lint can no longer approve a graph the loader refuses (live witness: GitClaw intake run 32361594593 failed at compile on a parenthesized edge condition that lint had passed). Existing checks still run alongside a compile-validation error so it never hides unrelated findings; JSON output and exit-code semantics are unchanged; the condition grammar is unchanged (grouping stays rejected — use flat per-branch edges, documented in the CLI reference). (REQ-YG-605)
+- **Race node success marker**: Race node now logs `Node <name> completed successfully` on the winning path, matching llm/control nodes — a race-only demo previously could not satisfy the FR-325 demo-log success-evidence gate despite succeeding.
+- **five-whys placeholder leak**: Demo prompts mixed bare `{problem}` with Jinja2 blocks; Jinja2 auto-detection rendered the placeholder literally, so the model never received the problem statement. Both templates now use `{{ problem }}`.
+
 ## [0.5.22]
 
 ### Fixed

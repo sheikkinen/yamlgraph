@@ -109,6 +109,12 @@ examples:
   - a2a
   - booking
   entrypoints: []
+- path: examples/demos/corpus_census
+  status: extra-backed
+  extra:
+  - corpus-census
+  entrypoints:
+  - examples/demos/corpus_census/graph.yaml
 - path: examples/demos/agent-json
   status: extra-backed
   extra: null

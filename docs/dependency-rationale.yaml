@@ -397,3 +397,10 @@ dependencies:
     rationale: "Opt-in image downscale for describe_image(max_dim=...) — shrinks vision payloads before base64 encoding (FR-781); fails fast when max_dim is requested without the vision extra"
     modules: ["examples/shared/vision_tool.py"]
     added: "0.5.18"
+
+  # ─── Optional: Corpus census ─────────────────────────────────────────
+
+  pypdf:
+    rationale: "Page text extraction for the corpus-census PDF extract adapter (FR-892 slot binding, FR-899 org census); demo-only, imported inside the adapter function so the pipeline runs without it for non-PDF corpora"
+    modules: ["examples/demos/corpus_census/adapters/corpus_adapters.py"]
+    added: "0.5.23"

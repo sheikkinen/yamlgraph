@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "yamlgraph"
-version = "0.5.22"
+version = "0.5.23"
 description = "YAML-first framework for building LLM pipelines with LangGraph"
 readme = "README.md"
 requires-python = ">=3.11,<3.15"
@@ -160,6 +160,10 @@ otel = [
 vision = [
     # FR-781: opt-in image downscale (describe_image max_dim). Never a core dep.
     "Pillow>=10.0.0",
+]
+corpus-census = [
+    # FR-892/FR-899: the corpus-census PDF extract adapter. Demo-only.
+    "pypdf>=5.0.0",
 ]
 
 [project.scripts]

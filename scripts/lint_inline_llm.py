@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import argparse
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -132,6 +133,26 @@ def check_file(filepath: Path) -> str | None:
     return f"Inline LLM imports without graph loader: {', '.join(all_llm_found)}"
 
 
+def _tracked_python_files(root: Path) -> list[Path]:
+    """Tracked .py files, falling back to a walk outside a git repo.
+
+    Deliberately git, not rglob: a parallel session's gitignored scratch
+    file under tmp/ is not part of the repository, and walking the tree
+    made this hook fail on files it could never be asked to fix.
+    """
+    try:
+        out = subprocess.run(
+            ["git", "ls-files", "-z", "--", "*.py"],
+            cwd=root,
+            capture_output=True,
+            text=True,
+            check=True,
+        ).stdout
+    except (OSError, subprocess.CalledProcessError):
+        return sorted(root.rglob("*.py"))
+    return [root / name for name in out.split("\0") if name]
+
+
 def scan_directory(root: Path, verbose: bool = False) -> list[tuple[Path, str]]:
     """Scan directory for inline LLM violations.
 
@@ -140,7 +161,7 @@ def scan_directory(root: Path, verbose: bool = False) -> list[tuple[Path, str]]:
     """
     violations: list[tuple[Path, str]] = []
 
-    for filepath in root.rglob("*.py"):
+    for filepath in _tracked_python_files(root):
         # Skip excluded directories
         if any(excl in filepath.parts for excl in EXCLUDE_DIRS):
             continue
