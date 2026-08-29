@@ -116,13 +116,6 @@ fsm = [
 mcp = [
     "mcp>=1.0.0",
 ]
-a2a = [
-    "a2a-sdk[http-server]>=1.0.0a0,<2.0",
-    "grpcio>=1.60.0",
-    "httpx>=0.27.0",  # yamlgraph/contrib/a2a_client.py direct import (FR-761 ownership fix)
-    "starlette>=0.36.0",  # FR-762: direct-import honesty (transitive via a2a-sdk/fastapi)
-    "protobuf>=4.25.0",  # FR-762: direct-import honesty (google.protobuf, transitive via a2a-sdk)
-]
 chatterbox = [
     "chatterbox-tts>=0.1.0",
     # FR-762: direct-import honesty. torch==2.6.0 has no macOS Intel (x86_64) wheel

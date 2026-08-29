@@ -9,7 +9,6 @@ Usage:
 
 import argparse
 
-from yamlgraph.cli.a2a_commands import cmd_a2a_dispatch
 from yamlgraph.cli.diary_commands import cmd_diary_dispatch
 from yamlgraph.cli.graph_commands import cmd_graph_dispatch
 from yamlgraph.cli.schema_commands import cmd_schema_dispatch
@@ -343,62 +342,6 @@ def create_parser() -> argparse.ArgumentParser:
     )
 
     diary_parser.set_defaults(func=cmd_diary_dispatch)
-
-    # === A2A commands (FR-208) ===
-    a2a_parser = subparsers.add_parser("a2a", help="A2A protocol server commands")
-    a2a_subparsers = a2a_parser.add_subparsers(
-        dest="a2a_command", help="A2A subcommands"
-    )
-
-    # a2a serve
-    a2a_serve_parser = a2a_subparsers.add_parser(
-        "serve", help="Start A2A HTTP server exposing graphs as agents"
-    )
-    a2a_serve_parser.add_argument(
-        "graph_path",
-        nargs="?",
-        default=None,
-        help="Path to graph YAML file or directory (default: auto-discover)",
-    )
-    a2a_serve_parser.add_argument(
-        "--host",
-        type=str,
-        default="0.0.0.0",  # noqa: S104  # nosec B104
-        help="Server host (default: 0.0.0.0)",
-    )
-    a2a_serve_parser.add_argument(
-        "--port",
-        "-p",
-        type=int,
-        default=8080,
-        help="Server port (default: 8080)",
-    )
-
-    # a2a card
-    a2a_card_parser = a2a_subparsers.add_parser(
-        "card", help="Print Agent Card JSON for a graph"
-    )
-    a2a_card_parser.add_argument(
-        "graph_path",
-        nargs="?",
-        default=None,
-        help="Path to graph YAML file or directory",
-    )
-    a2a_card_parser.add_argument(
-        "--host",
-        type=str,
-        default="localhost",
-        help="Hostname for Agent Card URL (default: localhost)",
-    )
-    a2a_card_parser.add_argument(
-        "--port",
-        "-p",
-        type=int,
-        default=8080,
-        help="Port for Agent Card URL (default: 8080)",
-    )
-
-    a2a_parser.set_defaults(func=cmd_a2a_dispatch)
 
     return parser
 

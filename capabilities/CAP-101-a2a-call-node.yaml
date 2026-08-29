@@ -1,6 +1,10 @@
 id: CAP-101
+status: retired
 name: A2A Consumer Contrib Client
 description: >
+  RETIRED by FR-909. No consumer for four months; the A2A server,
+  contrib client, CLI subcommand, demos, and optional extra were deleted.
+  Historical record only.
   A2A consumer functionality via yamlgraph.contrib.a2a_client.send_a2a_message(),
   invoked as a type: python node. Sends Jinja2-templated message to external A2A
   agent via HTTP JSON-RPC (message/send), extracts text artifacts from the

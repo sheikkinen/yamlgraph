@@ -1,6 +1,10 @@
 id: CAP-105
+status: retired
 name: A2A Consumer Phase 2 — Agent Card, Skill Selection & Streaming
 description: >
+  RETIRED by FR-909. No consumer for four months; the A2A server,
+  contrib client, CLI subcommand, demos, and optional extra were deleted.
+  Historical record only.
   A2A consumer features in yamlgraph.contrib.a2a_client: Agent Card discovery
   via sync httpx.get() to /.well-known/agent.json, ContextVar-scoped caching
   per graph invocation, skill selection validated against Agent Card skills at

@@ -5,7 +5,7 @@ Complete command reference for the `yamlgraph` CLI.
 ## Commands Overview
 
 ```
-yamlgraph [-h] {graph,schema,skill,diary,a2a} ...
+yamlgraph [-h] {graph,schema,skill,diary} ...
 ```
 
 | Command | Description |
@@ -14,7 +14,6 @@ yamlgraph [-h] {graph,schema,skill,diary,a2a} ...
 | `schema` | Export bundled JSON schema and print schema path |
 | `skill` | Export graphs as portable skill packages |
 | `diary` | Import pending diary insights |
-| `a2a` | A2A protocol server: serve graphs as agents, print Agent Cards |
 
 ---
 
@@ -78,7 +77,7 @@ yamlgraph graph run examples/demos/yamlgraph/graph.yaml -v topic=AI --share-trac
 # 🔗 Trace (public): https://smith.langchain.com/public/.../r/...
 ```
 
-**Subprocess vs MCP/A2A:** use `graph run --json` for simple request/response subprocess integration (e.g., `child_process.execFile` in Node.js). Prefer MCP/A2A for long-lived agent/tool ecosystems, discovery, and protocol-level interoperability.
+**Subprocess vs MCP:** use `graph run --json` for simple request/response subprocess integration (e.g., `child_process.execFile` in Node.js). Prefer MCP for long-lived agent/tool ecosystems, discovery, and protocol-level interoperability.
 
 ### graph info
 
@@ -177,63 +176,6 @@ Route lines are emitted on the `yamlgraph.route` logger — a **public API**
 namespace for downstream handlers/filters. See
 [graph-yaml.md § Observability](graph-yaml.md#observability-fr-723) for the
 line grammar and opt-in surfaces.
-
----
-
-## yamlgraph a2a
-
-A2A protocol server commands. See [A2A Server Reference](a2a-server.md) for full documentation.
-
-```
-yamlgraph a2a {serve,card} ...
-```
-
-### a2a serve
-
-Start an A2A HTTP server exposing discovered graphs as agent skills.
-
-```bash
-yamlgraph a2a serve <graph_path> [options]
-```
-
-**Arguments:**
-- `graph_path` — Path to a graph YAML file or directory (optional; defaults to auto-discovery)
-
-**Options:**
-
-| Flag | Default | Description |
-|------|---------|-------------|
-| `--host` | `0.0.0.0` | Server bind address |
-| `--port` | `8080` | Server port |
-
-**Examples:**
-```bash
-# Serve the hello graph
-yamlgraph a2a serve examples/demos/hello/ --port 9090
-
-# Serve all discovered graphs
-yamlgraph a2a serve
-```
-
-### a2a card
-
-Print the Agent Card JSON for discovered graphs without starting the server.
-
-```bash
-yamlgraph a2a card <graph_path> [options]
-```
-
-**Options:**
-
-| Flag | Default | Description |
-|------|---------|-------------|
-| `--host` | `localhost` | Hostname for Agent Card URL |
-| `--port` | `8080` | Port for Agent Card URL |
-
-**Example:**
-```bash
-yamlgraph a2a card examples/demos/hello/
-```
 
 ---
 

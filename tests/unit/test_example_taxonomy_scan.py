@@ -483,20 +483,16 @@ def test_classify_root_credits_extra_reached_via_yaml_tool_module(tmp_path):
 
 
 @pytest.mark.req("REQ-YG-571")
-def test_real_a2a_examples_are_extra_backed_by_a2a():
-    """Regression guard for the exact PR #464 review finding: a2a_call and
-    a2a_server must resolve to `extra: [a2a, ...]`, never `extra: null`,
-    against the real repo tree (not a synthetic fixture)."""
+def test_real_extra_backed_example_resolves_its_extra():
+    """Regression guard for the PR #464 review finding: a real example whose
+    imports come from an optional extra must resolve to `extra: [...]`, never
+    `extra: null`, against the real repo tree (not a synthetic fixture)."""
     rows = build_taxonomy()
     by_path = {r["path"]: r for r in rows}
 
-    a2a_call = by_path["examples/demos/a2a_call"]
-    assert a2a_call["status"] == "extra-backed"
-    assert "a2a" in (a2a_call["extra"] or [])
-
-    a2a_server = by_path["examples/demos/a2a_server"]
-    assert a2a_server["status"] == "extra-backed"
-    assert "a2a" in (a2a_server["extra"] or [])
+    proxy = by_path["examples/openai_proxy"]
+    assert proxy["status"] == "extra-backed"
+    assert "openai-proxy" in (proxy["extra"] or [])
 
 
 @pytest.mark.req("REQ-YG-571")

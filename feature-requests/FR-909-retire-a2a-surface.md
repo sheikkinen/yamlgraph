@@ -128,3 +128,60 @@ Revised per judgement (R-2 replaced the impossible zero-A2A-in-tests grep):
 **Conditions:** C-1–C-7 per judgement — notably C-2 (no MCP work under this FR), C-5 (CI/constraints edits need human review), C-6 (stop and amend if a real consumer surfaces), C-7 (deletion only; no graph authoring).
 
 **Scope frozen:** deliverables D-1–D-6 per judgement.
+
+## Implementation Status (2026-08-29)
+
+**Enforced** on branch `feat/fr909-retire-a2a`. RED witness committed first
+(`test(a2a): FR-909 RED witness…`), then the deletion sweep.
+
+- D-1: deleted `yamlgraph/a2a/`, `yamlgraph/contrib/a2a_client.py`,
+  `yamlgraph/cli/a2a_commands.py`; removed the import and subparser block
+  from `yamlgraph/cli/__init__.py`.
+- D-2: deleted the five obsolete A2A test modules; added
+  `tests/unit/test_fr909_a2a_retirement.py` (9 witnesses, `REQ-YG-032`,
+  `pytestmark = pytest.mark.process` because it asserts `examples/` paths).
+- D-3: deleted both demos and `reference/a2a-server.md`; removed A2A rows
+  from `examples/README.md`, `reference/README.md`, and the whole
+  `## yamlgraph a2a` section from `reference/cli.md`;
+  `examples/dependency-taxonomy.yaml` and `reference/module-map.md`
+  regenerated.
+- D-4: removed the `a2a` extra from `pyproject.toml`; removed the extra
+  from `.github/workflows/workflow.yml` (both jobs), `CLAUDE.md`, and the
+  `constraints/dev-py312.txt` header.
+- D-5: CAP-81/101/103/104/105 carry `status: retired` +
+  `RETIRED by FR-909`.
+- D-6: `changelog/unreleased/fr-909-retire-a2a-surface.md` (`type: removal`).
+
+**Deviations (all consequences of the deletion, none expanding scope):**
+
+1. **REQ-YG-206 relocated to CAP-111.** CAP-81 hosted the *shared graph
+   discovery* requirement, which survives the retirement (C-3 keeps
+   `discovery.py`) and is tagged by nine live tests. Retiring CAP-81 whole
+   would have made it a phantom REQ and broken `req_coverage.py --strict`.
+   Duplicate REQ IDs are rejected by `validate_capabilities.py`, so the
+   requirement moved rather than being copied; the historical fragment
+   `changelog/0.4.64/FR-208-a2a-graph-support.md` was repointed to
+   `REQ-YG-207..213` to keep the changelog↔CAP cross-check honest.
+2. **`.importlinter`**: removed the `a2a-seam` contract and every
+   `yamlgraph.a2a` layer/forbidden-module entry — the contract referenced a
+   module that no longer exists and `lint-imports` failed hard on it.
+   `tests/unit/test_fr717_seams.py` updated accordingly.
+3. **Residual test updates** (C-5 class, not deleted-import failures):
+   `test_fr375_typescript_node_demo_red.py` no longer asserts A2A guidance
+   in the CLI/examples docs; `test_example_taxonomy_scan.py`'s real-tree
+   regression now pins `examples/openai_proxy` instead of the deleted A2A
+   demos.
+4. **`constraints/dev-py312.txt`**: rather than a wholesale regen (which
+   would have churned every unrelated pin against today's resolver), the
+   ten A2A-attributable distributions were derived by diffing two clean
+   Python 3.12 installs — with and without the `a2a` extra — and removed:
+   `a2a-sdk`, `aiologic`, `culsans`, `google-api-core`,
+   `googleapis-common-protos`, `grpcio`, `json-rpc`, `proto-plus`,
+   `protobuf`, `sse-starlette`.
+
+**Verification:** full unit suite 6234 passed / 97 skipped / 1 xfailed;
+`req_coverage.py --strict`, `validate_capabilities.py`,
+`validate_id_registry.py`, `check_changelog_req.py`,
+`dependency_rationale.py --strict`, `direct_import_scan.py --strict`, and
+`lint-imports` all pass. **C-5 stands: the CI-workflow and constraints
+edits need human review before merge.**

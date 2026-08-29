@@ -403,7 +403,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 77 | CAP-77 Image Generation Pipeline | `examples/image_pipeline` | REQ-YG-198 |
 | 78 | CAP-78 .fi Domain Crawl Demo | `examples/demos/fi-domain-crawl` | REQ-YG-199 |
 | 79 | CAP-79 Demo Proof Gate | `scripts/check_demo_proof.sh`, `.github/workflows/commitlint.yml`, `.pre-commit-config.yaml` | REQ-YG-200 |
-| 81 | CAP-81 A2A Protocol Server | `a2a_server`, `discovery`, `cli/a2a_commands` | REQ-YG-206 – 213 |
+| 81 | CAP-81 A2A Protocol Server | `a2a_server`, `cli/a2a_commands` | REQ-YG-207 – 213 |
 | 82 | CAP-82 Block AI Co-Author Trailers | `scripts/block_ai_coauthor.py`, `.pre-commit-config.yaml` | REQ-YG-215 |
 | 83 | CAP-83 Research Agent Demo | `examples/demos/research-agent` | REQ-YG-217 |
 | 84 | CAP-84 Import-Linter Architectural Boundary Enforcement | `.importlinter`, `.pre-commit-config.yaml`, `.github/workflows/workflow.yml` | REQ-YG-218 |
@@ -432,7 +432,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 108 | CAP-108 Changelog REQ Cross-Validation Gate | `scripts/check_changelog_req.py`, `graphs/enforcement/changelog-req-check.yaml`, `.pre-commit-config.yaml`, `.github/workflows/commitlint.yml` | REQ-YG-255 |
 | 109 | CAP-109 Harden GitHub Issues Remote Inbox | `.chaplain/watch.sh`, `.chaplain/allowed-authors.txt` | REQ-YG-256 |
 | 110 | CAP-110 Diary Index Graph | `examples/demos/diary_index` | REQ-YG-257 |
-| 111 | CAP-111 Shared Graph Invocation | `graph_loader` | REQ-YG-258 |
+| 111 | CAP-111 Shared Graph Invocation | `graph_loader`, `discovery` | REQ-YG-206, 258 |
 | 113 | CAP-113 Chaplain Research Step | `.chaplain/graphs/watcher-plan` | REQ-YG-260 |
 | 114 | CAP-114 Automated Post-Merge Finalization | `.chaplain/lib/finalize_lib.sh`, `.chaplain/watch.sh`, `scripts/finalize_merge.sh`, `tests/unit/test_automated_post_merge_finalization` | REQ-YG-261 |
 | 116 | CAP-116 Acceptance Tests Before Enforce | `.chaplain/config/watcher-pipeline-v2.yaml`, `.chaplain/graphs/watcher-plan/step-plan-unified.yaml`, `.chaplain/graphs/watcher-plan/prompts/write-acceptance-tests.yaml`, `.chaplain/graphs/watcher-plan/prompts/judge.yaml`, … | REQ-YG-263 |
@@ -1309,13 +1309,12 @@ CI gate and pre-commit hook requiring demo-output.log artifact when demos are cr
 
 ### 81. CAP-81 A2A Protocol Server
 
-Expose YAMLGraph graphs as A2A (Agent-to-Agent) protocol agents. Supports task lifecycle (send, get, cancel, stream) and auto-generates Agent Cards from graph YAML metadata.
+RETIRED by FR-909. No consumer for four months; the A2A server, contrib client, CLI subcommand, demos, and optional extra were deleted. Historical record only. Expose YAMLGraph graphs as A2A (Agent-to-Agent) protocol agents. Supports task lifecycle (send, get, cancel, stream) and auto-generates Agent Cards from graph YAML metadata.
 
 **Feature Request:** FR-208
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
-| REQ-YG-206 | Shared graph discovery: extract discover_graphs() from mcp_server.py into discovery.py; both MCP and A2A servers import from it | `discovery`, `mcp_server` |
 | REQ-YG-207 | A2A server discovers graphs using shared discover_graphs() and creates YAMLGraphAgentExecutor wired to A2AStarletteApplication | `a2a_server` |
 | REQ-YG-208 | Agent Card auto-generated from graph YAML metadata (name, description, skills) with streaming=True and no authentication | `a2a_server` |
 | REQ-YG-209 | Message parsing strategy: JSON → key_value → single_input → fallback; missing required vars rejected; PipelineError maps to A2A error types | `a2a_server` |
@@ -1508,7 +1507,7 @@ speak.py --lang flag routes to ChatterboxMultilingualTTS for non-English languag
 
 ### 101. CAP-101 A2A Consumer Contrib Client
 
-A2A consumer functionality via yamlgraph.contrib.a2a_client.send_a2a_message(), invoked as a type: python node. Sends Jinja2-templated message to external A2A agent via HTTP JSON-RPC (message/send), extracts text artifacts from the response, and returns {"response": text}. Supports timeout, Agent Card fetch, skill validation, and SSE streaming. Configuration via variables: on the python node. Replaces dedicated type: a2a_call (FR-253).
+RETIRED by FR-909. No consumer for four months; the A2A server, contrib client, CLI subcommand, demos, and optional extra were deleted. Historical record only. A2A consumer functionality via yamlgraph.contrib.a2a_client.send_a2a_message(), invoked as a type: python node. Sends Jinja2-templated message to external A2A agent via HTTP JSON-RPC (message/send), extracts text artifacts from the response, and returns {"response": text}. Supports timeout, Agent Card fetch, skill validation, and SSE streaming. Configuration via variables: on the python node. Replaces dedicated type: a2a_call (FR-253).
 
 **Feature Request:** FR-240
 
@@ -1528,7 +1527,7 @@ Complete worktree teardown self-heal: validate_editable_install() probes import 
 
 ### 103. CAP-103 A2A SDK v1.0 Compatibility
 
-Upgrade a2a-sdk dependency from v0.3 to v1.0 and fix all breaking changes. Protobuf-based types replace Pydantic models; Part construction uses member-name discriminator (no 'kind' field); TextPart class removed; Role/TaskState enums use SCREAMING_SNAKE_CASE; A2AStarletteApplication replaced by Starlette + route factories; EventQueue.close() removed; AgentCard.url field removed; InMemoryTaskStore API requires ServerCallContext; card JSON serialization uses MessageToDict.
+RETIRED by FR-909. No consumer for four months; the A2A server, contrib client, CLI subcommand, demos, and optional extra were deleted. Historical record only. Upgrade a2a-sdk dependency from v0.3 to v1.0 and fix all breaking changes. Protobuf-based types replace Pydantic models; Part construction uses member-name discriminator (no 'kind' field); TextPart class removed; Role/TaskState enums use SCREAMING_SNAKE_CASE; A2AStarletteApplication replaced by Starlette + route factories; EventQueue.close() removed; AgentCard.url field removed; InMemoryTaskStore API requires ServerCallContext; card JSON serialization uses MessageToDict.
 
 **Feature Request:** FR-244
 
@@ -1538,7 +1537,7 @@ Upgrade a2a-sdk dependency from v0.3 to v1.0 and fix all breaking changes. Proto
 
 ### 104. CAP-104 A2A Server Reference Documentation
 
-User-facing reference documentation for the A2A protocol server (FR-208/209/225, CAP-81). Covers quickstart, CLI commands, Agent Card generation, message parsing, task lifecycle, error mapping, interrupts, authentication, deployment patterns, and MCP relationship. Also updates reference/cli.md with a2a subcommands and reference/README.md index.
+RETIRED by FR-909. No consumer for four months; the A2A server, contrib client, CLI subcommand, demos, and optional extra were deleted. Historical record only. User-facing reference documentation for the A2A protocol server (FR-208/209/225, CAP-81). Covers quickstart, CLI commands, Agent Card generation, message parsing, task lifecycle, error mapping, interrupts, authentication, deployment patterns, and MCP relationship. Also updates reference/cli.md with a2a subcommands and reference/README.md index.
 
 **Feature Request:** FR-246
 
@@ -1548,7 +1547,7 @@ User-facing reference documentation for the A2A protocol server (FR-208/209/225,
 
 ### 105. CAP-105 A2A Consumer Phase 2 — Agent Card, Skill Selection & Streaming
 
-A2A consumer features in yamlgraph.contrib.a2a_client: Agent Card discovery via sync httpx.get() to /.well-known/agent.json, ContextVar-scoped caching per graph invocation, skill selection validated against Agent Card skills at runtime, and SSE streaming via A2AClient.send_message_streaming() in a dedicated thread. Replaces dedicated a2a_call node type linter checks (W901/E904) with runtime validation in contrib function (FR-253).
+RETIRED by FR-909. No consumer for four months; the A2A server, contrib client, CLI subcommand, demos, and optional extra were deleted. Historical record only. A2A consumer features in yamlgraph.contrib.a2a_client: Agent Card discovery via sync httpx.get() to /.well-known/agent.json, ContextVar-scoped caching per graph invocation, skill selection validated against Agent Card skills at runtime, and SSE streaming via A2AClient.send_message_streaming() in a dedicated thread. Replaces dedicated a2a_call node type linter checks (W901/E904) with runtime validation in contrib function (FR-253).
 
 **Feature Request:** FR-248
 
@@ -1611,13 +1610,14 @@ Demo graph that reads diary entries from docs/diary/*.md, extracts structured da
 
 ### 111. CAP-111 Shared Graph Invocation
 
-Shared invoke_graph() function in graph_loader eliminates duplicated graph invocation logic across MCP and A2A servers (FR-255).
+Shared graph discovery and invocation helpers used by the CLI and, formerly, by the MCP and A2A servers (FR-255; discovery requirement adopted from the retired CAP-81 by FR-909).
 
 **Feature Request:** FR-255
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
-| REQ-YG-258 | invoke_graph(path, variables, config) in graph_loader.py: loads config, compiles graph, invokes synchronously with optional LangGraph run config. MCP and A2A servers delegate to this shared function. | `graph_loader`, `mcp_server`, `a2a_server` |
+| REQ-YG-206 | Shared graph discovery: discover_graphs() and default patterns live in discovery.py and are imported by every graph-listing consumer. | `discovery` |
+| REQ-YG-258 | invoke_graph(path, variables, config) in graph_loader.py: loads config, compiles graph, invokes synchronously with optional LangGraph run config. | `graph_loader` |
 
 ### 113. CAP-113 Chaplain Research Step
 

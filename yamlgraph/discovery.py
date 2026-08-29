@@ -1,7 +1,7 @@
-"""Shared graph discovery for protocol servers (MCP, A2A).
+"""Shared graph discovery for graph-listing consumers.
 
-Extracted from mcp_server.py (Phase 0 of FR-208) so both MCP and A2A
-servers share the same discovery logic.
+Extracted from mcp_server.py (Phase 0 of FR-208) so every consumer shares
+the same discovery logic.
 
 FR-291 / CAP-136: Per-graph typed MCP tools — adds input_vars, tool_name,
 and input_schema derivation from graph YAML state block.
