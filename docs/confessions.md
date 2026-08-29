@@ -1847,3 +1847,21 @@ The ID ranges are:
 - **Code**: S607
 - **Sin**: `gh` invoked by partial path in the FR-899 census adapters.
 - **Penance**: gh is PATH-resolved by design (developer tooling); same pattern as CONF-423/426.
+
+### CONF-432
+- **File**: [scripts/tests/test_fr858_board_retirement.py](../scripts/tests/test_fr858_board_retirement.py#L27)
+- **Code**: S603
+- **Sin**: `subprocess.run(["git", "ls-files", ...])` without shell escaping analysis.
+- **Penance**: fixed argument list, no user input; `git` is PATH-resolved by design in developer tooling (CONF-423/426/431 pattern). The test must ask git the tracking question — no library answer exists.
+
+### CONF-433
+- **File**: [scripts/tests/test_fr858_board_retirement.py](../scripts/tests/test_fr858_board_retirement.py#L45)
+- **Code**: S603
+- **Sin**: `subprocess.run([sys.executable, "scripts/fr_board.py"])` in the stdout/no-write witness.
+- **Penance**: FR-858 AC-04/AC-07 witness the *CLI contract* (stdout only, writes nothing); invoking the module in-process would not exercise the surface under test. `sys.executable` and a literal script path, no user input.
+
+### CONF-434
+- **File**: [scripts/tests/test_fr858_board_retirement.py](../scripts/tests/test_fr858_board_retirement.py#L59)
+- **Code**: S603
+- **Sin**: `subprocess.run([sys.executable, "scripts/fr_board.py", *flag])` proving retired flags are rejected.
+- **Penance**: same CLI-contract rationale as CONF-433; `flag` iterates a literal tuple defined in the test, never external input.
