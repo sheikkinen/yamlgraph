@@ -37,7 +37,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from ledger import (  # noqa: E402  # CONF-426
+from ledger import (  # noqa: E402  # CONF-429
     CACHE_RATIO_BEST,
     UNKNOWN_MODEL_PRICE,
     WS_STORAGE,
