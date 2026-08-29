@@ -188,6 +188,14 @@ Enforced same day:
 
 **Pending operator actions (human review gate, C-2/C-4):**
 
-1. Review the workflow diff before landing on `main`.
-2. After landing, run the read-modify-write PATCH above and paste the `{strict, contexts}` verification output here.
+1. ~~Review the workflow diff before landing on `main`.~~ Done — operator approved 2026-08-30; pushed as `cb2a9445` (FR-918) / `f17a1590` (FR-919), range `634f0092..5acb3d5e`.
+2. ~~Run the read-modify-write PATCH.~~ Done 2026-08-30; verification output (records both `strict` and `contexts`, C-2):
+
+   ```json
+   {
+     "contexts": ["commitlint", "test (3.11)", "test (3.13)"],
+     "strict": true
+   }
+   ```
+
 3. Cite the first post-merge PR's green `test (3.11)` + `test (3.13)` runs here.
