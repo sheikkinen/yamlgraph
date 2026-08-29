@@ -122,10 +122,12 @@
 | FR-897 | Judged | yamlgraph |  | FR-897-kurkistusopinnot-fresh-look-agent.md |
 | FR-898 | Judged | yamlgraph |  | FR-898-neo-waterfall-video-v2.md |
 | FR-902 | Judged | yamlgraph |  | FR-902-session-worktree-lifecycle.md |
+| FR-903 | Judged | yamlgraph |  | FR-903-digest-archive-then-email-ordering.md |
 | FR-909 | Judged | yamlgraph |  | FR-909-retire-a2a-surface.md |
 | FR-910 | Judged | yamlgraph |  | FR-910-retire-mcp-surface.md |
 | FR-912 | Judged | yamlgraph |  | FR-912-retire-skill-export-surface.md |
 | FR-913 | Judged | yamlgraph |  | FR-913-retire-graph-bench-command.md |
+| FR-916 | Judged | yamlgraph |  | FR-916-ban-dry-run-phrase.md |
 | FR-915 | Judged | yamlgraph |  | FR-915-retire-mastra-integration-demo.md |
 | FR-094 | Approved | yamlgraph |  | FR-094-memory-node.md |
 | FR-095 | Approved | yamlgraph |  | FR-095-doc-staleness-monitor.md |
@@ -234,7 +236,6 @@
 | FR-879 | Proposed | yamlgraph |  | FR-879-image-pipeline-v2-critic-filter.md |
 | FR-882 | Proposed | yamlgraph |  | FR-882-scp-generator-private-framework.md |
 | FR-887 | Proposed | yamlgraph |  | FR-887-forensics-evidence-timeline-graph.md |
-| FR-903 | Proposed | yamlgraph |  | FR-903-digest-archive-then-email-ordering.md |
 | FR-904 | Proposed | yamlgraph |  | FR-904-slot-bound-digest-collection.md |
 | FR-905 | Proposed | yamlgraph |  | FR-905-ranked-story-boundary-validation.md |
 | FR-078 | In Progress | yamlgraph |  | FR-078-relocate-project-tests.md |
@@ -501,7 +502,7 @@ graph TD
     FR-899["FR-899 In Progress"]
     FR-900["FR-900 PARSE-FAILURE"]
     FR-902["FR-902 Judged"]
-    FR-903["FR-903 Proposed"]
+    FR-903["FR-903 Judged"]
     FR-904["FR-904 Proposed"]
     FR-905["FR-905 Proposed"]
     FR-908["FR-908 PARSE-FAILURE"]
@@ -509,6 +510,7 @@ graph TD
     FR-910["FR-910 Judged"]
     FR-912["FR-912 Judged"]
     FR-913["FR-913 Judged"]
+    FR-916["FR-916 Judged"]
     FR-915["FR-915 Judged"]
     FR-081 --> FR-082
     FR-731 --> FR-735
