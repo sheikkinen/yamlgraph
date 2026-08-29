@@ -236,6 +236,7 @@
 | FR-903 | Proposed | yamlgraph |  | FR-903-digest-archive-then-email-ordering.md |
 | FR-904 | Proposed | yamlgraph |  | FR-904-slot-bound-digest-collection.md |
 | FR-905 | Proposed | yamlgraph |  | FR-905-ranked-story-boundary-validation.md |
+| FR-915 | Proposed | yamlgraph |  | FR-915-retire-mastra-integration-demo.md |
 | FR-078 | In Progress | yamlgraph |  | FR-078-relocate-project-tests.md |
 | FR-100 | In Progress | yamlgraph |  | FR-100-yamlgraph-development-pipeline-ebook.md |
 | FR-169 | In Progress | yamlgraph |  | FR-169-enforce-reflexion-loop.md |
@@ -508,6 +509,7 @@ graph TD
     FR-910["FR-910 Judged"]
     FR-912["FR-912 Judged"]
     FR-913["FR-913 Judged"]
+    FR-915["FR-915 Proposed"]
     FR-081 --> FR-082
     FR-731 --> FR-735
     FR-731 --> FR-736
