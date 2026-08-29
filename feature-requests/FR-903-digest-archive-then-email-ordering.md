@@ -111,6 +111,44 @@ regardless of phrasing and must go through the governed authoring route,
 producing an authoring report. FR-819 recorded the same requirement for
 this repo's original graph adaptation.
 
+### The vendoring fork, stated plainly
+
+The wheel exclusion that forces vendoring is not theoretical. It was
+measured on 2026-08-29 while enforcing FR-906: the corpus-census demo,
+copied outside a checkout and run against the published `yamlgraph
+0.5.23`, died with `No module named 'examples'` at the first node
+importing `examples.demos.corpus_census.adapters`. `examples*` is
+excluded from the wheel by `pyproject.toml`
+`[tool.setuptools.packages.find]`, so nothing under `examples/shared/` is
+reachable from a PyPI consumer. Vendoring is therefore the only option
+available to this FR.
+
+The consequence is a **fork with no sync mechanism**: the moment this FR
+lands, `send_email` exists in two repositories, and the security
+contracts that make it safe — header-injection refusal, unchained
+exceptions that cannot echo the credential, config validated before the
+socket — live in the copy, where an upstream fix will not reach them.
+
+A byte-identical check at vendoring time (the existing acceptance
+criterion) proves the copy was correct *once*. It cannot detect drift
+afterwards, because the digest repo has no access to the upstream file at
+test time.
+
+This FR does not solve that; it records it, because the Judge should
+decide whether the copy is acceptable as-is or needs a stronger seam. The
+options, none of them free:
+
+| Option | Cost |
+|---|---|
+| Vendor and accept drift (as proposed) | Silent divergence; an upstream security fix never arrives |
+| Vendor + commit the upstream SHA, assert it in a test | Detects *that* upstream moved, not *what* changed; needs network or a pinned copy to compare against |
+| Publish the tool as a small package | Real sync, but a distribution decision far outside this FR |
+| Package `examples/shared/` into the yamlgraph wheel | Reverses a deliberate packaging policy; FR-906 A4 deferred exactly this to its own FR |
+
+Recommended default: vendor now with the SHA recorded in the header
+comment, and let the packaging question be decided by the FR-906 A4
+follow-up rather than by this consumer.
+
 ## Acceptance Criteria
 
 - [ ] `graph.yaml` declares `format_markdown → gate → write_bulletin →
@@ -130,7 +168,9 @@ this repo's original graph adaptation.
       no-op
 - [ ] `run_digest.py` contains no file-writing and no delivery logic
 - [ ] The vendored `tools/smtp_email.py` is byte-identical to the FR-907
-      upstream, with provenance recorded in a header comment
+      upstream, with provenance recorded in a header comment: upstream
+      path **and the yamlgraph commit SHA it was copied from**, so a
+      future reader can diff the fork against a known point
 - [ ] The workflow passes all five `SMTP_*` secrets; README documents them
 - [ ] `tests/test_workflow.py` asserts the cron value, the concurrency
       group, `contents: write`, and the presence of every required secret
