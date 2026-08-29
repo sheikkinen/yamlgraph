@@ -1,6 +1,10 @@
 id: CAP-19
+status: retired
 name: MCP Server Interface
 description: >
+  RETIRED by FR-910. Registration was broken for six weeks without a
+  single failure report; the surface was unconsumed even while it worked.
+  Agents reach graphs through the CLI adapters instead. Historical record only.
   Expose YAMLGraph graphs as MCP (Model Context Protocol) tools for Copilot and
   other AI assistants.
 modules:

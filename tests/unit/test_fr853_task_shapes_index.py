@@ -1,12 +1,10 @@
 """FR-853: Task-shape instrument index visibility (AC-04).
 
 Proves the literal ``Task shapes:`` clause in graph descriptions
-survives ``discover_graphs()`` and the MCP ``yamlgraph_list_graphs``
-payload — the agent-visible discovery surface actually carries the
-instrument index (judgement R-4).
+survives ``discover_graphs()`` — the agent-visible discovery surface
+actually carries the instrument index (judgement R-4).
 """
 
-import json
 from pathlib import Path
 
 import pytest
@@ -42,15 +40,3 @@ def test_task_shapes_clause_survives_discover_graphs():
         if "Task shapes:" not in graphs[name]["description"]
     ]
     assert not without_clause, f"missing 'Task shapes:' clause: {without_clause}"
-
-
-@pytest.mark.req("REQ-YG-067")
-def test_task_shapes_clause_in_mcp_list_graphs_payload():
-    """MCP yamlgraph_list_graphs payload carries the 'Task shapes:' clause."""
-    pytest.importorskip("mcp")
-    from yamlgraph.export.mcp import _handle_list_graphs
-
-    payload = json.loads(_handle_list_graphs(_discover_demo_graphs())[0].text)
-    by_name = {g["name"]: g["description"] for g in payload}
-    for name in sorted(INDEXED_GRAPHS):
-        assert "Task shapes:" in by_name[name], f"{name} lacks clause in MCP payload"

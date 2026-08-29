@@ -304,13 +304,6 @@ dependencies:
     modules: ["fsm/"]
     added: "0.4.0"
 
-  # ─── Optional: MCP ───────────────────────────────────────────────────
-
-  mcp:
-    rationale: "Model Context Protocol server for exposing graphs as Copilot tools (CAP-19)"
-    modules: ["yamlgraph/export/mcp.py"]
-    added: "0.4.0"
-
   # ─── Optional: openai-proxy ──────────────────────────────────────────
 
   starlette:

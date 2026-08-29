@@ -792,7 +792,7 @@ Requirement traceability enforcement and testing infrastructure.
 
 ### 19. CAP-19 MCP Server Interface
 
-Expose YAMLGraph graphs as MCP (Model Context Protocol) tools for Copilot and other AI assistants.
+RETIRED by FR-910. Registration was broken for six weeks without a single failure report; the surface was unconsumed even while it worked. Agents reach graphs through the CLI adapters instead. Historical record only. Expose YAMLGraph graphs as MCP (Model Context Protocol) tools for Copilot and other AI assistants.
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
@@ -1837,7 +1837,7 @@ Automated forensic analysis for watcher2 failures with structured diary generati
 
 ### 136. CAP-136 Per-Graph Typed MCP Tools
 
-Derive per-graph typed MCP tool definitions from graph YAML metadata (name, description, state) so each graph appears as its own named tool with a typed JSON Schema. Shared schema derivation in discovery.py.
+RETIRED by FR-910. Registration was broken for six weeks without a single failure report; the surface was unconsumed even while it worked. Agents reach graphs through the CLI adapters instead. Historical record only. Derive per-graph typed MCP tool definitions from graph YAML metadata (name, description, state) so each graph appears as its own named tool with a typed JSON Schema. Shared schema derivation in discovery.py.
 
 **Feature Request:** FR-291
 

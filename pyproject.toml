@@ -113,9 +113,6 @@ digest = [
 fsm = [
     "statemachine-engine>=1.0.89",
 ]
-mcp = [
-    "mcp>=1.0.0",
-]
 chatterbox = [
     "chatterbox-tts>=0.1.0",
     # FR-762: direct-import honesty. torch==2.6.0 has no macOS Intel (x86_64) wheel

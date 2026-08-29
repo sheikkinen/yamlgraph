@@ -136,3 +136,55 @@ matched unrelated fixtures in `test_fr358_*` and `test_fr375_*`):
 **Conditions:** C-1–C-5 per judgement — notably C-2 (doctrine edit human-approved), C-3 (discovery.py preserved), C-4 (A2A owned by FR-909), C-5 (deleted-import failures are not success evidence).
 
 **Scope frozen:** deliverables D-1–D-8 per judgement.
+
+## Implementation Status (2026-08-29)
+
+**Enforced** on branch `feat/fr910-retire-mcp`, stacked on
+`feat/fr909-retire-a2a` (the two retirements share doc surfaces; C-4 is
+honoured — separate FRs, separate commits, separate PRs). RED witness
+committed first (`test(mcp): FR-910 RED witness…`).
+
+- D-1: deleted `yamlgraph/export/mcp.py`.
+- D-2: deleted the untracked `.vscode/mcp.json` and the MCP-only
+  `.vscode/settings.json` (both are gitignored, so they leave no diff);
+  removed the dead `!.vscode/mcp.json` negation from `.gitignore`.
+- D-3: removed the `mcp` extra from `pyproject.toml`; `constraints/dev-py312.txt`
+  carries no `^mcp==` pin, so no regen (R-4).
+- D-4: CAP-19 and CAP-136 carry `status: retired` + `RETIRED by FR-910`.
+- D-5: deleted `test_mcp_server.py`, `test_mcp_typed_tools.py`,
+  `test_fr355_mcp_schema_validation_gate_red.py`; updated
+  `test_discovery.py`, `test_invoke_graph.py`, `test_fr717_seams.py`,
+  `test_fr853_task_shapes_index.py`, `test_concurrency_safety_doc.py`.
+- D-6: deleted `reference/mcp-server.md`; removed live claims from
+  `reference/README.md`, `CLAUDE.md`, `docs/concurrency-safety.md`,
+  `docs/dependency-rationale.yaml`, `yamlgraph/discovery.py`,
+  `yamlgraph/export/__init__.py`, `yamlgraph/compile/graph_loader.py`.
+- D-7: `changelog/unreleased/fr-910-retire-mcp-surface.md` (`type: removal`).
+- D-8: this section.
+
+**Doctrine edit (C-2):** `.github/copilot-instructions.md` `is_this_a_graph`
+now names `yamlgraph graph list` only. It is **isolated in its own commit**
+and requires explicit human approval before merge.
+
+### Finding: C-3's premise does not hold
+
+C-3 preserves `yamlgraph/discovery.py` "because it is CLI-consumed". It is
+not. After the MCP server is deleted, `discover_graphs()` and
+`DEFAULT_GRAPH_PATTERNS` have **zero production consumers** — `yamlgraph
+graph list` does not use them; only tests import them. `vulture` flags both
+as dead code.
+
+C-3 is a GATE, so this FR does **not** delete the module. Both names were
+added to `vulture_whitelist.py` with the reason recorded. **Disposition of
+`yamlgraph/discovery.py` (retire, or wire a real consumer) belongs to a
+follow-up FR.**
+
+### Out of scope, flagged
+
+`examples/demos/mastra-integration/` demonstrates a TypeScript client
+discovering typed MCP tools. It is not in D-1–D-8 and is not touched here;
+it is now a demo of a retired surface and needs its own disposition.
+
+**Verification:** full unit suite 6197 passed / 97 skipped / 1 xfailed;
+`req_coverage.py --strict`, `validate_capabilities.py`,
+`dependency_rationale.py --strict`, `lint-imports`, and `vulture` all pass.
