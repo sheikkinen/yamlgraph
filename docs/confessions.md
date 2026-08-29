@@ -1823,3 +1823,9 @@ The ID ranges are:
 - **Code**: E402
 - **Sin**: `import ledger` after a `sys.path.insert` — module-level import not at top.
 - **Penance**: script-adjacent test for the scripts/vscode spike suite; the path bootstrap must precede the import (CONF-415 idiom).
+
+### CONF-428
+- **File**: [scripts/vscode/tests/test_session_ledger.py](../scripts/vscode/tests/test_session_ledger.py#L30)
+- **Code**: E402
+- **Sin**: `import session_ledger` after a `sys.path.insert` — module-level import not at top.
+- **Penance**: script-adjacent test outside the installable package; path bootstrap must precede the import (CONF-392/393/394/396 idiom).
