@@ -124,15 +124,14 @@ examples:
   entrypoints:
   - examples/daily_digest/api/app.py
 - path: examples/demos
-  status: externally-provisioned
-  external_reason: 'Undeclared distribution(s) not in FR-762''s frozen table: pypdf'
-  entrypoints: []
-- path: examples/demos/corpus_census
   status: extra-backed
   extra:
+  - chatterbox
   - corpus-census
-  entrypoints:
-  - examples/demos/corpus_census/graph.yaml
+  - digest
+  - tavily
+  - websearch
+  entrypoints: []
 - path: examples/demos/agent-json
   status: extra-backed
   extra: null
@@ -172,13 +171,15 @@ examples:
   entrypoints:
   - examples/demos/compaction/graph.yaml
 - path: examples/demos/corpus_census
-  status: externally-provisioned
-  external_reason: 'Undeclared distribution(s) not in FR-762''s frozen table: pypdf'
+  status: extra-backed
+  extra:
+  - corpus-census
   entrypoints:
   - examples/demos/corpus_census/graph.yaml
 - path: examples/demos/corpus_census/adapters
-  status: externally-provisioned
-  external_reason: 'Undeclared distribution(s) not in FR-762''s frozen table: pypdf'
+  status: extra-backed
+  extra:
+  - corpus-census
   entrypoints:
   - examples/demos/corpus_census/adapters/diary_recurrence.py
 - path: examples/demos/data-files
@@ -346,11 +347,6 @@ examples:
   extra: null
   entrypoints:
   - examples/demos/map-timeout/graph.yaml
-- path: examples/demos/mastra-integration
-  status: extra-backed
-  extra: null
-  entrypoints:
-  - examples/demos/mastra-integration/graph.yaml
 - path: examples/demos/memory
   status: extra-backed
   extra: null
@@ -458,6 +454,11 @@ examples:
   extra: null
   entrypoints:
   - examples/demos/reflexion/graph.yaml
+- path: examples/demos/repo_census
+  status: extra-backed
+  extra: null
+  entrypoints:
+  - examples/demos/repo_census/graph.yaml
 - path: examples/demos/req-cross-check
   status: extra-backed
   extra: null
