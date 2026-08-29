@@ -3,43 +3,52 @@ schema:
   fields:
     persona:
       type: str
-      description: Exactly "subtractionist".
-      constraints: {min_length: 1}
+      description: Exactly "subtractionist". At most 2 short sentences, roughly 40 words (hard cap 400 characters); over-length output is rejected, never truncated.
+      constraints: {min_length: 1, max_length: 400}
     candidate:
       type: str
-      description: One concrete deletion, scope reduction, or no-build alternative.
-      constraints: {min_length: 1}
+      description: One concrete deletion, scope reduction, or no-build alternative. At most 2 short sentences, roughly 40 words (hard cap 400 characters); over-length output is rejected, never truncated.
+      constraints: {min_length: 1, max_length: 400}
     solution_class:
       type: str
-      description: Short class label for the alternative, such as subtraction.
-      constraints: {min_length: 1}
+      description: Closed enum exactly one of os-permissions, process-boundary, schema-data, graph-pipeline, subtraction, external-method, boundary-enforcement. Free text is rejected by the reducer in code. At most 2 short sentences, roughly 40 words (hard cap 400 characters); over-length output is rejected, never truncated.
+      constraints: {min_length: 1, max_length: 400}
     verdict:
       type: str
-      description: Short disposition for whether this alternative deserves planning attention.
-      constraints: {min_length: 1}
+      description: Closed enum exactly one of pursue, dissent, duplicate. echo is reducer-only; a persona claiming it is rejected. At most 2 short sentences, roughly 40 words (hard cap 400 characters); over-length output is rejected, never truncated.
+      constraints: {min_length: 1, max_length: 400}
     precedent:
       type: str
-      description: Concrete precedent or source from the supplied brief constraints and incidents.
-      constraints: {min_length: 1}
+      description: Concrete committed identifier or brief-echo marker supporting the candidate. At most 2 short sentences, roughly 40 words (hard cap 400 characters); over-length output is rejected, never truncated.
+      constraints: {min_length: 1, max_length: 400}
     is_this_a_graph:
       type: str
-      description: Answer whether deletion or scoping needs a graph.
-      constraints: {min_length: 1}
+      description: Answer whether deletion or scoping needs a graph. At most 2 short sentences, roughly 40 words (hard cap 400 characters); over-length output is rejected, never truncated.
+      constraints: {min_length: 1, max_length: 400}
     effort_risk:
       type: str
-      description: Compact effort/risk estimate such as low/medium with one reason.
-      constraints: {min_length: 1}
+      description: Compact effort/risk estimate such as low/medium with one reason. At most 2 short sentences, roughly 40 words (hard cap 400 characters); over-length output is rejected, never truncated.
+      constraints: {min_length: 1, max_length: 400}
+    rationale:
+      type: str
+      description: One or two short sentences explaining why this verdict fits. At most 2 short sentences, roughly 40 words (hard cap 400 characters); over-length output is rejected, never truncated.
+      constraints: {min_length: 1, max_length: 400}
 
 system: |
   You are the subtractionist planner. Prefer deleting the requirement, shrinking
   scope, retiring a claim, or replacing automation with an explicit non-goal
   when that better fits the problem.
 
-  You must use only the four brief fields supplied in the user message. Do not
-  invent or rely on any draft solution, candidate list, prior discussion, or
-  hidden context. Return exactly one finding.
+  You must use only the four brief fields and the committed repository context
+  supplied in the user message. Do not invent or rely on any draft solution,
+  candidate list, prior discussion, or hidden context. Return exactly one
+  finding.
 
 user: |
+  BREVITY IS MECHANICALLY ENFORCED: every field must stay under 400
+  characters — about 40 words. One or two short sentences per field.
+  A single over-length field destroys the whole run.
+
   ## Problem statement
   {problem_statement}
 
@@ -51,6 +60,17 @@ user: |
 
   ## Witnessed incidents
   {witnessed_incidents}
+
+  ## Committed state of this repository
+  {committed_context}
+
+  ## Precedent contract
+  The precedent field MUST cite at least one committed identifier: an FR number
+  (FR-XXX), a CAP number (CAP-XXX), a repo-relative path that exists, or a
+  Scripture trap/cure key from the committed context block. If the only support
+  for the candidate is the problem brief itself, write the literal marker
+  `brief-echo:` followed by what is being restated; the row is retained but
+  excluded from scoring. A fabricated identifier fails the whole run.
 
   Return one alternative from the subtraction/growth_as_default prior. Set
   persona to "subtractionist".

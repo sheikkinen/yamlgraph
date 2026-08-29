@@ -3,32 +3,36 @@ schema:
   fields:
     persona:
       type: str
-      description: Exactly "librarian".
-      constraints: {min_length: 1}
+      description: Exactly "librarian". At most 2 short sentences, roughly 40 words (hard cap 400 characters); over-length output is rejected, never truncated.
+      constraints: {min_length: 1, max_length: 400}
     candidate:
       type: str
-      description: One concrete externally precedented alternative.
-      constraints: {min_length: 1}
+      description: One concrete externally precedented method, tool, pattern, or paper for how the world solves this class of problem; not an internal repo design or implementation plan. At most 2 short sentences, roughly 40 words (hard cap 400 characters); over-length output is rejected, never truncated.
+      constraints: {min_length: 1, max_length: 400}
     solution_class:
       type: str
-      description: Short class label for the external alternative, such as external-method.
-      constraints: {min_length: 1}
+      description: Closed enum exactly one of os-permissions, process-boundary, schema-data, graph-pipeline, subtraction, external-method, boundary-enforcement. Free text is rejected by the reducer in code; external precedent is typically external-method. At most 2 short sentences, roughly 40 words (hard cap 400 characters); over-length output is rejected, never truncated.
+      constraints: {min_length: 1, max_length: 400}
     verdict:
       type: str
-      description: Short disposition for whether this alternative deserves planning attention.
-      constraints: {min_length: 1}
+      description: Closed enum exactly one of pursue, dissent, duplicate. echo is reducer-only; a persona claiming it is rejected. At most 2 short sentences, roughly 40 words (hard cap 400 characters); over-length output is rejected, never truncated.
+      constraints: {min_length: 1, max_length: 400}
     precedent:
       type: str
-      description: Must include a real http(s) URL copied from librarian_research or librarian_tool_results.
-      constraints: {min_length: 1}
+      description: Must include a real http(s) URL copied verbatim from librarian_research or librarian_tool_results. Fabricated URLs are rejected. At most 2 short sentences, roughly 40 words (hard cap 400 characters); over-length output is rejected, never truncated.
+      constraints: {min_length: 1, max_length: 400}
     is_this_a_graph:
       type: str
-      description: Answer whether the external precedent suggests a graph shape.
-      constraints: {min_length: 1}
+      description: Answer whether the external precedent suggests a graph shape. At most 2 short sentences, roughly 40 words (hard cap 400 characters); over-length output is rejected, never truncated.
+      constraints: {min_length: 1, max_length: 400}
     effort_risk:
       type: str
-      description: Compact effort/risk estimate such as low/medium with one reason.
-      constraints: {min_length: 1}
+      description: Compact effort/risk estimate such as low/medium with one reason. At most 2 short sentences, roughly 40 words (hard cap 400 characters); over-length output is rejected, never truncated.
+      constraints: {min_length: 1, max_length: 400}
+    rationale:
+      type: str
+      description: One or two short sentences explaining why this verdict fits. At most 2 short sentences, roughly 40 words (hard cap 400 characters); over-length output is rejected, never truncated.
+      constraints: {min_length: 1, max_length: 400}
 
 system: |
   You structure the librarian's web-search notes into exactly one finding.
@@ -37,10 +41,19 @@ system: |
   "Error:" or "No results" string and no real URL, report that in precedent
   rather than inventing a citation; the deterministic reducer will stop the run.
 
+  The librarian is pinned to EXTERNAL precedent reporting only: report how the
+  world already solves this class of problem, with named tools, patterns, or
+  papers. Do NOT propose internal repo designs, gates, or implementation plans;
+  those belong to the other personas.
+
   Do not use any draft solution, candidate list, prior discussion, or hidden
   context. Return exactly one finding.
 
 user: |
+  BREVITY IS MECHANICALLY ENFORCED: every field must stay under 400
+  characters — about 40 words. One or two short sentences per field.
+  A single over-length field destroys the whole run.
+
   ## Problem statement
   {problem_statement}
 
@@ -58,6 +71,23 @@ user: |
 
   ## Raw tool results
   {librarian_tool_results}
+
+  ## Committed state of this repository
+  {committed_context}
+
+  ## Precedent contract
+  The precedent field MUST cite the exact http(s) URL copied from the raw
+  search_web tool results. Do not use committed identifiers as a substitute for
+  the librarian URL. For internal repository support mentioned outside
+  precedent, cite an FR number (FR-XXX), CAP number (CAP-XXX), repo-relative
+  path that exists, or Scripture trap/cure key from the committed context block.
+  Route-wide contract for internal persona rows: the precedent field MUST cite at least one committed identifier: an FR number (FR-XXX), a CAP number
+  (CAP-XXX), a repo-relative path that exists, or a Scripture trap/cure key
+  from the committed context block.
+  If the only support for the candidate is the problem brief itself, write the
+  literal marker `brief-echo:` followed by what is being restated; the row is
+  retained but excluded from scoring. A fabricated identifier or URL fails the
+  whole run.
 
   Return one structured librarian finding. Set persona to "librarian" and copy
   one http(s) URL into precedent.

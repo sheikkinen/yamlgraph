@@ -1,13 +1,13 @@
-"""FR-890 RED witnesses — research sole route (closed-input alternatives).
+"""FR-890 witnesses — research sole route (closed-input alternatives).
 
-Judged contract (FR-890 judgement, R-1..R-6 folded):
+Updated for FR-896 (AC-11): closed enums, required rationale, librarian
+tool-result reconciliation, non-echo grounding gate (distinct-class
+count is now advisory). Original FR-890 contract otherwise unchanged:
 - Deterministic problem-brief closure preflight (R-2): required headings,
   forbidden solution/candidate sections, closed classification enum;
   stdlib only, never an LLM (AC-02).
-- Frozen artifact schema (R-3): tmp/draft-alternatives.md with columns
-  candidate/persona/class/verdict/precedent/is_this_a_graph/effort-risk,
-  4-6 distinct solution classes, no empty required cells, disagreement
-  preserved as rows (AC-06, AC-07).
+- Frozen artifact schema (R-3): tmp/draft-alternatives.md, no empty
+  required cells, disagreement preserved as rows (AC-06, AC-07).
 - Librarian fails closed (R-4): an ``Error:``/``No results`` string is
   not a citation; the librarian row must carry a URL (AC-05, C-4).
 - Wrapper (judge.sh lineage): lock, lineage sentinel, preflight before
@@ -45,7 +45,11 @@ COLUMNS = [
     "precedent",
     "is_this_a_graph",
     "effort-risk",
+    "rationale",
 ]
+
+OPA_URL = "https://www.openpolicyagent.org/"
+TOOL_RESULTS = [{"tool": "search_web", "output": f"OPA docs URL: {OPA_URL}"}]
 
 
 def _load(name: str, path: Path):
@@ -73,7 +77,8 @@ def _finding(**overrides) -> dict:
         "persona": "os-infra-primitivist",
         "candidate": "OS permission bit on the governed path",
         "solution_class": "os-permissions",
-        "verdict": "viable",
+        "verdict": "pursue",
+        "rationale": "kernel enforcement beats instruction text",
         "precedent": "chmod a-w precedent in FR-889",
         "is_this_a_graph": "no",
         "effort_risk": "low/low",
@@ -88,30 +93,40 @@ def _five_findings() -> list[dict]:
         _finding(
             persona="data-process-planner",
             candidate="schema change dissolving the parse",
-            solution_class="data-model",
+            solution_class="schema-data",
             precedent="FR-884 skeleton JSONL",
         ),
         _finding(
             persona="yamlgraph-native-planner",
             candidate="map+reduce graph over personas",
-            solution_class="graph",
+            solution_class="graph-pipeline",
             is_this_a_graph="yes: map node",
-            precedent="examples/demos/map",
+            precedent="examples/demos/map/graph.yaml",
         ),
         _finding(
             persona="subtractionist",
             candidate="delete the requirement",
             solution_class="subtraction",
-            verdict="rejected",
+            verdict="dissent",
             precedent="growth_as_default (Scripture)",
         ),
         _finding(
             persona="librarian",
             candidate="policy-as-code gate",
-            solution_class="external-tooling",
-            precedent="OPA conftest https://www.openpolicyagent.org/",
+            solution_class="external-method",
+            precedent=f"OPA conftest {OPA_URL}",
         ),
     ]
+
+
+def _reduce(tools, findings, base_dir, tool_results=TOOL_RESULTS):
+    return tools.reduce_findings(
+        findings,
+        str(CLEAN_BRIEF),
+        base_dir=str(base_dir),
+        librarian_tool_results=tool_results,
+        repo_root=str(REPO_ROOT),
+    )
 
 
 # --- brief closure preflight (AC-02, R-2) ----------------------------------
@@ -170,9 +185,7 @@ def test_preflight_cli_exit_codes(tmp_path):
 
 @pytest.mark.req("REQ-YG-623")
 def test_reduce_writes_artifact_with_frozen_schema(tools, tmp_path):
-    result = tools.reduce_findings(
-        _five_findings(), str(CLEAN_BRIEF), base_dir=str(tmp_path)
-    )
+    result = _reduce(tools, _five_findings(), tmp_path)
     artifact = tmp_path / "tmp" / "draft-alternatives.md"
     assert artifact.exists()
     text = artifact.read_text()
@@ -181,7 +194,7 @@ def test_reduce_writes_artifact_with_frozen_schema(tools, tmp_path):
     assert "clean-brief.md" in text  # brief filename in metadata header
     assert "librarian" in text
     assert result["rows"] == 5
-    assert 4 <= result["classes"] <= 6
+    assert result["classes"] == 5  # advisory report, not a gate (FR-896 R-2)
 
 
 @pytest.mark.req("REQ-YG-623")
@@ -192,11 +205,11 @@ def test_reduce_preserves_conflicting_rows(tools, tmp_path):
             persona="subtractionist",
             candidate="OS permission bit on the governed path",
             solution_class="os-permissions",
-            verdict="rejected",
-            precedent="disagrees: permission bit is bypassable by owner",
+            verdict="dissent",
+            precedent="FR-889: permission bit is bypassable by owner",
         )
     )
-    result = tools.reduce_findings(findings, str(CLEAN_BRIEF), base_dir=str(tmp_path))
+    result = _reduce(tools, findings, tmp_path)
     assert result["rows"] == 6, "disagreement must be preserved as rows, never voted"
     text = (tmp_path / "tmp" / "draft-alternatives.md").read_text()
     assert text.count("OS permission bit on the governed path") == 2
@@ -207,7 +220,7 @@ def test_reduce_fails_closed_on_librarian_error_string(tools, tmp_path):
     findings = _five_findings()
     findings[4]["precedent"] = "Error: ddgs package not installed"
     with pytest.raises(ValueError, match="librarian"):
-        tools.reduce_findings(findings, str(CLEAN_BRIEF), base_dir=str(tmp_path))
+        _reduce(tools, findings, tmp_path)
 
 
 @pytest.mark.req("REQ-YG-623")
@@ -215,7 +228,7 @@ def test_reduce_fails_closed_on_librarian_without_url(tools, tmp_path):
     findings = _five_findings()
     findings[4]["precedent"] = "some vague memory of a tool"
     with pytest.raises(ValueError, match="URL"):
-        tools.reduce_findings(findings, str(CLEAN_BRIEF), base_dir=str(tmp_path))
+        _reduce(tools, findings, tmp_path)
 
 
 @pytest.mark.req("REQ-YG-623")
@@ -223,14 +236,18 @@ def test_reduce_fails_closed_on_empty_cell(tools, tmp_path):
     findings = _five_findings()
     findings[1]["precedent"] = ""
     with pytest.raises(ValueError, match="empty"):
-        tools.reduce_findings(findings, str(CLEAN_BRIEF), base_dir=str(tmp_path))
+        _reduce(tools, findings, tmp_path)
 
 
 @pytest.mark.req("REQ-YG-623")
-def test_reduce_fails_closed_on_class_count(tools, tmp_path):
-    findings = [_finding(persona=f"p{i}") for i in range(5)]  # 1 distinct class
-    with pytest.raises(ValueError, match="class"):
-        tools.reduce_findings(findings, str(CLEAN_BRIEF), base_dir=str(tmp_path))
+def test_reduce_single_class_convergence_is_advisory(tools, tmp_path):
+    """FR-896 R-2 replacement witness: convergence never fails the gate."""
+    findings = [
+        _finding(persona=f"p{i}", precedent="FR-889 write lock") for i in range(5)
+    ]
+    result = _reduce(tools, findings, tmp_path)
+    assert result["rows"] == 5
+    assert result["classes"] == 1  # reported, not gated
 
 
 # --- artifact verifier (wrapper shape check, AC-08) --------------------------
@@ -238,7 +255,7 @@ def test_reduce_fails_closed_on_class_count(tools, tmp_path):
 
 @pytest.mark.req("REQ-YG-623")
 def test_verify_artifact_accepts_reduced_output(preflight, tools, tmp_path):
-    tools.reduce_findings(_five_findings(), str(CLEAN_BRIEF), base_dir=str(tmp_path))
+    _reduce(tools, _five_findings(), tmp_path)
     text = (tmp_path / "tmp" / "draft-alternatives.md").read_text()
     assert preflight.verify_artifact(text) == []
 
@@ -337,7 +354,7 @@ def test_research_preflight_blocks_contaminated_brief(tmp_path):
 @pytest.mark.req("REQ-YG-623")
 def test_research_stub_run_verifies_artifact(tools, tmp_path):
     valid_dir = tmp_path / "valid"
-    tools.reduce_findings(_five_findings(), str(CLEAN_BRIEF), base_dir=str(valid_dir))
+    _reduce(tools, _five_findings(), valid_dir)
     fixture = valid_dir / "tmp" / "draft-alternatives.md"
     stub = _write_stub(
         tmp_path / "yg",

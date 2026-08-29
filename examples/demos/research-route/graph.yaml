@@ -20,6 +20,7 @@ state:
   constraints: str
   witnessed_incidents: str
   graph_shapes: str
+  committed_context: str
   os_infra_finding: dict
   data_process_finding: dict
   yamlgraph_native_finding: dict
@@ -44,6 +45,11 @@ tools:
     path: nodes/research_tools.py
     function: collect_graph_shapes
     description: "Collect one-line task-shape descriptions from demo graphs."
+  collect_committed_context:
+    type: python
+    path: nodes/research_tools.py
+    function: collect_committed_context
+    description: "Deterministic committed-state grounding block: CAP registry one-liners, ARCHITECTURE.md headings, Scripture trap/cure keys."
   gather_findings:
     type: python
     path: nodes/research_tools.py
@@ -70,46 +76,65 @@ nodes:
     tool: collect_graph_shapes
     state_key: graph_shapes
 
+  collect_committed_context:
+    type: python
+    tool: collect_committed_context
+    state_key: committed_context
+    variables:
+      repo_root: "."
+
   os_infra_primitivist:
     type: llm
     prompt: os_infra_primitivist
     state_key: os_infra_finding
+    on_error: retry
+    max_retries: 2
     variables:
       problem_statement: "{state.problem_statement}"
       classification: "{state.classification}"
       constraints: "{state.constraints}"
       witnessed_incidents: "{state.witnessed_incidents}"
+      committed_context: "{state.committed_context}"
 
   data_process_planner:
     type: llm
     prompt: data_process_planner
     state_key: data_process_finding
+    on_error: retry
+    max_retries: 2
     variables:
       problem_statement: "{state.problem_statement}"
       classification: "{state.classification}"
       constraints: "{state.constraints}"
       witnessed_incidents: "{state.witnessed_incidents}"
+      committed_context: "{state.committed_context}"
 
   yamlgraph_native_planner:
     type: llm
     prompt: yamlgraph_native_planner
     state_key: yamlgraph_native_finding
+    on_error: retry
+    max_retries: 2
     variables:
       problem_statement: "{state.problem_statement}"
       classification: "{state.classification}"
       constraints: "{state.constraints}"
       witnessed_incidents: "{state.witnessed_incidents}"
       graph_shapes: "{state.graph_shapes}"
+      committed_context: "{state.committed_context}"
 
   subtractionist:
     type: llm
     prompt: subtractionist
     state_key: subtractionist_finding
+    on_error: retry
+    max_retries: 2
     variables:
       problem_statement: "{state.problem_statement}"
       classification: "{state.classification}"
       constraints: "{state.constraints}"
       witnessed_incidents: "{state.witnessed_incidents}"
+      committed_context: "{state.committed_context}"
 
   librarian_research:
     type: agent
@@ -118,6 +143,12 @@ nodes:
     max_iterations: 4
     state_key: librarian_research
     tool_results_key: librarian_tool_results
+    variables:
+      problem_statement: "{state.problem_statement}"
+      classification: "{state.classification}"
+      constraints: "{state.constraints}"
+      witnessed_incidents: "{state.witnessed_incidents}"
+      committed_context: "{state.committed_context}"
 
   os_infra_ready:
     type: passthrough
@@ -139,6 +170,8 @@ nodes:
     type: llm
     prompt: librarian_structure
     state_key: librarian_finding
+    on_error: retry
+    max_retries: 2
     variables:
       problem_statement: "{state.problem_statement}"
       classification: "{state.classification}"
@@ -146,6 +179,7 @@ nodes:
       witnessed_incidents: "{state.witnessed_incidents}"
       librarian_research: "{state.librarian_research}"
       librarian_tool_results: "{state.librarian_tool_results}"
+      committed_context: "{state.committed_context}"
 
   gather_findings:
     type: python
@@ -163,6 +197,8 @@ edges:
   - from: load_brief
     to: collect_graph_shapes
   - from: collect_graph_shapes
+    to: collect_committed_context
+  - from: collect_committed_context
     to:
       - os_infra_primitivist
       - data_process_planner

@@ -231,7 +231,6 @@
 | FR-879 | Proposed | yamlgraph |  | FR-879-image-pipeline-v2-critic-filter.md |
 | FR-882 | Proposed | yamlgraph |  | FR-882-scp-generator-private-framework.md |
 | FR-887 | Proposed | yamlgraph |  | FR-887-forensics-evidence-timeline-graph.md |
-| FR-896 | Proposed | yamlgraph |  | FR-896-research-route-precedent-traceability.md |
 | FR-903 | Proposed | yamlgraph |  | FR-903-digest-archive-then-email-ordering.md |
 | FR-904 | Proposed | yamlgraph |  | FR-904-slot-bound-digest-collection.md |
 | FR-905 | Proposed | yamlgraph |  | FR-905-ranked-story-boundary-validation.md |
@@ -494,7 +493,6 @@ graph TD
     FR-887["FR-887 Proposed"]
     FR-889["FR-889 Judged"]
     FR-896["FR-896 In Progress"]
-    FR-896["FR-896 Proposed"]
     FR-897["FR-897 Judged"]
     FR-898["FR-898 Judged"]
     FR-898["FR-898 PARSE-FAILURE"]
