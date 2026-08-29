@@ -260,8 +260,13 @@ the caller's pipeline, not this transport. (R-3)
 
 | Artifact | Commit |
 |---|---|
-| RED — 18 condemning tests + CAP-251/REQ-YG-626 | `86373da2` |
-| GREEN — `examples/shared/smtp_email.py`, manifest, README | `f01404d7` |
+| RED — 18 condemning tests + CAP-252/REQ-YG-627 | `f03c3463` |
+| GREEN — `examples/shared/smtp_email.py`, manifest, README | `660f1b48` |
+
+The capability was originally registered as CAP-251/REQ-YG-626 and
+renumbered on rebase: a parallel session claimed those IDs on `main`
+first. Numeric ID allocation is not collision-safe across concurrent
+sessions (`one_session_one_repo`); the test suite caught it, not review.
 
 RED was proven: `tests/unit/test_smtp_email.py` failed at collection with
 `ModuleNotFoundError: examples.shared.smtp_email` before the module

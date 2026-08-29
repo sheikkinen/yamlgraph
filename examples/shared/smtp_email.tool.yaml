@@ -1,4 +1,4 @@
-# Tool manifest (FR-768) — shared SMTP email tool (FR-901, CAP-251).
+# Tool manifest (FR-768) — shared SMTP email tool (FR-901, CAP-252).
 # First consumer: yamlgraph-daily-digest, which emails the bulletin it
 # archives (FR-902 delivery child).
 #

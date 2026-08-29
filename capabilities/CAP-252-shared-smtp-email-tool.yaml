@@ -1,4 +1,4 @@
-id: CAP-251
+id: CAP-252
 name: Shared SMTP Email Tool
 description: >
   FR-901: a reusable FR-768 python-runtime tool manifest that sends email
@@ -14,7 +14,7 @@ description: >
 modules:
   - examples
 requirements:
-  - id: REQ-YG-626
+  - id: REQ-YG-627
     description: >
       examples/shared/smtp_email.tool.yaml validates as a python-runtime
       ToolManifest and examples/shared/smtp_email.py exposes send_email

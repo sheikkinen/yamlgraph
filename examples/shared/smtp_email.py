@@ -1,4 +1,4 @@
-"""Shared SMTP email tool (FR-901, CAP-251).
+"""Shared SMTP email tool (FR-901, CAP-252).
 
 Transport only: it accepts already-rendered strings and has no opinion
 about what it carries. Rendering, templating, and subject construction

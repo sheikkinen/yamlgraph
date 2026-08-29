@@ -77,7 +77,7 @@ def call(**kwargs):
     return send_email(**kwargs)
 
 
-@pytest.mark.req("REQ-YG-626")
+@pytest.mark.req("REQ-YG-627")
 class TestManifest:
     def test_manifest_validates_as_python_runtime_tool(self):
         raw = yaml.safe_load(MANIFEST.read_text())
@@ -92,7 +92,7 @@ class TestManifest:
         assert "First consumer:" in MANIFEST.read_text()
 
 
-@pytest.mark.req("REQ-YG-626")
+@pytest.mark.req("REQ-YG-627")
 class TestConfigValidation:
     def test_missing_config_names_every_key_at_once(self, monkeypatch):
         for key in SMTP_ENV:
@@ -122,7 +122,7 @@ class TestConfigValidation:
         assert FakeSMTP.instances[0].logged_in[0] == "late@example.com"
 
 
-@pytest.mark.req("REQ-YG-626")
+@pytest.mark.req("REQ-YG-627")
 class TestTransportSelection:
     def test_port_465_uses_implicit_tls_without_starttls(self, smtp_env, monkeypatch):
         monkeypatch.setenv("SMTP_PORT", "465")
@@ -144,7 +144,7 @@ class TestTransportSelection:
         assert FakeSMTP.instances[0].port == 587
 
 
-@pytest.mark.req("REQ-YG-626")
+@pytest.mark.req("REQ-YG-627")
 class TestMessageShape:
     def test_text_only_has_single_part(self, smtp_env):
         call(text="plain body")
@@ -178,7 +178,7 @@ class TestMessageShape:
         assert FakeSMTP.instances[0].sent[0]["From"] == "Digest <noreply@example.com>"
 
 
-@pytest.mark.req("REQ-YG-626")
+@pytest.mark.req("REQ-YG-627")
 class TestAttachments:
     def test_present_file_is_attached_with_guessed_type(self, smtp_env, tmp_path):
         report = tmp_path / "digest.md"
@@ -197,7 +197,7 @@ class TestAttachments:
         assert not FakeSMTP.instances
 
 
-@pytest.mark.req("REQ-YG-626")
+@pytest.mark.req("REQ-YG-627")
 class TestHeaderInjection:
     @pytest.mark.parametrize(
         "field,value",
@@ -214,7 +214,7 @@ class TestHeaderInjection:
         assert not FakeSMTP.instances
 
 
-@pytest.mark.req("REQ-YG-626")
+@pytest.mark.req("REQ-YG-627")
 class TestFailureDisclosure:
     def test_send_failure_propagates_as_raise(self, smtp_env):
         def failing_factory(host, port, timeout=None):
