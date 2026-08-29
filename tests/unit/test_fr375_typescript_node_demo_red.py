@@ -47,8 +47,7 @@ def test_ac09_docs_include_json_mode_and_typescript_demo_guidance() -> None:
     assert "--json" in cli_doc
     assert "stdout" in cli_doc.lower() and "json" in cli_doc.lower()
     assert "subprocess" in cli_doc.lower()
-    assert "mcp" in cli_doc.lower()
 
     assert "typescript-node" in examples_doc
+    assert "--json" in examples_doc
     assert "subprocess" in examples_doc.lower()
-    assert "mcp" in examples_doc.lower()

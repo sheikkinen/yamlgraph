@@ -156,3 +156,62 @@ the code, not outlive it), C-4 (`docs/research-mastra.md` byte-for-byte
 untouched), C-5 (`examples/demos/typescript-node/` untouched).
 
 **Scope frozen:** deliverables D-1–D-6 per judgement.
+
+## Implementation Status (2026-08-29)
+
+**Enforced** on branch `feat/fr915-retire-mastra-demo`, cut from `main` at
+`7e7018f1` — i.e. **after** FR-910 merged, so the AC-01 dependency gate was
+satisfied before any deletion (C-2). RED witness committed first.
+
+- D-1: deleted all 9 tracked files under `examples/demos/mastra-integration/`
+  (the judgement's D-1 also lists a `tools.py`; no such file existed —
+  `git ls-files` showed README, `demo.sh`, `demo-output.log`, `graph.yaml`,
+  `prompts/greet.yaml`, and the four `mastra-app/` files).
+- D-2: removed the `mastra-integration` row from `examples/README.md` and
+  rewrote the TypeScript guidance to name `demos/typescript-node/`,
+  `graph run --json`, and subprocess request/response only.
+- D-3: regenerated `examples/dependency-taxonomy.yaml`; idempotency proven.
+- D-4: `tests/unit/test_fr375_typescript_node_demo_red.py` no longer asserts
+  any `mcp` term; it still asserts `--json`, `stdout`, `subprocess` in
+  `reference/cli.md` and `typescript-node`, `--json`, `subprocess` in
+  `examples/README.md`.
+- D-5: `changelog/unreleased/fr-915-retire-mastra-integration-demo.md`.
+- D-6: this section.
+
+### Deviations
+
+1. **AC-03 is satisfied over live surfaces, not literally.**
+   `rg -ri 'mastra' examples/` still returns exactly one match:
+   `examples/demos/research-route/demo-output.log`, which captured a real
+   run whose output happened to name the Mastra tool. That file is a frozen
+   CAP-79 proof artifact belonging to **another** demo. Editing it to make a
+   grep pass would falsify evidence, and deleting it would breach the
+   judgement's "do not delete any other demo". The defect class — live
+   advertising or code for the retired demo — is fully cleared; the residue
+   is immutable history. The witness test encodes this exclusion explicitly.
+2. **A witness test was added** (`tests/unit/test_fr915_mastra_demo_retirement.py`,
+   3 assertions, `REQ-YG-428`). The judgement's D-list names only the FR-375
+   test update, so this is an addition, not a substitution: Commandment 7
+   requires a condemning test, and the same pattern caught real leftovers in
+   FR-909 and FR-910. It touches no surface on the "Not authorized" list.
+
+### Out of scope, flagged
+
+`reference/cli.md` still contains two live MCP recommendations that FR-910's
+denylist did not match because they are prose, not server symbols:
+
+- line ~80: *"**Subprocess vs MCP:** … Prefer MCP for long-lived agent/tool
+  ecosystems, discovery, and protocol-level interoperability."*
+- line ~227: *"Copilot agent mode file constrained to YAMLGraph MCP tools"*
+  (skill-export section; `yamlgraph/export/skill_writer.py` still emits
+  "Operate through YAMLGraph MCP tools only.")
+
+Both recommend a retired surface. `reference/cli.md` is outside this FR's
+frozen deliverables (D-2 covers `examples/README.md` only), so they are left
+untouched and flagged. The second belongs to the skill exporter — **FR-912's
+surface**. Recommend folding both into FR-912 or FR-914.
+
+**Verification:** full unit suite 6261 passed / 97 skipped / 1 xfailed;
+AC-01, AC-02, AC-04, AC-06, AC-07, AC-10, AC-11 pass mechanically; AC-05
+idempotency proven; `req_coverage.py --strict`, `validate_capabilities.py`,
+and `check_demo_proof.sh` pass.
