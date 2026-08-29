@@ -2,18 +2,26 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Proposed
+**Status:** Judged — APPROVED WITH REVISIONS (revisions folded 2026-08-29)
 **Effort:** 0.25 days
 **Requested:** 2026-08-29
+**Depends on:** FR-910 (merged to `main` as `7e7018f1`, PR #492). **Enforcement
+is authorized only on a base where FR-910's MCP retirement acceptance criteria
+AC-01 and AC-05 are already true; FR-915 must not implement FR-910's
+`yamlgraph/`, packaging, reference, or CAP changes** (R-1, C-2).
 **First consumer / first event:** every maintainer and CI run from the merge
 onward — the first event is this FR's own PR pipeline, which stops carrying a
 demo that cannot run, stops shipping a `demo-output.log` that certifies a
 capability the repo no longer has, and stops advertising a retired protocol
 in `examples/README.md`.
 **Research:** in-body dispositioned alternatives table below (FR-889 style),
-grounded in the evidence table under Problem — every row verified in a
-worktree at HEAD on 2026-08-29 and reproducible by the command shown.
+grounded in the evidence table under Problem — every row verified on the
+FR-910-merged base on 2026-08-29 and reproducible by the command shown.
 Historical design record `docs/research-mastra.md` is retained untouched.
+**`is_this_a_graph`:** No (R-2). This is retirement of an obsolete demo
+artifact, not authoring of a replacement graph; no graph or prompt is
+created or materially modified. The surviving TypeScript integration is the
+existing `examples/demos/typescript-node/` subprocess demo.
 **Prior art:** FR-910 (retired the MCP server this demo consumes; flagged this
 demo as out of its frozen scope and deferred the disposition — operator
 disposition "retire", 2026-08-29); FR-291/CAP-136 (created this demo; CAP
@@ -27,8 +35,8 @@ FR-914 (`discovery.py`).
 ## Summary
 
 Delete `examples/demos/mastra-integration/` and its advertising rows. Its
-subject — the YAMLGraph MCP server — was retired by FR-910; its client has
-pointed at a deleted file since 2026-07-18.
+subject — the YAMLGraph MCP server — was retired by FR-910 (merged as
+`7e7018f1`); its client has pointed at a deleted file since 2026-07-18.
 
 ## Value Statement
 
@@ -40,7 +48,9 @@ exists.
 
 `examples/demos/mastra-integration/` demonstrates a Mastra (TypeScript)
 client discovering YAMLGraph graphs as typed MCP tools. FR-910 retired the
-MCP server. The demo's entire subject is gone.
+MCP server and merged to `main` as `7e7018f1` before this FR's enforcement
+began (R-1: FR-915 depends on that result and does not perform it). The
+demo's entire subject is gone.
 
 It was already broken before that, independently:
 
@@ -49,7 +59,7 @@ It was already broken before that, independently:
 | E-1 | The demo connects to a YAMLGraph MCP server | `mastra-app/src/index.ts:23` resolves `yamlgraph/mcp_server.py` — **deleted 2026-07-18 by FR-717 PR2**. The demo has been broken for six weeks on its own, before FR-910 touched anything | `rg -n 'mcp_server' examples/demos/mastra-integration/mastra-app/src/index.ts` |
 | E-2 | The demo is maintained | Last commit touching the directory is `ad1b229e` (2026-04-28), and that was an unrelated `chore: vertex in pyproject` sweep — four months with no substantive change | `git log -1 --format='%ci %h %s' -- examples/demos/mastra-integration/` |
 | E-3 | `demo-output.log` proves the demo runs | The committed proof was produced on a machine path (`/Users/sami.j.p.heikkinen/src/yamlgraph`) that is not the current checkout, and predates both breakages. The demo gate (CAP-79) checks the artifact's presence, not its currency — `gate_checks_shape_not_substance` | `head -2 examples/demos/mastra-integration/demo-output.log` |
-| E-4 | The capability is live | CAP-136 (Per-Graph Typed MCP Tools), the capability this demo exists to prove, carries `status: retired` / `RETIRED by FR-910` | `rg -n 'status: retired' capabilities/CAP-136-per-graph-typed-mcp-tools.yaml` |
+| E-4 | The capability is live | CAP-136 (Per-Graph Typed MCP Tools), the capability this demo exists to prove, carries `status: retired` / `RETIRED by FR-910` on the enforcement base | `rg -n 'status: retired\|RETIRED by FR-910' capabilities/CAP-136-per-graph-typed-mcp-tools.yaml` |
 | E-5 | Removing it loses TypeScript coverage | `examples/demos/typescript-node/` (FR-375) demonstrates TypeScript integration via `graph run --json` over `child_process.execFile` — the transport that works and is exercised | `ls examples/demos/typescript-node/` |
 
 A demo is an executable claim about the framework. This one claims a
@@ -93,15 +103,20 @@ archived record that mentions Mastra.
 
 ## Acceptance Criteria
 
-- [ ] AC-01: `git ls-files 'examples/demos/mastra-integration/*'` prints no files
-- [ ] AC-02: `rg -ri 'mastra' examples/` returns no matches
-- [ ] AC-03: `examples/README.md` has no `mastra-integration` row, and its TypeScript-integration guidance names `demos/typescript-node/` without offering MCP as an alternative
-- [ ] AC-04: `examples/dependency-taxonomy.yaml` is regenerated and contains no `mastra-integration` path; `python scripts/example_taxonomy_scan.py` reports no diff on a second run (idempotent)
-- [ ] AC-05: `test_fr375_typescript_node_demo_red.py` passes without asserting any MCP term, and still fails if the `typescript-node` guidance is removed from `examples/README.md` (mutation-checked, not just green)
-- [ ] AC-06: `./scripts/check_demo_proof.sh` (CAP-79 demo gate) passes, and the CI `demo-gate` does not demand a `demo-output.log` for a deleted demo
-- [ ] AC-07: full unit suite passes; `python scripts/req_coverage.py --strict` and `python scripts/validate_capabilities.py` pass
-- [ ] AC-08: changelog fragment under `changelog/unreleased/` with `type: removal` naming FR-915
-- [ ] AC-09: `docs/research-mastra.md` is unmodified (`git diff --exit-code docs/research-mastra.md`)
+Revised per judgement (R-1 added the dependency gate; R-3 replaced the
+underspecified residual-test criterion with an exact one):
+
+- [ ] AC-01: FR-910 dependency gate is satisfied before enforcement: `test ! -e yamlgraph/export/mcp.py` passes, and `rg -n 'status: retired|RETIRED by FR-910' capabilities/CAP-136-per-graph-typed-mcp-tools.yaml` shows both retirement markers. If either check fails, stop; FR-915 may not perform those changes itself
+- [ ] AC-02: `git ls-files 'examples/demos/mastra-integration/*'` prints no files
+- [ ] AC-03: `rg -ri 'mastra' examples/` returns no matches
+- [ ] AC-04: `examples/README.md` has no `mastra-integration` row, and its TypeScript-integration guidance names `demos/typescript-node/`, `graph run --json`, and subprocess request/response without offering MCP as an alternative
+- [ ] AC-05: `examples/dependency-taxonomy.yaml` contains no `mastra-integration` path, and `python scripts/example_taxonomy_scan.py` followed by `git diff --exit-code examples/dependency-taxonomy.yaml` proves the taxonomy is idempotent
+- [ ] AC-06: `pytest tests/unit/test_fr375_typescript_node_demo_red.py::test_ac09_docs_include_json_mode_and_typescript_demo_guidance -q --no-cov` passes; the test source contains no assertion for the string `mcp`; it still asserts `--json`, `stdout`, and `subprocess` in `reference/cli.md`, and `typescript-node`, `--json`, and `subprocess` in `examples/README.md`
+- [ ] AC-07: `./scripts/check_demo_proof.sh` passes, and no `examples/demos/mastra-integration/demo-output.log` remains in the tree
+- [ ] AC-08: full unit suite passes; `python scripts/req_coverage.py --strict` and `python scripts/validate_capabilities.py` pass
+- [ ] AC-09: a changelog fragment exists under `changelog/unreleased/` with `type: removal` and text naming FR-915
+- [ ] AC-10: `git diff --exit-code docs/research-mastra.md` passes
+- [ ] AC-11: `git diff --name-only` for this FR contains no paths under `yamlgraph/`, `.vscode/`, `capabilities/`, or `examples/demos/typescript-node/`
 
 ## Alternatives Considered
 
@@ -124,6 +139,20 @@ archived record that mentions Mastra.
 - Concurrent pruning arc: FR-909, FR-912, FR-913, FR-914
 - Retained record: `docs/research-mastra.md`
 
-## Judgement (pending)
+## Judgement (2026-08-29)
 
-Not yet judged. Route: `scripts/judge.sh feature-requests/FR-915-retire-mastra-integration-demo.md`.
+**Verdict:** APPROVED WITH REVISIONS — full judgement:
+[FR-915-retire-mastra-integration-demo.judgement.md](FR-915-retire-mastra-integration-demo.judgement.md)
+
+| # | Finding | Resolution (binding) |
+|---|---------|----------------------|
+| R-1 | FR asserted FR-910's implementation had already landed, but the FR-915 tree was cut from `main` where it had not — the evidence was gathered in the FR-910 worktree | Sequencing gate added to the header, Summary, Problem, E-4 and AC-01: enforce only on a base where FR-910 AC-01/AC-05 hold; never implement FR-910's surfaces here. Satisfied by FR-910 merging as `7e7018f1` before enforcement began |
+| R-2 | Missing `is_this_a_graph` research answer | Explicit "No" line added to the header with its reason |
+| R-3 | Residual-test AC was underspecified ("no MCP term", "mutation-checked") | Replaced by AC-06 naming the exact pytest command and the exact assertions that must survive |
+
+**Conditions:** C-1–C-5 per judgement — notably C-2 (FR-910 dependency gate;
+never implement FR-910 here), C-3 (the stale `demo-output.log` must go with
+the code, not outlive it), C-4 (`docs/research-mastra.md` byte-for-byte
+untouched), C-5 (`examples/demos/typescript-node/` untouched).
+
+**Scope frozen:** deliverables D-1–D-6 per judgement.

@@ -126,6 +126,7 @@
 | FR-910 | Judged | yamlgraph |  | FR-910-retire-mcp-surface.md |
 | FR-912 | Judged | yamlgraph |  | FR-912-retire-skill-export-surface.md |
 | FR-913 | Judged | yamlgraph |  | FR-913-retire-graph-bench-command.md |
+| FR-915 | Judged | yamlgraph |  | FR-915-retire-mastra-integration-demo.md |
 | FR-094 | Approved | yamlgraph |  | FR-094-memory-node.md |
 | FR-095 | Approved | yamlgraph |  | FR-095-doc-staleness-monitor.md |
 | FR-096 | Approved | yamlgraph |  | FR-096-fr-template-demo-plan.md |
@@ -236,7 +237,6 @@
 | FR-903 | Proposed | yamlgraph |  | FR-903-digest-archive-then-email-ordering.md |
 | FR-904 | Proposed | yamlgraph |  | FR-904-slot-bound-digest-collection.md |
 | FR-905 | Proposed | yamlgraph |  | FR-905-ranked-story-boundary-validation.md |
-| FR-915 | Proposed | yamlgraph |  | FR-915-retire-mastra-integration-demo.md |
 | FR-078 | In Progress | yamlgraph |  | FR-078-relocate-project-tests.md |
 | FR-100 | In Progress | yamlgraph |  | FR-100-yamlgraph-development-pipeline-ebook.md |
 | FR-169 | In Progress | yamlgraph |  | FR-169-enforce-reflexion-loop.md |
@@ -509,7 +509,7 @@ graph TD
     FR-910["FR-910 Judged"]
     FR-912["FR-912 Judged"]
     FR-913["FR-913 Judged"]
-    FR-915["FR-915 Proposed"]
+    FR-915["FR-915 Judged"]
     FR-081 --> FR-082
     FR-731 --> FR-735
     FR-731 --> FR-736
