@@ -66,7 +66,7 @@ def _good_state(tmp_path: Path, **overrides) -> dict:
 
 
 class TestGhAdapters:
-    @pytest.mark.req("REQ-YG-626")
+    @pytest.mark.req("REQ-YG-628")
     def test_discover_source_grammar_and_fixed_argv(self):
         listing = json.dumps([{"name": "repo-a"}, {"name": "repo-b"}])
         with patch(
@@ -85,13 +85,13 @@ class TestGhAdapters:
         )
         assert items == ["someorg/repo-a", "someorg/repo-b"]
 
-    @pytest.mark.req("REQ-YG-626")
+    @pytest.mark.req("REQ-YG-628")
     @pytest.mark.parametrize("source", ["", "  ", "org:x", "org:-1", "org:0", ":5"])
     def test_discover_malformed_source_raises(self, source):
         with pytest.raises(ValueError):
             gh_org_discover({"source": source})
 
-    @pytest.mark.req("REQ-YG-626")
+    @pytest.mark.req("REQ-YG-628")
     def test_discover_empty_org_raises(self):
         with (
             patch(
@@ -102,7 +102,7 @@ class TestGhAdapters:
         ):
             gh_org_discover({"source": "someorg:5"})
 
-    @pytest.mark.req("REQ-YG-626")
+    @pytest.mark.req("REQ-YG-628")
     def test_discover_repo_cap_enforced(self):
         listing = json.dumps([{"name": f"r{i}"} for i in range(3)])
         with patch(
@@ -113,7 +113,7 @@ class TestGhAdapters:
         argv = run.call_args[0][0]
         assert argv[argv.index("--limit") + 1] == "100"
 
-    @pytest.mark.req("REQ-YG-626")
+    @pytest.mark.req("REQ-YG-628")
     def test_discover_gh_failure_surfaces(self):
         with (
             patch(
@@ -124,13 +124,13 @@ class TestGhAdapters:
         ):
             gh_org_discover({"source": "someorg:5"})
 
-    @pytest.mark.req("REQ-YG-626")
+    @pytest.mark.req("REQ-YG-628")
     @pytest.mark.parametrize("item", ["", "norepo", "a/b/c"])
     def test_extract_malformed_ref_raises(self, item):
         with pytest.raises(ValueError):
             gh_repo_extract({"item": item})
 
-    @pytest.mark.req("REQ-YG-626")
+    @pytest.mark.req("REQ-YG-628")
     def test_extract_bundle_keys_and_bounds(self):
         import base64
 
@@ -168,7 +168,7 @@ class TestGhAdapters:
         assert len(blob["readme_head"]) <= 3000
         assert blob["contributors"] == [f"user{i}" for i in range(5)]
 
-    @pytest.mark.req("REQ-YG-626")
+    @pytest.mark.req("REQ-YG-628")
     def test_extract_missing_readme_yields_marker(self):
         meta = json.dumps(
             {
@@ -191,7 +191,7 @@ class TestGhAdapters:
 
 
 class TestAzurePreflight:
-    @pytest.mark.req("REQ-YG-626")
+    @pytest.mark.req("REQ-YG-628")
     @pytest.mark.parametrize("missing", AZURE_VARS)
     def test_preflight_missing_env_raises(self, monkeypatch, missing):
         for var in AZURE_VARS:
@@ -200,13 +200,13 @@ class TestAzurePreflight:
         with pytest.raises(ValueError, match=missing):
             preflight({})
 
-    @pytest.mark.req("REQ-YG-626")
+    @pytest.mark.req("REQ-YG-628")
     def test_preflight_ok(self, monkeypatch):
         for var in AZURE_VARS:
             monkeypatch.setenv(var, "x")
         assert preflight({})["preflight_ok"] is True
 
-    @pytest.mark.req("REQ-YG-626")
+    @pytest.mark.req("REQ-YG-628")
     def test_graph_preflight_before_discovery(self):
         graph = yaml.safe_load(GRAPH_PATH.read_text(encoding="utf-8"))
         edges = {(e["from"], e["to"]) for e in graph["edges"]}
@@ -225,7 +225,7 @@ class TestAzurePinning:
             if isinstance(sub, dict) and sub.get("type") == "llm":
                 yield f"{name}.node", sub
 
-    @pytest.mark.req("REQ-YG-626")
+    @pytest.mark.req("REQ-YG-628")
     def test_all_llm_nodes_pinned_azure_no_fallback(self):
         graph = yaml.safe_load(GRAPH_PATH.read_text(encoding="utf-8"))
         llm_nodes = list(self._llm_nodes(graph))
@@ -235,7 +235,7 @@ class TestAzurePinning:
             assert "fallback_provider" not in node, f"{name} has fallback_provider"
         assert graph.get("defaults", {}).get("provider") == "azure"
 
-    @pytest.mark.req("REQ-YG-626")
+    @pytest.mark.req("REQ-YG-628")
     def test_purpose_prompt_judges_only_purpose(self):
         prompt_files = sorted((DEMO_DIR / "prompts").glob("*.yaml"))
         judge = [p for p in prompt_files if "purpose" in p.name or "judge" in p.name]
@@ -253,7 +253,7 @@ class TestAzurePinning:
 
 
 class TestRepoLedgerReducer:
-    @pytest.mark.req("REQ-YG-626")
+    @pytest.mark.req("REQ-YG-628")
     def test_good_state_writes_artifacts(self, tmp_path, monkeypatch):
         monkeypatch.setenv("AZURE_MODEL", "pinned-deployment")
         result = reduce_repo_ledger(_good_state(tmp_path))["ledger"]
@@ -266,34 +266,34 @@ class TestRepoLedgerReducer:
         assert row["model"] == "pinned-deployment"
         assert Path(result["markdown_path"]).exists()
 
-    @pytest.mark.req("REQ-YG-626")
+    @pytest.mark.req("REQ-YG-628")
     def test_missing_finding_rejected(self, tmp_path):
         state = _good_state(tmp_path, findings=[])
         with pytest.raises(ValueError, match="missing"):
             reduce_repo_ledger(state)
 
-    @pytest.mark.req("REQ-YG-626")
+    @pytest.mark.req("REQ-YG-628")
     def test_duplicate_finding_rejected(self, tmp_path):
         state = _good_state(tmp_path)
         state["findings"] = state["findings"] * 2
         with pytest.raises(ValueError, match="duplicate"):
             reduce_repo_ledger(state)
 
-    @pytest.mark.req("REQ-YG-626")
+    @pytest.mark.req("REQ-YG-628")
     def test_empty_purpose_rejected(self, tmp_path):
         state = _good_state(tmp_path)
         state["findings"][0]["purpose"] = "  "
         with pytest.raises(ValueError):
             reduce_repo_ledger(state)
 
-    @pytest.mark.req("REQ-YG-626")
+    @pytest.mark.req("REQ-YG-628")
     def test_dangling_citation_rejected(self, tmp_path):
         state = _good_state(tmp_path)
         state["findings"][0]["_map_index"] = 7
         with pytest.raises(ValueError):
             reduce_repo_ledger(state)
 
-    @pytest.mark.req("REQ-YG-626")
+    @pytest.mark.req("REQ-YG-628")
     def test_malformed_activity_blob_rejected(self, tmp_path):
         blob = json.loads(_blob())
         del blob["pushed_at"]
@@ -305,7 +305,7 @@ class TestRepoLedgerReducer:
 
 
 class TestActivityDerivation:
-    @pytest.mark.req("REQ-YG-626")
+    @pytest.mark.req("REQ-YG-628")
     def test_archived_wins(self, tmp_path):
         state = _good_state(
             tmp_path,
@@ -316,7 +316,7 @@ class TestActivityDerivation:
         )
         assert row["activity"] == "archived"
 
-    @pytest.mark.req("REQ-YG-626")
+    @pytest.mark.req("REQ-YG-628")
     def test_active_within_window(self, tmp_path):
         from datetime import UTC, datetime, timedelta
 
@@ -331,7 +331,7 @@ class TestActivityDerivation:
         )
         assert row["activity"] == "active"
 
-    @pytest.mark.req("REQ-YG-626")
+    @pytest.mark.req("REQ-YG-628")
     def test_dormant_outside_window(self, tmp_path):
         from datetime import UTC, datetime, timedelta
 
@@ -344,7 +344,7 @@ class TestActivityDerivation:
         )
         assert row["activity"] == "dormant"
 
-    @pytest.mark.req("REQ-YG-626")
+    @pytest.mark.req("REQ-YG-628")
     def test_custom_window(self, tmp_path):
         from datetime import UTC, datetime, timedelta
 
@@ -361,7 +361,7 @@ class TestActivityDerivation:
 
 
 class TestPersonsVerbatim:
-    @pytest.mark.req("REQ-YG-626")
+    @pytest.mark.req("REQ-YG-628")
     def test_llm_finding_cannot_alter_persons(self, tmp_path):
         state = _good_state(tmp_path)
         state["findings"][0]["persons"] = ["mallory"]
@@ -370,7 +370,7 @@ class TestPersonsVerbatim:
         )
         assert row["persons"] == ["alice", "bob"]
 
-    @pytest.mark.req("REQ-YG-626")
+    @pytest.mark.req("REQ-YG-628")
     def test_persons_order_and_bound(self, tmp_path):
         many = [f"user{i}" for i in range(9)]
         state = _good_state(
@@ -383,7 +383,7 @@ class TestPersonsVerbatim:
 
 
 class TestBriefTail:
-    @pytest.mark.req("REQ-YG-626")
+    @pytest.mark.req("REQ-YG-628")
     def test_prepare_brief_input_maps_rows(self, tmp_path, monkeypatch):
         monkeypatch.setenv("AZURE_MODEL", "pinned-deployment")
         ledger = reduce_repo_ledger(_good_state(tmp_path))["ledger"]
@@ -397,7 +397,7 @@ class TestBriefTail:
         assert out[0]["item_ref"] == "org/repo-a"
         assert out[0]["judgement"] == "Demonstrates the census pipeline."
 
-    @pytest.mark.req("REQ-YG-626")
+    @pytest.mark.req("REQ-YG-628")
     def test_fabricated_citation_rejected(self, tmp_path):
         from examples.demos.corpus_census.adapters import census_brief
 
@@ -408,7 +408,7 @@ class TestBriefTail:
 
 
 class TestDataLocality:
-    @pytest.mark.req("REQ-YG-626")
+    @pytest.mark.req("REQ-YG-628")
     def test_committed_artifacts_pin_public_org(self):
         assert PUBLIC_DEMO_ORG == "sheikkinen"
         auditable = [DEMO_DIR / "README.md", DEMO_DIR / "demo-output.log"]

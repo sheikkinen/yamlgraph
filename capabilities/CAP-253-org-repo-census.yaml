@@ -1,4 +1,4 @@
-id: CAP-251
+id: CAP-253
 name: Org repository census with pinned-Azure delegation
 fr: FR-899
 description: >
@@ -15,7 +15,7 @@ modules:
   - examples/demos/repo_census
   - examples/demos/corpus_census
 requirements:
-  - id: REQ-YG-626
+  - id: REQ-YG-628
     description: >
       Org repo census is compliance-pinned and fail-closed: Azure
       preflight runs before gh discovery; gh adapters use fixed argument
