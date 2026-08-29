@@ -136,3 +136,32 @@ conflicted or drifted during this arc. FR-179's cure was applied to exactly one
 of them. A gate that asks "is this file derivable? then why is it tracked?"
 would find the rest — and would have saved this session roughly as much time as
 the retirements themselves took.
+
+## Correction (2026-08-30, same day)
+
+**The seed above was already an FR.** `FR-858-retire-committed-fr-board.md`
+was filed 2026-08-22 — eight days before I "discovered" it — proposing
+exactly this: delete `docs/fr-board.md`, drop the drift hook, keep
+`fr_board.py` as an on-demand query. It is still `Proposed`, unjudged.
+
+I wrote a seed without running the search that would have found it, in a repo
+whose own Scripture opens with *"Thou shalt research before coding"* and
+`ask_before_generate` — *"who solved this before? (git log, issues, web)"*.
+One `rg -l fr-board feature-requests/` was the whole cost.
+
+Two things worth keeping from the mistake:
+
+1. **A duplicate seed is weak evidence of a real problem.** Two independent
+   derivations from different symptoms — FR-858 from readerlessness and hook
+   tax, this one from merge conflicts — converging on the same cure is a
+   signal the diagnosis is right. That is the only value here, and it does
+   not offset the wasted derivation.
+2. **The prior-art gate only fires on FR files, not diary entries.**
+   `prior-art-gate` would have caught this instantly had the seed been an FR.
+   Seeds are proto-FRs; they earn the same gate. Filed as evidence in FR-858
+   rather than as a new FR, because doing otherwise would repeat the error at
+   one remove.
+
+The residue: `evidence_artifact_is_immutable` and
+`name_the_tree_the_evidence_came_from` stand. The seed is retracted in favour
+of FR-858, whose Evidence Refresh section now carries this arc's conflict data.
