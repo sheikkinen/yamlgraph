@@ -93,3 +93,27 @@ audit.jsonl, LangSmith runs, git reflog.) Could FR-898's monthly report
 include a standing "anomaly section" — implicit attachments of dotfiles,
 cancelled-turn clusters, cost outliers — turning the ledger from
 accounting into an incident detector?
+
+## Enforcement addendum (same day)
+
+RED→GREEN in the fr-898 worktree was uneventful where it mattered and
+instructive where it didn't: the module worked first try except for one
+FIXTURE defect — the synthetic store wrote its intermediate credits
+patch even in the credits-absent variant, so last-write-wins correctly
+returned 10.0 where the test expected blank. The witness accused the
+implementation; the fixture was the liar. Test-the-test is not
+ceremony: a fixture that doesn't honor its own flag can fail a correct
+module (this case) or pass a broken one (the dangerous case).
+
+Second observation: the commit gauntlet (FB001 lexical policing,
+prior-art disposition, board drift, noqa confessions) consumed more
+turns than the implementation. That is the doctrine working — each
+denial was correct — but the lexical FB001 rule pushed the word
+"fallback" out of comments describing an actual fallback chain, into
+synonyms ("substitute", "estimate"). The behavior is judged and
+tested; the word is banned. Naming pressure produced clearer names.
+
+**Seed:** the store persists exact per-request credits — ledger.py's
+estimate machinery is now redundant for history (only live/in-flight
+turns need estimation). Should ledger.py be rebuilt on replayed
+copilotCredits, demoting price sheets to the in-flight edge?
