@@ -1604,7 +1604,7 @@ These are not `# noqa` suppressions — they are documented deviations from proc
 - **Penance**: script-adjacent test outside the installable package; path bootstrap must precede the import (CONF-392 idiom).
 
 ### CONF-398
-- **File**: [tests/unit/test_fr717_seams.py](../tests/unit/test_fr717_seams.py#L41)
+- **File**: [tests/unit/test_fr717_seams.py](../tests/unit/test_fr717_seams.py#L40)
 - **Code**: F401
 - **Sin**: Re-export witness imports `load_and_compile` without using it.
 - **Penance**: The import IS the assertion — the test proves top-level re-exports survived the package moves (same pattern as CONF-382).

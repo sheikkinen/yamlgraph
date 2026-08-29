@@ -14,7 +14,6 @@ class TestSeams:
     @pytest.mark.req("REQ-YG-567")
     def test_packages_exist_with_members(self):
         for pkg, member in [
-            ("a2a", "server.py"),
             ("export", "mcp.py"),
             ("compile", "graph_loader.py"),
         ]:
@@ -25,7 +24,7 @@ class TestSeams:
         cfg = configparser.ConfigParser()
         cfg.read(REPO_ROOT / ".importlinter")
         contracts = {s for s in cfg.sections() if s.startswith("importlinter:contract")}
-        for needed in ("a2a-seam", "export-seam", "compile-seam"):
+        for needed in ("export-seam", "compile-seam"):
             assert any(needed in s for s in contracts), f"missing contract {needed}"
 
     @pytest.mark.req("REQ-YG-567")

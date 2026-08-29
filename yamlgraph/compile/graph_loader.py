@@ -381,7 +381,7 @@ def invoke_graph(
     """Load, compile, and invoke a graph synchronously.
 
     Convenience function combining load_graph_config, compile_graph,
-    and compiled graph invocation. Used by MCP and A2A servers.
+    and compiled graph invocation. Used by the MCP server.
 
     Args:
         path: Path to graph YAML file.

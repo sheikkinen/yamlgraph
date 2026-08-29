@@ -1,6 +1,10 @@
 id: CAP-104
+status: retired
 name: A2A Server Reference Documentation
 description: >
+  RETIRED by FR-909. No consumer for four months; the A2A server,
+  contrib client, CLI subcommand, demos, and optional extra were deleted.
+  Historical record only.
   User-facing reference documentation for the A2A protocol server (FR-208/209/225, CAP-81).
   Covers quickstart, CLI commands, Agent Card generation, message parsing, task lifecycle,
   error mapping, interrupts, authentication, deployment patterns, and MCP relationship.

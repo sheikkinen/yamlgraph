@@ -1,18 +1,23 @@
 id: CAP-111
 name: Shared Graph Invocation
 description: >
-  Shared invoke_graph() function in graph_loader eliminates duplicated
-  graph invocation logic across MCP and A2A servers (FR-255).
+  Shared graph discovery and invocation helpers used by the CLI and, formerly,
+  by the MCP and A2A servers (FR-255; discovery requirement adopted from the
+  retired CAP-81 by FR-909).
 modules:
   - graph_loader
+  - discovery
 requirements:
+  - id: REQ-YG-206
+    description: >
+      Shared graph discovery: discover_graphs() and default patterns live in
+      discovery.py and are imported by every graph-listing consumer.
+    modules:
+      - discovery
   - id: REQ-YG-258
     description: >
       invoke_graph(path, variables, config) in graph_loader.py: loads config,
       compiles graph, invokes synchronously with optional LangGraph run config.
-      MCP and A2A servers delegate to this shared function.
     modules:
       - graph_loader
-      - mcp_server
-      - a2a_server
 fr: FR-255

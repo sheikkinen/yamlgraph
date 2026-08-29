@@ -61,20 +61,20 @@ pre-commit install --hook-type commit-msg
 
 `constraints/dev-py312.txt` pins the exact resolved environment CI tests
 against — matching the `test`/`core-test` jobs' install command
-(`.[dev,digest,websearch,a2a,fsm,verify]`) exactly, so a failure can be
+(`.[dev,digest,websearch,fsm,verify]`) exactly, so a failure can be
 reproduced locally instead of depending on ambient resolver state:
 
 ```bash
 # Regenerate the constraints artifact (Python 3.12, matching CI)
 python3.12 -m venv .venv312 && source .venv312/bin/activate
 pip install --upgrade pip
-pip install -e ".[dev,digest,websearch,a2a,fsm,verify]"
+pip install -e ".[dev,digest,websearch,fsm,verify]"
 python -m pip freeze --exclude-editable > constraints/dev-py312.txt
 
 # Reproduce a clean environment from the committed artifact
 python3.12 -m venv .venv312 && source .venv312/bin/activate
 pip install --upgrade pip
-pip install -c constraints/dev-py312.txt -e ".[dev,digest,websearch,a2a,fsm,verify]"
+pip install -c constraints/dev-py312.txt -e ".[dev,digest,websearch,fsm,verify]"
 
 # Run the same dependency CVE scan the CI `security` gate runs
 pip-audit --desc --skip-editable --ignore-vuln CVE-2026-3219

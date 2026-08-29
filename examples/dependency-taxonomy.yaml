@@ -11,6 +11,41 @@ examples:
   external_reason: 'Undeclared distribution(s) not in FR-762''s frozen table: claude_agent_sdk'
   entrypoints:
   - examples/agent-sdk-planner/plan.py
+- path: examples/api-discovery
+  status: extra-backed
+  extra: null
+  entrypoints:
+  - examples/api-discovery/graph.yaml
+- path: examples/api-discovery/steps/browser-sniff
+  status: extra-backed
+  extra: null
+  entrypoints:
+  - examples/api-discovery/steps/browser-sniff/graph.yaml
+- path: examples/api-discovery/steps/endpoint-probe
+  status: extra-backed
+  extra: null
+  entrypoints:
+  - examples/api-discovery/steps/endpoint-probe/graph.yaml
+- path: examples/api-discovery/steps/page-analysis
+  status: extra-backed
+  extra: null
+  entrypoints:
+  - examples/api-discovery/steps/page-analysis/graph.yaml
+- path: examples/api-discovery/steps/platform-confirm
+  status: extra-backed
+  extra: null
+  entrypoints:
+  - examples/api-discovery/steps/platform-confirm/graph.yaml
+- path: examples/api-discovery/steps/recon
+  status: extra-backed
+  extra: null
+  entrypoints:
+  - examples/api-discovery/steps/recon/graph.yaml
+- path: examples/api-discovery/steps/schema-extract
+  status: extra-backed
+  extra: null
+  entrypoints:
+  - examples/api-discovery/steps/schema-extract/graph.yaml
 - path: examples/batch_image_prompts
   status: extra-backed
   extra: null
@@ -89,25 +124,8 @@ examples:
   entrypoints:
   - examples/daily_digest/api/app.py
 - path: examples/demos
-  status: extra-backed
-  extra:
-  - a2a
-  - chatterbox
-  - digest
-  - tavily
-  - websearch
-  entrypoints: []
-- path: examples/demos/a2a_call
-  status: extra-backed
-  extra:
-  - a2a
-  entrypoints:
-  - examples/demos/a2a_call/graph.yaml
-- path: examples/demos/a2a_server
-  status: extra-backed
-  extra:
-  - a2a
-  - booking
+  status: externally-provisioned
+  external_reason: 'Undeclared distribution(s) not in FR-762''s frozen table: pypdf'
   entrypoints: []
 - path: examples/demos/corpus_census
   status: extra-backed
@@ -120,6 +138,11 @@ examples:
   extra: null
   entrypoints:
   - examples/demos/agent-json/graph.yaml
+- path: examples/demos/book-summary
+  status: extra-backed
+  extra: null
+  entrypoints:
+  - examples/demos/book-summary/graph.yaml
 - path: examples/demos/cache
   status: extra-backed
   extra: null
@@ -133,6 +156,11 @@ examples:
   - examples/demos/chatterbox/clone.yaml
   - examples/demos/chatterbox/graph.yaml
   - examples/demos/chatterbox/speak.py
+- path: examples/demos/chinese-horoscope
+  status: extra-backed
+  extra: null
+  entrypoints:
+  - examples/demos/chinese-horoscope/graph.yaml
 - path: examples/demos/code-analysis
   status: extra-backed
   extra: null
@@ -143,6 +171,16 @@ examples:
   extra: null
   entrypoints:
   - examples/demos/compaction/graph.yaml
+- path: examples/demos/corpus_census
+  status: externally-provisioned
+  external_reason: 'Undeclared distribution(s) not in FR-762''s frozen table: pypdf'
+  entrypoints:
+  - examples/demos/corpus_census/graph.yaml
+- path: examples/demos/corpus_census/adapters
+  status: externally-provisioned
+  external_reason: 'Undeclared distribution(s) not in FR-762''s frozen table: pypdf'
+  entrypoints:
+  - examples/demos/corpus_census/adapters/diary_recurrence.py
 - path: examples/demos/data-files
   status: extra-backed
   extra: null
@@ -175,6 +213,11 @@ examples:
   - websearch
   entrypoints:
   - examples/demos/fi_domain_crawl/graph.yaml
+- path: examples/demos/file-hook
+  status: extra-backed
+  extra: null
+  entrypoints:
+  - examples/demos/file-hook/graph.yaml
 - path: examples/demos/five-whys
   status: extra-backed
   extra: null
@@ -216,6 +259,11 @@ examples:
   entrypoints:
   - examples/demos/hello/demo_cache.py
   - examples/demos/hello/graph.yaml
+- path: examples/demos/hello-runpod
+  status: extra-backed
+  extra: null
+  entrypoints:
+  - examples/demos/hello-runpod/graph.yaml
 - path: examples/demos/hellograph-speed
   status: extra-backed
   extra: null
@@ -324,6 +372,11 @@ examples:
   extra: null
   entrypoints:
   - examples/demos/novel_generator/graph.yaml
+- path: examples/demos/pattern_model_census
+  status: extra-backed
+  extra: null
+  entrypoints:
+  - examples/demos/pattern_model_census/graph.yaml
 - path: examples/demos/persona_scenarios
   status: extra-backed
   extra: null
@@ -380,6 +433,21 @@ examples:
   extra: null
   entrypoints:
   - examples/demos/race/graph.yaml
+- path: examples/demos/ramp_doctrine
+  status: extra-backed
+  extra: null
+  entrypoints:
+  - examples/demos/ramp_doctrine/graph.yaml
+- path: examples/demos/ramp_incidents
+  status: extra-backed
+  extra: null
+  entrypoints:
+  - examples/demos/ramp_incidents/graph.yaml
+- path: examples/demos/ramp_rtm
+  status: extra-backed
+  extra: null
+  entrypoints:
+  - examples/demos/ramp_rtm/graph.yaml
 - path: examples/demos/recap
   status: extra-backed
   extra: null
@@ -395,11 +463,21 @@ examples:
   extra: null
   entrypoints:
   - examples/demos/req-cross-check/graph.yaml
+- path: examples/demos/req_witness_audit
+  status: extra-backed
+  extra: null
+  entrypoints:
+  - examples/demos/req_witness_audit/graph.yaml
 - path: examples/demos/research-agent
   status: extra-backed
   extra: null
   entrypoints:
   - examples/demos/research-agent/graph.yaml
+- path: examples/demos/research-route
+  status: extra-backed
+  extra: null
+  entrypoints:
+  - examples/demos/research-route/graph.yaml
 - path: examples/demos/router
   status: extra-backed
   extra: null
@@ -424,11 +502,32 @@ examples:
   extra: null
   entrypoints:
   - examples/demos/safety-guards/graph.yaml
+- path: examples/demos/salvage_classify
+  status: extra-backed
+  extra: null
+  entrypoints:
+  - examples/demos/salvage_classify/graph.yaml
+- path: examples/demos/self-portrait
+  status: extra-backed
+  extra: null
+  entrypoints:
+  - examples/demos/self-portrait/fixture_builder.py
+  - examples/demos/self-portrait/graph.yaml
 - path: examples/demos/session-continuation
   status: extra-backed
   extra: null
   entrypoints:
   - examples/demos/session-continuation/graph.yaml
+- path: examples/demos/session-shapes
+  status: extra-backed
+  extra: null
+  entrypoints:
+  - examples/demos/session-shapes/graph.yaml
+- path: examples/demos/shared-vision-tool
+  status: extra-backed
+  extra: null
+  entrypoints:
+  - examples/demos/shared-vision-tool/graph.yaml
 - path: examples/demos/soul
   status: extra-backed
   extra: null
@@ -520,6 +619,11 @@ examples:
   - digest
   entrypoints:
   - examples/diary_digest/graph.yaml
+- path: examples/discord_bot
+  status: externally-provisioned
+  external_reason: 'Undeclared distribution(s) not in FR-762''s frozen table: discord'
+  entrypoints:
+  - examples/discord_bot/bot.py
 - path: examples/dungeon_master
   status: extra-backed
   extra:
@@ -611,6 +715,29 @@ examples:
   extra: null
   entrypoints:
   - examples/image_pipeline/graph.yaml
+- path: examples/image_pipeline_v2
+  status: extra-backed
+  extra: null
+  entrypoints:
+  - examples/image_pipeline_v2/graph.yaml
+- path: examples/image_pipeline_v3
+  status: extra-backed
+  extra: null
+  entrypoints:
+  - examples/image_pipeline_v3/graph.yaml
+- path: examples/memory-curation
+  status: extra-backed
+  extra: null
+  entrypoints:
+  - examples/memory-curation/advisory.py
+  - examples/memory-curation/apply.py
+  - examples/memory-curation/graph.yaml
+- path: examples/memory-curation/nodes
+  status: extra-backed
+  extra: null
+  entrypoints:
+  - examples/memory-curation/nodes/collect.py
+  - examples/memory-curation/nodes/reconcile.py
 - path: examples/novel_fandom
   status: extra-backed
   extra: null
@@ -747,6 +874,16 @@ examples:
   - examples/storyboard/generate_videos.py
   - examples/storyboard/graph.yaml
   - examples/storyboard/retry_images.py
+- path: examples/style_convert
+  status: extra-backed
+  extra: null
+  entrypoints:
+  - examples/style_convert/graph.yaml
+- path: examples/surplus/diary-discourse-analysis
+  status: extra-backed
+  extra: null
+  entrypoints:
+  - examples/surplus/diary-discourse-analysis/graph.yaml
 - path: examples/webllm-demo
   status: extra-backed
   extra: null

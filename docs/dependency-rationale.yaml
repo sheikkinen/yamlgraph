@@ -259,8 +259,8 @@ dependencies:
     added: "0.3.0"
 
   httpx:
-    rationale: "Async HTTP client for booking and digest API calls; also the direct import in yamlgraph/contrib/a2a_client.py's A2A client transport (FR-761 direct-import ownership fix — a2a-sdk pulls httpx in transitively, but the direct import needs its own declaration under the a2a extra)"
-    modules: ["examples/booking/", "examples/daily_digest/", "yamlgraph/contrib/a2a_client.py"]
+    rationale: "Async HTTP client for booking and digest API calls"
+    modules: ["examples/booking/", "examples/daily_digest/"]
     added: "0.3.0"
 
   uvicorn:
@@ -311,26 +311,11 @@ dependencies:
     modules: ["yamlgraph/export/mcp.py"]
     added: "0.4.0"
 
-  # ─── Optional: A2A ───────────────────────────────────────────────────
-
-  a2a-sdk:
-    rationale: "Agent-to-Agent protocol SDK for inter-agent communication (FR-208)"
-    modules: ["yamlgraph/a2a/server.py"]
-    added: "0.4.60"
-
-  grpcio:
-    rationale: "gRPC runtime required by a2a-sdk>=1.0 compat layer (a2a/compat/v0_3/context_builders.py imports grpc at module level); without it the a2a extras fail to import (FR-244)"
-    modules: ["yamlgraph/a2a/server.py"]
-    added: "0.4.68"
+  # ─── Optional: openai-proxy ──────────────────────────────────────────
 
   starlette:
-    rationale: "FR-762 direct-import honesty: yamlgraph/a2a/server.py, examples/openai_proxy/api/app.py import starlette directly for Starlette/Request/Response types (previously only transitive via a2a-sdk/fastapi)"
-    modules: ["yamlgraph/a2a/server.py", "examples/openai_proxy/api/app.py"]
-    added: "0.5.18"
-
-  protobuf:
-    rationale: "FR-762 direct-import honesty: yamlgraph/cli/a2a_commands.py and yamlgraph/contrib/a2a_client.py import google.protobuf directly (previously only transitive via a2a-sdk)"
-    modules: ["yamlgraph/cli/a2a_commands.py", "yamlgraph/contrib/a2a_client.py"]
+    rationale: "FR-762 direct-import honesty: examples/openai_proxy/api/app.py imports starlette directly for Starlette/Request/Response types (previously only transitive via fastapi)"
+    modules: ["examples/openai_proxy/api/app.py"]
     added: "0.5.18"
 
   # ─── Optional: Telco ─────────────────────────────────────────────────
