@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Proposed
+**Status:** Enforced
 **Effort:** 0.5 days
 **Requested:** 2026-08-29
 **First consumer / first event:** `yamlgraph-daily-digest` (FR-908), at the
@@ -120,6 +120,68 @@ cd "$tmpdir/corpus_census"
   --var brief_path="$tmpdir/census-brief.md" \
   --var brief_rubric="What does this corpus cover overall?"
 ```
+
+## Implementation Status
+
+**Enforced 2026-08-29.** Released as **v0.5.23** (`03f779bf`, tag pushed;
+workflow 33272323339 — `core-test`, `test (3.11)`, `test (3.12)`, `build`,
+`publish`, `create-release` all green). 42 fragments frozen.
+
+| AC | Result |
+|---|---|
+| AC-01 R-1/R-2 folded before enforcement | ✅ |
+| AC-02 `scripts/release.sh 0.5.23` | ✅ |
+| AC-03 release commit changes only release-owned surfaces | ⚠️ **deviation** — carries two release-blocking remediations (below) |
+| AC-04 both version files at 0.5.23, `changelog/unreleased/` empty | ✅ |
+| AC-05 `git merge-base --is-ancestor 06d1dfe4 v0.5.23` | ✅ exits 0 |
+| AC-06 tag workflow publishes to PyPI | ✅ `pip index versions yamlgraph` → 0.5.23 |
+| AC-07 clean venv outside repo: `--tool` in `graph run --help` | ✅ `--tool TOOL_BINDINGS  Bind a tool slot to an FR-768 manifest` |
+| AC-08 exact R-2 smoke writes ledger **and** brief | ⚠️ **partial** — ledger yes, brief no (below) |
+| AC-09 `examples*` wheel-exclusion recorded, no packaging change | ✅ |
+
+### AC-03 deviation: two release-blocking remediations
+
+Both were latent and surfaced only because a release touches
+`pyproject.toml`, which runs hooks that ordinary commits skip:
+
+1. **`pypdf` undeclared since FR-892.** `examples/demos` is `extra-backed`
+   in the taxonomy, so the direct-import scan treats its imports as
+   core-strict. Declared as a `corpus-census` extra with its own taxonomy
+   row and a `docs/dependency-rationale.yaml` entry.
+2. **`lint_inline_llm.py` walked the filesystem.** It failed on another
+   session's *gitignored* scratch file under `tmp/` — a file it could
+   never be asked to fix. Now enumerates `git ls-files`. Same defect as
+   FR-907: a check that reads the filesystem where it means to read the
+   repository.
+
+Folding these into the release commit rather than splitting them was a
+judgement call: the alternative left 46 staged release files sitting in a
+shared index across a separate PR cycle, with three other sessions active
+in the same checkout.
+
+### AC-08 partial: the census demo is not portable
+
+Verified from `$(mktemp -d)/corpus_census`, outside any git repository,
+against the clean 0.5.23 venv. **Slot binding works**: both `--tool`
+bindings resolved, discover → extract → map → reduce ran, and `ledger.md`
+was written with real per-item judgements (`claude-haiku-4-5`,
+`judge_item.v1`, three fixture documents classified with evidence spans).
+That is the capability this release exists to publish, and it is proven.
+
+The run then failed at the FR-895 brief tail with
+`No module named 'examples'`. Cause:
+`examples/demos/corpus_census/tools.py:200,216` does
+`from examples.demos.corpus_census.adapters import census_brief` — an
+absolute import rooted at the repo, which cannot resolve outside a
+checkout because `examples*` is excluded from the wheel (AC-09).
+
+So the demo runs only in-repo. This is a **pre-existing portability
+defect in the demo**, not a defect in the release or in slot binding, and
+it makes AC-08 unsatisfiable as the judgement worded it — the Judge
+assumed the fixture pair was self-contained. Not fixed here: changing
+`tools.py` is outside this FR's frozen scope. Candidate follow-up: make
+the brief tail import relative to the graph directory, the way the slot
+manifests already resolve.
 
 ## Acceptance Criteria
 

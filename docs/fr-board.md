@@ -234,7 +234,6 @@
 | FR-903 | Proposed | yamlgraph |  | FR-903-digest-archive-then-email-ordering.md |
 | FR-904 | Proposed | yamlgraph |  | FR-904-slot-bound-digest-collection.md |
 | FR-905 | Proposed | yamlgraph |  | FR-905-ranked-story-boundary-validation.md |
-| FR-906 | Proposed | yamlgraph |  | FR-906-release-tool-slots-to-pypi.md |
 | FR-078 | In Progress | yamlgraph |  | FR-078-relocate-project-tests.md |
 | FR-100 | In Progress | yamlgraph |  | FR-100-yamlgraph-development-pipeline-ebook.md |
 | FR-169 | In Progress | yamlgraph |  | FR-169-enforce-reflexion-loop.md |
@@ -502,7 +501,6 @@ graph TD
     FR-903["FR-903 Proposed"]
     FR-904["FR-904 Proposed"]
     FR-905["FR-905 Proposed"]
-    FR-906["FR-906 Proposed"]
     FR-908["FR-908 PARSE-FAILURE"]
     FR-909["FR-909 Judged"]
     FR-910["FR-910 Judged"]
