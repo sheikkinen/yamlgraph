@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Proposed
+**Status:** Enforced
 **Effort:** 1 day
 **Requested:** 2026-08-29
 **First consumer / first event:** `yamlgraph-daily-digest` (FR-902), at the
@@ -253,6 +253,36 @@ the caller's pipeline, not this transport. (R-3)
 - Retry, queueing, rate limiting, bounce handling
 - Any non-SMTP transport
 - Recipient lists, address books, or subscriber state
+
+## Implementation Status
+
+**Enforced 2026-08-29.** Judgement R-1..R-4 folded before enforcement.
+
+| Artifact | Commit |
+|---|---|
+| RED — 18 condemning tests + CAP-251/REQ-YG-626 | `86373da2` |
+| GREEN — `examples/shared/smtp_email.py`, manifest, README | `f01404d7` |
+
+RED was proven: `tests/unit/test_smtp_email.py` failed at collection with
+`ModuleNotFoundError: examples.shared.smtp_email` before the module
+existed. GREEN: 18 passed in 0.17s.
+
+**Live send evidence (final AC).** One real send, `SMTP_PORT=465`, so the
+implicit-TLS branch is the exercised path:
+
+```
+$ PYTHONPATH=. python tmp/live_send.py
+INFO:examples.shared.smtp_email:📬 Sent 'FR-901 live send evidence - shared SMTP email tool' to sheikki@yahoo.com
+RESULT: {'sent': True, 'to': ['sheikki@yahoo.com']}
+SERVER: mail.ovr.fi PORT: 465
+```
+
+Sent with both `text` and `html`, so the multipart/alternative path was
+exercised end to end against a real MTA. The log line carries subject and
+recipient and no credential, as contract 4 requires.
+
+**Deviation from the FR as written:** none. The target surface
+(`examples/shared/`) was chosen at R-1 fold time, not assumed.
 
 ## Related
 
