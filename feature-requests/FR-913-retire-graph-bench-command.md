@@ -2,18 +2,36 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Draft — awaiting judgement
+**Status:** Judged — APPROVED WITH REVISIONS (revisions folded 2026-08-29; [judgement](FR-913-retire-graph-bench-command.judgement.md))
 **Effort:** 0.5 day
 **Requested:** 2026-08-29
 **First consumer / first event:** every maintainer and CI run from the merge
 onward — the first event is this FR's own PR pipeline, which stops running a
 dead command's test file and stops asserting a capability claim whose only
 operational consumer is one demo shell script this FR migrates.
-**Research:** consumer-record sweep 2026-08-29 (method of
-[docs/research-agentic-sdlc-providers-2026-08-29.md](../docs/research-agentic-sdlc-providers-2026-08-29.md) §4.4)
-+ second-strike conviction in
+**Research:** the committed in-body consumer record below IS the evidence
+(R-1); the A2A/MCP research doc §4.4 is method precedent only. Second-strike
+conviction in
 [docs/diary/diary-2026-05-31-letter-to-the-philosopher.md](../docs/diary/diary-2026-05-31-letter-to-the-philosopher.md)
 ("dead code wearing a 'utility' costume"; listed under removals at 336 lines).
+
+## Evidence (R-1)
+
+Consumer sweep 2026-08-29. Searched terms:
+`yamlgraph bench` (initial, defective — missed the real invocation),
+widened to `graph bench|bench_commands|cmd_graph_bench|BenchResult` over all
+tracked files. Complete live result classes:
+
+| Class | Files |
+|---|---|
+| Implementation | `yamlgraph/cli/bench_commands.py` (336 lines) |
+| Wiring | `yamlgraph/cli/__init__.py:192–230` (subparser), `yamlgraph/cli/graph_commands.py:344–346` (dispatch) |
+| Self-test | `tests/unit/test_bench_command.py` |
+| Sole real consumer | `examples/demos/hellograph-speed/compare_speed.sh` (one model per call — uses none of the multi-model comparison) |
+| Demo-local docs | `examples/demos/hellograph-speed/README.md` (run-count arg), `.env.azure.example` ("bench model override") |
+| Docs | `reference/cli.md`, `reference/getting-started.md`, `ARCHITECTURE.md`, `reference/module-map.md` |
+| Registry | `capabilities/CAP-90-graph-bench-command.yaml` (REQ-YG-232) |
+| Historical only | FR-231, FR-299, diary/review mentions, frozen changelog |
 **Prior art:** FR-231 (the surface being retired — spec survives there and in git history); the 2026-05-31 diary removal list (first strike; this sweep is the confirmed recurrence per the graduation rule); FR-465/FR-466 + FR-470/CAP-163 (retirement mechanism and format — followed); CAP-89/FR-231 (execution-timing callback — shared with `graph run --timing`, explicitly KEPT); siblings FR-909/FR-910/FR-912 (same evidence class, separate surfaces).
 
 ## Summary
@@ -69,11 +87,18 @@ Mechanical deletion, one consumer migration, registry retirement:
 1. **Code**: delete `yamlgraph/cli/bench_commands.py`; remove the
    `graph bench` subparser block (`yamlgraph/cli/__init__.py:192–~230`) and
    the dispatch branch in `yamlgraph/cli/graph_commands.py:344–346`.
-2. **Consumer migration**: rewrite
-   `examples/demos/hellograph-speed/compare_speed.sh` to call
-   `yamlgraph graph run <graph> --var-file ./vars.yaml --timing` per
-   provider (loop `--runs` in shell if the demo keeps repetition); re-run
-   the demo and commit `demo-output.log` (demo-gate, FR-206).
+2. **Consumer migration** (semantics frozen per R-2 option 1 and R-3
+   option 1): rewrite `examples/demos/hellograph-speed/compare_speed.sh` to
+   loop each provider exactly N times (positional run-count argument
+   preserved) calling
+   `yamlgraph graph run <graph> --var-file ./vars.yaml --timing`; the script
+   prints per-run timings — bench's mean/min/max aggregation is retired.
+   Update `examples/demos/hellograph-speed/README.md` accordingly (run-count
+   arg documented as "timed runs per provider, per-run output"). Retire the
+   `AZURE_MODEL` demo override: remove it from `.env.azure.example` and
+   README env docs — `graph.azure.yaml`'s configured model is the contract;
+   the graphs themselves are NOT edited (C-3). Re-run the demo and commit
+   `demo-output.log` (demo-gate, FR-206).
 3. **Tests**: delete `tests/unit/test_bench_command.py`; add a narrow
    FR-913 witness test asserting the `graph` subparser rejects `bench` as
    an unknown subcommand. Timing-tracker tests (CAP-89) are untouched.
@@ -96,14 +121,22 @@ sibling retirement surfaces (FR-909/910/912).
 
 ## Acceptance Criteria
 
-- [ ] AC-01: `git ls-files 'yamlgraph/cli/bench_commands.py'` prints nothing, and `git grep -nE 'bench_commands|cmd_graph_bench|BenchResult' -- yamlgraph` prints no live references
-- [ ] AC-02: a new FR-913 witness test asserts the `graph` subparser rejects `bench`; no `bench` subparser or dispatch branch remains in `yamlgraph/cli/`
-- [ ] AC-03: `tests/unit/test_bench_command.py` is deleted; timing-tracker/CAP-89 tests still pass; `python scripts/req_coverage.py --strict` passes with CAP-90 retired
-- [ ] AC-04: `examples/demos/hellograph-speed/compare_speed.sh` contains no `graph bench` invocation, runs green via `graph run`, and the diff includes a fresh `demo-output.log` (FR-206 demo-gate)
-- [ ] AC-05: `reference/cli.md`, `reference/getting-started.md`, and `ARCHITECTURE.md` contain no live bench advertising; `reference/module-map.md` regenerated
-- [ ] AC-06: CAP-90 carries `status: retired` + `RETIRED by FR-913`; CAP-89 unchanged; `scripts/validate_capabilities.py` passes
-- [ ] AC-07: full unit suite passes with the witness test present
-- [ ] AC-08: changelog fragment under `changelog/unreleased/` with `type: removal` naming FR-913
+Revised per judgement (R-4 denylist replaces scattered prose checks):
+
+- [ ] AC-01: `git ls-files 'yamlgraph/cli/bench_commands.py'` prints nothing
+- [ ] AC-02: `yamlgraph/cli/__init__.py` contains no `graph bench` subparser block; `yamlgraph/cli/graph_commands.py` contains no `bench` dispatch branch or `cmd_graph_bench` import
+- [ ] AC-03: `rg -n 'yamlgraph graph bench|graph bench|bench_commands|cmd_graph_bench|BenchResult|bench model override' yamlgraph tests reference examples/demos/hellograph-speed ARCHITECTURE.md README.md CLAUDE.md .github/copilot-instructions.md --glob '!**/__pycache__/**'` returns zero live matches except the FR-913 witness test line naming the rejected `bench` token
+- [ ] AC-04: `tests/unit/test_bench_command.py` deleted; a new FR-913 witness test asserts the `graph` subparser rejects `bench` as an unknown subcommand
+- [ ] AC-05: `tests/unit/test_timing_tracker.py` still passes, CAP-89 remains active, and `git diff -- capabilities/CAP-89-execution-timing-callback.yaml yamlgraph/utils/timing_tracker.py` is empty
+- [ ] AC-06: `compare_speed.sh` contains no `graph bench` invocation, loops each provider N times via `yamlgraph graph run ... --var-file ./vars.yaml --timing`, preserving the run-count argument with per-run output (R-2 option 1)
+- [ ] AC-07: `examples/demos/hellograph-speed/README.md` and `.env.azure.example` contain no bench-only wording; `AZURE_MODEL` removed from the demo contract with README env docs updated (R-3 option 1)
+- [ ] AC-08: the diff includes a fresh `examples/demos/hellograph-speed/demo-output.log` produced after the migration
+- [ ] AC-09: `reference/cli.md`, `reference/getting-started.md`, and `ARCHITECTURE.md` contain no live bench advertising; `reference/module-map.md` regenerated
+- [ ] AC-10: CAP-90 carries `status: retired` + `RETIRED by FR-913`; `scripts/validate_capabilities.py` passes
+- [ ] AC-11: `python scripts/req_coverage.py --strict` passes with CAP-90 retired
+- [ ] AC-12: full unit suite passes with obsolete bench tests deleted and the witness test present
+- [ ] AC-13: changelog fragment under `changelog/unreleased/` with `type: removal` naming FR-913
+- [ ] AC-14: this FR records implementation status, folded revisions, and any deviations before enforcement is complete
 
 ## Alternatives Considered
 
@@ -118,5 +151,15 @@ sibling retirement surfaces (FR-909/910/912).
 
 - Origin: FR-231 (bench command + timing callback), FR-299 (promptfoo router eval — bench mention only)
 - First strike: docs/diary/diary-2026-05-31-letter-to-the-philosopher.md (removal list)
-- Precedent: FR-465/FR-466, FR-470, CAP-163; siblings FR-909, FR-910, FR-912
+- Precedent: FR-465/FR-466, CAP-163 (mechanism), CAP-169 (format example); siblings FR-909, FR-910, FR-912
 - Kept twin: CAP-89 execution-timing callback (`graph run --timing`)
+
+## Judgement (2026-08-29)
+
+**Verdict:** APPROVED WITH REVISIONS — R-1..R-4 folded above. Conditions
+C-1..C-6 (all GATE): revisions folded before enforcement; CAP-89/REQ-YG-231,
+`timing_tracker.py`, and `graph run --timing` preserved; hellograph-speed
+`*.yaml` graphs not edited under this authority; sibling surfaces owned by
+their FRs; deleted-import failures are not success evidence; stop-and-amend
+on any real consumer found outside the named surfaces. Full judgement:
+[FR-913-retire-graph-bench-command.judgement.md](FR-913-retire-graph-bench-command.judgement.md)
