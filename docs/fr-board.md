@@ -124,6 +124,8 @@
 | FR-902 | Judged | yamlgraph |  | FR-902-session-worktree-lifecycle.md |
 | FR-909 | Judged | yamlgraph |  | FR-909-retire-a2a-surface.md |
 | FR-910 | Judged | yamlgraph |  | FR-910-retire-mcp-surface.md |
+| FR-912 | Judged | yamlgraph |  | FR-912-retire-skill-export-surface.md |
+| FR-913 | Judged | yamlgraph |  | FR-913-retire-graph-bench-command.md |
 | FR-094 | Approved | yamlgraph |  | FR-094-memory-node.md |
 | FR-095 | Approved | yamlgraph |  | FR-095-doc-staleness-monitor.md |
 | FR-096 | Approved | yamlgraph |  | FR-096-fr-template-demo-plan.md |
@@ -504,6 +506,8 @@ graph TD
     FR-908["FR-908 PARSE-FAILURE"]
     FR-909["FR-909 Judged"]
     FR-910["FR-910 Judged"]
+    FR-912["FR-912 Judged"]
+    FR-913["FR-913 Judged"]
     FR-081 --> FR-082
     FR-731 --> FR-735
     FR-731 --> FR-736
