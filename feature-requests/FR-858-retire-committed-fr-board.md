@@ -184,3 +184,49 @@ editing historical evidence), C-4 (sibling generated artifacts need their
 own FRs), C-5 (`now.py` must fail loudly, never fall back to stale state).
 
 **Scope frozen:** deliverables D-1–D-9 per judgement.
+
+## Implementation Status (2026-08-30)
+
+**Enforced** on branch `feat/fr858-evidence-refresh`. RED witnesses committed
+before implementation (`scripts/tests/test_fr858_board_retirement.py`, 6
+assertions, all failing).
+
+- D-1: `docs/fr-board.md` untracked (`git rm --cached`) and added to
+  `.gitignore` under the FR-179 `CHANGELOG.md` precedent.
+- D-2: `fr-board-check` hook removed from `.pre-commit-config.yaml`.
+- D-3: `fr_board.py` CLI is stdout-only — `--out` and `--check` removed, the
+  default write path deleted, and `check_board()` (the drift-lint function)
+  removed with them. `collect_rows`, `active_rows`, `validate_gates`,
+  `load_gates`, `render_board` and the `--project` cross-repo stdout view are
+  untouched (C-2).
+- D-4: the drift test `test_check_passes_on_fresh_board_and_fails_on_drift`
+  removed; its docstring pin rewritten to point at the new witness. Parser,
+  active-set, gates, DAG, render, and missing-project tests unchanged.
+- D-5: `now.py` gained `live_plan_state()`; both `--brief` and default modes
+  print `plan state: N active FRs, M gates (live)`. Verified live: 255 active
+  FRs, 8 gates.
+- D-6: `session-introspection` SKILL routes "What's next?" to
+  `python3 scripts/fr_board.py`.
+- D-7: this section. D-8: `changelog/unreleased/fr-858-retire-committed-fr-board.md`.
+
+**AC-11 — FR-740 disposition:** superseded *in part*. Retired: the committed
+cache and its freshness ceremony (`check_board`, the drift hook, the
+`--out`/`--check` CLI). Preserved intact: the parser, active-set scoping,
+gates schema and validation, pre-drafted questions, the rendered table/DAG,
+and the ephemeral `--project` cross-repo view. FR-740's value was the *view*;
+only its materialization retires.
+
+**C-5 verified by construction:** `live_plan_state()` returns
+`plan state: unavailable (<ExcType>: <msg>)` on failure rather than falling
+back to stale state. This fired for real during enforcement — an early version
+passed a `list` where `collect_rows` wanted a `Path`, and the tool printed the
+`TypeError` instead of silently degrading. The gate caught my own bug.
+
+**Deviation:** three `S603` confessions (CONF-432/433/434) were required for
+the witness test, plus `PLC0415`/`BLE001` (CONF-435/436) in `now.py`. The
+subprocess calls are deliberate: AC-04/AC-07 witness the *CLI contract*
+(stdout only, writes nothing), which an in-process call cannot exercise.
+
+**Verification:** unit suite 6261 passed / 97 skipped / 1 xfailed; script
+suite 15 passed; `noqa_coverage --strict` clean. AC-01, AC-02, AC-03, AC-05,
+AC-10, AC-12 pass mechanically; AC-04/AC-06/AC-07/AC-08/AC-09 pass by test.

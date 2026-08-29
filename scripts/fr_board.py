@@ -204,20 +204,10 @@ def render_board(
     return "\n".join(lines)
 
 
-def check_board(
-    repos: list[Path], board_path: Path, gates: list[dict] | None = None
-) -> list[str]:
-    """AC-02: two-way lint by construction — regenerate and diff."""
-    errors = validate_gates(gates or [])
-    expected = render_board(repos, gates)
-    actual = board_path.read_text(errors="replace") if board_path.is_file() else ""
-    if expected.strip() != actual.strip():
-        errors.append(f"board drift: {board_path} does not match regenerated view")
-    return errors
-
-
 def main() -> int:
-    ap = argparse.ArgumentParser()
+    ap = argparse.ArgumentParser(
+        description="Render the FR pipeline board to stdout (FR-858: query only)."
+    )
     ap.add_argument(
         "--project",
         action="append",
@@ -227,35 +217,22 @@ def main() -> int:
         " embed another repo's working tree)",
     )
     ap.add_argument("--gates", default="feature-requests/gates.yaml")
-    ap.add_argument("--out", default="docs/fr-board.md")
-    ap.add_argument("--check", action="store_true")
     ap.add_argument("--all", action="store_true", help="include terminal statuses")
     args = ap.parse_args()
 
     own = [Path.cwd()]
     gates = load_gates(Path(args.gates))
-    board_path = Path(args.out)
 
     if args.project:  # F7: cross-repo aggregate is a terminal view, like now.py
         print(render_board(own + [Path(p) for p in args.project], gates, args.all))
         return 0
-
-    if args.check:
-        errors = check_board(own, board_path, gates)
-        for e in errors:
-            print(f"✗ {e}")
-        if errors:
-            print("  fix: python scripts/fr_board.py")
-        return 1 if errors else 0
 
     errors = validate_gates(gates)
     if errors:
         for e in errors:
             print(f"✗ {e}")
         return 1
-    board_path.parent.mkdir(parents=True, exist_ok=True)
-    board_path.write_text(render_board(own, gates, all_rows=args.all))
-    print(f"wrote {board_path}")
+    print(render_board(own, gates, all_rows=args.all))
     return 0
 
 
