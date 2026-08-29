@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Proposed
+**Status:** Judged
 **Effort:** 1 day
 **Requested:** 2026-08-29
 **First consumer / first event:** the `yamlgraph-daily-digest` scheduled
@@ -91,25 +91,61 @@ re-litigating the routing.
 | Send succeeds, commit fails | one duplicate email on the next run. Accepted; recorded as a known risk |
 | `digest_status == no_articles` | gate → END; nothing written, sent, or committed |
 
-### Files
-
-| File | Action |
-|---|---|
-| `tools/smtp_email.py`, `tools/smtp_email.tool.yaml` | **New (vendored).** Verbatim copy of `examples/shared/smtp_email.*` from the yamlgraph repo, which excludes `examples*` from its wheel. The copy is recorded as a vendored artifact with its upstream FR-907 provenance in a header comment. |
-| `tools/write_bulletin.py`, `tools/write_bulletin.tool.yaml` | **New.** Moves the file write and `update_readme_index()` out of `run_digest.py`; returns `{"path": str}`. |
-| `graph.yaml` | **Changed.** Manifest tool refs; `write_bulletin` + `send_email` nodes; gate edge on `digest_status`; new state keys `digest_status`, `bulletin_path`, `sent`. Subject and body assembly live here — the email tool receives strings. |
-| `nodes/formatting.py` | **Changed.** Emits `digest_status` alongside `digest_markdown`. |
-| `run_digest.py` | **Changed.** Shrinks to arg parsing, `invoke()`, summary print. `--dry-run` continues to work by not binding a recipient, not by a new guard flag. |
-| `.github/workflows/digest.yml` | **Changed.** Five `SMTP_*` secrets in the run step `env:`. |
-| `tests/test_workflow.py` | **New (R-4).** This FR is the first child to edit the workflow, so the workflow-shape baseline attaches here. |
-| `README.md` | **Changed.** SMTP env contract. |
-
 ### Graph-authoring route (R-6)
 
 `graph.yaml` is materially changed, so the work is graph authoring
 regardless of phrasing and must go through the governed authoring route,
 producing an authoring report. FR-819 recorded the same requirement for
 this repo's original graph adaptation.
+
+### Files
+
+All unqualified paths below are in the external **`yamlgraph-daily-digest`**
+repository, not in this one (R-3). FR-819 forbids that repo appearing
+inside yamlgraph as a nested repo, submodule, vendored directory, or
+generated artifact; this FR and its judgement are the only artifacts it
+contributes here.
+
+| File | Action |
+|---|---|
+| `tools/smtp_email.py`, `tools/smtp_email.tool.yaml` | **New (vendored).** Byte-identical copy of `examples/shared/smtp_email.*` from the yamlgraph repo, which excludes `examples*` from its wheel. Provenance lives in a sidecar, never in the files themselves (see below). |
+| `tools/smtp_email.VENDORED.md` | **New.** Upstream path, upstream commit SHA, FR-907 reference, and the SHA-256 of each vendored file at copy time. |
+| `tools/write_bulletin.py`, `tools/write_bulletin.tool.yaml` | **New.** Moves the file write and `update_readme_index()` out of `run_digest.py`; returns `{"path": str}`. |
+| `graph.yaml` | **Changed.** Manifest tool refs; `write_bulletin` + `send_email` nodes; gate edge on `digest_status`; new state keys `digest_status`, `bulletin_path`, `sent`. Subject and body assembly live here — the email tool receives strings. |
+| `nodes/formatting.py` | **Changed.** Emits `digest_status` alongside `digest_markdown`. |
+| `run_digest.py` | **Changed.** Shrinks to arg parsing, `invoke()`, summary print. **`--dry-run` is removed** (see below). |
+| `.github/workflows/digest.yml` | **Changed.** Five `SMTP_*` secrets in the run step `env:`. |
+| `tests/test_workflow.py` | **New (R-4 of FR-908).** This FR is the first child to edit the workflow, so the workflow-shape baseline attaches here. |
+| `README.md` | **Changed.** SMTP env contract; `--dry-run` removal noted. |
+
+### `--dry-run` is retired, not redesigned (operator judgement)
+
+The Judge's R-1 correctly found that the proposed dry-run was broken:
+"not binding a recipient" does not compose with FR-907, which falls back
+to `SMTP_TO` when `to` is absent and raises when neither yields a
+recipient. So the flag would either **send anyway** (with `SMTP_TO` in the
+environment — the normal case) or **exit through a missing-recipient
+exception** rather than a deliberate path. A composition defect: two
+individually-correct contracts, wrong when joined.
+
+The operator's ruling is to delete the flag rather than build a route for
+it. `--dry-run` is a guard flag, and guard flags are hedging: they exist
+so the operator can run the pipeline without meaning it. `deviant-daily`
+removed `dry_run`/`force` as paternalistic ceremony and has a test
+forbidding their return — *running it IS the intent*. FR-908 quoted that
+rule approvingly and then carried `--dry-run` forward anyway, which is
+exactly the drift the rule exists to stop.
+
+Consequences, all simplifications:
+
+- `run_digest.py` loses the `--dry-run` argument, the `args.dry_run`
+  branch, and the "print the bulletin, write nothing" path.
+- No `dry_run` state key, no dry-run edge, no dry-run tests.
+- The only early exit remains `digest_status == no_articles`, which is a
+  statement about the world, not about the operator's intent.
+
+Local iteration without sending is still possible — unset `SMTP_TO` and
+the send raises loudly, which is the honest failure, not a silent skip.
 
 ### The vendoring fork, stated plainly
 
@@ -129,14 +165,32 @@ contracts that make it safe — header-injection refusal, unchained
 exceptions that cannot echo the credential, config validated before the
 socket — live in the copy, where an upstream fix will not reach them.
 
-A byte-identical check at vendoring time (the existing acceptance
-criterion) proves the copy was correct *once*. It cannot detect drift
-afterwards, because the digest repo has no access to the upstream file at
-test time.
+A byte-identical check at vendoring time proves the copy was correct
+*once*. It cannot detect drift afterwards, because the digest repo has no
+access to the upstream file at test time.
 
-This FR does not solve that; it records it, because the Judge should
-decide whether the copy is acceptable as-is or needs a stronger seam. The
-options, none of them free:
+**Resolution (R-2): sidecar, not header.** The FR previously demanded the
+vendored file be byte-identical to upstream *and* carry a provenance
+header — which cannot both be true, since the header is a difference. The
+Judge caught the contradiction; the note added just before judgement made
+it worse by requiring the upstream SHA in that same header.
+
+The scheme is now exactly:
+
+- `tools/smtp_email.py` and `tools/smtp_email.tool.yaml` are **byte-identical**
+  to upstream. Nothing is added to them.
+- `tools/smtp_email.VENDORED.md` records the upstream path, the yamlgraph
+  commit SHA copied from, the FR-907 reference, and the **SHA-256 of each
+  vendored file** at copy time.
+- The identity test compares each vendored file's SHA-256 against the
+  digest recorded in the sidecar — a pinned value, never a live network
+  fetch. It proves the files have not been edited locally since vendoring.
+
+This still does not detect upstream drift, and does not pretend to. It
+makes the fork legible: a reader has the exact upstream commit to diff
+against.
+
+The options, none of them free:
 
 | Option | Cost |
 |---|---|
@@ -145,9 +199,9 @@ options, none of them free:
 | Publish the tool as a small package | Real sync, but a distribution decision far outside this FR |
 | Package `examples/shared/` into the yamlgraph wheel | Reverses a deliberate packaging policy; FR-906 A4 deferred exactly this to its own FR |
 
-Recommended default: vendor now with the SHA recorded in the header
-comment, and let the packaging question be decided by the FR-906 A4
-follow-up rather than by this consumer.
+Recommended default: vendor now with the SHA recorded in the sidecar, and
+let the packaging question be decided by the FR-906 A4 follow-up rather
+than by this consumer.
 
 ## Acceptance Criteria
 
@@ -167,17 +221,28 @@ follow-up rather than by this consumer.
       `digest_status == ready` and requires it **not** to be treated as a
       no-op
 - [ ] `run_digest.py` contains no file-writing and no delivery logic
-- [ ] The vendored `tools/smtp_email.py` is byte-identical to the FR-907
-      upstream, with provenance recorded in a header comment: upstream
-      path **and the yamlgraph commit SHA it was copied from**, so a
-      future reader can diff the fork against a known point
+- [ ] **`--dry-run` no longer exists** — no argument, no `dry_run` state
+      key, no dry-run edge; a test asserts the string `dry` appears in no
+      argument name in `run_digest.py` (the `deviant-daily` no-guard-flags
+      pattern, which forbids the flag's return rather than trusting review)
+- [ ] `tools/smtp_email.py` and `tools/smtp_email.tool.yaml` are
+      byte-identical to the FR-907 upstream, with **nothing** added to
+      them; `tools/smtp_email.VENDORED.md` records upstream path,
+      yamlgraph commit SHA, FR-907 reference, and each file's SHA-256
+- [ ] A test recomputes each vendored file's SHA-256 and compares it to
+      the sidecar value — pinned, never a live fetch
 - [ ] The workflow passes all five `SMTP_*` secrets; README documents them
+      and records the `--dry-run` removal
 - [ ] `tests/test_workflow.py` asserts the cron value, the concurrency
       group, `contents: write`, and the presence of every required secret
 - [ ] CI runs pytest before the digest job
 - [ ] An authoring report exists for the `graph.yaml` change
-- [ ] One real scheduled run archives **and** emails a bulletin, evidenced
-      here by run ID and commit SHA
+- [ ] One real scheduled run archives **and** emails a bulletin. Evidence
+      must prove the **send** executed, not merely that the run and commit
+      exist: the run ID, the commit SHA, **and** the FR-907 success log
+      line (subject plus recipient), recorded here. No credential appears
+      in the evidence — FR-907 guarantees `SMTP_PASSWORD` reaches neither
+      logs nor exceptions, and this record must not reintroduce it
 
 ## Alternatives Considered
 
@@ -190,6 +255,7 @@ follow-up rather than by this consumer.
 | A5 | Depend on FR-907 by package rather than vendoring | **Rejected as currently impossible.** `pyproject.toml` excludes `examples*` from the yamlgraph wheel, so `examples/shared/` is unreachable from a PyPI consumer. Vendoring is the honest option; a distribution mechanism is a separate decision. |
 | A6 | Include the workflow-test baseline in a separate FR | **Rejected on judgement R-4.** This is the first child to edit `.github/workflows/digest.yml`, so the assertions attach here rather than blocking siblings that never touch the workflow. |
 | A7 | Send HTML as well as text | **Deferred.** FR-907's tool accepts `html`; rendering it is a follow-on. Text-first keeps this FR to one new capability. |
+| A8 | Keep `--dry-run`, fixed with an explicit `dry_run` state key and route (judgement R-1) | **Rejected by operator judgement 2026-08-29.** R-1's diagnosis was right — the flag as proposed either sends anyway or dies on a missing recipient — but the cure is deletion, not a route. A dry-run flag is hedging: it exists so the pipeline can be run without meaning it. `deviant-daily` retired `dry_run`/`force` for this reason and tests that they stay gone. Retiring it removes a flag, a state key, an edge, and two tests. |
 
 **`is_this_a_graph`: yes, and it already is one.** This FR changes the
 existing pipeline's edges and nodes rather than adding a script, which is
