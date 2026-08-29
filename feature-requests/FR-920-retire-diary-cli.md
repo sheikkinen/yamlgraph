@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Draft — awaiting judgement
+**Status:** Judged — APPROVED WITH REVISIONS (revisions R-1..R-4 folded 2026-08-30; [judgement](FR-920-retire-diary-cli.judgement.md))
 **Effort:** 0.5 day
 **Requested:** 2026-08-30
 **First consumer / first event:** every maintainer and CI run from the merge
@@ -41,11 +41,15 @@ Consumer-record sweep, 2026-08-30, mechanically reproducible:
   the pre-commit hook `diary-rotate` (`.pre-commit-config.yaml:39-44`,
   `always_run: true`), which runs `scripts/diary_rotate.py`, which imports
   the library directly.
-- **No committed automation invokes the CLI.**
-  `rg -l 'yamlgraph diary' scripts/ .github/ .chaplain/ reference/` → the
-  only non-code match repo-wide is `capabilities/CAP-46-diary-import-cli.yaml`
-  describing itself. No chaplain script, CI job, hook, or adapter runs
-  `yamlgraph diary`.
+- **No committed automation invokes the CLI** (transcript repaired per
+  R-3, two separate claims):
+  (a) `rg -l 'yamlgraph diary' scripts/ .github/ .chaplain/` → zero
+  matches — no chaplain script, CI job, hook, or adapter runs
+  `yamlgraph diary`;
+  (b) `rg -l 'yamlgraph diary' capabilities/ reference/` →
+  `capabilities/CAP-46-diary-import-cli.yaml` (self-description, retired
+  by this FR) and `reference/cli.md` (documentation of the command, not an
+  invocation — updated by this FR per R-1).
 - **`dry_run` is CLI-only plumbing.** The `dry_run` parameters and branches
   in `yamlgraph/diary/importer.py` (lines 38, 71, 84, 123, 157, 185) are
   reachable only from the CLI wrapper; `diary_rotate.py` calls with
@@ -53,8 +57,11 @@ Consumer-record sweep, 2026-08-30, mechanically reproducible:
   evidence.
 - **Confined blast radius.** `rg -l 'diary_commands|cmd_diary_dispatch'` →
   exactly `yamlgraph/cli/__init__.py`, `yamlgraph/cli/diary_commands.py`,
-  `tests/unit/test_diary_commands.py`. `reference/cli.md` does not document
-  the subcommand.
+  `tests/unit/test_diary_commands.py`. Documentation surfaces (corrected
+  per R-1): `reference/cli.md` lists `diary` in its synopsis and command
+  table (lines 8, 16), and `ARCHITECTURE.md`'s generated capability
+  sections advertise CAP-46/REQ-YG-122 as active — both are updated by
+  this FR (R-2).
 
 ## Summary
 
@@ -125,7 +132,15 @@ Mechanical deletion plus registry retirement:
 4. **Witness (TDD)**: RED test asserting `yamlgraph diary import` is
    rejected by the CLI and `import_scheduled_entries` has no `dry_run`
    parameter; commit RED (`SKIP=pytest`) and GREEN separately.
-5. **Changelog**: `removal` fragment in `changelog/unreleased/`.
+5. **Documentation (R-1, R-2)**: remove the `diary` rows from
+   `reference/cli.md` synopsis and command table; run
+   `python scripts/aggregate_capabilities.py` so `ARCHITECTURE.md`'s
+   generated capability sections stop presenting CAP-46 as active (the
+   resulting `ARCHITECTURE.md` diff is in scope).
+6. **Changelog**: `removal` fragment in `changelog/unreleased/`.
+7. **Enforcement artifacts (R-4)**: FR-920 status/decision notes, the
+   final `FR-920-retire-diary-cli.judgement.md`, and one `docs/diary/`
+   reflection entry with a `Seed:` line ship in the implementation diff.
 
 ## Alternatives (dispositioned)
 
@@ -142,18 +157,34 @@ no routing; the graph list offers nothing for a code-removal task.
 
 ## Acceptance Criteria
 
-- AC-01: `yamlgraph diary import` is rejected by the CLI (argparse error,
-  non-zero exit); witness test committed RED first.
+Judge's revised criteria adopted verbatim:
+
+- AC-01: A RED witness first proves
+  `create_parser().parse_args(["diary", "import"])` or equivalent CLI
+  invocation exits non-zero because `diary` is no longer a valid top-level
+  command; the GREEN change makes that witness pass.
 - AC-02: `yamlgraph/cli/diary_commands.py` and
-  `tests/unit/test_diary_commands.py` do not exist.
+  `tests/unit/test_diary_commands.py` do not exist, and
+  `rg -n 'diary_commands|cmd_diary_dispatch' yamlgraph tests scripts
+  reference capabilities ARCHITECTURE.md` returns no active
+  implementation/test/docs references except immutable historical FR or
+  judgement prose.
 - AC-03: `import_scheduled_entries` and `import_git_reports` have no
-  `dry_run` parameter; `rg -n 'dry_run' yamlgraph/diary/` → zero matches.
-- AC-04: `.pre-commit-config.yaml` `diary-rotate` hook is byte-identical to
-  pre-FR state and `python scripts/diary_rotate.py` runs green.
-- AC-05: CAP-46 `status: retired` with `RETIRED by FR-920` prefix;
-  `python scripts/req_coverage.py --strict` passes.
-- AC-06: Full unit suite green; `ruff check yamlgraph/` green;
-  `lint-imports` green.
-- AC-07: Changelog fragment of type `removal` present.
-- AC-08: No file outside the enumerated scope is modified (generated
-  `docs/fr-board.md` excepted).
+  `dry_run` parameter; `rg -n 'dry_run' yamlgraph/diary
+  tests/unit/test_diary_importer.py` returns zero matches.
+- AC-04: The `diary-rotate` pre-commit hook entry is unchanged and
+  `python scripts/diary_rotate.py` runs green.
+- AC-05: FR-916's phrase gates, sentinel, and FR-write gate are untouched.
+- AC-06: CAP-46 has `status: retired` and a description beginning
+  `RETIRED by FR-920`; `python scripts/validate_capabilities.py` and
+  `python scripts/req_coverage.py --strict` pass.
+- AC-07: `python scripts/aggregate_capabilities.py` has been run, and
+  `ARCHITECTURE.md` no longer presents CAP-46 as an active CLI capability.
+- AC-08: `reference/cli.md` no longer lists `diary` in the command
+  synopsis or command table.
+- AC-09: Full unit suite, `ruff check yamlgraph/`, and `lint-imports` pass.
+- AC-10: `changelog/unreleased/` contains one `removal` fragment for
+  FR-920.
+- AC-11: The implementation diff includes FR-920 status/decision notes,
+  the final judgement artifact, and one diary reflection entry with
+  `Seed:`.
