@@ -191,3 +191,26 @@ capability — revisit if the png false-negative cost ever materializes.
   [.github/workflows/security.yml](../.github/workflows/security.yml)
 
 ## Judgement (date)
+
+See [FR-919-ci-doc-only-skip.judgement.md](FR-919-ci-doc-only-skip.judgement.md) (2026-08-30): APPROVED WITH REVISIONS. Both revisions (R-1 step-safe filter guard, R-2 research substance) folded 2026-08-30 before enforcement.
+
+## Implementation Status (2026-08-30)
+
+Enforced same day:
+
+- `workflow.yml`: `changes` job added; `core-test` and `test` gated on
+  `needs.changes.outputs.code == 'true'`. The `dorny/paths-filter@v3`
+  step (and its checkout) carry `if: github.event_name ==
+  'pull_request'` — step-safe on tag pushes (R-1); the job output
+  short-circuits to `'true'` for non-PR events, so the release chain
+  (`test` → `build` → `publish` → `create-release`) cannot skip.
+- `security.yml`: independent `changes` job, same gate on the pip-audit
+  job (AC-06).
+- Changelog fragment: `changelog/unreleased/fr-919-ci-doc-only-skip.md`.
+
+**Pending operator actions (human review gate, AC-09):**
+
+1. Review both workflow diffs before landing on `main`.
+2. Cite the witness runs here: one doc-only PR (all four jobs skipped,
+   mergeable), one mixed PR (full suite), and the first post-merge tag
+   push (`test`, `build`, `security` executed).
