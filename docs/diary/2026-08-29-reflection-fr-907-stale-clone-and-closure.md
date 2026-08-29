@@ -120,3 +120,43 @@ valid?" but "is it the same as its neighbour?" Capability IDs and REQ IDs
 have one; FR numbers now do. Diary filenames, changelog fragment names,
 CAP names, prompt names, and graph `name:` fields do not. Which of those
 would show 36 silent duplicates the first time anyone looked?
+
+## Addendum 2 — the guard measured the wrong thing
+
+The guard merged green and was red on `main` within minutes: FR-899,
+`disable-implicit-context-attachment` vs `org-repo-census-azure`.
+
+My first diagnosis was wrong, and I nearly committed it. I assumed a
+stale baseline — that I had frozen the grandfathered list from a tree one
+merge behind `main` — and started adding "899" to the list. Then a fresh
+worktree at the same SHA showed only *one* FR-899 file.
+
+`FR-899-disable-implicit-context-attachment.md` is **untracked**. It is
+another live session's work in progress, sitting in the shared checkout,
+never committed. There is no collision in the repository at all.
+
+The defect is in the guard: it globbed the filesystem. A test that
+asserts a property of *the repository* must ask git what the repository
+contains, not ask the directory what happens to be lying in it. Fixed to
+`git ls-files`, plus a test that plants an untracked probe and asserts it
+is invisible.
+
+Two things worth keeping. First, this is `workspace_is_not_boundary`
+wearing a new costume — the Scripture entry warns about nested repos
+before destructive operations, and I had filed it under "deletion
+safety", so it did not fire when I wrote a *read*. Editor visibility is
+not repository membership, in either direction.
+
+Second, and worse: my instinct was to widen the exception list. Adding
+"899" would have passed CI, looked reasonable in review, and permanently
+encoded a phantom collision — a fix that makes the symptom go away by
+teaching the guard to expect the bug. The tell was that I could not
+explain *why* FR-899 collided; I only knew *that* the assertion fired. An
+exception you cannot justify individually is a confession that you have
+not found the cause yet.
+
+**Seed:** How many of this repo's checks read the filesystem where they
+mean to read the repository? The gates that inspect `docs/diary/`,
+`changelog/unreleased/`, and `capabilities/` all glob. In a workspace
+that always holds several sessions' uncommitted work, every one of them
+can fail — or pass — for files that are not in the commit under test.

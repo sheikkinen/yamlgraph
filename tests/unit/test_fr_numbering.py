@@ -14,6 +14,7 @@ a number that resolves to two documents.
 from __future__ import annotations
 
 import re
+import subprocess
 from collections import defaultdict
 from pathlib import Path
 
@@ -55,12 +56,30 @@ def _is_sibling(name: str, number: str) -> bool:
     return any(name == f"FR-{number}-{slug}.md" for slug in SIBLING_SLUGS)
 
 
+def _tracked_fr_names() -> list[str]:
+    """Tracked FR filenames.
+
+    Deliberately git, not a filesystem glob: a parallel session's
+    uncommitted FR is not a repository collision, and globbing made this
+    guard fail on `main` for a file that was never in `main`
+    (`workspace_is_not_boundary`).
+    """
+    out = subprocess.run(
+        ["git", "ls-files", "feature-requests/FR-*.md"],
+        cwd=REPO_ROOT,
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout
+    return sorted(Path(line).name for line in out.splitlines() if line.strip())
+
+
 def _primary_fr_files() -> dict[str, list[str]]:
     by_number: dict[str, list[str]] = defaultdict(list)
-    for path in sorted(FR_DIR.glob("FR-*.md")):
-        match = FR_NUMBER.match(path.name)
-        if match and not _is_sibling(path.name, match.group(1)):
-            by_number[match.group(1)].append(path.name)
+    for name in _tracked_fr_names():
+        match = FR_NUMBER.match(name)
+        if match and not _is_sibling(name, match.group(1)):
+            by_number[match.group(1)].append(name)
     return by_number
 
 
@@ -88,11 +107,22 @@ class TestFeatureRequestNumbering:
     def test_every_judgement_has_a_parent_fr(self) -> None:
         numbers = set(_primary_fr_files())
         orphans = [
-            path.name
-            for path in sorted(FR_DIR.glob("FR-*.judgement.md"))
-            if (m := FR_NUMBER.match(path.name)) and m.group(1) not in numbers
+            name
+            for name in _tracked_fr_names()
+            if name.endswith(".judgement.md")
+            and (m := FR_NUMBER.match(name))
+            and m.group(1) not in numbers
         ]
         assert not orphans, f"Judgements with no parent FR: {orphans}"
+
+    def test_untracked_files_are_not_collisions(self) -> None:
+        """A parallel session's uncommitted FR must not fail this guard."""
+        probe = FR_DIR / "FR-000-untracked-probe.md"
+        probe.write_text("probe\n")
+        try:
+            assert "FR-000-untracked-probe.md" not in _tracked_fr_names()
+        finally:
+            probe.unlink()
 
     def test_sibling_words_in_slugs_are_not_treated_as_siblings(self) -> None:
         """FR-215-research-agent-demo.md is a primary FR, not a research sibling."""
