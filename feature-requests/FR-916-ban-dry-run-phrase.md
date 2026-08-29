@@ -1,10 +1,12 @@
 # Feature Request: FR-916 Ban "dry-run" as a hedge phrase
 
-**Status:** Proposed
+**Status:** Judged — APPROVED (2026-08-29, second judgement; first REJECTED, R-1..R-4 folded)
 **Date:** 2026-08-29
 **Author:** agent session (operator-directed)
 
-**Prior art:** FR-438 (reasoning-pattern sentinel, Phase 1 keyword registry), FR-439 (rename), FR-124 (diary import CLI — the sole legitimate `--dry-run` in core, must be dispositioned), FR-862 (deviant-daily — 36 dry-run occurrences, densest single-FR usage), FR-903 (alternatives table proposed a dry-run mode — the triggering recurrence). Existing bans: "backward compatibility" (`forbid-terms` pre-commit hook over `yamlgraph/**/*.py`) and the 5-phrase reasoning-sentinel registry (`.github/hooks/scripts/reasoning-patterns.json`).
+**Research:** in-body — see § Research Record below (dispositioned alternatives table, precedent lines, `is_this_a_graph` answer).
+
+**Prior art:** FR-438 (reasoning-pattern sentinel, Phase 1 keyword registry), FR-439 (rename), FR-124 (diary import CLI — the sole legitimate `--dry-run` in core, dispositioned below: retire), FR-862 (deviant-daily — 36 dry-run occurrences, densest single-FR usage), FR-903 (alternatives table proposed a dry-run mode — the triggering recurrence). Existing bans: "backward compatibility" (`forbid-terms` pre-commit hook over `yamlgraph/**/*.py`) and the 5-phrase reasoning-sentinel registry (`.github/hooks/scripts/reasoning-patterns.json`).
 
 ## Summary
 
@@ -30,6 +32,28 @@ Current status (measured 2026-08-29, tracked files):
 
 Key finding: the core debt is small and coherent — one CLI flag and its plumbing. The long tail lives in `scripts/` (out of hook scope) and in immutable historical FRs.
 
+## Research Record
+
+`is_this_a_graph`: No — this is deterministic keyword enforcement at three existing boundaries (pre-commit grep, sentinel registry, PostToolUse scanner); no LLM stage, no fan-out, no graph.
+
+**Alternatives dispositioned:**
+
+| # | Solution class | Disposition |
+|---|---|---|
+| A1 | Advisory doctrine text only (Conventions line, no gates) | REJECTED — refuted by recurrence: FR-862 shipped 36 uses, FR-903's judge proposed a dry-run mode today despite existing doctrine; `detection_without_enforcement` |
+| A2 | Reasoning sentinel entry only | REJECTED as sole gate — sentinel scans only the latest assistant message and is one-shot; "backward compatibility" precedent shows the pre-commit gate is what holds |
+| A3 | Pre-commit code gate only | REJECTED as sole gate — fires after code exists; the cheapest kill is at FR-authoring time (spec_kill) |
+| A4 | Three-gate layered ban (code + reasoning + FR-write) with escape marker | **CHOSEN** — each gate covers the other's blind window; reuses three existing mechanisms, zero new infrastructure |
+| A5 | LLM classifier for hedge-intent (graph/daemon) | REJECTED — keyword match suffices for a literal phrase; a classifier is `growth_as_default` |
+| A6 | Permanent noqa-style exemption for `diary import --dry-run` | REJECTED — a day-one permanent exemption makes the ban advisory |
+
+**Precedent lines (disagreement preserved):**
+- FR-124 introduced `diary import --dry-run` with accepted non-mutating-import tests (FR-124:13-36, 282-292) — the flag was a deliberate design, not an accident.
+- FR-862 originally designed `dry_run` as a no-publication path (FR-862:194-214); the operator later voided `dry_run`/`force` as paternalistic ceremony (FR-862:11-18). The contrary precedent is real: dry-run was once considered good design here.
+- FR-903's judge proposed routing a `--dry-run` flag; the operator overruled to deletion — "a dry-run flag is hedging" (FR-903:121-143, 258).
+- FR-438/FR-439: the sentinel mechanism and its neutral-wording precedent (FR-439:61-65, 95-99).
+- Resolution of the disagreement: the 2024-era design consensus (FR-124, early FR-862) predates the repo's TDD-witness + worktree-isolation safety rails; with those rails in place, the operator's 2026 rulings (FR-862 voiding, FR-903 overrule) consistently treat preview modes as ceremony. This FR codifies the later ruling.
+
 ## Ideal Result
 
 An agent that reaches for "let me add a dry-run mode" is stopped at the reasoning boundary before code exists; a `--dry-run` flag cannot enter `yamlgraph/` without tripping pre-commit; the diary importer's preview behavior either survives under an honest name or is retired if it has no consumer.
@@ -38,32 +62,34 @@ An agent that reaches for "let me add a dry-run mode" is stopped at the reasonin
 
 1. **Code gate** — extend the `forbid-terms` hook regex in `.pre-commit-config.yaml` from `TODO|FIXME|backward compati(bility)?` to also match `dry[-_ ]?run` (case-insensitive where the grep permits). Scope stays `yamlgraph/**/*.py`.
 2. **Reasoning gate** — add a `dry-run` entry to `.github/hooks/scripts/reasoning-patterns.json` with variants `dry_run`, `dry run`, doctrine text pointing at Commandment 6 / `mock_escape_hatch`, scripture_ref `copilot-instructions.md § Conventions`.
-3. **FR-write gate (the "Are you sure?" hook)** — extend `.github/hooks/scripts/checks/fr-checks.sh` (PostToolUse, already scans `feature-requests/*.md` writes) to detect `dry[-_ ]run` in a newly written or edited FR and arm the existing one-shot sentinel (same arm/consume mechanism as `reasoning-pattern-check.sh` → `pre-command-guard.sh`). The denial message is deliberately sarcastic:
-   > *"Are you sure? A dry-run is a rehearsal for software that already has an undo button. You built the tests; you have git; the worktree is disposable. What exactly are you afraid of executing? (This denial is one-shot — if the FR genuinely needs a preview mode, name it honestly and justify it in the FR body.)"*
+3. **FR-write gate (the "Are you sure?" hook)** — extend `.github/hooks/scripts/checks/fr-checks.sh` (PostToolUse, already scans `feature-requests/*.md` writes) to detect `dry[-_ ]run` in a newly written or edited FR and arm the existing one-shot sentinel (same arm/consume mechanism as `reasoning-pattern-check.sh` → `pre-command-guard.sh`). The denial message is neutral and descriptive (FR-439 wording precedent) and MUST contain the literal prompt `Are you sure?`:
+   > *"Are you sure? A dry-run mode duplicates an execution path that is already guarded by tests and git reversibility. This denial is one-shot — if the FR genuinely needs a preview mode, name it honestly and justify it with a `preview-justified:` line in the FR body."*
 
-   Escape marker (same pattern as the fsm gate's `escapes` list in fr-checks.sh): the literal string `preview-justified:` followed by a one-line rationale in the FR body suppresses the gate — a justified preview is a design decision, an unjustified dry-run is a hedge. Historical FRs are untouched: the gate fires only on writes, not on the existing record.
+   Escape marker (same pattern as the fsm gate's `escapes` list in fr-checks.sh): the literal string `preview-justified:` followed by a one-line rationale in the FR body suppresses the gate — a justified preview is a design decision, an unjustified dry-run is a hedge. Historical FRs are untouched: the gate fires only on writes, not on the existing record. Final denial wording and hook semantics require human review before the enforcement PR merges (C-3).
 4. **Doctrine** — add one Conventions line to `.github/copilot-instructions.md`: the phrase "dry-run" is forbidden; execution is guarded by tests and reversibility, not simulation modes. If a preview is genuinely required, justify it explicitly in an FR under an honest name (`--plan`, `--diff`, `--preview`) with a `preview-justified:` line.
-5. **Disposition of `diary import --dry-run` (FR-124)** — decide before arming the code gate:
-   - (a) **rename** to `--preview` (mechanical: flag, dest, importer kwarg, 3 core files + 2 test files), or
-   - (b) **retire** the flag if the diary importer has no preview consumer (check: any script/automation passing `--dry-run` to `yamlgraph diary import`).
-   Evidence gathered so far: only automation trace is interactive CLI usage; no script in the repo invokes `diary import --dry-run`.
+5. **Disposition of `diary import --dry-run` (FR-124) — FROZEN: retire.** Delete the flag (`cli/__init__.py:333-335`), the `dry_run` parameter and branches in `diary/importer.py`, the plumbing and preview output in `cli/diary_commands.py`, and the corresponding tests in `tests/unit/test_diary_commands.py` / `tests/unit/test_diary_importer.py`. Evidence: no committed script or automation invokes `yamlgraph diary import --dry-run` (repo grep — the only invocations are help text and the feature's own tests); the operator's rulings in FR-862 (voided as ceremony) and FR-903 (overruled routing to deletion) both chose retirement over rename for the same construct. The enforcer makes no choice here.
 6. **Out of scope** — historical FRs/judgements, `docs/diary/`, `changelog/` are the immutable record; the ban is not retroactive prose surgery. `scripts/` and `examples/` stay outside the code gate (same scope as the existing bans) but fall under the reasoning and FR-write gates for future sessions.
 
 ## Acceptance Criteria
 
-- [ ] AC-01: `forbid-terms` hook fails on a `yamlgraph/` Python file containing `dry-run`, `dry_run`, or `dry run` (witness: hook run against a fixture change).
-- [ ] AC-02: `reasoning-patterns.json` contains the new entry; sentinel test suite (`.github/hooks/tests/`) covers the new phrase and variants.
-- [ ] AC-02b: FR-write gate — a write to `feature-requests/*.md` containing `dry-run` (no `preview-justified:` marker) arms the one-shot sentinel; the denial text contains "Are you sure?"; a write WITH the marker passes clean; hook test suite covers deny, escape, and one-shot-consume paths.
-- [ ] AC-03: `git grep -icE 'dry[-_ ]run' -- 'yamlgraph/**/*.py'` returns zero matches (disposition of FR-124 flag complete).
-- [ ] AC-04: `yamlgraph diary import` help text and tests updated to the chosen disposition; full unit suite green.
-- [ ] AC-05: `.github/copilot-instructions.md` Conventions section carries the ban with the honest-name escape hatch.
-- [ ] AC-06: Changelog fragment in `changelog/unreleased/`.
+(Judge's revised set, adopted verbatim.)
+
+- [ ] AC-01: FR-916 contains a `**Research:**` field pointing to a committed research artifact or an in-body equivalent that satisfies R-1.
+- [ ] AC-02: `.pre-commit-config.yaml` `forbid-terms` fails on each banned variant in a `yamlgraph/**/*.py` fixture or temporary tracked-file witness and passes after removal.
+- [ ] AC-03: `.github/hooks/scripts/reasoning-patterns.json` contains one entry with primary pattern, variants `dry_run` and `dry run`, doctrine text, and scripture reference.
+- [ ] AC-04: `.github/hooks/tests/test_reasoning_pattern_check.py` proves the new primary phrase and variants arm a session-scoped sentinel.
+- [ ] AC-05: `.github/hooks/tests/test_reasoning_pattern_check.py` proves the pre-command guard consumes that sentinel exactly once.
+- [ ] AC-06: `.github/hooks/scripts/checks/fr-checks.sh` detects the banned phrase on `feature-requests/*.md` writes without `preview-justified:`.
+- [ ] AC-07: `.github/hooks/tests/test_fr_checks.py` covers FR-write deny, `preview-justified:` escape, and clean FR cases.
+- [ ] AC-08: The diary-import disposition chosen in the FR (retire) is implemented consistently in CLI parser, command handler, importer, help text, and tests.
+- [ ] AC-09: `git grep -icE 'dry[-_ ]run' -- 'yamlgraph/**/*.py'` returns zero matches after the diary-import disposition is complete.
+- [ ] AC-10: `.github/copilot-instructions.md` Conventions records the ban and the honest preview-name escape hatch.
+- [ ] AC-11: `changelog/unreleased/` contains a fragment for FR-916.
+- [ ] AC-12: Targeted hook tests and diary-import tests pass.
 
 ## Alternatives Considered
 
-- **Reasoning gate only, no code gate**: cheaper, but "backward compatibility" precedent shows the code gate is what holds — sentinel scans only the latest assistant message and is one-shot.
-- **Ban in prose/FRs too**: rejected — retroactive prose surgery on the historical record violates the record's immutability; the prior-art gate already forces new FRs through review where the reasoning sentinel fires.
-- **Exempt `diary import --dry-run` via noqa-style confession**: rejected — a permanent exemption on day one makes the ban advisory (detection_without_enforcement).
+See § Research Record (A1–A6, dispositioned).
 
 ## Related
 
