@@ -111,6 +111,8 @@ def workspace_name(ws_dir: Path) -> str:
 
 
 def iter_requests():
+    if not WS_STORAGE.is_dir():  # machine without VS Code stores (e.g. CI)
+        return
     for ws_dir in WS_STORAGE.iterdir():
         chats = sorted(ws_dir.glob("chatSessions/*.jsonl"))
         if not chats:
