@@ -163,8 +163,13 @@ committed first (`test(mcp): FR-910 RED witness…`).
 - D-8: this section.
 
 **Doctrine edit (C-2):** `.github/copilot-instructions.md` `is_this_a_graph`
-now names `yamlgraph graph list` only. It is **isolated in its own commit**
-and requires explicit human approval before merge.
+now names `yamlgraph graph list` only. It is **isolated in its own commit**.
+**C-2 discharged (2026-08-29):** the operator reviewed and approved that
+commit. Note the known limitation, discovered after this FR was enforced:
+`yamlgraph graph list` was itself deleted on 2026-01-29 (`63d0be8d`), so the
+clause is strictly-less-wrong rather than correct. It is approved as an
+intermediate state; **FR-914 replaces the route with an executable `rg`
+one-liner and retires the module behind it.**
 
 ### Finding: C-3's premise does not hold
 
@@ -175,15 +180,19 @@ graph list` does not use them; only tests import them. `vulture` flags both
 as dead code.
 
 C-3 is a GATE, so this FR does **not** delete the module. Both names were
-added to `vulture_whitelist.py` with the reason recorded. **Disposition of
-`yamlgraph/discovery.py` (retire, or wire a real consumer) belongs to a
-follow-up FR.**
+added to `vulture_whitelist.py` with the reason recorded. **Disposition
+filed as FR-914** (retire the module; repoint the `is_this_a_graph` route at
+`rg -n 'Task shapes:' examples/demos/*/graph.yaml`). FR-914's research
+strengthened this finding: `yamlgraph graph list` — C-3's named consumer —
+was deleted on 2026-01-29 in `63d0be8d`, so the premise was not merely stale
+but never true after that date.
 
 ### Out of scope, flagged
 
 `examples/demos/mastra-integration/` demonstrates a TypeScript client
 discovering typed MCP tools. It is not in D-1–D-8 and is not touched here;
-it is now a demo of a retired surface and needs its own disposition.
+it is now a demo of a retired surface. **Operator disposition 2026-08-29:
+retire — filed as FR-915.**
 
 **Verification:** full unit suite 6197 passed / 97 skipped / 1 xfailed;
 `req_coverage.py --strict`, `validate_capabilities.py`,
