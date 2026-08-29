@@ -5,15 +5,18 @@ Spike (scripts/vscode, 2026-07-16). Parses every chatSessions/*.jsonl
 across ALL workspaces; attributes each request by its own timestamp
 (not the session creation date); rolls up per period, per day, per model.
 
-Credits: no balance/usage history is persisted locally (verified — the
-UI's number is fetched live), so credits are ESTIMATED from the
-per-model price sheets in debug-logs models.json (credits per 1M tokens;
-1 credit = $0.01, calibrated 2026-07-16). Reported as a best–worst range
-because promptTokens conflates cache reads with fresh input; best assumes
-98% cache reads (fresh tokens also pay one cache write), worst assumes
-all-fresh. Anchor (FR-900, 2026-08-28): August 2026 invoice $7,500 across
-two devices; this device's best bound $3,927 ≈ 50% share — within ~5%.
-The relative attribution (which day/model/repo/arc) is solid regardless.
+Credits: chatSessions DOES persist exact per-request `copilotCredits`
+(discovered 2026-08-29, FR-898 — requires full patch replay; see
+session_ledger.py for the per-session accountability view). This
+script predates that discovery and still ESTIMATES from the
+per-model price sheets in debug-logs models.json (credits per 1M
+tokens; 1 credit = $0.01, calibrated 2026-07-16). Reported as a
+best–worst range because promptTokens conflates cache reads with
+fresh input; best assumes 98% cache reads (fresh tokens also pay one
+cache write), worst assumes all-fresh. Anchor (FR-900, 2026-08-28):
+August 2026 invoice $7,500 across two devices; this device's best
+bound $3,927 ≈ 50% share — within ~5%. The relative attribution
+(which day/model/repo/arc) is solid regardless.
 """
 
 from __future__ import annotations
@@ -108,6 +111,8 @@ def workspace_name(ws_dir: Path) -> str:
 
 
 def iter_requests():
+    if not WS_STORAGE.is_dir():  # machine without VS Code stores (e.g. CI)
+        return
     for ws_dir in WS_STORAGE.iterdir():
         chats = sorted(ws_dir.glob("chatSessions/*.jsonl"))
         if not chats:

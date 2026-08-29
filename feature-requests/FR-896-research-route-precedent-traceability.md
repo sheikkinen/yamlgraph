@@ -5,6 +5,8 @@
 **Status:** Proposed
 **Effort:** 2 days
 **Requested:** 2026-08-28
+**Judged:** 2026-08-28 — APPROVED WITH REVISIONS (R-1..R-4 folded; see
+[FR-896-research-route-precedent-traceability.judgement.md](FR-896-research-route-precedent-traceability.judgement.md))
 **First consumer / first event:** the next FR author who runs
 `scripts/research.sh` — their alternatives table arrives with persona
 findings grounded in committed repository state instead of their own
@@ -31,8 +33,10 @@ a run-provenance stamp.
 
 FR authors and the Judge get a research signal that means something:
 convergence becomes evidence of independent discovery instead of echo
-amplification, and a research record becomes mechanically distinguishable
-from a fabricated one.
+amplification, and a research record's provenance integrity — header,
+table body, committed brief, and run log recomputing to the same hashes
+— becomes mechanically checkable (execution itself remains attestable
+only by a future external trusted source, per judgement R-3).
 
 ## Problem
 
@@ -101,14 +105,20 @@ FR-896.research.md; the four-persona convergent core is this design):
 - Librarian row: cited URL must appear in `librarian_tool_results`
   captured in graph state — reconciliation at the boundary
   (`two_strike_split` cure), fail closed.
-- Non-librarian rows: precedent must reference at least one verifiable
-  committed identifier — an `FR-\d+` that exists in `feature-requests/`,
-  a `CAP-\d+` in `capabilities/`, a repo-relative path that exists, or a
-  Scripture trap/cure name — OR be explicitly marked `brief-echo`.
-- Echo demotion, never drop (`junk_drawer_cap` lineage): a row whose
-  precedent traces only to brief text gets `verdict: echo` set by the
-  reducer and is excluded from the class-coverage count, but stays in
-  the table as a visible row.
+- Non-librarian rows, three cases (R-1, frozen — invalid precedent is
+  NOT echo):
+  1. precedent references an existing committed identifier — an
+     `FR-\d+` in `feature-requests/`, a `CAP-\d+` in `capabilities/`,
+     a repo-relative path that exists, or a Scripture trap/cure key —
+     → passes precedent validation;
+  2. precedent carries an explicit `brief-echo` marker and no committed
+     identifier → retained, visibly flagged, excluded from scoring;
+  3. precedent names a nonexistent identifier, malformed path, or
+     nonexistent Scripture key → **fails artifact verification with a
+     named violation** — never silently reclassified as echo.
+- Echo demotion, never drop (`junk_drawer_cap` lineage): a true echo row
+  (case 2) gets `verdict: echo` set by the reducer and is excluded from
+  gate scoring, but stays in the table as a visible row.
 - One librarian predicate: reducer and artifact verifier share a single
   `is_librarian` check (`"librarian" in persona.lower()`) — the current
   `==` vs `in` seam lets a self-labeled "web-librarian" skip the
@@ -132,14 +142,17 @@ threshold.
 
 `solution_class` becomes a closed enum (`os-permissions`,
 `process-boundary`, `schema-data`, `graph-pipeline`, `subtraction`,
-`external-method`, `boundary-enforcement`) validated in Pydantic. The
-4–6 distinct-class artifact gate is replaced by: >= 3 distinct classes
-among non-echo rows, convergence recorded (rows sharing a class are
-annotated `convergent xN`), never failed for converging. `verdict`
-becomes a closed enum too (`pursue`, `dissent`, `duplicate`; the reducer
-alone may set `echo`) — free-text verdicts are the inflation surface
-FR-727/730 already cured at other boundaries; a one-sentence rationale
-moves to a separate bounded `rationale` field.
+`external-method`, `boundary-enforcement`) validated in Pydantic.
+Convergence-safe gate (R-2, frozen — distinct-class count is NEVER a
+blocking gate): the reducer validates the enum, annotates repeated
+classes `convergent xN`, and gates on **at least three non-echo
+traceable findings** plus preservation of dissent/duplicate/external
+rows where present. Distinct-class count is reported as advisory
+context for the Judge only — a four-row same-class convergence passes.
+`verdict` becomes a closed enum too (`pursue`, `dissent`, `duplicate`;
+the reducer alone may set `echo`) — free-text verdicts are the
+inflation surface FR-727/730 already cured at other boundaries; a
+one-sentence rationale moves to a separate bounded `rationale` field.
 
 ### 3b. Librarian role pin
 
@@ -156,59 +169,87 @@ abstraction moves to code per `two_strike_split`.
 `PersonaFinding`; the reducer rejects (not truncates) violations so the
 model contract, not post-processing, carries the constraint.
 
-### 5. Run provenance stamp
+### 5. Run provenance stamp (integrity, not execution proof — R-3)
 
 `scripts/research.sh` appends one JSON line to the **committed**
 `feature-requests/research-runs.jsonl` (tmp/ is gitignored — a log the
 Judge cannot see from the commit proves nothing): brief SHA-256,
-artifact SHA-256, UTC timestamp, graph path. At promotion the record's
-header quotes its line; the Judge reconciles header against log by hash
-equality instead of trusting prose (`artifact_carries_code_identity`).
-The brief hash is recomputable from the committed brief, the artifact
-hash from the committed record's table body.
+artifact SHA-256, **code git SHA**, UTC timestamp, graph path. At
+promotion the record's header quotes its line; a deterministic verifier
+recomputes the brief hash from the committed brief and the artifact
+hash from the record's table body and checks equality against the log
+(`artifact_carries_code_identity`). **Claim boundary (R-3, frozen):**
+this proves hash/integrity consistency — an unbacked or internally
+inconsistent record is mechanically detectable; it does NOT prove an
+actual run occurred, since the log is committed by the same actor.
+Unforgeable execution proof would need an external trusted source and
+is a separately judged FR.
 
-## Acceptance Criteria
+### 6. Authoring route pin (R-4)
+
+Any material change to `examples/demos/research-route/**` graph or
+prompt artifacts is produced through `scripts/author.sh` and verified
+by `tmp/draft-authoring-report.md` — the artifact class, not the task
+phrasing, is the trigger; if the route fails, fix the route, never
+write governed artifacts manually.
+
+## Acceptance Criteria (revised per judgement)
 
 - [ ] AC-01: Reducer rejects a librarian row whose URL is absent from
-  `librarian_tool_results`; fixture witnesses both directions.
-- [ ] AC-02: A non-librarian row whose precedent names a nonexistent
-  FR/CAP/path is demoted to `brief-echo`; a row citing an existing
-  committed identifier passes; fixtures witness both.
-- [ ] AC-03: Echo rows remain in the artifact, visibly flagged, and do
-  not count toward class coverage (demote-never-drop).
-- [ ] AC-04: All five personas receive the committed-context block; the
-  assembling node is Python, deterministic, and its output is bounded;
-  a test witnesses CAP one-liners and Scripture trap names present in
-  persona input; `collect_graph_shapes` covers `graphs/` and
-  `.chaplain/graphs/` in addition to demos.
-- [ ] AC-05: `solution_class` and `verdict` are closed enums; free-text
+  `librarian_tool_results`; fixture witnesses both present and absent
+  URL cases.
+- [ ] AC-02: Reducer and artifact verifier use one shared librarian
+  predicate; a `web-librarian`-labeled fixture row is treated
+  identically by both.
+- [ ] AC-03: Non-librarian precedent validation distinguishes three
+  cases: existing committed identifier passes; explicit brief echo is
+  retained as `verdict: echo` and excluded from scoring; nonexistent or
+  malformed committed identifiers fail artifact verification with a
+  named violation.
+- [ ] AC-04: Echo rows remain in the artifact, visibly flagged, and do
+  not count toward non-echo/convergence gate metrics.
+- [ ] AC-05: All five personas receive a deterministic, bounded,
+  author-independent committed-context block assembled without an LLM;
+  tests witness CAP one-liners, ARCHITECTURE.md headings, and Scripture
+  trap/cure names present in persona input, and `collect_graph_shapes`
+  covers `examples/demos/`, `graphs/`, and `.chaplain/graphs/`.
+- [ ] AC-06: `solution_class` and `verdict` are closed enums; free-text
   values fail Pydantic validation; only the reducer can set
-  `verdict: echo`; convergent rows are annotated, and a fixture with
-  three same-class non-echo rows passes the artifact gate.
-- [ ] AC-06: Every finding field carries `max_length=400`; an over-length
-  fixture is rejected by the reducer with a named violation.
-- [ ] AC-07: `scripts/research.sh` appends the provenance line to the
-  committed `feature-requests/research-runs.jsonl`; a deterministic check
-  distinguishes a promoted record whose header hashes match the log and
-  recompute from the committed brief/table from one whose header is
-  unbacked; fixtures witness both.
-- [ ] AC-07b: Reducer and artifact verifier use one shared librarian
-  predicate; a `web-librarian`-labeled fixture row is treated identically
-  by both.
-- [ ] AC-07c: The librarian schema/prompt pin the role to external
+  `verdict: echo`; repeated classes are annotated `convergent xN`; a
+  fixture with three same-class non-echo traceable findings passes the
+  artifact gate.
+- [ ] AC-07: Every finding field that can carry model-authored prose has
+  `max_length=400` in the prompt schema and runtime `PersonaFinding`;
+  an over-length fixture is rejected by the reducer with a named
+  violation and is not truncated.
+- [ ] AC-08: `scripts/research.sh` appends one JSON line to committed
+  `feature-requests/research-runs.jsonl` with brief SHA-256,
+  artifact/table-body SHA-256, code git SHA, UTC timestamp, and graph
+  path; verifier recomputes hashes from the committed brief/table and
+  distinguishes matching, missing, and mismatched records.
+  Documentation says this proves provenance integrity, not unforgeable
+  execution.
+- [ ] AC-09: The librarian schema/prompt pin the role to external
   precedent reporting; the 2026-08-28 solution-shaped librarian output,
-  replayed as a fixture, is rejected or re-shaped; recurrence of drift is
-  named a `two_strike_split` trigger in the FR.
-- [ ] AC-08: The self-referential brief
-  (`research-briefs/research-route-grounding-echo.md`) re-run through the
-  upgraded route yields an artifact where the os-infra-style verbatim
-  echo row is flagged `brief-echo` and the four-way convergence is
-  annotated as convergent, not scored as five classes; result cited in
-  the implementation record.
-- [ ] AC-09: `scripts/research_preflight.py --verify-artifact` updated to
-  the new gate semantics; existing FR-890 fixtures updated, none deleted
-  without replacement witnesses.
-- [ ] AC-10: Changelog fragment, FR status update, diary reflection.
+  replayed as a fixture, is rejected or reshaped into an
+  external-method precedent row with bounded rationale.
+- [ ] AC-10: The self-referential brief
+  (`research-briefs/research-route-grounding-echo.md`) is rerun through
+  the upgraded route; the resulting implementation record cites an
+  artifact where the os-infra-style verbatim echo row is flagged
+  `brief-echo` and the four-way same-class convergence is annotated as
+  convergent rather than failed or cosmetically split.
+- [ ] AC-11: `scripts/research_preflight.py --verify-artifact`
+  implements the new gate semantics; existing FR-890 fixtures are
+  updated, and none are deleted without replacement witnesses for the
+  same behavior.
+- [ ] AC-12: If graph or prompt artifacts are materially changed, the
+  changes are produced through `scripts/author.sh`;
+  `tmp/draft-authoring-report.md` records the governed artifacts, graph
+  lint, smoke result, and any honest validation limitation.
+- [ ] AC-13: Changelog fragment, FR implementation-status update,
+  requirement-tagged tests where applicable, and diary reflection are
+  included.
 
 ## Out of Scope
 
@@ -221,6 +262,10 @@ hash from the committed record's table body.
   this FR upgrades what substance is mechanically checkable.
 - Persona seat changes (security/cost personas) — measure after
   grounding.
+- Unforgeable execution attestation (external trusted trace/signature) —
+  separately judged FR if integrity checking proves insufficient.
+- Any CI, pre-commit, or hook denial gate; any new judge/author/review
+  invocation path (judgement scope freeze).
 
 ## Alternatives Considered
 

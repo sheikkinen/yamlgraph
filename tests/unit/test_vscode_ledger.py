@@ -10,6 +10,7 @@ attribution, and the --month/--by-repo report.
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import sys
 from datetime import datetime
@@ -176,5 +177,18 @@ def test_cli_smoke_exits_zero(args):
         capture_output=True,
         text=True,
         timeout=120,
+    )
+    assert r.returncode == 0, r.stderr
+
+
+@pytest.mark.req("REQ-YG-626")
+def test_cli_tap_exits_zero_without_stores(tmp_path):
+    # a machine with no VS Code stores (CI): absent WS_STORAGE is empty, not fatal
+    r = subprocess.run(
+        [sys.executable, str(REPO_ROOT / "scripts/vscode/ledger.py"), "--tap"],
+        capture_output=True,
+        text=True,
+        timeout=120,
+        env={**os.environ, "HOME": str(tmp_path)},
     )
     assert r.returncode == 0, r.stderr
