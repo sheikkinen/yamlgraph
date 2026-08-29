@@ -13,7 +13,8 @@ That command exits non-zero against every version currently on PyPI.
 (FR-889 style — an equivalent committed record per the TEMPLATE note).
 **Prior art:** FR-901 and FR-902 are siblings filed in the same arc, not
 precedent — FR-902 is the blocked consumer that motivates this release and
-FR-901 needs only FR-768 manifests, already published. FR-187 (CI
+FR-901 (SMTP email tool) needs only FR-768 manifests, already published.
+FR-187 (CI
 dependency security scan) and FR-127 (conventional commit enforcement)
 match on `release`/`pypi` but govern CI gates that run *during* a release,
 not the decision to cut one; both remain in force and this FR changes
@@ -123,6 +124,8 @@ the current file value, not above the tag.
 - FR-892 corpus-census pipeline / injected adapters — the feature awaiting release
 - FR-768 tool manifests — already published in `v0.5.22`
 - FR-819 GitHub-native digest PoC repo — created the consumer repo
+- FR-901 SMTP email tool — sibling in the same arc; needs only FR-768
+  manifests, so it is **not** blocked by this release
 - FR-902 daily-digest refactor — the blocked consumer
 - `reference/release-checklist.md` — the procedure this FR follows
 - `pyproject.toml` `[tool.setuptools.packages.find] exclude` — the

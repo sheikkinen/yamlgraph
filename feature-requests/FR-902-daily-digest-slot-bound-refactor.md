@@ -16,7 +16,7 @@ and changes no graph.
 its "repo is the runtime, state store, and publication channel" premise is
 preserved, not overturned; email is added alongside the committed bulletin
 (see Out of Scope). FR-900 and FR-901 are siblings filed in the same arc:
-FR-900 blocks Phase 2, FR-901 supplies the Phase 1 node. FR-892
+FR-900 blocks Phase 2, FR-901 supplies the Phase 1 email tool. FR-892
 (corpus-census injected adapters) is the slot pattern Phase 2 copies
 verbatim — this FR adds no slot mechanism, only a second application of
 it. FR-768 supplies the manifest contract unchanged. No prior FR was
@@ -97,8 +97,8 @@ the bulletin *after* `invoke()` returns, so a send added anywhere has no
 defined relationship to the write. Move both into the graph:
 
 ```
-format_markdown ──▶ gate ──▶ write_bulletin ──▶ send_digest ──▶ END
-                      └────────────────────────────────────────▶ END   (empty bulletin)
+format_markdown ──▶ gate ──▶ write_bulletin ──▶ send_email ──▶ END
+                      └──────────────────────────────────▶ END   (empty bulletin)
 ```
 
 The artifact reaches disk **before** the network call —
@@ -115,9 +115,9 @@ The failure algebra this produces, without any new state machinery:
 
 | File | Action |
 |---|---|
-| `tools/smtp_send.py`, `tools/smtp_send.tool.yaml` | **New.** Per FR-901. |
+| `tools/smtp_email.py`, `tools/smtp_email.tool.yaml` | **New.** Per FR-901 — a general email tool, not digest-shaped. |
 | `tools/write_bulletin.py`, `tools/write_bulletin.tool.yaml` | **New.** Moves the file write and `update_readme_index()` out of `run_digest.py`; returns `{"path": str}`. |
-| `graph.yaml` | **Changed.** Manifest tool refs; `write_bulletin` + `send_digest` nodes; gate edge on empty `digest_markdown`; state keys `bulletin_path`, `sent`. |
+| `graph.yaml` | **Changed.** Manifest tool refs; `write_bulletin` + `send_email` nodes; gate edge on empty `digest_markdown`; state keys `bulletin_path`, `sent`. The subject line and body are assembled here — the email tool receives strings. |
 | `run_digest.py` | **Changed.** Shrinks to arg parsing, `invoke()`, summary print. `--dry-run` keeps working by not binding a recipient — not by a new guard flag. |
 | `.github/workflows/digest.yml` | **Changed.** Five `SMTP_*` secrets added to the run step `env:`. |
 | `README.md` | **Changed.** SMTP env contract documented. |
@@ -174,7 +174,7 @@ what the schema later becomes.
 ## Acceptance Criteria
 
 **Phase 1**
-- [ ] Graph declares `format_markdown → gate → write_bulletin → send_digest`;
+- [ ] Graph declares `format_markdown → gate → write_bulletin → send_email`;
       the gate edge routes an empty bulletin to END
 - [ ] A test proves the write precedes the send (ordering asserted as a
       transition sequence, not inferred from the terminal state)
@@ -228,7 +228,8 @@ what the schema later becomes.
 
 ## Related
 
-- FR-901 SMTP digest delivery tool — supplies the `send_digest` node (Phase 1)
+- FR-901 SMTP email tool — supplies the `send_email` node (Phase 1); it is
+  a general email tool, so this FR owns the subject and body assembly
 - FR-900 release tool slots to PyPI — blocks Phase 2
 - FR-819 GitHub-native digest PoC repo — created the repo being refactored
 - FR-892 corpus-census pipeline — the slot pattern Phase 2 copies

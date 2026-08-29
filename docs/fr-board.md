@@ -230,7 +230,7 @@
 | FR-887 | Proposed | yamlgraph |  | FR-887-forensics-evidence-timeline-graph.md |
 | FR-896 | Proposed | yamlgraph |  | FR-896-research-route-precedent-traceability.md |
 | FR-900 | Proposed | yamlgraph |  | FR-900-release-tool-slots-to-pypi.md |
-| FR-901 | Proposed | yamlgraph |  | FR-901-smtp-digest-delivery-tool.md |
+| FR-901 | Proposed | yamlgraph |  | FR-901-smtp-email-tool.md |
 | FR-902 | Proposed | yamlgraph |  | FR-902-daily-digest-slot-bound-refactor.md |
 | FR-078 | In Progress | yamlgraph |  | FR-078-relocate-project-tests.md |
 | FR-100 | In Progress | yamlgraph |  | FR-100-yamlgraph-development-pipeline-ebook.md |
