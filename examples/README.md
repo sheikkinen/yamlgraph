@@ -106,7 +106,6 @@ Standalone demos that teach a single YAMLGraph concept. Ordered by the learning 
 | [chatterbox_clone](demos/chatterbox_clone/) | `python` | Voice cloning with Chatterbox reference audio → WAV (FR-236) |
 | [interview](demos/interview/) | `interrupt` | Human-in-the-loop |
 | [subgraph](demos/subgraph/) | `subgraph` | Graph composition |
-| [mastra-integration](demos/mastra-integration/) | `llm` | Cross-runtime: Mastra (TypeScript) discovers typed MCP tools (FR-291) |
 | [code-analysis](demos/code-analysis/) | `tool`, `llm` | Code quality tools |
 | [compaction](demos/compaction/) | `llm`, `python` | Context compaction pattern with guard-gated summarization (FR-616) |
 | [data-files](demos/data-files/) | `llm` | External data loading |
@@ -190,7 +189,7 @@ Most examples can be run with the CLI:
 yamlgraph graph run examples/<name>/graph.yaml --full
 ```
 
-For TypeScript integrations, choose by coupling needs: use `demos/typescript-node/` (`graph run --json`) for direct subprocess request/response; use the MCP demo when you need protocol-based discovery and richer multi-agent interoperability.
+For TypeScript integrations, use `demos/typescript-node/`: `graph run --json` over a subprocess (`child_process.execFile`) for direct request/response.
 
 Or with specific variables:
 

@@ -128,6 +128,7 @@
 | FR-912 | Judged | yamlgraph |  | FR-912-retire-skill-export-surface.md |
 | FR-913 | Judged | yamlgraph |  | FR-913-retire-graph-bench-command.md |
 | FR-916 | Judged | yamlgraph |  | FR-916-ban-dry-run-phrase.md |
+| FR-915 | Judged | yamlgraph |  | FR-915-retire-mastra-integration-demo.md |
 | FR-094 | Approved | yamlgraph |  | FR-094-memory-node.md |
 | FR-095 | Approved | yamlgraph |  | FR-095-doc-staleness-monitor.md |
 | FR-096 | Approved | yamlgraph |  | FR-096-fr-template-demo-plan.md |
@@ -510,6 +511,7 @@ graph TD
     FR-912["FR-912 Judged"]
     FR-913["FR-913 Judged"]
     FR-916["FR-916 Judged"]
+    FR-915["FR-915 Judged"]
     FR-081 --> FR-082
     FR-731 --> FR-735
     FR-731 --> FR-736
