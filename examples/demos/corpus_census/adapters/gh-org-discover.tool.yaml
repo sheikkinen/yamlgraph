@@ -1,0 +1,6 @@
+name: gh-org-discover
+description: "FR-899 org repo census adapter: gh_org_discover"
+runtime:
+  type: python
+  path: corpus_adapters.py
+  function: gh_org_discover

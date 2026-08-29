@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Judged — APPROVED WITH REVISIONS (revisions folded 2026-08-28); see [FR-899-org-repo-census-azure.judgement.md](FR-899-org-repo-census-azure.judgement.md)
+**Status:** In Progress — enforced 2026-08-28, PR pending; see [FR-899-org-repo-census-azure.judgement.md](FR-899-org-repo-census-azure.judgement.md)
 **Effort:** 1.5 days
 **Requested:** 2026-08-28
 **First consumer / first event:** operator running a customer-organization repository inventory (repo purpose / persons / activity + one corp-level brief) on the corp-approved Azure endpoint, at the next corp platform-audit moment
@@ -194,18 +194,18 @@ yamlgraph graph run examples/demos/repo_census/graph.yaml \
 
 ## Acceptance Criteria (frozen by judgement)
 
-- [ ] AC-01: The FR carries an in-body research record satisfying the FR-890 judge gate: five solution classes, precedent/evidence line per class, preserved disagreement, and an explicit `is_this_a_graph` answer (§ Research Record).
-- [ ] AC-02: `gh_org_discover` and `gh_repo_extract` implemented behind `.tool.yaml` manifests using fixed `gh` argument vectors; tests cover source parsing, max-repo bound, README/content bound, contributor bound, missing auth or failing `gh`, empty org, and malformed item refs.
-- [ ] AC-03: A repo-census preflight node runs before discovery and fails loudly when `AZURE_AI_ENDPOINT`, `AZURE_AI_API_KEY`, or `AZURE_MODEL` is missing; tests assert discovery, extraction, and LLM execution are not called on preflight failure.
-- [ ] AC-04: `examples/demos/repo_census/graph.yaml` and prompts authored via `scripts/author.sh`; `tmp/draft-authoring-report.md` records graph lint and smoke evidence.
-- [ ] AC-05: Every repo-census LLM node explicitly carries `provider: azure`, model from `AZURE_MODEL`, and no `fallback_provider`; a configuration test fails if any LLM node resolves to a non-Azure provider.
-- [ ] AC-06: The map prompt asks only for one-sentence repository purpose from the evidence bundle; a prompt/input test proves the LLM is not instructed to compute activity, persons, counts, percentages, or ownership.
-- [ ] AC-07: `reduce_repo_ledger` is LLM-free and validates the `RepoLedgerRow` Pydantic schema (`name`, `purpose`, `persons`, `activity`, `evidence_citation`, `model`, `prompt_version`, `source_index`); tests reject missing findings, duplicate findings, malformed activity, missing persons, empty purpose, and dangling citations.
-- [ ] AC-08: `activity` computed deterministically (`archived` / `pushed_at` within window → `active` / else `dormant`); boundary-date tests cover all three outcomes.
-- [ ] AC-09: `persons` copied verbatim from the top contributor API data, bounded to `MAX_PERSONS`; tests prove no LLM output can add, remove, or reorder persons.
-- [ ] AC-10: Corp brief rendered through the existing FR-895 citation boundary over the repo ledger; tests cover accepted citations and rejected fabricated repo citations.
-- [ ] AC-11: Committed demo uses only the pinned public-safe org; a mechanical witness test audits `demo-output.log`, fixtures, docs invocation, and proofs for the demo source string and output paths; human PR review recorded in addition.
-- [ ] AC-12: Changelog fragment, valid REQ/CAP wiring as needed, `@pytest.mark.req(...)` on new tests, FR status updates, and diary reflection included.
+- [x] AC-01: The FR carries an in-body research record satisfying the FR-890 judge gate: five solution classes, precedent/evidence line per class, preserved disagreement, and an explicit `is_this_a_graph` answer (§ Research Record).
+- [x] AC-02: `gh_org_discover` and `gh_repo_extract` implemented behind `.tool.yaml` manifests using fixed `gh` argument vectors; tests cover source parsing, max-repo bound, README/content bound, contributor bound, missing auth or failing `gh`, empty org, and malformed item refs.
+- [x] AC-03: A repo-census preflight node runs before discovery and fails loudly when `AZURE_AI_ENDPOINT`, `AZURE_AI_API_KEY`, or `AZURE_MODEL` is missing; tests assert discovery, extraction, and LLM execution are not called on preflight failure.
+- [x] AC-04: `examples/demos/repo_census/graph.yaml` and prompts authored via `scripts/author.sh`; `tmp/draft-authoring-report.md` records graph lint and smoke evidence.
+- [x] AC-05: Every repo-census LLM node explicitly carries `provider: azure`, model from `AZURE_MODEL`, and no `fallback_provider`; a configuration test fails if any LLM node resolves to a non-Azure provider.
+- [x] AC-06: The map prompt asks only for one-sentence repository purpose from the evidence bundle; a prompt/input test proves the LLM is not instructed to compute activity, persons, counts, percentages, or ownership.
+- [x] AC-07: `reduce_repo_ledger` is LLM-free and validates the `RepoLedgerRow` Pydantic schema (`name`, `purpose`, `persons`, `activity`, `evidence_citation`, `model`, `prompt_version`, `source_index`); tests reject missing findings, duplicate findings, malformed activity, missing persons, empty purpose, and dangling citations.
+- [x] AC-08: `activity` computed deterministically (`archived` / `pushed_at` within window → `active` / else `dormant`); boundary-date tests cover all three outcomes.
+- [x] AC-09: `persons` copied verbatim from the top contributor API data, bounded to `MAX_PERSONS`; tests prove no LLM output can add, remove, or reorder persons.
+- [x] AC-10: Corp brief rendered through the existing FR-895 citation boundary over the repo ledger; tests cover accepted citations and rejected fabricated repo citations.
+- [x] AC-11: Committed demo uses only the pinned public-safe org; a mechanical witness test audits `demo-output.log`, fixtures, docs invocation, and proofs for the demo source string and output paths; human PR review recorded in addition.
+- [x] AC-12: Changelog fragment, valid REQ/CAP wiring as needed, `@pytest.mark.req(...)` on new tests, FR status updates, and diary reflection included.
 
 ## Research Record: Solution Classes (R-1)
 
@@ -237,4 +237,5 @@ and all outputs stay corp-side (FR-874 boundary).
 
 ## Implementation Status
 
-- 2026-08-28: Judged APPROVED WITH REVISIONS (gpt-5.5 via scripts/judge.sh sole route). Revisions R-1..R-6 folded same day: research record with 5 solution classes + preserved disagreement (R-1); `reduce_repo_ledger` + `RepoLedgerRow` contract frozen (R-2); explicit preflight node before discovery — original llm_factory fail-fast claim was FALSE, provider construction happens after discovery (R-3); mechanical gh adapter contract with bounds/failure semantics (R-4); pinned public demo org + mechanical locality audit test (R-5); authoring scope freeze + not-authorized list (R-6). Enforcement not started.
+- 2026-08-28: Judged APPROVED WITH REVISIONS (gpt-5.5 via scripts/judge.sh sole route). Revisions R-1..R-6 folded same day: research record with 5 solution classes + preserved disagreement (R-1); `reduce_repo_ledger` + `RepoLedgerRow` contract frozen (R-2); explicit preflight node before discovery — original llm_factory fail-fast claim was FALSE, provider construction happens after discovery (R-3); mechanical gh adapter contract with bounds/failure semantics (R-4); pinned public demo org + mechanical locality audit test (R-5); authoring scope freeze + not-authorized list (R-6).
+- 2026-08-28: Enforced in worktree feat/fr-899. RED commit (37 witnesses, CAP-251/REQ-YG-626) then GREEN. Adapters in `corpus_adapters.py` + manifests; `examples/demos/repo_census/tools.py` (preflight, RepoLedgerRow, LLM-free reducer, FR-895 brief tail reuse). Graph + prompts + README authored via `scripts/author.sh` sole route (lint passed; real sheikkinen:2 smoke passed; one graph-only repair recorded: `module:` binding instead of `path:` to fix dynamic-loader Literal forward-ref). Demo run sheikkinen:5, brief ACCEPTED by citation boundary, committed as demo-output.log. 37/37 witnesses green. Deviations: none — scope as frozen.

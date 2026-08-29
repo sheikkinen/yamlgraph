@@ -1789,13 +1789,13 @@ The ID ranges are:
 - **Penance**: sibling-spike reuse; the path bootstrap must precede the import (CONF-392 idiom).
 
 ### CONF-422
-- **File**: [examples/demos/corpus_census/adapters/corpus_adapters.py](../examples/demos/corpus_census/adapters/corpus_adapters.py#L59)
+- **File**: [examples/demos/corpus_census/adapters/corpus_adapters.py](../examples/demos/corpus_census/adapters/corpus_adapters.py#L61)
 - **Code**: S603
 - **Sin**: `subprocess.run` invoking git for the FR-892 git-timeline census adapter.
 - **Penance**: Fixed argv list (`git -C <repo> ...`), no shell, 30s timeout, check=True; repo path comes from the operator's --var input, never from LLM output.
 
 ### CONF-423
-- **File**: [examples/demos/corpus_census/adapters/corpus_adapters.py](../examples/demos/corpus_census/adapters/corpus_adapters.py#L60)
+- **File**: [examples/demos/corpus_census/adapters/corpus_adapters.py](../examples/demos/corpus_census/adapters/corpus_adapters.py#L62)
 - **Code**: S607
 - **Sin**: `git` invoked by partial path in the FR-892 census adapter.
 - **Penance**: git is PATH-resolved by design (developer tooling); same pattern as CONF-421.
@@ -1835,3 +1835,15 @@ The ID ranges are:
 - **Code**: E402
 - **Sin**: `from ledger import ...` after a `sys.path.insert` — module-level import not at top.
 - **Penance**: script-adjacent module reusing the sibling ledger's price machinery (judged "reuse, don't fork"); path bootstrap must precede the import (CONF-392/393/394/396 idiom).
+
+### CONF-430
+- **File**: [examples/demos/corpus_census/adapters/corpus_adapters.py](../examples/demos/corpus_census/adapters/corpus_adapters.py#L101)
+- **Code**: S603
+- **Sin**: `subprocess.run` invoking gh for the FR-899 org repo census adapters.
+- **Penance**: Fixed argv list (`gh repo list`/`gh api`), no shell, 60s timeout, check=True; org and item refs come from operator --var input and the gh API listing, never from LLM output.
+
+### CONF-431
+- **File**: [examples/demos/corpus_census/adapters/corpus_adapters.py](../examples/demos/corpus_census/adapters/corpus_adapters.py#L102)
+- **Code**: S607
+- **Sin**: `gh` invoked by partial path in the FR-899 census adapters.
+- **Penance**: gh is PATH-resolved by design (developer tooling); same pattern as CONF-423/426.

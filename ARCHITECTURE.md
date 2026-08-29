@@ -568,6 +568,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 250 | CAP-250 Corpus-census synthesize tail | `examples/demos/corpus_census` | REQ-YG-625 |
 | 251 | CAP-251 Copilot cost ledger — priced attribution | `scripts/vscode` | REQ-YG-626 |
 | 252 | CAP-252 Shared SMTP Email Tool | `examples` | REQ-YG-627 |
+| 253 | CAP-253 Org repository census with pinned-Azure delegation | `examples/demos/repo_census`, `examples/demos/corpus_census` | REQ-YG-628 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -3091,6 +3092,16 @@ FR-907: a reusable FR-768 python-runtime tool manifest that sends email over SMT
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-627 | examples/shared/smtp_email.tool.yaml validates as a python-runtime ToolManifest and examples/shared/smtp_email.py exposes send_email with subject/text/html/to/cc/attachments plus keyword-only smtp_factory/smtp_ssl_factory test seams; every missing SMTP_* key is reported in one error before any socket is opened; a missing recipient and a missing attachment path both raise before connecting; SMTP_PORT 465 selects implicit TLS and any other port selects STARTTLS; html=None yields a single text part while html yields multipart/alternative with a non-empty text part; to and cc accept single or comma-separated addresses; CR or LF in subject, to, or cc is refused; and SMTP_PASSWORD reaches neither log records nor exception strings, with the raw smtplib exception unchained. | `examples` |
+
+### 253. CAP-253 Org repository census with pinned-Azure delegation
+
+Repository-census invocation of the corpus-census pipeline: gh-backed discover/extract adapters enumerate an organization's repositories and build bounded per-repo evidence bundles; an Azure preflight node fails loudly before any discovery when the pinned endpoint configuration is missing; every LLM node pins provider azure; the LLM judges only one-sentence repository purpose while activity and persons are computed deterministically in an LLM-free fail-closed reducer; the corp brief is rendered through the existing citation boundary; committed demo artifacts are mechanically audited for the pinned public-safe org.
+
+**Feature Request:** FR-899
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-628 | Org repo census is compliance-pinned and fail-closed: Azure preflight runs before gh discovery; gh adapters use fixed argument vectors with mechanical bounds and loud failures; every LLM node carries provider azure with no fallback; activity and persons are code-owned (never LLM-judged); the RepoLedgerRow reducer rejects missing, duplicate, empty-purpose, malformed-activity, and dangling-citation findings; committed demo artifacts carry only the pinned public-safe org | `examples/demos/repo_census`, `examples/demos/corpus_census` |
 
 <!-- END GENERATED CAPABILITIES -->
 

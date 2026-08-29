@@ -1,0 +1,158 @@
+version: "1.0"
+name: repo-census
+description: >
+  GitHub organization repository census with Azure-pinned LLM calls. Discovery
+  and extraction are bound at invocation time through FR-892 tool slots; the
+  local reducer owns mechanical ledger fields and output rendering.
+
+prompts_relative: true
+prompts_dir: prompts
+
+defaults:
+  provider: azure
+  temperature: 0.0
+
+config:
+  max_map_items: 200
+
+state:
+  source: str
+  rubric: str
+  output_path: str
+  brief_path: str
+  brief_rubric: str
+  activity_window_days: str
+  preflight_ok: bool
+  items:
+    type: list
+  contents:
+    type: list
+    reducer: sorted_add
+  findings:
+    type: list
+    reducer: sorted_add
+  ledger: dict
+  brief_input:
+    type: list
+  claims: dict
+  brief: dict
+
+tools:
+  preflight:
+    type: python
+    module: examples.demos.repo_census.tools
+    function: preflight
+    description: "Fail before gh discovery unless Azure endpoint, key, and deployment are configured."
+  discover:
+    slot: true
+    contract:
+      args: [source]
+  extract:
+    slot: true
+    contract:
+      args: [item]
+  reduce_ledger:
+    type: python
+    module: examples.demos.repo_census.tools
+    function: reduce_repo_ledger
+    description: "Validate repository purpose findings and write markdown plus JSONL ledger artifacts."
+  prepare_brief_input:
+    type: python
+    module: examples.demos.repo_census.tools
+    function: prepare_brief_input
+    description: "Load the reduced repo ledger JSONL and build bounded synthesis input."
+  render_brief:
+    type: python
+    module: examples.demos.repo_census.tools
+    function: render_brief
+    description: "Validate synthesized citations and render the repository portfolio brief artifact."
+
+nodes:
+  preflight:
+    type: python
+    tool: preflight
+    state_key: preflight_ok
+    on_error: fail
+
+  discover:
+    type: python
+    tool: discover
+    variables:
+      source: "{state.source}"
+    state_key: items
+    on_error: fail
+
+  extract_items:
+    type: map
+    over: "{state.items}"
+    as: item
+    max_items: 200
+    node:
+      type: python
+      tool: extract
+      state_key: content
+      on_error: fail
+    collect: contents
+
+  judge_items:
+    type: map
+    over: "{state.contents}"
+    as: judged_content
+    max_items: 200
+    node:
+      type: llm
+      prompt: judge_repo_purpose
+      provider: azure
+      temperature: 0
+      state_key: finding
+      on_error: skip
+      variables:
+        rubric: "{state.rubric}"
+        content: "{state.judged_content.value}"
+        source_index: "{state.judged_content._map_index}"
+    collect: findings
+
+  reduce_ledger:
+    type: python
+    tool: reduce_ledger
+    state_key: ledger
+
+  prepare_brief_input:
+    type: python
+    tool: prepare_brief_input
+    state_key: brief_input
+
+  synthesize:
+    type: llm
+    prompt: synthesize_repo_brief
+    provider: azure
+    temperature: 0
+    state_key: claims
+    variables:
+      rubric: "{state.brief_rubric}"
+      rows: "{state.brief_input}"
+
+  render_brief:
+    type: python
+    tool: render_brief
+    state_key: brief
+
+edges:
+  - from: START
+    to: preflight
+  - from: preflight
+    to: discover
+  - from: discover
+    to: extract_items
+  - from: extract_items
+    to: judge_items
+  - from: judge_items
+    to: reduce_ledger
+  - from: reduce_ledger
+    to: prepare_brief_input
+  - from: prepare_brief_input
+    to: synthesize
+  - from: synthesize
+    to: render_brief
+  - from: render_brief
+    to: END
