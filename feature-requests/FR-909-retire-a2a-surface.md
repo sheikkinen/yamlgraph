@@ -183,5 +183,10 @@ Revised per judgement (R-2 replaced the impossible zero-A2A-in-tests grep):
 `req_coverage.py --strict`, `validate_capabilities.py`,
 `validate_id_registry.py`, `check_changelog_req.py`,
 `dependency_rationale.py --strict`, `direct_import_scan.py --strict`, and
-`lint-imports` all pass. **C-5 stands: the CI-workflow and constraints
-edits need human review before merge.**
+`lint-imports` all pass.
+
+**C-5 discharged (2026-08-29):** the operator reviewed and approved the
+CI-workflow (`.github/workflows/workflow.yml`, both install commands) and
+dependency-constraint (`constraints/dev-py312.txt`, ten a2a-attributable
+pins removed by two-environment diff) edits. All GATE conditions C-1–C-7
+are satisfied; the PR is unblocked for merge.
