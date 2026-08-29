@@ -236,6 +236,7 @@
 | FR-887 | Proposed | yamlgraph |  | FR-887-forensics-evidence-timeline-graph.md |
 | FR-904 | Proposed | yamlgraph |  | FR-904-slot-bound-digest-collection.md |
 | FR-905 | Proposed | yamlgraph |  | FR-905-ranked-story-boundary-validation.md |
+| FR-916 | Proposed | yamlgraph |  | FR-916-ban-dry-run-phrase.md |
 | FR-078 | In Progress | yamlgraph |  | FR-078-relocate-project-tests.md |
 | FR-100 | In Progress | yamlgraph |  | FR-100-yamlgraph-development-pipeline-ebook.md |
 | FR-169 | In Progress | yamlgraph |  | FR-169-enforce-reflexion-loop.md |
@@ -508,6 +509,7 @@ graph TD
     FR-910["FR-910 Judged"]
     FR-912["FR-912 Judged"]
     FR-913["FR-913 Judged"]
+    FR-916["FR-916 Proposed"]
     FR-081 --> FR-082
     FR-731 --> FR-735
     FR-731 --> FR-736
