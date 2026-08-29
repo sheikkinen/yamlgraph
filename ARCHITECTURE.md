@@ -567,6 +567,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 249 | CAP-249 Invocation-time tool-slot binding | `tools/tool_slots`, `compile/graph_loader` | REQ-YG-624 |
 | 250 | CAP-250 Corpus-census synthesize tail | `examples/demos/corpus_census` | REQ-YG-625 |
 | 251 | CAP-251 Copilot cost ledger — priced attribution | `scripts/vscode` | REQ-YG-626 |
+| 252 | CAP-252 Shared SMTP Email Tool | `examples` | REQ-YG-627 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -3080,6 +3081,16 @@ The scripts/vscode/ledger.py cost estimator prices prompt tokens with the real m
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-626 | Cost estimation reads cache_read_price and cache_write_price from the price sheet (never the nonexistent cache_price key); the best bound charges fresh tokens input+cache-write and cached tokens cache-read; requests carry workspace/repo attribution; --month/--by-repo prints a repo-by-model cost table with totals; CLI --help/--tap remain green | `scripts/vscode` |
+
+### 252. CAP-252 Shared SMTP Email Tool
+
+FR-901: a reusable FR-768 python-runtime tool manifest that sends email over SMTP for any graph that has produced text a human should receive. The tool is transport only — it accepts already-rendered strings and has no opinion about what it carries, so digests, audit findings, review verdicts, and pipeline failure notices share one delivery primitive. Replaces the vendor-bound Resend node in examples/daily_digest, whose module-level API-key read made a late-set key silently unauthenticated. Configuration is validated before any socket is opened, credentials are read at call time, header injection is refused, and every failure raises rather than returning a success-shaped result.
+
+**Feature Request:** FR-901
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-627 | examples/shared/smtp_email.tool.yaml validates as a python-runtime ToolManifest and examples/shared/smtp_email.py exposes send_email with subject/text/html/to/cc/attachments plus keyword-only smtp_factory/smtp_ssl_factory test seams; every missing SMTP_* key is reported in one error before any socket is opened; a missing recipient and a missing attachment path both raise before connecting; SMTP_PORT 465 selects implicit TLS and any other port selects STARTTLS; html=None yields a single text part while html yields multipart/alternative with a non-empty text part; to and cc accept single or comma-separated addresses; CR or LF in subject, to, or cc is refused; and SMTP_PASSWORD reaches neither log records nor exception strings, with the raw smtplib exception unchained. | `examples` |
 
 <!-- END GENERATED CAPABILITIES -->
 

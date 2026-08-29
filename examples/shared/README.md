@@ -154,8 +154,66 @@ file, missing poppler binaries, nonzero `pdfinfo`/`pdftotext` exit, and
 unparseable page count all raise `ValueError` naming the condition —
 there is no fallback-to-all-pages.
 
-### `toolbelt/` - Shared Agent Toolbelt (FR-777)
+### `smtp_email.py` - Email Delivery (FR-901)
 
+Sends email over SMTP. Transport only — it accepts already-rendered
+strings and has no opinion about what it carries, so digests, audit
+findings, review verdicts, and pipeline failure notices share one
+delivery primitive.
+
+```python
+from examples.shared.smtp_email import send_email
+
+send_email(
+    subject="Daily Tech Digest — 2026-08-29",
+    text=bulletin_markdown,          # always present
+    html=bulletin_html,              # optional; adds multipart/alternative
+    attachments=["digests/2026-08-29.md"],
+)
+```
+
+```yaml
+# In a graph — via manifest (FR-768)
+tools:
+  send_email:
+    manifest: ../../shared/smtp_email.tool.yaml
+
+nodes:
+  notify:
+    type: tool_call
+    tool: send_email
+    args:
+      subject: "Daily Tech Digest — {state.today}"
+      text: "{state.digest_markdown}"
+    state_key: sent
+    on_error: fail
+```
+
+| Env var | Required | Meaning |
+|---------|----------|---------|
+| `SMTP_SERVER` | yes | hostname |
+| `SMTP_PORT` | yes | `465` → implicit TLS; anything else → STARTTLS |
+| `SMTP_USER` | yes | login, and the default `From:` |
+| `SMTP_PASSWORD` | yes | login secret |
+| `SMTP_FROM` | no | overrides `From:` when it differs from the login |
+| `SMTP_TO` | when `to` is omitted | default recipient |
+
+First consumer: `yamlgraph-daily-digest` (FR-902 delivery child).
+
+**Failure modes:** every missing `SMTP_*` key is reported in one
+`SmtpSendError` *before* a socket opens; a missing recipient and a missing
+attachment path both raise before connecting; CR/LF in `subject`, `to`, or
+`cc` is refused as header injection; send failures raise. There is no
+success-shaped return on any path — an unattended caller cannot report
+green while delivering nothing. `SMTP_PASSWORD` never reaches a log record
+or an exception string, and the raw `smtplib` exception is deliberately
+not chained, because `SMTPAuthenticationError` can echo the credential
+back in its server response.
+
+**Boundary:** the tool does not render, template, or format. Markdown→HTML
+and subject construction belong to the caller.
+
+### `toolbelt/` - Shared Agent Toolbelt (FR-777)
 Tool manifests (FR-768) for the read-and-search tools every repo-exploring
 agent needs. The toolbelt holds shared agent tools of any manifest runtime
 type — the first four are shell-runtime:
