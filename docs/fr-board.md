@@ -235,6 +235,7 @@
 | FR-904 | Proposed | yamlgraph |  | FR-904-slot-bound-digest-collection.md |
 | FR-905 | Proposed | yamlgraph |  | FR-905-ranked-story-boundary-validation.md |
 | FR-906 | Proposed | yamlgraph |  | FR-906-release-tool-slots-to-pypi.md |
+| FR-914 | Proposed | yamlgraph |  | FR-914-retire-discovery-module.md |
 | FR-078 | In Progress | yamlgraph |  | FR-078-relocate-project-tests.md |
 | FR-100 | In Progress | yamlgraph |  | FR-100-yamlgraph-development-pipeline-ebook.md |
 | FR-169 | In Progress | yamlgraph |  | FR-169-enforce-reflexion-loop.md |
@@ -506,6 +507,7 @@ graph TD
     FR-908["FR-908 PARSE-FAILURE"]
     FR-909["FR-909 Judged"]
     FR-910["FR-910 Judged"]
+    FR-914["FR-914 Proposed"]
     FR-081 --> FR-082
     FR-731 --> FR-735
     FR-731 --> FR-736
