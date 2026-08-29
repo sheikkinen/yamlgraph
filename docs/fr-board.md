@@ -109,6 +109,7 @@
 | FR-824 | Judged | yamlgraph |  | FR-824-hva-weekly-bulletin-new-repo.md |
 | FR-837 | Judged | yamlgraph |  | FR-837-gitclaw-oulu-source-health-assembly.md |
 | FR-838 | Judged | yamlgraph |  | FR-838-gitclaw-oulu-assembly-recovery.md |
+| FR-858 | Judged | yamlgraph |  | FR-858-retire-committed-fr-board.md |
 | FR-865 | Judged | yamlgraph |  | FR-865-ramp-installer.md |
 | FR-866 | Judged | yamlgraph |  | FR-866-ramp-tailoring-graphs.md |
 | FR-867 | Judged | yamlgraph |  | FR-867-ramp-deviant-daily.md |
@@ -230,7 +231,6 @@
 | FR-855 | Proposed | yamlgraph |  | FR-855-generated-pattern-index.md |
 | FR-856 | Proposed | yamlgraph |  | FR-856-judge-claim-verification-stage.md |
 | FR-857 | Proposed | yamlgraph |  | FR-857-corpus-analysis-fanout-graph.md |
-| FR-858 | Proposed | yamlgraph |  | FR-858-retire-committed-fr-board.md |
 | FR-859 | Proposed | yamlgraph |  | FR-859-delete-orphaned-sim117-phantom-req-tag.md |
 | FR-861 | Proposed | yamlgraph |  | FR-861-shared-repo-write-discipline.md |
 | FR-879 | Proposed | yamlgraph |  | FR-879-image-pipeline-v2-critic-filter.md |
@@ -477,7 +477,7 @@ graph TD
     FR-855["FR-855 Proposed"]
     FR-856["FR-856 Proposed"]
     FR-857["FR-857 Proposed"]
-    FR-858["FR-858 Proposed"]
+    FR-858["FR-858 Judged"]
     FR-859["FR-859 Proposed"]
     FR-861["FR-861 Proposed"]
     FR-862["FR-862 PARSE-FAILURE"]
