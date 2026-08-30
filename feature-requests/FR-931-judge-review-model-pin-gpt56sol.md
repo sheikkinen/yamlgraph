@@ -172,9 +172,10 @@ judge/review pin has real run history.
 - [ ] AC-08: `CAP-211-sole-route-judge-review.yaml` gains `REQ-YG-632`
       naming both adapter graphs and the new test module;
       `python scripts/req_coverage.py --strict` passes.
-- [ ] AC-09: changelog fragment in `changelog/unreleased/` with
-      `type: chore` (or `feat`), `scope: judge`, `req: REQ-YG-632`,
-      recording the pin change and its price delta.
+- [ ] AC-09: one changelog fragment under `changelog/unreleased/` with
+      valid front matter `type: feat`, `scope: judge`, `req: REQ-YG-632`,
+      recording the pin change and its price delta. (R-1: `chore` is not
+      a type `scripts/aggregate_changelog.py` accepts.)
 - [ ] AC-10: the authoring adapter's `gpt-5.5` pin is unchanged
       (`git diff` shows no modification to
       `.github/skills/graph-authoring/adapters/graph.yaml`).
@@ -247,9 +248,22 @@ judgements. Rollback is one line per adapter plus one line in the test
   cell (`</anionale> </invoke>`) — model emission artifact, left
   unedited to preserve the promotion hash.
 
-## Judgement (pending)
+## Judgement (2026-08-30)
 
-Not yet judged. Route: `scripts/judge.sh
-feature-requests/FR-931-judge-review-model-pin-gpt56sol.md` — which will
-run under the OLD pin (`gpt-5.5`), as it must: the authority to change
-the pin is granted by the incumbent.
+**Verdict:** APPROVED WITH REVISIONS. Full artifact:
+[FR-931-judge-review-model-pin-gpt56sol.judgement.md](FR-931-judge-review-model-pin-gpt56sol.judgement.md)
+(sole route `scripts/judge.sh`, model `gpt-5.5` — the incumbent pin
+grants the authority to replace itself; session
+`9fd486eb-9300-4d1e-b62b-bb189d4d0935`).
+
+- **R-1 folded** (this revision): AC-09 said `type: chore (or feat)`;
+  `scripts/aggregate_changelog.py` accepts only `feat`, `fix`, and
+  `removal`, so a `chore` fragment would satisfy the FR text while
+  failing aggregation. AC-09 now says `type: feat`.
+- **C-1 (human review GATE)** satisfied by the operator's explicit
+  instruction to proceed after reading the judgement, 2026-08-30.
+- C-2–C-5 carried into enforcement: contracts not weakened on route
+  failure, authoring adapter untouched, FR-928 invariant restated rather
+  than contradicted.
+
+Scope frozen to D-1…D-8 as listed in the judgement.
