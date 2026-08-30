@@ -194,3 +194,54 @@ def test_escape_hatch_does_not_bypass_coauthored(laned):
         env_extra={"FR902_ALLOW_OUTSIDE": "1"},
     )
     assert decision_of(out) == "deny"
+
+
+# ── FR-889 §4c: cwd-proxy heuristics retired (payload cwd ≠ terminal cwd)
+
+
+def test_git_commit_no_longer_denied_by_cwd_proxy(laned):
+    # witnessed false-positive class: in-lane `git commit` denied because
+    # the hook payload cwd is always the workspace root, never the
+    # terminal's actual cwd (FR-925 enforce session, 4 escapes)
+    _, out = run_guard(
+        terminal_payload("git commit -m x", laned["main"]),
+        log_dir=laned["log_dir"],
+        guard_root=laned["main"],
+    )
+    assert decision_of(out) == "approve"
+
+
+def test_interpreter_without_explicit_target_allowed(laned):
+    _, out = run_guard(
+        terminal_payload("python3 -c 'print(42)'", laned["main"]),
+        log_dir=laned["log_dir"],
+        guard_root=laned["main"],
+    )
+    assert decision_of(out) == "approve"
+
+
+def test_escape_env_prefix_after_cd_recognized(laned):
+    # witnessed 2026-08-30 (session 6feda07b): escape genuinely set but
+    # denied by the position-0 regex; tokenizer must find it per-segment
+    _, out = run_guard(
+        terminal_payload(
+            "cd /tmp && FR902_ALLOW_OUTSIDE=1 touch docs/x.md",
+            laned["main"],
+        ),
+        log_dir=laned["log_dir"],
+        guard_root=laned["main"],
+    )
+    assert decision_of(out) == "approve"
+    assert any(
+        e.get("reason") == "fr902-lane-override" for e in read_audit(laned["log_dir"])
+    )
+
+
+def test_explicit_out_of_lane_write_still_denied(laned):
+    # the retirement is heuristics-only: resolvable targets stay guarded
+    _, out = run_guard(
+        terminal_payload("touch docs/steal.md", laned["main"]),
+        log_dir=laned["log_dir"],
+        guard_root=laned["main"],
+    )
+    assert decision_of(out) == "deny"

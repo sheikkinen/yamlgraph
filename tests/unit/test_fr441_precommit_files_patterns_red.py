@@ -21,7 +21,7 @@ TARGET_HOOK_FILES_PATTERNS = {
     "noqa-confession": r"(\.py$|^docs/confessions\.md$|^scripts/noqa_coverage\.py$)",
     "inline-llm-check": r"(\.py$|^scripts/lint_inline_llm\.py$)",
     "radon-complexity": r"\.py$",
-    "file-size-gate": r"\.py$",
+    "file-size-gate": r"\.(py|sh)$",  # FR-889 AC-11: widened to shell
     "forbid-terms": r"\.py$",
     "jscpd-dup": r"\.py$",
     "import-linter": r"(\.py$|^\.importlinter$)",

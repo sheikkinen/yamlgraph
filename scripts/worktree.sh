@@ -8,6 +8,7 @@
 #   gc [--prune] [--days <n>]       (FR-902: lossless session-lane GC)
 #   rm <name|--dir <wt_dir>> [--note "<text>"]
 #   list
+#   lock-main | unlock-main | sync   (FR-889: OS-enforced main-write lock)
 
 set -euo pipefail
 
@@ -20,6 +21,9 @@ Usage:
   scripts/worktree.sh gc [--prune] [--days <n>]
   scripts/worktree.sh rm <name|--dir <wt_dir>> [--note "<text>"]
   scripts/worktree.sh list
+  scripts/worktree.sh lock-main      (chmod -R u-w governed roots on the main checkout)
+  scripts/worktree.sh unlock-main    (audited relief valve; relock when done)
+  scripts/worktree.sh sync           (unlock → git pull --ff-only → relock, always)
 EOF
 }
 
@@ -496,6 +500,69 @@ safe_remove_worktree() {
     log_info "Safe removal complete"
 }
 
+# ── FR-889: OS-enforced main-write lock ─────────────────────────────
+# The write barrier is the kernel (owner write bit), not command parsing.
+
+FR889_GOVERNED_ROOTS=(yamlgraph tests scripts capabilities .github/hooks)
+FR889_CARVEOUTS=(.github/hooks/logs .github/hooks/state)
+
+main_checkout_dir() {
+    local common
+    common=$(git rev-parse --path-format=absolute --git-common-dir)
+    dirname "$common"
+}
+
+write_lock_marker() {
+    local main_dir="$1"
+    local state="$2"
+    local marker="$main_dir/.github/hooks/state/main-lock.json"
+    mkdir -p "$(dirname "$marker")"
+    printf '{"state": "%s", "ts": "%s", "by": "worktree.sh"}\n' \
+        "$state" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" >"$marker"
+}
+
+lock_main() {
+    local main_dir root carve
+    main_dir=$(main_checkout_dir)
+    for carve in "${FR889_CARVEOUTS[@]}"; do
+        mkdir -p "$main_dir/$carve"
+    done
+    for root in "${FR889_GOVERNED_ROOTS[@]}"; do
+        [[ -e "$main_dir/$root" ]] && chmod -R u-w "$main_dir/$root"
+    done
+    for carve in "${FR889_CARVEOUTS[@]}"; do
+        chmod -R u+w "$main_dir/$carve"
+    done
+    write_lock_marker "$main_dir" "locked"
+    log_info "main checkout locked: ${FR889_GOVERNED_ROOTS[*]}"
+}
+
+unlock_main() {
+    local main_dir root audit
+    main_dir=$(main_checkout_dir)
+    for root in "${FR889_GOVERNED_ROOTS[@]}"; do
+        [[ -e "$main_dir/$root" ]] && chmod -R u+w "$main_dir/$root"
+    done
+    write_lock_marker "$main_dir" "unlocked"
+    audit="$main_dir/.github/hooks/logs/audit.jsonl"
+    mkdir -p "$(dirname "$audit")"
+    printf '{"ts": "%s", "decision": "allow", "reason": "fr889-main-unlock", "by": "worktree.sh"}\n' \
+        "$(date -u +%Y-%m-%dT%H:%M:%SZ)" >>"$audit"
+    log_warn "main checkout UNLOCKED — relock with: scripts/worktree.sh lock-main"
+}
+
+sync_main() {
+    local main_dir rc=0
+    main_dir=$(main_checkout_dir)
+    unlock_main
+    git -C "$main_dir" pull --ff-only || rc=$?
+    lock_main
+    if [[ $rc -ne 0 ]]; then
+        log_error "pull failed (rc=$rc); main relocked"
+    fi
+    return $rc
+}
+
 main() {
     local verb
     verb="${1:-}"
@@ -526,6 +593,15 @@ main() {
             ;;
         rm-safe)
             safe_remove_worktree "$@"
+            ;;
+        lock-main)
+            lock_main
+            ;;
+        unlock-main)
+            unlock_main
+            ;;
+        sync)
+            sync_main
             ;;
         -h|--help|help)
             usage

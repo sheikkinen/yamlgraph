@@ -1580,13 +1580,13 @@ These are not `# noqa` suppressions — they are documented deviations from proc
 - **Penance**: `path` comes from pre-commit's staged-filename list (list-form argv, no shell); worst case is a git error for a nonexistent blob, handled by returncode check.
 
 ### CONF-390
-- **File**: [scripts/vscode/now.py](../scripts/vscode/now.py#L35)
+- **File**: [scripts/vscode/now.py](../scripts/vscode/now.py#L36)
 - **Code**: S603
 - **Sin**: `subprocess.run([GIT, "-C", repo, *args])` — non-constant arguments.
 - **Penance**: GIT resolved via `shutil.which`; subcommands are hardcoded read-only queries (branch/diff/log); repo paths come from workspace.json enumeration, list-form argv, no shell.
 
 ### CONF-391
-- **File**: [scripts/vscode/now.py](../scripts/vscode/now.py#L179)
+- **File**: [scripts/vscode/now.py](../scripts/vscode/now.py#L198)
 - **Code**: B007
 - **Sin**: loop variable `model` reused after the loop — B007 flags the unused loop body.
 - **Penance**: deliberate last-match idiom (want the final modelId in the tail window); a `pass` body with the value read after the loop is the cheapest form.
@@ -1771,13 +1771,13 @@ The ID ranges are:
 - **Penance**: sibling-spike reuse; the path bootstrap must precede the import (same idiom as CONF-392).
 
 ### CONF-419
-- **File**: [scripts/vscode/now.py](../scripts/vscode/now.py#L81)
+- **File**: [scripts/vscode/now.py](../scripts/vscode/now.py#L82)
 - **Code**: S603
 - **Sin**: `subprocess.run` with dynamic args in `orphan_worktree_lines`.
 - **Penance**: read-only git plumbing on fixture-verified paths; same idiom as CONF-390.
 
 ### CONF-420
-- **File**: [scripts/vscode/now.py](../scripts/vscode/now.py#L89)
+- **File**: [scripts/vscode/now.py](../scripts/vscode/now.py#L90)
 - **Code**: S607
 - **Sin**: `gh` invoked by partial path.
 - **Penance**: gh is PATH-resolved by design (user-installed CLI); availability is pre-checked and unknown is reported as pr=?, never assumed.
@@ -1867,13 +1867,13 @@ The ID ranges are:
 - **Penance**: same CLI-contract rationale as CONF-433; `flag` iterates a literal tuple defined in the test, never external input.
 
 ### CONF-435
-- **File**: [scripts/vscode/now.py](../scripts/vscode/now.py#L397)
+- **File**: [scripts/vscode/now.py](../scripts/vscode/now.py#L416)
 - **Code**: PLC0415
 - **Sin**: `import fr_board` inside `live_plan_state()` rather than at module top.
 - **Penance**: FR-858 — `now.py` is a standalone script; `fr_board` lives in a sibling directory reachable only after a per-repo `sys.path` insert, and the repo under inspection is a runtime argument. A top-level import would bind one repo at import time and break the multi-repo scan.
 
 ### CONF-436
-- **File**: [scripts/vscode/now.py](../scripts/vscode/now.py#L402)
+- **File**: [scripts/vscode/now.py](../scripts/vscode/now.py#L421)
 - **Code**: BLE001
 - **Sin**: bare `except Exception` around the live plan-state computation.
 - **Penance**: FR-858 C-5 requires that a live-computation failure be *surfaced*, never silently downgraded to stale committed state. The handler names the exception type and message in the output line; a narrower except would let an unanticipated parser error crash a situational-awareness tool whose whole job is to keep reporting.
@@ -1901,3 +1901,9 @@ The ID ranges are:
 - **Code**: S603
 - **Sin**: `subprocess.run` on the git executable to read checkpoint trailers.
 - **Penance**: FR-902 — read-only `git log` plumbing with a fixed argument vector; the executable is resolved via `shutil.which("git")` and the only variables are a validated repo path and a `session/<uuid>` ref derived from a UUID-shaped session id. Same idiom as CONF-390.
+
+### CONF-441
+- **File**: [.github/hooks/scripts/checks/main_write.py](../.github/hooks/scripts/checks/main_write.py#L57)
+- **Code**: S603
+- **Sin**: `subprocess.run([GIT, "-C", probe, "rev-parse", …])` — non-constant probe path in the FR-889 main-write classifier.
+- **Penance**: read-only `git rev-parse` plumbing with a fixed subcommand vector; GIT resolved via `shutil.which`; the probe path is derived from the hook payload solely to CLASSIFY the write (worktree vs main), list-form argv, no shell. Same idiom as CONF-390/CONF-440; extracted verbatim from the previously unlinted guard heredoc.

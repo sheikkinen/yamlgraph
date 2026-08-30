@@ -389,11 +389,16 @@ For the full bump → commit → push → tag flow including pre-commit hook cas
 
 ## Branch Protection
 
-**Default flow: single dev, push to `main` directly.** The operator (admin)
-pushes to `main`; `enforce_admins` is off, so protection rules do not apply
-to admin pushes. The PR flow below is for automation (watcher2/chaplain
-pipelines) and optional review passes — do not add PR ceremony to ordinary
-changes.
+**Default flow (FR-889): enforcement-class changes route worktree → PR →
+squash merge.** The main checkout keeps governed roots (`yamlgraph/`,
+`tests/`, `scripts/`, `capabilities/`, `.github/hooks/`) OS-locked
+(`chmod -R u-w` via `scripts/worktree.sh lock-main`) — the filesystem, not
+a command grammar, is the write barrier. Docs-class paths (`docs/`,
+`feature-requests/`, `changelog/`) stay writable on main and may be pushed
+directly by the operator (admin; `enforce_admins` is off). Operator
+maintenance on main uses `scripts/worktree.sh sync` (pull + relock) or an
+explicit `unlock-main` / `lock-main` pair — the `now.py` board flags an
+unlocked main with its age.
 
 ### Rules actually enforced on `main` (verified 2026-08-18)
 

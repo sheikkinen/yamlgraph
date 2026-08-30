@@ -15,6 +15,7 @@ on reception rung 2 (a tool result), per the reception-hierarchy diary.
 from __future__ import annotations
 
 import argparse
+import json
 import re
 import shutil
 import subprocess
@@ -155,6 +156,24 @@ def session_lane_lines(repo: Path, gh_available: bool | None = None) -> list[str
                 f"git worktree add tmp/worktrees/{br} {br}"
             )
     return lines
+
+
+def main_lock_lines(repo: Path) -> list[str]:
+    """FR-889 AC-10: report an unlocked main checkout — never fixes it."""
+    marker = repo / ".github" / "hooks" / "state" / "main-lock.json"
+    if not marker.is_file():
+        return []
+    try:
+        state = json.loads(marker.read_text()).get("state", "")
+    except (OSError, ValueError):
+        return [f"  ⚠ main-lock marker unreadable: {marker}"]
+    if state != "unlocked":
+        return []
+    age_min = int((time.time() - marker.stat().st_mtime) / 60)
+    return [
+        f"  ⚠ main checkout unlocked for {age_min}m "
+        f"(relock: scripts/worktree.sh lock-main)"
+    ]
 
 
 def workspace_folder(hash_dir: Path) -> Path | None:
@@ -434,6 +453,11 @@ def main() -> None:
     # FR-902 AC-10: session lanes — listed, never deleted
     for repo in sorted(repos):
         for line in session_lane_lines(repo):
+            print(line)
+
+    # FR-889 AC-10: unlocked main checkouts — reported, never relocked here
+    for repo in sorted(repos):
+        for line in main_lock_lines(repo):
             print(line)
 
     print("\n== FRs in motion (files touched in window) ==")

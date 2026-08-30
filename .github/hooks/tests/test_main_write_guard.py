@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
-"""Tests for the FR-888 main-write guard — worktree as the only enforcement
-write path.
+"""Tests for the FR-889 OS-enforced main-write lock (supersedes the
+FR-888 terminal write grammar — deleted, see the FR-888 post-mortem).
 
-Covers: deny edit-tool writes to enforcement-class paths on the main
-checkout (AC-01); allow the identical write in a linked worktree (AC-01);
-docs-lane allowance (AC-02); git-plumbing worktree detection incl. nested
-repos and parse errors (AC-03); terminal write grammar (AC-06/AC-08);
-escape hatch audit (AC-07); worktree.sh .env + final cd line (AC-05) and
-safe removal (AC-11).
+Covers: kernel-level write denial on locked main (AC-01); lock/unlock
+idempotency, mode preservation, audit and state marker (AC-02); sync
+relock on success and failure (AC-03); edit-tool denial via the
+extracted lintable module with worktree allowance (AC-04); the R-2
+lock-mutator fence with git/sudo escapes (AC-05); structural absence of
+the deleted grammar (AC-06/AC-07); carve-outs (AC-09); board line
+(AC-10); worktree.sh .env + final cd line and safe removal (FR-888
+retained surfaces).
 
 Infrastructure test scope (FR-436): outside REQ-YG marker coverage.
 
@@ -17,7 +19,10 @@ Run:  pytest .github/hooks/tests/test_main_write_guard.py -q --no-cov
 import json
 import os
 import shutil
+import stat
 import subprocess
+import sys
+import time
 from pathlib import Path
 
 import pytest
@@ -25,7 +30,7 @@ import pytest
 HOOK = Path(__file__).resolve().parents[1] / "scripts" / "pre-command-guard.sh"
 WORKTREE_SH = Path(__file__).resolve().parents[3] / "scripts" / "worktree.sh"
 GIT = shutil.which("git") or "/usr/bin/git"
-pytestmark = pytest.mark.req("REQ-YG-527")
+pytestmark = pytest.mark.req("REQ-YG-631")
 
 
 def run_hook(payload, *, env_extra=None, log_dir=None, guard_root=None):
@@ -72,8 +77,16 @@ def repo(tmp_path):
     _git(main, "init", "-b", "main")
     _git(main, "config", "user.email", "t@t")
     _git(main, "config", "user.name", "t")
-    for d in ("yamlgraph", "tests", "docs", "feature-requests"):
-        (main / d).mkdir()
+    for d in (
+        "yamlgraph",
+        "tests",
+        "scripts",
+        "capabilities",
+        ".github/hooks",
+        "docs",
+        "feature-requests",
+    ):
+        (main / d).mkdir(parents=True)
         (main / d / ".keep").write_text("")
     _git(main, "add", "-A")
     _git(main, "commit", "-m", "init")
@@ -175,50 +188,265 @@ def test_parse_error_without_enforcement_target_allowed(repo, tmp_path):
     assert decision_of(out) == "approve"
 
 
-# ── AC-06/AC-08: terminal write grammar ──────────────────────────────
+# ── AC-01/AC-02/AC-03/AC-09: the OS lock (FR-889) ────────────────────
 
 
-def test_redirect_to_enforcement_path_on_main_denied(repo):
+def wt_sh(cwd, *args):
+    return subprocess.run(
+        [str(WORKTREE_SH), *args], cwd=cwd, capture_output=True, text=True
+    )
+
+
+@pytest.fixture
+def lock_repo(tmp_path):
+    """Cloned main checkout with governed roots; unlocked again on exit."""
+    origin = tmp_path / "origin"
+    origin.mkdir()
+    _git(origin, "init", "-b", "main")
+    _git(origin, "config", "user.email", "t@t")
+    _git(origin, "config", "user.name", "t")
+    for d in (
+        "yamlgraph",
+        "tests",
+        "scripts",
+        "capabilities",
+        ".github/hooks/scripts",
+        "docs",
+    ):
+        (origin / d).mkdir(parents=True)
+        (origin / d / ".keep").write_text("")
+    (origin / "scripts" / "tool.sh").write_text("#!/bin/sh\n")
+    (origin / "scripts" / "tool.sh").chmod(0o755)
+    (origin / "yamlgraph" / "x.py").write_text("x = 1\n")
+    _git(origin, "add", "-A")
+    _git(origin, "commit", "-m", "init")
+    main = tmp_path / "mainclone"
+    subprocess.run(
+        [GIT, "clone", "-q", str(origin), str(main)],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    _git(main, "config", "user.email", "t@t")
+    _git(main, "config", "user.name", "t")
+    yield main
+    subprocess.run(["/bin/chmod", "-R", "u+w", str(tmp_path)], check=False)
+
+
+def _is_locked(main):
+    return not os.access(main / "yamlgraph", os.W_OK)
+
+
+def test_lock_main_makes_terminal_write_fail_at_the_kernel(lock_repo):
+    r = wt_sh(lock_repo, "lock-main")
+    assert r.returncode == 0, r.stderr
+    w = subprocess.run(
+        ["/bin/sh", "-c", "echo x > yamlgraph/f.py"],
+        cwd=lock_repo,
+        capture_output=True,
+        text=True,
+    )
+    assert w.returncode != 0
+    assert "ermission denied" in w.stderr  # the kernel, zero hook lines
+    assert not (lock_repo / "yamlgraph" / "f.py").exists()
+
+
+def test_lock_covers_in_place_edit_of_existing_file(lock_repo):
+    assert wt_sh(lock_repo, "lock-main").returncode == 0
+    with pytest.raises(PermissionError):
+        (lock_repo / "yamlgraph" / "x.py").write_text("clobber")
+
+
+def test_lock_and_unlock_are_idempotent(lock_repo):
+    for _ in range(2):
+        assert wt_sh(lock_repo, "lock-main").returncode == 0
+        assert _is_locked(lock_repo)
+    for _ in range(2):
+        assert wt_sh(lock_repo, "unlock-main").returncode == 0
+        assert not _is_locked(lock_repo)
+
+
+def test_lock_cycle_preserves_exec_and_group_bits(lock_repo):
+    tool = lock_repo / "scripts" / "tool.sh"
+    before = stat.S_IMODE(tool.stat().st_mode)
+    assert wt_sh(lock_repo, "lock-main").returncode == 0
+    assert wt_sh(lock_repo, "unlock-main").returncode == 0
+    assert stat.S_IMODE(tool.stat().st_mode) == before
+
+
+def test_unlock_writes_audit_row_and_state_marker(lock_repo):
+    assert wt_sh(lock_repo, "lock-main").returncode == 0
+    marker = lock_repo / ".github/hooks/state/main-lock.json"
+    assert json.loads(marker.read_text())["state"] == "locked"
+    assert wt_sh(lock_repo, "unlock-main").returncode == 0
+    assert json.loads(marker.read_text())["state"] == "unlocked"
+    rows = (lock_repo / ".github/hooks/logs/audit.jsonl").read_text()
+    assert "fr889-main-unlock" in rows
+
+
+def test_carveouts_stay_writable_under_lock(lock_repo):
+    assert wt_sh(lock_repo, "lock-main").returncode == 0
+    with (lock_repo / ".github/hooks/logs/audit.jsonl").open("a") as fh:
+        fh.write("{}\n")
+    (lock_repo / ".github/hooks/state/probe.json").write_text("{}")
+    with pytest.raises(PermissionError):
+        (lock_repo / ".github/hooks/scripts/probe.sh").write_text("")
+    (lock_repo / "docs" / "note.md").write_text("docs lane open")
+
+
+def test_sync_pulls_and_relocks(lock_repo, tmp_path):
+    origin = tmp_path / "origin"
+    (origin / "docs" / "update.md").write_text("upstream\n")
+    _git(origin, "add", "-A")
+    _git(origin, "commit", "-m", "upstream")
+    assert wt_sh(lock_repo, "lock-main").returncode == 0
+    r = wt_sh(lock_repo, "sync")
+    assert r.returncode == 0, r.stderr
+    assert (lock_repo / "docs" / "update.md").exists()
+    assert _is_locked(lock_repo)
+
+
+def test_sync_relocks_even_when_pull_fails(lock_repo):
+    assert wt_sh(lock_repo, "lock-main").returncode == 0
+    _git(lock_repo, "remote", "set-url", "origin", "/nonexistent/void")
+    r = wt_sh(lock_repo, "sync")
+    assert r.returncode != 0
+    assert _is_locked(lock_repo)
+    marker = lock_repo / ".github/hooks/state/main-lock.json"
+    assert json.loads(marker.read_text())["state"] == "locked"
+
+
+def test_worktree_new_functions_on_locked_main(lock_repo):
+    assert wt_sh(lock_repo, "lock-main").returncode == 0
+    r = wt_sh(lock_repo, "new", "lockedwt")
+    assert r.returncode == 0, r.stderr
+    wt = lock_repo / "tmp/worktrees/feat/lockedwt"
+    (wt / "yamlgraph" / "new.py").write_text("writable = True\n")
+
+
+# ── AC-05: lock-mutator fence — verbs only; git and sudo pass ────────
+
+
+def test_chmod_on_governed_root_on_main_denied_with_unlock_cure(repo):
     _, out = run_hook(
-        terminal_payload("echo x > yamlgraph/f.py", repo["main"]),
+        terminal_payload("chmod -R u+w yamlgraph", repo["main"]),
         guard_root=repo["main"],
     )
     assert decision_of(out) == "deny"
+    assert "unlock-main" in reason_of(out)
 
 
-def test_tee_to_enforcement_path_on_main_denied(repo):
-    _, out = run_hook(
-        terminal_payload("echo x | tee tests/f.py", repo["main"]),
-        guard_root=repo["main"],
-    )
+@pytest.mark.parametrize(
+    "cmd",
+    [
+        "chflags nouchg tests",
+        "setfacl -m u::rwx scripts",
+        "FOO=1 chmod u+w capabilities",
+    ],
+)
+def test_other_lock_mutators_on_main_denied(repo, cmd):
+    _, out = run_hook(terminal_payload(cmd, repo["main"]), guard_root=repo["main"])
     assert decision_of(out) == "deny"
 
 
-def test_sed_inplace_on_main_denied(repo):
+def test_sudo_chmod_is_human_authorized_and_passes(repo):
     _, out = run_hook(
-        terminal_payload("sed -i '' s/a/b/ yamlgraph/f.py", repo["main"]),
+        terminal_payload("sudo chmod -R u+w yamlgraph", repo["main"]),
         guard_root=repo["main"],
     )
-    assert decision_of(out) == "deny"
+    assert decision_of(out) == "approve"
 
 
-def test_cp_onto_enforcement_path_on_main_denied(repo):
+def test_git_is_never_fenced(repo):
     _, out = run_hook(
-        terminal_payload("cp /tmp/x.py yamlgraph/x.py", repo["main"]),
+        terminal_payload("git checkout -- yamlgraph", repo["main"]),
         guard_root=repo["main"],
     )
-    assert decision_of(out) == "deny"
+    assert decision_of(out) == "approve"
 
 
-def test_directory_copy_materializing_enforcement_path_denied(repo, tmp_path):
-    # review PR#476 P2: cp -r /tmp/src/yamlgraph . materializes ./yamlgraph
-    src = tmp_path / "src" / "yamlgraph"
-    src.mkdir(parents=True)
+def test_chmod_in_linked_worktree_allowed(repo):
     _, out = run_hook(
-        terminal_payload(f"cp -r {src} .", repo["main"]),
+        terminal_payload("chmod -R u+w yamlgraph", repo["wt"]),
         guard_root=repo["main"],
     )
-    assert decision_of(out) == "deny"
+    assert decision_of(out) == "approve"
+
+
+def test_chmod_on_docs_lane_allowed(repo):
+    _, out = run_hook(
+        terminal_payload("chmod u+w docs", repo["main"]),
+        guard_root=repo["main"],
+    )
+    assert decision_of(out) == "approve"
+
+
+def test_mention_of_verb_without_invocation_allowed(repo):
+    _, out = run_hook(
+        terminal_payload("echo chmod yamlgraph", repo["main"]),
+        guard_root=repo["main"],
+    )
+    assert decision_of(out) == "approve"
+
+
+# ── AC-06/AC-07: the grammar is deleted, structurally ────────────────
+
+MAIN_WRITE_PY = HOOK.parent / "checks" / "main_write.py"
+
+
+def _check7_region() -> str:
+    src = HOOK.read_text()
+    start = src.index("Check 7: main-write")
+    end = src.index("Check 8:")
+    return src[start:end]
+
+
+@pytest.mark.parametrize(
+    "token",
+    ["write_targets", "tee", "sed", "rsync", "truncate", "perl", "finditer"],
+)
+def test_no_write_grammar_token_survives_in_main_write_check(token):
+    assert token not in _check7_region()
+
+
+def test_main_write_check_dispatches_to_lintable_module():
+    assert MAIN_WRITE_PY.is_file()
+    assert "checks/main_write.py" in _check7_region()
+
+
+def test_main_write_module_carries_no_write_grammar():
+    src = MAIN_WRITE_PY.read_text()
+    for token in ("write_targets", "tee", "rsync", "truncate", "perl"):
+        assert token not in src
+
+
+def test_guard_is_below_the_widened_size_gate():
+    assert len(HOOK.read_text().splitlines()) <= 450
+
+
+def test_heredoc_python_count_decreased():
+    assert HOOK.read_text().count("<<'PYEOF'") <= 1  # only FR-767 remains
+
+
+# ── AC-10: board line — read-only, never fixes ───────────────────────
+
+
+def test_now_board_reports_unlocked_main_with_age(tmp_path):
+    sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "scripts" / "vscode"))
+    import now  # noqa: PLC0415
+
+    repo_dir = tmp_path / "r"
+    state_dir = repo_dir / ".github" / "hooks" / "state"
+    state_dir.mkdir(parents=True)
+    marker = state_dir / "main-lock.json"
+    marker.write_text(json.dumps({"state": "unlocked", "ts": "x", "by": "t"}))
+    old = time.time() - 7200
+    os.utime(marker, (old, old))
+    lines = now.main_lock_lines(repo_dir)
+    assert lines and "unlocked" in lines[0].lower()
+    assert "lock-main" in lines[0]
+    marker.write_text(json.dumps({"state": "locked", "ts": "x", "by": "t"}))
+    assert now.main_lock_lines(repo_dir) == []
 
 
 def test_denial_cure_is_placeholder_free_and_executable(repo):
@@ -250,86 +478,6 @@ def test_apply_patch_move_to_enforcement_path_denied(repo):
     assert decision_of(out) == "deny"
 
 
-def test_whitespace_variant_inline_writer_denied(repo):
-    # review round 4 P2: extra spaces must not skip the analyzer
-    _, out = run_hook(
-        terminal_payload(
-            "python3    -c \"open('yamlgraph/x.py','w').write('x')\"",
-            repo["main"],
-        ),
-        guard_root=repo["main"],
-    )
-    assert decision_of(out) == "deny"
-
-
-def test_quoted_redirect_to_enforcement_path_denied(repo):
-    _, out = run_hook(
-        terminal_payload('echo x > "yamlgraph/f.py"', repo["main"]),
-        guard_root=repo["main"],
-    )
-    assert decision_of(out) == "deny"
-
-
-def test_mv_onto_enforcement_path_denied(repo):
-    _, out = run_hook(
-        terminal_payload("mv /tmp/x.py tests/x.py", repo["main"]),
-        guard_root=repo["main"],
-    )
-    assert decision_of(out) == "deny"
-
-
-def test_env_prefixed_writer_denied(repo):
-    # a non-escape env assignment must not hide the writer token
-    _, out = run_hook(
-        terminal_payload("FOO=1 cp /tmp/x.py yamlgraph/x.py", repo["main"]),
-        guard_root=repo["main"],
-    )
-    assert decision_of(out) == "deny"
-
-
-def test_pwd_expanded_redirect_denied(repo):
-    # review round 7 P1: the shell expands $PWD before writing
-    _, out = run_hook(
-        terminal_payload("echo x > $PWD/yamlgraph/f.py", repo["main"]),
-        guard_root=repo["main"],
-    )
-    assert decision_of(out) == "deny"
-
-
-@pytest.mark.parametrize(
-    "cmd",
-    [
-        "touch yamlgraph/x.py",
-        "mkdir -p tests/newdir",
-        "rm -rf scripts/old.py",
-    ],
-)
-def test_direct_write_commands_on_main_denied(repo, cmd):
-    # review round 8 P1: direct write/delete commands are write-shaped
-    _, out = run_hook(
-        terminal_payload(cmd, repo["main"]),
-        guard_root=repo["main"],
-    )
-    assert decision_of(out) == "deny"
-
-
-@pytest.mark.parametrize(
-    "cmd",
-    [
-        "sed -i.bak s/a/b/ yamlgraph/f.py",
-        "sed -i'' s/a/b/ yamlgraph/f.py",
-        "perl -e 'open my $fh, q(>), q(yamlgraph/x.py); print $fh q(x);'",
-    ],
-)
-def test_interpreter_and_sed_variant_writers_denied(repo, cmd):
-    # review round 9 P1: -i suffix variants and quoted interpreter paths
-    _, out = run_hook(
-        terminal_payload(cmd, repo["main"]),
-        guard_root=repo["main"],
-    )
-    assert decision_of(out) == "deny"
-
-
 def test_time_prefixed_readonly_allowed(repo):
     _, out = run_hook(
         terminal_payload("time cat yamlgraph/f.py", repo["main"]),
@@ -338,21 +486,14 @@ def test_time_prefixed_readonly_allowed(repo):
     assert decision_of(out) == "approve"
 
 
-def test_time_prefixed_write_denied(repo):
+def test_readonly_grep_with_writer_tokens_in_pattern_allowed(repo):
+    # the condemned grammar's witnessed false-positive class (2026-08-30):
+    # a grep whose PATTERN mentions writer tokens is a read
     _, out = run_hook(
-        terminal_payload("time sh -c 'echo x > yamlgraph/f.py'", repo["main"]),
+        terminal_payload('grep -n "foo" yamlgraph/x.py tests/y.py', repo["main"]),
         guard_root=repo["main"],
     )
-    assert decision_of(out) == "deny"
-
-
-def test_time_prefixed_cp_denied(repo):
-    # review PR#476 round 2 P1: the time wrapper hid the writer token
-    _, out = run_hook(
-        terminal_payload("time cp /tmp/source.py yamlgraph/target.py", repo["main"]),
-        guard_root=repo["main"],
-    )
-    assert decision_of(out) == "deny"
+    assert decision_of(out) == "approve"
 
 
 def test_rm_safe_merged_confirmed_removes_squash_merged_tree(wt_repo):
@@ -391,15 +532,14 @@ def test_redirect_inside_worktree_allowed(repo):
     assert decision_of(out) == "approve"
 
 
-# ── AC-07: escape hatch — narrow, audited, no cross-bypass ───────────
+# ── AC-04 escape hatch — edit tools only, audited (terminal retired) ─
 
 
-def test_escape_prefix_allows_and_audits(repo, tmp_path):
+def test_edit_tool_escape_allows_and_audits(repo, tmp_path):
     log_dir = tmp_path / "logs"
     _, out = run_hook(
-        terminal_payload(
-            "FR888_ALLOW_MAIN=1 sh -c 'echo x > yamlgraph/f.py'", repo["main"]
-        ),
+        edit_payload(repo["main"] / "yamlgraph" / "f.py", repo["main"]),
+        env_extra={"FR888_ALLOW_MAIN": "1"},
         log_dir=log_dir,
         guard_root=repo["main"],
     )

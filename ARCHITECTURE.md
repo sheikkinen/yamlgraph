@@ -570,6 +570,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 252 | CAP-252 Shared SMTP Email Tool | `examples` | REQ-YG-627 |
 | 253 | CAP-253 Org repository census with pinned-Azure delegation | `examples/demos/repo_census`, `examples/demos/corpus_census` | REQ-YG-628 |
 | 254 | CAP-254 Session Worktree Lifecycle | `scripts/worktree.sh`, `.github/hooks/scripts/session-worktree.sh`, `.github/hooks/scripts/session-checkpoint.sh`, `.github/hooks/scripts/pre-command-guard.sh`, … | REQ-YG-629 – 630 |
+| 255 | CAP-255 OS-Enforced Main-Write Lock | `scripts/worktree.sh`, `.github/hooks/scripts/checks/main_write.py`, `.github/hooks/scripts/checks/lane_guard.py`, `scripts/size_gate.py`, … | REQ-YG-631 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -3114,6 +3115,16 @@ Every agent session works in its own git worktree lane (tmp/worktrees/session/<s
 |------------|-------------|-------------|
 | REQ-YG-629 | Session lane creation is idempotent and refusal-safe (full-UUID ids only, never deletes session branches, setup leaves the tree clean), and once a lane record exists the PreToolUse guard denies write-shaped tool calls targeting this repository outside the owning lane with redirection to the lane, without weakening any existing guard; escape FR902_ALLOW_OUTSIDE=1 is audited and lifts only the lane fence. | `scripts/worktree.sh`, `.github/hooks/scripts/session-worktree.sh`, `.github/hooks/scripts/pre-command-guard.sh`, `.github/hooks/tests/test_fr902_session_worktree.py`, `.github/hooks/tests/test_fr902_lane_guard.py` |
 | REQ-YG-630 | Stop-hook checkpoints commit all lane changes with Session-Id and Request-Index trailers derived by replaying the transcript event store (never fabricated; skip-with-audit when unflushed); GC classifies session lanes losslessly and prunes only merged or stale-clean lanes without --force or -D; now.py lists session lanes without deleting; the join script correlates requests to checkpoint shas with model and credit provenance. | `.github/hooks/scripts/session-checkpoint.sh`, `scripts/worktree.sh`, `scripts/vscode/now.py`, `scripts/vscode/session_join.py`, `.github/hooks/tests/test_fr902_checkpoint.py`, `.github/hooks/tests/test_fr902_gc_join.py` |
+
+### 255. CAP-255 OS-Enforced Main-Write Lock
+
+Governed enforcement roots on the main checkout are OS-locked (chmod -R u-w) via scripts/worktree.sh lock-main/unlock-main/sync; the pre-command guard retains only edit-tool classification and a lock-mutator fence (git never fenced, sudo passes), with the FR-888 shell grammar deleted and a widened shrink-only file-size gate.
+
+**Feature Request:** FR-889
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-631 | Main-checkout governed roots are locked at the filesystem; unlock and sync are audited verbs; edit-tool writes and bare lock-mutator commands on main are denied with executable cures; the widened size gate enforces the 450-line limit with a shrink-only baseline. | `scripts/worktree.sh`, `.github/hooks/scripts/checks/main_write.py`, `scripts/size_gate.py`, `.github/hooks/tests/test_main_write_guard.py`, `.github/hooks/tests/test_size_gate.py` |
 
 <!-- END GENERATED CAPABILITIES -->
 
