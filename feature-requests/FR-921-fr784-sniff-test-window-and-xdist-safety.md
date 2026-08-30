@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM (downgraded from HIGH 2026-08-30 — see "Where the cost actually lands")
 **Type:** Bug
-**Status:** Judged — APPROVED WITH REVISIONS (R-1…R-4 folded 2026-08-30; [judgement](FR-921-fr784-sniff-test-window-and-xdist-safety.judgement.md))
+**Status:** Enforced 2026-08-30 (judged APPROVED WITH REVISIONS; R-1…R-4 folded; [judgement](FR-921-fr784-sniff-test-window-and-xdist-safety.judgement.md))
 **Effort:** 0.5 days
 **Requested:** 2026-08-30
 **First consumer / first event:** any developer running the full local suite (`pytest tests/`) or the FR-784 module directly on a checkout where `examples/api-discovery/tools/node_modules` is installed — first event is the next such run, which pays ~82s for six `slow`-marked tests and cannot be trusted under `-n auto`.
@@ -141,13 +141,46 @@ one boundary fix in `network-sniff.js` — clear the timer that outlives its rac
 
 ## Acceptance Criteria
 
-- [ ] AC-01: Failing test (RED commit) condemning full-window exhaustion on a settling page
-- [ ] AC-02: `pytest tests/unit/test_fr784_network_sniff.py -q --no-cov` completes in < 15s total on a Playwright-installed checkout (was ~82s)
-- [ ] AC-03: `pytest tests/unit/test_fr784_network_sniff.py -q --no-cov -n auto` passes with zero fr784 failures across 3 consecutive runs
-- [ ] AC-04: The timeout witness stays honest — the hanging fixture path still exits 0, emits valid JSON, and includes a timeout warning at `timeout_ms=4000`
-- [ ] AC-05: No FR-784 semantic regression — capture, telemetry demotion, redaction, auth-wall, CAPTCHA, and manifest tests pass or skip only for the existing named browser-setup reason
-- [ ] AC-06: Before/after wall times and the three `-n auto` runs recorded in this FR
-- [ ] AC-07: Changelog fragment in `changelog/unreleased/`
+- [x] AC-01: Failing test (RED commit) condemning full-window exhaustion on a settling page
+- [x] AC-02: `pytest tests/unit/test_fr784_network_sniff.py -q --no-cov` completes in < 15s total on a Playwright-installed checkout (was ~82s)
+- [x] AC-03: `pytest tests/unit/test_fr784_network_sniff.py -q --no-cov -n auto` passes with zero fr784 failures across 3 consecutive runs
+- [x] AC-04: The timeout witness stays honest — the hanging fixture path still exits 0, emits valid JSON, and includes a timeout warning at `timeout_ms=4000`
+- [x] AC-05: No FR-784 semantic regression — capture, telemetry demotion, redaction, auth-wall, CAPTCHA, and manifest tests pass or skip only for the existing named browser-setup reason
+- [x] AC-06: Before/after wall times and the three `-n auto` runs recorded in this FR
+- [x] AC-07: Changelog fragment in `changelog/unreleased/`
+
+## Enforcement Status
+
+**Enforced 2026-08-30** on `feat/fr921-test-latency-cluster`.
+
+The fix is one boundary repair in `examples/api-discovery/tools/network-sniff.js`:
+the `Promise.race` body-read timer is now captured and `clearTimeout`-ed after
+the race resolves. Nothing about settle detection was wrong — `waitUntil:
+"networkidle"` already returned in milliseconds. The process simply could not
+exit, because the losing branch of the race left a live timer on the event loop
+and `main()` ends without `process.exit()`.
+
+| Measurement | Before | After |
+|---|---|---|
+| `pytest tests/unit/test_fr784_network_sniff.py -m slow -q --no-cov` | 82.20s (6 tests) | 13.26s (7 tests, incl. new witness) |
+| Per settling-page sniff | 15.38–15.43s | 1.22–1.28s |
+| `test_timeout_exits_cleanly_with_warning` (4s window, hanging fixture) | 4.43s | 4.41s — correctly unchanged; that page never settles |
+| `-n auto`, 3 consecutive runs | 6 failures each | 16 passed / 14.22s, 12.29s, 12.70s |
+
+`xdist_group("fr784")` was **not** needed: C-3's precondition (a repeated
+`-n auto` failure surviving the early-exit fix) never materialised. The parallel
+failures shared the orphaned-timer root cause — the FR's own hypothesis, held
+loosely per symptom_patch, and now verified rather than assumed.
+
+Evidence logs: `logs/fr784-baseline.log`, `logs/fr921-red.log`,
+`logs/fr921-green.log`, `logs/fr921-xdist-{1,2,3}.log`.
+
+### Consequence for FR-923
+
+FR-923's baseline claims "~60s owed to FR-921" inside the 2:17 fast loop. That
+is false on two counts — the witnesses are `slow`-marked (deselected from the
+fast loop) and skip entirely in CI, which has no `npm ci` step. FR-923 must
+re-baseline before its fast-loop acceptance criterion can be judged.
 
 ## Alternatives Considered
 
