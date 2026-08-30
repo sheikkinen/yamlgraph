@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Proposed
+**Status:** Implemented (PR #516)
 **Effort:** 0.5 days
 **Requested:** 2026-08-30
 **First consumer / first event:** the next FR judged after merge —
@@ -145,41 +145,99 @@ judge/review pin has real run history.
 
 ## Acceptance Criteria
 
-- [ ] AC-01: `tests/unit/test_fr931_sole_route_model_pin.py` exists, is
+- [x] AC-01: `tests/unit/test_fr931_sole_route_model_pin.py` exists, is
       tagged `@pytest.mark.req("REQ-YG-632")`, and asserts that both
       `.github/skills/judge-fr/adapters/graph.yaml` and
       `.github/skills/review-pr/adapters/graph.yaml` define a non-empty
       `cli_flags.model` on their single copilot node.
-- [ ] AC-02: the same test asserts both pins are equal to each other and
+- [x] AC-02: the same test asserts both pins are equal to each other and
       equal to `gpt-5.6-sol`.
-- [ ] AC-03: git history shows the test committed RED (failing against
+- [x] AC-03: git history shows the test committed RED (failing against
       `gpt-5.5`, `SKIP=pytest`) before the adapter edit that turns it
       GREEN.
-- [ ] AC-04: the two adapter files differ from `main` in exactly one
+- [x] AC-04: the two adapter files differ from `main` in exactly one
       line each (`git diff --numstat` reports `1 1` per file).
-- [ ] AC-05: `yamlgraph graph lint` reports no new issues for both
+- [x] AC-05: `yamlgraph graph lint` reports no new issues for both
       adapter graphs.
-- [ ] AC-06: a real `scripts/judge.sh` run against
+- [x] AC-06: a real `scripts/judge.sh` run against
       `tests/fixtures/fr890/FR-998-fixture-missing-research.md` under the
       new pin produced a `tmp/draft-judgement.md` satisfying the
       wrapper contract (non-empty, `**Verdict:**` line present); the
       verdict withholds authority for missing research, and the log path
       plus verdict line are quoted in this FR's implementation record.
-- [ ] AC-07: a real `scripts/review.sh` run against this FR's own PR
+- [x] AC-07: a real `scripts/review.sh` run against this FR's own PR
       under the new pin produced a `tmp/draft-review.md` whose line one
       is `**Merge verdict:**`; log path and verdict line quoted in this
       FR.
-- [ ] AC-08: `CAP-211-sole-route-judge-review.yaml` gains `REQ-YG-632`
+- [x] AC-08: `CAP-211-sole-route-judge-review.yaml` gains `REQ-YG-632`
       naming both adapter graphs and the new test module;
       `python scripts/req_coverage.py --strict` passes.
-- [ ] AC-09: one changelog fragment under `changelog/unreleased/` with
+- [x] AC-09: one changelog fragment under `changelog/unreleased/` with
       valid front matter `type: feat`, `scope: judge`, `req: REQ-YG-632`,
       recording the pin change and its price delta. (R-1: `chore` is not
       a type `scripts/aggregate_changelog.py` accepts.)
-- [ ] AC-10: the authoring adapter's `gpt-5.5` pin is unchanged
+- [x] AC-10: the authoring adapter's `gpt-5.5` pin is unchanged
       (`git diff` shows no modification to
       `.github/skills/graph-authoring/adapters/graph.yaml`).
-- [ ] AC-11: diary reflection committed in `docs/diary/`.
+- [x] AC-11: diary reflection committed in `docs/diary/`.
+
+## Implementation record (2026-08-30)
+
+**Status:** Implemented — PR
+[#516](https://github.com/sheikkinen/yamlgraph/pull/516), branch
+`featfr931-judge-review-model-upgrade`.
+
+| Commit | Role |
+|---|---|
+| `b3fef059` | FR + research record |
+| `501cf2c6` | judgement (APPROVED WITH REVISIONS, R-1 folded) |
+| `f28fd3c8` | **RED** — pin witness, CAP-211 `REQ-YG-632`, ARCHITECTURE row (`SKIP=pytest`) |
+| `5e724d6d` | **GREEN** — both adapters `gpt-5.5` → `gpt-5.6-sol`, changelog fragment |
+
+RED failure message before the adapter edit:
+`AssertionError: unexpected pin: gpt-5.5`.
+AC-04 verified: `git diff --numstat main` reports `1 1` for each adapter.
+AC-08 verified: `scripts/req_coverage.py --strict` → rc=0
+(`logs/fr931-ac08.log`).
+
+### AC-06 — judge sole route under the new pin
+
+Log: `logs/fr931-ac06.log`; artifact `tmp/draft-judgement.md` (61 lines).
+Route reported `model='gpt-5.6-sol' backend='cli'`. Verdict line:
+
+> **Verdict:** REJECTED — this post-activation proposal receives no
+> implementation authority because it omits the mandatory
+> `**Research:**` field and committed research record.
+
+The new pin still withholds authority on the FR-890 missing-research
+fixture, matching the golden reference
+`tests/fixtures/fr890/FR-998-fixture-missing-research.judgement.md`.
+
+### AC-07 — review sole route under the new pin
+
+Log: `logs/fr931-ac07.log`; artifact `tmp/draft-review.md`, line one:
+
+> **Merge verdict:** Not approved — the model-pin implementation is
+> sound, but the GitHub head omits the frozen implementation evidence
+> and diary deliverables.
+
+Route reported `model='gpt-5.6-sol' backend='cli'`. The review was run
+against the pre-record head `5e724d6d`; it found the substantive change
+sound and blocked on exactly the two deliverables still uncommitted at
+that moment — this implementation record and the diary entry, which the
+reviewer correctly observed existed only as an untracked file. Both are
+added by the commit that carries this section; the finding is addressed,
+not disputed.
+
+### Suite note
+
+The first GREEN commit attempt failed pre-commit with
+`test_fr784_network_sniff.py::test_telemetry_hostname_label_classified`.
+The traceback is a `subprocess.TimeoutExpired` on a `node -e` child at
+30s under xdist worker `gw9`; the test runs in 1.74s in isolation and the
+re-run of the full suite passed (`5e724d6d`). Wall-clock contention, not
+ordering — recorded here rather than waved off, per the ban on the
+"pre-existing failure" framing.
 
 ## Alternatives Considered
 
