@@ -149,6 +149,22 @@ Residual (accepted): track-level wording and category assignments are
 not mechanically verified — by design; `track` carries source wording
 verbatim so any row is one grep from its source line.
 
+### Excel export (2026-08-30)
+
+Human skim surface: `tmp/lukiot.xlsx`, generated from the CSV by the
+throwaway script `tmp/lukiot_to_xlsx.py` (openpyxl, not committed).
+Styling contract:
+
+- **Autofilter on all 8 headings** (`A1:H187`) + frozen header row —
+  filter dropdowns are the primary consumption mode (e.g. filter
+  `category = ratsastus` or `national_special_task = true`).
+- **Alternating fill per region block** (light blue / light orange,
+  switching at each of the 4 region boundaries), header row dark blue
+  with white bold text, columns auto-sized (capped at 60 chars).
+- Data is byte-identical to the CSV — the xlsx is a rendering, the CSV
+  remains the canonical artifact; regenerate with
+  `python3 tmp/lukiot_to_xlsx.py` after any CSV edit.
+
 ## Acceptance Criteria
 
 - [x] Every school line in `tmp/lukiot.txt` yields ≥1 CSV row
@@ -172,4 +188,6 @@ verbatim so any row is one grep from its source line.
 ## Related
 
 - Source: `tmp/lukiot.txt`
-- Output: `tmp/lukiot.csv`
+- Output: `tmp/lukiot.csv` (canonical), `tmp/lukiot.xlsx` (styled view)
+- Tooling (throwaway, uncommitted): `tmp/crosscheck_lukiot.py`,
+  `tmp/lukiot_to_xlsx.py`
