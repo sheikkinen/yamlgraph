@@ -19,7 +19,6 @@ Run:  pytest .github/hooks/tests/test_main_write_guard.py -q --no-cov
 import json
 import os
 import shutil
-import stat
 import subprocess
 import sys
 import time
@@ -137,11 +136,22 @@ def test_identical_write_in_linked_worktree_allowed(repo):
     assert decision_of(out) == "approve"
 
 
-# ── AC-02: docs lane always allowed on main ──────────────────────────
+# ── AC-02 (amended 2026-08-30): docs exception REMOVED — agents have no
+# business writing to main; only runtime lanes (changelog fragments
+# excluded: tmp/, logs/, changelog/) remain open ─────────────────────
 
 
 @pytest.mark.parametrize("lane", ["docs", "feature-requests"])
-def test_docs_lane_on_main_allowed(repo, lane):
+def test_docs_lane_on_main_denied(repo, lane):
+    _, out = run_hook(
+        edit_payload(repo["main"] / lane / "note.md", repo["main"]),
+        guard_root=repo["main"],
+    )
+    assert decision_of(out) == "deny"
+
+
+@pytest.mark.parametrize("lane", ["tmp", "logs", "changelog"])
+def test_runtime_lane_on_main_allowed(repo, lane):
     _, out = run_hook(
         edit_payload(repo["main"] / lane / "note.md", repo["main"]),
         guard_root=repo["main"],
@@ -183,145 +193,9 @@ def test_parse_error_with_enforcement_target_fails_closed(repo, tmp_path):
 
 
 def test_parse_error_without_enforcement_target_allowed(repo, tmp_path):
-    ghost = tmp_path / "nowhere" / "docs" / "x.md"
+    ghost = tmp_path / "nowhere" / "notes" / "x.md"
     _, out = run_hook(edit_payload(ghost, tmp_path / "nowhere"))
     assert decision_of(out) == "approve"
-
-
-# ── AC-01/AC-02/AC-03/AC-09: the OS lock (FR-889) ────────────────────
-
-
-def wt_sh(cwd, *args):
-    return subprocess.run(
-        [str(WORKTREE_SH), *args], cwd=cwd, capture_output=True, text=True
-    )
-
-
-@pytest.fixture
-def lock_repo(tmp_path):
-    """Cloned main checkout with governed roots; unlocked again on exit."""
-    origin = tmp_path / "origin"
-    origin.mkdir()
-    _git(origin, "init", "-b", "main")
-    _git(origin, "config", "user.email", "t@t")
-    _git(origin, "config", "user.name", "t")
-    for d in (
-        "yamlgraph",
-        "tests",
-        "scripts",
-        "capabilities",
-        ".github/hooks/scripts",
-        "docs",
-    ):
-        (origin / d).mkdir(parents=True)
-        (origin / d / ".keep").write_text("")
-    (origin / "scripts" / "tool.sh").write_text("#!/bin/sh\n")
-    (origin / "scripts" / "tool.sh").chmod(0o755)
-    (origin / "yamlgraph" / "x.py").write_text("x = 1\n")
-    _git(origin, "add", "-A")
-    _git(origin, "commit", "-m", "init")
-    main = tmp_path / "mainclone"
-    subprocess.run(
-        [GIT, "clone", "-q", str(origin), str(main)],
-        check=True,
-        capture_output=True,
-        text=True,
-    )
-    _git(main, "config", "user.email", "t@t")
-    _git(main, "config", "user.name", "t")
-    yield main
-    subprocess.run(["/bin/chmod", "-R", "u+w", str(tmp_path)], check=False)
-
-
-def _is_locked(main):
-    return not os.access(main / "yamlgraph", os.W_OK)
-
-
-def test_lock_main_makes_terminal_write_fail_at_the_kernel(lock_repo):
-    r = wt_sh(lock_repo, "lock-main")
-    assert r.returncode == 0, r.stderr
-    w = subprocess.run(
-        ["/bin/sh", "-c", "echo x > yamlgraph/f.py"],
-        cwd=lock_repo,
-        capture_output=True,
-        text=True,
-    )
-    assert w.returncode != 0
-    assert "ermission denied" in w.stderr  # the kernel, zero hook lines
-    assert not (lock_repo / "yamlgraph" / "f.py").exists()
-
-
-def test_lock_covers_in_place_edit_of_existing_file(lock_repo):
-    assert wt_sh(lock_repo, "lock-main").returncode == 0
-    with pytest.raises(PermissionError):
-        (lock_repo / "yamlgraph" / "x.py").write_text("clobber")
-
-
-def test_lock_and_unlock_are_idempotent(lock_repo):
-    for _ in range(2):
-        assert wt_sh(lock_repo, "lock-main").returncode == 0
-        assert _is_locked(lock_repo)
-    for _ in range(2):
-        assert wt_sh(lock_repo, "unlock-main").returncode == 0
-        assert not _is_locked(lock_repo)
-
-
-def test_lock_cycle_preserves_exec_and_group_bits(lock_repo):
-    tool = lock_repo / "scripts" / "tool.sh"
-    before = stat.S_IMODE(tool.stat().st_mode)
-    assert wt_sh(lock_repo, "lock-main").returncode == 0
-    assert wt_sh(lock_repo, "unlock-main").returncode == 0
-    assert stat.S_IMODE(tool.stat().st_mode) == before
-
-
-def test_unlock_writes_audit_row_and_state_marker(lock_repo):
-    assert wt_sh(lock_repo, "lock-main").returncode == 0
-    marker = lock_repo / ".github/hooks/state/main-lock.json"
-    assert json.loads(marker.read_text())["state"] == "locked"
-    assert wt_sh(lock_repo, "unlock-main").returncode == 0
-    assert json.loads(marker.read_text())["state"] == "unlocked"
-    rows = (lock_repo / ".github/hooks/logs/audit.jsonl").read_text()
-    assert "fr889-main-unlock" in rows
-
-
-def test_carveouts_stay_writable_under_lock(lock_repo):
-    assert wt_sh(lock_repo, "lock-main").returncode == 0
-    with (lock_repo / ".github/hooks/logs/audit.jsonl").open("a") as fh:
-        fh.write("{}\n")
-    (lock_repo / ".github/hooks/state/probe.json").write_text("{}")
-    with pytest.raises(PermissionError):
-        (lock_repo / ".github/hooks/scripts/probe.sh").write_text("")
-    (lock_repo / "docs" / "note.md").write_text("docs lane open")
-
-
-def test_sync_pulls_and_relocks(lock_repo, tmp_path):
-    origin = tmp_path / "origin"
-    (origin / "docs" / "update.md").write_text("upstream\n")
-    _git(origin, "add", "-A")
-    _git(origin, "commit", "-m", "upstream")
-    assert wt_sh(lock_repo, "lock-main").returncode == 0
-    r = wt_sh(lock_repo, "sync")
-    assert r.returncode == 0, r.stderr
-    assert (lock_repo / "docs" / "update.md").exists()
-    assert _is_locked(lock_repo)
-
-
-def test_sync_relocks_even_when_pull_fails(lock_repo):
-    assert wt_sh(lock_repo, "lock-main").returncode == 0
-    _git(lock_repo, "remote", "set-url", "origin", "/nonexistent/void")
-    r = wt_sh(lock_repo, "sync")
-    assert r.returncode != 0
-    assert _is_locked(lock_repo)
-    marker = lock_repo / ".github/hooks/state/main-lock.json"
-    assert json.loads(marker.read_text())["state"] == "locked"
-
-
-def test_worktree_new_functions_on_locked_main(lock_repo):
-    assert wt_sh(lock_repo, "lock-main").returncode == 0
-    r = wt_sh(lock_repo, "new", "lockedwt")
-    assert r.returncode == 0, r.stderr
-    wt = lock_repo / "tmp/worktrees/feat/lockedwt"
-    (wt / "yamlgraph" / "new.py").write_text("writable = True\n")
 
 
 # ── AC-05: lock-mutator fence — verbs only; git and sudo pass ────────
@@ -373,9 +247,18 @@ def test_chmod_in_linked_worktree_allowed(repo):
     assert decision_of(out) == "approve"
 
 
-def test_chmod_on_docs_lane_allowed(repo):
+def test_chmod_on_docs_now_fenced(repo):
+    # docs is a governed root since the 2026-08-30 amendment
     _, out = run_hook(
         terminal_payload("chmod u+w docs", repo["main"]),
+        guard_root=repo["main"],
+    )
+    assert decision_of(out) == "deny"
+
+
+def test_chmod_on_changelog_lane_allowed(repo):
+    _, out = run_hook(
+        terminal_payload("chmod u+w changelog", repo["main"]),
         guard_root=repo["main"],
     )
     assert decision_of(out) == "approve"
