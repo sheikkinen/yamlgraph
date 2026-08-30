@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM (downgraded from HIGH 2026-08-30 — the 283s premise did not reproduce)
 **Type:** Bug
-**Status:** Investigated 2026-08-30 — **skip NOT applied**; premise not reproducible, disposition below awaits operator sign-off ([judgement](FR-922-recap-bare-repo-test-skip-and-latency-investigation.judgement.md))
+**Status:** Closed 2026-08-30 — investigation complete, **skip NOT applied**; premise not reproducible, disposition (d) signed off by operator; test kept unskipped with gray-zone status recorded ([judgement](FR-922-recap-bare-repo-test-skip-and-latency-investigation.judgement.md))
 **Effort:** 0.5 days (investigation complete)
 **Requested:** 2026-08-30
 **First consumer / first event:** any developer or CI lane running `pytest tests/` with `ANTHROPIC_API_KEY` set — first event is the next full-suite run, which currently spends 34% of its wall clock inside this one test.
@@ -188,10 +188,76 @@ The residual cost is already owned elsewhere: FR-923's integration lane runs
 **without coverage**, which removes the largest measured multiplier from this
 test's worst observed case. No new FR is spawned.
 
-**This disposition reverses the FR's operator directive and therefore needs
-operator sign-off before FR-922 is closed.** If the directive stands
-regardless of the evidence, the skip is a two-line change and AC-01/AC-02 of
-the judgement apply unchanged.
+### Operator verdict (2026-08-30): gray zone, kept unskipped
+
+Disposition (d) signed off. The operator's assessment on review: the test sits
+in a **gray zone** on three axes, and the latency I measured is only the first.
+
+1. **Time.** 12.95s–78.35s steady-state, 283s at its worst observed. Even the
+   floor is an order of magnitude above every other REQ-YG-531 test.
+2. **Unorthodox YAMLGraph usage.** The test asserts a vendor its graph never
+   declares — see the provider-binding finding below.
+3. **Poor fit in the testing pipeline in the first place.** What it validates
+   is a *demo's output quality under a live model*. That is an evaluation
+   concern, not a regression gate: non-deterministic, priced per run, and its
+   failure mode (a model inventing an `FR-\d+`) is a prompt regression rather
+   than a code regression. It was filed as an integration test because that
+   was the available shape, not because it is one.
+
+Kept unskipped for now — removing the only executing REQ-YG-531 witness would
+trade a measured cost for an unmeasured gap. Recorded as a candidate for
+relocation to an evaluation lane rather than permanent residence in the
+regression suite; that relocation is out of scope here and belongs with
+FR-923's lane work.
+
+### Finding: silent provider binding (gray-zone axis 2)
+
+The `synthesize` node in `examples/demos/recap/graph.yaml` declares neither
+`provider` nor `model`:
+
+```yaml
+  synthesize:
+    type: llm
+    prompt: recap
+```
+
+The prompt YAML declares neither either. The node resolves to the global
+default (`claude-haiku-4-5`, `yamlgraph/config.py`), and the test hardcodes
+that unstated resolution in its skip condition:
+
+```python
+pytestmark = pytest.mark.skipif(not os.getenv("ANTHROPIC_API_KEY"), ...)
+```
+
+A provider-agnostic artifact gated on one vendor's key. Under `PROVIDER=openai`
+the test skips on a missing Anthropic key while the graph it exercises would
+have run fine. The same coupling appears in five integration files
+(`test_recap_demo_integration`, `test_fr713_pending_census`,
+`test_thinking_budget_integration`, `test_fr725_harness`,
+`test_race_loser_teardown`).
+
+This bears directly on the latency result: the 44.66s and the ~1206 completion
+tokens carrying ~40 tokens of signal both belong to a model **nobody chose**.
+An unpinned LLM node is an unmade decision that is also unreadable.
+
+**Why nothing flagged it.** The "no direct LLM calls" rule is enforced by
+`scripts/lint_inline_llm.py` (FR-047, pre-commit hook `inline-llm-check`),
+which fires only when a file has `def main(` **and** imports an LLM symbol
+**and** does not import a graph loader. The `def main(` precondition makes the
+entire `tests/` tree invisible to it, and `examples/demos/` is excluded
+wholesale by `EXCLUDE_PATHS`. The rule inspects the *import list* — a static
+shape — while the vendor is decided by *runtime default resolution*. No
+import-shaped check can see an unstated default: `gate_checks_shape_not_substance`
+at the enforcement layer.
+
+The recap test is **not** itself a direct-call violation — it imports
+`load_and_compile`, and the call reaches Anthropic through `execute_prompt` →
+`create_llm()`. The gap is the binding, not the call.
+
+**Follow-up (own FR, not spawned here):** drop the `def main(` precondition
+from `lint_inline_llm.py` with a confession-backed allowlist for legitimate
+`ChatAnthropic` type-assertions; add a graph-lint rule requiring committed
+example `llm` nodes to pin `provider` and `model` or opt out explicitly.
 
 ### Incidental finding (out of scope, needs its own FR)
 
