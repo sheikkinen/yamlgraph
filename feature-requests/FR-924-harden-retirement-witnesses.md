@@ -168,3 +168,37 @@ deleting residue inside the test, no `sys.modules` mutation), C-5 (a guard
 failing on stale residue is a true positive).
 
 **Scope frozen:** deliverables D-1–D-7 per judgement.
+
+## Implementation Status (2026-08-30)
+
+**Enforced** on branch `feat/fr924-retirement-witness-hardening`.
+
+- D-1: `test_fr909_a2a_retirement.py` — `test_a2a_surface_files_are_deleted`
+  became `test_a2a_surface_files_are_untracked` (`git ls-files`), plus
+  `test_retired_a2a_modules_are_not_importable` over the five module paths.
+- D-2: `test_fr910_mcp_retirement.py` — filesystem checks **kept** (C-2),
+  tracked-file checks **added** alongside, plus a `yamlgraph.export.mcp`
+  import guard.
+- D-3: `test_fr915_mastra_demo_retirement.py` — tracked absence via
+  `git ls-files 'examples/demos/mastra-integration/*'`.
+- D-4: CONF-437/438/439. D-5: this section. D-7: changelog fragment.
+
+**RED → GREEN, with the guard doing the work.** On the enforcement worktree
+the venv is editable-installed against the main checkout, so imports resolved
+there — where the stale `yamlgraph/a2a/__pycache__/` still sat. The RED was
+therefore real rather than staged:
+
+```
+13 passed, 1 failed
+FAILED test_retired_a2a_modules_are_not_importable[yamlgraph.a2a]
+        Failed: DID NOT RAISE ModuleNotFoundError
+```
+
+Exactly AC-03's prediction: tracked-absence assertions green, import guard
+red. After removing the untracked residue from the main checkout — local
+hygiene, not the implementation (explicitly not authorized as such) — the
+three modules report **34 passed**.
+
+**Deviation:** none. No production code touched; FR-910's contract preserved;
+the residue deletion required `FR888_ALLOW_MAIN=1` and is recorded here
+rather than in the diff, since it changes no tracked file.
