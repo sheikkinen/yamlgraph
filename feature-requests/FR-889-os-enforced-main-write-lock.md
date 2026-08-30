@@ -306,6 +306,14 @@ All ACs green: 70/70 FR-889 tests, full hook suite 251 passed, unit suite
 **Post-merge rollout:** run `scripts/worktree.sh lock-main` on the real
 main checkout after the squash merge lands.
 
+**Amendment (operator, 2026-08-30, post-merge):** docs exception REMOVED —
+"agent should not have any business writing to main." `docs/` and
+`feature-requests/` join the governed roots (lock + edit-tool classification
++ mutator fence); runtime lanes reduce to `changelog/`, `research/`, `tmp/`,
+`logs/`. `main-lock.json` marker gitignored. OS-lock suite split to
+`test_main_lock.py` after the size-gate ratchet blocked its own author
+(687 > baseline 666); baseline shrunk to 550.
+
 ## Related
 
 - `docs/analysis-fr888-post-mortem-2026-08-25.md` (the condemnation)
