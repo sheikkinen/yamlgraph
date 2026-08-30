@@ -70,6 +70,7 @@ htmlcov/
 
 # Chaplain daemon state (FR-258: timestamp tracking)
 .chaplain/state/
+.github/hooks/state/main-lock.json
 
 # Custom graphs
 projects/*

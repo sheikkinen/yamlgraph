@@ -61,3 +61,25 @@ modifies the guard is enforced under the *old* guard. Should
 `worktree.sh new` snapshot the hooks into the lane and point the session
 at the snapshot, so guard changes are testable against themselves before
 install — a staging ring for the enforcement ring?
+
+## Addendum (same day): the exception died in five words
+
+"docs exception removed. agent should not have any business writing to
+main." — the operator deleted a whole lane class the original FR had
+carefully preserved. The docs lane existed because *I* found it
+convenient (FR status updates, diary pushes straight to main). Its
+removal is the `additive_default` cure applied to *permissions*: the
+convenience of the author is not a design justification. Two hours after
+merge I had already used the docs lane to push an FR status edit to main
+— exactly the write class the operator then closed.
+
+Bonus witness: the size-gate ratchet I shipped in the morning blocked my
+own afternoon commit (guard test 687 > baseline 666) and forced the
+overdue split of the OS-lock suite into test_main_lock.py. The gate
+worked on its author first — `infrastructure_self_exempt` refuted by
+construction.
+
+**Seed:** changelog/ remains the last agent-writable committed path on
+main. Fragments are born in lanes anyway — should the runtime-lane list
+shrink to tmp/ and logs/ only, making "committed = via PR" true without
+exception?

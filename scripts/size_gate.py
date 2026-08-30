@@ -28,7 +28,7 @@ EXCLUDE_PARTS = {"__pycache__", ".venv", "node_modules", "build"}
 BASELINE = {
     ".github/hooks/tests/test_pre_command_guard.py": 807,
     "scripts/direct_import_scan.py": 675,
-    ".github/hooks/tests/test_main_write_guard.py": 666,
+    ".github/hooks/tests/test_main_write_guard.py": 550,
     "scripts/worktree.sh": 615,
     "scripts/extract_fr_graph.py": 607,
     ".github/hooks/tests/test_reasoning_pattern_check.py": 592,

@@ -91,8 +91,9 @@ def terminal_payload(command, cwd, sid=SID):
 
 
 def test_edit_outside_lane_denied_with_lane_path(laned):
+    # changelog: open runtime lane, so the denial is FR-902's, not Check 7's
     _, out = run_guard(
-        edit_payload(laned["main"] / "docs" / "new.md", laned["main"]),
+        edit_payload(laned["main"] / "changelog" / "new.md", laned["main"]),
         log_dir=laned["log_dir"],
         guard_root=laned["main"],
     )
@@ -150,7 +151,7 @@ def test_foreign_lane_write_denied(laned):
 
 def test_session_without_record_not_denied(laned):
     _, out = run_guard(
-        edit_payload(laned["main"] / "docs" / "new.md", laned["main"], sid=SID2),
+        edit_payload(laned["main"] / "changelog" / "new.md", laned["main"], sid=SID2),
         log_dir=laned["log_dir"],
         guard_root=laned["main"],
     )
@@ -162,7 +163,7 @@ def test_session_without_record_not_denied(laned):
 
 def test_escape_hatch_allows_and_audits(laned):
     _, out = run_guard(
-        edit_payload(laned["main"] / "docs" / "new.md", laned["main"]),
+        edit_payload(laned["main"] / "changelog" / "new.md", laned["main"]),
         log_dir=laned["log_dir"],
         guard_root=laned["main"],
         env_extra={"FR902_ALLOW_OUTSIDE": "1"},

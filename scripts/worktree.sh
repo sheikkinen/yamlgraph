@@ -503,7 +503,7 @@ safe_remove_worktree() {
 # ── FR-889: OS-enforced main-write lock ─────────────────────────────
 # The write barrier is the kernel (owner write bit), not command parsing.
 
-FR889_GOVERNED_ROOTS=(yamlgraph tests scripts capabilities .github/hooks)
+FR889_GOVERNED_ROOTS=(yamlgraph tests scripts capabilities .github/hooks docs feature-requests)
 FR889_CARVEOUTS=(.github/hooks/logs .github/hooks/state)
 
 main_checkout_dir() {
