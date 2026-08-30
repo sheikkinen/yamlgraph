@@ -526,7 +526,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 208 | CAP-208 FR Atlas Onboarding Demo | `examples/demos/fr-atlas/nodes/collect.py`, `examples/demos/fr-atlas/nodes/coverage.py`, `examples/demos/fr-atlas/nodes/render.py` | REQ-YG-566 |
 | 209 | CAP-209 Root Package Seams | `yamlgraph/a2a`, `yamlgraph/compile` | REQ-YG-567 |
 | 210 | CAP-210 Edge Shape Classification | `yamlgraph/compile/edge_compiler.py` | REQ-YG-568 |
-| 211 | CAP-211 Sole-Route Judge and Review Wrappers | `scripts/judge.sh`, `scripts/review.sh`, `.github/skills/judge-fr/adapters/graph.yaml`, `.github/skills/review-pr/adapters/graph.yaml` | REQ-YG-569 |
+| 211 | CAP-211 Sole-Route Judge and Review Wrappers | `scripts/judge.sh`, `scripts/review.sh`, `.github/skills/judge-fr/adapters/graph.yaml`, `.github/skills/review-pr/adapters/graph.yaml` | REQ-YG-569, 632 |
 | 212 | CAP-212 OpenTelemetry Observability Boundary | `yamlgraph/observability/otel.py`, `yamlgraph/compile/node_otel.py`, `yamlgraph/compile/node_compiler.py`, `yamlgraph/cli/graph_commands.py`, … | REQ-YG-570 |
 | 213 | CAP-213 Example Dependency Taxonomy Generator | `scripts/example_taxonomy_scan.py` | REQ-YG-571 |
 | 214 | CAP-214 Direct-Import Dependency Scanner | `scripts/direct_import_scan.py` | REQ-YG-572 |
@@ -2669,6 +2669,7 @@ The judge and review governance pipelines execute through exactly one operationa
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-569 | Sole-route judge/review wrapper contract (FR-758). Both wrappers exit 64 on usage error and 66 on missing FR; exit 70 when the matching lineage sentinel is set (re-entry guard); exit 73 when a fresh lock is held (printing holder metadata) and 75 on a stale lock (never auto-removing it); remove their lock on exit. The executor resolution order is YAMLGRAPH_BIN over PATH yamlgraph over uv, exiting 69 when none resolves. The artifact contract exits 65 when the draft is missing/empty, when the judge draft lacks a "**Verdict:**" line, or when the review draft's line one is not "**Merge verdict:**"; a conforming artifact from a successful graph run yields exit 0. Contract witnessed by stubbed YAMLGRAPH_BIN tests (no API keys, no real graph execution) plus one recorded manual smoke per wrapper in FR-758. | `scripts/judge.sh`, `scripts/review.sh`, `tests/unit/test_fr758_judge_review_wrappers.py` |
+| REQ-YG-632 | Explicit model pin on both sole routes (FR-931). The judge and review adapter graphs each define exactly one copilot node whose cli_flags.model is non-empty — never inherited from the CLI ambient default, which would change cost and behaviour with no diff in the repo. The two pins are equal to each other and equal to the model this repository chose deliberately (gpt-5.6-sol); changing either requires editing the witness, which requires an FR. The authoring adapter is deliberately outside this invariant and may diverge. | `.github/skills/judge-fr/adapters/graph.yaml`, `.github/skills/review-pr/adapters/graph.yaml`, `tests/unit/test_fr931_sole_route_model_pin.py` |
 
 ### 212. CAP-212 OpenTelemetry Observability Boundary
 

@@ -42,3 +42,18 @@ requirements:
       - scripts/judge.sh
       - scripts/review.sh
       - tests/unit/test_fr758_judge_review_wrappers.py
+  - id: REQ-YG-632
+    description: >
+      Explicit model pin on both sole routes (FR-931). The judge and
+      review adapter graphs each define exactly one copilot node whose
+      cli_flags.model is non-empty — never inherited from the CLI
+      ambient default, which would change cost and behaviour with no
+      diff in the repo. The two pins are equal to each other and equal
+      to the model this repository chose deliberately (gpt-5.6-sol);
+      changing either requires editing the witness, which requires an
+      FR. The authoring adapter is deliberately outside this invariant
+      and may diverge.
+    modules:
+      - .github/skills/judge-fr/adapters/graph.yaml
+      - .github/skills/review-pr/adapters/graph.yaml
+      - tests/unit/test_fr931_sole_route_model_pin.py
