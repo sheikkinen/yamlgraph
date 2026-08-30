@@ -1907,3 +1907,9 @@ The ID ranges are:
 - **Code**: S603
 - **Sin**: `subprocess.run([GIT, "-C", probe, "rev-parse", …])` — non-constant probe path in the FR-889 main-write classifier.
 - **Penance**: read-only `git rev-parse` plumbing with a fixed subcommand vector; GIT resolved via `shutil.which`; the probe path is derived from the hook payload solely to CLASSIFY the write (worktree vs main), list-form argv, no shell. Same idiom as CONF-390/CONF-440; extracted verbatim from the previously unlinted guard heredoc.
+
+### CONF-442
+- **File**: [tests/unit/test_fr912_skill_export_retirement.py](../tests/unit/test_fr912_skill_export_retirement.py#L96)
+- **Code**: S603
+- **Sin**: `subprocess.run(["git", "ls-files", relative_path])` in the FR-912 tracked-absence witness.
+- **Penance**: FR-912 — literal pathspec from a module-level constant, no interpolation; same rationale as CONF-437/CONF-438.

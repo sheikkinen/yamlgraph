@@ -5,14 +5,13 @@ Complete command reference for the `yamlgraph` CLI.
 ## Commands Overview
 
 ```
-yamlgraph [-h] {graph,schema,skill,diary} ...
+yamlgraph [-h] {graph,schema,diary} ...
 ```
 
 | Command | Description |
 |---------|-------------|
 | `graph` | Run graphs, list, validate, lint, generate diagrams |
 | `schema` | Export bundled JSON schema and print schema path |
-| `skill` | Export graphs as portable skill packages |
 | `diary` | Import pending diary insights |
 
 ---
@@ -176,57 +175,6 @@ Route lines are emitted on the `yamlgraph.route` logger — a **public API**
 namespace for downstream handlers/filters. See
 [graph-yaml.md § Observability](graph-yaml.md#observability-fr-723) for the
 line grammar and opt-in surfaces.
-
----
-
-## yamlgraph skill
-
-Portable skill packaging commands.
-
-```bash
-yamlgraph skill export <graph_path_or_dir> [--format skill-md|copilot|cursor|agent-md] [--output-dir PATH]
-```
-
-### skill export
-
-Export a graph into a portable skill bundle with:
-
-- `SKILL.md`
-- `scripts/run.sh`
-- `references/`
-- `assets/schema.json`
-
-**Options:**
-
-| Flag | Default | Description |
-|------|---------|-------------|
-| `--format` | `skill-md` | Output layout variant: `skill-md`, `copilot`, `cursor`, `agent-md` |
-| `--output-dir` | `output` | Base output directory |
-
-**Layout by format:**
-
-| Format | Output path |
-|--------|-------------|
-| `skill-md` | `<output-dir>/<skill-name>/...` |
-| `copilot` | `<output-dir>/.copilot/skills/<skill-name>/...` |
-| `cursor` | `<output-dir>/.cursor/skills/<skill-name>/...` |
-| `agent-md` | `<output-dir>/.github/agents/<skill-name>.agent.md` |
-
-**Examples:**
-
-```bash
-# Standard package layout
-yamlgraph skill export examples/demos/hello/graph.yaml --format skill-md
-
-# Copilot-compatible skills directory
-yamlgraph skill export examples/demos/hello/graph.yaml --format copilot --output-dir .
-
-# Cursor-compatible skills directory
-yamlgraph skill export examples/demos/hello/graph.yaml --format cursor --output-dir .
-
-# Copilot agent mode file constrained to YAMLGraph MCP tools
-yamlgraph skill export examples/demos/hello/graph.yaml --format agent-md --output-dir .
-```
 
 ---
 
