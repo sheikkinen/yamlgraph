@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Bug
-**Status:** Judged
+**Status:** Enforced
 **Effort:** 0.5 days
 **Requested:** 2026-08-29
 **First consumer / first event:** the `yamlgraph-daily-digest` scheduled
@@ -205,3 +205,45 @@ authored — `prompts/rank_stories.yaml` is deliberately left unchanged
 - FR-903 — establishes the `digest_status` field this extends
 - `examples/daily_digest/nodes/formatting.py` — the sibling renderer with
   the identical defect, and the site of the 2026-08-29 crash
+
+## Implementation Status — Enforced
+
+**Merged:** `yamlgraph-daily-digest` PR #2, squashed to `63b6aa8`.
+
+| | |
+|---|---|
+| RED | `d2ec805` — 10 witnesses, `ImportError` on the absent guard |
+| GREEN | `f66639c` — 32 passed (10 new, 22 inherited from FR-903) |
+| Live | 50 articles → 27 filtered → archived → delivered, exit 0 |
+
+### What was built
+
+`nodes/formatting.py` validates each ranked story against a typed
+`RankedStory` (`title`/`url` required, `summary`/`reason`/`relevance`
+optional). Non-conforming items are dropped individually and logged with
+index, observed type, and a capped reason — observable via `caplog`
+without dumping the payload (R-4).
+
+`InvalidRankedStoriesError` is raised when the ranker was invoked and no
+item survives, naming the item count and the observed types. Per R-2,
+`invalid` is a failure classification only: a raised node returns no state
+update, so `invalid` can never also be a successful result. An invoked
+ranker returning an empty list raises as its own case (R-5) — previously
+indistinguishable from a quiet day, which is exactly how invalid output
+laundered into a green no-op.
+
+### Decisions
+
+- `prompts/rank_stories.yaml` is **untouched**, deliberately, and a test
+  asserts `list[Any]` remains. The guard is correct regardless of what
+  the schema becomes, because a well-typed schema can still be satisfied
+  by a well-typed lie. Tightening the schema would have made the fix look
+  done while leaving the boundary unguarded.
+- URL reconciliation stayed out of scope per R-3.
+
+### Deviations
+
+None. Surface was confined to `yamlgraph-daily-digest` per R-1;
+`examples/daily_digest/*` was used as evidence only and remains unchanged
+— it still carries the identical defect, which is a candidate for a
+follow-up or for retirement in favour of the standalone repo.

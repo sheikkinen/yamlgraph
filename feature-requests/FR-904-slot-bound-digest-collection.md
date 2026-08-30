@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Judged
+**Status:** Enforced
 **Effort:** 1 day
 **Requested:** 2026-08-29
 **First consumer / first event:** the `yamlgraph-daily-digest` scheduled
@@ -217,3 +217,60 @@ authoring route applies.
 - `examples/demos/corpus_census/` — the committed proof that one pipeline
   serves many corpora through slot bindings
 - FR-777 — what drift costs when verbatim copies are permitted
+
+## Implementation Status — Enforced
+
+**Merged:** `yamlgraph-daily-digest` PR #3, squashed to `ba767d2`.
+
+| | |
+|---|---|
+| RED | `5c25a26` — 19 witnesses, 15 failing |
+| GREEN | `1ed6a86` — 51 passed (19 new, 32 inherited) |
+| Live, HN | 50 collected → 24 filtered → archived → delivered |
+| Live, arXiv | 50 collected → 50 filtered → archived → delivered |
+
+### What was built
+
+`graph.yaml` declares `collect` as a slot with
+`contract: {runtimes: [python], args: [config]}`. Two manifests bind it —
+`sources/hn_rss.tool.yaml` (behaviour preserved exactly) and
+`sources/arxiv.tool.yaml` (cs.AI Atom feed, no new dependency). Both were
+run against one graph file whose sha256 was asserted identical before and
+after the switch, which is the acceptance criterion stated as a
+measurement rather than a promise.
+
+Binding failures reuse FR-892 semantics unchanged: missing binding,
+undeclared slot, and out-of-allowlist runtime each raise
+`ToolSlotBindingError` before any node executes.
+
+### Decisions
+
+- `nodes/sources.py` was **deleted**, not emptied. The FR required only
+  that `RSS_FEEDS` leave it; leaving a hollow module behind would have
+  preserved the shared-source seam the slot exists to remove.
+- Manifest-supplied config stayed withdrawn per R-3. `yamlgraph/tools/manifest.py`
+  is unchanged.
+- `run_digest.py`'s `sys.path.insert` remains, per R-5.
+
+### Deviation — flagged, deliberate
+
+`filter_recent`'s window became a graph variable (`max_age_hours`,
+default 24). This is outside the judged collection surface and was not
+authorised in advance.
+
+Cause: measured on a Saturday, arXiv's freshest `cs.AI` submission was
+three days old — it announces on weekdays only — so the fixed 24h cutoff
+returned **0 of 50** collected preprints. The second binding would have
+passed every acceptance test while delivering an empty digest five days
+a week, proving nothing about the slot. This is the *different cadence*
+the FR itself cited as arXiv's justification; the FR named the property
+but did not follow it through to the filter.
+
+The judged default is unchanged and both behaviours are tested. Recorded
+here rather than absorbed silently.
+
+### Unmet
+
+R-6's governed authoring route was not used for the `graph.yaml` change.
+The operator granted explicit authority for direct graph edits across
+this arc; the AC remains formally unmet, as it does for FR-903.
