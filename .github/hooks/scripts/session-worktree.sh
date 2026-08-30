@@ -50,7 +50,15 @@ mkdir -p "$LOG_DIR/session-lanes" 2>/dev/null
 printf '{"session_id":"%s","branch":"session/%s","lane":"%s"}\n' \
     "$SID" "$SID" "$LANE" >"$LOG_DIR/session-lanes/$SID.json"
 audit "approve" "lane ready"
-# agent-visible lane delivery (briefing orders after this hook)
-echo "FR-902 session lane: $LANE"
-echo "Work there: cd '$LANE'"
+# FR-925: agent-visible lane delivery via the structured JSON channel;
+# plain stdout is captured into hook telemetry and never reaches context.
+python3 - "$LANE" <<'PYEOF'
+import json
+import sys
+
+lane = sys.argv[1]
+ctx = "FR-902 session lane: %s\nWork there: cd '%s'" % (lane, lane)
+print(json.dumps({"hookSpecificOutput": {
+    "hookEventName": "SessionStart", "additionalContext": ctx}}))
+PYEOF
 exit 0
