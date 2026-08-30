@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Bug
-**Status:** Proposed
+**Status:** Judged
 **Effort:** 0.5 days
 **Requested:** 2026-08-29
 **First consumer / first event:** the `yamlgraph-daily-digest` scheduled
@@ -99,26 +99,46 @@ dropped with a logged reason. If the ranked response was **non-empty** but
 **no** element conforms, raise — naming the count and the observed element
 types.
 
-### The status field (R-5)
+### Surface (R-1)
 
-`format_markdown` emits `digest_status` alongside `digest_markdown`. FR-903
-establishes `no_articles` and `ready`; this FR adds the third value:
+Implementation is limited to the external **`yamlgraph-daily-digest`**
+repository:
 
-| `digest_status` | Meaning |
+| File | Action |
 |---|---|
-| `no_articles` | nothing was collected; the ranker was never invoked |
-| `ready` | at least one story validated |
-| `invalid` | the ranker returned items and none validated → raise |
+| `nodes/formatting.py` | typed validation, drop/raise boundary, `InvalidRankedStoriesError` |
+| `tests/test_fr905_ranked_validation.py` | condemning tests |
+| `run_digest.py` | only if needed to surface the failure in run output |
 
-Emptiness is never the signal. A no-op day and a malformed response are
-different states, and only the former is green.
+`examples/daily_digest/*` in **this** repository is **cited evidence
+only** — the 2026-08-29 crash site. It is not an implementation target.
+Fixing the sibling example is a separate judged FR, not this one.
 
-### Optional reconciliation
+### The status field, and what `invalid` means (R-2)
 
-Per FR-894, each accepted story's `url` may be reconciled against the
-`analyzed` set, which additionally catches invented stories. Included as
-an acceptance criterion but scoped as optional — the drop/raise boundary
-is the required fix.
+`format_markdown` emits `digest_status` alongside `digest_markdown`.
+FR-903 established `no_articles` and `ready`. This FR adds `invalid`
+**as a failure classification, never as a successful graph result** — a
+raised node does not also return a state update, so the two cannot be the
+same thing.
+
+| Condition | Behaviour |
+|---|---|
+| No input articles; the ranker was never invoked | return `digest_status == no_articles` |
+| At least one ranked story validates **and** rendered markdown is non-empty | return `digest_status == ready` |
+| Ranker **was** invoked and: the payload is empty, **or** every item is invalid, **or** no valid survivor remains | **raise** `InvalidRankedStoriesError` |
+
+The exception message carries `digest_status=invalid`, the ranked item
+count, and the observed element types. `digest_status == invalid` may
+appear only in that failure path; it is never a value a successful run
+returns.
+
+The empty-ranked-response case (R-5) is explicit above and is its own
+test: an invoked ranker returning zero stories is neither a quiet day nor
+a partially bad response, and leaving it unspecified would recreate the
+exact empty-bulletin laundering this FR exists to kill.
+
+Emptiness is never the signal.
 
 ### Explicitly not a framework change
 
@@ -133,16 +153,21 @@ because a well-typed schema can still be satisfied by a well-typed lie.
       `["a string", "another"]` fails before the fix exists
 - [ ] Non-conforming items are dropped individually; a mixed response
       renders the conforming subset
-- [ ] A non-empty ranked response with zero conforming items raises,
-      naming the count and the observed element types
-- [ ] `digest_status == invalid` is never reported as success
+- [ ] **Each dropped item is observable**: a `caplog` test proves the log
+      record carries the item index, its observed type, and the validation
+      reason — and does **not** dump the full payload (R-4)
+- [ ] A non-empty ranked response with zero conforming items raises
+      `InvalidRankedStoriesError`, naming the count and observed types
+- [ ] An **empty** ranked response from an invoked ranker raises the same
+      error — tested separately from the all-strings and mixed cases (R-5)
+- [ ] `digest_status == invalid` never appears as a successful graph
+      result; it exists only in the failure path
 - [ ] `no_articles` and `invalid` are distinguishable in the run output —
       asserted by a test, not by reading logs
 - [ ] No path emits an empty bulletin as success
-- [ ] Optional: accepted story URLs are reconciled against the `analyzed`
-      set, with unreconciled stories dropped and logged
 - [ ] No change to `yamlgraph/schema_loader.py` or to any framework
       schema behaviour
+- [ ] No change under `examples/daily_digest/` (evidence only, R-1)
 
 ## Alternatives Considered
 
@@ -166,6 +191,12 @@ authored — `prompts/rank_stories.yaml` is deliberately left unchanged
 - Slot-bound collection (FR-904)
 - Framework nested-schema support (A1)
 - The committed-SQLite question and the JSONL ledger
+- **URL reconciliation against the `analyzed` set (R-3).** Parked as a
+  follow-up FR, not an optional criterion here. An optional gate is not a
+  gate — acceptance criteria must be mechanically checkable. FR-894
+  remains the precedent for a later *mandatory* reconciliation FR with
+  exact input shapes and tests; this FR's required fix is the drop/raise
+  boundary alone.
 
 ## Related
 

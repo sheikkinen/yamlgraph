@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Proposed — **GATED on FR-906**
+**Status:** Judged
 **Effort:** 1 day
 **Requested:** 2026-08-29
 **First consumer / first event:** the `yamlgraph-daily-digest` scheduled
@@ -56,14 +56,16 @@ must provide; the caller supplies which collector at invocation. Adding a
 source is writing one manifest. `graph.yaml` never changes again for a new
 subject area.
 
-## Blocking dependency
+## Blocking dependency — satisfied (R-1)
 
-**FR-906 must be enforced first.** FR-892 `--tool` merged 2026-08-26
-(`06d1dfe4`); the latest PyPI release `v0.5.22` is tagged 2026-08-17, and
-`git merge-base --is-ancestor 06d1dfe4 v0.5.22` is false. The workflow
-installs yamlgraph from PyPI, so the failure is an argparse error before
-the graph loads — not a subtle degradation. Do not start this FR until
-`pip install yamlgraph==<FR-906 version>` provides `--tool`.
+FR-906 is **enforced**: `yamlgraph 0.5.23` published 2026-08-29, verified
+from a clean venv outside any checkout —
+`yamlgraph graph run --help` lists `--tool TOOL_BINDINGS`. Today's
+production digest run already installs it.
+
+The workflow pin is `yamlgraph>=0.5.23`. Before FR-906 this was a hard
+block, not a degradation: `--tool` did not exist in any published wheel,
+so the failure was an argparse error before the graph loaded.
 
 ## Proposed Solution
 
@@ -87,21 +89,73 @@ the caller's CWD, the runtime allowlist is the mechanical check, and every
 binding failure is a typed `ToolSlotBindingError` raised before any node
 or LLM executes.
 
-### Two bindings, because one binding proves nothing
+### Collector ABI, frozen (R-2)
 
-| Manifest | Source | Note |
+A binding that satisfies the slot mechanically but changes the output
+shape breaks filtering, content extraction, and ranking downstream. The
+contract is therefore both directions:
+
+**In** — the `collect` node supplies `config` from graph variables; a
+collector takes no other required argument.
+
+**Out** — `raw_articles` is a list of records, each carrying **at least**:
+
+| Key | Type | Meaning |
 |---|---|---|
-| `sources/hn_rss.tool.yaml` | Hacker News + RSS | current behaviour preserved; `RSS_FEEDS` moves from a module constant to manifest-supplied config |
-| `sources/<second>.tool.yaml` | genuinely different (arXiv, GitHub releases, or a caller-supplied feed list) | the witness that the seam is real |
+| `title` | `str` | article title |
+| `url` | `str` | canonical link; the dedupe key |
+| `source` | `str` | short origin label (`"HN"`, `"RSS"`, `"arXiv"`) |
+| `timestamp` | `str` | ISO-8601; `filter_recent` parses this for the 24h cutoff |
+
+This is the shape `nodes/sources.py` already emits. Extra keys are
+permitted; a missing key is a binding defect and must fail the acceptance
+test, not degrade silently.
+
+### Two bindings, because one binding proves nothing (R-4)
+
+| Manifest | Implementation | Source |
+|---|---|---|
+| `sources/hn_rss.tool.yaml` | `sources/hn_rss.py` | Hacker News top stories + the current RSS feed list — behaviour preserved exactly |
+| `sources/arxiv.tool.yaml` | `sources/arxiv.py` | arXiv `cs.AI` recent submissions via its Atom feed |
+
+**arXiv is the frozen second source**, not a menu. It is genuinely
+different from HN/RSS tech news (academic preprints, different cadence,
+different relevance profile), and it needs **no new dependency** — the
+Atom feed parses with `feedparser`, already installed for RSS.
+
+Smoke, run from the repository root:
+
+```bash
+yamlgraph graph run graph.yaml --tool collect=sources/arxiv.tool.yaml \
+  --var topics="AI,Python"
+```
 
 A slot with a single binding has not been shown to be a slot — it is an
 inline tool with extra ceremony.
 
-### Collateral
+### Feed lists are Python, not manifest config (R-3)
 
-Manifest-ising the four existing node modules removes the
-`sys.path.insert` hack, because manifest paths resolve relative to the
-manifest file.
+The FR previously said `RSS_FEEDS` would move "from a module constant to
+manifest-supplied config". **That is impossible under the current schema**
+and the claim is withdrawn: `ToolManifest` permits only `name`,
+`description`, and `runtime`, every model sets `extra="forbid"`, and a
+python runtime permits only `type`, `function`, and exactly one of `path`
+or `module` (`yamlgraph/tools/manifest.py`). A `.tool.yaml` cannot carry a
+feed list.
+
+Instead each source keeps its own constants in its own implementation
+file — `sources/hn_rss.py` owns the HN endpoint and `RSS_FEEDS`,
+`sources/arxiv.py` owns its query. Swapping sources swaps files, which is
+the point. **No change to `yamlgraph/tools/manifest.py`.** Manifest-level
+config, if ever wanted, is a separate framework FR.
+
+### Collateral (R-5)
+
+`run_digest.py`'s `sys.path.insert` is **out of scope**. Removing it would
+require converting every remaining `module: nodes.*` tool — filtering,
+content, formatting — not just collection, which is a second concern in a
+FR the Judge split precisely to keep one. The hack stays; a later FR may
+finish the conversion.
 
 ### Graph-authoring route (R-6)
 
@@ -110,19 +164,24 @@ through the governed authoring route with an authoring report.
 
 ## Acceptance Criteria
 
-- [ ] `pip install yamlgraph==<FR-906 version>` provides `--tool`,
-      verified before work starts
+- [ ] `pip install "yamlgraph==0.5.23"` provides `--tool`, verified in a
+      clean venv before work starts
 - [ ] `collect` is declared as a slot with an explicit `contract`
-- [ ] **Two** source manifests bind it, one preserving current behaviour
+- [ ] **Two** manifests bind it: `sources/hn_rss.tool.yaml` (behaviour
+      preserved) and `sources/arxiv.tool.yaml`
 - [ ] Switching between them requires **zero** edits to `graph.yaml` —
       asserted by running both bindings against an unchanged graph file
       and comparing its hash before and after
-- [ ] `RSS_FEEDS` no longer exists as a module constant; feed lists arrive
-      as manifest-supplied config
+- [ ] **Both** collectors return `raw_articles` records carrying `title`,
+      `url`, `source`, and `timestamp`; a record missing any key fails the
+      test rather than degrading downstream
+- [ ] `RSS_FEEDS` no longer exists in `nodes/sources.py`; it lives in
+      `sources/hn_rss.py`, the implementation its manifest points at.
+      **No change to `yamlgraph/tools/manifest.py`** — the manifest schema
+      forbids extra keys and cannot carry config
 - [ ] A missing binding, an undeclared slot, and a runtime outside the
       allowlist each raise `ToolSlotBindingError` before any node runs
-- [ ] `run_digest.py` no longer mutates `sys.path`
-- [ ] The workflow pins `yamlgraph>=<FR-906 version>`
+- [ ] The workflow pins `yamlgraph>=0.5.23`
 - [ ] An authoring report exists for the `graph.yaml` change
 - [ ] One real scheduled run succeeds with the slot-bound graph, evidenced
       by run ID and commit SHA
