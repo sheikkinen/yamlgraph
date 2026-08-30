@@ -300,7 +300,7 @@ All ACs green: 70/70 FR-889 tests, full hook suite 251 passed, unit suite
   `checks/main_write.py`.
 - **Live-guard evidence:** six false-positive denials by the OLD grammar
   during this very enforcement, recorded in
-  `docs/diary/2026-08-30-fr889-deleting-the-grammar.md` — the empirical
+  `docs/diary/2026-08-30-reflection-fr-889.md` — the empirical
   case for the deletion.
 
 **Post-merge rollout:** run `scripts/worktree.sh lock-main` on the real
