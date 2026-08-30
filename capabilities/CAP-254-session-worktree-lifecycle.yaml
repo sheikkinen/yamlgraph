@@ -9,7 +9,7 @@ description: >
   Request-Index trailers, lossless GC classifies and prunes only
   merged/stale-clean lanes, and a join script correlates requests to
   checkpoint commits with model/credit provenance.
-fr: FR-902
+fr: FR-902, FR-925
 modules:
   - scripts/worktree.sh
   - .github/hooks/scripts/session-worktree.sh

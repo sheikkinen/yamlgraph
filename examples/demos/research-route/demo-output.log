@@ -1,378 +1,148 @@
-research_preflight: brief ok
-2026-08-28 16:18:14,262 [INFO] yamlgraph.compile.graph_loader: Parsed 6 Python tools: load_brief, collect_graph_shapes, collect_committed_context, gather_findings, write_alternatives, search_web
-2026-08-28 16:18:14,266 [INFO] yamlgraph.compile.node_compiler: Added node: load_brief (type=python)
-2026-08-28 16:18:14,269 [INFO] yamlgraph.compile.node_compiler: Added node: collect_graph_shapes (type=python)
-2026-08-28 16:18:14,272 [INFO] yamlgraph.compile.node_compiler: Added node: collect_committed_context (type=python)
-2026-08-28 16:18:14,279 [INFO] yamlgraph.compile.node_compiler: Added node: os_infra_primitivist (type=llm)
-2026-08-28 16:18:14,286 [INFO] yamlgraph.compile.node_compiler: Added node: data_process_planner (type=llm)
-2026-08-28 16:18:14,293 [INFO] yamlgraph.compile.node_compiler: Added node: yamlgraph_native_planner (type=llm)
-2026-08-28 16:18:14,300 [INFO] yamlgraph.compile.node_compiler: Added node: subtractionist (type=llm)
-2026-08-28 16:18:14,302 [INFO] yamlgraph.compile.node_compiler: Added node: librarian_research (type=agent)
-2026-08-28 16:18:14,303 [INFO] yamlgraph.compile.node_compiler: Added node: os_infra_ready (type=passthrough)
-2026-08-28 16:18:14,303 [INFO] yamlgraph.compile.node_compiler: Added node: data_process_ready (type=passthrough)
-2026-08-28 16:18:14,303 [INFO] yamlgraph.compile.node_compiler: Added node: yamlgraph_native_ready (type=passthrough)
-2026-08-28 16:18:14,303 [INFO] yamlgraph.compile.node_compiler: Added node: subtractionist_ready (type=passthrough)
-2026-08-28 16:18:14,310 [INFO] yamlgraph.compile.node_compiler: Added node: librarian_structure (type=llm)
-2026-08-28 16:18:14,313 [INFO] yamlgraph.compile.node_compiler: Added node: gather_findings (type=python)
-2026-08-28 16:18:14,316 [INFO] yamlgraph.compile.node_compiler: Added node: reduce_findings (type=python)
-2026-08-28 16:18:14,367 [INFO] yamlgraph.route: {"event": "run", "run_id": "01a04885-5b42-7be5-a28d-e90e59205f36", "artifact_hash": "sha256:5b05854fc0444884aed4bc7637775e3bb43eefb2c8d08f5b7336697adf114fb1", "graph": "/Users/sheikki/Documents/src/yamlgraph/tmp/worktrees/feat/fr-896-traceability/examples/demos/research-route/graph.yaml", "yamlgraph_version": "0.5.17", "thread_id": null, "started_at": "2026-08-28T13:18:14Z"}
-2026-08-28 16:18:14,606 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: load_brief -> load_brief
-2026-08-28 16:18:14,609 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: collect_graph_shapes -> collect_graph_shapes
-2026-08-28 16:18:15,032 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: collect_committed_context -> collect_committed_context
-2026-08-28 16:18:15,494 [INFO] yamlgraph.utils.llm_factory: Creating LLM: anthropic/claude-haiku-4-5 (temp=0.0)
-2026-08-28 16:18:16,594 [INFO] yamlgraph.tools.agent: 🤖 Starting agent loop: librarian_research (max 4 iterations)
-2026-08-28 16:18:19,461 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
-2026-08-28 16:18:19,494 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': 'multi-persona independent discovery convergence signal contaminated context research methodology', 'max_results': 5})
-2026-08-28 16:18:20,233 [INFO] primp: response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=multi-persona%20independent%20discovery%20convergence%20signal%20contaminated%20context%20research%20methodology 200
-2026-08-28 16:18:20,529 [INFO] primp: response: https://grokipedia.com/api/typeahead?query=multi-persona+independent+discovery+convergence+signal+contaminated+context+research+methodology&limit=1 200
-2026-08-28 16:18:20,807 [INFO] httpx: HTTP Request: POST https://html.duckduckgo.com/html/ "HTTP/2 202 Accepted"
-2026-08-28 16:18:21,411 [INFO] primp: response: https://yandex.com/search/site/?text=multi-persona+independent+discovery+convergence+signal+contaminated+context+research+methodology&web=1&searchid=3161155 200
-2026-08-28 16:18:21,434 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': 'blind review process independent expert panels avoiding confirmation bias', 'max_results': 5})
-2026-08-28 16:18:21,570 [INFO] primp: response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=blind%20review%20process%20independent%20expert%20panels%20avoiding%20confirmation%20bias 200
-2026-08-28 16:18:21,669 [INFO] primp: response: https://grokipedia.com/api/typeahead?query=blind+review+process+independent+expert+panels+avoiding+confirmation+bias&limit=1 200
-2026-08-28 16:18:21,979 [INFO] primp: response: https://search.yahoo.com/search;_ylt=dRKJPkbARuknvpV4VqlXM6wf;_ylu=dFz5-yVuYzSvQLPkWOpBW4VAWUfZNvdrxeUMj074tc9GjrA?p=blind+review+process+independent+expert+panels+avoiding+confirmation+bias 200
-2026-08-28 16:18:22,019 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
-2026-08-28 16:18:22,022 [INFO] yamlgraph.node_factory.llm_nodes: Node os_infra_primitivist completed successfully
-2026-08-28 16:18:22,151 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
-2026-08-28 16:18:22,154 [INFO] yamlgraph.node_factory.llm_nodes: Node data_process_planner completed successfully
-2026-08-28 16:18:22,988 [INFO] primp: response: https://www.mojeek.com/search?q=blind+review+process+independent+expert+panels+avoiding+confirmation+bias 200
-2026-08-28 16:18:23,295 [INFO] primp: response: https://www.startpage.com/ 200
-2026-08-28 16:18:23,329 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
-2026-08-28 16:18:23,331 [INFO] yamlgraph.node_factory.llm_nodes: Node yamlgraph_native_planner completed successfully
-2026-08-28 16:18:23,408 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
-2026-08-28 16:18:23,411 [INFO] yamlgraph.node_factory.llm_nodes: Node subtractionist completed successfully
-2026-08-28 16:18:23,428 [INFO] primp: response: https://www.startpage.com/sp/search 200
-2026-08-28 16:18:23,677 [INFO] primp: response: https://search.brave.com/search?q=blind+review+process+independent+expert+panels+avoiding+confirmation+bias&source=web 429
-2026-08-28 16:18:23,837 [INFO] httpx: HTTP Request: POST https://html.duckduckgo.com/html/ "HTTP/2 202 Accepted"
-2026-08-28 16:18:23,917 [INFO] primp: response: https://www.google.com/search?q=blind+review+process+independent+expert+panels+avoiding+confirmation+bias&filter=1&start=0&hl=en-US&lr=lang_en&cr=countryUS 200
-2026-08-28 16:18:24,573 [INFO] primp: response: https://yandex.com/search/site/?text=blind+review+process+independent+expert+panels+avoiding+confirmation+bias&web=1&searchid=2413043 200
-2026-08-28 16:18:24,594 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': 'Delphi method expert consensus avoiding groupthink contamination', 'max_results': 5})
-2026-08-28 16:18:24,733 [INFO] primp: response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=Delphi%20method%20expert%20consensus%20avoiding%20groupthink%20contamination 200
-2026-08-28 16:18:29,616 [INFO] ddgs.ddgs: Error in engine grokipedia: TimeoutException(TimeoutError('error sending request for url (https://grokipedia.com/api/typeahead?query=Delphi+method+expert+consensus+avoiding+groupthink+contamination&limit=1) > operation timed out'))
-2026-08-28 16:18:29,844 [INFO] primp: response: https://search.brave.com/search?q=Delphi+method+expert+consensus+avoiding+groupthink+contamination&source=web 429
-2026-08-28 16:18:30,239 [INFO] primp: response: https://yandex.com/search/site/?text=Delphi+method+expert+consensus+avoiding+groupthink+contamination&web=1&searchid=1356562 200
-2026-08-28 16:18:32,381 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
-2026-08-28 16:18:32,382 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': 'blind review methodology independent verification context isolation research', 'max_results': 5})
-2026-08-28 16:18:32,645 [INFO] primp: response: https://grokipedia.com/api/typeahead?query=blind+review+methodology+independent+verification+context+isolation+research&limit=1 200
-2026-08-28 16:18:32,839 [INFO] primp: response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=blind%20review%20methodology%20independent%20verification%20context%20isolation%20research 200
-2026-08-28 16:18:32,975 [INFO] httpx: HTTP Request: POST https://html.duckduckgo.com/html/ "HTTP/2 202 Accepted"
-2026-08-28 16:18:33,075 [INFO] primp: response: https://www.google.com/search?q=blind+review+methodology+independent+verification+context+isolation+research&filter=1&start=0&hl=en-US&lr=lang_en&cr=countryUS 200
-2026-08-28 16:18:33,328 [INFO] primp: response: https://www.mojeek.com/search?q=blind+review+methodology+independent+verification+context+isolation+research 200
-2026-08-28 16:18:33,954 [INFO] primp: response: https://yandex.com/search/site/?text=blind+review+methodology+independent+verification+context+isolation+research&web=1&searchid=4692207 200
-2026-08-28 16:18:33,972 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': 'pre-registration research design preventing p-hacking confirmation bias', 'max_results': 5})
-2026-08-28 16:18:34,286 [INFO] primp: response: https://grokipedia.com/api/typeahead?query=pre-registration+research+design+preventing+p-hacking+confirmation+bias&limit=1 200
-2026-08-28 16:18:34,405 [INFO] primp: response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=pre-registration%20research%20design%20preventing%20p-hacking%20confirmation%20bias 200
-2026-08-28 16:18:34,635 [INFO] primp: response: https://search.brave.com/search?q=pre-registration+research+design+preventing+p-hacking+confirmation+bias&source=web 429
-2026-08-28 16:18:35,294 [INFO] primp: response: https://yandex.com/search/site/?text=pre-registration+research+design+preventing+p-hacking+confirmation+bias&web=1&searchid=5733842 200
-2026-08-28 16:18:37,292 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
-2026-08-28 16:18:37,294 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': '"closed input" research methodology artifact verification schema', 'max_results': 5})
-2026-08-28 16:18:37,619 [INFO] primp: response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=%22closed%20input%22%20research%20methodology%20artifact%20verification%20schema 200
-2026-08-28 16:18:37,762 [INFO] primp: response: https://grokipedia.com/api/typeahead?query=%22closed+input%22+research+methodology+artifact+verification+schema&limit=1 200
-2026-08-28 16:18:38,010 [INFO] primp: response: https://yandex.com/search/site/?text=%22closed+input%22+research+methodology+artifact+verification+schema&web=1&searchid=2049060 200
-2026-08-28 16:18:38,159 [INFO] httpx: HTTP Request: POST https://html.duckduckgo.com/html/ "HTTP/2 202 Accepted"
-2026-08-28 16:18:38,387 [INFO] primp: response: https://search.brave.com/search?q=%22closed+input%22+research+methodology+artifact+verification+schema&source=web 429
-2026-08-28 16:18:38,746 [INFO] primp: response: https://search.yahoo.com/search;_ylt=3YazfSCet2IFx_wiYlkyJXRD;_ylu=FUiFZ3t-sndXCzYmryIBDZqET9JUFN0TebsvFVjyjuJAasw?p=%22closed+input%22+research+methodology+artifact+verification+schema 200
-2026-08-28 16:18:39,309 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': 'multi-rater agreement inter-rater reliability independent judges convergence', 'max_results': 5})
-2026-08-28 16:18:39,642 [INFO] primp: response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=multi-rater%20agreement%20inter-rater%20reliability%20independent%20judges%20convergence 200
-2026-08-28 16:18:39,774 [INFO] primp: response: https://grokipedia.com/api/typeahead?query=multi-rater+agreement+inter-rater+reliability+independent+judges+convergence&limit=1 200
-2026-08-28 16:18:40,404 [INFO] primp: response: https://yandex.com/search/site/?text=multi-rater+agreement+inter-rater+reliability+independent+judges+convergence&web=1&searchid=6145268 200
-2026-08-28 16:18:42,249 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
-2026-08-28 16:18:42,253 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': 'adversarial collaboration independent teams research design avoiding echo chamber', 'max_results': 5})
-2026-08-28 16:18:42,515 [INFO] primp: response: https://grokipedia.com/api/typeahead?query=adversarial+collaboration+independent+teams+research+design+avoiding+echo+chamber&limit=1 200
-2026-08-28 16:18:42,623 [INFO] primp: response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=adversarial%20collaboration%20independent%20teams%20research%20design%20avoiding%20echo%20chamber 200
-2026-08-28 16:18:42,699 [INFO] primp: response: https://www.google.com/search?q=adversarial+collaboration+independent+teams+research+design+avoiding+echo+chamber&filter=1&start=0&hl=en-US&lr=lang_en&cr=countryUS 200
-2026-08-28 16:18:42,862 [INFO] httpx: HTTP Request: POST https://html.duckduckgo.com/html/ "HTTP/2 202 Accepted"
-2026-08-28 16:18:43,490 [INFO] primp: response: https://yandex.com/search/site/?text=adversarial+collaboration+independent+teams+research+design+avoiding+echo+chamber&web=1&searchid=5927056 200
-2026-08-28 16:18:43,512 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': 'registered reports pre-specification research methodology preventing HARKing', 'max_results': 5})
-2026-08-28 16:18:43,852 [INFO] primp: response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=registered%20reports%20pre-specification%20research%20methodology%20preventing%20HARKing 200
-2026-08-28 16:18:44,608 [INFO] primp: response: https://grokipedia.com/api/typeahead?query=registered+reports+pre-specification+research+methodology+preventing+HARKing&limit=1 200
-2026-08-28 16:18:45,375 [INFO] primp: response: https://www.mojeek.com/search?q=registered+reports+pre-specification+research+methodology+preventing+HARKing 200
-2026-08-28 16:18:45,605 [INFO] primp: response: https://search.brave.com/search?q=registered+reports+pre-specification+research+methodology+preventing+HARKing&source=web 429
-2026-08-28 16:18:46,074 [INFO] primp: response: https://search.yahoo.com/search;_ylt=yvHFFqxBwdrsKp21dqGfEZDD;_ylu=Vj47euJ086fZAT_-YQ9QNQeE-BCQDfpCw5aGkY-cF-1CFUg?p=registered+reports+pre-specification+research+methodology+preventing+HARKing 200
-2026-08-28 16:18:46,251 [INFO] httpx: HTTP Request: POST https://html.duckduckgo.com/html/ "HTTP/2 202 Accepted"
-2026-08-28 16:18:46,530 [INFO] primp: response: https://www.startpage.com/ 200
-2026-08-28 16:18:46,657 [INFO] primp: response: https://www.startpage.com/sp/search 200
-2026-08-28 16:18:46,732 [INFO] primp: response: https://www.google.com/search?q=registered+reports+pre-specification+research+methodology+preventing+HARKing&filter=1&start=0&hl=en-US&lr=lang_en&cr=countryUS 200
-2026-08-28 16:18:47,348 [INFO] primp: response: https://yandex.com/search/site/?text=registered+reports+pre-specification+research+methodology+preventing+HARKing&web=1&searchid=4410341 200
-2026-08-28 16:18:47,370 [WARNING] yamlgraph.tools.agent: Agent hit max iterations (4)
-2026-08-28 16:18:47,375 [INFO] yamlgraph.node_factory.control_nodes: Node data_process_ready completed successfully
-2026-08-28 16:18:47,375 [INFO] yamlgraph.node_factory.control_nodes: Node subtractionist_ready completed successfully
-2026-08-28 16:18:47,376 [INFO] yamlgraph.node_factory.control_nodes: Node yamlgraph_native_ready completed successfully
-2026-08-28 16:18:47,376 [INFO] yamlgraph.node_factory.control_nodes: Node os_infra_ready completed successfully
-2026-08-28 16:18:52,390 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
-2026-08-28 16:18:52,392 [INFO] yamlgraph.node_factory.llm_nodes: Node librarian_structure completed successfully
-2026-08-28 16:18:52,394 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: gather_findings -> gather_findings
-2026-08-28 16:18:52,395 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: reduce_findings -> write_alternatives
-2026-08-28 16:18:52,602 [INFO] yamlgraph.route: {"event": "run_end", "run_id": "01a04885-5b42-7be5-a28d-e90e59205f36", "ended_at": "2026-08-28T13:18:52Z", "dropped_events": 0}
+2026-08-30 09:40:40,329 [INFO] yamlgraph.compile.graph_loader: Parsed 6 Python tools: load_brief, collect_graph_shapes, collect_committed_context, gather_findings, write_alternatives, search_web
+2026-08-30 09:40:40,332 [INFO] yamlgraph.compile.node_compiler: Added node: load_brief (type=python)
+2026-08-30 09:40:40,335 [INFO] yamlgraph.compile.node_compiler: Added node: collect_graph_shapes (type=python)
+2026-08-30 09:40:40,338 [INFO] yamlgraph.compile.node_compiler: Added node: collect_committed_context (type=python)
+2026-08-30 09:40:40,346 [INFO] yamlgraph.compile.node_compiler: Added node: os_infra_primitivist (type=llm)
+2026-08-30 09:40:40,353 [INFO] yamlgraph.compile.node_compiler: Added node: data_process_planner (type=llm)
+2026-08-30 09:40:40,359 [INFO] yamlgraph.compile.node_compiler: Added node: yamlgraph_native_planner (type=llm)
+2026-08-30 09:40:40,366 [INFO] yamlgraph.compile.node_compiler: Added node: subtractionist (type=llm)
+2026-08-30 09:40:40,368 [INFO] yamlgraph.compile.node_compiler: Added node: librarian_research (type=agent)
+2026-08-30 09:40:40,369 [INFO] yamlgraph.compile.node_compiler: Added node: os_infra_ready (type=passthrough)
+2026-08-30 09:40:40,369 [INFO] yamlgraph.compile.node_compiler: Added node: data_process_ready (type=passthrough)
+2026-08-30 09:40:40,369 [INFO] yamlgraph.compile.node_compiler: Added node: yamlgraph_native_ready (type=passthrough)
+2026-08-30 09:40:40,369 [INFO] yamlgraph.compile.node_compiler: Added node: subtractionist_ready (type=passthrough)
+2026-08-30 09:40:40,376 [INFO] yamlgraph.compile.node_compiler: Added node: librarian_structure (type=llm)
+2026-08-30 09:40:40,379 [INFO] yamlgraph.compile.node_compiler: Added node: gather_findings (type=python)
+2026-08-30 09:40:40,382 [INFO] yamlgraph.compile.node_compiler: Added node: reduce_findings (type=python)
+2026-08-30 09:40:40,435 [INFO] yamlgraph.route: {"event": "run", "run_id": "01a05166-17d5-7a46-8200-0a4c90acd522", "artifact_hash": "sha256:5b05854fc0444884aed4bc7637775e3bb43eefb2c8d08f5b7336697adf114fb1", "graph": "/Users/sheikki/Documents/src/yamlgraph/tmp/worktrees/session/7dfa4ede-3161-496a-b4be-8ca7a9e6c67c/examples/demos/research-route/graph.yaml", "yamlgraph_version": "0.5.17", "thread_id": null, "started_at": "2026-08-30T06:40:40Z"}
+2026-08-30 09:40:40,515 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: load_brief -> load_brief
+2026-08-30 09:40:40,518 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: collect_graph_shapes -> collect_graph_shapes
+2026-08-30 09:40:40,866 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: collect_committed_context -> collect_committed_context
+2026-08-30 09:40:41,283 [INFO] yamlgraph.utils.llm_factory: Creating LLM: anthropic/claude-haiku-4-5 (temp=0.0)
+2026-08-30 09:40:42,173 [INFO] yamlgraph.tools.agent: 🤖 Starting agent loop: librarian_research (max 4 iterations)
+2026-08-30 09:40:45,473 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-08-30 09:40:45,497 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': 'error context loss pipeline state dict upstream cause not propagated downstream', 'max_results': 5})
+2026-08-30 09:40:46,207 [INFO] primp: response: https://grokipedia.com/api/typeahead?query=error+context+loss+pipeline+state+dict+upstream+cause+not+propagated+downstream&limit=1 200
+2026-08-30 09:40:46,263 [INFO] primp: response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=error%20context%20loss%20pipeline%20state%20dict%20upstream%20cause%20not%20propagated%20downstream 200
+2026-08-30 09:40:46,486 [INFO] primp: response: https://www.mojeek.com/search?q=error+context+loss+pipeline+state+dict+upstream+cause+not+propagated+downstream 200
+2026-08-30 09:40:46,898 [INFO] primp: response: https://yandex.com/search/site/?text=error+context+loss+pipeline+state+dict+upstream+cause+not+propagated+downstream&web=1&searchid=8103929 200
+2026-08-30 09:40:46,913 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': 'static analysis detect missing error channel propagation state dict', 'max_results': 5})
+2026-08-30 09:40:47,046 [INFO] primp: response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=static%20analysis%20detect%20missing%20error%20channel%20propagation%20state%20dict 200
+2026-08-30 09:40:47,136 [INFO] primp: response: https://grokipedia.com/api/typeahead?query=static+analysis+detect+missing+error+channel+propagation+state+dict&limit=1 200
+2026-08-30 09:40:47,787 [INFO] primp: response: https://yandex.com/search/site/?text=static+analysis+detect+missing+error+channel+propagation+state+dict&web=1&searchid=6008178 200
+2026-08-30 09:40:47,807 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': 'pre-commit hook detect error record never reaches operator', 'max_results': 5})
+2026-08-30 09:40:47,818 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-08-30 09:40:47,821 [INFO] yamlgraph.node_factory.llm_nodes: Node data_process_planner completed successfully
+2026-08-30 09:40:47,861 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-08-30 09:40:47,863 [INFO] yamlgraph.node_factory.llm_nodes: Node os_infra_primitivist completed successfully
+2026-08-30 09:40:47,938 [INFO] primp: response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=pre-commit%20hook%20detect%20error%20record%20never%20reaches%20operator 200
+2026-08-30 09:40:48,073 [INFO] primp: response: https://grokipedia.com/api/typeahead?query=pre-commit+hook+detect+error+record+never+reaches+operator&limit=1 200
+2026-08-30 09:40:48,130 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-08-30 09:40:48,132 [INFO] yamlgraph.node_factory.llm_nodes: Node subtractionist completed successfully
+2026-08-30 09:40:48,168 [INFO] primp: response: https://www.google.com/search?q=pre-commit+hook+detect+error+record+never+reaches+operator&filter=1&start=0&hl=en-US&lr=lang_en&cr=countryUS 200
+2026-08-30 09:40:48,527 [INFO] primp: response: https://search.yahoo.com/search;_ylt=1XWefoc1GLTt6SWbannOi7w7;_ylu=BEt6tm4VpGtLTyI3JLZc0eAtXdhyYWZvDsDOJispkieHDLY?p=pre-commit+hook+detect+error+record+never+reaches+operator 200
+2026-08-30 09:40:49,189 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-08-30 09:40:49,191 [INFO] yamlgraph.node_factory.llm_nodes: Node yamlgraph_native_planner completed successfully
+2026-08-30 09:40:51,158 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-08-30 09:40:51,159 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': 'exception context preservation detection pattern raise without cause', 'max_results': 5})
+2026-08-30 09:40:51,389 [INFO] primp: response: https://grokipedia.com/api/typeahead?query=exception+context+preservation+detection+pattern+raise+without+cause&limit=1 200
+2026-08-30 09:40:51,549 [INFO] primp: response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=exception%20context%20preservation%20detection%20pattern%20raise%20without%20cause 200
+2026-08-30 09:40:51,785 [INFO] primp: response: https://www.startpage.com/ 200
+2026-08-30 09:40:51,928 [INFO] primp: response: https://www.startpage.com/sp/search 200
+2026-08-30 09:40:52,171 [INFO] primp: response: https://www.mojeek.com/search?q=exception+context+preservation+detection+pattern+raise+without+cause 200
+2026-08-30 09:40:52,788 [INFO] primp: response: https://yandex.com/search/site/?text=exception+context+preservation+detection+pattern+raise+without+cause&web=1&searchid=5335994 200
+2026-08-30 09:40:52,807 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': 'AST analysis detect exception raised without accessing error state', 'max_results': 5})
+2026-08-30 09:40:53,064 [INFO] primp: response: https://grokipedia.com/api/typeahead?query=AST+analysis+detect+exception+raised+without+accessing+error+state&limit=1 200
+2026-08-30 09:40:53,149 [INFO] primp: response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=AST%20analysis%20detect%20exception%20raised%20without%20accessing%20error%20state 200
+2026-08-30 09:40:53,434 [INFO] primp: response: https://search.yahoo.com/search;_ylt=ouP2d9h6TSA3IKa84lpgGBmQ;_ylu=3e8b3XWJBGooag5IG7u62s2Bkt6DOZ8Qiy9K-swARBxo0YE?p=AST+analysis+detect+exception+raised+without+accessing+error+state 200
+2026-08-30 09:40:53,765 [INFO] httpx: HTTP Request: POST https://html.duckduckgo.com/html/ "HTTP/2 202 Accepted"
+2026-08-30 09:40:53,835 [INFO] primp: response: https://www.google.com/search?q=AST+analysis+detect+exception+raised+without+accessing+error+state&filter=1&start=0&hl=en-US&lr=lang_en&cr=countryUS 200
+2026-08-30 09:40:54,095 [INFO] primp: response: https://search.brave.com/search?q=AST+analysis+detect+exception+raised+without+accessing+error+state&source=web 429
+2026-08-30 09:40:54,345 [INFO] primp: response: https://www.startpage.com/ 200
+2026-08-30 09:40:54,478 [INFO] primp: response: https://www.startpage.com/sp/search 200
+2026-08-30 09:40:54,706 [INFO] primp: response: https://www.mojeek.com/search?q=AST+analysis+detect+exception+raised+without+accessing+error+state 200
+2026-08-30 09:40:55,336 [INFO] primp: response: https://yandex.com/search/site/?text=AST+analysis+detect+exception+raised+without+accessing+error+state&web=1&searchid=4641516 200
+2026-08-30 09:40:57,667 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-08-30 09:40:57,668 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': '"error channel" detection data flow analysis pre-commit', 'max_results': 5})
+2026-08-30 09:40:58,004 [INFO] primp: response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=%22error%20channel%22%20detection%20data%20flow%20analysis%20pre-commit 200
+2026-08-30 09:40:58,086 [INFO] primp: response: https://grokipedia.com/api/typeahead?query=%22error+channel%22+detection+data+flow+analysis+pre-commit&limit=1 200
+2026-08-30 09:40:58,237 [INFO] httpx: HTTP Request: POST https://html.duckduckgo.com/html/ "HTTP/2 202 Accepted"
+2026-08-30 09:40:58,484 [INFO] primp: response: https://www.startpage.com/ 200
+2026-08-30 09:40:58,690 [INFO] primp: response: https://www.startpage.com/sp/search 200
+2026-08-30 09:40:59,032 [INFO] primp: response: https://search.yahoo.com/search;_ylt=Jhl8KdiIAKsfSR7le3lBNn0n;_ylu=xSmrQFTxsj7Ls-x8OWVoi3Kd8SNpV8sSl3gx0XdBq9XsHYI?p=%22error+channel%22+detection+data+flow+analysis+pre-commit 200
+2026-08-30 09:40:59,654 [INFO] primp: response: https://www.google.com/search?q=%22error+channel%22+detection+data+flow+analysis+pre-commit&filter=1&start=0&hl=en-US&lr=lang_en&cr=countryUS 200
+2026-08-30 09:41:00,394 [INFO] primp: response: https://yandex.com/search/site/?text=%22error+channel%22+detection+data+flow+analysis+pre-commit&web=1&searchid=1927306 200
+2026-08-30 09:41:00,416 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': 'Semgrep rule detect exception raised without reading error dict state', 'max_results': 5})
+2026-08-30 09:41:00,649 [INFO] primp: response: https://grokipedia.com/api/typeahead?query=Semgrep+rule+detect+exception+raised+without+reading+error+dict+state&limit=1 200
+2026-08-30 09:41:00,772 [INFO] primp: response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=Semgrep%20rule%20detect%20exception%20raised%20without%20reading%20error%20dict%20state 200
+2026-08-30 09:41:01,028 [INFO] primp: response: https://www.mojeek.com/search?q=Semgrep+rule+detect+exception+raised+without+reading+error+dict+state 200
+2026-08-30 09:41:01,304 [INFO] primp: response: https://www.startpage.com/ 200
+2026-08-30 09:41:01,443 [INFO] primp: response: https://www.startpage.com/sp/search 200
+2026-08-30 09:41:02,039 [INFO] primp: response: https://yandex.com/search/site/?text=Semgrep+rule+detect+exception+raised+without+reading+error+dict+state&web=1&searchid=7050911 200
+2026-08-30 09:41:04,372 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-08-30 09:41:04,374 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': 'taint analysis data flow tracking exception context loss detection', 'max_results': 5})
+2026-08-30 09:41:04,604 [INFO] primp: response: https://grokipedia.com/api/typeahead?query=taint+analysis+data+flow+tracking+exception+context+loss+detection&limit=1 200
+2026-08-30 09:41:04,758 [INFO] primp: response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=taint%20analysis%20data%20flow%20tracking%20exception%20context%20loss%20detection 200
+2026-08-30 09:41:04,828 [INFO] primp: response: https://www.google.com/search?q=taint+analysis+data+flow+tracking+exception+context+loss+detection&filter=1&start=0&hl=en-US&lr=lang_en&cr=countryUS 200
+2026-08-30 09:41:04,987 [INFO] httpx: HTTP Request: POST https://html.duckduckgo.com/html/ "HTTP/2 202 Accepted"
+2026-08-30 09:41:05,592 [INFO] primp: response: https://yandex.com/search/site/?text=taint+analysis+data+flow+tracking+exception+context+loss+detection&web=1&searchid=1018176 200
+2026-08-30 09:41:05,607 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': 'Pylint flake8 custom rule detect raise without accessing error record', 'max_results': 5})
+2026-08-30 09:41:05,997 [INFO] primp: response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=Pylint%20flake8%20custom%20rule%20detect%20raise%20without%20accessing%20error%20record 200
+2026-08-30 09:41:06,081 [INFO] primp: response: https://grokipedia.com/api/typeahead?query=Pylint+flake8+custom+rule+detect+raise+without+accessing+error+record&limit=1 200
+2026-08-30 09:41:06,304 [INFO] primp: response: https://search.brave.com/search?q=Pylint+flake8+custom+rule+detect+raise+without+accessing+error+record&source=web 429
+2026-08-30 09:41:06,584 [INFO] primp: response: https://www.startpage.com/ 200
+2026-08-30 09:41:07,073 [INFO] primp: response: https://www.startpage.com/sp/captcha-block?bc=FI&bi=DNA+Oyj&be=b816c778c48bbc12959071497bfbc531&bds_t=1788072066Tc83647cf4b3f2a10d59e90b61faf576aa63ae89111812a50c45c53f576a638f1&bds_s=2841f75456bd4709ab641ac0f5a16925&t=device&abe=0&qadf=moderate&abd=0&qsr=en_US&segment=organic&lui=english&sc=&abp=1&language=english&query=Pylint+flake8+custom+rule+detect+raise+without+accessing+error+record&cat=web&cmd=gen_page 200
+2026-08-30 09:41:07,791 [INFO] primp: response: https://search.yahoo.com/search;_ylt=CN9bfxffnHNMX1a_YECc8SaF;_ylu=azUjb3EsOYP1uWf63WHt6WikLy6ePEd09WiJfRZS8Alp5R4?p=Pylint+flake8+custom+rule+detect+raise+without+accessing+error+record 200
+2026-08-30 09:41:07,938 [INFO] httpx: HTTP Request: POST https://html.duckduckgo.com/html/ "HTTP/2 202 Accepted"
+2026-08-30 09:41:08,009 [INFO] primp: response: https://www.google.com/search?q=Pylint+flake8+custom+rule+detect+raise+without+accessing+error+record&filter=1&start=0&hl=en-US&lr=lang_en&cr=countryUS 200
+2026-08-30 09:41:08,653 [INFO] primp: response: https://yandex.com/search/site/?text=Pylint+flake8+custom+rule+detect+raise+without+accessing+error+record&web=1&searchid=2026899 200
+2026-08-30 09:41:08,677 [WARNING] yamlgraph.tools.agent: Agent hit max iterations (4)
+2026-08-30 09:41:08,681 [INFO] yamlgraph.node_factory.control_nodes: Node data_process_ready completed successfully
+2026-08-30 09:41:08,682 [INFO] yamlgraph.node_factory.control_nodes: Node os_infra_ready completed successfully
+2026-08-30 09:41:08,682 [INFO] yamlgraph.node_factory.control_nodes: Node subtractionist_ready completed successfully
+2026-08-30 09:41:08,683 [INFO] yamlgraph.node_factory.control_nodes: Node yamlgraph_native_ready completed successfully
+2026-08-30 09:41:13,233 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-08-30 09:41:13,235 [INFO] yamlgraph.node_factory.llm_nodes: Node librarian_structure completed successfully
+2026-08-30 09:41:13,237 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: gather_findings -> gather_findings
+2026-08-30 09:41:13,238 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: reduce_findings -> write_alternatives
+2026-08-30 09:41:13,410 [INFO] yamlgraph.route: {"event": "run_end", "run_id": "01a05166-17d5-7a46-8200-0a4c90acd522", "ended_at": "2026-08-30T06:41:13Z", "dropped_events": 0}
 
 🚀 Running graph: graph.yaml
-   Variables: {'brief_path': 'feature-requests/research-briefs/research-route-grounding-echo.md'}
+   Variables: {'brief_path': 'tmp/brief-symptom-only-raises.md'}
 
-🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/f889c0ec-fa9b-4025-b69c-2aa756283ef8/r/01a04885-5b62-7801-9035-8870b805fc95?poll=true
+🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/f889c0ec-fa9b-4025-b69c-2aa756283ef8/r/01a05166-17f5-7021-b5c0-331acec68984?poll=true
 ============================================================
 RESULT
 ============================================================
   current_step: reduce_findings
-  brief_path: feature-requests/research-briefs/research-route-grounding-echo.md
-  problem_statement: The FR-890 research sole route gives every planner persona exactly four
-strings copied from the author's problem brief. No committed repository
-context — architecture record, capability registry, changelog, diary
-index, source tree — reaches any persona; the single exception is a
-one-line inventory of demo graph descriptions supplied to one persona.
-Repository knowledge therefore enters a run solely through whatever the
-author typed into the brief's constraints and incidents sections — that
-is, through the very contaminated context window the closure was built
-to escape. Convergence between personas is then partly an echo of the
-author's framing rather than independent discovery, yet convergence is
-counted as signal when authority is granted. World-precedent coverage
-per run is a single web citation selected by a cheap model and never
-reconciled against the search tool's actual recorded results, so a
-fabricated URL passes the shape gate. The distinct-class gate counts
-self-declared free-text class labels, so an honest convergence of three
-personas on one class fails the run while cosmetic relabeling of the
-same idea passes it. Finding cells have no length ceiling and arrive as
-multi-hundred-word prose, hostile to the read-first discipline the
-artifact exists to serve. Net effect: the route can produce
-confirmation-with-ceremony — the author's first idea laundered through
-five apparently independent voices — which is a stronger false signal
-to the judge than no research at all.
+  brief_path: tmp/brief-symptom-only-raises.md
+  problem_statement: Nodes in this repository fail on a downstream consequence while a
+structured record of the upstream cause already sits in the same state
+dict. The retry handler writes a PipelineError into state["erro...
   classification: judgement/analysis/generation
-  constraints: - The closure boundary is non-negotiable: no persona may ever see the
-  author's draft solution, prior discussion, or live session context;
-  anything added to persona context must be committed,
-  author-independent repository state.
-- Enforcement in the deny path stays deterministic stdlib — no LLM
-  verdicts in brief preflight or artifact verification.
-- All LLM nodes stay pinned to a cheap haiku-class model at
-  temperature 0; per-run cost must stay in pennies so the route can run
-  for every FR without budget pressure.
-- Disagreement must remain visible as separate rows and must not be
-  voted away; genuine convergence must not by itself fail a run.
-- The artifact must remain mechanically checkable against a frozen
-  schema AND readable by a human in one sitting.
-- The prospective judge doctrine clause (research evidence before
-  authority) and the promotion lifecycle to
-  feature-requests/FR-XXX.research.md remain in force.
-- The route remains a blocking one-command run, minutes not hours, no
-  daemon (CAP-113 death mode).
-- Cited web precedent must be traceable to an actual tool observation
-  recorded during the run, not merely well-formed.
-  witnessed_incidents: - 2026-08-26 (FR-893): the brief's constraints named corpus_census, the
-  philosopher graph, and diary_index as existing instruments; three of
-  five personas then converged on a corpus_census consumer and the
-  judgement counted that convergence as signal — the instruments were an
-  echo of the brief, not independent discovery.
-- 2026-08-26 (FR-893): the librarian row cites
-  https://www.agentpatternscatalog.org/patterns/postmortem-pattern-mining/
-  — a URL never reconciled against the librarian_tool_results already
-  present in graph state; provenance is self-asserted and the domain is
-  plausibly fabricated.
-- 2026-08-26 (FR-893): table cells run to roughly 2000 characters of
-  prose each; the FR-598 "kill the novel" failure mode reappeared inside
-  the instrument built after that lesson was graduated.
-- Structural, verified in code review 2026-08-28: five personas each
-  return exactly one finding and the artifact gate requires 4-6 distinct
-  self-labeled classes — an honest three-persona convergence on one
-  class fails the run at class count 3, while relabeling the same idea
-  differently passes.
-- 2026-08-26 (FR-890 D-9, positive contrast): the FR-888 replay surfaced
-  the OS-permissions class without operator help — the persona-prior
-  mechanism works when the answer is not already seeded in the brief.
-  graph_shapes: a2a-call-demo (examples/demos/a2a_call/graph.yaml): Invoke an external A2A agent from a YAML graph
-agent-json (examples/demos/agent-json/graph.yaml): FR-449 — Minimal agent with structured JSON output
-book-summary (examples/demos/book-summary/graph.yaml): Page-windowed PDF book summary with manifest tools, python gates, map fan-out, reducer accumulation, and a bounded cursor loop.
-cache-demo (examples/demos/cache/graph.yaml): Per-node caching with LangGraph CachePolicy
-chatterbox-tts (examples/demos/chatterbox/graph.yaml): Multilingual TTS demo using Chatterbox
-chinese-horoscope (examples/demos/chinese-horoscope/graph.yaml): Generate daily horoscopes for all 12 Chinese zodiac animals in parallel
-code-analysis (examples/demos/code-analysis/graph.yaml): Run code analysis tools and generate improvement recommendations
-compaction-demo (examples/demos/compaction/graph.yaml): Long-running loop with automatic context compaction via guards
-corpus-census (examples/demos/corpus_census/graph.yaml): Shared discover-extract-map-reduce census pipeline. Corpus-specific discovery and extraction are bound at invocation time through FR-892 tool slots.
-data-files-demo (examples/demos/data-files/graph.yaml): Demonstrates data_files directive for loading external config
-diary-index (examples/demos/diary_index/graph.yaml): Read diary entries, extract traps/heuristics/seeds/FR references, produce a structured cross-reference index. (FR-254)
-fr-enforcer (examples/demos/enforcer/graph.yaml): FR-462 — Standalone FR enforcer with task-shaped tools and structured implementation result
-fan-out-demo (examples/demos/fan-out/graph.yaml): Parallel fan-out edges running three branches concurrently. Task shapes: run several different analyses of one input concurrently.
-feature-brainstorm (examples/demos/feature-brainstorm/graph.yaml): YAMLGraph proposes improvements to itself by analyzing its own codebase
-fi-domain-crawl (examples/demos/fi_domain_crawl/graph.yaml): Crawl .fi domains and produce sitemap-style overviews
-file-hook-demo (examples/demos/file-hook/graph.yaml): macOS folder-triggered PNG description and publishing demo
-five-whys (examples/demos/five-whys/graph.yaml): Five Whys root cause analysis — iterative deepening loop. Task shapes: iterative root-cause drill-down of a defect, incident, or symptom.
-forensic-failure-demo (examples/demos/forensic-failure-diary/graph.yaml):
-fr_atlas (examples/demos/fr-atlas/graph.yaml): FR-748 FR Atlas — render any project's feature-requests/ corpus as an onboarding narrative: deterministic collection, chunked theme map, one merge judgement, one story judgement, code-side coverage reconciliation (count-in == count-out), dated atlas into docs/.
-git-report (examples/demos/git-report/graph.yaml): Agent that analyzes git repository and generates reports
-graph-tool-demo (examples/demos/graph-tool/graph.yaml): Agent using a graph pipeline as a tool
-deterministic-guards-demo (examples/demos/guards/graph.yaml): Demonstrate deterministic pre/post node guards without extra LLM calls
-hello-world (examples/demos/hello/graph.yaml): Simple greeting generator demonstrating basic LLM usage
-hello-world-runpod (examples/demos/hello-runpod/graph.yaml): Simple greeting generator via the RunPod OpenAI-compatible provider
-hook-intent-classifier (examples/demos/hook_classifier/graph.yaml): Classify a VS Code Copilot tool invocation for intent and danger level
-daily-horoscope (examples/demos/horoscope/graph.yaml): Generate daily horoscopes for all 12 zodiac signs in parallel
-image-that-speaks (examples/demos/image-that-speaks/graph.yaml): Who judges the judge? One LLM generates, two LLMs race to judge, a deterministic gate overrules them both. Rev 13:15 meets model_as_trusted_peer.
-innovation-matrix (examples/demos/innovation_matrix/graph.yaml): Generate an Innovation Matrix crossing capabilities with constraints. Task shapes: structured ideation — cross domain capabilities with constraints to surface non-obvious directions.
-trivia-quiz (examples/demos/interactive_tool/graph.yaml): A 3-question trivia quiz built with a single interactive_tool node. Demonstrates: start/step/end tool wiring, loop_until condition, interrupt/resume for user input, and automatic session summary.
-interview-demo (examples/demos/interview/graph.yaml): Interactive interview with human-in-the-loop
-fr-judge (examples/demos/judge/graph.yaml): FR-450 — Standalone FR judge with task-shaped tools and structured verdict output
-map-demo (examples/demos/map/graph.yaml): Demonstrates parallel fan-out with type: map. Task shapes: for each item in a list, ask the model — parallel map-reduce over N items.
-map-timeout-demo (examples/demos/map-timeout/graph.yaml): Demonstrates per-node timeout for map branches (FR-069)
-hello-mastra (examples/demos/mastra-integration/graph.yaml): Greeting generator exposed as a typed MCP tool for Mastra
-memory_demo (examples/demos/memory/graph.yaml): Multi-turn code review assistant with memory
-meta (examples/demos/meta/graph.yaml): Apply a natural-language verb to a code artifact and return typed output
-multi-turn-streaming (examples/demos/multi-turn/graph.yaml): Multi-turn conversation with streaming. First turn waits for user input, subsequent turns stream response then wait for next input.
-novel_generator (examples/demos/novel_generator/graph.yaml): AI-powered short story generator with quality-driven iteration
-pattern-model-census (examples/demos/pattern_model_census/graph.yaml): Read-only commit-metadata census for architectural/design patterns and LLM model/provider mentions. Structurally mirrors corpus_census with invocation-time discover/extract slots and an LLM-free reducer.
-persona-scenario-pipeline (examples/demos/persona_scenarios/graph.yaml): Generate personas and scenarios for a product idea, save as interlinked markdown
-philosopher-book (examples/demos/philosopher_book/graph.yaml): The Philosopher writes one chapter at a time. Plan → write a single chapter using Copilot with diary search tools. Run with --var chapter_num=N (1-21). (FR-404)
-pipeline-demo (examples/demos/pipeline/graph.yaml): Compile-time pipeline template expansion demo
-pipeline-audit (examples/demos/pipeline_audit/graph.yaml): Structural audit of YAMLGraph pipelines — quality gates, silent fallbacks, skip reporting, shared patterns
-fr-planner (examples/demos/planner/graph.yaml): FR-452 — Standalone FR planner with task-shaped tools and structured plan output
-prompt-caching-demo (examples/demos/prompt-caching/graph.yaml): Demonstrates Anthropic prompt caching with system_segments
-prompt-theme-analyzer (examples/demos/prompt_theme_analyzer/graph.yaml): Read prompt files, classify concise themes with map fan-out, aggregate deterministically in Python, then group themes and write a markdown report. (FR-402)
-promptfoo-tone-router-demo (examples/demos/promptfoo-router/graph.yaml): Route responses based on detected message tone
-python-map-demo (examples/demos/python-map/graph.yaml): Demonstrates type:python sub-nodes in map nodes (FR-021)
-python-variables-demo (examples/demos/python-variables/graph.yaml): Python node with declarative variable mapping from state
-race-demo (examples/demos/race/graph.yaml): Race multiple LLM providers for the fastest response. Task shapes: same question to multiple providers or models, take the fastest good answer (hedging).
-ramp_doctrine (examples/demos/ramp_doctrine/graph.yaml): FR-866 ramp doctrine draft — tailor this repo's Scripture traps, cures, and questions into a target-repo AGENTS.md draft. Deterministic collection feeds one map judgement per doctrine entry; code reconciles ids and writes draft artifacts only under tmp/ramp.
-ramp_incidents (examples/demos/ramp_incidents/graph.yaml): FR-866 RAMP incidents — scan this repo's feature-request and diary corpus for target-repo mentions, classify each mentioned document as an operational incident or reconciliation-only non-incident, and write draft artifacts under tmp/ramp for target doctrine repatriation.
-ramp_rtm (examples/demos/ramp_rtm/graph.yaml): FR-866 RAMP RTM — derive proposed requirement candidates from a target repository's existing test suite. Collection is deterministic, one map branch reasons over one test file, and the merge writes an honest draft with validation errors and unwitnessed-test gaps preserved.
-recap (examples/demos/recap/graph.yaml): Timeframe change recap for any git repository — deterministic git collection, one synthesis judgement
-reflexion-demo (examples/demos/reflexion/graph.yaml): Self-improving essay with critique loop
-req-cross-check (examples/demos/req-cross-check/graph.yaml): Run architecture cross-check and produce traceability report (FR-107)
-req-witness-audit (examples/demos/req_witness_audit/graph.yaml): Grade requirement-witness batches with a haiku-tier LLM and write one raw structured result per input batch for deterministic reconciliation.
-research-agent (examples/demos/research-agent/graph.yaml): 5-step agentic research: extract intent, plan approach, execute research with tools, validate findings, synthesize report.
-research-route (examples/demos/research-route/graph.yaml): FR-890 closed-input alternatives route: load a problem brief, collect known graph task shapes, fan out to orthogonal planner personas, and reduce their findings into a deterministic alternatives table.
-tone-router-demo (examples/demos/router/graph.yaml): Route responses based on detected message tone. Task shapes: classify an input, then dispatch to a specialized handler (conditional routing).
-router-race-candidates-demo (examples/demos/router-race-candidates/graph.yaml): Router node with candidates race support
-run-analyzer (examples/demos/run-analyzer/graph.yaml): Analyze a previous run for issues and provide recommendations
-safety-guards-demo (examples/demos/safety-guards/graph.yaml): Shows how YAMLGraph protects against unbounded execution: a draft→review→revise cycle (loop-guarded), then a map fan-out (item-capped), all under a recursion_limit.
-salvage_classify (examples/demos/salvage_classify/graph.yaml): FR-868 scripture-dev salvage classifier — collect every tracked source file, classify each against this repository's committed equivalents, and write a human-review disposition draft under tmp/ramp.
-self-portrait (examples/demos/self-portrait/graph.yaml): Local PersonalizationPortrait extraction with exact-payload consent before agent-first synthesis.
-enforcer-workflow (examples/demos/session-continuation/graph.yaml): Two-phase development workflow using Copilot session continuation. Phase 1 (Enforce): Implement feature with TDD - failing test first, minimal change, refactor. Phase 2 (Demo): Create example and demo in examples/ folder using same session context.
-session-shapes (examples/demos/session-shapes/graph.yaml): FR-884 session task-shape classifier: load session skeleton JSONL, classify each session with map fan-out, and aggregate shape coverage deterministically.
-shared-vision-tool-demo (examples/demos/shared-vision-tool/graph.yaml): Minimal demo for the shared image description tool.
-soul-pattern-demo (examples/demos/soul/graph.yaml): Demonstrates the soul pattern for AI agent personality
-streaming-demo (examples/demos/streaming/graph.yaml): Two-node pipeline demonstrating token-by-token streaming. Run with: yamlgraph graph run graph.yaml --var topic="..." --stream
-subgraph-demo (examples/demos/subgraph/graph.yaml): Demo of subgraph composition - parent graph calls a summarizer subgraph
-system-status (examples/demos/system-status/graph.yaml): Gather system metrics with shell tools, then LLM diagnoses issues
-tavily-rag (examples/demos/tavily_rag/graph.yaml): Domain-scoped RAG using Tavily as retrieval layer
-thinking-demo (examples/demos/thinking/graph.yaml): Demonstrate extended thinking with configurable reasoning depth (FR-071)
-tool-call-demo (examples/demos/tool-call/graph.yaml): Demonstrates tool_call node type — dynamic tool dispatch from state
-typescript-node-json-demo (examples/demos/typescript-node/graph.yaml): Deterministic python-node graph for TypeScript subprocess integration
-verification-demo (examples/demos/verification/graph.yaml): Node guards on a side-effect node plus a graph-wide verify block
-verification-gate-demo (examples/demos/verification-gate/graph.yaml): Demonstrates the verification gate pattern (FR-164). Each node states what it expects; the framework checks after execution.
-verified-search (examples/demos/verified-search/graph.yaml): POC: Evaluation-first agent pattern. The agent must state a verification question BEFORE taking action. The report extracts this question as structured output for traceability. This enables: - Post-hoc evaluation: Did the agent answer the question it claimed to ask? - LangSmith traces labeled with stated intent - Comparison of stated vs actual behavior Key insight: The verification_question is in the PROMPT (reasoning pattern), not the GRAPH (orchestration). Prompts define how to think; graphs define where data flows.
-web-research (examples/demos/web-research/graph.yaml): Agent that researches topics using web search
-wiki-memory-gate (examples/demos/wiki-memory/graph.yaml): Wiki page editor with reference-integrity gate
-write-data-file-demo (examples/demos/write_data_file/graph.yaml): Accumulating world bible via read-compress-write cycle
-yamlgraph-demo (examples/demos/yamlgraph/graph.yaml): Content generation pipeline (generate → analyze → summarize)
-changelog-req-cross-check (graphs/enforcement/changelog-req-check.yaml):
-fr_triage (.chaplain/graphs/fr_triage/graph.yaml): Canon pass + pre-mortem witnesses + value-prop check, appended into the FR as dispositionable claims
-philosopher-scan (.chaplain/graphs/philosopher/graph.yaml): Scan diary entries for recurring patterns and propose graduations. Nine phases: scan → analyze → distill → unwrap_distill → [challenge → unwrap_challenge →] propose → load_context → reflect → write_diary. The distill/challenge gate (FR-195) prevents weak patterns from reaching .chaplain/inbox/.
-watcher-diary (.chaplain/graphs/watcher-diary/graph.yaml): Watcher2 Phase 2 — single copilot node writes a diary reflection from an inbox topic file.
-watcher-forensic (.chaplain/graphs/watcher-forensic/graph.yaml):
-world_distill (.chaplain/graphs/world_distill/graph.yaml): Refresh docs/world-context.md — ecosystem events distilled for philosopher grounding
+  constraints: - Must not change the error-channel state shape, retry semantics, or
+  any node's success behavior.
+- Detection must be deterministic and runnable in pre-commit; a run
+  budget of seconds, not minutes...
+  witnessed_incidents: - 2026-08-30: three consecutive research runs reported only "missing
+  persona findings: yamlgraph_native_finding"; the actual
+  string_too_long validation rejection was in state["errors"] each
+  time...
+  graph_shapes: agent-json (examples/demos/agent-json/graph.yaml): FR-449 — Minimal agent with structured JSON output
+book-summary (examples/demos/book-summary/graph.yaml): Page-windowed PDF book summary with manifes...
   committed_context: ## Committed context (deterministic, author-independent)
 
 ### Capability registry (CAP one-liners)
-CAP-01 Config Loading & Validation | CAP-02 Graph Compilation | CAP-03 Node Execution | CAP-04 Prompt Execution | CAP-05 Tool & Agent Integration | CAP-06 Routing & Flow Control
-CAP-07 State Persistence | CAP-08 Error Handling | CAP-09 CLI Interface | CAP-10 Export & Serialization | CAP-100 Chatterbox Multilingual CLI | CAP-101 A2A Consumer Contrib Client
-CAP-102 Complete Worktree Teardown Self-Heal | CAP-103 A2A SDK v1.0 Compatibility | CAP-104 A2A Server Reference Documentation | CAP-105 A2A Consumer Phase 2 — Agent Card, Skill Selection & Streaming | CAP-106 GitHub Issues Remote Inbox | CAP-107 Guardrails Pattern Documentation
-CAP-108 Changelog REQ Cross-Validation Gate | CAP-109 Harden GitHub Issues Remote Inbox | CAP-11 Subgraph & Map | CAP-110 Diary Index Graph | CAP-111 Shared Graph Invocation | CAP-113 Chaplain Research Step
-CAP-114 Automated Post-Merge Finalization | CAP-116 Acceptance Tests Before Enforce | CAP-117 Race Node parse_json & Content Normalization | CAP-118 Copilot Node Model Selection | CAP-119 Race Node Timeout Fix | CAP-12 Utilities
-CAP-120 CLI Inter-Run State Chaining | CAP-121 Async Race Node with Cancellable Candidates | CAP-122 Router Node with Candidates Race Support | CAP-124 Watcher2 PR Reuse (FR-275) | CAP-125 Pipeline Script Retirement (FR-276) | CAP-126 Test Speed Optimization
-CAP-127 CI Hardening Consolidation | CAP-128 Chaplain Documentation | CAP-13 LangSmith Tracing | CAP-130 Watcher2 Finalize Pre-commit Optimization | CAP-131 Anthropic Prompt Caching Support | CAP-132 Watcher2 CI Resilience
-CAP-133 Watcher2 CI Remediation Crash Fix | CAP-134 Watcher2 Changelog Auto-Generation | CAP-135 Watcher2 Forensic Failure Diary | CAP-136 Per-Graph Typed MCP Tools | CAP-137 Watcher FSM System Startup Script | CAP-138 Watcher Pipeline FSM Simplification
-CAP-139 Root README Accuracy Contract | CAP-14 Graph-Level Streaming | CAP-140 Watcher2 Validate Split Fix/Gate | CAP-141 Shared FSM Bridge Module | CAP-142 Skill Export Portable Packaging | CAP-143 Agent Export Tool-Scoped Personas
-CAP-145 Copilot Instrumentation Gap Closure | CAP-146 FSM Snapshot Hooks Phase 2 Subclassing | CAP-147 Graph Run JSON Stdout + TypeScript Node Integration | CAP-148 CI Co-authored-by Trailer Gate | CAP-149 Prompt Theme Analyzer Demo | CAP-15 Expression Language
-CAP-150 Philosopher's Book Demo | CAP-151 Graph Lint JSON Output | CAP-152 Watcher2 Dispatcher Audit Cadence | CAP-153 Built-in Questionnaire Gap Utilities | CAP-154 Hook Classification Daemon | CAP-155 Schema Loader Tool Type
-CAP-156 WIP Commit Subject Gate | CAP-157 Graph Loader Strict Tool Load Fail Fast | CAP-158 Copilot Skill Promotion | CAP-159 Standalone Planner Demo | CAP-16 Linter Cross-Reference | CAP-160 CAP Architecture Auto-Sync
-CAP-161 Standalone Enforcer Demo | CAP-162 Enforcer Demo Safety Hardening | CAP-163 CAP Retirement Support | CAP-164 Structured Output JSON Fallback | CAP-165 Watcher2 Baseline Dead Code Removal | CAP-166 Meta Self-Reflective Demo
-CAP-167 Dungeon Master Example | CAP-168 Conditional Edge to Map Node | CAP-169 Dungeon Master Web UI | CAP-17 Execution Safety Guards | CAP-170 Dungeon Master Web UI v2 (Journey-First) | CAP-171 Executor Plain-Text Content Normalization
-CAP-172 Prompt-Monolith Linter Check (W026) | CAP-173 Write Data File Tool | CAP-174 Data Files Glob Support | CAP-175 Novel Fandom Canon Schema | CAP-176 Novel Fandom Enriched World Model | CAP-177 Novel Fandom Plot Pathfinder
-CAP-178 Novel Fandom Prose and Close Loop | CAP-179 Novel Fandom Wiki Core Types | CAP-18 Testing & Quality | CAP-180 Novel Fandom World Expansion | CAP-181 Novel Fandom Genesis Pipeline | CAP-182 Agentic Event Deepening
-CAP-183 First-Class Verification | CAP-184 Novel Fandom Duplicate Entity Prevention | CAP-185 Novel Fandom Ref Integrity Graph-Tool | CAP-186 Novel Fandom Genesis Self-Correcting Pipeline | CAP-187 Novel Fandom Semantic Dedup Graph-Tool | CAP-188 Novel Fandom Agent-First Architecture
-CAP-189 Worktree CLI Contract | CAP-19 MCP Server Interface | CAP-191 Instrumentation Worktree Delegation | CAP-192 Branch Deny Guidance Manual Worktree Lane | CAP-193 Watcher Wrapper JSON Envelope | CAP-194 Novel Fandom Plot Threads and Throughlines
-CAP-195 Timeframe Recap Demo | CAP-196 Novel Fandom World Pressure | CAP-197 Novel Fandom Event Revision | CAP-198 Persistent Bridge Loop | CAP-199 Security and Coverage Gate Truth | CAP-20 Contrib Utilities
-CAP-200 Prompt Request Front Door | CAP-201 Pre-emptive Module Splits | CAP-202 SMT Condition Verification | CAP-203 ICPC-2 RFE Classifier Example | CAP-204 CWE Vulnerability Classifier Example | CAP-205 World Distill Graph
-CAP-206 FR Triage Graph | CAP-207 Loader Error UX | CAP-208 FR Atlas Onboarding Demo | CAP-209 Root Package Seams | CAP-21 Diary Digest Tools | CAP-210 Edge Shape Classification
-CAP-211 Sole-Route Judge and Review Wrappers | CAP-212 OpenTelemetry Observability Boundary | CAP-213 Example Dependency Taxonomy Generator | CAP-214 Direct-Import Dependency Scanner | CAP-215 Style-Convert Pipeline | CAP-216 Tool Manifests
-CAP-217 Shared Vision Tool | CAP-218 Shared Document Splitter | CAP-219 Book-Summary Vision Fallback | CAP-22 Code Quality Lints | CAP-220 Shared Shell Toolbelt Manifests | CAP-221 Demo Graph Binding Hygiene and Grounded Synthesis Gate
-CAP-222 macOS File-Hook Example (Folder-Triggered Graph) | CAP-223 User Self-Portrait Example (PersonalizationPortrait → Agent Context) | CAP-224 API Discovery Leaf Tool Manifests | CAP-225 API Discovery Endpoint-Probe Step | CAP-226 API Discovery Page-Analysis Step | CAP-227 Shared Python Tool Manifest Root Confinement Fix
-CAP-228 API Discovery Platform-Confirm Step | CAP-229 Playwright Network Sniff Utility | CAP-23 Skip-If-Exists Truthiness | CAP-230 Provider Readiness Preflight | CAP-231 API Discovery Recon Step | CAP-232 API Discovery Browser-Sniff Step
-CAP-233 API Discovery Schema-Extract Step | CAP-234 API Discovery Orchestrator | CAP-235 Multi-Step Investigation Scaffold | CAP-236 Router-Visible Tool-Call Outputs | CAP-237 Author Brief Pre-Flight | CAP-238 API Discovery Orchestrator v2 — Recon and Browser-Sniff Routing
-CAP-239 Discord Hello Slash-Command Example | CAP-24 Interactive Tool Node | CAP-240 FR Knowledge Graph Extraction | CAP-241 Weekly Recap Publication | CAP-242 Lint/Compile Validation Parity | CAP-243 Requirement Witness Audit
-CAP-244 Ramp Installer | CAP-245 Ramp Tailoring Graphs | CAP-246 Scripture-dev Salvage Classification | CAP-247 Memory-Corpus Curation (Selective Amnesia) | CAP-248 Research Sole Route (Closed-Input Alternatives) | CAP-249 Invocation-time tool-slot binding
-CAP-25 Tavily Domain RAG Demo | CAP-250 Corpus-census synthesize tail | CAP-251 Copilot cost ledger — priced attribution | CAP-26 Streaming Error Resilience | CAP-28 Graph-Level Thinking Budget | CAP-30 Copilot Node
-CAP-31 Chaplain Diary Append | CAP-32 eBook Authoring Pipeline | CAP-33 Worktree Pipeline | CAP-34 Compiled Graph Cache | CAP-36 Inquisitor Auto-Propose | CAP-37 Architecture Provider Count Guard
-CAP-38 Post-Merge Finalization | CAP-39 Inquisitor Commit-Delta Gate | CAP-41 Clean GIT Env Test Fixture | CAP-42 Inquisitor Worktree Gate | CAP-43 Copilot Session GC | CAP-44 Judge SPLIT Verdict
-CAP-45 Diary Reflection Enforcement | CAP-46 Diary Import CLI | CAP-47 Phantom Requirement Detection | CAP-48 CHANGELOG Removal Completeness | CAP-49 Examples Documentation Audit | CAP-50 CI CHANGELOG Gate
-CAP-51 Branch Protection Documentation | CAP-53 CI Conflict Marker Gate | CAP-54 CI Diary Existence Gate | CAP-55 Chaplain Inbox Documentation | CAP-56 Verification Gate Pattern | CAP-57 Verification Count Range Pydantic
-CAP-59 Configurable Loop Exit Target | CAP-60 Worktree Venv Corruption Guard | CAP-64 Concurrency Safety Map | CAP-65 Append-Only Capability Registry | CAP-66 Append-Only Changelog | CAP-67 Philosopher Daemon
-CAP-68 CI Dependency Security Scan | CAP-69 Knowledge Graph Graduation (FR-190) | CAP-70 Knowledge Graph Graduation (FR-191) | CAP-71 Release Changelog Sync Gate | CAP-72 Knowledge Graph Mass Graduation (FR-193) | CAP-73 Philosopher Challenge Node (FR-195)
-CAP-74 FSM Scripture CLAUDE.md (FR-199) | CAP-75 Portable Chaplain (FR-196) | CAP-76 Horoscope Demo | CAP-77 Image Generation Pipeline | CAP-78 .fi Domain Crawl Demo | CAP-79 Demo Proof Gate
-CAP-81 A2A Protocol Server | CAP-82 Block AI Co-Author Trailers | CAP-83 Research Agent Demo | CAP-84 Import-Linter Architectural Boundary Enforcement | CAP-85 Dependency Rationale Audit | CAP-86 Ruff Security Rules
-CAP-87 Ruff C901 Cognitive Complexity Gate | CAP-88 Google/Vertex Thinking Budget Support | CAP-89 Execution Timing Callback | CAP-90 Graph Bench Command | CAP-91 Race Node Type | CAP-92 Chatterbox TTS Demo
-CAP-93 Chatterbox Voice Clone Demo | CAP-94 Compile-Time Pipeline Templates | CAP-95 Parallel Fan-Out Edges | CAP-96 Per-Node Timeout | CAP-98 Pipeline Accumulated State | CAP-99 Race and Pipeline Node Type Documentation
+CAP-01 Config Loading & Validation | CAP-02 Graph Compilation | CAP-03 Node Execution | CAP-04 Prompt...
+  os_infra_finding: {'persona': 'os-infra-primitivist', 'candidate': 'Wrap the retry handler\'s state["errors"] write in a process-boundary assertion that the key is read by a downstream node before that node raises. Use...
+  data_process_finding: {'persona': 'data-process-planner', 'candidate': 'Add a pre-commit schema validator that checks every node raising an exception has a reachable error-channel record in state["errors"] before the raise...
+  yamlgraph_native_finding: {'persona': 'yamlgraph-native-planner', 'candidate': 'Add a deterministic pre-commit linter that walks the graph AST, identifies all raise sites without reachable error-channel writes, and flags only ...
+  subtractionist_finding: {'persona': 'subtractionist', 'candidate': 'Delete the requirement that error-channel records reach operators. Instead, make state["errors"] a mandatory pre-commit lint target: any node raising withou...
+  librarian_research: Search results for 'Pylint flake8 custom rule detect raise without accessing error record':
 
-### ARCHITECTURE.md headings
-YAMLGraph Architecture
-Design Philosophy
-One-shot execution (stateless)
-Multi-turn with threads (stateful)
-Module Architecture
-End-to-End Flow
-Capabilities & Requirements Traceability
-Key Data Flows
-Resume an interrupted run (using checkpointer)
-Extension Points
-Testing Strategy
-Code Quality Rules
-Key Design Decisions
-❌ Wrong
-✅ Correct
-❌ Wrong
-✅ Correct
-❌ Wrong
-✅ Correct
-File Reference
-Contributing
-
-### Scripture trap/cure keys
-architecture_as_diagram, are_the_witnesses_one_phenomenon, artifact_carries_code_identity, ask_before_generate, assert_path_not_destination, audit_as_ritual, audit_gate, automation_inherits_doctrine, boring_enforcement, boundary_inventory
-callsite_fix, capability_constraint_matrix, changelog_ci_gate, changelog_first_diagnostic, composition_bug, conductor, constraint_over_code, continuation_bias, cross_project_graduation, demo_vs_test
-detection_without_enforcement, diary_graduation_pipeline, does_the_platform_already_do_this, does_the_tool_fit_or_merely_exist, downstream_fix, enforcement_at_merge_boundary, false_duplicate, five_whys, forced_opposite, framework_costume
-gate_checks_shape_not_substance, graduation, growth_as_default, ideal_result_backwards, incident_density_ranking, infrastructure_self_exempt, inquisitor_auto_escalation, instruction_boundary_uncrossed, intent_drift, inventory_by_visibility
-investigation_before_fix, is_this_a_graph, judge_as_junior_pr, junk_drawer_cap, metric_archaeology_before_reading_output, mixed_commits_erode_auditability, mock_escape_hatch, model_as_trusted_peer, name_the_seam, one_session_one_repo
-partial_remediation, plausible_wrong_answer, pre_mortem, quick_confidence, read_raw_output_first, recent_changes_blindness, refactor_orphans_secondary, regex_fourth_exclusion, req_coverage_as_universal_gate, research_as_inventory
-spec_kill, streaming_xray, substance_over_presence, symptom_patch, test_before_reading, three_reads, threshold_encodes_forecast, tolerant_matching, two_strike_split, unchallenged_premise
-value_proposition, vendor_default_as_help, verification_checkpoint_primitive, what_does_the_raw_record_say, what_would_the_successor_need, where_is_the_repo_boundary, who_reads_this_when, working_system_inertia, workspace_is_not_boundary, would_you_use_this
-  os_infra_finding: {'persona': 'os-infra-primitivist', 'candidate': 'Enforce finding cell length ceiling via deterministic stdlib string-length check at artifact gate, rejecting any cell exceeding 400 characters before LLM scoring. Platform already provides byte-count primitives; no model needed.', 'solution_class': 'boundary-enforcement', 'verdict': 'pursue', 'precedent': 'CAP-17 Execution Safety Guards, CAP-56 Verification Gate Pattern, FR-598 kill-the-novel failure mode cited in incidents', 'is_this_a_graph': 'no', 'effort_risk': 'low/medium. Stdlib string length check is trivial; risk is ensuring gate runs before any scoring or row retention, blocking the whole artifact on first violation.', 'rationale': 'The witnessed 2000-character prose cells violate the stated 40-word, 400-character hard cap. A deterministic deny-path gate (CAP-17, CAP-56 pattern) at artifact assembly time prevents over-length rows from reaching the judge, closing the FR-598 reappearance without LLM involvement.'}
-  data_process_finding: {'persona': 'data-process-planner', 'candidate': 'Strip author-supplied instrument names from brief constraints; require all persona context to come from committed repository state only.', 'solution_class': 'schema-data', 'verdict': 'pursue', 'precedent': 'FR-890 witnessed incident 2026-08-26: corpus_census, philosopher graph, and diary_index named in brief constraints seeded convergence; CAP-237 Author Brief Pre-Flight enforces shape validation before persona dispatch.', 'is_this_a_graph': "No. This is a schema and intake gate change: remove instrument/capability names from the brief's constraints section before any persona sees it, forcing discovery from committed state only.", 'effort_risk': 'Low effort, medium risk. Parsing and redaction are deterministic stdlib. Risk: authors may resist losing the ability to hint at solutions; mitigation is clear doctrine that hints defeat the closure boundary.', 'rationale': 'The witnessed echo (FR-893) proves that naming instruments in the brief contaminates persona independence. Removing those names at intake—before personas are spawned—dissolves the problem at the boundary rather than asking personas to ignore seeded context.'}
-  yamlgraph_native_finding: {'persona': 'yamlgraph-native-planner', 'candidate': 'Enforce field length ceiling (400 chars hard cap) at schema validation time, not post-hoc. Reject any finding cell exceeding the limit before artifact assembly, forcing brevity into the closure boundary itself rather than relying on persona discipline.', 'solution_class': 'schema-data', 'verdict': 'pursue', 'precedent': 'CAP-207 Loader Error UX — schema validation failures surface early; FR-890 constraints require deterministic stdlib enforcement in deny path; witnessed incident 2026-08-26 (FR-890 D-9) shows schema gates work when applied.', 'is_this_a_graph': 'none: this is a schema/validation rule, not a graph orchestration task. No fan-out, no LLM reasoning, no state flow — pure deterministic gate.', 'effort_risk': 'Low. Add maxLength: 400 to finding cell schema fields (candidate, rationale, effort_risk, etc.). Reject at load time. No LLM, no new graph shape needed.', 'rationale': 'FR-890 constraints demand deterministic stdlib enforcement; witnessed 2026-08-26 incident shows 2000-char cells violate read-first discipline. Schema validation is the closure boundary — moving the ceiling there prevents over-length prose from entering the artifact at all.'}
-  subtractionist_finding: {'persona': 'subtractionist', 'candidate': 'Delete the four-string author-brief context window entirely. Personas receive only committed repository state: capability registry, architecture headings, and Scripture keys. The brief supplies the FR number and incident list only; all problem framing comes from repository artifacts.', 'solution_class': 'boundary-enforcement', 'verdict': 'pursue', 'precedent': 'CAP-237 Author Brief Pre-Flight; Scripture key: one_session_one_repo, where_is_the_repo_boundary, instruction_boundary_uncrossed', 'is_this_a_graph': "No. This is a context-isolation enforcement rule, not a graph dependency. The change is structural: rewrite the persona invocation harness to strip the brief's constraints and incidents before dispatch.", 'effort_risk': 'Low. The harness already separates brief parsing from persona context assembly. Remove four string assignments; add a validation gate that rejects any persona context not sourced from committed state. Risk: none if gate is deterministic stdlib.', 'rationale': "FR-893 and FR-890 D-9 show that author framing in the brief contaminates convergence signal and enables echo-as-discovery. Removing the brief's constraints and incidents sections from persona context eliminates the seeding mechanism entirely. Personas then converge only on repository-committed facts, making convergence genuine independent discovery."}
-  librarian_research: Search results for 'registered reports pre-specification research methodology preventing HARKing':
-
-1. (PDF) Pre-registration and registered reports
-   URL: https://www.researchgate.net/publication/343080321_Pre-registration_and_registered_reports
-   Pre-registration and more strongly registered reports are expected to. reduce reporting and publication bias because they request researchers to define a detailed. research plan before the data are collected and before the research outcome is known.
-
-2. Pre-Analysis Plans in R: Commit Before You Analyze
-   URL: https://r-statistics.co/Pre-Analysis-Plans-in-R.html
-   A pre-analysis plan is a public commitment to your research design, hypotheses, and analysis approach — written and registered before you look at the data. It's the single most effective tool against p-hacking, HARKing, and the garden of forking paths.
-
-3. Pre-Registration: Why It Matters | MetricGate
-   URL: https://metricgate.com/blogs/pre-registration-why-it-matters/
-   Registered Reports take pre-registration one step further by embedding it into the peer-review process. Authors submit their introduction and methods — including the pre-registration — before collecting data.
-
-4. 60th Online Seminar: Preregistration
-   URL: https://gfzpublic.gfz.de/rest/items/item_5007840_2/component/file_5007841/content
-   In pre-registration, researchers describe their hypotheses, methods, and analyses before a piece of research is conducted, in a way that can be externally verified. Registration prioritizes theory, analysis and methods over results.
-
-5. Should You Pre-Register Your Research Study? - Enago Academy
-   URL: https://www.enago.com/academy/pre-registration-of-your-research/
-   Pre-registration also prevents HARKing, or “hypothesizing after results are known.”The Pros and Cons of Pre-Registering Your Research. Pre-registration has benefits for you as a researcher. It guarantees clarity among collaborators and prevents accusations of p-hacking.
-
-  librarian_tool_results: [{'tool': 'search_web', 'args': {'query': 'multi-persona independent discovery convergence signal contaminated context research methodology', 'max_results': 5}, 'output': "Search results for 'multi-persona independent discovery convergence signal contaminated context research methodology':\n\n1. Multiple discovery - Wikipedia\n   URL: https://en.wikipedia.org/wiki/Multiple_discovery\n   The concept of multiple discovery is the hypothesis that most scientific discoveries and inventions are made independently and more or less simultaneously by multiple scientists and inventors.\n\n2. Your AI Is Getting Dumber: How to Fix Context Poisoning in... | Medium\n   URL: https://medium.com/no-time/your-ai-is-getting-dumber-how-to-fix-context-poisoning-in-your-2026-workflow-2d156919ab1a\n   Long-context research, prompt injection research, and homogenization research all point in the same direction: quality falls when the model loses a clean distinction between signal and noise, instruction and data, voice and default. So here is the rule worth keeping on your desk\n\n3. Signal Contamination — ShodhDynamics AI Discovery Lexicon\n   URL: https://shodhdynamics.com/ai-discovery-lexicon/signal-contamination/\n   Signal Contamination requires displacement. The negative associations already exist. They are strongly encoded, reinforced by repetition, corroborated across multiple independent sources — which is exactly the kind of signal AI systems weight most heavily.\n\n4. Convergence Discovery Methodology | Multi-System Verification\n   URL: https://cetianji.app/studio/blog/studio-crossverify-convergence-methodology\n   The **Convergence Discovery Methodology** offers a structured, repeatable approach to moving from independent readings across different systems to a unified, actionable conclusion.\n\n5. Research Methods - Types, Examples and Guide\n   URL: https://researchmethod.net/researchmethods/\n   Research Methods refer to the techniques, procedures, and processes used by researchers to collect, analyze, and interpret data in...\n", 'success': True}, {'tool': 'search_web', 'args': {'query': 'blind review process independent expert panels avoiding confirmation bias', 'max_results': 5}, 'output': "Search results for 'blind review process independent expert panels avoiding confirmation bias':\n\n1. Avoiding Confirmation Bias in Marketing Research\n   URL: https://www.linkedin.com/advice/0/youre-analyzing-marketing-research-data-how-yizqc\n   How can you avoid confirmation bias affecting your decisions? Powered by AI and the LinkedIn community.Confirmation bias, the tendency to interpret new evidence as confirmation of one's existing beliefs or theories, can be a significant obstacle in marketing research.\n\n2. Confirmation Bias In Psychology: Definition & Examples\n   URL: https://www.simplypsychology.org/confirmation-bias.html\n   Confirmation Bias is the tendency to look for information that supports, rather than rejects, one’s preconceptions, typically by interpreting evidence to confirm existing beliefs while rejecting or ignoring any conflicting data.\n\n3. Confirmation bias in science: how to avoid it - Ars Technica\n   URL: https://arstechnica.com/science/2010/07/confirmation-bias-how-to-avoid-it/\n   Confirmation bias is remarkably common—it is used by psychics, mediums, mentalists, and homeopaths, just to name a few. As you may guess from such a list, deliberate use of confirmation bias is held in low esteem by scientists...\n\n4. 6 Biases That Can Affect Our Designs | by Coumba Win | Medium\n   URL: https://medium.com/@coumbawin/6-biases-affect-designs-7f1db1b3342c\n   The bias blind spot seems to be a genuine blind spot, in that it is not actually related to our ability to make decisions. Regardless of their actual decision making ability, people tend to believe that they are less biased than others. Final thoughts.\n\n5. Confirmation Bias in Business & How To Avoid It - Growth Idea Ltd\n   URL: https://growthidea.co.uk/blog/confirmation-bias-in-business-how-to-avoid-it\n   When it comes to confirmation bias, business leaders need to be especially careful.The interview process and hiring process: A manager might interview a job candidate and only ask them questions that confirm their cognitive bias that the candidate is qualified for the job.\n", 'success': True}, {'tool': 'search_web', 'args': {'query': 'Delphi method expert consensus avoiding groupthink contamination', 'max_results': 5}, 'output': "Search results for 'Delphi method expert consensus avoiding groupthink contamination':\n\n1. Delphi method - Wikipedia\n   URL: https://en.wikipedia.org/wiki/Delphi_method\n   The following key characteristics of the Delphi method help the participants to focus on the issues at hand and separate Delphi from other methodologies: in this technique a panel of experts is drawn from both inside and outside the organisation.\n\n2. The Delphi Technique: How to Predict Business Risks... - Insight Ginie\n   URL: https://insightginie.com/the-delphi-technique-how-to-predict-business-risks-without-groupthink/\n   Learn how the Delphi Technique uses anonymous expert feedback to identify risks and build consensus without the noise of groupthink.\n\n3. Delphi Method Summary and Forum - 12manage\n   URL: https://www.12manage.com/methods_helmer_delphi_method.html\n   Strengths of the Delphi Method. Benefits. Rapid consensus. Participants can reside anywhere in the world. Coverage of wide range of expertise. Avoids Groupthink. Forecasting a specific, single-dimension question. Limitations of the Delphi Method.\n\n4. Groupthink | Examples & Avoidance - Expert Program Management\n   URL: https://expertprogrammanagement.com/2011/03/groupthink-examples-avoidance/\n   Groupthink is particularly prevalent in cohesive groups, groups with a strong leader, and groups working in isolation. A number of general techniques exist to avoid groupthink, along with a number of specific tools, including Nominal Group Technique and The Delphi Method.\n\n5. How to Use the Delphi Method for Problem-Solving\n   URL: https://www.linkedin.com/advice/3/how-can-you-use-delphi-method-reach-consensus\n   It can help you avoid groupthink, bias, and conflicts that may arise from direct discussions or debates. In this article, you will learn how to use the Delphi Method to solve a problem in six steps.\n", 'success': True}, {'tool': 'search_web', 'args': {'query': 'blind review methodology independent verification context isolation research', 'max_results': 5}, 'output': "Search results for 'blind review methodology independent verification context isolation research':\n\n1. Scientists Reveal Hidden World Below the Pyramids - Independent...\n   URL: https://www.youtube.com/watch?v=gDcPBPx0Fv8\n   Two independent research teams have discovered matching underground structures beneath Egypt's Giza plateau, extending over 1.2 kilometers deep, deeper than three Empire State Buildings stacked.\n\n2. Data Verification - Definition, Methods, Process, and Examples\n   URL: https://researchmethod.net/data-verification/\n   Data verification versus research validity. Types and Methods of Data Verification.Two research assistants independently enter the responses. Software compares both datasets and produces a discrepancy file. Each discrepancy is resolved by returning to the original questionnaire.\n\n3. From Inertia to Objectivity: Improving Deep Research Agents with...\n   URL: https://arxiv.org/html/2608.23045\n   We propose the Noise Isolation Search Agent (NIS-Agent), a multi-agent framework for open-web deep research.Beyond these isolation-specific cases, the large majority of remaining failures fall into four categories that are largely independent of context isolation.\n\n4. Find the Best Prop Firms in 2026 | Verified Reviews... | TheTrustedProp\n   URL: https://thetrustedprop.com/\n   We've researched, reviewed, and ranked 400+ prop firms to help you compare prop trading firms and avoid falling into trading scams.\n\n5. Peer Reviewed Video Platform for Scientific Research and... | JoVE\n   URL: https://www.jove.com/\n   Explore JoVE, the peer-reviewed video platform with 30,000+ lab method and science concept videos. Trusted by 1,800+ universities and companies worldwide.\n", 'success': True}, {'tool': 'search_web', 'args': {'query': 'pre-registration research design preventing p-hacking confirmation bias', 'max_results': 5}, 'output': "Search results for 'pre-registration research design preventing p-hacking confirmation bias':\n\n1. Research Preregistration 101 – Association for Psychological...\n   URL: https://www.psychologicalscience.org/observer/research-preregistration-101\n   A: Yes. Preregistration helps honest researchers do good work, but it is not designed to prevent fraud (although it may make it harder). Q: Are there other advantages to preregistering? A: Preregistration can make your research more efficient.\n\n2. Preregistration in psychology\n   URL: https://nrin.nl/wp-content/uploads/2024/06/PhD-dissertation-Olmo-van-den-Akker.pdf\n   Similarly, preregistration helps prevent p-hacking by demanding researchers to explicitly specify research decisions before data collection.\n\n3. Confirmation Bias in Personalization | acceleroi\n   URL: https://www.acceleroi.com/blog/confirmation-bias-personalization\n   Pre-registration prevents most cherry-picking.P-hacking is the statistical mechanism through which confirmation bias produces false positives — running multiple analyses (segments, metrics, time windows) and reporting only the one that confirms the desired result.\n\n4. Pre-registering prompts is an interesting idea. I don’t think I’d do that...\n   URL: https://www.linkedin.com/posts/scott-cunningham-7788912_pre-registering-prompts-is-an-interesting-activity-7463915523148378112-yYPL\n   I argue for another one, which seems to be helpful, at least to some extent, in addressing p-hacking: pre-registration. Researchers should preregister their prompts before running their simulations.\n\n5. (PDF) Questionable research practices following pre-registration\n   URL: https://www.academia.edu/121084405/Questionable_research_practices_following_pre_registration\n   The pre-registration system is recommended by many psychologists as well as journals in other fields to prevent QRPs, as it functions as a platform that is used before the start of a study. Researchers can register a detailed plan of their study design and upload data continuously...\n", 'success': True}, {'tool': 'search_web', 'args': {'query': '"closed input" research methodology artifact verification schema', 'max_results': 5}, 'output': 'Search results for \'"closed input" research methodology artifact verification schema\':\n\n1. ASE 2026 - Research Papers - ASE 2026\n   URL: https://conf.researchr.org/track/ase-2026/ase-2026-research-track\n   The ASE conference is the premier research forum for Automated Software Engineering. Each year, it brings together researchers and practitioners from academia and industry to discuss foundations, techniques, and tools for automating the analysis, design, implementation, testing, and maintenance of large software systems.\n\n2. Papers with Code — Trending research and open source\n   URL: https://paperswithcode.co/\n   Trending AI research papers with code, datasets, methods, and evaluation leaderboards.\n\n3. An Auditable LLM-RAG Architecture for Financial Document ...\n   URL: https://www.mdpi.com/1999-5903/18/6/284\n   May 26, 2026 · The research gap addressed in this work is therefore not the absence of a single retrieval model, reranker, or LLM, but the lack of a reproducible methodology that connects retrieval, grounded generation, structured validation, numerical consistency, and persistent audit artifacts into one financial document workflow.\n\n4. The TEVV-Athlon Framework for Evaluating AI Systems - ipd\n   URL: https://nvlpubs.nist.gov/nistpubs/ai/NIST.AI.200-2.ipd.pdf\n   AI 422 evaluation can involve technical, scientific, and human-centered methods drawn from ar-423 eas such as computer science, signal detection theory, experimental design, psychology, 424 statistics, and quantitative and qualitative social science research.\n\n5. ACL ARR 2026 May | OpenReview\n   URL: https://openreview.net/group?id=aclweb.org/ACL/ARR/2026/May\n   ReViz: Structured Visual Synthesis of Research Methodology Diagrams ACL ARR 2026 May Submission17420 Authors 26 May 2026 (modified: 02 Jul 2026) ACL ARR 2026 May Submission Readers: Everyone 0 Replies Show details\n', 'success': True}, {'tool': 'search_web', 'args': {'query': 'multi-rater agreement inter-rater reliability independent judges convergence', 'max_results': 5}, 'output': "Search results for 'multi-rater agreement inter-rater reliability independent judges convergence':\n\n1. Using Differential Item Functioning to Test for Inter-rater Reliability in...\n   URL: https://core.ac.uk/download/pdf/217187463.pdf\n   Inter-rater reliability and agreement indices rooted in classical test theory were presented.The traditional inter-rater agreement indices that were examined in this study did not exhibit as high of power raters as did the DIF statistic derived from a nested design, βNe.\n\n2. Statistical inference for indices of interrater agreement based on...\n   URL: https://link.springer.com/article/10.1007/s10260-026-00846-z\n   Statistical Methods for Inter-Rater Reliability Assessments.Interrater agreement is influenced by both the characteristics of the raters as well as of the targets being evaluated. Raters homogeneity implies that raters apply the same standards in the evaluation process.\n\n3. stata - Calculation for inter-rater reliability where raters don't overlap....\n   URL: https://stats.stackexchange.com/questions/180970/calculation-for-inter-rater-reliability-where-raters-dont-overlap-and+-different\n   How to perform inter-rater reliability with multiple raters, different raters per participant, and possible changes over time?\n\n4. Inter-Rater Agreement | Envisioning Vocab\n   URL: https://www.envisioning.com/vocab/inter-rater-agreement\n   Inter-rater agreement quantifies how consistently multiple human evaluators assign the same labels or judgments to the same data points.High inter-rater agreement in evaluation protocols strengthens the credibility of benchmarks and safety assessments alike.\n\n5. rater-agreement · PyPI\n   URL: https://pypi.org/project/rater-agreement/\n   Chance-corrected agreement statistics for any raters, human or model — kappa, weighted kappa, Fleiss, Krippendorff's alpha, ICC, intra-rater reliability, kappa-paradox diagnostics, with bootstrap CIs.\n", 'success': True}, {'tool': 'search_web', 'args': {'query': 'adversarial collaboration independent teams research design avoiding echo chamber', 'max_results': 5}, 'output': "Search results for 'adversarial collaboration independent teams research design avoiding echo chamber':\n\n1. (PDF) Keep Your Enemies Close: Adversarial Collaborations Will...\n   URL: https://www.researchgate.net/publication/356944598_Keep_your_enemies_close_Adversarial_collaborations_will_improve_behavioral_science\n   adversarial collaborations to avoid investments in counterproductive research areas.Some teams have sustained adversarial collaborations for years. One team in Germany. has focused on studies testing theories of consciousness (Melloni et al., 2021).\n\n2. The Adversarial Collaboration Method for Research and Scholarship\n   URL: https://heterodoxacademy.org/resources/the-adversarial-collaboration-method-for-research-and-scholarship/?trk=public_post_comment-text\n   Adversarial collaborations bring together teams of intellectual “adversaries” to tackle contested research questions within shared areas of expertise.\n\n3. Adversarial Collaboration | Springer Nature Link\n   URL: https://link.springer.com/chapter/10.1007/978-3-031-04968-2_16\n   Adversarial collaboration is an approach to resolving scientific disputes, wherein researchers who have different positions on the issue at hand collaborate with the aim of making progress on their disputed research question.\n\n4. Adversarial Collaboration Project | Adversarial Collaboration...\n   URL: https://web.sas.upenn.edu/adcollabproject/\n   Research Team. Advisory Board. Participate.Adversarial Collaboration Project. 3720 Walnut St University of Pennsylvania Philadelphia, PA 19104. Email: adcollabproject@sas.upenn.edu.\n\n5. Adversarial Collaboration (Dispute Protocol) — AI Alignment Forum\n   URL: https://www.alignmentforum.org/w/adversarial-collaboration-dispute-protocol\n   Adversarial collaboration is a protocol developed by Daniel Kahneman for two researchers advocating competing hypotheses to collaborate on a research project with the goal of resolving their differences...\n", 'success': True}, {'tool': 'search_web', 'args': {'query': 'registered reports pre-specification research methodology preventing HARKing', 'max_results': 5}, 'output': "Search results for 'registered reports pre-specification research methodology preventing HARKing':\n\n1. (PDF) Pre-registration and registered reports\n   URL: https://www.researchgate.net/publication/343080321_Pre-registration_and_registered_reports\n   Pre-registration and more strongly registered reports are expected to. reduce reporting and publication bias because they request researchers to define a detailed. research plan before the data are collected and before the research outcome is known.\n\n2. Pre-Analysis Plans in R: Commit Before You Analyze\n   URL: https://r-statistics.co/Pre-Analysis-Plans-in-R.html\n   A pre-analysis plan is a public commitment to your research design, hypotheses, and analysis approach — written and registered before you look at the data. It's the single most effective tool against p-hacking, HARKing, and the garden of forking paths.\n\n3. Pre-Registration: Why It Matters | MetricGate\n   URL: https://metricgate.com/blogs/pre-registration-why-it-matters/\n   Registered Reports take pre-registration one step further by embedding it into the peer-review process. Authors submit their introduction and methods — including the pre-registration — before collecting data.\n\n4. 60th Online Seminar: Preregistration\n   URL: https://gfzpublic.gfz.de/rest/items/item_5007840_2/component/file_5007841/content\n   In pre-registration, researchers describe their hypotheses, methods, and analyses before a piece of research is conducted, in a way that can be externally verified. Registration prioritizes theory, analysis and methods over results.\n\n5. Should You Pre-Register Your Research Study? - Enago Academy\n   URL: https://www.enago.com/academy/pre-registration-of-your-research/\n   Pre-registration also prevents HARKing, or “hypothesizing after results are known.”The Pros and Cons of Pre-Registering Your Research. Pre-registration has benefits for you as a researcher. It guarantees clarity among collaborators and prevents accusations of p-hacking.\n", 'success': True}]
-  librarian_finding: {'persona': 'librarian', 'candidate': 'Registered Reports embed pre-specification into peer review: authors submit introduction and methods—including pre-registered hypotheses—before data collection, preventing HARKing and p-hacking by locking analysis plans before outcomes are known.', 'solution_class': 'external-method', 'verdict': 'pursue', 'precedent': 'https://www.researchgate.net/publication/343080321_Pre-registration_and_registered_reports', 'is_this_a_graph': 'No. Registered Reports is a peer-review workflow, not a graph structure. It enforces temporal ordering (specification before data) and role separation (reviewers see methods before results).', 'effort_risk': 'Medium. Requires upfront specification discipline and review-gate enforcement, but uses standard academic infrastructure. Risk: authors may resist pre-commitment; mitigation is clear incentive alignment.', 'rationale': "FR-890's core failure is that author-supplied context (brief constraints) contaminates persona independence, producing echo-chamber convergence. Registered Reports solve this by enforcing specification closure before observation—personas would commit analysis plans before seeing any results, making convergence signal genuine discovery rather than brief-echo."}
-  findings: [{'persona': 'os-infra-primitivist', 'candidate': 'Enforce finding cell length ceiling via deterministic stdlib string-length check at artifact gate, rejecting any cell exceeding 400 characters before LLM scoring. Platform already provides byte-count primitives; no model needed.', 'solution_class': 'boundary-enforcement', 'verdict': 'pursue', 'precedent': 'CAP-17 Execution Safety Guards, CAP-56 Verification Gate Pattern, FR-598 kill-the-novel failure mode cited in incidents', 'is_this_a_graph': 'no', 'effort_risk': 'low/medium. Stdlib string length check is trivial; risk is ensuring gate runs before any scoring or row retention, blocking the whole artifact on first violation.', 'rationale': 'The witnessed 2000-character prose cells violate the stated 40-word, 400-character hard cap. A deterministic deny-path gate (CAP-17, CAP-56 pattern) at artifact assembly time prevents over-length rows from reaching the judge, closing the FR-598 reappearance without LLM involvement.'}, {'persona': 'data-process-planner', 'candidate': 'Strip author-supplied instrument names from brief constraints; require all persona context to come from committed repository state only.', 'solution_class': 'schema-data', 'verdict': 'pursue', 'precedent': 'FR-890 witnessed incident 2026-08-26: corpus_census, philosopher graph, and diary_index named in brief constraints seeded convergence; CAP-237 Author Brief Pre-Flight enforces shape validation before persona dispatch.', 'is_this_a_graph': "No. This is a schema and intake gate change: remove instrument/capability names from the brief's constraints section before any persona sees it, forcing discovery from committed state only.", 'effort_risk': 'Low effort, medium risk. Parsing and redaction are deterministic stdlib. Risk: authors may resist losing the ability to hint at solutions; mitigation is clear doctrine that hints defeat the closure boundary.', 'rationale': 'The witnessed echo (FR-893) proves that naming instruments in the brief contaminates persona independence. Removing those names at intake—before personas are spawned—dissolves the problem at the boundary rather than asking personas to ignore seeded context.'}, {'persona': 'yamlgraph-native-planner', 'candidate': 'Enforce field length ceiling (400 chars hard cap) at schema validation time, not post-hoc. Reject any finding cell exceeding the limit before artifact assembly, forcing brevity into the closure boundary itself rather than relying on persona discipline.', 'solution_class': 'schema-data', 'verdict': 'pursue', 'precedent': 'CAP-207 Loader Error UX — schema validation failures surface early; FR-890 constraints require deterministic stdlib enforcement in deny path; witnessed incident 2026-08-26 (FR-890 D-9) shows schema gates work when applied.', 'is_this_a_graph': 'none: this is a schema/validation rule, not a graph orchestration task. No fan-out, no LLM reasoning, no state flow — pure deterministic gate.', 'effort_risk': 'Low. Add maxLength: 400 to finding cell schema fields (candidate, rationale, effort_risk, etc.). Reject at load time. No LLM, no new graph shape needed.', 'rationale': 'FR-890 constraints demand deterministic stdlib enforcement; witnessed 2026-08-26 incident shows 2000-char cells violate read-first discipline. Schema validation is the closure boundary — moving the ceiling there prevents over-length prose from entering the artifact at all.'}, {'persona': 'subtractionist', 'candidate': 'Delete the four-string author-brief context window entirely. Personas receive only committed repository state: capability registry, architecture headings, and Scripture keys. The brief supplies the FR number and incident list only; all problem framing comes from repository artifacts.', 'solution_class': 'boundary-enforcement', 'verdict': 'pursue', 'precedent': 'CAP-237 Author Brief Pre-Flight; Scripture key: one_session_one_repo, where_is_the_repo_boundary, instruction_boundary_uncrossed', 'is_this_a_graph': "No. This is a context-isolation enforcement rule, not a graph dependency. The change is structural: rewrite the persona invocation harness to strip the brief's constraints and incidents before dispatch.", 'effort_risk': 'Low. The harness already separates brief parsing from persona context assembly. Remove four string assignments; add a validation gate that rejects any persona context not sourced from committed state. Risk: none if gate is deterministic stdlib.', 'rationale': "FR-893 and FR-890 D-9 show that author framing in the brief contaminates convergence signal and enables echo-as-discovery. Removing the brief's constraints and incidents sections from persona context eliminates the seeding mechanism entirely. Personas then converge only on repository-committed facts, making convergence genuine independent discovery."}, {'persona': 'librarian', 'candidate': 'Registered Reports embed pre-specification into peer review: authors submit introduction and methods—including pre-registered hypotheses—before data collection, preventing HARKing and p-hacking by locking analysis plans before outcomes are known.', 'solution_class': 'external-method', 'verdict': 'pursue', 'precedent': 'https://www.researchgate.net/publication/343080321_Pre-registration_and_registered_reports', 'is_this_a_graph': 'No. Registered Reports is a peer-review workflow, not a graph structure. It enforces temporal ordering (specification before data) and role separation (reviewers see methods before results).', 'effort_risk': 'Medium. Requires upfront specification discipline and review-gate enforcement, but uses standard academic infrastructure. Risk: authors may resist pre-commitment; mitigation is clear incentive alignment.', 'rationale': "FR-890's core failure is that author-supplied context (brief constraints) contaminates persona independence, producing echo-chamber convergence. Registered Reports solve this by enforcing specification closure before observation—personas would commit analysis plans before seeing any results, making convergence signal genuine discovery rather than brief-echo."}]
-  result: {'artifact': 'tmp/draft-alternatives.md', 'rows': 5, 'non_echo_rows': 5, 'classes': 3}
-
-research_preflight: artifact ok
-research.sh: provenance line appended: /Users/sheikki/Documents/src/yamlgraph/tmp/worktrees/feat/fr-896-traceability/feature-requests/research-runs.jsonl
-research.sh: draft written: /Users/sheikki/Documents/src/yamlgraph/tmp/worktrees/feat/fr-896-traceability/tmp/draft-alternatives.md (promote to feature-requests/FR-XXX.research.md on acceptance)
+1. How to make pylint, flake8 or pycodestyle to... - Stack Overflow
+   URL: https://stackoverflow.com/quest...
+  librarian_tool_results: [{'tool': 'search_web', 'args': {'query': 'error context loss pipeline state dict upstream cause not propagated downstream', 'max_results': 5}, 'output': "Search results for 'error context loss pipeli...
+  librarian_finding: {'persona': 'librarian', 'candidate': 'Semgrep is a fast, open-source static analysis tool supporting 30+ languages that runs in pre-commit, IDE, and CI/CD workflows. Custom rules can detect data flow...
+  findings: [{'persona': 'os-infra-primitivist', 'candidate': 'Wrap the retry handler\'s state["errors"] write in a process-boundary assertion that the key is read by a downstream node before that node raises. Us...
+  result: {'artifact': 'tmp/draft-alternatives.md', 'rows': 5, 'non_echo_rows': 5, 'classes': 4}

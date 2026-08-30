@@ -265,11 +265,43 @@ def _normalize_finding(value: Any, key: str) -> dict[str, Any]:
     return value
 
 
+def _as_error_record(entry: Any) -> dict[str, Any] | None:
+    """Normalize a PipelineError object or dict; None if unstructured."""
+    if hasattr(entry, "model_dump"):
+        entry = entry.model_dump()
+    if not isinstance(entry, dict):
+        return None
+    if not any(entry.get(field) for field in ("node", "type", "message")):
+        return None
+    return entry
+
+
+def _format_recorded_errors(errors: Any) -> str:
+    """Render the error channel the retry handler already populated."""
+    lines = []
+    for entry in errors or []:
+        record = _as_error_record(entry)
+        if record is None:
+            continue
+        category = record.get("type")
+        category = getattr(category, "value", category) or "unknown_error"
+        exception_type = (record.get("details") or {}).get("exception_type")
+        origin = record.get("node") or "unknown_node"
+        suffix = f" ({exception_type})" if exception_type else ""
+        lines.append(f"\n  {origin}: {category}{suffix}: {record.get('message', '')}")
+    return "".join(lines)
+
+
 def gather_findings(state: dict[str, Any]) -> dict[str, list[dict[str, Any]]]:
     """Gather the five persona findings without deduplication."""
     missing = [key for key in PERSONA_KEYS if key not in state]
     if missing:
-        raise ValueError(f"missing persona findings: {', '.join(missing)}")
+        # FR-926: the cause is already recorded one key away — cite it.
+        detail = _format_recorded_errors(state.get("errors"))
+        raise ValueError(
+            f"missing persona findings: {', '.join(missing)}"
+            + (f"\nrecorded node errors:{detail}" if detail else "")
+        )
     return {"findings": [_normalize_finding(state[key], key) for key in PERSONA_KEYS]}
 
 
