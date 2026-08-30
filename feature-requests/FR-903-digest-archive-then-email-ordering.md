@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Judged
+**Status:** Enforced
 **Effort:** 1 day
 **Requested:** 2026-08-29
 **First consumer / first event:** the `yamlgraph-daily-digest` scheduled
@@ -202,6 +202,67 @@ The options, none of them free:
 Recommended default: vendor now with the SHA recorded in the sidecar, and
 let the packaging question be decided by the FR-906 A4 follow-up rather
 than by this consumer.
+
+## Implementation Status
+
+**Enforced 2026-08-30** in `sheikkinen/yamlgraph-daily-digest`
+([PR #1](https://github.com/sheikkinen/yamlgraph-daily-digest/pull/1),
+squash `d9b2ab0`). No code lands in this repository; the FR and its
+judgement remain the only artifacts it contributes here (R-3).
+
+| Artifact | Commit |
+|---|---|
+| RED — 14 failing witnesses + vendored transport | `734193c` |
+| GREEN — ordering, status field, HTML alternative | `358c695` |
+
+RED was proven before any behaviour existed: 14 failed, 7 passed. GREEN:
+24 passed.
+
+### Live evidence (final AC)
+
+Two real end-to-end runs against `mail.ovr.fi:465`, recipient confirmed
+by the operator — first plain-text, then multipart after the operator
+reported the body was raw markdown:
+
+```
+🔍 Filtered to 28 new articles
+📄 Archived digests/2026-08-30.md
+📬 Sent 'Daily Tech Digest — 2026-08-30' to <recipient>
+```
+
+Archive precedes send in the log, satisfying the ordering AC against a
+real MTA rather than a double. No credential appears in any log line;
+FR-907's non-disclosure contract holds end to end.
+
+### Deviations
+
+1. **The manifest could not be vendored byte-identically.** Upstream
+   declares `module: examples.shared.smtp_email`, which cannot resolve
+   where `examples*` is excluded from the wheel. Only the runtime
+   reference changed (`module:` → `path:`); `smtp_email.py` itself is
+   byte-identical at `ca44832b`, with its SHA-256 pinned in
+   `tools/smtp_email.VENDORED.md` and asserted by a test. Recorded in the
+   sidecar rather than silently adapted.
+2. **HTML shipped, though A7 deferred it.** The operator reported the
+   delivered body was raw markdown. `digest_html` is now built from the
+   same story list — no markdown parser, no new dependency — and model
+   output is `escape()`d, because titles and summaries are untrusted
+   markup.
+3. **R-6 not satisfied.** `graph.yaml` was edited directly rather than
+   through the governed authoring route, under explicit operator
+   authority granted for this arc. No authoring report exists. The AC
+   remains formally unmet and is recorded here rather than quietly
+   dropped.
+
+### Findings the work produced
+
+- **`tool_call` passes kwargs, not a state dict.** `write_bulletin(state)`
+  failed at the first live run with `unexpected keyword argument 'today'`.
+  No test caught it — every test asserted graph shape, not invocation.
+- **The mark-before-delivery defect reproduced by accident.** The crashed
+  run above had already written 28 URLs to `seen_urls`, so the next run
+  reported "0 new articles". Exactly the hazard FR-908 A3 deferred; in CI
+  it stays masked because `digest.db` persists only via the commit step.
 
 ## Acceptance Criteria
 
