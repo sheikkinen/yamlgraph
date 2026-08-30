@@ -4,6 +4,9 @@ name: Conventional Commit Check
 "on":
   pull_request:
     types: [opened, edited, synchronize, reopened]
+  # Merge queue candidates (FR-934): the required commitlint context must
+  # reach a conclusion on merge_group or the candidate times out.
+  merge_group:
   push:
     tags:
       - 'v*'
@@ -17,12 +20,15 @@ permissions:
 
 jobs:
   commitlint:
-    # PR-only: action-semantic-pull-request cannot run on tag pushes —
-    # every v* tag push failed this job (chronic since at least v0.5.6).
-    if: github.event_name == 'pull_request'
+    # PR + merge_group only: action-semantic-pull-request cannot run on
+    # tag pushes — every v* tag push failed this job (chronic since at
+    # least v0.5.6). On merge_group the job reports via the no-op step
+    # below (FR-934): the title was already validated at PR time.
+    if: github.event_name == 'pull_request' || github.event_name == 'merge_group'
     runs-on: ubuntu-latest
     steps:
       - name: Validate PR title
+        if: github.event_name == 'pull_request'
         uses: amannn/action-semantic-pull-request@v5
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -44,7 +50,7 @@ jobs:
           subjectPatternError: "PR title must have a subject after the type prefix"
 
       - name: feat requires FR-XXX
-        if: startsWith(github.event.pull_request.title, 'feat')
+        if: github.event_name == 'pull_request' && startsWith(github.event.pull_request.title, 'feat')
         env:
           PR_TITLE: ${{ github.event.pull_request.title }}
         run: |
@@ -53,6 +59,10 @@ jobs:
             echo "Example: feat(streaming): FR-030 add subgraphs parameter"
             exit 1
           fi
+
+      - name: Merge group no-op (required-context conclusion)
+        if: github.event_name == 'merge_group'
+        run: echo "merge group — PR title was validated at PR time"
 
   conflict-check:
     name: No conflict markers

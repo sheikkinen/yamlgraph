@@ -399,15 +399,23 @@ Operator maintenance on main uses `scripts/worktree.sh sync` (pull +
 relock) or an explicit `unlock-main` / `lock-main` pair — the `now.py`
 board flags an unlocked main with its age.
 
-### Rules actually enforced on `main` (verified 2026-08-18)
+### Rules actually enforced on `main` (FR-934 merge queue, 2026-08-30)
 
 | Rule | Setting | Applies to |
 |------|---------|-----------|
 | Require pull request | Enabled (0 approvals) | Non-admin pushes and bots |
 | Squash merge only | Merge commits and rebase disabled | All PRs; PR title = commit message (Conventional Commits) |
-| Required status checks | `commitlint`, `test (3.11)`, `test (3.13)` | PRs cannot merge with these failing |
-| Require up to date | Enabled (strict) | PRs must be current with `main` |
+| Required status checks | `commitlint`, `test (3.11)`, `test (3.13)` | Report on both `pull_request` and `merge_group` events |
+| Merge queue | Required (ruleset): SQUASH, ALLGREEN, min 1 / max 5 entries, 1 min wait, 30 min check timeout | All merges to `main` route through the queue |
+| Require up to date | **Disabled** — the queue validates candidates against latest `main` | Replaces the strict rebase toll (FR-934) |
 | `enforce_admins` | **Disabled** | Admin direct pushes bypass everything |
+
+**Merge ritual (post-queue):** `gh pr merge --squash` enqueues the PR;
+the queue builds a candidate merge_group, runs the three required
+contexts on it, and merges automatically when green. No manual rebase,
+no `--admin`. A required context that never reports times out the
+candidate after 30 minutes — both required workflows therefore trigger
+on `merge_group` (pinned by tests/unit/test_fr934_merge_queue_workflows.py).
 
 ### CI checks
 
@@ -428,8 +436,9 @@ report, and the human (or automation policy) decides:
 
 ### Emergency bypass
 
-Admin overrides are the default single-dev flow, not an emergency measure.
-For bypasses of a *failing required check* on automation PRs, document per
+With the merge queue in place, `--admin` merges are no longer the
+default flow — they bypass the queue and are reserved for break-glass.
+For bypasses of a *failing required check*, document per
 [`reference/break-glass.md`](reference/break-glass.md).
 
 ## Testing Patterns
