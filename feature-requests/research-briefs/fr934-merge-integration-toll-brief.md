@@ -59,8 +59,12 @@ enforcement/latency-critical
   `test (3.13)`) must remain required and must actually report on every
   PR class, including docs-only diffs; a cure that removes protection
   rather than making it enforceable is out of bounds.
-- The FR-919 doc-only CI cost saving must be preserved: docs-only PRs
-  must not start paying for the full test matrix.
+- The FR-919 doc-only CI cost saving must be preserved at PR-event
+  scope: docs-only PR validation must not start paying for the full
+  test matrix. (Amended per FR-934 judgement R-2, option 1: the final
+  integration candidate before `main` may run the full matrix — that
+  boundary is where assurance is bought; the original end-to-end form
+  of this constraint is preserved as recorded disagreement in FR-934.)
 - `main` stays OS-locked (FR-889); the worktree → PR flow is the fixed
   substrate, not a variable.
 - Single-operator repo on the GitHub Free plan, public visibility;

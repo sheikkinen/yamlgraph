@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Enhancement
-**Status:** Proposed
+**Status:** Judged — APPROVED WITH REVISIONS (judgement folded 2026-08-30; authority activates on operator review per C-1/C-2)
 **Effort:** 0.5 days
 **Requested:** 2026-08-30
 **First consumer / first event:** the next two PRs opened from parallel
@@ -62,6 +62,44 @@ branch and wait for status checks to finish before trying to merge"
 (docs.github.com, "Managing a merge queue"). The repo is public, so the
 feature is on the free plan.
 
+## Ideal Result
+
+Two independently ready PRs are enqueued with plain `gh pr merge` and
+never touch their head branches again: each required context reports on
+the queue candidate, the queue lands both in order by squash, and if
+queue validation cannot report, the repository returns to strict
+protection via the recorded rollback. Zero manual rebases, zero
+`--admin`, required checks gating reality.
+
+## Research substance (judgement R-1)
+
+`is_this_a_graph`: **No** — this is GitHub repository policy and CI
+event wiring, not an LLM pipeline; no yamlgraph node is involved.
+
+Preserved disagreement: the problem brief demanded docs-only PRs never
+pay the full matrix end-to-end; the platform survey argues the merge
+group is the integration boundary and should run everything. Both were
+held until the R-2 human decision below resolved them — the
+disagreement is recorded, not laundered.
+
+## Human decisions (judgement R-2, R-4)
+
+**R-2 docs-only cost policy — Option 1, PR-only saving
+(judge-recommended):** docs-only PR validation stays cheap (the FR-919
+path filter fires only on `pull_request` events, unchanged); the
+merge-group candidate runs the full matrix because it is the last
+validation before `main`. The FR-919 preservation claim is narrowed to
+PR-event scope and the brief's constraint is amended to match.
+Recorded as final by the operator's review and merge of this FR's PR.
+
+**R-4 queue tuning:** slowest successful required-test run in the
+preceding 24h was 6m29s (CI run for FR-931, 2026-08-30T13:22:38Z →
+13:29:07Z); chosen safety margin ≈4×. Values: status-check timeout
+**30 minutes**, wait for minimum group **1 minute**, min group size
+**1**, max group size **5**, merge method **squash**,
+only-merge-non-failing **enabled**. Recorded as final by the
+operator's review and merge of this FR's PR.
+
 ## Proposed Solution
 
 Three surfaces, smallest sufficient change on each:
@@ -85,26 +123,65 @@ The FR-919 `changes` gate already short-circuits non-PR events to
 groups run the full matrix with zero job edits — correct, since a queue
 group is the last validation before main.
 
-`commitlint.yml`: add `merge_group:` to `on:` and an always-success
-no-op job step for merge_group events. The existing `commitlint` job is
-`if: github.event_name == 'pull_request'` (action-semantic-pull-request
-cannot run outside PR context); on a merge_group event the required
-`commitlint` context must still report or the queue times the PR out —
-the same never-reporting deadlock class as FR-889 §4d. Title validity
-was already proven at PR time; a no-op reporter for the group event is
-sound.
+`commitlint.yml` (exact shape per judgement R-3): keep job id
+`commitlint` — branch protection names that context and no rename is
+authorized. Change the job-level condition from
+`github.event_name == 'pull_request'` to
+`github.event_name == 'pull_request' || github.event_name == 'merge_group'`,
+guard every step that reads `github.event.pull_request` (the
+action-semantic-pull-request step) with
+`if: github.event_name == 'pull_request'`, and add a merge-group-only
+no-op step in the same job
+(`if: github.event_name == 'merge_group'`, `run: echo "merge group —
+title validated at PR time"`). Title validity was proven at PR time;
+the group event only needs the context to report. RED-first YAML-shape
+witnesses extend `tests/unit/test_commitlint_workflow.py`: both
+workflows trigger on `merge_group`; the `commitlint` job runs for
+`merge_group`; PR-title steps stay PR-only; the no-op lives in the same
+`commitlint` job; `workflow.yml` still emits `test (3.11)` and
+`test (3.13)` and runs the full matrix on merge groups (R-2 option 1).
 
-### 2. Branch protection (settings change, recorded not scripted)
+### 2. Branch protection (exact contracts per judgement R-4)
 
-- Enable **Require merge queue** on `main`: merge method **squash**,
-  min group size 1, small wait time, **only merge non-failing pull
-  requests** enabled, status-check timeout ≥ the slow path of the test
-  matrix.
-- Disable **Require branches to be up to date before merging** — the
-  queue subsumes it; keeping both reintroduces the pre-queue rebase
-  requirement at PR level for no additional safety.
-- Applied via `gh api` and verified by reading the protection back;
-  the resulting JSON is pasted into this FR's implementation notes.
+Mutation — repository ruleset carrying the `merge_queue` rule (the API
+surface that both accepts and returns every queue parameter):
+
+```bash
+gh api repos/sheikkinen/yamlgraph/rulesets -X POST --input - <<'JSON'
+{"name": "merge-queue-main", "target": "branch", "enforcement": "active",
+ "conditions": {"ref_name": {"include": ["refs/heads/main"], "exclude": []}},
+ "rules": [{"type": "merge_queue", "parameters": {
+   "merge_method": "SQUASH", "grouping_strategy": "ALLGREEN",
+   "min_entries_to_merge": 1, "max_entries_to_merge": 5,
+   "max_entries_to_build": 5, "min_entries_to_merge_wait_minutes": 1,
+   "check_response_timeout_minutes": 30}}]}
+JSON
+```
+
+Strictness — `gh api -X PATCH
+repos/sheikkinen/yamlgraph/branches/main/protection/required_status_checks
+-F strict=false` (queue subsumes up-to-date; keeping both reintroduces
+the pre-queue rebase requirement for no added safety).
+
+Readback — `gh api repos/sheikkinen/yamlgraph/rulesets/<id>` must return
+the `merge_queue` rule with every parameter above, and
+`gh api repos/sheikkinen/yamlgraph/branches/main/protection` must show
+`strict: false` with the three required contexts unchanged; both JSON
+bodies are pasted into implementation notes. Parameter names are
+verified against the live API schema at enforcement time; a mismatch is
+recorded in the FR, not silently adapted.
+
+Rollback — `gh api -X DELETE
+repos/sheikkinen/yamlgraph/rulesets/<id>` plus `-X PATCH …
+required_status_checks -F strict=true`, restoring the pre-queue regime.
+
+Rollout order (frozen): (1) merge the tested workflow + documentation
+changes under the current strict regime; (2) operator reviews both
+workflow diffs and the exact settings payload; (3) apply the mutation
+and strictness change in one controlled operation; (4) read back;
+(5) only then enqueue witness PRs. If any required context fails to
+report on the first merge group: stop, execute the rollback, return to
+this FR — never `--admin` past the witness.
 
 ### 3. Ritual update (documentation)
 
@@ -115,29 +192,14 @@ its prohibition is FR-935's scope, not this FR's.
 
 ## Acceptance Criteria
 
-- [ ] AC-01: `workflow.yml` and `commitlint.yml` both list `merge_group`
-      in their `on:` block (unit-testable by YAML parse, pattern of
-      `tests/unit/test_fr919_*` CI-shape witnesses).
-- [ ] AC-02: on a merge_group event, all three required contexts
-      (`commitlint`, `test (3.11)`, `test (3.13)`) reach a reported
-      conclusion — witnessed by the first queued PR's merge_group check
-      run, cited in this FR by run URL.
-- [ ] AC-03: branch protection on `main` shows merge queue required,
-      squash method, and `strict: false` — verified by
-      `gh api repos/:owner/:repo/branches/main/protection` output
-      pasted into implementation notes.
-- [ ] AC-04: two PRs from parallel worktree lanes land through the
-      queue with zero manual rebase commands and zero `--admin` flags —
-      witnessed by the PRs' timelines and the session audit log.
-- [ ] AC-05: a docs-only PR enters and clears the queue without human
-      override (the FR-919 skip keeps its cost saving: the `changes`
-      filter still short-circuits only on `pull_request` events;
-      merge_group runs full matrix by design and this is recorded as a
-      deliberate cost).
-- [ ] AC-06: changelog fragment (`type: feat`) in
-      `changelog/unreleased/`.
-- [ ] AC-07: `CLAUDE.md` branch-protection table updated to the
-      post-queue truth.
+Superseded per judgement R-5: the revised acceptance criteria AC-01
+through AC-13 in
+[FR-934-merge-queue-on-main.judgement.md](FR-934-merge-queue-on-main.judgement.md)
+govern enforcement verbatim — mechanically auditable witnesses (check
+run URLs, settings readbacks, enqueue-time head SHAs, a named audit
+source for the no-`--admin` proof, the R-2 policy assertion for the
+docs-only witness, recorded operator review) plus changelog fragment,
+diary reflection, and green `req_coverage --strict`.
 
 ## Alternatives Considered
 

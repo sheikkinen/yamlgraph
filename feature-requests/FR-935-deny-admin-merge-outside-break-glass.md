@@ -1,8 +1,8 @@
-# Feature Request: Deny gh pr merge --admin outside break-glass
+# Feature Request: Deny agent-issued gh pr merge --admin
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Proposed
+**Status:** Judged — APPROVED WITH REVISIONS (judgement folded 2026-08-30; enforcement gated on FR-934 completion per C-2)
 **Effort:** 0.5 days
 **Requested:** 2026-08-30
 **First consumer / first event:** the first agent session after FR-934's
@@ -11,16 +11,16 @@ merge queue is live that reflexively types `gh pr merge --squash
 frequency: at least four distinct sessions used `--admin` as the routine
 merge verb on 2026-08-30 alone (PRs #519, #520 among them), including
 after the deadlock that justified it was already cured.
-**Research:** [docs/plan-research-merge-queue.md](../docs/plan-research-merge-queue.md)
-(committed 2026-08-30, PR #520; equivalent committed record per FR-890
-R-6 — §"The `--admin` habit is the real enemy" is this FR's problem
-record). Sole-route provenance note: shared with FR-934 — the brief
+**Research:** [FR-935.research.md](FR-935.research.md) — equivalent
+committed record per FR-890 R-6 (five dispositioned solution classes
+with precedent lines, preserved subtractionist dissent, explicit
+`is_this_a_graph: No`), composed after two sole-route failures on
+2026-08-30 (librarian_structure 400-char cap, exit 65, defect in
+FR-932's in-flight territory); to be superseded by a sole-route rerun
+when the route heals. Problem evidence:
 `feature-requests/research-briefs/fr934-merge-integration-toll-brief.md`
-covers both FRs' problem (its Witnessed incidents section records the
-bypass culture); two sole-route runs on 2026-08-30 failed at the
-artifact contract (librarian_structure 400-char cap, exit 65, defect in
-FR-932's in-flight territory) and the failure is recorded rather than
-routed around.
+(Witnessed incidents) and `docs/plan-research-merge-queue.md`
+§"The `--admin` habit is the real enemy".
 **Prior art:** the PreToolUse guard
 (`.github/hooks/scripts/pre-command-guard.sh`) already denies
 `--no-verify`, Co-authored-by trailers, multiline `git commit -m`, and
@@ -32,10 +32,20 @@ boundary. No prior or REJECTED FR governs the merge verb.
 
 ## Summary
 
-Add a PreToolUse guard rule denying `gh pr merge` invocations that carry
-`--admin`, unless a break-glass escape variable is set. The denial
-message names the compliant verb (`gh pr merge --squash`, which
-auto-enqueues under FR-934's queue) and the break-glass procedure.
+Add a PreToolUse guard rule denying agent-issued `gh pr merge`
+invocations that carry `--admin`, in any flag order. There is no
+agent-settable escape (judgement R-3): the denial message names the
+compliant verb (`gh pr merge --squash`, which auto-enqueues under
+FR-934's queue) and points the operator at `reference/break-glass.md` —
+the human emergency path stays outside the agent command boundary.
+
+## Dependency gate (judgement R-2)
+
+Enforcement of this FR may begin only after FR-934 is merged and its
+implementation record proves the merge queue is required on `main`,
+`strict` is false, and the required merge-group contexts report
+successfully. Denying the current routine escape before the replacement
+path works is not authorized.
 
 ## Value Statement
 
@@ -59,47 +69,66 @@ sessions is the PreToolUse guard.
 ## Proposed Solution
 
 In `.github/hooks/scripts/pre-command-guard.sh`, following the existing
-denial-rule pattern:
+denial-rule pattern (judgement R-3/R-4):
 
-- Deny commands matching `gh pr merge` with an `--admin` flag.
-- Escape hatch: `BREAK_GLASS=1` environment prefix allows the command;
-  the guard logs the allowance to `.github/hooks/logs/audit.jsonl`
-  (existing audit stream) so every bypass is enumerable afterwards.
+- Deny terminal command segments that actually invoke `gh pr merge` and
+  include `--admin`, regardless of the relative order of `--admin` and
+  other flags. Do not deny plain `gh pr merge --squash`, other `gh`
+  subcommands, or grep/echo text that merely mentions the forbidden
+  command — the guard already encodes this executable-context vs
+  textual-mention distinction for another forbidden flag.
+- No agent-settable bypass: `BREAK_GLASS=1 gh pr merge --admin` (or any
+  variable/sentinel prefix) remains denied. A bare variable the same
+  agent can prepend to its next command is not an authorization
+  boundary. The human emergency path is `reference/break-glass.md`
+  (admin authority, named emergencies, diary incident record within
+  24h) and is exercised outside the agent PreToolUse boundary; that
+  document is not modified.
 - Denial message: one line naming `gh pr merge --squash` as the queue
-  verb plus the `reference/break-glass.md` pointer.
+  verb plus the `reference/break-glass.md` pointer; one stable
+  `decision: deny` audit reason in `.github/hooks/logs/audit.jsonl`.
 
-Witness test in the existing hook-test pattern
-(`tests/unit/test_*guard*.py` family): denied without the variable,
-allowed with it, audit line written on allowance.
+Witnesses live in `.github/hooks/tests/test_pre_command_guard.py`
+(the existing behavioral suite, using the `HOOK_LOG_DIR` isolation
+seam): denied in both flag orders, denied under a `BREAK_GLASS=1`
+prefix, plain queue verb and textual mentions approved, stable audit
+reason asserted. `.github/hooks/README.md` active-check table and
+audit-reason documentation updated.
+
+Traceability (judgement R-5): this is a new capability — new
+`capabilities/CAP-XXX-*.yaml` with a new `REQ-YG-XXX` (not REQ-YG-527,
+which governs branch-create denial guidance), matching
+`ARCHITECTURE.md` entries, every new test tagged, the changelog
+fragment referencing the same requirement.
 
 Non-goals: no change to `enforce_admins` (admin overrides remain the
 operator's documented single-dev flow at the GitHub settings level;
 this FR governs the agent command boundary, not the human's browser),
-no change to `break-glass.md`, no server-side enforcement.
+no change to `reference/break-glass.md`, no server-side enforcement,
+no generalized shell parser.
 
 ## Acceptance Criteria
 
-- [ ] AC-01: `gh pr merge --squash --admin` (any flag order) is denied
-      by the PreToolUse guard with a message naming the queue verb and
-      break-glass pointer — witnessed by unit test.
-- [ ] AC-02: `BREAK_GLASS=1 gh pr merge --squash --admin` is allowed
-      and appends an audit line to `.github/hooks/logs/audit.jsonl` —
-      witnessed by unit test.
-- [ ] AC-03: plain `gh pr merge --squash` is unaffected — witnessed by
-      unit test.
-- [ ] AC-04: RED commit (failing witness) precedes GREEN commit
-      (guard rule) in the PR's history.
-- [ ] AC-05: changelog fragment (`type: feat`) in
-      `changelog/unreleased/`.
+Superseded per judgement: the revised acceptance criteria AC-01 through
+AC-08 in
+[FR-935-deny-admin-merge-outside-break-glass.judgement.md](FR-935-deny-admin-merge-outside-break-glass.judgement.md)
+govern enforcement verbatim — real-hook denial witnesses in both flag
+orders, `BREAK_GLASS=1` prefix still denied, false-positive contract
+(plain verb, other subcommands, textual mentions approved), stable
+audit reason via `HOOK_LOG_DIR`, README documentation, new capability +
+`REQ-YG-XXX` traceability with green `req_coverage --strict`, RED
+before GREEN in PR history, changelog fragment + implementation record
++ diary reflection.
 
 ## Alternatives Considered
 
 | alternative | disposition |
 |---|---|
 | Enable `enforce_admins` server-side | REJECTED — removes the operator's own documented single-dev override and the break-glass path with it; server setting can't distinguish agent from human |
+| Strip admin scope from the agent credential (subtraction) | DEFERRED — the strongest dissent, preserved in FR-935.research.md; requires operator/agent credential separation that doesn't exist today; becomes the mandated escalation if this guard is ever witnessed bypassed |
 | Advisory doctrine line ("don't use --admin") | REJECTED — the doctrine already implies it and four sessions used it in one day; `detection_without_enforcement` names this failure |
 | Delete gh CLI access for agents | REJECTED — destroys the entire PR flow to police one flag |
-| PreToolUse guard denial with audited break-glass (this FR) | PURSUED — conforms to the existing guard pattern, keeps the exception enumerable, costs one rule plus one test |
+| PreToolUse guard denial, no agent-settable escape (this FR) | PURSUED — conforms to the existing guard pattern, keeps the human emergency path outside the agent boundary, costs one rule plus witnesses |
 
 ## Related
 
