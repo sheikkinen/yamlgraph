@@ -175,3 +175,69 @@ def test_hook_invalid_sid_nonzero_and_audited(tmp_path):
         e.get("hook") == "session-worktree" and e.get("decision") == "reject"
         for e in read_audit(log_dir)
     )
+
+
+# ── FR-925: lane delivery via SessionStart hookSpecificOutput ─────────
+
+
+def test_hook_live_emits_sessionstart_envelope(tmp_path):
+    """AC-02: stdout is exactly one JSON envelope, no plain announcement."""
+    main = make_repo(tmp_path)
+    log_dir = tmp_path / "logs"
+    flag = tmp_path / "fr902.live"
+    flag.write_text("armed\n")
+    r = run_hook_script(
+        SESSION_WORKTREE, start_payload(SID, main), hook_env(main, log_dir, flag)
+    )
+    assert r.returncode == 0, r.stderr
+    data = json.loads(r.stdout)  # whole stdout must be one JSON object
+    hso = data["hookSpecificOutput"]
+    assert hso["hookEventName"] == "SessionStart"
+    lane = str(lane_path(main).resolve())
+    ctx = hso["additionalContext"]
+    assert f"FR-902 session lane: {lane}" in ctx
+    assert f"Work there: cd '{lane}'" in ctx
+
+
+def test_hook_not_live_emits_nothing(tmp_path):
+    """AC-03: without the live flag, no envelope and no output at all."""
+    main = make_repo(tmp_path)
+    r = run_hook_script(
+        SESSION_WORKTREE,
+        start_payload(SID, main),
+        hook_env(main, tmp_path / "logs", flag=tmp_path / "missing-flag"),
+    )
+    assert r.returncode == 0
+    assert r.stdout.strip() == ""
+
+
+def test_hook_invalid_sid_no_success_envelope(tmp_path):
+    """AC-04: refusals stay audited non-zero, never success-shaped."""
+    main = make_repo(tmp_path)
+    log_dir = tmp_path / "logs"
+    flag = tmp_path / "fr902.live"
+    flag.write_text("armed\n")
+    r = run_hook_script(
+        SESSION_WORKTREE,
+        start_payload("../../evil", main),
+        hook_env(main, log_dir, flag),
+    )
+    assert r.returncode != 0
+    assert "hookSpecificOutput" not in r.stdout
+
+
+def test_hook_lane_failure_no_success_envelope(tmp_path):
+    """AC-04: lane-creation failure is audited, no success envelope."""
+    main = make_repo(tmp_path)
+    log_dir = tmp_path / "logs"
+    flag = tmp_path / "fr902.live"
+    flag.write_text("armed\n")
+    env = hook_env(main, log_dir, flag)
+    env["FR902_WORKTREE_SH"] = "/usr/bin/false"
+    r = run_hook_script(SESSION_WORKTREE, start_payload(SID, main), env)
+    assert r.returncode != 0
+    assert "hookSpecificOutput" not in r.stdout
+    assert any(
+        e.get("hook") == "session-worktree" and e.get("decision") == "reject"
+        for e in read_audit(log_dir)
+    )
