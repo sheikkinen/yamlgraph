@@ -2,8 +2,9 @@
 
 **Priority:** HIGH
 **Type:** Removal (R-6 subtraction)
-**Status:** Proposed 2026-08-30 (operator-directed; RED committed same day, judgement pending)
+**Status:** Judged APPROVED WITH REVISIONS 2026-08-30 ([judgement](FR-927-retire-fr902-lane-guard-hooks.judgement.md)); R-2..R-6 folded same day; R-1 (research record) WAIVED by operator ("research: skip", 2026-08-30) — operator override recorded in lieu of the artifact
 **Effort:** 0.5 days
+**Research:** waived by operator 2026-08-30; alternatives dispositioned in-conversation: full hook retirement (chosen), Check-8-only retirement (rejected — SessionStart/Stop hooks have no live lifecycle without the guard), dark-disable via `fr902.live` (rejected — flag only gates lane creation, existing records keep the guard armed; witnessed this session), repair `lane_guard.py` cwd resolution (rejected — third prompt/parser patch on a discredited channel; `two_strike_split`), delivery-fix-only per FR-925 (rejected — delivers a lane to a broken guard). `is_this_a_graph`: no — repo-local enforcement subtraction, no LLM stage.
 **Requested:** 2026-08-30 (operator: "check the 902 related bash enum in hooks. fr to remove it all. red test to verify that it is gone never to return")
 **First consumer / first event:** every agent session's first write-shaped
 tool call — the moment Check 8 currently fires a false denial or forces a
@@ -103,7 +104,17 @@ REQ-YG-630 loses its Stop-hook clause; module lists shrink accordingly.
 `tests/unit/test_session_worktree_lifecycle.py` prunes to match.
 
 **Supersede FR-925** (lane delivery to agent context): moot — there is no
-hook-created lane to deliver. Mark REJECTED/SUPERSEDED by this FR.
+hook-created lane to deliver. Mark SUPERSEDED by FR-927; its historical
+judgement and implementation record are preserved untouched (R-4: a
+superseded plan is not retroactively rejected).
+
+**Why the SessionStart/Stop hooks die with Check 8 (R-3):** automatic
+lane creation and Stop-hook checkpointing exist only to serve the
+hook-created lane lifecycle — a lane nobody guards needs no automatic
+creation, and a checkpoint hook that commits on a lane branch nobody is
+routed to records nothing. Their only live lifecycle is the failed
+hook-created lane system; manual `scripts/worktree.sh session`/`gc`,
+`now.py`, and `session_join.py` remain as the retained substrate.
 
 **Regression pin:** `.github/hooks/tests/test_fr902_retired.py`
 (RED, committed with this FR) asserts structural absence:
@@ -113,26 +124,48 @@ write-verb grep alternation outside the R-2 mutator fence, no
 `FR902_ALLOW_OUTSIDE` anywhere in hook scripts. The test is permanent —
 "gone never to return."
 
-## Acceptance Criteria
+## Acceptance Criteria (revised per judgement; judge AC-01 waived with R-1)
 
-- [ ] AC-01: `test_fr902_retired.py` passes — every structural-absence
-      assertion green; the test itself carries no dependency on deleted
-      fixtures
-- [ ] AC-02: Hook suite green after deletion; no orphaned imports or
-      fixtures; `pre-command-guard.sh` shrinks (line count recorded)
-- [ ] AC-03: `session-probe.json` SessionStart/Stop entries for
-      session-worktree.sh and session-checkpoint.sh removed; remaining
-      hook registrations untouched
-- [ ] AC-04: CAP-254 rewritten to retained scope; REQ descriptions match
-      reality; `req_coverage.py --strict` green;
-      `tests/unit/test_session_worktree_lifecycle.py` pruned to match
-- [ ] AC-05: FR-925 marked SUPERSEDED with pointer here; FR-902 status
-      updated to RETIRED (hook machinery) with pointer here
-- [ ] AC-06: No `FR902_ALLOW_OUTSIDE` or lane-denial guidance survives in
-      `CLAUDE.md` / `.github/copilot-instructions.md`; the FR-902 bullet
-      in the Copilot Hooks section is replaced by a one-line retirement
-      note
-- [ ] AC-07: Changelog fragment (`type: removal`); diary reflection
+- [ ] AC-02: `.github/hooks/tests/test_fr902_retired.py` exists, is
+      independent of deleted FR-902 fixtures, fails against the current
+      FR-902 hook machinery (RED), and passes only when the retired
+      surfaces are absent
+- [ ] AC-03: The structural test asserts no `checks/lane_guard.py`, no
+      `session-worktree.sh`, no `session-checkpoint.sh`, and no
+      `session-probe.json` registrations for the deleted scripts
+- [ ] AC-04: `pre-command-guard.sh` contains no FR-902 Check 8 block, no
+      `FR902`/`fr902` token, no `FR902_ALLOW_OUTSIDE`, and no write-shape
+      grep alternation except the intact FR-889 lock-mutator fence
+      (`chmod`/`chflags`/`setfacl`)
+- [ ] AC-05: Hook tests green after deleting FR-902 tests/fixtures; no
+      orphaned imports of `fr902_fixtures`, `lane_guard.py`,
+      `session-worktree.sh`, or `session-checkpoint.sh`
+- [ ] AC-06: `session-probe.json` removes only the session-worktree.sh
+      SessionStart entry and session-checkpoint.sh Stop entry; all other
+      registrations byte-for-byte equivalent
+- [ ] AC-07: CAP-254 rewritten to retained tooling only (worktree
+      session/gc, now.py, session_join.py); REQ-YG-629 drops the
+      PreToolUse guard clause; REQ-YG-630 drops the Stop-hook clause;
+      `tests/unit/test_session_worktree_lifecycle.py` matches;
+      `python scripts/req_coverage.py --strict` green
+- [ ] AC-08: FR-902 records hook machinery RETIRED by FR-927; FR-925
+      marked SUPERSEDED by FR-927 — both preserving historical record
+- [ ] AC-09: No live FR-902 lane / `FR902_ALLOW_OUTSIDE` guidance in
+      `CLAUDE.md` or `.github/copilot-instructions.md`; hooks-section
+      bullet replaced by a one-line retirement note
+- [ ] AC-10: `pre-command-guard.sh` before/after line count recorded in
+      Implementation Record (`wc -l`, baseline 450)
+- [ ] AC-11: Changelog fragment (`type: removal`)
+- [ ] AC-12: Diary reflection
+
+## Conditions (judgement, C-1..C-6)
+
+C-1 folded (this revision); C-2 human review of the hook-enforcement
+deletion diff before retirement is live — NOT yet satisfied: operator
+merged the plan+judgement only and explicitly withheld enforcement
+authorization (2026-08-30); C-3 RED structural test before enforcement;
+C-4 FR-889 OS lock/fence/Check 7 untouched; C-5 retained substrate and
+existing lanes/branches untouched; C-6 no replacement lane arbitration.
 
 ## Non-Goals
 
