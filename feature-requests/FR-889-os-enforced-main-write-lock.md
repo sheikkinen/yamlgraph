@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Refactor
-**Status:** ENFORCED 2026-08-30 (session lane ccd5fb52; RED 21608433, GREEN d0066cfb; PR pending — C-6 human review required before merge). Previously: Judged (APPROVED WITH REVISIONS 2026-08-25, R-1..R-6 folded); amended 2026-08-30 by operator direction — §4 scope additions (CLAUDE.md truth, terminal venv, FR-902 flag retirement, docs-PR auto-merge deadlock cure)
+**Status:** MERGED 2026-08-30 (PR #503, squash; session lane ccd5fb52; RED 21608433, GREEN d0066cfb; C-6 human review satisfied at merge). Post-merge rollout complete: worktree.sh sync relocked main, kernel-verified (touch → Permission denied). Previously: Judged (APPROVED WITH REVISIONS 2026-08-25, R-1..R-6 folded); amended 2026-08-30 by operator direction — §4 scope additions (CLAUDE.md truth, terminal venv, FR-902 flag retirement, docs-PR auto-merge deadlock cure)
 **Effort:** 1 day
 **Requested:** 2026-08-25
 **First consumer / first event:** the next terminal command that would
