@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Bug
-**Status:** Proposed
+**Status:** Judged — APPROVED WITH REVISIONS (revisions folded 2026-08-30)
 **Effort:** 0.25 days
 **Requested:** 2026-08-30
 **First consumer / first event:** any maintainer running the retirement
@@ -20,10 +20,20 @@ witness already uses the `git ls-files` form this FR generalises); FR-717
 
 ## Summary
 
-Three retirement witnesses assert `Path.exists()` where their own acceptance
-criteria specified *tracked* absence. Switch them to `git ls-files`, and add
-import guards so a retired module cannot resurrect as an empty namespace
-package.
+A retirement witness must ask **three separate questions** (R-1, R-2), and
+today the three modules conflate them:
+
+| Question | Instrument | Passes with stale `__pycache__` residue? |
+|---|---|---|
+| Is it gone from the **repository**? | `git ls-files <path>` → empty | yes — residue is untracked |
+| Is it gone from the **import system**? | `import x` → `ModuleNotFoundError` | **no** — an empty dir is a namespace package |
+| Is it gone from the **filesystem**? | `Path.exists()` | no |
+
+FR-909 and FR-915 asked the filesystem question where their criteria said
+repository. **FR-910 is different**: its AC-01 explicitly specified
+`test ! -e yamlgraph/export/mcp.py && test ! -e .vscode/mcp.json && test ! -e
+reference/mcp-server.md` — filesystem absence is its actual contract and
+must be preserved, not replaced (R-2, C-2).
 
 ## Value Statement
 
@@ -71,19 +81,32 @@ namespace package is caught by name.
 
 ## Proposed Solution
 
-1. **Tracked absence** — in `test_fr909_a2a_retirement.py`,
-   `test_fr910_mcp_retirement.py`, `test_fr915_mastra_demo_retirement.py`,
-   replace `Path.exists()` deletion assertions with a `git ls-files <path>`
-   check returning no output. One shared helper per module (these are
-   separate test modules by design; a shared conftest helper would couple
-   three FRs' witnesses).
-2. **Import guard** — assert the retired module paths are not importable:
-   `yamlgraph.a2a`, `yamlgraph.a2a.server`, `yamlgraph.a2a.message`,
-   `yamlgraph.contrib.a2a_client`, `yamlgraph.cli.a2a_commands`,
-   `yamlgraph.export.mcp`. Each must raise `ModuleNotFoundError` — a
-   namespace-package hit returns a module object and therefore fails.
-3. **Confessions** for the new `subprocess`/`S603` suppressions, following
-   CONF-432/433/434 (the FR-858 witness precedent).
+Revised per judgement (R-1 separates the three questions; R-2 preserves
+FR-910's filesystem contract):
+
+1. **Tracked absence** — `test_fr909_a2a_retirement.py` and
+   `test_fr915_mastra_demo_retirement.py`: replace `Path.exists()` deletion
+   assertions with `git ls-files <path>` returning empty. One local helper
+   per module (a shared conftest helper would couple three FRs' witnesses —
+   explicitly not authorized).
+2. **FR-910 keeps its filesystem checks** — `test_fr910_mcp_retirement.py`
+   retains `Path.exists()` absence for `yamlgraph/export/mcp.py`,
+   `.vscode/mcp.json`, and `reference/mcp-server.md` because FR-910 AC-01
+   specified exactly that; it *adds* an import guard, and adds tracked-file
+   checks only where they do not weaken the existing contract.
+3. **Import guards** — assert `ModuleNotFoundError` for `yamlgraph.a2a`,
+   `yamlgraph.a2a.server`, `yamlgraph.a2a.message`,
+   `yamlgraph.contrib.a2a_client`, `yamlgraph.cli.a2a_commands` (FR-909) and
+   `yamlgraph.export.mcp` (FR-910). A namespace-package hit returns a module
+   object, so the guard fails — which is the point (C-5).
+4. **Confessions** for new `S603` suppressions, following CONF-432/433/434.
+
+**Expected behaviour on a tree with stale `yamlgraph/a2a/__pycache__/`**
+(R-1's resolution): the tracked-absence *assertion* passes; the FR-909
+witness *module* fails, because the import guard correctly reports the
+namespace package. Removing the residue makes the module pass. A failing
+import guard in that state is not a false failure — it is the hazard this FR
+elected to witness (C-5).
 
 **Not in scope:** re-opening any retirement; changing what was deleted;
 `.gitignore` policy for `__pycache__`; adding a cleanup hook or CI step that
@@ -92,14 +115,20 @@ separately.
 
 ## Acceptance Criteria
 
-- [ ] AC-01: no retirement witness asserts `Path.exists()` for a deleted path; each uses `git ls-files` and asserts empty output
-- [ ] AC-02: `test_fr909_a2a_retirement.py` passes on a working tree containing a stale untracked `yamlgraph/a2a/__pycache__/` (the E-1 reproducer)
-- [ ] AC-03: an import guard asserts `ModuleNotFoundError` for each retired module path listed in Proposed Solution item 2; the guard fails while a namespace-package directory exists
-- [ ] AC-04: with the stale directory removed, the three witness modules pass — `22 passed`, matching E-6's total
-- [ ] AC-05: `python scripts/noqa_coverage.py --strict` passes with confessions for any new suppressions
-- [ ] AC-06: full unit suite passes; `python scripts/req_coverage.py --strict` passes
-- [ ] AC-07: no production code under `yamlgraph/` is modified — `git diff --name-only` contains only `tests/`, `docs/confessions.md`, `feature-requests/`, and `changelog/`
-- [ ] AC-08: changelog fragment under `changelog/unreleased/` with `type: fix` naming FR-924
+Adopted verbatim from the judgement (R-1..R-3 folded; AC-10 is R-3's exact
+file allowlist).
+
+- [ ] AC-01: FR-924 states the three witness questions separately: git tracked absence, Python import absence, and retained FR-910 filesystem absence
+- [ ] AC-02: `test_fr909_a2a_retirement.py` uses `git ls-files` for every path in its A2A `DELETED_PATHS`; no `Path.exists()` assertion remains in that tracked-deletion test
+- [ ] AC-03: the FR-909 tracked-absence assertion passes with stale untracked `yamlgraph/a2a/__pycache__/` residue, but the FR-909 import guard fails while `import yamlgraph.a2a` succeeds; after the stale directory is removed, `pytest tests/unit/test_fr909_a2a_retirement.py -q --no-cov` passes
+- [ ] AC-04: the FR-909 import guard asserts `ModuleNotFoundError` for `yamlgraph.a2a`, `yamlgraph.a2a.server`, `yamlgraph.a2a.message`, `yamlgraph.contrib.a2a_client`, `yamlgraph.cli.a2a_commands`
+- [ ] AC-05: `test_fr910_mcp_retirement.py` preserves filesystem-absence checks for `yamlgraph/export/mcp.py`, `.vscode/mcp.json`, `reference/mcp-server.md`, adds non-weakening tracked-file checks for remaining retired paths, and asserts `ModuleNotFoundError` for `yamlgraph.export.mcp`
+- [ ] AC-06: `test_fr915_mastra_demo_retirement.py` uses `git ls-files 'examples/demos/mastra-integration/*'`; no `Path.exists()` assertion remains in that witness
+- [ ] AC-07: new `S603` suppressions documented in `docs/confessions.md`; `python scripts/noqa_coverage.py --strict` passes
+- [ ] AC-08: the three witness modules pass together on a tree with no importable stale retired package directories
+- [ ] AC-09: full unit suite passes; `python scripts/req_coverage.py --strict` passes
+- [ ] AC-10: `git diff --name-only` contains **only**: the three witness modules, `docs/confessions.md`, `feature-requests/FR-924-harden-retirement-witnesses.md`, `feature-requests/FR-924-harden-retirement-witnesses.judgement.md`, and one FR-924 changelog fragment
+- [ ] AC-11: changelog fragment under `changelog/unreleased/` with `type: fix` naming FR-924
 
 ## Alternatives Considered
 
@@ -121,3 +150,21 @@ separately.
 ## Judgement (pending)
 
 Not yet judged. Route: `scripts/judge.sh feature-requests/FR-924-harden-retirement-witnesses.md`.
+
+## Judgement (2026-08-30)
+
+**Verdict:** APPROVED WITH REVISIONS — full judgement:
+[FR-924-harden-retirement-witnesses.judgement.md](FR-924-harden-retirement-witnesses.judgement.md)
+
+| # | Finding | Resolution (binding) |
+|---|---------|----------------------|
+| R-1 | AC-02 and AC-03 contradicted each other — the FR-909 module cannot both pass with stale residue and have its import guard fail in that state | Summary now separates the three questions; AC-03 states the resolution: the tracked-absence *assertion* passes, the *module* fails until the residue is gone |
+| R-2 | False claim that all three FRs specified tracked absence — FR-910 AC-01 explicitly required `test ! -e` filesystem checks | Summary and Solution item 2: FR-910 keeps filesystem absence, gains an import guard only (C-2) |
+| R-3 | AC-07's directory-level allowlist would permit unrelated edits | Replaced by AC-10, an exact file allowlist |
+
+**Conditions:** C-1–C-5 — notably C-2 (never weaken FR-910 AC-01), C-3 (import
+guards must exercise the real import system: no `sys.path` monkeypatching, no
+deleting residue inside the test, no `sys.modules` mutation), C-5 (a guard
+failing on stale residue is a true positive).
+
+**Scope frozen:** deliverables D-1–D-7 per judgement.
