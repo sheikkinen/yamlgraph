@@ -140,6 +140,9 @@ class TestFinalizeComposesStatuses:
     def test_statuses_still_attached(self) -> None:
         result = _finalize(
             {"workstreams": ["NC-346: stonewall"]},
+            # FR-930: the join only decorates ids that survive reconciliation,
+            # so the fixture id must carry model-visible evidence in commits.
+            commits="a1|2026-07-08|fix: NC-346 stonewall off-schema questions",
             unreferenced="",
             churn="",
             fragments="x",

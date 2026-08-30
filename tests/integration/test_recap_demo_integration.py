@@ -1,16 +1,15 @@
 """FR-700 Timeframe Recap Demo — Integration tests (real LLM).
 
-Frozen acceptance criteria:
-- Bare temp git repo (3 commits, no FR/changelog conventions) runs without
-  error and yields no hallucinated FR references.
-- A fixture commit without an FR/issue reference appears in `orphans`
-  (tolerant matching — contains, never exact equality).
+FR-930 retired the live bare-repo anti-hallucination witness: the no-invented-
+FR-refs clause is enforced by construction in finalize_recap (reconciliation
+against the deterministic reference universe) and witnessed by unit tests in
+tests/unit/test_recap_demo.py::TestReferenceReconciliation. Live end-to-end
+coverage of the graph remains below (REQ-YG-534).
 """
 
 from __future__ import annotations
 
 import os
-import re
 import subprocess
 from pathlib import Path
 
@@ -30,65 +29,6 @@ _GIT_ENV = {
     "GIT_COMMITTER_EMAIL": "t@t",
     "PATH": "/usr/bin:/bin",
 }
-
-
-def _make_bare_conventions_repo(path: Path) -> str:
-    """Create a git repo with 3 commits and no yamlgraph conventions.
-
-    Returns the short hash of the reference-less commit.
-    """
-    env = {**_GIT_ENV, "HOME": str(path)}
-    subprocess.run(["git", "init", "-q", str(path)], check=True, env=env)
-
-    def commit(msg: str, filename: str) -> str:
-        (path / filename).write_text(f"content for {msg}\n")
-        subprocess.run(["git", "-C", str(path), "add", "-A"], check=True, env=env)
-        subprocess.run(
-            ["git", "-C", str(path), "commit", "-q", "-m", msg], check=True, env=env
-        )
-        return subprocess.run(
-            ["git", "-C", str(path), "rev-parse", "--short", "HEAD"],
-            check=True,
-            env=env,
-            capture_output=True,
-            text=True,
-        ).stdout.strip()
-
-    commit("#12 add parser", "parser.py")
-    orphan_hash = commit("tweak output formatting", "formatter.py")
-    commit("#13 add serializer", "serializer.py")
-    return orphan_hash
-
-
-@pytest.mark.slow
-class TestRecapOnBareRepo:
-    """Recap runs on a repo without yamlgraph conventions."""
-
-    @pytest.mark.req("REQ-YG-531")
-    def test_bare_repo_recap_no_hallucinated_conventions(self, tmp_path: Path) -> None:
-        """No error; no invented FR references; orphan commit flagged."""
-        from yamlgraph.compile.graph_loader import load_and_compile
-
-        orphan_hash = _make_bare_conventions_repo(tmp_path)
-
-        graph = load_and_compile(GRAPH_PATH)
-        app = graph.compile()
-        result = app.invoke({"repo_path": str(tmp_path), "since": "1 day ago"})
-
-        recap = result["recap"]
-        recap_dict = recap if isinstance(recap, dict) else recap.model_dump()
-
-        # No hallucinated FR references anywhere in the output.
-        blob = str(recap_dict)
-        assert not re.search(r"FR-\d+", blob), f"hallucinated FR refs: {blob[:500]}"
-
-        # Orphan detection is code-owned since FR-704: the hash field is
-        # asserted by EXACT equality — tolerant matching is doctrine for LLM
-        # output, and orphans no longer transit the model.
-        orphan_hashes = [str(o).split("|")[0] for o in recap_dict["orphans"]]
-        assert (
-            orphan_hash in orphan_hashes
-        ), f"orphan {orphan_hash} not present bit-exact; got: {orphan_hashes}"
 
 
 @pytest.mark.slow

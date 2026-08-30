@@ -161,3 +161,116 @@ class TestRecapFailsLoudly:
         state = {"repo_path": str(tmp_path), "since": "10 years ago"}
         result = node_fn(state)
         assert result["fr_changes"].strip() == ""
+
+
+def _finalize(state_overrides: dict) -> dict:
+    """Run finalize_recap on synthetic state with empty defaults."""
+    from examples.demos.recap.nodes.partition import finalize_recap
+
+    state = {
+        "commits": "",
+        "referenced": "",
+        "unreferenced": "",
+        "churn": "",
+        "fr_changes": "",
+        "fragments": "",
+        "fr_statuses": "",
+        "recap": {"workstreams": [], "hotspots": []},
+        **state_overrides,
+    }
+    return finalize_recap(state)
+
+
+class TestReferenceReconciliation:
+    """FR-930: model-authored FR/NC refs are claims, reconciled in code.
+
+    The allowed universe is model-visible deterministic evidence only
+    (commits/referenced, churn, fr_changes, fragments) — never fr_statuses.
+    """
+
+    @pytest.mark.req("REQ-YG-531")
+    def test_invented_workstream_ref_stripped_and_recorded(self) -> None:
+        """Empty universe: FR-999 is stripped from the line and recorded."""
+        result = _finalize(
+            {"recap": {"workstreams": ["FR-999: mystery work (commits: 1)"]}}
+        )
+        recap = result["recap"]
+        assert "FR-999" not in str(recap["workstreams"])
+        assert recap["unverified_refs"] == ["FR-999"]
+
+    @pytest.mark.req("REQ-YG-531")
+    def test_legitimate_ref_preserved_and_no_strip_records_empty(self) -> None:
+        """Ref present in commits survives verbatim; unverified_refs is []."""
+        result = _finalize(
+            {
+                "commits": "abc1234|2026-08-30|feat: FR-100 add widget",
+                "referenced": "abc1234|2026-08-30|feat: FR-100 add widget",
+                "recap": {"workstreams": ["FR-100: widget work (commits: 1)"]},
+            }
+        )
+        recap = result["recap"]
+        assert any("FR-100" in line for line in recap["workstreams"])
+        assert recap["unverified_refs"] == []
+
+    @pytest.mark.req("REQ-YG-531")
+    def test_invented_hotspot_ref_stripped_and_recorded(self) -> None:
+        """Hotspots are model-authored too: invented refs are stripped."""
+        result = _finalize(
+            {"recap": {"workstreams": [], "hotspots": ["src/FR-777 hot file"]}}
+        )
+        recap = result["recap"]
+        assert "FR-777" not in str(recap["hotspots"])
+        assert recap["unverified_refs"] == ["FR-777"]
+
+    @pytest.mark.req("REQ-YG-531")
+    def test_lowercase_model_ref_reconciles_case_insensitively(self) -> None:
+        """fr-100 in model text is verified against uppercased universe."""
+        result = _finalize(
+            {
+                "commits": "abc1234|2026-08-30|feat: FR-100 add widget",
+                "recap": {"workstreams": ["fr-100: widget work"]},
+            }
+        )
+        recap = result["recap"]
+        assert any("fr-100" in line for line in recap["workstreams"])
+        assert recap["unverified_refs"] == []
+
+    @pytest.mark.req("REQ-YG-531")
+    def test_status_only_ref_is_stripped_before_status_join(self) -> None:
+        """fr_statuses is NOT the universe: a prompt-invisible id present
+        only at HEAD is stripped and gains no status credibility."""
+        result = _finalize(
+            {
+                "fr_statuses": (
+                    "HEAD:feature-requests/FR-999-ghost.md:**Status:** ENFORCED"
+                ),
+                "recap": {"workstreams": ["FR-999: ghost work (commits: 1)"]},
+            }
+        )
+        recap = result["recap"]
+        blob = str(recap["workstreams"])
+        assert "FR-999" not in blob
+        assert "[Status:" not in blob
+        assert "[no FR status]" not in blob
+        assert recap["unverified_refs"] == ["FR-999"]
+
+    @pytest.mark.req("REQ-YG-531")
+    def test_unverified_refs_uppercase_unique_first_seen(self) -> None:
+        """Duplicates and mixed case collapse to one uppercase entry, in order."""
+        result = _finalize(
+            {
+                "recap": {
+                    "workstreams": ["FR-999 and fr-999 again", "NC-888 phantom"],
+                    "hotspots": ["nc-888 again"],
+                }
+            }
+        )
+        assert result["recap"]["unverified_refs"] == ["FR-999", "NC-888"]
+
+    @pytest.mark.req("REQ-YG-531")
+    def test_orphan_lines_bit_exact_from_unreferenced(self) -> None:
+        """FR-704 clause inherited from the retired live test: unreferenced
+        commit lines appear in orphans bit-exact, in order."""
+        lines = "703b72d|2026-08-30|tweak output\naaa1111|2026-08-30|polish docs"
+        result = _finalize({"unreferenced": lines})
+        assert result["recap"]["orphans"][:2] == lines.splitlines()

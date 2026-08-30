@@ -40,6 +40,52 @@ def partition_commits(state: dict) -> dict:
 
 _STATUS_PREFIX = re.compile(r"^\*\*Status:?\*\*:?\s*")
 
+# FR-930: model-visible deterministic evidence only — fr_statuses greps every
+# FR at HEAD, the model never sees it, so it must not rescue invented ids.
+_UNIVERSE_KEYS = ("commits", "referenced", "churn", "fr_changes", "fragments")
+
+
+def _reference_universe(state: dict) -> set[str]:
+    """Uppercase FR/NC ids present in the model-visible deterministic inputs."""
+    blob = "\n".join(state.get(key) or "" for key in _UNIVERSE_KEYS)
+    return {
+        m.group(0).upper()
+        for m in _REF_PATTERN.finditer(blob)
+        if not m.group(0).startswith("#")
+    }
+
+
+def _reconcile_refs(recap: dict, allowed: set[str]) -> tuple[dict, list[str]]:
+    """Strip model-authored FR/NC tokens absent from the allowed universe.
+
+    Model output is a claim (two_strike_split): tokens with no deterministic
+    witness are removed from workstreams/hotspots and recorded — uppercase,
+    unique, first-seen order — never silently dropped (Commandment 6).
+    """
+    stripped: list[str] = []
+
+    def _sub(match: re.Match[str]) -> str:
+        token = match.group(0)
+        if token.startswith("#"):  # issue refs out of scope (REQ-YG-531 is FR/NC)
+            return token
+        upper = token.upper()
+        if upper in allowed:
+            return token
+        if upper not in stripped:
+            stripped.append(upper)
+        return ""
+
+    def _clean(line: str) -> str:
+        new = _REF_PATTERN.sub(_sub, line)
+        return re.sub(r"  +", " ", new).strip() if new != line else line
+
+    reconciled = {
+        **recap,
+        "workstreams": [_clean(line) for line in recap.get("workstreams") or []],
+        "hotspots": [_clean(line) for line in recap.get("hotspots") or []],
+    }
+    return reconciled, stripped
+
 
 def _parse_status_map(fr_statuses: str) -> dict[str, str]:
     """Parse fr_statuses grep lines into an id→status map.
@@ -130,14 +176,22 @@ def _convention_orphans(churn: str, fragments: str) -> list[str]:
 
 
 def finalize_recap(state: dict) -> dict:
-    """Post-pass composing the FR-703 status join with code-owned orphans.
+    """Post-pass composing reconciliation, status join, and code-owned orphans.
 
     Orphans never transit the model (FR-704): two field runs proved the
     model corrupts hashes in copy-verbatim steps (703b72d → 703b72e, twice).
     Commit orphans are the unreferenced lines bit-exact, in order; window-rule
     convention entries are appended after (J2).
+
+    Reconciliation (FR-930) runs BEFORE the status join so an invented id
+    can never collect a [Status: …] or [no FR status] tag.
     """
-    result = attach_statuses(state)
+    recap = state.get("recap") or {}
+    if hasattr(recap, "model_dump"):  # normalize at the boundary (F2)
+        recap = recap.model_dump()
+    reconciled, unverified = _reconcile_refs(recap, _reference_universe(state))
+
+    result = attach_statuses({**state, "recap": reconciled})
     recap = result["recap"]
 
     unreferenced = state.get("unreferenced") or ""
@@ -146,4 +200,4 @@ def finalize_recap(state: dict) -> dict:
         state.get("churn") or "", state.get("fragments") or ""
     )
 
-    return {"recap": {**recap, "orphans": orphans}}
+    return {"recap": {**recap, "orphans": orphans, "unverified_refs": unverified}}
