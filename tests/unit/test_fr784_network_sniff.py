@@ -16,6 +16,7 @@ import json
 import shutil
 import subprocess
 import sys
+import time
 from http.server import ThreadingHTTPServer
 from pathlib import Path
 from threading import Thread
@@ -254,6 +255,22 @@ def test_telemetry_hostname_label_classified():
 # ---------------------------------------------------------------------------
 # Browser witnesses against the committed fixture (AC-03..AC-09)
 # ---------------------------------------------------------------------------
+
+
+@browser
+@pytest.mark.slow
+@pytest.mark.req("REQ-YG-590")
+def test_timeout_is_ceiling_not_floor(spa_server: str):
+    """FR-921 AC-01: a settling page must not consume the whole --timeout window."""
+    start = time.monotonic()
+    out = _sniff(f"{spa_server}/index.html", timeout_ms=15000)
+    elapsed = time.monotonic() - start
+    assert set(out) == {"requests", "auth_required", "needs_manual_reason", "warnings"}
+    assert out["requests"], "settle-time witness must still capture the fixture traffic"
+    assert elapsed < 5.0, (
+        f"sniff of a settling page took {elapsed:.2f}s against a 15s ceiling — "
+        "the window is acting as a floor (FR-921)"
+    )
 
 
 @browser
