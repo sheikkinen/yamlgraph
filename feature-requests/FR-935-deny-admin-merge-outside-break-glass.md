@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Judged — APPROVED WITH REVISIONS (judgement folded 2026-08-30; enforcement gated on FR-934 completion per C-2)
+**Status:** Judged — APPROVED WITH REVISIONS (judgement folded 2026-08-30; enforcement gated on FR-934 completion per C-2). GATE UNREACHABLE (2026-08-30): FR-934 phase 2 is BLOCKED BY PLATFORM — the merge_queue rule is org-only and this repo is user-owned; operator chose to stay on the strict regime. Without a queue, agents have no compliant merge verb when strict blocks green PRs, so denying `--admin` would deadlock the flow. Enforcement stays dormant unless the repo moves to an org or the judgement is revisited.
 **Effort:** 0.5 days
 **Requested:** 2026-08-30
 **First consumer / first event:** the first agent session after FR-934's

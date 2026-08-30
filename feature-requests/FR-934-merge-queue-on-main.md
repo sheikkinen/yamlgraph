@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Enhancement
-**Status:** Enforcing — workflow wiring implemented (RED 4955c651 → GREEN, this PR); settings mutation pending operator review (C-2), then witness PRs
+**Status:** BLOCKED BY PLATFORM — phase 1 (merge_group wiring) merged as PR #522; phase 2 (queue enablement) impossible: the `merge_queue` ruleset rule is org-only and this repo is user-owned (API 422, evidence below). Operator decision 2026-08-30: stay strict, record blocker, stop.
 **Effort:** 0.5 days
 **Requested:** 2026-08-30
 **First consumer / first event:** the next two PRs opened from parallel
@@ -242,7 +242,33 @@ diary reflection, and green `req_coverage --strict`.
 - AC-13: changelog fragment `changelog/unreleased/fr-934-merge-queue.md`,
   diary `docs/diary/diary-2026-08-30-the-queue-that-reports.md`.
 
-**Phase 2 — pending (after this PR merges + operator reviews diffs and the
-settings payload, C-2/AC-12):** ruleset POST + strict=false PATCH per §2,
-readback into this record (AC-07), tested rollback (AC-08), then witness PRs
-(AC-06, AC-09, AC-10).
+**Phase 2 — BLOCKED BY PLATFORM (2026-08-30):** the settings mutation was
+attempted after PR #522 merged and operator approval of the payload (C-2
+first half recorded via in-session review). The API rejected the ruleset;
+probe sequence isolating the cause:
+
+1. Full payload, `merge_method: "SQUASH"` → 422 `Invalid rule 'merge_queue': `
+   (empty detail) — schema-valid per REST docs, semantically rejected.
+2. Parameterless `{"type": "merge_queue"}` → 422 `Invalid merge method
+   'merge'. Not allowed for this repository.` — rule type recognized,
+   defaults checked against repo settings (squash-only).
+3. `merge_method: "REBASE"` → 422 `Invalid merge method 'rebase'. Not
+   allowed for this repository.` — parameters parsed and validated.
+4. Lowercase `"squash"` → 422 input-schema error — uppercase enums confirmed.
+
+Conclusion: `SQUASH` passes the merge-method check and the rule then fails
+with an empty error — the merge queue feature is only available on
+organization-owned repositories (public org repos free; private requires
+Enterprise Cloud). `sheikkinen/yamlgraph` is `owner.type: User`. The
+research record's "free on public repos" missed the ownership qualifier —
+a phantom premise no local witness could catch; only the live mutation
+exposed it.
+
+Disposition (operator, 2026-08-30): keep the strict up-to-date regime;
+no org transfer; no strict-only flip. Nothing to roll back — no ruleset
+created, `strict` untouched. The merged merge_group wiring is dormant and
+harmless (merge_group events never fire without a queue) and activates
+unchanged if the repo is ever transferred to an organization. AC-06–AC-10
+and AC-12 (settings readback, witness PRs) are unreachable on this
+platform and closed as blocked, not failed. FR-935's C-2 gate (queue
+operational) cannot currently be met — noted in FR-935.
