@@ -106,7 +106,7 @@ Checkpoint trailers give `checkpoint SHA ↔ Session-Id + Request-Index ↔ ledg
 - [x] AC-10: `now.py` lists live session lanes and unmerged orphan `session/*` branches with age, branch, worktree path, untracked count, PR/open-branch status; never deletes
 - [x] AC-11: join demo emits a mechanically checkable table for a real session: request index, checkpoint SHA, model, credits, prompt/summary availability; evidence source committed or quoted in this FR
 - [x] AC-12: hook tests live under `.github/hooks/tests/` with `@pytest.mark.req("REQ-YG-XXX")` tags; requirement/capability metadata added per ADR-001
-- [x] AC-13: human review of the hook/worktree enforcement diff is recorded before the policy is live
+- [x] AC-13: human review of the hook/worktree enforcement diff is recorded before the policy is live — **armed 2026-08-30 08:14 by operator** (`touch .github/hooks/fr902.live` after reviewing PR #499); flag is gitignored, activation stays local
 - [x] AC-14: this FR carries the folded evidence table, implementation record, changelog fragment, and diary reflection
 
 ## Alternatives Considered

@@ -138,3 +138,5 @@ examples/icpc-2-rfe/data/icpc2_rfe_catalog.yaml
 # FR-733: generated locally from cwec_v4.20 (18 MB source; catalog is a build artifact)
 examples/cwe-classifier/data/cwe_catalog.yaml
 uv.lock
+# FR-902: operator-armed live flag — policy activation is local, never committed
+.github/hooks/fr902.live
