@@ -15,12 +15,13 @@ from yamlgraph.error_handlers import (
     handle_skip,
 )
 from yamlgraph.models import PipelineError
+from yamlgraph.node_factory.validation_feedback import build_validation_feedback
 from yamlgraph.utils.json_extract import extract_json
 from yamlgraph.verification import VerificationError, evaluate_verification
 
 logger = logging.getLogger(__name__)
 
-ExecuteFn = Callable[[str | None], tuple[Any, Exception | None]]
+ExecuteFn = Callable[..., tuple[Any, Exception | None]]
 
 
 def should_skip_if_exists(skip_if_exists: bool, state_key: str, state: dict) -> bool:
@@ -99,6 +100,30 @@ def resolve_route(cfg: Any, result: Any) -> tuple[str | None, Any]:
     return route, route_key
 
 
+def _feedback_aware_attempt(
+    attempt_execute: ExecuteFn, provider: str | None, initial_error: Exception
+) -> Callable[[], tuple[Any, Exception | None]]:
+    """Wrap the retry attempt so each try learns from the one before it.
+
+    ``handle_retry`` owns a zero-argument callable and cannot see the failure
+    that triggered it, so the previous error is carried in this closure
+    instead (FR-933). Non-validation errors yield no feedback, leaving
+    transient-fault retries byte-identical as before.
+    """
+    previous: list[Exception] = [initial_error]
+
+    def attempt() -> tuple[Any, Exception | None]:
+        feedback = build_validation_feedback(previous[0])
+        if feedback:
+            logger.info("Retry carrying validation feedback: %s", feedback)
+        result, error = attempt_execute(provider, feedback)
+        if error is not None:
+            previous[0] = error
+        return result, error
+
+    return attempt
+
+
 def handle_error(
     cfg: Any,
     node_name: str,
@@ -125,7 +150,7 @@ def handle_error(
     if cfg.on_error == ErrorHandler.RETRY:
         nr = handle_retry(
             node_name,
-            lambda: attempt_execute(cfg.provider),
+            _feedback_aware_attempt(attempt_execute, cfg.provider, error),
             cfg.max_retries,
         )
         return nr.to_state_update(cfg.state_key, node_name, loop_counts)
