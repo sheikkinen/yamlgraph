@@ -319,8 +319,59 @@ a fabricated citation, and cheaper than an echo.
   `**Prior art:**` disposition line dispositions the hits printed in
   the linked research record, naming that record as retrieval evidence.
 
-## Testing
+## Implementation status (2026-08-30)
 
+Enforced except AC-10. Commits: `eec70f69` RED / `13feeeac` GREEN for the
+hook side; `ba9570c2` RED / research GREEN + `fix(research)` closure fix
+for the route side; graph wiring authored through `scripts/author.sh`
+per C-2 (`feature-requests/authoring-briefs/fr-932-research-route-brief-path-brief.md`,
+report at `tmp/draft-authoring-report.md`).
+
+**AC-01, AC-02 met.** `rare_floor=False` lifts both rare gates. Enforcing
+this uncovered a defect the FR did not anticipate: `prior_art.py` imported
+`yaml` at module scope while `fr-checks.sh` invokes it with bare system
+`python3` and swallows stderr (`2>/dev/null || true`). On an interpreter
+without PyYAML the prior-art *notification* hook had been dead — three
+FR-737 tests were red for exactly that reason and are now green. Guarded
+the import; the FR-814 graph is an optional augmentation and now degrades
+with a diagnostic. `yaml-checks.sh` shells to bare `python3` the same way
+and is dead the same way — recorded, not fixed here (FR-933 territory or
+its own FR).
+
+**AC-03 through AC-09 met**, plus one requirement the FR missed. The live
+retrieval against the real 854-file corpus returned five hits where the
+floored version returned nothing — and one of them was FR-932's own FR
+file. That breaks FR-890 R-2 closure: the brief is closed precisely so the
+personas never see the author's proposed solution, and the solution is
+written in the FR. `build_prior_art`'s F3 self-exclusion cannot catch it
+because the query path is synthetic. Now excluded by FR number, condemned
+by test first. Found only by running against the real corpus rather than a
+fixture.
+
+**AC-10 NOT met — escalated to
+[FR-933](FR-933-retry-cannot-recover-deterministic-rejection.md).** Five
+consecutive `scripts/research.sh` runs failed, across two briefs and four
+distinct persona/field combinations, every one on `String should have at
+most 400 characters`. A counterfactual run with
+`examples/demos/research-route/{graph.yaml,nodes/research_tools.py}`
+checked out at `13feeeac` — the unmodified pre-FR-932 state — failed the
+same way, so the route is red independently of this change. Root cause:
+`handle_retry` re-issues a byte-identical request, so at `temperature: 0.0`
+a schema rejection is retried into the same rejection. The prompts already
+state the 400-character cap on every field, so this is `two_strike_split`
+at its fifth strike and belongs in code. The cure sits inside FR-896's
+rejection-never-truncation contract, which R-7 places out of this FR's
+frozen scope — hence the escalation rather than a unilateral fix.
+
+Because the demo gate fires on any change under
+`examples/demos/research-route/`, the graph wiring and the route changes
+cannot land until FR-933 is judged and enforced. No failing run was staged
+as `demo-output.log`: a gate that checks a log exists would have passed on
+one, which is `gate_checks_shape_not_substance`.
+
+**AC-11 pending** — deferred with the rest of the delivery.
+
+## Testing
 Deterministic unit tests, fixture corpora in `tmp_path`, no network and
 no LLM: AC-01/AC-02 in `.github/hooks/tests/`, AC-03 through AC-09 in
 `tests/unit/test_fr890_research_route.py` and
