@@ -18,7 +18,7 @@ import pytest
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 SIZE_GATE = REPO_ROOT / "scripts" / "size_gate.py"
-pytestmark = pytest.mark.req("REQ-YG-527")
+pytestmark = pytest.mark.req("REQ-YG-631")
 
 
 def run_gate(root: Path):

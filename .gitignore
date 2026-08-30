@@ -14,7 +14,8 @@ ENV/
 
 # IDE
 .idea/
-.vscode/
+.vscode/*
+!.vscode/settings.json
 *.swp
 
 # Planning files

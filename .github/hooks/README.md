@@ -426,31 +426,40 @@ PASSPHRASE= → PASSPHRASE=REDACTED
 - **Dashboard**: Aggregate classifications across sessions for pattern detection (e.g., "3 hostile classifications in 5 minutes")
 - **Prompt tuning**: Refine `classify-tool-intent.yaml` prompt based on real-world false positive/negative rates
 
-## Main-Write Guard (FR-888)
+## Main-Write Lock (FR-889, supersedes FR-888 grammar)
 
-Enforcement-class writes (`yamlgraph/**`, `tests/**`, `scripts/**`,
-`capabilities/**`, `.github/hooks/**`) on the **main checkout of this
-repository** are denied by Check 7 in `pre-command-guard.sh`. The docs
+Enforcement-class roots (`yamlgraph/`, `tests/`, `scripts/`,
+`capabilities/`, `.github/hooks/`) on the **main checkout of this
+repository** are OS-locked: `scripts/worktree.sh lock-main` applies
+`chmod -R u-w`, so ANY writer — shell, editor, interpreter, tool the
+grammar never heard of — fails at the kernel. Carve-outs
+(`.github/hooks/logs/`, `.github/hooks/state/`) stay writable; the docs
 lane (`docs/`, `feature-requests/`, `changelog/`, `research/`, `tmp/`,
-`logs/`) is exempt; linked worktrees and nested foreign repositories are
-never policed. Detection is git plumbing (`--git-common-dir` vs
-`--git-dir`, guard-root scoped), not path heuristics.
+`logs/`) is never locked. Lock state lives in
+`.github/hooks/state/main-lock.json` and the `now.py` board warns when
+main is unlocked, with age.
 
-**Denial contract:** first line verdict, body carries the executable cure
-(no placeholders), last line doctrine pointer:
+Check 7 (`checks/main_write.py`) retains only two duties — the FR-888
+shell-command grammar is DELETED:
 
-```
-eval $(scripts/worktree.sh new arc-$(date +%H%M%S) | tail -1)
-```
+1. **Edit-tool classification**: editor/apply-patch writes to governed
+   paths on main are denied via git plumbing (`--git-common-dir` vs
+   `--git-dir`, guard-root scoped) — edit tools bypass file permissions
+   otherwise. Cure: `eval $(scripts/worktree.sh new arc-$(date +%H%M%S) | tail -1)`.
+2. **Lock-mutator fence**: bare `chmod`/`chflags`/`setfacl` targeting
+   governed roots on main is denied — the cure is
+   `scripts/worktree.sh unlock-main` (marker + audit row), not a raw
+   permission flip. `git` commands are NEVER fenced; `sudo`-prefixed
+   segments pass (human-authorized).
 
-creates the worktree (with `.env`/`.venv` symlinked) and cd's into it —
-rename the arc afterwards if desired.
+**Verbs:** `lock-main` / `unlock-main` (audited: `fr889-main-unlock`) /
+`sync` (unlock → `git pull --ff-only` → relock on BOTH exit paths).
 
-**Escape hatch (audited):** prefix the command with `FR888_ALLOW_MAIN=1`
-for genuine main-lane maintenance. Every use writes a
-`fr888-main-write-override` row to `logs/audit.jsonl`. The escape does
-NOT bypass other guards (FR-767 authoring route, trailer/no-verify
-checks).
+**Escape hatch (audited):** `FR888_ALLOW_MAIN=1` still bypasses the
+edit-tool denial for genuine main-lane maintenance
+(`fr888-main-write-override` row in `logs/audit.jsonl`). It does NOT
+bypass other guards (FR-767 authoring route, trailer/no-verify checks) —
+and it cannot bypass the filesystem lock itself; unlock first.
 
 **Dependency warning:** worktrees share the main checkout's `.venv` by
 symlink — `pip install` from ANY tree mutates ALL trees. Dependency

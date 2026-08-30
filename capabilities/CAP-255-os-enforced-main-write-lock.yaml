@@ -1,0 +1,29 @@
+id: CAP-255
+name: OS-Enforced Main-Write Lock
+description: >
+  Governed enforcement roots on the main checkout are OS-locked
+  (chmod -R u-w) via scripts/worktree.sh lock-main/unlock-main/sync;
+  the pre-command guard retains only edit-tool classification and a
+  lock-mutator fence (git never fenced, sudo passes), with the FR-888
+  shell grammar deleted and a widened shrink-only file-size gate.
+fr: FR-889
+modules:
+  - scripts/worktree.sh
+  - .github/hooks/scripts/checks/main_write.py
+  - .github/hooks/scripts/checks/lane_guard.py
+  - scripts/size_gate.py
+  - .github/hooks/tests/test_main_write_guard.py
+  - .github/hooks/tests/test_size_gate.py
+requirements:
+  - id: REQ-YG-631
+    description: >
+      Main-checkout governed roots are locked at the filesystem; unlock
+      and sync are audited verbs; edit-tool writes and bare lock-mutator
+      commands on main are denied with executable cures; the widened
+      size gate enforces the 450-line limit with a shrink-only baseline.
+    modules:
+      - scripts/worktree.sh
+      - .github/hooks/scripts/checks/main_write.py
+      - scripts/size_gate.py
+      - .github/hooks/tests/test_main_write_guard.py
+      - .github/hooks/tests/test_size_gate.py

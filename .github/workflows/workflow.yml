@@ -59,34 +59,48 @@ jobs:
         run: pytest tests/unit -m "not process" -q --no-cov
 
   test:
+    # FR-889 §4d: this job is a required status context (`test (3.11)`,
+    # `test (3.13)`). It must ALWAYS report a conclusion — a skipped job
+    # never satisfies required checks, deadlocking docs-only auto-merge
+    # PRs. Real steps are gated per-step; the final no-op step reports
+    # success on docs-only diffs.
     needs: changes
-    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
     strategy:
       matrix:
         python-version: ['3.11', '3.13']
     steps:
       - uses: actions/checkout@v4
+        if: needs.changes.outputs.code == 'true'
 
       - name: Set up Python
+        if: needs.changes.outputs.code == 'true'
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
           cache: pip
 
       - name: Install dependencies
+        if: needs.changes.outputs.code == 'true'
         run: |
           python -m pip install --upgrade pip
           pip install -e ".[dev,digest,websearch,fsm,verify,rag,replicate,openai-proxy,examples-dungeon-master,otel,vision]"
 
       - name: Run tests
+        if: needs.changes.outputs.code == 'true'
         run: pytest tests/unit/ -v --cov=yamlgraph --cov-fail-under=80
 
       - name: Run linter
+        if: needs.changes.outputs.code == 'true'
         run: ruff check yamlgraph/
 
       - name: Run import-linter
+        if: needs.changes.outputs.code == 'true'
         run: lint-imports
+
+      - name: Docs-only no-op (required-context conclusion)
+        if: needs.changes.outputs.code != 'true'
+        run: echo "docs-only diff — code gates vacuously satisfied"
 
   build:
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')

@@ -30,7 +30,7 @@ import pytest
 HOOK = Path(__file__).resolve().parents[1] / "scripts" / "pre-command-guard.sh"
 WORKTREE_SH = Path(__file__).resolve().parents[3] / "scripts" / "worktree.sh"
 GIT = shutil.which("git") or "/usr/bin/git"
-pytestmark = pytest.mark.req("REQ-YG-527")
+pytestmark = pytest.mark.req("REQ-YG-631")
 
 
 def run_hook(payload, *, env_extra=None, log_dir=None, guard_root=None):
