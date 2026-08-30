@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""FR-902 AC-09/AC-10/AC-11: lossless GC, now.py lane visibility, and the
-request→checkpoint→credits join.
+"""Retained session-lane substrate: lossless GC, now.py lane visibility, and
+the request->checkpoint->credits join (FR-902 AC-09/AC-10/AC-11, kept by
+FR-927 after the hook machinery was retired).
 
-Run:  pytest .github/hooks/tests/test_fr902_gc_join.py -q --no-cov
+Run:  pytest .github/hooks/tests/test_session_lane_gc_join.py -q --no-cov
 """
 
 import importlib.util
@@ -10,22 +11,17 @@ import subprocess
 import sys
 
 import pytest
-from fr902_fixtures import (
+from session_lane_fixtures import (
     GIT,
     JOIN_PY,
     REPO_ROOT,
-    SESSION_CHECKPOINT,
     SID,
-    checkpoint_env,
-    checkpoint_log,
+    commit_checkpoint,
     git,
     lane_path,
     make_repo,
     run_gc,
-    run_hook_script,
     run_session_verb,
-    stop_payload,
-    write_lane_record,
     write_store,
 )
 
@@ -192,27 +188,8 @@ def test_join_emits_request_checkpoint_credit_rows(tmp_path):
     main = make_repo(tmp_path)
     assert run_session_verb(main, SID).returncode == 0
     lane = lane_path(main)
-    log_dir = tmp_path / "logs"
-    write_lane_record(log_dir, SID, lane.resolve(), f"session/{SID}")
-    env = checkpoint_env(main, log_dir)
-    # turn 1 checkpoint
-    (lane / "docs" / "t1.md").write_text("one\n")
-    store = write_store(tmp_path / f"{SID}.jsonl", 1)
-    assert (
-        run_hook_script(
-            SESSION_CHECKPOINT, stop_payload(SID, store, main), env
-        ).returncode
-        == 0
-    )
-    # turn 2 checkpoint
-    (lane / "docs" / "t2.md").write_text("two\n")
-    store = write_store(tmp_path / f"{SID}.jsonl", 2)
-    assert (
-        run_hook_script(
-            SESSION_CHECKPOINT, stop_payload(SID, store, main), env
-        ).returncode
-        == 0
-    )
+    sha1 = commit_checkpoint(lane, SID, 1)
+    sha2 = commit_checkpoint(lane, SID, 2)
     # request 3 exists in the store but produced no checkpoint
     store = write_store(tmp_path / f"{SID}.jsonl", 3)
 
@@ -235,14 +212,8 @@ def test_join_emits_request_checkpoint_credit_rows(tmp_path):
     header, body = rows[0], rows[1:]
     assert header[:5] == ["request", "checkpoint", "model", "credits", "prompt"]
     assert len(body) == 3
-    shas = {
-        t: sha
-        for sha, subj, tr in checkpoint_log(lane)
-        for t in [tr.split("Request-Index:")[-1].strip()]
-        if "Request-Index" in tr
-    }
-    assert body[0][1] == shas["1"]
-    assert body[1][1] == shas["2"]
+    assert body[0][1] == sha1
+    assert body[1][1] == sha2
     assert body[2][1] == "-"
     assert body[0][2] == "claude-x"
     assert body[0][3] == "1.5"

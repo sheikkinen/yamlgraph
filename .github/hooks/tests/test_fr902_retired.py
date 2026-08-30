@@ -11,7 +11,12 @@ Run:  pytest .github/hooks/tests/test_fr902_retired.py -q --no-cov
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
+
+import pytest
+
+pytestmark = pytest.mark.req("REQ-YG-629")
 
 HOOKS_ROOT = Path(__file__).resolve().parents[1]
 REPO_ROOT = HOOKS_ROOT.parents[1]
@@ -98,8 +103,15 @@ def test_pre_command_guard_has_no_fr902_token() -> None:
 
 
 def test_pre_command_guard_has_no_write_shape_alternation() -> None:
-    text = GUARD.read_text()
-    offenders = [atom for atom in FR902_WRITE_VERB_ATOMS if atom in text]
+    # Only the shell grep grammar is in scope; FR-767's Check 6 analyzer is
+    # a Python heredoc and was never part of the Check 8 enum.
+    alternations = re.findall(r"grep -qE '([^']*)'", GUARD.read_text())
+    offenders = [
+        pattern
+        for pattern in alternations
+        if pattern != FR889_FENCE
+        and any(atom in pattern for atom in FR902_WRITE_VERB_ATOMS)
+    ]
     assert (
         not offenders
     ), f"write-shape grammar back in pre-command-guard.sh: {offenders}"
@@ -107,7 +119,7 @@ def test_pre_command_guard_has_no_write_shape_alternation() -> None:
 
 def test_fr889_lock_mutator_fence_intact() -> None:
     # C-4: the subtraction must not take FR-889's narrow fence with it.
-    assert FR889_FENCE in GUARD.read_text()
+    assert f"grep -qE '{FR889_FENCE}'" in GUARD.read_text()
 
 
 def test_no_allow_outside_escape_anywhere() -> None:

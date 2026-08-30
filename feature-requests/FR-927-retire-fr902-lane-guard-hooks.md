@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Removal (R-6 subtraction)
-**Status:** Judged APPROVED WITH REVISIONS 2026-08-30 ([judgement](FR-927-retire-fr902-lane-guard-hooks.judgement.md)); R-2..R-6 folded same day; R-1 (research record) WAIVED by operator ("research: skip", 2026-08-30) — operator override recorded in lieu of the artifact
+**Status:** Enforced 2026-08-30 (branch `feat/fr927-retire-fr902-lane-guard`; RED b1e613d5, GREEN this PR) — Judged APPROVED WITH REVISIONS 2026-08-30 ([judgement](FR-927-retire-fr902-lane-guard-hooks.judgement.md)); R-2..R-6 folded same day; R-1 (research record) WAIVED by operator ("research: skip", 2026-08-30) — operator override recorded in lieu of the artifact
 **Effort:** 0.5 days
 **Research:** waived by operator 2026-08-30; alternatives dispositioned in-conversation: full hook retirement (chosen), Check-8-only retirement (rejected — SessionStart/Stop hooks have no live lifecycle without the guard), dark-disable via `fr902.live` (rejected — flag only gates lane creation, existing records keep the guard armed; witnessed this session), repair `lane_guard.py` cwd resolution (rejected — third prompt/parser patch on a discredited channel; `two_strike_split`), delivery-fix-only per FR-925 (rejected — delivers a lane to a broken guard). `is_this_a_graph`: no — repo-local enforcement subtraction, no LLM stage.
 **Requested:** 2026-08-30 (operator: "check the 902 related bash enum in hooks. fr to remove it all. red test to verify that it is gone never to return")
@@ -126,46 +126,48 @@ write-verb grep alternation outside the R-2 mutator fence, no
 
 ## Acceptance Criteria (revised per judgement; judge AC-01 waived with R-1)
 
-- [ ] AC-02: `.github/hooks/tests/test_fr902_retired.py` exists, is
+- [x] AC-02: `.github/hooks/tests/test_fr902_retired.py` exists, is
       independent of deleted FR-902 fixtures, fails against the current
       FR-902 hook machinery (RED), and passes only when the retired
       surfaces are absent
-- [ ] AC-03: The structural test asserts no `checks/lane_guard.py`, no
+- [x] AC-03: The structural test asserts no `checks/lane_guard.py`, no
       `session-worktree.sh`, no `session-checkpoint.sh`, and no
       `session-probe.json` registrations for the deleted scripts
-- [ ] AC-04: `pre-command-guard.sh` contains no FR-902 Check 8 block, no
+- [x] AC-04: `pre-command-guard.sh` contains no FR-902 Check 8 block, no
       `FR902`/`fr902` token, no `FR902_ALLOW_OUTSIDE`, and no write-shape
       grep alternation except the intact FR-889 lock-mutator fence
       (`chmod`/`chflags`/`setfacl`)
-- [ ] AC-05: Hook tests green after deleting FR-902 tests/fixtures; no
+- [x] AC-05: Hook tests green after deleting FR-902 tests/fixtures; no
       orphaned imports of `fr902_fixtures`, `lane_guard.py`,
       `session-worktree.sh`, or `session-checkpoint.sh`
-- [ ] AC-06: `session-probe.json` removes only the session-worktree.sh
+- [x] AC-06: `session-probe.json` removes only the session-worktree.sh
       SessionStart entry and session-checkpoint.sh Stop entry; all other
       registrations byte-for-byte equivalent
-- [ ] AC-07: CAP-254 rewritten to retained tooling only (worktree
+- [x] AC-07: CAP-254 rewritten to retained tooling only (worktree
       session/gc, now.py, session_join.py); REQ-YG-629 drops the
       PreToolUse guard clause; REQ-YG-630 drops the Stop-hook clause;
       `tests/unit/test_session_worktree_lifecycle.py` matches;
       `python scripts/req_coverage.py --strict` green
-- [ ] AC-08: FR-902 records hook machinery RETIRED by FR-927; FR-925
+- [x] AC-08: FR-902 records hook machinery RETIRED by FR-927; FR-925
       marked SUPERSEDED by FR-927 — both preserving historical record
-- [ ] AC-09: No live FR-902 lane / `FR902_ALLOW_OUTSIDE` guidance in
+- [x] AC-09: No live FR-902 lane / `FR902_ALLOW_OUTSIDE` guidance in
       `CLAUDE.md` or `.github/copilot-instructions.md`; hooks-section
       bullet replaced by a one-line retirement note
-- [ ] AC-10: `pre-command-guard.sh` before/after line count recorded in
+- [x] AC-10: `pre-command-guard.sh` before/after line count recorded in
       Implementation Record (`wc -l`, baseline 450)
-- [ ] AC-11: Changelog fragment (`type: removal`)
-- [ ] AC-12: Diary reflection
+- [x] AC-11: Changelog fragment (`type: removal`)
+- [x] AC-12: Diary reflection
 
 ## Conditions (judgement, C-1..C-6)
 
-C-1 folded (this revision); C-2 human review of the hook-enforcement
-deletion diff before retirement is live — NOT yet satisfied: operator
-merged the plan+judgement only and explicitly withheld enforcement
-authorization (2026-08-30); C-3 RED structural test before enforcement;
-C-4 FR-889 OS lock/fence/Check 7 untouched; C-5 retained substrate and
-existing lanes/branches untouched; C-6 no replacement lane arbitration.
+C-1 folded; C-2 human review of the hook-enforcement deletion diff before
+retirement is live — enforcement authorized by the operator 2026-08-30
+("enforce 927"); the diff itself is presented for review at the PR
+boundary, which is where the retirement becomes live; C-3 RED structural
+test committed before any deletion (b1e613d5, 7 failed / 1 passed); C-4
+FR-889 OS lock/fence/Check 7 untouched — pinned by a positive assertion
+in the new test; C-5 retained substrate and existing lanes/branches
+untouched; C-6 no replacement lane arbitration built.
 
 ## Non-Goals
 
@@ -183,3 +185,53 @@ existing lanes/branches untouched; C-6 no replacement lane arbitration.
 - FR-888 (worktree-route guidance; unaffected)
 - Scripture: `two_strike_split`, `growth_as_default` (subtraction arc),
   `infrastructure_self_exempt` (the guard defended its kill switch)
+
+## Implementation Record
+
+**RED** (b1e613d5): `.github/hooks/tests/test_fr902_retired.py` — 7 failed,
+1 passed. Every failure named a live surface (retired scripts,
+`session-probe.json` registrations, `FR902` tokens, the Check 8 write-verb
+alternation, `FR902_ALLOW_OUTSIDE`, the `fr902.live` gate, the FR-902 hook
+tests). The single pass was the C-4 pin: FR-889's lock-mutator fence.
+
+**GREEN** (this PR):
+
+| Surface | Disposition |
+|---|---|
+| `pre-command-guard.sh` Check 8 | Deleted (block + `FR902_*` plumbing) |
+| `checks/lane_guard.py` | Deleted |
+| `session-worktree.sh`, `session-checkpoint.sh` | Deleted |
+| `session-probe.json` | SessionStart + Stop entries removed; all others unchanged |
+| `test_fr902_lane_guard.py`, `test_fr902_session_worktree.py`, `test_fr902_checkpoint.py` | Deleted |
+| `fr902_fixtures.py` → `session_lane_fixtures.py` | Renamed and pruned to retained substrate |
+| `test_fr902_gc_join.py` → `test_session_lane_gc_join.py` | Renamed; checkpoint provenance now built by direct trailer commits instead of the deleted Stop hook |
+| `.gitignore` `fr902.live` entry | Deleted |
+| CAP-254 / ARCHITECTURE.md | Rewritten to retained tooling |
+| `.github/copilot-instructions.md` | Lane bullet → one-line retirement note |
+
+**AC-10 shrink measurement:** `pre-command-guard.sh` 450 → 417 lines
+(`wc -l`, before = `git show HEAD:...` at the RED commit). Check 8 was the
+last textual write-shape enum in the hook chain; the only surviving
+alternation is FR-889's `\bchmod\b|\bchflags\b|\bsetfacl\b` fence.
+
+**Deviations from the frozen scope:**
+
+1. **`test_main_write_guard.py::_check7_region()` edited** (not in D-1..D-11).
+   The FR-889 test sliced the Check 7 region as `index("Check 7: main-write")
+   → index("Check 8:")`. Deleting Check 8 removed the end marker and the
+   helper raised `ValueError`, failing 8 FR-889 tests. Changed the end
+   marker to `"# Only inspect run_in_terminal"`. Test-locator repair only —
+   no FR-889 guard behaviour, module, or assertion changed (C-4 preserved).
+2. **`ARCHITECTURE.md` REQ-YG-629/630 rows rewritten** (D-8 named only the
+   CAP yaml and the unit test). The `capability-architecture-sync`
+   pre-commit hook requires the two to agree; leaving ARCHITECTURE.md
+   describing a live lane guard would have been a false doctrine record.
+3. **REQ-YG-629 gained an absence clause** rather than merely dropping the
+   guard clause. The retirement test needs a requirement to trace to
+   (ADR-001), and "no hook lane arbitration exists" is the invariant this
+   FR actually ships. REQ-YG-630 dropped its Stop-hook clause as specified.
+4. **GC/join tests retained rather than deleted.** D-7 authorized "delete
+   or move only the surviving substrate/join assertions"; since
+   `worktree.sh gc`, `now.py`, and `session_join.py` are all retained (C-5),
+   deleting their only behavioural coverage would have been dishonest
+   subtraction. Moved and re-pointed instead.
