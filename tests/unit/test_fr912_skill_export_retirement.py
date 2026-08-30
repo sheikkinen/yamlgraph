@@ -2,10 +2,11 @@
 
 Witness test for the retirement — the only permitted skill-export mention
 under ``tests/`` after the deletion sweep. ``test_fr910_mcp_retirement.py``
-is the named sibling exception: it cites ``yamlgraph/export/mcp.py`` as its
-own retirement witness, not as live advertising.
+is the named sibling exception: it cites the retired MCP export module as
+its own retirement witness, not as live advertising.
 """
 
+import importlib.util
 import re
 import subprocess
 from pathlib import Path
@@ -105,8 +106,22 @@ def test_skill_export_paths_are_untracked(relative_path):
 @pytest.mark.req("REQ-YG-428")
 @pytest.mark.parametrize("module_name", RETIRED_MODULES)
 def test_retired_skill_export_modules_are_not_importable(module_name):
-    with pytest.raises(ModuleNotFoundError):
-        __import__(module_name)
+    """Nothing under this checkout resolves the retired module names.
+
+    A sibling worktree sharing one editable install can still resolve the
+    name against the main checkout, so the assertion is scoped to origins
+    inside ``REPO_ROOT`` — which is where build residue would live.
+    """
+    try:
+        spec = importlib.util.find_spec(module_name)
+    except ModuleNotFoundError:
+        return
+    if spec is None or spec.origin is None:
+        origins = list(getattr(spec, "submodule_search_locations", None) or [])
+    else:
+        origins = [spec.origin]
+    inside = [o for o in origins if Path(o).is_relative_to(REPO_ROOT)]
+    assert inside == []
 
 
 @pytest.mark.req("REQ-YG-428")

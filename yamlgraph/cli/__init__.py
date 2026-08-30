@@ -12,7 +12,6 @@ import argparse
 from yamlgraph.cli.diary_commands import cmd_diary_dispatch
 from yamlgraph.cli.graph_commands import cmd_graph_dispatch
 from yamlgraph.cli.schema_commands import cmd_schema_dispatch
-from yamlgraph.cli.skill_commands import cmd_skill_dispatch
 
 __all__ = [
     # Entry points
@@ -285,38 +284,6 @@ def create_parser() -> argparse.ArgumentParser:
     schema_subparsers.add_parser("path", help="Print path to bundled JSON Schema")
 
     schema_parser.set_defaults(func=cmd_schema_dispatch)
-
-    # === Skill commands (FR-348) ===
-    skill_parser = subparsers.add_parser(
-        "skill", help="Portable skill packaging and export"
-    )
-    skill_subparsers = skill_parser.add_subparsers(
-        dest="skill_command", help="Skill subcommands"
-    )
-
-    # skill export
-    skill_export_parser = skill_subparsers.add_parser(
-        "export", help="Export graph as portable skill package"
-    )
-    skill_export_parser.add_argument(
-        "graph_path_or_dir",
-        help="Path to graph YAML file or a directory containing graph.yaml",
-    )
-    skill_export_parser.add_argument(
-        "--format",
-        choices=["skill-md", "copilot", "cursor", "agent-md"],
-        default="skill-md",
-        help="Target format layout (default: skill-md)",
-    )
-    skill_export_parser.add_argument(
-        "--output-dir",
-        type=str,
-        default="output",
-        dest="output_dir",
-        help="Base output directory (default: output)",
-    )
-
-    skill_parser.set_defaults(func=cmd_skill_dispatch)
 
     # === Diary commands (FR-124) ===
     diary_parser = subparsers.add_parser("diary", help="Diary management commands")

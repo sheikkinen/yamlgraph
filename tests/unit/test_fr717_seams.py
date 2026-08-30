@@ -13,8 +13,8 @@ REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 class TestSeams:
     @pytest.mark.req("REQ-YG-567")
     def test_packages_exist_with_members(self):
+        # FR-912 retired the export/ seam with its last member (skill.py).
         for pkg, member in [
-            ("export", "skill.py"),
             ("compile", "graph_loader.py"),
         ]:
             assert (REPO_ROOT / "yamlgraph" / pkg / member).exists()
@@ -24,7 +24,7 @@ class TestSeams:
         cfg = configparser.ConfigParser()
         cfg.read(REPO_ROOT / ".importlinter")
         contracts = {s for s in cfg.sections() if s.startswith("importlinter:contract")}
-        for needed in ("export-seam", "compile-seam"):
+        for needed in ("three-layer", "fsm-contrib-ownership"):
             assert any(needed in s for s in contracts), f"missing contract {needed}"
 
     @pytest.mark.req("REQ-YG-567")

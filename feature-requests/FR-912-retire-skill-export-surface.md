@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Judged — APPROVED WITH REVISIONS (revisions folded 2026-08-29; [judgement](FR-912-retire-skill-export-surface.judgement.md))
+**Status:** Enforced 2026-08-30 (revisions folded 2026-08-29; [judgement](FR-912-retire-skill-export-surface.judgement.md))
 **Effort:** 0.5–1 day
 **Requested:** 2026-08-29
 **First consumer / first event:** every maintainer and CI run from the merge
@@ -108,17 +108,58 @@ change — the surface has no optional extra.
 
 Revised per judgement (R-4 denylist replaces the narrow greps):
 
-- [ ] AC-01: `git ls-files 'yamlgraph/export/skill*' 'yamlgraph/cli/skill_commands.py'` prints no files, and `yamlgraph/cli/__init__.py` has no `cmd_skill_dispatch` import, no `skill` subparser, and no `skill-md|copilot|cursor|agent-md` export-format choice list
-- [ ] AC-02: a new FR-912 witness test asserts the top-level CLI parser rejects `skill` as an unknown subcommand with appropriate `@pytest.mark.req` coverage; obsolete FR-348/350/351 tests are not kept as skipped tests
-- [ ] AC-03: `git ls-files 'tests/unit/test_fr348*' 'tests/unit/test_fr350*' 'tests/unit/test_fr351*'` prints nothing; `tests/unit/test_fr446_copilot_skills.py` still exists and passes
-- [ ] AC-04: `reference/skills-export.md` deleted; `reference/cli.md`, `reference/README.md`, `ARCHITECTURE.md`, and `reference/module-map.md` contain no live skill-export advertising, active CAP-142/143 rows, or broken `skills-export.md` link
-- [ ] AC-05: `git grep -nE 'skill_commands|yamlgraph\.export\.skill|yamlgraph/export/skill|cmd_skill_dispatch|PackageSkill|SkillPackage|SkillFormat|export_skill|write_skill_package|write_agent_md_file|yamlgraph skill export|skills-export\.md|agent-md|skill-md' -- yamlgraph tests reference README.md ARCHITECTURE.md` returns zero live matches; explicit exceptions only for the FR-912 witness test and named historical records (`feature-requests/**`, `docs/diary/**`, frozen changelog)
-- [ ] AC-06: export-package endgame satisfied per enforcement order — if `export/mcp.py` exists, the package and export-seam entries remain and this FR records FR-910 as remaining owner; if gone, `yamlgraph/export/__init__.py` is deleted and all live `.importlinter` mentions of `yamlgraph.export` removed
-- [ ] AC-07: CAP-142/CAP-143 carry `status: retired` + `RETIRED by FR-912` with historical requirements preserved; `scripts/validate_capabilities.py` passes
-- [ ] AC-08: `python scripts/req_coverage.py --strict`, `lint-imports`, and `python scripts/direct_import_scan.py --strict` pass
-- [ ] AC-09: full unit suite passes with the witness test present and deleted-import failures resolved, not treated as success
-- [ ] AC-10: changelog fragment under `changelog/unreleased/` with `type: removal` naming FR-912
-- [ ] AC-11: this FR records folded R-1..R-5, implementation status, and the actual FR-910 sequencing decision
+- [x] AC-01: `git ls-files 'yamlgraph/export/skill*' 'yamlgraph/cli/skill_commands.py'` prints no files, and `yamlgraph/cli/__init__.py` has no `cmd_skill_dispatch` import, no `skill` subparser, and no `skill-md|copilot|cursor|agent-md` export-format choice list
+- [x] AC-02: a new FR-912 witness test asserts the top-level CLI parser rejects `skill` as an unknown subcommand with appropriate `@pytest.mark.req` coverage; obsolete FR-348/350/351 tests are not kept as skipped tests
+- [x] AC-03: `git ls-files 'tests/unit/test_fr348*' 'tests/unit/test_fr350*' 'tests/unit/test_fr351*'` prints nothing; `tests/unit/test_fr446_copilot_skills.py` still exists and passes
+- [x] AC-04: `reference/skills-export.md` deleted; `reference/cli.md`, `reference/README.md`, `ARCHITECTURE.md`, and `reference/module-map.md` contain no live skill-export advertising, active CAP-142/143 rows, or broken `skills-export.md` link
+- [x] AC-05: `git grep -nE 'skill_commands|yamlgraph\.export|yamlgraph/export|cmd_skill_dispatch|PackageSkill|SkillPackage|SkillFormat|export_skill|write_skill_package|write_agent_md_file|yamlgraph skill export|skills-export\.md|agent-md|skill-md' -- yamlgraph tests reference README.md ARCHITECTURE.md` returns zero live matches; explicit exceptions only for the FR-912 witness test and named historical records (`feature-requests/**`, `docs/diary/**`, frozen changelog)
+- [x] AC-06: export-package endgame satisfied per enforcement order — `export/mcp.py` was already gone (FR-910 merged as PR #492), so `yamlgraph/export/` is deleted and all live `.importlinter` mentions of `yamlgraph.export` removed
+- [x] AC-07: CAP-142/CAP-143 carry `status: retired` + `RETIRED by FR-912` with historical requirements preserved; `scripts/validate_capabilities.py` passes
+- [x] AC-08: `python scripts/req_coverage.py --strict`, `lint-imports`, and `python scripts/direct_import_scan.py --strict` pass
+- [x] AC-09: full unit suite passes with the witness test present and deleted-import failures resolved, not treated as success
+- [x] AC-10: changelog fragment under `changelog/unreleased/` with `type: removal` naming FR-912
+- [x] AC-11: this FR records folded R-1..R-5, implementation status, and the actual FR-910 sequencing decision
+
+## Implementation Status (2026-08-30)
+
+Enforced in worktree lane `feat/fr912-retire-skill-export`. RED committed
+separately (`809a54f7`, 17 failing assertions) before any deletion.
+
+**FR-910 sequencing decision (AC-06):** FR-910 merged first (PR #492), so
+`yamlgraph/export/mcp.py` was already absent at enforcement time. FR-912
+therefore took the package-endgame branch: `yamlgraph/export/` is deleted
+outright, and `.importlinter` loses the layer-listing entry, the
+`export-seam` contract, the `compile-seam` contract (its only forbidden
+module was `yamlgraph.export`), and the `fsm-contrib-ownership` source
+entry. `lint-imports` now reports 3 contracts kept, 0 broken.
+
+**Deviations / collateral resolved honestly (AC-09):**
+
+1. `tests/unit/test_fr717_seams.py` asserted the existence of
+   `yamlgraph/export/skill.py` and of the `export-seam`/`compile-seam`
+   contracts. Both assertions were retargeted to the surviving seam
+   (`compile/`) and the surviving contracts — not deleted, not skipped.
+2. `CAP-209` (Root Package Seams, REQ-YG-567) claimed `yamlgraph/export` as
+   a live module and named both retired contracts. Amended to the
+   post-retirement reality. The stale `yamlgraph/a2a` entry in the same CAP
+   is FR-909 residue and was deliberately **left untouched** per C-4.
+3. `CAP-136` (retired by FR-910) still pointed at `yamlgraph/export/mcp.py`.
+   Because ARCHITECTURE.md is generated from CAP files and is inside AC-05's
+   scanned surface, the dangling paths were reduced to the bare `mcp_server`
+   marker FR-910 already used for CAP-19. No MCP semantics changed.
+4. Vulture surfaced `NodeConfig.output_schema` as newly unused: the skill
+   exporter's schema derivation was its last Python reader. The field is a
+   live graph-YAML key, so it was whitelisted alongside the existing
+   `NodeConfig.schema_ref` entry rather than deleted — deleting a config
+   field is a schema change outside this FR's deletion-only scope (C-7).
+5. The witness's import-absence check is scoped to origins inside the
+   checkout under test. A sibling worktree sharing one editable install
+   resolves `yamlgraph.export` against the main checkout; asserting a bare
+   `ModuleNotFoundError` would have been an environment assertion, not a
+   retirement assertion. Build residue inside the repo is still caught.
+6. CAP-142/CAP-143 module lists were reduced to the `skill_export` marker
+   (CAP-19 precedent) so the generated ARCHITECTURE.md carries no paths to
+   deleted files. Historical requirement IDs and descriptions are preserved.
 
 ## Alternatives Considered
 

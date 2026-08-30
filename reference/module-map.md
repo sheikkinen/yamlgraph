@@ -4,13 +4,13 @@
 - source_root: `yamlgraph/`
 - parser: stdlib `ast.parse()`
 - deterministic ordering: modules sorted by relative path
-- module count: 136
+- module count: 132
 
 ## Module index/tree
 - `yamlgraph/__init__.py` - 63 lines; exports: `get_schema_path()`
   - import dependencies: `yamlgraph.compile.graph_loader`, `yamlgraph.executor`, `yamlgraph.graph_cache`, `yamlgraph.models`, `yamlgraph.utils.tracing`
-- `yamlgraph/cli/__init__.py` - 362 lines; exports: `create_parser()`, `main()`
-  - import dependencies: `yamlgraph.cli.diary_commands`, `yamlgraph.cli.graph_commands`, `yamlgraph.cli.schema_commands`, `yamlgraph.cli.skill_commands`
+- `yamlgraph/cli/__init__.py` - 329 lines; exports: `create_parser()`, `main()`
+  - import dependencies: `yamlgraph.cli.diary_commands`, `yamlgraph.cli.graph_commands`, `yamlgraph.cli.schema_commands`
 - `yamlgraph/cli/__main__.py` - 6 lines; exports: _none_
   - import dependencies: `yamlgraph.cli`
 - `yamlgraph/cli/bench_commands.py` - 336 lines; exports: `class BenchResult`, `parse_model_spec(spec)`, `format_bench_table(results, full)`, `export_bench_results(results, graph_path, variables, output_path)`, `run_benchmark(app, initial_state, model_specs, runs, config)`, `cmd_graph_bench(args)`
@@ -31,8 +31,6 @@
   - import dependencies: _none_
 - `yamlgraph/cli/schema_commands.py` - 52 lines; exports: `cmd_schema_export(args)`, `cmd_schema_path(args)`, `cmd_schema_dispatch(args)`
   - import dependencies: `yamlgraph`, `yamlgraph.models.graph_schema`
-- `yamlgraph/cli/skill_commands.py` - 32 lines; exports: `cmd_skill_export(args)`, `cmd_skill_dispatch(args)`
-  - import dependencies: `yamlgraph.export.skill`
 - `yamlgraph/compile/__init__.py` - 6 lines; exports: _none_
 - `yamlgraph/compile/edge_compiler.py` - 424 lines; exports: `class EdgeShape`, `classify_edge(from_node, to_node, condition, edge_type, map_node_names)`, `build_router_route_mapping(target_nodes, interrupt_nodes, subgraph_interrupt_nodes)`, `build_expression_route_mapping(expr_edges, loop_exit_target, map_nodes)`
   - import dependencies: `yamlgraph.routing`
@@ -75,11 +73,6 @@
   - import dependencies: `yamlgraph.config`, `yamlgraph.executor_base`, `yamlgraph.graph_cache`, `yamlgraph.models.streaming`, `yamlgraph.observability.otel`, `yamlgraph.streaming_events`, `yamlgraph.utils.llm_factory`, `yamlgraph.utils.llm_factory_async`, `yamlgraph.utils.route_log`
 - `yamlgraph/executor_base.py` - 417 lines; exports: `class PromptRequest`, `is_retryable(exception)`, `format_prompt(template, variables, state)`, `prepare_messages(prompt_name, variables, provider, model, graph_path, prompts_dir, prompts_relative, state)`, `prepare_messages_async(prompt_name, variables, provider, model, graph_path, prompts_dir, prompts_relative, state)`, `build_schema_hint(output_model)`, `attempt_structured_invoke(llm, messages, output_model)`
   - import dependencies: `yamlgraph.config`, `yamlgraph.utils.content`, `yamlgraph.utils.json_extract`, `yamlgraph.utils.prompts`, `yamlgraph.utils.template`
-- `yamlgraph/export/__init__.py` - 5 lines; exports: _none_
-- `yamlgraph/export/skill.py` - 313 lines; exports: `class SkillFormat`, `class PackageSkill`, `class SkillPackage`, `class SkillExporter`, `export_skill(graph_path_or_dir, *, format, output_dir)`
-  - import dependencies: `yamlgraph.compile.graph_loader`, `yamlgraph.export.skill_writer`, `yamlgraph.utils.prompts`
-- `yamlgraph/export/skill_writer.py` - 130 lines; exports: `write_skill_package(package_data, target_dir)`, `write_agent_md_file(package_data, target_file)`
-  - import dependencies: _none_
 - `yamlgraph/graph_cache.py` - 31 lines; exports: `clear_cache()`
   - import dependencies: _none_
 - `yamlgraph/interactive_tool.py` - 183 lines; exports: `expand_interactive_tools(config)`
@@ -277,5 +270,5 @@
 ## test_map
 
 - deterministic mapping: derive `test_<stem>.py` and `test_<flattened_path>.py`, then resolve in `tests/`.
-- mapped modules: 58/136
+- mapped modules: 57/132
 - discovered tests: 60

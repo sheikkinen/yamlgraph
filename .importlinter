@@ -10,7 +10,7 @@ type = layers
 # being blocked from importing up into cli (Layer 1).
 layers =
     yamlgraph.cli
-    yamlgraph.compile : yamlgraph.node_factory : yamlgraph.executor : yamlgraph.linter : yamlgraph.routing : yamlgraph.graph_cache : yamlgraph.schema_loader : yamlgraph.data_loader : yamlgraph.discovery : yamlgraph.executor_async : yamlgraph.interactive_tool : yamlgraph.export : yamlgraph.mermaid_export
+    yamlgraph.compile : yamlgraph.node_factory : yamlgraph.executor : yamlgraph.linter : yamlgraph.routing : yamlgraph.graph_cache : yamlgraph.schema_loader : yamlgraph.data_loader : yamlgraph.discovery : yamlgraph.executor_async : yamlgraph.interactive_tool : yamlgraph.mermaid_export
     yamlgraph.tools : yamlgraph.models : yamlgraph.utils : yamlgraph.config : yamlgraph.constants : yamlgraph.storage : yamlgraph.contrib : yamlgraph.executor_base : yamlgraph.error_handlers : yamlgraph.verification : yamlgraph.loop_detector
 
 [importlinter:contract:linter-llm-free]
@@ -32,25 +32,6 @@ forbidden_modules =
     yamlgraph.executor_base
     yamlgraph.utils.llm_factory
 
-[importlinter:contract:export-seam]
-# FR-717: export (skills, MCP) is a leaf consumer of the runtime.
-name = export is a leaf (linter/compilers never import it)
-type = forbidden
-source_modules =
-    yamlgraph.linter
-    yamlgraph.compile
-forbidden_modules =
-    yamlgraph.export
-
-[importlinter:contract:compile-seam]
-# FR-717: the compile pipeline never imports the leaf surfaces.
-name = compile never imports export
-type = forbidden
-source_modules =
-    yamlgraph.compile
-forbidden_modules =
-    yamlgraph.export
-
 [importlinter:contract:fsm-contrib-ownership]
 # FR-755 ruling C: the FSM bridge is a supported repeating pattern but not
 # part of core framework API surface. Freeze this ownership boundary by
@@ -71,7 +52,6 @@ source_modules =
     yamlgraph.data_loader
     yamlgraph.discovery
     yamlgraph.interactive_tool
-    yamlgraph.export
     yamlgraph.tools
     yamlgraph.models
     yamlgraph.storage

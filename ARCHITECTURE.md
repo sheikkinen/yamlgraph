@@ -453,14 +453,14 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 133 | CAP-133 Watcher2 CI Remediation Crash Fix | `.chaplain/scripts/start-system.sh`, `tests/unit/test_fr284_watcher2_ci_remediation_crash_fix.py` | REQ-YG-307 |
 | 134 | CAP-134 Watcher2 Changelog Auto-Generation | `.chaplain/scripts/start-system.sh`, `.chaplain/graphs/watcher-enforce/prompts/enforce-critique-and-distill.yaml`, `.chaplain/graphs/watcher-enforce/prompts/enforce-finalize.yaml`, `.chaplain/graphs/watcher-enforce/step-ci-remediate.yaml` | REQ-YG-308 |
 | 135 | CAP-135 Watcher2 Forensic Failure Diary | `.chaplain/scripts/start-system.sh`, `.chaplain/graphs/watcher-forensic/`, `.chaplain/lib/diary.py` | REQ-YG-309 |
-| 136 | CAP-136 Per-Graph Typed MCP Tools | `yamlgraph/discovery.py`, `yamlgraph/export/mcp.py` | REQ-YG-310 – 314 |
+| 136 | CAP-136 Per-Graph Typed MCP Tools | `yamlgraph/discovery.py`, `mcp_server` | REQ-YG-310 – 314 |
 | 137 | CAP-137 Watcher FSM System Startup Script | `.chaplain/scripts/start-system.sh` | REQ-YG-315 |
 | 138 | CAP-138 Watcher Pipeline FSM Simplification | `.chaplain/config/watcher-pipeline-v2.yaml`, `.chaplain/graphs/watcher-plan/step-judge-v2.yaml`, `.chaplain/graphs/watcher-enforce/enforce-session.yaml` | REQ-YG-316 |
 | 139 | CAP-139 Root README Accuracy Contract | `README.md`, `tests/unit/test_root_readme_accuracy.py` | REQ-YG-317 |
 | 140 | CAP-140 Watcher2 Validate Split Fix/Gate | `.chaplain/config/watcher-pipeline-v2.yaml`, `.chaplain/actions/changelog_gen_action.py`, `.chaplain/actions/validate_gate_action.py`, `.chaplain/graphs/watcher-enforce/validate-session.yaml`, … | REQ-YG-318 |
 | 141 | CAP-141 Shared FSM Bridge Module | `yamlgraph/utils/fsm/__init__.py`, `yamlgraph/utils/fsm/helpers.py`, `yamlgraph/utils/fsm/event_sender.py`, `yamlgraph/utils/fsm/graph_runner.py`, … | REQ-YG-319 |
-| 142 | CAP-142 Skill Export Portable Packaging | `yamlgraph/export/skill.py`, `yamlgraph/export/skill_writer.py`, `yamlgraph/cli/__init__.py`, `yamlgraph/cli/skill_commands.py`, … | REQ-YG-320 – 326 |
-| 143 | CAP-143 Agent Export Tool-Scoped Personas | `yamlgraph/export/skill.py`, `yamlgraph/export/skill_writer.py`, `yamlgraph/cli/__init__.py`, `yamlgraph/cli/skill_commands.py`, … | REQ-YG-327 – 332 |
+| 142 | CAP-142 Skill Export Portable Packaging | `skill_export` | REQ-YG-320 – 326 |
+| 143 | CAP-143 Agent Export Tool-Scoped Personas | `skill_export` | REQ-YG-327 – 332 |
 | 145 | CAP-145 Copilot Instrumentation Gap Closure | `scripts/copilot_instrument.sh`, `scripts/extract_copilot_events.py`, `scripts/extract_copilot_events_lib.py`, `docs/copilot-instrumentation-poc.md`, … | REQ-YG-340 – 346 |
 | 146 | CAP-146 FSM Snapshot Hooks Phase 2 Subclassing | `yamlgraph/utils/fsm/snapshot.py`, `yamlgraph/utils/fsm/action.py`, `yamlgraph/utils/fsm/graph_runner.py`, `yamlgraph/utils/fsm/__init__.py`, … | REQ-YG-347 |
 | 147 | CAP-147 Graph Run JSON Stdout + TypeScript Node Integration | `yamlgraph/cli/__init__.py`, `yamlgraph/cli/graph_commands.py`, `yamlgraph/cli/helpers.py`, `yamlgraph/storage/export.py`, … | REQ-YG-348 – 355 |
@@ -524,7 +524,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 206 | CAP-206 FR Triage Graph | `.chaplain/graphs/fr_triage` | REQ-YG-564 |
 | 207 | CAP-207 Loader Error UX | `utils/prompts.check_messages_contract`, `tools/python_tool`, `linter/checks_loader_ux` | REQ-YG-565 |
 | 208 | CAP-208 FR Atlas Onboarding Demo | `examples/demos/fr-atlas/nodes/collect.py`, `examples/demos/fr-atlas/nodes/coverage.py`, `examples/demos/fr-atlas/nodes/render.py` | REQ-YG-566 |
-| 209 | CAP-209 Root Package Seams | `yamlgraph/a2a`, `yamlgraph/export`, `yamlgraph/compile` | REQ-YG-567 |
+| 209 | CAP-209 Root Package Seams | `yamlgraph/a2a`, `yamlgraph/compile` | REQ-YG-567 |
 | 210 | CAP-210 Edge Shape Classification | `yamlgraph/compile/edge_compiler.py` | REQ-YG-568 |
 | 211 | CAP-211 Sole-Route Judge and Review Wrappers | `scripts/judge.sh`, `scripts/review.sh`, `.github/skills/judge-fr/adapters/graph.yaml`, `.github/skills/review-pr/adapters/graph.yaml` | REQ-YG-569 |
 | 212 | CAP-212 OpenTelemetry Observability Boundary | `yamlgraph/observability/otel.py`, `yamlgraph/compile/node_otel.py`, `yamlgraph/compile/node_compiler.py`, `yamlgraph/cli/graph_commands.py`, … | REQ-YG-570 |
@@ -1847,9 +1847,9 @@ RETIRED by FR-910. Registration was broken for six weeks without a single failur
 |------------|-------------|-------------|
 | REQ-YG-310 | Input/output var separation: discovery excludes state_key targets from input_vars, exposing only user-supplied inputs. | `yamlgraph/discovery.py`, `tests/unit/test_mcp_typed_tools.py` |
 | REQ-YG-311 | JSON Schema derivation from state type annotations. Maps str->string, int->integer, float->number, bool->boolean, list->array, dict->object. Parameterized types map to base type. Unknown types fall back to string. | `yamlgraph/discovery.py`, `tests/unit/test_mcp_typed_tools.py` |
-| REQ-YG-312 | Per-graph MCP tool registration: each discovered graph registers as its own named MCP tool with typed inputSchema derived from input_vars. | `yamlgraph/export/mcp.py`, `tests/unit/test_mcp_typed_tools.py` |
+| REQ-YG-312 | Per-graph MCP tool registration: each discovered graph registers as its own named MCP tool with typed inputSchema derived from input_vars. | `mcp_server`, `tests/unit/test_mcp_typed_tools.py` |
 | REQ-YG-313 | Tool name normalization: graph name hyphens replaced with underscores to produce valid MCP tool names. | `yamlgraph/discovery.py`, `tests/unit/test_mcp_typed_tools.py` |
-| REQ-YG-314 | Name collision detection: duplicate tool_name values across discovered graphs raise ValueError at server startup. | `yamlgraph/export/mcp.py`, `tests/unit/test_mcp_typed_tools.py` |
+| REQ-YG-314 | Name collision detection: duplicate tool_name values across discovered graphs raise ValueError at server startup. | `mcp_server`, `tests/unit/test_mcp_typed_tools.py` |
 
 ### 137. CAP-137 Watcher FSM System Startup Script
 
@@ -1903,34 +1903,34 @@ Extract canonical fire-and-forget FSM↔YAMLGraph bridge behavior into `yamlgrap
 
 ### 142. CAP-142 Skill Export Portable Packaging
 
-Add `yamlgraph skill export` to package existing graphs into portable Skills bundles with deterministic filesystem artifacts for skill discovery.
+RETIRED by FR-912. Four months, zero committed artifacts: every file under `.github/skills/` is hand-authored (CAP-158/FR-446), including the flagship graph-authoring skill written by hand while this generator existed. No script, CI job, hook, or chaplain pipeline ever invoked the exporter; its only importers were its own CLI dispatch and its own RED tests. The format specs survive in FR-348/FR-350/FR-351 and git history. Historical record only: packaged existing graphs into portable Skills bundles with deterministic filesystem artifacts for skill discovery.
 
 **Feature Request:** FR-348
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
-| REQ-YG-320 | CLI parser registers `yamlgraph skill export` with `--format` and `--output-dir` options and dispatches to skill command handlers. | `yamlgraph/cli/__init__.py`, `yamlgraph/cli/skill_commands.py`, `tests/unit/test_fr348_skill_export_red.py` |
-| REQ-YG-321 | Export generates required package artifacts: `SKILL.md`, executable `scripts/run.sh`, `references/`, and `assets/schema.json`. | `yamlgraph/export/skill.py`, `yamlgraph/export/skill_writer.py`, `tests/unit/test_fr348_skill_export_red.py` |
-| REQ-YG-322 | `SKILL.md` includes skill metadata, typed input/output sections, and runnable CLI invocation example. | `yamlgraph/export/skill.py`, `yamlgraph/export/skill_writer.py`, `tests/unit/test_fr348_skill_export_red.py` |
-| REQ-YG-323 | `assets/schema.json` contains top-level `input` and `output` schema objects derived from graph input vars and output state keys. | `yamlgraph/export/skill.py`, `yamlgraph/export/skill_writer.py`, `tests/unit/test_fr348_skill_export_red.py` |
-| REQ-YG-324 | Format variants map to expected paths for `skill-md`, `copilot`, and `cursor` package layouts. | `yamlgraph/export/skill.py`, `yamlgraph/export/skill_writer.py`, `tests/unit/test_fr348_skill_export_red.py` |
-| REQ-YG-325 | Export is deterministic and non-LLM with explicit errors for invalid graph input, unsupported format, and target collisions. | `yamlgraph/export/skill.py`, `yamlgraph/export/skill_writer.py`, `yamlgraph/cli/skill_commands.py`, `tests/unit/test_fr348_skill_export_red.py` |
-| REQ-YG-326 | CLI/reference docs include `yamlgraph skill export` usage and output layout examples for all format variants. | `reference/cli.md`, `reference/skills-export.md`, `reference/README.md`, `tests/unit/test_fr348_skill_export_red.py` |
+| REQ-YG-320 | CLI parser registered the skill export command with `--format` and `--output-dir` options and dispatched to skill command handlers. | `skill_export` |
+| REQ-YG-321 | Export generated required package artifacts: `SKILL.md`, executable `scripts/run.sh`, `references/`, and `assets/schema.json`. | `skill_export` |
+| REQ-YG-322 | `SKILL.md` included skill metadata, typed input/output sections, and a runnable CLI invocation example. | `skill_export` |
+| REQ-YG-323 | `assets/schema.json` contained top-level `input` and `output` schema objects derived from graph input vars and output state keys. | `skill_export` |
+| REQ-YG-324 | Format variants mapped to expected paths for the three package layouts. | `skill_export` |
+| REQ-YG-325 | Export was deterministic and non-LLM with explicit errors for invalid graph input, unsupported format, and target collisions. | `skill_export` |
+| REQ-YG-326 | CLI/reference docs carried export usage and output layout examples for all format variants. | `skill_export` |
 
 ### 143. CAP-143 Agent Export Tool-Scoped Personas
 
-Add `agent-md` export format to generate GitHub Copilot `.agent.md` files with YAMLGraph MCP tool scoping from graph metadata.
+RETIRED by FR-912 with its parent CAP-142. The agent persona format produced no committed artifact, and its MCP tool scoping outlived its transport when FR-910 retired the MCP server surface. Spec survives in FR-350/FR-351 and git history. Historical record only: generated GitHub Copilot agent-mode files with YAMLGraph tool scoping derived from graph metadata.
 
 **Feature Request:** FR-350
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
-| REQ-YG-327 | CLI parser accepts `--format agent-md` for `yamlgraph skill export` and dispatches through existing skill command handlers. | `yamlgraph/cli/__init__.py`, `yamlgraph/cli/skill_commands.py`, `tests/unit/test_fr350_agent_export_red.py` |
-| REQ-YG-328 | `agent-md` export writes a single file at `<output-dir>/.github/agents/<skill-name>.agent.md`. | `yamlgraph/export/skill.py`, `yamlgraph/export/skill_writer.py`, `tests/unit/test_fr350_agent_export_red.py` |
-| REQ-YG-329 | Generated `.agent.md` frontmatter includes non-empty `description`, `tools: [yamlgraph/*]`, and `model: Claude Sonnet 4`. | `yamlgraph/export/skill.py`, `yamlgraph/export/skill_writer.py`, `tests/unit/test_fr350_agent_export_red.py` |
-| REQ-YG-330 | Generated `.agent.md` body includes agent heading, inputs derived from graph schema, and `@agent-name` invocation guidance. | `yamlgraph/export/skill.py`, `yamlgraph/export/skill_writer.py`, `tests/unit/test_fr350_agent_export_red.py` |
-| REQ-YG-331 | Export remains deterministic and non-LLM with explicit failures for invalid graph path, unsupported format, and output file collisions. | `yamlgraph/export/skill.py`, `yamlgraph/export/skill_writer.py`, `yamlgraph/cli/skill_commands.py`, `tests/unit/test_fr350_agent_export_red.py` |
-| REQ-YG-332 | CLI/reference docs include `agent-md` usage and output layout examples. | `reference/cli.md`, `reference/skills-export.md`, `reference/README.md`, `tests/unit/test_fr350_agent_export_red.py` |
+| REQ-YG-327 | CLI parser accepted the agent persona format and dispatched through the existing skill command handlers. | `skill_export` |
+| REQ-YG-328 | The agent persona format wrote a single file under `<output-dir>/.github/agents/`. | `skill_export` |
+| REQ-YG-329 | Generated frontmatter included a non-empty description, tool scoping, and a model pin. | `skill_export` |
+| REQ-YG-330 | Generated body included the agent heading, inputs derived from graph schema, and invocation guidance. | `skill_export` |
+| REQ-YG-331 | Export remained deterministic and non-LLM with explicit failures for invalid graph path, unsupported format, and output file collisions. | `skill_export` |
+| REQ-YG-332 | CLI/reference docs carried persona usage and output layout examples. | `skill_export` |
 
 ### 145. CAP-145 Copilot Instrumentation Gap Closure
 
@@ -2642,13 +2642,13 @@ Portable onboarding atlas demo (examples/demos/fr-atlas): renders any project's 
 
 ### 209. CAP-209 Root Package Seams
 
-Layer 2's implicit module clusters are named packages with enforced boundaries: a2a/ (protocol server + message translation), export/ (skills + MCP), compile/ (YAML-to-LangGraph pipeline). Import-linter contracts make the seams load-bearing — a2a and export are leaf consumers the linter and compile pipeline never import; compile never imports the leaf surfaces. Moves are rename-witnessed; public top-level re-exports are unchanged.
+Layer 2's implicit module clusters are named packages with enforced boundaries: a2a/ (protocol server + message translation), compile/ (YAML-to-LangGraph pipeline). Import-linter contracts make the seams load-bearing via the collapsed three-layer contract. Moves are rename-witnessed; public top-level re-exports are unchanged. FR-912 retired the export/ package with its last member, and the export-seam and compile-seam forbidden contracts retired with it.
 
 **Feature Request:** FR-717
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
-| REQ-YG-567 | Root-package seams (FR-717). yamlgraph.a2a, yamlgraph.export and yamlgraph.compile exist as packages holding their clusters (module names preserved in compile/); .importlinter carries a2a-seam, export-seam and compile-seam forbidden contracts plus the collapsed three-layer contract; lint-imports keeps >= 5 contracts; root yamlgraph/*.py module count <= 17; deep import paths updated repo-wide (code, tests, capabilities, confessions, hedging allowlist, docs). | `yamlgraph/a2a`, `yamlgraph/export`, `yamlgraph/compile`, `tests/unit/test_fr717_seams.py` |
+| REQ-YG-567 | Root-package seams (FR-717). yamlgraph.compile exists as a package holding its cluster (module names preserved in compile/); .importlinter carries the collapsed three-layer contract plus the surviving forbidden contracts; root yamlgraph/*.py module count <= 17; deep import paths updated repo-wide (code, tests, capabilities, confessions, hedging allowlist, docs). FR-912 retired the export package and its two seam contracts. | `yamlgraph/a2a`, `yamlgraph/compile`, `tests/unit/test_fr717_seams.py` |
 
 ### 210. CAP-210 Edge Shape Classification
 
@@ -3234,19 +3234,6 @@ Comprehensive documentation for the watcher2 pipeline orchestrator and shell lib
 | REQ-YG-317 | Root `README.md` includes all currently supported provider identifiers (`anthropic`, `azure`, `deepseek`, `google`, `inception`, `lmstudio`, `mistral`, `openai`, `replicate`, `vertex`, `xai`) in provider documentation, contains no hardcoded `all <number> reference docs` phrasing, and ends with `Last reviewed: 2026-05-03`; enforced by dedicated root README contract test (FR-313). | `README.md`, `tests/unit/test_root_readme_accuracy.py` |
 | REQ-YG-318 | Watcher2 post-enforce flow inserts deterministic micro-remediation (`micro_changelog`, `micro_title`) before gate validation; micro-step errors fall back to `validate_fix` (LLM remediation); `validate_gate` (deterministic CI-parity gate) enforces pre-commit, commit-title contract, branch freshness vs `origin/main`, and diary-in-diff parity with bounded retry (`pass → done`, `fix_needed → validate_fix`, `error → failed`). Done PR title selection and validate_gate diary-parity trigger use the primary PR title selector policy: first feat/fix in `origin/main..HEAD`, else first non-docs/non-chore, else first subject. | `.chaplain/config/watcher-pipeline-v2.yaml`, `.chaplain/actions/changelog_gen_action.py`, `.chaplain/actions/validate_gate_action.py`, `.chaplain/lib/watcher/select_primary_pr_title.sh`, `.chaplain/graphs/watcher-enforce/prompts/validate-session.yaml`, `tests/unit/test_fr316_watcher2_validate_split_fix_gate.py`, `tests/unit/test_fr358_watcher2_primary_pr_title_selection.py`, `tests/unit/test_fr412_watcher2_micro_remediation_fast_path.py` |
 | REQ-YG-319 | FSM bridge shared module: `yamlgraph.utils.fsm` package with `YamlgraphAsyncAction`, `extract_event`, `json_safe`, `resolve_context_ref` exported from `yamlgraph.utils.fsm`; fire-and-forget guard semantics; AF_UNIX DGRAM event dispatch; interrupt/completion-phase/done/event_map/route/success resolution cascade. | `yamlgraph/utils/fsm`, `examples/fsm-router/actions/yamlgraph_async_action.py`, `tests/unit/test_fsm_bridge_shared.py`, `tests/unit/test_fr346_fsm_bridge_shared_module_red.py`, `tests/unit/test_fr391_fsm_phase_aware_event_resolution.py` |
-| REQ-YG-320 | CLI parser registers `yamlgraph skill export` with `--format {skill-md,copilot,cursor}` and `--output-dir` options; dispatch routes through `cli/skill_commands.py` | `yamlgraph/cli/__init__.py`, `yamlgraph/cli/skill_commands.py`, `tests/unit/test_fr348_skill_export_red.py` |
-| REQ-YG-321 | Skill export creates package artifacts: `SKILL.md`, executable `scripts/run.sh`, `references/`, and `assets/schema.json`; run script includes one `--var key=example` per input | `yamlgraph/skill_export.py`, `yamlgraph/skill_export_writer.py`, `tests/unit/test_fr348_skill_export_red.py` |
-| REQ-YG-322 | `SKILL.md` contract includes H1 skill name, description paragraph, `## Inputs` with type+description, `## Outputs` with type list, and `## Run` command example | `yamlgraph/skill_export.py`, `yamlgraph/skill_export_writer.py`, `tests/unit/test_fr348_skill_export_red.py` |
-| REQ-YG-323 | `assets/schema.json` contains top-level `input` and `output` JSON Schema objects derived from graph state inputs and node `state_key` outputs | `yamlgraph/skill_export.py`, `yamlgraph/skill_export_writer.py`, `tests/unit/test_fr348_skill_export_red.py` |
-| REQ-YG-324 | `--format skill-md|copilot|cursor` writes package to expected directory layouts for each ecosystem | `yamlgraph/skill_export.py`, `yamlgraph/skill_export_writer.py`, `tests/unit/test_fr348_skill_export_red.py` |
-| REQ-YG-325 | Export is deterministic and non-LLM; missing/invalid graph, unsupported format, or non-empty existing target directory fail with explicit non-zero errors and no silent overwrite | `yamlgraph/skill_export.py`, `yamlgraph/skill_export_writer.py`, `yamlgraph/cli/skill_commands.py`, `tests/unit/test_fr348_skill_export_red.py` |
-| REQ-YG-326 | CLI/reference documentation includes `yamlgraph skill export` usage and format layout examples, and reference index links to skill export guide | `reference/cli.md`, `reference/skills-export.md`, `reference/README.md`, `tests/unit/test_fr348_skill_export_red.py` |
-| REQ-YG-327 | CLI parser accepts `yamlgraph skill export ... --format agent-md` and preserves existing export command wiring | `yamlgraph/cli/__init__.py`, `tests/unit/test_fr351_agent_export_red.py` |
-| REQ-YG-328 | `--format agent-md` writes exactly one file artifact at `<output-dir>/.github/agents/<skill-name>.agent.md` | `yamlgraph/skill_export.py`, `yamlgraph/skill_export_writer.py`, `tests/unit/test_fr351_agent_export_red.py` |
-| REQ-YG-329 | Generated `.agent.md` frontmatter includes graph description and tool scope `tools: [yamlgraph/*]` | `yamlgraph/skill_export_writer.py`, `tests/unit/test_fr351_agent_export_red.py` |
-| REQ-YG-330 | Generated `.agent.md` body includes graph-scoped persona and explicit YAMLGraph MCP-only execution instruction | `yamlgraph/skill_export_writer.py`, `tests/unit/test_fr351_agent_export_red.py` |
-| REQ-YG-331 | Export fails explicitly for missing graph path, invalid graph YAML, and existing output target collisions; CLI returns non-zero on export errors | `yamlgraph/skill_export.py`, `yamlgraph/cli/skill_commands.py`, `tests/unit/test_fr351_agent_export_red.py` |
-| REQ-YG-332 | CLI and skill export reference documentation include `agent-md` usage and `.github/agents/<skill-name>.agent.md` layout | `reference/cli.md`, `reference/skills-export.md`, `tests/unit/test_fr351_agent_export_red.py` |
 | REQ-YG-404 | YAMLGraph includes `examples/demos/philosopher_book/` with a four-node pipeline (load_trap → plan_chapter(copilot) → write_chapter(copilot) → save_chapter), where load_trap loads a single trap by chapter_num, diary search and file reading tools are available to copilot nodes, and save_chapter writes the chapter to `output_dir/chapters/`. | `examples/demos/philosopher_book/`, `tests/unit/test_philosopher_book.py` |
 | REQ-YG-405 | YAMLGraph includes a separate philosopher-book editorial graph that snapshots repo-contained chapter inputs, builds a token-bounded global editorial brief, edits chapters through a `type: map` LLM pass, writes edited markdown to a separate repo-contained output folder with original filenames preserved, and writes an editorial report with word-count deltas and editorial notes. | `examples/demos/philosopher_book/editorial_graph.yaml`, `examples/demos/philosopher_book/tools.py`, `examples/demos/philosopher_book/prompts/editorial_brief.yaml`, `examples/demos/philosopher_book/prompts/edit_chapter.yaml`, `tests/unit/test_philosopher_book.py` |
 | REQ-YG-406 | CLI parser accepts `yamlgraph graph lint --json` (default false), JSON mode emits one `LintResult` JSON object per linted file to stdout (NDJSON), routes diagnostics/errors to stderr, and preserves existing lint exit semantics (non-zero when lint errors occur, zero for warnings-only/clean runs). | `yamlgraph/cli/__init__.py`, `yamlgraph/cli/graph_validate.py`, `tests/unit/test_fr406_lint_json_output_red.py` |
@@ -3783,11 +3770,8 @@ _loading_stack: ContextVar[list[Path]] = ContextVar("loading_stack")
 | `cli/graph_commands.py` | graph run, info, codegen | 9, 10 |
 | `cli/graph_validate.py` | graph validate, lint | 9 |
 | `cli/schema_commands.py` | schema export, path | 10 |
-| `cli/skill_commands.py` | skill export dispatch | 9, 10 |
 | `cli/helpers.py` | Shared CLI utilities | 9 |
 | `cli/deprecation.py` | Deprecated command handling | 9 |
-| `skill_export.py` | Portable skill package generation | 10 |
-| `skill_export_writer.py` | Portable skill package file writers | 10 |
 
 ---
 

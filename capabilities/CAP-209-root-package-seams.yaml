@@ -5,29 +5,26 @@ fr: FR-717
 feature_request: FR-717
 description: >
   Layer 2's implicit module clusters are named packages with enforced
-  boundaries: a2a/ (protocol server + message translation), export/
-  (skills + MCP), compile/ (YAML-to-LangGraph pipeline). Import-linter
-  contracts make the seams load-bearing — a2a and export are leaf
-  consumers the linter and compile pipeline never import; compile never
-  imports the leaf surfaces. Moves are rename-witnessed; public
-  top-level re-exports are unchanged.
+  boundaries: a2a/ (protocol server + message translation),
+  compile/ (YAML-to-LangGraph pipeline). Import-linter contracts make
+  the seams load-bearing via the collapsed three-layer contract. Moves
+  are rename-witnessed; public top-level re-exports are unchanged.
+  FR-912 retired the export/ package with its last member, and the
+  export-seam and compile-seam forbidden contracts retired with it.
 modules:
   - yamlgraph/a2a
-  - yamlgraph/export
   - yamlgraph/compile
 requirements:
   - id: REQ-YG-567
     description: >
-      Root-package seams (FR-717). yamlgraph.a2a, yamlgraph.export and
-      yamlgraph.compile exist as packages holding their clusters
-      (module names preserved in compile/); .importlinter carries
-      a2a-seam, export-seam and compile-seam forbidden contracts plus
-      the collapsed three-layer contract; lint-imports keeps >= 5
-      contracts; root yamlgraph/*.py module count <= 17; deep import
-      paths updated repo-wide (code, tests, capabilities, confessions,
-      hedging allowlist, docs).
+      Root-package seams (FR-717). yamlgraph.compile exists as a
+      package holding its cluster (module names preserved in compile/);
+      .importlinter carries the collapsed three-layer contract plus the
+      surviving forbidden contracts; root yamlgraph/*.py module count
+      <= 17; deep import paths updated repo-wide (code, tests,
+      capabilities, confessions, hedging allowlist, docs). FR-912
+      retired the export package and its two seam contracts.
     modules:
       - yamlgraph/a2a
-      - yamlgraph/export
       - yamlgraph/compile
       - tests/unit/test_fr717_seams.py

@@ -49,7 +49,6 @@ See [CHANGELOG.md](../CHANGELOG.md) for version history.
 | [Checkpointers](checkpointers.md) | State persistence (Memory, SQLite, Redis) |
 | [LangSmith Tools & Tracing](langsmith-tools.md) | Trace URLs, public sharing, and observability tools |
 | [Prompt Deployment](prompt-deployment.md) | Patterns for updating prompts without rebuild |
-| [Skills Export](skills-export.md) | Export graphs as portable skill bundles and `agent-md` `.agent.md` personas |
 | [Contrib Utilities](contrib.md) | Shared utilities for map results and serialization |
 | [Scheduling Agents](scheduling-agents.md) | Run graphs on schedule (launchd, cron, CI) |
 
