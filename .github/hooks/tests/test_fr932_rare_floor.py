@@ -14,6 +14,8 @@ FR-737 F5 convention of this directory.
 from __future__ import annotations
 
 import importlib.util
+import subprocess
+import sys
 import tempfile
 from pathlib import Path
 
@@ -84,10 +86,10 @@ def test_floor_lifted_preserves_self_exclusion_and_ranking() -> None:
     pa = _load_prior_art()
     with tempfile.TemporaryDirectory() as tmpdir:
         fr_dir = _common_noun_corpus(tmpdir, pa)
-        # One file carries the query's rarer noun in its weighted zone.
+        # Same two nouns as the FR-500 block, but both in the weighted zone.
         (fr_dir / "FR-800-precedent-only.md").write_text(
-            "# FR-800 Precedent Only\n**Status:** Rejected\n"
-            "## Summary\nPrecedent handling.\n",
+            "# FR-800 retrieval precedent\n**Status:** Rejected\n"
+            "## Summary\nretrieval precedent handling.\n",
             encoding="utf-8",
         )
         new = fr_dir / "FR-999-retrieval-precedent.md"
@@ -95,10 +97,10 @@ def test_floor_lifted_preserves_self_exclusion_and_ranking() -> None:
 
         out = pa.build_prior_art(new, rare_floor=False)
 
-        assert "FR-999" not in out, "F3 self-exclusion broken"
         hits = [ln for ln in out.splitlines() if ln.startswith("  FR-")]
-        assert "FR-800-precedent-only.md" in hits[0], "IDF ranking lost"
-        assert "[Rejected]" in hits[0], "status tag lost on top hit"
+        assert not any("FR-999" in ln for ln in hits), "F3 self-exclusion broken"
+        assert "FR-800-precedent-only.md" in hits[0], "_weighted_zone ranking lost"
+        assert "[REJECTED]" in hits[0], "status tag lost on top hit"
 
 
 def test_no_noun_matches_any_file_returns_empty_even_unfloored() -> None:
@@ -110,3 +112,46 @@ def test_no_noun_matches_any_file_returns_empty_even_unfloored() -> None:
         new.write_text("# FR-999\n", encoding="utf-8")
 
         assert pa.build_prior_art(new, rare_floor=False) == ""
+
+
+def test_module_runs_without_pyyaml_installed() -> None:
+    """AC-01 blocker: the hook invokes this with system python3 and
+
+    swallows stderr (`2>/dev/null || true` in fr-checks.sh). A module-scope
+    `import yaml` therefore kills the whole notification hook silently on
+    any interpreter without PyYAML. The FR-814 graph is an optional
+    augmentation and must degrade, not abort.
+    """
+    with tempfile.TemporaryDirectory() as tmpdir:
+        fr_dir = Path(tmpdir) / "feature-requests"
+        fr_dir.mkdir(parents=True, exist_ok=True)
+        (fr_dir / "070-gui-web-playground.md").write_text(
+            "# FR-070 Web Playground\n**Status:** Rejected\nA web playground.\n",
+            encoding="utf-8",
+        )
+        new = fr_dir / "FR-900-wasm-playground-runtime.md"
+        new.write_text("# FR-900\nA wasm playground runtime.\n", encoding="utf-8")
+
+        # Hide PyYAML the way a bare system interpreter does.
+        script = (
+            "import sys\n"
+            "sys.meta_path.insert(0, type('B', (), {"
+            "'find_module': lambda s, n, p=None: None,"
+            "'find_spec': lambda s, n, p=None, t=None: "
+            "(_ for _ in ()).throw(ImportError(n)) if n == 'yaml' else None})())\n"
+            "import importlib.util\n"
+            f"spec = importlib.util.spec_from_file_location('pa', {str(CHECKS_DIR / 'prior_art.py')!r})\n"
+            "m = importlib.util.module_from_spec(spec)\n"
+            "spec.loader.exec_module(m)\n"
+            "from pathlib import Path\n"
+            f"print(m.build_prior_art(Path({str(new)!r})))\n"
+        )
+        proc = subprocess.run(
+            [sys.executable, "-c", script],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+
+        assert proc.returncode == 0, f"module aborted without PyYAML: {proc.stderr}"
+        assert "070-gui-web-playground.md" in proc.stdout
