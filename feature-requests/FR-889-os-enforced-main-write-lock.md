@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Refactor
-**Status:** Judged (APPROVED WITH REVISIONS 2026-08-25, R-1..R-6 folded); amended 2026-08-30 by operator direction — §4 scope additions (CLAUDE.md truth, terminal venv, FR-902 flag retirement), pending judge re-confirmation at enforcement kickoff
+**Status:** Judged (APPROVED WITH REVISIONS 2026-08-25, R-1..R-6 folded); amended 2026-08-30 by operator direction — §4 scope additions (CLAUDE.md truth, terminal venv, FR-902 flag retirement, docs-PR auto-merge deadlock cure), pending judge re-confirmation at enforcement kickoff
 **Effort:** 1 day
 **Requested:** 2026-08-25
 **First consumer / first event:** the next terminal command that would
@@ -175,6 +175,19 @@ predictions.
   arguments). Observed cost of inaction: agents learn to prefix the
   escape reflexively — including on read-only commands — converting the
   OVERRIDE audit stream into noise.
+- **4d. Cure the docs-PR auto-merge deadlock.** Witnessed on PR #501
+  (2026-08-30): the docs-only path filter (`changes` job) skips the
+  test matrix, but `test (3.11)`/`test (3.13)` are required contexts —
+  skipped-by-filter jobs never report, so `gh pr merge --auto` waits
+  forever and every docs-class PR through the FR-888 route needs an
+  admin merge. That makes the sanctioned route silently degrade to the
+  bypass. Cure (pick one at enforcement): (i) an always-reporting no-op
+  `test (3.11)`/`test (3.13)` success job when the path filter skips
+  the real matrix (GitHub's documented pattern for required checks +
+  path filters), or (ii) drop the matrix contexts from required checks
+  — defensible since `enforce_admins` is off and the single-dev flow
+  bypasses them anyway. Option (i) preserves the gate for
+  enforcement-class PRs and is the default choice.
 
 ## Acceptance Criteria (revised per judgement)
 
@@ -220,6 +233,10 @@ predictions.
       test that now passes) or retained with a written reason; the
       position-0 escape regex is replaced by tokenizer-based
       recognition; genuinely out-of-lane writes remain denied
+- [ ] AC-16 (4d): a docs-only PR auto-merges without admin override —
+      required `test (3.11)`/`test (3.13)` contexts report success (or
+      are removed from the required set with the decision recorded);
+      enforcement-class PRs still run the real matrix
 
 ## Blast Radius
 
