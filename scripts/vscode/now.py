@@ -107,6 +107,56 @@ def orphan_worktree_lines(
     return lines
 
 
+def session_lane_lines(repo: Path, gh_available: bool | None = None) -> list[str]:
+    """FR-902 AC-10: session lanes listed for disposition — never deleted.
+
+    gh_available kept for CLI symmetry with orphan_worktree_lines; lane
+    disposition is local-only (gc classifies, human prunes).
+    """
+    del gh_available
+    branches = [
+        b
+        for b in _git(
+            repo, "for-each-ref", "--format=%(refname:short)", "refs/heads/session/*"
+        ).splitlines()
+        if b
+    ]
+    if not branches:
+        return []
+    trees: dict[str, str] = {}
+    tree = None
+    for raw in _git(repo, "worktree", "list", "--porcelain").splitlines() + [""]:
+        if raw.startswith("worktree "):
+            tree = raw.split(" ", 1)[1]
+        elif raw.startswith("branch ") and tree:
+            trees[raw.split(" ", 1)[1].removeprefix("refs/heads/")] = tree
+        elif not raw:
+            tree = None
+    lines = []
+    for br in branches:
+        tree = trees.get(br)
+        if tree:
+            age = _git(Path(tree), "log", "-1", "--format=%cr") or "?"
+            untracked = sum(
+                1
+                for ln in _git(
+                    Path(tree), "status", "--porcelain", "--untracked-files=all"
+                ).splitlines()
+                if ln.startswith("??")
+            )
+            lines.append(
+                f"  session lane {br} lane={tree} age={age} "
+                f"untracked={untracked} — gc: scripts/worktree.sh gc"
+            )
+        else:
+            age = _git(repo, "log", "-1", "--format=%cr", br) or "?"
+            lines.append(
+                f"  session lane {br} no-worktree age={age} — recover: "
+                f"git worktree add tmp/worktrees/{br} {br}"
+            )
+    return lines
+
+
 def workspace_folder(hash_dir: Path) -> Path | None:
     meta = hash_dir / "workspace.json"
     if not meta.is_file():
@@ -379,6 +429,11 @@ def main() -> None:
     # FR-888 AC-10: orphan worktrees — flagged for disposition, never deleted
     for repo in sorted(repos):
         for line in orphan_worktree_lines(repo):
+            print(line)
+
+    # FR-902 AC-10: session lanes — listed, never deleted
+    for repo in sorted(repos):
+        for line in session_lane_lines(repo):
             print(line)
 
     print("\n== FRs in motion (files touched in window) ==")

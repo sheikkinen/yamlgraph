@@ -4,6 +4,8 @@
 # Verbs:
 #   new <name> [--prefix <branch_prefix>] [--work-dir <selector>] [--json]
 #   spike <name> [--prefix <branch_prefix>] [--work-dir <selector>] [--json]
+#   session <session-id>            (FR-902: idempotent session lane)
+#   gc [--prune] [--days <n>]       (FR-902: lossless session-lane GC)
 #   rm <name|--dir <wt_dir>> [--note "<text>"]
 #   list
 
@@ -14,6 +16,8 @@ usage() {
 Usage:
   scripts/worktree.sh new <name> [--prefix <branch_prefix>] [--work-dir <selector>] [--json]
   scripts/worktree.sh spike <name> [--prefix <branch_prefix>] [--work-dir <selector>] [--json]
+  scripts/worktree.sh session <session-id>
+  scripts/worktree.sh gc [--prune] [--days <n>]
   scripts/worktree.sh rm <name|--dir <wt_dir>> [--note "<text>"]
   scripts/worktree.sh list
 EOF
@@ -180,6 +184,141 @@ EOF
         # (single-quoted so paths with spaces stay executable as written)
         echo "cd '$main_dir/$wt_dir'"
     fi
+}
+
+# ── FR-902: session lanes ─────────────────────────────────────────────
+
+session_lane() {
+    # Idempotent session-lane creation (FR-902 R-2/R-3). Never deletes a
+    # session/* branch; refuses ambiguity with a recovery instruction.
+    local sid="${1:-}"
+    # UUID-shaped safe path segment only (C-3): full id, no short forms
+    if ! [[ "$sid" =~ ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$ ]]; then
+        fail "session id must be a full UUID-shaped segment, got: '$sid'"
+    fi
+    local main_dir wt_branch wt_dir cur
+    main_dir=$(repo_root)
+    cd "$main_dir"
+    wt_branch="session/${sid}"
+    wt_dir="tmp/worktrees/session/${sid}"
+
+    if [[ -d "$wt_dir" ]]; then
+        cur=$(git -C "$wt_dir" branch --show-current 2>/dev/null || echo "")
+        if [[ "$cur" == "$wt_branch" ]]; then
+            log_info "Session lane exists: $wt_dir"
+            (cd "$wt_dir" && pwd -P)
+            return 0
+        fi
+        fail "Lane $wt_dir exists on branch '$cur' (expected $wt_branch) — disposition manually; session branches are never deleted"
+    fi
+    if git show-ref --verify --quiet "refs/heads/$wt_branch"; then
+        fail "Branch $wt_branch exists without its lane — recover with: git worktree add '$wt_dir' '$wt_branch' (session branches are never deleted as recovery)"
+    fi
+    log_info "Creating session lane: $wt_dir (branch: $wt_branch)"
+    mkdir -p "$(dirname "$wt_dir")"
+    git worktree add --quiet "$wt_dir" -b "$wt_branch" main
+    # same env links as new/spike; NO .gitignore append — setup must not
+    # dirty the tree, or setup alone would produce a checkpoint (R-2)
+    if [[ -d "$main_dir/.venv" ]]; then
+        ln -snf "$main_dir/.venv" "$wt_dir/.venv"
+    fi
+    if [[ -f "$main_dir/.env" ]]; then
+        ln -snf "$main_dir/.env" "$wt_dir/.env"
+    fi
+    (cd "$wt_dir" && pwd -P)
+}
+
+gc_classify_lane() {
+    # stdout: <class>\t<reason> for one session branch (helper for gc)
+    local branch="$1" wt_dir="$2" days="$3" now_s="$4"
+    local untracked unique tip last_s age_days
+    if [[ -d "$wt_dir" ]]; then
+        if ! git -C "$wt_dir" diff-index --quiet HEAD -- 2>/dev/null; then
+            printf 'dirty\tuncommitted changes\n'
+            return 0
+        fi
+        untracked=$(git -C "$wt_dir" status --porcelain --untracked-files=all 2>/dev/null | grep -c '^??' || true)
+        if [[ "$untracked" -gt 0 ]]; then
+            printf 'untracked\t%s untracked file(s) — no recovery path\n' "$untracked"
+            return 0
+        fi
+    fi
+    unique=$(git rev-list --count "main..$branch" 2>/dev/null || echo 0)
+    tip=$(git rev-parse "$branch")
+    if [[ "$unique" -gt 0 ]]; then
+        # commits not reachable from main: loss-bearing until merged
+        if git show-ref --verify --quiet "refs/remotes/origin/$branch" &&
+            git merge-base --is-ancestor "$branch" "refs/remotes/origin/$branch" 2>/dev/null; then
+            printf 'unmerged\t%s checkpoint(s) pushed but not at the merge boundary\n' "$unique"
+        else
+            printf 'unpushed\t%s checkpoint(s) not on any remote\n' "$unique"
+        fi
+        return 0
+    fi
+    # tip reachable from main: merged if it landed via a merge commit
+    # (off main's first-parent chain); otherwise a lane with no unique work
+    if ! git rev-list --first-parent main | grep -qx "$tip"; then
+        printf 'merged\tcheckpoints reachable from main\n'
+        return 0
+    fi
+    if [[ -d "$wt_dir" ]]; then
+        last_s=$(stat -f %m "$wt_dir/.git" 2>/dev/null || stat -c %Y "$wt_dir/.git" 2>/dev/null || echo "$now_s")
+    else
+        last_s=$(git log -1 --format=%ct "$branch" 2>/dev/null || echo 0)
+    fi
+    age_days=$(((now_s - last_s) / 86400))
+    if [[ "$age_days" -ge "$days" ]]; then
+        printf 'stale-clean\tno unique work; idle %sd >= %sd\n' "$age_days" "$days"
+    else
+        printf 'live\tidle %sd < %sd\n' "$age_days" "$days"
+    fi
+}
+
+gc_session_lanes() {
+    # FR-902 R-5 / AC-09: session/* namespace ONLY; dry-run by default;
+    # prune deletes only merged + stale-clean lanes, refuses every
+    # loss-bearing case with a reason. Never `remove --force`/`branch -D`.
+    local prune=false days=14
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --prune) prune=true; shift ;;
+            --days) days="$2"; shift 2 ;;
+            *) fail "Unknown option for gc: $1" ;;
+        esac
+    done
+    local main_dir now_s branch sid wt_dir cls reason lane_out
+    main_dir=$(repo_root)
+    cd "$main_dir"
+    now_s=$(date +%s)
+    git worktree prune
+    while IFS= read -r branch; do
+        [[ -n "$branch" ]] || continue
+        sid="${branch#session/}"
+        wt_dir="tmp/worktrees/session/${sid}"
+        IFS=$'\t' read -r cls reason < <(gc_classify_lane "$branch" "$wt_dir" "$days" "$now_s")
+        lane_out="-"
+        [[ -d "$wt_dir" ]] && lane_out="$wt_dir"
+        printf '%s\t%s\t%s\t%s\n' "$cls" "$branch" "$lane_out" "$reason"
+        if [[ "$prune" == "true" ]]; then
+            case "$cls" in
+                merged | stale-clean)
+                    if [[ -d "$wt_dir" ]] && ! git worktree remove "$wt_dir" 2>/dev/null; then
+                        printf 'refused\t%s\tworktree remove declined (no --force fallback)\n' "$branch"
+                        continue
+                    fi
+                    if git branch -d "$branch" >/dev/null 2>&1; then
+                        printf 'pruned\t%s\n' "$branch"
+                    else
+                        printf 'refused\t%s\tbranch -d declined (never -D)\n' "$branch"
+                    fi
+                    ;;
+                live) ;;
+                *)
+                    printf 'refused\t%s\t%s\n' "$branch" "$reason"
+                    ;;
+            esac
+        fi
+    done < <(git for-each-ref --format='%(refname:short)' 'refs/heads/session/*')
 }
 
 list_worktrees() {
@@ -372,6 +511,12 @@ main() {
             ;;
         spike)
             new_or_spike "spike" "${1:-}" "${@:2}"
+            ;;
+        session)
+            session_lane "${1:-}"
+            ;;
+        gc)
+            gc_session_lanes "$@"
             ;;
         list)
             list_worktrees
