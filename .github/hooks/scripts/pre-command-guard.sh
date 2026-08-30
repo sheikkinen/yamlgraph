@@ -126,37 +126,8 @@ if [[ "$TOOL_NAME" == "run_in_terminal" || "$TOOL_NAME" == "send_to_terminal" ]]
       emit_deny "Lockdown lifted. Normal operations resumed."
       ;;
     status)
-      SUMMARY=$(python3 -c "
-import json, collections, pathlib, datetime as dt
-logfile = pathlib.Path('$LOG_DIR') / 'audit.jsonl'
-if not logfile.exists():
-    print('No audit log found.')
-else:
-    lines = logfile.read_text().strip().splitlines()
-    decisions = collections.Counter()
-    tools = collections.Counter()
-    errors = collections.Counter()
-    cutoff = dt.datetime.now(dt.timezone.utc) - dt.timedelta(days=7)
-    for line in lines:
-        d = json.loads(line)
-        decisions[d.get('decision','')] += 1
-        tools[d.get('tool','')] += 1
-        if d.get('decision') == 'error':
-            try:
-                ts = dt.datetime.fromisoformat(d.get('ts',''))
-            except ValueError:
-                continue
-            if ts.tzinfo is None:
-                ts = ts.replace(tzinfo=dt.timezone.utc)
-            if ts >= cutoff:
-                errors[d.get('hook','?') + '/' + d.get('reason','?')] += 1
-    total = sum(decisions.values())
-    dec_str = ', '.join(f'{k}={v}' for k,v in decisions.most_common())
-    tool_str = ', '.join(f'{k}={v}' for k,v in tools.most_common(5))
-    err_str = ', '.join(f'{k}={v}' for k,v in errors.most_common()) if errors else 'none'
-    lockdown = 'YES' if pathlib.Path('$LOCKFILE').exists() else 'no'
-    print(f'Audit: {total} total entries. Decisions: {dec_str}. Top tools: {tool_str}. Hook errors (7d): {err_str}. Lockdown: {lockdown}')
-" 2>/dev/null)
+      SUMMARY=$(LOG_DIR="$LOG_DIR" LOCKFILE="$LOCKFILE" \
+        python3 "$(dirname "$0")/checks/audit_status.py" 2>/dev/null)
       audit_log "deny" "lockdown-status" "status requested"
       emit_deny "$SUMMARY"
       ;;
@@ -299,188 +270,33 @@ PYEOF
     ;;
 esac
 
-# ── Check 7: main-write guard — worktree is the only enforcement write
-# path (FR-888). Enforcement-class writes on a MAIN checkout are denied;
-# the same write in a linked worktree is allowed. Detection is git
-# plumbing (--git-common-dir vs --git-dir), never path heuristics.
-# Escape: FR888_ALLOW_MAIN=1 (audited, does not bypass other guards).
+# ── Check 7: main-write guard (FR-889) — the write barrier is the OS
+# lock (scripts/worktree.sh lock-main); the kernel refuses terminal
+# writes with zero parsing. This check covers only what the kernel
+# cannot: editor-tool writes (git-plumbing classification) and
+# lock-mutator verbs, via a lintable module. The FR-888 shell write
+# grammar is gone (C-5). Escapes: FR888_ALLOW_MAIN=1; git; sudo.
 case "$TOOL_NAME" in
   create_file|replace_string_in_file|multi_replace_string_in_file|apply_patch|run_in_terminal|send_to_terminal)
-    # cheap bash pre-filter: only analyze commands that could write
-    # (FR-442 python-invocation budget — clean calls must not pay)
     FR888_RELEVANT=1
     if [[ "$TOOL_NAME" == "run_in_terminal" || "$TOOL_NAME" == "send_to_terminal" ]]; then
-      if ! echo "$COMMAND" | grep -qE '>|\btee\b|\bcp\b|\bmv\b|\brsync\b|\binstall\b|\bsed\b|\bdd\b|\btruncate\b|\btouch\b|\bmkdir\b|\brm\b|\bln\b|\bchmod\b|python3?[[:space:]]+-c|perl[[:space:]]+-e|ruby[[:space:]]+-e'; then
+      # terminal calls: only lock-mutator verbs are of interest here
+      if ! echo "$COMMAND" | grep -qE '\bchmod\b|\bchflags\b|\bsetfacl\b'; then
         FR888_RELEVANT=0
       fi
     fi
     if [[ "$FR888_RELEVANT" == "1" ]]; then
-    HOOK_GUARD_ROOT="${HOOK_GUARD_ROOT:-$(cd "$(dirname "$0")/../../.." 2>/dev/null && pwd -P)}"
-    FR888_OUT=$(HOOK_INPUT="$INPUT" HOOK_GUARD_ROOT="$HOOK_GUARD_ROOT" python3 <<'PYEOF'
-import json, os, re, subprocess, sys
-from pathlib import Path
-
-ENFORCE = ("yamlgraph/", "tests/", "scripts/", "capabilities/", ".github/hooks/")
-DOCS = ("docs/", "feature-requests/", "changelog/", "research/", "tmp/", "logs/")
-PATHISH = re.compile(r"[^\s\"';|&<>=]+/[^\s\"';|&<>]*")
-
-try:
-    d = json.loads(os.environ.get("HOOK_INPUT", "{}"))
-except Exception:
-    d = {}
-tool = d.get("tool_name", d.get("toolName", ""))
-ti = d.get("tool_input", d.get("toolInput", d.get("input", {}))) or {}
-cwd = d.get("cwd", "") or "."
-
-# The guard protects THIS repository only (review PR#476 round 3 P1):
-# nested foreign repos are not ours to police. Root computed by the bash
-# wrapper from the hook's own location; HOOK_GUARD_ROOT overrides for
-# fixtures.
-GUARD_ROOT = (
-    os.path.realpath(os.environ["HOOK_GUARD_ROOT"])
-    if os.environ.get("HOOK_GUARD_ROOT")
-    else ""
-)
-
-def textual_enforcement(p):
-    s = str(p).replace("\\", "/")
-    return any(("/" + e) in ("/" + s) or s.startswith(e) for e in ENFORCE) or any(
-        ("/" + e.rstrip("/") + "/") in s for e in ENFORCE
-    )
-
-def classify(abs_path):
-    """Return 'deny' | 'allow' | None (not enforcement-relevant)."""
-    p = Path(abs_path)
-    probe = p.parent
-    while not probe.is_dir() and probe != probe.parent:
-        probe = probe.parent
-    try:
-        out = subprocess.run(
-            ["git", "-C", str(probe), "rev-parse", "--path-format=absolute",
-             "--git-common-dir", "--git-dir", "--show-toplevel"],
-            capture_output=True, text=True, timeout=5,
-        )
-        if out.returncode != 0:
-            raise RuntimeError(out.stderr)
-        common, gitdir, top = out.stdout.splitlines()[:3]
-    except Exception:
-        # parse error: fail closed only when an enforcement-class target
-        # is textually present (R-2)
-        return "deny-parse" if textual_enforcement(abs_path) else None
-    is_main = os.path.realpath(common) == os.path.realpath(gitdir)
-    if not is_main:
-        return None  # linked worktree: allowed
-    if GUARD_ROOT and os.path.realpath(top) != GUARD_ROOT:
-        return None  # foreign repository: not ours to police (round 3 P1)
-    try:
-        rel = str(Path(os.path.realpath(abs_path)).relative_to(os.path.realpath(top)))
-    except ValueError:
-        return None
-    rel = rel.replace("\\", "/")
-    if any(rel == dl.rstrip("/") or rel.startswith(dl) for dl in DOCS):
-        return None
-    if any(rel == e.rstrip("/") or rel.startswith(e) for e in ENFORCE):
-        return "deny"
-    return None
-
-def resolve(p):
-    p = str(p).strip().strip("'\"")
-    # shell would expand these to cwd before writing (review round 7 P1)
-    for pwd_form in ("$PWD", "${PWD}", "$(pwd)"):
-        if p.startswith(pwd_form):
-            p = cwd + p[len(pwd_form):]
-            break
-    return p if os.path.isabs(p) else os.path.join(cwd, p)
-
-EDIT_TOOLS = {"create_file", "replace_string_in_file",
-              "multi_replace_string_in_file", "apply_patch"}
-escape = os.environ.get("FR888_ALLOW_MAIN", "") == "1"
-verdict, target = None, ""
-
-if tool in EDIT_TOOLS:
-    paths = []
-    if isinstance(ti, dict):
-        if ti.get("filePath"):
-            paths.append(ti["filePath"])
-        for r in ti.get("replacements") or []:
-            if isinstance(r, dict) and r.get("filePath"):
-                paths.append(r["filePath"])
-        patch = ti.get("input") or ti.get("patch") or ""
-        if isinstance(patch, str):
-            paths += re.findall(r"\*\*\* (?:Add|Update|Delete|Move to) File: (.+)", patch)
-            # actual move header shape has no ' File' (review round 4 P1)
-            paths += re.findall(r"\*\*\* Move to: (.+)", patch)
-    for p in paths:
-        c = classify(resolve(p))
-        if c in ("deny", "deny-parse"):
-            verdict, target = c, p
-            break
-else:
-    cmd = ti.get("command", "") if isinstance(ti, dict) else ""
-    if re.match(r"\s*FR888_ALLOW_MAIN=1\b", cmd):
-        escape = True
-
-    def write_targets(cmd):
-        """Paths a command writes to — targets, not mentions (false-deny guard)."""
-        targets = []
-        for m in re.finditer(r">>?\s*[\"']?(" + PATHISH.pattern + ")", cmd):
-            targets.append(m.group(1))
-        for m in re.finditer(r"\btee\s+(?:-a\s+)?[\"']?(" + PATHISH.pattern + ")", cmd):
-            targets.append(m.group(1))
-        for seg in re.split(r"&&|\|\||;|\|", cmd):
-            toks = seg.split()
-            # strip env assignments and command wrappers (time/nohup/nice)
-            # in any order — review PR#476 round 2 P1: 'time cp …' escaped
-            while toks and (
-                re.match(r"^[A-Za-z_][A-Za-z0-9_]*=", toks[0])
-                or toks[0] in ("time", "nohup", "nice")
-            ):
-                toks.pop(0)
-            if toks and toks[0] in ("cp", "mv", "rsync", "install"):
-                args = [t for t in toks[1:] if not t.startswith("-")]
-                if len(args) >= 2:
-                    dest, sources = args[-1], args[:-1]
-                    targets.append(dest)
-                    # P2 (review PR#476): a directory dest materializes
-                    # dest/basename(src) — classify the materialized paths
-                    for s in sources:
-                        base = os.path.basename(s.rstrip("/"))
-                        if base:
-                            targets.append(dest.rstrip("/") + "/" + base)
-            # direct write/delete commands (review round 8 P1)
-            if toks and toks[0] in ("touch", "mkdir", "rm", "ln", "chmod", "truncate"):
-                targets += [t for t in toks[1:] if not t.startswith("-")]
-            if toks and toks[0] == "sed" and any(t.startswith("-i") for t in toks):
-                targets += [t for t in toks[1:] if "/" in t and not t.startswith("-")]
-        # opaque writers: any mentioned path is a potential target;
-        # ALSO extract enforcement-relative substrings hidden inside
-        # quoting constructs like perl q(yamlgraph/x.py) (round 9 P1)
-        if re.search(
-            r"python3?\s+-c|perl\s+-e|ruby\s+-e|\bdd\b|\btruncate\b", cmd
-        ):
-            targets += [m.group(0) for m in PATHISH.finditer(cmd)]
-            targets += re.findall(
-                r"(?:yamlgraph|tests|scripts|capabilities|\.github/hooks)"
-                r"/[^\s\"'();|&<>]*",
-                cmd,
-            )
-        return targets
-
-    for t in write_targets(cmd or ""):
-        c = classify(resolve(t))
-        if c in ("deny", "deny-parse"):
-            verdict, target = c, t
-            break
-
-if verdict and escape:
-    print("OVERRIDE\t" + os.path.realpath(resolve(target)))
-elif verdict:
-    print("DENY\t" + verdict + "\t" + target.replace('"', ""))
-PYEOF
-) || FR888_OUT=""
+      HOOK_GUARD_ROOT="${HOOK_GUARD_ROOT:-$(cd "$(dirname "$0")/../../.." 2>/dev/null && pwd -P)}"
+      FR888_OUT=$(HOOK_INPUT="$INPUT" HOOK_GUARD_ROOT="$HOOK_GUARD_ROOT" \
+        python3 "$(dirname "$0")/checks/main_write.py") || FR888_OUT=""
     fi
     if [[ "${FR888_OUT:-}" == OVERRIDE* ]]; then
       audit_log "approve" "fr888-main-write-override" "cwd=$HOOK_CWD target=${FR888_OUT#OVERRIDE	} tool=$TOOL_NAME"
+    elif [[ "${FR888_OUT:-}" == DENY-FENCE* ]]; then
+      FR889_TARGET="${FR888_OUT##*	}"
+      audit_log "deny" "fr889-lock-mutator" "cwd=$HOOK_CWD target=$FR889_TARGET tool=$TOOL_NAME"
+      emit_deny "Lock-mutator aimed at a governed root on the main checkout denied (FR-889): ${FR889_TARGET}.\\n\\nThe main lock is dropped only through the audited valve:\\n  scripts/worktree.sh unlock-main\\n(relock when done: scripts/worktree.sh lock-main; pull via: scripts/worktree.sh sync)"
+      exit 0
     elif [[ "${FR888_OUT:-}" == DENY* ]]; then
       FR888_TARGET="${FR888_OUT##*	}"
       audit_log "deny" "fr888-main-write" "cwd=$HOOK_CWD target=$FR888_TARGET tool=$TOOL_NAME"
@@ -490,105 +306,25 @@ PYEOF
     ;;
 esac
 
-# ── Check 8: session-lane ownership guard (FR-902) — once this session
-# owns a lane (record in logs/session-lanes/), write-shaped tool calls
-# targeting THIS repository outside the lane are denied with redirection
-# to the lane. Reads and out-of-repo writes are untouched; the escape
-# FR902_ALLOW_OUTSIDE=1 bypasses ONLY this denial class (C-5: later
-# checks — --no-verify, trailers — still apply). Fail-open on any
-# record/parse problem: this check must never brick a session.
+# ── Check 8: session-lane ownership guard (FR-902) — write-shaped tool
+# calls targeting THIS repository outside the session's lane are denied
+# with redirection. Analyzer: checks/lane_guard.py; cwd-proxy
+# heuristics retired by FR-889 §4c (payload cwd ≠ terminal cwd).
+# Escape FR902_ALLOW_OUTSIDE=1 lifts ONLY this denial class (C-5).
 FR902_REC="$LOG_DIR/session-lanes/${SESSION_ID:-none}.json"
 if [[ -n "$SESSION_ID" && -f "$FR902_REC" ]]; then
   case "$TOOL_NAME" in
     create_file|replace_string_in_file|multi_replace_string_in_file|apply_patch|run_in_terminal|send_to_terminal)
       FR902_RELEVANT=1
       if [[ "$TOOL_NAME" == "run_in_terminal" || "$TOOL_NAME" == "send_to_terminal" ]]; then
-        if ! echo "$COMMAND" | grep -qE '>|\btee\b|\bcp\b|\bmv\b|\brsync\b|\binstall\b|\bsed\b|\bdd\b|\btruncate\b|\btouch\b|\bmkdir\b|\brm\b|\bln\b|\bchmod\b|python3?[[:space:]]+-c|perl[[:space:]]+-e|ruby[[:space:]]+-e|git[[:space:]].*(commit|add|checkout|reset|merge|rebase|apply|stash)'; then
+        if ! echo "$COMMAND" | grep -qE '>|\btee\b|\bcp\b|\bmv\b|\brsync\b|\binstall\b|\bsed\b|\bdd\b|\btruncate\b|\btouch\b|\bmkdir\b|\brm\b|\bln\b|\bchmod\b'; then
           FR902_RELEVANT=0
         fi
       fi
       if [[ "$FR902_RELEVANT" == "1" ]]; then
         HOOK_GUARD_ROOT="${HOOK_GUARD_ROOT:-$(cd "$(dirname "$0")/../../.." 2>/dev/null && pwd -P)}"
-        FR902_OUT=$(HOOK_INPUT="$INPUT" HOOK_GUARD_ROOT="$HOOK_GUARD_ROOT" FR902_REC="$FR902_REC" python3 <<'PYEOF'
-import json, os, re, sys
-
-PATHISH = re.compile(r"[^\s\"';|&<>]+")
-
-try:
-    d = json.loads(os.environ.get("HOOK_INPUT", "{}"))
-    rec = json.load(open(os.environ["FR902_REC"]))
-    lane = os.path.realpath(rec["lane"])
-    root = os.path.realpath(os.environ["HOOK_GUARD_ROOT"])
-except Exception:
-    sys.exit(0)  # fail-open: unreadable record must not brick the session
-if not lane or not os.path.isdir(lane):
-    sys.exit(0)
-
-tool = d.get("tool_name", d.get("toolName", ""))
-ti = d.get("tool_input", d.get("toolInput", d.get("input", {}))) or {}
-cwd = d.get("cwd", "") or "."
-
-def resolve(p):
-    p = str(p).strip().strip("'\"")
-    for pwd_form in ("$PWD", "${PWD}", "$(pwd)"):
-        if p.startswith(pwd_form):
-            p = cwd + p[len(pwd_form):]
-            break
-    return os.path.realpath(p if os.path.isabs(p) else os.path.join(cwd, p))
-
-def inside(p, base):
-    return p == base or p.startswith(base + os.sep)
-
-EDIT_TOOLS = {"create_file", "replace_string_in_file",
-              "multi_replace_string_in_file", "apply_patch"}
-targets = []
-if tool in EDIT_TOOLS and isinstance(ti, dict):
-    if ti.get("filePath"):
-        targets.append(ti["filePath"])
-    for r in ti.get("replacements") or []:
-        if isinstance(r, dict) and r.get("filePath"):
-            targets.append(r["filePath"])
-    patch = ti.get("input") or ti.get("patch") or ""
-    if isinstance(patch, str):
-        targets += re.findall(
-            r"\*\*\* (?:Add|Update|Delete|Move to) File: (.+)", patch)
-else:
-    cmd = ti.get("command", "") if isinstance(ti, dict) else ""
-    for m in re.finditer(r">>?\s*[\"']?(" + PATHISH.pattern + ")", cmd):
-        targets.append(m.group(1))
-    for m in re.finditer(r"\btee\s+(?:-a\s+)?[\"']?(" + PATHISH.pattern + ")", cmd):
-        targets.append(m.group(1))
-    for seg in re.split(r"&&|\|\||;|\|", cmd):
-        toks = seg.split()
-        while toks and (re.match(r"^[A-Za-z_][A-Za-z0-9_]*=", toks[0])
-                        or toks[0] in ("time", "nohup", "nice")):
-            toks.pop(0)
-        if not toks:
-            continue
-        if toks[0] in ("cp", "mv", "rsync", "install", "touch", "mkdir",
-                       "rm", "ln", "chmod", "truncate", "dd"):
-            targets += [t for t in toks[1:] if not t.startswith("-")]
-        if toks[0] == "sed" and any(t.startswith("-i") for t in toks):
-            targets += [t for t in toks[1:] if not t.startswith("-")]
-        if toks[0] == "git" and any(
-            v in toks for v in ("commit", "add", "checkout", "reset",
-                                "merge", "rebase", "apply", "stash")
-        ):
-            targets.append(cwd)  # git writes land where it runs
-    if re.search(r"python3?\s+-c|perl\s+-e|ruby\s+-e", cmd):
-        targets.append(cwd)
-
-for t in targets:
-    rp = resolve(t)
-    if inside(rp, root) and not inside(rp, lane):
-        esc = os.environ.get("FR902_ALLOW_OUTSIDE", "") == "1"
-        if not esc and tool in ("run_in_terminal", "send_to_terminal"):
-            esc = bool(re.match(r"\s*FR902_ALLOW_OUTSIDE=1\b",
-                                ti.get("command", "") or ""))
-        print(("OVERRIDE\t" if esc else "DENY\t") + lane)
-        break
-PYEOF
-) || FR902_OUT=""
+        FR902_OUT=$(HOOK_INPUT="$INPUT" HOOK_GUARD_ROOT="$HOOK_GUARD_ROOT" FR902_REC="$FR902_REC" \
+          python3 "$(dirname "$0")/checks/lane_guard.py") || FR902_OUT=""
         if [[ "${FR902_OUT:-}" == OVERRIDE* ]]; then
           audit_log "approve" "fr902-lane-override" "cwd=$HOOK_CWD tool=$TOOL_NAME"
           # fall through: escape lifts ONLY the lane fence (C-5)
