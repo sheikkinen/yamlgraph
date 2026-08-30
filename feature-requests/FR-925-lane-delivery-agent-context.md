@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Approved with revisions (folded 2026-08-30)
+**Status:** SUPERSEDED 2026-08-30 by [FR-927](FR-927-retire-fr902-lane-guard-hooks.md) — the hook-created lane this FR delivers no longer exists. Previously: Approved with revisions (folded 2026-08-30); that approval and the implementation record below are preserved as historical fact, not retroactively rejected.
 **Effort:** 0.5 days
 **Requested:** 2026-08-30
 **First consumer / first event:** any agent session at turn 1 while `fr902.live` is armed — the moment it decides where to run its first terminal command

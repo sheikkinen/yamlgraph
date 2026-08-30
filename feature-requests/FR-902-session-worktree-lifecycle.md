@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Enhancement
-**Status:** Enforced 2026-08-30 (branch `feat/fr902-session-worktree-lifecycle`; RED 169ec918, GREEN this PR; live-gated behind `.github/hooks/fr902.live` pending AC-13 operator review) — judged APPROVED WITH REVISIONS folded ([judgement](FR-902-session-worktree-lifecycle.judgement.md), 2026-08-29)
+**Status:** Enforced 2026-08-30 (branch `feat/fr902-session-worktree-lifecycle`; RED 169ec918, GREEN this PR; live-gated behind `.github/hooks/fr902.live` pending AC-13 operator review) — judged APPROVED WITH REVISIONS folded ([judgement](FR-902-session-worktree-lifecycle.judgement.md), 2026-08-29). **Hook machinery RETIRED 2026-08-30 by [FR-927](FR-927-retire-fr902-lane-guard-hooks.md)** — the AC-13 operator review verdict. Retired: SessionStart lane creation, Stop-hook checkpointing, the PreToolUse lane-ownership guard (Check 8), `lane_guard.py`, the `fr902.live` gate, and the `FR902_ALLOW_OUTSIDE` escape. Retained: `scripts/worktree.sh session`/`gc`, `scripts/vscode/now.py` lane listing, `scripts/vscode/session_join.py`. The enforcement facts above are historical record, not live behaviour.
 **Effort:** 3-4 days
 **Requested:** 2026-08-29
 **First consumer / first event:** the next VS Code Copilot agent session that opens in this repo — at its first `SessionStart` hook fire, a session lane exists and the briefing names it; at its first `Stop` hook fire, its turn output is committed as a checkpoint.

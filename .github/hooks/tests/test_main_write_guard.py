@@ -280,7 +280,7 @@ MAIN_WRITE_PY = HOOK.parent / "checks" / "main_write.py"
 def _check7_region() -> str:
     src = HOOK.read_text()
     start = src.index("Check 7: main-write")
-    end = src.index("Check 8:")
+    end = src.index("# Only inspect run_in_terminal")
     return src[start:end]
 
 

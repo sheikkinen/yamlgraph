@@ -35,7 +35,7 @@ For end-to-end creation of a complete graph artifact, the workflow contract is `
 - Pre-commit, Pre- and Post-command hooks enforce style, commit format, and trailer rules — read hook output on failure before retrying.
 
 ### Copilot Hooks (.github/hooks/)
-- **Session lane (FR-902)**: when `.github/hooks/fr902.live` exists, each session owns an isolated worktree at `tmp/worktrees/session/<session-id>`, created by the SessionStart hook (record: `.github/hooks/logs/session-lanes/<sid>.json`). Hook stdout does NOT reach agent context — discover the lane yourself: the session id is the basename of `VSCODE_TARGET_SESSION_LOG`. First terminal action of any session: `cd tmp/worktrees/session/<session-id>`. The lane guard denies out-of-lane writes; `FR902_ALLOW_OUTSIDE=1 <command>` is the audited escape for deliberate out-of-lane work (e.g., `.chaplain/inbox/` submissions).
+- **Session lane**: retired by FR-927 — no automatic lane creation, no lane-ownership denial, no escape variable; `scripts/worktree.sh session|gc` remains as manual tooling and FR-889's OS lock is the only write barrier on main.
 - **PreToolUse**: `pre-command-guard.sh` blocks Co-authored-by trailers, `--no-verify`, multiline `git commit -m`, and pytest `| head/tail` without `tee`.
 - **PostToolUse**: modular post-edit checks run via `python-checks.sh`, `yaml-checks.sh`, `markdown-checks.sh`, and `fr-checks.sh`.
 - **Reasoning sentinel**: `reasoning-pattern-check.sh` can arm a one-shot denial consumed on the next tool call.

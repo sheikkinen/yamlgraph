@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """FR-902 AC-11: join event-store requests to lane checkpoint commits.
 
-Request-Index trailers on session/<id> checkpoints (session-checkpoint.sh)
-are the join key against the replayed chatSessions event store (FR-898
-session_ledger). Output: TSV, one row per request; '-' where a request
-produced no checkpoint (read-only turn or unflushed store).
+Request-Index trailers on session/<id> checkpoints are the join key against
+the replayed chatSessions event store (FR-898 session_ledger). The Stop hook
+that once wrote those trailers was retired by FR-927; this reads whatever
+historical checkpoints exist. Output: TSV, one row per request; '-' where a
+request produced no checkpoint (read-only turn or unflushed store).
 
 Run:  python3 scripts/vscode/session_join.py \
         --repo . --store <chatSessions/*.jsonl> --session <session-id>

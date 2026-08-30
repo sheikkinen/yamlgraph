@@ -306,39 +306,6 @@ case "$TOOL_NAME" in
     ;;
 esac
 
-# ── Check 8: session-lane ownership guard (FR-902) — write-shaped tool
-# calls targeting THIS repository outside the session's lane are denied
-# with redirection. Analyzer: checks/lane_guard.py; cwd-proxy
-# heuristics retired by FR-889 §4c (payload cwd ≠ terminal cwd).
-# Escape FR902_ALLOW_OUTSIDE=1 lifts ONLY this denial class (C-5).
-FR902_REC="$LOG_DIR/session-lanes/${SESSION_ID:-none}.json"
-if [[ -n "$SESSION_ID" && -f "$FR902_REC" ]]; then
-  case "$TOOL_NAME" in
-    create_file|replace_string_in_file|multi_replace_string_in_file|apply_patch|run_in_terminal|send_to_terminal)
-      FR902_RELEVANT=1
-      if [[ "$TOOL_NAME" == "run_in_terminal" || "$TOOL_NAME" == "send_to_terminal" ]]; then
-        if ! echo "$COMMAND" | grep -qE '>|\btee\b|\bcp\b|\bmv\b|\brsync\b|\binstall\b|\bsed\b|\bdd\b|\btruncate\b|\btouch\b|\bmkdir\b|\brm\b|\bln\b|\bchmod\b'; then
-          FR902_RELEVANT=0
-        fi
-      fi
-      if [[ "$FR902_RELEVANT" == "1" ]]; then
-        HOOK_GUARD_ROOT="${HOOK_GUARD_ROOT:-$(cd "$(dirname "$0")/../../.." 2>/dev/null && pwd -P)}"
-        FR902_OUT=$(HOOK_INPUT="$INPUT" HOOK_GUARD_ROOT="$HOOK_GUARD_ROOT" FR902_REC="$FR902_REC" \
-          python3 "$(dirname "$0")/checks/lane_guard.py") || FR902_OUT=""
-        if [[ "${FR902_OUT:-}" == OVERRIDE* ]]; then
-          audit_log "approve" "fr902-lane-override" "cwd=$HOOK_CWD tool=$TOOL_NAME"
-          # fall through: escape lifts ONLY the lane fence (C-5)
-        elif [[ "${FR902_OUT:-}" == DENY* ]]; then
-          FR902_LANE="${FR902_OUT#DENY	}"
-          audit_log "deny" "fr902-lane" "cwd=$HOOK_CWD lane=$FR902_LANE tool=$TOOL_NAME"
-          emit_deny "Write outside this session's lane denied (FR-902).\\n\\nYour session owns an isolated worktree — work there:\\n  cd '$FR902_LANE'\\n\\nEscape for deliberate out-of-lane work (audited):\\n  FR902_ALLOW_OUTSIDE=1 <command>\\n(one_session_one_repo — details: feature-requests/FR-902-session-worktree-lifecycle.md)"
-          exit 0
-        fi
-      fi
-      ;;
-  esac
-fi
-
 # Only inspect run_in_terminal / send_to_terminal tool calls
 if [[ "$TOOL_NAME" != "run_in_terminal" && "$TOOL_NAME" != "send_to_terminal" ]]; then
   audit_log "pass" "not-inspected" "$DETAIL"
