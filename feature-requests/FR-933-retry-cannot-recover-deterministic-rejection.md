@@ -2,7 +2,14 @@
 
 **Priority:** HIGH
 **Type:** Defect
-**Status:** Proposed (not yet judged)
+**Status:** REJECTED 2026-08-30 — returned to planning
+**Judgement:** [FR-933-retry-cannot-recover-deterministic-rejection.judgement.md](FR-933-retry-cannot-recover-deterministic-rejection.judgement.md)
+— no implementation authority. Blocked on R-1 (missing `**Research:**`
+evidence) and R-2 (dangling FR-926 path; undispositioned FR-408).
+Resubmission is blocked by condition C-6: the research route this FR
+exists to repair is the same route that must produce its research
+evidence, and the Judge explicitly declines to waive that gate without a
+recorded human decision.
 **Effort:** 0.5 day
 **Requested:** 2026-08-30
 **First consumer:** `scripts/research.sh` — the research sole route, currently
@@ -10,9 +17,13 @@ failing every run.
 **Prior art:** `feature-requests/FR-896-research-route-precedent-traceability.md`
 froze `max_length=400` with "rejection never truncation" and is the contract this
 defect lives inside; `feature-requests/FR-890-research-sole-route-closed-input-alternatives.md`
-established the persona schema; `feature-requests/FR-926-research-route-error-surfacing.md`
-built the error channel that made this diagnosable at all. None of the three
-addresses retry semantics, so none is a duplicate.
+established the persona schema; `feature-requests/FR-926-research-failure-cites-recorded-cause.md`
+built the error channel that made this diagnosable at all.
+**FR-408 (`feature-requests/FR-408-runtime-repair-metadata.md`) is the
+dispositive precedent this FR failed to cite** — it already rejected
+`retry-with-schema` and `auto_repair`, which is where proposed mechanism (1)
+was heading. A resubmission must distinguish itself from FR-408 or die by
+its rationale.
 
 ## Summary
 

@@ -371,6 +371,41 @@ one, which is `gate_checks_shape_not_substance`.
 
 **AC-11 pending** — deferred with the rest of the delivery.
 
+### The witnessed extraction miss (2026-08-30, same session)
+
+R-1a said filename-noun extraction stays until an *extraction* miss is
+witnessed, as opposed to the floor-calibration miss the FR measured. That
+witness arrived within the hour, from this FR's own escalation.
+
+FR-933 was authored without prior-art retrieval and its judge rejected it
+for missing `feature-requests/FR-408-runtime-repair-metadata.md`, which had
+already rejected `retry-with-schema`/`auto_repair` — the very mechanism
+FR-933 proposed. Running both retrieval modes against `FR-933`'s filename:
+
+| mode | result |
+|---|---|
+| `rare_floor=True` (hook, as shipped) | `""` — silent |
+| `rare_floor=False` (this FR) | 5 hits: FR-838 gitclaw-oulu-assembly, FR-863 deviant-daily-publish, FR-590 plot-modeller, FR-492 restore-chapter — **FR-408 absent** |
+
+Lifting the floor converted silence into noise, not into precedent. The
+query nouns were `retry, cannot, recover, deterministic, rejection`; FR-408
+is named `runtime-repair-metadata` and shares none of them. Filename-noun
+IDF cannot reach it at any floor setting, because the signal is not in the
+filename.
+
+This does not invalidate the FR — the mechanism does what it claims, and
+the FR-890-brief run retrieved four genuinely relevant FRs. It does bound
+the claim honestly: **filename-noun retrieval finds prior art that shares
+vocabulary, and misses prior art that shares a problem.** The judge, an LLM
+reading the corpus, found FR-408 in one pass. That is the comparison a
+follow-up FR must answer, and R-1a's escalation trigger is now satisfied.
+
+Second-order: the retrieval also returned `FR-933-...judgement.md`, the
+query FR's own judgement sibling. The research route's FR-number exclusion
+catches it; `build_prior_art`'s F3 self-exclusion (exact path) does not, so
+the hook consumers can still surface an FR's own judgement as its own prior
+art. Recorded, not fixed here.
+
 ## Testing
 Deterministic unit tests, fixture corpora in `tmp_path`, no network and
 no LLM: AC-01/AC-02 in `.github/hooks/tests/`, AC-03 through AC-09 in
