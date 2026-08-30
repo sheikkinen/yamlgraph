@@ -94,13 +94,18 @@ that remains is lintable Python.
   guarantees relock) — the one legitimate route for main enforcement-tree
   updates. Release flow uses the same verb.
 - **Lock-mutator fence (R-2, the ONLY terminal check this FR keeps):**
-  raw `chmod`/`chflags`/`setfacl` (and `sudo` forms) targeting the five
-  governed roots on the main checkout are denied with the cure
+  raw `chmod`/`chflags`/`setfacl` targeting the five governed roots on
+  the main checkout are denied with the cure
   `scripts/worktree.sh unlock-main` (audited route). Verbs-only over five
   fixed roots — mechanically prevented from growing into a write-shape
   grammar by the R-6 structural test. Without this fence the self-service
   `chmod` would silently bypass the audited unlock; with it, the escape
   hatch is the only door, as claimed.
+  **Allowed escapes (operator decision, 2026-08-30): `git` and `sudo`.**
+  `git` commands are never fenced (git manages tracked modes as data;
+  actual writes are the kernel's problem), and `sudo`-prefixed forms
+  pass — sudo requires the human's password, so a sudo permission
+  change is human-authorized by construction.
 - Worktrees: `git worktree add` produces writable trees naturally; no
   change.
 - **Ergonomics under lock (R-4, smoke-witnessed):** Python import/pytest
@@ -205,7 +210,7 @@ predictions.
 - [ ] AC-05: Raw permission-mutating commands (`chmod`/`chflags`/
       `setfacl`) targeting governed roots on main are denied by the
       narrow R-2 fence — tested; fence recognizes verbs, never write
-      shapes
+      shapes; `git` and `sudo` forms pass (operator-decided escapes)
 - [ ] AC-06: Old terminal write grammar removed; structural test fails if
       redirect/tee/cp/mv/sed-i/interpreter/direct-writer target parsing
       remains outside the R-2 fence
