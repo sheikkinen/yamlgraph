@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Refactor
-**Status:** Judged (APPROVED WITH REVISIONS 2026-08-25, R-1..R-6 folded)
+**Status:** Judged (APPROVED WITH REVISIONS 2026-08-25, R-1..R-6 folded); amended 2026-08-30 by operator direction — §4 scope additions (CLAUDE.md truth, terminal venv, FR-902 flag retirement), pending judge re-confirmation at enforcement kickoff
 **Effort:** 1 day
 **Requested:** 2026-08-25
 **First consumer / first event:** the next terminal command that would
@@ -138,6 +138,44 @@ that remains is lintable Python.
   and `*.sh` (post-mortem finding: enforcement infrastructure was
   self-exempt).
 
+### 4. Scope additions (operator-directed, 2026-08-30, pre-enforcement)
+
+Added after judgement by operator instruction; the judge re-confirms or
+trims these at enforcement kickoff. All three ride the same subtraction
+principle the verdict endorsed: observe at the boundary, delete the
+predictions.
+
+- **4a. CLAUDE.md truth update.** The "Branch Protection" section
+  ("Default flow: single dev, push to main directly", verified
+  2026-08-18) predates FR-888 and this FR. Rewrite it to the actual
+  post-lock model: enforcement-class writes route worktree → PR →
+  auto-squash-merge (required checks bind); docs-class and operator
+  maintenance use `sync`/`unlock-main`. This is documentation truth,
+  not a merge-flow change — R-5 boundary respected.
+- **4b. Terminal venv activation.** Tool-spawned terminals get bare
+  zsh; the shared venv is never on PATH (witnessed 2026-08-30: commit
+  failed with `pre-commit not found`, forcing `PATH=…/.venv/bin`
+  prefixes on every hook-bearing command). Lanes already symlink
+  `.venv`/`.env` to the main checkout, so a static workspace setting is
+  safe for all sessions: commit `.vscode/settings.json` with
+  `terminal.integrated.env.osx` prefixing `${workspaceFolder}/.venv/bin`
+  to PATH.
+- **4c. Retire the FR-902 red-herring flags (evaluate, then delete).**
+  Check 8's predictive heuristics rule on the hook payload `cwd`, which
+  audit evidence shows is always the workspace folder — never the
+  persistent terminal's actual cwd. False-positive classes witnessed
+  across three sessions (FR-925 enforce session: 4 escapes; session
+  6feda07b 2026-08-30: 5 firings incl. in-lane `git commit`, in-lane
+  `rm`, and an escape genuinely set but denied by the position-0
+  `FR902_ALLOW_OUTSIDE=1` regex). Candidates for deletion under the
+  R-6 subtraction: the git-writes-land-at-cwd target heuristic, the
+  `python3 -c`-writes-at-cwd heuristic, and the position-0 escape
+  match (reuse the segment tokenizer that already strips env prefixes).
+  Keep explicit-path lane checks (edit tools, resolvable command
+  arguments). Observed cost of inaction: agents learn to prefix the
+  escape reflexively — including on read-only commands — converting the
+  OVERRIDE audit stream into noise.
+
 ## Acceptance Criteria (revised per judgement)
 
 - [ ] AC-01: One terminal write witness to a governed path on locked main
@@ -171,6 +209,17 @@ that remains is lintable Python.
 - [ ] AC-11: Widened size gate covers `scripts/**`, `.github/**`, `*.sh`
       with no hook-infrastructure exemption
 - [ ] AC-12: Changelog fragment; diary reflection
+- [ ] AC-13 (4a): CLAUDE.md Branch Protection section describes the
+      post-FR-888/889 flow; no "push to main directly" default claim
+      survives for enforcement-class work
+- [ ] AC-14 (4b): `.vscode/settings.json` committed with venv PATH for
+      tool-spawned terminals; a fresh terminal resolves `pre-commit`
+      and `pytest` from the repo venv without manual prefixes
+- [ ] AC-15 (4c): FR-902 Check 8 cwd-proxy heuristics dispositioned —
+      each either deleted (with its false-positive class witnessed by a
+      test that now passes) or retained with a written reason; the
+      position-0 escape regex is replaced by tokenizer-based
+      recognition; genuinely out-of-lane writes remain denied
 
 ## Blast Radius
 
@@ -191,6 +240,11 @@ runbook section (rewrites to the lock model). Release flow: verify
 2. Lock granularity: `-R` on the five roots vs directories-only (files
    inherit protection from unwritable dirs for create/delete but not for
    in-place edits — `-R` both is safer, chosen by default).
+3. (4c) Does the PreToolUse payload `cwd` follow the terminal's spawn
+   cwd, or is it always the workspace folder? All evidence to date comes
+   from terminals spawned at the root. One experiment — spawn a terminal
+   in a lane, run a write, read the audit row — decides whether lane-cwd
+   spawning could cure the false positives without touching the guard.
 
 ## Alternatives Considered
 
@@ -205,5 +259,10 @@ grammar but still a parser in the deny path; OS lock obsoletes it.
 - `docs/analysis-fr888-post-mortem-2026-08-25.md` (the condemnation)
 - FR-888 (Completed — the mechanism this replaces/simplifies)
 - FR-885 (watcher; unaffected — teardown interface unchanged)
+- FR-902 / FR-925 (lane guard; §4c retires its cwd-proxy heuristics —
+  the false-positive classes FR-925's judgement C-5 parked)
+- `docs/diary/diary-2026-08-30-the-lane-the-guard-could-not-see.md`
+  (payload-cwd evidence), `docs/diary/diary-2026-08-30-the-gate-that-guarded-a-different-number.md`
+  (enforcement-ring overlap audit)
 - Scripture: `regex_fourth_exclusion`, `two_strike_split`,
   `infrastructure_self_exempt`, `boring_enforcement`
