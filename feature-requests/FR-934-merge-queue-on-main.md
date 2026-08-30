@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Enhancement
-**Status:** Judged — APPROVED WITH REVISIONS (judgement folded 2026-08-30; authority activates on operator review per C-1/C-2)
+**Status:** Enforcing — workflow wiring implemented (RED 4955c651 → GREEN, this PR); settings mutation pending operator review (C-2), then witness PRs
 **Effort:** 0.5 days
 **Requested:** 2026-08-30
 **First consumer / first event:** the next two PRs opened from parallel
@@ -219,3 +219,30 @@ diary reflection, and green `req_coverage --strict`.
 - FR-935 (companion: deny `--admin` outside break-glass — the queue is only real if the bypass is exceptional)
 - FR-902/FR-927 (cautionary precedent: automation aimed at the wrong end of the pipeline)
 - docs/diary/diary-2026-08-30-the-parallel-writers-and-the-serial-door.md (the trap that fired this FR)
+
+## Implementation record (2026-08-30)
+
+**Phase 1 — workflow wiring (this PR, merged under the current strict regime per C-3):**
+
+- RED commit 4955c651: `tests/unit/test_fr934_merge_queue_workflows.py` — 5
+  witnesses failing for absent merge_group handling, 4 existing-truth pins
+  passing (`@pytest.mark.req("REQ-YG-002")`).
+- GREEN: `merge_group:` added to the `on:` blocks of `workflow.yml` and
+  `commitlint.yml`. Commitlint job keeps id `commitlint`; job condition is
+  `pull_request || merge_group`; `action-semantic-pull-request` and the
+  feat-gate step guarded `pull_request`-only (the feat gate was accidentally
+  null-safe on merge_group — explicit guard added per judgement AC-04);
+  merge-group-only no-op step reports the required-context conclusion in the
+  same job. `workflow.yml` needed no job changes: the `changes` gate's
+  `event_name != 'pull_request'` short-circuit (FR-919 C-3) already routes
+  merge groups to the full matrix — R-2 option 1 holds by construction.
+- AC-11: CLAUDE.md branch-protection table rewritten to the post-queue truth;
+  pinned by `TestClaudeMdMergeQueue` in `tests/unit/test_branch_protection_docs.py`
+  (`REQ-YG-149`).
+- AC-13: changelog fragment `changelog/unreleased/fr-934-merge-queue.md`,
+  diary `docs/diary/diary-2026-08-30-the-queue-that-reports.md`.
+
+**Phase 2 — pending (after this PR merges + operator reviews diffs and the
+settings payload, C-2/AC-12):** ruleset POST + strict=false PATCH per §2,
+readback into this record (AC-07), tested rollback (AC-08), then witness PRs
+(AC-06, AC-09, AC-10).

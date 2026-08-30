@@ -3,6 +3,10 @@ name: CI
 "on":
   pull_request:
     types: [opened, synchronize, reopened]
+  # Merge queue candidates (FR-934): required test contexts must report
+  # on merge_group or the candidate times out of the queue. Non-PR events
+  # short-circuit the changes filter, so merge groups run the full matrix.
+  merge_group:
   push:
     tags:
       - 'v*.*.*'  # Trigger on version tags like v1.0.0, v0.1.0, etc.

@@ -80,3 +80,27 @@ class TestClaudeMdBranchProtection:
         assert (
             "commitlint" in content.lower()
         ), "CLAUDE.md branch protection section must list required status checks"
+
+
+@pytest.mark.req("REQ-YG-149")
+class TestClaudeMdMergeQueue:
+    """FR-934: CLAUDE.md must document the merge queue as the merge path."""
+
+    def test_claude_md_documents_merge_queue(self):
+        content = (REPO_ROOT / "CLAUDE.md").read_text()
+        assert (
+            "merge queue" in content.lower()
+        ), "CLAUDE.md must document the required merge queue (FR-934 AC-11)"
+
+    def test_claude_md_documents_merge_group_contexts(self):
+        content = (REPO_ROOT / "CLAUDE.md").read_text()
+        assert (
+            "merge_group" in content
+        ), "CLAUDE.md must state required contexts report on merge_group events"
+
+    def test_claude_md_strict_up_to_date_retired(self):
+        content = (REPO_ROOT / "CLAUDE.md").read_text()
+        assert "Enabled (strict)" not in content, (
+            "The strict up-to-date requirement is replaced by the queue "
+            "(FR-934); CLAUDE.md must not still claim it is enabled"
+        )
