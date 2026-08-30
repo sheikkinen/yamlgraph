@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Refactor
-**Status:** MERGED 2026-08-30 (PR #503, squash; session lane ccd5fb52; RED 21608433, GREEN d0066cfb; C-6 human review satisfied at merge). Post-merge rollout complete: worktree.sh sync relocked main, kernel-verified (touch → Permission denied). Previously: Judged (APPROVED WITH REVISIONS 2026-08-25, R-1..R-6 folded); amended 2026-08-30 by operator direction — §4 scope additions (CLAUDE.md truth, terminal venv, FR-902 flag retirement, docs-PR auto-merge deadlock cure)
+**Status:** ENFORCED 2026-08-30 (session lane ccd5fb52; RED 21608433, GREEN d0066cfb; PR pending — C-6 human review required before merge). Previously: Judged (APPROVED WITH REVISIONS 2026-08-25, R-1..R-6 folded); amended 2026-08-30 by operator direction — §4 scope additions (CLAUDE.md truth, terminal venv, FR-902 flag retirement, docs-PR auto-merge deadlock cure)
 **Effort:** 1 day
 **Requested:** 2026-08-25
 **First consumer / first event:** the next terminal command that would
@@ -305,6 +305,14 @@ All ACs green: 70/70 FR-889 tests, full hook suite 251 passed, unit suite
 
 **Post-merge rollout:** run `scripts/worktree.sh lock-main` on the real
 main checkout after the squash merge lands.
+
+**Amendment (operator, 2026-08-30, post-merge):** docs exception REMOVED —
+"agent should not have any business writing to main." `docs/` and
+`feature-requests/` join the governed roots (lock + edit-tool classification
++ mutator fence); runtime lanes reduce to `changelog/`, `research/`, `tmp/`,
+`logs/`. `main-lock.json` marker gitignored. OS-lock suite split to
+`test_main_lock.py` after the size-gate ratchet blocked its own author
+(687 > baseline 666); baseline shrunk to 550.
 
 ## Related
 

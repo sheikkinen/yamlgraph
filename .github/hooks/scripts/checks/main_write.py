@@ -32,8 +32,16 @@ from pathlib import Path
 
 GIT = shutil.which("git") or "/usr/bin/git"
 
-ENFORCE = ("yamlgraph/", "tests/", "scripts/", "capabilities/", ".github/hooks/")
-DOCS = ("docs/", "feature-requests/", "changelog/", "research/", "tmp/", "logs/")
+ENFORCE = (
+    "yamlgraph/",
+    "tests/",
+    "scripts/",
+    "capabilities/",
+    ".github/hooks/",
+    "docs/",
+    "feature-requests/",
+)
+DOCS = ("changelog/", "research/", "tmp/", "logs/")
 FENCE_VERBS = {"chmod", "chflags", "setfacl"}
 EDIT_TOOLS = {
     "create_file",

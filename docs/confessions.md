@@ -1897,7 +1897,7 @@ The ID ranges are:
 - **Penance**: FR-924 — literal pathspec, no interpolation; same rationale as CONF-437.
 
 ### CONF-440
-- **File**: [scripts/vscode/session_join.py](../scripts/vscode/session_join.py#L27)
+- **File**: [scripts/vscode/session_join.py](../scripts/vscode/session_join.py#L28)
 - **Code**: S603
 - **Sin**: `subprocess.run` on the git executable to read checkpoint trailers.
 - **Penance**: FR-902 — read-only `git log` plumbing with a fixed argument vector; the executable is resolved via `shutil.which("git")` and the only variables are a validated repo path and a `session/<uuid>` ref derived from a UUID-shaped session id. Same idiom as CONF-390.
