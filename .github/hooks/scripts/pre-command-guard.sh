@@ -490,6 +490,119 @@ PYEOF
     ;;
 esac
 
+# ── Check 8: session-lane ownership guard (FR-902) — once this session
+# owns a lane (record in logs/session-lanes/), write-shaped tool calls
+# targeting THIS repository outside the lane are denied with redirection
+# to the lane. Reads and out-of-repo writes are untouched; the escape
+# FR902_ALLOW_OUTSIDE=1 bypasses ONLY this denial class (C-5: later
+# checks — --no-verify, trailers — still apply). Fail-open on any
+# record/parse problem: this check must never brick a session.
+FR902_REC="$LOG_DIR/session-lanes/${SESSION_ID:-none}.json"
+if [[ -n "$SESSION_ID" && -f "$FR902_REC" ]]; then
+  case "$TOOL_NAME" in
+    create_file|replace_string_in_file|multi_replace_string_in_file|apply_patch|run_in_terminal|send_to_terminal)
+      FR902_RELEVANT=1
+      if [[ "$TOOL_NAME" == "run_in_terminal" || "$TOOL_NAME" == "send_to_terminal" ]]; then
+        if ! echo "$COMMAND" | grep -qE '>|\btee\b|\bcp\b|\bmv\b|\brsync\b|\binstall\b|\bsed\b|\bdd\b|\btruncate\b|\btouch\b|\bmkdir\b|\brm\b|\bln\b|\bchmod\b|python3?[[:space:]]+-c|perl[[:space:]]+-e|ruby[[:space:]]+-e|git[[:space:]].*(commit|add|checkout|reset|merge|rebase|apply|stash)'; then
+          FR902_RELEVANT=0
+        fi
+      fi
+      if [[ "$FR902_RELEVANT" == "1" ]]; then
+        HOOK_GUARD_ROOT="${HOOK_GUARD_ROOT:-$(cd "$(dirname "$0")/../../.." 2>/dev/null && pwd -P)}"
+        FR902_OUT=$(HOOK_INPUT="$INPUT" HOOK_GUARD_ROOT="$HOOK_GUARD_ROOT" FR902_REC="$FR902_REC" python3 <<'PYEOF'
+import json, os, re, sys
+
+PATHISH = re.compile(r"[^\s\"';|&<>]+")
+
+try:
+    d = json.loads(os.environ.get("HOOK_INPUT", "{}"))
+    rec = json.load(open(os.environ["FR902_REC"]))
+    lane = os.path.realpath(rec["lane"])
+    root = os.path.realpath(os.environ["HOOK_GUARD_ROOT"])
+except Exception:
+    sys.exit(0)  # fail-open: unreadable record must not brick the session
+if not lane or not os.path.isdir(lane):
+    sys.exit(0)
+
+tool = d.get("tool_name", d.get("toolName", ""))
+ti = d.get("tool_input", d.get("toolInput", d.get("input", {}))) or {}
+cwd = d.get("cwd", "") or "."
+
+def resolve(p):
+    p = str(p).strip().strip("'\"")
+    for pwd_form in ("$PWD", "${PWD}", "$(pwd)"):
+        if p.startswith(pwd_form):
+            p = cwd + p[len(pwd_form):]
+            break
+    return os.path.realpath(p if os.path.isabs(p) else os.path.join(cwd, p))
+
+def inside(p, base):
+    return p == base or p.startswith(base + os.sep)
+
+EDIT_TOOLS = {"create_file", "replace_string_in_file",
+              "multi_replace_string_in_file", "apply_patch"}
+targets = []
+if tool in EDIT_TOOLS and isinstance(ti, dict):
+    if ti.get("filePath"):
+        targets.append(ti["filePath"])
+    for r in ti.get("replacements") or []:
+        if isinstance(r, dict) and r.get("filePath"):
+            targets.append(r["filePath"])
+    patch = ti.get("input") or ti.get("patch") or ""
+    if isinstance(patch, str):
+        targets += re.findall(
+            r"\*\*\* (?:Add|Update|Delete|Move to) File: (.+)", patch)
+else:
+    cmd = ti.get("command", "") if isinstance(ti, dict) else ""
+    for m in re.finditer(r">>?\s*[\"']?(" + PATHISH.pattern + ")", cmd):
+        targets.append(m.group(1))
+    for m in re.finditer(r"\btee\s+(?:-a\s+)?[\"']?(" + PATHISH.pattern + ")", cmd):
+        targets.append(m.group(1))
+    for seg in re.split(r"&&|\|\||;|\|", cmd):
+        toks = seg.split()
+        while toks and (re.match(r"^[A-Za-z_][A-Za-z0-9_]*=", toks[0])
+                        or toks[0] in ("time", "nohup", "nice")):
+            toks.pop(0)
+        if not toks:
+            continue
+        if toks[0] in ("cp", "mv", "rsync", "install", "touch", "mkdir",
+                       "rm", "ln", "chmod", "truncate", "dd"):
+            targets += [t for t in toks[1:] if not t.startswith("-")]
+        if toks[0] == "sed" and any(t.startswith("-i") for t in toks):
+            targets += [t for t in toks[1:] if not t.startswith("-")]
+        if toks[0] == "git" and any(
+            v in toks for v in ("commit", "add", "checkout", "reset",
+                                "merge", "rebase", "apply", "stash")
+        ):
+            targets.append(cwd)  # git writes land where it runs
+    if re.search(r"python3?\s+-c|perl\s+-e|ruby\s+-e", cmd):
+        targets.append(cwd)
+
+for t in targets:
+    rp = resolve(t)
+    if inside(rp, root) and not inside(rp, lane):
+        esc = os.environ.get("FR902_ALLOW_OUTSIDE", "") == "1"
+        if not esc and tool in ("run_in_terminal", "send_to_terminal"):
+            esc = bool(re.match(r"\s*FR902_ALLOW_OUTSIDE=1\b",
+                                ti.get("command", "") or ""))
+        print(("OVERRIDE\t" if esc else "DENY\t") + lane)
+        break
+PYEOF
+) || FR902_OUT=""
+        if [[ "${FR902_OUT:-}" == OVERRIDE* ]]; then
+          audit_log "approve" "fr902-lane-override" "cwd=$HOOK_CWD tool=$TOOL_NAME"
+          # fall through: escape lifts ONLY the lane fence (C-5)
+        elif [[ "${FR902_OUT:-}" == DENY* ]]; then
+          FR902_LANE="${FR902_OUT#DENY	}"
+          audit_log "deny" "fr902-lane" "cwd=$HOOK_CWD lane=$FR902_LANE tool=$TOOL_NAME"
+          emit_deny "Write outside this session's lane denied (FR-902).\\n\\nYour session owns an isolated worktree — work there:\\n  cd '$FR902_LANE'\\n\\nEscape for deliberate out-of-lane work (audited):\\n  FR902_ALLOW_OUTSIDE=1 <command>\\n(one_session_one_repo — details: feature-requests/FR-902-session-worktree-lifecycle.md)"
+          exit 0
+        fi
+      fi
+      ;;
+  esac
+fi
+
 # Only inspect run_in_terminal / send_to_terminal tool calls
 if [[ "$TOOL_NAME" != "run_in_terminal" && "$TOOL_NAME" != "send_to_terminal" ]]; then
   audit_log "pass" "not-inspected" "$DETAIL"

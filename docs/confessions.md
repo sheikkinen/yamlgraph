@@ -1586,7 +1586,7 @@ These are not `# noqa` suppressions — they are documented deviations from proc
 - **Penance**: GIT resolved via `shutil.which`; subcommands are hardcoded read-only queries (branch/diff/log); repo paths come from workspace.json enumeration, list-form argv, no shell.
 
 ### CONF-391
-- **File**: [scripts/vscode/now.py](../scripts/vscode/now.py#L129)
+- **File**: [scripts/vscode/now.py](../scripts/vscode/now.py#L179)
 - **Code**: B007
 - **Sin**: loop variable `model` reused after the loop — B007 flags the unused loop body.
 - **Penance**: deliberate last-match idiom (want the final modelId in the tail window); a `pass` body with the value read after the loop is the cheapest form.
@@ -1867,13 +1867,13 @@ The ID ranges are:
 - **Penance**: same CLI-contract rationale as CONF-433; `flag` iterates a literal tuple defined in the test, never external input.
 
 ### CONF-435
-- **File**: [scripts/vscode/now.py](../scripts/vscode/now.py#L347)
+- **File**: [scripts/vscode/now.py](../scripts/vscode/now.py#L397)
 - **Code**: PLC0415
 - **Sin**: `import fr_board` inside `live_plan_state()` rather than at module top.
 - **Penance**: FR-858 — `now.py` is a standalone script; `fr_board` lives in a sibling directory reachable only after a per-repo `sys.path` insert, and the repo under inspection is a runtime argument. A top-level import would bind one repo at import time and break the multi-repo scan.
 
 ### CONF-436
-- **File**: [scripts/vscode/now.py](../scripts/vscode/now.py#L352)
+- **File**: [scripts/vscode/now.py](../scripts/vscode/now.py#L402)
 - **Code**: BLE001
 - **Sin**: bare `except Exception` around the live plan-state computation.
 - **Penance**: FR-858 C-5 requires that a live-computation failure be *surfaced*, never silently downgraded to stale committed state. The handler names the exception type and message in the output line; a narrower except would let an unanticipated parser error crash a situational-awareness tool whose whole job is to keep reporting.
@@ -1895,3 +1895,9 @@ The ID ranges are:
 - **Code**: S603
 - **Sin**: `subprocess.run(["git", "ls-files", "examples/demos/mastra-integration/*"])` in the FR-915 witness.
 - **Penance**: FR-924 — literal pathspec, no interpolation; same rationale as CONF-437.
+
+### CONF-440
+- **File**: [scripts/vscode/session_join.py](../scripts/vscode/session_join.py#L27)
+- **Code**: S603
+- **Sin**: `subprocess.run` on the git executable to read checkpoint trailers.
+- **Penance**: FR-902 — read-only `git log` plumbing with a fixed argument vector; the executable is resolved via `shutil.which("git")` and the only variables are a validated repo path and a `session/<uuid>` ref derived from a UUID-shaped session id. Same idiom as CONF-390.

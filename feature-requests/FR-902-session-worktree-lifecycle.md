@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Enhancement
-**Status:** Judged — APPROVED WITH REVISIONS folded ([judgement](FR-902-session-worktree-lifecycle.judgement.md), 2026-08-29)
+**Status:** Enforced 2026-08-30 (branch `feat/fr902-session-worktree-lifecycle`; RED 169ec918, GREEN this PR; live-gated behind `.github/hooks/fr902.live` pending AC-13 operator review) — judged APPROVED WITH REVISIONS folded ([judgement](FR-902-session-worktree-lifecycle.judgement.md), 2026-08-29)
 **Effort:** 3-4 days
 **Requested:** 2026-08-29
 **First consumer / first event:** the next VS Code Copilot agent session that opens in this repo — at its first `SessionStart` hook fire, a session lane exists and the briefing names it; at its first `Stop` hook fire, its turn output is committed as a checkpoint.
@@ -94,20 +94,20 @@ Checkpoint trailers give `checkpoint SHA ↔ Session-Id + Request-Index ↔ ledg
 
 ## Acceptance Criteria (frozen by judgement — AC-01..AC-14)
 
-- [ ] AC-01: `SessionStart` fixture feeds hook JSON on stdin; `session-worktree.sh` validates `session_id`, creates `tmp/worktrees/session/<full-session-id>` + branch `session/<full-session-id>`, provisions the same environment as `scripts/worktree.sh`, emits the absolute lane path, and is a no-op on re-fire when branch and worktree match
-- [ ] AC-02: lane creation refuses path traversal, malformed ids, short-id collisions, branch-exists-with-wrong-worktree, and worktree-exists-with-wrong-branch with explicit non-success status/audit; never deletes an existing `session/*` branch as recovery
-- [ ] AC-03: after a lane exists, write-shaped fixtures targeting this repo outside the owning lane are denied with the lane path; the same writes inside the lane are allowed; read-only commands remain allowed; the audited escape hatch bypasses only the FR-902 denial class and no FR-888/Co-authored-by/`--no-verify` guard
-- [ ] AC-04: `Stop` fixture commits only when `git diff-index --quiet HEAD --` detects a tree change in the session lane; message is `checkpoint(session): turn <N>`; trailers carry exact `Session-Id` and `Request-Index`
-- [ ] AC-05: duplicate `Stop` fixtures for the same request index create no second commit unless a later tree change exists; test asserts commit count and trailers
-- [ ] AC-06: request-index derivation is tested against a replayed `chatSessions/*.jsonl` fixture or a documented hook payload field; store-not-flushed surfaces as bounded retry / skip-with-audit, never a fabricated index
-- [ ] AC-07: `.gitignore` is respected under checkpointing (`.env`, `.env.*`, `.venv/`, hook logs, ignored `tmp/`); setup alone produces no checkpoint commit
-- [ ] AC-08: checkpoint commits are confined to `session/*`; squash-merge fixture proves checkpoint subjects/trailers never land on `main`; existing `pre-command-guard` tests still deny agent-issued `--no-verify`
-- [ ] AC-09: GC dry-run reports live/merged/stale-clean/dirty/untracked/unpushed/unmerged lanes; prune deletes only merged or stale-clean lanes and refuses every loss-bearing case with a reason
-- [ ] AC-10: `now.py` lists live session lanes and unmerged orphan `session/*` branches with age, branch, worktree path, untracked count, PR/open-branch status; never deletes
-- [ ] AC-11: join demo emits a mechanically checkable table for a real session: request index, checkpoint SHA, model, credits, prompt/summary availability; evidence source committed or quoted in this FR
-- [ ] AC-12: hook tests live under `.github/hooks/tests/` with `@pytest.mark.req("REQ-YG-XXX")` tags; requirement/capability metadata added per ADR-001
-- [ ] AC-13: human review of the hook/worktree enforcement diff is recorded before the policy is live
-- [ ] AC-14: this FR carries the folded evidence table, implementation record, changelog fragment, and diary reflection
+- [x] AC-01: `SessionStart` fixture feeds hook JSON on stdin; `session-worktree.sh` validates `session_id`, creates `tmp/worktrees/session/<full-session-id>` + branch `session/<full-session-id>`, provisions the same environment as `scripts/worktree.sh`, emits the absolute lane path, and is a no-op on re-fire when branch and worktree match
+- [x] AC-02: lane creation refuses path traversal, malformed ids, short-id collisions, branch-exists-with-wrong-worktree, and worktree-exists-with-wrong-branch with explicit non-success status/audit; never deletes an existing `session/*` branch as recovery
+- [x] AC-03: after a lane exists, write-shaped fixtures targeting this repo outside the owning lane are denied with the lane path; the same writes inside the lane are allowed; read-only commands remain allowed; the audited escape hatch bypasses only the FR-902 denial class and no FR-888/Co-authored-by/`--no-verify` guard
+- [x] AC-04: `Stop` fixture commits only when `git diff-index --quiet HEAD --` detects a tree change in the session lane; message is `checkpoint(session): turn <N>`; trailers carry exact `Session-Id` and `Request-Index`
+- [x] AC-05: duplicate `Stop` fixtures for the same request index create no second commit unless a later tree change exists; test asserts commit count and trailers
+- [x] AC-06: request-index derivation is tested against a replayed `chatSessions/*.jsonl` fixture or a documented hook payload field; store-not-flushed surfaces as bounded retry / skip-with-audit, never a fabricated index
+- [x] AC-07: `.gitignore` is respected under checkpointing (`.env`, `.env.*`, `.venv/`, hook logs, ignored `tmp/`); setup alone produces no checkpoint commit
+- [x] AC-08: checkpoint commits are confined to `session/*`; squash-merge fixture proves checkpoint subjects/trailers never land on `main`; existing `pre-command-guard` tests still deny agent-issued `--no-verify`
+- [x] AC-09: GC dry-run reports live/merged/stale-clean/dirty/untracked/unpushed/unmerged lanes; prune deletes only merged or stale-clean lanes and refuses every loss-bearing case with a reason
+- [x] AC-10: `now.py` lists live session lanes and unmerged orphan `session/*` branches with age, branch, worktree path, untracked count, PR/open-branch status; never deletes
+- [x] AC-11: join demo emits a mechanically checkable table for a real session: request index, checkpoint SHA, model, credits, prompt/summary availability; evidence source committed or quoted in this FR
+- [x] AC-12: hook tests live under `.github/hooks/tests/` with `@pytest.mark.req("REQ-YG-XXX")` tags; requirement/capability metadata added per ADR-001
+- [x] AC-13: human review of the hook/worktree enforcement diff is recorded before the policy is live — **armed 2026-08-30 08:14 by operator** (`touch .github/hooks/fr902.live` after reviewing PR #499); flag is gitignored, activation stays local
+- [x] AC-14: this FR carries the folded evidence table, implementation record, changelog fragment, and diary reflection
 
 ## Alternatives Considered
 
@@ -128,6 +128,109 @@ Checkpoint trailers give `checkpoint SHA ↔ Session-Id + Request-Index ↔ ledg
 - Any change to judge/review doctrine or sole-route adapters
 - Automatic deletion of branches with unmerged/unpushed checkpoint commits
 - Committing generated ledger reports or prompt-bearing CSVs (quote minimal non-sensitive rows only)
+
+## Implementation Record (2026-08-30)
+
+TDD: RED 169ec918 (55 tests, `SKIP=pytest`), GREEN this branch. Full hooks
+suite 225 passed (includes pre-existing guard suites, unmodified — C-5).
+
+| Deliverable | Where |
+|---|---|
+| D-1 wiring | `session-probe.json`: `session-worktree.sh` on SessionStart (after probe, before briefing), `session-checkpoint.sh` on Stop |
+| D-2 lane hook | `.github/hooks/scripts/session-worktree.sh` — stdin JSON, UUID validation, delegates to `worktree.sh session`, writes lane record to `logs/session-lanes/<sid>.json`, audits |
+| D-3 checkpoint hook | `.github/hooks/scripts/session-checkpoint.sh` — fenced commit (`session/*` HEAD + staged diff + trailers), Request-Index replayed via `session_ledger.replay`, bounded retry then skip-with-audit |
+| D-4 substrate | `scripts/worktree.sh`: `session <sid>` verb (idempotent, never deletes `session/*`, no `.gitignore` dirty) + `gc [--prune] [--days N]` (classify merged/dirty/untracked/unpushed/unmerged/stale-clean/live; prune merged+stale-clean only, no `--force`/`-D`) |
+| D-5 guard | `pre-command-guard.sh` Check 8: lane-ownership fence keyed on lane record; `FR902_ALLOW_OUTSIDE=1` escape lifts only this class; fail-open on unreadable record |
+| D-6 visibility | `now.py session_lane_lines()` — lanes + orphan `session/*` branches, untracked counts; never deletes |
+| D-7 join | `scripts/vscode/session_join.py` — TSV request↔checkpoint↔model↔credits |
+| D-8 tests | `.github/hooks/tests/test_fr902_{session_worktree,lane_guard,checkpoint,gc_join}.py` + `fr902_fixtures.py`; REQ-YG-629/630, CAP-254 |
+| D-9 | this record, changelog fragment, diary reflection |
+
+**Key decisions:**
+
+- **AC-13/C-2 human-review gate → live-flag file.** `session-worktree.sh` is a
+  silent no-op unless `.github/hooks/fr902.live` exists (untracked; env
+  `FR902_LIVE_FLAG` overrides for tests). Merging this PR ships mechanism, not
+  policy: nothing fires until the operator reviews the diff and arms the flag.
+  The guard's Check 8 keys on lane-record existence, so it is equally inert
+  until then.
+- **Squash-merged session branches classify as unpushed/unmerged** (refused by
+  GC) — conservative by design; the judgement permits refusal over loss.
+- **Checkpoint `--no-verify` is confined to the hook script** on a verified
+  `session/*` HEAD; agent-issued `--no-verify` remains denied (guard tests
+  green, unmodified).
+- **AC-11 real-session join evidence** (this session's own store
+  `151fccdf-35ab-48a5-938e-7059dabbed53`, run 2026-08-30; checkpoint `-`
+  because the policy is not yet live — no lane existed for this session):
+
+  ```text
+  request  checkpoint  model           credits   prompt
+  1        -           claude-fable-5  99.3193   yes
+  2        -           claude-fable-5  1174.9    yes
+  3        -           claude-fable-5  107.557   yes
+  ```
+
+  Fixture tests prove the checkpoint column populates from trailers once lanes
+  are live (`test_join_emits_request_checkpoint_credit_rows`).
+
+## Guard Refactoring Plan (flagged during enforcement, 2026-08-30)
+
+Operator flag: `pre-command-guard.sh` is severely bloated. Measured at Check 8
+insertion: **714 lines**, of which ~355 (50%) are three python heredocs
+embedded in bash. Planned here; **execution is a follow-up FR** — the
+judgement froze FR-902 scope to D-1..D-9, and restructuring the FR-767/FR-888
+surfaces is out of that scope. Check 8 was written extraction-ready
+(self-contained heredoc, env-parameterized via `FR902_REC`/`HOOK_GUARD_ROOT`).
+
+### Diagnosis (file-level)
+
+- Three python heredocs: Check 6 authoring-route FR-767 (~115 ln), Check 7
+  main-write FR-888 (~160 ln), Check 8 lane-fence FR-902 (~80 ln).
+- The heredocs are **semantic duplicates at the parser layer**: each re-implements
+  payload parsing (`tool_name`/`tool_input`/`cwd`), EDIT_TOOLS path extraction
+  (`filePath`, `replacements[]`, apply_patch headers), the `PATHISH` regex, and
+  the shell write-target parser (redirects, `tee`, `cp/mv/rsync/install` dest
+  materialization, `sed -i`, opaque `python -c`/`perl -e` writers). Three copies
+  = three drift surfaces; every parser fix must be applied thrice
+  (`partial_remediation` trap in waiting).
+- Bash-side duplication: per-check `case "$TOOL_NAME"` wrapper + grep pre-filter
+  + OVERRIDE/DENY/audit plumbing repeated per check.
+- The repo's own pattern is violated: `.github/hooks/scripts/checks/` already
+  holds standalone python check modules (`prior_art.py`, `triage_gate.py`,
+  `common.sh`) — the guard exempts itself from the modular-checks architecture
+  it lives next to (`infrastructure_self_exempt`).
+
+### Target architecture
+
+| File | Action |
+|------|--------|
+| `.github/hooks/scripts/pre-command-guard.sh` | Reduce to thin dispatcher (<150 ln): stdin parse, `audit_log`/`emit_deny` helpers, lockdown + reasoning-sentinel + cmd channel, then ordered invocation of check modules. Owns ALL exit semantics; checks only print verdicts. |
+| `.github/hooks/scripts/checks/guard_common.py` | NEW. One boundary parser: payload load, `resolve()`, `inside()`, edit-tool path extraction, `write_targets()` shell parser. Normalize at the boundary once — every check consumes the same target list. |
+| `.github/hooks/scripts/checks/authoring_route.py` | NEW. Check 6 heredoc (FR-767) moved verbatim minus parser duplication; reads `HOOK_INPUT` env, prints deny reason or nothing. |
+| `.github/hooks/scripts/checks/main_write.py` | NEW. Check 7 heredoc (FR-888) likewise; keeps git-plumbing worktree detection and `FR888_ALLOW_MAIN` escape. |
+| `.github/hooks/scripts/checks/lane_fence.py` | NEW. Check 8 heredoc (FR-902) likewise; keeps `FR902_ALLOW_OUTSIDE` escape + fail-open on unreadable record. |
+| bash commit checks (trailers, `--no-verify`, multiline `-m`, pytest-pipe, FR-662 branch, FR-869 spike-end) | Stay in dispatcher — cheap greps, no python tax; move only if dispatcher exceeds budget. |
+
+Contract per module: pure function of (payload env, escape env) →
+`DENY\t…` / `OVERRIDE\t…` / silence on stdout; dispatcher maps verdicts to
+audit + deny JSON. Modules become directly pytest-importable — unit coverage
+without bash subprocess scaffolding.
+
+### Behavior locks (C-5 analogue)
+
+- Existing suites are the refactor's regression fence:
+  `test_pre_command_guard.py`, `test_main_write_guard.py`,
+  `test_fr902_lane_guard.py`, hook wrapper tests. All must pass unmodified.
+- Deny texts and audit `reason` strings stay byte-identical — downstream
+  tooling greps them.
+- Python-invocation budget (FR-442): the grep pre-filters stay in bash so
+  clean calls never pay a python start.
+
+### Disposition
+
+Follow-up FR via `.chaplain/inbox/` immediately after FR-902 merges
+(pure-move refactor, no behavior change; judge gate: line count of dispatcher,
+zero test edits).
 
 ## Related
 

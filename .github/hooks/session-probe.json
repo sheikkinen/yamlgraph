@@ -8,6 +8,11 @@
       },
       {
         "type": "command",
+        "command": ".github/hooks/scripts/session-worktree.sh",
+        "timeout": 15
+      },
+      {
+        "type": "command",
         "command": ".github/hooks/scripts/session-briefing.sh",
         "timeout": 8
       }
@@ -52,6 +57,11 @@
         "type": "command",
         "command": ".github/hooks/scripts/session-probe.sh",
         "timeout": 5
+      },
+      {
+        "type": "command",
+        "command": ".github/hooks/scripts/session-checkpoint.sh",
+        "timeout": 30
       }
     ],
     "SubagentStart": [
