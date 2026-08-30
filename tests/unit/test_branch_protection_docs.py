@@ -84,23 +84,24 @@ class TestClaudeMdBranchProtection:
 
 @pytest.mark.req("REQ-YG-149")
 class TestClaudeMdMergeQueue:
-    """FR-934: CLAUDE.md must document the merge queue as the merge path."""
+    """FR-934: CLAUDE.md must document the merge-queue platform blocker."""
 
-    def test_claude_md_documents_merge_queue(self):
+    def test_claude_md_documents_merge_queue_blocker(self):
         content = (REPO_ROOT / "CLAUDE.md").read_text()
-        assert (
-            "merge queue" in content.lower()
-        ), "CLAUDE.md must document the required merge queue (FR-934 AC-11)"
+        assert "BLOCKED BY PLATFORM" in content, (
+            "CLAUDE.md must record that the merge queue is unavailable "
+            "on this user-owned repo (FR-934 implementation record)"
+        )
 
-    def test_claude_md_documents_merge_group_contexts(self):
+    def test_claude_md_documents_dormant_merge_group_wiring(self):
         content = (REPO_ROOT / "CLAUDE.md").read_text()
         assert (
             "merge_group" in content
-        ), "CLAUDE.md must state required contexts report on merge_group events"
+        ), "CLAUDE.md must state required contexts also report on merge_group"
 
-    def test_claude_md_strict_up_to_date_retired(self):
+    def test_claude_md_strict_up_to_date_still_enforced(self):
         content = (REPO_ROOT / "CLAUDE.md").read_text()
-        assert "Enabled (strict)" not in content, (
-            "The strict up-to-date requirement is replaced by the queue "
-            "(FR-934); CLAUDE.md must not still claim it is enabled"
+        assert "Enabled (strict)" in content, (
+            "The strict up-to-date regime stays until the queue is "
+            "available; CLAUDE.md must not claim it was retired"
         )

@@ -49,3 +49,35 @@ only purpose is satisfying the reporting contract. Is there a point
 where required contexts should be one thin always-reporting gate job
 that `needs:` the real work, so the reporting contract lives in one
 place instead of being re-derived per workflow per event type?
+
+## Postscript: the phantom premise (same day)
+
+The settings flip never happened. The `merge_queue` ruleset rule is
+only available on organization-owned repositories, and this repo is
+user-owned. The research record said "free on public repos" — true for
+org-owned public repos, and the ownership qualifier was invisible until
+the live mutation returned 422 with an *empty* error detail. Three
+probes isolated it: a parameterless rule got a *named* rejection
+("merge method 'merge' not allowed" — repo is squash-only), `REBASE`
+got a named rejection too, so parameters were parsed fine; only the
+valid `SQUASH` payload failed silently — the shape of a feature gate,
+not a validation error.
+
+Two lessons. First: **research that ends at documentation inherits the
+documentation's elisions** — the docs said what the feature does, not
+who gets it; the one operation that could not be desk-checked (a
+platform mutation) was exactly where the plan broke. A dry-run probe of
+the mutation API *before* judging the FR would have cost one API call
+and killed the phantom premise at the spec rung. Second: the empty
+error message was itself the diagnostic — a rule that validates its
+parameters loudly and then fails silently is failing on something
+other than the parameters. Also filed under gate lessons: the diary
+gate wants `*reflection*fr-XXX*` in the filename; poetic titles go
+after the token, not instead of it.
+
+**Seed 2:** Which other FRs in flight rest on a platform capability
+that has never been probed against the live API with this repo's
+actual ownership, plan, and settings? A one-shot preflight script that
+attempts every mutation an FR names (in dry-run or against a scratch
+repo) would move this failure class from enforcement time to plan
+time.
