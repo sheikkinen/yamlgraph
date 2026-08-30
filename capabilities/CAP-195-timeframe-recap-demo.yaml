@@ -1,7 +1,7 @@
 name: Timeframe Recap Demo
 id: CAP-195
 status: active
-fr: FR-700
+fr: FR-700, FR-930
 feature_request: FR-700
 description: >
   Example graph (examples/demos/recap/) that answers "what changed in this
@@ -29,6 +29,11 @@ requirements:
       uses an inline schema (workstreams, orphans, hotspots) with file-kind
       partitioning and convention detection done by Jinja2 path heuristics in
       the template, not by the model (W026-clean: judgement fields only).
+      Model-authored FR/NC references are claims (FR-930): finalize_recap
+      reconciles them against the model-visible deterministic universe
+      (commits/referenced, churn, fr_changes, fragments — never fr_statuses),
+      strips unverified tokens before the status join, and records them in
+      recap.unverified_refs. Hallucinated references cannot reach the output.
     modules:
       - examples
   - id: REQ-YG-534
