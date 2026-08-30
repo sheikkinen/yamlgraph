@@ -1877,3 +1877,21 @@ The ID ranges are:
 - **Code**: BLE001
 - **Sin**: bare `except Exception` around the live plan-state computation.
 - **Penance**: FR-858 C-5 requires that a live-computation failure be *surfaced*, never silently downgraded to stale committed state. The handler names the exception type and message in the output line; a narrower except would let an unanticipated parser error crash a situational-awareness tool whose whole job is to keep reporting.
+
+### CONF-437
+- **File**: [tests/unit/test_fr909_a2a_retirement.py](../tests/unit/test_fr909_a2a_retirement.py#L62)
+- **Code**: S603
+- **Sin**: `subprocess.run(["git", "ls-files", relative_path])` in the FR-909 tracked-absence witness.
+- **Penance**: FR-924 — FR-909 AC-01 asks whether git tracks the path; only git can answer. Fixed argument list, `relative_path` iterates a literal module-level list, `git` is PATH-resolved by design in developer tooling (CONF-432 pattern).
+
+### CONF-438
+- **File**: [tests/unit/test_fr910_mcp_retirement.py](../tests/unit/test_fr910_mcp_retirement.py#L59)
+- **Code**: S603
+- **Sin**: `subprocess.run(["git", "ls-files", relative_path])` in the FR-910 tracked-absence witness.
+- **Penance**: FR-924 — added alongside (never replacing) FR-910 AC-01's filesystem checks, which C-2 preserves. Same fixed-argument rationale as CONF-437.
+
+### CONF-439
+- **File**: [tests/unit/test_fr915_mastra_demo_retirement.py](../tests/unit/test_fr915_mastra_demo_retirement.py#L22)
+- **Code**: S603
+- **Sin**: `subprocess.run(["git", "ls-files", "examples/demos/mastra-integration/*"])` in the FR-915 witness.
+- **Penance**: FR-924 — literal pathspec, no interpolation; same rationale as CONF-437.

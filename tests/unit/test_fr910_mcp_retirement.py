@@ -5,6 +5,7 @@ under ``tests/`` after the deletion sweep.
 """
 
 import re
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -47,7 +48,28 @@ SCANNED_SURFACES = [
 @pytest.mark.req("REQ-YG-428")
 @pytest.mark.parametrize("relative_path", DELETED_PATHS)
 def test_mcp_server_surface_files_are_deleted(relative_path):
+    """FR-910 AC-01 specified filesystem absence; FR-924 C-2 preserves it."""
     assert not (REPO_ROOT / relative_path).exists()
+
+
+@pytest.mark.req("REQ-YG-428")
+@pytest.mark.parametrize("relative_path", DELETED_PATHS)
+def test_mcp_server_surface_files_are_untracked(relative_path):
+    """FR-924: filesystem absence alone cannot see a tracked resurrection."""
+    tracked = subprocess.run(  # noqa: S603  # CONF-438
+        ["git", "ls-files", relative_path],
+        cwd=REPO_ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert tracked.stdout.strip() == ""
+
+
+@pytest.mark.req("REQ-YG-428")
+def test_retired_mcp_module_is_not_importable():
+    with pytest.raises(ModuleNotFoundError):
+        __import__("yamlgraph.export.mcp")
 
 
 @pytest.mark.req("REQ-YG-428")

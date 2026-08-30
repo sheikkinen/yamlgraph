@@ -5,6 +5,7 @@ Witness test for the retirement — the only permitted Mastra mention under
 """
 
 import re
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -16,8 +17,16 @@ EXAMPLES = REPO_ROOT / "examples"
 
 
 @pytest.mark.req("REQ-YG-428")
-def test_mastra_demo_directory_is_deleted():
-    assert not (EXAMPLES / "demos" / "mastra-integration").exists()
+def test_mastra_demo_files_are_untracked():
+    """FR-924: ask git, not the filesystem — build residue is not a demo."""
+    tracked = subprocess.run(  # noqa: S603  # CONF-439
+        ["git", "ls-files", "examples/demos/mastra-integration/*"],
+        cwd=REPO_ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert tracked.stdout.strip() == ""
 
 
 @pytest.mark.req("REQ-YG-428")
