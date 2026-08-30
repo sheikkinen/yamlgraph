@@ -88,7 +88,7 @@ recap graph against the same 3-commit fixture and answer:
 
 | Alternative | Disposition |
 |---|---|
-| Delete the test | Rejected — REQ-YG-531 (anti-hallucination on bare repos) loses its only witness; the assertion is sound |
+| Delete the test | Rejected — it is the only REQ-YG-531 test that executes the graph (`app.invoke`); the other 11 assert YAML shape, and none can reach the anti-hallucination clause. The assertion is sound |
 | Mark `slow` only (already is) | Insufficient — `slow` does not exclude it from the full/CI keyed runs where the 283s lands |
 | Fix immediately without investigation | Rejected — no causal chain yet; symptom_patch. `investigation_before_fix` applies: >15 min to even write the condemning test |
 | Cheaper model swap now | Premature — may be the outcome of Stage 2 disposition (c), but choosing it before measuring is quick_confidence |
@@ -168,11 +168,21 @@ Two observations the trace makes visible:
 ### Disposition: (d) do NOT skip — close without suspending the witness
 
 The FR's stated operator directive was "skip it now", predicated on a 283s
-cost. That cost is not the test's steady-state behaviour. Applying the skip
-would suspend the only live witness for REQ-YG-531 (anti-hallucination on
-convention-free repos) while `req_coverage.py` continued to report the
-requirement as covered — a `gate_checks_shape_not_substance` outcome, paying
-real coverage for an imaginary saving.
+cost. That cost is not the test's steady-state behaviour.
+
+REQ-YG-531 carries 12 tests, but they are not interchangeable. Eleven live in
+`tests/unit/test_recap_demo.py`; nine of those are `yaml.safe_load` plus an
+assertion on the parsed dict (node counts, `git -C` present, `@{` absent,
+`-n 300` present, schema fields, edge pairs), and the remaining two exercise a
+single tool node and a git subprocess. **None calls `app.invoke`.** The
+integration test is the only one that compiles and runs the graph, and
+therefore the only witness for the clause no YAML parse can reach: that the
+model invents no `FR-\d+` references on a repo that has none.
+
+Applying the skip would leave 11 structural tests and zero executing ones,
+while `req_coverage.py` — which extracts `@pytest.mark.req` statically from the
+AST — continued to report `REQ-YG-531 (12 tests)`. A `gate_checks_shape_not_substance`
+outcome: paying real coverage for an imaginary saving.
 
 The residual cost is already owned elsewhere: FR-923's integration lane runs
 **without coverage**, which removes the largest measured multiplier from this
