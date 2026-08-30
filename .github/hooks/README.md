@@ -428,16 +428,17 @@ PASSPHRASE= → PASSPHRASE=REDACTED
 
 ## Main-Write Lock (FR-889, supersedes FR-888 grammar)
 
-Enforcement-class roots (`yamlgraph/`, `tests/`, `scripts/`,
-`capabilities/`, `.github/hooks/`) on the **main checkout of this
-repository** are OS-locked: `scripts/worktree.sh lock-main` applies
+Governed roots (`yamlgraph/`, `tests/`, `scripts/`, `capabilities/`,
+`.github/hooks/`, `docs/`, `feature-requests/`) on the **main checkout of
+this repository** are OS-locked: `scripts/worktree.sh lock-main` applies
 `chmod -R u-w`, so ANY writer — shell, editor, interpreter, tool the
 grammar never heard of — fails at the kernel. Carve-outs
-(`.github/hooks/logs/`, `.github/hooks/state/`) stay writable; the docs
-lane (`docs/`, `feature-requests/`, `changelog/`, `research/`, `tmp/`,
-`logs/`) is never locked. Lock state lives in
-`.github/hooks/state/main-lock.json` and the `now.py` board warns when
-main is unlocked, with age.
+(`.github/hooks/logs/`, `.github/hooks/state/`) stay writable; only
+runtime lanes (`changelog/`, `research/`, `tmp/`, `logs/`) are never
+locked — the docs exception was removed 2026-08-30: agents have no
+business writing to main. Lock state lives in
+`.github/hooks/state/main-lock.json` (gitignored) and the `now.py` board
+warns when main is unlocked, with age.
 
 Check 7 (`checks/main_write.py`) retains only two duties — the FR-888
 shell-command grammar is DELETED:
