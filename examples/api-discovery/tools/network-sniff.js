@@ -161,11 +161,17 @@ async function main() {
         `timeout: page did not settle within ${timeoutMs}ms (${err.name || "Error"})`
       );
     }
-    // Bound body reads by the same deadline (AC-07)
+    // Bound body reads by the same deadline (AC-07). The timer is cleared on
+    // the fast path: an uncleared timer keeps Node's event loop alive to the
+    // deadline, turning --timeout into a floor instead of a ceiling (FR-921).
+    let bodyTimer;
     await Promise.race([
       Promise.allSettled(pending),
-      new Promise((resolve) => setTimeout(resolve, remaining())),
+      new Promise((resolve) => {
+        bodyTimer = setTimeout(resolve, remaining());
+      }),
     ]);
+    clearTimeout(bodyTimer);
     const content = await page.content().catch(() => "");
     if (CAPTCHA_MARKERS.test(content) || /class="g-recaptcha"/i.test(content)) {
       result.needs_manual_reason = "captcha";
