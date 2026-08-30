@@ -5,6 +5,7 @@ Witness test for the retirement — the only permitted A2A mention under
 """
 
 import re
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -22,6 +23,16 @@ DELETED_PATHS = [
     "reference/a2a-server.md",
     "examples/demos/a2a_call",
     "examples/demos/a2a_server",
+]
+
+# FR-924: a retired package directory left on disk by build residue is an
+# importable namespace package, which neither git nor Path.exists() detects.
+RETIRED_MODULES = [
+    "yamlgraph.a2a",
+    "yamlgraph.a2a.server",
+    "yamlgraph.a2a.message",
+    "yamlgraph.contrib.a2a_client",
+    "yamlgraph.cli.a2a_commands",
 ]
 
 LIVE_REFERENCE_PATTERN = re.compile(
@@ -46,8 +57,24 @@ def test_cli_package_has_no_a2a_wiring():
 
 @pytest.mark.req("REQ-YG-032")
 @pytest.mark.parametrize("relative_path", DELETED_PATHS)
-def test_a2a_surface_files_are_deleted(relative_path):
-    assert not (REPO_ROOT / relative_path).exists()
+def test_a2a_surface_files_are_untracked(relative_path):
+    """FR-909 AC-01 asks git, not the filesystem (FR-924)."""
+    tracked = subprocess.run(  # noqa: S603  # CONF-437
+        ["git", "ls-files", relative_path],
+        cwd=REPO_ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert tracked.stdout.strip() == ""
+
+
+@pytest.mark.req("REQ-YG-032")
+@pytest.mark.parametrize("module_name", RETIRED_MODULES)
+def test_retired_a2a_modules_are_not_importable(module_name):
+    """A namespace-package resurrection returns a module and fails here."""
+    with pytest.raises(ModuleNotFoundError):
+        __import__(module_name)
 
 
 @pytest.mark.req("REQ-YG-032")
