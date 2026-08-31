@@ -1,8 +1,8 @@
 name: Edge Shape Classification
 id: CAP-210
 status: active
-fr: FR-718
-feature_request: FR-718
+fr: FR-718, FR-944
+feature_request: FR-718, FR-944
 description: >
   Edge compilation is classify-then-dispatch: classify_edge names every
   edge form as an explicit EdgeShape (START, PARALLEL_FANOUT,
@@ -29,6 +29,13 @@ requirements:
       build_expression_route_mapping and build_router_route_mapping are
       pure (FR-467 sub-node routing, END always reachable, FR-211
       interrupt and subgraph-interrupt redirects).
+      Map-to-map compilation (FR-944) crosses one generated post-fan-in
+      pass-through join before downstream Send expansion: the downstream
+      router fires once on merged state, preserving one fan-out, true
+      zero-based downstream indexes, deterministic reducer order, and
+      correct error-row attribution; a synthetic join-name collision
+      fails compilation naming the edge and the conflicting name.
     modules:
       - yamlgraph/compile/edge_compiler.py
       - tests/unit/test_fr718_edge_shapes.py
+      - tests/unit/test_fr944_map_to_map_index.py
