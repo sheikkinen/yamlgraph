@@ -9,6 +9,35 @@ classifier application, shares only generic tokens.
 - promoted from: tmp/draft-alternatives.md (FR-890 sole route, scripts/research.sh)
 - brief: feature-requests/research-briefs/fr939-map-overflow-brief.md
 
+## Solution classes (R-1 fold, per FR-939 judgement)
+
+The raw route table below converged three personas on one class with
+different enum spellings; per judgement R-1 the genuine solution
+classes are compared here. Correction carried through: load-time
+validation can reject an invalid policy VALUE, but the overflow
+COMPARISON is necessarily runtime — `over` resolves from state
+(`map_compiler.py:338-354`); the raw table's "reject overflow at
+graph-load time" claim was wrong.
+
+| class | mechanism | precedent | cost/risk | disposition |
+|---|---|---|---|---|
+| 1. Unconditional fail-on-overflow | Remove disposition choice; overflow always raises pre-`Send` | Airflow `max_map_length`: source task fails at expansion, never partial-executes | Low cost; kills the deliberate sampling use FR-027-era graphs may rely on | REJECTED — sampling must remain expressible (brief constraint) |
+| 2. Optional typed policy, default `error` | `on_overflow: Literal["error","truncate"] \| None` on node + `defaults.on_overflow`; load-time value validation; runtime pre-dispatch enforcement | Airflow fail-fast for the default; FR-027 truncation preserved as opt-in | Medium cost; graphs silently over cap today start failing loudly — that failure is the defect surfacing | CHOSEN |
+| 3. Mandatory explicit policy, no default | Every map node must declare disposition; load fails otherwise | Subtractionist persona; "config is truth" maximalism | Forces an edit on every existing map graph while adding no safety beyond class 2's default | REJECTED |
+| 4. In-band partial-success metadata | Truncate but record `{dropped: N}` in returned state; run still succeeds | Batch systems reporting partial completions | Keeps the plausible wrong answer; consumer must remember to check the marker — the trap this FR exists to kill | REJECTED |
+| 5. Remove/relocate cap to bounded scheduling | Replace cap with chunked/windowed dispatch so no item is ever dropped | Durable-map gap analysis in `docs/plan-web-toolkit.md` | Correct long-term but is FR-936's deferred durability scope, not overflow disposition | REJECTED here — out of FR-939 fence (judgement C-6) |
+
+Preserved disagreement: default `error` (chosen; FR-936 judgement AC-05,
+Commandment 6) vs default `truncate` (two personas, continuity of
+existing capped graphs) vs mandatory declaration (class 3).
+
+`is_this_a_graph`: no — a compile-time schema contract plus a runtime
+guard inside the framework's fan-out boundary; no graph-shaped
+alternative can act before the fan-out cost is paid. All five personas
+concur.
+
+## Raw route output (provenance appendix)
+
 # Draft alternatives
 
 - brief: fr939-map-overflow-brief.md
