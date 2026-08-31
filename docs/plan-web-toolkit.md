@@ -1,10 +1,11 @@
 # Plan: Web Toolkit — Overview
 
-**Date:** 2026-08-31 (rev 8 — D grounded in LangGraph natives: task
-checkpointing, node caching, Send pending-writes; existing map node audited
-against the native pattern — hardening extracted to FR-936. rev 7: sibling
-repos unpark B; rev 6: value audit; rev 5: SPA rendering; rev 4: converter
-comparison; rev 3: C primary, D promoted)
+**Date:** 2026-08-31 (rev 9 — C cost control: mercury-2 pinned as classifier,
+LangSmith tracing off at scale via runner script. rev 8 — D grounded in
+LangGraph natives: task checkpointing, node caching, Send pending-writes;
+existing map node audited against the native pattern — hardening extracted to
+FR-936. rev 7: sibling repos unpark B; rev 6: value audit; rev 5: SPA
+rendering; rev 4: converter comparison; rev 3: C primary, D promoted)
 **Status:** Draft (pre-FR)
 **Scope:** A TLD-scale classification pipeline (C, primary), a resumable
 storage-backed map primitive (D, keystone), a text-render graph tool (A), and
@@ -93,9 +94,21 @@ Evolution of FR-204's demo into the toolkit's driving analysis pipeline.
   **platform (CaseM/Dynasty/KTweb/other) — added rev 7 for B/hva-bulletin
   handoff**, API presence, liveness, `render: empty|thin|full`) → catalog
   artifact (SQLite/JSONL).
-- **Cost model (required before scope freeze)**: haiku-class model pinned,
-  token cap per page dump, measured cost per 1k domains from a pilot batch.
-  550k × classify is real money — no full run without the pilot number.
+- **Cost model (required before scope freeze, rev 9)**: classifier pinned to
+  **mercury-2** (`provider: inception`, already in the provider matrix) —
+  diffusion-LM speed/price is what makes 550k × classify plausible; token cap
+  per page dump; measured cost per 1k domains from a pilot batch. Pilot must
+  also spot-check mercury-2 classification quality against a frontier-model
+  sample (read_raw_output_first applies to the model choice, not just the
+  prompt). No full run without the pilot number.
+- **Runner script (cost control, rev 9)**: the full-scale run goes through a
+  dedicated runner that forces `LANGCHAIN_TRACING_V2=false` — 550k traced
+  node executions would swamp LangSmith and add per-call overhead for zero
+  diagnostic value at that volume. Tracing stays ON for the pilot batch
+  (Commandment 9 satisfied there); at scale, observability comes from D's
+  progress JSONL + the catalog artifact itself. The runner owns the scale
+  posture: tracing off, mercury-2 pinned, token caps, politeness limits —
+  config as truth, not operator memory.
 - **Evaluation (read_raw_output_first)**: before any aggregate accuracy claim,
   dump N classified samples with their source text and read them; spot-check
   accuracy criterion in the FR. An unaudited catalog is a liability.
@@ -330,7 +343,7 @@ When answered, B lands as `examples/api-discovery/steps/har-to-spec/`.
 | **FR-936** | map node hardening: declared-inputs Send payload, raise-don't-truncate, timeout fix, RetryPolicy (filed rev 8) | — | S |
 | D | resumable map: chunked driver, CachePolicy/Store-backed results, `durability="sync"`, progress JSONL + kill-and-resume witness | FR-936 | M (shrunk by native coverage) |
 | A | fetch_page delta evidence → extend or new tool (fork resolved by judge) + smoke demo + Finnish encoding fixtures | — (parallel to D) | S (XS if fetch_page patch) |
-| C | fi-catalog pilot on D + A: pre-filter, classify (with platform field), catalog artifact, cost number | D, A | M |
+| C | fi-catalog pilot on D + A: pre-filter, classify (with platform field), catalog artifact, cost number + mercury-2 quality spot-check; scale runner (tracing off) | D, A | M |
 | C2 | full-run decision gated on C's pilot cost/accuracy numbers | C | — |
 | B | har-to-spec on Dynasty DREQUEST first; consumed by hva-weekly-bulletin | D (map), A (docs fetch) | M |
 | B2 | CaseM (Playwright HAR) + KTweb, tenant-templating primitive | B | — |
@@ -357,3 +370,6 @@ Plan → Judge → Enforce. All graph authoring goes through the
 6. **Tenant templating**: does B need a first-class instance-fleet concept in
    the emitted spec, or does `{tenant_host}` as a server variable suffice?
    Decision blocks B2.
+7. **mercury-2 classification quality (rev 9)**: does the diffusion LM hold
+   accuracy on the inline classification schema? Pilot spot-check vs a
+   frontier-model sample decides; if it fails, the cost model reopens.
