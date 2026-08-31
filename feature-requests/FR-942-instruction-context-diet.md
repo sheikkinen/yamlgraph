@@ -32,13 +32,24 @@ Witnessed 2026-08-31 (measured: `copilot-instructions.md` 261 lines / 34.6 KB; `
 3. **Compress Scripture:** cap trap/cure/question entries at ~40 words — trigger condition + heuristic inline; incident citations move to `docs/scripture-provenance.md` keyed by entry name. **No heuristic deleted, only compressed**; the Judge verifies each compressed entry still names its firing moment.
 4. **Session-start autocompaction — evaluation only:** disposition the option of automatic instruction compaction at session start. Questions to answer: (a) does the Copilot hook surface allow substituting/augmenting instructions at session start, or is compaction only achievable by editing committed files? (b) if committed-file-only, is a CI byte-budget gate on the two instruction files (analogous to the 400-line module rule) the cheaper standing cure against re-bloat? Deliverable: implement/reject recommendation recorded in this FR; implementation, if accepted, is a follow-up FR.
 
+### §4 Disposition (2026-08-31): session-start autocompaction REJECTED
+
+Evaluated empirically in session `909b2af4` (the evaluating agent's own session):
+
+- **(a) Hook surface cannot substitute — and cannot even augment.** `SessionStart` fires (probe witness: `audit.jsonl` 2026-08-31T17:32:21Z, this session; 332 firings on record) and the FR-743 briefing hook ran, producing 5 lines when executed directly (`now.py --brief`, rc=0) — yet **none of it reached the agent context**. SessionStart stdout is agent-invisible on the current platform build (the negative AC-00 verdict FR-743 anticipated). Independent of visibility, hooks are additive-only: the platform assembles `copilot-instructions.md` + `CLAUDE.md` into the prompt from committed files with no hook interposition point. Runtime autocompaction cannot subtract a single token; at best it would add.
+- **(b) Committed-file compaction is the sole subtraction mechanism** (§1–3 of this FR), and the standing re-bloat guard is a **byte-budget gate**: extend the existing pre-commit file-size gate (currently >400 warn / >450 error, Python-scoped) with a byte budget for the two instruction files. Cheap, mechanical, at the merge boundary — accepted into this FR's enforcement scope as the §4 deliverable replacing autocompaction.
+- **Side finding (FR-743's business, recorded here as witness):** the SessionStart briefing hook is currently dead weight — it runs, emits, and is seen by no one. FR-743's own judged fallback (first-PreToolUse delivery) is the recorded cure; its AC-00 verdict can now be marked negative with this witness.
+
+**Acceptance criterion update:** "Autocompaction option dispositioned" → satisfied (rejected, this section); replaced by: instruction-file byte-budget gate added to pre-commit within this FR's enforcement.
+
 ## Acceptance Criteria
 
 - [ ] No section appears in both `copilot-instructions.md` and `CLAUDE.md` (verify: no shared heading with >2 identical consecutive sentences)
 - [ ] Env-var table, branch-protection table, CI-check list, FR-761 walkthrough absent from `CLAUDE.md`; content reachable via `reference/` pointer
 - [ ] Every Scripture trap/cure/question entry ≤ ~40 words; provenance preserved in `docs/scripture-provenance.md` with all FR/incident citations intact (verify: every FR-XXX cited before compression appears in the provenance file)
 - [ ] Combined byte count of the two instruction files reduced ≥ 40% (baseline 57.5 KB)
-- [ ] Autocompaction option dispositioned in this FR (implement as follow-up FR / reject with rationale)
+- [x] Autocompaction option dispositioned in this FR (rejected — see §4 Disposition; hook surface is additive-only and SessionStart stdout is agent-invisible)
+- [ ] Instruction-file byte-budget gate added to pre-commit (replaces autocompaction as the standing re-bloat guard)
 - [ ] Existing hooks/gates that grep these files (pre-commit forbidden-phrase checks, fr-checks) still pass
 
 ## Alternatives Considered
