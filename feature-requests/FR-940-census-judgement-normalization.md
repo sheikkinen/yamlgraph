@@ -2,7 +2,9 @@
 
 **Priority:** MEDIUM
 **Type:** Bug / Enhancement
-**Status:** Rev 2 — judge R-2–R-5 folded
+**Status:** ENFORCED 2026-08-31 — rev 2 (judge R-2–R-5 folded)
+implemented RED→GREEN; all ACs witnessed. Implementation notes at end.
+Rev history: rev 1 REJECTED
 (`FR-940-census-judgement-normalization.judgement.md`, REJECTED 2026-08-31).
 R-1 (committed research record) **waived by operator** 2026-08-31
 ("research skipped — we know the issue by now"); evidence promoted to a
@@ -209,3 +211,30 @@ separate FR candidate.
 - AC-8: Every new test carries `@pytest.mark.req("REQ-YG-633")`;
   changelog fragment references REQ-YG-633; demo evidence refreshed;
   diary reflection included.
+
+## Implementation Notes (2026-08-31)
+
+- RED commits: census witnesses (35 tests, c9665380 lineage) and core
+  state-ref witnesses committed under SKIP=pytest; GREEN landed as one
+  combined commit because pre-commit stashes unstaged halves — the two
+  RED sets interlock (diary: the-ledger-that-believed-its-own-column).
+- Frozen algorithm implemented in `examples/demos/corpus_census/tools.py`
+  exactly as specified; all 19 witnessed rows repair (9 steering,
+  7 new-spark, 3 reframe), zero demotions.
+- Core enablement in `yamlgraph/utils/expressions.py`
+  (`resolve_config_state_ref`) + `llm_nodes.py` wiring; module split
+  kept `llm_nodes.py` under the 450-line gate (447).
+- Graph authored via sole route; report verified
+  (`tmp/draft-authoring-report.md`): lint passed, fixture smoke passed
+  with the default chain; smoke ledger carries the normalization line
+  and audit fields.
+- Demo evidence: fixture run with
+  `--var labels='["architecture","observability","security"]'` —
+  case canonicalization witnessed live (Architecture → architecture,
+  raw preserved), `Normalization: 0 repaired, 0 demoted,
+  0 model-abstained of 3 rows.`
+- Deviations: (1) C-5 fence amended for the minimal core enablement
+  (operator authorization "include in 940"); (2) FR-892 frozen-column
+  key-set assertion extended to the revised 11-key schema (explicit
+  schema revision); all FR-892 fail-closed assertions unmodified and
+  green. Full suite: 6267 passed.
