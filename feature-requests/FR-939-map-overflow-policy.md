@@ -2,7 +2,10 @@
 
 **Priority:** HIGH
 **Type:** Enhancement
-**Status:** Proposed
+**Status:** Judged — APPROVED WITH REVISIONS
+(`FR-939-map-overflow-policy.judgement.md`, 2026-08-31). Revisions R-1–R-4
+folded below and into the research record; authority activates on human
+review of the judgement.
 **Effort:** 1 day
 **Requested:** 2026-08-31
 **First consumer / first event:** the fi-catalog pilot (component D,
@@ -57,21 +60,41 @@ as expected behavior.
 
 ## Proposed Solution
 
-Research verdict (5 personas, 3 convergent on schema-data class): typed
-disposition field + load-time validation + pre-dispatch enforcement.
-Airflow's `max_map_length` fail-fast-at-parse is the external precedent.
+Research verdict (solution classes in the research record, R-1 fold):
+optional typed disposition defaulting to `error`, validated at load,
+enforced pre-dispatch. Airflow's `max_map_length` fail-fast is the
+external precedent for fail-by-default.
 
-1. **Schema** — add `on_overflow: Literal["error", "truncate"]` to the
-   map node schema (`yamlgraph/models/node_schema.py`) and
-   `defaults.on_overflow` to graph defaults. Default: `error`. Invalid
-   values rejected at graph load/validation (Pydantic), not at fan-out.
-2. **Enforcement** — in `map_edge`, when `len(items) > max_items`:
-   - `error` (default): raise before constructing any `Send`, message
-     containing node name, observed count, and configured cap.
-   - `truncate`: current behavior — slice, `logger.warning`, proceed.
-3. **Resolution order** — node `on_overflow` > graph
-   `defaults.on_overflow` > `error`. Cap resolution order unchanged.
-4. **Docs** — update the map section of `reference/graph-yaml.md` only.
+Two distinct configuration paths (judgement R-2 — they resolve
+independently):
+
+- **cap:** node `max_items` > graph `config.max_map_items` >
+  `DEFAULT_MAX_MAP_ITEMS` (100)
+- **policy:** node `on_overflow` > graph `defaults.on_overflow` >
+  `"error"`
+
+1. **Schema** — add `on_overflow: Literal["error", "truncate"] | None`
+   to `NodeConfig` (`yamlgraph/models/node_schema.py`) and load-time
+   Pydantic validation for `defaults.on_overflow` in `GraphConfigSchema`
+   (`yamlgraph/models/graph_schema.py` — `defaults` is currently an
+   untyped dict whose only value validator covers `thinking_budget`).
+   Invalid policy VALUES fail `load_graph_config`; the overflow
+   COMPARISON itself is necessarily runtime — `over` resolves from
+   state (the research record's load-time claim is corrected per R-1).
+2. **Propagation repair (R-3)** — `GraphConfig.max_map_items` is parsed
+   (`graph_loader.py:83-85`) but map compilation receives only
+   `config.defaults` (`node_compiler.py:173-181`), so the documented
+   graph-level cap NEVER reaches `map_edge` today. Pass the
+   authoritative graph cap and graph policy into `compile_map_node`
+   explicitly; witness must load+compile real YAML with
+   `config.max_map_items`, not inject a defaults dict.
+3. **Enforcement** — in `map_edge`, when `len(items) > max_items`:
+   - `error` (default): raise `ValueError` before constructing any
+     `Send`; message carries node name, observed count, configured cap.
+   - `truncate`: retain exactly `items[:max_items]` in order, emit one
+     WARNING with node name, observed count, cap, proceed.
+4. **Docs** — `reference/graph-yaml.md` map section: both paths,
+   resolution order, fail-by-default, explicit sampling.
 
 ```yaml
 nodes:
@@ -95,24 +118,18 @@ framework's validation and fan-out boundary; all five personas concur.
 
 ## Acceptance Criteria
 
-- [ ] AC-1: `on_overflow` validates as `error | truncate` at graph load;
-      invalid values fail validation with a clear message (RED first).
-- [ ] AC-2: Default `error`: overflow raises before the first sub-node
-      call; message contains node name, observed count, configured cap.
-- [ ] AC-3: Explicit `truncate` preserves slice-and-warn exactly.
-- [ ] AC-4: Tests cover node-level `max_items`, graph-level
-      `max_map_items`, within-cap input (no behavior change), invalid
-      policy value, and the explicit truncate path
-      (judgement AC-06); `tests/unit/test_fr027_execution_safety.py`
-      updated to pin the new contract.
-- [ ] AC-5: New CAP-11 requirement ID allocated; RED witnesses tagged
-      `@pytest.mark.req`; RED and GREEN committed separately.
-- [ ] AC-6: `reference/graph-yaml.md` map section documents
-      `on_overflow`; changelog fragment in `changelog/unreleased/`;
-      diary entry.
-- [ ] AC-7: No changes to timeout, retry, payload projection, or
-      durability surfaces (judgement C-1/C-6); existing map tests
-      otherwise green.
+Superseded by the judgement's revised criteria (R-4): the frozen
+contract is AC-01–AC-14 and gates C-1–C-8 in
+`FR-939-map-overflow-policy.judgement.md`. Highlights: `ValueError`
+pre-`Send` with node/count/cap as asserted values; policy precedence
+witnessed in both directions; invalid values rejected at both schema
+levels; end-to-end YAML witness for `config.max_map_items` propagation;
+`test_fr027_execution_safety.py` re-pinned to the new contract plus
+focused `test_fr939_map_overflow_policy.py`; one new CAP-11 REQ with
+`@pytest.mark.req` markers; RED/GREEN separate commits; focused command
+`pytest tests/unit/test_fr027_execution_safety.py
+tests/unit/test_fr939_map_overflow_policy.py
+tests/unit/test_graph_schema.py -q --no-cov`.
 
 ## Alternatives Considered
 
