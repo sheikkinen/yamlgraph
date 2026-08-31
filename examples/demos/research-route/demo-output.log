@@ -1,148 +1,439 @@
-2026-08-30 09:40:40,329 [INFO] yamlgraph.compile.graph_loader: Parsed 6 Python tools: load_brief, collect_graph_shapes, collect_committed_context, gather_findings, write_alternatives, search_web
-2026-08-30 09:40:40,332 [INFO] yamlgraph.compile.node_compiler: Added node: load_brief (type=python)
-2026-08-30 09:40:40,335 [INFO] yamlgraph.compile.node_compiler: Added node: collect_graph_shapes (type=python)
-2026-08-30 09:40:40,338 [INFO] yamlgraph.compile.node_compiler: Added node: collect_committed_context (type=python)
-2026-08-30 09:40:40,346 [INFO] yamlgraph.compile.node_compiler: Added node: os_infra_primitivist (type=llm)
-2026-08-30 09:40:40,353 [INFO] yamlgraph.compile.node_compiler: Added node: data_process_planner (type=llm)
-2026-08-30 09:40:40,359 [INFO] yamlgraph.compile.node_compiler: Added node: yamlgraph_native_planner (type=llm)
-2026-08-30 09:40:40,366 [INFO] yamlgraph.compile.node_compiler: Added node: subtractionist (type=llm)
-2026-08-30 09:40:40,368 [INFO] yamlgraph.compile.node_compiler: Added node: librarian_research (type=agent)
-2026-08-30 09:40:40,369 [INFO] yamlgraph.compile.node_compiler: Added node: os_infra_ready (type=passthrough)
-2026-08-30 09:40:40,369 [INFO] yamlgraph.compile.node_compiler: Added node: data_process_ready (type=passthrough)
-2026-08-30 09:40:40,369 [INFO] yamlgraph.compile.node_compiler: Added node: yamlgraph_native_ready (type=passthrough)
-2026-08-30 09:40:40,369 [INFO] yamlgraph.compile.node_compiler: Added node: subtractionist_ready (type=passthrough)
-2026-08-30 09:40:40,376 [INFO] yamlgraph.compile.node_compiler: Added node: librarian_structure (type=llm)
-2026-08-30 09:40:40,379 [INFO] yamlgraph.compile.node_compiler: Added node: gather_findings (type=python)
-2026-08-30 09:40:40,382 [INFO] yamlgraph.compile.node_compiler: Added node: reduce_findings (type=python)
-2026-08-30 09:40:40,435 [INFO] yamlgraph.route: {"event": "run", "run_id": "01a05166-17d5-7a46-8200-0a4c90acd522", "artifact_hash": "sha256:5b05854fc0444884aed4bc7637775e3bb43eefb2c8d08f5b7336697adf114fb1", "graph": "/Users/sheikki/Documents/src/yamlgraph/tmp/worktrees/session/7dfa4ede-3161-496a-b4be-8ca7a9e6c67c/examples/demos/research-route/graph.yaml", "yamlgraph_version": "0.5.17", "thread_id": null, "started_at": "2026-08-30T06:40:40Z"}
-2026-08-30 09:40:40,515 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: load_brief -> load_brief
-2026-08-30 09:40:40,518 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: collect_graph_shapes -> collect_graph_shapes
-2026-08-30 09:40:40,866 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: collect_committed_context -> collect_committed_context
-2026-08-30 09:40:41,283 [INFO] yamlgraph.utils.llm_factory: Creating LLM: anthropic/claude-haiku-4-5 (temp=0.0)
-2026-08-30 09:40:42,173 [INFO] yamlgraph.tools.agent: 🤖 Starting agent loop: librarian_research (max 4 iterations)
-2026-08-30 09:40:45,473 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
-2026-08-30 09:40:45,497 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': 'error context loss pipeline state dict upstream cause not propagated downstream', 'max_results': 5})
-2026-08-30 09:40:46,207 [INFO] primp: response: https://grokipedia.com/api/typeahead?query=error+context+loss+pipeline+state+dict+upstream+cause+not+propagated+downstream&limit=1 200
-2026-08-30 09:40:46,263 [INFO] primp: response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=error%20context%20loss%20pipeline%20state%20dict%20upstream%20cause%20not%20propagated%20downstream 200
-2026-08-30 09:40:46,486 [INFO] primp: response: https://www.mojeek.com/search?q=error+context+loss+pipeline+state+dict+upstream+cause+not+propagated+downstream 200
-2026-08-30 09:40:46,898 [INFO] primp: response: https://yandex.com/search/site/?text=error+context+loss+pipeline+state+dict+upstream+cause+not+propagated+downstream&web=1&searchid=8103929 200
-2026-08-30 09:40:46,913 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': 'static analysis detect missing error channel propagation state dict', 'max_results': 5})
-2026-08-30 09:40:47,046 [INFO] primp: response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=static%20analysis%20detect%20missing%20error%20channel%20propagation%20state%20dict 200
-2026-08-30 09:40:47,136 [INFO] primp: response: https://grokipedia.com/api/typeahead?query=static+analysis+detect+missing+error+channel+propagation+state+dict&limit=1 200
-2026-08-30 09:40:47,787 [INFO] primp: response: https://yandex.com/search/site/?text=static+analysis+detect+missing+error+channel+propagation+state+dict&web=1&searchid=6008178 200
-2026-08-30 09:40:47,807 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': 'pre-commit hook detect error record never reaches operator', 'max_results': 5})
-2026-08-30 09:40:47,818 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
-2026-08-30 09:40:47,821 [INFO] yamlgraph.node_factory.llm_nodes: Node data_process_planner completed successfully
-2026-08-30 09:40:47,861 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
-2026-08-30 09:40:47,863 [INFO] yamlgraph.node_factory.llm_nodes: Node os_infra_primitivist completed successfully
-2026-08-30 09:40:47,938 [INFO] primp: response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=pre-commit%20hook%20detect%20error%20record%20never%20reaches%20operator 200
-2026-08-30 09:40:48,073 [INFO] primp: response: https://grokipedia.com/api/typeahead?query=pre-commit+hook+detect+error+record+never+reaches+operator&limit=1 200
-2026-08-30 09:40:48,130 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
-2026-08-30 09:40:48,132 [INFO] yamlgraph.node_factory.llm_nodes: Node subtractionist completed successfully
-2026-08-30 09:40:48,168 [INFO] primp: response: https://www.google.com/search?q=pre-commit+hook+detect+error+record+never+reaches+operator&filter=1&start=0&hl=en-US&lr=lang_en&cr=countryUS 200
-2026-08-30 09:40:48,527 [INFO] primp: response: https://search.yahoo.com/search;_ylt=1XWefoc1GLTt6SWbannOi7w7;_ylu=BEt6tm4VpGtLTyI3JLZc0eAtXdhyYWZvDsDOJispkieHDLY?p=pre-commit+hook+detect+error+record+never+reaches+operator 200
-2026-08-30 09:40:49,189 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
-2026-08-30 09:40:49,191 [INFO] yamlgraph.node_factory.llm_nodes: Node yamlgraph_native_planner completed successfully
-2026-08-30 09:40:51,158 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
-2026-08-30 09:40:51,159 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': 'exception context preservation detection pattern raise without cause', 'max_results': 5})
-2026-08-30 09:40:51,389 [INFO] primp: response: https://grokipedia.com/api/typeahead?query=exception+context+preservation+detection+pattern+raise+without+cause&limit=1 200
-2026-08-30 09:40:51,549 [INFO] primp: response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=exception%20context%20preservation%20detection%20pattern%20raise%20without%20cause 200
-2026-08-30 09:40:51,785 [INFO] primp: response: https://www.startpage.com/ 200
-2026-08-30 09:40:51,928 [INFO] primp: response: https://www.startpage.com/sp/search 200
-2026-08-30 09:40:52,171 [INFO] primp: response: https://www.mojeek.com/search?q=exception+context+preservation+detection+pattern+raise+without+cause 200
-2026-08-30 09:40:52,788 [INFO] primp: response: https://yandex.com/search/site/?text=exception+context+preservation+detection+pattern+raise+without+cause&web=1&searchid=5335994 200
-2026-08-30 09:40:52,807 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': 'AST analysis detect exception raised without accessing error state', 'max_results': 5})
-2026-08-30 09:40:53,064 [INFO] primp: response: https://grokipedia.com/api/typeahead?query=AST+analysis+detect+exception+raised+without+accessing+error+state&limit=1 200
-2026-08-30 09:40:53,149 [INFO] primp: response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=AST%20analysis%20detect%20exception%20raised%20without%20accessing%20error%20state 200
-2026-08-30 09:40:53,434 [INFO] primp: response: https://search.yahoo.com/search;_ylt=ouP2d9h6TSA3IKa84lpgGBmQ;_ylu=3e8b3XWJBGooag5IG7u62s2Bkt6DOZ8Qiy9K-swARBxo0YE?p=AST+analysis+detect+exception+raised+without+accessing+error+state 200
-2026-08-30 09:40:53,765 [INFO] httpx: HTTP Request: POST https://html.duckduckgo.com/html/ "HTTP/2 202 Accepted"
-2026-08-30 09:40:53,835 [INFO] primp: response: https://www.google.com/search?q=AST+analysis+detect+exception+raised+without+accessing+error+state&filter=1&start=0&hl=en-US&lr=lang_en&cr=countryUS 200
-2026-08-30 09:40:54,095 [INFO] primp: response: https://search.brave.com/search?q=AST+analysis+detect+exception+raised+without+accessing+error+state&source=web 429
-2026-08-30 09:40:54,345 [INFO] primp: response: https://www.startpage.com/ 200
-2026-08-30 09:40:54,478 [INFO] primp: response: https://www.startpage.com/sp/search 200
-2026-08-30 09:40:54,706 [INFO] primp: response: https://www.mojeek.com/search?q=AST+analysis+detect+exception+raised+without+accessing+error+state 200
-2026-08-30 09:40:55,336 [INFO] primp: response: https://yandex.com/search/site/?text=AST+analysis+detect+exception+raised+without+accessing+error+state&web=1&searchid=4641516 200
-2026-08-30 09:40:57,667 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
-2026-08-30 09:40:57,668 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': '"error channel" detection data flow analysis pre-commit', 'max_results': 5})
-2026-08-30 09:40:58,004 [INFO] primp: response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=%22error%20channel%22%20detection%20data%20flow%20analysis%20pre-commit 200
-2026-08-30 09:40:58,086 [INFO] primp: response: https://grokipedia.com/api/typeahead?query=%22error+channel%22+detection+data+flow+analysis+pre-commit&limit=1 200
-2026-08-30 09:40:58,237 [INFO] httpx: HTTP Request: POST https://html.duckduckgo.com/html/ "HTTP/2 202 Accepted"
-2026-08-30 09:40:58,484 [INFO] primp: response: https://www.startpage.com/ 200
-2026-08-30 09:40:58,690 [INFO] primp: response: https://www.startpage.com/sp/search 200
-2026-08-30 09:40:59,032 [INFO] primp: response: https://search.yahoo.com/search;_ylt=Jhl8KdiIAKsfSR7le3lBNn0n;_ylu=xSmrQFTxsj7Ls-x8OWVoi3Kd8SNpV8sSl3gx0XdBq9XsHYI?p=%22error+channel%22+detection+data+flow+analysis+pre-commit 200
-2026-08-30 09:40:59,654 [INFO] primp: response: https://www.google.com/search?q=%22error+channel%22+detection+data+flow+analysis+pre-commit&filter=1&start=0&hl=en-US&lr=lang_en&cr=countryUS 200
-2026-08-30 09:41:00,394 [INFO] primp: response: https://yandex.com/search/site/?text=%22error+channel%22+detection+data+flow+analysis+pre-commit&web=1&searchid=1927306 200
-2026-08-30 09:41:00,416 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': 'Semgrep rule detect exception raised without reading error dict state', 'max_results': 5})
-2026-08-30 09:41:00,649 [INFO] primp: response: https://grokipedia.com/api/typeahead?query=Semgrep+rule+detect+exception+raised+without+reading+error+dict+state&limit=1 200
-2026-08-30 09:41:00,772 [INFO] primp: response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=Semgrep%20rule%20detect%20exception%20raised%20without%20reading%20error%20dict%20state 200
-2026-08-30 09:41:01,028 [INFO] primp: response: https://www.mojeek.com/search?q=Semgrep+rule+detect+exception+raised+without+reading+error+dict+state 200
-2026-08-30 09:41:01,304 [INFO] primp: response: https://www.startpage.com/ 200
-2026-08-30 09:41:01,443 [INFO] primp: response: https://www.startpage.com/sp/search 200
-2026-08-30 09:41:02,039 [INFO] primp: response: https://yandex.com/search/site/?text=Semgrep+rule+detect+exception+raised+without+reading+error+dict+state&web=1&searchid=7050911 200
-2026-08-30 09:41:04,372 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
-2026-08-30 09:41:04,374 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': 'taint analysis data flow tracking exception context loss detection', 'max_results': 5})
-2026-08-30 09:41:04,604 [INFO] primp: response: https://grokipedia.com/api/typeahead?query=taint+analysis+data+flow+tracking+exception+context+loss+detection&limit=1 200
-2026-08-30 09:41:04,758 [INFO] primp: response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=taint%20analysis%20data%20flow%20tracking%20exception%20context%20loss%20detection 200
-2026-08-30 09:41:04,828 [INFO] primp: response: https://www.google.com/search?q=taint+analysis+data+flow+tracking+exception+context+loss+detection&filter=1&start=0&hl=en-US&lr=lang_en&cr=countryUS 200
-2026-08-30 09:41:04,987 [INFO] httpx: HTTP Request: POST https://html.duckduckgo.com/html/ "HTTP/2 202 Accepted"
-2026-08-30 09:41:05,592 [INFO] primp: response: https://yandex.com/search/site/?text=taint+analysis+data+flow+tracking+exception+context+loss+detection&web=1&searchid=1018176 200
-2026-08-30 09:41:05,607 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': 'Pylint flake8 custom rule detect raise without accessing error record', 'max_results': 5})
-2026-08-30 09:41:05,997 [INFO] primp: response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=Pylint%20flake8%20custom%20rule%20detect%20raise%20without%20accessing%20error%20record 200
-2026-08-30 09:41:06,081 [INFO] primp: response: https://grokipedia.com/api/typeahead?query=Pylint+flake8+custom+rule+detect+raise+without+accessing+error+record&limit=1 200
-2026-08-30 09:41:06,304 [INFO] primp: response: https://search.brave.com/search?q=Pylint+flake8+custom+rule+detect+raise+without+accessing+error+record&source=web 429
-2026-08-30 09:41:06,584 [INFO] primp: response: https://www.startpage.com/ 200
-2026-08-30 09:41:07,073 [INFO] primp: response: https://www.startpage.com/sp/captcha-block?bc=FI&bi=DNA+Oyj&be=b816c778c48bbc12959071497bfbc531&bds_t=1788072066Tc83647cf4b3f2a10d59e90b61faf576aa63ae89111812a50c45c53f576a638f1&bds_s=2841f75456bd4709ab641ac0f5a16925&t=device&abe=0&qadf=moderate&abd=0&qsr=en_US&segment=organic&lui=english&sc=&abp=1&language=english&query=Pylint+flake8+custom+rule+detect+raise+without+accessing+error+record&cat=web&cmd=gen_page 200
-2026-08-30 09:41:07,791 [INFO] primp: response: https://search.yahoo.com/search;_ylt=CN9bfxffnHNMX1a_YECc8SaF;_ylu=azUjb3EsOYP1uWf63WHt6WikLy6ePEd09WiJfRZS8Alp5R4?p=Pylint+flake8+custom+rule+detect+raise+without+accessing+error+record 200
-2026-08-30 09:41:07,938 [INFO] httpx: HTTP Request: POST https://html.duckduckgo.com/html/ "HTTP/2 202 Accepted"
-2026-08-30 09:41:08,009 [INFO] primp: response: https://www.google.com/search?q=Pylint+flake8+custom+rule+detect+raise+without+accessing+error+record&filter=1&start=0&hl=en-US&lr=lang_en&cr=countryUS 200
-2026-08-30 09:41:08,653 [INFO] primp: response: https://yandex.com/search/site/?text=Pylint+flake8+custom+rule+detect+raise+without+accessing+error+record&web=1&searchid=2026899 200
-2026-08-30 09:41:08,677 [WARNING] yamlgraph.tools.agent: Agent hit max iterations (4)
-2026-08-30 09:41:08,681 [INFO] yamlgraph.node_factory.control_nodes: Node data_process_ready completed successfully
-2026-08-30 09:41:08,682 [INFO] yamlgraph.node_factory.control_nodes: Node os_infra_ready completed successfully
-2026-08-30 09:41:08,682 [INFO] yamlgraph.node_factory.control_nodes: Node subtractionist_ready completed successfully
-2026-08-30 09:41:08,683 [INFO] yamlgraph.node_factory.control_nodes: Node yamlgraph_native_ready completed successfully
-2026-08-30 09:41:13,233 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
-2026-08-30 09:41:13,235 [INFO] yamlgraph.node_factory.llm_nodes: Node librarian_structure completed successfully
-2026-08-30 09:41:13,237 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: gather_findings -> gather_findings
-2026-08-30 09:41:13,238 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: reduce_findings -> write_alternatives
-2026-08-30 09:41:13,410 [INFO] yamlgraph.route: {"event": "run_end", "run_id": "01a05166-17d5-7a46-8200-0a4c90acd522", "ended_at": "2026-08-30T06:41:13Z", "dropped_events": 0}
+research_preflight: brief ok
+2026-08-30 20:02:39,761 [INFO] yamlgraph.compile.graph_loader: Parsed 6 Python tools: load_brief, collect_graph_shapes, collect_committed_context, gather_findings, write_alternatives, search_web
+2026-08-30 20:02:39,765 [INFO] yamlgraph.compile.node_compiler: Added node: load_brief (type=python)
+2026-08-30 20:02:39,768 [INFO] yamlgraph.compile.node_compiler: Added node: collect_graph_shapes (type=python)
+2026-08-30 20:02:39,772 [INFO] yamlgraph.compile.node_compiler: Added node: collect_committed_context (type=python)
+2026-08-30 20:02:39,789 [INFO] yamlgraph.compile.node_compiler: Added node: os_infra_primitivist (type=llm)
+2026-08-30 20:02:39,797 [INFO] yamlgraph.compile.node_compiler: Added node: data_process_planner (type=llm)
+2026-08-30 20:02:39,806 [INFO] yamlgraph.compile.node_compiler: Added node: yamlgraph_native_planner (type=llm)
+2026-08-30 20:02:39,814 [INFO] yamlgraph.compile.node_compiler: Added node: subtractionist (type=llm)
+2026-08-30 20:02:39,819 [INFO] yamlgraph.compile.node_compiler: Added node: librarian_research (type=agent)
+2026-08-30 20:02:39,819 [INFO] yamlgraph.compile.node_compiler: Added node: os_infra_ready (type=passthrough)
+2026-08-30 20:02:39,820 [INFO] yamlgraph.compile.node_compiler: Added node: data_process_ready (type=passthrough)
+2026-08-30 20:02:39,820 [INFO] yamlgraph.compile.node_compiler: Added node: yamlgraph_native_ready (type=passthrough)
+2026-08-30 20:02:39,820 [INFO] yamlgraph.compile.node_compiler: Added node: subtractionist_ready (type=passthrough)
+2026-08-30 20:02:39,828 [INFO] yamlgraph.compile.node_compiler: Added node: librarian_structure (type=llm)
+2026-08-30 20:02:39,832 [INFO] yamlgraph.compile.node_compiler: Added node: gather_findings (type=python)
+2026-08-30 20:02:39,835 [INFO] yamlgraph.compile.node_compiler: Added node: reduce_findings (type=python)
+2026-08-30 20:02:39,891 [INFO] yamlgraph.route: {"event": "run", "run_id": "01a0539f-8af2-784a-810c-ba6958770a29", "artifact_hash": "sha256:5b05854fc0444884aed4bc7637775e3bb43eefb2c8d08f5b7336697adf114fb1", "graph": "/Users/sheikki/Documents/src/yamlgraph/tmp/worktrees/featfr932-prior-art-in-research/examples/demos/research-route/graph.yaml", "yamlgraph_version": "0.5.17", "thread_id": null, "started_at": "2026-08-30T17:02:39Z"}
+2026-08-30 20:02:40,028 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: load_brief -> load_brief
+2026-08-30 20:02:40,031 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: collect_graph_shapes -> collect_graph_shapes
+2026-08-30 20:02:40,401 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: collect_committed_context -> collect_committed_context
+2026-08-30 20:02:43,199 [INFO] yamlgraph.utils.llm_factory: Creating LLM: anthropic/claude-haiku-4-5 (temp=0.0)
+2026-08-30 20:02:44,132 [INFO] yamlgraph.tools.agent: 🤖 Starting agent loop: librarian_research (max 4 iterations)
+2026-08-30 20:02:46,806 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-08-30 20:02:46,837 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': 'prior art retrieval validation decision-making workflow precedent evidence', 'max_results': 5})
+2026-08-30 20:02:47,660 [INFO] primp: response: https://grokipedia.com/api/typeahead?query=prior+art+retrieval+validation+decision-making+workflow+precedent+evidence&limit=1 200
+2026-08-30 20:02:47,711 [INFO] primp: response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=prior%20art%20retrieval%20validation%20decision-making%20workflow%20precedent%20evidence 200
+2026-08-30 20:02:47,942 [INFO] primp: response: https://www.mojeek.com/search?q=prior+art+retrieval+validation+decision-making+workflow+precedent+evidence 200
+2026-08-30 20:02:48,021 [INFO] primp: response: https://www.google.com/search?q=prior+art+retrieval+validation+decision-making+workflow+precedent+evidence&filter=1&start=0&hl=en-US&lr=lang_en&cr=countryUS 200
+2026-08-30 20:02:48,735 [INFO] httpx: HTTP Request: POST https://html.duckduckgo.com/html/ "HTTP/2 200 OK"
+2026-08-30 20:02:48,739 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': 'feature request triage precedent corpus retrieval timing research phase', 'max_results': 5})
+2026-08-30 20:02:48,986 [INFO] primp: response: https://grokipedia.com/api/typeahead?query=feature+request+triage+precedent+corpus+retrieval+timing+research+phase&limit=1 200
+2026-08-30 20:02:49,099 [INFO] primp: response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=feature%20request%20triage%20precedent%20corpus%20retrieval%20timing%20research%20phase 200
+2026-08-30 20:02:49,169 [INFO] primp: response: https://www.google.com/search?q=feature+request+triage+precedent+corpus+retrieval+timing+research+phase&filter=1&start=0&hl=en-US&lr=lang_en&cr=countryUS 200
+2026-08-30 20:02:49,858 [INFO] httpx: HTTP Request: POST https://html.duckduckgo.com/html/ "HTTP/2 200 OK"
+2026-08-30 20:02:49,861 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': 'patent prior art search retrieval mechanism verification gate', 'max_results': 5})
+2026-08-30 20:02:50,258 [INFO] primp: response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=patent%20prior%20art%20search%20retrieval%20mechanism%20verification%20gate 200
+2026-08-30 20:02:50,308 [INFO] primp: response: https://grokipedia.com/api/typeahead?query=patent+prior+art+search+retrieval+mechanism+verification+gate&limit=1 200
+2026-08-30 20:02:50,404 [INFO] primp: response: https://www.google.com/search?q=patent+prior+art+search+retrieval+mechanism+verification+gate&filter=1&start=0&hl=en-US&lr=lang_en&cr=countryUS 200
+2026-08-30 20:02:50,553 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-08-30 20:02:50,557 [INFO] yamlgraph.node_factory.llm_nodes: Node data_process_planner completed successfully
+2026-08-30 20:02:50,560 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-08-30 20:02:50,562 [INFO] yamlgraph.node_factory.llm_nodes: Node subtractionist completed successfully
+2026-08-30 20:02:50,769 [INFO] primp: response: https://search.yahoo.com/search;_ylt=k9VVK6Ua2A9Zd8L9ToYMCIuz;_ylu=KX7hNrr_WMR6wX-FInLQ-C-A0yhFbh6z6L6nf2xC6abpE60?p=patent+prior+art+search+retrieval+mechanism+verification+gate 200
+2026-08-30 20:02:51,363 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-08-30 20:02:51,372 [INFO] yamlgraph.error_handlers: Node os_infra_primitivist retry 1/2
+2026-08-30 20:02:51,372 [INFO] yamlgraph.node_factory.llm_execution: Retry carrying validation feedback: CORRECTION: your previous response was rejected by schema validation and was not used. It failed on:
+- field 'rationale': String should have at most 400 characters (max_length=400, you sent 470)
+Resend the complete object with every field satisfying its constraints. Do not quote or restate your rejected answer — write a new, shorter value for each field listed above.
+2026-08-30 20:02:51,722 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-08-30 20:02:51,726 [INFO] yamlgraph.error_handlers: Node yamlgraph_native_planner retry 1/2
+2026-08-30 20:02:51,726 [INFO] yamlgraph.node_factory.llm_execution: Retry carrying validation feedback: CORRECTION: your previous response was rejected by schema validation and was not used. It failed on:
+- field 'candidate': String should have at most 400 characters (max_length=400, you sent 410)
+Resend the complete object with every field satisfying its constraints. Do not quote or restate your rejected answer — write a new, shorter value for each field listed above.
+2026-08-30 20:02:53,328 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-08-30 20:02:53,329 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': 'evidence retrieval timing decision workflow gate validation before conclusion', 'max_results': 5})
+2026-08-30 20:02:53,767 [INFO] primp: response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=evidence%20retrieval%20timing%20decision%20workflow%20gate%20validation%20before%20conclusion 200
+2026-08-30 20:02:53,797 [INFO] primp: response: https://grokipedia.com/api/typeahead?query=evidence+retrieval+timing+decision+workflow+gate+validation+before+conclusion&limit=1 200
+2026-08-30 20:02:53,870 [INFO] primp: response: https://www.google.com/search?q=evidence+retrieval+timing+decision+workflow+gate+validation+before+conclusion&filter=1&start=0&hl=en-US&lr=lang_en&cr=countryUS 200
+2026-08-30 20:02:54,123 [INFO] primp: response: https://search.brave.com/search?q=evidence+retrieval+timing+decision+workflow+gate+validation+before+conclusion&source=web 429
+2026-08-30 20:02:54,320 [INFO] primp: response: https://www.startpage.com/ 200
+2026-08-30 20:02:54,436 [INFO] primp: response: https://www.startpage.com/sp/search 200
+2026-08-30 20:02:55,096 [INFO] httpx: HTTP Request: POST https://html.duckduckgo.com/html/ "HTTP/2 200 OK"
+2026-08-30 20:02:55,099 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': 'deterministic context injection closed-input research boundary precedent corpus', 'max_results': 5})
+2026-08-30 20:02:55,446 [INFO] primp: response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=deterministic%20context%20injection%20closed-input%20research%20boundary%20precedent%20corpus 200
+2026-08-30 20:02:55,581 [INFO] primp: response: https://grokipedia.com/api/typeahead?query=deterministic+context+injection+closed-input+research+boundary+precedent+corpus&limit=1 200
+2026-08-30 20:02:55,658 [INFO] primp: response: https://www.google.com/search?q=deterministic+context+injection+closed-input+research+boundary+precedent+corpus&filter=1&start=0&hl=en-US&lr=lang_en&cr=countryUS 200
+2026-08-30 20:02:55,901 [INFO] primp: response: https://search.brave.com/search?q=deterministic+context+injection+closed-input+research+boundary+precedent+corpus&source=web 429
+2026-08-30 20:02:56,470 [INFO] primp: response: https://yandex.com/search/site/?text=deterministic+context+injection+closed-input+research+boundary+precedent+corpus&web=1&searchid=8463505 200
+2026-08-30 20:02:57,518 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-08-30 20:02:57,669 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-08-30 20:02:58,438 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-08-30 20:02:58,439 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': '"retrieval-augmented generation" evidence validation corpus injection research phase', 'max_results': 5})
+2026-08-30 20:02:58,756 [INFO] primp: response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=%22retrieval-augmented%20generation%22%20evidence%20validation%20corpus%20injection%20research%20phase 200
+2026-08-30 20:02:58,885 [INFO] primp: response: https://grokipedia.com/api/typeahead?query=%22retrieval-augmented+generation%22+evidence+validation+corpus+injection+research+phase&limit=1 200
+2026-08-30 20:02:59,504 [INFO] primp: response: https://yandex.com/search/site/?text=%22retrieval-augmented+generation%22+evidence+validation+corpus+injection+research+phase&web=1&searchid=2342230 200
+2026-08-30 20:02:59,522 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': 'RAG pipeline corpus context window precedent lookup before generation', 'max_results': 5})
+2026-08-30 20:02:59,800 [INFO] primp: response: https://grokipedia.com/api/typeahead?query=RAG+pipeline+corpus+context+window+precedent+lookup+before+generation&limit=1 200
+2026-08-30 20:02:59,907 [INFO] primp: response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=RAG%20pipeline%20corpus%20context%20window%20precedent%20lookup%20before%20generation 200
+2026-08-30 20:02:59,983 [INFO] primp: response: https://www.google.com/search?q=RAG+pipeline+corpus+context+window+precedent+lookup+before+generation&filter=1&start=0&hl=en-US&lr=lang_en&cr=countryUS 200
+2026-08-30 20:03:00,182 [INFO] primp: response: https://www.startpage.com/ 200
+2026-08-30 20:03:00,304 [INFO] primp: response: https://www.startpage.com/sp/search 200
+2026-08-30 20:03:00,608 [INFO] primp: response: https://www.mojeek.com/search?q=RAG+pipeline+corpus+context+window+precedent+lookup+before+generation 200
+2026-08-30 20:03:01,624 [INFO] httpx: HTTP Request: POST https://html.duckduckgo.com/html/ "HTTP/2 200 OK"
+2026-08-30 20:03:03,815 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-08-30 20:03:03,817 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': 'gate checks substance not shape evidence validation decision system', 'max_results': 5})
+2026-08-30 20:03:04,117 [INFO] primp: response: https://grokipedia.com/api/typeahead?query=gate+checks+substance+not+shape+evidence+validation+decision+system&limit=1 200
+2026-08-30 20:03:04,172 [INFO] primp: response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=gate%20checks%20substance%20not%20shape%20evidence%20validation%20decision%20system 200
+2026-08-30 20:03:04,777 [INFO] primp: response: https://yandex.com/search/site/?text=gate+checks+substance+not+shape+evidence+validation+decision+system&web=1&searchid=8278476 200
+2026-08-30 20:03:04,798 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_web({'query': 'precedent citation verification lookup mechanism before decision finalization', 'max_results': 5})
+2026-08-30 20:03:05,060 [INFO] primp: response: https://grokipedia.com/api/typeahead?query=precedent+citation+verification+lookup+mechanism+before+decision+finalization&limit=1 200
+2026-08-30 20:03:05,143 [INFO] primp: response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=precedent%20citation%20verification%20lookup%20mechanism%20before%20decision%20finalization 200
+2026-08-30 20:03:05,218 [INFO] primp: response: https://www.google.com/search?q=precedent+citation+verification+lookup+mechanism+before+decision+finalization&filter=1&start=0&hl=en-US&lr=lang_en&cr=countryUS 200
+2026-08-30 20:03:05,982 [INFO] httpx: HTTP Request: POST https://html.duckduckgo.com/html/ "HTTP/2 200 OK"
+2026-08-30 20:03:05,985 [WARNING] yamlgraph.tools.agent: Agent hit max iterations (4)
+2026-08-30 20:03:05,990 [INFO] yamlgraph.node_factory.control_nodes: Node data_process_ready completed successfully
+2026-08-30 20:03:05,990 [INFO] yamlgraph.node_factory.control_nodes: Node subtractionist_ready completed successfully
+2026-08-30 20:03:05,998 [INFO] yamlgraph.node_factory.control_nodes: Node yamlgraph_native_ready completed successfully
+2026-08-30 20:03:05,998 [INFO] yamlgraph.node_factory.control_nodes: Node os_infra_ready completed successfully
+2026-08-30 20:03:10,753 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-08-30 20:03:10,757 [INFO] yamlgraph.node_factory.llm_nodes: Node librarian_structure completed successfully
+2026-08-30 20:03:10,758 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: gather_findings -> gather_findings
+2026-08-30 20:03:10,759 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: reduce_findings -> write_alternatives
+2026-08-30 20:03:10,949 [INFO] yamlgraph.route: {"event": "run_end", "run_id": "01a0539f-8af2-784a-810c-ba6958770a29", "ended_at": "2026-08-30T17:03:10Z", "dropped_events": 0}
 
 🚀 Running graph: graph.yaml
-   Variables: {'brief_path': 'tmp/brief-symptom-only-raises.md'}
+   Variables: {'brief_path': 'feature-requests/research-briefs/fr-932-prior-art-precedent-brief.md'}
 
-🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/f889c0ec-fa9b-4025-b69c-2aa756283ef8/r/01a05166-17f5-7021-b5c0-331acec68984?poll=true
+🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/f889c0ec-fa9b-4025-b69c-2aa756283ef8/r/01a0539f-8b15-7cf3-87d6-f5d3b27bc65f?poll=true
 ============================================================
 RESULT
 ============================================================
   current_step: reduce_findings
-  brief_path: tmp/brief-symptom-only-raises.md
-  problem_statement: Nodes in this repository fail on a downstream consequence while a
-structured record of the upstream cause already sits in the same state
-dict. The retry handler writes a PipelineError into state["erro...
+  brief_path: feature-requests/research-briefs/fr-932-prior-art-precedent-brief.md
+  problem_statement: The Judge withholds authority from a feature request on two independent
+evidence grounds. `.github/skills/judge-fr/doctrine.md` requires that
+"prior art — including REJECTED FRs — must be dispositioned before
+authority is granted, whether or not the prior-art hook fired: a
+rejected FR is precedent, and a proposal re-entering its territory must
+distinguish itself or die by the same rationale (FR-737)". The same
+doctrine, after the FR-890 activation boundary, withholds authority
+from any FR whose `**Research:**` field is absent, dangling, or points
+at a strawman record.
+
+Those two evidence classes are produced by two mechanisms that do not
+meet, at two different times, from two different corpora.
+
+Precedent evidence is produced at FR-file creation time by
+`.github/hooks/scripts/checks/prior_art.py`. It extracts nouns from the
+new file's *filename only* (FR-737 F4 purged title and body
+extraction), ranks candidate files in `feature-requests/` by inverse
+corpus frequency, emits at most five, and stays silent unless at least
+one noun is rare (frequency ≤ 20 files). Its output is advisory text on
+stdout. `.github/hooks/scripts/checks/prior_art_gate.py` then fails a
+commit when a newly ADDED `feature-requests/*.md` has hits and the
+staged blob lacks a `**Prior art:**` marker. The gate checks that the
+marker string is present; it reads nothing about what the line says.
+331 of 854 FR files currently carry the marker.
+
+Research evidence is produced earlier, by `scripts/research.sh` and
+`examples/demos/research-route/graph.yaml`. Five personas fan out over
+a closed problem brief and are grounded by exactly one deterministic
+context block, built by `collect_committed_context` in
+`examples/demos/research-route/nodes/research_tools.py`: capability
+registry one-liners, `ARCHITECTURE.md` headings, and Scripture
+trap/cure keys. The feature-request corpus is not in that block. No
+node of the research graph reads `feature-requests/`.
+
+The frozen artifact schema nevertheless makes `precedent` a required,
+non-empty column for every row
+(`scripts/research_preflight.py`, `COLUMNS`). Only librarian rows are
+checked further, and only for a URL. Every other persona is required to
+produce a precedent citation from a context window that contains no
+precedent corpus.
+
+Measured over the twelve committed `feature-requests/*.research.md`
+artifacts, 60 rows in total: 33 precedent cells name an `FR-`, `NC-`,
+`CAP-` or `REQ-` identifier; 12 carry a URL only (the librarian rows);
+15 carry neither — a quarter of all rows satisfy the non-empty shape
+check while citing nothing that can be looked up. Twelve cells use a
+literal `brief-echo:` prefix, restating the brief back as its own
+precedent.
+
+The ordering compounds this. Research runs first, over a brief whose
+filename is not yet an FR filename, so the prior-art hook has not fired
+and cannot fire. The prior-art hook fires later, when the FR file is
+created — after the alternatives have already been generated, ranked
+and reduced. The step whose output most depends on knowing what was
+already tried, rejected, or shipped is the step run with no access to
+that record; the step that retrieves the record runs after the
+conclusions are frozen.
+
+The Judge then receives neither mechanism's output as input.
+`scripts/judge.sh` passes exactly one variable, `fr_path`, to the judge
+graph. The judge prompt tells the agent to read the doctrine and the FR.
+Both the prior-art disposition and the research record are reachable
+only if the judge navigates markdown references out of the FR body and
+reads them itself. Doctrine holds the Judge responsible for the
+substance of evidence that arrives, if it arrives, as prose the author
+wrote about a retrieval the author performed.
+
+The open question this brief poses: at what point in the research →
+plan → judge sequence should the feature-request corpus be retrieved,
+and by what mechanism, such that a precedent claim in the record before
+the Judge is a retrieval result rather than an author's or a persona's
+unverifiable assertion?
   classification: judgement/analysis/generation
-  constraints: - Must not change the error-channel state shape, retry semantics, or
-  any node's success behavior.
-- Detection must be deterministic and runnable in pre-commit; a run
-  budget of seconds, not minutes...
-  witnessed_incidents: - 2026-08-30: three consecutive research runs reported only "missing
-  persona findings: yamlgraph_native_finding"; the actual
-  string_too_long validation rejection was in state["errors"] each
-  time...
+  constraints: - The research brief is a closed input boundary (FR-890 R-2). Anything
+  injected into the research run must be author-independent and
+  deterministic, in the manner of the existing committed-context block;
+  it must not be a channel through which the author's narrative or a
+  preferred conclusion reaches the personas.
+- The artifact schema `candidate | persona | class | verdict |
+  precedent | is_this_a_graph | effort-risk | rationale` is frozen and
+  witnessed by tests in both `scripts/research_preflight.py` and
+  `examples/demos/research-route/nodes/research_tools.py`. Column
+  changes are not free.
+- The `committed_context` block is bounded by `_MAX_CONTEXT_LINES` and
+  raises when exceeded. The FR corpus is 854 files; it cannot be
+  delivered whole.
+- Prior-art retrieval today is filename-noun matching with an inverse
+  frequency rank and a rarity floor. FR-737 F4 deliberately removed
+  title and body extraction and recorded that escalation beyond
+  filenames requires a witnessed miss (`two_strike_split`).
+- Judge input closure is FR + cited evidence + repo doctrine only. Any
+  evidence must arrive as a committed artifact the FR cites, not as a
+  side channel or a chat narrative.
+- Local checks are individually skippable by name; `--no-verify` is
+  forbidden. Skippability is accepted, not a defect.
+- Research runs cost tokens and wall-clock time; the route already
+  fans out to five personas with a 600-second graph timeout.
+  witnessed_incidents: - 15 of 60 precedent cells across all twelve committed research
+  artifacts contain no repo identifier and no URL. Example rows in
+  `feature-requests/FR-929.research.md` cite `brief-echo:` followed by
+  a restatement of the brief's own text as the precedent for a
+  candidate.
+- The same FR-929 research run produced precedent strings asserting
+  what "FR-192 rejected" from persona memory; the personas had no
+  access to `feature-requests/FR-192*` in their context, because
+  `collect_committed_context` does not read that directory. The claim
+  happened to be checkable, but nothing in the route made it so.
+- FR-737 U-1 recorded that the advisory PostToolUse prior-art hook
+  dropped its first real payload — the delivery channel failed
+  silently, which is why FR-738 added a pre-commit floor. The floor
+  checks marker presence, not disposition content, so the failure mode
+  it does not cover is a `**Prior art:**` line written to clear the
+  gate.
+- `scripts/judge.sh` invokes the judge graph with `--var fr_path=…` and
+  no other variable. No research path, no prior-art hit list, and no
+  corpus handle reaches the judge process.
+- The FR-890 activation boundary made a missing or dangling
+  `**Research:**` field a no-authority condition, and the doctrine text
+  explicitly warns that a table which "merely shape-checks" is
+  `gate_checks_shape_not_substance`. The precedent column is currently
+  shape-checked for non-emptiness only.
   graph_shapes: agent-json (examples/demos/agent-json/graph.yaml): FR-449 — Minimal agent with structured JSON output
-book-summary (examples/demos/book-summary/graph.yaml): Page-windowed PDF book summary with manifes...
+book-summary (examples/demos/book-summary/graph.yaml): Page-windowed PDF book summary with manifest tools, python gates, map fan-out, reducer accumulation, and a bounded cursor loop.
+cache-demo (examples/demos/cache/graph.yaml): Per-node caching with LangGraph CachePolicy
+chatterbox-tts (examples/demos/chatterbox/graph.yaml): Multilingual TTS demo using Chatterbox
+chinese-horoscope (examples/demos/chinese-horoscope/graph.yaml): Generate daily horoscopes for all 12 Chinese zodiac animals in parallel
+code-analysis (examples/demos/code-analysis/graph.yaml): Run code analysis tools and generate improvement recommendations
+compaction-demo (examples/demos/compaction/graph.yaml): Long-running loop with automatic context compaction via guards
+corpus-census (examples/demos/corpus_census/graph.yaml): Shared discover-extract-map-reduce census pipeline. Corpus-specific discovery and extraction are bound at invocation time through FR-892 tool slots.
+data-files-demo (examples/demos/data-files/graph.yaml): Demonstrates data_files directive for loading external config
+diary-index (examples/demos/diary_index/graph.yaml): Read diary entries, extract traps/heuristics/seeds/FR references, produce a structured cross-reference index. (FR-254)
+fr-enforcer (examples/demos/enforcer/graph.yaml): FR-462 — Standalone FR enforcer with task-shaped tools and structured implementation result
+fan-out-demo (examples/demos/fan-out/graph.yaml): Parallel fan-out edges running three branches concurrently. Task shapes: run several different analyses of one input concurrently.
+feature-brainstorm (examples/demos/feature-brainstorm/graph.yaml): YAMLGraph proposes improvements to itself by analyzing its own codebase
+fi-domain-crawl (examples/demos/fi_domain_crawl/graph.yaml): Crawl .fi domains and produce sitemap-style overviews
+file-hook-demo (examples/demos/file-hook/graph.yaml): macOS folder-triggered PNG description and publishing demo
+five-whys (examples/demos/five-whys/graph.yaml): Five Whys root cause analysis — iterative deepening loop. Task shapes: iterative root-cause drill-down of a defect, incident, or symptom.
+forensic-failure-demo (examples/demos/forensic-failure-diary/graph.yaml):
+fr_atlas (examples/demos/fr-atlas/graph.yaml): FR-748 FR Atlas — render any project's feature-requests/ corpus as an onboarding narrative: deterministic collection, chunked theme map, one merge judgement, one story judgement, code-side coverage reconciliation (count-in == count-out), dated atlas into docs/.
+git-report (examples/demos/git-report/graph.yaml): Agent that analyzes git repository and generates reports
+graph-tool-demo (examples/demos/graph-tool/graph.yaml): Agent using a graph pipeline as a tool
+deterministic-guards-demo (examples/demos/guards/graph.yaml): Demonstrate deterministic pre/post node guards without extra LLM calls
+hello-world (examples/demos/hello/graph.yaml): Simple greeting generator demonstrating basic LLM usage
+hello-world-runpod (examples/demos/hello-runpod/graph.yaml): Simple greeting generator via the RunPod OpenAI-compatible provider
+hook-intent-classifier (examples/demos/hook_classifier/graph.yaml): Classify a VS Code Copilot tool invocation for intent and danger level
+daily-horoscope (examples/demos/horoscope/graph.yaml): Generate daily horoscopes for all 12 zodiac signs in parallel
+image-that-speaks (examples/demos/image-that-speaks/graph.yaml): Who judges the judge? One LLM generates, two LLMs race to judge, a deterministic gate overrules them both. Rev 13:15 meets model_as_trusted_peer.
+innovation-matrix (examples/demos/innovation_matrix/graph.yaml): Generate an Innovation Matrix crossing capabilities with constraints. Task shapes: structured ideation — cross domain capabilities with constraints to surface non-obvious directions.
+trivia-quiz (examples/demos/interactive_tool/graph.yaml): A 3-question trivia quiz built with a single interactive_tool node. Demonstrates: start/step/end tool wiring, loop_until condition, interrupt/resume for user input, and automatic session summary.
+interview-demo (examples/demos/interview/graph.yaml): Interactive interview with human-in-the-loop
+fr-judge (examples/demos/judge/graph.yaml): FR-450 — Standalone FR judge with task-shaped tools and structured verdict output
+map-demo (examples/demos/map/graph.yaml): Demonstrates parallel fan-out with type: map. Task shapes: for each item in a list, ask the model — parallel map-reduce over N items.
+map-timeout-demo (examples/demos/map-timeout/graph.yaml): Demonstrates per-node timeout for map branches (FR-069)
+memory_demo (examples/demos/memory/graph.yaml): Multi-turn code review assistant with memory
+meta (examples/demos/meta/graph.yaml): Apply a natural-language verb to a code artifact and return typed output
+multi-turn-streaming (examples/demos/multi-turn/graph.yaml): Multi-turn conversation with streaming. First turn waits for user input, subsequent turns stream response then wait for next input.
+novel_generator (examples/demos/novel_generator/graph.yaml): AI-powered short story generator with quality-driven iteration
+pattern-model-census (examples/demos/pattern_model_census/graph.yaml): Read-only commit-metadata census for architectural/design patterns and LLM model/provider mentions. Structurally mirrors corpus_census with invocation-time discover/extract slots and an LLM-free reducer.
+persona-scenario-pipeline (examples/demos/persona_scenarios/graph.yaml): Generate personas and scenarios for a product idea, save as interlinked markdown
+philosopher-book (examples/demos/philosopher_book/graph.yaml): The Philosopher writes one chapter at a time. Plan → write a single chapter using Copilot with diary search tools. Run with --var chapter_num=N (1-21). (FR-404)
+pipeline-demo (examples/demos/pipeline/graph.yaml): Compile-time pipeline template expansion demo
+pipeline-audit (examples/demos/pipeline_audit/graph.yaml): Structural audit of YAMLGraph pipelines — quality gates, silent fallbacks, skip reporting, shared patterns
+fr-planner (examples/demos/planner/graph.yaml): FR-452 — Standalone FR planner with task-shaped tools and structured plan output
+prompt-caching-demo (examples/demos/prompt-caching/graph.yaml): Demonstrates Anthropic prompt caching with system_segments
+prompt-theme-analyzer (examples/demos/prompt_theme_analyzer/graph.yaml): Read prompt files, classify concise themes with map fan-out, aggregate deterministically in Python, then group themes and write a markdown report. (FR-402)
+promptfoo-tone-router-demo (examples/demos/promptfoo-router/graph.yaml): Route responses based on detected message tone
+python-map-demo (examples/demos/python-map/graph.yaml): Demonstrates type:python sub-nodes in map nodes (FR-021)
+python-variables-demo (examples/demos/python-variables/graph.yaml): Python node with declarative variable mapping from state
+race-demo (examples/demos/race/graph.yaml): Race multiple LLM providers for the fastest response. Task shapes: same question to multiple providers or models, take the fastest good answer (hedging).
+ramp_doctrine (examples/demos/ramp_doctrine/graph.yaml): FR-866 ramp doctrine draft — tailor this repo's Scripture traps, cures, and questions into a target-repo AGENTS.md draft. Deterministic collection feeds one map judgement per doctrine entry; code reconciles ids and writes draft artifacts only under tmp/ramp.
+ramp_incidents (examples/demos/ramp_incidents/graph.yaml): FR-866 RAMP incidents — scan this repo's feature-request and diary corpus for target-repo mentions, classify each mentioned document as an operational incident or reconciliation-only non-incident, and write draft artifacts under tmp/ramp for target doctrine repatriation.
+ramp_rtm (examples/demos/ramp_rtm/graph.yaml): FR-866 RAMP RTM — derive proposed requirement candidates from a target repository's existing test suite. Collection is deterministic, one map branch reasons over one test file, and the merge writes an honest draft with validation errors and unwitnessed-test gaps preserved.
+recap (examples/demos/recap/graph.yaml): Timeframe change recap for any git repository — deterministic git collection, one synthesis judgement
+reflexion-demo (examples/demos/reflexion/graph.yaml): Self-improving essay with critique loop
+repo-census (examples/demos/repo_census/graph.yaml): GitHub organization repository census with Azure-pinned LLM calls. Discovery and extraction are bound at invocation time through FR-892 tool slots; the local reducer owns mechanical ledger fields and output rendering.
+req-cross-check (examples/demos/req-cross-check/graph.yaml): Run architecture cross-check and produce traceability report (FR-107)
+req-witness-audit (examples/demos/req_witness_audit/graph.yaml): Grade requirement-witness batches with a haiku-tier LLM and write one raw structured result per input batch for deterministic reconciliation.
+research-agent (examples/demos/research-agent/graph.yaml): 5-step agentic research: extract intent, plan approach, execute research with tools, validate findings, synthesize report.
+research-route (examples/demos/research-route/graph.yaml): FR-890 closed-input alternatives route: load a problem brief, collect known graph task shapes, fan out to orthogonal planner personas, and reduce their findings into a deterministic alternatives table.
+tone-router-demo (examples/demos/router/graph.yaml): Route responses based on detected message tone. Task shapes: classify an input, then dispatch to a specialized handler (conditional routing).
+router-race-candidates-demo (examples/demos/router-race-candidates/graph.yaml): Router node with candidates race support
+run-analyzer (examples/demos/run-analyzer/graph.yaml): Analyze a previous run for issues and provide recommendations
+safety-guards-demo (examples/demos/safety-guards/graph.yaml): Shows how YAMLGraph protects against unbounded execution: a draft→review→revise cycle (loop-guarded), then a map fan-out (item-capped), all under a recursion_limit.
+salvage_classify (examples/demos/salvage_classify/graph.yaml): FR-868 scripture-dev salvage classifier — collect every tracked source file, classify each against this repository's committed equivalents, and write a human-review disposition draft under tmp/ramp.
+self-portrait (examples/demos/self-portrait/graph.yaml): Local PersonalizationPortrait extraction with exact-payload consent before agent-first synthesis.
+enforcer-workflow (examples/demos/session-continuation/graph.yaml): Two-phase development workflow using Copilot session continuation. Phase 1 (Enforce): Implement feature with TDD - failing test first, minimal change, refactor. Phase 2 (Demo): Create example and demo in examples/ folder using same session context.
+session-shapes (examples/demos/session-shapes/graph.yaml): FR-884 session task-shape classifier: load session skeleton JSONL, classify each session with map fan-out, and aggregate shape coverage deterministically.
+shared-vision-tool-demo (examples/demos/shared-vision-tool/graph.yaml): Minimal demo for the shared image description tool.
+soul-pattern-demo (examples/demos/soul/graph.yaml): Demonstrates the soul pattern for AI agent personality
+streaming-demo (examples/demos/streaming/graph.yaml): Two-node pipeline demonstrating token-by-token streaming. Run with: yamlgraph graph run graph.yaml --var topic="..." --stream
+subgraph-demo (examples/demos/subgraph/graph.yaml): Demo of subgraph composition - parent graph calls a summarizer subgraph
+system-status (examples/demos/system-status/graph.yaml): Gather system metrics with shell tools, then LLM diagnoses issues
+tavily-rag (examples/demos/tavily_rag/graph.yaml): Domain-scoped RAG using Tavily as retrieval layer
+thinking-demo (examples/demos/thinking/graph.yaml): Demonstrate extended thinking with configurable reasoning depth (FR-071)
+tool-call-demo (examples/demos/tool-call/graph.yaml): Demonstrates tool_call node type — dynamic tool dispatch from state
+typescript-node-json-demo (examples/demos/typescript-node/graph.yaml): Deterministic python-node graph for TypeScript subprocess integration
+verification-demo (examples/demos/verification/graph.yaml): Node guards on a side-effect node plus a graph-wide verify block
+verification-gate-demo (examples/demos/verification-gate/graph.yaml): Demonstrates the verification gate pattern (FR-164). Each node states what it expects; the framework checks after execution.
+verified-search (examples/demos/verified-search/graph.yaml): POC: Evaluation-first agent pattern. The agent must state a verification question BEFORE taking action. The report extracts this question as structured output for traceability. This enables: - Post-hoc evaluation: Did the agent answer the question it claimed to ask? - LangSmith traces labeled with stated intent - Comparison of stated vs actual behavior Key insight: The verification_question is in the PROMPT (reasoning pattern), not the GRAPH (orchestration). Prompts define how to think; graphs define where data flows.
+web-research (examples/demos/web-research/graph.yaml): Agent that researches topics using web search
+wiki-memory-gate (examples/demos/wiki-memory/graph.yaml): Wiki page editor with reference-integrity gate
+write-data-file-demo (examples/demos/write_data_file/graph.yaml): Accumulating world bible via read-compress-write cycle
+yamlgraph-demo (examples/demos/yamlgraph/graph.yaml): Content generation pipeline (generate → analyze → summarize)
+changelog-req-cross-check (graphs/enforcement/changelog-req-check.yaml):
+fr_triage (.chaplain/graphs/fr_triage/graph.yaml): Canon pass + pre-mortem witnesses + value-prop check, appended into the FR as dispositionable claims
+philosopher-scan (.chaplain/graphs/philosopher/graph.yaml): Scan diary entries for recurring patterns and propose graduations. Nine phases: scan → analyze → distill → unwrap_distill → [challenge → unwrap_challenge →] propose → load_context → reflect → write_diary. The distill/challenge gate (FR-195) prevents weak patterns from reaching .chaplain/inbox/.
+watcher-diary (.chaplain/graphs/watcher-diary/graph.yaml): Watcher2 Phase 2 — single copilot node writes a diary reflection from an inbox topic file.
+watcher-forensic (.chaplain/graphs/watcher-forensic/graph.yaml):
+world_distill (.chaplain/graphs/world_distill/graph.yaml): Refresh docs/world-context.md — ecosystem events distilled for philosopher grounding
   committed_context: ## Committed context (deterministic, author-independent)
 
 ### Capability registry (CAP one-liners)
-CAP-01 Config Loading & Validation | CAP-02 Graph Compilation | CAP-03 Node Execution | CAP-04 Prompt...
-  os_infra_finding: {'persona': 'os-infra-primitivist', 'candidate': 'Wrap the retry handler\'s state["errors"] write in a process-boundary assertion that the key is read by a downstream node before that node raises. Use...
-  data_process_finding: {'persona': 'data-process-planner', 'candidate': 'Add a pre-commit schema validator that checks every node raising an exception has a reachable error-channel record in state["errors"] before the raise...
-  yamlgraph_native_finding: {'persona': 'yamlgraph-native-planner', 'candidate': 'Add a deterministic pre-commit linter that walks the graph AST, identifies all raise sites without reachable error-channel writes, and flags only ...
-  subtractionist_finding: {'persona': 'subtractionist', 'candidate': 'Delete the requirement that error-channel records reach operators. Instead, make state["errors"] a mandatory pre-commit lint target: any node raising withou...
-  librarian_research: Search results for 'Pylint flake8 custom rule detect raise without accessing error record':
+CAP-01 Config Loading & Validation | CAP-02 Graph Compilation | CAP-03 Node Execution | CAP-04 Prompt Execution | CAP-05 Tool & Agent Integration | CAP-06 Routing & Flow Control
+CAP-07 State Persistence | CAP-08 Error Handling | CAP-09 CLI Interface | CAP-10 Export & Serialization | CAP-100 Chatterbox Multilingual CLI | CAP-101 A2A Consumer Contrib Client
+CAP-102 Complete Worktree Teardown Self-Heal | CAP-103 A2A SDK v1.0 Compatibility | CAP-104 A2A Server Reference Documentation | CAP-105 A2A Consumer Phase 2 — Agent Card, Skill Selection & Streaming | CAP-106 GitHub Issues Remote Inbox | CAP-107 Guardrails Pattern Documentation
+CAP-108 Changelog REQ Cross-Validation Gate | CAP-109 Harden GitHub Issues Remote Inbox | CAP-11 Subgraph & Map | CAP-110 Diary Index Graph | CAP-111 Shared Graph Invocation | CAP-113 Chaplain Research Step
+CAP-114 Automated Post-Merge Finalization | CAP-116 Acceptance Tests Before Enforce | CAP-117 Race Node parse_json & Content Normalization | CAP-118 Copilot Node Model Selection | CAP-119 Race Node Timeout Fix | CAP-12 Utilities
+CAP-120 CLI Inter-Run State Chaining | CAP-121 Async Race Node with Cancellable Candidates | CAP-122 Router Node with Candidates Race Support | CAP-124 Watcher2 PR Reuse (FR-275) | CAP-125 Pipeline Script Retirement (FR-276) | CAP-126 Test Speed Optimization
+CAP-127 CI Hardening Consolidation | CAP-128 Chaplain Documentation | CAP-13 LangSmith Tracing | CAP-130 Watcher2 Finalize Pre-commit Optimization | CAP-131 Anthropic Prompt Caching Support | CAP-132 Watcher2 CI Resilience
+CAP-133 Watcher2 CI Remediation Crash Fix | CAP-134 Watcher2 Changelog Auto-Generation | CAP-135 Watcher2 Forensic Failure Diary | CAP-136 Per-Graph Typed MCP Tools | CAP-137 Watcher FSM System Startup Script | CAP-138 Watcher Pipeline FSM Simplification
+CAP-139 Root README Accuracy Contract | CAP-14 Graph-Level Streaming | CAP-140 Watcher2 Validate Split Fix/Gate | CAP-141 Shared FSM Bridge Module | CAP-142 Skill Export Portable Packaging | CAP-143 Agent Export Tool-Scoped Personas
+CAP-145 Copilot Instrumentation Gap Closure | CAP-146 FSM Snapshot Hooks Phase 2 Subclassing | CAP-147 Graph Run JSON Stdout + TypeScript Node Integration | CAP-148 CI Co-authored-by Trailer Gate | CAP-149 Prompt Theme Analyzer Demo | CAP-15 Expression Language
+CAP-150 Philosopher's Book Demo | CAP-151 Graph Lint JSON Output | CAP-152 Watcher2 Dispatcher Audit Cadence | CAP-153 Built-in Questionnaire Gap Utilities | CAP-154 Hook Classification Daemon | CAP-155 Schema Loader Tool Type
+CAP-156 WIP Commit Subject Gate | CAP-157 Graph Loader Strict Tool Load Fail Fast | CAP-158 Copilot Skill Promotion | CAP-159 Standalone Planner Demo | CAP-16 Linter Cross-Reference | CAP-160 CAP Architecture Auto-Sync
+CAP-161 Standalone Enforcer Demo | CAP-162 Enforcer Demo Safety Hardening | CAP-163 CAP Retirement Support | CAP-164 Structured Output JSON Fallback | CAP-165 Watcher2 Baseline Dead Code Removal | CAP-166 Meta Self-Reflective Demo
+CAP-167 Dungeon Master Example | CAP-168 Conditional Edge to Map Node | CAP-169 Dungeon Master Web UI | CAP-17 Execution Safety Guards | CAP-170 Dungeon Master Web UI v2 (Journey-First) | CAP-171 Executor Plain-Text Content Normalization
+CAP-172 Prompt-Monolith Linter Check (W026) | CAP-173 Write Data File Tool | CAP-174 Data Files Glob Support | CAP-175 Novel Fandom Canon Schema | CAP-176 Novel Fandom Enriched World Model | CAP-177 Novel Fandom Plot Pathfinder
+CAP-178 Novel Fandom Prose and Close Loop | CAP-179 Novel Fandom Wiki Core Types | CAP-18 Testing & Quality | CAP-180 Novel Fandom World Expansion | CAP-181 Novel Fandom Genesis Pipeline | CAP-182 Agentic Event Deepening
+CAP-183 First-Class Verification | CAP-184 Novel Fandom Duplicate Entity Prevention | CAP-185 Novel Fandom Ref Integrity Graph-Tool | CAP-186 Novel Fandom Genesis Self-Correcting Pipeline | CAP-187 Novel Fandom Semantic Dedup Graph-Tool | CAP-188 Novel Fandom Agent-First Architecture
+CAP-189 Worktree CLI Contract | CAP-19 MCP Server Interface | CAP-191 Instrumentation Worktree Delegation | CAP-192 Branch Deny Guidance Manual Worktree Lane | CAP-193 Watcher Wrapper JSON Envelope | CAP-194 Novel Fandom Plot Threads and Throughlines
+CAP-195 Timeframe Recap Demo | CAP-196 Novel Fandom World Pressure | CAP-197 Novel Fandom Event Revision | CAP-198 Persistent Bridge Loop | CAP-199 Security and Coverage Gate Truth | CAP-20 Contrib Utilities
+CAP-200 Prompt Request Front Door | CAP-201 Pre-emptive Module Splits | CAP-202 SMT Condition Verification | CAP-203 ICPC-2 RFE Classifier Example | CAP-204 CWE Vulnerability Classifier Example | CAP-205 World Distill Graph
+CAP-206 FR Triage Graph | CAP-207 Loader Error UX | CAP-208 FR Atlas Onboarding Demo | CAP-209 Root Package Seams | CAP-21 Diary Digest Tools | CAP-210 Edge Shape Classification
+CAP-211 Sole-Route Judge and Review Wrappers | CAP-212 OpenTelemetry Observability Boundary | CAP-213 Example Dependency Taxonomy Generator | CAP-214 Direct-Import Dependency Scanner | CAP-215 Style-Convert Pipeline | CAP-216 Tool Manifests
+CAP-217 Shared Vision Tool | CAP-218 Shared Document Splitter | CAP-219 Book-Summary Vision Fallback | CAP-22 Code Quality Lints | CAP-220 Shared Shell Toolbelt Manifests | CAP-221 Demo Graph Binding Hygiene and Grounded Synthesis Gate
+CAP-222 macOS File-Hook Example (Folder-Triggered Graph) | CAP-223 User Self-Portrait Example (PersonalizationPortrait → Agent Context) | CAP-224 API Discovery Leaf Tool Manifests | CAP-225 API Discovery Endpoint-Probe Step | CAP-226 API Discovery Page-Analysis Step | CAP-227 Shared Python Tool Manifest Root Confinement Fix
+CAP-228 API Discovery Platform-Confirm Step | CAP-229 Playwright Network Sniff Utility | CAP-23 Skip-If-Exists Truthiness | CAP-230 Provider Readiness Preflight | CAP-231 API Discovery Recon Step | CAP-232 API Discovery Browser-Sniff Step
+CAP-233 API Discovery Schema-Extract Step | CAP-234 API Discovery Orchestrator | CAP-235 Multi-Step Investigation Scaffold | CAP-236 Router-Visible Tool-Call Outputs | CAP-237 Author Brief Pre-Flight | CAP-238 API Discovery Orchestrator v2 — Recon and Browser-Sniff Routing
+CAP-239 Discord Hello Slash-Command Example | CAP-24 Interactive Tool Node | CAP-240 FR Knowledge Graph Extraction | CAP-241 Weekly Recap Publication | CAP-242 Lint/Compile Validation Parity | CAP-243 Requirement Witness Audit
+CAP-244 Ramp Installer | CAP-245 Ramp Tailoring Graphs | CAP-246 Scripture-dev Salvage Classification | CAP-247 Memory-Corpus Curation (Selective Amnesia) | CAP-248 Research Sole Route (Closed-Input Alternatives) | CAP-249 Invocation-time tool-slot binding
+CAP-25 Tavily Domain RAG Demo | CAP-250 Corpus-census synthesize tail | CAP-251 Copilot cost ledger — priced attribution | CAP-252 Shared SMTP Email Tool | CAP-253 Org repository census with pinned-Azure delegation | CAP-254 Session Worktree Lifecycle
+CAP-255 OS-Enforced Main-Write Lock | CAP-26 Streaming Error Resilience | CAP-28 Graph-Level Thinking Budget | CAP-30 Copilot Node | CAP-31 Chaplain Diary Append | CAP-32 eBook Authoring Pipeline
+CAP-33 Worktree Pipeline | CAP-34 Compiled Graph Cache | CAP-36 Inquisitor Auto-Propose | CAP-37 Architecture Provider Count Guard | CAP-38 Post-Merge Finalization | CAP-39 Inquisitor Commit-Delta Gate
+CAP-41 Clean GIT Env Test Fixture | CAP-42 Inquisitor Worktree Gate | CAP-43 Copilot Session GC | CAP-44 Judge SPLIT Verdict | CAP-45 Diary Reflection Enforcement | CAP-46 Diary Import CLI
+CAP-47 Phantom Requirement Detection | CAP-48 CHANGELOG Removal Completeness | CAP-49 Examples Documentation Audit | CAP-50 CI CHANGELOG Gate | CAP-51 Branch Protection Documentation | CAP-53 CI Conflict Marker Gate
+CAP-54 CI Diary Existence Gate | CAP-55 Chaplain Inbox Documentation | CAP-56 Verification Gate Pattern | CAP-57 Verification Count Range Pydantic | CAP-59 Configurable Loop Exit Target | CAP-60 Worktree Venv Corruption Guard
+CAP-64 Concurrency Safety Map | CAP-65 Append-Only Capability Registry | CAP-66 Append-Only Changelog | CAP-67 Philosopher Daemon | CAP-68 CI Dependency Security Scan | CAP-69 Knowledge Graph Graduation (FR-190)
+CAP-70 Knowledge Graph Graduation (FR-191) | CAP-71 Release Changelog Sync Gate | CAP-72 Knowledge Graph Mass Graduation (FR-193) | CAP-73 Philosopher Challenge Node (FR-195) | CAP-74 FSM Scripture CLAUDE.md (FR-199) | CAP-75 Portable Chaplain (FR-196)
+CAP-76 Horoscope Demo | CAP-77 Image Generation Pipeline | CAP-78 .fi Domain Crawl Demo | CAP-79 Demo Proof Gate | CAP-81 A2A Protocol Server | CAP-82 Block AI Co-Author Trailers
+CAP-83 Research Agent Demo | CAP-84 Import-Linter Architectural Boundary Enforcement | CAP-85 Dependency Rationale Audit | CAP-86 Ruff Security Rules | CAP-87 Ruff C901 Cognitive Complexity Gate | CAP-88 Google/Vertex Thinking Budget Support
+CAP-89 Execution Timing Callback | CAP-90 Graph Bench Command | CAP-91 Race Node Type | CAP-92 Chatterbox TTS Demo | CAP-93 Chatterbox Voice Clone Demo | CAP-94 Compile-Time Pipeline Templates
+CAP-95 Parallel Fan-Out Edges | CAP-96 Per-Node Timeout | CAP-98 Pipeline Accumulated State | CAP-99 Race and Pipeline Node Type Documentation
 
-1. How to make pylint, flake8 or pycodestyle to... - Stack Overflow
-   URL: https://stackoverflow.com/quest...
-  librarian_tool_results: [{'tool': 'search_web', 'args': {'query': 'error context loss pipeline state dict upstream cause not propagated downstream', 'max_results': 5}, 'output': "Search results for 'error context loss pipeli...
-  librarian_finding: {'persona': 'librarian', 'candidate': 'Semgrep is a fast, open-source static analysis tool supporting 30+ languages that runs in pre-commit, IDE, and CI/CD workflows. Custom rules can detect data flow...
-  findings: [{'persona': 'os-infra-primitivist', 'candidate': 'Wrap the retry handler\'s state["errors"] write in a process-boundary assertion that the key is read by a downstream node before that node raises. Us...
-  result: {'artifact': 'tmp/draft-alternatives.md', 'rows': 5, 'non_echo_rows': 5, 'classes': 4}
+### Prior art retrieved for this brief (filename-noun, IDF-ranked)
+  FR-890-research-sole-route-closed-input-alternatives.md  [Completed]  matches: prior, art, precedent, brief
+  FR-767-graph-authoring-sole-route.md  [Implemented]  matches: prior, art, precedent, brief
+  FR-895-census-synthesize-tail.md  [Enforced]  matches: prior, art, precedent, brief
+  FR-896-research-route-precedent-traceability.judgement.md  [Implemented]  matches: prior, art, precedent, brief
+
+### ARCHITECTURE.md headings
+YAMLGraph Architecture
+Design Philosophy
+One-shot execution (stateless)
+Multi-turn with threads (stateful)
+Module Architecture
+End-to-End Flow
+Capabilities & Requirements Traceability
+Key Data Flows
+Resume an interrupted run (using checkpointer)
+Extension Points
+Testing Strategy
+Code Quality Rules
+Key Design Decisions
+❌ Wrong
+✅ Correct
+❌ Wrong
+✅ Correct
+❌ Wrong
+✅ Correct
+File Reference
+Contributing
+
+### Scripture trap/cure keys
+architecture_as_diagram, are_the_witnesses_one_phenomenon, artifact_carries_code_identity, ask_before_generate, assert_path_not_destination, audit_as_ritual, audit_gate, automation_inherits_doctrine, boring_enforcement, boundary_inventory
+callsite_fix, capability_constraint_matrix, changelog_ci_gate, changelog_first_diagnostic, composition_bug, conductor, constraint_over_code, continuation_bias, cross_project_graduation, demo_vs_test
+detection_without_enforcement, diary_graduation_pipeline, does_the_platform_already_do_this, does_the_tool_fit_or_merely_exist, downstream_fix, enforcement_at_merge_boundary, false_duplicate, five_whys, forced_opposite, framework_costume
+gate_checks_shape_not_substance, graduation, growth_as_default, ideal_result_backwards, incident_density_ranking, infrastructure_self_exempt, inquisitor_auto_escalation, instruction_boundary_uncrossed, intent_drift, inventory_by_visibility
+investigation_before_fix, is_this_a_graph, judge_as_junior_pr, junk_drawer_cap, metric_archaeology_before_reading_output, mixed_commits_erode_auditability, mock_escape_hatch, model_as_trusted_peer, name_the_seam, one_session_one_repo
+partial_remediation, plausible_wrong_answer, pre_mortem, quick_confidence, read_raw_output_first, recent_changes_blindness, refactor_orphans_secondary, regex_fourth_exclusion, req_coverage_as_universal_gate, research_as_inventory
+spec_kill, streaming_xray, substance_over_presence, symptom_patch, test_before_reading, three_reads, threshold_encodes_forecast, tolerant_matching, two_strike_split, unchallenged_premise
+value_proposition, vendor_default_as_help, verification_checkpoint_primitive, what_does_the_raw_record_say, what_would_the_successor_need, where_is_the_repo_boundary, who_reads_this_when, working_system_inertia, workspace_is_not_boundary, would_you_use_this
+  os_infra_finding: persona='os-infra-primitivist' candidate='Inject a deterministic, author-independent FR-corpus index into the committed-context block at research-graph startup. Index contains only FR filenames and their creation timestamps, built by a pre-research hook that reads `feature-requests/*.md` once and serializes the list as immutable context.' solution_class='boundary-enforcement' verdict='pursue' precedent='FR-890 R-2 (closed input boundary); FR-896 (precedent traceability); CAP-248 (research sole route); gate_checks_shape_not_substance (Scripture)' is_this_a_graph="No. The index is a static data artifact injected into the research graph's context block, not a graph mechanism itself." effort_risk='Low/medium. Effort: add a pre-research hook to serialize FR filenames and timestamps into context. Risk: context size must stay under `_MAX_CONTEXT_LINES`; 854 files as one-liners fit easily.' rationale='The research personas already receive a deterministic context block from `collect_committed_context`. Adding an FR-corpus index there preserves closure (author-independent, committed, immutable) while giving personas a lookup table to ground precedent citations. This shifts precedent retrieval from persona memory to a verifiable artifact the personas can cite by filename.'
+  data_process_finding: {'persona': 'data-process-planner', 'candidate': 'Inject deterministic FR-corpus summary (854-file digest: count, recency, rejection-rate) into committed_context block before research runs, enabling personas to cite real precedent without author narrative.', 'solution_class': 'schema-data', 'verdict': 'pursue', 'precedent': 'FR-890 R-2 (closed input boundary); gate_checks_shape_not_substance (Scripture); FR-737 F4 (witnessed miss escalation); CAP-248 (research sole route).', 'is_this_a_graph': 'No. This is a schema and lifecycle change: add a deterministic, author-independent corpus digest to the committed context block before research graph invocation.', 'effort_risk': 'Medium effort, low risk. Digest generation is deterministic and bounded (one-liner per FR: ID, status, date). Fits within _MAX_CONTEXT_LINES. No persona or artifact schema changes required.', 'rationale': 'Research runs blind to prior art because the FR corpus is not in committed_context. Injecting a digest (not full corpus) respects the closed-input boundary, gives personas a verifiable precedent anchor, and moves retrieval upstream—before conclusions freeze—without author narrative.'}
+  yamlgraph_native_finding: persona='yamlgraph-native-planner' candidate='Inject a deterministic prior-art corpus digest into committed_context via a new `_collect_prior_art` function. Rank FRs by filename-noun IDF, cap at 20 rows, and append as a read-only reference block alongside capability registry and ARCHITECTURE headings.' solution_class='schema-data' verdict='pursue' precedent='FR-890 R-2 (closed-input boundary), FR-896 (research-route precedent traceability), gate_checks_shape_not_substance (Scripture)' is_this_a_graph='corpus-census: deterministic collection, extraction bound at invocation time, reducer owns output rendering.' effort_risk='Medium: extends committed_context block within _MAX_CONTEXT_LINES budget; reuses existing prior-art.py noun extraction and IDF ranking; no schema column changes required.' rationale='Moves precedent retrieval into the research phase by making prior-art results a deterministic, author-independent input. Personas cite from a corpus digest they can see, not from memory. Judge receives FR + research artifact + prior-art reference, closing the evidence chain.'
+  subtractionist_finding: {'persona': 'subtractionist', 'candidate': 'Delete the frozen `precedent` column shape check from `scripts/research_preflight.py` and `research_tools.py`. Personas already cannot access the FR corpus; requiring them to cite it is a gate that fails on its own constraint. Let the Judge receive raw research rows and validate precedent substance itself.', 'solution_class': 'schema-data', 'verdict': 'pursue', 'precedent': 'FR-890 R-2 (closed input boundary); gate_checks_shape_not_substance (Scripture); FR-737 F4 (witnessed escalation beyond filenames requires a miss).', 'is_this_a_graph': 'No. This is a schema and validation removal, not a graph dependency or retrieval problem.', 'effort_risk': "Low. Delete two validation blocks and one column constraint. Risk: research rows may carry empty or false precedent; Judge must then enforce substance. That is already the Judge's role.", 'rationale': 'The precedent column is currently shape-checked for non-emptiness only, yet 15 of 60 rows cite nothing verifiable. Personas have no access to the FR corpus, so the gate is a false boundary. Removing the shape check stops pretending the research step can validate what it cannot see, and moves substance validation to the Judge—where the FR, doctrine, and evidence are all present.'}
+  librarian_research: Search results for 'precedent citation verification lookup mechanism before decision finalization':
+
+1. JurisCheck - Citation Verification for Legal Documents
+   URL: https://www.jurischeck.com/
+   JurisCheck is a Bluebook-native legal citation verification service that helps attorneys, legal teams, and scholars confirm authorities before filing briefs, memos, and journal articles.
+
+2. FinalVerify — Citation Verification for Legal Professionals
+   URL: https://finalverify.com/
+   Verify Every Citation Before You File FinalVerify checks your case citations, statutes, and references against authoritative databases — and shows you exactly how each one was verified.
+
+3. PrecedentPilot — Search
+   URL: https://precedentpilot.com/
+   PrecedentPilot: unified legal search across facts, rules, and case names — plus Amelia, your AI legal research assistant.
+
+4. Veridictum - Legal Citation Verification
+   URL: https://veridictum.legal/
+   Search 539,000+ precedential cases by legal topic or keyword Smart Case Ranking - landmark cases and highly-cited precedent appear first Citation lookup - enter a citation to find the case and related cases Search by legal topic across 539,000+ precedential cases Photo Quick Lookup - snap a citation, get instant results
+
+5. Citation Lookup Tool - CourtListener.com
+   URL: https://www.courtlistener.com/c/
+   Use our citation lookup tool to find case law by citation or to browse reporters. Our unique database of reporters and our extensive collection of citations makes for a powerful combination.
+
+  librarian_tool_results: [{'tool': 'search_web', 'args': {'query': 'prior art retrieval validation decision-making workflow precedent evidence', 'max_results': 5}, 'output': "Search results for 'prior art retrieval validation decision-making workflow precedent evidence':\n\n1. PDF Topic 6: Retrieval and Comparison of Prior Art Citations\n   URL: https://www.wipo.int/edocs/mdocs/pct/en/wipo_pct_ge_22/wipo_pct_ge_22_t6.pdf\n   Need to be checked prior to grant decision If additional relevant prior art was found in other jurisdictions you need to consider it before granting Should be applied even when bilateral work-sharing agreements like PPH, Validation, Reinforced Cooperation or Parallel Patent Grant Initiative are in place\n\n2. Prior Art Search | USPTO\n   URL: https://www.uspto.gov/patents/initiatives/prior-art-search\n   One initiative of the Software Partnership is the investigation and sharing of search strategies, and the improvement of tools and resources to evolve better techniques to identify prior art.\n\n3. Innovating Patent Retrieval: A Comprehensive Review of ... - MDPI\n   URL: https://www.mdpi.com/2571-5577/7/5/91\n   Additionally, this dataset offers a well-annotated and standardized collection of patent documents, making the evaluation of prior art search and retrieval systems easier and more efficient.\n\n4. Optimizing Patent Prior Art Search: An Approach Using ... - ResearchGate\n   URL: https://www.researchgate.net/publication/389026531_Optimizing_Patent_Prior_Art_Search_An_Approach_Using_Patent_Abstract_and_Key_Terms\n   The refined prior art search promises to provide valuable assistance to specialists in their decision-making processes, offering insightful analyses and relevant information that can significantly ...\n\n5. H-ProtoRAG: A hierarchical prototype-based retrieval-augmented ...\n   URL: https://www.sciencedirect.com/science/article/pii/S0306457326002529\n   To address these gaps, we propose H-ProtoRAG, a hierarchical prototype-based retrieval-augmented framework for joint CPC classification and prior-art retrieval in multilingual settings. At a high level, the model encodes the CPC hierarchy into a prototype-structured embedding space and couples this representation with a hybrid dense-sparse retrieval stack and a claim-evidence reader ...\n", 'success': True}, {'tool': 'search_web', 'args': {'query': 'feature request triage precedent corpus retrieval timing research phase', 'max_results': 5}, 'output': "Search results for 'feature request triage precedent corpus retrieval timing research phase':\n\n1. Feature Requests: How to Collect, Triage and Close the Loop\n   URL: https://kompassify.com/blog/feature-requests-guide\n   A practical system for managing feature requests — where they come from and how each channel is biased, how to turn a request into a problem statement, a four-stage triage pipeline, how to decide, and how to close the loop when you ship and when you say no.\n\n2. Feature Request Analysis and Processing: Tasks, Techniques, and Trends\n   URL: https://arxiv.org/html/2508.12436v2\n   Goal — This research question aims to identify when the articles were published and how the number and frequency of studies have evolved; where feature request analysis and processing research has been published; what types of articles (academic or industry) exist; and how these studies address challenges related to feature requests.\n\n3. Feature Request Management: A Modern Framework for Product Teams (2026)\n   URL: https://www.koji.so/docs/feature-request-management\n   How product teams capture, triage, and prioritize feature requests at scale — RICE, Kano, and value-vs-effort frameworks, voting vs interview signal, and how AI-native research separates real demand from loud asks.\n\n4. Feature Request Analysis and Processing: Tasks, Techniques, and Trends\n   URL: https://arxiv.org/pdf/2508.12436\n   Feature requests are proposed by users to request new features or enhancements of existing features of software products, which represent users' wishes and demands. Satisfying users' demands can benefit the product from both competitiveness and user satisfaction. Feature requests have seen a rise in interest in the past few years and the amount of research has been growing. However, the ...\n\n5. Openclaw-examples/examples/runnable/25-feature-request-triage ... - GitHub\n   URL: https://github.com/McBorisson/Openclaw-examples/blob/main/examples/runnable/25-feature-request-triage/README.md\n   25 - Feature Request Triage Converts incoming feature requests into an evidence-ranked engineering queue.\n", 'success': True}, {'tool': 'search_web', 'args': {'query': 'patent prior art search retrieval mechanism verification gate', 'max_results': 5}, 'output': "Search results for 'patent prior art search retrieval mechanism verification gate':\n\n1. Google Patents\n   URL: https://patents.google.com/\n   Search and read the full text of patents from around the world with Google Patents, and find prior art in our index of non-patent literature.\n\n2. Prior Art Search | USPTOWIPO - Search International and National Patent CollectionsSearch for patents | USPTOEnd to End Neural Retrieval for Patent Prior Art SearchGoogle Patents Advanced SearchPrior Art Search: Complete Guide for Patentability, AI Tools ...\n   URL: https://www.uspto.gov/patents/initiatives/prior-art-search\n   See full list on uspto.gov See full list on uspto.gov For further information please contact us by e-mail or telephone: Contact: Seema Rao, Director, Technology Center 2100 (571)272-0800 See full list on uspto.gov 3 days ago · This patent search tool allows you not only to search the PCT database of about 2 million International Applications but also the worldwide patent collections. This search facility features: flexible search syntax; automatic word stemming and relevance ranking; as well as graphical results. Whether you’re starting your patent journey or are an experienced searcher, the following tools and learning resources will help you search for patents. Apr 10, 2022 · Off-the-self neural methods like BERT have lower effectiveness for patent prior art search. So, we adapt the BERT model to patent characteristics in order to increase retrieval performance. We propose a new gate-based document retrieval method and examine it in patent prior art search. Search and read the full text of patents from around the world with Google Patents, and find prior art in our index of non-patent literature. May 20, 2026 · Learn how prior art searches work, which AI tools to use, typical costs, best databases, and how to reduce patent risks before filing.\n\n3. WIPO - Search International and National Patent Collections\n   URL: https://patentscope.wipo.int/search/\n   3 days ago · This patent search tool allows you not only to search the PCT database of about 2 million International Applications but also the worldwide patent collections. This search facility features: flexible search syntax; automatic word stemming and relevance ranking; as well as graphical results.\n\n4. Search for patents | USPTO\n   URL: https://www.uspto.gov/patents/search\n   Whether you’re starting your patent journey or are an experienced searcher, the following tools and learning resources will help you search for patents.\n\n5. End to End Neural Retrieval for Patent Prior Art Search\n   URL: https://dl.acm.org/doi/10.1007/978-3-030-99739-7_66\n   Apr 10, 2022 · Off-the-self neural methods like BERT have lower effectiveness for patent prior art search. So, we adapt the BERT model to patent characteristics in order to increase retrieval performance. We propose a new gate-based document retrieval method and examine it in patent prior art search.\n", 'success': True}, {'tool': 'search_web', 'args': {'query': 'evidence retrieval timing decision workflow gate validation before conclusion', 'max_results': 5}, 'output': "Search results for 'evidence retrieval timing decision workflow gate validation before conclusion':\n\n1. Evidence Flow + Execution Model - arxiu.io\n   URL: https://www.arxiu.io/docs/decision-gate/guides/evidence-flow-and-execution-model\n   Evidence Flow + Execution Model At a Glance What: How Decision Gate evaluates evidence and produces decisions Why: Understand exactly what is fetched, validated, and compared Who: Developers, security teams, and architects integrating Decision Gate Prerequisites: getting_started.md One Sentence You Must Remember Decision Gate evaluates evidence; it does not execute tasks.\n\n2. Verification Workflow: Evidence-First Principle, Gate Function Flow ...\n   URL: https://lzw.me/docs/opencodedocs/obra/superpowers/core-workflows/verification-workflow/\n   Learn verification skills and master the evidence-first principle. This tutorial covers the verification iron rule, the complete 5-step gate function workflow, 8 common failure cases, and red flags criteria. It ensures AI agents must provide authentic verification evidence before claiming completion, avoiding false success claims and rationalizations, ensuring code quality, build credibility ...\n\n3. PAVE: Premise-Grounded Answer Validation and Editing for Retrieval ...\n   URL: https://arxiv.org/html/2603.20673v2\n   Abstract Retrieval-augmented language models can retrieve relevant evidence yet still commit to answers before explicitly checking whether the retrieved context supports the conclusion. We present PAVE (Premise-Grounded Answer Validation and Editing), an inference-time validation layer for evidence-grounded question answering.\n\n4. Proactive Research Needs a Decision Gate - Fred\n   URL: https://meet-fred.com/resources/research-operations/proactive-research-decision-gates-ai-insight-pipelines\n   Govern proactive UX research with a decision gate that tests relevance, evidence gaps, source boundaries, ownership, and measurable decision impact.\n\n5. AIES Validation Evidence Package and Release Gates\n   URL: https://www.ai-standards.dev/docs/validation/evidence-and-release-gates\n   Define the immutable evidence package, review controls, publication boundary, and release decision required before AIES may claim external validation.\n", 'success': True}, {'tool': 'search_web', 'args': {'query': 'deterministic context injection closed-input research boundary precedent corpus', 'max_results': 5}, 'output': "Search results for 'deterministic context injection closed-input research boundary precedent corpus':\n\n1. GitHub - SpeeedPenguin/deterministic-context-architecture...\n   URL: https://github.com/SpeeedPenguin/deterministic-context-architecture-\n   Deterministic Context Architecture (DCA) is an input interface engineering framework designed to minimize variance in stochastic LLM outputs through spatial token constraints, attentional detuning, and stateless session lifecycle control. Overview / ...\n\n2. Goodbye AI Drift! The Deterministic Context Layer: Removing...\n   URL: https://www.linkedin.com/pulse/deterministic-context-layer-removing-ais-reliance-model-ryan-jordan-3skqe\n   Every piece of critical context — decisions, insights, strategic facts, behavioral rules, user preferences — is persisted externally from the model. Before every request, this context is assembled through a deterministic pipeline and injected into the prompt.\n\n3. Deterministic Enforcement — Mneme HQ Concepts\n   URL: https://mnemehq.com/concepts/deterministic-enforcement/\n   Deterministic enforcement. A governance check that produces the same verdict for the same code, the same decision corpus, and the same context — every time, independent of model state, retrieval variance, or runtime conditions. Determinism is not a performance property.\n\n4. Deterministic context-free language\n   URL: https://grokipedia.com/page/Deterministic_context-free_language\n   Deterministic context-free languages (DCFLs) exhibit several closure properties that distinguish them from the broader class of context-free languages (CFLs). Notably, DCFLs are closed under complementation, a property not shared by CFLs.\n\n5. Powering AI-ready modernization with AI + CAST and deterministic...\n   URL: https://www.youtube.com/watch?v=CJL_hWAV7hA\n   Shikhar Saran, Director Consulting Delivery at CGI, shares how CAST's deterministic architectural context brings clarity to brownfield systems and makes AI-driven modernization safe, accurate, and scalable. … ...ещё.\n", 'success': True}, {'tool': 'search_web', 'args': {'query': '"retrieval-augmented generation" evidence validation corpus injection research phase', 'max_results': 5}, 'output': 'Search results for \'"retrieval-augmented generation" evidence validation corpus injection research phase\':\n\n1. RAG Isn’t Safer: 9 Injection Paths Through Retrieved Text | Medium\n   URL: https://medium.com/@Praxen/rag-isnt-safer-9-injection-paths-through-retrieved-text-41421c23ad8d\n   Why retrieval-augmented generation can reduce hallucinations yet still open new prompt injection paths teams routinely underestimate.A lot of teams treat retrieval-augmented generation like a security upgrade by default. The model is grounded now, they say.\n\n2. RAG (Retrieval Augmented Generation) — простое... / Хабр\n   URL: https://habr.com/ru/articles/779526/\n   RAG (Retrieval Augmented Generation) — это метод работы с большими языковыми моделями, когда пользователь пишет свой вопросы, а вы программно к этому вопросу «подмешиваете» дополнительную информацию из...\n\n3. Retrieval-Augmented Generation for Large Language Models...\n   URL: https://arxiv.org/pdf/2312.10997v1\n   Retrieval-Augmented Generation (RAG) refers to the retrieval of relevant information from external knowledge bases before answering ques-tions with LLMs.In summary, the advantages and limitations of augmented pre-training are evident.\n\n4. Retrieval-Augmented Generation\n   URL: https://dejan.ai/concepts/retrieval-augmented-generation/\n   Retrieval-Augmented Generation (RAG) is a framework that fetches relevant evidence before the model writes, then feeds the query plus that evidence into the model in a single context window.\n\n5. RAG explained without the hype. RAG = Retrieval-Augmented...\n   URL: https://www.linkedin.com/posts/neuronetis_rag-explained-without-the-hype-rag-retrieval-augmented-activity-7449952724411949056-lmCD\n   RAG = Retrieval-Augmented Generation. Instead of asking an LLM what it knows, you ask it to answer based on documents you provide.It is chunking, rewriting, reranking, and validation working together. That’s how modern RAG systems are built. Naive retrieval is only step one.\n', 'success': True}, {'tool': 'search_web', 'args': {'query': 'RAG pipeline corpus context window precedent lookup before generation', 'max_results': 5}, 'output': 'Search results for \'RAG pipeline corpus context window precedent lookup before generation\':\n\n1. Mastering RAG Pipelines: A Comprehensive Guide to Retrieval-Augmented ...\n   URL: https://martinuke0.github.io/posts/2026-01-06-mastering-rag-pipelines-a-comprehensive-guide-to-retrieval-augmented-generation/\n   What is a RAG Pipeline? A RAG pipeline bridges LLMs with external knowledge bases, typically unstructured data from databases, documents, or data lakes, by retrieving relevant context before generation. [1] [8] It operates in two main phases: indexing (offline preparation of data) and retrieval-generation (online query processing). [1] [4]\n\n2. RAG and Context Injection: Pipeline Design Guide 2026 - explainx.ai\n   URL: https://www.explainx.ai/blog/rag-context-injection-pipeline-design-2026\n   Retrieval-augmented generation is a context engineering problem. This guide covers the full pipeline: chunking strategies, embedding models, retrieval scoring, context injection patterns, and the common failure modes that cause RAG systems to underperform in production.\n\n3. Understanding the Context Window in RAG and Agentic RAG\n   URL: https://medium.com/@dewasheesh.rana/by-dewasheesh-rana-b8404b0acb85\n   In Retrieval-Augmented Generation (RAG), external documents are fetched and added to the LLM prompt. However, the context window limits how much retrieved text can fit.\n\n4. Contextual Retrieval in AI Systems \\ Anthropic\n   URL: https://www.anthropic.com/engineering/contextual-retrieval\n   A primer on RAG: scaling to larger knowledge bases For larger knowledge bases that don\'t fit within the context window, RAG is the typical solution. RAG works by preprocessing a knowledge base using the following steps: Break down the knowledge base (the "corpus" of documents) into smaller chunks of text, usually no more than a few hundred ...\n\n5. GitHub - HarinezumIgel/RAG-LCC: Experimental RAG playground for ...\n   URL: https://github.com/HarinezumIgel/RAG-LCC\n   RAG‑LCC (Retrieval‑Augmented Generation — Local Corpus & Classification) is an experimental lab for studying and addressing these failure modes. Instead of pushing ever‑larger context windows, it treats classification, chunking, retrieval strategy, and content filtering as first‑class architectural decisions.\n', 'success': True}, {'tool': 'search_web', 'args': {'query': 'gate checks substance not shape evidence validation decision system', 'max_results': 5}, 'output': "Search results for 'gate checks substance not shape evidence validation decision system':\n\n1. Field Level Validation for Document AI: A Practical Guide | Matil\n   URL: https://matil.ai/en/blog/field-level-validation\n   What Field Level Validation Means in a Document Pipeline. Field level validation evaluates one extracted value at a time. The system checks whether the value has the expected data type, follows the required pattern, fits an acceptable range, and exists when the field is mandatory.\n\n2. Gates Product Validation\n   URL: https://productvalidation.gates.com/\n   © 2026 Gates Corporation, All Rights Reserved.\n\n3. GATE 2027 | Graduate Aptitude Test in Engineering (GATE)\n   URL: https://gate2027.iitm.ac.in/\n   The syllabi for the GATE 2027 test papers have been revised. Candidates are advised to check the updated syllabi. GATE 2027 Registration through DigiLocker is mandatory for all Indian nationals.\n\n4. 8.24.26 Daily Briefing: GEO Tricks...Demoted. Your Evidence, Earned...\n   URL: https://www.linkedin.com/pulse/82426-daily-briefing-geo-tricksdemoted-your-evidence-earned-authority-nmz2c\n   When AI systems summarize a perceived consensus before users inspect individual sources, credible third-party evidence and recognizable authority become part of the decision experience itself. Global consistency needs local interpretation checks.\n\n5. Evidence Based Medicine – New Approaches and Challenges - PMC\n   URL: https://pmc.ncbi.nlm.nih.gov/articles/PMC3789163/\n   CONFLICT OF INTEREST: NONE DECLARED Evidence based medicine (EBM) is the conscientious, explicit, judicious and reasonable use of modern, best evidence in making decisions about the care of individual patients.\n", 'success': True}, {'tool': 'search_web', 'args': {'query': 'precedent citation verification lookup mechanism before decision finalization', 'max_results': 5}, 'output': "Search results for 'precedent citation verification lookup mechanism before decision finalization':\n\n1. JurisCheck - Citation Verification for Legal Documents\n   URL: https://www.jurischeck.com/\n   JurisCheck is a Bluebook-native legal citation verification service that helps attorneys, legal teams, and scholars confirm authorities before filing briefs, memos, and journal articles.\n\n2. FinalVerify — Citation Verification for Legal Professionals\n   URL: https://finalverify.com/\n   Verify Every Citation Before You File FinalVerify checks your case citations, statutes, and references against authoritative databases — and shows you exactly how each one was verified.\n\n3. PrecedentPilot — Search\n   URL: https://precedentpilot.com/\n   PrecedentPilot: unified legal search across facts, rules, and case names — plus Amelia, your AI legal research assistant.\n\n4. Veridictum - Legal Citation Verification\n   URL: https://veridictum.legal/\n   Search 539,000+ precedential cases by legal topic or keyword Smart Case Ranking - landmark cases and highly-cited precedent appear first Citation lookup - enter a citation to find the case and related cases Search by legal topic across 539,000+ precedential cases Photo Quick Lookup - snap a citation, get instant results\n\n5. Citation Lookup Tool - CourtListener.com\n   URL: https://www.courtlistener.com/c/\n   Use our citation lookup tool to find case law by citation or to browse reporters. Our unique database of reporters and our extensive collection of citations makes for a powerful combination.\n", 'success': True}]
+  librarian_finding: {'persona': 'librarian', 'candidate': 'Retrieval-Augmented Generation (RAG) pipelines inject external corpus context deterministically before generation, separating retrieval timing from conclusion finalization. RAG operates in two phases: offline indexing and online retrieval-generation, ensuring evidence is fetched and validated before the model commits to answers.', 'solution_class': 'external-method', 'verdict': 'pursue', 'precedent': 'https://martinuke0.github.io/posts/2026-01-06-mastering-rag-pipelines-a-comprehensive-guide-to-retrieval-augmented-generation/', 'is_this_a_graph': "Yes. RAG pipelines are graph-structured workflows with indexing and retrieval-generation phases, matching the research route's fan-out topology and deterministic context injection pattern.", 'effort_risk': 'Medium. RAG requires corpus preprocessing and embedding infrastructure, but the pattern directly addresses the timing problem: retrieval happens before generation, not after conclusions freeze.', 'rationale': 'The brief identifies that prior-art retrieval fires after research conclusions are frozen, violating the doctrine that precedent must be known before authority is granted. RAG solves this by making retrieval a mandatory upstream phase before any generation step, ensuring evidence is available and validated before the decision agent commits.'}
+  findings: [{'persona': 'os-infra-primitivist', 'candidate': 'Inject a deterministic, author-independent FR-corpus index into the committed-context block at research-graph startup. Index contains only FR filenames and their creation timestamps, built by a pre-research hook that reads `feature-requests/*.md` once and serializes the list as immutable context.', 'solution_class': 'boundary-enforcement', 'verdict': 'pursue', 'precedent': 'FR-890 R-2 (closed input boundary); FR-896 (precedent traceability); CAP-248 (research sole route); gate_checks_shape_not_substance (Scripture)', 'is_this_a_graph': "No. The index is a static data artifact injected into the research graph's context block, not a graph mechanism itself.", 'effort_risk': 'Low/medium. Effort: add a pre-research hook to serialize FR filenames and timestamps into context. Risk: context size must stay under `_MAX_CONTEXT_LINES`; 854 files as one-liners fit easily.', 'rationale': 'The research personas already receive a deterministic context block from `collect_committed_context`. Adding an FR-corpus index there preserves closure (author-independent, committed, immutable) while giving personas a lookup table to ground precedent citations. This shifts precedent retrieval from persona memory to a verifiable artifact the personas can cite by filename.'}, {'persona': 'data-process-planner', 'candidate': 'Inject deterministic FR-corpus summary (854-file digest: count, recency, rejection-rate) into committed_context block before research runs, enabling personas to cite real precedent without author narrative.', 'solution_class': 'schema-data', 'verdict': 'pursue', 'precedent': 'FR-890 R-2 (closed input boundary); gate_checks_shape_not_substance (Scripture); FR-737 F4 (witnessed miss escalation); CAP-248 (research sole route).', 'is_this_a_graph': 'No. This is a schema and lifecycle change: add a deterministic, author-independent corpus digest to the committed context block before research graph invocation.', 'effort_risk': 'Medium effort, low risk. Digest generation is deterministic and bounded (one-liner per FR: ID, status, date). Fits within _MAX_CONTEXT_LINES. No persona or artifact schema changes required.', 'rationale': 'Research runs blind to prior art because the FR corpus is not in committed_context. Injecting a digest (not full corpus) respects the closed-input boundary, gives personas a verifiable precedent anchor, and moves retrieval upstream—before conclusions freeze—without author narrative.'}, {'persona': 'yamlgraph-native-planner', 'candidate': 'Inject a deterministic prior-art corpus digest into committed_context via a new `_collect_prior_art` function. Rank FRs by filename-noun IDF, cap at 20 rows, and append as a read-only reference block alongside capability registry and ARCHITECTURE headings.', 'solution_class': 'schema-data', 'verdict': 'pursue', 'precedent': 'FR-890 R-2 (closed-input boundary), FR-896 (research-route precedent traceability), gate_checks_shape_not_substance (Scripture)', 'is_this_a_graph': 'corpus-census: deterministic collection, extraction bound at invocation time, reducer owns output rendering.', 'effort_risk': 'Medium: extends committed_context block within _MAX_CONTEXT_LINES budget; reuses existing prior-art.py noun extraction and IDF ranking; no schema column changes required.', 'rationale': 'Moves precedent retrieval into the research phase by making prior-art results a deterministic, author-independent input. Personas cite from a corpus digest they can see, not from memory. Judge receives FR + research artifact + prior-art reference, closing the evidence chain.'}, {'persona': 'subtractionist', 'candidate': 'Delete the frozen `precedent` column shape check from `scripts/research_preflight.py` and `research_tools.py`. Personas already cannot access the FR corpus; requiring them to cite it is a gate that fails on its own constraint. Let the Judge receive raw research rows and validate precedent substance itself.', 'solution_class': 'schema-data', 'verdict': 'pursue', 'precedent': 'FR-890 R-2 (closed input boundary); gate_checks_shape_not_substance (Scripture); FR-737 F4 (witnessed escalation beyond filenames requires a miss).', 'is_this_a_graph': 'No. This is a schema and validation removal, not a graph dependency or retrieval problem.', 'effort_risk': "Low. Delete two validation blocks and one column constraint. Risk: research rows may carry empty or false precedent; Judge must then enforce substance. That is already the Judge's role.", 'rationale': 'The precedent column is currently shape-checked for non-emptiness only, yet 15 of 60 rows cite nothing verifiable. Personas have no access to the FR corpus, so the gate is a false boundary. Removing the shape check stops pretending the research step can validate what it cannot see, and moves substance validation to the Judge—where the FR, doctrine, and evidence are all present.'}, {'persona': 'librarian', 'candidate': 'Retrieval-Augmented Generation (RAG) pipelines inject external corpus context deterministically before generation, separating retrieval timing from conclusion finalization. RAG operates in two phases: offline indexing and online retrieval-generation, ensuring evidence is fetched and validated before the model commits to answers.', 'solution_class': 'external-method', 'verdict': 'pursue', 'precedent': 'https://martinuke0.github.io/posts/2026-01-06-mastering-rag-pipelines-a-comprehensive-guide-to-retrieval-augmented-generation/', 'is_this_a_graph': "Yes. RAG pipelines are graph-structured workflows with indexing and retrieval-generation phases, matching the research route's fan-out topology and deterministic context injection pattern.", 'effort_risk': 'Medium. RAG requires corpus preprocessing and embedding infrastructure, but the pattern directly addresses the timing problem: retrieval happens before generation, not after conclusions freeze.', 'rationale': 'The brief identifies that prior-art retrieval fires after research conclusions are frozen, violating the doctrine that precedent must be known before authority is granted. RAG solves this by making retrieval a mandatory upstream phase before any generation step, ensuring evidence is available and validated before the decision agent commits.'}]
+  result: {'artifact': 'tmp/draft-alternatives.md', 'rows': 5, 'non_echo_rows': 5, 'classes': 3}
+
+research_preflight: artifact ok
+research.sh: provenance line appended: /Users/sheikki/Documents/src/yamlgraph/tmp/worktrees/featfr932-prior-art-in-research/feature-requests/research-runs.jsonl
+research.sh: draft written: /Users/sheikki/Documents/src/yamlgraph/tmp/worktrees/featfr932-prior-art-in-research/tmp/draft-alternatives.md (promote to feature-requests/FR-XXX.research.md on acceptance)

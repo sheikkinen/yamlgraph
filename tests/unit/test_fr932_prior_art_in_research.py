@@ -265,3 +265,180 @@ def test_frozen_schema_is_untouched() -> None:
         "rationale",
     )
     assert frozenset({"pursue", "dissent", "duplicate"}) == rt.MODEL_VERDICTS
+
+
+def _load_preflight():
+    spec = importlib.util.spec_from_file_location(
+        "research_preflight_fr932", REPO_ROOT / "scripts" / "research_preflight.py"
+    )
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+pf = _load_preflight()
+
+
+def _artifact(precedents: list[str], prior_art: str = "  FR-700-x.md  [Done]") -> str:
+    head = [
+        "# Draft alternatives",
+        "",
+        "- brief: b.md",
+        "- run date: 2026-08-30T00:00:00Z",
+        "- personas executed: a, b, c, d, librarian",
+        "",
+        rt.PRIOR_ART_HEADING,
+        prior_art,
+        "",
+        "| " + " | ".join(pf.COLUMNS) + " |",
+        "|" + "---|" * len(pf.COLUMNS),
+    ]
+    personas = ["os-infra", "data-process", "yamlgraph-native", "sub", "librarian"]
+    for persona, precedent in zip(personas, precedents, strict=True):
+        head.append(
+            "| cand | "
+            + persona
+            + " | process-boundary | pursue | "
+            + precedent
+            + " | no | low / low | rationale |"
+        )
+    return "\n".join(head) + "\n"
+
+
+@pytest.mark.req("REQ-YG-623")
+def test_preflight_rejects_prose_only_precedent() -> None:
+    """AC-08: the preflight mirrors the reducer's precedent rule."""
+    text = _artifact(
+        [
+            "FR-890 reducer",
+            "we looked around a bit",
+            "FR-896 validator",
+            "CAP-248 route",
+            "https://example.com/paper",
+        ]
+    )
+
+    violations = pf.verify_artifact(text)
+
+    assert any("precedent" in v for v in violations), violations
+
+
+@pytest.mark.req("REQ-YG-623")
+def test_preflight_rejects_brief_echo() -> None:
+    """AC-08: brief-echo is not precedent in newly generated artifacts."""
+    text = _artifact(
+        [
+            "FR-890 reducer",
+            "brief-echo: the brief said so",
+            "FR-896 validator",
+            "CAP-248 route",
+            "https://example.com/paper",
+        ]
+    )
+
+    violations = pf.verify_artifact(text)
+
+    assert any(rt.ECHO_MARKER in v for v in violations), violations
+
+
+@pytest.mark.req("REQ-YG-623")
+def test_preflight_bounds_none_retrieved_by_the_header() -> None:
+    """AC-08: the honest miss is only honest when retrieval really was empty."""
+    empty = _artifact(
+        [rt.NONE_RETRIEVED] * 4 + ["https://example.com/paper"],
+        prior_art=rt.NONE_RETRIEVED,
+    )
+    assert pf.verify_artifact(empty) == []
+
+    contradicted = _artifact(
+        [rt.NONE_RETRIEVED] * 4 + ["https://example.com/paper"],
+        prior_art="  FR-700-x.md  [Done]",
+    )
+    assert any(rt.NONE_RETRIEVED in v for v in pf.verify_artifact(contradicted))
+
+
+@pytest.mark.req("REQ-YG-623")
+def test_preflight_accepts_a_grounded_artifact() -> None:
+    """AC-08: the three permitted forms all pass."""
+    text = _artifact(
+        [
+            "FR-890 reducer boundary",
+            "CAP-248 research sole route",
+            rt.NONE_RETRIEVED,
+            "FR-896 precedent traceability",
+            "https://example.com/paper",
+        ],
+        prior_art=rt.NONE_RETRIEVED,
+    )
+
+    assert pf.verify_artifact(text) == []
+
+
+@pytest.mark.req("REQ-YG-623")
+def test_retrieval_never_leaks_the_briefs_own_fr(tmp_path: Path) -> None:
+    """FR-890 R-2 closure: the personas must not be shown the author's FR.
+
+    The query path is synthetic, so build_prior_art's self-exclusion cannot
+    see that FR-932's own feature request is the very document whose
+    proposed solution the closed brief exists to withhold.
+    """
+    root = _fake_repo(
+        tmp_path,
+        {
+            "FR-932-prior-art-retrieval.md": (
+                "# FR-932\n**Status:** Approved\n## Summary\nPrior art retrieval.\n"
+            ),
+            "FR-932-prior-art-retrieval.judgement.md": (
+                "# Judgement\n**Status:** Approved\nPrior art retrieval.\n"
+            ),
+            "FR-700-prior-art-precedent.md": (
+                "# FR-700\n**Status:** Completed\n## Summary\nPrior art precedent.\n"
+            ),
+        },
+    )
+    briefs = root / "feature-requests" / "research-briefs"
+    brief = briefs / "fr-932-prior-art-precedent-brief.md"
+    brief.write_text("# brief\n", encoding="utf-8")
+
+    out = rt.collect_committed_context(str(root), str(brief))
+
+    assert "FR-932" not in out, "the brief's own FR leaked into persona context"
+    assert "FR-700-prior-art-precedent.md" in out, "unrelated precedent must remain"
+
+
+@pytest.mark.req("REQ-YG-623")
+def test_retrieval_runs_when_the_node_calls_it_the_way_the_graph_does(
+    tmp_path: Path,
+) -> None:
+    """FR-932: the route passes ONE positional dict, never keywords.
+
+    ``create_python_node`` calls ``func(effective_state)`` — the declared
+    ``variables`` are merged into that dict, not spread into keywords. Every
+    other witness in this file passes two positional strings, a calling
+    convention the graph never uses, so retrieval could be dead in the route
+    while the suite stayed green. It was: the first successful live run
+    emitted ``none-retrieved`` because ``brief_path`` kept its default.
+    """
+    root = _fake_repo(
+        tmp_path,
+        {
+            "FR-700-prior-art-precedent.md": (
+                "# FR-700\n**Status:** Completed\n## Summary\nPrior art precedent.\n"
+            ),
+        },
+    )
+    brief = (
+        root
+        / "feature-requests"
+        / "research-briefs"
+        / "fr-932-prior-art-precedent-brief.md"
+    )
+    brief.write_text("# brief\n", encoding="utf-8")
+
+    out = rt.collect_committed_context(
+        {"repo_root": str(root), "brief_path": str(brief)}
+    )
+
+    assert "none-retrieved" not in out, "retrieval is dead on the route's own seam"
+    assert "FR-700-prior-art-precedent.md" in out
