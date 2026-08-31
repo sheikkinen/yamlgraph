@@ -1,0 +1,43 @@
+{
+  "description": "FR-943 witnessed incident records: four 200-item spark-full census batches (2026-08-31) each aborted in reduce_ledger by ONE map-error finding after all LLM calls completed. Source: tmp/spark-full-census.log (run 2026-08-31 16:34 local). Each entry replays as a finding {'_map_index': idx, '_error': error_text} combined with valid peer findings; the FR-943 contract must contain it as one failed row instead of aborting the batch.",
+  "failure_class": "envelope-validation: model omitted required CorpusCensusFinding fields",
+  "incidents": [
+    {
+      "batch": "batch-01",
+      "quarantined_item": "2026-07-04-0925-0178.txt",
+      "map_index": 178,
+      "error_text": "1 validation error for CorpusCensusFinding\nabstained\n  Field required [type=missing, input_value={'source_index': 178, 'ju...', 'abstain_reason': ''}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/missing",
+      "detail": "model emitted abstain_reason but omitted abstained itself"
+    },
+    {
+      "batch": "batch-02",
+      "quarantined_item": "2026-07-04-1220-0203.txt",
+      "map_index": 3,
+      "error_text": "2 validation errors for CorpusCensusFinding\nabstained\n  Field required [type=missing, input_value={'source_index': 3, 'judg...ry/2026-07-04*.md 2>&1'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/missing\nabstain_reason\n  Field required [type=missing, input_value={'source_index': 3, 'judg...ry/2026-07-04*.md 2>&1'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/missing",
+      "detail": "truncated input_value shows shell text from the item content ('*.md 2>&1') leaking into the model's judgement field"
+    },
+    {
+      "batch": "batch-03",
+      "quarantined_item": "2026-08-20-0418-0531.txt",
+      "map_index": 131,
+      "error_text": "2 validation errors for CorpusCensusFinding\nabstained\n  Field required [type=missing, input_value={'source_index': 131, 'ju...it push -q origin main'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/missing\nabstain_reason\n  Field required [type=missing, input_value={'source_index': 131, 'ju...it push -q origin main'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/missing",
+      "detail": "item content fragment 'git push -q origin main' echoed into the finding"
+    },
+    {
+      "batch": "batch-04",
+      "quarantined_item": "2026-08-24-0001-0688.txt",
+      "map_index": 88,
+      "error_text": "2 validation errors for CorpusCensusFinding\nabstained\n  Field required [type=missing, input_value={'source_index': 88, 'jud... tail -4 | cut -c1-160'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/missing\nabstain_reason\n  Field required [type=missing, input_value={'source_index': 88, 'jud... tail -4 | cut -c1-160'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/missing",
+      "detail": "item content fragment 'tail -4 | cut -c1-160' echoed into the finding"
+    }
+  ],
+  "expected_failed_row": {
+    "judgement": "abstain",
+    "abstained": true,
+    "confidence": 0.0,
+    "evidence_span": "",
+    "repaired": false,
+    "abstain_reason_prefix": "row failed: ",
+    "raw_judgement_contract": "exact str(finding['_error'])"
+  }
+}
