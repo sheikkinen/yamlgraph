@@ -2,8 +2,11 @@
 
 **Priority:** MEDIUM
 **Type:** Bug
-**Status:** PROPOSED — rev 2 (judge R-1–R-6 folded); rev 1 REJECTED
-2026-08-31 (`FR-943-census-row-failure-containment.judgement.md`)
+**Status:** PROPOSED — rev 2
+Judgement: APPROVED WITH REVISIONS
+(`FR-943-census-row-failure-containment.judgement.md`, 2026-08-31);
+R-1–R-6 folded below. Enforcement authorized by operator
+("write fr. judge. enforce").
 **Effort:** 0.5 day
 **Requested:** 2026-08-31
 **First consumer / first event:** the 1,003-item spark-full census of
@@ -23,7 +26,7 @@ error text, failure class, and expected failed-row fields
 (`read_raw_output_first` satisfied; surprising details recorded in the
 research record: partial abstention envelope at index 178; item shell
 content echoed into the judgement field at indexes 3, 131, 88).
-**Prior art (dispositioned):**
+**Prior art:** dispositioned below —
 - **FR-892** built the fail-closed reducer; its batch-fatal contract is
   PRESERVED for structural impossibilities and AMENDED for the
   model-misbehavior class. FR-892's JSONL key-set contract (exactly 11
@@ -41,14 +44,14 @@ content echoed into the judgement field at indexes 3, 131, 88).
 - Scripture `junk_drawer_cap` / `two_strike_split`: model output is a
   CLAIM reconciled in code; demote-never-drop, evidence preserved.
 - REJECTED-FR sweep: no rejected FR touches the census reducer
-  contract. FR-943 rev 1's rejection revisions are folded here.
+  contract.
 
 ## Summary
 
 `_rows_by_index` in `examples/demos/corpus_census/tools.py` raises for
 the whole batch on ANY per-item anomaly. Split its failure taxonomy:
 **attributable model-owned failures** (map-error findings,
-error-string judgements, envelope `ValidationError`s rooted only in
+error-string judgements, envelope `ValidationError`s wholly rooted in
 model-owned fields) become contained, fail-closed **rows** — abstained,
 zero-confidence, frozen-format reason, full causal evidence preserved
 in `raw_judgement` — while **structural impossibilities** remain
@@ -73,13 +76,17 @@ the post-hoc quarantine workflow is retired.
 `is_this_a_graph`: no — deterministic Python contract fix inside an
 existing demo graph's reduce tool (see research record).
 
-### D-1: Contained row-failure class in `_rows_by_index`
+### D-1: Contained row-failure class
 
-**Index validity (frozen):** a usable index satisfies
-`type(index) is int` (booleans excluded), `0 <= index < len(items)`,
-and is unseen. For `_error` findings, attribution uses `_map_index`
-ONLY; missing, boolean, out-of-range, or duplicate `_map_index` is
-structural → batch-fatal.
+**Non-error index selection (frozen, R-3):** read `source_index`; only
+when its value is `None`, fall back to `_map_index`; then require
+`type(selected_index) is int` (booleans excluded), range validity, and
+uniqueness. A present but boolean, non-integer, out-of-range, or
+duplicate `source_index` is structural and MUST NOT fall through to a
+valid `_map_index`. When both are present, `source_index` is selected
+and `_map_index` is not a second attribution input. `_error` findings
+attribute via `_map_index` ONLY (same int/range/uniqueness rule);
+missing or invalid `_map_index` on an `_error` finding is structural.
 
 **Contained (model-owned) → one failed row, no raise:**
 
@@ -91,35 +98,35 @@ structural → batch-fatal.
    (frozen, unchanged). Reason source:
    `"judgement is an error string"`. `raw_judgement` = the original
    judgement string before any stripping or normalization.
-3. **Model-owned envelope `ValidationError`**: `_build_row` raises
-   `ValidationError` and EVERY entry of `exc.errors()` has its
-   location root in a model-owned field:
-   `{judgement, confidence, evidence_span, abstained, abstain_reason}`
-   (including their abstention cross-validation, whose Pydantic
-   location root is the model itself — treated as model-owned).
-   Reason source: the FIRST entry of `exc.errors()` in emitted order,
-   formatted exactly `<dot-joined loc>: <msg> [<type>]`.
-   `raw_judgement` = deterministic JSON of the complete original
-   finding via `json.dumps(finding, sort_keys=True,
-   ensure_ascii=False, separators=(",", ":"))`. If the finding is not
-   JSON-serializable, batch-fatal (no silent stringification).
+3. **Model-owned envelope `ValidationError`** (closed rule, R-4):
+   `_build_row` raises `ValidationError` and EVERY `exc.errors()`
+   entry has either `loc == ()` (the model-level abstention validator
+   — model-owned) or a non-empty `loc` whose FIRST component is one of
+   `judgement`, `confidence`, `evidence_span`, `abstained`,
+   `abstain_reason`. Every other location — unknown roots, reducer
+   fields, or any mixture with a non-model-owned location — is
+   batch-fatal. Reason source: the FIRST entry of `exc.errors()` in
+   emitted order, location text
+   `".".join(str(part) for part in loc) or "<model>"`, formatted
+   exactly `<location>: <msg> [<type>]`. `raw_judgement` =
+   deterministic JSON of the complete original finding via
+   `json.dumps(finding, sort_keys=True, ensure_ascii=False,
+   separators=(",", ":"))`. If the finding is not JSON-serializable,
+   batch-fatal (no silent stringification).
 
 **Failed row (frozen shape):** `judgement="abstain"`,
 `abstained=True`, `confidence=0.0`, `evidence_span=""`,
 `repaired=False`, `abstain_reason = "row failed: " + reason`
-(truncation rule in D-2), `raw_judgement` per class above. The failed
-row must itself pass `LedgerRow` validation; construction failure of
-the replacement row is batch-fatal.
+(truncation in D-2), `raw_judgement` per class above. The failed row
+must itself pass `LedgerRow` validation; construction failure of the
+replacement row is batch-fatal.
 
 **Batch-fatal (structural, preserved from FR-892):**
 - finding is not a dict
-- `_error` finding without a usable `_map_index` (as frozen above)
-- non-error finding without a usable `source_index`/`_map_index`
+- `_error` finding without a usable `_map_index`
+- non-error finding whose frozen index selection fails
 - out-of-range or duplicate index (any finding class)
-- `ValidationError` with ANY entry rooted in a reducer-owned field
-  (`item_ref`, `model`, `prompt_version`, `disagreement`,
-  `raw_judgement`, `repaired`) or mixing model- and reducer-owned
-  locations
+- `ValidationError` failing the closed model-owned rule
 - non-JSON-serializable malformed finding (class 3)
 - missing findings for any item index
 
@@ -130,106 +137,119 @@ the replacement row is batch-fatal.
 first 237 characters plus `...`. Truncation never touches
 `raw_judgement` — the full causal input always survives there.
 
-`counts` (internal) gains `"failed"`. The FR-940 frozen summary line
-becomes (superseding FR-940's format):
+`counts` (internal) gains `"failed"` — exactly
+`{"repaired": N, "demoted": M, "model_abstained": K, "failed": F}`.
+The FR-940 frozen summary line becomes (superseding FR-940's format):
 
 ```
 Normalization: N repaired, M demoted, K model-abstained, F row-failed of T rows.
 ```
 
 The `"row failed: "` reason prefix distinguishes contained rows from
-FR-940 demotions (`unparseable judgement shape`,
-`label not in vocabulary`).
+FR-940 demotions.
 
-### D-3: Public result shape and JSONL unchanged
+### D-3: Public result shape and JSONL unchanged (R-5)
 
-`reduce_ledger`'s public result keeps exactly `markdown_path`,
-`jsonl_path`, `rows`. `counts` is internal to `_rows_by_index` /
-`_write_artifacts`; an internal unit test may assert
-`counts == {"repaired": N, "demoted": M, "model_abstained": K,
-"failed": F}`. JSONL rows keep exactly the existing 11 `LedgerRow`
-keys; failed rows render through the existing markdown table.
+`reduce_ledger` returns exactly `{"ledger": ledger_result}`;
+`ledger_result` keeps exactly `markdown_path`, `jsonl_path`, `rows`.
+`counts` remains internal and MUST NOT appear at either public level.
+JSONL rows keep exactly the existing 11 `LedgerRow` keys; failed rows
+render through the existing markdown table.
 
-## Delivery surface (exact, per judgement R-5)
+### D-4: Focused helper module (R-6)
 
-- `examples/demos/corpus_census/tools.py`
-- `examples/demos/corpus_census/README.md`
-- new `tests/unit/test_fr943_census_row_failure_containment.py`
-- `tests/unit/test_fr892_census_reducer.py` — replace the old
-  map-error and error-string batch-fatal witnesses with FR-943
-  containment witnesses; preserve missing/duplicate/invalid-cell and
-  11-key witnesses
-- `tests/unit/test_fr940_census_judgement_normalization.py` — frozen
-  summary-line amendment only
-- `capabilities/CAP-250-census-synthesize-tail.yaml` — add FR-943 and
-  REQ-YG-634
-- `tests/fixtures/fr943_incident_map_errors.json` (committed incident
-  fixture, already authored)
-- regenerated `ARCHITECTURE.md` (requirement registry)
-- changelog fragment (`fix`, req REQ-YG-634), demo evidence
-  (`demo-output.log` regenerated from the bounded committed demo
-  fixture), FR implementation record, diary reflection
+`tools.py` is 424/450 lines; the FR-943 failure taxonomy lives in a
+new `examples/demos/corpus_census/ledger_failures.py` containing ONLY:
+closed `ValidationError`-location classification, reason
+formatting/truncation, and deterministic raw-finding serialization/
+failed-row value assembly. `LedgerRow`, reducer orchestration, index
+selection, and artifact writing remain in `tools.py`, which stays at
+or below the 450-line hard maximum. The helper exposes no shared
+framework API.
 
-Not touched: `graph.yaml`, prompts, `CorpusCensusFinding` schema,
-YAMLGraph core, `map_compiler`, retry policy, synthesis tail, hooks,
-CI, doctrine.
+## Delivery surface (frozen by judgement)
 
-## Acceptance Criteria
+- D-1 `examples/demos/corpus_census/tools.py` — orchestration, exact
+  index selection, failed-row construction, four-key counts, summary
+- D-2 `examples/demos/corpus_census/ledger_failures.py` — FR-943-only
+  helpers
+- D-3 new `tests/unit/test_fr943_census_row_failure_containment.py`
+- D-4 `tests/unit/test_fr892_census_reducer.py` +
+  `tests/unit/test_fr940_census_judgement_normalization.py` —
+  superseded witnesses and exact summary amendment only
+- D-5 `examples/demos/corpus_census/README.md` + regenerated
+  `examples/demos/corpus_census/demo-output.log`
+- D-6 `capabilities/CAP-249-tool-slot-binding.yaml` (add FR-943; amend
+  REQ-YG-624 clause to: "the corpus-census reducer preserves
+  abstention rows and rejects structural index/completeness failures
+  and invalid ledger cells"), `capabilities/CAP-250-census-synthesize-tail.yaml`
+  (add FR-943 + REQ-YG-634 owning containment, failed-row cells,
+  evidence, four-key count, revised summary), regenerated
+  `ARCHITECTURE.md`
+- D-7 existing `tests/fixtures/fr943_incident_map_errors.json` replay
+  evidence
+- D-8 FR implementation record, `fix` changelog fragment
+  (REQ-YG-634), diary reflection
 
-- [ ] AC-01: `**Research:**` references committed `FR-943.research.md`
-      (six solution classes, precedent disposition, preserved
-      disagreement, effort/risk, `is_this_a_graph`); the FR
-      dispositions every retrieved precedent and cites the committed
-      incident fixture for all four failures.
-- [ ] AC-02: RED first — a valid `_error` finding with
-      `type(_map_index) is int`, in-range, unseen, plus valid peers
-      fails against the current reducer; GREEN emits one failed row
-      without aborting or changing peer rows.
-- [ ] AC-03: a judgement containing a case-sensitive `ERROR_STRINGS`
-      substring becomes one failed row; the original judgement is
-      preserved exactly in `raw_judgement`.
-- [ ] AC-04: a `ValidationError` rooted only in model-owned envelope
-      fields becomes one failed row; deterministic tests cover
-      `confidence: None`, out-of-range confidence, missing evidence on
-      a judged row, and inconsistent abstention cells.
-- [ ] AC-05: a validation error involving any reducer-owned field, or
-      mixed locations, remains batch-fatal; replacement-row
-      construction failure remains batch-fatal.
-- [ ] AC-06: structural cases remain batch-fatal: non-dict finding;
-      `_error` without `_map_index`; boolean, duplicate, out-of-range
-      or otherwise invalid index; non-error finding without a usable
-      index; missing findings; non-JSON-serializable malformed
-      finding.
-- [ ] AC-07: every failed row has exactly `judgement="abstain"`,
-      `abstained=true`, `confidence=0.0`, `evidence_span=""`,
-      `repaired=false`, and a `row failed: ` reason using the frozen
-      first-error format and 240-char rule; tests cover exact-boundary
-      (240) and over-boundary (241+) reasons.
-- [ ] AC-08: `raw_judgement` follows the exact per-class contract
-      (`_error` string / original judgement / deterministic
-      complete-finding JSON); non-serializable finding stays
-      batch-fatal.
-- [ ] AC-09: markdown contains exactly
-      `Normalization: N repaired, M demoted, K model-abstained, F row-failed of T rows.`;
-      internal counts carry exactly the four named keys; public
-      `reduce_ledger` result shape unchanged.
-- [ ] AC-10: JSONL retains exactly the existing 11 keys; failed rows
-      render through the existing markdown table.
-- [ ] AC-11: the four committed incident fixtures replay
-      deterministically — all indexes produce rows, exactly the
-      attributable row fails, peers unchanged, counts exact, evidence
-      complete, no abort; bounded `demo-output.log` regenerated. Paid
-      live runs are optional evidence, not a gate.
-- [ ] AC-12: existing missing/duplicate/invalid-cell/normalization/
-      key-set behavior stays green; old FR-892 map-error and
-      error-string fatal witnesses are replaced by FR-943 containment
-      witnesses.
-- [ ] AC-13: CAP-250 adds FR-943 and REQ-YG-634; new/changed tests
-      carry `@pytest.mark.req("REQ-YG-634")` where they witness the
-      new contract; requirement coverage passes.
-- [ ] AC-14: README documentation, `fix` changelog fragment
-      (REQ-YG-634), FR implementation record, refreshed demo evidence,
-      diary reflection.
+Not authorized: `graph.yaml`, prompts, `CorpusCensusFinding` schema,
+YAMLGraph core, `map_compiler`, retry, synthesis behavior, hooks, CI,
+doctrine, shared failure APIs, public result/JSONL schema expansion.
+No live paid run required.
+
+## Acceptance Criteria (judgement AC-01–AC-17, frozen)
+
+- [ ] AC-01: no unavailable prior-judgement claim in Status; research
+      record retained with all six classes and the four-record
+      incident citation.
+- [ ] AC-02: RED committed first — valid `_error` finding with
+      exact-int, in-range, unseen `_map_index` plus valid peers aborts
+      under current reducer; GREEN emits one failed row, peers
+      unchanged.
+- [ ] AC-03: case-sensitive `ERROR_STRINGS` judgement → one failed
+      row; original judgement exact in `raw_judgement`.
+- [ ] AC-04: `ValidationError` contained iff every location is `()` or
+      rooted in the frozen model-owned set; tests cover field-root,
+      model-root, mixed-root, reducer-root, unknown-root.
+- [ ] AC-05: model-owned fixtures cover `confidence: None`,
+      out-of-range confidence, missing judged-row evidence,
+      inconsistent abstention cells; replacement-row construction
+      failure stays batch-fatal.
+- [ ] AC-06: structural cases stay batch-fatal (non-dict; `_error`
+      without usable `_map_index`; type/range/uniqueness violations;
+      invalid-present `source_index` despite valid `_map_index`;
+      missing findings; reducer/unknown/mixed locations;
+      non-serializable findings).
+- [ ] AC-07: non-error index selection follows the frozen
+      `source_index`-then-None-fallback algorithm; `_error` uses
+      `_map_index` only; both exclude booleans.
+- [ ] AC-08: failed rows carry the exact frozen cells and
+      `row failed: ` reason; tests cover exactly 240 and ≥241 chars.
+- [ ] AC-09: validation reasons use first emitted error, exact
+      `<location>: <msg> [<type>]`, `<model>` for `loc == ()`;
+      truncation never changes `raw_judgement`.
+- [ ] AC-10: `raw_judgement` per class (map-error string / original
+      judgement / sorted compact UTF-8 JSON); non-serializable class-3
+      aborts.
+- [ ] AC-11: counts exactly the four named keys; markdown contains
+      exactly the revised Normalization line.
+- [ ] AC-12: `reduce_ledger` returns exactly one outer `ledger` key
+      with exactly `markdown_path`, `jsonl_path`, `rows`; JSONL keeps
+      exactly 11 keys.
+- [ ] AC-13: all four committed incidents replay as full-row ledgers
+      with exactly one failed target row each, unchanged peers, exact
+      counts, complete raw evidence; bounded demo evidence
+      regenerated; no paid live run required.
+- [ ] AC-14: existing missing/duplicate/invalid-cell/normalization/
+      key-set behavior stays green; replaced witnesses carry
+      REQ-YG-634; surviving FR-892 witnesses retain REQ-YG-624.
+- [ ] AC-15: CAP-249 adds FR-943 and drops the superseded error-string
+      promise from REQ-YG-624; CAP-250 adds FR-943 + REQ-YG-634;
+      regenerated requirement coverage passes.
+- [ ] AC-16: `tools.py` ≤ 450 lines; `ledger_failures.py` FR-943-only,
+      no shared framework API.
+- [ ] AC-17: README, REQ-YG-634 `fix` changelog fragment, FR
+      implementation record, refreshed demo evidence, diary
+      reflection committed.
 
 ## Alternatives Considered
 
@@ -242,6 +262,7 @@ O(batch) rerun tax).
 
 ## Related
 
-- FR-892, FR-940, FR-936 judgement D-4, FR-027, FR-069, CAP-250
+- FR-892, FR-940, FR-936 judgement D-4, FR-027, FR-069, CAP-249,
+  CAP-250
 - `tests/fixtures/fr943_incident_map_errors.json` — committed incident
   record (source: `tmp/spark-full-census.log`, 2026-08-31)
