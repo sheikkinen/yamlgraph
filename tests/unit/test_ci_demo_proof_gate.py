@@ -325,21 +325,25 @@ class TestDemoOutputLogNotIgnored:
 
 @pytest.mark.req("REQ-YG-200")
 class TestDemoGateDocumentation:
-    """Verify CLAUDE.md documents the demo-gate status check."""
+    """Verify the ops reference documents the demo-gate status check.
 
-    def test_claude_md_lists_demo_gate(self) -> None:
-        """CLAUDE.md branch protection section must list demo-gate."""
-        content = Path("CLAUDE.md").read_text()
+    FR-942 moved the CI checks list from CLAUDE.md to
+    reference/development-operations.md.
+    """
+
+    def test_dev_ops_lists_demo_gate(self) -> None:
+        """The CI checks section must list demo-gate."""
+        content = Path("reference/development-operations.md").read_text()
         assert (
             "demo-gate" in content
-        ), "CLAUDE.md must list demo-gate as a required status check"
+        ), "development-operations.md must list demo-gate as a status check"
 
-    def test_claude_md_describes_demo_gate(self) -> None:
-        """CLAUDE.md must describe what the demo-gate does."""
-        content = Path("CLAUDE.md").read_text()
+    def test_dev_ops_describes_demo_gate(self) -> None:
+        """The ops reference must describe what the demo-gate does."""
+        content = Path("reference/development-operations.md").read_text()
         assert (
             "demo-output.log" in content or "demo proof" in content.lower()
-        ), "CLAUDE.md must describe demo-gate purpose"
+        ), "development-operations.md must describe demo-gate purpose"
 
 
 # ── Enforcer Prompt Tests ──────────────────────────────────────────────────

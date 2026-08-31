@@ -201,11 +201,12 @@ def test_ac06_workflow_step_uses_deterministic_grep_without_llm() -> None:
 def test_ac07_architecture_and_capability_entries_reference_new_req() -> None:
     cap = CAP_148_PATH.read_text().lower()
     architecture = ARCHITECTURE_PATH.read_text().lower()
-    claude = CLAUDE_PATH.read_text().lower()
+    # FR-942 moved the CI checks list from CLAUDE.md to the ops reference.
+    dev_ops = Path("reference/development-operations.md").read_text().lower()
 
     assert "req-yg-358" in cap
     assert "copilot-trailer-gate" in cap
     assert "req-yg-358" in architecture
     assert "copilot-trailer-gate" in architecture
-    assert "copilot-trailer-gate" in claude
-    assert "co-authored-by" in claude
+    assert "copilot-trailer-gate" in dev_ops
+    assert "co-authored-by" in dev_ops

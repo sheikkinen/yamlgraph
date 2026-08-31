@@ -162,7 +162,7 @@ repos:
         entry: python scripts/size_gate.py
         language: system
         pass_filenames: false
-        files: \.(py|sh)$
+        files: \.(py|sh)$|^(CLAUDE\.md|\.github/copilot-instructions\.md)$
         stages: [pre-commit]
 
   - repo: local

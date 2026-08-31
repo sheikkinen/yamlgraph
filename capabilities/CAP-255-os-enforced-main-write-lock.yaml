@@ -5,8 +5,10 @@ description: >
   (chmod -R u-w) via scripts/worktree.sh lock-main/unlock-main/sync;
   the pre-command guard retains only edit-tool classification and a
   lock-mutator fence (git never fenced, sudo passes), with the FR-888
-  shell grammar deleted and a widened shrink-only file-size gate.
-fr: FR-889
+  shell grammar deleted and a widened shrink-only file-size gate that
+  also enforces the FR-942 instruction byte ceiling (33,966 combined
+  bytes for .github/copilot-instructions.md + CLAUDE.md).
+fr: FR-889, FR-942
 modules:
   - scripts/worktree.sh
   - .github/hooks/scripts/checks/main_write.py
@@ -20,7 +22,9 @@ requirements:
       Main-checkout governed roots are locked at the filesystem; unlock
       and sync are audited verbs; edit-tool writes and bare lock-mutator
       commands on main are denied with executable cures; the widened
-      size gate enforces the 450-line limit with a shrink-only baseline.
+      size gate enforces the 450-line limit with a shrink-only baseline
+      and the FR-942 instruction byte ceiling (33,966 combined bytes
+      for the two per-turn instruction files).
     modules:
       - scripts/worktree.sh
       - .github/hooks/scripts/checks/main_write.py

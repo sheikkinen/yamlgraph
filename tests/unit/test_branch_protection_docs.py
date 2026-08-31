@@ -10,6 +10,9 @@ import pytest
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
+# FR-942 moved branch protection / CI checks docs from CLAUDE.md here:
+DEV_OPS = REPO_ROOT / "reference" / "development-operations.md"
+
 
 @pytest.mark.req("REQ-YG-149")
 class TestBreakGlassDocumentation:
@@ -50,14 +53,13 @@ class TestBreakGlassDocumentation:
 
 @pytest.mark.req("REQ-YG-149")
 class TestClaudeMdBranchProtection:
-    """Verify CLAUDE.md contains branch protection section."""
+    """Verify the ops reference contains the branch protection section."""
 
-    def test_claude_md_has_branch_protection_section(self):
-        path = REPO_ROOT / "CLAUDE.md"
-        content = path.read_text()
+    def test_dev_ops_has_branch_protection_section(self):
+        content = DEV_OPS.read_text()
         assert (
             "## Branch Protection" in content
-        ), "CLAUDE.md must have a 'Branch Protection' section (FR-150 AC-6)"
+        ), "development-operations.md must have a 'Branch Protection' section"
 
     def test_claude_md_references_squash_merge(self):
         path = REPO_ROOT / "CLAUDE.md"
@@ -67,41 +69,39 @@ class TestClaudeMdBranchProtection:
             "squash" in content.lower()
         ), "CLAUDE.md branch protection section must mention squash merge"
 
-    def test_claude_md_references_break_glass(self):
-        path = REPO_ROOT / "CLAUDE.md"
-        content = path.read_text()
+    def test_dev_ops_references_break_glass(self):
+        content = DEV_OPS.read_text()
         assert (
             "break-glass" in content.lower()
-        ), "CLAUDE.md must reference break-glass.md for emergency procedures"
+        ), "development-operations.md must reference break-glass.md"
 
-    def test_claude_md_references_required_checks(self):
-        path = REPO_ROOT / "CLAUDE.md"
-        content = path.read_text()
+    def test_dev_ops_references_required_checks(self):
+        content = DEV_OPS.read_text()
         assert (
             "commitlint" in content.lower()
-        ), "CLAUDE.md branch protection section must list required status checks"
+        ), "development-operations.md must list required status checks"
 
 
 @pytest.mark.req("REQ-YG-149")
 class TestClaudeMdMergeQueue:
-    """FR-934: CLAUDE.md must document the merge-queue platform blocker."""
+    """FR-934: the ops reference must document the merge-queue blocker."""
 
-    def test_claude_md_documents_merge_queue_blocker(self):
-        content = (REPO_ROOT / "CLAUDE.md").read_text()
+    def test_dev_ops_documents_merge_queue_blocker(self):
+        content = DEV_OPS.read_text()
         assert "BLOCKED BY PLATFORM" in content, (
-            "CLAUDE.md must record that the merge queue is unavailable "
-            "on this user-owned repo (FR-934 implementation record)"
+            "development-operations.md must record that the merge queue is "
+            "unavailable on this user-owned repo (FR-934 implementation record)"
         )
 
-    def test_claude_md_documents_dormant_merge_group_wiring(self):
-        content = (REPO_ROOT / "CLAUDE.md").read_text()
+    def test_dev_ops_documents_dormant_merge_group_wiring(self):
+        content = DEV_OPS.read_text()
         assert (
             "merge_group" in content
-        ), "CLAUDE.md must state required contexts also report on merge_group"
+        ), "ops reference must state required contexts also report on merge_group"
 
-    def test_claude_md_strict_up_to_date_still_enforced(self):
-        content = (REPO_ROOT / "CLAUDE.md").read_text()
+    def test_dev_ops_strict_up_to_date_still_enforced(self):
+        content = DEV_OPS.read_text()
         assert "Enabled (strict)" in content, (
             "The strict up-to-date regime stays until the queue is "
-            "available; CLAUDE.md must not claim it was retired"
+            "available; the ops reference must not claim it was retired"
         )

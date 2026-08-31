@@ -179,9 +179,11 @@ def test_combined_instruction_bytes_within_ceiling():
     ), f"combined instruction bytes {a + b} exceed ceiling {BYTE_CEILING}"
 
 
-def test_submitting_proposals_only_in_doctrine():
-    """AC-03: the Submitting Proposals section lives in exactly one file."""
-    assert "Submitting Proposals" in DOCTRINE.read_text()
+def test_submitting_proposals_removed_everywhere():
+    """AC-03 (amended by operator 2026-08-31): the chaplain runtime is not
+    running — the Submitting Proposals section is deleted from BOTH
+    instruction files, not deduplicated into the doctrine."""
+    assert "Submitting Proposals" not in DOCTRINE.read_text()
     assert "Submitting Proposals" not in CLAUDE.read_text()
 
 

@@ -186,22 +186,27 @@ class TestSecurityJobStructure:
 
 @pytest.mark.req("REQ-YG-186")
 class TestSecurityDocumentation:
-    """Verify that CLAUDE.md documents the security status check."""
+    """Verify the ops reference documents the security status check.
+
+    FR-942 moved branch protection / CI checks docs from CLAUDE.md to
+    reference/development-operations.md.
+    """
 
     def test_security_in_branch_protection_table(self) -> None:
-        """The branch protection table must list 'security' as a required check."""
-        with open("CLAUDE.md") as f:
+        """The CI checks list must include 'security' as a check."""
+        with open("reference/development-operations.md") as f:
             content = f.read()
-        # The table row for required status checks should include 'security'
-        assert "`security`" in content, "CLAUDE.md must mention `security` status check"
+        assert (
+            "`security`" in content
+        ), "development-operations.md must mention `security` status check"
 
     def test_security_in_status_checks_list(self) -> None:
-        """The required status checks list must describe the security job."""
-        with open("CLAUDE.md") as f:
+        """The status checks list must describe the security job."""
+        with open("reference/development-operations.md") as f:
             content = f.read()
         assert (
             "pip-audit" in content
-        ), "CLAUDE.md must describe pip-audit in the security status check entry"
+        ), "development-operations.md must describe pip-audit in the security entry"
         assert (
             "security.yml" in content
-        ), "CLAUDE.md must reference security.yml workflow"
+        ), "development-operations.md must reference security.yml workflow"
