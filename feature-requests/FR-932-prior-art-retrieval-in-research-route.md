@@ -406,6 +406,54 @@ catches it; `build_prior_art`'s F3 self-exclusion (exact path) does not, so
 the hook consumers can still surface an FR's own judgement as its own prior
 art. Recorded, not fixed here.
 
+### AC-10 closed (2026-08-31) — and the mechanism was dead in its own route
+
+FR-933 landed (`5078a0a9`), the retry converged, and `scripts/research.sh`
+exited 0 for the first time in this FR's history. That first success was
+also the first *observation* — and it showed
+`prior_art: none-retrieved` in the artifact while a direct call to
+`collect_committed_context` returned four hits against the same corpus.
+
+Root cause, fixed in `54c51495`: a python node is invoked as
+`func(effective_state)` — **one positional dict** with the declared
+`variables:` merged in. The route was calling
+`collect_committed_context(repo_root=<the whole state dict>, brief_path="")`.
+`repo_root` survived only because `_state_value` happens to unwrap a dict;
+`brief_path` kept its empty default, and `_prior_art_lines` took the empty
+branch and returned nothing. Every existing unit witness passed **two
+positional strings** — a calling convention the graph never uses. The
+mechanism was green on a seam that does not exist and dead on the one that
+does; `name_the_seam` and `composition_bug` both apply. The new witness
+`test_retrieval_runs_when_the_node_calls_it_the_way_the_graph_does` calls it
+with the single dict and asserts `none-retrieved` is absent.
+
+`examples/demos/research-route/graph.yaml` was **reverted** during this fix:
+the `brief_path: "{state.brief_path}"` wiring authored under C-2 was
+redundant, because `--var brief_path` already places the value in state.
+Reading it out of the state dict inside the node is sufficient, so the
+governed graph artifact is untouched — which also satisfies FR-933 AC-08.
+
+Live witness (rc=0), in both the persona context and the artifact:
+
+```
+### Prior art retrieved for this brief (filename-noun, IDF-ranked)
+  FR-890-research-sole-route-closed-input-alternatives.md  [Completed]
+  FR-767-graph-authoring-sole-route.md  [Implemented]
+  FR-895-census-synthesize-tail.md  [Enforced]
+  FR-896-research-route-precedent-traceability.judgement.md  [Implemented]
+```
+
+`Retry carrying validation feedback` fired twice in that run,
+`research_preflight: artifact ok`, and the provenance line was appended.
+`demo-output.log` in this commit is that run — a passing one, per the
+`gate_checks_shape_not_substance` note above.
+
+Note the fourth hit is a `.judgement.md` sibling, the F3 self-exclusion gap
+recorded above, now witnessed in production output.
+
+**AC-11 met** — `feature-requests/TEMPLATE.md` names the linked research
+record as the retrieval evidence the `**Prior art:**` line dispositions.
+
 ## Testing
 Deterministic unit tests, fixture corpora in `tmp_path`, no network and
 no LLM: AC-01/AC-02 in `.github/hooks/tests/`, AC-03 through AC-09 in

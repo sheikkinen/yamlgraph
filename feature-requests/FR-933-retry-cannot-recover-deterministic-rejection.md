@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Defect
-**Status:** Revised 2026-08-30 — awaiting rejudgement
+**Status:** Implemented 2026-08-31 — RED `e8e7c83d`, GREEN `5078a0a9`
 **Judgement:** [FR-933-retry-cannot-recover-deterministic-rejection.judgement.md](FR-933-retry-cannot-recover-deterministic-rejection.judgement.md)
 — REJECTED on first submission (R-1 missing research evidence; R-2 dangling
 FR-926 path and undispositioned FR-408). R-1..R-5 folded below.
@@ -202,3 +202,78 @@ prompts or `examples/demos/research-route/graph.yaml`; adding a new
 `on_error` mode; reviving FR-408's `auto_repair`, code registry,
 `inject-default`, or threshold relaxation; changing the judge, research, or
 authoring invocation routes; anything in the FR-932 frozen scope.
+
+## Implementation status (2026-08-31) — Implemented
+
+RED `e8e7c83d` (`tests/unit/test_fr933_validation_feedback_retry.py`, five
+tests: two condemning, three regression guards), GREEN `5078a0a9`. Every
+acceptance criterion holds; no condition of the judgement was waived beyond
+C-6, whose waiver is recorded at the head of this document.
+
+### What was built
+
+`yamlgraph/node_factory/validation_feedback.py` (new) turns a
+`ValidationError` into one bounded diagnostic string: the failing field path
+(`err["loc"]`), the sanitized message, the constraint metadata Pydantic
+exposes in `err["ctx"]`, and `len(err["input"])` rendered as "you sent N".
+The rejected value itself is never carried — `_sanitize` redacts it, and
+`str(ValidationError)` is never rendered, because Pydantic embeds the input
+in its own repr (AC-03, AC-08).
+
+`llm_execution._feedback_aware_attempt` is a stateful closure over the
+attempt callable: it holds the last validation error and passes the derived
+feedback to the next attempt, logging `Retry carrying validation feedback:
+%s`. `error_handlers.handle_retry` was deliberately left untouched — its
+zero-argument callable contract is what the non-validation witnesses in
+AC-06/AC-07 depend on, and threading feedback through the closure instead of
+the handler is what keeps them passing unmodified.
+
+### Deviation D-3 — the executor was touched
+
+The approved D-3 file list named only `error_handlers.py`,
+`llm_execution.py`, and `llm_nodes.py`. But the approved FR *text* specifies
+feedback "appended by the executor as a correction instruction", and nothing
+in the node layer can reach the message list. Transport was therefore added:
+`PromptRequest.retry_feedback: str | None = None`, a matching
+`execute_prompt(..., retry_feedback=None)` parameter, and one
+`messages.append(HumanMessage(...))` in `PromptExecutor.execute`. This is the
+sanctioned extension point — FR-715's docstring on `PromptRequest` reads "Add
+a parameter HERE; the witnesses force the mirrors to follow", and the mirrors
+did follow. The deviation is recorded in the GREEN commit message and here;
+it widens the file list, not the behaviour.
+
+### The measurement defect that invalidated the first live evidence
+
+AC-01's premise — that retries were byte-identical — was *asserted* from
+reading the code before it was ever *observed*, and the first attempts to
+observe it failed in a way that nearly sent the investigation into the code
+under test. After the fix was in the worktree, live runs still showed zero
+feedback log lines. An unconditional probe log placed in the changed function
+also never fired. Root cause: `scripts/research.sh` resolves its executor via
+`command -v yamlgraph`, which is a **console script**. Console scripts do not
+put the working directory on `sys.path`, so every "live" run of this branch
+was importing the framework from the **main checkout** — measuring code that
+did not contain the fix. Proven directly:
+
+```
+sys.path.pop(0) → package: /Users/sheikki/.../yamlgraph/yamlgraph/__init__.py
+                  has helper: False
+```
+
+With `PYTHONPATH="$PWD"` the run exits 0, the feedback log fires twice, and
+the retry converges. The probe has since been removed. Consequence: **no live
+evidence from this branch is valid unless the invocation pins the
+interpreter.** This is Scripture's `artifact_carries_code_identity` firing in
+real time, and the same defect class recurs in `scripts/ramp.sh` and
+`.github/hooks/scripts/checks/yaml-checks.sh`; the route repair is filed
+separately rather than smuggled in here.
+
+### AC-09 live witness
+
+`scripts/research.sh` on the FR-932 brief exits 0; `tmp/draft-alternatives.md`
+carries five persona rows and passes `scripts/research_preflight.py` with zero
+violations; the provenance line is appended to
+`feature-requests/research-runs.jsonl` with the brief path and the code SHA.
+The same run also produced FR-932's first real prior-art block — the two
+defects were blocking each other, and neither was visible until the other
+moved.
