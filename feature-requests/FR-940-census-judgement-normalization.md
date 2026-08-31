@@ -182,8 +182,10 @@ separate FR candidate.
   carry the revised key set including `raw_judgement`/`repaired`;
   untouched, repaired, demoted, and model-abstained schemas asserted.
 - AC-6: FR-892 behavior preserved: missing, duplicate, map-error, and
-  invalid abstention-cell rows still fail closed
-  (`test_fr892_census_reducer.py` green, unmodified assertions).
+  invalid abstention-cell rows still fail closed — those assertions in
+  `test_fr892_census_reducer.py` stay unmodified; its frozen-column
+  key-set assertion is extended to the revised schema (explicit schema
+  revision, in scope per R-4).
 - AC-7: `labels` and `model` wired as graph state via the authoring
   route (lint + smoke report); README documents JSON-list invocation;
   a CLI smoke proves `--var labels='[...]'` reaches `reduce_ledger`
