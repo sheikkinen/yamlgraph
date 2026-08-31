@@ -1,7 +1,8 @@
 # Plan: Web Toolkit — Overview
 
-**Date:** 2026-08-31 (rev 4 — B research: converter comparison + HAR map-reduce
-design; rev 3: C primary, D map primitive promoted, B parked)
+**Date:** 2026-08-31 (rev 5 — SPA rendering dispositioned: wrap, don't build;
+interactive lynx-for-agents named as separate-product candidate. rev 4:
+converter comparison + HAR map-reduce; rev 3: C primary, D promoted, B parked)
 **Status:** Draft (pre-FR)
 **Scope:** A TLD-scale classification pipeline (C, primary) and the two
 foundations it stands on: a text-render graph tool (A) and a resumable
@@ -33,6 +34,7 @@ fetch-as-text tool usable inside any graph, and a map primitive that survives
 | map `max_items` + CAP-120 inter-run state chaining + SQLite checkpointer | — | The current workaround stack D replaces with a primitive. |
 | **Common Crawl WET files (external)** | — | .fi pages already crawled *and rendered to text*. C v1 classifies from CC extracts; live-fetch only gaps/refresh. Kills most cost, politeness, and seed problems. |
 | **mitmproxy2swagger / har-to-openapi (external OSS)** | — | Deterministic HAR→OpenAPI converters exist; any future B wraps, not reimplements. Compared in the Parked section. |
+| **Jina Reader / Firecrawl / Crawl4AI / browser-use (external)** | — | "URL → LLM-ready text incl. JS" is an occupied product category. A's JS tier wraps Crawl4AI (or Playwright), never builds rendering. See "SPA rendering: product boundary". |
 
 ## Component C (primary): `.fi` TLD catalog — classify at country scale
 
@@ -98,11 +100,32 @@ chat-surface `fetch_webpage` is not.
   witness fixture (ä/ö, legacy ISO-8859-1 site).
 - **JS policy**: empty/thin dump is **a signal, not a failure** — returned
   tagged (`render: empty|thin|full`), classified downstream as "JS-required".
-  Headless escalation (per CAP-226) is a separate optional tier.
+- **JS tier (disposition: wrap, don't build)**: rendering JS pages to text is
+  an occupied product category (Jina Reader, Firecrawl, Crawl4AI ~40k stars,
+  browser-use). If C's pilot shows the "JS-required" fraction matters, the
+  escalation tier is a second tool manifest wrapping **Crawl4AI** (pip,
+  Playwright-based, LLM-friendly markdown) — same wrap-don't-reimplement
+  verdict as mitmproxy2swagger in B. Building a renderer is out of scope for
+  yamlgraph permanently: by the three-layer doctrine a renderer is Layer 3
+  side-effect plumbing, not orchestration.
 - **Fork for the judge**: lynx (system binary, better layout fidelity) vs
   html2text/trafilatura (pip dep, cheaper CI) — decided on same-page dump
   evidence, not preference. Jina Reader rejected: external service dependency.
 - **Deliverable**: tool manifest + smoke demo graph (URL → dump → summarise).
+
+### SPA rendering: product boundary
+
+"Text rendering of SPA" *is* a product — but the one-shot URL→markdown slot
+is taken (Jina Reader, Firecrawl, Crawl4AI). The unclaimed adjacent slot is
+the actual **lynx UX for agents**: a persistent, navigable text browser —
+numbered links, form fill, session state — exposed as tool calls. That is
+lynx's interaction model reborn for LLM consumers (build-for-agents thesis
+applied to the browser), distinct from both one-shot renderers and
+browser-use-style automation. If pursued, it is a **separate repo/product**,
+not a yamlgraph component; yamlgraph would be its first consumer (tool
+manifest + the C census as demo workload) — the same relationship pattern as
+ninchat_voice and the outcaller. Recorded here so the census work doesn't
+scope-creep into building a browser.
 
 ## Parked: B — `har-to-spec` (needs more info)
 
@@ -199,3 +222,5 @@ Plan → Judge → Enforce. All graph authoring goes through the
    what refresh fraction does that imply for the live-fetch tier?
 4. **Catalog artifact home**: SQLite under `outputs/` for the pilot; a full
    production catalog likely deserves its own repo/dataset boundary.
+5. **JS-required fraction**: C's pilot measures it; the number decides whether
+   the Crawl4AI wrap tier is built at all.
