@@ -1,10 +1,10 @@
 # The Counterfactual I Almost Didn't Run
 
-*2026-08-30 — FR-932 enforcement*
+*2026-08-30 — FR-938 enforcement*
 
 ## What happened
 
-FR-932 gives the research route's personas the feature-request corpus they
+FR-938 gives the research route's personas the feature-request corpus they
 had never been shown. Enforcement went cleanly through two RED/GREEN pairs.
 Then the live run failed on a 400-character schema overflow. I re-ran it.
 Same failure. Re-ran again. Same failure, same persona, same field, same
@@ -19,7 +19,7 @@ quantify my own culpability: 388 characters on 12,000, a 3.2% increase.
 I was three sentences into writing "my change caused this" in the FR when
 the number stopped me. 3.2% context growth causing 4-of-4 failures across
 three different personas is not a proportionate effect. So I checked out
-`examples/demos/research-route/` at the pre-FR-932 commit and ran it again.
+`examples/demos/research-route/` at the pre-FR-938 commit and ran it again.
 
 It failed too. Different persona, different field, same 400-character class.
 
@@ -82,7 +82,7 @@ culpability, you have already skipped the question of whether it exists.
 
 ## Seed
 
-The reasoning sentinel catches "not introduced by this change" — the
+**Seed:** The reasoning sentinel catches "not introduced by this change" — the
 disclaiming direction. Nothing catches "introduced by this change" asserted
 without a counterfactual. Both are unfalsified causal claims about a red
 suite; only one is policed. Should attributing a failure to your own diff

@@ -1,6 +1,6 @@
 # 2026-08-31 — The Seam the Graph Actually Uses
 
-FR-932 + FR-933, enforced together because each was hiding the other.
+FR-938 + FR-933, enforced together because each was hiding the other.
 
 ## The shape of the session
 
@@ -11,7 +11,7 @@ which had already rejected the mechanism I was proposing. The real file is
 `FR-926-research-failure-cites-recorded-cause.md`. I hallucinated a
 plausible citation *inside the FR about citations generated from memory*.
 The judge caught both in one pass by reading the corpus. That is the
-comparison FR-932's retrieval has to answer, and it does not yet.
+comparison FR-938's retrieval has to answer, and it does not yet.
 
 Then enforcement produced two findings neither FR predicted.
 
@@ -55,7 +55,7 @@ a dict. `brief_path` kept its empty default and the prior-art branch
 returned nothing.
 
 Every unit witness passed **two positional strings** — a calling
-convention the graph never uses. FR-932 shipped a mechanism that was green
+convention the graph never uses. FR-938 shipped a mechanism that was green
 on an imaginary seam and dead on the real one. `name_the_seam` says name a
 test after the seam it exercises; the deeper form is: *name the seam after
 the caller that exists.* A test whose call shape differs from the runtime's
@@ -69,8 +69,8 @@ claim about its middle is inference.
 
 ## The interlock
 
-FR-933 could not produce its live witness until FR-932's route ran.
-FR-932's AC-10 could not be met until FR-933's retry converged. Neither
+FR-933 could not produce its live witness until FR-938's route ran.
+FR-938's AC-10 could not be met until FR-933's retry converged. Neither
 defect was visible until the other moved. Two FRs mutually blocking is not
 a scheduling accident — it is the signature of a pipeline whose failures
 are all reported at the same exit code.
@@ -107,4 +107,4 @@ the filename. If an LLM pass over the FR corpus outperforms the lexical
 retriever on the only case that mattered — what is the retriever *for*?
 Is its job to find precedent, or to be the cheap floor that makes a
 model's miss auditable? Those two jobs have different acceptance criteria,
-and FR-932 froze the first while delivering the second.
+and FR-938 froze the first while delivering the second.

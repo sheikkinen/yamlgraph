@@ -20,7 +20,7 @@ concrete moment? An FR that cannot complete this sentence is
      reference is a gate failure — the Judge grants no authority. -->
 **Prior art:** [FR-YYY-name.md](FR-YYY-name.md) — one clause per entry
 saying how this FR differs, including REJECTED FRs.
-<!-- FR-932: this line dispositions the hits printed under "Prior art
+<!-- FR-938: this line dispositions the hits printed under "Prior art
      retrieved for this brief" in the linked research record — that block
      IS the retrieval evidence, and each hit must be either distinguished
      here or explicitly dismissed. Retrieval is filename-noun IDF ranked:

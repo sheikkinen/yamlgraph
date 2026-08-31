@@ -1,4 +1,4 @@
-"""FR-932: prior-art retrieval reaches the personas, and the record says so.
+"""FR-938: prior-art retrieval reaches the personas, and the record says so.
 
 The route validated that a cited FR *exists*, never that it was *found*.
 Across all thirteen research runs before this FR, 20 of 35 cited repo
@@ -21,7 +21,7 @@ NODES = REPO_ROOT / "examples" / "demos" / "research-route" / "nodes"
 
 def _load_research_tools():
     spec = importlib.util.spec_from_file_location(
-        "research_tools_fr932", NODES / "research_tools.py"
+        "research_tools_fr938", NODES / "research_tools.py"
     )
     module = importlib.util.module_from_spec(spec)
     sys.modules[spec.name] = module
@@ -269,7 +269,7 @@ def test_frozen_schema_is_untouched() -> None:
 
 def _load_preflight():
     spec = importlib.util.spec_from_file_location(
-        "research_preflight_fr932", REPO_ROOT / "scripts" / "research_preflight.py"
+        "research_preflight_fr938", REPO_ROOT / "scripts" / "research_preflight.py"
     )
     module = importlib.util.module_from_spec(spec)
     sys.modules[spec.name] = module
@@ -380,16 +380,16 @@ def test_retrieval_never_leaks_the_briefs_own_fr(tmp_path: Path) -> None:
     """FR-890 R-2 closure: the personas must not be shown the author's FR.
 
     The query path is synthetic, so build_prior_art's self-exclusion cannot
-    see that FR-932's own feature request is the very document whose
+    see that FR-938's own feature request is the very document whose
     proposed solution the closed brief exists to withhold.
     """
     root = _fake_repo(
         tmp_path,
         {
-            "FR-932-prior-art-retrieval.md": (
-                "# FR-932\n**Status:** Approved\n## Summary\nPrior art retrieval.\n"
+            "FR-938-prior-art-retrieval.md": (
+                "# FR-938\n**Status:** Approved\n## Summary\nPrior art retrieval.\n"
             ),
-            "FR-932-prior-art-retrieval.judgement.md": (
+            "FR-938-prior-art-retrieval.judgement.md": (
                 "# Judgement\n**Status:** Approved\nPrior art retrieval.\n"
             ),
             "FR-700-prior-art-precedent.md": (
@@ -398,12 +398,12 @@ def test_retrieval_never_leaks_the_briefs_own_fr(tmp_path: Path) -> None:
         },
     )
     briefs = root / "feature-requests" / "research-briefs"
-    brief = briefs / "fr-932-prior-art-precedent-brief.md"
+    brief = briefs / "fr-938-prior-art-precedent-brief.md"
     brief.write_text("# brief\n", encoding="utf-8")
 
     out = rt.collect_committed_context(str(root), str(brief))
 
-    assert "FR-932" not in out, "the brief's own FR leaked into persona context"
+    assert "FR-938" not in out, "the brief's own FR leaked into persona context"
     assert "FR-700-prior-art-precedent.md" in out, "unrelated precedent must remain"
 
 
@@ -411,7 +411,7 @@ def test_retrieval_never_leaks_the_briefs_own_fr(tmp_path: Path) -> None:
 def test_retrieval_runs_when_the_node_calls_it_the_way_the_graph_does(
     tmp_path: Path,
 ) -> None:
-    """FR-932: the route passes ONE positional dict, never keywords.
+    """FR-938: the route passes ONE positional dict, never keywords.
 
     ``create_python_node`` calls ``func(effective_state)`` — the declared
     ``variables`` are merged into that dict, not spread into keywords. Every
@@ -432,7 +432,7 @@ def test_retrieval_runs_when_the_node_calls_it_the_way_the_graph_does(
         root
         / "feature-requests"
         / "research-briefs"
-        / "fr-932-prior-art-precedent-brief.md"
+        / "fr-938-prior-art-precedent-brief.md"
     )
     brief.write_text("# brief\n", encoding="utf-8")
 

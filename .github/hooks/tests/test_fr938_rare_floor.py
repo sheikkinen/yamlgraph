@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""FR-932: rare_floor opt-out for the research consumer.
+"""FR-938: rare_floor opt-out for the research consumer.
 
 The rarity floor is a notification policy, not a retrieval policy. The
 hook consumers interrupt an author and need silence over noise; the
 research consumer grounds a context window and needs the ranked hits.
 
-Pins the measured miss (FR-932 measurement A): at 854 files the
+Pins the measured miss (FR-938 measurement A): at 854 files the
 absolute RARE_MAX_FILES=20 floor disqualifies every noun with ordinary
 currency and build_prior_art returns "". Unmarked, following the
 FR-737 F5 convention of this directory.

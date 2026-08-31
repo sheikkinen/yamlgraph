@@ -5,13 +5,19 @@
 **Status:** Approved with revisions (folded 2026-08-30)
 **Effort:** 1 day
 **Requested:** 2026-08-30
+**Renumbered:** authored and judged as FR-932; moved to FR-938 on 2026-08-31
+after a parallel session landed `FR-932-lukiot-csv-extraction.md` on `main`
+first. References to "FR-932's in-flight territory" in FR-934, FR-935 and the
+2026-08-30 parallel-writers diary mean this document. Run logs, the
+`demo-output.log`, and `research-runs.jsonl` keep the original number: they are
+records of what happened, not claims about what is.
 **First consumer / first event:** the Judge, at the next
 `scripts/judge.sh` run on an FR created after this lands — it opens
 `feature-requests/FR-NNN.research.md` and reads a retrieved,
 status-annotated prior-art block at the head of the table instead of
 inferring precedent from persona prose.
-**Research:** [FR-932.research.md](FR-932.research.md)
-**Judgement:** [FR-932-prior-art-retrieval-in-research-route.judgement.md](FR-932-prior-art-retrieval-in-research-route.judgement.md)
+**Research:** [FR-938.research.md](FR-938.research.md)
+**Judgement:** [FR-938-prior-art-retrieval-in-research-route.judgement.md](FR-938-prior-art-retrieval-in-research-route.judgement.md)
 — APPROVED WITH REVISIONS; R-1 through R-3 of the judgement are folded
 below, and the measurement the judgement relied on was corrected
 downward by the author before enforcement (see Measurement).
@@ -324,7 +330,7 @@ a fabricated citation, and cheaper than an echo.
 Enforced except AC-10. Commits: `eec70f69` RED / `13feeeac` GREEN for the
 hook side; `ba9570c2` RED / research GREEN + `fix(research)` closure fix
 for the route side; graph wiring authored through `scripts/author.sh`
-per C-2 (`feature-requests/authoring-briefs/fr-932-research-route-brief-path-brief.md`,
+per C-2 (`feature-requests/authoring-briefs/fr-938-research-route-brief-path-brief.md`,
 report at `tmp/draft-authoring-report.md`).
 
 **AC-01, AC-02 met.** `rare_floor=False` lifts both rare gates. Enforcing
@@ -340,7 +346,7 @@ its own FR).
 
 **AC-03 through AC-09 met**, plus one requirement the FR missed. The live
 retrieval against the real 854-file corpus returned five hits where the
-floored version returned nothing — and one of them was FR-932's own FR
+floored version returned nothing — and one of them was FR-938's own FR
 file. That breaks FR-890 R-2 closure: the brief is closed precisely so the
 personas never see the author's proposed solution, and the solution is
 written in the FR. `build_prior_art`'s F3 self-exclusion cannot catch it
@@ -354,7 +360,7 @@ consecutive `scripts/research.sh` runs failed, across two briefs and four
 distinct persona/field combinations, every one on `String should have at
 most 400 characters`. A counterfactual run with
 `examples/demos/research-route/{graph.yaml,nodes/research_tools.py}`
-checked out at `13feeeac` — the unmodified pre-FR-932 state — failed the
+checked out at `13feeeac` — the unmodified pre-FR-938 state — failed the
 same way, so the route is red independently of this change. Root cause:
 `handle_retry` re-issues a byte-identical request, so at `temperature: 0.0`
 a schema rejection is retried into the same rejection. The prompts already
@@ -486,7 +492,7 @@ demo run; its log is the demo-gate artifact. Full suite:
 
 ## Alternatives considered
 
-See [FR-932.research.md](FR-932.research.md). Four of five personas
+See [FR-938.research.md](FR-938.research.md). Four of five personas
 converged on injecting a deterministic corpus digest into the committed
 context; the librarian placed it as standard retrieval-before-generation
 practice. The subtractionist proposed the opposite direction — delete

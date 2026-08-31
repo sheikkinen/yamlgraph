@@ -1,7 +1,7 @@
 name: Research Sole Route (Closed-Input Alternatives)
 id: CAP-248
 status: active
-fr: FR-890, FR-896, FR-926, FR-932
+fr: FR-890, FR-896, FR-926, FR-938
 feature_request: feature-requests/FR-890-research-sole-route-closed-input-alternatives.md
 description: >
   scripts/research.sh runs the examples/demos/research-route map+reduce

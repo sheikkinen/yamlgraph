@@ -86,7 +86,7 @@ CONVERGENT_SUFFIX = re.compile(r"\s*\(convergent x\d+\)$")
 
 URL_RE = re.compile(r"https?://\S+")
 
-# FR-932: mirrors research_tools. Shape only — the reducer resolves each
+# FR-938: mirrors research_tools. Shape only — the reducer resolves each
 # token against the filesystem; this checks that a resolvable shape was
 # offered at all. The shapes are the reducer's: registry identifiers,
 # snake_case Scripture keys, repo paths, and URLs.
@@ -176,7 +176,7 @@ def _prior_art_is_empty(text: str) -> bool:
 
 
 def _check_precedent(citation: str, prior_art_empty: bool) -> list[str]:
-    """FR-932: a non-librarian cell offers an identifier, a URL, or the miss."""
+    """FR-938: a non-librarian cell offers an identifier, a URL, or the miss."""
     if ECHO_MARKER in citation:
         return [
             f"{ECHO_MARKER!r} is not precedent — the brief cannot cite "

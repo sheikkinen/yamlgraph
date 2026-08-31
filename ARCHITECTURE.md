@@ -3050,7 +3050,7 @@ examples/memory-curation judges every repo-scope memory note against a declared 
 
 scripts/research.sh runs the examples/demos/research-route map+reduce graph — five personas with orthogonal priors (OS/infra primitivist, data/process planner, YAMLGraph-native planner, subtractionist, web-grounded librarian), each receiving only a closed problem brief — producing tmp/draft-alternatives.md: a dispositioned alternatives table with precedent citations and planner disagreement preserved as rows. A deterministic stdlib preflight rejects solution-contaminated briefs before any tokens are spent; the wrapper serializes runs, exports a lineage sentinel, and verifies the artifact by schema shape rather than graph exit code.
 
-**Feature Request:** FR-890, FR-896, FR-926, FR-932
+**Feature Request:** FR-890, FR-896, FR-926, FR-938
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|

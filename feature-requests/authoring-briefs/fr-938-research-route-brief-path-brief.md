@@ -1,4 +1,4 @@
-# FR-932 Research Route: Pass brief_path to the Committed-Context Node
+# FR-938 Research Route: Pass brief_path to the Committed-Context Node
 
 Update `examples/demos/research-route/graph.yaml` so the
 `collect_committed_context` node receives the brief path in addition to the
@@ -42,7 +42,7 @@ Validate with:
 yamlgraph graph lint examples/demos/research-route/graph.yaml
 ```
 
-**Prior art:** `feature-requests/FR-932-prior-art-retrieval-in-research-route.md`
+**Prior art:** `feature-requests/FR-938-prior-art-retrieval-in-research-route.md`
 R-5 and R-9 freeze this edit and route it here (judgement condition C-2);
 `feature-requests/FR-890-research-sole-route-closed-input-alternatives.md`
 established the node and its author-independence constraint.

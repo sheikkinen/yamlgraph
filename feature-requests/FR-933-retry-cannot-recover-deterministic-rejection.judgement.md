@@ -2,7 +2,7 @@
 
 **Prior art:** the FR-738 gate hits this file's own subject FR, not precedent;
 judgements are siblings of the FR they judge and `build_prior_art` excludes only
-the exact query path. Recorded under FR-932, not fixed here. Precedent actually
+the exact query path. Recorded under FR-938, not fixed here. Precedent actually
 consumed is in **Reviewed against**; the dispositive one is
 `feature-requests/FR-408-runtime-repair-metadata.md`.
 
@@ -40,10 +40,10 @@ None. The prior rejection's R-1 through R-5 are folded into the revised FR: rese
 | D-2 | A small retry-feedback formatter/helper that derives bounded feedback from Pydantic validation errors without including rejected field values |
 | D-3 | Node-level retry wiring in `yamlgraph/error_handlers.py`, `yamlgraph/node_factory/llm_execution.py`, and/or `yamlgraph/node_factory/llm_nodes.py`, only as needed to pass previous-error context and a corrected retry input |
 | D-4 | Regression coverage proving non-validation node retries and executor/provider retry classification keep their existing behavior |
-| D-5 | Live research-route witness: `scripts/research.sh feature-requests/research-briefs/fr-932-prior-art-precedent-brief.md`, accepted `tmp/draft-alternatives.md`, successful preflight, and matching `feature-requests/research-runs.jsonl` provenance line |
+| D-5 | Live research-route witness: `scripts/research.sh feature-requests/research-briefs/fr-938-prior-art-precedent-brief.md`, accepted `tmp/draft-alternatives.md`, successful preflight, and matching `feature-requests/research-runs.jsonl` provenance line |
 | D-6 | `feature-requests/FR-933-retry-cannot-recover-deterministic-rejection.md` implementation-status section, changelog fragment, requirement-tagged tests, and diary reflection |
 
-Not authorized: changing `max_length=400`; truncating, coercing, default-injecting, or otherwise editing invalid model output; weakening any Pydantic schema; adding a new `on_error` mode; adding an `RT-XXX` diagnostic-code registry or repair-handler dispatch table; reviving FR-408's `auto_repair`, `coerce-field-type`, `inject-default`, or `relax-threshold`; changing persona prompts or `examples/demos/research-route/graph.yaml` except through a separately evidenced graph-authoring route and rejudgement; changing judge, research, authoring, or review invocation routes; implementing any FR-932 frozen-scope work under this FR.
+Not authorized: changing `max_length=400`; truncating, coercing, default-injecting, or otherwise editing invalid model output; weakening any Pydantic schema; adding a new `on_error` mode; adding an `RT-XXX` diagnostic-code registry or repair-handler dispatch table; reviving FR-408's `auto_repair`, `coerce-field-type`, `inject-default`, or `relax-threshold`; changing persona prompts or `examples/demos/research-route/graph.yaml` except through a separately evidenced graph-authoring route and rejudgement; changing judge, research, authoring, or review invocation routes; implementing any FR-938 frozen-scope work under this FR.
 
 ## Revised acceptance criteria
 
@@ -56,8 +56,8 @@ Not authorized: changing `max_length=400`; truncating, coercing, default-injecti
 - [ ] AC-07: Executor-level provider classification remains behaviorally unchanged: retryable provider faults still retry under `yamlgraph/executor.py` policy, and non-retryable exceptions still raise immediately under the existing `tests/unit/test_executor_retry.py:184-221` witnesses.
 - [ ] AC-08: Feedback construction uses structured Pydantic error data where available (`loc`, `msg`, `type`, `ctx`) rather than raw `str(ValidationError)` if that raw string would leak `input_value`; no rejected model value is copied into the retry instruction.
 - [ ] AC-09: No persona prompt, no `examples/demos/research-route/graph.yaml`, no `max_length=400`, and no rejection-never-truncation contract is changed. If enforcement discovers a governed graph or prompt artifact must change, it stops and returns to planning/rejudgement; any later graph/prompt change must be produced by `scripts/author.sh` with `tmp/draft-authoring-report.md` recording lint, smoke, and limitations.
-- [ ] AC-10: `scripts/research.sh feature-requests/research-briefs/fr-932-prior-art-precedent-brief.md` exits 0, writes a non-empty `tmp/draft-alternatives.md` containing five persona rows, and `python scripts/research_preflight.py tmp/draft-alternatives.md` reports zero violations.
-- [ ] AC-11: The live research-route run appends a matching provenance line to `feature-requests/research-runs.jsonl` whose `brief_path` is `feature-requests/research-briefs/fr-932-prior-art-precedent-brief.md`.
+- [ ] AC-10: `scripts/research.sh feature-requests/research-briefs/fr-938-prior-art-precedent-brief.md` exits 0, writes a non-empty `tmp/draft-alternatives.md` containing five persona rows, and `python scripts/research_preflight.py tmp/draft-alternatives.md` reports zero violations.
+- [ ] AC-11: The live research-route run appends a matching provenance line to `feature-requests/research-runs.jsonl` whose `brief_path` is `feature-requests/research-briefs/fr-938-prior-art-precedent-brief.md`.
 - [ ] AC-12: New tests carry `@pytest.mark.req(...)`; a changelog fragment exists in `changelog/unreleased/`; FR-933 gains an implementation-status section recording decisions and deviations; a diary reflection is added.
 
 ## Conditions for enforcement

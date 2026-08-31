@@ -189,7 +189,7 @@ def test_existing_committed_identifier_passes(tools, tmp_path):
 
 @pytest.mark.req("REQ-YG-623")
 def test_explicit_brief_echo_is_demoted_and_retained(tools, tmp_path):
-    """FR-932 supersedes the FR-896 demotion: the brief is not its own precedent.
+    """FR-938 supersedes the FR-896 demotion: the brief is not its own precedent.
 
     Demote-never-drop kept hollow rows in the record. With the personas
     now shown the FR corpus, an echo is a refusal to look, and the honest

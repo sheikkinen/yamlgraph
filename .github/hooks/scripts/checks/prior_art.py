@@ -32,7 +32,7 @@ from pathlib import Path
 
 try:  # FR-814 graph augmentation is optional; fr-checks.sh runs this on bare python3
     import yaml
-except ImportError:  # pragma: no cover - exercised via subprocess in FR-932 tests
+except ImportError:  # pragma: no cover - exercised via subprocess in FR-938 tests
     yaml = None
 
 RARE_MAX_FILES = 20  # A1: absolute count, not a corpus percentage
@@ -187,7 +187,7 @@ def _eligible_nouns(
 ) -> set[str]:
     """Nouns a hit may be retrieved on.
 
-    FR-932: the floor is a notification policy. Hook consumers interrupt an
+    FR-938: the floor is a notification policy. Hook consumers interrupt an
     author, so they keep it; a consumer that only grounds a context window
     lifts it and accepts any noun the corpus actually contains.
     """
@@ -199,7 +199,7 @@ def _eligible_nouns(
 def build_prior_art(new_file: Path, rare_floor: bool = True) -> str:
     """Retrieve prior art for ``new_file`` from its sibling corpus.
 
-    FR-932: ``rare_floor`` is a notification policy, not a retrieval one.
+    FR-938: ``rare_floor`` is a notification policy, not a retrieval one.
     The hook consumers interrupt an author, so they keep the floor and
     stay silent over noise. A consumer that only grounds a context
     window passes ``rare_floor=False``, making every noun with non-zero

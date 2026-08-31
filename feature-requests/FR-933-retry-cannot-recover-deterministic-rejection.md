@@ -42,10 +42,10 @@ schema validation failure is therefore retried into the same failure, and
 
 ## Escalated from
 
-FR-932 enforcement. Its AC-10 (a live `scripts/research.sh` run) could not be
+FR-938 enforcement. Its AC-10 (a live `scripts/research.sh` run) could not be
 satisfied: five consecutive runs failed, across two briefs and four distinct
 persona/field combinations, every one on `String should have at most 400
-characters`. A counterfactual run at pre-FR-932 code failed the same way, so the
+characters`. A counterfactual run at pre-FR-938 code failed the same way, so the
 route is red independently of that FR — but red is red, and it belongs to
 whoever finds it.
 
@@ -53,14 +53,14 @@ whoever finds it.
 
 | run | brief | persona | field |
 |---|---|---|---|
-| 1 | fr-932-prior-art-precedent | os_infra_primitivist | rationale |
-| 2 | fr-932-prior-art-precedent | os_infra_primitivist | rationale |
-| 3 | fr-932-prior-art-precedent | os_infra_primitivist | rationale |
+| 1 | fr-938-prior-art-precedent | os_infra_primitivist | rationale |
+| 2 | fr-938-prior-art-precedent | os_infra_primitivist | rationale |
+| 3 | fr-938-prior-art-precedent | os_infra_primitivist | rationale |
 | 4 | fr-929-local-diary-existence | librarian_structure | rationale |
-| 5 (pre-FR-932 code) | fr-929-local-diary-existence | yamlgraph_native_planner | candidate |
+| 5 (pre-FR-938 code) | fr-929-local-diary-existence | yamlgraph_native_planner | candidate |
 
 Run 5 is the counterfactual: `examples/demos/research-route/{graph.yaml,nodes/research_tools.py}`
-checked out at `13feeeac`, which is the unmodified pre-FR-932 state.
+checked out at `13feeeac`, which is the unmodified pre-FR-938 state.
 
 ## Violated objective
 
@@ -183,13 +183,13 @@ implementation path. Full disposition of this and five other candidates in
   is produced by `scripts/author.sh` with `tmp/draft-authoring-report.md`
   recording lint, smoke, and limitations.
 - **AC-09** Live witness: `scripts/research.sh
-  feature-requests/research-briefs/fr-932-prior-art-precedent-brief.md`
+  feature-requests/research-briefs/fr-938-prior-art-precedent-brief.md`
   exits 0, writes a non-empty `tmp/draft-alternatives.md` containing five
   persona rows, that artifact passes
   `python scripts/research_preflight.py tmp/draft-alternatives.md` with
   zero violations, and a matching provenance line whose `brief_path` is
   that brief is appended to `feature-requests/research-runs.jsonl`. This is
-  the evidence FR-932 AC-10 could not produce.
+  the evidence FR-938 AC-10 could not produce.
 - **AC-10** New tests carry `@pytest.mark.req(...)`; a changelog fragment
   exists in `changelog/unreleased/`; this FR gains an implementation-status
   section; a diary reflection is added.
@@ -201,7 +201,7 @@ invalid model output; weakening any Pydantic schema; changing the persona
 prompts or `examples/demos/research-route/graph.yaml`; adding a new
 `on_error` mode; reviving FR-408's `auto_repair`, code registry,
 `inject-default`, or threshold relaxation; changing the judge, research, or
-authoring invocation routes; anything in the FR-932 frozen scope.
+authoring invocation routes; anything in the FR-938 frozen scope.
 
 ## Implementation status (2026-08-31) — Implemented
 
@@ -270,10 +270,10 @@ separately rather than smuggled in here.
 
 ### AC-09 live witness
 
-`scripts/research.sh` on the FR-932 brief exits 0; `tmp/draft-alternatives.md`
+`scripts/research.sh` on the FR-938 brief exits 0; `tmp/draft-alternatives.md`
 carries five persona rows and passes `scripts/research_preflight.py` with zero
 violations; the provenance line is appended to
 `feature-requests/research-runs.jsonl` with the brief path and the code SHA.
-The same run also produced FR-932's first real prior-art block — the two
+The same run also produced FR-938's first real prior-art block — the two
 defects were blocking each other, and neither was visible until the other
 moved.
