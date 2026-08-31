@@ -5,6 +5,9 @@ deterministic, LLM-free algorithm — prefix strip, separator cut,
 grammar gate, optional caller vocabulary. Non-conforming values are
 demoted to abstain (never dropped); every reconciliation is recorded
 in raw_judgement/repaired audit fields.
+
+FR-943: attributable model-owned failures are contained as fail-closed
+rows (evidence preserved); structural impossibilities stay batch-fatal.
 """
 
 from __future__ import annotations
@@ -44,6 +47,8 @@ REPO_ROOT = Path(__file__).resolve().parents[3]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
+from examples.demos.corpus_census import ledger_failures  # noqa: E402
+
 
 class LedgerRow(BaseModel):
     """One fail-closed census ledger row."""
@@ -65,9 +70,7 @@ class LedgerRow(BaseModel):
     def _strip_required_strings(cls, value: Any, info: ValidationInfo) -> Any:
         if info.field_name == "raw_judgement":
             return value  # preserved verbatim for audit (FR-940)
-        if isinstance(value, str):
-            return value.strip()
-        return value
+        return value.strip() if isinstance(value, str) else value
 
     @model_validator(mode="after")
     def _validate_abstention_cells(self) -> LedgerRow:
@@ -161,11 +164,7 @@ def _normalize_judgement(
     if vocabulary is not None:
         canonical = vocabulary.get(candidate)
         if canonical is None:
-            return {
-                "state": "demoted",
-                "reason": _VOCAB_REASON,
-                "raw_judgement": raw,
-            }
+            return {"state": "demoted", "reason": _VOCAB_REASON, "raw_judgement": raw}
         emitted = canonical
     else:
         emitted = candidate
@@ -184,33 +183,93 @@ def _build_row(
     norm: dict[str, Any],
     model_name: str,
 ) -> LedgerRow:
+    base = {
+        "item_ref": item_ref,
+        "model": model_name,
+        "prompt_version": PROMPT_VERSION,
+        "disagreement": False,
+        "raw_judgement": norm["raw_judgement"],
+    }
     if norm["state"] == "demoted":
         return LedgerRow(
-            item_ref=item_ref,
             judgement="abstain",
             confidence=0.0,
             evidence_span="",
-            model=model_name,
-            prompt_version=PROMPT_VERSION,
             abstained=True,
             abstain_reason=norm["reason"],
-            disagreement=False,
-            raw_judgement=norm["raw_judgement"],
             repaired=False,
+            **base,
         )
     return LedgerRow(
-        item_ref=item_ref,
         judgement=norm["judgement"],
         confidence=finding.get("confidence"),
         evidence_span=str(finding.get("evidence_span", "")).strip(),
-        model=model_name,
-        prompt_version=PROMPT_VERSION,
         abstained=bool(finding.get("abstained")),
         abstain_reason=str(finding.get("abstain_reason", "")).strip(),
-        disagreement=False,
-        raw_judgement=norm["raw_judgement"],
         repaired=norm["repaired"],
+        **base,
     )
+
+
+def _usable_index(index: Any, items: list[str], seen: set[int]) -> int:
+    """FR-943 frozen attribution: exact int, in range, unseen; bools excluded."""
+    if type(index) is not int:
+        raise ValueError("finding missing source_index")
+    if index < 0 or index >= len(items):
+        raise ValueError(f"finding index out of range: {index}")
+    if index in seen:
+        raise ValueError(f"duplicate finding for item index {index}")
+    return index
+
+
+def _failed_row(item_ref: str, model_name: str, reason: str, raw: str) -> LedgerRow:
+    values = ledger_failures.failed_row_values(reason, raw)
+    return LedgerRow(
+        item_ref=item_ref, model=model_name, prompt_version=PROMPT_VERSION, **values
+    )
+
+
+def _fatal_row_error(item_ref: str, exc: ValidationError) -> ValueError:
+    return ValueError(f"invalid ledger row for item {item_ref}: {exc}")
+
+
+def _dispose_finding(
+    finding: dict[str, Any],
+    items: list[str],
+    seen: set[int],
+    vocabulary: dict[str, str] | None,
+    model_name: str,
+) -> tuple[LedgerRow, str]:
+    """Return (row, counts-state); contained classes 1-3 per FR-943 D-1."""
+    if "_error" in finding:
+        index = _usable_index(finding.get("_map_index"), items, seen)
+        seen.add(index)
+        text = str(finding["_error"])
+        return _failed_row(items[index], model_name, text, text), "failed"
+
+    index = finding.get("source_index")
+    if index is None:
+        index = finding.get("_map_index")
+    index = _usable_index(index, items, seen)
+    seen.add(index)
+
+    raw = str(finding.get("judgement", ""))
+    if any(marker in raw for marker in ERROR_STRINGS):
+        reason = "judgement is an error string"
+        return _failed_row(items[index], model_name, reason, raw), "failed"
+
+    norm = _normalize_judgement(raw, bool(finding.get("abstained")), vocabulary)
+    try:
+        return _build_row(items[index], finding, norm, model_name), norm["state"]
+    except ValidationError as exc:
+        if not ledger_failures.is_model_owned(exc):
+            raise _fatal_row_error(items[index], exc) from exc
+        try:
+            serialized = ledger_failures.serialize_finding(finding)
+        except TypeError:
+            raise _fatal_row_error(items[index], exc) from exc
+        reason = ledger_failures.first_error_reason(exc)
+        return _failed_row(items[index], model_name, reason, serialized), "failed"
 
 
 def _rows_by_index(
@@ -220,45 +279,15 @@ def _rows_by_index(
     model_name: str,
 ) -> tuple[list[LedgerRow], dict[str, int]]:
     rows: list[LedgerRow] = []
-    counts = {"repaired": 0, "demoted": 0, "model_abstained": 0}
+    counts = {"repaired": 0, "demoted": 0, "model_abstained": 0, "failed": 0}
     seen: set[int] = set()
     for finding in findings:
         if not isinstance(finding, dict):
             raise ValueError("finding must be a dict")
-        if "_error" in finding:
-            raise ValueError(f"finding contains map error: {finding['_error']}")
-
-        index = finding.get("source_index")
-        if index is None:
-            index = finding.get("_map_index")
-        if not isinstance(index, int):
-            raise ValueError("finding missing source_index")
-        if index < 0 or index >= len(items):
-            raise ValueError(f"finding index out of range: {index}")
-        if index in seen:
-            raise ValueError(f"duplicate finding for item index {index}")
-        seen.add(index)
-
-        raw_judgement = str(finding.get("judgement", ""))
-        if any(marker in raw_judgement for marker in ERROR_STRINGS):
-            raise ValueError("judgement is an error string")
-
-        norm = _normalize_judgement(
-            raw_judgement, bool(finding.get("abstained")), vocabulary
-        )
-        if norm["state"] == "demoted":
-            counts["demoted"] += 1
-        elif norm["state"] == "model-abstained":
-            counts["model_abstained"] += 1
-        elif norm["state"] == "repaired":
-            counts["repaired"] += 1
-
-        try:
-            row = _build_row(items[index], finding, norm, model_name)
-        except ValidationError as exc:
-            raise ValueError(
-                f"invalid ledger row for item {items[index]}: {exc}"
-            ) from exc
+        row, state = _dispose_finding(finding, items, seen, vocabulary, model_name)
+        key = state.replace("-", "_")
+        if key in counts:
+            counts[key] += 1
         rows.append(row)
 
     missing = sorted(set(range(len(items))) - seen)
@@ -284,37 +313,34 @@ def _write_artifacts(
         "| item_ref | judgement | confidence | evidence_span | model | "
         "prompt_version | abstained | abstain_reason | disagreement |"
     )
+    summary = (
+        f"Normalization: {counts['repaired']} repaired, "
+        f"{counts['demoted']} demoted, "
+        f"{counts['model_abstained']} model-abstained, "
+        f"{counts['failed']} row-failed of "
+        f"{len(rows)} rows."
+    )
     lines = [
         "# Corpus Census Ledger",
         "",
-        (
-            f"Normalization: {counts['repaired']} repaired, "
-            f"{counts['demoted']} demoted, "
-            f"{counts['model_abstained']} model-abstained of "
-            f"{len(rows)} rows."
-        ),
+        summary,
         "",
         header,
         "|---|---|---:|---|---|---|---|---|---|",
     ]
     for row in rows:
-        lines.append(
-            "| "
-            + " | ".join(
-                (
-                    _cell(row.item_ref),
-                    _cell(row.judgement),
-                    f"{row.confidence:.3f}",
-                    _cell(row.evidence_span),
-                    _cell(row.model),
-                    _cell(row.prompt_version),
-                    str(row.abstained).lower(),
-                    _cell(row.abstain_reason),
-                    str(row.disagreement).lower(),
-                )
-            )
-            + " |"
+        cells = (
+            _cell(row.item_ref),
+            _cell(row.judgement),
+            f"{row.confidence:.3f}",
+            _cell(row.evidence_span),
+            _cell(row.model),
+            _cell(row.prompt_version),
+            str(row.abstained).lower(),
+            _cell(row.abstain_reason),
+            str(row.disagreement).lower(),
         )
+        lines.append("| " + " | ".join(cells) + " |")
     markdown_path.write_text("\n".join(lines).rstrip() + "\n", encoding="utf-8")
 
     with jsonl_path.open("w", encoding="utf-8") as handle:

@@ -1,6 +1,6 @@
 id: CAP-250
 name: Corpus-census synthesize tail
-fr: FR-895, FR-940
+fr: FR-895, FR-940, FR-943
 description: >
   The corpus-census pipeline ends in a human-readable brief: a bounded,
   column-allowlisted synthesis input (top-N ledger rows), a single pinned
@@ -31,5 +31,17 @@ requirements:
       normalization summary line record every reconciliation; the judge
       and synthesis model is caller-selectable via the model variable
       with provenance carrying the effective model
+    modules:
+      - examples/demos/corpus_census
+  - id: REQ-YG-634
+    description: >
+      Attributable model-owned failures (map-error findings with usable
+      _map_index, error-string judgements, envelope validation errors
+      wholly rooted in model-owned fields) are contained as fail-closed
+      abstained ledger rows with exact frozen cells, a bounded
+      "row failed:" reason, and complete causal evidence preserved in
+      raw_judgement; the internal count carries exactly four keys and
+      the markdown summary uses the revised normalization line;
+      structural impossibilities remain batch-fatal
     modules:
       - examples/demos/corpus_census

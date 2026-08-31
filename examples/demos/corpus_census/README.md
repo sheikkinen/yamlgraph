@@ -46,7 +46,29 @@ case-insensitive and emits the caller's canonical spelling; misses
 demote with reason `label not in vocabulary`. Every reconciliation is
 recorded: JSONL rows carry `raw_judgement` (original model text,
 verbatim) and `repaired`; the markdown ledger head carries
-`Normalization: N repaired, M demoted, K model-abstained of T rows.`
+`Normalization: N repaired, M demoted, K model-abstained, F row-failed of T rows.`
+
+## Row-level failure containment (FR-943)
+
+One malformed model output no longer forfeits the batch. Attributable
+model-owned failures become fail-closed **rows** instead of aborting
+`reduce_ledger`:
+
+1. **Map-error findings** (`_error` with a usable `_map_index`) — a
+   failed branch (schema miss, timeout, provider error).
+2. **Error-string judgements** (`Error:` / `No results`).
+3. **Model-owned envelope validation errors** — every Pydantic error
+   location rooted in `judgement`/`confidence`/`evidence_span`/
+   `abstained`/`abstain_reason` (or the model-level abstention
+   cross-check, `loc == ()`).
+
+A contained row is `abstain` with `confidence 0.0`, a bounded
+`row failed: …` reason (240-char cap), and the FULL causal evidence
+preserved verbatim in `raw_judgement` (map-error text, original
+judgement, or deterministic JSON of the whole finding). Structural
+impossibilities — non-dict findings, unattributable or duplicate
+indexes, reducer-owned validation failures, missing findings — remain
+batch-fatal (FR-892). Taxonomy helpers live in `ledger_failures.py`.
 
 ## Model selection (FR-940)
 

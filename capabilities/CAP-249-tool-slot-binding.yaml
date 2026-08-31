@@ -1,6 +1,6 @@
 id: CAP-249
 name: Invocation-time tool-slot binding
-fr: FR-892, FR-893, FR-896
+fr: FR-892, FR-893, FR-896, FR-943
 description: >
   Graph `tools:` entries may declare `slot: true` with a `contract:` block
   (runtime allowlist, required args); callers bind FR-768 tool manifests at
@@ -22,8 +22,8 @@ requirements:
     description: >
       Tool slots bind FR-768 manifests at invocation; all contaminated
       bindings fail closed with a typed error before execution; the
-      corpus-census reducer enforces the frozen ledger contract
-      (abstention rows, error-string and empty-cell rejection)
+      corpus-census reducer preserves abstention rows and rejects
+      structural index/completeness failures and invalid ledger cells
     modules:
       - tools/tool_slots
       - compile/graph_loader
