@@ -2,7 +2,14 @@
 
 **Priority:** HIGH
 **Type:** Enhancement
-**Status:** Proposed
+**Status:** SPLIT — see `FR-936-map-node-hardening.judgement.md` (2026-08-31).
+No implementation authority. Replaced by four independently researched FRs:
+(D-1) map branch input projection / `pass_keys`, (D-2) `max_items` overflow
+policy with typed `on_overflow`, (D-3) investigation FR for timeout
+cancellation and resource lifecycle (the bounded shared pool proposed below
+was rejected — it converts leakage into deterministic starvation), (D-4)
+LangGraph `RetryPolicy` integration and exception ownership. Replacement FR
+numbers to be allocated when authored.
 **Effort:** 2 days
 **Requested:** 2026-08-31
 **First consumer / first event:** the fi-catalog pilot (D, per
