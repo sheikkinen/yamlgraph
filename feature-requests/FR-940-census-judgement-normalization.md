@@ -131,11 +131,26 @@ one frozen line after the title:
 
 ## Model Variable
 
-- New optional graph state var `model` (str, default
-  `claude-haiku-4-5`), applied to the map judge node and the synthesize
-  node; `reduce_ledger` and brief provenance report the effective model
-  (replacing the hardcoded `MODEL`/`SYNTHESIS_MODEL` constants as row
-  values; constants remain as defaults).
+- New optional graph state vars `model` and `provider` (defaults
+  `claude-haiku-4-5`/`anthropic`), applied to the map judge node and
+  the synthesize node; `reduce_ledger` and brief provenance report the
+  effective model (replacing the hardcoded `MODEL`/`SYNTHESIS_MODEL`
+  constants as row values; constants remain as defaults).
+- **Enablement decision (enforcement deviation, recorded):** the
+  framework has no state-resolved node `model`/`provider` (verified:
+  `cfg.model` is compile-time static; the storyboard `{state.model}`
+  precedent is a prompt variable, not node config). Caller-selectable
+  model therefore requires a minimal core enablement: llm-node
+  execution resolves a full-string `{state.x}` reference in
+  `model`/`provider` at run time, falling back to the graph
+  `defaults` value when the state key is missing or empty (declared
+  default chain, not a silent hedge). Surfaces:
+  `yamlgraph/node_factory/llm_nodes.py` (LLMNodeConfig gains
+  `default_provider`/`default_model`; resolution inside
+  `attempt_execute` so retry/fallback paths inherit it) + core unit
+  tests. The rev-1 C-5 fence ("no core changes") is amended for
+  exactly this enablement under the operator's explicit "include in
+  940" authorization; map-node error policy remains out of scope.
 
 ## Authorized Surfaces (R-4)
 
@@ -153,7 +168,8 @@ one frozen line after the title:
   FR-940 in `fr:`; ARCHITECTURE.md regenerated.
 - Changelog fragment, diary reflection, demo evidence (demo gate).
 
-Not in scope: YAMLGraph core, map-node policy, brief-citation logic,
+Not in scope: YAMLGraph core beyond the model/provider state-ref
+enablement above, map-node policy, brief-citation logic,
 generic normalization APIs, prompt rewording as mechanism. The
 missing-fields defect (a finding lacking `abstained`/`abstain_reason`
 poisons the whole batch via map-error fail-closed, witnessed 4× on
