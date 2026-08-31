@@ -85,7 +85,7 @@ class TestWitnessedRepairs:
         md = (tmp_path / "ledger.md").read_text()
         assert (
             f"Normalization: {len(WITNESSED)} repaired, 0 demoted, "
-            f"0 model-abstained of {len(WITNESSED)} rows." in md
+            f"0 model-abstained, 0 row-failed of {len(WITNESSED)} rows." in md
         )
 
 
@@ -193,7 +193,7 @@ class TestModelAbstention:
         md = (tmp_path / "ledger.md").read_text()
         assert (
             "Normalization: 0 repaired, 0 demoted, "
-            "1 model-abstained of 1 rows." in md
+            "1 model-abstained, 0 row-failed of 1 rows." in md
         )
 
 
@@ -227,7 +227,7 @@ class TestArtifacts:
         md = (tmp_path / "ledger.md").read_text()
         assert (
             "Normalization: 1 repaired, 1 demoted, "
-            "0 model-abstained of 3 rows." in md
+            "0 model-abstained, 0 row-failed of 3 rows." in md
         )
 
 

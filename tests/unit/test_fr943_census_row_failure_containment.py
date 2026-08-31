@@ -10,8 +10,10 @@ import json
 from pathlib import Path
 
 import pytest
+from pydantic import ValidationError
 
-from examples.demos.corpus_census.tools import reduce_ledger
+from examples.demos.corpus_census import ledger_failures
+from examples.demos.corpus_census.tools import LedgerRow, reduce_ledger
 
 # References examples/ (process boundary, FR-756)
 pytestmark = pytest.mark.process
@@ -228,3 +230,89 @@ class TestStructuralStaysFatal:
     def test_duplicate_index_still_fatal(self, tmp_path):
         with pytest.raises(ValueError, match="duplicate"):
             _run(tmp_path, [_good(0), _good(1), {**_good(1)}])
+
+
+def _validation_error(**overrides) -> ValidationError:
+    values = {
+        "item_ref": "corpus/a.txt",
+        "judgement": "steering",
+        "confidence": 0.9,
+        "evidence_span": "evidence",
+        "model": "m",
+        "prompt_version": "v1",
+        "abstained": False,
+        "abstain_reason": "",
+        "disagreement": False,
+        **overrides,
+    }
+    with pytest.raises(ValidationError) as excinfo:
+        LedgerRow(**values)
+    return excinfo.value
+
+
+class TestClassificationHelpers:
+    @pytest.mark.req("REQ-YG-634")
+    def test_field_root_model_owned(self):
+        """AC-04: confidence-rooted error is model-owned."""
+        exc = _validation_error(confidence=None)
+        assert ledger_failures.is_model_owned(exc) is True
+
+    @pytest.mark.req("REQ-YG-634")
+    def test_model_root_empty_loc_model_owned(self):
+        """AC-04: loc == () (abstention cross-validation) is model-owned."""
+        exc = _validation_error(abstained=True, abstain_reason="r")
+        assert any(e["loc"] == () for e in exc.errors())
+        assert ledger_failures.is_model_owned(exc) is True
+
+    @pytest.mark.req("REQ-YG-634")
+    def test_reducer_root_not_model_owned(self):
+        """AC-04: item_ref-rooted error is reducer-owned."""
+        exc = _validation_error(item_ref="")
+        assert ledger_failures.is_model_owned(exc) is False
+
+    @pytest.mark.req("REQ-YG-634")
+    def test_mixed_roots_not_model_owned(self):
+        """AC-04: any non-model-owned location poisons the classification."""
+        exc = _validation_error(item_ref="", confidence=None)
+        assert ledger_failures.is_model_owned(exc) is False
+
+    @pytest.mark.req("REQ-YG-634")
+    def test_first_error_reason_format(self):
+        """AC-09: exact <location>: <msg> [<type>] with <model> for loc ()."""
+        exc = _validation_error(confidence=None)
+        reason = ledger_failures.first_error_reason(exc)
+        entry = exc.errors()[0]
+        assert reason == f"confidence: {entry['msg']} [{entry['type']}]"
+        exc2 = _validation_error(abstained=True, abstain_reason="r")
+        assert ledger_failures.first_error_reason(exc2).startswith("<model>:")
+
+
+class TestReasonTruncation:
+    @pytest.mark.req("REQ-YG-634")
+    def test_exactly_240_untouched(self):
+        """AC-08: a 240-char reason is emitted whole."""
+        reason = "x" * (240 - len("row failed: "))
+        out = ledger_failures.failure_reason(reason)
+        assert len(out) == 240
+        assert not out.endswith("...")
+
+    @pytest.mark.req("REQ-YG-634")
+    def test_over_240_truncated_to_237_plus_ellipsis(self):
+        """AC-08: 241+ chars -> first 237 + '...'."""
+        reason = "x" * 500
+        out = ledger_failures.failure_reason(reason)
+        assert len(out) == 240
+        assert out.endswith("...")
+        assert out[:237] == ("row failed: " + reason)[:237]
+
+    @pytest.mark.req("REQ-YG-634")
+    def test_truncation_never_touches_raw_judgement(self, tmp_path):
+        """AC-09: evidence carries the full causal input regardless of reason."""
+        long_error = "E" * 1000
+        findings = [_good(0), {"_map_index": 1, "_error": long_error}, _good(2)]
+        _run(tmp_path, findings)
+        failed = [
+            r for r in _rows(tmp_path) if r["abstain_reason"].startswith("row failed: ")
+        ]
+        assert failed[0]["raw_judgement"] == long_error
+        assert len(failed[0]["abstain_reason"]) == 240

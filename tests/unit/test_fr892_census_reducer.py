@@ -101,29 +101,39 @@ class TestLedgerContract:
         with pytest.raises(ValueError, match="duplicate"):
             _run(tmp_path, [GOOD_A, {**GOOD_A}, ABSTAIN_B])
 
-    @pytest.mark.req("REQ-YG-624")
-    def test_error_string_judgement_rejected(self, tmp_path):
+    @pytest.mark.req("REQ-YG-634")
+    def test_error_string_judgement_contained(self, tmp_path):
+        """FR-943: error-string judgement becomes a failed row, not a batch abort."""
         bad = {**GOOD_A, "judgement": "Error: search failed"}
-        with pytest.raises(ValueError, match="error string"):
-            _run(tmp_path, [bad, ABSTAIN_B])
+        result = _run(tmp_path, [bad, ABSTAIN_B])["ledger"]
+        assert result["rows"] == 2
+        rows = [
+            json.loads(line)
+            for line in (tmp_path / "ledger.jsonl").read_text().splitlines()
+        ]
+        failed = [r for r in rows if r["abstain_reason"].startswith("row failed: ")]
+        assert len(failed) == 1
+        assert failed[0]["raw_judgement"] == "Error: search failed"
 
-    @pytest.mark.req("REQ-YG-624")
-    def test_empty_required_cell_rejected(self, tmp_path):
+    @pytest.mark.req("REQ-YG-634")
+    def test_empty_required_cell_contained(self, tmp_path):
+        """FR-943: model-owned envelope failure becomes a failed row."""
         bad = {**GOOD_A, "evidence_span": "   "}
-        with pytest.raises(ValueError, match="evidence_span|invalid ledger row"):
-            _run(tmp_path, [bad, ABSTAIN_B])
+        result = _run(tmp_path, [bad, ABSTAIN_B])["ledger"]
+        assert result["rows"] == 2
 
-    @pytest.mark.req("REQ-YG-624")
-    def test_abstained_with_evidence_rejected(self, tmp_path):
-        """Abstention cross-validation: no evidence smuggling."""
+    @pytest.mark.req("REQ-YG-634")
+    def test_abstained_with_evidence_contained(self, tmp_path):
+        """FR-943: abstention cross-validation failure is model-owned."""
         bad = {**ABSTAIN_B, "evidence_span": "actually has evidence"}
-        with pytest.raises(ValueError, match="invalid ledger row"):
-            _run(tmp_path, [GOOD_A, bad])
+        result = _run(tmp_path, [GOOD_A, bad])["ledger"]
+        assert result["rows"] == 2
 
     @pytest.mark.req("REQ-YG-624")
-    def test_map_error_row_rejected(self, tmp_path):
+    def test_map_error_without_map_index_rejected(self, tmp_path):
+        """FR-943: _error attribution uses _map_index only — structural without it."""
         bad = {"_error": "boom", "source_index": 1}
-        with pytest.raises(ValueError, match="map error"):
+        with pytest.raises(ValueError, match="source_index"):
             _run(tmp_path, [GOOD_A, bad])
 
 

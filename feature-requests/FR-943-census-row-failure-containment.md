@@ -2,11 +2,12 @@
 
 **Priority:** MEDIUM
 **Type:** Bug
-**Status:** PROPOSED — rev 2
+**Status:** ENFORCED 2026-08-31 — rev 2
 Judgement: APPROVED WITH REVISIONS
 (`FR-943-census-row-failure-containment.judgement.md`, 2026-08-31);
 R-1–R-6 folded below. Enforcement authorized by operator
-("write fr. judge. enforce").
+("write fr. judge. enforce"). RED→GREEN separate commits; all ACs
+witnessed. Implementation notes at end.
 **Effort:** 0.5 day
 **Requested:** 2026-08-31
 **First consumer / first event:** the 1,003-item spark-full census of
@@ -266,3 +267,33 @@ O(batch) rerun tax).
   CAP-250
 - `tests/fixtures/fr943_incident_map_errors.json` — committed incident
   record (source: `tmp/spark-full-census.log`, 2026-08-31)
+
+## Implementation Record (2026-08-31)
+
+- **Delivered as frozen** — D-1..D-8 implemented without contract
+  deviation. Containment taxonomy in new
+  `examples/demos/corpus_census/ledger_failures.py` (69 lines:
+  `is_model_owned`, `first_error_reason`, `failure_reason`,
+  `serialize_finding`, `failed_row_values`); disposition seam
+  `_dispose_finding(finding, ...) -> (LedgerRow, state)` in `tools.py`.
+- **tools.py at exactly 450 lines** (AC-16 cap) after three compaction
+  rounds — next change to the module must split it first.
+- **Bonus fix licensed by the frozen `type(index) is int` rule:** the
+  pre-FR-943 `isinstance` check accepted boolean `source_index=True`
+  as index 1; now rejected as structural.
+- **Counter ordering fix:** repaired/demoted/abstained counters now
+  increment only after successful row construction, so a fatal row
+  cannot skew counts.
+- **Witness migration:** 4 FR-892 batch-fatal witnesses became
+  containment witnesses under REQ-YG-634; structural-fatal witnesses
+  retained under REQ-YG-624 (CAP-249 clause amended, CAP-250 gains
+  REQ-YG-634). 3 FR-940 summary-line assertions amended for the
+  `row-failed` count.
+- **Evidence:** 26 new witnesses in
+  `tests/unit/test_fr943_census_row_failure_containment.py` including
+  verbatim replay of all four 2026-08-31 incidents
+  (`tests/fixtures/fr943_incident_map_errors.json`); census suites
+  152 passed / 1 skipped; demo-output.log regenerated (3-row fixture,
+  `0 row-failed` summary line live).
+- **Optional live rerun** of the four poisoned spark batches (~800
+  calls) left to operator discretion per judgement (not a gate).
