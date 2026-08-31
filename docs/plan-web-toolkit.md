@@ -1,7 +1,7 @@
 # Plan: Web Toolkit — Overview
 
-**Date:** 2026-08-31 (rev 3 — operator steer: C is the primary focus; map
-primitive promoted to component D; B parked for research)
+**Date:** 2026-08-31 (rev 4 — B research: converter comparison + HAR map-reduce
+design; rev 3: C primary, D map primitive promoted, B parked)
 **Status:** Draft (pre-FR)
 **Scope:** A TLD-scale classification pipeline (C, primary) and the two
 foundations it stands on: a text-render graph tool (A) and a resumable
@@ -32,7 +32,7 @@ fetch-as-text tool usable inside any graph, and a map primitive that survives
 | `examples/daily_digest/nodes/content.py` | — | BS4 extraction; its committed `digest.db` dedup is the precedent for C's incremental re-crawl. |
 | map `max_items` + CAP-120 inter-run state chaining + SQLite checkpointer | — | The current workaround stack D replaces with a primitive. |
 | **Common Crawl WET files (external)** | — | .fi pages already crawled *and rendered to text*. C v1 classifies from CC extracts; live-fetch only gaps/refresh. Kills most cost, politeness, and seed problems. |
-| **mitmproxy2swagger / har2openapi (external OSS)** | — | Deterministic HAR→OpenAPI converters exist; any future B wraps, not reimplements. |
+| **mitmproxy2swagger / har-to-openapi (external OSS)** | — | Deterministic HAR→OpenAPI converters exist; any future B wraps, not reimplements. Compared in the Parked section. |
 
 ## Component C (primary): `.fi` TLD catalog — classify at country scale
 
@@ -106,19 +106,75 @@ chat-surface `fetch_webpage` is not.
 
 ## Parked: B — `har-to-spec` (needs more info)
 
-HAR→OpenAPI synthesis is deferred until these are answered; no FR yet:
+HAR→OpenAPI synthesis is deferred until the research below concludes; no FR yet.
+
+### Converter comparison (verified against upstream READMEs, 2026-08-31)
+
+| Dimension | mitmproxy2swagger (alufers) | har-to-openapi (jonluca) |
+|-----------|----------------------------|--------------------------|
+| Runtime | Python, pip — fits this repo natively | TypeScript, npm — needs a node toolchain in the loop |
+| Maturity | 9.6k stars, 0.15.0, active, MIT | 134 stars, v2.5.1, active, MIT; based on dcarr178/har2openapi |
+| Spec output | OpenAPI 3.0 | OpenAPI 3.0.0 **or 3.1.0** (repo's `parse_openapi` witness targets 3.1) |
+| Inputs | mitmproxy flows **and** HAR | HAR only |
+| Path templating | **Two-pass, human-curated**: first pass emits `x-path-templates` with `ignore:`-prefixed paths; a human promotes and edits them; second pass generates | **Automatic heuristics**: `attemptToParameterizeUrl` (UUID/numeric segments → `{param}`), `minLengthForNumericPath`, `pathReplace` regex rules |
+| Incremental merge | Merges repeated runs into an existing schema; never overwrites curated endpoints | Single-shot per HAR; multi-domain splitting via `--multi-spec` |
+| Auth/secrets | `--examples`/`--headers` opt-in with explicit sensitive-data warning | `guessAuthenticationHeaders`, `securityHeaders`, `filterStandardHeaders` |
+| Noise control | Manual (curation pass) | `dropPathsWithoutSuccessfulResponse`, `ignoreBodiesForStatusCodes`, domain include/exclude, `urlFilter` |
+| Programmatic API | CLI-first | Library-first (`generateSpec()`) + CLI |
+
+**Reading**: the two tools bracket the design space. mitmproxy2swagger's
+two-pass curation step is a *human-in-the-loop slot* — exactly the slot an
+LLM map stage can fill. har-to-openapi shows how far pure heuristics go
+(numeric/UUID segments) and where they stop: slug ids (`/users/matti-v`),
+semantic parameter naming (`{id}` vs `{userId}`), enum detection, descriptions,
+and merging near-duplicate schemas.
+
+### Potential map-reduce on HAR
+
+Hybrid design — deterministic converter as scaffold, LLM map-reduce as the
+curation pass:
+
+```
+har file
+  │ scrub boundary (deterministic Python: cookies/auth/tokens out,
+  │                 Pydantic entry records)
+  ▼
+baseline convert (wrap converter; emits draft spec + x-path-templates)
+  │ group entries by (host, method, path-skeleton)
+  ▼
+map over endpoint groups (LLM per group, parallel):
+  - promote/reject candidate path (replaces the human curation pass)
+  - infer template segments incl. slugs; name parameters semantically
+  - infer request/response schema from body samples; detect enums
+  - one-line operation description
+  ▼
+reduce (deterministic): merge fragments into OpenAPI 3.1 doc,
+  dedup shared component schemas (LLM-assisted only on near-duplicates)
+  ▼
+witness: round-trip through parse_openapi (FR-783) — our own parser
+  must accept what we emit; plus schemathesis-style example validation
+  as a stretch goal
+```
+
+- The map stage is D's consumer number two: a large HAR (thousands of
+  entries, hundreds of endpoint groups) wants item-durable, resumable fan-out.
+- Fallback posture: if the baseline converter already covers a given HAR
+  fully, the LLM stage must degrade to a no-op-with-evidence, not invent
+  changes (plausible_wrong_answer guard).
+
+### Remaining research questions
 
 1. Concrete first HAR: which real system's traffic do we convert first
    (public API fixture vs an actual undocumented internal API)?
-2. mitmproxy2swagger evaluation: run it on that HAR — how much does the
-   deterministic converter already deliver, and what precisely is left for
-   the LLM (naming, path templating, schema inference from samples)?
+2. Baseline run: execute *both* converters on that HAR — measure what each
+   already delivers; the delta defines the LLM's honest scope.
 3. Capture path: manual DevTools export vs agent-captured via Chrome DevTools
    MCP network tools.
-4. Credential scrubbing boundary: mandatory in any variant.
+4. Which converter to wrap: python-native m2s (repo fit, needs the LLM to
+   replace its human pass) vs har-to-openapi (better heuristics + 3.1 output,
+   but drags in node).
 
-When answered, B lands as `examples/api-discovery/steps/har-to-spec/` with the
-`parse_openapi` round-trip as acceptance witness.
+When answered, B lands as `examples/api-discovery/steps/har-to-spec/`.
 
 ## Sequencing
 
@@ -128,7 +184,7 @@ When answered, B lands as `examples/api-discovery/steps/har-to-spec/` with the
 | A | text-render tool (fork resolved by judge) + smoke demo | — (parallel to D) | S |
 | C | fi-catalog pilot on D + A: pre-filter, classify, catalog artifact, cost number | D, A | M |
 | C2 | full-run decision gated on C's pilot cost/accuracy numbers | C | — |
-| B | parked — research questions above | — | — |
+| B | parked — research questions above; map stage would also consume D | (D) | — |
 
 Each component enters as a `.chaplain/inbox/` proposal and follows
 Plan → Judge → Enforce. All graph authoring goes through the
