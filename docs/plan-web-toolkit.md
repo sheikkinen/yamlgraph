@@ -1,13 +1,18 @@
 # Plan: Web Toolkit — Overview
 
-**Date:** 2026-08-31 (rev 10 — C sources researched live: NO public bulk .fi
-list exists (Traficom claim corrected); seed = CC host-graph ∪ CT; fetch route
-= index-driven WARC byte-ranges, WET demoted — see
-`docs/plan-research-fi-catalog-sources.md`. rev 9 — C cost control: mercury-2
-pinned as classifier, LangSmith tracing off at scale via runner script. rev 8
-— D grounded in LangGraph natives; map node audited — hardening extracted to
-FR-936. rev 7: sibling repos unpark B; rev 6: value audit; rev 5: SPA
-rendering; rev 4: converter comparison; rev 3: C primary, D promoted)
+**Date:** 2026-08-31 (rev 11 — C reframed as a **semantic layer over Common
+Crawl**: CC is the data plane (crawl, politeness, dedup, index, monthly
+refresh — already paid for), yamlgraph contributes only the semantic plane;
+digest-diff makes refresh incremental — LLM only on changed hosts; live
+fetching shrinks to a residual liveness check. rev 10 — C sources researched
+live: NO public bulk .fi list exists (Traficom claim corrected); seed = CC
+host-graph ∪ CT; fetch route = index-driven WARC byte-ranges, WET demoted —
+see `docs/plan-research-fi-catalog-sources.md`. rev 9 — C cost control:
+mercury-2 pinned as classifier, LangSmith tracing off at scale via runner
+script. rev 8 — D grounded in LangGraph natives; map node audited — hardening
+extracted to FR-936 (SPLIT → FR-939 et al.). rev 7: sibling repos unpark B;
+rev 6: value audit; rev 5: SPA rendering; rev 4: converter comparison; rev 3:
+C primary, D promoted)
 **Status:** Draft (pre-FR)
 **Scope:** A TLD-scale classification pipeline (C, primary), a resumable
 storage-backed map primitive (D, keystone), a text-render graph tool (A), and
@@ -30,8 +35,9 @@ that survives 500k-item runs.
 2. **D — resumable storage-backed map**: new framework primitive C requires;
    likely the most durable output for the repo. Prerequisite: FR-936 map
    hardening (rev 8).
-3. **A — lynx_render**: graph tool consumed by C's live-fetch tier and by any
-   future research graph.
+3. **A — lynx_render**: graph tool consumed by C's text-extraction stage
+   (WARC bytes → normalized text, rev 11) and residual live checks, and by
+   any future research graph.
 4. **B — har-to-spec**: unparked (rev 7) — named consumers and first HARs
    identified; still sequenced last because D + A come first.
 
@@ -57,7 +63,7 @@ B's differentiator over generic HAR→OpenAPI.
 | | Value of the output | Would yamlgraph add value? |
 |--|--|--|
 | **D** | Intrinsic and highest: item-durable resumable fan-out is a genuine gap. Named consumers: C pilot, B's map stage, hva-weekly-bulletin's daily collection. | **D *is* yamlgraph value** — the keystone. |
-| **C** | External but named: platform census is what hva-weekly-bulletin already does bounded to 22 orgs — C generalizes it to 550k domains. Value in the **data**, not the pipeline. | **Only via D.** Standalone C is a script. As "the workload that forces D and produces the census hva-weekly-bulletin will consume," it earns its keep. |
+| **C** | External but named: platform census is what hva-weekly-bulletin already does bounded to 22 orgs — C generalizes it to 550k domains. Value in the **data**, not the pipeline. **Rev 11**: reframed as a versioned semantic layer (`catalog@CC-MAIN-XXXX-XX`) — reproducible, citable, agent-queryable; `.fi` becomes a parameter. | **Only via D.** Standalone C is a script. As "the workload that forces D and produces the census hva-weekly-bulletin will consume," it earns its keep. Rev 11 strengthens this: the corpus-adapter → semantic-map → catalog-store shape is the reusable framework showcase ("CC + yamlgraph = semantic web index for cents"). |
 | **A** | Marginal: `fetch_page` (api-discovery) already exists; the delta is dump quality, link inventory, `render` signal. **Rev 7**: control-plane probes' encoding tax (ISO-8859-1, UTF-16-LE, KTweb anti-copy spacing) shows a real dump-normalization gap `fetch_page` may not cover. | Neutral → mild positive on the encoding evidence. FR still opens with the delta-vs-fetch_page gate; encoding fixtures are now on the table. |
 | **B** | **Rev 7 — no longer speculative**: production consumer (hva-weekly-bulletin), 40+ pain-point probes, multi-tenant leverage (one HAR → 8-22 instance clients), differentiators over m2s/har-to-openapi (encoding, tenant templating). | Yes: parallel LLM map over endpoint groups replacing m2s's human curation is the textbook yamlgraph shape, and D's map primitive is the natural runtime. |
 
@@ -81,6 +87,18 @@ B's differentiator over generic HAR→OpenAPI.
 
 Evolution of FR-204's demo into the toolkit's driving analysis pipeline.
 
+- **Semantic layer over Common Crawl (rev 11 — the frame)**: C does not
+  build a crawler and does not live-fetch 500k hosts. CC is the **data
+  plane** — crawling, politeness, dedup, storage, monthly refresh, and a
+  columnar index (`fetch_status`, `content_languages`, `charset`, content
+  **digest**) are already paid for. yamlgraph contributes the **semantic
+  plane**: map(LLM) over CC-held bytes → typed catalog rows. The architecture
+  is three parts: **corpus adapter** (LLM-free Python tool: index query +
+  WARC range reads) → **semantic map** (mercury-2, inline schema) →
+  **versioned catalog store** (keyed by host + crawl id). `.fi` is a
+  parameter — the same artifact serves any TLD or vertical, and the product
+  statement is agent-first: an agent-queryable semantic layer over the
+  public web.
 - **Honest framing (rev 6)**: standalone, C is a script. C's value to the
   *repo* is that it forces D to exist and hands the framework a 500k-scale
   witness. The catalog dataset is the exhaust — but rev 7 gives that exhaust
@@ -106,13 +124,21 @@ Evolution of FR-204's demo into the toolkit's driving analysis pipeline.
   Athena is the alternative at cents per TLD-filtered query. Latest crawl at
   research time: CC-MAIN-2026-34; crawls are ~monthly.
 - **Pipeline**: seed (CC vertices ∪ CT) → **index pre-filter** (parquet:
-  status, language, charset — free, rev 10) → deterministic live pre-filter
-  (DNS resolve + HTTP HEAD, only for domains the index can't settle; LLM
-  never sees dead sites) → **D-map**(text extract → LLM classify with inline
-  schema: category, language, organisation type, **platform
-  (CaseM/Dynasty/KTweb/other) — added rev 7 for B/hva-bulletin handoff**, API
-  presence, liveness, `render: empty|thin|full`) → catalog artifact
-  (SQLite/JSONL).
+  status, language, charset — free, rev 10) → **residual liveness check**
+  (rev 11: DNS/HEAD only for hosts the index can't settle or that are absent
+  from CC entirely; no fetch pipeline — page bytes come from WARC) →
+  **D-map**(WARC text extract → LLM classify with inline schema: category,
+  language, organisation type, **platform (CaseM/Dynasty/KTweb/other) —
+  added rev 7 for B/hva-bulletin handoff**, API presence, liveness,
+  `render: empty|thin|full`) → versioned catalog artifact
+  (SQLite/JSONL, keyed by host + crawl id).
+- **Gap as a feature (rev 11)**: "in CT or the Traficom count but absent
+  from CC" is itself a catalog class (parked/dark/new — assigned without any
+  LLM call), not a coverage failure. Only this residual ever gets a live
+  probe. Caveat held honestly: CC is breadth-first and budget-capped per
+  host — small .fi sites may carry only a homepage capture; sufficient for
+  host-level classification, and page-deep use cases become later,
+  demand-driven live fetches outside C's scope.
 - **Cost model (required before scope freeze, rev 9)**: classifier pinned to
   **mercury-2** (`provider: inception`, already in the provider matrix) —
   diffusion-LM speed/price is what makes 550k × classify plausible; token cap
@@ -133,12 +159,19 @@ Evolution of FR-204's demo into the toolkit's driving analysis pipeline.
   accuracy criterion in the FR. An unaudited catalog is a liability. Ready
   eval set (rev 10): control-plane/hva tenant lists give ground-truth
   platform labels for the census columns.
-- **Incremental semantics**: dedup + change detection + entry TTL (precedent:
-  daily_digest's digest.db). Liveness re-check is deterministic and LLM-free.
-- **Politeness constraints** (live-fetch tier only): robots.txt respect,
-  per-host rate limits, identifying User-Agent — FR acceptance criteria. Also
-  applies to CC community infra: identifying UA everywhere; parquet index,
-  never the rate-limited CDX API, for bulk (rev 10).
+- **Incremental semantics (rev 11 — digest-diff, the cost lever)**: the CC
+  index carries a per-capture content **digest**. Refresh = diff digests
+  between `catalog@CC-MAIN-2026-34` and the next crawl; only hosts whose
+  digest changed get an LLM call. The 500k map is a **one-time backfill**;
+  steady state is the monthly few-percent delta — this does more for cost
+  than any per-token pricing. Frozen crawl ids also buy reproducibility: the
+  catalog is citable and evals are deterministic, which no live-fetch design
+  can offer. In-repo precedent: daily_digest's `digest.db`. Liveness
+  re-check of the residual stays deterministic and LLM-free.
+- **Politeness constraints** (residual live checks only, rev 11): robots.txt
+  respect, per-host rate limits, identifying User-Agent — FR acceptance
+  criteria. Also applies to CC community infra: identifying UA everywhere;
+  parquet index, never the rate-limited CDX API, for bulk (rev 10).
 - **Named consumer**: public-sector platform census (which municipalities and
   HVAs run CaseM/Dynasty/KTweb/CKAN/PxWeb/OData) — the census output feeds
   `hva-weekly-bulletin` and gates which B specs get generated first.
@@ -174,7 +207,12 @@ FR: extend the existing map node with `durable:` options, don't invent a type.
 
 `yamlgraph/compile/map_compiler.py` uses the canonical Send+reducer pattern,
 but with two scale-hostile deviations and three missed natives — extracted to
-**FR-936 (map node hardening)**, a prerequisite for D:
+**FR-936 (map node hardening)**, a prerequisite for D. **Rev 11 status**:
+FR-936 was judged **SPLIT** into four contracts; the first replacement,
+**FR-939 (overflow policy, deviation 2)**, is judged APPROVED WITH REVISIONS
+— its judge also found `config.max_map_items` parsed but never propagated
+into map compilation (dead config, repair in FR-939 scope). D-1/D-3/D-4
+replacements pending:
 
 1. **Full-state copy per Send**: `Send(sub, {**state, item, index})` vs the
    docs' minimal per-item payload. Memory × fan-out; bloats every
@@ -205,9 +243,12 @@ deviation 1 making every write huge.
 
 ## Component A: `lynx_render` — text-render tool for graphs
 
-A graph tool (FR-768-style manifest), consumed by C's live-fetch tier and by
-research graphs generally — fetch-as-text *inside* a graph, which the
-chat-surface `fetch_webpage` is not.
+A graph tool (FR-768-style manifest), consumed by C's text-extraction stage
+and by research graphs generally — fetch-as-text *inside* a graph, which the
+chat-surface `fetch_webpage` is not. **Rev 11**: C's consumption of A shrinks
+to "WARC bytes → normalized text" plus the residual live checks — A gets
+smaller and later; live URL→text remains for research graphs and B's docs
+fetches.
 
 - **fetch_page delta gate (rev 6)**: api-discovery already ships a
   `fetch_page` tool manifest. A's FR must open with the delta: either
@@ -365,12 +406,12 @@ When answered, B lands as `examples/api-discovery/steps/har-to-spec/`.
 
 | FR | Scope | Depends on | Size |
 |----|-------|------------|------|
-| **FR-936** | map node hardening: declared-inputs Send payload, raise-don't-truncate, timeout fix, RetryPolicy (filed rev 8) | — | S |
-| D | resumable map: chunked driver, CachePolicy/Store-backed results, `durability="sync"`, progress JSONL + kill-and-resume witness | FR-936 | M (shrunk by native coverage) |
+| **FR-936** | map node hardening — judged SPLIT (rev 11) into: FR-939 overflow policy (judged, approved w/ revisions), plus pending input-projection, timeout-investigation, and native-retry FRs | — | S each |
+| D | resumable map: chunked driver, CachePolicy/Store-backed results, `durability="sync"`, progress JSONL + kill-and-resume witness | FR-936 splits (FR-939 first) | M (shrunk by native coverage) |
 | A | fetch_page delta evidence → extend or new tool (fork resolved by judge) + smoke demo + Finnish encoding fixtures | — (parallel to D) | S (XS if fetch_page patch) |
 | C-seed | seed assembly + index pre-filter (CC vertices ∪ CT → parquet/DuckDB prune) — deterministic, LLM-free, can start today (rev 10) | — | S |
-| C | fi-catalog pilot on D + A: classify (with platform field), catalog artifact, cost number + mercury-2 quality spot-check; scale runner (tracing off) | C-seed, D, A | M |
-| C2 | full-run decision gated on C's pilot cost/accuracy numbers | C | — |
+| C | fi-catalog pilot on D: corpus adapter (WARC range reads) → classify (with platform field) → versioned catalog; cost number + mercury-2 quality spot-check; scale runner (tracing off) | C-seed, D, A (text extraction only, rev 11) | M |
+| C2 | full-run backfill decision gated on C's pilot cost/accuracy numbers; steady state thereafter = digest-diff monthly delta (rev 11) | C | — |
 | B | har-to-spec on Dynasty DREQUEST first; consumed by hva-weekly-bulletin | D (map), A (docs fetch) | M |
 | B2 | CaseM (Playwright HAR) + KTweb, tenant-templating primitive | B | — |
 
@@ -386,12 +427,14 @@ Plan → Judge → Enforce. All graph authoring goes through the
 2. **A's dependency fork**: lynx vs html2text/trafilatura, evidence-based —
    preceded by the fetch_page extend-vs-new decision and now informed by the
    encoding fixtures from control-plane.
-3. **CC freshness for the .fi long tail** (narrowed rev 10): crawls are
-   ~monthly (latest CC-MAIN-2026-34) and the seed no longer depends on
-   freshness (host graph ∪ CT catches new domains fast via cert issuance);
-   the remaining question is what fraction of *page content* is stale enough
-   to need the live-fetch tier — C-seed's index stage measures it for free
-   (fetch_time column).
+3. ~~**CC freshness for the .fi long tail**~~ **Answered (rev 11)**: crawls
+   are ~monthly and the catalog is *versioned by crawl id* — staleness is a
+   property of the release, not a defect: `catalog@CC-MAIN-2026-34` is
+   monthly-accurate by construction, and digest-diff keeps refresh cheap.
+   Host-level classification tolerates monthly staleness (org identity
+   changes slowly); anything trading on page freshness is out of C's scope
+   and becomes a demand-driven live fetch elsewhere. The `fetch_time` column
+   still measures the distribution for free (rev 10).
 4. **Catalog artifact home**: SQLite under `outputs/` for the pilot; a full
    production catalog likely deserves its own repo/dataset boundary — perhaps
    consumed by hva-weekly-bulletin directly.
