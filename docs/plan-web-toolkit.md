@@ -1,10 +1,10 @@
 # Plan: Web Toolkit — Overview
 
-**Date:** 2026-08-31 (rev 7 — sibling-repo discovery: B unlocked with named
-consumers and concrete first HARs from control-plane's Finnish-gov probe
-suite; hva-weekly-bulletin is a live production consumer for both B and C.
-rev 6: value audit; rev 5: SPA rendering; rev 4: converter comparison; rev 3:
-C primary, D promoted, B parked)
+**Date:** 2026-08-31 (rev 8 — D grounded in LangGraph natives: task
+checkpointing, node caching, Send pending-writes; existing map node audited
+against the native pattern — hardening extracted to FR-936. rev 7: sibling
+repos unpark B; rev 6: value audit; rev 5: SPA rendering; rev 4: converter
+comparison; rev 3: C primary, D promoted)
 **Status:** Draft (pre-FR)
 **Scope:** A TLD-scale classification pipeline (C, primary), a resumable
 storage-backed map primitive (D, keystone), a text-render graph tool (A), and
@@ -25,7 +25,8 @@ that survives 500k-item runs.
 
 1. **C — .fi TLD catalog**: the primary analysis focus and the driving use case.
 2. **D — resumable storage-backed map**: new framework primitive C requires;
-   likely the most durable output for the repo.
+   likely the most durable output for the repo. Prerequisite: FR-936 map
+   hardening (rev 8).
 3. **A — lynx_render**: graph tool consumed by C's live-fetch tier and by any
    future research graph.
 4. **B — har-to-spec**: unparked (rev 7) — named consumers and first HARs
@@ -64,7 +65,8 @@ B's differentiator over generic HAR→OpenAPI.
 | `examples/demos/fi_domain_crawl` | FR-204 | Shipped crawl-and-summarise demo (httpx + BeautifulSoup, map fan-out, LLM synthesis). C evolves this — refit, don't duplicate. |
 | `examples/api-discovery` | FR-783..790 | Tool manifests `fetch_page`, `curl_probe`, `parse_openapi`; step graphs. A's tool lives beside these manifests; CAP-226's SPA-shell/browser-sniff distinction is the precedent for A's JS policy. **`fetch_page` is also A's potential duplicate — see A's delta gate.** |
 | `examples/daily_digest/nodes/content.py` | — | BS4 extraction; its committed `digest.db` dedup is the precedent for C's incremental re-crawl. |
-| map `max_items` + CAP-120 inter-run state chaining + SQLite checkpointer | — | The current workaround stack D replaces with a primitive. |
+| map `max_items` + CAP-120 inter-run state chaining + SQLite checkpointer | — | The current workaround stack D replaces with a primitive. Map node audited rev 8 — hardening extracted to **FR-936**. |
+| **LangGraph natives: `@task` checkpointing, `CachePolicy`, `Send` pending-writes, `durability="sync"`, `Store`** | — | Verified against current docs (rev 8): most of D's contract exists natively, unassembled. See D's coverage table. |
 | **`../control-plane/probes/*` (sibling repo, 40+ scripts)** | — | Working scrapers for Finnish gov/municipal platforms — CaseM (Playwright SPA), Dynasty DREQUEST, KTweb, Hilma, eduskunta, Kela, Fingrid, Digitraffic, etc. These *are* the corpus B replaces with machine-generated specs; they also *are* the encoding-tax evidence for A. First HAR candidates for B live here. |
 | **`../hva-weekly-bulletin` (sibling repo, production)** | — | Live YAMLGraph consumer over 22 HVAs; consumes B's would-be specs and C's would-be platform census. Closes the "for whom" gap for both. |
 | **`../gitclaw-oulu-civic-intelligence` (sibling repo, production)** | — | YAMLGraph civic-intelligence template; second consumer for B and C. |
@@ -114,21 +116,51 @@ CAP-120 chaining is a workaround, not a primitive. D makes it one.
 the framework — it survives even if C's full run is never funded (the
 primitive pays for itself at 10k-item scale) and B never unparks.
 
-- **Contract sketch**: a map variant (or map option set) with
-  - **item-level durability**: each completed item's result persists to
-    storage (SQLite; same family as the checkpointer) the moment it finishes —
-    a crash at item 312,401 loses one item, not the run;
-  - **resume-by-skip**: re-running the graph skips items whose results exist
-    (keyed by stable item id), extending `skip_if_exists` semantics from
-    node-level to item-level;
-  - **chunked execution**: bounded batches with configurable concurrency, so
-    memory and rate limits hold at 500k;
-  - **progress observability**: counts/failures queryable mid-run (FR-723
-    route-log style JSONL or the OTel spans from FR-759).
-- **Boundary decision for the FR**: extend the existing map node vs a new
-  `durable_map` type — judged against LangGraph checkpointer granularity
-  (superstep-level, not item-level at fan-out) so the primitive is built where
-  LangGraph actually stops helping.
+### LangGraph-native coverage (rev 8, verified against current docs)
+
+| D contract line | Native mechanism | Gap remaining |
+|---|---|---|
+| Item-level durability | `@task` inside a node: task results are checkpointed; resume skips completed task work. Plus `durability="sync"` invoke mode. | Results live in the **checkpoint blob** — at 500k items per-superstep state serialization is the bottleneck. Thread-scoped; task-order-sensitive on resume. |
+| Resume-by-skip (cross-run) | Node/task caching: `CachePolicy(key_func=stable_item_id)` + persistent cache backend — cached item returns `{'__metadata__': {'cached': True}}` instead of re-executing; works **across threads/runs**. Alternative: the **Store** (cross-thread KV, SQLite/Postgres) as item-result home; skip = key-presence check. | Cache semantics are memoization — TTL/eviction become load-bearing if used as the result store. |
+| Fan-out | `Send` — native map-reduce. **Pending-writes** already persist successful parallel branches within a failed superstep: mid-fan-out crash doesn't re-run completed siblings. | `Send` schedules **everything in one superstep** — no bounded batches, no concurrency cap. 500k Sends = unbounded memory. The genuinely missing piece. |
+| Progress observability | `stream_mode="updates"` gives per-item completion events. | No queryable mid-run counts; needs FR-723-style JSONL. |
+
+**Where LangGraph stops helping** (Open Question 1, answered): exactly two
+places — bounded/chunked scheduling of the fan-out, and keeping 500k results
+out of the state channel (write to Store, not state; reduce reads the Store).
+Everything else — durability, skip, fan-out, crash-safe partial supersteps —
+is native. D shrinks from "new `durable_map` node type" toward a **thin
+composition**: chunked driver around `Send` batches + `CachePolicy`/Store
+keyed by item id + `durability="sync"` + progress JSONL. Strong prior for the
+FR: extend the existing map node with `durable:` options, don't invent a type.
+
+### Existing map node audit (rev 8) → FR-936
+
+`yamlgraph/compile/map_compiler.py` uses the canonical Send+reducer pattern,
+but with two scale-hostile deviations and three missed natives — extracted to
+**FR-936 (map node hardening)**, a prerequisite for D:
+
+1. **Full-state copy per Send**: `Send(sub, {**state, item, index})` vs the
+   docs' minimal per-item payload. Memory × fan-out; bloats every
+   pending-write. Cure: declared inputs — pass only keys the sub-node's
+   variables reference.
+2. **Silent truncation at `max_items`**: `logger.warning` + slice. A 550k run
+   "succeeds" with 1000 items — plausible_wrong_answer, Commandment 6. Cure:
+   raise by default; truncation only as explicit config.
+3. **Per-branch timeout leaks a thread**: one-shot pool +
+   `shutdown(wait=False, cancel_futures=True)` abandons the running thread.
+   At scale, zombie threads holding LLM connections.
+4. **No `RetryPolicy`** surfaced on sub-nodes (hand-rolled `on_error` instead).
+5. **No `CachePolicy`** surfaced at all (this one lands with D, not FR-936).
+
+Free lunch already banked: with the SQLite checkpointer attached, pending
+writes give partial in-run crash durability today — currently undermined by
+deviation 1 making every write huge.
+
+- **Contract sketch** (unchanged, now mapped to natives above): item-level
+  durability; resume-by-skip keyed by stable item id (extends
+  `skip_if_exists` to item level); chunked execution with bounded
+  concurrency; progress observability.
 - **Witness**: kill -9 mid-run at scale N, re-run, prove completed items are
   not re-executed and the final catalog is identical to an uninterrupted run.
 - **Acceptance demos**: C's pilot; also hva-weekly-bulletin's daily collection
@@ -295,7 +327,8 @@ When answered, B lands as `examples/api-discovery/steps/har-to-spec/`.
 
 | FR | Scope | Depends on | Size |
 |----|-------|------------|------|
-| D | resumable storage-backed map primitive + kill-and-resume witness | — | M |
+| **FR-936** | map node hardening: declared-inputs Send payload, raise-don't-truncate, timeout fix, RetryPolicy (filed rev 8) | — | S |
+| D | resumable map: chunked driver, CachePolicy/Store-backed results, `durability="sync"`, progress JSONL + kill-and-resume witness | FR-936 | M (shrunk by native coverage) |
 | A | fetch_page delta evidence → extend or new tool (fork resolved by judge) + smoke demo + Finnish encoding fixtures | — (parallel to D) | S (XS if fetch_page patch) |
 | C | fi-catalog pilot on D + A: pre-filter, classify (with platform field), catalog artifact, cost number | D, A | M |
 | C2 | full-run decision gated on C's pilot cost/accuracy numbers | C | — |
@@ -308,8 +341,9 @@ Plan → Judge → Enforce. All graph authoring goes through the
 
 ## Open Questions
 
-1. **D's home**: map node option set vs new node type — where does LangGraph's
-   checkpointer actually stop helping at fan-out scale?
+1. ~~**D's home**~~ **Answered (rev 8)**: extend the existing map node —
+   LangGraph stops helping only at chunked scheduling and result-store
+   placement; everything else is native. See D's coverage table.
 2. **A's dependency fork**: lynx vs html2text/trafilatura, evidence-based —
    preceded by the fetch_page extend-vs-new decision and now informed by the
    encoding fixtures from control-plane.
