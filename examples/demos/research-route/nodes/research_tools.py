@@ -59,7 +59,7 @@ SOLUTION_CLASSES = frozenset(
 MODEL_VERDICTS = frozenset({"pursue", "dissent", "duplicate"})
 ECHO_MARKER = "brief-echo"
 
-# FR-932: the honest miss. Personas may only claim it when retrieval
+# FR-938: the honest miss. Personas may only claim it when retrieval
 # genuinely returned nothing, which the reducer verifies against the
 # same block the personas were shown.
 NONE_RETRIEVED = "none-retrieved"
@@ -245,7 +245,7 @@ def _load_prior_art_builder():
 
 
 def _prior_art_lines(repo_root: Path, brief_path: str) -> list[str]:
-    """Retrieve FR-corpus prior art for the brief (FR-932).
+    """Retrieve FR-corpus prior art for the brief (FR-938).
 
     The query path is synthetic: build_prior_art scopes its corpus to the
     query file's parent, so a brief living in research-briefs/ must ask as
@@ -278,7 +278,7 @@ def _prior_art_lines(repo_root: Path, brief_path: str) -> list[str]:
 def extract_prior_art_block(committed_context: str) -> str:
     """Slice the prior-art subsection out of the block the personas saw.
 
-    FR-932 R-5: one computation, copied. The reducer never re-runs
+    FR-938 R-5: one computation, copied. The reducer never re-runs
     retrieval, so the artifact cannot disagree with the context window.
     """
     lines = committed_context.splitlines()
@@ -298,12 +298,12 @@ def collect_committed_context(repo_root: str = ".", brief_path: str = "") -> str
     """Deterministic committed-state grounding block (FR-896 AC-05).
 
     No LLM, no author narrative: CAP registry one-liners, ARCHITECTURE.md
-    headings, Scripture trap/cure keys, and (FR-932) prior art retrieved
+    headings, Scripture trap/cure keys, and (FR-938) prior art retrieved
     from the feature-request corpus for this brief — the same block for
     every persona, bounded.
     """
     root = Path(_state_value(repo_root, "repo_root"))
-    # FR-932: python nodes call func(effective_state) — ONE positional dict with
+    # FR-938: python nodes call func(effective_state) — ONE positional dict with
     # declared `variables` merged in, never keywords. brief_path therefore
     # arrives inside that dict at runtime and only as an argument in tests.
     if isinstance(repo_root, dict) and not brief_path:
@@ -424,10 +424,16 @@ def _is_committed_dir(token: str, repo_root: Path) -> bool:
     )
 
 
+def is_marker_claim(citation: str, marker: str) -> bool:
+    """FR-937: a marker is claimed, not mentioned (mirrors research_preflight)."""
+    stripped = citation.strip()
+    return stripped == marker or stripped.startswith(f"{marker}:")
+
+
 def _classify_precedent(
     precedent: str, repo_root: Path, prior_art_empty: bool = False
 ) -> str:
-    """Precedent validation (FR-932): traceable | grounded-empty | raise.
+    """Precedent validation (FR-938): traceable | grounded-empty | raise.
 
     FR-896's ``brief-echo`` demotion is gone: restating the brief as its
     own precedent is not precedent. Its replacement is bounded — a
@@ -437,13 +443,13 @@ def _classify_precedent(
     without_urls = URL_RE.sub(" ", precedent)
     if _check_committed_ids(without_urls, repo_root):
         return "traceable"
-    if ECHO_MARKER in precedent:
+    if is_marker_claim(precedent, ECHO_MARKER):
         raise ValueError(
             f"{ECHO_MARKER!r} is not precedent — the brief cannot cite "
             f"itself; cite committed state or declare {NONE_RETRIEVED!r}: "
             f"{precedent!r}"
         )
-    if NONE_RETRIEVED in precedent:
+    if is_marker_claim(precedent, NONE_RETRIEVED):
         if prior_art_empty:
             return "grounded-empty"
         raise ValueError(
@@ -497,7 +503,7 @@ def _validate_findings(
                 _classify_precedent(row.precedent, repo_root, prior_art_empty)
             )
 
-    # FR-932: every surviving row is grounded — traceable or an honest,
+    # FR-938: every surviving row is grounded — traceable or an honest,
     # verified miss. Counting the miss against the floor would make a
     # fabricated citation the cheaper option.
     if len(statuses) < 3:
@@ -542,7 +548,7 @@ def reduce_findings(
         f"- run date: {run_date}",
         f"- personas executed: {personas}",
         "",
-        # FR-932: copied from the block the personas saw, never recomputed.
+        # FR-938: copied from the block the personas saw, never recomputed.
         *([prior_art_block, ""] if prior_art_block else []),
         "| " + " | ".join(TABLE_COLUMNS) + " |",
         "|" + "---|" * len(TABLE_COLUMNS),
