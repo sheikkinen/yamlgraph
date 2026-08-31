@@ -1,9 +1,11 @@
 # Plan: Web Toolkit — Overview
 
-**Date:** 2026-08-31 (rev 9 — C cost control: mercury-2 pinned as classifier,
-LangSmith tracing off at scale via runner script. rev 8 — D grounded in
-LangGraph natives: task checkpointing, node caching, Send pending-writes;
-existing map node audited against the native pattern — hardening extracted to
+**Date:** 2026-08-31 (rev 10 — C sources researched live: NO public bulk .fi
+list exists (Traficom claim corrected); seed = CC host-graph ∪ CT; fetch route
+= index-driven WARC byte-ranges, WET demoted — see
+`docs/plan-research-fi-catalog-sources.md`. rev 9 — C cost control: mercury-2
+pinned as classifier, LangSmith tracing off at scale via runner script. rev 8
+— D grounded in LangGraph natives; map node audited — hardening extracted to
 FR-936. rev 7: sibling repos unpark B; rev 6: value audit; rev 5: SPA
 rendering; rev 4: converter comparison; rev 3: C primary, D promoted)
 **Status:** Draft (pre-FR)
@@ -71,7 +73,7 @@ B's differentiator over generic HAR→OpenAPI.
 | **`../control-plane/probes/*` (sibling repo, 40+ scripts)** | — | Working scrapers for Finnish gov/municipal platforms — CaseM (Playwright SPA), Dynasty DREQUEST, KTweb, Hilma, eduskunta, Kela, Fingrid, Digitraffic, etc. These *are* the corpus B replaces with machine-generated specs; they also *are* the encoding-tax evidence for A. First HAR candidates for B live here. |
 | **`../hva-weekly-bulletin` (sibling repo, production)** | — | Live YAMLGraph consumer over 22 HVAs; consumes B's would-be specs and C's would-be platform census. Closes the "for whom" gap for both. |
 | **`../gitclaw-oulu-civic-intelligence` (sibling repo, production)** | — | YAMLGraph civic-intelligence template; second consumer for B and C. |
-| **Common Crawl WET files (external)** | — | .fi pages already crawled *and rendered to text*. C v1 classifies from CC extracts; live-fetch only gaps/refresh. Kills most cost, politeness, and seed problems. |
+| **Common Crawl (external): host web graph, columnar URL index, WARC/WET** | — | **Rev 10, probed live**: three-tier access — host-graph vertices (free .fi enumeration), parquet URL index (pre-filter columns: fetch_status, languages, charset, byte-range pointers), ranged WARC GETs for page content. Full access details in `docs/plan-research-fi-catalog-sources.md`. |
 | **mitmproxy2swagger / har-to-openapi (external OSS)** | — | Deterministic HAR→OpenAPI converters exist; B wraps, does not reimplement. Compared in the B section. |
 | **Jina Reader / Firecrawl / Crawl4AI / browser-use (external)** | — | "URL → LLM-ready text incl. JS" is an occupied product category. A's JS tier wraps Crawl4AI (or Playwright), never builds rendering. See "SPA rendering: product boundary". |
 
@@ -84,16 +86,33 @@ Evolution of FR-204's demo into the toolkit's driving analysis pipeline.
   witness. The catalog dataset is the exhaust — but rev 7 gives that exhaust
   a live production consumer (hva-weekly-bulletin's 22-org list is the
   bounded version of C's platform census).
-- **v1 is Common Crawl, not crawling**: CC WET files carry pre-rendered text
-  for .fi pages — classify from those, live-fetch (A) only for gaps and
-  refresh. The Traficom open-data domain list (~550k domains) is the
-  completeness reference.
-- **Pipeline**: CC/seed domains → deterministic pre-filter (DNS resolve +
-  HTTP HEAD; LLM never sees dead sites) → **D-map**(text extract → LLM
-  classify with inline schema: category, language, organisation type,
-  **platform (CaseM/Dynasty/KTweb/other) — added rev 7 for B/hva-bulletin
-  handoff**, API presence, liveness, `render: empty|thin|full`) → catalog
-  artifact (SQLite/JSONL).
+- **Sources (rev 10, corrected — full record in
+  `docs/plan-research-fi-catalog-sources.md`)**: there is **no public bulk
+  .fi domain list** — Traficom's avoindata dataset (CC-BY 4.0) exposes only
+  per-domain search/WHOIS UIs, and the zone file is registrar-only. Seed =
+  **CC host-graph vertices** (every observed .fi hostname, free HTTPS
+  download) **∪ Certificate Transparency** hosts (crt.sh `%.fi`); Traficom's
+  published *count* (~550k) survives only as the coverage denominator.
+  Coverage is reported as an estimate against that count, never as a
+  subtraction from a register we don't have.
+- **v1 is Common Crawl, not crawling — route pinned (rev 10)**: the parquet
+  URL index (`url_host_tld='fi'`; fetch_status, content_languages, charset
+  columns) is a free pre-filter stage *before* any DNS/HEAD probe; page text
+  comes via **index-driven WARC byte-range GETs**
+  (`data.commoncrawl.org` + `Range:` header + warcio), not bulk WET
+  streaming — WET is demoted to fallback (segment-organized, bandwidth-heavy
+  for a single TLD, rougher encoding). Query route for the pilot:
+  HTTPS-downloaded parquet partition + DuckDB (no AWS account, reproducible);
+  Athena is the alternative at cents per TLD-filtered query. Latest crawl at
+  research time: CC-MAIN-2026-34; crawls are ~monthly.
+- **Pipeline**: seed (CC vertices ∪ CT) → **index pre-filter** (parquet:
+  status, language, charset — free, rev 10) → deterministic live pre-filter
+  (DNS resolve + HTTP HEAD, only for domains the index can't settle; LLM
+  never sees dead sites) → **D-map**(text extract → LLM classify with inline
+  schema: category, language, organisation type, **platform
+  (CaseM/Dynasty/KTweb/other) — added rev 7 for B/hva-bulletin handoff**, API
+  presence, liveness, `render: empty|thin|full`) → catalog artifact
+  (SQLite/JSONL).
 - **Cost model (required before scope freeze, rev 9)**: classifier pinned to
   **mercury-2** (`provider: inception`, already in the provider matrix) —
   diffusion-LM speed/price is what makes 550k × classify plausible; token cap
@@ -111,11 +130,15 @@ Evolution of FR-204's demo into the toolkit's driving analysis pipeline.
   config as truth, not operator memory.
 - **Evaluation (read_raw_output_first)**: before any aggregate accuracy claim,
   dump N classified samples with their source text and read them; spot-check
-  accuracy criterion in the FR. An unaudited catalog is a liability.
+  accuracy criterion in the FR. An unaudited catalog is a liability. Ready
+  eval set (rev 10): control-plane/hva tenant lists give ground-truth
+  platform labels for the census columns.
 - **Incremental semantics**: dedup + change detection + entry TTL (precedent:
   daily_digest's digest.db). Liveness re-check is deterministic and LLM-free.
 - **Politeness constraints** (live-fetch tier only): robots.txt respect,
-  per-host rate limits, identifying User-Agent — FR acceptance criteria.
+  per-host rate limits, identifying User-Agent — FR acceptance criteria. Also
+  applies to CC community infra: identifying UA everywhere; parquet index,
+  never the rate-limited CDX API, for bulk (rev 10).
 - **Named consumer**: public-sector platform census (which municipalities and
   HVAs run CaseM/Dynasty/KTweb/CKAN/PxWeb/OData) — the census output feeds
   `hva-weekly-bulletin` and gates which B specs get generated first.
@@ -196,7 +219,9 @@ chat-surface `fetch_webpage` is not.
   ISO-8859-1→UTF-8; KTweb detail pages are **UTF-16-LE without BOM**; KTweb
   also injects anti-copy whitespace that has to be collapsed. If `fetch_page`
   doesn't already handle these, the delta is measurable and the FR writes
-  itself. Fixtures from control-plane test data.
+  itself. Fixtures from control-plane test data. Rev 10 adds: WARC-sourced
+  page bytes carry the *original* server encoding — the same normalization
+  boundary serves both live fetches and CC archive reads.
 - **Form**: shell tool manifest wrapping `lynx -dump`; modes `-nolist`
   (reading text) and `-listonly` (numbered link inventory).
 - **Boundary rules** (no silent fallbacks): fail fast if binary missing;
@@ -343,7 +368,8 @@ When answered, B lands as `examples/api-discovery/steps/har-to-spec/`.
 | **FR-936** | map node hardening: declared-inputs Send payload, raise-don't-truncate, timeout fix, RetryPolicy (filed rev 8) | — | S |
 | D | resumable map: chunked driver, CachePolicy/Store-backed results, `durability="sync"`, progress JSONL + kill-and-resume witness | FR-936 | M (shrunk by native coverage) |
 | A | fetch_page delta evidence → extend or new tool (fork resolved by judge) + smoke demo + Finnish encoding fixtures | — (parallel to D) | S (XS if fetch_page patch) |
-| C | fi-catalog pilot on D + A: pre-filter, classify (with platform field), catalog artifact, cost number + mercury-2 quality spot-check; scale runner (tracing off) | D, A | M |
+| C-seed | seed assembly + index pre-filter (CC vertices ∪ CT → parquet/DuckDB prune) — deterministic, LLM-free, can start today (rev 10) | — | S |
+| C | fi-catalog pilot on D + A: classify (with platform field), catalog artifact, cost number + mercury-2 quality spot-check; scale runner (tracing off) | C-seed, D, A | M |
 | C2 | full-run decision gated on C's pilot cost/accuracy numbers | C | — |
 | B | har-to-spec on Dynasty DREQUEST first; consumed by hva-weekly-bulletin | D (map), A (docs fetch) | M |
 | B2 | CaseM (Playwright HAR) + KTweb, tenant-templating primitive | B | — |
@@ -360,8 +386,12 @@ Plan → Judge → Enforce. All graph authoring goes through the
 2. **A's dependency fork**: lynx vs html2text/trafilatura, evidence-based —
    preceded by the fetch_page extend-vs-new decision and now informed by the
    encoding fixtures from control-plane.
-3. **CC WET freshness**: how stale is Common Crawl for the .fi long tail, and
-   what refresh fraction does that imply for the live-fetch tier?
+3. **CC freshness for the .fi long tail** (narrowed rev 10): crawls are
+   ~monthly (latest CC-MAIN-2026-34) and the seed no longer depends on
+   freshness (host graph ∪ CT catches new domains fast via cert issuance);
+   the remaining question is what fraction of *page content* is stale enough
+   to need the live-fetch tier — C-seed's index stage measures it for free
+   (fetch_time column).
 4. **Catalog artifact home**: SQLite under `outputs/` for the pilot; a full
    production catalog likely deserves its own repo/dataset boundary — perhaps
    consumed by hva-weekly-bulletin directly.
