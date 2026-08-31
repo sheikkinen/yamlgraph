@@ -18,6 +18,9 @@ config:
 state:
   source: str
   rubric: str
+  model: str
+  provider: str
+  labels: str
   output_path: str
   items:
     type: list
@@ -89,8 +92,8 @@ nodes:
     node:
       type: llm
       prompt: judge_item
-      provider: anthropic
-      model: claude-haiku-4-5
+      provider: "{state.provider}"
+      model: "{state.model}"
       temperature: 0.0
       state_key: finding
       on_error: skip
@@ -113,8 +116,8 @@ nodes:
   synthesize:
     type: llm
     prompt: synthesize_brief
-    provider: anthropic
-    model: claude-haiku-4-5
+    provider: "{state.provider}"
+    model: "{state.model}"
     temperature: 0.0
     state_key: claims
     variables:

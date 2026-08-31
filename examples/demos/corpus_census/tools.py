@@ -1,19 +1,44 @@
-"""Deterministic reducer for the FR-892 corpus census demo."""
+"""Deterministic reducer for the FR-892 corpus census demo.
+
+FR-940: judgement labels are normalized at this boundary by a
+deterministic, LLM-free algorithm — prefix strip, separator cut,
+grammar gate, optional caller vocabulary. Non-conforming values are
+demoted to abstain (never dropped); every reconciliation is recorded
+in raw_judgement/repaired audit fields.
+"""
 
 from __future__ import annotations
 
 import json
+import re
 import sys
+import unicodedata
 from pathlib import Path
 from typing import Any
 
-from pydantic import BaseModel, Field, ValidationError, field_validator, model_validator
+from pydantic import (
+    BaseModel,
+    Field,
+    ValidationError,
+    ValidationInfo,
+    field_validator,
+    model_validator,
+)
 
 ERROR_STRINGS = ("Error:", "No results")
 MODEL = "claude-haiku-4-5"
 PROMPT_VERSION = "judge_item.v1"
 SYNTHESIS_MODEL = "claude-haiku-4-5"
 SYNTHESIS_PROMPT_VERSION = "synthesize_brief.v1"
+
+# FR-940 frozen label grammar: lowercase alnum head/tail, interior may
+# add space/_//&/-, length 1-64, at most 4 space-separated words.
+_LABEL_GRAMMAR = re.compile(r"[a-z0-9](?:[a-z0-9 _/&-]*[a-z0-9])?")
+_ENUM_PREFIX = re.compile(r"^\([a-z]\)\s*", re.IGNORECASE)
+_TAG_PREFIX = re.compile(r"^type\s*:\s*", re.IGNORECASE)
+_SEPARATORS = ("|", ";", "\n")
+_SHAPE_REASON = "unparseable judgement shape"
+_VOCAB_REASON = "label not in vocabulary"
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 if str(REPO_ROOT) not in sys.path:
@@ -32,10 +57,14 @@ class LedgerRow(BaseModel):
     abstained: bool
     abstain_reason: str
     disagreement: bool
+    raw_judgement: str = ""
+    repaired: bool = False
 
     @field_validator("*", mode="before")
     @classmethod
-    def _strip_required_strings(cls, value: Any) -> Any:
+    def _strip_required_strings(cls, value: Any, info: ValidationInfo) -> Any:
+        if info.field_name == "raw_judgement":
+            return value  # preserved verbatim for audit (FR-940)
         if isinstance(value, str):
             return value.strip()
         return value
@@ -55,8 +84,143 @@ class LedgerRow(BaseModel):
         return self
 
 
-def _rows_by_index(items: list[str], findings: list[dict[str, Any]]) -> list[LedgerRow]:
+def _parse_labels(labels: Any) -> list[Any] | None:
+    if labels is None or (isinstance(labels, str) and not labels.strip()):
+        return None
+    if isinstance(labels, str):
+        parsed = json.loads(labels)
+        if not isinstance(parsed, list):
+            raise ValueError("labels JSON must decode to a list")
+        return parsed
+    if isinstance(labels, list):
+        return labels
+    raise ValueError("labels must be a list or JSON-encoded list")
+
+
+def _validate_labels(labels: list[Any] | None) -> dict[str, str] | None:
+    """Return casefold -> canonical spelling map, fail-closed on misuse."""
+    if labels is None:
+        return None
+    if not labels:
+        raise ValueError("labels must be a non-empty list")
+    vocabulary: dict[str, str] = {}
+    for label in labels:
+        if not isinstance(label, str) or not label.strip():
+            raise ValueError("labels members must be non-empty strings")
+        canonical = label.strip()
+        key = canonical.casefold()
+        if key == "abstain":
+            raise ValueError("labels must not contain the reserved label 'abstain'")
+        if key in vocabulary:
+            raise ValueError(f"labels collide under casefold: {label!r}")
+        vocabulary[key] = canonical
+    return vocabulary
+
+
+def _effective_model(value: Any, default: str = MODEL) -> str:
+    if isinstance(value, str) and value.strip():
+        return value.strip()
+    return default
+
+
+def _extract_candidate(stripped: str) -> str:
+    candidate = _ENUM_PREFIX.sub("", stripped, count=1)
+    candidate = _TAG_PREFIX.sub("", candidate, count=1)
+    cuts = [i for i in (candidate.find(sep) for sep in _SEPARATORS) if i >= 0]
+    if cuts:
+        candidate = candidate[: min(cuts)]
+    candidate = candidate.strip()
+    if len(candidate) >= 2 and candidate.startswith('"') and candidate.endswith('"'):
+        candidate = candidate[1:-1].strip()
+    return candidate.lower()
+
+
+def _passes_grammar(label: str) -> bool:
+    return (
+        1 <= len(label) <= 64
+        and _LABEL_GRAMMAR.fullmatch(label) is not None
+        and len(label.split(" ")) <= 4
+    )
+
+
+def _normalize_judgement(
+    raw: str, abstained: bool, vocabulary: dict[str, str] | None
+) -> dict[str, Any]:
+    """FR-940 frozen algorithm. Returns row overrides plus a state tag."""
+    stripped = unicodedata.normalize("NFC", raw).strip()
+    if abstained:
+        return {
+            "state": "model-abstained",
+            "judgement": "abstain",
+            "raw_judgement": "" if stripped.casefold() == "abstain" else raw,
+            "repaired": False,
+        }
+    candidate = _extract_candidate(stripped)
+    if not _passes_grammar(candidate):
+        return {"state": "demoted", "reason": _SHAPE_REASON, "raw_judgement": raw}
+    if vocabulary is not None:
+        canonical = vocabulary.get(candidate)
+        if canonical is None:
+            return {
+                "state": "demoted",
+                "reason": _VOCAB_REASON,
+                "raw_judgement": raw,
+            }
+        emitted = canonical
+    else:
+        emitted = candidate
+    repaired = stripped.casefold() != emitted.casefold()
+    return {
+        "state": "repaired" if repaired else "kept",
+        "judgement": emitted,
+        "raw_judgement": "" if stripped == emitted else raw,
+        "repaired": repaired,
+    }
+
+
+def _build_row(
+    item_ref: str,
+    finding: dict[str, Any],
+    norm: dict[str, Any],
+    model_name: str,
+) -> LedgerRow:
+    if norm["state"] == "demoted":
+        return LedgerRow(
+            item_ref=item_ref,
+            judgement="abstain",
+            confidence=0.0,
+            evidence_span="",
+            model=model_name,
+            prompt_version=PROMPT_VERSION,
+            abstained=True,
+            abstain_reason=norm["reason"],
+            disagreement=False,
+            raw_judgement=norm["raw_judgement"],
+            repaired=False,
+        )
+    return LedgerRow(
+        item_ref=item_ref,
+        judgement=norm["judgement"],
+        confidence=finding.get("confidence"),
+        evidence_span=str(finding.get("evidence_span", "")).strip(),
+        model=model_name,
+        prompt_version=PROMPT_VERSION,
+        abstained=bool(finding.get("abstained")),
+        abstain_reason=str(finding.get("abstain_reason", "")).strip(),
+        disagreement=False,
+        raw_judgement=norm["raw_judgement"],
+        repaired=norm["repaired"],
+    )
+
+
+def _rows_by_index(
+    items: list[str],
+    findings: list[dict[str, Any]],
+    vocabulary: dict[str, str] | None,
+    model_name: str,
+) -> tuple[list[LedgerRow], dict[str, int]]:
     rows: list[LedgerRow] = []
+    counts = {"repaired": 0, "demoted": 0, "model_abstained": 0}
     seen: set[int] = set()
     for finding in findings:
         if not isinstance(finding, dict):
@@ -75,22 +239,22 @@ def _rows_by_index(items: list[str], findings: list[dict[str, Any]]) -> list[Led
             raise ValueError(f"duplicate finding for item index {index}")
         seen.add(index)
 
-        judgement = str(finding.get("judgement", "")).strip()
-        if any(marker in judgement for marker in ERROR_STRINGS):
+        raw_judgement = str(finding.get("judgement", ""))
+        if any(marker in raw_judgement for marker in ERROR_STRINGS):
             raise ValueError("judgement is an error string")
 
+        norm = _normalize_judgement(
+            raw_judgement, bool(finding.get("abstained")), vocabulary
+        )
+        if norm["state"] == "demoted":
+            counts["demoted"] += 1
+        elif norm["state"] == "model-abstained":
+            counts["model_abstained"] += 1
+        elif norm["state"] == "repaired":
+            counts["repaired"] += 1
+
         try:
-            row = LedgerRow(
-                item_ref=items[index],
-                judgement=judgement,
-                confidence=finding.get("confidence"),
-                evidence_span=str(finding.get("evidence_span", "")).strip(),
-                model=MODEL,
-                prompt_version=PROMPT_VERSION,
-                abstained=bool(finding.get("abstained")),
-                abstain_reason=str(finding.get("abstain_reason", "")).strip(),
-                disagreement=False,
-            )
+            row = _build_row(items[index], finding, norm, model_name)
         except ValidationError as exc:
             raise ValueError(
                 f"invalid ledger row for item {items[index]}: {exc}"
@@ -100,14 +264,16 @@ def _rows_by_index(items: list[str], findings: list[dict[str, Any]]) -> list[Led
     missing = sorted(set(range(len(items))) - seen)
     if missing:
         raise ValueError(f"missing findings for item indexes: {missing}")
-    return sorted(rows, key=lambda row: row.item_ref)
+    return sorted(rows, key=lambda row: row.item_ref), counts
 
 
 def _cell(value: Any) -> str:
     return str(value).replace("|", "/").replace("\n", " ").strip()
 
 
-def _write_artifacts(rows: list[LedgerRow], output_path: str) -> dict[str, Any]:
+def _write_artifacts(
+    rows: list[LedgerRow], counts: dict[str, int], output_path: str
+) -> dict[str, Any]:
     markdown_path = Path(output_path)
     if not markdown_path.suffix:
         markdown_path = markdown_path.with_suffix(".md")
@@ -120,6 +286,13 @@ def _write_artifacts(rows: list[LedgerRow], output_path: str) -> dict[str, Any]:
     )
     lines = [
         "# Corpus Census Ledger",
+        "",
+        (
+            f"Normalization: {counts['repaired']} repaired, "
+            f"{counts['demoted']} demoted, "
+            f"{counts['model_abstained']} model-abstained of "
+            f"{len(rows)} rows."
+        ),
         "",
         header,
         "|---|---|---:|---|---|---|---|---|---|",
@@ -156,7 +329,7 @@ def _write_artifacts(rows: list[LedgerRow], output_path: str) -> dict[str, Any]:
 
 
 def reduce_ledger(state: dict[str, Any] | None = None, **kwargs: Any) -> dict[str, Any]:
-    """Validate findings and write markdown plus JSONL ledger artifacts."""
+    """Validate, normalize, and write markdown plus JSONL ledger artifacts."""
     effective_state = state if isinstance(state, dict) else kwargs
     items = effective_state.get("items")
     findings = effective_state.get("findings")
@@ -168,8 +341,12 @@ def reduce_ledger(state: dict[str, Any] | None = None, **kwargs: Any) -> dict[st
     if not isinstance(output_path, str) or not output_path.strip():
         raise ValueError("output_path must be a non-empty string")
 
-    rows = _rows_by_index([str(item) for item in items], findings)
-    return {"ledger": _write_artifacts(rows, output_path)}
+    vocabulary = _validate_labels(_parse_labels(effective_state.get("labels")))
+    model_name = _effective_model(effective_state.get("model"))
+    rows, counts = _rows_by_index(
+        [str(item) for item in items], findings, vocabulary, model_name
+    )
+    return {"ledger": _write_artifacts(rows, counts, output_path)}
 
 
 def _require_non_empty_string(state: dict[str, Any], key: str) -> str:
@@ -238,7 +415,7 @@ def render_brief(state: dict[str, Any] | None = None, **kwargs: Any) -> dict[str
         brief_input,
         brief_path,
         run_meta={
-            "model": SYNTHESIS_MODEL,
+            "model": _effective_model(effective_state.get("model"), SYNTHESIS_MODEL),
             "prompt_version": SYNTHESIS_PROMPT_VERSION,
             "rows": len(brief_input),
             "source_jsonl_path": source_jsonl_path,
