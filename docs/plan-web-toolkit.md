@@ -1,8 +1,10 @@
 # Plan: Web Toolkit — Overview
 
-**Date:** 2026-08-31 (rev 5 — SPA rendering dispositioned: wrap, don't build;
-interactive lynx-for-agents named as separate-product candidate. rev 4:
-converter comparison + HAR map-reduce; rev 3: C primary, D promoted, B parked)
+**Date:** 2026-08-31 (rev 6 — value audit folded: D is the keystone, C's
+framework value contingent on D, A gated on a fetch_page delta, B's value
+sentence incomplete until baseline research. rev 5: SPA rendering
+dispositioned; rev 4: converter comparison; rev 3: C primary, D promoted,
+B parked)
 **Status:** Draft (pre-FR)
 **Scope:** A TLD-scale classification pipeline (C, primary) and the two
 foundations it stands on: a text-render graph tool (A) and a resumable
@@ -24,12 +26,30 @@ fetch-as-text tool usable inside any graph, and a map primitive that survives
    future research graph.
 4. **B — har-to-spec**: parked; needs more info before an FR (see Parked).
 
+## Value Audit (forced_opposite, rev 6)
+
+Each component challenged with "what value does the output add?" and "would
+yamlgraph add value, or is it costume?":
+
+| | Value of the output | Would yamlgraph add value? |
+|--|--|--|
+| **D** | Intrinsic and highest: item-durable resumable fan-out is a genuine gap — LangGraph checkpoints at superstep level, not per-item; the max_items + CAP-120 stack is documented user pain. Three named consumers (C pilot, B map stage, any bulk job). | **D *is* yamlgraph value** — a framework primitive, not an application. The only component whose worth doesn't depend on the others shipping. The keystone. |
+| **C** | Real but external: a classified ccTLD census doesn't exist; consumer named. The value lives in the **data**, not the pipeline. | **Only via D.** The graph shape is single-stage embarrassingly-parallel classify — a 50-line asyncio+SQLite script does it today. Without D, yamlgraph here is framework_costume. With D, the framework earns its keep (resume at 550k, provider swap, typed outputs) and gains a scale witness it has never had. |
+| **A** | Marginal: api-discovery already ships `fetch_page`. Honest delta is rendered-text quality, link inventory, and the render-emptiness signal — commodity wrapper territory. | Neutral — Layer 3 plumbing working as designed. The FR is gated on stating the delta vs fetch_page (see A's delta gate). |
+| **B** | Most speculative output value (no named first HAR, no consumer, delta over deterministic converters unmeasured) — but the best native graph-shape fit of all four: LLM map replacing m2s's human curation pass, deterministic reduce, round-trip witness. | Yes *iff* the baseline research (Q2) shows a real delta. If the converters already cover the HAR, the LLM stage is growth_as_default and B dies. Parking is the plan working. |
+
+**Summary**: D is the keystone — sequenced first, correctly. C standalone is
+a script; C stated as "the workload that forces D to exist and produces a
+citable dataset as exhaust" is honest and defensible. A must prove it isn't
+a duplicate of fetch_page. B cannot yet complete the "for whom / what pain"
+sentence.
+
 ## Prior Art (dispositioned)
 
 | Artifact | FR | Relation |
 |----------|----|----------|
 | `examples/demos/fi_domain_crawl` | FR-204 | Shipped crawl-and-summarise demo (httpx + BeautifulSoup, map fan-out, LLM synthesis). C evolves this — refit, don't duplicate. |
-| `examples/api-discovery` | FR-783..790 | Tool manifests `fetch_page`, `curl_probe`, `parse_openapi`; step graphs. A's tool lives beside these manifests; CAP-226's SPA-shell/browser-sniff distinction is the precedent for A's JS policy. |
+| `examples/api-discovery` | FR-783..790 | Tool manifests `fetch_page`, `curl_probe`, `parse_openapi`; step graphs. A's tool lives beside these manifests; CAP-226's SPA-shell/browser-sniff distinction is the precedent for A's JS policy. **`fetch_page` is also A's potential duplicate — see A's delta gate.** |
 | `examples/daily_digest/nodes/content.py` | — | BS4 extraction; its committed `digest.db` dedup is the precedent for C's incremental re-crawl. |
 | map `max_items` + CAP-120 inter-run state chaining + SQLite checkpointer | — | The current workaround stack D replaces with a primitive. |
 | **Common Crawl WET files (external)** | — | .fi pages already crawled *and rendered to text*. C v1 classifies from CC extracts; live-fetch only gaps/refresh. Kills most cost, politeness, and seed problems. |
@@ -40,6 +60,12 @@ fetch-as-text tool usable inside any graph, and a map primitive that survives
 
 Evolution of FR-204's demo into the toolkit's driving analysis pipeline.
 
+- **Honest framing (rev 6)**: standalone, C is a script — its graph shape is
+  a single LLM-classify stage over items. C's value to the *repo* is that it
+  forces D to exist and hands the framework a 500k-scale witness; the catalog
+  dataset is the exhaust. C's yamlgraph value is contingent on D — the FR
+  must present it as D's acceptance workload, not as a product needing a
+  framework.
 - **v1 is Common Crawl, not crawling**: CC WET files carry pre-rendered text
   for .fi pages — classify from those, live-fetch (A) only for gaps and
   refresh. The Traficom open-data domain list (~550k domains) is the
@@ -68,6 +94,10 @@ Evolution of FR-204's demo into the toolkit's driving analysis pipeline.
 C at 500k items is a scale the map node has never seen; `max_items` +
 CAP-120 chaining is a workaround, not a primitive. D makes it one.
 
+**Keystone (rev 6)**: D is the only component whose value is intrinsic to
+the framework — it survives even if C's full run is never funded (the
+primitive pays for itself at 10k-item scale) and B never unparks.
+
 - **Contract sketch**: a map variant (or map option set) with
   - **item-level durability**: each completed item's result persists to
     storage (SQLite; same family as the checkpointer) the moment it finishes —
@@ -93,6 +123,12 @@ A graph tool (FR-768-style manifest), consumed by C's live-fetch tier and by
 research graphs generally — fetch-as-text *inside* a graph, which the
 chat-surface `fetch_webpage` is not.
 
+- **fetch_page delta gate (rev 6)**: api-discovery already ships a
+  `fetch_page` tool manifest. A's FR must open with the delta: either
+  **extend fetch_page** (add dump rendering, link inventory, render signal)
+  or show **same-page evidence** that a separate lynx tool is materially
+  better. Without that evidence A is the duplicate — false_duplicate in
+  reverse — and collapses into a fetch_page patch, size XS.
 - **Form**: shell tool manifest wrapping `lynx -dump`; modes `-nolist`
   (reading text) and `-listonly` (numbered link inventory).
 - **Boundary rules** (no silent fallbacks): fail fast if binary missing;
@@ -129,7 +165,11 @@ scope-creep into building a browser.
 
 ## Parked: B — `har-to-spec` (needs more info)
 
-HAR→OpenAPI synthesis is deferred until the research below concludes; no FR yet.
+HAR→OpenAPI synthesis is deferred until the research below concludes; no FR
+yet. B is the best native graph-shape fit in this plan (parallel LLM map +
+deterministic reduce + witness), but it cannot yet complete the value
+sentence — *for whom, against what pain, versus which alternative* — until
+the baseline research answers what the LLM honestly adds over the converters.
 
 ### Converter comparison (verified against upstream READMEs, 2026-08-31)
 
@@ -204,7 +244,7 @@ When answered, B lands as `examples/api-discovery/steps/har-to-spec/`.
 | FR | Scope | Depends on | Size |
 |----|-------|------------|------|
 | D | resumable storage-backed map primitive + kill-and-resume witness | — | M |
-| A | text-render tool (fork resolved by judge) + smoke demo | — (parallel to D) | S |
+| A | fetch_page delta evidence → extend or new tool (fork resolved by judge) + smoke demo | — (parallel to D) | S (XS if fetch_page patch) |
 | C | fi-catalog pilot on D + A: pre-filter, classify, catalog artifact, cost number | D, A | M |
 | C2 | full-run decision gated on C's pilot cost/accuracy numbers | C | — |
 | B | parked — research questions above; map stage would also consume D | (D) | — |
@@ -217,7 +257,8 @@ Plan → Judge → Enforce. All graph authoring goes through the
 
 1. **D's home**: map node option set vs new node type — where does LangGraph's
    checkpointer actually stop helping at fan-out scale?
-2. **A's dependency fork**: lynx vs html2text/trafilatura, evidence-based.
+2. **A's dependency fork**: lynx vs html2text/trafilatura, evidence-based —
+   preceded by the fetch_page extend-vs-new decision.
 3. **CC WET freshness**: how stale is Common Crawl for the .fi long tail, and
    what refresh fraction does that imply for the live-fetch tier?
 4. **Catalog artifact home**: SQLite under `outputs/` for the pilot; a full
