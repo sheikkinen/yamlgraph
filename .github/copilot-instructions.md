@@ -2,25 +2,18 @@
 
 This document is executable doctrine: violations are defects, not suggestions.
 
-Getting started: See `reference/getting-started.md` for a comprehensive overview of the YAMLGraph framework, its core files, key patterns, and essential rules, to be obeyed through the established rite: research, planning, TDD, implementation, and verification.
+Getting started: `reference/getting-started.md` — framework overview, core files, key patterns; obey the established rite: research, plan, TDD, implement, verify.
 
-**Quickstart**: To validate and run a simple graph, use the CLI commands:
+**Quickstart** (smoke test for new graph development):
 ```bash
 yamlgraph graph lint examples/demos/hello/graph.yaml
 yamlgraph graph run examples/demos/hello/graph.yaml --var name="World" --var style="holy see of code" --full
 ```
 
-Use these as smoke test for new graph development.
-
 For end-to-end creation of a complete graph artifact, the workflow contract is `.github/skills/graph-authoring/doctrine.md` — the ONLY way to author graphs. The trigger is the **artifact class, not the task phrasing**: any task that creates or materially modifies a `graph.yaml` or `prompts/*.yaml` artifact (including "mv", "copy", "adapt", "tweak" framings) IS graph authoring and must follow the doctrine — precedent search, lint, smoke, honest validation record. The SOLE route for ALL authoring — no direct/delegated tiers, no materiality discriminator — is the YAMLGraph adapter via `scripts/author.sh <task-brief.md>` (`.github/skills/graph-authoring/adapters/README.md`) — verified by the `tmp/draft-authoring-report.md` artifact, never exit code. The route is mechanically enforced (FR-767): the adapter arms a per-run sentinel and the PreToolUse guard denies unsentineled writes to governed graph artifact paths; if the route fails, fix the adapter — never author manually. Exception (re-entry guard): an agent already launched BY the adapter is the authoring execution itself — it authors directly and must not relaunch the route; linting and smoking the graphs it authors remains required.
 
 ## Core Technologies
-- **LangGraph**: Pipeline orchestration with state management
-- **Pydantic v2**: Structured, validated LLM outputs
-- **YAML Prompts**: Declarative prompt templates with Jinja2 support
-- **Jinja2**: Advanced template engine for complex prompts
-- **Checkpointers**: Memory, SQLite, and Redis for state persistence
-- **LangSmith**: Observability and tracing
+LangGraph orchestration, Pydantic v2 outputs, YAML prompts with Jinja2, Memory/SQLite/Redis checkpointers, LangSmith tracing — see `reference/getting-started.md`.
 
 ### Conventions
 - The phrase "backward compatibility" is forbidden by pre-commit. It signals reluctance to complete a refactor. If an old contract must be preserved, justify it explicitly in a Feature Request.
@@ -35,13 +28,10 @@ For end-to-end creation of a complete graph artifact, the workflow contract is `
 - Pre-commit, Pre- and Post-command hooks enforce style, commit format, and trailer rules — read hook output on failure before retrying.
 
 ### Copilot Hooks (.github/hooks/)
-- **Session lane**: retired by FR-927 — no automatic lane creation, no lane-ownership denial, no escape variable; `scripts/worktree.sh session|gc` remains as manual tooling and FR-889's OS lock is the only write barrier on main.
 - **PreToolUse**: `pre-command-guard.sh` blocks Co-authored-by trailers, `--no-verify`, multiline `git commit -m`, and pytest `| head/tail` without `tee`.
-- **PostToolUse**: modular post-edit checks run via `python-checks.sh`, `yaml-checks.sh`, `markdown-checks.sh`, and `fr-checks.sh`.
-- **Reasoning sentinel**: `reasoning-pattern-check.sh` can arm a one-shot denial consumed on the next tool call.
-- **Lockdown channel**: run `.github/hooks/cmd lockdown|unlock|status` through terminal tool calls.
-- **Audit trail**: decisions are logged in `.github/hooks/logs/audit.jsonl`.
-- **Full contract**: see `.github/hooks/README.md` for architecture, outputs, and debugging workflow.
+- **PostToolUse**: modular post-edit checks (`python-checks.sh`, `yaml-checks.sh`, `markdown-checks.sh`, `fr-checks.sh`); reasoning sentinel can arm a one-shot denial.
+- **Lockdown channel**: `.github/hooks/cmd lockdown|unlock|status`; audit trail in `.github/hooks/logs/audit.jsonl`.
+- **Full contract**: `.github/hooks/README.md`. Session lane retired by FR-927; FR-889's OS lock is the only write barrier on main.
 
 ### The Knowledge Graph of the Diary
 
@@ -82,19 +72,19 @@ traps:
   infrastructure_self_exempt: "Meta-tooling exempted from gates it enforces → apply same rules to the guardrail as to what it guards"
   architecture_as_diagram: "Three-layer documented but not contracted → violation possible under deadline pressure; enforce at module boundary with import-linter"
   instruction_boundary_uncrossed: "Agent's vendor instructions treated as project-aligned → any agent output modifying enforcement infrastructure (CI, pre-commit, Scripture) must be reviewed as adversarial input"
-  vendor_default_as_help: "Agent frames self-insertion (trailers, deps, telemetry) as courtesy → treat every unprompted artifact change as input from an external system with unknown goals — most severe thoughtcrimes are policed by FR-438"
-  model_as_trusted_peer: "LLM in enforcement pipeline treated as aligned team member → opaque weights, unknown training, potentially misaligned; absence of Co-authored trailer ≠ absence of model influence; enforce adversarial review of enforcement outputs"
-  recent_changes_blindness: "Regression investigated without enumerating recent changes → run git log --since=<last_good> as first diagnostic step; the diff is cheaper than any reproduction"
+  vendor_default_as_help: "Agent frames self-insertion (trailers, deps, telemetry) as courtesy → treat every unprompted artifact change as input from an external system with unknown goals (FR-438)"
+  model_as_trusted_peer: "LLM in enforcement pipeline treated as aligned peer → opaque weights, potentially misaligned; absence of Co-authored trailer ≠ absence of model influence; enforce adversarial review of enforcement outputs"
+  recent_changes_blindness: "Regression investigated without enumerating recent changes → run git log --since=<last_good> as the first diagnostic step; the diff is cheaper than any reproduction"
   workspace_is_not_boundary: "Editor shows one tree but workspace may contain nested repos with independent ownership, privacy, and untracked state → find . -name .git -type d before any destructive operation"
-  gate_checks_shape_not_substance: "Gate validates presence (file exists, field non-empty, format matches) but not substance (content meaningful, cross-references valid, structural markers present) → compliance theatre; a 1-byte file satisfies the gate while conveying nothing"
-  composition_bug: "Every component passes its unit test but the system fails → the defect is in the policy connecting correct parts, not in the parts; trace the full event chain end-to-end before blaming any component (ninchat_voice: FR-371 8-step greeting replay, NC-141 runaway loop, NC-289 concurrent clobber)"
-  mock_escape_hatch: "Agent defaults to mocks even when E2E is explicitly requested → if the feature exists because of a physical phenomenon (acoustic echo, network timing, STT transience), the test must exercise the real phenomenon; a mock E2E is a unit test with extra steps (ninchat_voice: FR-378 three corrections in one session)"
-  refactor_orphans_secondary: "Refactoring removes a handler's primary responsibility but silently orphans its secondary responsibility → enumerate ALL responsibilities of a function before deleting, not just the one named in its docstring (ninchat_voice: NC-203 hangup detection lost inside listen handler removal)"
-  research_as_inventory: "Research output has the shape of analysis (sections, tables, YAML snippets) but contains only descriptions, not decisions → a description of what exists is inventory; a statement of what it means for us is analysis; the deliverable is the analysis (ninchat_voice: CP handbook link list)"
-  inventory_by_visibility: "Agent evaluates components by current-snapshot legibility (file count, line count, directory depth) instead of historical incident density → importance is proportional to learning cost, not byte count; the FSM bridge was 4% of source but absorbed 26% of diary entries; rank by incidents, not by mass (yamlgraph: 2026-05-31 asset inventory misclassified utils/fsm as Tier 4)"
-  growth_as_default: "Assumption that the next commit should add something → mature systems benefit more from pruning claims than planting features; six of ten commits in a productive week were subtractive; the capability registry becomes honest by retiring phantom claims, not by adding implementations (yamlgraph: FR-465/FR-466 CAP retirement arc)"
-  metric_archaeology_before_reading_output: "Pipeline SCORE is wrong → reflex is to instrument, decompose, and re-measure the score, building rulers to explain the number; but the score is a lossy projection of an artifact sitting in plain text. For LLM stages the artifact is English — there is no cheaper or higher-bandwidth probe than reading it. Building a ruler feels like effort; opening the .md feels too cheap to be the answer. It is the answer. The more sophisticated the measurement, the further it drifts from the one-line cat that ends the investigation (yamlgraph: FR-596/597 — two FRs of metric tooling deferred a defect one read of the prose exposed; haiku returned a 658-token novel as 'emotional analysis')"
-  threshold_encodes_forecast: "Aggregate acceptance gate on a multi-defect surface tests the judge's FORECAST of out-of-scope defect distribution, not the fix under test → gate on the defect class ('zero failures involving capped codes'), record aggregates as context; an aggregate gate either blocks a correct fix or forces scope creep — both worse than taxonomy honesty (yamlgraph: FR-727 22/30 vs ≥24/30 with ZERO in-scope failures; FR-730 gated on classes; FR-726 closed CONDEMNED past its own 90% number because residual scatter was within label tolerance — ambiguity is information, and voting on a genuinely tied judgement launders it into false confidence)"
+  gate_checks_shape_not_substance: "Gate validates presence (file exists, format matches) but not substance → compliance theatre; a 1-byte file satisfies the gate while conveying nothing"
+  composition_bug: "Every component passes its unit test but the system fails → the defect is in the policy connecting correct parts; trace the full event chain end-to-end before blaming any component (FR-371, NC-141, NC-289)"
+  mock_escape_hatch: "Agent defaults to mocks even when E2E is explicitly requested → if the feature exists because of a physical phenomenon, the test must exercise the real phenomenon; a mock E2E is a unit test with extra steps (FR-378)"
+  refactor_orphans_secondary: "Refactoring removes a handler's primary responsibility but silently orphans its secondary one → enumerate ALL responsibilities of a function before deleting, not just the one named in its docstring (NC-203)"
+  research_as_inventory: "Research output shaped like analysis but containing only descriptions → a description of what exists is inventory; a statement of what it means for us is analysis; the deliverable is the analysis"
+  inventory_by_visibility: "Evaluating components by current-snapshot legibility (file count, line count) instead of historical incident density → importance is proportional to learning cost, not byte count; rank by incidents, not mass (2026-05-31)"
+  growth_as_default: "Assuming the next commit should add something → mature systems benefit more from pruning claims than planting features; the registry becomes honest by retiring phantom claims, not by adding implementations (FR-465, FR-466)"
+  metric_archaeology_before_reading_output: "Pipeline SCORE is wrong → reflex is to instrument and re-measure; but for LLM stages the artifact is plain text — there is no higher-bandwidth probe than reading it; the one-line cat ends the investigation (FR-596/597)"
+  threshold_encodes_forecast: "Aggregate acceptance gate on a multi-defect surface tests the judge's FORECAST of out-of-scope defects, not the fix under test → gate on the defect class, record aggregates as context; ambiguity is information (FR-726, FR-727, FR-730)"
 
 cures:
   # Patterns that prevent traps
@@ -108,14 +98,14 @@ cures:
   judge_as_junior_pr: "Assume plausible code hides subtle bugs"
   changelog_first_diagnostic: "On regression, enumerate changes since last known good before attempting reproduction → git log narrows search space cheaper than any test"
   boundary_inventory: "Before destructive filesystem ops, run find . -name .git -type d and git status --untracked-files=all in each; untracked files have no recovery path"
-  substance_over_presence: "Every gate that checks 'does X exist?' must also check 'does X say something?' — minimum content threshold, required structural markers, or cross-reference validation"
-  investigation_before_fix: "When a bug requires >15 min to write the failing test, split into investigation FR (build test harness proving the causal chain) then fix FR (mechanical enforcement); the investigation's tests become the fix's regression suite — FR-371 4h investigation → FR-372 30min fix, zero debugging"
-  assert_path_not_destination: "FSM/pipeline tests that only check the final state can pass via any path including error recovery; assert intermediate state visits or the transition sequence, not just the terminal set (ninchat_voice: NC-179 false pass via error→cleanup→idle)"
-  name_the_seam: "Name tests after the specific seam they exercise, not the feature they aspire to cover; test_barge_in_e2e → test_barge_in_elevenlabs makes the gap visible as absence, not hidden by a name that implies presence (ninchat_voice: NC-131)"
-  incident_density_ranking: "When inventorying for reimplementation or triage, rank by diary entries / source lines, not by source mass; components with the highest ratio encode the most boundary knowledge — knowledge paid for by production failures invisible in the code; absence of diary entries about a large module signals commodity code or untested boundaries (yamlgraph: utils/fsm 915 lines, 116 diary entries = densest knowledge-to-code ratio in codebase)"
-  read_raw_output_first: "For any LLM/pipeline stage, READ the rawest artifact it emits before you measure it — the first diagnostic for a bad score is cat, not a new metric. Dump N raw samples to disk and read them end-to-end BEFORE computing or decomposing the aggregate; metrics tell you THAT something is wrong, only the artifact tells you WHAT. Mechanize as a forced-observation gate: withhold the aggregate score until K raw samples are acknowledged read, the way TDD forces RED before GREEN (yamlgraph: FR-598 'kill the novel' — the prompting error was visible in one read of the throughline prose). Generalizes to TAXONOMIES: reading the raw rubric rows (inclusion terms) before freezing a cap list killed a self-refuting mechanism in one grep, before any code existed (FR-730: the judge overturned the author's own proposal)"
-  two_strike_split: "Same guard fires twice for the same failure class after a prompt fix → the abstraction level belongs in CODE; stop rewording. Token-fidelity, verdict semantics, and every other mechanizable level eventually defeats instruction text — treat the model's output as a CLAIM and reconcile it against the source of truth at the boundary (repair within a similarity floor, reject below). Five span shapes and three verdict-inflation families fell to one boundary each; zero prompt patches held (yamlgraph FR-722/727/730; the prompt-as-subagent-contract corollary)"
-  junk_drawer_cap: "Every taxonomy/enum family has 'true-of-everything' members — rubrics describing the ENCOUNTER or the SYSTEM, not the subject's stated reason (Z10, -48 clarification-of-demand, -69 other-NEC, generic-concern codes). They are detectable A PRIORI (empty or meta inclusion terms) and they eat correct answers with perfect agreement. Cap them in code at the boundary before the model votes: demote-never-drop, evidence preserved, capped entries rank behind genuine claims. Verify each cap candidate against its raw definition first — half of one proposed list turned out genuinely stateable (FR-725 found it, FR-727/730 cured it, three families in one day)"
+  substance_over_presence: "Every gate that checks 'does X exist?' must also check 'does X say something?' — minimum content threshold, structural markers, or cross-reference validation"
+  investigation_before_fix: "When a bug needs >15 min to write the failing test, split into investigation FR (prove the causal chain) then fix FR; the investigation's tests become the fix's regression suite (FR-371, FR-372)"
+  assert_path_not_destination: "FSM/pipeline tests that only check the final state can pass via any path including error recovery; assert intermediate state visits or the transition sequence, not just the terminal set (NC-179)"
+  name_the_seam: "Name tests after the specific seam they exercise, not the feature they aspire to cover; test_barge_in_e2e → test_barge_in_elevenlabs makes the gap visible as absence (NC-131)"
+  incident_density_ranking: "When inventorying for reimplementation or triage, rank by diary entries per source line, not source mass; highest-ratio components encode the most boundary knowledge — knowledge paid for by production failures invisible in the code"
+  read_raw_output_first: "For any LLM/pipeline stage, READ the rawest artifact before measuring — dump N raw samples and read them end-to-end BEFORE computing aggregates; withhold the score until the samples are read, as TDD forces RED before GREEN (FR-598, FR-730)"
+  two_strike_split: "Same guard fires twice for the same failure class after a prompt fix → the abstraction level belongs in CODE; stop rewording. Treat the model's output as a CLAIM reconciled against the source of truth at the boundary (FR-722/727/730)"
+  junk_drawer_cap: "Every taxonomy has 'true-of-everything' members, detectable A PRIORI (empty or meta inclusion terms), that eat correct answers → cap them in code at the boundary before the model votes: demote-never-drop; verify each candidate against its raw definition (FR-725, FR-727/730)"
 
 questions:
   # The interrogative canon — questions that changed direction, with their
@@ -123,15 +113,15 @@ questions:
   # produced them graduate here. A question without a firing moment is a
   # library, not a questioner (2026-07-17 introspection arc; every entry
   # recurred and killed or redirected real work).
-  would_you_use_this: "MOMENT: any proposal. Names the first consumer and first event; an empty trigger list is growth_as_default wearing an architecture costume (killed the watcher-subscription FR in conversation — the cheapest kill rung)"
-  does_the_platform_already_do_this: "MOMENT: before building any approximation of platform behavior. One bundle/source grep beats a week of prediction (PreCompact existed while we built ceiling models; the docs are a lossy summary of the vendor's intent)"
-  who_reads_this_when: "MOMENT: shipping any view, artifact, or signal. Name the rung, the reader, the moment — else it is archived at birth (fr-board's only reader was its own generator)"
+  would_you_use_this: "MOMENT: any proposal. Names the first consumer and first event; an empty trigger list is growth_as_default wearing an architecture costume"
+  does_the_platform_already_do_this: "MOMENT: before building any approximation of platform behavior. One bundle/source grep beats a week of prediction; the docs are a lossy summary of the vendor's intent"
+  who_reads_this_when: "MOMENT: shipping any view, artifact, or signal. Name the rung, the reader, the moment — else it is archived at birth"
   what_does_the_raw_record_say: "MOMENT: before any metric, model, or verdict. cat beats instrumentation (Scripture: read_raw_output_first — restated here as the question form)"
-  are_the_witnesses_one_phenomenon: "MOMENT: fitting any model to field data. A clean calibration set can carry a wrong curve (five valid compaction witnesses broke the single-ceiling model)"
+  are_the_witnesses_one_phenomenon: "MOMENT: fitting any model to field data. A clean calibration set can carry a wrong curve"
   does_the_tool_fit_or_merely_exist: "MOMENT: any dogfooding or adoption push. A generic affordance sits unused; fit to a named recurring task creates the consumer (MCP registration vs world_distill)"
-  where_is_the_repo_boundary: "MOMENT: any artifact that aggregates across trees. Committed state must not embed another repo's working tree (fr-board F7; workspace_is_not_boundary's question form)"
-  what_would_the_successor_need: "MOMENT: ending any arc. The amnesia is scheduled; a doc addressed to 'whoever' is addressed to no one (MAP.md's do-not-re-derive section)"
-  is_this_a_graph: "MOMENT: the instant a plan contains 'for each item, ask the model', a multi-stage LLM pipeline, or parallel subagent fan-out. Map is the native map-reduce, race the native hedging, router the native dispatch — consult the graph list (yamlgraph graph list) for the 'Task shapes:' clause in graph descriptions and name the matching graph or its absence in one sentence BEFORE reaching for scripts or subagents; they are the fallback, not the default. Graduated FR-853: first witness builders_never_call (graphs found unconsumed, 2026-07-17), confirmed recurrence 2026-08-22 — operator had to point out that parallel haiku analysis was table stakes via the map node, never once proposed (first_person_tool_horizon: familiarity filed the framework under 'things I edit', not 'things I wield')"
+  where_is_the_repo_boundary: "MOMENT: any artifact that aggregates across trees. Committed state must not embed another repo's working tree; workspace_is_not_boundary's question form"
+  what_would_the_successor_need: "MOMENT: ending any arc. The amnesia is scheduled; a doc addressed to 'whoever' is addressed to no one"
+  is_this_a_graph: "MOMENT: the instant a plan contains 'for each item, ask the model', a multi-stage LLM pipeline, or parallel subagent fan-out. Consult yamlgraph graph list; name the matching graph or its absence BEFORE reaching for scripts/subagents (FR-853)"
 
 generative_methods:
   # The canon covers precedented moments; these PRODUCE questions at
@@ -159,9 +149,9 @@ process:
   detection_without_enforcement: "Lint without gate = advisory → add CI block or remove claim"
   enforcement_at_merge_boundary: "PR merge is last gate → all enforcement must block there"
   mixed_commits_erode_auditability: "One concern per commit → clear blame, clear revert"
-  cross_project_graduation: "Heuristics that recur 3+ times across sibling projects (ninchat_voice, statemachine-engine) belong in Scripture, not in project-local diaries → periodic diary sweep surfaces candidates for graduation"
-  constraint_over_code: "216 lines of Scripture produce 21k lines of Python; the constraint is irreplaceable, the code is regenerable; when choosing what to preserve in a rewrite, take the spec, the schema, and the incident record — leave the implementation behind"
-  one_session_one_repo: "Parallel agent sessions sharing one git repo corrupt each other through the SHARED INDEX (staged files swept into foreign commits under foreign messages), working tree (checkout/add -u destroying WIP), and environment (pip reinstall deleting console scripts mid-run). Third strike recorded 2026-07-14: four interleave incidents in one day. Ritual when sharing is unavoidable: staged-check empty before add, explicit file lists only, commit immediately, git show --stat audit after, measurement runs resolve interpreters not console scripts, archives quarantined by provenance before evaluation — and an IMPOSSIBLE result (a state the current code cannot produce) is a tripwire proving stale-code provenance. Mechanical situation check: python3 scripts/vscode/now.py (live sessions × staged work × FRs in motion — see the session-introspection skill)"
+  cross_project_graduation: "Heuristics recurring 3+ times across sibling projects belong in Scripture, not project-local diaries → periodic diary sweep surfaces graduation candidates"
+  constraint_over_code: "216 lines of Scripture produce 21k lines of Python; the constraint is irreplaceable, the code regenerable; in a rewrite preserve the spec, schema, and incident record — leave the implementation behind"
+  one_session_one_repo: "Parallel agent sessions sharing one repo corrupt each other via the SHARED INDEX, working tree, and environment (2026-07-14). Ritual when unavoidable: staged-check empty, explicit file lists, commit immediately, audit after; an IMPOSSIBLE result proves stale code. Check: python3 scripts/vscode/now.py"
 
 seeds:
   # Forward-looking patterns awaiting implementation
@@ -173,33 +163,15 @@ seeds:
 ```
 
 ### Requirement Traceability (ADR-001)
-- Every test function must have `@pytest.mark.req("REQ-YG-XXX")` linking it to a requirement in `ARCHITECTURE.md`.
-- Run `python scripts/req_coverage.py` to verify all requirements are covered. Use `--detail` for per-test mapping, `--strict` to fail on gaps.
-- When adding a new capability: create a `capabilities/CAP-XXX-name.yaml` file (follow existing examples), tag tests with the new `REQ-YG-XXX` ID. The registry is loaded dynamically from YAML — no script edits needed.
+- Every test function carries `@pytest.mark.req("REQ-YG-XXX")` linking it to `ARCHITECTURE.md`; verify with `python scripts/req_coverage.py --strict`.
+- New capability: add `capabilities/CAP-XXX-name.yaml` (registry loads dynamically) and tag tests with the new REQ ID.
 
 ### noqa Confessions
-- Every `# noqa` suppression must be documented in `docs/confessions.md` with a CONF-XXX ID, the error code, sin (what), and penance (why acceptable).
+- Every `# noqa` must be documented in `docs/confessions.md` (CONF-XXX ID, error code, sin, penance).
 
 ## Quick Reference
 
-See these canonical sources for patterns:
-- **Getting Started**: `reference/getting-started.md` (core patterns, node types, CLI)
-- **Development Process**: `docs/development-process.md` (self-reflection overview: doctrine, chaplain pipeline, traceability spine, enforcement rings — with diagrams)
-- **Architecture**: `ARCHITECTURE.md` (design philosophy, state, 3-layer pattern)
-- **Dev Commands**: `CLAUDE.md` (testing, linting, running examples)
-- **Prompts**: `reference/prompt-yaml.md` (Jinja2, schemas)
-- **Graphs**: `reference/graph-yaml.md` (node config, edges, routing)
-- **Feature Requests**: `feature-requests/TEMPLATE.md` (planning, judgement, enforcement)
-- **Pre CI Checks**: `.pre-commit-config.yaml` (linters, test coverage, requirement traceability)
-- **Release Flow**: `reference/release-checklist.md` (bump, commit, push, tag, hook cascade)
-
-### Submitting Proposals
-- Write a markdown file to `.chaplain/inbox/` with a descriptive kebab-case filename (e.g., `refactor-state-builder.md`)
-- Content: plain text description of the problem or task — freeform, but actionable
-- The FSM runtime (`.chaplain/scripts/start-system.sh`) picks it up and runs Plan → Judge → Enforce → Inquisitor audit automatically
-- For new features, a one-paragraph problem statement suffices — the Chaplain generates the FR and PR
-- Proposals are consumed on pickup (moved out of inbox); rejected FRs are skipped by the enforce pipeline
-- **Remote submission:** Open a GitHub Issue with the `chaplain` label. The runtime inbox sync imports labeled issues into the local inbox automatically, removes the label after import, and closes the issue with a commit reference on successful enforcement.
+Canonical sources: `reference/getting-started.md` (patterns, node types, CLI) · `docs/development-process.md` (doctrine, chaplain pipeline, enforcement rings) · `ARCHITECTURE.md` (design, state, 3-layer) · `CLAUDE.md` (dev commands) · `reference/prompt-yaml.md` · `reference/graph-yaml.md` · `feature-requests/TEMPLATE.md` · `.pre-commit-config.yaml` · `reference/release-checklist.md` (release flow) · `reference/development-operations.md` (env vars, branch protection, CI checks, dependency governance)
 
 # The Scripture
 

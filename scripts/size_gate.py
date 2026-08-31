@@ -1,10 +1,15 @@
 #!/usr/bin/env python3
-"""File-size gate — widened by FR-889 (AC-11) to cover enforcement infra.
+"""File-size gate — widened by FR-889 (AC-11) to cover enforcement infra;
+extended by FR-942 (AC-09) with an instruction-byte ceiling.
 
 Errors above LIMIT lines for *.py and *.sh under yamlgraph/, scripts/,
 .github/ and top-level *.sh. Pre-existing oversize files are held by a
 shrink-only BASELINE ratchet: they may never grow, and entries go stale
 loudly when a file shrinks below LIMIT or disappears.
+
+FR-942: the two per-turn instruction files must exist, be non-empty,
+and together stay within BYTE_CEILING bytes (60% of the frozen
+56,610-byte baseline).
 
 pre-command-guard.sh is deliberately NOT baselined — AC-07 forces it
 under the limit permanently.
@@ -22,6 +27,10 @@ WARN = 400
 SCAN_DIRS = ("yamlgraph", "scripts", ".github")
 SUFFIXES = {".py", ".sh"}
 EXCLUDE_PARTS = {"__pycache__", ".venv", "node_modules", "build"}
+
+# FR-942: combined byte budget for the per-turn instruction files.
+INSTRUCTION_FILES = (".github/copilot-instructions.md", "CLAUDE.md")
+BYTE_CEILING = 33_966
 
 # Shrink-only ratchet (FR-889): sizes frozen at gate introduction.
 # A file may shrink (update the number) but never grow past its entry.
@@ -54,6 +63,26 @@ def in_scope(root: Path) -> list[Path]:
     return files
 
 
+def instruction_budget_failures(root: Path) -> list[str]:
+    """FR-942: missing/empty instruction file or combined bytes > ceiling."""
+    sizes = {}
+    failures = []
+    for rel in INSTRUCTION_FILES:
+        p = root / rel
+        if not p.is_file() or p.stat().st_size == 0:
+            failures.append(f"✗ {rel}: missing or empty instruction file")
+        else:
+            sizes[rel] = p.stat().st_size
+    total = sum(sizes.values())
+    if not failures and total > BYTE_CEILING:
+        detail = " + ".join(f"{rel} ({n}B)" for rel, n in sizes.items())
+        failures.append(
+            f"✗ instruction byte budget: {detail} = {total} bytes "
+            f"exceeds ceiling {BYTE_CEILING} (FR-942)"
+        )
+    return failures
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--root", type=Path, default=Path("."))
@@ -72,7 +101,10 @@ def main() -> int:
             print(f"⚠ {rel}: {n} lines (warn at {WARN}, error at {LIMIT})")
     for rel, n, allowed in failures:
         print(f"✗ {rel}: {n} lines exceeds {allowed} — split into submodules")
-    return 1 if failures else 0
+    byte_failures = instruction_budget_failures(root)
+    for msg in byte_failures:
+        print(msg)
+    return 1 if failures or byte_failures else 0
 
 
 if __name__ == "__main__":

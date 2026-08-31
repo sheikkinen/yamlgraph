@@ -164,8 +164,9 @@ def test_ac05_workflow_script_no_longer_depends_on_copilot_literal_constants() -
 def test_ac06_traceability_docs_use_generalized_coauthored_by_language() -> None:
     cap = CAP_148_PATH.read_text()
     architecture = ARCHITECTURE_PATH.read_text()
-    claude = CLAUDE_PATH.read_text()
+    # FR-942 moved the CI checks list from CLAUDE.md to the ops reference.
+    dev_ops = Path("reference/development-operations.md").read_text()
 
     assert "any `Co-authored-by:` trailer" in cap
     assert "any `Co-authored-by:` trailer" in architecture
-    assert "any `Co-authored-by:` trailer" in claude
+    assert "any `Co-authored-by:` trailer" in dev_ops

@@ -234,25 +234,29 @@ class TestConflictCheckShellLogic:
 
 @pytest.mark.req("REQ-YG-151")
 class TestConflictCheckDocumentation:
-    """Verify CLAUDE.md documents the conflict-check status check."""
+    """Verify the ops reference documents the conflict-check status check.
 
-    def test_claude_md_lists_conflict_check(self) -> None:
-        """CLAUDE.md branch protection section must list conflict-check."""
-        content = Path("CLAUDE.md").read_text()
+    FR-942 moved branch protection / CI checks docs from CLAUDE.md to
+    reference/development-operations.md.
+    """
+
+    def test_dev_ops_lists_conflict_check(self) -> None:
+        """The CI checks section must list conflict-check."""
+        content = Path("reference/development-operations.md").read_text()
         assert (
             "conflict-check" in content
-        ), "CLAUDE.md must list conflict-check as a required status check"
+        ), "development-operations.md must list conflict-check as a status check"
 
-    def test_claude_md_describes_conflict_check(self) -> None:
-        """CLAUDE.md must describe what the conflict-check does."""
-        content = Path("CLAUDE.md").read_text()
+    def test_dev_ops_describes_conflict_check(self) -> None:
+        """The ops reference must describe what the conflict-check does."""
+        content = Path("reference/development-operations.md").read_text()
         assert (
             "conflict marker" in content.lower()
-        ), "CLAUDE.md must describe conflict-check purpose"
+        ), "development-operations.md must describe conflict-check purpose"
 
-    def test_claude_md_notes_up_to_date_requirement(self) -> None:
-        """CLAUDE.md must note the 'require up-to-date' branch protection setting."""
-        content = Path("CLAUDE.md").read_text()
+    def test_dev_ops_notes_up_to_date_requirement(self) -> None:
+        """The ops reference must note the 'require up-to-date' setting."""
+        content = Path("reference/development-operations.md").read_text()
         assert (
             "up to date" in content.lower() or "up-to-date" in content.lower()
-        ), "CLAUDE.md must document the 'require branches to be up to date' setting"
+        ), "development-operations.md must document the up-to-date setting"
