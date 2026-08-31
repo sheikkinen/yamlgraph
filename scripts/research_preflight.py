@@ -94,6 +94,7 @@ COMMITTED_ID_RE = re.compile(r"\b(?:FR|NC|CAP|REQ)-[A-Z]*-?\d+", re.IGNORECASE)
 SCRIPTURE_KEY_RE = re.compile(r"\b[a-z][a-z0-9]*(?:_[a-z0-9]+)+\b")
 REPO_PATH_RE = re.compile(r"\b[\w.-]+/[\w./-]+")
 ECHO_MARKER = "brief-echo"
+CLASSIFICATION_DELIMITERS = "—-:(–"
 NONE_RETRIEVED = "none-retrieved"
 PRIOR_ART_HEADING = "### Prior art retrieved for this brief (filename-noun, IDF-ranked)"
 ERROR_STRINGS = ("Error:", "No results")
@@ -133,14 +134,35 @@ def check_brief(text: str) -> list[str]:
 
     classification = _section(text, "Classification")
     if classification:
-        values = [v for v in CLASSIFICATION_ENUM if v in classification]
-        if len(values) != 1:
-            violations.append(
-                "classification must name exactly one of: "
-                + ", ".join(sorted(CLASSIFICATION_ENUM))
-            )
+        violations.extend(_check_classification_claim(classification))
 
     return violations
+
+
+def _check_classification_claim(classification: str) -> list[str]:
+    """FR-937: the claim is the leading token, not any enum name in prose.
+
+    A brief may explain why a class does *not* apply without thereby
+    claiming it, so only the first non-empty line's opening token counts.
+    """
+    line = next(
+        (ln.strip() for ln in classification.splitlines() if ln.strip()),
+        "",
+    )
+    claimed = [value for value in CLASSIFICATION_ENUM if line.startswith(value)]
+    expected = "classification must name exactly one of: " + ", ".join(
+        sorted(CLASSIFICATION_ENUM)
+    )
+    if len(claimed) != 1:
+        return [expected]
+    remainder = line[len(claimed[0]) :].strip()
+    if remainder and remainder[0] not in CLASSIFICATION_DELIMITERS:
+        return [
+            f"{expected} — the claim line must end after the class or "
+            f"continue with one of {''.join(CLASSIFICATION_DELIMITERS)!r}: "
+            f"{line!r}"
+        ]
+    return []
 
 
 def _table_rows(text: str) -> tuple[list[str], list[list[str]]]:
@@ -175,20 +197,23 @@ def _prior_art_is_empty(text: str) -> bool:
     return False
 
 
+def is_marker_claim(citation: str, marker: str) -> bool:
+    """FR-937: a marker is claimed, not mentioned.
+
+    The cell must *be* the marker or open with ``<marker>:``. An occurrence
+    anywhere else is prose about the marker, and prose is not a claim.
+    """
+    stripped = citation.strip()
+    return stripped == marker or stripped.startswith(f"{marker}:")
+
+
 def _check_precedent(citation: str, prior_art_empty: bool) -> list[str]:
-    """FR-938: a non-librarian cell offers an identifier, a URL, or the miss."""
-    if ECHO_MARKER in citation:
-        return [
-            f"{ECHO_MARKER!r} is not precedent — the brief cannot cite "
-            f"itself: {citation!r}"
-        ]
-    if NONE_RETRIEVED in citation:
-        if prior_art_empty:
-            return []
-        return [
-            f"{NONE_RETRIEVED!r} claimed but prior-art retrieval returned "
-            f"hits: {citation!r}"
-        ]
+    """FR-938: a non-librarian cell offers an identifier, a URL, or the miss.
+
+    FR-937: identifier and URL shapes resolve first, matching the reducer's
+    ``_classify_precedent``. A cell citing real precedent stays traceable
+    whatever else its prose happens to name.
+    """
     if any(
         pattern.search(citation)
         for pattern in (
@@ -199,6 +224,18 @@ def _check_precedent(citation: str, prior_art_empty: bool) -> list[str]:
         )
     ):
         return []
+    if is_marker_claim(citation, ECHO_MARKER):
+        return [
+            f"{ECHO_MARKER!r} is not precedent — the brief cannot cite "
+            f"itself: {citation!r}"
+        ]
+    if is_marker_claim(citation, NONE_RETRIEVED):
+        if prior_art_empty:
+            return []
+        return [
+            f"{NONE_RETRIEVED!r} claimed but prior-art retrieval returned "
+            f"hits: {citation!r}"
+        ]
     return [
         "precedent carries no committed identifier, no URL and no "
         f"{NONE_RETRIEVED!r} token: {citation!r}"

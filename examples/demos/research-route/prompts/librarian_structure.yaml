@@ -84,9 +84,7 @@ user: |
   Route-wide contract for internal persona rows: the precedent field MUST cite at least one committed identifier: an FR number (FR-XXX), a CAP number
   (CAP-XXX), a repo-relative path that exists, or a Scripture trap/cure key
   from the committed context block.
-  If the only support for the candidate is the problem brief itself, write the
-  literal marker `brief-echo:` followed by what is being restated; the row is
-  retained but excluded from scoring. A fabricated identifier or URL fails the
+  A fabricated identifier or URL fails the
   whole run.
 
   Return one structured librarian finding. Set persona to "librarian" and copy
