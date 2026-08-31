@@ -32,8 +32,10 @@ requirements:
       count advisory only, and a grounding gate of at least three
       non-echo traceable findings (FR-896); precedent claims are
       validated in code — committed FR/CAP/path/Scripture-key/demo-dir
-      identifiers pass, explicit brief-echo rows are demoted and
-      excluded from scoring, fabricated identifiers fail with named
+      identifiers pass, a bounded none-retrieved claim is accepted only
+      when the retrieval block came back empty, brief-echo is rejected
+      outright, markers count only when claimed as the whole cell or as
+      a leading marker: prefix, fabricated identifiers fail with named
       violations, and the librarian citation URL is reconciled against
       recorded librarian_tool_results, failing closed on error strings,
       missing URLs, or fabrication; personas receive a deterministic

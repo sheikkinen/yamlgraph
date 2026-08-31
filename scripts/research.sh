@@ -27,7 +27,7 @@ fi
 PYBIN=$(command -v python3 || command -v python) \
   || fail "python3 required for brief preflight" 69
 "$PYBIN" "$(dirname "$0")/research_preflight.py" "$BRIEF_PATH" \
-  || fail "brief closure preflight failed — remove solution-shaped sections from the brief" 64
+  || fail "brief closure preflight failed; see violations above" 64
 
 mkdir -p "$WORKDIR/tmp"
 

@@ -19,7 +19,7 @@ schema:
       constraints: {min_length: 1, max_length: 400}
     precedent:
       type: str
-      description: Concrete committed identifier or brief-echo marker supporting the candidate. At most 2 short sentences, roughly 40 words (hard cap 400 characters); over-length output is rejected, never truncated.
+      description: Concrete committed identifier supporting the candidate, or `none-retrieved` when retrieval came back empty. At most 2 short sentences, roughly 40 words (hard cap 400 characters); over-length output is rejected, never truncated.
       constraints: {min_length: 1, max_length: 400}
     is_this_a_graph:
       type: str
@@ -67,10 +67,13 @@ user: |
   ## Precedent contract
   The precedent field MUST cite at least one committed identifier: an FR number
   (FR-XXX), a CAP number (CAP-XXX), a repo-relative path that exists, or a
-  Scripture trap/cure key from the committed context block. If the only support
-  for the candidate is the problem brief itself, write the literal marker
-  `brief-echo:` followed by what is being restated; the row is retained but
-  excluded from scoring. A fabricated identifier fails the whole run.
+  Scripture trap/cure key from the committed context block. If the prior-art
+  retrieval block shown above returned no hits, and no committed identifier,
+  URL, path, or Scripture key supports the candidate, write exactly
+  `none-retrieved` as the entire precedent value. `none-retrieved` is a claim
+  about retrieval, not a convenience: claiming it when that block listed hits
+  is rejected. Restating the problem brief is never precedent. A fabricated
+  identifier fails the whole run.
 
   Return one alternative from the schema/process prior. Set persona to
   "data-process-planner".

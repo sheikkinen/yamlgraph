@@ -4,7 +4,7 @@
 retrieval returns only `FR-937-research-precedent-vocabulary-drift.md`, the FR
 this document judges. A judgement matching its own FR is the intended
 relationship, not undistinguished precedent — same self-exclusion gap noted in
-`FR-937.witnesses.md`.
+`FR-937-evidence.md`.
 
 **Verdict:** SPLIT — the precedent-contract reconciliation is sound and feasible after #525, but classification parsing and wrapper diagnostics are independent defects with separate seams and tests; no implementation authority exists until three replacement FRs carry admissible committed research and re-enter judgement.
 

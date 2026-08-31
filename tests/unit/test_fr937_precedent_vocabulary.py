@@ -23,8 +23,10 @@ import pytest
 REPO_ROOT = Path(__file__).resolve().parents[2]
 ROUTE = REPO_ROOT / "examples" / "demos" / "research-route"
 PROMPTS = ROUTE / "prompts"
-LIBRARIAN_PROMPT = PROMPTS / "librarian_structure.yaml"
-INTERNAL_PROMPTS = sorted(p for p in PROMPTS.glob("*.yaml") if p != LIBRARIAN_PROMPT)
+# Both librarian prompts are URL-only: `librarian` searches, `librarian_structure`
+# shapes what it found. Neither gets an internal honest-miss escape.
+LIBRARIAN_PROMPTS = sorted(PROMPTS.glob("librarian*.yaml"))
+INTERNAL_PROMPTS = sorted(set(PROMPTS.glob("*.yaml")) - set(LIBRARIAN_PROMPTS))
 
 
 def _load(name: str, path: Path):
@@ -63,9 +65,10 @@ def test_internal_personas_are_taught_the_accepted_marker():
 
 
 @pytest.mark.req("REQ-YG-623")
-def test_librarian_keeps_its_url_only_contract():
+@pytest.mark.parametrize("prompt", LIBRARIAN_PROMPTS, ids=lambda p: p.name)
+def test_librarian_keeps_its_url_only_contract(prompt):
     """The librarian cites a real URL from tool results; it has no honest miss."""
-    text = LIBRARIAN_PROMPT.read_text(encoding="utf-8")
+    text = prompt.read_text(encoding="utf-8")
     assert (
         rt.NONE_RETRIEVED not in text
     ), "librarian must not be offered an internal honest-miss escape"
@@ -91,7 +94,7 @@ def test_prompt_marker_is_the_code_constant_verbatim():
 
 # --- AC-03/AC-04/AC-05: one truth table, two validators -------------------
 
-# Verbatim cells from feature-requests/FR-937.witnesses.md.
+# Verbatim cells from feature-requests/FR-937-evidence.md.
 W3_CELL = (
     "FR-896 (precedent traceability), FR-932 (none-retrieved bounded claim), "
     "CAP-248 (research sole route)."

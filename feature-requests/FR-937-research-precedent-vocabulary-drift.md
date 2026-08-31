@@ -104,7 +104,7 @@ subjects the corpus already covers, where research is least needed.
   retrieval was empty). Four personas produced valid rows; the fifth followed
   its instruction and wrote `brief-echo: agent knows when the wait is …`. The
   reducer raised, the graph exited 1, no artifact was written.
-  Evidence: [FR-937.witnesses.md](FR-937.witnesses.md).
+  Evidence: [FR-937-evidence.md](FR-937-evidence.md).
 - **W-2** Same brief, second run: byte-identical failure, same persona, same
   string. Deterministic at `temperature: 0.0` — re-running is not a
   workaround, and one persona in five is enough to fail the whole fan-out.
@@ -113,7 +113,7 @@ subjects the corpus already covers, where research is least needed.
   subtractionist cell `FR-896 (precedent traceability), FR-932 (none-retrieved
   bounded claim), CAP-248 (research sole route)` contains the literal string
   `none-retrieved`. Three committed identifiers, rejected for naming the
-  marker under study. Evidence: [FR-937.witnesses.md](FR-937.witnesses.md).
+  marker under study. Evidence: [FR-937-evidence.md](FR-937-evidence.md).
 - **W-4** Same class, brief side: `research_preflight` matches the
   classification enum by substring, so a sentence disclaiming a class counts
   as claiming it — a brief saying "nothing here needs measurement" is rejected
@@ -140,7 +140,7 @@ subjects the corpus already covers, where research is least needed.
   `examples/demos/research-route/` demands a passing demo log the route
   cannot currently produce. The FR-938 renumber had to leave that file's
   comments stale for exactly this reason; this FR clears them.
-  Evidence: [FR-937.witnesses.md](FR-937.witnesses.md).
+  Evidence: [FR-937-evidence.md](FR-937-evidence.md).
 
 W-3 and W-4 are one defect class: **a substring match treats a mention as a
 claim.** W-1/W-2 are a second: **prose and code drifted apart with no mechanism
@@ -225,7 +225,7 @@ Numbering follows the judgement's revised list where it applies.
   **both** `research_tools._classify_precedent` and
   `research_preflight._check_precedent`, and they agree on accept/reject for:
   (a) a committed citation whose prose mentions `none-retrieved` — the W-3
-  regression, using the verbatim cell from FR-937.witnesses.md; (b) a
+  regression, using the verbatim cell from FR-937-evidence.md; (b) a
   committed citation whose prose ends in `brief-echo: …` — the W-6 mirror,
   using the real cell from the demo fixture run; (c) a bare `none-retrieved`
   claim with empty retrieval; (d) the same claim with non-empty retrieval;
@@ -277,3 +277,64 @@ precedent validation (dispositioned above); graph topology; the open question
 of whether an LLM pass over the FR corpus should replace filename-noun
 retrieval (recorded in FR-938, its own FR); changing the judge, authoring,
 review, CI or hook routes.
+
+## Implementation status
+
+**Enforced.** All acceptance criteria met on branch
+`feat/fr937-research-precedent-vocabulary`, rebased onto `main` at `a5012228`
+(AC-12 — #525 landed first, so RED ran against symbols that exist).
+
+### What changed
+
+- `scripts/research_preflight.py` — `is_marker_claim(citation, marker)` replaces
+  naive `in` matching: a marker counts only as the whole cell or as a leading
+  `marker:` prefix. `_check_precedent` accepts a bounded `none-retrieved` claim
+  only when the retrieval block came back empty, and rejects the retired
+  `brief-echo` marker outright. `_check_classification_claim` requires the
+  claimed enum value to lead the first non-empty line and be followed by a
+  delimiter, so a mention inside prose no longer scores. `check_brief` calls it.
+- `examples/demos/research-route/nodes/research_tools.py` — the same
+  `is_marker_claim` predicate, so the reducer and the preflight share one
+  contract rather than implementing it twice. Stale `FR-932` comments renumbered
+  to `FR-938`.
+- `scripts/research.sh` — the closure failure message now reports the violations
+  actually found instead of asserting "remove solution-shaped sections".
+- `examples/demos/research-route/prompts/*.yaml` — re-authored through
+  `scripts/author.sh` (FR-767 sole route; report at `tmp/draft-authoring-report.md`,
+  graph lint exit 0, narrow smoke run produced `tmp/draft-alternatives.md`). The
+  four internal personas are taught the bounded `none-retrieved` marker; both
+  librarian prompts keep their URL-only contract and gained no honest-miss escape.
+- `capabilities/CAP-248-research-sole-route.yaml` — `REQ-YG-623` rewritten from
+  the retired `brief-echo` demotion semantics to the bounded `none-retrieved`
+  rejection semantics actually enforced (AC-06).
+
+### Verification
+
+- `tests/unit/test_fr937_precedent_vocabulary.py` committed RED first
+  (9 failures, one per criterion), then GREEN. Full suite with FR-938 and
+  FR-896: **72 passed**.
+- Live witnesses (AC-08), all exit 0, five rows, artifact preflight ok,
+  provenance appended to `feature-requests/research-runs.jsonl`:
+  - `operator-coffee-physical-actuation-brief.md` — the empty-retrieval brief
+    that had **never** completed before this fix. Now `rows: 5, classes: 3`.
+  - `fr-937-precedent-vocabulary-drift-brief.md` — non-empty retrieval,
+    `rows: 5, classes: 3`.
+  - `tests/fixtures/fr890/clean-brief.md` — `rows: 5, classes: 4`, redirected to
+    `examples/demos/research-route/demo-output.log`, unblocking the demo-proof
+    gate that had held the FR-938 renumber hostage.
+
+### Deviations from the judgement
+
+Recorded in full under "Judgement disposition" above. R-1 (three-way split) and
+R-2 (re-entry) were overridden by the operator: one FR, corrections folded, no
+re-judge. R-3 through R-7 — the four substantive defects the judge found by
+reading the code — were folded verbatim in substance.
+
+### Defect found during enforcement
+
+The acceptance test's own `INTERNAL_PROMPTS` selector excluded
+`librarian_structure.yaml` by exact filename, silently classifying the second
+librarian prompt (`librarian.yaml`) as an internal persona. Corrected to exclude
+every librarian prompt by substring, matching the `is_librarian()` predicate the
+production code already uses — the same naive-matching family this FR exists to
+cure, reproduced in its own test.
