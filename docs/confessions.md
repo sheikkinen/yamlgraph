@@ -149,7 +149,7 @@ Framework suppressions require elevated scrutiny. These live in `yamlgraph/`.
 - **Penance**: Used for YAML prompt template variable extraction, not HTML rendering. Autoescape would corrupt prompt text by escaping `<`, `>`, `&` characters. No web output is generated from this code path.
 
 ### CONF-010
-- **File**: [yamlgraph/executor_base.py](../yamlgraph/executor_base.py#L128)
+- **File**: [yamlgraph/executor_base.py](../yamlgraph/executor_base.py#L175)
 - **Code**: C901 (function too complex)
 - **Sin**: `prepare_messages` has high cyclomatic complexity (14 > 15 after refactoring, but still flagged) due to branching logic for different system field types (scalar vs. list vs. system_segments) and provider-specific message formatting.
 - **Penance**: Working functionality for FR-276 prompt caching. Complexity reduced from D (24) to C (14) through helper function extraction. The function orchestrates message preparation across multiple input formats and providers, making some complexity unavoidable.
@@ -1218,7 +1218,7 @@ These are E402 suppressions and are acceptable as "glue code" patterns.
 - **Penance**: Retained intentionally for domain semantics or existing contract wording; explicitly allowlisted and audited.
 
 ### CONF-242
-- **File**: [yamlgraph/node_factory/llm_execution.py](../yamlgraph/node_factory/llm_execution.py#L134)
+- **File**: [yamlgraph/node_factory/llm_execution.py](../yamlgraph/node_factory/llm_execution.py#L159)
 - **Code**: FB001
 - **Sin**: Contains lexical `fallback` token flagged by FR-418 fallback-token hygiene gate.
 - **Penance**: Retained intentionally for domain semantics or existing contract wording; explicitly allowlisted and audited.
@@ -1357,7 +1357,7 @@ These are not `# noqa` suppressions — they are documented deviations from proc
 - **Penance**: Documents the structured-output mismatch recovery path. Renaming would obscure intent.
 
 ### CONF-351
-- **File**: [yamlgraph/executor_base.py](../yamlgraph/executor_base.py#L377)
+- **File**: [yamlgraph/executor_base.py](../yamlgraph/executor_base.py#L380)
 - **Code**: FB001
 - **Sin**: Docstring of `_invoke_llm_once` contains `fallback` — describes the FR-464 structured-output fallback strategy.
 - **Penance**: Documents the retry-then-parse pattern. Renaming would obscure intent.

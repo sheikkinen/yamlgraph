@@ -30,7 +30,10 @@ import re
 import sys
 from pathlib import Path
 
-import yaml
+try:  # FR-814 graph augmentation is optional; fr-checks.sh runs this on bare python3
+    import yaml
+except ImportError:  # pragma: no cover - exercised via subprocess in FR-938 tests
+    yaml = None
 
 RARE_MAX_FILES = 20  # A1: absolute count, not a corpus percentage
 TOP_N = 5
@@ -128,6 +131,13 @@ def _load_graph() -> dict | None:
     """
     if not GRAPH_PATH.exists():
         return None
+    if yaml is None:
+        print(
+            "⚠ PyYAML unavailable — prior art proceeds without the FR "
+            "knowledge graph (FR-814 cluster boost disabled).",
+            file=sys.stderr,
+        )
+        return None
     try:
         graph = yaml.safe_load(GRAPH_PATH.read_text(encoding="utf-8"))
         if not graph or "edges" not in graph:
@@ -172,7 +182,30 @@ def _graph_prior_art(new_file: Path, graph: dict) -> list[str]:
     return []
 
 
-def build_prior_art(new_file: Path) -> str:
+def _eligible_nouns(
+    nouns: list[str], freq: dict[str, int], rare_floor: bool
+) -> set[str]:
+    """Nouns a hit may be retrieved on.
+
+    FR-938: the floor is a notification policy. Hook consumers interrupt an
+    author, so they keep it; a consumer that only grounds a context window
+    lifts it and accepts any noun the corpus actually contains.
+    """
+    if rare_floor:
+        return {n for n in nouns if 0 < freq[n] <= RARE_MAX_FILES}
+    return {n for n in nouns if freq[n] > 0}
+
+
+def build_prior_art(new_file: Path, rare_floor: bool = True) -> str:
+    """Retrieve prior art for ``new_file`` from its sibling corpus.
+
+    FR-938: ``rare_floor`` is a notification policy, not a retrieval one.
+    The hook consumers interrupt an author, so they keep the floor and
+    stay silent over noise. A consumer that only grounds a context
+    window passes ``rare_floor=False``, making every noun with non-zero
+    corpus frequency eligible; the empty return then means no noun
+    matched any file at all.
+    """
     nouns = extract_nouns(new_file.name)
     if not nouns:
         return ""
@@ -216,14 +249,14 @@ def build_prior_art(new_file: Path) -> str:
             for noun in matched:
                 freq[noun] += 1
 
-    rare = {n for n in nouns if 0 < freq[n] <= RARE_MAX_FILES}
-    if not rare:
+    eligible = _eligible_nouns(nouns, freq, rare_floor)
+    if not eligible:
         return ""  # F2+A1: silence over noise
 
     candidates = [
         (path, matched)
         for path, matched in file_matches.items()
-        if any(n in rare for n in matched)
+        if any(n in eligible for n in matched)
     ]
     if not candidates:
         return ""

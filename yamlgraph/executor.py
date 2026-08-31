@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import TypeVar
 
 from langchain_core.language_models.chat_models import BaseChatModel
+from langchain_core.messages import HumanMessage
 from pydantic import BaseModel
 
 from yamlgraph.config import (
@@ -54,6 +55,7 @@ def execute_prompt(
     state: dict | None = None,
     max_tokens: int | None = None,
     thinking_budget: int | None = None,
+    retry_feedback: str | None = None,
 ) -> T | str:
     """Execute a YAML prompt with optional structured output.
 
@@ -84,6 +86,7 @@ def execute_prompt(
             state=state,
             max_tokens=max_tokens,
             thinking_budget=thinking_budget,
+            retry_feedback=retry_feedback,
         )
     )
 
@@ -194,6 +197,9 @@ class PromptExecutor:
             prompts_relative=request.prompts_relative,
             state=request.state,
         )
+
+        if request.retry_feedback:
+            messages.append(HumanMessage(content=request.retry_feedback))
 
         llm = self._get_llm(
             temperature=request.temperature,

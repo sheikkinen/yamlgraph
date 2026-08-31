@@ -59,6 +59,12 @@ SOLUTION_CLASSES = frozenset(
 MODEL_VERDICTS = frozenset({"pursue", "dissent", "duplicate"})
 ECHO_MARKER = "brief-echo"
 
+# FR-932: the honest miss. Personas may only claim it when retrieval
+# genuinely returned nothing, which the reducer verifies against the
+# same block the personas were shown.
+NONE_RETRIEVED = "none-retrieved"
+PRIOR_ART_HEADING = "### Prior art retrieved for this brief (filename-noun, IDF-ranked)"
+
 URL_RE = re.compile(r"https?://\S+")
 LIBRARIAN_ERROR_STRINGS = ("Error:", "No results")
 
@@ -220,14 +226,88 @@ def _cap_one_liners(repo_root: Path) -> list[str]:
     return [" | ".join(entries[i : i + 6]) for i in range(0, len(entries), 6)]
 
 
-def collect_committed_context(repo_root: str = ".") -> str:
+def _load_prior_art_builder():
+    """Load the FR-737 hook retrieval module by path (it is not importable)."""
+    import importlib.util
+
+    path = (
+        Path(__file__).resolve().parents[4]
+        / ".github"
+        / "hooks"
+        / "scripts"
+        / "checks"
+        / "prior_art.py"
+    )
+    spec = importlib.util.spec_from_file_location("prior_art_fr932", path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module.build_prior_art
+
+
+def _prior_art_lines(repo_root: Path, brief_path: str) -> list[str]:
+    """Retrieve FR-corpus prior art for the brief (FR-932).
+
+    The query path is synthetic: build_prior_art scopes its corpus to the
+    query file's parent, so a brief living in research-briefs/ must ask as
+    though it were an FR. rare_floor=False because this grounds a context
+    window rather than interrupting an author.
+    """
+    if not brief_path:
+        return [PRIOR_ART_HEADING, NONE_RETRIEVED]
+    stem = Path(brief_path).stem
+    query = repo_root / "feature-requests" / f"{stem}.md"
+    try:
+        block = _load_prior_art_builder()(query, rare_floor=False)
+    except (OSError, ValueError):
+        block = ""
+    # FR-890 R-2 closure: the brief's own FR states the author's proposed
+    # solution. The synthetic query path hides it from build_prior_art's
+    # self-exclusion, so drop it here by FR number.
+    own_fr = re.match(r"(fr-\d+)", stem, re.IGNORECASE)
+    own_prefix = f"{own_fr.group(1).upper()}-" if own_fr else None
+    hits = [
+        line
+        for line in block.splitlines()
+        if line.startswith("  ")
+        and not line.startswith("  Disposition")
+        and not (own_prefix and line.strip().upper().startswith(own_prefix))
+    ]
+    return [PRIOR_ART_HEADING, *(hits or [NONE_RETRIEVED])]
+
+
+def extract_prior_art_block(committed_context: str) -> str:
+    """Slice the prior-art subsection out of the block the personas saw.
+
+    FR-932 R-5: one computation, copied. The reducer never re-runs
+    retrieval, so the artifact cannot disagree with the context window.
+    """
+    lines = committed_context.splitlines()
+    try:
+        start = lines.index(PRIOR_ART_HEADING)
+    except ValueError:
+        return ""
+    end = start + 1
+    while end < len(lines) and not lines[end].startswith("### "):
+        end += 1
+    while end > start + 1 and not lines[end - 1].strip():
+        end -= 1
+    return "\n".join(lines[start:end])
+
+
+def collect_committed_context(repo_root: str = ".", brief_path: str = "") -> str:
     """Deterministic committed-state grounding block (FR-896 AC-05).
 
     No LLM, no author narrative: CAP registry one-liners, ARCHITECTURE.md
-    headings, and Scripture trap/cure keys — the same block for every
-    brief, bounded.
+    headings, Scripture trap/cure keys, and (FR-932) prior art retrieved
+    from the feature-request corpus for this brief — the same block for
+    every persona, bounded.
     """
     root = Path(_state_value(repo_root, "repo_root"))
+    # FR-932: python nodes call func(effective_state) — ONE positional dict with
+    # declared `variables` merged in, never keywords. brief_path therefore
+    # arrives inside that dict at runtime and only as an argument in tests.
+    if isinstance(repo_root, dict) and not brief_path:
+        brief_path = repo_root.get("brief_path", "")
     arch = root / "ARCHITECTURE.md"
     headings = [
         line.lstrip("#").strip()
@@ -242,6 +322,8 @@ def collect_committed_context(repo_root: str = ".") -> str:
         "",
         "### Capability registry (CAP one-liners)",
         *_cap_one_liners(root),
+        "",
+        *_prior_art_lines(root, _state_value(brief_path, "brief_path")),
         "",
         "### ARCHITECTURE.md headings",
         *headings,
@@ -342,17 +424,36 @@ def _is_committed_dir(token: str, repo_root: Path) -> bool:
     )
 
 
-def _classify_precedent(precedent: str, repo_root: Path) -> str:
-    """Three-way precedent validation (FR-896 R-1): traceable | echo | raise."""
+def _classify_precedent(
+    precedent: str, repo_root: Path, prior_art_empty: bool = False
+) -> str:
+    """Precedent validation (FR-932): traceable | grounded-empty | raise.
+
+    FR-896's ``brief-echo`` demotion is gone: restating the brief as its
+    own precedent is not precedent. Its replacement is bounded — a
+    persona may claim ``none-retrieved`` only when the retrieval the
+    personas were shown actually came back empty.
+    """
     without_urls = URL_RE.sub(" ", precedent)
     if _check_committed_ids(without_urls, repo_root):
         return "traceable"
     if ECHO_MARKER in precedent:
-        return "echo"
+        raise ValueError(
+            f"{ECHO_MARKER!r} is not precedent — the brief cannot cite "
+            f"itself; cite committed state or declare {NONE_RETRIEVED!r}: "
+            f"{precedent!r}"
+        )
+    if NONE_RETRIEVED in precedent:
+        if prior_art_empty:
+            return "grounded-empty"
+        raise ValueError(
+            f"{NONE_RETRIEVED!r} claimed but prior-art retrieval returned "
+            f"hits — cite one or explain why it does not apply: {precedent!r}"
+        )
     raise ValueError(
-        "precedent carries no committed identifier and no explicit "
-        f"{ECHO_MARKER!r} marker — cite committed state or declare the echo: "
-        f"{precedent!r}"
+        "precedent carries no committed identifier, no URL and no "
+        f"{NONE_RETRIEVED!r} token — cite committed state or declare the "
+        f"honest miss: {precedent!r}"
     )
 
 
@@ -373,8 +474,9 @@ def _validate_findings(
     findings: list[dict],
     repo_root: Path,
     librarian_tool_results: Any,
+    prior_art_empty: bool = False,
 ) -> tuple[list[PersonaFinding], list[str]]:
-    """Validate rows; return (rows, per-row status: traceable|echo)."""
+    """Validate rows; return (rows, per-row status: traceable|grounded-empty)."""
     validated: list[PersonaFinding] = []
     for index, finding in enumerate(findings, start=1):
         try:
@@ -391,12 +493,16 @@ def _validate_findings(
             _check_librarian_row(row, librarian_tool_results)
             statuses.append("traceable")
         else:
-            statuses.append(_classify_precedent(row.precedent, repo_root))
+            statuses.append(
+                _classify_precedent(row.precedent, repo_root, prior_art_empty)
+            )
 
-    non_echo = statuses.count("traceable")
-    if non_echo < 3:
+    # FR-932: every surviving row is grounded — traceable or an honest,
+    # verified miss. Counting the miss against the floor would make a
+    # fabricated citation the cheaper option.
+    if len(statuses) < 3:
         raise ValueError(
-            f"fewer than 3 non-echo traceable findings: {non_echo} — "
+            f"fewer than 3 grounded findings: {len(statuses)} — "
             "the run carries too little committed-state grounding"
         )
     return validated, statuses
@@ -412,19 +518,20 @@ def reduce_findings(
     base_dir: str = ".",
     librarian_tool_results: Any = None,
     repo_root: str = ".",
+    prior_art_block: str = "",
 ) -> dict:
     """Validate persona findings and write tmp/draft-alternatives.md."""
     root = Path(repo_root)
-    rows, statuses = _validate_findings(findings, root, librarian_tool_results)
+    prior_art_empty = NONE_RETRIEVED in prior_art_block
+    rows, statuses = _validate_findings(
+        findings, root, librarian_tool_results, prior_art_empty
+    )
     artifact = Path(base_dir) / "tmp" / "draft-alternatives.md"
     artifact.parent.mkdir(parents=True, exist_ok=True)
 
     class_counts: dict[str, int] = {}
-    for row, status in zip(rows, statuses, strict=True):
-        if status == "traceable":
-            class_counts[row.solution_class] = (
-                class_counts.get(row.solution_class, 0) + 1
-            )
+    for row in rows:
+        class_counts[row.solution_class] = class_counts.get(row.solution_class, 0) + 1
 
     personas = ", ".join(row.persona for row in rows)
     run_date = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -435,14 +542,15 @@ def reduce_findings(
         f"- run date: {run_date}",
         f"- personas executed: {personas}",
         "",
+        # FR-932: copied from the block the personas saw, never recomputed.
+        *([prior_art_block, ""] if prior_art_block else []),
         "| " + " | ".join(TABLE_COLUMNS) + " |",
         "|" + "---|" * len(TABLE_COLUMNS),
     ]
-    for row, status in zip(rows, statuses, strict=True):
-        verdict = "echo" if status == "echo" else row.verdict
+    for row in rows:
         class_cell = row.solution_class
         count = class_counts.get(row.solution_class, 0)
-        if status == "traceable" and count >= 2:
+        if count >= 2:
             class_cell = f"{class_cell} (convergent x{count})"
         lines.append(
             "| "
@@ -451,7 +559,7 @@ def reduce_findings(
                     _cell(row.candidate),
                     _cell(row.persona),
                     _cell(class_cell),
-                    _cell(verdict),
+                    _cell(row.verdict),
                     _cell(row.precedent),
                     _cell(row.is_this_a_graph),
                     _cell(row.effort_risk),
@@ -465,8 +573,9 @@ def reduce_findings(
     return {
         "artifact": str(artifact),
         "rows": len(rows),
-        "non_echo_rows": statuses.count("traceable"),
-        # Advisory only (FR-896 R-2): distinct classes reported, never gated.
+        "non_echo_rows": statuses.count(
+            "traceable"
+        ),  # Advisory only (FR-896 R-2): distinct classes reported, never gated.
         "classes": len(class_counts),
     }
 
@@ -480,5 +589,6 @@ def write_alternatives(state: dict[str, Any]) -> dict[str, dict]:
             base_dir=state.get("base_dir", "."),
             librarian_tool_results=state.get("librarian_tool_results"),
             repo_root=state.get("repo_root", "."),
+            prior_art_block=extract_prior_art_block(state.get("committed_context", "")),
         )
     }

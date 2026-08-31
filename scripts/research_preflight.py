@@ -85,6 +85,17 @@ ARTIFACT_VERDICTS = frozenset({"pursue", "dissent", "duplicate", "echo"})
 CONVERGENT_SUFFIX = re.compile(r"\s*\(convergent x\d+\)$")
 
 URL_RE = re.compile(r"https?://\S+")
+
+# FR-938: mirrors research_tools. Shape only — the reducer resolves each
+# token against the filesystem; this checks that a resolvable shape was
+# offered at all. The shapes are the reducer's: registry identifiers,
+# snake_case Scripture keys, repo paths, and URLs.
+COMMITTED_ID_RE = re.compile(r"\b(?:FR|NC|CAP|REQ)-[A-Z]*-?\d+", re.IGNORECASE)
+SCRIPTURE_KEY_RE = re.compile(r"\b[a-z][a-z0-9]*(?:_[a-z0-9]+)+\b")
+REPO_PATH_RE = re.compile(r"\b[\w.-]+/[\w./-]+")
+ECHO_MARKER = "brief-echo"
+NONE_RETRIEVED = "none-retrieved"
+PRIOR_ART_HEADING = "### Prior art retrieved for this brief (filename-noun, IDF-ranked)"
 ERROR_STRINGS = ("Error:", "No results")
 
 
@@ -150,6 +161,50 @@ def _table_rows(text: str) -> tuple[list[str], list[list[str]]]:
     return header or [], rows
 
 
+def _prior_art_is_empty(text: str) -> bool:
+    """Did the retrieval the personas saw actually come back empty?"""
+    lines = text.splitlines()
+    if PRIOR_ART_HEADING not in lines:
+        return False
+    start = lines.index(PRIOR_ART_HEADING) + 1
+    for line in lines[start:]:
+        if line.startswith("### ") or line.startswith("|"):
+            break
+        if line.strip():
+            return NONE_RETRIEVED in line
+    return False
+
+
+def _check_precedent(citation: str, prior_art_empty: bool) -> list[str]:
+    """FR-938: a non-librarian cell offers an identifier, a URL, or the miss."""
+    if ECHO_MARKER in citation:
+        return [
+            f"{ECHO_MARKER!r} is not precedent — the brief cannot cite "
+            f"itself: {citation!r}"
+        ]
+    if NONE_RETRIEVED in citation:
+        if prior_art_empty:
+            return []
+        return [
+            f"{NONE_RETRIEVED!r} claimed but prior-art retrieval returned "
+            f"hits: {citation!r}"
+        ]
+    if any(
+        pattern.search(citation)
+        for pattern in (
+            COMMITTED_ID_RE,
+            URL_RE,
+            SCRIPTURE_KEY_RE,
+            REPO_PATH_RE,
+        )
+    ):
+        return []
+    return [
+        "precedent carries no committed identifier, no URL and no "
+        f"{NONE_RETRIEVED!r} token: {citation!r}"
+    ]
+
+
 def verify_artifact(text: str) -> list[str]:
     """Return schema/shape violations for a draft-alternatives artifact."""
     violations: list[str] = []
@@ -165,6 +220,7 @@ def verify_artifact(text: str) -> list[str]:
         violations.append(f"expected >= 4 rows, found {len(rows)}")
 
     idx = {name: header.index(name) for name in COLUMNS}
+    prior_art_empty = _prior_art_is_empty(text)
     non_echo_rows = 0
     librarian_rows = 0
     for row in rows:
@@ -191,6 +247,8 @@ def verify_artifact(text: str) -> list[str]:
                 )
             elif not URL_RE.search(citation):
                 violations.append(f"librarian citation carries no URL: {citation!r}")
+        else:
+            violations.extend(_check_precedent(row[idx["precedent"]], prior_art_empty))
 
     # Distinct-class count is advisory (FR-896 R-2): convergence is
     # information, never a gate. The gate is non-echo grounding.

@@ -18,6 +18,16 @@ concrete moment? An FR that cannot complete this sentence is
      alternatives table, FR-889 style) may be referenced instead. The
      field must point at SOMETHING committed; a dangling or absent
      reference is a gate failure — the Judge grants no authority. -->
+**Prior art:** [FR-YYY-name.md](FR-YYY-name.md) — one clause per entry
+saying how this FR differs, including REJECTED FRs.
+<!-- FR-938: this line dispositions the hits printed under "Prior art
+     retrieved for this brief" in the linked research record — that block
+     IS the retrieval evidence, and each hit must be either distinguished
+     here or explicitly dismissed. Retrieval is filename-noun IDF ranked:
+     it finds prior art that shares vocabulary and misses prior art that
+     shares a problem, so the block is a floor on the search, never a
+     ceiling. An empty block means retrieval was silent, not that no
+     precedent exists. -->
 
 ## Summary
 

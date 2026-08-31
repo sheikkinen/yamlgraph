@@ -41,6 +41,8 @@ class PromptRequest:
         state: State dict for Jinja2 templates ({{ state.field }})
         max_tokens: Max output tokens (None → provider default)
         thinking_budget: Extended thinking budget tokens (FR-071/FR-230)
+        retry_feedback: Correction appended after the rendered prompt when a
+            previous attempt was rejected by schema validation (FR-933)
     """
 
     prompt_name: str
@@ -55,6 +57,7 @@ class PromptRequest:
     state: dict | None = field(default=None)
     max_tokens: int | None = None
     thinking_budget: int | None = None
+    retry_feedback: str | None = None
 
 
 # Exceptions that are retryable

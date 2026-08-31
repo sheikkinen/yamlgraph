@@ -189,13 +189,16 @@ def test_existing_committed_identifier_passes(tools, tmp_path):
 
 @pytest.mark.req("REQ-YG-623")
 def test_explicit_brief_echo_is_demoted_and_retained(tools, tmp_path):
+    """FR-938 supersedes the FR-896 demotion: the brief is not its own precedent.
+
+    Demote-never-drop kept hollow rows in the record. With the personas
+    now shown the FR corpus, an echo is a refusal to look, and the honest
+    alternative is the bounded `none-retrieved` token.
+    """
     findings = _five_findings()
     findings[0]["precedent"] = "brief-echo: restates the closure constraint"
-    result = _reduce(tools, findings, tmp_path)
-    assert result["rows"] == 5, "echo rows are retained (demote-never-drop)"
-    assert result["non_echo_rows"] == 4
-    text = (tmp_path / "tmp" / "draft-alternatives.md").read_text()
-    assert "echo" in text
+    with pytest.raises(ValueError, match="brief-echo"):
+        _reduce(tools, findings, tmp_path)
 
 
 @pytest.mark.req("REQ-YG-623")
@@ -295,9 +298,9 @@ def test_three_same_class_non_echo_rows_pass_and_annotate(tools, tmp_path):
 
 @pytest.mark.req("REQ-YG-623")
 def test_fewer_than_three_non_echo_traceable_findings_fails(tools, tmp_path):
-    findings = _five_findings()[:3]
-    findings[0]["precedent"] = "brief-echo: restated"
-    with pytest.raises(ValueError, match="non-echo"):
+    """The grounding floor still bites — now on ungrounded rows, not echoes."""
+    findings = _five_findings()[:2]
+    with pytest.raises(ValueError, match="fewer than 3 grounded findings"):
         _reduce(tools, findings, tmp_path)
 
 

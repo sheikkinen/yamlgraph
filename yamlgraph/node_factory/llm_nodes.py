@@ -328,7 +328,9 @@ def _run_node(
             cfg, node_name, variables, state, loop_counts, graph_path
         )
 
-    def attempt_execute(use_provider: str | None) -> tuple[Any, Exception | None]:
+    def attempt_execute(
+        use_provider: str | None, feedback: str | None = None
+    ) -> tuple[Any, Exception | None]:
         try:
             result = execute_prompt(
                 prompt_name=cfg.prompt_name,
@@ -343,6 +345,7 @@ def _run_node(
                 state=state,
                 max_tokens=cfg.max_tokens,
                 thinking_budget=cfg.thinking_budget,
+                retry_feedback=feedback,
             )
             return result, None
         except Exception as error:
