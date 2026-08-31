@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Judged — APPROVED WITH REVISIONS (R-1–R-4 folded 2026-08-31); see [FR-944-map-to-map-index-attribution.judgement.md](FR-944-map-to-map-index-attribution.judgement.md)
+**Status:** ENFORCED (2026-08-31) — see Implementation Record below; judged APPROVED WITH REVISIONS, R-1–R-4 folded; [FR-944-map-to-map-index-attribution.judgement.md](FR-944-map-to-map-index-attribution.judgement.md)
 **Effort:** 0.5 days
 **Requested:** 2026-08-31
 **First consumer / first event:** the FR-943 corpus_census containment layer, at the next `yamlgraph graph run examples/demos/corpus_census/graph.yaml` over tmp/sparks-full batches 01–04 — currently batch-fatal in all four because a poison row's error finding claims index 0 instead of its true index.
@@ -108,3 +108,11 @@ Dispositioned in [FR-944.research.md](FR-944.research.md):
 
 - Committed executable witnesses: tests/unit/test_fr944_map_to_map_index.py (the durable LLM-free reproduction; transient repro/incident paths under tmp/ and logs/ are context, not evidence)
 - CAP-11 (subgraph & map), CAP-210 (edge shape classification, REQ-YG-568)
+
+## Implementation Record (2026-08-31)
+
+- **RED** commit d7099765: 6 witnesses condemning the defect (`SKIP=pytest`) — indexes `[0,0,0]`, N×M fan-out (6 sends for M=2), error row attributed to 0, join node absent, collision unguarded.
+- **GREEN**: `_compile_map_to_map` now inserts `_map_join_<map1>_<map2>` (pass-through returning `{}`), static edge `from_sub → join`, conditional Send router on the join; collision with an existing node name raises naming the edge and the synthetic name. Exactly the judgement's D-1 surface — no changes to `map_compiler.py`, `state_builder.py`, `EdgeShape`, or FR-943 census code (C-3/C-4 honored).
+- **Verification**: FR-944 suite 7/7; frozen AC-08 regression command 135/135; full fast unit sweep 6326 passed / 1 failed — the single failure (`test_ramp_installer.py::test_wrapper_delegates`) reproduces identically on unmodified main (`scripts/ramp.sh` execs bare `python3`, whose system interpreter lacks pyyaml on this host): environment coupling in REQ-YG-611's wrapper witness, outside FR-944's frozen scope; dispositioned here rather than silently patched (C-4 forbids touching that surface). `scripts/req_coverage.py --strict` passes; ARCHITECTURE.md regenerated from CAP-210.
+- **Decisions**: join name deliberately deterministic and undocumented as user API (reserved namespace `_map_*`); collision check fails closed at compile time per R-2. The R-1 probe (explicit pass-through node between maps) validated barrier semantics before the compiler change; embedded in FR-944.research.md.
+- **Deviation**: none from frozen scope. The operator's paid census rerun happens post-merge as live validation, per the judgement's "no paid rerun required" note.

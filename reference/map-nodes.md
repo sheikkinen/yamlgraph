@@ -390,6 +390,24 @@ animated_panels = [
 ]
 ```
 
+### Chaining Maps (FR-944)
+
+Two map nodes may be chained directly (`map1 -> map2`). The compiler
+inserts a synthetic pass-through join node (`_map_join_<map1>_<map2>`)
+between them, so the second fan-out fires **once, after the first map's
+fan-in barrier, on merged state** — exactly like `map1 -> node -> map2`:
+
+- Each second-map branch receives its true zero-based `_map_index`.
+- Collected results keep deterministic order via `sorted_add`.
+- A failing row's error entry carries the row's true index.
+- The second map's `over` list resolves against the fully merged state:
+  iterating an independent list produces one Send per item, never
+  one fan-out per upstream branch.
+
+The join name is reserved: defining a node named
+`_map_join_<map1>_<map2>` alongside that chain fails compilation with an
+explicit collision error.
+
 ---
 
 ## Best Practices

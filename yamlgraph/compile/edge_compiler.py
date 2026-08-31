@@ -219,9 +219,21 @@ def _compile_parallel_fanout(ctx: _EdgeContext) -> None:
 
 
 def _compile_map_to_map(ctx: _EdgeContext) -> None:
+    # FR-944: barrier join — the downstream Send router must fire once on
+    # merged post-fan-in state, never per upstream branch (task-local state
+    # yields _map_index=0 everywhere and N×M fan-out over independent lists).
     _, from_sub = ctx.map_nodes[ctx.from_node]
     to_map_edge_fn, to_sub = ctx.map_nodes[ctx.to_node]
-    ctx.graph.add_conditional_edges(from_sub, to_map_edge_fn, [to_sub])
+    join_name = f"_map_join_{ctx.from_node}_{ctx.to_node}"
+    if join_name in ctx.graph.nodes:
+        raise ValueError(
+            f"Map-to-map edge '{ctx.from_node}' -> '{ctx.to_node}' needs the "
+            f"synthetic join node '{join_name}', but a node with that name "
+            "already exists. Rename the conflicting node."
+        )
+    ctx.graph.add_node(join_name, lambda state: {})
+    ctx.graph.add_edge(from_sub, join_name)
+    ctx.graph.add_conditional_edges(join_name, to_map_edge_fn, [to_sub])
 
 
 def _compile_to_map(ctx: _EdgeContext) -> None:
