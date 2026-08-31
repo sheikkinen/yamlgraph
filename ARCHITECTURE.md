@@ -565,7 +565,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 247 | CAP-247 Memory-Corpus Curation (Selective Amnesia) | `examples` | REQ-YG-620 – 622 |
 | 248 | CAP-248 Research Sole Route (Closed-Input Alternatives) | `examples` | REQ-YG-623 |
 | 249 | CAP-249 Invocation-time tool-slot binding | `tools/tool_slots`, `compile/graph_loader` | REQ-YG-624 |
-| 250 | CAP-250 Corpus-census synthesize tail | `examples/demos/corpus_census` | REQ-YG-625, 633 |
+| 250 | CAP-250 Corpus-census synthesize tail | `examples/demos/corpus_census` | REQ-YG-625, 633 – 634 |
 | 251 | CAP-251 Copilot cost ledger — priced attribution | `scripts/vscode` | REQ-YG-626 |
 | 252 | CAP-252 Shared SMTP Email Tool | `examples` | REQ-YG-627 |
 | 253 | CAP-253 Org repository census with pinned-Azure delegation | `examples/demos/repo_census`, `examples/demos/corpus_census` | REQ-YG-628 |
@@ -3060,22 +3060,23 @@ scripts/research.sh runs the examples/demos/research-route map+reduce graph — 
 
 Graph `tools:` entries may declare `slot: true` with a `contract:` block (runtime allowlist, required args); callers bind FR-768 tool manifests at invocation via repeatable `--tool SLOT=manifest.yaml`. Contaminated bindings (missing, duplicate, undeclared slot, missing/invalid manifest, contract mismatch) fail closed with ToolSlotBindingError before any node or LLM executes. Translation and execution reuse the FR-768 manifest runtimes exactly; binding paths resolve relative to CWD. Reference consumer: examples/demos/corpus_census (discover–extract–map–reduce census pipeline with fail-closed 8-column evidence ledger). Sibling consumer: examples/demos/pattern_model_census (FR-896; same slot mechanism, mercury-pinned dual-lens map fan-out, LLM-free reducer with a path-prefix guard and repo-alias public-safe summary).
 
-**Feature Request:** FR-892, FR-893, FR-896
+**Feature Request:** FR-892, FR-893, FR-896, FR-943
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
-| REQ-YG-624 | Tool slots bind FR-768 manifests at invocation; all contaminated bindings fail closed with a typed error before execution; the corpus-census reducer enforces the frozen ledger contract (abstention rows, error-string and empty-cell rejection) | `tools/tool_slots`, `compile/graph_loader` |
+| REQ-YG-624 | Tool slots bind FR-768 manifests at invocation; all contaminated bindings fail closed with a typed error before execution; the corpus-census reducer preserves abstention rows and rejects structural index/completeness failures and invalid ledger cells | `tools/tool_slots`, `compile/graph_loader` |
 
 ### 250. CAP-250 Corpus-census synthesize tail
 
 The corpus-census pipeline ends in a human-readable brief: a bounded, column-allowlisted synthesis input (top-N ledger rows), a single pinned structured-claims LLM call, and an LLM-free citation boundary that validates every claim citation against the source artifact before rendering. Validation failure emits no brief — only a .REJECTED.md artifact carrying the deterministic summary head and rejection reasons. Missing brief inputs fail loudly before any synthesis call.
 
-**Feature Request:** FR-895, FR-940
+**Feature Request:** FR-895, FR-940, FR-943
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-625 | Census brief emission is fail-closed: claims with fabricated, missing, or out-of-source citations are rejected mechanically (LLM-free); accepted briefs carry the deterministic summary head, cited findings, and run provenance; synthesis input is bounded and restricted to the public-safe column allowlist | `examples/demos/corpus_census` |
 | REQ-YG-633 | Census judgement labels are normalized at the ledger boundary by a deterministic LLM-free algorithm (prefix strip, separator cut, grammar gate, optional caller vocabulary with canonical spelling); non-conforming values are demoted to abstain with a frozen reason, never dropped; raw_judgement/repaired audit fields and the frozen normalization summary line record every reconciliation; the judge and synthesis model is caller-selectable via the model variable with provenance carrying the effective model | `examples/demos/corpus_census` |
+| REQ-YG-634 | Attributable model-owned failures (map-error findings with usable _map_index, error-string judgements, envelope validation errors wholly rooted in model-owned fields) are contained as fail-closed abstained ledger rows with exact frozen cells, a bounded "row failed:" reason, and complete causal evidence preserved in raw_judgement; the internal count carries exactly four keys and the markdown summary uses the revised normalization line; structural impossibilities remain batch-fatal | `examples/demos/corpus_census` |
 
 ### 251. CAP-251 Copilot cost ledger — priced attribution
 
