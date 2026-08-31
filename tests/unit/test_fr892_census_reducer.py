@@ -73,6 +73,9 @@ class TestLedgerContract:
             "abstained",
             "abstain_reason",
             "disagreement",
+            # FR-940 audit fields (schema revision)
+            "raw_judgement",
+            "repaired",
         }
 
     @pytest.mark.req("REQ-YG-624")

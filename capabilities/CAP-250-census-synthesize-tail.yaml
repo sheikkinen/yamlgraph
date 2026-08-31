@@ -1,6 +1,6 @@
 id: CAP-250
 name: Corpus-census synthesize tail
-fr: FR-895
+fr: FR-895, FR-940
 description: >
   The corpus-census pipeline ends in a human-readable brief: a bounded,
   column-allowlisted synthesis input (top-N ledger rows), a single pinned
@@ -19,5 +19,17 @@ requirements:
       (LLM-free); accepted briefs carry the deterministic summary head,
       cited findings, and run provenance; synthesis input is bounded and
       restricted to the public-safe column allowlist
+    modules:
+      - examples/demos/corpus_census
+  - id: REQ-YG-633
+    description: >
+      Census judgement labels are normalized at the ledger boundary by a
+      deterministic LLM-free algorithm (prefix strip, separator cut,
+      grammar gate, optional caller vocabulary with canonical spelling);
+      non-conforming values are demoted to abstain with a frozen reason,
+      never dropped; raw_judgement/repaired audit fields and the frozen
+      normalization summary line record every reconciliation; the judge
+      and synthesis model is caller-selectable via the model variable
+      with provenance carrying the effective model
     modules:
       - examples/demos/corpus_census

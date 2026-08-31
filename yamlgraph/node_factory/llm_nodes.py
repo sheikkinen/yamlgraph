@@ -27,7 +27,10 @@ from yamlgraph.node_factory.llm_execution import (
 from yamlgraph.node_factory.llm_execution import (
     should_skip_if_exists as _should_skip_if_exists,
 )
-from yamlgraph.utils.expressions import resolve_node_variables
+from yamlgraph.utils.expressions import (
+    resolve_config_state_ref,
+    resolve_node_variables,
+)
 from yamlgraph.utils.guard_runtime import (
     evaluate_guards_once,
     extract_guard_rules,
@@ -70,6 +73,8 @@ class LLMNodeConfig:
     timeout: float | None = field(default=None)
     guards_pre: list[dict[str, Any]] = field(default_factory=list)
     guards_post: list[dict[str, Any]] = field(default_factory=list)
+    default_provider: str | None = field(default=None)
+    default_model: str | None = field(default=None)
 
 
 def resolve_llm_node_config(
@@ -147,6 +152,8 @@ def resolve_llm_node_config(
         state_key=node_config.get("state_key", node_name),
         provider=node_config.get("provider", defaults.get("provider")),
         model=node_config.get("model", defaults.get("model")),
+        default_provider=defaults.get("provider"),
+        default_model=defaults.get("model"),
         temperature=temperature,
         max_tokens=node_config.get("max_tokens", defaults.get("max_tokens")),
         thinking_budget=thinking_budget,
@@ -321,6 +328,12 @@ def _run_node(
         return pre_update
 
     variables = resolve_node_variables(cfg.variable_templates, state)
+    resolved_model = resolve_config_state_ref(
+        cfg.model, state, cfg.default_model, "model"
+    )
+    resolved_provider = resolve_config_state_ref(
+        cfg.provider, state, cfg.default_provider, "provider"
+    )
     if cfg.candidates and cfg.node_type == NodeType.ROUTER:
         from yamlgraph.node_factory.router_race_node import _execute_router_race
 
@@ -337,8 +350,10 @@ def _run_node(
                 variables=variables,
                 output_model=cfg.output_model,
                 temperature=cfg.temperature,
-                provider=use_provider,
-                model=cfg.model,
+                provider=resolve_config_state_ref(
+                    use_provider, state, cfg.default_provider, "provider"
+                ),
+                model=resolved_model,
                 graph_path=graph_path,
                 prompts_dir=cfg.prompts_dir,
                 prompts_relative=cfg.prompts_relative,
@@ -351,7 +366,7 @@ def _run_node(
         except Exception as error:
             return None, error
 
-    result, error = attempt_execute(cfg.provider)
+    result, error = attempt_execute(resolved_provider)
     if error is not None:
         return _handle_error(cfg, node_name, error, state, loop_counts, attempt_execute)
 

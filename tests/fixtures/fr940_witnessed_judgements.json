@@ -1,0 +1,125 @@
+{
+  "description": "FR-940 witnessed non-conforming judgement strings from the 2026-08-31 spark census (19/106 rows) with expected normalization outcomes under the vocabulary below.",
+  "labels": [
+    "new-spark",
+    "reframe",
+    "steering",
+    "ops"
+  ],
+  "witnessed": [
+    {
+      "raw": "(a) type: steering; (b) theme: example analysis and reflection; (c) spark: none",
+      "expected_judgement": "steering",
+      "repaired": true,
+      "abstained": false
+    },
+    {
+      "raw": "(a) type: reframe; (b) theme: visualization and results organization; (c) spark: reflect on how to better visualize and organize the results from the current work",
+      "expected_judgement": "reframe",
+      "repaired": true,
+      "abstained": false
+    },
+    {
+      "raw": "(a) steering; (b) disk cleanup; (c) none",
+      "expected_judgement": "steering",
+      "repaired": true,
+      "abstained": false
+    },
+    {
+      "raw": "new-spark | \"666 apocalypse theme\" | \"Research biblical apocalypse references and create a feature request FR-666 that counts or tracks related examples.\"",
+      "expected_judgement": "new-spark",
+      "repaired": true,
+      "abstained": false
+    },
+    {
+      "raw": "type: steering | theme: repo analysis and grading | spark: none",
+      "expected_judgement": "steering",
+      "repaired": true,
+      "abstained": false
+    },
+    {
+      "raw": "(a) type: reframe; (b) theme: repository structure refactoring; (c) spark: Consider splitting yamlgraph core functionality from examples and chaplain components to improve modularity and maintainability.",
+      "expected_judgement": "reframe",
+      "repaired": true,
+      "abstained": false
+    },
+    {
+      "raw": "(a) type: steering; (b) theme: art style conversion; (c) spark: none",
+      "expected_judgement": "steering",
+      "repaired": true,
+      "abstained": false
+    },
+    {
+      "raw": "new-spark | safe mobile/web access | Explore safe mobile and web access mechanisms for creating and running new yamlgraphs",
+      "expected_judgement": "new-spark",
+      "repaired": true,
+      "abstained": false
+    },
+    {
+      "raw": "(a) new-spark; (b) feature-request process research; (c) Research feature-request based development processes and find similar methodologies from the waterfall era",
+      "expected_judgement": "new-spark",
+      "repaired": true,
+      "abstained": false
+    },
+    {
+      "raw": "(a) reframe; (b) competitive viability assessment; (c) Is yamlgraph addressing a genuine market need or is it redundant given existing solutions?",
+      "expected_judgement": "reframe",
+      "repaired": true,
+      "abstained": false
+    },
+    {
+      "raw": "(a) type: steering; (b) theme: repository evaluation; (c) spark: none",
+      "expected_judgement": "steering",
+      "repaired": true,
+      "abstained": false
+    },
+    {
+      "raw": "(a) steering; (b) documentation task; (c) none",
+      "expected_judgement": "steering",
+      "repaired": true,
+      "abstained": false
+    },
+    {
+      "raw": "(a) type: steering; (b) theme: graph linter and confessions review; (c) spark: none",
+      "expected_judgement": "steering",
+      "repaired": true,
+      "abstained": false
+    },
+    {
+      "raw": "new-spark | GPT model evaluation in voice app | Evaluate very small/local GPT-style model usage in ninchat_voice style application",
+      "expected_judgement": "new-spark",
+      "repaired": true,
+      "abstained": false
+    },
+    {
+      "raw": "new-spark | reasoning pattern analysis | Analyze the concept of thoughtcrime and vendor defaults as they manifest in LLM agentic processes to understand reasoning pattern vulnerabilities.",
+      "expected_judgement": "new-spark",
+      "repaired": true,
+      "abstained": false
+    },
+    {
+      "raw": "new-spark | map-reduce patterns for educational content | \"plan agent for providing fresh look on korkeakoulujen kurkistusopinnot as a FR\"",
+      "expected_judgement": "new-spark",
+      "repaired": true,
+      "abstained": false
+    },
+    {
+      "raw": "(a) steering; (b) hooking and branch protection mechanisms; (c) none",
+      "expected_judgement": "steering",
+      "repaired": true,
+      "abstained": false
+    },
+    {
+      "raw": "(a) type: steering; (b) theme: GPT model version upgrade; (c) spark: none",
+      "expected_judgement": "steering",
+      "repaired": true,
+      "abstained": false
+    },
+    {
+      "raw": "new-spark | self-reflection & operator profiling | The operator proposes a deep introspective session to examine shared core values, mission, strategy, and objectives through the lens of repository history and device data.",
+      "expected_judgement": "new-spark",
+      "repaired": true,
+      "abstained": false
+    }
+  ]
+}

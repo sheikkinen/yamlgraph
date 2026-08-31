@@ -267,3 +267,29 @@ def resolve_node_variables(
     # No explicit variable mapping - pass state as variables
     # Filter out internal keys and None values
     return {k: v for k, v in state.items() if not k.startswith("_") and v is not None}
+
+
+# FR-940: full-string {state.x} references in node model/provider are
+# resolved from state at execution time; missing/empty falls back to the
+# graph defaults value (declared default chain).
+_CONFIG_STATE_REF = re.compile(r"^\{state\.[\w.]+\}$")
+
+
+def resolve_config_state_ref(
+    value: str | None,
+    state: dict,
+    default: str | None,
+    field_name: str,
+) -> str | None:
+    """Resolve a {state.x} reference in node model/provider config."""
+    if not (isinstance(value, str) and _CONFIG_STATE_REF.fullmatch(value)):
+        return value
+    resolved = resolve_state_path(value[7:-1], state)
+    if resolved is None or (isinstance(resolved, str) and not resolved.strip()):
+        return default
+    if not isinstance(resolved, str):
+        raise ValueError(
+            f"node {field_name} reference {value} resolved to "
+            f"non-string: {resolved!r}"
+        )
+    return resolved.strip()
