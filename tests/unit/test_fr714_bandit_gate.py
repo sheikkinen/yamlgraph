@@ -42,13 +42,16 @@ class TestNosecConfessionCoverage:
 
     @pytest.mark.req("REQ-YG-542")
     def test_coverage_gate_matches_doc_claim(self):
-        """AC-04: CLAUDE.md's documented threshold == enforced threshold."""
+        """AC-04: documented threshold == enforced threshold.
+
+        FR-942 moved the CI checks list to reference/development-operations.md.
+        """
         import re
 
         pyproject = (REPO_ROOT / "pyproject.toml").read_text()
-        claude = (REPO_ROOT / "CLAUDE.md").read_text()
+        dev_ops = (REPO_ROOT / "reference" / "development-operations.md").read_text()
         enforced = re.search(r"--cov-fail-under=(\d+)", pyproject).group(1)
-        assert f"{enforced}% coverage threshold" in claude, (
-            f"CLAUDE.md must document the enforced gate ({enforced}%) — "
+        assert f"{enforced}% coverage threshold" in dev_ops, (
+            f"development-operations.md must document the enforced gate ({enforced}%) — "
             "doc and gate disagreed before FR-714"
         )

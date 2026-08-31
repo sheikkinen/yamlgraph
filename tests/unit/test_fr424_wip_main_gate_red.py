@@ -202,10 +202,11 @@ def test_ac06_wip_gate_allows_clean_commit_range() -> None:
 def test_ac07_traceability_docs_reference_req_yg_419() -> None:
     cap = CAP_156_PATH.read_text().lower()
     architecture = ARCHITECTURE_PATH.read_text().lower()
-    claude = CLAUDE_PATH.read_text().lower()
+    # FR-942 moved the CI checks list from CLAUDE.md to the ops reference.
+    dev_ops = Path("reference/development-operations.md").read_text().lower()
 
     assert "req-yg-419" in cap
     assert "wip-gate" in cap
     assert "req-yg-419" in architecture
     assert "wip-gate" in architecture
-    assert "wip-gate" in claude
+    assert "wip-gate" in dev_ops
