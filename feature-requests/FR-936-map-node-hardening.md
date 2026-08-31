@@ -5,7 +5,8 @@
 **Status:** SPLIT — see `FR-936-map-node-hardening.judgement.md` (2026-08-31).
 No implementation authority. Replaced by four independently researched FRs:
 (D-1) map branch input projection / `pass_keys`, (D-2) `max_items` overflow
-policy with typed `on_overflow`, (D-3) investigation FR for timeout
+policy with typed `on_overflow` — allocated as FR-939
+(`FR-939-map-overflow-policy.md`), (D-3) investigation FR for timeout
 cancellation and resource lifecycle (the bounded shared pool proposed below
 was rejected — it converts leakage into deterministic starvation), (D-4)
 LangGraph `RetryPolicy` integration and exception ownership. Replacement FR
