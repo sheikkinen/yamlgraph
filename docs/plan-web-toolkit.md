@@ -1,21 +1,25 @@
 # Plan: Web Toolkit — Overview
 
-**Date:** 2026-08-31 (rev 6 — value audit folded: D is the keystone, C's
-framework value contingent on D, A gated on a fetch_page delta, B's value
-sentence incomplete until baseline research. rev 5: SPA rendering
-dispositioned; rev 4: converter comparison; rev 3: C primary, D promoted,
-B parked)
+**Date:** 2026-08-31 (rev 7 — sibling-repo discovery: B unlocked with named
+consumers and concrete first HARs from control-plane's Finnish-gov probe
+suite; hva-weekly-bulletin is a live production consumer for both B and C.
+rev 6: value audit; rev 5: SPA rendering; rev 4: converter comparison; rev 3:
+C primary, D promoted, B parked)
 **Status:** Draft (pre-FR)
-**Scope:** A TLD-scale classification pipeline (C, primary) and the two
-foundations it stands on: a text-render graph tool (A) and a resumable
-storage-backed map primitive (D). HAR→OpenAPI (B) parked pending research.
+**Scope:** A TLD-scale classification pipeline (C, primary), a resumable
+storage-backed map primitive (D, keystone), a text-render graph tool (A), and
+a HAR→OpenAPI graph (B) — the last three unblocked by a named production
+consumer (hva-weekly-bulletin) and 40+ probe scripts (control-plane) that
+document exactly the pain B eliminates.
 
 ## Vision
 
 Catalog and classify an entire country-code domain (*.fi) with a YAMLGraph
-pipeline. The build forces two durable framework assets into existence: a
-fetch-as-text tool usable inside any graph, and a map primitive that survives
-500k-item runs.
+pipeline, and turn the Finnish gov/municipal probe suite (bespoke shell
+scrapers today) into machine-generated OpenAPI specs consumed by production
+YAMLGraph pipelines. The build forces two durable framework assets into
+existence: a fetch-as-text tool usable inside any graph, and a map primitive
+that survives 500k-item runs.
 
 ## Priority Order
 
@@ -24,25 +28,34 @@ fetch-as-text tool usable inside any graph, and a map primitive that survives
    likely the most durable output for the repo.
 3. **A — lynx_render**: graph tool consumed by C's live-fetch tier and by any
    future research graph.
-4. **B — har-to-spec**: parked; needs more info before an FR (see Parked).
+4. **B — har-to-spec**: unparked (rev 7) — named consumers and first HARs
+   identified; still sequenced last because D + A come first.
 
-## Value Audit (forced_opposite, rev 6)
+## Named Consumers (rev 7)
 
-Each component challenged with "what value does the output add?" and "would
-yamlgraph add value, or is it costume?":
+The sibling repo suite closes the "for whom" gap for every component except D
+(whose consumer is the other three):
+
+| Sibling | Role | Wants from this plan |
+|---------|------|----------------------|
+| **`hva-weekly-bulletin`** (production, remote) | Weekly YAMLGraph pipeline over 22 HVAs via KTweb, Dynasty, CaseM + Hilma + TED + Market Court. Emits Monday bulletin. | **B**: machine-generated OpenAPI specs for KTweb/Dynasty/CaseM (currently hand-written probes). **C**: platform census tells it which HVAs use which platform. |
+| **`control-plane/probes`** (local, 40+ scripts) | Bespoke shell scrapers: `casem-playwright-probe.js`, `dynasty-drequest-probe.sh`, `ktweb-probe.sh`, `hilma-probe.sh`, `eduskunta-probe.sh`, ... | **B**: replace hand-written probes with generated OpenAPI + typed clients. **A**: many probes today are `curl ... \| iconv ... \| regex` — a `lynx_render`-style tool would collapse a lot of that. |
+| **`gitclaw-oulu-civic-intelligence`** (production, remote) | YAMLGraph civic-intelligence template, Oulu focus. | **C**: Oulu-region subset of the catalog as ready-made input. **B**: same probe-generation benefit for civic-data endpoints. |
+
+**Consequence for the plan**: B is no longer speculative. The concrete first
+HARs are one Dynasty DREQUEST session and one CaseM Playwright trace — both
+platforms host 8-22 instances behind identical URL patterns, so one HAR
+generates a spec that serves the whole tenant fleet. Multi-tenant leverage is
+B's differentiator over generic HAR→OpenAPI.
+
+## Value Audit (forced_opposite, rev 6+7)
 
 | | Value of the output | Would yamlgraph add value? |
 |--|--|--|
-| **D** | Intrinsic and highest: item-durable resumable fan-out is a genuine gap — LangGraph checkpoints at superstep level, not per-item; the max_items + CAP-120 stack is documented user pain. Three named consumers (C pilot, B map stage, any bulk job). | **D *is* yamlgraph value** — a framework primitive, not an application. The only component whose worth doesn't depend on the others shipping. The keystone. |
-| **C** | Real but external: a classified ccTLD census doesn't exist; consumer named. The value lives in the **data**, not the pipeline. | **Only via D.** The graph shape is single-stage embarrassingly-parallel classify — a 50-line asyncio+SQLite script does it today. Without D, yamlgraph here is framework_costume. With D, the framework earns its keep (resume at 550k, provider swap, typed outputs) and gains a scale witness it has never had. |
-| **A** | Marginal: api-discovery already ships `fetch_page`. Honest delta is rendered-text quality, link inventory, and the render-emptiness signal — commodity wrapper territory. | Neutral — Layer 3 plumbing working as designed. The FR is gated on stating the delta vs fetch_page (see A's delta gate). |
-| **B** | Most speculative output value (no named first HAR, no consumer, delta over deterministic converters unmeasured) — but the best native graph-shape fit of all four: LLM map replacing m2s's human curation pass, deterministic reduce, round-trip witness. | Yes *iff* the baseline research (Q2) shows a real delta. If the converters already cover the HAR, the LLM stage is growth_as_default and B dies. Parking is the plan working. |
-
-**Summary**: D is the keystone — sequenced first, correctly. C standalone is
-a script; C stated as "the workload that forces D to exist and produces a
-citable dataset as exhaust" is honest and defensible. A must prove it isn't
-a duplicate of fetch_page. B cannot yet complete the "for whom / what pain"
-sentence.
+| **D** | Intrinsic and highest: item-durable resumable fan-out is a genuine gap. Named consumers: C pilot, B's map stage, hva-weekly-bulletin's daily collection. | **D *is* yamlgraph value** — the keystone. |
+| **C** | External but named: platform census is what hva-weekly-bulletin already does bounded to 22 orgs — C generalizes it to 550k domains. Value in the **data**, not the pipeline. | **Only via D.** Standalone C is a script. As "the workload that forces D and produces the census hva-weekly-bulletin will consume," it earns its keep. |
+| **A** | Marginal: `fetch_page` (api-discovery) already exists; the delta is dump quality, link inventory, `render` signal. **Rev 7**: control-plane probes' encoding tax (ISO-8859-1, UTF-16-LE, KTweb anti-copy spacing) shows a real dump-normalization gap `fetch_page` may not cover. | Neutral → mild positive on the encoding evidence. FR still opens with the delta-vs-fetch_page gate; encoding fixtures are now on the table. |
+| **B** | **Rev 7 — no longer speculative**: production consumer (hva-weekly-bulletin), 40+ pain-point probes, multi-tenant leverage (one HAR → 8-22 instance clients), differentiators over m2s/har-to-openapi (encoding, tenant templating). | Yes: parallel LLM map over endpoint groups replacing m2s's human curation is the textbook yamlgraph shape, and D's map primitive is the natural runtime. |
 
 ## Prior Art (dispositioned)
 
@@ -52,29 +65,32 @@ sentence.
 | `examples/api-discovery` | FR-783..790 | Tool manifests `fetch_page`, `curl_probe`, `parse_openapi`; step graphs. A's tool lives beside these manifests; CAP-226's SPA-shell/browser-sniff distinction is the precedent for A's JS policy. **`fetch_page` is also A's potential duplicate — see A's delta gate.** |
 | `examples/daily_digest/nodes/content.py` | — | BS4 extraction; its committed `digest.db` dedup is the precedent for C's incremental re-crawl. |
 | map `max_items` + CAP-120 inter-run state chaining + SQLite checkpointer | — | The current workaround stack D replaces with a primitive. |
+| **`../control-plane/probes/*` (sibling repo, 40+ scripts)** | — | Working scrapers for Finnish gov/municipal platforms — CaseM (Playwright SPA), Dynasty DREQUEST, KTweb, Hilma, eduskunta, Kela, Fingrid, Digitraffic, etc. These *are* the corpus B replaces with machine-generated specs; they also *are* the encoding-tax evidence for A. First HAR candidates for B live here. |
+| **`../hva-weekly-bulletin` (sibling repo, production)** | — | Live YAMLGraph consumer over 22 HVAs; consumes B's would-be specs and C's would-be platform census. Closes the "for whom" gap for both. |
+| **`../gitclaw-oulu-civic-intelligence` (sibling repo, production)** | — | YAMLGraph civic-intelligence template; second consumer for B and C. |
 | **Common Crawl WET files (external)** | — | .fi pages already crawled *and rendered to text*. C v1 classifies from CC extracts; live-fetch only gaps/refresh. Kills most cost, politeness, and seed problems. |
-| **mitmproxy2swagger / har-to-openapi (external OSS)** | — | Deterministic HAR→OpenAPI converters exist; any future B wraps, not reimplements. Compared in the Parked section. |
+| **mitmproxy2swagger / har-to-openapi (external OSS)** | — | Deterministic HAR→OpenAPI converters exist; B wraps, does not reimplement. Compared in the B section. |
 | **Jina Reader / Firecrawl / Crawl4AI / browser-use (external)** | — | "URL → LLM-ready text incl. JS" is an occupied product category. A's JS tier wraps Crawl4AI (or Playwright), never builds rendering. See "SPA rendering: product boundary". |
 
 ## Component C (primary): `.fi` TLD catalog — classify at country scale
 
 Evolution of FR-204's demo into the toolkit's driving analysis pipeline.
 
-- **Honest framing (rev 6)**: standalone, C is a script — its graph shape is
-  a single LLM-classify stage over items. C's value to the *repo* is that it
-  forces D to exist and hands the framework a 500k-scale witness; the catalog
-  dataset is the exhaust. C's yamlgraph value is contingent on D — the FR
-  must present it as D's acceptance workload, not as a product needing a
-  framework.
+- **Honest framing (rev 6)**: standalone, C is a script. C's value to the
+  *repo* is that it forces D to exist and hands the framework a 500k-scale
+  witness. The catalog dataset is the exhaust — but rev 7 gives that exhaust
+  a live production consumer (hva-weekly-bulletin's 22-org list is the
+  bounded version of C's platform census).
 - **v1 is Common Crawl, not crawling**: CC WET files carry pre-rendered text
   for .fi pages — classify from those, live-fetch (A) only for gaps and
   refresh. The Traficom open-data domain list (~550k domains) is the
   completeness reference.
 - **Pipeline**: CC/seed domains → deterministic pre-filter (DNS resolve +
   HTTP HEAD; LLM never sees dead sites) → **D-map**(text extract → LLM
-  classify with inline schema: category, language, organisation type, API
-  presence, liveness, `render: empty|thin|full`) → catalog artifact
-  (SQLite/JSONL).
+  classify with inline schema: category, language, organisation type,
+  **platform (CaseM/Dynasty/KTweb/other) — added rev 7 for B/hva-bulletin
+  handoff**, API presence, liveness, `render: empty|thin|full`) → catalog
+  artifact (SQLite/JSONL).
 - **Cost model (required before scope freeze)**: haiku-class model pinned,
   token cap per page dump, measured cost per 1k domains from a pilot batch.
   550k × classify is real money — no full run without the pilot number.
@@ -85,9 +101,9 @@ Evolution of FR-204's demo into the toolkit's driving analysis pipeline.
   daily_digest's digest.db). Liveness re-check is deterministic and LLM-free.
 - **Politeness constraints** (live-fetch tier only): robots.txt respect,
   per-host rate limits, identifying User-Agent — FR acceptance criteria.
-- **Named consumer**: public-sector platform census (which municipalities run
-  CKAN/PxWeb/OData) extends api-discovery to catalog scale; plus liveness
-  monitoring as a free LLM-less byproduct.
+- **Named consumer**: public-sector platform census (which municipalities and
+  HVAs run CaseM/Dynasty/KTweb/CKAN/PxWeb/OData) — the census output feeds
+  `hva-weekly-bulletin` and gates which B specs get generated first.
 
 ## Component D: resumable storage-backed map primitive
 
@@ -115,7 +131,9 @@ primitive pays for itself at 10k-item scale) and B never unparks.
   LangGraph actually stops helping.
 - **Witness**: kill -9 mid-run at scale N, re-run, prove completed items are
   not re-executed and the final catalog is identical to an uninterrupted run.
-- **C is the acceptance demo**: the pilot batch runs on D.
+- **Acceptance demos**: C's pilot; also hva-weekly-bulletin's daily collection
+  over 22 orgs (smaller scale, higher operational frequency — validates
+  resume semantics against a live cron).
 
 ## Component A: `lynx_render` — text-render tool for graphs
 
@@ -129,21 +147,25 @@ chat-surface `fetch_webpage` is not.
   or show **same-page evidence** that a separate lynx tool is materially
   better. Without that evidence A is the duplicate — false_duplicate in
   reverse — and collapses into a fetch_page patch, size XS.
+- **Encoding-tax evidence (rev 7)**: control-plane's Dynasty probes iconv
+  ISO-8859-1→UTF-8; KTweb detail pages are **UTF-16-LE without BOM**; KTweb
+  also injects anti-copy whitespace that has to be collapsed. If `fetch_page`
+  doesn't already handle these, the delta is measurable and the FR writes
+  itself. Fixtures from control-plane test data.
 - **Form**: shell tool manifest wrapping `lynx -dump`; modes `-nolist`
   (reading text) and `-listonly` (numbered link inventory).
 - **Boundary rules** (no silent fallbacks): fail fast if binary missing;
   normalize encoding; cap dump size; per-fetch timeout; Finnish-encoding
-  witness fixture (ä/ö, legacy ISO-8859-1 site).
+  witness fixtures (ä/ö ISO-8859-1, UTF-16-LE KTweb, anti-copy KTweb).
 - **JS policy**: empty/thin dump is **a signal, not a failure** — returned
   tagged (`render: empty|thin|full`), classified downstream as "JS-required".
 - **JS tier (disposition: wrap, don't build)**: rendering JS pages to text is
   an occupied product category (Jina Reader, Firecrawl, Crawl4AI ~40k stars,
   browser-use). If C's pilot shows the "JS-required" fraction matters, the
   escalation tier is a second tool manifest wrapping **Crawl4AI** (pip,
-  Playwright-based, LLM-friendly markdown) — same wrap-don't-reimplement
-  verdict as mitmproxy2swagger in B. Building a renderer is out of scope for
-  yamlgraph permanently: by the three-layer doctrine a renderer is Layer 3
-  side-effect plumbing, not orchestration.
+  Playwright-based, LLM-friendly markdown). Building a renderer is out of
+  scope for yamlgraph permanently: by the three-layer doctrine a renderer is
+  Layer 3 side-effect plumbing, not orchestration.
 - **Fork for the judge**: lynx (system binary, better layout fidelity) vs
   html2text/trafilatura (pip dep, cheaper CI) — decided on same-page dump
   evidence, not preference. Jina Reader rejected: external service dependency.
@@ -163,13 +185,36 @@ manifest + the C census as demo workload) — the same relationship pattern as
 ninchat_voice and the outcaller. Recorded here so the census work doesn't
 scope-creep into building a browser.
 
-## Parked: B — `har-to-spec` (needs more info)
+## Component B: `har-to-spec` (unparked, rev 7)
 
-HAR→OpenAPI synthesis is deferred until the research below concludes; no FR
-yet. B is the best native graph-shape fit in this plan (parallel LLM map +
-deterministic reduce + witness), but it cannot yet complete the value
-sentence — *for whom, against what pain, versus which alternative* — until
-the baseline research answers what the LLM honestly adds over the converters.
+Rev 6 parked B pending the "for whom / what pain / vs which alternative"
+answer. Rev 7 has all three:
+
+- **For whom**: `hva-weekly-bulletin` (production, remote) consumes probe
+  outputs today via bespoke shell scripts. Generated OpenAPI specs replace
+  those scripts. `control-plane`'s 40+ probes are the second consumer.
+  `gitclaw-oulu-civic-intelligence` the third.
+- **What pain**: no vendor of CaseM, Dynasty DREQUEST, or KTweb publishes an
+  OpenAPI spec. Each new HVA/municipality onboarding today = a hand-written
+  probe with encoding hacks and HTML regex. Multiply by 22 HVAs × 3 platforms
+  × N sections and the marginal cost of each new tenant is real engineering.
+- **Vs which alternative**: mitmproxy2swagger's two-pass human curation
+  cannot scale to per-tenant onboarding; har-to-openapi's heuristics don't
+  handle non-UTF-8 encoding or the multi-tenant same-platform pattern (one
+  HAR should yield a spec parameterized over `{tenant_host}`). B's LLM map
+  stage does that curation *and* the tenant templating.
+
+### First HAR candidates (research Q1 answered — rev 7)
+
+1. **Dynasty DREQUEST** (8 HVAs behind `https://<tenant>.oncloudos.com/cgi/DREQUEST.PHP`)
+   — CGI-style query params, ISO-8859-1 encoding. High leverage:
+   one HAR → spec that generalizes across 8 tenants.
+2. **CaseM** (10+ HVA/municipality instances behind `https://<tenant>.cloudnc.fi`)
+   — JS-rendered SPA; the HAR must come from a Playwright capture (control-plane
+   already has `casem-playwright-probe.js` — extend it to save HAR).
+3. **KTweb** (7+ HVAs behind various `julkaisu.*` hosts) — UTF-16-LE detail
+   pages, anti-copy spacing; a stress test for both the LLM curation and the
+   scrub-boundary encoding handling.
 
 ### Converter comparison (verified against upstream READMEs, 2026-08-31)
 
@@ -190,9 +235,10 @@ two-pass curation step is a *human-in-the-loop slot* — exactly the slot an
 LLM map stage can fill. har-to-openapi shows how far pure heuristics go
 (numeric/UUID segments) and where they stop: slug ids (`/users/matti-v`),
 semantic parameter naming (`{id}` vs `{userId}`), enum detection, descriptions,
-and merging near-duplicate schemas.
+and merging near-duplicate schemas. Neither addresses non-UTF-8 encodings or
+multi-tenant same-platform templating — B's differentiators.
 
-### Potential map-reduce on HAR
+### Map-reduce on HAR
 
 Hybrid design — deterministic converter as scaffold, LLM map-reduce as the
 curation pass:
@@ -200,23 +246,26 @@ curation pass:
 ```
 har file
   │ scrub boundary (deterministic Python: cookies/auth/tokens out,
+  │                 encoding normalize (utf-16le, iso-8859-1 → utf-8),
   │                 Pydantic entry records)
   ▼
 baseline convert (wrap converter; emits draft spec + x-path-templates)
-  │ group entries by (host, method, path-skeleton)
+  │ group entries by (host-family, method, path-skeleton)
   ▼
-map over endpoint groups (LLM per group, parallel):
-  - promote/reject candidate path (replaces the human curation pass)
+map over endpoint groups (LLM per group, parallel; D's second consumer):
+  - promote/reject candidate path (replaces m2s human curation)
   - infer template segments incl. slugs; name parameters semantically
   - infer request/response schema from body samples; detect enums
+  - **tenant templating**: recognize when host varies but path shape is
+    identical → emit `{tenant_host}` server variable + tenant map
   - one-line operation description
   ▼
 reduce (deterministic): merge fragments into OpenAPI 3.1 doc,
   dedup shared component schemas (LLM-assisted only on near-duplicates)
   ▼
 witness: round-trip through parse_openapi (FR-783) — our own parser
-  must accept what we emit; plus schemathesis-style example validation
-  as a stretch goal
+  must accept what we emit; then generate a typed client and re-hit
+  the live tenant → response validation as end-to-end acceptance
 ```
 
 - The map stage is D's consumer number two: a large HAR (thousands of
@@ -225,17 +274,20 @@ witness: round-trip through parse_openapi (FR-783) — our own parser
   fully, the LLM stage must degrade to a no-op-with-evidence, not invent
   changes (plausible_wrong_answer guard).
 
-### Remaining research questions
+### Remaining research questions (updated rev 7)
 
-1. Concrete first HAR: which real system's traffic do we convert first
-   (public API fixture vs an actual undocumented internal API)?
-2. Baseline run: execute *both* converters on that HAR — measure what each
-   already delivers; the delta defines the LLM's honest scope.
+1. ~~Concrete first HAR~~ **Answered**: Dynasty DREQUEST, CaseM, KTweb.
+2. Baseline run: execute *both* converters on Dynasty DREQUEST HAR first
+   (Python-native, deterministic path skeleton) — measure what each already
+   delivers; the delta defines the LLM's honest scope.
 3. Capture path: manual DevTools export vs agent-captured via Chrome DevTools
-   MCP network tools.
-4. Which converter to wrap: python-native m2s (repo fit, needs the LLM to
-   replace its human pass) vs har-to-openapi (better heuristics + 3.1 output,
-   but drags in node).
+   MCP network tools vs extending `casem-playwright-probe.js` to save HAR.
+4. Which converter to wrap: python-native m2s (repo fit, LLM replaces its
+   human pass) vs har-to-openapi (better heuristics + 3.1 output, but drags
+   in node). Rev 7 leans m2s: LLM-as-curation is a cleaner substitution than
+   LLM-as-heuristic-supplement.
+5. Tenant templating primitive: is `{tenant_host}` a plain server variable,
+   or does it need a first-class "instance-fleet" concept in the spec?
 
 When answered, B lands as `examples/api-discovery/steps/har-to-spec/`.
 
@@ -244,10 +296,11 @@ When answered, B lands as `examples/api-discovery/steps/har-to-spec/`.
 | FR | Scope | Depends on | Size |
 |----|-------|------------|------|
 | D | resumable storage-backed map primitive + kill-and-resume witness | — | M |
-| A | fetch_page delta evidence → extend or new tool (fork resolved by judge) + smoke demo | — (parallel to D) | S (XS if fetch_page patch) |
-| C | fi-catalog pilot on D + A: pre-filter, classify, catalog artifact, cost number | D, A | M |
+| A | fetch_page delta evidence → extend or new tool (fork resolved by judge) + smoke demo + Finnish encoding fixtures | — (parallel to D) | S (XS if fetch_page patch) |
+| C | fi-catalog pilot on D + A: pre-filter, classify (with platform field), catalog artifact, cost number | D, A | M |
 | C2 | full-run decision gated on C's pilot cost/accuracy numbers | C | — |
-| B | parked — research questions above; map stage would also consume D | (D) | — |
+| B | har-to-spec on Dynasty DREQUEST first; consumed by hva-weekly-bulletin | D (map), A (docs fetch) | M |
+| B2 | CaseM (Playwright HAR) + KTweb, tenant-templating primitive | B | — |
 
 Each component enters as a `.chaplain/inbox/` proposal and follows
 Plan → Judge → Enforce. All graph authoring goes through the
@@ -258,10 +311,15 @@ Plan → Judge → Enforce. All graph authoring goes through the
 1. **D's home**: map node option set vs new node type — where does LangGraph's
    checkpointer actually stop helping at fan-out scale?
 2. **A's dependency fork**: lynx vs html2text/trafilatura, evidence-based —
-   preceded by the fetch_page extend-vs-new decision.
+   preceded by the fetch_page extend-vs-new decision and now informed by the
+   encoding fixtures from control-plane.
 3. **CC WET freshness**: how stale is Common Crawl for the .fi long tail, and
    what refresh fraction does that imply for the live-fetch tier?
 4. **Catalog artifact home**: SQLite under `outputs/` for the pilot; a full
-   production catalog likely deserves its own repo/dataset boundary.
+   production catalog likely deserves its own repo/dataset boundary — perhaps
+   consumed by hva-weekly-bulletin directly.
 5. **JS-required fraction**: C's pilot measures it; the number decides whether
    the Crawl4AI wrap tier is built at all.
+6. **Tenant templating**: does B need a first-class instance-fleet concept in
+   the emitted spec, or does `{tenant_host}` as a server variable suffice?
+   Decision blocks B2.
