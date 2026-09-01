@@ -1,0 +1,21 @@
+# 2026-09-01 reflection — FR-945 the boundary that was already there
+
+## Trap
+
+I wrote the first draft of FR-945 the way I'd write a script: name a target, open a session, run some commands, parse the result. The judgement returned six revision buckets before enforcement authority activated. Reading them, none of the six was about what the skill *does* — every one was about what it *touches at the boundary*: the IP-vs-name shape of the target, the qualification of the username, the encryption of the transport, the origin of the group name, the safe-slug of the output path, the redaction of the password. The verb was fine. The nouns crossing the seam were unaudited.
+
+## Cure
+
+For a read-only remote skill, list every string that enters or leaves the process and put a typed contract on each *before* thinking about the verb. Target → validate shape + resolve + pin. User → refuse qualified, qualify internally. Group → SID, not localized name. Transport → encryption explicit, not defaulted. Output → safe-slug, not raw target. Password → redacted at every write. Only then implement the read.
+
+## Lesson
+
+"Read-only" is not a privilege claim; it is a discipline on what you're willing to say about the boundary. A read-only skill that leaks a password into a log is not read-only. A read-only skill that lets an IPv6 colon walk into `Path()` is not read-only.
+
+## Boundary graduation candidate
+
+`instruction`, `provider`, `schema`, `state`, `streaming`, `platform`, `audit`, `module_structure`, `workspace`, `evaluation` are already named in the Scripture's `boundaries:` map. What FR-945 kept banging into felt narrower and larger at once: **remote host identity**. Not the wire, not the API — the fact that the same box has a DNS name, an IP address, a Windows COMPUTERNAME, a locale-dependent group vocabulary, and a set of credentials that only work when qualified against that COMPUTERNAME. Every ambiguity in the FR draft was a place where I was treating any two of those five as the same thing. If this recurs a third time (FR-946 mutation, FR-947 SSH), it graduates.
+
+## Seed
+
+**Seed:** For the next FR that acts on a remote system — is my target contract *five typed values that agree with each other*, or is it a single string I'm hoping the OS interprets the same way I do? If the latter, the boundary is where the bug lives, and no amount of correct verb saves it.

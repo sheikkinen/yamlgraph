@@ -161,6 +161,20 @@ dependencies:
     modules: [".importlinter"]
     added: "0.4.62"
 
+  pypsrp:
+    rationale: >
+      WinRM client for the FR-945 LAN recon skill (REQ-YG-635).
+      Constructs the pypsrp.client.Client used to open a
+      Negotiate-authenticated, message-encrypted WinRM session against
+      a LAN Windows host and run the fixed inventory.ps1 as a
+      non-admin least-privilege probe. Read-only; no mutation of the
+      remote host. Pinned to stable 0.9.x because 1.0.0b1 downgrades
+      httpx and conflicts with the `mcp` package.
+    modules:
+      - ".github/skills/lan-recon/recon.py"
+      - "tests/unit/test_lan_recon.py"
+    added: "0.5.18"
+
   # ─── Optional: Analysis ──────────────────────────────────────────────
 
   jedi:
