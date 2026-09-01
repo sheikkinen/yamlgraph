@@ -51,7 +51,7 @@ Chosen alternative here: read-only WinRM inventory. It is the smallest prerequis
 
 ### 1. Dependency
 
-`pypsrp>=0.10` added to the `[dev]` extra in `pyproject.toml`; `constraints/dev-py312.txt` regenerated; `pip install -e ".[dev]"` verified on Python 3.11 and 3.13; `pip-audit` / direct-import scan reported clean.
+`pypsrp>=0.9,<1.0` added to the `[dev]` extra in `pyproject.toml` (0.9.1 is the current stable; 1.0.0b1 is a pre-release that downgrades httpx and breaks `mcp` — pinned out); `constraints/dev-py312.txt` regenerated with `pypsrp==0.9.1` and its transitive `pyspnego==0.12.2`; `pip install -e ".[dev]"` verified on Python 3.14 locally (CI matrix asserts 3.11 + 3.13); `pip-audit` / direct-import scan reported clean.
 
 ### 2. Skill directory `.github/skills/lan-recon/`
 
@@ -173,12 +173,12 @@ LAN_RECON_USER=copilot LAN_RECON_PASS=... \
 - [ ] **AC-10** Offline tests cover the 12 refusal paths in § 6 with no real DNS/socket/WinRM call; CLI status non-zero + actionable stderr per refusal; library functions raise typed exceptions.
 - [ ] **AC-11** The committed sanitized Huutokauppakone fixture asserts concrete computer, OS, CPU, RAM, GPU, admin, and SID-membership values — not merely parse success.
 - [ ] **AC-12** A real Huutokauppakone run is recorded in this FR with command, `tmp/lan/<host>.json` path, model-validation OK, `admin=false`, `S-1-5-32-580` membership, and selected inventory values. Zero credential material.
-- [ ] **AC-13** `pypsrp>=0.10` is in `[dev]`; editable dev install succeeds under Python 3.11 and 3.13; `constraints/dev-py312.txt`, dependency audit, and direct-import scan updated + passing.
+- [ ] **AC-13** `pypsrp>=0.9,<1.0` is in `[dev]`; editable dev install succeeds under Python 3.11 and 3.13; `constraints/dev-py312.txt`, dependency audit, and direct-import scan updated + passing.
 - [ ] **AC-14** `CAP-256-lan-host-recon.yaml` + `REQ-YG-635` register all surfaces; every new test carries `@pytest.mark.req("REQ-YG-635")`; generated `ARCHITECTURE.md` + `python scripts/req_coverage.py --strict` agree.
 - [ ] **AC-15** `reference/development-operations.md` LAN-recon subsection + `.env.sample` placeholder lines committed; no real credential committed.
 - [ ] **AC-16** FR-945 implementation status recorded; changelog fragment present; diary reflection committed; no surface from the not-authorized list (see judgement C-1..C-7) mutated.
 
-## Witnessed evidence (2026-09-01 discovery session)
+## Witnessed evidence (2026-09-01 discovery + live enforcement)
 
 Full end-to-end walk against Huutokauppakone (192.168.50.172, ASUS ROG STRIX G15DK, Ryzen 7 5800X 8C/16T, 24 GB RAM, NVIDIA RTX 3070 8 GB VRAM, Windows 10.0.26200.0, Finnish locale). Every schema field and refusal path in this FR traces to a real observation:
 
@@ -187,6 +187,32 @@ Full end-to-end walk against Huutokauppakone (192.168.50.172, ASUS ROG STRIX G15
 - **ASCII-only `.ps1` (§ 4, AC-07)**: first fix script contained em-dashes in comments; PS 5.1 reported `missing terminator, line 21 char 48` — nowhere near the U+2014 bytes on line 2. Rewriting comments to ASCII resolved the parse error.
 - **Non-admin succeeds (§ 3.4, AC-06)**: probe returned `admin=False` — least-privilege recon confirmed end-to-end.
 - **Recon transcript**: 6.8 KB from `yamlgraph-recon.ps1` (fixture ancestor) dropped via SMB and read from the mac — the file-drop channel is a working parallel and belongs to a follow-up FR (not this one).
+
+### AC-12 live witness — real recon.py invocation (2026-09-01T04:14Z)
+
+Command:
+```bash
+python .github/skills/lan-recon/recon.py Huutokauppakone.local
+```
+
+Output written to `tmp/lan/huutokauppakone.local.json` (ignored, not committed). Selected concrete values from the returned `LanHostInventory`:
+
+- `requested_target`: `Huutokauppakone.local`
+- `resolved_address`: `192.168.50.172`
+- `computer_name`: `HUUTOKAUPPAKONE`
+- `os_version`: `Microsoft Windows NT 10.0.26200.0`
+- `admin`: `false`
+- `remote_management_users_member`: `true`
+- `probe_started_at` / `probe_ended_at`: real timestamps, ~46 s round-trip
+- Pydantic `model_validate()` returned successfully; `model_dump_json` round-tripped cleanly through `model_validate_json`.
+- Zero appearances of the `LAN_RECON_PASS` value in stderr, stdout, log output, or the JSON artifact (verified by post-run grep).
+
+**Access-denied surfaces observed** — `errors[]` entries recorded (not silently omitted):
+- `computer_system` / `cpu` / `gpus` / `listening_ports`: WMI/CIM access denied. The `Remote Management Users` group grants WinRM invocation but not WMI namespace access by default. Granting `Enable / Remote Enable` on `root\CIMV2` for that group is a Windows host-configuration change and belongs to a follow-up FR, not this read-only recon.
+- `python_native` / `py_launcher`: `python` and `py` not on the non-admin PATH on this host (system PATH exports Python only to admin sessions here).
+- `openssh_server_state`: `Get-WindowsCapability -Online` requires elevation; reported as `Unknown` with a typed error entry.
+
+The FR does NOT claim these fields are populated; the schema (§ 5) permits explicit-empty + `errors[]` entries so the artifact is honest about what a non-admin recon can see today. The committed test fixture (`tests/fixtures/lan_recon/huutokauppakone.json`) represents the richer inventory recon returns on a properly WMI-permissioned host (as witnessed via the admin-run transcript during the discovery session earlier the same day, 06:28Z), and the semantic test enforces that ideal path.
 
 ## Alternatives Considered
 

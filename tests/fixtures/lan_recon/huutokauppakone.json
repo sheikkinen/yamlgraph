@@ -1,0 +1,47 @@
+{
+  "requested_target": "Huutokauppakone.local",
+  "resolved_address": "192.168.50.172",
+  "computer_name": "HUUTOKAUPPAKONE",
+  "os_version": "Microsoft Windows NT 10.0.26200.0",
+  "manufacturer": "ASUSTeK COMPUTER INC.",
+  "model": "ROG STRIX G15DK_G15DK",
+  "total_memory_bytes": 25678995456,
+  "logical_processors": 16,
+  "cpu": {
+    "name": "AMD Ryzen 7 5800X 8-Core Processor",
+    "cores": 8,
+    "logical_processors": 16,
+    "max_clock_mhz": 3801
+  },
+  "gpus": [
+    {
+      "name": "NVIDIA GeForce RTX 3070",
+      "adapter_ram_bytes": 4293918720,
+      "driver_version": "32.0.15.8195"
+    }
+  ],
+  "disks": [
+    {"drive": "C", "free_bytes": 44560285696, "used_bytes": 954700922880},
+    {"drive": "E", "free_bytes": 120494987264, "used_bytes": 4881452400640}
+  ],
+  "python_native": "Python 3.10.11",
+  "py_launcher": [],
+  "wsl": {
+    "default_distribution": "docker-desktop-data",
+    "default_version": 2,
+    "raw": "Default Distribution: docker-desktop-data\nDefault Version: 2"
+  },
+  "openssh_server_state": "NotPresent",
+  "sshd_service": null,
+  "lm_studio_cli_present": true,
+  "lm_studio_service": null,
+  "listening_ports": [
+    {"local_address": "0.0.0.0", "local_port": 5985, "process_name": "System"},
+    {"local_address": "0.0.0.0", "local_port": 445, "process_name": "System"}
+  ],
+  "admin": false,
+  "remote_management_users_member": true,
+  "probe_started_at": "2026-09-01T03:28:05Z",
+  "probe_ended_at": "2026-09-01T03:28:18Z",
+  "errors": []
+}

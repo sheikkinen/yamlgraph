@@ -571,6 +571,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 253 | CAP-253 Org repository census with pinned-Azure delegation | `examples/demos/repo_census`, `examples/demos/corpus_census` | REQ-YG-628 |
 | 254 | CAP-254 Session Worktree Lifecycle | `scripts/worktree.sh`, `scripts/vscode/now.py`, `scripts/vscode/session_join.py` | REQ-YG-629 – 630 |
 | 255 | CAP-255 OS-Enforced Main-Write Lock | `scripts/worktree.sh`, `.github/hooks/scripts/checks/main_write.py`, `.github/hooks/scripts/checks/lane_guard.py`, `scripts/size_gate.py`, … | REQ-YG-631 |
+| 256 | CAP-256 LAN Host Recon | `.github/skills/lan-recon/SKILL.md`, `.github/skills/lan-recon/__init__.py`, `.github/skills/lan-recon/recon.py`, `.github/skills/lan-recon/models.py`, … | REQ-YG-635 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -3128,6 +3129,16 @@ Governed enforcement roots on the main checkout are OS-locked (chmod -R u-w) via
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-631 | Main-checkout governed roots are locked at the filesystem; unlock and sync are audited verbs; edit-tool writes and bare lock-mutator commands on main are denied with executable cures; the widened size gate enforces the 450-line limit with a shrink-only baseline and the FR-942 instruction byte ceiling (33,966 combined bytes for the two per-turn instruction files). | `scripts/worktree.sh`, `.github/hooks/scripts/checks/main_write.py`, `scripts/size_gate.py`, `.github/hooks/tests/test_main_write_guard.py`, `.github/hooks/tests/test_size_gate.py` |
+
+### 256. CAP-256 LAN Host Recon
+
+Read-only WinRM inventory of a single LAN Windows host as a repo-local agent skill (.github/skills/lan-recon/). Given a DNS/mDNS name or an IP literal with --computer-name, opens a WinRM 5985 session under the Option A transport contract (auth=negotiate + encryption=always + banned Basic/CredSSP + pinned resolved LAN address + explicit finite timeouts), runs a fixed ASCII PowerShell inventory script as a non-admin account, and returns a Pydantic-validated LanHostInventory JSON document under tmp/lan/<safe-slug>.json. Refuses admin accounts, non-LAN targets, unqualified IP inputs, unsafe slugs, and leaks the password token into no error, log, or artifact. Consumed by the FR-945/946/947 LAN work-delegation arc as the read-only foundation before any mutation script runs against a target host.
+
+**Feature Request:** FR-945
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-635 | Read-only LAN host recon skill. Boundary contract: target = DNS/mDNS name OR IP literal + --computer-name; DNS leftmost label derives COMPUTERNAME when valid, else the flag is required; resolution pinned to a single RFC1918 / CGN / IPv4 link-local / IPv6 ULA / IPv6 link-local address, loopback/multicast/public refused; LAN_RECON_USER bare local-account, qualified as <COMPUTERNAME>\<user> before the handshake, already-qualified or domain-shaped values refused in v1; pypsrp.client.Client kwargs are exactly auth=negotiate, encryption=always, ssl=False, port=5985, pinned host, finite connection_timeout + operation_timeout, Basic and CredSSP structurally absent; inventory.ps1 is pure ASCII, no caller interpolation, uses SID S-1-5-32-580 for Remote Management Users (locale-safe), emits exactly one JSON document, no Get-SmbShare and no Get-SmbServerConfiguration; output at tmp/lan/<safe-slug>.json, safe-slug cannot escape, Pydantic-validated before atomic write; LAN_RECON_PASS is scrubbed from every exception message, log record, and JSON artifact; admin=true probe response is refused for least privilege. Enforced by tests/unit/test_lan_recon.py covering all 12 refusal paths, kwarg assertion, password redaction, and semantic fixture values from the witnessed Huutokauppakone probe. | `.github/skills/lan-recon/SKILL.md`, `.github/skills/lan-recon/__init__.py`, `.github/skills/lan-recon/recon.py`, `.github/skills/lan-recon/models.py`, `.github/skills/lan-recon/inventory.ps1`, `tests/unit/test_lan_recon.py`, `tests/fixtures/lan_recon/huutokauppakone.json` |
 
 <!-- END GENERATED CAPABILITIES -->
 

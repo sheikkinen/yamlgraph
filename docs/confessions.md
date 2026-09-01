@@ -1919,3 +1919,9 @@ The ID ranges are:
 - **Code**: E402
 - **Sin**: `import ledger_failures` after a `sys.path.insert` — module-level import not at top.
 - **Penance**: FR-943 — demo-local taxonomy module outside the installable package; the REPO_ROOT path bootstrap must precede the import (CONF-427/430 idiom).
+
+### CONF-444
+- **File**: [tests/unit/test_lan_recon.py](../tests/unit/test_lan_recon.py#L144)
+- **Code**: S104
+- **Sin**: `"0.0.0.0"` appears in a `@pytest.mark.parametrize` list.
+- **Penance**: FR-945 — the string is a probe TARGET under test, not a bind address; the test asserts that `recon.probe("0.0.0.0", computer_name=...)` raises `UnsafeTargetError` because unspecified addresses are refused. The recon skill never binds a socket.

@@ -121,6 +121,8 @@ report, and the human (or automation policy) decides:
 | `DEEPSEEK_API_KEY` | DeepSeek authentication |
 | `XAI_API_KEY` | xAI Grok authentication |
 | `LMSTUDIO_BASE_URL` | LM Studio local server URL |
+| `LAN_RECON_USER` | Bare Windows local-account username for the LAN recon skill (FR-945). Recon qualifies as `<COMPUTERNAME>\<user>` before the WinRM handshake; already-qualified or domain-shaped values are refused in v1. |
+| `LAN_RECON_PASS` | Password for `LAN_RECON_USER`. Scrubbed from every recon exception, log record, and JSON artifact. |
 | `AZURE_AI_ENDPOINT` | Azure AI Foundry endpoint URL |
 | `AZURE_AI_API_KEY` | Azure AI API key |
 | `AZURE_MODEL` | Default Azure model/deployment name (default: `gpt-4o`) |
@@ -131,3 +133,47 @@ report, and the human (or automation policy) decides:
 | `LANGCHAIN_TRACING_V2` | Enable LangSmith observability (true/false) |
 | `LANGCHAIN_API_KEY` | LangSmith API key |
 | `LANGCHAIN_PROJECT` | LangSmith project name |
+
+## LAN recon (WinRM) — FR-945, REQ-YG-635
+
+The `.github/skills/lan-recon/` skill probes a single LAN Windows host over WinRM 5985 and returns a Pydantic-validated `LanHostInventory` at `tmp/lan/<safe-slug>.json`. It is **read-only, non-admin**; it never mutates the target host.
+
+### Prerequisites on the target Windows host
+
+1. `Enable-PSRemoting -Force` (opens TCP 5985 + starts the WinRM service).
+2. Create a local non-admin account for recon (e.g. `copilot`).
+3. Add it to the built-in Remote Management Users group **by SID**:
+   ```powershell
+   Add-LocalGroupMember -SID S-1-5-32-580 -Member <user>
+   ```
+   Do NOT reference the group by its localized name — on a Finnish install it is `Etähallinnan käyttäjät`. SID `S-1-5-32-580` is universal.
+
+### Client-side environment
+
+`LAN_RECON_USER` and `LAN_RECON_PASS` in your `.env` (never committed). The username must be bare — recon qualifies it as `<COMPUTERNAME>\<user>` before the handshake.
+
+### Invocation
+
+```bash
+# DNS/mDNS target (leftmost label derives COMPUTERNAME)
+python .github/skills/lan-recon/recon.py Huutokauppakone.local
+
+# IP literal target (--computer-name required)
+python .github/skills/lan-recon/recon.py 192.168.50.172 \
+    --computer-name HUUTOKAUPPAKONE
+```
+
+### Transport contract (Option A)
+
+- HTTP 5985 + `auth="negotiate"` + `encryption="always"` (WSMan message encryption over Negotiate).
+- Pinned resolved LAN address (RFC1918 / CGN / link-local / IPv6 ULA / IPv6 link-local only).
+- Basic and CredSSP auth are structurally absent from the client kwargs.
+- Explicit finite `connection_timeout` (5 s) and `operation_timeout` (30 s).
+
+### Security boundaries
+
+- Non-admin: recon refuses if the probed account returns `admin=True`.
+- Password redaction: `LAN_RECON_PASS` is scrubbed from exceptions, log records, and the JSON artifact.
+- `tmp/lan/*.json` is git-ignored.
+
+Option B (HTTPS 5986 + certificates) is the correct end state; it requires a separate FR to provision the listener + certificate and is not in this skill's scope.
