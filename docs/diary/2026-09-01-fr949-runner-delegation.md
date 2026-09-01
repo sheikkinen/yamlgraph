@@ -65,3 +65,19 @@ have coexistence data, could the winning channel become the chaplain's
 transport, making `delegate`-labeled issues the mechanical form of "submit to
 inbox" — and the coexistence experiment itself a template for how doctrine
 chooses between competing infrastructures with witnesses instead of taste?
+
+## Postscript: the scriptability test (operator, twice: "calling bullshit")
+
+I classified C-7/C-8 as human-owned. The operator pointed out both are
+scripted acts with a logged-in `gh`: registration token is an API call,
+service install is `config.cmd --unattended --runasservice`, and the
+"PAT" is `gh auth token | gh secret set`. **Trap:** `human_owned_as_hand_wave`
+— labeling a deliverable "manual precondition" feels like scoping discipline
+but is often a missing script wearing a runbook costume. **Cure:** for every
+human-owned claim, ask "could a logged-in user's script do this?" — the
+residue that survives (console password entry, review judgement, merge
+decision, physical witness) is the true human surface. Graduated immediately
+into the reviewer doctrine as procedure step 5.
+
+**Seed:** the same test applied to FR-948's runbook — how much of the WinRM
+channel's "operator setup" is actually a script nobody wrote?
