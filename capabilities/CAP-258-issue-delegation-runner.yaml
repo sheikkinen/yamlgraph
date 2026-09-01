@@ -1,0 +1,23 @@
+id: CAP-258
+name: Issue-Queue Delegation Runner
+description: "Delegation channel C (FR-949): a private comms-only GitHub repository receives one delegate-labeled issue per workload; a self-hosted GitHub Actions runner (v1: Huutokauppakone Windows service) claims the issue-triggered workflow, checks out the requested target repository (free-form owner/name field, default sheikkinen/yamlgraph; the checkout PAT's grant set is the sole target authorization boundary) at the issue-pinned SHA with persist-credentials false and proven post-checkout credential isolation, runs the payload (closed enum judge|research) under a two-tier timeout (fixed 25-minute inner deadline in windows_job.ps1, static 30-minute outer Actions kill switch never publishable as TIMEOUT) with a Windows Job Object owning the full process tree, and publishes the full redacted agent output (operator override O-2: no trimming; mechanical chunking to GitHub's per-comment limit only) plus the verified task artifact as issue comments before one atomic terminal label/close mutation. Execution truth (closed DelegationStatus with total precedence) is separated from publication outcome (closed PublicationStatus). Queue, claim, wall-clock kill, logs, and worker liveness are GitHub platform primitives. Coexists with channel A (CAP-257/FR-948) until a separate disposition FR retires one channel."
+fr: FR-949
+modules:
+  - .github/skills/issue-delegate/SKILL.md
+  - .github/skills/issue-delegate/models.py
+  - .github/skills/issue-delegate/worker.py
+  - .github/skills/issue-delegate/windows_job.ps1
+  - .github/skills/issue-delegate/install-runner.ps1
+  - .github/skills/issue-delegate/delegate.yml
+  - .github/skills/issue-delegate/sync-worker.sh
+  - .github/skills/issue-delegate/submit.sh
+  - tests/unit/test_issue_delegate.py
+  - tests/unit/test_issue_delegate_bundle.py
+requirements:
+  - id: REQ-YG-637
+    description: "Issue-queue delegation worker bundle. Boundary contract: issue body carries exactly one fenced YAML mapping parsed by Pydantic DelegationRequest (schema_version==1, task judge|research, lowercase 40-hex sha that must be an ancestor of the target repo's freshly fetched default branch, free-form owner/name repo field with syntactic validation only, 0 < max_reported_credits <= 60 with the worker max authoritative, extra=forbid, duplicate keys fail); payload grammar rejects absolute/traversing/backslash/control-character/option-like/wrong-directory/wrong-type paths before checkout or launch. DelegationStatus is a closed enum with total precedence TOKEN_LEAK_DETECTED > PROCESS_TREE_KILL_FAIL > TIMEOUT > CREDENTIAL_ISOLATION_FAIL > CHECKOUT_FAIL > SHA_UNREACHABLE > INVALID_REQUEST > ARTIFACT_MISSING > ARTIFACT_INVALID > PAYLOAD_NONZERO > CREDIT_FAIL_HIGH > CREDIT_FAIL_UNPARSEABLE > CLEANUP_FAIL > OK; PublicationStatus is a separate closed enum NOT_ATTEMPTED|OK|COMMENT_POST_FAIL|TERMINAL_MUTATION_FAIL; comments post before one atomic terminal mutation and a comment failure can never close an issue as done. TIMEOUT is emitted only when the 25-minute inner deadline fired AND the Job Object reports zero active processes AND every recorded PID is absent, else PROCESS_TREE_KILL_FAIL. One worker.py redactor mediates all worker-controlled bytes before publication; a literal configured secret yields TOKEN_LEAK_DETECTED and no artifact publication. Full redacted output is published (O-2): chunks <= 60000 UTF-8 bytes including headers, never splitting a code point, ordered reassembly byte-identical; invalid UTF-8 replaced with U+FFFD, unterminated final line retained. Task artifacts are verified fresh and well-formed (judge: non-empty draft judgement with a verdict line; research: alternatives artifact passing the committed verifier); missing/stale/malformed artifacts fail even on payload exit 0."
+    modules:
+      - .github/skills/issue-delegate/models.py
+      - .github/skills/issue-delegate/worker.py
+      - tests/unit/test_issue_delegate.py
+      - tests/unit/test_issue_delegate_bundle.py

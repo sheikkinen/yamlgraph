@@ -232,3 +232,64 @@ Identical to recon Option A (see above), plus:
 3. Local worktree clean; local HEAD SHA pushed to a ref the remote canonical clone can fetch (`git fetch --all` on the remote before invocation).
 4. Prompt is self-contained — no relative paths outside the delegated worktree.
 5. Expected `delegation_policy_status = OK`; any other value is an incident, not a warning.
+
+## Issue-queue delegation (GitHub Issues + self-hosted runner) — FR-949, REQ-YG-637
+
+Channel C. Skill: `.github/skills/issue-delegate/SKILL.md`. Coexists with the
+FR-948 LAN/WinRM channel until a separate disposition FR; the coexistence
+record (task class, queue/execution/end-to-end durations, credits, status,
+babysitting interventions for 10 eligible runs or 30 UTC days) lives in the FR.
+
+### Topology
+
+- **Comms repo**: private `sheikkinen/yamlgraph-delegation` — carries only
+  delegation issues and the deployed worker bundle mirror; never source.
+- **Worker**: Huutokauppakone's labeled Windows **service** runner
+  (`self-hosted`, `Windows`, `delegate`); one payload at a time
+  (single-flight concurrency). The macOS spike runner is dev evidence only.
+- **Target repo**: free-form per-issue `owner/name` (default
+  `sheikkinen/yamlgraph`; operator override O-1). The checkout PAT's grant
+  set is the sole authorization boundary — an unreadable repo fails typed as
+  `CHECKOUT_FAIL`.
+
+### Secrets and credential isolation
+
+- `DELEGATE_CHECKOUT_PAT` (comms-repo Actions secret): checkout credential
+  used ONLY by the target checkout step with `persist-credentials: false`.
+  Provisioned scripted from the logged-in gh token
+  (`install-runner.ps1`: `gh auth token | gh secret set`); the token's
+  grant set is the sole target authorization boundary (O-1 as amended).
+- Payload preflight proves no PAT bytes, extraheader, credential helper,
+  askpass, or usable `gh auth` before launch — any failure is
+  `CREDENTIAL_ISOLATION_FAIL` before the payload starts.
+- One `worker.py` redactor mediates every worker-controlled byte before any
+  publication API; a literal configured secret in output is
+  `TOKEN_LEAK_DETECTED` and blocks artifact publication. Transformed
+  exfiltration is a documented residual risk, not claimed impossible.
+
+### Timeout truth
+
+25-minute inner deadline (`windows_job.ps1`, Job Object, kill-on-close) is
+the ONLY source of typed `TIMEOUT`, and only when the job reports zero
+active processes and every recorded PID is absent (else
+`PROCESS_TREE_KILL_FAIL`). The workflow's `timeout-minutes: 30` is the
+outer platform kill switch — `PLATFORM_CANCELLED`, Actions-owned. Neither
+value is issue-controlled.
+
+### Operator runbook
+
+```bash
+# one-time host install: runner service + secret provisioning (run ON the worker host)
+powershell -ExecutionPolicy Bypass -File .github/skills/issue-delegate/install-runner.ps1
+# health + drift, never submits
+.github/skills/issue-delegate/submit.sh --check-worker
+# submit a judge payload from a clean, pushed HEAD
+.github/skills/issue-delegate/submit.sh --task judge --payload feature-requests/FR-XXX-name.md
+# deploy the canonical bundle to a comms checkout (then human-review the diff — GATE C-2)
+.github/skills/issue-delegate/sync-worker.sh ../yamlgraph-delegation
+```
+
+Stranded `claimed` issue (runner loss / outer cancellation): inspect the
+Actions run it links; recovery is an allowlisted operator re-adding the
+`delegate` label, which creates a new run ID. Worker health:
+`gh api repos/sheikkinen/yamlgraph-delegation/actions/runners`.
