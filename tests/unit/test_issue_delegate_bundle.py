@@ -287,6 +287,56 @@ def test_sync_refuses_missing_dest(tmp_path):
 
 
 # ---------------------------------------------------------------------------
+# install-runner.ps1 — scripted C-7/C-8 (static contract; runs on the host)
+# ---------------------------------------------------------------------------
+
+
+def _installer() -> str:
+    return (BUNDLE / "install-runner.ps1").read_text()
+
+
+@pytest.mark.req("REQ-YG-637")
+def test_installer_uses_registration_token_api():
+    """Runner registration is a scripted act with a logged-in gh, not parlay."""
+    assert "actions/runners/registration-token" in _installer()
+
+
+@pytest.mark.req("REQ-YG-637")
+def test_installer_configures_windows_service_unattended():
+    text = _installer()
+    assert "--unattended" in text
+    assert "--runasservice" in text
+    assert "delegate" in text  # runner label
+
+
+@pytest.mark.req("REQ-YG-637")
+def test_installer_provisions_checkout_secret_from_logged_in_gh():
+    """C-8: the checkout credential is gh secret set from the logged-in token."""
+    text = _installer()
+    assert "gh secret set DELEGATE_CHECKOUT_PAT" in text
+    assert "gh auth token" in text
+
+
+@pytest.mark.req("REQ-YG-637")
+def test_installer_never_embeds_credentials():
+    """Passwords are typed at the host console; no literal secret material."""
+    text = _installer()
+    assert "--windowslogonpassword" not in text
+    assert "ghp_" not in text
+    assert "github_pat_" not in text
+
+
+@pytest.mark.req("REQ-YG-637")
+def test_installer_never_deployed_to_comms(tmp_path):
+    """Host-side installer must not ride sync-worker.sh into the comms repo."""
+    assert "install-runner.ps1" not in DEPLOY_MAP
+    dest = tmp_path / "comms"
+    dest.mkdir()
+    _run_sync(dest)
+    assert not list(dest.rglob("install-runner.ps1"))
+
+
+# ---------------------------------------------------------------------------
 # submit.sh — control-side refusals + exact submission argv (AC-06)
 # ---------------------------------------------------------------------------
 
