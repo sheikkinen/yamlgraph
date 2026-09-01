@@ -188,6 +188,9 @@ try {
         $env:GH_TOKEN = $T
         $env:COPILOT_ALLOW_ALL = '1'
         $env:YAMLGRAPH_LAN_DELEGATED = '1'
+        # cwd=$W so `.github/skills/*/SKILL.md` resolves relative to the delegated worktree;
+        # --add-dir alone grants access, not cwd.
+        Set-Location -Path $W
         # PS 5.1: & operator preserves $P as ONE child argv value.
         & 'C:\Program Files\nodejs\copilot.cmd' -p $P --allow-all-tools --add-dir $W 2>&1
         "COPILOT_EXIT_CODE=$LASTEXITCODE"

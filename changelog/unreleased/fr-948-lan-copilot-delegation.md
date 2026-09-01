@@ -25,5 +25,9 @@ req: REQ-YG-636
   literal-token match, phase-invariant result totality). Script bootstrap so
   `python .github/skills/lan-delegate/delegate.py …` works despite the dashed
   package name (relative imports fall through unchanged when loaded as a
-  package). 34 offline tests
-  (13 scaffold + 21 wire); live witnesses AC-19/AC-20 pending. (REQ-YG-636)
+  package). Wrapper `Set-Location $W` before the copilot invocation so
+  `.github/skills/*/SKILL.md` resolves against the delegated worktree
+  (--add-dir grants access, not cwd; caught by live AC-20 witness). 35 offline tests
+  (13 scaffold + 22 wire) plus live AC-19 timeout witness (`taskkill /T /F`
+  ended a 5 s-deadline hang, no worktree remnants, no zombies, credits=6.6
+  billed before kill). (REQ-YG-636)

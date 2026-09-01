@@ -149,6 +149,24 @@ def test_wrapper_uses_taskkill_for_full_tree_termination():
     assert "/T" in text and "/F" in text
 
 
+@pytest.mark.req("REQ-YG-636")
+def test_wrapper_sets_cwd_to_worktree_before_invoking_copilot():
+    """AC-20 (live-witnessed): --add-dir grants access, not cwd. The copilot
+    CLI discovers .github/skills/*/SKILL.md relative to its cwd, so the
+    wrapper must `Set-Location` to the run worktree before invoking it.
+    Without this the skill invocation silently searches the wrong tree."""
+    text = WRAPPER_PATH.read_text(encoding="utf-8")
+    # Set-Location must appear inside the Start-Job scriptblock, before
+    # the copilot.cmd invocation.
+    set_loc_idx = text.find("Set-Location -Path $W")
+    copilot_call_idx = text.find("& 'C:\\Program Files\\nodejs\\copilot.cmd'")
+    assert set_loc_idx != -1, "wrapper must Set-Location to $W"
+    assert copilot_call_idx != -1, "wrapper must invoke copilot.cmd"
+    assert (
+        set_loc_idx < copilot_call_idx
+    ), "Set-Location must precede copilot.cmd invocation"
+
+
 # --- delegate.py pre-launch refusals ----------------------------------------
 
 # Delegate imports pypsrp at call time. Skip these tests entirely if the
