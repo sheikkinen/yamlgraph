@@ -27,25 +27,31 @@ import sys
 from datetime import UTC, datetime
 from pathlib import Path
 
-from .errors import (
-    DirtyLocalTreeError,
-    LocalPathCollisionError,
-    MissingCredentialError,
-    MissingReconError,
-    PromptFileError,
-    ReconDisqualifyingFieldError,
-    RecursiveDelegationError,
-    StaleReconError,
-    UnsafeHostError,
-    UnsafeRunIdError,
-)
-from .models import (
-    DelegationPolicyStatus,
-    FieldError,
-    LanDelegationRequest,
-    LanDelegationResult,
-    WrapperJsonSummary,
-)
+if __package__ in (None, ""):
+    # Script invocation: dashed package name is not `-m`-importable; bootstrap by hand.
+    import importlib
+
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+    errors = importlib.import_module("lan-delegate.errors")
+    models = importlib.import_module("lan-delegate.models")
+else:
+    from . import errors, models  # type: ignore[no-redef]
+
+DirtyLocalTreeError = errors.DirtyLocalTreeError
+LocalPathCollisionError = errors.LocalPathCollisionError
+MissingCredentialError = errors.MissingCredentialError
+MissingReconError = errors.MissingReconError
+PromptFileError = errors.PromptFileError
+ReconDisqualifyingFieldError = errors.ReconDisqualifyingFieldError
+RecursiveDelegationError = errors.RecursiveDelegationError
+StaleReconError = errors.StaleReconError
+UnsafeHostError = errors.UnsafeHostError
+UnsafeRunIdError = errors.UnsafeRunIdError
+DelegationPolicyStatus = models.DelegationPolicyStatus
+FieldError = models.FieldError
+LanDelegationRequest = models.LanDelegationRequest
+LanDelegationResult = models.LanDelegationResult
+WrapperJsonSummary = models.WrapperJsonSummary
 
 WSMAN_CLEANUP_MARGIN_S = 60
 RECON_MAX_AGE_MIN_DEFAULT = 10.0

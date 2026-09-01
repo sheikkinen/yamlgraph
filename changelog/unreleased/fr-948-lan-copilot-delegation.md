@@ -22,5 +22,8 @@ req: REQ-YG-636
   `LanDelegationResult` JSON. Enforcement of R-1..R-6 from three judgement rounds
   (argv integrity via `& operator, full-tree taskkill, in-memory capture,
   recursive-delegation guard via YAMLGRAPH_LAN_DELEGATED marker, byte-scan on
-  literal-token match, phase-invariant result totality). 34 offline tests
+  literal-token match, phase-invariant result totality). Script bootstrap so
+  `python .github/skills/lan-delegate/delegate.py …` works despite the dashed
+  package name (relative imports fall through unchanged when loaded as a
+  package). 34 offline tests
   (13 scaffold + 21 wire); live witnesses AC-19/AC-20 pending. (REQ-YG-636)
