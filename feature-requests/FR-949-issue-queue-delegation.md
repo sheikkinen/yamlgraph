@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Feature
-**Status:** Proposed (rev 4, 2026-09-01: third-judgement R-1 two-tier timeout, R-2 publication-status separation, and R-4 two-boundary redaction folded; third-judgement R-3 output trimming and the one-repo narrowing OVERRIDDEN by operator directives O-1/O-2 in § Operator Overrides; operator directed no further rejudge rounds)
+**Status:** Enforcing (rev 5, 2026-09-01: C-1 satisfied — operator individually accepted R-1/R-2/R-4, confirmed O-2, AMENDED O-1 to a free-form target-repo field (no committed allowlist; the checkout PAT's grant set is the authorization boundary), and activated implementation authority; spike runner retained for dev)
 **Effort:** 3 days (re-estimated per R-7: canonical bundle + deployment drift check + Windows Job Object launcher + Windows service witnesses)
 **Requested:** 2026-09-01
 **Traceability:** CAP-258 / REQ-YG-637 (allocated per R-7; unused after CAP-257/REQ-YG-636)
@@ -20,7 +20,7 @@
 
 ## Summary
 
-Delegation channel C: a private **comms-only** GitHub repository (`sheikkinen/yamlgraph-delegation`, standing since spike) receives one `delegate`-labeled issue per workload; a **GitHub Actions self-hosted runner on Huutokauppakone (Windows service)** executes an issue-triggered workflow that checks out the requested target repository (committed allowlist, default `sheikkinen/yamlgraph` — O-1) at the issue-pinned SHA, runs the payload (v1 closed enum: `judge`, `research`) under a two-tier timeout (fixed 25-minute inner payload deadline; static 30-minute outer `timeout-minutes` platform kill switch) with a **Windows Job Object owning the full payload process tree**, and posts the typed run summary plus the full redacted agent output and verified artifact (O-2) as comments on the issue. Queue, claim recovery, wall-clock kill, logs, and worker liveness are GitHub platform primitives. The reviewed source of truth for everything the worker executes is one canonical bundle in this repository; the comms repo carries a byte-verified deployed mirror.
+Delegation channel C: a private **comms-only** GitHub repository (`sheikkinen/yamlgraph-delegation`, standing since spike) receives one `delegate`-labeled issue per workload; a **GitHub Actions self-hosted runner on Huutokauppakone (Windows service)** executes an issue-triggered workflow that checks out the requested target repository (free-form `repo` field, default `sheikkinen/yamlgraph`; authorization boundary is the checkout PAT's grant set — O-1 as amended) at the issue-pinned SHA, runs the payload (v1 closed enum: `judge`, `research`) under a two-tier timeout (fixed 25-minute inner payload deadline; static 30-minute outer `timeout-minutes` platform kill switch) with a **Windows Job Object owning the full payload process tree**, and posts the typed run summary plus the full redacted agent output and verified artifact (O-2) as comments on the issue. Queue, claim recovery, wall-clock kill, logs, and worker liveness are GitHub platform primitives. The reviewed source of truth for everything the worker executes is one canonical bundle in this repository; the comms repo carries a byte-verified deployed mirror.
 
 ## Value Statement
 
@@ -60,13 +60,13 @@ Exactly one fenced YAML mapping per issue; duplicate-key detection; `extra="forb
 ```yaml
 schema_version: 1
 task: judge                     # closed enum: judge | research
-repo: sheikkinen/yamlgraph      # optional; must be in the committed target allowlist (default shown) — O-1
+repo: sheikkinen/yamlgraph      # optional; free-form owner/name, default shown; PAT grant set is the boundary — O-1
 sha: <lowercase 40-hex>         # must be an ancestor of the target repo's freshly fetched default branch
 payload: feature-requests/FR-XXX-name.md
 max_reported_credits: 60        # 0 < value <= worker-configured max (60); worker max is authoritative
 ```
 
-Payload grammar, mechanical: `judge` accepts only committed repo-relative `feature-requests/FR-*.md` excluding `*.judgement.md`; `research` accepts only a committed regular `.md` brief that passes `scripts/research_preflight.py`. Both reject absolute paths, `..`, backslashes, control characters, leading `-`, non-regular files, escaping symlinks, and absence at the requested SHA — all before launch. Target repo is **configurable per issue against a committed allowlist** (default `sheikkinen/yamlgraph`; operator override O-1 — yamlgraph has overgrown and already-extracted sibling repos are near-term targets; the checkout PAT must grant Contents-read on every allowlisted repo). Two-tier timeout (third-judgement R-1): fixed 25-minute inner payload deadline enforced by `windows_job.ps1`; the workflow's static `timeout-minutes: 30` is only the outer platform kill switch, reserving five minutes for kill/cleanup/verification/publication. Neither value is issue-controlled; per-issue timeout deferred (recorded decision).
+Payload grammar, mechanical: `judge` accepts only committed repo-relative `feature-requests/FR-*.md` excluding `*.judgement.md`; `research` accepts only a committed regular `.md` brief that passes `scripts/research_preflight.py`. Both reject absolute paths, `..`, backslashes, control characters, leading `-`, non-regular files, escaping symlinks, and absence at the requested SHA — all before launch. Target repo is **configurable per issue as a free-form `owner/name` field** (default `sheikkinen/yamlgraph`; operator amendment 2026-09-01 — no committed allowlist; a repo the PAT cannot read fails as `CHECKOUT_FAIL`, which IS the authorization decision; syntactic validation only: `^[A-Za-z0-9._-]+/[A-Za-z0-9._-]+$`). Two-tier timeout (third-judgement R-1): fixed 25-minute inner payload deadline enforced by `windows_job.ps1`; the workflow's static `timeout-minutes: 30` is only the outer platform kill switch, reserving five minutes for kill/cleanup/verification/publication. Neither value is issue-controlled; per-issue timeout deferred (recorded decision).
 
 ### 3. Workflow lifecycle (R-5 ordering)
 
@@ -98,15 +98,16 @@ Closed enums, each member with a witness. `DelegationStatus` precedence high-to-
 
 ### 9. What this FR does NOT do
 
-No retirement of FR-948; no second worker host (target repos limited to the committed allowlist per O-1); no concurrency > 1; no per-issue timeout; no progress streaming; no output trimming/filtering (O-2 — later-time FR); no automatic retry/recovery; no fleet; no worker write access to code repos; no `remote:` copilot-node key; no automation of human-operated preconditions (runner registration, service-account Copilot auth, PAT creation, comms secrets, bundle deployment — C-7).
+No retirement of FR-948; no second worker host (target repos bounded only by the PAT grant set per amended O-1); no concurrency > 1; no per-issue timeout; no progress streaming; no output trimming/filtering (O-2 — later-time FR); no automatic retry/recovery; no fleet; no worker write access to code repos; no `remote:` copilot-node key; no automation of human-operated preconditions (runner registration, service-account Copilot auth, PAT creation, comms secrets, bundle deployment — C-7).
 
 ## Operator Overrides (2026-09-01, recorded directives)
 
 Operator authority supersedes advisory judge revisions; the judge's dissent is preserved in the third-round judgement of record.
 
-- **O-1 — target repo configurable.** Vetoes the judge's one-repo narrowing (round-2 R-2 carry-over, round-3 AC-02). The `repo` issue field selects from a committed allowlist, default `sheikkinen/yamlgraph`. Rationale: yamlgraph has overgrown (examples); small repos have already been extracted and are near-term delegation targets.
+- **O-1 — target repo configurable (amended 2026-09-01: free-form).** Vetoes the judge's one-repo narrowing. The `repo` issue field is free-form `owner/name` (syntactic validation only), default `sheikkinen/yamlgraph`; the operator explicitly declined a committed allowlist — the checkout PAT's grant set is the sole authorization boundary, and an unreadable repo fails typed (`CHECKOUT_FAIL`). Rationale: yamlgraph has overgrown (examples); small repos have already been extracted and are near-term delegation targets.
 - **O-2 — full agent output on the issue.** Vetoes round-3 R-3 (numeric total-output/trim bounds) and the success=summary+artifact / failure=tail narrowing. Full redacted stdout/stderr is published, mechanically chunked only to satisfy GitHub's per-comment hard limit. Rationale: filtering the response assumes the system works — it does not exist yet; trimming down the output is a later-time topic. The veto covers volume, not secrets: the R-4 redaction and credential-isolation contracts remain fully in force.
 - **O-3 — no further rejudge rounds.** The third judgement plus these overrides are the final planning input (operator: "do not rejudge").
+- **C-1 satisfied (2026-09-01):** operator individually accepted R-1, R-2, R-4; confirmed O-2; amended O-1 to free-form; activated implementation authority. Spike runner `imac-spike` retained for dev iterations.
 
 ## Coexistence Experiment (survival criteria)
 
@@ -117,13 +118,13 @@ Both channels live until each has **10 eligible real runs or 30 UTC days from th
 Second-judgement base with third-judgement R-1/R-2/R-4 folds and operator overrides O-1/O-2 applied:
 
 - [ ] AC-01 FR retains the substantive spike record, five genuine solution classes with dissent, every cited prior-art disposition, retired CAP-101/104/105 status, the "channel is not a graph" answer, and Contrib/example classification.
-- [ ] AC-02 V1 targets the committed repo allowlist (default `sheikkinen/yamlgraph`; O-1), Huutokauppakone's labeled Windows service runner, one payload at a time, `judge|research`, a fixed 25-minute inner payload deadline, and a static 30-minute outer workflow timeout; neither timeout is issue-controlled; the macOS runner is evidence only.
+- [ ] AC-02 V1 targets a free-form per-issue repo (default `sheikkinen/yamlgraph`; PAT grant set is the boundary; O-1 as amended), Huutokauppakone's labeled Windows service runner, one payload at a time, `judge|research`, a fixed 25-minute inner payload deadline, and a static 30-minute outer workflow timeout; neither timeout is issue-controlled; the macOS runner is evidence only.
 - [ ] AC-03 Canonical worker bundle committed (D-2); deterministic sync proves the deployed comms copy byte-identical; every submission refuses offline runner or drift before issue creation; claim/terminal records carry target SHA, comms workflow SHA, bundle hash, run ID, runner, UTC.
 - [ ] AC-04 Pydantic models validate the closed request/result/status boundaries; exactly one YAML block, unknown/duplicate keys, schema/task/SHA/credit errors, malformed bodies fail before checkout or launch.
 - [ ] AC-05 Task-specific normalization rejects absolute, traversing, backslash, control-character, option-like, wrong-directory, wrong-type, missing, and escaping-symlink payloads; research briefs pass the committed preflight before launch.
 - [ ] AC-06 `submit.sh` rejects dirty trees, HEAD absent from freshly fetched remote default, invalid/missing payload, recursion, malformed options, runner unavailability, bundle drift — actionable stderr, non-zero; mocked test asserts exact `gh issue create` argv/body/label/SHA.
 - [ ] AC-07 Authorization runs read-only before claim: non-allowlisted authors, `github-actions`, and the worker service identity produce a workflow audit but no issue mutation, payload, or `DelegationStatus`.
-- [ ] AC-08 Checkout verifies SHA ancestry against the target repo's freshly fetched default branch and `HEAD == sha`; PAT is Contents-read scoped to the allowlisted repos; `persist-credentials: false`; payload preflight proves no PAT bytes, auth header/helper, askpass, GitHub CLI auth, or usable configured GitHub credential; any failed invariant yields `CREDENTIAL_ISOLATION_FAIL` before payload launch.
+- [ ] AC-08 Checkout verifies SHA ancestry against the target repo's freshly fetched default branch and `HEAD == sha`; PAT is Contents-read scoped by the operator (its grant set is the target authorization boundary); `persist-credentials: false`; payload preflight proves no PAT bytes, auth header/helper, askpass, GitHub CLI auth, or usable configured GitHub credential; any failed invariant yields `CREDENTIAL_ISOLATION_FAIL` before payload launch.
 - [ ] AC-09 All worker-controlled payload bytes cross one `worker.py` redactor before runner stdout, step summary, comment, or artifact publication; workflow steps outside the mediator never echo payload output or issue bodies; configured-secret fixtures leave zero secret bytes; literal leak yields `TOKEN_LEAK_DETECTED` and no artifact publication; platform log masking and transformed exfiltration documented honestly.
 - [ ] AC-10 Windows service-account preflight proves runner restart survival, Git Bash execution of both launchers, Copilot authentication, Python/project dependencies, and static timeout before live delegation.
 - [ ] AC-11 `windows_job.ps1` enforces the 25-minute inner deadline, assigns the suspended payload to a kill-on-close Job Object before resume, records root/descendant identities, cleans up unconditionally; `TIMEOUT` requires the inner deadline plus zero active Job Object processes plus absence of every recorded PID; kill failure yields `PROCESS_TREE_KILL_FAIL` with higher precedence.
