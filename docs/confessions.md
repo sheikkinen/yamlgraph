@@ -1925,3 +1925,33 @@ The ID ranges are:
 - **Code**: S104
 - **Sin**: `"0.0.0.0"` appears in a `@pytest.mark.parametrize` list.
 - **Penance**: FR-945 — the string is a probe TARGET under test, not a bind address; the test asserts that `recon.probe("0.0.0.0", computer_name=...)` raises `UnsafeTargetError` because unspecified addresses are refused. The recon skill never binds a socket.
+
+### CONF-445
+- **File**: [.github/skills/lan-delegate/models.py](../.github/skills/lan-delegate/models.py#L64)
+- **Code**: S105
+- **Sin**: `TOKEN_LEAK_DETECTED = "TOKEN_LEAK_DETECTED"` — ruff flags the string literal as a possible hardcoded password.
+- **Penance**: FR-948 — the string is the *name* of a `DelegationPolicyStatus` enum value emitted when a literal `GH_TOKEN` byte match is detected in an artifact; it is a public policy identifier that must equal its symbolic name for wire-format stability. No credential material.
+
+### CONF-446
+- **File**: [.github/skills/lan-delegate/delegate.py](../.github/skills/lan-delegate/delegate.py#L114)
+- **Code**: S603, S607
+- **Sin**: `subprocess.run(["git", "-C", str(workdir), "status", "--porcelain"])` and the sibling `rev-parse HEAD` invocation in FR-948's local-tree-freeze check.
+- **Penance**: FR-948 — literal list-form argv, no shell, no user interpolation. `workdir` is a `pathlib.Path` derived from `os.cwd()` (never a caller-supplied argument), and `git` is the standard system-wide tool the FR-945 recon precondition confirms is on PATH; same idiom as CONF-441/442.
+
+### CONF-447
+- **File**: [tests/unit/test_lan_delegate_wire.py](../tests/unit/test_lan_delegate_wire.py#L558)
+- **Code**: S105
+- **Sin**: `assert ps.parameters["Token"] == "gho_test_token_1234"` — ruff flags the string literal as a possible hardcoded password.
+- **Penance**: FR-948 — the string is a test fixture proving the WinRM `Token` parameter carries the byte value delegate.py received from the mocked environment. It is a synthetic identifier that starts with the `gho_` prefix so the redaction-test path exercises the actual byte pattern; no real credential material.
+
+### CONF-448
+- **File**: [tests/unit/test_lan_delegate_wire.py](../tests/unit/test_lan_delegate_wire.py#L211)
+- **Code**: E402
+- **Sin**: `import lan_delegate_pkg.errors as errors` after top-level executable code (the `_load("delegate")` call earlier in the file).
+- **Penance**: FR-948 — the `.github/skills/lan-delegate/` directory has a dashed package name that cannot be imported statically. The dynamic `_load()` helper materializes it under `lan_delegate_pkg` in `sys.modules`; the E402-flagged import must run AFTER that materialization to see the same class instances delegate.py raises/instantiates. Static import order is impossible here; the wire tests would otherwise trip pydantic's two-module-instances validation error.
+
+### CONF-449
+- **File**: [tests/unit/test_lan_delegate_wire.py](../tests/unit/test_lan_delegate_wire.py#L212)
+- **Code**: E402
+- **Sin**: `import lan_delegate_pkg.models as models` — same delayed-import pattern as CONF-448.
+- **Penance**: FR-948 — identical rationale; `LanDelegationRequest` and `LanDelegationResult` referenced in the tests must be the same class instances the delegate module uses, which requires the dynamic package materialization to run first.

@@ -1,0 +1,25 @@
+id: CAP-257
+name: LAN Copilot Delegation
+description: "Stateless per-run delegation of a Copilot CLI workload to a FR-945-recon-verified LAN Windows host over WinRM, executed inside a disposable per-run detached git worktree with a wrapper-owned process-tree deadline, returning a Pydantic-validated LanDelegationResult and copied artifacts via SMB. Reuses FR-945's Option A transport (auth=negotiate + encryption=always + banned Basic/CredSSP + pinned resolved LAN address + finite timeouts) and pypsrp>=0.9,<1.0 dependency. Passes GH_TOKEN as a WinRM param binding (never in script literal), captures stdout/stderr in memory (never raw to disk), byte-scans every candidate artifact for literal token bytes before copy, refuses recursive delegation via YAMLGRAPH_LAN_DELEGATED=1 marker. v1 is stateless: no --resume, no source upload/fetch/clone, no remote runtime installation. Wall-clock timeout is the sole preventive spend cap; reported credits are post-run diagnostics only. Human safety + spend decisions dated 2026-09-01. Consumed by future FR-949+ that adds `remote:` to the yamlgraph copilot node."
+fr: FR-948
+modules:
+  - .github/skills/lan-delegate/SKILL.md
+  - .github/skills/lan-delegate/__init__.py
+  - .github/skills/lan-delegate/errors.py
+  - .github/skills/lan-delegate/models.py
+  - .github/skills/lan-delegate/delegate.py
+  - .github/skills/lan-delegate/wrapper.ps1
+  - tests/unit/test_lan_delegate_scaffold.py
+  - tests/unit/test_lan_delegate_wire.py
+requirements:
+  - id: REQ-YG-636
+    description: "Stateless LAN Copilot delegation skill. Boundary contract: input = clean-committed local tree (git status --porcelain empty) + local HEAD SHA + FR-945 receipt (age <= RECON_MAX_AGE_MIN, admin=false, remote_management_users_member=true) + prompt file (UTF-8, <= 32 KiB) + run-id (^[A-Za-z0-9._-]+$, <= 64) + LAN_RECON_USER/PASS + GH_TOKEN; refuses via 10 typed pre-launch exceptions before any DNS / WinRM connect / file write (DirtyLocalTreeError, MissingReconError, StaleReconError, ReconDisqualifyingFieldError, MissingCredentialError, UnsafeHostError, PromptFileError, UnsafeRunIdError, LocalPathCollisionError, RecursiveDelegationError); YAMLGRAPH_LAN_DELEGATED=1 in caller env triggers RecursiveDelegationError. Transport: pypsrp.client.Client kwargs exactly auth=negotiate, encryption=always, ssl=False, port=5985, FR-945 pinned resolved address, operation_timeout == timeout_s + WSMAN_CLEANUP_MARGIN_S; Basic and CredSSP structurally absent. Wrapper.ps1 pure ASCII, no caller interpolation, runs non-LLM RemoteCopilotPrerequisites preflight (git, node major>=22, copilot CLI, canonical clone contains local SHA, run worktree free, SMB destination free) before `git worktree add --detach`, captures stdout/stderr in memory via Start-Job/Receive-Job (no -RedirectStandardOutput to filesystem), enforces bounded capture with OUTPUT_CAPTURE_FAIL, redacts literal GH_TOKEN bytes in memory before disk write, uses taskkill /PID <root> /T /F for full process-tree termination on deadline expiry (typed PROCESS_TREE_KILL_FAIL on failure), byte-scans every candidate artifact under .delegate-out for token match (typed TOKEN_LEAK_DETECTED, skips copy), runs cleanup (worktree remove + $env:GH_TOKEN clear) in outer finally. DelegationPolicyStatus is a 19-value closed enum with total precedence resolution (TOKEN_LEAK_DETECTED > PROCESS_TREE_KILL_FAIL > WRAPPER_JSON_MALFORMED > OUTPUT_CAPTURE_FAIL > TIMEOUT > WORKTREE_ADD_FAIL > OUTPUT_DIR_CREATE_FAIL > WRAPPER_EXEC_FAIL > WINRM_AUTH_FAIL > WINRM_CONNECT_FAIL > WINRM_TRANSPORT_TIMEOUT > PREFLIGHT_FAIL > SMB_DEST_EXISTS > COPILOT_NONZERO > CREDIT_FAIL_HIGH > CREDIT_FAIL_UNPARSEABLE > ARTIFACT_COPY_FAIL > WORKTREE_CLEANUP_FAIL > OK); phase invariants documented in LanDelegationResult. remote_sha independently obtained from `git rev-parse HEAD` in the detached worktree; OK requires sha_matched=True. Credits parsed from Copilot tail as post-run diagnostic (CreditStatus enum: OK, FAIL_HIGH, FAIL_UNPARSEABLE, NOT_APPLICABLE); no preventive cap claim. Artifact copy scoped to <worktree>/.delegate-out only; SMB destination \\\\<host>\\Images\\yamlgraph-delegations\\<run-id>\\; artifact_root: str | None with UNC semantics; artifacts as root-relative POSIX strings. Live witnesses: AC-19 short-timeout witness proves process-tree termination + no surviving worktree + zero literal-token bytes in persisted outputs; AC-20 success witness invokes named run-code-analysis skill through --add-dir <run-worktree>, proves --add-dir skill loading path unexercised by the earlier spike."
+    modules:
+      - .github/skills/lan-delegate/SKILL.md
+      - .github/skills/lan-delegate/__init__.py
+      - .github/skills/lan-delegate/errors.py
+      - .github/skills/lan-delegate/models.py
+      - .github/skills/lan-delegate/delegate.py
+      - .github/skills/lan-delegate/wrapper.ps1
+      - tests/unit/test_lan_delegate_scaffold.py
+      - tests/unit/test_lan_delegate_wire.py

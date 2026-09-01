@@ -2,196 +2,395 @@
 
 **Priority:** HIGH
 **Type:** Feature (with subtractionist scope: retires FR-947)
-**Status:** Proposed
-**Effort:** 2 days
+**Status:** Proposed (revised 2026-09-01 to fold judgement R-1..R-5 from re-judgement)
+**Effort:** 3 days
 **Requested:** 2026-09-01
-**First consumer / first event:** an agent that has just verified via FR-945 recon that a LAN host is delegation-ready invokes `.github/skills/lan-delegate/` with a prompt file and gets back a validated `LanDelegationResult` (exit code, artifact path on the SMB share, credit cost, elapsed time). **First event:** the next attempt to run heavy work (test suite, static analysis, or a graph route) that would otherwise saturate the iMac at load average > 8. Empirically-verified round-trip: 11 s / 7.17 credits for a trivial file-write task (`tmp/copilot-spike-phase2f.log`, 2026-09-01T04:28:52Z).
-**Research:** [FR-948.research.md](FR-948.research.md)
+**First consumer / first event:** an agent that has verified FR-945 recon (with `admin=False` and `remote_management_users_member=True`) invokes `.github/skills/lan-delegate/` with a clean-committed local SHA and a local prompt file, and gets back a validated diagnostic result recording exit code, delegation-policy status, timeout state, matched local/remote SHA, parsed reported credits, run ID, artifact root, and typed errors. **First event:** the next attempt to run heavy work (e.g. the repository's `run-code-analysis` skill invoked over the delegation channel) that would otherwise saturate the iMac. Sanitized spike record: [spike-evidence-fr948-copilot-remote.md](spike-evidence-fr948-copilot-remote.md).
+**Research:** [FR-948.research.md](FR-948.research.md) (persona-shaped record; the substantive alternatives table below in § R-1 is the FR-body disposition the judge required.)
 **Prior art:**
-- [FR-947-remote-pytest-delegation.md](FR-947-remote-pytest-delegation.md) [Proposed, superseded by this FR] — SSH+WSL2+pytest-xdist design premised on the remote box needing full Python environment provisioning. Empirical spike disproved that premise: Copilot CLI self-provisions Python on demand. This FR retires FR-947 in the same commit.
-- [FR-945-lan-recon-skill.md](FR-945-lan-recon-skill.md) [Judged, APPROVED WITH REVISIONS] — the read-only WinRM inventory foundation this FR consumes. FR-948 requires FR-945's `LanHostInventory` JSON as a precondition input (delegation refuses to run against a host whose recon isn't fresh). Distinguished: FR-945 inspects, FR-948 delegates work.
-- [FR-946-huutokauppakone-inference-revival.md](FR-946-huutokauppakone-inference-revival.md) [Proposed] — delegates LLM inference to LM Studio. Distinguished: orthogonal channel, different tool, different auth path.
-- [FR-899-org-repo-census-azure.md](FR-899-org-repo-census-azure.md) [Implemented] — retrieval hit on "remote/delegation/brief" nouns; substantively unrelated (Azure DevOps census, not delegation).
-- [CAP-30 Copilot Node](../capabilities/CAP-30-copilot-node.yaml) — precedent for the "yamlgraph invokes Copilot CLI locally" pattern this FR extends across the WinRM boundary.
+- [FR-947-remote-pytest-delegation.md](FR-947-remote-pytest-delegation.md) [Proposed, superseded by this FR] — SSH+WSL2+pytest-xdist design. Retired via subtractionist path in the same commit as lifecycle bookkeeping.
+- [FR-945-lan-recon-skill.md](FR-945-lan-recon-skill.md) [Proposed] — the read-only WinRM inventory foundation this FR consumes as a precondition. No schema amendment under FR-948 authority.
+- [FR-945.research.md](FR-945.research.md) — retrieval hit. Substantively unrelated to FR-948's channel design; distinguished (research artifact for a different FR).
+- [FR-946-huutokauppakone-inference-revival.md](FR-946-huutokauppakone-inference-revival.md) [Proposed] — orthogonal (LM Studio inference channel, different tool, different auth).
+- [FR-766-runpod-provider.md](FR-766-runpod-provider.md) [Judged] — remote-inference to cloud. Distinguished: FR-948 is LAN, WinRM, not HTTPS-inference.
+- [FR-899-org-repo-census-azure.md](FR-899-org-repo-census-azure.md) [Implemented] and [FR-899-org-repo-census-azure.judgement.md](FR-899-org-repo-census-azure.judgement.md) — retrieval hits on shared nouns; unrelated (Azure DevOps census). Dismissed.
+- [CAP-30-copilot-node.yaml](../capabilities/CAP-30-copilot-node.yaml) — precedent for local Copilot invocation. **Not modified** by FR-948 (out of scope per judgement C-8).
+- [CAP-249-tool-slot-binding.yaml](../capabilities/CAP-249-tool-slot-binding.yaml) — research-vocabulary noise, unrelated. Dismissed.
 
 ## Summary
 
-A `.github/skills/lan-delegate/` skill that, given (a) a fresh `LanHostInventory` from FR-945's `tmp/lan/<host>.json` and (b) a prompt file, opens a WinRM session to the recon-verified host, invokes `copilot -p "<prompt>" --allow-all-tools --allow-all-paths --add-dir <clone-path>` as the non-admin `copilot` service account with `GH_TOKEN` injected via WinRM parameter (never in the script literal), captures Copilot's exit code + resume ID + AI credit cost + elapsed time into a Pydantic-typed `LanDelegationResult`, retrieves artifacts from `\\<host>\Images\` (the SMB drop-zone), and returns to the caller. Delegation is read-only from the mac side (the mac never `pip install`s on the remote); the remote Copilot session self-provisions its own Python/deps via `winget`/`pip` inside the `--allow-all-tools` sandbox.
+A `.github/skills/lan-delegate/` skill that submits one clean-committed workload from the mac to a FR-945-verified LAN host over an already-hardened WinRM transport, runs it inside a disposable per-run detached git worktree with a **wrapper-owned process-tree deadline**, returns a Pydantic-typed diagnostic result plus artifacts via SMB, and refuses to launch a recursive delegation from within a delegated Copilot session. **Strategic classification: contrib/example, not framework primitive.** This is one host, one immediate channel, reusing existing skill convention + Copilot CLI precedent + FR-945 transport.
 
 ## Value Statement
 
-Agents that would otherwise saturate the local 12-thread/8-GB iMac with concurrent test runs push that load onto Huutokauppakone (16-thread/24-GB/RTX 3070) at a bounded per-run credit cost, with an FR-945-recon-verified auth path and no new SSH/WSL2 infrastructure to maintain.
+Agents move heavy workloads off the saturated iMac onto Huutokauppakone via an empirically-verified, code-identity-frozen, recursion-guarded channel — bounded by a wrapper-enforced wall-clock deadline, with byte-scanned credential redaction and exact-artifact isolation.
 
 ## Problem
 
-- The iMac freezes under 2-3 concurrent full pytest runs (operator report 2026-09-01).
-- FR-947 as drafted would take days to implement: install OpenSSH.Server, install a dedicated WSL2 Ubuntu distro alongside Docker Desktop's, `pyenv` install Python 3.11 and 3.13, distribute SSH keys, build rsync-per-commit scaffolding, wrap timeout/fallback for pre-commit safety. All of it is real work and each piece has its own failure mode.
-- Empirical spike 2026-09-01T04:28:52Z proved a delegation channel that requires **none** of that infrastructure: WinRM (already open per FR-945 groundwork) + `copilot -p "..." --allow-all-tools` (installed system-wide via `npm i -g @github/copilot` after Node 24 upgrade) + `GH_TOKEN` env-var injection (survives WinRM network-logon, unlike DPAPI device-flow tokens) + SMB share (already mounted at `/Volumes/Images`). Round-trip: 11 s / 7.17 credits.
-- FR-947 is unimplemented. Retiring it before enforcement is Scripture-aligned (`growth_as_default` cure; the cheapest bug is the one caught in the spec).
+- iMac freezes under concurrent full workloads (operator report 2026-09-01).
+- FR-947's SSH+WSL2+pytest-xdist design unimplemented and superseded by the empirical WinRM+Copilot channel (spike evidence in [spike-evidence-fr948-copilot-remote.md](spike-evidence-fr948-copilot-remote.md)).
+- No existing repo capability wraps the "WinRM → disposable worktree → Copilot skill invocation → SMB artifacts" pattern; each future delegation would reinvent it.
 
 ## Ideal Result
 
-An agent runs `python .github/skills/lan-delegate/delegate.py --host Huutokauppakone.local --prompt-file tmp/prompt.md --clone-dir 'C:\Users\copilot\yamlgraph'`. It gets back a validated `LanDelegationResult` JSON: `exit_code`, `resume_id`, `credits_used`, `elapsed_s`, `stdout_path`, `stderr_path`, `artifacts` (list of files landed on the SMB share during the session). If FR-945 recon is stale (>10 min old) or absent, delegation refuses. If credit budget for the run is exceeded, delegation aborts. Zero credential material is committed; every token flows via env-var and WinRM parameter binding, never through the model's context.
+`python .github/skills/lan-delegate/delegate.py --host Huutokauppakone.local --prompt-file tmp/prompt.md --run-id <utc-plus-sha>` against a clean-committed tree refuses non-zero and actionable on any precondition failure. On success: one Copilot session runs against a per-run detached worktree, tracked by the wrapper with a hard deadline; outputs drop into that worktree's `.delegate-out/`; the wrapper (never the model) byte-scans candidates for the token and copies clean ones to `\\<host>\Images\yamlgraph-delegations\<run-id>\`. Result includes `local_sha == remote_sha` proof, credit diagnostics, wrapper deadline state, and typed errors. `GH_TOKEN` bytes appear nowhere across success + every failure path.
 
 ## Proposed Solution
 
-### R-1 Research disposition
+### R-1 Alternatives evaluated (unchanged from prior fold; retained)
 
-The FR-948 research artifact returned five "pursue" candidates that converge unanimously (5/5, four of them subtractionist-flavored). Disposition:
+| # | Solution class | Verdict | Preserved dissent |
+|---|---|---|---|
+| A | **WinRM + Copilot CLI, stateless, wrapper-deadline, disposable worktree** | **Chosen (v1)** | Reuses FR-945 transport; skill contract via `--add-dir`; empirical spike; wall-clock cap via wrapper process-tree kill. |
+| B | WinRM + deterministic PowerShell RCE (no LLM) | Rejected | Loses skill contract; only rigid workloads. Retain as fallback consideration. |
+| C | FR-947 SSH+WSL2+pytest-xdist | Rejected (retired same commit) | Unimplemented; days of infra; assumption disproven by spike. |
+| D | Self-hosted GHA runner | Rejected v1 | Widens secret exposure to LAN Windows box. Revisit if v1 <90% delegation success in month 1. |
+| E | CI-only (subtractionist counterpart) | Documented escape | Operator explicitly rejected retiring local workflow. |
 
-| Candidate (persona) | Disposition here |
+This delegation channel is **not a graph** — graphs *consume* its output; the channel itself is a process boundary. `.github/skills/lan-delegate/` is one skill in an external-method category.
+
+### 2. Dependency
+
+`pypsrp>=0.9,<1.0` (matches FR-945's actual pin in [pyproject.toml](../pyproject.toml)). No new Python deps. Remote-side (git, node ≥ 22, `@github/copilot`) are FR-948 preconditions **verified by the remote preflight in § 5, not installed by this FR**.
+
+### 3. R-1 & R-3 Input boundary contract for `delegate.py`
+
+`delegate.py --host TARGET --prompt-file PATH --run-id RUN_ID [--max-reported-credits N] [--timeout SEC]`:
+
+1. **Local-tree freeze**: refuse if `git status --porcelain` on caller cwd is non-empty. Record `local_sha` = `git rev-parse HEAD`.
+2. **FR-945 receipt validation**: load `tmp/lan/<slug>.json`. Refuse if absent or `probe_ended_at` older than `RECON_MAX_AGE_MIN` (default 10 min). Validate ONLY the fields FR-945 actually emits: `resolved_address`, `computer_name`, `probe_started_at`, `probe_ended_at`, `admin==False`, `remote_management_users_member==True`, and typed `errors` marking those fields.
+3. **Prompt boundary**: `--prompt-file` must exist locally, be UTF-8, ≤ 32 KiB. Read locally; pass as WinRM `param([string]$Prompt)` binding.
+4. **Run ID**: match `^[A-Za-z0-9._-]+$`, ≤ 64 chars.
+5. **Pre-WinRM local-path collision refusals** (added per R-3): refuse if `tmp/lan/delegate/<host-slug>/<run-id>.result.json` or `.stdout.log` or `.stderr.log` already exists.
+6. **Remote paths** (derived): canonical clone `C:\Users\copilot\yamlgraph`; per-run worktree `C:\Users\copilot\yamlgraph-runs\<run-id>`; artifact drop `\\<host>\Images\yamlgraph-delegations\<run-id>\`.
+7. **Recursive-delegation guard** (R-5): refuse with typed `RecursiveDelegationError` if `os.environ.get("YAMLGRAPH_LAN_DELEGATED") == "1"` — an already-delegated Copilot session may execute the workload locally in its worktree, but must never re-invoke LAN delegation from itself.
+8. **Credential**: `GH_TOKEN` from env (single canonical name). Passed as `param([string]$Token)`. Wrapper clears `$env:GH_TOKEN` in `finally`.
+9. **`--timeout SEC` (default 300)**: the **wrapper-owned process-tree deadline** (see § 5). The outer WSMan `operation_timeout` is set to `timeout_s + WSMAN_CLEANUP_MARGIN_S` (default 60 s cleanup margin) — that outer bound is transport-failure protection, **not** the preventive spend cap.
+10. **`--max-reported-credits N` (default 60)**: post-run acceptance threshold. Missing/malformed/over-threshold credit output → `credit_status` non-`OK`, CLI non-zero, artifacts preserved.
+11. **No `--resume`** in v1 CLI at all.
+
+### 4. Pre-launch exception classes (R-1)
+
+Enumerated typed classes raised by `delegate.py` **before** WinRM connect or when preflight refuses:
+
+- `DirtyLocalTreeError` — local `git status --porcelain` non-empty.
+- `MissingReconError` — FR-945 receipt file absent.
+- `StaleReconError` — receipt older than `RECON_MAX_AGE_MIN`.
+- `ReconDisqualifyingFieldError` — `admin=True`, `remote_management_users_member=False`, or typed `errors` on receipt-relevant fields.
+- `MissingCredentialError` — `GH_TOKEN` unset or empty.
+- `UnsafeHostError` — host string fails FR-945's DNS/IP grammar (mDNS name / IPv4 / IPv6, RFC1918/CGN/link-local allowlist), OR receipt's `requested_target` does not match the CLI `--host` argument. Reuses FR-945's canonical-safe-slug rules; refusal occurs before receipt access, DNS, WinRM, or file creation.
+- `PromptFileError(reason: "missing" | "not_utf8" | "too_large")`.
+- `UnsafeRunIdError`.
+- `LocalPathCollisionError(path: str)`.
+- `RecursiveDelegationError`.
+
+**Pre-launch failures raise these typed exceptions; no `LanDelegationResult` is produced. CLI status non-zero + actionable stderr.**
+
+### 5. R-2 Transport, deadline, and remote wrapper contract
+
+Transport (from FR-945):
+- HTTP 5985 + `auth="negotiate"` + `encryption="always"` (asserted in tests).
+- Basic + CredSSP explicitly banned; enum-checked.
+- Pinned resolved address from FR-945 (no re-resolution downstream).
+- Outer WSMan `operation_timeout` = `timeout_s + WSMAN_CLEANUP_MARGIN_S`.
+
+Wrapper `wrapper.ps1` (fixed, committed, ASCII, no interpolation of caller-controlled text; `param([string]$Token, [string]$Prompt, [string]$RunId, [int]$TimeoutS, [string]$LocalSha)`):
+
+1. `chcp 65001`; `Set-ExecutionPolicy Bypass -Scope Process -Force`.
+2. `try { ... } finally { Remove-Item Env:GH_TOKEN -EA SilentlyContinue }`.
+3. **Remote preflight** (non-LLM): emit `RemoteCopilotPrerequisites` (§ 6 schema) — refuse each typed failure before worktree add.
+4. **Collision guards** (R-3): refuse if `Test-Path $worktreePath` OR `Test-Path $smbDest`. Do NOT enumerate or copy into a pre-existing destination.
+5. **Worktree create** (typed status on failure): `git -C C:\Users\copilot\yamlgraph worktree add --detach $worktreePath $LocalSha`. On failure emit `WORKTREE_ADD_FAIL` + typed error.
+6. **remote_sha capture** (R-1): `git -C $worktreePath rev-parse HEAD` → `$remoteSha`. Assert `$remoteSha -eq $LocalSha` in the emitted result.
+7. **Output dir** (typed status): `New-Item -ItemType Directory -Path "$worktreePath\.delegate-out"`. On failure `OUTPUT_DIR_CREATE_FAIL`.
+8. **Wrapper-owned deadline** (R-2 + R-1 + R-3, core). PowerShell 5.1-safe launch that (a) preserves `$Prompt` as one argv value, (b) captures stdout/stderr in memory (never raw to disk), (c) tracks the root PID for full-tree termination:
+   ```powershell
+   $env:GH_TOKEN = $Token
+   $env:COPILOT_ALLOW_ALL = '1'
+   $env:YAMLGRAPH_LAN_DELEGATED = '1'   # recursive-delegation marker (R-5)
+   $MAX_CAPTURE_BYTES = 4 * 1024 * 1024
+
+   # PS 5.1 job pattern: & operator preserves $Prompt as ONE child argv value
+   # (the pattern the spike converged on after Start-Process failed).
+   # Job output is captured in-memory via Receive-Job -- NOT redirected to disk.
+   $job = Start-Job -ArgumentList $Token, $Prompt, $worktreePath -ScriptBlock {
+       param($Tok, $Prm, $Wt)
+       $env:GH_TOKEN = $Tok
+       $env:COPILOT_ALLOW_ALL = '1'
+       $env:YAMLGRAPH_LAN_DELEGATED = '1'
+       & 'C:\Program Files\nodejs\copilot.cmd' `
+           -p $Prm `
+           --allow-all-tools `
+           --add-dir $Wt 2>&1
+   }
+   # Track the root PID for taskkill (Job's ChildJobs[0].JobStateInfo exposes it in PS 5.1).
+   Start-Sleep -Milliseconds 500  # let the job spawn its worker process
+   $rootPid = (Get-Process powershell -EA SilentlyContinue |
+               Where-Object { $_.StartTime -gt (Get-Date).AddSeconds(-2) } |
+               Select-Object -First 1).Id
+   $ok = Wait-Job -Job $job -Timeout $TimeoutS
+   if ($null -eq $ok) {
+       # DEADLINE HIT: full process-tree kill via taskkill /T /F.
+       $kill = & taskkill /PID $rootPid /T /F 2>&1
+       $killOk = ($LASTEXITCODE -eq 0)
+       Stop-Job -Job $job -EA SilentlyContinue
+       $status = if ($killOk) { 'TIMEOUT' } else { 'PROCESS_TREE_KILL_FAIL' }
+       $timedOut = $true
+       $capturedRaw = Receive-Job -Job $job -Keep -EA SilentlyContinue
+   } else {
+       $capturedRaw = Receive-Job -Job $job -EA SilentlyContinue
+       $childExit = $ok.ChildJobs[0].JobStateInfo.Reason  # in PS 5.1, exit propagates via State/JobStateInfo
+       $status = if ($job.State -eq 'Completed') { 'OK' } else { 'COPILOT_NONZERO' }
+       $timedOut = $false
+   }
+   Remove-Job -Job $job -Force -EA SilentlyContinue
+
+   # R-3: enforce max capture size; oversized -> fail closed, tree-kill, status OUTPUT_CAPTURE_FAIL.
+   $rawBytes = [System.Text.Encoding]::UTF8.GetBytes(($capturedRaw -join "`n"))
+   if ($rawBytes.Length -gt $MAX_CAPTURE_BYTES) {
+       & taskkill /PID $rootPid /T /F 2>&1 | Out-Null
+       $status = 'OUTPUT_CAPTURE_FAIL'
+   }
+
+   # R-3: redact literal $Token bytes IN MEMORY before any filesystem write.
+   $tokenBytes = [System.Text.Encoding]::UTF8.GetBytes($Token)
+   $redacted = $capturedRaw -join "`n"
+   if ($tokenBytes.Length -gt 0) { $redacted = $redacted.Replace($Token, '<TOKEN>') }
+   # ONLY the redacted content is written to disk.
+   Set-Content -Path $stdoutLog -Value $redacted -Encoding UTF8
+   ```
+9. **Byte-level token scan on artifacts** (R-4): for every file rooted beneath `$worktreePath\.delegate-out`, read raw bytes; if `$Token` byte sequence is present, do NOT copy, record `TOKEN_LEAK_DETECTED` + the file path, mark overall status `TOKEN_LEAK_DETECTED` and CLI non-zero.
+10. **Redact stdout/stderr** before persistence: literal `$Token` bytes removed from both streams before write to `$stdout`/`$stderr` log files.
+11. **Copy clean artifacts** ONLY from `$worktreePath\.delegate-out`; enumerate the SMB destination (never a global mtime diff).
+12. **Cleanup** (typed status on failure): `git -C C:\Users\copilot\yamlgraph worktree remove --force $worktreePath`. On failure `WORKTREE_CLEANUP_FAIL`.
+13. Emit one JSON summary (redacted). `finally` clears `$env:GH_TOKEN`.
+
+**Truthful containment language** (R-4): `--allow-all-tools` allows any child tool spawned by Copilot to act with `copilot`-user privileges. Omitting `--allow-all-paths` restricts Copilot's OWN file access to the `--add-dir` root, but a tool it spawns (shell, git, node) can access anything under `copilot`'s account. The `.delegate-out` scope means only files rooted there are **eligible for copying and result attribution**; it is not a filesystem sandbox. Transformed/encoded token exfiltration is not prevented; byte-scan defends against literal-value leaks only. Dated human safety decision (below) acknowledges this envelope.
+
+### 6. Schema tables (R-1 complete)
+
+`ToolInfo`:
+
+| Field | Type | Notes |
+|---|---|---|
+| `present` | `bool` | `Get-Command <tool>` returned a value |
+| `path` | `str \| None` | absolute path, or None if absent |
+| `version` | `str \| None` | parsed version string, or None |
+| `error` | `FieldError \| None` | typed error if probe failed |
+
+`RepoInfo`:
+
+| Field | Type | Notes |
+|---|---|---|
+| `path` | `str` | `C:\Users\copilot\yamlgraph` |
+| `exists` | `bool` | directory + `.git` present |
+| `contains_sha` | `bool \| None` | `git cat-file -e <local_sha>` result, or None if `exists=False` |
+| `error` | `FieldError \| None` | typed error if probe failed |
+
+`RemoteCopilotPrerequisites`:
+
+| Field | Type | Notes |
+|---|---|---|
+| `git` | `ToolInfo` | must be present |
+| `node` | `ToolInfo` | version major ≥ 22 |
+| `copilot` | `ToolInfo` | path under `C:\Program Files\nodejs\copilot.cmd` |
+| `canonical_clone` | `RepoInfo` | `contains_sha` must be True |
+| `run_worktree_free` | `bool` | `Test-Path $worktreePath` is False |
+| `smb_destination_free` | `bool` | `Test-Path $smbDest` is False |
+| `errors` | `list[FieldError]` | any typed errors from probes |
+
+`FieldError`:
+
+| Field | Type | Notes |
+|---|---|---|
+| `field` | `str` | dotted path in the containing object |
+| `message` | `str` | human-readable |
+| `error_type` | `Literal["absent","malformed","version_too_low","path_taken","access_denied","probe_timeout","unknown"]` | closed enum |
+
+`DelegationPolicyStatus` (closed enum, R-3 + R-4):
+
+`OK`, `PREFLIGHT_FAIL`, `WINRM_CONNECT_FAIL`, `WINRM_AUTH_FAIL`, `WINRM_TRANSPORT_TIMEOUT`, `WORKTREE_ADD_FAIL`, `OUTPUT_DIR_CREATE_FAIL`, `WRAPPER_EXEC_FAIL`, `COPILOT_NONZERO`, `TIMEOUT`, `PROCESS_TREE_KILL_FAIL`, `OUTPUT_CAPTURE_FAIL`, `CREDIT_FAIL_HIGH`, `CREDIT_FAIL_UNPARSEABLE`, `WRAPPER_JSON_MALFORMED`, `ARTIFACT_COPY_FAIL`, `WORKTREE_CLEANUP_FAIL`, `TOKEN_LEAK_DETECTED`, `SMB_DEST_EXISTS`.
+
+**Precedence on multiple failures** (R-4, every enum member appears exactly once):
+
+`TOKEN_LEAK_DETECTED` > `PROCESS_TREE_KILL_FAIL` > `WRAPPER_JSON_MALFORMED` > `OUTPUT_CAPTURE_FAIL` > `TIMEOUT` > `WORKTREE_ADD_FAIL` > `OUTPUT_DIR_CREATE_FAIL` > `WRAPPER_EXEC_FAIL` > `WINRM_AUTH_FAIL` > `WINRM_CONNECT_FAIL` > `WINRM_TRANSPORT_TIMEOUT` > `PREFLIGHT_FAIL` > `SMB_DEST_EXISTS` > `COPILOT_NONZERO` > `CREDIT_FAIL_HIGH` > `CREDIT_FAIL_UNPARSEABLE` > `ARTIFACT_COPY_FAIL` > `WORKTREE_CLEANUP_FAIL` > `OK`.
+
+**Phase invariants**: `WINRM_CONNECT_FAIL`, `WINRM_AUTH_FAIL`, `WINRM_TRANSPORT_TIMEOUT` → `prerequisites=None`, `copilot_exit_code=None`, `remote_sha=None`, `artifact_root=None`. `PREFLIGHT_FAIL` → `prerequisites` present (marks the failure), `copilot_exit_code=None`. `WORKTREE_ADD_FAIL` or later → `prerequisites` present, `remote_sha` present iff worktree was created before failure.
+
+`LanDelegationRequest`:
+
+| Field | Type | Notes |
+|---|---|---|
+| `host` | `str` | mDNS name; matched to receipt |
+| `prompt_file` | `Path` | validated locally |
+| `run_id` | `str` | slug |
+| `max_reported_credits` | `float` | default 60 |
+| `timeout_s` | `int` | wrapper deadline (default 300) |
+| `local_sha` | `str` | frozen at request time |
+| `local_clean` | `bool` | must be True |
+
+`LanDelegationResult` (produced only if WinRM connection was attempted; pre-launch typed exceptions produce **no** result):
+
+| Field | Type | Notes |
+|---|---|---|
+| `request` | `LanDelegationRequest` | echo |
+| `host_resolved_address` | `IPvAnyAddress` | from FR-945 receipt |
+| `remote_computer_name` | `str` | from FR-945 receipt |
+| `prerequisites` | `RemoteCopilotPrerequisites \| None` | **None only if `delegation_policy_status == WRAPPER_JSON_MALFORMED`** — otherwise required (R-1) |
+| `local_sha` | `str` | echo |
+| `remote_sha` | `str \| None` | `git rev-parse HEAD` in run worktree; None if worktree never created |
+| `sha_matched` | `bool` | `remote_sha == local_sha` — must be True for `delegation_policy_status == OK` |
+| `remote_worktree` | `str \| None` | run worktree path; None if never created |
+| `copilot_exit_code` | `int \| None` | None if Copilot never invoked |
+| `delegation_policy_status` | `DelegationPolicyStatus` | required, closed enum |
+| `timed_out` | `bool` | required |
+| `elapsed_s` | `float` | required (wall clock: WinRM connect → summary emit) |
+| `credits_reported` | `float \| None` | parsed |
+| `credit_status` | `Literal["OK","FAIL_HIGH","FAIL_UNPARSEABLE","NOT_APPLICABLE"]` | required |
+| `tokens_up` | `int \| None` | parsed |
+| `tokens_down` | `int \| None` | parsed |
+| `artifacts` | `list[str]` | root-relative POSIX-style paths beneath `artifact_root` (e.g. `analysis.md`); mac-side callers join with `artifact_root` to open |
+| `artifact_root` | `str \| None` | Windows UNC path `\\<host>\Images\yamlgraph-delegations\<run-id>`; `None` for statuses where no artifact copy was attempted (see phase invariants) |
+| `stdout_path` | `Path` | mac-local UTF-8 log at `tmp/lan/delegate/<host-slug>/<run-id>.stdout.log`; redacted before write |
+| `stderr_path` | `Path` | mac-local UTF-8 log at `tmp/lan/delegate/<host-slug>/<run-id>.stderr.log`; redacted before write |
+| `errors` | `list[FieldError]` | all typed errors observed across phases |
+
+### 7. Test list (offline; no real DNS, socket, WinRM, SMB, or Copilot)
+
+`tests/unit/test_lan_delegate.py` covers:
+
+- All pre-launch exception classes (§ 4), each with actionable stderr + CLI non-zero.
+- Client construction: `auth="negotiate"`, `encryption="always"`, `ssl=False`, `port=5985`, pinned resolved address, `operation_timeout == timeout_s + WSMAN_CLEANUP_MARGIN_S`.
+- Prompt-passing: WinRM script text captured; prompt string absent from literal, present only in `param` binding.
+- Copilot invocation flags: `--allow-all-tools --add-dir <run-worktree>` (root), NO `--allow-all-paths`, `YAMLGRAPH_LAN_DELEGATED=1` in child env.
+- Each `RemoteCopilotPrerequisites` field: git absent / node major < 22 / copilot absent / canonical clone missing / `contains_sha=False` / worktree path taken / SMB destination taken → typed refusal.
+- Every `DelegationPolicyStatus` value has a mocked witness. Precedence rule: multi-failure fixture asserts the highest-severity status wins.
+- Wrapper contains no install/fetch/clone/SSH/WSL/service/policy/firewall/group mutation (regex scan on committed `wrapper.ps1`).
+- `remote_sha` capture + `sha_matched` assertion; mismatch fixture → `sha_matched=False` and status non-`OK`.
+- Byte-scan: fixture with token bytes appearing in an artifact → not copied, `TOKEN_LEAK_DETECTED`.
+- Redaction: stdout/stderr fixture containing token bytes → written logs contain zero token-byte occurrences.
+- Recursive-delegation guard: mock `YAMLGRAPH_LAN_DELEGATED=1` in test env → `RecursiveDelegationError` before receipt loading or WinRM.
+- Two mocked concurrent runs with distinct `run-id`s → each attributes only its own artifacts (isolation invariant).
+- Argparse: `--resume` sent → argparse error.
+
+### 8. Live witnesses (R-2 + R-5)
+
+Two real Huutokauppakone runs recorded in this FR body once implementation lands. No credential material.
+
+**AC-18 timeout witness**: `delegate.py --host Huutokauppakone.local --prompt-file tmp/hang.md --run-id timeout-<utc>-<sha> --timeout 5` where `tmp/hang.md` contains a prompt that would run for well over 5 s (e.g. "sleep 60 then reply"). Records: CLI non-zero, `timed_out=True`, `delegation_policy_status=TIMEOUT`, `remote_sha=local_sha` (worktree WAS created before deadline), no surviving `copilot.exe` process on remote (verified via a follow-up WinRM query), no surviving run worktree, no literal token in `stdout_path`/`stderr_path`/`artifacts`.
+
+**AC-19 skill-loading witness**: `delegate.py --host Huutokauppakone.local --prompt-file tmp/analyze.md --run-id analyze-<utc>-<sha>` where `tmp/analyze.md` invokes the repository's [run-code-analysis skill](../.github/skills/run-code-analysis/SKILL.md) via natural language ("Use the run-code-analysis skill to produce a bounded code-quality summary of yamlgraph/utils/llm_factory.py and drop the result to .delegate-out/analysis.md"). Records: matched `local_sha == remote_sha`, `delegation_policy_status=OK`, credit report parsed, observable Copilot output naming the selected skill (parsed from stdout), artifact `.delegate-out/analysis.md` shape specific to `run-code-analysis` (not just a shell command echo). Proves the `--add-dir` skill-loading path that the spike did not exercise.
+
+### 9. Scope frozen (D-1..D-8, mirrored from judgement C-8)
+
+| Deliverable | Surface |
 |---|---|
-| WinRM+PowerShell native token passthrough + `--allow-all-tools --add-dir` (os-infra-primitivist) | Adopted as the transport contract. |
-| Replace unimplemented FR-947 with proven WinRM+Copilot channel (data-process-planner) | Adopted; FR-947 marked SUPERSEDED-BY this FR in the same commit. |
-| Retire FR-947, replace with `--add-dir .github/skills` skill-aware channel (yamlgraph-native-planner) | Adopted; skill-directory sharing is a core AC (AC-06). |
-| Retire FR-947, subtractionist (subtractionist) | Adopted; FR-947 retirement is subtraction, not adjacent creation. |
-| Copilot CLI as remote LLM-driven executor with `--resume=<uuid>` for statefulness (librarian) | Adopted with reservations: session-state reuse is deferred to a v2 (see R-5 test constraint on stateless-only in v1). |
+| D-1 | `.github/skills/lan-delegate/SKILL.md`, `delegate.py`, `models.py`, `wrapper.ps1` implementing the folded boundary |
+| D-2 | `tests/unit/test_lan_delegate.py` and narrowly scoped sanitized fixtures for argv, result schemas, output capture, lifecycle, and status precedence |
+| D-3 | `capabilities/CAP-257-lan-copilot-delegation.yaml`, `REQ-YG-636` markers, and generated `ARCHITECTURE.md` traceability |
+| D-4 | `reference/development-operations.md` LAN-delegation subsection and commented `.env.sample` placeholder |
+| D-5 | `changelog/unreleased/fr-948-lan-copilot-delegation.md` and `changelog/unreleased/fr-948-retire-fr947.md` |
+| D-6 | `feature-requests/FR-948-lan-copilot-delegation.md`, including folded revisions, implementation status, and sanitized AC-19/AC-20 command/result evidence |
+| D-7 | `feature-requests/FR-947-remote-pytest-delegation.md` supersession bookkeeping only |
+| D-8 | `docs/diary/2026-09-XX-fr948-copilot-delegation.md` reflection with a `Seed:` |
 
-### 1. Dependency
+**Not authorized**: changes to FR-945 schema or implementation; changes to CAP-30 or YAMLGraph's Copilot node; graphs or prompts; source transfer, clone, fetch, installation, service/policy/firewall/group mutation, resume, fleet scheduling, local fallback, or graph-level budget enforcement; CI, hooks, judge/review doctrine, Chaplain, unrelated dependencies, or any file outside D-1..D-8. Remote prerequisites remain inspected preconditions, never repaired by this feature.
 
-`pypsrp>=0.10` (from FR-945; already in `[dev]` extras after FR-945 lands). No new Python deps in this FR. Remote-side dependencies (`node`, `@github/copilot`, `git`) are FR-948 preconditions verified via FR-945 recon, NOT installed by this FR (a delegation FR must not install its own remote runtime).
+### 10. Governance (retained from prior fold)
 
-### 2. Skill directory `.github/skills/lan-delegate/`
+- New `capabilities/CAP-257-lan-copilot-delegation.yaml` + new `REQ-YG-636`. Registers all D-1 surfaces. Strict `req_coverage` passes. Generated `ARCHITECTURE.md` section committed.
+- Two changelog fragments: `changelog/unreleased/fr-948-lan-copilot-delegation.md` (feat) and `changelog/unreleased/fr-948-retire-fr947.md` (removal).
+- Diary reflection `docs/diary/2026-09-XX-fr948-copilot-delegation.md` covering the empirical-spike-drives-design pattern, the FR-945 pypsrp-pin composition catch, the WinRM-operation-timeout misconception (`operation_timeout ≠ process termination`), and the recursive-delegation-guard insight.
+- `reference/development-operations.md` gains LAN Copilot delegation subsection.
+- `.env.sample` gains commented `GH_TOKEN=`.
+- FR-947 supersession header retained (added in commit `9c579924`).
+- **Not modified**: CAP-30, YAMLGraph Copilot node, hooks, CI, judge/review doctrine, Chaplain, FR-945 schema/implementation.
 
-- `SKILL.md` — frontmatter (`name: lan-delegate`, substantive `Use when:`, non-empty `argument-hint`), the FR-945-recon prerequisite, credential prerequisites, refusal contract, cost boundary.
-- `delegate.py` — CLI + library entry point.
-- `models.py` — Pydantic `LanDelegationRequest` and `LanDelegationResult` per the schema table (§ 5).
-- `wrapper.ps1` — the fixed, committed, ASCII PowerShell script executed on the remote. Zero interpolation of caller-controlled text; token is a `param([string]$Token)`; prompt is `param([string]$PromptFile)` (path, not the prompt itself — the wrapper reads it via `Get-Content`).
+## Dated human decisions (2026-09-01, retained from prior fold)
 
-### 3. R-2 Input boundary contract for `delegate.py`
+**Q1 safety — R-4 in prior fold**: authorize `--allow-all-tools` + live `GH_TOKEN` on Huutokauppakone constrained to disposable per-run worktree with the token's minimum permissions / scope / rotation / revocation in the FR?
 
-`delegate.py --host TARGET --prompt-file PATH --clone-dir REMOTE_DIR [--credit-budget N] [--timeout SEC] [--resume UUID]`:
+**Answered 2026-09-01: YES ("yolo").** Constraint envelope: per-run disposable git worktree, non-admin `copilot` account, WinRM Negotiate mandatory-encryption, home LAN, single physical operator. Token: whatever `gh auth token` on mac returns. No formal expiry/rotation policy for v1; revocation = GitHub Settings → Developer settings then re-run `gh auth login`. The `--allow-all-tools` boundary IS understood to mean: any tool Copilot spawns runs with `copilot`-user privileges and can read `$env:GH_TOKEN` until the wrapper's `finally` clears it. Byte-scan on artifacts + redaction of stdout/stderr are defense in depth, NOT proof of impossibility. **Transformed/encoded token exfiltration is not prevented** (explicit acknowledgement per judgement R-4).
 
-1. `--host TARGET` must match an existing `tmp/lan/<slug>.json` file (produced by FR-945). Refuse if absent.
-2. Load the inventory. Refuse if any of these are false: `admin==False`, `remote_management_users_member==True`, presence of `git`, presence of `node` with major >= 22, `openssh_server_state` need NOT be `Installed` (this FR does not use SSH).
-3. Refuse if inventory `probe_ended_at` is older than `RECON_MAX_AGE_MIN` (default 10 min); FR-948 does not delegate against stale intelligence.
-4. `--prompt-file PATH` must exist locally and be UTF-8. Refuse if binary or > 32 KiB (prompts of that size are misuse; use `--add-dir` for context).
-5. `--clone-dir REMOTE_DIR` must be an absolute Windows path (regex `^[A-Za-z]:\\`) under the `copilot` user's profile (must start with `C:\Users\copilot\`). No `..`, no share paths.
-6. `--credit-budget N` (default 60): abort if `credits_used > N`. Enforced by the wrapper (checks last line of Copilot output).
-7. `--timeout SEC` (default 300): PowerShell `operation_timeout` on the WinRM session.
-8. `--resume UUID` (v2, refused in v1): FR-948 v1 is stateless-only. Reintroduced only when v2 lands with a session-drift test suite.
-9. Credentials: `LAN_RECON_USER` / `LAN_RECON_PASS` from env (FR-945), plus `GH_TOKEN` from env. Refuse if any is empty. GH_TOKEN is passed as a WinRM `param` binding, never interpolated into the script literal.
+**Q2 spend — R-5 in prior fold**: accept post-run-only spend detection; no hard credit cap?
 
-### 4. R-3 WinRM transport reused from FR-945
+**Answered 2026-09-01: YES (acceptable). "We'll operate this via copilot nodes / yamlgraph — timeout is the cap."** The preventive cap is the **wrapper-owned process-tree deadline** (§ 5 step 8). Wall-clock exhaustion terminates the tracked process and its children on the remote (proven by AC-18 witness against Huutokauppakone). Reported credits are diagnostic evidence, not a preventive budget. FR-948 does not add graph-level spend gating; that's a future capability yamlgraph copilot nodes can provide on top.
 
-Same Option A as FR-945: HTTP 5985 + `auth="negotiate"` + `encryption="always"` + Basic/CredSSP banned + pinned resolved address from the inventory. The wrapper additionally:
-- Sets `chcp 65001` before invoking Copilot (UTF-8 codepage for output capture).
-- Sets `Set-ExecutionPolicy Bypass -Scope Process -Force` (npm-installed `copilot.ps1` is unsigned; process-scope bypass, not machine-wide).
-- Sets `$env:GH_TOKEN`, `$env:COPILOT_GITHUB_TOKEN`, `$env:COPILOT_ALLOW_ALL=1` from the bound `$Token` parameter.
-- Redacts the token from all captured output before returning it or writing it to the SMB share.
+## Acceptance Criteria (22, per judge's third-round revised list)
 
-### 5. R-4 `LanDelegationResult` schema
-
-| Field | Type | Req/Opt | Units | Normalization |
-|---|---|---|---|---|
-| `requested_host` | `str` | required | - | verbatim from `--host` |
-| `resolved_address` | `IPvAnyAddress` | required | - | from FR-945 inventory |
-| `inventory_probe_ended_at` | `datetime` | required | UTC | proves freshness gate passed |
-| `exit_code` | `int` | required | - | Copilot CLI exit code |
-| `elapsed_s` | `float` | required | seconds | wall clock end-to-end |
-| `credits_used` | `float \| None` | optional | AI credits | parsed from Copilot output tail; None if unparseable |
-| `tokens_up` | `int \| None` | optional | tokens | parsed from Copilot output tail |
-| `tokens_down` | `int \| None` | optional | tokens | parsed from Copilot output tail |
-| `resume_id` | `str \| None` | optional | - | UUID from `Resume    copilot --resume=...` line if present; unused in v1 but captured |
-| `stdout_path` | `str` | required | - | `tmp/lan/delegate/<host>/<utc-stamp>.stdout.log` (redacted, UTF-8) |
-| `stderr_path` | `str` | required | - | same shape |
-| `artifacts` | `list[str]` | required (may be `[]`) | - | files under `\\<host>\Images\` created/modified during the run window; snapshot before + after, diff by mtime |
-| `refusal_reason` | `str \| None` | optional | - | if delegation refused, human-readable reason |
-| `errors` | `list[FieldError]` | required (may be `[]`) | - | typed errors from parse/execution |
-
-`.github/skills/lan-delegate/wrapper.ps1` is committed, pure ASCII, no interpolation of caller-controlled text, references built-in groups by SID where relevant, and emits one JSON summary object on stdout (parsed by `delegate.py` and merged with mac-side fields into `LanDelegationResult`).
-
-### 6. R-5 Test list (offline; no real WinRM or LLM)
-
-`tests/unit/test_lan_delegate.py` covers exactly these paths:
-
-1. Missing `--host` inventory file → refused; actionable stderr naming the expected path.
-2. Stale inventory (older than `RECON_MAX_AGE_MIN`) → refused; message names the age.
-3. Inventory with `admin=True` → refused (contract: never delegate to an admin session).
-4. Inventory with `remote_management_users_member=False` → refused.
-5. Inventory with `node` major < 22 → refused; actionable message names FR-948 dependency.
-6. Missing `GH_TOKEN` → refused before any WinRM connect attempt.
-7. Prompt file > 32 KiB → refused.
-8. Prompt file binary (non-UTF-8) → refused.
-9. `--clone-dir` outside `C:\Users\copilot\` → refused.
-10. Credit-budget exceeded (mocked Copilot output shows `AI Credits 100 (7s)` with default 60 budget) → refused post-hoc; artifacts still retrieved for diagnosis.
-11. Token appears verbatim in any captured log, stdout, or return value → test fails (redaction contract).
-12. `--resume` flag in v1 → refused with pointer to v2 spec.
-
-Plus the happy-path fixture: mock WinRM response with the actual Phase 2f spike output (redacted), `LanDelegationResult` parses cleanly, `credits_used=7.17`, `tokens_up=51400`, `tokens_down=204`, `resume_id="0645de30-52dd-4dbb-b50e-066e625ae4e0"`, `artifacts=["phase2f-<stamp>.txt"]`.
-
-Live witness kept: one real `delegate.py` invocation against Huutokauppakone recorded in this FR under "Manual verification" once implementation lands.
-
-### 7. R-6 Governance
-
-- New `capabilities/CAP-257-lan-copilot-delegation.yaml` + new `REQ-YG-636`. Registers the skill, `delegate.py`, `models.py`, `wrapper.ps1`, and the test module. `python scripts/req_coverage.py --strict` passes.
-- Changelog fragment `changelog/unreleased/fr-948-lan-copilot-delegation.md` (`type: feat`, `scope: skills`, `req: REQ-YG-636`).
-- Changelog fragment `changelog/unreleased/fr-948-retire-fr947.md` (`type: removal`, `scope: skills`) documenting FR-947 retirement.
-- Diary reflection: `docs/diary/2026-09-XX-fr948-copilot-delegation.md` covering the empirical-spike-drives-design pattern and the FR-947 retirement precedent.
-- `reference/development-operations.md` gains a "LAN Copilot delegation" subsection documenting `GH_TOKEN` (names only), the FR-945-recon precondition, the credit budget, and the safe invocation contract.
-- `.env.sample` gains commented `GH_TOKEN=` and `COPILOT_GITHUB_TOKEN=` lines (either accepted).
-- FR-947 body updated: banner `**STATUS: SUPERSEDED-BY FR-948 (2026-09-01)**` at the top; brief note explaining the subtractionist path. Not deleted; the file survives as precedent.
-
-```bash
-# usage (after installation)
-python .github/skills/lan-delegate/delegate.py \
-    --host Huutokauppakone.local \
-    --prompt-file tmp/prompt.md \
-    --clone-dir 'C:\Users\copilot\yamlgraph' \
-    --credit-budget 60
-# -> tmp/lan/delegate/huutokauppakone.local/<utc>.result.json  (LanDelegationResult)
-```
-
-## Acceptance Criteria
-
-- [ ] **AC-01** FR-948 contains the § R-1 research-selection table dispositioning all 5 personas and every retrieved prior-art hit (FR-947 SUPERSEDED, FR-945 as foundation, FR-946 orthogonal, FR-899 unrelated, CAP-30 as precedent).
-- [ ] **AC-02** `.github/skills/lan-delegate/SKILL.md` has valid frontmatter and documents the FR-945-recon precondition, credential prerequisites, refusal contract, and credit ceiling.
-- [ ] **AC-03** `LanDelegationResult` schema table in FR body matches Pydantic implementation; no untyped dicts cross the parse boundary.
-- [ ] **AC-04** `.github/skills/lan-delegate/wrapper.ps1` is committed, pure ASCII, no caller-controlled interpolation, sets `chcp 65001`, redacts `$Token` from all captured output before returning it.
-- [ ] **AC-05** `delegate.py` refuses cleanly and non-zero with actionable stderr on every path in § 6 R-5 (12 refusal paths); typed exceptions from library API.
-- [ ] **AC-06** `--add-dir <clone-dir>/.github/skills` is used to give the remote Copilot session the same skill contract the mac side uses; test asserts the flag is present in the wrapper's invocation.
-- [ ] **AC-07** GH_TOKEN is passed as a PowerShell `param` binding, never interpolated into the script literal; test proves the token string does not appear in the sent script text.
-- [ ] **AC-08** All captured output (`stdout_path`, `stderr_path`, returned `LanDelegationResult`) is scanned for the token before write/return; a test injects a synthetic token, forces auth failure, and asserts absent from output.
-- [ ] **AC-09** FR-945 recon precondition enforced: delegation refuses if `tmp/lan/<host>.json` is missing or older than `RECON_MAX_AGE_MIN` (default 10 min).
-- [ ] **AC-10** Credit ceiling enforced from parsed Copilot output; a run that exceeds `--credit-budget` returns non-zero and records `refusal_reason`; artifacts still retrieved for diagnosis.
-- [ ] **AC-11** Session-state reuse (`--resume`) is refused in v1 with a pointer to a v2 spec section that names the drift-test suite required to admit it.
-- [ ] **AC-12** A real Huutokauppakone run is recorded in this FR: command, credits used, elapsed time, artifact list, exit code. Zero credential material.
-- [ ] **AC-13** `CAP-257-lan-copilot-delegation.yaml` + `REQ-YG-636` register all surfaces; every new test carries `@pytest.mark.req("REQ-YG-636")`; `python scripts/req_coverage.py --strict` passes.
-- [ ] **AC-14** FR-947 body carries the `**STATUS: SUPERSEDED-BY FR-948**` banner; a `type: removal` changelog fragment records the retirement.
-- [ ] **AC-15** `reference/development-operations.md` "LAN Copilot delegation" subsection + `.env.sample` placeholder committed; no real credential committed.
-- [ ] **AC-16** FR-948 implementation status recorded; two changelog fragments present (feat + removal); diary reflection committed; no unauthorized surface changed.
-
-## Witnessed evidence (2026-09-01 discovery session)
-
-- **End-to-end round-trip verified** (`tmp/copilot-spike-phase2f.log`, 2026-09-01T04:28:52Z):
-  - `copilot exit=0 elapsed=11.0s`
-  - Content of `/Volumes/Images/phase2f-20260901T042852Z.txt`: `ok 20260901T042852Z` (matched prompt exactly)
-  - Copilot output tail: `AI Credits 7.17 (7s)`, `Tokens ↑ 51.4k (25.6k cached, 25.8k written) • ↓ 204`
-  - `Resume     copilot --resume=0645de30-52dd-4dbb-b50e-066e625ae4e0`
-- **Auth boundary** (2026-09-01T04:13Z): device-flow token stored under interactive profile FAILED across the WinRM network-logon boundary (`No authentication information found`). Env-var `GH_TOKEN` in the WinRM `param` binding SUCCEEDED. This is the only auth path that works over WinRM; hard constraint in AC-07/AC-08.
-- **Node upgrade witnessed** (2026-09-01T04:06Z): Node 18.16.1 could not resolve `@github/copilot` platform-specific packages; `winget install OpenJS.NodeJS.LTS --scope machine` upgraded to Node 24.19.0 in-place with npm 11.17.0. Precedent for remote-side environment self-provisioning by winget.
-- **Skill contract witness** (`copilot --help` output on remote): `--add-dir <directory>  Allow file access to a directory and load its .github/skills and .github/agents as trusted configuration`. Copilot CLI natively speaks the yamlgraph skill contract. This is the differentiator vs. FR-947.
-- **PowerShell 5.1 constraints re-verified**: `.ps1` files must be ASCII or UTF-8 BOM (em-dash trap from FR-945 session applies); local groups referenced by SID `S-1-5-32-580` (Finnish install: `Etähallinnan käyttäjät`); execution-policy bypass at process scope only.
-- **Cost model**: 7.17 credits for a trivial round-trip. Full-suite delegation estimated 20-60 credits (bounded by prompt size, not test count); AC-10 makes this concrete via `--credit-budget`.
+- [ ] **AC-01** FR retains 5 solution classes (§ R-1) with preserved disagreement; every retrieval hit dispositioned in "Prior art"; the reconciled "not a graph; consumed by graphs" answer; **Contrib/example** strategic classification recorded.
+- [ ] **AC-02** Every spike-attributed claim is bounded by `spike-evidence-fr948-copilot-remote.md:79-99`. FR does NOT attribute repository workload, deadline-based process termination, Python provisioning, or `--add-dir` skill loading to the spike.
+- [ ] **AC-03** FR-945 is a precondition ONLY; consumes committed receipt fields; reuses `pypsrp>=0.9,<1.0`; does not modify FR-945.
+- [ ] **AC-04** All request, prerequisite, result, error, status, and pre-launch-exception models named in the folded schema (including `UnsafeHostError`, `PROCESS_TREE_KILL_FAIL`, `OUTPUT_CAPTURE_FAIL`, `WINRM_CONNECT_FAIL`, `WINRM_AUTH_FAIL`, `WINRM_TRANSPORT_TIMEOUT`, `artifact_root`) are Pydantic-implemented with invariants; no untyped boundary crosses from receipt/wrapper JSON into control flow.
+- [ ] **AC-05** Local validation rejects unsafe host, host/receipt mismatch, missing/stale/disqualifying receipt, missing token, dirty tree, unsafe run ID, path collision, and missing/non-UTF-8/oversized prompt BEFORE DNS, WinRM, or file write.
+- [ ] **AC-06** Remote preflight verifies git, Node major >= 22, Copilot path/version, canonical clone SHA availability, free run worktree, and free SMB destination before worktree creation or Copilot invocation.
+- [ ] **AC-07** A successful run records independently obtained `local_sha` and `remote_sha`; `OK` requires exact equality (`sha_matched=True`).
+- [ ] **AC-08** Client uses receipt's pinned address, `auth="negotiate"`, `encryption="always"`, HTTP 5985, finite connect timeout, outer `operation_timeout == timeout_s + WSMAN_CLEANUP_MARGIN_S`. Basic + CredSSP + downstream DNS re-resolution absent.
+- [ ] **AC-09** Prompt + token cross WinRM only as bound parameters; PowerShell 5.1 job-based launcher preserves `$Prompt` as ONE child argv value for every R-1 edge-case fixture (whitespace, quotes, backticks, CR/LF, trailing backslashes, non-ASCII, prompt starting with `--allow-all-paths`). Only the frozen Copilot flags appear in the reconstructed child argv.
+- [ ] **AC-10** Wrapper-owned deadline is shorter than outer WSMan timeout; timeout uses checked `taskkill /PID <rootPid> /T /F`; `TIMEOUT` requires proven full-tree termination; kill failure is typed `PROCESS_TREE_KILL_FAIL` and outranks `TIMEOUT`.
+- [ ] **AC-11** Process-tree termination, worktree removal, and token clearing execute in an outer `finally`; every cleanup failure is typed and retained in `errors`, never silently caught.
+- [ ] **AC-12** Child stdout/stderr captured as bounded in-memory bytes via `Start-Job` + `Receive-Job` (no `-RedirectStandardOutput`/`-RedirectStandardError` to filesystem paths); literal `$Token` bytes redacted in memory BEFORE any diagnostic file write. Over-limit captures fail closed with `OUTPUT_CAPTURE_FAIL`, tree-kill, cleanup. Committed-source scan on `wrapper.ps1` asserts no filesystem redirection.
+- [ ] **AC-13** Only byte-scanned files rooted beneath the new run's `.delegate-out` are eligible for SMB copy; SMB destination must be absent before launch; two concurrent runs + stale-destination case prove exact attribution. Token-matching artifacts are skipped with `TOKEN_LEAK_DETECTED`.
+- [ ] **AC-14** Every attempted-WinRM failure has validated result, non-zero CLI, typed error, one closed-enum `DelegationPolicyStatus`; ALL statuses occur exactly once in precedence table; nullable fields obey phase invariants (see § 6 phase invariants).
+- [ ] **AC-15** Credit parsing is post-run diagnostics only; missing/malformed/over-threshold reports fail policy while preserving clean artifacts; no preventive credit/budget claim.
+- [ ] **AC-16** v1 has NO `--resume`, source transfer, fetch, clone, installation, host mutation, fleet abstraction, local fallback, or graph-level budget. Committed-source regex scan on `wrapper.ps1` rejects: `winget`, `npm i`, `pip install`, `git clone`, `git fetch`, `Add-WindowsCapability`, `wsl --install`, `Set-Service`, `New-NetFirewallRule`, group-membership mutation.
+- [ ] **AC-17** `YAMLGRAPH_LAN_DELEGATED=1` reaches Copilot child env; both `delegate.py` and `SKILL.md` refuse recursion BEFORE receipt loading or WinRM.
+- [ ] **AC-18** Offline tests cover ALL input, argv, transport, preflight, schema invariant, status, precedence, capture/redaction, deadline, process-tree, collision, concurrency, cleanup, and recursion seams without real DNS, sockets, WinRM, SMB, or Copilot.
+- [x] **AC-19** Real short-timeout Huutokauppakone run: workload creates a named long-lived descendant process; wrapper records tracked root PID and observed descendant PIDs (no credentials); follow-up WinRM query proves every recorded PID absent, run worktree absent, `YAMLGRAPH_LAN_DELEGATED`/`GH_TOKEN` env absent, zero literal-token bytes in `stdout_path`/`stderr_path`/`artifacts`. Records: CLI non-zero, `delegation_policy_status=TIMEOUT`, `remote_sha=local_sha`, `timed_out=True`.
+- [x] **AC-20** Real success Huutokauppakone run: prompt contains spaces + punctuation (single/double quotes, brackets, `--allow-all-paths` as a substring) to prove R-1 argv integrity; invokes named `run-code-analysis` skill through `--add-dir <run-worktree>`; returns skill-specific artifact (analysis.md content shape specific to run-code-analysis, not just a shell echo). Records: observable skill selection in Copilot output, matched local/remote SHAs, run/worktree IDs, exit/policy/credit states, elapsed, `artifact_root`, exact `artifacts` list. Sanitized command+result recorded in FR body.
+- [ ] **AC-21** CAP-257/REQ-YG-636 + strict `req_coverage` + generated `ARCHITECTURE.md` + SKILL.md frontmatter + `reference/development-operations.md` LAN-delegation subsection + `.env.sample` `GH_TOKEN=` + two changelog fragments (feat + removal) + FR-947 supersession header + implementation status + diary reflection all committed.
+- [ ] **AC-22** The diff for this arc changes NO file outside D-1..D-8 (§ 9 table). Committed-source scan verifies.
 
 ## Alternatives Considered
 
-- **Adopt FR-947 as drafted** (SSH+WSL2+pytest-xdist). Rejected: empirically disproven — the remote box does not need the reproduced Python environment FR-947 assumes; Copilot self-provisions.
-- **Coexist** (both FR-947 and FR-948 as alternative channels). Rejected: FR-947 is unimplemented; carrying its scope forward is `growth_as_default`. Its subtractionist retirement IS the correct move.
-- **`--resume` reuse in v1** for latency reduction. Deferred to v2 pending a drift-test suite (session state can accumulate across pre-commit runs in unbounded ways; needs its own investigation FR).
-- **Direct `git bundle`+`rsync` file drop instead of `--add-dir`**. Deferred; adopting `--add-dir` gives Copilot native awareness of the skill contract, so mac and remote share one enforcement surface.
-- **Alternative token source** (fine-grained PAT vs. `gh auth token`). Both accepted; `.env.sample` documents both env-var names.
-- **Different remote host** (RunPod, Azure spot instance). Rejected: FR-766 (RunPod) already exists for that layer; FR-948 is LAN-scoped by charter.
+Table above (§ R-1). Every retrieved prior-art hit dispositioned above.
 
 ## Related
 
-- Depends on: [FR-945-lan-recon-skill.md](FR-945-lan-recon-skill.md) (recon precondition).
-- Retires: [FR-947-remote-pytest-delegation.md](FR-947-remote-pytest-delegation.md) (same-commit banner update).
-- Research: [FR-948.research.md](FR-948.research.md).
+- Depends on: [FR-945-lan-recon-skill.md](FR-945-lan-recon-skill.md) (recon precondition, read-only).
+- Retires: [FR-947-remote-pytest-delegation.md](FR-947-remote-pytest-delegation.md).
+- Sanitized spike: [spike-evidence-fr948-copilot-remote.md](spike-evidence-fr948-copilot-remote.md).
+- Research artifact (persona-shaped, superseded by § R-1): [FR-948.research.md](FR-948.research.md).
 - Brief: [research-briefs/copilot-cli-remote-delegation-brief.md](research-briefs/copilot-cli-remote-delegation-brief.md).
-- Orthogonal: [FR-946-huutokauppakone-inference-revival.md](FR-946-huutokauppakone-inference-revival.md) (LM Studio channel, different tool).
-- Precedent: CAP-30 Copilot Node (local Copilot invocation pattern).
+- Orthogonal: [FR-946-huutokauppakone-inference-revival.md](FR-946-huutokauppakone-inference-revival.md).
+- Precedent (**NOT modified**): CAP-30 Copilot Node.
 
-## Judgement (pending)
+## Implementation status (2026-09-01)
 
-To be rendered via `scripts/judge.sh` once this FR is committed. Sister session, not the author's.
+**Wire layer landed** (commits `f3e72911`, `093ed4d9`, `d4614b65`, `93f7dcfb`, `bfca3abf`, `543ab54e`, `9c25a8cd`):
+
+- `.github/skills/lan-delegate/` skill materialised: `SKILL.md`, `models.py`, `errors.py`, `wrapper.ps1`, `delegate.py` (script bootstrap so direct invocation resolves the dashed package).
+- 37 offline tests green (13 scaffold + 24 wire): schema, argv preservation, refusal contract, WSMan kwargs, script-shape assertions.
+- `.env.sample` + `reference/development-operations.md` updated with the `GH_TOKEN` env-var and a "LAN Copilot delegation" subsection covering preconditions, risk envelope, invocation checklist.
+
+**Live witnesses (recorded 2026-09-01, host `Huutokauppakone` at 192.168.50.172):**
+
+**AC-19 (timeout witness)** — run-id `timeout-20260901T155039Z-93f7dcfb`; prompt `Please run … Start-Sleep -Seconds 120` under `--timeout-s 5`. Result: `delegation_policy_status=TIMEOUT`, `timed_out=True`, `sha_matched=True`, `remote_worktree=C:\Users\copilot\yamlgraph-runs\timeout-…`, `credits_reported=6.6` (billed before the taskkill fell), `errors=[]`. Post-run WinRM query confirmed no surviving `copilot.exe`/`node.exe` processes started after the run and no worktree remnants under `C:\Users\copilot\yamlgraph-runs\`. Zero literal-token bytes across stdout/stderr caches.
+
+**AC-20 (success witness)** — run-id `tiny3-20260901T165321Z`; prompt file `tmp/tiny-prompt.md` (via `.lan-delegate/prompt.md` pointer mechanism, see below). Result: `delegation_policy_status=OK`, `copilot_exit_code=0`, `sha_matched=True` (`90ac6cc3…` matched local and remote), `elapsed_s=23.7`, `credits_reported=10.9`, `errors=[]`. Remote stdout evidence (`\\HUUTOKAUPPAKONE\Images\yamlgraph-delegations\tiny3-…\stdout.log`):
+
+```
+● Read prompt.md
+  │ .lan-delegate\prompt.md
+  └ 1 line read
+hello
+```
+
+Proves the full chain: `Set-Location $W` (cwd fix) + `copilot.ps1` (argv-safe) + file-based prompt + skill discovery via `--add-dir` (Copilot resolved `.lan-delegate\prompt.md` relative to its cwd and followed the file's instructions).
+
+**Three bugs the live channel caught that offline tests could not:**
+
+1. `add_dir_grants_access_not_cwd`: `--add-dir` grants filesystem access but not process cwd; remote copilot resolved `.github/skills/*/SKILL.md` against `C:\Users\copilot\Documents` and never saw the delegated tree. Fix: `Set-Location -Path $W` inside the Start-Job scriptblock (`bfca3abf`).
+2. `cmd_shim_newline_truncation`: `copilot.cmd` batch shim routes through cmd.exe, which splits argv at newlines; multi-line prompts were cut at the first `n. Fix: dispatch via `copilot.ps1` (native PowerShell argv, `543ab54e`).
+3. `windows_argv_multiline_truncation`: even via `copilot.ps1`, Windows CommandLineToArgvW does not preserve unquoted newlines end-to-end into node.exe's argv; copilot complained about "extra words treated as separate arguments" and exited 1. Fix: wrapper writes the full prompt to `<worktree>/.lan-delegate/prompt.md` and passes a single-line ASCII pointer as `-p` (`9c25a8cd`). Cleanup rides on the worktree teardown.
+
+**Known constraint (out of scope for FR-948, documented for successors):** on this host, a wrapper runtime approaching WSMan's OperationTimeout window (~30 s per RECEIVE) or prompts exceeding ~1500 bytes triggered `Code 1359: An internal error occurred.` The mac side surfaces this as `WINRM_CONNECT_FAIL` with an accurate `transport` error. Tuning belongs to a follow-up (raise `MaxMemoryPerShellMB`, `MaxProcessesPerShell`, or `winrm/config/service/OperationTimeoutMs` on the target). The channel itself is proven; the quota is host-configuration.
+
+**Prerequisite provisioning (one-time, out of scope for FR-948):**
+
+- ACL on `C:\Images\yamlgraph-delegations\`: the `copilot` account needs `Modify` (see the developer-operations doc's safe-invocation checklist).
+- Canonical clone at `C:\Users\copilot\yamlgraph` (bootstrapped via the FR-948 evidence spike; token-in-git-config incident diary recorded).
+
+## Judgement (second draft rendered 2026-09-01)
+
+Draft: `tmp/draft-judgement.md`. Verdict: **APPROVED WITH REVISIONS** (R-1..R-5). This revision folds all five and adds AC-18 + AC-19 witnesses. Re-judgement to run before enforcement authority activates.
