@@ -50,7 +50,9 @@ class DelegationRequest(BaseModel):
     # O-1 as amended: free-form owner/name; the checkout PAT's grant set is
     # the sole target authorization boundary (unreadable repo => CHECKOUT_FAIL).
     repo: str = Field(default=DEFAULT_REPO, pattern=REPO_PATTERN)
-    max_reported_credits: int = Field(gt=0, le=MAX_REPORTED_CREDITS)
+    max_reported_credits: int = Field(
+        default=MAX_REPORTED_CREDITS, gt=0, le=MAX_REPORTED_CREDITS
+    )
 
 
 class DelegationStatus(str, Enum):

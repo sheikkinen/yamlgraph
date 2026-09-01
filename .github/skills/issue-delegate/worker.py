@@ -8,6 +8,7 @@ any publication API or runner stdout (third judgement R-4).
 from __future__ import annotations
 
 import importlib.util
+import json
 import re
 import sys
 from pathlib import Path
@@ -181,3 +182,156 @@ def verify_artifact(task, path: Path) -> None:
         raise models.ArtifactError(f"artifact empty: {path}")
     if task is models.Task.JUDGE and not _VERDICT_LINE.search(body):
         raise models.ArtifactError(f"judge artifact has no verdict line: {path}")
+
+
+# ---------------------------------------------------------------------------
+# CLI — the workflow steps and submit.sh call these same entrypoints (AC-15)
+# ---------------------------------------------------------------------------
+
+
+def _cmd_validate_payload(argv: list[str]) -> int:
+    if len(argv) != 2:
+        print("usage: worker.py validate-payload <task> <payload>", file=sys.stderr)
+        return 2
+    try:
+        task = models.Task(argv[0])
+        validate_payload(task, argv[1])
+    except (ValueError, models.RequestValidationError) as exc:
+        print(f"payload refused: {exc}", file=sys.stderr)
+        return 1
+    return 0
+
+
+def _cmd_parse_issue(argv: list[str]) -> int:
+    if len(argv) != 1:
+        print("usage: worker.py parse-issue <event.json>", file=sys.stderr)
+        return 2
+    event = json.loads(Path(argv[0]).read_text(encoding="utf-8"))
+    try:
+        request = parse_issue_body(event["issue"]["body"])
+        validate_payload(request.task, request.payload)
+    except (KeyError, models.RequestValidationError) as exc:
+        print(f"INVALID_REQUEST: {exc}", file=sys.stderr)
+        return 1
+    print(f"task={request.task.value}")
+    print(f"repo={request.repo}")
+    print(f"sha={request.sha}")
+    print(f"payload={request.payload}")
+    print(f"max_reported_credits={request.max_reported_credits}")
+    return 0
+
+
+_COMMANDS = {
+    "validate-payload": _cmd_validate_payload,
+    "parse-issue": _cmd_parse_issue,
+    "resolve": None,  # bound below
+}
+
+
+_ARTIFACTS = {
+    "judge": "tmp/draft-judgement.md",
+    "research": "tmp/draft-alternatives.md",
+}
+
+_CHUNK_HEADER = "<!-- delegation output part {i}/{n} -->"
+
+
+def _cmd_resolve(argv: list[str]) -> int:
+    """Cleanup-side resolution: verify, redact, credits, status precedence.
+
+    Runs after payload termination and before any publication (AC-13);
+    writes redacted comment chunks and the final status for the workflow's
+    publication steps — the single redaction boundary (R-4).
+    """
+    import argparse
+    import os
+
+    ap = argparse.ArgumentParser(prog="worker.py resolve")
+    ap.add_argument("--task", required=True)
+    ap.add_argument("--result-json", required=True)
+    ap.add_argument("--capture", required=True)
+    ap.add_argument("--out-dir", required=True)
+    ap.add_argument("--target-dir", default="target")
+    a = ap.parse_args(argv)
+    task = models.Task(a.task)
+
+    result_path = Path(a.result_json)
+    job = json.loads(result_path.read_text()) if result_path.is_file() else {}
+    capture_path = Path(a.capture)
+    raw_text = (
+        decode_capture(capture_path.read_bytes()) if capture_path.is_file() else ""
+    )
+    secrets = [
+        v
+        for k, v in os.environ.items()
+        if v and (k.startswith("DELEGATE_") or k in ("GH_TOKEN", "GITHUB_TOKEN"))
+    ]
+    observed: list[models.DelegationStatus] = []
+
+    timeout_status = resolve_timeout_truth(
+        inner_deadline_fired=bool(job.get("inner_deadline_fired")),
+        job_active_processes=int(job.get("job_active_processes", 0)),
+        surviving_pids=list(job.get("surviving_pids", [])),
+    )
+    if timeout_status is not models.DelegationStatus.OK:
+        observed.append(timeout_status)
+    if job.get("exit_code", 1) != 0:
+        observed.append(models.DelegationStatus.PAYLOAD_NONZERO)
+
+    artifact_path = Path(a.target_dir) / _ARTIFACTS[task.value]
+    artifact_body: str | None = None
+    if not artifact_path.is_file():
+        observed.append(models.DelegationStatus.ARTIFACT_MISSING)
+    else:
+        try:
+            verify_artifact(task, artifact_path)
+            artifact_body = artifact_path.read_text(encoding="utf-8")
+        except models.ArtifactError:
+            observed.append(models.DelegationStatus.ARTIFACT_INVALID)
+
+    credits = job.get("reported_credits")
+    if credits is not None:
+        try:
+            if float(credits) > models.MAX_REPORTED_CREDITS:
+                observed.append(models.DelegationStatus.CREDIT_FAIL_HIGH)
+        except (TypeError, ValueError):
+            observed.append(models.DelegationStatus.CREDIT_FAIL_UNPARSEABLE)
+
+    # Literal configured secret in worker-controlled output (pre-redaction).
+    leak = check_artifact_for_leak(raw_text + (artifact_body or ""), secrets=secrets)
+    if leak is not None:
+        observed.append(leak)
+        artifact_body = None  # artifact is never posted on a leak
+
+    status = models.resolve_status(observed)
+    out = Path(a.out_dir)
+    out.mkdir(parents=True, exist_ok=True)
+    redacted = redact(raw_text, secrets=secrets)
+    index = 0
+    for chunk in chunk_output(redacted, header_template=_CHUNK_HEADER):
+        (out / f"comment-{index:03d}.md").write_text(chunk, encoding="utf-8")
+        index += 1
+    if artifact_body is not None and status is models.DelegationStatus.OK:
+        for chunk in chunk_output(
+            redact(artifact_body, secrets=secrets),
+            header_template="<!-- delegation artifact part {i}/{n} -->",
+        ):
+            (out / f"comment-{index:03d}.md").write_text(chunk, encoding="utf-8")
+            index += 1
+    (out / "status.txt").write_text(status.value, encoding="utf-8")
+    print(f"status={status.value}")
+    return 0
+
+
+_COMMANDS["resolve"] = _cmd_resolve
+
+
+def main(argv: list[str]) -> int:
+    if not argv or argv[0] not in _COMMANDS:
+        print(f"usage: worker.py {{{'|'.join(_COMMANDS)}}} ...", file=sys.stderr)
+        return 2
+    return _COMMANDS[argv[0]](argv[1:])
+
+
+if __name__ == "__main__":
+    raise SystemExit(main(sys.argv[1:]))

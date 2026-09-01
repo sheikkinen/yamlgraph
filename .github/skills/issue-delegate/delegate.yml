@@ -1,0 +1,178 @@
+# Canonical FR-949 delegation workflow — source of truth (REQ-YG-637).
+# Deployed to the comms repo as .github/workflows/delegate.yml by
+# sync-worker.sh; the deployed diff receives separate human review before
+# live use (GATE C-2). Live witnesses: AC-16 (judge), AC-17 (inner timeout).
+name: delegate
+
+on:
+  issues:
+    types: [labeled]
+
+permissions:
+  contents: read
+  issues: write
+
+# One payload at a time (AC-02); a queued run must never cancel a live one.
+concurrency:
+  group: delegate-worker
+  cancel-in-progress: false
+
+jobs:
+  delegate:
+    # Read-only authorization before any mutation (AC-07): delegate label,
+    # committed author allowlist; github-actions and the worker service
+    # identity (huutokauppakone-svc) are excluded — the recursion guard.
+    # A refused author leaves only this skipped run as the audit record:
+    # no issue mutation, no claim, no payload, no DelegationStatus.
+    if: >-
+      github.event.label.name == 'delegate' &&
+      contains(fromJSON('["sheikkinen"]'), github.event.issue.user.login) &&
+      github.event.issue.user.login != 'github-actions' &&
+      github.event.issue.user.login != 'huutokauppakone-svc'
+    runs-on: [self-hosted, Windows, delegate]
+    # Outer platform kill switch ONLY — an outer cancellation is
+    # PLATFORM_CANCELLED (Actions-owned), never published as typed TIMEOUT.
+    # The typed deadline is the 25-minute inner deadline in windows_job.ps1.
+    timeout-minutes: 30
+    env:
+      DELEGATION_ISSUE: ${{ github.event.issue.number }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Checkout comms repo (worker bundle)
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Claim — label swap + identity comment
+        id: claim
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh issue edit "$DELEGATION_ISSUE" --repo "$GITHUB_REPOSITORY" \
+            --remove-label delegate --add-label claimed
+          {
+            echo "Claimed by run ${GITHUB_RUN_ID} on runner ${RUNNER_NAME}."
+            echo ""
+            echo "- comms workflow sha: ${GITHUB_SHA}"
+            echo "- bundle hash: $(git hash-object .github/delegate/worker.py)"
+            echo "- utc: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          } > tmp_claim.md
+          gh issue comment "$DELEGATION_ISSUE" --repo "$GITHUB_REPOSITORY" \
+            --body-file tmp_claim.md
+
+      - name: Validate request (typed refusal before any target checkout)
+        id: validate
+        shell: bash
+        run: |
+          set -euo pipefail
+          python .github/delegate/worker.py parse-issue "$GITHUB_EVENT_PATH" \
+            >> "$GITHUB_OUTPUT"
+
+      - name: Checkout target at pinned SHA
+        id: checkout-target
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ steps.validate.outputs.repo }}
+          ref: ${{ steps.validate.outputs.sha }}
+          token: ${{ secrets.DELEGATE_CHECKOUT_PAT }}
+          persist-credentials: false
+          path: target
+          fetch-depth: 0
+
+      - name: Credential isolation preflight (AC-08)
+        id: credential-preflight
+        shell: bash
+        env:
+          TASK: ${{ steps.validate.outputs.task }}
+          PAYLOAD: ${{ steps.validate.outputs.payload }}
+          SHA: ${{ steps.validate.outputs.sha }}
+        run: |
+          set -euo pipefail
+          # SHA ancestry against the freshly fetched default branch.
+          cd target
+          default_ref=$(git symbolic-ref --short refs/remotes/origin/HEAD \
+            || echo origin/main)
+          git merge-base --is-ancestor "$SHA" "$default_ref"
+          test "$(git rev-parse HEAD)" = "$SHA"
+          # No persisted credential may survive into the payload environment.
+          if git config --get-regexp 'http\..*\.extraheader' ; then
+            echo "CREDENTIAL_ISOLATION_FAIL: extraheader persisted" >&2; exit 1
+          fi
+          if git config --get core.askpass || git config --get credential.helper; then
+            echo "CREDENTIAL_ISOLATION_FAIL: credential helper present" >&2; exit 1
+          fi
+          if env GH_TOKEN= GITHUB_TOKEN= gh auth status 2>/dev/null; then
+            echo "CREDENTIAL_ISOLATION_FAIL: gh auth usable" >&2; exit 1
+          fi
+          git config --show-origin --list | sed 's/AUTHORIZATION.*/[REDACTED]/'
+          # Payload exists at the pinned SHA and passes the worker normalizer.
+          cd "$GITHUB_WORKSPACE"
+          python .github/delegate/worker.py validate-payload "$TASK" "$PAYLOAD"
+          git -C target cat-file -e "HEAD:$PAYLOAD"
+
+      - name: Run payload under Job Object (25-min inner deadline, AC-11)
+        id: payload
+        shell: powershell
+        env:
+          YAMLGRAPH_DELEGATED: "1"
+          TASK: ${{ steps.validate.outputs.task }}
+          PAYLOAD: ${{ steps.validate.outputs.payload }}
+        run: |
+          powershell -ExecutionPolicy Bypass -File .github/delegate/windows_job.ps1 `
+            -Task $env:TASK `
+            -Payload $env:PAYLOAD `
+            -TargetDir target `
+            -ResultJson tmp_job_result.json `
+            -CaptureFile tmp_capture.log
+
+      - name: Resolve result — cleanup, verify, redact, status precedence
+        id: resolve
+        if: ${{ always() }}
+        shell: bash
+        env:
+          TASK: ${{ steps.validate.outputs.task }}
+        run: |
+          set -euo pipefail
+          # Checkout removal + volatile credential cleanup precede publication;
+          # artifact verification, redaction, credit interpretation, and status
+          # precedence all complete before any terminal mutation (AC-13).
+          python .github/delegate/worker.py resolve \
+            --task "$TASK" \
+            --result-json tmp_job_result.json \
+            --capture tmp_capture.log \
+            --out-dir tmp_publish
+          rm -rf target
+
+      - name: Publish comments — full redacted output + artifact chunks (O-2)
+        id: publish-comments
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          # All worker-controlled bytes crossed worker.py redact() in resolve;
+          # this step only posts prepared files, never interpolates payload
+          # output or issue bodies (R-4).
+          for f in tmp_publish/comment-*.md; do
+            [ -e "$f" ] || continue
+            gh issue comment "$DELEGATION_ISSUE" --repo "$GITHUB_REPOSITORY" \
+              --body-file "$f"
+          done
+
+      - name: Terminal mutation — one atomic label swap + close
+        id: terminal-mutation
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Runs only if every comment posted (a comment failure fails the
+          # previous step and skips this one — COMMENT_POST_FAIL can never
+          # close an issue as done).
+          status=$(cat tmp_publish/status.txt)
+          if [ "$status" = "OK" ]; then
+            gh issue edit "$DELEGATION_ISSUE" --repo "$GITHUB_REPOSITORY" \
+              --remove-label claimed --add-label done
+            gh issue close "$DELEGATION_ISSUE" --repo "$GITHUB_REPOSITORY"
+          else
+            gh issue edit "$DELEGATION_ISSUE" --repo "$GITHUB_REPOSITORY" \
+              --remove-label claimed --add-label failed
+          fi
