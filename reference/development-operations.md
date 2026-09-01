@@ -123,6 +123,7 @@ report, and the human (or automation policy) decides:
 | `LMSTUDIO_BASE_URL` | LM Studio local server URL |
 | `LAN_RECON_USER` | Bare Windows local-account username for the LAN recon skill (FR-945). Recon qualifies as `<COMPUTERNAME>\<user>` before the WinRM handshake; already-qualified or domain-shaped values are refused in v1. |
 | `LAN_RECON_PASS` | Password for `LAN_RECON_USER`. Scrubbed from every recon exception, log record, and JSON artifact. |
+| `GH_TOKEN` | GitHub personal-access token minted for the remote `copilot` account, used by the `.github/skills/lan-delegate/` skill (FR-948). Forwarded as a bound wrapper parameter, exported to the remote `copilot` CLI subshell as `$env:GH_TOKEN`, and redacted from every captured stdout/stderr byte and every artifact before the summary leaves the remote. Never printed. |
 | `AZURE_AI_ENDPOINT` | Azure AI Foundry endpoint URL |
 | `AZURE_AI_API_KEY` | Azure AI API key |
 | `AZURE_MODEL` | Default Azure model/deployment name (default: `gpt-4o`) |
@@ -177,3 +178,57 @@ python .github/skills/lan-recon/recon.py 192.168.50.172 \
 - `tmp/lan/*.json` is git-ignored.
 
 Option B (HTTPS 5986 + certificates) is the correct end state; it requires a separate FR to provision the listener + certificate and is not in this skill's scope.
+
+## LAN Copilot delegation (WinRM) — FR-948, REQ-YG-636
+
+The `.github/skills/lan-delegate/` skill hands off a self-contained Copilot task to a pre-provisioned Windows host over WinRM 5985 and returns a Pydantic-validated `LanDelegationResult`. It **mutates** the remote host (git worktree add, `copilot` CLI subprocess, artifact write to SMB drop) — treat every knob as a load-bearing security boundary.
+
+### Preconditions
+
+1. FR-945 recon receipt at `tmp/lan/<host-slug>.json` no older than `RECON_MAX_AGE_MIN_DEFAULT` (10 min) with `admin=False`, `remote_management_user=True`.
+2. Pre-provisioned remote runtime (Node 24 LTS, `@github/copilot` on `PATH`, canonical clone at `C:\Users\copilot\yamlgraph`). Delegation itself does **not** install anything.
+3. Local worktree clean (`git status --porcelain` empty). Delegation refuses on a dirty tree so the remote SHA matches something reproducible.
+4. Not already inside a delegation (`YAMLGRAPH_LAN_DELEGATED` unset) — recursive delegation is refused.
+
+### Client-side environment
+
+`LAN_RECON_USER` and `LAN_RECON_PASS` (shared with recon) plus `GH_TOKEN` (see Key Environment Variables above). All three must be present at invocation.
+
+### Invocation
+
+```bash
+python .github/skills/lan-delegate/delegate.py \
+    --host Huutokauppakone.local \
+    --prompt-file tmp/analyze.md \
+    --run-id analyze-20260901T120000Z-abc1234 \
+    [--max-reported-credits 60] \
+    [--timeout-s 300]
+```
+
+`--run-id` must match `^[A-Za-z0-9._-]+$` (safe for both POSIX paths and SMB shares). `--prompt-file` is capped at 32 KiB.
+
+### Risk envelope
+
+- **Tool authority**: the remote invocation uses `--allow-all-tools --add-dir <run-worktree>`; the remote `copilot` process can read/write anywhere the `copilot` account can. Do not point delegation at a host that also stores personal state.
+- **Token exposure**: `GH_TOKEN` is bound as a wrapper parameter (never on the command line), exported to the CLI subshell as `$env:GH_TOKEN`, and byte-scanned out of stdout/stderr and every emitted artifact before the summary crosses the wire. A `TOKEN_LEAK_DETECTED` result means a leak reached the local cache (revoke immediately).
+- **Deadline**: `--timeout-s` is a wrapper-owned deadline enforced by `Wait-Job` + `taskkill /PID <root> /T /F`. WinRM's own `operation_timeout` (deadline + 60 s cleanup margin) is a safety net, not the killer.
+- **Cleanup**: outer `finally` in the wrapper always removes the per-run worktree and clears `GH_TOKEN`, `YAMLGRAPH_LAN_DELEGATED`, and `COPILOT_ALLOW_ALL` from the session. A `WORKTREE_CLEANUP_FAIL` status is a bug to fix, not a warning to ignore.
+
+### Post-run cost accounting
+
+`copilot` prints an `AI Credits used: <n>` line to stderr. `--max-reported-credits` (default 60) is a **post-run policy check**, not a spend cap — the run is already billed by the time the wrapper sees the number. Compare `credit_status ∈ {OK, HIGH, UNPARSEABLE}` against the run intent.
+
+### Transport contract
+
+Identical to recon Option A (see above), plus:
+
+- `operation_timeout = --timeout-s + 60 s` (WSMAN cleanup margin).
+- Username is qualified to `<COMPUTERNAME>\<LAN_RECON_USER>` — the same qualification rule as recon.
+
+### Safe invocation checklist
+
+1. Recon receipt fresh and clean.
+2. `.env` has `LAN_RECON_USER`, `LAN_RECON_PASS`, `GH_TOKEN`.
+3. Local worktree clean; local HEAD SHA pushed to a ref the remote canonical clone can fetch (`git fetch --all` on the remote before invocation).
+4. Prompt is self-contained — no relative paths outside the delegated worktree.
+5. Expected `delegation_policy_status = OK`; any other value is an incident, not a warning.
