@@ -43,6 +43,17 @@ validates intent, not code.
    classes. If no validation can run, state exactly why.
 4. **Check the gates**: every GATE condition in the governing
    judgement must be satisfied or explicitly addressed.
+5. **Apply the scriptability test**: every deliverable the change
+   punts as "human-owned", "manual precondition", or "operator
+   runbook step" must be challenged. If the act is expressible as a
+   script run by a logged-in user (API call, CLI invocation,
+   `--unattended` installer, secret provisioning via `gh secret set`),
+   the missing script is a missing deliverable — a blocking finding,
+   not a documentation note. Legitimately human-owned acts are the
+   residue that no credential-bearing script can perform: typing a
+   password at a console, a review judgement, a merge decision, a
+   physical-witness observation (FR-949: "human-owned C-7/C-8" hid a
+   missing Windows installer and a scriptable secret provision).
 
 ## Verdict taxonomy
 

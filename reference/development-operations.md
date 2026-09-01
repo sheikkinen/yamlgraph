@@ -254,8 +254,11 @@ babysitting interventions for 10 eligible runs or 30 UTC days) lives in the FR.
 
 ### Secrets and credential isolation
 
-- `DELEGATE_CHECKOUT_PAT` (comms-repo Actions secret): Contents-read PAT
+- `DELEGATE_CHECKOUT_PAT` (comms-repo Actions secret): checkout credential
   used ONLY by the target checkout step with `persist-credentials: false`.
+  Provisioned scripted from the logged-in gh token
+  (`install-runner.ps1`: `gh auth token | gh secret set`); the token's
+  grant set is the sole target authorization boundary (O-1 as amended).
 - Payload preflight proves no PAT bytes, extraheader, credential helper,
   askpass, or usable `gh auth` before launch — any failure is
   `CREDENTIAL_ISOLATION_FAIL` before the payload starts.
@@ -276,6 +279,8 @@ value is issue-controlled.
 ### Operator runbook
 
 ```bash
+# one-time host install: runner service + secret provisioning (run ON the worker host)
+powershell -ExecutionPolicy Bypass -File .github/skills/issue-delegate/install-runner.ps1
 # health + drift, never submits
 .github/skills/issue-delegate/submit.sh --check-worker
 # submit a judge payload from a clean, pushed HEAD

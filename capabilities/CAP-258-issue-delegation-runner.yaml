@@ -7,6 +7,7 @@ modules:
   - .github/skills/issue-delegate/models.py
   - .github/skills/issue-delegate/worker.py
   - .github/skills/issue-delegate/windows_job.ps1
+  - .github/skills/issue-delegate/install-runner.ps1
   - .github/skills/issue-delegate/delegate.yml
   - .github/skills/issue-delegate/sync-worker.sh
   - .github/skills/issue-delegate/submit.sh

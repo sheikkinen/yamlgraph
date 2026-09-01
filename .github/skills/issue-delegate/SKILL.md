@@ -75,13 +75,24 @@ Frozen paths: `delegate.yml` → `.github/workflows/delegate.yml`;
 deployed comms-repo diff receives separate human review before live use
 (GATE C-2). Every submission fails closed on drift.
 
-## Operational preconditions (human-owned, C-7/C-8)
+## Host installation (scripted C-7/C-8)
 
-Windows service runner registered on Huutokauppakone; service-account
-preflight (restart survival, Git Bash runs `scripts/judge.sh` and
-`scripts/research.sh`, Copilot CLI authenticated, Python deps resolve);
-`DELEGATE_CHECKOUT_PAT` secret (Contents-read; its grant set is the sole
-target authorization boundary per amended O-1). Live witnesses: AC-16
-(real judge run), AC-17 (inner-timeout with test-only deadline override).
+Runner registration and secret provisioning are scripted acts with a
+logged-in `gh` — run once on the worker host:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File install-runner.ps1
+```
+
+`install-runner.ps1` verifies the toolchain (gh auth, git, Git Bash,
+Copilot CLI), provisions `DELEGATE_CHECKOUT_PAT` on the comms repo from
+the logged-in gh token (`gh auth token | gh secret set` — the token's
+grant set is the sole target authorization boundary per amended O-1),
+mints a registration token via the API, installs the runner as a Windows
+service (`config.cmd --unattended --runasservice`, labels
+`self-hosted,Windows,delegate`), and verifies it online. The only truly
+human-owned residue: typing the service logon password at the console,
+GATE C-2 diff review, and the live witnesses AC-16 (real judge run) /
+AC-17 (inner-timeout with test-only deadline override).
 
 Reference: `reference/development-operations.md` → Issue-queue delegation.
