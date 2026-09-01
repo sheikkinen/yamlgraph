@@ -30,7 +30,11 @@ req: REQ-YG-636
   (--add-dir grants access, not cwd; caught by live AC-20 witness). Wrapper
   dispatches via `copilot.ps1` (PowerShell-native argv) instead of the
   `.cmd` shim: cmd.exe splits argv at newlines and truncated multi-line
-  prompts at the first `n (caught by live status-check witness). 36 offline tests
-  (13 scaffold + 23 wire) plus live AC-19 timeout witness (`taskkill /T /F`
+  prompts at the first `n (caught by live status-check witness). Wrapper
+  persists the full prompt to `<worktree>/.lan-delegate/prompt.md` and passes
+  a single-line ASCII pointer as `-p`: even via `copilot.ps1`, Windows argv
+  couldn't preserve a multi-line `-p` (CLI complained about "extra words
+  treated as separate arguments"; caught by live rerun). 37 offline tests
+  (13 scaffold + 24 wire) plus live AC-19 timeout witness (`taskkill /T /F`
   ended a 5 s-deadline hang, no worktree remnants, no zombies, credits=6.6
   billed before kill). (REQ-YG-636)

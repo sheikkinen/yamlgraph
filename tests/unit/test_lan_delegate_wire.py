@@ -178,6 +178,21 @@ def test_wrapper_invokes_ps1_entrypoint_not_cmd_shim():
     ), "wrapper must not dispatch through cmd.exe (argv truncation on newline)"
 
 
+@pytest.mark.req("REQ-YG-636")
+def test_wrapper_writes_prompt_to_file_and_passes_pointer():
+    """Live-witnessed: Windows argv cannot preserve multi-line -p even via
+    copilot.ps1 (CLI complained about 'extra words treated as separate
+    arguments'). Wrapper must persist the full prompt to a file inside the
+    worktree and pass a single-line ASCII pointer as -p."""
+    text = WRAPPER_PATH.read_text(encoding="utf-8")
+    assert ".lan-delegate" in text, "wrapper must define the prompt file directory"
+    assert "prompt.md" in text, "wrapper must write prompt to prompt.md"
+    assert (
+        "WriteAllBytes" in text and "$Prompt" in text
+    ), "wrapper must persist $Prompt bytes to disk"
+    assert "$pointerPrompt" in text, "wrapper must define a pointerPrompt variable"
+
+
 # --- delegate.py pre-launch refusals ----------------------------------------
 
 # Delegate imports pypsrp at call time. Skip these tests entirely if the

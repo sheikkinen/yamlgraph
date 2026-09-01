@@ -1939,19 +1939,19 @@ The ID ranges are:
 - **Penance**: FR-948 — literal list-form argv, no shell, no user interpolation. `workdir` is a `pathlib.Path` derived from `os.cwd()` (never a caller-supplied argument), and `git` is the standard system-wide tool the FR-945 recon precondition confirms is on PATH; same idiom as CONF-441/442.
 
 ### CONF-447
-- **File**: [tests/unit/test_lan_delegate_wire.py](../tests/unit/test_lan_delegate_wire.py#L543)
+- **File**: [tests/unit/test_lan_delegate_wire.py](../tests/unit/test_lan_delegate_wire.py#L558)
 - **Code**: S105
 - **Sin**: `assert ps.parameters["Token"] == "gho_test_token_1234"` — ruff flags the string literal as a possible hardcoded password.
 - **Penance**: FR-948 — the string is a test fixture proving the WinRM `Token` parameter carries the byte value delegate.py received from the mocked environment. It is a synthetic identifier that starts with the `gho_` prefix so the redaction-test path exercises the actual byte pattern; no real credential material.
 
 ### CONF-448
-- **File**: [tests/unit/test_lan_delegate_wire.py](../tests/unit/test_lan_delegate_wire.py#L196)
+- **File**: [tests/unit/test_lan_delegate_wire.py](../tests/unit/test_lan_delegate_wire.py#L211)
 - **Code**: E402
 - **Sin**: `import lan_delegate_pkg.errors as errors` after top-level executable code (the `_load("delegate")` call earlier in the file).
 - **Penance**: FR-948 — the `.github/skills/lan-delegate/` directory has a dashed package name that cannot be imported statically. The dynamic `_load()` helper materializes it under `lan_delegate_pkg` in `sys.modules`; the E402-flagged import must run AFTER that materialization to see the same class instances delegate.py raises/instantiates. Static import order is impossible here; the wire tests would otherwise trip pydantic's two-module-instances validation error.
 
 ### CONF-449
-- **File**: [tests/unit/test_lan_delegate_wire.py](../tests/unit/test_lan_delegate_wire.py#L197)
+- **File**: [tests/unit/test_lan_delegate_wire.py](../tests/unit/test_lan_delegate_wire.py#L212)
 - **Code**: E402
 - **Sin**: `import lan_delegate_pkg.models as models` — same delayed-import pattern as CONF-448.
 - **Penance**: FR-948 — identical rationale; `LanDelegationRequest` and `LanDelegationResult` referenced in the tests must be the same class instances the delegate module uses, which requires the dynamic package materialization to run first.

@@ -182,17 +182,28 @@ try {
         return
     }
 
+    # --- write prompt to a file inside the worktree ------------------------
+    # Windows argv splits multi-line strings across whitespace boundaries even
+    # with quoting; the CLI's `-p <text>` cannot receive newlines reliably.
+    # Solution: land the full prompt as a file in the delegated tree and pass a
+    # one-line pointer as -p. cwd=$worktreePath (below) makes the relative
+    # path resolve.
+    $promptDir = Join-Path $worktreePath '.lan-delegate'
+    New-Item -ItemType Directory -Path $promptDir -Force -EA SilentlyContinue | Out-Null
+    $promptFile = Join-Path $promptDir 'prompt.md'
+    [System.IO.File]::WriteAllBytes($promptFile, [System.Text.Encoding]::UTF8.GetBytes($Prompt))
+    $pointerPrompt = 'Read .lan-delegate/prompt.md relative to your current working directory and follow its instructions exactly. Do not restate or summarise the instructions.'
+
     # --- start copilot in a Job (in-memory capture, argv preserved) ---------
-    $job = Start-Job -ArgumentList $Token, $Prompt, $worktreePath -ScriptBlock {
+    $job = Start-Job -ArgumentList $Token, $pointerPrompt, $worktreePath -ScriptBlock {
         param($T, $P, $W)
         $env:GH_TOKEN = $T
         $env:COPILOT_ALLOW_ALL = '1'
         $env:YAMLGRAPH_LAN_DELEGATED = '1'
-        # cwd=$W so `.github/skills/*/SKILL.md` resolves relative to the delegated worktree;
+        # cwd=$W so `.github/skills/*/SKILL.md` and `.lan-delegate/prompt.md` resolve;
         # --add-dir alone grants access, not cwd.
         Set-Location -Path $W
-        # Invoke the PowerShell entrypoint (copilot.ps1), not the .cmd shim: cmd.exe splits argv
-        # at newlines, truncating multi-line prompts at the first `n. PS-native dispatch preserves argv.
+        # Single-line ASCII prompt: argv-safe on Windows.
         & 'C:\Program Files\nodejs\copilot.ps1' -p $P --allow-all-tools --add-dir $W 2>&1
         "COPILOT_EXIT_CODE=$LASTEXITCODE"
     }
