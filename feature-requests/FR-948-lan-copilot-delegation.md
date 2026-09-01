@@ -78,6 +78,7 @@ Enumerated typed classes raised by `delegate.py` **before** WinRM connect or whe
 - `StaleReconError` — receipt older than `RECON_MAX_AGE_MIN`.
 - `ReconDisqualifyingFieldError` — `admin=True`, `remote_management_users_member=False`, or typed `errors` on receipt-relevant fields.
 - `MissingCredentialError` — `GH_TOKEN` unset or empty.
+- `UnsafeHostError` — host string fails FR-945's DNS/IP grammar (mDNS name / IPv4 / IPv6, RFC1918/CGN/link-local allowlist), OR receipt's `requested_target` does not match the CLI `--host` argument. Reuses FR-945's canonical-safe-slug rules; refusal occurs before receipt access, DNS, WinRM, or file creation.
 - `PromptFileError(reason: "missing" | "not_utf8" | "too_large")`.
 - `UnsafeRunIdError`.
 - `LocalPathCollisionError(path: str)`.
@@ -102,28 +103,61 @@ Wrapper `wrapper.ps1` (fixed, committed, ASCII, no interpolation of caller-contr
 5. **Worktree create** (typed status on failure): `git -C C:\Users\copilot\yamlgraph worktree add --detach $worktreePath $LocalSha`. On failure emit `WORKTREE_ADD_FAIL` + typed error.
 6. **remote_sha capture** (R-1): `git -C $worktreePath rev-parse HEAD` → `$remoteSha`. Assert `$remoteSha -eq $LocalSha` in the emitted result.
 7. **Output dir** (typed status): `New-Item -ItemType Directory -Path "$worktreePath\.delegate-out"`. On failure `OUTPUT_DIR_CREATE_FAIL`.
-8. **Wrapper-owned deadline** (R-2, core):
+8. **Wrapper-owned deadline** (R-2 + R-1 + R-3, core). PowerShell 5.1-safe launch that (a) preserves `$Prompt` as one argv value, (b) captures stdout/stderr in memory (never raw to disk), (c) tracks the root PID for full-tree termination:
    ```powershell
    $env:GH_TOKEN = $Token
    $env:COPILOT_ALLOW_ALL = '1'
    $env:YAMLGRAPH_LAN_DELEGATED = '1'   # recursive-delegation marker (R-5)
-   $proc = Start-Process 'C:\Program Files\nodejs\copilot.cmd' `
-       -ArgumentList @('-p', $Prompt, '--allow-all-tools', '--add-dir', $worktreePath) `
-       -RedirectStandardOutput $stdout `
-       -RedirectStandardError  $stderr `
-       -NoNewWindow -PassThru
-   $ok = $proc.WaitForExit($TimeoutS * 1000)
-   if (-not $ok) {
-       # Kill the FULL process tree, not just copilot.cmd.
-       Get-CimInstance Win32_Process -Filter "ParentProcessId=$($proc.Id)" | ForEach-Object {
-           try { Stop-Process -Id $_.ProcessId -Force -EA SilentlyContinue } catch {}
-       }
-       try { Stop-Process -Id $proc.Id -Force -EA SilentlyContinue } catch {}
-       $status = 'TIMEOUT'; $timedOut = $true
+   $MAX_CAPTURE_BYTES = 4 * 1024 * 1024
+
+   # PS 5.1 job pattern: & operator preserves $Prompt as ONE child argv value
+   # (the pattern the spike converged on after Start-Process failed).
+   # Job output is captured in-memory via Receive-Job -- NOT redirected to disk.
+   $job = Start-Job -ArgumentList $Token, $Prompt, $worktreePath -ScriptBlock {
+       param($Tok, $Prm, $Wt)
+       $env:GH_TOKEN = $Tok
+       $env:COPILOT_ALLOW_ALL = '1'
+       $env:YAMLGRAPH_LAN_DELEGATED = '1'
+       & 'C:\Program Files\nodejs\copilot.cmd' `
+           -p $Prm `
+           --allow-all-tools `
+           --add-dir $Wt 2>&1
+   }
+   # Track the root PID for taskkill (Job's ChildJobs[0].JobStateInfo exposes it in PS 5.1).
+   Start-Sleep -Milliseconds 500  # let the job spawn its worker process
+   $rootPid = (Get-Process powershell -EA SilentlyContinue |
+               Where-Object { $_.StartTime -gt (Get-Date).AddSeconds(-2) } |
+               Select-Object -First 1).Id
+   $ok = Wait-Job -Job $job -Timeout $TimeoutS
+   if ($null -eq $ok) {
+       # DEADLINE HIT: full process-tree kill via taskkill /T /F.
+       $kill = & taskkill /PID $rootPid /T /F 2>&1
+       $killOk = ($LASTEXITCODE -eq 0)
+       Stop-Job -Job $job -EA SilentlyContinue
+       $status = if ($killOk) { 'TIMEOUT' } else { 'PROCESS_TREE_KILL_FAIL' }
+       $timedOut = $true
+       $capturedRaw = Receive-Job -Job $job -Keep -EA SilentlyContinue
    } else {
-       $status = if ($proc.ExitCode -eq 0) { 'OK' } else { 'COPILOT_NONZERO' }
+       $capturedRaw = Receive-Job -Job $job -EA SilentlyContinue
+       $childExit = $ok.ChildJobs[0].JobStateInfo.Reason  # in PS 5.1, exit propagates via State/JobStateInfo
+       $status = if ($job.State -eq 'Completed') { 'OK' } else { 'COPILOT_NONZERO' }
        $timedOut = $false
    }
+   Remove-Job -Job $job -Force -EA SilentlyContinue
+
+   # R-3: enforce max capture size; oversized -> fail closed, tree-kill, status OUTPUT_CAPTURE_FAIL.
+   $rawBytes = [System.Text.Encoding]::UTF8.GetBytes(($capturedRaw -join "`n"))
+   if ($rawBytes.Length -gt $MAX_CAPTURE_BYTES) {
+       & taskkill /PID $rootPid /T /F 2>&1 | Out-Null
+       $status = 'OUTPUT_CAPTURE_FAIL'
+   }
+
+   # R-3: redact literal $Token bytes IN MEMORY before any filesystem write.
+   $tokenBytes = [System.Text.Encoding]::UTF8.GetBytes($Token)
+   $redacted = $capturedRaw -join "`n"
+   if ($tokenBytes.Length -gt 0) { $redacted = $redacted.Replace($Token, '<TOKEN>') }
+   # ONLY the redacted content is written to disk.
+   Set-Content -Path $stdoutLog -Value $redacted -Encoding UTF8
    ```
 9. **Byte-level token scan on artifacts** (R-4): for every file rooted beneath `$worktreePath\.delegate-out`, read raw bytes; if `$Token` byte sequence is present, do NOT copy, record `TOKEN_LEAK_DETECTED` + the file path, mark overall status `TOKEN_LEAK_DETECTED` and CLI non-zero.
 10. **Redact stdout/stderr** before persistence: literal `$Token` bytes removed from both streams before write to `$stdout`/`$stderr` log files.
@@ -173,11 +207,15 @@ Wrapper `wrapper.ps1` (fixed, committed, ASCII, no interpolation of caller-contr
 | `message` | `str` | human-readable |
 | `error_type` | `Literal["absent","malformed","version_too_low","path_taken","access_denied","probe_timeout","unknown"]` | closed enum |
 
-`DelegationPolicyStatus` (closed enum, R-3):
+`DelegationPolicyStatus` (closed enum, R-3 + R-4):
 
-`OK`, `PREFLIGHT_FAIL`, `WORKTREE_ADD_FAIL`, `OUTPUT_DIR_CREATE_FAIL`, `WRAPPER_EXEC_FAIL`, `COPILOT_NONZERO`, `TIMEOUT`, `CREDIT_FAIL_HIGH`, `CREDIT_FAIL_UNPARSEABLE`, `WRAPPER_JSON_MALFORMED`, `ARTIFACT_COPY_FAIL`, `WORKTREE_CLEANUP_FAIL`, `TOKEN_LEAK_DETECTED`, `SMB_DEST_EXISTS`.
+`OK`, `PREFLIGHT_FAIL`, `WINRM_CONNECT_FAIL`, `WINRM_AUTH_FAIL`, `WINRM_TRANSPORT_TIMEOUT`, `WORKTREE_ADD_FAIL`, `OUTPUT_DIR_CREATE_FAIL`, `WRAPPER_EXEC_FAIL`, `COPILOT_NONZERO`, `TIMEOUT`, `PROCESS_TREE_KILL_FAIL`, `OUTPUT_CAPTURE_FAIL`, `CREDIT_FAIL_HIGH`, `CREDIT_FAIL_UNPARSEABLE`, `WRAPPER_JSON_MALFORMED`, `ARTIFACT_COPY_FAIL`, `WORKTREE_CLEANUP_FAIL`, `TOKEN_LEAK_DETECTED`, `SMB_DEST_EXISTS`.
 
-**Precedence on multiple failures** (R-3): `TOKEN_LEAK_DETECTED` > `WRAPPER_JSON_MALFORMED` > `TIMEOUT` > `WORKTREE_ADD_FAIL` > `OUTPUT_DIR_CREATE_FAIL` > `WRAPPER_EXEC_FAIL` > `SMB_DEST_EXISTS` > `COPILOT_NONZERO` > `CREDIT_FAIL_HIGH` > `CREDIT_FAIL_UNPARSEABLE` > `ARTIFACT_COPY_FAIL` > `WORKTREE_CLEANUP_FAIL` > `OK`. The highest-severity status observed is the recorded `delegation_policy_status`; others surface in `errors`.
+**Precedence on multiple failures** (R-4, every enum member appears exactly once):
+
+`TOKEN_LEAK_DETECTED` > `PROCESS_TREE_KILL_FAIL` > `WRAPPER_JSON_MALFORMED` > `OUTPUT_CAPTURE_FAIL` > `TIMEOUT` > `WORKTREE_ADD_FAIL` > `OUTPUT_DIR_CREATE_FAIL` > `WRAPPER_EXEC_FAIL` > `WINRM_AUTH_FAIL` > `WINRM_CONNECT_FAIL` > `WINRM_TRANSPORT_TIMEOUT` > `PREFLIGHT_FAIL` > `SMB_DEST_EXISTS` > `COPILOT_NONZERO` > `CREDIT_FAIL_HIGH` > `CREDIT_FAIL_UNPARSEABLE` > `ARTIFACT_COPY_FAIL` > `WORKTREE_CLEANUP_FAIL` > `OK`.
+
+**Phase invariants**: `WINRM_CONNECT_FAIL`, `WINRM_AUTH_FAIL`, `WINRM_TRANSPORT_TIMEOUT` → `prerequisites=None`, `copilot_exit_code=None`, `remote_sha=None`, `artifact_root=None`. `PREFLIGHT_FAIL` → `prerequisites` present (marks the failure), `copilot_exit_code=None`. `WORKTREE_ADD_FAIL` or later → `prerequisites` present, `remote_sha` present iff worktree was created before failure.
 
 `LanDelegationRequest`:
 
@@ -211,9 +249,10 @@ Wrapper `wrapper.ps1` (fixed, committed, ASCII, no interpolation of caller-contr
 | `credit_status` | `Literal["OK","FAIL_HIGH","FAIL_UNPARSEABLE","NOT_APPLICABLE"]` | required |
 | `tokens_up` | `int \| None` | parsed |
 | `tokens_down` | `int \| None` | parsed |
-| `artifacts` | `list[Path]` | files that passed byte-scan and were copied to SMB drop |
-| `stdout_path` | `Path` | redacted UTF-8 log |
-| `stderr_path` | `Path` | redacted UTF-8 log |
+| `artifacts` | `list[str]` | root-relative POSIX-style paths beneath `artifact_root` (e.g. `analysis.md`); mac-side callers join with `artifact_root` to open |
+| `artifact_root` | `str \| None` | Windows UNC path `\\<host>\Images\yamlgraph-delegations\<run-id>`; `None` for statuses where no artifact copy was attempted (see phase invariants) |
+| `stdout_path` | `Path` | mac-local UTF-8 log at `tmp/lan/delegate/<host-slug>/<run-id>.stdout.log`; redacted before write |
+| `stderr_path` | `Path` | mac-local UTF-8 log at `tmp/lan/delegate/<host-slug>/<run-id>.stderr.log`; redacted before write |
 | `errors` | `list[FieldError]` | all typed errors observed across phases |
 
 ### 7. Test list (offline; no real DNS, socket, WinRM, SMB, or Copilot)
@@ -242,7 +281,22 @@ Two real Huutokauppakone runs recorded in this FR body once implementation lands
 
 **AC-19 skill-loading witness**: `delegate.py --host Huutokauppakone.local --prompt-file tmp/analyze.md --run-id analyze-<utc>-<sha>` where `tmp/analyze.md` invokes the repository's [run-code-analysis skill](../.github/skills/run-code-analysis/SKILL.md) via natural language ("Use the run-code-analysis skill to produce a bounded code-quality summary of yamlgraph/utils/llm_factory.py and drop the result to .delegate-out/analysis.md"). Records: matched `local_sha == remote_sha`, `delegation_policy_status=OK`, credit report parsed, observable Copilot output naming the selected skill (parsed from stdout), artifact `.delegate-out/analysis.md` shape specific to `run-code-analysis` (not just a shell command echo). Proves the `--add-dir` skill-loading path that the spike did not exercise.
 
-### 9. Governance (§ R-6 from prior fold, retained; scope frozen to D-1..D-8 per judgement)
+### 9. Scope frozen (D-1..D-8, mirrored from judgement C-8)
+
+| Deliverable | Surface |
+|---|---|
+| D-1 | `.github/skills/lan-delegate/SKILL.md`, `delegate.py`, `models.py`, `wrapper.ps1` implementing the folded boundary |
+| D-2 | `tests/unit/test_lan_delegate.py` and narrowly scoped sanitized fixtures for argv, result schemas, output capture, lifecycle, and status precedence |
+| D-3 | `capabilities/CAP-257-lan-copilot-delegation.yaml`, `REQ-YG-636` markers, and generated `ARCHITECTURE.md` traceability |
+| D-4 | `reference/development-operations.md` LAN-delegation subsection and commented `.env.sample` placeholder |
+| D-5 | `changelog/unreleased/fr-948-lan-copilot-delegation.md` and `changelog/unreleased/fr-948-retire-fr947.md` |
+| D-6 | `feature-requests/FR-948-lan-copilot-delegation.md`, including folded revisions, implementation status, and sanitized AC-19/AC-20 command/result evidence |
+| D-7 | `feature-requests/FR-947-remote-pytest-delegation.md` supersession bookkeeping only |
+| D-8 | `docs/diary/2026-09-XX-fr948-copilot-delegation.md` reflection with a `Seed:` |
+
+**Not authorized**: changes to FR-945 schema or implementation; changes to CAP-30 or YAMLGraph's Copilot node; graphs or prompts; source transfer, clone, fetch, installation, service/policy/firewall/group mutation, resume, fleet scheduling, local fallback, or graph-level budget enforcement; CI, hooks, judge/review doctrine, Chaplain, unrelated dependencies, or any file outside D-1..D-8. Remote prerequisites remain inspected preconditions, never repaired by this feature.
+
+### 10. Governance (retained from prior fold)
 
 - New `capabilities/CAP-257-lan-copilot-delegation.yaml` + new `REQ-YG-636`. Registers all D-1 surfaces. Strict `req_coverage` passes. Generated `ARCHITECTURE.md` section committed.
 - Two changelog fragments: `changelog/unreleased/fr-948-lan-copilot-delegation.md` (feat) and `changelog/unreleased/fr-948-retire-fr947.md` (removal).
@@ -262,28 +316,30 @@ Two real Huutokauppakone runs recorded in this FR body once implementation lands
 
 **Answered 2026-09-01: YES (acceptable). "We'll operate this via copilot nodes / yamlgraph — timeout is the cap."** The preventive cap is the **wrapper-owned process-tree deadline** (§ 5 step 8). Wall-clock exhaustion terminates the tracked process and its children on the remote (proven by AC-18 witness against Huutokauppakone). Reported credits are diagnostic evidence, not a preventive budget. FR-948 does not add graph-level spend gating; that's a future capability yamlgraph copilot nodes can provide on top.
 
-## Acceptance Criteria (20, per judge's revised list)
+## Acceptance Criteria (22, per judge's third-round revised list)
 
-- [ ] **AC-01** FR retains 5 solution classes (§ R-1) with preserved disagreement; every retrieval hit dispositioned in "Prior art"; the reconciled "not a graph; consumed by graphs" answer; **contrib/example** strategic classification recorded.
-- [ ] **AC-02** Every spike-attributed claim is bounded by `FR-948-spike-evidence.md:79-99`. FR does NOT attribute repository workload, timeout termination, Python provisioning, or `--add-dir` skill loading to the spike.
+- [ ] **AC-01** FR retains 5 solution classes (§ R-1) with preserved disagreement; every retrieval hit dispositioned in "Prior art"; the reconciled "not a graph; consumed by graphs" answer; **Contrib/example** strategic classification recorded.
+- [ ] **AC-02** Every spike-attributed claim is bounded by `FR-948-spike-evidence.md:79-99`. FR does NOT attribute repository workload, deadline-based process termination, Python provisioning, or `--add-dir` skill loading to the spike.
 - [ ] **AC-03** FR-945 is a precondition ONLY; consumes committed receipt fields; reuses `pypsrp>=0.9,<1.0`; does not modify FR-945.
-- [ ] **AC-04** `LanDelegationRequest`, `ToolInfo`, `RepoInfo`, `RemoteCopilotPrerequisites`, `LanDelegationResult`, `FieldError`, `DelegationPolicyStatus`, and all named pre-launch exception classes (§ 4) are completely specified and Pydantic-implemented; no untyped boundary.
-- [ ] **AC-05** Local validation refuses missing/stale/disqualifying receipt, missing `GH_TOKEN`, dirty tree, invalid host/run ID, unsafe/colliding local paths, missing/non-UTF-8/oversized prompt BEFORE DNS/WinRM/file write.
-- [ ] **AC-06** Remote preflight verifies git present, node major ≥ 22, copilot CLI + version parseable, canonical clone `contains_sha=True`, `run_worktree_free=True`, `smb_destination_free=True` — before worktree create or Copilot invocation.
-- [ ] **AC-07** Successful run records `local_sha` and independently reads `remote_sha` from the detached run worktree; Pydantic model + tests require exact equality (`sha_matched=True`) for `delegation_policy_status=OK`.
-- [ ] **AC-08** Client construction uses FR-945 pinned address with exact `auth="negotiate"`, `encryption="always"`, `ssl=False`, `port=5985`, finite `connection_timeout`, and `operation_timeout == timeout_s + WSMAN_CLEANUP_MARGIN_S`. Basic + CredSSP + downstream DNS re-resolution are absent.
-- [ ] **AC-09** Prompt + token cross WinRM only through bound parameters; absent from script literals. Copilot invoked with `--allow-all-tools --add-dir <run-worktree>`; `--allow-all-paths` absent.
-- [ ] **AC-10** Wrapper owns a process deadline shorter than the outer WSMan timeout, kills the tracked process tree on expiry, executes cleanup (worktree remove + token clear), returns validated `TIMEOUT` result.
-- [ ] **AC-11** Only files rooted beneath the new run's `.delegate-out` are eligible for SMB copy; SMB destination must be absent before launch; two concurrent runs + a stale-destination case prove exact attribution.
-- [ ] **AC-12** Byte-level scan of every candidate artifact for exact `GH_TOKEN` bytes; on match: skip, record typed `TOKEN_LEAK_DETECTED`, non-zero CLI. stdout/stderr redacted BEFORE persistence. FR retains dated human acknowledgement that transformed/encoded exfiltration is not prevented.
-- [ ] **AC-13** Every post-WinRM failure phase has a typed `DelegationPolicyStatus`, deterministic precedence (§ 6), non-zero CLI, validated `LanDelegationResult`; malformed wrapper output alone permits `prerequisites=None`.
-- [ ] **AC-14** Reported credits are post-run diagnostics only; missing/malformed/over-threshold → policy fail while preserving non-secret artifacts; no hard-cap or bounded-cost claim.
-- [ ] **AC-15** v1 has NO `--resume`, source transfer, fetch, clone, installation, service/policy/firewall/group mutation, fleet abstraction, local fallback, or graph-level budget. Committed-source regex scan enforces the forbidden wrapper operations.
-- [ ] **AC-16** Wrapper propagates `YAMLGRAPH_LAN_DELEGATED=1` in Copilot child env; both `delegate.py` and `SKILL.md` refuse recursive LAN delegation; offline tests prove refusal occurs before receipt loading or WinRM.
-- [ ] **AC-17** Offline tests cover ALL input, transport, preflight, lifecycle, status-precedence, redaction, timeout, collision, concurrency, cleanup, and recursion seams — without real DNS, socket, WinRM, SMB, or Copilot.
-- [ ] **AC-18** Real short-timeout Huutokauppakone run proves process-tree termination, no remaining run worktree, validated `TIMEOUT`, non-zero CLI, literal-token non-persistence. Command + result recorded in FR body.
-- [ ] **AC-19** Real success run loads the named `run-code-analysis` skill through `--add-dir <run-worktree>`, executes a bounded representative static-analysis workload, returns skill-specific artifact shape, records observable skill selection, matched local/remote SHAs, run/worktree IDs, exit/policy/credit states, elapsed, exact artifact list. Command + result recorded in FR body.
-- [ ] **AC-20** CAP-257/REQ-YG-636 + strict `req_coverage` + generated `ARCHITECTURE.md` + SKILL.md frontmatter + `reference/development-operations.md` + `.env.sample` + two changelog fragments + FR-947 supersession + implementation status + diary reflection all committed. **No file outside D-1..D-8 changes.**
+- [ ] **AC-04** All request, prerequisite, result, error, status, and pre-launch-exception models named in the folded schema (including `UnsafeHostError`, `PROCESS_TREE_KILL_FAIL`, `OUTPUT_CAPTURE_FAIL`, `WINRM_CONNECT_FAIL`, `WINRM_AUTH_FAIL`, `WINRM_TRANSPORT_TIMEOUT`, `artifact_root`) are Pydantic-implemented with invariants; no untyped boundary crosses from receipt/wrapper JSON into control flow.
+- [ ] **AC-05** Local validation rejects unsafe host, host/receipt mismatch, missing/stale/disqualifying receipt, missing token, dirty tree, unsafe run ID, path collision, and missing/non-UTF-8/oversized prompt BEFORE DNS, WinRM, or file write.
+- [ ] **AC-06** Remote preflight verifies git, Node major >= 22, Copilot path/version, canonical clone SHA availability, free run worktree, and free SMB destination before worktree creation or Copilot invocation.
+- [ ] **AC-07** A successful run records independently obtained `local_sha` and `remote_sha`; `OK` requires exact equality (`sha_matched=True`).
+- [ ] **AC-08** Client uses receipt's pinned address, `auth="negotiate"`, `encryption="always"`, HTTP 5985, finite connect timeout, outer `operation_timeout == timeout_s + WSMAN_CLEANUP_MARGIN_S`. Basic + CredSSP + downstream DNS re-resolution absent.
+- [ ] **AC-09** Prompt + token cross WinRM only as bound parameters; PowerShell 5.1 job-based launcher preserves `$Prompt` as ONE child argv value for every R-1 edge-case fixture (whitespace, quotes, backticks, CR/LF, trailing backslashes, non-ASCII, prompt starting with `--allow-all-paths`). Only the frozen Copilot flags appear in the reconstructed child argv.
+- [ ] **AC-10** Wrapper-owned deadline is shorter than outer WSMan timeout; timeout uses checked `taskkill /PID <rootPid> /T /F`; `TIMEOUT` requires proven full-tree termination; kill failure is typed `PROCESS_TREE_KILL_FAIL` and outranks `TIMEOUT`.
+- [ ] **AC-11** Process-tree termination, worktree removal, and token clearing execute in an outer `finally`; every cleanup failure is typed and retained in `errors`, never silently caught.
+- [ ] **AC-12** Child stdout/stderr captured as bounded in-memory bytes via `Start-Job` + `Receive-Job` (no `-RedirectStandardOutput`/`-RedirectStandardError` to filesystem paths); literal `$Token` bytes redacted in memory BEFORE any diagnostic file write. Over-limit captures fail closed with `OUTPUT_CAPTURE_FAIL`, tree-kill, cleanup. Committed-source scan on `wrapper.ps1` asserts no filesystem redirection.
+- [ ] **AC-13** Only byte-scanned files rooted beneath the new run's `.delegate-out` are eligible for SMB copy; SMB destination must be absent before launch; two concurrent runs + stale-destination case prove exact attribution. Token-matching artifacts are skipped with `TOKEN_LEAK_DETECTED`.
+- [ ] **AC-14** Every attempted-WinRM failure has validated result, non-zero CLI, typed error, one closed-enum `DelegationPolicyStatus`; ALL statuses occur exactly once in precedence table; nullable fields obey phase invariants (see § 6 phase invariants).
+- [ ] **AC-15** Credit parsing is post-run diagnostics only; missing/malformed/over-threshold reports fail policy while preserving clean artifacts; no preventive credit/budget claim.
+- [ ] **AC-16** v1 has NO `--resume`, source transfer, fetch, clone, installation, host mutation, fleet abstraction, local fallback, or graph-level budget. Committed-source regex scan on `wrapper.ps1` rejects: `winget`, `npm i`, `pip install`, `git clone`, `git fetch`, `Add-WindowsCapability`, `wsl --install`, `Set-Service`, `New-NetFirewallRule`, group-membership mutation.
+- [ ] **AC-17** `YAMLGRAPH_LAN_DELEGATED=1` reaches Copilot child env; both `delegate.py` and `SKILL.md` refuse recursion BEFORE receipt loading or WinRM.
+- [ ] **AC-18** Offline tests cover ALL input, argv, transport, preflight, schema invariant, status, precedence, capture/redaction, deadline, process-tree, collision, concurrency, cleanup, and recursion seams without real DNS, sockets, WinRM, SMB, or Copilot.
+- [ ] **AC-19** Real short-timeout Huutokauppakone run: workload creates a named long-lived descendant process; wrapper records tracked root PID and observed descendant PIDs (no credentials); follow-up WinRM query proves every recorded PID absent, run worktree absent, `YAMLGRAPH_LAN_DELEGATED`/`GH_TOKEN` env absent, zero literal-token bytes in `stdout_path`/`stderr_path`/`artifacts`. Records: CLI non-zero, `delegation_policy_status=TIMEOUT`, `remote_sha=local_sha`, `timed_out=True`.
+- [ ] **AC-20** Real success Huutokauppakone run: prompt contains spaces + punctuation (single/double quotes, brackets, `--allow-all-paths` as a substring) to prove R-1 argv integrity; invokes named `run-code-analysis` skill through `--add-dir <run-worktree>`; returns skill-specific artifact (analysis.md content shape specific to run-code-analysis, not just a shell echo). Records: observable skill selection in Copilot output, matched local/remote SHAs, run/worktree IDs, exit/policy/credit states, elapsed, `artifact_root`, exact `artifacts` list. Sanitized command+result recorded in FR body.
+- [ ] **AC-21** CAP-257/REQ-YG-636 + strict `req_coverage` + generated `ARCHITECTURE.md` + SKILL.md frontmatter + `reference/development-operations.md` LAN-delegation subsection + `.env.sample` `GH_TOKEN=` + two changelog fragments (feat + removal) + FR-947 supersession header + implementation status + diary reflection all committed.
+- [ ] **AC-22** The diff for this arc changes NO file outside D-1..D-8 (§ 9 table). Committed-source scan verifies.
 
 ## Alternatives Considered
 
