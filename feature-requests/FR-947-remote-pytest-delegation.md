@@ -1,8 +1,12 @@
 # Feature Request: Remote pytest delegation via pytest-xdist SSH gateway
 
+> **STATUS: SUPERSEDED-BY [FR-948](FR-948-lan-copilot-delegation.md) (2026-09-01).**
+>
+> Empirical spike 2026-09-01T04:28:52Z proved a delegation channel that requires none of this FR's infrastructure (OpenSSH.Server install, WSL2 provisioning, Python 3.11/3.13 pyenv, SSH key distribution, rsync scaffolding). The remote box self-provisions its own runtime under `copilot -p "..." --allow-all-tools`. FR-948 replaces this FR; retained here as precedent for the subtractionist retirement pattern (Scripture `growth_as_default` cure).
+
 **Priority:** HIGH
 **Type:** Feature
-**Status:** Proposed
+**Status:** Superseded-by FR-948
 **Effort:** 2 days
 **Requested:** 2026-09-01
 **First consumer / first event:** the next agent about to run the full unit suite when another agent's suite is already in flight on the same iMac. **First event:** the next pre-commit run that would push the box past load average 8 on 12 threads — witnessed today with the operator reporting "concurrent agent sessions … more or less freeze the system."
