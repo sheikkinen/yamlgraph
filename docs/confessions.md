@@ -1955,3 +1955,15 @@ The ID ranges are:
 - **Code**: E402
 - **Sin**: `import lan_delegate_pkg.models as models` — same delayed-import pattern as CONF-448.
 - **Penance**: FR-948 — identical rationale; `LanDelegationRequest` and `LanDelegationResult` referenced in the tests must be the same class instances the delegate module uses, which requires the dynamic package materialization to run first.
+
+### CONF-450
+- **File**: [.github/skills/issue-delegate/models.py](../.github/skills/issue-delegate/models.py#L64)
+- **Code**: S105
+- **Sin**: `TOKEN_LEAK_DETECTED = "TOKEN_LEAK_DETECTED"` — ruff flags the enum value as a possible hardcoded password.
+- **Penance**: FR-949 — the string is a closed-enum status literal naming the leak-detection outcome, mirroring CAP-257's identical member (CONF pattern from FR-948); no credential material.
+
+### CONF-451
+- **File**: [.github/skills/issue-delegate/worker.py](../.github/skills/issue-delegate/worker.py#L67)
+- **Code**: S506
+- **Sin**: `yaml.load(blocks[0], Loader=_StrictLoader)` — ruff cannot see that `_StrictLoader` is safe.
+- **Penance**: FR-949 — `_StrictLoader` subclasses `yaml.SafeLoader` solely to refuse duplicate mapping keys (AC-04); `yaml.safe_load` cannot express duplicate-key refusal, and the loader adds no constructors beyond the safe set.
