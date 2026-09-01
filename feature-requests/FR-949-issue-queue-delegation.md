@@ -163,3 +163,26 @@ Second-judgement base with third-judgement R-1/R-2/R-4 folds and operator overri
 | D-6 | `changelog/unreleased/fr-949-issue-delegation-runner.md` |
 | D-7 | This FR: folded revisions, implementation status, comms commit/bundle identity, sanitized Windows witnesses |
 | D-8 | `docs/diary/2026-09-XX-fr949-runner-delegation.md` with a `Seed:` |
+
+## Implementation Status (rev 6, 2026-09-01 — offline enforcement complete)
+
+TDD proof trail on `feat/fr949-enforce`:
+
+| Commit | Phase | Content |
+|---|---|---|
+| dcc18e1e | plan | FR rev 5 — C-1 satisfied, O-1 amended free-form, authority active |
+| c241a719 | RED | `tests/unit/test_issue_delegate.py` (46 witnesses) + CAP-258 + regenerated ARCHITECTURE.md |
+| 49129be4 | GREEN | `models.py` + `worker.py` core (typed boundary, statuses, redaction, chunking); CONF-450/451 |
+| e1e6f061 | RED | `tests/unit/test_issue_delegate_bundle.py` (31 witnesses: workflow shape, submit refusals, sync, CLI, ps1 static contract) |
+| 3a33b60c | GREEN | `delegate.yml`, `submit.sh`, `sync-worker.sh`, `windows_job.ps1`, worker CLI (parse-issue/validate-payload/resolve) |
+| 73f23546 | docs | SKILL.md (D-1) + development-operations subsection (D-5) |
+
+77 offline tests green, all `@pytest.mark.req("REQ-YG-637")`, no network/real gh/host mutation (AC-15). Deliverables D-1..D-8: D-1..D-6 committed; D-7 this section; D-8 diary accompanies the PR.
+
+**Decisions / deviations:**
+- `max_reported_credits` gained `default=60` (worker max) so minimal issue bodies validate; worker max remains authoritative (§ 2 contract unchanged in effect).
+- `worker.py` grew a small CLI (`parse-issue`, `validate-payload`, `resolve`) — the workflow steps and `submit.sh` invoke the SAME entrypoints the tests exercise (AC-15); `resolve` performs cleanup-side verification/redaction/chunking/status precedence before any publication (AC-13).
+- `windows_job.ps1` static contract is offline-tested by marker/parameter assertions only; its behavioral truth (suspended launch, Job Object kill verification, TIMEOUT truth) is deliberately deferred to the AC-17 live witness — an offline mock would be a unit test in an E2E costume.
+- `submit.sh` exports `PYTHONDONTWRITEBYTECODE=1` so the normalizer run cannot dirty the tree it is about to check.
+
+**Pending (human-owned gates, unchanged):** GATE C-2 deployed comms-diff review; C-7/C-8 Windows service runner registration, `DELEGATE_CHECKOUT_PAT` creation, service-account Copilot auth; live witnesses AC-16/AC-17; coexistence record (AC-18) accrues after go-live. Comms deployment identity will be recorded here at each deployment (bundle head at authoring: 73f23546).
