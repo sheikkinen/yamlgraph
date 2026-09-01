@@ -156,15 +156,26 @@ def test_wrapper_sets_cwd_to_worktree_before_invoking_copilot():
     wrapper must `Set-Location` to the run worktree before invoking it.
     Without this the skill invocation silently searches the wrong tree."""
     text = WRAPPER_PATH.read_text(encoding="utf-8")
-    # Set-Location must appear inside the Start-Job scriptblock, before
-    # the copilot.cmd invocation.
     set_loc_idx = text.find("Set-Location -Path $W")
-    copilot_call_idx = text.find("& 'C:\\Program Files\\nodejs\\copilot.cmd'")
+    copilot_call_idx = text.find("& 'C:\\Program Files\\nodejs\\copilot.ps1'")
     assert set_loc_idx != -1, "wrapper must Set-Location to $W"
-    assert copilot_call_idx != -1, "wrapper must invoke copilot.cmd"
+    assert copilot_call_idx != -1, "wrapper must invoke copilot.ps1"
     assert (
         set_loc_idx < copilot_call_idx
-    ), "Set-Location must precede copilot.cmd invocation"
+    ), "Set-Location must precede copilot.ps1 invocation"
+
+
+@pytest.mark.req("REQ-YG-636")
+def test_wrapper_invokes_ps1_entrypoint_not_cmd_shim():
+    """Live-witnessed: cmd.exe splits argv on newlines, truncating multi-line
+    prompts at the first `n. The wrapper must dispatch via copilot.ps1 so
+    PowerShell argv preserves the full prompt as one value."""
+    text = WRAPPER_PATH.read_text(encoding="utf-8")
+    assert "copilot.ps1" in text, "wrapper must use the .ps1 entrypoint"
+    # No live-execution reference to the .cmd shim (constant name COPILOT_CMD stays).
+    assert (
+        "'C:\\Program Files\\nodejs\\copilot.cmd'" not in text
+    ), "wrapper must not dispatch through cmd.exe (argv truncation on newline)"
 
 
 # --- delegate.py pre-launch refusals ----------------------------------------

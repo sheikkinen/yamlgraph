@@ -27,7 +27,10 @@ req: REQ-YG-636
   package name (relative imports fall through unchanged when loaded as a
   package). Wrapper `Set-Location $W` before the copilot invocation so
   `.github/skills/*/SKILL.md` resolves against the delegated worktree
-  (--add-dir grants access, not cwd; caught by live AC-20 witness). 35 offline tests
-  (13 scaffold + 22 wire) plus live AC-19 timeout witness (`taskkill /T /F`
+  (--add-dir grants access, not cwd; caught by live AC-20 witness). Wrapper
+  dispatches via `copilot.ps1` (PowerShell-native argv) instead of the
+  `.cmd` shim: cmd.exe splits argv at newlines and truncated multi-line
+  prompts at the first `n (caught by live status-check witness). 36 offline tests
+  (13 scaffold + 23 wire) plus live AC-19 timeout witness (`taskkill /T /F`
   ended a 5 s-deadline hang, no worktree remnants, no zombies, credits=6.6
   billed before kill). (REQ-YG-636)

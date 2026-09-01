@@ -43,7 +43,7 @@ $MAX_CAPTURE_BYTES = 4 * 1024 * 1024
 $CANONICAL_CLONE   = 'C:\Users\copilot\yamlgraph'
 $WORKTREE_ROOT     = 'C:\Users\copilot\yamlgraph-runs'
 $SMB_DROP_ROOT     = 'C:\Images\yamlgraph-delegations'
-$COPILOT_CMD       = 'C:\Program Files\nodejs\copilot.cmd'
+$COPILOT_CMD       = 'C:\Program Files\nodejs\copilot.ps1'
 
 $worktreePath = Join-Path $WORKTREE_ROOT $RunId
 $smbDest      = Join-Path $SMB_DROP_ROOT $RunId
@@ -191,8 +191,9 @@ try {
         # cwd=$W so `.github/skills/*/SKILL.md` resolves relative to the delegated worktree;
         # --add-dir alone grants access, not cwd.
         Set-Location -Path $W
-        # PS 5.1: & operator preserves $P as ONE child argv value.
-        & 'C:\Program Files\nodejs\copilot.cmd' -p $P --allow-all-tools --add-dir $W 2>&1
+        # Invoke the PowerShell entrypoint (copilot.ps1), not the .cmd shim: cmd.exe splits argv
+        # at newlines, truncating multi-line prompts at the first `n. PS-native dispatch preserves argv.
+        & 'C:\Program Files\nodejs\copilot.ps1' -p $P --allow-all-tools --add-dir $W 2>&1
         "COPILOT_EXIT_CODE=$LASTEXITCODE"
     }
 
