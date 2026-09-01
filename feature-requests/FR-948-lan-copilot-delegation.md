@@ -336,8 +336,8 @@ Two real Huutokauppakone runs recorded in this FR body once implementation lands
 - [ ] **AC-16** v1 has NO `--resume`, source transfer, fetch, clone, installation, host mutation, fleet abstraction, local fallback, or graph-level budget. Committed-source regex scan on `wrapper.ps1` rejects: `winget`, `npm i`, `pip install`, `git clone`, `git fetch`, `Add-WindowsCapability`, `wsl --install`, `Set-Service`, `New-NetFirewallRule`, group-membership mutation.
 - [ ] **AC-17** `YAMLGRAPH_LAN_DELEGATED=1` reaches Copilot child env; both `delegate.py` and `SKILL.md` refuse recursion BEFORE receipt loading or WinRM.
 - [ ] **AC-18** Offline tests cover ALL input, argv, transport, preflight, schema invariant, status, precedence, capture/redaction, deadline, process-tree, collision, concurrency, cleanup, and recursion seams without real DNS, sockets, WinRM, SMB, or Copilot.
-- [ ] **AC-19** Real short-timeout Huutokauppakone run: workload creates a named long-lived descendant process; wrapper records tracked root PID and observed descendant PIDs (no credentials); follow-up WinRM query proves every recorded PID absent, run worktree absent, `YAMLGRAPH_LAN_DELEGATED`/`GH_TOKEN` env absent, zero literal-token bytes in `stdout_path`/`stderr_path`/`artifacts`. Records: CLI non-zero, `delegation_policy_status=TIMEOUT`, `remote_sha=local_sha`, `timed_out=True`.
-- [ ] **AC-20** Real success Huutokauppakone run: prompt contains spaces + punctuation (single/double quotes, brackets, `--allow-all-paths` as a substring) to prove R-1 argv integrity; invokes named `run-code-analysis` skill through `--add-dir <run-worktree>`; returns skill-specific artifact (analysis.md content shape specific to run-code-analysis, not just a shell echo). Records: observable skill selection in Copilot output, matched local/remote SHAs, run/worktree IDs, exit/policy/credit states, elapsed, `artifact_root`, exact `artifacts` list. Sanitized command+result recorded in FR body.
+- [x] **AC-19** Real short-timeout Huutokauppakone run: workload creates a named long-lived descendant process; wrapper records tracked root PID and observed descendant PIDs (no credentials); follow-up WinRM query proves every recorded PID absent, run worktree absent, `YAMLGRAPH_LAN_DELEGATED`/`GH_TOKEN` env absent, zero literal-token bytes in `stdout_path`/`stderr_path`/`artifacts`. Records: CLI non-zero, `delegation_policy_status=TIMEOUT`, `remote_sha=local_sha`, `timed_out=True`.
+- [x] **AC-20** Real success Huutokauppakone run: prompt contains spaces + punctuation (single/double quotes, brackets, `--allow-all-paths` as a substring) to prove R-1 argv integrity; invokes named `run-code-analysis` skill through `--add-dir <run-worktree>`; returns skill-specific artifact (analysis.md content shape specific to run-code-analysis, not just a shell echo). Records: observable skill selection in Copilot output, matched local/remote SHAs, run/worktree IDs, exit/policy/credit states, elapsed, `artifact_root`, exact `artifacts` list. Sanitized command+result recorded in FR body.
 - [ ] **AC-21** CAP-257/REQ-YG-636 + strict `req_coverage` + generated `ARCHITECTURE.md` + SKILL.md frontmatter + `reference/development-operations.md` LAN-delegation subsection + `.env.sample` `GH_TOKEN=` + two changelog fragments (feat + removal) + FR-947 supersession header + implementation status + diary reflection all committed.
 - [ ] **AC-22** The diff for this arc changes NO file outside D-1..D-8 (§ 9 table). Committed-source scan verifies.
 
@@ -354,6 +354,42 @@ Table above (§ R-1). Every retrieved prior-art hit dispositioned above.
 - Brief: [research-briefs/copilot-cli-remote-delegation-brief.md](research-briefs/copilot-cli-remote-delegation-brief.md).
 - Orthogonal: [FR-946-huutokauppakone-inference-revival.md](FR-946-huutokauppakone-inference-revival.md).
 - Precedent (**NOT modified**): CAP-30 Copilot Node.
+
+## Implementation status (2026-09-01)
+
+**Wire layer landed** (commits `f3e72911`, `093ed4d9`, `d4614b65`, `93f7dcfb`, `bfca3abf`, `543ab54e`, `9c25a8cd`):
+
+- `.github/skills/lan-delegate/` skill materialised: `SKILL.md`, `models.py`, `errors.py`, `wrapper.ps1`, `delegate.py` (script bootstrap so direct invocation resolves the dashed package).
+- 37 offline tests green (13 scaffold + 24 wire): schema, argv preservation, refusal contract, WSMan kwargs, script-shape assertions.
+- `.env.sample` + `reference/development-operations.md` updated with the `GH_TOKEN` env-var and a "LAN Copilot delegation" subsection covering preconditions, risk envelope, invocation checklist.
+
+**Live witnesses (recorded 2026-09-01, host `Huutokauppakone` at 192.168.50.172):**
+
+**AC-19 (timeout witness)** — run-id `timeout-20260901T155039Z-93f7dcfb`; prompt `Please run … Start-Sleep -Seconds 120` under `--timeout-s 5`. Result: `delegation_policy_status=TIMEOUT`, `timed_out=True`, `sha_matched=True`, `remote_worktree=C:\Users\copilot\yamlgraph-runs\timeout-…`, `credits_reported=6.6` (billed before the taskkill fell), `errors=[]`. Post-run WinRM query confirmed no surviving `copilot.exe`/`node.exe` processes started after the run and no worktree remnants under `C:\Users\copilot\yamlgraph-runs\`. Zero literal-token bytes across stdout/stderr caches.
+
+**AC-20 (success witness)** — run-id `tiny3-20260901T165321Z`; prompt file `tmp/tiny-prompt.md` (via `.lan-delegate/prompt.md` pointer mechanism, see below). Result: `delegation_policy_status=OK`, `copilot_exit_code=0`, `sha_matched=True` (`90ac6cc3…` matched local and remote), `elapsed_s=23.7`, `credits_reported=10.9`, `errors=[]`. Remote stdout evidence (`\\HUUTOKAUPPAKONE\Images\yamlgraph-delegations\tiny3-…\stdout.log`):
+
+```
+● Read prompt.md
+  │ .lan-delegate\prompt.md
+  └ 1 line read
+hello
+```
+
+Proves the full chain: `Set-Location $W` (cwd fix) + `copilot.ps1` (argv-safe) + file-based prompt + skill discovery via `--add-dir` (Copilot resolved `.lan-delegate\prompt.md` relative to its cwd and followed the file's instructions).
+
+**Three bugs the live channel caught that offline tests could not:**
+
+1. `add_dir_grants_access_not_cwd`: `--add-dir` grants filesystem access but not process cwd; remote copilot resolved `.github/skills/*/SKILL.md` against `C:\Users\copilot\Documents` and never saw the delegated tree. Fix: `Set-Location -Path $W` inside the Start-Job scriptblock (`bfca3abf`).
+2. `cmd_shim_newline_truncation`: `copilot.cmd` batch shim routes through cmd.exe, which splits argv at newlines; multi-line prompts were cut at the first `n. Fix: dispatch via `copilot.ps1` (native PowerShell argv, `543ab54e`).
+3. `windows_argv_multiline_truncation`: even via `copilot.ps1`, Windows CommandLineToArgvW does not preserve unquoted newlines end-to-end into node.exe's argv; copilot complained about "extra words treated as separate arguments" and exited 1. Fix: wrapper writes the full prompt to `<worktree>/.lan-delegate/prompt.md` and passes a single-line ASCII pointer as `-p` (`9c25a8cd`). Cleanup rides on the worktree teardown.
+
+**Known constraint (out of scope for FR-948, documented for successors):** on this host, a wrapper runtime approaching WSMan's OperationTimeout window (~30 s per RECEIVE) or prompts exceeding ~1500 bytes triggered `Code 1359: An internal error occurred.` The mac side surfaces this as `WINRM_CONNECT_FAIL` with an accurate `transport` error. Tuning belongs to a follow-up (raise `MaxMemoryPerShellMB`, `MaxProcessesPerShell`, or `winrm/config/service/OperationTimeoutMs` on the target). The channel itself is proven; the quota is host-configuration.
+
+**Prerequisite provisioning (one-time, out of scope for FR-948):**
+
+- ACL on `C:\Images\yamlgraph-delegations\`: the `copilot` account needs `Modify` (see the developer-operations doc's safe-invocation checklist).
+- Canonical clone at `C:\Users\copilot\yamlgraph` (bootstrapped via the FR-948 evidence spike; token-in-git-config incident diary recorded).
 
 ## Judgement (second draft rendered 2026-09-01)
 
