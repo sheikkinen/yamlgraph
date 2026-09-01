@@ -5,7 +5,7 @@
 **Status:** Proposed (revised 2026-09-01 to fold judgement R-1..R-5 from re-judgement)
 **Effort:** 3 days
 **Requested:** 2026-09-01
-**First consumer / first event:** an agent that has verified FR-945 recon (with `admin=False` and `remote_management_users_member=True`) invokes `.github/skills/lan-delegate/` with a clean-committed local SHA and a local prompt file, and gets back a validated diagnostic result recording exit code, delegation-policy status, timeout state, matched local/remote SHA, parsed reported credits, run ID, artifact root, and typed errors. **First event:** the next attempt to run heavy work (e.g. the repository's `run-code-analysis` skill invoked over the delegation channel) that would otherwise saturate the iMac. Sanitized spike record: [FR-948-spike-evidence.md](FR-948-spike-evidence.md).
+**First consumer / first event:** an agent that has verified FR-945 recon (with `admin=False` and `remote_management_users_member=True`) invokes `.github/skills/lan-delegate/` with a clean-committed local SHA and a local prompt file, and gets back a validated diagnostic result recording exit code, delegation-policy status, timeout state, matched local/remote SHA, parsed reported credits, run ID, artifact root, and typed errors. **First event:** the next attempt to run heavy work (e.g. the repository's `run-code-analysis` skill invoked over the delegation channel) that would otherwise saturate the iMac. Sanitized spike record: [spike-evidence-fr948-copilot-remote.md](spike-evidence-fr948-copilot-remote.md).
 **Research:** [FR-948.research.md](FR-948.research.md) (persona-shaped record; the substantive alternatives table below in § R-1 is the FR-body disposition the judge required.)
 **Prior art:**
 - [FR-947-remote-pytest-delegation.md](FR-947-remote-pytest-delegation.md) [Proposed, superseded by this FR] — SSH+WSL2+pytest-xdist design. Retired via subtractionist path in the same commit as lifecycle bookkeeping.
@@ -28,7 +28,7 @@ Agents move heavy workloads off the saturated iMac onto Huutokauppakone via an e
 ## Problem
 
 - iMac freezes under concurrent full workloads (operator report 2026-09-01).
-- FR-947's SSH+WSL2+pytest-xdist design unimplemented and superseded by the empirical WinRM+Copilot channel (spike evidence in [FR-948-spike-evidence.md](FR-948-spike-evidence.md)).
+- FR-947's SSH+WSL2+pytest-xdist design unimplemented and superseded by the empirical WinRM+Copilot channel (spike evidence in [spike-evidence-fr948-copilot-remote.md](spike-evidence-fr948-copilot-remote.md)).
 - No existing repo capability wraps the "WinRM → disposable worktree → Copilot skill invocation → SMB artifacts" pattern; each future delegation would reinvent it.
 
 ## Ideal Result
@@ -319,7 +319,7 @@ Two real Huutokauppakone runs recorded in this FR body once implementation lands
 ## Acceptance Criteria (22, per judge's third-round revised list)
 
 - [ ] **AC-01** FR retains 5 solution classes (§ R-1) with preserved disagreement; every retrieval hit dispositioned in "Prior art"; the reconciled "not a graph; consumed by graphs" answer; **Contrib/example** strategic classification recorded.
-- [ ] **AC-02** Every spike-attributed claim is bounded by `FR-948-spike-evidence.md:79-99`. FR does NOT attribute repository workload, deadline-based process termination, Python provisioning, or `--add-dir` skill loading to the spike.
+- [ ] **AC-02** Every spike-attributed claim is bounded by `spike-evidence-fr948-copilot-remote.md:79-99`. FR does NOT attribute repository workload, deadline-based process termination, Python provisioning, or `--add-dir` skill loading to the spike.
 - [ ] **AC-03** FR-945 is a precondition ONLY; consumes committed receipt fields; reuses `pypsrp>=0.9,<1.0`; does not modify FR-945.
 - [ ] **AC-04** All request, prerequisite, result, error, status, and pre-launch-exception models named in the folded schema (including `UnsafeHostError`, `PROCESS_TREE_KILL_FAIL`, `OUTPUT_CAPTURE_FAIL`, `WINRM_CONNECT_FAIL`, `WINRM_AUTH_FAIL`, `WINRM_TRANSPORT_TIMEOUT`, `artifact_root`) are Pydantic-implemented with invariants; no untyped boundary crosses from receipt/wrapper JSON into control flow.
 - [ ] **AC-05** Local validation rejects unsafe host, host/receipt mismatch, missing/stale/disqualifying receipt, missing token, dirty tree, unsafe run ID, path collision, and missing/non-UTF-8/oversized prompt BEFORE DNS, WinRM, or file write.
@@ -349,7 +349,7 @@ Table above (§ R-1). Every retrieved prior-art hit dispositioned above.
 
 - Depends on: [FR-945-lan-recon-skill.md](FR-945-lan-recon-skill.md) (recon precondition, read-only).
 - Retires: [FR-947-remote-pytest-delegation.md](FR-947-remote-pytest-delegation.md).
-- Sanitized spike: [FR-948-spike-evidence.md](FR-948-spike-evidence.md).
+- Sanitized spike: [spike-evidence-fr948-copilot-remote.md](spike-evidence-fr948-copilot-remote.md).
 - Research artifact (persona-shaped, superseded by § R-1): [FR-948.research.md](FR-948.research.md).
 - Brief: [research-briefs/copilot-cli-remote-delegation-brief.md](research-briefs/copilot-cli-remote-delegation-brief.md).
 - Orthogonal: [FR-946-huutokauppakone-inference-revival.md](FR-946-huutokauppakone-inference-revival.md).

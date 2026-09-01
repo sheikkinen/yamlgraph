@@ -1925,3 +1925,9 @@ The ID ranges are:
 - **Code**: S104
 - **Sin**: `"0.0.0.0"` appears in a `@pytest.mark.parametrize` list.
 - **Penance**: FR-945 — the string is a probe TARGET under test, not a bind address; the test asserts that `recon.probe("0.0.0.0", computer_name=...)` raises `UnsafeTargetError` because unspecified addresses are refused. The recon skill never binds a socket.
+
+### CONF-445
+- **File**: [.github/skills/lan-delegate/models.py](../.github/skills/lan-delegate/models.py#L64)
+- **Code**: S105
+- **Sin**: `TOKEN_LEAK_DETECTED = "TOKEN_LEAK_DETECTED"` — ruff flags the string literal as a possible hardcoded password.
+- **Penance**: FR-948 — the string is the *name* of a `DelegationPolicyStatus` enum value emitted when a literal `GH_TOKEN` byte match is detected in an artifact; it is a public policy identifier that must equal its symbolic name for wire-format stability. No credential material.
