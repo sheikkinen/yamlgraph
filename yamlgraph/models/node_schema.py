@@ -104,8 +104,9 @@ class NodeConfig(BaseModel):
     )
 
     # Copilot node fields (REQ-YG-087)
-    backend: str | None = Field(
-        default=None, description="Copilot backend: 'cli', 'api', or 'sampling'"
+    backend: Literal["cli", "api", "sampling", "claude"] | None = Field(
+        default=None,
+        description="Copilot backend: 'cli', 'api', 'sampling', or 'claude' (FR-959)",
     )
     cli_flags: dict[str, Any] | None = Field(
         default=None, description="CLI flags for copilot node (allow_all_paths, etc.)"
@@ -320,6 +321,15 @@ class NodeConfig(BaseModel):
                     "Valid values: skip, fail"
                 )
         return data
+
+    @model_validator(mode="after")
+    def validate_claude_cli_flags(self) -> "NodeConfig":
+        """FR-959 REQ-YG-640: typed cli_flags when backend is 'claude'."""
+        if self.type == NodeType.COPILOT and self.backend == "claude":
+            from yamlgraph.models.schemas import ClaudeCliFlags
+
+            ClaudeCliFlags.model_validate(self.cli_flags or {})
+        return self
 
     @model_validator(mode="after")
     def validate_node_requirements(self) -> "NodeConfig":

@@ -360,7 +360,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 25 | CAP-25 Tavily Domain RAG Demo | `examples/demos/tavily_rag` | REQ-YG-076 |
 | 26 | CAP-26 Streaming Error Resilience | `executor_async`, `models/streaming` | REQ-YG-077 |
 | 28 | CAP-28 Graph-Level Thinking Budget | `yamlgraph/models/graph_schema.py`, `yamlgraph/utils/llm_factory.py` | REQ-YG-083 |
-| 30 | CAP-30 Copilot Node | `constants.NodeType.COPILOT`, `models/schemas`, `node_compiler`, `node_factory/copilot_node` | REQ-YG-087, 089, 105, 356 – 357 |
+| 30 | CAP-30 Copilot Node | `constants.NodeType.COPILOT`, `models/schemas`, `node_compiler`, `node_factory/copilot_node`, … | REQ-YG-087, 089, 105, 356 – 357, 639 – 641 |
 | 31 | CAP-31 Chaplain Diary Append | `examples/copilot/graph.yaml`, `examples/copilot/prompts/summarize.yaml`, `examples/shared/diary` | REQ-YG-090 |
 | 32 | CAP-32 eBook Authoring Pipeline | `examples/ebook/nodes/writing.py`, `tests/unit/test_ebook_doctrine_validation.py` | REQ-YG-091 – 092 |
 | 33 | CAP-33 Worktree Pipeline | `examples/enforce/graph.yaml`, `scripts/enforce_worktree.sh`, `utils/worktree_helpers` | REQ-YG-106 |
@@ -875,9 +875,9 @@ Graph-level and per-node thinking_budget YAML field for Anthropic extended think
 
 ### 30. CAP-30 Copilot Node
 
-New copilot node type that delegates graph processing to Copilot CLI, replacing shell-script orchestration with a first-class YAML-declarable node.
+New copilot node type that delegates graph processing to Copilot CLI, replacing shell-script orchestration with a first-class YAML-declarable node. FR-959 adds a fourth, closed backend value `claude` that delegates to the Claude Code CLI on the operator's subscription.
 
-**Feature Request:** FR-082
+**Feature Request:** FR-082, FR-959
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
@@ -886,6 +886,9 @@ New copilot node type that delegates graph processing to Copilot CLI, replacing 
 | REQ-YG-105 | Copilot node session continuations via `--resume` and `--continue` flags; session ID captured from stderr into `CopilotResult.session_id`; state expression resolution for `cli_flags.resume` | `node_factory/copilot_node`, `models/schemas` |
 | REQ-YG-356 | Copilot node supports explicit `backend: api` execution via `execute_prompt()`, while preserving default CLI behavior when backend is omitted or `cli`. | `node_factory/copilot_node`, `models/schemas` |
 | REQ-YG-357 | Copilot lint rules are backend-aware: API backend warns when no explicit model signal is present and errors when API mode is combined with CLI-only `cli_flags`. | `linter/patterns/copilot`, `node_factory/copilot_node` |
+| REQ-YG-639 | Copilot node supports `backend: claude`: list argv `claude -p <prompt> --output-format json` with the frozen flag mapping (`--model`, `--resume`/`--continue`, `--tools` comma grammar with `[]` meaning no tools, `--allowedTools`, `--dangerously-skip-permissions`, `--add-dir`, `--max-turns`); stdout crosses a private typed envelope (`result: str`, `session_id: str`, `is_error: bool`) before `CopilotResult(backend="claude")`; failure on non-zero exit, `is_error`, malformed envelope, missing binary, timeout; no numeric exit subtype interpreted and no usage-limit classifier. | `node_factory/copilot_runtime_claude`, `node_factory/copilot_node`, `models/schemas` |
+| REQ-YG-640 | Copilot `backend` is a closed enum (`cli`, `api`, `sampling`, `claude`) at schema, compile, and lint; unknown, empty, or non-string values fail before any subprocess; Claude-only flags are typed (`ClaudeCliFlags`, strict, no extra keys) and malformed shapes fail at schema, compile, and lint before any probe; lint covers backend-incompatible flags, approval-vs-availability, provider-on-claude, and Copilot-only models. | `models/node_schema`, `models/schemas`, `node_factory/copilot_runtime`, `linter/patterns/copilot` |
+| REQ-YG-641 | Claude backend payer boundary, per invocation: child env stripped of the evidenced credential and routing switches (`ANTHROPIC_API_KEY`, `ANTHROPIC_AUTH_TOKEN`, `ANTHROPIC_BASE_URL`, `CLAUDE_CODE_USE_BEDROCK`, `CLAUDE_CODE_USE_VERTEX`, `CLAUDE_CODE_USE_FOUNDRY`); exact supported-version check then fail-closed subscription auth-status check, both pinned to the committed raw probe and both run before every `-p` call with no cache; residual settings surface enumerated in docs and accepted by a named spend owner. | `node_factory/copilot_runtime_claude` |
 
 ### 31. CAP-31 Chaplain Diary Append
 
