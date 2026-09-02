@@ -2,7 +2,17 @@
 
 **Priority:** HIGH
 **Type:** Enhancement
-**Status:** Proposed
+**Status:** Judged — APPROVED WITH REVISIONS
+([FR-955-map-branch-input-projection.judgement.md](FR-955-map-branch-input-projection.judgement.md),
+2026-09-02, sole route). Revisions R-1–R-7 **not yet folded**; no
+implementation authority until they are folded and the judgement is
+human-reviewed (C-8). Headline revisions: validate `pass_keys` against
+the effective generated state (R-1), executable per-sub-node consumer
+matrix incl. model/provider/verification/`task`/subgraph relay reads
+(R-2), one shared Jinja/expression classifier in a leaf
+`map_projection` module consumed by compiler and linter (R-3, R-4),
+frozen payload equation (R-5), real captured branch-write witness on
+both checkpointers (R-6), warning-not-gate lint decision (R-7).
 **Effort:** 2 days
 **Requested:** 2026-09-02
 **First consumer / first event:** the fi-catalog pilot (component D,

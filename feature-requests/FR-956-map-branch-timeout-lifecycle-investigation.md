@@ -2,7 +2,19 @@
 
 **Priority:** HIGH
 **Type:** Bug investigation / witness test
-**Status:** Proposed
+**Status:** Judged — APPROVED WITH REVISIONS
+([FR-956-map-branch-timeout-lifecycle-investigation.judgement.md](FR-956-map-branch-timeout-lifecycle-investigation.judgement.md),
+2026-09-02, sole route). Revisions R-1–R-6 **not yet folded**; no
+implementation authority until they are folded and the judgement is
+human-reviewed (C-1, C-7). Headline revisions: preserve a concrete
+dissent in the in-body research record (R-1); delete the
+bounded-leak absolution path — accepting a known unbounded leak is not
+an outcome (R-2); split the LLM evidence into constructor witness vs
+deterministic fake, no mocked SDK-bound claim (R-3); attribution stays
+in `PipelineError`/reducer row, no route-log event (R-4); FR-706-style
+suite-safe `xfail(strict=True)` condemned witnesses with pinned
+absolute deadlines (R-5); per-sub-node witnesses and a broader CAP-11
+requirement (R-6).
 **Effort:** 1.5 days
 **Requested:** 2026-09-02
 **First consumer / first event:** the fi-catalog pilot (component D,

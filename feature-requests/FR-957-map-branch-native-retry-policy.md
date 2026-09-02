@@ -2,7 +2,19 @@
 
 **Priority:** HIGH
 **Type:** Enhancement
-**Status:** Proposed
+**Status:** Judged — APPROVED WITH REVISIONS
+([FR-957-map-branch-native-retry-policy.judgement.md](FR-957-map-branch-native-retry-policy.judgement.md),
+2026-09-02, sole route). Revisions R-1–R-6 **not yet folded**; no
+implementation authority until they are folded and the judgement is
+human-reviewed (C-1). Headline revisions: freeze defaults
+(`retry_on` → `[provider_transient]`, map `on_error` → `skip`; no
+`fail` repair without `retry:`) (R-1); consume LangGraph's typed
+`NodeError` injection in the handler, delete the side-table fallback
+(R-2); name-string classifier over `RETRYABLE_EXCEPTIONS` excluding
+`APITimeoutError`, timeouts never retried at this layer (R-3); exact
+delivery surface incl. `ARCHITECTURE.md` and FR-031 note (R-4);
+replace the route-log witness with a `caplog` witness on
+`langgraph.pregel._retry` (R-5); extra schema/classifier witnesses (R-6).
 **Effort:** 2 days
 **Requested:** 2026-09-02
 **First consumer / first event:** the fi-catalog pilot (component D,
