@@ -2,8 +2,8 @@
 
 **Priority:** MEDIUM
 **Type:** Bug
-**Status:** Proposed
-**Effort:** 0.5 days
+**Status:** Proposed — re-scoped 2026-09-02 after PR #555 (`82111177`) landed Defect B and a weaker Defect A cure
+**Effort:** 0.25 days
 **Requested:** 2026-09-02
 **First consumer / first event:** a contributor on a constraint-pinned `[dev]` mac runs `pytest tests/unit/ -q --no-cov -m "not slow" -n auto` on clean main and reads 2 failures that are defects in the FR-950 enforcement itself, not in their change.
 **Research:** in-body dispositioned alternatives table below (FR-952 precedent for the in-body route); every row carries a probe result executed 2026-09-02 on this host.
@@ -15,7 +15,19 @@
 
 ## Summary
 
-Two defects remain on clean main after the FR-951 arc, both belonging to
+> **Re-scope (2026-09-02, post PR #555):** a parallel session independently
+> diagnosed both defects and merged #555 before this FR was judged.
+> **Defect B is DONE** — #555 shipped the exact `fr: FR-713, FR-950`
+> attribution proposed below; nothing remains. **Defect A is PARTIALLY
+> cured**: #555 pre-imports the dependency chain (asyncio, random,
+> langgraph.checkpoint.base) before deleting `os.register_at_fork`, which
+> unblocks the suite but tests only yamlgraph's own guard, not the real
+> no-fork import behavior of the full chain. The remaining scope is
+> Defect A's faithful simulation ONLY: delete both `os.fork` and
+> `os.register_at_fork`, drop #555's pre-import scaffolding, and add the
+> AC-02 fidelity assertion. AC-03/AC-04 are green on main as of #555.
+
+Two defects remained on clean main after the FR-951 arc, both belonging to
 FR-950's enforcement: (A) the Windows/no-fork simulation in
 `test_import_without_register_at_fork_capability` deletes
 `os.register_at_fork` but not `os.fork`, which no real runtime exhibits;
@@ -98,8 +110,9 @@ multiple FRs"); no test or fragment change. Restage whatever
 
 - [ ] AC-01: `pytest tests/unit/test_fr713_persistent_bridge.py -q --no-cov` green on a pinned `[dev]` venv containing `uuid_utils` ≥ 0.17.0
 - [ ] AC-02: the sim subprocess asserts `not hasattr(os, "fork")` before importing yamlgraph (guards the fidelity itself, not just the outcome)
-- [ ] AC-03: `pytest tests/unit/test_changelog_req_cross_wiring.py -q --no-cov` green on clean main
-- [ ] AC-04: `pytest tests/unit/ -q --no-cov -m "not slow" -n auto` reports 0 failures on this host's pinned venv (ramp exception below noted if venv not on PATH)
+- [x] AC-03: `pytest tests/unit/test_changelog_req_cross_wiring.py -q --no-cov` green on clean main — **done by PR #555**
+- [x] AC-04: `pytest tests/unit/ -q --no-cov -m "not slow" -n auto` reports 0 failures on this host's pinned venv — **done by PR #555** (ramp exception below noted if venv not on PATH)
+- [ ] AC-05: #555's pre-import scaffolding (`import asyncio, random`, `import langgraph.checkpoint.base` before the deletion) is removed — the faithful sim makes the full import chain the seam again
 
 ## Alternatives Considered
 
