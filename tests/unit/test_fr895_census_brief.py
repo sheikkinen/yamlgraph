@@ -103,7 +103,7 @@ class TestBriefEmission:
     def test_accepted_brief_contains_head_narrative_and_meta(self, tmp_path):
         result = self._emit(tmp_path, GOOD_CLAIMS)
         assert result["accepted"] is True
-        text = (tmp_path / "brief-2026-08-27.md").read_text()
+        text = (tmp_path / "brief-2026-08-27.md").read_text(encoding="utf-8")
         assert "downstream_fix" in text  # deterministic summary head
         assert "symptom site" in text  # rendered narrative
         assert "test-model" in text and "abc123" in text  # provenance
@@ -122,7 +122,7 @@ class TestBriefEmission:
         assert not (tmp_path / "brief-2026-08-27.md").exists()
         rejected = tmp_path / "brief-2026-08-27.REJECTED.md"
         assert rejected.exists()
-        text = rejected.read_text()
+        text = rejected.read_text(encoding="utf-8")
         assert "downstream_fix" in text  # summary head still present
         assert "ghost" in text  # rejection reason cited
 

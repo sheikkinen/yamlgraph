@@ -21,7 +21,7 @@ class TestRuffSecurityConfig:
     def test_ruff_config_includes_s_ruleset(self):
         """pyproject.toml [tool.ruff.lint] select must include 'S'."""
         pyproject = REPO_ROOT / "pyproject.toml"
-        content = pyproject.read_text()
+        content = pyproject.read_text(encoding="utf-8")
         # Check that "S" appears in the select list (as a standalone entry)
         assert '"S"' in content or "'S'" in content, (
             "Ruff S ruleset (flake8-bandit) not found in "

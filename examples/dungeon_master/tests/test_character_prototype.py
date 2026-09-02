@@ -27,7 +27,7 @@ PROMPTS = Path(__file__).resolve().parent.parent / "prompts"
 
 def _prompt_text(name: str) -> str:
     """The full system+user template text of a prompt YAML, lower-cased keys aside."""
-    data = yaml.safe_load((PROMPTS / name).read_text())
+    data = yaml.safe_load((PROMPTS / name).read_text(encoding="utf-8"))
     return "\n".join(str(data.get(k, "")) for k in ("system", "user"))
 
 

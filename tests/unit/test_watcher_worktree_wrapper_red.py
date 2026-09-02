@@ -14,8 +14,8 @@ CANONICAL_SCRIPT = REPO_ROOT / "scripts" / "worktree.sh"
 
 @pytest.mark.req("REQ-YG-528")
 def test_worktree_setup_wrapper_preserves_json_contract_keys() -> None:
-    wrapper = SETUP_WRAPPER.read_text()
-    canonical = CANONICAL_SCRIPT.read_text()
+    wrapper = SETUP_WRAPPER.read_text(encoding="utf-8")
+    canonical = CANONICAL_SCRIPT.read_text(encoding="utf-8")
     assert "scripts/worktree.sh" in wrapper
     assert "new" in wrapper
     assert "--json" in wrapper
@@ -27,6 +27,6 @@ def test_worktree_setup_wrapper_preserves_json_contract_keys() -> None:
 
 @pytest.mark.req("REQ-YG-528")
 def test_worktree_teardown_wrapper_delegates_to_worktree_rm() -> None:
-    wrapper = TEARDOWN_WRAPPER.read_text()
+    wrapper = TEARDOWN_WRAPPER.read_text(encoding="utf-8")
     assert "scripts/worktree.sh" in wrapper
     assert "rm --dir" in wrapper

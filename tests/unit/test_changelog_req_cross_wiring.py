@@ -25,7 +25,7 @@ def _build_fr_to_reqs() -> dict[str, set[str]]:
     """Build FR → {valid REQ IDs} mapping from capabilities registry."""
     fr_to_reqs: dict[str, set[str]] = {}
     for filepath in sorted(CAPABILITIES_DIR.glob("CAP-*.yaml")):
-        with open(filepath) as f:
+        with open(filepath, encoding="utf-8") as f:
             data = yaml.safe_load(f)
         fr_ref = data.get("fr")
         if not fr_ref or fr_ref == "legacy":
@@ -44,7 +44,7 @@ def _parse_fragment_req(filepath: Path) -> tuple[str | None, set[str] | None]:
     Returns (None, None) if the fragment has no req or no FR number.
     Handles both single values and comma-separated lists.
     """
-    content = filepath.read_text()
+    content = filepath.read_text(encoding="utf-8")
     if not content.startswith("---"):
         return None, None
     parts = content.split("---", 2)

@@ -50,7 +50,7 @@ def write_transcript(tmpdir: str, session_id: str, lines: list[str]) -> Path:
     )
     transcript_dir.mkdir(parents=True)
     transcript = transcript_dir / f"{session_id}.jsonl"
-    transcript.write_text("\n".join(lines) + "\n")
+    transcript.write_text("\n".join(lines) + "\n", encoding="utf-8")
     return transcript
 
 
@@ -99,7 +99,7 @@ def run_guard(
     entries = []
     logfile = Path(log_dir) / "audit.jsonl"
     if logfile.exists():
-        for line in logfile.read_text().strip().splitlines():
+        for line in logfile.read_text(encoding="utf-8").strip().splitlines():
             if line.strip():
                 entries.append(json.loads(line))
     return r.returncode, r.stdout.strip(), entries
@@ -110,7 +110,7 @@ def read_sentinel(log_dir: str, session_id: str) -> dict | None:
     sentinel = Path(log_dir) / f".reasoning-flag-{session_id}"
     if not sentinel.exists():
         return None
-    return json.loads(sentinel.read_text())
+    return json.loads(sentinel.read_text(encoding="utf-8"))
 
 
 # ── PostToolUse scan tests ────────────────────────────────────────────
@@ -141,7 +141,7 @@ def test_scan_arms_sentinel_on_reasoning_pattern():
         # Write transcript
         t_dir = storage_src / "fakehash" / "GitHub.copilot-chat" / "transcripts"
         t_dir.mkdir(parents=True)
-        (t_dir / f"{sid}.jsonl").write_text("\n".join(lines) + "\n")
+        (t_dir / f"{sid}.jsonl").write_text("\n".join(lines) + "\n", encoding="utf-8")
 
         code, stdout, stderr = run_scan(sid, log_dir=log_dir, home_dir=home)
         assert code == 0, f"exit {code}, stderr: {stderr}"
@@ -173,7 +173,7 @@ def test_scan_no_sentinel_on_clean_thinking():
         (ws_dir / "workspaceStorage").symlink_to(storage_src)
         t_dir = storage_src / "fakehash" / "GitHub.copilot-chat" / "transcripts"
         t_dir.mkdir(parents=True)
-        (t_dir / f"{sid}.jsonl").write_text("\n".join(lines) + "\n")
+        (t_dir / f"{sid}.jsonl").write_text("\n".join(lines) + "\n", encoding="utf-8")
 
         code, stdout, stderr = run_scan(sid, log_dir=log_dir, home_dir=home)
         assert code == 0, f"exit {code}, stderr: {stderr}"
@@ -212,7 +212,7 @@ def test_scan_only_latest_message():
         (ws_dir / "workspaceStorage").symlink_to(storage_src)
         t_dir = storage_src / "fakehash" / "GitHub.copilot-chat" / "transcripts"
         t_dir.mkdir(parents=True)
-        (t_dir / f"{sid}.jsonl").write_text("\n".join(lines) + "\n")
+        (t_dir / f"{sid}.jsonl").write_text("\n".join(lines) + "\n", encoding="utf-8")
 
         code, stdout, stderr = run_scan(sid, log_dir=log_dir, home_dir=home)
         assert code == 0
@@ -243,7 +243,7 @@ def test_scan_detects_variant_phrases():
         (ws_dir / "workspaceStorage").symlink_to(storage_src)
         t_dir = storage_src / "fakehash" / "GitHub.copilot-chat" / "transcripts"
         t_dir.mkdir(parents=True)
-        (t_dir / f"{sid}.jsonl").write_text("\n".join(lines) + "\n")
+        (t_dir / f"{sid}.jsonl").write_text("\n".join(lines) + "\n", encoding="utf-8")
 
         code, stdout, stderr = run_scan(sid, log_dir=log_dir, home_dir=home)
         assert code == 0
@@ -291,7 +291,7 @@ def test_scan_detects_task_alteration_family():
             (ws_dir / "workspaceStorage").symlink_to(storage_src)
             t_dir = storage_src / "fakehash" / "GitHub.copilot-chat" / "transcripts"
             t_dir.mkdir(parents=True)
-            (t_dir / f"{sid}.jsonl").write_text("\n".join(lines) + "\n")
+            (t_dir / f"{sid}.jsonl").write_text("\n".join(lines) + "\n", encoding="utf-8")
 
             code, stdout, stderr = run_scan(sid, log_dir=log_dir, home_dir=home)
             assert code == 0
@@ -325,7 +325,7 @@ def test_direct_refusal_and_benign_policy_discussion_do_not_arm():
             t_dir.mkdir(parents=True)
             (t_dir / f"{sid}.jsonl").write_text(
                 make_transcript_entry("assistant.message", content=content) + "\n"
-            )
+            , encoding="utf-8")
 
             code, stdout, stderr = run_scan(sid, log_dir=log_dir, home_dir=home)
             assert code == 0
@@ -374,7 +374,7 @@ def test_scan_falls_back_to_content_when_no_reasoning_text():
         (ws_dir / "workspaceStorage").symlink_to(storage_src)
         t_dir = storage_src / "fakehash" / "GitHub.copilot-chat" / "transcripts"
         t_dir.mkdir(parents=True)
-        (t_dir / f"{sid}.jsonl").write_text("\n".join(lines) + "\n")
+        (t_dir / f"{sid}.jsonl").write_text("\n".join(lines) + "\n", encoding="utf-8")
 
         code, stdout, stderr = run_scan(sid, log_dir=log_dir, home_dir=home)
         assert code == 0
@@ -421,7 +421,7 @@ def test_guard_denies_on_armed_sentinel():
                     "ts": "2026-05-21T06:00:00+00:00",
                 }
             )
-        )
+        , encoding="utf-8")
 
         payload = {
             "session_id": sid,
@@ -469,7 +469,7 @@ def test_guard_session_isolation():
                     "ts": "2026-05-21T06:00:00+00:00",
                 }
             )
-        )
+        , encoding="utf-8")
 
         # Session B should NOT be denied
         payload_b = {
@@ -498,7 +498,7 @@ def test_guard_one_shot_semantics():
                     "ts": "2026-05-21T06:00:00+00:00",
                 }
             )
-        )
+        , encoding="utf-8")
 
         payload = {
             "session_id": sid,
@@ -529,7 +529,7 @@ def test_guard_audit_on_reasoning_pattern_deny():
                     "ts": "2026-05-21T06:00:00+00:00",
                 }
             )
-        )
+        , encoding="utf-8")
 
         payload = {
             "session_id": sid,

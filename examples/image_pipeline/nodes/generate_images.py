@@ -176,7 +176,7 @@ def generate_images_node(state: dict) -> dict:
                     lines.insert(
                         1 if metadata.concept else 0, f"Brief: {metadata.scene_brief}"
                     )
-                sidecar.write_text("\n".join(lines))
+                sidecar.write_text("\n".join(lines), encoding="utf-8")
                 logger.info(f"📄 Fallback sidecar written: {sidecar.name}")
 
     logger.info(f"✅ Generated {len(image_paths)}/{total} images")

@@ -28,7 +28,7 @@ class TestLoadDataFiles:
         """Load a single YAML file into state."""
         # Create data file
         schema_file = tmp_path / "schema.yaml"
-        schema_file.write_text("fields:\n  - name: age\n    type: int")
+        schema_file.write_text("fields:\n  - name: age\n    type: int", encoding="utf-8")
 
         graph_path = tmp_path / "graph.yaml"
         graph_path.touch()
@@ -42,8 +42,8 @@ class TestLoadDataFiles:
     def test_load_multiple_yaml_files(self, tmp_path: Path) -> None:
         """Load multiple YAML files."""
         # Create data files
-        (tmp_path / "schema.yaml").write_text("version: 1")
-        (tmp_path / "config.yaml").write_text("debug: true")
+        (tmp_path / "schema.yaml").write_text("version: 1", encoding="utf-8")
+        (tmp_path / "config.yaml").write_text("debug: true", encoding="utf-8")
 
         graph_path = tmp_path / "graph.yaml"
         graph_path.touch()
@@ -58,7 +58,7 @@ class TestLoadDataFiles:
         """Load YAML file from subdirectory."""
         subdir = tmp_path / "data"
         subdir.mkdir()
-        (subdir / "schema.yaml").write_text("name: test")
+        (subdir / "schema.yaml").write_text("name: test", encoding="utf-8")
 
         graph_path = tmp_path / "graph.yaml"
         graph_path.touch()
@@ -95,7 +95,7 @@ class TestDataFileErrors:
         # Create a file outside graph directory
         parent = tmp_path.parent
         secret_file = parent / "secret.yaml"
-        secret_file.write_text("password: 12345")
+        secret_file.write_text("password: 12345", encoding="utf-8")
 
         graph_dir = tmp_path / "graphs"
         graph_dir.mkdir()
@@ -133,7 +133,7 @@ class TestDataFileErrors:
         secret_dir = tmp_path / "secrets"
         secret_dir.mkdir()
         secret_file = secret_dir / "creds.yaml"
-        secret_file.write_text("api_key: secret123")
+        secret_file.write_text("api_key: secret123", encoding="utf-8")
 
         # Create graph directory with symlink
         graph_dir = tmp_path / "graphs"
@@ -156,7 +156,7 @@ class TestDataFileErrors:
     def test_empty_file_returns_empty_dict(self, tmp_path: Path) -> None:
         """Empty YAML file returns empty dict, not None."""
         empty_file = tmp_path / "empty.yaml"
-        empty_file.write_text("")
+        empty_file.write_text("", encoding="utf-8")
 
         graph_path = tmp_path / "graph.yaml"
         graph_path.touch()
@@ -171,7 +171,7 @@ class TestDataFileErrors:
     def test_invalid_yaml_raises_error(self, tmp_path: Path) -> None:
         """Invalid YAML syntax raises clear error."""
         bad_file = tmp_path / "bad.yaml"
-        bad_file.write_text("key: [unclosed bracket")
+        bad_file.write_text("key: [unclosed bracket", encoding="utf-8")
 
         graph_path = tmp_path / "graph.yaml"
         graph_path.touch()
@@ -211,7 +211,7 @@ class TestPathResolution:
 
         # Create data file next to graph
         data_file = graph_dir / "schema.yaml"
-        data_file.write_text("version: 2")
+        data_file.write_text("version: 2", encoding="utf-8")
 
         # Change CWD to different location
         original_cwd = os.getcwd()
@@ -231,7 +231,7 @@ class TestPathResolution:
         # Create nested structure
         data_dir = tmp_path / "data" / "schemas" / "v1"
         data_dir.mkdir(parents=True)
-        (data_dir / "main.yaml").write_text("id: 1")
+        (data_dir / "main.yaml").write_text("id: 1", encoding="utf-8")
 
         graph_path = tmp_path / "graph.yaml"
         graph_path.touch()

@@ -33,20 +33,20 @@ class TestWriteChaptersTool:
         assert len(result["written"]) == 6
 
         # Check files exist with correct content
-        assert (tmp_path / "00-introduction.md").read_text() == state[
+        assert (tmp_path / "00-introduction.md").read_text(encoding="utf-8") == state[
             "chapter_introduction"
         ]
-        assert (tmp_path / "01-doctrine.md").read_text() == state["chapter_doctrine"]
-        assert (tmp_path / "02-precommit-gates.md").read_text() == state[
+        assert (tmp_path / "01-doctrine.md").read_text(encoding="utf-8") == state["chapter_doctrine"]
+        assert (tmp_path / "02-precommit-gates.md").read_text(encoding="utf-8") == state[
             "chapter_precommit"
         ]
-        assert (tmp_path / "03-chaplain-pipeline.md").read_text() == state[
+        assert (tmp_path / "03-chaplain-pipeline.md").read_text(encoding="utf-8") == state[
             "chapter_chaplain"
         ]
-        assert (tmp_path / "04-inquisitor.md").read_text() == state[
+        assert (tmp_path / "04-inquisitor.md").read_text(encoding="utf-8") == state[
             "chapter_inquisitor"
         ]
-        assert (tmp_path / "05-diary-system.md").read_text() == state["chapter_diary"]
+        assert (tmp_path / "05-diary-system.md").read_text(encoding="utf-8") == state["chapter_diary"]
 
     @pytest.mark.req("REQ-YG-091")
     def test_creates_output_dir_if_missing(self, tmp_path):

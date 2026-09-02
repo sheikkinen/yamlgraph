@@ -23,7 +23,7 @@ COPILOT_TRAILER_FULL = (
 
 
 def _load_workflow() -> dict:
-    with WORKFLOW_PATH.open() as f:
+    with WORKFLOW_PATH.open(encoding="utf-8") as f:
         return yaml.safe_load(f)
 
 
@@ -52,10 +52,10 @@ def _commit_with_message(
     tmppath = Path(tmpdir)
     file_path = tmppath / filename
     file_path.parent.mkdir(parents=True, exist_ok=True)
-    file_path.write_text(content)
+    file_path.write_text(content, encoding="utf-8")
     subprocess.run(["git", "add", "."], cwd=tmpdir, check=True)
     msg_file = tmppath / "commit-message.txt"
-    msg_file.write_text(message)
+    msg_file.write_text(message, encoding="utf-8")
     subprocess.run(["git", "commit", "-q", "-F", str(msg_file)], cwd=tmpdir, check=True)
 
 
@@ -162,10 +162,10 @@ def test_ac05_workflow_script_no_longer_depends_on_copilot_literal_constants() -
 
 @pytest.mark.req("REQ-YG-358")
 def test_ac06_traceability_docs_use_generalized_coauthored_by_language() -> None:
-    cap = CAP_148_PATH.read_text()
-    architecture = ARCHITECTURE_PATH.read_text()
+    cap = CAP_148_PATH.read_text(encoding="utf-8")
+    architecture = ARCHITECTURE_PATH.read_text(encoding="utf-8")
     # FR-942 moved the CI checks list from CLAUDE.md to the ops reference.
-    dev_ops = Path("reference/development-operations.md").read_text()
+    dev_ops = Path("reference/development-operations.md").read_text(encoding="utf-8")
 
     assert "any `Co-authored-by:` trailer" in cap
     assert "any `Co-authored-by:` trailer" in architecture

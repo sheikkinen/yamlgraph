@@ -37,7 +37,7 @@ def run_gate(root: Path):
 def _mk(root: Path, rel: str, lines: int):
     p = root / rel
     p.parent.mkdir(parents=True, exist_ok=True)
-    p.write_text("# filler\n" * lines)
+    p.write_text("# filler\n" * lines, encoding="utf-8")
 
 
 def _mk_bytes(root: Path, rel: str, size: int):
@@ -118,6 +118,6 @@ def test_baseline_is_shrink_only_and_honest():
     for rel, allowed in size_gate.BASELINE.items():
         p = REPO_ROOT / rel
         assert p.is_file(), f"stale baseline entry: {rel}"
-        actual = len(p.read_text().splitlines())
+        actual = len(p.read_text(encoding="utf-8").splitlines())
         assert actual <= allowed, f"{rel} grew past its ratchet ({actual} > {allowed})"
         assert actual > size_gate.LIMIT or allowed >= actual

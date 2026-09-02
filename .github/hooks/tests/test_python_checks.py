@@ -63,7 +63,7 @@ def test_skips_non_edit_tools() -> None:
 
 
 def test_clean_file_no_message() -> None:
-    with tempfile.NamedTemporaryFile(suffix=".py", mode="w", delete=False) as f:
+    with tempfile.NamedTemporaryFile(encoding="utf-8", suffix=".py", mode="w", delete=False) as f:
         f.write("x = 1\ny = 2\n")
         f.flush()
         try:
@@ -79,7 +79,7 @@ def test_clean_file_no_message() -> None:
 
 
 def test_ruff_lint_catches_errors() -> None:
-    with tempfile.NamedTemporaryFile(suffix=".py", mode="w", delete=False) as f:
+    with tempfile.NamedTemporaryFile(encoding="utf-8", suffix=".py", mode="w", delete=False) as f:
         f.write("import os\nimport sys\n\nx = 1\n")
         f.flush()
         try:
@@ -95,7 +95,7 @@ def test_ruff_lint_catches_errors() -> None:
 
 
 def test_file_size_errors_over_450() -> None:
-    with tempfile.NamedTemporaryFile(suffix=".py", mode="w", delete=False) as f:
+    with tempfile.NamedTemporaryFile(encoding="utf-8", suffix=".py", mode="w", delete=False) as f:
         f.write("x = 1\n" * 460)
         f.flush()
         try:
@@ -111,7 +111,7 @@ def test_file_size_errors_over_450() -> None:
 
 
 def test_debug_breakpoint() -> None:
-    with tempfile.NamedTemporaryFile(suffix=".py", mode="w", delete=False) as f:
+    with tempfile.NamedTemporaryFile(encoding="utf-8", suffix=".py", mode="w", delete=False) as f:
         f.write("x = 1\nbreakpoint()\ny = 2\n")
         f.flush()
         try:
@@ -128,8 +128,8 @@ def test_debug_breakpoint() -> None:
 
 def test_apply_patch_aggregates_multi_file_issues() -> None:
     with (
-        tempfile.NamedTemporaryFile(suffix=".py", mode="w", delete=False) as f1,
-        tempfile.NamedTemporaryFile(suffix=".py", mode="w", delete=False) as f2,
+        tempfile.NamedTemporaryFile(encoding="utf-8", suffix=".py", mode="w", delete=False) as f1,
+        tempfile.NamedTemporaryFile(encoding="utf-8", suffix=".py", mode="w", delete=False) as f2,
     ):
         f1.write("x = 1  # TODO: remove\n")
         f2.write("import pdb\npdb.set_trace()\n")
@@ -149,7 +149,7 @@ def test_apply_patch_aggregates_multi_file_issues() -> None:
 
 
 def test_apply_patch_autofix_enabled_applies_ruff_fixes() -> None:
-    with tempfile.NamedTemporaryFile(suffix=".py", mode="w", delete=False) as f:
+    with tempfile.NamedTemporaryFile(encoding="utf-8", suffix=".py", mode="w", delete=False) as f:
         original = "import os\nx=1\n"
         f.write(original)
         f.flush()
@@ -182,7 +182,7 @@ def test_apply_patch_autofix_enabled_applies_ruff_fixes() -> None:
 
 def test_ruff_missing_logs_error() -> None:
     """AC-02 (FR-793): ruff absent from PATH and fallback -> exactly one entry per file."""
-    with tempfile.NamedTemporaryFile(suffix=".py", mode="w", delete=False) as f:
+    with tempfile.NamedTemporaryFile(encoding="utf-8", suffix=".py", mode="w", delete=False) as f:
         f.write("x = 1\ny = 2\n")
         f.flush()
         try:
@@ -204,7 +204,7 @@ def test_ruff_missing_logs_error() -> None:
 
 def test_ruff_resolved_from_fallback_when_path_missing() -> None:
     """AC-01 (FR-793): stripped PATH + fixture binary -> real ruff feedback, no ruff-missing."""
-    with tempfile.NamedTemporaryFile(suffix=".py", mode="w", delete=False) as f:
+    with tempfile.NamedTemporaryFile(encoding="utf-8", suffix=".py", mode="w", delete=False) as f:
         f.write("import os\nimport sys\n\nx = 1\n")
         f.flush()
         try:
@@ -226,7 +226,7 @@ def test_ruff_resolved_from_fallback_when_path_missing() -> None:
 
 def test_auto_ruff_uses_resolved_binary() -> None:
     """AC-03 (FR-793): POST_EDIT_AUTO_RUFF=1 works via the resolved binary."""
-    with tempfile.NamedTemporaryFile(suffix=".py", mode="w", delete=False) as f:
+    with tempfile.NamedTemporaryFile(encoding="utf-8", suffix=".py", mode="w", delete=False) as f:
         original = "import os\nx=1\n"
         f.write(original)
         f.flush()

@@ -131,25 +131,25 @@ def write_questions(
 
     for q in questions:
         path = questions_dir / f"{q['req_id']}.json"
-        path.write_text(json.dumps(q, indent=2, sort_keys=True) + "\n")
+        path.write_text(json.dumps(q, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
     manifest: dict[str, list[str]] = {}
     for i, batch in enumerate(build_batches(questions, max_tokens)):
         batch_id = f"batch-{i:03d}"
         manifest[batch_id] = [q["req_id"] for q in batch]
         path = batches_dir / f"{batch_id}.json"
-        path.write_text(json.dumps(batch, indent=2, sort_keys=True) + "\n")
+        path.write_text(json.dumps(batch, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
     (out_dir / "manifest.json").write_text(
         json.dumps(manifest, indent=2, sort_keys=True) + "\n"
-    )
+    , encoding="utf-8")
     return manifest
 
 
 def _extract_test_body(test_file: Path, test_key: str) -> str:
     """Source of the test function named by *test_key* (stage 2)."""
     try:
-        source = test_file.read_text()
+        source = test_file.read_text(encoding="utf-8")
         tree = ast.parse(source, filename=str(test_file))
     except (OSError, SyntaxError):
         return ""
@@ -194,7 +194,7 @@ def build_stage2_question(
     for rel in question["resolved_files"]:
         src = repo_root / rel
         if src.exists():
-            lines = src.read_text().splitlines()[:SOURCE_EXCERPT_LINES]
+            lines = src.read_text(encoding="utf-8").splitlines()[:SOURCE_EXCERPT_LINES]
             excerpts[rel] = "\n".join(lines)
     q2["source_excerpts"] = excerpts
     return q2
@@ -204,7 +204,7 @@ def _load_req_registry() -> dict[str, tuple[str, str, list[str]]]:
     """req_id → (cap_id, cap_name, declared modules) from capabilities/."""
     registry: dict[str, tuple[str, str, list[str]]] = {}
     for filepath in sorted(CAPABILITIES_DIR.glob("CAP-*.yaml")):
-        data = yaml.safe_load(filepath.read_text())
+        data = yaml.safe_load(filepath.read_text(encoding="utf-8"))
         if data.get("status") == "retired":
             continue
         cap_modules = data.get("modules") or []

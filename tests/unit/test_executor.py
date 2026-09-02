@@ -103,7 +103,7 @@ class TestPromptExecutorGraphRelative:
 system: You are an audit assistant.
 user: Generate opening for {questionnaire_name}.
 """
-        )
+        , encoding="utf-8")
 
         graph_path = graph_dir / "graph.yaml"
         graph_path.touch()  # Just needs to exist for path resolution
@@ -145,7 +145,7 @@ user: Generate opening for {questionnaire_name}.
 system: You are helpful.
 user: Say hello to {name}.
 """
-        )
+        , encoding="utf-8")
 
         mock_llm = MagicMock()
         mock_llm.invoke.return_value = MagicMock(content="Hello!")
@@ -178,7 +178,7 @@ user: Say hello to {name}.
 system: Test system.
 user: Test {msg}.
 """
-        )
+        , encoding="utf-8")
 
         mock_llm = MagicMock()
         mock_llm.invoke.return_value = MagicMock(content="OK")

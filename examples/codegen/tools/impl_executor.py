@@ -430,13 +430,13 @@ def generate_refactor_script(
 
     # Write script
     script_content = "\n".join(script_lines)
-    Path(output_path).write_text(script_content)
+    Path(output_path).write_text(script_content, encoding="utf-8")
     Path(output_path).chmod(0o755)  # Make executable
 
     # Generate companion tasks file for manual/LLM handling
     tasks_path = output_path.replace(".sh", "_tasks.md")
     tasks_content = generate_tasks_file(reordered, project_root, timestamp)
-    Path(tasks_path).write_text(tasks_content)
+    Path(tasks_path).write_text(tasks_content, encoding="utf-8")
 
     logger.info(f"Generated refactor script: {output_path}")
     logger.info(f"Generated tasks file: {tasks_path}")
@@ -594,7 +594,7 @@ def main():
         sys.exit(1)
 
     input_file = sys.argv[1]
-    output_text = Path(input_file).read_text()
+    output_text = Path(input_file).read_text(encoding="utf-8")
 
     instructions = extract_instructions_from_output(output_text)
     if not instructions:

@@ -49,7 +49,7 @@ def test_no_mastra_references_in_live_example_surfaces():
 
 def _mentions_mastra(path: Path) -> bool:
     try:
-        return re.search("mastra", path.read_text(), re.IGNORECASE) is not None
+        return re.search("mastra", path.read_text(encoding="utf-8"), re.IGNORECASE) is not None
     except (UnicodeDecodeError, OSError):
         return False
 
@@ -58,5 +58,5 @@ def _mentions_mastra(path: Path) -> bool:
 def test_typescript_demo_survives_as_the_integration_witness():
     """C-5: typescript-node is the surviving TypeScript integration."""
     assert (EXAMPLES / "demos" / "typescript-node").is_dir()
-    readme = (EXAMPLES / "README.md").read_text()
+    readme = (EXAMPLES / "README.md").read_text(encoding="utf-8")
     assert "typescript-node" in readme

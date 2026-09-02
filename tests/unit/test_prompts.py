@@ -22,7 +22,7 @@ class TestResolvePromptPath:
         prompts_dir = tmp_path / "prompts"
         prompts_dir.mkdir()
         prompt_file = prompts_dir / "greet.yaml"
-        prompt_file.write_text("system: Hello\nuser: Hi {name}")
+        prompt_file.write_text("system: Hello\nuser: Hi {name}", encoding="utf-8")
 
         result = resolve_prompt_path("greet", prompts_dir=prompts_dir)
 
@@ -39,7 +39,7 @@ class TestResolvePromptPath:
         nested_dir = prompts_dir / "map-demo"
         nested_dir.mkdir(parents=True)
         prompt_file = nested_dir / "generate_ideas.yaml"
-        prompt_file.write_text("system: Generate\nuser: {topic}")
+        prompt_file.write_text("system: Generate\nuser: {topic}", encoding="utf-8")
 
         result = resolve_prompt_path("map-demo/generate_ideas", prompts_dir=prompts_dir)
 
@@ -55,7 +55,7 @@ class TestResolvePromptPath:
         prompts_subdir = example_dir / "prompts"
         prompts_subdir.mkdir(parents=True)
         prompt_file = prompts_subdir / "expand_story.yaml"
-        prompt_file.write_text("system: Expand\nuser: {story}")
+        prompt_file.write_text("system: Expand\nuser: {story}", encoding="utf-8")
 
         # Change to tmp_path so relative paths resolve correctly
         monkeypatch.chdir(tmp_path)
@@ -106,7 +106,7 @@ class TestLoadPrompt:
         prompts_dir = tmp_path / "prompts"
         prompts_dir.mkdir()
         prompt_file = prompts_dir / "test.yaml"
-        prompt_file.write_text("system: You are helpful\nuser: Hello {name}")
+        prompt_file.write_text("system: You are helpful\nuser: Hello {name}", encoding="utf-8")
 
         result = load_prompt("test", prompts_dir=prompts_dir)
 
@@ -130,7 +130,7 @@ schema:
     summary:
       type: str
       description: Brief summary
-""")
+""", encoding="utf-8")
 
         result = load_prompt("structured", prompts_dir=prompts_dir)
 
@@ -175,10 +175,10 @@ class TestGraphRelativePrompts:
         prompts_dir.mkdir(parents=True)
 
         graph_file = graph_dir / "graph.yaml"
-        graph_file.write_text("name: audit")
+        graph_file.write_text("name: audit", encoding="utf-8")
 
         prompt_file = prompts_dir / "opening.yaml"
-        prompt_file.write_text("system: Welcome\nuser: Start audit")
+        prompt_file.write_text("system: Welcome\nuser: Start audit", encoding="utf-8")
 
         # Resolve relative to graph
         result = resolve_prompt_path(
@@ -200,7 +200,7 @@ class TestGraphRelativePrompts:
         shared_prompts.mkdir(parents=True)
 
         prompt_file = shared_prompts / "greet.yaml"
-        prompt_file.write_text("system: Hello\nuser: Hi")
+        prompt_file.write_text("system: Hello\nuser: Hi", encoding="utf-8")
 
         result = resolve_prompt_path(
             "greet",
@@ -218,18 +218,18 @@ class TestGraphRelativePrompts:
         graph_dir = tmp_path / "graphs"
         graph_dir.mkdir()
         graph_file = graph_dir / "test.yaml"
-        graph_file.write_text("name: test")
+        graph_file.write_text("name: test", encoding="utf-8")
 
         # Graph-relative prompt (should NOT be used)
         graph_prompts = graph_dir / "prompts"
         graph_prompts.mkdir()
-        (graph_prompts / "greet.yaml").write_text("system: Graph local")
+        (graph_prompts / "greet.yaml").write_text("system: Graph local", encoding="utf-8")
 
         # Explicit prompts dir (should be used)
         explicit_dir = tmp_path / "explicit"
         explicit_dir.mkdir()
         explicit_prompt = explicit_dir / "greet.yaml"
-        explicit_prompt.write_text("system: Explicit")
+        explicit_prompt.write_text("system: Explicit", encoding="utf-8")
 
         result = resolve_prompt_path(
             "greet",
@@ -247,7 +247,7 @@ class TestGraphRelativePrompts:
 
         prompts_dir = tmp_path / "prompts"
         prompts_dir.mkdir()
-        (prompts_dir / "greet.yaml").write_text("system: Hi")
+        (prompts_dir / "greet.yaml").write_text("system: Hi", encoding="utf-8")
 
         with pytest.raises(ValueError, match="graph_path required"):
             resolve_prompt_path(
@@ -268,10 +268,10 @@ class TestGraphRelativePrompts:
         prompts_dir.mkdir(parents=True)
 
         graph_file = graph_dir / "graph.yaml"
-        graph_file.write_text("name: phq9")
+        graph_file.write_text("name: phq9", encoding="utf-8")
 
         prompt_file = prompts_dir / "fields.yaml"
-        prompt_file.write_text("system: Extract\nuser: {text}")
+        prompt_file.write_text("system: Extract\nuser: {text}", encoding="utf-8")
 
         result = resolve_prompt_path(
             "prompts/extract/fields",
@@ -304,10 +304,10 @@ class TestGraphRelativePrompts:
         prompts_dir.mkdir(parents=True)
 
         graph_file = graph_dir / "graph.yaml"
-        graph_file.write_text("name: audit")
+        graph_file.write_text("name: audit", encoding="utf-8")
 
         prompt_file = prompts_dir / "opening.yaml"
-        prompt_file.write_text("system: Welcome\nuser: Start audit")
+        prompt_file.write_text("system: Welcome\nuser: Start audit", encoding="utf-8")
 
         # This should resolve to questionnaires/audit/prompts/opening.yaml
         # Note: prompts_dir is a RELATIVE path "prompts", not an absolute path
@@ -334,7 +334,7 @@ class TestLoadPromptPath:
         prompts_dir = tmp_path / "prompts"
         prompts_dir.mkdir()
         prompt_file = prompts_dir / "dual.yaml"
-        prompt_file.write_text("system: Test\nuser: Hello")
+        prompt_file.write_text("system: Test\nuser: Hello", encoding="utf-8")
 
         path, content = load_prompt_path("dual", prompts_dir=prompts_dir)
 

@@ -152,7 +152,7 @@ DEV_OPS_HEADINGS = [
 
 
 def _scripture() -> dict:
-    m = re.search(r"```yaml\n(.*?)```", DOCTRINE.read_text(), re.S)
+    m = re.search(r"```yaml\n(.*?)```", DOCTRINE.read_text(encoding="utf-8"), re.S)
     assert m, "Knowledge Graph yaml block missing from doctrine"
     return yaml.safe_load(m.group(1))
 
@@ -166,7 +166,7 @@ def _sentences(path: Path) -> list[str]:
     4. drop sentences shorter than 30 characters (table rules,
        fragments, and headings would otherwise produce noise matches)
     """
-    text = re.sub(r"\s+", " ", path.read_text().lower())
+    text = re.sub(r"\s+", " ", path.read_text(encoding="utf-8").lower())
     return [s.strip() for s in re.split(r"(?<=[.!?]) ", text) if len(s.strip()) >= 30]
 
 
@@ -183,8 +183,8 @@ def test_submitting_proposals_removed_everywhere():
     """AC-03 (amended by operator 2026-08-31): the chaplain runtime is not
     running — the Submitting Proposals section is deleted from BOTH
     instruction files, not deduplicated into the doctrine."""
-    assert "Submitting Proposals" not in DOCTRINE.read_text()
-    assert "Submitting Proposals" not in CLAUDE.read_text()
+    assert "Submitting Proposals" not in DOCTRINE.read_text(encoding="utf-8")
+    assert "Submitting Proposals" not in CLAUDE.read_text(encoding="utf-8")
 
 
 def test_no_identical_three_sentence_run_across_files():
@@ -199,16 +199,16 @@ def test_no_identical_three_sentence_run_across_files():
 
 def test_relocated_blocks_absent_from_claude():
     """AC-04: relocated payloads no longer ride in CLAUDE.md."""
-    text = CLAUDE.read_text()
+    text = CLAUDE.read_text(encoding="utf-8")
     present = [name for name, marker in RELOCATED_MARKERS.items() if marker in text]
     assert not present, f"relocated blocks still in CLAUDE.md: {present}"
 
 
 def test_relocation_pointers_resolve():
     """AC-04: every relocation pointer resolves to a committed section."""
-    assert "reference/development-operations.md" in CLAUDE.read_text()
+    assert "reference/development-operations.md" in CLAUDE.read_text(encoding="utf-8")
     assert DEV_OPS.is_file(), "reference/development-operations.md missing"
-    dev_ops = DEV_OPS.read_text()
+    dev_ops = DEV_OPS.read_text(encoding="utf-8")
     missing = [h for h in DEV_OPS_HEADINGS if h not in dev_ops]
     assert not missing, f"destination sections missing: {missing}"
 
@@ -246,7 +246,7 @@ def test_provenance_records_keyed_and_complete():
     assert PROVENANCE.is_file(), "docs/scripture-provenance.md missing"
     keys = re.findall(
         r"^### `((?:traps|cures|questions|process)\.\w+)`",
-        PROVENANCE.read_text(),
+        PROVENANCE.read_text(encoding="utf-8"),
         re.M,
     )
     assert keys, "no keyed records in provenance file"
@@ -260,7 +260,7 @@ def test_citations_preserved_verbatim():
     """AC-07: every pre-compression citation survives — inline or in the
     keyed provenance record."""
     data = _scripture()
-    prov = PROVENANCE.read_text() if PROVENANCE.is_file() else ""
+    prov = PROVENANCE.read_text(encoding="utf-8") if PROVENANCE.is_file() else ""
     lost = []
     for dotted, tokens in CITATION_INVENTORY.items():
         coll, key = dotted.split(".", 1)

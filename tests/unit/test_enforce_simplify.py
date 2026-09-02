@@ -12,7 +12,7 @@ _PROMPTS_DIR = Path(".chaplain/graphs/watcher-enforce/prompts")
 
 
 def _load_graph() -> dict:
-    with open(_GRAPH_PATH) as f:
+    with open(_GRAPH_PATH, encoding="utf-8") as f:
         return yaml.safe_load(f)
 
 

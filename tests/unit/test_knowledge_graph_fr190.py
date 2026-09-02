@@ -30,7 +30,7 @@ class TestInfrastructureSelfExemptGraduation:
         ), f"Missing {COPILOT_INSTRUCTIONS.relative_to(REPO_ROOT)}"
 
     def test_infrastructure_self_exempt_trap_present(self):
-        content = COPILOT_INSTRUCTIONS.read_text()
+        content = COPILOT_INSTRUCTIONS.read_text(encoding="utf-8")
         assert NEW_TRAP in content, (
             f"infrastructure_self_exempt trap not found in Scripture.\n"
             f"Expected: {NEW_TRAP}\n"
@@ -39,7 +39,7 @@ class TestInfrastructureSelfExemptGraduation:
 
     def test_trap_in_traps_section(self):
         """Verify the new trap is in the traps: section, not elsewhere."""
-        content = COPILOT_INSTRUCTIONS.read_text()
+        content = COPILOT_INSTRUCTIONS.read_text(encoding="utf-8")
         traps_start = content.index("traps:")
         cures_start = content.index("cures:")
         traps_section = content[traps_start:cures_start]
@@ -50,7 +50,7 @@ class TestInfrastructureSelfExemptGraduation:
 
     def test_no_other_traps_changed(self):
         """Verify all existing trap descriptions remain unchanged."""
-        content = COPILOT_INSTRUCTIONS.read_text()
+        content = COPILOT_INSTRUCTIONS.read_text(encoding="utf-8")
         expected_traps = {
             "quick_confidence": '"When I feel certain → Judge instead"',
             "downstream_fix": (
@@ -86,7 +86,7 @@ class TestInfrastructureSelfExemptGraduation:
 
     def test_no_cures_changed(self):
         """Verify all cure descriptions remain unchanged."""
-        content = COPILOT_INSTRUCTIONS.read_text()
+        content = COPILOT_INSTRUCTIONS.read_text(encoding="utf-8")
         expected_cures = {
             "test_before_reading": '"Write question as test → if passes, stop"',
             "tolerant_matching": (
@@ -107,7 +107,7 @@ class TestInfrastructureSelfExemptGraduation:
 
     def test_no_process_entries_changed(self):
         """Verify all process descriptions remain unchanged."""
-        content = COPILOT_INSTRUCTIONS.read_text()
+        content = COPILOT_INSTRUCTIONS.read_text(encoding="utf-8")
         expected_process = {
             "graduation": (
                 '"Heuristic appears twice → create FR;'

@@ -15,7 +15,7 @@ import yaml
 
 def _write_graph(graph: dict) -> Path:
     """Write a graph dict to a temp YAML file and return its path."""
-    with tempfile.NamedTemporaryFile(suffix=".yaml", delete=False, mode="w") as tmp:
+    with tempfile.NamedTemporaryFile(encoding="utf-8", suffix=".yaml", delete=False, mode="w") as tmp:
         yaml.dump(graph, tmp)
     return Path(tmp.name)
 

@@ -238,7 +238,7 @@ class TestSaveToFile:
         assert "outputs" in result["output_path"]
         assert Path(result["output_path"]).exists()
 
-        content = Path(result["output_path"]).read_text()
+        content = Path(result["output_path"]).read_text(encoding="utf-8")
         assert "# Feature Request: Test Feature" in content
         assert "**Priority:** HIGH" in content
 

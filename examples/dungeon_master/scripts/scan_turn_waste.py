@@ -48,7 +48,7 @@ def _main(paths: list[str]) -> None:
     grand_chapters = 0
     for path in paths:
         try:
-            doc = json.loads(Path(path).read_text())
+            doc = json.loads(Path(path).read_text(encoding="utf-8"))
         except (OSError, ValueError) as exc:
             print(f"{path}: SKIP ({exc})")
             continue

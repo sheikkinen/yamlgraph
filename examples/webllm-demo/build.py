@@ -46,7 +46,7 @@ JSON_DIRECTIVE = (
 
 def build_prompt_json() -> dict:
     """Compile the critique prompt YAML to the WebLLM contract dict."""
-    config = yaml.safe_load(PROMPT_YAML.read_text())
+    config = yaml.safe_load(PROMPT_YAML.read_text(encoding="utf-8"))
     model = build_pydantic_model(config["schema"])
     return {
         "name": config["schema"]["name"],
@@ -64,13 +64,13 @@ def serialize(payload: dict) -> str:
 def main() -> int:
     text = serialize(build_prompt_json())
     if "--check" in sys.argv:
-        if ARTIFACT.read_text() != text:
+        if ARTIFACT.read_text(encoding="utf-8") != text:
             print(f"✗ drift: {ARTIFACT} differs from rebuild", file=sys.stderr)
             return 1
         print(f"✓ {ARTIFACT} is current")
         return 0
     ARTIFACT.parent.mkdir(parents=True, exist_ok=True)
-    ARTIFACT.write_text(text)
+    ARTIFACT.write_text(text, encoding="utf-8")
     print(f"✓ wrote {ARTIFACT}")
     return 0
 

@@ -134,7 +134,7 @@ nodes:
     state_key: result
 """
         graph_file = tmp_path / "test_graph.yaml"
-        graph_file.write_text(graph_content)
+        graph_file.write_text(graph_content, encoding="utf-8")
 
         issues = check_agent_patterns(graph_file)
         assert len(issues) == 0
@@ -156,7 +156,7 @@ nodes:
     state_key: result
 """
         graph_file = tmp_path / "test_graph.yaml"
-        graph_file.write_text(graph_content)
+        graph_file.write_text(graph_content, encoding="utf-8")
 
         issues = check_agent_patterns(graph_file)
         assert len(issues) == 1
@@ -180,7 +180,7 @@ nodes:
     state_key: result
 """
         graph_file = tmp_path / "test_graph.yaml"
-        graph_file.write_text(graph_content)
+        graph_file.write_text(graph_content, encoding="utf-8")
 
         issues = check_agent_patterns(graph_file)
         assert len(issues) == 1
@@ -211,7 +211,7 @@ nodes:
     state_key: result
 """
         graph_file = tmp_path / "test_graph.yaml"
-        graph_file.write_text(graph_content)
+        graph_file.write_text(graph_content, encoding="utf-8")
 
         issues = check_agent_patterns(graph_file)
         # Should only validate the agent_node

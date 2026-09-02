@@ -69,7 +69,7 @@ class TestGetModuleStructure:
 
     def test_handles_syntax_error(self):
         """Returns error for file with syntax errors."""
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
+        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", suffix=".py", delete=False) as f:
             f.write("def broken(\n")  # Invalid syntax
             temp_path = f.name
 
@@ -111,7 +111,7 @@ class TestGetModuleStructure:
     def test_extracts_function_decorators(self):
         """Function decorators are extracted."""
         # Create a temp file with decorators
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
+        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", suffix=".py", delete=False) as f:
             f.write("""
 def simple_decorator(func):
     return func
@@ -135,7 +135,7 @@ def decorated_function():
 
     def test_extracts_function_return_type(self):
         """Function return type annotations are extracted."""
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
+        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", suffix=".py", delete=False) as f:
             f.write("""
 def typed_function(x: int, y: str) -> bool:
     return True
@@ -154,7 +154,7 @@ def typed_function(x: int, y: str) -> bool:
 
     def test_extracts_function_docstring(self):
         """Function docstrings are extracted."""
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
+        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", suffix=".py", delete=False) as f:
             f.write('''
 def documented_function():
     """This is the docstring."""

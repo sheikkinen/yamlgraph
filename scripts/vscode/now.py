@@ -164,7 +164,7 @@ def main_lock_lines(repo: Path) -> list[str]:
     if not marker.is_file():
         return []
     try:
-        state = json.loads(marker.read_text()).get("state", "")
+        state = json.loads(marker.read_text(encoding="utf-8")).get("state", "")
     except (OSError, ValueError):
         return [f"  ⚠ main-lock marker unreadable: {marker}"]
     if state != "unlocked":
@@ -180,7 +180,7 @@ def workspace_folder(hash_dir: Path) -> Path | None:
     meta = hash_dir / "workspace.json"
     if not meta.is_file():
         return None
-    m = re.search(r'"folder":\s*"file://([^"]+)"', meta.read_text())
+    m = re.search(r'"folder":\s*"file://([^"]+)"', meta.read_text(encoding="utf-8"))
     return Path(m.group(1)) if m else None
 
 
@@ -250,7 +250,7 @@ def frs_in_motion(repos: set[Path], window_s: float) -> list[tuple[str, str, str
                 continue
             status = "?"
             m = re.search(
-                r"^\*\*Status:\*\*\s*(.+)$", fr.read_text(errors="replace"), re.M
+                r"^\*\*Status:\*\*\s*(.+)$", fr.read_text(errors="replace", encoding="utf-8"), re.M
             )
             if m:
                 status = re.split(r"[—(]", m.group(1))[0].strip()[:20]

@@ -104,7 +104,7 @@ def test_setter_is_the_sole_api_writer_of_plot_plan():
     api_dir = _DM_DIR / "api"
     pattern = re.compile(r"""\[['"]plot_plan['"]\]\s*=""")
     writers = sorted(
-        p.name for p in api_dir.rglob("*.py") if pattern.search(p.read_text())
+        p.name for p in api_dir.rglob("*.py") if pattern.search(p.read_text(encoding="utf-8"))
     )
     assert writers == ["chapter_nav.py"]
 

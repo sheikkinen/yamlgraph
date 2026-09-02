@@ -14,7 +14,7 @@ WORKFLOW_PATH = Path(".github/workflows/commitlint.yml")
 
 
 def _load_workflow() -> dict:
-    with WORKFLOW_PATH.open() as f:
+    with WORKFLOW_PATH.open(encoding="utf-8") as f:
         return yaml.safe_load(f)
 
 
@@ -39,7 +39,7 @@ def _commit_as(tmpdir: str, *, name: str, email: str, message: str, index: int) 
     tmppath = Path(tmpdir)
     file_path = tmppath / f"src/file_{index}.txt"
     file_path.parent.mkdir(parents=True, exist_ok=True)
-    file_path.write_text(f"change {index}\n")
+    file_path.write_text(f"change {index}\n", encoding="utf-8")
     subprocess.run(["git", "add", "."], cwd=tmpdir, check=True)
 
     env = os.environ.copy()
@@ -49,7 +49,7 @@ def _commit_as(tmpdir: str, *, name: str, email: str, message: str, index: int) 
     env["GIT_COMMITTER_EMAIL"] = email
 
     msg_file = tmppath / f"msg_{index}.txt"
-    msg_file.write_text(message)
+    msg_file.write_text(message, encoding="utf-8")
     subprocess.run(
         ["git", "commit", "-q", "-F", str(msg_file)], cwd=tmpdir, check=True, env=env
     )

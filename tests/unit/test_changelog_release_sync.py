@@ -52,8 +52,8 @@ class TestChangelogReleaseSync:
         )
         unreleased = tmp_path / "changelog" / "unreleased"
         unreleased.mkdir(parents=True)
-        (unreleased / "FR-100-feature.md").write_text("fragment")
-        (unreleased / ".gitkeep").write_text("")
+        (unreleased / "FR-100-feature.md").write_text("fragment", encoding="utf-8")
+        (unreleased / ".gitkeep").write_text("", encoding="utf-8")
 
         # Simulate: git diff --cached shows version change
         diff_output = textwrap.dedent("""\
@@ -71,7 +71,7 @@ class TestChangelogReleaseSync:
         )
         unreleased = tmp_path / "changelog" / "unreleased"
         unreleased.mkdir(parents=True)
-        (unreleased / ".gitkeep").write_text("")
+        (unreleased / ".gitkeep").write_text("", encoding="utf-8")
 
         diff_output = textwrap.dedent("""\
             -version = "0.4.62"
@@ -88,7 +88,7 @@ class TestChangelogReleaseSync:
         )
         unreleased = tmp_path / "changelog" / "unreleased"
         unreleased.mkdir(parents=True)
-        (unreleased / "FR-100-feature.md").write_text("fragment")
+        (unreleased / "FR-100-feature.md").write_text("fragment", encoding="utf-8")
 
         # No version change in diff
         diff_output = ""
@@ -103,7 +103,7 @@ class TestChangelogReleaseSync:
         )
         unreleased = tmp_path / "changelog" / "unreleased"
         unreleased.mkdir(parents=True)
-        (unreleased / "FR-100-feature.md").write_text("fragment")
+        (unreleased / "FR-100-feature.md").write_text("fragment", encoding="utf-8")
 
         # pyproject.toml changed but not the version line
         diff_output = textwrap.dedent("""\
@@ -123,8 +123,8 @@ class TestChangelogReleaseSync:
         )
         unreleased = tmp_path / "changelog" / "unreleased"
         unreleased.mkdir(parents=True)
-        (unreleased / "FR-100-feature.md").write_text("fragment")
-        (unreleased / "FR-101-bugfix.md").write_text("fragment")
+        (unreleased / "FR-100-feature.md").write_text("fragment", encoding="utf-8")
+        (unreleased / "FR-101-bugfix.md").write_text("fragment", encoding="utf-8")
 
         diff_output = '+version = "0.4.63"'
         mod.check(diff_output=diff_output, unreleased_dir=unreleased)
@@ -151,7 +151,7 @@ class TestReleaseScript:
     def test_release_script_validates_empty_unreleased(self) -> None:
         """release.sh must check for fragments before proceeding."""
         script = REPO_ROOT / "scripts" / "release.sh"
-        content = script.read_text()
+        content = script.read_text(encoding="utf-8")
         assert "changelog/unreleased" in content, "release.sh must check unreleased dir"
         assert (
             "No fragments" in content
@@ -162,7 +162,7 @@ class TestReleaseScript:
     def test_release_script_freezes_changelog(self) -> None:
         """release.sh must move fragments to versioned directory."""
         script = REPO_ROOT / "scripts" / "release.sh"
-        content = script.read_text()
+        content = script.read_text(encoding="utf-8")
         assert (
             "mv " in content and "changelog/" in content
         ), "release.sh must move fragments"
@@ -170,13 +170,13 @@ class TestReleaseScript:
     def test_release_script_bumps_version(self) -> None:
         """release.sh must update pyproject.toml version."""
         script = REPO_ROOT / "scripts" / "release.sh"
-        content = script.read_text()
+        content = script.read_text(encoding="utf-8")
         assert "pyproject.toml" in content, "release.sh must update pyproject.toml"
 
     def test_release_script_aggregates_changelog(self) -> None:
         """release.sh must run aggregate_changelog.py."""
         script = REPO_ROOT / "scripts" / "release.sh"
-        content = script.read_text()
+        content = script.read_text(encoding="utf-8")
         assert (
             "aggregate_changelog" in content
         ), "release.sh must run aggregate_changelog.py"
@@ -184,14 +184,14 @@ class TestReleaseScript:
     def test_release_script_commits_and_tags(self) -> None:
         """release.sh must create commit and tag."""
         script = REPO_ROOT / "scripts" / "release.sh"
-        content = script.read_text()
+        content = script.read_text(encoding="utf-8")
         assert "git commit" in content, "release.sh must commit"
         assert "git tag" in content, "release.sh must create tag"
 
     def test_release_script_uses_file_for_commit_msg(self) -> None:
         """release.sh must use -F for commit message (avoid dquote trap)."""
         script = REPO_ROOT / "scripts" / "release.sh"
-        content = script.read_text()
+        content = script.read_text(encoding="utf-8")
         assert (
             "commit -F" in content or "commit --file" in content
         ), "release.sh must use -F for commit message"
@@ -211,7 +211,7 @@ class TestCIReleaseHygiene:
         import yaml
 
         workflow_path = REPO_ROOT / ".github" / "workflows" / "commitlint.yml"
-        content = workflow_path.read_text()
+        content = workflow_path.read_text(encoding="utf-8")
         workflow = yaml.safe_load(content)
         assert "release-hygiene" in workflow.get(
             "jobs", {}
@@ -220,7 +220,7 @@ class TestCIReleaseHygiene:
     def test_workflow_triggers_on_tag_push(self) -> None:
         """commitlint.yml must trigger on tag pushes (v*)."""
         workflow_path = REPO_ROOT / ".github" / "workflows" / "commitlint.yml"
-        content = workflow_path.read_text()
+        content = workflow_path.read_text(encoding="utf-8")
         # Must have push trigger with tags
         assert "tags:" in content, "Workflow must trigger on tag pushes"
         assert (
@@ -232,7 +232,7 @@ class TestCIReleaseHygiene:
         import yaml
 
         workflow_path = REPO_ROOT / ".github" / "workflows" / "commitlint.yml"
-        content = workflow_path.read_text()
+        content = workflow_path.read_text(encoding="utf-8")
         workflow = yaml.safe_load(content)
         job = workflow["jobs"]["release-hygiene"]
         # Job steps must reference changelog directory check
@@ -246,7 +246,7 @@ class TestCIReleaseHygiene:
         import yaml
 
         workflow_path = REPO_ROOT / ".github" / "workflows" / "commitlint.yml"
-        content = workflow_path.read_text()
+        content = workflow_path.read_text(encoding="utf-8")
         workflow = yaml.safe_load(content)
         job = workflow["jobs"]["release-hygiene"]
         steps_text = str(job.get("steps", []))
@@ -259,7 +259,7 @@ class TestCIReleaseHygiene:
         import yaml
 
         workflow_path = REPO_ROOT / ".github" / "workflows" / "commitlint.yml"
-        content = workflow_path.read_text()
+        content = workflow_path.read_text(encoding="utf-8")
         workflow = yaml.safe_load(content)
         job = workflow["jobs"]["release-hygiene"]
         job_if = job.get("if", "")
@@ -277,14 +277,14 @@ class TestPrecommitRegistration:
 
     def test_hook_registered(self) -> None:
         """changelog-release-sync hook must exist in .pre-commit-config.yaml."""
-        config = (REPO_ROOT / ".pre-commit-config.yaml").read_text()
+        config = (REPO_ROOT / ".pre-commit-config.yaml").read_text(encoding="utf-8")
         assert (
             "changelog-release-sync" in config
         ), "changelog-release-sync hook must be registered"
 
     def test_hook_runs_script(self) -> None:
         """Hook must run check_changelog_release_sync.py."""
-        config = (REPO_ROOT / ".pre-commit-config.yaml").read_text()
+        config = (REPO_ROOT / ".pre-commit-config.yaml").read_text(encoding="utf-8")
         assert (
             "check_changelog_release_sync" in config
         ), "Hook must reference check_changelog_release_sync script"
@@ -301,14 +301,14 @@ class TestDocumentation:
 
     def test_release_checklist_references_release_sh(self) -> None:
         """release-checklist.md must reference scripts/release.sh."""
-        checklist = (REPO_ROOT / "reference" / "release-checklist.md").read_text()
+        checklist = (REPO_ROOT / "reference" / "release-checklist.md").read_text(encoding="utf-8")
         assert (
             "scripts/release.sh" in checklist or "release.sh" in checklist
         ), "release-checklist.md must reference release.sh"
 
     def test_release_checklist_shows_release_sh_as_canonical(self) -> None:
         """release-checklist.md must present release.sh as the canonical command."""
-        checklist = (REPO_ROOT / "reference" / "release-checklist.md").read_text()
+        checklist = (REPO_ROOT / "reference" / "release-checklist.md").read_text(encoding="utf-8")
         assert (
             "release.sh" in checklist
         ), "release-checklist.md must show release.sh as canonical"

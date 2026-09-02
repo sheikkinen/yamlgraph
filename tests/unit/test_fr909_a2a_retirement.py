@@ -50,7 +50,7 @@ def test_cli_parser_rejects_a2a_subcommand():
 
 @pytest.mark.req("REQ-YG-032")
 def test_cli_package_has_no_a2a_wiring():
-    source = (REPO_ROOT / "yamlgraph" / "cli" / "__init__.py").read_text()
+    source = (REPO_ROOT / "yamlgraph" / "cli" / "__init__.py").read_text(encoding="utf-8")
     assert "cmd_a2a_dispatch" not in source
     assert "a2a" not in source.lower()
 
@@ -83,6 +83,6 @@ def test_no_live_a2a_references_in_package():
         str(path.relative_to(REPO_ROOT))
         for path in sorted((REPO_ROOT / "yamlgraph").rglob("*.py"))
         if "__pycache__" not in path.parts
-        and LIVE_REFERENCE_PATTERN.search(path.read_text())
+        and LIVE_REFERENCE_PATTERN.search(path.read_text(encoding="utf-8"))
     ]
     assert offenders == []

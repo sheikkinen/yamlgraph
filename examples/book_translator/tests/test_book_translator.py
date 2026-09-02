@@ -17,13 +17,13 @@ class TestGraphStructure:
 
     def test_graph_yaml_valid(self):
         """Graph should be valid YAML."""
-        config = yaml.safe_load(GRAPH_PATH.read_text())
+        config = yaml.safe_load(GRAPH_PATH.read_text(encoding="utf-8"))
         assert config is not None
         assert config.get("name") == "book-translator"
 
     def test_has_checkpointer(self):
         """Should have SQLite checkpointer for long-running jobs."""
-        config = yaml.safe_load(GRAPH_PATH.read_text())
+        config = yaml.safe_load(GRAPH_PATH.read_text(encoding="utf-8"))
         assert "checkpointer" in config
         assert config["checkpointer"]["type"] == "sqlite"
 

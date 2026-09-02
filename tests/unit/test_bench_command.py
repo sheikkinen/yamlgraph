@@ -342,7 +342,7 @@ class TestBenchExport:
         )
 
         assert output_path.exists()
-        data = json.loads(output_path.read_text())
+        data = json.loads(output_path.read_text(encoding="utf-8"))
         assert data["graph"] == "examples/demos/hello/graph.yaml"
         assert data["variables"] == {"name": "World"}
         assert len(data["results"]) == 1
@@ -382,7 +382,7 @@ class TestBenchExport:
             output_path=str(output_path),
         )
 
-        data = json.loads(output_path.read_text())
+        data = json.loads(output_path.read_text(encoding="utf-8"))
         assert len(data["results"]) == 2
 
 

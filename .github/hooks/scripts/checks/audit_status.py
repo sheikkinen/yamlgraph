@@ -17,7 +17,7 @@ def main() -> None:
     if not logfile.exists():
         print("No audit log found.")
         return
-    lines = logfile.read_text().strip().splitlines()
+    lines = logfile.read_text(encoding="utf-8").strip().splitlines()
     decisions: collections.Counter = collections.Counter()
     tools: collections.Counter = collections.Counter()
     errors: collections.Counter = collections.Counter()

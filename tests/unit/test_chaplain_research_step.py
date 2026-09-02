@@ -17,7 +17,7 @@ PROMPTS_DIR = REPO_ROOT / ".chaplain" / "graphs" / "watcher-plan" / "prompts"
 
 
 def _load_yaml(path: Path) -> dict:
-    return yaml.safe_load(path.read_text())
+    return yaml.safe_load(path.read_text(encoding="utf-8"))
 
 
 @pytest.mark.req("REQ-YG-260")

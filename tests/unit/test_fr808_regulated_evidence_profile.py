@@ -64,7 +64,7 @@ def test_regulated_profile_writes_per_run_bound_record(tmp_path, monkeypatch):
 
     sink = sink_dir / f"{run.run_id}.route.jsonl"
     assert sink.exists()
-    assert '"judgement": "FR-808-test"' in sink.read_text()
+    assert '"judgement": "FR-808-test"' in sink.read_text(encoding="utf-8")
 
 
 @pytest.mark.req("REQ-YG-552")

@@ -145,7 +145,7 @@ def test_wrapper_surfaces_enriched_failure_text(tmp_path):
         "String should have at most 400 characters"
     )
     stub = tmp_path / "yg"
-    stub.write_text(f'#!/usr/bin/env bash\nprintf "{enriched}\\n" >&2\nexit 1\n')
+    stub.write_text(f'#!/usr/bin/env bash\nprintf "{enriched}\\n" >&2\nexit 1\n', encoding="utf-8")
     stub.chmod(stub.stat().st_mode | stat.S_IXUSR)
 
     env = {

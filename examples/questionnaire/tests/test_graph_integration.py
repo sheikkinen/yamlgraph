@@ -79,7 +79,7 @@ class TestDetectGapsIntegration:
         from tools.handlers import detect_gaps
 
         schema_path = Path(__file__).parent.parent / "schema.yaml"
-        schema = yaml.safe_load(schema_path.read_text())
+        schema = yaml.safe_load(schema_path.read_text(encoding="utf-8"))
 
         # Empty extracted - should find all 5 required fields
         state = {"schema": schema, "extracted": {}, "probe_count": 0}
@@ -99,7 +99,7 @@ class TestDetectGapsIntegration:
         from tools.handlers import detect_gaps
 
         schema_path = Path(__file__).parent.parent / "schema.yaml"
-        schema = yaml.safe_load(schema_path.read_text())
+        schema = yaml.safe_load(schema_path.read_text(encoding="utf-8"))
 
         # Partial - 2 of 5 filled
         state = {
@@ -120,7 +120,7 @@ class TestDetectGapsIntegration:
         from tools.handlers import detect_gaps
 
         schema_path = Path(__file__).parent.parent / "schema.yaml"
-        schema = yaml.safe_load(schema_path.read_text())
+        schema = yaml.safe_load(schema_path.read_text(encoding="utf-8"))
 
         state = {
             "schema": schema,
@@ -148,7 +148,7 @@ class TestProbeLoopGuard:
         from tools.handlers import detect_gaps
 
         schema_path = Path(__file__).parent.parent / "schema.yaml"
-        schema = yaml.safe_load(schema_path.read_text())
+        schema = yaml.safe_load(schema_path.read_text(encoding="utf-8"))
 
         # Simulate 10 iterations
         state = {"schema": schema, "extracted": {}, "probe_count": 9}
@@ -273,7 +273,7 @@ class TestSaveOutput:
         result = save_to_file(state)
 
         assert result["complete"] is True
-        content = Path(result["output_path"]).read_text()
+        content = Path(result["output_path"]).read_text(encoding="utf-8")
 
         # Check structure
         assert "# Feature Request:" in content

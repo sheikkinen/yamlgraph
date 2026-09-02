@@ -23,7 +23,7 @@ _PROMPT_FILE = Path(__file__).parent / "prompts" / "describe_artwork.yaml"
 
 def _load_instruction() -> str:
     """Load the julkaisuohje-derived instruction from the prompt YAML."""
-    data = yaml.safe_load(_PROMPT_FILE.read_text())
+    data = yaml.safe_load(_PROMPT_FILE.read_text(encoding="utf-8"))
     return data["template"]
 
 
@@ -125,7 +125,7 @@ def process_artwork(
     md_path = directory / f"{base}.md"
     png_path = directory / f"{base}.png"
 
-    md_path.write_text(_render_post(desc))
+    md_path.write_text(_render_post(desc), encoding="utf-8")
     if src != png_path:
         src.rename(png_path)
     logger.info("published: %s -> %s + %s", src.name, png_path.name, md_path.name)

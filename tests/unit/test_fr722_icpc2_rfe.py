@@ -47,7 +47,7 @@ class TestCatalogBuilder:
         """3-row committed excerpt parses into catalog rows with all
         judged fields; component derived from SuperClass suffix."""
         builder = _load("build_catalog.py")
-        xml_text = (FIXTURES / "icpc2_claml_excerpt.xml").read_text()
+        xml_text = (FIXTURES / "icpc2_claml_excerpt.xml").read_text(encoding="utf-8")
         rows = builder.parse_claml(xml_text)
         by_code = {r["code"]: r for r in rows}
         # "-30" joined the catalog in FR-724 (phase 2 process codes).
@@ -72,7 +72,7 @@ class TestCatalogBuilder:
         """Chapter headers are never catalog rows. (Process-code
         exclusion was phase 1 only — repealed by FR-724.)"""
         builder = _load("build_catalog.py")
-        xml_text = (FIXTURES / "icpc2_claml_excerpt.xml").read_text()
+        xml_text = (FIXTURES / "icpc2_claml_excerpt.xml").read_text(encoding="utf-8")
         rows = builder.parse_claml(xml_text)
         codes = {r["code"] for r in rows}
         assert "R" not in codes, "chapter header leaked into catalog"

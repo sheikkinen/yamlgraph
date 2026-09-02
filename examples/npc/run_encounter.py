@@ -44,7 +44,7 @@ def load_npcs(npc_dir: str | None) -> list[dict]:
         if npc_path.exists():
             npcs = []
             for f in npc_path.glob("*.yaml"):
-                with open(f) as fp:
+                with open(f, encoding="utf-8") as fp:
                     data = yaml.safe_load(fp)
                     identity = data.get("identity", {})
                     personality = data.get("personality", {})

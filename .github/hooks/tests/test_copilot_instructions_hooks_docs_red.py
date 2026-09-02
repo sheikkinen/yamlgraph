@@ -12,7 +12,7 @@ SECTION_HEADER = "### Copilot Hooks (.github/hooks/)"
 
 
 def _lines() -> list[str]:
-    return INSTRUCTIONS.read_text().splitlines()
+    return INSTRUCTIONS.read_text(encoding="utf-8").splitlines()
 
 
 def _find_index(lines: list[str], value: str) -> int:

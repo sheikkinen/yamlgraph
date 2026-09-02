@@ -18,7 +18,7 @@ class TestSynthesizePromptStructure:
     def prompt_content(self) -> dict:
         """Load the prompt YAML."""
         assert PROMPT_PATH.exists(), f"Prompt not found: {PROMPT_PATH}"
-        with open(PROMPT_PATH) as f:
+        with open(PROMPT_PATH, encoding="utf-8") as f:
             return yaml.safe_load(f)
 
     def test_has_required_sections(self, prompt_content):
@@ -60,7 +60,7 @@ class TestSynthesizeSchema:
     @pytest.fixture
     def schema(self) -> dict:
         """Load the schema from prompt."""
-        with open(PROMPT_PATH) as f:
+        with open(PROMPT_PATH, encoding="utf-8") as f:
             content = yaml.safe_load(f)
         return content.get("schema", {})
 

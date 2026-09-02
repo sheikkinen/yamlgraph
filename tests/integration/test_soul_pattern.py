@@ -84,7 +84,7 @@ class TestSoulPatternStructure:
         import yaml
 
         soul_file = SOUL_EXAMPLE_PATH / "souls" / "friendly.yaml"
-        with open(soul_file) as f:
+        with open(soul_file, encoding="utf-8") as f:
             soul = yaml.safe_load(f)
 
         assert soul["name"] == "Friendly Helper"
@@ -96,7 +96,7 @@ class TestSoulPatternStructure:
         import yaml
 
         soul_file = SOUL_EXAMPLE_PATH / "souls" / "formal.yaml"
-        with open(soul_file) as f:
+        with open(soul_file, encoding="utf-8") as f:
             soul = yaml.safe_load(f)
 
         assert (

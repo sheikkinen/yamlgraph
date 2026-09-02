@@ -134,7 +134,7 @@ def build_catalog(zip_path: Path, out_path: Path = CATALOG_PATH) -> Path:
     rows = parse_claml(xml_text)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     payload = {"catalog_version": SOURCE_VERSION, "rows": rows}
-    out_path.write_text(yaml.safe_dump(payload, sort_keys=False, allow_unicode=True))
+    out_path.write_text(yaml.safe_dump(payload, sort_keys=False, allow_unicode=True), encoding="utf-8")
     print(f"✓ {len(rows)} rubrics → {out_path}")
     return out_path
 

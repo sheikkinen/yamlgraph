@@ -218,7 +218,7 @@ class TestLoadSchemaFromYaml:
 name: simple_prompt
 system: You are helpful.
 user: "{input}"
-""")
+""", encoding="utf-8")
 
         result = load_schema_from_yaml(str(prompt_file))
         assert result is None
@@ -248,7 +248,7 @@ schema:
 
 system: You are a tone classifier.
 user: "Classify: {message}"
-""")
+""", encoding="utf-8")
 
         Model = load_schema_from_yaml(str(prompt_file))
 
@@ -490,7 +490,7 @@ output_schema:
 
 system: You are a sentiment analyzer.
 user: "Analyze: {text}"
-""")
+""", encoding="utf-8")
 
         Model = load_schema_from_yaml(str(prompt_file))
 
@@ -527,7 +527,7 @@ output_schema:
 
 system: Test
 user: "{input}"
-""")
+""", encoding="utf-8")
 
         Model = load_schema_from_yaml(str(prompt_file))
 

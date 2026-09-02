@@ -25,7 +25,7 @@ with open("file1.txt") as f1:
         print(content)
 """
 
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
+        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", suffix=".py", delete=False) as f:
             f.write(problematic_code)
             temp_file = Path(f.name)
 
@@ -38,7 +38,7 @@ with open("file1.txt") as f1:
             )
 
             # Read the fixed content
-            fixed_content = temp_file.read_text()
+            fixed_content = temp_file.read_text(encoding="utf-8")
 
             # Verify SIM117 fix was applied
             assert (

@@ -20,7 +20,7 @@ RUNTIME_SCOPE_FILES = [
 
 def _script_text() -> str:
     assert SCRIPT_PATH.exists(), f"Missing planner script: {SCRIPT_PATH}"
-    return SCRIPT_PATH.read_text()
+    return SCRIPT_PATH.read_text(encoding="utf-8")
 
 
 @pytest.mark.req("REQ-YG-087")

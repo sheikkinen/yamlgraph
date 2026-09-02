@@ -82,7 +82,7 @@ class TestMassGraduationProcessEntries:
         ids=list(NEW_PROCESS_ENTRIES.keys()),
     )
     def test_new_process_entry_present(self, entry_name, description):
-        content = COPILOT_INSTRUCTIONS.read_text()
+        content = COPILOT_INSTRUCTIONS.read_text(encoding="utf-8")
         line = f"{entry_name}: {description}"
         assert line in content, (
             f"Process entry '{entry_name}' not found in Knowledge Graph.\n"
@@ -97,7 +97,7 @@ class TestMassGraduationProcessEntries:
     )
     def test_new_process_entry_in_process_section(self, entry_name, description):
         """Each new process entry must be within the process: section."""
-        content = COPILOT_INSTRUCTIONS.read_text()
+        content = COPILOT_INSTRUCTIONS.read_text(encoding="utf-8")
         process_start = content.index("process:")
         # Find the next section or end of YAML block
         seeds_marker = "seeds:"
@@ -115,7 +115,7 @@ class TestMassGraduationProcessEntries:
     def test_changelog_ci_gate_not_in_seeds(self):
         """changelog_ci_gate describes FR-149 (already implemented) → must be
         in process, not seeds."""
-        content = COPILOT_INSTRUCTIONS.read_text()
+        content = COPILOT_INSTRUCTIONS.read_text(encoding="utf-8")
         if "seeds:" in content:
             seeds_start = content.index("seeds:")
             seeds_section = content[seeds_start:]
@@ -130,14 +130,14 @@ class TestMassGraduationSeedsSection:
     """Validate the new seeds: section in the Knowledge Graph."""
 
     def test_seeds_section_exists(self):
-        content = COPILOT_INSTRUCTIONS.read_text()
+        content = COPILOT_INSTRUCTIONS.read_text(encoding="utf-8")
         assert "seeds:" in content, (
             "seeds: section not found in Knowledge Graph.\n"
             "FR-193 requires a new seeds: section after process:."
         )
 
     def test_seeds_section_has_comment(self):
-        content = COPILOT_INSTRUCTIONS.read_text()
+        content = COPILOT_INSTRUCTIONS.read_text(encoding="utf-8")
         assert "# Forward-looking patterns awaiting implementation" in content, (
             "seeds: section comment not found.\n"
             "FR-193 requires: '# Forward-looking patterns awaiting implementation'"
@@ -145,7 +145,7 @@ class TestMassGraduationSeedsSection:
 
     def test_seeds_section_after_process(self):
         """Section ordering: process comes before seeds."""
-        content = COPILOT_INSTRUCTIONS.read_text()
+        content = COPILOT_INSTRUCTIONS.read_text(encoding="utf-8")
         process_pos = content.index("process:")
         seeds_pos = content.index("seeds:")
         assert process_pos < seeds_pos, (
@@ -159,7 +159,7 @@ class TestMassGraduationSeedsSection:
         ids=list(NEW_SEED_ENTRIES.keys()),
     )
     def test_seed_entry_present(self, entry_name, description):
-        content = COPILOT_INSTRUCTIONS.read_text()
+        content = COPILOT_INSTRUCTIONS.read_text(encoding="utf-8")
         line = f"{entry_name}: {description}"
         assert line in content, (
             f"Seed entry '{entry_name}' not found in Knowledge Graph.\n"
@@ -174,7 +174,7 @@ class TestMassGraduationSeedsSection:
     )
     def test_seed_entry_in_seeds_section(self, entry_name, description):
         """Each seed entry must be within the seeds: section."""
-        content = COPILOT_INSTRUCTIONS.read_text()
+        content = COPILOT_INSTRUCTIONS.read_text(encoding="utf-8")
         seeds_start = content.index("seeds:")
         seeds_section = content[seeds_start:]
         assert f"{entry_name}:" in seeds_section, (
@@ -193,7 +193,7 @@ class TestMassGraduationNoExistingEntriesChanged:
         ids=list(EXISTING_PROCESS_ENTRIES.keys()),
     )
     def test_existing_process_unchanged(self, entry_name, description):
-        content = COPILOT_INSTRUCTIONS.read_text()
+        content = COPILOT_INSTRUCTIONS.read_text(encoding="utf-8")
         line = f"{entry_name}: {description}"
         assert line in content, (
             f"Existing process entry '{entry_name}' changed unexpectedly.\n"
@@ -204,7 +204,7 @@ class TestMassGraduationNoExistingEntriesChanged:
     def test_all_descriptions_are_one_liners(self):
         """All 8 pattern descriptions must follow key: 'trigger → redirect'
         convention (single line)."""
-        content = COPILOT_INSTRUCTIONS.read_text()
+        content = COPILOT_INSTRUCTIONS.read_text(encoding="utf-8")
         all_entries = {**NEW_PROCESS_ENTRIES, **NEW_SEED_ENTRIES}
         for entry_name, description in all_entries.items():
             line = f"{entry_name}: {description}"

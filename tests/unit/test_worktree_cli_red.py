@@ -30,14 +30,14 @@ def test_worktree_usage_lists_new_spike_list_rm() -> None:
 
 @pytest.mark.req("REQ-YG-524")
 def test_worktree_alias_executes_canonical_script() -> None:
-    alias_text = WORKTREE_ALIAS.read_text()
+    alias_text = WORKTREE_ALIAS.read_text(encoding="utf-8")
     assert "worktree.sh" in alias_text
     assert "exec" in alias_text
 
 
 @pytest.mark.req("REQ-YG-524")
 def test_worktree_rm_runs_self_heal_sequence() -> None:
-    text = WORKTREE_SCRIPT.read_text()
+    text = WORKTREE_SCRIPT.read_text(encoding="utf-8")
     assert "core.bare false" in text
     assert "clean_stale_pth_entries" in text
     assert "validate_editable_install" in text
@@ -53,7 +53,7 @@ def test_worktree_spike_rm_requires_note_and_blocks_without_it(tmp_path: Path) -
         ["git", "config", "user.email", "test@example.com"], cwd=repo, check=True
     )
     subprocess.run(["git", "config", "user.name", "Test User"], cwd=repo, check=True)
-    (repo / "README.md").write_text("seed\n")
+    (repo / "README.md").write_text("seed\n", encoding="utf-8")
     subprocess.run(["git", "add", "README.md"], cwd=repo, check=True)
     subprocess.run(["git", "commit", "-m", "init"], cwd=repo, check=True)
 
@@ -83,7 +83,7 @@ def test_worktree_spike_rm_appends_spike_note_log_line(tmp_path: Path) -> None:
         ["git", "config", "user.email", "test@example.com"], cwd=repo, check=True
     )
     subprocess.run(["git", "config", "user.name", "Test User"], cwd=repo, check=True)
-    (repo / "README.md").write_text("seed\n")
+    (repo / "README.md").write_text("seed\n", encoding="utf-8")
     subprocess.run(["git", "add", "README.md"], cwd=repo, check=True)
     subprocess.run(["git", "commit", "-m", "init"], cwd=repo, check=True)
 
@@ -106,4 +106,4 @@ def test_worktree_spike_rm_appends_spike_note_log_line(tmp_path: Path) -> None:
     )
     log_file = repo / "docs/diary/spike-notes.log"
     assert log_file.exists()
-    assert "fr-697-log-test: Captured useful teardown insight" in log_file.read_text()
+    assert "fr-697-log-test: Captured useful teardown insight" in log_file.read_text(encoding="utf-8")

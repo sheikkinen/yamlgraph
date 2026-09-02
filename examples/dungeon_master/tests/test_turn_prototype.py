@@ -409,7 +409,7 @@ def test_busy_overlay_wires_every_slow_press(client, tmp_path):
 
 
 def test_turn_graph_has_director_between_intents_and_recap():
-    with open("examples/dungeon_master/turn.yaml") as fh:
+    with open("examples/dungeon_master/turn.yaml", encoding="utf-8") as fh:
         cfg = yaml.safe_load(fh)
     assert {"intents", "direct", "recap"} <= set(cfg["nodes"])
     # The director is structured; the final node still emits `recap` (FR-479 J3).
@@ -645,7 +645,7 @@ def test_arc_seam_ignores_wider_performance():
     """
     prompts = Path(__file__).resolve().parent.parent / "prompts"
     for name in ("turn_direct", "turn_recap"):
-        text = (prompts / f"{name}.yaml").read_text()
+        text = (prompts / f"{name}.yaml").read_text(encoding="utf-8")
         lowered = text.lower()
         # The arc still reads each character's committed intent…
         assert "intent" in lowered, f"{name} must read the committed intent"

@@ -87,7 +87,7 @@ def check_compile_validation(graph_path: Path) -> list[LintIssue]:
     from yamlgraph.utils.validators import validate_config
 
     try:
-        with open(graph_path) as handle:
+        with open(graph_path, encoding="utf-8") as handle:
             config = yaml.safe_load(handle) or {}
     except (OSError, yaml.YAMLError):
         return []

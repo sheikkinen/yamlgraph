@@ -211,7 +211,7 @@ class TestWriteIndex:
         assert output_file.exists()
 
         # Must be valid YAML
-        parsed = yaml.safe_load(output_file.read_text())
+        parsed = yaml.safe_load(output_file.read_text(encoding="utf-8"))
         assert isinstance(parsed, dict)
         assert "entries" in parsed
         assert "traps_index" in parsed
@@ -230,8 +230,8 @@ class TestListDiaryFiles:
 
         diary_dir = tmp_path / "docs" / "diary"
         diary_dir.mkdir(parents=True)
-        (diary_dir / "2026-01-01-test.md").write_text("# Test\nContent here")
-        (diary_dir / "2026-01-02-test.md").write_text("# Another\nMore content")
+        (diary_dir / "2026-01-01-test.md").write_text("# Test\nContent here", encoding="utf-8")
+        (diary_dir / "2026-01-02-test.md").write_text("# Another\nMore content", encoding="utf-8")
 
         with patch(
             "examples.demos.diary_index.tools.DIARY_DIR",
@@ -302,7 +302,7 @@ class TestGraphYaml:
     def test_extract_prompt_has_inline_schema(self):
         """AC #12: extraction prompt uses inline schema."""
         prompt_path = DEMO_DIR / "prompts" / "extract_entry.yaml"
-        prompt = yaml.safe_load(prompt_path.read_text())
+        prompt = yaml.safe_load(prompt_path.read_text(encoding="utf-8"))
         assert "schema" in prompt
         assert "name" in prompt["schema"]
         assert prompt["schema"]["name"] == "DiaryExtraction"
@@ -311,7 +311,7 @@ class TestGraphYaml:
     def test_tools_py_no_hardcoded_prompts(self):
         """AC #13: tools.py contains no hardcoded prompts."""
         tools_path = DEMO_DIR / "tools.py"
-        content = tools_path.read_text()
+        content = tools_path.read_text(encoding="utf-8")
         # No prompt strings — check for common prompt patterns
         assert "system:" not in content.lower() or "system:" in content.split('"""')[1]
         assert "You are" not in content

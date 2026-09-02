@@ -21,13 +21,13 @@ CAP_140 = WORKTREE / "capabilities" / "CAP-140-watcher2-validate-split-fix-gate.
 
 def _load_yaml(path: Path) -> dict:
     assert path.exists(), f"Missing YAML file: {path}"
-    with path.open() as f:
+    with path.open(encoding="utf-8") as f:
         return yaml.safe_load(f)
 
 
 def _load_text(path: Path) -> str:
     assert path.exists(), f"Missing text file: {path}"
-    return path.read_text()
+    return path.read_text(encoding="utf-8")
 
 
 def _action_for(config: dict, state: str) -> dict:
@@ -58,7 +58,7 @@ def _run_selector_with_history(
             "fi\n"
             'echo "unexpected git invocation: $*" >&2\n'
             "exit 1\n"
-        )
+        , encoding="utf-8")
         git_mock.chmod(0o755)
         env = os.environ.copy()
         env["PATH"] = f"{tmpdir}:{env['PATH']}"

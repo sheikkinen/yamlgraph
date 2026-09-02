@@ -43,7 +43,7 @@ def read_audit_log(log_dir: str) -> list[dict]:
     if not logfile.exists():
         return []
     entries = []
-    for line in logfile.read_text().strip().splitlines():
+    for line in logfile.read_text(encoding="utf-8").strip().splitlines():
         if line.strip():
             entries.append(json.loads(line))
     return entries

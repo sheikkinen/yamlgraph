@@ -29,7 +29,7 @@ def load_cwe_clusters(state: dict) -> dict:
             "python examples/cwe-classifier/nodes/build_catalog.py "
             "(downloads cwec_v4.20 — MITRE CWE, free with attribution)"
         )
-    payload = yaml.safe_load(path.read_text())
+    payload = yaml.safe_load(path.read_text(encoding="utf-8"))
     names = payload.get("categories") or {}
 
     clusters: dict[str, list[dict]] = defaultdict(list)

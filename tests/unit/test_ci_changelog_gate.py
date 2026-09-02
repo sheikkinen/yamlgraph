@@ -17,7 +17,7 @@ SEMANTICS_SCRIPT_PATH = Path("scripts/gate_artifact_semantics.sh")
 
 
 def _load_workflow() -> dict:
-    with WORKFLOW_PATH.open() as f:
+    with WORKFLOW_PATH.open(encoding="utf-8") as f:
         return yaml.safe_load(f)
 
 
@@ -52,10 +52,10 @@ def _run_ci_changelog_gate_check(
 
         semantics_dest = tmppath / "scripts" / "gate_artifact_semantics.sh"
         semantics_dest.parent.mkdir(parents=True, exist_ok=True)
-        semantics_dest.write_text(SEMANTICS_SCRIPT_PATH.read_text())
+        semantics_dest.write_text(SEMANTICS_SCRIPT_PATH.read_text(encoding="utf-8"), encoding="utf-8")
         semantics_dest.chmod(0o755)
 
-        (tmppath / "README.md").write_text("base\n")
+        (tmppath / "README.md").write_text("base\n", encoding="utf-8")
         subprocess.run(["git", "add", "."], cwd=tmpdir, check=True)
         subprocess.run(["git", "commit", "-q", "-m", "base"], cwd=tmpdir, check=True)
         base_sha = subprocess.run(
@@ -69,7 +69,7 @@ def _run_ci_changelog_gate_check(
         for relpath, content in changed_files.items():
             fpath = tmppath / relpath
             fpath.parent.mkdir(parents=True, exist_ok=True)
-            fpath.write_text(content)
+            fpath.write_text(content, encoding="utf-8")
         subprocess.run(["git", "add", "."], cwd=tmpdir, check=True)
         subprocess.run(["git", "commit", "-q", "-m", "head"], cwd=tmpdir, check=True)
         head_sha = subprocess.run(

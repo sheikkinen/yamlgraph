@@ -48,7 +48,7 @@ def _make_cap_file(
         ]
     )
     fp = cap_dir / f"CAP-{cap_num}-{name.lower().replace(' ', '-')}.yaml"
-    fp.write_text("\n".join(lines) + "\n")
+    fp.write_text("\n".join(lines) + "\n", encoding="utf-8")
     return fp
 
 
@@ -110,7 +110,7 @@ class TestValidateCapabilitiesRetiredStatus:
             requirements: []
             fr: FR-90
         """)
-        (cap_dir / "CAP-90-retired-feature.yaml").write_text(content)
+        (cap_dir / "CAP-90-retired-feature.yaml").write_text(content, encoding="utf-8")
 
         mod = _load_module(
             "validate_capabilities",
@@ -139,7 +139,7 @@ class TestCapabilityRegistryRetiredIdCheck:
     def test_ac05_no_hardcoded_retired_set_in_test(self) -> None:
         """test_capability_registry.py must not use a hardcoded retired ID set."""
         test_file = REPO_ROOT / "tests" / "unit" / "test_capability_registry.py"
-        content = test_file.read_text()
+        content = test_file.read_text(encoding="utf-8")
         # The old pattern: retired = {"CAP-27", "CAP-29", ...}
         # After FR-466, this should be replaced by reading RETIRED_CAPS from the script
         assert 'retired = {"CAP-' not in content, (

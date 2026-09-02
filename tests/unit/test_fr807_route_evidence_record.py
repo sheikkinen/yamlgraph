@@ -40,7 +40,7 @@ def test_route_run_context_emits_bound_header_route_and_end(tmp_path, monkeypatc
     with route_log.route_run_context(graph, thread_id="thread-7") as run:
         route_log.emit_route("classify", "default", "END")
 
-    lines = [json.loads(line) for line in sink.read_text().splitlines()]
+    lines = [json.loads(line) for line in sink.read_text(encoding="utf-8").splitlines()]
     assert [line["event"] for line in lines] == ["run", "route", "run_end"]
     assert lines[0]["run_id"] == run.run_id == lines[2]["run_id"]
     assert lines[0]["artifact_hash"].startswith("sha256:")
@@ -90,7 +90,7 @@ def test_artifact_hash_includes_subgraph_transitively(tmp_path):
     )
 
     first = route_log.compute_artifact_hash(parent)
-    child.write_text(child.read_text() + "description: changed\n", encoding="utf-8")
+    child.write_text(child.read_text(encoding="utf-8") + "description: changed\n", encoding="utf-8")
     assert route_log.compute_artifact_hash(parent) != first
 
 
@@ -117,7 +117,7 @@ def test_artifact_hash_includes_graph_tool_transitively(tmp_path):
     )
 
     first = route_log.compute_artifact_hash(parent)
-    child.write_text(child.read_text() + "description: changed\n", encoding="utf-8")
+    child.write_text(child.read_text(encoding="utf-8") + "description: changed\n", encoding="utf-8")
     assert route_log.compute_artifact_hash(parent) != first
 
 
@@ -143,7 +143,7 @@ async def test_async_entrypoint_emits_run_envelope(tmp_path, monkeypatch):
             return state
 
     await run_graph_async(App(), {}, {"configurable": {"thread_id": "async"}})
-    records = [json.loads(line) for line in sink.read_text().splitlines()]
+    records = [json.loads(line) for line in sink.read_text(encoding="utf-8").splitlines()]
     assert [record["event"] for record in records] == ["run", "route", "run_end"]
 
 

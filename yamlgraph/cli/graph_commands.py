@@ -315,7 +315,7 @@ def cmd_graph_codegen(args: Namespace) -> None:
 
         output_path = getattr(args, "output", None)
         if output_path:
-            Path(output_path).write_text(code)
+            Path(output_path).write_text(code, encoding="utf-8")
             print(f"✓ Generated TypedDict code: {output_path}")
         else:
             print(code)

@@ -42,7 +42,7 @@ def test_discover_graphs_finds_yaml(tmp_path: Path):
         "state:\n  topic: str\n"
         "nodes:\n  greet:\n    type: llm\n    prompt: greet\n    state_key: greeting\n"
         "edges:\n  - from: START\n    to: greet\n  - from: greet\n    to: END\n"
-    )
+    , encoding="utf-8")
 
     graphs = discover_graphs([str(tmp_path / "*/graph.yaml")])
     assert len(graphs) == 1
@@ -61,7 +61,7 @@ def test_discover_graphs_deduplicates(tmp_path: Path):
     (graph_dir / "graph.yaml").write_text(
         "nodes:\n  n1:\n    type: llm\n    prompt: p\n    state_key: out\n"
         "edges:\n  - from: START\n    to: n1\n  - from: n1\n    to: END\n"
-    )
+    , encoding="utf-8")
 
     # Two patterns that match the same file
     graphs = discover_graphs(

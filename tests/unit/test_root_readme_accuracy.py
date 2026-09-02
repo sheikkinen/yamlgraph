@@ -26,7 +26,7 @@ EXPECTED_PROVIDERS = (
 
 def _read_root_readme() -> str:
     assert README_PATH.exists(), f"Root README missing: {README_PATH}"
-    return README_PATH.read_text()
+    return README_PATH.read_text(encoding="utf-8")
 
 
 def _provider_row(readme: str) -> str:

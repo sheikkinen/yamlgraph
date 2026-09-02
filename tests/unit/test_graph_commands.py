@@ -185,7 +185,7 @@ class TestParseVars:
         from yamlgraph.cli.helpers import parse_vars
 
         test_file = tmp_path / "content.txt"
-        test_file.write_text("This is the document content.\nLine 2.")
+        test_file.write_text("This is the document content.\nLine 2.", encoding="utf-8")
 
         result = parse_vars([f"document=@{test_file}"])
 
@@ -223,7 +223,7 @@ class TestLoadVarFile:
         from yamlgraph.cli.helpers import load_var_file
 
         var_file = tmp_path / "vars.yaml"
-        var_file.write_text("topic: AI\nstyle: casual\nitems:\n  - one\n  - two")
+        var_file.write_text("topic: AI\nstyle: casual\nitems:\n  - one\n  - two", encoding="utf-8")
 
         result = load_var_file(str(var_file))
 
@@ -235,7 +235,7 @@ class TestLoadVarFile:
         from yamlgraph.cli.helpers import load_var_file
 
         var_file = tmp_path / "vars.json"
-        var_file.write_text('{"topic": "AI", "count": 5}')
+        var_file.write_text('{"topic": "AI", "count": 5}', encoding="utf-8")
 
         result = load_var_file(str(var_file))
 
@@ -990,7 +990,7 @@ class TestCmdGraphCodegen:
         )
         cmd_graph_codegen(args)
 
-        assert output_file.read_text() == "class TestState(TypedDict):\n    pass\n"
+        assert output_file.read_text(encoding="utf-8") == "class TestState(TypedDict):\n    pass\n"
 
     @pytest.mark.req("REQ-YG-036")
     @patch("yamlgraph.cli.graph_commands.load_graph_config")
@@ -1238,7 +1238,7 @@ class TestCmdGraphRunExtended:
         from yamlgraph.cli.graph_commands import cmd_graph_run
 
         var_file = tmp_path / "vars.yaml"
-        var_file.write_text("base: value")
+        var_file.write_text("base: value", encoding="utf-8")
 
         mock_load.return_value = MagicMock()
         mock_graph = MagicMock()
@@ -1259,7 +1259,7 @@ class TestCmdGraphRunExtended:
             None,  # timing_tracker
         )
 
-        (tmp_path / "graph.yaml").write_text("name: test\nnodes: {}\nedges: []")
+        (tmp_path / "graph.yaml").write_text("name: test\nnodes: {}\nedges: []", encoding="utf-8")
         args = argparse.Namespace(
             graph_path=str(tmp_path / "graph.yaml"),
             var=["topic=AI"],
@@ -1301,7 +1301,7 @@ class TestCmdGraphRunExtended:
             None,  # timing_tracker
         )
 
-        (tmp_path / "graph.yaml").write_text("name: test\nnodes: {}\nedges: []")
+        (tmp_path / "graph.yaml").write_text("name: test\nnodes: {}\nedges: []", encoding="utf-8")
         args = argparse.Namespace(
             graph_path=str(tmp_path / "graph.yaml"),
             var=[],
@@ -1358,7 +1358,7 @@ class TestCmdGraphRunExtended:
             None,  # timing_tracker
         )
 
-        (tmp_path / "graph.yaml").write_text("name: test\nnodes: {}\nedges: []")
+        (tmp_path / "graph.yaml").write_text("name: test\nnodes: {}\nedges: []", encoding="utf-8")
         args = argparse.Namespace(
             graph_path=str(tmp_path / "graph.yaml"),
             var=[],
@@ -1402,7 +1402,7 @@ class TestCmdGraphRunExtended:
 
         mock_build.return_value = ({}, {}, None, None, None, False, None)
 
-        (tmp_path / "graph.yaml").write_text("name: test\nnodes: {}\nedges: []")
+        (tmp_path / "graph.yaml").write_text("name: test\nnodes: {}\nedges: []", encoding="utf-8")
         args = argparse.Namespace(
             graph_path=str(tmp_path / "graph.yaml"),
             var=[],

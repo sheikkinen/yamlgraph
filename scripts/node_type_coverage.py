@@ -59,7 +59,7 @@ def scan_demos() -> dict[str, list[str]]:
         demo_name = rel.parts[0]
 
         try:
-            content = yaml.safe_load(graph_file.read_text())
+            content = yaml.safe_load(graph_file.read_text(encoding="utf-8"))
         except Exception:  # noqa: S112 — skip unparseable YAML silently
             continue
 

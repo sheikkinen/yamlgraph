@@ -21,7 +21,7 @@ WORKTREE_TOOL = REPO_ROOT / ".chaplain" / "lib" / "worktree.py"
 
 
 def _load_yaml(path: Path) -> dict:
-    return yaml.safe_load(path.read_text())
+    return yaml.safe_load(path.read_text(encoding="utf-8"))
 
 
 @pytest.mark.req("REQ-YG-263")
@@ -73,11 +73,11 @@ class TestPlanArtifacts:
         assert "SKIP=pytest" in user
         assert "{worktree_dir}" in user
         assert (
-            "{branch}" in (PLAN_PROMPTS_DIR / "write-acceptance-tests.yaml").read_text()
+            "{branch}" in (PLAN_PROMPTS_DIR / "write-acceptance-tests.yaml").read_text(encoding="utf-8")
         )
 
     def test_judge_prompt_criterion_8_still_present(self):
-        judge = (PLAN_PROMPTS_DIR / "judge.yaml").read_text().lower()
+        judge = (PLAN_PROMPTS_DIR / "judge.yaml").read_text(encoding="utf-8").lower()
         assert "8." in judge
         assert "acceptance test" in judge or "test evidence" in judge
         assert "amend" in judge
@@ -89,7 +89,7 @@ class TestEnforceSessionContract:
         assert ENFORCE_GRAPH.exists()
 
     def test_enforce_session_prompt_references_existing_tests(self):
-        prompt = (ENFORCE_PROMPTS_DIR / "enforce-session.yaml").read_text().lower()
+        prompt = (ENFORCE_PROMPTS_DIR / "enforce-session.yaml").read_text(encoding="utf-8").lower()
         assert "acceptance tests" in prompt or "acceptance test" in prompt
         assert "do not modify acceptance test assertions" in prompt
 
@@ -100,12 +100,12 @@ class TestCreateWorktreeTool:
         assert WORKTREE_TOOL.exists()
 
     def test_worktree_tool_has_create_worktree_function(self):
-        content = WORKTREE_TOOL.read_text()
+        content = WORKTREE_TOOL.read_text(encoding="utf-8")
         assert "def create_worktree(" in content
         assert "worktree_dir" in content
         assert "branch" in content
 
     def test_worktree_tool_uses_worktree_helpers(self):
-        content = WORKTREE_TOOL.read_text()
+        content = WORKTREE_TOOL.read_text(encoding="utf-8")
         assert "derive_branch_name" in content
         assert "construct_worktree_path" in content

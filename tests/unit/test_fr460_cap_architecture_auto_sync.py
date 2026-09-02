@@ -19,7 +19,7 @@ ARCHITECTURE_MD = REPO_ROOT / "ARCHITECTURE.md"
 
 def _load_pre_commit_hooks() -> list[dict]:
     """Load all hooks from .pre-commit-config.yaml."""
-    raw = yaml.safe_load(PRE_COMMIT_CONFIG.read_text())
+    raw = yaml.safe_load(PRE_COMMIT_CONFIG.read_text(encoding="utf-8"))
     hooks = []
     for repo in raw.get("repos", []):
         for hook in repo.get("hooks", []):
@@ -87,7 +87,7 @@ class TestCapArchitectureSyncHook:
     @pytest.mark.req("REQ-YG-425")
     def test_architecture_has_generation_markers(self) -> None:
         """ARCHITECTURE.md must have BEGIN/END generation markers."""
-        text = ARCHITECTURE_MD.read_text()
+        text = ARCHITECTURE_MD.read_text(encoding="utf-8")
         assert "<!-- BEGIN GENERATED CAPABILITIES -->" in text
         assert "<!-- END GENERATED CAPABILITIES -->" in text
 

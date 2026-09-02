@@ -14,5 +14,5 @@ def write_file(path: str, content: str) -> str:
     if not p.is_relative_to(project_root):
         return f"Error: path {path} is outside project root"
     p.parent.mkdir(parents=True, exist_ok=True)
-    p.write_text(content)
+    p.write_text(content, encoding="utf-8")
     return f"Wrote {len(content)} bytes to {path}"

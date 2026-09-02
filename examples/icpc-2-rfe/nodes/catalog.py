@@ -27,7 +27,7 @@ def load_rfe_catalog(state: dict) -> list[dict]:
             "python examples/icpc-2-rfe/nodes/build_catalog.py "
             "(downloads ICPC-2e-v7.0 under YOUR acceptance of Wonca terms)"
         )
-    payload = yaml.safe_load(path.read_text())
+    payload = yaml.safe_load(path.read_text(encoding="utf-8"))
     include_provisional = bool(state.get("include_provisional"))
 
     clusters: dict[str, list[dict]] = defaultdict(list)

@@ -19,7 +19,7 @@ from examples.dungeon_master.api import gap_detectors as wm
 grand = 0
 for path in sys.argv[1:]:
     try:
-        doc = json.loads(Path(path).read_text())
+        doc = json.loads(Path(path).read_text(encoding="utf-8"))
     except (OSError, ValueError) as exc:
         print(f"{path}: SKIP ({exc})")
         continue

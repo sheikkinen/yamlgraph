@@ -39,7 +39,7 @@ def rec(event: str, trace: str, ts: float, **attrs) -> dict:
 
 
 def write_tap(path: Path, records: list[dict]) -> Path:
-    path.write_text("".join(json.dumps(r) + "\n" for r in records))
+    path.write_text("".join(json.dumps(r) + "\n" for r in records), encoding="utf-8")
     return path
 
 
@@ -119,7 +119,7 @@ def test_calibration_records_appended_and_deduped(tmp_path):
     comps = [{"peak": 748_000, "post": 61_000, "ts": 3.0}]
     assert tap.record_compactions(calib, "sess-aaaa", comps) == 1
     assert tap.record_compactions(calib, "sess-aaaa", comps) == 0
-    rows = [json.loads(ln) for ln in calib.read_text().splitlines()]
+    rows = [json.loads(ln) for ln in calib.read_text(encoding="utf-8").splitlines()]
     assert len(rows) == 1
     assert rows[0]["session"] == "sess-aaaa"
     assert rows[0]["peak"] == 748_000
@@ -229,15 +229,15 @@ def test_sessions_table_shows_titles(tmp_path):
 
 def test_rotation_archives_and_truncates(tmp_path):
     path = tmp_path / "tap.jsonl"
-    path.write_text("x" * 2048)
+    path.write_text("x" * 2048, encoding="utf-8")
     archive = tap.rotate_if_big(path, cap_bytes=1024)
     assert archive is not None and archive.exists()
-    assert archive.read_text() == "x" * 2048
+    assert archive.read_text(encoding="utf-8") == "x" * 2048
     assert path.stat().st_size == 0
 
 
 def test_no_rotation_below_cap(tmp_path):
     path = tmp_path / "tap.jsonl"
-    path.write_text("x" * 10)
+    path.write_text("x" * 10, encoding="utf-8")
     assert tap.rotate_if_big(path, cap_bytes=1024) is None
-    assert path.read_text() == "x" * 10
+    assert path.read_text(encoding="utf-8") == "x" * 10

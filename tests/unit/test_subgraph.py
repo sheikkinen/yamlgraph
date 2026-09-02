@@ -134,7 +134,7 @@ edges:
   - {from: START, to: process}
   - {from: process, to: END}
 """
-        )
+        , encoding="utf-8")
         return child_yaml
 
     @pytest.fixture
@@ -287,7 +287,7 @@ edges:
   - {from: START, to: recurse}
   - {from: recurse, to: END}
 """
-        )
+        , encoding="utf-8")
 
         config = {"type": "subgraph", "graph": "self.yaml"}
 
@@ -317,7 +317,7 @@ edges:
   - {from: START, to: call_b}
   - {from: call_b, to: END}
 """
-        )
+        , encoding="utf-8")
 
         # Create B that references A
         graph_b = tmp_path / "b.yaml"
@@ -335,7 +335,7 @@ edges:
   - {from: START, to: call_a}
   - {from: call_a, to: END}
 """
-        )
+        , encoding="utf-8")
 
         config = {"type": "subgraph", "graph": "b.yaml"}
 
@@ -368,7 +368,7 @@ edges:
   - {from: START, to: process}
   - {from: process, to: END}
 """
-        )
+        , encoding="utf-8")
 
         # Create B that references D
         graph_b = tmp_path / "b.yaml"
@@ -386,7 +386,7 @@ edges:
   - {from: START, to: call_d}
   - {from: call_d, to: END}
 """
-        )
+        , encoding="utf-8")
 
         # Create C that also references D
         graph_c = tmp_path / "c.yaml"
@@ -404,7 +404,7 @@ edges:
   - {from: START, to: call_d}
   - {from: call_d, to: END}
 """
-        )
+        , encoding="utf-8")
 
         # This should NOT raise (diamond is valid)
         config_b = {"type": "subgraph", "graph": "b.yaml"}
@@ -515,7 +515,7 @@ edges:
   - {from: START, to: ask_question}
   - {from: ask_question, to: END}
 """
-        )
+        , encoding="utf-8")
 
         parent_path = tmp_path / "parent.yaml"
 
@@ -585,7 +585,7 @@ edges:
   - {from: START, to: process}
   - {from: process, to: END}
 """
-        )
+        , encoding="utf-8")
 
         parent_path = tmp_path / "parent.yaml"
 

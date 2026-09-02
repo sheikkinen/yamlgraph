@@ -37,7 +37,7 @@ class TestWorktreeIntegration:
 
         # Create initial commit
         readme = repo_dir / "README.md"
-        readme.write_text("# Test Repo\n")
+        readme.write_text("# Test Repo\n", encoding="utf-8")
         subprocess.run(
             ["git", "add", "."], cwd=repo_dir, check=True, capture_output=True
         )
@@ -66,7 +66,7 @@ class TestWorktreeIntegration:
         monkeypatch.chdir(clean_git_repo)
 
         # Create unstaged change
-        (clean_git_repo / "README.md").write_text("# Modified\n")
+        (clean_git_repo / "README.md").write_text("# Modified\n", encoding="utf-8")
 
         with pytest.raises(ValueError, match="unstaged changes"):
             validate_clean_working_tree()
@@ -79,7 +79,7 @@ class TestWorktreeIntegration:
 
         # Create staged change
         new_file = clean_git_repo / "new_file.txt"
-        new_file.write_text("new content\n")
+        new_file.write_text("new content\n", encoding="utf-8")
         subprocess.run(["git", "add", "new_file.txt"], cwd=clean_git_repo, check=True)
 
         with pytest.raises(ValueError, match="staged changes"):
@@ -210,7 +210,7 @@ class TestWorktreeConcurrency:
             check=True,
             capture_output=True,
         )
-        (repo_dir / "README.md").write_text("# Test\n")
+        (repo_dir / "README.md").write_text("# Test\n", encoding="utf-8")
         subprocess.run(
             ["git", "add", "."], cwd=repo_dir, check=True, capture_output=True
         )

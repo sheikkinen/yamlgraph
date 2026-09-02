@@ -60,14 +60,14 @@ class TestWorldgenSemanticDedup:
     @pytest.mark.req("REQ-YG-517")
     def test_worldgen_has_no_standalone_dedup_check(self) -> None:
         """FR-689: dedup_check removed from worldgen tools (integrated into create_* pipelines)."""
-        with open(NOVEL_FANDOM_DIR / "worldgen.yaml") as f:
+        with open(NOVEL_FANDOM_DIR / "worldgen.yaml", encoding="utf-8") as f:
             config = yaml.safe_load(f)
         assert "dedup_check" not in config.get("tools", {})
 
     @pytest.mark.req("REQ-YG-517")
     def test_worldgen_agent_has_update_refs(self) -> None:
         """FR-689: Agent uses update_refs instead of standalone dedup_check."""
-        with open(NOVEL_FANDOM_DIR / "worldgen.yaml") as f:
+        with open(NOVEL_FANDOM_DIR / "worldgen.yaml", encoding="utf-8") as f:
             config = yaml.safe_load(f)
         agent = config["nodes"]["worldgen"]
         assert "update_refs" in agent["tools"]
@@ -94,7 +94,7 @@ class TestSemanticDedupPrompt:
     def test_prompt_has_negative_example(self) -> None:
         """AC-6: Prompt includes the ulf/ulfs false positive example."""
         path = NOVEL_FANDOM_DIR / "prompts" / "semantic_dedup.yaml"
-        content = path.read_text()
+        content = path.read_text(encoding="utf-8")
         assert "ulf" in content.lower()
         assert "different roles" in content.lower() or "NOT duplicates" in content
 
@@ -108,13 +108,13 @@ class TestDedupEntitiesCleanup:
     @pytest.mark.req("REQ-YG-517")
     def test_no_llm_dedup_threshold(self) -> None:
         """_LLM_DEDUP_THRESHOLD removed — threshold in YAML router."""
-        source = (NOVEL_FANDOM_DIR / "nodes" / "dedup_entities.py").read_text()
+        source = (NOVEL_FANDOM_DIR / "nodes" / "dedup_entities.py").read_text(encoding="utf-8")
         assert "_LLM_DEDUP_THRESHOLD" not in source
 
     @pytest.mark.req("REQ-YG-517")
     def test_no_todo_stub(self) -> None:
         """TODO stub removed."""
-        source = (NOVEL_FANDOM_DIR / "nodes" / "dedup_entities.py").read_text()
+        source = (NOVEL_FANDOM_DIR / "nodes" / "dedup_entities.py").read_text(encoding="utf-8")
         assert "TODO" not in source
 
 

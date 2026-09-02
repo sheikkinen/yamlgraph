@@ -18,7 +18,7 @@ SEMANTICS_SCRIPT_PATH = Path("scripts/demo_log_semantics.sh")
 
 
 def _load_workflow() -> dict:
-    with WORKFLOW_PATH.open() as f:
+    with WORKFLOW_PATH.open(encoding="utf-8") as f:
         return yaml.safe_load(f)
 
 
@@ -51,14 +51,14 @@ def _run_precommit_demo_gate(
         _setup_git_repo(tmpdir)
         tmppath = Path(tmpdir)
 
-        (tmppath / "README.md").write_text("init\n")
+        (tmppath / "README.md").write_text("init\n", encoding="utf-8")
         subprocess.run(["git", "add", "."], cwd=tmpdir, check=True)
         subprocess.run(["git", "commit", "-q", "-m", "init"], cwd=tmpdir, check=True)
 
         for relpath, content in staged_files.items():
             fpath = tmppath / relpath
             fpath.parent.mkdir(parents=True, exist_ok=True)
-            fpath.write_text(content)
+            fpath.write_text(content, encoding="utf-8")
 
         subprocess.run(["git", "add", "."], cwd=tmpdir, check=True)
         return subprocess.run(
@@ -80,10 +80,10 @@ def _run_ci_demo_gate_check(
 
         semantics_dest = tmppath / "scripts" / "demo_log_semantics.sh"
         semantics_dest.parent.mkdir(parents=True, exist_ok=True)
-        semantics_dest.write_text(SEMANTICS_SCRIPT_PATH.read_text())
+        semantics_dest.write_text(SEMANTICS_SCRIPT_PATH.read_text(encoding="utf-8"), encoding="utf-8")
         semantics_dest.chmod(0o755)
 
-        (tmppath / "README.md").write_text("base\n")
+        (tmppath / "README.md").write_text("base\n", encoding="utf-8")
         subprocess.run(["git", "add", "."], cwd=tmpdir, check=True)
         subprocess.run(["git", "commit", "-q", "-m", "base"], cwd=tmpdir, check=True)
         base_sha = subprocess.run(
@@ -97,7 +97,7 @@ def _run_ci_demo_gate_check(
         for relpath, content in changed_files.items():
             fpath = tmppath / relpath
             fpath.parent.mkdir(parents=True, exist_ok=True)
-            fpath.write_text(content)
+            fpath.write_text(content, encoding="utf-8")
         subprocess.run(["git", "add", "."], cwd=tmpdir, check=True)
         subprocess.run(["git", "commit", "-q", "-m", "head"], cwd=tmpdir, check=True)
         head_sha = subprocess.run(
@@ -124,7 +124,7 @@ def _run_ci_demo_gate_check(
 class TestFR325DemoGateLogContentValidation:
     def test_ac02_ci_gate_script_contains_fatal_log_markers_check(self) -> None:
         run_script = _demo_gate_run_script()
-        semantics = SEMANTICS_SCRIPT_PATH.read_text()
+        semantics = SEMANTICS_SCRIPT_PATH.read_text(encoding="utf-8")
 
         assert (
             "source scripts/demo_log_semantics.sh" in run_script
@@ -194,8 +194,8 @@ class TestFR325DemoGateLogContentValidation:
 
     def test_ac04_precommit_and_ci_share_same_semantic_rules(self) -> None:
         run_script = _demo_gate_run_script()
-        precommit_script = PRECOMMIT_SCRIPT_PATH.read_text()
-        semantics = SEMANTICS_SCRIPT_PATH.read_text()
+        precommit_script = PRECOMMIT_SCRIPT_PATH.read_text(encoding="utf-8")
+        semantics = SEMANTICS_SCRIPT_PATH.read_text(encoding="utf-8")
 
         assert "source scripts/demo_log_semantics.sh" in run_script
         assert "demo_log_semantics.sh" in precommit_script

@@ -50,7 +50,7 @@ def main() -> None:
     args = sys.argv[1:]
     as_json = "--json" in args
     paths = [a for a in args if a != "--json"]
-    text = Path(paths[0]).read_text() if paths else sys.stdin.read()
+    text = Path(paths[0]).read_text(encoding="utf-8") if paths else sys.stdin.read()
     classification = _extract(text, "classification")
     meta = _extract(text, "meta")
     if classification is None:

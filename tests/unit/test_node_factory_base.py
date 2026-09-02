@@ -96,7 +96,7 @@ class TestGetOutputModelForNode:
             "    summary:\n"
             "      type: str\n"
             "      description: Brief summary\n"
-        )
+        , encoding="utf-8")
 
         node_config = {"prompt": "analyze"}
 
@@ -111,7 +111,7 @@ class TestGetOutputModelForNode:
         prompts_dir = tmp_path / "prompts"
         prompts_dir.mkdir()
         prompt_file = prompts_dir / "simple.yaml"
-        prompt_file.write_text("system: Hi\nuser: Hello {name}\n")
+        prompt_file.write_text("system: Hi\nuser: Hello {name}\n", encoding="utf-8")
 
         node_config = {"prompt": "simple"}
 
@@ -158,7 +158,7 @@ class TestGetOutputModelForNode:
             "    score:\n"
             "      type: float\n"
             "      description: Score 0-1\n"
-        )
+        , encoding="utf-8")
 
         node_config = {"prompt": "prompts/eval"}
 

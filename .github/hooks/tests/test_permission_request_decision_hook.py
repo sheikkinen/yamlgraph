@@ -35,7 +35,7 @@ PROBE_SCRIPT = "session-probe.sh"
 
 def test_probe_not_registered_on_decision_hooks():
     """The plain-text probe must not sit on fail-closed decision hooks."""
-    config = json.loads(PROBE_CONFIG.read_text())
+    config = json.loads(PROBE_CONFIG.read_text(encoding="utf-8"))
     offenders = [
         event
         for event, handlers in config["hooks"].items()
@@ -52,7 +52,7 @@ def test_probe_not_registered_on_decision_hooks():
 
 def test_probe_still_observes_notification_events():
     """Removing the decision hook must not strip the observability probe."""
-    config = json.loads(PROBE_CONFIG.read_text())
+    config = json.loads(PROBE_CONFIG.read_text(encoding="utf-8"))
     for event in ("SessionStart", "UserPromptSubmit", "Stop", "SessionEnd"):
         handlers = config["hooks"].get(event, [])
         assert any(

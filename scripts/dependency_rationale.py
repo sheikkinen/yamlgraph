@@ -34,7 +34,7 @@ def parse_pyproject_dependencies(toml_path: Path) -> dict[str, list[str]]:
     if not toml_path.exists():
         raise FileNotFoundError(f"pyproject.toml not found: {toml_path}")
 
-    content = toml_path.read_text()
+    content = toml_path.read_text(encoding="utf-8")
     result: dict[str, list[str]] = {}
 
     # Extract core dependencies
@@ -133,7 +133,7 @@ def parse_rationale_registry(registry_path: Path) -> dict[str, dict]:
     if not registry_path.exists():
         return {}
 
-    content = registry_path.read_text()
+    content = registry_path.read_text(encoding="utf-8")
     data = yaml.safe_load(content)
 
     if not data or "dependencies" not in data:

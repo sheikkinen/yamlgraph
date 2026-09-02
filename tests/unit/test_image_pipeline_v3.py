@@ -68,7 +68,7 @@ class TestSampleCandidates:
         (dd / "training" / "ckpt").mkdir(parents=True)
         (dd / "training" / "ckpt" / "model.pt").touch()
         (dd / "prompts").mkdir()
-        (dd / "prompts" / "corpus.jsonl").write_text("{}")
+        (dd / "prompts" / "corpus.jsonl").write_text("{}", encoding="utf-8")
         monkeypatch.setenv("DEVIANT_DAILY_DIR", str(dd))
         return dd
 
@@ -129,7 +129,7 @@ class TestSampleCandidates:
             self._run(monkeypatch, tmp_path, "not json at all\n")
 
     def test_no_llm_fallback_exists(self):
-        source = (V3_DIR / "nodes" / "sample_candidates.py").read_text()
+        source = (V3_DIR / "nodes" / "sample_candidates.py").read_text(encoding="utf-8")
         assert "create_llm" not in source
         assert "execute_prompt" not in source
 
@@ -173,8 +173,8 @@ class TestSaveReportV3:
                 "gen_summary": {"attempts": 3, "verdict_counts": {}},
             }
         )
-        assert "secret full text" not in Path(result["report_file"]).read_text()
-        assert "secret full text" in Path(result["local_report_file"]).read_text()
+        assert "secret full text" not in Path(result["report_file"]).read_text(encoding="utf-8")
+        assert "secret full text" in Path(result["local_report_file"]).read_text(encoding="utf-8")
 
     def test_v2_output_path_regression(self):
         """R-4: v2 must keep writing under outputs/image_pipeline_v2."""
@@ -186,13 +186,13 @@ class TestSaveReportV3:
 @pytest.mark.req("REQ-YG-198")
 class TestGraphContract:
     def test_graph_has_no_llm_node(self):
-        graph = yaml.safe_load((V3_DIR / "graph.yaml").read_text())
+        graph = yaml.safe_load((V3_DIR / "graph.yaml").read_text(encoding="utf-8"))
         types = {n.get("type") for n in graph["nodes"].values()}
         assert "llm" not in types
         assert "prompts" not in graph or not graph.get("prompts")
 
     def test_graph_wires_sample_report_render(self):
-        graph = yaml.safe_load((V3_DIR / "graph.yaml").read_text())
+        graph = yaml.safe_load((V3_DIR / "graph.yaml").read_text(encoding="utf-8"))
         assert {"sample_candidates", "save_report", "generate_images"} <= set(
             graph["nodes"]
         )

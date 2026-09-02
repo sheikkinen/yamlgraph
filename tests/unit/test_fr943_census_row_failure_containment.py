@@ -44,7 +44,7 @@ def _run(tmp_path, findings, items=ITEMS):
 def _rows(tmp_path) -> list[dict]:
     return [
         json.loads(line)
-        for line in (tmp_path / "ledger.jsonl").read_text().splitlines()
+        for line in (tmp_path / "ledger.jsonl").read_text(encoding="utf-8").splitlines()
     ]
 
 
@@ -136,7 +136,7 @@ class TestContainment:
         """AC-11: frozen amended Normalization line."""
         findings = [_good(0), {"_map_index": 1, "_error": "boom"}, _good(2)]
         _run(tmp_path, findings)
-        md = (tmp_path / "ledger.md").read_text()
+        md = (tmp_path / "ledger.md").read_text(encoding="utf-8")
         assert (
             "Normalization: 0 repaired, 0 demoted, 0 model-abstained, "
             "1 row-failed of 3 rows." in md
@@ -156,7 +156,7 @@ class TestIncidentReplay:
     @pytest.mark.req("REQ-YG-634")
     def test_witnessed_incidents_replay_contained(self, tmp_path):
         """AC-13: the four 2026-08-31 batch-killer findings replay as rows."""
-        incidents = json.loads(FIXTURE.read_text())["incidents"]
+        incidents = json.loads(FIXTURE.read_text(encoding="utf-8"))["incidents"]
         for incident in incidents:
             idx = incident["map_index"]
             items = [f"corpus/item-{i:04d}.txt" for i in range(idx + 2)]
@@ -169,7 +169,7 @@ class TestIncidentReplay:
             assert result["rows"] == len(items)
             rows = [
                 json.loads(line)
-                for line in Path(out).with_suffix(".jsonl").read_text().splitlines()
+                for line in Path(out).with_suffix(".jsonl").read_text(encoding="utf-8").splitlines()
             ]
             failed = [r for r in rows if r["abstain_reason"].startswith("row failed: ")]
             assert len(failed) == 1

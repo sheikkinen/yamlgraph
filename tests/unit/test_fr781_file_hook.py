@@ -50,7 +50,7 @@ def test_find_unpaired_returns_png_without_twin(tmp_path):
 @pytest.mark.req("REQ-YG-582")
 def test_find_unpaired_skips_png_with_md_twin(tmp_path):
     _png(tmp_path / "a.png")
-    (tmp_path / "a.md").write_text("# done\n")
+    (tmp_path / "a.md").write_text("# done\n", encoding="utf-8")
     assert _tools().find_unpaired(str(tmp_path)) == []
 
 
@@ -95,7 +95,7 @@ def test_safe_basename_confined_to_watched_dir(tmp_path):
 @pytest.mark.req("REQ-YG-582")
 def test_collision_appends_numeric_suffix(tmp_path, monkeypatch):
     tools = _tools()
-    (tmp_path / "Same Title.md").write_text("existing\n")
+    (tmp_path / "Same Title.md").write_text("existing\n", encoding="utf-8")
     (tmp_path / "Same Title.png").write_bytes(b"other")
     src = _png(tmp_path / "new.png")
     monkeypatch.setattr(
@@ -105,7 +105,7 @@ def test_collision_appends_numeric_suffix(tmp_path, monkeypatch):
     )
     result = tools.process_artwork(str(src))
     assert result["status"] == "published"
-    assert (tmp_path / "Same Title.md").read_text() == "existing\n"
+    assert (tmp_path / "Same Title.md").read_text(encoding="utf-8") == "existing\n"
     assert (tmp_path / "Same Title-2.md").exists()
     assert (tmp_path / "Same Title-2.png").exists()
 
@@ -168,7 +168,7 @@ def test_high_confidence_publishes_and_renames(tmp_path, monkeypatch):
     assert result["status"] == "published"
     assert not src.exists()
     assert (tmp_path / "Poetic Title.png").exists()
-    md = (tmp_path / "Poetic Title.md").read_text()
+    md = (tmp_path / "Poetic Title.md").read_text(encoding="utf-8")
     assert "Poetic Title" in md and "desc" in md
 
 
@@ -247,7 +247,7 @@ def test_max_dim_without_pillow_fails_fast_naming_extra(tmp_path, monkeypatch):
 
 @pytest.mark.req("REQ-YG-582")
 def test_plist_template_contains_required_keys():
-    text = PLIST_TEMPLATE.read_text()
+    text = PLIST_TEMPLATE.read_text(encoding="utf-8")
     for key in [
         "WatchPaths",
         "ThrottleInterval",
@@ -289,5 +289,5 @@ def test_demo_graph_compiles_with_map_over_unpaired():
     from yamlgraph.compile.graph_loader import load_graph_config
 
     load_graph_config(str(DEMO / "graph.yaml"))  # must validate
-    raw = yaml.safe_load((DEMO / "graph.yaml").read_text())
+    raw = yaml.safe_load((DEMO / "graph.yaml").read_text(encoding="utf-8"))
     assert any(n["type"] == "map" for n in raw["nodes"].values())

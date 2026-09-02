@@ -35,11 +35,11 @@ def make_repo(tmp_path: Path) -> Path:
     git(main, "init", "-b", "main")
     git(main, "config", "user.email", "t@t")
     git(main, "config", "user.name", "t")
-    (main / ".gitignore").write_text(".venv\n.venv/\n.env\n.env.*\ntmp/\n")
+    (main / ".gitignore").write_text(".venv\n.venv/\n.env\n.env.*\ntmp/\n", encoding="utf-8")
     (main / "docs").mkdir()
-    (main / "docs" / "a.md").write_text("seed\n")
+    (main / "docs" / "a.md").write_text("seed\n", encoding="utf-8")
     (main / "yamlgraph").mkdir()
-    (main / "yamlgraph" / "x.py").write_text("x = 1\n")
+    (main / "yamlgraph" / "x.py").write_text("x = 1\n", encoding="utf-8")
     git(main, "add", "-A")
     git(main, "commit", "-m", "init")
     return main
@@ -79,14 +79,14 @@ def write_store(path: Path, n_requests: int, model: str = "claude-x") -> Path:
         for i in range(n_requests)
     ]
     path.write_text(
-        json.dumps({"kind": 0, "v": {"sessionId": SID, "requests": reqs}}) + "\n"
+        json.dumps({"kind": 0, "v": {"sessionId": SID, "requests": reqs}}) + "\n", encoding="utf-8"
     )
     return path
 
 
 def commit_checkpoint(lane: Path, sid: str, request_index: int) -> str:
     """Historical-shape checkpoint commit: the provenance the join reads."""
-    (lane / "docs" / f"t{request_index}.md").write_text(f"turn {request_index}\n")
+    (lane / "docs" / f"t{request_index}.md").write_text(f"turn {request_index}\n", encoding="utf-8")
     git(lane, "add", "-A")
     git(
         lane,

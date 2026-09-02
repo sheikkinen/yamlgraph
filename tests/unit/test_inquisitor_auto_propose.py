@@ -128,12 +128,12 @@ class TestProposalFileDedup:
         inbox = tmp_path / ".chaplain" / "inbox"
         inbox.mkdir(parents=True)
         existing = inbox / "inquisitor-fr-status-draft.md"
-        existing.write_text("# Existing proposal\n")
+        existing.write_text("# Existing proposal\n", encoding="utf-8")
 
         output = _run_dedup(str(tmp_path), "fr-status-draft")
         assert "SKIP_DUP:" in output
         # Existing file content not overwritten
-        assert existing.read_text() == "# Existing proposal\n"
+        assert existing.read_text(encoding="utf-8") == "# Existing proposal\n"
 
 
 @pytest.mark.req("REQ-YG-118")
@@ -197,5 +197,5 @@ def _read_inquisitor_sh() -> str:
     inquisitor_path = os.path.join(
         os.path.dirname(__file__), "..", "..", ".chaplain", "inquisitor.sh"
     )
-    with open(inquisitor_path) as f:
+    with open(inquisitor_path, encoding="utf-8") as f:
         return f.read()

@@ -96,7 +96,7 @@ def test_briefs_written_full_no_truncation(tmp_path, monkeypatch):
     state = _full_state()
     result = persist_run(state)
     briefs_path = Path(result["artifacts"]["run_dir"]) / "briefs.json"
-    assert json.loads(briefs_path.read_text()) == state["briefs"]
+    assert json.loads(briefs_path.read_text(encoding="utf-8")) == state["briefs"]
 
 
 @pytest.mark.req("REQ-YG-020")
@@ -106,7 +106,7 @@ def test_manifest_sources_provider_model_from_env(tmp_path, monkeypatch):
     monkeypatch.setenv("ANTHROPIC_MODEL", "claude-haiku-4-5")
     result = persist_run(_full_state())
     manifest = json.loads(
-        (Path(result["artifacts"]["run_dir"]) / "manifest.json").read_text()
+        (Path(result["artifacts"]["run_dir"]) / "manifest.json").read_text(encoding="utf-8")
     )
     assert manifest["provider"] == "anthropic"
     assert manifest["model"] == "claude-haiku-4-5"
@@ -121,7 +121,7 @@ def test_manifest_marks_unset_provenance(tmp_path, monkeypatch):
     monkeypatch.delenv("ANTHROPIC_MODEL", raising=False)
     result = persist_run(_full_state())
     manifest = json.loads(
-        (Path(result["artifacts"]["run_dir"]) / "manifest.json").read_text()
+        (Path(result["artifacts"]["run_dir"]) / "manifest.json").read_text(encoding="utf-8")
     )
     assert manifest["provider"] == "(unset)"
 

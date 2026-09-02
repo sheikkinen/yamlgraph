@@ -90,7 +90,7 @@ class TestCmdDiaryImport:
         """Should import files and print success summary."""
         source = tmp_path / "outputs"
         source.mkdir()
-        (source / "diary_entry_20260307.md").write_text(DIARY_ENTRY_CONTENT)
+        (source / "diary_entry_20260307.md").write_text(DIARY_ENTRY_CONTENT, encoding="utf-8")
 
         diary_dir = tmp_path / "diary"
         diary_dir.mkdir()
@@ -116,7 +116,7 @@ class TestCmdDiaryImport:
         """Dry-run should list pending files and not import."""
         source = tmp_path / "outputs"
         source.mkdir()
-        (source / "diary_entry_20260307.md").write_text(DIARY_ENTRY_CONTENT)
+        (source / "diary_entry_20260307.md").write_text(DIARY_ENTRY_CONTENT, encoding="utf-8")
 
         monkeypatch.chdir(tmp_path)
         (tmp_path / "docs" / "diary").mkdir(parents=True)
@@ -193,7 +193,7 @@ class TestCmdDiaryImport:
         """Malformed file should cause non-zero exit."""
         source = tmp_path / "outputs"
         source.mkdir()
-        (source / "diary_entry_baddate.md").write_text("Bad content\n")
+        (source / "diary_entry_baddate.md").write_text("Bad content\n", encoding="utf-8")
 
         monkeypatch.chdir(tmp_path)
         (tmp_path / "docs" / "diary").mkdir(parents=True)

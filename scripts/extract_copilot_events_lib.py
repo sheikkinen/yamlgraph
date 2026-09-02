@@ -253,7 +253,7 @@ def _extract_otel_events(
     failed_targets: set[str] = set()
     mtime = datetime.fromtimestamp(otel_path.stat().st_mtime, tz=UTC)
 
-    for line in otel_path.read_text().splitlines():
+    for line in otel_path.read_text(encoding="utf-8").splitlines():
         if not line.strip():
             continue
         payload = json.loads(line)
@@ -332,7 +332,7 @@ def _summarize_diff(diff_text: str) -> tuple[int, int]:
 def _extract_git_diff_event(
     case_id: str, phase: str, diff_path: Path
 ) -> list[CopilotProcessEvent]:
-    added, removed = _summarize_diff(diff_path.read_text())
+    added, removed = _summarize_diff(diff_path.read_text(encoding="utf-8"))
     timestamp = datetime.fromtimestamp(diff_path.stat().st_mtime, tz=UTC).isoformat()
     return [
         _event(

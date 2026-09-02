@@ -87,7 +87,7 @@ def _make_repo(tmp_path):
         ### Added
         - Old entry
     """)
-    )
+    , encoding="utf-8")
 
     # Create changelog/unreleased/ for fragment files (FR-179)
     changelog_dir = repo / "changelog" / "unreleased"
@@ -146,7 +146,7 @@ def _write_fr(repo, filename, *, status="Approved", req_id=None, title=None):
         lines.append(f"Requirement: {req_id}")
         lines.append("")
 
-    fr_path.write_text("\n".join(lines) + "\n")
+    fr_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
     # Stage and commit the FR
     subprocess.run(
@@ -212,7 +212,7 @@ class TestFailFastGuards:
         repo = _make_repo(tmp_path)
         fr_rel = _write_fr(repo, "FR-200-dirty-test.md")
         # Dirty the tree
-        (repo / "CHANGELOG.md").write_text("dirty\n")
+        (repo / "CHANGELOG.md").write_text("dirty\n", encoding="utf-8")
         stdout, stderr, rc = _run_finalize(repo, fr_rel, expect_fail=True)
         assert rc != 0
         assert "dirty" in (stdout + stderr).lower()
@@ -251,7 +251,7 @@ class TestChangelogEntry:
 
         fragments = list((repo / "changelog" / "unreleased").glob("FR-210*.md"))
         assert len(fragments) == 1, f"Expected 1 fragment, found: {fragments}"
-        content = fragments[0].read_text()
+        content = fragments[0].read_text(encoding="utf-8")
         assert "FR-210" in content
 
     def test_fragment_format_with_req_id(self, tmp_path):
@@ -267,7 +267,7 @@ class TestChangelogEntry:
 
         fragments = list((repo / "changelog" / "unreleased").glob("FR-211*.md"))
         assert len(fragments) == 1
-        content = fragments[0].read_text()
+        content = fragments[0].read_text(encoding="utf-8")
         assert "- **FR-211 Format Test**:" in content
         assert "REQ-YG-211" in content
 
@@ -279,7 +279,7 @@ class TestChangelogEntry:
 
         fragments = list((repo / "changelog" / "unreleased").glob("FR-212*.md"))
         assert len(fragments) == 1
-        content = fragments[0].read_text()
+        content = fragments[0].read_text(encoding="utf-8")
         assert "- **FR-212 No Req Feature**:" in content
 
     def test_summary_extracted_from_fr(self, tmp_path):
@@ -290,7 +290,7 @@ class TestChangelogEntry:
 
         fragments = list((repo / "changelog" / "unreleased").glob("FR-213*.md"))
         assert len(fragments) == 1
-        content = fragments[0].read_text()
+        content = fragments[0].read_text(encoding="utf-8")
         assert "post-merge finalization script" in content
 
     def test_duplicate_fragment_guard(self, tmp_path):
@@ -301,7 +301,7 @@ class TestChangelogEntry:
 
         # Reset status back to Approved so the script can run status update again
         fr_path = repo / fr_rel
-        fr_path.write_text(fr_path.read_text().replace("✅ Implemented", "Approved"))
+        fr_path.write_text(fr_path.read_text(encoding="utf-8").replace("✅ Implemented", "Approved"), encoding="utf-8")
         subprocess.run(
             ["git", "add", "."],
             cwd=repo,
@@ -339,7 +339,7 @@ class TestChangelogEntry:
 
             ## [0.4.60] — 2026-03-06
         """)
-        )
+        , encoding="utf-8")
         subprocess.run(
             ["git", "add", "."],
             cwd=repo,
@@ -360,7 +360,7 @@ class TestChangelogEntry:
 
         fragments = list((repo / "changelog" / "unreleased").glob("FR-215*.md"))
         assert len(fragments) == 1
-        content = fragments[0].read_text()
+        content = fragments[0].read_text(encoding="utf-8")
         assert "FR-215" in content
 
 
@@ -379,7 +379,7 @@ class TestFRStatusUpdate:
         fr_rel = _write_fr(repo, "FR-220-status-test.md", status="Approved")
         _run_finalize(repo, fr_rel)
 
-        content = (repo / fr_rel).read_text()
+        content = (repo / fr_rel).read_text(encoding="utf-8")
         assert "**Status:** ✅ Implemented" in content
         assert "**Status:** Approved" not in content
 
@@ -405,7 +405,7 @@ class TestDiaryStub:
         assert (
             len(reflection_files) == 1
         ), f"Expected 1 reflection file, found: {list(diary_dir.iterdir())}"
-        content = reflection_files[0].read_text()
+        content = reflection_files[0].read_text(encoding="utf-8")
         assert "FR-230" in content
         assert "Implementation Reflection" in content
         assert "[What cognitive trap was encountered?]" in content
@@ -464,13 +464,13 @@ class TestScriptHeader:
 
     def test_script_has_usage_comment(self):
         """Script header includes usage instructions."""
-        with open(os.path.abspath(_SCRIPT_PATH)) as f:
+        with open(os.path.abspath(_SCRIPT_PATH), encoding="utf-8") as f:
             content = f.read()
         assert "Usage:" in content
         assert "finalize_merge.sh" in content
 
     def test_script_uses_portable_sed(self):
         """Script uses temp file pattern, not sed -i."""
-        with open(os.path.abspath(_SCRIPT_PATH)) as f:
+        with open(os.path.abspath(_SCRIPT_PATH), encoding="utf-8") as f:
             content = f.read()
         assert "sed -i" not in content

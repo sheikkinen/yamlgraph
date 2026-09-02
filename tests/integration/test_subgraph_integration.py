@@ -24,7 +24,7 @@ def subgraph_graphs(tmp_path: Path) -> tuple[Path, Path]:
 system: You are a processor.
 user: Process this: {input_text}
 """
-    )
+    , encoding="utf-8")
 
     # Create parent prompts
     parent_prompt_dir = prompts_dir / "parent"
@@ -34,13 +34,13 @@ user: Process this: {input_text}
 system: You are a preparer.
 user: Prepare this: {raw_text}
 """
-    )
+    , encoding="utf-8")
     (parent_prompt_dir / "finalize.yaml").write_text(
         """
 system: You are a finalizer.
 user: Finalize this: {processed}
 """
-    )
+    , encoding="utf-8")
 
     # Create child subgraph
     subgraphs_dir = tmp_path / "graphs" / "subgraphs"
@@ -62,7 +62,7 @@ edges:
   - {from: START, to: process}
   - {from: process, to: END}
 """
-    )
+    , encoding="utf-8")
 
     # Create parent graph
     parent_graph = tmp_path / "graphs" / "parent.yaml"
@@ -98,7 +98,7 @@ edges:
   - {from: process, to: finalize}
   - {from: finalize, to: END}
 """
-    )
+    , encoding="utf-8")
 
     return parent_graph, child_graph
 
@@ -195,13 +195,13 @@ class TestSubgraphIntegration:
         (prompts_dir / "level2").mkdir()
         (prompts_dir / "level2" / "process.yaml").write_text(
             "system: L2\nuser: {data}"  # Use 'data' to avoid skip
-        )
+        , encoding="utf-8")
 
         # Level 1
         (prompts_dir / "level1").mkdir()
         (prompts_dir / "level1" / "pre.yaml").write_text(
             "system: L1\nuser: {input}"  # Use 'input' to avoid skip
-        )
+        , encoding="utf-8")
 
         graphs_dir = tmp_path / "graphs"
         graphs_dir.mkdir()
@@ -224,7 +224,7 @@ edges:
   - {from: START, to: work}
   - {from: work, to: END}
 """
-        )
+        , encoding="utf-8")
 
         # Level 1 graph (calls level 2)
         (graphs_dir / "subgraphs" / "level1.yaml").write_text(
@@ -253,7 +253,7 @@ edges:
   - {from: pre, to: nested}
   - {from: nested, to: END}
 """
-        )
+        , encoding="utf-8")
 
         # Root graph (calls level 1)
         root = graphs_dir / "root.yaml"
@@ -277,7 +277,7 @@ edges:
   - {from: START, to: delegate}
   - {from: delegate, to: END}
 """
-        )
+        , encoding="utf-8")
 
         monkeypatch.setenv("YAMLGRAPH_PROMPTS_DIR", str(prompts_dir))
 

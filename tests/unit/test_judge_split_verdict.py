@@ -29,7 +29,7 @@ class TestJudgeYamlSplitVerdict:
             / "judge.yaml"
         )
         assert path.exists(), f"judge.yaml not found at {path}"
-        return path.read_text()
+        return path.read_text(encoding="utf-8")
 
     def test_split_verdict_present(self, judge_yaml_content: str) -> None:
         """SPLIT verdict must appear in the judge prompt."""
@@ -71,7 +71,7 @@ class TestJudgeMdSplitVerdict:
     def judge_md_content(self) -> str:
         path = REPO_ROOT / "scripts" / "chaplain-prompts" / "judge.md"
         assert path.exists(), f"judge.md not found at {path}"
-        return path.read_text()
+        return path.read_text(encoding="utf-8")
 
     def test_split_verdict_present(self, judge_md_content: str) -> None:
         """SPLIT verdict must appear in the judge prompt."""
@@ -119,7 +119,7 @@ class TestMultiConcernFixture:
     def test_fixture_has_multiple_concerns(self) -> None:
         """Fixture must describe at least two independent concerns."""
         path = REPO_ROOT / "tests" / "fixtures" / "chaplain" / "multi-concern-topic.md"
-        content = path.read_text()
+        content = path.read_text(encoding="utf-8")
         # Should mention at least two distinct topics
         assert len(content.strip()) > 50, "Fixture too short to describe two concerns"
         content_lower = content.lower()

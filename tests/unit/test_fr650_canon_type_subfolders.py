@@ -101,7 +101,7 @@ class TestPersistWritesToTypeSubfolder:
         char_dir.mkdir(parents=True)
         (char_dir / "existing.yaml").write_text(
             "id: existing\ntype: character\nname: X\n"
-        )
+        , encoding="utf-8")
         state = {
             "deepened": [],
             "skeletons": [
@@ -179,7 +179,7 @@ def _reload_with_dir(canon_dir: Path, state: dict) -> dict:
     pages: dict[str, dict] = {}
     synopsis_text = ""
     for f in sorted(canon_dir.rglob("*.yaml")):
-        with open(f) as fh:
+        with open(f, encoding="utf-8") as fh:
             data = yaml.safe_load(fh)
             if data and isinstance(data, dict) and "id" in data:
                 pages[data["id"]] = data

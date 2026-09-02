@@ -18,7 +18,7 @@ CLAUDE_PATH = Path("CLAUDE.md")
 
 
 def _load_precommit() -> dict:
-    with PRECOMMIT_PATH.open() as f:
+    with PRECOMMIT_PATH.open(encoding="utf-8") as f:
         return yaml.safe_load(f)
 
 
@@ -51,7 +51,7 @@ def _run_precommit_wip_hook(
     entry = _wip_main_hook_entry()
     with tempfile.TemporaryDirectory() as tmpdir:
         _setup_git_repo(tmpdir, branch)
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
+        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", suffix=".txt", delete=False) as f:
             f.write(commit_msg)
             f.flush()
             msg_file = f.name
@@ -66,7 +66,7 @@ def _run_precommit_wip_hook(
 
 
 def _load_workflow() -> dict:
-    with WORKFLOW_PATH.open() as f:
+    with WORKFLOW_PATH.open(encoding="utf-8") as f:
         return yaml.safe_load(f)
 
 
@@ -95,11 +95,11 @@ def _commit_with_message(tmpdir: str, *, message: str, index: int) -> None:
     tmppath = Path(tmpdir)
     file_path = tmppath / f"src/file_{index}.txt"
     file_path.parent.mkdir(parents=True, exist_ok=True)
-    file_path.write_text(f"change {index}\n")
+    file_path.write_text(f"change {index}\n", encoding="utf-8")
     subprocess.run(["git", "add", "."], cwd=tmpdir, check=True)
 
     msg_file = tmppath / f"msg_{index}.txt"
-    msg_file.write_text(message)
+    msg_file.write_text(message, encoding="utf-8")
     subprocess.run(
         ["git", "commit", "-q", "-F", str(msg_file)],
         cwd=tmpdir,
@@ -200,10 +200,10 @@ def test_ac06_wip_gate_allows_clean_commit_range() -> None:
 
 @pytest.mark.req("REQ-YG-419")
 def test_ac07_traceability_docs_reference_req_yg_419() -> None:
-    cap = CAP_156_PATH.read_text().lower()
-    architecture = ARCHITECTURE_PATH.read_text().lower()
+    cap = CAP_156_PATH.read_text(encoding="utf-8").lower()
+    architecture = ARCHITECTURE_PATH.read_text(encoding="utf-8").lower()
     # FR-942 moved the CI checks list from CLAUDE.md to the ops reference.
-    dev_ops = Path("reference/development-operations.md").read_text().lower()
+    dev_ops = Path("reference/development-operations.md").read_text(encoding="utf-8").lower()
 
     assert "req-yg-419" in cap
     assert "wip-gate" in cap

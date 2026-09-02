@@ -45,7 +45,7 @@ def load_graph(state: dict[str, Any]) -> dict[str, Any]:
         raise FileNotFoundError(f"Graph file not found: {path}")
 
     logger.info(f"📂 Loading: {path}")
-    graph_yaml = path.read_text()
+    graph_yaml = path.read_text(encoding="utf-8")
 
     return {"graph_yaml": graph_yaml, "current_step": "load_graph"}
 
@@ -95,7 +95,7 @@ def save_output(state: dict[str, Any]) -> dict[str, Any]:
         output_path = Path(output_path)
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    output_path.write_text(html)
+    output_path.write_text(html, encoding="utf-8")
 
     logger.info(f"💾 Saved: {output_path}")
     print(f"\n✅ Saved: {output_path}")

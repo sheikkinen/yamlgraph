@@ -622,7 +622,7 @@ class TestPersistPages:
         result = _persist._persist_impl(state, canon_dir, PAGE_MODELS)
         assert result["written_count"] == 1
         # FR-650: pages now land in type subfolder
-        written = yaml.safe_load((canon_dir / "character" / "hero.yaml").read_text())
+        written = yaml.safe_load((canon_dir / "character" / "hero.yaml").read_text(encoding="utf-8"))
         assert written["name"] == "Hero"
 
     @pytest.mark.req("REQ-YG-495")
@@ -630,7 +630,7 @@ class TestPersistPages:
         canon_dir = tmp_path / "canon"
         canon_dir.mkdir()
         # Pre-existing page
-        (canon_dir / "existing.yaml").write_text("id: existing\ntype: character\n")
+        (canon_dir / "existing.yaml").write_text("id: existing\ntype: character\n", encoding="utf-8")
         state = {
             "deepened": [],
             "skeletons": [
@@ -646,7 +646,7 @@ class TestPersistPages:
         result = _persist._persist_impl(state, canon_dir, PAGE_MODELS)
         assert result["written_count"] == 0
         # Original content preserved
-        content = (canon_dir / "existing.yaml").read_text()
+        content = (canon_dir / "existing.yaml").read_text(encoding="utf-8")
         assert "New" not in content
 
 
@@ -680,7 +680,7 @@ class TestSeedCanon:
         canon_dir = NOVEL_FANDOM_DIR / "canon"
         static_ok = {"synopsis", "premise"}
         for f in sorted(canon_dir.rglob("*.yaml")):
-            data = yaml.safe_load(f.read_text())
+            data = yaml.safe_load(f.read_text(encoding="utf-8"))
             lane = data.get("lane")
             assert lane in (
                 "dynamic",
@@ -704,7 +704,7 @@ class TestWorldgenGraph:
     @pytest.mark.req("REQ-YG-494")
     def test_worldgen_yaml_valid_structure(self):
         graph_path = NOVEL_FANDOM_DIR / "worldgen.yaml"
-        data = yaml.safe_load(graph_path.read_text())
+        data = yaml.safe_load(graph_path.read_text(encoding="utf-8"))
         assert data["name"] == "novel-fandom-worldgen"
         assert "reload" in data["nodes"]
         assert "worldgen" in data["nodes"]
@@ -713,6 +713,6 @@ class TestWorldgenGraph:
     @pytest.mark.req("REQ-YG-494")
     def test_worldgen_agent_has_tools(self):
         graph_path = NOVEL_FANDOM_DIR / "worldgen.yaml"
-        data = yaml.safe_load(graph_path.read_text())
+        data = yaml.safe_load(graph_path.read_text(encoding="utf-8"))
         tools = data.get("tools", {})
         assert len(tools) >= 1, "Worldgen should have at least one tool"

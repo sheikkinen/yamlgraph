@@ -72,16 +72,16 @@ edges:
 def _write_graph(tmp_path: Path) -> Path:
     """Write the two-node graph and its prompt files to tmp_path."""
     graph_file = tmp_path / "graph.yaml"
-    graph_file.write_text(GRAPH_YAML)
+    graph_file.write_text(GRAPH_YAML, encoding="utf-8")
 
     prompts_dir = tmp_path / "prompts"
     prompts_dir.mkdir()
     (prompts_dir / "phase1.yaml").write_text(
         "system: You are a helper.\nuser: Do phase 1 for {task}"
-    )
+    , encoding="utf-8")
     (prompts_dir / "phase2.yaml").write_text(
         "system: You are a helper.\nuser: Do phase 2 for {task}"
-    )
+    , encoding="utf-8")
     return graph_file
 
 
@@ -157,7 +157,7 @@ class TestCopilotSessionPropagation:
                 share_path = Path(cmd[share_idx])
                 share_path.parent.mkdir(parents=True, exist_ok=True)
                 share_path.write_text(
-                    f"# Session\n> - **Session ID:** `{session_uuid}`\n"
+                    f"# Session\n> - **Session ID:** `{session_uuid}`\n", encoding="utf-8"
                 )
             return result
 
@@ -280,17 +280,17 @@ edges:
 def _write_unwrap_graph(tmp_path: Path) -> Path:
     """Write copilot→unwrap graph with tool Python file."""
     tool_file = tmp_path / "tools.py"
-    tool_file.write_text(UNWRAP_TOOL_CODE)
+    tool_file.write_text(UNWRAP_TOOL_CODE, encoding="utf-8")
 
     graph_yaml = UNWRAP_GRAPH_YAML.replace("{tool_path}", str(tool_file))
     graph_file = tmp_path / "graph.yaml"
-    graph_file.write_text(graph_yaml)
+    graph_file.write_text(graph_yaml, encoding="utf-8")
 
     prompts_dir = tmp_path / "prompts"
     prompts_dir.mkdir()
     (prompts_dir / "analyze.yaml").write_text(
         "system: You are an analyst.\nuser: Analyze {topic}"
-    )
+    , encoding="utf-8")
     return graph_file
 
 
@@ -350,7 +350,7 @@ class TestCopilotOutputUnwrap:
                 share_path = Path(cmd[share_idx])
                 share_path.parent.mkdir(parents=True, exist_ok=True)
                 share_path.write_text(
-                    f"# Session\n> - **Session ID:** `{session_uuid}`\n"
+                    f"# Session\n> - **Session ID:** `{session_uuid}`\n", encoding="utf-8"
                 )
             return result
 

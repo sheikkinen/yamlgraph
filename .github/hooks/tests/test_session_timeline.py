@@ -25,7 +25,7 @@ def run_timeline(
     """Create temp files, run script, return (exit_code, stdout)."""
     with tempfile.TemporaryDirectory() as tmpdir:
         audit_path = Path(tmpdir) / "audit.jsonl"
-        audit_path.write_text("\n".join(json.dumps(e) for e in audit_entries) + "\n")
+        audit_path.write_text("\n".join(json.dumps(e) for e in audit_entries) + "\n", encoding="utf-8")
 
         cmd = [sys.executable, str(SCRIPT), "--audit", str(audit_path)]
 
@@ -33,7 +33,7 @@ def run_timeline(
             transcript_path = Path(tmpdir) / "transcript.jsonl"
             transcript_path.write_text(
                 "\n".join(json.dumps(e) for e in transcript_entries) + "\n"
-            )
+            , encoding="utf-8")
             cmd.extend(["--transcript", str(transcript_path)])
 
         if args:

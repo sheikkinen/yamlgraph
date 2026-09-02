@@ -157,7 +157,7 @@ class TestGetSchemaPath:
         from yamlgraph import get_schema_path
 
         schema_path = get_schema_path()
-        content = schema_path.read_text()
+        content = schema_path.read_text(encoding="utf-8")
         schema = json.loads(content)
 
         assert "$schema" in schema
@@ -236,7 +236,7 @@ class TestSchemaCliCommands:
         cmd_schema_export(args)
 
         assert output_file.exists()
-        schema = json.loads(output_file.read_text())
+        schema = json.loads(output_file.read_text(encoding="utf-8"))
         assert "$schema" in schema
 
     @pytest.mark.req("REQ-YG-036")

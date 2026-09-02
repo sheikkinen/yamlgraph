@@ -246,10 +246,10 @@ class TestCreateNodeFunction:
         prompts_dir.mkdir(parents=True)
 
         graph_file = graph_dir / "graph.yaml"
-        graph_file.write_text("name: audit")
+        graph_file.write_text("name: audit", encoding="utf-8")
 
         prompt_file = prompts_dir / "opening.yaml"
-        prompt_file.write_text("system: Welcome\nuser: Start")
+        prompt_file.write_text("system: Welcome\nuser: Start", encoding="utf-8")
 
         node_config = {
             "type": "llm",
@@ -287,7 +287,7 @@ class TestCreateNodeFunction:
         shared_prompts.mkdir(parents=True)
 
         prompt_file = shared_prompts / "greet.yaml"
-        prompt_file.write_text("system: Hi\nuser: Hello")
+        prompt_file.write_text("system: Hi\nuser: Hello", encoding="utf-8")
 
         node_config = {
             "type": "llm",

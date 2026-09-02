@@ -147,7 +147,7 @@ edges:
         write_generated_files(str(tmp_path), graph_content, [])
 
         # Parse the written file
-        parsed = yaml.safe_load((tmp_path / "graph.yaml").read_text())
+        parsed = yaml.safe_load((tmp_path / "graph.yaml").read_text(encoding="utf-8"))
 
         assert parsed["version"] == "1.0"
         assert parsed["name"] == "test"

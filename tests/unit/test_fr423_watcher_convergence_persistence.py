@@ -29,7 +29,7 @@ CHAPLAIN_YAMLGRAPH_ACTION = (
 
 
 def _yaml(path: Path) -> dict:
-    return yaml.safe_load(path.read_text())
+    return yaml.safe_load(path.read_text(encoding="utf-8"))
 
 
 @pytest.mark.req("REQ-YG-316")
@@ -76,7 +76,7 @@ class TestFR423PromptContracts:
 @pytest.mark.req("REQ-YG-316")
 class TestFR423WritebackGuard:
     def test_judge_writeback_guard_hook_present(self):
-        content = CHAPLAIN_YAMLGRAPH_ACTION.read_text()
+        content = CHAPLAIN_YAMLGRAPH_ACTION.read_text(encoding="utf-8")
         assert "_judge_writeback" in content
         assert 'context.get("current_state") != "judge"' in content
         assert 'event not in {"revise", "reject"}' in content

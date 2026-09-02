@@ -25,7 +25,7 @@ class TestArchitectureProviderCount:
         actual_count = len(get_args(ProviderType))
 
         arch_path = REPO_ROOT / "ARCHITECTURE.md"
-        text = arch_path.read_text()
+        text = arch_path.read_text(encoding="utf-8")
 
         # Match the module table row for llm_factory.py
         # e.g. "| `utils/llm_factory.py` | Multi-provider LLM factory (8 providers) | 3 |"

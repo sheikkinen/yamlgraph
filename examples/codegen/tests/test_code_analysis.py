@@ -60,7 +60,7 @@ class TestCodeAnalysisPrompts:
         """Analyzer prompt should have system and user sections."""
         import yaml
 
-        with open("examples/demos/code-analysis/prompts/analyzer.yaml") as f:
+        with open("examples/demos/code-analysis/prompts/analyzer.yaml", encoding="utf-8") as f:
             prompt = yaml.safe_load(f)
 
         assert "system" in prompt, "Missing system prompt"
@@ -70,7 +70,7 @@ class TestCodeAnalysisPrompts:
         """Recommend prompt should have system and user sections."""
         import yaml
 
-        with open("examples/demos/code-analysis/prompts/recommend.yaml") as f:
+        with open("examples/demos/code-analysis/prompts/recommend.yaml", encoding="utf-8") as f:
             prompt = yaml.safe_load(f)
 
         assert "system" in prompt, "Missing system prompt"

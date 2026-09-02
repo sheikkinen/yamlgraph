@@ -25,7 +25,7 @@ from yamlgraph.verification import evaluate_verification
 
 def _create_temp_graph(graph_dict: dict) -> Path:
     """Create a temp YAML file from dict."""
-    with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
+    with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", suffix=".yaml", delete=False) as f:
         yaml.dump(graph_dict, f)
         return Path(f.name)
 

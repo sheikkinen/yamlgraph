@@ -44,7 +44,7 @@ def run_hook(
     if log_dir:
         logfile = Path(log_dir) / "audit.jsonl"
         if logfile.exists():
-            for line in logfile.read_text().strip().splitlines():
+            for line in logfile.read_text(encoding="utf-8").strip().splitlines():
                 if line.strip():
                     entries.append(json.loads(line))
     return r.returncode, r.stdout.strip(), entries

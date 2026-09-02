@@ -119,6 +119,6 @@ def write_atlas(state: dict) -> dict:
     out_dir = project_dir / "docs"
     out_dir.mkdir(parents=True, exist_ok=True)
     out_path = out_dir / f"{date.today().isoformat()}-fr-atlas.md"
-    out_path.write_text(text)
+    out_path.write_text(text, encoding="utf-8")
     print(f"✓ atlas → {out_path}")
     return {"atlas_path": str(out_path), "written": True}

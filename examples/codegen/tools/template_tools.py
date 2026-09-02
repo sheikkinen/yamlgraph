@@ -29,7 +29,7 @@ def extract_function_template(file_path: str, function_name: str) -> dict:
         return {"error": f"File not found: {file_path}"}
 
     try:
-        source = path.read_text()
+        source = path.read_text(encoding="utf-8")
         tree = ast.parse(source)
     except SyntaxError as e:
         return {"error": f"Syntax error: {e}"}
@@ -196,7 +196,7 @@ def extract_class_template(file_path: str, class_name: str) -> dict:
         return {"error": f"File not found: {file_path}"}
 
     try:
-        source = path.read_text()
+        source = path.read_text(encoding="utf-8")
         tree = ast.parse(source)
     except SyntaxError as e:
         return {"error": f"Syntax error: {e}"}
@@ -268,7 +268,7 @@ def extract_test_template(test_file: str, target_module: str) -> dict:
         return {"error": f"File not found: {test_file}"}
 
     try:
-        source = path.read_text()
+        source = path.read_text(encoding="utf-8")
         tree = ast.parse(source)
     except SyntaxError as e:
         return {"error": f"Syntax error: {e}"}

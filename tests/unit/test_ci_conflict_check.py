@@ -34,7 +34,7 @@ fi
 
 def _load_workflow() -> dict:
     """Load and parse the commitlint workflow YAML."""
-    with open(WORKFLOW_PATH) as f:
+    with open(WORKFLOW_PATH, encoding="utf-8") as f:
         return yaml.safe_load(f)
 
 
@@ -63,7 +63,7 @@ def _run_conflict_check(
         # Write the test file
         filepath = tmppath / filename
         filepath.parent.mkdir(parents=True, exist_ok=True)
-        filepath.write_text(file_content)
+        filepath.write_text(file_content, encoding="utf-8")
         # Stage and commit so git grep can find it
         subprocess.run(["git", "add", "."], cwd=tmpdir, check=True)
         subprocess.run(
@@ -242,21 +242,21 @@ class TestConflictCheckDocumentation:
 
     def test_dev_ops_lists_conflict_check(self) -> None:
         """The CI checks section must list conflict-check."""
-        content = Path("reference/development-operations.md").read_text()
+        content = Path("reference/development-operations.md").read_text(encoding="utf-8")
         assert (
             "conflict-check" in content
         ), "development-operations.md must list conflict-check as a status check"
 
     def test_dev_ops_describes_conflict_check(self) -> None:
         """The ops reference must describe what the conflict-check does."""
-        content = Path("reference/development-operations.md").read_text()
+        content = Path("reference/development-operations.md").read_text(encoding="utf-8")
         assert (
             "conflict marker" in content.lower()
         ), "development-operations.md must describe conflict-check purpose"
 
     def test_dev_ops_notes_up_to_date_requirement(self) -> None:
         """The ops reference must note the 'require up-to-date' setting."""
-        content = Path("reference/development-operations.md").read_text()
+        content = Path("reference/development-operations.md").read_text(encoding="utf-8")
         assert (
             "up to date" in content.lower() or "up-to-date" in content.lower()
         ), "development-operations.md must document the up-to-date setting"

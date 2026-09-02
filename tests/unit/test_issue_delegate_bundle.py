@@ -54,7 +54,7 @@ def _git_blob_sha(data: bytes) -> str:
 
 
 def _load_workflow() -> dict:
-    wf = yaml.safe_load((BUNDLE / "delegate.yml").read_text())
+    wf = yaml.safe_load((BUNDLE / "delegate.yml").read_text(encoding="utf-8"))
     return wf
 
 
@@ -156,7 +156,7 @@ def test_workflow_resolve_runs_unconditionally():
 
 
 def _ps1() -> str:
-    return (BUNDLE / "windows_job.ps1").read_text()
+    return (BUNDLE / "windows_job.ps1").read_text(encoding="utf-8")
 
 
 @pytest.mark.req("REQ-YG-637")
@@ -225,7 +225,7 @@ def test_worker_cli_parse_issue_emits_request_fields(tmp_path):
         "```\n"
     )
     event = tmp_path / "event.json"
-    event.write_text(json.dumps({"issue": {"body": body}}))
+    event.write_text(json.dumps({"issue": {"body": body}}), encoding="utf-8")
     res = _run_worker("parse-issue", str(event))
     assert res.returncode == 0, res.stderr
     fields = dict(line.split("=", 1) for line in res.stdout.splitlines() if "=" in line)
@@ -239,7 +239,7 @@ def test_worker_cli_parse_issue_emits_request_fields(tmp_path):
 @pytest.mark.req("REQ-YG-637")
 def test_worker_cli_parse_issue_invalid_body_fails_typed(tmp_path):
     event = tmp_path / "event.json"
-    event.write_text(json.dumps({"issue": {"body": "no yaml block here"}}))
+    event.write_text(json.dumps({"issue": {"body": "no yaml block here"}}), encoding="utf-8")
     res = _run_worker("parse-issue", str(event))
     assert res.returncode == 1
     assert "INVALID_REQUEST" in res.stderr
@@ -292,7 +292,7 @@ def test_sync_refuses_missing_dest(tmp_path):
 
 
 def _installer() -> str:
-    return (BUNDLE / "install-runner.ps1").read_text()
+    return (BUNDLE / "install-runner.ps1").read_text(encoding="utf-8")
 
 
 @pytest.mark.req("REQ-YG-637")
@@ -431,17 +431,17 @@ class SubmitFixture:
             bundle_dst.joinpath(name).write_bytes((BUNDLE / name).read_bytes())
         fr_dir = self.work / "feature-requests"
         fr_dir.mkdir()
-        (fr_dir / "FR-000-sample.md").write_text("# FR-000 sample\n")
+        (fr_dir / "FR-000-sample.md").write_text("# FR-000 sample\n", encoding="utf-8")
         self._git("add", "-A")
         self._git("commit", "-m", "fixture")
         self._git("push", "-u", "origin", "main")
         # fake gh
         self.bin.mkdir()
         gh = self.bin / "gh"
-        gh.write_text(FAKE_GH)
+        gh.write_text(FAKE_GH, encoding="utf-8")
         gh.chmod(0o755)
         # runner + no-drift contents responses
-        self.runners_json.write_text(json.dumps(RUNNERS_ONLINE))
+        self.runners_json.write_text(json.dumps(RUNNERS_ONLINE), encoding="utf-8")
         self.contents_dir.mkdir()
         self.write_contents(drift=False)
 
@@ -452,7 +452,7 @@ class SubmitFixture:
             if drift and src_name == "worker.py":
                 sha = "0" * 40
             key = deployed.replace("/", "__")
-            (self.contents_dir / f"{key}.json").write_text(json.dumps({"sha": sha}))
+            (self.contents_dir / f"{key}.json").write_text(json.dumps({"sha": sha}), encoding="utf-8")
 
     @property
     def head(self) -> str:
@@ -488,7 +488,7 @@ class SubmitFixture:
     def gh_invocations(self) -> list[list[str]]:
         if not self.gh_log.exists():
             return []
-        raw = self.gh_log.read_text()
+        raw = self.gh_log.read_text(encoding="utf-8")
         return [record.split("\x00")[:-1] for record in raw.split("\x1e") if record]
 
 
@@ -532,19 +532,19 @@ def test_submit_refuses_uncommitted_payload(submit_fix):
 @pytest.mark.req("REQ-YG-637")
 def test_submit_refuses_dirty_tree(submit_fix):
     marker = submit_fix.work / "feature-requests" / "FR-000-sample.md"
-    original = marker.read_text()
-    marker.write_text(original + "dirty\n")
+    original = marker.read_text(encoding="utf-8")
+    marker.write_text(original + "dirty\n", encoding="utf-8")
     try:
         res = submit_fix.run_submit(*JUDGE_ARGS)
         assert res.returncode == 4
         assert "dirty" in res.stderr.lower() or "clean" in res.stderr.lower()
     finally:
-        marker.write_text(original)
+        marker.write_text(original, encoding="utf-8")
 
 
 @pytest.mark.req("REQ-YG-637")
 def test_submit_refuses_unpushed_head(submit_fix):
-    (submit_fix.work / "unpushed.md").write_text("x\n")
+    (submit_fix.work / "unpushed.md").write_text("x\n", encoding="utf-8")
     submit_fix._git("add", "unpushed.md")
     submit_fix._git("commit", "-m", "unpushed")
     try:
@@ -557,13 +557,13 @@ def test_submit_refuses_unpushed_head(submit_fix):
 
 @pytest.mark.req("REQ-YG-637")
 def test_submit_refuses_runner_offline(submit_fix):
-    submit_fix.runners_json.write_text(json.dumps(RUNNERS_OFFLINE))
+    submit_fix.runners_json.write_text(json.dumps(RUNNERS_OFFLINE), encoding="utf-8")
     try:
         res = submit_fix.run_submit(*JUDGE_ARGS)
         assert res.returncode == 7
         assert "runner" in res.stderr.lower()
     finally:
-        submit_fix.runners_json.write_text(json.dumps(RUNNERS_ONLINE))
+        submit_fix.runners_json.write_text(json.dumps(RUNNERS_ONLINE), encoding="utf-8")
 
 
 @pytest.mark.req("REQ-YG-637")

@@ -182,7 +182,7 @@ def discover_graphs(patterns: list[str]) -> list[dict[str, Any]]:
             seen_paths.add(real)
 
             try:
-                with open(path_str) as f:
+                with open(path_str, encoding="utf-8") as f:
                     config = yaml.safe_load(f)
                 if not isinstance(config, dict):
                     continue

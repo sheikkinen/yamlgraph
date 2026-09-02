@@ -59,7 +59,7 @@ def parse_fragment_req(filepath: Path) -> FragmentReq | None:
 
     Returns None if the fragment has no req: field or no valid front-matter.
     """
-    content = filepath.read_text()
+    content = filepath.read_text(encoding="utf-8")
     if not content.startswith("---"):
         return None
 
@@ -96,7 +96,7 @@ def load_req_to_cap_index(capabilities_dir: Path) -> dict[str, str]:
         return index
 
     for filepath in sorted(capabilities_dir.glob("CAP-*.yaml")):
-        with open(filepath) as f:
+        with open(filepath, encoding="utf-8") as f:
             try:
                 data = yaml.safe_load(f)
             except yaml.YAMLError:
@@ -129,7 +129,7 @@ def find_owning_cap(
 
     # Load the full CAP to get all its REQ IDs
     for filepath in capabilities_dir.glob("CAP-*.yaml"):
-        with open(filepath) as f:
+        with open(filepath, encoding="utf-8") as f:
             try:
                 data = yaml.safe_load(f)
             except yaml.YAMLError:
@@ -144,7 +144,7 @@ def find_owning_cap(
 def _load_req_descriptions(capabilities_dir: Path, cap_id: str) -> dict[str, str]:
     """Load requirement descriptions from a specific CAP file."""
     for filepath in capabilities_dir.glob("CAP-*.yaml"):
-        with open(filepath) as f:
+        with open(filepath, encoding="utf-8") as f:
             try:
                 data = yaml.safe_load(f)
             except yaml.YAMLError:
@@ -235,7 +235,7 @@ def validate_fragment(
     - "deferred": multi-REQ CAP, needs LLM (skipped with --skip-llm)
     """
     # Try to parse front-matter
-    content = filepath.read_text()
+    content = filepath.read_text(encoding="utf-8")
     if not content.startswith("---"):
         # No front-matter at all — skip (not a properly formatted fragment)
         return ValidationResult(

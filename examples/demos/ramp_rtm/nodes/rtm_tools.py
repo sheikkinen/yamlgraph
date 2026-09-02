@@ -69,7 +69,7 @@ def collect_tests(target_repo: str | dict) -> list[dict] | dict:
 
     inventory: list[dict] = []
     for path in sorted(tests_dir.glob("**/test_*.py")):
-        source = path.read_text()
+        source = path.read_text(encoding="utf-8")
         inventory.append(
             {
                 "path": path.relative_to(target).as_posix(),
@@ -205,8 +205,8 @@ def write_drafts(draft: dict, base_dir: str | Path) -> tuple[str, str]:
     out_dir.mkdir(parents=True, exist_ok=True)
     md_path = out_dir / "rtm-draft.md"
     json_path = out_dir / "rtm-draft.json"
-    md_path.write_text(_render_markdown(draft))
-    json_path.write_text(json.dumps(draft, indent=2, sort_keys=True) + "\n")
+    md_path.write_text(_render_markdown(draft), encoding="utf-8")
+    json_path.write_text(json.dumps(draft, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     return str(md_path), str(json_path)
 
 

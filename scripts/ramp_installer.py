@@ -115,7 +115,7 @@ def load_manifest(
 ) -> list[Entry]:
     """Load and validate the ramp manifest; raise ManifestError on any defect."""
     ramp_dir = ramp_dir or Path(path).parent
-    data = yaml.safe_load(Path(path).read_text())
+    data = yaml.safe_load(Path(path).read_text(encoding="utf-8"))
     if not isinstance(data, dict) or not isinstance(data.get("entries"), list):
         raise ManifestError("manifest must be a mapping with an 'entries' list")
     entries: list[Entry] = []
@@ -176,7 +176,7 @@ def check_target(target: Path) -> Path:
     if not (target / "tests").is_dir():
         raise Refusal("refused — unsupported target shape: no tests/ suite")
     ruff_configured = (
-        "[tool.ruff" in (target / "pyproject.toml").read_text()
+        "[tool.ruff" in (target / "pyproject.toml").read_text(encoding="utf-8")
         or (target / "ruff.toml").is_file()
         or (target / ".ruff.toml").is_file()
     )
@@ -238,7 +238,7 @@ def render_target_doc(sha: str, tier: int, rows: list[dict]) -> str:
 
 def parse_target_manifest(path: Path) -> dict:
     """Parse docs/ramp-manifest.md back into a dict (tests + rollback)."""
-    text = Path(path).read_text()
+    text = Path(path).read_text(encoding="utf-8")
     doc: dict = {"rows": {}}
     for line in text.splitlines():
         if line.startswith("- source_sha: "):
@@ -283,7 +283,7 @@ never an absolute local path or a credential-bearing URL.
 def record_consumer(slug: str, tier: int, manifest_path: Path, path: Path) -> str:
     row, identity = _consumer_row(slug, tier, manifest_path)
     _, _, mhash = identity.split("::")
-    text = path.read_text() if path.exists() else CONSUMERS_HEADER
+    text = path.read_text(encoding="utf-8") if path.exists() else CONSUMERS_HEADER
     lines = text.rstrip("\n").splitlines()
     kept = [
         ln
@@ -296,7 +296,7 @@ def record_consumer(slug: str, tier: int, manifest_path: Path, path: Path) -> st
     ]
     kept.append(row)
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text("\n".join(kept) + "\n")
+    path.write_text("\n".join(kept) + "\n", encoding="utf-8")
     return row
 
 
@@ -365,7 +365,7 @@ def install(
     doc_path = target / TARGET_DOC
     if changed or not doc_path.exists():
         doc_path.parent.mkdir(parents=True, exist_ok=True)
-        doc_path.write_text(render_target_doc(source_sha(), tier, rows))
+        doc_path.write_text(render_target_doc(source_sha(), tier, rows), encoding="utf-8")
     if consumer:
         registry = Path(os.environ.get(CONSUMERS_ENV, DEFAULT_CONSUMERS))
         row = record_consumer(consumer, tier, manifest_path, registry)

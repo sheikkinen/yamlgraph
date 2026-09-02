@@ -58,7 +58,7 @@ edges:
 """
     )
     p = tmp_path / "graph.yaml"
-    p.write_text(content)
+    p.write_text(content, encoding="utf-8")
     return p
 
 

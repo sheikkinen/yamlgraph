@@ -24,7 +24,7 @@ edges:
     to: greet
   - from: greet
     to: END
-""")
+""", encoding="utf-8")
 
     async def mock_stream(*args, **kwargs):
         for token in ["Hello", " ", "World"]:
@@ -75,7 +75,7 @@ edges:
     to: greet
   - from: greet
     to: END
-""")
+""", encoding="utf-8")
 
     args = Namespace(
         graph_path=str(graph_file),
@@ -121,7 +121,7 @@ edges:
     to: greet
   - from: greet
     to: END
-""")
+""", encoding="utf-8")
 
     async def mock_stream_with_error(*args, **kwargs):
         yield "partial"

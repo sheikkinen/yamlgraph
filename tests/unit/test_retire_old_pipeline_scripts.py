@@ -29,17 +29,17 @@ class TestObsoleteScriptsRemoved:
 @pytest.mark.req("REQ-YG-276")
 class TestFsmRuntimeEntryPoint:
     def test_start_system_references_both_fsm_configs(self):
-        content = Path(".chaplain/scripts/start-system.sh").read_text()
+        content = Path(".chaplain/scripts/start-system.sh").read_text(encoding="utf-8")
         assert "watcher-dispatcher.yaml" in content
         assert "watcher-pipeline-v2.yaml" in content
 
     def test_readme_points_to_start_system(self):
-        content = Path(".chaplain/README.md").read_text()
+        content = Path(".chaplain/README.md").read_text(encoding="utf-8")
         assert ".chaplain/scripts/start-system.sh" in content
         assert "watcher2.sh" not in content
 
     def test_worktree_setup_still_prunes_metadata(self):
-        content = Path(".chaplain/lib/watcher/worktree_setup.sh").read_text()
+        content = Path(".chaplain/lib/watcher/worktree_setup.sh").read_text(encoding="utf-8")
         assert "git worktree prune" in content
 
 
@@ -47,7 +47,7 @@ class TestFsmRuntimeEntryPoint:
 class TestForensicFailurePreservation:
     def test_pipeline_failed_state_moves_topic_to_failed_dir(self):
         config = yaml.safe_load(
-            Path(".chaplain/config/watcher-pipeline-v2.yaml").read_text()
+            Path(".chaplain/config/watcher-pipeline-v2.yaml").read_text(encoding="utf-8")
         )
         failed_actions = config["actions"]["failed"]
         command = failed_actions[0]["command"]

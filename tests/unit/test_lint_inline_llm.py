@@ -29,7 +29,7 @@ def main():
 if __name__ == "__main__":
     main()
 """
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
+        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", suffix=".py", delete=False) as f:
             f.write(code)
             f.flush()
             result = check_file(Path(f.name))
@@ -52,7 +52,7 @@ def main():
 if __name__ == "__main__":
     main()
 """
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
+        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", suffix=".py", delete=False) as f:
             f.write(code)
             f.flush()
             result = check_file(Path(f.name))
@@ -76,7 +76,7 @@ def main():
 if __name__ == "__main__":
     main()
 """
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
+        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", suffix=".py", delete=False) as f:
             f.write(code)
             f.flush()
             result = check_file(Path(f.name))
@@ -98,7 +98,7 @@ def main():
 if __name__ == "__main__":
     main()
 """
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
+        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", suffix=".py", delete=False) as f:
             f.write(code)
             f.flush()
             result = check_file(Path(f.name))
@@ -118,7 +118,7 @@ def helper():
 class SomeClass:
     pass
 """
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
+        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", suffix=".py", delete=False) as f:
             f.write(code)
             f.flush()
             result = check_file(Path(f.name))
@@ -140,7 +140,7 @@ if __name__ == "__main__":
     import asyncio
     asyncio.run(main())
 """
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
+        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", suffix=".py", delete=False) as f:
             f.write(code)
             f.flush()
             result = check_file(Path(f.name))
@@ -162,7 +162,7 @@ def main():
 if __name__ == "__main__":
     main()
 """
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
+        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", suffix=".py", delete=False) as f:
             f.write(code)
             f.flush()
             result = check_file(Path(f.name))
@@ -185,7 +185,7 @@ def main():
 if __name__ == "__main__":
     main()
 """
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
+        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", suffix=".py", delete=False) as f:
             f.write(code)
             f.flush()
             result = check_file(Path(f.name))
@@ -209,7 +209,7 @@ def main():
 
 if __name__ == "__main__":
     main()
-""")
+""", encoding="utf-8")
             violations = scan_directory(Path(tmpdir))
             assert len(violations) == 0
 
@@ -229,7 +229,7 @@ def main():
 
 if __name__ == "__main__":
     main()
-""")
+""", encoding="utf-8")
             violations = scan_directory(Path(tmpdir))
             assert len(violations) == 1
             assert "bad.py" in violations[0][0].name

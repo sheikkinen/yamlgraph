@@ -148,7 +148,7 @@ def concatenate_videos(video_paths: list[Path], output_path: Path) -> bool:
 
     # Create concat file list in the same directory
     concat_file = output_path.parent / "concat_list.txt"
-    with open(concat_file, "w") as f:
+    with open(concat_file, "w", encoding="utf-8") as f:
         for video in video_paths:
             f.write(f"file '{video.name}'\n")
 
@@ -251,7 +251,7 @@ def main():
     metadata_path = folder / "animated_character_story.json"
     metadata = None
     if metadata_path.exists():
-        metadata = json.loads(metadata_path.read_text())
+        metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
         logger.info(f"📝 Loaded metadata from {metadata_path.name}")
 
     # Create output folder

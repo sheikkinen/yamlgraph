@@ -244,7 +244,7 @@ def test_chapter_close_prompt_messages_render_without_keyerror():
     # literal JSON brace ({"world_state": ...}) is read as a replacement field and
     # raises KeyError('"world_state"'). The chapter_close prompt must describe its
     # JSON shape in PROSE so every message renders cleanly with real variables.
-    data = yaml.safe_load((PROMPTS / "chapter_close.yaml").read_text())
+    data = yaml.safe_load((PROMPTS / "chapter_close.yaml").read_text(encoding="utf-8"))
     variables = {
         "synopsis": "The thaw drowns the valley.",
         "summary": "The river breaks its banks.",
@@ -265,7 +265,7 @@ def test_chapter_close_reasoning_budget_cannot_starve_the_ledger():
     # ledger that parse_world_state() silently rendered as no characters/objects.
     # Two guards must hold: a bounded reasoning threshold AND a large output budget
     # so the visible JSON always has room after thinking completes.
-    defaults = yaml.safe_load((GRAPHS / "chapter_close.yaml").read_text())["defaults"]
+    defaults = yaml.safe_load((GRAPHS / "chapter_close.yaml").read_text(encoding="utf-8"))["defaults"]
     budget = defaults["thinking_budget"]
     max_tokens = defaults["max_tokens"]
     assert budget is not None, "reasoning must be capped, not unbounded"

@@ -26,7 +26,7 @@ EXPECTED_WORKFLOWS = ["workflow.yml", "security.yml", "commitlint.yml"]
 def _load_workflow(filename: str) -> dict:
     """Load and parse a GitHub Actions workflow YAML file."""
     workflow_path = WORKFLOW_DIR / filename
-    with open(workflow_path) as f:
+    with open(workflow_path, encoding="utf-8") as f:
         return yaml.safe_load(f)
 
 

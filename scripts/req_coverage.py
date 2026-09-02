@@ -66,7 +66,7 @@ def load_capabilities_from_registry() -> (
         raise FileNotFoundError(f"No capability files found in {CAPABILITIES_DIR}")
 
     for filepath in yaml_files:
-        with open(filepath) as f:
+        with open(filepath, encoding="utf-8") as f:
             data = yaml.safe_load(f)
 
         if data.get("status") == "retired":
@@ -101,7 +101,7 @@ def extract_req_markers(filepath: Path) -> dict[str, list[str]]:
     when multiple classes share method names.
     """
     try:
-        tree = ast.parse(filepath.read_text(), filename=str(filepath))
+        tree = ast.parse(filepath.read_text(encoding="utf-8"), filename=str(filepath))
     except SyntaxError:
         return {}
 
@@ -199,7 +199,7 @@ def _load_cap_modules() -> dict[str, list[str]]:
     """CAP-ID → declared modules (cap-level ∪ req-level) from capabilities/."""
     modules: dict[str, list[str]] = {}
     for filepath in sorted(CAPABILITIES_DIR.glob("CAP-*.yaml")):
-        data = yaml.safe_load(filepath.read_text())
+        data = yaml.safe_load(filepath.read_text(encoding="utf-8"))
         if data.get("status") == "retired":
             continue
         declared = list(data.get("modules") or [])
@@ -222,7 +222,7 @@ def _load_req_descriptions(root: Path) -> dict[str, str]:
         return {}
     descriptions: dict[str, str] = {}
     pattern = re.compile(r"^\|\s*(REQ-YG-\d{3})\s*\|\s*(.+?)\s*\|")
-    for line in arch_path.read_text().splitlines():
+    for line in arch_path.read_text(encoding="utf-8").splitlines():
         m = pattern.match(line)
         if m:
             req_id, desc = m.group(1), m.group(2).strip()
@@ -233,6 +233,13 @@ def _load_req_descriptions(root: Path) -> dict[str, str]:
 
 
 def main() -> None:
+    # FR-951: this gate prints status glyphs; declare the stream's codec so it
+    # survives a pipe on a host whose preferred encoding is not UTF-8.
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if reconfigure is not None:
+            reconfigure(encoding="utf-8", errors="backslashreplace")
+
     root = Path(__file__).parent.parent
     # ADR-001 Tier 1 scope: framework tests only.
     test_dirs = [root / rel_path for rel_path in FRAMEWORK_TEST_DIRS]

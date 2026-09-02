@@ -58,7 +58,7 @@ def parse_fragment(filepath: Path) -> ChangelogEntry:
 
     Raises ValueError if required fields are missing.
     """
-    content = filepath.read_text()
+    content = filepath.read_text(encoding="utf-8")
 
     if not content.startswith("---"):
         raise ValueError(f"Fragment {filepath.name} missing YAML front matter")

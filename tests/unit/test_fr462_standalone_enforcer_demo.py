@@ -73,7 +73,7 @@ class TestEnforcerDemoGraphStructure:
     @pytest.mark.req("REQ-YG-426")
     def test_graph_has_ten_tool_definitions(self) -> None:
         """Graph tools section defines exactly 10 tools (7 shell + 3 python)."""
-        raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text())
+        raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text(encoding="utf-8"))
         assert len(raw["tools"]) == 10
         # FR-777: shared shell tools are declared via toolbelt manifest refs
         shell_tools = [
@@ -88,7 +88,7 @@ class TestEnforcerDemoGraphStructure:
     @pytest.mark.req("REQ-YG-426")
     def test_write_file_is_python_tool(self) -> None:
         """write_file must be type: python, not shell."""
-        raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text())
+        raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text(encoding="utf-8"))
         wf = raw["tools"]["write_file"]
         assert wf["type"] == "python"
         assert "write_file" in wf.get("function", "")
@@ -112,7 +112,7 @@ class TestEnforcerDemoGraphStructure:
     @pytest.mark.req("REQ-YG-426")
     def test_no_hardcoded_model(self) -> None:
         """No hardcoded model — uses env var fallthrough."""
-        raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text())
+        raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text(encoding="utf-8"))
         assert (
             "model" not in raw["nodes"]["enforcer"]
         ), "Enforcer node must not hardcode model — use PROVIDER/MODEL env vars"
@@ -128,7 +128,7 @@ class TestEnforcerDemoGraphStructure:
     @pytest.mark.req("REQ-YG-426")
     def test_prompt_has_structured_schema(self) -> None:
         """Prompt must define ImplementationResult schema with 4 fields."""
-        prompt = yaml.safe_load((DEMO_DIR / "prompts" / "enforcer.yaml").read_text())
+        prompt = yaml.safe_load((DEMO_DIR / "prompts" / "enforcer.yaml").read_text(encoding="utf-8"))
         schema = prompt["schema"]
         assert schema["name"] == "ImplementationResult"
         expected_fields = {
@@ -142,7 +142,7 @@ class TestEnforcerDemoGraphStructure:
     @pytest.mark.req("REQ-YG-426")
     def test_prompt_instructs_implementation_steps(self) -> None:
         """Prompt must instruct agent through implementation steps."""
-        prompt_text = (DEMO_DIR / "prompts" / "enforcer.yaml").read_text()
+        prompt_text = (DEMO_DIR / "prompts" / "enforcer.yaml").read_text(encoding="utf-8")
         assert "Read the FR" in prompt_text
         assert "Explore" in prompt_text
         assert "Implement" in prompt_text
@@ -169,14 +169,14 @@ class TestEnforcerDemoGraphStructure:
     def test_demo_sh_accepts_fr_path_argument(self) -> None:
         """demo.sh must accept FR path as first argument."""
         demo_sh = DEMO_DIR / "demo.sh"
-        content = demo_sh.read_text()
+        content = demo_sh.read_text(encoding="utf-8")
         assert "$1" in content or "$FR_PATH" in content
 
     @pytest.mark.req("REQ-YG-426")
     def test_demo_sh_runs_graph(self) -> None:
         """demo.sh must run the enforcer graph."""
         demo_sh = DEMO_DIR / "demo.sh"
-        content = demo_sh.read_text()
+        content = demo_sh.read_text(encoding="utf-8")
         assert "yamlgraph graph run" in content
         assert "examples/demos/enforcer/graph.yaml" in content
 
@@ -184,7 +184,7 @@ class TestEnforcerDemoGraphStructure:
     def test_demo_sh_uses_json_output(self) -> None:
         """demo.sh must use --json flag for structured output."""
         demo_sh = DEMO_DIR / "demo.sh"
-        content = demo_sh.read_text()
+        content = demo_sh.read_text(encoding="utf-8")
         assert "--json" in content
 
     @pytest.mark.req("REQ-YG-426")
@@ -201,7 +201,7 @@ class TestEnforcerDemoGraphStructure:
 
         target = tmp_path / "subdir" / "test.md"
         result = mod.write_file(str(target), "hello world")
-        assert target.read_text() == "hello world"
+        assert target.read_text(encoding="utf-8") == "hello world"
         assert "11 bytes" in result
 
     @pytest.mark.req("REQ-YG-426")
@@ -214,7 +214,7 @@ class TestEnforcerDemoGraphStructure:
     def test_readme_documents_usage(self) -> None:
         """README must document enforcer usage."""
         readme = DEMO_DIR / "README.md"
-        content = readme.read_text()
+        content = readme.read_text(encoding="utf-8")
         assert "Quick Start" in content
         assert "./demo.sh" in content
         assert "Architecture" in content

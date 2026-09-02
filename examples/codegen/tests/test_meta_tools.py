@@ -38,7 +38,7 @@ edges:
   - START -> step1
   - step1 -> step2
   - step2 -> END
-""")
+""", encoding="utf-8")
         result = extract_graph_template(str(graph))
 
         assert "node_types" in result
@@ -70,7 +70,7 @@ edges:
       condition: state.result == "b"
   - branch_a -> END
   - branch_b -> END
-""")
+""", encoding="utf-8")
         result = extract_graph_template(str(graph))
 
         assert "edge_patterns" in result
@@ -93,7 +93,7 @@ nodes:
     type: llm
     prompt: process
     state_key: results
-""")
+""", encoding="utf-8")
         result = extract_graph_template(str(graph))
 
         assert "state_fields" in result
@@ -121,7 +121,7 @@ nodes:
   agent:
     type: agent
     tools: [search, fetch]
-""")
+""", encoding="utf-8")
         result = extract_graph_template(str(graph))
 
         assert "tool_patterns" in result
@@ -136,7 +136,7 @@ nodes:
     def test_handles_invalid_yaml(self, tmp_path: Path):
         """Returns error for invalid YAML."""
         graph = tmp_path / "bad.yaml"
-        graph.write_text("{ invalid yaml: [")
+        graph.write_text("{ invalid yaml: [", encoding="utf-8")
 
         result = extract_graph_template(str(graph))
         assert "error" in result
@@ -169,7 +169,7 @@ system: |
   Respond in JSON.
 
 user: "Process this: {input}"
-""")
+""", encoding="utf-8")
         result = extract_prompt_template(str(prompt))
 
         assert "system_structure" in result
@@ -185,7 +185,7 @@ user: |
   Input: {input}
   Context: {context}
   Previous: {history}
-""")
+""", encoding="utf-8")
         result = extract_prompt_template(str(prompt))
 
         assert "variables" in result
@@ -208,7 +208,7 @@ schema:
     confidence:
       type: number
   required: [result]
-""")
+""", encoding="utf-8")
         result = extract_prompt_template(str(prompt))
 
         assert "schema_patterns" in result
@@ -229,7 +229,7 @@ system: |
   {% endfor %}
 
 user: "Process {{ input }}"
-""")
+""", encoding="utf-8")
         result = extract_prompt_template(str(prompt))
 
         assert "jinja_patterns" in result
@@ -244,7 +244,7 @@ user: "Process {{ input }}"
     def test_handles_invalid_yaml(self, tmp_path: Path):
         """Returns error for invalid YAML."""
         prompt = tmp_path / "bad.yaml"
-        prompt.write_text("{ invalid yaml: [")
+        prompt.write_text("{ invalid yaml: [", encoding="utf-8")
 
         result = extract_prompt_template(str(prompt))
         assert "error" in result

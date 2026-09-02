@@ -23,7 +23,7 @@ MANIFEST = Path("examples/shared/describe_image.tool.yaml")
 
 @pytest.mark.req("REQ-YG-574")
 def test_demo_declares_describe_image_via_manifest_only():
-    raw = yaml.safe_load(DEMO_GRAPH.read_text())
+    raw = yaml.safe_load(DEMO_GRAPH.read_text(encoding="utf-8"))
     entry = raw["tools"]["describe_image"]
     assert set(entry) == {"manifest"}, (
         f"describe_image must be declared via manifest only, got keys: "
@@ -34,7 +34,7 @@ def test_demo_declares_describe_image_via_manifest_only():
 @pytest.mark.req("REQ-YG-574")
 def test_manifest_file_is_committed_and_named_for_its_tool():
     assert MANIFEST.is_file()
-    manifest = yaml.safe_load(MANIFEST.read_text())
+    manifest = yaml.safe_load(MANIFEST.read_text(encoding="utf-8"))
     assert manifest["name"] == "describe_image"
     assert manifest["runtime"]["type"] == "python"
 

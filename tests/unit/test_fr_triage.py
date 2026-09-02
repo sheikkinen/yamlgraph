@@ -37,7 +37,7 @@ def _load():
 
 def _fr(tmp_path: Path, status: str = "Proposed") -> Path:
     p = tmp_path / "FR-900-test.md"
-    p.write_text(f"# FR-900: Test\n\n**Status:** {status}\n\n## Summary\nbody\n")
+    p.write_text(f"# FR-900: Test\n\n**Status:** {status}\n\n## Summary\nbody\n", encoding="utf-8")
     return p
 
 
@@ -54,7 +54,7 @@ def test_append_triage_pending_markers_and_caps(tmp_path):
     fr = _fr(tmp_path)
     out = t.append_triage({"fr_path": str(fr), "triage": DISTILLED})
     assert out["appended"] is True
-    text = fr.read_text()
+    text = fr.read_text(encoding="utf-8")
     assert "## Triage" in text
     assert text.count("[pending]") >= 4
     assert "EXCESS" not in text  # F3 caps enforced in code (≤3 / ≤5)
@@ -64,9 +64,9 @@ def test_append_triage_pending_markers_and_caps(tmp_path):
 def test_append_triage_never_touches_status(tmp_path):
     t = _load()
     fr = _fr(tmp_path)
-    before = [ln for ln in fr.read_text().splitlines() if "Status" in ln]
+    before = [ln for ln in fr.read_text(encoding="utf-8").splitlines() if "Status" in ln]
     t.append_triage({"fr_path": str(fr), "triage": DISTILLED})
-    after = [ln for ln in fr.read_text().splitlines() if "Status" in ln]
+    after = [ln for ln in fr.read_text(encoding="utf-8").splitlines() if "Status" in ln]
     assert before == after
 
 
@@ -99,13 +99,13 @@ def test_empty_triage_raises(tmp_path):
 def test_gate_blocks_judged_with_pending_and_passes_proposed(tmp_path):
     t = _load()
     judged = _fr(tmp_path, status="Judged — APPROVED")
-    judged.write_text(judged.read_text() + "\n## Triage\n- [pending] w1\n")
-    assert t.gate_check(judged.read_text()) is False  # blocks
+    judged.write_text(judged.read_text(encoding="utf-8") + "\n## Triage\n- [pending] w1\n", encoding="utf-8")
+    assert t.gate_check(judged.read_text(encoding="utf-8")) is False  # blocks
     proposed = _fr(tmp_path)
-    proposed.write_text(proposed.read_text() + "\n## Triage\n- [pending] w1\n")
-    assert t.gate_check(proposed.read_text()) is True  # drafts pass (F4)
+    proposed.write_text(proposed.read_text(encoding="utf-8") + "\n## Triage\n- [pending] w1\n", encoding="utf-8")
+    assert t.gate_check(proposed.read_text(encoding="utf-8")) is True  # drafts pass (F4)
     dispositioned = _fr(tmp_path, status="Judged — APPROVED")
     dispositioned.write_text(
-        dispositioned.read_text() + "\n## Triage\n- [accepted → AC-03] w1\n"
-    )
-    assert t.gate_check(dispositioned.read_text()) is True
+        dispositioned.read_text(encoding="utf-8") + "\n## Triage\n- [accepted → AC-03] w1\n"
+    , encoding="utf-8")
+    assert t.gate_check(dispositioned.read_text(encoding="utf-8")) is True

@@ -21,7 +21,7 @@ WORKFLOW_PATH = ".github/workflows/security.yml"
 
 def _load_workflow() -> dict:
     """Load and parse the security workflow YAML."""
-    with open(WORKFLOW_PATH) as f:
+    with open(WORKFLOW_PATH, encoding="utf-8") as f:
         return yaml.safe_load(f)
 
 
@@ -69,7 +69,7 @@ class TestFR282CVEIgnore:
 
     def test_comment_explains_cve_ignore_with_date(self) -> None:
         """AC-02: Comment explains the ignore with CVE reference and date added."""
-        with open(WORKFLOW_PATH) as f:
+        with open(WORKFLOW_PATH, encoding="utf-8") as f:
             content = f.read()
 
         # Must contain CVE reference in comment
@@ -96,7 +96,7 @@ class TestFR282CVEIgnore:
 
     def test_todo_marker_documents_removal_condition(self) -> None:
         """AC-03: TODO marker documents removal condition when pip fix is released."""
-        with open(WORKFLOW_PATH) as f:
+        with open(WORKFLOW_PATH, encoding="utf-8") as f:
             content = f.read()
 
         # Must have TODO marker

@@ -80,7 +80,7 @@ class TestComplexityRelieved:
     def test_edge_compiler_cc_bounded(self):
         from radon.complexity import cc_visit
 
-        src = (REPO_ROOT / "yamlgraph/compile/edge_compiler.py").read_text()
+        src = (REPO_ROOT / "yamlgraph/compile/edge_compiler.py").read_text(encoding="utf-8")
         offenders = [
             (b.name, b.complexity) for b in cc_visit(src) if b.complexity >= 10
         ]

@@ -292,7 +292,7 @@ def test_three_same_class_non_echo_rows_pass_and_annotate(tools, tmp_path):
     findings[2]["precedent"] = "FR-890 reducer boundary"
     result = _reduce(tools, findings, tmp_path)
     assert result["rows"] == 5, "same-class convergence must never fail the gate"
-    text = (tmp_path / "tmp" / "draft-alternatives.md").read_text()
+    text = (tmp_path / "tmp" / "draft-alternatives.md").read_text(encoding="utf-8")
     assert "convergent x3" in text
 
 
@@ -319,7 +319,7 @@ def test_over_length_cell_rejected_not_truncated(tools, tmp_path):
 
 
 def _write_stub(path: Path, body: str) -> Path:
-    path.write_text(f"#!/usr/bin/env bash\n{body}\n")
+    path.write_text(f"#!/usr/bin/env bash\n{body}\n", encoding="utf-8")
     path.chmod(path.stat().st_mode | stat.S_IXUSR)
     return path
 
@@ -373,7 +373,7 @@ def test_wrapper_appends_provenance_line(tmp_path):
     assert result.returncode == 0, result.stderr
     log = tmp_path / "feature-requests" / "research-runs.jsonl"
     assert log.exists(), "provenance log must be written under feature-requests/"
-    record = json.loads(log.read_text().splitlines()[-1])
+    record = json.loads(log.read_text(encoding="utf-8").splitlines()[-1])
     for key in (
         "brief_sha256",
         "artifact_sha256",
@@ -391,9 +391,9 @@ def test_wrapper_appends_provenance_line(tmp_path):
 def test_verify_promotion_matching_missing_mismatched(preflight, tmp_path):
     artifact_text = MINIMAL_ARTIFACT
     brief = tmp_path / "brief.md"
-    brief.write_text("problem\n")
+    brief.write_text("problem\n", encoding="utf-8")
     record = tmp_path / "FR-900.research.md"
-    record.write_text("<!-- header -->\n\n" + artifact_text)
+    record.write_text("<!-- header -->\n\n" + artifact_text, encoding="utf-8")
     line = {
         "brief_path": str(brief),
         "brief_sha256": hashlib.sha256(brief.read_bytes()).hexdigest(),
@@ -403,17 +403,17 @@ def test_verify_promotion_matching_missing_mismatched(preflight, tmp_path):
         "graph": "examples/demos/research-route/graph.yaml",
     }
     log = tmp_path / "research-runs.jsonl"
-    log.write_text(json.dumps(line) + "\n")
+    log.write_text(json.dumps(line) + "\n", encoding="utf-8")
     assert (
-        preflight.verify_promotion(record.read_text(), log.read_text(), str(tmp_path))
+        preflight.verify_promotion(record.read_text(encoding="utf-8"), log.read_text(encoding="utf-8"), str(tmp_path))
         == "matching"
     )
     assert (
-        preflight.verify_promotion(record.read_text(), "", str(tmp_path)) == "missing"
+        preflight.verify_promotion(record.read_text(encoding="utf-8"), "", str(tmp_path)) == "missing"
     )
-    tampered = record.read_text().replace("FR-889", "FR-000")
+    tampered = record.read_text(encoding="utf-8").replace("FR-889", "FR-000")
     assert (
-        preflight.verify_promotion(tampered, log.read_text(), str(tmp_path))
+        preflight.verify_promotion(tampered, log.read_text(encoding="utf-8"), str(tmp_path))
         == "mismatched"
     )
 

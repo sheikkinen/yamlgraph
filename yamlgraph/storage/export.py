@@ -43,7 +43,7 @@ def export_state(
     # Convert state to JSON-serializable format
     export_data = _serialize_state(state)
 
-    with open(filepath, "w") as f:
+    with open(filepath, "w", encoding="utf-8") as f:
         json.dump(export_data, f, indent=2, default=str)
 
     return filepath
@@ -108,7 +108,7 @@ def export_state_to_path(state: dict, path: str | Path) -> Path:
     """
     filepath = Path(path)
     filepath.parent.mkdir(parents=True, exist_ok=True)
-    with open(filepath, "w") as f:
+    with open(filepath, "w", encoding="utf-8") as f:
         json.dump(_serialize_state(state), f, indent=2, default=str)
     return filepath
 
@@ -122,7 +122,7 @@ def load_export(filepath: str | Path) -> dict:
     Returns:
         Loaded dictionary
     """
-    with open(filepath) as f:
+    with open(filepath, encoding="utf-8") as f:
         return json.load(f)
 
 
@@ -265,12 +265,12 @@ def export_result(
 
         if format_type == "json":
             content = _serialize_to_json(value)
-            file_path.write_text(content)
+            file_path.write_text(content, encoding="utf-8")
         elif format_type == "markdown":
             content = _serialize_to_markdown(value)
-            file_path.write_text(content)
+            file_path.write_text(content, encoding="utf-8")
         else:
-            file_path.write_text(str(value))
+            file_path.write_text(str(value), encoding="utf-8")
 
         exported.append(file_path)
 

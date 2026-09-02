@@ -65,7 +65,7 @@ def save_prompts_node(state: dict) -> dict:
     output_dir.mkdir(parents=True, exist_ok=True)
 
     prompt_file = output_dir / "prompts.txt"
-    prompt_file.write_text("\n".join(prompt_texts) + "\n")
+    prompt_file.write_text("\n".join(prompt_texts) + "\n", encoding="utf-8")
 
     logger.info(f"📝 Saved {len(prompt_texts)} prompts to {prompt_file}")
 

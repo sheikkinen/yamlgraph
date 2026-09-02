@@ -93,7 +93,7 @@ def _handle_export(graph_path: Path, result: dict, *, quiet: bool = False) -> No
     """Handle optional result export."""
     from yamlgraph.storage.export import export_result
 
-    with open(graph_path) as f:
+    with open(graph_path, encoding="utf-8") as f:
         graph_config = yaml.safe_load(f)
 
     export_config = graph_config.get("exports", {})

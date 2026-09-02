@@ -75,7 +75,7 @@ def sentinel(tmp_path):
     """Armed sentinel + matching env token, mimicking author.sh."""
     run_id = "tok-fr767-test"
     sentinel_file = tmp_path / ".authoring-sentinel"
-    sentinel_file.write_text(json.dumps({"token": run_id, "pid": 1}))
+    sentinel_file.write_text(json.dumps({"token": run_id, "pid": 1}), encoding="utf-8")
     return {
         "YAMLGRAPH_AUTHORING_TOKEN": run_id,
         "YAMLGRAPH_AUTHORING_SENTINEL": str(sentinel_file),

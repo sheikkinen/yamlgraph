@@ -55,7 +55,7 @@ def _write_graph(tmp_path, on_fail, check="state.result >= 100"):
         """
     ).strip()
     path = tmp_path / "graph.yaml"
-    path.write_text(graph_yaml)
+    path.write_text(graph_yaml, encoding="utf-8")
     return path
 
 

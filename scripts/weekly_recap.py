@@ -149,7 +149,7 @@ def main(argv: list[str] | None = None) -> int:
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     target = output_dir / f"{week}.md"
-    target.write_text(markdown)
+    target.write_text(markdown, encoding="utf-8")
     print(f"recap: wrote {target}")
     return 0
 

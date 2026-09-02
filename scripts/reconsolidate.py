@@ -22,7 +22,7 @@ def reconsolidate(output_dir: Path) -> None:
     # Merge retry results if they exist
     retry_file = output_dir / "retried_pages.json"
     if retry_file.exists():
-        retry_results = json.loads(retry_file.read_text())
+        retry_results = json.loads(retry_file.read_text(encoding="utf-8"))
         if retry_results.get("paragraphs"):
             print(f"Merging {len(retry_results['paragraphs'])} recovered paragraphs...")
             all_paras = final["paragraphs"] + retry_results["paragraphs"]
@@ -32,7 +32,7 @@ def reconsolidate(output_dir: Path) -> None:
 
             # Rewrite final files
             final_json = output_dir / "final.json"
-            final_json.write_text(json.dumps(final, ensure_ascii=False, indent=2))
+            final_json.write_text(json.dumps(final, ensure_ascii=False, indent=2), encoding="utf-8")
             _write_plain_text(final, output_dir / "final.txt")
 
     print(f"Done! {final['stats']['total_paragraphs']} paragraphs")

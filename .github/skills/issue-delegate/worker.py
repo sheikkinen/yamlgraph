@@ -256,7 +256,7 @@ def _cmd_resolve(argv: list[str]) -> int:
     task = models.Task(a.task)
 
     result_path = Path(a.result_json)
-    job = json.loads(result_path.read_text()) if result_path.is_file() else {}
+    job = json.loads(result_path.read_text(encoding="utf-8")) if result_path.is_file() else {}
     capture_path = Path(a.capture)
     raw_text = (
         decode_capture(capture_path.read_bytes()) if capture_path.is_file() else ""

@@ -35,7 +35,7 @@ ENFORCE_PROMPT_PATH = (
 def load_config(path: Path) -> dict:
     """Load and return YAML config."""
     assert path.exists(), f"Config not found: {path}"
-    with open(path) as f:
+    with open(path, encoding="utf-8") as f:
         return yaml.safe_load(f)
 
 

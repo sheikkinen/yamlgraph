@@ -250,7 +250,7 @@ def load_schema_from_yaml(yaml_path: str | Path) -> type | None:
     Returns:
         Dynamically created Pydantic model, or None if no schema defined
     """
-    with open(yaml_path) as f:
+    with open(yaml_path, encoding="utf-8") as f:
         config = yaml.safe_load(f)
 
     # Check for native format first

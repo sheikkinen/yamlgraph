@@ -27,7 +27,7 @@ def make_repo(tmp_path: Path, refs: list[str]) -> Path:
     fr = tmp_path / "feature-requests"
     fr.mkdir(parents=True, exist_ok=True)
     for ref in refs:
-        (fr / f"{ref}-something.md").write_text("# x\n")
+        (fr / f"{ref}-something.md").write_text("# x\n", encoding="utf-8")
     return tmp_path
 
 
@@ -69,7 +69,7 @@ def test_drop_persists_and_excludes(tmp_path):
     assert todos.drop_key("sess-aaaa", "Fix the thing") in dropped
     # second identical drop is a no-op (dedupe)
     todos.record_drop(sidecar, "sess-aaaa", "Fix the thing", reason="obsolete")
-    assert len(sidecar.read_text().splitlines()) == 1
+    assert len(sidecar.read_text(encoding="utf-8").splitlines()) == 1
 
 
 # ------------------------------------------------------------ AC-02 / A1
@@ -179,12 +179,12 @@ def test_diary_debt_verdict_window(tmp_path):
     diary.mkdir(parents=True)
     day = 86400.0
     last_active = 1_000_000_000.0  # 2001-09-09
-    (diary / "diary-2001-09-06-in-window.md").write_text("x")
+    (diary / "diary-2001-09-06-in-window.md").write_text("x", encoding="utf-8")
     assert todos.diary_debt_verdict(last_active, [diary]) == "LIKELY DELIVERED"
     (diary / "diary-2001-09-06-in-window.md").unlink()
-    (diary / "diary-2001-09-20-too-late.md").write_text("x")
+    (diary / "diary-2001-09-20-too-late.md").write_text("x", encoding="utf-8")
     assert todos.diary_debt_verdict(last_active, [diary]) == "UNWRITTEN"
-    (diary / "diary-2001-08-25-too-early.md").write_text("x")
+    (diary / "diary-2001-08-25-too-early.md").write_text("x", encoding="utf-8")
     assert todos.diary_debt_verdict(last_active, [diary]) == "UNWRITTEN"
     assert last_active + day  # window upper bound documented
 
@@ -196,11 +196,11 @@ def test_diary_debt_verdict_ref_aware(tmp_path):
     diary = tmp_path / "docs/diary"
     diary.mkdir(parents=True)
     last_active = 1_000_000_000.0
-    (diary / "diary-2001-09-06-unrelated-arc.md").write_text("x")
+    (diary / "diary-2001-09-06-unrelated-arc.md").write_text("x", encoding="utf-8")
     assert (
         todos.diary_debt_verdict(last_active, [diary], refs=["FR-220"]) == "UNWRITTEN"
     )
-    (diary / "2001-09-06-reflection-fr-220-god-factory.md").write_text("x")
+    (diary / "2001-09-06-reflection-fr-220-god-factory.md").write_text("x", encoding="utf-8")
     assert (
         todos.diary_debt_verdict(last_active, [diary], refs=["FR-220"]) == "DELIVERED"
     )
@@ -212,7 +212,7 @@ def test_diary_ref_match_normalizes_hyphens(tmp_path):
     AC-03. Hyphens are noise at this boundary."""
     diary = tmp_path / "docs/diary"
     diary.mkdir(parents=True)
-    (diary / "diary-2001-09-06-nc393-the-map.md").write_text("x")
+    (diary / "diary-2001-09-06-nc393-the-map.md").write_text("x", encoding="utf-8")
     assert (
         todos.diary_debt_verdict(1_000_000_000.0, [diary], refs=["NC-393"])
         == "DELIVERED"
@@ -226,8 +226,8 @@ def test_material_priority_transcript_else_chatsessions(tmp_path, monkeypatch):
     (ws / "GitHub.copilot-chat/transcripts").mkdir(parents=True)
     (ws / "chatSessions").mkdir(parents=True)
     monkeypatch.setattr(todos, "WS_STORAGE", tmp_path)
-    (ws / "chatSessions/sess-old.jsonl").write_text("{}")
+    (ws / "chatSessions/sess-old.jsonl").write_text("{}", encoding="utf-8")
     assert "chatSessions" in str(todos.material_for("sess-old"))
-    (ws / "GitHub.copilot-chat/transcripts/sess-old.jsonl").write_text("{}")
+    (ws / "GitHub.copilot-chat/transcripts/sess-old.jsonl").write_text("{}", encoding="utf-8")
     assert "transcripts" in str(todos.material_for("sess-old"))
     assert todos.material_for("sess-none") is None

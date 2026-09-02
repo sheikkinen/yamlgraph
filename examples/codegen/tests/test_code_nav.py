@@ -38,11 +38,11 @@ class TestListPackageModules:
         with tempfile.TemporaryDirectory() as tmpdir:
             # Create a valid file
             valid_file = Path(tmpdir) / "valid.py"
-            valid_file.write_text('"""Valid module."""\ndef foo(): pass')
+            valid_file.write_text('"""Valid module."""\ndef foo(): pass', encoding="utf-8")
 
             # Create an invalid file
             invalid_file = Path(tmpdir) / "invalid.py"
-            invalid_file.write_text("def broken(\n")
+            invalid_file.write_text("def broken(\n", encoding="utf-8")
 
             result = list_package_modules(tmpdir)
 

@@ -195,7 +195,7 @@ def load_prompt(
         prompts_relative=prompts_relative,
     )
 
-    with open(path) as f:
+    with open(path, encoding="utf-8") as f:
         content = yaml.safe_load(f)
 
     check_messages_contract(content, prompt_name)
@@ -232,7 +232,7 @@ def load_prompt_path(
         prompts_relative=prompts_relative,
     )
 
-    with open(path) as f:
+    with open(path, encoding="utf-8") as f:
         content = yaml.safe_load(f)
 
     check_messages_contract(content, prompt_name)

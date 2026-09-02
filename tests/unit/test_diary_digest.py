@@ -241,7 +241,7 @@ class TestWriteIndividualFile:
         assert result == {"written": True}
         target = diary_dir / "2026-02-19-world-digest.md"
         assert target.exists()
-        content = target.read_text()
+        content = target.read_text(encoding="utf-8")
         assert "World Digest — Test" in content
 
     @pytest.mark.req("REQ-YG-072")
@@ -281,7 +281,7 @@ class TestWriteDiary:
         result = write_diary(state)
 
         assert result == {"written": True}
-        content = (diary_dir / "2026-02-19-world-digest.md").read_text()
+        content = (diary_dir / "2026-02-19-world-digest.md").read_text(encoding="utf-8")
         assert "World Digest — Test" in content
 
     @pytest.mark.req("REQ-YG-072")
@@ -326,7 +326,7 @@ class TestWriteDiary:
         result = write_diary(state)
 
         assert result == {"written": True}
-        content = (diary_dir / "2026-02-25-chaplain.md").read_text()
+        content = (diary_dir / "2026-02-25-chaplain.md").read_text(encoding="utf-8")
         assert "## 2026-02-25: Chaplain — FR-096 Approved" in content
         assert "The FR was approved with clear scope." in content
         assert "What patterns emerged?" in content
@@ -477,7 +477,7 @@ class TestExtractRawSeeds:
             "**Seed:** What replaces cost?\n\n"
             "Some text.\n\n"
             "**Seed:** Could archaeology be a graph?\n"
-        )
+        , encoding="utf-8")
         seeds = extract_raw_seeds(tmp_path)
         assert len(seeds) == 2
         assert "What replaces cost?" in seeds
@@ -488,9 +488,9 @@ class TestExtractRawSeeds:
         """extract_raw_seeds scans all diary*.md in directory."""
         from examples.diary_digest.nodes.sources import extract_raw_seeds
 
-        (tmp_path / "diary.md").write_text("**Seed:** Seed from current.\n")
-        (tmp_path / "diary-2026-02-17.md").write_text("**Seed:** Seed from archive.\n")
-        (tmp_path / "not-a-diary.md").write_text("**Seed:** Should not appear.\n")
+        (tmp_path / "diary.md").write_text("**Seed:** Seed from current.\n", encoding="utf-8")
+        (tmp_path / "diary-2026-02-17.md").write_text("**Seed:** Seed from archive.\n", encoding="utf-8")
+        (tmp_path / "not-a-diary.md").write_text("**Seed:** Should not appear.\n", encoding="utf-8")
 
         seeds = extract_raw_seeds(tmp_path)
         assert "Seed from current." in seeds
@@ -502,7 +502,7 @@ class TestExtractRawSeeds:
         """extract_raw_seeds returns empty list when no Seeds found."""
         from examples.diary_digest.nodes.sources import extract_raw_seeds
 
-        (tmp_path / "diary.md").write_text("# Diary\n\nNo seeds here.\n")
+        (tmp_path / "diary.md").write_text("# Diary\n\nNo seeds here.\n", encoding="utf-8")
         seeds = extract_raw_seeds(tmp_path)
         assert seeds == []
 
@@ -515,7 +515,7 @@ class TestExtractRawSeeds:
             "**Trap:** Not a seed.\n"
             "**Seed:** This is a seed.\n"
             "**Heuristic:** Also not a seed.\n"
-        )
+        , encoding="utf-8")
         seeds = extract_raw_seeds(tmp_path)
         assert seeds == ["This is a seed."]
 
@@ -531,7 +531,7 @@ class TestSeedsYaml:
         seeds_file = tmp_path / "seeds.yaml"
         seeds_file.write_text(
             '- "What replaces cost?"\n- "Could archaeology be a graph?"\n'
-        )
+        , encoding="utf-8")
         seeds = load_seeds(seeds_file)
         assert len(seeds) == 2
         assert "What replaces cost?" in seeds

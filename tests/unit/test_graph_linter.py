@@ -35,7 +35,7 @@ def temp_graph_dir(tmp_path):
 def write_graph(tmp_path: Path, content: dict) -> Path:
     """Helper to write a graph YAML file."""
     graph_path = tmp_path / "test-graph.yaml"
-    with open(graph_path, "w") as f:
+    with open(graph_path, "w", encoding="utf-8") as f:
         yaml.dump(content, f)
     return graph_path
 
@@ -54,7 +54,7 @@ def write_prompt(tmp_path: Path, name: str, content: str = "system: Test\nuser: 
     else:
         prompt_path = prompts_dir / f"{name}.yaml"
 
-    with open(prompt_path, "w") as f:
+    with open(prompt_path, "w", encoding="utf-8") as f:
         f.write(content)
 
 
@@ -514,7 +514,7 @@ class TestCheckPromptFiles:
         # Create custom prompts directory
         custom_dir = temp_graph_dir / "custom" / "prompts"
         custom_dir.mkdir(parents=True)
-        (custom_dir / "my_prompt.yaml").write_text("system: Test\nuser: Test")
+        (custom_dir / "my_prompt.yaml").write_text("system: Test\nuser: Test", encoding="utf-8")
 
         graph = {
             "version": "1.0",
@@ -544,7 +544,7 @@ class TestCheckPromptFiles:
         # Create custom prompts directory
         custom_dir = temp_graph_dir / "my" / "prompts"
         custom_dir.mkdir(parents=True)
-        (custom_dir / "test_prompt.yaml").write_text("system: Test\nuser: Test")
+        (custom_dir / "test_prompt.yaml").write_text("system: Test\nuser: Test", encoding="utf-8")
 
         graph = {
             "version": "1.0",
@@ -578,7 +578,7 @@ class TestCheckPromptFiles:
         subdir.mkdir()
         prompts_dir = subdir / "prompts"
         prompts_dir.mkdir()
-        (prompts_dir / "local_prompt.yaml").write_text("system: Test\nuser: Test")
+        (prompts_dir / "local_prompt.yaml").write_text("system: Test\nuser: Test", encoding="utf-8")
 
         graph = {
             "version": "1.0",
@@ -603,7 +603,7 @@ class TestCheckPromptFiles:
         graph_path = subdir / "graph.yaml"
         import yaml
 
-        graph_path.write_text(yaml.dump(graph))
+        graph_path.write_text(yaml.dump(graph), encoding="utf-8")
 
         issues = check_prompt_files(graph_path, temp_graph_dir)
         errors = [i for i in issues if i.severity == "error"]

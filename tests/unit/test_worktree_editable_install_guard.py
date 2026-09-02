@@ -44,7 +44,7 @@ class TestCleanStaleDistInfoDirectUrl:
 
         # Modern pip editable install creates __editable__.pth AND dist-info
         pth = site_packages / "__editable__.yamlgraph-0.4.68.pth"
-        pth.write_text(f"{worktree_dir}/src\n")
+        pth.write_text(f"{worktree_dir}/src\n", encoding="utf-8")
 
         dist_info = site_packages / "yamlgraph-0.4.68.dist-info"
         dist_info.mkdir()
@@ -56,7 +56,7 @@ class TestCleanStaleDistInfoDirectUrl:
                     "dir_info": {"editable": True},
                 }
             )
-        )
+        , encoding="utf-8")
 
         removed = clean_stale_pth_entries(venv, worktree_dir)
 
@@ -90,7 +90,7 @@ class TestCleanStaleDistInfoDirectUrl:
                     "dir_info": {"editable": True},
                 }
             )
-        )
+        , encoding="utf-8")
 
         removed = clean_stale_pth_entries(venv, worktree_dir)
 
@@ -115,7 +115,7 @@ class TestCleanStaleDistInfoDirectUrl:
         other_url = other_dist / "direct_url.json"
         other_url.write_text(
             json.dumps({"url": "https://pypi.org/packages/requests-2.31.0.tar.gz"})
-        )
+        , encoding="utf-8")
 
         # Stale worktree dist-info
         stale_dist = site_packages / "yamlgraph-0.4.68.dist-info"
@@ -128,7 +128,7 @@ class TestCleanStaleDistInfoDirectUrl:
                     "dir_info": {"editable": True},
                 }
             )
-        )
+        , encoding="utf-8")
 
         clean_stale_pth_entries(venv, worktree_dir)
 

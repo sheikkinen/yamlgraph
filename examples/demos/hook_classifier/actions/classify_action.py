@@ -110,7 +110,7 @@ def append_entry(log_path: Path, entry: dict[str, Any]) -> None:
         line = json.dumps(entry, ensure_ascii=True)
 
     log_path.parent.mkdir(parents=True, exist_ok=True)
-    with open(log_path, "a") as f:
+    with open(log_path, "a", encoding="utf-8") as f:
         print(line, file=f, flush=True)
 
 

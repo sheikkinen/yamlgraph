@@ -129,7 +129,7 @@ class TestGenesisUsesRefIntegrity:
         import yaml
 
         genesis_path = NOVEL_FANDOM_DIR / "genesis.yaml"
-        with open(genesis_path) as f:
+        with open(genesis_path, encoding="utf-8") as f:
             config = yaml.safe_load(f)
         agent = config["nodes"]["genesis"]
         assert "ref_check" in agent["tools"]
@@ -150,7 +150,7 @@ class TestWorldgenRefCheck:
         import yaml
 
         worldgen_path = NOVEL_FANDOM_DIR / "worldgen.yaml"
-        with open(worldgen_path) as f:
+        with open(worldgen_path, encoding="utf-8") as f:
             config = yaml.safe_load(f)
         ref_check = config["tools"].get("ref_check")
         assert ref_check is not None, "ref_check tool missing from worldgen.yaml"
@@ -163,7 +163,7 @@ class TestWorldgenRefCheck:
         import yaml
 
         worldgen_path = NOVEL_FANDOM_DIR / "worldgen.yaml"
-        with open(worldgen_path) as f:
+        with open(worldgen_path, encoding="utf-8") as f:
             config = yaml.safe_load(f)
         agent = config["nodes"]["worldgen"]
         assert "ref_check" in agent["tools"]
@@ -200,7 +200,7 @@ class TestPersistGenesisImport:
     @pytest.mark.req("REQ-YG-515")
     def test_persist_genesis_no_importlib_for_validation(self) -> None:
         """persist_genesis.py does not use importlib for validation function."""
-        source = (NOVEL_FANDOM_DIR / "nodes" / "persist_genesis.py").read_text()
+        source = (NOVEL_FANDOM_DIR / "nodes" / "persist_genesis.py").read_text(encoding="utf-8")
         # Should not have importlib load for validation anymore
         assert "validate_referential_integrity" in source
         # The importlib usage should only be for persist_pages, not validation

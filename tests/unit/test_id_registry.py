@@ -73,7 +73,7 @@ class TestLoadRegistry:
     @pytest.mark.req("REQ-YG-001")
     def test_load_valid_registry(self) -> None:
         """Can load a valid registry file."""
-        with tempfile.NamedTemporaryFile(suffix=".yaml", delete=False, mode="w") as f:
+        with tempfile.NamedTemporaryFile(encoding="utf-8", suffix=".yaml", delete=False, mode="w") as f:
             f.write("next_cap: 65\nnext_req: 161\nreserved: []\n")
             f.flush()
             path = Path(f.name)
@@ -94,7 +94,7 @@ class TestLoadRegistry:
     @pytest.mark.req("REQ-YG-004")
     def test_load_invalid_yaml(self) -> None:
         """Raises ValueError for invalid YAML structure."""
-        with tempfile.NamedTemporaryFile(suffix=".yaml", delete=False, mode="w") as f:
+        with tempfile.NamedTemporaryFile(encoding="utf-8", suffix=".yaml", delete=False, mode="w") as f:
             f.write("just a string\n")
             f.flush()
             path = Path(f.name)
@@ -175,7 +175,7 @@ class TestSaveRegistry:
         registry = IdRegistry(next_cap=66, next_req=164)
         reserve_ids(registry, "FR-181", cap_count=1, req_count=2, note="Test")
 
-        with tempfile.NamedTemporaryFile(suffix=".yaml", delete=False, mode="w") as f:
+        with tempfile.NamedTemporaryFile(encoding="utf-8", suffix=".yaml", delete=False, mode="w") as f:
             path = Path(f.name)
 
         try:

@@ -54,7 +54,7 @@ def write_chapters_tool(state: dict) -> dict:
             continue
 
         filepath = output_dir / filename
-        filepath.write_text(content)
+        filepath.write_text(content, encoding="utf-8")
         written.append(str(filepath))
         logger.info("Wrote %s", filepath)
 
@@ -81,7 +81,7 @@ def persist_chapter(state: dict) -> dict:
 
     output_dir.mkdir(parents=True, exist_ok=True)
     filepath = output_dir / filename
-    filepath.write_text(content)
+    filepath.write_text(content, encoding="utf-8")
 
     logger.info("Persisted %s", filepath)
     return {"persisted": str(filepath)}
@@ -132,7 +132,7 @@ def _persist_one(state: dict, state_key: str, filename: str) -> dict:
 
     output_dir.mkdir(parents=True, exist_ok=True)
     filepath = output_dir / filename
-    filepath.write_text(content)
+    filepath.write_text(content, encoding="utf-8")
 
     logger.info("📄 Persisted %s", filepath)
     return {"persisted": str(filepath)}

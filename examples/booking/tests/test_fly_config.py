@@ -24,18 +24,18 @@ class TestFlyConfig:
 
     def test_fly_toml_has_app_name(self, fly_toml_path):
         """fly.toml should have app name."""
-        content = fly_toml_path.read_text()
+        content = fly_toml_path.read_text(encoding="utf-8")
         assert "app = " in content
 
     def test_fly_toml_has_http_service(self, fly_toml_path):
         """fly.toml should configure HTTP service."""
-        content = fly_toml_path.read_text()
+        content = fly_toml_path.read_text(encoding="utf-8")
         assert "[http_service]" in content
         assert "internal_port = 8000" in content
 
     def test_fly_toml_has_volume(self, fly_toml_path):
         """fly.toml should mount volume for SQLite."""
-        content = fly_toml_path.read_text()
+        content = fly_toml_path.read_text(encoding="utf-8")
         assert "[mounts]" in content or "[[mounts]]" in content
 
     def test_dockerfile_exists(self, dockerfile_path):
@@ -44,10 +44,10 @@ class TestFlyConfig:
 
     def test_dockerfile_uses_python(self, dockerfile_path):
         """Dockerfile should use Python base image."""
-        content = dockerfile_path.read_text()
+        content = dockerfile_path.read_text(encoding="utf-8")
         assert "python:" in content.lower() or "FROM python" in content
 
     def test_dockerfile_installs_booking(self, dockerfile_path):
         """Dockerfile should install booking deps."""
-        content = dockerfile_path.read_text()
+        content = dockerfile_path.read_text(encoding="utf-8")
         assert "booking" in content or "pip install" in content

@@ -35,7 +35,7 @@ PROMPT_NAMES = ("openapi", "ckan", "unsupported")
 
 
 def _load(path: Path) -> dict:
-    return yaml.safe_load(path.read_text())
+    return yaml.safe_load(path.read_text(encoding="utf-8"))
 
 
 # ---------------------------------------------------------------------------
@@ -186,7 +186,7 @@ def test_openapi_fixture_parses_deterministically_with_known_path_and_param():
     finally:
         sys.path.remove(str(tools_dir))
     inventory = parse_openapi(
-        (GRAPH_DIR / "fixtures" / "openapi_petstore.json").read_text()
+        (GRAPH_DIR / "fixtures" / "openapi_petstore.json").read_text(encoding="utf-8")
     )
     endpoints = {e["path"]: e for e in inventory["endpoints"]}
     assert "/pets" in endpoints
@@ -196,7 +196,7 @@ def test_openapi_fixture_parses_deterministically_with_known_path_and_param():
 @pytest.mark.req("REQ-YG-594")
 def test_ckan_fixture_carries_required_signals():
     """AC-06: CKAN fixture has dataset count, organizations, freshness, languages."""
-    fixture = json.loads((GRAPH_DIR / "fixtures" / "ckan_sample.json").read_text())
+    fixture = json.loads((GRAPH_DIR / "fixtures" / "ckan_sample.json").read_text(encoding="utf-8"))
     text = json.dumps(fixture)
     assert '"count"' in text
     assert "organization" in text

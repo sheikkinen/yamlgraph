@@ -35,7 +35,7 @@ user: "Judge: {input}"
 def _output_model():
     import tempfile
 
-    with tempfile.NamedTemporaryFile(suffix=".yaml", mode="w", delete=False) as f:
+    with tempfile.NamedTemporaryFile(encoding="utf-8", suffix=".yaml", mode="w", delete=False) as f:
         f.write(PROMPT_YAML_WITH_SCHEMA)
         f.flush()
         return load_schema_from_yaml(Path(f.name))

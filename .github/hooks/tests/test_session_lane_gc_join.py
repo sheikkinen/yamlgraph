@@ -37,7 +37,7 @@ SID_CLEAN = "66666666-aaaa-4aaa-8aaa-aaaaaaaaaaaa"
 
 def lane_commit(main, sid, fname="work.md"):
     lane = lane_path(main, sid)
-    (lane / "docs" / fname).write_text(f"work {sid}\n")
+    (lane / "docs" / fname).write_text(f"work {sid}\n", encoding="utf-8")
     git(lane, "add", "-A")
     git(lane, "commit", "-m", "checkpoint(session): turn 1")
     return lane
@@ -67,8 +67,8 @@ def zoo(tmp_path):
     lane_commit(main, SID_MERGED)
     git(main, "merge", "--no-ff", "-m", "merge session", f"session/{SID_MERGED}")
     dirty_lane = lane_path(main, SID_DIRTY)
-    (dirty_lane / "docs" / "a.md").write_text("modified\n")
-    (lane_path(main, SID_UNTRACKED) / "orphan.txt").write_text("precious\n")
+    (dirty_lane / "docs" / "a.md").write_text("modified\n", encoding="utf-8")
+    (lane_path(main, SID_UNTRACKED) / "orphan.txt").write_text("precious\n", encoding="utf-8")
     lane_commit(main, SID_UNPUSHED)
     lane_commit(main, SID_UNMERGED)
     git(main, "push", "-q", "origin", f"session/{SID_UNMERGED}")

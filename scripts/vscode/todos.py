@@ -113,7 +113,7 @@ def record_drop(sidecar: Path, sid: str, title: str, reason: str) -> bool:
     key = drop_key(sid, title)
     if key in load_dispositions(sidecar):
         return False
-    with sidecar.open("a") as f:
+    with sidecar.open("a", encoding="utf-8") as f:
         f.write(
             json.dumps(
                 {"key": key, "title": title, "reason": reason, "ts": time.time()}
@@ -127,7 +127,7 @@ def load_dispositions(sidecar: Path = DISPOSITIONS_PATH) -> set[str]:
     if not sidecar.is_file():
         return set()
     return {
-        json.loads(ln)["key"] for ln in sidecar.read_text().splitlines() if ln.strip()
+        json.loads(ln)["key"] for ln in sidecar.read_text(encoding="utf-8").splitlines() if ln.strip()
     }
 
 

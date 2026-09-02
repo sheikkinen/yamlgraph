@@ -61,7 +61,7 @@ def main():
         sys.exit(1)
 
     print(f"📂 Loading: {metadata_path}")
-    metadata = json.loads(metadata_path.read_text())
+    metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
 
     # Reconstruct animated_panels from metadata
     animated_panels = []

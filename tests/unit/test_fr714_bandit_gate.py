@@ -26,7 +26,7 @@ class TestNosecConfessionCoverage:
         nosec = "# " + "nosec"
         noqa = "# " + "noqa"
         f = tmp_path / "sample.py"
-        f.write_text(f"x = 1  {nosec} B602\ny = 2  {noqa}: E402\nz = 3  {nosec}\n")
+        f.write_text(f"x = 1  {nosec} B602\ny = 2  {noqa}: E402\nz = 3  {nosec}\n", encoding="utf-8")
         found = find_noqa_in_file(f)
         assert (1, "B602") in found, "specific nosec must be counted"
         assert (2, "E402") in found, "noqa must still be counted"
@@ -36,7 +36,7 @@ class TestNosecConfessionCoverage:
     def test_bandit_hook_is_wired(self):
         """The gate exists in pre-commit — a claim with no gate decays
         into a lie (detection_without_enforcement)."""
-        config = (REPO_ROOT / ".pre-commit-config.yaml").read_text()
+        config = (REPO_ROOT / ".pre-commit-config.yaml").read_text(encoding="utf-8")
         assert "bandit-security" in config
         assert "-ll" in config, "gate must block medium+ severity"
 
@@ -48,8 +48,8 @@ class TestNosecConfessionCoverage:
         """
         import re
 
-        pyproject = (REPO_ROOT / "pyproject.toml").read_text()
-        dev_ops = (REPO_ROOT / "reference" / "development-operations.md").read_text()
+        pyproject = (REPO_ROOT / "pyproject.toml").read_text(encoding="utf-8")
+        dev_ops = (REPO_ROOT / "reference" / "development-operations.md").read_text(encoding="utf-8")
         enforced = re.search(r"--cov-fail-under=(\d+)", pyproject).group(1)
         assert f"{enforced}% coverage threshold" in dev_ops, (
             f"development-operations.md must document the enforced gate ({enforced}%) — "

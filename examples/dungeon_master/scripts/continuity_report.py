@@ -114,7 +114,7 @@ def collect(out_dir: str | Path) -> list[dict]:
     rows: list[dict] = []
     for story_path in sorted(root.glob("*/story.json"), key=lambda p: p.parent.name):
         try:
-            doc = json.loads(story_path.read_text())
+            doc = json.loads(story_path.read_text(encoding="utf-8"))
         except (OSError, ValueError) as exc:  # pragma: no cover - corpus hygiene
             print(f"{story_path}: SKIP ({exc})", file=sys.stderr)
             continue

@@ -17,7 +17,7 @@ class TestImplAgentV4Structure:
     @pytest.fixture
     def graph_config(self) -> dict:
         """Load the graph YAML."""
-        with open(GRAPH_PATH) as f:
+        with open(GRAPH_PATH, encoding="utf-8") as f:
             return yaml.safe_load(f)
 
     def test_has_plan_discovery_node(self, graph_config):
@@ -74,7 +74,7 @@ class TestImplAgentV4State:
     @pytest.fixture
     def graph_config(self) -> dict:
         """Load the graph YAML."""
-        with open(GRAPH_PATH) as f:
+        with open(GRAPH_PATH, encoding="utf-8") as f:
             return yaml.safe_load(f)
 
     def test_state_has_discovery_plan(self, graph_config):

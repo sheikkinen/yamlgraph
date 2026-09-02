@@ -86,7 +86,7 @@ def repo(tmp_path):
         "feature-requests",
     ):
         (main / d).mkdir(parents=True)
-        (main / d / ".keep").write_text("")
+        (main / d / ".keep").write_text("", encoding="utf-8")
     _git(main, "add", "-A")
     _git(main, "commit", "-m", "init")
     wt = tmp_path / "wt"
@@ -278,7 +278,7 @@ MAIN_WRITE_PY = HOOK.parent / "checks" / "main_write.py"
 
 
 def _check7_region() -> str:
-    src = HOOK.read_text()
+    src = HOOK.read_text(encoding="utf-8")
     start = src.index("Check 7: main-write")
     end = src.index("# Only inspect run_in_terminal")
     return src[start:end]
@@ -298,17 +298,17 @@ def test_main_write_check_dispatches_to_lintable_module():
 
 
 def test_main_write_module_carries_no_write_grammar():
-    src = MAIN_WRITE_PY.read_text()
+    src = MAIN_WRITE_PY.read_text(encoding="utf-8")
     for token in ("write_targets", "tee", "rsync", "truncate", "perl"):
         assert token not in src
 
 
 def test_guard_is_below_the_widened_size_gate():
-    assert len(HOOK.read_text().splitlines()) <= 450
+    assert len(HOOK.read_text(encoding="utf-8").splitlines()) <= 450
 
 
 def test_heredoc_python_count_decreased():
-    assert HOOK.read_text().count("<<'PYEOF'") <= 1  # only FR-767 remains
+    assert HOOK.read_text(encoding="utf-8").count("<<'PYEOF'") <= 1  # only FR-767 remains
 
 
 # ── AC-10: board line — read-only, never fixes ───────────────────────
@@ -322,13 +322,13 @@ def test_now_board_reports_unlocked_main_with_age(tmp_path):
     state_dir = repo_dir / ".github" / "hooks" / "state"
     state_dir.mkdir(parents=True)
     marker = state_dir / "main-lock.json"
-    marker.write_text(json.dumps({"state": "unlocked", "ts": "x", "by": "t"}))
+    marker.write_text(json.dumps({"state": "unlocked", "ts": "x", "by": "t"}), encoding="utf-8")
     old = time.time() - 7200
     os.utime(marker, (old, old))
     lines = now.main_lock_lines(repo_dir)
     assert lines and "unlocked" in lines[0].lower()
     assert "lock-main" in lines[0]
-    marker.write_text(json.dumps({"state": "locked", "ts": "x", "by": "t"}))
+    marker.write_text(json.dumps({"state": "locked", "ts": "x", "by": "t"}), encoding="utf-8")
     assert now.main_lock_lines(repo_dir) == []
 
 
@@ -386,11 +386,11 @@ def test_rm_safe_merged_confirmed_removes_squash_merged_tree(wt_repo):
         [str(WORKTREE_SH), "new", "t5"], cwd=wt_repo, capture_output=True, text=True
     )
     wt = wt_repo / "tmp/worktrees/feat/t5"
-    (wt / "work.py").write_text("squashed upstream")
+    (wt / "work.py").write_text("squashed upstream", encoding="utf-8")
     _git(wt, "add", "-A")
     _git(wt, "commit", "-m", "work")
     # simulate the squash: main gets an equivalent commit, branch tip is no ancestor
-    (wt_repo / "work.py").write_text("squashed upstream")
+    (wt_repo / "work.py").write_text("squashed upstream", encoding="utf-8")
     _git(wt_repo, "add", "-A")
     _git(wt_repo, "commit", "-m", "squash: work (#1)")
     default = subprocess.run(
@@ -427,7 +427,7 @@ def test_edit_tool_escape_allows_and_audits(repo, tmp_path):
         guard_root=repo["main"],
     )
     assert decision_of(out) == "approve"
-    rows = (log_dir / "audit.jsonl").read_text().splitlines()
+    rows = (log_dir / "audit.jsonl").read_text(encoding="utf-8").splitlines()
     override = [r for r in rows if "fr888-main-write-override" in r]
     assert override
     # review round 5 P2: audit row records the NORMALIZED target path
@@ -440,7 +440,7 @@ def test_rm_safe_refuses_gitignore_with_real_edits(wt_repo):
         [str(WORKTREE_SH), "new", "t6"], cwd=wt_repo, capture_output=True, text=True
     )
     wt = wt_repo / "tmp/worktrees/feat/t6"
-    (wt / ".gitignore").write_text(".venv\nmy-real-work-pattern/\n")
+    (wt / ".gitignore").write_text(".venv\nmy-real-work-pattern/\n", encoding="utf-8")
     r = subprocess.run(
         [str(WORKTREE_SH), "rm-safe", "t6"],
         cwd=wt_repo,
@@ -473,10 +473,10 @@ def wt_repo(tmp_path):
     _git(main, "init", "-b", "main")
     _git(main, "config", "user.email", "t@t")
     _git(main, "config", "user.name", "t")
-    (main / "README.md").write_text("x")
+    (main / "README.md").write_text("x", encoding="utf-8")
     _git(main, "add", "-A")
     _git(main, "commit", "-m", "init")
-    (main / ".env").write_text("KEY=1\n")
+    (main / ".env").write_text("KEY=1\n", encoding="utf-8")
     (main / ".venv").mkdir()
     return main
 
@@ -504,7 +504,7 @@ def test_rm_safe_refuses_tree_with_untracked_files(wt_repo):
         [str(WORKTREE_SH), "new", "t2"], cwd=wt_repo, capture_output=True, text=True
     )
     wt = wt_repo / "tmp/worktrees/feat/t2"
-    (wt / "draft.md").write_text("unlanded work")
+    (wt / "draft.md").write_text("unlanded work", encoding="utf-8")
     r = subprocess.run(
         [str(WORKTREE_SH), "rm-safe", "t2"],
         cwd=wt_repo,
@@ -521,7 +521,7 @@ def test_rm_safe_refuses_unmerged_committed_branch(wt_repo):
         [str(WORKTREE_SH), "new", "t4"], cwd=wt_repo, capture_output=True, text=True
     )
     wt = wt_repo / "tmp/worktrees/feat/t4"
-    (wt / "work.py").write_text("committed but unmerged")
+    (wt / "work.py").write_text("committed but unmerged", encoding="utf-8")
     _git(wt, "add", "-A")
     _git(wt, "commit", "-m", "unmerged work")
     r = subprocess.run(

@@ -198,7 +198,7 @@ class TestChatterboxDemoStructure:
     def test_graph_yaml_valid(self):
         import yaml
 
-        config = yaml.safe_load((self.DEMO_DIR / "graph.yaml").read_text())
+        config = yaml.safe_load((self.DEMO_DIR / "graph.yaml").read_text(encoding="utf-8"))
         assert config["name"] == "chatterbox-tts"
         assert "generate" in config["nodes"]
         assert "synthesize" in config["nodes"]
@@ -214,7 +214,7 @@ class TestChatterboxDemoStructure:
         import yaml
 
         prompt = yaml.safe_load(
-            (self.DEMO_DIR / "prompts" / "translate.yaml").read_text()
+            (self.DEMO_DIR / "prompts" / "translate.yaml").read_text(encoding="utf-8")
         )
         assert "schema" in prompt
         assert prompt["schema"]["name"] == "Translation"
@@ -228,7 +228,7 @@ class TestChatterboxDemoStructure:
     def test_clone_yaml_valid(self):
         import yaml
 
-        config = yaml.safe_load((self.DEMO_DIR / "clone.yaml").read_text())
+        config = yaml.safe_load((self.DEMO_DIR / "clone.yaml").read_text(encoding="utf-8"))
         assert config["name"] == "chatterbox-voice-clone"
         assert "synthesize" in config["nodes"]
         assert config["nodes"]["synthesize"]["type"] == "python"
@@ -236,7 +236,7 @@ class TestChatterboxDemoStructure:
     def test_clone_yaml_module_points_to_chatterbox(self):
         import yaml
 
-        config = yaml.safe_load((self.DEMO_DIR / "clone.yaml").read_text())
+        config = yaml.safe_load((self.DEMO_DIR / "clone.yaml").read_text(encoding="utf-8"))
         tool_key = list(config["tools"].keys())[0]
         assert config["tools"][tool_key]["module"] == "examples.demos.chatterbox.tools"
 
@@ -244,7 +244,7 @@ class TestChatterboxDemoStructure:
         assert (self.DEMO_DIR / "speak.py").exists()
 
     def test_speak_py_has_lang_argument(self):
-        source = (self.DEMO_DIR / "speak.py").read_text()
+        source = (self.DEMO_DIR / "speak.py").read_text(encoding="utf-8")
         assert "--lang" in source
 
     def test_chatterbox_clone_folder_does_not_exist(self):

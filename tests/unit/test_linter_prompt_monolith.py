@@ -64,7 +64,7 @@ SILENT = {"extract_glosses", "classify_kinds"}
 def _write_prompt(tmp_path: Path, name: str, content: str) -> None:
     prompts_dir = tmp_path / "prompts"
     prompts_dir.mkdir(exist_ok=True)
-    (prompts_dir / f"{name}.yaml").write_text(content)
+    (prompts_dir / f"{name}.yaml").write_text(content, encoding="utf-8")
 
 
 def _build_corpus_graph(tmp_path: Path) -> Path:
@@ -86,7 +86,7 @@ def _build_corpus_graph(tmp_path: Path) -> Path:
         "edges": edges,
     }
     graph_path = tmp_path / "graph.yaml"
-    graph_path.write_text(yaml.safe_dump(graph))
+    graph_path.write_text(yaml.safe_dump(graph), encoding="utf-8")
     return graph_path
 
 
@@ -152,7 +152,7 @@ def test_w026_inline_schema_field_count(tmp_path: Path) -> None:
         "edges": [{"from": "START", "to": "n"}, {"from": "n", "to": "END"}],
     }
     graph_path = tmp_path / "graph.yaml"
-    graph_path.write_text(yaml.safe_dump(graph))
+    graph_path.write_text(yaml.safe_dump(graph), encoding="utf-8")
 
     result = lint_graph(graph_path, tmp_path)
     assert any(issue.code == "W026" for issue in result.issues)
@@ -181,7 +181,7 @@ def test_w026_inline_schema_below_threshold_silent(tmp_path: Path) -> None:
         "edges": [{"from": "START", "to": "n"}, {"from": "n", "to": "END"}],
     }
     graph_path = tmp_path / "graph.yaml"
-    graph_path.write_text(yaml.safe_dump(graph))
+    graph_path.write_text(yaml.safe_dump(graph), encoding="utf-8")
 
     result = lint_graph(graph_path, tmp_path)
     assert not any(issue.code == "W026" for issue in result.issues)
@@ -214,7 +214,7 @@ def test_w026_field_threshold_parameter(tmp_path: Path) -> None:
         "edges": [{"from": "START", "to": "n"}, {"from": "n", "to": "END"}],
     }
     graph_path = tmp_path / "graph.yaml"
-    graph_path.write_text(yaml.safe_dump(graph))
+    graph_path.write_text(yaml.safe_dump(graph), encoding="utf-8")
 
     default = check_prompt_complexity(graph_path, tmp_path)
     assert not any(issue.code == "W026" for issue in default)
@@ -234,7 +234,7 @@ def test_w026_silent_when_prompt_missing(tmp_path: Path) -> None:
         "edges": [{"from": "START", "to": "n"}, {"from": "n", "to": "END"}],
     }
     graph_path = tmp_path / "graph.yaml"
-    graph_path.write_text(yaml.safe_dump(graph))
+    graph_path.write_text(yaml.safe_dump(graph), encoding="utf-8")
 
     result = lint_graph(graph_path, tmp_path)
     assert not any(issue.code == "W026" for issue in result.issues)

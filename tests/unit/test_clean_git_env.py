@@ -82,7 +82,7 @@ class TestCleanGitEnvSubprocess:
         ]:
             subprocess.run(cmd, cwd=repo, check=True, capture_output=True)
 
-        (repo / "README.md").write_text("hello\n")
+        (repo / "README.md").write_text("hello\n", encoding="utf-8")
         subprocess.run(["git", "add", "."], cwd=repo, check=True, capture_output=True)
         result = subprocess.run(
             ["git", "commit", "-m", "initial"],

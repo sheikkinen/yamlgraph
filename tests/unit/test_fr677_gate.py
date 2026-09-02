@@ -111,7 +111,7 @@ class TestGateBlocksExecution:
         from yamlgraph.cli.graph_commands import cmd_graph_run
 
         graph_file = tmp_path / "g.yaml"
-        graph_file.write_text("nodes: {}\n")
+        graph_file.write_text("nodes: {}\n", encoding="utf-8")
         args = argparse.Namespace(
             graph_path=str(graph_file),
             gate=True,
@@ -163,7 +163,7 @@ class TestW025VerifyExpressions:
             "edges:\n"
             "  - {from: START, to: step}\n"
             "  - {from: step, to: END}\n" + verify_block
-        )
+        , encoding="utf-8")
         return graph
 
     @pytest.mark.req("REQ-YG-511")

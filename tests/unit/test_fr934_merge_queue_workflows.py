@@ -22,7 +22,7 @@ COMMITLINT_PATH = REPO_ROOT / ".github" / "workflows" / "commitlint.yml"
 
 def _load(path: Path) -> dict:
     assert path.exists(), f"Workflow file missing: {path}"
-    return yaml.safe_load(path.read_text())
+    return yaml.safe_load(path.read_text(encoding="utf-8"))
 
 
 def _on_block(wf: dict) -> dict:

@@ -280,13 +280,13 @@ def test_loop_terminates_exact_multiple_and_partial():
 
 @pytest.mark.req("REQ-YG-577")
 def test_graph_probes_via_mode_info():
-    raw = yaml.safe_load(DEMO_GRAPH.read_text())
+    raw = yaml.safe_load(DEMO_GRAPH.read_text(encoding="utf-8"))
     assert raw["nodes"]["probe"]["args"]["mode"] == "info"
 
 
 @pytest.mark.req("REQ-YG-577")
 def test_fetch_args_reference_state_only():
-    raw = yaml.safe_load(DEMO_GRAPH.read_text())
+    raw = yaml.safe_load(DEMO_GRAPH.read_text(encoding="utf-8"))
     args = raw["nodes"]["fetch_batch"]["args"]
     assert args["start"] == "{state.batch_start}"
     assert args["end"] == "{state.batch_end}"
@@ -298,11 +298,11 @@ def test_fetch_args_reference_state_only():
 
 @pytest.mark.req("REQ-YG-577")
 def test_graph_declares_loop_budget_and_exit():
-    raw = yaml.safe_load(DEMO_GRAPH.read_text())
+    raw = yaml.safe_load(DEMO_GRAPH.read_text(encoding="utf-8"))
     assert raw["loop_limits"]["advance"] == 100
     # FR-776 R-1: the loop exit routes through the document-level guard.
     assert raw["loop_exits"]["advance"] == "guard_extractable"
-    readme = README.read_text()
+    readme = README.read_text(encoding="utf-8")
     assert "1000" in readme
     assert "unbounded" not in readme.lower()
     assert "any book" not in readme.lower()
@@ -310,7 +310,7 @@ def test_graph_declares_loop_budget_and_exit():
 
 @pytest.mark.req("REQ-YG-577")
 def test_graph_wires_gates_before_map_and_reduce():
-    raw = yaml.safe_load(DEMO_GRAPH.read_text())
+    raw = yaml.safe_load(DEMO_GRAPH.read_text(encoding="utf-8"))
     edges = {(e["from"], e["to"]) for e in raw["edges"]}
     assert ("probe", "gate_probe") in edges
     assert ("fetch_batch", "gate_fetch") in edges
@@ -324,7 +324,7 @@ def test_graph_wires_gates_before_map_and_reduce():
 
 @pytest.mark.req("REQ-YG-577")
 def test_summarize_prompt_echoes_provided_page():
-    prompt = yaml.safe_load((PROMPTS / "summarize_page.yaml").read_text())
+    prompt = yaml.safe_load((PROMPTS / "summarize_page.yaml").read_text(encoding="utf-8"))
     fields = prompt["schema"]["fields"]
     assert "page" in fields and "summary" in fields
     assert "chunk.page" in prompt["user"]

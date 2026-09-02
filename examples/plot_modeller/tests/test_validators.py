@@ -21,7 +21,7 @@ FIXTURES = sorted(
 
 @pytest.mark.parametrize("fixture", FIXTURES, ids=lambda p: p.stem)
 def test_ground_truth_validates(fixture: Path) -> None:
-    plan = PlotPlan.model_validate(yaml.safe_load(fixture.read_text()))
+    plan = PlotPlan.model_validate(yaml.safe_load(fixture.read_text(encoding="utf-8")))
     flaws = validate_plan(plan)
     assert flaws == [], f"unexpected flaws: {flaws}"
 

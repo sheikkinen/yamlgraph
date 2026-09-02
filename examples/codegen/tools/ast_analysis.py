@@ -28,7 +28,7 @@ def get_module_structure(file_path: str) -> dict:
         return {"error": f"File not found: {file_path}"}
 
     try:
-        source = path.read_text()
+        source = path.read_text(encoding="utf-8")
         tree = ast.parse(source)
     except SyntaxError as e:
         return {"error": f"Syntax error: {e}"}

@@ -17,13 +17,13 @@ class TestGraphStructure:
 
     def test_graph_yaml_valid(self):
         """Graph should be valid YAML."""
-        config = yaml.safe_load(GRAPH_PATH.read_text())
+        config = yaml.safe_load(GRAPH_PATH.read_text(encoding="utf-8"))
         assert config is not None
         assert config.get("name") == "rag-example"
 
     def test_required_nodes_present(self):
         """Required nodes should be defined."""
-        config = yaml.safe_load(GRAPH_PATH.read_text())
+        config = yaml.safe_load(GRAPH_PATH.read_text(encoding="utf-8"))
         nodes = config.get("nodes", {})
         required = ["setup", "retrieve", "answer"]
         for node in required:
@@ -31,7 +31,7 @@ class TestGraphStructure:
 
     def test_rag_tool_defined(self):
         """RAG retrieve tool should be defined."""
-        config = yaml.safe_load(GRAPH_PATH.read_text())
+        config = yaml.safe_load(GRAPH_PATH.read_text(encoding="utf-8"))
         tools = config.get("tools", {})
         assert "rag_retrieve" in tools
 

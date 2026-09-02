@@ -21,7 +21,7 @@ PYPROJECT = REPO_ROOT / "pyproject.toml"
 
 def _load_pyproject() -> dict:
     """Load pyproject.toml as a dict."""
-    return tomllib.loads(PYPROJECT.read_text())
+    return tomllib.loads(PYPROJECT.read_text(encoding="utf-8"))
 
 
 class TestRuffC901Config:
@@ -73,7 +73,7 @@ class TestC901NoqaConfessions:
         """Every C901 suppression in yamlgraph/ must have a CONF entry."""
         confessions_path = REPO_ROOT / "docs" / "confessions.md"
         assert confessions_path.exists(), "docs/confessions.md not found"
-        confessions_text = confessions_path.read_text()
+        confessions_text = confessions_path.read_text(encoding="utf-8")
 
         # Build marker dynamically to avoid noqa scanner false positive
         marker = "# " + "noqa" + ": C901"
@@ -82,7 +82,7 @@ class TestC901NoqaConfessions:
         noqa_files: list[str] = []
         for py_file in sorted(REPO_ROOT.joinpath("yamlgraph").rglob("*.py")):
             rel = py_file.relative_to(REPO_ROOT)
-            for i, line in enumerate(py_file.read_text().splitlines(), 1):
+            for i, line in enumerate(py_file.read_text(encoding="utf-8").splitlines(), 1):
                 if marker in line:
                     noqa_files.append(f"{rel}:{i}")
 

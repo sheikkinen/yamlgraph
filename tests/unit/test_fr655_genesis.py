@@ -174,7 +174,7 @@ class TestPersistGenesis:
         assert (tmp_path / "location" / "high_valley.yaml").exists()
 
         # Verify content
-        with open(tmp_path / "character" / "hilde.yaml") as f:
+        with open(tmp_path / "character" / "hilde.yaml", encoding="utf-8") as f:
             data = yaml.safe_load(f)
         assert data["birth_year"] == -25
         assert data["role"] == "protagonist"
@@ -201,7 +201,7 @@ class TestGenesisGraph:
     @pytest.mark.req("REQ-YG-505")
     def test_genesis_yaml_loads(self) -> None:
         graph_path = NOVEL_FANDOM_DIR / "genesis.yaml"
-        with open(graph_path) as f:
+        with open(graph_path, encoding="utf-8") as f:
             cfg = yaml.safe_load(f)
         assert cfg["name"] == "novel-fandom-genesis"
         assert "load" in cfg["nodes"]
@@ -213,7 +213,7 @@ class TestGenesisGraph:
     @pytest.mark.req("REQ-YG-505")
     def test_genesis_edge_sequence(self) -> None:
         graph_path = NOVEL_FANDOM_DIR / "genesis.yaml"
-        with open(graph_path) as f:
+        with open(graph_path, encoding="utf-8") as f:
             cfg = yaml.safe_load(f)
         edges = cfg["edges"]
         edge_pairs = [(e["from"], e["to"]) for e in edges]

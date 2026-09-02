@@ -20,7 +20,7 @@ def test_skips_non_edit_tools() -> None:
 
 
 def test_skips_non_markdown_files() -> None:
-    with tempfile.NamedTemporaryFile(suffix=".py", mode="w", delete=False) as f:
+    with tempfile.NamedTemporaryFile(encoding="utf-8", suffix=".py", mode="w", delete=False) as f:
         f.write("x = 1\n")
         f.flush()
         code, out = run_hook(
@@ -31,7 +31,7 @@ def test_skips_non_markdown_files() -> None:
 
 
 def test_markdown_trailing_whitespace_warns_default_mode() -> None:
-    with tempfile.NamedTemporaryFile(suffix=".md", mode="w", delete=False) as f:
+    with tempfile.NamedTemporaryFile(encoding="utf-8", suffix=".md", mode="w", delete=False) as f:
         f.write("# Title  \n")
         f.flush()
         path = Path(f.name)
@@ -47,7 +47,7 @@ def test_markdown_trailing_whitespace_warns_default_mode() -> None:
 
 
 def test_markdown_trailing_whitespace_autofix_enabled() -> None:
-    with tempfile.NamedTemporaryFile(suffix=".md", mode="w", delete=False) as f:
+    with tempfile.NamedTemporaryFile(encoding="utf-8", suffix=".md", mode="w", delete=False) as f:
         original = "# Title  \nLine two   \n"
         f.write(original)
         f.flush()

@@ -81,7 +81,7 @@ def test_generates_full_directory_structure(scaffold, tmp_path: Path, steps: lis
 def test_orchestrator_uses_tool_call_not_subgraph(scaffold, tmp_path: Path):
     """AC-04: one tool_call node per step referencing its manifest; no subgraph."""
     home = _generate(scaffold, tmp_path / "invest", THREE_STEPS)
-    graph = yaml.safe_load((home / "graph.yaml").read_text())
+    graph = yaml.safe_load((home / "graph.yaml").read_text(encoding="utf-8"))
     node_types = {n["type"] for n in graph["nodes"].values()}
     assert "subgraph" not in node_types
     for step in THREE_STEPS:
@@ -103,7 +103,7 @@ def test_step_manifests_resolve_from_manifest_location(scaffold, tmp_path: Path)
     home = _generate(scaffold, tmp_path / "invest", THREE_STEPS)
     for step in THREE_STEPS:
         manifest_path = home / "steps" / f"{step}.tool.yaml"
-        manifest = yaml.safe_load(manifest_path.read_text())
+        manifest = yaml.safe_load(manifest_path.read_text(encoding="utf-8"))
         assert manifest["name"] == step
         assert manifest["runtime"]["type"] == "graph"
         child = (manifest_path.parent / manifest["runtime"]["path"]).resolve()
@@ -120,11 +120,11 @@ def test_step_graphs_have_placeholder_agent_and_typed_schema(scaffold, tmp_path:
     """AC-06: default skeleton step = agent node + typed output schema stub."""
     home = _generate(scaffold, tmp_path / "invest", THREE_STEPS)
     for step in THREE_STEPS:
-        graph = yaml.safe_load((home / "steps" / step / "graph.yaml").read_text())
+        graph = yaml.safe_load((home / "steps" / step / "graph.yaml").read_text(encoding="utf-8"))
         agent_nodes = [n for n in graph["nodes"].values() if n["type"] == "agent"]
         assert len(agent_nodes) == 1
         prompt = yaml.safe_load(
-            (home / "steps" / step / "prompts" / "investigate.yaml").read_text()
+            (home / "steps" / step / "prompts" / "investigate.yaml").read_text(encoding="utf-8")
         )
         schema = prompt["output_schema"]
         assert schema["properties"]["findings"]["items"]["type"] == "string"
@@ -189,7 +189,7 @@ def test_stub_skeleton_runs_end_to_end_without_providers(scaffold, tmp_path: Pat
 def test_readme_documents_tools_edges_and_prompts(scaffold, tmp_path: Path):
     """AC-09: README explains leaf manifests, conditional edges, TODO prompts."""
     home = _generate(scaffold, tmp_path / "invest", THREE_STEPS)
-    readme = (home / "tools" / "README.md").read_text().lower()
+    readme = (home / "tools" / "README.md").read_text(encoding="utf-8").lower()
     assert "tool.yaml" in readme
     assert "manifest" in readme
     assert "condition" in readme

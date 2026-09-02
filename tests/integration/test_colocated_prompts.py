@@ -44,7 +44,7 @@ edges:
     to: END
 """
         graph_file = graph_dir / "graph.yaml"
-        graph_file.write_text(graph_yaml)
+        graph_file.write_text(graph_yaml, encoding="utf-8")
 
         # Create colocated prompt
         prompt_yaml = """
@@ -55,7 +55,7 @@ user: |
   Generate an opening statement for the audit questionnaire.
 """
         prompt_file = prompts_dir / "opening.yaml"
-        prompt_file.write_text(prompt_yaml)
+        prompt_file.write_text(prompt_yaml, encoding="utf-8")
 
         # Mock execute_prompt to avoid LLM call
         mock_result = "Welcome to the audit questionnaire."
@@ -101,7 +101,7 @@ user: |
 system: Be friendly.
 user: Say hello to {name}.
 """
-        (shared_prompts / "greet.yaml").write_text(prompt_yaml)
+        (shared_prompts / "greet.yaml").write_text(prompt_yaml, encoding="utf-8")
 
         # Create graph pointing to shared prompts
         graph_yaml = f"""
@@ -126,7 +126,7 @@ edges:
     to: END
 """
         graph_file = graphs_dir / "hello.yaml"
-        graph_file.write_text(graph_yaml)
+        graph_file.write_text(graph_yaml, encoding="utf-8")
 
         mock_result = "Hello, World!"
 

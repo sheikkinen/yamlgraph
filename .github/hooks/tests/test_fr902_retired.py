@@ -67,14 +67,14 @@ GUIDANCE_DOCS = (
 
 def hook_script_texts() -> dict[Path, str]:
     return {
-        p: p.read_text(errors="ignore")
+        p: p.read_text(errors="ignore", encoding="utf-8")
         for p in sorted(SCRIPTS_DIR.rglob("*"))
         if p.is_file() and p.suffix in {".sh", ".py", ".json"}
     }
 
 
 def probe_commands() -> list[str]:
-    probe = json.loads(PROBE.read_text())
+    probe = json.loads(PROBE.read_text(encoding="utf-8"))
     return [
         entry.get("command", "")
         for entries in probe["hooks"].values()
@@ -97,7 +97,7 @@ def test_session_probe_has_no_retired_registrations() -> None:
 
 
 def test_pre_command_guard_has_no_fr902_token() -> None:
-    text = GUARD.read_text().lower()
+    text = GUARD.read_text(encoding="utf-8").lower()
     assert "fr902" not in text, "pre-command-guard.sh still carries an FR902 token"
     assert "fr-902" not in text, "pre-command-guard.sh still references FR-902"
 
@@ -105,7 +105,7 @@ def test_pre_command_guard_has_no_fr902_token() -> None:
 def test_pre_command_guard_has_no_write_shape_alternation() -> None:
     # Only the shell grep grammar is in scope; FR-767's Check 6 analyzer is
     # a Python heredoc and was never part of the Check 8 enum.
-    alternations = re.findall(r"grep -qE '([^']*)'", GUARD.read_text())
+    alternations = re.findall(r"grep -qE '([^']*)'", GUARD.read_text(encoding="utf-8"))
     offenders = [
         pattern
         for pattern in alternations
@@ -119,7 +119,7 @@ def test_pre_command_guard_has_no_write_shape_alternation() -> None:
 
 def test_fr889_lock_mutator_fence_intact() -> None:
     # C-4: the subtraction must not take FR-889's narrow fence with it.
-    assert f"grep -qE '{FR889_FENCE}'" in GUARD.read_text()
+    assert f"grep -qE '{FR889_FENCE}'" in GUARD.read_text(encoding="utf-8")
 
 
 def test_no_allow_outside_escape_anywhere() -> None:
@@ -131,7 +131,7 @@ def test_no_allow_outside_escape_anywhere() -> None:
     offenders += [
         str(doc.relative_to(REPO_ROOT))
         for doc in GUIDANCE_DOCS
-        if doc.exists() and "FR902_ALLOW_OUTSIDE" in doc.read_text()
+        if doc.exists() and "FR902_ALLOW_OUTSIDE" in doc.read_text(encoding="utf-8")
     ]
     assert not offenders, f"FR902_ALLOW_OUTSIDE escape still live in: {offenders}"
 

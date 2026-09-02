@@ -57,7 +57,7 @@ def _run(tmp_path, findings, labels=None, model=None):
 def _rows(tmp_path):
     return [
         json.loads(line)
-        for line in (tmp_path / "ledger.jsonl").read_text().splitlines()
+        for line in (tmp_path / "ledger.jsonl").read_text(encoding="utf-8").splitlines()
     ]
 
 
@@ -82,7 +82,7 @@ class TestWitnessedRepairs:
         rows = _rows(tmp_path)
         assert len(rows) == len(WITNESSED)
         assert all(not r["abstained"] for r in rows)
-        md = (tmp_path / "ledger.md").read_text()
+        md = (tmp_path / "ledger.md").read_text(encoding="utf-8")
         assert (
             f"Normalization: {len(WITNESSED)} repaired, 0 demoted, "
             f"0 model-abstained, 0 row-failed of {len(WITNESSED)} rows." in md
@@ -190,7 +190,7 @@ class TestModelAbstention:
         assert row["abstained"] is True
         assert row["raw_judgement"] == "unknown"
         assert row["abstain_reason"] == "document empty"
-        md = (tmp_path / "ledger.md").read_text()
+        md = (tmp_path / "ledger.md").read_text(encoding="utf-8")
         assert (
             "Normalization: 0 repaired, 0 demoted, "
             "1 model-abstained, 0 row-failed of 1 rows." in md
@@ -224,7 +224,7 @@ class TestArtifacts:
             _finding("utterly unclassifiable free form prose here", index=2),
         ]
         _run(tmp_path, findings, labels=LABELS)
-        md = (tmp_path / "ledger.md").read_text()
+        md = (tmp_path / "ledger.md").read_text(encoding="utf-8")
         assert (
             "Normalization: 1 repaired, 1 demoted, "
             "0 model-abstained, 0 row-failed of 3 rows." in md

@@ -40,7 +40,7 @@ def run_hook(payload, *, log_dir: str) -> tuple[int, str, str, list[dict]]:
     entries = []
     logfile = Path(log_dir) / "audit.jsonl"
     if logfile.exists():
-        for line in logfile.read_text().strip().splitlines():
+        for line in logfile.read_text(encoding="utf-8").strip().splitlines():
             if line.strip():
                 entries.append(json.loads(line))
     return r.returncode, r.stdout.strip(), r.stderr, entries
@@ -72,7 +72,7 @@ def make_repo(tmp_path: Path, name: str, *, hooks: str) -> Path:
         (hooks_dir / "pre-commit").touch()
     elif hooks == "real":
         pc = hooks_dir / "pre-commit"
-        pc.write_text("#!/bin/sh\nexit 0\n")
+        pc.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
         pc.chmod(0o755)
     elif hooks == "no-dir":
         for f in hooks_dir.iterdir():
@@ -86,7 +86,7 @@ def make_repo(tmp_path: Path, name: str, *, hooks: str) -> Path:
 def stage_file(repo: Path, relpath: str, content: str) -> None:
     p = repo / relpath
     p.parent.mkdir(parents=True, exist_ok=True)
-    p.write_text(content)
+    p.write_text(content, encoding="utf-8")
     subprocess.run([GIT, "-C", repo, "add", relpath], check=True, capture_output=True)
 
 
@@ -213,7 +213,7 @@ def test_deleted_schedule_line_does_not_fire(tmp_path):
         check=True,
         capture_output=True,
     )
-    (repo / wf).write_text("on: workflow_dispatch\n")
+    (repo / wf).write_text("on: workflow_dispatch\n", encoding="utf-8")
     subprocess.run([GIT, "-C", repo, "add", wf], check=True, capture_output=True)
     rc, out, err, _ = run_hook(commit_payload(repo), log_dir=str(tmp_path / "logs"))
     assert_approve(out)
@@ -252,7 +252,7 @@ def test_non_git_cwd_never_warns(tmp_path):
 def test_worktree_git_file_never_warns(tmp_path):
     repo = tmp_path / "wt"
     repo.mkdir()
-    (repo / ".git").write_text("gitdir: /somewhere/else\n")
+    (repo / ".git").write_text("gitdir: /somewhere/else\n", encoding="utf-8")
     rc, out, err, _ = run_hook(commit_payload(repo), log_dir=str(tmp_path / "logs"))
     assert rc == 0
     assert_approve(out)
@@ -290,7 +290,7 @@ def test_non_terminal_tool_never_warns(tmp_path):
 
 def test_ramp_declined_suppresses_and_audits(tmp_path):
     repo = make_repo(tmp_path, "foreign", hooks="none")
-    (repo / ".ramp-declined").write_text("operator declined 2026-08-23\n")
+    (repo / ".ramp-declined").write_text("operator declined 2026-08-23\n", encoding="utf-8")
     stage_file(
         repo,
         ".github/workflows/pub.yml",
@@ -344,7 +344,7 @@ def test_warning_entries_use_stable_reasons(tmp_path):
 
 
 def test_no_mutating_git_in_detector_source():
-    src = HOOK.read_text()
+    src = HOOK.read_text(encoding="utf-8")
     fr869 = src[src.find("FR-869") :] if "FR-869" in src else ""
     assert fr869, "FR-869 detector block missing from guard"
     for tok in ["git add", "git commit ", "git push", "git checkout", "git reset"]:

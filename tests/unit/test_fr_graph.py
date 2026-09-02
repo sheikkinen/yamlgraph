@@ -98,14 +98,14 @@ class TestValidationFixture:
     @pytest.fixture
     def fixture_data(self):
         path = Path("tests/fixtures/fr_graph_validation.yaml")
-        return yaml.safe_load(path.read_text())
+        return yaml.safe_load(path.read_text(encoding="utf-8"))
 
     @pytest.fixture
     def graph_data(self):
         path = Path("reference/fr-knowledge-graph.yaml")
         if not path.exists():
             pytest.skip("Generated graph not present")
-        return yaml.safe_load(path.read_text())
+        return yaml.safe_load(path.read_text(encoding="utf-8"))
 
     def test_accuracy_above_85_percent(self, fixture_data, graph_data):
         """Check that heuristic typing matches manual labels."""
@@ -178,13 +178,13 @@ class TestDeterminism:
         graph2 = extract_graph()
         # Compare serialized form
         with (
-            tempfile.NamedTemporaryFile(suffix=".yaml", mode="w") as f1,
-            tempfile.NamedTemporaryFile(suffix=".yaml", mode="w") as f2,
+            tempfile.NamedTemporaryFile(encoding="utf-8", suffix=".yaml", mode="w") as f1,
+            tempfile.NamedTemporaryFile(encoding="utf-8", suffix=".yaml", mode="w") as f2,
         ):
             p1, p2 = Path(f1.name), Path(f2.name)
             write_graph(graph1, p1)
             write_graph(graph2, p2)
-            assert p1.read_text() == p2.read_text()
+            assert p1.read_text(encoding="utf-8") == p2.read_text(encoding="utf-8")
 
 
 @pytest.mark.req("REQ-YG-601")
@@ -223,14 +223,14 @@ class TestStaleness:
     def test_stale_when_no_output(self, tmp_path):
         fr_dir = tmp_path / "frs"
         fr_dir.mkdir()
-        (fr_dir / "FR-001-test.md").write_text("**Status:** Proposed\n")
+        (fr_dir / "FR-001-test.md").write_text("**Status:** Proposed\n", encoding="utf-8")
         output = tmp_path / "graph.yaml"
         assert check_staleness(fr_dir, output) is False
 
     def test_current_after_generation(self, tmp_path):
         fr_dir = tmp_path / "frs"
         fr_dir.mkdir()
-        (fr_dir / "FR-001-test.md").write_text("**Status:** Proposed\n")
+        (fr_dir / "FR-001-test.md").write_text("**Status:** Proposed\n", encoding="utf-8")
         output = tmp_path / "graph.yaml"
         graph = extract_graph(fr_dir)
         write_graph(graph, output)
@@ -240,12 +240,12 @@ class TestStaleness:
         fr_dir = tmp_path / "frs"
         fr_dir.mkdir()
         fr_file = fr_dir / "FR-001-test.md"
-        fr_file.write_text("**Status:** Proposed\n")
+        fr_file.write_text("**Status:** Proposed\n", encoding="utf-8")
         output = tmp_path / "graph.yaml"
         graph = extract_graph(fr_dir)
         write_graph(graph, output)
         # Modify source
-        fr_file.write_text("**Status:** Implemented\n")
+        fr_file.write_text("**Status:** Implemented\n", encoding="utf-8")
         assert check_staleness(fr_dir, output) is False
 
 
@@ -258,7 +258,7 @@ class TestClusterNaming:
         path = Path("reference/fr-knowledge-graph.yaml")
         if not path.exists():
             pytest.skip("Generated graph not present")
-        return yaml.safe_load(path.read_text())
+        return yaml.safe_load(path.read_text(encoding="utf-8"))
 
     def test_schema_version_2(self, graph_data):
         assert graph_data["meta"]["schema_version"] == 2
@@ -307,7 +307,7 @@ class TestCrossClusterMentions:
         path = Path("reference/fr-knowledge-graph.yaml")
         if not path.exists():
             pytest.skip("Generated graph not present")
-        return yaml.safe_load(path.read_text())
+        return yaml.safe_load(path.read_text(encoding="utf-8"))
 
     def test_section_present(self, graph_data):
         assert "cross_cluster_mentions" in graph_data

@@ -63,7 +63,7 @@ def test_save_story_emits_valid_story_json(tmp_path):
 
     story_path = tmp_path / "story.json"
     assert story_path.exists()
-    story = json.loads(story_path.read_text())
+    story = json.loads(story_path.read_text(encoding="utf-8"))
     assert set(story) == {"synopsis", "plot", "chapters", "cast"}
     # Wrapped LLM outputs are normalized to plain lists at the boundary.
     assert isinstance(story["chapters"], list) and len(story["chapters"]) == 2
@@ -82,7 +82,7 @@ def test_save_story_emits_valid_story_json(tmp_path):
 def test_prep_turn_derives_chapter_goal_and_history(tmp_path):
     """prep_turn computes the current chapter goal and recent history string."""
     save_story_tool(_story_state(tmp_path))
-    story = json.loads((tmp_path / "story.json").read_text())
+    story = json.loads((tmp_path / "story.json").read_text(encoding="utf-8"))
 
     out = prep_turn_tool(
         {
@@ -146,7 +146,7 @@ def test_accept_commits_and_advances_turn(tmp_path):
     assert out["history"][-1] == "Elara winds the great spring."
     assert out["steer"] == ""
     chapter_file = tmp_path / "chapter-00-the-first-tick.md"
-    assert "Elara winds the great spring." in chapter_file.read_text()
+    assert "Elara winds the great spring." in chapter_file.read_text(encoding="utf-8")
 
 
 @pytest.mark.req("REQ-YG-433")

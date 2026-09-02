@@ -72,7 +72,7 @@ def write_store(
     chat.mkdir(parents=True, exist_ok=True)
     (ws / "workspace.json").write_text(
         json.dumps({"folder": "file:///fake/repo-under-test"})
-    )
+    , encoding="utf-8")
     recs = [
         {"kind": 0, "v": {"sessionId": session_id, "creationDate": ts, "requests": []}},
         # request 1 (model-a)
@@ -122,7 +122,7 @@ def write_store(
         recs.append({"kind": 1, "k": ["requests", 0, "copilotCredits"], "v": 42.5})
         recs.append({"kind": 1, "k": ["requests", 1, "copilotCredits"], "v": 7.5})
     path = chat / f"{session_id}.jsonl"
-    path.write_text("\n".join(json.dumps(r) for r in recs) + "\n")
+    path.write_text("\n".join(json.dumps(r) for r in recs) + "\n", encoding="utf-8")
     return path
 
 
@@ -208,7 +208,7 @@ def test_malformed_explicit_hard_error(tmp_path):
     bad = tmp_path / "chatSessions"
     bad.mkdir(parents=True)
     store = bad / "broken.jsonl"
-    store.write_text('{"kind": 0, "v": {}}\nnot json at all\n')
+    store.write_text('{"kind": 0, "v": {}}\nnot json at all\n', encoding="utf-8")
     with pytest.raises(SystemExit) as exc:
         session_ledger.main(["--csv", str(store)])
     assert exc.value.code != 0
@@ -217,7 +217,7 @@ def test_malformed_explicit_hard_error(tmp_path):
 def test_malformed_scan_skips_with_reason(tmp_path, capsys, monkeypatch):
     write_store(tmp_path, "fixture-good")
     bad = tmp_path / "hash0000" / "chatSessions" / "broken.jsonl"
-    bad.write_text("not json\n")
+    bad.write_text("not json\n", encoding="utf-8")
     monkeypatch.setattr(session_ledger, "WS_STORAGE", tmp_path)
     rows, err = csv_rows(["--csv", "--all-workspaces"], capsys)
     good = [r for r in rows if r["session_id"] == "fixture-good"]

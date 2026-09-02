@@ -20,7 +20,7 @@ class TestCopilotBackendApi:
 
         prompt_file = tmp_path / "prompts" / "decision.yaml"
         prompt_file.parent.mkdir(parents=True)
-        prompt_file.write_text("system: Test\nuser: Decide on {topic}")
+        prompt_file.write_text("system: Test\nuser: Decide on {topic}", encoding="utf-8")
 
         config = {
             "type": "copilot",
@@ -55,7 +55,7 @@ class TestCopilotBackendApi:
 
         prompt_file = tmp_path / "prompts" / "judge.yaml"
         prompt_file.parent.mkdir(parents=True)
-        prompt_file.write_text("system: Test\nuser: Hello")
+        prompt_file.write_text("system: Test\nuser: Hello", encoding="utf-8")
 
         config = {
             "type": "copilot",
@@ -86,7 +86,7 @@ class TestCopilotBackendApi:
 
         prompt_file = tmp_path / "prompts" / "judge.yaml"
         prompt_file.parent.mkdir(parents=True)
-        prompt_file.write_text("system: Test\nuser: Hello")
+        prompt_file.write_text("system: Test\nuser: Hello", encoding="utf-8")
 
         config = {
             "type": "copilot",
@@ -130,7 +130,7 @@ class TestCopilotBackendApi:
                     "user: Decision for {topic}",
                 ]
             )
-        )
+        , encoding="utf-8")
 
         config = {
             "type": "copilot",

@@ -21,7 +21,7 @@ PENDING_RE = re.compile(r"^- \[pending\]", re.M)
 
 def read_fr(state: dict) -> dict:
     """Load the FR text for the triage prompt."""
-    text = Path(state["fr_path"]).read_text(errors="replace")
+    text = Path(state["fr_path"]).read_text(encoding="utf-8", errors="replace")
     return {"fr_text": text[:20000]}
 
 
@@ -40,7 +40,7 @@ def append_triage(state: dict) -> dict:
     if not (canon or witnesses):
         raise ValueError("empty triage output — refusing to append nothing")
 
-    text = fr_path.read_text(errors="replace")
+    text = fr_path.read_text(encoding="utf-8", errors="replace")
     m = STATUS_RE.search(text)
     status = (m.group(1).strip() if m else "").lower()
     if not status.startswith("proposed"):
@@ -56,7 +56,7 @@ def append_triage(state: dict) -> dict:
     if value_prop and value_prop[0]:
         lines.append(f"- [pending] value-prop: {value_prop[0]}")
     lines.append("")
-    fr_path.write_text(text + "\n".join(lines))
+    fr_path.write_text(text + "\n".join(lines), encoding="utf-8")
     logger.info(
         "📋 triage appended to %s (%d claims)",
         fr_path.name,

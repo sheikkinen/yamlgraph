@@ -17,13 +17,13 @@ class TestGraphStructure:
 
     def test_graph_yaml_valid(self):
         """Graph should be valid YAML."""
-        config = yaml.safe_load(GRAPH_PATH.read_text())
+        config = yaml.safe_load(GRAPH_PATH.read_text(encoding="utf-8"))
         assert config is not None
         assert config.get("name") == "beautify"
 
     def test_required_nodes_present(self):
         """Required nodes should be defined."""
-        config = yaml.safe_load(GRAPH_PATH.read_text())
+        config = yaml.safe_load(GRAPH_PATH.read_text(encoding="utf-8"))
         nodes = config.get("nodes", {})
         required = ["load_graph", "analyze", "mermaid", "render_html", "save_output"]
         for node in required:
@@ -50,7 +50,7 @@ class TestGraphLoader:
 
     def test_tools_defined(self):
         """Python tools should be defined."""
-        config = yaml.safe_load(GRAPH_PATH.read_text())
+        config = yaml.safe_load(GRAPH_PATH.read_text(encoding="utf-8"))
         tools = config.get("tools", {})
         assert "load_graph" in tools
         assert "render_html" in tools

@@ -21,7 +21,7 @@ def test_skips_non_edit_tools() -> None:
 
 
 def test_skips_non_yaml_files() -> None:
-    with tempfile.NamedTemporaryFile(suffix=".py", mode="w", delete=False) as f:
+    with tempfile.NamedTemporaryFile(encoding="utf-8", suffix=".py", mode="w", delete=False) as f:
         f.write("x = 1\n")
         f.flush()
         try:
@@ -35,7 +35,7 @@ def test_skips_non_yaml_files() -> None:
 
 
 def test_graph_yaml_invalid_reports_lint_errors() -> None:
-    with tempfile.NamedTemporaryFile(suffix=".yaml", mode="w", delete=False) as f:
+    with tempfile.NamedTemporaryFile(encoding="utf-8", suffix=".yaml", mode="w", delete=False) as f:
         f.write(
             "nodes:\n"
             "  bad:\n"

@@ -130,7 +130,7 @@ def resolve_tool_slots(
                 f"Slot '{name}': manifest not found: {manifest_path}"
             )
         try:
-            raw = yaml.safe_load(manifest_path.read_text())
+            raw = yaml.safe_load(manifest_path.read_text(encoding="utf-8"))
             manifest = ToolManifest.model_validate(raw)
         except (yaml.YAMLError, ValidationError, TypeError) as e:
             raise ToolSlotBindingError(

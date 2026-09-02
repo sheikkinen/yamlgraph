@@ -16,13 +16,13 @@ REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 
 
 def _lines(rel: str) -> int:
-    return len((REPO_ROOT / rel).read_text().splitlines())
+    return len((REPO_ROOT / rel).read_text(encoding="utf-8").splitlines())
 
 
 def _function_cc(rel: str, func_name: str) -> int:
     from radon.complexity import cc_visit
 
-    for block in cc_visit((REPO_ROOT / rel).read_text()):
+    for block in cc_visit((REPO_ROOT / rel).read_text(encoding="utf-8")):
         if block.name == func_name:
             return block.complexity
     raise AssertionError(f"{func_name} not found in {rel}")
@@ -68,7 +68,7 @@ class TestSplitRelievesGate:
         """The extraction must not smuggle complexity into new homes."""
         from radon.complexity import cc_visit
 
-        src = (REPO_ROOT / "yamlgraph/streaming_events.py").read_text()
+        src = (REPO_ROOT / "yamlgraph/streaming_events.py").read_text(encoding="utf-8")
         offenders = [
             (b.name, b.complexity) for b in cc_visit(src) if b.complexity >= 10
         ]
@@ -107,10 +107,10 @@ class TestSplitIsPureMove:
         """Both halves parse and expose the same class set the monolith
         had (SubgraphNodeConfig, NodeConfig | EdgeConfig, GraphConfigSchema)."""
         node_src = ast.parse(
-            (REPO_ROOT / "yamlgraph/models/node_schema.py").read_text()
+            (REPO_ROOT / "yamlgraph/models/node_schema.py").read_text(encoding="utf-8")
         )
         graph_src = ast.parse(
-            (REPO_ROOT / "yamlgraph/models/graph_schema.py").read_text()
+            (REPO_ROOT / "yamlgraph/models/graph_schema.py").read_text(encoding="utf-8")
         )
         node_classes = {
             n.name for n in ast.walk(node_src) if isinstance(n, ast.ClassDef)

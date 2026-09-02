@@ -23,13 +23,13 @@ class TestGettingStartedNodeTable:
     """Verify reference/getting-started.md lists race and pipeline."""
 
     def test_race_row_exists(self):
-        content = GETTING_STARTED.read_text()
+        content = GETTING_STARTED.read_text(encoding="utf-8")
         assert (
             "| `race`" in content
         ), "getting-started.md node type table must include a race row"
 
     def test_pipeline_row_exists(self):
-        content = GETTING_STARTED.read_text()
+        content = GETTING_STARTED.read_text(encoding="utf-8")
         assert (
             "| `pipeline`" in content
         ), "getting-started.md node type table must include a pipeline row"
@@ -46,7 +46,7 @@ class TestGraphYamlRaceSection:
 
     @pytest.fixture(autouse=True)
     def _load(self):
-        self.content = GRAPH_YAML_REF.read_text()
+        self.content = GRAPH_YAML_REF.read_text(encoding="utf-8")
 
     def test_race_heading_exists(self):
         assert (
@@ -90,7 +90,7 @@ class TestGraphYamlPipelineSection:
 
     @pytest.fixture(autouse=True)
     def _load(self):
-        self.content = GRAPH_YAML_REF.read_text()
+        self.content = GRAPH_YAML_REF.read_text(encoding="utf-8")
 
     def test_pipeline_heading_exists(self):
         assert (
@@ -138,8 +138,8 @@ class TestExamplesMatchDemos:
 
     def test_race_candidates_match_demo(self):
         """Race section must include candidates from the demo YAML."""
-        demo = (REPO_ROOT / "examples" / "demos" / "race" / "graph.yaml").read_text()
-        doc = GRAPH_YAML_REF.read_text()
+        demo = (REPO_ROOT / "examples" / "demos" / "race" / "graph.yaml").read_text(encoding="utf-8")
+        doc = GRAPH_YAML_REF.read_text(encoding="utf-8")
         race_section = doc.split("### `type: race`")[1].split("###")[0]
         # The demo uses mistral-small-latest, gpt-4o-mini, gemini-2.0-flash
         for model in ["mistral-small-latest", "gpt-4o-mini", "gemini-2.0-flash"]:
@@ -149,7 +149,7 @@ class TestExamplesMatchDemos:
 
     def test_pipeline_items_match_demo(self):
         """Pipeline section must include items from the demo YAML."""
-        doc = GRAPH_YAML_REF.read_text()
+        doc = GRAPH_YAML_REF.read_text(encoding="utf-8")
         pipeline_section = doc.split("### `type: pipeline`")[1].split("###")[0]
         # The demo uses sun, moon items with draft/polish stages
         assert (

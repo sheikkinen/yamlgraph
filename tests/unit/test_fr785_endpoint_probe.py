@@ -35,7 +35,7 @@ def test_graph_file_exists():
 @pytest.mark.req("REQ-YG-586")
 def test_graph_is_agent_type():
     """AC-02: graph uses agent node type with bounded max_iterations."""
-    graph = yaml.safe_load((GRAPH_DIR / "graph.yaml").read_text())
+    graph = yaml.safe_load((GRAPH_DIR / "graph.yaml").read_text(encoding="utf-8"))
     nodes = graph["nodes"]
     assert "probe_agent" in nodes
     node = nodes["probe_agent"]
@@ -46,7 +46,7 @@ def test_graph_is_agent_type():
 @pytest.mark.req("REQ-YG-586")
 def test_graph_references_curl_probe_tool():
     """AC-02: agent node references curl_probe tool."""
-    graph = yaml.safe_load((GRAPH_DIR / "graph.yaml").read_text())
+    graph = yaml.safe_load((GRAPH_DIR / "graph.yaml").read_text(encoding="utf-8"))
     node = graph["nodes"]["probe_agent"]
     assert "curl_probe" in node["tools"]
 
@@ -60,7 +60,7 @@ def test_prompt_file_exists():
 @pytest.mark.req("REQ-YG-586")
 def test_prompt_has_output_schema():
     """AC-05: prompt defines its result with the JSON-Schema dialect."""
-    prompt = yaml.safe_load((GRAPH_DIR / "prompts" / "probe.yaml").read_text())
+    prompt = yaml.safe_load((GRAPH_DIR / "prompts" / "probe.yaml").read_text(encoding="utf-8"))
     assert "schema" not in prompt
     schema = prompt["output_schema"]
     assert schema["type"] == "object"
@@ -74,7 +74,7 @@ def test_prompt_has_output_schema():
 @pytest.mark.req("REQ-YG-586")
 def test_prompt_has_system_and_user():
     """AC-03: prompt has both system and user templates."""
-    prompt = yaml.safe_load((GRAPH_DIR / "prompts" / "probe.yaml").read_text())
+    prompt = yaml.safe_load((GRAPH_DIR / "prompts" / "probe.yaml").read_text(encoding="utf-8"))
     assert "system" in prompt
     assert "user" in prompt
     assert "candidate_urls" in prompt["user"]
@@ -90,7 +90,7 @@ def test_tool_manifest_exists():
 @pytest.mark.req("REQ-YG-586")
 def test_tool_manifest_structure():
     """AC-04: manifest has runtime.type: graph, relative path, mappings."""
-    manifest = yaml.safe_load((STEPS_DIR / "endpoint_probe.tool.yaml").read_text())
+    manifest = yaml.safe_load((STEPS_DIR / "endpoint_probe.tool.yaml").read_text(encoding="utf-8"))
     assert manifest["name"] == "endpoint_probe"
     runtime = manifest["runtime"]
     assert runtime["type"] == "graph"
@@ -108,7 +108,7 @@ def test_tool_manifest_structure():
 @pytest.mark.req("REQ-YG-586")
 def test_probe_result_schema_endpoint_hit_fields():
     """AC-05: EndpointHit items have url, status, content_type, body_preview."""
-    prompt = yaml.safe_load((GRAPH_DIR / "prompts" / "probe.yaml").read_text())
+    prompt = yaml.safe_load((GRAPH_DIR / "prompts" / "probe.yaml").read_text(encoding="utf-8"))
     items_fields = prompt["output_schema"]["properties"]["live_endpoints"]["items"]
     assert items_fields["type"] == "object"
     required_fields = {"url", "status", "content_type", "body_preview"}
@@ -119,7 +119,7 @@ def test_probe_result_schema_endpoint_hit_fields():
 @pytest.mark.req("REQ-YG-586")
 def test_probe_result_schema_verdict_hint_optional():
     """AC-05: verdict_hint is omitted from the required field list."""
-    prompt = yaml.safe_load((GRAPH_DIR / "prompts" / "probe.yaml").read_text())
+    prompt = yaml.safe_load((GRAPH_DIR / "prompts" / "probe.yaml").read_text(encoding="utf-8"))
     schema = prompt["output_schema"]
     assert set(schema["required"]) == {"live_endpoints", "html_pages"}
     assert "verdict_hint" not in schema["required"]
@@ -139,7 +139,7 @@ def test_endpoint_probe_graph_compiles():
 @pytest.mark.req("REQ-YG-586")
 def test_prompt_documents_403_ua_retry():
     """AC-06: prompt instructs 403→UA retry."""
-    prompt = yaml.safe_load((GRAPH_DIR / "prompts" / "probe.yaml").read_text())
+    prompt = yaml.safe_load((GRAPH_DIR / "prompts" / "probe.yaml").read_text(encoding="utf-8"))
     system = prompt["system"]
     assert "403" in system
     assert "User-Agent" in system or "user-agent" in system.lower()
@@ -148,7 +148,7 @@ def test_prompt_documents_403_ua_retry():
 @pytest.mark.req("REQ-YG-586")
 def test_prompt_documents_404_path_variants():
     """AC-06: prompt instructs 404→path variants."""
-    prompt = yaml.safe_load((GRAPH_DIR / "prompts" / "probe.yaml").read_text())
+    prompt = yaml.safe_load((GRAPH_DIR / "prompts" / "probe.yaml").read_text(encoding="utf-8"))
     system = prompt["system"]
     assert "404" in system
     assert "/api/v1" in system
@@ -157,7 +157,7 @@ def test_prompt_documents_404_path_variants():
 @pytest.mark.req("REQ-YG-586")
 def test_prompt_documents_html_classification():
     """AC-06: prompt instructs 200+HTML→html_pages."""
-    prompt = yaml.safe_load((GRAPH_DIR / "prompts" / "probe.yaml").read_text())
+    prompt = yaml.safe_load((GRAPH_DIR / "prompts" / "probe.yaml").read_text(encoding="utf-8"))
     system = prompt["system"]
     assert "html" in system.lower()
     assert "html_pages" in system
@@ -166,7 +166,7 @@ def test_prompt_documents_html_classification():
 @pytest.mark.req("REQ-YG-586")
 def test_prompt_documents_json_endpoint():
     """AC-06: prompt instructs 200+JSON→live_endpoints."""
-    prompt = yaml.safe_load((GRAPH_DIR / "prompts" / "probe.yaml").read_text())
+    prompt = yaml.safe_load((GRAPH_DIR / "prompts" / "probe.yaml").read_text(encoding="utf-8"))
     system = prompt["system"]
     assert "json" in system.lower()
     assert "live_endpoints" in system
@@ -175,7 +175,7 @@ def test_prompt_documents_json_endpoint():
 @pytest.mark.req("REQ-YG-586")
 def test_prompt_documents_xml_classification():
     """AC-06: prompt instructs XML→classify (OData/SOAP/RSS/Atom)."""
-    prompt = yaml.safe_load((GRAPH_DIR / "prompts" / "probe.yaml").read_text())
+    prompt = yaml.safe_load((GRAPH_DIR / "prompts" / "probe.yaml").read_text(encoding="utf-8"))
     system = prompt["system"]
     assert "xml" in system.lower()
     # At least some of the subtypes mentioned
@@ -186,7 +186,7 @@ def test_prompt_documents_xml_classification():
 @pytest.mark.req("REQ-YG-586")
 def test_prompt_documents_geo_blocked():
     """AC-06: prompt instructs 000→geo_blocked verdict."""
-    prompt = yaml.safe_load((GRAPH_DIR / "prompts" / "probe.yaml").read_text())
+    prompt = yaml.safe_load((GRAPH_DIR / "prompts" / "probe.yaml").read_text(encoding="utf-8"))
     system = prompt["system"]
     assert "geo_blocked" in system
 
@@ -199,7 +199,7 @@ def test_prompt_documents_geo_blocked():
 @pytest.mark.req("REQ-YG-586")
 def test_graph_max_iterations_bounded():
     """AC-07: agent node has explicit max_iterations value."""
-    graph = yaml.safe_load((GRAPH_DIR / "graph.yaml").read_text())
+    graph = yaml.safe_load((GRAPH_DIR / "graph.yaml").read_text(encoding="utf-8"))
     node = graph["nodes"]["probe_agent"]
     max_iter = node["max_iterations"]
     # Must be a positive integer (or state reference that defaults to one)
@@ -211,7 +211,7 @@ def test_graph_max_iterations_bounded():
 @pytest.mark.req("REQ-YG-586")
 def test_state_max_iterations_has_default():
     """AC-07: state declares max_iterations with a sensible default."""
-    graph = yaml.safe_load((GRAPH_DIR / "graph.yaml").read_text())
+    graph = yaml.safe_load((GRAPH_DIR / "graph.yaml").read_text(encoding="utf-8"))
     state = graph["state"]
     assert "max_iterations" in state
     mi = state["max_iterations"]

@@ -15,7 +15,7 @@ FIXTURES = Path(__file__).parent.parent / "fixtures" / "fr892"
 
 def _write(tmp_path: Path, name: str, content: str) -> Path:
     p = tmp_path / name
-    p.write_text(content)
+    p.write_text(content, encoding="utf-8")
     return p
 
 

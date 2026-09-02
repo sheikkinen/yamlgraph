@@ -72,7 +72,7 @@ def test_write_context_dated_header(tmp_path):
         {"distilled": distilled, "output_path": str(out_path), "date": "2026-07-17"}
     )
     assert result["written"] is True
-    text = out_path.read_text()
+    text = out_path.read_text(encoding="utf-8")
     assert "Last updated: 2026-07-17" in text
     assert "LangGraph 2.0 released" in text
     assert "evaluation-as-code" in text

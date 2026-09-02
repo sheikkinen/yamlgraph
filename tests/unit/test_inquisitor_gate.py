@@ -195,7 +195,7 @@ def _setup_git_repo(path, commits: list[str]) -> list[str]:
     )
     shas: list[str] = []
     for i, msg in enumerate(commits):
-        (path / f"file_{i}.txt").write_text(f"commit {i}\n")
+        (path / f"file_{i}.txt").write_text(f"commit {i}\n", encoding="utf-8")
         subprocess.run(
             ["git", "add", "."], cwd=path, capture_output=True, check=True, env=env
         )
@@ -237,7 +237,7 @@ def _read_inquisitor_sh() -> str:
     inquisitor_path = os.path.join(
         os.path.dirname(__file__), "..", "..", ".chaplain", "inquisitor.sh"
     )
-    with open(inquisitor_path) as f:
+    with open(inquisitor_path, encoding="utf-8") as f:
         return f.read()
 
 
@@ -256,7 +256,7 @@ class TestSHAExtraction:
         diary_dir.mkdir()
         (diary_dir / "2026-03-07-inquisitor-audit-xxiii.md").write_text(
             "**Context:** Audit covering commits `f3c6b73`..`5c33f8c` (5 commits)\n"
-        )
+        , encoding="utf-8")
         assert _run_sha_extract(str(diary_dir)) == "5c33f8c"
 
     def test_extracts_sha_from_longer_sha(self, tmp_path):
@@ -265,7 +265,7 @@ class TestSHAExtraction:
         diary_dir.mkdir()
         (diary_dir / "2026-03-07-inquisitor-audit-xxii.md").write_text(
             "**Context:** commits `a27f3968`..`b171deed` (3 commits)\n"
-        )
+        , encoding="utf-8")
         assert _run_sha_extract(str(diary_dir)) == "b171deed"
 
     def test_returns_most_recent_audit_by_filename(self, tmp_path):
@@ -274,10 +274,10 @@ class TestSHAExtraction:
         diary_dir.mkdir()
         (diary_dir / "2026-03-06-inquisitor-audit-xxi.md").write_text(
             "**Context:** commits `ccc3333`..`ddd4444` (older)\n"
-        )
+        , encoding="utf-8")
         (diary_dir / "2026-03-07-inquisitor-audit-xxii.md").write_text(
             "**Context:** commits `aaa1111`..`bbb2222` (latest)\n"
-        )
+        , encoding="utf-8")
         assert _run_sha_extract(str(diary_dir)) == "bbb2222"
 
     def test_returns_no_sha_for_empty_directory(self, tmp_path):
@@ -290,7 +290,7 @@ class TestSHAExtraction:
         """Diary directory with no inquisitor-audit files yields NO_SHA."""
         diary_dir = tmp_path / "diary"
         diary_dir.mkdir()
-        (diary_dir / "2026-03-07-reflection-fr-125.md").write_text("No audit here.\n")
+        (diary_dir / "2026-03-07-reflection-fr-125.md").write_text("No audit here.\n", encoding="utf-8")
         assert _run_sha_extract(str(diary_dir)) == "NO_SHA"
 
     def test_returns_no_sha_for_no_commit_range(self, tmp_path):
@@ -299,7 +299,7 @@ class TestSHAExtraction:
         diary_dir.mkdir()
         (diary_dir / "2026-03-07-inquisitor-audit-xx.md").write_text(
             "Some text without any commit ranges.\n"
-        )
+        , encoding="utf-8")
         assert _run_sha_extract(str(diary_dir)) == "NO_SHA"
 
 
@@ -412,7 +412,7 @@ class TestFullGateIntegration:
         diary_dir.mkdir(parents=True)
         (diary_dir / "2026-03-07-inquisitor-audit-xxiii.md").write_text(
             f"**Context:** commits `{shas[0]}`..`{shas[0]}` (1 commit)\n"
-        )
+        , encoding="utf-8")
         output = _run_full_gate(str(tmp_path))
         assert "GATE_BLOCKED" in output
 
@@ -430,7 +430,7 @@ class TestFullGateIntegration:
         diary_dir.mkdir(parents=True)
         (diary_dir / "2026-03-07-inquisitor-audit-xxiii.md").write_text(
             f"**Context:** commits `{shas[0]}`..`{shas[0]}` (1 commit)\n"
-        )
+        , encoding="utf-8")
         output = _run_full_gate(str(tmp_path))
         assert "GATE_PASSED" in output
 
@@ -448,7 +448,7 @@ class TestFullGateIntegration:
         diary_dir.mkdir(parents=True)
         (diary_dir / "2026-03-07-inquisitor-audit-xxiii.md").write_text(
             f"**Context:** commits `{shas[0]}`..`{shas[0]}` (1 commit)\n"
-        )
+        , encoding="utf-8")
         output = _run_full_gate(str(tmp_path))
         assert "GATE_PASSED" in output
 
@@ -465,7 +465,7 @@ class TestFullGateIntegration:
         diary_dir.mkdir(parents=True)
         (diary_dir / "2026-03-07-reflection-fr-125.md").write_text(
             "# Not an audit file\n"
-        )
+        , encoding="utf-8")
         output = _run_full_gate(str(tmp_path))
         assert "GATE_PASSED" in output
 
@@ -476,7 +476,7 @@ class TestFullGateIntegration:
         diary_dir.mkdir(parents=True)
         (diary_dir / "2026-03-07-inquisitor-audit-xxiii.md").write_text(
             "**Context:** commits `0000000`..`fffffff` (1 commit)\n"
-        )
+        , encoding="utf-8")
         output = _run_full_gate(str(tmp_path))
         assert "GATE_PASSED" in output
 
@@ -493,7 +493,7 @@ class TestFullGateIntegration:
         diary_dir.mkdir(parents=True)
         (diary_dir / "2026-03-07-inquisitor-audit-xxiii.md").write_text(
             f"**Context:** commits `{shas[0]}`..`{shas[0]}` (1 commit)\n"
-        )
+        , encoding="utf-8")
         output = _run_full_gate(str(tmp_path), ["--force"])
         assert "GATE_PASSED" in output
 
@@ -510,7 +510,7 @@ class TestFullGateIntegration:
         diary_dir.mkdir(parents=True)
         (diary_dir / "2026-03-07-inquisitor-audit-xxiii.md").write_text(
             f"**Context:** commits `{shas[0]}`..`{shas[0]}` (1 commit)\n"
-        )
+        , encoding="utf-8")
         output = _run_full_gate(str(tmp_path), ["--propose"])
         assert "GATE_BLOCKED" in output
         assert "PROPOSE_MODE" not in output
@@ -528,7 +528,7 @@ class TestFullGateIntegration:
         diary_dir.mkdir(parents=True)
         (diary_dir / "2026-03-07-inquisitor-audit-xxiii.md").write_text(
             f"**Context:** commits `{shas[0]}`..`{shas[0]}` (1 commit)\n"
-        )
+        , encoding="utf-8")
         output = _run_full_gate(str(tmp_path), ["--force", "--propose"])
         assert "GATE_PASSED" in output
         assert "PROPOSE_MODE" in output
@@ -546,7 +546,7 @@ class TestFullGateIntegration:
         diary_dir.mkdir(parents=True)
         (diary_dir / "2026-03-07-inquisitor-audit-xxiii.md").write_text(
             f"**Context:** commits `{shas[0]}`..`{shas[0]}` (1 commit)\n"
-        )
+        , encoding="utf-8")
         output = _run_full_gate(str(tmp_path))
         assert "GATE_PASSED" in output
 

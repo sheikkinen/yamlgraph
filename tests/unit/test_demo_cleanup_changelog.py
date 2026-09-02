@@ -21,7 +21,7 @@ FRAGMENT = (
 
 def _read_fragment() -> str:
     """Read the stale demo cleanup changelog fragment."""
-    return FRAGMENT.read_text()
+    return FRAGMENT.read_text(encoding="utf-8")
 
 
 @pytest.mark.req("REQ-YG-146")

@@ -24,7 +24,7 @@ REVIEW = REPO_ROOT / "scripts" / "review.sh"
 
 def _write_stub(path: Path, body: str) -> Path:
     """Write an executable stub standing in for the yamlgraph CLI."""
-    path.write_text(f"#!/usr/bin/env bash\n{body}\n")
+    path.write_text(f"#!/usr/bin/env bash\n{body}\n", encoding="utf-8")
     path.chmod(path.stat().st_mode | stat.S_IXUSR)
     return path
 
@@ -60,7 +60,7 @@ def _run(
 @pytest.fixture()
 def fr_file(tmp_path: Path) -> Path:
     fr = tmp_path / "FR-000-fixture.md"
-    fr.write_text("# FR-000 fixture\n")
+    fr.write_text("# FR-000 fixture\n", encoding="utf-8")
     return fr
 
 
@@ -134,7 +134,7 @@ def test_review_sentinel_exit_70(tmp_path, fr_file):
 def test_judge_fresh_lock_exit_73_prints_holder(tmp_path, fr_file):
     lock = tmp_path / "tmp" / ".judge.lock"
     lock.mkdir(parents=True)
-    (lock / "holder").write_text("pid=99999 started=2026-07-24T00:00:00Z\n")
+    (lock / "holder").write_text("pid=99999 started=2026-07-24T00:00:00Z\n", encoding="utf-8")
     result = _run(JUDGE, [str(fr_file)], tmp_path, None)
     assert result.returncode == 73
     assert "pid=99999" in result.stderr

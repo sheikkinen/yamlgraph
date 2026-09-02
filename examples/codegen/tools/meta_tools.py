@@ -30,7 +30,7 @@ def extract_graph_template(graph_path: str) -> dict:
         return {"error": f"File not found: {graph_path}"}
 
     try:
-        content = path.read_text()
+        content = path.read_text(encoding="utf-8")
         data = yaml.safe_load(content)
     except yaml.YAMLError as e:
         return {"error": f"YAML parse error: {e}"}
@@ -117,7 +117,7 @@ def extract_prompt_template(prompt_path: str) -> dict:
         return {"error": f"File not found: {prompt_path}"}
 
     try:
-        content = path.read_text()
+        content = path.read_text(encoding="utf-8")
         data = yaml.safe_load(content)
     except yaml.YAMLError as e:
         return {"error": f"YAML parse error: {e}"}

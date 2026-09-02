@@ -21,7 +21,7 @@ CHAPLAIN_README = CHAPLAIN / "README.md"
 
 def _load_yaml(path: Path) -> dict:
     assert path.exists(), f"Missing YAML file: {path}"
-    with path.open() as f:
+    with path.open(encoding="utf-8") as f:
         return yaml.safe_load(f)
 
 
@@ -51,7 +51,7 @@ class TestFR339PostMergeProcessingCleanup:
 
     def test_ac03_post_merge_verifies_merged_state_before_processing_cleanup(self):
         """AC-03: post_merge queries PR merge state before moving processing topic."""
-        content = POST_MERGE_SH.read_text()
+        content = POST_MERGE_SH.read_text(encoding="utf-8")
 
         assert "gh pr view" in content
         assert "--json state" in content
@@ -62,7 +62,7 @@ class TestFR339PostMergeProcessingCleanup:
         self,
     ):
         """AC-04, AC-05: processing topic moved to done; missing source is explicit no-op."""
-        content = POST_MERGE_SH.read_text()
+        content = POST_MERGE_SH.read_text(encoding="utf-8")
         lower = content.lower()
 
         assert ".chaplain/processing" in content
@@ -73,14 +73,14 @@ class TestFR339PostMergeProcessingCleanup:
 
     def test_ac06_unmerged_pr_state_skips_processing_move_explicitly(self):
         """AC-06: unmerged/unknown PR state path is explicit and skip-logged."""
-        content = POST_MERGE_SH.read_text().lower()
+        content = POST_MERGE_SH.read_text(encoding="utf-8").lower()
 
         assert "not merged" in content or "unmerged" in content
         assert "skip" in content and "processing" in content
 
     def test_ac07_existing_post_merge_behaviors_still_present(self):
         """AC-07: issue close, inbox consumption, and main sync are preserved."""
-        content = POST_MERGE_SH.read_text()
+        content = POST_MERGE_SH.read_text(encoding="utf-8")
 
         assert "gh issue close" in content
         assert "consume_matching_inbox_items" in content
@@ -88,7 +88,7 @@ class TestFR339PostMergeProcessingCleanup:
 
     def test_ac09_readme_documents_processing_cleanup_contract(self):
         """AC-09: README documents merged-state-gated processing cleanup."""
-        content = CHAPLAIN_README.read_text().lower()
+        content = CHAPLAIN_README.read_text(encoding="utf-8").lower()
 
         assert "post_merge" in content or "post-merge" in content
         assert "gh pr view" in content and "state" in content

@@ -41,7 +41,7 @@ def _load_canon(canon_dir: str | Path | None = None) -> dict[str, dict]:
     if not canon_path.is_dir():
         return pages
     for f in sorted(canon_path.glob("**/*.yaml")):
-        with open(f) as fh:
+        with open(f, encoding="utf-8") as fh:
             page = yaml.safe_load(fh)
         if isinstance(page, dict) and "id" in page:
             pages[page["id"]] = page

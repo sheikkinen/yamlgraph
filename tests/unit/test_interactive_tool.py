@@ -493,7 +493,7 @@ class TestLinterDoubleUnderscore:
             ],
         }
         path = tmp_path / "graph.yaml"
-        path.write_text(yaml.dump(graph))
+        path.write_text(yaml.dump(graph), encoding="utf-8")
 
         issues = check_node_types(path)
         warnings = [i for i in issues if "__" in i.message]
@@ -517,7 +517,7 @@ class TestLinterDoubleUnderscore:
             ],
         }
         path = tmp_path / "graph.yaml"
-        path.write_text(yaml.dump(graph))
+        path.write_text(yaml.dump(graph), encoding="utf-8")
 
         issues = check_node_types(path)
         underscore_warnings = [i for i in issues if "__" in i.message]

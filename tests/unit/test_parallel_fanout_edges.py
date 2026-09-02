@@ -70,7 +70,7 @@ edges:
 {extra_edges}
 """
     yaml_file = tmp_path / "fanout.yaml"
-    yaml_file.write_text(yaml_content)
+    yaml_file.write_text(yaml_content, encoding="utf-8")
     return yaml_file
 
 
@@ -236,7 +236,7 @@ edges:
     to: END
 """
         yaml_file = tmp_path / "start_fanout.yaml"
-        yaml_file.write_text(yaml_content)
+        yaml_file.write_text(yaml_content, encoding="utf-8")
 
         config = load_graph_config(yaml_file)
         graph = compile_graph(config)

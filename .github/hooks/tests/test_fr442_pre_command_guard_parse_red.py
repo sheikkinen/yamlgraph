@@ -15,7 +15,7 @@ HOOK = Path(__file__).resolve().parents[1] / "scripts" / "pre-command-guard.sh"
 
 
 def _parse_block() -> str:
-    text = HOOK.read_text()
+    text = HOOK.read_text(encoding="utf-8")
     start = text.index("# ── Parse input (fail-closed)")
     end = text.index("# ── Lockdown check")
     return text[start:end]
@@ -28,7 +28,7 @@ def _run_hook_with_python_counter(
     assert real_python, "python3 not found"
 
     counter_file = tmp_path / "python-count.txt"
-    counter_file.write_text("0")
+    counter_file.write_text("0", encoding="utf-8")
 
     shim_dir = tmp_path / "shim"
     shim_dir.mkdir()
@@ -43,7 +43,7 @@ def _run_hook_with_python_counter(
         "fi\n"
         'printf "%s" "$((current + 1))" > "$counter"\n'
         f'exec "{real_python}" "$@"\n'
-    )
+    , encoding="utf-8")
     shim.chmod(0o755)
 
     env = os.environ.copy()
@@ -59,7 +59,7 @@ def _run_hook_with_python_counter(
         env=env,
     )
 
-    count = int(counter_file.read_text().strip() or "0")
+    count = int(counter_file.read_text(encoding="utf-8").strip() or "0")
     return result.returncode, result.stdout.strip(), count
 
 

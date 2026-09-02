@@ -131,7 +131,7 @@ def retry_failed_pages(
     # Save retry results
     if retry_results["retried_pages"]:
         retry_file = output_dir / "retried_pages.json"
-        retry_file.write_text(json.dumps(retry_results, ensure_ascii=False, indent=2))
+        retry_file.write_text(json.dumps(retry_results, ensure_ascii=False, indent=2), encoding="utf-8")
         print(f"\n💾 Retry results saved: {retry_file}")
 
     return retry_results
@@ -147,7 +147,7 @@ def run_batch(
     """Run yamlgraph on a page range and save results."""
     if output_file.exists():
         print(f"  ⏭️  Batch {start_page}-{end_page} already complete, skipping")
-        return json.loads(output_file.read_text())
+        return json.loads(output_file.read_text(encoding="utf-8"))
 
     print(f"  🔄 Processing pages {start_page}-{end_page}...")
 
@@ -188,7 +188,7 @@ def run_batch(
         }
 
         output_file.parent.mkdir(parents=True, exist_ok=True)
-        output_file.write_text(json.dumps(batch_result, ensure_ascii=False, indent=2))
+        output_file.write_text(json.dumps(batch_result, ensure_ascii=False, indent=2), encoding="utf-8")
         print(
             f"  ✅ Batch {start_page}-{end_page} complete: {len(batch_result['paragraphs'])} paragraphs"
         )
@@ -220,7 +220,7 @@ def consolidate_batches(batch_files: list[Path], output_dir: Path) -> dict:
     prev_batch_end_page = 0  # Track previous batch's end page for adjacency check
 
     for batch_file in sorted(batch_files, key=lambda f: int(f.stem.split("_")[1])):
-        batch = json.loads(batch_file.read_text())
+        batch = json.loads(batch_file.read_text(encoding="utf-8"))
         batch_end = batch.get("end_page", 0)
 
         paragraphs = batch.get("paragraphs", [])
@@ -300,7 +300,7 @@ def consolidate_batches(batch_files: list[Path], output_dir: Path) -> dict:
 
     # Write final JSON
     final_json = output_dir / "final.json"
-    final_json.write_text(json.dumps(final, ensure_ascii=False, indent=2))
+    final_json.write_text(json.dumps(final, ensure_ascii=False, indent=2), encoding="utf-8")
 
     # Write plain text version
     final_txt = output_dir / "final.txt"
@@ -332,7 +332,7 @@ def _write_plain_text(final: dict, output_path: Path) -> None:
         text_lines.append(para.get("text", ""))
         text_lines.append("\n\n")
 
-    output_path.write_text("".join(text_lines))
+    output_path.write_text("".join(text_lines), encoding="utf-8")
 
 
 def main():
@@ -437,7 +437,7 @@ def main():
 
         # Rewrite final files
         final_json = output_dir / "final.json"
-        final_json.write_text(json.dumps(final, ensure_ascii=False, indent=2))
+        final_json.write_text(json.dumps(final, ensure_ascii=False, indent=2), encoding="utf-8")
 
         # Regenerate plain text
         _write_plain_text(final, output_dir / "final.txt")

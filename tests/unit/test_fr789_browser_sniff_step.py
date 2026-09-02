@@ -21,7 +21,7 @@ CAPTURED_REQUEST_FIELDS = {"url", "method", "status", "content_type", "body_prev
 
 
 def _load(path: Path) -> dict:
-    return yaml.safe_load(path.read_text())
+    return yaml.safe_load(path.read_text(encoding="utf-8"))
 
 
 # ---------------------------------------------------------------------------

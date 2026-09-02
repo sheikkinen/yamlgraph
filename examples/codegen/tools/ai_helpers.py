@@ -33,7 +33,7 @@ def summarize_module(file_path: str, max_length: int = 1500) -> dict:
         return {"error": f"File not found: {file_path}"}
 
     try:
-        source = path.read_text()
+        source = path.read_text(encoding="utf-8")
         tree = ast.parse(source)
     except SyntaxError as e:
         return {"error": f"Syntax error: {e}"}
@@ -179,7 +179,7 @@ def diff_preview(
     if not path.exists():
         return {"error": f"File not found: {file_path}"}
 
-    lines = path.read_text().splitlines(keepends=True)
+    lines = path.read_text(encoding="utf-8").splitlines(keepends=True)
 
     if line < 1 or line > len(lines) + 1:
         return {"error": f"Invalid line {line}, file has {len(lines)} lines"}
@@ -260,7 +260,7 @@ def find_similar_code(
 
     # Parse source and find target symbol
     try:
-        source = source_path.read_text()
+        source = source_path.read_text(encoding="utf-8")
         tree = ast.parse(source)
     except SyntaxError as e:
         return {"error": f"Syntax error in {file_path}: {e}"}
@@ -290,7 +290,7 @@ def find_similar_code(
             continue
 
         try:
-            file_source = py_file.read_text()
+            file_source = py_file.read_text(encoding="utf-8")
             file_tree = ast.parse(file_source)
         except (SyntaxError, UnicodeDecodeError):
             continue

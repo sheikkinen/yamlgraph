@@ -48,12 +48,12 @@ def tmp_repo(tmp_path: Path) -> Path:
     _git(repo, "init", "-q")
     _git(repo, "config", "user.email", "t@t")
     _git(repo, "config", "user.name", "t")
-    (repo / "code.py").write_text("x = 1\n")
+    (repo / "code.py").write_text("x = 1\n", encoding="utf-8")
     _git(repo, "add", "code.py")
     _git(repo, "commit", "-q", "-m", "feat(x): FR-000 substantive change")
     recaps = repo / "docs" / "recaps"
     recaps.mkdir(parents=True)
-    (recaps / "2026-W33.md").write_text("# Weekly Recap 2026-W33\n")
+    (recaps / "2026-W33.md").write_text("# Weekly Recap 2026-W33\n", encoding="utf-8")
     _git(repo, "add", "docs/recaps/2026-W33.md")
     _git(repo, "commit", "-q", "-m", "docs(recap): weekly recap 2026-W33")
     return repo
@@ -121,7 +121,7 @@ class TestSubstantiveWindow:
     ) -> None:
         """Subject match alone must not exclude — paths must also be
         recap-only (false_duplicate: syntactic similarity != equivalence)."""
-        (tmp_repo / "other.py").write_text("y = 2\n")
+        (tmp_repo / "other.py").write_text("y = 2\n", encoding="utf-8")
         _git(tmp_repo, "add", "other.py")
         _git(tmp_repo, "commit", "-q", "-m", "docs(recap): weekly recap 2026-W99")
         commits = weekly_recap.substantive_commits(str(tmp_repo), "1 hour ago")
@@ -216,4 +216,4 @@ class TestMainNoOpAndDryRun:
         week = weekly_recap.iso_week(date.today())
         target = out_dir / f"{week}.md"
         assert target.exists()
-        assert target.read_text().startswith(f"# Weekly Recap {week}")
+        assert target.read_text(encoding="utf-8").startswith(f"# Weekly Recap {week}")

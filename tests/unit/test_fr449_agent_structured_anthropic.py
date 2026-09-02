@@ -58,7 +58,7 @@ def prompt_with_schema(tmp_path):
     prompts_dir = tmp_path / "prompts"
     prompts_dir.mkdir()
     prompt_file = prompts_dir / "judge.yaml"
-    prompt_file.write_text(PROMPT_YAML_WITH_SCHEMA)
+    prompt_file.write_text(PROMPT_YAML_WITH_SCHEMA, encoding="utf-8")
     return tmp_path
 
 
@@ -73,7 +73,7 @@ class TestAnthropicContentBlocks:
 
         from yamlgraph.schema_loader import load_schema_from_yaml
 
-        with tempfile.NamedTemporaryFile(suffix=".yaml", mode="w", delete=False) as f:
+        with tempfile.NamedTemporaryFile(encoding="utf-8", suffix=".yaml", mode="w", delete=False) as f:
             f.write(PROMPT_YAML_WITH_SCHEMA)
             f.flush()
             output_model = load_schema_from_yaml(Path(f.name))
@@ -114,7 +114,7 @@ class TestAnthropicContentBlocks:
 
         from yamlgraph.schema_loader import load_schema_from_yaml
 
-        with tempfile.NamedTemporaryFile(suffix=".yaml", mode="w", delete=False) as f:
+        with tempfile.NamedTemporaryFile(encoding="utf-8", suffix=".yaml", mode="w", delete=False) as f:
             f.write(PROMPT_YAML_WITH_SCHEMA)
             f.flush()
             output_model = load_schema_from_yaml(Path(f.name))
@@ -142,7 +142,7 @@ class TestAnthropicFallbackPath:
 
         from yamlgraph.schema_loader import load_schema_from_yaml
 
-        with tempfile.NamedTemporaryFile(suffix=".yaml", mode="w", delete=False) as f:
+        with tempfile.NamedTemporaryFile(encoding="utf-8", suffix=".yaml", mode="w", delete=False) as f:
             f.write(PROMPT_YAML_WITH_SCHEMA)
             f.flush()
             output_model = load_schema_from_yaml(Path(f.name))
@@ -292,7 +292,7 @@ class TestStructuredOutputJsonFallback:
 
         from yamlgraph.schema_loader import load_schema_from_yaml
 
-        with tempfile.NamedTemporaryFile(suffix=".yaml", mode="w", delete=False) as f:
+        with tempfile.NamedTemporaryFile(encoding="utf-8", suffix=".yaml", mode="w", delete=False) as f:
             f.write(PROMPT_YAML_WITH_SCHEMA)
             f.flush()
             output_model = load_schema_from_yaml(Path(f.name))
@@ -331,7 +331,7 @@ class TestStructuredOutputJsonFallback:
 
         from yamlgraph.schema_loader import load_schema_from_yaml
 
-        with tempfile.NamedTemporaryFile(suffix=".yaml", mode="w", delete=False) as f:
+        with tempfile.NamedTemporaryFile(encoding="utf-8", suffix=".yaml", mode="w", delete=False) as f:
             f.write(PROMPT_YAML_WITH_SCHEMA)
             f.flush()
             output_model = load_schema_from_yaml(Path(f.name))
@@ -360,7 +360,7 @@ class TestStructuredOutputJsonFallback:
 
         from yamlgraph.schema_loader import load_schema_from_yaml
 
-        with tempfile.NamedTemporaryFile(suffix=".yaml", mode="w", delete=False) as f:
+        with tempfile.NamedTemporaryFile(encoding="utf-8", suffix=".yaml", mode="w", delete=False) as f:
             f.write(PROMPT_YAML_WITH_SCHEMA)
             f.flush()
             output_model = load_schema_from_yaml(Path(f.name))
@@ -392,7 +392,7 @@ class TestStructuredOutputJsonFallback:
 
         from yamlgraph.schema_loader import load_schema_from_yaml
 
-        with tempfile.NamedTemporaryFile(suffix=".yaml", mode="w", delete=False) as f:
+        with tempfile.NamedTemporaryFile(encoding="utf-8", suffix=".yaml", mode="w", delete=False) as f:
             f.write(PROMPT_YAML_WITH_SCHEMA)
             f.flush()
             output_model = load_schema_from_yaml(Path(f.name))
@@ -430,7 +430,7 @@ class TestOpenAIStrictSchemaFallback:
 
         from yamlgraph.schema_loader import load_schema_from_yaml
 
-        with tempfile.NamedTemporaryFile(suffix=".yaml", mode="w", delete=False) as f:
+        with tempfile.NamedTemporaryFile(encoding="utf-8", suffix=".yaml", mode="w", delete=False) as f:
             f.write(PROMPT_YAML_WITH_SCHEMA)
             f.flush()
             output_model = load_schema_from_yaml(Path(f.name))
@@ -483,7 +483,7 @@ class TestOpenAIStrictSchemaFallback:
 
         from yamlgraph.schema_loader import load_schema_from_yaml
 
-        with tempfile.NamedTemporaryFile(suffix=".yaml", mode="w", delete=False) as f:
+        with tempfile.NamedTemporaryFile(encoding="utf-8", suffix=".yaml", mode="w", delete=False) as f:
             f.write(PROMPT_YAML_WITH_SCHEMA)
             f.flush()
             output_model = load_schema_from_yaml(Path(f.name))
@@ -521,7 +521,7 @@ class TestOpenAIStrictSchemaFallback:
 
         from yamlgraph.schema_loader import load_schema_from_yaml
 
-        with tempfile.NamedTemporaryFile(suffix=".yaml", mode="w", delete=False) as f:
+        with tempfile.NamedTemporaryFile(encoding="utf-8", suffix=".yaml", mode="w", delete=False) as f:
             f.write(PROMPT_YAML_WITH_SCHEMA)
             f.flush()
             output_model = load_schema_from_yaml(Path(f.name))

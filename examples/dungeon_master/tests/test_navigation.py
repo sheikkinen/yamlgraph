@@ -302,7 +302,7 @@ def test_beat_plateau_signal_is_non_separable():
     max_natural_plateau = 0
     waste_tails: list[int] = []
     for story in stories:
-        doc = json.loads(story.read_text())
+        doc = json.loads(story.read_text(encoding="utf-8"))
         chapters = doc.get("chapters") or {}
         for cid in chapters.get("order") or []:
             card = (chapters.get("cards") or {}).get(cid) or {}

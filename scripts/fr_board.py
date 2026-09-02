@@ -79,7 +79,7 @@ def repo_display_name(repo: Path) -> str:
     """
     pyproject = repo / "pyproject.toml"
     if pyproject.is_file():
-        match = PYPROJECT_NAME_RE.search(pyproject.read_text(errors="replace"))
+        match = PYPROJECT_NAME_RE.search(pyproject.read_text(errors="replace", encoding="utf-8"))
         if match:
             return match.group(1)
     return repo.name
@@ -101,7 +101,7 @@ def collect_rows(repo: Path) -> list[dict]:
         m_id = ID_RE.match(path.name)
         if not m_id:
             continue
-        text = path.read_text(errors="replace")
+        text = path.read_text(errors="replace", encoding="utf-8")
         m_status = STATUS_RE.search(text)
         raw = m_status.group(1).strip() if m_status else "(no Status header)"
         m_parent = PARENT_RE.search(text)
@@ -144,7 +144,7 @@ def load_gates(path: Path) -> list[dict]:
         return []
     import yaml
 
-    data = yaml.safe_load(path.read_text()) or {}
+    data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
     return data.get("gates", [])
 
 

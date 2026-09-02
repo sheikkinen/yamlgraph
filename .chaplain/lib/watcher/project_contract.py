@@ -108,7 +108,7 @@ def load_ninchat_voice_manifest(manifest_path: Path) -> ProjectContext:
     if not manifest_path.exists():
         raise FileNotFoundError(f"Manifest not found: {manifest_path}")
 
-    raw = yaml.safe_load(manifest_path.read_text()) or {}
+    raw = yaml.safe_load(manifest_path.read_text(encoding="utf-8")) or {}
     if not isinstance(raw, dict):
         raise ValueError("Manifest content must be a mapping")
 

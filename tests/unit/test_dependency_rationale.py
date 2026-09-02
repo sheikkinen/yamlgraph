@@ -30,7 +30,7 @@ dependencies = [
     "pydantic>=2.0.0",
     "pyyaml>=6.0",
 ]
-""")
+""", encoding="utf-8")
 
         result = dependency_rationale.parse_pyproject_dependencies(toml)
 
@@ -52,7 +52,7 @@ dev = [
 redis = [
     "langgraph-checkpoint-redis>=0.3.0",
 ]
-""")
+""", encoding="utf-8")
 
         result = dependency_rationale.parse_pyproject_dependencies(toml)
 
@@ -69,7 +69,7 @@ dependencies = [
     "a2a-sdk[http-server]>=0.3,<1.0",
     "langchain-anthropic>=0.3.0",
 ]
-""")
+""", encoding="utf-8")
 
         result = dependency_rationale.parse_pyproject_dependencies(toml)
 
@@ -106,7 +106,7 @@ dependencies:
     rationale: "YAML parsing"
     modules: ["yamlgraph/data_loader.py"]
     added: "0.1.0"
-""")
+""", encoding="utf-8")
 
         result = dependency_rationale.parse_rationale_registry(registry)
 
@@ -129,7 +129,7 @@ dependencies:
     rationale: "Structured validation"
   pyyaml:
     modules: ["yamlgraph/data_loader.py"]
-""")
+""", encoding="utf-8")
 
         result = dependency_rationale.parse_rationale_registry(registry)
 
@@ -206,7 +206,7 @@ class TestMain:
         toml.write_text("""\
 [project]
 dependencies = ["pydantic>=2.0.0"]
-""")
+""", encoding="utf-8")
 
         registry = tmp_path / "docs" / "dependency-rationale.yaml"
         registry.parent.mkdir()
@@ -216,7 +216,7 @@ dependencies:
     rationale: "Validation"
     modules: ["yamlgraph/models/"]
     added: "0.1.0"
-""")
+""", encoding="utf-8")
 
         with patch.object(dependency_rationale.sys, "argv", ["dep_rationale.py"]):
             original_file = dependency_rationale.__file__
@@ -236,7 +236,7 @@ dependencies:
         toml.write_text("""\
 [project]
 dependencies = ["pydantic>=2.0.0", "pyyaml>=6.0"]
-""")
+""", encoding="utf-8")
 
         registry = tmp_path / "docs" / "dependency-rationale.yaml"
         registry.parent.mkdir()
@@ -246,7 +246,7 @@ dependencies:
     rationale: "Validation"
     modules: ["yamlgraph/models/"]
     added: "0.1.0"
-""")
+""", encoding="utf-8")
 
         with patch.object(
             dependency_rationale.sys, "argv", ["dep_rationale.py", "--strict"]
@@ -268,7 +268,7 @@ dependencies:
         toml.write_text("""\
 [project]
 dependencies = ["pydantic>=2.0.0", "pyyaml>=6.0"]
-""")
+""", encoding="utf-8")
 
         registry = tmp_path / "docs" / "dependency-rationale.yaml"
         registry.parent.mkdir()
@@ -278,7 +278,7 @@ dependencies:
     rationale: "Validation"
     modules: ["yamlgraph/models/"]
     added: "0.1.0"
-""")
+""", encoding="utf-8")
 
         with patch.object(dependency_rationale.sys, "argv", ["dep_rationale.py"]):
             original_file = dependency_rationale.__file__
@@ -298,7 +298,7 @@ dependencies:
         toml.write_text("""\
 [project]
 dependencies = ["pydantic>=2.0.0"]
-""")
+""", encoding="utf-8")
 
         registry = tmp_path / "docs" / "dependency-rationale.yaml"
         registry.parent.mkdir()
@@ -308,7 +308,7 @@ dependencies:
     rationale: "Structured validation"
     modules: ["yamlgraph/models/"]
     added: "0.1.0"
-""")
+""", encoding="utf-8")
 
         with patch.object(
             dependency_rationale.sys, "argv", ["dep_rationale.py", "--detail"]
@@ -482,9 +482,9 @@ class TestMainDeepAudit:
 
     def _make_env(self, tmp_path: Path, toml_text: str, registry_text: str) -> None:
         """Create pyproject.toml and registry in tmp_path."""
-        (tmp_path / "pyproject.toml").write_text(toml_text)
+        (tmp_path / "pyproject.toml").write_text(toml_text, encoding="utf-8")
         (tmp_path / "docs").mkdir(exist_ok=True)
-        (tmp_path / "docs" / "dependency-rationale.yaml").write_text(registry_text)
+        (tmp_path / "docs" / "dependency-rationale.yaml").write_text(registry_text, encoding="utf-8")
 
     def test_strict_fails_on_orphans(self, tmp_path: Path) -> None:
         """--strict should exit 1 when orphaned registry entries exist."""

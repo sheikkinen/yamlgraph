@@ -52,7 +52,7 @@ def main() -> None:
             deduped_turns += shared
 
     kept = 0
-    with OUT.open("w") as fh:
+    with OUT.open("w", encoding="utf-8") as fh:
         for sess in sessions:
             if not sess["turns"]:
                 continue

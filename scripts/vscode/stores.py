@@ -26,7 +26,7 @@ def workspace_folder(hash_dir: Path) -> str:
     if not meta.is_file():
         return "?"
     try:
-        data = json.loads(meta.read_text())
+        data = json.loads(meta.read_text(encoding="utf-8"))
     except ValueError:
         return "?"
     return data.get("folder", data.get("workspace", "?")).replace("file://", "")

@@ -65,7 +65,7 @@ class TestDemoStructure:
     def test_graph_yaml_valid(self, demo):
         """Graph YAML should be valid."""
         graph = DEMOS_DIR / demo / "graph.yaml"
-        config = yaml.safe_load(graph.read_text())
+        config = yaml.safe_load(graph.read_text(encoding="utf-8"))
         assert config is not None
         # Should have either name or nodes
         assert "name" in config or "nodes" in config
@@ -114,7 +114,7 @@ class TestPromptsExist:
     def test_prompts_dir_exists(self, demo):
         """Demos with LLM nodes should have prompts directory."""
         demo_dir = DEMOS_DIR / demo
-        graph = yaml.safe_load((demo_dir / "graph.yaml").read_text())
+        graph = yaml.safe_load((demo_dir / "graph.yaml").read_text(encoding="utf-8"))
 
         # Check if any node uses prompts
         nodes = graph.get("nodes", {})
@@ -143,5 +143,5 @@ class TestStreamingDemo:
     def test_demo_script_importable(self):
         """Demo script should be syntactically valid."""
         script = DEMOS_DIR / "streaming" / "demo_streaming.py"
-        code = script.read_text()
+        code = script.read_text(encoding="utf-8")
         compile(code, str(script), "exec")  # Raises SyntaxError if invalid

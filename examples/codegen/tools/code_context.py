@@ -39,7 +39,7 @@ def read_lines(file_path: str, start_line: int, end_line: int) -> str | dict:
     if not path.exists():
         return {"error": f"File not found: {file_path}"}
 
-    lines = path.read_text().splitlines(keepends=True)
+    lines = path.read_text(encoding="utf-8").splitlines(keepends=True)
 
     # Convert to 0-indexed
     start = max(0, start_line - 1)
@@ -78,7 +78,7 @@ def find_related_tests(symbol_name: str, tests_path: str = "tests") -> list[dict
             continue
 
         try:
-            source = test_file.read_text()
+            source = test_file.read_text(encoding="utf-8")
             tree = ast.parse(source)
         except SyntaxError:
             logger.warning(f"Skipping {test_file}: syntax error")
@@ -128,7 +128,7 @@ def search_in_file(
     results = []
     search_pattern = pattern if case_sensitive else pattern.lower()
 
-    for i, line in enumerate(path.read_text().splitlines(), start=1):
+    for i, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
         check_line = line if case_sensitive else line.lower()
         if search_pattern in check_line:
             results.append({"line": i, "text": line.strip()})
@@ -165,7 +165,7 @@ def search_codebase(directory: str, query: str, pattern: str = "*.py") -> list[d
             continue
 
         try:
-            content = file_path.read_text()
+            content = file_path.read_text(encoding="utf-8")
         except (OSError, UnicodeDecodeError):
             continue
 

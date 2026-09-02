@@ -29,7 +29,7 @@ _BARE_BINDING = re.compile(r"^\{(?!state\.)[^{}]+\}$")
 
 
 def _load(path: Path) -> dict:
-    return yaml.safe_load(path.read_text())
+    return yaml.safe_load(path.read_text(encoding="utf-8"))
 
 
 def _bare_bindings(raw: dict) -> list[str]:

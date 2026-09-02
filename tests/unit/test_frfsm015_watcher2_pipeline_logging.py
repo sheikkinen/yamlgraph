@@ -13,7 +13,7 @@ START_SYSTEM_PATH = WORKTREE / ".chaplain" / "scripts" / "start-system.sh"
 
 
 def _load_dispatcher_config() -> dict:
-    with open(DISPATCHER_CONFIG_PATH) as f:
+    with open(DISPATCHER_CONFIG_PATH, encoding="utf-8") as f:
         return yaml.safe_load(f)
 
 
@@ -49,5 +49,5 @@ class TestFRFSM015Watcher2PipelineLogging:
         assert 'echo "Pipeline log: $LOG"' in command
 
     def test_dispatcher_log_contract_remains_unchanged(self):
-        start_system = START_SYSTEM_PATH.read_text()
+        start_system = START_SYSTEM_PATH.read_text(encoding="utf-8")
         assert "> logs/fsm-dispatcher.log 2>&1" in start_system

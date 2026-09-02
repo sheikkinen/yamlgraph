@@ -35,7 +35,7 @@ class TestAsyncGraphRelativePromptResolution:
             prompt_file = prompts_subdir / "relative_test.yaml"
             prompt_file.write_text(
                 "system: You are a test assistant.\nuser: Process {input}\n"
-            )
+            , encoding="utf-8")
 
             with (
                 patch("yamlgraph.executor_async.create_llm") as mock_create_llm,
@@ -74,7 +74,7 @@ class TestAsyncGraphRelativePromptResolution:
 system: Custom system prompt.
 user: Custom user {input}
 """
-            )
+            , encoding="utf-8")
 
             with (
                 patch("yamlgraph.executor_async.create_llm") as mock_create_llm,
@@ -140,7 +140,7 @@ class TestStreamingGraphRelativePromptResolution:
             prompts_subdir.mkdir()
 
             prompt_file = prompts_subdir / "stream_test.yaml"
-            prompt_file.write_text("system: Streaming test.\nuser: Stream {input}\n")
+            prompt_file.write_text("system: Streaming test.\nuser: Stream {input}\n", encoding="utf-8")
 
             mock_chunk = MagicMock()
             mock_chunk.content = "streamed"
@@ -180,7 +180,7 @@ class TestStreamingGraphRelativePromptResolution:
 system: Custom stream.
 user: Stream custom {input}
 """
-            )
+            , encoding="utf-8")
 
             mock_chunk = MagicMock()
             mock_chunk.content = "custom_streamed"

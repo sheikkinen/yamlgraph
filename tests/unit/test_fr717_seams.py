@@ -44,7 +44,7 @@ class TestSeams:
         """No code references the retired flat paths."""
         stale = []
         for py in (REPO_ROOT / "yamlgraph").rglob("*.py"):
-            text = py.read_text()
+            text = py.read_text(encoding="utf-8")
             for old in (
                 "yamlgraph.a2a_server",
                 "yamlgraph.a2a_message",

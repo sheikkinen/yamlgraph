@@ -157,7 +157,7 @@ def write_dossier(state: dict[str, Any]) -> dict[str, Any]:
 
     json_path = output_dir / "dossier.json"
     md_path = output_dir / "dossier.md"
-    json_path.write_text(json.dumps(dossier, indent=2, ensure_ascii=False) + "\n")
+    json_path.write_text(json.dumps(dossier, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     md_path.write_text(_render_markdown_index(dossier), encoding="utf-8")
     print(f"wrote {json_path} and {md_path}")
     return {

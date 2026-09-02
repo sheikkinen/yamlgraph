@@ -178,13 +178,13 @@ def render_wiki(canon_dir: str, wiki_dir: str) -> dict:
 
     written = []
     for yaml_file in sorted(canon_path.rglob("*.yaml")):
-        page = yaml.safe_load(yaml_file.read_text())
+        page = yaml.safe_load(yaml_file.read_text(encoding="utf-8"))
         if not isinstance(page, dict) or "id" not in page:
             continue
 
         md_content = render_page(page)
         md_file = wiki_path / f"{page['id']}.md"
-        md_file.write_text(md_content)
+        md_file.write_text(md_content, encoding="utf-8")
         written.append(str(md_file))
 
     logger.info("📖 Rendered %d wiki pages to %s", len(written), wiki_dir)

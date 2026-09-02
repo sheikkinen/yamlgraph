@@ -22,13 +22,10 @@ CHECK_MARK = "\u2705"
 CROSS_MARK = "\u274c"
 UNICODE_EXCEPTIONS = ("UnicodeDecodeError", "UnicodeEncodeError")
 
-pytestmark = [
-    pytest.mark.req("REQ-YG-638"),
-    pytest.mark.skipif(
-        sys.platform != "win32",
-        reason="FR-951: the inherited-codec boundary only exists on Windows",
-    ),
-]
+pytestmark = pytest.mark.skipif(
+    sys.platform != "win32",
+    reason="FR-951: the inherited-codec boundary only exists on Windows",
+)
 
 
 def _console_entry() -> Path:
@@ -66,18 +63,21 @@ def _decoded(proc: subprocess.CompletedProcess[bytes]) -> tuple[str, str]:
     return stdout, stderr
 
 
+@pytest.mark.req("REQ-YG-638")
 def test_cli_lints_unicode_graph_through_piped_streams() -> None:
     proc = _run("graph", "lint", str(GRAPH))
     stdout, stderr = _decoded(proc)
     assert proc.returncode == 0, f"stdout:\n{stdout}\nstderr:\n{stderr}"
 
 
+@pytest.mark.req("REQ-YG-638")
 def test_cli_stdout_carries_non_ascii_glyph() -> None:
     proc = _run("graph", "lint", str(GRAPH))
     stdout, _ = _decoded(proc)
     assert CHECK_MARK in stdout
 
 
+@pytest.mark.req("REQ-YG-638")
 def test_cli_stderr_carries_non_ascii_glyph() -> None:
     proc = _run("graph", "lint", "--json", str(MISSING_GRAPH))
     _, stderr = _decoded(proc)

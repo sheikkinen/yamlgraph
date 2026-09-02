@@ -146,7 +146,7 @@ def aggregate_classifications(state: dict[str, Any]) -> dict[str, Any]:
     }
 
     OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
-    OUTPUT_PATH.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n")
+    OUTPUT_PATH.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     return {"result": result, "sessions": []}
 
 

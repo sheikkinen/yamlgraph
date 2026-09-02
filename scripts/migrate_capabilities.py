@@ -317,7 +317,7 @@ def _parse_architecture_reqs() -> dict[str, dict[str, str | list[str]]]:
 
     Returns mapping: req_id -> {"description": str, "modules": list[str]}
     """
-    text = ARCHITECTURE_MD.read_text()
+    text = ARCHITECTURE_MD.read_text(encoding="utf-8")
 
     cap_start = text.find("## Capabilities & Requirements Traceability")
     if cap_start == -1:
@@ -490,7 +490,7 @@ def main() -> None:
         filepath = OUTPUT_DIR / filename
 
         content = _generate_yaml(cap_id, name, reqs, req_info)
-        filepath.write_text(content)
+        filepath.write_text(content, encoding="utf-8")
         count += 1
         print(f"  Created: {filename}")
 

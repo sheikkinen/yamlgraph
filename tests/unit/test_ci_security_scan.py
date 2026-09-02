@@ -18,7 +18,7 @@ WORKFLOW_PATH = ".github/workflows/security.yml"
 
 def _load_workflow() -> dict:
     """Load and parse the security workflow YAML."""
-    with open(WORKFLOW_PATH) as f:
+    with open(WORKFLOW_PATH, encoding="utf-8") as f:
         return yaml.safe_load(f)
 
 
@@ -194,7 +194,7 @@ class TestSecurityDocumentation:
 
     def test_security_in_branch_protection_table(self) -> None:
         """The CI checks list must include 'security' as a check."""
-        with open("reference/development-operations.md") as f:
+        with open("reference/development-operations.md", encoding="utf-8") as f:
             content = f.read()
         assert (
             "`security`" in content
@@ -202,7 +202,7 @@ class TestSecurityDocumentation:
 
     def test_security_in_status_checks_list(self) -> None:
         """The status checks list must describe the security job."""
-        with open("reference/development-operations.md") as f:
+        with open("reference/development-operations.md", encoding="utf-8") as f:
             content = f.read()
         assert (
             "pip-audit" in content

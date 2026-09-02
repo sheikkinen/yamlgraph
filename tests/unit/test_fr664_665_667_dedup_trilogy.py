@@ -165,7 +165,7 @@ class TestGenesisStubPipeline:
     def test_genesis_graph_structure(self) -> None:
         """Genesis graph has 5 nodes: load, synopsis, persist_synopsis, genesis (agent), final_gate."""
         graph_path = NOVEL_FANDOM_DIR / "genesis.yaml"
-        with open(graph_path) as f:
+        with open(graph_path, encoding="utf-8") as f:
             config = yaml.safe_load(f)
         node_names = set(config["nodes"].keys())
         assert node_names == {
@@ -180,7 +180,7 @@ class TestGenesisStubPipeline:
     def test_genesis_has_one_llm_node(self) -> None:
         """FR-686: Only synopsis is an LLM node; genesis is agent."""
         graph_path = NOVEL_FANDOM_DIR / "genesis.yaml"
-        with open(graph_path) as f:
+        with open(graph_path, encoding="utf-8") as f:
             config = yaml.safe_load(f)
         llm_nodes = [
             name for name, node in config["nodes"].items() if node.get("type") == "llm"
@@ -212,7 +212,7 @@ class TestGenesisStubPipeline:
     def test_genesis_no_roster_state(self) -> None:
         """Genesis graph state has no roster_text or character_names."""
         graph_path = NOVEL_FANDOM_DIR / "genesis.yaml"
-        with open(graph_path) as f:
+        with open(graph_path, encoding="utf-8") as f:
             config = yaml.safe_load(f)
         state_keys = set(config["state"].keys())
         assert "roster_text" not in state_keys
@@ -340,7 +340,7 @@ class TestDedupEntities:
     def test_worldgen_agent_has_update_refs(self) -> None:
         """FR-689: worldgen agent has update_refs (dedup integrated into create_* pipelines)."""
         graph_path = NOVEL_FANDOM_DIR / "worldgen.yaml"
-        with open(graph_path) as f:
+        with open(graph_path, encoding="utf-8") as f:
             config = yaml.safe_load(f)
         agent = config["nodes"]["worldgen"]
         assert "update_refs" in agent["tools"]

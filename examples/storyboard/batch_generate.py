@@ -38,7 +38,7 @@ def load_prompts(filepath: Path) -> list[str]:
     Ignores blank lines and lines starting with #.
     """
     prompts = []
-    with open(filepath) as f:
+    with open(filepath, encoding="utf-8") as f:
         for line in f:
             line = line.strip()
             if line and not line.startswith("#"):

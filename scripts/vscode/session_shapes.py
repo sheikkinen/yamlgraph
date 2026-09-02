@@ -49,7 +49,7 @@ CACHE_RATIO_BEST = 0.98
 def parse_session(path: Path) -> dict:
     """Extract requests (ts, model, ptok, otok) from one chatSessions file."""
     try:
-        text = path.read_text(errors="replace")
+        text = path.read_text(encoding="utf-8", errors="replace")
     except OSError:
         return {"session_id": path.stem, "title": None, "requests": []}
     title = TITLE_RE.search(text[:4000])
@@ -211,7 +211,7 @@ def replay(path: Path) -> dict | None:
     """
     state: dict | None = None
     try:
-        fh = path.open(errors="replace")
+        fh = path.open(encoding="utf-8", errors="replace")
     except OSError:
         return None
     with fh:
@@ -284,7 +284,7 @@ def extract_transcript(path: Path) -> str:
     """Human-visible narrative (message text + response values) of a session."""
     out: list[str] = []
     try:
-        text = path.read_text(errors="replace")
+        text = path.read_text(encoding="utf-8", errors="replace")
     except OSError:
         return ""
     try:

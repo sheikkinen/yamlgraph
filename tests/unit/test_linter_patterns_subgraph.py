@@ -19,7 +19,7 @@ class TestSubgraphNodeRequirements:
         # Create a mock subgraph file
         subgraph_file = tmp_path / "subgraphs" / "test_subgraph.yaml"
         subgraph_file.parent.mkdir(parents=True)
-        subgraph_file.write_text("version: '1.0'\nnodes: {}")
+        subgraph_file.write_text("version: '1.0'\nnodes: {}", encoding="utf-8")
 
         node_config = {
             "type": "subgraph",
@@ -75,7 +75,7 @@ class TestSubgraphNodeRequirements:
 
         # Create subgraph in same directory
         subgraph_file = graph_dir / "subgraph.yaml"
-        subgraph_file.write_text("version: '1.0'\nnodes: {}")
+        subgraph_file.write_text("version: '1.0'\nnodes: {}", encoding="utf-8")
 
         node_config = {
             "type": "subgraph",
@@ -94,7 +94,7 @@ class TestSubgraphNodeRequirements:
         """Should warn when subgraph node missing input_mapping."""
         # Create subgraph file
         subgraph_file = tmp_path / "subgraph.yaml"
-        subgraph_file.write_text("version: '1.0'\nnodes: {}")
+        subgraph_file.write_text("version: '1.0'\nnodes: {}", encoding="utf-8")
 
         node_config = {
             "type": "subgraph",
@@ -117,7 +117,7 @@ class TestSubgraphNodeRequirements:
         """Should warn when subgraph node missing output_mapping."""
         # Create subgraph file
         subgraph_file = tmp_path / "subgraph.yaml"
-        subgraph_file.write_text("version: '1.0'\nnodes: {}")
+        subgraph_file.write_text("version: '1.0'\nnodes: {}", encoding="utf-8")
 
         node_config = {
             "type": "subgraph",
@@ -140,7 +140,7 @@ class TestSubgraphNodeRequirements:
         """Should warn for both missing mappings."""
         # Create subgraph file
         subgraph_file = tmp_path / "subgraph.yaml"
-        subgraph_file.write_text("version: '1.0'\nnodes: {}")
+        subgraph_file.write_text("version: '1.0'\nnodes: {}", encoding="utf-8")
 
         node_config = {
             "type": "subgraph",
@@ -161,7 +161,7 @@ class TestSubgraphNodeRequirements:
         """Should pass with minimal valid config (just graph field)."""
         # Create subgraph file
         subgraph_file = tmp_path / "subgraph.yaml"
-        subgraph_file.write_text("version: '1.0'\nnodes: {}")
+        subgraph_file.write_text("version: '1.0'\nnodes: {}", encoding="utf-8")
 
         node_config = {
             "type": "subgraph",
@@ -204,7 +204,7 @@ edges:
     to: summarize
   - from: summarize
     to: END
-""")
+""", encoding="utf-8")
 
         graph_content = """
 version: "1.0"
@@ -226,7 +226,7 @@ edges:
     to: END
 """
         graph_file = tmp_path / "test_graph.yaml"
-        graph_file.write_text(graph_content)
+        graph_file.write_text(graph_content, encoding="utf-8")
 
         issues = check_subgraph_patterns(graph_file, tmp_path)
         assert len(issues) == 0
@@ -246,7 +246,7 @@ edges:
     to: summarize
 """
         graph_file = tmp_path / "test_graph.yaml"
-        graph_file.write_text(graph_content)
+        graph_file.write_text(graph_content, encoding="utf-8")
 
         issues = check_subgraph_patterns(graph_file, tmp_path)
         assert len(issues) == 1
@@ -267,7 +267,7 @@ edges:
     to: summarize
 """
         graph_file = tmp_path / "test_graph.yaml"
-        graph_file.write_text(graph_content)
+        graph_file.write_text(graph_content, encoding="utf-8")
 
         issues = check_subgraph_patterns(graph_file, tmp_path)
         assert len(issues) == 3  # E502 + W501 + W502
@@ -280,7 +280,7 @@ edges:
         """Should warn when subgraph missing mappings."""
         # Create subgraph file
         subgraph_file = tmp_path / "subgraph.yaml"
-        subgraph_file.write_text("version: '1.0'\nnodes: {}")
+        subgraph_file.write_text("version: '1.0'\nnodes: {}", encoding="utf-8")
 
         graph_content = """
 version: "1.0"
@@ -293,7 +293,7 @@ edges:
     to: summarize
 """
         graph_file = tmp_path / "test_graph.yaml"
-        graph_file.write_text(graph_content)
+        graph_file.write_text(graph_content, encoding="utf-8")
 
         issues = check_subgraph_patterns(graph_file, tmp_path)
         assert len(issues) == 2
@@ -305,7 +305,7 @@ edges:
         """Should only validate subgraph nodes, ignore others."""
         # Create subgraph file
         subgraph_file = tmp_path / "subgraph.yaml"
-        subgraph_file.write_text("version: '1.0'\nnodes: {}")
+        subgraph_file.write_text("version: '1.0'\nnodes: {}", encoding="utf-8")
 
         graph_content = """
 version: "1.0"
@@ -332,7 +332,7 @@ edges:
     to: END
 """
         graph_file = tmp_path / "test_graph.yaml"
-        graph_file.write_text(graph_content)
+        graph_file.write_text(graph_content, encoding="utf-8")
 
         issues = check_subgraph_patterns(graph_file, tmp_path)
         # Empty mappings are still considered "present" but empty, so no warnings

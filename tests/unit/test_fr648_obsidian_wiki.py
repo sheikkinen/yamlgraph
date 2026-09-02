@@ -205,13 +205,13 @@ class TestRenderWiki:
             "lane": "dynamic",
             "backstory": "Test backstory.",
         }
-        (canon_dir / "kaelen.yaml").write_text(yaml.dump(page))
+        (canon_dir / "kaelen.yaml").write_text(yaml.dump(page), encoding="utf-8")
 
         render_wiki(str(canon_dir), str(wiki_dir))
 
         md_file = wiki_dir / "kaelen.md"
         assert md_file.exists()
-        content = md_file.read_text()
+        content = md_file.read_text(encoding="utf-8")
         assert "# Kaelen" in content
         assert "Test backstory." in content
 
@@ -229,7 +229,7 @@ class TestRenderWiki:
             "title": "Test",
             "description": "A rule.",
         }
-        (canon_dir / "test_rule.yaml").write_text(yaml.dump(page))
+        (canon_dir / "test_rule.yaml").write_text(yaml.dump(page), encoding="utf-8")
 
         assert not wiki_dir.exists()
         render_wiki(str(canon_dir), str(wiki_dir))

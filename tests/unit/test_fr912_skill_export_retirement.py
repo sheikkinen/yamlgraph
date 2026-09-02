@@ -84,7 +84,7 @@ def test_cli_parser_rejects_skill_subcommand():
 
 @pytest.mark.req("REQ-YG-032")
 def test_cli_package_has_no_skill_export_wiring():
-    source = (REPO_ROOT / "yamlgraph" / "cli" / "__init__.py").read_text()
+    source = (REPO_ROOT / "yamlgraph" / "cli" / "__init__.py").read_text(encoding="utf-8")
     assert "cmd_skill_dispatch" not in source
     assert "skill" not in source.lower()
 
@@ -130,7 +130,7 @@ def test_skill_export_capabilities_are_retired():
         "CAP-142-skill-export.yaml",
         "CAP-143-agent-md-export-tool-scoped-personas.yaml",
     ):
-        text = (REPO_ROOT / "capabilities" / cap).read_text()
+        text = (REPO_ROOT / "capabilities" / cap).read_text(encoding="utf-8")
         assert "status: retired" in text
         assert "RETIRED by FR-912" in text
 
@@ -151,7 +151,7 @@ def test_no_live_skill_export_references():
             if relative in EXCEPTED_PATHS:
                 continue
             try:
-                text = path.read_text()
+                text = path.read_text(encoding="utf-8")
             except (UnicodeDecodeError, OSError):
                 continue
             if LIVE_SURFACE_PATTERN.search(text):

@@ -93,7 +93,7 @@ def apply_patch(doc, rec):
 
 def replay(path: Path):
     doc = None
-    with open(path) as f:
+    with open(path, encoding="utf-8") as f:
         for line in f:
             doc = apply_patch(doc, json.loads(line))
     if doc is None:
@@ -119,7 +119,7 @@ def workspace_folder(session_path: Path) -> str | None:
     ws = session_path.parent.parent / "workspace.json"
     if ws.exists():
         try:
-            return json.loads(ws.read_text()).get("folder")
+            return json.loads(ws.read_text(encoding="utf-8")).get("folder")
         except (json.JSONDecodeError, OSError):
             return None
     return None
@@ -355,7 +355,7 @@ def main(argv: list[str] | None = None) -> None:
     sessions = load_sessions(paths, scan=scan, cutoff_ms=cutoff_ms)
     if args.out:
         check_out_path(args.out, args.allow_repo_output)
-        with open(args.out, "w") as stream:
+        with open(args.out, "w", encoding="utf-8") as stream:
             if args.csv:
                 render_csv(sessions, stream)
             else:

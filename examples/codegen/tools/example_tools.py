@@ -41,7 +41,7 @@ def find_example(
     # Search all Python files
     for py_file in project.rglob("*.py"):
         try:
-            source = py_file.read_text()
+            source = py_file.read_text(encoding="utf-8")
         except (OSError, UnicodeDecodeError):
             continue
 
@@ -135,7 +135,7 @@ def find_error_handling(project_path: str) -> dict:
 
     for py_file in project.rglob("*.py"):
         try:
-            source = py_file.read_text()
+            source = py_file.read_text(encoding="utf-8")
         except (OSError, UnicodeDecodeError):
             continue
 

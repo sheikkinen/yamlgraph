@@ -36,13 +36,13 @@ def _write_cap(cap_dir: Path, cap_id: str, reqs: list[dict]) -> None:
         "fr": "FR-999",
     }
     filepath = cap_dir / f"{cap_id}-test.yaml"
-    filepath.write_text(yaml.dump(data, default_flow_style=False))
+    filepath.write_text(yaml.dump(data, default_flow_style=False), encoding="utf-8")
 
 
 def _write_fragment(frag_dir: Path, name: str, content: str) -> Path:
     """Write a changelog fragment file."""
     filepath = frag_dir / name
-    filepath.write_text(textwrap.dedent(content))
+    filepath.write_text(textwrap.dedent(content), encoding="utf-8")
     return filepath
 
 

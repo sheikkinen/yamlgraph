@@ -26,7 +26,7 @@ def _is_statically_non_graph(tool_decl: dict, graph_dir: Path) -> bool:
     if not manifest_ref:
         return tool_decl.get("type") != "graph"
     try:
-        manifest = yaml.safe_load((graph_dir / manifest_ref).read_text())
+        manifest = yaml.safe_load((graph_dir / manifest_ref).read_text(encoding="utf-8"))
         runtime_type = manifest["runtime"]["type"]
     except (OSError, yaml.YAMLError, KeyError, TypeError):
         return False

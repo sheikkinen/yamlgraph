@@ -23,7 +23,7 @@ NON_COPILOT_TRAILER = "Co-authored-by: Test <test@example.com>"
 
 
 def _load_workflow() -> dict:
-    with WORKFLOW_PATH.open() as f:
+    with WORKFLOW_PATH.open(encoding="utf-8") as f:
         return yaml.safe_load(f)
 
 
@@ -52,10 +52,10 @@ def _commit_with_message(
     tmppath = Path(tmpdir)
     file_path = tmppath / filename
     file_path.parent.mkdir(parents=True, exist_ok=True)
-    file_path.write_text(content)
+    file_path.write_text(content, encoding="utf-8")
     subprocess.run(["git", "add", "."], cwd=tmpdir, check=True)
     msg_file = tmppath / "commit-message.txt"
-    msg_file.write_text(message)
+    msg_file.write_text(message, encoding="utf-8")
     subprocess.run(["git", "commit", "-q", "-F", str(msg_file)], cwd=tmpdir, check=True)
 
 
@@ -199,10 +199,10 @@ def test_ac06_workflow_step_uses_deterministic_grep_without_llm() -> None:
 
 @pytest.mark.req("REQ-YG-358")
 def test_ac07_architecture_and_capability_entries_reference_new_req() -> None:
-    cap = CAP_148_PATH.read_text().lower()
-    architecture = ARCHITECTURE_PATH.read_text().lower()
+    cap = CAP_148_PATH.read_text(encoding="utf-8").lower()
+    architecture = ARCHITECTURE_PATH.read_text(encoding="utf-8").lower()
     # FR-942 moved the CI checks list from CLAUDE.md to the ops reference.
-    dev_ops = Path("reference/development-operations.md").read_text().lower()
+    dev_ops = Path("reference/development-operations.md").read_text(encoding="utf-8").lower()
 
     assert "req-yg-358" in cap
     assert "copilot-trailer-gate" in cap

@@ -20,7 +20,7 @@ ARCHITECTURE_PATH = Path("ARCHITECTURE.md")
 
 
 def _load_workflow() -> dict:
-    with WORKFLOW_PATH.open() as f:
+    with WORKFLOW_PATH.open(encoding="utf-8") as f:
         return yaml.safe_load(f)
 
 
@@ -58,10 +58,10 @@ def _run_gate(
 
         semantics_dest = tmppath / "scripts" / "gate_artifact_semantics.sh"
         semantics_dest.parent.mkdir(parents=True, exist_ok=True)
-        semantics_dest.write_text(SEMANTICS_SCRIPT_PATH.read_text())
+        semantics_dest.write_text(SEMANTICS_SCRIPT_PATH.read_text(encoding="utf-8"), encoding="utf-8")
         semantics_dest.chmod(0o755)
 
-        (tmppath / "README.md").write_text("base\n")
+        (tmppath / "README.md").write_text("base\n", encoding="utf-8")
         subprocess.run(["git", "add", "."], cwd=tmpdir, check=True)
         subprocess.run(["git", "commit", "-q", "-m", "base"], cwd=tmpdir, check=True)
         base_sha = subprocess.run(
@@ -75,7 +75,7 @@ def _run_gate(
         for relpath, content in changed_files.items():
             fpath = tmppath / relpath
             fpath.parent.mkdir(parents=True, exist_ok=True)
-            fpath.write_text(content)
+            fpath.write_text(content, encoding="utf-8")
         subprocess.run(["git", "add", "."], cwd=tmpdir, check=True)
         subprocess.run(["git", "commit", "-q", "-m", "head"], cwd=tmpdir, check=True)
         head_sha = subprocess.run(
@@ -218,7 +218,7 @@ def test_ac05_diary_gate_accepts_valid_reflection_structure() -> None:
 def test_ac06_commitlint_gate_scripts_source_shared_semantics_module() -> None:
     changelog_script = _gate_run_script("changelog-gate", "changelog fragment")
     diary_script = _gate_run_script("diary-gate", "diary reflection")
-    semantics = SEMANTICS_SCRIPT_PATH.read_text()
+    semantics = SEMANTICS_SCRIPT_PATH.read_text(encoding="utf-8")
 
     assert "source scripts/gate_artifact_semantics.sh" in changelog_script
     assert "source scripts/gate_artifact_semantics.sh" in diary_script
@@ -230,9 +230,9 @@ def test_ac06_commitlint_gate_scripts_source_shared_semantics_module() -> None:
 
 @pytest.mark.req("REQ-YG-148", "REQ-YG-152")
 def test_ac07_reqyg148_and_reqyg152_text_mentions_substance_validation() -> None:
-    cap_50 = CAP_50_PATH.read_text().lower()
-    cap_54 = CAP_54_PATH.read_text().lower()
-    architecture = ARCHITECTURE_PATH.read_text().lower()
+    cap_50 = CAP_50_PATH.read_text(encoding="utf-8").lower()
+    cap_54 = CAP_54_PATH.read_text(encoding="utf-8").lower()
+    architecture = ARCHITECTURE_PATH.read_text(encoding="utf-8").lower()
 
     assert "substance" in cap_50
     assert "front matter" in cap_50

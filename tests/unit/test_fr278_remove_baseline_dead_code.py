@@ -111,7 +111,7 @@ class TestFR278Watcher2ConfigCleanup:
         watcher2_path = REPO_ROOT / ".chaplain" / "start-system.sh"
 
         if watcher2_path.exists():
-            content = watcher2_path.read_text()
+            content = watcher2_path.read_text(encoding="utf-8")
             assert (
                 "--import-state .chaplain/baseline/latest.json" not in content
             ), "start-system.sh still contains baseline import reference"
@@ -126,7 +126,7 @@ class TestFR278ArchitectureCleanup:
         arch_path = REPO_ROOT / "ARCHITECTURE.md"
 
         if arch_path.exists():
-            content = arch_path.read_text()
+            content = arch_path.read_text(encoding="utf-8")
             assert (
                 "REQ-YG-279" not in content
             ), "ARCHITECTURE.md still contains REQ-YG-279 requirement"
@@ -141,7 +141,7 @@ class TestFR278ChaplainReadmeCleanup:
         readme_path = REPO_ROOT / ".chaplain" / "README.md"
 
         if readme_path.exists():
-            content = readme_path.read_text().lower()
+            content = readme_path.read_text(encoding="utf-8").lower()
             baseline_terms = [
                 "baseline checkpointing",
                 "baseline build",
@@ -167,7 +167,7 @@ class TestFR278FeatureRequestRejection:
         )
 
         if fr_path.exists():
-            content = fr_path.read_text()
+            content = fr_path.read_text(encoding="utf-8")
             status_indicators = [
                 "Status:** Rejected",
                 "Status:** REJECTED",
@@ -231,7 +231,7 @@ class TestFR278NoCodebaseReferences:
         for file_path in python_files:
             if file_path.suffix == ".py":
                 try:
-                    content = file_path.read_text()
+                    content = file_path.read_text(encoding="utf-8")
                     for forbidden in forbidden_imports:
                         assert (
                             forbidden not in content
@@ -250,7 +250,7 @@ class TestFR278NoCodebaseReferences:
 
         for file_path in yaml_files:
             try:
-                content = file_path.read_text()
+                content = file_path.read_text(encoding="utf-8")
                 assert (
                     "yamlgraph.chaplain.nodes" not in content
                 ), f"Found dead chaplain.nodes reference in {file_path}"

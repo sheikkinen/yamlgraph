@@ -98,7 +98,7 @@ def _load_threads() -> list[dict[str, Any]]:
     out: list[dict[str, Any]] = []
     if thread_dir.is_dir():
         for f in sorted(thread_dir.glob("*.yaml")):
-            data = yaml.safe_load(f.read_text())
+            data = yaml.safe_load(f.read_text(encoding="utf-8"))
             if isinstance(data, dict) and "id" in data:
                 out.append(data)
     return out
@@ -109,7 +109,7 @@ def _load_waivers() -> list[dict[str, Any]]:
     f = _STORY_DIR / "thread_waivers.yaml"
     if not f.is_file():
         return []
-    data = yaml.safe_load(f.read_text())
+    data = yaml.safe_load(f.read_text(encoding="utf-8"))
     if isinstance(data, dict):
         return data.get("waivers") or []
     return []

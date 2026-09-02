@@ -47,7 +47,7 @@ def _write_scenario_files(
         title = _extract_scenario_title(str(scenario_text))
         slug = _slugify(title)
         fname = f"scenario-{persona_idx:02d}-{j:02d}-{slug}.md"
-        (out / fname).write_text(str(scenario_text) + "\n")
+        (out / fname).write_text(str(scenario_text) + "\n", encoding="utf-8")
         filenames.append(fname)
     return filenames
 
@@ -137,7 +137,7 @@ def save_results(state: dict) -> dict:
         index_lines.append(
             f"- [{entry['name']}]({entry['fname']}) — {entry['segment']}"
         )
-    (out / "index.md").write_text("\n".join(index_lines) + "\n")
+    (out / "index.md").write_text("\n".join(index_lines) + "\n", encoding="utf-8")
 
     # Write each persona + its scenarios
     for entry in persona_entries:
@@ -169,16 +169,16 @@ def save_results(state: dict) -> dict:
             f"{entry['profile']}\n\n"
             f"## Scenarios\n\n{scenario_links}\n"
         )
-        (out / entry["fname"]).write_text(persona_content)
+        (out / entry["fname"]).write_text(persona_content, encoding="utf-8")
 
         # Add back-link header to each scenario file
         for sf in scenario_fnames:
             path = out / sf
-            old = path.read_text()
+            old = path.read_text(encoding="utf-8")
             header = (
                 f"[← {entry['name']}]({entry['fname']}) · " f"[← index](index.md)\n\n"
             )
-            path.write_text(header + old)
+            path.write_text(header + old, encoding="utf-8")
 
     file_count = (
         1

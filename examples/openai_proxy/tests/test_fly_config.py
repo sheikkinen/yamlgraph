@@ -24,18 +24,18 @@ class TestFlyConfig:
 
     def test_fly_toml_has_app_name(self, fly_toml_path):
         """fly.toml should have app name."""
-        content = fly_toml_path.read_text()
+        content = fly_toml_path.read_text(encoding="utf-8")
         assert "app = " in content
 
     def test_fly_toml_has_http_service(self, fly_toml_path):
         """fly.toml should configure HTTP service."""
-        content = fly_toml_path.read_text()
+        content = fly_toml_path.read_text(encoding="utf-8")
         assert "[http_service]" in content
         assert "internal_port = 8000" in content
 
     def test_fly_toml_auto_suspend(self, fly_toml_path):
         """fly.toml should auto-suspend to save costs."""
-        content = fly_toml_path.read_text()
+        content = fly_toml_path.read_text(encoding="utf-8")
         assert 'auto_stop_machines = "suspend"' in content
         assert "auto_start_machines = true" in content
 
@@ -45,15 +45,15 @@ class TestFlyConfig:
 
     def test_dockerfile_uses_python(self, dockerfile_path):
         """Dockerfile should use Python base image."""
-        content = dockerfile_path.read_text()
+        content = dockerfile_path.read_text(encoding="utf-8")
         assert "python:" in content.lower() or "FROM python" in content
 
     def test_dockerfile_installs_yamlgraph(self, dockerfile_path):
         """Dockerfile should install yamlgraph."""
-        content = dockerfile_path.read_text()
+        content = dockerfile_path.read_text(encoding="utf-8")
         assert "yamlgraph" in content
 
     def test_dockerfile_runs_uvicorn(self, dockerfile_path):
         """Dockerfile should run uvicorn."""
-        content = dockerfile_path.read_text()
+        content = dockerfile_path.read_text(encoding="utf-8")
         assert "uvicorn" in content

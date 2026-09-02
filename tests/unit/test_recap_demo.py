@@ -47,7 +47,7 @@ class TestRecapGraphStructure:
     @pytest.mark.req("REQ-YG-531")
     def test_exactly_one_llm_node(self) -> None:
         """Prompt contract: one judgement — exactly one LLM node."""
-        raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text())
+        raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text(encoding="utf-8"))
         llm_nodes = [
             n for n, c in raw["nodes"].items() if c.get("type", "llm") == "llm"
         ]
@@ -56,14 +56,14 @@ class TestRecapGraphStructure:
     @pytest.mark.req("REQ-YG-531")
     def test_collection_is_tool_nodes(self) -> None:
         """All collection nodes are deterministic type: tool."""
-        raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text())
+        raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text(encoding="utf-8"))
         tool_nodes = {n for n, c in raw["nodes"].items() if c.get("type") == "tool"}
         assert tool_nodes == TOOL_NODES
 
     @pytest.mark.req("REQ-YG-531")
     def test_git_commands_are_portable(self) -> None:
         """Every git shell tool uses -C {repo_path}; no reflog syntax; capped."""
-        raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text())
+        raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text(encoding="utf-8"))
         commands = [
             t["command"] for t in raw["tools"].values() if t.get("type") == "shell"
         ]
@@ -81,7 +81,7 @@ class TestRecapGraphStructure:
         FR-702's '|| [ $? -eq 1 ]' is boundary normalization, not a silent
         fallback: exit >=2 (real error) still fails.
         """
-        raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text())
+        raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text(encoding="utf-8"))
         for tool in raw["tools"].values():
             if tool.get("type") != "shell":
                 continue
@@ -95,14 +95,14 @@ class TestRecapGraphStructure:
         (FR-700 enforce); FR-704 moved orphans to code. What remains is
         judgement: workstreams + hotspots.
         """
-        prompt = yaml.safe_load((DEMO_DIR / "prompts" / "recap.yaml").read_text())
+        prompt = yaml.safe_load((DEMO_DIR / "prompts" / "recap.yaml").read_text(encoding="utf-8"))
         fields = prompt["schema"]["fields"]
         assert set(fields) == {"workstreams", "hotspots"}
 
     @pytest.mark.req("REQ-YG-531")
     def test_prompt_partitions_via_jinja(self) -> None:
         """File-kind partitioning is Jinja2 in the template, not model judgement."""
-        text = (DEMO_DIR / "prompts" / "recap.yaml").read_text()
+        text = (DEMO_DIR / "prompts" / "recap.yaml").read_text(encoding="utf-8")
         assert "{%" in text, "expected Jinja2 partitioning in prompt template"
 
     @pytest.mark.req("REQ-YG-531")
@@ -128,7 +128,7 @@ class TestRecapFailsLoudly:
         from yamlgraph.tools.nodes import create_tool_node
         from yamlgraph.tools.shell import parse_tools
 
-        raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text())
+        raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text(encoding="utf-8"))
         tools = parse_tools(raw["tools"])
         node_fn = create_tool_node("get_commits", raw["nodes"]["get_commits"], tools)
         state = {"repo_path": str(tmp_path), "since": "1 week ago"}
@@ -155,7 +155,7 @@ class TestRecapFailsLoudly:
         from yamlgraph.tools.nodes import create_tool_node
         from yamlgraph.tools.shell import parse_tools
 
-        raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text())
+        raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text(encoding="utf-8"))
         tools = parse_tools(raw["tools"])
         node_fn = create_tool_node("get_frs", raw["nodes"]["get_frs"], tools)
         state = {"repo_path": str(tmp_path), "since": "10 years ago"}

@@ -21,7 +21,7 @@ FINDINGS_DOC = REPO_ROOT / "docs" / "copilot-instrumentation-poc.md"
 def test_instrument_script_exists_and_defines_two_phase_contract():
     """Assert run script exists and documents plan/implement/--resume contract."""
     assert INSTRUMENT_SCRIPT.exists(), f"Missing: {INSTRUMENT_SCRIPT}"
-    text = INSTRUMENT_SCRIPT.read_text()
+    text = INSTRUMENT_SCRIPT.read_text(encoding="utf-8")
     assert "plan" in text, "Script must contain 'plan' phase label"
     assert "implement" in text, "Script must contain 'implement' phase label"
     assert (
@@ -55,7 +55,7 @@ def test_extractor_exists_and_emits_pydantic_valid_events(tmp_path):
             }
         ]
     }
-    (otel_dir / "otel.jsonl").write_text(json.dumps(otel_event) + "\n")
+    (otel_dir / "otel.jsonl").write_text(json.dumps(otel_event) + "\n", encoding="utf-8")
 
     # Run extractor
     result = subprocess.run(
@@ -79,7 +79,7 @@ def test_extractor_exists_and_emits_pydantic_valid_events(tmp_path):
 def test_findings_doc_exists_with_required_sections():
     """Assert findings doc exists and contains required headings."""
     assert FINDINGS_DOC.exists(), f"Missing: {FINDINGS_DOC}"
-    text = FINDINGS_DOC.read_text()
+    text = FINDINGS_DOC.read_text(encoding="utf-8")
     required_headings = [
         "Captured Artifacts",
         "Observed Event Sequence",

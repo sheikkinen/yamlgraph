@@ -118,7 +118,7 @@ class TestFeatureRequestNumbering:
     def test_untracked_files_are_not_collisions(self) -> None:
         """A parallel session's uncommitted FR must not fail this guard."""
         probe = FR_DIR / "FR-000-untracked-probe.md"
-        probe.write_text("probe\n")
+        probe.write_text("probe\n", encoding="utf-8")
         try:
             assert "FR-000-untracked-probe.md" not in _tracked_fr_names()
         finally:

@@ -136,7 +136,7 @@ def test_render_page_missing_output_raises(monkeypatch, tmp_path):
 
 @pytest.mark.req("REQ-YG-578")
 def test_render_manifest_declares_shared_module():
-    raw = yaml.safe_load(RENDER_MANIFEST.read_text())
+    raw = yaml.safe_load(RENDER_MANIFEST.read_text(encoding="utf-8"))
     assert raw["name"] == "render_page"
     assert raw["runtime"]["module"] == "examples.shared.render_page"
     assert raw["runtime"]["function"] == "render_page"
@@ -144,7 +144,7 @@ def test_render_manifest_declares_shared_module():
 
 @pytest.mark.req("REQ-YG-578")
 def test_graph_declares_render_via_manifest_only():
-    raw = yaml.safe_load(DEMO_GRAPH.read_text())
+    raw = yaml.safe_load(DEMO_GRAPH.read_text(encoding="utf-8"))
     entry = raw["tools"]["render_page"]
     assert set(entry) == {"manifest"}
     assert entry["manifest"].endswith("render_page.tool.yaml")
@@ -155,7 +155,7 @@ def test_render_subnode_args_resolve_to_real_kwargs():
     """The committed render map subnode resolves state refs to kwargs."""
     from yamlgraph.node_factory import create_tool_call_node
 
-    raw = yaml.safe_load(DEMO_GRAPH.read_text())
+    raw = yaml.safe_load(DEMO_GRAPH.read_text(encoding="utf-8"))
     sub = raw["nodes"]["render_pages"]["node"]
     item_key = raw["nodes"]["render_pages"]["as"]
     received = {}
@@ -525,7 +525,7 @@ def test_guard_passes_when_vision_enabled():
 
 @pytest.mark.req("REQ-YG-578")
 def test_graph_wires_preflight_before_loop_and_guard_before_combine():
-    raw = yaml.safe_load(DEMO_GRAPH.read_text())
+    raw = yaml.safe_load(DEMO_GRAPH.read_text(encoding="utf-8"))
     edges = [(e["from"], e["to"]) for e in raw["edges"]]
     assert ("gate_probe", "preflight_vision") in edges
     assert ("preflight_vision", "prepare_batch") in edges
@@ -539,7 +539,7 @@ def test_graph_wires_preflight_before_loop_and_guard_before_combine():
 
 @pytest.mark.req("REQ-YG-578")
 def test_graph_routes_partition_between_gate_fetch_and_maps():
-    raw = yaml.safe_load(DEMO_GRAPH.read_text())
+    raw = yaml.safe_load(DEMO_GRAPH.read_text(encoding="utf-8"))
     edges = [(e["from"], e["to"]) for e in raw["edges"]]
     assert ("gate_fetch", "partition") in edges
     routed = {e["to"] for e in raw["edges"] if e["from"] == "partition"}
@@ -551,7 +551,7 @@ def test_graph_routes_partition_between_gate_fetch_and_maps():
 
 @pytest.mark.req("REQ-YG-578")
 def test_graph_vision_maps_are_bounded_and_retry():
-    raw = yaml.safe_load(DEMO_GRAPH.read_text())
+    raw = yaml.safe_load(DEMO_GRAPH.read_text(encoding="utf-8"))
     render = raw["nodes"]["render_pages"]
     transcribe = raw["nodes"]["transcribe_pages"]
     assert render["type"] == "map"
@@ -567,7 +567,7 @@ def test_graph_vision_maps_are_bounded_and_retry():
 
 @pytest.mark.req("REQ-YG-578")
 def test_readme_states_vision_contract():
-    text = README.read_text()
+    text = README.read_text(encoding="utf-8")
     assert "vision_fallback" in text
     assert "pdftoppm" in text
     assert "google" in text and "anthropic" in text

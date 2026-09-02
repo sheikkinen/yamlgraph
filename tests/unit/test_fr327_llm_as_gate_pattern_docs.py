@@ -11,7 +11,7 @@ REFERENCE_INDEX = WORKTREE / "reference" / "README.md"
 
 def _read_doc() -> str:
     assert DOC_PATH.exists(), f"Missing pattern doc: {DOC_PATH}"
-    return DOC_PATH.read_text().lower()
+    return DOC_PATH.read_text(encoding="utf-8").lower()
 
 
 @pytest.mark.req("REQ-YG-271")
@@ -66,5 +66,5 @@ class TestFR327LlmAsGatePatternDocs:
 
     def test_ac08_reference_readme_links_llm_as_gate_doc(self) -> None:
         assert REFERENCE_INDEX.exists(), f"Missing reference index: {REFERENCE_INDEX}"
-        readme = REFERENCE_INDEX.read_text().lower()
+        readme = REFERENCE_INDEX.read_text(encoding="utf-8").lower()
         assert "patterns/llm-as-gate.md" in readme

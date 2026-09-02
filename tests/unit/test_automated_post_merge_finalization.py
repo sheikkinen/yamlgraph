@@ -40,7 +40,7 @@ _LIB_TEST_HARNESS = textwrap.dedent("""\
 
 
 def _read_file(path: str) -> str:
-    with open(path) as f:
+    with open(path, encoding="utf-8") as f:
         return f.read()
 
 
@@ -69,7 +69,7 @@ def _write_sample_fr(
     if req_id:
         lines.append(f"Requirement: {req_id}")
         lines.append("")
-    with open(fr_path, "w") as f:
+    with open(fr_path, "w", encoding="utf-8") as f:
         f.write("\n".join(lines) + "\n")
     return fr_path
 
@@ -266,7 +266,7 @@ class TestCreateChangelogFragment:
         )
         frag_dir = Path(test_dir) / "changelog" / "unreleased"
         fragments = [f for f in os.listdir(frag_dir) if f.startswith("FR-999")]
-        content = (frag_dir / fragments[0]).read_text()
+        content = (frag_dir / fragments[0]).read_text(encoding="utf-8")
         assert "---" in content
         assert "type: feat" in content
         assert "req: REQ-YG-999" in content
@@ -286,7 +286,7 @@ class TestCreateChangelogFragment:
         )
         frag_dir = Path(test_dir) / "changelog" / "unreleased"
         fragments = [f for f in os.listdir(frag_dir) if f.startswith("FR-999")]
-        content = (frag_dir / fragments[0]).read_text()
+        content = (frag_dir / fragments[0]).read_text(encoding="utf-8")
         assert "req:" not in content
         # No blank line between scope and closing ---
         lines = content.strip().split("\n")
@@ -324,7 +324,7 @@ class TestCreateChangelogFragment:
         ]
         assert len(fragments) == 1
         frag_dir = Path(test_dir) / "changelog" / "unreleased"
-        content = (frag_dir / fragments[0]).read_text()
+        content = (frag_dir / fragments[0]).read_text(encoding="utf-8")
         assert "First summary" in content
         assert "Second summary" not in content
 
@@ -353,7 +353,7 @@ class TestUpdateFrStatus:
             timeout=5,
         )
         assert result.returncode == 0, f"Failed: {result.stderr}"
-        content = Path(fr_path).read_text()
+        content = Path(fr_path).read_text(encoding="utf-8")
         assert "**Status:** ✅ Implemented" in content
         assert "**Status:** Approved" not in content
 
@@ -401,7 +401,7 @@ class TestCreateDiaryStub:
         )
         diary_dir = os.path.join(test_dir, "docs", "diary")
         reflections = [f for f in os.listdir(diary_dir) if "FR-999" in f]
-        content = (Path(diary_dir) / reflections[0]).read_text()
+        content = (Path(diary_dir) / reflections[0]).read_text(encoding="utf-8")
         assert "[What cognitive trap was encountered?]" in content
         assert "[What lesson was learned?]" in content
         assert "[What question remains?]" in content
@@ -565,7 +565,7 @@ class TestFinalizeMergeStillWorks:
         )
         (repo / "CHANGELOG.md").write_text(
             "# Changelog\n\n## [Unreleased]\n\n### Added\n"
-        )
+        , encoding="utf-8")
         (repo / "changelog" / "unreleased").mkdir(parents=True)
         (repo / "docs" / "diary").mkdir(parents=True)
         (repo / "feature-requests").mkdir()
@@ -601,7 +601,7 @@ class TestFinalizeMergeStillWorks:
 
             Integration test for refactored finalize_merge.sh.
         """)
-        )
+        , encoding="utf-8")
         subprocess.run(
             ["git", "add", "."], cwd=repo, check=True, capture_output=True, env=env
         )
@@ -624,5 +624,5 @@ class TestFinalizeMergeStillWorks:
         assert result.returncode == 0, f"Failed: {result.stdout}\n{result.stderr}"
         fragments = list((repo / "changelog" / "unreleased").glob("FR-300*.md"))
         assert len(fragments) == 1
-        fr_content = fr_path.read_text()
+        fr_content = fr_path.read_text(encoding="utf-8")
         assert "**Status:** ✅ Implemented" in fr_content

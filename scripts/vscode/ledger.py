@@ -75,7 +75,7 @@ def load_prices() -> dict[str, dict[str, int]]:
     if not candidates:
         return {}
     try:
-        data = json.loads(candidates[-1].read_text())
+        data = json.loads(candidates[-1].read_text(encoding="utf-8"))
     except (OSError, ValueError):
         return {}
     return parse_price_sheet(data)
@@ -103,7 +103,7 @@ def credits(
 def workspace_name(ws_dir: Path) -> str:
     """Workspace folder basename from workspace.json; hash prefix when absent."""
     try:
-        data = json.loads((ws_dir / "workspace.json").read_text())
+        data = json.loads((ws_dir / "workspace.json").read_text(encoding="utf-8"))
     except (OSError, ValueError):
         return ws_dir.name[:8]
     uri = data.get("folder") or data.get("workspace") or data.get("configuration") or ""
@@ -120,7 +120,7 @@ def iter_requests():
         repo = workspace_name(ws_dir)
         for chat in chats:
             try:
-                text = chat.read_text(errors="replace")
+                text = chat.read_text(errors="replace", encoding="utf-8")
             except OSError:
                 continue
             for chunk in REQ_SPLIT.split(text)[1:]:

@@ -101,7 +101,7 @@ def check_file(filepath: Path) -> str | None:
         Error message if violation found, None if OK or skipped.
     """
     try:
-        content = filepath.read_text()
+        content = filepath.read_text(encoding="utf-8")
     except (OSError, UnicodeDecodeError):
         return None
 

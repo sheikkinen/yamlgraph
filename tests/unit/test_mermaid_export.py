@@ -30,7 +30,7 @@ MAP = REPO / "examples/demos/map/graph.yaml"
 
 
 def _load(path: Path) -> dict:
-    return yaml.safe_load(path.read_text())
+    return yaml.safe_load(path.read_text(encoding="utf-8"))
 
 
 # --- light Mermaid grammar (AC-02 syntactic validity) -----------------------
@@ -230,7 +230,7 @@ class TestCliExport:
             "event": "run",
             "artifact_hash": compute_artifact_hash(REFLEXION),
         }
-        route_file.write_text("\n".join(json.dumps(e) for e in [header, *ROUTE]) + "\n")
+        route_file.write_text("\n".join(json.dumps(e) for e in [header, *ROUTE]) + "\n", encoding="utf-8")
         cmd_graph_export(
             Namespace(
                 graph_path=str(REFLEXION),
@@ -253,8 +253,8 @@ class TestCliExport:
         a = tmp_path / "a.jsonl"
         b = tmp_path / "b.jsonl"
         payload = "\n".join(json.dumps(e) for e in ROUTE) + "\n"
-        a.write_text(payload)
-        b.write_text(payload)
+        a.write_text(payload, encoding="utf-8")
+        b.write_text(payload, encoding="utf-8")
         cmd_graph_export(
             Namespace(
                 graph_path=None,
@@ -274,10 +274,10 @@ class TestCliExport:
 
         a = tmp_path / "a.jsonl"
         b = tmp_path / "b.jsonl"
-        a.write_text("\n".join(json.dumps(e) for e in ROUTE) + "\n")
+        a.write_text("\n".join(json.dumps(e) for e in ROUTE) + "\n", encoding="utf-8")
         altered = [dict(e) for e in ROUTE]
         altered[2]["target"] = "refine"
-        b.write_text("\n".join(json.dumps(e) for e in altered) + "\n")
+        b.write_text("\n".join(json.dumps(e) for e in altered) + "\n", encoding="utf-8")
 
         with pytest.raises(SystemExit) as exc:
             cmd_graph_export(

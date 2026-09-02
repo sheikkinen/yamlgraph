@@ -30,7 +30,7 @@ def _extract_session_id_from_share_file(share_path: Path) -> str | None:
         return None
 
     try:
-        content = share_path.read_text()
+        content = share_path.read_text(encoding="utf-8")
     except OSError as e:
         logger.warning("[session] Failed to read share file: %s", e)
         return None
@@ -58,7 +58,7 @@ def _load_and_render_prompt(
     if path_obj.is_absolute() and path_obj.exists():
         import yaml
 
-        with open(path_obj) as f:
+        with open(path_obj, encoding="utf-8") as f:
             prompt_config = yaml.safe_load(f)
     else:
         prompt_config = load_prompt_fn(

@@ -64,7 +64,7 @@ class TestImportScheduledEntries:
     ) -> None:
         """Should import entry, delete source, return ImportResult with status='imported'."""
         entry = source_dir / "diary_entry_20260217.md"
-        entry.write_text(DIARY_ENTRY_CONTENT)
+        entry.write_text(DIARY_ENTRY_CONTENT, encoding="utf-8")
 
         results = import_scheduled_entries(diary_dir, source_dir)
 
@@ -80,7 +80,7 @@ class TestImportScheduledEntries:
         assert not entry.exists()
         target = diary_dir / "2026-02-17-world-digest.md"
         assert target.exists()
-        content = target.read_text()
+        content = target.read_text(encoding="utf-8")
         assert "## 2026-02-17: World Digest — Test Theme" in content
         assert "Content here." in content
 
@@ -101,8 +101,8 @@ class TestImportScheduledEntries:
     def test_skips_duplicate_entry(self, source_dir: Path, diary_dir: Path) -> None:
         """Should skip if target file already exists."""
         entry = source_dir / "diary_entry_20260217.md"
-        entry.write_text(DIARY_ENTRY_CONTENT)
-        (diary_dir / "2026-02-17-world-digest.md").write_text("Already exists\n")
+        entry.write_text(DIARY_ENTRY_CONTENT, encoding="utf-8")
+        (diary_dir / "2026-02-17-world-digest.md").write_text("Already exists\n", encoding="utf-8")
 
         results = import_scheduled_entries(diary_dir, source_dir)
 
@@ -115,7 +115,7 @@ class TestImportScheduledEntries:
     ) -> None:
         """Dry-run must not delete, rename, or write anything."""
         entry = source_dir / "diary_entry_20260217.md"
-        entry.write_text(DIARY_ENTRY_CONTENT)
+        entry.write_text(DIARY_ENTRY_CONTENT, encoding="utf-8")
 
         results = import_scheduled_entries(diary_dir, source_dir, dry_run=True)
 
@@ -131,7 +131,7 @@ class TestImportScheduledEntries:
     ) -> None:
         """File matching glob but with bad date should return error result."""
         bad = source_dir / "diary_entry_baddate.md"
-        bad.write_text("Some content\n")
+        bad.write_text("Some content\n", encoding="utf-8")
 
         results = import_scheduled_entries(diary_dir, source_dir)
 
@@ -156,7 +156,7 @@ class TestImportGitReports:
         git_dir = source_dir / "git_report"
         git_dir.mkdir()
         report = git_dir / "report_20260218_080000.txt"
-        report.write_text(GIT_REPORT_CONTENT)
+        report.write_text(GIT_REPORT_CONTENT, encoding="utf-8")
 
         results = import_git_reports(diary_dir, source_dir)
 
@@ -171,7 +171,7 @@ class TestImportGitReports:
         assert report.with_suffix(".imported").exists()
         target = diary_dir / "2026-02-18-git-report.md"
         assert target.exists()
-        content = target.read_text()
+        content = target.read_text(encoding="utf-8")
         assert "## 2026-02-18: Git Report — Test Report" in content
         assert "This is a summary" in content
 
@@ -187,8 +187,8 @@ class TestImportGitReports:
         git_dir = source_dir / "git_report"
         git_dir.mkdir()
         report = git_dir / "report_20260218_080000.txt"
-        report.write_text(GIT_REPORT_CONTENT)
-        (diary_dir / "2026-02-18-git-report.md").write_text("Already exists\n")
+        report.write_text(GIT_REPORT_CONTENT, encoding="utf-8")
+        (diary_dir / "2026-02-18-git-report.md").write_text("Already exists\n", encoding="utf-8")
 
         results = import_git_reports(diary_dir, source_dir)
 
@@ -202,7 +202,7 @@ class TestImportGitReports:
         git_dir = source_dir / "git_report"
         git_dir.mkdir()
         report = git_dir / "report_20260218_080000.txt"
-        report.write_text(GIT_REPORT_CONTENT)
+        report.write_text(GIT_REPORT_CONTENT, encoding="utf-8")
 
         results = import_git_reports(diary_dir, source_dir, dry_run=True)
 
@@ -221,7 +221,7 @@ class TestImportGitReports:
         git_dir = source_dir / "git_report"
         git_dir.mkdir()
         report = git_dir / "report_20260218_080000.txt"
-        report.write_text("totally unparseable garbage\n")
+        report.write_text("totally unparseable garbage\n", encoding="utf-8")
 
         results = import_git_reports(diary_dir, source_dir)
 

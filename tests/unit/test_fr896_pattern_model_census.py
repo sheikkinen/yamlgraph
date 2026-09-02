@@ -65,8 +65,8 @@ class TestPatternModelCensusGraph:
 
     @pytest.mark.req("REQ-YG-624")
     def test_prompt_schemas_are_single_field_lenses(self):
-        pattern = yaml.safe_load((DEMO_DIR / "prompts/judge_pattern.yaml").read_text())
-        model = yaml.safe_load((DEMO_DIR / "prompts/judge_model.yaml").read_text())
+        pattern = yaml.safe_load((DEMO_DIR / "prompts/judge_pattern.yaml").read_text(encoding="utf-8"))
+        model = yaml.safe_load((DEMO_DIR / "prompts/judge_model.yaml").read_text(encoding="utf-8"))
         assert set(pattern["schema"]["fields"]) == {"pattern"}
         assert set(model["schema"]["fields"]) == {"model_mentioned"}
 

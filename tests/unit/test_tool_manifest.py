@@ -29,7 +29,7 @@ MINIMAL_GRAPH = {
 
 def write_yaml(path: Path, data: dict) -> Path:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(yaml.safe_dump(data))
+    path.write_text(yaml.safe_dump(data), encoding="utf-8")
     return path
 
 
@@ -42,7 +42,7 @@ def write_graph(tmp_path: Path, tools: dict, filename: str = "graph.yaml") -> Pa
 def write_tool_py(tmp_path: Path, name: str = "tool_impl.py") -> Path:
     impl = tmp_path / name
     impl.parent.mkdir(parents=True, exist_ok=True)
-    impl.write_text("def run(state):\n    return {'topic': 'ok'}\n")
+    impl.write_text("def run(state):\n    return {'topic': 'ok'}\n", encoding="utf-8")
     return impl
 
 
@@ -115,7 +115,7 @@ class TestLoadBoundaryValidation:
 
     @pytest.mark.req("REQ-YG-574")
     def test_invalid_manifest_yaml_fails_load(self, tmp_path):
-        (tmp_path / "bad.tool.yaml").write_text("{unclosed")
+        (tmp_path / "bad.tool.yaml").write_text("{unclosed", encoding="utf-8")
         graph_path = write_graph(tmp_path, {"target": {"manifest": "bad.tool.yaml"}})
         with pytest.raises(ValueError, match="bad.tool.yaml"):
             load_graph_config(graph_path)
@@ -320,7 +320,7 @@ class TestRuntimeEquivalence:
         (tmp_path / "sub").mkdir()
         (tmp_path / "sub" / "child_impl.py").write_text(
             "def run(state):\n    return {'echoed': 'from-child'}\n"
-        )
+        , encoding="utf-8")
         write_yaml(tmp_path / "sub" / "child.yaml", child)
         write_yaml(
             tmp_path / "sub" / "target.tool.yaml",

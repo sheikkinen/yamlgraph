@@ -57,7 +57,7 @@ def prefetch_prior_threads(state: dict[str, Any]) -> dict[str, Any]:
     prior_ids: list[str] = []
     if thread_dir.is_dir():
         for f in sorted(thread_dir.glob("*.yaml")):
-            data = yaml.safe_load(f.read_text())
+            data = yaml.safe_load(f.read_text(encoding="utf-8"))
             if isinstance(data, dict) and "id" in data:
                 prior_ids.append(data["id"])
     return {"prior_thread_ids": prior_ids}
@@ -75,7 +75,7 @@ def list_threads(state: dict[str, Any]) -> dict[str, Any]:
     digest_lines: list[str] = []
     if thread_dir.is_dir():
         for f in sorted(thread_dir.glob("*.yaml")):
-            data = yaml.safe_load(f.read_text())
+            data = yaml.safe_load(f.read_text(encoding="utf-8"))
             if not (isinstance(data, dict) and "id" in data):
                 continue
             ids.append(data["id"])

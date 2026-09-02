@@ -119,7 +119,7 @@ class TestFR269StorageExportContracts:
         written = export_state_to_path(state, output_path)
         assert written == output_path
 
-        data = json.loads(output_path.read_text())
+        data = json.loads(output_path.read_text(encoding="utf-8"))
         assert data["topic"] == "acceptance"
         assert data["steps"] == ["plan", "enforce"]
         assert data["prev_result"]["session_id"] == "session-123"
@@ -133,7 +133,7 @@ class TestFR269StorageExportContracts:
         export_state_to_path({"k": "v"}, output_path)
 
         assert output_path.exists()
-        assert json.loads(output_path.read_text()) == {"k": "v"}
+        assert json.loads(output_path.read_text(encoding="utf-8")) == {"k": "v"}
 
     @pytest.mark.req("REQ-YG-038", "REQ-YG-267", "REQ-YG-268")
     def test_export_import_round_trip_preserves_copilot_session_id(
@@ -188,9 +188,9 @@ class TestFR269CmdGraphRunStateMerging:
         from yamlgraph.cli.graph_commands import cmd_graph_run
 
         graph_path = tmp_path / "graph.yaml"
-        graph_path.write_text("name: test\nnodes: {}\nedges: []\n")
+        graph_path.write_text("name: test\nnodes: {}\nedges: []\n", encoding="utf-8")
         state_path = tmp_path / "state.json"
-        state_path.write_text('{"imported": "state"}')
+        state_path.write_text('{"imported": "state"}', encoding="utf-8")
 
         mock_app = _setup_graph_loader_mocks(
             mock_load_config, mock_compile, mock_get_cp
@@ -247,9 +247,9 @@ class TestFR269CmdGraphRunStateMerging:
         from yamlgraph.cli.graph_commands import cmd_graph_run
 
         graph_path = tmp_path / "graph.yaml"
-        graph_path.write_text("name: test\nnodes: {}\nedges: []\n")
+        graph_path.write_text("name: test\nnodes: {}\nedges: []\n", encoding="utf-8")
         state_path = tmp_path / "state.json"
-        state_path.write_text('{"shared": "imported", "i": 1}')
+        state_path.write_text('{"shared": "imported", "i": 1}', encoding="utf-8")
 
         _setup_graph_loader_mocks(mock_load_config, mock_compile, mock_get_cp)
         captured_initial_state = {}
@@ -303,9 +303,9 @@ class TestFR269CmdGraphRunStateMerging:
         from yamlgraph.cli.graph_commands import cmd_graph_run
 
         graph_path = tmp_path / "graph.yaml"
-        graph_path.write_text("name: test\nnodes: {}\nedges: []\n")
+        graph_path.write_text("name: test\nnodes: {}\nedges: []\n", encoding="utf-8")
         state_path = tmp_path / "state.json"
-        state_path.write_text('{"topic": "from-import", "session_id": "abc"}')
+        state_path.write_text('{"topic": "from-import", "session_id": "abc"}', encoding="utf-8")
 
         _setup_graph_loader_mocks(mock_load_config, mock_compile, mock_get_cp)
         captured_initial_state = {}
@@ -347,7 +347,7 @@ class TestFR269CmdGraphRunStateMerging:
         from yamlgraph.cli.graph_commands import cmd_graph_run
 
         graph_path = tmp_path / "graph.yaml"
-        graph_path.write_text("name: test\nnodes: {}\nedges: []\n")
+        graph_path.write_text("name: test\nnodes: {}\nedges: []\n", encoding="utf-8")
         missing_state = tmp_path / "missing-state.json"
 
         _setup_graph_loader_mocks(mock_load_config, mock_compile, mock_get_cp)
@@ -384,7 +384,7 @@ class TestFR269CmdGraphRunStateMerging:
         from yamlgraph.cli.graph_commands import cmd_graph_run
 
         graph_path = tmp_path / "graph.yaml"
-        graph_path.write_text("name: test\nnodes: {}\nedges: []\n")
+        graph_path.write_text("name: test\nnodes: {}\nedges: []\n", encoding="utf-8")
 
         export_target = tmp_path / "as-directory"
         export_target.mkdir()
@@ -404,6 +404,6 @@ class TestFR269CmdGraphRunStateMerging:
 @pytest.mark.req("REQ-YG-121")
 def test_architecture_declares_req_yg_267_and_268():
     """AC-12: ARCHITECTURE.md includes REQ-YG-267 and REQ-YG-268 entries."""
-    text = (REPO_ROOT / "ARCHITECTURE.md").read_text()
+    text = (REPO_ROOT / "ARCHITECTURE.md").read_text(encoding="utf-8")
     assert "REQ-YG-267" in text
     assert "REQ-YG-268" in text

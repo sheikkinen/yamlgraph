@@ -312,7 +312,7 @@ class TestActivityDerivation:
             contents=[{"value": _blob(archived=True), "_map_index": 0}],
         )
         row = json.loads(
-            Path(reduce_repo_ledger(state)["ledger"]["jsonl_path"]).read_text().strip()
+            Path(reduce_repo_ledger(state)["ledger"]["jsonl_path"]).read_text(encoding="utf-8").strip()
         )
         assert row["activity"] == "archived"
 
@@ -327,7 +327,7 @@ class TestActivityDerivation:
             tmp_path, contents=[{"value": _blob(pushed_at=recent), "_map_index": 0}]
         )
         row = json.loads(
-            Path(reduce_repo_ledger(state)["ledger"]["jsonl_path"]).read_text().strip()
+            Path(reduce_repo_ledger(state)["ledger"]["jsonl_path"]).read_text(encoding="utf-8").strip()
         )
         assert row["activity"] == "active"
 
@@ -340,7 +340,7 @@ class TestActivityDerivation:
             tmp_path, contents=[{"value": _blob(pushed_at=stale), "_map_index": 0}]
         )
         row = json.loads(
-            Path(reduce_repo_ledger(state)["ledger"]["jsonl_path"]).read_text().strip()
+            Path(reduce_repo_ledger(state)["ledger"]["jsonl_path"]).read_text(encoding="utf-8").strip()
         )
         assert row["activity"] == "dormant"
 
@@ -355,7 +355,7 @@ class TestActivityDerivation:
             activity_window_days="30",
         )
         row = json.loads(
-            Path(reduce_repo_ledger(state)["ledger"]["jsonl_path"]).read_text().strip()
+            Path(reduce_repo_ledger(state)["ledger"]["jsonl_path"]).read_text(encoding="utf-8").strip()
         )
         assert row["activity"] == "dormant"
 
@@ -366,7 +366,7 @@ class TestPersonsVerbatim:
         state = _good_state(tmp_path)
         state["findings"][0]["persons"] = ["mallory"]
         row = json.loads(
-            Path(reduce_repo_ledger(state)["ledger"]["jsonl_path"]).read_text().strip()
+            Path(reduce_repo_ledger(state)["ledger"]["jsonl_path"]).read_text(encoding="utf-8").strip()
         )
         assert row["persons"] == ["alice", "bob"]
 
@@ -377,7 +377,7 @@ class TestPersonsVerbatim:
             tmp_path, contents=[{"value": _blob(contributors=many), "_map_index": 0}]
         )
         row = json.loads(
-            Path(reduce_repo_ledger(state)["ledger"]["jsonl_path"]).read_text().strip()
+            Path(reduce_repo_ledger(state)["ledger"]["jsonl_path"]).read_text(encoding="utf-8").strip()
         )
         assert row["persons"] == many[:5]
 

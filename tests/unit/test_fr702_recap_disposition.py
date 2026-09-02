@@ -52,7 +52,7 @@ class TestGraphStructureFr702:
     @pytest.mark.req("REQ-YG-534")
     def test_fr_statuses_tool_declared(self) -> None:
         """fr_statuses: anchored pattern, per-file cap, exit-1 normalization."""
-        raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text())
+        raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text(encoding="utf-8"))
         cmd = raw["tools"]["fr_statuses"]["command"]
         assert "git -C {repo_path} grep" in cmd
         assert "^\\*\\*Status" in cmd, f"pattern not anchored: {cmd}"
@@ -62,7 +62,7 @@ class TestGraphStructureFr702:
     @pytest.mark.req("REQ-YG-534")
     def test_partition_node_declared(self) -> None:
         """partition is a type: python pre-pass between commits and synthesis."""
-        raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text())
+        raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text(encoding="utf-8"))
         node = raw["nodes"]["partition"]
         assert node["type"] == "python"
         tool = raw["tools"][node["tool"]]
@@ -72,7 +72,7 @@ class TestGraphStructureFr702:
     @pytest.mark.req("REQ-YG-534")
     def test_still_exactly_one_llm_node(self) -> None:
         """The pre-pass adds no judgement — synthesize remains the only LLM node."""
-        raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text())
+        raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text(encoding="utf-8"))
         llm_nodes = [
             n for n, c in raw["nodes"].items() if c.get("type", "llm") == "llm"
         ]
@@ -86,7 +86,7 @@ class TestGraphStructureFr702:
         the template must reference the referenced commits and mention no
         status or unreferenced transport at all.
         """
-        text = (DEMO_DIR / "prompts" / "recap.yaml").read_text()
+        text = (DEMO_DIR / "prompts" / "recap.yaml").read_text(encoding="utf-8")
         assert "{{ referenced }}" in text
         assert "fr_statuses" not in text
         assert "[no FR status]" not in text
@@ -108,7 +108,7 @@ class TestFrStatusesBoundary:
         from yamlgraph.tools.nodes import create_tool_node
         from yamlgraph.tools.shell import parse_tools
 
-        raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text())
+        raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text(encoding="utf-8"))
         tools = parse_tools(raw["tools"])
         return create_tool_node(
             "get_fr_statuses", raw["nodes"]["get_fr_statuses"], tools
@@ -137,7 +137,7 @@ class TestFrStatusesBoundary:
         (frdir / "FR-001-thing.md").write_text(
             "# FR-001\n\n**Status:** Rejected\n\n"
             "The Status of this work depends on Status checks in prose.\n"
-        )
+        , encoding="utf-8")
         _git(tmp_path, "add", "-A")
         _git(tmp_path, "commit", "-q", "-m", "FR-001 add fr")
         out = self._node_fn()({"repo_path": str(tmp_path), "since": "1 day ago"})

@@ -415,7 +415,7 @@ def final_gate(state: dict[str, Any]) -> dict[str, Any]:
                 continue
             dir_type = type_dir.name
             for f in sorted(type_dir.glob("*.yaml")):
-                with open(f) as fh:
+                with open(f, encoding="utf-8") as fh:
                     page_data = yaml.safe_load(fh)
                 if isinstance(page_data, dict) and "id" in page_data:
                     id_types[page_data["id"]].append(dir_type)
@@ -540,7 +540,7 @@ def update_refs(state: dict[str, Any]) -> dict[str, Any]:
     updated_count = 0
 
     for f in sorted(canon.rglob("*.yaml")):
-        with open(f) as fh:
+        with open(f, encoding="utf-8") as fh:
             page = yaml.safe_load(fh)
         if not isinstance(page, dict):
             continue

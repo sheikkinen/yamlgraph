@@ -20,7 +20,7 @@ class TestLintGraph:
     def test_lint_success(self, mock_run: MagicMock, tmp_path: Path) -> None:
         """Successful lint returns valid."""
         graph_file = tmp_path / "graph.yaml"
-        graph_file.write_text("version: '1.0'")
+        graph_file.write_text("version: '1.0'", encoding="utf-8")
 
         mock_run.return_value = MagicMock(
             returncode=0,
@@ -38,7 +38,7 @@ class TestLintGraph:
     def test_lint_failure(self, mock_run: MagicMock, tmp_path: Path) -> None:
         """Failed lint returns errors."""
         graph_file = tmp_path / "graph.yaml"
-        graph_file.write_text("invalid: graph")
+        graph_file.write_text("invalid: graph", encoding="utf-8")
 
         mock_run.return_value = MagicMock(
             returncode=1,
@@ -56,7 +56,7 @@ class TestLintGraph:
     def test_lint_command_format(self, mock_run: MagicMock, tmp_path: Path) -> None:
         """Lint calls yamlgraph with correct args."""
         graph_file = tmp_path / "graph.yaml"
-        graph_file.write_text("version: '1.0'")
+        graph_file.write_text("version: '1.0'", encoding="utf-8")
 
         mock_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
 

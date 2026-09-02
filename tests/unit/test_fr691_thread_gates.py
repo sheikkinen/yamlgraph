@@ -383,7 +383,7 @@ class TestPersistIdempotence:
         thread_dir = tmp_path / "thread"
         thread_dir.mkdir(parents=True)
         # A stale thread from a prior run that the new union does not contain.
-        (thread_dir / "ledge_survival.yaml").write_text("id: ledge_survival\n")
+        (thread_dir / "ledge_survival.yaml").write_text("id: ledge_survival\n", encoding="utf-8")
 
         persist.persist_threads(
             {"reconcile_result": {"threads": [_thread(id="hilde_gunnar_feud")]}}

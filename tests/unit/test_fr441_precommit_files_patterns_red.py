@@ -42,7 +42,7 @@ TARGET_HOOK_FILES_PATTERNS = {
 
 
 def _load_precommit() -> dict[str, Any]:
-    with PRECOMMIT_PATH.open() as f:
+    with PRECOMMIT_PATH.open(encoding="utf-8") as f:
         return yaml.safe_load(f)
 
 

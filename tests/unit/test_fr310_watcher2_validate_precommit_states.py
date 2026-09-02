@@ -26,13 +26,13 @@ VALIDATE_PROMPT = (
 
 def _load_yaml(path: Path) -> dict:
     assert path.exists(), f"Missing YAML file: {path}"
-    with path.open() as f:
+    with path.open(encoding="utf-8") as f:
         return yaml.safe_load(f)
 
 
 def _load_text(path: Path) -> str:
     assert path.exists(), f"Missing file: {path}"
-    return path.read_text()
+    return path.read_text(encoding="utf-8")
 
 
 def _transition_exists(

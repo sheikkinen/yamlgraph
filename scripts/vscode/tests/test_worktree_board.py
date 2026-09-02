@@ -30,12 +30,12 @@ def test_orphan_worktree_flagged_with_age_and_untracked(tmp_path):
     _git(main, "init", "-b", "main")
     _git(main, "config", "user.email", "t@t")
     _git(main, "config", "user.name", "t")
-    (main / "README.md").write_text("x")
+    (main / "README.md").write_text("x", encoding="utf-8")
     _git(main, "add", "-A")
     _git(main, "commit", "-m", "init")
     wt = tmp_path / "wt-orphan"
     _git(main, "worktree", "add", str(wt), "-b", "feat/orphan", "main")
-    (wt / "unlanded-draft.md").write_text("no recovery path")
+    (wt / "unlanded-draft.md").write_text("no recovery path", encoding="utf-8")
 
     lines = now.orphan_worktree_lines(main, gh_available=False)
     assert len(lines) == 1
@@ -52,7 +52,7 @@ def test_live_pipeline_branch_suppressed(tmp_path):
     _git(main, "init", "-b", "main")
     _git(main, "config", "user.email", "t@t")
     _git(main, "config", "user.name", "t")
-    (main / "README.md").write_text("x")
+    (main / "README.md").write_text("x", encoding="utf-8")
     _git(main, "add", "-A")
     _git(main, "commit", "-m", "init")
     wt = tmp_path / "wt-live"
@@ -70,7 +70,7 @@ def test_main_checkout_never_listed_as_orphan(tmp_path):
     _git(main, "init", "-b", "main")
     _git(main, "config", "user.email", "t@t")
     _git(main, "config", "user.name", "t")
-    (main / "README.md").write_text("x")
+    (main / "README.md").write_text("x", encoding="utf-8")
     _git(main, "add", "-A")
     _git(main, "commit", "-m", "init")
     assert now.orphan_worktree_lines(main, gh_available=False) == []

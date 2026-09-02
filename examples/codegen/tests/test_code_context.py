@@ -34,7 +34,7 @@ class TestReadLines:
 
     def test_handles_line_range_beyond_file(self):
         """Handles line numbers beyond file length gracefully."""
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
+        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", suffix=".py", delete=False) as f:
             f.write("line1\nline2\nline3\n")
             temp_path = f.name
 
@@ -48,7 +48,7 @@ class TestReadLines:
 
     def test_one_indexed_lines(self):
         """Line numbers are 1-indexed."""
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
+        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", suffix=".py", delete=False) as f:
             f.write("first\nsecond\nthird\n")
             temp_path = f.name
 
@@ -61,7 +61,7 @@ class TestReadLines:
 
     def test_handles_invalid_line_range(self):
         """Handles start > end gracefully."""
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
+        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", suffix=".py", delete=False) as f:
             f.write("line1\nline2\n")
             temp_path = f.name
 
@@ -98,7 +98,7 @@ class TestFindRelatedTests:
             test_file.write_text("""
 def test_something():
     assert True
-""")
+""", encoding="utf-8")
             result = find_related_tests("nonexistent", tmpdir)
 
             assert isinstance(result, list)
@@ -142,7 +142,7 @@ class TestSearchInFile:
 
     def test_finds_matching_lines(self):
         """Finds lines containing the search pattern."""
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
+        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", suffix=".py", delete=False) as f:
             f.write("def foo():\n    timeout = 30\n    return timeout\n")
             temp_path = f.name
 
@@ -167,7 +167,7 @@ class TestSearchInFile:
 
     def test_returns_empty_for_no_matches(self):
         """Returns empty list when pattern not found."""
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
+        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", suffix=".py", delete=False) as f:
             f.write("def foo():\n    return 42\n")
             temp_path = f.name
 
@@ -181,7 +181,7 @@ class TestSearchInFile:
 
     def test_case_insensitive_by_default(self):
         """Search is case-insensitive by default."""
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
+        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", suffix=".py", delete=False) as f:
             f.write("TIMEOUT = 30\ntimeout = 10\nTimeOut = 20\n")
             temp_path = f.name
 
@@ -194,7 +194,7 @@ class TestSearchInFile:
 
     def test_case_sensitive_option(self):
         """Can enable case-sensitive search."""
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
+        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", suffix=".py", delete=False) as f:
             f.write("TIMEOUT = 30\ntimeout = 10\n")
             temp_path = f.name
 
@@ -208,7 +208,7 @@ class TestSearchInFile:
 
     def test_limits_context(self):
         """Returns only matching lines, not context."""
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
+        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", suffix=".py", delete=False) as f:
             f.write("line1\ntarget\nline3\n")
             temp_path = f.name
 
@@ -229,9 +229,9 @@ class TestSearchCodebase:
         """Finds pattern matches in multiple files."""
         with tempfile.TemporaryDirectory() as tmpdir:
             # Create test files
-            (Path(tmpdir) / "file1.py").write_text("timeout = 30\n")
-            (Path(tmpdir) / "file2.py").write_text("max_timeout = 60\n")
-            (Path(tmpdir) / "file3.py").write_text("no match here\n")
+            (Path(tmpdir) / "file1.py").write_text("timeout = 30\n", encoding="utf-8")
+            (Path(tmpdir) / "file2.py").write_text("max_timeout = 60\n", encoding="utf-8")
+            (Path(tmpdir) / "file3.py").write_text("no match here\n", encoding="utf-8")
 
             result = search_codebase(tmpdir, "timeout")
 
@@ -247,8 +247,8 @@ class TestSearchCodebase:
     def test_respects_file_pattern(self):
         """Only searches files matching the pattern."""
         with tempfile.TemporaryDirectory() as tmpdir:
-            (Path(tmpdir) / "code.py").write_text("timeout = 30\n")
-            (Path(tmpdir) / "config.yaml").write_text("timeout: 60\n")
+            (Path(tmpdir) / "code.py").write_text("timeout = 30\n", encoding="utf-8")
+            (Path(tmpdir) / "config.yaml").write_text("timeout: 60\n", encoding="utf-8")
 
             result = search_codebase(tmpdir, "timeout", pattern="*.py")
 
@@ -258,7 +258,7 @@ class TestSearchCodebase:
     def test_returns_empty_for_no_matches(self):
         """Returns empty list when no matches found."""
         with tempfile.TemporaryDirectory() as tmpdir:
-            (Path(tmpdir) / "file.py").write_text("def foo(): pass\n")
+            (Path(tmpdir) / "file.py").write_text("def foo(): pass\n", encoding="utf-8")
 
             result = search_codebase(tmpdir, "nonexistent_xyz")
 
@@ -270,7 +270,7 @@ class TestSearchCodebase:
         with tempfile.TemporaryDirectory() as tmpdir:
             subdir = Path(tmpdir) / "sub" / "dir"
             subdir.mkdir(parents=True)
-            (subdir / "nested.py").write_text("timeout = 99\n")
+            (subdir / "nested.py").write_text("timeout = 99\n", encoding="utf-8")
 
             result = search_codebase(tmpdir, "timeout")
 
@@ -282,8 +282,8 @@ class TestSearchCodebase:
         with tempfile.TemporaryDirectory() as tmpdir:
             cache = Path(tmpdir) / "__pycache__"
             cache.mkdir()
-            (cache / "cached.pyc").write_text("timeout = 30\n")
-            (Path(tmpdir) / "real.py").write_text("timeout = 30\n")
+            (cache / "cached.pyc").write_text("timeout = 30\n", encoding="utf-8")
+            (Path(tmpdir) / "real.py").write_text("timeout = 30\n", encoding="utf-8")
 
             result = search_codebase(tmpdir, "timeout")
 
@@ -293,7 +293,7 @@ class TestSearchCodebase:
     def test_returns_line_numbers(self):
         """Each match includes line number."""
         with tempfile.TemporaryDirectory() as tmpdir:
-            (Path(tmpdir) / "test.py").write_text("line1\ntimeout = 30\nline3\n")
+            (Path(tmpdir) / "test.py").write_text("line1\ntimeout = 30\nline3\n", encoding="utf-8")
 
             result = search_codebase(tmpdir, "timeout")
 

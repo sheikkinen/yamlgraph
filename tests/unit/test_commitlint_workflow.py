@@ -33,12 +33,12 @@ EXPECTED_TYPES = sorted(
 def _load_workflow() -> dict:
     """Load and parse the commitlint workflow YAML."""
     assert WORKFLOW_PATH.exists(), f"Workflow file missing: {WORKFLOW_PATH}"
-    return yaml.safe_load(WORKFLOW_PATH.read_text())
+    return yaml.safe_load(WORKFLOW_PATH.read_text(encoding="utf-8"))
 
 
 def _load_precommit() -> dict:
     """Load and parse the pre-commit config YAML."""
-    return yaml.safe_load(PRECOMMIT_PATH.read_text())
+    return yaml.safe_load(PRECOMMIT_PATH.read_text(encoding="utf-8"))
 
 
 def _get_precommit_conventional_types() -> list[str]:

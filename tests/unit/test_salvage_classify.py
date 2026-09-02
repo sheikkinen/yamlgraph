@@ -32,7 +32,7 @@ def load_module():
 
 
 def fixture_data():
-    return json.loads(FIXTURE.read_text())
+    return json.loads(FIXTURE.read_text(encoding="utf-8"))
 
 
 # ── Shared runtime contract (REQ-YG-619) ───────────────────────────────
@@ -55,7 +55,7 @@ def test_no_repo_mutation_tokens():
     sources = [GRAPH, NODES, *sorted(DEMO.glob("prompts/*.yaml"))]
     assert sources, "no sources found"
     for src in sources:
-        text = src.read_text()
+        text = src.read_text(encoding="utf-8")
         for tok in ["git commit", "git push", "gh pr", "gh issue", "gh api"]:
             assert tok not in text, f"{tok!r} in {src}"
 

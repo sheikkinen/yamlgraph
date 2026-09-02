@@ -24,7 +24,7 @@ DEMO_GRAPH = DEMO_DIR / "graph.yaml"
 
 @pytest.fixture
 def raw_graph():
-    return yaml.safe_load(DEMO_GRAPH.read_text())
+    return yaml.safe_load(DEMO_GRAPH.read_text(encoding="utf-8"))
 
 
 @pytest.mark.req("REQ-YG-574")
@@ -69,7 +69,7 @@ def test_committed_args_resolve_to_real_kwargs(raw_graph):
 @pytest.mark.req("REQ-YG-574")
 def test_demo_log_proves_tool_call_execution_and_success():
     """AC-07: committed log shows the registry path, not the wrapper."""
-    log = (DEMO_DIR / "demo-output.log").read_text()
+    log = (DEMO_DIR / "demo-output.log").read_text(encoding="utf-8")
     assert "type=tool_call" in log or "tool_call" in log
     assert "'success': True" in log or "success: true" in log.lower()
     assert "describe_demo_image" not in log

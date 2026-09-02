@@ -153,7 +153,7 @@ def build_catalog(zip_path: Path, out_path: Path = CATALOG_PATH) -> Path:
     payload = parse_cwec(xml_text)
     check_pins(payload)
     out_path.parent.mkdir(parents=True, exist_ok=True)
-    out_path.write_text(yaml.safe_dump(payload, sort_keys=False, allow_unicode=True))
+    out_path.write_text(yaml.safe_dump(payload, sort_keys=False, allow_unicode=True), encoding="utf-8")
     cov = payload["coverage"]
     print(
         f"✓ {cov['catalog_total']} weaknesses, {cov['candidates']} candidates "

@@ -36,19 +36,19 @@ def _corpus(tmp_path: Path) -> Path:
     (fr_dir / "FR-001-span-alignment.md").write_text(
         "# FR-001: Span alignment\n\n**Status:** Implemented (2026-01-01)\n\n"
         "## Problem\n\nSpans drift and fabrications pass unchecked.\n"
-    )
+    , encoding="utf-8")
     # F2: unprefixed elder — id must be the filename stem.
     (fr_dir / "070-gui-web-playground.md").write_text(
         "# 070: GUI web playground\n\n**Status:** Rejected — no UI, ever.\n\n"
         "## Problem\n\nPeople want a playground.\n"
-    )
+    , encoding="utf-8")
     # Headerless: reported, never dropped.
     (fr_dir / "FR-002-headerless.md").write_text(
         "# FR-002: Headerless\n\n## Problem\n\nNo status header here.\n"
-    )
+    , encoding="utf-8")
     # F4: companions excluded, not invisible.
-    (fr_dir / "TEMPLATE.md").write_text("# Template\n\n**Status:** n/a\n")
-    (fr_dir / "FR-001-span-alignment.judgement.md").write_text("# Judgement\n")
+    (fr_dir / "TEMPLATE.md").write_text("# Template\n\n**Status:** n/a\n", encoding="utf-8")
+    (fr_dir / "FR-001-span-alignment.judgement.md").write_text("# Judgement\n", encoding="utf-8")
     return tmp_path
 
 

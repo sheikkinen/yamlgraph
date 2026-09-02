@@ -35,7 +35,7 @@ class TestExportState:
     def test_export_file_contains_valid_json(self, temp_output_dir, sample_state):
         """Exported file should contain valid JSON."""
         filepath = export_state(sample_state, output_dir=temp_output_dir)
-        with open(filepath) as f:
+        with open(filepath, encoding="utf-8") as f:
             data = json.load(f)
         assert "topic" in data
         assert "thread_id" in data
@@ -268,9 +268,9 @@ class TestListExports:
     @pytest.mark.req("REQ-YG-038")
     def test_list_exports_finds_files(self, tmp_path):
         """Should find export files matching prefix."""
-        (tmp_path / "export_abc_123.json").write_text("{}")
-        (tmp_path / "export_def_456.json").write_text("{}")
-        (tmp_path / "other_file.json").write_text("{}")
+        (tmp_path / "export_abc_123.json").write_text("{}", encoding="utf-8")
+        (tmp_path / "export_def_456.json").write_text("{}", encoding="utf-8")
+        (tmp_path / "other_file.json").write_text("{}", encoding="utf-8")
 
         result = list_exports(tmp_path, prefix="export")
         assert len(result) == 2
@@ -284,7 +284,7 @@ class TestLoadExport:
     def test_load_export_reads_json(self, tmp_path):
         """Should load JSON from file."""
         file_path = tmp_path / "test.json"
-        file_path.write_text('{"key": "value"}')
+        file_path.write_text('{"key": "value"}', encoding="utf-8")
 
         result = load_export(file_path)
         assert result == {"key": "value"}
@@ -310,7 +310,7 @@ class TestExportResult:
 
         assert len(paths) == 1
         assert paths[0].name == "data.json"
-        content = json.loads(paths[0].read_text())
+        content = json.loads(paths[0].read_text(encoding="utf-8"))
         assert content["items"] == ["a", "b"]
 
     @pytest.mark.req("REQ-YG-038")
@@ -330,7 +330,7 @@ class TestExportResult:
         paths = export_result(state, config, base_path=tmp_path)
 
         assert len(paths) == 1
-        content = paths[0].read_text()
+        content = paths[0].read_text(encoding="utf-8")
         assert "# Report" in content
         assert "- one" in content
 

@@ -23,7 +23,7 @@ class TestExtractFunctionTemplate:
 def greet(name: str) -> str:
     """Say hello to someone."""
     return f"Hello, {name}!"
-''')
+''', encoding="utf-8")
         result = extract_function_template(str(source), "greet")
 
         assert "template" in result
@@ -43,7 +43,7 @@ def process(file_path: str) -> dict:
         return {"result": data}
     except FileNotFoundError:
         return {"error": "File not found"}
-''')
+''', encoding="utf-8")
         result = extract_function_template(str(source), "process")
 
         assert "template" in result
@@ -66,7 +66,7 @@ def analyze(file_path: str, depth: int = 3) -> dict:
         dict with analysis results
     """
     return {}
-''')
+''', encoding="utf-8")
         result = extract_function_template(str(source), "analyze")
 
         assert "template" in result
@@ -77,7 +77,7 @@ def analyze(file_path: str, depth: int = 3) -> dict:
     def test_handles_missing_function(self, tmp_path: Path):
         """Returns error for missing function."""
         source = tmp_path / "example.py"
-        source.write_text("def other(): pass")
+        source.write_text("def other(): pass", encoding="utf-8")
 
         result = extract_function_template(str(source), "missing")
         assert "error" in result
@@ -90,7 +90,7 @@ def analyze(file_path: str, depth: int = 3) -> dict:
     def test_handles_syntax_error(self, tmp_path: Path):
         """Returns error for invalid Python."""
         source = tmp_path / "bad.py"
-        source.write_text("def broken(:")
+        source.write_text("def broken(:", encoding="utf-8")
 
         result = extract_function_template(str(source), "broken")
         assert "error" in result
@@ -116,7 +116,7 @@ class Widget:
 
     def render(self) -> str:
         return f"<{self.name}>"
-''')
+''', encoding="utf-8")
         result = extract_class_template(str(source), "Widget")
 
         assert "template" in result
@@ -132,7 +132,7 @@ class Widget:
 class MyError(ValueError, RuntimeError):
     """Custom error."""
     pass
-''')
+''', encoding="utf-8")
         result = extract_class_template(str(source), "MyError")
 
         assert "template" in result
@@ -151,7 +151,7 @@ class Config:
 
     def __init__(self):
         self.value = None
-''')
+''', encoding="utf-8")
         result = extract_class_template(str(source), "Config")
 
         assert "template" in result
@@ -162,7 +162,7 @@ class Config:
     def test_handles_missing_class(self, tmp_path: Path):
         """Returns error for missing class."""
         source = tmp_path / "example.py"
-        source.write_text("class Other: pass")
+        source.write_text("class Other: pass", encoding="utf-8")
 
         result = extract_class_template(str(source), "Missing")
         assert "error" in result
@@ -202,7 +202,7 @@ class TestProcess:
     def test_error_handling(self):
         with pytest.raises(ValueError):
             process(None)
-''')
+''', encoding="utf-8")
         result = extract_test_template(str(test_file), "mymodule")
 
         assert "template" in result
@@ -222,7 +222,7 @@ def test_with_mock():
         mock_get.return_value.json.return_value = {}
         result = fetch_data()
         assert result == {}
-""")
+""", encoding="utf-8")
         result = extract_test_template(str(test_file), "mymodule")
 
         assert "template" in result
@@ -237,7 +237,7 @@ def test_with_mock():
     def test_handles_empty_test_file(self, tmp_path: Path):
         """Returns minimal template for empty file."""
         test_file = tmp_path / "test_empty.py"
-        test_file.write_text("# Empty test file")
+        test_file.write_text("# Empty test file", encoding="utf-8")
 
         result = extract_test_template(str(test_file), "module")
         # Should return some default template structure

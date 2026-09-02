@@ -20,7 +20,7 @@ FN_NAME = "_handle_optional_exports"
 
 
 def _count_defs(path: Path, name: str) -> int:
-    tree = ast.parse(path.read_text())
+    tree = ast.parse(path.read_text(encoding="utf-8"))
     return sum(
         1
         for node in ast.walk(tree)
@@ -30,7 +30,7 @@ def _count_defs(path: Path, name: str) -> int:
 
 def _has_alias(path: Path, name: str) -> bool:
     """Return True if `name = _graph_run_helpers.<name>` alias exists."""
-    source = path.read_text()
+    source = path.read_text(encoding="utf-8")
     return f"{name} = _graph_run_helpers.{name}" in source
 
 

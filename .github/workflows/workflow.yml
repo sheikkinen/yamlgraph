@@ -98,6 +98,13 @@ jobs:
         if: needs.changes.outputs.code == 'true'
         run: ruff check yamlgraph/
 
+      - name: Run encoding-boundary linter
+        # FR-951: the general gate above scans yamlgraph/ only. This one
+        # covers every first-party root so an undeclared text boundary in
+        # tests, scripts, examples, hooks or Chaplain fails the build too.
+        if: needs.changes.outputs.code == 'true'
+        run: ruff check --select PLW1514 --preview .
+
       - name: Run import-linter
         if: needs.changes.outputs.code == 'true'
         run: lint-imports
@@ -105,6 +112,38 @@ jobs:
       - name: Docs-only no-op (required-context conclusion)
         if: needs.changes.outputs.code != 'true'
         run: echo "docs-only diff — code gates vacuously satisfied"
+
+  windows-encoding:
+    # FR-951 D-6: the only job running on the platform where an inherited
+    # codec differs from UTF-8. Focused witnesses only — the full Windows
+    # unit suite is a diagnostic, not a merge gate (AC-11).
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Import yamlgraph
+        run: python -c "import yamlgraph; print(yamlgraph.__file__)"
+
+      - name: Assert the host codec precondition
+        env:
+          PYTHONUTF8: '0'
+        run: python -c "import locale, sys; enc = locale.getencoding(); print(enc); sys.exit(0 if enc.lower().replace('-', '') == 'cp1252' else 1)"
+
+      - name: Run FR-951 encoding witnesses
+        run: pytest tests/unit/test_fr951_utf8_boundaries.py tests/unit/test_fr951_cli_streams.py -q --no-cov
 
   build:
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')

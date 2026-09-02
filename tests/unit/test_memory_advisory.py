@@ -29,8 +29,8 @@ def run_tool(script: Path, *args: str) -> subprocess.CompletedProcess:
 def memory_root(tmp_path: Path) -> Path:
     root = tmp_path / "memories"
     (root / "repo").mkdir(parents=True)
-    (root / "repo" / "keepme.md").write_text("# Durable\nstill true\n")
-    (root / "repo" / "stale.md").write_text("# Pin\nfoo v0.1.7\n")
+    (root / "repo" / "keepme.md").write_text("# Durable\nstill true\n", encoding="utf-8")
+    (root / "repo" / "stale.md").write_text("# Pin\nfoo v0.1.7\n", encoding="utf-8")
     return root
 
 
@@ -45,7 +45,7 @@ def curate(memory_root: Path, out_dir: Path, verdicts: dict) -> None:
         "--out-dir",
         str(out_dir),
     )
-    manifest = json.loads((out_dir / "manifest.json").read_text())
+    manifest = json.loads((out_dir / "manifest.json").read_text(encoding="utf-8"))
     rows = []
     for key in manifest["notes"]:
         row = {
@@ -60,7 +60,7 @@ def curate(memory_root: Path, out_dir: Path, verdicts: dict) -> None:
         row.update(verdicts.get(key, {}))
         rows.append(row)
     raw = out_dir / "raw.json"
-    raw.write_text(json.dumps(rows))
+    raw.write_text(json.dumps(rows), encoding="utf-8")
     run_tool(
         EXAMPLE / "nodes" / "reconcile.py",
         "--manifest",
@@ -76,9 +76,9 @@ def curate(memory_root: Path, out_dir: Path, verdicts: dict) -> None:
     h_d = hashlib.sha256((out_dir / "disposition.json").read_bytes()).hexdigest()
     review = out_dir / "disposition.md"
     review.write_text(
-        review.read_text()
+        review.read_text(encoding="utf-8")
         + f"\nSIGN-OFF: approved HUMAN=operator manifest={h_m} disposition={h_d}\n"
-    )
+    , encoding="utf-8")
     result = subprocess.run(
         [
             sys.executable,
@@ -117,7 +117,7 @@ FORGET = {
 class TestMarker:
     def test_apply_writes_post_apply_baseline(self, memory_root, tmp_path):
         curate(memory_root, tmp_path / "out", FORGET)
-        marker = json.loads((memory_root / ".curation-state.json").read_text())
+        marker = json.loads((memory_root / ".curation-state.json").read_text(encoding="utf-8"))
         assert marker["version"] == 1
         assert "applied_at" in marker and "manifest_sha256" in marker
         assert "repo/stale.md" not in marker["notes"]  # forgotten path absent
@@ -135,14 +135,14 @@ class TestMarker:
 class TestAdvisory:
     def test_silent_below_threshold(self, memory_root, tmp_path):
         curate(memory_root, tmp_path / "out", {})
-        (memory_root / "repo" / "keepme.md").write_text("edited once\n")
+        (memory_root / "repo" / "keepme.md").write_text("edited once\n", encoding="utf-8")
         result = advisory(memory_root, threshold=5)
         assert result.returncode == 0 and result.stdout.strip() == ""
 
     def test_one_line_at_threshold(self, memory_root, tmp_path):
         curate(memory_root, tmp_path / "out", {})
-        (memory_root / "repo" / "keepme.md").write_text("edited\n")
-        (memory_root / "repo" / "new-note.md").write_text("new\n")
+        (memory_root / "repo" / "keepme.md").write_text("edited\n", encoding="utf-8")
+        (memory_root / "repo" / "new-note.md").write_text("new\n", encoding="utf-8")
         result = advisory(memory_root, threshold=2)
         assert result.returncode == 0, result.stderr
         lines = [line for line in result.stdout.splitlines() if line.strip()]
@@ -165,13 +165,13 @@ class TestAdvisory:
         assert "since last curation" in result.stdout
 
     def test_malformed_marker_is_a_real_error(self, memory_root):
-        (memory_root / ".curation-state.json").write_text("{not json")
+        (memory_root / ".curation-state.json").write_text("{not json", encoding="utf-8")
         result = advisory(memory_root)
         assert result.returncode != 0
         assert result.stderr.strip() != ""
 
     def test_no_provider_or_network_imports(self):
-        source = ADVISORY.read_text()
+        source = ADVISORY.read_text(encoding="utf-8")
         forbidden = (
             "requests",
             "httpx",
@@ -200,7 +200,7 @@ class TestHookWrapper:
             },
         )
         assert result.returncode == 0
-        record = json.loads(log.read_text().strip().splitlines()[-1])
+        record = json.loads(log.read_text(encoding="utf-8").strip().splitlines()[-1])
         assert record["event"] == "memory_advisory_failed"
 
     def test_hook_prints_advisory_on_drift(self, memory_root, tmp_path):

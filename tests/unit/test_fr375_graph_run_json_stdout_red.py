@@ -96,7 +96,7 @@ def test_ac03_json_success_stdout_contains_only_valid_json(
     from yamlgraph.cli.graph_commands import cmd_graph_run
 
     graph_path = tmp_path / "graph.yaml"
-    graph_path.write_text("name: test\nnodes: {}\nedges: []\n")
+    graph_path.write_text("name: test\nnodes: {}\nedges: []\n", encoding="utf-8")
 
     mock_app = _setup_graph_loader_mocks(mock_load_config, mock_compile, mock_get_cp)
     mock_app.invoke.return_value = {"answer": "ok", "nested": {"value": 1}}
@@ -131,7 +131,7 @@ def test_ac04_json_failure_writes_stderr_and_leaves_stdout_empty(
     from yamlgraph.cli.graph_commands import cmd_graph_run
 
     graph_path = tmp_path / "graph.yaml"
-    graph_path.write_text("name: test\nnodes: {}\nedges: []\n")
+    graph_path.write_text("name: test\nnodes: {}\nedges: []\n", encoding="utf-8")
 
     mock_load_config.return_value = MagicMock()
     mock_compile.side_effect = RuntimeError("boom")
@@ -164,7 +164,7 @@ def test_ac05_json_mode_rejects_interrupt_without_input_prompt(
     from yamlgraph.cli.graph_commands import cmd_graph_run
 
     graph_path = tmp_path / "graph.yaml"
-    graph_path.write_text("name: test\nnodes: {}\nedges: []\n")
+    graph_path.write_text("name: test\nnodes: {}\nedges: []\n", encoding="utf-8")
 
     mock_app = _setup_graph_loader_mocks(mock_load_config, mock_compile, mock_get_cp)
     mock_app.invoke.return_value = {
@@ -202,7 +202,7 @@ def test_ac06_json_mode_emits_full_untruncated_serialized_state(
     from yamlgraph.models.schemas import CopilotResult
 
     graph_path = tmp_path / "graph.yaml"
-    graph_path.write_text("name: test\nnodes: {}\nedges: []\n")
+    graph_path.write_text("name: test\nnodes: {}\nedges: []\n", encoding="utf-8")
 
     mock_app = _setup_graph_loader_mocks(mock_load_config, mock_compile, mock_get_cp)
     mock_app.invoke.return_value = {
@@ -243,12 +243,12 @@ def test_ac07_json_mode_preserves_import_var_merge_and_export_state_compatibilit
     from yamlgraph.cli.graph_commands import cmd_graph_run
 
     graph_path = tmp_path / "graph.yaml"
-    graph_path.write_text("name: test\nnodes: {}\nedges: []\n")
+    graph_path.write_text("name: test\nnodes: {}\nedges: []\n", encoding="utf-8")
 
     import_path = tmp_path / "import-state.json"
-    import_path.write_text(json.dumps({"shared": "imported", "i": 1}))
+    import_path.write_text(json.dumps({"shared": "imported", "i": 1}), encoding="utf-8")
     var_file = tmp_path / "vars.yaml"
-    var_file.write_text("shared: file\nf: 2\n")
+    var_file.write_text("shared: file\nf: 2\n", encoding="utf-8")
     export_path = tmp_path / "export-state.json"
 
     mock_app = _setup_graph_loader_mocks(mock_load_config, mock_compile, mock_get_cp)
@@ -276,4 +276,4 @@ def test_ac07_json_mode_preserves_import_var_merge_and_export_state_compatibilit
     assert payload["done"] is True
     assert captured_initial_state == {"shared": "cli", "i": 1, "f": 2, "c": "3"}
     assert export_path.exists()
-    assert json.loads(export_path.read_text())["source"] == "json-mode"
+    assert json.loads(export_path.read_text(encoding="utf-8"))["source"] == "json-mode"

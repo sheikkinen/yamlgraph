@@ -125,7 +125,7 @@ def write_diary(state: dict) -> dict:
         filename = f"{date_str}-{entry_type}.md"
         entry_path = DIARY_DIR / filename
         DIARY_DIR.mkdir(parents=True, exist_ok=True)
-        entry_path.write_text(entry)
+        entry_path.write_text(entry, encoding="utf-8")
         logger.info(f"✓ Forensic entry written to {entry_path}")
 
         return {"written": True}
@@ -172,7 +172,7 @@ def write_diary(state: dict) -> dict:
     filename = f"{date_str}-{entry_type}.md"
     entry_path = DIARY_DIR / filename
     DIARY_DIR.mkdir(parents=True, exist_ok=True)
-    entry_path.write_text(entry)
+    entry_path.write_text(entry, encoding="utf-8")
     logger.info(f"✓ Entry written to {entry_path}")
 
     return {"written": True}

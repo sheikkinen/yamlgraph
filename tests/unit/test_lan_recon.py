@@ -62,7 +62,7 @@ def fixture_json():
         / "lan_recon"
         / "huutokauppakone.json"
     )
-    return json.loads(p.read_text())
+    return json.loads(p.read_text(encoding="utf-8"))
 
 
 # ---------------------------------------------------------------------------

@@ -134,13 +134,13 @@ def _reduce(tools, findings, base_dir, tool_results=TOOL_RESULTS):
 
 @pytest.mark.req("REQ-YG-623")
 def test_check_brief_accepts_clean_fixture(preflight):
-    violations = preflight.check_brief(CLEAN_BRIEF.read_text())
+    violations = preflight.check_brief(CLEAN_BRIEF.read_text(encoding="utf-8"))
     assert violations == []
 
 
 @pytest.mark.req("REQ-YG-623")
 def test_check_brief_rejects_contaminated_fixture(preflight):
-    violations = preflight.check_brief(CONTAMINATED_BRIEF.read_text())
+    violations = preflight.check_brief(CONTAMINATED_BRIEF.read_text(encoding="utf-8"))
     joined = "\n".join(violations).lower()
     assert violations, "contaminated brief must be rejected"
     assert "proposed solution" in joined
@@ -149,14 +149,14 @@ def test_check_brief_rejects_contaminated_fixture(preflight):
 
 @pytest.mark.req("REQ-YG-623")
 def test_check_brief_requires_all_headings(preflight):
-    text = CLEAN_BRIEF.read_text().replace("## Constraints", "## Notes")
+    text = CLEAN_BRIEF.read_text(encoding="utf-8").replace("## Constraints", "## Notes")
     violations = preflight.check_brief(text)
     assert any("constraints" in v.lower() for v in violations)
 
 
 @pytest.mark.req("REQ-YG-623")
 def test_check_brief_rejects_unknown_classification(preflight):
-    text = CLEAN_BRIEF.read_text().replace(
+    text = CLEAN_BRIEF.read_text(encoding="utf-8").replace(
         "judgement/analysis/generation", "vibes/unknown"
     )
     violations = preflight.check_brief(text)
@@ -188,7 +188,7 @@ def test_reduce_writes_artifact_with_frozen_schema(tools, tmp_path):
     result = _reduce(tools, _five_findings(), tmp_path)
     artifact = tmp_path / "tmp" / "draft-alternatives.md"
     assert artifact.exists()
-    text = artifact.read_text()
+    text = artifact.read_text(encoding="utf-8")
     for column in COLUMNS:
         assert column in text, f"missing column: {column}"
     assert "clean-brief.md" in text  # brief filename in metadata header
@@ -211,7 +211,7 @@ def test_reduce_preserves_conflicting_rows(tools, tmp_path):
     )
     result = _reduce(tools, findings, tmp_path)
     assert result["rows"] == 6, "disagreement must be preserved as rows, never voted"
-    text = (tmp_path / "tmp" / "draft-alternatives.md").read_text()
+    text = (tmp_path / "tmp" / "draft-alternatives.md").read_text(encoding="utf-8")
     assert text.count("OS permission bit on the governed path") == 2
 
 
@@ -256,7 +256,7 @@ def test_reduce_single_class_convergence_is_advisory(tools, tmp_path):
 @pytest.mark.req("REQ-YG-623")
 def test_verify_artifact_accepts_reduced_output(preflight, tools, tmp_path):
     _reduce(tools, _five_findings(), tmp_path)
-    text = (tmp_path / "tmp" / "draft-alternatives.md").read_text()
+    text = (tmp_path / "tmp" / "draft-alternatives.md").read_text(encoding="utf-8")
     assert preflight.verify_artifact(text) == []
 
 
@@ -286,7 +286,7 @@ def test_collect_graph_shapes_names_map(tools):
 
 
 def _write_stub(path: Path, body: str) -> Path:
-    path.write_text(f"#!/usr/bin/env bash\n{body}\n")
+    path.write_text(f"#!/usr/bin/env bash\n{body}\n", encoding="utf-8")
     path.chmod(path.stat().st_mode | stat.S_IXUSR)
     return path
 
@@ -335,7 +335,7 @@ def test_research_sentinel_exit_70(tmp_path):
 def test_research_fresh_lock_exit_73(tmp_path):
     lock = tmp_path / "tmp" / ".research.lock"
     lock.mkdir(parents=True)
-    (lock / "holder").write_text("pid=99999 started=2026-08-26T00:00:00Z\n")
+    (lock / "holder").write_text("pid=99999 started=2026-08-26T00:00:00Z\n", encoding="utf-8")
     result = _run_wrapper([str(CLEAN_BRIEF)], tmp_path, None)
     assert result.returncode == 73
     assert "pid=99999" in result.stderr

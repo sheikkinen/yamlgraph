@@ -93,7 +93,7 @@ class TestArtifactIdempotence:
         assert ARTIFACT.exists(), f"missing committed artifact: {ARTIFACT}"
 
     def test_rebuild_is_noop(self, build_mod, payload):
-        assert build_mod.serialize(payload) == ARTIFACT.read_text()
+        assert build_mod.serialize(payload) == ARTIFACT.read_text(encoding="utf-8")
 
     def test_serialization_deterministic(self, build_mod):
         a = build_mod.serialize(build_mod.build_prompt_json())
@@ -109,7 +109,7 @@ class TestPageConsentGate:
     def html(self) -> str:
         if not INDEX_HTML.exists():
             pytest.fail(f"missing page: {INDEX_HTML}")
-        return INDEX_HTML.read_text()
+        return INDEX_HTML.read_text(encoding="utf-8")
 
     def test_capability_gate_present(self, html):
         assert "navigator.gpu" in html

@@ -32,7 +32,7 @@ def load_capabilities() -> list[dict]:
     """Load all capability YAML files, sorted by numeric ID."""
     capabilities = []
     for filepath in sorted(CAPABILITIES_DIR.glob("CAP-*.yaml")):
-        with open(filepath) as f:
+        with open(filepath, encoding="utf-8") as f:
             data = yaml.safe_load(f)
         # Add numeric sort key
         match = re.search(r"CAP-(\d+)", str(data["id"]))
@@ -132,7 +132,7 @@ def _compact_req_range(reqs: list[str]) -> str:
 
 def update_architecture(content: str, dry_run: bool = False) -> str:
     """Insert generated content between markers in ARCHITECTURE.md."""
-    text = ARCHITECTURE_MD.read_text()
+    text = ARCHITECTURE_MD.read_text(encoding="utf-8")
 
     begin_idx = text.find(BEGIN_MARKER)
     end_idx = text.find(END_MARKER)
@@ -152,7 +152,7 @@ def update_architecture(content: str, dry_run: bool = False) -> str:
         print(content)
         return new_text
 
-    ARCHITECTURE_MD.write_text(new_text)
+    ARCHITECTURE_MD.write_text(new_text, encoding="utf-8")
     print(f"✅ Updated ARCHITECTURE.md ({len(content)} chars generated)")
     return new_text
 

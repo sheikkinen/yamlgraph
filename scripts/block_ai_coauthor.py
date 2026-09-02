@@ -31,7 +31,7 @@ PENANCE = """
 
 def main() -> int:
     msg_file = sys.argv[1]
-    with open(msg_file) as f:
+    with open(msg_file, encoding="utf-8") as f:
         lines = f.readlines()
 
     offenders = [line.rstrip() for line in lines if AI_PATTERN.match(line)]

@@ -23,7 +23,7 @@ PROBLEM = "The nightly backup job silently stopped running last week"
 
 
 def _user_template(name: str) -> str:
-    return yaml.safe_load((PROMPTS_DIR / f"{name}.yaml").read_text())["user"]
+    return yaml.safe_load((PROMPTS_DIR / f"{name}.yaml").read_text(encoding="utf-8"))["user"]
 
 
 @pytest.mark.req("REQ-YG-013")

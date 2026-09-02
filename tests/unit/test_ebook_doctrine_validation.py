@@ -148,7 +148,7 @@ As defined in `.github/copilot-instructions.md`:
         if not SOURCE_FILE.exists():
             pytest.skip("Source file not found (running outside repo root)")
 
-        source_content = SOURCE_FILE.read_text()
+        source_content = SOURCE_FILE.read_text(encoding="utf-8")
 
         for cmd in COMMANDMENTS:
             # Extract just the "Thou shalt..." part

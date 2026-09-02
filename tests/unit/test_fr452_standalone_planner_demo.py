@@ -62,7 +62,7 @@ class TestPlannerDemoGraphStructure:
     @pytest.mark.req("REQ-YG-424")
     def test_graph_has_five_tool_definitions(self) -> None:
         """Graph tools section defines exactly 5 tools (4 shell + 1 python)."""
-        raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text())
+        raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text(encoding="utf-8"))
         assert len(raw["tools"]) == 5
         # FR-777: shared shell tools are declared via toolbelt manifest refs
         shell_tools = [
@@ -78,7 +78,7 @@ class TestPlannerDemoGraphStructure:
     @pytest.mark.req("REQ-YG-424")
     def test_write_file_is_python_tool(self) -> None:
         """write_file must be type: python, not shell (heredoc rejected)."""
-        raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text())
+        raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text(encoding="utf-8"))
         wf = raw["tools"]["write_file"]
         assert wf["type"] == "python"
         assert "write_file" in wf.get("function", "")
@@ -86,7 +86,7 @@ class TestPlannerDemoGraphStructure:
     @pytest.mark.req("REQ-YG-424")
     def test_no_head_truncation(self) -> None:
         """No tool uses | head -N truncation."""
-        raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text())
+        raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text(encoding="utf-8"))
         for name, tool_cfg in raw["tools"].items():
             cmd = tool_cfg.get("command", "")
             assert "| head" not in cmd, f"Tool '{name}' uses | head truncation: {cmd}"
@@ -102,7 +102,7 @@ class TestPlannerDemoGraphStructure:
     @pytest.mark.req("REQ-YG-424")
     def test_no_hardcoded_model(self) -> None:
         """No hardcoded model — uses env var fallthrough."""
-        raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text())
+        raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text(encoding="utf-8"))
         assert (
             "model" not in raw["nodes"]["planner"]
         ), "Planner node must not hardcode model — use PROVIDER/MODEL env vars"
@@ -118,7 +118,7 @@ class TestPlannerDemoGraphStructure:
     @pytest.mark.req("REQ-YG-424")
     def test_prompt_has_structured_schema(self) -> None:
         """Prompt must define PlanResult schema with 6 fields."""
-        prompt = yaml.safe_load((DEMO_DIR / "prompts" / "planner.yaml").read_text())
+        prompt = yaml.safe_load((DEMO_DIR / "prompts" / "planner.yaml").read_text(encoding="utf-8"))
         schema = prompt["schema"]
         assert schema["name"] == "PlanResult"
         expected_fields = {
@@ -134,7 +134,7 @@ class TestPlannerDemoGraphStructure:
     @pytest.mark.req("REQ-YG-424")
     def test_prompt_instructs_template_and_architecture(self) -> None:
         """Prompt must instruct agent to read FR template and architecture doc."""
-        prompt_text = (DEMO_DIR / "prompts" / "planner.yaml").read_text()
+        prompt_text = (DEMO_DIR / "prompts" / "planner.yaml").read_text(encoding="utf-8")
         assert "TEMPLATE.md" in prompt_text
         assert "ARCHITECTURE.md" in prompt_text
 
@@ -168,5 +168,5 @@ class TestPlannerDemoGraphStructure:
 
         target = tmp_path / "subdir" / "test.md"
         result = mod.write_file(str(target), "hello world")
-        assert target.read_text() == "hello world"
+        assert target.read_text(encoding="utf-8") == "hello world"
         assert "11 bytes" in result

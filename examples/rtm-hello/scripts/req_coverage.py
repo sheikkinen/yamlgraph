@@ -38,7 +38,7 @@ def _load_requirements() -> dict[str, str]:
     if not rtm.exists():
         sys.exit(f"ERROR: {rtm} not found")
     reqs: dict[str, str] = {}
-    for line in rtm.read_text().splitlines():
+    for line in rtm.read_text(encoding="utf-8").splitlines():
         m = re.match(r"^\|\s*(REQ-CALC-\d{3})\s*\|\s*(.+?)\s*\|", line)
         if m:
             reqs[m.group(1)] = m.group(2).strip()
@@ -60,7 +60,7 @@ def _load_capabilities() -> dict[str, tuple[str, list[str]]]:
     current_reqs: list[str] = []
     cap_pattern = re.compile(r"^##\s+(CAP-\d+):\s*(.+)$")
     req_pattern = re.compile(r"^\|\s*(REQ-CALC-\d{3})\s*\|")
-    for line in rtm.read_text().splitlines():
+    for line in rtm.read_text(encoding="utf-8").splitlines():
         m = cap_pattern.match(line)
         if m:
             if current_cap:
@@ -89,7 +89,7 @@ def extract_req_markers(filepath: Path) -> dict[str, list[str]]:
     Uses class-qualified keys (Class::method) to avoid collisions.
     """
     try:
-        tree = ast.parse(filepath.read_text(), filename=str(filepath))
+        tree = ast.parse(filepath.read_text(encoding="utf-8"), filename=str(filepath))
     except SyntaxError:
         return {}
 
@@ -206,7 +206,7 @@ def _extract_imports_from_test(filepath: Path, test_key: str) -> set[str]:
     Returns set of relative paths like ``{"src/calculator.py"}``.
     """
     try:
-        tree = ast.parse(filepath.read_text(), filename=str(filepath))
+        tree = ast.parse(filepath.read_text(encoding="utf-8"), filename=str(filepath))
     except SyntaxError:
         return set()
 

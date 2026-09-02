@@ -127,15 +127,15 @@ class TestEmitConfig:
         assert EMIT_CONFIG.exists()
 
     def test_config_valid_json(self) -> None:
-        config = json.loads(EMIT_CONFIG.read_text())
+        config = json.loads(EMIT_CONFIG.read_text(encoding="utf-8"))
         assert "hooks" in config
 
     def test_config_is_post_tool_use(self) -> None:
-        config = json.loads(EMIT_CONFIG.read_text())
+        config = json.loads(EMIT_CONFIG.read_text(encoding="utf-8"))
         assert "PostToolUse" in config["hooks"]
 
     def test_config_references_emit_script(self) -> None:
-        config = json.loads(EMIT_CONFIG.read_text())
+        config = json.loads(EMIT_CONFIG.read_text(encoding="utf-8"))
         entries = config["hooks"]["PostToolUse"]
         assert len(entries) == 1
         assert entries[0]["command"] == ".github/hooks/scripts/classify-emit.sh"

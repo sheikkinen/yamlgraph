@@ -316,10 +316,10 @@ class TestMemoryDemoEndToEnd:
         # Check markdown file
         md_path = tmp_path / "demo-123" / "review.md"
         assert md_path.exists()
-        assert "Code Review Summary" in md_path.read_text()
+        assert "Code Review Summary" in md_path.read_text(encoding="utf-8")
 
         # Check JSON file
         json_path = tmp_path / "demo-123" / "tool_outputs.json"
         assert json_path.exists()
-        data = json.loads(json_path.read_text())
+        data = json.loads(json_path.read_text(encoding="utf-8"))
         assert data[0]["tool"] == "git_log"

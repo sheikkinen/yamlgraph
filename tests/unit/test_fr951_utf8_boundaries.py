@@ -26,13 +26,10 @@ EURO = "\u20ac"
 # Documented aliases for the Western-European Windows ANSI code page.
 CP1252_ALIASES = {"cp1252", "windows1252", "1252"}
 
-pytestmark = [
-    pytest.mark.req("REQ-YG-638"),
-    pytest.mark.skipif(
-        sys.platform != "win32",
-        reason="FR-951: the inherited-codec boundary only exists on Windows",
-    ),
-]
+pytestmark = pytest.mark.skipif(
+    sys.platform != "win32",
+    reason="FR-951: the inherited-codec boundary only exists on Windows",
+)
 
 # Reports every boundary independently so one inherited codec does not mask the
 # others, and emits ASCII-only JSON so the probe's own stdout codec is not a
@@ -141,12 +138,14 @@ def _value(report: dict, key: str):
     return entry["value"]
 
 
+@pytest.mark.req("REQ-YG-638")
 def test_graph_loader_declares_utf8(probe_report: dict) -> None:
     description = _value(probe_report, "graph")
     assert CURLY_QUOTE in description
     assert EURO in description
 
 
+@pytest.mark.req("REQ-YG-638")
 def test_prompt_loader_declares_utf8(probe_report: dict) -> None:
     system, user = _value(probe_report, "prompt")
     assert CURLY_QUOTE in system
@@ -154,12 +153,14 @@ def test_prompt_loader_declares_utf8(probe_report: dict) -> None:
     assert EURO in user
 
 
+@pytest.mark.req("REQ-YG-638")
 def test_schema_loader_declares_utf8(probe_report: dict) -> None:
     quote, price = _value(probe_report, "schema")
     assert CURLY_QUOTE in quote
     assert EURO in price
 
 
+@pytest.mark.req("REQ-YG-638")
 @pytest.mark.parametrize(
     "loaded_key,reference_key",
     [

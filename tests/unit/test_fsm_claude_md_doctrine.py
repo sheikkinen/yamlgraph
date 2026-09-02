@@ -58,67 +58,67 @@ class TestFsmClaudeMdTenCommandments:
     """Verify fsm/CLAUDE.md contains all 10 Commandments verbatim."""
 
     def test_commandment_1_research_before_coding(self):
-        content = FSM_CLAUDE_MD.read_text()
+        content = FSM_CLAUDE_MD.read_text(encoding="utf-8")
         assert (
             "Thou shalt research before coding" in content
         ), "fsm/CLAUDE.md must contain Commandment 1 (FR-199 AC-1)"
 
     def test_commandment_2_demonstrate_with_example(self):
-        content = FSM_CLAUDE_MD.read_text()
+        content = FSM_CLAUDE_MD.read_text(encoding="utf-8")
         assert (
             "Thou shalt demonstrate with example" in content
         ), "fsm/CLAUDE.md must contain Commandment 2 (FR-199 AC-1)"
 
     def test_commandment_3_not_utter_code_in_vain(self):
-        content = FSM_CLAUDE_MD.read_text()
+        content = FSM_CLAUDE_MD.read_text(encoding="utf-8")
         assert (
             "Thou shalt not utter code in vain" in content
         ), "fsm/CLAUDE.md must contain Commandment 3 (FR-199 AC-1)"
 
     def test_commandment_4_honor_existing_patterns(self):
-        content = FSM_CLAUDE_MD.read_text()
+        content = FSM_CLAUDE_MD.read_text(encoding="utf-8")
         assert (
             "Thou shalt honor existing patterns" in content
         ), "fsm/CLAUDE.md must contain Commandment 4 (FR-199 AC-1)"
 
     def test_commandment_5_sanctify_outputs_with_types(self):
-        content = FSM_CLAUDE_MD.read_text()
+        content = FSM_CLAUDE_MD.read_text(encoding="utf-8")
         assert (
             "Thou shalt sanctify thy outputs with types" in content
         ), "fsm/CLAUDE.md must contain Commandment 5 (FR-199 AC-1)"
 
     def test_commandment_6_bear_witness_of_errors(self):
-        content = FSM_CLAUDE_MD.read_text()
+        content = FSM_CLAUDE_MD.read_text(encoding="utf-8")
         assert (
             "Thou shalt bear witness of thy errors" in content
         ), "fsm/CLAUDE.md must contain Commandment 6 (FR-199 AC-1)"
 
     def test_commandment_7_faithful_to_tdd(self):
-        content = FSM_CLAUDE_MD.read_text()
+        content = FSM_CLAUDE_MD.read_text(encoding="utf-8")
         assert (
             "Thou shalt be faithful to TDD" in content
         ), "fsm/CLAUDE.md must contain Commandment 7 (FR-199 AC-1)"
 
     def test_commandment_8_kill_entropy(self):
-        content = FSM_CLAUDE_MD.read_text()
+        content = FSM_CLAUDE_MD.read_text(encoding="utf-8")
         assert (
             "Thou shalt kill all entropy and false idols" in content
         ), "fsm/CLAUDE.md must contain Commandment 8 (FR-199 AC-1)"
 
     def test_commandment_9_operational_truth(self):
-        content = FSM_CLAUDE_MD.read_text()
+        content = FSM_CLAUDE_MD.read_text(encoding="utf-8")
         assert (
             "Thou shalt define and observe operational truth" in content
         ), "fsm/CLAUDE.md must contain Commandment 9 (FR-199 AC-1)"
 
     def test_commandment_10_preserve_doctrine(self):
-        content = FSM_CLAUDE_MD.read_text()
+        content = FSM_CLAUDE_MD.read_text(encoding="utf-8")
         assert (
             "Thou shalt preserve and improve the doctrine" in content
         ), "fsm/CLAUDE.md must contain Commandment 10 (FR-199 AC-1)"
 
     def test_section_heading_ten_commandments(self):
-        content = FSM_CLAUDE_MD.read_text()
+        content = FSM_CLAUDE_MD.read_text(encoding="utf-8")
         assert (
             "The 10 Commandments" in content
         ), "fsm/CLAUDE.md must have 'The 10 Commandments' section heading (FR-199 AC-1)"
@@ -129,41 +129,41 @@ class TestFsmClaudeMdSermon:
     """Verify fsm/CLAUDE.md contains the Sermon of the Chaplain verbatim."""
 
     def test_sermon_section_heading(self):
-        content = FSM_CLAUDE_MD.read_text()
+        content = FSM_CLAUDE_MD.read_text(encoding="utf-8")
         assert (
             "Sermon of the Chaplain" in content
         ), "fsm/CLAUDE.md must contain 'Sermon of the Chaplain' (FR-199 AC-2)"
 
     def test_sermon_contains_research(self):
-        content = FSM_CLAUDE_MD.read_text()
+        content = FSM_CLAUDE_MD.read_text(encoding="utf-8")
         assert (
             "**Research.**" in content
         ), "Sermon must contain Research step (FR-199 AC-2)"
 
     def test_sermon_contains_plan(self):
-        content = FSM_CLAUDE_MD.read_text()
+        content = FSM_CLAUDE_MD.read_text(encoding="utf-8")
         assert "**Plan.**" in content, "Sermon must contain Plan step (FR-199 AC-2)"
 
     def test_sermon_contains_judge(self):
-        content = FSM_CLAUDE_MD.read_text()
+        content = FSM_CLAUDE_MD.read_text(encoding="utf-8")
         assert "**Judge.**" in content, "Sermon must contain Judge step (FR-199 AC-2)"
 
     def test_sermon_contains_enforce(self):
-        content = FSM_CLAUDE_MD.read_text()
+        content = FSM_CLAUDE_MD.read_text(encoding="utf-8")
         assert (
             "**Enforce.**" in content
         ), "Sermon must contain Enforce step (FR-199 AC-2)"
 
     def test_sermon_contains_purge(self):
-        content = FSM_CLAUDE_MD.read_text()
+        content = FSM_CLAUDE_MD.read_text(encoding="utf-8")
         assert "**Purge.**" in content, "Sermon must contain Purge step (FR-199 AC-2)"
 
     def test_sermon_contains_submit(self):
-        content = FSM_CLAUDE_MD.read_text()
+        content = FSM_CLAUDE_MD.read_text(encoding="utf-8")
         assert "**Submit.**" in content, "Sermon must contain Submit step (FR-199 AC-2)"
 
     def test_sermon_contains_distill(self):
-        content = FSM_CLAUDE_MD.read_text()
+        content = FSM_CLAUDE_MD.read_text(encoding="utf-8")
         assert (
             "**Distill.**" in content
         ), "Sermon must contain Distill step (FR-199 AC-2)"
@@ -174,21 +174,21 @@ class TestFsmClaudeMdRiteOfCorrection:
     """Verify fsm/CLAUDE.md contains the Rite of Correction verbatim."""
 
     def test_rite_section_heading(self):
-        content = FSM_CLAUDE_MD.read_text()
+        content = FSM_CLAUDE_MD.read_text(encoding="utf-8")
         assert (
             "Rite of Correction" in content
         ), "fsm/CLAUDE.md must contain 'Rite of Correction' (FR-199 AC-3)"
 
     def test_rite_contains_inspect(self):
-        content = FSM_CLAUDE_MD.read_text()
+        content = FSM_CLAUDE_MD.read_text(encoding="utf-8")
         assert "**Inspect.**" in content, "Rite must contain Inspect step (FR-199 AC-3)"
 
     def test_rite_contains_amend(self):
-        content = FSM_CLAUDE_MD.read_text()
+        content = FSM_CLAUDE_MD.read_text(encoding="utf-8")
         assert "**Amend.**" in content, "Rite must contain Amend step (FR-199 AC-3)"
 
     def test_rite_contains_escalate(self):
-        content = FSM_CLAUDE_MD.read_text()
+        content = FSM_CLAUDE_MD.read_text(encoding="utf-8")
         assert (
             "**Escalate.**" in content
         ), "Rite must contain Escalate step (FR-199 AC-3)"
@@ -199,25 +199,25 @@ class TestFsmClaudeMdAgentsPrayer:
     """Verify fsm/CLAUDE.md contains the Agents' prayer verbatim."""
 
     def test_prayer_section_heading(self):
-        content = FSM_CLAUDE_MD.read_text()
+        content = FSM_CLAUDE_MD.read_text(encoding="utf-8")
         assert (
             "Agents' prayer" in content
         ), "fsm/CLAUDE.md must contain 'Agents' prayer' section (FR-199 AC-4)"
 
     def test_prayer_contains_callsite_fix(self):
-        content = FSM_CLAUDE_MD.read_text()
+        content = FSM_CLAUDE_MD.read_text(encoding="utf-8")
         assert (
             "May I fix at the callsite, not the utility." in content
         ), "Prayer must contain callsite-fix heuristic (FR-199 AC-4)"
 
     def test_prayer_contains_normalize_at_boundary(self):
-        content = FSM_CLAUDE_MD.read_text()
+        content = FSM_CLAUDE_MD.read_text(encoding="utf-8")
         assert (
             "May I normalize at the boundary" in content
         ), "Prayer must contain boundary normalization heuristic (FR-199 AC-4)"
 
     def test_prayer_contains_no_verify_warning(self):
-        content = FSM_CLAUDE_MD.read_text()
+        content = FSM_CLAUDE_MD.read_text(encoding="utf-8")
         assert (
             "--no-verify" in content
         ), "Prayer/doctrine must contain --no-verify warning (FR-199 AC-4)"
@@ -228,49 +228,49 @@ class TestFsmClaudeMdKnowledgeGraph:
     """Verify fsm/CLAUDE.md contains the Knowledge Graph of the Diary."""
 
     def test_knowledge_graph_section_heading(self):
-        content = FSM_CLAUDE_MD.read_text()
+        content = FSM_CLAUDE_MD.read_text(encoding="utf-8")
         assert (
             "Knowledge Graph" in content and "Diary" in content
         ), "fsm/CLAUDE.md must contain the Knowledge Graph of the Diary (FR-199 AC-5)"
 
     def test_knowledge_graph_the_one_law(self):
-        content = FSM_CLAUDE_MD.read_text()
+        content = FSM_CLAUDE_MD.read_text(encoding="utf-8")
         assert (
             "the_one_law:" in content
         ), "Knowledge Graph must contain the_one_law: entry (FR-199 AC-5)"
 
     def test_knowledge_graph_traps_section(self):
-        content = FSM_CLAUDE_MD.read_text()
+        content = FSM_CLAUDE_MD.read_text(encoding="utf-8")
         assert (
             "traps:" in content
         ), "Knowledge Graph must contain traps: section (FR-199 AC-5)"
 
     def test_knowledge_graph_cures_section(self):
-        content = FSM_CLAUDE_MD.read_text()
+        content = FSM_CLAUDE_MD.read_text(encoding="utf-8")
         assert (
             "cures:" in content
         ), "Knowledge Graph must contain cures: section (FR-199 AC-5)"
 
     def test_knowledge_graph_process_section(self):
-        content = FSM_CLAUDE_MD.read_text()
+        content = FSM_CLAUDE_MD.read_text(encoding="utf-8")
         assert (
             "process:" in content
         ), "Knowledge Graph must contain process: section (FR-199 AC-5)"
 
     def test_knowledge_graph_seeds_section(self):
-        content = FSM_CLAUDE_MD.read_text()
+        content = FSM_CLAUDE_MD.read_text(encoding="utf-8")
         assert (
             "seeds:" in content
         ), "Knowledge Graph must contain seeds: section (FR-199 AC-5)"
 
     def test_knowledge_graph_quick_confidence_trap(self):
-        content = FSM_CLAUDE_MD.read_text()
+        content = FSM_CLAUDE_MD.read_text(encoding="utf-8")
         assert (
             "quick_confidence:" in content
         ), "Knowledge Graph must contain quick_confidence trap (FR-199 AC-5)"
 
     def test_knowledge_graph_downstream_fix_trap(self):
-        content = FSM_CLAUDE_MD.read_text()
+        content = FSM_CLAUDE_MD.read_text(encoding="utf-8")
         assert (
             "downstream_fix:" in content
         ), "Knowledge Graph must contain downstream_fix trap (FR-199 AC-5)"
@@ -281,31 +281,31 @@ class TestFsmClaudeMdAdaptationTable:
     """Verify fsm/CLAUDE.md contains the path/package adaptation table."""
 
     def test_adaptation_table_present(self):
-        content = FSM_CLAUDE_MD.read_text()
+        content = FSM_CLAUDE_MD.read_text(encoding="utf-8")
         assert (
             "statemachine_engine" in content or "statemachine-engine" in content
         ), "fsm/CLAUDE.md must contain FSM-specific path adaptations (FR-199 AC-6)"
 
     def test_adaptation_table_has_yamlgraph_column(self):
-        content = FSM_CLAUDE_MD.read_text()
+        content = FSM_CLAUDE_MD.read_text(encoding="utf-8")
         assert (
             "YAMLGraph" in content and "FSM equivalent" in content
         ), "Adaptation table must have YAMLGraph and FSM equivalent columns (FR-199 AC-6)"
 
     def test_adaptation_table_action_loader(self):
-        content = FSM_CLAUDE_MD.read_text()
+        content = FSM_CLAUDE_MD.read_text(encoding="utf-8")
         assert (
             "ActionLoader" in content
         ), "Adaptation table must map create_llm() → ActionLoader (FR-199 AC-6)"
 
     def test_adaptation_table_base_action(self):
-        content = FSM_CLAUDE_MD.read_text()
+        content = FSM_CLAUDE_MD.read_text(encoding="utf-8")
         assert (
             "BaseAction" in content
         ), "Adaptation table must reference BaseAction (FR-199 AC-6)"
 
     def test_adaptation_table_shared_paths(self):
-        content = FSM_CLAUDE_MD.read_text()
+        content = FSM_CLAUDE_MD.read_text(encoding="utf-8")
         assert (
             "../feature-requests/" in content
         ), "Adaptation table must show shared mono-repo paths (FR-199 AC-6)"
@@ -316,13 +316,13 @@ class TestFsmClaudeMdAntiPatterns:
     """Verify fsm/CLAUDE.md contains an anti-patterns table with FSM idioms."""
 
     def test_anti_patterns_section_present(self):
-        content = FSM_CLAUDE_MD.read_text()
+        content = FSM_CLAUDE_MD.read_text(encoding="utf-8")
         assert (
             "Anti-Patterns" in content or "Anti-patterns" in content
         ), "fsm/CLAUDE.md must contain an anti-patterns section (FR-199 AC-7)"
 
     def test_anti_patterns_table_format(self):
-        content = FSM_CLAUDE_MD.read_text()
+        content = FSM_CLAUDE_MD.read_text(encoding="utf-8")
         assert (
             "❌ Wrong" in content and "✅ Correct" in content
         ), "Anti-patterns table must use ❌/✅ format (FR-199 AC-7)"
@@ -333,37 +333,37 @@ class TestFsmClaudeMdExistingSectionsPreserved:
     """Verify all existing FSM-specific sections are preserved intact."""
 
     def test_architecture_section_preserved(self):
-        content = FSM_CLAUDE_MD.read_text()
+        content = FSM_CLAUDE_MD.read_text(encoding="utf-8")
         assert (
             "## Architecture" in content
         ), "Existing Architecture section must be preserved (FR-199 AC-8)"
 
     def test_core_engine_preserved(self):
-        content = FSM_CLAUDE_MD.read_text()
+        content = FSM_CLAUDE_MD.read_text(encoding="utf-8")
         assert (
             "core/engine.py" in content
         ), "Core engine reference must be preserved (FR-199 AC-8)"
 
     def test_usage_patterns_preserved(self):
-        content = FSM_CLAUDE_MD.read_text()
+        content = FSM_CLAUDE_MD.read_text(encoding="utf-8")
         assert (
             "## Usage Patterns" in content
         ), "Usage Patterns section must be preserved (FR-199 AC-8)"
 
     def test_communication_architecture_preserved(self):
-        content = FSM_CLAUDE_MD.read_text()
+        content = FSM_CLAUDE_MD.read_text(encoding="utf-8")
         assert (
             "## Communication Architecture" in content
         ), "Communication Architecture section must be preserved (FR-199 AC-8)"
 
     def test_troubleshooting_preserved(self):
-        content = FSM_CLAUDE_MD.read_text()
+        content = FSM_CLAUDE_MD.read_text(encoding="utf-8")
         assert (
             "## Troubleshooting" in content
         ), "Troubleshooting section must be preserved (FR-199 AC-8)"
 
     def test_variable_interpolation_preserved(self):
-        content = FSM_CLAUDE_MD.read_text()
+        content = FSM_CLAUDE_MD.read_text(encoding="utf-8")
         assert (
             "Variable interpolation" in content or "variable interpolation" in content
         ), "Variable interpolation content must be preserved (FR-199 AC-8)"
@@ -374,13 +374,13 @@ class TestFsmClaudeMdNoLegacyPrinciples:
     """Verify the four-line YAGNI/TDD/DRY/KISS block is replaced, not duplicated."""
 
     def test_project_principles_section_removed(self):
-        content = FSM_CLAUDE_MD.read_text()
+        content = FSM_CLAUDE_MD.read_text(encoding="utf-8")
         assert (
             "## Project Principles" not in content
         ), "'## Project Principles' heading must be replaced by full doctrine (FR-199 AC-9)"
 
     def test_no_standalone_yagni_bullet(self):
-        content = FSM_CLAUDE_MD.read_text()
+        content = FSM_CLAUDE_MD.read_text(encoding="utf-8")
         # The old four-line block had "- **YAGNI**: Build minimal features"
         assert (
             "**YAGNI**: Build minimal features" not in content

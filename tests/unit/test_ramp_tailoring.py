@@ -64,7 +64,7 @@ def test_no_repo_mutation_tokens(name):
     sources = [GRAPHS[name], NODES[name]]
     sources += sorted(GRAPHS[name].parent.glob("prompts/*.yaml"))
     for src in sources:
-        text = src.read_text()
+        text = src.read_text(encoding="utf-8")
         for tok in ["git commit", "git push", "gh pr", "gh issue", "gh api"]:
             assert tok not in text, f"{tok!r} in {src}"
 
@@ -85,7 +85,7 @@ def test_write_drafts_only_under_tmp_ramp(tmp_path, name, stem):
     assert Path(js) == tmp_path / "tmp" / "ramp" / f"{stem}.json"
     written = [p for p in tmp_path.rglob("*") if p.is_file()]
     assert sorted(str(p) for p in written) == sorted([md, js])
-    json.loads(Path(js).read_text())
+    json.loads(Path(js).read_text(encoding="utf-8"))
 
 
 # ── ramp_doctrine (REQ-YG-614) ──────────────────────────────────────────
@@ -184,7 +184,7 @@ def test_write_drafts_scrubs_source_citations(tmp_path):
     }
     md, js = mod.write_drafts(draft, base_dir=tmp_path)
     for path in (md, js):
-        text = Path(path).read_text()
+        text = Path(path).read_text(encoding="utf-8")
         assert not re.search(r"\b(?:FR|NC)-\d+\b", text), path
 
 
@@ -306,7 +306,7 @@ def test_collect_corpus_mentions_only():
     assert corpus, "corpus empty — FR-863 mentions deviant-daily"
     assert any("FR-863" in p for p in corpus)
     for p in corpus:
-        assert "deviant-daily" in Path(REPO_ROOT, p).read_text()
+        assert "deviant-daily" in Path(REPO_ROOT, p).read_text(encoding="utf-8")
 
 
 @pytest.mark.req("REQ-YG-616")

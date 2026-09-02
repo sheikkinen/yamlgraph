@@ -6,7 +6,7 @@ import sys
 
 def verify_merge(path: str) -> dict:
     """Verify merged output and return stats."""
-    with open(path) as f:
+    with open(path, encoding="utf-8") as f:
         data = json.load(f)
 
     paragraphs = data["paragraphs"]

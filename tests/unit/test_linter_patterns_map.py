@@ -198,7 +198,7 @@ nodes:
     collect: results
 """
         graph_file = tmp_path / "test_graph.yaml"
-        graph_file.write_text(graph_content)
+        graph_file.write_text(graph_content, encoding="utf-8")
 
         issues = check_map_patterns(graph_file)
         assert len(issues) == 0
@@ -213,7 +213,7 @@ nodes:
     # Missing all required fields
 """
         graph_file = tmp_path / "test_graph.yaml"
-        graph_file.write_text(graph_content)
+        graph_file.write_text(graph_content, encoding="utf-8")
 
         issues = check_map_patterns(graph_file)
         # Should have 4 errors: E201, E202, E203, E204
@@ -238,7 +238,7 @@ nodes:
     # Missing required fields
 """
         graph_file = tmp_path / "test_graph.yaml"
-        graph_file.write_text(graph_content)
+        graph_file.write_text(graph_content, encoding="utf-8")
 
         issues = check_map_patterns(graph_file)
         # Should only validate the map_node

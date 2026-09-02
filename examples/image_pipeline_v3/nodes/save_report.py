@@ -41,7 +41,7 @@ def save_report_node(state: dict) -> dict:
         f"Total attempts: {summary.get('attempts', '?')}; aggregate verdicts: "
         f"`{summary.get('verdict_counts', {})}`; provenance: `{provenance}`\n\n"
         + _table(sanitized_rows, SANITIZED_COLUMNS)
-    )
+    , encoding="utf-8")
 
     local_rows = [
         [row.get("ordinal", ""), row.get("selected", ""), row.get("prompt", "")]
@@ -51,7 +51,7 @@ def save_report_node(state: dict) -> dict:
     local_file.write_text(
         "# Generation table (LOCAL ONLY — full prompt text, do not commit)\n\n"
         + _table(local_rows, ["ordinal", "selected", "prompt"])
-    )
+    , encoding="utf-8")
 
     return {
         "report_file": str(report_file),

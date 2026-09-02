@@ -8,6 +8,7 @@ Usage:
 """
 
 import argparse
+import sys
 
 from yamlgraph.cli.diary_commands import cmd_diary_dispatch
 from yamlgraph.cli.graph_commands import cmd_graph_dispatch
@@ -315,6 +316,13 @@ def create_parser() -> argparse.ArgumentParser:
 
 def main():
     """Main CLI entry point."""
+    # FR-951: declare the codec of our own streams so status glyphs survive a
+    # pipe on hosts whose preferred encoding is not UTF-8.
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if reconfigure is not None:
+            reconfigure(encoding="utf-8", errors="backslashreplace")
+
     parser = create_parser()
     args = parser.parse_args()
 

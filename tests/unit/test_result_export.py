@@ -40,7 +40,7 @@ class TestExportResult:
         assert paths[0].name == "content.json"
         assert paths[0].exists()
 
-        data = json.loads(paths[0].read_text())
+        data = json.loads(paths[0].read_text(encoding="utf-8"))
         assert data["title"] == "Test"
         assert data["content"] == "Body"
         assert data["tags"] == ["a", "b"]
@@ -62,7 +62,7 @@ class TestExportResult:
 
         assert len(paths) == 1
         assert paths[0].name == "summary.md"
-        content = paths[0].read_text()
+        content = paths[0].read_text(encoding="utf-8")
         assert "This is the summary content." in content
 
     @pytest.mark.req("REQ-YG-038")
@@ -81,7 +81,7 @@ class TestExportResult:
         paths = export_result(state, config, base_path=tmp_path)
 
         assert len(paths) == 1
-        content = paths[0].read_text()
+        content = paths[0].read_text(encoding="utf-8")
         assert content == "Plain text output"
 
     @pytest.mark.req("REQ-YG-038")

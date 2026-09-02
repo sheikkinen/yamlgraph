@@ -29,7 +29,7 @@ def parse_ts(raw: str) -> datetime:
 def load_jsonl(path: Path) -> list[dict]:
     """Read JSONL file, skip blank/malformed lines."""
     entries = []
-    for line in path.read_text().splitlines():
+    for line in path.read_text(encoding="utf-8").splitlines():
         line = line.strip()
         if not line:
             continue

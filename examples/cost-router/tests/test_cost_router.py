@@ -17,13 +17,13 @@ class TestGraphStructure:
 
     def test_graph_yaml_valid(self):
         """Graph should be valid YAML."""
-        config = yaml.safe_load(GRAPH_PATH.read_text())
+        config = yaml.safe_load(GRAPH_PATH.read_text(encoding="utf-8"))
         assert config is not None
         assert config.get("name") == "cost-router"
 
     def test_has_router_edges(self):
         """Should have conditional router edges."""
-        config = yaml.safe_load(GRAPH_PATH.read_text())
+        config = yaml.safe_load(GRAPH_PATH.read_text(encoding="utf-8"))
         edges = config.get("edges", [])
         # Find classify -> router edges
         router_edges = [e for e in edges if e.get("from") == "classify"]
@@ -31,7 +31,7 @@ class TestGraphStructure:
 
     def test_multi_provider_setup(self):
         """Should use multiple LLM providers."""
-        config = yaml.safe_load(GRAPH_PATH.read_text())
+        config = yaml.safe_load(GRAPH_PATH.read_text(encoding="utf-8"))
         nodes = config.get("nodes", {})
         providers = set()
         for node_cfg in nodes.values():

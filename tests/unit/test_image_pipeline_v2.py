@@ -53,7 +53,7 @@ class TestScoreFilter:
         (dd / ".venv" / "bin" / "python").touch()
         (dd / "training" / "ckpt").mkdir(parents=True)
         (dd / "training" / "ckpt" / "model.pt").touch()
-        (dd / "training" / "ckpt" / "calibration.json").write_text("{}")
+        (dd / "training" / "ckpt" / "calibration.json").write_text("{}", encoding="utf-8")
         monkeypatch.setenv("DEVIANT_DAILY_DIR", str(dd))
 
         completed = type(
@@ -136,10 +136,10 @@ class TestSaveReport:
             "prompts": [full_text],
         }
         out = save_report.save_report_node(state)
-        sanitized = Path(out["report_file"]).read_text()
+        sanitized = Path(out["report_file"]).read_text(encoding="utf-8")
         assert "lanterns" not in sanitized
         assert "a" * 12 in sanitized and "in_band" in sanitized
-        local = Path(out["local_report_file"]).read_text()
+        local = Path(out["local_report_file"]).read_text(encoding="utf-8")
         assert "lanterns" in local
 
     def test_output_dir_returned(self, tmp_path, monkeypatch):
@@ -155,20 +155,20 @@ class TestV2GraphContract:
     def test_no_provider_or_model_overrides(self):
         import yaml
 
-        graph = yaml.safe_load((V2_DIR / "graph.yaml").read_text())
+        graph = yaml.safe_load((V2_DIR / "graph.yaml").read_text(encoding="utf-8"))
         assert "provider" not in (graph.get("defaults") or {})
         for name, node in graph["nodes"].items():
             assert "provider" not in node, f"node {name} overrides provider"
             assert "model" not in node, f"node {name} overrides model"
         for pf in (V2_DIR / "prompts").glob("*.yaml"):
-            pdata = yaml.safe_load(pf.read_text())
+            pdata = yaml.safe_load(pf.read_text(encoding="utf-8"))
             assert "provider" not in pdata and "model" not in pdata
 
     def test_candidate_prompt_declares_schema(self):
         import yaml
 
         pdata = yaml.safe_load(
-            (V2_DIR / "prompts" / "generate_candidates.yaml").read_text()
+            (V2_DIR / "prompts" / "generate_candidates.yaml").read_text(encoding="utf-8")
         )
         assert "schema" in pdata
         assert "prompts" in pdata["schema"]["fields"]

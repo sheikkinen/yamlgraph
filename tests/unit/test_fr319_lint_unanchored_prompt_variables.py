@@ -11,7 +11,7 @@ from yamlgraph.linter.graph_linter import lint_graph
 def write_graph(tmp_path: Path, content: dict) -> Path:
     """Write graph YAML and return its path."""
     graph_path = tmp_path / "graph.yaml"
-    graph_path.write_text(yaml.safe_dump(content))
+    graph_path.write_text(yaml.safe_dump(content), encoding="utf-8")
     return graph_path
 
 
@@ -19,7 +19,7 @@ def write_prompt(tmp_path: Path, name: str, content: str) -> None:
     """Write a prompt YAML file in prompts/."""
     prompts_dir = tmp_path / "prompts"
     prompts_dir.mkdir(exist_ok=True)
-    (prompts_dir / f"{name}.yaml").write_text(content)
+    (prompts_dir / f"{name}.yaml").write_text(content, encoding="utf-8")
 
 
 @pytest.mark.req("REQ-YG-003")

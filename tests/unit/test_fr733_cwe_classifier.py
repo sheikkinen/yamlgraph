@@ -49,7 +49,7 @@ class TestCatalogBuilder:
         """Committed excerpt parses into catalog rows with all judged
         fields; Deprecated rows are skipped entirely."""
         builder = _load("build_catalog.py")
-        payload = builder.parse_cwec((FIXTURES / "cwe_excerpt.xml").read_text())
+        payload = builder.parse_cwec((FIXTURES / "cwe_excerpt.xml").read_text(encoding="utf-8"))
         by_code = {r["code"]: r for r in payload["rows"]}
         assert set(by_code) == {
             "CWE-79",
@@ -74,7 +74,7 @@ class TestCatalogBuilder:
         """Judged pin: a code in N view-699 categories appears in each
         cluster list; Has_Member rows from other views never count."""
         builder = _load("build_catalog.py")
-        payload = builder.parse_cwec((FIXTURES / "cwe_excerpt.xml").read_text())
+        payload = builder.parse_cwec((FIXTURES / "cwe_excerpt.xml").read_text(encoding="utf-8"))
         by_code = {r["code"]: r for r in payload["rows"]}
         assert by_code["CWE-79"]["cluster_ids"] == ["CAT-137", "CAT-1019"]
         # CWE-89's CAT-1019 membership is View_ID=1000 — must not count.
@@ -85,7 +85,7 @@ class TestCatalogBuilder:
         """F3: Prohibited codes stay catalog rows (completeness) but
         get NO cluster membership — never shown to the model."""
         builder = _load("build_catalog.py")
-        payload = builder.parse_cwec((FIXTURES / "cwe_excerpt.xml").read_text())
+        payload = builder.parse_cwec((FIXTURES / "cwe_excerpt.xml").read_text(encoding="utf-8"))
         by_code = {r["code"]: r for r in payload["rows"]}
         assert by_code["CWE-441"]["mapping_usage"] == "Prohibited"
         assert by_code["CWE-441"]["cluster_ids"] == []
@@ -97,7 +97,7 @@ class TestCatalogBuilder:
         """F1: coverage declares view, candidates, excluded_prohibited,
         catalog_total — a no-match is interpretable."""
         builder = _load("build_catalog.py")
-        payload = builder.parse_cwec((FIXTURES / "cwe_excerpt.xml").read_text())
+        payload = builder.parse_cwec((FIXTURES / "cwe_excerpt.xml").read_text(encoding="utf-8"))
         assert payload["catalog_version"] == "cwec_v4.20"
         assert payload["coverage"] == {
             "view": 699,
@@ -111,7 +111,7 @@ class TestCatalogBuilder:
         """F5: two-level count pins — a catalog bump that shifts
         MITRE's curation raises, never drifts silently."""
         builder = _load("build_catalog.py")
-        payload = builder.parse_cwec((FIXTURES / "cwe_excerpt.xml").read_text())
+        payload = builder.parse_cwec((FIXTURES / "cwe_excerpt.xml").read_text(encoding="utf-8"))
         with pytest.raises(ValueError, match="pin"):
             builder.check_pins(payload)
 

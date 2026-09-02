@@ -105,7 +105,7 @@ class TestPublicSafeArtifact:
     @pytest.mark.req("REQ-YG-624")
     def test_committed_table_has_no_evidence_spans(self, tmp_path):
         result = _aggregate(tmp_path)
-        table = (tmp_path / "census" / result["table_name"]).read_text()
+        table = (tmp_path / "census" / result["table_name"]).read_text(encoding="utf-8")
         assert "span from" not in table  # raw spans never committed (R-3)
         assert "stale_msg_file" in table
         assert "2026-08-25-a.md" in table  # citations are paths only
@@ -117,7 +117,7 @@ class TestPublicSafeArtifact:
         assert len(drafts) == 2  # two labels at >=3 distinct entries
         from pathlib import Path
 
-        text = Path(drafts[0]).read_text()
+        text = Path(drafts[0]).read_text(encoding="utf-8")
         assert "graduation" in text.lower()
         assert "span from" not in text
 

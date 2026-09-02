@@ -159,19 +159,19 @@ class TestGraphAndPromptContract:
 
     @pytest.mark.req("REQ-YG-536")
     def test_schema_two_judgement_fields(self) -> None:
-        prompt = yaml.safe_load((DEMO_DIR / "prompts" / "recap.yaml").read_text())
+        prompt = yaml.safe_load((DEMO_DIR / "prompts" / "recap.yaml").read_text(encoding="utf-8"))
         assert set(prompt["schema"]["fields"]) == {"workstreams", "hotspots"}
 
     @pytest.mark.req("REQ-YG-536")
     def test_prompt_sheds_orphan_transport(self) -> None:
-        text = (DEMO_DIR / "prompts" / "recap.yaml").read_text()
+        text = (DEMO_DIR / "prompts" / "recap.yaml").read_text(encoding="utf-8")
         assert "UNREFERENCED" not in text
         assert "orphan" not in text.lower()
         assert "verbatim" not in text.lower()
 
     @pytest.mark.req("REQ-YG-536")
     def test_finalize_node_wired(self) -> None:
-        raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text())
+        raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text(encoding="utf-8"))
         node = raw["nodes"]["finalize_recap"]
         assert node["type"] == "python"
         edges = [(e["from"], e["to"]) for e in raw["edges"]]
@@ -183,7 +183,7 @@ class TestGraphAndPromptContract:
     @pytest.mark.req("REQ-YG-536")
     def test_synthesize_sheds_unreferenced(self) -> None:
         """J5: unreferenced is code's input now, not the model's."""
-        raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text())
+        raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text(encoding="utf-8"))
         synth = raw["nodes"]["synthesize"]
         assert "unreferenced" not in synth.get("variables", {})
         assert "unreferenced" not in synth.get("requires", [])

@@ -25,7 +25,7 @@ if not result:
     result = all_items  # reviewed branch
 """
         py_file = tmp_path / "fallback.py"
-        py_file.write_text(code)
+        py_file.write_text(code, encoding="utf-8")
 
         findings = hedging_check.scan_file(py_file)
 
@@ -41,7 +41,7 @@ if not result:
     other = all_items  # assigns different var
 """
         py_file = tmp_path / "different_var.py"
-        py_file.write_text(code)
+        py_file.write_text(code, encoding="utf-8")
 
         findings = hedging_check.scan_file(py_file)
 
@@ -55,7 +55,7 @@ if not result:
     result = all_items
 """
         py_file = tmp_path / "allowed.py"
-        py_file.write_text(code)
+        py_file.write_text(code, encoding="utf-8")
         allowlist_key = f"{py_file}:2"
 
         with patch.object(hedging_check, "ALLOWLIST", {allowlist_key: "CONF-999"}):
@@ -66,7 +66,7 @@ if not result:
     def test_syntax_error_skipped(self, tmp_path: Path) -> None:
         """Files with syntax errors should be skipped gracefully."""
         py_file = tmp_path / "broken.py"
-        py_file.write_text("def broken(:\n    pass")
+        py_file.write_text("def broken(:\n    pass", encoding="utf-8")
 
         findings = hedging_check.scan_file(py_file)
 
@@ -90,7 +90,7 @@ class TestMain:
         """Clean directory should return exit code 0."""
         # Create a clean Python file
         py_file = tmp_path / "clean.py"
-        py_file.write_text("x = 1\ny = 2\n")
+        py_file.write_text("x = 1\ny = 2\n", encoding="utf-8")
 
         with patch.object(
             hedging_check.sys, "argv", ["hedging_check.py", str(tmp_path)]
@@ -106,7 +106,7 @@ if not result:
     result = fallback
 """
         py_file = tmp_path / "fallback.py"
-        py_file.write_text(code)
+        py_file.write_text(code, encoding="utf-8")
 
         with patch.object(
             hedging_check.sys, "argv", ["hedging_check.py", str(tmp_path)]
@@ -122,7 +122,7 @@ if not result:
     result = fallback
 """
         py_file = tmp_path / "fallback.py"
-        py_file.write_text(code)
+        py_file.write_text(code, encoding="utf-8")
 
         with patch.object(
             hedging_check.sys, "argv", ["hedging_check.py", str(tmp_path), "--strict"]
@@ -148,11 +148,11 @@ if not result:
         pycache = tmp_path / "__pycache__"
         pycache.mkdir()
         py_file = pycache / "cached.py"
-        py_file.write_text("if not result:\n    result = fallback\n")
+        py_file.write_text("if not result:\n    result = fallback\n", encoding="utf-8")
 
         # Create a clean file outside __pycache__
         clean_file = tmp_path / "clean.py"
-        clean_file.write_text("x = 1\n")
+        clean_file.write_text("x = 1\n", encoding="utf-8")
 
         with patch.object(
             hedging_check.sys, "argv", ["hedging_check.py", str(tmp_path)]

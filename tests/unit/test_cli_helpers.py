@@ -26,7 +26,7 @@ nodes:
 edges:
   - from: START
     to: greet
-""")
+""", encoding="utf-8")
         config = load_graph_config(graph_file)
 
         assert config["name"] == "test-graph"
@@ -47,7 +47,7 @@ edges:
     def test_raises_on_invalid_yaml(self, tmp_path: Path):
         """Should raise GraphLoadError for invalid YAML."""
         graph_file = tmp_path / "invalid.yaml"
-        graph_file.write_text("name: [invalid yaml")
+        graph_file.write_text("name: [invalid yaml", encoding="utf-8")
 
         with pytest.raises(GraphLoadError) as exc_info:
             load_graph_config(graph_file)
@@ -58,7 +58,7 @@ edges:
     def test_accepts_string_path(self, tmp_path: Path):
         """Should accept string paths as well as Path objects."""
         graph_file = tmp_path / "test.yaml"
-        graph_file.write_text("name: test\nnodes: {}\nedges: []")
+        graph_file.write_text("name: test\nnodes: {}\nedges: []", encoding="utf-8")
 
         config = load_graph_config(str(graph_file))
 
@@ -68,7 +68,7 @@ edges:
     def test_returns_empty_dict_for_empty_yaml(self, tmp_path: Path):
         """Should return None/empty for empty YAML file."""
         graph_file = tmp_path / "empty.yaml"
-        graph_file.write_text("")
+        graph_file.write_text("", encoding="utf-8")
 
         config = load_graph_config(graph_file)
 
@@ -82,7 +82,7 @@ class TestRequireGraphConfig:
     def test_returns_config_for_valid_yaml(self, tmp_path: Path):
         """Should return config dict for valid YAML."""
         graph_file = tmp_path / "test.yaml"
-        graph_file.write_text("name: test\nnodes: {}\nedges: []")
+        graph_file.write_text("name: test\nnodes: {}\nedges: []", encoding="utf-8")
 
         config = require_graph_config(graph_file)
 
@@ -92,7 +92,7 @@ class TestRequireGraphConfig:
     def test_raises_on_empty_yaml(self, tmp_path: Path):
         """Should raise GraphLoadError for empty YAML file."""
         graph_file = tmp_path / "empty.yaml"
-        graph_file.write_text("")
+        graph_file.write_text("", encoding="utf-8")
 
         with pytest.raises(GraphLoadError) as exc_info:
             require_graph_config(graph_file)

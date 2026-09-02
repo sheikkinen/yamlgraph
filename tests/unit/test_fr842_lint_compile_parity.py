@@ -23,9 +23,9 @@ def write_graph(tmp_path: Path, config: dict) -> Path:
     (tmp_path / "prompts").mkdir(exist_ok=True)
     (tmp_path / "prompts" / "test.yaml").write_text(
         "system: Test\nuser: Test {input}\n"
-    )
+    , encoding="utf-8")
     graph_path = tmp_path / "test-graph.yaml"
-    graph_path.write_text(yaml.safe_dump(config, sort_keys=False))
+    graph_path.write_text(yaml.safe_dump(config, sort_keys=False), encoding="utf-8")
     return graph_path
 
 

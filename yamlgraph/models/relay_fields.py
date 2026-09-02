@@ -30,7 +30,7 @@ def subgraph_relay_capable(node_config: dict, source_path: Path | None = None) -
     child_path = (Path(source_path).parent / graph_rel).resolve()
     if not child_path.exists():
         return False
-    child = yaml.safe_load(child_path.read_text()) or {}
+    child = yaml.safe_load(child_path.read_text(encoding="utf-8")) or {}
     child_nodes = child.get("nodes") or {}
     return any(
         isinstance(n, dict) and n.get("type") == "interrupt"

@@ -57,7 +57,7 @@ edges:
 def sample_yaml_file(tmp_path, sample_yaml_content):
     """Create a temporary YAML file."""
     yaml_file = tmp_path / "test_graph.yaml"
-    yaml_file.write_text(sample_yaml_content)
+    yaml_file.write_text(sample_yaml_content, encoding="utf-8")
     return yaml_file
 
 
@@ -138,7 +138,7 @@ edges:
     to: END
 """
         yaml_file = tmp_path / "test.yaml"
-        yaml_file.write_text(yaml_content)
+        yaml_file.write_text(yaml_content, encoding="utf-8")
 
         config = load_graph_config(yaml_file)
 
@@ -168,7 +168,7 @@ edges:
     to: END
 """
         yaml_file = tmp_path / "test.yaml"
-        yaml_file.write_text(yaml_content)
+        yaml_file.write_text(yaml_content, encoding="utf-8")
 
         config = load_graph_config(yaml_file)
 
@@ -285,7 +285,7 @@ edges:
     to: END
 """
         yaml_file = tmp_path / "no_nodes.yaml"
-        yaml_file.write_text(yaml_content)
+        yaml_file.write_text(yaml_content, encoding="utf-8")
 
         with pytest.raises(ValueError, match="nodes"):
             load_graph_config(yaml_file)
@@ -302,7 +302,7 @@ nodes:
     prompt: generate
 """
         yaml_file = tmp_path / "no_edges.yaml"
-        yaml_file.write_text(yaml_content)
+        yaml_file.write_text(yaml_content, encoding="utf-8")
 
         with pytest.raises(ValueError, match="edges"):
             load_graph_config(yaml_file)
@@ -322,7 +322,7 @@ edges:
     to: generate
 """
         yaml_file = tmp_path / "no_prompt.yaml"
-        yaml_file.write_text(yaml_content)
+        yaml_file.write_text(yaml_content, encoding="utf-8")
 
         with pytest.raises(ValueError, match="prompt"):
             load_graph_config(yaml_file)
@@ -341,7 +341,7 @@ edges:
   - to: generate
 """
         yaml_file = tmp_path / "no_from.yaml"
-        yaml_file.write_text(yaml_content)
+        yaml_file.write_text(yaml_content, encoding="utf-8")
 
         with pytest.raises(ValueError, match="from"):
             load_graph_config(yaml_file)
@@ -360,7 +360,7 @@ edges:
   - from: START
 """
         yaml_file = tmp_path / "no_to.yaml"
-        yaml_file.write_text(yaml_content)
+        yaml_file.write_text(yaml_content, encoding="utf-8")
 
         with pytest.raises(ValueError, match="to"):
             load_graph_config(yaml_file)

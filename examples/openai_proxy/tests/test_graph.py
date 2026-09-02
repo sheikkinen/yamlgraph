@@ -17,7 +17,7 @@ class TestGraphConfig:
     @pytest.fixture
     def graph_config(self, graph_path):
         """Parsed graph.yaml."""
-        return yaml.safe_load(graph_path.read_text())
+        return yaml.safe_load(graph_path.read_text(encoding="utf-8"))
 
     def test_graph_yaml_exists(self, graph_path):
         """graph.yaml should exist."""

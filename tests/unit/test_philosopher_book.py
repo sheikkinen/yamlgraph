@@ -91,7 +91,7 @@ def test_save_chapter_writes_file(tmp_path):
     save_chapter(state)
     out = tmp_path / "chapters" / "ch-05-false_duplicate.md"
     assert out.exists()
-    assert "Content here." in out.read_text()
+    assert "Content here." in out.read_text(encoding="utf-8")
 
 
 @pytest.mark.req("REQ-YG-404")
@@ -180,7 +180,7 @@ def test_assemble_book_reads_saved_chapter_files(tmp_path):
         "output_dir": str(tmp_path),
     }
     result = assemble_book(state)
-    content = Path(result["assembled_path"]).read_text()
+    content = Path(result["assembled_path"]).read_text(encoding="utf-8")
     assert "Saved content." in content
     assert "stale state content" not in content
 
@@ -209,7 +209,7 @@ def test_assemble_book_includes_toc(tmp_path):
         "output_dir": str(tmp_path),
     }
     result = assemble_book(state)
-    content = Path(result["assembled_path"]).read_text()
+    content = Path(result["assembled_path"]).read_text(encoding="utf-8")
     assert "Table of Contents" in content or "Contents" in content
 
 

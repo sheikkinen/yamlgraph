@@ -79,7 +79,7 @@ def _run_create_pr_test(
     """
 
     # Write test script to temp file
-    with tempfile.NamedTemporaryFile(mode="w", suffix=".sh", delete=False) as f:
+    with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", suffix=".sh", delete=False) as f:
         f.write(_TEST_HARNESS.format(create_pr_path=CREATE_PR_SH))
         test_script = f.name
 
@@ -107,7 +107,7 @@ def _run_create_pr_test(
             fi
         """)
 
-        gh_mock_script.write_text(gh_mock_content)
+        gh_mock_script.write_text(gh_mock_content, encoding="utf-8")
         gh_mock_script.chmod(0o755)
 
         # Put mock gh in PATH

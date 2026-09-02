@@ -14,7 +14,7 @@ class TestFR418FallbackConfessionGate:
 
     def test_ac01_flags_fallback_in_identifier_name(self, tmp_path: Path) -> None:
         py_file = tmp_path / "identifier_case.py"
-        py_file.write_text("fallback_value = 1\n")
+        py_file.write_text("fallback_value = 1\n", encoding="utf-8")
 
         findings = hedging_check.scan_file(py_file)
 
@@ -22,7 +22,7 @@ class TestFR418FallbackConfessionGate:
 
     def test_ac02_flags_fallback_in_comment(self, tmp_path: Path) -> None:
         py_file = tmp_path / "comment_case.py"
-        py_file.write_text("value = 1  # fallback path for parse errors\n")
+        py_file.write_text("value = 1  # fallback path for parse errors\n", encoding="utf-8")
 
         findings = hedging_check.scan_file(py_file)
 
@@ -32,7 +32,7 @@ class TestFR418FallbackConfessionGate:
         py_file = tmp_path / "docstring_case.py"
         py_file.write_text(
             'def parse() -> str:\n    """fallback parser description."""\n    return "ok"\n'
-        )
+        , encoding="utf-8")
 
         findings = hedging_check.scan_file(py_file)
 
@@ -40,7 +40,7 @@ class TestFR418FallbackConfessionGate:
 
     def test_ac03_strict_mode_fails_on_unconfessed_fb001(self, tmp_path: Path) -> None:
         py_file = tmp_path / "strict_case.py"
-        py_file.write_text("fallback_name = 1\n")
+        py_file.write_text("fallback_name = 1\n", encoding="utf-8")
 
         with patch.object(
             hedging_check.sys,
@@ -55,7 +55,7 @@ class TestFR418FallbackConfessionGate:
         self, tmp_path: Path
     ) -> None:
         py_file = tmp_path / "allowlist_case.py"
-        py_file.write_text("fallback_name = 1\n")
+        py_file.write_text("fallback_name = 1\n", encoding="utf-8")
         key = f"{py_file}:1"
 
         with (
@@ -72,7 +72,7 @@ class TestFR418FallbackConfessionGate:
 
     def test_ac05_detects_pattern2_or_fallback_assignment(self, tmp_path: Path) -> None:
         py_file = tmp_path / "pattern2_case.py"
-        py_file.write_text("selected = preferred_items or fallback_items\n")
+        py_file.write_text("selected = preferred_items or fallback_items\n", encoding="utf-8")
 
         findings = hedging_check.scan_file(py_file)
 
@@ -82,7 +82,7 @@ class TestFR418FallbackConfessionGate:
         py_file = tmp_path / "pattern1_case.py"
         py_file.write_text(
             "result = filter_data(items)\nif not result:\n    result = all_items\n"
-        )
+        , encoding="utf-8")
 
         findings = hedging_check.scan_file(py_file)
 

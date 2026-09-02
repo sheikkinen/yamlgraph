@@ -18,7 +18,7 @@ class TestDataFilesInGraphLoader:
         """GraphConfig.data property contains loaded data files."""
         # Create data file
         schema_file = tmp_path / "schema.yaml"
-        schema_file.write_text("fields:\n  - name\n  - age")
+        schema_file.write_text("fields:\n  - name\n  - age", encoding="utf-8")
 
         # Create graph file with data_files
         graph_file = tmp_path / "graph.yaml"
@@ -35,7 +35,7 @@ edges:
     to: start
   - from: start
     to: END
-""")
+""", encoding="utf-8")
 
         config = load_graph_config(graph_file)
 
@@ -57,7 +57,7 @@ edges:
     to: start
   - from: start
     to: END
-""")
+""", encoding="utf-8")
 
         config = load_graph_config(graph_file)
 
@@ -73,7 +73,7 @@ edges:
 
         # Create data file next to graph
         schema_file = subdir / "schema.yaml"
-        schema_file.write_text("version: 2")
+        schema_file.write_text("version: 2", encoding="utf-8")
 
         graph_file = subdir / "graph.yaml"
         graph_file.write_text("""
@@ -89,7 +89,7 @@ edges:
     to: start
   - from: start
     to: END
-""")
+""", encoding="utf-8")
 
         # Load from different cwd
         import os
@@ -119,7 +119,7 @@ edges:
     to: start
   - from: start
     to: END
-""")
+""", encoding="utf-8")
 
         from yamlgraph.data_loader import DataFileError
 
@@ -131,7 +131,7 @@ edges:
         """Path traversal attempts are blocked."""
         # Create a file outside the graph directory
         outside_file = tmp_path / "secret.yaml"
-        outside_file.write_text("secret: value")
+        outside_file.write_text("secret: value", encoding="utf-8")
 
         # Create subdirectory for graph
         subdir = tmp_path / "graphs"
@@ -151,7 +151,7 @@ edges:
     to: start
   - from: start
     to: END
-""")
+""", encoding="utf-8")
 
         from yamlgraph.data_loader import DataFileError
 

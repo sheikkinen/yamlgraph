@@ -49,7 +49,7 @@ def run_hook_entry(entry: str, commit_msg: str) -> subprocess.CompletedProcess:
     Returns:
         CompletedProcess with exit code and output
     """
-    with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
+    with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", suffix=".txt", delete=False) as f:
         f.write(commit_msg)
         f.flush()
         msg_file = f.name
@@ -310,7 +310,7 @@ class TestDiaryReflectionCheck:
     def test_unfilled_trap_placeholder_rejected(self, tmp_path: Path) -> None:
         """A reflection with [What cognitive trap] placeholder is rejected."""
         f = tmp_path / "reflection.md"
-        f.write_text("**Trap:** [What cognitive trap was encountered?]\n")
+        f.write_text("**Trap:** [What cognitive trap was encountered?]\n", encoding="utf-8")
         result = run_diary_hook(DIARY_REFLECTION_CHECK_ENTRY, [str(f)])
         assert result.returncode == 1, f"Unfilled trap should fail: {result.stdout}"
         assert "Unfilled" in result.stdout
@@ -318,14 +318,14 @@ class TestDiaryReflectionCheck:
     def test_unfilled_lesson_placeholder_rejected(self, tmp_path: Path) -> None:
         """A reflection with [What lesson] placeholder is rejected."""
         f = tmp_path / "reflection.md"
-        f.write_text("**Heuristic:** [What lesson was learned?]\n")
+        f.write_text("**Heuristic:** [What lesson was learned?]\n", encoding="utf-8")
         result = run_diary_hook(DIARY_REFLECTION_CHECK_ENTRY, [str(f)])
         assert result.returncode == 1, f"Unfilled lesson should fail: {result.stdout}"
 
     def test_unfilled_question_placeholder_rejected(self, tmp_path: Path) -> None:
         """A reflection with [What question] placeholder is rejected."""
         f = tmp_path / "reflection.md"
-        f.write_text("**Seed:** [What question remains?]\n")
+        f.write_text("**Seed:** [What question remains?]\n", encoding="utf-8")
         result = run_diary_hook(DIARY_REFLECTION_CHECK_ENTRY, [str(f)])
         assert result.returncode == 1, f"Unfilled question should fail: {result.stdout}"
 
@@ -336,7 +336,7 @@ class TestDiaryReflectionCheck:
             "## Reflection\n\n"
             "**Trap:** Assumed checks were aligned.\n\n"
             "**Heuristic:** Keep local and CI semantics in parity.\n"
-        )
+        , encoding="utf-8")
         result = run_diary_hook(DIARY_REFLECTION_CHECK_ENTRY, [str(f)])
         assert (
             result.returncode == 1
@@ -346,7 +346,7 @@ class TestDiaryReflectionCheck:
     def test_filled_reflection_accepted(self, tmp_path: Path) -> None:
         """A reflection with real content passes the hook."""
         f = tmp_path / "reflection.md"
-        f.write_text(FILLED_REFLECTION)
+        f.write_text(FILLED_REFLECTION, encoding="utf-8")
         result = run_diary_hook(DIARY_REFLECTION_CHECK_ENTRY, [str(f)])
         assert result.returncode == 0, f"Filled reflection should pass: {result.stdout}"
 
@@ -358,9 +358,9 @@ class TestDiaryReflectionCheck:
     def test_mixed_filled_and_unfilled_rejected(self, tmp_path: Path) -> None:
         """If any reflection is unfilled, the hook fails even if others are filled."""
         filled = tmp_path / "filled.md"
-        filled.write_text(FILLED_REFLECTION)
+        filled.write_text(FILLED_REFLECTION, encoding="utf-8")
         unfilled = tmp_path / "unfilled.md"
-        unfilled.write_text(UNFILLED_STUB)
+        unfilled.write_text(UNFILLED_STUB, encoding="utf-8")
         result = run_diary_hook(
             DIARY_REFLECTION_CHECK_ENTRY, [str(filled), str(unfilled)]
         )
@@ -369,7 +369,7 @@ class TestDiaryReflectionCheck:
     def test_full_stub_template_rejected(self, tmp_path: Path) -> None:
         """The exact stub template from finalize_merge.sh is rejected."""
         f = tmp_path / "reflection.md"
-        f.write_text(UNFILLED_STUB)
+        f.write_text(UNFILLED_STUB, encoding="utf-8")
         result = run_diary_hook(DIARY_REFLECTION_CHECK_ENTRY, [str(f)])
         assert result.returncode == 1, "Full stub template should fail"
 
@@ -386,7 +386,7 @@ class TestFinalizeMergeUnstagedDiary:
 
     def test_git_add_excludes_diary(self) -> None:
         """The git add line must NOT include docs/diary/."""
-        content = self.SCRIPT_PATH.read_text()
+        content = self.SCRIPT_PATH.read_text(encoding="utf-8")
         # Find the git add line in step 4
         git_add_lines = [
             line.strip()
@@ -401,7 +401,7 @@ class TestFinalizeMergeUnstagedDiary:
 
     def test_commit_message_says_untracked(self) -> None:
         """The commit message template must say 'untracked', not 'appended'."""
-        content = self.SCRIPT_PATH.read_text()
+        content = self.SCRIPT_PATH.read_text(encoding="utf-8")
         assert (
             "stub appended" not in content
         ), "Commit message should not say 'appended'"
@@ -417,7 +417,7 @@ BLOCK_AI_COAUTHOR_SCRIPT = Path("scripts/block_ai_coauthor.py")
 
 def run_block_ai_coauthor(commit_msg: str) -> subprocess.CompletedProcess:
     """Run block_ai_coauthor.py with a commit message written to a temp file."""
-    with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
+    with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", suffix=".txt", delete=False) as f:
         f.write(commit_msg)
         f.flush()
         msg_file = f.name
@@ -508,6 +508,6 @@ class TestBlockAICoAuthor:
 
     def test_hook_registered_in_precommit_config(self) -> None:
         """block-ai-coauthor hook must be in .pre-commit-config.yaml at commit-msg stage."""
-        config = Path(".pre-commit-config.yaml").read_text()
+        config = Path(".pre-commit-config.yaml").read_text(encoding="utf-8")
         assert "block-ai-coauthor" in config, "Hook ID must be in pre-commit config"
         assert "commit-msg" in config, "Hook must use commit-msg stage"

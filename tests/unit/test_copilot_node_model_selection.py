@@ -22,7 +22,7 @@ def _make_prompt(tmp_path: Path) -> Path:
     """Create a minimal prompt YAML file and return its path."""
     prompt_file = tmp_path / "prompts" / "test.yaml"
     prompt_file.parent.mkdir(parents=True, exist_ok=True)
-    prompt_file.write_text("system: Test\nuser: Hello")
+    prompt_file.write_text("system: Test\nuser: Hello", encoding="utf-8")
     return prompt_file
 
 

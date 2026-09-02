@@ -52,14 +52,14 @@ class TestMetaDemoGraphStructure:
     @pytest.mark.req("REQ-YG-467")
     def test_load_passes_target_to_read_file(self) -> None:
         """load node must pass the target variable into the read_file command."""
-        raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text())
+        raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text(encoding="utf-8"))
         variables = raw["nodes"]["load"]["variables"]
         assert variables["target"] == "{state.target}"
 
     @pytest.mark.req("REQ-YG-467")
     def test_read_file_is_shell_tool(self) -> None:
         """read_file must be a shell tool (cat {target}) per judge/enforcer convention."""
-        raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text())
+        raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text(encoding="utf-8"))
         tool = raw["tools"]["read_file"]
         assert tool["type"] == "shell"
         assert "cat {target}" in tool["command"]
@@ -77,7 +77,7 @@ class TestMetaDemoGraphStructure:
     @pytest.mark.req("REQ-YG-467")
     def test_transform_receives_verb_and_source(self) -> None:
         """transform node must receive verb and source from state."""
-        raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text())
+        raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text(encoding="utf-8"))
         variables = raw["nodes"]["transform"]["variables"]
         assert variables["verb"] == "{state.verb}"
         assert variables["source"] == "{state.source}"
@@ -85,27 +85,27 @@ class TestMetaDemoGraphStructure:
     @pytest.mark.req("REQ-YG-467")
     def test_transform_requires_source(self) -> None:
         """transform must declare it requires source (no LLM call before read)."""
-        raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text())
+        raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text(encoding="utf-8"))
         assert "source" in raw["nodes"]["transform"]["requires"]
 
     @pytest.mark.req("REQ-YG-467")
     def test_state_declares_verb_and_target(self) -> None:
         """State block must declare verb and target as inputs."""
-        raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text())
+        raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text(encoding="utf-8"))
         assert raw["state"]["verb"] == "str"
         assert raw["state"]["target"] == "str"
 
     @pytest.mark.req("REQ-YG-467")
     def test_no_hardcoded_model(self) -> None:
         """No hardcoded model — uses PROVIDER/MODEL env var fallthrough."""
-        raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text())
+        raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text(encoding="utf-8"))
         assert "model" not in raw["nodes"]["transform"]
 
     @pytest.mark.req("REQ-YG-467")
     def test_prompt_has_structured_schema(self) -> None:
         """meta_transform prompt must define a typed schema (no free-text output)."""
         prompt = yaml.safe_load(
-            (DEMO_DIR / "prompts" / "meta_transform.yaml").read_text()
+            (DEMO_DIR / "prompts" / "meta_transform.yaml").read_text(encoding="utf-8")
         )
         schema = prompt["schema"]
         assert schema["name"] == "MetaResult"
@@ -115,7 +115,7 @@ class TestMetaDemoGraphStructure:
     @pytest.mark.req("REQ-YG-467")
     def test_prompt_uses_verb_and_source(self) -> None:
         """Prompt must reference the verb and source variables."""
-        prompt_text = (DEMO_DIR / "prompts" / "meta_transform.yaml").read_text()
+        prompt_text = (DEMO_DIR / "prompts" / "meta_transform.yaml").read_text(encoding="utf-8")
         assert "{verb}" in prompt_text
         assert "{source}" in prompt_text
 
@@ -138,7 +138,7 @@ class TestMetaDemoGraphStructure:
     @pytest.mark.req("REQ-YG-467")
     def test_demo_sh_accepts_verb_and_target(self) -> None:
         """demo.sh must accept verb and target arguments and run the graph."""
-        content = (DEMO_DIR / "demo.sh").read_text()
+        content = (DEMO_DIR / "demo.sh").read_text(encoding="utf-8")
         assert "yamlgraph graph run" in content
         assert "examples/demos/meta/graph.yaml" in content
         assert "--var verb=" in content
@@ -147,6 +147,6 @@ class TestMetaDemoGraphStructure:
     @pytest.mark.req("REQ-YG-467")
     def test_readme_documents_meta_js_lineage(self) -> None:
         """README must document the meta.js lineage and the typed/traced upgrade."""
-        content = (DEMO_DIR / "README.md").read_text()
+        content = (DEMO_DIR / "README.md").read_text(encoding="utf-8")
         assert "meta.js" in content
         assert "self-ref" in content.lower() or "self-reference" in content.lower()

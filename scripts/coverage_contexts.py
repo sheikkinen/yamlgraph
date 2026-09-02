@@ -214,7 +214,7 @@ def _extract_imports_from_test(filepath: Path, test_key: str) -> set[str]:
     Returns set of relative paths like ``{"yamlgraph/utils/llm_factory.py"}``.
     """
     try:
-        tree = ast.parse(filepath.read_text(), filename=str(filepath))
+        tree = ast.parse(filepath.read_text(encoding="utf-8"), filename=str(filepath))
     except SyntaxError:
         return set()
 
@@ -276,7 +276,7 @@ RESOLUTION_CLASSES = (
 def _reads_repo_docs(test_file: Path) -> bool:
     """True when the test file references .md documents (doc-witness)."""
     try:
-        tree = ast.parse(test_file.read_text(), filename=str(test_file))
+        tree = ast.parse(test_file.read_text(encoding="utf-8"), filename=str(test_file))
     except (OSError, SyntaxError):
         return False
     for node in ast.walk(tree):

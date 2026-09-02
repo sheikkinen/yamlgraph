@@ -59,7 +59,7 @@ class LintIssue(BaseModel):
 
 def load_graph(graph_path: Path) -> dict[str, Any]:
     """Load and parse a YAML graph file."""
-    with open(graph_path) as f:
+    with open(graph_path, encoding="utf-8") as f:
         return yaml.safe_load(f) or {}
 
 
@@ -158,7 +158,7 @@ def check_state_declarations(  # noqa: C901
         if prompt_name:
             prompt_path = get_prompt_path(prompt_name, prompts_dir)
             if prompt_path.exists():
-                with open(prompt_path) as f:
+                with open(prompt_path, encoding="utf-8") as f:
                     prompt_content = f.read()
                 variables = extract_variables(prompt_content)
 

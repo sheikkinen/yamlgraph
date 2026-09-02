@@ -87,7 +87,7 @@ def _init_repo(path) -> None:
         capture_output=True,
         check=True,
     )
-    (path / "README.md").write_text("init")
+    (path / "README.md").write_text("init", encoding="utf-8")
     subprocess.run(
         ["git", "add", "."], cwd=str(path), env=env, capture_output=True, check=True
     )
@@ -199,7 +199,7 @@ class TestWorktreeGateInFullScript:
             os.path.dirname(__file__), "..", "..", ".chaplain", "inquisitor.sh"
         )
         assert os.path.exists(script_path), f"inquisitor.sh not found at {script_path}"
-        with open(script_path) as f:
+        with open(script_path, encoding="utf-8") as f:
             content = f.read()
         assert (
             "Worktree gate" in content
@@ -212,7 +212,7 @@ class TestWorktreeGateInFullScript:
         script_path = os.path.join(
             os.path.dirname(__file__), "..", "..", ".chaplain", "inquisitor.sh"
         )
-        with open(script_path) as f:
+        with open(script_path, encoding="utf-8") as f:
             content = f.read()
         # Match the gate section markers, not header comments
         wt_pos = content.find("# --- Worktree gate (FR-142)")

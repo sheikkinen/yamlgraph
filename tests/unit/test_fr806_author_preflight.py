@@ -92,7 +92,7 @@ class TestPremiseFailures:
     def test_present_asserted_fixture_passes(self, preflight, tmp_path):
         fixtures = tmp_path / "tests" / "fixtures"
         fixtures.mkdir(parents=True)
-        (fixtures / "spa_server.py").write_text("# fixture\n")
+        (fixtures / "spa_server.py").write_text("# fixture\n", encoding="utf-8")
         brief = _brief(
             tmp_path,
             CLEAN_BRIEF
@@ -170,7 +170,7 @@ class TestCommandResolution:
     @pytest.mark.req("REQ-YG-598")
     def test_relative_script_resolves_when_executable(self, preflight, tmp_path):
         script = tmp_path / "smoke.sh"
-        script.write_text("#!/bin/sh\necho ok\n")
+        script.write_text("#!/bin/sh\necho ok\n", encoding="utf-8")
         script.chmod(script.stat().st_mode | stat.S_IXUSR)
         brief = _brief(
             tmp_path,
@@ -295,7 +295,7 @@ def _run_author(tmp_path: Path, brief: Path, *flags: str) -> tuple[int, str, Pat
     """Run author.sh with a stub backend; return (rc, output, marker)."""
     marker = tmp_path / "backend-spawned"
     stub = tmp_path / "yamlgraph-stub"
-    stub.write_text(f'#!/bin/sh\ntouch "{marker}"\nexit 0\n')
+    stub.write_text(f'#!/bin/sh\ntouch "{marker}"\nexit 0\n', encoding="utf-8")
     stub.chmod(stub.stat().st_mode | stat.S_IXUSR)
     env = dict(os.environ)
     env.pop("AUTHOR_EXECUTION", None)

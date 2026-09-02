@@ -78,7 +78,7 @@ def test_mcp_capabilities_are_retired():
         "CAP-19-mcp-server-interface.yaml",
         "CAP-136-per-graph-typed-mcp-tools.yaml",
     ):
-        text = (REPO_ROOT / "capabilities" / cap).read_text()
+        text = (REPO_ROOT / "capabilities" / cap).read_text(encoding="utf-8")
         assert "status: retired" in text
         assert "RETIRED by FR-910" in text
 
@@ -97,7 +97,7 @@ def test_no_live_mcp_server_references():
             if path == Path(__file__):
                 continue
             try:
-                text = path.read_text()
+                text = path.read_text(encoding="utf-8")
             except (UnicodeDecodeError, OSError):
                 continue
             if SERVER_SURFACE_PATTERN.search(text):
@@ -107,15 +107,15 @@ def test_no_live_mcp_server_references():
 
 @pytest.mark.req("REQ-YG-428")
 def test_mcp_extra_is_removed():
-    pyproject = (REPO_ROOT / "pyproject.toml").read_text()
+    pyproject = (REPO_ROOT / "pyproject.toml").read_text(encoding="utf-8")
     assert "mcp = [" not in pyproject
-    constraints = (REPO_ROOT / "constraints" / "dev-py312.txt").read_text()
+    constraints = (REPO_ROOT / "constraints" / "dev-py312.txt").read_text(encoding="utf-8")
     assert not re.search(r"^mcp==", constraints, re.MULTILINE)
 
 
 @pytest.mark.req("REQ-YG-428")
 def test_is_this_a_graph_names_cli_route_only():
-    doctrine = (REPO_ROOT / ".github" / "copilot-instructions.md").read_text()
+    doctrine = (REPO_ROOT / ".github" / "copilot-instructions.md").read_text(encoding="utf-8")
     clause_start = doctrine.index("is_this_a_graph:")
     clause = doctrine[clause_start : clause_start + 1500]
     assert "yamlgraph graph list" in clause

@@ -62,7 +62,7 @@ class TestGeneratorE2E:
         if (output_path / "graph.yaml").exists():
             # Pipeline completed successfully
             # Check graph is valid YAML
-            graph_content = (output_path / "graph.yaml").read_text()
+            graph_content = (output_path / "graph.yaml").read_text(encoding="utf-8")
             parsed = yaml.safe_load(graph_content)
             assert "nodes" in parsed
             assert "edges" in parsed
@@ -94,7 +94,7 @@ class TestGeneratorE2E:
         output_path = Path(output_dir)
         if (output_path / "graph.yaml").exists():
             # Check graph has router node
-            parsed = yaml.safe_load((output_path / "graph.yaml").read_text())
+            parsed = yaml.safe_load((output_path / "graph.yaml").read_text(encoding="utf-8"))
             node_types = [
                 n.get("type", "llm") for n in parsed.get("nodes", {}).values()
             ]
@@ -118,7 +118,7 @@ class TestGeneratorE2E:
         output_path = Path(output_dir)
         if (output_path / "graph.yaml").exists():
             # Check graph has map node
-            parsed = yaml.safe_load((output_path / "graph.yaml").read_text())
+            parsed = yaml.safe_load((output_path / "graph.yaml").read_text(encoding="utf-8"))
             node_types = [
                 n.get("type", "llm") for n in parsed.get("nodes", {}).values()
             ]
@@ -171,7 +171,7 @@ class TestGeneratorPatternCombos:
 
         output_path = Path(output_dir)
         if (output_path / "graph.yaml").exists():
-            parsed = yaml.safe_load((output_path / "graph.yaml").read_text())
+            parsed = yaml.safe_load((output_path / "graph.yaml").read_text(encoding="utf-8"))
             node_types = [
                 n.get("type", "llm") for n in parsed.get("nodes", {}).values()
             ]

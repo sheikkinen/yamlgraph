@@ -37,9 +37,9 @@ def sha256_bytes(data: bytes) -> str:
 def memory_root(tmp_path: Path) -> Path:
     root = tmp_path / "memories"
     (root / "repo").mkdir(parents=True)
-    (root / "repo" / "keepme.md").write_text("# Durable fact\nstill true\n")
-    (root / "repo" / "stale.md").write_text("# Version pin\nfoo is v0.1.7\n")
-    root.joinpath("user-note.md").write_text("# User scope\nnot repo scope\n")
+    (root / "repo" / "keepme.md").write_text("# Durable fact\nstill true\n", encoding="utf-8")
+    (root / "repo" / "stale.md").write_text("# Version pin\nfoo is v0.1.7\n", encoding="utf-8")
+    root.joinpath("user-note.md").write_text("# User scope\nnot repo scope\n", encoding="utf-8")
     return root
 
 
@@ -80,7 +80,7 @@ class TestCollect:
     def test_manifest_and_copies(self, memory_root, out_dir):
         result = collect(memory_root, out_dir)
         assert result.returncode == 0, result.stderr
-        manifest = json.loads((out_dir / "manifest.json").read_text())
+        manifest = json.loads((out_dir / "manifest.json").read_text(encoding="utf-8"))
         assert set(manifest["notes"]) == {"repo/keepme.md", "repo/stale.md"}
         entry = manifest["notes"]["repo/keepme.md"]
         body = (memory_root / "repo" / "keepme.md").read_bytes()
@@ -91,13 +91,13 @@ class TestCollect:
 
     def test_repo_scope_only(self, memory_root, out_dir):
         collect(memory_root, out_dir)
-        manifest = json.loads((out_dir / "manifest.json").read_text())
+        manifest = json.loads((out_dir / "manifest.json").read_text(encoding="utf-8"))
         assert not any("user-note" in k for k in manifest["notes"])
         assert not (out_dir / "notes" / "user-note.md").exists()
 
     def test_rejects_symlink_escape(self, memory_root, out_dir, tmp_path):
         outside = tmp_path / "outside.md"
-        outside.write_text("secret\n")
+        outside.write_text("secret\n", encoding="utf-8")
         (memory_root / "repo" / "evil.md").symlink_to(outside)
         result = collect(memory_root, out_dir)
         assert result.returncode != 0
@@ -116,7 +116,7 @@ class TestReconcile:
         self, out_dir: Path, rows: list[dict]
     ) -> subprocess.CompletedProcess:
         dispositions = out_dir / "raw-dispositions.json"
-        dispositions.write_text(json.dumps(rows))
+        dispositions.write_text(json.dumps(rows), encoding="utf-8")
         return run_tool(
             NODES / "reconcile.py",
             "--manifest",
@@ -129,27 +129,27 @@ class TestReconcile:
 
     def test_valid_rows_render_outputs(self, memory_root, out_dir):
         collect(memory_root, out_dir)
-        manifest = json.loads((out_dir / "manifest.json").read_text())
+        manifest = json.loads((out_dir / "manifest.json").read_text(encoding="utf-8"))
         result = self._reconcile(out_dir, make_disposition_rows(manifest))
         assert result.returncode == 0, result.stderr
-        disposition = json.loads((out_dir / "disposition.json").read_text())
+        disposition = json.loads((out_dir / "disposition.json").read_text(encoding="utf-8"))
         assert disposition["manifest_sha256"] == sha256_bytes(
             (out_dir / "manifest.json").read_bytes()
         )
         assert set(disposition["notes"]) == set(manifest["notes"])
-        review = (out_dir / "disposition.md").read_text()
+        review = (out_dir / "disposition.md").read_text(encoding="utf-8")
         assert "SIGN-OFF" in review
 
     def test_missing_note_fails(self, memory_root, out_dir):
         collect(memory_root, out_dir)
-        manifest = json.loads((out_dir / "manifest.json").read_text())
+        manifest = json.loads((out_dir / "manifest.json").read_text(encoding="utf-8"))
         rows = make_disposition_rows(manifest)[:-1]
         result = self._reconcile(out_dir, rows)
         assert result.returncode != 0
 
     def test_unknown_path_fails(self, memory_root, out_dir):
         collect(memory_root, out_dir)
-        manifest = json.loads((out_dir / "manifest.json").read_text())
+        manifest = json.loads((out_dir / "manifest.json").read_text(encoding="utf-8"))
         rows = make_disposition_rows(manifest)
         rows.append(dict(rows[0], path="repo/phantom.md"))
         result = self._reconcile(out_dir, rows)
@@ -157,7 +157,7 @@ class TestReconcile:
 
     def test_duplicate_path_fails(self, memory_root, out_dir):
         collect(memory_root, out_dir)
-        manifest = json.loads((out_dir / "manifest.json").read_text())
+        manifest = json.loads((out_dir / "manifest.json").read_text(encoding="utf-8"))
         rows = make_disposition_rows(manifest)
         rows.append(dict(rows[0]))
         result = self._reconcile(out_dir, rows)
@@ -165,7 +165,7 @@ class TestReconcile:
 
     def test_unknown_verdict_fails(self, memory_root, out_dir):
         collect(memory_root, out_dir)
-        manifest = json.loads((out_dir / "manifest.json").read_text())
+        manifest = json.loads((out_dir / "manifest.json").read_text(encoding="utf-8"))
         rows = make_disposition_rows(manifest)
         rows[0]["verdict"] = "maybe"
         result = self._reconcile(out_dir, rows)
@@ -173,7 +173,7 @@ class TestReconcile:
 
     def test_redact_requires_draft(self, memory_root, out_dir):
         collect(memory_root, out_dir)
-        manifest = json.loads((out_dir / "manifest.json").read_text())
+        manifest = json.loads((out_dir / "manifest.json").read_text(encoding="utf-8"))
         rows = make_disposition_rows(manifest)
         rows[0]["verdict"] = "redact"  # redacted_draft stays None
         result = self._reconcile(out_dir, rows)
@@ -181,7 +181,7 @@ class TestReconcile:
 
     def test_dated_requires_evidence(self, memory_root, out_dir):
         collect(memory_root, out_dir)
-        manifest = json.loads((out_dir / "manifest.json").read_text())
+        manifest = json.loads((out_dir / "manifest.json").read_text(encoding="utf-8"))
         rows = make_disposition_rows(manifest)
         rows[0]["staleness"] = "dated"  # staleness_evidence stays None
         result = self._reconcile(out_dir, rows)
@@ -193,13 +193,13 @@ class TestApply:
     def _prepare(self, memory_root: Path, out_dir: Path, verdicts: dict) -> None:
         """Collect, reconcile with given per-note verdicts, sign off."""
         collect(memory_root, out_dir)
-        manifest = json.loads((out_dir / "manifest.json").read_text())
+        manifest = json.loads((out_dir / "manifest.json").read_text(encoding="utf-8"))
         rows = make_disposition_rows(manifest)
         for row in rows:
             if row["path"] in verdicts:
                 row.update(verdicts[row["path"]])
         dispositions = out_dir / "raw-dispositions.json"
-        dispositions.write_text(json.dumps(rows))
+        dispositions.write_text(json.dumps(rows), encoding="utf-8")
         run_tool(
             NODES / "reconcile.py",
             "--manifest",
@@ -217,9 +217,9 @@ class TestApply:
         h_d = sha256_bytes((out_dir / "disposition.json").read_bytes())
         review = out_dir / "disposition.md"
         review.write_text(
-            review.read_text()
+            review.read_text(encoding="utf-8")
             + f"\nSIGN-OFF: approved HUMAN=operator manifest={h_m} disposition={h_d}\n"
-        )
+        , encoding="utf-8")
 
     def _apply(self, memory_root: Path, out_dir: Path) -> subprocess.CompletedProcess:
         return run_tool(
@@ -258,9 +258,9 @@ class TestApply:
         self._prepare(memory_root, out_dir, self.FORGET_STALE)
         review = out_dir / "disposition.md"
         review.write_text(
-            review.read_text()
+            review.read_text(encoding="utf-8")
             + f"\nSIGN-OFF: approved HUMAN=operator manifest={'0' * 64} disposition={'0' * 64}\n"
-        )
+        , encoding="utf-8")
         result = self._apply(memory_root, out_dir)
         assert result.returncode != 0
         assert (memory_root / "repo" / "stale.md").exists()
@@ -273,7 +273,7 @@ class TestApply:
         assert not (memory_root / "repo" / "stale.md").exists()
         assert (
             memory_root / "repo" / "keepme.md"
-        ).read_text() == "# Durable fact\nredacted body\n"
+        ).read_text(encoding="utf-8") == "# Durable fact\nredacted body\n"
 
     def test_idempotent_rerun(self, memory_root, out_dir):
         self._prepare(memory_root, out_dir, {**self.FORGET_STALE, **self.REDACT_KEEP})
@@ -285,18 +285,18 @@ class TestApply:
     def test_refuses_on_live_drift(self, memory_root, out_dir):
         self._prepare(memory_root, out_dir, self.FORGET_STALE)
         self._sign(out_dir)
-        (memory_root / "repo" / "stale.md").write_text("edited after collection\n")
+        (memory_root / "repo" / "stale.md").write_text("edited after collection\n", encoding="utf-8")
         result = self._apply(memory_root, out_dir)
         assert result.returncode != 0
         assert "drift" in (result.stdout + result.stderr).lower()
         assert (
             memory_root / "repo" / "stale.md"
-        ).read_text() == "edited after collection\n"
+        ).read_text(encoding="utf-8") == "edited after collection\n"
 
     def test_drift_anywhere_refuses_everything(self, memory_root, out_dir):
         self._prepare(memory_root, out_dir, {**self.FORGET_STALE, **self.REDACT_KEEP})
         self._sign(out_dir)
-        (memory_root / "repo" / "keepme.md").write_text("edited after collection\n")
+        (memory_root / "repo" / "keepme.md").write_text("edited after collection\n", encoding="utf-8")
         result = self._apply(memory_root, out_dir)
         assert result.returncode != 0
         # no partial apply: stale.md must survive even though its own hash matched

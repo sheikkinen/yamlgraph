@@ -153,7 +153,7 @@ def scan_diary_markers(state: dict) -> dict:
                 pass  # If date parsing fails, include the file
 
         file_count += 1
-        content = file_path.read_text()
+        content = file_path.read_text(encoding="utf-8")
         filename = file_path.name
 
         # Extract traps
@@ -254,7 +254,7 @@ def load_world_context(state: dict) -> dict:
     context_path = Path(state.get("world_context_path", "docs/world-context.md"))
     if not context_path.exists():
         return {"world_context": ""}
-    return {"world_context": context_path.read_text()}
+    return {"world_context": context_path.read_text(encoding="utf-8")}
 
 
 def write_proposals(state: dict) -> dict:
@@ -351,7 +351,7 @@ Add `{name}` to Scripture under `{proposal_type}s:` section.
 This pattern has appeared {count} times, meeting the graduation threshold.
 """
 
-        proposal_path.write_text(content)
+        proposal_path.write_text(content, encoding="utf-8")
         written_count += 1
 
     return {

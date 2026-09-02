@@ -30,7 +30,7 @@ class MyConfig:
 
 config = MyConfig()
 print(config.timeout)
-""")
+""", encoding="utf-8")
             result = find_references(str(file_path), "MyConfig", line=2)
 
             assert isinstance(result, list)
@@ -51,7 +51,7 @@ def main():
     x = helper()
     y = helper()
     return x + y
-""")
+""", encoding="utf-8")
             result = find_references(str(file_path), "helper", line=2)
 
             assert isinstance(result, list)
@@ -65,7 +65,7 @@ def main():
             file_path.write_text("""
 def existing_function():
     return 42
-""")
+""", encoding="utf-8")
             # Search for a symbol that doesn't exist, on a line with a different symbol
             result = find_references(str(file_path), "nonexistent_xyz", line=2)
 
@@ -88,13 +88,13 @@ def existing_function():
             (Path(tmpdir) / "config.py").write_text("""
 class AppConfig:
     name: str = "app"
-""")
+""", encoding="utf-8")
             # Create module that imports it
             (Path(tmpdir) / "main.py").write_text("""
 from config import AppConfig
 
 cfg = AppConfig()
-""")
+""", encoding="utf-8")
             result = find_references(
                 str(Path(tmpdir) / "config.py"),
                 "AppConfig",
@@ -128,7 +128,7 @@ def caller_two():
 
 def unrelated():
     return 0
-""")
+""", encoding="utf-8")
             result = get_callers(str(file_path), "target_function", line=2)
 
             assert isinstance(result, list)
@@ -145,7 +145,7 @@ def unrelated():
             file_path.write_text("""
 def lonely_function():
     return 42
-""")
+""", encoding="utf-8")
             result = get_callers(str(file_path), "lonely_function", line=2)
 
             assert isinstance(result, list)
@@ -177,7 +177,7 @@ def main_function():
     a = helper_a()
     b = helper_b()
     return a + b
-""")
+""", encoding="utf-8")
             result = get_callees(str(file_path), "main_function", line=8)
 
             assert isinstance(result, list)
@@ -193,7 +193,7 @@ def main_function():
             file_path.write_text("""
 def pure_function():
     return 42
-""")
+""", encoding="utf-8")
             result = get_callees(str(file_path), "pure_function", line=2)
 
             assert isinstance(result, list)
@@ -217,7 +217,7 @@ def helper():
 def caller():
     x = helper()
     return x
-""")
+""", encoding="utf-8")
             result = get_callees(str(file_path), "caller", line=5)
 
             assert len(result) >= 1

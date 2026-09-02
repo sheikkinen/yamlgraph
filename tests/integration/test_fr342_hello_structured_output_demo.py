@@ -15,7 +15,7 @@ class TestFR342HelloStructuredOutputDemo:
         greet_yaml_path = Path("examples/demos/hello/prompts/greet.yaml")
         assert greet_yaml_path.exists()
 
-        with open(greet_yaml_path) as f:
+        with open(greet_yaml_path, encoding="utf-8") as f:
             content = yaml.safe_load(f)
 
         # Should have schema section
@@ -64,7 +64,7 @@ class TestFR342HelloStructuredOutputDemo:
         log_path = Path("examples/demos/hello/demo-output.log")
         assert log_path.exists()
 
-        content = log_path.read_text()
+        content = log_path.read_text(encoding="utf-8")
 
         # Should contain structured field names
         assert (

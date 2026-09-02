@@ -103,7 +103,7 @@ def check_router_schema_fields(
         return issues  # Let existing prompt file check handle this
 
     try:
-        with open(prompt_path) as f:
+        with open(prompt_path, encoding="utf-8") as f:
             prompt_data = yaml.safe_load(f) or {}
 
         schema = prompt_data.get("schema", {})

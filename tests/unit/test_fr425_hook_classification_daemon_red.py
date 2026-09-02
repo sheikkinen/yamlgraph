@@ -150,7 +150,7 @@ class TestAppendIntegrity:
         }
         append_entry(log, entry)
 
-        lines = log.read_text().strip().split("\n")
+        lines = log.read_text(encoding="utf-8").strip().split("\n")
         assert len(lines) == 1
         parsed = json.loads(lines[0])
         assert parsed["reason"] == "classified-hostile"
@@ -159,7 +159,7 @@ class TestAppendIntegrity:
         log = tmp_path / "test.jsonl"
         for i in range(5):
             append_entry(log, {"i": i})
-        lines = log.read_text().strip().split("\n")
+        lines = log.read_text(encoding="utf-8").strip().split("\n")
         assert len(lines) == 5
         for i, line in enumerate(lines):
             assert json.loads(line)["i"] == i
@@ -172,7 +172,7 @@ class TestAppendIntegrity:
         }
         append_entry(log, entry)
 
-        line = log.read_text().strip()
+        line = log.read_text(encoding="utf-8").strip()
         assert len(line.encode("utf-8")) <= 4096
         parsed = json.loads(line)
         assert parsed["detail"].endswith("...")
@@ -198,7 +198,7 @@ class TestAppendIntegrity:
 
         assert not errors, f"Write errors: {errors}"
 
-        lines = log.read_text().strip().split("\n")
+        lines = log.read_text(encoding="utf-8").strip().split("\n")
         assert len(lines) == 4 * writes_per_thread
 
         for i, line in enumerate(lines):
@@ -302,7 +302,7 @@ class TestClassifyActionCallbacks:
 
         log = tmp_path / "classifications.jsonl"
         assert log.exists()
-        entry = json.loads(log.read_text().strip())
+        entry = json.loads(log.read_text(encoding="utf-8").strip())
         assert entry["reason"] == "classified-hostile"
         assert entry["tool"] == "run_in_terminal"
         assert context["classification_count"] == 1
@@ -322,7 +322,7 @@ class TestClassifyActionCallbacks:
         _make_action().on_error(snap, ValueError("parse failed"), 500, context)
 
         log = tmp_path / "classifications.jsonl"
-        entry = json.loads(log.read_text().strip())
+        entry = json.loads(log.read_text(encoding="utf-8").strip())
         assert entry["reason"] == "classify-error"
         assert "danger=1" in entry["detail"]
         assert "intent=unknown" in entry["detail"]
@@ -336,7 +336,7 @@ class TestClassifyActionCallbacks:
 
         _make_action().on_error(snap, TimeoutError("timeout after 10s"), 10000, context)
 
-        entry = json.loads((tmp_path / "classifications.jsonl").read_text().strip())
+        entry = json.loads((tmp_path / "classifications.jsonl").read_text(encoding="utf-8").strip())
         assert entry["reason"] == "classify-timeout"
 
 
@@ -383,7 +383,7 @@ class TestAdversarialInputs:
 
         _make_action().on_success(snap, "classified", 200, context)
 
-        entry = json.loads((tmp_path / "classifications.jsonl").read_text().strip())
+        entry = json.loads((tmp_path / "classifications.jsonl").read_text(encoding="utf-8").strip())
         assert entry["reason"] == "classify-error"
         assert "danger=1" in entry["detail"]
         assert "intent=unknown" in entry["detail"]
@@ -409,7 +409,7 @@ class TestAdversarialInputs:
 
         _make_action().on_success(snap, "classified", 100, context)
 
-        line = (tmp_path / "classifications.jsonl").read_text().strip()
+        line = (tmp_path / "classifications.jsonl").read_text(encoding="utf-8").strip()
         assert len(line.encode("utf-8")) <= 4096
         parsed = json.loads(line)
         assert parsed["tool"] == "run_in_terminal"

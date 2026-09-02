@@ -8,7 +8,7 @@ from pathlib import Path
 input_path = Path(
     "/Users/sheikki/Documents/src/yamlgraph/outputs/ocr_cleanup/Yhdeksän_miehen_saappaat_Pentti_Haanpää_01_01_1945/final_pages-yt.json"
 )
-with open(input_path) as f:
+with open(input_path, encoding="utf-8") as f:
     data = json.load(f)
 
 # Build final.json structure from final_pages-yt.json
@@ -35,7 +35,7 @@ for p in data["paragraphs"]:
 
 # Save final.json
 output_path = input_path.parent / "final.json"
-output_path.write_text(json.dumps(final, ensure_ascii=False, indent=2))
+output_path.write_text(json.dumps(final, ensure_ascii=False, indent=2), encoding="utf-8")
 
 print(f"Created final.json with {len(final['paragraphs'])} paragraphs")
 print(f"Saved to: {output_path}")

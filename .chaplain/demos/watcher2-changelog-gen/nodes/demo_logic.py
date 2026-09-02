@@ -67,7 +67,7 @@ def demo_fr283_logic(state):
             f"- **{fr_id}**: Auto-generated changelog fragment demo. ({req_id})"
         )
 
-        with open(changelog_frag, "w") as f:
+        with open(changelog_frag, "w", encoding="utf-8") as f:
             f.write(fragment_content)
 
         output.append(f"✅ Generated changelog fragment: {changelog_frag}")

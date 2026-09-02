@@ -29,11 +29,11 @@ WATCHER_LIB = os.path.join(REPO_ROOT, ".chaplain", "lib", "watcher")
 def _read_watch_sh() -> str:
     """Read start-system.sh + all library scripts (patterns split across files)."""
     parts = []
-    with open(WATCH_SH) as fh:
+    with open(WATCH_SH, encoding="utf-8") as fh:
         parts.append(fh.read())
     for f in sorted(os.listdir(WATCHER_LIB)):
         if f.endswith(".sh"):
-            with open(os.path.join(WATCHER_LIB, f)) as fh:
+            with open(os.path.join(WATCHER_LIB, f), encoding="utf-8") as fh:
                 parts.append(fh.read())
     return "\n".join(parts)
 
@@ -130,7 +130,7 @@ class TestGitHubIssueSyncLogic:
                     ;;
             esac
         """)
-        )
+        , encoding="utf-8")
         mock_gh.chmod(mock_gh.stat().st_mode | stat.S_IEXEC)
 
         sync_script = textwrap.dedent("""\
@@ -169,7 +169,7 @@ class TestGitHubIssueSyncLogic:
 
         inbox_file = inbox / "gh-42.md"
         assert inbox_file.exists(), "Inbox file gh-42.md must be created"
-        content = inbox_file.read_text()
+        content = inbox_file.read_text(encoding="utf-8")
         assert "Test Issue Title" in content
         assert "Test issue body content" in content
 
@@ -177,7 +177,7 @@ class TestGitHubIssueSyncLogic:
         """Sync skips issues that already have an inbox file."""
         inbox = tmp_path / "inbox"
         inbox.mkdir()
-        (inbox / "gh-42.md").write_text("already imported")
+        (inbox / "gh-42.md").write_text("already imported", encoding="utf-8")
 
         mock_gh = tmp_path / "mock_gh"
         mock_gh.write_text(
@@ -194,7 +194,7 @@ class TestGitHubIssueSyncLogic:
                     ;;
             esac
         """)
-        )
+        , encoding="utf-8")
         mock_gh.chmod(mock_gh.stat().st_mode | stat.S_IEXEC)
 
         sync_script = textwrap.dedent("""\
@@ -284,7 +284,7 @@ class TestGitHubIssueCloseLogic:
                 echo "CLOSED:$3"
             fi
         """)
-        )
+        , encoding="utf-8")
         mock_gh.chmod(mock_gh.stat().st_mode | stat.S_IEXEC)
 
         close_script = textwrap.dedent("""\
@@ -391,13 +391,13 @@ class TestDocumentationUpdate:
 
 def _read_claude_md() -> str:
     claude_path = os.path.join(REPO_ROOT, "CLAUDE.md")
-    with open(claude_path) as f:
+    with open(claude_path, encoding="utf-8") as f:
         return f.read()
 
 
 def _read_copilot_instructions() -> str:
     copilot_path = os.path.join(REPO_ROOT, ".github", "copilot-instructions.md")
-    with open(copilot_path) as f:
+    with open(copilot_path, encoding="utf-8") as f:
         return f.read()
 
 

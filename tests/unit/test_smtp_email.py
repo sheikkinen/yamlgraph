@@ -80,7 +80,7 @@ def call(**kwargs):
 @pytest.mark.req("REQ-YG-627")
 class TestManifest:
     def test_manifest_validates_as_python_runtime_tool(self):
-        raw = yaml.safe_load(MANIFEST.read_text())
+        raw = yaml.safe_load(MANIFEST.read_text(encoding="utf-8"))
         manifest = ToolManifest.model_validate(raw)
 
         assert manifest.name == "send_email"
@@ -89,7 +89,7 @@ class TestManifest:
         assert manifest.runtime.function == "send_email"
 
     def test_manifest_names_its_first_consumer(self):
-        assert "First consumer:" in MANIFEST.read_text()
+        assert "First consumer:" in MANIFEST.read_text(encoding="utf-8")
 
 
 @pytest.mark.req("REQ-YG-627")
@@ -182,7 +182,7 @@ class TestMessageShape:
 class TestAttachments:
     def test_present_file_is_attached_with_guessed_type(self, smtp_env, tmp_path):
         report = tmp_path / "digest.md"
-        report.write_text("# report\n")
+        report.write_text("# report\n", encoding="utf-8")
 
         call(attachments=[str(report)])
 

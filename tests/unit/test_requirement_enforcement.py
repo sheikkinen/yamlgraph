@@ -27,12 +27,12 @@ def test_untagged_test_is_rejected(tmp_path: Path):
                 assert True
             """
         )
-    )
+    , encoding="utf-8")
 
     # Copy conftest.py to tmp_path so enforcement hook is active
     conftest_src = Path(__file__).parent.parent / "conftest.py"
     conftest_dst = tmp_path / "conftest.py"
-    conftest_dst.write_text(conftest_src.read_text())
+    conftest_dst.write_text(conftest_src.read_text(encoding="utf-8"), encoding="utf-8")
 
     # Run pytest via subprocess - should fail at collection
     result = subprocess.run(
@@ -74,12 +74,12 @@ def test_tagged_test_is_accepted(tmp_path: Path):
                 assert True
             """
         )
-    )
+    , encoding="utf-8")
 
     # Copy conftest.py to tmp_path so enforcement hook is active
     conftest_src = Path(__file__).parent.parent / "conftest.py"
     conftest_dst = tmp_path / "conftest.py"
-    conftest_dst.write_text(conftest_src.read_text())
+    conftest_dst.write_text(conftest_src.read_text(encoding="utf-8"), encoding="utf-8")
 
     # Run pytest via subprocess - should pass
     result = subprocess.run(
@@ -120,11 +120,11 @@ def test_unmarked_process_boundary_module_is_rejected(tmp_path: Path):
                 assert payload.endswith(".yaml")
             """
         )
-    )
+    , encoding="utf-8")
 
     conftest_src = Path(__file__).parent.parent / "conftest.py"
     conftest_dst = tmp_path / "conftest.py"
-    conftest_dst.write_text(conftest_src.read_text())
+    conftest_dst.write_text(conftest_src.read_text(encoding="utf-8"), encoding="utf-8")
 
     result = subprocess.run(
         [

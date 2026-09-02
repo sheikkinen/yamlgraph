@@ -237,7 +237,7 @@ class TestLoadPythonFunctionPath:
     def test_loads_function_from_path(self, tmp_path):
         """Can load function from a file path."""
         tool_file = tmp_path / "my_tool.py"
-        tool_file.write_text("def greet(state):\n    return {'greeting': 'hello'}\n")
+        tool_file.write_text("def greet(state):\n    return {'greeting': 'hello'}\n", encoding="utf-8")
         config = PythonToolConfig(
             path=str(tool_file),
             function="greet",
@@ -280,7 +280,7 @@ class TestLoadPythonFunctionPath:
     def test_raises_on_missing_function_in_path(self, tmp_path):
         """Raises AttributeError for non-existent function in path-loaded module."""
         tool_file = tmp_path / "tool.py"
-        tool_file.write_text("def real_func(): pass\n")
+        tool_file.write_text("def real_func(): pass\n", encoding="utf-8")
         config = PythonToolConfig(
             path=str(tool_file),
             function="nonexistent",
@@ -296,7 +296,7 @@ class TestLoadPythonFunctionPath:
         graph_root = tmp_path / "graph_root"
         tool_file = graph_root / "tools" / "helper.py"
         tool_file.parent.mkdir(parents=True, exist_ok=True)
-        tool_file.write_text("def helper(state):\n    return {'ok': True}\n")
+        tool_file.write_text("def helper(state):\n    return {'ok': True}\n", encoding="utf-8")
         monkeypatch.chdir(tmp_path)
 
         config = PythonToolConfig(

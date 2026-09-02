@@ -155,7 +155,7 @@ def test_all_empty_extraction_raises_scanned_hint_by_default(monkeypatch):
 
 @pytest.mark.req("REQ-YG-577")
 def test_demo_graph_batches_and_filters():
-    raw = yaml.safe_load(DEMO_GRAPH.read_text())
+    raw = yaml.safe_load(DEMO_GRAPH.read_text(encoding="utf-8"))
     args = raw["nodes"]["fetch_batch"]["args"]
     assert args["pages_per_chunk"] == 1
     assert args["min_chars"] == 0
@@ -164,7 +164,7 @@ def test_demo_graph_batches_and_filters():
 
 @pytest.mark.req("REQ-YG-577")
 def test_demo_cap_covers_reported_418_page_case():
-    raw = yaml.safe_load(DEMO_GRAPH.read_text())
+    raw = yaml.safe_load(DEMO_GRAPH.read_text(encoding="utf-8"))
     window = 10  # tools.py BATCH_SIZE window
     budget = raw["loop_limits"]["advance"]
     assert math.ceil(418 / window) <= budget
@@ -175,8 +175,8 @@ def test_demo_cap_covers_reported_418_page_case():
 def test_prompts_speak_single_page_honestly():
     # FR-774 pinned excerpt semantics for 10-page chunks; FR-775 fetches
     # one page per chunk, so the prompts must speak per-page truthfully.
-    summarize = (PROMPTS / "summarize_page.yaml").read_text().lower()
-    combine = (PROMPTS / "combine_summaries.yaml").read_text().lower()
+    summarize = (PROMPTS / "summarize_page.yaml").read_text(encoding="utf-8").lower()
+    combine = (PROMPTS / "combine_summaries.yaml").read_text(encoding="utf-8").lower()
     assert "one page" in summarize
     assert "excerpt" not in summarize
     assert "all_summaries" in combine
@@ -184,5 +184,5 @@ def test_prompts_speak_single_page_honestly():
 
 @pytest.mark.req("REQ-YG-577")
 def test_readme_states_bounded_page_budget():
-    readme = README.read_text().lower()
+    readme = README.read_text(encoding="utf-8").lower()
     assert "1000" in readme  # loop_limits 100 x 10-page windows

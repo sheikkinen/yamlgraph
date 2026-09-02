@@ -292,10 +292,10 @@ def test_invalid_utf8_replaced_and_final_line_retained():
 @pytest.mark.req("REQ-YG-637")
 def test_judge_artifact_requires_verdict_line(tmp_path):
     good = tmp_path / "draft-judgement.md"
-    good.write_text("# J\n\n**Verdict:** APPROVED\n")
+    good.write_text("# J\n\n**Verdict:** APPROVED\n", encoding="utf-8")
     worker.verify_artifact(models.Task.JUDGE, good)  # no raise
     bad = tmp_path / "empty.md"
-    bad.write_text("")
+    bad.write_text("", encoding="utf-8")
     with pytest.raises(models.ArtifactError):
         worker.verify_artifact(models.Task.JUDGE, bad)
 

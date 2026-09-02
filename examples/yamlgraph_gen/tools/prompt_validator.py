@@ -17,7 +17,7 @@ def validate_prompt_file(path: str) -> dict:
     warnings = []
 
     try:
-        content = Path(path).read_text()
+        content = Path(path).read_text(encoding="utf-8")
     except FileNotFoundError:
         return {"valid": False, "errors": [f"File not found: {path}"], "warnings": []}
 

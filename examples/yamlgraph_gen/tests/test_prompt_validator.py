@@ -20,7 +20,7 @@ system: |
 
 user: |
   Help me with {topic}.
-""")
+""", encoding="utf-8")
 
         result = validate_prompt_file(str(prompt_file))
 
@@ -39,7 +39,7 @@ schema:
     output:
       type: str
       description: The result
-""")
+""", encoding="utf-8")
 
         result = validate_prompt_file(str(prompt_file))
 
@@ -50,7 +50,7 @@ schema:
         prompt_file = tmp_path / "test.yaml"
         prompt_file.write_text("""
 user: Help me.
-""")
+""", encoding="utf-8")
 
         result = validate_prompt_file(str(prompt_file))
 
@@ -62,7 +62,7 @@ user: Help me.
         prompt_file = tmp_path / "test.yaml"
         prompt_file.write_text("""
 system: You are helpful.
-""")
+""", encoding="utf-8")
 
         result = validate_prompt_file(str(prompt_file))
 
@@ -74,7 +74,7 @@ system: You are helpful.
         prompt_file = tmp_path / "test.yaml"
         prompt_file.write_text("""
 system: [unclosed
-""")
+""", encoding="utf-8")
 
         result = validate_prompt_file(str(prompt_file))
 
@@ -95,7 +95,7 @@ system: [unclosed
 system: You are helpful.
 user: Help me.
 custom_key: something
-""")
+""", encoding="utf-8")
 
         result = validate_prompt_file(str(prompt_file))
 
@@ -112,7 +112,7 @@ schema:
   fields:
     output:
       type: str
-""")
+""", encoding="utf-8")
 
         result = validate_prompt_file(str(prompt_file))
 
@@ -128,8 +128,8 @@ class TestValidatePromptDirectory:
         prompts_dir = tmp_path / "prompts"
         prompts_dir.mkdir()
 
-        (prompts_dir / "a.yaml").write_text("system: A\nuser: Do A")
-        (prompts_dir / "b.yaml").write_text("system: B\nuser: Do B")
+        (prompts_dir / "a.yaml").write_text("system: A\nuser: Do A", encoding="utf-8")
+        (prompts_dir / "b.yaml").write_text("system: B\nuser: Do B", encoding="utf-8")
 
         result = validate_prompt_directory(str(prompts_dir))
 
@@ -142,8 +142,8 @@ class TestValidatePromptDirectory:
         prompts_dir = tmp_path / "prompts"
         prompts_dir.mkdir()
 
-        (prompts_dir / "valid.yaml").write_text("system: A\nuser: Do A")
-        (prompts_dir / "invalid.yaml").write_text("user: Missing system")
+        (prompts_dir / "valid.yaml").write_text("system: A\nuser: Do A", encoding="utf-8")
+        (prompts_dir / "invalid.yaml").write_text("user: Missing system", encoding="utf-8")
 
         result = validate_prompt_directory(str(prompts_dir))
 

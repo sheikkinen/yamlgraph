@@ -269,7 +269,7 @@ nodes:
     resume_key: answer
 """
         graph_file = tmp_path / "test_graph.yaml"
-        graph_file.write_text(graph_content)
+        graph_file.write_text(graph_content, encoding="utf-8")
 
         issues = check_interrupt_patterns(graph_file)
         assert len(issues) == 0
@@ -287,7 +287,7 @@ nodes:
     # Missing resume_key and prompt/message
 """
         graph_file = tmp_path / "test_graph.yaml"
-        graph_file.write_text(graph_content)
+        graph_file.write_text(graph_content, encoding="utf-8")
 
         issues = check_interrupt_patterns(graph_file)
         # Should have: W301 (missing checkpointer), E301 (missing resume_key), E302 (missing prompt/message)
@@ -323,7 +323,7 @@ nodes:
     resume_key: answer
 """
         graph_file = tmp_path / "test_graph.yaml"
-        graph_file.write_text(graph_content)
+        graph_file.write_text(graph_content, encoding="utf-8")
 
         issues = check_interrupt_patterns(graph_file)
         # Should only validate the interrupt_node

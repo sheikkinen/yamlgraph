@@ -25,7 +25,7 @@ TOPLEVEL_EXCLUSIONS = {"demos", "shared", "__pycache__", "malformed"}
 def _read_readme() -> str:
     """Read examples/README.md content."""
     assert README_PATH.exists(), f"examples/README.md not found at {README_PATH}"
-    return README_PATH.read_text()
+    return README_PATH.read_text(encoding="utf-8")
 
 
 def _get_demo_dirs() -> list[str]:

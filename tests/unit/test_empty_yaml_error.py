@@ -22,7 +22,7 @@ class TestEmptyYamlHandling:
         """
         from yamlgraph.compile.graph_loader import load_graph_config
 
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
+        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", suffix=".yaml", delete=False) as f:
             f.write("")  # Empty file
             tmpfile = Path(f.name)
 
@@ -43,7 +43,7 @@ class TestEmptyYamlHandling:
         """YAML with only comments is effectively empty."""
         from yamlgraph.compile.graph_loader import load_graph_config
 
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
+        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", suffix=".yaml", delete=False) as f:
             f.write("# This is a comment\n# Another comment\n")
             tmpfile = Path(f.name)
 
@@ -61,7 +61,7 @@ class TestEmptyYamlHandling:
         """YAML containing just 'null' should give clear error."""
         from yamlgraph.compile.graph_loader import load_graph_config
 
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
+        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", suffix=".yaml", delete=False) as f:
             f.write("null\n")
             tmpfile = Path(f.name)
 

@@ -33,7 +33,7 @@ class TestExtractImportsFromTest:
                 assert create_llm is not None
         """)
         f = tmp_path / "test_example.py"
-        f.write_text(src)
+        f.write_text(src, encoding="utf-8")
         result = _extract_imports_from_test(f, "test_example::test_something")
         assert "yamlgraph/utils/llm_factory.py" in result
 
@@ -45,7 +45,7 @@ class TestExtractImportsFromTest:
                 assert GenericReport is not None
         """)
         f = tmp_path / "test_inline.py"
-        f.write_text(src)
+        f.write_text(src, encoding="utf-8")
         result = _extract_imports_from_test(f, "test_inline::test_inline")
         assert "yamlgraph/models/schemas.py" in result
 
@@ -59,7 +59,7 @@ class TestExtractImportsFromTest:
                     assert PACKAGE_ROOT
         """)
         f = tmp_path / "test_cls.py"
-        f.write_text(src)
+        f.write_text(src, encoding="utf-8")
         result = _extract_imports_from_test(f, "test_cls::TestFoo::test_bar")
         assert "yamlgraph/config.py" in result
 
@@ -74,7 +74,7 @@ class TestExtractImportsFromTest:
                 assert MAX_ITEMS > 0
         """)
         f = tmp_path / "test_filter.py"
-        f.write_text(src)
+        f.write_text(src, encoding="utf-8")
         result = _extract_imports_from_test(f, "test_filter::test_const")
         assert result == {"yamlgraph/constants.py"}
 
@@ -87,7 +87,7 @@ class TestExtractImportsFromTest:
                 assert yamlgraph.cli is not None
         """)
         f = tmp_path / "test_import.py"
-        f.write_text(src)
+        f.write_text(src, encoding="utf-8")
         result = _extract_imports_from_test(f, "test_import::test_cli")
         assert "yamlgraph/cli/__init__.py" in result
 
@@ -101,7 +101,7 @@ class TestExtractImportsFromTest:
                 pass
         """)
         f = tmp_path / "test_multi.py"
-        f.write_text(src)
+        f.write_text(src, encoding="utf-8")
         result = _extract_imports_from_test(f, "test_multi::test_multi")
         assert "yamlgraph/config.py" in result
         assert "yamlgraph/constants.py" in result
@@ -113,7 +113,7 @@ class TestExtractImportsFromTest:
                 pass
         """)
         f = tmp_path / "test_empty.py"
-        f.write_text(src)
+        f.write_text(src, encoding="utf-8")
         result = _extract_imports_from_test(f, "test_empty::test_noop")
         assert result == set()
 
@@ -128,7 +128,7 @@ class TestExtractImportsFromTest:
                     pass
         """)
         f = tmp_path / "test_mock.py"
-        f.write_text(src)
+        f.write_text(src, encoding="utf-8")
         result = _extract_imports_from_test(f, "test_mock::TestMock::test_with_mock")
         assert "yamlgraph/utils/llm_factory.py" in result
 
@@ -143,7 +143,7 @@ class TestExtractImportsFromTest:
                     assert execute_prompt
         """)
         f = tmp_path / "test_pref.py"
-        f.write_text(src)
+        f.write_text(src, encoding="utf-8")
         result = _extract_imports_from_test(
             f, "test_pref::TestSomething::test_specific"
         )
@@ -159,7 +159,7 @@ class TestExtractImportsFromTest:
                 assert main
         """)
         f = tmp_path / "test_init.py"
-        f.write_text(src)
+        f.write_text(src, encoding="utf-8")
         result = _extract_imports_from_test(f, "test_init::test_main")
         # Could resolve to yamlgraph/cli/__init__.py or yamlgraph/cli.py
         assert any(p.startswith("yamlgraph/cli") for p in result)

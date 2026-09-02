@@ -157,9 +157,9 @@ def _compile(tmp_path: Path, parent_yaml: str, children: dict[str, str]):
     from yamlgraph.compile.graph_loader import compile_graph, load_graph_config
 
     for name, content in children.items():
-        (tmp_path / name).write_text(content)
+        (tmp_path / name).write_text(content, encoding="utf-8")
     parent = tmp_path / "parent.yaml"
-    parent.write_text(parent_yaml)
+    parent.write_text(parent_yaml, encoding="utf-8")
     config = load_graph_config(parent)
     return compile_graph(config).compile(checkpointer=MemorySaver())
 

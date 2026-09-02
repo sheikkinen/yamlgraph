@@ -368,5 +368,5 @@ class TestPersistFallback:
         # FR-650: pages now land in type subfolder
         written = tmp_path / "character" / "broken_char.yaml"
         assert written.exists()
-        data = yaml.safe_load(written.read_text())
+        data = yaml.safe_load(written.read_text(encoding="utf-8"))
         assert data["id"] == "broken_char"

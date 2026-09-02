@@ -33,7 +33,7 @@ def load_env() -> tuple[str, str]:
     for envfile in (Path(".env"), Path.home() / ".env"):
         if not envfile.exists():
             continue
-        for line in envfile.read_text().splitlines():
+        for line in envfile.read_text(encoding="utf-8").splitlines():
             if "=" in line and not line.startswith("#"):
                 k, _, v = line.partition("=")
                 env.setdefault(k.strip(), v.strip().strip('"'))
@@ -45,7 +45,7 @@ def load_env() -> tuple[str, str]:
 
 def save_token(tok: dict) -> None:
     TOKEN_FILE.parent.mkdir(exist_ok=True)
-    TOKEN_FILE.write_text(json.dumps(tok, indent=2))
+    TOKEN_FILE.write_text(json.dumps(tok, indent=2), encoding="utf-8")
     TOKEN_FILE.chmod(stat.S_IRUSR | stat.S_IWUSR)
 
 
@@ -130,7 +130,7 @@ def refresh(cid: str, csec: str, tok: dict) -> dict:
 def main() -> None:
     cid, csec = load_env()
     if TOKEN_FILE.exists():
-        tok = refresh(cid, csec, json.loads(TOKEN_FILE.read_text()))
+        tok = refresh(cid, csec, json.loads(TOKEN_FILE.read_text(encoding="utf-8")))
     else:
         tok = pkce_authorize(cid, csec)
     save_token(tok)

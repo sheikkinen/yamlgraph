@@ -126,7 +126,7 @@ class TestPromptSystemSegments:
         """analyze.yaml uses system_segments with cache: true."""
         analyze_path = DEMO_DIR / "prompts" / "analyze.yaml"
 
-        with open(analyze_path) as f:
+        with open(analyze_path, encoding="utf-8") as f:
             prompt_config = yaml.safe_load(f)
 
         assert (
@@ -147,7 +147,7 @@ class TestPromptSystemSegments:
         """reflect.yaml uses system_segments with cache: true."""
         reflect_path = DEMO_DIR / "prompts" / "reflect.yaml"
 
-        with open(reflect_path) as f:
+        with open(reflect_path, encoding="utf-8") as f:
             prompt_config = yaml.safe_load(f)
 
         assert (
@@ -169,9 +169,9 @@ class TestPromptSystemSegments:
         analyze_path = DEMO_DIR / "prompts" / "analyze.yaml"
         reflect_path = DEMO_DIR / "prompts" / "reflect.yaml"
 
-        with open(analyze_path) as f:
+        with open(analyze_path, encoding="utf-8") as f:
             analyze_config = yaml.safe_load(f)
-        with open(reflect_path) as f:
+        with open(reflect_path, encoding="utf-8") as f:
             reflect_config = yaml.safe_load(f)
 
         analyze_cached = [
@@ -199,9 +199,9 @@ class TestPromptSystemSegments:
         analyze_path = DEMO_DIR / "prompts" / "analyze.yaml"
         reflect_path = DEMO_DIR / "prompts" / "reflect.yaml"
 
-        with open(analyze_path) as f:
+        with open(analyze_path, encoding="utf-8") as f:
             analyze_config = yaml.safe_load(f)
-        with open(reflect_path) as f:
+        with open(reflect_path, encoding="utf-8") as f:
             reflect_config = yaml.safe_load(f)
 
         assert "schema" in analyze_config, "analyze.yaml must have inline schema"
@@ -225,7 +225,7 @@ class TestDocumentationUpdates:
             / "prompt-yaml.md"
         )
 
-        with open(ref_file) as f:
+        with open(ref_file, encoding="utf-8") as f:
             content = f.read()
 
         assert (
@@ -241,7 +241,7 @@ class TestDocumentationUpdates:
         """Demo README.md explains caching behavior and benefits."""
         readme_path = DEMO_DIR / "README.md"
 
-        with open(readme_path) as f:
+        with open(readme_path, encoding="utf-8") as f:
             content = f.read()
 
         # Check for key concepts
@@ -261,7 +261,7 @@ class TestDemoExecutionProof:
         """demo-output.log contains evidence of successful execution."""
         demo_log = DEMO_DIR / "demo-output.log"
 
-        with open(demo_log) as f:
+        with open(demo_log, encoding="utf-8") as f:
             content = f.read()
 
         # Check for execution indicators
@@ -276,7 +276,7 @@ class TestDemoExecutionProof:
         """demo-output.log shows evidence of Anthropic API usage."""
         demo_log = DEMO_DIR / "demo-output.log"
 
-        with open(demo_log) as f:
+        with open(demo_log, encoding="utf-8") as f:
             content = f.read()
 
         # Should contain evidence of Anthropic provider usage

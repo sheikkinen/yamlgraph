@@ -157,7 +157,7 @@ def export_bench_results(
         "timestamp": datetime.now(UTC).isoformat(),
         "results": [r.model_dump() for r in results],
     }
-    Path(output_path).write_text(json.dumps(data, indent=2, default=str))
+    Path(output_path).write_text(json.dumps(data, indent=2, default=str), encoding="utf-8")
 
 
 # =============================================================================

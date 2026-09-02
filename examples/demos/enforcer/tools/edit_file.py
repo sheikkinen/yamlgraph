@@ -14,12 +14,12 @@ def edit_file(path: str, old_text: str, new_text: str) -> str:
         return f"Error: path {path} is outside project root"
     if not p.is_file():
         return f"Error: {path} does not exist"
-    content = p.read_text()
+    content = p.read_text(encoding="utf-8")
     if old_text not in content:
         return f"Error: old_text not found in {path}"
     count = content.count(old_text)
     if count > 1:
         return f"Error: old_text appears {count} times in {path} — must be unique"
     content = content.replace(old_text, new_text, 1)
-    p.write_text(content)
+    p.write_text(content, encoding="utf-8")
     return f"Replaced {len(old_text)} chars with {len(new_text)} chars in {path}"

@@ -168,9 +168,9 @@ class TestAttributionAndAgreement:
     @pytest.mark.req("REQ-YG-554")
     def test_stdin_archives_never_attributed(self, tmp_path):
         harness = _load_harness()
-        (tmp_path / "stdin-20260714_120000.result.json").write_text("{}")
-        (tmp_path / "cough-fever-20260714_120000.result.json").write_text("{}")
-        (tmp_path / "unknown-run-20260714_120000.result.json").write_text("{}")
+        (tmp_path / "stdin-20260714_120000.result.json").write_text("{}", encoding="utf-8")
+        (tmp_path / "cough-fever-20260714_120000.result.json").write_text("{}", encoding="utf-8")
+        (tmp_path / "unknown-run-20260714_120000.result.json").write_text("{}", encoding="utf-8")
         attributed = harness.attribute_archives(tmp_path, {"cough-fever"})
         assert set(attributed) == {"cough-fever"}
         assert len(attributed["cough-fever"]) == 1
@@ -180,8 +180,8 @@ class TestAttributionAndAgreement:
         """Language-invariance finding: hp36-renewal-behalf-en archives
         must NOT attribute to hp36-renewal-behalf (prefix collision) —
         attribution is exact name + timestamp."""
-        (tmp_path / "hp36-20260715_080000.result.json").write_text("{}")
-        (tmp_path / "hp36-en-20260715_080001.result.json").write_text("{}")
+        (tmp_path / "hp36-20260715_080000.result.json").write_text("{}", encoding="utf-8")
+        (tmp_path / "hp36-en-20260715_080001.result.json").write_text("{}", encoding="utf-8")
         attributed = _load_harness().attribute_archives(tmp_path, {"hp36", "hp36-en"})
         assert len(attributed["hp36"]) == 1
         assert len(attributed["hp36-en"]) == 1

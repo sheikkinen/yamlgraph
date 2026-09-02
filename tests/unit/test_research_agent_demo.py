@@ -99,14 +99,14 @@ class TestResearchAgentGraphStructure:
     @pytest.mark.req("REQ-YG-217")
     def test_plan_gets_subset_of_tools(self) -> None:
         """plan_research gets only discovery tools (search, list_dir)."""
-        raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text())
+        raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text(encoding="utf-8"))
         plan_tools = raw["nodes"]["plan_research"]["tools"]
         assert set(plan_tools) == {"search", "list_dir"}
 
     @pytest.mark.req("REQ-YG-217")
     def test_execute_gets_all_tools(self) -> None:
         """execute_research gets all five tools."""
-        raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text())
+        raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text(encoding="utf-8"))
         exec_tools = raw["nodes"]["execute_research"]["tools"]
         assert set(exec_tools) == {
             "search",
@@ -142,7 +142,7 @@ class TestResearchAgentGraphStructure:
     @pytest.mark.req("REQ-YG-217")
     def test_prompts_relative_true(self) -> None:
         """Graph uses prompts_relative: true."""
-        raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text())
+        raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text(encoding="utf-8"))
         assert raw.get("prompts_relative") is True
 
     @pytest.mark.req("REQ-YG-217")
@@ -172,7 +172,7 @@ class TestResearchAgentGraphStructure:
     def test_extract_intent_has_schema(self) -> None:
         """extract_intent prompt defines a Pydantic schema."""
         prompt = yaml.safe_load(
-            (DEMO_DIR / "prompts" / "extract_intent.yaml").read_text()
+            (DEMO_DIR / "prompts" / "extract_intent.yaml").read_text(encoding="utf-8")
         )
         assert "schema" in prompt
         fields = prompt["schema"]["fields"]
@@ -183,7 +183,7 @@ class TestResearchAgentGraphStructure:
     def test_validate_findings_has_schema(self) -> None:
         """validate_findings prompt defines a Pydantic schema."""
         prompt = yaml.safe_load(
-            (DEMO_DIR / "prompts" / "validate_findings.yaml").read_text()
+            (DEMO_DIR / "prompts" / "validate_findings.yaml").read_text(encoding="utf-8")
         )
         assert "schema" in prompt
         fields = prompt["schema"]["fields"]
@@ -193,7 +193,7 @@ class TestResearchAgentGraphStructure:
     @pytest.mark.req("REQ-YG-217")
     def test_variables_declared(self) -> None:
         """Graph declares query and scope variables."""
-        raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text())
+        raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text(encoding="utf-8"))
         variables = raw.get("variables", {})
         assert "query" in variables
         assert "scope" in variables

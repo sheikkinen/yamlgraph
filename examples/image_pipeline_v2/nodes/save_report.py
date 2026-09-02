@@ -39,7 +39,7 @@ def save_report_node(state: dict) -> dict:
     report_file.write_text(
         "# Rejection table (sanitized — no prompt text; FR-879 R-5)\n\n"
         + _table(sanitized_rows, SANITIZED_COLUMNS)
-    )
+    , encoding="utf-8")
 
     local_rows = [
         [
@@ -54,7 +54,7 @@ def save_report_node(state: dict) -> dict:
     local_file.write_text(
         "# Rejection table (LOCAL ONLY — full prompt text, do not commit)\n\n"
         + _table(local_rows, ["ordinal", "verdict", "nll", "prompt"])
-    )
+    , encoding="utf-8")
 
     return {
         "report_file": str(report_file),

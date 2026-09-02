@@ -18,22 +18,22 @@ class TestFR137ChangelogEntry:
 
     def test_fr137_mentioned_in_changelog(self):
         """Changelog fragment for FR-137 exists and mentions FR-137."""
-        text = FRAGMENT.read_text()
+        text = FRAGMENT.read_text(encoding="utf-8")
         assert "FR-137" in text, "Fragment has no mention of FR-137"
 
     def test_entry_references_deepseek(self):
         """Entry mentions DeepSeek provider name."""
-        text = FRAGMENT.read_text()
+        text = FRAGMENT.read_text(encoding="utf-8")
         assert "DeepSeek" in text, "FR-137 fragment missing 'DeepSeek'"
 
     def test_entry_references_env_var(self):
         """Entry mentions DEEPSEEK_API_KEY environment variable."""
-        text = FRAGMENT.read_text()
+        text = FRAGMENT.read_text(encoding="utf-8")
         assert "DEEPSEEK_API_KEY" in text, "FR-137 fragment missing 'DEEPSEEK_API_KEY'"
 
     def test_entry_in_added_section(self):
         """Fragment has type: feat (maps to ### Added)."""
-        text = FRAGMENT.read_text()
+        text = FRAGMENT.read_text(encoding="utf-8")
         assert "type: feat" in text, "FR-137 fragment should be type: feat (Added)"
 
     def test_entry_position_ascending_fr_order(self):

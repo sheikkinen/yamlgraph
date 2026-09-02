@@ -9,7 +9,7 @@ import yaml
 
 def _write_graph(graph: dict) -> Path:
     """Write graph dict to temp YAML file."""
-    with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as tmpfile:
+    with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", suffix=".yaml", delete=False) as tmpfile:
         yaml.dump(graph, tmpfile)
     return Path(tmpfile.name)
 

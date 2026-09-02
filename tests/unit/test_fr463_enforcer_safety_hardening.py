@@ -68,13 +68,13 @@ class TestFR463ToolSurface:
     @pytest.mark.req("REQ-YG-427")
     def test_no_git_commit_tool(self) -> None:
         """git_commit must not exist — committing is an orchestration concern."""
-        raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text())
+        raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text(encoding="utf-8"))
         assert "git_commit" not in raw["tools"]
 
     @pytest.mark.req("REQ-YG-427")
     def test_tool_type_counts(self) -> None:
         """7 shell tools + 3 python tools."""
-        raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text())
+        raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text(encoding="utf-8"))
         # FR-777: shared shell tools are declared via toolbelt manifest refs
         shell = [
             n
@@ -88,7 +88,7 @@ class TestFR463ToolSurface:
     @pytest.mark.req("REQ-YG-427")
     def test_git_log_tool_exists(self) -> None:
         """git_log shell tool must exist (parity with planner/judge)."""
-        raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text())
+        raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text(encoding="utf-8"))
         assert "git_log" in raw["tools"]
         # FR-777: declared via shared shell-runtime toolbelt manifest
         assert "toolbelt/git_log.tool.yaml" in raw["tools"]["git_log"]["manifest"]
@@ -96,21 +96,21 @@ class TestFR463ToolSurface:
     @pytest.mark.req("REQ-YG-427")
     def test_lint_tool_exists(self) -> None:
         """lint shell tool must exist (ruff check)."""
-        raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text())
+        raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text(encoding="utf-8"))
         assert "lint" in raw["tools"]
         assert "ruff" in raw["tools"]["lint"]["command"]
 
     @pytest.mark.req("REQ-YG-427")
     def test_git_diff_tool_exists(self) -> None:
         """git_diff shell tool must exist."""
-        raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text())
+        raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text(encoding="utf-8"))
         assert "git_diff" in raw["tools"]
         assert "git diff" in raw["tools"]["git_diff"]["command"]
 
     @pytest.mark.req("REQ-YG-427")
     def test_explicit_end_edge(self) -> None:
         """Graph must have explicit to: END edge."""
-        raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text())
+        raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text(encoding="utf-8"))
         last_edge = raw["edges"][-1]
         assert last_edge.get("to") == "END"
 
@@ -142,7 +142,7 @@ class TestFR463WriteFilePathRestriction:
         mod = _load_tool_module("write_file")
         result = mod.write_file("subdir/test.txt", "hello")
         assert "5 bytes" in result
-        assert (tmp_path / "subdir" / "test.txt").read_text() == "hello"
+        assert (tmp_path / "subdir" / "test.txt").read_text(encoding="utf-8") == "hello"
 
 
 class TestFR463EditFileTool:
@@ -153,18 +153,18 @@ class TestFR463EditFileTool:
         """edit_file performs surgical text replacement."""
         monkeypatch.chdir(tmp_path)
         target = tmp_path / "test.py"
-        target.write_text("def hello():\n    return 'world'\n")
+        target.write_text("def hello():\n    return 'world'\n", encoding="utf-8")
         mod = _load_tool_module("edit_file")
         result = mod.edit_file("test.py", "return 'world'", "return 'universe'")
         assert "Replaced" in result
-        assert "universe" in target.read_text()
+        assert "universe" in target.read_text(encoding="utf-8")
 
     @pytest.mark.req("REQ-YG-427")
     def test_edit_file_rejects_missing_text(self, tmp_path: Path, monkeypatch) -> None:
         """edit_file returns error when old_text not found."""
         monkeypatch.chdir(tmp_path)
         target = tmp_path / "test.py"
-        target.write_text("hello world\n")
+        target.write_text("hello world\n", encoding="utf-8")
         mod = _load_tool_module("edit_file")
         result = mod.edit_file("test.py", "not found text", "replacement")
         assert "Error" in result
@@ -177,7 +177,7 @@ class TestFR463EditFileTool:
         """edit_file returns error when old_text appears multiple times."""
         monkeypatch.chdir(tmp_path)
         target = tmp_path / "test.py"
-        target.write_text("import os\nimport os\n")
+        target.write_text("import os\nimport os\n", encoding="utf-8")
         mod = _load_tool_module("edit_file")
         result = mod.edit_file("test.py", "import os", "import sys")
         assert "Error" in result
@@ -193,7 +193,7 @@ class TestFR463EditFileTool:
     @pytest.mark.req("REQ-YG-427")
     def test_edit_file_is_python_tool(self) -> None:
         """edit_file must be type: python in graph."""
-        raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text())
+        raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text(encoding="utf-8"))
         assert raw["tools"]["edit_file"]["type"] == "python"
 
 
@@ -211,7 +211,7 @@ class TestFR463RunCommandHoneypot:
     @pytest.mark.req("REQ-YG-427")
     def test_run_command_is_python_tool(self) -> None:
         """run_command must be type: python in graph."""
-        raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text())
+        raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text(encoding="utf-8"))
         assert raw["tools"]["run_command"]["type"] == "python"
 
 
@@ -221,7 +221,7 @@ class TestFR463Schema:
     @pytest.mark.req("REQ-YG-427")
     def test_schema_has_four_fields(self) -> None:
         """ImplementationResult has 4 fields (no commit_hash)."""
-        prompt = yaml.safe_load((DEMO_DIR / "prompts" / "enforcer.yaml").read_text())
+        prompt = yaml.safe_load((DEMO_DIR / "prompts" / "enforcer.yaml").read_text(encoding="utf-8"))
         fields = set(prompt["schema"]["fields"].keys())
         expected = {"success", "files_changed", "tests_passed", "summary"}
         assert fields == expected
@@ -229,7 +229,7 @@ class TestFR463Schema:
     @pytest.mark.req("REQ-YG-427")
     def test_no_commit_hash_in_schema(self) -> None:
         """commit_hash must not exist in schema."""
-        prompt = yaml.safe_load((DEMO_DIR / "prompts" / "enforcer.yaml").read_text())
+        prompt = yaml.safe_load((DEMO_DIR / "prompts" / "enforcer.yaml").read_text(encoding="utf-8"))
         assert "commit_hash" not in prompt["schema"]["fields"]
 
 
@@ -239,20 +239,20 @@ class TestFR463Prompt:
     @pytest.mark.req("REQ-YG-427")
     def test_no_commit_instruction(self) -> None:
         """Prompt must not instruct agent to commit."""
-        text = (DEMO_DIR / "prompts" / "enforcer.yaml").read_text()
+        text = (DEMO_DIR / "prompts" / "enforcer.yaml").read_text(encoding="utf-8")
         assert "git_commit" not in text
         assert "Commit changes to git" not in text
 
     @pytest.mark.req("REQ-YG-427")
     def test_lint_step_in_prompt(self) -> None:
         """Prompt instructs agent to lint."""
-        text = (DEMO_DIR / "prompts" / "enforcer.yaml").read_text()
+        text = (DEMO_DIR / "prompts" / "enforcer.yaml").read_text(encoding="utf-8")
         assert "lint" in text.lower() or "Lint" in text
 
     @pytest.mark.req("REQ-YG-427")
     def test_diff_step_in_prompt(self) -> None:
         """Prompt instructs agent to review changes."""
-        text = (DEMO_DIR / "prompts" / "enforcer.yaml").read_text()
+        text = (DEMO_DIR / "prompts" / "enforcer.yaml").read_text(encoding="utf-8")
         assert "diff" in text.lower() or "review" in text.lower()
 
 
@@ -262,7 +262,7 @@ class TestFR463DemoSh:
     @pytest.mark.req("REQ-YG-427")
     def test_demo_sh_shows_commit_guidance(self) -> None:
         """demo.sh must show how to commit after review."""
-        text = (DEMO_DIR / "demo.sh").read_text()
+        text = (DEMO_DIR / "demo.sh").read_text(encoding="utf-8")
         assert "git" in text.lower() and "commit" in text.lower()
 
 

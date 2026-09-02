@@ -51,7 +51,7 @@ def load_labels(labeled_dir: Path = LABELED_DIR) -> dict[str, dict]:
     labels: dict[str, dict] = {}
     for label_path in sorted(labeled_dir.glob("*.label.yaml")):
         name = label_path.name.removesuffix(".label.yaml")
-        text = label_path.read_text()
+        text = label_path.read_text(encoding="utf-8")
         rationale = " ".join(
             line.lstrip("# ").strip()
             for line in text.splitlines()
@@ -72,7 +72,7 @@ def load_usage(catalog_path: Path = CATALOG_PATH) -> dict[str, str]:
             f"Catalog not found: {catalog_path}. Generate it first: "
             "python examples/cwe-classifier/nodes/build_catalog.py"
         )
-    payload = yaml.safe_load(catalog_path.read_text())
+    payload = yaml.safe_load(catalog_path.read_text(encoding="utf-8"))
     return {row["code"]: row["mapping_usage"] for row in payload["rows"]}
 
 
@@ -182,7 +182,7 @@ def main() -> None:
 
     for name, label in labels.items():
         paths = archives.get(name, [])
-        results = [json.loads(p.read_text()) for p in paths]
+        results = [json.loads(p.read_text(encoding="utf-8")) for p in paths]
         evaluations = [evaluate_result(label, r, usage) for r in results]
         scored = [e for e in evaluations if e["passed"] is not None]
         entry: dict = {

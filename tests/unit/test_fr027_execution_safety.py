@@ -721,7 +721,7 @@ class TestMaxTokensWiring:
             / "schemas"
             / "graph-v1.json"
         )
-        schema = json.loads(schema_path.read_text())
+        schema = json.loads(schema_path.read_text(encoding="utf-8"))
         config_props = schema["properties"]["config"]["properties"]
         assert "max_tokens" in config_props
 
@@ -863,7 +863,7 @@ class TestExecutionTimeout:
             / "schemas"
             / "graph-v1.json"
         )
-        schema = json.loads(schema_path.read_text())
+        schema = json.loads(schema_path.read_text(encoding="utf-8"))
         config_props = schema["properties"]["config"]["properties"]
         assert "timeout" in config_props
 

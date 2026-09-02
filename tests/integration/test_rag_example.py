@@ -114,7 +114,7 @@ class TestRagGraphFiles:
         import yaml
 
         graph_path = RAG_EXAMPLE_PATH / "graph.yaml"
-        content = graph_path.read_text()
+        content = graph_path.read_text(encoding="utf-8")
         data = yaml.safe_load(content)
 
         # YAMLGraph format uses top-level name, nodes, edges
@@ -141,7 +141,7 @@ class TestRagRetrieveInGraph:
     def test_graph_references_local_tool(self):
         """Graph should reference the local tool path."""
         graph_path = RAG_EXAMPLE_PATH / "graph.yaml"
-        content = graph_path.read_text()
+        content = graph_path.read_text(encoding="utf-8")
 
         assert "module: tools.rag_retrieve" in content
 

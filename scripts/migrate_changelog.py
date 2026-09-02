@@ -123,7 +123,7 @@ def migrate(changelog_path: Path, output_dir: Path) -> int:
 
     Returns the number of fragments written.
     """
-    text = changelog_path.read_text()
+    text = changelog_path.read_text(encoding="utf-8")
     entries = _parse_entries(text)
 
     # Track used filenames to avoid collisions
@@ -162,7 +162,7 @@ def migrate(changelog_path: Path, output_dir: Path) -> int:
         used_names.add(filename)
 
         fragment_content = _make_fragment(entry_type, scope, req, entry_line)
-        (version_dir / filename).write_text(fragment_content)
+        (version_dir / filename).write_text(fragment_content, encoding="utf-8")
         count += 1
 
     # Ensure unreleased directory always exists

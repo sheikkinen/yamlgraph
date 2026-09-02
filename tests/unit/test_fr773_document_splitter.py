@@ -120,7 +120,7 @@ def test_unparseable_page_count_raises(monkeypatch):
 
 @pytest.mark.req("REQ-YG-574")
 def test_demo_declares_splitter_via_manifest_only():
-    raw = yaml.safe_load(DEMO_GRAPH.read_text())
+    raw = yaml.safe_load(DEMO_GRAPH.read_text(encoding="utf-8"))
     entry = raw["tools"]["split_document"]
     assert set(entry) == {"manifest"}
 
@@ -145,7 +145,7 @@ def test_committed_split_args_resolve_to_real_kwargs():
     """
     from yamlgraph.node_factory import create_tool_call_node
 
-    raw = yaml.safe_load(DEMO_GRAPH.read_text())
+    raw = yaml.safe_load(DEMO_GRAPH.read_text(encoding="utf-8"))
     received = {}
 
     def recorder(**kwargs):

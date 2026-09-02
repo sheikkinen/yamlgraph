@@ -538,7 +538,7 @@ async def test_run_graph_async_shares_route_and_otel_run_id(
 
     await run_graph_async(App(), {})
 
-    records = [json.loads(line) for line in route_path.read_text().splitlines()]
+    records = [json.loads(line) for line in route_path.read_text(encoding="utf-8").splitlines()]
     run_record = next(record for record in records if record["event"] == "run")
     (run_span,) = in_memory_exporter.get_finished_spans()
     assert run_record["run_id"] == run_span.attributes["yamlgraph.run.id"]

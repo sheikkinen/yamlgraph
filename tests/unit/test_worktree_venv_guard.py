@@ -43,7 +43,7 @@ class TestValidateVenvHealth:
         venv.mkdir()
         (venv / "bin").mkdir()
         python_bin = venv / "bin" / "python"
-        python_bin.write_text("not-executable")
+        python_bin.write_text("not-executable", encoding="utf-8")
         python_bin.chmod(0o444)  # read-only, not executable
 
         with pytest.raises(FileNotFoundError, match="not executable"):
@@ -57,7 +57,7 @@ class TestValidateVenvHealth:
         venv.mkdir()
         (venv / "bin").mkdir()
         python_bin = venv / "bin" / "python"
-        python_bin.write_text("#!/usr/bin/env python3\n")
+        python_bin.write_text("#!/usr/bin/env python3\n", encoding="utf-8")
         python_bin.chmod(0o755)
 
         result = validate_venv_health(venv)
@@ -101,7 +101,7 @@ class TestValidateVenvSymlink:
         target.mkdir()
         (target / "bin").mkdir()
         python_bin = target / "bin" / "python"
-        python_bin.write_text("#!/usr/bin/env python3\n")
+        python_bin.write_text("#!/usr/bin/env python3\n", encoding="utf-8")
         python_bin.chmod(0o755)
 
         # Create symlink
@@ -135,7 +135,7 @@ class TestCleanStalePthEntries:
 
         # Create a .pth file with worktree reference
         pth = site_packages / "yamlgraph.pth"
-        pth.write_text(f"{worktree_dir}\n")
+        pth.write_text(f"{worktree_dir}\n", encoding="utf-8")
 
         removed = clean_stale_pth_entries(venv, worktree_dir)
         assert len(removed) == 1
@@ -152,7 +152,7 @@ class TestCleanStalePthEntries:
 
         # Create .egg-link with worktree reference
         egg_link = site_packages / "yamlgraph.egg-link"
-        egg_link.write_text(f"{worktree_dir}\n.\n")
+        egg_link.write_text(f"{worktree_dir}\n.\n", encoding="utf-8")
 
         removed = clean_stale_pth_entries(venv, worktree_dir)
         assert len(removed) == 1
@@ -169,7 +169,7 @@ class TestCleanStalePthEntries:
 
         # Create a .pth that does NOT reference the worktree
         pth = site_packages / "other-package.pth"
-        pth.write_text("/some/other/path\n")
+        pth.write_text("/some/other/path\n", encoding="utf-8")
 
         removed = clean_stale_pth_entries(venv, worktree_dir)
         assert removed == []
@@ -185,11 +185,11 @@ class TestCleanStalePthEntries:
 
         # Stale file
         stale = site_packages / "stale.pth"
-        stale.write_text(f"{worktree_dir}/src\n")
+        stale.write_text(f"{worktree_dir}/src\n", encoding="utf-8")
 
         # Clean file
         clean = site_packages / "clean.pth"
-        clean.write_text("/usr/lib/python3/dist-packages\n")
+        clean.write_text("/usr/lib/python3/dist-packages\n", encoding="utf-8")
 
         removed = clean_stale_pth_entries(venv, worktree_dir)
         assert len(removed) == 1

@@ -7,14 +7,14 @@ from yamlgraph.contrib import to_serializable
 
 def read_file(path: str) -> str:
     """Read file contents."""
-    return Path(path).read_text()
+    return Path(path).read_text(encoding="utf-8")
 
 
 def write_file(path: str, content: str) -> dict:
     """Write content to file, creating directories as needed."""
     p = Path(path)
     p.parent.mkdir(parents=True, exist_ok=True)
-    p.write_text(content)
+    p.write_text(content, encoding="utf-8")
     return {"path": str(p.resolve()), "bytes": len(content)}
 
 
@@ -60,7 +60,7 @@ def write_generated_files(
 
     # Write graph.yaml
     graph_path = output_path / "graph.yaml"
-    graph_path.write_text(sanitized_graph)
+    graph_path.write_text(sanitized_graph, encoding="utf-8")
     files_written.append(str(graph_path))
 
     # Write prompts
@@ -77,7 +77,7 @@ def write_generated_files(
             # Fix double .yaml extensions
             filename = filename.replace(".yaml.yaml", ".yaml")
             prompt_path = prompts_dir / filename
-            prompt_path.write_text(content)
+            prompt_path.write_text(content, encoding="utf-8")
             files_written.append(str(prompt_path))
 
     # Write README.md if provided
@@ -89,7 +89,7 @@ def write_generated_files(
         elif isinstance(readme, dict):
             readme_content = readme.get("content", str(readme))
         readme_path = output_path / "README.md"
-        readme_path.write_text(readme_content)
+        readme_path.write_text(readme_content, encoding="utf-8")
         files_written.append(str(readme_path))
 
     # Write Python tool files if provided
@@ -98,7 +98,7 @@ def write_generated_files(
         tools_dir.mkdir(exist_ok=True)
         # Create __init__.py
         init_path = tools_dir / "__init__.py"
-        init_path.write_text('"""Generated tool modules."""\n')
+        init_path.write_text('"""Generated tool modules."""\n', encoding="utf-8")
         files_written.append(str(init_path))
 
         for tool in tools:
@@ -112,7 +112,7 @@ def write_generated_files(
                 if not filename.endswith(".py"):
                     filename = f"{filename}.py"
                 tool_path = tools_dir / filename
-                tool_path.write_text(content)
+                tool_path.write_text(content, encoding="utf-8")
                 files_written.append(str(tool_path))
 
     return {

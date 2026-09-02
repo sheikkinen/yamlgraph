@@ -45,7 +45,7 @@ def _run_gitignore_boundary_check(
 
         # Create an initial commit so HEAD exists.
         readme = tmppath / "README.md"
-        readme.write_text("init\n")
+        readme.write_text("init\n", encoding="utf-8")
         subprocess.run(["git", "add", "."], cwd=tmpdir, check=True)
         subprocess.run(
             ["git", "commit", "-q", "-m", "init"],
@@ -56,7 +56,7 @@ def _run_gitignore_boundary_check(
         for relpath, content in staged_files.items():
             fpath = tmppath / relpath
             fpath.parent.mkdir(parents=True, exist_ok=True)
-            fpath.write_text(content)
+            fpath.write_text(content, encoding="utf-8")
 
         subprocess.run(["git", "add", "."], cwd=tmpdir, check=True)
 
@@ -106,7 +106,7 @@ class TestFR372GitignoreBoundaryGuard:
 
     def test_ac05_hook_registered_in_precommit_config(self) -> None:
         """AC-05: hook must be registered with expected contract."""
-        with open(PRECOMMIT_PATH) as f:
+        with open(PRECOMMIT_PATH, encoding="utf-8") as f:
             config = yaml.safe_load(f)
 
         for repo in config.get("repos", []):

@@ -169,7 +169,7 @@ def test_package_boundary_pins_playwright():
     lock_path = TOOLS_DIR / "package-lock.json"
     assert pkg_path.exists(), "missing package.json"
     assert lock_path.exists(), "missing package-lock.json"
-    pkg = json.loads(pkg_path.read_text())
+    pkg = json.loads(pkg_path.read_text(encoding="utf-8"))
     version = pkg["dependencies"]["playwright"]
     assert version[0].isdigit(), f"playwright must be pinned exactly, got {version}"
 
@@ -177,7 +177,7 @@ def test_package_boundary_pins_playwright():
 @pytest.mark.req("REQ-YG-590")
 def test_manifest_is_fr768_shell_with_json_parse():
     """AC-10: manifest uses FR-768 shell schema, parse: json, timeout."""
-    raw = yaml.safe_load(MANIFEST.read_text())
+    raw = yaml.safe_load(MANIFEST.read_text(encoding="utf-8"))
     manifest = ToolManifest.model_validate(raw)
     assert manifest.name == "network_sniff"
     assert isinstance(manifest.runtime, ShellRuntime)
@@ -203,7 +203,7 @@ def test_missing_playwright_gives_diagnostic(tmp_path):
     if shutil.which("node") is None:
         pytest.skip("node not on PATH")
     orphan = tmp_path / "network-sniff.js"
-    orphan.write_text(SCRIPT.read_text())
+    orphan.write_text(SCRIPT.read_text(encoding="utf-8"), encoding="utf-8")
     result = subprocess.run(
         ["node", str(orphan), "http://127.0.0.1:1/", "--timeout", "1000"],
         capture_output=True,

@@ -19,7 +19,7 @@ class TestReadFile:
     def test_read_existing_file(self, tmp_path: Path) -> None:
         """Read contents of an existing file."""
         test_file = tmp_path / "test.txt"
-        test_file.write_text("hello world")
+        test_file.write_text("hello world", encoding="utf-8")
 
         result = read_file(str(test_file))
 
@@ -40,7 +40,7 @@ class TestWriteFile:
 
         result = write_file(str(test_file), "test content")
 
-        assert test_file.read_text() == "test content"
+        assert test_file.read_text(encoding="utf-8") == "test content"
         assert result["bytes"] == 12
 
     def test_write_creates_directories(self, tmp_path: Path) -> None:
@@ -50,7 +50,7 @@ class TestWriteFile:
         write_file(str(test_file), "content")
 
         assert test_file.exists()
-        assert test_file.read_text() == "content"
+        assert test_file.read_text(encoding="utf-8") == "content"
 
 
 class TestListFiles:
@@ -111,9 +111,9 @@ class TestWriteGeneratedFiles:
 
         assert result["status"] == "success"
         assert len(result["files_written"]) == 3
-        assert (tmp_path / "graph.yaml").read_text() == graph_content
-        assert (tmp_path / "prompts" / "node1.yaml").read_text() == "system: test1"
-        assert (tmp_path / "prompts" / "node2.yaml").read_text() == "system: test2"
+        assert (tmp_path / "graph.yaml").read_text(encoding="utf-8") == graph_content
+        assert (tmp_path / "prompts" / "node1.yaml").read_text(encoding="utf-8") == "system: test1"
+        assert (tmp_path / "prompts" / "node2.yaml").read_text(encoding="utf-8") == "system: test2"
 
     def test_write_empty_prompts(self, tmp_path: Path) -> None:
         """Write just graph.yaml when no prompts."""
@@ -133,7 +133,7 @@ class TestWriteGeneratedFiles:
         assert result["status"] == "success"
         assert len(result["files_written"]) == 3
         assert (tmp_path / "README.md").exists()
-        assert "Test Pipeline" in (tmp_path / "README.md").read_text()
+        assert "Test Pipeline" in (tmp_path / "README.md").read_text(encoding="utf-8")
 
     def test_write_readme_from_dict(self, tmp_path: Path) -> None:
         """Write README.md from dict with content key."""
@@ -141,7 +141,7 @@ class TestWriteGeneratedFiles:
 
         write_generated_files(str(tmp_path), "version: '1.0'", [], readme)
 
-        assert (tmp_path / "README.md").read_text() == "# From Dict"
+        assert (tmp_path / "README.md").read_text(encoding="utf-8") == "# From Dict"
 
     def test_write_with_tools(self, tmp_path: Path) -> None:
         """Write graph.yaml, prompts, and tool stubs."""

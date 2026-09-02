@@ -32,11 +32,11 @@ IMAGE_PIPELINE_SAVE_MODULE = "examples.image_pipeline.nodes.save_prompts"
 
 
 def _read(path: Path) -> str:
-    return path.read_text()
+    return path.read_text(encoding="utf-8")
 
 
 def _load_yaml(path: Path) -> dict:
-    return yaml.safe_load(path.read_text())
+    return yaml.safe_load(path.read_text(encoding="utf-8"))
 
 
 # ---------------------------------------------------------------------------
@@ -188,26 +188,26 @@ class TestLoadPromptsNode:
         # Loader writes source_prompts (not prompts) so the map's collect: prompts
         # target starts empty — reusing 'prompts' would double the count.
         f = tmp_path / "in.txt"
-        f.write_text("A cat on a wall\nA dog in a field\n")
+        f.write_text("A cat on a wall\nA dog in a field\n", encoding="utf-8")
         result = self._node()({"input_file": str(f)})
         assert result["source_prompts"] == ["A cat on a wall", "A dog in a field"]
         assert "prompts" not in result
 
     def test_strips_leading_enumerator(self, tmp_path):
         f = tmp_path / "in.txt"
-        f.write_text("1. A cat\n2. A dog\n10. A bird\n")
+        f.write_text("1. A cat\n2. A dog\n10. A bird\n", encoding="utf-8")
         result = self._node()({"input_file": str(f)})
         assert result["source_prompts"] == ["A cat", "A dog", "A bird"]
 
     def test_preserves_internal_enumerator_and_text(self, tmp_path):
         f = tmp_path / "in.txt"
-        f.write_text("3. cat, 3.5 ratio, step 2. of 4\n")
+        f.write_text("3. cat, 3.5 ratio, step 2. of 4\n", encoding="utf-8")
         result = self._node()({"input_file": str(f)})
         assert result["source_prompts"] == ["cat, 3.5 ratio, step 2. of 4"]
 
     def test_skips_blank_lines(self, tmp_path):
         f = tmp_path / "in.txt"
-        f.write_text("A cat\n\n   \nA dog\n")
+        f.write_text("A cat\n\n   \nA dog\n", encoding="utf-8")
         result = self._node()({"input_file": str(f)})
         assert result["source_prompts"] == ["A cat", "A dog"]
 
@@ -217,7 +217,7 @@ class TestLoadPromptsNode:
 
     def test_empty_file_raises_value_error(self, tmp_path):
         f = tmp_path / "empty.txt"
-        f.write_text("   \n\n")
+        f.write_text("   \n\n", encoding="utf-8")
         with pytest.raises(ValueError):
             self._node()({"input_file": str(f)})
 
@@ -225,7 +225,7 @@ class TestLoadPromptsNode:
         # AC-06 / C-5: loading never writes the input.
         f = tmp_path / "in.txt"
         original = "1. A cat\n2. A dog\n"
-        f.write_text(original)
+        f.write_text(original, encoding="utf-8")
         before = f.read_bytes()
         self._node()({"input_file": str(f)})
         assert f.read_bytes() == before
@@ -278,7 +278,7 @@ class TestMapOutputCompatibility:
             tmp_path / "outputs",
         ):
             result = save_prompts_node({"prompts": collected})
-        lines = Path(result["prompt_file"]).read_text().splitlines()
+        lines = Path(result["prompt_file"]).read_text(encoding="utf-8").splitlines()
         assert lines == ["cat :: styled", "dog :: styled", "bird :: styled"]
         # No stringified dicts leaked into the file.
         assert not any("prompt_text" in ln or "_map_index" in ln for ln in lines)
@@ -293,7 +293,7 @@ class TestMapOutputCompatibility:
             tmp_path / "outputs",
         ):
             result = save_prompts_node({"prompts": collected})
-        lines = Path(result["prompt_file"]).read_text().splitlines()
+        lines = Path(result["prompt_file"]).read_text(encoding="utf-8").splitlines()
         assert len(lines) == len(texts)
 
 
@@ -415,7 +415,7 @@ class TestStyleConvertEndToEnd:
             result = graph.invoke(
                 {"input_file": str(infile), "target_style": target_style}
             )
-        saved = Path(result["prompt_file"]).read_text().splitlines()
+        saved = Path(result["prompt_file"]).read_text(encoding="utf-8").splitlines()
         return infile, saved
 
     def test_count_preserved_end_to_end(self, tmp_path):

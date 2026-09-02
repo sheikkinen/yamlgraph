@@ -203,7 +203,7 @@ edges:
     to: test
   - from: test
     to: END
-""")
+""", encoding="utf-8")
         from yamlgraph.linter import lint_graph
 
         result = lint_graph(graph_file)
@@ -226,7 +226,7 @@ edges:
     to: test
   - from: test
     to: END
-""")
+""", encoding="utf-8")
         from yamlgraph.linter import lint_graph
 
         result = lint_graph(graph_file)
@@ -249,7 +249,7 @@ edges:
     to: test
   - from: test
     to: END
-""")
+""", encoding="utf-8")
         from yamlgraph.linter import lint_graph
 
         result = lint_graph(graph_file)
@@ -273,7 +273,7 @@ edges:
     to: test
   - from: test
     to: END
-""")
+""", encoding="utf-8")
         from yamlgraph.linter import lint_graph
 
         result = lint_graph(graph_file)
@@ -297,7 +297,7 @@ edges:
     to: test
   - from: test
     to: END
-""")
+""", encoding="utf-8")
         from yamlgraph.linter import lint_graph
 
         result = lint_graph(graph_file)
@@ -320,7 +320,7 @@ edges:
     to: test
   - from: test
     to: END
-""")
+""", encoding="utf-8")
         from yamlgraph.linter import lint_graph
 
         result = lint_graph(graph_file)
@@ -343,7 +343,7 @@ edges:
     to: test
   - from: test
     to: END
-""")
+""", encoding="utf-8")
         from yamlgraph.linter import lint_graph
 
         result = lint_graph(graph_file)
@@ -367,7 +367,7 @@ edges:
     to: test
   - from: test
     to: END
-""")
+""", encoding="utf-8")
         from yamlgraph.linter import lint_graph
 
         result = lint_graph(graph_file)
@@ -393,7 +393,7 @@ edges:
     to: test
   - from: test
     to: END
-""")
+""", encoding="utf-8")
         from yamlgraph.linter import lint_graph
 
         result = lint_graph(graph_file)

@@ -1,0 +1,23 @@
+id: CAP-259
+name: Declared Text Encoding at First-Party Boundaries
+description: "FR-951: every first-party text boundary declares its codec instead of inheriting the host's. All 496 PLW1514 sites across .chaplain/, .github/, examples/, scripts/, tests/ and yamlgraph/ pass encoding=\"utf-8\", the CLI reconfigures its own stdout/stderr to UTF-8 with backslashreplace at main(), and a dedicated blocking Linux CI step plus a focused windows-latest witness job keep the class closed. Closes three failure modes reproduced on Windows: a crash on bytes undefined in cp1252 (U+201D's trailing 0x9d), a silent mojibake decode that passes every type and shape check, and a diagnostic that destroys itself by writing a status glyph to an undeclared stream."
+fr: FR-951
+modules:
+  - yamlgraph/cli/__init__.py
+  - yamlgraph/compile/graph_loader.py
+  - yamlgraph/utils/prompts.py
+  - yamlgraph/schema_loader.py
+  - yamlgraph/discovery.py
+  - pyproject.toml
+  - .github/workflows/workflow.yml
+  - tests/unit/test_fr951_utf8_boundaries.py
+  - tests/unit/test_fr951_cli_streams.py
+requirements:
+  - id: REQ-YG-638
+    description: "Cross-platform text encoding contract. Every first-party read and write of a text file states encoding=\"utf-8\" explicitly; the CLI entry point declares UTF-8 with the backslashreplace error handler on its own stdout and stderr before dispatch. Enforcement: PLW1514 is selected in [tool.ruff.lint] under preview = true with explicit-preview-rules = true, so no other selected prefix gains preview rules, and `ruff check --select PLW1514 --preview .` runs as a dedicated blocking step in the required `test` job. A windows-latest job installs the project, asserts locale.getencoding() resolves to cp1252, and runs the focused witnesses; the full Windows unit suite remains a diagnostic. Witnesses load UTF-8 fixtures containing U+201D and U+20AC through the graph, prompt and schema loaders in a PYTHONUTF8=0 subprocess and compare every loaded value against an explicit-UTF-8 reference, so a successful-but-wrong cp1252 decode fails; the CLI witnesses run the installed console entry with PYTHONIOENCODING=cp1252 and byte pipes and require both streams to decode as UTF-8, carry their status glyph, and name neither UnicodeDecodeError nor UnicodeEncodeError."
+    modules:
+      - yamlgraph/cli/__init__.py
+      - pyproject.toml
+      - .github/workflows/workflow.yml
+      - tests/unit/test_fr951_utf8_boundaries.py
+      - tests/unit/test_fr951_cli_streams.py

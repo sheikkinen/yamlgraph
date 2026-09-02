@@ -47,7 +47,7 @@ def scan_graphs_tool(scan_dir: str = "") -> str:
             seen.add(real)
 
             try:
-                with open(path_str) as f:
+                with open(path_str, encoding="utf-8") as f:
                     config = yaml.safe_load(f)
                 if not isinstance(config, dict) or "nodes" not in config:
                     continue
@@ -169,7 +169,7 @@ def scan_python_nodes_tool(scan_dir: str = "") -> str:
             seen.add(real)
 
             try:
-                content = Path(path_str).read_text()
+                content = Path(path_str).read_text(encoding="utf-8")
             except Exception:
                 continue
 
@@ -253,7 +253,7 @@ def count_patterns_tool(scan_dir: str = "") -> str:
             seen.add(real)
 
             try:
-                with open(path_str) as f:
+                with open(path_str, encoding="utf-8") as f:
                     config = yaml.safe_load(f)
                 if not isinstance(config, dict) or "nodes" not in config:
                     continue

@@ -90,7 +90,7 @@ def main() -> int:
     failures = []
     for p in in_scope(root):
         try:
-            n = len(p.read_text(errors="replace").splitlines())
+            n = len(p.read_text(errors="replace", encoding="utf-8").splitlines())
         except OSError:
             continue
         rel = str(p.relative_to(root))

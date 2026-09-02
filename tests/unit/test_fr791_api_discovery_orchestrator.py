@@ -26,11 +26,11 @@ STEP_TOOLS = {
 
 
 def _graph() -> dict:
-    return yaml.safe_load((EXAMPLE_DIR / "graph.yaml").read_text())
+    return yaml.safe_load((EXAMPLE_DIR / "graph.yaml").read_text(encoding="utf-8"))
 
 
 def _synth_schema() -> dict:
-    prompt = yaml.safe_load((EXAMPLE_DIR / "prompts" / "synthesize.yaml").read_text())
+    prompt = yaml.safe_load((EXAMPLE_DIR / "prompts" / "synthesize.yaml").read_text(encoding="utf-8"))
     return prompt["output_schema"]
 
 

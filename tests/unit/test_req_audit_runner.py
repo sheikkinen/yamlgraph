@@ -160,15 +160,15 @@ def skeleton(tmp_path: Path) -> Path:
     )
     scripts = tmp_path / "scripts"
     scripts.mkdir()
-    (scripts / "coverage_contexts.py").write_text(FAKE_COVERAGE_CONTEXTS)
-    (scripts / "req_coverage.py").write_text(FAKE_REQ_COVERAGE)
-    (scripts / "req_audit_questions.py").write_text(FAKE_QUESTIONS)
-    (scripts / "req_audit_report.py").write_text(FAKE_REPORT)
+    (scripts / "coverage_contexts.py").write_text(FAKE_COVERAGE_CONTEXTS, encoding="utf-8")
+    (scripts / "req_coverage.py").write_text(FAKE_REQ_COVERAGE, encoding="utf-8")
+    (scripts / "req_audit_questions.py").write_text(FAKE_QUESTIONS, encoding="utf-8")
+    (scripts / "req_audit_report.py").write_text(FAKE_REPORT, encoding="utf-8")
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
     for name, body in (("pytest", STUB_PYTEST), ("yamlgraph", STUB_YAMLGRAPH)):
         stub = bin_dir / name
-        stub.write_text(body)
+        stub.write_text(body, encoding="utf-8")
         stub.chmod(0o755)
     return tmp_path
 
@@ -208,7 +208,7 @@ def test_record_command_is_exact_full_suite_instrument(skeleton):
     """AC-03: honest instrument — ctrace, sequential, no mark exclusions."""
     r = run_script(skeleton, "--out", "out")
     assert r.returncode == 0, r.stdout + r.stderr
-    calls = (skeleton / "calls-pytest.txt").read_text()
+    calls = (skeleton / "calls-pytest.txt").read_text(encoding="utf-8")
     assert "COVERAGE_CORE=ctrace" in calls
     assert (
         "tests/unit tests/integration -q --cov-report= "
@@ -234,10 +234,10 @@ def test_default_model_provider_recorded_and_passed(skeleton):
     """AC-02/AC-05: frozen defaults reach both manifest and report phase."""
     r = run_script(skeleton, "--out", "out")
     assert r.returncode == 0, r.stdout + r.stderr
-    manifest = json.loads((skeleton / "out" / "run-manifest.json").read_text())
+    manifest = json.loads((skeleton / "out" / "run-manifest.json").read_text(encoding="utf-8"))
     assert manifest["model"] == "claude-haiku-4-5"
     assert manifest["provider"] == "anthropic"
-    calls = (skeleton / "calls-report.txt").read_text()
+    calls = (skeleton / "calls-report.txt").read_text(encoding="utf-8")
     assert "--model claude-haiku-4-5" in calls
     assert "--provider anthropic" in calls
 
@@ -248,10 +248,10 @@ def test_explicit_model_provider_flags(skeleton):
     """AC-02: flags override defaults; the manifest records what ran."""
     r = run_script(skeleton, "--out", "out", "--model", "m-x", "--provider", "p-y")
     assert r.returncode == 0, r.stdout + r.stderr
-    manifest = json.loads((skeleton / "out" / "run-manifest.json").read_text())
+    manifest = json.loads((skeleton / "out" / "run-manifest.json").read_text(encoding="utf-8"))
     assert manifest["model"] == "m-x"
     assert manifest["provider"] == "p-y"
-    calls = (skeleton / "calls-report.txt").read_text()
+    calls = (skeleton / "calls-report.txt").read_text(encoding="utf-8")
     assert "--model m-x" in calls and "--provider p-y" in calls
 
 
@@ -264,7 +264,7 @@ def test_fail_fast_stops_pipeline_and_blocks_report(skeleton):
     out = skeleton / "out"
     assert not (out / "report.md").exists()
     assert not (skeleton / "calls-yamlgraph.txt").exists()
-    manifest = json.loads((out / "run-manifest.json").read_text())
+    manifest = json.loads((out / "run-manifest.json").read_text(encoding="utf-8"))
     assert manifest["phases"]["construct"]["exit_code"] == 3
 
 
@@ -276,7 +276,7 @@ def test_skip_record_reuses_coverage_without_pytest(skeleton):
     r = run_script(skeleton, "--out", "out", "--skip-record")
     assert r.returncode == 0, r.stdout + r.stderr
     assert not (skeleton / "calls-pytest.txt").exists()
-    manifest = json.loads((skeleton / "out" / "run-manifest.json").read_text())
+    manifest = json.loads((skeleton / "out" / "run-manifest.json").read_text(encoding="utf-8"))
     assert manifest["skip_record"] is True
 
 
@@ -294,7 +294,7 @@ def test_skip_record_poisoned_coverage_hard_refusal(skeleton):
         "ctrace" in text
         for text in (
             combined,
-            *(p.read_text() for p in (skeleton / "out").glob("*.log") if p.is_file()),
+            *(p.read_text(encoding="utf-8") for p in (skeleton / "out").glob("*.log") if p.is_file()),
         )
     ):
         pytest.fail("boundary remedy (ctrace) not surfaced")
@@ -307,7 +307,7 @@ def test_run_manifest_frozen_schema(skeleton):
     """AC-05: run-manifest.json carries exactly the frozen key set."""
     r = run_script(skeleton, "--out", "out")
     assert r.returncode == 0, r.stdout + r.stderr
-    manifest = json.loads((skeleton / "out" / "run-manifest.json").read_text())
+    manifest = json.loads((skeleton / "out" / "run-manifest.json").read_text(encoding="utf-8"))
     assert set(manifest) == MANIFEST_KEYS
     assert len(manifest["git_sha"]) == 40
     assert isinstance(manifest["git_dirty"], bool)
@@ -328,7 +328,7 @@ def test_report_header_embeds_provenance(tmp_path):
     """AC-06: the real report script embeds run-manifest provenance."""
     audit_dir = tmp_path / "out"
     (audit_dir / "raw").mkdir(parents=True)
-    (audit_dir / "manifest.json").write_text("{}\n")
+    (audit_dir / "manifest.json").write_text("{}\n", encoding="utf-8")
     sha = "ab12" * 10
     run_manifest = {
         "git_sha": sha,
@@ -338,7 +338,7 @@ def test_report_header_embeds_provenance(tmp_path):
         "provider": "anthropic",
         "model": "claude-haiku-4-5",
     }
-    (audit_dir / "run-manifest.json").write_text(json.dumps(run_manifest))
+    (audit_dir / "run-manifest.json").write_text(json.dumps(run_manifest), encoding="utf-8")
     r = subprocess.run(
         [
             sys.executable,
@@ -356,7 +356,7 @@ def test_report_header_embeds_provenance(tmp_path):
         text=True,
     )
     assert r.returncode == 0, r.stdout + r.stderr
-    header = (audit_dir / "report.md").read_text()
+    header = (audit_dir / "report.md").read_text(encoding="utf-8")
     assert sha in header
     assert "DIRTY" in header
     assert "3446" in header and "4123" in header

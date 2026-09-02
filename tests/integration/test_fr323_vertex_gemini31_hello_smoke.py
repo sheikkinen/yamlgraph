@@ -74,7 +74,7 @@ class TestFR323VertexGemini31HelloSmoke:
 
     def test_ac04_hello_docs_capture_verified_gemini31_model_names(self):
         """AC-04: Hello docs include verified Gemini 3.1 model identifiers."""
-        content = Path("examples/demos/hello/README.md").read_text()
+        content = Path("examples/demos/hello/README.md").read_text(encoding="utf-8")
 
         assert "gemini-3.1-pro" in content
         assert "gemini-3.1-flash" in content

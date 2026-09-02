@@ -121,7 +121,7 @@ edges:
   - from: validate
     to: END
 """
-        )
+        , encoding="utf-8")
 
         # Create prompt
         prompts_dir = tmp_path / "prompts"
@@ -135,7 +135,7 @@ user: |
 
   Output dir: {output_dir}
 """
-        )
+        , encoding="utf-8")
 
         # Create parent graph
         parent_yaml = tmp_path / "parent.yaml"
@@ -168,7 +168,7 @@ edges:
   - from: validate_intro
     to: END
 """
-        )
+        , encoding="utf-8")
 
         # Capture what variables are passed to copilot CLI
         captured_cmd = []
@@ -303,7 +303,7 @@ edges:
   - from: amend
     to: END
 """
-        )
+        , encoding="utf-8")
 
         # Create amend prompt
         prompts_dir = tmp_path / "prompts"
@@ -317,7 +317,7 @@ user: |
   Chapter:
   {chapter}
 """
-        )
+        , encoding="utf-8")
 
         # Create parent graph with filename in state
         parent_yaml = tmp_path / "ebook.yaml"
@@ -352,7 +352,7 @@ edges:
   - from: validate_doctrine
     to: END
 """
-        )
+        , encoding="utf-8")
 
         # Capture subprocess calls
         captured_prompts = []

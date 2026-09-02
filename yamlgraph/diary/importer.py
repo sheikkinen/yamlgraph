@@ -82,7 +82,7 @@ def import_scheduled_entries(
             continue
 
         if not dry_run:
-            content = entry_file.read_text()
+            content = entry_file.read_text(encoding="utf-8")
             lines = content.splitlines()
             converted_lines = []
             for line in lines:
@@ -96,7 +96,7 @@ def import_scheduled_entries(
 
             converted = "\n".join(converted_lines)
             diary_dir.mkdir(parents=True, exist_ok=True)
-            target.write_text(converted.strip() + "\n")
+            target.write_text(converted.strip() + "\n", encoding="utf-8")
             entry_file.unlink()
 
         results.append(
@@ -167,7 +167,7 @@ def import_git_reports(
             )
             continue
 
-        content = report_file.read_text()
+        content = report_file.read_text(encoding="utf-8")
         entry_lines = _parse_git_report(content, entry_date)
 
         if entry_lines is None:
@@ -185,7 +185,7 @@ def import_git_reports(
         if not dry_run:
             entry = "\n".join(entry_lines)
             diary_dir.mkdir(parents=True, exist_ok=True)
-            target.write_text(entry.strip() + "\n")
+            target.write_text(entry.strip() + "\n", encoding="utf-8")
             report_file.rename(report_file.with_suffix(".imported"))
 
         results.append(

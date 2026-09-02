@@ -76,7 +76,7 @@ def diary_no_markers(diary_fixture_dir):
     """Diary entries without any markers."""
     (diary_fixture_dir / "diary-2026-03-01.md").write_text(
         "# Session\nJust some notes without markers.\n"
-    )
+    , encoding="utf-8")
     return diary_fixture_dir
 
 
@@ -85,10 +85,10 @@ def diary_below_threshold(diary_fixture_dir):
     """Diary with markers appearing below threshold (less than 3 times)."""
     (diary_fixture_dir / "diary-2026-03-01.md").write_text(
         "**Trap:** quick_confidence\n**Heuristic:** Judge when certain\n"
-    )
+    , encoding="utf-8")
     (diary_fixture_dir / "diary-2026-03-02.md").write_text(
         "**Trap:** quick_confidence\n"
-    )
+    , encoding="utf-8")
     return diary_fixture_dir
 
 
@@ -97,13 +97,13 @@ def diary_at_threshold(diary_fixture_dir):
     """Diary with markers appearing exactly at threshold (3 times)."""
     (diary_fixture_dir / "diary-2026-03-01.md").write_text(
         "**Trap:** quick_confidence\n"
-    )
+    , encoding="utf-8")
     (diary_fixture_dir / "diary-2026-03-02.md").write_text(
         "**Trap:** quick_confidence\n"
-    )
+    , encoding="utf-8")
     (diary_fixture_dir / "diary-2026-03-03.md").write_text(
         "**Trap:** quick_confidence\n"
-    )
+    , encoding="utf-8")
     return diary_fixture_dir
 
 
@@ -113,7 +113,7 @@ def diary_above_threshold(diary_fixture_dir):
     for i in range(5):
         (diary_fixture_dir / f"diary-2026-03-0{i + 1}.md").write_text(
             f"**Trap:** intent_drift\n**Seed:** Question {i}?\n"
-        )
+        , encoding="utf-8")
     return diary_fixture_dir
 
 
@@ -125,15 +125,15 @@ def diary_mixed_markers(diary_fixture_dir):
         "**Trap:** quick_confidence\n"
         "**Heuristic:** Judge when certain\n"
         "**Seed:** Can we automate judgement?\n"
-    )
+    , encoding="utf-8")
     # File 2: same trap + different heuristic
     (diary_fixture_dir / "diary-2026-03-02.md").write_text(
         "**Trap:** quick_confidence\n**Heuristic:** Test before assuming\n"
-    )
+    , encoding="utf-8")
     # File 3: same trap again (now at threshold)
     (diary_fixture_dir / "diary-2026-03-03.md").write_text(
         "**Trap:** quick_confidence\n**Heuristic:** Judge when certain\n"
-    )
+    , encoding="utf-8")
     return diary_fixture_dir
 
 
@@ -217,9 +217,9 @@ class TestScanDiaryMarkers:
         # Create recent file
         (diary_fixture_dir / "diary-2026-03-10.md").write_text(
             "**Trap:** recent_trap\n"
-        )
+        , encoding="utf-8")
         # Create old file (~70 days ago with today=2026-03-11)
-        (diary_fixture_dir / "diary-2026-01-01.md").write_text("**Trap:** old_trap\n")
+        (diary_fixture_dir / "diary-2026-01-01.md").write_text("**Trap:** old_trap\n", encoding="utf-8")
 
         state = {"diary_dir": str(diary_fixture_dir), "lookback_days": 30}
         # autouse fixture mocks get_today() to return "2026-03-11"
@@ -357,7 +357,7 @@ traps:
         write_proposals(state)
 
         files = list(inbox.glob("*.md"))
-        content = files[0].read_text()
+        content = files[0].read_text(encoding="utf-8")
 
         # Should be markdown with description
         assert "intent_drift" in content
@@ -408,7 +408,7 @@ class TestPhilosopherGraph:
         import yaml
 
         graph_path = Path(".chaplain/graphs/philosopher/graph.yaml")
-        with open(graph_path) as f:
+        with open(graph_path, encoding="utf-8") as f:
             graph = yaml.safe_load(f)
 
         nodes = list(graph["nodes"].keys())
@@ -433,7 +433,7 @@ class TestPhilosopherGraph:
         import yaml
 
         graph_path = Path(".chaplain/graphs/philosopher/graph.yaml")
-        with open(graph_path) as f:
+        with open(graph_path, encoding="utf-8") as f:
             graph = yaml.safe_load(f)
 
         edges = graph["edges"]
@@ -471,7 +471,7 @@ class TestPhilosopherReadme:
     def test_readme_documents_usage(self):
         """README should document usage."""
         readme_path = Path(".chaplain/graphs/philosopher/README.md")
-        content = readme_path.read_text()
+        content = readme_path.read_text(encoding="utf-8")
         assert "usage" in content.lower() or "Usage" in content
 
 
@@ -734,7 +734,7 @@ class TestWriteDiaryCopilot:
 
         entry_path = tmp_path / "2026-03-11-philosopher.md"
         assert entry_path.exists()
-        content = entry_path.read_text()
+        content = entry_path.read_text(encoding="utf-8")
         assert "Pattern Scanning" in content
         assert "recurring traps" in content
         assert "Seed:" in content
@@ -765,7 +765,7 @@ class TestWriteDiaryCopilot:
 
         entry_path = tmp_path / "2026-03-11-philosopher.md"
         assert entry_path.exists()
-        content = entry_path.read_text()
+        content = entry_path.read_text(encoding="utf-8")
         assert "Fenced Entry" in content
 
 
@@ -778,7 +778,7 @@ class TestGraphCopilotNodes:
         import yaml
 
         graph_path = Path(".chaplain/graphs/philosopher/graph.yaml")
-        with open(graph_path) as f:
+        with open(graph_path, encoding="utf-8") as f:
             graph = yaml.safe_load(f)
 
         assert graph["nodes"]["analyze"]["type"] == "copilot"
@@ -789,7 +789,7 @@ class TestGraphCopilotNodes:
         import yaml
 
         graph_path = Path(".chaplain/graphs/philosopher/graph.yaml")
-        with open(graph_path) as f:
+        with open(graph_path, encoding="utf-8") as f:
             graph = yaml.safe_load(f)
 
         assert graph["nodes"]["reflect"]["type"] == "copilot"
@@ -800,7 +800,7 @@ class TestGraphCopilotNodes:
         import yaml
 
         graph_path = Path(".chaplain/graphs/philosopher/graph.yaml")
-        with open(graph_path) as f:
+        with open(graph_path, encoding="utf-8") as f:
             graph = yaml.safe_load(f)
 
         for node_name in ("analyze", "reflect"):
@@ -813,7 +813,7 @@ class TestGraphCopilotNodes:
         import yaml
 
         graph_path = Path(".chaplain/graphs/philosopher/graph.yaml")
-        with open(graph_path) as f:
+        with open(graph_path, encoding="utf-8") as f:
             graph = yaml.safe_load(f)
 
         for node_name in ("analyze", "reflect"):
@@ -830,7 +830,7 @@ class TestPromptsCopilot:
         import yaml
 
         prompt_path = Path(".chaplain/graphs/philosopher/prompts/analyze.yaml")
-        with open(prompt_path) as f:
+        with open(prompt_path, encoding="utf-8") as f:
             prompt = yaml.safe_load(f)
 
         assert "schema" not in prompt, "analyze.yaml should not have schema: block"
@@ -841,7 +841,7 @@ class TestPromptsCopilot:
         import yaml
 
         prompt_path = Path(".chaplain/graphs/philosopher/prompts/reflect.yaml")
-        with open(prompt_path) as f:
+        with open(prompt_path, encoding="utf-8") as f:
             prompt = yaml.safe_load(f)
 
         assert "schema" not in prompt, "reflect.yaml should not have schema: block"
@@ -850,7 +850,7 @@ class TestPromptsCopilot:
     def test_analyze_prompt_has_json_guard(self):
         """analyze prompt should include 'output ONLY valid JSON' guard."""
         prompt_path = Path(".chaplain/graphs/philosopher/prompts/analyze.yaml")
-        content = prompt_path.read_text()
+        content = prompt_path.read_text(encoding="utf-8")
 
         assert (
             "output ONLY valid JSON" in content.upper()
@@ -861,7 +861,7 @@ class TestPromptsCopilot:
     def test_reflect_prompt_has_json_guard(self):
         """reflect prompt should include 'output ONLY valid JSON' guard."""
         prompt_path = Path(".chaplain/graphs/philosopher/prompts/reflect.yaml")
-        content = prompt_path.read_text()
+        content = prompt_path.read_text(encoding="utf-8")
 
         assert (
             "output ONLY valid JSON" in content.upper()
@@ -1194,7 +1194,7 @@ class TestPhilosopherGraphFR195:
         """Graph should have a distill copilot node."""
         import yaml
 
-        with open(".chaplain/graphs/philosopher/graph.yaml") as f:
+        with open(".chaplain/graphs/philosopher/graph.yaml", encoding="utf-8") as f:
             graph = yaml.safe_load(f)
 
         assert "distill" in graph["nodes"]
@@ -1205,7 +1205,7 @@ class TestPhilosopherGraphFR195:
         """Graph should have a challenge copilot node."""
         import yaml
 
-        with open(".chaplain/graphs/philosopher/graph.yaml") as f:
+        with open(".chaplain/graphs/philosopher/graph.yaml", encoding="utf-8") as f:
             graph = yaml.safe_load(f)
 
         assert "challenge" in graph["nodes"]
@@ -1216,7 +1216,7 @@ class TestPhilosopherGraphFR195:
         """Graph should have unwrap_distill and unwrap_challenge Python nodes."""
         import yaml
 
-        with open(".chaplain/graphs/philosopher/graph.yaml") as f:
+        with open(".chaplain/graphs/philosopher/graph.yaml", encoding="utf-8") as f:
             graph = yaml.safe_load(f)
 
         assert "unwrap_distill" in graph["nodes"]
@@ -1229,7 +1229,7 @@ class TestPhilosopherGraphFR195:
         """Graph state should declare distill_result, top_candidate, challenge_result, challenge_parsed."""
         import yaml
 
-        with open(".chaplain/graphs/philosopher/graph.yaml") as f:
+        with open(".chaplain/graphs/philosopher/graph.yaml", encoding="utf-8") as f:
             graph = yaml.safe_load(f)
 
         state = graph["state"]
@@ -1246,7 +1246,7 @@ class TestPhilosopherGraphFR195:
         """Graph should have conditional edges from unwrap nodes."""
         import yaml
 
-        with open(".chaplain/graphs/philosopher/graph.yaml") as f:
+        with open(".chaplain/graphs/philosopher/graph.yaml", encoding="utf-8") as f:
             graph = yaml.safe_load(f)
 
         edges = graph["edges"]
@@ -1269,7 +1269,7 @@ class TestPhilosopherGraphFR195:
         """Graph should declare unwrap tool functions."""
         import yaml
 
-        with open(".chaplain/graphs/philosopher/graph.yaml") as f:
+        with open(".chaplain/graphs/philosopher/graph.yaml", encoding="utf-8") as f:
             graph = yaml.safe_load(f)
 
         tools = graph["tools"]
@@ -1295,7 +1295,7 @@ class TestPhilosopherPromptsFR195:
     @pytest.mark.req("REQ-YG-193")
     def test_distill_prompt_has_json_guard(self):
         """distill prompt should include JSON output guard."""
-        content = Path(".chaplain/graphs/philosopher/prompts/distill.yaml").read_text()
+        content = Path(".chaplain/graphs/philosopher/prompts/distill.yaml").read_text(encoding="utf-8")
         assert (
             "Output ONLY valid JSON" in content
             or "output ONLY valid JSON" in content.upper()
@@ -1306,7 +1306,7 @@ class TestPhilosopherPromptsFR195:
         """challenge prompt should include JSON output guard."""
         content = Path(
             ".chaplain/graphs/philosopher/prompts/challenge.yaml"
-        ).read_text()
+        ).read_text(encoding="utf-8")
         assert (
             "Output ONLY valid JSON" in content
             or "output ONLY valid JSON" in content.upper()
@@ -1317,7 +1317,7 @@ class TestPhilosopherPromptsFR195:
         """distill prompt should not have a schema: block (validation in Python)."""
         import yaml
 
-        with open(".chaplain/graphs/philosopher/prompts/distill.yaml") as f:
+        with open(".chaplain/graphs/philosopher/prompts/distill.yaml", encoding="utf-8") as f:
             prompt = yaml.safe_load(f)
         assert "schema" not in prompt
 
@@ -1326,7 +1326,7 @@ class TestPhilosopherPromptsFR195:
         """challenge prompt should mention all 5 challenge axes."""
         content = (
             Path(".chaplain/graphs/philosopher/prompts/challenge.yaml")
-            .read_text()
+            .read_text(encoding="utf-8")
             .lower()
         )
         for axis in [
@@ -1341,7 +1341,7 @@ class TestPhilosopherPromptsFR195:
     @pytest.mark.req("REQ-YG-193")
     def test_reflect_prompt_includes_challenge_context(self):
         """reflect prompt should include challenge_parsed variable."""
-        content = Path(".chaplain/graphs/philosopher/prompts/reflect.yaml").read_text()
+        content = Path(".chaplain/graphs/philosopher/prompts/reflect.yaml").read_text(encoding="utf-8")
         assert "challenge" in content.lower()
 
 

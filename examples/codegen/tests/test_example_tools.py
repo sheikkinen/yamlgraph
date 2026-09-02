@@ -23,7 +23,7 @@ class TestFindExample:
 def greet(name: str) -> str:
     """Say hello."""
     return f"Hello, {name}!"
-''')
+''', encoding="utf-8")
         # Create a file that uses it
         user = tmp_path / "main.py"
         user.write_text("""
@@ -32,7 +32,7 @@ from mymodule import greet
 def run():
     result = greet("World")
     print(result)
-""")
+""", encoding="utf-8")
         result = find_example("greet", str(tmp_path))
 
         assert "examples" in result
@@ -47,11 +47,11 @@ def run():
         """Test files should appear first in examples."""
         # Source
         src = tmp_path / "utils.py"
-        src.write_text("def helper(): pass")
+        src.write_text("def helper(): pass", encoding="utf-8")
 
         # Regular usage
         main = tmp_path / "main.py"
-        main.write_text("from utils import helper\nhelper()")
+        main.write_text("from utils import helper\nhelper()", encoding="utf-8")
 
         # Test usage
         tests = tmp_path / "tests"
@@ -63,7 +63,7 @@ from utils import helper
 def test_helper():
     result = helper()
     assert result is None
-""")
+""", encoding="utf-8")
         result = find_example("helper", str(tmp_path))
 
         assert "examples" in result
@@ -75,11 +75,11 @@ def test_helper():
     def test_limits_max_examples(self, tmp_path: Path):
         """Respects max_examples parameter."""
         src = tmp_path / "funcs.py"
-        src.write_text("def foo(): pass")
+        src.write_text("def foo(): pass", encoding="utf-8")
 
         for i in range(5):
             f = tmp_path / f"user{i}.py"
-            f.write_text(f"from funcs import foo\nfoo()  # usage {i}")
+            f.write_text(f"from funcs import foo\nfoo()  # usage {i}", encoding="utf-8")
 
         result = find_example("foo", str(tmp_path), max_examples=2)
 
@@ -89,7 +89,7 @@ def test_helper():
     def test_handles_no_examples(self, tmp_path: Path):
         """Returns empty list when no examples found."""
         src = tmp_path / "module.py"
-        src.write_text("def unused(): pass")
+        src.write_text("def unused(): pass", encoding="utf-8")
 
         result = find_example("unused", str(tmp_path))
 
@@ -122,7 +122,7 @@ except KeyError:
     pass
 except (TypeError, AttributeError):
     pass
-""")
+""", encoding="utf-8")
         result = find_error_handling(str(tmp_path))
 
         assert "exceptions" in result
@@ -142,7 +142,7 @@ def process(data):
         return {"result": result}
     except Exception as e:
         return {"error": str(e)}
-""")
+""", encoding="utf-8")
         result = find_error_handling(str(tmp_path))
 
         assert "patterns" in result
@@ -163,7 +163,7 @@ def do_work():
     except Exception as e:
         logger.error(f"Failed: {e}")
         raise
-""")
+""", encoding="utf-8")
         result = find_error_handling(str(tmp_path))
 
         assert "logging" in result
@@ -172,7 +172,7 @@ def do_work():
     def test_handles_no_error_handling(self, tmp_path: Path):
         """Returns empty patterns for code without error handling."""
         src = tmp_path / "simple.py"
-        src.write_text("x = 1 + 1\nprint(x)")
+        src.write_text("x = 1 + 1\nprint(x)", encoding="utf-8")
 
         result = find_error_handling(str(tmp_path))
 

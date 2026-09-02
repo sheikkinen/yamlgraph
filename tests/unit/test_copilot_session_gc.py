@@ -22,7 +22,7 @@ def _make_session(session_dir: Path, uuid: str, age_days: int = 0) -> Path:
     """Create a fake session directory with controlled mtime."""
     d = session_dir / uuid
     d.mkdir(parents=True)
-    (d / "workspace.yaml").write_text(f"session: {uuid}\n")
+    (d / "workspace.yaml").write_text(f"session: {uuid}\n", encoding="utf-8")
     if age_days > 0:
         old_ts = time.time() - (age_days * 86400 + 60)
         os.utime(d, (old_ts, old_ts))
@@ -206,7 +206,7 @@ class TestEdgeCases:
         """Regular files in session-state/ are not deleted."""
         session_dir = tmp_path / "session-state"
         session_dir.mkdir()
-        (session_dir / "some-file.txt").write_text("not a session\n")
+        (session_dir / "some-file.txt").write_text("not a session\n", encoding="utf-8")
         old_ts = time.time() - (30 * 86400)
         os.utime(session_dir / "some-file.txt", (old_ts, old_ts))
 

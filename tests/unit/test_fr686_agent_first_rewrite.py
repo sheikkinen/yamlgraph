@@ -40,7 +40,7 @@ def _load(mod_name: str, rel_path: str):  # noqa: ANN202
 
 
 def _load_graph(name: str) -> dict:
-    with open(NOVEL_FANDOM_DIR / name) as f:
+    with open(NOVEL_FANDOM_DIR / name, encoding="utf-8") as f:
         return yaml.safe_load(f)
 
 
@@ -372,7 +372,7 @@ class TestPersistEntityNode:
             }
         )
         page_path = canon_dir / "character" / "hilde.yaml"
-        page = yaml.safe_load(page_path.read_text())
+        page = yaml.safe_load(page_path.read_text(encoding="utf-8"))
         assert page["type"] == "character"
         assert page["id"] == "hilde"
         assert page["lane"] == "dynamic"
@@ -421,7 +421,7 @@ class TestBuildCheckContext:
             "role": "protagonist",
             "faction": "",
         }
-        (char_dir / "hilde.yaml").write_text(yaml.dump(page))
+        (char_dir / "hilde.yaml").write_text(yaml.dump(page), encoding="utf-8")
 
         result = tools_mod.build_check_context(
             {

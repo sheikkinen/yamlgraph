@@ -78,7 +78,7 @@ def check_unanchored_prompt_variables(
             # check_prompt_files handles missing files (E004).
             continue
 
-        with open(prompt_path) as f:
+        with open(prompt_path, encoding="utf-8") as f:
             prompt_content = f.read()
 
         anchored_variables = extract_template_variables(prompt_content)
@@ -130,7 +130,7 @@ def check_mixed_template_syntax(
             # check_prompt_files handles missing files (E004).
             continue
 
-        with open(prompt_path) as f:
+        with open(prompt_path, encoding="utf-8") as f:
             prompt_content = f.read()
 
         # Reuse shared extraction logic after removing Jinja constructs so
@@ -235,7 +235,7 @@ def check_prompt_complexity(
             # check_prompt_files handles missing files (E004).
             continue
 
-        with open(prompt_path) as f:
+        with open(prompt_path, encoding="utf-8") as f:
             prompt_content = f.read()
 
         prompt_yaml = yaml.safe_load(prompt_content)

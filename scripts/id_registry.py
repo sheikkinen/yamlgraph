@@ -56,7 +56,7 @@ def load_registry(path: Path = DEFAULT_REGISTRY_PATH) -> IdRegistry:
     if not path.exists():
         raise FileNotFoundError(f"Registry file not found: {path}")
 
-    with open(path) as f:
+    with open(path, encoding="utf-8") as f:
         data = yaml.safe_load(f)
 
     if not isinstance(data, dict):
@@ -144,7 +144,7 @@ def save_registry(registry: IdRegistry, path: Path = DEFAULT_REGISTRY_PATH) -> N
 
     lines.append("")  # Trailing newline
 
-    with open(path, "w") as f:
+    with open(path, "w", encoding="utf-8") as f:
         f.write("\n".join(lines))
 
 

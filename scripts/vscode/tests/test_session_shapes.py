@@ -60,7 +60,7 @@ def make_chat_session(
             )
         )
     path = ws / f"{session_id}.jsonl"
-    path.write_text("\n".join(lines))
+    path.write_text("\n".join(lines), encoding="utf-8")
     return path
 
 
@@ -80,7 +80,7 @@ def make_audit(tmp_path: Path, entries: list[tuple[str, str]]) -> Path:
             )
             for sid, tool in entries
         )
-    )
+    , encoding="utf-8")
     return path
 
 
@@ -200,7 +200,7 @@ def test_extract_transcript_text(tmp_path: Path) -> None:
                 "response": [{"value": "agent answers a thing"}],
             }
         )
-    )
+    , encoding="utf-8")
     text = session_shapes.extract_transcript(path)
     assert "user asks a thing" in text
     assert "agent answers a thing" in text
@@ -235,7 +235,7 @@ def make_oplog(tmp_path: Path, session_id: str = "s-op") -> Path:
         {"kind": 1, "k": ["requests", 1, "promptTokens"], "v": 222},
     ]
     path = tmp_path / f"{session_id}.jsonl"
-    path.write_text("\n".join(json.dumps(op) for op in ops))
+    path.write_text("\n".join(json.dumps(op) for op in ops), encoding="utf-8")
     return path
 
 
@@ -251,7 +251,7 @@ def test_replay_oplog_applies_set_and_extend(tmp_path: Path) -> None:
 
 def test_replay_non_oplog_returns_none(tmp_path: Path) -> None:
     path = tmp_path / "plain.jsonl"
-    path.write_text(json.dumps({"sessionId": "x", "requests": []}))
+    path.write_text(json.dumps({"sessionId": "x", "requests": []}), encoding="utf-8")
     assert session_shapes.replay(path) is None
 
 

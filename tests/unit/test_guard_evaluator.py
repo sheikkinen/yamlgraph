@@ -14,7 +14,7 @@ from yamlgraph.utils.guard_evaluator import (
 def test_guard_expression_supports_filters_and_membership(tmp_path: Path):
     """Evaluator supports filters, membership operators, and boolean logic."""
     marker_file = tmp_path / "marker.txt"
-    marker_file.write_text("ok")
+    marker_file.write_text("ok", encoding="utf-8")
 
     state = {
         "fr_path": str(marker_file),

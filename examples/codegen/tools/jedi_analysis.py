@@ -69,7 +69,7 @@ def find_references(
         return {"error": f"File not found: {file_path}"}
 
     try:
-        source = path.read_text()
+        source = path.read_text(encoding="utf-8")
 
         # Create jedi project for cross-file analysis
         project = None
@@ -228,7 +228,7 @@ def get_callees(
         return {"error": f"File not found: {file_path}"}
 
     try:
-        source = path.read_text()
+        source = path.read_text(encoding="utf-8")
         tree = ast.parse(source)
 
         # Find the function AST node
@@ -289,7 +289,7 @@ def _find_enclosing_function(file_path: str, line: int) -> dict | None:
         if not path.exists():
             return None
 
-        source = path.read_text()
+        source = path.read_text(encoding="utf-8")
         tree = ast.parse(source)
 
         # Find the innermost function containing this line

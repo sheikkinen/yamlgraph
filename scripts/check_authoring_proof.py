@@ -41,7 +41,7 @@ def main() -> int:
     if not governed_new:
         return 0
 
-    report_text = REPORT.read_text() if REPORT.exists() else ""
+    report_text = REPORT.read_text(encoding="utf-8") if REPORT.exists() else ""
     missing = [p for p in governed_new if p not in report_text]
     if not missing:
         return 0

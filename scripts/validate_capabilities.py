@@ -67,7 +67,7 @@ def validate_file(filepath: Path) -> list[str]:
 
     # Load YAML
     try:
-        with open(filepath) as f:
+        with open(filepath, encoding="utf-8") as f:
             data: dict[str, Any] = yaml.safe_load(f)
     except yaml.YAMLError as e:
         errors.append(f"{filename}: YAML parse error: {e}")
@@ -189,7 +189,7 @@ def validate_registry(strict: bool = False) -> tuple[list[str], dict[str, list[s
             continue
 
         # Load for duplicate checking
-        with open(filepath) as f:
+        with open(filepath, encoding="utf-8") as f:
             data = yaml.safe_load(f)
 
         cap_id = data["id"]

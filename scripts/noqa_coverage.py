@@ -35,7 +35,7 @@ def find_noqa_in_file(filepath: Path) -> list[tuple[int, str]]:
     """
     results = []
     try:
-        content = filepath.read_text()
+        content = filepath.read_text(encoding="utf-8")
     except Exception:
         return results
 
@@ -73,7 +73,7 @@ def parse_confessions(confessions_path: Path) -> dict[str, set[tuple[str, int, s
     if not confessions_path.exists():
         return confessions
 
-    content = confessions_path.read_text()
+    content = confessions_path.read_text(encoding="utf-8")
 
     # Pattern for confession blocks
     # ### CONF-001

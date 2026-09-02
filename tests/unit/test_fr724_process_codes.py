@@ -57,7 +57,7 @@ class TestBuilderProcessCodes:
     @pytest.mark.req("REQ-YG-551")
     def test_process_codes_included_as_proc_clusters(self):
         builder = _load("build_catalog.py")
-        xml_text = (FIXTURES / "icpc2_claml_excerpt.xml").read_text()
+        xml_text = (FIXTURES / "icpc2_claml_excerpt.xml").read_text(encoding="utf-8")
         rows = builder.parse_claml(xml_text)
         by_code = {r["code"]: r for r in rows}
         assert "-30" in by_code, "process code excluded (phase-1 rule leaked)"
@@ -72,7 +72,7 @@ class TestBuilderProcessCodes:
     @pytest.mark.req("REQ-YG-551")
     def test_chapter_code_clusters_unchanged(self):
         builder = _load("build_catalog.py")
-        xml_text = (FIXTURES / "icpc2_claml_excerpt.xml").read_text()
+        xml_text = (FIXTURES / "icpc2_claml_excerpt.xml").read_text(encoding="utf-8")
         rows = builder.parse_claml(xml_text)
         by_code = {r["code"]: r for r in rows}
         assert by_code["R05"]["cluster_id"] == "R-C1"

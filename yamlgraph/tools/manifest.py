@@ -179,7 +179,7 @@ def expand_tool_manifests(
             raise _fail(name, manifest_ref, f"file not found: {manifest_path}")
 
         try:
-            raw = yaml.safe_load(manifest_path.read_text())
+            raw = yaml.safe_load(manifest_path.read_text(encoding="utf-8"))
         except yaml.YAMLError as e:
             raise _fail(name, manifest_ref, f"YAML parse error: {e}") from e
         if not isinstance(raw, dict):

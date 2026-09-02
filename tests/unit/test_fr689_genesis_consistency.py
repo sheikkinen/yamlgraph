@@ -44,7 +44,7 @@ def _load(mod_name: str, rel_path: str):  # noqa: ANN202
 
 
 def _load_graph(name: str) -> dict:
-    with open(NOVEL_FANDOM_DIR / name) as f:
+    with open(NOVEL_FANDOM_DIR / name, encoding="utf-8") as f:
         return yaml.safe_load(f)
 
 
@@ -81,7 +81,7 @@ class TestPersistSynopsisClearsExisting:
             "depth": 0,
             "text": "Old synopsis text with Frida.",
         }
-        (synopsis_dir / "floodmark_saga_synopsis.yaml").write_text(yaml.dump(old))
+        (synopsis_dir / "floodmark_saga_synopsis.yaml").write_text(yaml.dump(old), encoding="utf-8")
 
         # Call persist_synopsis — should clear the old one
         tools_mod.persist_synopsis({"synopsis": "New synopsis text with Runa."})
@@ -91,7 +91,7 @@ class TestPersistSynopsisClearsExisting:
             f"Expected exactly 1 synopsis file, got {len(files)}: "
             f"{[f.name for f in files]}"
         )
-        content = yaml.safe_load(files[0].read_text())
+        content = yaml.safe_load(files[0].read_text(encoding="utf-8"))
         assert content["id"] == "synopsis"
         assert "Runa" in content["text"]
 
@@ -227,7 +227,7 @@ class TestFinalGateCrossTypeCollision:
             "scope": "local",
             "participants": [],
         }
-        (event_dir / "survival_truce.yaml").write_text(yaml.dump(event))
+        (event_dir / "survival_truce.yaml").write_text(yaml.dump(event), encoding="utf-8")
 
         # Same ID as rule
         rule_dir = canon_dir / "rule"
@@ -241,7 +241,7 @@ class TestFinalGateCrossTypeCollision:
             "title": "Survival Truce",
             "description": "Temporary truce during flood",
         }
-        (rule_dir / "survival_truce.yaml").write_text(yaml.dump(rule))
+        (rule_dir / "survival_truce.yaml").write_text(yaml.dump(rule), encoding="utf-8")
 
         result = tools_mod.final_gate({})
         gate = result["gate_result"]
@@ -265,7 +265,7 @@ class TestFinalGateCrossTypeCollision:
             "scope": "world",
             "participants": [],
         }
-        (event_dir / "great_flood.yaml").write_text(yaml.dump(event))
+        (event_dir / "great_flood.yaml").write_text(yaml.dump(event), encoding="utf-8")
 
         rule_dir = canon_dir / "rule"
         rule_dir.mkdir()
@@ -278,7 +278,7 @@ class TestFinalGateCrossTypeCollision:
             "title": "Survival Truce",
             "description": "Truce rules",
         }
-        (rule_dir / "survival_truce.yaml").write_text(yaml.dump(rule))
+        (rule_dir / "survival_truce.yaml").write_text(yaml.dump(rule), encoding="utf-8")
 
         result = tools_mod.final_gate({})
         gate = result["gate_result"]
@@ -322,7 +322,7 @@ class TestUpdateRefsTool:
             "participants": ["ragnar", "gunnar"],
             "references": ["ragnar", "blood_feud"],
         }
-        (event_dir / "death_of_ragnar.yaml").write_text(yaml.dump(event))
+        (event_dir / "death_of_ragnar.yaml").write_text(yaml.dump(event), encoding="utf-8")
 
         result = tools_mod.update_refs({"old_id": "ragnar", "new_id": "hildes_father"})
         assert (
@@ -331,7 +331,7 @@ class TestUpdateRefsTool:
         )
 
         # Verify file was rewritten
-        updated = yaml.safe_load((event_dir / "death_of_ragnar.yaml").read_text())
+        updated = yaml.safe_load((event_dir / "death_of_ragnar.yaml").read_text(encoding="utf-8"))
         assert "hildes_father" in updated["participants"]
         assert "ragnar" not in updated["participants"]
         assert "hildes_father" in updated["references"]
@@ -356,11 +356,11 @@ class TestUpdateRefsTool:
                 {"to": "ragnar", "kind": "daughter_of", "valence": "grief"},
             ],
         }
-        (char_dir / "hilde.yaml").write_text(yaml.dump(char))
+        (char_dir / "hilde.yaml").write_text(yaml.dump(char), encoding="utf-8")
 
         tools_mod.update_refs({"old_id": "ragnar", "new_id": "hildes_father"})
 
-        updated = yaml.safe_load((char_dir / "hilde.yaml").read_text())
+        updated = yaml.safe_load((char_dir / "hilde.yaml").read_text(encoding="utf-8"))
         assert updated["relationships"][0]["to"] == "hildes_father"
 
     @pytest.mark.req("REQ-YG-518")
@@ -378,11 +378,11 @@ class TestUpdateRefsTool:
             "faction": "old_clan",
             "relationships": [],
         }
-        (char_dir / "hilde.yaml").write_text(yaml.dump(char))
+        (char_dir / "hilde.yaml").write_text(yaml.dump(char), encoding="utf-8")
 
         tools_mod.update_refs({"old_id": "old_clan", "new_id": "aschenwulf"})
 
-        updated = yaml.safe_load((char_dir / "hilde.yaml").read_text())
+        updated = yaml.safe_load((char_dir / "hilde.yaml").read_text(encoding="utf-8"))
         assert updated["faction"] == "aschenwulf"
 
     @pytest.mark.req("REQ-YG-518")
@@ -433,7 +433,7 @@ class TestDeterministicPreCheck:
             "role": "protagonist",
             "faction": "",
         }
-        (char_dir / "hilde.yaml").write_text(yaml.dump(existing))
+        (char_dir / "hilde.yaml").write_text(yaml.dump(existing), encoding="utf-8")
 
         result = tools_mod.dedup_pre_check({"entity_type": "character", "id": "hilde"})
         assert result.get("dedup_refused") is True
@@ -452,7 +452,7 @@ class TestDeterministicPreCheck:
             "lane": "dynamic",
             "depth": 0,
         }
-        (event_dir / "survival_truce.yaml").write_text(yaml.dump(existing))
+        (event_dir / "survival_truce.yaml").write_text(yaml.dump(existing), encoding="utf-8")
 
         result = tools_mod.dedup_pre_check(
             {"entity_type": "rule", "id": "survival_truce"}

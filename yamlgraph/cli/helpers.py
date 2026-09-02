@@ -40,7 +40,7 @@ def load_graph_config(path: str | Path) -> dict[str, Any] | None:
         raise GraphLoadError(f"Graph file not found: {path}")
 
     try:
-        with open(path) as f:
+        with open(path, encoding="utf-8") as f:
             return yaml.safe_load(f)
     except yaml.YAMLError as e:
         raise GraphLoadError(f"Invalid YAML in {path}: {e}") from e
@@ -98,7 +98,7 @@ def parse_vars(var_list: list[str] | None) -> dict[str, Any]:
             path = Path(file_path)
             if not path.exists():
                 raise FileNotFoundError(f"File not found: {file_path}")
-            result[key] = path.read_text()
+            result[key] = path.read_text(encoding="utf-8")
         else:
             result[key] = value
 
@@ -124,7 +124,7 @@ def load_var_file(path: str | None) -> dict[str, Any]:
     if not file_path.exists():
         raise FileNotFoundError(f"Var file not found: {path}")
 
-    with open(file_path) as f:
+    with open(file_path, encoding="utf-8") as f:
         if path.endswith(".json"):
             return json.load(f)
         return yaml.safe_load(f) or {}

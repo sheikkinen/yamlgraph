@@ -186,7 +186,7 @@ class TestTavilyRagGraphYaml:
     @pytest.mark.req("REQ-YG-076")
     def test_simple_graph_structure(self):
         """Simple graph should have retrieve → answer flow."""
-        with open(GRAPH_PATH) as f:
+        with open(GRAPH_PATH, encoding="utf-8") as f:
             graph = yaml.safe_load(f)
 
         assert graph["name"] == "tavily-rag"
@@ -207,7 +207,7 @@ class TestTavilyRagGraphYaml:
     @pytest.mark.req("REQ-YG-076")
     def test_deep_graph_has_map_node(self):
         """Deep graph should have plan → map(retrieve) → synthesize."""
-        with open(GRAPH_DEEP_PATH) as f:
+        with open(GRAPH_DEEP_PATH, encoding="utf-8") as f:
             graph = yaml.safe_load(f)
 
         assert graph["name"] == "tavily-deep-rag"

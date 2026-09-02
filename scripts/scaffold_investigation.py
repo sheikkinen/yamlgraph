@@ -340,7 +340,7 @@ def scaffold_investigation(
             node_blocks=node_blocks.rstrip("\n"),
             edge_blocks=edge_blocks.rstrip("\n"),
         )
-    )
+    , encoding="utf-8")
 
     if not stub:
         result_lines = "\n".join(
@@ -350,24 +350,24 @@ def scaffold_investigation(
         (home / "prompts").mkdir(exist_ok=True)
         (home / "prompts" / "synthesize.yaml").write_text(
             SYNTH_PROMPT.substitute(name=name, result_lines=result_lines)
-        )
+        , encoding="utf-8")
 
     for step in steps:
         step_dir = home / "steps" / step
         step_dir.mkdir(parents=True, exist_ok=True)
         (home / "steps" / f"{step}.tool.yaml").write_text(
             STEP_MANIFEST.substitute(step=step, name=name)
-        )
+        , encoding="utf-8")
         if stub:
-            (step_dir / "graph.yaml").write_text(STEP_GRAPH_STUB.substitute(step=step))
+            (step_dir / "graph.yaml").write_text(STEP_GRAPH_STUB.substitute(step=step), encoding="utf-8")
         else:
-            (step_dir / "graph.yaml").write_text(STEP_GRAPH_AGENT.substitute(step=step))
+            (step_dir / "graph.yaml").write_text(STEP_GRAPH_AGENT.substitute(step=step), encoding="utf-8")
         (step_dir / "prompts").mkdir(exist_ok=True)
         (step_dir / "prompts" / "investigate.yaml").write_text(
             STEP_PROMPT.substitute(step=step, name=name)
-        )
+        , encoding="utf-8")
 
-    (home / "tools" / "README.md").write_text(TOOLS_README.substitute(name=name))
+    (home / "tools" / "README.md").write_text(TOOLS_README.substitute(name=name), encoding="utf-8")
     return home
 
 

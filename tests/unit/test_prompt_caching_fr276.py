@@ -33,7 +33,7 @@ class TestPromptSegmentSchema:
         """
 
         prompt_file = tmp_path / "test_segments.yaml"
-        prompt_file.write_text(prompt_content)
+        prompt_file.write_text(prompt_content, encoding="utf-8")
 
         result = load_prompt("test_segments", prompts_dir=tmp_path)
 
@@ -84,7 +84,7 @@ class TestPromptSegmentSchema:
         """
 
         prompt_file = tmp_path / "test_defaults.yaml"
-        prompt_file.write_text(prompt_content)
+        prompt_file.write_text(prompt_content, encoding="utf-8")
 
         result = load_prompt("test_defaults", prompts_dir=tmp_path)
 
@@ -110,7 +110,7 @@ class TestBackwardCompatibility:
         """
 
         prompt_file = tmp_path / "test_scalar.yaml"
-        prompt_file.write_text(prompt_content)
+        prompt_file.write_text(prompt_content, encoding="utf-8")
 
         with patch("yamlgraph.utils.prompts.resolve_prompt_path") as mock_resolve:
             mock_resolve.return_value = prompt_file
@@ -144,7 +144,7 @@ class TestBackwardCompatibility:
             '  - content: "Task context: important"\n'
             "    cache: true\n"
             'user: "Help with {topic}"\n'
-        )
+        , encoding="utf-8")
 
         messages, provider, model = prepare_messages(
             "test_list", variables={"topic": "test"}, prompts_dir=tmp_path
@@ -177,7 +177,7 @@ class TestAnthropicCacheControl:
         """
 
         prompt_file = tmp_path / "test_anthropic.yaml"
-        prompt_file.write_text(prompt_content)
+        prompt_file.write_text(prompt_content, encoding="utf-8")
 
         # This should fail because prepare_messages doesn't handle system_segments yet
         messages, provider, model = prepare_messages(
@@ -216,7 +216,7 @@ class TestAnthropicCacheControl:
         """
 
         prompt_file = tmp_path / "test_selective.yaml"
-        prompt_file.write_text(prompt_content)
+        prompt_file.write_text(prompt_content, encoding="utf-8")
 
         messages, provider, model = prepare_messages(
             "test_selective",

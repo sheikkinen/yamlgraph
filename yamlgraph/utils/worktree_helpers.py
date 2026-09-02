@@ -198,7 +198,7 @@ def clean_stale_pth_entries(venv_path: Path, worktree_dir: str) -> list[Path]:
         for pattern in ("*.pth", "*.egg-link"):
             for pth_file in site_packages.glob(pattern):
                 try:
-                    content = pth_file.read_text()
+                    content = pth_file.read_text(encoding="utf-8")
                 except OSError:
                     continue
 
@@ -218,7 +218,7 @@ def clean_stale_pth_entries(venv_path: Path, worktree_dir: str) -> list[Path]:
             if not direct_url.is_file():
                 continue
             try:
-                data = json.loads(direct_url.read_text())
+                data = json.loads(direct_url.read_text(encoding="utf-8"))
             except (OSError, json.JSONDecodeError):
                 continue
             url = data.get("url", "")

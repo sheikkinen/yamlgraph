@@ -55,7 +55,7 @@ class TestCopilotSkillPromotion:
     @pytest.mark.parametrize("skill_name", TIER_1_SKILLS)
     def test_skill_md_not_empty(self, skill_name: str) -> None:
         skill_file = SKILLS_DIR / skill_name / "SKILL.md"
-        content = skill_file.read_text()
+        content = skill_file.read_text(encoding="utf-8")
         assert (
             len(content) > 100
         ), f"SKILL.md for {skill_name} too short ({len(content)} bytes)"

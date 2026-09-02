@@ -97,7 +97,7 @@ def _module_index(project_dir: Path) -> dict[str, list[str]]:
         return index
     for cap_file in sorted(caps.glob("*.yaml")):
         try:
-            payload = yaml.safe_load(cap_file.read_text()) or {}
+            payload = yaml.safe_load(cap_file.read_text(encoding="utf-8")) or {}
         except yaml.YAMLError:
             continue
         fr = str(payload.get("fr") or "")
@@ -125,7 +125,7 @@ def collect_frs(state: dict) -> dict:
             excluded += 1
             continue
         fr_id = path.stem  # F2: never a prefix regex
-        text = path.read_text(errors="ignore")
+        text = path.read_text(errors="ignore", encoding="utf-8")
         match = _STATUS_RE.search(text)
         status = match.group(1).strip() if match else None
         if status is None:

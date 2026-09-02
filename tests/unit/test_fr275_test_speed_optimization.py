@@ -22,7 +22,7 @@ class TestSlowMarkerInfrastructure:
         pyproject_path = Path(__file__).parent.parent.parent / "pyproject.toml"
 
         # Read pyproject.toml content
-        with open(pyproject_path) as f:
+        with open(pyproject_path, encoding="utf-8") as f:
             content = f.read()
 
         # Look for slow marker definition
@@ -55,7 +55,7 @@ class TestSlowTestMarking:
         """Map timeout tests that use time.sleep(2) should have @pytest.mark.slow."""
         test_file_path = Path(__file__).parent / "test_map_node_timeout.py"
 
-        with open(test_file_path) as f:
+        with open(test_file_path, encoding="utf-8") as f:
             content = f.read()
 
         # Check if any test with sleep patterns has @pytest.mark.slow
@@ -80,7 +80,7 @@ class TestSlowTestMarking:
         """Race node tests that use asyncio.sleep(30.0) should have @pytest.mark.slow."""
         test_file_path = Path(__file__).parent / "test_race_node.py"
 
-        with open(test_file_path) as f:
+        with open(test_file_path, encoding="utf-8") as f:
             content = f.read()
 
         # Check if any test with asyncio.sleep(30.0) has @pytest.mark.slow
@@ -167,7 +167,7 @@ class TestConfigurableTiming:
         # Check if chaos_tools.py uses configurable delays
         chaos_tools_path = Path(__file__).parent.parent / "chaos_tools.py"
 
-        with open(chaos_tools_path) as f:
+        with open(chaos_tools_path, encoding="utf-8") as f:
             content = f.read()
 
         # Should use TEST_DELAY_SCALE or similar configurable mechanism
@@ -180,7 +180,7 @@ class TestConfigurableTiming:
         """Timeout tests should use configurable delays instead of hardcoded values."""
         test_file_path = Path(__file__).parent / "test_map_node_timeout.py"
 
-        with open(test_file_path) as f:
+        with open(test_file_path, encoding="utf-8") as f:
             content = f.read()
 
         # Should use configurable delays, not hardcoded time.sleep(2)
@@ -208,7 +208,7 @@ class TestDocumentationUpdates:
         """CLAUDE.md should document fast test commands using slow markers."""
         claude_md_path = Path(__file__).parent.parent.parent / "CLAUDE.md"
 
-        with open(claude_md_path) as f:
+        with open(claude_md_path, encoding="utf-8") as f:
             content = f.read()
 
         # Should document the new fast test commands
@@ -221,7 +221,7 @@ class TestDocumentationUpdates:
         """CLAUDE.md should document slow-only test commands."""
         claude_md_path = Path(__file__).parent.parent.parent / "CLAUDE.md"
 
-        with open(claude_md_path) as f:
+        with open(claude_md_path, encoding="utf-8") as f:
             content = f.read()
 
         # Should document the slow test commands

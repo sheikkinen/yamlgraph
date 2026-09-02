@@ -27,7 +27,7 @@ class TestGraphStructure:
 
     def test_npc_creation_valid(self):
         """NPC creation graph should be valid."""
-        config = yaml.safe_load((EXAMPLE_DIR / "npc-creation.yaml").read_text())
+        config = yaml.safe_load((EXAMPLE_DIR / "npc-creation.yaml").read_text(encoding="utf-8"))
         assert config.get("name") == "npc-creation"
         nodes = config.get("nodes", {})
         required = ["identity", "personality", "knowledge", "behavior"]

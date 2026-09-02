@@ -56,25 +56,25 @@ class TestDeepenPromptTemporal:
     @pytest.mark.req("REQ-YG-501")
     def test_character_section_mentions_birth_year(self):
         prompt_path = NOVEL_FANDOM_DIR / "prompts" / "deepen_entity.yaml"
-        content = prompt_path.read_text()
+        content = prompt_path.read_text(encoding="utf-8")
         assert "birth_year" in content
 
     @pytest.mark.req("REQ-YG-501")
     def test_event_section_mentions_year(self):
         prompt_path = NOVEL_FANDOM_DIR / "prompts" / "deepen_entity.yaml"
-        content = prompt_path.read_text()
+        content = prompt_path.read_text(encoding="utf-8")
         assert "Set year (integer)" in content
 
     @pytest.mark.req("REQ-YG-501")
     def test_event_section_mentions_scope(self):
         prompt_path = NOVEL_FANDOM_DIR / "prompts" / "deepen_entity.yaml"
-        content = prompt_path.read_text()
+        content = prompt_path.read_text(encoding="utf-8")
         assert "Set scope:" in content
 
     @pytest.mark.req("REQ-YG-501")
     def test_event_section_mentions_affected_locations(self):
         prompt_path = NOVEL_FANDOM_DIR / "prompts" / "deepen_entity.yaml"
-        content = prompt_path.read_text()
+        content = prompt_path.read_text(encoding="utf-8")
         assert "affected_locations" in content
 
 

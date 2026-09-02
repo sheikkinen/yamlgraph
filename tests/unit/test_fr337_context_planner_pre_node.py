@@ -20,7 +20,7 @@ class TestFR337ContextPlannerPreNode:
 
         import yaml
 
-        with open(prompt_path) as f:
+        with open(prompt_path, encoding="utf-8") as f:
             prompt = yaml.safe_load(f)
 
         # Check schema exists
@@ -46,7 +46,7 @@ class TestFR337ContextPlannerPreNode:
         tools_path = Path(".chaplain/graphs/watcher-enforce/tools.py")
         assert tools_path.exists(), "Context assembler tools should exist"
 
-        with open(tools_path) as f:
+        with open(tools_path, encoding="utf-8") as f:
             content = f.read()
 
         assert "ast.parse" in content, "Context assembler should use ast.parse()"
@@ -63,7 +63,7 @@ class TestFR337ContextPlannerPreNode:
 
         import yaml
 
-        with open(graph_path) as f:
+        with open(graph_path, encoding="utf-8") as f:
             graph = yaml.safe_load(f)
 
         # Check nodes exist
@@ -100,7 +100,7 @@ class TestFR337ContextPlannerPreNode:
 
         import yaml
 
-        with open(graph_path) as f:
+        with open(graph_path, encoding="utf-8") as f:
             graph = yaml.safe_load(f)
 
         plan_context_node = graph["nodes"]["plan_context"]
@@ -136,7 +136,7 @@ class TestFR337ContextPlannerPreNode:
         )
         assert prompt_path.exists()
 
-        with open(prompt_path) as f:
+        with open(prompt_path, encoding="utf-8") as f:
             content = f.read()
 
         assert (
@@ -147,7 +147,7 @@ class TestFR337ContextPlannerPreNode:
         """Context assembler should write docs/context/<fr-id>.md and enforce budget."""
         tools_path = Path(".chaplain/graphs/watcher-enforce/tools.py")
 
-        with open(tools_path) as f:
+        with open(tools_path, encoding="utf-8") as f:
             content = f.read()
 
         assert (
@@ -165,7 +165,7 @@ class TestFR337ContextPlannerPreNode:
 
         import yaml
 
-        with open(graph_path) as f:
+        with open(graph_path, encoding="utf-8") as f:
             graph = yaml.safe_load(f)
 
         # Should now have 3 nodes instead of just 'enforce'
@@ -192,7 +192,7 @@ class TestFR337ContextPlannerPreNode:
         if pipeline_path.exists():
             import yaml
 
-            with open(pipeline_path) as f:
+            with open(pipeline_path, encoding="utf-8") as f:
                 pipeline = yaml.safe_load(f)
 
             # The enforce state should still exist and point to enforce-session.yaml

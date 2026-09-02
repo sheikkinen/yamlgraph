@@ -56,7 +56,7 @@ class TestCreateWorktreeForceAdd:
         drafts = tmp_path / "drafts"
         drafts.mkdir()
         draft = drafts / "FR-100-test-feature.md"
-        draft.write_text("# FR-100 Test Feature\n")
+        draft.write_text("# FR-100 Test Feature\n", encoding="utf-8")
 
         calls_made = []
 
@@ -83,8 +83,8 @@ class TestCreateWorktreeMultiDraftGuard:
 
         drafts = tmp_path / "drafts"
         drafts.mkdir()
-        (drafts / "FR-100-first.md").write_text("# First\n")
-        (drafts / "FR-101-second.md").write_text("# Second\n")
+        (drafts / "FR-100-first.md").write_text("# First\n", encoding="utf-8")
+        (drafts / "FR-101-second.md").write_text("# Second\n", encoding="utf-8")
 
         with pytest.raises(ValueError, match="Multiple draft files"):
             create_worktree({"drafts_dir": str(drafts)})
@@ -111,7 +111,7 @@ class TestCreateWorktreeHappyPath:
         drafts = tmp_path / "drafts"
         drafts.mkdir()
         draft = drafts / "FR-100-test-feature.md"
-        draft.write_text("# FR-100 Test Feature\n")
+        draft.write_text("# FR-100 Test Feature\n", encoding="utf-8")
 
         with _mock_git_and_venv(_ok_run):
             result = create_worktree({"drafts_dir": str(drafts)})
@@ -132,7 +132,7 @@ class TestCreateWorktreeCommitIdempotency:
 
         drafts = tmp_path / "drafts"
         drafts.mkdir()
-        (drafts / "FR-100-test.md").write_text("# Test\n")
+        (drafts / "FR-100-test.md").write_text("# Test\n", encoding="utf-8")
 
         def mock_run(cmd, **kwargs):
             if "commit" in list(cmd):
@@ -155,7 +155,7 @@ class TestCreateWorktreeCommitIdempotency:
 
         drafts = tmp_path / "drafts"
         drafts.mkdir()
-        (drafts / "FR-100-test.md").write_text("# Test\n")
+        (drafts / "FR-100-test.md").write_text("# Test\n", encoding="utf-8")
 
         def mock_run(cmd, **kwargs):
             if "commit" in list(cmd):
@@ -178,7 +178,7 @@ class TestCreateWorktreeCommitIdempotency:
 
         drafts = tmp_path / "drafts"
         drafts.mkdir()
-        (drafts / "FR-100-test.md").write_text("# Test\n")
+        (drafts / "FR-100-test.md").write_text("# Test\n", encoding="utf-8")
 
         def mock_run(cmd, **kwargs):
             if "commit" in list(cmd):
@@ -208,10 +208,10 @@ class TestCreateWorktreeDraftSurvival:
         drafts = tmp_path / "drafts"
         drafts.mkdir()
         draft = drafts / "FR-100-test.md"
-        draft.write_text("# FR-100 Test\n")
+        draft.write_text("# FR-100 Test\n", encoding="utf-8")
 
         with _mock_git_and_venv(_ok_run):
             create_worktree({"drafts_dir": str(drafts)})
 
         assert draft.exists(), "Draft file should still exist after create_worktree()"
-        assert draft.read_text() == "# FR-100 Test\n"
+        assert draft.read_text(encoding="utf-8") == "# FR-100 Test\n"

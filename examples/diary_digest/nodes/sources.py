@@ -34,7 +34,7 @@ def extract_raw_seeds(diary_dir: Path) -> list[str]:
     """Regex-extract all **Seed:** lines from diary*.md files."""
     seeds: list[str] = []
     for path in sorted(diary_dir.glob("diary*.md")):
-        text = path.read_text()
+        text = path.read_text(encoding="utf-8")
         for match in _SEED_RE.finditer(text):
             seeds.append(match.group(1).strip())
     return seeds
@@ -44,7 +44,7 @@ def load_seeds(path: Path) -> list[str]:
     """Read curated seeds from seeds.yaml. Returns [] if missing."""
     if not path.exists():
         return []
-    with open(path) as f:
+    with open(path, encoding="utf-8") as f:
         data = yaml.safe_load(f)
     if not isinstance(data, list):
         return []
@@ -57,7 +57,7 @@ def save_seeds(path: Path, seeds: list[str]) -> None:
         "# Auto-curated by diary-digest pipeline. Do not edit manually.\n"
         f"# Last updated: {datetime.now().strftime('%Y-%m-%d')}\n"
     )
-    with open(path, "w") as f:
+    with open(path, "w", encoding="utf-8") as f:
         f.write(header)
         yaml.dump(seeds, f, default_flow_style=False, allow_unicode=True)
 
@@ -85,7 +85,7 @@ def save_seeds_tool(state: dict) -> dict:
 
 def load_feeds_config() -> dict:
     """Load feeds.yaml config file."""
-    with open(FEEDS_PATH) as f:
+    with open(FEEDS_PATH, encoding="utf-8") as f:
         return yaml.safe_load(f)
 
 

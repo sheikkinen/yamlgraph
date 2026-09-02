@@ -30,7 +30,7 @@ class TestImportScheduledEntries:
 **Date:** 2026-02-17
 
 Content here.
-""")
+""", encoding="utf-8")
 
         diary_dir = tmp_path / "diary"
         diary_dir.mkdir()
@@ -42,7 +42,7 @@ Content here.
         assert not entry_file.exists()  # Should be deleted
         expected_file = diary_dir / "2026-02-17-world-digest.md"
         assert expected_file.exists()
-        content = expected_file.read_text()
+        content = expected_file.read_text(encoding="utf-8")
         assert "## 2026-02-17: World Digest — Test Theme" in content
         assert "Content here." in content
 
@@ -63,12 +63,12 @@ Content here.
 **Date:** 2026-02-17
 
 Content here.
-""")
+""", encoding="utf-8")
 
         diary_dir = tmp_path / "diary"
         diary_dir.mkdir()
         # Pre-existing file
-        (diary_dir / "2026-02-17-world-digest.md").write_text("Already exists\n")
+        (diary_dir / "2026-02-17-world-digest.md").write_text("Already exists\n", encoding="utf-8")
 
         results = importer.import_scheduled_entries(diary_dir, outputs)
 
@@ -90,7 +90,7 @@ class TestImportGitReports:
         report_file.write_text("""\
 analysis: Some analysis text
 report: title="Test Report" summary="This is a summary" key_findings=['Finding 1', 'Finding 2']
-""")
+""", encoding="utf-8")
 
         diary_dir = tmp_path / "diary"
         diary_dir.mkdir()
@@ -102,7 +102,7 @@ report: title="Test Report" summary="This is a summary" key_findings=['Finding 1
         assert report_file.with_suffix(".imported").exists()
         expected_file = diary_dir / "2026-02-18-git-report.md"
         assert expected_file.exists()
-        content = expected_file.read_text()
+        content = expected_file.read_text(encoding="utf-8")
         assert "## 2026-02-18: Git Report — Test Report" in content
         assert "This is a summary" in content
         assert "Finding 1" in content

@@ -38,7 +38,7 @@ def make_fr(
         lines.append(f"{fmt} {status}")
     lines += ["", "## Summary", "body"]
     p = dir_ / f"{name}.md"
-    p.write_text("\n".join(lines))
+    p.write_text("\n".join(lines), encoding="utf-8")
     return p
 
 
@@ -56,8 +56,8 @@ def corpus(tmp_path: Path) -> Path:
     make_fr(fr_dir, "FR-004-weird", "Sign-off RECORDED")
     make_fr(fr_dir, "FR-005-child", "Draft")
     child = fr_dir / "FR-005-child.md"
-    child.write_text(child.read_text() + "\n**Parent:** FR-001\n")
-    (fr_dir / "FR-003-variant.judgement.md").write_text("# companion\n")
+    child.write_text(child.read_text(encoding="utf-8") + "\n**Parent:** FR-001\n", encoding="utf-8")
+    (fr_dir / "FR-003-variant.judgement.md").write_text("# companion\n", encoding="utf-8")
     return tmp_path
 
 

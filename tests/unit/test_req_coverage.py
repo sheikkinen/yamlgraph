@@ -26,7 +26,7 @@ def test_example():
     pass
 """
         test_file = tmp_path / "test_foo.py"
-        test_file.write_text(code)
+        test_file.write_text(code, encoding="utf-8")
 
         markers = req_coverage.extract_req_markers(test_file)
 
@@ -42,7 +42,7 @@ def test_multiple():
     pass
 """
         test_file = tmp_path / "test_multi.py"
-        test_file.write_text(code)
+        test_file.write_text(code, encoding="utf-8")
 
         markers = req_coverage.extract_req_markers(test_file)
 
@@ -64,7 +64,7 @@ class TestClass:
         pass
 """
         test_file = tmp_path / "test_class.py"
-        test_file.write_text(code)
+        test_file.write_text(code, encoding="utf-8")
 
         markers = req_coverage.extract_req_markers(test_file)
 
@@ -76,7 +76,7 @@ class TestClass:
     def test_syntax_error(self, tmp_path: Path) -> None:
         """Should return empty dict for files with syntax errors."""
         test_file = tmp_path / "test_broken.py"
-        test_file.write_text("def broken(:\n    pass")
+        test_file.write_text("def broken(:\n    pass", encoding="utf-8")
 
         markers = req_coverage.extract_req_markers(test_file)
 
@@ -95,7 +95,7 @@ class TestExample:
         pass
 """
         test_file = tmp_path / "test_method.py"
-        test_file.write_text(code)
+        test_file.write_text(code, encoding="utf-8")
 
         markers = req_coverage.extract_req_markers(test_file)
 
@@ -112,7 +112,7 @@ class TestModuleToPath:
         # Create a mock file structure
         module_dir = tmp_path / "yamlgraph" / "utils"
         module_dir.mkdir(parents=True)
-        (module_dir / "llm_factory.py").write_text("")
+        (module_dir / "llm_factory.py").write_text("", encoding="utf-8")
 
         with patch.object(Path, "__new__", return_value=tmp_path):
             # The function uses Path(__file__).parent.parent as root
@@ -168,7 +168,7 @@ class TestLoadReqDescriptions:
 
 | REQ-YG-001 | Load graph configurations from YAML | modules |
 | REQ-YG-002 | Validate graph configs with Pydantic | models |
-""")
+""", encoding="utf-8")
 
         descriptions = req_coverage._load_req_descriptions(tmp_path)
 
@@ -199,7 +199,7 @@ class TestMain:
 @pytest.mark.req("REQ-YG-001")
 def test_smoke():
     pass
-""")
+""", encoding="utf-8")
 
         with (
             patch.object(req_coverage.sys, "argv", ["req_coverage.py"]),
@@ -274,13 +274,13 @@ class TestArchitectureCrossCheck:
 @pytest.mark.req("REQ-YG-001")
 def test_smoke():
     pass
-""")
+""", encoding="utf-8")
         # Write ARCHITECTURE.md with given req IDs
         arch_md = tmp_path / "ARCHITECTURE.md"
         lines = ["# Requirements\n"]
         for req in arch_reqs:
             lines.append(f"| {req} | Description for {req} | modules |\n")
-        arch_md.write_text("".join(lines))
+        arch_md.write_text("".join(lines), encoding="utf-8")
 
     def test_phantom_req_strict_exits_nonzero(
         self, tmp_path: Path, capsys: pytest.CaptureFixture[str]
@@ -374,12 +374,12 @@ class TestPhantomRequirementDetection:
         test_dir = tmp_path / "tests" / "unit"
         test_dir.mkdir(parents=True)
         test_file = test_dir / "test_phantom.py"
-        test_file.write_text(test_code)
+        test_file.write_text(test_code, encoding="utf-8")
         arch_md = tmp_path / "ARCHITECTURE.md"
         lines = ["# Requirements\n"]
         for req in arch_reqs or all_reqs:
             lines.append(f"| {req} | Description for {req} | modules |\n")
-        arch_md.write_text("".join(lines))
+        arch_md.write_text("".join(lines), encoding="utf-8")
 
     def test_phantom_strict_exits_nonzero(
         self, tmp_path: Path, capsys: pytest.CaptureFixture[str]

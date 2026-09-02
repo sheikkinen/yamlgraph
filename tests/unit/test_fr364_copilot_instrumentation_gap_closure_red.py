@@ -84,13 +84,13 @@ def _write_semantic_fixture(run_dir: Path) -> None:
     ]
     (phase_dir / "otel.jsonl").write_text(
         "".join(json.dumps(line) + "\n" for line in otel_lines)
-    )
-    (phase_dir / "git-diff.patch").write_text("diff --git a/a.py b/a.py\n+pass\n")
+    , encoding="utf-8")
+    (phase_dir / "git-diff.patch").write_text("diff --git a/a.py b/a.py\n+pass\n", encoding="utf-8")
 
 
 @pytest.mark.req("REQ-YG-340")
 def test_ac01_runner_includes_required_output_flags_for_both_phases() -> None:
-    text = INSTRUMENT_SCRIPT.read_text()
+    text = INSTRUMENT_SCRIPT.read_text(encoding="utf-8")
     assert "--output-format" in text
     assert "--output-format json" in text
     assert "--log-dir" in text
@@ -99,14 +99,14 @@ def test_ac01_runner_includes_required_output_flags_for_both_phases() -> None:
 
 @pytest.mark.req("REQ-YG-341")
 def test_ac02_runner_sets_file_export_and_message_capture_env_vars() -> None:
-    text = INSTRUMENT_SCRIPT.read_text()
+    text = INSTRUMENT_SCRIPT.read_text(encoding="utf-8")
     assert "COPILOT_OTEL_EXPORTER_TYPE=file" in text
     assert "OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT=true" in text
 
 
 @pytest.mark.req("REQ-YG-342")
 def test_ac03_runner_contract_includes_before_and_after_git_snapshots() -> None:
-    text = INSTRUMENT_SCRIPT.read_text()
+    text = INSTRUMENT_SCRIPT.read_text(encoding="utf-8")
     assert "git-status-before.txt" in text
     assert "git-diff-before.patch" in text
     assert "git-status-after.txt" in text
@@ -182,6 +182,6 @@ def test_ac06_conformance_table_output_is_deterministic_for_fixture(
 
 @pytest.mark.req("REQ-YG-346")
 def test_ac07_docs_separate_raw_spans_from_normalized_events() -> None:
-    text = FINDINGS_DOC.read_text()
+    text = FINDINGS_DOC.read_text(encoding="utf-8")
     assert "## Raw Telemetry Artifacts" in text
     assert "## Normalized Semantic Events" in text

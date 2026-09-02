@@ -285,7 +285,7 @@ edges:
     to: END
 """
         graph_file = tmp_path / "test-graph.yaml"
-        graph_file.write_text(graph_yaml)
+        graph_file.write_text(graph_yaml, encoding="utf-8")
 
         config = load_graph_config(str(graph_file))
 

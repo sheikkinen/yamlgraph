@@ -125,7 +125,7 @@ def write_context(state: dict) -> dict:
         "",
     ]
     out = state.get("output_path") or "docs/world-context.md"
-    with open(out, "w") as f:
+    with open(out, "w", encoding="utf-8") as f:
         f.write("\n".join(lines))
     logger.info(
         "🌍 wrote %s (%d highlights, %d themes)", out, len(highlights), len(themes)

@@ -95,7 +95,7 @@ def load_events(path: Path, tail_bytes: int | None = None) -> list[dict]:
     partial line after the seek is discarded.
     """
     events = []
-    with path.open(errors="replace") as fh:
+    with path.open(encoding="utf-8", errors="replace") as fh:
         if tail_bytes is not None:
             size = path.stat().st_size
             if size > tail_bytes:
@@ -173,14 +173,14 @@ def detect_compactions(turns: list[tuple[float, int]]) -> list[dict]:
 def load_calibration(calib_path: Path = CALIB_PATH) -> list[dict]:
     if not calib_path.is_file():
         return []
-    return [json.loads(ln) for ln in calib_path.read_text().splitlines() if ln.strip()]
+    return [json.loads(ln) for ln in calib_path.read_text(encoding="utf-8").splitlines() if ln.strip()]
 
 
 def record_compactions(calib_path: Path, sid: str, comps: list[dict]) -> int:
     """Append witnessed compactions, deduped on (session, ts). Returns new count."""
     seen = {(r["session"], r["ts"]) for r in load_calibration(calib_path)}
     new = [c for c in comps if (sid, c["ts"]) not in seen]
-    with calib_path.open("a") as f:
+    with calib_path.open("a", encoding="utf-8") as f:
         for c in new:
             f.write(json.dumps({"session": sid, **c}) + "\n")
     return len(new)
@@ -248,7 +248,7 @@ def rotate_if_big(path: Path, cap_bytes: int = CAP_BYTES) -> Path | None:
     stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
     archive = path.with_name(f"{path.stem}-{stamp}{path.suffix}")
     shutil.copy2(path, archive)
-    path.open("w").close()
+    path.open("w", encoding="utf-8").close()
     return archive
 
 

@@ -55,7 +55,7 @@ edges:
     to: END
 """
         yaml_file = tmp_path / "test.yaml"
-        yaml_file.write_text(yaml_content)
+        yaml_file.write_text(yaml_content, encoding="utf-8")
         return yaml_file
 
     @pytest.mark.req("REQ-YG-014")

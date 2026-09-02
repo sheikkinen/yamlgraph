@@ -21,7 +21,7 @@ def test_xdist_in_pyproject_dev_deps():
     from pathlib import Path
 
     pyproject = Path(__file__).parents[2] / "pyproject.toml"
-    content = pyproject.read_text()
+    content = pyproject.read_text(encoding="utf-8")
     assert "pytest-xdist" in content, "pytest-xdist missing from pyproject.toml"
 
 
@@ -31,7 +31,7 @@ def test_precommit_uses_parallel_flag():
     from pathlib import Path
 
     config = Path(__file__).parents[2] / ".pre-commit-config.yaml"
-    content = config.read_text()
+    content = config.read_text(encoding="utf-8")
     assert "-n auto" in content, "Pre-commit pytest hook missing -n auto flag"
 
 
@@ -41,7 +41,7 @@ def test_precommit_excludes_slow_tests():
     from pathlib import Path
 
     config = Path(__file__).parents[2] / ".pre-commit-config.yaml"
-    content = config.read_text()
+    content = config.read_text(encoding="utf-8")
     assert "not slow" in content, "Pre-commit pytest hook missing slow filter"
 
 
@@ -51,7 +51,7 @@ def test_dependency_rationale_entry():
     from pathlib import Path
 
     rationale = Path(__file__).parents[2] / "docs" / "dependency-rationale.yaml"
-    content = rationale.read_text()
+    content = rationale.read_text(encoding="utf-8")
     assert (
         "pytest-xdist" in content
     ), "pytest-xdist missing from dependency-rationale.yaml"

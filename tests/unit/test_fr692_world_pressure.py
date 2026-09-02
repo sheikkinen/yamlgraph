@@ -70,7 +70,7 @@ def _rel(to: str, kind: str) -> dict:
 
 def _load_canon_char(cid: str) -> dict:
     path = NOVEL_FANDOM_DIR / "canon" / "character" / f"{cid}.yaml"
-    return yaml.safe_load(path.read_text())
+    return yaml.safe_load(path.read_text(encoding="utf-8"))
 
 
 # ------------------------------------------------------------------ schema

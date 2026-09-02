@@ -9,7 +9,7 @@ import pytest
 def _write_prompt(tmp_path: Path) -> Path:
     prompt_file = tmp_path / "prompts" / "test.yaml"
     prompt_file.parent.mkdir(parents=True)
-    prompt_file.write_text("system: Test\nuser: Hello")
+    prompt_file.write_text("system: Test\nuser: Hello", encoding="utf-8")
     return prompt_file
 
 
@@ -112,7 +112,7 @@ def test_ac04_session_id_extraction_contract_unchanged_with_otel_dir_set(
             share_idx = cmd.index("--share") + 1
             share_path = Path(cmd[share_idx])
             share_path.parent.mkdir(parents=True, exist_ok=True)
-            share_path.write_text(share_content)
+            share_path.write_text(share_content, encoding="utf-8")
         return mock_result
 
     with patch("subprocess.run", side_effect=mock_subprocess_run):

@@ -44,7 +44,7 @@ def check_prompt_messages_contract(
         prompt_path = get_prompt_path(prompt_name, prompts_dir)
         if not prompt_path.exists():
             continue  # check_prompt_files handles missing files (E004).
-        with open(prompt_path) as f:
+        with open(prompt_path, encoding="utf-8") as f:
             content = yaml.safe_load(f)
         try:
             check_messages_contract(content, prompt_name)

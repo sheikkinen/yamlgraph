@@ -78,7 +78,7 @@ class TestRouterSchemaFields:
         """Should pass with 'intent' field in schema."""
         # Create test graph
         graph_path = tmp_path / "test.yaml"
-        with open(graph_path, "w") as f:
+        with open(graph_path, "w", encoding="utf-8") as f:
             yaml.dump(
                 {
                     "nodes": {"router1": {"type": "router", "prompt": "classify"}},
@@ -91,7 +91,7 @@ class TestRouterSchemaFields:
         prompts_dir = tmp_path / "prompts"
         prompts_dir.mkdir()
         prompt_file = prompts_dir / "classify.yaml"
-        with open(prompt_file, "w") as f:
+        with open(prompt_file, "w", encoding="utf-8") as f:
             yaml.dump(
                 {
                     "schema": {
@@ -113,7 +113,7 @@ class TestRouterSchemaFields:
         """Should pass with 'tone' field in schema."""
         # Create test graph
         graph_path = tmp_path / "test.yaml"
-        with open(graph_path, "w") as f:
+        with open(graph_path, "w", encoding="utf-8") as f:
             yaml.dump(
                 {
                     "nodes": {"router1": {"type": "router", "prompt": "classify"}},
@@ -126,7 +126,7 @@ class TestRouterSchemaFields:
         prompts_dir = tmp_path / "prompts"
         prompts_dir.mkdir()
         prompt_file = prompts_dir / "classify.yaml"
-        with open(prompt_file, "w") as f:
+        with open(prompt_file, "w", encoding="utf-8") as f:
             yaml.dump(
                 {
                     "schema": {
@@ -151,7 +151,7 @@ class TestRouterSchemaFields:
         """Should error when schema lacks 'intent' or 'tone' field."""
         # Create test graph
         graph_path = tmp_path / "test.yaml"
-        with open(graph_path, "w") as f:
+        with open(graph_path, "w", encoding="utf-8") as f:
             yaml.dump(
                 {
                     "nodes": {"router1": {"type": "router", "prompt": "classify"}},
@@ -164,7 +164,7 @@ class TestRouterSchemaFields:
         prompts_dir = tmp_path / "prompts"
         prompts_dir.mkdir()
         prompt_file = prompts_dir / "classify.yaml"
-        with open(prompt_file, "w") as f:
+        with open(prompt_file, "w", encoding="utf-8") as f:
             yaml.dump(
                 {
                     "schema": {
@@ -268,7 +268,7 @@ class TestRouterPatternsIntegration:
         """Should pass completely valid router graph."""
         # Create test graph
         graph_path = tmp_path / "valid_router.yaml"
-        with open(graph_path, "w") as f:
+        with open(graph_path, "w", encoding="utf-8") as f:
             yaml.dump(
                 {
                     "nodes": {
@@ -291,7 +291,7 @@ class TestRouterPatternsIntegration:
         prompts_dir = tmp_path / "prompts"
         prompts_dir.mkdir()
         prompt_file = prompts_dir / "classify.yaml"
-        with open(prompt_file, "w") as f:
+        with open(prompt_file, "w", encoding="utf-8") as f:
             yaml.dump(
                 {
                     "schema": {
@@ -311,7 +311,7 @@ class TestRouterPatternsIntegration:
         """Should catch multiple router validation errors."""
         # Create test graph with multiple issues
         graph_path = tmp_path / "invalid_router.yaml"
-        with open(graph_path, "w") as f:
+        with open(graph_path, "w", encoding="utf-8") as f:
             yaml.dump(
                 {
                     "nodes": {
@@ -341,7 +341,7 @@ class TestRouterPatternsIntegration:
         prompts_dir = tmp_path / "prompts"
         prompts_dir.mkdir()
         prompt_file = prompts_dir / "classify.yaml"
-        with open(prompt_file, "w") as f:
+        with open(prompt_file, "w", encoding="utf-8") as f:
             yaml.dump(
                 {
                     "schema": {

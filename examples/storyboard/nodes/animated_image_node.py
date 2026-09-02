@@ -119,7 +119,7 @@ def generate_animated_images_node(state: GraphState) -> dict:
         ],
         "generated_at": datetime.now().isoformat(),
     }
-    metadata_path.write_text(json.dumps(metadata, indent=2))
+    metadata_path.write_text(json.dumps(metadata, indent=2), encoding="utf-8")
     logger.info(f"📝 Metadata saved: {metadata_path}")
 
     # Count successes

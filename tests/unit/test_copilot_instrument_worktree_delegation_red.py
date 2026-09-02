@@ -12,7 +12,7 @@ INSTRUMENT_SCRIPT = REPO_ROOT / "scripts" / "copilot_instrument.sh"
 
 @pytest.mark.req("REQ-YG-526")
 def test_instrument_script_calls_shared_worktree_new_rm() -> None:
-    text = INSTRUMENT_SCRIPT.read_text()
+    text = INSTRUMENT_SCRIPT.read_text(encoding="utf-8")
     assert "scripts/worktree.sh" in text
     assert 'worktree.sh" new' in text
     assert 'worktree.sh" rm' in text
@@ -20,6 +20,6 @@ def test_instrument_script_calls_shared_worktree_new_rm() -> None:
 
 @pytest.mark.req("REQ-YG-526")
 def test_instrument_script_has_no_direct_worktree_add_remove() -> None:
-    text = INSTRUMENT_SCRIPT.read_text()
+    text = INSTRUMENT_SCRIPT.read_text(encoding="utf-8")
     assert "worktree add --detach" not in text
     assert "worktree remove --force" not in text

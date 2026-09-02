@@ -35,7 +35,7 @@ def _iter_string_lists(call: ast.Call):
 
 def _find_offending_spawns(path: Path) -> list[int]:
     """Return line numbers of subprocess pytest spawns without cov disable."""
-    tree = ast.parse(path.read_text(), filename=str(path))
+    tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
     offenders = []
     for node in ast.walk(tree):
         if not isinstance(node, ast.Call):

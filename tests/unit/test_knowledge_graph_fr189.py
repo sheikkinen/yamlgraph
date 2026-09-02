@@ -33,7 +33,7 @@ class TestDownstreamFixGraduation:
         ), f"Missing {COPILOT_INSTRUCTIONS.relative_to(REPO_ROOT)}"
 
     def test_downstream_fix_has_graduated_description(self):
-        content = COPILOT_INSTRUCTIONS.read_text()
+        content = COPILOT_INSTRUCTIONS.read_text(encoding="utf-8")
         assert GRADUATED_DESCRIPTION in content, (
             f"downstream_fix trap not updated to graduated description.\n"
             f"Expected: {GRADUATED_DESCRIPTION}\n"
@@ -42,7 +42,7 @@ class TestDownstreamFixGraduation:
         )
 
     def test_old_description_removed(self):
-        content = COPILOT_INSTRUCTIONS.read_text()
+        content = COPILOT_INSTRUCTIONS.read_text(encoding="utf-8")
         assert OLD_DESCRIPTION not in content, (
             f"Old downstream_fix description still present.\n"
             f"Found: {OLD_DESCRIPTION}\n"
@@ -51,7 +51,7 @@ class TestDownstreamFixGraduation:
 
     def test_no_other_traps_changed(self):
         """Verify all other trap descriptions remain unchanged."""
-        content = COPILOT_INSTRUCTIONS.read_text()
+        content = COPILOT_INSTRUCTIONS.read_text(encoding="utf-8")
         expected_traps = {
             "quick_confidence": '"When I feel certain → Judge instead"',
             "symptom_patch": '"Verify root cause with test before designing fix"',
@@ -86,7 +86,7 @@ class TestDownstreamFixGraduation:
 
     def test_no_cures_changed(self):
         """Verify all cure descriptions remain unchanged."""
-        content = COPILOT_INSTRUCTIONS.read_text()
+        content = COPILOT_INSTRUCTIONS.read_text(encoding="utf-8")
         expected_cures = {
             "test_before_reading": '"Write question as test → if passes, stop"',
             "tolerant_matching": (

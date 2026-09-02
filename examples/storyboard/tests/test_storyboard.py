@@ -26,7 +26,7 @@ class TestGraphStructure:
 
     def test_main_graph_valid(self):
         """Main graph should be valid."""
-        config = yaml.safe_load((EXAMPLE_DIR / "graph.yaml").read_text())
+        config = yaml.safe_load((EXAMPLE_DIR / "graph.yaml").read_text(encoding="utf-8"))
         assert config.get("name") == "storyboard"
         nodes = config.get("nodes", {})
         assert "expand_story" in nodes

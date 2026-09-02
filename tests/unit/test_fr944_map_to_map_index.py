@@ -107,12 +107,12 @@ def _write_graph(
     second_over: str = "firsts",
     second_as: str = "item2",
 ) -> Path:
-    (tmp_path / "tools_fr944.py").write_text(TOOLS_SRC)
+    (tmp_path / "tools_fr944.py").write_text(TOOLS_SRC, encoding="utf-8")
     graph_yaml = GRAPH_TEMPLATE.format(
         second_fn=second_fn, second_over=second_over, second_as=second_as
     )
     graph_path = tmp_path / "graph.yaml"
-    graph_path.write_text(graph_yaml)
+    graph_path.write_text(graph_yaml, encoding="utf-8")
     return graph_path
 
 
@@ -151,7 +151,7 @@ class TestIndependentListChain:
     def test_no_per_branch_nxm_fanout(self, tmp_path):
         """N=3 upstream branches, M=2 independent list: exactly 2 results
         with indexes [0, 1], not N*M=6."""
-        (tmp_path / "tools_fr944.py").write_text(TOOLS_SRC)
+        (tmp_path / "tools_fr944.py").write_text(TOOLS_SRC, encoding="utf-8")
         graph_yaml = (
             GRAPH_TEMPLATE.format(
                 second_fn="second_over_other",
@@ -175,7 +175,7 @@ class TestIndependentListChain:
             )
         )
         graph_path = tmp_path / "graph.yaml"
-        graph_path.write_text(graph_yaml)
+        graph_path.write_text(graph_yaml, encoding="utf-8")
         app = load_and_compile(str(graph_path)).compile()
 
         result = app.invoke({"items": ["a", "b", "c"]})
@@ -244,7 +244,7 @@ class TestJoinNameCollision:
     def test_collision_raises_naming_edge_and_node(self, tmp_path):
         """A user node occupying the generated join name must fail
         compilation naming the map-to-map edge and the synthetic name."""
-        (tmp_path / "tools_fr944.py").write_text(TOOLS_SRC)
+        (tmp_path / "tools_fr944.py").write_text(TOOLS_SRC, encoding="utf-8")
         graph_yaml = (
             GRAPH_TEMPLATE.format(
                 second_fn="second", second_over="firsts", second_as="item2"
@@ -266,7 +266,7 @@ class TestJoinNameCollision:
             )
         )
         graph_path = tmp_path / "graph.yaml"
-        graph_path.write_text(graph_yaml)
+        graph_path.write_text(graph_yaml, encoding="utf-8")
 
         with pytest.raises(
             ValueError,

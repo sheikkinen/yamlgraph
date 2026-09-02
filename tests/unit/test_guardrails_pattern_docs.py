@@ -28,7 +28,7 @@ class TestGuardrailsPatternExists:
 
     @pytest.fixture(autouse=True)
     def _load(self):
-        self.content = PATTERNS_MD.read_text()
+        self.content = PATTERNS_MD.read_text(encoding="utf-8")
 
     def test_pattern_11_heading(self):
         assert (
@@ -56,7 +56,7 @@ class TestGuardrailsPatternSections:
 
     @pytest.fixture(autouse=True)
     def _load(self):
-        content = PATTERNS_MD.read_text()
+        content = PATTERNS_MD.read_text(encoding="utf-8")
         # Extract Pattern 11 section (between Pattern 11 heading and Pattern 12)
         start = content.index("## Pattern 11:")
         end = content.index("## Pattern 12:")
@@ -95,7 +95,7 @@ class TestGuardrailsYamlValid:
 
     @pytest.fixture(autouse=True)
     def _load(self):
-        content = PATTERNS_MD.read_text()
+        content = PATTERNS_MD.read_text(encoding="utf-8")
         start = content.index("## Pattern 11:")
         end = content.index("## Pattern 12:")
         self.section = content[start:end]
@@ -151,7 +151,7 @@ class TestGuardrailsReferences:
 
     @pytest.fixture(autouse=True)
     def _load(self):
-        content = PATTERNS_MD.read_text()
+        content = PATTERNS_MD.read_text(encoding="utf-8")
         start = content.index("## Pattern 11:")
         end = content.index("## Pattern 12:")
         self.section = content[start:end]
@@ -178,7 +178,7 @@ class TestExamplesReadmeGuardrails:
 
     @pytest.fixture(autouse=True)
     def _load(self):
-        self.content = EXAMPLES_README.read_text()
+        self.content = EXAMPLES_README.read_text(encoding="utf-8")
 
     def test_guardrails_category_exists(self):
         assert (

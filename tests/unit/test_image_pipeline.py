@@ -25,11 +25,11 @@ README_FILE = GRAPH_DIR / "README.md"
 
 
 def _read(path: Path) -> str:
-    return path.read_text()
+    return path.read_text(encoding="utf-8")
 
 
 def _load_yaml(path: Path) -> dict:
-    return yaml.safe_load(path.read_text())
+    return yaml.safe_load(path.read_text(encoding="utf-8"))
 
 
 # ---------------------------------------------------------------------------
@@ -204,7 +204,7 @@ class TestSavePromptsNode:
 
         prompt_file = Path(result["prompt_file"])
         assert prompt_file.exists()
-        lines = prompt_file.read_text().strip().split("\n")
+        lines = prompt_file.read_text(encoding="utf-8").strip().split("\n")
         assert lines == prompts
 
     def test_returns_prompt_file_and_output_dir(self, tmp_path):
@@ -347,7 +347,7 @@ class TestGenerateImagesNode:
         # Check sidecar .txt exists (EXIF failed, fallback written)
         sidecars = list(tmp_path.glob("zimage_*.txt"))
         assert len(sidecars) == 1, "Sidecar must exist when EXIF fails"
-        assert sidecars[0].read_text() == prompt
+        assert sidecars[0].read_text(encoding="utf-8") == prompt
 
     def test_skips_failed_images(self, tmp_path):
         from examples.shared.replicate_tool import ImageResult

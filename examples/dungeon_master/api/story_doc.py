@@ -107,10 +107,10 @@ def doc_path(story_dir: Path | str) -> Path:
 
 def read(story_dir: Path | str) -> dict:
     """Read the story document. Raises if it does not exist (boundary)."""
-    return json.loads(doc_path(story_dir).read_text())
+    return json.loads(doc_path(story_dir).read_text(encoding="utf-8"))
 
 
 def write(story_dir: Path | str, doc: dict) -> None:
     """Persist the story document for a single-writer UI."""
     Path(story_dir).mkdir(parents=True, exist_ok=True)
-    doc_path(story_dir).write_text(json.dumps(doc, indent=2, ensure_ascii=False))
+    doc_path(story_dir).write_text(json.dumps(doc, indent=2, ensure_ascii=False), encoding="utf-8")

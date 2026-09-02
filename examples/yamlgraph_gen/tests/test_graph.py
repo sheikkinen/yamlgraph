@@ -14,7 +14,7 @@ class TestGraphValidation:
     def test_graph_yaml_is_valid_yaml(self) -> None:
         """Graph file is valid YAML."""
         graph_path = EXAMPLE_DIR / "graph.yaml"
-        content = graph_path.read_text()
+        content = graph_path.read_text(encoding="utf-8")
 
         parsed = yaml.safe_load(content)
 
@@ -24,7 +24,7 @@ class TestGraphValidation:
     def test_graph_has_required_sections(self) -> None:
         """Graph has all required sections."""
         graph_path = EXAMPLE_DIR / "graph.yaml"
-        parsed = yaml.safe_load(graph_path.read_text())
+        parsed = yaml.safe_load(graph_path.read_text(encoding="utf-8"))
 
         assert "nodes" in parsed
         assert "edges" in parsed
@@ -33,7 +33,7 @@ class TestGraphValidation:
     def test_graph_nodes_have_prompts(self) -> None:
         """All LLM/router nodes reference existing prompts."""
         graph_path = EXAMPLE_DIR / "graph.yaml"
-        parsed = yaml.safe_load(graph_path.read_text())
+        parsed = yaml.safe_load(graph_path.read_text(encoding="utf-8"))
 
         for node_name, node_config in parsed["nodes"].items():
             node_type = node_config.get("type", "llm")
@@ -50,14 +50,14 @@ class TestGraphValidation:
         prompts_dir = EXAMPLE_DIR / "prompts"
 
         for prompt_file in prompts_dir.glob("*.yaml"):
-            content = yaml.safe_load(prompt_file.read_text())
+            content = yaml.safe_load(prompt_file.read_text(encoding="utf-8"))
             assert "system" in content, f"{prompt_file.name} missing system"
             assert "user" in content, f"{prompt_file.name} missing user"
 
     def test_graph_edges_reference_valid_nodes(self) -> None:
         """All edges reference nodes that exist."""
         graph_path = EXAMPLE_DIR / "graph.yaml"
-        parsed = yaml.safe_load(graph_path.read_text())
+        parsed = yaml.safe_load(graph_path.read_text(encoding="utf-8"))
 
         node_names = set(parsed["nodes"].keys()) | {"START", "END"}
 
@@ -84,7 +84,7 @@ class TestGraphValidation:
         snippets_dir = EXAMPLE_DIR / "snippets"
 
         for snippet_file in snippets_dir.rglob("*.yaml"):
-            content = snippet_file.read_text()
+            content = snippet_file.read_text(encoding="utf-8")
             try:
                 yaml.safe_load(content)
             except yaml.YAMLError as e:
@@ -95,7 +95,7 @@ class TestGraphValidation:
         patterns_dir = EXAMPLE_DIR / "snippets" / "patterns"
 
         for pattern_file in patterns_dir.glob("*.yaml"):
-            content = yaml.safe_load(pattern_file.read_text())
+            content = yaml.safe_load(pattern_file.read_text(encoding="utf-8"))
             assert "nodes" in content, f"{pattern_file.name} missing nodes"
             assert "edges" in content, f"{pattern_file.name} missing edges"
 

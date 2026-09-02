@@ -20,6 +20,6 @@ def save_horoscope(state: dict) -> dict:
 
     filename = f"horoscope-{date}.md"
     output_path = output_dir / filename
-    output_path.write_text(document)
+    output_path.write_text(document, encoding="utf-8")
 
     return {"output_path": str(output_path)}

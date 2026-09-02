@@ -90,7 +90,7 @@ def concurrency() -> None:
     hour_sessions: dict[str, set[str]] = defaultdict(set)
     for chat in WS_STORAGE.glob("*/chatSessions/*.jsonl"):
         try:
-            text = chat.read_text(errors="replace")
+            text = chat.read_text(errors="replace", encoding="utf-8")
         except OSError:
             continue
         for m in TS_RE.finditer(text):

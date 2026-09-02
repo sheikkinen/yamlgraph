@@ -40,17 +40,17 @@ def make_target(tmp_path: Path, shape: str = "supported") -> Path:
     target = tmp_path / "target"
     shutil.copytree(FIXTURE, target)
     (target / ".git").mkdir()
-    (target / ".git" / "HEAD").write_text("ref: refs/heads/main\n")
+    (target / ".git" / "HEAD").write_text("ref: refs/heads/main\n", encoding="utf-8")
     if shape == "missing-tests":
         shutil.rmtree(target / "tests")
     elif shape == "missing-ruff":
         py = target / "pyproject.toml"
-        py.write_text(py.read_text().replace("[tool.ruff]\nline-length = 88\n", ""))
+        py.write_text(py.read_text(encoding="utf-8").replace("[tool.ruff]\nline-length = 88\n", ""), encoding="utf-8")
     elif shape == "non-repo":
         shutil.rmtree(target / ".git")
     elif shape == "worktree":
         shutil.rmtree(target / ".git")
-        (target / ".git").write_text("gitdir: /somewhere/else\n")
+        (target / ".git").write_text("gitdir: /somewhere/else\n", encoding="utf-8")
     return target
 
 
@@ -151,7 +151,7 @@ def test_manifest_no_duplicate_destinations(entries):
 def test_manifest_rejects_bad_entries(tmp_path, entry, reason):
     bad = tmp_path / "manifest.yaml"
     base = {"overwrite": "never", "authored": True}
-    bad.write_text(yaml.safe_dump({"schema_version": 1, "entries": [base | entry]}))
+    bad.write_text(yaml.safe_dump({"schema_version": 1, "entries": [base | entry]}), encoding="utf-8")
     with pytest.raises(ri.ManifestError):
         ri.load_manifest(bad, ramp_dir=RAMP_DIR)
 
@@ -166,7 +166,7 @@ def test_manifest_rejects_duplicate_destination(tmp_path):
         "authored": True,
     }
     bad = tmp_path / "manifest.yaml"
-    bad.write_text(yaml.safe_dump({"schema_version": 1, "entries": [e, dict(e)]}))
+    bad.write_text(yaml.safe_dump({"schema_version": 1, "entries": [e, dict(e)]}), encoding="utf-8")
     with pytest.raises(ri.ManifestError):
         ri.load_manifest(bad, ramp_dir=RAMP_DIR)
 
@@ -182,7 +182,7 @@ def test_manifest_rejects_double_provenance(tmp_path):
         "mirror_exact": "AGENTS.md",
     }
     bad = tmp_path / "manifest.yaml"
-    bad.write_text(yaml.safe_dump({"schema_version": 1, "entries": [e]}))
+    bad.write_text(yaml.safe_dump({"schema_version": 1, "entries": [e]}), encoding="utf-8")
     with pytest.raises(ri.ManifestError):
         ri.load_manifest(bad, ramp_dir=RAMP_DIR)
 
@@ -272,24 +272,24 @@ def test_second_run_is_idempotent(tmp_path, entries):
 def test_existing_agents_md_survives_without_force(tmp_path):
     target = make_target(tmp_path)
     sentinel = "# SENTINEL — real doctrine, do not clobber\n"
-    (target / "AGENTS.md").write_text(sentinel)
+    (target / "AGENTS.md").write_text(sentinel, encoding="utf-8")
     r = run_cli(target, "--tier", "1")
     assert r.returncode == 0, r.stderr
-    assert (target / "AGENTS.md").read_text() == sentinel
+    assert (target / "AGENTS.md").read_text(encoding="utf-8") == sentinel
 
 
 @pytest.mark.req("REQ-YG-612")
 def test_force_overwrite_backs_up_and_records_hashes(tmp_path):
     target = make_target(tmp_path)
     sentinel = "# SENTINEL\n"
-    (target / "AGENTS.md").write_text(sentinel)
+    (target / "AGENTS.md").write_text(sentinel, encoding="utf-8")
     r = run_cli(target, "--tier", "1", "--force")
     assert r.returncode == 0, r.stderr
     doc = ri.parse_target_manifest(target / "docs" / "ramp-manifest.md")
     row = doc["rows"]["AGENTS.md"]
     assert row["action"] == "overwritten"
     backup = target / row["backup"]
-    assert backup.read_text() == sentinel
+    assert backup.read_text(encoding="utf-8") == sentinel
     assert row["installed_sha256"] == sha256(target / "AGENTS.md")
 
 
@@ -316,7 +316,7 @@ def test_ramp_manifest_doc_records_everything(tmp_path, entries):
 def test_rollback_deletes_created_restores_backups(tmp_path, entries):
     target = make_target(tmp_path)
     sentinel = "# SENTINEL\n"
-    (target / "AGENTS.md").write_text(sentinel)
+    (target / "AGENTS.md").write_text(sentinel, encoding="utf-8")
     pre_existing = tree_state(target)
     assert run_cli(target, "--tier", "1", "--force").returncode == 0
     r = run_cli(target, "--rollback")
@@ -325,7 +325,7 @@ def test_rollback_deletes_created_restores_backups(tmp_path, entries):
         if e.destination == "AGENTS.md":
             continue
         assert not (target / e.destination).exists()
-    assert (target / "AGENTS.md").read_text() == sentinel
+    assert (target / "AGENTS.md").read_text(encoding="utf-8") == sentinel
     after = {k: v[0] for k, v in tree_state(target).items()}
     for path, (digest, _) in pre_existing.items():
         assert after.get(path) == digest, f"pre-existing file harmed: {path}"
@@ -367,7 +367,7 @@ def test_refuses_this_repository():
 
 @pytest.mark.req("REQ-YG-613")
 def test_installer_source_scan_no_llm_network_or_target_git():
-    src = CLI.read_text()
+    src = CLI.read_text(encoding="utf-8")
     for token in (
         "requests",
         "urllib",
@@ -386,7 +386,7 @@ def test_installer_source_scan_no_llm_network_or_target_git():
 @pytest.mark.req("REQ-YG-613")
 def test_tier1_assets_are_domain_free(entries):
     for e in ri.select_tier(entries, 1):
-        text = (RAMP_DIR / e.source).read_text()
+        text = (RAMP_DIR / e.source).read_text(encoding="utf-8")
         for marker in (".chaplain", "REQ-YG", "examples/", "yamlgraph/"):
             assert marker not in text, f"domain marker {marker!r} in {e.source}"
 
@@ -410,7 +410,7 @@ def test_ci_workflow_is_inert_setup_stub(entries):
         if e.destination.startswith(".github/workflows/")
     ]
     assert len(ci) == 1
-    text = (RAMP_DIR / ci[0].source).read_text()
+    text = (RAMP_DIR / ci[0].source).read_text(encoding="utf-8")
     wf = yaml.safe_load(text)
     triggers = wf.get("on") or wf.get(True)
     assert triggers == "workflow_dispatch" or list(triggers) == ["workflow_dispatch"]
@@ -482,7 +482,7 @@ def test_mirror_exact_entries_match_live_bytes(entries):
 def test_curation_diff_entries_have_records(entries):
     curated = [e for e in entries if e.provenance == "curation_diff"]
     assert curated, "expected at least one curation_diff entry"
-    diffs = (RAMP_DIR / "curation-diffs.md").read_text()
+    diffs = (RAMP_DIR / "curation-diffs.md").read_text(encoding="utf-8")
     for e in curated:
         record, _, anchor = e.curation_diff.partition("#")
         assert record == "curation-diffs.md"
@@ -507,11 +507,11 @@ def test_record_consumer_appends_then_updates_idempotently(tmp_path):
     assert r2.returncode == 0, r2.stderr
     rows = [
         ln
-        for ln in consumers.read_text().splitlines()
+        for ln in consumers.read_text(encoding="utf-8").splitlines()
         if ln.startswith("|") and "acme/widget" in ln
     ]
     assert len(rows) == 1
-    assert "/Users" not in consumers.read_text()
+    assert "/Users" not in consumers.read_text(encoding="utf-8")
 
 
 @pytest.mark.req("REQ-YG-613")
@@ -536,7 +536,7 @@ def test_record_consumer_rejects_non_slug(tmp_path, slug):
 
 @pytest.mark.req("REQ-YG-613")
 def test_consumers_registry_documents_schema():
-    text = (RAMP_DIR / "consumers.md").read_text()
+    text = (RAMP_DIR / "consumers.md").read_text(encoding="utf-8")
     assert "| target |" in text
     assert "manifest" in text
     assert "slug" in text.lower()

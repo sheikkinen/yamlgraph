@@ -27,11 +27,11 @@ WATCHER_LIB = os.path.join(REPO_ROOT, ".chaplain", "lib", "watcher")
 
 def _read_watch_sh() -> str:
     """Read start-system.sh + all library scripts."""
-    with open(WATCH_SH) as fh:
+    with open(WATCH_SH, encoding="utf-8") as fh:
         parts = [fh.read()]
     for f in sorted(os.listdir(WATCHER_LIB)):
         if f.endswith(".sh"):
-            with open(os.path.join(WATCHER_LIB, f)) as fh:
+            with open(os.path.join(WATCHER_LIB, f), encoding="utf-8") as fh:
                 parts.append(fh.read())
     return "\n".join(parts)
 
@@ -135,7 +135,7 @@ class TestAuthorAllowlistLogic:
                     ;;
             esac
         """)
-        )
+        , encoding="utf-8")
         mock_gh.chmod(mock_gh.stat().st_mode | stat.S_IEXEC)
         return mock_gh
 
@@ -183,7 +183,7 @@ class TestAuthorAllowlistLogic:
         inbox.mkdir()
         script_dir = tmp_path / "chaplain"
         script_dir.mkdir()
-        (script_dir / "allowed-authors.txt").write_text("trusteduser\n")
+        (script_dir / "allowed-authors.txt").write_text("trusteduser\n", encoding="utf-8")
 
         self._make_mock_gh(tmp_path, author="trusteduser")
         result = subprocess.run(
@@ -208,7 +208,7 @@ class TestAuthorAllowlistLogic:
         inbox.mkdir()
         script_dir = tmp_path / "chaplain"
         script_dir.mkdir()
-        (script_dir / "allowed-authors.txt").write_text("trusteduser\n")
+        (script_dir / "allowed-authors.txt").write_text("trusteduser\n", encoding="utf-8")
 
         self._make_mock_gh(tmp_path, author="untrusteduser")
         result = subprocess.run(
@@ -233,7 +233,7 @@ class TestAuthorAllowlistLogic:
         inbox.mkdir()
         script_dir = tmp_path / "chaplain"
         script_dir.mkdir()
-        (script_dir / "allowed-authors.txt").write_text("trusteduser\n")
+        (script_dir / "allowed-authors.txt").write_text("trusteduser\n", encoding="utf-8")
 
         # Mock gh that logs edit calls
         mock_gh = tmp_path / "mock_gh"
@@ -257,7 +257,7 @@ class TestAuthorAllowlistLogic:
                     ;;
             esac
         """)
-        )
+        , encoding="utf-8")
         mock_gh.chmod(mock_gh.stat().st_mode | stat.S_IEXEC)
 
         result = subprocess.run(
@@ -342,7 +342,7 @@ class TestBodySizeCapLogic:
                     ;;
             esac
         """)
-        )
+        , encoding="utf-8")
         mock_gh.chmod(mock_gh.stat().st_mode | stat.S_IEXEC)
 
         # Use a smaller cap (100) for testing
@@ -388,7 +388,7 @@ class TestBodySizeCapLogic:
         assert "TRUNCATED:42:200:100" in result.stdout
         assert "IMPORTED:42" in result.stdout
 
-        content = (inbox / "gh-42.md").read_text()
+        content = (inbox / "gh-42.md").read_text(encoding="utf-8")
         # Body portion should be exactly 100 A's, not 200
         body_line = content.split("\n\n", 1)[1].rstrip("\n")
         assert len(body_line) == 100
@@ -423,7 +423,7 @@ class TestBodySizeCapLogic:
                     ;;
             esac
         """)
-        )
+        , encoding="utf-8")
         mock_gh.chmod(mock_gh.stat().st_mode | stat.S_IEXEC)
 
         sync_script = textwrap.dedent("""\
@@ -467,7 +467,7 @@ class TestBodySizeCapLogic:
         assert result.returncode == 0, f"Failed: {result.stderr}"
         assert "TRUNCATED" not in result.stdout
         assert "IMPORTED:42" in result.stdout
-        content = (inbox / "gh-42.md").read_text()
+        content = (inbox / "gh-42.md").read_text(encoding="utf-8")
         assert "Short body" in content
 
 
@@ -507,7 +507,7 @@ class TestAuditHeaderLogic:
                     ;;
             esac
         """)
-        )
+        , encoding="utf-8")
         mock_gh.chmod(mock_gh.stat().st_mode | stat.S_IEXEC)
 
         sync_script = textwrap.dedent("""\
@@ -550,7 +550,7 @@ class TestAuditHeaderLogic:
         assert result.returncode == 0, f"Failed: {result.stderr}"
         assert "IMPORTED:42" in result.stdout
 
-        content = (inbox / "gh-42.md").read_text()
+        content = (inbox / "gh-42.md").read_text(encoding="utf-8")
         first_line = content.split("\n")[0]
         assert first_line == "<!-- author: @testuser -->"
         assert "# My Title" in content
@@ -597,6 +597,6 @@ class TestAllowedAuthorsFileExists:
     def test_allowed_authors_contains_default(self):
         """allowed-authors.txt contains the repo owner as default."""
         allowed_path = os.path.join(REPO_ROOT, ".chaplain", "allowed-authors.txt")
-        with open(allowed_path) as f:
+        with open(allowed_path, encoding="utf-8") as f:
             content = f.read()
         assert "sheikkinen" in content

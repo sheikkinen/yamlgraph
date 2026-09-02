@@ -19,7 +19,7 @@ INDEX_HTML = REPO_ROOT / "docs" / "demos" / "webllm" / "index.html"
 
 @pytest.fixture(scope="module")
 def html() -> str:
-    return INDEX_HTML.read_text()
+    return INDEX_HTML.read_text(encoding="utf-8")
 
 
 @pytest.mark.req("REQ-YG-562")

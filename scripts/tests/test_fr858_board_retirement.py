@@ -35,7 +35,7 @@ def test_committed_board_is_untracked():
 
 
 def test_no_active_drift_hook():
-    config = (REPO_ROOT / ".pre-commit-config.yaml").read_text()
+    config = (REPO_ROOT / ".pre-commit-config.yaml").read_text(encoding="utf-8")
     assert "fr-board-check" not in config
     assert "fr_board.py --check" not in config
 
@@ -67,13 +67,13 @@ def test_cli_rejects_retired_write_and_check_flags():
 
 
 def test_now_py_reads_live_state_not_the_committed_board():
-    source = (REPO_ROOT / "scripts" / "vscode" / "now.py").read_text()
+    source = (REPO_ROOT / "scripts" / "vscode" / "now.py").read_text(encoding="utf-8")
     assert "docs/fr-board.md" not in source
 
 
 def test_session_introspection_skill_routes_to_the_live_command():
     skill = (
         REPO_ROOT / ".github" / "skills" / "session-introspection" / "SKILL.md"
-    ).read_text()
+    ).read_text(encoding="utf-8")
     assert "docs/fr-board.md" not in skill
     assert "fr_board.py" in skill

@@ -135,7 +135,7 @@ def main() -> None:
     report = "\n".join(lines)
     print(report)
     OUT.parent.mkdir(parents=True, exist_ok=True)
-    OUT.write_text(report + "\n")
+    OUT.write_text(report + "\n", encoding="utf-8")
     print(f"\nwritten: {OUT}")
 
 

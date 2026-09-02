@@ -74,7 +74,7 @@ def load_snippet(snippet_path: str) -> dict:
     if not full_path.exists():
         raise FileNotFoundError(f"Snippet not found: {snippet_path}")
 
-    content = full_path.read_text()
+    content = full_path.read_text(encoding="utf-8")
     data = yaml.safe_load(content)
 
     return {
@@ -150,7 +150,7 @@ def get_snippet_index() -> dict:
         snippets = []
         for p in cat_path.glob("*.yaml"):
             try:
-                data = yaml.safe_load(p.read_text())
+                data = yaml.safe_load(p.read_text(encoding="utf-8"))
                 snippets.append(
                     {
                         "name": p.stem,

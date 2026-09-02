@@ -543,7 +543,7 @@ class TestFSMIntegration:
         import yaml
 
         config_path = Path(__file__).parent.parent / "config" / "router.yaml"
-        with open(config_path) as f:
+        with open(config_path, encoding="utf-8") as f:
             config = yaml.safe_load(f)
 
         assert config["initial_state"] == "waiting"
@@ -555,7 +555,7 @@ class TestFSMIntegration:
         import yaml
 
         config_path = Path(__file__).parent.parent / "config" / "router.yaml"
-        with open(config_path) as f:
+        with open(config_path, encoding="utf-8") as f:
             config = yaml.safe_load(f)
 
         actions = config.get("actions", {})
@@ -574,7 +574,7 @@ class TestFSMIntegration:
         graphs_dir = Path(__file__).parent.parent / "graphs"
 
         for graph_file in graphs_dir.glob("*.yaml"):
-            with open(graph_file) as f:
+            with open(graph_file, encoding="utf-8") as f:
                 config = yaml.safe_load(f)
 
             assert "name" in config

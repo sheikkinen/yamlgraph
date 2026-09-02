@@ -32,7 +32,7 @@ class TestPlausibleWrongAnswerGraduation:
         ), f"Missing {COPILOT_INSTRUCTIONS.relative_to(REPO_ROOT)}"
 
     def test_plausible_wrong_answer_has_graduated_description(self):
-        content = COPILOT_INSTRUCTIONS.read_text()
+        content = COPILOT_INSTRUCTIONS.read_text(encoding="utf-8")
         assert GRADUATED_DESCRIPTION in content, (
             f"plausible_wrong_answer trap not updated to graduated description.\n"
             f"Expected: {GRADUATED_DESCRIPTION}\n"
@@ -41,7 +41,7 @@ class TestPlausibleWrongAnswerGraduation:
         )
 
     def test_old_description_removed(self):
-        content = COPILOT_INSTRUCTIONS.read_text()
+        content = COPILOT_INSTRUCTIONS.read_text(encoding="utf-8")
         assert OLD_DESCRIPTION not in content, (
             f"Old plausible_wrong_answer description still present.\n"
             f"Found: {OLD_DESCRIPTION}\n"
@@ -50,7 +50,7 @@ class TestPlausibleWrongAnswerGraduation:
 
     def test_trap_in_traps_section(self):
         """Verify the graduated trap is in the traps: section, not elsewhere."""
-        content = COPILOT_INSTRUCTIONS.read_text()
+        content = COPILOT_INSTRUCTIONS.read_text(encoding="utf-8")
         traps_start = content.index("traps:")
         cures_start = content.index("cures:")
         traps_section = content[traps_start:cures_start]
@@ -61,7 +61,7 @@ class TestPlausibleWrongAnswerGraduation:
 
     def test_no_other_traps_changed(self):
         """Verify all other trap descriptions remain unchanged."""
-        content = COPILOT_INSTRUCTIONS.read_text()
+        content = COPILOT_INSTRUCTIONS.read_text(encoding="utf-8")
         expected_traps = {
             "quick_confidence": '"When I feel certain → Judge instead"',
             "downstream_fix": (
@@ -98,7 +98,7 @@ class TestPlausibleWrongAnswerGraduation:
 
     def test_no_cures_changed(self):
         """Verify all cure descriptions remain unchanged."""
-        content = COPILOT_INSTRUCTIONS.read_text()
+        content = COPILOT_INSTRUCTIONS.read_text(encoding="utf-8")
         expected_cures = {
             "test_before_reading": '"Write question as test → if passes, stop"',
             "tolerant_matching": (
@@ -119,7 +119,7 @@ class TestPlausibleWrongAnswerGraduation:
 
     def test_no_process_entries_changed(self):
         """Verify all process descriptions remain unchanged."""
-        content = COPILOT_INSTRUCTIONS.read_text()
+        content = COPILOT_INSTRUCTIONS.read_text(encoding="utf-8")
         expected_process = {
             "graduation": (
                 '"Heuristic appears twice → create FR;'

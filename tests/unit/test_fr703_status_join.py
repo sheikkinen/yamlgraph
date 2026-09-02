@@ -163,7 +163,7 @@ class TestGraphAndPromptContract:
         status join with code-owned orphan assembly); the join semantics
         tested above are unchanged and still live in attach_statuses.
         """
-        raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text())
+        raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text(encoding="utf-8"))
         node = raw["nodes"]["finalize_recap"]
         assert node["type"] == "python"
         tool = raw["tools"][node["tool"]]
@@ -177,7 +177,7 @@ class TestGraphAndPromptContract:
     @pytest.mark.req("REQ-YG-535")
     def test_prompt_sheds_status_join(self) -> None:
         """No disposition instructions; no fr_statuses input; full-id bound present."""
-        text = (DEMO_DIR / "prompts" / "recap.yaml").read_text()
+        text = (DEMO_DIR / "prompts" / "recap.yaml").read_text(encoding="utf-8")
         assert "fr_statuses" not in text
         assert "[no FR status]" not in text
         assert "Disposition" not in text
@@ -187,6 +187,6 @@ class TestGraphAndPromptContract:
 
     @pytest.mark.req("REQ-YG-535")
     def test_synthesize_variables_shed_fr_statuses(self) -> None:
-        raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text())
+        raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text(encoding="utf-8"))
         assert "fr_statuses" not in raw["nodes"]["synthesize"].get("variables", {})
         assert "fr_statuses" not in raw["nodes"]["synthesize"].get("requires", [])

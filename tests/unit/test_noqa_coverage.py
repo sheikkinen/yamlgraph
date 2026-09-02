@@ -21,7 +21,7 @@ class TestFindNoqaInFile:
         """Single noqa with explicit code should return that code."""
         code = "import sys  # noqa: E402\n"
         py_file = tmp_path / "single.py"
-        py_file.write_text(code)
+        py_file.write_text(code, encoding="utf-8")
 
         results = noqa_coverage.find_noqa_in_file(py_file)
 
@@ -31,7 +31,7 @@ class TestFindNoqaInFile:
         """Multiple codes on one line should each be returned."""
         code = "from typing import *  # noqa: F401, F403\n"
         py_file = tmp_path / "multi.py"
-        py_file.write_text(code)
+        py_file.write_text(code, encoding="utf-8")
 
         results = noqa_coverage.find_noqa_in_file(py_file)
 
@@ -43,7 +43,7 @@ class TestFindNoqaInFile:
         """Blanket noqa without code should return ALL."""
         code = "x = 1  # noqa\n"
         py_file = tmp_path / "blanket.py"
-        py_file.write_text(code)
+        py_file.write_text(code, encoding="utf-8")
 
         results = noqa_coverage.find_noqa_in_file(py_file)
 
@@ -57,7 +57,7 @@ import sys
 from typing import *  # noqa: F401
 """
         py_file = tmp_path / "multiline.py"
-        py_file.write_text(code)
+        py_file.write_text(code, encoding="utf-8")
 
         results = noqa_coverage.find_noqa_in_file(py_file)
 
@@ -69,7 +69,7 @@ from typing import *  # noqa: F401
         """noqa pattern should be case-insensitive."""
         code = "x = 1  # NOQA: e402\n"
         py_file = tmp_path / "case.py"
-        py_file.write_text(code)
+        py_file.write_text(code, encoding="utf-8")
 
         results = noqa_coverage.find_noqa_in_file(py_file)
 
@@ -106,7 +106,7 @@ class TestParseConfessions:
 - **Code**: F401
 - **Sin**: Unused import
 - **Penance**: Needed for pytest fixtures
-""")
+""", encoding="utf-8")
 
         confessions = noqa_coverage.parse_confessions(confessions_md)
 
@@ -134,13 +134,13 @@ class TestMain:
         scan_dir = tmp_path / "yamlgraph"
         scan_dir.mkdir()
         py_file = scan_dir / "module.py"
-        py_file.write_text("import sys  # noqa: E402\n")
+        py_file.write_text("import sys  # noqa: E402\n", encoding="utf-8")
 
         # Setup: Empty confessions
         docs_dir = tmp_path / "docs"
         docs_dir.mkdir()
         confessions = docs_dir / "confessions.md"
-        confessions.write_text("# Confessions\n")
+        confessions.write_text("# Confessions\n", encoding="utf-8")
 
         with (
             patch.object(noqa_coverage, "SCAN_DIRS", ["yamlgraph"]),
@@ -163,13 +163,13 @@ class TestMain:
         scan_dir = tmp_path / "yamlgraph"
         scan_dir.mkdir()
         py_file = scan_dir / "module.py"
-        py_file.write_text("import sys  # noqa: E402\n")
+        py_file.write_text("import sys  # noqa: E402\n", encoding="utf-8")
 
         # Setup: Empty confessions
         docs_dir = tmp_path / "docs"
         docs_dir.mkdir()
         confessions = docs_dir / "confessions.md"
-        confessions.write_text("# Confessions\n")
+        confessions.write_text("# Confessions\n", encoding="utf-8")
 
         with patch.object(noqa_coverage.sys, "argv", ["noqa_coverage.py", "--strict"]):
             original_file = noqa_coverage.__file__
@@ -187,7 +187,7 @@ class TestMain:
         scan_dir = tmp_path / "yamlgraph"
         scan_dir.mkdir()
         py_file = scan_dir / "module.py"
-        py_file.write_text("import sys  # noqa: E402\n")
+        py_file.write_text("import sys  # noqa: E402\n", encoding="utf-8")
 
         # Setup: Confessions documenting the noqa
         docs_dir = tmp_path / "docs"
@@ -201,7 +201,7 @@ class TestMain:
 - **Code**: E402
 - **Sin**: Test
 - **Penance**: Test
-""")
+""", encoding="utf-8")
 
         with patch.object(noqa_coverage.sys, "argv", ["noqa_coverage.py", "--strict"]):
             original_file = noqa_coverage.__file__
@@ -219,7 +219,7 @@ class TestMain:
         docs_dir = tmp_path / "docs"
         docs_dir.mkdir()
         confessions = docs_dir / "confessions.md"
-        confessions.write_text("# Confessions\n")
+        confessions.write_text("# Confessions\n", encoding="utf-8")
 
         with patch.object(noqa_coverage.sys, "argv", ["noqa_coverage.py"]):
             original_file = noqa_coverage.__file__

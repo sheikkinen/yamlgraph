@@ -27,7 +27,7 @@ class TestChaplainREADMEExists:
         """README should be a readable text file."""
         readme_path = Path(".chaplain/README.md")
         assert readme_path.is_file(), "README should be a file"
-        content = readme_path.read_text()
+        content = readme_path.read_text(encoding="utf-8")
         assert len(content) > 0, "README should not be empty"
 
 
@@ -39,7 +39,7 @@ class TestChaplainREADMEContent:
     def readme_content(self):
         """Load README content."""
         readme_path = Path(".chaplain/README.md")
-        return readme_path.read_text()
+        return readme_path.read_text(encoding="utf-8")
 
     def test_watcher2_pipeline_overview(self, readme_content):
         """README should document the active FSM runtime architecture."""
@@ -138,7 +138,7 @@ class TestChaplainREADMEStyle:
     def readme_content(self):
         """Load README content."""
         readme_path = Path(".chaplain/README.md")
-        return readme_path.read_text()
+        return readme_path.read_text(encoding="utf-8")
 
     def test_markdown_format(self, readme_content):
         """README should follow markdown format with headers."""

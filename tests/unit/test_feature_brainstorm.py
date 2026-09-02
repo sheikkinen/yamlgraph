@@ -35,7 +35,7 @@ class TestFeatureBrainstormStructure:
     @pytest.mark.req("REQ-YG-014")
     def test_graph_has_required_fields(self):
         """Graph should have name, description, state, tools, nodes, edges."""
-        with open(GRAPH_PATH) as f:
+        with open(GRAPH_PATH, encoding="utf-8") as f:
             graph = yaml.safe_load(f)
 
         assert "name" in graph, "Missing 'name'"
@@ -48,7 +48,7 @@ class TestFeatureBrainstormStructure:
     @pytest.mark.req("REQ-YG-014")
     def test_graph_has_focus_state_variable(self):
         """Graph should have optional 'focus' state variable."""
-        with open(GRAPH_PATH) as f:
+        with open(GRAPH_PATH, encoding="utf-8") as f:
             graph = yaml.safe_load(f)
 
         state = graph.get("state", {})
@@ -61,7 +61,7 @@ class TestFeatureBrainstormTools:
     @pytest.mark.req("REQ-YG-014")
     def test_has_codebase_reading_tools(self):
         """Graph should have tools to read codebase."""
-        with open(GRAPH_PATH) as f:
+        with open(GRAPH_PATH, encoding="utf-8") as f:
             graph = yaml.safe_load(f)
 
         tools = graph.get("tools", {})
@@ -75,7 +75,7 @@ class TestFeatureBrainstormTools:
     @pytest.mark.req("REQ-YG-014")
     def test_has_search_web_tool(self):
         """Graph should have search_web tool for research."""
-        with open(GRAPH_PATH) as f:
+        with open(GRAPH_PATH, encoding="utf-8") as f:
             graph = yaml.safe_load(f)
 
         tools = graph.get("tools", {})
@@ -92,7 +92,7 @@ class TestFeatureBrainstormNodes:
     @pytest.mark.req("REQ-YG-014")
     def test_has_gather_context_node(self):
         """Graph should have gather_context agent node."""
-        with open(GRAPH_PATH) as f:
+        with open(GRAPH_PATH, encoding="utf-8") as f:
             graph = yaml.safe_load(f)
 
         nodes = graph.get("nodes", {})
@@ -102,7 +102,7 @@ class TestFeatureBrainstormNodes:
     @pytest.mark.req("REQ-YG-014")
     def test_has_research_node(self):
         """Graph should have research agent node."""
-        with open(GRAPH_PATH) as f:
+        with open(GRAPH_PATH, encoding="utf-8") as f:
             graph = yaml.safe_load(f)
 
         nodes = graph.get("nodes", {})
@@ -111,7 +111,7 @@ class TestFeatureBrainstormNodes:
     @pytest.mark.req("REQ-YG-014")
     def test_has_brainstorm_node(self):
         """Graph should have brainstorm LLM node."""
-        with open(GRAPH_PATH) as f:
+        with open(GRAPH_PATH, encoding="utf-8") as f:
             graph = yaml.safe_load(f)
 
         nodes = graph.get("nodes", {})
@@ -121,7 +121,7 @@ class TestFeatureBrainstormNodes:
     @pytest.mark.req("REQ-YG-014")
     def test_has_prioritize_node(self):
         """Graph should have prioritize LLM node."""
-        with open(GRAPH_PATH) as f:
+        with open(GRAPH_PATH, encoding="utf-8") as f:
             graph = yaml.safe_load(f)
 
         nodes = graph.get("nodes", {})
@@ -164,7 +164,7 @@ class TestFeatureBrainstormPrompts:
     def test_prompts_have_required_fields(self):
         """All prompts should have system and user fields."""
         for prompt_file in PROMPTS_DIR.glob("*.yaml"):
-            with open(prompt_file) as f:
+            with open(prompt_file, encoding="utf-8") as f:
                 prompt = yaml.safe_load(f)
 
             assert (
@@ -178,7 +178,7 @@ class TestFeatureBrainstormEdges:
     @pytest.mark.req("REQ-YG-014")
     def test_starts_with_gather_context(self):
         """Graph should start with gather_context."""
-        with open(GRAPH_PATH) as f:
+        with open(GRAPH_PATH, encoding="utf-8") as f:
             graph = yaml.safe_load(f)
 
         edges = graph.get("edges", [])
@@ -190,7 +190,7 @@ class TestFeatureBrainstormEdges:
     @pytest.mark.req("REQ-YG-014")
     def test_ends_with_prioritize(self):
         """Graph should end after prioritize."""
-        with open(GRAPH_PATH) as f:
+        with open(GRAPH_PATH, encoding="utf-8") as f:
             graph = yaml.safe_load(f)
 
         edges = graph.get("edges", [])
@@ -203,7 +203,7 @@ class TestFeatureBrainstormEdges:
     @pytest.mark.req("REQ-YG-014")
     def test_has_complete_flow(self):
         """Graph should have edges connecting all nodes."""
-        with open(GRAPH_PATH) as f:
+        with open(GRAPH_PATH, encoding="utf-8") as f:
             graph = yaml.safe_load(f)
 
         edges = graph.get("edges", [])

@@ -46,8 +46,8 @@ class TestRecapDispositionAxis:
         frdir.mkdir()
         (frdir / "FR-042-widget.md").write_text(
             "# FR-042 Widget\n\n**Status:** Rejected\n\nNot worth building.\n"
-        )
-        (tmp_path / "widget.py").write_text("# widget stub\n")
+        , encoding="utf-8")
+        (tmp_path / "widget.py").write_text("# widget stub\n", encoding="utf-8")
         subprocess.run(["git", "-C", str(tmp_path), "add", "-A"], check=True, env=env)
         subprocess.run(
             [

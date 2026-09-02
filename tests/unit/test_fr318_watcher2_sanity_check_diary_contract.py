@@ -9,7 +9,7 @@ PROMPT_FILE = Path(".chaplain/graphs/watcher-enforce/prompts/sanity-check-sessio
 
 def _read_prompt() -> str:
     assert PROMPT_FILE.exists(), f"Prompt file {PROMPT_FILE} not found"
-    return PROMPT_FILE.read_text()
+    return PROMPT_FILE.read_text(encoding="utf-8")
 
 
 @pytest.mark.req("REQ-YG-316")

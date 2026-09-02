@@ -44,7 +44,7 @@ class TestGetImports:
 
     def test_returns_error_for_syntax_error(self):
         """Returns error for file with syntax errors."""
-        with tempfile.NamedTemporaryFile(suffix=".py", delete=False, mode="w") as f:
+        with tempfile.NamedTemporaryFile(encoding="utf-8", suffix=".py", delete=False, mode="w") as f:
             f.write("def broken(\n    return")
             temp_path = f.name
 
@@ -56,7 +56,7 @@ class TestGetImports:
 
     def test_handles_aliased_imports(self):
         """Handles 'import X as Y' and 'from X import Y as Z'."""
-        with tempfile.NamedTemporaryFile(suffix=".py", delete=False, mode="w") as f:
+        with tempfile.NamedTemporaryFile(encoding="utf-8", suffix=".py", delete=False, mode="w") as f:
             f.write("import numpy as np\nfrom pathlib import Path as P")
             temp_path = f.name
 

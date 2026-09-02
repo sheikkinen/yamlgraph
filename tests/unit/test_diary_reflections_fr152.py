@@ -28,7 +28,7 @@ def test_fr137_reflection_exists():
 @pytest.mark.req("REQ-YG-144")
 def test_fr137_reflection_not_stub():
     """AC: Genuine metacognitive content, not a placeholder stub."""
-    content = FR137_PATH.read_text()
+    content = FR137_PATH.read_text(encoding="utf-8")
     assert len(content.strip()) > 200, "Reflection is too short to be genuine"
     placeholder_markers = ["[What cognitive trap", "[What lesson", "[What question"]
     for marker in placeholder_markers:
@@ -38,7 +38,7 @@ def test_fr137_reflection_not_stub():
 @pytest.mark.req("REQ-YG-144")
 def test_fr137_reflection_has_cognitive_trap():
     """AC: Identifies at least one cognitive trap from the Knowledge Graph."""
-    content = FR137_PATH.read_text().lower()
+    content = FR137_PATH.read_text(encoding="utf-8").lower()
     known_traps = [
         "batch_fatigue",
         "partial_remediation",
@@ -59,7 +59,7 @@ def test_fr137_reflection_has_cognitive_trap():
 @pytest.mark.req("REQ-YG-144")
 def test_fr137_reflection_has_seed():
     """AC: Contains a forward-looking Seed question."""
-    content = FR137_PATH.read_text()
+    content = FR137_PATH.read_text(encoding="utf-8")
     assert "**Seed:**" in content, "Missing **Seed:** section"
 
 
@@ -84,7 +84,7 @@ def test_fr145_reflection_exists():
 @pytest.mark.req("REQ-YG-144")
 def test_fr145_reflection_not_stub():
     """AC: Genuine metacognitive content, not a placeholder stub."""
-    content = FR145_PATH.read_text()
+    content = FR145_PATH.read_text(encoding="utf-8")
     assert len(content.strip()) > 200, "Reflection is too short to be genuine"
     placeholder_markers = ["[What cognitive trap", "[What lesson", "[What question"]
     for marker in placeholder_markers:
@@ -94,7 +94,7 @@ def test_fr145_reflection_not_stub():
 @pytest.mark.req("REQ-YG-144")
 def test_fr145_reflection_has_cognitive_trap():
     """AC: Identifies at least one cognitive trap from the Knowledge Graph."""
-    content = FR145_PATH.read_text().lower()
+    content = FR145_PATH.read_text(encoding="utf-8").lower()
     known_traps = [
         "batch_fatigue",
         "partial_remediation",
@@ -115,7 +115,7 @@ def test_fr145_reflection_has_cognitive_trap():
 @pytest.mark.req("REQ-YG-144")
 def test_fr145_reflection_has_seed():
     """AC: Contains a forward-looking Seed question."""
-    content = FR145_PATH.read_text()
+    content = FR145_PATH.read_text(encoding="utf-8")
     assert "**Seed:**" in content, "Missing **Seed:** section"
 
 

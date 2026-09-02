@@ -43,10 +43,10 @@ def cmd_graph_export(args: Namespace) -> None:
         )
         sys.exit(2)
 
-    config = yaml.safe_load(Path(args.graph_path).read_text())
+    config = yaml.safe_load(Path(args.graph_path).read_text(encoding="utf-8"))
     overlay = getattr(args, "overlay", None)
     if overlay:
-        lines = Path(overlay).read_text().splitlines()
+        lines = Path(overlay).read_text(encoding="utf-8").splitlines()
         _validate_overlay_header(Path(args.graph_path), lines)
         route = parse_route_lines(lines)
         text = render_overlay(config, route)
@@ -55,7 +55,7 @@ def cmd_graph_export(args: Namespace) -> None:
 
     output = getattr(args, "output", None)
     if output:
-        Path(output).write_text(text)
+        Path(output).write_text(text, encoding="utf-8")
         print(f"📁 {output}")
     else:
         print(text, end="")
@@ -86,8 +86,8 @@ def _overlay_error(message: str) -> None:
 
 def _run_diff(a_path: Path, b_path: Path) -> None:
     """Occurrence-aligned route diff; empty diff is the determinism witness."""
-    route_a = parse_route_lines(a_path.read_text().splitlines())
-    route_b = parse_route_lines(b_path.read_text().splitlines())
+    route_a = parse_route_lines(a_path.read_text(encoding="utf-8").splitlines())
+    route_b = parse_route_lines(b_path.read_text(encoding="utf-8").splitlines())
     diffs = diff_routes(route_a, route_b)
     if not diffs:
         print("✓ routes identical")

@@ -28,13 +28,13 @@ SCRIPT_PATH = "scripts/check_demo_proof.sh"
 
 def _load_workflow() -> dict:
     """Load and parse the commitlint workflow YAML."""
-    with open(WORKFLOW_PATH) as f:
+    with open(WORKFLOW_PATH, encoding="utf-8") as f:
         return yaml.safe_load(f)
 
 
 def _load_precommit() -> dict:
     """Load and parse the pre-commit config YAML."""
-    with open(PRECOMMIT_PATH) as f:
+    with open(PRECOMMIT_PATH, encoding="utf-8") as f:
         return yaml.safe_load(f)
 
 
@@ -72,7 +72,7 @@ def _run_demo_proof_check(
 
         # Create an initial commit so HEAD exists
         readme = tmppath / "README.md"
-        readme.write_text("init\n")
+        readme.write_text("init\n", encoding="utf-8")
         subprocess.run(["git", "add", "."], cwd=tmpdir, check=True)
         subprocess.run(
             ["git", "commit", "-q", "-m", "init"],
@@ -84,7 +84,7 @@ def _run_demo_proof_check(
         for relpath, content in staged_files.items():
             fpath = tmppath / relpath
             fpath.parent.mkdir(parents=True, exist_ok=True)
-            fpath.write_text(content)
+            fpath.write_text(content, encoding="utf-8")
 
         subprocess.run(["git", "add", "."], cwd=tmpdir, check=True)
 
@@ -314,7 +314,7 @@ class TestDemoOutputLogNotIgnored:
 
     def test_gitignore_negation_exists(self) -> None:
         """The .gitignore must have a negation pattern for demo-output.log."""
-        content = Path(".gitignore").read_text()
+        content = Path(".gitignore").read_text(encoding="utf-8")
         assert (
             "!examples/demos/*/demo-output.log" in content
         ), ".gitignore must negate *.log for demo-output.log files"
@@ -333,14 +333,14 @@ class TestDemoGateDocumentation:
 
     def test_dev_ops_lists_demo_gate(self) -> None:
         """The CI checks section must list demo-gate."""
-        content = Path("reference/development-operations.md").read_text()
+        content = Path("reference/development-operations.md").read_text(encoding="utf-8")
         assert (
             "demo-gate" in content
         ), "development-operations.md must list demo-gate as a status check"
 
     def test_dev_ops_describes_demo_gate(self) -> None:
         """The ops reference must describe what the demo-gate does."""
-        content = Path("reference/development-operations.md").read_text()
+        content = Path("reference/development-operations.md").read_text(encoding="utf-8")
         assert (
             "demo-output.log" in content or "demo proof" in content.lower()
         ), "development-operations.md must describe demo-gate purpose"
@@ -360,7 +360,7 @@ class TestEnforcerPromptUpdated:
         )
         if not prompt_path.exists():
             pytest.skip("Enforcer prompt not found in this worktree")
-        content = prompt_path.read_text()
+        content = prompt_path.read_text(encoding="utf-8")
         assert (
             "demo-output.log" in content
         ), "Enforcer Phase 2 prompt must instruct capturing demo-output.log"

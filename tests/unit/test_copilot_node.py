@@ -36,7 +36,7 @@ class TestCopilotNodeCLI:
         # Create a mock prompt file
         prompt_file = tmp_path / "prompts" / "test.yaml"
         prompt_file.parent.mkdir(parents=True)
-        prompt_file.write_text("system: Test system\nuser: Hello {name}")
+        prompt_file.write_text("system: Test system\nuser: Hello {name}", encoding="utf-8")
 
         config = {
             "type": "copilot",
@@ -71,7 +71,7 @@ class TestCopilotNodeCLI:
 
         prompt_file = tmp_path / "prompts" / "test.yaml"
         prompt_file.parent.mkdir(parents=True)
-        prompt_file.write_text("system: Test\nuser: Hello")
+        prompt_file.write_text("system: Test\nuser: Hello", encoding="utf-8")
 
         config = {
             "type": "copilot",
@@ -105,7 +105,7 @@ class TestCopilotNodeCLI:
 
         prompt_file = tmp_path / "prompts" / "test.yaml"
         prompt_file.parent.mkdir(parents=True)
-        prompt_file.write_text("system: Test\nuser: Hello")
+        prompt_file.write_text("system: Test\nuser: Hello", encoding="utf-8")
 
         config = {
             "type": "copilot",
@@ -132,7 +132,7 @@ class TestCopilotNodeCLI:
 
         prompt_file = tmp_path / "prompts" / "test.yaml"
         prompt_file.parent.mkdir(parents=True)
-        prompt_file.write_text("system: Test\nuser: Hello")
+        prompt_file.write_text("system: Test\nuser: Hello", encoding="utf-8")
 
         config = {
             "type": "copilot",
@@ -158,7 +158,7 @@ class TestCopilotNodeCLI:
 
         prompt_file = tmp_path / "prompts" / "test.yaml"
         prompt_file.parent.mkdir(parents=True)
-        prompt_file.write_text("system: Test\nuser: Hello")
+        prompt_file.write_text("system: Test\nuser: Hello", encoding="utf-8")
 
         config = {
             "type": "copilot",
@@ -188,7 +188,7 @@ class TestCopilotNodeCLI:
 
         prompt_file = tmp_path / "prompts" / "test.yaml"
         prompt_file.parent.mkdir(parents=True)
-        prompt_file.write_text("system: Test\nuser: Hello")
+        prompt_file.write_text("system: Test\nuser: Hello", encoding="utf-8")
 
         config = {
             "type": "copilot",
@@ -211,7 +211,7 @@ class TestCopilotNodeCLI:
         prompt_file.parent.mkdir(parents=True)
         prompt_file.write_text(
             "system: Analyze {topic}\nuser: Give insights on {topic}"
-        )
+        , encoding="utf-8")
 
         config = {
             "type": "copilot",
@@ -245,7 +245,7 @@ class TestCopilotNodeCLI:
         # Use pipe syntax to ensure YAML doesn't misparse {var} as dict
         prompt_file.write_text(
             "system: Review this\nuser: |\n  Review: {previous_output}"
-        )
+        , encoding="utf-8")
 
         config = {
             "type": "copilot",
@@ -307,7 +307,7 @@ class TestCopilotNodeErrorHandling:
 
         prompt_file = tmp_path / "prompts" / "test.yaml"
         prompt_file.parent.mkdir(parents=True)
-        prompt_file.write_text("system: Test\nuser: Hello")
+        prompt_file.write_text("system: Test\nuser: Hello", encoding="utf-8")
 
         config = {
             "type": "copilot",
@@ -326,7 +326,7 @@ class TestCopilotNodeErrorHandling:
 
         prompt_file = tmp_path / "prompts" / "test.yaml"
         prompt_file.parent.mkdir(parents=True)
-        prompt_file.write_text("system: Test\nuser: Hello")
+        prompt_file.write_text("system: Test\nuser: Hello", encoding="utf-8")
 
         config = {
             "type": "copilot",
@@ -350,7 +350,7 @@ class TestCopilotNodeErrorHandling:
 
         prompt_file = tmp_path / "prompts" / "test.yaml"
         prompt_file.parent.mkdir(parents=True)
-        prompt_file.write_text("system: Test\nuser: Hello {value}")
+        prompt_file.write_text("system: Test\nuser: Hello {value}", encoding="utf-8")
 
         config = {
             "type": "copilot",
@@ -380,7 +380,7 @@ class TestCopilotNodeErrorHandling:
 
         prompt_file = tmp_path / "prompts" / "test.yaml"
         prompt_file.parent.mkdir(parents=True)
-        prompt_file.write_text("system: Test\nuser: Hello {value}")
+        prompt_file.write_text("system: Test\nuser: Hello {value}", encoding="utf-8")
 
         config = {
             "type": "copilot",
@@ -422,7 +422,7 @@ class TestCopilotNodeErrorHandling:
         prompts_dir.mkdir()
 
         prompt_file = prompts_dir / "test.yaml"
-        prompt_file.write_text("system: Test system\nuser: Hello")
+        prompt_file.write_text("system: Test system\nuser: Hello", encoding="utf-8")
 
         config = {
             "type": "copilot",
@@ -456,7 +456,7 @@ class TestCopilotNodeErrorHandling:
 
         prompt_file = tmp_path / "prompts" / "test.yaml"
         prompt_file.parent.mkdir(parents=True)
-        prompt_file.write_text("system: Test\nuser: Hello {count}")
+        prompt_file.write_text("system: Test\nuser: Hello {count}", encoding="utf-8")
 
         config = {
             "type": "copilot",
@@ -490,7 +490,7 @@ class TestCopilotNodeComposition:
 
         prompt_file = tmp_path / "prompts" / "test.yaml"
         prompt_file.parent.mkdir(parents=True)
-        prompt_file.write_text("system: Test\nuser: Hello")
+        prompt_file.write_text("system: Test\nuser: Hello", encoding="utf-8")
 
         config = {
             "type": "copilot",
@@ -521,7 +521,7 @@ class TestCopilotSessionContinuation:
 
         prompt_file = tmp_path / "prompts" / "test.yaml"
         prompt_file.parent.mkdir(parents=True)
-        prompt_file.write_text("system: Test\nuser: Continue work")
+        prompt_file.write_text("system: Test\nuser: Continue work", encoding="utf-8")
 
         config = {
             "type": "copilot",
@@ -552,7 +552,7 @@ class TestCopilotSessionContinuation:
 
         prompt_file = tmp_path / "prompts" / "test.yaml"
         prompt_file.parent.mkdir(parents=True)
-        prompt_file.write_text("system: Test\nuser: Continue work")
+        prompt_file.write_text("system: Test\nuser: Continue work", encoding="utf-8")
 
         config = {
             "type": "copilot",
@@ -581,7 +581,7 @@ class TestCopilotSessionContinuation:
 
         prompt_file = tmp_path / "prompts" / "test.yaml"
         prompt_file.parent.mkdir(parents=True)
-        prompt_file.write_text("system: Test\nuser: Continue work")
+        prompt_file.write_text("system: Test\nuser: Continue work", encoding="utf-8")
 
         # Simulate previous CopilotResult in state
         prev_result = CopilotResult(
@@ -620,7 +620,7 @@ class TestCopilotSessionContinuation:
 
         prompt_file = tmp_path / "prompts" / "test.yaml"
         prompt_file.parent.mkdir(parents=True)
-        prompt_file.write_text("system: Test\nuser: Hello")
+        prompt_file.write_text("system: Test\nuser: Hello", encoding="utf-8")
 
         config = {
             "type": "copilot",
@@ -645,7 +645,7 @@ class TestCopilotSessionContinuation:
                 share_idx = cmd.index("--share") + 1
                 share_path = Path(cmd[share_idx])
                 share_path.parent.mkdir(parents=True, exist_ok=True)
-                share_path.write_text(share_content)
+                share_path.write_text(share_content, encoding="utf-8")
             return mock_result
 
         with patch("subprocess.run", side_effect=mock_subprocess_run) as mock_run:
@@ -666,7 +666,7 @@ class TestCopilotSessionContinuation:
 
         prompt_file = tmp_path / "prompts" / "test.yaml"
         prompt_file.parent.mkdir(parents=True)
-        prompt_file.write_text("system: Test\nuser: Hello")
+        prompt_file.write_text("system: Test\nuser: Hello", encoding="utf-8")
 
         config = {
             "type": "copilot",
@@ -687,7 +687,7 @@ class TestCopilotSessionContinuation:
                 share_path = Path(cmd[share_idx])
                 share_path.parent.mkdir(parents=True, exist_ok=True)
                 created_share_dirs.append(share_path.parent)
-                share_path.write_text("# Session\n> - **Session ID:** `abc-123`\n")
+                share_path.write_text("# Session\n> - **Session ID:** `abc-123`\n", encoding="utf-8")
             return mock_result
 
         with patch("subprocess.run", side_effect=mock_subprocess_run):
@@ -704,7 +704,7 @@ class TestCopilotSessionContinuation:
 
         prompt_file = tmp_path / "prompts" / "test.yaml"
         prompt_file.parent.mkdir(parents=True)
-        prompt_file.write_text("system: Test\nuser: Hello")
+        prompt_file.write_text("system: Test\nuser: Hello", encoding="utf-8")
 
         config = {
             "type": "copilot",
@@ -731,7 +731,7 @@ class TestCopilotSessionContinuation:
 
         prompt_file = tmp_path / "prompts" / "test.yaml"
         prompt_file.parent.mkdir(parents=True)
-        prompt_file.write_text("system: Test\nuser: Hello")
+        prompt_file.write_text("system: Test\nuser: Hello", encoding="utf-8")
 
         config = {
             "type": "copilot",
@@ -749,7 +749,7 @@ class TestCopilotSessionContinuation:
                 share_idx = cmd.index("--share") + 1
                 share_path = Path(cmd[share_idx])
                 share_path.parent.mkdir(parents=True, exist_ok=True)
-                share_path.write_text("Random content without session ID")
+                share_path.write_text("Random content without session ID", encoding="utf-8")
             return mock_result
 
         with patch("subprocess.run", side_effect=mock_subprocess_run):
@@ -768,7 +768,7 @@ def test_copilot_pre_guard_halt_prevents_subprocess_run(tmp_path: Path) -> None:
 
     prompt_file = tmp_path / "prompts" / "guard.yaml"
     prompt_file.parent.mkdir(parents=True)
-    prompt_file.write_text("system: Guard test\nuser: Hello")
+    prompt_file.write_text("system: Guard test\nuser: Hello", encoding="utf-8")
 
     config = {
         "type": "copilot",

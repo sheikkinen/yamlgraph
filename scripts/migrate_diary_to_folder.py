@@ -62,7 +62,7 @@ def split_diary(path: Path) -> list[str]:
 
     Skips the file header (everything before the first ## entry).
     """
-    content = path.read_text()
+    content = path.read_text(encoding="utf-8")
     blocks = re.split(r"\n---\n", content)
 
     entries = []
@@ -114,7 +114,7 @@ def migrate(diary_path: Path, out_dir: Path, *, dry_run: bool = False) -> int:
         if dry_run:
             print(f"  Would create: {out_dir / filename}")
         else:
-            (out_dir / filename).write_text(entry + "\n")
+            (out_dir / filename).write_text(entry + "\n", encoding="utf-8")
             print(f"  Created: {out_dir / filename}")
         count += 1
 

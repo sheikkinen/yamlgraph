@@ -45,7 +45,7 @@ class TestCapabilityRegistry:
     def test_all_files_valid_yaml(self) -> None:
         """Every capability file must be valid YAML."""
         for fp in sorted((REPO_ROOT / "capabilities").glob("CAP-*.yaml")):
-            data = yaml.safe_load(fp.read_text())
+            data = yaml.safe_load(fp.read_text(encoding="utf-8"))
             assert isinstance(data, dict), f"{fp.name}: expected mapping"
 
     def test_validate_capabilities_passes(self) -> None:
@@ -74,7 +74,7 @@ class TestCapabilityRegistry:
     def test_ids_match_filenames(self) -> None:
         """Each file's id field must match its filename prefix."""
         for fp in sorted((REPO_ROOT / "capabilities").glob("CAP-*.yaml")):
-            data = yaml.safe_load(fp.read_text())
+            data = yaml.safe_load(fp.read_text(encoding="utf-8"))
             expected = re.match(r"(CAP-\d+)", fp.name).group(1)
             assert (
                 str(data["id"]) == expected
@@ -84,7 +84,7 @@ class TestCapabilityRegistry:
         """No two capabilities may share a requirement ID."""
         seen: dict[str, str] = {}
         for fp in sorted((REPO_ROOT / "capabilities").glob("CAP-*.yaml")):
-            data = yaml.safe_load(fp.read_text())
+            data = yaml.safe_load(fp.read_text(encoding="utf-8"))
             for req in data.get("requirements", []):
                 req_id = str(req["id"])
                 assert (
@@ -116,7 +116,7 @@ class TestReqCoverageLoadsFromRegistry:
         # Collect directly from YAML files, excluding retired CAPs
         yaml_reqs: set[str] = set()
         for fp in (REPO_ROOT / "capabilities").glob("CAP-*.yaml"):
-            data = yaml.safe_load(fp.read_text())
+            data = yaml.safe_load(fp.read_text(encoding="utf-8"))
             if data.get("status") == "retired":
                 continue
             for req in data.get("requirements", []):
@@ -133,7 +133,7 @@ class TestValidateCapabilitiesErrors:
         """Missing required fields produce errors."""
         cap_dir = tmp_path / "capabilities"
         cap_dir.mkdir()
-        (cap_dir / "CAP-99-test.yaml").write_text("id: CAP-99\nname: Test\n")
+        (cap_dir / "CAP-99-test.yaml").write_text("id: CAP-99\nname: Test\n", encoding="utf-8")
 
         mod = _load_module(
             "validate_capabilities",
@@ -158,7 +158,7 @@ class TestValidateCapabilitiesErrors:
                 modules: [test]
             fr: legacy
         """)
-        (cap_dir / "CAP-27-test.yaml").write_text(content)
+        (cap_dir / "CAP-27-test.yaml").write_text(content, encoding="utf-8")
 
         mod = _load_module(
             "validate_capabilities",
@@ -185,7 +185,7 @@ class TestValidateCapabilitiesErrors:
                     modules: [test]
                 fr: legacy
             """)
-            (cap_dir / f"CAP-{num}-{name}.yaml").write_text(content)
+            (cap_dir / f"CAP-{num}-{name}.yaml").write_text(content, encoding="utf-8")
 
         mod = _load_module(
             "validate_capabilities",
@@ -210,7 +210,7 @@ class TestValidateCapabilitiesErrors:
                 modules: [test]
             fr: legacy
         """)
-        (cap_dir / "CAP-99-mismatch.yaml").write_text(content)
+        (cap_dir / "CAP-99-mismatch.yaml").write_text(content, encoding="utf-8")
 
         mod = _load_module(
             "validate_capabilities",
@@ -227,24 +227,24 @@ class TestArchitectureGenerationMarkers:
 
     def test_architecture_has_begin_marker(self) -> None:
         """ARCHITECTURE.md must contain BEGIN GENERATED CAPABILITIES marker."""
-        text = (REPO_ROOT / "ARCHITECTURE.md").read_text()
+        text = (REPO_ROOT / "ARCHITECTURE.md").read_text(encoding="utf-8")
         assert "<!-- BEGIN GENERATED CAPABILITIES -->" in text
 
     def test_architecture_has_end_marker(self) -> None:
         """ARCHITECTURE.md must contain END GENERATED CAPABILITIES marker."""
-        text = (REPO_ROOT / "ARCHITECTURE.md").read_text()
+        text = (REPO_ROOT / "ARCHITECTURE.md").read_text(encoding="utf-8")
         assert "<!-- END GENERATED CAPABILITIES -->" in text
 
     def test_begin_before_end(self) -> None:
         """BEGIN marker must appear before END marker."""
-        text = (REPO_ROOT / "ARCHITECTURE.md").read_text()
+        text = (REPO_ROOT / "ARCHITECTURE.md").read_text(encoding="utf-8")
         begin_idx = text.find("<!-- BEGIN GENERATED CAPABILITIES -->")
         end_idx = text.find("<!-- END GENERATED CAPABILITIES -->")
         assert begin_idx < end_idx
 
     def test_generated_content_has_summary_table(self) -> None:
         """Generated content must include a capability summary table."""
-        text = (REPO_ROOT / "ARCHITECTURE.md").read_text()
+        text = (REPO_ROOT / "ARCHITECTURE.md").read_text(encoding="utf-8")
         begin = text.find("<!-- BEGIN GENERATED CAPABILITIES -->")
         end = text.find("<!-- END GENERATED CAPABILITIES -->")
         generated = text[begin:end]
@@ -253,7 +253,7 @@ class TestArchitectureGenerationMarkers:
 
     def test_generated_content_has_all_capabilities(self) -> None:
         """Core capabilities from the registry must appear in the generated content."""
-        text = (REPO_ROOT / "ARCHITECTURE.md").read_text()
+        text = (REPO_ROOT / "ARCHITECTURE.md").read_text(encoding="utf-8")
         begin = text.find("<!-- BEGIN GENERATED CAPABILITIES -->")
         end = text.find("<!-- END GENERATED CAPABILITIES -->")
         generated = text[begin:end]
@@ -266,7 +266,7 @@ class TestArchitectureGenerationMarkers:
 
     def test_generated_content_has_requirement_ids(self) -> None:
         """Generated content must reference REQ-YG-XXX IDs from registry."""
-        text = (REPO_ROOT / "ARCHITECTURE.md").read_text()
+        text = (REPO_ROOT / "ARCHITECTURE.md").read_text(encoding="utf-8")
         begin = text.find("<!-- BEGIN GENERATED CAPABILITIES -->")
         end = text.find("<!-- END GENERATED CAPABILITIES -->")
         generated = text[begin:end]

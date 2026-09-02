@@ -36,7 +36,7 @@ schema:
 
 system: You are a classifier.
 user: "Classify: {message}"
-""")
+""", encoding="utf-8")
 
         # Patch prompts directory
         monkeypatch.setenv("PROMPTS_DIR", str(tmp_path / "prompts"))
@@ -76,7 +76,7 @@ schema:
     value: {type: str}
 system: Test
 user: "{input}"
-""")
+""", encoding="utf-8")
 
         monkeypatch.setenv("PROMPTS_DIR", str(tmp_path / "prompts"))
 
@@ -105,7 +105,7 @@ user: "{input}"
 name: plain_prompt
 system: Test
 user: "{input}"
-""")
+""", encoding="utf-8")
 
         monkeypatch.setenv("PROMPTS_DIR", str(tmp_path / "prompts"))
 
@@ -130,9 +130,9 @@ class TestResolvePromptPath:
         prompt_dir = tmp_path / "prompts"
         prompt_dir.mkdir()
 
-        (prompt_dir / "simple.yaml").write_text("name: simple")
+        (prompt_dir / "simple.yaml").write_text("name: simple", encoding="utf-8")
         (prompt_dir / "nested").mkdir()
-        (prompt_dir / "nested" / "deep.yaml").write_text("name: deep")
+        (prompt_dir / "nested" / "deep.yaml").write_text("name: deep", encoding="utf-8")
 
         from yamlgraph.utils.prompts import resolve_prompt_path
 

@@ -23,7 +23,7 @@ RECON_FIELDS = {"candidate_urls", "auth_hints", "schema_hints", "evidence"}
 
 
 def _load(path: Path) -> dict:
-    return yaml.safe_load(path.read_text())
+    return yaml.safe_load(path.read_text(encoding="utf-8"))
 
 
 # ---------------------------------------------------------------------------
@@ -213,6 +213,6 @@ def test_orchestrator_references_recon_as_v2_stage():
     orchestrator = GRAPH_DIR.parents[1] / "graph.yaml"
     if not orchestrator.exists():
         return  # pre-FR-791: absence itself proves no coupling
-    text = orchestrator.read_text()
+    text = orchestrator.read_text(encoding="utf-8")
     assert "recon" in text  # FR-809 AC-01: recon is an orchestrator stage
     assert (GRAPH_DIR / "graph.yaml").exists()  # standalone step preserved

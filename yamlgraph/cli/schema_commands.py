@@ -25,7 +25,7 @@ def cmd_schema_export(args: Namespace) -> None:
 
         output_path = getattr(args, "output", None)
         if output_path:
-            Path(output_path).write_text(json_str)
+            Path(output_path).write_text(json_str, encoding="utf-8")
             print(f"✓ Schema exported to {output_path}")
         else:
             print(json_str)

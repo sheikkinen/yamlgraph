@@ -23,7 +23,7 @@ class TestRunGraph:
     def test_run_success(self, mock_run: MagicMock, tmp_path: Path) -> None:
         """Successful run returns valid."""
         graph_file = tmp_path / "graph.yaml"
-        graph_file.write_text("version: '1.0'")
+        graph_file.write_text("version: '1.0'", encoding="utf-8")
 
         mock_run.return_value = MagicMock(
             returncode=0,
@@ -41,7 +41,7 @@ class TestRunGraph:
     def test_run_with_variables(self, mock_run: MagicMock, tmp_path: Path) -> None:
         """Run with variables passes them to command."""
         graph_file = tmp_path / "graph.yaml"
-        graph_file.write_text("version: '1.0'")
+        graph_file.write_text("version: '1.0'", encoding="utf-8")
 
         mock_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
 
@@ -56,7 +56,7 @@ class TestRunGraph:
     def test_run_failure(self, mock_run: MagicMock, tmp_path: Path) -> None:
         """Failed run returns errors."""
         graph_file = tmp_path / "graph.yaml"
-        graph_file.write_text("version: '1.0'")
+        graph_file.write_text("version: '1.0'", encoding="utf-8")
 
         mock_run.return_value = MagicMock(
             returncode=1,
@@ -77,7 +77,7 @@ class TestRunGraphWithTestInputs:
     def test_router_pattern_inputs(self, mock_run: MagicMock, tmp_path: Path) -> None:
         """Router pattern uses message input."""
         graph_file = tmp_path / "graph.yaml"
-        graph_file.write_text("version: '1.0'")
+        graph_file.write_text("version: '1.0'", encoding="utf-8")
 
         mock_run.return_value = {"valid": True}
 
@@ -91,7 +91,7 @@ class TestRunGraphWithTestInputs:
     def test_map_pattern_inputs(self, mock_run: MagicMock, tmp_path: Path) -> None:
         """Map pattern uses items input."""
         graph_file = tmp_path / "graph.yaml"
-        graph_file.write_text("version: '1.0'")
+        graph_file.write_text("version: '1.0'", encoding="utf-8")
 
         mock_run.return_value = {"valid": True}
 
@@ -106,7 +106,7 @@ class TestRunGraphWithTestInputs:
     ) -> None:
         """Unknown pattern uses empty inputs."""
         graph_file = tmp_path / "graph.yaml"
-        graph_file.write_text("version: '1.0'")
+        graph_file.write_text("version: '1.0'", encoding="utf-8")
 
         mock_run.return_value = {"valid": True}
 

@@ -16,6 +16,7 @@ from __future__ import annotations
 import argparse
 import json
 import subprocess
+import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -161,13 +162,20 @@ def _load_responses(raw_dir: Path) -> dict[str, list[dict]]:
     if not raw_dir.is_dir():
         return responses
     for path in sorted(raw_dir.glob("batch-*.json")):
-        data = json.loads(path.read_text())
+        data = json.loads(path.read_text(encoding="utf-8"))
         verdicts = data["verdicts"] if isinstance(data, dict) else data
         responses[path.stem] = verdicts
     return responses
 
 
 def main() -> None:
+    # FR-951: this script prints status glyphs; declare the stream's codec so
+    # it survives a pipe on a host whose preferred encoding is not UTF-8.
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if reconfigure is not None:
+            reconfigure(encoding="utf-8", errors="backslashreplace")
+
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--audit-dir", type=Path, default=Path("tmp/req-audit"))
     parser.add_argument("--model", default="?")
@@ -184,7 +192,7 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    manifest = json.loads((args.audit_dir / "manifest.json").read_text())
+    manifest = json.loads((args.audit_dir / "manifest.json").read_text(encoding="utf-8"))
     responses = _load_responses(args.audit_dir / "raw")
     retry_responses = _load_responses(args.audit_dir / "raw-retry")
 
@@ -200,7 +208,7 @@ def main() -> None:
 
     result = reconcile(manifest, responses, retry_responses)
     run_manifest = (
-        json.loads(args.run_manifest.read_text()) if args.run_manifest else {}
+        json.loads(args.run_manifest.read_text(encoding="utf-8")) if args.run_manifest else {}
     )
     report = render_report(
         result,
@@ -214,7 +222,7 @@ def main() -> None:
         },
     )
     out_path = args.audit_dir / "report.md"
-    out_path.write_text(report)
+    out_path.write_text(report, encoding="utf-8")
     print(f"✓ report → {out_path}")
     if result.unaudited:
         print(f"⚠️  {len(result.unaudited)} unaudited: {result.unaudited}")

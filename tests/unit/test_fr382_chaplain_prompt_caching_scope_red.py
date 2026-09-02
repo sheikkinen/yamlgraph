@@ -16,7 +16,7 @@ CONTEXT_PLANNER_PATH = (
 
 
 def _load_yaml(path: Path) -> dict:
-    return yaml.safe_load(path.read_text())
+    return yaml.safe_load(path.read_text(encoding="utf-8"))
 
 
 def _resolve_prompt_path(graph_path: Path, graph: dict, prompt_name: str) -> Path:
