@@ -21,9 +21,12 @@ requirements:
     description: >
       Persistent bridge loop substrate. Exactly ONE yamlgraph-bridge-loop
       daemon thread across N sequential bridge invocations; started lazily on
-      first use, never at import; os.register_at_fork resets the loop handle
-      and the LLM cache (with fresh locks) so a fork after warm-up gets a
-      fresh lazy loop in the child; a dead loop thread is restarted lazily
+      first use, never at import, on every runtime. Fork reset is registered
+      only when the runtime exposes os.register_at_fork: where present, the
+      hook resets the loop handle and the LLM cache (with fresh locks) so a
+      fork after warm-up gets a fresh lazy loop in the child; where absent
+      (no-fork runtimes such as Windows) no fork setup is performed and
+      import still succeeds. A dead loop thread is restarted lazily
       with a WARNING. The post-verdict drain is scoped to the invocation's
       own tasks (ContextVar task bucket via loop task factory) — concurrent
       invocations never wait on or WARN about each other's tasks. On
