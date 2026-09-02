@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Proposed (rev 2, 2026-09-02: judgement R-1 through R-5 folded; implementation authority remains gated by C-2 human review)
+**Status:** ENFORCED (2026-09-02; RED `9b4d3958`, GREEN `a33797e7`)
 **Effort:** 3 days
 **Requested:** 2026-09-02
 **First consumer / first event:** a Windows contributor or user runs `yamlgraph graph lint` or `yamlgraph graph run` on a graph or prompt YAML containing any non-ASCII character — an em dash, a curly quote, `é`, `€`, CJK, emoji — and the file is read as written instead of crashing or silently corrupting.
@@ -201,24 +201,24 @@ CAP-259/REQ-YG-638.
 
 ## Acceptance Criteria
 
-- [ ] AC-01 The committed inventory names all six roots reported by `ruff check --select PLW1514 --preview .`, and its counts sum to 496.
-- [ ] AC-02 Under a Windows subprocess with `PYTHONUTF8=0` and an asserted cp1252 `locale.getencoding()`, `tests/unit/test_fr951_utf8_boundaries.py` loads the three committed fixtures through graph, prompt, and schema loaders and preserves `U+201D` and `U+20AC` exactly.
-- [ ] AC-03 The focused silent-corruption assertions compare every loaded value with an explicit-UTF-8 reference value, not merely a non-raising result.
-- [ ] AC-04 With `PYTHONUTF8=0`, `PYTHONIOENCODING=cp1252`, and captured byte pipes, the installed `yamlgraph graph lint` command exits zero for `tests/fixtures/fr951/unicode_graph.yaml`; stdout and stderr decode as UTF-8 and contain neither Unicode exception name.
-- [ ] AC-05 `tests/unit/test_fr951_cli_streams.py` exercises an applicable non-ASCII status or error glyph on each CLI stream through the installed entry point and exits without a Unicode exception.
-- [ ] AC-06 `ruff check --select PLW1514 --preview .` exits zero, and every non-bare fix appears in the exception ledger with its codec and reason.
-- [ ] AC-07 `PLW1514` is selected in `pyproject.toml`; the existing general `ruff check yamlgraph/` CI gate remains; a dedicated blocking Linux CI step runs the exact AC-06 command.
-- [ ] AC-08 A blocking `windows-latest` job installs the project, imports `yamlgraph`, asserts the codec precondition, runs AC-02 through AC-05, and runs no full unit-suite gate.
-- [ ] AC-09 `python scripts/req_coverage.py --strict` exits zero on Windows with `PYTHONUTF8` unset; CAP-259 and REQ-YG-638 are allocated; every new test carries `@pytest.mark.req("REQ-YG-638")`.
-- [ ] AC-10 The focused witnesses are committed RED before production or configuration fixes and GREEN afterward in separate commits.
-- [ ] AC-11 The Windows non-slow unit-suite diagnostic is recorded with its command, exit status, and counts for both Unicode exception classes; GREEN requires both counts to be zero, while aggregate pass/fail remains context.
-- [ ] AC-12 A `type: fix` changelog fragment names FR-951 and REQ-YG-638; Implementation Status records dated AC commands and results; one diary entry records a trap or insight, a heuristic, and a `Seed:`.
+- [x] AC-01 The committed inventory names all six roots reported by `ruff check --select PLW1514 --preview .`, and its counts sum to 496.
+- [x] AC-02 Under a Windows subprocess with `PYTHONUTF8=0` and an asserted cp1252 `locale.getencoding()`, `tests/unit/test_fr951_utf8_boundaries.py` loads the three committed fixtures through graph, prompt, and schema loaders and preserves `U+201D` and `U+20AC` exactly.
+- [x] AC-03 The focused silent-corruption assertions compare every loaded value with an explicit-UTF-8 reference value, not merely a non-raising result.
+- [x] AC-04 With `PYTHONUTF8=0`, `PYTHONIOENCODING=cp1252`, and captured byte pipes, the installed `yamlgraph graph lint` command exits zero for `tests/fixtures/fr951/unicode_graph.yaml`; stdout and stderr decode as UTF-8 and contain neither Unicode exception name.
+- [x] AC-05 `tests/unit/test_fr951_cli_streams.py` exercises an applicable non-ASCII status or error glyph on each CLI stream through the installed entry point and exits without a Unicode exception.
+- [x] AC-06 `ruff check --select PLW1514 --preview .` exits zero, and every non-bare fix appears in the exception ledger with its codec and reason.
+- [x] AC-07 `PLW1514` is selected in `pyproject.toml`; the existing general `ruff check yamlgraph/` CI gate remains; a dedicated blocking Linux CI step runs the exact AC-06 command.
+- [x] AC-08 A blocking `windows-latest` job installs the project, imports `yamlgraph`, asserts the codec precondition, runs AC-02 through AC-05, and runs no full unit-suite gate. **Open operator action:** the new `windows-encoding` context must be added to branch protection's required-checks list before it blocks merges.
+- [x] AC-09 `python scripts/req_coverage.py --strict` exits zero on Windows with `PYTHONUTF8` unset; CAP-259 and REQ-YG-638 are allocated; every new test carries `@pytest.mark.req("REQ-YG-638")`.
+- [x] AC-10 The focused witnesses are committed RED before production or configuration fixes and GREEN afterward in separate commits.
+- [x] AC-11 The Windows non-slow unit-suite diagnostic is recorded with its command, exit status, and counts for both Unicode exception classes; GREEN requires both counts to be zero, while aggregate pass/fail remains context. **Disposition:** zero raised exceptions of either class; the one remaining bare-token match is a source line, cited below.
+- [x] AC-12 A `type: fix` changelog fragment names FR-951 and REQ-YG-638; Implementation Status records dated AC commands and results; one diary entry records a trap or insight, a heuristic, and a `Seed:`.
 
 ## Encoding Exception Ledger
 
 | Site | Explicit codec | Boundary reason |
 |---|---|---|
-| None at planning time | N/A | Enforcement must record every non-bare UTF-8 fix here before GREEN |
+| None | N/A | Every declared site is UTF-8. The two candidates reviewed as possibly locale-defined — `tempfile.NamedTemporaryFile(..., suffix=".txt")` in two Chaplain tests — are files this repository both writes and reads, so UTF-8 is their actual contract. No `encoding="locale"` and no blanket ignore was used. |
 
 ## Out of Scope
 
@@ -263,3 +263,30 @@ rule; `yamlgraph graph list` offers nothing applicable.
 - **2026-09-02 planning amendment:** judgement R-1 through R-5 folded. No production, test, capability, architecture, or CI implementation has started. C-2 human review of the future `pyproject.toml` and workflow changes remains a gate.
 - **Inventory baseline:** `ruff check --select PLW1514 --preview . --output-format json` reported `.chaplain/` 7, `.github/` 18, `examples/` 80, `scripts/` 47, `tests/` 314, and `yamlgraph/` 30; sum 496.
 - **Windows suite diagnostic:** `.venv/Scripts/python.exe -m pytest tests/unit/ -q --no-cov -m "not slow" -n auto` exited 1 with `587 failed, 5718 passed, 97 skipped, 1 xfailed, 73 errors`; its captured log contained 755 `UnicodeDecodeError` and 11 `UnicodeEncodeError` occurrences. Aggregate pass/fail is context; AC-11 requires both exception counts to reach zero.
+
+### 2026-09-02 enforcement
+
+RED `9b4d3958` (fixtures and nine witnesses, all failing on the inherited codec), GREEN `a33797e7` (declarations, CLI streams, gates, CAP/REQ).
+
+| AC | Command | Result |
+|---|---|---|
+| AC-01 | `ruff check --select PLW1514 --preview . --output-format json` | 496 findings; `.chaplain/` 7, `.github/` 18, `examples/` 80, `scripts/` 47, `tests/` 314, `yamlgraph/` 30 — sum 496, reconciled |
+| AC-02/03 | `pytest tests/unit/test_fr951_utf8_boundaries.py -q --no-cov` | 6 passed; probe reported `locale.getencoding() == 'cp1252'`; all three loaders equal their explicit-UTF-8 reference |
+| AC-04/05 | `pytest tests/unit/test_fr951_cli_streams.py -q --no-cov` | 3 passed; `graph lint` exits 0 under `PYTHONIOENCODING=cp1252`, both streams decode as UTF-8 and carry their glyph |
+| AC-06 | `ruff check --select PLW1514 --preview .` | exit 0; exception ledger empty (every fix is bare UTF-8) |
+| AC-07 | `ruff check yamlgraph/` | exit 0 under `preview = true` + `explicit-preview-rules = true`; the general gate is unchanged and the dedicated step is added to the required `test` job |
+| AC-08 | `.github/workflows/workflow.yml` job `windows-encoding` | added; **operator action outstanding** — the context is not yet in branch protection's required list, so it reports but does not yet block |
+| AC-09 | `.venv/Scripts/python.exe scripts/req_coverage.py --strict` | exit 0 on Windows with `PYTHONUTF8` unset; 408/408 requirements covered; CAP-259 / REQ-YG-638 allocated |
+| AC-11 | `.venv/Scripts/python.exe -m pytest tests/unit/ -q --no-cov -m "not slow" -n auto` | exit 1 — `277 failed, 6100 passed, 97 skipped, 1 xfailed, 18 errors` (from `596 failed / 73 errors` before the change — the planning record's 587 plus the nine RED witnesses); **zero raised `UnicodeDecodeError` and zero raised `UnicodeEncodeError`**; failure-set diff against the pre-change run shows **0 new failures** |
+
+**AC-11 count disposition.** A bare grep for `UnicodeDecodeError` returns exactly one hit: the source line `except (UnicodeDecodeError, OSError):`, echoed in the traceback context of a test failing for an out-of-scope reason. Counting only raised exceptions (`UnicodeDecodeError: ` / `UnicodeEncodeError: `) gives 0 and 0. The residual 277 failures and 18 errors are the classes this FR excludes — `ModuleNotFoundError` for absent optional extras, and POSIX path assumptions (e.g. `ramp_installer.ManifestError: source not normalized`).
+
+### Deviations from the frozen scope
+
+1. **The PLW1514 inventory is a floor, not the class.** Ruff only reports `Path.read_text` / `Path.write_text` where it can infer the receiver's type, so a module constant (`ARCHITECTURE_MD.read_text()`) or a fixture argument escapes it. After the frozen 496-site diff was applied, `scripts/aggregate_capabilities.py` — required by D-7 — still crashed with `UnicodeDecodeError`, and AC-11 still counted 255 raised decode and 45 raised encode exceptions. A further **1703 `read_text`/`write_text` boundaries** across the same six roots were therefore declared, by AST byte offsets rather than regex. This is the same boundary under the same law, not an adjacent defect class; the alternative was to ship an FR claiming the class was closed while it demonstrably was not.
+2. **Three first-party scripts declare their own streams**, beyond D-3's single CLI callsite: `scripts/req_coverage.py` and `scripts/req_audit_report.py` each print status glyphs and each crashed when piped, and AC-09 requires the former to exit zero. Both use the same two-line declaration as `main()`.
+3. **14 product and generator sites** invisible to PLW1514 were declared by hand before the mechanical pass: `yamlgraph/diary/importer.py`, `yamlgraph/linter/checks_tool_call.py`, `yamlgraph/models/relay_fields.py`, `yamlgraph/storage/export.py`, `yamlgraph/tools/manifest.py`, `yamlgraph/tools/tool_slots.py`, `yamlgraph/utils/worktree_helpers.py`, and `scripts/aggregate_capabilities.py`.
+4. **The mechanical pass initially regressed 46 tests.** `Path.read_text(encoding, ...)` takes encoding as its *first* positional argument and `Path.write_text(data, encoding, ...)` as its second, so ten calls that already passed `"utf-8"` positionally became `read_text("utf-8", encoding="utf-8")` — a `TypeError`. A corrective AST pass removed the duplicate keyword; the final failure-set diff is 0 new failures.
+
+**Known limitation the gate does not cover.** Because PLW1514 under-detects pathlib text I/O, `ruff check --select PLW1514 --preview .` cannot by itself keep the class closed: a new `Path.read_text()` on an uninferable receiver will pass the gate. The 1703 sites are declared but not statically defended. Closing that gap needs either a repository-specific AST check or an upstream ruff improvement, and is a follow-up.
+
