@@ -37,6 +37,20 @@ AUTH_OAUTH_TOKEN = json.dumps(
         "projectsDirectory": "C:\\Users\\u\\.claude\\projects",
     }
 )
+# Evidence §2.3: browser login; extra personal keys are present and ignored.
+AUTH_CLAUDE_AI = json.dumps(
+    {
+        "loggedIn": True,
+        "authMethod": "claude.ai",
+        "apiProvider": "firstParty",
+        "analyticsDisabled": False,
+        "projectsDirectory": "C:\\Users\\u\\.claude\\projects",
+        "email": "<redacted>",
+        "orgId": "<redacted>",
+        "orgName": "<org>",
+        "subscriptionType": "team",
+    }
+)
 AUTH_NONE = json.dumps(
     {
         "loggedIn": False,
@@ -367,6 +381,15 @@ class TestPreflight:
             ]
             * 2
         )
+
+    @pytest.mark.parametrize("auth", [AUTH_CLAUDE_AI, AUTH_OAUTH_TOKEN])
+    def test_subscription_methods_are_accepted(self, tmp_path: Path, auth) -> None:
+        """AC-09: browser login (claude.ai) and setup token (oauth_token) proceed."""
+        out, m = _run(
+            tmp_path, {}, procs=[_proc(VERSION_OK), _proc(auth), _proc(ENVELOPE_OK)]
+        )
+        assert m.call_count == 3
+        assert out["result"].session_id == SESSION_A
 
     def test_version_drift_fails_before_auth_probe(self, tmp_path: Path) -> None:
         with pytest.raises(RuntimeError, match=r"2\.1\.254.*2\.1\.255"):

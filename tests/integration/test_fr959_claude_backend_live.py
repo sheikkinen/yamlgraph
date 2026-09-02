@@ -86,7 +86,7 @@ def test_two_node_resume_carries_real_session_id(tmp_path: Path, capsys) -> None
 
     started = datetime.now(UTC).isoformat()
     with patch("subprocess.run", side_effect=spy):
-        app = compile_graph(load_graph_config(graph))
+        app = compile_graph(load_graph_config(graph)).compile()
         final = app.invoke({})
     ended = datetime.now(UTC).isoformat()
 

@@ -35,11 +35,14 @@ logger = logging.getLogger(__name__)
 # this set requires a new evidence capture on the new version.
 CLAUDE_SUPPORTED_VERSIONS: frozenset[str] = frozenset({"2.1.255"})
 
-# `authMethod` values that bill the Claude subscription. `oauth_token` is the
-# setup-token method ("requires Claude subscription", evidence §2.7). The
-# browser-login value is capture (a) of the evidence file — still owed; until
-# it is committed that case fails closed by absence from this set.
-CLAUDE_SUBSCRIPTION_AUTH_METHODS: frozenset[str] = frozenset({"oauth_token"})
+# `authMethod` values that bill the Claude subscription, each pinned to a raw
+# capture in the evidence file: `claude.ai` is the browser login (§2.3,
+# subscriptionType reported alongside); `oauth_token` is the setup-token method
+# ("requires Claude subscription", §2.7). Observed refusals: `none`, `api_key`,
+# `third_party`.
+CLAUDE_SUBSCRIPTION_AUTH_METHODS: frozenset[str] = frozenset(
+    {"claude.ai", "oauth_token"}
+)
 
 # Stripped from the child environment for every subprocess (evidence §7).
 CLAUDE_STRIPPED_ENV_VARS: tuple[str, ...] = (
