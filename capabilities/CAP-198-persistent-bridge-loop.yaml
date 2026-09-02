@@ -1,8 +1,8 @@
 name: Persistent Bridge Loop
 id: CAP-198
 status: active
-fr: FR-713
-feature_request: FR-713
+fr: FR-713, FR-950
+feature_request: FR-713, FR-950
 description: >
   One long-lived event loop thread (yamlgraph-bridge-loop) owned by the graph
   runtime bridges all sync→async node work (race, router-race, future async
