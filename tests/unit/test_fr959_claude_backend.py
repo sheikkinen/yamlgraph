@@ -175,7 +175,7 @@ def _base(prompt: str = RENDERED_PROMPT) -> list:
 
 @pytest.mark.req("REQ-YG-640")
 class TestClosedBackendEnum:
-    @pytest.mark.parametrize("bad", ["cluade", 3, ""])
+    @pytest.mark.parametrize("bad", ["cluade", 3, "", "CLAUDE", "Cli"])
     def test_unknown_backend_fails_at_compile_before_any_subprocess(
         self, tmp_path: Path, bad
     ) -> None:
@@ -188,7 +188,7 @@ class TestClosedBackendEnum:
             create_copilot_node("t", _config(tmp_path, backend=bad))
         mock_run.assert_not_called()
 
-    @pytest.mark.parametrize("bad", ["cluade", 3, ""])
+    @pytest.mark.parametrize("bad", ["cluade", 3, "", "CLAUDE", "Cli"])
     def test_schema_rejects_unknown_backend(self, bad) -> None:
         from yamlgraph.models.node_schema import NodeConfig
 
@@ -394,6 +394,19 @@ class TestPreflight:
     def test_version_drift_fails_before_auth_probe(self, tmp_path: Path) -> None:
         with pytest.raises(RuntimeError, match=r"2\.1\.254.*2\.1\.255"):
             _run(tmp_path, {}, procs=[_proc(VERSION_DRIFT)])
+
+    def test_matching_version_on_foreign_banner_is_drift(self, tmp_path: Path) -> None:
+        """PR #563 review P3: the whole banner is the contract, not its prefix."""
+        from yamlgraph.node_factory.copilot_node import create_copilot_node
+
+        with (
+            patch(
+                "subprocess.run", side_effect=[_proc("2.1.255 (Untrusted Wrapper)\n")]
+            ) as m,
+            pytest.raises(RuntimeError, match=r"Untrusted Wrapper.*Claude Code"),
+        ):
+            create_copilot_node("t", _config(tmp_path, cli_flags={}))({})
+        assert m.call_count == 1
 
     def test_version_drift_makes_exactly_one_call(self, tmp_path: Path) -> None:
         from yamlgraph.node_factory.copilot_node import create_copilot_node

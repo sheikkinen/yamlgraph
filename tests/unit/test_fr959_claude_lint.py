@@ -41,7 +41,7 @@ class TestClaudeBackendLint:
         )
         assert issues == []
 
-    @pytest.mark.parametrize("bad", ["cluade", 3, ""])
+    @pytest.mark.parametrize("bad", ["cluade", 3, "", "CLAUDE", "Cli"])
     def test_e_backend_unknown(self, bad) -> None:
         issues = check_copilot_node_structure("j", _node(backend=bad))
         assert "E-COPILOT-BACKEND-UNKNOWN" in _codes(issues)
@@ -124,6 +124,13 @@ class TestClaudeBackendLint:
     @pytest.mark.parametrize("model", ["gpt-5.6-sol", "gpt-4.1", "claude-sonnet-4-sol"])
     def test_w_claude_model_copilot_only_pattern(self, model) -> None:
         issues = check_copilot_node_structure("j", _node(cli_flags={"model": model}))
+        assert "W-COPILOT-CLAUDE-MODEL" in _codes(issues)
+
+    def test_w_claude_model_from_graph_defaults(self) -> None:
+        """PR #563 review note: the effective default model is linted too."""
+        issues = check_copilot_node_structure(
+            "j", _node(cli_flags={}), graph_defaults={"model": "gpt-5.6-sol"}
+        )
         assert "W-COPILOT-CLAUDE-MODEL" in _codes(issues)
 
     def test_w_claude_model_alias_is_quiet(self) -> None:

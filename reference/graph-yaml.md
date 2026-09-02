@@ -488,7 +488,7 @@ nodes:
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|
 | `prompt` | `string` | required | Name of prompt template |
-| `backend` | `string` | `"cli"` | Execution backend: `cli`, `api`, `sampling` (reserved), or `claude`. **Closed set**: any other value (a typo, `""`, a non-string) fails at schema load, at compile, and in lint (`E-COPILOT-BACKEND-UNKNOWN`) — it never falls through to Copilot |
+| `backend` | `string` | `"cli"` | Execution backend: `cli`, `api`, `sampling` (reserved), or `claude`. **Closed, case-sensitive set**: any other value (a typo, another casing, `""`, a non-string) fails at schema load, at compile, and in lint (`E-COPILOT-BACKEND-UNKNOWN`) — it never falls through to Copilot |
 | `cli_flags` | `object` | `{}` | CLI flags (see below) |
 | `timeout` | `int` | `300` | Timeout in seconds |
 | `state_key` | `string` | node name | State key for CopilotResult |

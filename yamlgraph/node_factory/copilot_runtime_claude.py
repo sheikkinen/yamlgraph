@@ -34,6 +34,11 @@ logger = logging.getLogger(__name__)
 # Pinned from `claude --version` on the probed host (evidence §1). Widening
 # this set requires a new evidence capture on the new version.
 CLAUDE_SUPPORTED_VERSIONS: frozenset[str] = frozenset({"2.1.255"})
+# The complete `--version` banner is what is compared (PR #563 review P3): a
+# matching numeric prefix on a different product string is version drift.
+CLAUDE_SUPPORTED_BANNERS: frozenset[str] = frozenset(
+    {f"{v} (Claude Code)" for v in CLAUDE_SUPPORTED_VERSIONS}
+)
 
 # `authMethod` values that bill the Claude subscription, each pinned to a raw
 # capture in the evidence file: `claude.ai` is the browser login (§2.3,
@@ -123,15 +128,14 @@ def _run_probe(node_name: str, argv: list[str], env: dict[str, str]):
 def _check_version(node_name: str, env: dict[str, str]) -> str:
     proc = _run_probe(node_name, ["claude", "--version"], env)
     observed = (proc.stdout or "").strip()
-    version = observed.split(" ", 1)[0] if observed else ""
-    if proc.returncode != 0 or version not in CLAUDE_SUPPORTED_VERSIONS:
+    if proc.returncode != 0 or observed not in CLAUDE_SUPPORTED_BANNERS:
         raise RuntimeError(
             f"[{node_name}] unsupported Claude Code version {observed!r} "
             f"(exit {proc.returncode}); accepted: "
-            f"{sorted(CLAUDE_SUPPORTED_VERSIONS)}. Widening the set needs a new "
+            f"{sorted(CLAUDE_SUPPORTED_BANNERS)}. Widening the set needs a new "
             "evidence capture (FR-959 §4)."
         )
-    return version
+    return observed.split(" ", 1)[0]
 
 
 def _check_auth(node_name: str, env: dict[str, str]) -> str:
@@ -287,6 +291,7 @@ def _execute_claude(
 __all__ = [
     "CLAUDE_STRIPPED_ENV_VARS",
     "CLAUDE_SUBSCRIPTION_AUTH_METHODS",
+    "CLAUDE_SUPPORTED_BANNERS",
     "CLAUDE_SUPPORTED_VERSIONS",
     "_execute_claude",
     "validate_claude_cli_flags",

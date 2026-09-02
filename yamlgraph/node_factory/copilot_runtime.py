@@ -90,13 +90,14 @@ def unknown_backend_message(node_name: str, value: Any) -> str:
 def normalize_backend(node_name: str, value: Any) -> str:
     """Closed backend set (FR-959 REQ-YG-640): None → cli; anything else exact.
 
-    Unknown strings, the empty string, and non-strings raise before any node
-    function exists — a typo never falls through to the Copilot CLI.
+    Unknown strings, the empty string, other casings, and non-strings raise
+    before any node function exists — a typo never falls through to the
+    Copilot CLI. Exact match, as the schema `Literal` does (review P4).
     """
     if value is None:
         return "cli"
-    if isinstance(value, str) and value.lower() in COPILOT_BACKENDS:
-        return value.lower()
+    if isinstance(value, str) and value in COPILOT_BACKENDS:
+        return value
     raise ValueError(unknown_backend_message(node_name, value))
 
 

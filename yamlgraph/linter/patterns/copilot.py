@@ -73,7 +73,10 @@ def _check_api_backend(
 
 
 def _check_claude_backend(
-    node_name: str, node_config: dict[str, Any], cli_flags: dict[str, Any]
+    node_name: str,
+    node_config: dict[str, Any],
+    cli_flags: dict[str, Any],
+    graph_defaults: dict[str, Any],
 ) -> list[LintIssue]:
     """FR-959 REQ-YG-640 rules for backend='claude'."""
     issues: list[LintIssue] = []
@@ -126,7 +129,12 @@ def _check_claude_backend(
                 "Add 'tools: [...]' — allowed_tools approves, it does not restrict",
             )
         )
-    model = cli_flags.get("model") or node_config.get("model")
+    # Same precedence the runtime uses (FR-266): cli_flags > node > defaults.
+    model = (
+        cli_flags.get("model")
+        or node_config.get("model")
+        or graph_defaults.get("model")
+    )
     if isinstance(model, str) and _COPILOT_ONLY_MODEL.search(model):
         issues.append(
             _issue(
@@ -197,8 +205,8 @@ def check_copilot_node_structure(
     raw_backend = node_config.get("backend")
     if raw_backend is None:
         backend = "cli"
-    elif isinstance(raw_backend, str) and raw_backend.lower() in COPILOT_BACKENDS:
-        backend = raw_backend.lower()
+    elif isinstance(raw_backend, str) and raw_backend in COPILOT_BACKENDS:
+        backend = raw_backend  # exact match, same as the schema Literal (P4)
     else:
         return [
             _issue(
@@ -219,7 +227,9 @@ def check_copilot_node_structure(
 
     issues: list[LintIssue] = []
     if backend == "claude":
-        issues.extend(_check_claude_backend(node_name, node_config, cli_flags))
+        issues.extend(
+            _check_claude_backend(node_name, node_config, cli_flags, graph_defaults)
+        )
     elif backend == "cli":
         claude_keys = [k for k in CLAUDE_ONLY_CLI_FLAGS if k in cli_flags]
         if claude_keys:

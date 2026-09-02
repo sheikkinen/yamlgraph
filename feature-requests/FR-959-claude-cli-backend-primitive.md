@@ -163,7 +163,9 @@ No cache. Every Claude node execution runs, in order, with the **same
 stripped environment** (§5) as the agent call:
 
 1. `claude --version` → stdout must be exactly `2.1.255 (Claude Code)`
-   (evidence §1). Accepted set `CLAUDE_SUPPORTED_VERSIONS = {"2.1.255"}`;
+   (evidence §1) — the **whole banner** is compared
+   (`CLAUDE_SUPPORTED_BANNERS = {"2.1.255 (Claude Code)"}`; a matching
+   numeric prefix on another product string is drift — PR #563 review P3);
    anything else raises `RuntimeError` naming the observed and accepted
    versions, before the auth probe. Widening the set requires a new
    evidence capture on the new version, recorded in this FR.
@@ -490,6 +492,17 @@ be committed; D-2 production code waits for both.
   raw capture + unit fixture cover the refusal path; live re-run command in
   the witness §Limitations). `copilot_node.py` at 417 lines (> 400 target).
   FR-960 unblocks when this branch is merged to main.
+
+- 2026-09-02 (review, PR #563, sole route `scripts/review.sh`): Not approved,
+  P1–P4. Fixed in this branch: **P1** FR-960 judgement fold moved to its own
+  branch `docs/fr-960-judgement-fold` (not authorized under FR-959); **P3**
+  version check compares the whole banner (`CLAUDE_SUPPORTED_BANNERS`), test
+  `test_matching_version_on_foreign_banner_is_drift`; **P4** backend match is
+  exact at compile and lint (`CLAUDE`, `Cli` rejected like the schema
+  `Literal`), tests extended; non-blocking note: `W-COPILOT-CLAUDE-MODEL`
+  now sees `defaults.model`. **P2** (live logged-out half of AC-15) needs the
+  operator to log out; command in the witness §Limitations — owed, not
+  optional.
 
 ### Acceptance record
 

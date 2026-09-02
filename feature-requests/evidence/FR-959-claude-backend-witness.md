@@ -81,8 +81,11 @@ strongest form of the strip witness the FR asked for.
   (`tests/unit/test_fr959_claude_backend.py::TestPreflight::test_auth_refusals_fail_before_agent_prompt`).
   To close it live, the operator runs, from PowerShell, `claude auth logout`,
   the harness command above (expected: `RuntimeError … authMethod='none'`
-  before any `-p`, `1 failed`), then `claude auth login`. Optional; recorded
-  as owed.
+  before any `-p`, `1 failed`), then `claude auth login`. **Owed** (PR #563
+  review P2: the acceptance criterion is explicitly live; the raw capture and
+  the unit fixture do not discharge it). The enforcing session can run the
+  harness and commit the redacted result the moment the operator reports
+  being logged out.
 - The `.env`-provisioned key means "no `ANTHROPIC_API_KEY` in the parent"
   (AC-14's literal wording) was not achievable on this host; the stronger
   condition (key present, still stripped) holds instead.
