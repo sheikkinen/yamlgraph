@@ -2,15 +2,16 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Proposed (child of FR-958 SPLIT, D-2) — **blocked on FR-959 Implemented**
+**Status:** **Judged 2026-09-02 — APPROVED WITH REVISIONS** ([judgement](FR-960-claude-judge-variant.judgement.md)); R-1..R-6 folded 2026-09-02; **all enforcement (D-2..D-9) blocked until FR-959 is Implemented on main** with its committed auth probe and live witness and an untriggered kill criterion (judgement R-1, C-2)
 **Effort:** 0.5 day + two live judge runs
 **Requested:** 2026-09-02
-**First consumer / first event:** the operator runs `JUDGE_BACKEND=claude scripts/judge.sh feature-requests/<some-FR>.md` and reads a draft verdict rendered by Claude Code; the same afternoon the same FR is judged with the default backend and the two drafts' disagreements are listed in a committed witness. That list is the deliverable; the second judge exists to produce it.
+**First consumer / first event:** the operator runs `JUDGE_BACKEND=claude scripts/judge.sh feature-requests/<some-FR>.md` and reads a draft verdict rendered by Claude Code; the same afternoon the same FR is judged with the default backend and the two drafts are inventoried claim by claim in a committed witness (§4). That inventory is the deliverable; the second judge exists to produce it.
 **Research:** in-body dispositioned alternatives table below with a *Dissent* column (FR-958 judgement R-7).
 **Prior art:**
 - [FR-958](FR-958-claude-code-cli-backend-for-copilot-node.md) [SPLIT] / [judgement](FR-958-claude-code-cli-backend-for-copilot-node.judgement.md) — parent; this FR is D-2 and folds R-2 (judge argv), R-3 (payer boundary as consumed), and R-7 (persistent witness). It inherits the judgement's AC-12..AC-17 and C-2, C-3, C-4, C-7, C-8.
-- [FR-959](FR-959-claude-cli-backend-primitive.md) [Proposed] — the backend this FR consumes. Hard dependency: no live witness here until FR-959 is Implemented (C-2).
+- [FR-959](FR-959-claude-cli-backend-primitive.md) [Judged — APPROVED WITH REVISIONS 2026-09-02] — the backend this FR consumes. **Hard precondition for every deliverable below except this FR's own text** (judgement R-1). Its [evidence](evidence/FR-959-claude-auth-probe.md) pins the `--tools` comma grammar this FR relies on.
 - NC-412 / NC-414 / NC-415 (recorded in `.github/skills/judge-fr/adapters/README.md` and `scripts/judge.sh`) — sole-route judge, artifact-not-exit-code contract, OS lock. Preserved: one graph, one wrapper; the second backend is a node inside the graph, not a second route.
+- [FR-758](FR-758.judgement.md) / CAP-211 (`capabilities/CAP-211-sole-route-judge-review.yaml`) — owns the sole-route wrapper and adapter contract and `tests/unit/test_fr758_judge_review_wrappers.py`; REQ-YG-642 folds into it (judgement R-4).
 - FR-305 (`.chaplain/graphs/watcher-plan/step-judge-v2.yaml`) — lineage of the adapter graph; already runs a Claude *model* through Copilot. Distinguished: this FR changes harness and payer, not weights.
 - CAP-44 (judge SPLIT verdict, REQ-YG-143) — judge prompt contract; untouched (the Claude node shares the same prompt file).
 
@@ -20,12 +21,15 @@ Add a `judge_claude` node (`backend: claude`, FR-959) to
 `.github/skills/judge-fr/adapters/graph.yaml`, selected by a `backend`
 state variable through conditional edges so the graph stays the one route.
 `scripts/judge.sh` passes `--var backend=${JUDGE_BACKEND:-copilot}` and
-writes a **per-run artifact path** so two judges can run on the same FR
-without deleting each other's drafts. The Claude node restricts available
-tools to `Read, Glob, Grep, Write` with `--tools` and auto-approves exactly
-that set; no bypass flag. Every live run leaves a committed witness with
-backend, CLI version, auth mode, timestamps, artifact hashes, and, for the
-dual run, a complete disagreement table.
+writes a **per-backend-per-FR artifact path** so two backends can judge the
+same FR, and two FRs can be judged back to back, without deleting each
+other's drafts (a same-backend rerun on the same FR deliberately replaces its
+own earlier draft). The Claude node restricts available tools to
+`Read, Glob, Grep, Write` with `--tools` and auto-approves exactly that set;
+no bypass flag. Every live run leaves a committed witness with backend, CLI
+version, auth mode, timestamps, artifact hashes, and, for the dual run, a
+claim-by-claim inventory of both drafts with `matched` / `contradicted` /
+`backend-only` dispositions.
 
 ## Value Statement
 
@@ -43,8 +47,10 @@ loader, and payer, so a verdict can be cross-examined instead of trusted
    FR-958's run verified its artifact at 18:57:49 local (`tmp/judge-fr958.log`);
    a sibling session's run started at 18:57:52 (`tmp/.judge.lock/holder`,
    `tmp/judge-fr955-957.log`) and deleted it. The verdict survived only in
-   the Copilot session transcript. This FR's own AC-16 (two backends, same
-   FR) would collide the same way by design.
+   the Copilot session transcript. The FR-959 and FR-960 judgements of
+   2026-09-02 each had to `cp` the draft in the same shell command as the
+   wrapper to be safe. This FR's own AC-14 (two backends, same FR) would
+   collide the same way by design.
 3. **Over-broad judge permissions.** The current node needs
    `allow_all_tools: true` because Copilot CLI otherwise exits 0 while
    denying the file write (NC-414). Claude's print mode has separate
@@ -55,24 +61,31 @@ loader, and payer, so a verdict can be cross-examined instead of trusted
 
 `scripts/judge.sh <fr>` behaves exactly as today. `JUDGE_BACKEND=claude
 scripts/judge.sh <fr>` renders the same doctrine through Claude Code, with
-four tools, on the subscription, into its own artifact file. Running both
-on one FR and diffing the drafts is a documented ritual with a committed
-record; the drafts disagree on something, and that something is the most
-useful line in either.
+four tools, on the subscription, into its own artifact file. Running both on
+one FR and inventorying the drafts is a documented ritual with a committed
+record. Whether the drafts converge or diverge, the inventory says so
+explicitly: convergence is valid evidence (recorded with a sentinel), and a
+`contradicted` or `backend-only` row is the most useful line in either draft.
 
 ## Proposed Solution
 
-### 1. Adapter graph (graph authoring route only)
+### 1. Adapter graph (graph authoring route only; judgement R-2, C-3)
 
-Target shape; the edit MUST go through `scripts/author.sh` with a task brief
-(`.github/skills/graph-authoring/doctrine.md`). The YAML below is the brief's
+The edit MUST go through `scripts/author.sh` with the committed brief
+`feature-requests/authoring-briefs/fr-960-claude-judge-variant-brief.md`
+(deliverable D-2; written and committed only after FR-959 is Implemented,
+per R-1). The brief names the artifact boundary
+(`.github/skills/judge-fr/adapters/graph.yaml`,
+`.github/skills/judge-fr/adapters/prompts/judge.yaml`), the existing judge
+adapter as precedent, the exact expected edits below, the lint command, a
+narrow mocked smoke, and the report contract. The YAML below is the brief's
 target, not a hand edit:
 
 ```yaml
 state:
   fr_path: str
   backend: str            # "copilot" | "claude"; wrapper always sets it
-  artifact_path: str      # wrapper-computed per-run path (see §2)
+  artifact_path: str      # wrapper-computed per-backend-per-FR path (see §2)
   judge_result: dict
 
 nodes:
@@ -91,7 +104,7 @@ nodes:
     backend: claude
     cli_flags:
       model: opus                          # alias; exact id pinned in the witness
-      tools: [Read, Glob, Grep, Write]     # availability (FR-959 `--tools`)
+      tools: [Read, Glob, Grep, Write]     # availability (FR-959 `--tools`, comma grammar per its evidence §4)
       allowed_tools: [Read, Glob, Grep, Write]   # approval for the same set
       max_turns: 40
     prompt: judge                          # SAME prompt file (NC-412 zero duplication)
@@ -111,17 +124,21 @@ The prompt `adapters/prompts/judge.yaml` replaces the literal
 `tmp/draft-judgement.md` with `{{ artifact_path }}`. No doctrine text
 changes (the prompt is a pointer; doctrine lives in `doctrine.md`).
 
-No `allow_all_tools` on the Claude node (judgement R-2, C-3). No `Bash`, no
+No `allow_all_tools` on the Claude node (FR-958 R-2, C-3). No `Bash`, no
 MCP, no `Edit` (the judge creates one new file; it does not modify).
 
-### 2. Wrapper (`scripts/judge.sh`)
+### 2. Wrapper (`scripts/judge.sh`; judgement R-3)
 
 - `BACKEND="${JUDGE_BACKEND:-copilot}"`; refuse anything but `copilot|claude`
-  (exit 64) so a typo cannot select the default silently.
+  (exit 64) **before the lock is taken**, so a typo cannot select the default
+  silently.
 - `ARTIFACT="$WORKDIR/tmp/draft-judgement-${BACKEND}-${FR_SLUG}.md"` where
   `FR_SLUG` is the FR basename without extension. The startup `rm -f` and
-  the end-of-run artifact check both use this path. The README's operator
-  instructions name the pattern.
+  the end-of-run artifact check both use this path. The name is
+  **per-backend-per-FR**, not per-run: a rerun of the same backend on the
+  same FR removes and replaces only its own earlier draft; the other
+  backend's draft and other FRs' drafts survive. The README names the
+  pattern and the overwrite.
 - Pass `--var backend=$BACKEND --var artifact_path=$ARTIFACT`.
 - Lock unchanged (one judge at a time is still right; the artifact change
   protects the *previous* run's output, which the lock never did).
@@ -129,23 +146,57 @@ MCP, no `Edit` (the judge creates one new file; it does not modify).
 
 ### 3. README and doctrine pointers
 
-`adapters/README.md` gains: backend selection; the per-run artifact
-pattern and why (the 2026-09-02 clobber); that the Claude node has four
-tools and no bypass; that it bills the operator's Claude subscription (with
-FR-959's residual payer list linked, not repeated). `SKILL.md`'s "one judge
-to rule them all" paragraph gains one sentence: the graph has two backend
-nodes, still one route.
+`adapters/README.md` gains: backend selection and validation; the
+per-backend-per-FR artifact pattern, the overwrite rule, and why (the
+2026-09-02 clobber); that the Claude node has four tools and no bypass; that
+it bills the operator's Claude subscription (with FR-959's residual payer
+list linked, not repeated). `SKILL.md`'s "one judge to rule them all"
+paragraph gains one sentence: the graph has two backend nodes, still one
+route. `doctrine.md` and `judgement.template.md` are untouched.
 
-### 4. Witness record (R-7) — `feature-requests/evidence/FR-960-claude-judge-witness.md`
+### 4. Witness record (R-7, judgement R-6) — `feature-requests/evidence/FR-960-claude-judge-witness.md`
 
 Committed, one section per live run:
 
 | Field | Content |
 |---|---|
-| Authoring proof | `scripts/author.sh` command, digest of the local `tmp/draft-authoring-report.md` (which is **not** committed, per `.github/skills/graph-authoring/SKILL.md:35`), quoted required sections, lint and smoke commands with results, graph commit SHA |
-| Run | backend, `claude --version` / `copilot --version`, auth mode as reported by FR-959's preflight, `JUDGE_BACKEND`, start/end timestamps, artifact path and sha256, verdict header line |
-| Dual run | the two verdict lines; a table of every finding present in one draft and absent from the other, with the judge's file:line evidence for each; zero rows is recorded as a finding ("second judge added nothing on this FR") |
+| Authoring proof | `scripts/author.sh` command and brief path, digest of the local `tmp/draft-authoring-report.md` (which is **not** committed, per `.github/skills/graph-authoring/SKILL.md:35`), quoted required sections, lint and smoke commands with results, graph commit SHA, limitations |
+| Run | target FR path and commit SHA, backend, `claude --version` / `copilot --version`, auth mode as reported by FR-959's preflight, `JUDGE_BACKEND`, start/end timestamps, artifact path and sha256, verdict header line |
+| Dual-run inventory | for each draft: the verdict line, every substantive claim in *What is sound*, each R-* revision, each C-* condition — under stable witness-local IDs (`CP-n` for the Copilot draft, `CL-n` for the Claude draft). Each item carries a disposition `matched` (cite the counterpart ID), `contradicted` (cite both and the file:line evidence each relies on), or `backend-only`. When no item is `contradicted` or `backend-only`, the section ends with the literal sentinel `no backend-only or contradicted items` — convergence recorded, not an empty table passed off as a result |
+| Signatures | two separate dated lines by a human other than the enforcer: (1) "Enforcement-infrastructure diff and route invariants accepted by <name>, <date>"; (2) "Residual Claude subscription payer boundary (FR-959 §5) accepted for judge execution by <name>, <date>" |
 | Limitations | anything not exercised |
+
+### 5. Tests (judgement R-5) — `tests/unit/test_fr960_claude_judge_variant.py`, marked `process`, every test `@pytest.mark.req("REQ-YG-642")`
+
+- Wrapper, stubbed `YAMLGRAPH_BIN` (pattern of `test_fr758_judge_review_wrappers.py`):
+  exact argv for unset, `copilot`, `claude`, and `cluade` `JUDGE_BACKEND`;
+  `cluade` exits 64 with no `tmp/.judge.lock` created; artifact path is
+  `tmp/draft-judgement-<backend>-<fr-slug>.md`; a pre-created
+  `tmp/draft-judgement-copilot-other.md` and
+  `tmp/draft-judgement-copilot-<same-slug>.md` both survive a `claude` run;
+  a second `copilot` run on the same FR replaces
+  `tmp/draft-judgement-copilot-<same-slug>.md`; verdict-line verification
+  unchanged; no real judge launch.
+- Graph routing: compile the adapter with mocked `subprocess.run`;
+  `backend=copilot` visits only `judge`, `backend=claude` visits only
+  `judge_claude`; both receive the same `judge` prompt and the requested
+  `artifact_path`; the Claude node's captured argv contains `--tools`,
+  `Read,Glob,Grep,Write` and `--allowedTools`, `Read,Glob,Grep,Write` and
+  `--max-turns`, `40`, and contains no `--dangerously-skip-permissions`,
+  `Bash`, `Edit`, or `mcp__` name.
+
+### 6. Traceability (judgement R-4)
+
+- **REQ-YG-642** (id provisional, re-derived at enforce) folded into
+  `capabilities/CAP-211-sole-route-judge-review.yaml` with `fr: FR-758, FR-960`
+  and modules: `.github/skills/judge-fr/adapters/graph.yaml`,
+  `.github/skills/judge-fr/adapters/prompts/judge.yaml`, `scripts/judge.sh`,
+  `tests/unit/test_fr758_judge_review_wrappers.py`,
+  `tests/unit/test_fr960_claude_judge_variant.py`.
+- `ARCHITECTURE.md` regenerated; `python scripts/req_coverage.py --strict`.
+- Changelog fragment `changelog/unreleased/fr-960-claude-judge-variant.md`
+  (`type: feat`, `scope: judge`, `req: REQ-YG-642`).
+- Diary entry under `docs/diary/` with a **Seed**.
 
 ### Requirements (ADR-001; provisional id)
 
@@ -153,61 +204,77 @@ Committed, one section per live run:
   default, `claude`) inside one graph via state-conditioned edges; the
   Claude judge node restricts tool availability and approval to
   `Read, Glob, Grep, Write` with no bypass; `scripts/judge.sh` derives a
-  per-run artifact path from backend and FR and refuses unknown backends;
-  each live run is recorded in a committed witness including a
-  dual-backend disagreement table.
+  per-backend-per-FR artifact path from backend and FR, refuses unknown
+  backends before taking the lock, and a same-backend rerun replaces only its
+  own artifact; each live run is recorded in a committed witness including a
+  dual-backend claim inventory with `matched` / `contradicted` /
+  `backend-only` dispositions and two separate human signatures.
 
-## Acceptance Criteria
+## Acceptance Criteria (revised by the judgement; C-n = gate)
 
-Gates inherited from the FR-958 judgement are marked (C-n).
+- [ ] AC-01 (C-2): FR-959 is Implemented on main, its committed auth probe
+  and live witness exist, and its kill criterion has not fired, before any
+  D-2..D-9 work begins.
+- [ ] AC-02 (C-3): `feature-requests/authoring-briefs/fr-960-claude-judge-variant-brief.md`
+  is committed, cited here, and names the artifact boundary, precedent,
+  expected edits, lint, narrow smoke, and report contract.
+- [ ] AC-03 (C-3): `scripts/author.sh feature-requests/authoring-briefs/fr-960-claude-judge-variant-brief.md`
+  produces a non-empty local `tmp/draft-authoring-report.md` with the
+  required headings; the witness records its digest, quoted required
+  sections, lint and smoke commands/results, graph commit SHA, and
+  limitations, and nowhere claims the report is committed.
+- [ ] AC-04: `yamlgraph graph lint .github/skills/judge-fr/adapters/graph.yaml`
+  → 0 errors; a REQ-YG-642 test proves `copilot` selects only `judge`,
+  `claude` selects only `judge_claude`, and both receive the same `judge`
+  prompt and requested `artifact_path`.
+- [ ] AC-05 (C-4): the Copilot node retains `backend: cli`,
+  `model: gpt-5.6-sol`, `allow_all_paths: true`, `allow_all_tools: true`;
+  only its `artifact_path` variable and routing edge differ from the
+  committed pre-FR-960 graph.
+- [ ] AC-06 (C-5): the Claude node's captured argv contains `--tools`,
+  `Read,Glob,Grep,Write`; `--allowedTools`, `Read,Glob,Grep,Write`;
+  `--max-turns`, `40`; and no `--dangerously-skip-permissions`, `Bash`,
+  `Edit`, or `mcp__` name.
+- [ ] AC-07: stubbed wrapper tests prove unset and `copilot` select the
+  Copilot branch, `claude` the Claude branch, any other value exits 64
+  before lock creation, and the exact `--var backend=…` and
+  `--var artifact_path=…` arguments are passed.
+- [ ] AC-08: wrapper tests prove the path is
+  `tmp/draft-judgement-<backend>-<fr-slug>.md`; a run removes/replaces only
+  that path; other-backend and other-FR artifacts survive; a same-backend
+  same-FR rerun replaces its earlier artifact.
+- [ ] AC-09: the prompt contains `{{ artifact_path }}` and no literal
+  `tmp/draft-judgement.md`; `doctrine.md` and `judgement.template.md`
+  unchanged (diff empty).
+- [ ] AC-10: README and SKILL text per §3, linking FR-959's residual payer
+  list rather than restating it.
+- [ ] AC-11: CAP-211 carries REQ-YG-642 and FR-960 provenance;
+  `ARCHITECTURE.md` regenerated; every new test tagged
+  `@pytest.mark.req("REQ-YG-642")`; changelog fragment carries
+  `req: REQ-YG-642`; `python scripts/req_coverage.py --strict` passes.
 
-- [ ] AC-01 (C-2): FR-959 is Implemented on main before any live criterion
-  below is attempted; offline criteria may proceed on a branch.
-- [ ] AC-02: `yamlgraph graph lint .github/skills/judge-fr/adapters/graph.yaml`
-  → 0 errors; the graph has exactly two `type: copilot` nodes, both with
-  `prompt: judge`; the `judge` node's config is byte-identical to today's
-  except for the added `artifact_path` variable.
-- [ ] AC-03 (C-3): the Claude node's argv, asserted by a test that compiles
-  the graph and captures the mocked `subprocess.run`, contains
-  `--tools`, `Read,Glob,Grep,Write` and `--allowedTools`, `Read,Glob,Grep,Write`,
-  and does **not** contain `--dangerously-skip-permissions`, `Bash`, or any
-  `mcp__` name. If FR-959's captured `claude --help` shows `--tools` cannot
-  carry the list, the assertion is instead on bare-name `--disallowedTools`
-  for every default tool outside the four; the witness records which form.
-- [ ] AC-04: shell tests for `scripts/judge.sh`: unset `JUDGE_BACKEND` →
-  `--var backend=copilot`; `JUDGE_BACKEND=claude` → `--var backend=claude`;
-  `JUDGE_BACKEND=cluade` → exit 64 before the lock is taken; artifact path
-  is `tmp/draft-judgement-<backend>-<fr-slug>.md`; the startup `rm -f`
-  touches only that path (a pre-created `tmp/draft-judgement-copilot-other.md`
-  survives a claude run).
-- [ ] AC-05: `adapters/prompts/judge.yaml` contains `{{ artifact_path }}`
-  and no literal `tmp/draft-judgement.md`; doctrine.md unchanged (diff
-  empty).
-- [ ] AC-06 (C-7): the witness file's *Authoring proof* section exists with
-  the report digest, lint, smoke, and graph SHA; the FR text nowhere claims
-  the local authoring report is committed.
-- [ ] AC-07 (C-8): a human reviewer other than the enforcer signs the
-  witness ("Enforcement-infrastructure diff and payer boundary reviewed by
-  <name>, <date>") before this FR moves to Implemented.
-- [ ] AC-08: README and SKILL.md paragraphs per §3 present; README links
-  FR-959's residual payer list rather than restating it.
+Live (each recorded in the witness; C-6: pytest and CI never launch a judge):
 
-Live (each recorded in the witness):
-
-- [ ] AC-09 (C-4): `JUDGE_BACKEND=claude scripts/judge.sh <FR>` on a host
+- [ ] AC-12 (C-8): `JUDGE_BACKEND=claude scripts/judge.sh <FR>` on a host
   with a subscription login and no `ANTHROPIC_API_KEY` writes
   `tmp/draft-judgement-claude-<slug>.md` with a `**Verdict:**` line; the
-  FR-959 preflight's reported auth mode is in the witness.
-- [ ] AC-10: with `ANTHROPIC_API_KEY=sk-invalid-on-purpose` exported, AC-09
-  still succeeds (FR-959 AC-13 at the judge level).
-- [ ] AC-11: the default backend run on the same FR, same host, writes
-  `tmp/draft-judgement-copilot-<slug>.md`; both files exist afterwards
-  (the clobber is gone).
-- [ ] AC-12: the witness's disagreement table is complete: every finding in
-  one draft absent from the other, with evidence; zero rows recorded as a
-  finding, not a pass.
-- [ ] AC-13 (kill): if AC-09 fails on auth, FR-959's kill criterion has
-  already fired and this FR is REJECTED with it; no payer rescues the run.
+  witness records target FR path and commit SHA, backend, CLI version, auth
+  mode from the FR-959 preflight, timestamps, artifact path/hash, verdict.
+- [ ] AC-13 (C-10): with `ANTHROPIC_API_KEY=sk-invalid-on-purpose` exported,
+  AC-12's subscription-authenticated result is unchanged; if it changes,
+  FR-959's kill criterion fires and this FR receives no operational authority.
+- [ ] AC-14: the default backend run on the same FR, same host, writes
+  `tmp/draft-judgement-copilot-<slug>.md`; both files exist afterwards with
+  distinct hashes or an explicitly recorded equality.
+- [ ] AC-15: the witness inventories both drafts per §4; every item has a
+  source location, evidence citation, and disposition; convergence uses the
+  literal sentinel, never an empty table.
+- [ ] AC-16 (C-7, C-8): two separate dated signatures by a human other than
+  the enforcer — infrastructure diff/route invariants, and the residual
+  Claude subscription payer boundary — exist before the Claude route is
+  operational or this FR is marked Implemented.
+- [ ] AC-17: the diary entry exists with a Seed; all REQ-YG-642 tests and the
+  existing judge-wrapper/model-pin tests pass without launching a real judge.
 
 ## Alternatives Considered (with dissent preserved)
 
@@ -215,37 +282,54 @@ Live (each recorded in the witness):
 |---|---|---|---|
 | Second adapter graph `graph-claude.yaml`, wrapper picks the file | `adapters/README.md`: "one judge to rule them all — the graph above is the sole route" | REJECTED — two files read as two routes | Two small graphs are easier to lint and diff than one graph with a passthrough and two conditional edges; the "route" is arguably the wrapper, not the file. The doctrine's wording decides it, not the engineering. |
 | Only change `model:` on the existing Copilot node | `step-judge-v2.yaml:24` already runs `claude-sonnet-4.6` through Copilot | REJECTED — same harness, same permission model, same seat | Cheapest possible second opinion, zero new auth surface. Sufficient if the concern is weights alone. It is not. |
-| Keep the shared artifact path; rely on the lock | `scripts/judge.sh:25-38`: lock serializes runs; `rm -f` at line 41 | REJECTED — the lock protects the run, not the previous output; witnessed loss 2026-09-02 | A per-run name means operators must know which file to open; the README fix is one line, and the wrapper prints the path. Real but small cost. |
-| Per-run artifact via run id instead of backend+slug | run id exists in the graph run log (`yamlgraph.route` event) | REJECTED — not known to the wrapper before the run; backend+slug is deterministic and human-readable | A UUID never collides even for two runs of the same backend on the same FR; backend+slug collides on a re-run (which then overwrites its own earlier draft, arguably fine). Accepted trade. |
+| Keep the shared artifact path; rely on the lock | `scripts/judge.sh:25-38`: lock serializes runs; `rm -f` at line 41 | REJECTED — the lock protects the run, not the previous output; witnessed loss 2026-09-02 | A per-backend-per-FR name means operators must know which file to open; the README fix is one line, and the wrapper prints the path. Real but small cost. |
+| Per-run artifact via run id instead of backend+slug | run id exists in the graph run log (`yamlgraph.route` event) | REJECTED — not known to the wrapper before the run; backend+slug is deterministic and human-readable | A UUID never collides even for two runs of the same backend on the same FR; backend+slug overwrites its own earlier draft on a rerun. Accepted and now named honestly (judgement R-3). |
 | Give the Claude judge `allow_all_tools` like the Copilot node | NC-414 record: Copilot needed it because denial was silent | REJECTED — Claude has a real availability control; using it is the point (R-2) | Symmetry between the two nodes would make the dual-run comparison cleaner (same tool surface). The asymmetry is deliberate: the comparison is *of judges*, not of tool sets, and a judge with Bash is a judge that can run the judge. |
-| Do the dual-run comparison as a graph (`map` over backends, `llm` diff node) | `yamlgraph graph list` — no judge-comparison graph exists; `is_this_a_graph` | DEFERRED — a hand-written disagreement table for the first N witnesses is the raw read the comparison graph would later be built from (`read_raw_output_first`) | It is exactly the "for each item, ask the model" shape the Scripture says to graph first. Correct; after three witnesses, file it. |
+| Do the dual-run comparison as a graph (`map` over backends, `llm` diff node) | `yamlgraph graph list` — no judge-comparison graph exists; `is_this_a_graph` | DEFERRED — the hand-written inventory for the first N witnesses is the raw read the comparison graph would later be built from (`read_raw_output_first`) | It is exactly the "for each item, ask the model" shape the Scripture says to graph first. Correct; after three witnesses, file it. |
 
 Is this a graph? The judge selection is already inside a graph. The
 comparison is not yet a graph, on purpose (last row).
 
 ## Out of Scope
 
-- Anything in FR-959 (runtime, lint, payer preflight).
+- Anything in FR-959 (runtime, lint, payer preflight, auth, settings).
 - A third judge backend (Codex, Gemini CLI). The edge shape admits it; no
   consumer (`would_you_use_this`).
 - Migrating `scripts/review.sh` / `scripts/author.sh` adapters; separate
   FRs after the first committed witness.
-- Changing the default judge backend or model.
+- Changing the default judge backend or the `gpt-5.6-sol` pin.
 - Usage-limit wait/reroute (FR-958 §Follow-on).
 - Automated disagreement scoring (last dissent row).
-- Per-run artifact naming for the other sole-route wrappers (scripts/judge.sh, scripts/review.sh, scripts/author.sh, scripts/research.sh
-  share the fixed-name `rm -f` pattern, census 2026-09-02); convention FR after
-  this one's naming survives its first dual run.
+- Per-backend-per-FR naming for the other sole-route wrappers
+  (`scripts/review.sh`, `scripts/author.sh`, `scripts/research.sh` share the
+  fixed-name `rm -f` pattern, census 2026-09-02); convention FR after this
+  one's naming survives its first dual run.
+- CI or pytest execution of a real judge (C-6); any expansion of the advisory
+  output boundary (C-9).
 
 ## Related
 
 - `.github/skills/judge-fr/adapters/graph.yaml`, `adapters/prompts/judge.yaml`,
-  `adapters/README.md`, `SKILL.md`, `scripts/judge.sh`
+  `adapters/README.md`, `SKILL.md`, `scripts/judge.sh`,
+  `capabilities/CAP-211-sole-route-judge-review.yaml`
+- `feature-requests/authoring-briefs/fr-960-claude-judge-variant-brief.md` (D-2, pending)
 - `tmp/judge-fr958.log`, `tmp/judge-fr955-957.log` (the clobber's raw record;
   local, quoted in the witness when written)
 - FR-959 evidence files
 
-## Judgement (pending)
+## Judgement (2026-09-02)
 
-Route: `scripts/judge.sh feature-requests/FR-960-claude-judge-variant.md`
-(default backend). Never in the author's session.
+**Verdict:** APPROVED WITH REVISIONS — [FR-960-claude-judge-variant.judgement.md](FR-960-claude-judge-variant.judgement.md)
+(sole route `scripts/judge.sh`, Copilot CLI gpt-5.6-sol, session
+`c03cb3ef-473f-40dd-b190-4586602bd06d`; not the author's session).
+
+**Folded 2026-09-02:** R-1 (FR-959 Implemented is a hard precondition for
+every deliverable but this text), R-2 (committed brief cited as D-2), R-3
+("per-backend-per-FR" everywhere; rerun-overwrite test), R-4 (REQ-YG-642
+into CAP-211, ARCHITECTURE, changelog, diary), R-5 (named test file, routing
+and argv assertions), R-6 (claim inventory protocol with sentinel; two
+separate signatures; Ideal Result accepts convergence). Acceptance criteria
+replaced by the judgement's revised set.
+
+**Gate at fold time:** C-2 — FR-959 not yet Implemented. No FR-960 brief,
+graph, wrapper, test, doc, or witness work has begun.
