@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Bug
-**Status:** Judged — APPROVED WITH REVISIONS; R-1–R-4 folded 2026-09-02; enforcement gated on human review of the judgement (C-2)
+**Status:** ENFORCED (2026-09-02; RED `d3b71652`, GREEN `92e09928`) — C-2 satisfied by operator instruction; AC-03 (CPython 3.14) and the RED failure witness are owed by a POSIX host, see Implementation Status. Judged APPROVED WITH REVISIONS; R-1–R-4 folded `627e0a71` — [judgement](FR-954-fr950-residuals-fork-sim-and-cap198-attribution.judgement.md)
 **Effort:** 0.25 days
 **Requested:** 2026-09-02
 **First consumer / first event:** a contributor reads `test_import_without_register_at_fork_capability` on clean main (green since `82111177`) and finds a witness that pre-imports the dependency chain (`asyncio`, `random`, `langgraph.checkpoint.base`) before deleting `os.register_at_fork` — it proves yamlgraph's local guard but overclaims Windows/no-fork import fidelity: the ordinary cold dependency chain is never exercised under the no-fork surface.
@@ -103,11 +103,11 @@ handles absence via `getattr(os, "register_at_fork", None)`.
 
 ## Acceptance Criteria
 
-- [ ] AC-01: In `test_import_without_register_at_fork_capability`, the subprocess imports only `os` before setup; removes both `fork` and `register_at_fork` when present; asserts `not hasattr(os, "fork")` and `not hasattr(os, "register_at_fork")`; only then imports `yamlgraph`, `yamlgraph.utils.bridge`, and `threading`; and asserts that `yamlgraph-bridge-loop` did not start.
-- [ ] AC-02: The subprocess contains no pre-import of `asyncio`, `random`, or `langgraph.checkpoint.base`, so the ordinary cold YAMLGraph dependency chain remains the seam under test.
+- [x] AC-01: In `test_import_without_register_at_fork_capability`, the subprocess imports only `os` before setup; removes both `fork` and `register_at_fork` when present; asserts `not hasattr(os, "fork")` and `not hasattr(os, "register_at_fork")`; only then imports `yamlgraph`, `yamlgraph.utils.bridge`, and `threading`; and asserts that `yamlgraph-bridge-loop` did not start.
+- [x] AC-02: The subprocess contains no pre-import of `asyncio`, `random`, or `langgraph.checkpoint.base`, so the ordinary cold YAMLGraph dependency chain remains the seam under test.
 - [ ] AC-03: On CPython 3.14 in the pinned `[dev]` environment with `uuid_utils >= 0.17.0`, `pytest tests/unit/test_fr713_persistent_bridge.py -q --no-cov` exits zero. The validation record includes a `python` preflight that mechanically reports the Python and `uuid_utils` versions.
 - [ ] AC-04: Git history contains separate RED and GREEN commits: RED adds the missing `os.fork`-absence assertion to the current one-attribute setup and records its failure; GREEN removes both attributes, removes the pre-import scaffold, and makes the targeted test file green.
-- [ ] AC-05: The implementation diff contains no production, CAP, ARCHITECTURE, dependency, constraint, collision-test, or FR-950-fragment change; the FR records implementation status, a `type: fix` FR-954 changelog fragment exists without a new CAP/REQ allocation, and the final diary entry contains `Seed:`.
+- [x] AC-05: The implementation diff contains no production, CAP, ARCHITECTURE, dependency, constraint, collision-test, or FR-950-fragment change; the FR records implementation status, a `type: fix` FR-954 changelog fragment exists without a new CAP/REQ allocation, and the final diary entry contains `Seed:`.
 
 ## Alternatives Considered
 
@@ -160,3 +160,29 @@ edit; it has no model stage, multi-stage LLM pipeline, or fan-out.
 - `tests/unit/test_fr713_persistent_bridge.py`
 - [FR-954 judgement](FR-954-fr950-residuals-fork-sim-and-cap198-attribution.judgement.md)
 - `changelog/unreleased/fr-950-windows-safe-bridge-fork-registration.md`
+
+## Implementation Status
+
+**Status:** ENFORCED 2026-09-02 on branch `feat/fr954-enforce` — RED `d3b71652`, GREEN `92e09928`; lifecycle artifacts (this record, fragment, diary) in the following docs commit.
+
+**Authority note.** C-1 is satisfied: R-1–R-4 were folded in `627e0a71` (cherry-picked onto main as `3ec8ad4e`). C-2 (human review of the draft judgement) was satisfied by the operator's instruction to enforce FR-954 after PR #556 landed; recorded here rather than left implicit.
+
+### Decisions
+
+- **Fragment carries no `req:`.** AC-05 forbids a new CAP/REQ allocation, and the FR-242 collision gate requires any fragment `req:` to be backed by a capability whose `fr:` names the fragment's FR. Adding `req: REQ-YG-541` would therefore have forced a CAP-198 attribution edit, which C-3 forbids. The fragment names FR-954 and describes the change without a requirement claim; REQ-YG-541 remains attributed to FR-713 and FR-950 unchanged.
+- **Pre-existing `ruff format` drift left untouched.** `ruff format --check` flags four assertion blocks in the same file (lines ~95, ~228, ~256, ~325) that predate this branch. Reformatting them is unrelated refactoring (not authorized); the lines this FR changed are format-clean and `ruff check` passes.
+- **Cold chain, not a mock.** The subprocess imports only `os` before setup; `threading` is imported after yamlgraph so it is part of the chain under test, not scaffolding.
+
+### Verification record (Windows host, 2026-09-02)
+
+Preflight (AC-03 mechanical report): `.venv\Scripts\python.exe -c "import sys, platform, importlib.metadata as m; print(platform.python_implementation(), sys.version.split()[0], sys.platform); print('uuid_utils', m.version('uuid_utils'))"` → `CPython 3.13.15 win32` / `uuid_utils 0.17.0`.
+
+| AC | Command / evidence | Result |
+|---|---|---|
+| AC-01 | `tests/unit/test_fr713_persistent_bridge.py::TestImportAndForkSafety::test_import_without_register_at_fork_capability` at `92e09928` | Subprocess: `import os`; loop deletes `register_at_fork` and `fork` when present; asserts both absent; then imports `yamlgraph`, `yamlgraph.utils.bridge`, `threading`; asserts `yamlgraph-bridge-loop` not in `threading.enumerate()` names. **Met** |
+| AC-02 | same test, `git show 92e09928` | No `asyncio`, `random` or `langgraph.checkpoint.base` import anywhere in the subprocess. **Met** |
+| AC-03 | `.venv\Scripts\python.exe -m pytest tests/unit/test_fr713_persistent_bridge.py -q --no-cov` | exit 0 — 7 passed, 1 skipped (real-fork witness, POSIX-only) on **CPython 3.13.15 / win32 / uuid_utils 0.17.0**. **Not met as specified (C-5):** the criterion names CPython 3.14 in the pinned `[dev]` environment; no 3.14 interpreter and no POSIX runtime exists on this host (WSL broken, Docker daemon down, LAN delegation runs mac→Windows only). Owed by the mac: run the same command on 3.14 and append the result here. |
+| AC-04 | `git log --oneline` on the branch: `d3b71652` RED, `92e09928` GREEN, separate commits | **Met with a recorded gap:** RED's failing output could not be observed on this host. The RED assertion (`not hasattr(os, "fork")` after the one-attribute setup) is trivially true on Windows because the host is itself the no-fork surface; it fails only on a fork-capable interpreter. On this host the RED commit ran `1 passed`. The failure witness is owed by the mac: `git checkout d3b71652 && pytest tests/unit/test_fr713_persistent_bridge.py -q --no-cov -k register_at_fork` should report `AssertionError: no-fork surface must lack os.fork`; paste the output here. |
+| AC-05 | `git diff main...feat/fr954-enforce --stat` | Touches only `tests/unit/test_fr713_persistent_bridge.py`, `feature-requests/FR-954-*.md`, `feature-requests/FR-954-*.judgement.md`, `changelog/unreleased/fr-954-faithful-no-fork-import-simulation.md`, `docs/diary/diary-2026-09-02-the-host-that-could-not-see-red.md`. No production, CAP, ARCHITECTURE, dependency, constraint, collision-test or FR-950-fragment change. Fragment is `type: fix` with no CAP/REQ allocation. Diary entry carries `Seed:`. **Met** |
+
+Lint: `ruff check tests/unit/test_fr713_persistent_bridge.py` → All checks passed.
