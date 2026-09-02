@@ -1,0 +1,6 @@
+name: preflight
+description: "FR-962 person-profile census preflight (Azure + visibility)"
+runtime:
+  type: python
+  path: tools.py
+  function: preflight

@@ -1,0 +1,127 @@
+{
+  "title": "Sheikkinen: Prolific Cleanup & Enforcement Architect",
+  "themes": [
+    {
+      "theme": "Systematic Retirement & Cleanup",
+      "evidence": "Aggressive deprecation of legacy surfaces (Mastra, A2A, MCP, lane-guard, skill/agent export) with comprehensive removal of code, tests, docs, and CI configurations.",
+      "pr_urls": [
+        "https://github.com/sheikkinen/yamlgraph/pull/494",
+        "https://github.com/sheikkinen/yamlgraph/pull/491",
+        "https://github.com/sheikkinen/yamlgraph/pull/492",
+        "https://github.com/sheikkinen/yamlgraph/pull/514",
+        "https://github.com/sheikkinen/yamlgraph/pull/508"
+      ]
+    },
+    {
+      "theme": "Enforcement & Boundary Hardening",
+      "evidence": "Consistent focus on fail-closed patterns, validation at reducer boundaries, write-path enforcement, and error containment (agent tool boundary, main-write lock, census row-failure containment).",
+      "pr_urls": [
+        "https://github.com/sheikkinen/yamlgraph/pull/478",
+        "https://github.com/sheikkinen/yamlgraph/pull/503",
+        "https://github.com/sheikkinen/yamlgraph/pull/476",
+        "https://github.com/sheikkinen/yamlgraph/pull/547",
+        "https://github.com/sheikkinen/yamlgraph/pull/545"
+      ]
+    },
+    {
+      "theme": "Census & Corpus Tooling",
+      "evidence": "Building out census pipeline infrastructure (diary trap, person-profile, org repo, corpus-census) with map-reduce patterns and evidence ledgers for audit and self-measurement.",
+      "pr_urls": [
+        "https://github.com/sheikkinen/yamlgraph/pull/480",
+        "https://github.com/sheikkinen/yamlgraph/pull/484",
+        "https://github.com/sheikkinen/yamlgraph/pull/479",
+        "https://github.com/sheikkinen/yamlgraph/pull/562",
+        "https://github.com/sheikkinen/yamlgraph/pull/485"
+      ]
+    },
+    {
+      "theme": "Research Route & Precedent Traceability",
+      "evidence": "Implementing research infrastructure with precedent validation, citation enforcement, sole-route patterns, and contract-driven testing for closed-input alternatives.",
+      "pr_urls": [
+        "https://github.com/sheikkinen/yamlgraph/pull/477",
+        "https://github.com/sheikkinen/yamlgraph/pull/486",
+        "https://github.com/sheikkinen/yamlgraph/pull/525",
+        "https://github.com/sheikkinen/yamlgraph/pull/541"
+      ]
+    },
+    {
+      "theme": "Session & Worktree Lifecycle Management",
+      "evidence": "Implementing session accountability, worktree GC, checkpoint commits, and OS-enforced write protection with comprehensive hook machinery.",
+      "pr_urls": [
+        "https://github.com/sheikkinen/yamlgraph/pull/499",
+        "https://github.com/sheikkinen/yamlgraph/pull/487",
+        "https://github.com/sheikkinen/yamlgraph/pull/503"
+      ]
+    },
+    {
+      "theme": "LAN & Delegation Skills",
+      "evidence": "Adding LAN-based capabilities (recon skill, Copilot delegation, issue-queue runner bundle) with WinRM inventory, offline testing, and self-hosted runner infrastructure.",
+      "pr_urls": [
+        "https://github.com/sheikkinen/yamlgraph/pull/551",
+        "https://github.com/sheikkinen/yamlgraph/pull/550",
+        "https://github.com/sheikkinen/yamlgraph/pull/553"
+      ]
+    },
+    {
+      "theme": "Doctrine & Constraint Enforcement",
+      "evidence": "Enforcing size gates, instruction context diets, label normalization, and frozen grammars to maintain system invariants and prevent model output drift.",
+      "pr_urls": [
+        "https://github.com/sheikkinen/yamlgraph/pull/548",
+        "https://github.com/sheikkinen/yamlgraph/pull/545",
+        "https://github.com/sheikkinen/yamlgraph/pull/561"
+      ]
+    }
+  ],
+  "surface_concentration": "Heavily concentrated on backend, tests, and tooling surfaces (present in ~85% of PRs). Frequent touches to docs, hooks, and CI. Minimal direct work on adapters or graphs, but orchestrates them through tooling layers. Consistent pattern of multi-surface refactors that touch backend + tests + docs + tooling simultaneously.",
+  "cadence": "Sustained high-velocity delivery across 30 PRs with consistent merged state (29/30 merged, 1 open). No evidence of retitles, phantom work, or churn—each PR has clear intent, problem class, and delta. Delivery spans cleanup, enforcement, research, and tooling domains with no regressions noted.",
+  "notable_prs": [
+    {
+      "url": "https://github.com/sheikkinen/yamlgraph/pull/494",
+      "title": "refactor(examples): FR-915 retire the Mastra integration demo",
+      "reason": "Exemplifies aggressive cleanup pattern—7995 delta removal across docs, tests, tooling with surgical precision.",
+      "evidence": "Largest single cleanup PR; demonstrates willingness to delete legacy code at scale."
+    },
+    {
+      "url": "https://github.com/sheikkinen/yamlgraph/pull/491",
+      "title": "refactor(a2a): FR-909 retire the A2A protocol surface",
+      "reason": "Comprehensive surface retirement spanning backend, tests, docs, CI—shows systemic cleanup discipline.",
+      "evidence": "5368 delta; removes implementation, CLI, examples, docs, optional extra, tests, and updates CI constraints."
+    },
+    {
+      "url": "https://github.com/sheikkinen/yamlgraph/pull/562",
+      "title": "feat(census): FR-961 person-profile census — authored-PR corpus map-reduce",
+      "reason": "Self-referential meta-work: building the very tool used to audit this profile. Shows architectural ambition.",
+      "evidence": "Open PR adding corpus-reduce person-profile census for self-audit; demonstrates reflexive tooling design."
+    },
+    {
+      "url": "https://github.com/sheikkinen/yamlgraph/pull/478",
+      "title": "fix(agent): FR-891 fail-closed agent tool boundary",
+      "reason": "Core enforcement pattern—fail-closed semantics at tool boundary; prevents silent failures.",
+      "evidence": "Enforces AllToolCallsFailedError before synthesis; search_web raises instead of returning strings."
+    },
+    {
+      "url": "https://github.com/sheikkinen/yamlgraph/pull/479",
+      "title": "feat(tools): FR-892 corpus-census pipeline — invocation-time tool-slot binding",
+      "reason": "Foundational tooling infrastructure with fail-closed evidence ledger; enables downstream census work.",
+      "evidence": "1530 delta; discover-extract-map-reduce pipeline with invocation-time binding and audit ledger."
+    },
+    {
+      "url": "https://github.com/sheikkinen/yamlgraph/pull/476",
+      "title": "feat(hooks): FR-888 main-write guard — worktree as sole enforcement write path",
+      "reason": "Architectural enforcement: forces all writes through worktree, eliminating direct main writes.",
+      "evidence": "1089 delta; OS-enforced write path with escape hatch; no regressions."
+    },
+    {
+      "url": "https://github.com/sheikkinen/yamlgraph/pull/515",
+      "title": "fix(examples): FR-930 code-own FR-reference reconciliation in recap finalizer",
+      "reason": "Enforcement of reference integrity; reconciles FR refs, strips unverified tokens, records in recap.",
+      "evidence": "4348 delta; deterministic unit witnesses; expands test coverage for reference validation."
+    },
+    {
+      "url": "https://github.com/sheikkinen/yamlgraph/pull/551",
+      "title": "feat(skills): FR-948 LAN Copilot delegation channel (REQ-YG-636)",
+      "reason": "New capability delivery with comprehensive testing (offline + live) and documentation.",
+      "evidence": "3452 delta; wire layer, wrapper scripts, extensive test coverage, docs."
+    }
+  ]
+}

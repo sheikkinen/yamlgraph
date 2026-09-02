@@ -1,0 +1,14 @@
+{
+  "run_id": "6e55a7cb-9819-46df-870b-099101c421b1",
+  "collected_at": "2026-09-02T17:05:45.008449+00:00",
+  "source": "sheikkinen@sheikkinen:2026-08-25",
+  "visibility": "[\"public\"]",
+  "discovered": 90,
+  "classified": 90,
+  "row_failed": 0,
+  "map_calls": 90,
+  "azure_model": "unknown",
+  "prompt_version": "classify_pr.v1",
+  "synthesis_prompt_version": "synthesize_person_brief.v1",
+  "ledger_sha256": "abe9befe9dd91c47dfc68aab46c1f2034dbbf0f60d0164538500f1881c612fbd"
+}

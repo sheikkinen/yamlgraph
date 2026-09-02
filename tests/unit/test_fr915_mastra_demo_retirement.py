@@ -33,8 +33,10 @@ def test_mastra_demo_files_are_untracked():
 def test_no_mastra_references_in_live_example_surfaces():
     """No live advertising of the retired demo.
 
-    ``demo-output.log`` files are frozen CAP-79 proof artifacts of other
-    demos' real runs; editing one to satisfy a grep would falsify evidence.
+    ``demo-output.log`` files and ``proofs/**`` are frozen CAP-79 proof
+    artifacts of other demos' real runs; editing one to satisfy a grep
+    would falsify evidence. FR-961's person-profile census legitimately
+    quotes PR #494 (the FR-915 retirement PR) in its own frozen proofs.
     """
     offenders = [
         str(path.relative_to(REPO_ROOT))
@@ -42,6 +44,7 @@ def test_no_mastra_references_in_live_example_surfaces():
         if path.is_file()
         and path.name != "demo-output.log"
         and "node_modules" not in path.parts
+        and "proofs" not in path.parts
         and _mentions_mastra(path)
     ]
     assert offenders == []
@@ -49,7 +52,10 @@ def test_no_mastra_references_in_live_example_surfaces():
 
 def _mentions_mastra(path: Path) -> bool:
     try:
-        return re.search("mastra", path.read_text(encoding="utf-8"), re.IGNORECASE) is not None
+        return (
+            re.search("mastra", path.read_text(encoding="utf-8"), re.IGNORECASE)
+            is not None
+        )
     except (UnicodeDecodeError, OSError):
         return False
 

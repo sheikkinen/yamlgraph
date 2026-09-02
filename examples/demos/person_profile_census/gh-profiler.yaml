@@ -1,0 +1,169 @@
+version: "1.0"
+name: gh-profiler
+description: >
+  Two-model person-profile smoke — inception/mercury for classification,
+  anthropic/haiku for synthesis. NOT the FR-962 committed sibling
+  (that pins provider: azure); this variant is the class-4 preserved-
+  disagreement smoke and is not part of the enforced scope.
+
+prompts_relative: true
+prompts_dir: prompts
+
+defaults:
+  temperature: 0.0
+
+config:
+  max_map_items: 500
+
+state:
+  source: str
+  visibility: str
+  rubric: str
+  problem_labels: str
+  surface_labels: str
+  map_provider: str
+  map_model: str
+  synth_provider: str
+  synth_model: str
+  output_path: str
+  brief_path: str
+  brief_rubric: str
+  canary: dict
+  run_metadata: dict
+  preflight_ok: bool
+  azure_model: str
+  items:
+    type: list
+  contents:
+    type: list
+    reducer: sorted_add
+  findings:
+    type: list
+    reducer: sorted_add
+  ledger: dict
+  brief_input:
+    type: list
+  claims: dict
+  brief: dict
+
+tools:
+  preflight:
+    slot: true
+    contract:
+      runtimes: [python]
+  discover:
+    slot: true
+    contract:
+      runtimes: [python]
+      args: [source]
+  extract:
+    slot: true
+    contract:
+      runtimes: [python]
+      args: [item]
+  reduce_ledger:
+    type: python
+    path: tools.py
+    function: reduce_pr_ledger
+  prepare_brief_input:
+    type: python
+    path: tools.py
+    function: prepare_brief_input
+  render_brief:
+    type: python
+    path: tools.py
+    function: render_brief
+
+nodes:
+  preflight:
+    type: python
+    tool: preflight
+    state_key: preflight_ok
+    on_error: fail
+
+  discover:
+    type: python
+    tool: discover
+    variables:
+      source: "{state.source}"
+    state_key: items
+    on_error: fail
+
+  extract_items:
+    type: map
+    over: "{state.items}"
+    as: item
+    max_items: 500
+    node:
+      type: python
+      tool: extract
+      state_key: content
+      on_error: fail
+    collect: contents
+
+  judge_items:
+    type: map
+    over: "{state.contents}"
+    as: judged_content
+    max_items: 500
+    node:
+      type: llm
+      prompt: classify_pr
+      provider: "{state.map_provider}"
+      model: "{state.map_model}"
+      temperature: 0
+      state_key: finding
+      on_error: skip
+      variables:
+        rubric: "{state.rubric}"
+        evidence_bundle: "{state.judged_content.value}"
+        source_index: "{state.judged_content._map_index}"
+        problem_labels: "{state.problem_labels}"
+        surface_labels: "{state.surface_labels}"
+    collect: findings
+
+  reduce_ledger:
+    type: python
+    tool: reduce_ledger
+    state_key: ledger
+
+  prepare_brief_input:
+    type: python
+    tool: prepare_brief_input
+    state_key: brief_input
+
+  synthesize:
+    type: llm
+    prompt: synthesize_person_brief
+    provider: "{state.synth_provider}"
+    model: "{state.synth_model}"
+    temperature: 0
+    state_key: claims
+    variables:
+      rubric: "{state.brief_rubric}"
+      rows: "{state.brief_input}"
+
+  render_brief:
+    type: python
+    tool: render_brief
+    state_key: brief
+
+edges:
+  - from: START
+    to: preflight
+  - from: preflight
+    to: discover
+  - from: discover
+    to: extract_items
+  - from: extract_items
+    to: judge_items
+  - from: judge_items
+    to: reduce_ledger
+  - from: reduce_ledger
+    to: prepare_brief_input
+  - from: prepare_brief_input
+    to: synthesize
+  - from: synthesize
+    to: render_brief
+  - from: render_brief
+    to: END
