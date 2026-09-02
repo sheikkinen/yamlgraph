@@ -1,0 +1,3 @@
+# FR-951 witness fixture: prompt text carrying U+201D and U+20AC.
+system: You are a “careful” assistant that always quotes prices in €.
+user: Greet {name} and confirm the fee is €5 — no more.

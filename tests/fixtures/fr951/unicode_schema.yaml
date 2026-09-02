@@ -1,0 +1,13 @@
+# FR-951 witness fixture: schema block carrying U+201D and U+20AC.
+system: Extract the quoted price.
+user: Return the quoted phrase and the price.
+
+schema:
+  name: UnicodePriceOutput
+  fields:
+    quote:
+      type: str
+      description: The “quoted” phrase, verbatim.
+    price:
+      type: str
+      description: The price including the € sign.

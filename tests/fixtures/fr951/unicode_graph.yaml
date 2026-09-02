@@ -1,0 +1,24 @@
+# FR-951 witness fixture. Holds U+201D (closing curly quote) and U+20AC (euro
+# sign); the UTF-8 encoding of U+201D ends in byte 0x9d, which is undefined in
+# cp1252 and therefore raises when the file is read with an inherited codec.
+description: A “declared” encoding costs €0 — an inherited one costs correctness.
+prompts_relative: true
+prompts_dir: .
+
+state:
+  name: str
+  response: str
+
+nodes:
+  greet:
+    type: llm
+    prompt: unicode_prompt
+    state_key: response
+    variables:
+      name: "{state.name}"
+
+edges:
+  - from: START
+    to: greet
+  - from: greet
+    to: END
