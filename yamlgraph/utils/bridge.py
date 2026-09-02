@@ -80,7 +80,10 @@ def _reset_after_fork() -> None:
     llm_factory._llm_cache = {}  # noqa: SLF001 — fork hygiene
 
 
-os.register_at_fork(after_in_child=_reset_after_fork)
+# FR-950: fork registration is an optional OS capability — absent on Windows.
+_register_at_fork = getattr(os, "register_at_fork", None)
+if _register_at_fork is not None:
+    _register_at_fork(after_in_child=_reset_after_fork)
 
 
 def _ensure_loop() -> asyncio.AbstractEventLoop:
