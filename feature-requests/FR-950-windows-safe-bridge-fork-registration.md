@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Implemented (2026-09-02; rev 2 judgement revisions folded, C-1 waived by operator — see Implementation Status)
+**Status:** ENFORCED (2026-09-02) — RED `f8556dcb`, GREEN `547bd58a`, registry alignment `f5c60d73`; see Implementation Status below. Judged REJECTED; R-1–R-5 folded in `086edaf2`, and gate C-1 (rejudgement) was WAIVED by the operator rather than cleared — [FR-950-windows-safe-bridge-fork-registration.judgement.md](FR-950-windows-safe-bridge-fork-registration.judgement.md)
 **Effort:** 0.5 day
 **Requested:** 2026-09-01
 **Traceability:** Existing REQ-YG-541 persistent bridge contract; no new capability or requirement allocation
@@ -139,7 +139,7 @@ dependency, graph artifact, capability, or requirement is needed.
 
 ## Implementation Status
 
-**Status:** Implemented 2026-09-02 (RED `f8556dcb`, GREEN `547bd58a`).
+**Status:** ENFORCED 2026-09-02 — RED `f8556dcb`, GREEN `547bd58a`, capability-registry alignment `f5c60d73`.
 
 **Authority note (deviation).** The standing judgement is REJECTED with
 authority "none" pending rejudgement after R-1 through R-5 were folded
@@ -161,7 +161,7 @@ criteria. Recorded here rather than left implicit.
 | AC-06 | `.venv\Scripts\python.exe -m pytest tests/unit/test_fr713_persistent_bridge.py -q --no-cov` | exit 0 — 7 passed, 1 skipped (only the real-fork witness) |
 | AC-07 | `.venv\Scripts\python.exe -m pytest tests/unit/ -q --no-cov -m "not slow" -n auto` | **Not met.** Collection now succeeds (it previously died in `tests/conftest.py`); 5718 passed, 587 failed, 73 errors, exit 1 |
 | AC-08 | `python scripts/req_coverage.py --strict` | Blocked by the same unrelated defect below; exit 0 under `PYTHONUTF8=1`, all CAPs covered. New tests carry `@pytest.mark.req("REQ-YG-541")`; no CAP/REQ allocation added |
-| AC-09 | `ARCHITECTURE.md:2534` | REQ-YG-541 now states present-capability registration and absent-capability no-op under the existing CAP-198 allocation |
+| AC-09 | `ARCHITECTURE.md:2534` and `capabilities/CAP-198-persistent-bridge-loop.yaml` | REQ-YG-541 now states present-capability registration and absent-capability no-op under the existing CAP-198 allocation. The capability YAML is the dynamically loaded source of truth for `req_coverage.py`; it was missed in the GREEN commit and corrected in `f5c60d73` |
 | AC-11 | `changelog/unreleased/fr-950-windows-safe-bridge-fork-registration.md` | `type: fix`, names FR-950 and REQ-YG-541 |
 
 ### AC-07 disposition: a second, distinct Windows defect class
@@ -188,6 +188,14 @@ the only Windows blocker; it was the only *import* blocker. This FR is gated
 on its own defect class (AC-01, AC-02, AC-05, AC-06 — all green), and the
 aggregate is recorded above as context. The encoding class warrants its own
 FR; per judgement condition C-5 it did not enter this enforcement.
+
+**Follow-up filed:** [FR-951-declare-utf8-at-text-boundaries.md](FR-951-declare-utf8-at-text-boundaries.md)
+takes the encoding class. Investigation there found the 377 failures collapse
+to a single unencoded read at `scripts/req_coverage.py:70`, plus two further
+modes this FR's log did not distinguish: silent cp1252 mojibake that raises
+nothing, and a CLI error handler that itself raises `UnicodeEncodeError` while
+reporting the first. The optional-dependency and POSIX-path residue remains
+undispositioned and is explicitly out of FR-951's scope too.
 
 ## Related
 
