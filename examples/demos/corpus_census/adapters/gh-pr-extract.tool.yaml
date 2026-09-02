@@ -1,0 +1,6 @@
+name: gh-pr-extract
+description: "FR-955 person-profile census adapter: gh_pr_extract"
+runtime:
+  type: python
+  path: corpus_adapters.py
+  function: gh_pr_extract

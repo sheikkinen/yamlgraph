@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import base64
 import json
+import re
 import subprocess
 from pathlib import Path
 from typing import Any
@@ -162,5 +163,199 @@ def gh_repo_extract(state: dict[str, Any]) -> str:
     if len(blob) > MAX_CHARS:
         overshoot = len(blob) - MAX_CHARS
         bundle["readme_head"] = readme_head[: max(0, len(readme_head) - overshoot)]
+        blob = json.dumps(bundle)
+    return blob
+
+
+# --- Authored-PR person profile (FR-962) ---------------------------------
+
+MAX_PRS = 500
+MAX_BODY_CHARS = 3000
+MAX_LABELS = 10
+_VALID_VISIBILITY = {"public", "private", "internal"}
+_ISO_DATE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+_SHA40 = re.compile(r"^[0-9a-f]{40}$")
+
+
+def _parse_pr_source(source: str) -> tuple[str, str, str]:
+    """Parse '<author>@<owner>:<since>' with ISO YYYY-MM-DD `since` (R-2)."""
+    author, sep_at, rest = source.strip().partition("@")
+    if not sep_at or not author:
+        raise ValueError(
+            f"gh_authored_prs_discover: malformed source: {source!r} "
+            "(expected '<author>@<owner>:<since>')"
+        )
+    owner, sep_colon, since = rest.partition(":")
+    if not sep_colon or not owner or not since:
+        raise ValueError(
+            f"gh_authored_prs_discover: malformed source: {source!r} "
+            "(expected '<author>@<owner>:<since>')"
+        )
+    if not _ISO_DATE.match(since):
+        raise ValueError(
+            f"gh_authored_prs_discover: `since` must be ISO YYYY-MM-DD, "
+            f"got {since!r}"
+        )
+    return author, owner, since
+
+
+def _parse_visibility(state: dict[str, Any]) -> list[str]:
+    """Parse required `visibility` state var (R-5): JSON list from the enum."""
+    raw = state.get("visibility")
+    if isinstance(raw, str):
+        try:
+            raw = json.loads(raw)
+        except json.JSONDecodeError as exc:
+            raise ValueError(
+                f"gh_authored_prs_discover: `visibility` must be JSON list, "
+                f"got {raw!r}"
+            ) from exc
+    if not isinstance(raw, list) or not raw:
+        raise ValueError(
+            "gh_authored_prs_discover: `visibility` must be a non-empty list "
+            f"from {sorted(_VALID_VISIBILITY)}"
+        )
+    seen: set[str] = set()
+    canonical: list[str] = []
+    for entry in raw:
+        if not isinstance(entry, str):
+            raise ValueError(
+                f"gh_authored_prs_discover: visibility entry must be str, "
+                f"got {entry!r}"
+            )
+        key = entry.casefold()
+        if key not in _VALID_VISIBILITY:
+            raise ValueError(
+                f"gh_authored_prs_discover: unknown visibility {entry!r}; "
+                f"allowed: {sorted(_VALID_VISIBILITY)}"
+            )
+        if key in seen:
+            raise ValueError(
+                f"gh_authored_prs_discover: duplicate visibility {entry!r}"
+            )
+        seen.add(key)
+        canonical.append(key)
+    return canonical
+
+
+def gh_authored_prs_discover(state: dict[str, Any]) -> list[str]:
+    """Enumerate PRs authored by <author> in <owner> since <since>.
+
+    source: '<author>@<owner>:<since>' — e.g. 'sheikkinen@sheikkinen:2026-06-01'
+    visibility: JSON list from {"public","private","internal"} (required, R-5)
+    Overflow-detecting (R-1): queries MAX_PRS+1 and rejects on 501.
+    Returns sorted, deduplicated list of item refs '<owner>/<repo>#<number>'.
+    """
+    author, owner, since = _parse_pr_source(_require(state, "source"))
+    visibility = _parse_visibility(state)
+    argv: list[str] = [
+        "search",
+        "prs",
+        "--author",
+        author,
+        "--owner",
+        owner,
+        "--created",
+        f">={since}",
+        "--limit",
+        str(MAX_PRS + 1),
+        "--json",
+        "repository,number",
+    ]
+    for vis in visibility:
+        argv.extend(["--visibility", vis])
+    listing = json.loads(_gh(*argv))
+    if not listing:
+        raise ValueError(
+            f"gh_authored_prs_discover: no PRs for "
+            f"author={author!r} owner={owner!r} since={since!r} "
+            f"visibility={visibility}"
+        )
+    if len(listing) > MAX_PRS:
+        raise ValueError(
+            f"gh_authored_prs_discover: population exceeded MAX_PRS={MAX_PRS} "
+            f"(got {len(listing)}); narrow `since` or split the query"
+        )
+    refs_set: set[str] = set()
+    for entry in listing:
+        ref = f"{entry['repository']['nameWithOwner']}#{entry['number']}"
+        if ref in refs_set:
+            raise ValueError(f"gh_authored_prs_discover: duplicate item ref {ref!r}")
+        refs_set.add(ref)
+    return sorted(refs_set)
+
+
+def _parse_pr_item(item: str) -> tuple[str, str, int]:
+    """Parse '<owner>/<repo>#<positive-number>' into (owner, repo, number)."""
+    nwo, sep, raw_number = item.partition("#")
+    if not sep or not raw_number.isdigit():
+        raise ValueError(f"gh_pr_extract: malformed item ref: {item!r}")
+    number = int(raw_number)
+    if number <= 0:
+        raise ValueError(f"gh_pr_extract: non-positive PR number: {item!r}")
+    owner, sep2, repo = nwo.partition("/")
+    if not sep2 or not owner or not repo:
+        raise ValueError(f"gh_pr_extract: malformed item ref: {item!r}")
+    return owner, repo, number
+
+
+def gh_pr_extract(state: dict[str, Any]) -> str:
+    """Bounded per-PR evidence bundle for one '<owner>/<repo>#<number>' ref."""
+    item = _require(state, "item")
+    owner, repo, number = _parse_pr_item(item)
+
+    meta = json.loads(_gh("api", f"repos/{owner}/{repo}/pulls/{number}"))
+    body_head = (meta.get("body") or "")[:MAX_BODY_CHARS]
+    merged_at = meta.get("merged_at")
+    api_state = (meta.get("state") or "").lower()
+    if merged_at:
+        state_value = "merged"
+    elif api_state in {"open", "closed"}:
+        state_value = api_state
+    else:
+        raise ValueError(
+            f"gh_pr_extract: unexpected API state for {item!r}: "
+            f"{meta.get('state')!r}"
+        )
+    labels = [lbl["name"] for lbl in (meta.get("labels") or [])[:MAX_LABELS]]
+    base_sha = (meta.get("base") or {}).get("sha") or ""
+    head_sha = (meta.get("head") or {}).get("sha") or ""
+    if not _SHA40.match(base_sha) or not _SHA40.match(head_sha):
+        raise ValueError(f"gh_pr_extract: malformed base/head SHA for {item!r}")
+    additions = meta.get("additions") or 0
+    deletions = meta.get("deletions") or 0
+    changed_files = meta.get("changed_files") or 0
+    for name, value in (
+        ("additions", additions),
+        ("deletions", deletions),
+        ("changed_files", changed_files),
+    ):
+        if not isinstance(value, int) or value < 0:
+            raise ValueError(
+                f"gh_pr_extract: {name} must be non-negative int for "
+                f"{item!r}, got {value!r}"
+            )
+
+    bundle = {
+        "repo": f"{owner}/{repo}",
+        "number": number,
+        "url": f"https://github.com/{owner}/{repo}/pull/{number}",
+        "title": meta.get("title") or "",
+        "state": state_value,
+        "created_at": meta.get("created_at"),
+        "merged_at": merged_at,
+        "labels": labels,
+        "body_head": body_head,
+        "additions": additions,
+        "deletions": deletions,
+        "changed_files": changed_files,
+        "base_sha": base_sha,
+        "head_sha": head_sha,
+    }
+    blob = json.dumps(bundle)
+    if len(blob) > MAX_CHARS:
+        overshoot = len(blob) - MAX_CHARS
+        truncated = body_head[: max(0, len(body_head) - overshoot)]
+        bundle["body_head"] = truncated
         blob = json.dumps(bundle)
     return blob
