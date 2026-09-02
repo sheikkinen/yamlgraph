@@ -435,7 +435,9 @@ class TestPreflight:
     def test_no_module_level_auth_cache(self) -> None:
         import yamlgraph.node_factory.copilot_runtime_claude as mod
 
-        cached = [n for n in vars(mod) if "cache" in n.lower()]
+        cached = [
+            n for n in vars(mod) if "cache" in n.lower() and not n.startswith("__")
+        ]
         assert cached == []
 
 

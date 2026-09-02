@@ -17,9 +17,15 @@ from yamlgraph.models.schemas import CopilotResult
 from yamlgraph.node_factory.base import GraphState, get_output_model_for_node
 from yamlgraph.node_factory.copilot_runtime import (
     _execute_cli,
+    normalize_backend,
+    unknown_backend_message,
 )
 from yamlgraph.node_factory.copilot_runtime import (
     _load_and_render_prompt as _load_and_render_prompt_runtime,
+)
+from yamlgraph.node_factory.copilot_runtime_claude import (
+    _execute_claude,
+    validate_claude_cli_flags,
 )
 from yamlgraph.utils.expressions import resolve_state_expression
 from yamlgraph.utils.guard_runtime import (
@@ -182,14 +188,25 @@ def _execute_backend_once(
         )
     if backend == "sampling":
         raise NotImplementedError("Copilot backend 'sampling' is not implemented")
-    return _execute_cli(
-        node_name=node_name,
-        prompt=rendered_prompt,
-        state_key=state_key,
-        cli_flags=cli_flags,
-        timeout=timeout,
-        state=state,  # FR-105: pass state for resume expression resolution
-    )
+    if backend == "claude":
+        return _execute_claude(
+            node_name=node_name,
+            prompt=rendered_prompt,
+            state_key=state_key,
+            cli_flags=cli_flags,
+            timeout=timeout,
+            state=state,
+        )
+    if backend == "cli":
+        return _execute_cli(
+            node_name=node_name,
+            prompt=rendered_prompt,
+            state_key=state_key,
+            cli_flags=cli_flags,
+            timeout=timeout,
+            state=state,  # FR-105: pass state for resume expression resolution
+        )
+    raise ValueError(unknown_backend_message(node_name, backend))
 
 
 def create_copilot_node(
@@ -224,10 +241,10 @@ def create_copilot_node(
     """
     prompt_path = config.get("prompt")
     state_key = config.get("state_key")
-    backend = config.get("backend") or "cli"
-    backend = backend.lower() if isinstance(backend, str) else "cli"
+    backend = normalize_backend(node_name, config.get("backend"))
 
     cli_flags = config.get("cli_flags", {})
+    validate_claude_cli_flags(node_name, cli_flags, backend)  # FR-959, before any probe
     defaults = defaults or {}
 
     # FR-266: Resolve model with priority chain:

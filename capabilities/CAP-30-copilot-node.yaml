@@ -3,11 +3,14 @@ name: Copilot Node
 description: >
   New copilot node type that delegates graph processing to Copilot CLI,
   replacing shell-script orchestration with a first-class YAML-declarable node.
+  FR-959 adds a fourth, closed backend value `claude` that delegates to the
+  Claude Code CLI on the operator's subscription.
 modules:
   - constants.NodeType.COPILOT
   - models/schemas
   - node_compiler
   - node_factory/copilot_node
+  - node_factory/copilot_runtime_claude
 requirements:
   - id: REQ-YG-087
     description: >
@@ -50,4 +53,44 @@ requirements:
     modules:
       - linter/patterns/copilot
       - node_factory/copilot_node
-fr: FR-082
+  - id: REQ-YG-639
+    description: >
+      Copilot node supports `backend: claude`: list argv
+      `claude -p <prompt> --output-format json` with the frozen flag mapping
+      (`--model`, `--resume`/`--continue`, `--tools` comma grammar with `[]`
+      meaning no tools, `--allowedTools`, `--dangerously-skip-permissions`,
+      `--add-dir`, `--max-turns`); stdout crosses a private typed envelope
+      (`result: str`, `session_id: str`, `is_error: bool`) before
+      `CopilotResult(backend="claude")`; failure on non-zero exit, `is_error`,
+      malformed envelope, missing binary, timeout; no numeric exit subtype
+      interpreted and no usage-limit classifier.
+    modules:
+      - node_factory/copilot_runtime_claude
+      - node_factory/copilot_node
+      - models/schemas
+  - id: REQ-YG-640
+    description: >
+      Copilot `backend` is a closed enum (`cli`, `api`, `sampling`, `claude`) at
+      schema, compile, and lint; unknown, empty, or non-string values fail
+      before any subprocess; Claude-only flags are typed (`ClaudeCliFlags`,
+      strict, no extra keys) and malformed shapes fail at schema, compile, and
+      lint before any probe; lint covers backend-incompatible flags,
+      approval-vs-availability, provider-on-claude, and Copilot-only models.
+    modules:
+      - models/node_schema
+      - models/schemas
+      - node_factory/copilot_runtime
+      - linter/patterns/copilot
+  - id: REQ-YG-641
+    description: >
+      Claude backend payer boundary, per invocation: child env stripped of the
+      evidenced credential and routing switches (`ANTHROPIC_API_KEY`,
+      `ANTHROPIC_AUTH_TOKEN`, `ANTHROPIC_BASE_URL`, `CLAUDE_CODE_USE_BEDROCK`,
+      `CLAUDE_CODE_USE_VERTEX`, `CLAUDE_CODE_USE_FOUNDRY`); exact
+      supported-version check then fail-closed subscription auth-status check,
+      both pinned to the committed raw probe and both run before every `-p`
+      call with no cache; residual settings surface enumerated in docs and
+      accepted by a named spend owner.
+    modules:
+      - node_factory/copilot_runtime_claude
+fr: FR-082, FR-959

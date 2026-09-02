@@ -1967,3 +1967,9 @@ The ID ranges are:
 - **Code**: S506
 - **Sin**: `yaml.load(blocks[0], Loader=_StrictLoader)` — ruff cannot see that `_StrictLoader` is safe.
 - **Penance**: FR-949 — `_StrictLoader` subclasses `yaml.SafeLoader` solely to refuse duplicate mapping keys (AC-04); `yaml.safe_load` cannot express duplicate-key refusal, and the loader adds no constructors beyond the safe set.
+
+### CONF-452
+- **File**: [yamlgraph/node_factory/copilot_runtime_claude.py](../yamlgraph/node_factory/copilot_runtime_claude.py)
+- **Code**: S603 (two sites: the version/auth probe runner and the `claude -p` agent call)
+- **Sin**: `subprocess.run(argv, ...)` with a non-constant argument list.
+- **Penance**: FR-959 — argv is always a Python list (no shell), the executable and flag names are literals, and every variable element comes from `ClaudeCliFlags` (strict Pydantic, extra keys forbidden) or from the rendered prompt as one list element (REQ-YG-087 discipline, byte-for-byte argv tests in `tests/unit/test_fr959_claude_backend.py`). The child environment is the stripped copy built by `_build_claude_env`, never a caller-supplied mapping.
