@@ -40,9 +40,11 @@ secondary `ThreadPoolExecutor` error disappeared when the standard executor was
 imported normally and is diagnostic evidence about unsafe global shimming, not
 an independent product defect.
 
-The open question this brief poses: what is the smallest platform-boundary
-contract that preserves FR-713 fork hygiene where the runtime supports it while
-keeping package import and ordinary CLI operations available where it does not?
+The open question this brief poses: which ownership and lifecycle boundary
+should reconcile optional fork support with package import, and what tradeoffs
+follow from each materially different mechanism? The unresolved decision space
+includes module initialization, an isolated platform helper, first bridge use,
+package import coupling, and whether child reset remains necessary at all.
 
 ## Classification
 
@@ -60,14 +62,17 @@ enforcement/latency-critical
 - The defect is in runtime capability detection, not Python version selection.
   The witnessed interpreter is CPython 3.13.15, and `pyproject.toml` declares
   Python 3.13 support.
-- The change belongs at the external platform boundary where the optional OS
-  capability enters the bridge module.
 - Existing POSIX fork witnesses must remain green, and a witness that does not
   require access to a Windows CI host must make absence of the API testable.
 - This is a correction to the existing bridge capability under REQ-YG-541, not
   a new user-facing graph capability unless research proves otherwise.
 - Scope excludes the diagnostic-only `ThreadPoolExecutor` failure caused by the
   temporary global shim.
+- Research output must compare materially distinct mechanism classes rather
+  than count persona agreement as distinct alternatives. For each class it
+  must identify the governing precedent, concrete benefit, concrete failure
+  mode, disposition, and whether the problem is a graph; disagreement must
+  remain visible rather than being collapsed into convergence.
 
 ## Witnessed incidents
 

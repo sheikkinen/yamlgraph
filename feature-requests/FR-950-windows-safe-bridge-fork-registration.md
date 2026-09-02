@@ -2,12 +2,12 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Proposed
+**Status:** Proposed (rev 2, 2026-09-02: judgement R-1 through R-5 folded; pending rejudgement)
 **Effort:** 0.5 day
 **Requested:** 2026-09-01
 **Traceability:** Existing REQ-YG-541 persistent bridge contract; no new capability or requirement allocation
 **First consumer / first event:** a Windows contributor imports `yamlgraph`, runs any `yamlgraph` CLI command, or starts pytest; package initialization completes instead of raising before argument parsing or test collection.
-**Research:** [FR-950.research.md](FR-950.research.md) (five personas, 2026-09-01; all converged on local runtime-capability detection)
+**Research:** [FR-950.research.md](FR-950.research.md) (rerun 2026-09-02; raw five-persona output preserved with a five-class disposition synthesis per judgement R-1)
 **Prior art:**
 - [FR-713-persistent-bridge-loop.md](FR-713-persistent-bridge-loop.md) owns the persistent bridge and its POSIX fork-reset contract; FR-950 preserves that contract and corrects its unhandled no-fork platform boundary.
 - [FR-950.research.md](FR-950.research.md) was retrieved as a self-hit because the in-progress promotion existed in the working tree during the final research run; it is this FR's evidence, not prior precedent.
@@ -73,27 +73,59 @@ if register_at_fork is not None:
     register_at_fork(after_in_child=_reset_after_fork)
 ```
 
-Add a subprocess witness that removes `os.register_at_fork` when present,
-imports YAMLGraph and the bridge, and asserts that no bridge thread starts.
-This exercises the absent-capability path on every CI OS rather than depending
-on access to a Windows runner. Keep the existing real `os.fork` witness as the
-functional proof that the callback path still resets a warmed bridge in the
-child.
+Add a fresh-subprocess witness that, before the first `yamlgraph` import,
+imports `os` and `threading`, deletes `os.register_at_fork` only when present,
+imports both `yamlgraph` and `yamlgraph.utils.bridge`, asserts no thread named
+`yamlgraph-bridge-loop` exists, and exits nonzero with captured stderr on any
+failure. The deletion is subprocess-local test setup: it neither adds nor
+replaces an `os` attribute and cannot mutate the parent process. This exercises
+the absent-capability path on every CI OS rather than depending on access to a
+Windows runner. Keep the existing real `os.fork` witness as the functional
+proof that the callback path still resets warmed loop and client-cache state in
+the child.
+
+Revise REQ-YG-541 in `ARCHITECTURE.md` under its existing CAP-198 allocation so
+it requires `_reset_after_fork` registration when the runtime exposes
+`os.register_at_fork`, no fork setup when that capability is absent, and lazy
+import on both paths. No CAP or REQ allocation changes.
 
 No platform-name branch, fake `os` API, fallback callback, new abstraction,
 dependency, graph artifact, capability, or requirement is needed.
 
 ## Acceptance Criteria
 
-- [ ] AC-01 Importing `yamlgraph` and `yamlgraph.utils.bridge` succeeds when the runtime does not expose `os.register_at_fork`.
-- [ ] AC-02 The absent-capability witness runs in a fresh subprocess, can execute on every supported CI OS, and asserts that import starts no `yamlgraph-bridge-loop` thread.
-- [ ] AC-03 On runtimes that expose `os.register_at_fork`, the existing `_reset_after_fork` callback remains registered and the real fork-after-warmup witness remains green.
-- [ ] AC-04 No process-wide shim adds or replaces attributes on the `os` module, and no branch keys behavior from a platform-name string.
-- [ ] AC-05 `.venv/Scripts/yamlgraph.exe graph lint examples/demos/hello/graph.yaml` succeeds on Windows without an invocation workaround.
-- [ ] AC-06 `.venv/Scripts/python.exe -m pytest tests/unit/test_fr713_persistent_bridge.py -q --no-cov` passes on Windows, with only the real-fork witness skipped there.
-- [ ] AC-07 The fast non-slow unit suite reaches collection and no longer fails from bridge module initialization on Windows.
-- [ ] AC-08 Every new test carries `@pytest.mark.req("REQ-YG-541")`; strict requirement coverage remains green; no CAP/REQ allocation is added.
-- [ ] AC-09 Changelog fragment, implementation status, verification record, and diary reflection are completed during enforcement.
+- [ ] AC-01 A fresh subprocess deletes `os.register_at_fork` when present before any `yamlgraph` import, then imports `yamlgraph` and `yamlgraph.utils.bridge` successfully.
+- [ ] AC-02 The AC-01 subprocess asserts that no `yamlgraph-bridge-loop` thread exists after both imports and reports captured stderr on failure.
+- [ ] AC-03 On a runtime exposing `os.register_at_fork`, the real fork-after-warmup witness proves that a child receives fresh lazy loop and client-cache state.
+- [ ] AC-04 Production code detects the capability at the `yamlgraph/utils/bridge.py` callsite; it does not branch on platform-name strings, catch registration exceptions, or add, replace, or delete attributes on `os`.
+- [ ] AC-05 `.venv/Scripts/yamlgraph.exe graph lint examples/demos/hello/graph.yaml` exits zero on Windows without an invocation workaround.
+- [ ] AC-06 `.venv/Scripts/python.exe -m pytest tests/unit/test_fr713_persistent_bridge.py -q --no-cov` exits zero on Windows, with only the real-fork witness skipped for lack of `os.fork`.
+- [ ] AC-07 `.venv/Scripts/python.exe -m pytest tests/unit/ -q --no-cov -m "not slow" -n auto` exits zero on Windows and completes collection.
+- [ ] AC-08 Every new test carries `@pytest.mark.req("REQ-YG-541")`, and `python scripts/req_coverage.py --strict` exits zero; no CAP/REQ allocation is added.
+- [ ] AC-09 REQ-YG-541 states the present-capability registration behavior and absent-capability no-op behavior under the existing CAP-198 allocation.
+- [ ] AC-10 The absent-capability witness is committed RED before the production edit and GREEN afterward in a separate commit.
+- [ ] AC-11 A `type: fix` changelog fragment under `changelog/unreleased/` names FR-950 and REQ-YG-541.
+- [ ] AC-12 An `Implementation Status` section in this FR records dated commands and results for AC-05 through AC-08, and one new `docs/diary/` entry records a named trap or insight, an extracted heuristic, and a `Seed:` line.
+
+## Enforcement Conditions
+
+1. Commit the absent-capability witness RED before changing production code.
+2. Commit the smallest sufficient callsite guard and REQ-YG-541 wording GREEN
+    in a separate commit.
+3. The RED commit changes only the witness. The GREEN commit changes only
+    `yamlgraph/utils/bridge.py`, `ARCHITECTURE.md`, and any mechanically required
+    planning/status artifacts.
+4. The real POSIX fork witness remains the proof of child reset; a skipped or
+    mocked fork witness cannot satisfy AC-03.
+
+## Deliverables
+
+- `yamlgraph/utils/bridge.py`: runtime-capability guard at the existing callsite.
+- `tests/unit/test_fr713_persistent_bridge.py`: absent-capability RED witness.
+- `ARCHITECTURE.md`: capability-qualified REQ-YG-541 wording.
+- `changelog/unreleased/`: one FR-950 `type: fix` fragment.
+- This FR: implementation status and dated verification record.
+- `docs/diary/`: one FR-950 reflection with trap or insight, heuristic, and `Seed:`.
 
 ## Alternatives Considered
 
