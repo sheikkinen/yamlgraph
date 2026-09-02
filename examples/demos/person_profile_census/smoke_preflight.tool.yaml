@@ -1,0 +1,6 @@
+name: preflight
+description: "gh-profiler smoke preflight (visibility only, no Azure env)"
+runtime:
+  type: python
+  path: tools.py
+  function: preflight_smoke

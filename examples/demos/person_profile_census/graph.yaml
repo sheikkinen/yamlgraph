@@ -1,0 +1,169 @@
+version: "1.0"
+name: person-profile-census
+description: >
+  GitHub authored-PR person profile census with Azure-pinned LLM calls.
+  Discovery, extraction, and preflight are bound at invocation time through
+  FR-892 tool slots; the local reducer owns mechanical ledger fields and
+  output rendering.
+
+prompts_relative: true
+prompts_dir: prompts
+
+defaults:
+  provider: azure
+  temperature: 0.0
+
+config:
+  max_map_items: 500
+
+state:
+  source: str
+  visibility: str
+  rubric: str
+  problem_labels: str
+  surface_labels: str
+  azure_model: str
+  output_path: str
+  brief_path: str
+  brief_rubric: str
+  canary: dict
+  run_metadata: dict
+  preflight_ok: bool
+  items:
+    type: list
+  contents:
+    type: list
+    reducer: sorted_add
+  findings:
+    type: list
+    reducer: sorted_add
+  ledger: dict
+  brief_input:
+    type: list
+  claims: dict
+  brief: dict
+
+tools:
+  preflight:
+    slot: true
+    contract:
+      runtimes: [python]
+  discover:
+    slot: true
+    contract:
+      runtimes: [python]
+      args: [source]
+  extract:
+    slot: true
+    contract:
+      runtimes: [python]
+      args: [item]
+  reduce_ledger:
+    type: python
+    path: tools.py
+    function: reduce_pr_ledger
+    description: "Validate authored-PR findings and write markdown plus JSONL ledger artifacts."
+  prepare_brief_input:
+    type: python
+    path: tools.py
+    function: prepare_brief_input
+    description: "Load the reduced PR ledger JSONL and build bounded URL-bearing synthesis input."
+  render_brief:
+    type: python
+    path: tools.py
+    function: render_brief
+    description: "Validate synthesized PR URL citations and render the person profile brief artifact."
+
+nodes:
+  preflight:
+    type: python
+    tool: preflight
+    state_key: preflight_ok
+    on_error: fail
+
+  discover:
+    type: python
+    tool: discover
+    variables:
+      source: "{state.source}"
+    state_key: items
+    on_error: fail
+
+  extract_items:
+    type: map
+    over: "{state.items}"
+    as: item
+    max_items: 500
+    node:
+      type: python
+      tool: extract
+      state_key: content
+      on_error: fail
+    collect: contents
+
+  judge_items:
+    type: map
+    over: "{state.contents}"
+    as: judged_content
+    max_items: 500
+    node:
+      type: llm
+      prompt: classify_pr
+      provider: azure
+      model: "{state.azure_model}"
+      temperature: 0
+      state_key: finding
+      on_error: skip
+      variables:
+        rubric: "{state.rubric}"
+        evidence_bundle: "{state.judged_content.value}"
+        source_index: "{state.judged_content._map_index}"
+        problem_labels: "{state.problem_labels}"
+        surface_labels: "{state.surface_labels}"
+    collect: findings
+
+  reduce_ledger:
+    type: python
+    tool: reduce_ledger
+    state_key: ledger
+
+  prepare_brief_input:
+    type: python
+    tool: prepare_brief_input
+    state_key: brief_input
+
+  synthesize:
+    type: llm
+    prompt: synthesize_person_brief
+    provider: azure
+    model: "{state.azure_model}"
+    temperature: 0
+    state_key: claims
+    variables:
+      rubric: "{state.brief_rubric}"
+      rows: "{state.brief_input}"
+
+  render_brief:
+    type: python
+    tool: render_brief
+    state_key: brief
+
+edges:
+  - from: START
+    to: preflight
+  - from: preflight
+    to: discover
+  - from: discover
+    to: extract_items
+  - from: extract_items
+    to: judge_items
+  - from: judge_items
+    to: reduce_ledger
+  - from: reduce_ledger
+    to: prepare_brief_input
+  - from: prepare_brief_input
+    to: synthesize
+  - from: synthesize
+    to: render_brief
+  - from: render_brief
+    to: END

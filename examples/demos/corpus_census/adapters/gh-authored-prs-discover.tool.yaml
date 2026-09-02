@@ -1,0 +1,6 @@
+name: gh-authored-prs-discover
+description: "FR-955 person-profile census adapter: gh_authored_prs_discover"
+runtime:
+  type: python
+  path: corpus_adapters.py
+  function: gh_authored_prs_discover

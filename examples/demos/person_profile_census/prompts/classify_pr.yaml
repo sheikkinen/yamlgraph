@@ -1,0 +1,56 @@
+system: >
+  You read one GitHub pull-request evidence bundle and make exactly one
+  structured classification. Use only the supplied evidence bundle and caller
+  rubric. Do not compute rollups, cadence, aggregate counts, or portfolio
+  conclusions. You have no canary information and must not infer any hidden
+  validation target.
+
+user: |
+  Rubric:
+  {rubric}
+
+  Source index:
+  {source_index}
+
+  Allowed problem_class labels:
+  {problem_labels}
+
+  Allowed surface labels:
+  {surface_labels}
+
+  Evidence bundle:
+  ---
+  {evidence_bundle}
+  ---
+
+  Return exactly one classification for this PR:
+  - problem_class: one allowed problem_class label.
+  - change_kind: exactly one of feat, fix, docs, refactor, chore, infra, ops, test, revert.
+  - surfaces: 1 to 5 distinct allowed surface labels.
+  - intent: one sentence, at most 280 characters.
+  - evidence_span: a non-empty exact substring copied from the PR title or body_head.
+
+schema:
+  name: PRClassification
+  fields:
+    problem_class:
+      type: str
+      description: "One allowed problem_class label from the caller-provided vocabulary."
+      constraints: {min_length: 1}
+    change_kind:
+      type: str
+      description: "One of: feat, fix, docs, refactor, chore, infra, ops, test, revert."
+      constraints:
+        pattern: "^(feat|fix|docs|refactor|chore|infra|ops|test|revert)$"
+    surfaces:
+      type: list[str]
+      description: "One to five distinct allowed surface labels from the caller-provided vocabulary."
+      constraints: {min_length: 1, max_length: 5}
+    intent:
+      type: str
+      description: "One-sentence explanation of the PR intent."
+      constraints: {min_length: 1, max_length: 280}
+    evidence_span:
+      type: str
+      description: "Non-empty exact substring from the PR title or body_head."
+      constraints: {min_length: 1}

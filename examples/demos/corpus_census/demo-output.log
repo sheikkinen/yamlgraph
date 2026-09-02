@@ -1,44 +1,44 @@
-2026-08-31 21:50:46,829 [INFO] yamlgraph.compile.graph_loader: Parsed 5 Python tools: discover, extract, reduce_ledger, prepare_brief_input, render_brief
-2026-08-31 21:50:46,832 [INFO] yamlgraph.compile.node_compiler: Added node: discover (type=python)
-2026-08-31 21:50:46,833 [INFO] yamlgraph.compile.node_compiler: Added node: extract_items (type=map)
-2026-08-31 21:50:46,841 [INFO] yamlgraph.compile.node_compiler: Added node: judge_items (type=map)
-2026-08-31 21:50:46,847 [INFO] yamlgraph.compile.node_compiler: Added node: reduce_ledger (type=python)
-2026-08-31 21:50:46,854 [INFO] yamlgraph.compile.node_compiler: Added node: prepare_brief_input (type=python)
-2026-08-31 21:50:46,857 [INFO] yamlgraph.compile.node_compiler: Added node: synthesize (type=llm)
-2026-08-31 21:50:46,862 [INFO] yamlgraph.compile.node_compiler: Added node: render_brief (type=python)
-2026-08-31 21:50:46,925 [INFO] yamlgraph.route: {"event": "run", "run_id": "01a05928-e2ea-7842-bb5f-cc841e082057", "artifact_hash": "sha256:6d743b78fe6a31689847d90cc164700c3b1397542b072ffc6146a63238f872f1", "graph": "/Users/sheikki/Documents/src/yamlgraph/tmp/worktrees/fixfr943-census-row-containment/examples/demos/corpus_census/graph.yaml", "yamlgraph_version": "0.5.17", "thread_id": null, "started_at": "2026-08-31T18:50:46Z"}
-2026-08-31 21:50:47,102 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: discover -> discover
-2026-08-31 21:50:47,279 [INFO] yamlgraph.utils.llm_factory: Creating LLM: anthropic/claude-haiku-4-5 (temp=0.0)
-2026-08-31 21:50:49,615 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
-2026-08-31 21:50:49,644 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-08-31 21:50:49,694 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
-2026-08-31 21:50:49,696 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-08-31 21:50:50,232 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
-2026-08-31 21:50:50,234 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-08-31 21:50:50,236 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: reduce_ledger -> reduce_ledger
-2026-08-31 21:50:50,239 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: prepare_brief_input -> prepare_brief_input
-2026-08-31 21:50:53,466 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
-2026-08-31 21:50:53,468 [INFO] yamlgraph.node_factory.llm_nodes: Node synthesize completed successfully
-2026-08-31 21:50:53,469 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: render_brief -> render_brief
-2026-08-31 21:50:53,656 [INFO] yamlgraph.route: {"event": "run_end", "run_id": "01a05928-e2ea-7842-bb5f-cc841e082057", "ended_at": "2026-08-31T18:50:53Z", "dropped_events": 0}
+2026-09-02 20:10:29,192 [INFO] yamlgraph.compile.graph_loader: Parsed 5 Python tools: discover, extract, reduce_ledger, prepare_brief_input, render_brief
+2026-09-02 20:10:29,193 [INFO] yamlgraph.compile.node_compiler: Added node: discover (type=python)
+2026-09-02 20:10:29,194 [INFO] yamlgraph.compile.node_compiler: Added node: extract_items (type=map)
+2026-09-02 20:10:29,200 [INFO] yamlgraph.compile.node_compiler: Added node: judge_items (type=map)
+2026-09-02 20:10:29,202 [INFO] yamlgraph.compile.node_compiler: Added node: reduce_ledger (type=python)
+2026-09-02 20:10:29,205 [INFO] yamlgraph.compile.node_compiler: Added node: prepare_brief_input (type=python)
+2026-09-02 20:10:29,207 [INFO] yamlgraph.compile.node_compiler: Added node: synthesize (type=llm)
+2026-09-02 20:10:29,210 [INFO] yamlgraph.compile.node_compiler: Added node: render_brief (type=python)
+2026-09-02 20:10:29,250 [INFO] yamlgraph.route: {"event": "run", "run_id": "01a06319-c86b-7ea6-a576-f7a201398969", "artifact_hash": "sha256:6d743b78fe6a31689847d90cc164700c3b1397542b072ffc6146a63238f872f1", "graph": "/Users/sheikki/Documents/src/yamlgraph/tmp/worktrees/featfr955-person-profile-census/examples/demos/corpus_census/graph.yaml", "yamlgraph_version": "0.5.17", "thread_id": null, "started_at": "2026-09-02T17:10:29Z"}
+2026-09-02 20:10:29,407 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: discover -> discover
+2026-09-02 20:10:29,537 [INFO] yamlgraph.utils.llm_factory: Creating LLM: anthropic/claude-haiku-4-5 (temp=0.0)
+2026-09-02 20:10:31,904 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-02 20:10:31,930 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-02 20:10:32,368 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-02 20:10:32,370 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-02 20:10:32,402 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-02 20:10:32,404 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-02 20:10:32,405 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: reduce_ledger -> reduce_ledger
+2026-09-02 20:10:32,408 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: prepare_brief_input -> prepare_brief_input
+2026-09-02 20:10:34,517 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-02 20:10:34,520 [INFO] yamlgraph.node_factory.llm_nodes: Node synthesize completed successfully
+2026-09-02 20:10:34,521 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: render_brief -> render_brief
+2026-09-02 20:10:34,694 [INFO] yamlgraph.route: {"event": "run_end", "run_id": "01a06319-c86b-7ea6-a576-f7a201398969", "ended_at": "2026-09-02T17:10:34Z", "dropped_events": 0}
 
 🚀 Running graph: graph.yaml
-   Variables: {'source': 'examples/demos/corpus_census/fixtures/corpus', 'rubric': "classify each document's main topic in one word", 'output_path': 'tmp/fr943-demo-ledger.md', 'brief_path': 'tmp/fr943-demo-brief.md', 'brief_rubric': 'What does this corpus cover overall?'}
+   Variables: {'source': 'examples/demos/corpus_census/fixtures/corpus', 'rubric': "classify each document's main topic in one word", 'output_path': 'tmp/corpus-census-ledger.md', 'brief_path': 'tmp/census-brief.md', 'brief_rubric': 'What does this corpus cover overall?'}
 
-🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/f889c0ec-fa9b-4025-b69c-2aa756283ef8/r/01a05928-e312-70c1-9fbc-4eeae46df5a6?poll=true
+🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/f889c0ec-fa9b-4025-b69c-2aa756283ef8/r/01a06319-c885-7830-bc37-ab1bf0a2ba64?poll=true
 ============================================================
 RESULT
 ============================================================
   current_step: render_brief
   source: examples/demos/corpus_census/fixtures/corpus
   rubric: classify each document's main topic in one word
-  output_path: tmp/fr943-demo-ledger.md
+  output_path: tmp/corpus-census-ledger.md
   items: ['examples/demos/corpus_census/fixtures/corpus/architecture.txt', 'examples/demos/corpus_census/fixtures/corpus/observability.txt', 'examples/demos/corpus_census/fixtures/corpus/security.txt']
   contents: [{'_map_index': 0, 'value': 'Architecture notes describe graph boundaries, deterministic reducers, and\ntool-slot adapters for reusable pipelines.\n'}, {'_map_index': 1, 'value': 'Observability notes ...
   findings: [{'_map_index': 0, 'source_index': 0, 'judgement': 'Architecture', 'confidence': 0.95, 'evidence_span': 'Architecture notes describe graph boundaries, deterministic reducers, and tool-slot adapters', ...
-  ledger: {'markdown_path': 'tmp/fr943-demo-ledger.md', 'jsonl_path': 'tmp/fr943-demo-ledger.jsonl', 'rows': 3}
-  brief_path: tmp/fr943-demo-brief.md
+  ledger: {'markdown_path': 'tmp/corpus-census-ledger.md', 'jsonl_path': 'tmp/corpus-census-ledger.jsonl', 'rows': 3}
+  brief_path: tmp/census-brief.md
   brief_rubric: What does this corpus cover overall?
   brief_input: [{'confidence': 0.95, 'item_ref': 'examples/demos/corpus_census/fixtures/corpus/architecture.txt', 'judgement': 'architecture'}, {'confidence': 0.95, 'item_ref': 'examples/demos/corpus_census/fixtures...
   claims: {'claims': [{'claim_id': 'coverage_001', 'text': 'The corpus covers architecture as a primary subject area.', 'citations': ['row:examples/demos/corpus_census/fixtures/corpus/architecture.txt'], 'confi...
-  brief: {'accepted': True, 'errors': [], 'artifact': 'tmp/fr943-demo-brief.md'}
+  brief: {'accepted': True, 'errors': [], 'artifact': 'tmp/census-brief.md'}

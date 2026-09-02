@@ -1,0 +1,5 @@
+---
+type: feat
+scope: examples
+---
+- **FR-962 Person-Profile Census (authored-PRs)**: azure-pinned sibling of `repo_census` (FR-899) using the shared `corpus_census` slot pipeline (FR-892). Unit = authored PR, reduce target = one person. Adapters `gh_authored_prs_discover` (overflow-safe MAX_PRS+1, required `visibility` enum) + `gh_pr_extract` (validated URL, base/head SHAs) in `examples/demos/corpus_census/adapters/corpus_adapters.py`. Sibling graph `examples/demos/person_profile_census/graph.yaml` authored via `scripts/author.sh` with `provider: azure` pinning on both LLM nodes and `max_items: 500` on both maps. Specialized `reduce_pr_ledger` re-implements attribution + row-level containment (R-3 — NOT auto-inherited from FR-940/FR-943) with typed `classification_status` discriminator; typed hidden-canary gate ({item_ref, surface_family}) enforces invariant 8 per FR-893 casefolded family match; FR-895 brief tail identifies rows by validated PR URL. Public-safe smoke on `sheikkinen@sheikkinen:2026-08-28` (78 PRs, 97.4% classification coverage, 0 fabricated URLs) committed under `proofs/`.
