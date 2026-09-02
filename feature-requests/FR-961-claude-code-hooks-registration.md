@@ -1,4 +1,4 @@
-# Feature Request: FR-958 Register the hook enforcement layer for Claude Code
+# Feature Request: FR-961 Register the hook enforcement layer for Claude Code
 
 **Priority:** HIGH
 **Type:** Feature (enforcement infrastructure — human-review gate, FR-883 R-4)
@@ -11,9 +11,9 @@ repo on the Windows host, at its first `Bash` tool call after
 On Claude Code the reasoning-pattern check covers **visible assistant
 text and the short visible thinking summaries the transcript persists**,
 not private reasoning; that is the coverage this FR claims and no more.
-**Research:** [FR-958.research.md](FR-958.research.md) — FR-890 sole
+**Research:** [FR-961.research.md](FR-961.research.md) — FR-890 sole
 route, run 2026-09-02 against
-[research-briefs/fr958-claude-code-hooks-port-brief.md](research-briefs/fr958-claude-code-hooks-port-brief.md);
+[research-briefs/fr961-claude-code-hooks-port-brief.md](research-briefs/fr961-claude-code-hooks-port-brief.md);
 dispositioned in the alternatives table below (§ Proposed Solution 6).
 **Prior art:** [FR-438-thoughtcrime-hook.md](FR-438-thoughtcrime-hook.md)
 — defined the transcript scan and one-shot sentinel against the Copilot
@@ -33,7 +33,7 @@ not activated, answers `is_this_a_graph` in the negative for this
 boundary. [FR-163-chaplain-inbox-instructions-in-claude-md.md](FR-163-chaplain-inbox-instructions-in-claude-md.md)
 — the only prior Claude Code FR; instructions, not enforcement. FR-951
 (encoding boundary) and FR-953 (Windows shell) — the host-class defects
-that shape the Windows constraints. No REJECTED FR governs multi-runtime
+that shape the Windows constraints. [FR-958-claude-code-cli-backend-for-copilot-node.md](FR-958-claude-code-cli-backend-for-copilot-node.md) (SPLIT), [FR-959-claude-cli-backend-primitive.md](FR-959-claude-cli-backend-primitive.md), [FR-960-claude-judge-variant.md](FR-960-claude-judge-variant.md) — filed the same day from another session; they make Claude Code a *node backend and judge inside a graph*, this FR hooks Claude Code as the *operator runtime driving the repo*. Different boundary, no shared files; this FR was renumbered from 958 to 961 when their merge landed first. No REJECTED FR governs multi-runtime
 hook registration.
 
 ## Summary
@@ -246,7 +246,7 @@ sentinel asynchronously and is unchanged.
 
 ## Acceptance Criteria
 
-- [ ] AC-01 (RED first): `.github/hooks/tests/test_fr958_claude_runtime.py`
+- [ ] AC-01 (RED first): `.github/hooks/tests/test_fr961_claude_runtime.py`
       feeds Claude Code-shaped stdin (`Bash` with `command`, `Write` /
       `Edit` / `MultiEdit` / `NotebookEdit` with `file_path`) into
       `pre-command-guard.sh`, `python-checks.sh`, `yaml-checks.sh`,
@@ -313,7 +313,7 @@ sentinel asynchronously and is unchanged.
 - `.github/hooks/scripts/checks/main_write.py:47-50`
 - `.github/hooks/scripts/session-timeline.py:52-73`
 - `~/.claude/projects/C--src-yamlgraph/*.jsonl` (measurement source, 2026-09-02)
-- [FR-958.research.md](FR-958.research.md), [research brief](research-briefs/fr958-claude-code-hooks-port-brief.md)
+- [FR-961.research.md](FR-961.research.md), [research brief](research-briefs/fr961-claude-code-hooks-port-brief.md)
 
 ### Questions for the human (as options, or 'none')
 
