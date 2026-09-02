@@ -441,5 +441,13 @@ be committed; D-2 production code waits for both.
 ## Implementation Status
 
 - 2026-09-02: judgement folded; evidence file committed; branch
-  `feat/fr-959-claude-backend`. Production implementation pending C-1(a) and
-  C-2.
+  `feat/fr-959-claude-backend`.
+- 2026-09-02: RED committed (`tests/unit/test_fr959_claude_backend.py`,
+  `tests/unit/test_fr959_claude_lint.py`; 90 failing, 10 unchanged-behaviour
+  guards passing; existing copilot suites 39 passed / 12 skipped, untouched).
+  Every fixture is a string from the evidence file. Production module
+  `copilot_runtime_claude.py`, schema/lint changes, docs, CAP-30, changelog
+  (D-2, D-3, D-6) **not started**: gated on C-1 capture (a) — operator runs
+  the §6 command of the evidence file — and C-2 — spend owner signs Option A
+  or B in §Human decisions. Diary:
+  `docs/diary/diary-2026-09-02-reflection-fr-959-960-the-gate-the-enforcer-cannot-open.md`.
