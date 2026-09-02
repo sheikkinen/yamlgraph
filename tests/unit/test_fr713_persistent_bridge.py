@@ -114,20 +114,25 @@ class TestImportAndForkSafety:
 
     @pytest.mark.req("REQ-YG-541")
     def test_import_without_register_at_fork_capability(self):
-        """FR-950 AC-01/AC-02: runtimes lacking os.register_at_fork (Windows)
-        must still import, and must still not start the loop thread. The
-        deletion is subprocess-local setup — it installs no fake API and
-        cannot reach the parent process. Dependencies are imported before
-        the deletion: on 3.14+ POSIX, stdlib modules (asyncio, random) call
-        os.register_at_fork at import behind an os.fork guard — those are
-        not the seam under test; yamlgraph's own import-time guard is."""
+        """FR-950 AC-01/AC-02, FR-954: a runtime lacking the fork capability
+        (Windows-equivalent OS capability surface: neither os.fork nor
+        os.register_at_fork exists) must still import yamlgraph through its
+        ordinary cold dependency chain, and must still not start the loop
+        thread. Only os is imported before setup; both attributes are removed
+        and their absence asserted; nothing else is pre-imported, so every
+        fork-hook registrant in the chain (uuid_utils, stdlib asyncio/random
+        on 3.14+) takes its genuine no-fork path exactly as on Windows. The
+        deletion is subprocess-local — it installs no fake API and cannot
+        reach the parent process."""
         code = (
-            "import asyncio, random, threading\n"
-            "import langgraph.checkpoint.base\n"
             "import os\n"
-            "if hasattr(os, 'register_at_fork'):\n"
-            "    del os.register_at_fork\n"
+            "for attr in ('register_at_fork', 'fork'):\n"
+            "    if hasattr(os, attr):\n"
+            "        delattr(os, attr)\n"
+            "assert not hasattr(os, 'fork'), 'no-fork surface must lack os.fork'\n"
+            "assert not hasattr(os, 'register_at_fork')\n"
             "import yamlgraph, yamlgraph.utils.bridge\n"
+            "import threading\n"
             "names = [t.name for t in threading.enumerate()]\n"
             "assert 'yamlgraph-bridge-loop' not in names, names\n"
         )
