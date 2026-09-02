@@ -2528,7 +2528,7 @@ Latent-thread closure layer for the novel_fandom example: an additive pass that 
 
 One long-lived event loop thread (yamlgraph-bridge-loop) owned by the graph runtime bridges all sync→async node work (race, router-race, future async paths), replacing the per-invocation daemon-thread + asyncio.run() topology. Eliminates per-call thread churn and fresh-loop SDK reconnects (FR-711: anthropic Δp50 +0.527 s → +0.073 s locally) and makes the FR-707 shutdown-blocker and FR-712 loop-affinity defect classes unreachable by construction. The verdict-first contract, CLEANUP_GRACE drain bound, and RuntimeError-on-budget-breach semantics are preserved unchanged.
 
-**Feature Request:** FR-713
+**Feature Request:** FR-713, FR-950
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|

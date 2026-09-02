@@ -117,9 +117,14 @@ class TestImportAndForkSafety:
         """FR-950 AC-01/AC-02: runtimes lacking os.register_at_fork (Windows)
         must still import, and must still not start the loop thread. The
         deletion is subprocess-local setup — it installs no fake API and
-        cannot reach the parent process."""
+        cannot reach the parent process. Dependencies are imported before
+        the deletion: on 3.14+ POSIX, stdlib modules (asyncio, random) call
+        os.register_at_fork at import behind an os.fork guard — those are
+        not the seam under test; yamlgraph's own import-time guard is."""
         code = (
-            "import os, threading\n"
+            "import asyncio, random, threading\n"
+            "import langgraph.checkpoint.base\n"
+            "import os\n"
             "if hasattr(os, 'register_at_fork'):\n"
             "    del os.register_at_fork\n"
             "import yamlgraph, yamlgraph.utils.bridge\n"

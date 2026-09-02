@@ -1477,7 +1477,7 @@ These are not `# noqa` suppressions — they are documented deviations from proc
 - **Penance**: Agent node orchestration is inherently complex — tool dispatch, error handling, streaming. Splitting would obscure the sequential logic.
 
 ### CONF-373
-- **File**: [tests/unit/test_fr713_persistent_bridge.py](../tests/unit/test_fr713_persistent_bridge.py#L288)
+- **File**: [tests/unit/test_fr713_persistent_bridge.py](../tests/unit/test_fr713_persistent_bridge.py#L312)
 - **Code**: SLF001
 - **Sin**: AC-11 witness stops `bridge._loop` directly to simulate loop-thread death.
 - **Penance**: Loop death is an internal fatality by definition — no public API should exist to kill the bridge; the witness must reach through the seam it guards.
@@ -1495,7 +1495,7 @@ These are not `# noqa` suppressions — they are documented deviations from proc
 - **Penance**: Companion to CONF-374 — cached clients bind sessions to the parent's loop; the child must drop them without touching the possibly-poisoned lock.
 
 ### CONF-375
-- **File**: [yamlgraph/utils/bridge.py](../yamlgraph/utils/bridge.py#L138)
+- **File**: [yamlgraph/utils/bridge.py](../yamlgraph/utils/bridge.py#L141)
 - **Code**: BLE001
 - **Sin**: `_deliver` catches `BaseException` around the awaited coroutine.
 - **Penance**: Verdict transport — every outcome including CancelledError must cross the thread boundary to the caller's Future; swallowing nothing, relabeling nothing. Same contract as the FR-707 bridge it replaces.
