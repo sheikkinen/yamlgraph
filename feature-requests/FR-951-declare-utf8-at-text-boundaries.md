@@ -225,8 +225,8 @@ CAP-259/REQ-YG-638.
 Explicitly excluded, to avoid FR-950's AC-07 error of gating on an aggregate
 that spans several defect classes:
 
-- **Optional-dependency failures.** 19 `ModuleNotFoundError` (`fastapi`, `litellm`, `bs4`, `feedparser`, `statemachine_engine`) reflect an incomplete local venv, not a code defect.
-- **POSIX path and shell assumptions** in test fixtures.
+- **Optional-dependency failures.** 19 `ModuleNotFoundError` (`fastapi`, `litellm`, `bs4`, `feedparser`, `statemachine_engine`) reflect an incomplete local venv, not a code defect. Filed as [FR-952](FR-952-optional-extras-must-skip-not-error.md).
+- **POSIX path and shell assumptions** in test fixtures. Filed as [FR-953](FR-953-windows-posix-shell-misattribution.md), which found the dominant sub-class is not a fixture defect at all: `bash` resolves to the WSL stub, which exits 1, so 149 blocks blame the script for the interpreter's absence.
 - **Full Windows unit-suite green.** A separate FR once the two classes above are dispositioned.
 - **Retrofitting `encoding=` to third-party code.** PyYAML raised in the FR-950 traces, but it was reading a stream *we* opened; the fix is ours.
 - **Unrestricted repository-wide Ruff policy.** Only PLW1514 expands to all six roots; every other selected rule retains its current CI boundary.
