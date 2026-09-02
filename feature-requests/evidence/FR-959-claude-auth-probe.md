@@ -19,7 +19,7 @@ typed from a documentation summary (FR-958 R-2/R-6 lesson).
 
 | Capture | Status | Where |
 |---|---|---|
-| (a) subscription browser login (`claude auth login`) | **UNOBTAINED** — this host's CLI is logged out and the enforcer may not sign in on the operator's behalf | §6 gives the exact command for the operator |
+| (a) subscription browser login (`claude auth login`) | captured 2026-09-02 (later the same day) — the operator signed in from their own PowerShell using the §6 command and pasted the output | §2.3 |
 | (b) inherited `ANTHROPIC_API_KEY` | captured | §2.2 |
 | (c) logged out | captured | §2.1 |
 | (d) settings-file `env` block | captured | §3 |
@@ -29,10 +29,10 @@ typed from a documentation summary (FR-958 R-2/R-6 lesson).
 | (h) print-mode JSON envelope, logged out | captured | §5 |
 | (i) `--max-turns` | accepted by the parser; **absent from `--help` on this version** | §4.3 |
 
-Consequence for the preflight (FR-959 §3): the `authMethod` value a browser
-subscription login reports is unobserved. The preflight therefore accepts only
-the values pinned in this file; until capture (a) is committed the accepted
-set for browser login is empty and the backend fails closed on that case.
+Consequence for the preflight (FR-959 §3): the accepted `authMethod` set is
+exactly the values pinned in this file — `claude.ai` (§2.3) and `oauth_token`
+(§2.7) — with `apiProvider == "firstParty"` and `loggedIn == true`. Nothing is
+guessed; a new method value needs a new capture here before it is accepted.
 
 ## 1. Version
 
@@ -100,6 +100,42 @@ rc=0
 Observation: `loggedIn: true` is reported for a syntactically fake key. Auth
 status reports the **method**, not the credential's validity; validity is only
 tested by a request (§5 shows the failure envelope shape).
+
+### 2.3 (a) Subscription browser login — captured by the operator
+
+Run by the operator from their own PowerShell after `claude auth login`
+(browser flow, Claude Team subscription), pasted verbatim; `email` and `orgId`
+redacted, home path redacted:
+
+```
+> & "$env:LOCALAPPDATA\Packages\Claude_pzs8sxrjxfjjc\LocalCache\Roaming\Claude\claude-code\2.1.255\claude.exe" auth status
+{
+  "loggedIn": true,
+  "authMethod": "claude.ai",
+  "apiProvider": "firstParty",
+  "analyticsDisabled": false,
+  "projectsDirectory": "C:\\Users\\<user>\\.claude\\projects",
+  "email": "<redacted>",
+  "orgId": "<redacted>",
+  "orgName": "<org>",
+  "subscriptionType": "team"
+}
+rc=0
+```
+
+Observations:
+
+1. The browser login reports `authMethod: "claude.ai"`. This is the value the
+   preflight accepts (with `oauth_token`, §2.7).
+2. The logged-in shape carries four extra keys (`email`, `orgId`, `orgName`,
+   `subscriptionType`) absent from every other capture. The preflight model
+   ignores extra keys, so the parser needs no change; the keys are recorded
+   here because they are personal data and the runtime must never log the
+   raw status JSON (FR-959 constraint: never log the child env or auth
+   output beyond `authMethod`/`apiProvider`).
+3. The same status is visible from inside the Claude desktop app's process
+   tree once the operator has logged in (§5.1 below) — the credential store
+   is per user, not per process view.
 
 ### 2.4 (e) Cloud-provider switches
 
@@ -343,7 +379,25 @@ Observations that shape FR-959 §5 (result contract):
 4. `total_cost_usd` is present and `0` for a failed run; it is logged at DEBUG
    as notional and never surfaced in `CopilotResult`.
 
-## 6. Owed capture (a) — command for the operator
+### 5.1 Logged-in status seen from inside the app's process tree
+
+After the operator's login, the same binary run from the enforcing session
+(a child of the desktop app) reports the same state — the credential store is
+per user:
+
+```
+$ claude auth status          # bash tool, MSIX LocalCache path
+{ ... "loggedIn": true, "authMethod": "claude.ai", "apiProvider": "firstParty", ... "subscriptionType": "team" }
+rc=0
+$ claude auth status --text
+Login method: Claude Team account
+Organization: <org>
+Email: <redacted>
+Anthropic base URL: https://api.anthropic.com
+rc=0
+```
+
+## 6. Capture (a) — command the operator ran (kept for the next host)
 
 On this host, from an ordinary PowerShell (the MSIX real path, not the
 virtualized one):
@@ -355,11 +409,9 @@ $claude = "$env:LOCALAPPDATA\Packages\Claude_pzs8sxrjxfjjc\LocalCache\Roaming\Cl
 & $claude auth status --text
 ```
 
-Append the two outputs to this file under a heading `### 2.3 (a) Subscription
-browser login`, then set `CLAUDE_SUBSCRIPTION_AUTH_METHODS` in
-`yamlgraph/node_factory/copilot_runtime_claude.py` to the observed
-`authMethod` value (plus `oauth_token`, §2.7). Until then that set holds only
-`oauth_token` and the browser-login case fails closed.
+Done 2026-09-02: output recorded in §2.3; `CLAUDE_SUBSCRIPTION_AUTH_METHODS`
+in `yamlgraph/node_factory/copilot_runtime_claude.py` is
+`{"claude.ai", "oauth_token"}`.
 
 ## 7. Derived strip set (FR-959 §3, R-2)
 
@@ -380,8 +432,8 @@ Kept: `CLAUDE_CODE_OAUTH_TOKEN` (§2.7 — subscription payer by vendor wording)
 
 ## 8. Limitations
 
-- Capture (a) is owed (§0, §6). The browser-login `authMethod` value is unknown
-  here and is not guessed anywhere in FR-959 or the implementation.
+- Capture (a) was produced by the operator, not by the enforcer (§2.3); the
+  enforcer never ran `claude auth login`/`logout`.
 - Settings precedence between two competing key values is not observable via
   auth status (§3.2); only the documentation claim exists.
 - No successful `-p` run exists on this host; the success envelope's `result`

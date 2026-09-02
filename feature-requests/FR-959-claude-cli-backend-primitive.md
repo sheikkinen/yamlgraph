@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** **Judged 2026-09-02 — APPROVED WITH REVISIONS** ([judgement](FR-959-claude-cli-backend-primitive.judgement.md)); R-1..R-6 folded 2026-09-02; implementation authority activates when C-1 (probe committed — done, minus capture (a)) and C-2 (spend-owner signature, §Human decisions) are satisfied
+**Status:** **Implemented 2026-09-02** on branch `feat/fr-959-claude-backend` (judged the same day — APPROVED WITH REVISIONS, [judgement](FR-959-claude-cli-backend-primitive.judgement.md); R-1..R-6 folded; C-1 probe incl. capture (a) committed; C-2 Option A signed; live witness [evidence/FR-959-claude-backend-witness.md](evidence/FR-959-claude-backend-witness.md)). Open: AC-15's logged-out half (see witness §Limitations). FR-960's gate (C-2 there) requires this on **main**.
 **Effort:** 1.5 days
 **Requested:** 2026-09-02
 **First consumer / first event:** an operator on a host with Claude Code logged in on a subscription and **no** GitHub Copilot seat runs the disposable two-node integration witness (§AC-14) with `backend: claude`, and gets a `CopilotResult` whose real `session_id` the second node resumes byte-for-byte. Second consumer, same week: FR-960 swaps the judge adapter onto this backend.
@@ -477,7 +477,27 @@ be committed; D-2 production code waits for both.
     in the GREEN commit message.
   - `tests/integration/test_fr959_claude_backend_live.py`: the AC-14 harness,
     gated by `YAMLGRAPH_LIVE_CLAUDE=1`; **not yet run** — needs capture (a).
-- **Still open:** C-1 capture (a) (browser-login `authMethod`; preflight fails
-  closed on it, accepted set = `{oauth_token}`), then AC-14/AC-15 live witness
-  and `evidence/FR-959-claude-backend-witness.md`. Status moves to
-  Implemented only after the live witness.
+- 2026-09-02 (evening): operator logged in from PowerShell and pasted
+  capture (a): `authMethod: "claude.ai"`, `subscriptionType: "team"`
+  (evidence §2.3; email/orgId redacted). Accepted set pinned to
+  `{"claude.ai", "oauth_token"}`; AC-09 test extended. Live witness run
+  twice from the enforcing session with the MSIX binary on PATH:
+  AC-14 passed (real `session_id` resumed byte-for-byte, `--tools ""`
+  accepted, version+auth probes before each `-p`); AC-15 API-key half passed
+  with `ANTHROPIC_API_KEY=sk-invalid-on-purpose` exported. Record:
+  `evidence/FR-959-claude-backend-witness.md`. **Status → Implemented.**
+- **Open:** AC-15 logged-out half (enforcer may not run `claude auth logout`;
+  raw capture + unit fixture cover the refusal path; live re-run command in
+  the witness §Limitations). `copilot_node.py` at 417 lines (> 400 target).
+  FR-960 unblocks when this branch is merged to main.
+
+### Acceptance record
+
+| AC | State | Where |
+|---|---|---|
+| AC-01..AC-05, AC-07, AC-09..AC-13 | passed (offline) | `tests/unit/test_fr959_claude_backend.py`, `tests/unit/test_fr959_claude_lint.py`; 141 targeted tests green |
+| AC-06 | passed (offline + live) | unit `test_version_then_auth_then_agent_on_every_invocation`; witness argv[1..6] |
+| AC-08 | passed | §Human decisions, Option A signed |
+| AC-14 | **passed live** | witness run 1 and run 2 |
+| AC-15 | passed for the API-key half; logged-out half by raw capture + unit fixture, live re-run owed | witness §Limitations |
+| AC-16 | passed | CAP-30, `ARCHITECTURE.md`, `reference/graph-yaml.md`, changelog fragment; `req_coverage.py --strict` and `validate_capabilities.py --strict` green |

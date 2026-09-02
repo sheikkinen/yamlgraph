@@ -104,6 +104,15 @@ isolation (optional `statemachine-engine` extra) and were order-masked
 under xdist. Comparing against a baseline worktree cost ninety seconds and
 replaced "probably the host" with a set difference of size zero.
 
+Then the owner logged in and pasted `"authMethod": "claude.ai"`. The hole
+closed with one string, exactly as feared. The live witness ran twice and
+passed twice; its first attempt failed on a `PATH` I had spelled `C:/…`,
+which MSYS splits on the drive colon. Same trap as the virtualized path, one
+layer down: a path that is correct for one interpreter and garbage for the
+next. And a gift from the run: `.env` loading means every graph process on
+this host carries a real API key in its environment, so the "clean shell"
+run was a strip witness too — the child still said `claude.ai`.
+
 **Seed:** the accepted-methods set has a hole shaped like one string. When
 capture (a) lands, is the right move to paste the value into a constant, or
 to make the preflight read its accepted set *from the evidence file itself*
