@@ -2,16 +2,8 @@
 
 **Priority:** HIGH
 **Type:** Enhancement
-**Status:** SPLIT — see `FR-936-map-node-hardening.judgement.md` (2026-08-31).
-No implementation authority. Replaced by four independently researched FRs:
-(D-1) map branch input projection / `pass_keys`, (D-2) `max_items` overflow
-policy with typed `on_overflow` — allocated as FR-939
-(`FR-939-map-overflow-policy.md`), (D-3) investigation FR for timeout
-cancellation and resource lifecycle (the bounded shared pool proposed below
-was rejected — it converts leakage into deterministic starvation), (D-4)
-LangGraph `RetryPolicy` integration and exception ownership. Replacement FR
-numbers to be allocated when authored.
-**Effort:** 2 days
+**Status:** **SPLIT** (judged 2026-08-31; split record updated 2026-09-02) — no implementation authority; see child FRs below and `FR-936-map-node-hardening.judgement.md`
+**Effort:** 2 days (across children)
 **Requested:** 2026-08-31
 **First consumer / first event:** the fi-catalog pilot (D, per
 `docs/plan-web-toolkit.md`) — the first map run whose `over` list exceeds
@@ -22,6 +14,68 @@ full-state-payload tax on every pending write today.
 against current LangGraph docs and `yamlgraph/compile/map_compiler.py` on
 2026-08-31; recorded in `docs/plan-web-toolkit.md` rev 8 ("Existing map node
 audit" + "LangGraph-native coverage").
+
+## Split (2026-08-31; record updated 2026-09-02)
+
+Judged **SPLIT**: this FR bundled four orthogonal map-node contracts —
+Send payload projection, overflow disposition, timeout resource
+lifecycle, and native retry — each with independent failure modes. The
+audit findings below (§Problem) were found real and are inherited by the
+children; the bundling was not. Each child must carry its own committed
+research record (FR-890 gate), re-enter judgement independently, and
+allocate its own CAP-11 requirement IDs. The bounded shared executor
+proposed in §Proposed Solution 3 was **rejected** by the judgement (R-5):
+it converts thread leakage into deterministic starvation.
+
+| Child | Surface (fenced by the judgement) | Allocation | State (2026-09-02) |
+|---|---|---|---|
+| **D-1** | Map branch input projection: per-`Send` payload limited to statically derived keys ∪ explicit `pass_keys`; every execution-time state consumer enumerated per sub-node type (`variables`, `requires`, direct Jinja `state`, guards, verification, routing, `skip_if_exists`); Python/agent/subgraph sub-nodes classified dynamic → declared inputs or full-state pass-through with a lint warning (R-3, C-2) | **unallocated** | Not authored |
+| **D-2** | `max_items` overflow policy: typed `on_overflow: error \| truncate`, default `error`, validated at load, enforced before the first `Send` (R-4) | **FR-939** `FR-939-map-overflow-policy.md` | Judged APPROVED WITH REVISIONS 2026-08-31; R-1–R-4 folded; authority activates on human review of the judgement. **Not implemented** — `map_compiler.py` still warns and slices. FR-939 additionally found that `config.max_map_items` is parsed by `graph_loader.py` but never reaches `map_edge`, so the documented graph-level cap is inert today; that repair is inside FR-939's fence (its R-3) |
+| **D-3** | Investigation FR: map branch timeout cancellation and resource lifecycle. Must prove the lifecycle from submission through timeout, cancellation/return, executor disposal and subsequent healthy-branch execution; accepted mechanism terminates work at the provider/client boundary or isolates it in a terminable execution unit; a thread-count bound alone does not satisfy (R-5, C-3) | **unallocated** | Not authored — the leak recorded by FR-069 (`069-map-node-timeout.md:135-137`) remains open |
+| **D-4** | LangGraph `RetryPolicy` integration via `add_node(..., retry_policy=...)` with typed Pydantic config and a closed declarative `retry_on` allowlist; one retry owner; exceptions must reach LangGraph before `wrap_for_reducer` converts them to state updates; ordering against final `on_error` defined (R-6, C-4, C-5) | **unallocated** | Not authored |
+
+**Non-overlap contract:** D-1 owns `Send` payload contents; D-2 owns the
+item-count check and its disposition; D-3 owns `_execute_node_fn` and
+executor lifecycle; D-4 owns sub-node registration and exception
+ordering. No child may touch another's surface (judgement C-6); durable
+or resumable map behaviour, chunked scheduling, concurrency control,
+`CachePolicy`, Store-backed results, checkpoint format and progress
+logging remain outside all four (component D, `docs/plan-web-toolkit.md`).
+
+**Ordering note:** the first census-scale consumer
+(`docs/plan-web-toolkit.md` component D; ranked use cases in
+`docs/2026-09-02-brainstorm-business-use-cases.md` §5.2) needs D-2 before
+any paid run (coverage arithmetic depends on never dropping scope) and
+D-1 before checkpointing at scale (every branch currently checkpoints a
+copy of the whole parent state). D-3 and D-4 are correctness and
+operability, not blockers for a first run.
+
+**Completion contract (rejudged 2026-09-02):** FR-936 is complete as a
+split record only when all four rows above name committed child FRs,
+each with its own FR-890 research record. The authoritative criteria
+are AC-01–AC-12 and gates C-1–C-8 of the 2026-09-02 rejudgement appended
+to `FR-936-map-node-hardening.judgement.md`. The §Acceptance Criteria
+list further down is the *historical* bundled proposal and grants no
+authority (rejudgement R-6, AC-10). Open work: author D-1, D-3 and D-4
+(rejudgement R-1), each with its research record (R-2) and the fences
+in R-3–R-5.
+
+### Adjacent finding parked (not an FR-936 deliverable)
+
+`reference/patterns.md` Pattern 12 ("Quality Gate for Map Output",
+~line 1113 onward) documents map nodes with `source:` / `prompt:` /
+`state_key:` keys. `yamlgraph/schemas/graph-v1.json` and
+`yamlgraph/compile/map_compiler.py` accept only `over` / `as` / `node` /
+`collect`; the snippet does not load. No FR covers this drift (FR-894
+edits `patterns.md` only for cross-links from Patterns 8 and 10). Route:
+fold into FR-939's reference update (D-7 of its judgement) if the human
+reviewer widens that deliverable, otherwise a one-line docs FR. Recorded
+here so the finding has a home; it grants no authority.
+
+---
+
+The original proposal follows, unmodified, as the record of what was
+bundled and why.
 
 ## Summary
 
