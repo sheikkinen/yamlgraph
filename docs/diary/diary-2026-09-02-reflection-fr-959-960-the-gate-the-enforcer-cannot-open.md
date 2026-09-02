@@ -84,6 +84,26 @@ from the draft without noticing that a cached "subscription" outlives
 two drafts, zero losses. FR-960's per-backend-per-FR naming will make that
 reflex unnecessary; until it lands, the reflex is the fix.
 
+## Postscript, same evening
+
+The owner answered in two words: "A" and "program path wrong". The second
+was the better lesson. The binary I had been probing all evening,
+`%APPDATA%\Claude\claude-code\2.1.255\claude.exe`, does not exist. The
+desktop app is an MSIX package; its "Roaming" writes are virtualized into
+`%LOCALAPPDATA%\Packages\Claude_…\LocalCache\Roaming\`, and only processes
+inside the package see the short path. My Bash tool is such a process. The
+owner's PowerShell is not. Every probe I ran was real; every path I wrote
+down for a human was a path only I could follow. **virtualized_path_as_fact:**
+when you hand an operator a path you discovered from inside a process, test
+it from a shell that is not a child of that process first.
+
+GREEN then took one pass: 139 targeted tests, ruff, import-linter, capability
+registry, requirement coverage, all clean. The fast unit suite showed 250
+failures on the branch and 248 on main; the two extra also fail on main in
+isolation (optional `statemachine-engine` extra) and were order-masked
+under xdist. Comparing against a baseline worktree cost ninety seconds and
+replaced "probably the host" with a set difference of size zero.
+
 **Seed:** the accepted-methods set has a hole shaped like one string. When
 capture (a) lands, is the right move to paste the value into a constant, or
 to make the preflight read its accepted set *from the evidence file itself*

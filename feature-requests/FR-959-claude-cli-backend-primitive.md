@@ -203,7 +203,7 @@ calls (AC-06). The probes share one helper; the helper has no module state.
 | **A** — accept the enumerated residual | Wording throughout this FR stays as written above ("strips observed ambient payer switches and verifies subscription auth immediately before each invocation; enumerated settings changes can still reroute"). Implementation proceeds. | **Recommended** — minimal, honest, one probe |
 | **B** — preserve an absolute subscription-only claim | Requires a separately proved controlled-settings boundary (`--setting-sources` / `--restricted` precedence proofs, or managed policy); that is its own FR and this FR blocks on it. | Correct long-term; not the minimal path |
 
-**Residual payer boundary accepted (Option A) / Option B chosen by:** `<name>, <date>` — **UNSIGNED**. Enforcement of D-2 (§Scope) waits for this line.
+**Residual payer boundary accepted (Option A) by:** sheikkinen (repository owner and spend owner), 2026-09-02 — decision given in the enforcing session after the two options were laid out; recorded here by the enforcer verbatim ("A").
 
 ### 6. Result contract — typed envelope (R-5, FR-958 R-4/R-6)
 
@@ -451,3 +451,33 @@ be committed; D-2 production code waits for both.
   the §6 command of the evidence file — and C-2 — spend owner signs Option A
   or B in §Human decisions. Diary:
   `docs/diary/diary-2026-09-02-reflection-fr-959-960-the-gate-the-enforcer-cannot-open.md`.
+- 2026-09-02 (later, same session): C-2 satisfied — spend owner chose
+  **Option A** in the enforcing session; signed above. GREEN committed:
+  - `yamlgraph/models/schemas.py`: `COPILOT_BACKENDS`, `CLAUDE_ONLY_CLI_FLAGS`,
+    `ClaudeCliFlags` (strict, extra forbidden).
+  - `yamlgraph/models/node_schema.py`: `backend` is `Literal[...]`; after-validator
+    runs `ClaudeCliFlags` for copilot nodes with `backend: claude`.
+  - `yamlgraph/node_factory/copilot_runtime.py`: `normalize_backend`,
+    `unknown_backend_message`, and `_resolve_resume` extracted from
+    `_execute_cli` (shared with the Claude backend; Copilot argv unchanged).
+  - `yamlgraph/node_factory/copilot_runtime_claude.py` (new, 290 lines):
+    env strip, per-invocation version + auth preflight (no module state),
+    frozen argv, `_ClaudeEnvelope`, `_execute_claude`.
+  - `yamlgraph/node_factory/copilot_node.py`: closed dispatch (`claude`,
+    `cli`, else `ValueError`); compile-time flag validation. 417 lines
+    (target 400, max 450 — the two new imports and the explicit `cli` branch
+    are the growth; noted, not split).
+  - `yamlgraph/linter/patterns/copilot.py`: all §7 codes.
+  - Docs: `reference/graph-yaml.md` Claude section, `reference/getting-started.md`;
+    CAP-30 (`fr: FR-082, FR-959`, REQ-YG-639/640/641); `ARCHITECTURE.md`
+    regenerated; changelog fragment; CONF-452.
+  - Verification: FR-959 + copilot suites 139 passed / 12 skipped;
+    `ruff check` clean; `lint-imports` 3 kept; `validate_capabilities --strict`
+    and `req_coverage.py --strict` pass. Full fast unit suite result recorded
+    in the GREEN commit message.
+  - `tests/integration/test_fr959_claude_backend_live.py`: the AC-14 harness,
+    gated by `YAMLGRAPH_LIVE_CLAUDE=1`; **not yet run** — needs capture (a).
+- **Still open:** C-1 capture (a) (browser-login `authMethod`; preflight fails
+  closed on it, accepted set = `{oauth_token}`), then AC-14/AC-15 live witness
+  and `evidence/FR-959-claude-backend-witness.md`. Status moves to
+  Implemented only after the live witness.

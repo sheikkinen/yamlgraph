@@ -2,8 +2,13 @@
 
 **Date:** 2026-09-02
 **Host:** Windows 11 Home 10.0.26200, Git Bash (MSYS) shell
-**Binary:** `C:/Users/<user>/AppData/Roaming/Claude/claude-code/2.1.255/claude.exe`
-(bundled by the Claude desktop app; **not on PATH** — `where.exe claude` is empty)
+**Binary:** `C:/Users/<user>/AppData/Local/Packages/Claude_pzs8sxrjxfjjc/LocalCache/Roaming/Claude/claude-code/2.1.255/claude.exe`
+(bundled by the Claude desktop app, an MSIX package; **not on PATH** —
+`where.exe claude` is empty. Processes launched *by* the app see the same file
+under the virtualized path `%APPDATA%/Claude/claude-code/2.1.255/claude.exe`,
+which does not exist for an ordinary shell — the probes below were run from
+inside the app's process tree, so their `projectsDirectory` and any path they
+print use the virtualized form.)
 **Version:** `2.1.255 (Claude Code)` — exact stdout bytes `32 2e 31 2e 32 35 35 20 28 43 6c 61 75 64 65 20 43 6f 64 65 29 0a`
 **Purpose:** FR-959 judgement R-1 / revised AC-01. Every observation below is a
 verbatim capture; the only edits are the redactions marked `<user>` and the
@@ -340,12 +345,14 @@ Observations that shape FR-959 §5 (result contract):
 
 ## 6. Owed capture (a) — command for the operator
 
-On this host, in a shell where `claude` resolves to the binary above:
+On this host, from an ordinary PowerShell (the MSIX real path, not the
+virtualized one):
 
-```bash
-claude auth login            # interactive browser login on the subscription
-claude auth status           # paste the JSON below this line, redact nothing but the home path
-claude auth status --text
+```powershell
+$claude = "$env:LOCALAPPDATA\Packages\Claude_pzs8sxrjxfjjc\LocalCache\Roaming\Claude\claude-code\2.1.255\claude.exe"
+& $claude auth login          # interactive browser login on the subscription
+& $claude auth status         # paste the JSON below this line, redact nothing but the home path
+& $claude auth status --text
 ```
 
 Append the two outputs to this file under a heading `### 2.3 (a) Subscription
