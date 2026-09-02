@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Proposed
+**Status:** **SPLIT** (judged 2026-09-02) — no implementation authority; see [FR-958 judgement](FR-958-claude-code-cli-backend-for-copilot-node.judgement.md) and the child FRs [FR-959](FR-959-claude-cli-backend-primitive.md) (backend primitive) and [FR-960](FR-960-claude-judge-variant.md) (judge variant)
 **Effort:** 1.5 days (1 day backend + lint + tests; 0.5 day judge variant + live witness)
 **Requested:** 2026-09-02
 **First consumer / first event:** the operator runs `JUDGE_BACKEND=claude scripts/judge.sh feature-requests/FR-958-claude-code-cli-backend-for-copilot-node.md` on a host where `claude` is authenticated and reads a `tmp/draft-judgement.md` verdict rendered by Claude Code instead of Copilot CLI. Second event, same day: the same FR is judged by both backends and the two drafts are diffed (the `forced_opposite` method applied to the judge itself).
@@ -539,7 +539,41 @@ fixture).
   - environment variables (source of the payer deny-list: `ANTHROPIC_API_KEY`, `ANTHROPIC_AUTH_TOKEN`, `CLAUDE_CODE_USE_BEDROCK`, `CLAUDE_CODE_USE_VERTEX`; also model alias vars, `DISABLE_TELEMETRY`): <https://code.claude.com/docs/en/env-vars>
   - Agent SDK overview (the in-process alternative dispositioned above): <https://code.claude.com/docs/en/agent-sdk/overview>
 
-## Judgement (pending)
+## Judgement (2026-09-02)
 
-Not yet judged. Route: `scripts/judge.sh feature-requests/FR-958-claude-code-cli-backend-for-copilot-node.md`
-(Copilot backend — the Claude backend cannot judge the FR that creates it).
+**Verdict:** SPLIT — full record in
+[FR-958-claude-code-cli-backend-for-copilot-node.judgement.md](FR-958-claude-code-cli-backend-for-copilot-node.judgement.md).
+Route: `scripts/judge.sh` (Copilot CLI, `gpt-5.6-sol`). No authority granted
+by this FR; it is now a split record, not a plan.
+
+| Revision | Where it landed |
+|---|---|
+| R-1 split primitive from adoption | FR-959 (backend), FR-960 (judge variant, depends on FR-959) |
+| R-2 `--allowedTools` auto-approves, does not restrict | FR-959 §Tool contract (two keys: `tools`, `allowed_tools`); FR-960 judge argv |
+| R-3 payer proof beyond env stripping | FR-959 §Payer boundary (auth-status preflight, settings-precedence probe, human-accepted residual) |
+| R-4 usage-limit classifier out of v1 | Removed from both children; the wait/reroute sketch stays in §Follow-on above |
+| R-5 close backend dispatch | FR-959 §Closed backend enum |
+| R-6 exit codes: 0 vs non-zero only | FR-959 §Result contract |
+| R-7 persistent route evidence, research with dissent | FR-960 §Witness record; both children carry in-body research with a *Dissent* column |
+
+**Corrections this record admits.** The draft claimed the judge would be
+"granted exactly four tools" via `--allowedTools`; that flag auto-approves
+and does not restrict (R-2; confirmed against the permissions reference
+2026-09-02). It asserted an exit-code taxonomy (1 failure, 2 partial) the
+docs do not support (R-6). It treated `subprocess.run(env=...)` stripping
+as proof of payer; Claude settings override shell environment values, and
+the documented credential precedence ranks `ANTHROPIC_API_KEY` and
+`apiKeyHelper` above the subscription login (R-3). Each is corrected in the
+child that owns it.
+
+**Incident during judgement.** The wrapper verified `tmp/draft-judgement.md`
+at 18:57:49 local; a sibling session's `scripts/judge.sh` run started at
+18:57:52 and deleted it (`rm -f "$ARTIFACT"` on a shared path). The verdict
+was recovered from the Copilot session transcript. FR-960 makes the
+artifact path per-run, which its own dual-backend witness requires anyway.
+
+### Questions for the human (as options, or 'none')
+
+None from the judge. One from the fold: FR-959's payer boundary needs a
+named spend owner to accept the residual (settings `env`, `apiKeyHelper`,
+managed settings); default is the repository owner.
