@@ -127,6 +127,8 @@ class TestImportAndForkSafety:
             "import os\n"
             "if hasattr(os, 'register_at_fork'):\n"
             "    del os.register_at_fork\n"
+            "assert not hasattr(os, 'fork'), 'no-fork surface must lack os.fork'\n"
+            "assert not hasattr(os, 'register_at_fork')\n"
             "import yamlgraph, yamlgraph.utils.bridge\n"
             "names = [t.name for t in threading.enumerate()]\n"
             "assert 'yamlgraph-bridge-loop' not in names, names\n"
