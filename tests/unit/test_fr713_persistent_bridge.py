@@ -113,6 +113,25 @@ class TestImportAndForkSafety:
         assert proc.returncode == 0, proc.stderr
 
     @pytest.mark.req("REQ-YG-541")
+    def test_import_without_register_at_fork_capability(self):
+        """FR-950 AC-01/AC-02: runtimes lacking os.register_at_fork (Windows)
+        must still import, and must still not start the loop thread. The
+        deletion is subprocess-local setup — it installs no fake API and
+        cannot reach the parent process."""
+        code = (
+            "import os, threading\n"
+            "if hasattr(os, 'register_at_fork'):\n"
+            "    del os.register_at_fork\n"
+            "import yamlgraph, yamlgraph.utils.bridge\n"
+            "names = [t.name for t in threading.enumerate()]\n"
+            "assert 'yamlgraph-bridge-loop' not in names, names\n"
+        )
+        proc = subprocess.run(
+            [sys.executable, "-c", code], capture_output=True, text=True
+        )
+        assert proc.returncode == 0, proc.stderr
+
+    @pytest.mark.req("REQ-YG-541")
     @pytest.mark.skipif(sys.platform == "win32", reason="fork is POSIX-only")
     def test_fork_after_warmup_gets_fresh_lazy_loop(self):
         code = """
