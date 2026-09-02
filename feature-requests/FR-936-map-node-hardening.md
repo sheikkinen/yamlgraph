@@ -29,10 +29,10 @@ it converts thread leakage into deterministic starvation.
 
 | Child | Surface (fenced by the judgement) | Allocation | State (2026-09-02) |
 |---|---|---|---|
-| **D-1** | Map branch input projection: per-`Send` payload limited to statically derived keys ∪ explicit `pass_keys`; every execution-time state consumer enumerated per sub-node type (`variables`, `requires`, direct Jinja `state`, guards, verification, routing, `skip_if_exists`); Python/agent/subgraph sub-nodes classified dynamic → declared inputs or full-state pass-through with a lint warning (R-3, C-2) | **unallocated** | Not authored |
+| **D-1** | Map branch input projection: per-`Send` payload limited to statically derived keys ∪ explicit `pass_keys`; every execution-time state consumer enumerated per sub-node type (`variables`, `requires`, direct Jinja `state`, guards, verification, routing, `skip_if_exists`); Python/agent/subgraph sub-nodes classified dynamic → declared inputs or full-state pass-through with a lint warning (R-3, C-2) | **FR-955** `FR-955-map-branch-input-projection.md` | Authored 2026-09-02, Proposed; research record `FR-955.research.md` promoted from the FR-890 route (six classes, subtractionist dissent preserved). Awaiting judgement |
 | **D-2** | `max_items` overflow policy: typed `on_overflow: error \| truncate`, default `error`, validated at load, enforced before the first `Send` (R-4) | **FR-939** `FR-939-map-overflow-policy.md` | Judged APPROVED WITH REVISIONS 2026-08-31; R-1–R-4 folded; authority activates on human review of the judgement. **Not implemented** — `map_compiler.py` still warns and slices. FR-939 additionally found that `config.max_map_items` is parsed by `graph_loader.py` but never reaches `map_edge`, so the documented graph-level cap is inert today; that repair is inside FR-939's fence (its R-3) |
-| **D-3** | Investigation FR: map branch timeout cancellation and resource lifecycle. Must prove the lifecycle from submission through timeout, cancellation/return, executor disposal and subsequent healthy-branch execution; accepted mechanism terminates work at the provider/client boundary or isolates it in a terminable execution unit; a thread-count bound alone does not satisfy (R-5, C-3) | **unallocated** | Not authored — the leak recorded by FR-069 (`069-map-node-timeout.md:135-137`) remains open |
-| **D-4** | LangGraph `RetryPolicy` integration via `add_node(..., retry_policy=...)` with typed Pydantic config and a closed declarative `retry_on` allowlist; one retry owner; exceptions must reach LangGraph before `wrap_for_reducer` converts them to state updates; ordering against final `on_error` defined (R-6, C-4, C-5) | **unallocated** | Not authored |
+| **D-3** | Investigation FR: map branch timeout cancellation and resource lifecycle. Must prove the lifecycle from submission through timeout, cancellation/return, executor disposal and subsequent healthy-branch execution; accepted mechanism terminates work at the provider/client boundary or isolates it in a terminable execution unit; a thread-count bound alone does not satisfy (R-5, C-3) | **FR-956** `FR-956-map-branch-timeout-lifecycle-investigation.md` | Authored 2026-09-02, Proposed; condemn-or-absolve witness shape (FR-706 precedent); in-body research table because the FR-890 route's reducer rejects FR-069's legacy filename (see adjacent findings). Awaiting judgement |
+| **D-4** | LangGraph `RetryPolicy` integration via `add_node(..., retry_policy=...)` with typed Pydantic config and a closed declarative `retry_on` allowlist; one retry owner; exceptions must reach LangGraph before `wrap_for_reducer` converts them to state updates; ordering against final `on_error` defined (R-6, C-4, C-5) | **FR-957** `FR-957-map-branch-native-retry-policy.md` | Authored 2026-09-02, Proposed; supersedes FR-031 (Proposed since 2026-02) within the map-branch fence; in-body research table for the same route reason. Awaiting judgement |
 
 **Non-overlap contract:** D-1 owns `Send` payload contents; D-2 owns the
 item-count check and its disposition; D-3 owns `_execute_node_fn` and
@@ -56,11 +56,42 @@ each with its own FR-890 research record. The authoritative criteria
 are AC-01–AC-12 and gates C-1–C-8 of the 2026-09-02 rejudgement appended
 to `FR-936-map-node-hardening.judgement.md`. The §Acceptance Criteria
 list further down is the *historical* bundled proposal and grants no
-authority (rejudgement R-6, AC-10). Open work: author D-1, D-3 and D-4
-(rejudgement R-1), each with its research record (R-2) and the fences
-in R-3–R-5.
+authority (rejudgement R-6, AC-10). Rejudgement R-1 is satisfied as of
+2026-09-02: D-1, D-3 and D-4 are authored as FR-955, FR-956 and FR-957.
+Open work: each child re-enters judgement independently (R-2 substance
+check applies to each research record).
 
-### Adjacent finding parked (not an FR-936 deliverable)
+### Adjacent findings parked (not FR-936 deliverables)
+
+**Research-route precedent checker misses legacy FR filenames.**
+`examples/demos/research-route/nodes/research_tools.py:391-395`
+(`_check_committed_ids`) resolves `FR-NNN` mentions with the glob
+`FR-{number}[-.]*` and raises `precedent names nonexistent FR-NNN`
+otherwise. FRs filed before the `FR-` prefix convention live as
+`NNN-slug.md` (`069-map-node-timeout.md`, `030-map-concurrency-control.md`,
+`027-…`, `031-…`, `052-…`). On 2026-09-02 the FR-956 and FR-957 research
+runs completed all five personas and then failed in the reducer on
+exactly these two IDs; the persona output was not persisted. Same
+class as FR-701's finding for CAP→FR references. Route: one-line glob
+widening (`{number}-*` alongside `FR-{number}[-.]*`) with a RED witness,
+its own small FR; until then, briefs that must cite legacy-numbered
+prior art use the in-body alternatives table `TEMPLATE.md` sanctions.
+
+**Research-route promotion verifier hashes different bytes than the
+launcher on Windows.** `scripts/research.sh` hashes the raw bytes of
+`tmp/draft-alternatives.md`, which the reducer writes in Python text
+mode — CRLF on Windows (20 CR bytes in the FR-955 artifact).
+`scripts/research_preflight.py:303-333` (`verify_promotion`) hashes
+`record_text[start:]` after `read_text()` newline normalization, so a
+byte-identical promotion reports `mismatched` (FR-955: logged
+`3997450c…`, verifier `c557bd45…`). Not CI-gated; unit-tested only
+with LF fixtures (`tests/unit/test_fr896_precedent_traceability.py:391`).
+FR-951 class (undeclared text boundary). Route: hash normalized bytes on
+both sides, or write the artifact with `newline="\n"`; one small FR.
+
+**Pattern 12 documentation drift** (below).
+
+#### Pattern 12 shorthand
 
 `reference/patterns.md` Pattern 12 ("Quality Gate for Map Output",
 ~line 1113 onward) documents map nodes with `source:` / `prompt:` /
