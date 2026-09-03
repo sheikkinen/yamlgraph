@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Proposed
+**Status:** Judged — SPLIT (2026-09-03). No implementation authority. See [judgement](FR-970-load-bearing-atomic-id-allocation.judgement.md): split into a reservation-protocol successor (R-1) and a route-enforcement successor (R-2); the proposed judge-adapter auto-commit violates the judge's advisory no-side-effect boundary; incident evidence (FR-692/693) was mislabeled; research prior-art disposition was incomplete; `## Ideal Result` was missing.
 **Effort:** 1 day
 **Requested:** 2026-09-03
 **First consumer / first event:** every allocator (3 development devices +
