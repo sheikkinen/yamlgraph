@@ -13,9 +13,14 @@ prompts_dir: prompts
 
 state:
   fr_path: str
+  backend: str            # "copilot" | "claude"; scripts/judge.sh always sets it (FR-960)
+  artifact_path: str      # per-backend-per-FR path computed by scripts/judge.sh (FR-960)
   judge_result: dict
 
 nodes:
+  select:
+    type: passthrough
+    output: {}
   judge:
     type: copilot
     backend: cli
@@ -23,16 +28,39 @@ nodes:
       model: gpt-5.6-sol
       allow_all_paths: true
       allow_all_tools: true  # NC-414 (csap): required for non-interactive tool use;
-                             # without it the file write of tmp/draft-judgement.md
+                             # without it the file write of the draft artifact
                              # is denied while the CLI still exits 0
     prompt: judge
     variables:
       fr_path: "{state.fr_path}"
+      artifact_path: "{state.artifact_path}"
+    state_key: judge_result
+    timeout: 600
+  judge_claude:
+    type: copilot
+    backend: claude          # FR-959 backend; bills the operator's Claude subscription
+    cli_flags:
+      model: opus
+      tools: [Read, Glob, Grep, Write]         # availability (--tools); no Bash, no Edit, no MCP
+      allowed_tools: [Read, Glob, Grep, Write] # approval (--allowedTools) for the same four
+      max_turns: 40
+    prompt: judge            # SAME prompt file (NC-412 zero duplication)
+    variables:
+      fr_path: "{state.fr_path}"
+      artifact_path: "{state.artifact_path}"
     state_key: judge_result
     timeout: 600
 
 edges:
   - from: START
+    to: select
+  - from: select
     to: judge
+    condition: backend != "claude"
+  - from: select
+    to: judge_claude
+    condition: backend == "claude"
   - from: judge
+    to: END
+  - from: judge_claude
     to: END
