@@ -2,9 +2,10 @@
 
 Audience: an experienced developer whose background is hospital
 information systems and/or web applications, joining YAMLGraph
-development. Companion guides exist for the sibling repos
-(csap `docs/onboarding-his-web-dev.md`, statemachine-engine,
-voice_runtime); this one covers the LLM pipeline framework.
+development. This guide covers the LLM pipeline framework and its
+two MIT sibling libraries (Part 5); a companion guide for the
+platform that composes all three lives in csap
+`docs/onboarding-his-web-dev.md`.
 
 ## Part 1: The four mental-model shifts
 
@@ -106,6 +107,66 @@ pytest tests/unit/ -q --no-cov -m "not slow" -n auto
   violation.
 - **Every `# noqa` needs a confession** in `docs/confessions.md`;
   every new capability needs a `capabilities/CAP-*.yaml` entry.
+
+## Part 5: The MIT siblings
+
+YAMLGraph is one of three MIT-licensed libraries that csap composes.
+Same owner, same doctrine style, much lighter ceremony — both
+siblings take direct commits to main.
+
+### statemachine-engine (`github.com/sheikkinen/statemachine-engine`)
+
+Event-driven FSM framework: YAML-defined workflows, pluggable
+actions, SQLite-backed job queue, Unix-socket inter-machine events,
+and — the one artifact in the fleet a web-UI developer will
+recognize — a **FastAPI/WebSocket monitoring server with a live
+Kanban board** for watching FSM instances move through state groups.
+~44k LOC under `src/statemachine_engine/` (`core`, `actions`,
+`database`, `monitoring`, `ui`, `tools`), 43 test files.
+
+- CLI entry points: `statemachine` (run an engine),
+  `statemachine-db` (queue/db inspection), `statemachine-fsm`
+  (diagram generation).
+- Start with `examples/simple_worker`, then `examples/patient_records`
+  (the healthcare-shaped one); `examples/controller_worker` shows
+  multi-machine coordination.
+- Mental model: this is the engine csap's FSM process embeds. The
+  `context_map` event-promotion mechanism and the action interface
+  are the seams csap builds on.
+
+### voice_runtime (`github.com/sheikkinen/voice_runtime`)
+
+Provider-agnostic voice call runtime — the audio plumbing extracted
+so consumers keep only conversation logic. Small and readable
+(~2.8k LOC, 29 test files): `VoiceSession`, audio queues, **mark
+synchronization** (`send_mark_and_wait` — how the system knows TTS
+playback actually finished at the caller's ear), STT/TTS provider
+factories (`create_tts()` / `create_stt()`, ElevenLabs default), and
+Twilio transports (`transports/twilio_ws`, `transports/twilio_call`).
+
+- Read the README's outbound-call example end-to-end: session →
+  WebSocket registration → speak → mark-wait → `on_committed` STT
+  callback. That one page is the whole mental model.
+- HIS/web translation: marks are the voice equivalent of an ACK in
+  an interface engine — without them you know you *sent* audio, not
+  that it *played*. Barge-in and echo-filtering bugs live at this
+  boundary.
+- Read it before touching csap's Bridge: csap's audio path is this
+  library's concepts at platform scale.
+
+### How the three compose
+
+```
+csap (platform, governed like a medical device)
+ ├─ statemachine-engine  → control flow: states, events, actions
+ ├─ voice_runtime        → audio: transports, STT/TTS, marks
+ └─ yamlgraph            → decisions: LLM pipelines as one action type
+```
+
+Onboarding order for a newcomer: voice_runtime (smallest, concrete),
+then statemachine-engine (the control model), then yamlgraph (this
+repo — the nondeterministic part), then csap (the composition, where
+the hard bugs are seams, not components).
 
 ## The one-line orientation
 
