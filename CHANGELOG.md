@@ -8,6 +8,133 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.24]
+
+### Added
+- **FR-965 Scripture graduation — `impossibly_large_sequential_task` + `map_reduce_the_corpus`**: adds one trap and one paired cure to the Knowledge Graph in `.github/copilot-instructions.md`. The trap names the specific reflex — framing a finite enumerable corpus as *"would take weeks / audit / boil-the-ocean / should we review N items?"* — as itself the corpus-map-reduce signal. The cure mandates: cost the yamlgraph census FIRST (N × per-item tokens × cheap-map pricing) BEFORE offering smaller alternatives. Graduates `first_person_tool_horizon` (previously agent-scoped, in `/memories/operator-calibration.md`) into repo-wide operational doctrine after three-recurrence tally: operator-calibration.md 2026-08-22, FR-962 session mid-morning boil-the-ocean line, FR-962 session later same day "sounds like scripture" confirmation. Cites FR-402 / FR-748 / FR-851 / FR-884 / FR-892 / FR-899 / FR-962 as the census precedents the cure points at.
+- **FR-962 Person-Profile Census (authored-PRs)**: azure-pinned sibling of `repo_census` (FR-899) using the shared `corpus_census` slot pipeline (FR-892). Unit = authored PR, reduce target = one person. Adapters `gh_authored_prs_discover` (overflow-safe MAX_PRS+1, required `visibility` enum) + `gh_pr_extract` (validated URL, base/head SHAs) in `examples/demos/corpus_census/adapters/corpus_adapters.py`. Sibling graph `examples/demos/person_profile_census/graph.yaml` authored via `scripts/author.sh` with `provider: azure` pinning on both LLM nodes and `max_items: 500` on both maps. Specialized `reduce_pr_ledger` re-implements attribution + row-level containment (R-3 — NOT auto-inherited from FR-940/FR-943) with typed `classification_status` discriminator; typed hidden-canary gate ({item_ref, surface_family}) enforces invariant 8 per FR-893 casefolded family match; FR-895 brief tail identifies rows by validated PR URL. Public-safe smoke on `sheikkinen@sheikkinen:2026-08-28` (78 PRs, 97.4% classification coverage, 0 fabricated URLs) committed under `proofs/`.
+- **FR-959 `backend: claude` for the copilot node**: a fourth, closed backend value runs Claude Code CLI in print mode (`claude -p … --output-format json`) on the operator's Claude subscription. Typed Claude-only flags (`tools` = availability via `--tools`, `allowed_tools` = approval via `--allowedTools`, `max_turns`), a frozen argv order, a typed JSON envelope, and a per-invocation preflight that pins the CLI version (`2.1.255`) and refuses any non-subscription `claude auth status` before every call. Unknown backend values and malformed flags now fail at schema, compile, and lint instead of falling through to Copilot. (REQ-YG-639, REQ-YG-640, REQ-YG-641)
+- **FR-949 Issue-queue delegation runner (channel C)**: Private comms-repo GitHub-Issues delegation executed by a self-hosted Actions runner — canonical `.github/skills/issue-delegate/` worker bundle with typed request boundary (free-form target repo per operator override O-1), closed DelegationStatus/PublicationStatus enums, two-tier timeout truth, single redaction boundary, and full-output chunked publication (O-2). Bundle: `delegate.yml` workflow (authorization-before-mutation, credential-isolated checkout, atomic terminal mutation), control-side `submit.sh` with typed refusals and drift/runner health checks, `sync-worker.sh` byte-identical deployment, `windows_job.ps1` kill-on-close Job Object launcher with 25-minute inner deadline. Coexists with channel A (FR-948) until a separate disposition FR. Host installation scripted (`install-runner.ps1`: registration-token API, `--unattended --runasservice` service install, `DELEGATE_CHECKOUT_PAT` provisioning from the logged-in gh token — operator amendment striking the C-7 automation non-goal); reviewer doctrine gained the scriptability test for "human-owned" claims. (REQ-YG-637)
+- **FR-948 LAN Copilot delegation channel**: `.github/skills/lan-delegate/` skill
+  submits ONE clean-committed workload from the mac to a FR-945-recon-verified LAN
+  Windows host over WinRM+Copilot CLI, in a disposable per-run detached git worktree
+  with a wrapper-owned wall-clock deadline enforced via `taskkill /PID <root> /T /F`.
+  Scaffold: 19-value `DelegationPolicyStatus` closed enum with total precedence
+  resolution, `LanDelegationResult`/`LanDelegationRequest`/`RemoteCopilotPrerequisites`
+  Pydantic schemas, 10 typed pre-launch exception classes. Wire: `wrapper.ps1` (pure
+  ASCII PS 5.1, param-bound Token/Prompt/RunId/TimeoutS/LocalSha, non-LLM preflight,
+  Start-Job in-memory capture with 4 MiB bound, byte-scan artifacts for
+  `TOKEN_LEAK_DETECTED`, in-memory redaction before any filesystem write, cleanup in
+  outer finally). `delegate.py` (CLI + library) validates 10 pre-launch conditions
+  before DNS/WinRM/file write, constructs pypsrp.WSMan with Option A kwargs
+  (auth=negotiate, encryption=always, ssl=False, port=5985, pinned resolved address,
+  operation_timeout=timeout_s+WSMAN_CLEANUP_MARGIN_S), passes Token+Prompt+RunId as
+  bound parameters (never in script literal), parses `WrapperJsonSummary`, emits
+  `LanDelegationResult` JSON. Enforcement of R-1..R-6 from three judgement rounds
+  (argv integrity via `& operator, full-tree taskkill, in-memory capture,
+  recursive-delegation guard via YAMLGRAPH_LAN_DELEGATED marker, byte-scan on
+  literal-token match, phase-invariant result totality). Script bootstrap so
+  `python .github/skills/lan-delegate/delegate.py …` works despite the dashed
+  package name (relative imports fall through unchanged when loaded as a
+  package). Wrapper `Set-Location $W` before the copilot invocation so
+  `.github/skills/*/SKILL.md` resolves against the delegated worktree
+  (--add-dir grants access, not cwd; caught by live AC-20 witness). Wrapper
+  dispatches via `copilot.ps1` (PowerShell-native argv) instead of the
+  `.cmd` shim: cmd.exe splits argv at newlines and truncated multi-line
+  prompts at the first `n (caught by live status-check witness). Wrapper
+  persists the full prompt to `<worktree>/.lan-delegate/prompt.md` and passes
+  a single-line ASCII pointer as `-p`: even via `copilot.ps1`, Windows argv
+  couldn't preserve a multi-line `-p` (CLI complained about "extra words
+  treated as separate arguments"; caught by live rerun). 37 offline tests
+  (13 scaffold + 24 wire) plus live AC-19 timeout witness (`taskkill /T /F`
+  ended a 5 s-deadline hang, no worktree remnants, no zombies, credits=6.6
+  billed before kill). (REQ-YG-636)
+- **FR-945 LAN recon skill**: New `.github/skills/lan-recon/` — read-only WinRM inventory of a single LAN Windows host (Option A transport: HTTP 5985 + `auth="negotiate"` + `encryption="always"` + banned Basic/CredSSP + pinned resolved LAN address + explicit finite timeouts). Given a DNS/mDNS name or an IP literal + `--computer-name`, opens `pypsrp.client.Client`, runs a fixed pure-ASCII `inventory.ps1` as a non-admin account (SID `S-1-5-32-580` for Remote Management Users — locale-safe against Finnish `Etähallinnan käyttäjät`), and returns a Pydantic `LanHostInventory` under `tmp/lan/<safe-slug>.json`. Refuses admin=True response, non-LAN targets, unqualified IP inputs, unsafe slugs; `LAN_RECON_PASS` scrubbed from every error, log record, and artifact. Foundation FR of the LAN work-delegation arc (FR-946, FR-947). New capability `CAP-256-lan-host-recon` with 12 offline refusal tests + witnessed Huutokauppakone fixture. (REQ-YG-635)
+- **FR-942 Instruction Context Diet**: Combined per-turn instruction bytes (`.github/copilot-instructions.md` + `CLAUDE.md`) reduced 56,610 → 33,124 under a mechanically enforced 33,966-byte ceiling (`scripts/size_gate.py` + pre-commit `file-size-gate`). CLAUDE.md rewritten as a thin dev-command surface; env vars, branch protection, CI checks, and FR-761 dependency governance moved verbatim to `reference/development-operations.md`. 30 governed Scripture entries compressed to ≤40 words each with verbatim originals preserved in `docs/scripture-provenance.md`. Submitting Proposals section deleted from both files (operator amendment: chaplain runtime not running). (REQ-YG-631)
+- **FR-934 Merge Queue on main**: Both required-context workflows (`workflow.yml`, `commitlint.yml`) now trigger on `merge_group` so queue candidates reach conclusions on `commitlint`, `test (3.11)` and `test (3.13)`. The commitlint job validates titles at PR time and reports a no-op conclusion on merge groups; merge groups run the full test matrix (R-2 option 1). Replaces the strict up-to-date rebase toll with a required merge queue (SQUASH, min 1 / max 5, 1 min wait, 30 min check timeout).
+- **FR-931 Judge/Review Model Pin**: The judge and review sole routes
+  now pin `gpt-5.6-sol` instead of `gpt-5.5` (later generation, 272k vs
+  200k default prompt window, and cheaper at 200/1000 vs 500/3000 credits
+  per 1M input/output tokens). A witness test asserts both routes carry a
+  non-empty `cli_flags.model` and that the two pins agree, so the pin can
+  no longer drift to the CLI ambient default or diverge between routes.
+  The authoring adapter is deliberately unchanged. (REQ-YG-632)
+- **FR-919 Doc-Only PR CI Skip**: PRs whose diff contains only Markdown files skip `core-test`, the `test` matrix, and `security` via per-workflow `changes` gate jobs (dorny/paths-filter, single `!**/*.md` glob); skipped required checks satisfy branch protection, and tag pushes short-circuit to a full run so the release chain can never skip.
+- **FR-918 CI Python Matrix Refresh**: `test` matrix moves from 3.11/3.12 to 3.11/3.13 (floor + ceiling bracket policy); `core-test`, `security`, and release `build` jobs move to 3.13; `requires-python` narrows to `>=3.11,<3.14` so no install-allowed interpreter sits outside the tested bracket.
+- **FR-902 Session Worktree Lifecycle**: every session gets its own git
+  worktree lane (`session/<session-id>`) created idempotently on
+  SessionStart (live-flag gated for human review), a PreToolUse ownership
+  guard fencing writes to the owning lane, fenced per-turn checkpoint
+  commits with `Session-Id`/`Request-Index` trailers on Stop, lossless
+  `worktree.sh gc` for session lanes, session-lane listing in `now.py`,
+  and `session_join.py` correlating requests to checkpoints with
+  model/credit provenance. (REQ-YG-629)
+- **FR-889 OS-Enforced Main-Write Lock**: governed roots on the main checkout are now `chmod -R u-w` locked via `scripts/worktree.sh lock-main|unlock-main|sync`; the FR-888 shell-command grammar in Check 7 is deleted, replaced by a lintable module (`checks/main_write.py`) doing edit-tool classification and a lock-mutator fence (git never fenced, sudo passes). FR-902 cwd-proxy heuristics retired (`checks/lane_guard.py`); `now.py` board warns on unlocked main; widened file-size gate (`scripts/size_gate.py`, py+sh, shrink-only baseline); docs-only PR required-check deadlock cured with always-reporting no-op steps. (REQ-YG-631)
+
+### Removed
+- **FR-947 remote-pytest SSH delegation retired (superseded by FR-948)**: The
+  SSH+WSL2+pytest-xdist design in FR-947 was retired without implementation
+  after the empirical spike proved a WinRM+Copilot channel with none of that
+  infrastructure. FR-947's file body carries the `**STATUS: SUPERSEDED-BY
+  FR-948**` banner; no source, capability, or test surface ever landed under
+  FR-947 authority.
+- **FR-927 Retire the FR-902 Lane-Guard Hook Machinery**: Deleted the session-lane hook system — `pre-command-guard.sh` Check 8 (lane-ownership denial, write-verb grep alternation, `FR902_ALLOW_OUTSIDE` escape), `checks/lane_guard.py`, `session-worktree.sh`, `session-checkpoint.sh`, their `session-probe.json` registrations, the `fr902.live` gate, and the FR-902 hook tests. FR-889's OS write lock is now the only write barrier on the main checkout; `scripts/worktree.sh session`/`gc`, `now.py` lane listing and `session_join.py` remain as manual tooling. Absence pinned permanently by `.github/hooks/tests/test_fr902_retired.py`. (REQ-YG-629)
+- **FR-915 Retire the Mastra integration demo**: Deleted `examples/demos/mastra-integration/`. Its subject — the YAMLGraph MCP server — was retired by FR-910, and its TypeScript client had resolved the already-deleted `yamlgraph/mcp_server.py` since 2026-07-18. `examples/demos/typescript-node/` (FR-375) remains the TypeScript integration demo.
+- **FR-912 Retire the skill/agent export surface**: Deleted `yamlgraph skill export` — the `skill` CLI group, `yamlgraph/export/skill.py`, `yamlgraph/export/skill_writer.py`, `yamlgraph/cli/skill_commands.py`, `reference/skills-export.md`, and the three FR-348/350/351 acceptance test files. Four months in the tree produced zero committed artifacts: every `.github/skills/**` file is hand-authored, including the flagship graph-authoring skill written by hand while the generator existed. CAP-142 and CAP-143 are now `status: retired`. With FR-910's MCP module already gone, the `yamlgraph/export/` package retires with its last member and the `export-seam` and `compile-seam` import-linter contracts retire with it.
+- **FR-910 Retire the MCP server surface**: Deleted `yamlgraph/export/mcp.py`, the `.vscode/mcp.json` registration, the `mcp` optional extra, `reference/mcp-server.md`, and the MCP-only test modules. CAP-19 and CAP-136 are retired; agents reach graphs through the CLI adapters (`yamlgraph graph list`) instead.
+- **FR-909 Retire the A2A surface**: Deleted the A2A protocol server (`yamlgraph/a2a/`), the contrib client (`yamlgraph/contrib/a2a_client.py`), the `yamlgraph a2a` CLI subcommand, the `a2a_call`/`a2a_server` demos, the `reference/a2a-server.md` doc, and the `a2a` optional extra. CAP-81, CAP-101, CAP-103, CAP-104 and CAP-105 are retired; the surviving shared-discovery requirement (REQ-YG-206) moved to CAP-111.
+- **FR-858 Retire the committed FR board**: `docs/fr-board.md` is no longer tracked and the `fr-board-check` drift hook is gone. `python scripts/fr_board.py` now prints the board to stdout and writes nothing; `--out` and `--check` are removed. `scripts/vscode/now.py` computes plan state live. Follows the FR-179 precedent that de-tracked `CHANGELOG.md` to eliminate merge conflicts.
+
+### Fixed
+- **FR-954 Faithful no-fork import simulation**: the FR-950 no-fork import witness in `tests/unit/test_fr713_persistent_bridge.py` deleted only `os.register_at_fork` (a surface no real platform exhibits) and, since PR #555, pre-imported `asyncio`, `random` and `langgraph.checkpoint.base` so the cold dependency chain never ran under the simulated surface. The subprocess now imports only `os`, removes both `os.fork` and `os.register_at_fork`, asserts both are absent, and only then imports yamlgraph through its ordinary dependency chain — every fork-hook registrant (`uuid_utils`, stdlib `asyncio`/`random` on 3.14+) takes its genuine no-fork path exactly as on Windows. Test-only change; no production, capability or requirement change.
+- **FR-951 Declare UTF-8 at first-party text boundaries**: text crossed YAMLGraph's boundaries in whatever codec the host preferred, so a graph, prompt or schema containing a curly quote or a euro sign either crashed on Windows (`U+201D`'s trailing byte `0x9d` is undefined in cp1252) or, worse, decoded successfully into mojibake that passed every type and shape check on its way to the LLM. The CLI's own error handler then destroyed its diagnostic by writing `❌` to the same inherited stream. Every first-party read and write now states `encoding="utf-8"`, the CLI declares UTF-8 on its own stdout and stderr at `main()`, and a dedicated blocking `ruff check --select PLW1514 --preview .` step plus a focused `windows-latest` witness job keep the class closed. (REQ-YG-638)
+- **FR-950 Windows-safe bridge fork registration**: `yamlgraph/utils/bridge.py` called `os.register_at_fork` unconditionally at module import, raising `AttributeError` on Windows and disabling every entry point — `import yamlgraph`, `yamlgraph graph lint`, `yamlgraph graph run`, and pytest collection — before argument parsing began. The registration is now guarded by runtime capability detection: fork-capable runtimes keep FR-713's child reset unchanged, and runtimes without `os.register_at_fork` perform no fork setup. Neither path starts the bridge loop thread at import. (REQ-YG-541)
+- **FR-950 CAP-198 attribution and py3.14-safe fork-capability test**: CAP-198 `fr:` attribution now includes FR-950, which amended REQ-YG-541 with the Windows-safe fork-registration guarantee — its changelog fragment claimed the req while the capability registry attributed it only to FR-713, failing the cross-wiring gate. The FR-950 fork-capability test now pre-imports dependencies before deleting `os.register_at_fork`: on CPython 3.14 POSIX, stdlib `asyncio` and `random` call it at import behind an `os.fork` guard, so the bare deletion broke the interpreter instead of exercising yamlgraph's own import-time guard. (REQ-YG-541)
+- **FR-944 Map-to-Map Index Attribution**: chained map nodes (`map1 -> map2`) now compile through a generated post-fan-in pass-through join, so the second fan-out fires once on merged state. Previously the downstream Send router fired per upstream branch on task-local state: every second-map branch received `_map_index: 0`, fan-in order was race-timing arbitrary, error rows were attributed to index 0, and an independent `over` list fanned out N×M. A synthetic join-name collision now fails compilation explicitly. (REQ-YG-568)
+- **FR-943 Census Row-Level Failure Containment**: one malformed model
+  output no longer forfeits a census batch. Attributable model-owned
+  failures (map-error findings, error-string judgements, model-owned
+  envelope validation errors) become fail-closed abstained rows with a
+  bounded `row failed:` reason and full causal evidence preserved in
+  `raw_judgement`; structural impossibilities remain batch-fatal
+  (FR-892). Summary line gains a `row-failed` count. (REQ-YG-634)
+- **FR-940 Census Judgement Normalization**: `reduce_ledger` now normalizes judgement labels at the ledger boundary with a deterministic LLM-free algorithm (prefix strip, separator cut, grammar gate, optional caller `labels` vocabulary with canonical spelling). Non-conforming values are demoted to abstain with a frozen reason — never dropped; `raw_judgement`/`repaired` audit fields and a frozen normalization summary line record every reconciliation. The census judge/synthesis model is caller-selectable via the `model` variable with provenance carrying the effective model. (REQ-YG-633)
+- **FR-938 Prior-art retrieval reaches the research route**: `build_prior_art`
+  gains a `rare_floor` opt-out so a consumer that grounds a context window
+  receives ranked hits where an interrupting hook stays silent. Also guards the
+  optional FR-814 `import yaml` — `fr-checks.sh` invokes the module with bare
+  system `python3` and swallows stderr, so a missing PyYAML had been killing the
+  prior-art notification hook silently. (REQ-YG-282)
+- **FR-938 Retrieval runs on the seam the graph actually uses**: the research
+  route's `collect_committed_context` received the whole state as one positional
+  dict (the python-node calling convention) while every unit witness passed two
+  positional strings, so `brief_path` kept its empty default and the prior-art
+  branch was dead in the only caller that matters. The node now reads
+  `brief_path` out of that dict, and a witness exercises the call the way the
+  graph makes it. First live run emits ranked prior art into the persona context
+  and the artifact. (REQ-YG-282)
+- **FR-937 Research Precedent Vocabulary Drift**: The brief preflight and the
+  route reducer implemented the same precedent contract twice and drifted apart.
+  The preflight rejected the honest-miss marker the reducer accepts, matched
+  markers by naive substring so a row merely *mentioning* `none-retrieved` in
+  prose passed, accepted a classification claim anywhere in the cell rather than
+  as the leading token, and reported every closure failure as
+  "remove solution-shaped sections" regardless of cause. Marker recognition is
+  now a single shared predicate — a marker counts only as the whole cell or as a
+  leading `marker:` prefix — `none-retrieved` is accepted only when retrieval
+  came back empty, the retired `brief-echo` marker is rejected outright, and the
+  wrapper reports the violations it actually found. The five research-route
+  persona prompts were re-authored through the authoring route to teach the
+  accepted vocabulary. (REQ-YG-623)
+- **FR-934 Merge queue blocked by platform**: The `merge_queue` ruleset rule is only available on organization-owned repositories; the API rejects it (422) on this user-owned repo after validating every parameter. The merged `merge_group` wiring stays dormant and correct; the strict up-to-date regime remains. CLAUDE.md and doc pins corrected to the enforced truth; blocker and probe evidence recorded in FR-934.
+- **FR-933 Retry Carries Validation Feedback**: A node retrying after a Pydantic `ValidationError` now receives bounded, diagnostic-only feedback (failing field path, sanitized message, limit/actual metadata) as an appended correction instruction. Previously the retry re-sent a byte-identical request to a deterministic model, so a schema rejection could only be re-earned — `max_retries` bought attempts that could not differ. The rejected value is never carried back.
+- **FR-930 Code-Owned FR-Reference Reconciliation**: the recap demo's anti-hallucination invariant moved from a prompt instruction plus one sampled live test into `finalize_recap` — model-authored `(FR|NC)-N` tokens are reconciled against the model-visible deterministic universe (commits/referenced, churn, fr_changes, fragments; never fr_statuses), stripped when unverified, and recorded in `recap["unverified_refs"]` before the status join. The 13–283s live bare-repo witness is retired, replaced by millisecond unit witnesses of the enforcing code. (REQ-YG-531)
+- **FR-926 Research Failure Cites the Recorded Cause**: `gather_findings` now surfaces the errors the retry handler already recorded in `state["errors"]` — node, error category, exception type, and message — alongside the missing persona key, instead of raising the symptom alone. `PipelineError` objects and dict-form entries are both rendered; unstructured entries are ignored and an empty error channel keeps the terse message. (REQ-YG-623)
+- **FR-925 Lane Delivery Reaches Agent Context**: SessionStart hook now emits the session lane through the structured `hookSpecificOutput.additionalContext` JSON envelope instead of plain stdout (which VS Code captures into hook telemetry and discards). Refusal and not-live paths stay envelope-free. (REQ-YG-629)
+- **FR-924 Harden retirement witnesses**: The FR-909 and FR-915 deletion witnesses asked `Path.exists()` where their acceptance criteria specified tracked absence, so they passed in CI (clean checkout) while failing on any working tree carrying build residue. They now ask `git ls-files`. All three retirement witnesses gained import guards asserting `ModuleNotFoundError`, because a retired package directory left on disk becomes an importable namespace package that neither git nor `Path.exists()` detects. FR-910's filesystem-absence checks are preserved — its AC-01 specified them.
+- **FR-921 Network-Sniff Early Exit**: `network-sniff.js` cleared the body-read race timer, so `--timeout` is a ceiling instead of a floor. An uncleared `setTimeout` kept Node's event loop alive to the full deadline, making every sniff cost the whole window regardless of when the page settled. The FR-784 test module drops from 82.2s to 13.3s and now passes under `pytest -n auto`. (REQ-YG-590)
+- **FR-889 docs exception removed**: `docs/` and `feature-requests/` join the OS-locked governed roots — agents have no business writing to main; only runtime lanes (`tmp/`, `logs/`, `changelog/`) stay open. `main-lock.json` marker gitignored. (REQ-YG-631)
+
 ## [0.5.23]
 
 ### Added
@@ -1834,7 +1961,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.4.64]
 
 ### Added
-- **FR-208 A2A Protocol Server**: Expose YAMLGraph graphs as A2A-compliant agents with task lifecycle, streaming, and interrupt support. (REQ-YG-206..213)
+- **FR-208 A2A Protocol Server**: Expose YAMLGraph graphs as A2A-compliant agents with task lifecycle, streaming, and interrupt support. (REQ-YG-207..213)
 - **FR-207 Standalone Scripture Template**: Extracted governance methodology (Scripture, Chaplain workflow, diary discipline, changelog fragments, pre-commit gates, CI enforcement) into a standalone, language-agnostic template repository under `projects/scripture-dev/`. Features: `scripture.yaml` parameterization, `render.sh` with `_templates/` source-of-truth pattern (Option A from Judge), shell-based changelog aggregator, configurable `req_coverage.py --prefix`, knowledge graph template. Zero framework-specific references in rendered output. (REQ-YG-201, REQ-YG-202, REQ-YG-203, REQ-YG-204, REQ-YG-205)
 - **FR-206 Demo Proof Gate**: CI `demo-gate` job and pre-commit hook require `demo-output.log` when demos are created or modified, enforcing Commandment 2. (REQ-YG-200)
 - **FR-205 .fi Domain Crawl Demo**: Multi-stage pipeline crawling .fi country-level domains — LLM query planning, DuckDuckGo seed discovery, parallel page crawling via map node (max_items: 10), and LLM sitemap summarisation. No new dependencies. (REQ-YG-199)

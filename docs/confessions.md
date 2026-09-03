@@ -137,7 +137,7 @@ Framework suppressions require elevated scrutiny. These live in `yamlgraph/`.
 - **Penance**: The `cmd` list is built entirely from hardcoded strings (`"gh"`, `"copilot"`, `"suggest"`) plus internal config flags and validated graph metadata (model name, timeout). No user input reaches the command arguments.
 
 ### CONF-303
-- **File**: [yamlgraph/node_factory/copilot_runtime.py](../yamlgraph/node_factory/copilot_runtime.py#L136)
+- **File**: [yamlgraph/node_factory/copilot_runtime.py](../yamlgraph/node_factory/copilot_runtime.py#L167)
 - **Code**: S603
 - **Sin**: `subprocess.run(cmd, ...)` in extracted copilot CLI runtime helper is flagged as untrusted input.
 - **Penance**: Command is built as a list (no shell=True), with fixed executable/flags plus validated node configuration (`model`, `resume`, `continue_session`, `timeout`). No raw user input is interpolated into shell commands.
@@ -1969,7 +1969,31 @@ The ID ranges are:
 - **Penance**: FR-949 — `_StrictLoader` subclasses `yaml.SafeLoader` solely to refuse duplicate mapping keys (AC-04); `yaml.safe_load` cannot express duplicate-key refusal, and the loader adds no constructors beyond the safe set.
 
 ### CONF-452
-- **File**: [yamlgraph/node_factory/copilot_runtime_claude.py](../yamlgraph/node_factory/copilot_runtime_claude.py)
-- **Code**: S603 (two sites: the version/auth probe runner and the `claude -p` agent call)
-- **Sin**: `subprocess.run(argv, ...)` with a non-constant argument list.
+- **File**: [yamlgraph/node_factory/copilot_runtime_claude.py](../yamlgraph/node_factory/copilot_runtime_claude.py#L114)
+- **Code**: S603
+- **Sin**: `subprocess.run(argv, ...)` in the version/auth probe runner with a non-constant argument list.
 - **Penance**: FR-959 — argv is always a Python list (no shell), the executable and flag names are literals, and every variable element comes from `ClaudeCliFlags` (strict Pydantic, extra keys forbidden) or from the rendered prompt as one list element (REQ-YG-087 discipline, byte-for-byte argv tests in `tests/unit/test_fr959_claude_backend.py`). The child environment is the stripped copy built by `_build_claude_env`, never a caller-supplied mapping.
+
+### CONF-453
+- **File**: [yamlgraph/node_factory/copilot_runtime_claude.py](../yamlgraph/node_factory/copilot_runtime_claude.py#L266)
+- **Code**: S603
+- **Sin**: `subprocess.run(cmd, ...)` for the `claude -p` agent call with a non-constant argument list.
+- **Penance**: FR-959 — same argv discipline as CONF-452: list form, literal executable/flags, prompt passed as one list element, stripped `_build_claude_env` environment.
+
+### CONF-454
+- **File**: [yamlgraph/node_factory/copilot_runtime_claude.py](../yamlgraph/node_factory/copilot_runtime_claude.py#L69)
+- **Code**: N815
+- **Sin**: `loggedIn: bool` — camelCase field in `_ClaudeAuthStatus`.
+- **Penance**: FR-959 — the field mirrors the vendor's `claude auth status` JSON key verbatim; renaming would require alias plumbing for a private parse-only model.
+
+### CONF-455
+- **File**: [yamlgraph/node_factory/copilot_runtime_claude.py](../yamlgraph/node_factory/copilot_runtime_claude.py#L70)
+- **Code**: N815
+- **Sin**: `authMethod: str` — camelCase field in `_ClaudeAuthStatus`.
+- **Penance**: FR-959 — same vendor-JSON mirroring rationale as CONF-454.
+
+### CONF-456
+- **File**: [yamlgraph/node_factory/copilot_runtime_claude.py](../yamlgraph/node_factory/copilot_runtime_claude.py#L71)
+- **Code**: N815
+- **Sin**: `apiProvider: str` — camelCase field in `_ClaudeAuthStatus`.
+- **Penance**: FR-959 — same vendor-JSON mirroring rationale as CONF-454.
