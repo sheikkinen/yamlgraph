@@ -464,9 +464,9 @@ nodes:
 
 ### `type: copilot` - Copilot Delegation
 
-Delegate complex reasoning tasks either to GitHub Copilot CLI (`backend: cli`) or directly to provider APIs via YAMLGraph's prompt executor (`backend: api`).
+Delegate complex reasoning tasks to GitHub Copilot CLI (`backend: cli`), to Claude Code CLI (`backend: claude`, FR-959), or directly to provider APIs via YAMLGraph's prompt executor (`backend: api`).
 
-**FR-081, FR-383** | **CAP-30** | **REQ-YG-087, REQ-YG-089, REQ-YG-356, REQ-YG-357**
+**FR-081, FR-383, FR-959** | **CAP-30** | **REQ-YG-087, REQ-YG-089, REQ-YG-356, REQ-YG-357, REQ-YG-639, REQ-YG-640, REQ-YG-641**
 
 ```yaml
 nodes:
@@ -488,7 +488,7 @@ nodes:
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|
 | `prompt` | `string` | required | Name of prompt template |
-| `backend` | `string` | `"cli"` | Execution backend: `cli` or `api` |
+| `backend` | `string` | `"cli"` | Execution backend: `cli`, `api`, `sampling` (reserved), or `claude`. **Closed, case-sensitive set**: any other value (a typo, another casing, `""`, a non-string) fails at schema load, at compile, and in lint (`E-COPILOT-BACKEND-UNKNOWN`) — it never falls through to Copilot |
 | `cli_flags` | `object` | `{}` | CLI flags (see below) |
 | `timeout` | `int` | `300` | Timeout in seconds |
 | `state_key` | `string` | node name | State key for CopilotResult |
@@ -506,10 +506,48 @@ nodes:
 | `resume` | `string` | `--resume <id>` | Resume a specific session (FR-105) |
 | `continue_session` | `bool` | `--continue` | Resume most recent session (FR-105) |
 
-**Backend semantics (FR-383):**
+**Backend semantics (FR-383, FR-959):**
 - `backend: cli` (default): runs `copilot --silent ...` subprocess and supports `cli_flags`.
 - `backend: api`: runs through `execute_prompt()` (provider API path), supports prompt schemas/structured output, and returns `CopilotResult` with `backend="api"` and `session_id=None`.
-- CLI-only flags (`allow_all_tools`, `allow_all_paths`, `resume`, `continue_session`) are invalid with `backend: api` (linter error).
+- `backend: claude`: runs `claude -p <prompt> --output-format json` (Claude Code CLI, print mode) and returns `CopilotResult` with `backend="claude"` and the real Claude `session_id`. See the Claude section below.
+- CLI-only flags (`allow_all_tools`, `allow_all_paths`, `resume`, `continue_session`) are invalid with `backend: api` (linter error). Claude-only flags (`tools`, `allowed_tools`, `max_turns`) are invalid with `backend: cli` and `backend: api` (linter error).
+
+**Claude Code backend (FR-959, REQ-YG-639/640/641):**
+
+```yaml
+nodes:
+  judge:
+    type: copilot
+    backend: claude
+    cli_flags:
+      model: opus                       # alias or full claude-* id
+      tools: [Read, Glob, Grep, Write]  # AVAILABILITY: which tools exist   → --tools "Read,Glob,Grep,Write"
+      allowed_tools: [Read, Glob, Grep, Write]  # APPROVAL: no permission prompt → --allowedTools "..."
+      max_turns: 40                     # --max-turns 40
+    prompt: judge
+    state_key: judge_result
+```
+
+Claude flag table (typed; `backend: claude` validates `cli_flags` strictly — a string where a list is expected, `max_turns: "40"`, `max_turns: 0`, `max_turns: true`, or an unknown key is a schema, compile, and lint error `E-COPILOT-CLAUDE-FLAG-SHAPE`, never a silently dropped flag):
+
+| Flag | Type | Claude argv | Meaning |
+|------|------|-------------|---------|
+| `model` | `str` | `--model <m>` | alias (`opus`, `sonnet`) or full id; Copilot-only names (`gpt-*`, `*-sol`) warn `W-COPILOT-CLAUDE-MODEL` |
+| `resume` | `str` | `--resume <id>` | supports `{state.x.session_id}` (FR-105) |
+| `continue_session` | `bool` | `--continue` | exclusive with `resume` |
+| `tools` | `list[str]` | `--tools "A,B"`; `[]` → `--tools ""` | which built-in tools **exist** for the model (`[]` = none) |
+| `allowed_tools` | `list[str]` | `--allowedTools "A,B"` | which existing tools run **without a permission prompt**; does **not** restrict availability — without `tools` every default tool stays available (`W-COPILOT-CLAUDE-APPROVE-WITHOUT-RESTRICT`) |
+| `allow_all_tools` | `bool` | `--dangerously-skip-permissions` | approve everything that exists; together with `allowed_tools` the narrow list is dead (`W-COPILOT-CLAUDE-TOOLS`) |
+| `allow_all_paths` | `bool` | `--add-dir <cwd>` | filesystem access to the working directory |
+| `max_turns` | `int > 0` | `--max-turns <n>` | agent turn limit (accepted by the pinned CLI; absent from its `--help`) |
+
+Argv order is frozen exactly as the table order after `claude -p <prompt> --output-format json`. `provider:` on a claude node is an error (`E-COPILOT-CLAUDE-PROVIDER`): provider selection is an API-key payer signal.
+
+*Per-invocation preflight, no cache.* Before **every** `-p` call the node runs, with the same sanitized environment: (1) `claude --version`, which must be exactly one of the supported versions — currently `2.1.255` only; any other version fails naming the observed and accepted versions; (2) `claude auth status`, which must exit 0 and report `loggedIn: true`, `apiProvider: "firstParty"`, and an `authMethod` in the subscription set (`claude.ai` for the browser login, `oauth_token` for a setup token; both pinned to raw captures). `none`, `api_key`, and `third_party` (Bedrock/Vertex/Foundry) all refuse before any agent prompt. The raw captures these rules are pinned to: [`feature-requests/evidence/FR-959-claude-auth-probe.md`](../feature-requests/evidence/FR-959-claude-auth-probe.md).
+
+*Payer boundary.* The child environment (probes and agent alike) is `os.environ` minus `ANTHROPIC_API_KEY`, `ANTHROPIC_AUTH_TOKEN`, `ANTHROPIC_BASE_URL`, `CLAUDE_CODE_USE_BEDROCK`, `CLAUDE_CODE_USE_VERTEX`, `CLAUDE_CODE_USE_FOUNDRY`; `CLAUDE_CODE_OAUTH_TOKEN`, `PATH`, and the FR-363 OTel layering are kept. **Residual (accepted by the spend owner, FR-959 Option A):** Claude Code applies its own settings after launch, so a user, project, local, or managed settings `env` block, an `apiKeyHelper`, or enterprise cloud-provider settings can still change the payer between the preflight and the call. The preflight *detects* those states (a settings block alone reports `authMethod: api_key`); it cannot *prevent* a change made in that window. Never fall back to an API key when the login is missing.
+
+*Result contract.* stdout must be one JSON object with `result: str`, `session_id: str`, and optional `is_error: bool`; it crosses a typed envelope before `CopilotResult`. `is_error: true` is a failure regardless of exit code (the envelope's `subtype` reads `"success"` even then). Non-zero exit, `is_error`, malformed envelope, non-JSON stdout, missing binary, and timeout all raise; only 0-versus-non-zero is interpreted, and there is no usage-limit classifier.
 
 **Session continuation (FR-105):**
 
@@ -552,7 +590,7 @@ class CopilotResult(BaseModel):
     output: str            # Copilot's response text
     exit_code: int         # Process exit code (0 = success)
     model: str | None      # Model used (if specified)
-    backend: str           # "cli", "api", or "sampling"
+    backend: str           # "cli", "api", "sampling", or "claude"
     session_id: str | None # Session ID for resumption (FR-105)
 ```
 

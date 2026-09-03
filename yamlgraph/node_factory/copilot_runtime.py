@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Any
 
 from yamlgraph.executor_base import format_prompt
-from yamlgraph.models.schemas import CopilotResult
+from yamlgraph.models.schemas import COPILOT_BACKENDS, CopilotResult
 from yamlgraph.utils.expressions import resolve_state_expression
 from yamlgraph.utils.prompts import load_prompt
 
@@ -80,6 +80,47 @@ def _load_and_render_prompt(
     return "\n\n".join(parts)
 
 
+def unknown_backend_message(node_name: str, value: Any) -> str:
+    return (
+        f"Copilot node '{node_name}': unknown backend {value!r}; "
+        f"expected one of {', '.join(COPILOT_BACKENDS)}"
+    )
+
+
+def normalize_backend(node_name: str, value: Any) -> str:
+    """Closed backend set (FR-959 REQ-YG-640): None → cli; anything else exact.
+
+    Unknown strings, the empty string, other casings, and non-strings raise
+    before any node function exists — a typo never falls through to the
+    Copilot CLI. Exact match, as the schema `Literal` does (review P4).
+    """
+    if value is None:
+        return "cli"
+    if isinstance(value, str) and value in COPILOT_BACKENDS:
+        return value
+    raise ValueError(unknown_backend_message(node_name, value))
+
+
+def _resolve_resume(node_name: str, resume: Any, state: dict[str, Any] | None) -> Any:
+    """Resolve a ``cli_flags.resume`` value, expanding ``{state.…}`` (FR-105).
+
+    Shared by the Copilot and Claude backends; behaviour unchanged from the
+    original inline block (warn and drop on unresolvable expressions).
+    """
+    if isinstance(resume, str) and "{state." in resume:
+        if state is None:
+            logger.warning(
+                f"[{node_name}] Cannot resolve resume expression without state"
+            )
+            return resume
+        try:
+            return resolve_state_expression(resume, state)
+        except (KeyError, AttributeError) as e:
+            logger.warning(f"[{node_name}] Failed to resolve resume: {e}")
+            return None
+    return resume
+
+
 def _execute_cli(
     node_name: str,
     prompt: str,
@@ -98,18 +139,8 @@ def _execute_cli(
     if model := cli_flags.get("model"):
         cmd.extend(["--model", model])
 
-    if resume := cli_flags.get("resume"):
-        if isinstance(resume, str) and "{state." in resume:
-            if state is None:
-                logger.warning(
-                    f"[{node_name}] Cannot resolve resume expression without state"
-                )
-            else:
-                try:
-                    resume = resolve_state_expression(resume, state)
-                except (KeyError, AttributeError) as e:
-                    logger.warning(f"[{node_name}] Failed to resolve resume: {e}")
-                    resume = None
+    if cli_flags.get("resume"):
+        resume = _resolve_resume(node_name, cli_flags.get("resume"), state)
         if resume:
             cmd.extend(["--resume", str(resume)])
     elif cli_flags.get("continue_session"):
@@ -189,4 +220,10 @@ def _execute_cli(
         shutil.rmtree(share_tmpdir, ignore_errors=True)
 
 
-__all__ = ["_load_and_render_prompt", "_execute_cli"]
+__all__ = [
+    "_load_and_render_prompt",
+    "_execute_cli",
+    "_resolve_resume",
+    "normalize_backend",
+    "unknown_backend_message",
+]

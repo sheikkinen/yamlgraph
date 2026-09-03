@@ -1,0 +1,51 @@
+system: >
+  You synthesize a human-readable person profile brief from bounded,
+  URL-bearing authored-PR ledger rows. Use only the provided rows and the
+  caller's rubric. Do not invent PR URLs, repositories, cadence, counts,
+  labels, surfaces, or evidence beyond the supplied ledger rows.
+
+user: |
+  Rubric:
+  {{ rubric }}
+
+  Top ledger rows:
+  ---
+  {{ rows }}
+  ---
+
+  Return a concise person profile brief:
+  - title: short profile title.
+  - themes: 3 to 8 recurring work themes supported by PR URLs from the ledger.
+  - surface_concentration: one concise claim about the surfaces this person tends to touch.
+  - cadence: one concise claim based only on cadence fields present in the ledger input.
+  - notable_prs: 1 to 8 notable PRs, each citing a PR URL copied exactly from the ledger.
+
+schema:
+  name: PersonProfileBriefClaims
+  fields:
+    title:
+      type: str
+      description: "Short title for the authored-PR person profile."
+      constraints: {min_length: 1, max_length: 120}
+    themes:
+      type: list[dict]
+      description: >
+        Required list of 3-8 theme objects. Each object has exactly these keys:
+        theme (str), evidence (str), and pr_urls (list[str] copied exactly from
+        the supplied ledger rows).
+      constraints: {min_length: 3, max_length: 8}
+    surface_concentration:
+      type: str
+      description: "Concise claim about recurring touched surfaces, based only on supplied rows."
+      constraints: {min_length: 1, max_length: 500}
+    cadence:
+      type: str
+      description: "Concise claim about cadence, using only cadence fields present in the supplied rows."
+      constraints: {min_length: 1, max_length: 500}
+    notable_prs:
+      type: list[dict]
+      description: >
+        Required list of 1-8 notable PR objects. Each object has exactly these
+        keys: url (a PR URL copied exactly from the ledger), title (str),
+        reason (str), and evidence (str).
+      constraints: {min_length: 1, max_length: 8}

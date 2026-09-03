@@ -1477,7 +1477,7 @@ These are not `# noqa` suppressions — they are documented deviations from proc
 - **Penance**: Agent node orchestration is inherently complex — tool dispatch, error handling, streaming. Splitting would obscure the sequential logic.
 
 ### CONF-373
-- **File**: [tests/unit/test_fr713_persistent_bridge.py](../tests/unit/test_fr713_persistent_bridge.py#L312)
+- **File**: [tests/unit/test_fr713_persistent_bridge.py](../tests/unit/test_fr713_persistent_bridge.py#L317)
 - **Code**: SLF001
 - **Sin**: AC-11 witness stops `bridge._loop` directly to simulate loop-thread death.
 - **Penance**: Loop death is an internal fatality by definition — no public API should exist to kill the bridge; the witness must reach through the seam it guards.
@@ -1789,13 +1789,13 @@ The ID ranges are:
 - **Penance**: sibling-spike reuse; the path bootstrap must precede the import (CONF-392 idiom).
 
 ### CONF-422
-- **File**: [examples/demos/corpus_census/adapters/corpus_adapters.py](../examples/demos/corpus_census/adapters/corpus_adapters.py#L61)
+- **File**: [examples/demos/corpus_census/adapters/corpus_adapters.py](../examples/demos/corpus_census/adapters/corpus_adapters.py#L62)
 - **Code**: S603
 - **Sin**: `subprocess.run` invoking git for the FR-892 git-timeline census adapter.
 - **Penance**: Fixed argv list (`git -C <repo> ...`), no shell, 30s timeout, check=True; repo path comes from the operator's --var input, never from LLM output.
 
 ### CONF-423
-- **File**: [examples/demos/corpus_census/adapters/corpus_adapters.py](../examples/demos/corpus_census/adapters/corpus_adapters.py#L62)
+- **File**: [examples/demos/corpus_census/adapters/corpus_adapters.py](../examples/demos/corpus_census/adapters/corpus_adapters.py#L63)
 - **Code**: S607
 - **Sin**: `git` invoked by partial path in the FR-892 census adapter.
 - **Penance**: git is PATH-resolved by design (developer tooling); same pattern as CONF-421.
@@ -1837,13 +1837,13 @@ The ID ranges are:
 - **Penance**: script-adjacent module reusing the sibling ledger's price machinery (judged "reuse, don't fork"); path bootstrap must precede the import (CONF-392/393/394/396 idiom).
 
 ### CONF-430
-- **File**: [examples/demos/corpus_census/adapters/corpus_adapters.py](../examples/demos/corpus_census/adapters/corpus_adapters.py#L101)
+- **File**: [examples/demos/corpus_census/adapters/corpus_adapters.py](../examples/demos/corpus_census/adapters/corpus_adapters.py#L102)
 - **Code**: S603
 - **Sin**: `subprocess.run` invoking gh for the FR-899 org repo census adapters.
 - **Penance**: Fixed argv list (`gh repo list`/`gh api`), no shell, 60s timeout, check=True; org and item refs come from operator --var input and the gh API listing, never from LLM output.
 
 ### CONF-431
-- **File**: [examples/demos/corpus_census/adapters/corpus_adapters.py](../examples/demos/corpus_census/adapters/corpus_adapters.py#L102)
+- **File**: [examples/demos/corpus_census/adapters/corpus_adapters.py](../examples/demos/corpus_census/adapters/corpus_adapters.py#L103)
 - **Code**: S607
 - **Sin**: `gh` invoked by partial path in the FR-899 census adapters.
 - **Penance**: gh is PATH-resolved by design (developer tooling); same pattern as CONF-423/426.
@@ -1967,3 +1967,9 @@ The ID ranges are:
 - **Code**: S506
 - **Sin**: `yaml.load(blocks[0], Loader=_StrictLoader)` — ruff cannot see that `_StrictLoader` is safe.
 - **Penance**: FR-949 — `_StrictLoader` subclasses `yaml.SafeLoader` solely to refuse duplicate mapping keys (AC-04); `yaml.safe_load` cannot express duplicate-key refusal, and the loader adds no constructors beyond the safe set.
+
+### CONF-452
+- **File**: [yamlgraph/node_factory/copilot_runtime_claude.py](../yamlgraph/node_factory/copilot_runtime_claude.py)
+- **Code**: S603 (two sites: the version/auth probe runner and the `claude -p` agent call)
+- **Sin**: `subprocess.run(argv, ...)` with a non-constant argument list.
+- **Penance**: FR-959 — argv is always a Python list (no shell), the executable and flag names are literals, and every variable element comes from `ClaudeCliFlags` (strict Pydantic, extra keys forbidden) or from the rendered prompt as one list element (REQ-YG-087 discipline, byte-for-byte argv tests in `tests/unit/test_fr959_claude_backend.py`). The child environment is the stripped copy built by `_build_claude_env`, never a caller-supplied mapping.

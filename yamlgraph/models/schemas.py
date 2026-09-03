@@ -8,7 +8,7 @@ from datetime import datetime
 from enum import StrEnum
 from typing import Any, Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 # =============================================================================
 # Error Types
@@ -168,3 +168,38 @@ class CopilotResult(BaseModel):
         default=None,
         description="Copilot session ID for resumption (FR-105)",
     )
+
+
+# Closed copilot backend set (FR-959 REQ-YG-640). Order is the order named in
+# error messages; anything outside it fails before any subprocess.
+COPILOT_BACKENDS: tuple[str, ...] = ("cli", "api", "sampling", "claude")
+
+# Keys that only the claude backend understands; an error on cli/api backends.
+CLAUDE_ONLY_CLI_FLAGS: tuple[str, ...] = ("tools", "allowed_tools", "max_turns")
+
+
+class ClaudeCliFlags(BaseModel):
+    """Typed ``cli_flags`` for ``backend: claude`` (FR-959 judgement R-4).
+
+    Strict: ``"40"`` is not an int, ``True`` is not an int, ``1`` is not a
+    bool. ``extra="forbid"``: a misspelled key is an error, never a silently
+    dropped flag. Applied only when the backend is ``claude``; the Copilot and
+    API backends keep their untyped dict (REQ-YG-087/356 unchanged).
+    """
+
+    model_config = ConfigDict(extra="forbid", strict=True)
+
+    model: str | None = None
+    resume: str | None = None
+    continue_session: bool = False
+    tools: list[str] | None = Field(
+        default=None,
+        description="Tool AVAILABILITY (`--tools`); [] means no tools at all",
+    )
+    allowed_tools: list[str] | None = Field(
+        default=None,
+        description="Tool APPROVAL (`--allowedTools`); never restricts availability",
+    )
+    allow_all_tools: bool = False
+    allow_all_paths: bool = False
+    max_turns: int | None = Field(default=None, gt=0)
