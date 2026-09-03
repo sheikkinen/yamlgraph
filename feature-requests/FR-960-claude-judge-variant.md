@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** **Judged 2026-09-02 — APPROVED WITH REVISIONS** ([judgement](FR-960-claude-judge-variant.judgement.md)); R-1..R-6 folded 2026-09-02; **all enforcement (D-2..D-9) blocked until FR-959 is Implemented on main** with its committed auth probe and live witness and an untriggered kill criterion (judgement R-1, C-2)
+**Status:** **Enforcing 2026-09-03** on branch `feat/fr-960-claude-judge-variant` (judged 2026-09-02 — APPROVED WITH REVISIONS, [judgement](FR-960-claude-judge-variant.judgement.md); R-1..R-6 folded). Gate C-2 satisfied: FR-959 merged to main in PR #563 (`82356118`) with its committed auth probe and live witness; its kill criterion did not fire. Authoring brief (D-2): [authoring-briefs/fr-960-claude-judge-variant-brief.md](authoring-briefs/fr-960-claude-judge-variant-brief.md).
 **Effort:** 0.5 day + two live judge runs
 **Requested:** 2026-09-02
 **First consumer / first event:** the operator runs `JUDGE_BACKEND=claude scripts/judge.sh feature-requests/<some-FR>.md` and reads a draft verdict rendered by Claude Code; the same afternoon the same FR is judged with the default backend and the two drafts are inventoried claim by claim in a committed witness (§4). That inventory is the deliverable; the second judge exists to produce it.

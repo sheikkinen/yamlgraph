@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** **Implemented 2026-09-02** on branch `feat/fr-959-claude-backend` (judged the same day — APPROVED WITH REVISIONS, [judgement](FR-959-claude-cli-backend-primitive.judgement.md); R-1..R-6 folded; C-1 probe incl. capture (a) committed; C-2 Option A signed; live witness [evidence/FR-959-claude-backend-witness.md](evidence/FR-959-claude-backend-witness.md)). Open: AC-15's logged-out half (see witness §Limitations). FR-960's gate (C-2 there) requires this on **main**.
+**Status:** **Implemented 2026-09-02**, merged to main in PR #563 (`82356118`) after sole-route review (P1/P3/P4 fixed; P2 owed) (judged the same day — APPROVED WITH REVISIONS, [judgement](FR-959-claude-cli-backend-primitive.judgement.md); R-1..R-6 folded; C-1 probe incl. capture (a) committed; C-2 Option A signed; live witness [evidence/FR-959-claude-backend-witness.md](evidence/FR-959-claude-backend-witness.md)). Open: AC-15's logged-out half (see witness §Limitations). FR-960's gate (C-2 there) requires this on **main**.
 **Effort:** 1.5 days
 **Requested:** 2026-09-02
 **First consumer / first event:** an operator on a host with Claude Code logged in on a subscription and **no** GitHub Copilot seat runs the disposable two-node integration witness (§AC-14) with `backend: claude`, and gets a `CopilotResult` whose real `session_id` the second node resumes byte-for-byte. Second consumer, same week: FR-960 swaps the judge adapter onto this backend.
