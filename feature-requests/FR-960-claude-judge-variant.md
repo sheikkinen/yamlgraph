@@ -333,3 +333,41 @@ replaced by the judgement's revised set.
 
 **Gate at fold time:** C-2 — FR-959 not yet Implemented. No FR-960 brief,
 graph, wrapper, test, doc, or witness work has begun.
+
+## Implementation Status
+
+- 2026-09-03: C-2 satisfied (FR-959 merged, PR #563 `82356118`). Branch
+  `feat/fr-960-claude-judge-variant`.
+- RED committed: `tests/unit/test_fr960_claude_judge_variant.py` (process,
+  REQ-YG-642; 8 stubbed wrapper tests + 4 mocked routing tests);
+  `test_fr931_sole_route_model_pin.py` re-scoped (pin invariant on the
+  Copilot-CLI node per route; every copilot node must carry a model);
+  brief `authoring-briefs/fr-960-claude-judge-variant-brief.md` (D-2).
+- Graph and prompt authored **only** through `scripts/author.sh` with that
+  brief (preflight: premises and commands resolved; the agent's one repair
+  was `output: {}` on the passthrough `select` node, required by lint E601).
+  Local report `tmp/draft-authoring-report.md` (not committed) sha256
+  `ed42ab0f96797f205f9212eec4cdfa0a4937ef2c6fa38ed9afefe2f33d0feee0`;
+  quoted in the witness.
+- GREEN committed: `scripts/judge.sh` (backend validation before lock,
+  per-backend-per-FR artifact, `--var backend/artifact_path`), README and
+  SKILL text, CAP-211 (REQ-YG-642; REQ-YG-632 re-scoped), `ARCHITECTURE.md`
+  regenerated, changelog fragment, FR-758 judge stubs updated to the new
+  artifact name.
+- Verification: routing + pin tests 7 passed; `yamlgraph graph lint` 0
+  issues and `graph validate` ok (3 nodes, 5 edges);
+  `req_coverage.py --strict` and `validate_capabilities.py --strict` pass.
+  The 26 bash-wrapper tests (FR-758 + FR-960) cannot spawn `bash` from
+  pytest on this host (FR-953 class) and are witnessed by CI; the FR-960
+  wrapper behaviours were additionally exercised by hand under Git Bash
+  with the same stub (unset → copilot; `claude`; `cluade` → 64 with no lock
+  and no launch; other-backend/other-FR/legacy drafts survive; same-backend
+  rerun replaces its own draft; missing verdict → 65).
+- **Deviation recorded:** REQ-YG-632 (FR-931) said "exactly one copilot
+  node" per route; FR-960 necessarily adds a second. The invariant is
+  re-scoped to "exactly one Copilot-CLI node, pinned; every copilot node
+  pinned" in CAP-211 and its test — the judgement's C-4 (preserve the default
+  Copilot backend/model) is what the pin protects, and it still holds.
+- **Live witness (D-8): in progress** — default-backend run on the
+  committed target FR-961 first; the Claude run waits for the C-8 spend
+  decision for judge execution (separate from FR-959's Option A).
