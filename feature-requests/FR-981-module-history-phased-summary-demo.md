@@ -162,7 +162,7 @@ revision:
 | R-3 | One path per invocation, frozen window, honest ceilings | § Proposed Solution, AC-05/AC-06 |
 | R-4 | Collision-resistant subject key, validated envelope, typed claims | § Proposed Solution, AC-10/AC-11 |
 | R-5 | Exact call arithmetic including the unchanged third run | AC-08, AC-09 |
-| R-6 | Pre-authority raw read plus a frozen cost/loss protocol | [FR-981-pilot-raw-read.md](FR-981-pilot-raw-read.md), AC-12 |
+| R-6 | Pre-authority raw read plus a frozen cost/loss protocol | [FR-981-pilot-raw-read.md](evidence/FR-981-pilot-raw-read.md), AC-12 |
 | R-7 | Committed authoring brief; no CAP/REQ allocation | § Proposed Solution, AC-02/AC-16 |
 
 R-2 is accepted without argument: the near-duplicate filter was adopted from
@@ -260,7 +260,7 @@ removed. A wall-clock limit cannot be enforced before the first call and is
 described as a runtime abort, not a preflight ceiling.
 
 Brief shape (inline schema in the prompt YAML), with the three fields the
-pilot read forced (see [FR-981-pilot-raw-read.md](FR-981-pilot-raw-read.md)):
+pilot read forced (see [FR-981-pilot-raw-read.md](evidence/FR-981-pilot-raw-read.md)):
 
 ```yaml
 brief_schema_version: 1
@@ -370,7 +370,7 @@ because the FR is the source of truth for implementation. AC-01 is satisfied
 by this revision; the rest activate at enforcement.
 
 - [x] AC-01: R-1..R-7 folded into the committed FR, citing
-      [FR-981-pilot-raw-read.md](FR-981-pilot-raw-read.md) — three pilot
+      [FR-981-pilot-raw-read.md](evidence/FR-981-pilot-raw-read.md) — three pilot
       source-diff/brief pairs with concrete retained and dropped details.
 - [ ] AC-02: the FR cites the committed authoring brief, and governed
       graph/prompt artifacts are produced only by `scripts/author.sh`, with
@@ -463,7 +463,7 @@ per-run. The first draft of this FR answered a flat "yes" and was wrong.
   — the pattern this witnesses.
 - [FR-981-module-history-phased-summary-demo.judgement.md](FR-981-module-history-phased-summary-demo.judgement.md)
   — the judgement this revision folds.
-- [FR-981-pilot-raw-read.md](FR-981-pilot-raw-read.md) — the pre-authority raw
+- [FR-981-pilot-raw-read.md](evidence/FR-981-pilot-raw-read.md) — the pre-authority raw
   read (R-6): three source/brief pairs and the three schema defects they found.
 - [FR-981.research.md](FR-981.research.md) — the route record: five personas,
   six folded classes, the preserved dissent, and the verified external
