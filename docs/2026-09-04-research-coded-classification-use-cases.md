@@ -17,7 +17,8 @@ something the two existing instances did not.
 ## 1. The screen
 
 The pattern doc states three prerequisites. Field evidence from the two
-instances adds two more gates that turn out to dominate cost and learning:
+instances, plus one candidate that fails in an informative way, adds three
+more gates that turn out to dominate cost and learning:
 
 | Gate | Question | Where it came from |
 |---|---|---|
@@ -313,10 +314,66 @@ committed — while D&D SRD 5.1/5.2 under CC-BY-4.0 may be. One publisher, two
 vocabularies, opposite obligations, identical machinery. That is the cleanest
 available evidence for splitting the law.
 
-**Disposition:** do not build an MTG instance. Document it. It is the worked
-negative example the pattern doc's "what does not transfer" section currently
-lacks, and the only candidate that looks ideal on the stated prerequisites
-while failing an unstated one.
+### 3.4.1 Second pass on MTG — where the sub-tasks route
+
+The G6 failure above is narrower than "MTG is out of scope". Screened against
+the *whole* pattern library rather than this one pattern, MTG's practical
+questions route to three different patterns, and one of them is the repo's
+least-instantiated. Three framings were examined: adjusting an ongoing game,
+building a deck from a declared strategy, and inventing new strategies.
+
+**Cross-cutting asset: MTG has an outcome oracle.** Every other candidate in
+this document has *label* gold — a human or a parser said what the right code
+was. 17Lands publishes public CSV datasets (`17lands.com/public_datasets`):
+GameData with per-game outcomes, DraftData with pools and picks, plus replay
+data and an established tooling ecosystem. Tournament results supply the same
+for Constructed. This is a **third gold species: outcome-labeled**, and it is
+the strongest available, because it measures whether advice was *good* rather
+than whether it *agreed*.
+
+It needs its own discipline, exactly parallel to law 6's "agreement is not
+accuracy": **outcome is not correctness.** A single game is dominated by
+variance, so attributing a result to one decision at n=1 is causally invalid;
+and 17Lands reflects the *player population* — largely non-expert — so it
+measures what typical players did, not optimal play. Valid in aggregate, never
+per-decision.
+
+**Cross-cutting constraint: much of MTG's judgement is already solved
+statistically.** Per-card win rates are published and draft overlays already
+display them. The MTG keyword-tagging finding therefore generalises into a
+design rule: **where a statistic exists, the model must not produce the
+number.** Its remaining job is what statistics cannot do — explaining,
+reasoning about *this* pool or board rather than the population average, and
+handling states too rare to have data.
+
+| Sub-task | Routes to | Verdict |
+|---|---|---|
+| **Sideboarding** (between games) | this pattern, per-deck catalog | **Best in-game fit.** Closed vocabulary is the player's own 75 cards — a catalog *generated from the decklist*, so law 1 applies cleanly. Happens between games, so no real-time constraint and no hidden-state math. Evidence is quoted game-1 observation plus card text. G6 holds well enough: per-slot judgements are largely independent and the deck-level arithmetic (stays 60, sideboard <= 15, swaps balance) is exactly what a deterministic reducer is for. |
+| **Mulligan decision** | this pattern | **Best outcome-oracle research vehicle.** A binary keep/bounce decision against a large outcome-labeled corpus — the cheapest place to test whether outcome gold works at all before betting anything larger on it. |
+| **Limited draft pick** | this pattern | **Cleanest gate profile in MTG.** Each pick is one item with a **closed 15-card candidate list** (the pack), bounded pre-gathered context (the pool), extractable evidence, no rules interpreter and no hidden information at pick time. **G6 holds**: the pool is *input context*, not another item's code — compounding is absorbed by the context bundle, which is what the pattern prescribes. Subject to the statistics rule: ratings already exist and are better computed statistically, so the model's contribution is pool-specific synergy reasoning and abstention. |
+| **Deck construction from a strategy** | **schema-driven extraction** | **Strongest MTG fit overall, and not this pattern.** The loop maps exactly: declare target shape (role budget) -> observe current shape (curve, pips, role counts — Python) -> compute delta (arithmetic) -> reduce delta (the LLM's *only* job: propose candidates for one named gap from a Scryfall-filtered closed pool, Oracle text quoted) -> verify convergence (re-check plus `interrupt` approval). The naive "AI deckbuilder" is inverted: code identifies the gap, the model proposes for it, code validates legality and counts. The target shape must be **declared, not inferred** — published archetype budgets are community opinion and fail G1 — which is what that pattern already requires. Would be its second instance. |
+| **Threat assessment** ("what in their 75 beats my board") | cross-product census | Map over pairs (my board × their probable list). Not classification. |
+| **Metagame census** | corpus map-reduce | **The only one of the three framings buildable today with existing machinery.** Reduce is *counting* over tournament decklists; the model only names and describes archetypes. Two snapshots gives the temporal-census drift report. |
+| **Open-niche detection** | cross-product census | Archetype × archetype matchup matrix: find what beats the top three and is under-represented. The matrix is arithmetic; the model proposes *why*. |
+| **Combo discovery** | cross-product census | Carries a clean falsifiable experiment: can it **rediscover held-out Commander Spellbook combos it was never shown?** 30,000+ curated combos make that a real test rather than a demo. |
+| **In-game line selection** | FSM-as-conductor + a rules engine | **Out.** Needs the layer interpreter, hidden information and adversarial modelling. The rules engine does the state math and the model stays away from the numbers. |
+| **Novel strategy synthesis** | nothing here | **Out.** Strategy invention is generative; this library is analytic. It can produce a strategy *brief* — the open niche, the matchup math, the candidate cards — but cannot validate one, because validation means playing games. Limited has retroactive validation via 17Lands; Constructed has none, so the oracle is deferred to the human and to later results. Legitimate as an exception-queue posture, but it must be stated rather than implied. |
+
+**Revised disposition.** Do not build an MTG *coded-classification* instance
+for rules adjudication — that remains the worked negative example the pattern
+doc's "what does not transfer" section lacks. But the earlier "document it and
+move on" was too broad: MTG fails **this** pattern while fitting three others,
+and it contributes the outcome-labeled gold species plus two discipline rules
+that apply to every candidate in this document. If a domain this ill-suited to
+the pattern still routes cleanly to three siblings, the more useful artefact is
+not a list of fits and misses but a **routing table** — which is what a pattern
+library is for.
+
+If any MTG work is ever authorized, the order is: metagame census (buildable
+now), draft pick advisor (cleanest gates, tests the outcome oracle on a bounded
+task), deck-shape convergence loop (best pattern fit, second instance for
+schema-driven extraction), sideboard advisor (a neat law-1 variant), combo
+rediscovery (cheap and falsifiable). Never in-game line selection.
 
 ---
 
@@ -402,6 +459,8 @@ authorized here; each names the candidate that would pay for it.
 | L4 | **Law 1 splits in two.** The *generated artifact* half (provenance: verified vs provisional) is universal; *never committed* is licensing-contingent. | C9 and C10 together | Strongest evidence in the document: one publisher supplies both poles — D&D SRD 5.1/5.2 is CC-BY-4.0 committable, MTG's Fan Content Policy forbids redistribution |
 | L5 | **A second gold species: engine-executed truth.** Ground truth taken from what a system actually did, not what an annotator said. No annotator drift; narrower coverage. Belongs in law 6 beside labeled corpora. | C9 (FIREBALL's Avrae commands) | Different failure modes from human annotation, so it needs its own paragraph |
 | L6 | **G6 plus the fixed-point test.** State item independence as a prerequisite, and add the screening question: can the reduce be written without iterating to a fixed point? Rank → ordinal max → interpreter, where the pattern owns the first two. | C10 | The only item that is a pure documentation edit; gated on R9 |
+| L7 | **A third gold species: outcome-labeled.** Ground truth taken from whether the advice *won*, not from a label at all (17Lands GameData, tournament results). Strongest species available — it measures goodness, not agreement. Carries its own discipline rule: **outcome is not correctness**, because a single result is dominated by variance and population data reflects typical rather than optimal play. Valid in aggregate, never per-decision. | C10 (§3.4.1) | Extends L5's paragraph rather than replacing it; the "never per-decision" clause is the load-bearing half |
+| L8 | **Statistic precedence.** Where a published statistic already answers the question, the model must not produce the number — its job shrinks to what statistics cannot do: explaining, reasoning about the specific instance rather than the population average, and handling states too rare to have data. | C10 (§3.4.1), generalised from the MTG keyword-parser finding | Applies to every candidate, not just MTG; the sharpest available defence against dressing up a lookup as a judgement |
 
 Two observations from the collection itself:
 
@@ -439,8 +498,11 @@ Not ranked, deliberately:
 | Candidate | Disposition |
 |---|---|
 | **C10 MTG rules adjudication** | Fails G6. Document as the worked negative example (section 3.4); do not build. |
-| **C10a MTG combo detection** | Genuinely viable with 30,000+ combos of public gold, but it is **cross-product census**, not coded classification. Route it to that pattern rather than this one. |
+| **C10a MTG combo detection** | Genuinely viable with 30,000+ combos of public gold, but it is **cross-product census**, not coded classification. Route it to that pattern rather than this one. Carries a falsifiable test: rediscovery of held-out combos. |
 | **C10b MTG deck legality** | Anti-use-case: deterministic, no judgement, no evidence to quote. Worth naming so nobody proposes it. |
+| **C10c MTG draft pick** | Cleanest gate profile in MTG and it *does* pass G6 (§3.4.1) — unranked only because the pick ratings already exist statistically, so L8 caps the model's contribution to synergy reasoning and abstention. |
+| **C10d MTG sideboarding** | Passes on a per-deck generated catalog (the player's own 75). Best in-game fit; unranked because it has no research yield beyond validating L7. |
+| **C10e MTG deck construction** | Best MTG fit of all and **belongs to schema-driven extraction**, not here. Would be that pattern's second instance. Routed, not ranked. |
 
 The two second-pass candidates displace most of the first pass. Both were
 reachable from the pattern doc's own "fits" list and neither was on it, which
@@ -509,6 +571,17 @@ MTG's layers compose. If that is the real axis, then G5 and G6 are not two
 gates but two ends of one measurement, and screening a candidate means asking a
 single question: *how do this standard's own rules combine?*
 
+**Seed 4:** this document was written to screen candidates *for one pattern*,
+and its most reusable output turned out to be §3.4.1 — a table saying which
+sibling pattern each MTG sub-task belongs to, including "none of them". The
+worst-fitting candidate produced the most routing information, because a domain
+only reveals where the boundaries are when it crosses several of them. If that
+holds for the next domain too, the missing artefact beside
+`reference/patterns/` is not a better index (that gap is now closed) but a
+**screening procedure** — gates, the fixed-point test, statistic precedence,
+gold species — that takes an arbitrary domain and names the pattern, or names
+nothing. The pattern library currently describes destinations and has no router.
+
 ---
 
 ## Sources for external claims
@@ -540,6 +613,12 @@ single question: *how do this standard's own rules combine?*
 - Commander Spellbook (30,000+ combos, PostgreSQL + Django REST API, open
   source): `commanderspellbook.com`,
   `github.com/SpaceCowMedia/commander-spellbook-backend`.
+- 17Lands public datasets (CSV GameData with per-game outcomes, DraftData with
+  pools and picks, replay data, per event type): `17lands.com/public_datasets`;
+  tooling at `github.com/oelarnes/spells` (Polars) and the `mtgr` R package.
+  **Not verified:** the licence and permitted-use terms of those datasets, or
+  whether tournament decklist aggregators permit bulk use. Both matter before
+  any MTG work and neither was checked.
 - Wizards Fan Content Policy forbidding verbatim copying and reposting of
   Wizards IP, naming Magic cards:
   `company.wizards.com/en/legal/fancontentpolicy`.
