@@ -26,16 +26,23 @@ authored PR; reduce target is one person.
   `reduce_pr_ledger` (LLM-free specialized reducer, R-3), FR-895
   brief-input adapter identifying rows by validated PR `url`,
   citation-boundary `render_brief`.
-- `preflight.tool.yaml` — the preflight slot manifest.
+- `preflight.tool.yaml` — the preflight slot manifest (Azure env +
+  visibility).
+- `smoke_preflight.tool.yaml` — committed slot manifest binding
+  `preflight_smoke` (visibility only, no Azure env check). Used solely by
+  the Quickstart below; the committed `graph.yaml` never binds it.
+- `gh-profiler.yaml` — a two-model variant (map on one provider,
+  synthesis on another). Not part of the FR-962 enforced scope; the
+  sibling census graph is `graph.yaml`.
 - `proofs/` — public-safe smoke output against `sheikkinen@sheikkinen`.
 
 ## Quickstart — reproduce the committed public proof
 
 The committed graph pins `provider: azure`; to reproduce
 `proofs/smoke-*.md` against public GitHub without Azure credentials,
-build a throwaway anthropic-provider copy under `tmp/` and run it. The
-throwaway is NEVER committed (the FR-767 sentinel + the FR-962 locality
-audit both refuse it):
+build a throwaway anthropic-provider copy and run it. Only the copy is a
+throwaway and it is NEVER committed (the FR-767 sentinel refuses it);
+`smoke_preflight.tool.yaml` is a committed file — do not delete it:
 
 ```bash
 # 1. Prerequisites: gh authenticated (public repos), ANTHROPIC_API_KEY set.
@@ -47,23 +54,13 @@ sed -e 's|provider: azure|provider: anthropic|g' \
     examples/demos/person_profile_census/graph.yaml \
     > examples/demos/person_profile_census/SMOKE_ONLY.yaml
 
-# 3. Point preflight at a smoke-mode function that skips the Azure env
-#    check (only the visibility check remains):
-cat > examples/demos/person_profile_census/smoke_preflight.tool.yaml <<'EOF'
-name: preflight
-description: "smoke-only preflight (no Azure env check)"
-runtime:
-  type: python
-  path: tools.py
-  function: preflight_smoke
-EOF
-
-# 4. Run the smoke against the operator's own public PR footprint:
+# 3. Run the smoke against the operator's own public PR footprint,
+#    binding the committed smoke preflight (skips the Azure env check):
 yamlgraph graph run examples/demos/person_profile_census/SMOKE_ONLY.yaml \
   --tool preflight=examples/demos/person_profile_census/smoke_preflight.tool.yaml \
   --tool discover=examples/demos/corpus_census/adapters/gh-authored-prs-discover.tool.yaml \
   --tool extract=examples/demos/corpus_census/adapters/gh-pr-extract.tool.yaml \
-  --var source='sheikkinen@sheikkinen:2026-08-28' \
+  --var source='sheikkinen@sheikkinen:2026-08-25' \
   --var visibility='["public"]' \
   --var smoke_model='claude-haiku-4-5' \
   --var problem_labels='["doctrine","enforcement","cleanup","infra","research","tests","hotfix","tooling","governance"]' \
@@ -73,17 +70,23 @@ yamlgraph graph run examples/demos/person_profile_census/SMOKE_ONLY.yaml \
   --var brief_path=tmp/smoke-brief.md \
   --var brief_rubric='Profile this engineer from PR footprint. Themes, surface concentration, cadence, anti-patterns (churn, retitles, phantom-work). Cite PR URLs.'
 
-# 5. Clean up: delete the throwaway files before any commit.
-rm examples/demos/person_profile_census/SMOKE_ONLY.yaml \
-   examples/demos/person_profile_census/smoke_preflight.tool.yaml
+# 4. Clean up: delete the throwaway graph before any commit.
+rm examples/demos/person_profile_census/SMOKE_ONLY.yaml
 ```
 
 Output lands in `tmp/smoke-ledger.md` (mechanical rollup + per-PR table),
 `tmp/smoke-ledger.jsonl` (validated `PRLedgerRow` per line),
 `tmp/smoke-ledger.run.json` (deterministic run metadata), and
 `tmp/smoke-brief.md` (person brief with FR-895 URL citation validation).
-`proofs/smoke-*.md` were produced by this exact command on
-`claude-haiku-4-5`.
+`proofs/smoke-*.md` were produced by this command on
+`claude-haiku-4-5`. The smoke path renames `azure_model` to
+`smoke_model`, so the reducer never sees the model actually used and
+reads the `AZURE_MODEL` environment variable instead — the committed
+proof records `"azure_model": "unknown"` only because the operator's
+environment held no such variable. On a machine where it is set, the
+smoke stamps that value into the artifact regardless of which model ran.
+Smoke-run model attribution therefore rests on this README, not on the
+artifact. FR-967 AC-13 corrects the reducer to require a resolved model.
 
 ## Invocation (corp run — never committed)
 
@@ -121,7 +124,15 @@ Expect `gh` secondary rate limits on large corpora: extraction issues one
 
 The public demo in `proofs/` was produced on `anthropic/claude-haiku-4-5`
 via the Quickstart above (never committed). The committed sibling graph
-retains `provider: azure` and is enforced by tests (FR-962 AC-07).
+retains `provider: azure`.
+
+**Two enforcement claims in FR-962 are not yet real** (FR-967). AC-07
+requires a configuration test that fails if any LLM node resolves to a
+non-Azure provider; no such test exists, so the pin is convention. AC-16
+describes a locality audit over the committed person-profile surfaces;
+no such audit exists here either — the sibling `repo_census` demo has
+one, this demo does not. Treat both as documented intent until FR-967
+D-1 lands them.
 
 ## Governance
 

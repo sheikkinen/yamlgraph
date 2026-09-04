@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Proposed
+**Status:** Halted — D-1 stopped at the third contract violation (AC-04)
 **Effort:** 2 days
 **Requested:** 2026-09-04
 **First consumer / first event:** two, one per deliverable (judgement R-5).
@@ -245,6 +245,69 @@ concerns remain separable in `git log` even though they share an FR.
 repository consciously declines to answer. It is never applied to a
 criterion the code *fails* — that is a defect, and hiding it behind a
 deferral would rebuild the exact hole this FR exists to close.
+
+## Implementation Status — 2026-09-04
+
+**Halted before any witness was written.** AC-04's stop rule fired.
+
+The Proposed Solution authorised exactly two production corrections and
+required that a third contract violation halt the work. The third was
+found while dispositioning FR-962's criteria, before a single test file
+was created, so no work was wasted and no scope was absorbed.
+
+**Violation 3 — FR-962 AC-16's locality audit does not exist.** AC-16
+froze "the locality audit scans all named committed person-profile
+surfaces and rejects any other visibility, source, repository owner, or
+output root". No such audit exists for this demo. The only locality
+audit in the repository is `TestDataLocality` in
+`tests/unit/test_fr899_repo_census.py`, scoped to `repo_census` through
+its `PUBLIC_DEMO_ORG` constant; `person_profile_census` defines no
+equivalent constant, test, or script. The remaining `locality` matches in
+the tree belong to the unrelated `self-portrait` demo, where the word
+means geography.
+
+This is not merely an unwitnessed criterion. The demo README cited the
+audit as an active control ("the FR-767 sentinel + the FR-962 locality
+audit both refuse it"), the same phantom-enforcement class as the AC-07
+"enforced by tests" claim. It also matters more than its size: an audit
+over the committed person-profile surfaces is the control that would have
+caught the FR-966 finding, where an Azure deployment name reached an
+artifact bound for a public repository. AC-16 names "any other ... output
+root"; a corp deployment identifier is exactly what such an audit
+rejects.
+
+**Operator disposition (2026-09-04): halt.** Neither the audit nor the
+AC-07 configuration test was built. Instead the false claims were
+retired: `examples/demos/person_profile_census/README.md` now states
+that both mechanisms are documented intent rather than enforcement, and
+names this FR as their successor. Retiring a phantom claim is always in
+scope and strictly more truthful than leaving a reader believing a
+control protects them.
+
+**Nothing in D-1 or D-2 was implemented.** No test file was created; no
+production code was changed; `scripts/ac_disposition_gate.py` does not
+exist. Every acceptance criterion of this FR remains unchecked, which is
+the honest state and — fittingly — precisely the condition D-2 exists to
+make impossible.
+
+What this FR did deliver, and what should not be re-derived:
+
+- The measurement. FR-962 shipped seventeen criteria, ten naming a test,
+  and zero tests, while its sibling `repo_census` shipped ~460 lines of
+  witnesses over the same surfaces. Coverage tracked what was checked,
+  not what was known.
+- The gap analysis. Four existing gates were dispositioned and none
+  covers this failure: the demo-proof gate checks a log's presence,
+  FR-851's audit reads a registry the demo never entered, CAP-116 is
+  scoped to the chaplain runtime, and nothing anywhere reads an
+  acceptance-criterion checkbox.
+- The frozen thirteen-row grammar table for the disposition gate, ready
+  to implement verbatim.
+- The evidence that the estimate was wrong. Two violations were forecast;
+  a third arrived before any test was written. That is data about the
+  defect density here, and any successor should budget for more.
+
+Reflection: `docs/diary/diary-2026-09-04-the-tests-that-were-cited-but-never-written.md`.
 
 ## Alternatives Considered
 
