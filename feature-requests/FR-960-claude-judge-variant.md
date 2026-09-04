@@ -368,6 +368,24 @@ graph, wrapper, test, doc, or witness work has begun.
   re-scoped to "exactly one Copilot-CLI node, pinned; every copilot node
   pinned" in CAP-211 and its test — the judgement's C-4 (preserve the default
   Copilot backend/model) is what the pin protects, and it still holds.
-- **Live witness (D-8): in progress** — default-backend run on the
-  committed target FR-961 first; the Claude run waits for the C-8 spend
-  decision for judge execution (separate from FR-959's Option A).
+- **Live witness (D-8): done** — `evidence/FR-960-claude-judge-witness.md`.
+  Run A (Copilot, FR-961, 2026-09-03 03:43Z): APPROVED WITH REVISIONS,
+  per-backend-per-FR artifact, legacy draft untouched. C-8 accepted by the
+  spend owner 2026-09-03 ("accepted"). Run B (`JUDGE_BACKEND=claude`,
+  FR-961, 2026-09-04 02:16Z): routed to `judge_claude`, preflight
+  `2.1.255` / `claude.ai`, four tools, APPROVED WITH REVISIONS, both
+  drafts coexisting (AC-12, AC-14). Run B' with
+  `ANTHROPIC_API_KEY=sk-invalid-on-purpose`: preflight still `claude.ai`,
+  result unchanged in kind (AC-13). Claim inventory (AC-15): 11 matched,
+  4 contradicted, 7 backend-only — the Claude judge found an allow-path
+  auto-approve risk the Copilot judge missed, and the two disagree on
+  runtime-provenance mechanism and on registering `classify-emit.sh`.
+  Raw drafts preserved as `evidence/FR-960-run-{A,B,Bprime}-*.md`.
+- **Status → Enforced; awaiting AC-16 signature 1** (infrastructure diff
+  and route invariants accepted by a human other than the enforcer, at PR
+  review). Signature 2 (C-8) is recorded. Implemented is set when
+  signature 1 lands.
+- Deviation: the `judge_claude` model is the alias `opus`; the JSON
+  envelope on 2.1.255 does not surface the resolved id, so §1's "exact id
+  pinned in the witness" could not be satisfied — recorded in the witness
+  §5 instead of guessed.
