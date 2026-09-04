@@ -1,0 +1,45 @@
+id: CAP-260
+name: Authored-PR Visibility Cardinality
+description: "FR-966: authored-PR discovery refuses a visibility filter the
+  platform cannot satisfy. `gh search prs` renders repeated `--visibility`
+  flags as conjoined `is:` qualifiers, and a pull request has exactly one
+  visibility, so any list of two or more classes matches nothing by
+  construction. The adapter previously accepted such a list — per-entry
+  validation passed, the defect was combinational — issued the query, and
+  attributed the empty population to the author/owner/since triple. GitHub
+  offers no disjunctive escape: `is:private OR is:internal` is rejected with
+  HTTP 422 (\"Logical operators only apply to text, not to qualifiers\") and
+  the parenthesised form is accepted as free text and silently returns zero.
+  The cardinality is therefore refused at the input boundary, after every
+  existing per-entry check and before any network call, with a diagnostic
+  that names the conjunction mechanism, reproduces the operator's list in its
+  original order and spelling, and states the one-class-per-run remedy."
+fr: FR-966
+modules:
+  - examples/demos/corpus_census/adapters/corpus_adapters.py
+  - examples/demos/person_profile_census/README.md
+  - tests/unit/test_fr966_authored_pr_visibility.py
+requirements:
+  - id: REQ-YG-642
+    description: "Visibility filter satisfiability at the discovery boundary.
+      `_parse_visibility` accepts a JSON list drawn from {public, private,
+      internal} and returns a casefold-canonicalised list; it raises when the
+      resulting list holds more than one class, because repeated
+      `--visibility` flags are conjoined and no pull request carries two
+      visibilities. The check is the last statement before return, so the
+      six prior failure classes — malformed JSON string, non-list JSON value,
+      empty list, non-string entry, unknown class, casefold duplicate — each
+      retain their existing message and are reached first. The conjunction
+      error contains the parsed list's repr in original order and spelling
+      (not the canonicalised form), names the repeated-flag conjunction, and
+      states the one-class-per-run remedy. Enforcement: witnesses in
+      tests/unit/test_fr966_authored_pr_visibility.py drive a fail-if-called
+      `_gh` stub, proving the rejection precedes every GitHub invocation;
+      a parametrised case pins each prior failure class; a mixed-case
+      single-element list is asserted to produce exactly one `--visibility`
+      flag carrying the canonical value in the captured argv; and an accepted
+      response is asserted to keep the sorted <owner>/<repo>#<number>
+      identity shape. No witness touches the network."
+    modules:
+      - examples/demos/corpus_census/adapters/corpus_adapters.py
+      - tests/unit/test_fr966_authored_pr_visibility.py
