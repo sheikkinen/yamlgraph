@@ -1,0 +1,35 @@
+id: CAP-261
+name: Tracing Off in Tests
+description: "FR-982: the unit suite is hermetic with respect to observability.
+  `yamlgraph.config` loads `.env` at import, so on a developer machine whose
+  `.env` sets `LANGSMITH_TRACING=true` every graph the unit suite compiles and
+  invokes was traced to the operator's LangSmith project (100 root runs in
+  90 minutes carrying test-fixture names and stub inputs), and one FR-960
+  test failed locally while CI was green because the tracer's
+  `get_runtime_environment()` shelled out and consumed a positional
+  `subprocess.run` stub. The tracer is forced off at the pytest session
+  boundary — the FR-140 `_clean_git_env` pattern — by overriding all four
+  recognised aliases to the string \"false\" (override, not delete: dotenv
+  never overwrites an existing key) and clearing the lru_cache on
+  `langsmith.utils.get_env_var`; prior values are restored at teardown."
+fr: FR-982
+modules:
+  - tests/conftest.py
+  - tests/unit/test_fr982_tracing_off_in_tests.py
+requirements:
+  - id: REQ-YG-644
+    description: "Test-session tracing hermeticity. A session-scoped autouse
+      fixture in tests/conftest.py saves the prior values of
+      LANGSMITH_TRACING_V2, LANGCHAIN_TRACING_V2, LANGSMITH_TRACING and
+      LANGCHAIN_TRACING, sets each to \"false\" before any test body runs,
+      clears langsmith.utils.get_env_var's cache, and restores absence or the
+      exact prior value (clearing the cache again) at teardown. Inside a test,
+      langsmith.utils.tracing_is_enabled() is False and
+      langchain_core.tracers.context._tracing_v2_is_enabled() is falsy. A
+      test may still opt in by setting the highest-priority alias
+      LANGSMITH_TRACING_V2=true and clearing the cache; the result is
+      independent of test order. No production module under yamlgraph/
+      changes. Enforcement: tests/unit/test_fr982_tracing_off_in_tests.py."
+    modules:
+      - tests/conftest.py
+      - tests/unit/test_fr982_tracing_off_in_tests.py
