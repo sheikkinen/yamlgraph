@@ -94,7 +94,7 @@ yamlgraph graph run examples/demos/person_profile_census/graph.yaml \
   --tool discover=examples/demos/corpus_census/adapters/gh-authored-prs-discover.tool.yaml \
   --tool extract=examples/demos/corpus_census/adapters/gh-pr-extract.tool.yaml \
   --var source='<author>@<owner>:<since>' \
-  --var visibility='["private","internal"]' \
+  --var visibility='["private"]' \
   --var azure_model="$AZURE_MODEL" \
   --var problem_labels='[...]' \
   --var surface_labels='[...]' \
@@ -104,6 +104,20 @@ yamlgraph graph run examples/demos/person_profile_census/graph.yaml \
   --var brief_path=tmp/person-profile.brief.md \
   --var brief_rubric='...'
 ```
+
+**Pass exactly one `visibility` value.** The discover adapter emits one
+`--visibility` flag per entry, and `gh search prs` conjoins them into
+`is:private is:internal` — an unsatisfiable intersection, since a pull
+request has exactly one visibility. GitHub offers no disjunctive escape:
+`is:private OR is:internal` is rejected with HTTP 422 ("Logical
+operators only apply to text, not to qualifiers"), and the parenthesised
+form is accepted as free text and silently returns zero. FR-966
+therefore rejects a multi-value list at the input boundary, before any
+network call. Run once per visibility class if a corpus spans more than
+one.
+
+Expect `gh` secondary rate limits on large corpora: extraction issues one
+`gh` call per discovered PR.
 
 The public demo in `proofs/` was produced on `anthropic/claude-haiku-4-5`
 via the Quickstart above (never committed). The committed sibling graph

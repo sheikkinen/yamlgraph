@@ -193,8 +193,7 @@ def _parse_pr_source(source: str) -> tuple[str, str, str]:
         )
     if not _ISO_DATE.match(since):
         raise ValueError(
-            f"gh_authored_prs_discover: `since` must be ISO YYYY-MM-DD, "
-            f"got {since!r}"
+            f"gh_authored_prs_discover: `since` must be ISO YYYY-MM-DD, got {since!r}"
         )
     return author, owner, since
 
@@ -207,8 +206,7 @@ def _parse_visibility(state: dict[str, Any]) -> list[str]:
             raw = json.loads(raw)
         except json.JSONDecodeError as exc:
             raise ValueError(
-                f"gh_authored_prs_discover: `visibility` must be JSON list, "
-                f"got {raw!r}"
+                f"gh_authored_prs_discover: `visibility` must be JSON list, got {raw!r}"
             ) from exc
     if not isinstance(raw, list) or not raw:
         raise ValueError(
@@ -220,8 +218,7 @@ def _parse_visibility(state: dict[str, Any]) -> list[str]:
     for entry in raw:
         if not isinstance(entry, str):
             raise ValueError(
-                f"gh_authored_prs_discover: visibility entry must be str, "
-                f"got {entry!r}"
+                f"gh_authored_prs_discover: visibility entry must be str, got {entry!r}"
             )
         key = entry.casefold()
         if key not in _VALID_VISIBILITY:
@@ -235,6 +232,13 @@ def _parse_visibility(state: dict[str, Any]) -> list[str]:
             )
         seen.add(key)
         canonical.append(key)
+    if len(canonical) > 1:
+        raise ValueError(
+            f"gh_authored_prs_discover: `gh search prs` conjoins repeated "
+            f"--visibility flags into `is:` qualifiers, so {raw!r} matches "
+            f"nothing (a pull request has exactly one visibility). Pass one "
+            f"visibility class and run once per class."
+        )
     return canonical
 
 
@@ -314,8 +318,7 @@ def gh_pr_extract(state: dict[str, Any]) -> str:
         state_value = api_state
     else:
         raise ValueError(
-            f"gh_pr_extract: unexpected API state for {item!r}: "
-            f"{meta.get('state')!r}"
+            f"gh_pr_extract: unexpected API state for {item!r}: {meta.get('state')!r}"
         )
     labels = [lbl["name"] for lbl in (meta.get("labels") or [])[:MAX_LABELS]]
     base_sha = (meta.get("base") or {}).get("sha") or ""
