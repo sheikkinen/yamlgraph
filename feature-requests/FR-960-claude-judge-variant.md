@@ -103,7 +103,7 @@ nodes:
     type: copilot
     backend: claude
     cli_flags:
-      model: opus                          # alias; exact id pinned in the witness
+      model: claude-opus-5                 # exact id; the `opus` alias resolved to it on 2.1.255 (witness §2.4) — never an alias (REQ-YG-632)
       tools: [Read, Glob, Grep, Write]     # availability (FR-959 `--tools`, comma grammar per its evidence §4)
       allowed_tools: [Read, Glob, Grep, Write]   # approval for the same set
       max_turns: 40
@@ -385,7 +385,15 @@ graph, wrapper, test, doc, or witness work has begun.
   and route invariants accepted by a human other than the enforcer, at PR
   review). Signature 2 (C-8) is recorded. Implemented is set when
   signature 1 lands.
-- Deviation: the `judge_claude` model is the alias `opus`; the JSON
-  envelope on 2.1.255 does not surface the resolved id, so §1's "exact id
-  pinned in the witness" could not be satisfied — recorded in the witness
-  §5 instead of guessed.
+- 2026-09-04 (review, PR #577, sole route `scripts/review.sh`): Not
+  approved, P1–P3. **P2** fixed: the FR-959 status-line edit reverted from
+  this branch (outside D-1..D-9). **P3** fixed: the `modelUsage` field of the
+  print-mode envelope does report the resolved id — a one-word probe with
+  `--model opus` on 2.1.255 returned `claude-opus-5` (plus the CLI's
+  internal `claude-haiku-4-5-20251001` helper); the brief and §1 now pin
+  `model: claude-opus-5`, the graph was re-authored through
+  `scripts/author.sh` with the updated brief, and the routing test asserts
+  the exact id. The earlier "could not be pinned" note was wrong about the
+  envelope: the runtime's typed parser ignores extra keys, so the id was
+  present but unread. **P1** (AC-16 signature 1) needs a human other than
+  the enforcer.

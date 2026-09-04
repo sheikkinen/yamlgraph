@@ -16,7 +16,8 @@
 | Report — Repairs (quoted) | "Initial lint reported `E601` for `select` because passthrough nodes require an explicit `output` mapping. Repaired by adding `output: {}` to the selector node, matching existing committed passthrough precedent." |
 | Report — Blocked validation (quoted) | "None." |
 | Re-verified by the requesting session | lint 0 issues; validate ok; routing + pin tests 7 passed; `git diff` of the two files matches the brief's target byte-for-byte except the `output: {}` repair and the two header-comment edits the brief allowed |
-| Graph commit | `235e2cab` (`feat(judge): FR-960 Claude judge variant …`) |
+| Graph commit | `235e2cab` (`feat(judge): FR-960 Claude judge variant …`) — first pass |
+| **Second pass** (PR #577 review P3) | Same brief (updated to `model: claude-opus-5`), same command, 2026-09-04 02:39:07Z–02:41:11Z. Local report sha256 `895487f2aae6f12fe81338b6eb0f55fc1f6a9ef596e51cf7a5ea245e6dcf4e3e`. Artifacts (quoted): "`graph.yaml` — authored the `judge_claude` model pin to exact id `claude-opus-5` …"; "`prompts/judge.yaml` — … no content edit was needed". Validation (quoted): lint "No issues found"; validate "VALID; nodes 3, edges 5"; routing "4 passed, 8 deselected"; pin test "3 passed". Repairs (quoted): "restoring the existing `output: {}` on the `select` passthrough node". Blocked validation: "None." Resulting diff: exactly one line (`model: opus` → `model: claude-opus-5` + comment). Graph commit: the commit carrying this row. |
 | Limitations | The authoring agent ran under Copilot on this host; it did not execute any judge. The wrapper's own bash tests could not run from pytest here (FR-953 class) and were exercised by hand — see FR-960 Implementation Status. |
 
 ## 2. Live runs
@@ -42,7 +43,7 @@
 |---|---|
 | Target | same FR-961 file, same commit `235e2cab` (unchanged between runs) |
 | Command | `PATH=<MSIX LocalCache dir>:$PATH YAMLGRAPH_BIN=…/yamlgraph.exe JUDGE_BACKEND=claude bash scripts/judge.sh feature-requests/FR-961-claude-code-hooks-registration.md` |
-| Backend / model | `claude` · Claude Code `2.1.255 (Claude Code)` (preflight) · `--model opus` (alias; the exact id is not surfaced by the JSON envelope on this version) |
+| Backend / model | `claude` · Claude Code `2.1.255 (Claude Code)` (preflight) · `--model opus` at the time of this run; the alias resolves to `claude-opus-5` on this version (§2.4), and the graph has since been re-authored to pin that exact id |
 | Auth mode (FR-959 preflight) | `claude.ai` — log line `[judge_claude] Claude Code 2.1.255 authenticated via claude.ai; executing with timeout=600s` |
 | Routing | `yamlgraph.route` event: `{"event": "route", "node": "select", "value": "backend == \"claude\"", "target": "judge_claude"}`; the `judge` (Copilot) node was not visited |
 | Start / end | 2026-09-04T02:16:11Z / 2026-09-04T02:22:39Z (6 min 28 s) |
@@ -66,6 +67,26 @@
 | Verdict line | `**Verdict:** APPROVED WITH REVISIONS` — 11 required revisions, 10 GATE conditions, 3 human questions (the agent's own summary) |
 | Outcome | AC-13 holds: the subscription-authenticated result is unchanged in kind (same verdict class, same auth method, rc 0); FR-959's kill criterion did not fire |
 | Note | B and B' are two independent Claude judge sessions on identical input and produced different drafts (9 vs 11 revisions; overlapping but not identical findings). This is expected non-determinism and is why the inventory in §3 compares run **A** with run **B** only; B' is the payer witness. |
+
+### 2.4 Model-identity probe (PR #577 review P3)
+
+The `--output-format json` envelope carries a `modelUsage` object keyed by
+the exact model ids the session used. One-word probe from the enforcing
+session, 2026-09-04, same binary and login as runs B/B':
+
+```
+$ claude -p "Reply with the single word pong and nothing else." --output-format json --model opus --tools ""
+rc=0  is_error=False  result='pong'  duration_ms=3135
+modelUsage keys: ['claude-haiku-4-5-20251001', 'claude-opus-5']
+```
+
+`opus` → `claude-opus-5`. The `claude-haiku-4-5-20251001` entry is the
+CLI's internal helper model (classification/summaries), not the responding
+model. Consequence: the graph pins `model: claude-opus-5` (re-authored via
+`scripts/author.sh`, §1 second pass), and the routing test asserts it.
+Runs B and B' above executed with the alias; their `--model opus` resolved
+to this same id on this same CLI version, which is why they are kept as
+witnesses rather than re-run.
 
 ## 3. Dual-run inventory (judgement R-6, AC-15)
 
@@ -153,6 +174,6 @@ Summary: 11 matched rows, 4 contradicted (CP-S6/CL-R5, CP-R2/CL-R4, CP-R3.4+R6/C
 - Signature 1 (§4) is unsigned at the time of writing: the infrastructure diff and route invariants must be accepted by a human other than the enforcer (the PR review is where that happens). The Claude route is therefore **not yet operational** for routine use, even though it has been witnessed.
 - Runs B and B' were launched from the enforcing session (a child of the Claude desktop app) with the MSIX binary prepended to `PATH`; an operator shell needs the same `PATH` step (see FR-959 evidence for the two path spellings).
 - The drafts are advisory FR-961 material. They are preserved here as raw records for this inventory only; folding any of them into FR-961's judgement is FR-961's business and is not done by FR-960.
-- `--model opus` is an alias. The exact model id behind it on 2026-09-04 is not reported by the `--output-format json` envelope on 2.1.255, so it is not pinned here; FR-960 §1 anticipated this ("exact id pinned in the witness") and the honest record is that it could not be.
+- Runs B and B' were executed with `--model opus`; the alias's resolution to `claude-opus-5` was observed afterwards (§2.4) and the graph now pins the exact id. An earlier version of this file claimed the envelope did not expose the id; that was wrong — `modelUsage` does, and the runtime's typed parser simply ignores the key.
 - Cost: two full Claude judge sessions (about 6 min each) on the operator's Claude Team subscription, plus one Copilot judge session on the Copilot seat. `total_cost_usd` is notional under subscription and was not captured.
 - The inventory (§3) was written by the enforcer, not by a graph; the dual-run comparison graph stays deferred per FR-960's alternatives table (three witnesses before filing).
