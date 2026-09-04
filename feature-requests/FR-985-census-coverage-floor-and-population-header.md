@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Proposed
+**Status:** Judged — APPROVED WITH REVISIONS (2026-09-04, [judgement](FR-985-census-coverage-floor-and-population-header.judgement.md)); R-1..R-4 folded below, human-reviewed; authority active for the frozen scope.
 **Effort:** 0.5 days
 **Requested:** 2026-09-04
 **Classification:** Contrib/example (FR-983 judgement R-2 — a policy and
@@ -38,7 +38,12 @@ changes. [FR-967-unwitnessed-acceptance-criteria.md](FR-967-unwitnessed-acceptan
 adds are the first, and are scoped to the reducer and render tail
 only. [FR-984-map-fan-out-max-concurrency.md](FR-984-map-fan-out-max-concurrency.md)
 — Successor A; independent, no shared implementation, may land in
-either order. No REJECTED FR touches census coverage.
+either order. Authoring brief for the graph edit (judgement R-2):
+[authoring-briefs/fr-985-census-coverage-floor-brief.md](authoring-briefs/fr-985-census-coverage-floor-brief.md).
+Containment note (judgement R-3): FR-962 reimplemented row containment
+in this demo's own reducer (`tools.py:177 _row_failed`); FR-943's tests
+exercise the corpus-census reducer, so they are precedent, not a proxy
+witness — this FR adds the local one. No REJECTED FR touches census coverage.
 
 ## Summary
 
@@ -106,66 +111,104 @@ if coverage < floor:
 string in inclusive `[0.0, 1.0]`; rejects booleans, non-numeric, NaN,
 ±inf, out-of-range, naming `min_coverage` in the message.
 
-**Header** (`render_brief`; counts from `state["ledger"]["rollup"]`,
-never recomputed from the top-N `brief_input`):
+**Header** (`render_brief`; `judged`, `total`, `coverage`, `failed` from
+`state["ledger"]["rollup"]`, never recomputed from the top-N
+`brief_input`; `selected = len(state["brief_input"])` is the only field
+the bounded input supplies — judgement R-1, so the sentence stays true
+when fewer than `BRIEF_TOP_N` rows were judged):
 
 ```
-> Population: {judged}/{total} PRs classified ({coverage:.1%}); {failed} row_failed. Brief synthesized from top {BRIEF_TOP_N} judged rows by delta.
+> Population: {judged}/{total} PRs classified ({coverage:.1%}); {failed} row_failed. Brief synthesized from {selected} of {judged} judged rows, selected by descending delta (cap {BRIEF_TOP_N}).
 ```
 
 written before the model-authored body. The `synthesize` prompt is
-untouched; the model is never asked to report coverage.
+untouched; the model is never asked to report coverage. The graph gains
+exactly one state variable, `min_coverage`, through the governed
+authoring route driven by the committed brief
+[authoring-briefs/fr-985-census-coverage-floor-brief.md](authoring-briefs/fr-985-census-coverage-floor-brief.md).
 
 ## Acceptance Criteria
 
-Verbatim from the parent judgement (Successor B), R-7 folded into
-AC-B12.
+Revised list from the FR-985 judgement (supersedes the parent's
+Successor B list). The former AC-B12 is no longer a criterion — see
+"Non-gating observation" below (judgement R-4).
 
-- [ ] AC-B01: RED first: a 10-row reducer fixture with 3 `row_failed`
-  rows fails at the default floor `1.0`, passes at
+- [ ] AC-01: RED first: a 10-row person-profile reducer fixture with 3
+  `row_failed` rows fails at the default floor `1.0`, passes at
   `min_coverage="0.7"`, and its failure names coverage, floor, failed
   count, and total count.
-- [ ] AC-B02: `min_coverage` defaults to `1.0`; booleans, non-numeric
-  strings, NaN, infinities, negatives, and values above `1.0` fail
-  with `min_coverage` in the diagnostic; inclusive `0.0` and `1.0`
-  boundaries are tested.
-- [ ] AC-B03: the coverage gate runs after the existing canary and
-  before opening or writing ledger, JSONL, run metadata, claims, or
-  brief artifacts.
-- [ ] AC-B04: a compiled-path witness with 100 of 259 rows failed
-  proves `reduce_pr_ledger` raises, `prepare_brief_input`,
-  `synthesize`, and `render_brief` do not run, and no output artifact
-  exists.
-- [ ] AC-B05: when coverage meets the floor, `render_brief` reads
-  reducer-owned population statistics rather than bounded
-  `brief_input` and writes this exact first-line shape:
-  `> Population: {judged}/{total} PRs classified ({coverage:.1%}); {failed} row_failed. Brief synthesized from top {BRIEF_TOP_N} judged rows by delta.`
-- [ ] AC-B06: a known-count fixture asserts the exact first line and
-  proves the header precedes model-authored content.
-- [ ] AC-B07: existing FR-943 witnesses remain green: one attributable
-  map failure still becomes one `row_failed` ledger row and does not
-  abort fan-out; structural failures remain fatal.
-- [ ] AC-B08: person-profile census documentation states the default
-  fail-closed behaviour and shows explicit `--var min_coverage=...`
-  acceptance of a partial population; smoke output is regenerated
-  without corp identifiers.
-- [ ] AC-B09: the graph change has the required graph-authoring
-  report, lint, and smoke evidence.
-- [ ] AC-B10: one capability and REQ (`CAP-263-census-coverage-gate`,
-  `REQ-YG-646`, re-verified against `origin/main` at push) cover the
-  production branches; every test carries that REQ marker;
-  regenerated `ARCHITECTURE.md` and `python scripts/req_coverage.py
-  --strict` pass.
-- [ ] AC-B11: FR status/implementation record, one `fix` changelog
-  fragment, and diary reflection
-  (`docs/diary/diary-<date>-reflection-fr-985-<slug>.md`) are committed.
-- [ ] AC-B12: operational witness — **authorized by the operator on
-  2026-09-04** to run once after both FR-984 and FR-985 are enforced:
-  the combined corp census records sanitized configured concurrency,
-  429 count, discovered/classified/failed counts, coverage, and
-  terminal result (completed, or failed closed at the floor). No corp
-  identifier enters the record; deterministic tests remain the
-  enforcement gate.
+- [ ] AC-02: `min_coverage` defaults to `1.0`; booleans, non-numeric
+  strings, NaN, infinities, negatives, and values above `1.0` fail with
+  `min_coverage` in the diagnostic; numeric values and numeric strings
+  are accepted within inclusive `[0.0, 1.0]`, with both boundaries
+  tested.
+- [ ] AC-03: the coverage gate runs after the existing canary and before
+  constructing, opening, or writing ledger, JSONL, run-metadata, claims,
+  rejected-brief, or accepted-brief paths; a canary failure still takes
+  precedence over a coverage failure.
+- [ ] AC-04: a compiled-path fixture with 100 of 259 rows failed proves
+  `reduce_pr_ledger` raises, `prepare_brief_input`, `synthesize`, and
+  `render_brief` do not run, and no output artifact is created.
+- [ ] AC-05: when coverage meets the floor, `render_brief` obtains
+  `judged`, `total`, `coverage`, and `failed` from reducer-owned
+  full-population rollup data, obtains only `selected` from
+  `len(brief_input)`, and writes this exact first line:
+  `> Population: {judged}/{total} PRs classified ({coverage:.1%}); {failed} row_failed. Brief synthesized from {selected} of {judged} judged rows, selected by descending delta (cap {BRIEF_TOP_N}).`
+- [ ] AC-06: known-count rendering fixtures below and above the cap
+  assert exact first lines for `selected/judged` values `7/7` and
+  `30/40`, respectively, and prove the header precedes model-authored
+  content.
+- [ ] AC-07: a local person-profile containment fixture proves one
+  attributable `_error` finding becomes one `row_failed` ledger row
+  while judged peers survive when the floor permits partial coverage;
+  separate local fixtures prove invalid, missing, duplicate, and
+  out-of-range indices plus invalid mechanical bundles remain fatal.
+  Relevant FR-943 suites remain green but do not substitute for these
+  witnesses.
+- [ ] AC-08: person-profile census documentation states the default
+  fail-closed behaviour, shows explicit `--var min_coverage=...`
+  acceptance of a partial population, explains the population and
+  bounded-input header fields, and regenerates smoke output without
+  private/corp identifiers.
+- [ ] AC-09: FR-985 cites a committed
+  [authoring-briefs/fr-985-census-coverage-floor-brief.md](authoring-briefs/fr-985-census-coverage-floor-brief.md);
+  the graph edit is produced through the governed authoring route;
+  `tmp/draft-authoring-report.md` names the graph and documentation
+  artifacts; graph lint passes; the narrow smoke is attempted and its
+  exact outcome or blocker is recorded.
+- [ ] AC-10: `CAP-263-census-coverage-gate` and `REQ-YG-646`, re-verified
+  against `origin/main` at push, cover every changed production branch;
+  every new test carries that REQ marker; regenerated `ARCHITECTURE.md`
+  and `python scripts/req_coverage.py --strict` pass.
+- [ ] AC-11: the FR status and implementation decisions, one `fix`
+  changelog fragment, and
+  `docs/diary/diary-<date>-reflection-fr-985-<slug>.md` containing a
+  `Seed:` are committed.
+
+### Non-gating observation (judgement R-4, C-7)
+
+The operator authorized (2026-09-04) one combined private-corpus run
+after **both** FR-984 and FR-985 are enforced, recording sanitized
+configured concurrency, 429 count, discovered/classified/failed counts,
+coverage, and terminal result (completed, or failed closed at the
+floor). It does not gate FR-985 completion, must not run before both
+successors land, commits no corp identifier, and claims no
+provider-quota improvement. Appended to this record when available.
+
+## Judgement Fold — 2026-09-04
+
+**Verdict: APPROVED WITH REVISIONS** (sole route, `copilot`,
+`gpt-5.6-sol`). Authority active after this fold.
+
+| # | Finding | Disposition |
+|---|---|---|
+| R-1 | "top 30 judged rows" is false whenever fewer than 30 rows were judged — the FR's own `plausible_wrong_answer` on small runs | Header frozen to `{selected} of {judged} … (cap {BRIEF_TOP_N})`; `selected` is the one field from `brief_input`; AC-06 fixtures at `7/7` and `30/40` |
+| R-2 | Graph-authoring brief must be committed and cited | Committed at `authoring-briefs/fr-985-census-coverage-floor-brief.md`; AC-09 revised |
+| R-3 | FR-962 reimplemented containment locally (`tools.py:177 _row_failed`); FR-943 tests exercise a different reducer | AC-07 now requires a local person-profile containment witness; FR-943 suites are regression only |
+| R-4 | AC-B12 coupled acceptance to FR-984 | Removed from criteria; kept as non-gating observation with the operator's authorization intact |
+
+All four verified against the cited files before folding; none
+falsified.
 
 ## Alternatives Considered
 
