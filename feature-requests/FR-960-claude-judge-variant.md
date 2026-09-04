@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** **Judged 2026-09-02 — APPROVED WITH REVISIONS** ([judgement](FR-960-claude-judge-variant.judgement.md)); R-1..R-6 folded 2026-09-02; **all enforcement (D-2..D-9) blocked until FR-959 is Implemented on main** with its committed auth probe and live witness and an untriggered kill criterion (judgement R-1, C-2)
+**Status:** **Implemented 2026-09-04** (judged 2026-09-02 — APPROVED WITH REVISIONS, [judgement](FR-960-claude-judge-variant.judgement.md); R-1..R-6 folded; C-2 satisfied by FR-959 in PR #563; graph authored via [the committed brief](authoring-briefs/fr-960-claude-judge-variant-brief.md); live witness with both AC-16 signatures in [evidence/FR-960-claude-judge-witness.md](evidence/FR-960-claude-judge-witness.md); sole-route review P1–P3 resolved; PR #577).
 **Effort:** 0.5 day + two live judge runs
 **Requested:** 2026-09-02
 **First consumer / first event:** the operator runs `JUDGE_BACKEND=claude scripts/judge.sh feature-requests/<some-FR>.md` and reads a draft verdict rendered by Claude Code; the same afternoon the same FR is judged with the default backend and the two drafts are inventoried claim by claim in a committed witness (§4). That inventory is the deliverable; the second judge exists to produce it.
@@ -103,7 +103,7 @@ nodes:
     type: copilot
     backend: claude
     cli_flags:
-      model: opus                          # alias; exact id pinned in the witness
+      model: claude-opus-5                 # exact id; the `opus` alias resolved to it on 2.1.255 (witness §2.4) — never an alias (REQ-YG-632)
       tools: [Read, Glob, Grep, Write]     # availability (FR-959 `--tools`, comma grammar per its evidence §4)
       allowed_tools: [Read, Glob, Grep, Write]   # approval for the same set
       max_turns: 40
@@ -333,3 +333,77 @@ replaced by the judgement's revised set.
 
 **Gate at fold time:** C-2 — FR-959 not yet Implemented. No FR-960 brief,
 graph, wrapper, test, doc, or witness work has begun.
+
+## Implementation Status
+
+- 2026-09-03: C-2 satisfied (FR-959 merged, PR #563 `82356118`). Branch
+  `feat/fr-960-claude-judge-variant`.
+- RED committed: `tests/unit/test_fr960_claude_judge_variant.py` (process,
+  REQ-YG-642; 8 stubbed wrapper tests + 4 mocked routing tests);
+  `test_fr931_sole_route_model_pin.py` re-scoped (pin invariant on the
+  Copilot-CLI node per route; every copilot node must carry a model);
+  brief `authoring-briefs/fr-960-claude-judge-variant-brief.md` (D-2).
+- Graph and prompt authored **only** through `scripts/author.sh` with that
+  brief (preflight: premises and commands resolved; the agent's one repair
+  was `output: {}` on the passthrough `select` node, required by lint E601).
+  Local report `tmp/draft-authoring-report.md` (not committed) sha256
+  `ed42ab0f96797f205f9212eec4cdfa0a4937ef2c6fa38ed9afefe2f33d0feee0`;
+  quoted in the witness.
+- GREEN committed: `scripts/judge.sh` (backend validation before lock,
+  per-backend-per-FR artifact, `--var backend/artifact_path`), README and
+  SKILL text, CAP-211 (REQ-YG-642; REQ-YG-632 re-scoped), `ARCHITECTURE.md`
+  regenerated, changelog fragment, FR-758 judge stubs updated to the new
+  artifact name.
+- Verification: routing + pin tests 7 passed; `yamlgraph graph lint` 0
+  issues and `graph validate` ok (3 nodes, 5 edges);
+  `req_coverage.py --strict` and `validate_capabilities.py --strict` pass.
+  The 26 bash-wrapper tests (FR-758 + FR-960) cannot spawn `bash` from
+  pytest on this host (FR-953 class) and are witnessed by CI; the FR-960
+  wrapper behaviours were additionally exercised by hand under Git Bash
+  with the same stub (unset → copilot; `claude`; `cluade` → 64 with no lock
+  and no launch; other-backend/other-FR/legacy drafts survive; same-backend
+  rerun replaces its own draft; missing verdict → 65).
+- **Deviation recorded:** REQ-YG-632 (FR-931) said "exactly one copilot
+  node" per route; FR-960 necessarily adds a second. The invariant is
+  re-scoped to "exactly one Copilot-CLI node, pinned; every copilot node
+  pinned" in CAP-211 and its test — the judgement's C-4 (preserve the default
+  Copilot backend/model) is what the pin protects, and it still holds.
+- **Live witness (D-8): done** — `evidence/FR-960-claude-judge-witness.md`.
+  Run A (Copilot, FR-961, 2026-09-03 03:43Z): APPROVED WITH REVISIONS,
+  per-backend-per-FR artifact, legacy draft untouched. C-8 accepted by the
+  spend owner 2026-09-03 ("accepted"). Run B (`JUDGE_BACKEND=claude`,
+  FR-961, 2026-09-04 02:16Z): routed to `judge_claude`, preflight
+  `2.1.255` / `claude.ai`, four tools, APPROVED WITH REVISIONS, both
+  drafts coexisting (AC-12, AC-14). Run B' with
+  `ANTHROPIC_API_KEY=sk-invalid-on-purpose`: preflight still `claude.ai`,
+  result unchanged in kind (AC-13). Claim inventory (AC-15): 11 matched,
+  4 contradicted, 7 backend-only — the Claude judge found an allow-path
+  auto-approve risk the Copilot judge missed, and the two disagree on
+  runtime-provenance mechanism and on registering `classify-emit.sh`.
+  Raw drafts preserved as `evidence/FR-960-run-{A,B,Bprime}-*.md`.
+- 2026-09-04: CI on PR #577 failed `test_ramp_installer::test_mirror_exact_entries_match_live_bytes`
+  — `ramp/manifest.yaml` mirrors `.github/skills/judge-fr/SKILL.md`
+  byte-for-byte and the §3 SKILL.md paragraph made it drift. Re-copied. The
+  ramp's `assets/tier2/scripts/judge.sh` is a *curated* copy
+  (`curation_diff`, not byte-tested) and still carries the pre-FR-960
+  wrapper; refreshing that curation is adjacent work for the ramp's owner,
+  not folded here (judgement C-8 parks adjacent work).
+- Operator ran the Claude judge themselves on FR-953 before deciding on
+  signature 1 (witness §2.5): routed, preflight `claude.ai`,
+  `model='claude-opus-5'` stamped, SPLIT draft written.
+- 2026-09-04: AC-16 signature 1 given by the repository owner after reading
+  the PR, the review findings and fixes, and running the Claude judge
+  themselves ("accepted, merge when green"); recorded in the witness §4.
+  **Status → Implemented.** Merge of PR #577 follows CI green.
+- 2026-09-04 (review, PR #577, sole route `scripts/review.sh`): Not
+  approved, P1–P3. **P2** fixed: the FR-959 status-line edit reverted from
+  this branch (outside D-1..D-9). **P3** fixed: the `modelUsage` field of the
+  print-mode envelope does report the resolved id — a one-word probe with
+  `--model opus` on 2.1.255 returned `claude-opus-5` (plus the CLI's
+  internal `claude-haiku-4-5-20251001` helper); the brief and §1 now pin
+  `model: claude-opus-5`, the graph was re-authored through
+  `scripts/author.sh` with the updated brief, and the routing test asserts
+  the exact id. The earlier "could not be pinned" note was wrong about the
+  envelope: the runtime's typed parser ignores extra keys, so the id was
+  present but unread. **P1** (AC-16 signature 1) needs a human other than
+  the enforcer.
