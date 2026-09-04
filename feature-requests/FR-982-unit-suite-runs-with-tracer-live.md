@@ -2,9 +2,12 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Proposed
+**Status:** Approved
 **Effort:** 0.5 days
 **Requested:** 2026-09-04
+**Judgement:** [FR-982-unit-suite-runs-with-tracer-live.judgement.md](FR-982-unit-suite-runs-with-tracer-live.judgement.md)
+— APPROVED WITH REVISIONS (2026-09-04); graph verdict SPLIT overridden by
+the operator, D-2 retained; R-2/R-3/R-4 folded below.
 **First consumer / first event:** any developer running
 `pytest tests/unit/test_fr960_claude_judge_variant.py` on a machine whose
 `.env` sets `LANGSMITH_TRACING=true` — today that command fails on clean
@@ -29,10 +32,13 @@ this FR preserves, and the seam it uses is the defect this FR repairs.
 `_clean_git_env` fixture is the exact precedent: strip environment the
 test process inherits from outside, at session start, restore on
 teardown; this FR adds the tracing variables to that boundary.
-[FR-112-inception-provider.md](FR-112-inception-provider.md) (commit
-`4e6a1b00`) — added `_POLLUTING_ENV_VARS = ("LANGCHAIN_TRACING",)`, a
-per-test pop of the v1 variable only; the v2 variable that actually
-enables the tracer was never covered. [FR-432-dotenv-upward-search.md](FR-432-dotenv-upward-search.md)
+`tests/conftest.py:28-47` — the existing `_POLLUTING_ENV_VARS =
+("LANGCHAIN_TRACING",)` guard, a per-test pop of the v1 variable only;
+the v2 variable that actually enables the tracer was never covered.
+Its comment claims FR-112 provenance (commit `4e6a1b00`);
+[FR-112-inception-provider.md](FR-112-inception-provider.md) itself
+specifies no test-environment contract, so the conftest guard is the
+evidence and FR-112 is claimed provenance only (judgement R-4). [FR-432-dotenv-upward-search.md](FR-432-dotenv-upward-search.md)
 — owns `load_dotenv` at import in `yamlgraph/config.py`; inherited, not
 reopened. [FR-720-close-trace-spans-on-loser-cancel.md](FR-720-close-trace-spans-on-loser-cancel.md)
 — its AC-05 test sets and unsets the tracing variables via
@@ -133,7 +139,11 @@ test. `langsmith.utils.tracing_is_enabled` resolves
 → `LANGCHAIN_TRACING` and compares to the string `"true"`; the guard
 covers one of four names, and pops rather than overrides, so any later
 third-party `load_dotenv` (the very case the guard's comment names)
-restores it.
+restores it. The lookup goes through `langsmith.utils.get_env_var`,
+which is `@functools.lru_cache(maxsize=100)` — the first read per
+`(name, default)` is memoized for the process, so any env mutation
+must be followed by `get_env_var.cache_clear()` to be observed
+(verified at judgement fold, 2026-09-04).
 
 ## Ideal Result
 
@@ -165,15 +175,19 @@ def _tracing_off():
     their project. Override rather than delete: python-dotenv never
     overwrites an existing key, so "false" survives any later load.
     """
+    from langsmith.utils import get_env_var
+
     saved = {k: os.environ.get(k) for k in _TRACING_ENV_VARS}
     for k in _TRACING_ENV_VARS:
         os.environ[k] = "false"
+    get_env_var.cache_clear()  # lru_cache: first read is memoized
     yield
     for k, v in saved.items():
         if v is None:
             os.environ.pop(k, None)
         else:
             os.environ[k] = v
+    get_env_var.cache_clear()
 ```
 
 `_prevent_env_pollution` / `_POLLUTING_ENV_VARS` become redundant
@@ -206,16 +220,22 @@ untouched.
 - [ ] AC-01: `tests/conftest.py` has a session-scoped autouse fixture
   that sets all four tracer variables (`LANGSMITH_TRACING_V2`,
   `LANGCHAIN_TRACING_V2`, `LANGSMITH_TRACING`, `LANGCHAIN_TRACING`) to
-  `"false"` at session start and restores their prior state at
-  teardown. Override, not delete.
+  `"false"` at session start, clears `langsmith.utils.get_env_var`'s
+  cache, and restores their prior state at teardown. Override, not
+  delete.
 - [ ] AC-02: witness (`tests/unit/test_fr982_tracing_off_in_tests.py`):
   inside a test, `langsmith.utils.tracing_is_enabled()` is `False` and
   `langchain_core.tracers.context._tracing_v2_is_enabled()` is falsy,
   and each of the four variables reads `"false"`.
-- [ ] AC-03: witness: a test that does
-  `monkeypatch.setenv("LANGSMITH_TRACING", "true")` observes
-  `tracing_is_enabled()` become `True` — opt-in still works (protects
-  FR-720 AC-05 / REQ-YG-547).
+- [ ] AC-03: witness (judgement R-2): a test that does
+  `monkeypatch.setenv("LANGSMITH_TRACING_V2", "true")` — the
+  highest-priority alias, the only one that can override the session
+  default — then `get_env_var.cache_clear()`, observes
+  `tracing_is_enabled()` become `True` and
+  `_tracing_v2_is_enabled()` truthy; teardown restores `"false"` and
+  clears the cache again so the result is independent of test order.
+  Opt-in still works (protects FR-720 AC-05 / REQ-YG-547; those tests
+  stay green).
 - [ ] AC-04: RED first: on `main` `6f360e55` with `.env` tracing on,
   `pytest tests/unit/test_fr960_claude_judge_variant.py -p no:randomly`
   fails (1 failed, 11 passed) with no command-line env override; after
@@ -231,13 +251,17 @@ untouched.
   returns the three responses to the three `claude` calls in order and
   `returncode == 0` with `bytes` stdout for the others.
 - [ ] AC-07: `_prevent_env_pollution` and `_POLLUTING_ENV_VARS` are
-  removed from `tests/conftest.py`; the FR-112 concern (v1 variable
-  raising in `langchain_core ≥ 0.3`) is covered by AC-01.
-- [ ] AC-08: live witness, recorded in Implementation Status: after the
-  fix, run `pytest tests/unit -q --no-cov -m "not slow" -n auto` on a
-  machine with `.env` tracing on, then query LangSmith for root runs in
-  that window; zero runs named `boom_tool`, `fail_tool`, or carrying
-  `fr_path: feature-requests/X.md`.
+  removed from `tests/conftest.py` only after AC-01–AC-03 are green;
+  the old guard's concern (v1 variable raising in `langchain_core ≥
+  0.3`) is covered by AC-01.
+- [ ] AC-08: live witness (judgement R-3), recorded in Implementation
+  Status: after the fix, on a machine with `.env` tracing on, run
+  `LANGSMITH_PROJECT=fr982-witness-<sha>-<utc> pytest tests/unit -q
+  --no-cov -m "not slow" -n auto`; record commit SHA, exact start/end
+  timestamps and the project name; after client flush/settle, query
+  `Client.list_runs(project_name=<that>, is_root=True)` and record the
+  result — it must be **zero root runs** (not merely none matching the
+  three known signatures).
 - [ ] AC-09: `git diff --stat main -- yamlgraph/` is empty (no
   production change).
 - [ ] AC-10: `capabilities/CAP-261-tracing-off-in-tests.yaml` registers
@@ -259,8 +283,8 @@ carries a detail produced by an executed probe, not a prior.
 
 | candidate | persona | class | verdict | precedent | is_this_a_graph | effort-risk | rationale |
 |---|---|---|---|---|---|---|---|
-| Session fixture overrides the four tracer vars to `"false"` (D-1) | os_infra_primitivist | enforcement/latency-critical | ACCEPT | `_clean_git_env` (FR-140, CAP-41) | no | low / low | Probe: `LANGSMITH_TRACING=false` → 1 passed on the same commit that fails without it. `tracing_is_enabled` compares to the literal `"true"`, so `"false"` is a real off. python-dotenv never overwrites an existing key, so the override survives any later third-party `load_dotenv` — the failure mode the FR-112 guard's own comment describes. |
-| Session fixture *deletes* the tracer vars | os_infra_primitivist | enforcement/latency-critical | REJECT | FR-112 `_prevent_env_pollution` (pops) | no | low / medium | Probe: `yamlgraph/config.py:44 load_dotenv` runs at import; the conftest comment records litellm calling `load_dotenv()` again at import. A deleted key is restored by the next load (repo memory `dotenv-restores-unset-keys`, and this session's `env -u AZURE_MODEL` failure under FR-966). Delete is a race; override is not. |
+| Session fixture overrides the four tracer vars to `"false"` (D-1) | os_infra_primitivist | enforcement/latency-critical | ACCEPT | `_clean_git_env` (FR-140, CAP-41) | no | low / low | Probe: `LANGSMITH_TRACING=false` → 1 passed on the same commit that fails without it. `tracing_is_enabled` compares to the literal `"true"`, so `"false"` is a real off. python-dotenv never overwrites an existing key, so the override survives any later third-party `load_dotenv` — the failure mode the existing conftest guard's own comment describes. |
+| Session fixture *deletes* the tracer vars | os_infra_primitivist | enforcement/latency-critical | REJECT | `tests/conftest.py` `_prevent_env_pollution` (pops) | no | low / medium | Probe: `yamlgraph/config.py:44 load_dotenv` runs at import; the conftest comment records litellm calling `load_dotenv()` again at import. A deleted key is restored by the next load (repo memory `dotenv-restores-unset-keys`, and this session's `env -u AZURE_MODEL` failure under FR-966). Delete is a race; override is not. |
 | `yamlgraph.config` skips `load_dotenv` when under pytest | yamlgraph_native_planner | enforcement/latency-critical | REJECT | FR-432 owns the loader | no | low / high | Production code acquiring test awareness violates the brief constraint and Commandment 8 (no compat flags). Also changes behaviour for every FR-432 consumer, not just tests. |
 | Fix only the FR-960 stub seam (D-2 alone) | subtractionist | enforcement/latency-critical | ACCEPT as complement, REJECT as sole fix | — | no | low / low | Probe: with the tracer on the graph made 10 `subprocess.run` calls; an argv dispatcher would pass. But the LangSmith query (100 root runs / 90 min, fixture names, stub inputs at `06:39:44Z`) shows the leak continues. Fixes the symptom's test, not the boundary. |
 | Patch `yamlgraph.node_factory.copilot_runtime_claude.subprocess.run` instead of `subprocess.run` | data_process_planner | enforcement/latency-critical | REJECT | — | no | low / — | Probe: `copilot_runtime_claude.py:23 import subprocess` — the module attribute *is* the global `subprocess` module, so the patch target resolves to the identical function object. False locality; same ten calls intercepted. |
