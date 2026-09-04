@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Proposed
+**Status:** Judged — SPLIT (2026-09-04, [judgement](FR-983-map-concurrency-and-census-coverage-gate.judgement.md)); no authority under FR-983. Successors: [FR-984](FR-984-map-fan-out-max-concurrency.md) (concurrency plumbing), [FR-985](FR-985-census-coverage-floor-and-population-header.md) (coverage gate). This document is the shared incident record.
 **Effort:** 1 day
 **First consumer / first event:** the operator re-running the corp
 person-profile census (`sheikkinen@<owner>`, 259 private PRs) — the
@@ -235,6 +235,26 @@ probe produced.
 
 `is_this_a_graph`: the throttle is config plumbing and the gate is
 arithmetic; only the rejected re-pass would have been a graph.
+
+## Judgement Fold — 2026-09-04
+
+**Verdict: SPLIT.** Sole route, backend `copilot` (`gpt-5.6-sol`).
+The runtime knob ships without the census gate and the census can
+refuse partial output under today's concurrency, so single-responsibility
+(`judge-fr/doctrine.md:49-50`) forces two FRs.
+
+| # | Finding | Disposition |
+|---|---|---|
+| R-1 split | D-1 and D-2 are independently deployable | Accepted — FR-984 (D-1), FR-985 (D-2); this FR stays as the incident record and evidence anchor |
+| R-2 classify | one consumer ≠ framework primitive | Accepted — both successors are Contrib/example |
+| R-3 brief "absent" | claimed uncommitted research brief | **Falsified** — committed at `9a490c8c` on this branch; judge read the main checkout |
+| R-4 value contract | parse `min_coverage` once, `[0,1]`, header from reducer-owned counts | Accepted into FR-985 |
+| R-5 AC-06 wrong stage | `reduce_pr_ledger` does not produce `brief_input` | Accepted — a real error; FR-985 AC-B04 is the compiled-path witness |
+| R-6 CLI validation | `--max-concurrency 0`/negative must fail before invoke | Accepted into FR-984 |
+| R-7 paid rerun | human decision, not implicit gate | Operator **authorized** one rerun after both successors are enforced |
+
+Nothing in this FR's Proposed Solution or Acceptance Criteria carries
+authority; the successors' AC lists supersede them.
 
 ## Related
 
