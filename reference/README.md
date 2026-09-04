@@ -72,6 +72,7 @@ See [CHANGELOG.md](../CHANGELOG.md) for version history.
 | [Batch-Runner Pattern](patterns/batch-runner.md) | Run a graph over runtime-selected input files; transform on load, collect per-input results |
 | [Corpus Map-Reduce Pattern](patterns/corpus-map-reduce.md) | Exhaustive bounded corpus analysis: freeze, typed map, deterministic reconciliation, hierarchical reduce, cited artifact |
 | [Schema-Driven Extraction Pattern](patterns/schema-driven-extraction.md) | Declarative convergence loop for collecting structured data through conversation: schema, extract, detect gaps, probe, recap |
+| [Phased Summary Pattern](patterns/phased-summary.md) | Long records about one subject reduced to durable typed briefs; the subject rollup reads briefs only, and new records cost one brief |
 
 ### Example Architectures
 

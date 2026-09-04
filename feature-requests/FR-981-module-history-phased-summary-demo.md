@@ -132,6 +132,22 @@ sweep, its five-persona research route, and two judge executions all missed.
 Reflected on in
 [docs/diary/diary-2026-09-04-reflection-the-vocabulary-i-searched-with.md](../docs/diary/diary-2026-09-04-reflection-the-vocabulary-i-searched-with.md).
 
+### Scope note — the pattern document was committed early, by operator decision
+
+R-1 and AC-14 make `reference/patterns/phased-summary.md` an enforcement
+deliverable, and the judgement's not-authorized list names it explicitly. The
+operator directed it to be committed with this amendment instead. Recorded
+here rather than glossed: the judgement's frozen surface was crossed
+deliberately and by the human the C-1 gate names, not by the author acting
+alone.
+
+The document as committed carries both corrections below — its evidence grade
+now reads PARTLY EXERCISED, distinguishing the store and gate (committed and
+working) from substitution, the subject rollup, version invalidation, and
+counted incremental cost (unexercised). AC-14 therefore survives as a
+narrowed obligation: enforcement must move that composition grade and name
+the demo once AC-04 and AC-08 pass, rather than create the document.
+
 ### Correction 1 — the durable store is precedented twice, not zero times
 
 § Problem 2 states that the store, the invalidation rule, and the incremental
