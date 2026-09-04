@@ -2,8 +2,9 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Proposed — revised 2026-09-04 after the research route dissented
-against the first draft (§ Research route outcome)
+**Status:** Judged — APPROVED WITH REVISIONS (2026-09-04). R-1..R-7 folded
+below. Authority remains **inactive** pending human confirmation of the fold
+(judgement C-1); no implementation is authorized. See § Judgement history.
 **Effort:** 1 day
 **Requested:** 2026-09-04
 **First consumer / first event:** the agent or human onboarding onto an
@@ -75,9 +76,16 @@ and measures it, and POMR predates it by sixty years. What is unexercised is
 the **YAMLGraph composition** — that these phases compose here, that the
 retention boundary sits where the research says it sits, and that the
 incremental cost is what the pattern claims. That is what this demo
-witnesses, and
-[`reference/patterns/phased-summary.md`](../reference/patterns/phased-summary.md)
-now grades those two claims separately for exactly this reason.
+witnesses.
+
+**The pattern document does not exist in the repository (R-1).** Enforcement
+*creates* `reference/patterns/phased-summary.md` and adds its
+`reference/README.md` index row; both are deliverables, not existing claims
+being repaired. An uncommitted working-tree draft exists in the authoring
+worktree and carries no authority. The grades that document must state are
+fixed here in advance: the *shape* is externally evidenced at **preprint
+grade** (CLIN-SUMM) plus one operator report, and the *YAMLGraph composition*
+stays **UNEXERCISED** until AC-04 and AC-08 pass.
 
 ## Value Statement
 
@@ -89,8 +97,9 @@ regenerate.
 
 ## Problem
 
-1. **The composition has no runnable witness.** `phased-summary.md` documents
-   invariants that nothing in this repository exercises. The shape is
+1. **The composition has no runnable witness, and no document either.** The
+   pattern this project would publish has neither a committed description nor
+   a graph that runs it. The shape is
    externally proven — that part of the first draft's problem statement was
    wrong and the research route corrected it — but a reader of a YAMLGraph
    pattern document is asking whether it composes *here*, and no committed
@@ -137,8 +146,36 @@ uncommitted, so the judge could evaluate no substance. Artifact:
   to make a verifier pass. Neither is taken. The content *is* verified:
   `--verify-artifact` on the appendix passes. **Owed:** a separate FR fixing
   the newline boundary in the research route — same defect class as FR-951.
-- **R-3 (re-enter judgement from the committed revision) — DONE**, this
-  record's second execution.
+- **R-3 (re-enter judgement from the committed revision) — DONE.**
+
+**2026-09-04, second judge execution — APPROVED WITH REVISIONS**, on commit
+`afa14b80`. Judgement:
+[FR-981-module-history-phased-summary-demo.judgement.md](FR-981-module-history-phased-summary-demo.judgement.md).
+Strategic classification: contrib/example with pattern documentation — not a
+framework primitive, not a new capability. R-1..R-7 are folded into this
+revision:
+
+| # | Revision | Where folded |
+|---|---|---|
+| R-1 | Enforcement *creates* the pattern document; grades fixed in advance | § Summary, § Problem 1, AC-14 |
+| R-2 | One selected record to exactly one brief; near-duplicate filter deleted | § Proposed Solution, AC-07 |
+| R-3 | One path per invocation, frozen window, honest ceilings | § Proposed Solution, AC-05/AC-06 |
+| R-4 | Collision-resistant subject key, validated envelope, typed claims | § Proposed Solution, AC-10/AC-11 |
+| R-5 | Exact call arithmetic including the unchanged third run | AC-08, AC-09 |
+| R-6 | Pre-authority raw read plus a frozen cost/loss protocol | [FR-981-pilot-raw-read.md](FR-981-pilot-raw-read.md), AC-12 |
+| R-7 | Committed authoring brief; no CAP/REQ allocation | § Proposed Solution, AC-02/AC-16 |
+
+R-2 is accepted without argument: the near-duplicate filter was adopted from
+CLIN-SUMM one revision earlier and was wrong here. It would have let the N+1
+run make zero brief calls whenever the new commit resembled an old one,
+silently voiding the incremental proof that is this FR's reason to exist.
+
+R-6's raw read was performed before this fold and changed the frozen brief
+schema three times — the `salient_other` cap, `paths_changed_count`, and
+multi-reference `why` all exist because reading three real diffs against three
+hand-authored briefs showed the schema dropping things that mattered. The
+protocol's "one named currency" wording is also corrected: unlike units are
+now reported separately.
 
 ## Research route outcome
 
@@ -192,53 +229,94 @@ record that prints the call arithmetic.
 
 ## Proposed Solution
 
-**Subject:** a tracked file path. **Record:** one commit touching it.
-**Record identity:** `(path, commit_sha)` — immutable, free, and already a
-content hash, satisfying the freeze requirement at zero cost.
+**Subject:** exactly one normalized repo-relative tracked path per invocation
+(R-3). **Record:** one commit in the frozen selected history window for that
+path. **Record identity:** `(path, commit_sha)` — immutable, free, and already
+a content hash, satisfying the freeze requirement at zero cost.
 
 ```text
-START -> enumerate (python: git log --follow -- <path>, capped)
-      -> plan_briefs (python: store lookup; emits only the missing records)
+START -> enumerate (python: freeze the selected window for one path)
+      -> plan_briefs (python: store lookup; emits every missing record)
       -> brief (map: llm, one commit each)  [skipped when nothing is missing]
-      -> persist (python: write briefs, stamp versions)
+      -> persist (python: validate + write briefs, stamp versions)
       -> load_briefs (python: read the subject's briefs, date-ordered)
       -> rollup (llm: briefs only)
       -> render (python: dossier + run record) -> END
 ```
 
-Brief shape (inline schema in the prompt YAML):
+**Enumeration and window (R-3).** `git log --follow` over one path, ordered
+deterministically by commit date then SHA. `max_commits` defaults to 30 and
+may not exceed 60; when history is longer, the newest window is selected and
+the run record discloses `discovered`, `selected`, `omitted_older`, the first
+and last selected date, and the first and last selected SHA. Zero commits for
+a path is a loud failure, not an empty dossier.
+
+**Ceilings.** Preflight, before the first model call: at most 60 selected
+commits, 20 kB diff per brief (truncate, and record the truncation in the
+brief envelope), and a planned-call limit of `selected + 1`. For one module
+the static maximum is therefore 60 brief calls plus one rollup call — the
+first draft's three-module and 200-call ceilings were unexplained and are
+removed. A wall-clock limit cannot be enforced before the first call and is
+described as a runtime abort, not a preflight ceiling.
+
+Brief shape (inline schema in the prompt YAML), with the three fields the
+pilot read forced (see [FR-981-pilot-raw-read.md](FR-981-pilot-raw-read.md)):
 
 ```yaml
 brief_schema_version: 1
 path: "yamlgraph/utils/llm_factory.py"
 commit_sha: "9c6e77a3..."
 commit_date: "2026-09-03"
+paths_changed_count: 7          # deterministic; the keyhole warning
 change_kind: feat | fix | refactor | test | docs | chore
-what_changed: "one sentence, mechanism not adjectives"
-why: "linked FR/issue, or 'not stated'"
-salient_other: "<= 200 chars, or empty"
+what_changed: "one sentence, mechanism not adjectives, scoped to THIS path"
+why: "linked FR/issue references, may be several, or 'not stated'"
+salient_other: "<= 600 chars: the non-obvious finding in the commit body"
+truncated: false
 confidence: high | low
 ```
 
-Deterministic code owns `path`, `commit_sha`, `commit_date`, all counts, and
-all date ranges. The model authors only the three prose fields and
-`change_kind`. `confidence: low` is the abstention shape: a merge commit or an
-empty-diff touch emits a flagged brief, never a confident blank one.
+Deterministic code owns `path`, `commit_sha`, `commit_date`,
+`paths_changed_count`, `truncated`, all counts, and all date ranges. The model
+authors the prose fields and `change_kind`. `confidence: low` is the
+abstention shape: a merge commit or an empty-diff touch emits a flagged brief.
 
-**Store:** `tmp/module-history/briefs/<path-slug>/<sha>.yaml` — gitignored,
-derived, rebuildable. `plan_briefs` treats a brief as stale when
-`brief_schema_version`, `prompt_version`, or `model` differs from the current
-run, and re-briefs it. Because `commit_sha` is immutable, source-hash drift
-cannot occur for this corpus — the demo records that as the reason invariant 2
-is satisfied trivially here and will not be for mutable-record subjects.
+Three schema decisions come from the pilot read rather than from design: the
+`salient_other` cap rose to 600 characters and is explicitly prompted for the
+commit body's non-obvious finding, because a 200-character cap dropped both an
+inverted latency measurement and an operational 500-on-temperature trap;
+`what_changed` is contractually scoped to the subject path because a
+path-scoped brief otherwise reports whole-commit claims as this path's change;
+and `why` accepts several references because commits bundle FRs.
 
-**Near-duplicate filter (adopted from CLIN-SUMM):** `plan_briefs` drops a
-commit whose diff is near-identical to one already briefed for that path,
-using a deterministic string similarity, before any model call. Git has fewer
-copy-forward duplicates than clinical notes, so this will fire rarely here —
-it is included because a cheap comparison that removes a model call is the
-best trade in the pattern, and a witness that omits it teaches the pattern
-wrong.
+**Every selected commit produces exactly one brief (R-2, C-3).** The first
+draft adopted CLIN-SUMM's Jaccard near-duplicate filter. It is removed and
+explicitly not authorized: it breaks the one-to-one record/brief relation,
+breaks coverage and provenance, and would let the required N+1 run make zero
+brief calls whenever the new commit happened to resemble an old one —
+destroying the load-bearing proof. The filter remains a legitimate move in the
+pattern at large; it cannot ride in the witness.
+
+**Store (R-4).** `tmp/module-history/briefs/<subject_key>/<sha>.yaml` —
+gitignored, derived, rebuildable, never committed. `subject_key` is a
+collision-resistant deterministic key combining the normalized repo-relative
+path with a hash of it, not a lossy slug. Every stored brief is a
+Pydantic-validated envelope carrying collector-owned identity and date, the
+model-authored fields, `brief_schema_version`, `prompt_version`, the resolved
+provider and model, truncation metadata, and the source path. A malformed or
+corrupt envelope fails the run loudly: it is never treated as a cache hit and
+never silently discarded. `plan_briefs` re-briefs when
+`brief_schema_version`, `prompt_version`, or the resolved provider/model
+differs from the current run. Because `commit_sha` is immutable, source-hash
+drift cannot occur for this corpus — the demo records that as the reason
+invariant 2 is trivially satisfied here and will not be for mutable-record
+subjects.
+
+**Rollup output and citations (R-4).** The rollup returns a typed list of
+claims, each carrying one or more stored-brief references. Deterministic
+render code rejects unknown or missing references and proves every accepted
+reference resolves to a brief whose collector-owned commit SHA is present.
+Provenance is therefore a test, not a paragraph.
 
 **Incrementality design: regenerate, not cumulative.** CLIN-SUMM's
 incremental-update prompt folds each new note into the standing summary,
@@ -255,54 +333,110 @@ store is deliberately *not* graph state, and cite `book-summary`'s
 `all_summaries` add-reducer as the counterexample — per-run state, and the
 reason that demo recomputes.
 
-**Ceilings, enforced before the first model call:** 60 commits per module, 3
-modules per run, 20 kB diff per brief (truncate and record the omission), 200
-total calls, 10-minute wall clock.
+**Cost and loss protocol, frozen before authority (R-6).** The comparison is
+two paths over one committed question fixture, not one number. Frozen here:
+a small committed question set about the subject module with source-backed
+expected answers; a source-path prompt and a brief-path prompt; the tokenizer
+and counting method; and a deterministic answer-scoring rule. The witnessed
+run reports, separately and without collapsing unlike units: source-input
+tokens, brief-input tokens, questions correctly answered on each path, the raw
+answers, and every concrete omission observed. No quality threshold is claimed
+— the pilot samples do not support one, and inventing a pass bar the evidence
+cannot carry is the defect this protocol exists to avoid.
 
-**Authoring route:** `graph.yaml` and `prompts/*.yaml` are governed artifacts —
-authored solely via `scripts/author.sh` per the graph-authoring doctrine, with
-the `tmp/draft-authoring-report.md` artifact as the verification record. This
-FR does not pre-author them; the sketch above is a brief, not a draft.
+**Authoring route (R-7).** `graph.yaml` and `prompts/*.yaml` are governed
+artifacts, authored solely via `scripts/author.sh`, with
+`tmp/draft-authoring-report.md` as the verification record. Its task brief is
+deliverable D-2 and must be committed at
+`feature-requests/authoring-briefs/fr-981-module-history-phased-summary-brief.md`
+**before** the first `author.sh` invocation — written then, against the RED
+suite, as FR-775's brief was. It is deliberately not pre-written here:
+implementation is not authorized, and a brief authored ahead of its failing
+tests pins a shape nothing has yet condemned. This FR does not pre-author the
+graph either; the sketch above is a design freeze, not a draft.
+
+**Requirement contract (R-7).** The demo adds **no** CAP or REQ identifier. It
+exercises existing graph-loading, linting, LLM, map, and Python-node
+requirements — including REQ-YG-040 and REQ-YG-041 for map compilation and
+reduction — and every new test carries the applicable existing
+`@pytest.mark.req` marker. If enforcement discovers that a framework change or
+a new capability is genuinely required, it stops and returns to Plan through a
+separate FR rather than allocating an ID or widening this one.
 
 ## Acceptance Criteria
 
-- [ ] `examples/demos/module-history/` exists with `graph.yaml`, prompts,
-      `tools.py`, and a README naming the subject, record, and store location.
-- [ ] `yamlgraph graph lint` passes; a smoke run over one capped module
-      completes on the default small model.
-- [ ] **Incremental proof (the load-bearing criterion):** a test runs the
-      graph over N commits, then over N+1, and asserts the second run makes
-      exactly one brief call and reuses N briefs. Model calls are stubbed; the
-      arithmetic is real.
-- [ ] **Invalidation proof:** bumping `prompt_version` re-briefs all N; a test
-      asserts it.
-- [ ] **Isolation proof:** a test asserts no source diff text reaches the
-      rollup prompt input (invariant 4) — the rollup sees briefs only.
-- [ ] **Provenance proof:** a test asserts every rendered dossier claim carries
-      a brief reference, and every brief a commit SHA (invariant 5).
-- [ ] **Cost-currency proof (research finding 3):** the witnessed run reports
-      the saving *and* the loss in one named currency — tokens read via the
-      brief-routed path versus the direct-source path for the same fixed
-      question set, alongside how many of those questions the brief-routed
-      path answers wrongly or not at all. A saving quoted alone does not
-      satisfy this criterion; CLIN-SUMM's 69.86% saving beside 4.65/5
-      completeness is the reporting shape to match.
-- [ ] The run record prints planned vs. actual brief calls, reused briefs, and
-      the store path; a run that exceeds a ceiling fails before the first call.
-- [ ] `reference/patterns/phased-summary.md` has its *YAMLGraph composition*
-      grade moved off UNEXERCISED to name this demo, listing which invariants
-      it actually exercises and which remain untested here. The *shape* grade
-      does not change — it never depended on this FR.
-- [ ] The demo README states that the store is not graph state, and why.
-- [ ] A witnessed real-model run is recorded (log committed under the demo,
-      book-summary style) — including one raw read: three commits read against
-      their briefs, with the concrete detail each brief dropped.
-- [ ] Changelog fragment in `changelog/unreleased/`.
-- [ ] Diary entry with a Seed.
+Superseded by the 2026-09-04 judgement's revised criteria, reproduced here
+because the FR is the source of truth for implementation. AC-01 is satisfied
+by this revision; the rest activate at enforcement.
 
-**Open for the Judge:** whether this demo claims a new capability. If it does,
-the CAP/REQ IDs must come from the FR-975/FR-980 reservation route; no ID is
-allocated in this draft. If it does not, tests tag existing map/loop REQ IDs.
+- [x] AC-01: R-1..R-7 folded into the committed FR, citing
+      [FR-981-pilot-raw-read.md](FR-981-pilot-raw-read.md) — three pilot
+      source-diff/brief pairs with concrete retained and dropped details.
+- [ ] AC-02: the FR cites the committed authoring brief, and governed
+      graph/prompt artifacts are produced only by `scripts/author.sh`, with
+      `tmp/draft-authoring-report.md` naming artifacts, precedent, lint,
+      smoke, repairs, and blocked validation.
+- [ ] AC-03: `examples/demos/module-history/` contains the frozen graph,
+      prompt, Python-tool, README, question-fixture, raw-answer, and
+      witnessed-run surfaces.
+- [ ] AC-04: `yamlgraph graph lint examples/demos/module-history/graph.yaml`
+      passes, and a recorded real-model smoke run over one small frozen
+      module window completes with the resolved provider/model recorded.
+- [ ] AC-05: enumeration accepts exactly one normalized repo-relative tracked
+      path, follows renames, freezes at most 60 date-ordered commits, and
+      records discovered, selected, omitted, first/last date and first/last
+      SHA before any model call.
+- [ ] AC-06: tests prove zero-history rejection, renamed-path identity,
+      over-window disclosure, 20 kB per-diff truncation with omission
+      metadata, and preflight rejection before any LLM call when an item,
+      byte, or planned-call ceiling is exceeded.
+- [ ] AC-07: every selected commit produces exactly one validated brief; merge
+      and empty-diff touches produce `confidence: low` briefs rather than
+      disappearing; no near-duplicate filter exists.
+- [ ] AC-08: for N selected commits, the first run records N brief calls, zero
+      reused briefs, one rollup call; after one distinct new commit the second
+      records one brief call, N reused briefs, one rollup call; an unchanged
+      third records zero brief calls, N+1 reused briefs, one rollup call.
+      Counts come from deterministic instrumentation at the LLM seams.
+- [ ] AC-09: independent tests prove that changing each of
+      `brief_schema_version`, `prompt_version`, and the resolved
+      provider/model invalidates all applicable cached briefs, while unchanged
+      valid envelopes are reused.
+- [ ] AC-10: store tests prove collision-resistant subject keys, Pydantic
+      validation on write and read, explicit failure on corrupt envelopes, and
+      no source diff text in any stored brief or rollup prompt input.
+- [ ] AC-11: rollup output is typed as claims with brief references;
+      deterministic rendering rejects missing or unknown references and proves
+      every rendered claim reaches one or more valid briefs and then
+      collector-owned commit SHAs.
+- [ ] AC-12: the frozen comparison protocol runs the same committed question
+      set through source and brief paths and records tokenizer/method,
+      source-input tokens, brief-input tokens, raw answers, deterministic
+      correct-answer counts, and concrete omissions — without claiming an
+      unevidenced pass threshold.
+- [ ] AC-13: the run record prints normalized subject, selected range,
+      truncations, planned/actual brief calls, rollup calls, reused briefs,
+      invalidated briefs, resolved provider/model, prompt/schema versions, and
+      store path; deterministic values are never supplied by the model.
+- [ ] AC-14: `reference/patterns/phased-summary.md` is **created** and indexed
+      in `reference/README.md`. It labels external shape evidence as
+      preprint-grade, names this demo for YAMLGraph composition only after
+      AC-04 and AC-08 pass, lists exercised and unexercised invariants, and
+      states that the store is derived data outside graph state.
+- [ ] AC-15: the README names subject, record, selected-window semantics,
+      store location, graph/store boundary, rebuild procedure, cost ceilings,
+      and the regenerate-not-cumulative trade-off.
+- [ ] AC-16: new tests use applicable existing requirement markers, and
+      `python scripts/req_coverage.py --strict` passes with no new CAP/REQ
+      allocation and no change under `yamlgraph/`.
+- [ ] AC-17: a changelog fragment and a diary entry with a Seed are committed,
+      and the FR records implementation status, validation commands, witness
+      paths, and deviations.
+
+**Capability question — closed by the judgement.** This is a contrib/example
+with pattern documentation, not a framework primitive and not a new
+capability. No CAP or REQ identifier is allocated; existing markers including
+REQ-YG-040/041 apply.
 
 ## Alternatives Considered
 
@@ -327,6 +461,10 @@ per-run. The first draft of this FR answered a flat "yes" and was wrong.
 
 - [reference/patterns/phased-summary.md](../reference/patterns/phased-summary.md)
   — the pattern this witnesses.
+- [FR-981-module-history-phased-summary-demo.judgement.md](FR-981-module-history-phased-summary-demo.judgement.md)
+  — the judgement this revision folds.
+- [FR-981-pilot-raw-read.md](FR-981-pilot-raw-read.md) — the pre-authority raw
+  read (R-6): three source/brief pairs and the three schema defects they found.
 - [FR-981.research.md](FR-981.research.md) — the route record: five personas,
   six folded classes, the preserved dissent, and the verified external
   precedent.
