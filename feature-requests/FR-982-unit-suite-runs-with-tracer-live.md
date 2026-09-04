@@ -308,3 +308,64 @@ over a corpus; this is deterministic test-process configuration.
   `06:39:44.042Z` and `06:39:44.143Z` on 2026-09-04 (inputs are the
   FR-960 stubs); operator-visible in the project UI, not reproduced
   here to keep the public repo free of the project name.
+
+## Implementation Status
+
+**Status:** Implemented 2026-09-04 on `feat/fr982-unit-suite-traces-live`.
+No production change (`git diff --stat main -- yamlgraph/` empty, AC-09).
+
+Commit trail (C-4 RED → GREEN-D1 → GREEN-D2):
+
+| commit | content |
+|---|---|
+| `500d37e3` | judgement folded (APPROVED WITH REVISIONS; SPLIT overridden) |
+| `cc7cde02` | `tests/unit/test_fr982_tracing_off_in_tests.py` + `CAP-261`/REQ-YG-644 + regenerated `ARCHITECTURE.md`; 4 failed — three on absent aliases / `tracing_is_enabled()` reading the `.env` value, the seam witness on the missing `_claude_cli` helper (the helper *is* D-2) |
+| `974f8f02` | D-1 `_tracing_off` session fixture; `_prevent_env_pollution` removed |
+| `0a4d5472` | D-2 `_claude_cli` argv dispatcher; routing assertions byte-identical |
+
+AC-04 record (both runs with `.env` `LANGSMITH_TRACING=true`, no
+command-line override, `-p no:randomly`):
+
+- RED on `500d37e3`: `1 failed, 11 passed in 3.08s` — `test_claude_backend_visits_only_judge_claude_with_four_tools`
+  (`logs/fr982-ac04-red.log`).
+- GREEN after D-1 only, D-2 not applied: FR-960 file 12/12 passed;
+  FR-720 file passed; tracing witnesses passed; only the AC-06 seam
+  witness still red (`20 passed, 1 failed`, `logs/fr982-ac04-green-d1.log`).
+
+AC-08 live witness (judgement R-3), on the D-1+D-2 tree (pre-reword SHA
+`e39f0770`+D-2, content-identical to `0a4d5472` — the RED commit's
+message was reworded afterwards, see Decisions):
+
+- Command: `LANGSMITH_PROJECT=fr982-witness-e39f0770-20260904T075749Z pytest tests/unit -q --no-cov -m "not slow" -n auto`
+- Window: `2026-09-04T07:57:49Z` → `2026-09-04T07:59:07Z`; result
+  `6655 passed, 90 skipped, 1 xfailed in 76.74s`.
+- Query after a 20 s settle: `Client.list_runs(project_name=<witness>, is_root=True)`
+  → `LangSmithNotFoundError: Project … not found`. LangSmith creates a
+  project on its first ingested run, so the project's non-existence is
+  the strongest form of "zero root runs": not one event reached the
+  API. Control: the operator's default project had **0** root runs in
+  the same window (`logs/fr982-ac08-query.log`).
+
+Decisions and deviations:
+
+- The old guard's v1 concern (`LANGCHAIN_TRACING` set ⇒ RuntimeError in
+  `langchain_core ≥ 0.3`) is covered because `env_var_is_set` treats
+  `"false"` as unset (`langchain_core/utils/env.py:18-21`) — verified
+  before removing `_prevent_env_pollution` (AC-07).
+- The D-1 GREEN commit was made with `SKIP=pytest`: the pre-commit hook
+  runs the whole unit suite and the AC-06 seam witness is deliberately
+  still red at that point (C-4 requires D-1 to land before D-2). The
+  run it would have made is recorded above; the D-2 commit ran the full
+  hook set unskipped.
+- The seam witness's RED fails on `ImportError` of `_claude_cli`. AC-11
+  excludes import errors as a *masking* cause; here the missing symbol
+  is the deliverable itself, and the substantive RED for the seam is
+  AC-04's positional-stub failure. Recorded rather than hidden.
+- Under `pytest-xdist` the session fixture runs once per worker
+  process, which is the correct boundary: each worker imports
+  `yamlgraph.config` and loads `.env` independently.
+- The RED commit was first recorded with a stale `tmp/msg.txt` (the
+  fold commit's message: the `ruff check` failure in the same `&&`
+  chain had prevented the new message from being written, and the
+  retry reused the old file). Reworded before push via non-interactive
+  rebase; D-1/D-2 SHAs changed accordingly, content did not.
