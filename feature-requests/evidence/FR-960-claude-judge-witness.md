@@ -88,6 +88,25 @@ Runs B and B' above executed with the alias; their `--model opus` resolved
 to this same id on this same CLI version, which is why they are kept as
 witnesses rather than re-run.
 
+### 2.5 Run C — operator-run, `JUDGE_BACKEND=claude`, target FR-953 (pre-signature check)
+
+Run by the operator from their own Git Bash on the branch head `f18e746c`
+(after the exact-model pin), following the README recipe, before deciding
+on signature 1. Not launched by the enforcer.
+
+| Field | Value |
+|---|---|
+| Target | `feature-requests/FR-953-windows-posix-shell-misattribution.md` (Proposed, unjudged before this run) |
+| Command | `JUDGE_BACKEND=claude scripts/judge.sh feature-requests/FR-953-windows-posix-shell-misattribution.md` with the MSIX binary dir on `PATH` and `YAMLGRAPH_BIN` set |
+| Routing / preflight | `route … "backend == \"claude\"" → judge_claude`; `[judge_claude] Claude Code 2.1.255 authenticated via claude.ai` |
+| Model | `CopilotResult.model='claude-opus-5'` — the exact pin from §2.4 in effect |
+| Start / end | 2026-09-04T03:01:37Z / 2026-09-04T03:07:04Z (5 min 27 s) |
+| Run id / session | yamlgraph run `01a06a5d-5795-73e6-9b83-9b76e3ffd26e`; Claude session `d5c2e4c6-66dc-4a0d-bc80-d19fd1e4b9c1` |
+| Artifact | `tmp/draft-judgement-claude-FR-953-windows-posix-shell-misattribution.md` — 161 lines, 10 numbered revisions, UTF-8, sha256 `1ab500a042c3070fd3ca879111e15c4b9d0cad6226e9796cc23859b2e002dbb7` (local, advisory FR-953 material) |
+| Verdict line | `**Verdict:** SPLIT — the interpreter-resolution defect (D-1/D-2/D-4) is real, well-evidenced and worth fixing, but it is bundled with a four-class residual-failure sweep (D-3) …` |
+| Wrapper output | `judge.sh: draft written: …/tmp/draft-judgement-claude-FR-953-… (backend=claude; advisory until human-reviewed)`, rc 0; the FR-961 drafts from §2.1–2.3 untouched |
+| Note | the agent's summary reports it "did not fold the investigation into a third FR despite `investigation_before_fix`" and flags that as a judgement call for human review — the advisory boundary held (no fold, no commit). Terminal echo showed `â€”` for em dashes; that is the cp1252 console (FR-951 class), the file bytes are correct UTF-8. |
+
 ## 3. Dual-run inventory (judgement R-6, AC-15)
 
 Items are `CP-n` (Copilot draft, run A) and `CL-n` (Claude draft, run B). Each
