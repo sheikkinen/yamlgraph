@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Judged — APPROVED WITH REVISIONS (2026-09-04, [judgement](FR-984-map-fan-out-max-concurrency.judgement.md)); R-1..R-5 folded below, human-reviewed; authority active for the frozen scope.
+**Status:** Enforced (2026-09-04) — all ten criteria witnessed; [judgement](FR-984-map-fan-out-max-concurrency.judgement.md) R-1..R-5 folded; non-gating corp observation pending FR-985.
 **Effort:** 0.5 days
 **Requested:** 2026-09-04
 **Classification:** Contrib/example (FR-983 judgement R-2 — one named
@@ -128,43 +128,43 @@ Revised list from the FR-984 judgement (supersedes the parent's
 Successor A list). The former AC-A11 is no longer a criterion — see
 "Non-gating observation" below (judgement R-4).
 
-- [ ] AC-01: RED first: loading a graph with absent
+- [x] AC-01: RED first: loading a graph with absent
   `config.max_concurrency` yields `GraphConfig.max_concurrency is None`,
   and a positive integer is retained; YAML boolean, string, fractional,
   zero, and negative values fail during load with `max_concurrency` in
   the diagnostic.
-- [ ] AC-02: the run-config builder omits `max_concurrency` when neither
+- [x] AC-02: the run-config builder omits `max_concurrency` when neither
   CLI nor YAML supplies it, uses the YAML value when CLI is absent, and
   uses the CLI value when both are present.
-- [ ] AC-03: `--max-concurrency` accepts a positive integer; zero and
+- [x] AC-03: `--max-concurrency` accepts a positive integer; zero and
   negative values fail argument parsing before graph invocation and the
   diagnostic names `--max-concurrency`.
-- [ ] AC-04: `yamlgraph/schemas/graph-v1.json` publishes
+- [x] AC-04: `yamlgraph/schemas/graph-v1.json` publishes
   `config.max_concurrency` as an integer with minimum `1`, and a focused
   test asserts that contract.
-- [ ] AC-05: one compiled YAMLGraph map over at least 40 Python-tool
+- [x] AC-05: one compiled YAMLGraph map over at least 40 Python-tool
   items is parameterized over sync `invoke` and async `ainvoke`; with
   `N = 2`, a thread-safe counter records peak `<= 2`, the unconfigured
   control records peak `> 2`, and both paths return every expected
   result without an LLM.
-- [ ] AC-06: `reference/graph-yaml.md` documents that the key applies to
+- [x] AC-06: `reference/graph-yaml.md` documents that the key applies to
   the whole invocation and all parallel branches, accepts only positive
   integers, is overridden by the CLI value, and is omitted entirely when
   absent.
-- [ ] AC-07: the person-profile census graph sets
+- [x] AC-07: the person-profile census graph sets
   `config.max_concurrency: 4`, and its documented invocation shows
   `--max-concurrency 2` as override syntax without changing census
   policy.
-- [ ] AC-08: FR-984 cites a committed graph-authoring task brief
+- [x] AC-08: FR-984 cites a committed graph-authoring task brief
   ([authoring-briefs/fr-984-census-max-concurrency-brief.md](authoring-briefs/fr-984-census-max-concurrency-brief.md));
   the graph edit is produced through the governed route; the report
   names the graph and README artifacts; graph lint passes; the narrow
   smoke is attempted and its exact outcome or blocker is recorded.
-- [ ] AC-09: `CAP-262-map-fan-out-concurrency.yaml` and `REQ-YG-645`,
+- [x] AC-09: `CAP-262-map-fan-out-concurrency.yaml` and `REQ-YG-645`,
   re-verified against `origin/main` at push, cover every changed
   production branch; every new test carries the REQ marker; regenerated
   `ARCHITECTURE.md` and `python scripts/req_coverage.py --strict` pass.
-- [ ] AC-10: FR status and implementation decisions, one `fix` changelog
+- [x] AC-10: FR status and implementation decisions, one `fix` changelog
   fragment, and `docs/diary/diary-<date>-reflection-fr-984-<slug>.md`
   with a `Seed:` are committed.
 
@@ -193,6 +193,68 @@ record when available.
 
 All five verified against the cited files before folding; none
 falsified.
+
+## Implementation Status — 2026-09-04
+
+Four commits on `feat/fr984-map-fan-out-max-concurrency`, RED before
+GREEN, docs and graph edit separated from core:
+
+| commit | subject | witnesses |
+|---|---|---|
+| `70a45b35` | `test(map): FR-984 RED witnesses for max_concurrency plumbing` | 14 of 19 fail on unmodified code (`SKIP=pytest`) |
+| `c10dfd67` | `fix(map): FR-984 plumb max_concurrency from graph.yaml and CLI to LangGraph` | 19/19 green; FR-027 + graph_commands suites unchanged (150 passed) |
+| `65abfd46` | `feat(census): FR-984 person-profile census sets config.max_concurrency 4` | authored via `scripts/author.sh`; lint 0 errors; demo proof gate-valid |
+| (this) | FR record + diary | full fast suite 6673 passed, `req_coverage.py --strict` exit 0 |
+
+**Decisions.**
+
+- Validation lives in `yamlgraph/utils/validators.py::validate_max_concurrency`
+  rather than inline in `graph_loader.py` (430 → 434 lines; the 450
+  ceiling is close and the loader already imports that module).
+- Explicit YAML `max_concurrency: null` is treated as absent, not
+  rejected: the judgement's rejection list names booleans, strings,
+  fractions, zero and negatives; a YAML null is the idiomatic "unset".
+  The RED file originally listed `None` as invalid and was corrected
+  before GREEN.
+- `--max-concurrency` uses an argparse `type=` callable
+  (`_positive_int`), so `0`/`-1` fail with `argument --max-concurrency:`
+  in the diagnostic before any graph loads (AC-03), mirroring how
+  argparse already names the option.
+- The behavioural witness (AC-05) passes on **unmodified** code — it
+  drives `app.invoke(config={"max_concurrency": 2})` directly through a
+  compiled yamlgraph map. That is by design: it proves the platform
+  primitive through yamlgraph's compiled graph and guards LangGraph
+  semantics; the 14 RED failures are the plumbing this FR adds. Peak
+  observed: 2 configured, 12 unthrottled, on both `invoke` and
+  `ainvoke`; 40/40 results.
+- `REQ-YG-645` re-verified free on `origin/main` at RED time (main max
+  was 644 after FR-982 landed).
+
+**Authoring route (AC-08).** `scripts/author.sh` on the committed brief,
+agent `gpt-5.5`, produced exactly the two-file edit. The brief carried a
+defect the agent caught: its smoke `source` omitted the `:since` segment
+the adapter requires; the agent fell to the README's dated source
+(`sheikkinen@sheikkinen:2026-08-25`) and recorded both attempts in the
+report. The report's identifier check grepped `corp|private|internal`
+rather than concrete identifiers, so the operator re-audited the proof
+(0 hits for the four known corp tokens).
+
+**Demo proof — two gate lessons.** A first regeneration used `--full`
+out of habit (the README's smoke does not). Two consequences: (1) the
+raw state dump echoed today's public PR bodies, one of which names the
+corp org — the operator dispositioned this as already-public text, then
+the point became moot; (2) `demo-proof-check` rejected the log because
+`DEMO_LOG_FATAL_MARKERS` contains `Node .+ failed`, which is greedy
+across a 200 KB single-line state dump and matched "Node 20 is
+deprecated … failed" inside an echoed PR body. Regenerated exactly as
+the README documents (no `--full`): 115 nodes completed, brief accepted,
+longest line 822 chars, gate validator green, 0 identifier hits. The
+greedy-marker false positive is a gate defect worth its own small FR;
+not absorbed here.
+
+**Non-gating observation.** Not yet run — waits for FR-985 per the
+operator's authorization. When run, the sanitized figures are appended
+here.
 
 ## Alternatives Considered
 
