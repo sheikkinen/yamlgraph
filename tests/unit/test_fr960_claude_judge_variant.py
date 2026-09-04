@@ -206,6 +206,24 @@ def _proc(stdout: str, rc: int = 0) -> MagicMock:
     return m
 
 
+def _claude_cli(responses: list[MagicMock]):
+    """subprocess.run stand-in: hand `responses` to `claude` calls in order.
+
+    Anything else (platform probes shelled out by other layers, FR-982) gets
+    an empty bytes success so the scripted responses are never consumed.
+    """
+    queue = list(responses)
+
+    def run(argv, *args, **kwargs):
+        if argv and argv[0] == "claude":
+            return queue.pop(0)
+        m = MagicMock()
+        m.stdout, m.returncode, m.stderr = b"", 0, b""
+        return m
+
+    return run
+
+
 def _compile():
     from yamlgraph.compile.graph_loader import compile_graph, load_graph_config
 
@@ -280,7 +298,9 @@ class TestGraphRouting:
         app = _compile()
         with patch(
             "subprocess.run",
-            side_effect=[_proc(VERSION_OK), _proc(AUTH_OK), _proc(ENVELOPE_OK)],
+            side_effect=_claude_cli(
+                [_proc(VERSION_OK), _proc(AUTH_OK), _proc(ENVELOPE_OK)]
+            ),
         ) as m:
             final = app.invoke(
                 {
