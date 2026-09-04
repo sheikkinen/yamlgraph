@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Proposed
+**Status:** Enforced
 **Effort:** 0.5 days
 **Requested:** 2026-09-04
 **First consumer / first event:** the operator running the corp
@@ -135,37 +135,37 @@ overruled by FR-962 R-5, a doctrine constraint rather than evidence.
 Superseded by the judgement of 2026-09-04 and restated here as folded.
 These eleven criteria are binding; the original seven are withdrawn.
 
-- [ ] AC-01: The research record holds four to six genuinely distinct
+- [x] AC-01: The research record holds four to six genuinely distinct
   solution classes, each with probe evidence, effort-risk, and a
   disposition; disagreement is preserved or its absence stated;
   `is_this_a_graph: no` is retained.
-- [ ] AC-02: The FR-939 prior-art link resolves to a committed file
+- [x] AC-02: The FR-939 prior-art link resolves to a committed file
   (`FR-939-map-overflow-policy.md`).
-- [ ] AC-03: A valid `visibility` list of two or more entries raises
+- [x] AC-03: A valid `visibility` list of two or more entries raises
   before `_gh` is reached. The message asserts the repeated-flag
   conjunction semantics, contains the parsed list's `repr` in **original
   order and original spelling**, and states the one-class-per-run remedy.
-- [ ] AC-04: A fail-if-called `_gh` stub proves the rejection precedes
+- [x] AC-04: A fail-if-called `_gh` stub proves the rejection precedes
   every GitHub invocation; no test in this FR touches the network.
-- [ ] AC-05: Existing validation order is witnessed by a test for each
+- [x] AC-05: Existing validation order is witnessed by a test for each
   of: malformed JSON string, non-list JSON value, empty list, non-string
   entry, unknown class, casefold duplicate — each retaining its current
   failure class.
-- [ ] AC-06: A mixed-case single-element list returns the canonical
+- [x] AC-06: A mixed-case single-element list returns the canonical
   one-element list and produces exactly one `--visibility` flag carrying
   the canonical value in the argv handed to a stubbed `_gh`.
-- [ ] AC-07: An accepted non-empty `gh` response still converts to the
+- [x] AC-07: An accepted non-empty `gh` response still converts to the
   existing sorted `<owner>/<repo>#<number>` authored-PR identity shape.
-- [ ] AC-08: `examples/demos/person_profile_census/README.md` states the
+- [x] AC-08: `examples/demos/person_profile_census/README.md` states the
   one-class-per-run constraint and its corp example carries exactly one
   visibility element.
-- [ ] AC-09: `capabilities/CAP-260-authored-pr-visibility.yaml` registers
+- [x] AC-09: `capabilities/CAP-260-authored-pr-visibility.yaml` registers
   FR-966 and REQ-YG-642; `ARCHITECTURE.md` is regenerated; every new test
   carries `@pytest.mark.req("REQ-YG-642")`; `python scripts/req_coverage.py
   --strict` passes.
-- [ ] AC-10: The failing cardinality witness is committed before the
+- [x] AC-10: The failing cardinality witness is committed before the
   production fix (separate RED and GREEN commits).
-- [ ] AC-11: A `fix` changelog fragment names FR-966 and REQ-YG-642; this
+- [x] AC-11: A `fix` changelog fragment names FR-966 and REQ-YG-642; this
   FR records implementation status, decisions, and deviations; a diary
   entry with a `Seed:` is added.
 
@@ -206,6 +206,52 @@ and no dissent, which the judgement correctly read as insufficient
 breadth rather than a strong signal. The amended census surfaces one
 genuine dissent (subtraction) and one class killed by evidence rather
 than by preference (platform disjunction).
+
+## Implementation Status — 2026-09-04
+
+Enforced on branch `feat/fr966-census-defects`.
+
+| Commit | Content |
+|---|---|
+| `c9319cb5` | FR-966 and FR-967 filed with folded judgements |
+| `a91d96b0` | RED — cardinality witness fails, nine sibling classes pass |
+| `0d3c75fe` | GREEN — guard, README, changelog fragment, demo proofs |
+
+RED evidence: 2 failed, 9 passed. The failure printed the unsatisfiable
+argv itself, which is the defect stated in the language of the tool:
+`--visibility private --visibility internal`. GREEN evidence: 48 passed
+across the FR-966 and FR-899 suites; `scripts/req_coverage.py --strict`
+exits 0.
+
+Decisions taken during enforcement:
+
+- The guard reports `raw` rather than `canonical`, so the operator reads
+  back the spelling and order they typed. Casefolding happens before the
+  count, so `["Private", "private"]` collapses to one element and is
+  accepted — a duplicate is not a conjunction.
+- The guard sits after the per-entry loop, so every existing failure
+  class still fires first and keeps its message. Cardinality is the last
+  check because it is the only one that can be true of a fully valid list.
+
+Deviations from the frozen scope: none. One condition fired.
+
+**C-6 stop condition fired.** Regenerating the demo proof required by
+`demo-proof-check` revealed that `reduce_pr_ledger` resolves
+`azure_model` from `os.environ["AZURE_MODEL"]` when the state key is
+absent. The public smoke path renames `azure_model` to `smoke_model`, so
+the key is always absent there and the reducer records whatever the
+operator's `.env` holds — on a corp machine, the Azure deployment name,
+written into an artifact committed to a public repository. Unsetting the
+variable does not help: `yamlgraph/config.py` calls `load_dotenv` at
+import and restores it inside the process. The proof was generated with
+`AZURE_MODEL='none-public-smoke'` as an override, which is the only
+mechanism that works.
+
+That surface is outside D-1 through D-7, so this FR did not touch it.
+The correction is FR-967 D-1 AC-13 (the reduce boundary must raise rather
+than record an unrelated environment variable), confirmed by the operator
+on 2026-09-04. The already-published identifiers were dispositioned by
+the operator the same day as diary-record-only.
 
 ## Related
 
