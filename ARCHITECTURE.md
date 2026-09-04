@@ -577,6 +577,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 259 | CAP-259 Declared Text Encoding at First-Party Boundaries | `yamlgraph/cli/__init__.py`, `yamlgraph/compile/graph_loader.py`, `yamlgraph/utils/prompts.py`, `yamlgraph/schema_loader.py`, … | REQ-YG-638 |
 | 260 | CAP-260 Authored-PR Visibility Cardinality | `examples/demos/corpus_census/adapters/corpus_adapters.py`, `examples/demos/person_profile_census/README.md`, `tests/unit/test_fr966_authored_pr_visibility.py` | REQ-YG-643 |
 | 261 | CAP-261 Tracing Off in Tests | `tests/conftest.py`, `tests/unit/test_fr982_tracing_off_in_tests.py` | REQ-YG-644 |
+| 262 | CAP-262 Map Fan-Out Concurrency Limit | `yamlgraph/compile/graph_loader.py`, `yamlgraph/cli/__init__.py`, `yamlgraph/cli/graph_run_helpers.py`, `yamlgraph/schemas/graph-v1.json`, … | REQ-YG-645 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -3198,6 +3199,16 @@ FR-982: the unit suite is hermetic with respect to observability. `yamlgraph.con
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-644 | Test-session tracing hermeticity. A session-scoped autouse fixture in tests/conftest.py saves the prior values of LANGSMITH_TRACING_V2, LANGCHAIN_TRACING_V2, LANGSMITH_TRACING and LANGCHAIN_TRACING, sets each to "false" before any test body runs, clears langsmith.utils.get_env_var's cache, and restores absence or the exact prior value (clearing the cache again) at teardown. Inside a test, langsmith.utils.tracing_is_enabled() is False and langchain_core.tracers.context._tracing_v2_is_enabled() is falsy. A test may still opt in by setting the highest-priority alias LANGSMITH_TRACING_V2=true and clearing the cache; the result is independent of test order. No production module under yamlgraph/ changes. Enforcement: tests/unit/test_fr982_tracing_off_in_tests.py. | `tests/conftest.py`, `tests/unit/test_fr982_tracing_off_in_tests.py` |
+
+### 262. CAP-262 Map Fan-Out Concurrency Limit
+
+Graph-level `config.max_concurrency` and the `--max-concurrency` CLI override reach LangGraph's `RunnableConfig["max_concurrency"]`, bounding how many parallel `Send` branches run at once for every map node in an invocation. Absent everywhere, no key is passed and LangGraph's default pool width applies. Throttling is wholly delegated to LangGraph.
+
+**Feature Request:** FR-984
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-645 | `GraphConfig.max_concurrency` is `None` when `config.max_concurrency` is absent and a positive int when present; booleans, strings, fractional, zero and negative values fail at load naming `max_concurrency`. `--max-concurrency` accepts a positive int and rejects zero/negative at the parser naming the option. The run-config builder omits the key when neither source supplies it, uses the YAML value when the CLI is silent, and lets the CLI override YAML. `graph-v1.json` publishes the key as integer, minimum 1. A compiled map over 40 python-tool items peaks at <= 2 with `max_concurrency: 2` and > 2 unthrottled, on both `invoke` and `ainvoke`, returning every result. | `yamlgraph/compile/graph_loader.py`, `yamlgraph/cli/__init__.py`, `yamlgraph/cli/graph_run_helpers.py`, `yamlgraph/schemas/graph-v1.json`, `tests/unit/test_fr984_map_max_concurrency.py` |
 
 <!-- END GENERATED CAPABILITIES -->
 
