@@ -93,6 +93,7 @@ artifact. FR-967 AC-13 corrects the reducer to require a resolved model.
 ```bash
 AZURE_AI_ENDPOINT=... AZURE_AI_API_KEY=... AZURE_MODEL=<deployment> \
 yamlgraph graph run examples/demos/person_profile_census/graph.yaml \
+  --max-concurrency 2 \
   --tool preflight=examples/demos/person_profile_census/preflight.tool.yaml \
   --tool discover=examples/demos/corpus_census/adapters/gh-authored-prs-discover.tool.yaml \
   --tool extract=examples/demos/corpus_census/adapters/gh-pr-extract.tool.yaml \
@@ -107,6 +108,8 @@ yamlgraph graph run examples/demos/person_profile_census/graph.yaml \
   --var brief_path=tmp/person-profile.brief.md \
   --var brief_rubric='...'
 ```
+
+The CLI value overrides the graph's `config.max_concurrency: 4`; this key bounds how many map items run at once (LangGraph `RunnableConfig["max_concurrency"]`), not how many items exist (`max_items`).
 
 **Pass exactly one `visibility` value.** The discover adapter emits one
 `--visibility` flag per entry, and `gh search prs` conjoins them into
