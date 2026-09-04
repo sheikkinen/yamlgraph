@@ -576,6 +576,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 258 | CAP-258 Issue-Queue Delegation Runner | `.github/skills/issue-delegate/SKILL.md`, `.github/skills/issue-delegate/models.py`, `.github/skills/issue-delegate/worker.py`, `.github/skills/issue-delegate/windows_job.ps1`, … | REQ-YG-637 |
 | 259 | CAP-259 Declared Text Encoding at First-Party Boundaries | `yamlgraph/cli/__init__.py`, `yamlgraph/compile/graph_loader.py`, `yamlgraph/utils/prompts.py`, `yamlgraph/schema_loader.py`, … | REQ-YG-638 |
 | 260 | CAP-260 Authored-PR Visibility Cardinality | `examples/demos/corpus_census/adapters/corpus_adapters.py`, `examples/demos/person_profile_census/README.md`, `tests/unit/test_fr966_authored_pr_visibility.py` | REQ-YG-643 |
+| 261 | CAP-261 Tracing Off in Tests | `tests/conftest.py`, `tests/unit/test_fr982_tracing_off_in_tests.py` | REQ-YG-644 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -3187,6 +3188,16 @@ FR-966: authored-PR discovery refuses a visibility filter the platform cannot sa
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-643 | Visibility filter satisfiability at the discovery boundary. `_parse_visibility` accepts a JSON list drawn from {public, private, internal} and returns a casefold-canonicalised list; it raises when the resulting list holds more than one class, because repeated `--visibility` flags are conjoined and no pull request carries two visibilities. The check is the last statement before return, so the six prior failure classes — malformed JSON string, non-list JSON value, empty list, non-string entry, unknown class, casefold duplicate — each retain their existing message and are reached first. The conjunction error contains the parsed list's repr in original order and spelling (not the canonicalised form), names the repeated-flag conjunction, and states the one-class-per-run remedy. Enforcement: witnesses in tests/unit/test_fr966_authored_pr_visibility.py drive a fail-if-called `_gh` stub, proving the rejection precedes every GitHub invocation; a parametrised case pins each prior failure class; a mixed-case single-element list is asserted to produce exactly one `--visibility` flag carrying the canonical value in the captured argv; and an accepted response is asserted to keep the sorted <owner>/<repo>#<number> identity shape. No witness touches the network. | `examples/demos/corpus_census/adapters/corpus_adapters.py`, `tests/unit/test_fr966_authored_pr_visibility.py` |
+
+### 261. CAP-261 Tracing Off in Tests
+
+FR-982: the unit suite is hermetic with respect to observability. `yamlgraph.config` loads `.env` at import, so on a developer machine whose `.env` sets `LANGSMITH_TRACING=true` every graph the unit suite compiles and invokes was traced to the operator's LangSmith project (100 root runs in 90 minutes carrying test-fixture names and stub inputs), and one FR-960 test failed locally while CI was green because the tracer's `get_runtime_environment()` shelled out and consumed a positional `subprocess.run` stub. The tracer is forced off at the pytest session boundary — the FR-140 `_clean_git_env` pattern — by overriding all four recognised aliases to the string "false" (override, not delete: dotenv never overwrites an existing key) and clearing the lru_cache on `langsmith.utils.get_env_var`; prior values are restored at teardown.
+
+**Feature Request:** FR-982
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-644 | Test-session tracing hermeticity. A session-scoped autouse fixture in tests/conftest.py saves the prior values of LANGSMITH_TRACING_V2, LANGCHAIN_TRACING_V2, LANGSMITH_TRACING and LANGCHAIN_TRACING, sets each to "false" before any test body runs, clears langsmith.utils.get_env_var's cache, and restores absence or the exact prior value (clearing the cache again) at teardown. Inside a test, langsmith.utils.tracing_is_enabled() is False and langchain_core.tracers.context._tracing_v2_is_enabled() is falsy. A test may still opt in by setting the highest-priority alias LANGSMITH_TRACING_V2=true and clearing the cache; the result is independent of test order. No production module under yamlgraph/ changes. Enforcement: tests/unit/test_fr982_tracing_off_in_tests.py. | `tests/conftest.py`, `tests/unit/test_fr982_tracing_off_in_tests.py` |
 
 <!-- END GENERATED CAPABILITIES -->
 
