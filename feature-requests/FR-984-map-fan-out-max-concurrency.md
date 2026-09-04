@@ -252,9 +252,27 @@ longest line 822 chars, gate validator green, 0 identifier hits. The
 greedy-marker false positive is a gate defect worth its own small FR;
 not absorbed here.
 
-**Non-gating observation.** Not yet run — waits for FR-985 per the
-operator's authorization. When run, the sanitized figures are appended
-here.
+**Non-gating observation — recorded 2026-09-04.** FR-985 was shelved the
+same afternoon, so the "after both successors" condition cannot occur;
+the operator's own reruns after this FR merged serve as the observation.
+Sanitized (source `sheikkinen@<owner>:2025-01-01`, private, Azure
+`gpt-5.4-mini` in `swedencentral`, 267–268 PRs discovered):
+
+| width | 429s | rows lost to 429 | coverage | duration |
+|---|---|---|---|---|
+| 12 (pre-FR-984 default) | 1249 | 100 | 56.8% | 2:44 |
+| 4 (`config.max_concurrency`) | 727 | 22 | 84.6% | 5:07 |
+| 2 (`--max-concurrency 2`) | 349 | 2 | 91.8% | 6:38 |
+
+The knob works and the 429 rate scales with width as expected; at two
+lanes the retry ladder absorbs all but two. The 429 rate stayed flat
+(~90/min at width 2, ~200/min at width 4) for each run's duration, so
+this deployment's per-minute quota is the ceiling. No claim that FR-984
+eliminates 429s; it exposes the knob that lets the operator stay under
+the quota. The graph's `max_concurrency: 4` should become `2` for this
+consumer — a follow-up governed-route edit, not part of this FR. The
+remaining coverage gap (~20 rows/run) is a `problem_labels` input gap
+(`docs` missing), recorded in FR-985.
 
 ## Alternatives Considered
 

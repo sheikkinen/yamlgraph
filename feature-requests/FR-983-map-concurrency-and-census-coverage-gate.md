@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Judged — SPLIT (2026-09-04, [judgement](FR-983-map-concurrency-and-census-coverage-gate.judgement.md)); no authority under FR-983. Successors: [FR-984](FR-984-map-fan-out-max-concurrency.md) (concurrency plumbing), [FR-985](FR-985-census-coverage-floor-and-population-header.md) (coverage gate). This document is the shared incident record.
+**Status:** Judged — SPLIT (2026-09-04, [judgement](FR-983-map-concurrency-and-census-coverage-gate.judgement.md)); no authority under FR-983. Successors: [FR-984](FR-984-map-fan-out-max-concurrency.md) (concurrency plumbing) — **Enforced** (#586); [FR-985](FR-985-census-coverage-floor-and-population-header.md) (coverage gate) — **Shelved** after three real runs showed the summary-level brief robust to partial coverage. This document is the shared incident record.
 **Effort:** 1 day
 **First consumer / first event:** the operator re-running the corp
 person-profile census (`sheikkinen@<owner>`, 259 private PRs) — the
