@@ -114,6 +114,38 @@ author controls. Add the one question the author cannot answer by
 writing better — *what already happened that this closes?* — and
 make the negative verdict the recorded, precedent-setting output.
 
+## Addendum — operator: "map-reduce with fast dLLM seems novel"
+
+The correction to both preceding turns: I examined the *process*
+(loop, judge) twice and missed that the record already names an
+*instrument*. Of the ~40 recent FRs, the census family (940/943/
+962/965) is the exception to the self-consumption pattern — it built
+something that consumes external corpora, not process surface.
+
+What is specifically novel is not map-reduce over LLMs (old) but the
+economics inversion a 660 t/s diffusion model produces: a per-item
+shallow judgement over a whole finite corpus becomes a query, not a
+project. Combined with the reduce discipline earned from FR-725/940/
+943 — output as CLAIM, LLM-free fail-closed reducer, `row_failed`
+rows, disagreement preserved — it is `the_one_law` applied to a
+corpus. And it closes with the first premise of the session: spec-
+heavy processes *produce spec corpora*; the census over specs
+(contradiction, coverage, traceability at thousands of items) is the
+review step those processes cannot afford by hand.
+
+Forced opposite: the speed edge is temporal (Cerebras/Groq/Flash-Lite
+class); the model must be a parameter, not the pitch. Novel ≠ edge
+until an external corpus and buyer are named. No committed
+mercury-vs-haiku label-agreement measurement with raw rows read was
+found — `read_raw_output_first` applies to the pitch. The mechanism
+is three YAML nodes; the defensible part is the recipe library per
+corpus type.
+
+Pruning heuristic for the judge, derived from the split: does this
+FR add census capability or a corpus consumer, or does it add
+process surface? The first is the edge; the second is the
+deterioration.
+
 ## Seed
 
 If every planted Seed becomes an FR and every FR gets a 95% approval,
