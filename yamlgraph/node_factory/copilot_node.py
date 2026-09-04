@@ -86,7 +86,7 @@ def _resolve_variables(
                 logger.debug(f"[resolve] {key}={expr!r} -> {type(value).__name__}")
                 resolved[key] = value
             except KeyError as e:
-                # Path not found - use empty string as fallback
+                # Path not found - warn and resolve to empty string
                 logger.warning(f"[resolve] {key}={expr!r} KeyError: {e}")
                 resolved[key] = ""
             except Exception as e:
