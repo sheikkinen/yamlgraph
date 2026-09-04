@@ -185,12 +185,12 @@ Summary: 11 matched rows, 4 contradicted (CP-S6/CL-R5, CP-R2/CL-R4, CP-R3.4+R6/C
 
 ## 4. Signatures (judgement AC-16; a human other than the enforcer)
 
-1. Enforcement-infrastructure diff and route invariants accepted by: `<name>, <date>` — **UNSIGNED**
+1. Enforcement-infrastructure diff and route invariants accepted by: **sheikkinen (repository owner), 2026-09-04** — given in the enforcing session after reading PR #577's diff, the sole-route review's findings and their fixes, and after running the Claude judge themselves on FR-953 (§2.5); recorded verbatim by the enforcer: "accepted, merge when green".
 2. Residual Claude subscription payer boundary (FR-959 §5) accepted for judge execution by: **sheikkinen (repository owner and spend owner), 2026-09-03** — given in the enforcing session after C-8's text and cost were laid out; recorded verbatim by the enforcer: "accepted".
 
 ## 5. Limitations
 
-- Signature 1 (§4) is unsigned at the time of writing: the infrastructure diff and route invariants must be accepted by a human other than the enforcer (the PR review is where that happens). The Claude route is therefore **not yet operational** for routine use, even though it has been witnessed.
+- Both signatures (§4) are recorded (2026-09-03 and 2026-09-04). With them, the Claude route is **operational**: `JUDGE_BACKEND=claude scripts/judge.sh <fr>`.
 - Runs B and B' were launched from the enforcing session (a child of the Claude desktop app) with the MSIX binary prepended to `PATH`; an operator shell needs the same `PATH` step (see FR-959 evidence for the two path spellings).
 - The drafts are advisory FR-961 material. They are preserved here as raw records for this inventory only; folding any of them into FR-961's judgement is FR-961's business and is not done by FR-960.
 - Runs B and B' were executed with `--model opus`; the alias's resolution to `claude-opus-5` was observed afterwards (§2.4) and the graph now pins the exact id. An earlier version of this file claimed the envelope did not expose the id; that was wrong — `modelUsage` does, and the runtime's typed parser simply ignores the key.
