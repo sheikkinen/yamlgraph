@@ -39,7 +39,7 @@ def _explode(*argv: str) -> str:
     raise AssertionError(f"_gh must not be reached; got argv={list(argv)}")
 
 
-@pytest.mark.req("REQ-YG-642")
+@pytest.mark.req("REQ-YG-643")
 def test_multi_value_visibility_rejected_before_any_gh_call() -> None:
     """AC-03/AC-04: reject the conjunction, and reject it before the network."""
     with (
@@ -60,7 +60,7 @@ def test_multi_value_visibility_rejected_before_any_gh_call() -> None:
     assert "one" in message.casefold()
 
 
-@pytest.mark.req("REQ-YG-642")
+@pytest.mark.req("REQ-YG-643")
 def test_rejection_reports_original_order_and_spelling() -> None:
     """AC-03: the echo is the operator's input, not the canonicalised list."""
     with (
@@ -75,7 +75,7 @@ def test_rejection_reports_original_order_and_spelling() -> None:
     assert repr(["internal", "public"]) not in message
 
 
-@pytest.mark.req("REQ-YG-642")
+@pytest.mark.req("REQ-YG-643")
 @pytest.mark.parametrize(
     ("raw", "expected"),
     [
@@ -105,7 +105,7 @@ def test_existing_validation_classes_survive_the_new_guard(
         _parse_visibility({"visibility": raw})
 
 
-@pytest.mark.req("REQ-YG-642")
+@pytest.mark.req("REQ-YG-643")
 def test_single_element_canonicalises_and_emits_exactly_one_flag() -> None:
     """AC-06: one class in, one canonical flag out, no network."""
     assert _parse_visibility({"visibility": '["PRIVATE"]'}) == ["private"]
@@ -124,7 +124,7 @@ def test_single_element_canonicalises_and_emits_exactly_one_flag() -> None:
     assert argv[argv.index("--visibility") + 1] == "private"
 
 
-@pytest.mark.req("REQ-YG-642")
+@pytest.mark.req("REQ-YG-643")
 def test_accepted_population_keeps_sorted_identity_shape() -> None:
     """AC-07: the guard does not disturb the authored-PR identity contract."""
     listing = json.dumps(

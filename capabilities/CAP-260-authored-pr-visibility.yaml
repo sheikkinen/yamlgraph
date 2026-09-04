@@ -20,7 +20,7 @@ modules:
   - examples/demos/person_profile_census/README.md
   - tests/unit/test_fr966_authored_pr_visibility.py
 requirements:
-  - id: REQ-YG-642
+  - id: REQ-YG-643
     description: "Visibility filter satisfiability at the discovery boundary.
       `_parse_visibility` accepts a JSON list drawn from {public, private,
       internal} and returns a casefold-canonicalised list; it raises when the

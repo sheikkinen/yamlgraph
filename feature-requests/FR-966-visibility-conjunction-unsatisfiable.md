@@ -160,12 +160,12 @@ These eleven criteria are binding; the original seven are withdrawn.
   one-class-per-run constraint and its corp example carries exactly one
   visibility element.
 - [x] AC-09: `capabilities/CAP-260-authored-pr-visibility.yaml` registers
-  FR-966 and REQ-YG-642; `ARCHITECTURE.md` is regenerated; every new test
-  carries `@pytest.mark.req("REQ-YG-642")`; `python scripts/req_coverage.py
+  FR-966 and REQ-YG-643; `ARCHITECTURE.md` is regenerated; every new test
+  carries `@pytest.mark.req("REQ-YG-643")`; `python scripts/req_coverage.py
   --strict` passes.
 - [x] AC-10: The failing cardinality witness is committed before the
   production fix (separate RED and GREEN commits).
-- [x] AC-11: A `fix` changelog fragment names FR-966 and REQ-YG-642; this
+- [x] AC-11: A `fix` changelog fragment names FR-966 and REQ-YG-643; this
   FR records implementation status, decisions, and deviations; a diary
   entry with a `Seed:` is added.
 
@@ -180,7 +180,7 @@ All four revisions are folded above; authority is therefore live.
 | R-1 research insufficient (5 rows → 2 outcomes) | Six-class census amended into the research record, including the two classes the judgement named as missing. The disjunctive-query class is rejected **on cited probe evidence** (HTTP 422; parenthesised variant silently returns 0) rather than on assertion. |
 | R-2 dangling prior-art link | `FR-939-map-overflow-detection.md` → `FR-939-map-overflow-policy.md`. |
 | R-3 validation order and diagnostic identity unfrozen | Order table and diagnostic contract added to Proposed Solution. **Corrected defect in the original draft:** it reported `canonical` (casefolded) while claiming a verbatim echo. The error now reports `raw`. The malformed-JSON-string and non-list-JSON-value failures are now described as the distinct classes they are; the phrase "non-JSON input" is withdrawn. |
-| R-4 registry, TDD, changelog, diary | Folded into AC-09 through AC-11; CAP-260 / REQ-YG-642 allocated. |
+| R-4 registry, TDD, changelog, diary | Folded into AC-09 through AC-11; CAP-260 / REQ-YG-643 allocated. |
 
 Frozen scope: D-1 FR + research fold; D-2 the cardinality guard in
 `corpus_adapters.py` only; D-3 `tests/unit/test_fr966_authored_pr_visibility.py`;
