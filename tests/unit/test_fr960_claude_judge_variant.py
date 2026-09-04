@@ -239,6 +239,8 @@ class TestGraphRouting:
         assert judge["cli_flags"]["allow_all_tools"] is True
         claude = copilot_nodes["judge_claude"]
         assert claude["backend"] == "claude"
+        # PR #577 review P3: an exact id, never an alias (REQ-YG-632 spirit).
+        assert claude["cli_flags"]["model"] == "claude-opus-5"
         assert claude["cli_flags"]["tools"] == FOUR_TOOLS.split(",")
         assert claude["cli_flags"]["allowed_tools"] == FOUR_TOOLS.split(",")
         assert claude["cli_flags"]["max_turns"] == 40

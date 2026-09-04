@@ -50,7 +50,7 @@ nodes:
     type: copilot
     backend: claude          # FR-959 backend; bills the operator's Claude subscription
     cli_flags:
-      model: opus
+      model: claude-opus-5     # exact id (the `opus` alias resolved to this on 2.1.255 — FR-960 witness §2.4); never an alias (REQ-YG-632, PR #577 review P3)
       tools: [Read, Glob, Grep, Write]         # availability (--tools); no Bash, no Edit, no MCP
       allowed_tools: [Read, Glob, Grep, Write] # approval (--allowedTools) for the same four
       max_turns: 40
@@ -83,6 +83,9 @@ Constraints on the result (FR-960 judgement C-4, C-5; FR-931 REQ-YG-632):
   and `allow_all_tools` stay.
 - The `judge_claude` node has **no** `allow_all_tools`, no `allow_all_paths`,
   no `provider`, and exactly the four tools listed, in both keys.
+- The `judge_claude` model is the exact id `claude-opus-5`, not an alias.
+  (Second authoring pass, 2026-09-04: if the file already matches this brief
+  except for `model: opus`, change only that line and its comment.)
 - Exactly two `type: copilot` nodes, both `prompt: judge`.
 
 ### 2. `prompts/judge.yaml`
