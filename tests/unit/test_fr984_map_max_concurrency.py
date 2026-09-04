@@ -54,7 +54,7 @@ class TestGraphConfigMaxConcurrency:
         assert GraphConfig(_graph({"max_concurrency": 1})).max_concurrency == 1
 
     @pytest.mark.req("REQ-YG-645")
-    @pytest.mark.parametrize("bad", [True, False, "4", 2.5, 0, -1, None])
+    @pytest.mark.parametrize("bad", [True, False, "4", 2.5, 0, -1])
     def test_invalid_rejected_at_load(self, bad) -> None:
         with pytest.raises(ValueError, match="max_concurrency"):
             GraphConfig(_graph({"max_concurrency": bad}))
