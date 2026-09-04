@@ -381,6 +381,16 @@ graph, wrapper, test, doc, or witness work has begun.
   auto-approve risk the Copilot judge missed, and the two disagree on
   runtime-provenance mechanism and on registering `classify-emit.sh`.
   Raw drafts preserved as `evidence/FR-960-run-{A,B,Bprime}-*.md`.
+- 2026-09-04: CI on PR #577 failed `test_ramp_installer::test_mirror_exact_entries_match_live_bytes`
+  — `ramp/manifest.yaml` mirrors `.github/skills/judge-fr/SKILL.md`
+  byte-for-byte and the §3 SKILL.md paragraph made it drift. Re-copied. The
+  ramp's `assets/tier2/scripts/judge.sh` is a *curated* copy
+  (`curation_diff`, not byte-tested) and still carries the pre-FR-960
+  wrapper; refreshing that curation is adjacent work for the ramp's owner,
+  not folded here (judgement C-8 parks adjacent work).
+- Operator ran the Claude judge themselves on FR-953 before deciding on
+  signature 1 (witness §2.5): routed, preflight `claude.ai`,
+  `model='claude-opus-5'` stamped, SPLIT draft written.
 - **Status → Enforced; awaiting AC-16 signature 1** (infrastructure diff
   and route invariants accepted by a human other than the enforcer, at PR
   review). Signature 2 (C-8) is recorded. Implemented is set when
