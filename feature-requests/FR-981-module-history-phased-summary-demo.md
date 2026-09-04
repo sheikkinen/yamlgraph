@@ -4,7 +4,8 @@
 **Type:** Feature
 **Status:** Judged — APPROVED WITH REVISIONS (2026-09-04). R-1..R-7 folded
 below. Authority remains **inactive** pending human confirmation of the fold
-(judgement C-1); no implementation is authorized. See § Judgement history.
+(judgement C-1); no implementation is authorized. Amended 2026-09-04 with two
+post-merge factual corrections — see § Amendment and § Judgement history.
 **Effort:** 1 day
 **Requested:** 2026-09-04
 **First consumer / first event:** the agent or human onboarding onto an
@@ -109,11 +110,93 @@ regenerate.
    precedented five times over. The store, the invalidation rule, and the
    incremental call count are precedented zero times — which is exactly why
    the demo must assert them mechanically rather than narrate them in a
-   README.
+   README. **[Corrected 2026-09-04 — see § Amendment: the store and the
+   reference gate are precedented twice. The surviving unexercised claims are
+   substitution, the subject rollup, version invalidation, and counted
+   incremental cost.]**
 3. **The repository has the problem the pattern solves.** Onboarding onto a
    module means reading its history; `git log` returns transport fragments,
    and asking a model to read 200 diffs is the
    `impossibly_large_sequential_task` framing with no store to amortise it.
+
+## Amendment 2026-09-04 — two factual corrections found after merge
+
+Filed without re-judgement: this corrects claims of fact and does not widen
+scope, allocate identifiers, or activate authority. The judgement's gates
+C-1..C-8 stand unchanged. Correction 2 does bear on the frozen architecture,
+and is recorded as a question owed to enforcement rather than resolved here.
+
+Both errors have one root. A pattern check keyed on *mechanism* rather than
+on the vocabulary of summarisation found in minutes what this FR's manual
+sweep, its five-persona research route, and two judge executions all missed.
+Reflected on in
+[docs/diary/diary-2026-09-04-reflection-the-vocabulary-i-searched-with.md](../docs/diary/diary-2026-09-04-reflection-the-vocabulary-i-searched-with.md).
+
+### Scope note — the pattern document was committed early, by operator decision
+
+R-1 and AC-14 make `reference/patterns/phased-summary.md` an enforcement
+deliverable, and the judgement's not-authorized list names it explicitly. The
+operator directed it to be committed with this amendment instead. Recorded
+here rather than glossed: the judgement's frozen surface was crossed
+deliberately and by the human the C-1 gate names, not by the author acting
+alone.
+
+The document as committed carries both corrections below — its evidence grade
+now reads PARTLY EXERCISED, distinguishing the store and gate (committed and
+working) from substitution, the subject rollup, version invalidation, and
+counted incremental cost (unexercised). AC-14 therefore survives as a
+narrowed obligation: enforcement must move that composition grade and name
+the demo once AC-04 and AC-08 pass, rather than create the document.
+
+### Correction 1 — the durable store is precedented twice, not zero times
+
+§ Problem 2 states that the store, the invalidation rule, and the incremental
+call count are "precedented zero times". Two committed graphs contradict the
+first two:
+
+- [`examples/demos/wiki-memory`](../examples/demos/wiki-memory/README.md)
+  (CAP-173/CAP-174; FR-625, FR-628, FR-629, FR-120) writes `wiki/<id>.yaml`
+  per page via `write_data_file`, reads the accumulated set back through a
+  `data_files` glob on later runs, and gates persistence on a Python node that
+  rejects any page whose references do not resolve — the same contract this FR
+  calls invariant 5 and treats as a novel testable claim.
+- [`examples/novel_fandom`](../examples/novel_fandom/README.md) (CAP-181;
+  FR-655) keeps `canon/character/*.yaml` and `canon/event/*.yaml` under a
+  no-orphan-reference gate **and** a lane-immutability rule barring the model
+  from overwriting `lane: static` pages — an authority rule over stored
+  artifacts, adjacent to this FR's version-invalidation concern.
+
+The novelty claim narrows accordingly, and the surviving claim is still
+sufficient to justify the demo: **substitution** (a brief standing in for its
+source in later prompts), the **subject-scoped rollup**, **version-keyed
+invalidation**, and the **counted incremental cost** remain unexercised in
+this repository. The store and the reference gate do not.
+
+Enforcement consequence: reuse `write_data_file` and `data_files` rather than
+hand-rolling a store, and cite both witnesses in the demo README.
+
+### Correction 2 — "the store is not a graph" is contradicted by the witnesses
+
+§ Alternatives Considered concludes *"the phases are; the store is not"*, on
+four of five research rows answering `is_this_a_graph: No`. A second sole-route
+run, pointed at the two witnesses above, returned four of five answering
+**Yes**: the durable store is expressible in YAML, because `write_data_file`
+persists the keyed artifact, the `data_files` glob reads it back, and the
+gates are `type: python` **nodes inside the graph** rather than code beside it.
+Record:
+[docs/2026-09-04-research-durable-keyed-artifact-store.md](../docs/2026-09-04-research-durable-keyed-artifact-store.md).
+
+The difference is method, not opinion: this FR's route reasoned about the
+framework in the abstract and about `book-summary`'s per-run `all_summaries`
+reducer; the second route read graphs that already do it.
+
+This FR's answer is therefore **withdrawn as overstated**. It is not replaced
+with the opposite claim here, because § Proposed Solution's Python-owned
+`plan_briefs`/`persist` design rests on it and that design is frozen by the
+judgement. **Owed at enforcement:** determine whether the store is expressible
+with `write_data_file` + `data_files` for this demo, and if it is, return to
+Plan for a scope revision rather than hand-rolling `tools.py` persistence
+under a superseded premise. AC-10's contracts hold either way.
 
 ## Judgement history
 
@@ -456,6 +539,10 @@ with one model call each plus an LLM reduction fires the FR-853 trigger, and
 But four of five research rows converged on retention requiring Python
 ownership outside the graph boundary, and they are right: graph state is
 per-run. The first draft of this FR answered a flat "yes" and was wrong.
+**[Withdrawn 2026-09-04 — see § Amendment correction 2. A second sole-route
+run, pointed at two committed graphs that keep durable keyed stores in YAML,
+returned four of five answering "yes". This paragraph's conclusion is
+overstated; the question is reopened and owed at enforcement.]**
 
 ## Related
 
