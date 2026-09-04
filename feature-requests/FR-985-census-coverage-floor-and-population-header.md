@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Judged — APPROVED WITH REVISIONS (2026-09-04, [judgement](FR-985-census-coverage-floor-and-population-header.judgement.md)); R-1..R-4 folded below, human-reviewed; authority active for the frozen scope.
+**Status:** Shelved (2026-09-04, operator decision) — judged APPROVED WITH REVISIONS ([judgement](FR-985-census-coverage-floor-and-population-header.judgement.md)), never enforced. Three real runs at 57% → 85% → 92% coverage produced summary-level briefs that did not materially change; the fail-closed floor would have blocked all three to protect a summary that did not need protecting. See "Shelved" below.
 **Effort:** 0.5 days
 **Requested:** 2026-09-04
 **Classification:** Contrib/example (FR-983 judgement R-2 — a policy and
@@ -194,6 +194,56 @@ coverage, and terminal result (completed, or failed closed at the
 floor). It does not gate FR-985 completion, must not run before both
 successors land, commits no corp identifier, and claims no
 provider-quota improvement. Appended to this record when available.
+
+## Shelved — 2026-09-04
+
+The operator ran the corp census three times on 2026-09-04 after FR-984
+landed (sanitized; source `sheikkinen@<owner>:2025-01-01`, private,
+Azure `gpt-5.4-mini` in `swedencentral`):
+
+| run | fan-out width | 429s | rows lost to 429 | other `row_failed` | coverage | brief |
+|---|---|---|---|---|---|---|
+| 1 | 12 (LangGraph default) | 1249 | 100 | — | 56.8% | 102 lines |
+| 2 | 4 (`config.max_concurrency`) | 727 | 22 | 19 | 84.6% | 113 lines |
+| 3 | 2 (`--max-concurrency 2`) | 349 | 2 | 20 | 91.8% | 103 lines |
+
+**The operator's finding:** the three briefs told the same story. At
+summary level (themes, surface concentration, cadence) the profile is
+robust to a third of the rows being missing; the marginal return on
+coverage is small. The `plausible_wrong_answer` framing in the Problem
+section was the ledger's story, not the brief's — the author
+over-weighted the theoretical case against the observed one.
+
+**Consequence for this FR.** D-1 (fail-closed at `min_coverage`,
+default `1.0`) would have refused all three runs to protect a summary
+that did not need protecting; that is the wrong default, and rescoping
+to disclosure-only was judged not worth a fourth cycle today. D-2 (the
+code-written population header) remains correct and cheap; it is
+available to any future FR that reopens this demo. The judgement's
+revisions (R-1 truthful `{selected} of {judged}` header, R-3 local
+containment witness, R-4 non-gating observation) stand as recorded and
+are the starting point if it is reopened.
+
+**What the runs did surface**, recorded here because this FR is where
+the evidence lives:
+
+- Two lanes is the width this deployment bears: 349 429s but only 2 rows
+  lost to them. `config.max_concurrency: 4` on the census graph should
+  become `2` — a one-line, governed-route graph edit, not done here.
+- The residual ~20 `row_failed` per run were never 429s: 16–17 are
+  `problem_class 'docs' not in vocabulary` (the model answering with a
+  `change_kind` value because no `problem_labels` entry fits a
+  documentation PR) and 3 are `evidence_span is not a substring`. The
+  first is an invocation input gap — add `"docs"` to `problem_labels` —
+  and the FR-940 canonicalisation gate refusing the off-vocabulary
+  answer is the guard working, not a defect. Invisible in runs 1–2
+  because the 429 drops swamped it.
+- The operator's summary judgement on the deployment: `gpt-5.4-mini` in
+  `swedencentral` does not provide the capability this census needs at
+  a usable width; the quota, not the graph, is the ceiling.
+
+The operator-authorized post-enforcement observation (parent judgement
+R-7) is satisfied by runs 2 and 3 above; recorded in FR-984 as well.
 
 ## Judgement Fold — 2026-09-04
 
