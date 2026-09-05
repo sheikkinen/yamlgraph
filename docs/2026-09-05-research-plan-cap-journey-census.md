@@ -625,3 +625,72 @@ Conclusions:
 - Ready for the FR: three lists (comprehension → outsider score;
   merge-needs → reviewer partitions; §2 derived), `gpt-5.6-sol`, clean-cwd
   wrapper, first consumer #591 (done by hand here), second target FR bodies.
+
+## 13. Spike 2 — the outsider without Copilot: an `llm` node, standalone (2026-09-05)
+
+**Why.** FR-995 shipped on the Copilot CLI (`gpt-5.6-sol`): good at telling
+project shorthand from plain English, but it cannot be run outside a Copilot
+subscription, exposes no temperature, and flickered on the same text
+(NO → YES two minutes apart). Operator: "next spike outsider, but with llm or
+agentic node — by definition not relying (much) on copilot features. Target:
+stand-alone yamlgraph-outsider that gets the PR, runs the graph and posts the
+comment."
+
+**Setup.** `/Users/sheikki/Documents/src/outsider-spike-llm/`, committed copy at
+[docs/spikes/outsider-llm-2026-09-05/](spikes/outsider-llm-2026-09-05/).
+Three nodes: `fetch_pr` (python: `gh pr view --json title,body,headRefOid`, or
+a fixture file) → `outsider` (**`llm` node**, provider API, `temperature: 0.0`,
+**structured output via the prompt schema** — restatement, opinion, reason,
+unclear, needs) → `finalize` (python: validate, derive the verdict with the
+unchanged FR-995 rule, render the same four-section report, optionally
+`gh pr comment`). Entry point `yamlgraph-outsider <pr> [--post] [--model]
+[--provider] | --input <file>`. Footprint: `pip install yamlgraph`, `gh`, one
+API key. No Copilot anywhere. Model decision written in `graph.yaml` before
+the first run: `claude-sonnet-4-5` — a paragraph-level judgement, not a label.
+
+**What broke first.** The model returned the two `list[str]` fields as a
+JSON-encoded *string*; the schema boundary rejected it. This is the FR-059
+class ("provider's type lie") at yamlgraph's own boundary — the framework
+did not coerce it. The spike normalises in code (`_lines`: list, JSON string,
+or newline text); the two fields are declared `str`. Framework FR candidate.
+
+**Results** (same four fixture texts as §12, plus PR #592 live; verdict rule
+unchanged):
+
+| input | gpt-5.6-sol (Copilot, §12) | claude-sonnet-4-5 (API, T=0) |
+|---|---|---|
+| positive, run 1 | NO, 5 items | NO, 7 items |
+| positive, run 2 | **YES, 0 items** | NO, 6 items — **6 of 7 identical to run 1** |
+| pr-591 (old body) | NO, 8 | NO, 8 (all genuine shorthand) |
+| plain-591 | NO, 6 (team context) | NO, 8 — incl. "capabilities", "compliance evidence", "the process" |
+| pr-591-v2 | NO, 5 | NO, 7 |
+| PR #592 live | NO, 6 | NO, 8 — quotes the inline *gloss itself* and asks what it is |
+
+**Findings.**
+1. **Stability, solved by the API path.** T=0 through the provider is a real
+   control: 6/7 shared items across two runs, same verdict. The Copilot CLI's
+   flicker was the transport, not the task.
+2. **Calibration, worse.** Sonnet lists every path and identifier even when
+   the text explains it, and on #592 quoted the explanatory parenthetical as
+   the thing it did not understand. Under the ≤ 2 rule no real PR body
+   passes on sonnet. gpt-5.6-sol discriminates content better and flickers;
+   sonnet is stable and over-flags. Different failure modes, both real.
+3. **The fix is a reducer rule, not a prompt.** Items whose quote is a file
+   path, a bare identifier that appears in the body followed by a
+   parenthetical, or a phrase the body itself defines are *pointers*, not
+   vocabulary — demote them to the needs list in code (FR-725 junk-drawer
+   idiom). Two-strike rule applies: the prompt already says "not standard
+   vocabulary"; sonnet ignores it; stop rewording.
+4. **Structured output removed a failure class.** Zero rejected reports in
+   six runs; no markdown parsing; the typed boundary is the schema plus four
+   checks. Cost: the type lie in (1) above.
+5. **Standalone works end-to-end**: fetched #592, read it, posted the report
+   as a comment in ~25 s, with no Copilot dependency. Two comments now sit on
+   #592 for the same body — one from each model — for side-by-side reading.
+
+**What this changes for FR-995's successor.** The production reader should
+take the transport from this spike (API `llm` node, T=0, structured output,
+standalone entry) and add the code cap from (3). Model choice becomes an
+argument, not a pin — and the ledger should record which model wrote each
+row, which it already does. Whether sonnet-with-cap or gpt-5.6-sol reads
+better is then a measurement over the next twenty PRs, not an opinion.
