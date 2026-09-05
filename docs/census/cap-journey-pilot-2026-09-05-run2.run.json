@@ -1,0 +1,16 @@
+{
+  "model": "claude-haiku-4-5",
+  "git_sha": "a3945008",
+  "collected_at": "2026-09-05T04:10:55.406501+00:00",
+  "rows": 30,
+  "ledger_sha256": "19b3f1494eaecf838f34455fbf8002098b649bc7365dd07e2ea9816213fe02d2",
+  "canary_misses": [
+    "CAP-131: journeys ['serve_embed'] miss ['run_operate']",
+    "CAP-203: journeys ['author_graph'] miss ['census_classify']",
+    "CAP-203: disposition keep != extend",
+    "CAP-203: extend_to None not in ['audit_comply', 'census_classify']",
+    "CAP-11: consumer_cited 'examples/demos/map/graph.yaml' misses ['corpus_census', 'diary_census', 'person_profile_census', 'repo_census']",
+    "CAP-108: disposition keep != extend",
+    "CAP-108: extend_to None not in ['audit_comply']"
+  ]
+}

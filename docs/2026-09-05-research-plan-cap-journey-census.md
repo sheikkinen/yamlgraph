@@ -264,7 +264,8 @@ PYTHONPATH=$PWD yamlgraph graph run examples/demos/cap_journey_census/graph.yaml
 
 ### 10.2 Results — three runs, 30 CAPs (6 canaries + 24 seeded-random)
 
-Raw rows committed: [docs/census/cap-journey-pilot-2026-09-05.jsonl](census/cap-journey-pilot-2026-09-05.jsonl)
+Raw rows committed: [docs/census/cap-journey-pilot-2026-09-05-run3.jsonl](census/cap-journey-pilot-2026-09-05-run3.jsonl)
+(runs 1 and 2 alongside as `-run1`/`-run2`, added after the outsider read §12.6).
 (run 3). Every row of every run was read before any number below was written.
 
 | run | judged | row_failed | canary misses | what the read showed |

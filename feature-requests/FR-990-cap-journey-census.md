@@ -23,7 +23,7 @@ The chain proves every link is present (411/411 REQs covered) and cannot say whe
 
 ## Raw Output Read (measurement / metric-tooling FRs only)
 
-- **Samples read:** 30 rows × 3 pilot runs (90 rows), all read end-to-end. Committed: [docs/census/cap-journey-pilot-2026-09-05.jsonl](../docs/census/cap-journey-pilot-2026-09-05.jsonl) (run 3, SHA a110a103), ledger [cap-journey-pilot-2026-09-05.md](../docs/census/cap-journey-pilot-2026-09-05.md). Runs 1–2 in `tmp/cap-census/pilot.jsonl`, `pilot2.jsonl` (not committed; findings recorded here).
+- **Samples read:** 30 rows × 3 pilot runs (90 rows), all read end-to-end. All three runs committed under [docs/census/](../docs/census/): `cap-journey-pilot-2026-09-05-run{1,2,3}.{jsonl,md,run.json}` (run 3 at SHA a110a103 is the current instrument; runs 1–2 are the pre-fix rows the findings below cite).
 - **What I saw:**
   - Run 1: two rows (CAP-221, CAP-233) put `example_only` — a *blast_kind* enum value — into `journeys`. The model leaked one enum into another. Reducer now demotes to off-catalog instead of failing the row.
   - Run 1: CAP-203 (ICPC-2) evidence span was a paraphrase (`Core implementation uses map fan-out` vs yaml `Cluster fan-out (17 chapters…)`) while CAP-108's span matched exactly only after whitespace squashing — YAML folded scalars join lines with spaces. Two distinct evidence failure modes: formatting (fixed in code, `_squash`) and paraphrase (tolerant match: exact/prefix/ngram, kind recorded per row).
