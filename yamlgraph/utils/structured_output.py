@@ -16,7 +16,7 @@ Policy:
   library default (no ``method`` kwarg at all).
 - Invocation makes exactly one forced-tool-call second attempt when, and only
   when, Anthropic answers a typed 400 saying the model does not support
-  ``output_config`` (``llm_provider_identity``). Every other error — including
+  ``output_config`` (``llm_providers`` predicates). Every other error — including
   one raised by the second attempt — propagates unchanged.
 """
 
@@ -26,7 +26,7 @@ import logging
 from collections.abc import Callable
 from typing import Any
 
-from yamlgraph.utils.llm_provider_identity import (
+from yamlgraph.utils.llm_providers import (
     is_anthropic_chat_model,
     is_anthropic_unsupported_structured_output,
 )

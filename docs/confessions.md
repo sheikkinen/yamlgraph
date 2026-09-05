@@ -1363,7 +1363,7 @@ These are not `# noqa` suppressions — they are documented deviations from proc
 - **Penance**: Documents the retry-then-parse pattern. Renaming would obscure intent.
 
 ### CONF-352
-- **File**: [yamlgraph/utils/llm_providers.py](../yamlgraph/utils/llm_providers.py#L315)
+- **File**: [yamlgraph/utils/llm_providers.py](../yamlgraph/utils/llm_providers.py#L342)
 - **Code**: FB001
 - **Sin**: Docstring contains `fallback` — explicitly states there is NO silent fallback at this boundary.
 - **Penance**: The word is used to negate a fallback pattern, not to implement one.

@@ -33,7 +33,7 @@ import yamlgraph
 from yamlgraph.executor_base import attempt_structured_invoke
 from yamlgraph.node_factory.race_node import _invoke_candidate_async
 from yamlgraph.tools.agent import _try_structured_output
-from yamlgraph.utils.llm_provider_identity import (
+from yamlgraph.utils.llm_providers import (
     is_anthropic_chat_model,
     is_anthropic_unsupported_structured_output,
 )

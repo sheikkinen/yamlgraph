@@ -51,10 +51,14 @@ thing. Content-hash the line, or key on the enclosing symbol.
 
 **The 450-line wall at the boundary.** The judgement placed the two Anthropic
 predicates in `llm_providers.py`, "whose provider constructors already use
-lazy imports". That file is at exactly 450 lines, the size gate's ceiling.
-The predicates went into a sibling `llm_provider_identity.py` with the same
-discipline. Judges read code; they do not run `wc -l`. A plan that names a
-file should name its line count.
+lazy imports". That file was at exactly 450 lines, the size gate's ceiling.
+I put them in a sibling module, ticked AC-04 anyway, and wrote it up as a
+deviation. The review refused it: a deviation recorded by the deviator is
+drift, not authority. The honest move was one step further — extract the
+request-bound helpers that had nothing to do with providers, and put the
+predicates where the plan said. Judges read code; they do not run `wc -l`.
+A plan that names a file should name its line count, and an enforcer who
+hits the ceiling should make room, not move the goalpost.
 
 ## Heuristic
 

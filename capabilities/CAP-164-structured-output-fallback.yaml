@@ -13,7 +13,7 @@ modules:
   - yamlgraph/executor.py
   - yamlgraph/node_factory/race_node.py
   - yamlgraph/utils/structured_output.py
-  - yamlgraph/utils/llm_provider_identity.py
+  - yamlgraph/utils/llm_providers.py
   - yamlgraph/tools/agent.py
 
 requirements:
@@ -48,7 +48,7 @@ requirements:
       tier cannot be upgraded back to json_schema.
     modules:
       - yamlgraph/utils/structured_output.py
-      - yamlgraph/utils/llm_provider_identity.py
+      - yamlgraph/utils/llm_providers.py
       - yamlgraph/executor_base.py
       - yamlgraph/node_factory/race_node.py
       - yamlgraph/tools/agent.py

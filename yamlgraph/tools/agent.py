@@ -29,7 +29,10 @@ from yamlgraph.utils.guard_runtime import (
 from yamlgraph.utils.json_extract import extract_json
 from yamlgraph.utils.llm_factory import create_llm
 from yamlgraph.utils.prompts import load_prompt
-from yamlgraph.utils.structured_output import bind_structured_output
+from yamlgraph.utils.structured_output import (
+    bind_structured_output,
+    invoke_structured,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -91,9 +94,9 @@ def _try_structured_output(
         HumanMessage(content="Now produce your response as structured JSON output.")
     ]
     try:
-        structured_llm = bind_structured_output(llm_base, output_model)
-        result = structured_llm.invoke(retry_msgs)
-        return result.model_dump()
+        # FR-998: the policy owns invocation too — one typed second attempt
+        # for an Anthropic model that rejects constrained decoding.
+        return invoke_structured(llm_base, output_model, retry_msgs).model_dump()
     except Exception as reinvoke_err:
         err_str = str(reinvoke_err)
         # FR-458: OpenAI strict mode rejects schemas without additionalProperties
