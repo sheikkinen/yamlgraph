@@ -1,0 +1,29 @@
+[function_calling] unclear arg type=str needs arg type=str
+raw unclear[:120] = "\n- \"yamlgraph\" \u00b7 is this the name of this project or a tool it uses?\n- \"FR-990\" \u00b7 what does the FR pref
+[function_calling] parsing_error = 2 validation errors for OutsiderReading
+unclear
+  Input should be a valid list [type=list_type, input_value='\n- "yamlgraph" · is th...code-generation tool?\n', input_type=str]
+    For further informa
+---
+[function_calling] unclear arg type=str needs arg type=str
+raw unclear[:120] = "\n- \"yamlgraph\" \u00b7 is this the name of this project or a tool it uses?\n- \"FR-990\" \u00b7 what does the FR pref
+[function_calling] parsing_error = 2 validation errors for OutsiderReading
+unclear
+  Input should be a valid list [type=list_type, input_value='\n- "yamlgraph" · is th...code-generation tool?\n', input_type=str]
+    For further informa
+---
+[function_calling] unclear arg type=str needs arg type=str
+raw unclear[:120] = "\n- \"yamlgraph\" \u00b7 is this the name of this project or a dependency?\n- \"FR-990\" \u00b7 what does the FR prefix
+[function_calling] parsing_error = 2 validation errors for OutsiderReading
+unclear
+  Input should be a valid list [type=list_type, input_value='\n- "yamlgraph" · is th...ommitted brief" mean?\n', input_type=str]
+    For further informa
+---
+[json_schema] content[:120] = {"restatement": "This PR adds a small pipeline that surveys 242 'capabilities' (features the software claims to have, ea
+[json_schema] parsing_error = None
+[json_schema] parsed OK: unclear=5 needs=0
+---
+[json_schema] content[:120] = {"restatement": "This PR adds a small pipeline that surveys 242 'capabilities' (features the software claims to have, ea
+[json_schema] parsing_error = None
+[json_schema] parsed OK: unclear=7 needs=0
+---
