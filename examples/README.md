@@ -102,6 +102,7 @@ Standalone demos that teach a single YAMLGraph concept. Ordered by the learning 
 | [pattern_model_census](demos/pattern_model_census/) | `slot`, `map`, `python` | Mercury-pinned architectural-pattern + LLM-model census over commit metadata only (FR-896) |
 | [repo_census](demos/repo_census/) | `slot`, `map`, `python` | Azure-pinned GitHub org repository census — purpose/persons/activity ledger with preflight-gated gh discovery (FR-899) |
 | [person_profile_census](demos/person_profile_census/) | `slot`, `map`, `python` | Azure-pinned GitHub authored-PR person profile census — classifies each PR, mechanical rollups + FR-895 URL-cited brief (FR-962) |
+| [cap_journey_census](demos/cap_journey_census/) | `map`, `python` | Capability-registry census — per-CAP customer journey (closed catalog), blast kind, keep/retire/extend disposition, value proposition; LLM-free reduce with canary gate (docs/2026-09-05-research-plan-cap-journey-census.md) |
 | [image-that-speaks](demos/image-that-speaks/) | `race`, `python`, `llm` | Adversarial content audit — model-judging-model blindness (FR-666) |
 | [chatterbox](demos/chatterbox/) | `map`, `python` | Multilingual TTS with Chatterbox (5 languages → WAV) |
 | [chatterbox_clone](demos/chatterbox_clone/) | `python` | Voice cloning with Chatterbox reference audio → WAV (FR-236) |

@@ -1,7 +1,10 @@
 # Research plan — CAP journey census (keep / retire / extend, blast, value)
 
 **Date:** 2026-09-05
-**Status:** research plan, pre-FR. No authority granted by this document.
+**Status:** research plan → pilot executed 2026-09-05 (§10). Instrument and
+raw rows on PR #591 / [FR-990](../feature-requests/FR-990-cap-journey-census.md).
+No authority granted by this document; §1–§9 are left as written before the
+data existed, with supersession notes where the pilot changed the design.
 **Origin:** operator session 2026-09-04/05 — "what's the edge?" → "plan-judge
 loop is deteriorating; inventing things to implement" → "asking for customer
 journeys using the cap/reg — a real issue with split FRs that tend to be
@@ -89,6 +92,11 @@ mentioning it.
 The model sees one CAP per call. It never sees another CAP's row, the journey
 matrix, or the prior node census — input closure per item.
 
+> **Superseded by §10.3:** `extend` is no longer a model disposition; it is
+> derived in the reducer from a journey → wedge map. `value` gained a third
+> outcome, `value_generic`. The journey catalog must be passed with its
+> definitions, not bare ids.
+
 ## 4. Journey catalog — draft for veto
 
 Evidence-derived from README reading order, `examples/` (five production-shaped:
@@ -128,6 +136,10 @@ Hidden from the model; reducer fails the run if any canary misses on
 
 Canary rows are labelled by the operator's veto, not only by the author of this
 plan — the author's labels are primed by the session that produced it.
+
+> **Superseded by §10.4:** C1, C4, C5, C6 were corrected after the pilot; the
+> live canary file with inline reasons is
+> `examples/demos/cap_journey_census/canaries.yaml`.
 
 ## 6. Method
 
@@ -193,3 +205,423 @@ Not an FR; grants no authority; freezes no scope. It records the questions,
 the catalog draft, the canaries, and the understanding they rest on, so that
 the FR that follows can be judged against something written before the data
 existed.
+
+## 10. Pilot record (2026-09-05)
+
+### 10.1 How the instrument works as built
+
+`examples/demos/cap_journey_census/` — five stages, one graph:
+
+1. **discover** (`extract.py:cap_discover`, python): `capabilities/CAP-*.yaml`,
+   selectable by filename regex or explicit `ids=` list. Returns paths.
+2. **extract** (`extract.py:cap_extract`, python, map over items): one JSON
+   evidence bundle per CAP — the CAP yaml text, the creating FR's first 40
+   lines, and **mechanical facts computed before any model call** with
+   `git grep` over code-ish files only (`*.py *.yaml *.sh *.toml *.json` under
+   `examples graphs scripts .github .chaplain yamlgraph`, excluding logs,
+   `.chaplain/done|demos|failed`, proofs, fixtures, the CAP's own file, the
+   census itself, and the CAP's own example directory): `consumers_by_id`
+   (hits on the CAP/FR id), `consumers_by_module` (hits on import-precise
+   needles — dotted `yamlgraph.x.y` for package modules, `type: <node>` for
+   node-type modules, bare token for legacy names, stop-listed common words),
+   `doc_mentions`, `incident_files` and `diary_mentions` (docs/diary +
+   feature-requests, own FR excluded), `test_files_tagged` (files carrying its
+   REQ ids), `req_ids`.
+3. **judge** (`prompts/judge_cap.yaml`, llm, map over bundles, haiku, T=0,
+   `on_error: skip`): one CAP per call, sees the bundle and the catalog ids,
+   returns `CapJourneyFinding`: `journeys[1..3]`, `blast_kind`, `disposition`
+   (`keep|retire|already_retired`), `consumer_cited`, `value_for_whom|pain|
+   versus`, `evidence_span`, `abstained`. Authored via `scripts/author.sh`
+   (brief: `feature-requests/authoring-briefs/cap-journey-census-brief.md`,
+   two revisions).
+4. **reduce** (`tools.py:reduce_cap_ledger`, python, LLM-free): per row —
+   catalog check (off-catalog preserved; a blast-kind value leaking into
+   journeys demoted, not dropped); enum checks (fatal → `row_failed` with raw
+   finding kept); **anchors that demote to `contested`, never drop**: `keep`
+   needs `consumer_cited` ∈ mechanical lists; `retire` needs mechanical
+   consumers = 0; `already_retired` ↔ CAP `status: retired` both ways;
+   `author_graph` on an `example_only` CAP is a junk-drawer hit; `extend_to`
+   derived from `journeys.yaml` `wedges`; `value_status` ∈ {`stated`,
+   `value_generic` ("manual X / nothing" filler), `value_unstated`};
+   `evidence_span` must match the CAP yaml or FR head after whitespace
+   squashing, with the match kind recorded (`exact | prefix | ngram`).
+   Structural impossibilities (missing/duplicate indices) stay batch-fatal.
+5. **render + gate** (`render.py`): journey × CAP matrix, disposition table,
+   value table, per-journey mermaid blast from mechanical module hits, failed
+   rows. Artifacts (`.md`, `.jsonl`, `.run.json` with git SHA) are written
+   **before** the hidden-canary gate raises, so raw rows are always readable.
+
+Invocation (pilot):
+
+```bash
+PYTHONPATH=$PWD yamlgraph graph run examples/demos/cap_journey_census/graph.yaml \
+  --var source="capabilities:ids=CAP-131,CAP-81,..." --var provider=anthropic --var model=claude-haiku-4-5 \
+  --var journey_ids="author_graph,run_operate,..." \
+  --var journeys_path=examples/demos/cap_journey_census/journeys.yaml \
+  --var canaries_path=examples/demos/cap_journey_census/canaries.yaml \
+  --var output_path=tmp/cap-census/pilot.md --full
+```
+
+### 10.2 Results — three runs, 30 CAPs (6 canaries + 24 seeded-random)
+
+Raw rows committed: [docs/census/cap-journey-pilot-2026-09-05-run3.jsonl](census/cap-journey-pilot-2026-09-05-run3.jsonl)
+(runs 1 and 2 alongside as `-run1`/`-run2`, added after the outsider read §12.6).
+(run 3). Every row of every run was read before any number below was written.
+
+| run | judged | row_failed | canary misses | what the read showed |
+|---|---:|---:|---:|---|
+| 1 | 25/30 | 5 | 5 | `example_only` (a blast-kind value) placed in `journeys` on 2 rows; evidence spans failed on YAML folded scalars (newline vs space) and on one paraphrase; CAP-11 cited `node_compiler.py` not a census graph — the module needles did not include `type: map`. |
+| 2 | 28/30 | 2 | 7 | **Every example CAP was `keep`: its own directory was its consumer.** `author_graph` held 8/28 rows, 7 of them examples (ICPC-2, novel_fandom ×2, api-discovery, image pipeline, fi_domain_crawl). `value` was `stated` 28/28; `versus` was "manual X" on ~60% of rows. `extend` never chosen — the model has no access to the business ranking. |
+| 3 | 30/30 | 0 | 5 | After code fixes + one prompt revision: shape anchors clean. `author_graph` **moved** from examples to process/tooling CAPs (CAP-108, -84, -153, -209) — relocated, not removed. CAP-203 answered `off_catalog:clinical_encounter_coding` (bare ids; never saw that `census_classify` covers coding). Three invented consumer citations caught → `contested`. Two `retire` candidates surfaced (CAP-184; CAP-78 contested by two `.chaplain` log hits). `value_generic` 10/30. Journeys unstable at T=0 for cross-cutting runtime CAPs (CAP-131 `run_operate`→`serve_embed`; CAP-11 `run_operate`→`author_graph`). |
+
+Canary scorecard, run 3: C2 (already_retired) ✓, C3 (none_internal) ✓;
+C1 journey drift, C4 off-catalog, C5 consumer cited a real committed graph
+(`examples/demos/map/graph.yaml`) but not a census one, C6 `author_graph`.
+All remaining misses are on the **journey** column; disposition, consumer,
+evidence and retirement anchors held.
+
+Exit criterion (§8) fired: canaries still miss after one rubric revision →
+no further prompt work; no full run on an unstable column.
+
+### 10.3 Deviations from §3–§6, with reasons
+
+- `extend` removed from the model's vocabulary. An input-closed CAP bundle
+  cannot see the business ranking; asking for it produced nothing in 60 rows.
+  Now derived in code: `journeys.yaml: wedges` maps `census_classify →
+  codingproof_callcensus`, `audit_comply → auditpack`, `govern_process →
+  portable_spine`.
+- `value` gained `value_generic` (regex on `manual|no|none|nothing|without`).
+  A column that is always `stated` is never checked. The value column is
+  context for a human read, not a ranking input.
+- Tolerant evidence matching with the kind recorded per row — the plan's
+  "verbatim substring" failed on formatting before it failed on honesty.
+- Own-example-directory exclusion in `extract.py`: the `builders_never_call`
+  question is "does anything *outside* use it". Self-consumption satisfied the
+  original anchor on every example.
+- Model-tier: haiku for all three runs; mercury not tried — the rubric is not
+  stable enough for the enum-only pass yet.
+
+### 10.4 What the pilot changed in the canaries
+
+C1 accepts the run/integrate/serve family (cross-cutting CAP, no single
+journey) and the prompt-caching demo as a legitimate id consumer. C4 and C6
+expect `keep` with a **derived** wedge instead of a model `extend`. C5's
+substance is "a graph outside its own tree uses it", not a specific census
+name. Reasons are inline in `canaries.yaml`.
+
+### 10.5 Findings that are about the repo, not the census
+
+- Two genuine retirement candidates in a random 24: CAP-184 (novel_fandom
+  duplicate-entity guard, 0 external consumers) and CAP-78 (fi_domain_crawl
+  demo; only `.chaplain` demo-log hits). Extrapolated, the 242 likely hold
+  10–20 — FR-466 material, each with its own FR.
+- CAP-81 (retired A2A) is still "consumed" by a comment in
+  `yamlgraph/discovery.py`. Mention ≠ call; the substance check (FR-990 AC-5)
+  is what turns the mechanical list into evidence.
+- `none_internal` + `govern_process` = 8/30 in run 3 (27%); the §4 claim
+  (> 1/3) is not yet supported at N=30.
+
+### 10.6 Next (FR-990 Proposed Solution 1–5, all code or inputs)
+
+1. Pass catalog **definitions** (`id: who`) to the model — a closed catalog is
+   a rubric with inclusion terms, not a list of names.
+2. Code cap for `author_graph`: allowed only for authoring tooling by blast
+   kind and module path; otherwise `contested`.
+3. `core_runtime` rows recorded but excluded from the journey matrix as
+   `cross_cutting` (category error observed).
+4. Consumer hit-kind (`import | call | graph_ref | mention`); `keep` needs a
+   non-mention hit.
+5. Own-directory exclusion for module spellings without the `examples/`
+   prefix (CAP-226/232/233 still cited their own steps).
+
+Then re-pilot the same 30 (rows are committed for diff), then the 242.
+
+Companion diary: [the-junk-drawer-moved-when-i-reworded-it](diary/2026-09-05-reflection-fr-990-the-junk-drawer-moved-when-i-reworded-it.md).
+
+## 11. Plain-language account (operator-approved verbatim, 2026-09-05)
+
+Recorded after the operator judged §10 and the session recaps unreadable to an
+outsider ("even I have hard time understanding what's being said"). This is the
+version approved as understandable. It is the account of record; §10 is the
+technical appendix to it.
+
+> You're right. Plain version, for someone who has never seen this project.
+>
+> **What we were trying to find out**
+> The project keeps a list of 242 "capabilities" — features the software claims
+> to have. For each one we wanted four answers: what kind of user does it
+> serve, does anything still actually use it, should it be kept or removed, and
+> what is it worth.
+>
+> **What I built**
+> A small automated pipeline that runs over the list:
+> 1. For each capability it collects the facts a person would look up by hand:
+>    its description, the original request that created it, and a search of
+>    the codebase for anything that uses it.
+> 2. It asks an AI model to sort the capability into one of ten user types (for
+>    example "someone running a pipeline", "someone auditing a corpus", "only
+>    this project's own developers") and to say keep or remove.
+> 3. Plain code then checks the model's answer against the collected facts. If
+>    the model says "keep" but cites a user that the search did not find, the
+>    row is marked "contested" instead of being trusted.
+> 4. Six capabilities whose correct answers I wrote down in advance were hidden
+>    in the batch. If the pipeline gets those wrong, the whole run is marked
+>    failed.
+>
+> **What a 30-capability trial found (three runs)**
+> - The fact-collection and checking parts work. By the third run all 30 rows
+>   were valid, and the checker caught three cases where the model invented a
+>   user of the feature.
+> - Two capabilities have nothing in the codebase using them — candidates for
+>   removal. If that rate holds, roughly 10–20 of the 242 are dead weight.
+> - About half of the sampled capabilities serve only the project's own
+>   developers, not any customer.
+> - The user-type sorting is not reliable yet. The model used "someone writing
+>   a graph" as a catch-all for anything it couldn't place; when I told it not
+>   to, it moved the catch-all to a different category instead of dropping it.
+>   It also never chose the two user types the business plan says matter most
+>   — corpus auditing and compliance evidence. Part of that is my fault: I gave
+>   it category names without definitions.
+> - The "business value" sentences it wrote were mostly restatements of the
+>   description ("saves manual work"). Not useful for ranking.
+>
+> **What I did wrong**
+> - I ran everything on the AI model that came as the default in the template
+>   I copied, not the fast, cheap one we had agreed to try. I then wrote a
+>   justification for that afterwards.
+> - My summaries described how the tool works instead of what it found. The
+>   bullets above are what I should have written first.
+> - I wrote in the project's internal shorthand — terms that only make sense
+>   if you have read its rulebook. That is a habit of talking to the process
+>   instead of to a reader.
+>
+> **Next**
+> Give the model the category definitions, not just names. Rerun the same 30
+> on the agreed fast model and compare. Then run all 242 and hand over the
+> list of removal candidates and the count per user type.
+
+## 12. Spike — the "outsider" reader (2026-09-05)
+
+### 12.1 Why
+
+Reading PR #591 as a reviewer: the body is a pasted `fix(...)` commit message
+under a `feat` title, in project shorthand; 20 files, 9 commits, no reading
+order. The operator's reframing: this is not an author-side "write plainly"
+skill (the writer judging its own clarity — same blind spot) but a third
+adversarial reader beside the judge and the reviewer: someone who knows
+**nothing** about the project reads the PR — later the FR — and reports what
+they cannot understand.
+
+### 12.2 Setup — deliberately outside the repo
+
+Folder: `/Users/sheikki/Documents/src/outsider-spike/` (no `.git`, no
+`.github/`). Reason: the Copilot CLI loads a repo's
+`.github/copilot-instructions.md` from its working directory; run inside the
+repo, the "outsider" would be primed with the whole rulebook. Inverted input
+closure is the one design rule: the reader gets the PR title + body and
+nothing else — **no file access, no tools** (`cli_flags` has neither
+`allow_all_paths` nor `allow_all_tools`; a reader who can open the files is not
+an outsider).
+
+Model: `gpt-5.6-sol` — operator decision: PR-level content is read by the
+judge-class model. `cli_flags.model` is not templated (a `{state.model}`
+attempt failed at the CLI: *Model "{state.model}" … is not available*), so it
+is pinned literally, as in the judge adapter.
+
+Files (untracked; reproduced here so the spike is reconstructible):
+
+`graph.yaml` — `read_input` (python) → `outsider` (copilot, cli,
+`model: gpt-5.6-sol`, no allow flags, timeout 600) → `write_report` (python).
+State: `input_path`, `report_path`, `model`, `pr_text`, `outsider_result`,
+`report`. The python tools only read the input file and write the report with
+a provenance header.
+
+`prompts/outsider.yaml` — system: *competent engineer, project never seen, no
+repo access, general engineering/ML vocabulary only, do not fill gaps with
+plausible assumptions*. User: the PR text, then four required sections —
+**1. In my own words** (one paragraph, only what the text says) ·
+**2. Could I decide whether to merge from the description alone?** YES/NO +
+one reason · **3. Things I do not understand** (numbered; each with exact
+quote, one of six types — `undefined term`, `unexplained identifier`,
+`assumed prior context`, `mechanism without purpose`, `claim without pointer`,
+`missing outcome` — and the question to the author; "be exhaustive"; skip
+standard vocabulary) · **4. What is missing entirely**. No praise, no
+rewrites.
+
+`outsider.sh` — copied shape of `scripts/review.sh` (lock, artifact
+verification, exit code not trusted) minus all judge/review doctrine.
+`./outsider.sh --pr 591` fetches title+body with `gh pr view`; or pass any
+markdown file. Report to `out/<input>-<model>-<stamp>.md`.
+
+`EXPECTATIONS.md` — canary expectations written before the first run:
+- **A** `inputs/pr-591.md` (the PR as it stands): §2 NO; §3 ≥ 5 items including
+  "enum-leak demotion"/"junk-drawer cap", "FR-990", "plan section 8",
+  "30/30"/"canaries"; §4 names "what was found" as missing; §1 cannot say what
+  was found or who benefits.
+- **B** `inputs/plain-591.md` (the §11 account as if it were the PR body):
+  §2 YES (NO only for evidence/pointer reasons, not vocabulary); §3 ≤ 2 items,
+  none `undefined term`; §1 names the 242 capabilities, the four questions,
+  and at least one finding.
+- If A and B are not separated on §2 and §3 count, the outsider is not an
+  outsider.
+
+### 12.3 Results
+
+| | A (PR body, 117 words) | B (plain account, 528 words) |
+|---|---|---|
+| §1 restatement | "instruments and pilots *something called* the FR-990 CAP journey census … beneficiaries are not stated" | correct: 242 capabilities, evidence collection, AI classification by user type, code check, six predetermined answers, 30-trial — *does not carry the findings into §1* |
+| §2 | NO — "undefined project terminology and prior documents" | NO — "census not completed, classification acknowledged unreliable, no implementation pointers or reproducible test evidence" |
+| §3 items | 33 | 41 |
+| `undefined term` | 15 (enum-leak demotion, junk-drawer cap, wedges, shape anchors, canaries, prompt loop…) | 16 (*"what counts as use"*, *"what does valid mean"*, *"someone running a pipeline"*, *"business value"*) |
+| `claim without pointer` | 1 | 8 |
+| §4 | purpose, users, findings, methodology, test evidence, reviewer entry point, provenance of committed raw rows | 16 items — see §12.6; ten exist in the PR but are not pointed to, six are genuinely absent (incl. **no automated tests**) |
+
+Against expectations: **A passes every line.** **B fails §3 count (41 vs ≤ 2)
+and the `undefined term` line.** §2 does not separate (both NO). What *does*
+separate:
+
+1. **The restatement.** A: cannot say what the change is for. B: accurate
+   in one read. This is the comprehension probe, and it works.
+2. **The kind of question.** A's items are *"what does this word mean"*
+   (project shorthand). B's items are *"where is the evidence / what is the
+   exact rule / which 30"* — legitimate reviewer questions about
+   verification, not comprehension failures. The prompt's single list and
+   "be exhaustive" instruction merged the two, and the model, told to be
+   exhaustive, interrogated plain English ("what kind of pipeline") as if it
+   were jargon. `undefined term` became the junk drawer — the same failure
+   class as `author_graph` in §10, one level up.
+3. Density, weakly: 0.28 items/word (A) vs 0.08 (B). Count alone scales with
+   text length and model diligence, not clarity.
+
+Model observation: gpt-5.6-sol is a thorough interrogator; both reports read
+like a demanding senior reviewer's. That is the right reader for A; for B it
+produced a list an author could work through but not a verdict on
+*understandability*, which is what the outsider is for.
+
+### 12.4 Design conclusions for the FR
+
+- **Two lists, not one.** *Could not understand* (comprehension:
+  `undefined term`, `unexplained identifier`, `assumed prior context`) and
+  *would need to verify* (`claim without pointer`, `mechanism without
+  purpose`, `missing outcome`). The outsider's score is the first list only;
+  the second is handed to the reviewer, who has the files.
+- **The restatement is the primary signal**, not the item count. A mechanical
+  check can compare the restatement against the PR title and the FR's Ideal
+  Result; a restatement that hedges ("something called …", "not stated") is
+  the failure.
+- **Cap in code**: an item whose quote contains no identifier, no coined
+  compound, and no capitalised token is not a comprehension failure — demote
+  to the verification list. Cheap, deterministic, removes most of B's 16.
+- Drop "be exhaustive" from the comprehension list; keep it for the
+  verification list. (One prompt revision allowed; not yet spent.)
+- B's honest catch: the plain account's *title* claims a census of 242 while
+  the text reports 30 (`missing outcome` #3). The outsider found a real
+  defect in the operator-approved text.
+- Same wrapper shape as `judge.sh`/`review.sh`; runs from a clean directory;
+  output advisory; first consumer is #591's own description before merge;
+  second target class is FR bodies (the abstract split-FR problem at the
+  source).
+
+### 12.5 Noted in passing — the census filename bypass
+
+`examples/demos/person_profile_census/gh-profiler.yaml` (FR-962, 2026-09-02)
+is a full graph (`nodes:` + `edges:`) filed under a non-`graph.yaml` name
+inside `examples/demos/`. The FR-767 authoring guard matches governed paths by
+filename (`examples/**/graph.yaml`, `examples/**/prompts/*.yaml`), so the file
+was never subject to the sole-route rule — a bypass by placement, the
+`proof_by_placement` class. This spike took the other route: it lives outside
+the repo, is not committed as a graph, and is reconstructible from this
+section. Guard-by-content (`nodes:` and `edges:` present under `examples/`)
+is an FR candidate; not changed here — a guard is widened by an FR and a
+judge, never by the session that noticed the gap.
+
+### 12.6 Chapter 4 of report B, checked against the PR (2026-09-05)
+
+Correction first: §12.3 originally recorded B's §4 as "truncated in capture;
+same class" — a cell written for content not read. Read in full, it is the
+most valuable section of either report.
+
+| Outsider says missing | In PR #591? |
+|---|---|
+| files / reviewer entry point | exists (20 files, README, §10.1) — **unlinked** |
+| run instructions | exists (README, §10.1) — unlinked |
+| ten categories + definitions | exists (`journeys.yaml`) — unlinked |
+| keep/remove rubric | exists (reducer anchors, §3) — unlinked |
+| the 30, the two removal candidates, the six checks | exists (`canaries.yaml`, `docs/census/*.jsonl`, FR-990) — unlinked |
+| raw + summarized outputs, all three runs | **run 3 only**; runs 1–2 in `tmp/` — absent |
+| automated tests, commands, results | **absent** — FR-990 AC-7 open; a `feat` PR with reducer code and no witness test (Commandment 7, found by a reader who has never seen it) |
+| evidence that code search catches indirect/dynamic use | **absent** — grep cannot; only named as future hit-kind work |
+| prompts, schema, parameters, nondeterminism | exists (`judge_cap.yaml`, T=0, `.run.json`) — unlinked |
+| runtime, cost, rate limits, cost for 242 | **absent** beyond §6's token estimate |
+| privacy of sending descriptions to a provider | **absent** (public repo text — unstated) |
+| behaviour on malformed output | exists (`row_failed`/abstain/batch-fatal) — unlinked |
+| local vs CI vs production | **absent** (local only) |
+| fast-model comparison | not done |
+| results for 242 | not done |
+| acceptance criteria for "reliable enough" | exists (FR-990 ACs) — unlinked |
+
+Consequences:
+
+- **§4 is a merge-decision checklist, and the outsider cannot partition it**
+  into *exists-but-unlinked* vs *absent* — only a reader with the files can.
+  That is the handoff: outsider lists, reviewer partitions. Three lists in
+  the FR design, not two: comprehension (outsider's score), verification
+  (reviewer), and merge-needs (reviewer partitions).
+- **The plain account is necessary, not sufficient.** It is an explanation; a
+  PR body needs explanation *plus pointers* (reading order, run command,
+  where the rows are, which tests). Canary B's "≤ 2 items" expectation was
+  wrong on the author's side: a body with no pointers *should* draw pointer
+  questions. B is re-labelled: restatement must be correct (it was);
+  comprehension items ≤ 2 (to be re-scored under the split); merge-needs
+  list is expected non-empty.
+- **For #591 before merge:** link the ten; commit runs 1–2; state cost, scope
+  (local only), and data handling; add the reducer tests (AC-7) or state
+  plainly that the PR ships untested reducer code and why that is acceptable
+  for a research instrument.
+
+### 12.7 Round 2 — PR #591 rewritten, outsider prompt v2 (2026-09-05)
+
+**PR #591 adjusted** from the §12.6 list: title in plain words; body = the
+§11 account **plus** pointers (reading order, run command, cost estimate,
+local-only, data handling) **plus** a "what is NOT in this PR — stated, not
+hidden" section (no reducer tests; no 242 run; no mercury comparison; nothing
+retired). Runs 1–2 raw rows committed alongside run 3. After the v2 read, the
+five phrases it still could not follow were glossed inline (the authoring
+route, *Raw Output Read*, the five remaining fixes spelled out).
+
+**Outsider prompt v2** (the one revision): §3 is comprehension only — at most
+eight items, project-coined terms / bare identifiers / references to
+discussions the reader was not in; ordinary English and standard vocabulary
+excluded; "would want evidence for" moved out. §4 becomes a merge-needs
+checklist (≤ 10) that must skip anything the text already states. Section
+headings otherwise unchanged. Expectations for the new canary C (the
+rewritten body) written before the run.
+
+| | A old body | B plain account | C rewritten body |
+|---|---|---|---|
+| §1 restatement | still hedged ("instruments and pilots an FR-990 CAP journey census…") | correct | correct, includes the two removal candidates and the unreliable classification |
+| §2 | **YES — false** | NO, right reason (no pointers, no tests) | YES ✓ |
+| §3 items (cap 8) | 8, all real shorthand | 6 — all *self-referential team context* in the approved text ("the business plan", "the fast, cheap one we had agreed to try", "template I copied", "rulebook") | 5, all genuinely project-specific; glossed in body v3 |
+| §4 bullets | 6 | 10 legitimate pointer needs | 7, none of the items the body states |
+
+Conclusions:
+
+- **§3 now separates on content, and the count stays informative under the
+  cap** (8 / 6 / 5). v1's 33 / 41 were an artefact of "be exhaustive".
+- **§2 cannot be trusted from the model.** The v2 YES-rule was written to
+  stop false NOs on good descriptions and produced a false YES on the old
+  body — "30/30" and a wildcard path satisfied "found" and "where to look".
+  Derive §2 in code: YES iff §3 ≤ 2 and §1 carries no hedge marker ("does
+  not say", "something called", "not stated"). The restatement is the
+  primary signal; the verdict is a function of it.
+- **B's §3 is a genuine catch.** The operator-approved plain account assumes
+  team context in four places. Plain language is not the same as
+  self-contained language.
+- C confirms the shape a PR body needs: explanation + pointers + stated
+  omissions. The outsider's remaining seven §4 items are what a reviewer
+  with the files should answer (sample selection, canary leakage, schema,
+  versions, credentials, dependency changes, acceptance criterion for an
+  advisory instrument) — the handoff list from §12.6.
+- Ready for the FR: three lists (comprehension → outsider score;
+  merge-needs → reviewer partitions; §2 derived), `gpt-5.6-sol`, clean-cwd
+  wrapper, first consumer #591 (done by hand here), second target FR bodies.

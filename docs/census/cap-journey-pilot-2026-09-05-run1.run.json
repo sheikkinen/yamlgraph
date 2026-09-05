@@ -1,0 +1,14 @@
+{
+  "model": "claude-haiku-4-5",
+  "git_sha": "a3945008",
+  "collected_at": "2026-09-05T04:07:43.066452+00:00",
+  "rows": 30,
+  "ledger_sha256": "5872150e841948bc33f8fd902a17a452dc890f2b2bb32aec29e3beb4168a9e0a",
+  "canary_misses": [
+    "CAP-131: consumer_cited 'examples/demos/prompt-caching/graph.yaml' misses ['llm_factory', 'executor_base', 'prompts']",
+    "CAP-203: row_failed (evidence_span is not a substring of the CAP yaml or FR head)",
+    "CAP-11: journeys ['author_graph'] miss ['run_operate', 'census_classify']",
+    "CAP-11: consumer_cited 'yamlgraph/compile/node_compiler.py' misses ['corpus_census', 'diary_census', 'person_profile_census', 'repo_census']",
+    "CAP-108: row_failed (evidence_span is not a substring of the CAP yaml or FR head)"
+  ]
+}

@@ -1997,3 +1997,15 @@ The ID ranges are:
 - **Code**: N815
 - **Sin**: `apiProvider: str` — camelCase field in `_ClaudeAuthStatus`.
 - **Penance**: FR-959 — same vendor-JSON mirroring rationale as CONF-454.
+
+### CONF-457
+- **File**: [examples/demos/cap_journey_census/tools.py](../examples/demos/cap_journey_census/tools.py#L28)
+- **Code**: E402
+- **Sin**: `from examples.demos.cap_journey_census.extract import …` after a `sys.path.insert` — module-level import not at top.
+- **Penance**: CAP journey census (docs/2026-09-05-research-plan-cap-journey-census.md) — demo-local split to stay under the 450-line gate; the REPO_ROOT path bootstrap must precede the import (CONF-443 idiom).
+
+### CONF-458
+- **File**: [examples/demos/cap_journey_census/tools.py](../examples/demos/cap_journey_census/tools.py#L32)
+- **Code**: E402
+- **Sin**: `from examples.demos.cap_journey_census.render import _markdown` after a `sys.path.insert` — module-level import not at top.
+- **Penance**: Same split as CONF-457 (rendering moved to render.py for the size gate); same bootstrap ordering.

@@ -1,0 +1,75 @@
+system: >
+  You classify exactly one YAMLGraph capability from one JSON evidence bundle.
+  Use only the supplied bundle: CAP yaml, creating-FR head, and mechanical facts
+  such as consumer paths, document mentions, incident-file count, diary mentions,
+  and tagged test files. Do not guess consumers outside the mechanical lists.
+  When the bundle cannot support a journey classification, abstain instead of
+  inventing evidence. The journey is the capability's end-user journey, not the
+  viewpoint of a graph author reading the capability.
+
+user: |
+  Journey ids (closed catalog):
+  {journey_ids}
+
+  Evidence bundle:
+  ---
+  {content}
+  ---
+
+  Source index:
+  {source_index}
+
+  Return exactly one classification for this capability:
+  - source_index: echo the Source index exactly.
+  - journeys: 1 to 3 values. Each value must be one journey id from the closed catalog, or off_catalog:<snake_case_label> when none fits. For examples and demos, choose the domain journey demonstrated by the example, not author_graph merely because someone could study the graph. Use author_graph only for authoring tooling such as lint, schema, expressions, skills, or templates. Use none_internal when the capability serves only this repo's developer velocity. Never put a blast_kind value in journeys.
+  - blast_kind: exactly one of core_runtime, node_type, cli_surface, tooling_integration, process_infra, example_only.
+  - disposition: exactly one of keep, retire, already_retired. Use already_retired only when bundle status is retired. Use keep only with consumer_cited copied from a mechanical consumer list. Use retire only when mechanical consumer lists are empty.
+  - consumer_cited: one path copied verbatim from mechanical.consumers_by_id or mechanical.consumers_by_module, otherwise "".
+  - value_for_whom: the journey id for who benefits, otherwise "".
+  - value_pain: one sentence naming the pain removed, otherwise "".
+  - value_versus: the named real alternative, such as raw LangGraph, a script, or a vendor feature, otherwise "". Do not use "manual X" or "nothing" as the alternative.
+  - evidence_span: a short exact substring of the CAP yaml text or FR head supporting journeys; empty only when abstained.
+  - abstained and abstain_reason: abstain when the bundle cannot support a journey classification; set journeys to ["none_internal"], evidence_span to "", and explain briefly.
+
+schema:
+  name: CapJourneyFinding
+  fields:
+    source_index:
+      type: int
+      ge: 0
+      description: "Exact source index supplied in the prompt."
+    journeys:
+      type: list[str]
+      description: "One to three end-user journey ids, or off_catalog:<snake_case_label> when no catalog id fits."
+      constraints: {min_length: 1, max_length: 3}
+    blast_kind:
+      type: str
+      description: "One of: core_runtime, node_type, cli_surface, tooling_integration, process_infra, example_only."
+      constraints:
+        pattern: "^(core_runtime|node_type|cli_surface|tooling_integration|process_infra|example_only)$"
+    disposition:
+      type: str
+      description: "One of: keep, retire, already_retired."
+      constraints:
+        pattern: "^(keep|retire|already_retired)$"
+    consumer_cited:
+      type: str
+      description: "Path copied verbatim from a mechanical consumer list, otherwise empty."
+    value_for_whom:
+      type: str
+      description: "Journey id for who benefits, otherwise empty."
+    value_pain:
+      type: str
+      description: "One sentence naming the pain removed, otherwise empty."
+    value_versus:
+      type: str
+      description: "The real alternative, otherwise empty."
+    evidence_span:
+      type: str
+      description: "Short exact substring from CAP yaml or FR head supporting journeys; empty only when abstained."
+    abstained:
+      type: bool
+      description: "True when the bundle cannot support a journey classification."
+    abstain_reason:
+      type: str
+      description: "Brief reason when abstained, otherwise empty."
