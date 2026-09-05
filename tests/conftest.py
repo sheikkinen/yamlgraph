@@ -24,14 +24,21 @@ collect_ignore = ["fixtures/ramp_target"]
 logging.getLogger("langsmith.client").setLevel(logging.WARNING)
 
 # =============================================================================
-# Environment Pollution Guard
+# Tracing Off at the Session Boundary (FR-982)
 # =============================================================================
-# Third-party imports (e.g., litellm via langchain_litellm) call load_dotenv()
-# which traverses parent directories and may load env vars from a .env file
-# outside the worktree. LANGCHAIN_TRACING (v1) causes RuntimeError in
-# langchain_core ≥0.3. This fixture cleans up after each test.
+# yamlgraph.config loads .env at import; a developer's LANGSMITH_TRACING=true
+# would otherwise trace every test graph to their LangSmith project and make
+# the tracer shell out (get_runtime_environment) underneath subprocess stubs.
+# Override rather than delete: python-dotenv never overwrites an existing key,
+# so "false" survives any later third-party load_dotenv(). All four aliases
+# recognised by langsmith.utils.tracing_is_enabled are covered.
 
-_POLLUTING_ENV_VARS = ("LANGCHAIN_TRACING",)
+_TRACING_ENV_VARS = (
+    "LANGSMITH_TRACING_V2",
+    "LANGCHAIN_TRACING_V2",
+    "LANGSMITH_TRACING",
+    "LANGCHAIN_TRACING",
+)
 
 _PROCESS_BOUNDARY_PATTERNS = (
     re.compile(r"\.chaplain"),
@@ -41,12 +48,22 @@ _PROCESS_BOUNDARY_PATTERNS = (
 _PROCESS_BOUNDARY_ALLOWLIST: set[str] = set()
 
 
-@pytest.fixture(autouse=True)
-def _prevent_env_pollution():
-    """Remove env vars injected by third-party load_dotenv after each test."""
+@pytest.fixture(autouse=True, scope="session")
+def _tracing_off():
+    """Force the LangChain/LangSmith tracer off for the whole session."""
+    from langsmith.utils import get_env_var
+
+    saved = {k: os.environ.get(k) for k in _TRACING_ENV_VARS}
+    for k in _TRACING_ENV_VARS:
+        os.environ[k] = "false"
+    get_env_var.cache_clear()  # lru_cache: the first read is memoized
     yield
-    for var in _POLLUTING_ENV_VARS:
-        os.environ.pop(var, None)
+    for k, v in saved.items():
+        if v is None:
+            os.environ.pop(k, None)
+        else:
+            os.environ[k] = v
+    get_env_var.cache_clear()
 
 
 # =============================================================================

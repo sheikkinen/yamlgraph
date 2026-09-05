@@ -26,7 +26,7 @@ from yamlgraph.tools.schema_loader_tool import parse_schema_loader_tools
 from yamlgraph.tools.shell import parse_tools
 from yamlgraph.tools.tool_slots import resolve_tool_slots
 from yamlgraph.tools.write_data_file_tool import parse_write_data_file_tools
-from yamlgraph.utils.validators import validate_config
+from yamlgraph.utils.validators import validate_config, validate_max_concurrency
 
 # Type alias for dynamic state
 GraphState = dict[str, Any]
@@ -85,6 +85,10 @@ class GraphConfig:
         self.max_map_items = graph_level_config.get("max_map_items", 100)
         self.max_tokens = graph_level_config.get("max_tokens")
         self.timeout = graph_level_config.get("timeout")
+        # FR-984: whole-invoke fan-out width, delegated to LangGraph
+        self.max_concurrency = validate_max_concurrency(
+            graph_level_config.get("max_concurrency")
+        )
         self.tool_load_mode = graph_level_config.get(
             "tool_load_mode", TOOL_LOAD_MODE_STRICT
         )

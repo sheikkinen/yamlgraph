@@ -24,16 +24,36 @@ PINNED_MODEL = "gpt-5.6-sol"
 
 
 def _pins() -> dict[str, str]:
-    """The cli_flags.model of every copilot node in each sole route."""
+    """The cli_flags.model of the Copilot-CLI node in each sole route.
+
+    FR-960 adds an opt-in ``backend: claude`` node to the judge route; the
+    pin invariant applies to the default Copilot-CLI node (exactly one per
+    route), and every other copilot node must still carry its own explicit,
+    non-empty model (``test_every_copilot_node_is_pinned``).
+    """
     pins: dict[str, str] = {}
     for route, path in ADAPTERS.items():
         config = yaml.safe_load(path.read_text(encoding="utf-8"))
-        copilot_nodes = [
-            node for node in config["nodes"].values() if node.get("type") == "copilot"
+        cli_nodes = [
+            node
+            for node in config["nodes"].values()
+            if node.get("type") == "copilot" and (node.get("backend") or "cli") == "cli"
         ]
-        assert len(copilot_nodes) == 1, f"{route}: expected one copilot node"
-        pins[route] = copilot_nodes[0].get("cli_flags", {}).get("model", "")
+        assert len(cli_nodes) == 1, f"{route}: expected one Copilot-CLI copilot node"
+        pins[route] = cli_nodes[0].get("cli_flags", {}).get("model", "")
     return pins
+
+
+@pytest.mark.req("REQ-YG-632")
+def test_every_copilot_node_is_pinned() -> None:
+    """No copilot node on either route may inherit an ambient default model."""
+    for route, path in ADAPTERS.items():
+        config = yaml.safe_load(path.read_text(encoding="utf-8"))
+        for name, node in config["nodes"].items():
+            if node.get("type") == "copilot":
+                assert node.get("cli_flags", {}).get("model"), (
+                    f"{route}:{name} unpinned"
+                )
 
 
 @pytest.mark.req("REQ-YG-632")

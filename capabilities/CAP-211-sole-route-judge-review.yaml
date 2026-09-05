@@ -1,7 +1,7 @@
 name: Sole-Route Judge and Review Wrappers
 id: CAP-211
 status: active
-fr: FR-758
+fr: FR-758, FR-960
 feature_request: FR-758
 description: >
   The judge and review governance pipelines execute through exactly one
@@ -21,8 +21,34 @@ modules:
   - scripts/judge.sh
   - scripts/review.sh
   - .github/skills/judge-fr/adapters/graph.yaml
+  - .github/skills/judge-fr/adapters/prompts/judge.yaml
   - .github/skills/review-pr/adapters/graph.yaml
 requirements:
+  - id: REQ-YG-642
+    description: >
+      Judge adapter backend selection (FR-960). The judge graph holds two
+      copilot nodes sharing one prompt — `judge` (Copilot CLI, the
+      default) and `judge_claude` (`backend: claude`, FR-959) — routed by
+      a state-conditioned edge on `backend`; the Claude node restricts
+      tool availability and approval to exactly Read, Glob, Grep, Write
+      with no bypass flag. scripts/judge.sh reads JUDGE_BACKEND
+      (copilot | claude), exits 64 on any other value before taking the
+      lock, derives a per-backend-per-FR artifact path
+      tmp/draft-judgement-<backend>-<fr-slug>.md (a same-backend rerun
+      replaces only its own draft; other backends' and other FRs' drafts
+      survive), and passes backend and artifact_path as graph vars. Each
+      live run is recorded in a committed witness whose dual-backend
+      section inventories both drafts claim by claim (matched /
+      contradicted / backend-only, or the explicit convergence sentinel)
+      and carries two separate human signatures. Witnessed by stubbed
+      wrapper tests and mocked graph-routing tests; pytest and CI never
+      launch a judge.
+    modules:
+      - scripts/judge.sh
+      - .github/skills/judge-fr/adapters/graph.yaml
+      - .github/skills/judge-fr/adapters/prompts/judge.yaml
+      - tests/unit/test_fr960_claude_judge_variant.py
+      - tests/unit/test_fr758_judge_review_wrappers.py
   - id: REQ-YG-569
     description: >
       Sole-route judge/review wrapper contract (FR-758). Both wrappers
@@ -44,15 +70,17 @@ requirements:
       - tests/unit/test_fr758_judge_review_wrappers.py
   - id: REQ-YG-632
     description: >
-      Explicit model pin on both sole routes (FR-931). The judge and
-      review adapter graphs each define exactly one copilot node whose
-      cli_flags.model is non-empty — never inherited from the CLI
-      ambient default, which would change cost and behaviour with no
-      diff in the repo. The two pins are equal to each other and equal
-      to the model this repository chose deliberately (gpt-5.6-sol);
-      changing either requires editing the witness, which requires an
-      FR. The authoring adapter is deliberately outside this invariant
-      and may diverge.
+      Explicit model pin on both sole routes (FR-931; re-scoped by
+      FR-960). The judge and review adapter graphs each define exactly
+      one Copilot-CLI copilot node whose cli_flags.model is non-empty —
+      never inherited from the CLI ambient default, which would change
+      cost and behaviour with no diff in the repo — and every other
+      copilot node on either route (FR-960's `judge_claude`) carries its
+      own explicit, non-empty model. The two Copilot-CLI pins are equal
+      to each other and equal to the model this repository chose
+      deliberately (gpt-5.6-sol); changing either requires editing the
+      witness, which requires an FR. The authoring adapter is
+      deliberately outside this invariant and may diverge.
     modules:
       - .github/skills/judge-fr/adapters/graph.yaml
       - .github/skills/review-pr/adapters/graph.yaml

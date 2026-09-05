@@ -6,28 +6,54 @@ Sole documented operator command (NC-415 — serializes via OS lock and
 lineage sentinel; the graph remains the judge execution route):
 
 ```bash
-scripts/judge.sh feature-requests/NC-XXX-slug.md
+scripts/judge.sh feature-requests/NC-XXX-slug.md                      # default backend: copilot
+JUDGE_BACKEND=claude scripts/judge.sh feature-requests/NC-XXX-slug.md # FR-960: Claude Code backend
 ```
 
 Direct invocation (what the wrapper runs; use the wrapper instead):
 
 ```bash
 uv run yamlgraph graph run .github/skills/judge-fr/adapters/graph.yaml \
-  --var fr_path=feature-requests/NC-XXX-slug.md --full
+  --var fr_path=feature-requests/NC-XXX-slug.md \
+  --var backend=copilot \
+  --var artifact_path=tmp/draft-judgement-copilot-NC-XXX-slug.md --full
 ```
 
-The graph writes `tmp/draft-judgement.md`; humans fold accepted content
-into the real `.judgement.md`. The graph must never auto-fold,
-auto-commit, open/update PRs, poll inboxes, manage worktrees, run CI,
-or merge.
+**Backend selection (FR-960, REQ-YG-642).** One graph, one prompt, one
+wrapper — still one route. The graph holds two `type: copilot` nodes that
+share `prompts/judge.yaml`: `judge` (Copilot CLI, `gpt-5.6-sol`, the
+default) and `judge_claude` (`backend: claude`, FR-959). `scripts/judge.sh`
+reads `JUDGE_BACKEND` (`copilot` | `claude`; anything else exits 64 before
+the lock is taken) and routes with a state-conditioned edge. The Claude node
+has exactly four tools available **and** approved — `Read, Glob, Grep,
+Write` via `--tools` and `--allowedTools` — with no `allow_all_tools`, no
+Bash, no Edit, no MCP: a judge that can run the judge is not a judge. It
+bills the operator's Claude subscription through FR-959's per-invocation
+preflight; the residual payer boundary is FR-959's (see
+`reference/graph-yaml.md` § Claude Code backend), not restated here.
+
+**Artifact path (FR-960).** The draft is written to
+`tmp/draft-judgement-<backend>-<fr-slug>.md` — **per backend, per FR**, not
+per run. On 2026-09-02 two sessions' judge runs shared the fixed name
+`tmp/draft-judgement.md`; the second run's startup `rm -f` deleted the
+first run's verified verdict three seconds after the wrapper had accepted
+it (the lock protects the run, never the previous output). With the new
+name, two backends on one FR and two FRs back to back coexist; a rerun of
+the **same** backend on the **same** FR deliberately replaces its own
+earlier draft. The wrapper prints the path and the backend on success.
+Humans fold accepted content into the real `.judgement.md`. The graph must
+never auto-fold, auto-commit, open/update PRs, poll inboxes, manage
+worktrees, run CI, or merge.
 
 **Load-bearing flags (NC-414):** BOTH `allow_all_paths: true` AND
 `allow_all_tools: true` are required for the file-write contract.
 Copilot CLI needs `--allow-all-tools` for non-interactive tool use;
 without it the judge runs, renders a verdict, is denied the write,
-and still exits 0. **Verify by artifact existence, never by exit
-code**: after a run, check that `tmp/draft-judgement.md` exists and
-is non-empty with a verdict line.
+and still exits 0. This applies to the Copilot node only; the Claude node
+uses FR-959's separate availability/approval controls instead of a bypass.
+**Verify by artifact existence, never by exit code**: after a run, check
+that `tmp/draft-judgement-<backend>-<fr-slug>.md` exists and is non-empty
+with a verdict line.
 
 ## VS Code prompt adapter
 

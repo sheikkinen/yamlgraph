@@ -1,208 +1,253 @@
-2026-09-02 20:05:23,054 [INFO] yamlgraph.compile.graph_loader: Parsed 6 Python tools: preflight, discover, extract, reduce_ledger, prepare_brief_input, render_brief
-2026-09-02 20:05:23,059 [INFO] yamlgraph.compile.node_compiler: Added node: preflight (type=python)
-2026-09-02 20:05:23,060 [INFO] yamlgraph.compile.node_compiler: Added node: discover (type=python)
-2026-09-02 20:05:23,060 [INFO] yamlgraph.compile.node_compiler: Added node: extract_items (type=map)
-2026-09-02 20:05:23,067 [INFO] yamlgraph.compile.node_compiler: Added node: judge_items (type=map)
-2026-09-02 20:05:23,071 [INFO] yamlgraph.compile.node_compiler: Added node: reduce_ledger (type=python)
-2026-09-02 20:05:23,076 [INFO] yamlgraph.compile.node_compiler: Added node: prepare_brief_input (type=python)
-2026-09-02 20:05:23,080 [INFO] yamlgraph.compile.node_compiler: Added node: synthesize (type=llm)
-2026-09-02 20:05:23,085 [INFO] yamlgraph.compile.node_compiler: Added node: render_brief (type=python)
-2026-09-02 20:05:23,131 [INFO] yamlgraph.route: {"event": "run", "run_id": "01a06315-1ca0-75cf-a003-4ffb96b4aa24", "artifact_hash": "sha256:07456930689dcbfe555164b0b00e90b3cc9eeac2cd9bfd36500acdeef4ba5164", "graph": "/Users/sheikki/Documents/src/yamlgraph/tmp/worktrees/featfr955-person-profile-census/examples/demos/person_profile_census/gh-profiler.yaml", "yamlgraph_version": "0.5.17", "thread_id": null, "started_at": "2026-09-02T17:05:23Z"}
-2026-09-02 20:05:23,251 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: preflight -> preflight
-2026-09-02 20:05:23,252 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: discover -> discover
-2026-09-02 20:05:29,925 [INFO] yamlgraph.utils.llm_factory: Creating LLM: inception/mercury-2 (temp=0)
-2026-09-02 20:05:32,442 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:32,464 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:32,550 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:32,554 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:32,662 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:32,665 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:33,131 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:33,134 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:33,243 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:33,246 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:33,269 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:33,274 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:33,281 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:33,284 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:33,330 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:33,333 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:33,397 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:33,400 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:33,418 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:33,421 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:33,432 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:33,436 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:33,665 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:33,668 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:33,748 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:33,752 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:33,772 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:33,776 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:33,822 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:33,825 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:33,963 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:33,966 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:34,126 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:34,130 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:34,175 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:34,178 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:34,398 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:34,400 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:34,413 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:34,417 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:34,576 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:34,578 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:34,582 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:34,589 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:34,617 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:34,619 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:34,683 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:34,685 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:34,701 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:34,703 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:34,713 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:34,716 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:35,142 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:35,146 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:35,155 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:35,158 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:35,348 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:35,351 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:35,479 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:35,482 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:35,695 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:35,703 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:35,888 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:35,890 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:35,919 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:35,922 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:36,111 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:36,114 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:36,124 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:36,126 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:36,258 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:36,262 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:36,277 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:36,280 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:36,339 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:36,345 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:36,409 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:36,412 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:36,637 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:36,640 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:36,641 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:36,647 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:36,776 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:36,780 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:36,791 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:36,794 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:36,811 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:36,813 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:37,009 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:37,012 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:37,162 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:37,165 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:37,259 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:37,261 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:37,392 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:37,396 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:37,443 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:37,446 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:37,447 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:37,453 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:37,463 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:37,467 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:37,702 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:37,705 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:37,719 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:37,723 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:37,831 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:37,833 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:37,840 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:37,841 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:37,843 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:37,849 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:38,166 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:38,172 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:38,413 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:38,415 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:38,416 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:38,422 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:38,504 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:38,507 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:38,762 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:38,765 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:38,765 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:38,775 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:38,818 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:38,823 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:38,888 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:38,894 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:38,961 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:38,967 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:39,239 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:39,242 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:39,318 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:39,321 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:39,348 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:39,351 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:39,464 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:39,466 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:39,521 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:39,525 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:39,538 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:39,542 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:39,659 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:39,661 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:39,762 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:39,765 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:39,983 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:39,986 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:40,232 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:40,234 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:40,432 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:40,435 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:40,448 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:40,453 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:40,568 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:40,570 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:40,635 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:40,637 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:40,648 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:40,653 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:40,798 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:40,800 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:40,870 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:40,875 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:40,901 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:40,905 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:41,098 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:41,100 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:41,101 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:41,104 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:41,205 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:41,208 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:41,404 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:41,407 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:41,657 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:41,660 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:41,901 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:41,904 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:44,997 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-02 20:05:45,000 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-02 20:05:45,003 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: reduce_ledger -> reduce_ledger
-2026-09-02 20:05:45,010 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: prepare_brief_input -> prepare_brief_input
-2026-09-02 20:05:45,018 [INFO] yamlgraph.utils.llm_factory: Creating LLM: anthropic/claude-haiku-4-5 (temp=0)
-2026-09-02 20:06:04,964 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
-2026-09-02 20:06:04,990 [INFO] yamlgraph.node_factory.llm_nodes: Node synthesize completed successfully
-2026-09-02 20:06:04,992 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: render_brief -> render_brief
-2026-09-02 20:06:05,161 [INFO] yamlgraph.route: {"event": "run_end", "run_id": "01a06315-1ca0-75cf-a003-4ffb96b4aa24", "ended_at": "2026-09-02T17:06:05Z", "dropped_events": 0}
+2026-09-04 13:22:20,654 [INFO] yamlgraph.compile.graph_loader: Parsed 6 Python tools: preflight, discover, extract, reduce_ledger, prepare_brief_input, render_brief
+2026-09-04 13:22:20,656 [INFO] yamlgraph.compile.node_compiler: Added node: preflight (type=python)
+2026-09-04 13:22:20,656 [INFO] yamlgraph.compile.node_compiler: Added node: discover (type=python)
+2026-09-04 13:22:20,657 [INFO] yamlgraph.compile.node_compiler: Added node: extract_items (type=map)
+2026-09-04 13:22:20,660 [INFO] yamlgraph.compile.node_compiler: Added node: judge_items (type=map)
+2026-09-04 13:22:20,663 [INFO] yamlgraph.compile.node_compiler: Added node: reduce_ledger (type=python)
+2026-09-04 13:22:20,664 [INFO] yamlgraph.compile.node_compiler: Added node: prepare_brief_input (type=python)
+2026-09-04 13:22:20,667 [INFO] yamlgraph.compile.node_compiler: Added node: synthesize (type=llm)
+2026-09-04 13:22:20,671 [INFO] yamlgraph.compile.node_compiler: Added node: render_brief (type=python)
+2026-09-04 13:22:20,827 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: preflight -> preflight
+2026-09-04 13:22:20,828 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: discover -> discover
+2026-09-04 13:22:32,344 [INFO] yamlgraph.utils.llm_factory: Creating LLM: anthropic/claude-haiku-4-5 (temp=0)
+2026-09-04 13:22:34,790 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:34,808 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:34,855 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:34,860 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:34,867 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:34,869 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:34,933 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:34,944 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:34,973 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:34,975 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:34,980 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:34,981 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:34,986 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:34,987 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:34,988 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:34,989 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:35,043 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:35,044 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:35,045 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:35,048 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:35,070 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:35,073 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:35,357 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:35,359 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:36,753 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:36,755 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:36,910 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:36,912 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:37,003 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:37,004 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:37,120 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:37,122 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:37,134 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:37,135 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:37,159 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:37,161 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:37,169 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:37,171 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:37,188 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:37,190 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:37,198 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:37,199 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:37,200 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:37,206 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:37,277 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:37,278 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:37,406 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:37,407 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:38,864 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:38,866 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:38,911 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:38,913 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:38,984 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:38,985 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:39,017 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:39,019 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:39,045 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:39,046 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:39,089 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:39,090 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:39,215 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:39,216 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:39,260 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:39,264 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:39,264 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:39,266 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:39,449 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:39,450 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:39,483 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:39,485 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:39,575 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:39,577 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:40,668 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:40,670 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:40,905 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:40,907 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:40,981 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:40,983 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:41,021 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:41,022 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:41,046 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:41,048 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:41,115 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:41,116 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:41,143 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:41,145 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:41,163 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:41,165 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:41,196 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:41,198 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:41,228 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:41,229 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:41,538 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:41,539 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:41,594 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:41,595 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:42,667 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:42,669 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:42,698 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:42,700 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:42,726 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:42,727 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:42,957 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:42,959 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:42,959 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:42,964 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:43,052 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:43,054 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:43,130 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:43,131 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:43,153 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:43,155 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:43,188 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:43,190 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:43,299 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:43,301 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:43,366 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:43,367 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:43,525 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:43,527 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:44,648 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:44,650 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:44,709 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:44,711 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:44,837 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:44,839 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:44,845 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:44,847 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:44,935 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:44,936 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:44,991 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:44,993 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:45,084 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:45,086 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:45,120 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:45,122 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:45,215 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:45,266 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:45,266 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:45,272 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:45,327 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:45,329 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:45,619 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:45,622 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:46,490 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:46,492 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:46,597 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:46,598 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:46,722 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:46,724 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:46,725 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:46,732 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:46,929 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:46,931 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:47,108 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:47,110 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:47,116 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:47,119 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:47,187 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:47,188 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:47,211 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:47,212 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:47,232 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:47,233 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:47,240 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:47,242 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:47,315 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:47,317 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:48,470 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:48,472 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:48,473 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:48,479 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:48,739 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:48,742 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:48,850 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:48,852 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:49,088 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:49,090 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:49,132 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:49,135 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:49,183 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:49,184 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:49,206 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:49,207 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:49,208 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:49,211 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:49,235 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:49,237 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:49,390 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:49,541 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:50,126 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:50,167 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:50,407 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:50,408 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:50,438 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:50,440 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:50,486 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:50,492 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:50,704 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:50,706 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:51,009 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:51,011 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:51,098 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:51,100 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:51,111 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:51,113 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:51,190 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:51,191 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:51,421 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:51,422 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:51,715 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:51,717 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:51,777 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:51,778 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:51,972 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:52,027 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:52,535 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:52,537 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:52,610 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:52,611 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:52,737 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:52,738 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:52,775 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:52,777 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:53,052 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:53,054 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:53,236 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:22:53,283 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-04 13:22:53,287 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: reduce_ledger -> reduce_ledger
+2026-09-04 13:22:53,296 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: prepare_brief_input -> prepare_brief_input
+2026-09-04 13:23:10,879 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-04 13:23:10,889 [INFO] yamlgraph.node_factory.llm_nodes: Node synthesize completed successfully
+2026-09-04 13:23:10,892 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: render_brief -> render_brief
 
-🚀 Running graph: gh-profiler.yaml
-   Variables: {'source': 'sheikkinen@sheikkinen:2026-08-25', 'visibility': '["public"]', 'map_provider': 'inception', 'map_model': 'mercury-2', 'synth_provider': 'anthropic', 'synth_model': 'claude-haiku-4-5', 'problem_labels': '["doctrine","enforcement","cleanup","infra","research","tests","hotfix","tooling","governance"]', 'surface_labels': '["backend","infra","docs","tests","tooling","ci","graphs","hooks","adapters"]', 'rubric': 'Classify this authored PR by problem_class, change_kind (feat|fix|docs|refactor|chore|infra|ops|test|revert), 1-5 distinct surfaces, one-sentence intent (<=280 chars), and one evidence_span copied verbatim from the title or body_head.', 'output_path': 'tmp/profiler-ledger.md', 'brief_path': 'tmp/profiler-brief.md', 'brief_rubric': 'Roast this engineer honestly from their PR footprint. Recurring themes, surface concentration, cadence, top anti-patterns (churn, retitles, phantom-work). Cite PR URLs.'}
+🚀 Running graph: SMOKE_ONLY.yaml
+   Variables: {'source': 'sheikkinen@sheikkinen:2026-08-25', 'visibility': '["public"]', 'smoke_model': 'claude-haiku-4-5', 'problem_labels': '["doctrine","enforcement","cleanup","infra","research","tests","hotfix","tooling","governance"]', 'surface_labels': '["backend","infra","docs","tests","tooling","ci","graphs","hooks","adapters"]', 'rubric': 'Classify this authored PR by problem_class, change_kind (feat|fix|docs|refactor|chore|infra|ops|test|revert), 1-5 distinct surfaces, one-sentence intent (<=280 chars), and one evidence_span copied verbatim from the title or body_head.', 'output_path': 'tmp/smoke-ledger.md', 'brief_path': 'tmp/smoke-brief.md', 'brief_rubric': 'Profile this engineer from PR footprint. Themes, surface concentration, cadence, anti-patterns (churn, retitles, phantom-work). Cite PR URLs.'}
 
-🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/f889c0ec-fa9b-4025-b69c-2aa756283ef8/r/01a06315-1cbe-7053-b097-ab22c4d9513c?poll=true
+🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/09c0c2d4-5724-4301-bcee-e1b64ddeb80e/r/01a06bf0-d60b-7371-b2ba-c4105c88af8e?poll=true
 ============================================================
 RESULT
 ============================================================
@@ -212,18 +257,15 @@ RESULT
   rubric: Classify this authored PR by problem_class, change_kind (feat|fix|docs|refactor|chore|infra|ops|test|revert), 1-5 distinct surfaces, one-sentence intent (<=280 chars), and one evidence_span copied ver...
   problem_labels: ["doctrine","enforcement","cleanup","infra","research","tests","hotfix","tooling","governance"]
   surface_labels: ["backend","infra","docs","tests","tooling","ci","graphs","hooks","adapters"]
-  map_provider: inception
-  map_model: mercury-2
-  synth_provider: anthropic
-  synth_model: claude-haiku-4-5
-  output_path: tmp/profiler-ledger.md
-  brief_path: tmp/profiler-brief.md
-  brief_rubric: Roast this engineer honestly from their PR footprint. Recurring themes, surface concentration, cadence, top anti-patterns (churn, retitles, phantom-work). Cite PR URLs.
+  smoke_model: claude-haiku-4-5
+  output_path: tmp/smoke-ledger.md
+  brief_path: tmp/smoke-brief.md
+  brief_rubric: Profile this engineer from PR footprint. Themes, surface concentration, cadence, anti-patterns (churn, retitles, phantom-work). Cite PR URLs.
   preflight_ok: True
-  items: ['sheikkinen/yamlgraph#476', 'sheikkinen/yamlgraph#477', 'sheikkinen/yamlgraph#478', 'sheikkinen/yamlgraph#479', 'sheikkinen/yamlgraph#480', 'sheikkinen/yamlgraph#481', 'sheikkinen/yamlgraph#482', 'sh...
-  contents: [{'_map_index': 0, 'value': '{"repo": "sheikkinen/yamlgraph", "number": 476, "url": "https://github.com/sheikkinen/yamlgraph/pull/476", "title": "feat(hooks): FR-888 main-write guard \\u2014 worktree ...
-  findings: [{'_map_index': 0, 'problem_class': 'enforcement', 'change_kind': 'feat', 'surfaces': ['hooks', 'infra', 'tests'], 'intent': 'Adds a main‑write guard hook that forces all writes to go through a worktr...
-  ledger: {'output_path': 'tmp/profiler-ledger.md', 'jsonl_path': 'tmp/profiler-ledger.jsonl', 'meta_path': 'tmp/profiler-ledger.run.json', 'rollup': {'total_prs': 90, 'repos': {'sheikkinen/yamlgraph': 87, 'she...
+  items: ['sheikkinen/statemachine-engine#1', 'sheikkinen/yamlgraph#476', 'sheikkinen/yamlgraph#477', 'sheikkinen/yamlgraph#478', 'sheikkinen/yamlgraph#479', 'sheikkinen/yamlgraph#480', 'sheikkinen/yamlgraph#4...
+  contents: [{'_map_index': 0, 'value': '{"repo": "sheikkinen/statemachine-engine", "number": 1, "url": "https://github.com/sheikkinen/statemachine-engine/pull/1", "title": "fix(engine): idle-tick precedence \\u2...
+  findings: [{'_map_index': 0, 'problem_class': 'hotfix', 'change_kind': 'fix', 'surfaces': ['backend', 'tests'], 'intent': 'Fix idle-tick precedence logic in state machine engine by correcting operator precedenc...
+  ledger: {'output_path': 'tmp/smoke-ledger.md', 'jsonl_path': 'tmp/smoke-ledger.jsonl', 'meta_path': 'tmp/smoke-ledger.run.json', 'rollup': {'total_prs': 114, 'repos': {'sheikkinen/yamlgraph': 110, 'sheikkinen...
   brief_input: [{'url': 'https://github.com/sheikkinen/yamlgraph/pull/494', 'repo': 'sheikkinen/yamlgraph', 'number': 494, 'title': 'refactor(examples): FR-915 retire the Mastra integration demo', 'problem_class': '...
-  claims: {'title': 'Sheikkinen: Prolific Cleanup & Enforcement Architect', 'themes': [{'theme': 'Systematic Retirement & Cleanup', 'evidence': 'Aggressive deprecation of legacy surfaces (Mastra, A2A, MCP, lane...
-  brief: {'brief_path': 'tmp/profiler-brief.md', 'claims_path': 'tmp/profiler-brief.claims.json', 'accepted': True}
+  claims: {'title': 'Research & Governance Infrastructure Engineer', 'themes': [{'theme': 'Research Pipeline & Evidence Grounding', 'evidence': 'Implements census and research infrastructure with LLM-based vali...
+  brief: {'brief_path': 'tmp/smoke-brief.md', 'claims_path': 'tmp/smoke-brief.claims.json', 'accepted': True}
