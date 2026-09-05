@@ -87,7 +87,14 @@ def _fake_bin(tmp: Path, *, graph_ok: bool, comment_ok: bool, report_text: str) 
         "state = dict(line.rstrip(chr(10)).split('=', 1) for line in open(sys.argv[1], encoding='utf-8') if '=' in line)\n"
         f'state["outsider_result"] = {{"output": open("{model_out}", encoding="utf-8").read()}}\n'
         "m.finalize_report(state)\n"
-        "EOF\n",
+        "EOF\n"
+        # Review #602 round 3 P1: a faulty executor may emit a report whose
+        # marker is missing or misattributed; the wrapper must refuse to post it.
+        f'R=$(grep -o "report_path=.*" "{vars_file}" | head -1); R="${{R#report_path=}}"\n'
+        'case "${FAKE_MARKER_MUTATION:-}" in\n'
+        '  drop) sed -i "/^<!-- outsider reader |/d" "$R";;\n'
+        '  pr999) sed -i "s/| pr: [0-9]* |/| pr: 999 |/" "$R";;\n'
+        "esac\n",
         encoding="utf-8",
     )
     gh = b / "gh"
@@ -128,6 +135,7 @@ def _run(
     graph_ok: bool = True,
     comment_ok: bool = True,
     report_text: str = VALID_REPORT,
+    marker_mutation: str = "",
 ):
     b = _fake_bin(
         tmp, graph_ok=graph_ok, comment_ok=comment_ok, report_text=report_text
@@ -135,6 +143,7 @@ def _run(
     work = tmp / "work"
     work.mkdir(exist_ok=True)
     env = {k: v for k, v in os.environ.items() if k != "OUTSIDER_EXECUTION"}
+    env["FAKE_MARKER_MUTATION"] = marker_mutation
     env["PATH"] = f"{b}:{env['PATH']}"
     env["OUTSIDER_WORKDIR"] = str(work)
     env["OUTSIDER_LEDGER"] = str(tmp / "ledger.jsonl")  # must have no effect (FR-1004)
@@ -314,6 +323,30 @@ def test_graph_failure_and_parse_failure_fail_closed(tmp_path: Path):
     )
     assert p2.returncode == 1 and "NO VALID REPORT" in p2.stderr
     assert not (tmp_path / "b" / "comment-body.md").exists()
+
+
+@pytest.mark.req("REQ-YG-662")
+@pytest.mark.parametrize("mutation", ["drop", "pr999"])
+def test_report_with_missing_or_misattributed_marker_is_never_posted(
+    tmp_path: Path, mutation: str
+):
+    """Review #602 round 3 P1: the wrapper validates the observation against
+    its own run metadata before it posts; a structurally valid report with no
+    marker, or with another PR's number, is NO VALID REPORT (C-3)."""
+    proc, _ = _run(tmp_path, "4242", "--comment", marker_mutation=mutation)
+    assert proc.returncode == 1 and "NO VALID REPORT" in proc.stderr
+    assert not (tmp_path / "comment-body.md").exists()
+
+
+@pytest.mark.req("REQ-YG-662")
+def test_wrapper_validation_checks_the_observation(script: str):
+    block = script[
+        script.index("Verify by artifact and contract") : script.index(
+            "NO VALID REPORT"
+        )
+    ]
+    assert "parse_observation" in block
+    assert "derive_verdict" in block
 
 
 @pytest.mark.req("REQ-YG-662")

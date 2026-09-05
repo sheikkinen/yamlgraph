@@ -316,32 +316,63 @@ OLD_MARKER_COMMENT = (
 )
 
 
+REPO_NAME = "sheikkinen/yamlgraph"
+
+
 @pytest.mark.req("REQ-YG-662")
 def test_is_observation_comment_accepts_only_complete_markers(tools):
     """Review #602 P2: the count keys on complete markers, never on prose."""
     new_report = tools.render_report(tools.parse_report(GOOD), _obs(tools))
-    assert tools.is_observation_comment(new_report)
-    assert tools.is_observation_comment(OLD_MARKER_COMMENT)
-    assert not tools.is_observation_comment("The outsider reader said this PR is fine.")
-    assert not tools.is_observation_comment("<!-- outsider reader | ts: 2026 -->")
-    truncated = new_report.replace(" | s4: 6 -->", " -->")
-    assert not tools.is_observation_comment(truncated)
+    assert tools.is_observation_comment(new_report, repo=REPO_NAME, pr=596)
+    assert tools.is_observation_comment(OLD_MARKER_COMMENT, repo=REPO_NAME, pr=596)
     assert not tools.is_observation_comment(
-        "<!-- outsider reader | source: x | model: m -->"
+        "The outsider reader said this PR is fine.", repo=REPO_NAME, pr=596
+    )
+    assert not tools.is_observation_comment(
+        "<!-- outsider reader | ts: 2026 -->", repo=REPO_NAME, pr=596
+    )
+    truncated = new_report.replace(" | s4: 6 -->", " -->")
+    assert not tools.is_observation_comment(truncated, repo=REPO_NAME, pr=596)
+    assert not tools.is_observation_comment(
+        "<!-- outsider reader | source: x | model: m -->", repo=REPO_NAME, pr=596
     )  # old marker without its timestamp is not complete
 
 
 @pytest.mark.req("REQ-YG-662")
+def test_reducer_rejects_placeholder_and_misattributed_markers(tools):
+    """Review #602 round 3 P2: a copied --input report or another PR's report
+    must not inflate the population (R-1, AC-06, C-4)."""
+    report = tools.parse_report(GOOD)
+    placeholder = tools.render_report(
+        report, _obs(tools, repo="-", pr="-", head_sha="-")
+    )
+    other_pr = tools.render_report(report, _obs(tools, pr=999))
+    other_repo = tools.render_report(report, _obs(tools, repo="someone/else"))
+    genuine = tools.render_report(report, _obs(tools, pr=602))
+    assert not tools.is_observation_comment(placeholder, repo=REPO_NAME, pr=602)
+    assert not tools.is_observation_comment(other_pr, repo=REPO_NAME, pr=602)
+    assert not tools.is_observation_comment(other_repo, repo=REPO_NAME, pr=602)
+    assert tools.is_observation_comment(genuine, repo=REPO_NAME, pr=602)
+    assert (
+        tools.distinct_observed_prs(
+            [(602, placeholder), (602, other_pr), (602, other_repo)], repo=REPO_NAME
+        )
+        == set()
+    )
+    assert tools.distinct_observed_prs([(602, genuine)], repo=REPO_NAME) == {602}
+
+
+@pytest.mark.req("REQ-YG-662")
 def test_distinct_observed_prs_dedups_and_ignores_prose(tools):
-    new_report = tools.render_report(tools.parse_report(GOOD), _obs(tools))
+    report = tools.parse_report(GOOD)
     comments = [
-        (596, new_report),
+        (596, tools.render_report(report, _obs(tools, pr=596))),
         (596, OLD_MARKER_COMMENT),
-        (602, new_report),
+        (602, tools.render_report(report, _obs(tools, pr=602))),
         (603, "I ran the outsider reader locally; looks good."),
         (604, "<!-- outsider reader | ts: broken -->"),
     ]
-    assert tools.distinct_observed_prs(comments) == {596, 602}
+    assert tools.distinct_observed_prs(comments, repo=REPO_NAME) == {596, 602}
 
 
 @pytest.mark.req("REQ-YG-662")
@@ -361,9 +392,9 @@ def test_observation_survives_crlf_comment_bodies(tools):
     out = tools.render_report(tools.parse_report(GOOD), obs)
     crlf = out.replace(chr(10), chr(13) + chr(10))
     assert tools.parse_observation(crlf) == obs
-    assert tools.is_observation_comment(crlf)
+    assert tools.is_observation_comment(crlf, repo=REPO_NAME, pr=596)
     assert tools.is_observation_comment(
-        OLD_MARKER_COMMENT.replace(chr(10), chr(13) + chr(10))
+        OLD_MARKER_COMMENT.replace(chr(10), chr(13) + chr(10)), repo=REPO_NAME, pr=596
     )
 
 
