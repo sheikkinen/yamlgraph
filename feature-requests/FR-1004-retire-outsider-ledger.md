@@ -114,6 +114,10 @@ Stage 1 narrows; stage 2 fetches each candidate's comments; stage 3 (`is_observa
 
 On the enforcing PR: `scripts/outsider.sh <pr> --comment`; then the S-4 query. Record in the implementation record: the posted marker verbatim, the **returned PR-number set** verbatim, and that the enforcing PR appears **exactly once**. No predicted minimum. If the search does not return the enforcing PR, the replacement is not demonstrated and enforcement stops (C-5).
 
+### S-8: scope amendment request (review #602 round 3, P3) — `adapters/README.md`
+
+D-4 changes `graph.yaml` so that `finalize_report` requires five new state fields. `.github/skills/outsider-view/adapters/README.md` — cited in the judgement's *Reviewed against* list but absent from D-1…D-9 — documents a "direct invocation" of that graph with only `input_path`, `report_path` and `model`; after D-4 that recipe reaches `finalize_report` without `repo` and fails with `KeyError: 'repo'` after the model call. Review round 1 required the README hunk withdrawn as unfrozen surface; round 3 required revised judge authority before it is retained, because an implementation record cannot amend frozen scope. **Requested amendment:** add to D-5 the tightly coupled documentation repair of `adapters/README.md` — (a) the direct-invocation recipe lists all five observation variables with `-` placeholders for non-PR runs, (b) one sentence stating that only title/body reach the model while the five fields are consumed by the Python finalisation step, (c) the R-4 no-tracked-state wording in place of any "nothing written" claim. No other README change; the doctrine, model, prompt, parser and verdict rule stay untouched (C-7).
+
 ## Acceptance Criteria (revised per judgement)
 
 - [x] AC-01: `docs/census/outsider-ledger.jsonl` is deleted; `git grep -n ledger -- scripts/outsider.sh .github/skills/outsider-view` returns no active ledger implementation or instruction.
