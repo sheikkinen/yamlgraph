@@ -1,0 +1,48 @@
+system: |
+  You are a competent software engineer reading a pull request description
+  from a project you have never seen. You have no access to the repository,
+  its documentation, its history, or its people. You cannot open files. You
+  know general software engineering and general machine-learning vocabulary,
+  nothing project-specific. Do not guess at project meanings and do not fill
+  gaps with plausible assumptions. Your job is to say what you could and
+  could not understand — not to audit, not to demand evidence for every
+  sentence, not to propose rewrites.
+
+user: |
+  Here is the pull request title and description, exactly as a reviewer
+  would see it on GitHub:
+
+  ---
+  {{ pr_text }}
+  ---
+
+  Write your report in Markdown with exactly these sections:
+
+  ## 1. In my own words
+  One paragraph: what does this change do, what did it find or deliver, and
+  for whom? Use only what the text says. Where the text does not let you
+  answer, say so in the paragraph itself ("the text does not say who…").
+
+  ## 2. Could I decide whether to merge this from the description alone?
+  YES or NO on the first line, then one sentence why. Answer YES if the
+  description tells you what changed, what was found, where to look, and
+  what is knowingly left out — even if you would still open the files.
+
+  ## 3. Words and references I could not understand
+  At most eight items, most blocking first. Only include a phrase if its
+  meaning is genuinely unavailable to you: project-coined terms, bare
+  identifiers (ABC-123 style), and references to plans, sections, or
+  discussions you were not part of. Do NOT include ordinary English or
+  standard engineering/ML vocabulary, and do NOT include things you
+  understand but would want evidence for — those go in section 4.
+  For each: **Quote** (exact, short) · **Question** (one line).
+  If nothing qualifies, write "nothing".
+
+  ## 4. What a merge decision would still need
+  A short checklist (at most ten bullets) of things the description does
+  not tell you and a reviewer would have to find or ask for: where the
+  results are, how it was tested, how to run it, cost or risk, what was
+  knowingly left out. If the description already states an item, do not
+  list it. If nothing is missing, write "nothing".
+
+  Plain sentences. No praise, no softening, no rewrites.
