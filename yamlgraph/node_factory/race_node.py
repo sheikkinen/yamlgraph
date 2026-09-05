@@ -31,6 +31,10 @@ from yamlgraph.utils.content import normalize_content
 from yamlgraph.utils.expressions import resolve_node_variables
 from yamlgraph.utils.json_extract import extract_json
 from yamlgraph.utils.llm_factory import create_llm
+from yamlgraph.utils.structured_output import (
+    ainvoke_structured,
+    is_second_attempt_error,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -131,15 +135,28 @@ async def _invoke_candidate_async(
     retained (Judgement F1).
     """
     run_id = uuid4()
+
+    def _second_attempt_config() -> dict:
+        # FR-998: the forced-tool-call second attempt is its own invocation
+        # with its own id, last retained for span closure (FR-720 F1).
+        nonlocal run_id
+        run_id = uuid4()
+        return {"run_id": run_id}
+
     try:
         if output_model:
             try:
-                structured_llm = llm.with_structured_output(output_model)
-                result = await structured_llm.ainvoke(
-                    messages, config={"run_id": run_id}
+                result = await ainvoke_structured(
+                    llm,
+                    output_model,
+                    messages,
+                    config={"run_id": run_id},
+                    second_attempt_config=_second_attempt_config,
                 )
                 return candidate, result
             except Exception as struct_err:
+                if is_second_attempt_error(struct_err):
+                    raise  # FR-998 C-3: the one second attempt already happened
                 if "response_format" in str(struct_err):
                     logger.info(
                         "Structured output rejected in race candidate %s/%s, "

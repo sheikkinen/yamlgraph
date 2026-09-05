@@ -480,7 +480,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 161 | CAP-161 Standalone Enforcer Demo | `examples/demos/enforcer/graph.yaml`, `examples/demos/enforcer/prompts/enforcer.yaml`, `examples/demos/enforcer/tools/write_file.py`, `examples/demos/enforcer/tools/edit_file.py`, … | REQ-YG-426 |
 | 162 | CAP-162 Enforcer Demo Safety Hardening | `examples/demos/enforcer/graph.yaml`, `examples/demos/enforcer/prompts/enforcer.yaml`, `examples/demos/enforcer/tools/write_file.py`, `examples/demos/enforcer/tools/edit_file.py`, … | REQ-YG-427 |
 | 163 | CAP-163 CAP Retirement Support | `scripts/req_coverage.py`, `scripts/validate_capabilities.py`, `tests/unit/test_fr466_cap_retirement_support_red.py`, `tests/unit/test_capability_registry.py` | REQ-YG-428 |
-| 164 | CAP-164 Structured Output JSON Fallback | `yamlgraph/executor.py`, `yamlgraph/node_factory/race_node.py` | REQ-YG-464 – 465 |
+| 164 | CAP-164 Structured Output JSON Fallback | `yamlgraph/executor.py`, `yamlgraph/node_factory/race_node.py`, `yamlgraph/utils/structured_output.py`, `yamlgraph/utils/llm_providers.py`, … | REQ-YG-464 – 465, 664 |
 | 165 | CAP-165 Watcher2 Baseline Dead Code Removal | `tests/unit/test_fr278_remove_baseline_dead_code.py` | REQ-YG-466 |
 | 166 | CAP-166 Meta Self-Reflective Demo | `examples/demos/meta` | REQ-YG-467 |
 | 167 | CAP-167 Dungeon Master Example | `examples/dungeon_master/nodes/story_io` | REQ-YG-429 – 433 |
@@ -2157,14 +2157,15 @@ Add status: retired support to capability YAML files. req_coverage.py excludes r
 
 ### 164. CAP-164 Structured Output JSON Fallback
 
-When with_structured_output() fails (provider rejects response_format), fall back to extract_json() + model_validate(). Extends FR-456 pattern from agent.py to executor.py and race_node.py.
+When with_structured_output() fails (provider rejects response_format), fall back to extract_json() + model_validate(). Extends FR-456 pattern from agent.py to executor.py and race_node.py. FR-998 adds the provider policy in front of it: Anthropic models are asked with constrained decoding (method="json_schema") from one shared module, with exactly one typed forced-tool-call second attempt when the model rejects output_config.
 
-**Feature Request:** FR-464
+**Feature Request:** FR-464, FR-998
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-464 | Executor falls back to JSON extraction when structured output rejected | `yamlgraph/executor.py` |
 | REQ-YG-465 | Race node falls back to JSON extraction when structured output rejected | `yamlgraph/node_factory/race_node.py` |
+| REQ-YG-664 | Anthropic constrained structured output with typed single fallback | `yamlgraph/utils/structured_output.py`, `yamlgraph/utils/llm_providers.py`, `yamlgraph/executor_base.py`, `yamlgraph/node_factory/race_node.py`, `yamlgraph/tools/agent.py` |
 
 ### 165. CAP-165 Watcher2 Baseline Dead Code Removal
 

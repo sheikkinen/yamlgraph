@@ -95,6 +95,8 @@ posted as [PR #592 comment](https://github.com/sheikkinen/yamlgraph/pull/592#iss
 
 **Not done, by scope:** nothing outstanding after the review round. AC-09 was run after the review (below). No automation, no gate.
 
+**FR-998 (2026-09-05):** the `unclear`/`needs` fields were declared `str` and split in `_lines()` only because Anthropic's forced tool call returned lists as strings; FR-998 fixes that at the framework's provider boundary, so the API-transport successor can declare them `list[str]`.
+
 ## Review record (2026-09-05, `scripts/review.sh 592`)
 
 Verdict on the first head: **Not approved**, six blocking findings — every one real, none visible to the author or to the outsider:
@@ -146,5 +148,6 @@ Stopped after three passes, per the stop rule written before pass 1. What the ch
 - [docs/2026-09-05-research-plan-cap-journey-census.md](../docs/2026-09-05-research-plan-cap-journey-census.md) §11 (the approved plain account), §12.1–12.7 (the spike)
 - [docs/spikes/outsider-reader-2026-09-05/](../docs/spikes/outsider-reader-2026-09-05/) — committed spike copy
 - [FR-990](FR-990-cap-journey-census.md) — the PR whose description was the first input
+- [FR-998](FR-998-anthropic-constrained-structured-output.md) — why the API-transport successor can declare `unclear`/`needs` as `list[str]`
 - Diaries: [the-recap-nobody-outside-could-read](../docs/diary/diary-2026-09-05-the-recap-nobody-outside-could-read.md), [the-junk-drawer-moved-when-i-reworded-it](../docs/diary/2026-09-05-reflection-fr-990-the-junk-drawer-moved-when-i-reworded-it.md)
 - Separate FR candidate, not bundled: detecting graph files under `examples/` by their contents (a file with `nodes:` and `edges:`) instead of by filename, so a graph cannot dodge the authoring hook by being named something other than `graph.yaml` (the `gh-profiler.yaml` case, plan §12.5)
