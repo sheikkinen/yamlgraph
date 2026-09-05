@@ -124,7 +124,12 @@ def test_derived_no_on_hedge_case_insensitive(tools, hedge):
 
 @pytest.mark.req("REQ-YG-661")
 def test_historical_reports_never_derive_yes(tools):
-    reports = sorted(SPIKE_OUT.glob("*.md"))
+    # The nine spike reports that predate the positive fixture (AC-07): none derives YES.
+    reports = sorted(
+        p
+        for p in SPIKE_OUT.glob("*.md")
+        if not p.name.startswith(("positive-", "selftest-"))
+    )
     assert len(reports) >= 9
     for path in reports:
         text = path.read_text(encoding="utf-8")
@@ -133,6 +138,21 @@ def test_historical_reports_never_derive_yes(tools):
         except tools.ReportFormatError:
             verdict = "REJECTED"
         assert verdict != "YES", path.name
+
+
+@pytest.mark.req("REQ-YG-661")
+def test_positive_fixture_reports(tools):
+    # Same input, two runs: attempt 4 derived NO (5 items), the selftest run derived YES (0 items).
+    no_report = SPIKE_OUT / "positive-attempt4-gpt-5.6-sol-20260905T062422Z.md"
+    yes_report = SPIKE_OUT / "positive-selftest-gpt-5.6-sol-20260905T062639Z.md"
+    assert (
+        tools.derive_verdict(tools.parse_report(no_report.read_text(encoding="utf-8")))
+        == "NO"
+    )
+    assert (
+        tools.derive_verdict(tools.parse_report(yes_report.read_text(encoding="utf-8")))
+        == "YES"
+    )
 
 
 @pytest.mark.req("REQ-YG-661")

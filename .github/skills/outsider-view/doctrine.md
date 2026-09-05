@@ -5,13 +5,12 @@
 A third adversarial reader beside the judge (reads FRs against doctrine) and
 the reviewer (reads PRs against FR + judgement with the files open). The
 outsider reads a pull request's **title and body only** as someone who has
-never seen this project, and reports in four fixed sections: what it
-understood in its own words; whether it could decide to merge from the text
-alone; the words and references it could not understand (at most eight); and
-what a merge decision would still need (at most ten).
+never seen this project, and reports in four fixed sections: restatement in
+its own words; could it decide to merge from the text alone; words and
+references it could not understand (≤ 8); what a merge decision would still
+need (≤ 10).
 
-Its ignorance is the instrument. Everything that gives the judge and reviewer
-their power — doctrine, files, history — would make the outsider useless.
+Its ignorance is the instrument; doctrine, files and history would blunt it.
 
 ## Inverted input closure (hard boundary)
 
@@ -36,7 +35,9 @@ their power — doctrine, files, history — would make the outsider useless.
    model): YES iff section 3 has at most two items **and** the restatement
    contains none of `does not say`, `something called`, `not stated`,
    `cannot tell`. The model's own YES/NO is recorded as opinion; the spike
-   showed it says YES on nearly everything.
+   showed it says YES on nearly everything. The reader is a nagger — almost
+   impossible to please, and the same text can draw five items in one run and
+   none in the next. Hence advisory, and one run per PR, never a loop to YES.
 
 ## Fail closed
 

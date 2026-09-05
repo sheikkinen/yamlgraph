@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Enhancement (process instrument, advisory)
-**Status:** Judged — APPROVED WITH REVISIONS (2026-09-05, [judgement](FR-995-outsider-reader.judgement.md)). R-1…R-5 folded below; R-1's positive fixture is *not yet achieved* after three recorded glossing passes (see Fixtures) and remains an implementation obligation (AC-07/AC-08). Authority per the judgement: manual, advisory reader; deliverables D-1…D-10 only.
+**Status:** Enforced 2026-09-05 (PR #592) — D-1…D-10 delivered under the [judgement](FR-995-outsider-reader.judgement.md); see *Implementation record*. Open by evidence, not omission: the positive fixture derives YES on one run and NO on another (AC-07/AC-08 pass on the recorded selftest and are marked unstable).
 **Effort:** 1 day (spike exists; skill layout + wrapper + canary fixtures)
 **Requested:** 2026-09-05
 **First consumer / first event:** the author of any `feat`/`fix` PR, at the moment the PR is opened and before `scripts/review.sh` runs — the outsider's report tells them what a reader with no project context cannot understand from the title and body. Second consumer: the reviewer, who receives the "what a merge decision would still need" list and partitions it into *exists-but-unlinked* and *absent*. Third: this FR itself (dogfood — see Acceptance Criteria).
@@ -76,6 +76,24 @@ The spike reader was run on this FR's first-pushed text: report at
 [docs/spikes/outsider-reader-2026-09-05/out/fr-995-gpt-5.6-sol-20260905T054043Z.md](../docs/spikes/outsider-reader-2026-09-05/out/fr-995-gpt-5.6-sol-20260905T054043Z.md),
 posted as [PR #592 comment](https://github.com/sheikkinen/yamlgraph/pull/592#issuecomment-5549746082).
 **Derived verdict on the pre-fix text: NO** (8 section-3 items > 2; restatement unhedged; the model's own section 2 said YES — a further instance of the false-YES class). Dispositions: all eight phrases glossed inline ("CAP journey census", "Submit step", "authoring route", "lock and lineage sentinel", "judge-class model", "pointer reasons", "new CAP", "guard-by-content"). Section 4: scope stated (FR only, nothing implemented); the `--fr` flag contradiction with Alternatives #7 was real and is removed; cost, concurrency (lock), cleanup, and runtime are now stated; self-test, regression and automatic-invocation items are implementation-time and remain open by design.
+
+## Implementation record (2026-09-05)
+
+**Delivered (PR #592):** `.github/skills/outsider-view/{SKILL.md, doctrine.md (60 lines), adapters/{README.md, graph.yaml, prompts/outsider.yaml, outsider_tools.py}, fixtures/}`; `scripts/outsider.sh`; `tests/unit/test_fr995_outsider_reader.py` + `test_fr995_outsider_wrapper.py` (29 tests); `capabilities/CAP-263-outsider-reader.yaml` (REQ-YG-660…663), `ARCHITECTURE.md` regenerated; `docs/census/outsider-ledger.jsonl` (empty); changelog fragment; brief `feature-requests/authoring-briefs/fr-995-outsider-reader-brief.md`. Graph, prompt and README authored via `scripts/author.sh` (report in `tmp/draft-authoring-report.md`): prompt body byte-identical to the spike's after a two-line header; graph = spike graph with the write step replaced by the typed `finalize_report`; Python untouched by the route.
+
+**RED → GREEN:** tests committed first (`7e95a82c`), module second. One defect found by the wrapper smoke, not by unit tests: the rendered report did not round-trip through its own parser (opinion and label on one line). Fixed in the renderer; a round-trip test added.
+
+**Deviations and decisions:**
+- `--dry-run` was designed and then **removed** (operator: dry-runs are banned). Wrapper tests assert the cwd inversion, grants, cleanup and comment gating on the script text and exercise the recursion sentinel for real (it exits before any run).
+- `chmod` on `scripts/` is blocked by the main-lock guard in worktrees; the executable bit is set through `git update-index --chmod=+x`.
+- Pydantic under yamlgraph's path-based tool loading needs `model_rebuild()` after the classes (CONF-443 idiom); the authoring smoke found it, the unit tests (which import by spec) did not.
+- `test_fr995_outsider_wrapper.py` carries `pytestmark = pytest.mark.process` (FR-756 boundary: it reads `scripts/`).
+
+**AC-07 / AC-08 — the positive fixture, honestly:** attempt 4 (`fixtures/positive.md` = v5 + who decides + where the ten types are defined) derived **NO** (5 items: "catalog", "retire rows", "the business plan", "novel_fandom", "fi_domain_crawl") at 06:24Z and **YES** (0 items, "nothing") at 06:26Z in the production `--selftest`, which therefore passed NO/NO/NO/YES. Same text, two minutes apart, opposite verdicts. Both reports are committed under the spike directory and both are asserted in tests. The item set differs on every run (attempts 1–4 named 4 + 3 + 2 + 5 distinct phrases with little overlap); glossing chases a moving target. Rule unchanged, per R-1.
+
+**Operator calibration (2026-09-05):** *gpt-5.6-sol is a nagger — almost impossible to please. That is why the results are advisory and the number of runs is limited.* Recorded in `doctrine.md`. Consequence for anyone proposing a gate later: measure repeat-run variance on the twenty PRs, not single verdicts; a flickering positive is the instrument's nature, not a bug to loop on.
+
+**Not done, by scope:** AC-09 (credentialed `scripts/outsider.sh 591` writing a ledger row) — #591 is merged and its body was the fixture family; the first real ledger row should come from the next open `feat`/`fix` PR, not from re-reading a closed one. No comment posted anywhere by the new wrapper.
 
 ## Fixtures — the search for a positive (R-1 evidence)
 
