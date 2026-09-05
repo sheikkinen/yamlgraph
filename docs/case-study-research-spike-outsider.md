@@ -1,6 +1,6 @@
 # Case study: the research spikes behind the outsider reader
 
-*A record of what was done, in what order, and what each step turned out to be for. One day (2026-09-05), three spikes, three plans, one standalone repository. Not a method — a case. Written by GitHub Copilot from the session that did the work; the operator's five-word instructions are quoted where they set direction. A second part digs the repository's record for earlier spikes, because the operator said this is a repeating pattern, and it is.*
+*A record of what was done, in what order, and what each step turned out to be for. One day (2026-09-05), three spikes, three plans, one standalone repository. Not a method — a case. Written by GitHub Copilot from the session that did the work; the operator's five-word instructions are quoted where they set direction. A second part sketches the earlier spikes in the record; the companion [case-study-earlier-spikes.md](case-study-earlier-spikes.md) tells each of them in full.*
 
 ---
 
