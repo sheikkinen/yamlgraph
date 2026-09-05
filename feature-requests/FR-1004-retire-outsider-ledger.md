@@ -180,7 +180,7 @@ Route: `scripts/review.sh 602 feature-requests/FR-1004-retire-outsider-ledger.md
 - **P4 (frozen surface)** — `adapters/README.md` is not in D-1…D-9; the hunk is withdrawn (file restored to `main`). Consequence, recorded not fixed: that README's "direct invocation" example still shows the three pre-FR-1004 `--var`s and would now fail with missing state; correcting it needs a revised judgement or its own FR.
 - **Note** — `parse_observation` kept marker parts in a dict, so a duplicated key could pass; it now compares the ordered key list, so duplicates, omissions and reordering all fail closed (tested).
 
-**Round 2** on head `dd1c96ed`: **Not approved**, two blocking findings, both accepted and enforced (`next commit`):
+**Round 2** on head `dd1c96ed`: **Not approved**, two blocking findings, both accepted and enforced (`337a07b1`):
 
 - **P1** — the governing FR's S-4, the FR-995 superseding note and the changelog fragment still quoted phrase-only counts (`… --jq length`, or the rejected inline `in:comments` form). All three now state the canonical complete-marker reducer or point to it unambiguously; S-4 carries the reducer verbatim with a "revised at enforcement" note.
 - **P2** — withdrawing the `adapters/README.md` hunk (round 1 P4) left its direct-invocation recipe broken: the graph now requires the five observation variables and `finalize_report` fails with `KeyError: 'repo'` after the model call. On the reviewer's instruction the governed surface is **amended to include `adapters/README.md`** (it is cited evidence in the judgement); the recipe lists all five variables with `-` placeholders, states that only title/body reach the model, and uses the R-4 no-tracked-state wording.
