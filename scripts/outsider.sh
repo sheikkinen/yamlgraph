@@ -5,8 +5,8 @@
 # child process runs from a clean directory OUTSIDE the repo, so the Copilot
 # CLI cannot load .github/copilot-instructions.md. A reader that can see the
 # rulebook is not an outsider. Zero reader doctrine here (doctrine.md).
-# FR-1004: the posted PR comment is the only durable record of a run; the
-# wrapper writes nothing under the repository (reports/logs stay in tmp/).
+# FR-1004: the posted PR comment is the only durable record of a run. A run
+# changes no tracked repository state; reports and logs go to git-ignored tmp/.
 #
 # usage: scripts/outsider.sh <pr-number> [--comment] [--repo owner/name]
 #        scripts/outsider.sh --input <file.md> [--label <name>]   # any title+body text; report only

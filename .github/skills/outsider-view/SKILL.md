@@ -29,17 +29,22 @@ There is no committed ledger. Each posted report carries a typed HTML marker
 model: … | prompt: … | tool: … | verdict: … | s3: … | s4: … -->`). Only a
 validated report that was **successfully posted** with `--comment` counts;
 `--input`, `--selftest`, non-comment runs and every failure are not
-observations. The count is a query (transition-safe: it also matches the
-pre-FR-1004 `<!-- outsider reader | source: …` comments):
+observations. The count is a query, reduced on **complete markers** (old
+`source | model | timestamp` or new, validated by `parse_observation`) — a
+human comment that merely says "outsider reader" is not an observation:
 
 ```bash
-gh search prs --repo sheikkinen/yamlgraph --match comments 'outsider reader' --limit 1000 --json number
-gh search prs --repo sheikkinen/yamlgraph --match comments 'outsider reader' --limit 1000 --json number --jq length
+gh search prs --repo sheikkinen/yamlgraph --match comments 'outsider reader' --limit 1000 --json number --jq '.[].number' \
+  | while read -r n; do gh api "repos/sheikkinen/yamlgraph/issues/$n/comments" --paginate --jq ".[] | {pr: $n, body}"; done \
+  | python3 -c 'import sys, json, importlib.util; s = importlib.util.spec_from_file_location("ot", ".github/skills/outsider-view/adapters/outsider_tools.py"); m = importlib.util.module_from_spec(s); s.loader.exec_module(m); prs = m.distinct_observed_prs((d["pr"], d["body"]) for d in map(json.loads, sys.stdin)); print(sorted(prs)); print(len(prs))'
 ```
 
-GitHub returns each PR once however many matching comments it has. Do not
-write the qualifier inline as `'in:comments "…"'` — gh 2.98 silently drops it
-and returns every PR in the repository.
+The first stage only narrows the candidate PRs (it cannot see markers); the
+last stage keeps a PR only if one of its comments carries a complete marker,
+and deduplicates. Do not write the search qualifier inline as
+`'in:comments "…"'` — gh 2.98 silently drops it and returns every PR in the
+repository. A freshly posted comment takes up to ~45 minutes to become
+searchable; the comment itself is visible at once.
 
 ## Bundle map
 

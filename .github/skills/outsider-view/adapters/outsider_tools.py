@@ -4,13 +4,15 @@ The model's free text is a CLAIM. It is normalised here into a Pydantic
 report or rejected (fail closed). The verdict is derived from the validated
 report, never taken from the model. Every rendered report carries one typed
 observation marker (FR-1004); the durable measurement record is the PR comment
-the wrapper posts — nothing is written under the repository.
+the wrapper posts. Outsider execution changes no tracked repository state;
+validated reports and logs under the git-ignored ``tmp/`` are diagnostics only.
 """
 
 from __future__ import annotations
 
 import hashlib
 import re
+from collections.abc import Iterable
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Literal
@@ -34,6 +36,10 @@ _HEX64 = re.compile(r"^[0-9a-f]{64}$")
 _TS = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$")
 _MARKER_PREFIX = "<!-- outsider reader | "
 _MARKER_LINE = re.compile(r"^<!-- outsider reader \| (.*) -->$", re.MULTILINE)
+# The complete pre-FR-1004 marker (transition-safe counting): source, model, timestamp.
+_OLD_MARKER_LINE = re.compile(
+    r"^<!-- outsider reader \| source: \S+ \| model: \S+ \| \S+ -->$", re.MULTILINE
+)
 # marker key -> Observation field, in marker order
 _MARKER_FIELDS = (
     ("ts", "ts"),
@@ -206,6 +212,10 @@ def derive_verdict(report: OutsiderReport) -> Literal["YES", "NO"]:
 
 
 # ------------------------------------------------------------- observation
+def _lf(text: str) -> str:
+    return text.replace("\r\n", "\n")
+
+
 def render_marker(obs: Observation) -> str:
     """One HTML comment line: the typed observation, searchable on GitHub."""
     body = " | ".join(f"{key}: {getattr(obs, attr)}" for key, attr in _MARKER_FIELDS)
@@ -213,22 +223,50 @@ def render_marker(obs: Observation) -> str:
 
 
 def parse_observation(report_text: str) -> Observation:
-    """Round-trip the marker back into an Observation. Fails closed."""
-    hits = _MARKER_LINE.findall(report_text)
+    """Round-trip the marker back into an Observation. Fails closed.
+
+    Line endings are normalised first: a report written on Windows, or a
+    comment body echoed back by GitHub, may carry CRLF.
+    """
+    hits = _MARKER_LINE.findall(_lf(report_text))
     if len(hits) != 1:
         raise ReportFormatError(
             f"observation marker must appear exactly once ({len(hits)})"
         )
+    keys: list[str] = []
     fields: dict[str, str] = {}
     for part in hits[0].split(" | "):
         key, sep, value = part.partition(": ")
         if not sep:
             raise ReportFormatError(f"malformed marker field: {part!r}")
+        keys.append(key)
         fields[key] = value
     expected = [key for key, _ in _MARKER_FIELDS]
-    if list(fields) != expected:
-        raise ReportFormatError(f"marker fields {list(fields)} != {expected}")
+    if keys != expected:  # order, completeness and duplicates in one check
+        raise ReportFormatError(f"marker fields {keys} != {expected}")
     return Observation(**{attr: fields[key] for key, attr in _MARKER_FIELDS})
+
+
+def is_observation_comment(body: str) -> bool:
+    """True when *body* is a posted outsider report: a complete marker, old or new.
+
+    The distinct-PR count (FR-1004 S-4) keys on this, never on the words
+    "outsider reader" in prose. A pre-FR-1004 comment carries the complete
+    ``source | model | timestamp`` marker; a new one must round-trip through
+    :func:`parse_observation`.
+    """
+    if _OLD_MARKER_LINE.search(_lf(body)):
+        return True
+    try:
+        parse_observation(body)
+    except (ReportFormatError, ValueError):
+        return False
+    return True
+
+
+def distinct_observed_prs(comments: Iterable[tuple[int, str]]) -> set[int]:
+    """PR numbers with at least one observation comment (FR-1004 S-4 reducer)."""
+    return {pr for pr, body in comments if is_observation_comment(body)}
 
 
 def render_report(report: OutsiderReport, obs: Observation) -> str:
@@ -297,7 +335,7 @@ def finalize_report(state: dict[str, Any]) -> dict[str, Any]:
     )
     out = Path(state["report_path"])
     out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(render_report(report, obs), encoding="utf-8")
+    out.write_text(render_report(report, obs), encoding="utf-8", newline="\n")
     return {
         "path": str(out),
         "derived_verdict": verdict,
