@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Removal
-**Status:** Judged 2026-09-05 — APPROVED WITH REVISIONS ([judgement](FR-1004-retire-outsider-ledger.judgement.md)); R-1…R-4 folded below
+**Status:** Enforcing 2026-09-05 — PR #602; RED `e61bc185` → GREEN `f937d3ed`; [judgement](FR-1004-retire-outsider-ledger.judgement.md) R-1…R-4 folded below; [implementation record](#implementation-record-2026-09-05). **C-5 witness pending:** the comment is posted; GitHub search had not indexed it at T+41 min (see record).
 **Effort:** 0.5 day
 **Requested:** 2026-09-05
 **First consumer / first event:** the author of the next PR that runs `scripts/outsider.sh <pr> --comment`, at the moment a second open PR has also run it — today that author is me, three times (PRs #594, #595, #596 each carry one appended row to the same file and conflict pairwise as they merge). Second consumer: whoever counts distinct outsider-read PRs toward FR-995's "twenty before any gate" threshold — they run one `gh search` instead of reading a committed file.
@@ -115,20 +115,52 @@ On the enforcing PR: `scripts/outsider.sh <pr> --comment`; then the S-4 query. R
 
 ## Acceptance Criteria (revised per judgement)
 
-- [ ] AC-01: `docs/census/outsider-ledger.jsonl` is deleted; `git grep -n ledger -- scripts/outsider.sh .github/skills/outsider-view` returns no active ledger implementation or instruction.
-- [ ] AC-02: Every rendered report carries one typed marker with exactly one UTC timestamp, repo, PR, full head SHA, full input SHA-256, model, prompt digest, tool SHA, derived verdict, s3, s4 — and no `source:` or temp path. Non-PR reports use `-` placeholders and are not countable.
-- [ ] AC-03: `report_path` is recorded as retired (superseded by the comment location) in FR-1004 and FR-995; no text claims the old fields or inclusion rules are unchanged.
-- [ ] AC-04: No mode of `scripts/outsider.sh` creates or modifies a path under `docs/` or any tracked file; validated local reports/logs may remain under git-ignored `tmp/`; `OUTSIDER_LEDGER` is absent from active code and has no effect.
-- [ ] AC-05: `pr --comment` posts exactly the enriched validated report; the fake captures `--body-file` and its head/input values match the fake `gh pr view` result and the fetched text's SHA-256. Comment failure exits non-zero and creates no durable record.
-- [ ] AC-06: A non-comment PR run writes its validated report under `tmp/` and is excluded from the count; `--input`, `--selftest`, graph, parse and comment failures are excluded too.
+- [x] AC-01: `docs/census/outsider-ledger.jsonl` is deleted; `git grep -n ledger -- scripts/outsider.sh .github/skills/outsider-view` returns no active ledger implementation or instruction.
+- [x] AC-02: Every rendered report carries one typed marker with exactly one UTC timestamp, repo, PR, full head SHA, full input SHA-256, model, prompt digest, tool SHA, derived verdict, s3, s4 — and no `source:` or temp path. Non-PR reports use `-` placeholders and are not countable.
+- [x] AC-03: `report_path` is recorded as retired (superseded by the comment location) in FR-1004 and FR-995; no text claims the old fields or inclusion rules are unchanged.
+- [x] AC-04: No mode of `scripts/outsider.sh` creates or modifies a path under `docs/` or any tracked file; validated local reports/logs may remain under git-ignored `tmp/`; `OUTSIDER_LEDGER` is absent from active code and has no effect.
+- [x] AC-05: `pr --comment` posts exactly the enriched validated report; the fake captures `--body-file` and its head/input values match the fake `gh pr view` result and the fetched text's SHA-256. Comment failure exits non-zero and creates no durable record.
+- [x] AC-06: A non-comment PR run writes its validated report under `tmp/` and is excluded from the count; `--input`, `--selftest`, graph, parse and comment failures are excluded too.
 - [ ] AC-07: `SKILL.md` and `doctrine.md` document the transition-safe search and the comment-only population; the credentialed enforcing-PR run records the returned PR-number set, shows the enforcing PR exactly once, and quotes the actual count with no speculative minimum.
-- [ ] AC-08: `graph.yaml` typed state carries the base observation fields into `finalize_report`; the change has a committed authoring brief, a valid `tmp/draft-authoring-report.md`, lint and smoke evidence.
-- [ ] AC-09: Direct tests cover marker completeness/uniqueness, digest lengths, UTC shape, placeholders, round-trip, posted-body identity, no `docs/` writes, no tracked-file mutation, ignored `OUTSIDER_LEDGER`, non-comment exclusion, comment-failure exclusion.
-- [ ] AC-10: REQ-YG-662 / CAP-263 describe the marker schema and comment-only rule with `fr: FR-995, FR-1004`; `ARCHITECTURE.md` regenerated; every changed test carries a REQ marker; `python scripts/req_coverage.py --strict` passes.
-- [ ] AC-11: FR-995 Proposed Solution 7, AC-11 and implementation record carry the superseding sentence; its judgement and spike artifacts are unchanged.
-- [ ] AC-12: RED commit precedes GREEN; `changelog/unreleased/fr-1004-retire-outsider-ledger.md` (`type: removal`, `scope: outsider`, `req: REQ-YG-662`); the implementation record cites both commits and the witness.
-- [ ] AC-13: The diff touches none of the unauthorised surfaces (automation, CI/hooks, blocking verdict, model/prompt/parser/verdict rule, historical comments or spike outputs, other census artifacts, new subcommand, judge/review doctrine).
-- [ ] AC-14: `docs/diary/2026-09-05-reflection-fr-1004-*.md` with `**Seed:**`.
+- [x] AC-08: `graph.yaml` typed state carries the base observation fields into `finalize_report`; the change has a committed authoring brief, a valid `tmp/draft-authoring-report.md`, lint and smoke evidence.
+- [x] AC-09: Direct tests cover marker completeness/uniqueness, digest lengths, UTC shape, placeholders, round-trip, posted-body identity, no `docs/` writes, no tracked-file mutation, ignored `OUTSIDER_LEDGER`, non-comment exclusion, comment-failure exclusion.
+- [x] AC-10: REQ-YG-662 / CAP-263 describe the marker schema and comment-only rule with `fr: FR-995, FR-1004`; `ARCHITECTURE.md` regenerated; every changed test carries a REQ marker; `python scripts/req_coverage.py --strict` passes.
+- [x] AC-11: FR-995 Proposed Solution 7, AC-11 and implementation record carry the superseding sentence; its judgement and spike artifacts are unchanged.
+- [x] AC-12: RED commit precedes GREEN; `changelog/unreleased/fr-1004-retire-outsider-ledger.md` (`type: removal`, `scope: outsider`, `req: REQ-YG-662`); the implementation record cites both commits and the witness.
+- [x] AC-13: The diff touches none of the unauthorised surfaces (automation, CI/hooks, blocking verdict, model/prompt/parser/verdict rule, historical comments or spike outputs, other census artifacts, new subcommand, judge/review doctrine).
+- [x] AC-14: `docs/diary/2026-09-05-reflection-fr-1004-*.md` with `**Seed:**`.
+
+## Implementation record (2026-09-05)
+
+**Delivered (PR #602):** `docs/census/outsider-ledger.jsonl` deleted (`git rm`; 7 rows on main at deletion); `.github/skills/outsider-view/adapters/outsider_tools.py` — `Observation` (eleven typed fields, validators for the UTC `Z` timestamp, 40-hex head SHA or `-`, 64-hex input digest), `render_marker` / `parse_observation` (round-trip, fails closed on a missing or doubled marker), `render_report(report, observation)`, `finalize_report` builds the observation from graph state and hashes the exact input bytes; `ledger_row`, `append_ledger`, `distinct_pr_count` deleted; `scripts/outsider.sh` — `LEDGER`/`OUTSIDER_LEDGER` and the append block removed, `run_one` takes `repo pr head_sha` (placeholders `-` for `--input`/`--selftest`) and passes the five base fields as `--var`s, `pr` mode without `--comment` says "not posted … not an observation", a failed comment says "no observation recorded" and exits 1; `graph.yaml` state gains `repo`, `pr`, `head_sha`, `prompt_digest`, `tool_sha` **via `scripts/author.sh`** from `feature-requests/authoring-briefs/fr-1004-outsider-observation-brief.md` (report quoted below); `SKILL.md` (usage + "Counting distinct PRs" section), `doctrine.md` (60 lines, Fail-closed and Measurement paragraphs), `adapters/README.md` (direct-invocation vars, marker sentence); `CAP-263` REQ-YG-662 rewritten, `fr: FR-995, FR-1004`, `ARCHITECTURE.md` regenerated; FR-995 annotated at Proposed Solution 7, AC-11 and the implementation record; changelog fragment (`type: removal`, `scope: outsider`, `req: REQ-YG-662`); diary `docs/diary/2026-09-05-reflection-fr-1004-the-query-that-matched-everything.md`.
+
+**RED → GREEN:** `e61bc185` (reader tests: 14 fail — `Observation` absent, `render_report` signature; wrapper static tests: state fields absent, `ledger` present) → `f937d3ed`. Reader suite 40/40 locally; wrapper suite 16 tests **green on Linux CI** (`test (3.11)`, `test (3.13)`, `core-test` on `f937d3ed`); on this Windows host the seven bash-driven wrapper tests cannot run (Python's `subprocess` resolves `bash` to the broken WSL relay regardless of PATH), so every one of their behaviours was exercised by hand with the same fake `yamlgraph`/`gh` from Git Bash: posted body byte-identical to the report, marker `pr: 4242 | head: a…(40)`, `--input` marker `repo: - | pr: - | head: -`, `OUTSIDER_LEDGER` set and ignored, `docs/` untouched (`git status --porcelain -- docs` unchanged), no comment without `--comment`, comment failure exit 1 with "no observation recorded".
+
+**Graph route evidence (AC-08, C-6):** `scripts/author.sh feature-requests/authoring-briefs/fr-1004-outsider-observation-brief.md` → `tmp/draft-authoring-report.md`: Artifacts `.github/skills/outsider-view/adapters/graph.yaml`; Validation "`yamlgraph graph lint … - passed; no issues found`" and a live smoke (`gpt-5.6-sol`, `repo=- pr=- head_sha=- prompt_digest=0000000000000000 tool_sha=smoke`) that "passed and wrote `tmp/outsider-fr1004-smoke.md`" whose second line is `<!-- outsider reader | ts: 2026-09-05T14:17:17Z | repo: - | pr: - | head: - | input: ad7cfe38…(64) | model: gpt-5.6-sol | prompt: 0000000000000000 | tool: smoke | verdict: NO | s3: … -->`; Repairs: state block only; Blocked validation: none. The diff is exactly the frozen state block (six lines). The first pre-flight failed on the brief's original smoke line (absolute `C:/` paths and a leading `cd` are not resolvable by `author_preflight.py`); the brief was rewritten with repo-relative paths and re-run.
+
+**Wrapper smoke with the real graph:** `scripts/outsider.sh --selftest` (expects NO/NO/NO/YES) produced rejected/NO/NO/NO: `pr-591` — the model emitted a section-3 item without a quoted phrase and the report was rejected fail-closed (no report, no observation); `positive` derived NO (4 items) where FR-995's record shows the same text deriving NO (5 items) and YES (0) two minutes apart. Both are the documented behaviour of the instrument (FR-995 operator calibration: "a nagger"), not of this change; every validated report carried the new marker with `-` placeholders. Model, prompt, parser and verdict rule are untouched (C-7).
+
+**S-7 / AC-07 witness (C-5):** `scripts/outsider.sh 602 --comment` on head `f937d3ed`: report `tmp/outsider-pr-602-20260905T142137Z.md`, derived NO (s3=8, s4=5), comment posted 2026-09-05T14:21:57Z; marker verbatim:
+
+```
+<!-- outsider reader | ts: 2026-09-05T14:21:55Z | repo: sheikkinen/yamlgraph | pr: 602 | head: f937d3ede72ebc2aeb1aadf4d91d87918ac04fba | input: e3e71107a67179c2ae1ff9d09f9857f268dd0e6a57d5ed2829d46518383ff05a | model: gpt-5.6-sol | prompt: aba939c5871b0bc5 | tool: f937d3ed | verdict: NO | s3: 8 | s4: 5 -->
+```
+
+`gh api repos/sheikkinen/yamlgraph/issues/602/comments` shows exactly one marker comment. The S-4 query, run at 14:22Z, 14:32Z (T+11 min, 20 polls) and 15:02Z (T+41 min, 30 more polls), returned the same set each time:
+
+```
+gh search prs --repo sheikkinen/yamlgraph --match comments 'outsider reader' --limit 1000 --json number --jq 'map(.number)|sort'
+[592,593,595,596,597,598,600]   count: 7   (602 occurrences: 0)
+```
+
+A distinctive phrase from the #602 comment (`census artifacts`) also returns nothing, so this is GitHub's comment-search index lag, not a query defect: the seven earlier marker comments (latest posted 12:57Z) are all found, and each of the seven carries exactly one marker. **C-5 is therefore not yet satisfied**; AC-07 stays open until the search returns #602 exactly once, at which point this record gets the final set, count and elapsed time. Polling continues.
+
+**Deviations and decisions:**
+- **S-4 query form (AC-07):** the FR's documented `gh search prs … 'in:comments "<!-- outsider reader |"'` is silently ignored by `gh 2.98.0`: it returned all 444 PRs, and so did `'in:comments "zzqqxxnonsense"'`. The qualifier works only through the `--match comments` flag (or the raw `search/issues` API with `in:comments` inside `q`). `SKILL.md` documents the working form and warns against the inline one. The phrase is `outsider reader` (word match; GitHub search cannot match the `<!--` punctuation), which is transition-safe for the pre-FR-1004 `source:` markers and would also match a human comment containing those two words — accepted; the seven hits today all carry exactly one real marker.
+- **Population narrowing (R-1) witnessed:** PR #599 (FR-998) was read twice by the outsider without `--comment`; it is correctly absent from the count.
+- **Input digest is byte-exact**, so a Windows launcher (CRLF from Python's `print`) yields a different digest from Linux for the same PR text; the outsider runs on POSIX hosts and CI, and the digest's job is tamper evidence for the comment that carries it, not cross-host equality.
+- Wrapper-test RED/GREEN witnessed by CI, not this host (above); reader-test RED/GREEN witnessed locally.
+- `tmp/draft-authoring-report.md` and the smoke report live under git-ignored `tmp/` as FR-995 and the authoring doctrine intend; their load-bearing lines are quoted above.
 
 ## Alternatives Considered
 
