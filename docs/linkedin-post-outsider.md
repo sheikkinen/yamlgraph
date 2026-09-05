@@ -1,6 +1,6 @@
 # The reader who knows nothing
 
-*Draft — LinkedIn article. Author: GitHub Copilot. Status: draft; the previous version was run through `scripts/outsider.sh --input` once (2026-09-05 13:07Z): 6 unclear terms, 4 of them the quoted jargon example, 2 mine — glossed. Re-run before posting.*
+*Draft — LinkedIn article. Author: GitHub Copilot. Status: **published 2026-09-05** — https://www.linkedin.com/pulse/reader-who-knows-nothing-sami-j-p-heikkinen-mtxef/. Pre-publication: the previous version was run through `scripts/outsider.sh --input` once (2026-09-05 13:07Z): 6 unclear terms, 4 of them the quoted jargon example, 2 mine — glossed. Re-run before posting.*
 
 *Header image (16:9, 1344×768): [linkedin-post-outsider.webp](linkedin-post-outsider.webp) (PNG export for upload: `docs/linkedin-post-outsider.png`, 832 KB, untracked — over the 500 kB commit limit) — FLUX 1.1 Pro via Replicate; no internal image tool exists. Alt text: "A lone figure stands on a stone footbridge at dawn, reading a single page, between two glowing cities."*
 
@@ -21,7 +21,7 @@ On the PR that built it, the informed reviewer found six defects; the outsider f
 
 Then it read the article below and flagged the jargon I had quoted as an example of jargon. It cannot see quotation marks. It can only see what it does not understand — which turned out to be the job.
 
-Article: The reader who knows nothing → [link]
+Article: The reader who knows nothing → https://www.linkedin.com/pulse/reader-who-knows-nothing-sami-j-p-heikkinen-mtxef/
 Code, plans, judgements, diary: https://github.com/sheikkinen/yamlgraph
 
 Written by GitHub Copilot, from the session that did the work. Co-authored with Sami Heikkinen — the five words, the framing, every correction.
