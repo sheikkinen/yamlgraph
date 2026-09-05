@@ -1,0 +1,24 @@
+# Journey catalog for the CAP journey census (docs/2026-09-05-research-plan-cap-journey-census.md §4).
+# Closed for the run. Off-catalog values are preserved as typed rows, never coerced.
+# Operator-reviewed 2026-09-05.
+journeys:
+  - id: author_graph
+    who: someone writing graph.yaml + prompts, lint, schema
+  - id: run_operate
+    who: someone running/resuming/chaining pipelines, cost routing, checkpointing
+  - id: debug_observe
+    who: someone diagnosing a run (tracing, route overlay, forensic diary)
+  - id: integrate
+    who: someone wiring providers, tools, CLIs into a graph
+  - id: serve_embed
+    who: someone exposing a graph as a service or inside an app
+  - id: census_classify
+    who: someone judging every item of a corpus with a closed vocabulary
+  - id: govern_process
+    who: this repo's own FR / judge / review / chaplain pipeline
+  - id: audit_comply
+    who: an external buyer needing evidence of conformance
+  - id: conversational_app
+    who: an end-user product on interrupt + checkpointer
+  - id: none_internal
+    who: developer velocity of this repo only

@@ -1,0 +1,109 @@
+version: "1.0"
+name: cap-journey-census
+description: >
+  Capability registry journey census: discover CAP YAML files, extract one
+  evidence bundle per CAP, classify each CAP once, then reduce to a deterministic
+  ledger without a synthesis tail.
+
+prompts_relative: true
+prompts_dir: prompts
+
+defaults:
+  provider: anthropic
+  model: claude-haiku-4-5
+  temperature: 0.0
+
+config:
+  max_map_items: 250
+
+state:
+  source: str
+  provider: str
+  model: str
+  output_path: str
+  journeys_path: str
+  canaries_path: str
+  journey_ids: str
+  items:
+    type: list
+  contents:
+    type: list
+    reducer: sorted_add
+  findings:
+    type: list
+    reducer: sorted_add
+  ledger: dict
+
+tools:
+  discover:
+    type: python
+    path: tools.py
+    function: cap_discover
+    description: "Discover capability YAML files from a bounded source selector."
+  extract:
+    type: python
+    path: tools.py
+    function: cap_extract
+    description: "Build one JSON evidence bundle for a capability."
+  reduce_cap_ledger:
+    type: python
+    path: tools.py
+    function: reduce_cap_ledger
+    description: "Validate CAP classifications and write markdown plus JSONL ledger artifacts."
+
+nodes:
+  discover:
+    type: python
+    tool: discover
+    variables:
+      source: "{state.source}"
+    state_key: items
+    on_error: fail
+
+  extract_items:
+    type: map
+    over: "{state.items}"
+    as: item
+    max_items: 250
+    node:
+      type: python
+      tool: extract
+      state_key: content
+      on_error: fail
+    collect: contents
+
+  judge_items:
+    type: map
+    over: "{state.contents}"
+    as: judged_content
+    max_items: 250
+    node:
+      type: llm
+      prompt: judge_cap
+      provider: "{state.provider}"
+      model: "{state.model}"
+      temperature: 0.0
+      state_key: finding
+      on_error: skip
+      variables:
+        journey_ids: "{state.journey_ids}"
+        content: "{state.judged_content.value}"
+        source_index: "{state.judged_content._map_index}"
+    collect: findings
+
+  reduce_cap_ledger:
+    type: python
+    tool: reduce_cap_ledger
+    state_key: ledger
+
+edges:
+  - from: START
+    to: discover
+  - from: discover
+    to: extract_items
+  - from: extract_items
+    to: judge_items
+  - from: judge_items
+    to: reduce_cap_ledger
+  - from: reduce_cap_ledger
+    to: END
