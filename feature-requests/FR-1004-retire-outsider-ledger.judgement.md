@@ -103,3 +103,93 @@ Not authorized: automatic invocation or comments; CI, hook, pre-commit, merge-ga
 | C-8 | Complete RED/GREEN history, requirement traceability, changelog, FR records, and diary within D-1 through D-9. | GATE |
 
 Authority granted: after R-1 through R-4 are folded into the FR, implement only D-1 through D-9 to replace the committed outsider ledger with a typed, searchable, successfully posted PR-comment observation.
+
+---
+
+## Second judgement (2026-09-05, S-8 scope amendment — `adapters/README.md`)
+
+**Route:** `scripts/judge.sh feature-requests/FR-1004-retire-outsider-ledger.md` (Copilot backend, `gpt-5.6-sol`) on lane commit `9d7cfd6d`, 2026-09-05 15:49Z, requested by review #602 round 3 P3 after the README direct-invocation recipe was found broken by D-4. Folded verbatim below; R-1 and R-2 incorporated into the FR (status chronology, AC-15, README contract witness). The original judgement above is unchanged (C-8 of this judgement).
+
+**Verdict:** APPROVED WITH REVISIONS — the `adapters/README.md` repair is the smallest coherent completion of the already-authorized graph-state change, but authority to retain that hunk activates only after the FR records that review requested rather than granted the amendment and adds a mechanical acceptance witness for the repaired recipe.
+
+**Reviewed against:** `feature-requests/FR-1004-retire-outsider-ledger.md`; `feature-requests/FR-1004-retire-outsider-ledger.judgement.md`; `feature-requests/FR-995-outsider-reader.md`; `feature-requests/FR-995-outsider-reader.judgement.md`; `feature-requests/FR-858-retire-committed-fr-board.md`; `feature-requests/FR-998-anthropic-constrained-structured-output.md`; `feature-requests/authoring-briefs/fr-1004-outsider-observation-brief.md`; `feature-requests/TEMPLATE.md`; `docs/diary/2026-08-23-the-worktree-is-the-airlock.md`; `.github/skills/judge-fr/doctrine.md`; `.github/skills/judge-fr/judgement.template.md`; `.github/copilot-instructions.md`; `.github/skills/outsider-view/SKILL.md`; `.github/skills/outsider-view/doctrine.md`; `.github/skills/outsider-view/adapters/README.md`; `.github/skills/outsider-view/adapters/graph.yaml`; `.github/skills/outsider-view/adapters/outsider_tools.py`; `scripts/outsider.sh`; `tests/unit/test_fr995_outsider_reader.py`; `tests/unit/test_fr995_outsider_wrapper.py`; `capabilities/CAP-263-outsider-reader.yaml`; `ARCHITECTURE.md`.
+
+## What is sound
+
+- **Scope:** the amendment is narrow and necessary. The original frozen D-5 names only `SKILL.md` and `doctrine.md` (`FR-1004-retire-outsider-ledger.judgement.md:61-71`), while the graph now requires five additional state inputs (`graph.yaml:8-17`) and the adapter README is the documented direct invocation. A smaller change cannot leave that command usable: omitting any of those inputs reaches `finalize_report`, which indexes them directly (`outsider_tools.py:312-345`).
+- **Consistency of the technical contract:** S-8 precisely limits the repair to the five variables, input-closure explanation, and tracked-state wording, while preserving the model, prompt, parser, and verdict rule (`FR-1004:117-119`). The current README implements those exact three changes (`adapters/README.md:19-25,27-45`) and does not broaden behavior.
+- **Measurability:** the proposed content is statically checkable: the direct command can be inspected for `repo`, `pr`, `head_sha`, `prompt_digest`, and `tool_sha`; the placeholder rule and model-input boundary are literal prose; and the tracked-state promise has an exact required phrase (`adapters/README.md:19-45`).
+- **Feasibility:** the wrapper already supplies the five values (`scripts/outsider.sh:86-97`), the graph declares them (`graph.yaml:8-17`), and finalization consumes them (`outsider_tools.py:312-345`). Repairing the documentation requires no runtime, dependency, prompt, or graph change.
+- **Architecture alignment:** FR-995 originally made `adapters/README.md` part of the outsider bundle (`FR-995-outsider-reader.judgement.md`, D-2), and the repository keeps operational invocation guidance beside each adapter. Updating that document when the graph input contract changes conforms to the existing bundle rather than creating a new surface.
+- **Single responsibility:** this is one documentation-contract repair caused directly by D-4. It does not bundle the review's marker-attribution fixes, reducer fixes, or any new outsider behavior (`FR-1004:193-197`).
+- **Strategic classification:** **Contrib/example (repo-local process instrument maintenance)**. The amendment maintains one existing adapter's operational documentation; it is not a framework primitive, new graph capability, or general documentation abstraction.
+- **Testability:** a focused static test can fail solely when the README recipe or its three required explanations drift. Existing tests cover graph state and tracked-state wording in the script/tool module (`test_fr995_outsider_wrapper.py:190-215`) but do not cover the README, so one explicit witness is still required.
+- **Research and precedent:** the parent FR contains a substantive seven-alternative disposition and answers `is_this_a_graph` honestly (`FR-1004:9,204-214`). The amendment itself is a defect discovered by review, not a new solution class requiring fresh external research.
+
+## Required revisions
+
+### R-1: Record amendment authority and chronology honestly
+
+Replace the claim that a reviewer instruction amended the governed surface (`FR-1004:187-190`) with: the reviewer identified the broken direct-invocation contract and requested a second judgement; review did not grant scope authority. Keep the round-3 statement that P3 was routed to the judge (`FR-1004:193-197`).
+
+Amend the status and implementation record (`FR-1004:5,140`) to distinguish the already-enforced ledger retirement from this pending scope amendment. Record that the README hunk was implemented before revised authority and is now submitted for retention review; this judgement does not retroactively authorize that sequence. Until this draft is human-reviewed and R-1/R-2 are folded, do not describe D-5 as amended or AC-13 as satisfied by the README hunk.
+
+### R-2: Add a mechanical acceptance witness for the README repair
+
+Add an unchecked acceptance criterion and one focused `REQ-YG-662` static test in `tests/unit/test_fr995_outsider_wrapper.py` that reads `.github/skills/outsider-view/adapters/README.md` and proves all of the following:
+
+1. The direct-invocation command includes `--var` entries for `repo`, `pr`, `head_sha`, `prompt_digest`, and `tool_sha`.
+2. The document states that non-PR runs use `-` for `repo`, `pr`, and `head_sha`.
+3. The document states that only title/body reach the model and the five observation fields are consumed by Python finalization rather than the prompt.
+4. The document uses the no-tracked-repository-state promise and does not claim that execution writes nothing under the repository.
+
+Record this as the witness for the amended D-5 surface. Do not change runtime code to satisfy the documentation test.
+
+## Scope is frozen
+
+| Deliverable | Surface |
+|---|---|
+| D-1 | Delete `docs/census/outsider-ledger.jsonl`; remove active ledger configuration, append, reducer, and output paths |
+| D-2 | `.github/skills/outsider-view/adapters/outsider_tools.py`: typed observation marker, rendering/parsing, and deletion of ledger helpers |
+| D-3 | `scripts/outsider.sh`: pass observation values, post the validated enriched body, remove `OUTSIDER_LEDGER`, and never write under `docs/` or mutate tracked state |
+| D-4 | `.github/skills/outsider-view/adapters/graph.yaml`, FR-1004 authoring brief, and authoring report/lint/smoke evidence |
+| D-5 | `.github/skills/outsider-view/{SKILL.md,doctrine.md}` plus `.github/skills/outsider-view/adapters/README.md`; README changes are limited to the five required observation variables, non-PR placeholders, title/body-only model boundary, Python-finalization handoff, and accurate tracked-state wording |
+| D-6 | Focused renderer and wrapper tests in `tests/unit/test_fr995_outsider_reader.py` and `tests/unit/test_fr995_outsider_wrapper.py`, including the README contract witness required by R-2 |
+| D-7 | `capabilities/CAP-263-outsider-reader.yaml`, generated `ARCHITECTURE.md`, and REQ-YG-662 traceability |
+| D-8 | FR-995 active-contract annotations and FR-1004 implementation/status record, including the credentialed comment/search witness and honest amendment chronology |
+| D-9 | FR-1004 removal changelog fragment and one metacognitive diary entry |
+
+Not authorized: any README rewrite beyond the five-variable recipe and the two directly coupled explanations; runtime behavior changes; automatic invocation or comments; CI, hook, pre-commit, merge-gate, or workflow changes; a blocking outsider verdict; model, prompt, report parser, marker parser, reducer, or derived-verdict changes; edits to historical spike outputs or historical PR comments; deletion of other census artifacts; a new query service or subcommand; judge/review doctrine changes.
+
+## Revised acceptance criteria
+
+- [ ] AC-01: `docs/census/outsider-ledger.jsonl` is deleted, and `git grep -n ledger -- scripts/outsider.sh .github/skills/outsider-view` returns no active ledger implementation or instruction.
+- [ ] AC-02: Every rendered report carries one typed marker with exactly one UTC timestamp, repo, PR, full head SHA, full input SHA-256, model, prompt digest, tool SHA, derived verdict, s3, and s4; it contains no `source:` or local temp path. Non-PR reports use the specified placeholders and are not countable.
+- [ ] AC-03: `report_path` is explicitly recorded as retired in FR-1004 and FR-995; no active text claims that all old fields or inclusion rules are unchanged.
+- [ ] AC-04: No mode of `scripts/outsider.sh` creates or modifies a path under `docs/` or any tracked file. Validated local reports/logs may remain under git-ignored `tmp/`; `OUTSIDER_LEDGER` has no effect and is absent from active code.
+- [ ] AC-05: `pr --comment` posts exactly the enriched validated report; a fake captures `--body-file` and proves its full head/input values match the fake `gh pr view` result and fetched text. Comment failure exits non-zero and creates no durable measurement record.
+- [ ] AC-06: A non-comment PR run writes its validated local report under `tmp/` but is excluded from the count. `--input`, `--selftest`, graph failures, parse failures, and comment failures are also excluded.
+- [ ] AC-07: `SKILL.md` and doctrine document the complete-marker reducer and comment-only population. A credentialed enforcing-PR run records the returned PR-number set, proves the enforcing PR appears exactly once, and quotes the actual distinct count without a speculative minimum.
+- [ ] AC-08: The graph's typed state carries the base observation fields into `finalize_report`; the graph change has a committed authoring brief and valid authoring report, lint, and smoke evidence.
+- [ ] AC-09: Direct tests cover marker completeness/uniqueness, digest lengths, UTC shape, placeholders, round-trip, marker attribution, posted-body identity, no `docs/` writes, no tracked-file mutation, ignored `OUTSIDER_LEDGER`, non-comment exclusion, comment-failure exclusion, and CRLF marker handling.
+- [ ] AC-10: REQ-YG-662 and CAP-263 describe the marker schema and comment-only inclusion rule with `fr: FR-995, FR-1004`; `ARCHITECTURE.md` is regenerated; every changed test has a REQ marker; `python scripts/req_coverage.py --strict` passes.
+- [ ] AC-11: FR-995 Proposed Solution 7, AC-11, and implementation record carry the superseding storage/inclusion contract; its historical judgement and spike artifacts remain unchanged.
+- [ ] AC-12: RED precedes GREEN for behavioral implementation; `changelog/unreleased/fr-1004-retire-outsider-ledger.md` records a removal for REQ-YG-662; the FR implementation record cites the commits and credentialed witness.
+- [ ] AC-13: The final diff touches only D-1 through D-9 as amended here. The FR records that the README hunk preceded revised authority and does not represent reviewer instruction as judge approval.
+- [ ] AC-14: One `docs/diary/2026-09-05-reflection-fr-1004-*.md` entry records the cognitive process and contains `**Seed:**`.
+- [ ] AC-15: `adapters/README.md` documents all five required observation variables, the three non-PR placeholders, title/body-only model input, Python-finalization consumption, and the accurate no-tracked-state promise; a focused `REQ-YG-662` test checks those statements and forbids the false no-write claim.
+
+## Conditions for enforcement
+
+| # | Condition | Severity |
+|---|---|---|
+| C-1 | Fold R-1 and R-2 into FR-1004 before treating the README hunk as within frozen scope; reviewer findings do not amend judge authority. | GATE |
+| C-2 | Human review of this draft is required before authority activates; until then the output is advisory. | GATE |
+| C-3 | Limit the README repair to the direct graph-input contract and its two coupled explanations; make no runtime, prompt, parser, reducer, or verdict change. | GATE |
+| C-4 | Preserve manual, advisory operation and explicit `--comment`; automation and any blocking gate remain separate judged work. | GATE |
+| C-5 | Preserve title/body-only model input: observation metadata may enter graph state and Python finalization but must not enter the outsider prompt. | GATE |
+| C-6 | Keep the original C-3 through C-8 enforcement conditions in force for the ledger retirement; this amendment relaxes only the D-5 file boundary. | GATE |
+| C-7 | Add the R-2 regression witness under existing REQ-YG-662 traceability and do not alter production code merely to satisfy a documentation assertion. | GATE |
+| C-8 | Record the amendment chronology without rewriting the historical original judgement or review findings. | GATE |
+
+Authority granted: after human review and after R-1 and R-2 are folded into the FR, retain only the narrowly described `adapters/README.md` repair, its focused regression witness, and the corresponding FR status/history update; all other original scope boundaries remain frozen.

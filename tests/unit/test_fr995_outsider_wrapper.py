@@ -215,6 +215,25 @@ def test_no_write_promise_uses_tracked_state_wording(script: str):
         assert "no tracked repository state" in text.casefold()
 
 
+@pytest.mark.req("REQ-YG-662")
+def test_adapter_readme_documents_the_direct_invocation_contract():
+    """FR-1004 second judgement R-2 / AC-15: the adapter README's direct
+    invocation must match the graph's input contract and the R-4 promise."""
+    text = (SKILL / "adapters/README.md").read_text(encoding="utf-8")
+    recipe = text[
+        text.index("Direct invocation") : text.index("The report is written under")
+    ]
+    for var in ("repo", "pr", "head_sha", "prompt_digest", "tool_sha"):
+        assert f"--var {var}=" in recipe, var
+    assert "`-` placeholders for `repo`, `pr` and\n`head_sha`" in text or (
+        "placeholders" in text and "`repo`, `pr` and" in text
+    )
+    assert "Only the pull request title and body reach the model" in text
+    assert "Python finalisation step" in text
+    assert "changes no tracked repository state" in text
+    assert "nothing is written under the repo" not in text.casefold()
+
+
 @pytest.mark.req("REQ-YG-663")
 def test_wrapper_is_executable_in_the_index():
     # FR-889 lock strips disk perms on main; the committed mode is the contract
