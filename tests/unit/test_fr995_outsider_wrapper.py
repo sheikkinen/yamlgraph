@@ -107,9 +107,14 @@ def _fake_bin(tmp: Path, *, graph_ok: bool, comment_ok: bool, report_text: str) 
     return b
 
 
-def _docs_status() -> str:
+def _tracked_status() -> str:
+    """Every tracked-file change in the repository (untracked files excluded).
+
+    Compared before/after each run: the initial dirty state is preserved and
+    the run must add nothing to it (review #602 P3; AC-04).
+    """
     return subprocess.run(
-        ["git", "status", "--porcelain", "--", "docs"],
+        ["git", "status", "--porcelain", "--untracked-files=no"],
         cwd=REPO,
         capture_output=True,
         text=True,
@@ -133,7 +138,7 @@ def _run(
     env["PATH"] = f"{b}:{env['PATH']}"
     env["OUTSIDER_WORKDIR"] = str(work)
     env["OUTSIDER_LEDGER"] = str(tmp / "ledger.jsonl")  # must have no effect (FR-1004)
-    before = _docs_status()
+    before = _tracked_status()
     proc = subprocess.run(
         ["bash", str(WRAPPER), *args],
         capture_output=True,
@@ -141,9 +146,10 @@ def _run(
         env=env,
         check=False,
     )
-    # FR-1004 AC-04: no mode touches docs/ or any tracked file; no ledger anywhere.
-    assert _docs_status() == before
+    # FR-1004 AC-04: no mode creates or modifies any tracked file; no ledger anywhere.
+    assert _tracked_status() == before
     assert not (work / "docs").exists()
+    assert not (REPO / "docs/census/outsider-ledger.jsonl").exists()
     assert not (tmp / "ledger.jsonl").exists()
     assert not (REPO / "docs/census/outsider-ledger.jsonl").exists()
     return proc, work
@@ -187,6 +193,17 @@ def test_no_ledger_in_active_code(script: str):
     assert "OUTSIDER_LEDGER" not in script
     assert "ledger" not in TOOLS.read_text(encoding="utf-8").casefold()
     assert "docs/" not in script
+
+
+@pytest.mark.req("REQ-YG-662")
+def test_no_write_promise_uses_tracked_state_wording(script: str):
+    """Review #602 P1 / judgement R-4: the promise is "no tracked repository
+    state", never "nothing is written under the repository" (tmp/ is written)."""
+    tools_src = TOOLS.read_text(encoding="utf-8")
+    for text in (script, tools_src):
+        assert "nothing is written under the repo" not in text.casefold()
+        assert "nothing under the repo" not in text.casefold()
+        assert "no tracked repository state" in text.casefold()
 
 
 @pytest.mark.req("REQ-YG-663")

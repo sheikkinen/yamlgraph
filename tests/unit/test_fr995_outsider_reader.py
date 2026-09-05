@@ -308,6 +308,51 @@ def test_parse_observation_fails_closed_without_marker(tools):
         tools.parse_observation(doubled)
 
 
+OLD_MARKER_COMMENT = (
+    "**Derived verdict:** NO  (rule: ...)\n"
+    "<!-- outsider reader | source: /var/folders/x/outsider-abc/input.md"
+    " | model: gpt-5.6-sol | 2026-09-05T12:57:34.123456+00:00 -->\n"
+    "\n## 1. In my own words\n\nold report\n"
+)
+
+
+@pytest.mark.req("REQ-YG-662")
+def test_is_observation_comment_accepts_only_complete_markers(tools):
+    """Review #602 P2: the count keys on complete markers, never on prose."""
+    new_report = tools.render_report(tools.parse_report(GOOD), _obs(tools))
+    assert tools.is_observation_comment(new_report)
+    assert tools.is_observation_comment(OLD_MARKER_COMMENT)
+    assert not tools.is_observation_comment("The outsider reader said this PR is fine.")
+    assert not tools.is_observation_comment("<!-- outsider reader | ts: 2026 -->")
+    truncated = new_report.replace(" | s4: 6 -->", " -->")
+    assert not tools.is_observation_comment(truncated)
+    assert not tools.is_observation_comment(
+        "<!-- outsider reader | source: x | model: m -->"
+    )  # old marker without its timestamp is not complete
+
+
+@pytest.mark.req("REQ-YG-662")
+def test_distinct_observed_prs_dedups_and_ignores_prose(tools):
+    new_report = tools.render_report(tools.parse_report(GOOD), _obs(tools))
+    comments = [
+        (596, new_report),
+        (596, OLD_MARKER_COMMENT),
+        (602, new_report),
+        (603, "I ran the outsider reader locally; looks good."),
+        (604, "<!-- outsider reader | ts: broken -->"),
+    ]
+    assert tools.distinct_observed_prs(comments) == {596, 602}
+
+
+@pytest.mark.req("REQ-YG-662")
+def test_parse_observation_rejects_duplicate_keys(tools):
+    out = tools.render_report(tools.parse_report(GOOD), _obs(tools))
+    marker = _marker_line(out)
+    doubled_ts = marker.replace("| repo: ", "| ts: 2030-01-01T00:00:00Z | repo: ", 1)
+    with pytest.raises(tools.ReportFormatError):
+        tools.parse_observation(out.replace(marker, doubled_ts))
+
+
 @pytest.mark.req("REQ-YG-662")
 def test_ledger_helpers_are_gone(tools):
     for name in ("ledger_row", "append_ledger", "distinct_pr_count"):
