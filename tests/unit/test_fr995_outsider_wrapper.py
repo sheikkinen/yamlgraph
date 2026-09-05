@@ -11,6 +11,7 @@ import os
 import re
 import stat
 import subprocess
+import sys
 import tempfile
 from pathlib import Path
 
@@ -20,7 +21,7 @@ import yaml
 REPO = Path(__file__).resolve().parents[2]
 SKILL = REPO / ".github/skills/outsider-view"
 WRAPPER = REPO / "scripts/outsider.sh"
-PY = REPO / ".venv/bin/python"
+PY = Path(sys.executable)  # CI has no .venv; use the interpreter running the tests
 
 pytestmark = pytest.mark.process  # runs scripts/outsider.sh with fakes on PATH (FR-756)
 
