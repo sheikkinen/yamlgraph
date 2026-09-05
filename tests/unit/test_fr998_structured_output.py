@@ -184,6 +184,17 @@ def _validation_error() -> ValidationError:
 
 @pytest.mark.req("REQ-YG-664")
 class TestProviderBoundary:
+    def test_predicates_live_in_llm_providers(self):
+        """Review #599 P2 / AC-04: provider identity and unsupported-feature
+        classification live in the frozen provider boundary module."""
+        import importlib
+
+        providers = importlib.import_module("yamlgraph.utils.llm_providers")
+        assert callable(getattr(providers, "is_anthropic_chat_model", None))
+        assert callable(
+            getattr(providers, "is_anthropic_unsupported_structured_output", None)
+        )
+
     def test_anthropic_identity_is_isinstance_not_class_name(self, anthropic_llm):
         assert is_anthropic_chat_model(anthropic_llm({}))
         assert not is_anthropic_chat_model(_FakeOther({}))
@@ -591,6 +602,43 @@ class TestAgentComposition:
             "json_schema",
             "function_calling",
         ]
+
+    def test_default_tier_makes_one_typed_second_attempt(self, anthropic_llm, caplog):
+        """Review #599 P1: the agent's default tier must carry the FR-998
+        invocation policy, not only the binder — an unsupported-output_config
+        400 earns exactly one function_calling attempt and a typed result."""
+        llm = anthropic_llm(
+            {
+                "json_schema": _raises(_unsupported_error()),
+                "function_calling": _returns(TYPED),
+            }
+        )
+        with caplog.at_level(logging.INFO, logger="yamlgraph.utils.structured_output"):
+            result = _try_structured_output(
+                "prose without json", msgs=[], output_model=_Reading, llm_base=llm
+            )
+        assert result == TYPED.model_dump()
+        assert [c.get("method") for c in llm.bind_calls] == [
+            "json_schema",
+            "function_calling",
+        ]
+        assert [m for m, _, _ in llm.invocations] == ["json_schema", "function_calling"]
+        assert len(_fr998_records(caplog)) == 1
+
+    def test_second_attempt_error_propagates_without_third_call(self, anthropic_llm):
+        second = _status_error(anthropic.BadRequestError, 400, "tool_choice: invalid")
+        llm = anthropic_llm(
+            {
+                "json_schema": _raises(_unsupported_error()),
+                "function_calling": _raises(second),
+            }
+        )
+        with pytest.raises(anthropic.BadRequestError) as excinfo:
+            _try_structured_output(
+                "prose without json", msgs=[], output_model=_Reading, llm_base=llm
+            )
+        assert excinfo.value is second
+        assert [m for m, _, _ in llm.invocations] == ["json_schema", "function_calling"]
 
 
 # ---------------------------------------------------------------------------
