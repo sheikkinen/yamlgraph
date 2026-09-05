@@ -1,0 +1,59 @@
+# The reader runs from a directory OUTSIDE the repo (the wrapper does this) and
+# must have no file or tool access; a reader who can open the files is not an outsider.
+version: "1.0"
+name: outsider-view-adapter
+prompts_relative: true
+prompts_dir: prompts
+
+state:
+  input_path: str
+  report_path: str
+  model: str
+  pr_text: str
+  outsider_result: dict
+  report: dict
+
+tools:
+  read_input:
+    type: python
+    path: outsider_tools.py
+    function: read_input
+    description: "Read the PR title+body file."
+  finalize_report:
+    type: python
+    path: outsider_tools.py
+    function: finalize_report
+    description: "Parse the outsider report and write the derived report."
+
+nodes:
+  read_input:
+    type: python
+    tool: read_input
+    state_key: pr_text
+    on_error: fail
+  outsider:
+    type: copilot
+    backend: cli
+    cli_flags:
+      model: gpt-5.6-sol
+    prompt: outsider
+    variables:
+      pr_text: "{state.pr_text}"
+    state_key: outsider_result
+    timeout: 600
+    on_error: fail
+  finalize_report:
+    type: python
+    tool: finalize_report
+    state_key: report
+    on_error: fail
+
+edges:
+  - from: START
+    to: read_input
+  - from: read_input
+    to: outsider
+  - from: outsider
+    to: finalize_report
+  - from: finalize_report
+    to: END

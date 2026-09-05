@@ -578,6 +578,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 260 | CAP-260 Authored-PR Visibility Cardinality | `examples/demos/corpus_census/adapters/corpus_adapters.py`, `examples/demos/person_profile_census/README.md`, `tests/unit/test_fr966_authored_pr_visibility.py` | REQ-YG-643 |
 | 261 | CAP-261 Tracing Off in Tests | `tests/conftest.py`, `tests/unit/test_fr982_tracing_off_in_tests.py` | REQ-YG-644 |
 | 262 | CAP-262 Map Fan-Out Concurrency Limit | `yamlgraph/compile/graph_loader.py`, `yamlgraph/cli/__init__.py`, `yamlgraph/cli/graph_run_helpers.py`, `yamlgraph/schemas/graph-v1.json`, … | REQ-YG-645 |
+| 263 | CAP-263 Outsider Reader for PR Descriptions | `.github/skills/outsider-view/adapters/outsider_tools.py`, `.github/skills/outsider-view/adapters/graph.yaml`, `scripts/outsider.sh`, `tests/unit/test_fr995_outsider_reader.py`, … | REQ-YG-660 – 663 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -3209,6 +3210,19 @@ Graph-level `config.max_concurrency` and the `--max-concurrency` CLI override re
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-645 | `GraphConfig.max_concurrency` is `None` when `config.max_concurrency` is absent and a positive int when present; booleans, strings, fractional, zero and negative values fail at load naming `max_concurrency`. `--max-concurrency` accepts a positive int and rejects zero/negative at the parser naming the option. The run-config builder omits the key when neither source supplies it, uses the YAML value when the CLI is silent, and lets the CLI override YAML. `graph-v1.json` publishes the key as integer, minimum 1. A compiled map over 40 python-tool items peaks at <= 2 with `max_concurrency: 2` and > 2 unthrottled, on both `invoke` and `ainvoke`, returning every result. | `yamlgraph/compile/graph_loader.py`, `yamlgraph/cli/__init__.py`, `yamlgraph/cli/graph_run_helpers.py`, `yamlgraph/schemas/graph-v1.json`, `tests/unit/test_fr984_map_max_concurrency.py` |
+
+### 263. CAP-263 Outsider Reader for PR Descriptions
+
+A reader with no project context reads a pull request's title and body — and nothing else — and reports what it understood, what it could not understand, and what a merge decision would still need. The model's text is normalised at the boundary into a typed report or rejected; the YES/NO verdict is derived in code from the validated report, never taken from the model; only validated runs against real PRs become ledger rows. Manual, advisory, runs from a directory outside the repository with no file or tool access. Spike record: docs/spikes/outsider-reader-2026-09-05/.
+
+**Feature Request:** FR-995
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-660 | Model output is parsed into a Pydantic report requiring the four numbered headings exactly once and in order, a non-empty restatement, a YES/NO opinion line, at most 8 quoted section-3 items and at most 10 section-4 items; the literal `nothing` is an empty list; missing, duplicate, reordered, malformed or over-cap sections raise ReportFormatError (fail closed). The rendered report front-loads the derived verdict and labels the model's opinion as non-authoritative. | `.github/skills/outsider-view/adapters/outsider_tools.py` |
+| REQ-YG-661 | The derived verdict is YES iff the validated report has at most 2 section-3 items and its restatement contains none of the hedge markers "does not say", "something called", "not stated", "cannot tell" (case-insensitive); otherwise NO. All nine committed spike reports derive NO or are rejected; none derives YES. | `.github/skills/outsider-view/adapters/outsider_tools.py` |
+| REQ-YG-662 | A ledger row carries UTC timestamp, repo, PR number, PR head SHA, SHA-256 of the exact title+body input, pinned model, prompt digest, local tool git SHA, derived verdict, section-3 and section-4 counts and report path; rows are appended only for mode "pr" (self-test, dry-run and failed runs write none); the distinct-PR count deduplicates by (repo, pr). | `.github/skills/outsider-view/adapters/outsider_tools.py` |
+| REQ-YG-663 | The wrapper runs the graph with the child working directory outside the repository and containing no `.github/`, pins gpt-5.6-sol with neither allow_all_paths nor allow_all_tools in the adapter, removes the temporary input on success and failure, preserves the validated report under repo tmp/, rejects recursive execution via OUTSIDER_EXECUTION, and calls `gh pr comment` only under explicit --comment. | `scripts/outsider.sh`, `.github/skills/outsider-view/adapters/graph.yaml` |
 
 <!-- END GENERATED CAPABILITIES -->
 

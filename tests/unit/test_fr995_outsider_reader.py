@@ -155,6 +155,17 @@ def test_render_front_loads_derived_verdict(tools):
     assert "non-authoritative" in out and "## 2." in out
 
 
+@pytest.mark.req("REQ-YG-660")
+def test_rendered_report_round_trips_through_parser(tools):
+    r = tools.parse_report(GOOD)
+    out = tools.render_report(r, tools.derive_verdict(r), model="m", source="s")
+    again = tools.parse_report(out)
+    assert again.model_opinion == r.model_opinion
+    assert [i.quote for i in again.section3] == [i.quote for i in r.section3]
+    assert again.section4 == r.section4
+    assert tools.derive_verdict(again) == tools.derive_verdict(r)
+
+
 @pytest.mark.req("REQ-YG-662")
 def test_ledger_row_fields_and_exclusions(tools, tmp_path):
     ledger = tmp_path / "ledger.jsonl"
