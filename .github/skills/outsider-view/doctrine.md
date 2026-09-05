@@ -43,15 +43,15 @@ Its ignorance is the instrument; doctrine, files and history would blunt it.
 The model's text is a claim. It is parsed into a typed report or rejected:
 four headings exactly once and in order, non-empty restatement, YES/NO
 opinion line, item caps. A rejected report produces no verdict, no comment,
-and no ledger row. The wrapper verifies the artifact by content; the exit
+and no observation. The wrapper verifies the artifact by content; the exit
 code is never trusted.
 
 ## Measurement before any gate
 
-Each validated run against a real PR appends one attributable ledger row
-(`docs/census/outsider-ledger.jsonl`). Fixtures, `--input` runs and failures
-write none. Twenty **distinct** PRs are required before any blocking gate may
-even be proposed — in its own FR.
+The observation is the PR comment `--comment` posts: its HTML marker carries
+the typed record (FR-1004). Only a validated, successfully posted real-PR
+report counts; fixtures, `--input`, non-comment runs and failures are none.
+Twenty **distinct** PRs, counted by `gh search`, before any gate is proposed.
 
 ## What it is not
 

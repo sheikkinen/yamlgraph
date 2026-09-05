@@ -6,7 +6,8 @@ description: >
   understand, and what a merge decision would still need. The model's text is
   normalised at the boundary into a typed report or rejected; the YES/NO
   verdict is derived in code from the validated report, never taken from the
-  model; only validated runs against real PRs become ledger rows. Manual,
+  model; the durable record of a run is the PR comment it posts, carrying a
+  typed observation marker (FR-1004 — no committed ledger). Manual,
   advisory, runs from a directory outside the repository with no file or tool
   access. Spike record: docs/spikes/outsider-reader-2026-09-05/.
 modules:
@@ -38,12 +39,18 @@ requirements:
       - .github/skills/outsider-view/adapters/outsider_tools.py
   - id: REQ-YG-662
     description: >
-      A ledger row carries UTC timestamp, repo, PR number, PR head SHA,
-      SHA-256 of the exact title+body input, pinned model, prompt digest,
-      local tool git SHA, derived verdict, section-3 and section-4 counts and
-      report path; rows are appended only for mode "pr" (self-test, dry-run
-      and failed runs write none); the distinct-PR count deduplicates by
-      (repo, pr).
+      Every rendered report carries exactly one typed observation marker
+      (`<!-- outsider reader | ts | repo | pr | head | input | model | prompt |
+      tool | verdict | s3 | s4 -->`): UTC `Z` timestamp, repo, PR number, full
+      40-hex PR head SHA, full 64-hex SHA-256 of the exact title+body bytes,
+      pinned model, prompt digest, local tool git SHA, derived verdict and the
+      section-3/section-4 counts; no `source:` or temp path; `-` placeholders
+      for repo/pr/head on non-PR reports. The marker round-trips through
+      parse_observation. One observation is countable only when a validated
+      real-PR report is successfully posted as a PR comment (FR-1004); the
+      committed ledger and `report_path` are retired, no mode writes under
+      docs/ or any tracked file, and the distinct-PR count is a GitHub search
+      over comments.
     modules:
       - .github/skills/outsider-view/adapters/outsider_tools.py
   - id: REQ-YG-663
@@ -57,4 +64,4 @@ requirements:
     modules:
       - scripts/outsider.sh
       - .github/skills/outsider-view/adapters/graph.yaml
-fr: FR-995
+fr: FR-995, FR-1004

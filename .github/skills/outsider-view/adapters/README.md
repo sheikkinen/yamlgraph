@@ -26,12 +26,16 @@ Direct invocation (what the wrapper runs; use the wrapper instead):
 ```bash
 OUTSIDER_EXECUTION=1 yamlgraph graph run .github/skills/outsider-view/adapters/graph.yaml \
   --var input_path=<title-body-file> --var report_path=tmp/outsider-<label>-<stamp>.md \
-  --var model=gpt-5.6-sol --full
+  --var model=gpt-5.6-sol --var repo=<owner/name|-> --var pr=<number|-> --var head_sha=<40-hex|-> \
+  --var prompt_digest=<16-hex> --var tool_sha=<short-sha> --full
 ```
 
 The report is written under `tmp/outsider-<label>-<stamp>.md`. The wrapper
 verifies the artifact by reading its content, never by trusting the graph exit
-code.
+code. The second line of the report is the typed observation marker (FR-1004):
+the base fields above plus the input SHA-256, derived verdict and section
+counts. A run posted with `--comment` makes that comment the durable record;
+nothing is written under the repository, and there is no ledger.
 
 The first line is the **derived verdict**, computed in Python from the typed
 report. Section 2 is the model's non-authoritative opinion and must not be used

@@ -12,15 +12,34 @@ This wrapper only tells you where things are and how humans invoke them.
 ## To get an outsider view
 
 ```bash
-scripts/outsider.sh <pr-number>            # report under tmp/, one ledger row
-scripts/outsider.sh <pr-number> --comment  # additionally post the report on the PR
-scripts/outsider.sh --input <file.md>      # any title+body text; no ledger row
+scripts/outsider.sh <pr-number>            # report under tmp/ only; not an observation
+scripts/outsider.sh <pr-number> --comment  # post the report on the PR: the one durable record
+scripts/outsider.sh --input <file.md>      # any title+body text; report only
 scripts/outsider.sh --selftest             # fixtures must derive NO/NO/NO/YES
 ```
 
 The first line of the report is the **derived verdict** (computed in code:
 ≤ 2 "could not understand" items and no hedge in the restatement). Section 2
 is the model's own opinion and is labelled non-authoritative.
+
+## Counting distinct PRs (FR-1004)
+
+There is no committed ledger. Each posted report carries a typed HTML marker
+(`<!-- outsider reader | ts: … | repo: … | pr: … | head: … | input: … |
+model: … | prompt: … | tool: … | verdict: … | s3: … | s4: … -->`). Only a
+validated report that was **successfully posted** with `--comment` counts;
+`--input`, `--selftest`, non-comment runs and every failure are not
+observations. The count is a query (transition-safe: it also matches the
+pre-FR-1004 `<!-- outsider reader | source: …` comments):
+
+```bash
+gh search prs --repo sheikkinen/yamlgraph --match comments 'outsider reader' --limit 1000 --json number
+gh search prs --repo sheikkinen/yamlgraph --match comments 'outsider reader' --limit 1000 --json number --jq length
+```
+
+GitHub returns each PR once however many matching comments it has. Do not
+write the qualifier inline as `'in:comments "…"'` — gh 2.98 silently drops it
+and returns every PR in the repository.
 
 ## Bundle map
 
