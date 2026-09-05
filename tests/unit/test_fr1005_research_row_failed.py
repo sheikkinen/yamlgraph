@@ -536,3 +536,26 @@ def test_wrapper_never_verifies_a_stale_artifact(tmp_path):
     assert result.returncode == 65, result.stderr
     assert "contract violated" in result.stderr
     assert not stale.exists()
+
+
+# --- the runtime loader seam (witnessed live 2026-09-06) -------------------------
+
+
+@pytest.mark.req("REQ-YG-665")
+def test_failed_persona_builds_under_the_runtime_module_loader():
+    """``yamlgraph.tools.python_tool.load_python_function`` execs the module
+    without registering it in ``sys.modules``; a deferred ``Literal``
+    annotation on ``FailedPersona`` made the live run die with
+    "`FailedPersona` is not fully defined". Load the module the same way."""
+    spec = importlib.util.spec_from_file_location(TOOLS_PY.stem, TOOLS_PY)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)  # no sys.modules entry, as the runtime does
+
+    record = module.FailedPersona(state_key="yamlgraph_native_finding", cause="x: y")
+
+    assert record.outcome == "row_failed"
+    assert module.FailedPersona.model_validate(record.model_dump()) == record
+    with pytest.raises(Exception, match="outcome"):
+        module.FailedPersona(
+            outcome="ok", state_key="yamlgraph_native_finding", cause="x"
+        )

@@ -13,7 +13,7 @@ import json
 import re
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Literal
+from typing import Any
 
 import yaml
 from pydantic import BaseModel, Field, ValidationError, field_validator
@@ -165,9 +165,19 @@ class FailedPersona(BaseModel):
     canonical identity — never the model-authored ``persona`` cell.
     """
 
-    outcome: Literal["row_failed"] = ROW_FAILED
+    # A plain ``str`` with a validator, not ``Literal``: the graph's Python tool
+    # loader does not register the module in ``sys.modules`` (witnessed live
+    # 2026-09-06), so pydantic cannot resolve deferred typing names here.
+    outcome: str = ROW_FAILED
     state_key: str
     cause: str = Field(min_length=1)
+
+    @field_validator("outcome")
+    @classmethod
+    def _discriminator(cls, value: str) -> str:
+        if value != ROW_FAILED:
+            raise ValueError(f"outcome must be {ROW_FAILED!r}, got {value!r}")
+        return value
 
     @field_validator("state_key")
     @classmethod
