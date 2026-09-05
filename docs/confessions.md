@@ -2009,3 +2009,15 @@ The ID ranges are:
 - **Code**: E402
 - **Sin**: `from examples.demos.cap_journey_census.render import _markdown` after a `sys.path.insert` — module-level import not at top.
 - **Penance**: Same split as CONF-457 (rendering moved to render.py for the size gate); same bootstrap ordering.
+
+### CONF-459
+- **File**: [docs/spikes/outsider-llm-2026-09-05/tools.py](../docs/spikes/outsider-llm-2026-09-05/tools.py#L51)
+- **Code**: S603
+- **Sin**: `subprocess.run([gh, "pr", "view", pr, "-R", repo, …])` — external `pr`/`repo` reach a subprocess.
+- **Penance**: Spike record (research plan §13). argv list, no shell; `gh` resolved via `shutil.which`; `pr` must match `^\d{1,7}$` and `repo` `^owner/name$` before the call (`_pr_and_repo`). `docs/spikes/**` has no per-file ignore, unlike `examples/**`/`scripts/**` — confessed rather than widening the ignore list.
+
+### CONF-460
+- **File**: [docs/spikes/outsider-llm-2026-09-05/tools.py](../docs/spikes/outsider-llm-2026-09-05/tools.py#L144)
+- **Code**: S603
+- **Sin**: `subprocess.run([gh, "pr", "comment", pr, "-R", repo, "--body-file", …])` — same arguments reach a subprocess.
+- **Penance**: Same validation as CONF-459; only runs when `--post` is given.

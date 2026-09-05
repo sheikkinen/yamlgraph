@@ -1,0 +1,71 @@
+# yamlgraph-outsider — llm-node spike (2026-09-05).
+# Standalone: fetch PR → one structured LLM reading → derive verdict in code → render → optional comment.
+# No Copilot CLI. The reader gets the PR title + body and nothing else; the llm node has no tools.
+# Model decision (written before the first run): anthropic claude-sonnet-4-5 at temperature 0 —
+# a paragraph-level judgement, not a label; haiku is the comparison run, not the default.
+version: "1.0"
+name: yamlgraph-outsider
+description: "Read one PR description as a complete outsider; report what cannot be understood."
+prompts_relative: true
+prompts_dir: prompts
+
+defaults:
+  provider: anthropic
+  model: claude-sonnet-4-5
+  temperature: 0.0
+
+state:
+  pr: str
+  repo: str
+  input_path: str
+  post: str
+  provider: str
+  model: str
+  report_path: str
+  pr_text: str
+  reading: dict
+  result: dict
+
+tools:
+  fetch_pr:
+    type: python
+    path: tools.py
+    function: fetch_pr
+    description: "Fetch PR title+body via gh, or read a fixture file."
+  finalize:
+    type: python
+    path: tools.py
+    function: finalize
+    description: "Validate the structured reading, derive the verdict, render, optionally post."
+
+nodes:
+  fetch_pr:
+    type: python
+    tool: fetch_pr
+    state_key: pr_text
+    on_error: fail
+  outsider:
+    type: llm
+    prompt: outsider
+    provider: "{state.provider}"
+    model: "{state.model}"
+    temperature: 0.0
+    variables:
+      pr_text: "{state.pr_text}"
+    state_key: reading
+    on_error: fail
+  finalize:
+    type: python
+    tool: finalize
+    state_key: result
+    on_error: fail
+
+edges:
+  - from: START
+    to: fetch_pr
+  - from: fetch_pr
+    to: outsider
+  - from: outsider
+    to: finalize
+  - from: finalize
+    to: END
