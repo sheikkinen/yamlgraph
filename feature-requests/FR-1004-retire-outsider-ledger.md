@@ -86,14 +86,15 @@ Today `finalize_report` renders inside the graph and the graph state carries onl
 
 ### S-4: the count is a query, not a file (R-1)
 
-Documented in `SKILL.md` and `doctrine.md` (doctrine stays ≤ 60 lines). The search marker is **transition-safe** — it matches the pre-FR-1004 comments already posted (`<!-- outsider reader | source: …`) and the new marker:
+Documented in `SKILL.md` and `doctrine.md` (doctrine stays ≤ 60 lines). **Revised at enforcement (review #602 rounds 1–2):** the plan's one-line `gh search … 'in:comments "<!-- outsider reader |"'` is *not* the count — `gh` 2.98 silently drops the inline qualifier and returns every PR, and even the working `--match comments 'outsider reader'` form can only narrow candidates (GitHub search matches words, not the `<!--` marker, so a prose mention would count). The count is the three-stage **complete-marker reducer**, canonical in `SKILL.md` ("Counting distinct PRs"):
 
 ```bash
-gh search prs --repo sheikkinen/yamlgraph 'in:comments "<!-- outsider reader |"' --limit 1000 --json number
-gh search prs --repo sheikkinen/yamlgraph 'in:comments "<!-- outsider reader |"' --limit 1000 --json number --jq length
+gh search prs --repo sheikkinen/yamlgraph --match comments 'outsider reader' --limit 1000 --json number --jq '.[].number' \
+  | while read -r n; do gh api "repos/sheikkinen/yamlgraph/issues/$n/comments" --paginate --jq ".[] | {pr: $n, body}"; done \
+  | python3 -c 'import sys, json, importlib.util; s = importlib.util.spec_from_file_location("ot", ".github/skills/outsider-view/adapters/outsider_tools.py"); m = importlib.util.module_from_spec(s); s.loader.exec_module(m); prs = m.distinct_observed_prs((d["pr"], d["body"]) for d in map(json.loads, sys.stdin)); print(sorted(prs)); print(len(prs))'
 ```
 
-GitHub returns each PR once regardless of how many matching comments it has — the distinct-PR dedup FR-995 R-3 asked for, without code. Historical comments are **not** rewritten to make the query pass. The FR-995 sentence "twenty distinct PRs before any gate FR" stays; its instrument changes from a file to this line and its population to posted comments.
+Stage 1 narrows; stage 2 fetches each candidate's comments; stage 3 (`is_observation_comment` / `distinct_observed_prs` in `outsider_tools.py`) keeps a PR only if one comment carries a **complete** marker — the pre-FR-1004 `source | model | timestamp` form or a new marker that round-trips through `parse_observation` — and deduplicates by PR, however many marker comments a PR has. It is transition-safe by construction. Historical comments are **not** rewritten. The FR-995 sentence "twenty distinct PRs before any gate FR" stays; its instrument changes from a file to this reducer and its population to posted comments.
 
 ### S-5: tests (RED first, `SKIP=pytest`; then GREEN) — in the two existing FR-995 test modules
 
@@ -178,6 +179,12 @@ Route: `scripts/review.sh 602 feature-requests/FR-1004-retire-outsider-ledger.md
 - **P3 (tracked-file invariant)** — the wrapper fixture compared `git status --porcelain -- docs` only. It now snapshots `git status --porcelain --untracked-files=no` for the whole repository before and after every exercised mode, preserving any initial dirty state.
 - **P4 (frozen surface)** — `adapters/README.md` is not in D-1…D-9; the hunk is withdrawn (file restored to `main`). Consequence, recorded not fixed: that README's "direct invocation" example still shows the three pre-FR-1004 `--var`s and would now fail with missing state; correcting it needs a revised judgement or its own FR.
 - **Note** — `parse_observation` kept marker parts in a dict, so a duplicated key could pass; it now compares the ordered key list, so duplicates, omissions and reordering all fail closed (tested).
+
+**Round 2** on head `dd1c96ed`: **Not approved**, two blocking findings, both accepted and enforced (`next commit`):
+
+- **P1** — the governing FR's S-4, the FR-995 superseding note and the changelog fragment still quoted phrase-only counts (`… --jq length`, or the rejected inline `in:comments` form). All three now state the canonical complete-marker reducer or point to it unambiguously; S-4 carries the reducer verbatim with a "revised at enforcement" note.
+- **P2** — withdrawing the `adapters/README.md` hunk (round 1 P4) left its direct-invocation recipe broken: the graph now requires the five observation variables and `finalize_report` fails with `KeyError: 'repo'` after the model call. On the reviewer's instruction the governed surface is **amended to include `adapters/README.md`** (it is cited evidence in the judgement); the recipe lists all five variables with `-` placeholders, states that only title/body reach the model, and uses the R-4 no-tracked-state wording.
+- Non-blocking: the PR body's CI claim is refreshed once the current head's jobs finish.
 
 **Found while re-running the witness with the new reducer:** the two comments posted on #602 from this Windows host carry CRLF (Windows Python's text-mode `write_text`), and the marker regexes anchored on `-->$` did not match them — the reducer counted 7 while the phrase search said 8. `parse_observation` and `is_observation_comment` now normalise CRLF, and `finalize_report` writes the report with `newline="\n"` (RED `3ebaa08e` → GREEN `0ee4dacd`). Pre-FR-1004 comments (posted from macOS) were unaffected.
 

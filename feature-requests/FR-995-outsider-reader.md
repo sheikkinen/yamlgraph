@@ -95,7 +95,7 @@ posted as [PR #592 comment](https://github.com/sheikkinen/yamlgraph/pull/592#iss
 
 **Not done, by scope:** nothing outstanding after the review round. AC-09 was run after the review (below). No automation, no gate.
 
-**Superseded in part by FR-1004 (2026-09-05):** the committed ledger (D-7, `docs/census/outsider-ledger.jsonl`) is retired; the observation lives in the posted comment's typed marker, only successfully posted validated real-PR comments count toward the twenty, `report_path` is retired, and the count is `gh search prs --repo sheikkinen/yamlgraph --match comments 'outsider reader' --json number --jq length`. The judgement and spike artifacts are untouched.
+**Superseded in part by FR-1004 (2026-09-05):** the committed ledger (D-7, `docs/census/outsider-ledger.jsonl`) is retired; the observation lives in the posted comment's typed marker, only successfully posted validated real-PR comments count toward the twenty, `report_path` is retired, and the count is the canonical complete-marker reducer documented in `.github/skills/outsider-view/SKILL.md` ("Counting distinct PRs"): a `gh search … --match comments 'outsider reader'` narrows the candidate PRs, each candidate's comments are fetched, and `distinct_observed_prs` keeps a PR only if one comment carries a complete old or new marker (new ones validated by `parse_observation`), deduplicating by PR. The judgement and spike artifacts are untouched.
 
 **FR-998 (2026-09-05):** the `unclear`/`needs` fields were declared `str` and split in `_lines()` only because Anthropic's forced tool call returned lists as strings; FR-998 fixes that at the framework's provider boundary, so the API-transport successor can declare them `list[str]`.
 
