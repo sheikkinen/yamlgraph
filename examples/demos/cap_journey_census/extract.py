@@ -17,7 +17,7 @@ REPO_ROOT = Path(__file__).resolve().parents[3]
 HERE = Path(__file__).resolve().parent
 MAX_ITEMS = 250
 FR_HEAD_LINES = 40
-MAX_HITS = 12
+MAX_HITS = 24
 _ID_RE = re.compile(r"^(CAP|FR)-\d+$")
 _CODE_DIRS = ["examples", "graphs", "scripts", ".github", ".chaplain", "yamlgraph"]
 _CODE_FILES = ["pyproject.toml", ".pre-commit-config.yaml"]
@@ -147,14 +147,33 @@ def _module_needles(cap: dict[str, Any]) -> list[str]:
                 continue
         if needle not in needles:
             needles.append(needle)
-    return needles[:8]
+        # A node-type module's real consumers are graphs declaring `type: <x>`.
+        node_type = re.match(
+            r"^(?:.*/)?([a-z]+)_(?:compiler|nodes?)$", m.removesuffix(".py")
+        )
+        if node_type and f"type: {node_type.group(1)}" not in needles:
+            needles.append(f"type: {node_type.group(1)}")
+    return needles[:10]
 
 
 def _mechanical(cap: dict[str, Any], cap_path: str) -> dict[str, Any]:
     cap_id = str(cap.get("id", ""))
     fr_ids = _fr_ids(cap)
     own_fr_files = [f"feature-requests/{f}-*" for f in fr_ids]
-    exclude = [cap_path, HERE.relative_to(REPO_ROOT).as_posix(), *_CONSUMER_EXCLUDE]
+    # pilot-1: an example's own directory is not a consumer of the example.
+    own_dirs = sorted(
+        {
+            "/".join(str(m).split("/")[:2])
+            for m in cap.get("modules") or []
+            if str(m).startswith("examples/")
+        }
+    )
+    exclude = [
+        cap_path,
+        HERE.relative_to(REPO_ROOT).as_posix(),
+        *own_dirs,
+        *_CONSUMER_EXCLUDE,
+    ]
     consumers: set[str] = set()
     for needle in [cap_id, *fr_ids]:
         consumers.update(_git_grep(needle, _CONSUMER_PATHS, exclude))

@@ -13,7 +13,6 @@ import json
 import re
 import subprocess
 import sys
-from collections import Counter, defaultdict
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Literal
@@ -30,6 +29,7 @@ from examples.demos.cap_journey_census.extract import (  # noqa: E402
     cap_discover,
     cap_extract,
 )
+from examples.demos.cap_journey_census.render import _markdown  # noqa: E402
 
 __all__ = ["cap_discover", "cap_extract", "reduce_cap_ledger"]
 
@@ -44,7 +44,10 @@ BLAST_KINDS = frozenset(
         "example_only",
     }
 )
-DISPOSITIONS = frozenset({"keep", "retire", "extend", "already_retired"})
+DISPOSITIONS = frozenset({"keep", "retire", "already_retired"})
+_GENERIC_VERSUS = re.compile(
+    r"^(manual|manually|no |none|nothing|without)\b", re.IGNORECASE
+)
 _OFF_CATALOG = re.compile(r"^off_catalog:[a-z0-9_]{2,40}$")
 
 
@@ -73,9 +76,10 @@ class CapRow(BaseModel):
     value_for_whom: str | None = None
     value_pain: str | None = None
     value_versus: str | None = None
-    value_status: Literal["stated", "value_unstated"] | None = None
+    value_status: Literal["stated", "value_generic", "value_unstated"] | None = None
     consumer_cited: str | None = None
     evidence_span: str | None = None
+    evidence_match: str | None = None
     mechanical: dict[str, Any]
     failure_reason: str | None = None
     raw_finding: str | None = None
@@ -89,15 +93,36 @@ CapRow.model_rebuild()
 
 
 def _squash(text: str) -> str:
-    return re.sub(r"\s+", " ", text)
+    # YAML folded scalars join lines with spaces; LLM spans drift in case.
+    return re.sub(r"\s+", " ", text).casefold()
 
 
-def _load_catalog(path: str) -> list[str]:
+def _evidence_match(span: str, haystack: str) -> str | None:
+    """exact | prefix | ngram — tolerant_matching for LLM-quoted spans; None = reject."""
+    s = _squash(span)
+    if len(s) < 12:
+        return None
+    if s in haystack:
+        return "exact"
+    if len(s) >= 40 and s[:40] in haystack:
+        return "prefix"
+    words = s.split()
+    grams = [" ".join(words[i : i + 5]) for i in range(max(len(words) - 4, 0))]
+    if len(grams) >= 4 and sum(g in haystack for g in grams) / len(grams) >= 0.8:
+        return "ngram"
+    return None
+
+
+def _load_catalog(path: str) -> tuple[list[str], dict[str, str]]:
     data = yaml.safe_load(Path(path).read_text(encoding="utf-8"))
     ids = [str(j["id"]) for j in data.get("journeys", [])]
     if not ids:
         raise ValueError("journey catalog is empty")
-    return ids
+    wedges = {str(k): str(v) for k, v in (data.get("wedges") or {}).items()}
+    unknown = set(wedges) - set(ids)
+    if unknown:
+        raise ValueError(f"wedges reference unknown journeys: {sorted(unknown)}")
+    return ids, wedges
 
 
 def _bundles(contents: list[Any]) -> dict[int, dict[str, Any]]:
@@ -113,7 +138,10 @@ def _bundles(contents: list[Any]) -> dict[int, dict[str, Any]]:
 
 
 def _validate(
-    verdict: dict[str, Any], bundle: dict[str, Any], catalog: list[str]
+    verdict: dict[str, Any],
+    bundle: dict[str, Any],
+    catalog: list[str],
+    wedges: dict[str, str],
 ) -> tuple[dict[str, Any], str | None]:
     """Return (fields, fatal_reason). Anchor violations demote, never drop."""
     f: dict[str, Any] = {"anchor_violations": [], "off_catalog": []}
@@ -127,6 +155,8 @@ def _validate(
             clean.append(j)
         elif _OFF_CATALOG.match(j):
             f["off_catalog"].append(j.split(":", 1)[1])
+        elif j in BLAST_KINDS:
+            f["off_catalog"].append(j)  # pilot-1: enum leak; demote, never drop
         else:
             return f, f"journey {j!r} neither in catalog nor off_catalog:<label>"
     f["journeys"] = clean
@@ -134,6 +164,10 @@ def _validate(
     if bk not in BLAST_KINDS:
         return f, f"blast_kind {bk!r} not in enum"
     f["blast_kind"] = bk
+    if bk == "example_only" and clean == ["author_graph"]:
+        # FR-725 junk-drawer cap: every example "teaches authoring"; the end-user
+        # journey is the information. Demote to contested, never drop.
+        f["anchor_violations"].append("author_graph junk-drawer on example_only")
     disp = str(verdict.get("disposition", "")).strip()
     if disp not in DISPOSITIONS:
         return f, f"disposition {disp!r} not in enum"
@@ -155,26 +189,32 @@ def _validate(
         f["anchor_violations"].append("already_retired but CAP status is not retired")
     if retired and disp != "already_retired":
         f["anchor_violations"].append("CAP status retired but disposition differs")
-    ext = str(verdict.get("extend_to") or "").strip()
-    if disp == "extend":
-        if ext not in catalog:
-            f["anchor_violations"].append(f"extend_to {ext!r} not in catalog")
-        f["extend_to"] = ext or None
+    # extend_to is derived in code from the journey -> business-wedge map (pilot-1:
+    # not answerable from an input-closed CAP bundle; the ranking lives in docs).
+    f["extend_to"] = next((wedges[j] for j in clean if j in wedges), None)
     f["disposition_effective"] = disp if not f["anchor_violations"] else "contested"
     fw, vp, vv = (
         str(verdict.get(k) or "").strip()
         for k in ("value_for_whom", "value_pain", "value_versus")
     )
     f.update(value_for_whom=fw or None, value_pain=vp or None, value_versus=vv or None)
-    f["value_status"] = "stated" if fw in catalog and vp and vv else "value_unstated"
+    if not (fw in catalog and vp and vv):
+        f["value_status"] = "value_unstated"
+    elif _GENERIC_VERSUS.match(vv):
+        f["value_status"] = (
+            "value_generic"  # pilot-1: 'manual X' filler is not an alternative
+        )
+    else:
+        f["value_status"] = "stated"
     ev = str(verdict.get("evidence_span") or "").strip()
-    # YAML folded scalars join lines with spaces; compare whitespace-normalized text.
     haystack = _squash(
         (bundle.get("cap_yaml") or "") + "\n" + (bundle.get("fr_head") or "")
     )
-    if not ev or _squash(ev) not in haystack:
+    match = _evidence_match(ev, haystack)
+    if match is None:
         return f, "evidence_span is not a substring of the CAP yaml or FR head"
     f["evidence_span"] = ev[:200]
+    f["evidence_match"] = match
     return f, None
 
 
@@ -242,73 +282,6 @@ def _canary_gate(path: str | None, rows: list[CapRow]) -> list[str]:
     return misses
 
 
-def _mermaid(rows: list[CapRow]) -> str:
-    lines = ["```mermaid", "graph LR"]
-    for r in rows:
-        for m in r.mechanical.get("consumers_by_module", [])[:5]:
-            lines.append(
-                f'  {r.cap_id}["{r.cap_id} {r.name[:28]}"] --> m{abs(hash(m)) % 10**6}["{m}"]'
-            )
-    lines.append("```")
-    return "\n".join(lines) if len(lines) > 3 else "_no module consumers recorded_"
-
-
-def _markdown(
-    rows: list[CapRow], catalog: list[str], misses: list[str], meta: dict[str, Any]
-) -> str:
-    judged = [r for r in rows if r.classification_status == "judged"]
-    out = [
-        "# CAP Journey Census Ledger\n",
-        f"- rows: {len(rows)}  judged: {len(judged)}  row_failed: {sum(r.classification_status == 'row_failed' for r in rows)}  abstained: {sum(r.classification_status == 'abstained' for r in rows)}",
-        f"- model: {meta['model']}  git_sha: {meta['git_sha']}  prompt: {PROMPT_VERSION}",
-        f"- canary misses: {len(misses)}"
-        + (" — " + "; ".join(misses) if misses else ""),
-        "",
-    ]
-    out.append(
-        "## Journey × CAP matrix\n\n| journey | CAPs | keep | extend | retire | contested |\n|---|---:|---:|---:|---:|---:|"
-    )
-    for j in catalog:
-        js = [r for r in judged if j in r.journeys]
-        d = Counter(r.disposition_effective for r in js)
-        out.append(
-            f"| {j} | {len(js)} | {d['keep']} | {d['extend']} | {d['retire']} | {d['contested']} |"
-        )
-    off = Counter(o for r in judged for o in r.off_catalog)
-    out.append(f"\noff-catalog labels: {dict(off) or 'none'}\n")
-    out.append(
-        "## Disposition table\n\n| CAP | name | disposition | effective | extend_to | consumer_cited | anchor violations |\n|---|---|---|---|---|---|---|"
-    )
-    for r in sorted(judged, key=lambda r: (r.disposition_effective or "", r.cap_id)):
-        out.append(
-            f"| {r.cap_id} | {r.name[:40]} | {r.disposition} | {r.disposition_effective} | {r.extend_to or '-'} | {r.consumer_cited or '-'} | {'; '.join(r.anchor_violations) or '-'} |"
-        )
-    out.append("\n## Value\n")
-    out.append(
-        f"value_unstated: {sum(r.value_status == 'value_unstated' for r in judged)} / {len(judged)}\n"
-    )
-    out.append("| CAP | for whom | pain | versus |\n|---|---|---|---|")
-    for r in judged:
-        out.append(
-            f"| {r.cap_id} | {r.value_for_whom or '-'} | {(r.value_pain or '-')[:90]} | {(r.value_versus or '-')[:60]} |"
-        )
-    out.append("\n## Blast by journey\n")
-    by_j: dict[str, list[CapRow]] = defaultdict(list)
-    for r in judged:
-        for j in r.journeys:
-            by_j[j].append(r)
-    for j in catalog:
-        if by_j.get(j):
-            out.append(f"### {j}\n\n{_mermaid(by_j[j])}\n")
-    out.append("## Failed / abstained rows\n\n| CAP | status | reason |\n|---|---|---|")
-    for r in rows:
-        if r.classification_status != "judged":
-            out.append(
-                f"| {r.cap_id} | {r.classification_status} | {(r.failure_reason or '-')[:160]} |"
-            )
-    return "\n".join(out) + "\n"
-
-
 def reduce_cap_ledger(
     state: dict[str, Any] | None = None, **kwargs: Any
 ) -> dict[str, Any]:
@@ -317,7 +290,9 @@ def reduce_cap_ledger(
     contents = state.get("contents") or []
     findings = state.get("findings") or []
     output_path = _require(state, "output_path")
-    catalog = _load_catalog(state.get("journeys_path") or str(HERE / "journeys.yaml"))
+    catalog, wedges = _load_catalog(
+        state.get("journeys_path") or str(HERE / "journeys.yaml")
+    )
     model = str(state.get("model") or "unknown")
     if len(items) != len(contents):
         raise ValueError(
@@ -367,7 +342,7 @@ def reduce_cap_ledger(
                 )
             )
             continue
-        fields, fatal = _validate(verdict, b, catalog)
+        fields, fatal = _validate(verdict, b, catalog, wedges)
         if fatal:
             rows.append(
                 _row(

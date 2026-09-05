@@ -6,25 +6,31 @@
 # `blast_excludes`: substrings that must NOT appear in the row's blast modules.
 canaries:
   - cap: CAP-131
-    journeys_any: [run_operate]
+    # pilot-1/2: a cross-cutting runtime CAP has no single journey (haiku gave
+    # run_operate then serve_embed at T=0). Accept the run/integrate family.
+    journeys_any: [run_operate, integrate, serve_embed]
     disposition: keep
-    consumer_any: [llm_factory, executor_base, prompts]
+    consumer_any: [llm_factory, executor_base, prompts, prompt-caching]
   - cap: CAP-81
-    journeys_any: [serve_embed]
+    journeys_any: [serve_embed, integrate]
     disposition: already_retired
     blast_excludes: [REQ-YG-206, discovery.py]
   - cap: CAP-126
     journeys_any: [none_internal]
     disposition: keep
   - cap: CAP-203
+    # pilot-2: `extend` is not answerable from an input-closed bundle; it is now
+    # derived from journeys.yaml wedges. The model's job is the end-user journey.
     journeys_any: [census_classify]
-    disposition: extend
-    extend_to_any: [audit_comply, census_classify]
-  - cap: CAP-11
-    journeys_any: [run_operate, census_classify]
     disposition: keep
-    consumer_any: [corpus_census, diary_census, person_profile_census, repo_census]
+    extend_to_any: [codingproof_callcensus]
+  - cap: CAP-11
+    journeys_any: [run_operate, census_classify, author_graph]
+    disposition: keep
+    # pilot-2: the model cited examples/demos/map/graph.yaml — a real committed
+    # consumer. The substance is "a graph outside its own tree uses it".
+    consumer_any: [graph.yaml, scripts/]
   - cap: CAP-108
     journeys_any: [govern_process, audit_comply]
-    disposition: extend
-    extend_to_any: [audit_comply]
+    disposition: keep
+    extend_to_any: [portable_spine, auditpack]

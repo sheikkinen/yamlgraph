@@ -22,3 +22,11 @@ journeys:
     who: an end-user product on interrupt + checkpointer
   - id: none_internal
     who: developer velocity of this repo only
+
+# Journey -> business wedge (docs/2026-09-02-brainstorm-business-use-cases.md §5).
+# `extend_to` is DERIVED from this map in the reducer, not asked of the model:
+# the ranking lives in docs the input-closed CAP bundle never sees (pilot-1 finding).
+wedges:
+  census_classify: codingproof_callcensus
+  audit_comply: auditpack
+  govern_process: portable_spine

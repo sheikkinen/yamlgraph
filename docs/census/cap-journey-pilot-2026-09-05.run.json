@@ -1,0 +1,14 @@
+{
+  "model": "claude-haiku-4-5",
+  "git_sha": "a110a103",
+  "collected_at": "2026-09-05T04:20:20.977709+00:00",
+  "rows": 30,
+  "ledger_sha256": "ada00f767319f95dc61ab0f762fb06f5675d5127b584d4fac4c5447a74e39886",
+  "canary_misses": [
+    "CAP-131: consumer_cited 'yamlgraph/executor.py' misses ['llm_factory', 'executor_base', 'prompts', 'prompt-caching']",
+    "CAP-203: journeys [] miss ['census_classify']",
+    "CAP-203: extend_to None not in ['codingproof_callcensus']",
+    "CAP-108: journeys ['author_graph'] miss ['govern_process', 'audit_comply']",
+    "CAP-108: extend_to None not in ['portable_spine', 'auditpack']"
+  ]
+}
