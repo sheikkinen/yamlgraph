@@ -232,6 +232,7 @@ config:
   max_map_items: 100      # Default fan-out cap for map nodes (default: 100)
   max_tokens: 4096        # Default max output tokens for LLM calls (default: provider default)
   timeout: 120            # Global execution timeout in seconds (default: none)
+  max_concurrency: 4      # Cap on parallel map branches per run (default: LangGraph pool width)
   tool_load_mode: strict  # Python tool loading policy: strict|warn (default: strict)
 ```
 
@@ -241,14 +242,17 @@ config:
 | `max_map_items` | `int` | `100` | Default fan-out cap for map nodes. Can be overridden per-node with `max_items`. |
 | `max_tokens` | `int` | provider default | Default max output tokens for LLM calls. Can be overridden per-node. |
 | `timeout` | `int` | none | Global execution timeout in seconds. Covers the entire graph run including interrupt loops. |
+| `max_concurrency` | `int` ≥ 1 | none | FR-984. Whole-invocation cap on how many parallel branches (every `map` node's `Send` tasks, and any parallel fan-out edges) run at once. Passed straight through as LangGraph `RunnableConfig["max_concurrency"]`; yamlgraph adds no scheduler. Absent → no key is passed and LangGraph's default thread-pool width applies. Booleans, strings, fractions, `0` and negatives fail at load. Distinct from `max_map_items`, which bounds how many items a map *has*, not how many run together. |
 | `tool_load_mode` | `string` | `strict` | Python tool load policy: `strict` fails compilation on import/symbol errors, `warn` logs warnings and compiles with a partial runtime tool registry. |
 
 **CLI overrides:**
 ```bash
-yamlgraph graph run graph.yaml --recursion-limit 25 --timeout 60
+yamlgraph graph run graph.yaml --recursion-limit 25 --timeout 60 --max-concurrency 2
 ```
 
 CLI values override YAML `config:` values, which override built-in defaults.
+`--max-concurrency` rejects `0` and negatives at argument parsing, before any
+graph is loaded.
 
 ---
 

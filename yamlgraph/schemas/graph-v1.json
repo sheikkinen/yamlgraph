@@ -308,6 +308,11 @@
           "type": "integer",
           "minimum": 1,
           "description": "Global execution timeout in seconds"
+        },
+        "max_concurrency": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Cap on parallel map branches for the whole invocation (LangGraph RunnableConfig max_concurrency); absent = LangGraph default"
         }
       },
       "additionalProperties": true,

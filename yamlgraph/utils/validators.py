@@ -206,6 +206,21 @@ def validate_interactive_tool_node(node_name: str, node_config: dict[str, Any]) 
             )
 
 
+def validate_max_concurrency(value: Any) -> int | None:
+    """FR-984: `config.max_concurrency` is a positive int or absent.
+
+    `None` means absent (no key reaches RunnableConfig). Booleans are
+    rejected explicitly because Python treats `bool` as `int`.
+    """
+    if value is None:
+        return None
+    if isinstance(value, bool) or not isinstance(value, int) or value < 1:
+        raise ValueError(
+            f"Invalid config.max_concurrency {value!r}: expected a positive integer"
+        )
+    return value
+
+
 def validate_config(config: dict[str, Any]) -> None:
     """Validate YAML configuration structure.
 

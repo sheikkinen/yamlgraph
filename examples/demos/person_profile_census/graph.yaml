@@ -15,6 +15,7 @@ defaults:
 
 config:
   max_map_items: 500
+  max_concurrency: 4
 
 state:
   source: str

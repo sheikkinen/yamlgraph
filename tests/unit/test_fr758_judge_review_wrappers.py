@@ -69,7 +69,9 @@ def judge_ok_stub(tmp_path: Path) -> Path:
     return _write_stub(
         tmp_path / "yg-ok",
         'mkdir -p "$JUDGE_WORKDIR/tmp"\n'
-        'printf "%s\\n" "**Verdict:** APPROVED" > "$JUDGE_WORKDIR/tmp/draft-judgement.md"',
+        # FR-960: the wrapper names the draft per backend and per FR.
+        'printf "%s\\n" "**Verdict:** APPROVED" '
+        '> "$JUDGE_WORKDIR/tmp/draft-judgement-copilot-FR-000-fixture.md"',
     )
 
 
@@ -134,7 +136,9 @@ def test_review_sentinel_exit_70(tmp_path, fr_file):
 def test_judge_fresh_lock_exit_73_prints_holder(tmp_path, fr_file):
     lock = tmp_path / "tmp" / ".judge.lock"
     lock.mkdir(parents=True)
-    (lock / "holder").write_text("pid=99999 started=2026-07-24T00:00:00Z\n", encoding="utf-8")
+    (lock / "holder").write_text(
+        "pid=99999 started=2026-07-24T00:00:00Z\n", encoding="utf-8"
+    )
     result = _run(JUDGE, [str(fr_file)], tmp_path, None)
     assert result.returncode == 73
     assert "pid=99999" in result.stderr
@@ -215,7 +219,8 @@ def test_judge_artifact_without_verdict_line_exit_65(tmp_path, fr_file):
     stub = _write_stub(
         tmp_path / "yg-noverdict",
         'mkdir -p "$JUDGE_WORKDIR/tmp"\n'
-        'echo "prose, no verdict" > "$JUDGE_WORKDIR/tmp/draft-judgement.md"',
+        'echo "prose, no verdict" '
+        '> "$JUDGE_WORKDIR/tmp/draft-judgement-copilot-FR-000-fixture.md"',
     )
     result = _run(JUDGE, [str(fr_file)], tmp_path, stub)
     assert result.returncode == 65
