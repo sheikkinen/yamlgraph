@@ -9,10 +9,11 @@ recorded tool observations, and enums replace free-text labels
 
 from __future__ import annotations
 
+import json
 import re
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 import yaml
 from pydantic import BaseModel, Field, ValidationError, field_validator
@@ -58,6 +59,26 @@ SOLUTION_CLASSES = frozenset(
 )
 MODEL_VERDICTS = frozenset({"pursue", "dissent", "duplicate"})
 ECHO_MARKER = "brief-echo"
+
+# FR-1005: one persona whose output the model itself broke (over-length cell,
+# closed-enum miss, empty cell) is contained as a recorded row failure in its
+# canonical slot; everything structural, ambiguous, or librarian stays fatal.
+LIBRARIAN_KEY = "librarian_finding"
+MIN_VALID_ROWS = 4  # mirrors research_preflight.MIN_ROWS (witnessed by a test)
+ROW_FAILED = "row_failed"
+# Explicit key → graph node attribution (judgement AC-03): no prefix heuristic;
+# a test mirrors these names against graph.yaml.
+PERSONA_NODES: dict[str, frozenset[str]] = {
+    "os_infra_finding": frozenset({"os_infra_primitivist"}),
+    "data_process_finding": frozenset({"data_process_planner"}),
+    "yamlgraph_native_finding": frozenset({"yamlgraph_native_planner"}),
+    "subtractionist_finding": frozenset({"subtractionist"}),
+    LIBRARIAN_KEY: frozenset({"librarian_research", "librarian_structure"}),
+}
+# A failure the model owns: validation of its own structured output. Auth,
+# provider, tool, timeout and state failures are not, and stay fatal.
+MODEL_OUTPUT_ERROR_TYPE = "validation_error"
+MODEL_OUTPUT_EXCEPTIONS = frozenset({"ValidationError", "OutputParserException"})
 
 # FR-938: the honest miss. Personas may only claim it when retrieval
 # genuinely returned nothing, which the reducer verifies against the
@@ -129,6 +150,40 @@ class PersonaFinding(BaseModel):
             raise ValueError(
                 f"verdict must be one of {sorted(MODEL_VERDICTS)}, got {value!r}"
             )
+        return value
+
+
+def _squash(text: Any) -> str:
+    return " ".join(str(text).split())
+
+
+class FailedPersona(BaseModel):
+    """FR-1005: the typed record a failed persona leaves in its slot.
+
+    Crosses the gather/reduce boundary as ``model_dump()`` inside the
+    ``findings`` list; the reducer re-validates it. ``state_key`` is the
+    canonical identity — never the model-authored ``persona`` cell.
+    """
+
+    outcome: Literal["row_failed"] = ROW_FAILED
+    state_key: str
+    cause: str = Field(min_length=1)
+
+    @field_validator("state_key")
+    @classmethod
+    def _canonical_key(cls, value: str) -> str:
+        if value not in PERSONA_KEYS:
+            raise ValueError(f"state_key must be one of {PERSONA_KEYS}, got {value!r}")
+        return value
+
+    @field_validator("cause", mode="before")
+    @classmethod
+    def _one_line_cause(cls, value: Any) -> Any:
+        if isinstance(value, str):
+            squashed = _squash(value)
+            if not squashed:
+                raise ValueError("cause must not be blank")
+            return squashed
         return value
 
 
@@ -358,33 +413,85 @@ def _as_error_record(entry: Any) -> dict[str, Any] | None:
     return entry
 
 
+def _error_category(record: dict[str, Any]) -> str:
+    category = record.get("type")
+    return getattr(category, "value", category) or "unknown_error"
+
+
+def _error_line(record: dict[str, Any]) -> str:
+    """FR-926's rendering of one recorded error: node, category, type, message."""
+    exception_type = (record.get("details") or {}).get("exception_type")
+    origin = record.get("node") or "unknown_node"
+    suffix = f" ({exception_type})" if exception_type else ""
+    return f"{origin}: {_error_category(record)}{suffix}: {record.get('message', '')}"
+
+
 def _format_recorded_errors(errors: Any) -> str:
     """Render the error channel the retry handler already populated."""
     lines = []
     for entry in errors or []:
         record = _as_error_record(entry)
-        if record is None:
-            continue
-        category = record.get("type")
-        category = getattr(category, "value", category) or "unknown_error"
-        exception_type = (record.get("details") or {}).get("exception_type")
-        origin = record.get("node") or "unknown_node"
-        suffix = f" ({exception_type})" if exception_type else ""
-        lines.append(f"\n  {origin}: {category}{suffix}: {record.get('message', '')}")
+        if record is not None:
+            lines.append(f"\n  {_error_line(record)}")
     return "".join(lines)
 
 
+def _is_model_output_failure(record: dict[str, Any]) -> bool:
+    exception_type = (record.get("details") or {}).get("exception_type")
+    return (
+        _error_category(record) == MODEL_OUTPUT_ERROR_TYPE
+        or exception_type in MODEL_OUTPUT_EXCEPTIONS
+    )
+
+
+def _attributable_cause(persona_key: str, errors: Any) -> str | None:
+    """FR-1005 R-1: the one recorded, model-owned failure of this persona.
+
+    Returns the FR-926 cause line when exactly one recorded error belongs to
+    one of the key's graph nodes and that error is a structured-output or
+    schema validation failure. The librarian is never contained. Zero
+    matches, two or more (ambiguous), or a non-model failure → ``None``.
+    """
+    if persona_key == LIBRARIAN_KEY:
+        return None
+    matches = [
+        record
+        for record in (_as_error_record(entry) for entry in errors or [])
+        if record is not None
+        and str(record.get("node") or "") in PERSONA_NODES[persona_key]
+    ]
+    if len(matches) != 1 or not _is_model_output_failure(matches[0]):
+        return None
+    return _error_line(matches[0])
+
+
 def gather_findings(state: dict[str, Any]) -> dict[str, list[dict[str, Any]]]:
-    """Gather the five persona findings without deduplication."""
-    missing = [key for key in PERSONA_KEYS if key not in state]
-    if missing:
-        # FR-926: the cause is already recorded one key away — cite it.
-        detail = _format_recorded_errors(state.get("errors"))
+    """Gather the five persona findings without deduplication.
+
+    FR-1005: exactly one entry per ``PERSONA_KEYS`` slot, in order. A missing
+    key whose failure is attributable to a model-output defect becomes a
+    ``FailedPersona`` record in its slot; any other missing key is fatal with
+    FR-926's diagnostics (the cause is recorded one key away — cite it).
+    """
+    errors = state.get("errors")
+    findings: list[dict[str, Any]] = []
+    fatal: list[str] = []
+    for key in PERSONA_KEYS:
+        if key in state:
+            findings.append(_normalize_finding(state[key], key))
+            continue
+        cause = _attributable_cause(key, errors)
+        if cause is None:
+            fatal.append(key)
+            continue
+        findings.append(FailedPersona(state_key=key, cause=cause).model_dump())
+    if fatal:
+        detail = _format_recorded_errors(errors)
         raise ValueError(
-            f"missing persona findings: {', '.join(missing)}"
+            f"missing persona findings: {', '.join(fatal)}"
             + (f"\nrecorded node errors:{detail}" if detail else "")
         )
-    return {"findings": [_normalize_finding(state[key], key) for key in PERSONA_KEYS]}
+    return {"findings": findings}
 
 
 def _check_committed_ids(text: str, repo_root: Path) -> bool:
@@ -514,6 +621,96 @@ def _validate_findings(
     return validated, statuses
 
 
+def _cell_failure(exc: ValidationError) -> str:
+    err = exc.errors()[0]
+    loc = ".".join(str(part) for part in err.get("loc", ())) or "row"
+    return f"{loc}: {err.get('msg', 'invalid')} [{err.get('type', 'error')}]"
+
+
+def _failed_summary(failed: dict[str, str]) -> str:
+    return "; ".join(f"{key}: {cause}" for key, cause in failed.items()) or "none"
+
+
+def _contain_findings(findings: list[Any]) -> tuple[list[dict], dict[str, str]]:
+    """FR-1005 S-2: walk findings by canonical slot; contain at most one row.
+
+    Slot ``i`` *is* ``PERSONA_KEYS[i]``. A ``FailedPersona`` dump is
+    re-validated and must sit in its own slot. A finding that fails
+    ``PersonaFinding`` validation is attributed to its slot's key with the
+    field and Pydantic error type — never truncated, never repaired. More
+    findings than slots, a non-mapping entry, a record in the wrong slot,
+    a failed librarian, or two failures is fatal, naming every accumulated
+    failure; the ``MIN_VALID_ROWS`` floor is applied by the reducer after
+    FR-896's grounding check so that check keeps its own message.
+    """
+    if len(findings) > len(PERSONA_KEYS):
+        raise ValueError(
+            f"structural: {len(findings)} findings for {len(PERSONA_KEYS)} persona slots"
+        )
+    valid: list[dict] = []
+    failed: dict[str, str] = {}
+    for index, finding in enumerate(findings):
+        key = PERSONA_KEYS[index]
+        if not isinstance(finding, dict):
+            raise ValueError(f"structural: finding in slot {key} is not a mapping")
+        if finding.get("outcome") == ROW_FAILED:
+            try:
+                record = FailedPersona.model_validate(finding)
+            except ValidationError as exc:
+                raise ValueError(
+                    f"structural: malformed failure record in slot {key}: {exc}"
+                ) from exc
+            if record.state_key != key:
+                raise ValueError(
+                    f"structural: failure record for {record.state_key} found in slot {key}"
+                )
+            failed[key] = record.cause
+            continue
+        try:
+            PersonaFinding.model_validate(finding)
+        except ValidationError as exc:
+            failed[key] = _cell_failure(exc)
+            continue
+        valid.append(finding)
+
+    if LIBRARIAN_KEY in failed:
+        raise ValueError(
+            "librarian persona failed — the run has no external grounding; "
+            f"failed: {_failed_summary(failed)}"
+        )
+    if len(failed) > 1:
+        raise ValueError(
+            f"{len(failed)} personas failed, at most one may be contained; "
+            f"failed: {_failed_summary(failed)}"
+        )
+    return valid, failed
+
+
+def _assert_accounting(
+    executed: list[str], failed: dict[str, str], row_count: int
+) -> None:
+    """FR-1005 R-4: the invariants the verifier re-checks, enforced first here."""
+    problems = []
+    if len(set(executed)) != len(executed):
+        problems.append("duplicate executed key")
+    if set(executed) & set(failed):
+        problems.append("executed and failed keys overlap")
+    if set(executed) | set(failed) != set(PERSONA_KEYS):
+        problems.append("executed ∪ failed ≠ PERSONA_KEYS")
+    if len(executed) != row_count:
+        problems.append(f"{row_count} rows for {len(executed)} executed keys")
+    if any(not cause.strip() for cause in failed.values()):
+        problems.append("empty failure cause")
+    if len(failed) > 1:
+        problems.append("more than one failed persona")
+    if LIBRARIAN_KEY not in executed:
+        problems.append("librarian not executed")
+    if problems:
+        raise ValueError(
+            "structural: persona accounting violated: " + "; ".join(problems)
+        )
+
+
 def _cell(value: str) -> str:
     return " ".join(value.split()).replace("|", "/")
 
@@ -529,9 +726,24 @@ def reduce_findings(
     """Validate persona findings and write tmp/draft-alternatives.md."""
     root = Path(repo_root)
     prior_art_empty = NONE_RETRIEVED in prior_art_block
+    # FR-1005: containment by canonical slot, then the unchanged FR-896/FR-938
+    # validation (precedent, librarian, grounding floor) — all fatal checks
+    # complete before the artifact path is touched (C-7).
+    contained, failed = _contain_findings(findings)
     rows, statuses = _validate_findings(
-        findings, root, librarian_tool_results, prior_art_empty
+        contained, root, librarian_tool_results, prior_art_empty
     )
+    if len(rows) < MIN_VALID_ROWS:
+        raise ValueError(
+            f"{len(rows)} valid finding(s), {MIN_VALID_ROWS} required; "
+            f"failed: {_failed_summary(failed)}"
+        )
+    executed = [
+        key
+        for index, key in enumerate(PERSONA_KEYS)
+        if index < len(findings) and key not in failed
+    ]
+    _assert_accounting(executed, failed, len(rows))
     artifact = Path(base_dir) / "tmp" / "draft-alternatives.md"
     artifact.parent.mkdir(parents=True, exist_ok=True)
 
@@ -547,6 +759,13 @@ def reduce_findings(
         f"- brief: {Path(brief_path).name}",
         f"- run date: {run_date}",
         f"- personas executed: {personas}",
+        # FR-1005 R-4: machine-readable, conserved accounting.
+        f"- persona keys executed: {json.dumps(executed)}",
+        *(
+            [f"- personas failed: {json.dumps(failed, ensure_ascii=False)}"]
+            if failed
+            else []
+        ),
         "",
         # FR-938: copied from the block the personas saw, never recomputed.
         *([prior_art_block, ""] if prior_art_block else []),
@@ -583,6 +802,7 @@ def reduce_findings(
             "traceable"
         ),  # Advisory only (FR-896 R-2): distinct classes reported, never gated.
         "classes": len(class_counts),
+        "failed": len(failed),
     }
 
 

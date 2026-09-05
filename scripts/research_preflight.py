@@ -15,6 +15,8 @@ Stdlib-only checks, no LLM in this path (FR-890 R-2/R-3, FR-896 C-6):
    rows, and a librarian row whose citation carries a URL and is not an
    error string. Distinct-class count is advisory, never blocking
    (FR-896 R-2). The wrapper checks shape; the Judge checks substance.
+   FR-1005: a short run carries JSON persona accounting whose keys are
+   conserved against the five canonical persona keys.
 3. ``verify_promotion``: integrity check for a promoted research record
    against the committed run log (FR-896 R-3) — recomputes the brief and
    table-body hashes and reports matching / missing / mismatched. This
@@ -84,6 +86,15 @@ SOLUTION_CLASSES = frozenset(
 ARTIFACT_VERDICTS = frozenset({"pursue", "dissent", "duplicate", "echo"})
 CONVERGENT_SUFFIX = re.compile(r"\s*\(convergent x\d+\)$")
 
+# FR-1005: mirrors research_tools (witnessed by a test); short runs must account.
+_PERSONAS = "os_infra data_process yamlgraph_native subtractionist librarian"
+PERSONA_KEYS = tuple(f"{p}_finding" for p in _PERSONAS.split())
+PERSONA_COUNT = len(PERSONA_KEYS)
+LIBRARIAN_KEY = "librarian_finding"
+MIN_ROWS = 4
+EXECUTED_HEADER = "- persona keys executed:"
+FAILED_HEADER = "- personas failed:"
+
 URL_RE = re.compile(r"https?://\S+")
 
 # FR-938: mirrors research_tools. Shape only — the reducer resolves each
@@ -140,11 +151,8 @@ def check_brief(text: str) -> list[str]:
 
 
 def _check_classification_claim(classification: str) -> list[str]:
-    """FR-937: the claim is the leading token, not any enum name in prose.
-
-    A brief may explain why a class does *not* apply without thereby
-    claiming it, so only the first non-empty line's opening token counts.
-    """
+    """FR-937: the claim is the leading token, not any enum name in prose; a
+    brief may explain why a class does *not* apply without claiming it."""
     line = next(
         (ln.strip() for ln in classification.splitlines() if ln.strip()),
         "",
@@ -242,6 +250,63 @@ def _check_precedent(citation: str, prior_art_empty: bool) -> list[str]:
     ]
 
 
+def _header_value(text: str, label: str) -> str | None:
+    for line in text.splitlines():
+        if line.strip().startswith(label):
+            return line.strip()[len(label) :].strip()
+    return None
+
+
+def _json_header(raw: str, label: str, kind: type) -> tuple[object, str | None]:
+    try:
+        value = json.loads(raw)
+    except json.JSONDecodeError as exc:
+        value = exc.msg  # not the kind → reported as the shape violation below
+    if isinstance(value, kind):
+        return value, None
+    return None, f"persona accounting: '{label}' must be valid JSON {kind.__name__}"
+
+
+def _check_persona_accounting(text: str, row_count: int) -> list[str]:
+    """FR-1005 R-4: re-derive the reducer's accounting; short run: both lines
+    and every invariant; full run: no failure line, executed = all keys."""
+    executed_raw = _header_value(text, EXECUTED_HEADER)
+    failed_raw = _header_value(text, FAILED_HEADER)
+    short = row_count < PERSONA_COUNT
+    if not short and failed_raw is not None:
+        return ["persona accounting: failure metadata on a full five-row run"]
+    if not short and executed_raw is None:
+        return []
+    missing = [
+        f"persona accounting: {row_count} rows but no '{label}' line"
+        for label, raw in ((EXECUTED_HEADER, executed_raw), (FAILED_HEADER, failed_raw))
+        if short and raw is None
+    ]
+    if missing:
+        return missing
+    executed, bad_exec = _json_header(executed_raw, EXECUTED_HEADER, list)
+    failed, bad_fail = (
+        _json_header(failed_raw, FAILED_HEADER, dict)
+        if failed_raw is not None
+        else ({}, None)
+    )
+    if bad_exec or bad_fail:
+        return [v for v in (bad_exec, bad_fail) if v]
+    executed = [str(key) for key in executed]
+    failed = {str(key): value for key, value in failed.items()}
+    checks = (
+        (len(set(executed)) != len(executed), "duplicate executed key"),
+        (any(k not in PERSONA_KEYS for k in executed + list(failed)), "unknown key"),
+        (bool(set(executed) & set(failed)), "executed and failed keys overlap"),
+        (set(executed) | set(failed) != set(PERSONA_KEYS), "keys not conserved"),
+        (len(executed) != row_count, f"{row_count} rows, {len(executed)} executed"),
+        (any(not str(c).strip() for c in failed.values()), "empty failure cause"),
+        (len(failed) > 1, "more than one failed persona"),
+        (LIBRARIAN_KEY in failed, "the librarian may not fail"),
+    )
+    return [f"persona accounting: {msg}" for hit, msg in checks if hit]
+
+
 def verify_artifact(text: str) -> list[str]:
     """Return schema/shape violations for a draft-alternatives artifact."""
     violations: list[str] = []
@@ -253,8 +318,9 @@ def verify_artifact(text: str) -> list[str]:
     if violations:
         return violations
 
-    if len(rows) < 4:
-        violations.append(f"expected >= 4 rows, found {len(rows)}")
+    if len(rows) < MIN_ROWS:
+        violations.append(f"expected >= {MIN_ROWS} rows, found {len(rows)}")
+    violations.extend(_check_persona_accounting(text, len(rows)))
 
     idx = {name: header.index(name) for name in COLUMNS}
     prior_art_empty = _prior_art_is_empty(text)
@@ -301,14 +367,10 @@ def verify_artifact(text: str) -> list[str]:
 
 
 def verify_promotion(record_text: str, log_text: str, repo_root: str = ".") -> str:
-    """Integrity verdict for a promoted research record (FR-896 R-3).
-
-    Returns ``matching`` (a committed run-log line reproduces both the
-    record's table-body hash and the committed brief's hash), ``missing``
-    (no run-log lines at all), or ``mismatched`` (log lines exist but
-    none reconcile). Same-actor log: this proves hash consistency, not
-    that the graph executed.
-    """
+    """Integrity verdict for a promoted research record (FR-896 R-3):
+    ``matching`` (a run-log line reproduces the table-body and brief hashes),
+    ``missing`` (no log lines) or ``mismatched``. Same-actor log: this proves
+    hash consistency, not that the graph executed."""
     records = [json.loads(line) for line in log_text.splitlines() if line.strip()]
     if not records:
         return "missing"

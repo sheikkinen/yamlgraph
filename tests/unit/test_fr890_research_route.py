@@ -241,7 +241,9 @@ def test_reduce_fails_closed_on_empty_cell(tools, tmp_path):
     assert result["rows"] == 4
     text = (tmp_path / "tmp" / "draft-alternatives.md").read_text(encoding="utf-8")
     assert "schema change dissolving the parse" not in text.split("|---|")[-1]
-    failed_line = next(ln for ln in text.splitlines() if ln.startswith("- personas failed:"))
+    failed_line = next(
+        ln for ln in text.splitlines() if ln.startswith("- personas failed:")
+    )
     assert "data_process_finding" in failed_line and "empty" in failed_line
 
 
@@ -341,7 +343,9 @@ def test_research_sentinel_exit_70(tmp_path):
 def test_research_fresh_lock_exit_73(tmp_path):
     lock = tmp_path / "tmp" / ".research.lock"
     lock.mkdir(parents=True)
-    (lock / "holder").write_text("pid=99999 started=2026-08-26T00:00:00Z\n", encoding="utf-8")
+    (lock / "holder").write_text(
+        "pid=99999 started=2026-08-26T00:00:00Z\n", encoding="utf-8"
+    )
     result = _run_wrapper([str(CLEAN_BRIEF)], tmp_path, None)
     assert result.returncode == 73
     assert "pid=99999" in result.stderr
@@ -352,9 +356,9 @@ def test_research_preflight_blocks_contaminated_brief(tmp_path):
     stub = _write_stub(tmp_path / "yg", 'touch "$RESEARCH_WORKDIR/tmp/graph-ran"')
     result = _run_wrapper([str(CONTAMINATED_BRIEF)], tmp_path, stub)
     assert result.returncode == 64
-    assert not (
-        tmp_path / "tmp" / "graph-ran"
-    ).exists(), "preflight must run before any tokens are spent"
+    assert not (tmp_path / "tmp" / "graph-ran").exists(), (
+        "preflight must run before any tokens are spent"
+    )
 
 
 @pytest.mark.req("REQ-YG-623")

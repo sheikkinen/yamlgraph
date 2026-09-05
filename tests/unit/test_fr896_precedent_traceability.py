@@ -173,9 +173,9 @@ def test_shared_predicate_exists_in_both_modules(tools, preflight):
     assert tools.is_librarian("Web-Librarian (grounded)")
     assert preflight.is_librarian("Web-Librarian (grounded)")
     assert not tools.is_librarian("subtractionist")
-    assert (
-        tools.SOLUTION_CLASSES == preflight.SOLUTION_CLASSES
-    ), "enum drift between reducer and verifier"
+    assert tools.SOLUTION_CLASSES == preflight.SOLUTION_CLASSES, (
+        "enum drift between reducer and verifier"
+    )
 
 
 # --- AC-03/AC-04: precedent three-way validation (R-1) ------------------------
@@ -309,10 +309,20 @@ def test_fewer_than_three_non_echo_traceable_findings_fails(tools, tmp_path):
 
 @pytest.mark.req("REQ-YG-623")
 def test_over_length_cell_rejected_not_truncated(tools, tmp_path):
+    """FR-1005 re-homed (judgement AC-06): the over-length row is rejected as a
+    row — never written, never truncated — and the named violation now lives
+    in the artifact's persona accounting instead of killing the run."""
     findings = _five_findings()
     findings[1]["candidate"] = "x" * 401
-    with pytest.raises(ValueError, match="400"):
-        _reduce(tools, findings, tmp_path)
+    result = _reduce(tools, findings, tmp_path)
+    assert result["rows"] == 4
+    text = (tmp_path / "tmp" / "draft-alternatives.md").read_text(encoding="utf-8")
+    assert "x" * 400 not in text  # not truncated, not written
+    failed_line = next(
+        ln for ln in text.splitlines() if ln.startswith("- personas failed:")
+    )
+    assert "data_process_finding" in failed_line
+    assert "400" in failed_line and "string_too_long" in failed_line
 
 
 # --- AC-08: provenance stamp + integrity verifier (R-3) -----------------------
@@ -405,15 +415,24 @@ def test_verify_promotion_matching_missing_mismatched(preflight, tmp_path):
     log = tmp_path / "research-runs.jsonl"
     log.write_text(json.dumps(line) + "\n", encoding="utf-8")
     assert (
-        preflight.verify_promotion(record.read_text(encoding="utf-8"), log.read_text(encoding="utf-8"), str(tmp_path))
+        preflight.verify_promotion(
+            record.read_text(encoding="utf-8"),
+            log.read_text(encoding="utf-8"),
+            str(tmp_path),
+        )
         == "matching"
     )
     assert (
-        preflight.verify_promotion(record.read_text(encoding="utf-8"), "", str(tmp_path)) == "missing"
+        preflight.verify_promotion(
+            record.read_text(encoding="utf-8"), "", str(tmp_path)
+        )
+        == "missing"
     )
     tampered = record.read_text(encoding="utf-8").replace("FR-889", "FR-000")
     assert (
-        preflight.verify_promotion(tampered, log.read_text(encoding="utf-8"), str(tmp_path))
+        preflight.verify_promotion(
+            tampered, log.read_text(encoding="utf-8"), str(tmp_path)
+        )
         == "mismatched"
     )
 

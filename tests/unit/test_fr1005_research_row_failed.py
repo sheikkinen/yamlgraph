@@ -171,7 +171,9 @@ def _validation_error(node: str = "yamlgraph_native_planner") -> PipelineError:
     )
 
 
-def _failed_record(tools, key: str = "yamlgraph_native_finding", cause: str = "x: y") -> dict:
+def _failed_record(
+    tools, key: str = "yamlgraph_native_finding", cause: str = "x: y"
+) -> dict:
     return tools.FailedPersona(state_key=key, cause=cause).model_dump()
 
 
@@ -252,7 +254,9 @@ def test_gather_stays_fatal_when_not_attributable(tools, label, errors):
         tools.gather_findings(state)
 
     message = str(excinfo.value)
-    assert message.startswith("missing persona findings: yamlgraph_native_finding"), label
+    assert message.startswith("missing persona findings: yamlgraph_native_finding"), (
+        label
+    )
     if label in ("absent channel", "empty channel", "malformed only"):
         assert message == "missing persona findings: yamlgraph_native_finding", label
     if label == "no matching node":
@@ -291,7 +295,7 @@ def test_persona_node_map_is_explicit_and_matches_the_graph(tools):
 
 @pytest.mark.req("REQ-YG-665")
 def test_verifier_mirrors_reducer_constants(tools, preflight):
-    assert preflight.PERSONA_COUNT == len(tools.PERSONA_KEYS)
+    assert len(tools.PERSONA_KEYS) == preflight.PERSONA_COUNT
     assert tuple(preflight.PERSONA_KEYS) == tools.PERSONA_KEYS
     assert preflight.MIN_ROWS == tools.MIN_VALID_ROWS
     assert preflight.LIBRARIAN_KEY == tools.LIBRARIAN_KEY
@@ -303,8 +307,9 @@ def test_verifier_mirrors_reducer_constants(tools, preflight):
 @pytest.mark.req("REQ-YG-665")
 def test_reduce_writes_four_rows_with_json_accounting(tools, preflight, tmp_path):
     findings = _five_findings()
-    cause = "yamlgraph_native_planner: unknown_error (OutputParserException): " + " ".join(
-        PARSE_MESSAGE.split()
+    cause = (
+        "yamlgraph_native_planner: unknown_error (OutputParserException): "
+        + " ".join(PARSE_MESSAGE.split())
     )
     findings[2] = _failed_record(tools, cause=cause)
 
@@ -315,7 +320,9 @@ def test_reduce_writes_four_rows_with_json_accounting(tools, preflight, tmp_path
     text = _artifact(tmp_path)
     executed = json.loads(_header(text, EXECUTED_HEADER))
     failed = json.loads(_header(text, FAILED_HEADER))
-    assert executed == [k for k in tools.PERSONA_KEYS if k != "yamlgraph_native_finding"]
+    assert executed == [
+        k for k in tools.PERSONA_KEYS if k != "yamlgraph_native_finding"
+    ]
     assert failed == {"yamlgraph_native_finding": cause}
     assert "yamlgraph-native-planner" not in _header(text, "- personas executed:")
     assert preflight.verify_artifact(text) == []
@@ -413,7 +420,9 @@ def test_every_fatal_class_raises_before_any_artifact(tools, tmp_path):
         assert not _artifact_path(base).exists(), label
         message = str(excinfo.value)
         if label == "two failures":
-            assert "os_infra_finding" in message and "yamlgraph_native_finding" in message
+            assert (
+                "os_infra_finding" in message and "yamlgraph_native_finding" in message
+            )
             assert "string_too_long" in message and "x: y" in message
         if label.startswith("librarian"):
             assert "librarian" in message.lower()
@@ -452,14 +461,18 @@ def test_verify_artifact_rejects_every_accounting_violation(tools, preflight, tm
         "missing executed line": _replace_header(text, EXECUTED_HEADER, None),
         "missing failed line": _replace_header(text, FAILED_HEADER, None),
         "malformed json": _replace_header(text, FAILED_HEADER, "{not json"),
-        "unknown key": _replace_header(text, FAILED_HEADER, json.dumps({"ghost_finding": "x"})),
+        "unknown key": _replace_header(
+            text, FAILED_HEADER, json.dumps({"ghost_finding": "x"})
+        ),
         "duplicate executed key": _replace_header(
             text, EXECUTED_HEADER, json.dumps(executed[:-1] + [executed[0]])
         ),
         "overlapping sets": _replace_header(
             text, FAILED_HEADER, json.dumps({"os_infra_finding": "x"})
         ),
-        "incomplete union": _replace_header(text, EXECUTED_HEADER, json.dumps(executed[:-1])),
+        "incomplete union": _replace_header(
+            text, EXECUTED_HEADER, json.dumps(executed[:-1])
+        ),
         "empty cause": _replace_header(
             text, FAILED_HEADER, json.dumps({"yamlgraph_native_finding": ""})
         ),
@@ -470,16 +483,23 @@ def test_verify_artifact_rejects_every_accounting_violation(tools, preflight, tm
         ),
         "failed librarian": _replace_header(
             text, FAILED_HEADER, json.dumps({"librarian_finding": "x"})
-        ).replace(json.dumps(executed), json.dumps([k for k in tools.PERSONA_KEYS if k != "librarian_finding"])),
+        ).replace(
+            json.dumps(executed),
+            json.dumps([k for k in tools.PERSONA_KEYS if k != "librarian_finding"]),
+        ),
     }
     for label, mutated in mutations.items():
         violations = preflight.verify_artifact(mutated)
         assert violations, label
         assert any("persona" in v.lower() for v in violations), (label, violations)
 
-    full = _reduce(tools, _five_findings(), tmp_path / "full") and _artifact(tmp_path / "full")
+    full = _reduce(tools, _five_findings(), tmp_path / "full") and _artifact(
+        tmp_path / "full"
+    )
     with_failure = full.replace(
-        "\n\n|", f"\n{FAILED_HEADER} " + json.dumps({"os_infra_finding": "x"}) + "\n\n|", 1
+        "\n\n|",
+        f"\n{FAILED_HEADER} " + json.dumps({"os_infra_finding": "x"}) + "\n\n|",
+        1,
     )
     violations = preflight.verify_artifact(with_failure)
     assert any("five" in v or "full run" in v for v in violations), violations

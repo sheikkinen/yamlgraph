@@ -145,7 +145,9 @@ def test_wrapper_surfaces_enriched_failure_text(tmp_path):
         "String should have at most 400 characters"
     )
     stub = tmp_path / "yg"
-    stub.write_text(f'#!/usr/bin/env bash\nprintf "{enriched}\\n" >&2\nexit 1\n', encoding="utf-8")
+    stub.write_text(
+        f'#!/usr/bin/env bash\nprintf "{enriched}\\n" >&2\nexit 1\n', encoding="utf-8"
+    )
     stub.chmod(stub.stat().st_mode | stat.S_IXUSR)
 
     env = {
@@ -213,7 +215,9 @@ def test_real_node_cause_survives_into_the_typed_record(tools):
     """FR-926 AC-01 fields, now carried by the contained record (FR-1005)."""
     state = _state_missing_one(tools, errors=[_real_recorded_error()])
 
-    record = tools.FailedPersona.model_validate(tools.gather_findings(state)["findings"][2])
+    record = tools.FailedPersona.model_validate(
+        tools.gather_findings(state)["findings"][2]
+    )
 
     assert record.state_key == "yamlgraph_native_finding"
     for fragment in (
@@ -259,7 +263,9 @@ def test_real_node_dict_error_survives_into_the_artifact(tools, tmp_path):
     )
 
     text = (tmp_path / "tmp" / "draft-alternatives.md").read_text(encoding="utf-8")
-    failed_line = next(ln for ln in text.splitlines() if ln.startswith("- personas failed:"))
+    failed_line = next(
+        ln for ln in text.splitlines() if ln.startswith("- personas failed:")
+    )
     assert REAL_NODE in failed_line
     assert "OutputParserException" in failed_line
     assert "candidate 471 chars" in failed_line
