@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement (public demo repository)
-**Status:** Judged — APPROVED WITH REVISIONS (2026-09-05, [judgement](FR-1001-yamlgraph-outsider-demo-repo.judgement.md)); revisions folded, authority active for D-1…D-8
+**Status:** Implemented (2026-09-05) — [judgement](FR-1001-yamlgraph-outsider-demo-repo.judgement.md) APPROVED WITH REVISIONS; AC-13 NOT MET, recorded as a strict xfail with evidence (see Implementation status)
 **Effort:** 1 day
 **Requested:** 2026-09-05
 **First consumer / first event:** a maintainer of any GitHub repository who has just opened a pull request — `pipx install yamlgraph && ./yamlgraph-outsider 123 --repo owner/name --comment`. Second: `sheikkinen/deviant-daily` on its next feature PR. Third: this repo's PRs, for anyone without a Copilot seat.
@@ -84,6 +84,33 @@ Read: all six committed spike-2 reports ([docs/spikes/outsider-llm-2026-09-05/ou
 - [ ] AC-16: `pyproject.toml` declares the exact test command and tested minimum `yamlgraph`; focused tests pass in a clean environment; the README's clone/install/configure/run path succeeds.
 - [ ] AC-17: The Research and Prior art fields contain the R-3 `is_this_a_graph` answer, substantive solution-class disposition, and only committed evidentiary dependencies; the dangling FR-1004 claim is removed or replaced by an exact committed path.
 - [ ] AC-18: This repository's diff is limited to the authoring brief, one adapter-README line, FR plus final judgement/status record, changelog fragment, and diary entry; the spike trees, ramp manifest, existing outsider implementation, and ledger are byte-unchanged.
+
+## Implementation status (2026-09-05)
+
+Repository: https://github.com/sheikkinen/yamlgraph-outsider — public, MIT, own Git root at `/Users/sheikki/Documents/src/yamlgraph-outsider`; `main` at `21a62dfe6e58`. Human decisions (R-5): spend approved by the operator for anthropic / `claude-haiku-4-5` on the operator's key (≈ 11 calls made: 1 authoring smoke, 8 fixture runs, 1 README self-run, 1 live PR); target PR = the first PR of the new repo itself. Route: brief → `scripts/author.sh` (report verified; graph/prompt copied from spike 2; one README line appended here).
+
+| AC | Result | Evidence |
+|---|---|---|
+| 01 | met | `feature-requests/authoring-briefs/fr-1001-yamlgraph-outsider-demo-repo-brief.md`; report listed lint (0 errors, W026 on the five-field schema) and the smoke; first smoke exposed a `from __future__ import annotations` / path-loaded pydantic defect in `tools.py`, fixed and re-smoked (derived NO on `positive`) |
+| 02 | met | `gh repo view` → PUBLIC; `LICENSE` MIT (GitHub's detector had not yet run at the time); `git check-ignore`: `.env`, `out/` ignored, `.env.sample` tracked |
+| 03 | met | `graph.yaml` has `defaults: {temperature: 0.0}` only; launcher has no `--provider`/`--model`, no model name (static test) |
+| 04 | met | `.env.sample` three active lines; README: "tested sample configuration", alternatives one per line |
+| 05 | met | `test_provenance_four_cases`, `test_finalize_provenance_framework_default_when_omitted`, header `provider: anthropic \| model: claude-haiku-4-5` in every evidence report |
+| 06 | met | `out/<label>-<timestamp>.md` chosen by the launcher; `test_report_path_chosen_before_run` |
+| 07 | met | `doctrine.md` derived (provider-API route, no Copilot/`gpt-5.6-sol`/ledger claims, four sections, one run per PR); `SKILL.md` invokes `./yamlgraph-outsider` |
+| 08 | met | `tests/test_boundary.py` — normalisation accept/reject set, caps before reduction, every rule and near miss, precedence, order, no loss/duplication, three named cases |
+| 09 | met | `tests/test_wrapper.py` — one `yamlgraph graph run`, no `gh`, one `git`; exits 70/71/72 per missing tool with install hint, 73 for `.env`; exact var set; `--input --comment` → 64 |
+| 10 | met | graph rc≠0 with valid report → fail; rc 0 with absent/invalid report → fail |
+| 11 | met | `tests/test_gh_tools.py` — exact `gh pr view`/`gh pr comment` argv; `--input` never calls `gh`; failed post raises, report kept |
+| 12 | met | rejection paths tested; live: `pr-591` rejected both runs (9 items > 8) with no report written |
+| 13 | **NOT MET** | 8 live runs on `.env.sample`, both passes agreeing: `pr-591` REJECTED/REJECTED, `plain-591` NO/NO, `pr-591-v2` **YES/YES**, `positive` **NO/NO** (4 retained: "someone writing a graph", "mercury-2", "\"retire\" rows", "cross-cutting"; 1 demoted `FR-990`; plus a `does not say` hedge). Expectations were written against sonnet's over-flagging; haiku's items are genuinely undefined phrases — the reducer set aside one item in eight runs. Operator decision: keep haiku, record; `test_prewritten_expectations_hold` is a strict xfail; deterministic tests assert reproduction of the recorded verdicts and run-to-run agreement. Fixture revision is a follow-up FR. `fixtures/EXPECTATIONS.md` → Results |
+| 14 | met | `docs/evidence/README-self-run.md` (derived YES, 1 retained "the reducer" → glossed; 3 set aside); header carries input SHA-256, provider, model, timestamp, commit |
+| 15 | met | `./yamlgraph-outsider 1 --comment` with repo from `origin`: derived NO (1 retained "shipped sample configuration" + hedge; "the tool itself" set aside as inline gloss). Comment: https://github.com/sheikkinen/yamlgraph-outsider/pull/1#issuecomment-5552543093 ; report `docs/evidence/pr-1-comment-run.md`; both phrases glossed in the PR body; PR merged |
+| 16 | met | `pyproject.toml` `[dependency-groups] test` (`yamlgraph>=0.5.17`; checkout used 0.5.24), `pytest` / `pytest -m live`; 90 deterministic tests pass, 1 strict xfail |
+| 17 | met | Research: `is_this_a_graph: Yes` + class disposition; Prior art: FR-1004 by path, production comments labelled non-evidentiary |
+| 18 | met | this repo's diff: brief, one adapter-README line, FR + judgement, changelog fragment, diary; spike trees, ramp manifest, outsider implementation and ledger untouched |
+
+Deviations: `OUTSIDER_DUMP_READING` (env-gated raw-reading capture in `finalize`, written before validation) was added so rejected readings leave evidence — the live runs needed it. Not in the plan; small, tested by use, documented in `docs/evidence/README.md`.
 
 ## Alternatives Considered
 

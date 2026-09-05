@@ -58,3 +58,4 @@ Forbidden actions:
 - No edits to `docs/spikes/outsider-reader-2026-09-05/` outputs.
 
 Source copy: `docs/spikes/outsider-reader-2026-09-05/`.
+Non-Copilot route (provider API, any model from .env): https://github.com/sheikkinen/yamlgraph-outsider (FR-1001).
