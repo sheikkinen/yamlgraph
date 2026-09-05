@@ -111,16 +111,11 @@ still go through the FR-466 lifecycle. No verdict vocabulary.
   set):
 
 ```bash
-PYTHONPATH=$PWD yamlgraph graph run examples/demos/cap_journey_census/graph.yaml \
-  --var source="capabilities:ids=CAP-131,CAP-81,CAP-126" \
-  --var provider=anthropic --var model=claude-haiku-4-5 \
-  --var journey_ids="author_graph,run_operate,debug_observe,integrate,serve_embed,census_classify,govern_process,audit_comply,conversational_app,none_internal" \
-  --var journeys_path=examples/demos/cap_journey_census/journeys.yaml \
-  --var canaries_path="" \
-  --var output_path=tmp/cap-census/smoke.md --json > tmp/cap-census/smoke.json
+PYTHONPATH=$PWD yamlgraph graph run examples/demos/cap_journey_census/graph.yaml --var source="capabilities:ids=CAP-131,CAP-81,CAP-126" --var provider=anthropic --var model=claude-haiku-4-5 --var journey_ids="author_graph,run_operate,debug_observe,integrate,serve_embed,census_classify,govern_process,audit_comply,conversational_app,none_internal" --var journeys_path=examples/demos/cap_journey_census/journeys.yaml --var canaries_path="" --var output_path=tmp/cap-census/smoke.md --json > tmp/cap-census/smoke.json
 ```
 
-Verify by artifact: `tmp/cap-census/smoke.md` exists with a
-"Journey × CAP matrix" heading and `tmp/cap-census/smoke.jsonl` has 3 rows.
+The smoke run creates the output `tmp/cap-census/smoke.md` (heading
+"Journey × CAP matrix") and writes `tmp/cap-census/smoke.jsonl` with 3 rows;
+verify by those created artifacts, never by exit code.
 Record the smoke in the authoring report; if the run is blocked (no API
 key), record the blocked command honestly.
