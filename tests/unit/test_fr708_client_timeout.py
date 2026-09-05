@@ -16,7 +16,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from yamlgraph.utils import llm_bounds
+from yamlgraph.utils import llm_providers
 from yamlgraph.utils.llm_providers import _PROVIDER_FACTORIES
 
 # Wrapper-correct timeout parameter per provider (Judgement F1).
@@ -91,17 +91,17 @@ class TestProviderTimeoutMatrix:
         kwargs = _construct(provider, monkeypatch)
         param = _TIMEOUT_PARAM[provider]
         assert param in kwargs, f"{provider}: no {param}= passed to wrapper"
-        assert isinstance(kwargs[param], int | float) and kwargs[param] > 0, (
-            f"{provider}: {param} not a finite positive number: {kwargs[param]!r}"
-        )
+        assert (
+            isinstance(kwargs[param], int | float) and kwargs[param] > 0
+        ), f"{provider}: {param} not a finite positive number: {kwargs[param]!r}"
 
     @pytest.mark.req("REQ-YG-539")
     @pytest.mark.parametrize("provider", sorted(_PROVIDER_FACTORIES))
     def test_client_carries_bounded_retries(self, provider, monkeypatch) -> None:
         kwargs = _construct(provider, monkeypatch)
-        assert kwargs.get("max_retries") == 2, (
-            f"{provider}: max_retries not bounded: {kwargs.get('max_retries')!r}"
-        )
+        assert (
+            kwargs.get("max_retries") == 2
+        ), f"{provider}: max_retries not bounded: {kwargs.get('max_retries')!r}"
 
     @pytest.mark.req("REQ-YG-539")
     def test_caller_kwargs_win(self, monkeypatch) -> None:
@@ -116,24 +116,24 @@ class TestRequestTimeoutEnv:
     @pytest.mark.req("REQ-YG-539")
     def test_default_is_30(self, monkeypatch) -> None:
         monkeypatch.delenv("LLM_REQUEST_TIMEOUT", raising=False)
-        assert llm_bounds._request_timeout() == 30.0
+        assert llm_providers._request_timeout() == 30.0
 
     @pytest.mark.req("REQ-YG-539")
     def test_env_override(self, monkeypatch) -> None:
         monkeypatch.setenv("LLM_REQUEST_TIMEOUT", "12.5")
-        assert llm_bounds._request_timeout() == 12.5
+        assert llm_providers._request_timeout() == 12.5
 
     @pytest.mark.req("REQ-YG-539")
     def test_garbage_raises(self, monkeypatch) -> None:
         monkeypatch.setenv("LLM_REQUEST_TIMEOUT", "soon")
         with pytest.raises(ValueError, match="LLM_REQUEST_TIMEOUT"):
-            llm_bounds._request_timeout()
+            llm_providers._request_timeout()
 
     @pytest.mark.req("REQ-YG-539")
     def test_nonpositive_raises(self, monkeypatch) -> None:
         monkeypatch.setenv("LLM_REQUEST_TIMEOUT", "0")
         with pytest.raises(ValueError, match="LLM_REQUEST_TIMEOUT"):
-            llm_bounds._request_timeout()
+            llm_providers._request_timeout()
 
 
 class TestVertexTransportKnob:

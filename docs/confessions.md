@@ -1296,7 +1296,7 @@ These are E402 suppressions and are acceptable as "glue code" patterns.
 - **Penance**: Retained intentionally for domain semantics or existing contract wording; explicitly allowlisted and audited.
 
 ### CONF-304
-- **File**: [yamlgraph/tools/agent.py](../yamlgraph/tools/agent.py#L68)
+- **File**: [yamlgraph/tools/agent.py](../yamlgraph/tools/agent.py#L63)
 - **Code**: FB001
 - **Sin**: Docstring of `_try_structured_output` contains `fallback` — describes the try-parse-first, fallback-to-LLM strategy (FR-448).
 - **Penance**: The word describes the actual algorithmic pattern. Renaming would obscure intent.
@@ -1351,19 +1351,19 @@ These are not `# noqa` suppressions — they are documented deviations from proc
 - **Penance**: Consistent with CONF-247..256 pattern across test_fr637..654 files. Test-only utility.
 
 ### CONF-350
-- **File**: [yamlgraph/tools/agent.py](../yamlgraph/tools/agent.py#L77)
+- **File**: [yamlgraph/tools/agent.py](../yamlgraph/tools/agent.py#L72)
 - **Code**: FB001
 - **Sin**: Comment uses `fallback` token describing a legitimate fallback trigger condition.
 - **Penance**: Documents the structured-output mismatch recovery path. Renaming would obscure intent.
 
 ### CONF-351
-- **File**: [yamlgraph/executor_base.py](../yamlgraph/executor_base.py#L384)
+- **File**: [yamlgraph/executor_base.py](../yamlgraph/executor_base.py#L380)
 - **Code**: FB001
 - **Sin**: Docstring of `_invoke_llm_once` contains `fallback` — describes the FR-464 structured-output fallback strategy.
 - **Penance**: Documents the retry-then-parse pattern. Renaming would obscure intent.
 
 ### CONF-352
-- **File**: [yamlgraph/utils/llm_providers.py](../yamlgraph/utils/llm_providers.py#L342)
+- **File**: [yamlgraph/utils/llm_providers.py](../yamlgraph/utils/llm_providers.py#L315)
 - **Code**: FB001
 - **Sin**: Docstring contains `fallback` — explicitly states there is NO silent fallback at this boundary.
 - **Penance**: The word is used to negate a fallback pattern, not to implement one.
@@ -2009,15 +2009,3 @@ The ID ranges are:
 - **Code**: E402
 - **Sin**: `from examples.demos.cap_journey_census.render import _markdown` after a `sys.path.insert` — module-level import not at top.
 - **Penance**: Same split as CONF-457 (rendering moved to render.py for the size gate); same bootstrap ordering.
-
-### CONF-459
-- **File**: [docs/spikes/outsider-llm-2026-09-05/tools.py](../docs/spikes/outsider-llm-2026-09-05/tools.py#L51)
-- **Code**: S603
-- **Sin**: `subprocess.run([gh, "pr", "view", pr, "-R", repo, …])` — external `pr`/`repo` reach a subprocess.
-- **Penance**: Spike record (research plan §13). argv list, no shell; `gh` resolved via `shutil.which`; `pr` must match `^\d{1,7}$` and `repo` `^owner/name$` before the call (`_pr_and_repo`). `docs/spikes/**` has no per-file ignore, unlike `examples/**`/`scripts/**` — confessed rather than widening the ignore list.
-
-### CONF-460
-- **File**: [docs/spikes/outsider-llm-2026-09-05/tools.py](../docs/spikes/outsider-llm-2026-09-05/tools.py#L144)
-- **Code**: S603
-- **Sin**: `subprocess.run([gh, "pr", "comment", pr, "-R", repo, "--body-file", …])` — same arguments reach a subprocess.
-- **Penance**: Same validation as CONF-459; only runs when `--post` is given.

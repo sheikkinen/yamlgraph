@@ -22,8 +22,7 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
 ]
 dependencies = [
-    "anthropic>=0.96.0",
-    "langchain-anthropic>=1.5.1",
+    "langchain-anthropic>=0.3.0",
     "langchain-core>=1.5.1",
     "langchain-google-genai>=2.0.0",
     "langchain-mistralai>=0.2.0",

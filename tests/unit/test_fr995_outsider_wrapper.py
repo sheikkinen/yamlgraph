@@ -130,21 +130,6 @@ def test_doctrine_within_sixty_lines():
 
 
 @pytest.mark.req("REQ-YG-663")
-def test_wrapper_is_executable_in_the_index():
-    # FR-889 lock strips disk perms on main; the committed mode is the contract
-    mode = subprocess.run(
-        ["git", "ls-files", "-s", "scripts/outsider.sh"],
-        cwd=REPO,
-        capture_output=True,
-        text=True,
-        check=True,
-    ).stdout.split()[0]
-    assert (
-        mode == "100755"
-    ), f"scripts/outsider.sh committed as {mode}; ./scripts/outsider.sh would fail"
-
-
-@pytest.mark.req("REQ-YG-663")
 def test_child_cwd_is_a_fresh_temp_dir_outside_repo(script: str):
     assert re.search(
         r'CHILD_CWD="\$\(mktemp -d "\$\{TMPDIR:-/tmp\}/outsider-XXXXXX"\)"', script

@@ -81,7 +81,6 @@ GOVERNED_KEYS = {
         "test_before_reading",
         "three_reads",
         "tolerant_matching",
-        "two_ends_of_the_knowledge_axis",  # FR-995 graduation, PR #595
         "two_strike_split",
     },
     "questions": {

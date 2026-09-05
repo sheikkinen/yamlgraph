@@ -140,3 +140,6 @@ examples/icpc-2-rfe/data/icpc2_rfe_catalog.yaml
 # FR-733: generated locally from cwec_v4.20 (18 MB source; catalog is a build artifact)
 examples/cwe-classifier/data/cwe_catalog.yaml
 uv.lock
+
+# private — operator reflection stays local
+docs/the-operator.md

@@ -13,10 +13,6 @@ from yamlgraph.config import DEFAULT_TEMPERATURE
 from yamlgraph.utils.content import normalize_content
 from yamlgraph.utils.json_extract import extract_json
 from yamlgraph.utils.prompts import load_prompt
-from yamlgraph.utils.structured_output import (
-    invoke_structured,
-    is_second_attempt_error,
-)
 from yamlgraph.utils.template import validate_variables
 
 logger = logging.getLogger(__name__)
@@ -390,8 +386,7 @@ def attempt_structured_invoke(llm, messages, output_model):
 
     Behavior:
     - No ``output_model``: invoke and return normalized string content.
-    - With ``output_model``: ask through the FR-998 provider policy
-      (``invoke_structured``: constrained decoding for Anthropic). If the provider
+    - With ``output_model``: try ``with_structured_output``. If the provider
       rejects ``response_format``, fall back to a plain re-invoke with a JSON
       schema hint and extract/validate the JSON (FR-464). Any other error
       propagates unchanged (FR-678 — no broad swallow).
@@ -402,10 +397,9 @@ def attempt_structured_invoke(llm, messages, output_model):
     """
     if output_model:
         try:
-            return invoke_structured(llm, output_model, messages)
+            structured_llm = llm.with_structured_output(output_model)
+            return structured_llm.invoke(messages)
         except Exception as struct_err:
-            if is_second_attempt_error(struct_err):
-                raise  # FR-998 C-3: the one second attempt already happened
             if "response_format" in str(struct_err):
                 logger.info(
                     "Structured output rejected, falling back to JSON extraction (FR-464)"

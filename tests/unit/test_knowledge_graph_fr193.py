@@ -36,11 +36,14 @@ NEW_PROCESS_ENTRIES = {
     ),
 }
 
-# --- New seed entries (3; req_coverage_as_universal_gate retired by PR #595 once req_coverage --strict became a CI gate) ---
+# --- New seed entries (3) ---
 
 NEW_SEED_ENTRIES = {
     "inquisitor_auto_escalation": (
         '"Auto-create FR when audit pattern hits threshold"'
+    ),
+    "req_coverage_as_universal_gate": (
+        '"Block PR merge on coverage gaps, not just report"'
     ),
     "verification_checkpoint_primitive": (
         '"Checkpoint/resume for long enforce pipelines"'
