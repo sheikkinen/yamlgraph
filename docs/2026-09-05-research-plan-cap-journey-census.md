@@ -473,7 +473,7 @@ markdown file. Report to `out/<input>-<model>-<stamp>.md`.
 | §3 items | 33 | 41 |
 | `undefined term` | 15 (enum-leak demotion, junk-drawer cap, wedges, shape anchors, canaries, prompt loop…) | 16 (*"what counts as use"*, *"what does valid mean"*, *"someone running a pipeline"*, *"business value"*) |
 | `claim without pointer` | 1 | 8 |
-| §4 | purpose, users, findings, methodology, test evidence, reviewer entry point, provenance of committed raw rows | (truncated in capture; same class) |
+| §4 | purpose, users, findings, methodology, test evidence, reviewer entry point, provenance of committed raw rows | 16 items — see §12.6; ten exist in the PR but are not pointed to, six are genuinely absent (incl. **no automated tests**) |
 
 Against expectations: **A passes every line.** **B fails §3 count (41 vs ≤ 2)
 and the `undefined term` line.** §2 does not separate (both NO). What *does*
@@ -533,3 +533,47 @@ the repo, is not committed as a graph, and is reconstructible from this
 section. Guard-by-content (`nodes:` and `edges:` present under `examples/`)
 is an FR candidate; not changed here — a guard is widened by an FR and a
 judge, never by the session that noticed the gap.
+
+### 12.6 Chapter 4 of report B, checked against the PR (2026-09-05)
+
+Correction first: §12.3 originally recorded B's §4 as "truncated in capture;
+same class" — a cell written for content not read. Read in full, it is the
+most valuable section of either report.
+
+| Outsider says missing | In PR #591? |
+|---|---|
+| files / reviewer entry point | exists (20 files, README, §10.1) — **unlinked** |
+| run instructions | exists (README, §10.1) — unlinked |
+| ten categories + definitions | exists (`journeys.yaml`) — unlinked |
+| keep/remove rubric | exists (reducer anchors, §3) — unlinked |
+| the 30, the two removal candidates, the six checks | exists (`canaries.yaml`, `docs/census/*.jsonl`, FR-990) — unlinked |
+| raw + summarized outputs, all three runs | **run 3 only**; runs 1–2 in `tmp/` — absent |
+| automated tests, commands, results | **absent** — FR-990 AC-7 open; a `feat` PR with reducer code and no witness test (Commandment 7, found by a reader who has never seen it) |
+| evidence that code search catches indirect/dynamic use | **absent** — grep cannot; only named as future hit-kind work |
+| prompts, schema, parameters, nondeterminism | exists (`judge_cap.yaml`, T=0, `.run.json`) — unlinked |
+| runtime, cost, rate limits, cost for 242 | **absent** beyond §6's token estimate |
+| privacy of sending descriptions to a provider | **absent** (public repo text — unstated) |
+| behaviour on malformed output | exists (`row_failed`/abstain/batch-fatal) — unlinked |
+| local vs CI vs production | **absent** (local only) |
+| fast-model comparison | not done |
+| results for 242 | not done |
+| acceptance criteria for "reliable enough" | exists (FR-990 ACs) — unlinked |
+
+Consequences:
+
+- **§4 is a merge-decision checklist, and the outsider cannot partition it**
+  into *exists-but-unlinked* vs *absent* — only a reader with the files can.
+  That is the handoff: outsider lists, reviewer partitions. Three lists in
+  the FR design, not two: comprehension (outsider's score), verification
+  (reviewer), and merge-needs (reviewer partitions).
+- **The plain account is necessary, not sufficient.** It is an explanation; a
+  PR body needs explanation *plus pointers* (reading order, run command,
+  where the rows are, which tests). Canary B's "≤ 2 items" expectation was
+  wrong on the author's side: a body with no pointers *should* draw pointer
+  questions. B is re-labelled: restatement must be correct (it was);
+  comprehension items ≤ 2 (to be re-scored under the split); merge-needs
+  list is expected non-empty.
+- **For #591 before merge:** link the ten; commit runs 1–2; state cost, scope
+  (local only), and data handling; add the reducer tests (AC-7) or state
+  plainly that the PR ships untested reducer code and why that is acceptable
+  for a research instrument.
