@@ -29,6 +29,7 @@ from yamlgraph.utils.guard_runtime import (
 from yamlgraph.utils.json_extract import extract_json
 from yamlgraph.utils.llm_factory import create_llm
 from yamlgraph.utils.prompts import load_prompt
+from yamlgraph.utils.structured_output import bind_structured_output
 
 logger = logging.getLogger(__name__)
 
@@ -90,7 +91,7 @@ def _try_structured_output(
         HumanMessage(content="Now produce your response as structured JSON output.")
     ]
     try:
-        structured_llm = llm_base.with_structured_output(output_model)
+        structured_llm = bind_structured_output(llm_base, output_model)
         result = structured_llm.invoke(retry_msgs)
         return result.model_dump()
     except Exception as reinvoke_err:
@@ -104,8 +105,8 @@ def _try_structured_output(
             or "response_format" in err_str
         ):
             logger.warning("Strict schema rejected, retrying with function_calling")
-            fc_llm = llm_base.with_structured_output(
-                output_model, method="function_calling"
+            fc_llm = bind_structured_output(
+                llm_base, output_model, method="function_calling"
             )
             try:
                 return fc_llm.invoke(retry_msgs).model_dump()

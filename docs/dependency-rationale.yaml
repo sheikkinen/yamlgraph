@@ -8,9 +8,18 @@
 dependencies:
   # ─── Core Dependencies ───────────────────────────────────────────────
 
+  anthropic:
+    rationale: >
+      Anthropic SDK, imported lazily at the provider boundary
+      (llm_provider_identity) for the typed BadRequestError that the FR-998
+      structured-output policy classifies before its single second attempt.
+      Floor is what langchain-anthropic 1.5.1 itself requires.
+    modules: ["yamlgraph/utils/llm_provider_identity.py"]
+    added: "0.5.24"
+
   langchain-anthropic:
     rationale: "Anthropic LLM provider integration (Claude models via ChatAnthropic)"
-    modules: ["yamlgraph/utils/llm_factory.py"]
+    modules: ["yamlgraph/utils/llm_factory.py", "yamlgraph/utils/llm_providers.py", "yamlgraph/utils/llm_provider_identity.py"]
     added: "0.1.0"
 
   langchain-core:

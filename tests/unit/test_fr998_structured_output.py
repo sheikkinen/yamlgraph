@@ -28,6 +28,11 @@ import anthropic
 import langchain_anthropic
 import pytest
 from pydantic import BaseModel, Field, ValidationError
+
+import yamlgraph
+from yamlgraph.executor_base import attempt_structured_invoke
+from yamlgraph.node_factory.race_node import _invoke_candidate_async
+from yamlgraph.tools.agent import _try_structured_output
 from yamlgraph.utils.llm_provider_identity import (
     is_anthropic_chat_model,
     is_anthropic_unsupported_structured_output,
@@ -37,13 +42,6 @@ from yamlgraph.utils.structured_output import (
     bind_structured_output,
     invoke_structured,
 )
-
-import yamlgraph
-from yamlgraph.executor_base import attempt_structured_invoke
-from yamlgraph.node_factory.race_node import _invoke_candidate_async
-from yamlgraph.tools.agent import _try_structured_output
-
-pytestmark = pytest.mark.req("REQ-YG-664")
 
 MSGS = ["system", "user"]
 
@@ -184,6 +182,7 @@ def _validation_error() -> ValidationError:
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.req("REQ-YG-664")
 class TestProviderBoundary:
     def test_anthropic_identity_is_isinstance_not_class_name(self, anthropic_llm):
         assert is_anthropic_chat_model(anthropic_llm({}))
@@ -246,6 +245,7 @@ class TestProviderBoundary:
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.req("REQ-YG-664")
 class TestBinder:
     def test_anthropic_default_selects_json_schema_via_executor(self, anthropic_llm):
         llm = anthropic_llm({"json_schema": _returns(TYPED)})
@@ -274,6 +274,7 @@ class TestBinder:
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.req("REQ-YG-664")
 class TestIncident:
     def test_bullet_payload_fails_forced_tool_call_and_passes_constrained(
         self, anthropic_llm
@@ -318,6 +319,7 @@ def _fr998_records(caplog) -> list[logging.LogRecord]:
     return [r for r in caplog.records if "FR-998" in r.getMessage()]
 
 
+@pytest.mark.req("REQ-YG-664")
 class TestTypedSecondAttempt:
     def test_sync_one_function_calling_attempt_and_one_info_line(
         self, anthropic_llm, caplog
@@ -414,6 +416,7 @@ _PROPAGATING_ERRORS = [
 ]
 
 
+@pytest.mark.req("REQ-YG-664")
 class TestPropagation:
     @pytest.mark.parametrize("make_error", _PROPAGATING_ERRORS)
     def test_sync_propagates_unchanged(self, anthropic_llm, make_error):
@@ -476,6 +479,7 @@ def _run_ids(llm: _FakeLLM) -> list[Any]:
     return [kw["config"]["run_id"] for _, _, kw in llm.invocations]
 
 
+@pytest.mark.req("REQ-YG-664")
 class TestRaceComposition:
     @pytest.mark.asyncio
     async def test_both_attempts_carry_distinct_run_ids(self, anthropic_llm):
@@ -539,6 +543,7 @@ class TestRaceComposition:
         assert _run_ids(llm)[0] != _run_ids(llm)[1]
 
 
+@pytest.mark.req("REQ-YG-664")
 class TestExecutorComposition:
     def test_response_format_rejection_still_reaches_json_extraction(self):
         llm = _FakeOther(
@@ -559,6 +564,7 @@ class TestExecutorComposition:
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.req("REQ-YG-664")
 class TestAgentComposition:
     def test_default_tier_binds_constrained_for_anthropic(self, anthropic_llm):
         llm = anthropic_llm({"json_schema": _returns(TYPED)})
@@ -598,6 +604,7 @@ _GENERIC_MODULES = (
 )
 
 
+@pytest.mark.req("REQ-YG-664")
 class TestBoundaries:
     def test_single_production_call_expression(self):
         root = Path(yamlgraph.__file__).parent
