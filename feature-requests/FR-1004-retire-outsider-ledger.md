@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Removal
-**Status:** Enforcing 2026-09-05 — PR #602; RED `e61bc185` → GREEN `f937d3ed`; [judgement](FR-1004-retire-outsider-ledger.judgement.md) R-1…R-4 folded below; [implementation record](#implementation-record-2026-09-05). **C-5 witness pending:** the comment is posted; GitHub search had not indexed it at T+41 min (see record).
+**Status:** Enforced 2026-09-05 — PR #602; RED `e61bc185` → GREEN `f937d3ed`; C-5 search witness satisfied at 15:06Z; [judgement](FR-1004-retire-outsider-ledger.judgement.md) R-1…R-4 folded below; [implementation record](#implementation-record-2026-09-05)
 **Effort:** 0.5 day
 **Requested:** 2026-09-05
 **First consumer / first event:** the author of the next PR that runs `scripts/outsider.sh <pr> --comment`, at the moment a second open PR has also run it — today that author is me, three times (PRs #594, #595, #596 each carry one appended row to the same file and conflict pairwise as they merge). Second consumer: whoever counts distinct outsider-read PRs toward FR-995's "twenty before any gate" threshold — they run one `gh search` instead of reading a committed file.
@@ -121,7 +121,7 @@ On the enforcing PR: `scripts/outsider.sh <pr> --comment`; then the S-4 query. R
 - [x] AC-04: No mode of `scripts/outsider.sh` creates or modifies a path under `docs/` or any tracked file; validated local reports/logs may remain under git-ignored `tmp/`; `OUTSIDER_LEDGER` is absent from active code and has no effect.
 - [x] AC-05: `pr --comment` posts exactly the enriched validated report; the fake captures `--body-file` and its head/input values match the fake `gh pr view` result and the fetched text's SHA-256. Comment failure exits non-zero and creates no durable record.
 - [x] AC-06: A non-comment PR run writes its validated report under `tmp/` and is excluded from the count; `--input`, `--selftest`, graph, parse and comment failures are excluded too.
-- [ ] AC-07: `SKILL.md` and `doctrine.md` document the transition-safe search and the comment-only population; the credentialed enforcing-PR run records the returned PR-number set, shows the enforcing PR exactly once, and quotes the actual count with no speculative minimum.
+- [x] AC-07: `SKILL.md` and `doctrine.md` document the transition-safe search and the comment-only population; the credentialed enforcing-PR run records the returned PR-number set, shows the enforcing PR exactly once, and quotes the actual count with no speculative minimum.
 - [x] AC-08: `graph.yaml` typed state carries the base observation fields into `finalize_report`; the change has a committed authoring brief, a valid `tmp/draft-authoring-report.md`, lint and smoke evidence.
 - [x] AC-09: Direct tests cover marker completeness/uniqueness, digest lengths, UTC shape, placeholders, round-trip, posted-body identity, no `docs/` writes, no tracked-file mutation, ignored `OUTSIDER_LEDGER`, non-comment exclusion, comment-failure exclusion.
 - [x] AC-10: REQ-YG-662 / CAP-263 describe the marker schema and comment-only rule with `fr: FR-995, FR-1004`; `ARCHITECTURE.md` regenerated; every changed test carries a REQ marker; `python scripts/req_coverage.py --strict` passes.
@@ -153,7 +153,14 @@ gh search prs --repo sheikkinen/yamlgraph --match comments 'outsider reader' --l
 [592,593,595,596,597,598,600]   count: 7   (602 occurrences: 0)
 ```
 
-A distinctive phrase from the #602 comment (`census artifacts`) also returns nothing, so this is GitHub's comment-search index lag, not a query defect: the seven earlier marker comments (latest posted 12:57Z) are all found, and each of the seven carries exactly one marker. **C-5 is therefore not yet satisfied**; AC-07 stays open until the search returns #602 exactly once, at which point this record gets the final set, count and elapsed time. Polling continues.
+A distinctive phrase from the #602 comment (`census artifacts`) also returned nothing during that window, so the delay was GitHub's comment-search index lag, not a query defect: the seven earlier marker comments (latest posted 12:57Z) were found throughout. **The witness landed at 2026-09-05T15:06:11Z (T+44 min):**
+
+```
+gh search prs --repo sheikkinen/yamlgraph --match comments 'outsider reader' --limit 1000 --json number --jq 'map(.number)|sort'
+[592,593,595,596,597,598,600,602]   count: 8   (602 occurrences: 1)
+```
+
+The enforcing PR appears exactly once; the actual distinct count is **8** — no speculative minimum. Operational note for the next reader: a freshly posted comment can take on the order of 45 minutes to become searchable, so the count lags the comment; the comment itself is the record and is visible immediately.
 
 **Deviations and decisions:**
 - **S-4 query form (AC-07):** the FR's documented `gh search prs … 'in:comments "<!-- outsider reader |"'` is silently ignored by `gh 2.98.0`: it returned all 444 PRs, and so did `'in:comments "zzqqxxnonsense"'`. The qualifier works only through the `--match comments` flag (or the raw `search/issues` API with `in:comments` inside `q`). `SKILL.md` documents the working form and warns against the inline one. The phrase is `outsider reader` (word match; GitHub search cannot match the `<!--` punctuation), which is transition-safe for the pre-FR-1004 `source:` markers and would also match a human comment containing those two words — accepted; the seven hits today all carry exactly one real marker.
