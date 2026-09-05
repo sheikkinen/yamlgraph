@@ -7,7 +7,7 @@
 **Requested:** 2026-09-05
 **First consumer / first event:** a maintainer of any GitHub repository who has just opened a pull request and wants to know what a reader with no context cannot follow — first event: `pipx install yamlgraph && ./yamlgraph-outsider 123 --repo owner/name`. Second consumer: `sheikkinen/deviant-daily` (the one existing ramp consumer), on its next feature PR. Third: this repo's own PRs, where the Copilot-route wrapper (`scripts/outsider.sh`, FR-995) already runs; the demo is the route for everyone without a Copilot seat.
 **Research:** [docs/2026-09-05-research-plan-cap-journey-census.md §12–§13](../docs/2026-09-05-research-plan-cap-journey-census.md) — two spikes, all runs recorded with expectations written first. Spike 1 (Copilot CLI, `gpt-5.6-sol`) is the FR-995 production route; spike 2 (`docs/spikes/outsider-llm-2026-09-05/`, plain `llm` node, provider API, structured output) is the standalone shape this FR ships. Alternatives dispositioned in-body.
-**Prior art:** [FR-995](FR-995-outsider-reader.md) — the reader itself; this FR changes nothing in it and reuses its doctrine, rule, fixtures and ledger schema. [FR-865](FR-865-ramp-installer.md) — the ramp installer ships judge/review skills to other repos as doctrine + wrapper without the adapter; this FR is the *standalone* route for one skill and does **not** touch the ramp manifest (ramp inclusion is gated on ≥ 5 external-PR runs — Alternatives #4). FR-998 (`feature-requests/FR-998-anthropic-constrained-structured-output.md` at commit `2e67a32a7f25` on branch `feat/list-type-lie`; not on main) — the framework-side fix for `list[str]` arriving as a JSON string (FR-059 class) found by spike 2; this FR keeps spike 2's in-code normalisation until FR-998 lands and does not touch the framework. [docs/node-type-census-2026-08.md] — no overlap. No REJECTED FR in this territory.
+**Prior art:** [FR-995](FR-995-outsider-reader.md) — the reader itself; this FR changes nothing in it and reuses its doctrine, rule, fixtures and ledger schema. [FR-865](FR-865-ramp-installer.md) — the ramp installer ships judge/review skills to other repos as doctrine + wrapper without the adapter; this FR is the *standalone* route for one skill and does **not** touch the ramp manifest (ramp inclusion is gated on ≥ 5 external-PR runs — Alternatives #4). FR-998 (`feature-requests/FR-998-anthropic-constrained-structured-output.md` on main since `741aa9821198` (judged, not yet enforced)) — the framework-side fix for `list[str]` arriving as a JSON string (FR-059 class) found by spike 2; this FR keeps spike 2's in-code normalisation until FR-998 lands and does not touch the framework. [docs/node-type-census-2026-08.md] — no overlap. No REJECTED FR in this territory.
 
 ## Summary
 
@@ -77,7 +77,7 @@ Spike 2 also found the reader **over-flags on sonnet**: it lists every path and 
 - [ ] AC-13: At least one validated run against a real PR outside `sheikkinen/yamlgraph` produces a committed evidence report and attributable ledger row without committing credentials or PR-private data.
 - [ ] AC-14: The external repository includes the declared test/dependency manifest and exact test command; its focused tests pass in a clean environment using the documented setup, and the README's clone/install/run path succeeds.
 - [ ] AC-15: In this repository, the diff is limited to the authoring brief, one adapter-README link, FR/judgement/status record, changelog fragment, and diary entry; the spike tree and ramp manifest are byte-unchanged.
-- [ ] AC-16: The FR's prior-art line cites FR-998 by committed path and SHA (done above) and states that local normalisation is wholly owned by this demo until that framework work lands.
+- [ ] AC-16: The FR's prior-art line cites FR-998 by committed path and SHA (done in the Problem section) and states that local normalisation is wholly owned by this demo until that framework work lands.
 
 ## Alternatives Considered
 
@@ -92,6 +92,6 @@ Spike 2 also found the reader **over-flags on sonnet**: it lists every path and 
 
 ## Related
 
-- [FR-995](FR-995-outsider-reader.md), FR-998 (branch `feat/list-type-lie`), [FR-865](FR-865-ramp-installer.md)
+- [FR-995](FR-995-outsider-reader.md), [FR-998](FR-998-anthropic-constrained-structured-output.md), [FR-865](FR-865-ramp-installer.md)
 - [docs/2026-09-05-research-plan-cap-journey-census.md](../docs/2026-09-05-research-plan-cap-journey-census.md) §12 (Copilot spike), §13 (llm spike)
 - Diaries 2026-09-05: two-adversaries-one-knows-nothing; what-the-informed-adversary-found; the-same-text-two-verdicts
