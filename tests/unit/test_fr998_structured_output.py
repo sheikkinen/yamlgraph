@@ -41,6 +41,7 @@ from yamlgraph.utils.structured_output import (
     ainvoke_structured,
     bind_structured_output,
     invoke_structured,
+    is_second_attempt_error,
 )
 
 MSGS = ["system", "user"]
@@ -158,7 +159,7 @@ def _status_error(cls: type, status: int, message: str) -> anthropic.APIStatusEr
         "type": "error",
         "error": {"type": "invalid_request_error", "message": message},
     }
-    return cls(f"Error code: {status}", response=response, body=body)
+    return cls(f"Error code: {status} - {message}", response=response, body=body)
 
 
 def _unsupported_error() -> anthropic.BadRequestError:
@@ -232,6 +233,16 @@ class TestProviderBoundary:
         assert not is_anthropic_unsupported_structured_output(
             llm,
             _status_error(anthropic.BadRequestError, 400, "max_tokens: must be > 0"),
+        )
+        # (4) review #599 round 2 P2: an unsupported *schema keyword* is a
+        # schema defect, not a model capability gap
+        assert not is_anthropic_unsupported_structured_output(
+            llm,
+            _status_error(
+                anthropic.BadRequestError,
+                400,
+                "output_config.format.schema: JSON Schema keyword oneOf is unsupported",
+            ),
         )
         # (4) a 400 naming output_config for another reason (bad schema)
         assert not is_anthropic_unsupported_structured_output(
@@ -638,6 +649,71 @@ class TestAgentComposition:
                 "prose without json", msgs=[], output_model=_Reading, llm_base=llm
             )
         assert excinfo.value is second
+        assert [m for m, _, _ in llm.invocations] == ["json_schema", "function_calling"]
+
+
+# ---------------------------------------------------------------------------
+# Review #599 round 2 P1: an error from the policy's second attempt carries
+# provenance and never re-enters a caller's string-keyed recovery tier
+# ---------------------------------------------------------------------------
+
+_RECOVERY_WORDED_400 = (
+    "additionalProperties is required to be supplied and to be false; "
+    "response_format rejected"
+)
+
+_PLAIN_JSON = _FakeResponse('{"restatement": "z", "unclear": [], "needs": []}')
+
+
+def _second_attempt_fails(anthropic_llm):
+    return anthropic_llm(
+        {
+            "json_schema": _raises(_unsupported_error()),
+            "function_calling": _raises(
+                _status_error(anthropic.BadRequestError, 400, _RECOVERY_WORDED_400)
+            ),
+            "plain": _returns(_PLAIN_JSON),
+        }
+    )
+
+
+@pytest.mark.req("REQ-YG-664")
+class TestSecondAttemptProvenance:
+    def test_policy_marks_second_attempt_errors_only(self, anthropic_llm):
+        llm = _second_attempt_fails(anthropic_llm)
+        with pytest.raises(anthropic.BadRequestError) as second:
+            invoke_structured(llm, _Reading, MSGS)
+        assert is_second_attempt_error(second.value)
+
+        first_only = anthropic_llm({"json_schema": _raises(_validation_error())})
+        with pytest.raises(ValidationError) as first:
+            invoke_structured(first_only, _Reading, MSGS)
+        assert not is_second_attempt_error(first.value)
+        assert not is_second_attempt_error(ValueError("never seen by the policy"))
+
+    def test_agent_does_not_reenter_recovery_tiers(self, anthropic_llm):
+        llm = _second_attempt_fails(anthropic_llm)
+        with pytest.raises(anthropic.BadRequestError) as excinfo:
+            _try_structured_output(
+                "prose without json", msgs=[], output_model=_Reading, llm_base=llm
+            )
+        assert "additionalProperties" in str(excinfo.value)
+        assert [m for m, _, _ in llm.invocations] == ["json_schema", "function_calling"]
+
+    def test_executor_does_not_reenter_json_extraction(self, anthropic_llm):
+        llm = _second_attempt_fails(anthropic_llm)
+        with pytest.raises(anthropic.BadRequestError) as excinfo:
+            attempt_structured_invoke(llm, MSGS, _Reading)
+        assert "response_format" in str(excinfo.value)
+        assert [m for m, _, _ in llm.invocations] == ["json_schema", "function_calling"]
+
+    @pytest.mark.asyncio
+    async def test_race_does_not_reenter_json_extraction(self, anthropic_llm):
+        llm = _second_attempt_fails(anthropic_llm)
+        with pytest.raises(anthropic.BadRequestError):
+            await _invoke_candidate_async(
+                {"provider": "anthropic"}, llm, MSGS, _Reading, False
+            )
         assert [m for m, _, _ in llm.invocations] == ["json_schema", "function_calling"]
 
 
