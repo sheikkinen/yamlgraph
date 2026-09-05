@@ -41,7 +41,7 @@ Spike 2 also found the reader **over-flags on sonnet**: it lists every path and 
 
 ## Proposed Solution
 
-1. **Repository** `sheikkinen/yamlgraph-outsider`, MIT, created from `docs/spikes/outsider-llm-2026-09-05/` (copy, not reinvention): `graph.yaml`, `prompts/outsider.yaml`, `tools.py`, `yamlgraph-outsider`, `fixtures/{pr-591,plain-591,pr-591-v2,positive}.md` + `EXPECTATIONS.md`, `.github/skills/outsider-view/{SKILL.md,doctrine.md}` copied from this repo with the invocation line pointing at `./yamlgraph-outsider`, `README.md`, `LICENSE`, `.env.sample`, `.gitignore` (`.env`, `out/`).
+1. **Repository** `sheikkinen/yamlgraph-outsider`, MIT (both confirmed by the operator 2026-09-05; not open questions for the judge), created from `docs/spikes/outsider-llm-2026-09-05/` (copy, not reinvention): `graph.yaml`, `prompts/outsider.yaml`, `tools.py`, `yamlgraph-outsider`, `fixtures/{pr-591,plain-591,pr-591-v2,positive}.md` + `EXPECTATIONS.md`, `.github/skills/outsider-view/{SKILL.md,doctrine.md}` copied from this repo with the invocation line pointing at `./yamlgraph-outsider`, `README.md`, `LICENSE`, `.env.sample`, `.gitignore` (`.env`, `out/`).
 2. **No model decision in graph or script.** `graph.yaml`: remove `defaults.provider`, `defaults.model`, and the node's `provider:`/`model:` lines; keep `temperature: 0.0`. Entry script: remove `--model`/`--provider` flags and the `MODEL`/`PROVIDER` variables; the report filename uses the model the run actually used, read back from the finalize result, not from a flag. `.env.sample`:
    ```
    # One provider key. yamlgraph picks the provider from PROVIDER (default anthropic)
