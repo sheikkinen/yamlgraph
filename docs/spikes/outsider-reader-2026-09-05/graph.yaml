@@ -1,0 +1,65 @@
+# Outsider spike — research prototype, lives OUTSIDE the yamlgraph repo on purpose:
+# the Copilot CLI must not find .github/copilot-instructions.md or any project
+# vocabulary. Input closure is inverted from the judge: the reader gets the PR
+# title + body and nothing else — no file access, no tools, no doctrine.
+version: "1.0"
+name: outsider-spike
+description: "Read one PR description as a complete outsider; report what cannot be understood."
+prompts_relative: true
+prompts_dir: prompts
+
+state:
+  input_path: str
+  report_path: str
+  model: str
+  pr_text: str
+  outsider_result: dict
+  report: dict
+
+tools:
+  read_input:
+    type: python
+    path: tools.py
+    function: read_input
+    description: "Read the PR title+body file."
+  write_report:
+    type: python
+    path: tools.py
+    function: write_report
+    description: "Write the outsider report."
+
+nodes:
+  read_input:
+    type: python
+    tool: read_input
+    state_key: pr_text
+    on_error: fail
+  outsider:
+    type: copilot
+    backend: cli
+    cli_flags:
+      # cli_flags are not templated — pinned literally, like the judge adapter.
+      model: gpt-5.6-sol
+      # deliberately NO allow_all_paths / allow_all_tools: a reader who can open
+      # the files is not an outsider
+    prompt: outsider
+    variables:
+      pr_text: "{state.pr_text}"
+    state_key: outsider_result
+    timeout: 600
+    on_error: fail
+  write_report:
+    type: python
+    tool: write_report
+    state_key: report
+    on_error: fail
+
+edges:
+  - from: START
+    to: read_input
+  - from: read_input
+    to: outsider
+  - from: outsider
+    to: write_report
+  - from: write_report
+    to: END
