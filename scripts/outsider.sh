@@ -15,7 +15,7 @@ SKILL="$REPO_ROOT/.github/skills/outsider-view"
 GRAPH="$SKILL/adapters/graph.yaml"
 TOOLS="$SKILL/adapters/outsider_tools.py"
 FIXTURES="$SKILL/fixtures"
-LEDGER="$REPO_ROOT/docs/census/outsider-ledger.jsonl"
+LEDGER="${OUTSIDER_LEDGER:-$REPO_ROOT/docs/census/outsider-ledger.jsonl}"
 WORKDIR="${OUTSIDER_WORKDIR:-$REPO_ROOT}"
 LOCK="$WORKDIR/tmp/.outsider.lock"
 STALE_MIN=10
@@ -48,8 +48,8 @@ PY="${REPO_ROOT}/.venv/bin/python"; [ -x "$PY" ] || PY=python3
 
 # The clean directory: outside the repo, no .github/, removed on exit.
 CHILD_CWD="$(mktemp -d "${TMPDIR:-/tmp}/outsider-XXXXXX")"
-cleanup() { rm -rf "$CHILD_CWD"; rm -rf "$LOCK"; }
-trap cleanup EXIT INT TERM
+cleanup_dir() { rm -rf "$CHILD_CWD"; }
+trap cleanup_dir EXIT INT TERM
 
 mkdir -p "$WORKDIR/tmp"
 if ! mkdir "$LOCK" 2>/dev/null; then
@@ -59,6 +59,9 @@ if ! mkdir "$LOCK" 2>/dev/null; then
   fi
   echo "outsider.sh: another outsider run holds the lock: $LOCK" >&2; [ -f "$LOCK/holder" ] && cat "$LOCK/holder" >&2; exit 73
 fi
+# Only the acquiring process may remove the lock (a losing process must leave the holder intact).
+cleanup() { rm -rf "$CHILD_CWD"; rm -rf "$LOCK"; }
+trap cleanup EXIT INT TERM
 echo "pid=$$ started=$(date -u +%Y-%m-%dT%H:%M:%SZ)" > "$LOCK/holder"
 
 PROMPT_DIGEST="$(shasum -a 256 "$SKILL/adapters/prompts/outsider.yaml" | cut -c1-16)"
@@ -114,12 +117,19 @@ case "$MODE" in
   pr)
     command -v gh >/dev/null 2>&1 || fail "gh required" 69
     json="$(gh pr view "$PR" -R "$GH_REPO" --json title,body,headRefOid)" || fail "gh pr view failed for $PR" 66
-    input="$WORKDIR/tmp/outsider-pr-${PR}-input.md"
+    # Fetched PR text lives only in the trapped child directory: gone on every exit path.
+    input="$CHILD_CWD/pr-${PR}.md"
     printf '%s' "$json" | "$PY" -c 'import json,sys; d=json.load(sys.stdin); print("# "+d["title"]+"\n\n"+d["body"])' > "$input"
     head_sha="$(printf '%s' "$json" | "$PY" -c 'import json,sys; print(json.load(sys.stdin)["headRefOid"])')"
     out="$(run_one "$input" "pr-${PR}")" || exit 1
     set -- $out; verdict="$1"; s3="$2"; s4="$3"; report="$4"
-    "$PY" - "$TOOLS" "$LEDGER" "$GH_REPO" "$PR" "$head_sha" "$input" "$MODEL" "$PROMPT_DIGEST" "$TOOL_SHA" "$verdict" "$s3" "$s4" "$report" <<'EOF'
+    echo "outsider.sh: report written: $report (derived $verdict; s3=$s3 s4=$s4)"
+    # Optional comment FIRST: a run whose requested comment fails is not a measurement (R-3 / C-6).
+    if [ "$COMMENT" -eq 1 ]; then
+      gh pr comment "$PR" -R "$GH_REPO" --body-file "$report" >/dev/null && echo "outsider.sh: comment posted on #$PR" || fail "posting the comment failed; no ledger row written" 1
+    fi
+    rel_report="${report#"$WORKDIR"/}"
+    "$PY" - "$TOOLS" "$LEDGER" "$GH_REPO" "$PR" "$head_sha" "$input" "$MODEL" "$PROMPT_DIGEST" "$TOOL_SHA" "$verdict" "$s3" "$s4" "$rel_report" <<'EOF' || fail "ledger append failed" 1
 import importlib.util, sys
 from pathlib import Path
 tools, ledger, repo, pr, sha, inp, model, pdg, tsha, v, s3, s4, rep = sys.argv[1:]
@@ -129,9 +139,5 @@ row = m.ledger_row(repo=repo, pr=int(pr), head_sha=sha, input_text=Path(inp).rea
 m.append_ledger(Path(ledger), row, mode="pr")
 print(f"ledger: +1 row ({m.distinct_pr_count(Path(ledger))} distinct PRs)")
 EOF
-    echo "outsider.sh: report written: $report (derived $verdict; s3=$s3 s4=$s4)"
-    if [ "$COMMENT" -eq 1 ]; then
-      gh pr comment "$PR" -R "$GH_REPO" --body-file "$report" >/dev/null && echo "outsider.sh: comment posted on #$PR" || fail "posting the comment failed" 1
-    fi
     exit 0 ;;
 esac

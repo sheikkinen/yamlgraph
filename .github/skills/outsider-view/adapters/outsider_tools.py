@@ -36,13 +36,13 @@ class ReportFormatError(ValueError):
 
 class Item(BaseModel):
     quote: str = Field(min_length=1, max_length=200)
-    question: str = ""
+    question: str = Field(min_length=1)
 
 
 class OutsiderReport(BaseModel):
     restatement: str = Field(min_length=1)
     model_opinion: Literal["YES", "NO"]
-    opinion_reason: str = ""
+    opinion_reason: str = Field(min_length=1)
     section3: list[Item] = Field(max_length=MAX_S3)
     section4: list[str] = Field(max_length=MAX_S4)
 
@@ -56,7 +56,11 @@ OutsiderReport.model_rebuild()
 def _split_sections(text: str) -> list[str]:
     positions: list[int] = []
     for heading in _HEADINGS:
-        hits = [m.start() for m in re.finditer(re.escape(heading), text)]
+        # Headings must be complete lines, not prefixes of a longer line.
+        hits = [
+            m.start()
+            for m in re.finditer(rf"^{re.escape(heading)}[ \t]*$", text, re.MULTILINE)
+        ]
         if len(hits) != 1:
             raise ReportFormatError(
                 f"heading must appear exactly once: {heading!r} ({len(hits)})"
@@ -99,7 +103,9 @@ def parse_report(text: str) -> OutsiderReport:
     if not opinion_lines or opinion_lines[0].strip("*").upper() not in {"YES", "NO"}:
         raise ReportFormatError("section 2 must start with YES or NO")
     opinion = opinion_lines[0].strip("*").upper()
-    reason = " ".join(opinion_lines[1:])
+    reason = " ".join(opinion_lines[1:]).strip()
+    if not reason:
+        raise ReportFormatError("section 2 opinion has no reason")
     items3: list[Item] = []
     for raw in _items(s3, MAX_S3, "section 3"):
         m = _QUOTE.search(raw)
@@ -110,11 +116,15 @@ def parse_report(text: str) -> OutsiderReport:
         question = (
             raw[m.end() :].split("·", 1)[-1].replace("**Question:**", "").strip(" *·")
         )
+        if not question:
+            raise ReportFormatError(f"section 3 item has no question: {raw[:80]!r}")
         items3.append(Item(quote=m.group(1).strip(), question=question))
     items4 = [
         re.sub(r"^(?:[-*]\s+)?(?:\[ \]\s*)?", "", i).strip()
         for i in _items(s4, MAX_S4, "section 4")
     ]
+    if any(not i for i in items4):
+        raise ReportFormatError("section 4 has an empty item")
     return OutsiderReport(
         restatement=s1,
         model_opinion=opinion,

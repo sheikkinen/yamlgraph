@@ -19,9 +19,8 @@ Its ignorance is the instrument; doctrine, files and history would blunt it.
 - The model runs with no file access and no tools (`allow_all_paths` and
   `allow_all_tools` are absent from the adapter; a test asserts it).
 - The child process runs from a fresh directory **outside the repository**,
-  so the Copilot CLI cannot load `.github/copilot-instructions.md`. A reader
-  who can see the rulebook is not an outsider.
-- The model is `gpt-5.6-sol`, pinned literally.
+  so the Copilot CLI cannot load `.github/copilot-instructions.md`; a reader
+  who can see the rulebook is not an outsider. Model: `gpt-5.6-sol`, pinned.
 
 ## Three readers of the output
 

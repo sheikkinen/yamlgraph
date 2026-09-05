@@ -82,6 +82,17 @@ def test_parse_good_report(tools):
         lambda t: t.replace(
             "- [ ] Test results.", "\n".join(f"- [ ] item {i}" for i in range(11))
         ),  # over cap §4
+        lambda t: t.replace(
+            "YES\n\nIt states what changed and where.", "YES\n"
+        ),  # opinion without reason
+        lambda t: t.replace(
+            "- **“CAP”** · What is a CAP?", "- **“CAP”**"
+        ),  # item without question
+        lambda t: t.replace("- [ ] Test results.", "- [ ] "),  # empty §4 item
+        lambda t: t.replace(
+            "## 3. Words and references I could not understand",
+            "## 3. Words and references I could not understand (extra)",
+        ),  # heading is not a complete line
     ],
 )
 def test_parse_fails_closed(tools, mutation):

@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Enhancement (process instrument, advisory)
-**Status:** Enforced 2026-09-05 (PR #592) — D-1…D-10 delivered under the [judgement](FR-995-outsider-reader.judgement.md); see *Implementation record*. Open by evidence, not omission: the positive fixture derives YES on one run and NO on another (AC-07/AC-08 pass on the recorded selftest and are marked unstable).
+**Status:** Enforced 2026-09-05 (PR #592) — D-1…D-10 delivered under the [judgement](FR-995-outsider-reader.judgement.md); reviewed via `scripts/review.sh` (six blocking findings, all fixed — see *Review record*). Positive fixture derives YES on one run and NO on another; recorded as the instrument's nature, not a defect.
 **Effort:** 1 day (spike exists; skill layout + wrapper + canary fixtures)
 **Requested:** 2026-09-05
 **First consumer / first event:** the author of any `feat`/`fix` PR, at the moment the PR is opened and before `scripts/review.sh` runs — the outsider's report tells them what a reader with no project context cannot understand from the title and body. Second consumer: the reviewer, who receives the "what a merge decision would still need" list and partitions it into *exists-but-unlinked* and *absent*. Third: this FR itself (dogfood — see Acceptance Criteria).
@@ -55,20 +55,20 @@ Copy the spike; do not reinvent it.
 
 ## Acceptance Criteria (revised by the judgement; originals superseded)
 
-- [ ] AC-01: The FR cites `feature-requests/authoring-briefs/fr-995-outsider-reader-brief.md`; `scripts/author.sh` produces the named graph/prompt/tool artifacts and a valid `tmp/draft-authoring-report.md`; the authored graph passes `yamlgraph graph lint` and a recorded smoke attempt.
-- [ ] AC-02: The skill bundle contains `SKILL.md`, doctrine of at most 60 lines, adapter README, graph, prompt, and typed tool module. The docs state the manual command, title-plus-body-only input closure, three-reader division, derived/model verdict distinction, advisory boundary, artifact path, and forbidden actions.
-- [ ] AC-03: The adapter pins `gpt-5.6-sol` literally and contains neither `allow_all_paths` nor `allow_all_tools`. A wrapper test proves the child cwd is outside the repository and contains no `.github/`, while absolute graph/tool/report paths still resolve.
-- [ ] AC-04: The wrapper fetches title, body, and PR head SHA; holds one repo-scoped directory lock; rejects recursive execution; removes temporary input on success, graph failure, and parse failure; preserves the validated report under repo `tmp/`; and validates the complete report contract rather than only the section-1 heading.
-- [ ] AC-05: Model text is normalized into the R-2 Pydantic model. Missing, duplicate, reordered, malformed, and over-cap sections fail closed; no failed run comments or writes a ledger row.
-- [ ] AC-06: The derived verdict is case-insensitively computed as section-3 count `<= 2` and absence of all four hedge markers. The report front-loads that verdict and clearly labels the model's section-2 answer as opinion.
-- [ ] AC-07: Tests classify all historical reports (nine committed) as NO under the derived rule and one newly committed final-glossed model report as YES. The FR dogfood record says the eight-item pre-fix report derived NO and links the actual PR comment plus each item's disposition.
-- [ ] AC-08: `scripts/outsider.sh --selftest` runs original, plain-account, pre-gloss rewritten, and final-glossed fixtures and requires derived `NO/NO/NO/YES`; expectations for the new positive are committed before its output.
-- [ ] AC-09: A credentialed `scripts/outsider.sh 591` smoke writes a structurally valid report from the current GitHub title/body. Its observed counts and verdict are recorded without changing the fixed unit expectations if the model drifts.
-- [ ] AC-10: `--comment` is off by default. Mocked wrapper tests prove only explicit `--comment` posts exactly the validated report to the requested PR and that no self-test, dry run, or failed run posts.
-- [ ] AC-11: Each successful real-PR run appends exactly one locked JSONL row with every R-3 field. Tests prove excluded modes/failures write none and repeated PR runs cannot satisfy the twenty-distinct-PR prerequisite.
-- [ ] AC-12: A new capability record and `ARCHITECTURE.md` requirement cover the feature; every test has the matching `@pytest.mark.req`; `python scripts/req_coverage.py --strict` passes.
-- [ ] AC-13: The spike directory remains unchanged as historical evidence and is cited from the skill README; a changelog fragment, FR implementation/status record, and metacognitive diary entry are added.
-- [ ] AC-14: The diff contains none of the explicitly unauthorized surfaces (see judgement — no automation, CI/hook changes, gate, auto-comment, FR-body input, judge/review/guard changes, model selection logic, PR rewriting, merge/approval actions, edits to historical spike outputs).
+- [x] AC-01: The FR cites `feature-requests/authoring-briefs/fr-995-outsider-reader-brief.md`; `scripts/author.sh` produces the named graph/prompt/tool artifacts and a valid `tmp/draft-authoring-report.md`; the authored graph passes `yamlgraph graph lint` and a recorded smoke attempt. *(brief committed; report's smoke was blocked by the Pydantic forward-ref defect, fixed; post-repair smoke = the wrapper runs recorded below)*
+- [x] AC-02: The skill bundle contains `SKILL.md`, doctrine of at most 60 lines, adapter README, graph, prompt, and typed tool module. The docs state the manual command, title-plus-body-only input closure, three-reader division, derived/model verdict distinction, advisory boundary, artifact path, and forbidden actions.
+- [x] AC-03: The adapter pins `gpt-5.6-sol` literally and contains neither `allow_all_paths` nor `allow_all_tools`. A wrapper test proves the child cwd is outside the repository and contains no `.github/`, while absolute graph/tool/report paths still resolve.
+- [x] AC-04: The wrapper fetches title, body, and PR head SHA; holds one repo-scoped directory lock; rejects recursive execution; removes temporary input on success, graph failure, and parse failure; preserves the validated report under repo `tmp/`; and validates the complete report contract rather than only the section-1 heading. *(P1/P4 fixed after review; behavioural tests)*
+- [x] AC-05: Model text is normalized into the R-2 Pydantic model. Missing, duplicate, reordered, malformed, and over-cap sections fail closed; no failed run comments or writes a ledger row. *(P3 fixed after review)*
+- [x] AC-06: The derived verdict is case-insensitively computed as section-3 count `<= 2` and absence of all four hedge markers. The report front-loads that verdict and clearly labels the model's section-2 answer as opinion.
+- [x] AC-07: Tests classify all historical reports (nine committed) as NO under the derived rule and one newly committed final-glossed model report as YES. The FR dogfood record says the eight-item pre-fix report derived NO and links the actual PR comment plus each item's disposition. *(the same fixture also has a committed NO report; both asserted)*
+- [x] AC-08: `scripts/outsider.sh --selftest` runs original, plain-account, pre-gloss rewritten, and final-glossed fixtures and requires derived `NO/NO/NO/YES`; expectations for the new positive are committed before its output. *(passed once at 06:25–06:26Z; the positive is known to flicker)*
+- [x] AC-09: A credentialed `scripts/outsider.sh 591` smoke writes a structurally valid report from the current GitHub title/body. Its observed counts and verdict are recorded without changing the fixed unit expectations if the model drifts. *(07:34Z: derived NO, 6 items / 6 needs; report under the spike directory; ledger row 2)*
+- [x] AC-10: `--comment` is off by default. Mocked wrapper tests prove only explicit `--comment` posts exactly the validated report to the requested PR and that no self-test, dry run, or failed run posts.
+- [x] AC-11: Each successful real-PR run appends exactly one locked JSONL row with every R-3 field. Tests prove excluded modes/failures write none and repeated PR runs cannot satisfy the twenty-distinct-PR prerequisite.
+- [x] AC-12: A new capability record and `ARCHITECTURE.md` requirement cover the feature; every test has the matching `@pytest.mark.req`; `python scripts/req_coverage.py --strict` passes.
+- [x] AC-13: The spike directory remains unchanged as historical evidence and is cited from the skill README; a changelog fragment, FR implementation/status record, and metacognitive diary entry are added. *(new reports were appended to the spike `out/`; no historical output edited)*
+- [x] AC-14: The diff contains none of the explicitly unauthorized surfaces (see judgement — no automation, CI/hook changes, gate, auto-comment, FR-body input, judge/review/guard changes, model selection logic, PR rewriting, merge/approval actions, edits to historical spike outputs).
 
 ## Dogfood record (AC-05 of the original list; AC-07 now)
 
@@ -93,7 +93,24 @@ posted as [PR #592 comment](https://github.com/sheikkinen/yamlgraph/pull/592#iss
 
 **Operator calibration (2026-09-05):** *gpt-5.6-sol is a nagger — almost impossible to please. That is why the results are advisory and the number of runs is limited.* Recorded in `doctrine.md`. Consequence for anyone proposing a gate later: measure repeat-run variance on the twenty PRs, not single verdicts; a flickering positive is the instrument's nature, not a bug to loop on.
 
-**Not done, by scope:** AC-09 (credentialed `scripts/outsider.sh 591` writing a ledger row) — #591 is merged and its body was the fixture family; the first real ledger row should come from the next open `feat`/`fix` PR, not from re-reading a closed one. No comment posted anywhere by the new wrapper.
+**Not done, by scope:** nothing outstanding after the review round. AC-09 was run after the review (below). No automation, no gate.
+
+## Review record (2026-09-05, `scripts/review.sh 592`)
+
+Verdict on the first head: **Not approved**, six blocking findings — every one real, none visible to the author or to the outsider:
+
+| # | finding | fix |
+|---|---|---|
+| P1 | the cleanup trap was installed before lock acquisition, so a *losing* invocation deleted the winner's lock (probe: exit 73 and the lock gone) | trap only the child dir until `mkdir $LOCK` succeeds, then trap both; behavioural test: losing process leaves `holder` intact |
+| P2 | ledger row appended before the optional comment; a failed comment left a measurement row; ledger write unchecked under `set -u` | comment first, then a checked ledger append; mocked tests for success, comment failure, graph failure, parse failure |
+| P3 | parser accepted an empty opinion reason, an item without a question, an empty section-4 item; headings matched as prefixes | required fields `min_length=1`, section-4 items non-empty, headings matched as complete lines; four new fail-closed cases |
+| P4 | fetched PR text was written under repo `tmp/` and never removed | fetched text lives only in the trapped child directory; test asserts nothing survives |
+| P5 | doctrine 61 lines against a 60-line AC | 60 lines; test asserts ≤ 60 |
+| P6 | AC-09 not run; implementation record said "ledger empty, no comment" while the head had a #592 row and a posted comment | AC-09 run on #591 (derived NO, 6 items, row 2); record reconciled below |
+
+Non-blocking: ledger `report_path` now repo-relative (both rows). The reviewer read the same files the outsider could not, and found what the outsider could not: the two adversaries caught disjoint defect classes on the same PR.
+
+**Ledger after the review round:** two rows, two distinct PRs — #592 (06:44Z, NO, 6/8, comment posted) and #591 (07:34Z, NO, 6/6, no comment). The wrapper that wrote row 1 had the P1/P2/P4 defects; the row itself is valid (validated report, real PR).
 
 ## Fixtures — the search for a positive (R-1 evidence)
 
