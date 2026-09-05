@@ -55,6 +55,8 @@ A run of `scripts/outsider.sh <pr> --comment` leaves exactly one **durable measu
 
 **Counted population (R-1):** one observation is countable **only when a validated real-PR report is successfully posted as a PR comment.** `--input`, `--selftest`, graph failures, parse failures, comment failures, and `pr` mode without `--comment` produce no observation. The last item is a narrowing relative to FR-995 (whose ledger recorded non-comment PR runs; #591 was such a row with no comment) and is deliberate: a measurement that lives only on one workstation's `tmp/` is not a measurement.
 
+**Known limitation (raised by the outsider on PR #598, §4):** a PR comment can be edited or deleted. GitHub keeps an edit history for edits; a deleted comment is a lost observation. Accepted: a committed ledger row was equally removable by a commit, and the marker's fingerprints (input SHA-256, head SHA, tool SHA) make a *tampered* observation detectable where a *deleted* one is simply absent from the count.
+
 ## Proposed Solution
 
 ### S-1: delete the committed ledger
