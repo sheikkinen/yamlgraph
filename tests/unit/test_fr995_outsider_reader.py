@@ -354,6 +354,20 @@ def test_parse_observation_rejects_duplicate_keys(tools):
 
 
 @pytest.mark.req("REQ-YG-662")
+def test_observation_survives_crlf_comment_bodies(tools):
+    """A report written on Windows (or echoed back by GitHub) carries CRLF;
+    the marker must still parse and still count (review #602 live reducer)."""
+    obs = _obs(tools)
+    out = tools.render_report(tools.parse_report(GOOD), obs)
+    crlf = out.replace(chr(10), chr(13) + chr(10))
+    assert tools.parse_observation(crlf) == obs
+    assert tools.is_observation_comment(crlf)
+    assert tools.is_observation_comment(
+        OLD_MARKER_COMMENT.replace(chr(10), chr(13) + chr(10))
+    )
+
+
+@pytest.mark.req("REQ-YG-662")
 def test_ledger_helpers_are_gone(tools):
     for name in ("ledger_row", "append_ledger", "distinct_pr_count"):
         assert not hasattr(tools, name), name
