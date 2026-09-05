@@ -398,3 +398,138 @@ technical appendix to it.
 > Give the model the category definitions, not just names. Rerun the same 30
 > on the agreed fast model and compare. Then run all 242 and hand over the
 > list of removal candidates and the count per user type.
+
+## 12. Spike — the "outsider" reader (2026-09-05)
+
+### 12.1 Why
+
+Reading PR #591 as a reviewer: the body is a pasted `fix(...)` commit message
+under a `feat` title, in project shorthand; 20 files, 9 commits, no reading
+order. The operator's reframing: this is not an author-side "write plainly"
+skill (the writer judging its own clarity — same blind spot) but a third
+adversarial reader beside the judge and the reviewer: someone who knows
+**nothing** about the project reads the PR — later the FR — and reports what
+they cannot understand.
+
+### 12.2 Setup — deliberately outside the repo
+
+Folder: `/Users/sheikki/Documents/src/outsider-spike/` (no `.git`, no
+`.github/`). Reason: the Copilot CLI loads a repo's
+`.github/copilot-instructions.md` from its working directory; run inside the
+repo, the "outsider" would be primed with the whole rulebook. Inverted input
+closure is the one design rule: the reader gets the PR title + body and
+nothing else — **no file access, no tools** (`cli_flags` has neither
+`allow_all_paths` nor `allow_all_tools`; a reader who can open the files is not
+an outsider).
+
+Model: `gpt-5.6-sol` — operator decision: PR-level content is read by the
+judge-class model. `cli_flags.model` is not templated (a `{state.model}`
+attempt failed at the CLI: *Model "{state.model}" … is not available*), so it
+is pinned literally, as in the judge adapter.
+
+Files (untracked; reproduced here so the spike is reconstructible):
+
+`graph.yaml` — `read_input` (python) → `outsider` (copilot, cli,
+`model: gpt-5.6-sol`, no allow flags, timeout 600) → `write_report` (python).
+State: `input_path`, `report_path`, `model`, `pr_text`, `outsider_result`,
+`report`. The python tools only read the input file and write the report with
+a provenance header.
+
+`prompts/outsider.yaml` — system: *competent engineer, project never seen, no
+repo access, general engineering/ML vocabulary only, do not fill gaps with
+plausible assumptions*. User: the PR text, then four required sections —
+**1. In my own words** (one paragraph, only what the text says) ·
+**2. Could I decide whether to merge from the description alone?** YES/NO +
+one reason · **3. Things I do not understand** (numbered; each with exact
+quote, one of six types — `undefined term`, `unexplained identifier`,
+`assumed prior context`, `mechanism without purpose`, `claim without pointer`,
+`missing outcome` — and the question to the author; "be exhaustive"; skip
+standard vocabulary) · **4. What is missing entirely**. No praise, no
+rewrites.
+
+`outsider.sh` — copied shape of `scripts/review.sh` (lock, artifact
+verification, exit code not trusted) minus all judge/review doctrine.
+`./outsider.sh --pr 591` fetches title+body with `gh pr view`; or pass any
+markdown file. Report to `out/<input>-<model>-<stamp>.md`.
+
+`EXPECTATIONS.md` — canary expectations written before the first run:
+- **A** `inputs/pr-591.md` (the PR as it stands): §2 NO; §3 ≥ 5 items including
+  "enum-leak demotion"/"junk-drawer cap", "FR-990", "plan section 8",
+  "30/30"/"canaries"; §4 names "what was found" as missing; §1 cannot say what
+  was found or who benefits.
+- **B** `inputs/plain-591.md` (the §11 account as if it were the PR body):
+  §2 YES (NO only for evidence/pointer reasons, not vocabulary); §3 ≤ 2 items,
+  none `undefined term`; §1 names the 242 capabilities, the four questions,
+  and at least one finding.
+- If A and B are not separated on §2 and §3 count, the outsider is not an
+  outsider.
+
+### 12.3 Results
+
+| | A (PR body, 117 words) | B (plain account, 528 words) |
+|---|---|---|
+| §1 restatement | "instruments and pilots *something called* the FR-990 CAP journey census … beneficiaries are not stated" | correct: 242 capabilities, evidence collection, AI classification by user type, code check, six predetermined answers, 30-trial — *does not carry the findings into §1* |
+| §2 | NO — "undefined project terminology and prior documents" | NO — "census not completed, classification acknowledged unreliable, no implementation pointers or reproducible test evidence" |
+| §3 items | 33 | 41 |
+| `undefined term` | 15 (enum-leak demotion, junk-drawer cap, wedges, shape anchors, canaries, prompt loop…) | 16 (*"what counts as use"*, *"what does valid mean"*, *"someone running a pipeline"*, *"business value"*) |
+| `claim without pointer` | 1 | 8 |
+| §4 | purpose, users, findings, methodology, test evidence, reviewer entry point, provenance of committed raw rows | (truncated in capture; same class) |
+
+Against expectations: **A passes every line.** **B fails §3 count (41 vs ≤ 2)
+and the `undefined term` line.** §2 does not separate (both NO). What *does*
+separate:
+
+1. **The restatement.** A: cannot say what the change is for. B: accurate
+   in one read. This is the comprehension probe, and it works.
+2. **The kind of question.** A's items are *"what does this word mean"*
+   (project shorthand). B's items are *"where is the evidence / what is the
+   exact rule / which 30"* — legitimate reviewer questions about
+   verification, not comprehension failures. The prompt's single list and
+   "be exhaustive" instruction merged the two, and the model, told to be
+   exhaustive, interrogated plain English ("what kind of pipeline") as if it
+   were jargon. `undefined term` became the junk drawer — the same failure
+   class as `author_graph` in §10, one level up.
+3. Density, weakly: 0.28 items/word (A) vs 0.08 (B). Count alone scales with
+   text length and model diligence, not clarity.
+
+Model observation: gpt-5.6-sol is a thorough interrogator; both reports read
+like a demanding senior reviewer's. That is the right reader for A; for B it
+produced a list an author could work through but not a verdict on
+*understandability*, which is what the outsider is for.
+
+### 12.4 Design conclusions for the FR
+
+- **Two lists, not one.** *Could not understand* (comprehension:
+  `undefined term`, `unexplained identifier`, `assumed prior context`) and
+  *would need to verify* (`claim without pointer`, `mechanism without
+  purpose`, `missing outcome`). The outsider's score is the first list only;
+  the second is handed to the reviewer, who has the files.
+- **The restatement is the primary signal**, not the item count. A mechanical
+  check can compare the restatement against the PR title and the FR's Ideal
+  Result; a restatement that hedges ("something called …", "not stated") is
+  the failure.
+- **Cap in code**: an item whose quote contains no identifier, no coined
+  compound, and no capitalised token is not a comprehension failure — demote
+  to the verification list. Cheap, deterministic, removes most of B's 16.
+- Drop "be exhaustive" from the comprehension list; keep it for the
+  verification list. (One prompt revision allowed; not yet spent.)
+- B's honest catch: the plain account's *title* claims a census of 242 while
+  the text reports 30 (`missing outcome` #3). The outsider found a real
+  defect in the operator-approved text.
+- Same wrapper shape as `judge.sh`/`review.sh`; runs from a clean directory;
+  output advisory; first consumer is #591's own description before merge;
+  second target class is FR bodies (the abstract split-FR problem at the
+  source).
+
+### 12.5 Noted in passing — the census filename bypass
+
+`examples/demos/person_profile_census/gh-profiler.yaml` (FR-962, 2026-09-02)
+is a full graph (`nodes:` + `edges:`) filed under a non-`graph.yaml` name
+inside `examples/demos/`. The FR-767 authoring guard matches governed paths by
+filename (`examples/**/graph.yaml`, `examples/**/prompts/*.yaml`), so the file
+was never subject to the sole-route rule — a bypass by placement, the
+`proof_by_placement` class. This spike took the other route: it lives outside
+the repo, is not committed as a graph, and is reconstructible from this
+section. Guard-by-content (`nodes:` and `edges:` present under `examples/`)
+is an FR candidate; not changed here — a guard is widened by an FR and a
+judge, never by the session that noticed the gap.
