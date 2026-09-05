@@ -2,11 +2,11 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Proposed
+**Status:** Judged 2026-09-05 — APPROVED WITH REVISIONS ([judgement](FR-998-anthropic-constrained-structured-output.judgement.md)); R-1…R-5 folded below
 **Effort:** 0.5 day
 **Requested:** 2026-09-05
 **First consumer / first event:** any `llm` node with an inline `schema:` that declares a `list[...]` field, running on an Anthropic model — at the moment the model answers. Witnessed first by the outsider-reader spike 2 (`docs/spikes/outsider-llm-2026-09-05/`, run 1, 2026-09-05 08:02Z), whose `unclear: list[str]` field killed the run with `on_error: fail`. Second consumer: `scripts/outsider.sh`'s successor (FR-995 → API transport), which needs list fields to be lists.
-**Research:** in-body — the *Investigation* section below is the committed record: causal chain to file and line, a live reproduction with the probe and log committed at [docs/spikes/list-type-lie-2026-09-05/](../docs/spikes/list-type-lie-2026-09-05/) (`probe.py`, `probe-output.txt`), and a dispositioned alternatives table. No `scripts/research.sh` run: the problem is a reproduced defect with one verified fix, not an open design space.
+**Research:** in-body — the *Investigation* section below is the committed record; `is_this_a_graph: No` (deterministic provider dispatch and exception policy, not an LLM pipeline). The authoritative reproduction is `docs/spikes/list-type-lie-2026-09-05/probe-output.txt`; the first incident is quoted from the outsider spike 2 record ([EXPECTATIONS.md](../docs/spikes/outsider-llm-2026-09-05/EXPECTATIONS.md) line 10, merged in PR #593) as context. causal chain to file and line, a live reproduction with the probe and log committed at [docs/spikes/list-type-lie-2026-09-05/](../docs/spikes/list-type-lie-2026-09-05/) (`probe.py`, `probe-output.txt`), and a dispositioned alternatives table. No `scripts/research.sh` run: the problem is a reproduced defect with one verified fix, not an open design space.
 **Prior art:** [FR-873](FR-873-vision-provider-type-lie.md) (Enforced 2026-08-24) — the *identical* defect (`paragraphs` as a JSON-encoded string, `list_type`) in the deviant-daily consumer, fixed **at the consumer** with a capture schema + `json.loads` repair; the framework boundary was left as it was. This FR is the third witnessed occurrence of the class (FR-059 diary → FR-873 → spike 2 + 3 probe runs) and moves the cure to the framework. FR-873's judge rule — *repair only when `json.loads` yields `list[str]`; never guess* — is inherited and is why Alternative B is not chosen: today's reproduction returned a **markdown bullet list**, not JSON, so the FR-873 repair would not have fired either. [FR-059](059-agent-normalize-content-to-string.md) / [FR-264](FR-264-race-node-parse-json-content-normalization.md) / [CAP-117](../capabilities/CAP-117-race-node-parse-json-content-normalization.yaml) — normalise `content: str | list` at the message boundary (`yamlgraph/utils/content.py`); a different axis (message content, not tool-argument field types); not touched. [FR-464](FR-464-deepseek-structured-output-fallback.md) — the `"response_format"` string-match fallback in `attempt_structured_invoke`; this FR shows the match cannot fire for the Anthropic failure and replaces the condition for the new path only. [FR-678](FR-678-narrow-agent-structured-output-catch.md) — no broad swallow; the fallback here catches one typed provider error. No REJECTED FR in this territory (`grep -l "json_schema\|strict tool\|list_type" feature-requests/*.md` → FR-873, FR-631 [interpolation, unrelated], FR-956/706/270/986/683/764 [unrelated matches on "strict"]).
 
 ## Summary
@@ -17,7 +17,7 @@ The fix is to use the provider's **constrained decoding** — `method="json_sche
 
 ## Value Statement
 
-Anyone who writes `type: list[str]` in a prompt schema gets a list, on every run, on every supported Anthropic model — instead of a run that dies on a container-type error while the content was correct.
+Anyone who writes `type: list[str]` in a prompt schema gets a list, on every run, on every Anthropic model that accepts constrained decoding — instead of a run that dies on a container-type error while the content was correct. A model that rejects constrained decoding gets exactly one forced-tool-call attempt (today's behaviour, today's exposure) and an INFO line saying so; no list-fidelity guarantee is claimed on that path.
 
 ## Problem
 
@@ -60,59 +60,113 @@ Surprising details a fabricated log would not contain: the failing encoding is *
 
 ## Ideal Result
 
-A prompt schema that says `list[str]` produces a `list[str]` on every Anthropic model this repo runs, because the decoder is constrained to the schema; on a model that cannot be constrained the framework falls back to today's forced tool call and says so in the log; and the codebase has one place where "how do we ask this provider for a shape" is decided, not four copies of a default.
+A prompt schema that says `list[str]` produces a `list[str]` on every Anthropic model that accepts constrained decoding, because the decoder — not the model's goodwill — enforces the shape. On a model that rejects constrained decoding the framework makes exactly one forced-tool-call attempt (today's behaviour, with today's exposure to the lie) and says so in the log. The codebase has **one** place where "how do we ask this provider for a shape, and what do we do when it refuses" is decided, at the provider boundary — not four copies of a library default.
 
-## Proposed Solution — Alternative A: constrained decoding for Anthropic
+## Proposed Solution — Alternative A: constrained decoding for Anthropic (revised per judgement R-2/R-3)
 
-### S-1: one structured-output entry point
+### S-1: a shared structured-output policy module
 
-Add `structured_output(llm, output_model)` in `yamlgraph/executor_base.py` (next to `attempt_structured_invoke`) that returns the bound runnable:
+New `yamlgraph/utils/structured_output.py` (not `executor_base.py`, which is at 421 lines against the 450 cap). It owns **binding and invocation**, because `with_structured_output(...)` only builds a runnable — the provider request, and therefore the unsupported-feature error, happens at `invoke`/`ainvoke`:
 
 ```python
-def structured_output(llm, output_model):
-    """Choose the provider's strongest shape guarantee (FR-998)."""
-    if _is_anthropic(llm):
+def bind_structured_output(llm, output_model, *, method: str | None = None):
+    """Explicit method is forwarded unchanged; otherwise Anthropic → json_schema, others → library default."""
+    if method is not None:
+        return llm.with_structured_output(output_model, method=method)
+    if is_anthropic_chat_model(llm):                       # provider boundary, R-3
         return llm.with_structured_output(output_model, method="json_schema")
     return llm.with_structured_output(output_model)
+
+def invoke_structured(llm, output_model, messages, **config):
+    try:
+        return bind_structured_output(llm, output_model).invoke(messages, **config)
+    except Exception as err:
+        if not is_anthropic_unsupported_structured_output(llm, err):   # provider boundary, R-3
+            raise
+        logger.info("Anthropic constrained output unsupported on %s; one forced-tool-call attempt (FR-998)", model_name(llm))
+        return bind_structured_output(llm, output_model, method="function_calling").invoke(messages, **config)
+
+async def ainvoke_structured(llm, output_model, messages, **config): ...   # same shape, ainvoke; never a thread
 ```
 
-`_is_anthropic` tests the class (`langchain_anthropic.ChatAnthropic` via `type(llm).__name__ == "ChatAnthropic"` or an `isinstance` behind an optional import — Judge to fix which; the test double must be able to trigger it without the package).
+This module is the only production site of the call expression `.with_structured_output(`.
 
-### S-2: replace the four call sites
+### S-2: provider knowledge stays at the provider boundary
 
-`attempt_structured_invoke` (sync + async share it), `race_node.py` L137, `tools/agent.py` L93 and L107 call `structured_output(...)` instead of `llm.with_structured_output(...)`. No behaviour change for OpenAI/Mistral/other providers.
+`yamlgraph/utils/llm_providers.py` (already lazy-imports each provider) gains two predicates:
 
-### S-3: typed fallback for unsupported Anthropic models
+- `is_anthropic_chat_model(llm) -> bool` — `isinstance` against `langchain_anthropic.ChatAnthropic` behind a lazy import; `False` when the package is absent. **No** `type(llm).__name__` equality anywhere.
+- `is_anthropic_unsupported_structured_output(llm, err) -> bool` — true only when **all** of: (1) `is_anthropic_chat_model(llm)`; (2) `err` is `anthropic.BadRequestError`; (3) `err.status_code == 400`; (4) the structured error body (`err.body["error"]["message"]`, not `str(err)` alone) identifies `output_config` / structured-output capability as unsupported. Pydantic `ValidationError`, auth/permission, rate limit, timeout/network, 5xx, unrelated Anthropic 400, binding/programming errors, and any error from the **fallback** invocation are outside the predicate and propagate unchanged (FR-678).
 
-When the constrained call raises the provider's request error for `output_config` (Anthropic `BadRequestError`, HTTP 400, message naming `output_config`/`structured outputs`), log at INFO `"Anthropic constrained output unsupported on <model>; falling back to forced tool call (FR-998)"` and retry once with `method="function_calling"`. Anything else propagates unchanged (FR-678). The existing FR-464 `"response_format"` branch is untouched — it serves a different provider.
+`executor_base.py`, `race_node.py`, `tools/agent.py` import neither the Anthropic SDK nor any provider class.
 
-### S-4: condemning tests (offline, no API)
+### S-3: route the four call sites; preserve every existing state machine
 
-- **RED-1** (`tests/unit/test_fr998_structured_output_method.py`): a fake `ChatAnthropic`-named LLM records the `method` kwarg passed to `with_structured_output`; through `attempt_structured_invoke` it must receive `"json_schema"`. Fails today (`None`/default).
-- **RED-2**: the same fake, non-Anthropic class name → `method` not passed. (Guards S-1 from over-reaching.)
-- **RED-3**: fake Anthropic whose `json_schema` invoke raises the typed 400 → second call uses `"function_calling"`, one INFO line, result returned. A fake raising any other exception → propagates (FR-678).
-- **RED-4** (the incident): a fake whose default-method invoke returns the recorded bullet-string payload for `unclear` raises `list_type` today through `attempt_structured_invoke`; after the fix the fake's `json_schema` path returns the typed list and the node result is `list[str]`. This is the witness that the *incident* is covered, not just the kwarg.
-- Race node and agent tool: one test each that the shared entry point is what they call (import-level or spy).
+| Site | Today | After |
+|---|---|---|
+| `attempt_structured_invoke` ([executor_base.py L400](../yamlgraph/executor_base.py#L400); shared by `executor.py` and `llm_factory_async.py`, FR-679) | `llm.with_structured_output(m).invoke(msgs)` | `invoke_structured(llm, m, msgs)` — FR-464's `"response_format"` JSON-extraction branch stays around it, unchanged and in the same order |
+| `_invoke_candidate_async` ([race_node.py L137](../yamlgraph/node_factory/race_node.py#L137)) | `.ainvoke(msgs, config={"run_id": run_id})` | `await ainvoke_structured(llm, m, msgs, config={"run_id": run_id})`; the fallback attempt gets its **own** `uuid4()` run id (FR-720 semantics); FR-464 extraction branch unchanged |
+| agent default tier ([agent.py L93](../yamlgraph/tools/agent.py#L93)) | `llm_base.with_structured_output(m)` | `bind_structured_output(llm_base, m)` |
+| agent recovery tier ([agent.py L107](../yamlgraph/tools/agent.py#L107)) | `with_structured_output(m, method="function_calling")` | `bind_structured_output(llm_base, m, method="function_calling")` — the explicit override is forwarded; it can never be upgraded back to `json_schema`. The agent's `invalid_json_schema` / `response_format` → `function_calling` → plain re-invoke tiers keep their order (FR-456/678/809) |
 
-### S-5: live witness (one run, recorded, not a gate)
+No change to retry counts, backoff, timeouts, cancellation, race-winner selection, or non-Anthropic method selection.
 
-Re-run `docs/spikes/list-type-lie-2026-09-05/probe.py`'s `json_schema` arm through a real `llm` node — the spike 2 graph with `unclear`/`needs` restored to `list[str]` — and commit the output under `docs/spikes/list-type-lie-2026-09-05/after/`. One run; pytest does not depend on it.
+### S-4: condemning tests (offline, no API) — `tests/unit/test_fr998_structured_output.py`
+
+RED first, `SKIP=pytest`, then GREEN. Fakes are Anthropic *by predicate* (an object the provider-boundary predicate recognises via monkeypatched `isinstance` target), never by class name.
+
+1. **Method selection** — Anthropic fake through `attempt_structured_invoke` receives `method="json_schema"`; non-Anthropic fake receives no `method` kwarg.
+2. **Explicit override** — `bind_structured_output(..., method="function_calling")` forwards it for an Anthropic fake; no recursion to `json_schema`.
+3. **The incident** — fake whose default-method invoke returns the recorded bullet-string payload for `unclear: list[str]` (verbatim from `probe-output.txt`) raises `list_type` on the old path; on the `json_schema` path the same fake returns typed lists and the result's `unclear` is a real `list[str]`.
+4. **Typed fallback, sync and async** — fake raising a constructed `anthropic.BadRequestError` (status 400, body naming `output_config`) on the first invoke → exactly one second invoke with `function_calling`, exactly one INFO record naming the model and `FR-998`.
+5. **Propagation** — parametrised over `ValidationError`, `AuthenticationError`, `RateLimitError`, `APITimeoutError`, `APIConnectionError`, `InternalServerError`, an unrelated 400, `TypeError` from binding, and a `BadRequestError` raised by the **fallback** invoke: each propagates unchanged with no unauthorised extra invocation.
+6. **Race composition** — both constrained and fallback invocations receive `config={"run_id": ...}` with **distinct** ids; existing cancellation tests (`tests/unit/test_race_node.py`) unchanged and green.
+7. **FR-464 composition** — a non-Anthropic fake raising a `"response_format"` error still reaches JSON extraction in `attempt_structured_invoke` and in the race path.
+8. **Agent composition** — existing `tests/unit/test_fr678_narrow_structured_catch.py` tiers pass unweakened; one new test proves tier order unchanged with the shared binder in place.
+9. **Single call site** — an AST/grep test asserts exactly one production occurrence of `.with_structured_output(` under `yamlgraph/`, tests and docs excluded.
+
+Existing suites that must stay green with no assertion weakened: `test_fr679_shared_attempt_invoke.py`, `test_fr678_narrow_structured_catch.py`, `test_race_node.py`, FR-464 executor/race extraction tests.
+
+### S-5: live witness — a GATE, one credentialed run
+
+Command (no graph or prompt edit; `examples/demos/five-whys/prompts/ask_why.yaml` already declares `chain: list[str]` and the graph uses the default provider):
+
+```bash
+ANTHROPIC_MODEL=claude-sonnet-4-5 yamlgraph graph run examples/demos/five-whys/graph.yaml --var problem="Deployment failed on Friday" --full
+```
+
+Prerequisite: `ANTHROPIC_API_KEY`. Record under `docs/spikes/list-type-lie-2026-09-05/after/run-evidence.txt`: the command, model, git SHA of the code under test, the `[INFO] Creating LLM` line, and the parsed `chain` values showing a real list. Committed as `.txt` (`*.log` is gitignored). One run; pytest does not depend on it, but AC-12 does.
+
+### S-6: dependency floor
+
+`method="json_schema"` and GA `output_config.format` were verified on `langchain-anthropic==1.5.1` (workstation) and the FR-761 constraints artifact pins `1.5.2` (`constraints/dev-py312.txt:72`). `pyproject.toml` declares `langchain-anthropic>=0.3.0`, which predates the `json_schema` method. Raise the floor to `>=1.5.1` — the earliest **verified** version — unless enforcement verifies an earlier one with a committed note.
+
+### S-7: traceability
+
+Extend `capabilities/CAP-164-structured-output-fallback.yaml` (owner of executor/race structured-output provider rejection) with one new requirement, **REQ-YG-664** "Anthropic constrained structured output with typed single fallback", `fr: FR-464, FR-998`, modules += `yamlgraph/utils/structured_output.py`, `yamlgraph/utils/llm_providers.py`, `yamlgraph/tools/agent.py`. No new CAP. `REQ-YG-422` stays on the agent regression tests that exercise established agent behaviour. Regenerate `ARCHITECTURE.md` with `python scripts/aggregate_capabilities.py`.
+
+`is_this_a_graph`: **No** — deterministic provider dispatch and exception policy; no LLM decision is made by the change itself.
 
 ## Deferred — Alternative B: repair at the schema boundary (not in this FR)
 
-`build_pydantic_model` could attach a `model_validator(mode="before")` that turns a `str` into a `list` for list-typed fields when `json.loads` yields `list[str]` (FR-873's exact rule, never guessing at bullet text). It is provider-agnostic and offline-testable. **It is not done here** because (1) the witnessed encoding today is bullet text, which the rule correctly refuses, so B alone would not have saved the incident; (2) after A the lie cannot be told on supported Anthropic models, and B's remaining territory is *other providers' tool-argument lies*, of which this repo has no witnessed incident. **Trigger for revisiting:** the first `list_type` error from a non-Anthropic provider, or from an Anthropic model on the S-3 fallback path, recorded with its raw payload. Until that row exists, B is refused, not queued.
+`build_pydantic_model` could attach a `model_validator(mode="before")` that turns a `str` into a `list` for list-typed fields when `json.loads` yields `list[str]` (FR-873's exact rule, never guessing at bullet text). It is provider-agnostic and offline-testable. **It is not done here** because (1) the witnessed encoding today is bullet text, which the rule correctly refuses, so B alone would not have saved the incident; (2) after A the lie cannot be told on supported Anthropic models, and B's remaining territory is *other providers' tool-argument lies*, of which this repo has no witnessed incident. **Trigger for revisiting:** the first `list_type` error from a non-Anthropic provider, or from an Anthropic model on the S-1 fallback path, recorded with its raw payload. Until that row exists, B is refused, not queued.
 
-## Acceptance Criteria
+## Acceptance Criteria (revised per judgement)
 
-- [ ] AC-01: `structured_output()` exists in `executor_base.py` and is the only place `with_structured_output` is called in `yamlgraph/` (`grep -rn with_structured_output yamlgraph/` returns exactly the one definition site).
-- [ ] AC-02: For an Anthropic LLM, `method="json_schema"` is passed (RED-1); for any other provider no `method` is passed (RED-2).
-- [ ] AC-03: The typed Anthropic 400 for `output_config` falls back once to `function_calling` with one INFO log line; any other exception propagates unchanged (RED-3).
-- [ ] AC-04: The incident payload (bullet-list string for a `list[str]` field) is reproduced by a failing test before the fix and yields `list[str]` after (RED-4).
-- [ ] AC-05: Race node and agent tool route through the shared entry point (one test each).
-- [ ] AC-06: One live run through a real `llm` node with `list[str]` fields on `claude-sonnet-4-5` committed under `docs/spikes/list-type-lie-2026-09-05/after/` (S-5); fields arrive as lists.
-- [ ] AC-07: RED commit (`SKIP=pytest`) precedes GREEN commit; changelog fragment `changelog/unreleased/fr-998-*.md` (`type: fix`, `scope: llm`); CAP file with new REQ id; `python scripts/req_coverage.py --strict` green; `lint-imports` green.
-- [ ] AC-08: FR-995's successor note (`feature-requests/FR-995-outsider-reader.md`, Fixtures/plan §13 pointer) references this FR as the reason the API transport can declare list fields as lists.
-- [ ] AC-09: Diary entry `docs/diary/2026-09-05-reflection-fr-998-*.md` with a `**Seed:**`.
+- [ ] AC-01: The Research field cites only committed evidence, states `is_this_a_graph: No` with rationale, and names `docs/spikes/list-type-lie-2026-09-05/probe-output.txt` as the authoritative reproduction.
+- [ ] AC-02: The FR records the earliest verified `langchain-anthropic` version for the `json_schema`/`output_config.format` contract (1.5.1) and `pyproject.toml` declares at least that floor.
+- [ ] AC-03: `yamlgraph/utils/structured_output.py` owns the only production call expression `.with_structured_output(`; the binder forwards an explicit `method` unchanged, selects `json_schema` only for Anthropic when no override is given, and omits `method` for non-Anthropic models.
+- [ ] AC-04: Provider identity and unsupported-feature classification live in `yamlgraph/utils/llm_providers.py`; executor, race, and agent modules contain no Anthropic SDK/provider-class import and no class-name equality check.
+- [ ] AC-05: A typed Anthropic `BadRequestError` (HTTP 400, structured body naming unsupported `output_config`) causes exactly one `function_calling` invocation and exactly one INFO log naming the model and FR-998, in both the sync and the native-async helper.
+- [ ] AC-06: Pydantic `ValidationError`, auth/permission, rate-limit, timeout/network, server, unrelated Anthropic 400, binding/programming, and fallback-invocation errors each propagate unchanged with no extra invocation.
+- [ ] AC-07: The recorded bullet-string payload for `unclear: list[str]` fails on the default-method path and yields a real `list[str]` on the Anthropic `json_schema` path.
+- [ ] AC-08: `attempt_structured_invoke`, the race candidate path, and both agent finalisation paths use the shared policy; a direct test proves the agent's explicit `function_calling` recovery cannot be upgraded to `json_schema`.
+- [ ] AC-09: FR-464 executor/race extraction tests, FR-678 agent boundary tests, FR-679 shared-attempt tests, and agent invalid-schema/tool-choice tests pass with no assertion weakened.
+- [ ] AC-10: Native-async race tests prove constrained and fallback invocations both receive tracing config, use distinct run ids, and preserve cancellation behaviour.
+- [ ] AC-11: `CAP-164` carries REQ-YG-664 covering constrained Anthropic output and typed fallback across executor, race, and agent; `ARCHITECTURE.md` regenerated; every new test carries the marker; `python scripts/req_coverage.py --strict` and `lint-imports` pass.
+- [ ] AC-12: The S-5 command is run once on `claude-sonnet-4-5` and `docs/spikes/list-type-lie-2026-09-05/after/run-evidence.txt` records command, model, git SHA, and the parsed `chain` list values.
+- [ ] AC-13: RED commit precedes GREEN commit; the focused test set and the existing structured-output regression tests pass; changelog fragment `changelog/unreleased/fr-998-anthropic-constrained-structured-output.md` with `type: fix`, `scope: llm`, `req: REQ-YG-664`.
+- [ ] AC-14: FR-995 receives exactly one new `## Related` bullet ("FR-998 — why the API-transport successor can declare `unclear`/`needs` as `list[str]`") and one sentence appended to its *Implementation record* pointing to FR-998; the FR-998 implementation record lists any deviations; diary `docs/diary/2026-09-05-reflection-fr-998-*.md` contains `**Seed:**`.
 
 ## Alternatives Considered
 
