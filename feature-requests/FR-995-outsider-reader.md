@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Enhancement (process instrument, advisory)
-**Status:** Proposed
+**Status:** Judged — APPROVED WITH REVISIONS (2026-09-05, [judgement](FR-995-outsider-reader.judgement.md)). R-1…R-5 folded below; R-1's positive fixture is *not yet achieved* after three recorded glossing passes (see Fixtures) and remains an implementation obligation (AC-07/AC-08). Authority per the judgement: manual, advisory reader; deliverables D-1…D-10 only.
 **Effort:** 1 day (spike exists; skill layout + wrapper + canary fixtures)
 **Requested:** 2026-09-05
 **First consumer / first event:** the author of any `feat`/`fix` PR, at the moment the PR is opened and before `scripts/review.sh` runs — the outsider's report tells them what a reader with no project context cannot understand from the title and body. Second consumer: the reviewer, who receives the "what a merge decision would still need" list and partitions it into *exists-but-unlinked* and *absent*. Third: this FR itself (dogfood — see Acceptance Criteria).
@@ -38,7 +38,7 @@ The spike (plan §12) ran a context-free reader on three inputs. Against the ori
 
 ## Ideal Result
 
-Every `feat`/`fix` PR gets, within a minute of opening, a comment from a reader with zero project context: one paragraph restating the change, at most eight phrases it could not understand, and a short list of what a merge decision would still need. The author fixes the text; the reviewer partitions the list. A derived verdict (not the model's) says whether the description stands alone. Over twenty PRs the count of "could not understand" items per PR is recorded; if it falls, the instrument worked, and only then is a blocking gate considered.
+An author who has just opened a `feat`/`fix` PR runs one command and gets, in about a minute, a report from a reader with zero project context: one paragraph restating the change, at most eight phrases it could not understand, and a short list of what a merge decision would still need. The author fixes the text; the reviewer partitions the list. A verdict derived in code (not the model's) says whether the description stands alone. Every real-PR run appends one attributable ledger row; after twenty distinct PRs the rows say whether "could not understand" items per PR fell. Automatic invocation on PR open and any blocking gate are **separate future FRs**, each needing its own judgement (R-4).
 
 ## Proposed Solution
 
@@ -46,37 +46,52 @@ Copy the spike; do not reinvent it.
 
 1. **Skill layout** — `.github/skills/outsider-view/`: `doctrine.md` (what it is; inverted input closure — title + body only, no files, no tools, no doctrine, run from a clean directory; what it is not — not a reviewer, not a rewriter, not a gate; output advisory), `adapters/graph.yaml` and `adapters/prompts/outsider.yaml` copied from `docs/spikes/outsider-reader-2026-09-05/` via the repo's required process for graph files (`scripts/author.sh`: an agent writes the YAML from a committed brief; direct edits to graph files are blocked by a hook), the brief citing the spike files as the source; `adapters/README.md` in the judge/review style.
 2. **Wrapper** — `scripts/outsider.sh <pr-number>`, copied from the spike's `outsider.sh` (itself copied from `review.sh`): fetches title + body with `gh pr view`, writes the PR text to a **clean temporary directory outside the repo**, runs the graph from there with `yamlgraph graph run` (the repo's own CLI, from its virtualenv), verifies the report by artifact (heading `## 1. In my own words` present), never trusts the exit code. The temporary directory is deleted after the run; the report is kept under `tmp/` (git-ignored). A directory lock serialises runs (so two runs cannot collide, including on the ledger), and an environment marker stops the reader from launching another copy of itself — both copied from `review.sh`.
-3. **Derived verdict in code** (small python tool node after the model): YES iff section 3 has ≤ 2 items **and** section 1 contains none of the hedge markers `does not say`, `something called`, `not stated`, `cannot tell`. The model's own section-2 answer is kept in the report as its opinion, labelled as such.
+3. **Typed report boundary and derived verdict** (R-2) — a Python tool node after the model normalises the model text into a Pydantic model: non-empty section-1 restatement; model opinion `YES|NO` + one reason; 0–8 section-3 items (quote, question); 0–10 section-4 items. All four numbered headings exactly once, in order; the literal `nothing` is an empty list; missing, duplicate, reordered, over-cap or malformed sections **fail closed**: non-zero wrapper result, no comment, no ledger row. Only from that validated model is the verdict derived: **YES iff section-3 count ≤ 2 and section 1 contains none of** `does not say`, `something called`, `not stated`, `cannot tell` (case-insensitive). The report front-loads `**Derived verdict:** YES|NO`; the model's section-2 answer is kept and labelled as its non-authoritative opinion. Direct tests for every failure class.
 4. **Model** — `gpt-5.6-sol`, pinned literally in `cli_flags` (operator decision: PR-level text is read by the same model the FR judge uses). No `allow_all_paths`, no `allow_all_tools`. Cost: one model call per PR, about a minute, drawn from the Copilot subscription — no per-token bill.
-5. **Canary fixtures** — the three spike inputs and `EXPECTATIONS.md` move to `.github/skills/outsider-view/fixtures/`; a `--selftest` flag runs all three and fails if they do not separate (original body: derived NO, ≥ 5 items; rewritten body: derived YES, ≤ 5 items; plain account: correct restatement, NO because the text lacks pointers — where the files are, how to run, what tests — not because words were unclear).
-6. **Posting** — the wrapper prints the report path; posting it as a PR comment is a separate explicit `--comment` flag, off by default. Nothing auto-merges, auto-approves, or blocks.
-7. **Measurement** — a one-line append to `docs/census/outsider-ledger.jsonl` per run: PR, derived verdict, section-3 count, section-4 count, git SHA. Twenty rows before any gate is proposed.
+5. **Fixtures and self-test** (R-1) — the spike inputs and `EXPECTATIONS.md` move to `.github/skills/outsider-view/fixtures/`. `--selftest` runs the fixture set and requires derived **NO / NO / NO / YES** for: original #591 body (`pr-591.md`), plain account (`plain-591.md`), pre-gloss rewritten body (`pr-591-v2.md`), and a **final-glossed positive** whose expectation is written before its output is produced. All six historical reports derive NO under the rule (the rewritten-body report has 5 items and the hedge "the text does not say"; the dogfood report has 8 items). The threshold is not loosened to fit observed counts. See *Fixtures — the search for a positive* below for the three passes already recorded.
+6. **Posting** — the wrapper prints the report path; posting it as a PR comment is a separate explicit `--comment` flag, off by default, and the only code path that calls `gh pr comment`. Nothing auto-merges, auto-approves, or blocks. No workflow, hook, scheduled service, or automatic PR-open invocation (R-4).
+7. **Measurement** (R-3) — one JSONL row per *successfully parsed, artifact-validated invocation against a real GitHub PR*, appended to `docs/census/outsider-ledger.jsonl` while the wrapper lock is held and only after report validation. Fields: UTC timestamp, repository, PR number, PR head SHA, SHA-256 of the exact title+body input, pinned model, prompt/adapter version or digest, local tool git SHA, derived verdict, section-3 count, section-4 count, report path. Self-tests, dry runs, parse failures, graph failures and comment failures write **no** row. "Twenty rows before a gate" means twenty **distinct PRs**, latest successful observation per PR.
+8. **Artifact surface** (R-5) — `.github/skills/outsider-view/{SKILL.md (discovery frontmatter + manual command), doctrine.md (≤ 60 lines), adapters/README.md, adapters/graph.yaml, adapters/prompts/outsider.yaml, adapters/<typed tool module>, fixtures/}`; `feature-requests/authoring-briefs/fr-995-outsider-reader-brief.md` naming every graph artifact; `scripts/outsider.sh`; focused unit and wrapper tests under `tests/`; one new `capabilities/CAP-*.yaml` + `ARCHITECTURE.md` REQ; changelog fragment; FR implementation record; one diary entry. The adapter README must state: the sole manual command, input closure, artifact path, derived-vs-model verdict distinction, advisory status, forbidden actions.
 
-## Acceptance Criteria
+## Acceptance Criteria (revised by the judgement; originals superseded)
 
-- [ ] AC-1: `scripts/outsider.sh --selftest` runs the three fixtures and passes the separation rule in Proposed Solution 5; the run fails closed if the report lacks the section-1 heading.
-- [ ] AC-2: The graph has no `allow_all_paths`/`allow_all_tools`; the wrapper runs it from a directory that contains no `.github/`; a test asserts both (grep on the adapter yaml; wrapper dry-run prints the working directory).
-- [ ] AC-3: The derived verdict is computed in code, unit-tested on the six committed reports: original-body reports → NO; rewritten-body report → YES; plain-account reports → NO.
-- [ ] AC-4: `scripts/outsider.sh 591` reproduces a report on the current #591 body with ≤ 5 section-3 items (regression against the v2 result).
-- [ ] AC-5: Dogfood: this FR's own PR receives an outsider report generated from the spike before merge; the report is posted as a PR comment; every section-3 item is either glossed in the FR text or explicitly kept with a reason in the PR thread.
-- [ ] AC-6: `doctrine.md` states the inverted input closure and the three-reader division (author ← section 3; reviewer ← section 4; verdict derived) in ≤ 60 lines; the adapter README follows the judge/review README shape.
-- [ ] AC-7: Ledger line written per run (Proposed Solution 7); no gate, no blocking, no auto-comment by default.
-- [ ] AC-8: Tests tagged `@pytest.mark.req` under a new capability record in `capabilities/` (the unit the repo's requirement-coverage gate tracks); changelog fragment; the spike directory stays as the reference copy and is cited from the skill README.
+- [ ] AC-01: The FR cites `feature-requests/authoring-briefs/fr-995-outsider-reader-brief.md`; `scripts/author.sh` produces the named graph/prompt/tool artifacts and a valid `tmp/draft-authoring-report.md`; the authored graph passes `yamlgraph graph lint` and a recorded smoke attempt.
+- [ ] AC-02: The skill bundle contains `SKILL.md`, doctrine of at most 60 lines, adapter README, graph, prompt, and typed tool module. The docs state the manual command, title-plus-body-only input closure, three-reader division, derived/model verdict distinction, advisory boundary, artifact path, and forbidden actions.
+- [ ] AC-03: The adapter pins `gpt-5.6-sol` literally and contains neither `allow_all_paths` nor `allow_all_tools`. A wrapper test proves the child cwd is outside the repository and contains no `.github/`, while absolute graph/tool/report paths still resolve.
+- [ ] AC-04: The wrapper fetches title, body, and PR head SHA; holds one repo-scoped directory lock; rejects recursive execution; removes temporary input on success, graph failure, and parse failure; preserves the validated report under repo `tmp/`; and validates the complete report contract rather than only the section-1 heading.
+- [ ] AC-05: Model text is normalized into the R-2 Pydantic model. Missing, duplicate, reordered, malformed, and over-cap sections fail closed; no failed run comments or writes a ledger row.
+- [ ] AC-06: The derived verdict is case-insensitively computed as section-3 count `<= 2` and absence of all four hedge markers. The report front-loads that verdict and clearly labels the model's section-2 answer as opinion.
+- [ ] AC-07: Tests classify all historical reports (nine committed) as NO under the derived rule and one newly committed final-glossed model report as YES. The FR dogfood record says the eight-item pre-fix report derived NO and links the actual PR comment plus each item's disposition.
+- [ ] AC-08: `scripts/outsider.sh --selftest` runs original, plain-account, pre-gloss rewritten, and final-glossed fixtures and requires derived `NO/NO/NO/YES`; expectations for the new positive are committed before its output.
+- [ ] AC-09: A credentialed `scripts/outsider.sh 591` smoke writes a structurally valid report from the current GitHub title/body. Its observed counts and verdict are recorded without changing the fixed unit expectations if the model drifts.
+- [ ] AC-10: `--comment` is off by default. Mocked wrapper tests prove only explicit `--comment` posts exactly the validated report to the requested PR and that no self-test, dry run, or failed run posts.
+- [ ] AC-11: Each successful real-PR run appends exactly one locked JSONL row with every R-3 field. Tests prove excluded modes/failures write none and repeated PR runs cannot satisfy the twenty-distinct-PR prerequisite.
+- [ ] AC-12: A new capability record and `ARCHITECTURE.md` requirement cover the feature; every test has the matching `@pytest.mark.req`; `python scripts/req_coverage.py --strict` passes.
+- [ ] AC-13: The spike directory remains unchanged as historical evidence and is cited from the skill README; a changelog fragment, FR implementation/status record, and metacognitive diary entry are added.
+- [ ] AC-14: The diff contains none of the explicitly unauthorized surfaces (see judgement — no automation, CI/hook changes, gate, auto-comment, FR-body input, judge/review/guard changes, model selection logic, PR rewriting, merge/approval actions, edits to historical spike outputs).
 
-## Dogfood record (AC-5)
+## Dogfood record (AC-05 of the original list; AC-07 now)
 
-The spike reader was run on this FR's text before merge: report at
+The spike reader was run on this FR's first-pushed text: report at
 [docs/spikes/outsider-reader-2026-09-05/out/fr-995-gpt-5.6-sol-20260905T054043Z.md](../docs/spikes/outsider-reader-2026-09-05/out/fr-995-gpt-5.6-sol-20260905T054043Z.md),
-also posted as a comment on the PR. Derived verdict on the pre-fix text: YES
-(restatement unhedged; 8 items — over the ≤ 2 rule, so strictly NO by the
-Proposed-Solution-3 rule). All eight section-3 phrases were glossed inline in
-this revision ("CAP journey census", "Submit step", "authoring route", "lock
-and lineage sentinel", "judge-class model", "pointer reasons", "new CAP",
-"guard-by-content"). Section 4: scope stated (FR only, nothing implemented);
-the `--fr` flag contradiction with Alternatives #7 was real and is removed;
-cost, concurrency (lock), cleanup, and runtime are now stated; self-test,
-regression and automatic-invocation items are implementation-time and remain
-open by design.
+posted as [PR #592 comment](https://github.com/sheikkinen/yamlgraph/pull/592#issuecomment-5549746082).
+**Derived verdict on the pre-fix text: NO** (8 section-3 items > 2; restatement unhedged; the model's own section 2 said YES — a further instance of the false-YES class). Dispositions: all eight phrases glossed inline ("CAP journey census", "Submit step", "authoring route", "lock and lineage sentinel", "judge-class model", "pointer reasons", "new CAP", "guard-by-content"). Section 4: scope stated (FR only, nothing implemented); the `--fr` flag contradiction with Alternatives #7 was real and is removed; cost, concurrency (lock), cleanup, and runtime are now stated; self-test, regression and automatic-invocation items are implementation-time and remain open by design.
+
+## Fixtures — the search for a positive (R-1 evidence)
+
+All under [docs/spikes/outsider-reader-2026-09-05/](../docs/spikes/outsider-reader-2026-09-05/); every expectation in `EXPECTATIONS.md` was written before its run. Rule unchanged throughout: YES iff ≤ 2 section-3 items and no hedge marker in section 1.
+
+| input | what it is | section-3 items | hedge in §1 | derived | model's own §2 |
+|---|---|---:|---|---|---|
+| `pr-591.md` | original #591 body (pasted commit message) | 8 (v2 prompt) | yes | NO | YES (false) |
+| `plain-591.md` | operator-approved plain account | 6 | no | NO | NO |
+| `pr-591-v2.md` | rewritten body: account + pointers + stated omissions | 5 | yes ("does not say who will operate it") | NO | YES |
+| `fr-995.md` | this FR, first push | 8 | no | NO | YES |
+| `pr-591-v3.md` | #591 body as merged (v2 + five glosses) | 4 ("FR-990", "yamlgraph", the ten ids, "mercury-2") | no | NO | YES |
+| `pr-591-v4.md` | v3 + project name explained, FR defined, ids pointed to `journeys.yaml`, mercury-2 vendor | 3 (the ten ids, "FR-990 AC-7", "plan §12") | no | NO | YES |
+| `pr-591-v5.md` | v4 + raw id list removed, AC-7 spelled out, "plan §12" explained | 2 | **yes** ("does not say who has final responsibility for acting on its recommendations") | NO | YES |
+
+Stopped after three passes, per the stop rule written before pass 1. What the chain says: the count clause was met only once the raw enum list left the body; the hedge clause then carried the verdict and pointed at a genuine omission (who decides on retirements). The model's own YES/NO said YES on six of seven — the derived rule is doing real work. Candidate fourth pass for implementation time, expectation first: state who acts on the recommendations. If a fourth pass still derives NO, that is evidence about the rule for a *separate* revision, not a reason to loosen it in this FR.
 
 ## Alternatives Considered
 
@@ -87,7 +102,8 @@ open by design.
 | 3 | GitHub Copilot PR summary (vendor feature) | REJECTED for this purpose — it *writes* a description from the diff (author side); it does not read the author's text as a stranger. |
 | 4 | Cheap model (haiku / mercury-2) | DEFERRED — operator decision is `gpt-5.6-sol` for PR-level text; the restatement paragraph is judgement, not a label. Revisit if the ledger shows cost matters. |
 | 5 | Ask the model for the YES/NO | REJECTED by evidence — false YES on the original #591 body (spike v2). Derived in code. |
-| 6 | Blocking gate on the derived verdict | DEFERRED — twenty ledger rows first (Proposed Solution 7). A gate calibrated on three inputs is a guess with a hook. |
+| 6 | Blocking gate on the derived verdict | DEFERRED to a separate FR — twenty distinct attributable PR observations first (Proposed Solution 7). A gate calibrated on a handful of inputs is a guess with a hook. |
+| 6b | Automatic invocation on PR open (workflow/hook) | DEFERRED to a separate FR (R-4) — this FR is manual-only; automation is not carried by the gate deferral. |
 | 7 | Point the reader at FR bodies as a second target | NOT IN SCOPE (operator, 2026-09-05) — dogfood on this FR's PR instead (AC-5). |
 
 ## Related
