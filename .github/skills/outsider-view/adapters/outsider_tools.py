@@ -247,26 +247,33 @@ def parse_observation(report_text: str) -> Observation:
     return Observation(**{attr: fields[key] for key, attr in _MARKER_FIELDS})
 
 
-def is_observation_comment(body: str) -> bool:
-    """True when *body* is a posted outsider report: a complete marker, old or new.
+def is_observation_comment(body: str, *, repo: str, pr: int) -> bool:
+    """True when *body* is a posted outsider report **about this PR**.
 
     The distinct-PR count (FR-1004 S-4) keys on this, never on the words
     "outsider reader" in prose. A pre-FR-1004 comment carries the complete
-    ``source | model | timestamp`` marker; a new one must round-trip through
-    :func:`parse_observation`.
+    ``source | model | timestamp`` marker (authorised transition path; it has
+    no attribution fields). A new marker must round-trip through
+    :func:`parse_observation`, name a real PR (no ``-`` placeholders) and
+    match the queried *repo* and *pr* — a copied ``--input`` report or another
+    PR's report is not an observation of this one (R-1, AC-06, C-4).
     """
     if _OLD_MARKER_LINE.search(_lf(body)):
         return True
     try:
-        parse_observation(body)
+        obs = parse_observation(body)
     except (ReportFormatError, ValueError):
         return False
-    return True
+    return obs.repo == repo and obs.pr == pr and obs.head_sha != PLACEHOLDER
 
 
-def distinct_observed_prs(comments: Iterable[tuple[int, str]]) -> set[int]:
-    """PR numbers with at least one observation comment (FR-1004 S-4 reducer)."""
-    return {pr for pr, body in comments if is_observation_comment(body)}
+def distinct_observed_prs(
+    comments: Iterable[tuple[int, str]], *, repo: str
+) -> set[int]:
+    """PR numbers of *repo* with at least one observation comment attributed to them."""
+    return {
+        pr for pr, body in comments if is_observation_comment(body, repo=repo, pr=pr)
+    }
 
 
 def render_report(report: OutsiderReport, obs: Observation) -> str:

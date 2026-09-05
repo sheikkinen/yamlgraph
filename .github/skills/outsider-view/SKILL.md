@@ -36,12 +36,14 @@ human comment that merely says "outsider reader" is not an observation:
 ```bash
 gh search prs --repo sheikkinen/yamlgraph --match comments 'outsider reader' --limit 1000 --json number --jq '.[].number' \
   | while read -r n; do gh api "repos/sheikkinen/yamlgraph/issues/$n/comments" --paginate --jq ".[] | {pr: $n, body}"; done \
-  | python3 -c 'import sys, json, importlib.util; s = importlib.util.spec_from_file_location("ot", ".github/skills/outsider-view/adapters/outsider_tools.py"); m = importlib.util.module_from_spec(s); s.loader.exec_module(m); prs = m.distinct_observed_prs((d["pr"], d["body"]) for d in map(json.loads, sys.stdin)); print(sorted(prs)); print(len(prs))'
+  | python3 -c 'import sys, json, importlib.util; s = importlib.util.spec_from_file_location("ot", ".github/skills/outsider-view/adapters/outsider_tools.py"); m = importlib.util.module_from_spec(s); s.loader.exec_module(m); prs = m.distinct_observed_prs(((d["pr"], d["body"]) for d in map(json.loads, sys.stdin)), repo="sheikkinen/yamlgraph"); print(sorted(prs)); print(len(prs))'
 ```
 
 The first stage only narrows the candidate PRs (it cannot see markers); the
-last stage keeps a PR only if one of its comments carries a complete marker,
-and deduplicates. Do not write the search qualifier inline as
+last stage keeps a PR only if one of its comments carries a complete marker
+**attributed to that PR** — a new marker must name this repository and this PR
+number and carry a real head SHA (a copied `--input` report or another PR's
+report does not count) — and deduplicates. Do not write the search qualifier inline as
 `'in:comments "…"'` — gh 2.98 silently drops it and returns every PR in the
 repository. A freshly posted comment takes up to ~45 minutes to become
 searchable; the comment itself is visible at once.

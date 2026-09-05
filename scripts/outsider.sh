@@ -81,14 +81,21 @@ run_one() {
       --var "repo=$repo" --var "pr=$pr" --var "head_sha=$head_sha" \
       --var "prompt_digest=$PROMPT_DIGEST" --var "tool_sha=$TOOL_SHA" --full ) > "$log" 2>&1
   rm -f "$CHILD_CWD/input.md"
-  # Verify by artifact and contract, never by exit code.
-  if [ -s "$report" ] && "$PY" - "$report" "$TOOLS" <<'EOF' >/dev/null 2>&1
+  # Verify by artifact and contract, never by exit code. The observation marker
+  # must parse and must describe THIS run (repo, pr, head, model, prompt, tool)
+  # and THIS report (verdict, counts) before anything is posted (FR-1004 C-3).
+  if [ -s "$report" ] && "$PY" - "$report" "$TOOLS" "$repo" "$pr" "$head_sha" "$MODEL" "$PROMPT_DIGEST" "$TOOL_SHA" <<'EOF' >>"$log" 2>&1
 import importlib.util, sys
-report, tools = sys.argv[1], sys.argv[2]
+report, tools, repo, pr, head, model, prompt, tool = sys.argv[1:]
 spec = importlib.util.spec_from_file_location("ot", tools); m = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
 text = open(report, encoding="utf-8").read()
-assert text.startswith("**Derived verdict:** ")
-m.parse_report(text)
+assert text.startswith("**Derived verdict:** "), "report does not front-load the derived verdict"
+rep = m.parse_report(text)
+obs = m.parse_observation(text)
+expected = dict(repo=repo, pr=(int(pr) if pr != "-" else "-"), head_sha=head, model=model, prompt_digest=prompt, tool_sha=tool,
+                derived_verdict=m.derive_verdict(rep), s3=len(rep.section3), s4=len(rep.section4))
+actual = {k: getattr(obs, k) for k in expected}
+assert actual == expected, f"observation marker does not match this run: {actual} != {expected}"
 EOF
   then
     local verdict s3 s4
