@@ -75,7 +75,7 @@ give the model definitions, not ids.
 
 ## Seed
 
-The value column was `stated` 28/28 and then `generic` 10/30 after one
+**Seed:** The value column was `stated` 28/28 and then `generic` 10/30 after one
 regex — a column that is always filled is a column that is never
 checked. Should every free-text field in a census schema ship with a
 falsifier (a regex, a vocabulary, a substring check) *before* the first

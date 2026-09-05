@@ -335,7 +335,7 @@ name. Reasons are inline in `canaries.yaml`.
 
 Then re-pilot the same 30 (rows are committed for diff), then the 242.
 
-Companion diary: [the-junk-drawer-moved-when-i-reworded-it](diary/diary-2026-09-05-the-junk-drawer-moved-when-i-reworded-it.md).
+Companion diary: [the-junk-drawer-moved-when-i-reworded-it](diary/2026-09-05-reflection-fr-990-the-junk-drawer-moved-when-i-reworded-it.md).
 
 ## 11. Plain-language account (operator-approved verbatim, 2026-09-05)
 
