@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Judged 2026-09-05 — APPROVED WITH REVISIONS ([judgement](FR-1005-research-route-row-failed-demotion.judgement.md), Copilot route on `982ad57e`); R-1…R-5 folded below; enforcing on branch `feat/fr-1005-research-route-row-failed-demotion`.
+**Status:** Enforced 2026-09-06 — judged 2026-09-05 APPROVED WITH REVISIONS ([judgement](FR-1005-research-route-row-failed-demotion.judgement.md), Copilot route on `982ad57e`), R-1…R-5 folded; RED `91f1e214` → GREEN `d53cae3f` + `4bc34a82` (loader seam found by the live witness); AC-13 live run verified and stamped 2026-09-05T21:19:01Z. [Implementation record](#implementation-record-2026-09-06)
 **Effort:** 0.5 day
 **Requested:** 2026-09-05
 **First consumer / first event:** the next operator whose `scripts/research.sh` run loses one persona to a cell-shape failure, at the moment the wrapper would today print `contract violated … missing or empty` and discard the four findings that succeeded. Concretely: the FR-1005 author, re-running `feature-requests/research-briefs/pi-agent-runtime-brief.md`, which killed three consecutive runs on 2026-09-05 (AC-11 is that re-run). Second consumer: the judge reading a promoted research record, who today cannot tell a five-persona run from a four-persona one because the four-persona one never exists.
@@ -168,21 +168,21 @@ implementation record; diary reflection with a Seed.
 
 ## Acceptance Criteria (revised per judgement)
 
-- [ ] AC-01: A direct unit test supplies one missing non-librarian `PERSONA_KEYS` entry and one matching real `PipelineError` proving a structured-output/schema validation failure; `gather_findings` returns five canonically ordered entries, with a typed failed-persona record in that key's slot containing the canonical key, node, category, exception type, and message.
-- [ ] AC-02: Missing-key cases with an absent/empty error channel, malformed error entries, no matching node, ambiguous matching errors, or a non-model failure remain fatal and name the missing key plus all usable recorded diagnostics; errors for other persona nodes are never attributed to the missing key.
-- [ ] AC-03: The key-to-node attribution map covers every `PERSONA_KEYS` member explicitly and has a mirror test; no prefix heuristic is inferred dynamically from the key string.
-- [ ] AC-04: With all five keys present, `gather_findings` returns the existing `{"findings": [...]}` shape with five normalized findings in `PERSONA_KEYS` order and no added metadata inside successful finding dicts.
-- [ ] AC-05: `reduce_findings` given four valid findings and one attributable failed-persona record writes four rows, structured executed/failed metadata satisfying R-4, lists only successful persona keys as executed, returns `failed == 1`, and is accepted by `verify_artifact`.
-- [ ] AC-06: A present finding whose `candidate` is 471 characters, or whose `solution_class`/`verdict` is outside the closed enum, becomes a failed-persona outcome whose cause names the canonical state key, field, and Pydantic error type; no field is truncated, prefix-repaired, or written as a table row.
-- [ ] AC-07: Two failed persona outcomes, any failed librarian, fewer than four valid rows, fewer than three grounded rows, or any structural/non-model failure raises before artifact creation and reports every accumulated attributable row failure plus the fatal cause.
-- [ ] AC-08: Precedent validation and librarian URL reconciliation remain run-fatal; existing FR-938 fabricated-precedent and FR-896 librarian fail-closed tests pass unchanged, including fabricated `CAP-628`.
-- [ ] AC-09: `verify_artifact` rejects malformed persona-accounting JSON, unknown or duplicate keys, overlapping executed/failed keys, incomplete union with `PERSONA_KEYS`, row/executed-count mismatch, empty causes, more than one failed key, a failed librarian, missing accounting on a short run, and failure metadata on a five-row run; it accepts a valid four-row/one-failure artifact.
-- [ ] AC-10: A mirror test asserts `research_preflight.PERSONA_COUNT == len(research_tools.PERSONA_KEYS)` and the verifier's allowed key set equals the reducer's canonical key set.
-- [ ] AC-11: Every FR-926 diagnostic witness has an equal or stronger replacement at the new location; the real `PipelineError` fields survive into the failed-persona record and artifact, dict-form compatibility remains covered, and `test_wrapper_surfaces_enriched_failure_text` remains unchanged.
-- [ ] AC-12: A deterministic failure-atomicity test starts with no draft artifact, triggers each fatal class, and proves no artifact is created; the wrapper test proves a failed graph cannot pass by stale output.
-- [ ] AC-13: A live `scripts/research.sh feature-requests/research-briefs/pi-agent-runtime-brief.md` run on the fixed code completes with a verified four- or five-row artifact, appends a matching `research-runs.jsonl` stamp, and appends the promoted table to `docs/2026-09-05-research-pi-agent-runtime.md` section 9 with structured failed-persona metadata quoted when present.
-- [ ] AC-14: `CAP-248` carries `FR-1005` and `REQ-YG-665`; every new test carries `@pytest.mark.req("REQ-YG-665")`; `python scripts/req_coverage.py --strict` passes; the changelog fragment, implementation record, and diary reflection are present.
-- [ ] AC-15: `git diff main -- examples/demos/research-route/graph.yaml examples/demos/research-route/prompts` is empty.
+- [x] AC-01: A direct unit test supplies one missing non-librarian `PERSONA_KEYS` entry and one matching real `PipelineError` proving a structured-output/schema validation failure; `gather_findings` returns five canonically ordered entries, with a typed failed-persona record in that key's slot containing the canonical key, node, category, exception type, and message.
+- [x] AC-02: Missing-key cases with an absent/empty error channel, malformed error entries, no matching node, ambiguous matching errors, or a non-model failure remain fatal and name the missing key plus all usable recorded diagnostics; errors for other persona nodes are never attributed to the missing key.
+- [x] AC-03: The key-to-node attribution map covers every `PERSONA_KEYS` member explicitly and has a mirror test; no prefix heuristic is inferred dynamically from the key string.
+- [x] AC-04: With all five keys present, `gather_findings` returns the existing `{"findings": [...]}` shape with five normalized findings in `PERSONA_KEYS` order and no added metadata inside successful finding dicts.
+- [x] AC-05: `reduce_findings` given four valid findings and one attributable failed-persona record writes four rows, structured executed/failed metadata satisfying R-4, lists only successful persona keys as executed, returns `failed == 1`, and is accepted by `verify_artifact`.
+- [x] AC-06: A present finding whose `candidate` is 471 characters, or whose `solution_class`/`verdict` is outside the closed enum, becomes a failed-persona outcome whose cause names the canonical state key, field, and Pydantic error type; no field is truncated, prefix-repaired, or written as a table row.
+- [x] AC-07: Two failed persona outcomes, any failed librarian, fewer than four valid rows, fewer than three grounded rows, or any structural/non-model failure raises before artifact creation and reports every accumulated attributable row failure plus the fatal cause.
+- [x] AC-08: Precedent validation and librarian URL reconciliation remain run-fatal; existing FR-938 fabricated-precedent and FR-896 librarian fail-closed tests pass unchanged, including fabricated `CAP-628`.
+- [x] AC-09: `verify_artifact` rejects malformed persona-accounting JSON, unknown or duplicate keys, overlapping executed/failed keys, incomplete union with `PERSONA_KEYS`, row/executed-count mismatch, empty causes, more than one failed key, a failed librarian, missing accounting on a short run, and failure metadata on a five-row run; it accepts a valid four-row/one-failure artifact.
+- [x] AC-10: A mirror test asserts `research_preflight.PERSONA_COUNT == len(research_tools.PERSONA_KEYS)` and the verifier's allowed key set equals the reducer's canonical key set.
+- [x] AC-11: Every FR-926 diagnostic witness has an equal or stronger replacement at the new location; the real `PipelineError` fields survive into the failed-persona record and artifact, dict-form compatibility remains covered, and `test_wrapper_surfaces_enriched_failure_text` remains unchanged.
+- [x] AC-12: A deterministic failure-atomicity test starts with no draft artifact, triggers each fatal class, and proves no artifact is created; the wrapper test proves a failed graph cannot pass by stale output.
+- [x] AC-13: A live `scripts/research.sh feature-requests/research-briefs/pi-agent-runtime-brief.md` run on the fixed code completes with a verified four- or five-row artifact, appends a matching `research-runs.jsonl` stamp, and appends the promoted table to `docs/2026-09-05-research-pi-agent-runtime.md` section 9 with structured failed-persona metadata quoted when present.
+- [x] AC-14: `CAP-248` carries `FR-1005` and `REQ-YG-665`; every new test carries `@pytest.mark.req("REQ-YG-665")`; `python scripts/req_coverage.py --strict` passes; the changelog fragment, implementation record, and diary reflection are present.
+- [x] AC-15: `git diff main -- examples/demos/research-route/graph.yaml examples/demos/research-route/prompts` is empty.
 
 ## Alternatives Considered (with dissent preserved)
 
@@ -203,3 +203,70 @@ implementation record; diary reflection with a Seed.
 - Evidence: [evidence/FR-1005-research-route-run-failures.md](evidence/FR-1005-research-route-run-failures.md)
 - The brief that killed three runs: [research-briefs/pi-agent-runtime-brief.md](research-briefs/pi-agent-runtime-brief.md); its research document [docs/2026-09-05-research-pi-agent-runtime.md](../docs/2026-09-05-research-pi-agent-runtime.md) §9 records the runs and receives the AC-11 witness.
 - Scripture: `two_strike_split`, `junk_drawer_cap` (enum leak → cap in code), `substance_over_presence`, `read_raw_output_first`.
+
+## Implementation record (2026-09-06)
+
+Enforced within the frozen scope of the judgement (D-1…D-6). Commits, in
+order: FR + evidence `982ad57e`; judgement folded `35443c5d`; RED
+`91f1e214` (13 of 21 new witnesses failing on the unchanged route);
+GREEN `d53cae3f`; GREEN follow-up `4bc34a82`.
+
+- **D-2** `research_tools.py`: `FailedPersona` (validated `outcome`
+  discriminator, `state_key` constrained to `PERSONA_KEYS`, whitespace-
+  squashed non-empty `cause`); `PERSONA_NODES` explicit map;
+  `MODEL_OUTPUT_ERROR_TYPE` / `MODEL_OUTPUT_EXCEPTIONS`; `gather_findings`
+  emits one entry per slot and stays fatal with FR-926's exact message for
+  every non-attributable case; `_contain_findings` walks by slot (structural
+  → fatal, librarian → fatal, two failures → fatal); the `MIN_VALID_ROWS`
+  floor is applied by the reducer *after* FR-896's grounding check so that
+  check keeps its message; `_assert_accounting` enforces R-4 before the
+  artifact path is touched; header gains `- persona keys executed:` and
+  `- personas failed:` (JSON); return gains `failed`.
+- **D-3** `research_preflight.py`: mirrored `PERSONA_KEYS`, `PERSONA_COUNT`,
+  `MIN_ROWS`, `LIBRARIAN_KEY`; `_check_persona_accounting` re-derives every
+  R-4 invariant; module trimmed to 439 lines to stay under the 450-line
+  gate (docstrings compacted, no behaviour change).
+- **D-4** `tests/unit/test_fr1005_research_row_failed.py` (22 witnesses,
+  `REQ-YG-665`, `pytest.mark.process`). FR-926 witnesses unchanged (their
+  fictional node is not in `PERSONA_NODES`, so they stay on the fatal path
+  by R-1) plus two replacements for the contained path. **Deviation,
+  recorded:** three pre-existing witnesses were re-homed to the judged
+  contract rather than left unchanged — FR-896
+  `test_over_length_cell_rejected_not_truncated` (AC-06 makes the
+  over-length row a contained outcome; the test now asserts the row is
+  never written, never truncated, and the named violation carries `400`
+  and `string_too_long` in the accounting) and FR-890
+  `test_reduce_preserves_conflicting_rows` (six inputs → five canonical
+  slots, disagreement still two rows) and `test_reduce_fails_closed_on_empty_cell`
+  (empty cell → contained row, cause names the field). No witnessed
+  behaviour was deleted without a replacement.
+- **D-5** `CAP-248` (`FR-1005`, `REQ-YG-665`), `ARCHITECTURE.md`
+  regenerated, `changelog/unreleased/fr-1005-research-route-row-failed.md`,
+  diary `docs/diary/diary-2026-09-06-reflection-fr-1005-the-loader-that-kept-no-name.md`.
+- **D-6 / AC-13** live witness: run 4 on `d53cae3f` died in
+  `gather_findings` with "`FailedPersona` is not fully defined" — the
+  runtime tool loader keeps no `sys.modules` entry, so a deferred `Literal`
+  annotation could not resolve; the unit loader had registered the module
+  and hidden it. Fixed in `4bc34a82` (validated `str` discriminator) with a
+  witness that loads the module exactly as the runtime does. Run 5 on
+  `4bc34a82`: verified artifact, four rows, `personas failed` naming
+  `yamlgraph_native_finding` with the recorded `OutputParserException`
+  cause; stamped in `research-runs.jsonl` at 2026-09-05T21:19:01Z; promoted
+  to `docs/2026-09-05-research-pi-agent-runtime.md` §9 and §11.
+
+**Host limitations, stated:** the ten bash-wrapper tests across the FR-890,
+FR-896, FR-926 and FR-1005 suites cannot run on this Windows host
+(`subprocess.run(["bash", …])` resolves to the WSL stub, FR-953); they run
+in CI. `pre-commit` hooks are not installed here; the gates were run by
+hand (`ruff`, `size_gate`, `req_coverage --strict`, `validate_capabilities`,
+`aggregate_capabilities`, `check_changelog_req --strict --skip-llm`,
+route suites 84 passing).
+
+**Observed, not acted on (out of frozen scope):** `research_tools.py` is
+now 830 lines, over the repository's module-size standard, though outside
+the size gate's scan roots; a split FR is owed. Two personas in run 5 wrote
+a paragraph into the `persona` cell, which the canonical key line makes
+harmless but which the FR-896 brevity contract did not anticipate. The
+temperature-0 `on_error: retry` on persona nodes is a witnessed no-op six
+times over; FR-926's deferred retry-with-feedback now has two witnesses
+(diary Seed).

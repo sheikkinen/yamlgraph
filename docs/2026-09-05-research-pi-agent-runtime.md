@@ -272,6 +272,26 @@ did surface, three times, is itself a finding: the yamlgraph-native
 planner's candidate was a vendor-neutral backend abstraction at the
 `copilot_runtime.py` seam, which is option A.
 
+**Run 4, 2026-09-06 (FR-1005 GREEN `d53cae3f`):** the fixed gather died on
+a loader defect the unit tests could not see: the graph's Python tool
+loader execs the module without a `sys.modules` entry, so pydantic could
+not resolve a deferred `Literal` on the new `FailedPersona` record. Fixed
+in `4bc34a82` with a witness that loads the module as the runtime does.
+
+**Run 5, 2026-09-05T21:19:01Z (code `4bc34a82`), verified and stamped:**
+four rows; the fifth persona is accounted for in the header with its
+recorded cause. Stamp: `research-runs.jsonl` line at 2026-09-05T21:19:01Z,
+`brief_sha256 = 03ea8495…`, `artifact_sha256 = 4a3b0a79…`.
+Same Windows CRLF verifier caveat as every record on this host: verify the
+appendix below with `--verify-artifact`, not `--verify-promotion`. Two
+things the record shows that the earlier failed runs hid: two personas
+wrote a paragraph into their `persona` cell (the human-names header line
+is model text; the canonical key line is what to trust, which is exactly
+why FR-1005's judge demanded key-based identity), and the four surviving
+findings converge on the vendor-neutral backend seam this document calls
+option A, with the librarian citing OpenClaw's CLI-backend plugin contract
+as external precedent.
+
 **Route defects to file (one FR, `two_strike_split`):** (1) a persona's
 enum cell carrying its rationale drops the run instead of being split at
 the first delimiter and demoted; (2) a persona's over-length cell drops
@@ -300,3 +320,29 @@ fifth. All three are the FR-990 enum-leak class at a different instrument.
   [DeepWiki](https://deepwiki.com/badlogic/pi-mono).
 - Repo: files named inline; FR-959/960/961 records; `docs/node-type-census-2026-08.md`;
   `docs/research-agentic-sdlc-providers-2026-08-29.md` §4.4.
+
+---
+
+## 11. Promoted research record (run 5, byte-faithful, LF-normalised)
+
+# Draft alternatives
+
+- brief: pi-agent-runtime-brief.md
+- run date: 2026-09-05T21:18:59Z
+- personas executed: os-infra-primitivist, Data-process-planner analyzing vendor-specific backend coupling in governance adapters. The problem is architectural: each backend rediscovery (session id, auth, version, flags, instrumentation) is bespoke, creating 1.5-day FRs and 578-line test suites per vendor., Subtractionist: I reduce scope by retiring vendor-specific runtime seams and moving backend contracts into a vendor-neutral harness layer, eliminating per-CLI pinning, regex fragility, and dual instrumentation., librarian
+- persona keys executed: ["os_infra_finding", "data_process_finding", "subtractionist_finding", "librarian_finding"]
+- personas failed: {"yamlgraph_native_finding": "yamlgraph_native_planner: unknown_error (OutputParserException): Failed to parse YamlgraphNativeFinding from completion {\"persona\": \"yamlgraph-native-planner\", \"candidate\": \"Introduce a vendor-neutral backend abstraction layer as a YAMLGraph extension point. Each backend (Copilot CLI, Claude Code) registers its contract (session recovery, auth probes, flag matrix, stdout parsing) through a common interface. The graph author declares `backend: copilot` or `backend: claude-code` in the node; the runtime dispatches to the registered handler without embedding vendor logic in copilot_runtime.py.\", \"solution_class\": \"boundary-enforcement\", \"verdict\": \"pursue\", \"precedent\": \"FR-767-graph-authoring-sole-route.md, CAP-249 Invocation-time tool-slot binding, constraint_over_code\", \"is_this_a_graph\": \"none: the runtime seam is infrastructure, not a graph shape. The adapters themselves (author, judge, review, outsider) are already graphs; this candidate moves vendor dispatch logic into YAMLGraph's extension-point layer, not into a new graph.\", \"effort_risk\": \"medium/high: requires refactoring copilot_runtime.py into a registry pattern and moving per-backend logic (banner pinning, auth probes, flag matrices, stdout parsing) into separate handler modules. Existing 578 test lines must migrate to handler-scoped tests. Enforcement gate (FR-883 R-4) applies because tool-call gates inside third-party runtimes inherit that gate.\", \"rationale\": \"This isolates vendor-specific contracts from graph execution, making each backend testable independently and allowing new backends (e.g., pi, future providers) to register without modifying core runtime. It honors payer honesty (FR-959) by making the backend choice explicit in the graph, not implicit in environment state or fallback logic.\"}. Got: 1 validation error for YamlgraphNativeFinding candidate String should have at most 400 characters [type=string_too_long, input_value='Introduce a vendor-neutr... in copilot_runtime.py.', input_type=str] For further information visit https://errors.pydantic.dev/2.13/v/string_too_long For troubleshooting, visit: https://docs.langchain.com/oss/python/langchain/errors/OUTPUT_PARSING_FAILURE"}
+
+### Prior art retrieved for this brief (filename-noun, IDF-ranked)
+  FR-767-graph-authoring-sole-route.md  [Implemented]  matches: agent, runtime, brief
+  FR-777-shared-shell-toolbelt-manifests.md  [Enforced]  matches: agent, runtime, brief
+  FR-786-api-discovery-page-analysis-step.md  [Enforced]  matches: agent, runtime, brief
+  FR-787-api-discovery-recon-step.md  [Enforced]  matches: agent, runtime, brief
+  FR-788-api-discovery-platform-confirm-step.md  [Enforced]  matches: agent, runtime, brief
+
+| candidate | persona | class | verdict | precedent | is_this_a_graph | effort-risk | rationale |
+|---|---|---|---|---|---|---|---|
+| Vendor-neutral subprocess contract: define a stable interface (session-id recovery, exit semantics, stdout/stderr parsing, auth-probe count, env-var scrubbing) that each backend implements once, decoupling adapter logic from CLI-specific regex, banner-pinning, and flag matrices. | os-infra-primitivist | boundary-enforcement (convergent x2) | pursue | FR-959, CAP-03, constraint_over_code, name_the_seam | no | medium; requires one interface spec and per-backend adapter refactor, but eliminates 578-line test debt and vendor-release churn. | The platform already enforces process boundaries; codifying the subprocess contract once (not per-vendor) moves enforcement from linter matrices and regex seams into the OS process model itself. This eliminates the 1.5-day FR cost per new backend and the banner-pinning brittleness. |
+| Unify backend contracts into a vendor-neutral adapter interface that each backend implements, moving session recovery, auth probes, version pinning, and instrumentation into a common harness layer. | Data-process-planner analyzing vendor-specific backend coupling in governance adapters. The problem is architectural: each backend rediscovery (session id, auth, version, flags, instrumentation) is bespoke, creating 1.5-day FRs and 578-line test suites per vendor. | process-boundary | pursue | FR-767-graph-authoring-sole-route.md, CAP-05 Tool & Agent Integration, constraint_over_code, name_the_seam | No. The runtime seam belongs in a vendor-neutral harness extension layer, not in yamlgraph code. Each backend becomes a pluggable implementation of a shared interface. | Medium effort, low risk. Refactoring existing backends into a common contract is mechanical; the output shape is unchanged. Risk is low because the adapters' uncommitted-file contract and session-resume requirement are already enforced. | The problem dissolves by dissolving the seam, not guarding it. A vendor-neutral harness eliminates per-backend linter matrices, hook registration ports, and instrumentation parsers. Each vendor CLI change then affects only its backend implementation, not the governance pipeline. |
+| Delete the per-backend flag matrix, banner pinning, and vendor-specific stdout parsing. Move session-id recovery, auth probes, and transcript normalization into a single vendor-neutral adapter interface that each CLI backend implements once, not scattered across copilot_runtime.py, hooks, and instrumentation scripts. | Subtractionist: I reduce scope by retiring vendor-specific runtime seams and moving backend contracts into a vendor-neutral harness layer, eliminating per-CLI pinning, regex fragility, and dual instrumentation. | boundary-enforcement (convergent x2) | pursue | FR-767-graph-authoring-sole-route.md, CAP-05 Tool & Agent Integration, constraint_over_code, name_the_seam | Yes. The adapters are already graphs; the runtime seam belongs in a vendor-neutral harness extension layer, not duplicated in yamlgraph code per vendor. | Medium effort, low risk. Consolidates 578 test lines and 298 runtime lines into one contract; eliminates banner pinning and regex brittleness. Requires one FR naming zero consumers of old per-backend paths (FR-466 CAP lifecycle). | Each vendor release currently forces a repo change; dual instrumentation and per-backend linter matrices are maintenance debt. A single adapter interface with pluggable backends reduces incident density (0.043 per use) and aligns with FR-959 payer honesty by centralizing auth and session-id recovery. |
+| OpenClaw's CLI backend plugin architecture provides vendor-neutral session resumption, version pinning, and per-backend fresh/resume profiles with transcript verification before resume. | librarian | external-method | pursue | https://docs.openclaw.ai/gateway/cli-backends | Yes. OpenClaw's CLI backends are graph-shaped: each backend plugin owns separate fresh/resume profiles, the watchdog remains active across state transitions, and session binding is verified against a readable project transcript before resume. | Medium. OpenClaw's plugin contract is proven but requires mapping your adapter interface (session id, exit code, JSONL parsing) to their CliBackendConfig schema and transcript verification model. | OpenClaw solves the exact problem: multiple vendor CLIs with different contracts, version pinning per backend, session resumption with transcript verification, and enforcement infrastructure that fails closed on missing auth or version mismatch. Their plugin architecture avoids the 1.5-day FR cost you paid per backend. |
