@@ -180,6 +180,8 @@ Route: `scripts/review.sh 599 feature-requests/FR-998-…md` (Copilot backend, `
 - **P2** — the predicate accepted `output_config.format.schema: JSON Schema keyword oneOf is unsupported` (capability token + unsupported token co-occur). Fixed by requiring the message to blame the model and rejecting schema-pointer wording; the unsupported-keyword shape is a negative witness.
 - Reviewer's validations: 117 + 116 focused tests passed, ruff, `req_coverage --strict` 420/420, `lint-imports` 3 kept, capability/dependency/direct-import validators passed, `git diff --check` clean.
 
+**Round 3** on head `090a384f`: **Merge-approved** — no blocking findings; one non-blocking note (PR body said five commits, GitHub has eight) fixed in the description. CI green on the same head (3.11, 3.13, core-test, windows-encoding, security, convention gates). Review output is advisory until the human merge decision.
+
 **Outsider view** (`scripts/outsider.sh 599`, FR-995): run 1 on the original description derived **NO** (6 unglossed terms: FR-998, PR #596, the FR-464/678/679/449 suites, five-whys, agent finalisation tiers, race node; 5 needs: test commands, dependency-floor compatibility, full CI status, cost/latency, stacking order). The description was rewritten to gloss every term and answer every need; run 2 derived **YES** (0 unclear, 4 remaining needs that are reviewer actions, not description gaps). Both rows in `docs/census/outsider-ledger.jsonl`; the launcher's `python3` fallback on this host is the Windows Store stub, so run 1's ledger row was appended by hand with the same tool functions after validating the report.
 
 ## Deferred — Alternative B: repair at the schema boundary (not in this FR)
