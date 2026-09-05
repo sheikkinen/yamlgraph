@@ -31,7 +31,10 @@ from yamlgraph.utils.content import normalize_content
 from yamlgraph.utils.expressions import resolve_node_variables
 from yamlgraph.utils.json_extract import extract_json
 from yamlgraph.utils.llm_factory import create_llm
-from yamlgraph.utils.structured_output import ainvoke_structured
+from yamlgraph.utils.structured_output import (
+    ainvoke_structured,
+    is_second_attempt_error,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -152,6 +155,8 @@ async def _invoke_candidate_async(
                 )
                 return candidate, result
             except Exception as struct_err:
+                if is_second_attempt_error(struct_err):
+                    raise  # FR-998 C-3: the one second attempt already happened
                 if "response_format" in str(struct_err):
                     logger.info(
                         "Structured output rejected in race candidate %s/%s, "

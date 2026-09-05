@@ -1296,7 +1296,7 @@ These are E402 suppressions and are acceptable as "glue code" patterns.
 - **Penance**: Retained intentionally for domain semantics or existing contract wording; explicitly allowlisted and audited.
 
 ### CONF-304
-- **File**: [yamlgraph/tools/agent.py](../yamlgraph/tools/agent.py#L64)
+- **File**: [yamlgraph/tools/agent.py](../yamlgraph/tools/agent.py#L68)
 - **Code**: FB001
 - **Sin**: Docstring of `_try_structured_output` contains `fallback` — describes the try-parse-first, fallback-to-LLM strategy (FR-448).
 - **Penance**: The word describes the actual algorithmic pattern. Renaming would obscure intent.
@@ -1351,13 +1351,13 @@ These are not `# noqa` suppressions — they are documented deviations from proc
 - **Penance**: Consistent with CONF-247..256 pattern across test_fr637..654 files. Test-only utility.
 
 ### CONF-350
-- **File**: [yamlgraph/tools/agent.py](../yamlgraph/tools/agent.py#L73)
+- **File**: [yamlgraph/tools/agent.py](../yamlgraph/tools/agent.py#L77)
 - **Code**: FB001
 - **Sin**: Comment uses `fallback` token describing a legitimate fallback trigger condition.
 - **Penance**: Documents the structured-output mismatch recovery path. Renaming would obscure intent.
 
 ### CONF-351
-- **File**: [yamlgraph/executor_base.py](../yamlgraph/executor_base.py#L381)
+- **File**: [yamlgraph/executor_base.py](../yamlgraph/executor_base.py#L384)
 - **Code**: FB001
 - **Sin**: Docstring of `_invoke_llm_once` contains `fallback` — describes the FR-464 structured-output fallback strategy.
 - **Penance**: Documents the retry-then-parse pattern. Renaming would obscure intent.

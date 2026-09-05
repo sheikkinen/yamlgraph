@@ -13,7 +13,10 @@ from yamlgraph.config import DEFAULT_TEMPERATURE
 from yamlgraph.utils.content import normalize_content
 from yamlgraph.utils.json_extract import extract_json
 from yamlgraph.utils.prompts import load_prompt
-from yamlgraph.utils.structured_output import invoke_structured
+from yamlgraph.utils.structured_output import (
+    invoke_structured,
+    is_second_attempt_error,
+)
 from yamlgraph.utils.template import validate_variables
 
 logger = logging.getLogger(__name__)
@@ -401,6 +404,8 @@ def attempt_structured_invoke(llm, messages, output_model):
         try:
             return invoke_structured(llm, output_model, messages)
         except Exception as struct_err:
+            if is_second_attempt_error(struct_err):
+                raise  # FR-998 C-3: the one second attempt already happened
             if "response_format" in str(struct_err):
                 logger.info(
                     "Structured output rejected, falling back to JSON extraction (FR-464)"

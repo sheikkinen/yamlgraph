@@ -355,12 +355,14 @@ def dispatch_provider(
 
 # --- Provider identity and capability classification (FR-998) ---
 
-# Anthropic's wording when a model lacks a capability. Both a capability term
-# and an unsupported term must appear in the *structured* error message; a 400
-# that names ``output_config`` for another reason (an invalid schema inside
-# it) is not a capability gap and must propagate.
+# Anthropic's wording when a *model* lacks a capability. The structured error
+# message must name the capability, say it is unsupported, and blame the model;
+# a 400 that points into the schema (``output_config.format.schema``, "JSON
+# Schema keyword ... unsupported") is a schema defect, not a capability gap,
+# and must propagate (review #599 P2).
 _CAPABILITY_TERMS = ("output_config", "structured output")
 _UNSUPPORTED_TERMS = ("not support", "unsupported", "not available", "unavailable")
+_SCHEMA_DEFECT_TERMS = (".schema", "json schema", "keyword", "invalid schema")
 
 
 def is_anthropic_chat_model(llm: object) -> bool:
@@ -395,7 +397,8 @@ def is_anthropic_unsupported_structured_output(llm: object, err: BaseException) 
     All four must hold: (1) *llm* is an Anthropic chat model; (2) *err* is
     Anthropic's typed ``BadRequestError``; (3) its status is HTTP 400; (4) the
     structured error body — not ``str(err)`` — says ``output_config`` /
-    structured output is unsupported for the model. A Pydantic
+    structured output is unsupported *for the model* and does not point into
+    the schema. A Pydantic
     ``ValidationError``, auth, permission, rate-limit, timeout, network and
     server errors, an unrelated 400, and binding errors all answer False and
     propagate to the caller unchanged.
@@ -407,6 +410,10 @@ def is_anthropic_unsupported_structured_output(llm: object, err: BaseException) 
     if not isinstance(err, BadRequestError) or err.status_code != 400:
         return False
     message = _structured_error_message(err).lower()
-    return any(term in message for term in _CAPABILITY_TERMS) and any(
-        term in message for term in _UNSUPPORTED_TERMS
+    if any(term in message for term in _SCHEMA_DEFECT_TERMS):
+        return False
+    return (
+        "model" in message
+        and any(term in message for term in _CAPABILITY_TERMS)
+        and any(term in message for term in _UNSUPPORTED_TERMS)
     )

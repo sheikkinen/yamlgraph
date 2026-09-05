@@ -51,6 +51,24 @@ def _model_name(llm: Any) -> str:
     return str(getattr(llm, "model", type(llm).__name__))
 
 
+_SECOND_ATTEMPT_MARK = "_fr998_second_attempt"
+
+
+def is_second_attempt_error(err: BaseException) -> bool:
+    """True when *err* was raised by the policy's forced-tool-call second attempt.
+
+    Callers keep their own recovery tiers for a *primary* rejection (FR-456,
+    FR-464, FR-809) but must re-raise a second-attempt error untouched: the
+    unsupported-model retry is exactly one attempt (FR-998 C-3). The mark is an
+    attribute on the same exception object, so type and identity are unchanged.
+    """
+    return getattr(err, _SECOND_ATTEMPT_MARK, False) is True
+
+
+def _mark_second_attempt(err: BaseException) -> None:
+    setattr(err, _SECOND_ATTEMPT_MARK, True)
+
+
 def _second_attempt_earned(llm: Any, err: BaseException) -> bool:
     """Classify *err* at the provider boundary; log once when it qualifies."""
     if not is_anthropic_unsupported_structured_output(llm, err):
@@ -73,9 +91,13 @@ def invoke_structured(
     except Exception as err:
         if not _second_attempt_earned(llm, err):
             raise
-        return bind_structured_output(
-            llm, output_model, method=FORCED_TOOL_CALL_METHOD
-        ).invoke(messages, **call)
+        try:
+            return bind_structured_output(
+                llm, output_model, method=FORCED_TOOL_CALL_METHOD
+            ).invoke(messages, **call)
+        except Exception as second_err:
+            _mark_second_attempt(second_err)
+            raise
 
 
 async def ainvoke_structured(
@@ -100,6 +122,10 @@ async def ainvoke_structured(
             raise
         if second_attempt_config is not None:
             call = {"config": second_attempt_config()}
-        return await bind_structured_output(
-            llm, output_model, method=FORCED_TOOL_CALL_METHOD
-        ).ainvoke(messages, **call)
+        try:
+            return await bind_structured_output(
+                llm, output_model, method=FORCED_TOOL_CALL_METHOD
+            ).ainvoke(messages, **call)
+        except Exception as second_err:
+            _mark_second_attempt(second_err)
+            raise

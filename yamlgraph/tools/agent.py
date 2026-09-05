@@ -32,6 +32,7 @@ from yamlgraph.utils.prompts import load_prompt
 from yamlgraph.utils.structured_output import (
     bind_structured_output,
     invoke_structured,
+    is_second_attempt_error,
 )
 
 logger = logging.getLogger(__name__)
@@ -98,6 +99,8 @@ def _try_structured_output(
         # for an Anthropic model that rejects constrained decoding.
         return invoke_structured(llm_base, output_model, retry_msgs).model_dump()
     except Exception as reinvoke_err:
+        if is_second_attempt_error(reinvoke_err):
+            raise  # FR-998 C-3: the one second attempt already happened
         err_str = str(reinvoke_err)
         # FR-458: OpenAI strict mode rejects schemas without additionalProperties
         # FR-809: DeepSeek rejects response_format outright ("This
