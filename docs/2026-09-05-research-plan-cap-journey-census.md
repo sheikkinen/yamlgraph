@@ -1,7 +1,10 @@
 # Research plan — CAP journey census (keep / retire / extend, blast, value)
 
 **Date:** 2026-09-05
-**Status:** research plan, pre-FR. No authority granted by this document.
+**Status:** research plan → pilot executed 2026-09-05 (§10). Instrument and
+raw rows on PR #591 / [FR-990](../feature-requests/FR-990-cap-journey-census.md).
+No authority granted by this document; §1–§9 are left as written before the
+data existed, with supersession notes where the pilot changed the design.
 **Origin:** operator session 2026-09-04/05 — "what's the edge?" → "plan-judge
 loop is deteriorating; inventing things to implement" → "asking for customer
 journeys using the cap/reg — a real issue with split FRs that tend to be
@@ -89,6 +92,11 @@ mentioning it.
 The model sees one CAP per call. It never sees another CAP's row, the journey
 matrix, or the prior node census — input closure per item.
 
+> **Superseded by §10.3:** `extend` is no longer a model disposition; it is
+> derived in the reducer from a journey → wedge map. `value` gained a third
+> outcome, `value_generic`. The journey catalog must be passed with its
+> definitions, not bare ids.
+
 ## 4. Journey catalog — draft for veto
 
 Evidence-derived from README reading order, `examples/` (five production-shaped:
@@ -128,6 +136,10 @@ Hidden from the model; reducer fails the run if any canary misses on
 
 Canary rows are labelled by the operator's veto, not only by the author of this
 plan — the author's labels are primed by the session that produced it.
+
+> **Superseded by §10.4:** C1, C4, C5, C6 were corrected after the pilot; the
+> live canary file with inline reasons is
+> `examples/demos/cap_journey_census/canaries.yaml`.
 
 ## 6. Method
 
@@ -193,3 +205,134 @@ Not an FR; grants no authority; freezes no scope. It records the questions,
 the catalog draft, the canaries, and the understanding they rest on, so that
 the FR that follows can be judged against something written before the data
 existed.
+
+## 10. Pilot record (2026-09-05)
+
+### 10.1 How the instrument works as built
+
+`examples/demos/cap_journey_census/` — five stages, one graph:
+
+1. **discover** (`extract.py:cap_discover`, python): `capabilities/CAP-*.yaml`,
+   selectable by filename regex or explicit `ids=` list. Returns paths.
+2. **extract** (`extract.py:cap_extract`, python, map over items): one JSON
+   evidence bundle per CAP — the CAP yaml text, the creating FR's first 40
+   lines, and **mechanical facts computed before any model call** with
+   `git grep` over code-ish files only (`*.py *.yaml *.sh *.toml *.json` under
+   `examples graphs scripts .github .chaplain yamlgraph`, excluding logs,
+   `.chaplain/done|demos|failed`, proofs, fixtures, the CAP's own file, the
+   census itself, and the CAP's own example directory): `consumers_by_id`
+   (hits on the CAP/FR id), `consumers_by_module` (hits on import-precise
+   needles — dotted `yamlgraph.x.y` for package modules, `type: <node>` for
+   node-type modules, bare token for legacy names, stop-listed common words),
+   `doc_mentions`, `incident_files` and `diary_mentions` (docs/diary +
+   feature-requests, own FR excluded), `test_files_tagged` (files carrying its
+   REQ ids), `req_ids`.
+3. **judge** (`prompts/judge_cap.yaml`, llm, map over bundles, haiku, T=0,
+   `on_error: skip`): one CAP per call, sees the bundle and the catalog ids,
+   returns `CapJourneyFinding`: `journeys[1..3]`, `blast_kind`, `disposition`
+   (`keep|retire|already_retired`), `consumer_cited`, `value_for_whom|pain|
+   versus`, `evidence_span`, `abstained`. Authored via `scripts/author.sh`
+   (brief: `feature-requests/authoring-briefs/cap-journey-census-brief.md`,
+   two revisions).
+4. **reduce** (`tools.py:reduce_cap_ledger`, python, LLM-free): per row —
+   catalog check (off-catalog preserved; a blast-kind value leaking into
+   journeys demoted, not dropped); enum checks (fatal → `row_failed` with raw
+   finding kept); **anchors that demote to `contested`, never drop**: `keep`
+   needs `consumer_cited` ∈ mechanical lists; `retire` needs mechanical
+   consumers = 0; `already_retired` ↔ CAP `status: retired` both ways;
+   `author_graph` on an `example_only` CAP is a junk-drawer hit; `extend_to`
+   derived from `journeys.yaml` `wedges`; `value_status` ∈ {`stated`,
+   `value_generic` ("manual X / nothing" filler), `value_unstated`};
+   `evidence_span` must match the CAP yaml or FR head after whitespace
+   squashing, with the match kind recorded (`exact | prefix | ngram`).
+   Structural impossibilities (missing/duplicate indices) stay batch-fatal.
+5. **render + gate** (`render.py`): journey × CAP matrix, disposition table,
+   value table, per-journey mermaid blast from mechanical module hits, failed
+   rows. Artifacts (`.md`, `.jsonl`, `.run.json` with git SHA) are written
+   **before** the hidden-canary gate raises, so raw rows are always readable.
+
+Invocation (pilot):
+
+```bash
+PYTHONPATH=$PWD yamlgraph graph run examples/demos/cap_journey_census/graph.yaml \
+  --var source="capabilities:ids=CAP-131,CAP-81,..." --var provider=anthropic --var model=claude-haiku-4-5 \
+  --var journey_ids="author_graph,run_operate,..." \
+  --var journeys_path=examples/demos/cap_journey_census/journeys.yaml \
+  --var canaries_path=examples/demos/cap_journey_census/canaries.yaml \
+  --var output_path=tmp/cap-census/pilot.md --full
+```
+
+### 10.2 Results — three runs, 30 CAPs (6 canaries + 24 seeded-random)
+
+Raw rows committed: [docs/census/cap-journey-pilot-2026-09-05.jsonl](census/cap-journey-pilot-2026-09-05.jsonl)
+(run 3). Every row of every run was read before any number below was written.
+
+| run | judged | row_failed | canary misses | what the read showed |
+|---|---:|---:|---:|---|
+| 1 | 25/30 | 5 | 5 | `example_only` (a blast-kind value) placed in `journeys` on 2 rows; evidence spans failed on YAML folded scalars (newline vs space) and on one paraphrase; CAP-11 cited `node_compiler.py` not a census graph — the module needles did not include `type: map`. |
+| 2 | 28/30 | 2 | 7 | **Every example CAP was `keep`: its own directory was its consumer.** `author_graph` held 8/28 rows, 7 of them examples (ICPC-2, novel_fandom ×2, api-discovery, image pipeline, fi_domain_crawl). `value` was `stated` 28/28; `versus` was "manual X" on ~60% of rows. `extend` never chosen — the model has no access to the business ranking. |
+| 3 | 30/30 | 0 | 5 | After code fixes + one prompt revision: shape anchors clean. `author_graph` **moved** from examples to process/tooling CAPs (CAP-108, -84, -153, -209) — relocated, not removed. CAP-203 answered `off_catalog:clinical_encounter_coding` (bare ids; never saw that `census_classify` covers coding). Three invented consumer citations caught → `contested`. Two `retire` candidates surfaced (CAP-184; CAP-78 contested by two `.chaplain` log hits). `value_generic` 10/30. Journeys unstable at T=0 for cross-cutting runtime CAPs (CAP-131 `run_operate`→`serve_embed`; CAP-11 `run_operate`→`author_graph`). |
+
+Canary scorecard, run 3: C2 (already_retired) ✓, C3 (none_internal) ✓;
+C1 journey drift, C4 off-catalog, C5 consumer cited a real committed graph
+(`examples/demos/map/graph.yaml`) but not a census one, C6 `author_graph`.
+All remaining misses are on the **journey** column; disposition, consumer,
+evidence and retirement anchors held.
+
+Exit criterion (§8) fired: canaries still miss after one rubric revision →
+no further prompt work; no full run on an unstable column.
+
+### 10.3 Deviations from §3–§6, with reasons
+
+- `extend` removed from the model's vocabulary. An input-closed CAP bundle
+  cannot see the business ranking; asking for it produced nothing in 60 rows.
+  Now derived in code: `journeys.yaml: wedges` maps `census_classify →
+  codingproof_callcensus`, `audit_comply → auditpack`, `govern_process →
+  portable_spine`.
+- `value` gained `value_generic` (regex on `manual|no|none|nothing|without`).
+  A column that is always `stated` is never checked. The value column is
+  context for a human read, not a ranking input.
+- Tolerant evidence matching with the kind recorded per row — the plan's
+  "verbatim substring" failed on formatting before it failed on honesty.
+- Own-example-directory exclusion in `extract.py`: the `builders_never_call`
+  question is "does anything *outside* use it". Self-consumption satisfied the
+  original anchor on every example.
+- Model-tier: haiku for all three runs; mercury not tried — the rubric is not
+  stable enough for the enum-only pass yet.
+
+### 10.4 What the pilot changed in the canaries
+
+C1 accepts the run/integrate/serve family (cross-cutting CAP, no single
+journey) and the prompt-caching demo as a legitimate id consumer. C4 and C6
+expect `keep` with a **derived** wedge instead of a model `extend`. C5's
+substance is "a graph outside its own tree uses it", not a specific census
+name. Reasons are inline in `canaries.yaml`.
+
+### 10.5 Findings that are about the repo, not the census
+
+- Two genuine retirement candidates in a random 24: CAP-184 (novel_fandom
+  duplicate-entity guard, 0 external consumers) and CAP-78 (fi_domain_crawl
+  demo; only `.chaplain` demo-log hits). Extrapolated, the 242 likely hold
+  10–20 — FR-466 material, each with its own FR.
+- CAP-81 (retired A2A) is still "consumed" by a comment in
+  `yamlgraph/discovery.py`. Mention ≠ call; the substance check (FR-990 AC-5)
+  is what turns the mechanical list into evidence.
+- `none_internal` + `govern_process` = 8/30 in run 3 (27%); the §4 claim
+  (> 1/3) is not yet supported at N=30.
+
+### 10.6 Next (FR-990 Proposed Solution 1–5, all code or inputs)
+
+1. Pass catalog **definitions** (`id: who`) to the model — a closed catalog is
+   a rubric with inclusion terms, not a list of names.
+2. Code cap for `author_graph`: allowed only for authoring tooling by blast
+   kind and module path; otherwise `contested`.
+3. `core_runtime` rows recorded but excluded from the journey matrix as
+   `cross_cutting` (category error observed).
+4. Consumer hit-kind (`import | call | graph_ref | mention`); `keep` needs a
+   non-mention hit.
+5. Own-directory exclusion for module spellings without the `examples/`
+   prefix (CAP-226/232/233 still cited their own steps).
+
+Then re-pilot the same 30 (rows are committed for diff), then the 242.
+
+Companion diary: [the-junk-drawer-moved-when-i-reworded-it](diary/diary-2026-09-05-the-junk-drawer-moved-when-i-reworded-it.md).
