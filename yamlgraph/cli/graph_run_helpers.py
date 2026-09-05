@@ -142,6 +142,13 @@ def _build_run_config(args: Namespace, graph_config, initial_state: dict) -> tup
         recursion_limit = graph_config.recursion_limit
     config["recursion_limit"] = recursion_limit
 
+    # FR-984: CLI over YAML; no key at all when neither supplies one
+    max_concurrency = getattr(args, "max_concurrency", None)
+    if max_concurrency is None:
+        max_concurrency = getattr(graph_config, "max_concurrency", None)
+    if max_concurrency is not None:
+        config["max_concurrency"] = max_concurrency
+
     timeout = getattr(args, "timeout", None)
     if timeout is None:
         timeout = graph_config.timeout

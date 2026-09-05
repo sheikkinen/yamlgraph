@@ -21,6 +21,14 @@ __all__ = [
 ]
 
 
+def _positive_int(text: str) -> int:
+    """argparse type: reject 0 and negatives before any graph is invoked."""
+    value = int(text)
+    if value < 1:
+        raise argparse.ArgumentTypeError(f"expected a positive integer, got {text}")
+    return value
+
+
 def create_parser() -> argparse.ArgumentParser:
     """Create and configure the CLI argument parser.
 
@@ -101,6 +109,16 @@ def create_parser() -> argparse.ArgumentParser:
         default=None,
         dest="recursion_limit",
         help="Override LangGraph recursion limit (default: from YAML config or 50)",
+    )
+    graph_run_parser.add_argument(
+        "--max-concurrency",
+        type=_positive_int,
+        default=None,
+        dest="max_concurrency",
+        help=(
+            "Cap parallel map branches for the whole run (LangGraph "
+            "max_concurrency); overrides config.max_concurrency in the YAML"
+        ),
     )
     graph_run_parser.add_argument(
         "--timeout",

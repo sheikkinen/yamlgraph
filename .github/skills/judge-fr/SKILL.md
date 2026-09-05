@@ -31,13 +31,17 @@ until human-reviewed (NC-412 C-6).
 ## Invocation surfaces
 
 **One judge to rule them all:** the YAMLGraph adapter is the ONLY
-permitted execution route.
+permitted execution route. Since FR-960 the adapter graph carries two
+backend nodes — Copilot CLI (default) and Claude Code
+(`JUDGE_BACKEND=claude`) — selected inside the one graph by a
+state-conditioned edge; two brains, still one route.
 
 1. **YAMLGraph adapter (SOLE ROUTE)** — invoke via the operator
    wrapper `scripts/judge.sh <fr-path>` (csap NC-415: OS lock +
    lineage sentinel; the wrapper only launches — the graph judges);
    details in `adapters/README.md`. Output is a draft in
-   `tmp/draft-judgement.md`, advisory until human-reviewed.
+   `tmp/draft-judgement-<backend>-<fr-slug>.md`, advisory until
+   human-reviewed.
 
 Forbidden routes:
 
