@@ -145,7 +145,9 @@ def test_wrapper_surfaces_enriched_failure_text(tmp_path):
         "String should have at most 400 characters"
     )
     stub = tmp_path / "yg"
-    stub.write_text(f'#!/usr/bin/env bash\nprintf "{enriched}\\n" >&2\nexit 1\n', encoding="utf-8")
+    stub.write_text(
+        f'#!/usr/bin/env bash\nprintf "{enriched}\\n" >&2\nexit 1\n', encoding="utf-8"
+    )
     stub.chmod(stub.stat().st_mode | stat.S_IXUSR)
 
     env = {
@@ -171,3 +173,100 @@ def test_wrapper_surfaces_enriched_failure_text(tmp_path):
     assert "validation_error (ValidationError)" in operator_output
     assert "String should have at most 400 characters" in operator_output
     assert "contract violated" in result.stderr
+
+
+# --- FR-1005 replacements (AC-11): the same fields, at the new location -------
+# The FR-926 witnesses above use the fictional node ``yamlgraph_native_persona``,
+# which is not in ``PERSONA_NODES``; by FR-1005 R-1 they therefore stay on the
+# fatal path unchanged. The real node's failure is contained, and these show
+# the recorded fields survive into the typed record and the artifact header.
+
+REAL_NODE = "yamlgraph_native_planner"
+CLEAN_BRIEF_FR1005 = REPO_ROOT / "tests" / "fixtures" / "fr890" / "clean-brief.md"
+OPA_URL_FR1005 = "https://www.openpolicyagent.org/"
+
+
+def _real_recorded_error() -> PipelineError:
+    return PipelineError(
+        type=ErrorType.VALIDATION_ERROR,
+        message=VALIDATION_MESSAGE,
+        node=REAL_NODE,
+        details={"exception_type": "ValidationError"},
+    )
+
+
+def _row(persona: str, **overrides) -> dict:
+    base = {
+        "persona": persona,
+        "candidate": f"{persona} candidate",
+        "solution_class": "os-permissions",
+        "verdict": "pursue",
+        "rationale": "kernel enforcement beats instruction text",
+        "precedent": "chmod a-w precedent in FR-889",
+        "is_this_a_graph": "no",
+        "effort_risk": "low/low",
+    }
+    base.update(overrides)
+    return base
+
+
+@pytest.mark.req("REQ-YG-665")
+def test_real_node_cause_survives_into_the_typed_record(tools):
+    """FR-926 AC-01 fields, now carried by the contained record (FR-1005)."""
+    state = _state_missing_one(tools, errors=[_real_recorded_error()])
+
+    record = tools.FailedPersona.model_validate(
+        tools.gather_findings(state)["findings"][2]
+    )
+
+    assert record.state_key == "yamlgraph_native_finding"
+    for fragment in (
+        REAL_NODE,
+        "validation_error",
+        "ValidationError",
+        "String should have at most 400 characters",
+    ):
+        assert fragment in record.cause
+
+
+@pytest.mark.req("REQ-YG-665")
+def test_real_node_dict_error_survives_into_the_artifact(tools, tmp_path):
+    """FR-926 AC-03 dict compatibility, carried through to the header."""
+    state = _state_missing_one(
+        tools,
+        errors=[
+            "boom",
+            {
+                "node": REAL_NODE,
+                "type": "validation_error",
+                "message": "rate of overflow: candidate 471 chars",
+                "details": {"exception_type": "OutputParserException"},
+            },
+        ],
+    )
+    findings = tools.gather_findings(state)["findings"]
+    for index, key in enumerate(tools.PERSONA_KEYS):
+        if key != "yamlgraph_native_finding":
+            findings[index] = _row(
+                "librarian" if key == "librarian_finding" else key,
+                precedent=f"OPA conftest {OPA_URL_FR1005}"
+                if key == "librarian_finding"
+                else "chmod a-w precedent in FR-889",
+            )
+
+    tools.reduce_findings(
+        findings,
+        str(CLEAN_BRIEF_FR1005),
+        base_dir=str(tmp_path),
+        librarian_tool_results=[{"tool": "search_web", "output": OPA_URL_FR1005}],
+        repo_root=str(REPO_ROOT),
+    )
+
+    text = (tmp_path / "tmp" / "draft-alternatives.md").read_text(encoding="utf-8")
+    failed_line = next(
+        ln for ln in text.splitlines() if ln.startswith("- personas failed:")
+    )
+    assert REAL_NODE in failed_line
+    assert "OutputParserException" in failed_line
+    assert "candidate 471 chars" in failed_line
+    assert "boom" not in failed_line
