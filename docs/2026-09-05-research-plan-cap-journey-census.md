@@ -578,3 +578,50 @@ Consequences:
   (local only), and data handling; add the reducer tests (AC-7) or state
   plainly that the PR ships untested reducer code and why that is acceptable
   for a research instrument.
+
+### 12.7 Round 2 — PR #591 rewritten, outsider prompt v2 (2026-09-05)
+
+**PR #591 adjusted** from the §12.6 list: title in plain words; body = the
+§11 account **plus** pointers (reading order, run command, cost estimate,
+local-only, data handling) **plus** a "what is NOT in this PR — stated, not
+hidden" section (no reducer tests; no 242 run; no mercury comparison; nothing
+retired). Runs 1–2 raw rows committed alongside run 3. After the v2 read, the
+five phrases it still could not follow were glossed inline (the authoring
+route, *Raw Output Read*, the five remaining fixes spelled out).
+
+**Outsider prompt v2** (the one revision): §3 is comprehension only — at most
+eight items, project-coined terms / bare identifiers / references to
+discussions the reader was not in; ordinary English and standard vocabulary
+excluded; "would want evidence for" moved out. §4 becomes a merge-needs
+checklist (≤ 10) that must skip anything the text already states. Section
+headings otherwise unchanged. Expectations for the new canary C (the
+rewritten body) written before the run.
+
+| | A old body | B plain account | C rewritten body |
+|---|---|---|---|
+| §1 restatement | still hedged ("instruments and pilots an FR-990 CAP journey census…") | correct | correct, includes the two removal candidates and the unreliable classification |
+| §2 | **YES — false** | NO, right reason (no pointers, no tests) | YES ✓ |
+| §3 items (cap 8) | 8, all real shorthand | 6 — all *self-referential team context* in the approved text ("the business plan", "the fast, cheap one we had agreed to try", "template I copied", "rulebook") | 5, all genuinely project-specific; glossed in body v3 |
+| §4 bullets | 6 | 10 legitimate pointer needs | 7, none of the items the body states |
+
+Conclusions:
+
+- **§3 now separates on content, and the count stays informative under the
+  cap** (8 / 6 / 5). v1's 33 / 41 were an artefact of "be exhaustive".
+- **§2 cannot be trusted from the model.** The v2 YES-rule was written to
+  stop false NOs on good descriptions and produced a false YES on the old
+  body — "30/30" and a wildcard path satisfied "found" and "where to look".
+  Derive §2 in code: YES iff §3 ≤ 2 and §1 carries no hedge marker ("does
+  not say", "something called", "not stated"). The restatement is the
+  primary signal; the verdict is a function of it.
+- **B's §3 is a genuine catch.** The operator-approved plain account assumes
+  team context in four places. Plain language is not the same as
+  self-contained language.
+- C confirms the shape a PR body needs: explanation + pointers + stated
+  omissions. The outsider's remaining seven §4 items are what a reviewer
+  with the files should answer (sample selection, canary leakage, schema,
+  versions, credentials, dependency changes, acceptance criterion for an
+  advisory instrument) — the handoff list from §12.6.
+- Ready for the FR: three lists (comprehension → outsider score;
+  merge-needs → reviewer partitions; §2 derived), `gpt-5.6-sol`, clean-cwd
+  wrapper, first consumer #591 (done by hand here), second target FR bodies.
