@@ -117,7 +117,7 @@ def _import_roots_from_script(script_path: Path) -> set[str]:
     return roots
 
 
-@pytest.mark.req("REQ-YG-263")
+@pytest.mark.req("REQ-YG-667")
 class TestFR335ModuleMapCompression:
     """AC-01..AC-05 contract for compressed module-map output."""
 

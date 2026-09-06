@@ -21,7 +21,7 @@ def _module_map_text() -> str:
     return MODULE_MAP_PATH.read_text(encoding="utf-8")
 
 
-@pytest.mark.req("REQ-YG-263")
+@pytest.mark.req("REQ-YG-667")
 class TestFR331StaticModuleMapTier2Context:
     """AC-01..AC-06 contract for static module-map generation."""
 
