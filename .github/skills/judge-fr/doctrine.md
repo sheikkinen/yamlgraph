@@ -132,5 +132,5 @@ Write `<fr-path-without-.md>.judgement.md` following the adjacent
   committed alongside the FR (see FR-723 for shape precedent).
 - Verdict vocabulary note: chaplain-era prompts used APPROVE/AMEND;
   this doctrine's APPROVED / APPROVED WITH REVISIONS supersedes them.
-- Chaplain runtime (`.chaplain/`) is the historical origin of this
-  doctrine (FR-084→257→305); the runtime is NOT part of this skill.
+- The retired Chaplain runtime is the historical origin of this
+  doctrine (FR-084→257→305; archived: `docs/archive/chaplain.md`).
