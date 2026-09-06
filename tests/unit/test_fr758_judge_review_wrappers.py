@@ -239,6 +239,148 @@ def test_review_merge_verdict_not_line_one_exit_65(tmp_path, fr_file):
     assert "LINE ONE" in result.stderr
 
 
+# --- FR-1022 round sentinel (REQ-YG-668) --------------------------------------
+
+SENTINEL_LINE = (
+    "**Verdict:** REJECTED — Operator: Rethink and rewrite the FR. "
+    "It's getting too complicated as a planning document."
+)
+
+
+@pytest.fixture()
+def marker_stub(tmp_path: Path) -> Path:
+    """Executor stub that leaves a marker so its absence proves no run (C-7)."""
+    return _write_stub(
+        tmp_path / "yg-marker",
+        'mkdir -p "$JUDGE_WORKDIR/tmp"\n'
+        'touch "$JUDGE_WORKDIR/tmp/executor-ran"\n'
+        'printf "%s\\n" "**Verdict:** APPROVED" '
+        '> "$JUDGE_WORKDIR/tmp/draft-judgement-copilot-FR-000-fixture.md"',
+    )
+
+
+def _judgement(fr_file: Path, verdicts: int, *, rounds: bool = False) -> Path:
+    path = fr_file.with_suffix(".judgement.md")
+    parts = ["# Judgement: FR-000 fixture\n"]
+    for i in range(verdicts):
+        if rounds and i:
+            parts.append(f"# Round {i + 1}\n")
+        parts.append("**Verdict:** APPROVED WITH REVISIONS — round text\n")
+    path.write_text("".join(parts), encoding="utf-8")
+    return path
+
+
+def _assert_sentinel_untouched(tmp_path: Path, backend: str = "copilot") -> None:
+    assert not (tmp_path / "tmp" / "executor-ran").exists()
+    assert not (tmp_path / "tmp" / ".judge.lock").exists()
+    assert not (
+        tmp_path / "tmp" / f"draft-judgement-{backend}-FR-000-fixture.md"
+    ).exists()
+
+
+@pytest.mark.req("REQ-YG-668")
+def test_judge_round_1_runs_graph(tmp_path, fr_file, marker_stub):
+    result = _run(JUDGE, [str(fr_file)], tmp_path, marker_stub)
+    assert result.returncode == 0
+    assert (tmp_path / "tmp" / "executor-ran").exists()
+    assert "round 1" in result.stderr
+
+
+@pytest.mark.req("REQ-YG-668")
+def test_judge_round_2_runs_graph(tmp_path, fr_file, marker_stub):
+    _judgement(fr_file, 1)
+    result = _run(JUDGE, [str(fr_file)], tmp_path, marker_stub)
+    assert result.returncode == 0
+    assert (tmp_path / "tmp" / "executor-ran").exists()
+    assert "round 2" in result.stderr
+
+
+@pytest.mark.req("REQ-YG-668")
+def test_judge_round_3_is_fixed_verdict_exit_77(tmp_path, fr_file, marker_stub):
+    _judgement(fr_file, 2)
+    result = _run(JUDGE, [str(fr_file)], tmp_path, marker_stub)
+    assert result.returncode == 77
+    assert not (tmp_path / "tmp" / "executor-ran").exists()
+    assert not (tmp_path / "tmp" / ".judge.lock").exists()
+    artifact = tmp_path / "tmp" / "draft-judgement-copilot-FR-000-fixture.md"
+    assert artifact.read_text(encoding="utf-8") == SENTINEL_LINE + "\n"
+    assert "round 3" in result.stderr
+
+
+@pytest.mark.req("REQ-YG-668")
+def test_judge_four_verdicts_with_round_headings_exit_77(
+    tmp_path, fr_file, marker_stub
+):
+    _judgement(fr_file, 4, rounds=True)
+    result = _run(JUDGE, [str(fr_file)], tmp_path, marker_stub)
+    assert result.returncode == 77
+    assert not (tmp_path / "tmp" / "executor-ran").exists()
+    assert not (tmp_path / "tmp" / ".judge.lock").exists()
+    artifact = tmp_path / "tmp" / "draft-judgement-copilot-FR-000-fixture.md"
+    assert artifact.read_text(encoding="utf-8") == SENTINEL_LINE + "\n"
+
+
+@pytest.mark.req("REQ-YG-668")
+def test_judge_sentinel_applies_to_claude_backend(tmp_path, fr_file, marker_stub):
+    _judgement(fr_file, 2)
+    result = _run(
+        JUDGE, [str(fr_file)], tmp_path, marker_stub, {"JUDGE_BACKEND": "claude"}
+    )
+    assert result.returncode == 77
+    assert not (tmp_path / "tmp" / "executor-ran").exists()
+    artifact = tmp_path / "tmp" / "draft-judgement-claude-FR-000-fixture.md"
+    assert artifact.read_text(encoding="utf-8") == SENTINEL_LINE + "\n"
+
+
+@pytest.mark.req("REQ-YG-668")
+def test_judge_invalid_backend_wins_over_sentinel(tmp_path, fr_file, marker_stub):
+    _judgement(fr_file, 2)
+    result = _run(
+        JUDGE, [str(fr_file)], tmp_path, marker_stub, {"JUDGE_BACKEND": "bogus"}
+    )
+    assert result.returncode == 64
+    _assert_sentinel_untouched(tmp_path)
+    _assert_sentinel_untouched(tmp_path, "bogus")
+
+
+@pytest.mark.req("REQ-YG-668")
+def test_judge_reentry_guard_wins_over_sentinel(tmp_path, fr_file, marker_stub):
+    _judgement(fr_file, 2)
+    result = _run(
+        JUDGE, [str(fr_file)], tmp_path, marker_stub, {"JUDGE_EXECUTION": "1"}
+    )
+    assert result.returncode == 70
+    _assert_sentinel_untouched(tmp_path)
+
+
+@pytest.mark.req("REQ-YG-668")
+def test_judge_unanchored_verdict_token_not_counted(tmp_path, fr_file, marker_stub):
+    path = fr_file.with_suffix(".judgement.md")
+    path.write_text(
+        "# Judgement\n"
+        "**Verdict:** APPROVED WITH REVISIONS\n"
+        "The prior draft said **Verdict:** SPLIT, quoted here in prose.\n"
+        "> **Verdict:** REJECTED — quoted from the old round\n",
+        encoding="utf-8",
+    )
+    result = _run(JUDGE, [str(fr_file)], tmp_path, marker_stub)
+    assert result.returncode == 0
+    assert (tmp_path / "tmp" / "executor-ran").exists()
+    assert "round 2" in result.stderr
+
+
+@pytest.mark.req("REQ-YG-668")
+def test_judge_no_force_bypass(tmp_path, fr_file, marker_stub):
+    _judgement(fr_file, 2)
+    result = _run(
+        JUDGE, [str(fr_file), "--force"], tmp_path, marker_stub, {"JUDGE_FORCE": "1"}
+    )
+    assert result.returncode == 77
+    assert not (tmp_path / "tmp" / "executor-ran").exists()
+    artifact = tmp_path / "tmp" / "draft-judgement-copilot-FR-000-fixture.md"
+    assert artifact.read_text(encoding="utf-8") == SENTINEL_LINE + "\n"
+
+
 @pytest.mark.req("REQ-YG-569")
 def test_judge_conforming_artifact_exit_0(tmp_path, fr_file, judge_ok_stub):
     result = _run(JUDGE, [str(fr_file)], tmp_path, judge_ok_stub)

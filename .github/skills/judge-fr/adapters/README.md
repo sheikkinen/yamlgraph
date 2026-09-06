@@ -10,6 +10,14 @@ scripts/judge.sh feature-requests/NC-XXX-slug.md                      # default 
 JUDGE_BACKEND=claude scripts/judge.sh feature-requests/NC-XXX-slug.md # FR-960: Claude Code backend
 ```
 
+**Round sentinel (FR-1022, REQ-YG-668).** If the adjacent
+`feature-requests/NC-XXX-slug.judgement.md` already holds two `**Verdict:**`
+lines, the wrapper does not run the graph: it writes
+`**Verdict:** REJECTED — Operator: Rethink and rewrite the FR. It's getting too
+complicated as a planning document.` to the draft path and exits 77. Advisory
+like every draft; the human exits are marking the FR Rejected or re-filing a
+shorter plan as a new FR file. There is no override.
+
 Direct invocation (what the wrapper runs; use the wrapper instead):
 
 ```bash

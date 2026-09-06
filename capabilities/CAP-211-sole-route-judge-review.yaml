@@ -1,7 +1,7 @@
 name: Sole-Route Judge and Review Wrappers
 id: CAP-211
 status: active
-fr: FR-758, FR-960
+fr: FR-758, FR-960, FR-1022
 feature_request: FR-758
 description: >
   The judge and review governance pipelines execute through exactly one
@@ -13,7 +13,10 @@ description: >
   (YAMLGRAPH_BIN, then PATH, then uv run — failing loudly otherwise),
   and verifies completion by artifact contract, never exit code: the
   judge draft must contain a "**Verdict:**" line; the review draft must
-  open with "**Merge verdict:**" on line one. The wrappers contain zero
+  open with "**Merge verdict:**" on line one. The judge wrapper also
+  closes the route for an FR file once two verdicts have been promoted
+  into its adjacent judgement (FR-1022 round sentinel): the next run
+  writes a fixed REJECTED verdict without launching the graph. The wrappers contain zero
   judging or reviewing doctrine — the YAMLGraph adapter graphs under
   .github/skills/{judge-fr,review-pr}/adapters/ remain the sole
   execution routes.
@@ -24,6 +27,26 @@ modules:
   - .github/skills/judge-fr/adapters/prompts/judge.yaml
   - .github/skills/review-pr/adapters/graph.yaml
 requirements:
+  - id: REQ-YG-668
+    description: >
+      Judge round sentinel (FR-1022). After the usage, FR-existence,
+      backend-validation, artifact-derivation and JUDGE_EXECUTION
+      re-entry checks — and before the lock — scripts/judge.sh counts
+      lines matching the anchored grammar ^\*\*Verdict:\*\* in the FR's
+      adjacent <fr>.judgement.md and prints the round number to stderr.
+      With fewer than two prior verdicts the graph runs unchanged. With
+      two or more it never launches the executor or takes the lock: it
+      writes exactly "**Verdict:** REJECTED — Operator: Rethink and
+      rewrite the FR. It's getting too complicated as a planning
+      document." plus one newline to the per-backend artifact and exits
+      77. No argument or environment variable bypasses the sentinel; the
+      human exits are marking the FR Rejected or re-filing a shorter
+      plan as a new FR file. Witnessed by stubbed wrapper tests with an
+      executor marker proving no model route ran.
+    modules:
+      - scripts/judge.sh
+      - .github/skills/judge-fr/doctrine.md
+      - tests/unit/test_fr758_judge_review_wrappers.py
   - id: REQ-YG-642
     description: >
       Judge adapter backend selection (FR-960). The judge graph holds two
