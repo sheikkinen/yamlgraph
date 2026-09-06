@@ -7,8 +7,9 @@
 APPROVED WITH REVISIONS (2026-09-06), R-1..R-4 folded below; see
 [FR-1014-dir-aware-authoring-guard.judgement.md](FR-1014-dir-aware-authoring-guard.judgement.md).
 Judgement human-reviewed by the merge of PR #611 (FR-1010 C-1/C-4);
-human review of the final hook diff (AC-14, C-2) is owed at the
-implementation PR and is recorded there.
+final hook diff reviewed at PR #612 — operator `merge` verdict
+2026-09-06 (AC-14, C-2). Diary:
+`docs/diary/diary-2026-09-06-reflection-fr-1014-baseline-before-blame.md`.
 **Effort:** 0.5 day
 **Requested:** 2026-09-06
 **Plan:** [FR-1010-chaplain-archival-plan.md](FR-1010-chaplain-archival-plan.md) — Phase 0 of 5 (FR-1014 → FR-1011 → FR-1015 → FR-1012 → FR-1013); must merge before FR-1011 (FR-1010 C-3)
@@ -293,7 +294,7 @@ way). CONF-461 is written in the documented form; the branch count is
 | AC-11 direct payload | met | AC-11 row |
 | AC-12 RED before GREEN, SHAs recorded | met | this table |
 | AC-13 fragment | met | `changelog/unreleased/fr-1014-dir-aware-authoring-guard.md`, `aggregate_changelog.py` ok |
-| AC-14 human review of final diff | **NOT MET yet** | recorded at the implementation PR |
+| AC-14 human review of final diff | met | Operator verdict `merge` given 2026-09-06 on PR #612 after the review draft (`scripts/review.sh 612`, verdict *Not approved* on P1 diary / P2 this record; both dispositioned in the PR comment). Reviewed enforcement diff: `7661a344` (guard, proof script, selector). The command book records that a `merge` given in the operator sequence is permission to proceed (FR-1007 R-5). |
 | AC-15 merges before FR-1011 | pending | FR-1011 not started |
 
 ## Judgement (2026-09-06)
