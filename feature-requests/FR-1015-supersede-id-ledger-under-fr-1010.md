@@ -2,9 +2,11 @@
 
 **Priority:** LOW
 **Type:** Enhancement (docs-only status amendment)
-**Status:** Judged — APPROVED WITH REVISIONS (2026-09-06). R-1..R-4 folded
-below; see [FR-1015-supersede-id-ledger-under-fr-1010.judgement.md](FR-1015-supersede-id-ledger-under-fr-1010.judgement.md).
-Enforcement gated on FR-1011 merged and FR-1012 not started.
+**Status:** Enforced 2026-09-06 on `docs/fr1015-supersede-id-ledger` (one docs-only
+commit; see § Implementation Status). Judged — APPROVED WITH REVISIONS (2026-09-06),
+R-1..R-4 folded below; see [FR-1015-supersede-id-ledger-under-fr-1010.judgement.md](FR-1015-supersede-id-ledger-under-fr-1010.judgement.md).
+Gate C-2 met: FR-1011 merged as `84baceb7` (PR #615) before enforcement; FR-1012 not started.
+Judgement human-reviewed by the merge of PR #617.
 **Effort:** 0.25 day
 **Requested:** 2026-09-06
 **Plan:** [FR-1010-chaplain-archival-plan.md](FR-1010-chaplain-archival-plan.md) — Phase 1½ of 5; merges after FR-1011, before FR-1012 (FR-1010 C-3)
@@ -186,9 +188,23 @@ none is owned by FR-975/FR-980.
 
 - FR-1010 (plan), FR-1011 (must merge first), FR-1012 (consumer)
 
-## Implementation Status
+## Implementation Status (2026-09-06, Windows host)
 
-_pending enforcement — AC-01..AC-08 outputs recorded here._
+Precondition (C-2): FR-1011 merged to main as `84baceb7` (PR #615); no FR-1012 branch or PR exists. Worktree branched from main `84baceb7`.
+
+| AC | Command | Result |
+|---|---|---|
+| AC-01 | `grep -c '^\*\*Status:\*\* Superseded by FR-1010 (2026-09-06)' FR-975-…md FR-980-…md` | `1` and `1` |
+| AC-01 | `grep -c '^\*\*Status:\*\* Judged — SPLIT' FR-970-…md` | `1` (unchanged) |
+| AC-02 | per file: count of `## Superseded (2026-09-06)` / `operator decision (ii)` / the verbatim `max(ids on main + all open PR heads) + headroom` sentence / `post-hoc duplicate gate` / `FR-1012 (Phase 2), only as reviewed` | `1 / 1 / 1 / 1 / 1` in FR-975 and in FR-980 |
+| AC-03 | `git diff --unified=0 <merge-base>...HEAD -- FR-975-…md FR-980-…md` | two hunks per file: `@@ -5 +5 @@` (Status line) and `@@ -16,0 +17,15 @@` (FR-975) / `@@ -17,0 +18,15 @@` (FR-980), the 15-line Superseded block inserted before `## Summary`; `git status` on `feature-requests/*.judgement.md` → nothing |
+| AC-04 | `git grep -n -E 'fr:[[:space:]]*FR-(975\|980)' HEAD -- capabilities` | empty |
+| AC-05 | `git grep -n -E 'FR-975\|FR-980\|id_ledger\|id-ledger' HEAD -- tests scripts yamlgraph .github/hooks .github/workflows .pre-commit-config.yaml` | empty — enforcement proceeded (C-3 not triggered) |
+| AC-06 | changed-path set of the enforcement commit | exactly `feature-requests/FR-1015-supersede-id-ledger-under-fr-1010.md`, `feature-requests/FR-975-id-ledger-reservation-protocol.md`, `feature-requests/FR-980-id-ledger-route-enforcement.md`, `changelog/unreleased/fr-1015-supersede-id-ledger.md` |
+| AC-07 | this section | `tests/unit/test_id_registry.py` and `tests/unit/test_fr754_id_registry_package_boundary.py` are **untouched**; they remain FR-1012 census inputs |
+| AC-08 | `prior_art_gate.py` and `triage_gate.py` run by hand with the two FRs staged (pre-commit hooks reference `.venv/bin/python`, absent on this host) → rc 0 each; `scripts/aggregate_changelog.py` parses the fragment | pass; CI runs the pre-commit form |
+
+Not edited (C-4, C-5, C-6, C-7): FR-970, FR-1010 (its AC-03 stays unchecked), both `.judgement.md` siblings, FR-701's `validate_registry()` and tests, any capability, script, hook, workflow, graph or prompt. No legacy ID-registry artifact deleted.
 
 ## Judgement (2026-09-06)
 
