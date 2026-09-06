@@ -322,7 +322,8 @@ AC-16 reading: the PR's `docs/diary/` diff is taken against the merge target (`g
 | Candidate commits on the branch (pre-round-3) | RED `c1ef6669` (SKIP=pytest, 9 fail / 11 pass at BASE), GREEN `76605ae2`, diary `bca73b0f` |
 | Round-4 (D-10) | diary authorized as D-10; AC-16: `validate_diary_reflection_file` exit 0, markers `## The trap`, `## Heuristic`, `**Seed:**` present (4 hits); PR diary diff vs `origin/main` = exactly the D-10 path |
 | Round-3 commits (GitHub PR #627 IDs, recorded after the last rebase; the branch has since advanced only by merge) | fold `b2417ca3`; RED `c27e642d`; GREEN `59b11461`; diary addendum `a43469f4`; review-2 fixes `65681486`; round-4 fold `81dee7a2`; pre-round-3: step 0 `24bf566c`, RED `c1ef6669`, GREEN `76605ae2`, diary `bca73b0f`, amendment `b017dda6` (test + CAP-264/REQ-YG-668 + generated ARCHITECTURE.md; `req_coverage --strict` requires the REQ to exist before the tagged test can be committed, so registry and test share the RED commit; the doc edits stayed out, keeping 3 assertions red); GREEN `59b11461` |
-| Residual witness at GREEN | 40 tests: clause 1 (248 BASE files line-multiset-equal), clause 2 (12 match-bearing files × exact residual lines; CAP-264 / ARCHITECTURE.md / confessions exact deltas), clause 3 (no unenumerated matching file), clause 4 (3 stale-default code files unchanged) |
+| Baseline source (review #627/3 P1) | CI checks out depth 1, so `git cat-file BASE:path` is unavailable there; the witness reads the committed baseline instead — a `BASE lines sha256` column in `docs/census/fr1013-inventory-at-base-36591389.dispositions.md` (sha256 of the sorted matching lines at BASE, per file; 261 rows, counts cross-checked against the raw inventory by `test_baseline_record_is_complete_and_agrees_with_the_raw_inventory`) and `DELTA_HEAD_SHA256` for the three delta files. The BASE blob is used only to explain a mismatch when history is present. Verified in a `--depth 1` clone without the BASE object: 41 passed |
+| Residual witness at GREEN | 40 tests: clause 1 (248 BASE files line-multiset-equal via committed sha256), clause 2 (12 match-bearing files × exact residual lines; CAP-264 / ARCHITECTURE.md / confessions exact deltas), clause 3 (no unenumerated matching file), clause 4 (3 stale-default code files unchanged) |
 | Traceability: test function → REQ → quoted text | see table below |
 | Surviving old-string witness tests | `test_concurrency_safety_doc.py`, `test_fr748_fr_atlas.py`, `test_knowledge_graph_fr193.py` (present after FR-1012; `test_chaplain_readme_documentation.py` was deleted by the census). Their strings (`docs/concurrency-safety.md`, the FR atlases, the Knowledge Graph) are all in the keep set — untouched; all three pass |
 | Human review (AC-13) | _pending — operator, on the PR_ |
@@ -403,3 +404,10 @@ so Scripture, not CI, requires the entry; AC-16 added (validator + literal
 markers), post-merge AC renumbered AC-17; R-3 round-3 D-1…D-8 remain the
 governing scope, the diary commit was a candidate until D-10. Round-4 text
 appended to the judgement file.
+
+**Review of PR #627, round 3 (2026-09-06, head `57b3a542`) — Not approved,
+one finding:** P1 the witness read BASE via `git cat-file`, absent in the
+depth-1 CI checkout → 7 assertions red in the required Python 3.11 job.
+Fixed without touching CI (C-4): baseline moved into the committed disposition
+record (sha256 per file), delta files pinned by expected HEAD sha256, missing
+BASE blob no longer reads as zero matches; reproduced green in a depth-1 clone.

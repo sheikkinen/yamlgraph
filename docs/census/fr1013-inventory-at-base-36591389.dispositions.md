@@ -2,266 +2,266 @@
 
 Raw match list: `fr1013-inventory-at-base-36591389.txt` (2586 lines, 261 files). Command: see FR-1013 § Inventory at BASE. One disposition per file applies to every match in that file.
 
-| File | Matches | Disposition |
-|---|---|---|
-| `.github/copilot-instructions.md` | 4 | **edit** — edit — :205 heading `## Sermon of the Chaplain` → `## Sermon`; :177 drop "chaplain pipeline, " from the sources clause. :52 (`audit` boundary) and :162 (`inquisitor_auto_escalation` seed) are Knowledge Graph entries — unchanged |
-| `.github/skills/graph-authoring/SKILL.md` | 1 | **edit** — edit — :3 description drops "deciding whether graph work belongs in Chaplain instead" |
-| `.github/skills/graph-authoring/doctrine.md` | 2 | **edit** — edit — :58 "escalate to Chaplain instead" and :128 "Enforce via Chaplain." → file an FR (`proposals/` → judge); live doctrine naming a retired route (found at BASE, not in the planning table) |
-| `.github/skills/judge-fr/doctrine.md` | 2 | **edit** — edit — :135 → `docs/archive/chaplain.md`; :133 kept (true history) |
-| `docs/context/chaplain-system.md` | 58 | **edit** — edit — `git mv` → `docs/archive/chaplain-system.md`; linked from `docs/archive/chaplain.md` |
-| `docs/development-process.md` | 28 | **edit** — every active-process passage (round-3 R-3 / review #627 P2): topology mermaid, § 3, § 3.1 (measurement sentence byte-identical; the rest past-tense history or deleted), intro :6, § 2.1 row :113, § 5 bullet :286, § 6 mermaid + bullets :312–320, § 7 row :330. Exact residual lines (7): listed in `tests/unit/test_fr1013_doctrine_sweep.py::RESIDUAL` |
-| `examples/README.md` | 3 | **edit** — edit — :57 row deleted; :74 note → `graphs/`; :171 witnesses line deleted |
-| `ramp/assets/tier2/github/skills/judge-fr/doctrine.md` | 2 | **edit** — edit — `cp` byte-for-byte from the canonical after editing (mirror_exact, R-2) |
-| `reference/audit-index.md` | 8 | **edit** — edit — :65–71 six rows deleted, Philosopher → `graphs/philosopher/graph.yaml`, one `Chaplain (archived)` row → `docs/archive/chaplain.md`; :57 Inquisitor-audits row kept (the diary entries exist) |
-| `reference/command-book.md` | 1 | **edit** — edit — :76 "Sermon of the Chaplain" → "Sermon" (follows the heading rename) |
-| `reference/graph-yaml.md` | 2 | **edit** — edit — :610 comment dropped; :1469 example → `graphs/fr_triage` |
-| `reference/onepager-development-process.md` | 9 | **edit** — edit — :11 column, :26 heading, :31 inbox path, :45 submission route, :90 hook row, :126, :138 flow step, :146, :154 sources |
-| `reference/patterns/fsm-as-conductor.md` | 8 | **edit** — edit — :169–170, :235 link targets → `docs/archive/chaplain-system.md`; the Chaplain remains a case study in the pattern (historical) |
-| `.github/hooks/README.md` | 2 | keep — history note ("former chaplain arm removed by FR-1011") or CI comment — SPLIT boundary forbids hook/CI edits |
-| `.github/hooks/scripts/pre-command-guard.sh` | 1 | keep — history note ("former chaplain arm removed by FR-1011") or CI comment — SPLIT boundary forbids hook/CI edits |
-| `.github/skills/feature-request/SKILL.md` | 1 | keep — history note ("former chaplain arm removed by FR-1011") or CI comment — SPLIT boundary forbids hook/CI edits |
-| `.github/skills/judge-fr/MANIFEST.yaml` | 4 | keep — lineage/provenance metadata (MANIFEST, adapter header) |
-| `.github/skills/judge-fr/adapters/graph.yaml` | 1 | keep — lineage/provenance metadata (MANIFEST, adapter header) |
-| `.github/skills/outsider-view/fixtures/EXPECTATIONS.md` | 1 | keep — history note ("former chaplain arm removed by FR-1011") or CI comment — SPLIT boundary forbids hook/CI edits |
-| `.github/workflows/workflow.yml` | 1 | keep — history note ("former chaplain arm removed by FR-1011") or CI comment — SPLIT boundary forbids hook/CI edits |
-| `ARCHITECTURE.md` | 105 | keep — generated file; changes only as `scripts/aggregate_capabilities.py` output of the CAP-264 edit (D-6): exact delta (1 row replaced, 1 REQ-YG-668 row added) frozen in the witness's `DELTA` |
-| `CHANGELOG.md` | 92 | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
-| `capabilities/CAP-106-github-issues-remote-inbox.yaml` | 5 | keep — capability record (retired by CAP-264 / FR-1012 census); registry history |
-| `capabilities/CAP-109-harden-remote-inbox.yaml` | 5 | keep — capability record (retired by CAP-264 / FR-1012 census); registry history |
-| `capabilities/CAP-113-chaplain-research-step.yaml` | 10 | keep — capability record (retired by CAP-264 / FR-1012 census); registry history |
-| `capabilities/CAP-114-automated-post-merge-finalization.yaml` | 1 | keep — capability record (retired by CAP-264 / FR-1012 census); registry history |
-| `capabilities/CAP-116-acceptance-tests-before-enforce.yaml` | 13 | keep — capability record (retired by CAP-264 / FR-1012 census); registry history |
-| `capabilities/CAP-124-watcher2-pr-reuse.yaml` | 2 | keep — capability record (retired by CAP-264 / FR-1012 census); registry history |
-| `capabilities/CAP-125-pipeline-script-retirement.yaml` | 12 | keep — capability record (retired by CAP-264 / FR-1012 census); registry history |
-| `capabilities/CAP-128-chaplain-documentation.yaml` | 9 | keep — capability record (retired by CAP-264 / FR-1012 census); registry history |
-| `capabilities/CAP-130-watcher2-finalize-optimization.yaml` | 3 | keep — capability record (retired by CAP-264 / FR-1012 census); registry history |
-| `capabilities/CAP-132-watcher2-ci-resilience.yaml` | 6 | keep — capability record (retired by CAP-264 / FR-1012 census); registry history |
-| `capabilities/CAP-133-watcher2-ci-remediation-crash-fix.yaml` | 3 | keep — capability record (retired by CAP-264 / FR-1012 census); registry history |
-| `capabilities/CAP-134-watcher2-changelog-auto-generation.yaml` | 7 | keep — capability record (retired by CAP-264 / FR-1012 census); registry history |
-| `capabilities/CAP-135-watcher2-forensic-failure-diary.yaml` | 8 | keep — capability record (retired by CAP-264 / FR-1012 census); registry history |
-| `capabilities/CAP-137-watcher-fsm-startup-script.yaml` | 3 | keep — capability record (retired by CAP-264 / FR-1012 census); registry history |
-| `capabilities/CAP-138-watcher-pipeline-fsm-simplification.yaml` | 8 | keep — capability record (retired by CAP-264 / FR-1012 census); registry history |
-| `capabilities/CAP-140-watcher2-validate-split-fix-gate.yaml` | 11 | keep — capability record (retired by CAP-264 / FR-1012 census); registry history |
-| `capabilities/CAP-142-skill-export.yaml` | 1 | keep — capability record (retired by CAP-264 / FR-1012 census); registry history |
-| `capabilities/CAP-152-watcher2-dispatcher-audit-cadence.yaml` | 11 | keep — capability record (retired by CAP-264 / FR-1012 census); registry history |
-| `capabilities/CAP-158-copilot-skill-promotion.yaml` | 1 | keep — capability record (retired by CAP-264 / FR-1012 census); registry history |
-| `capabilities/CAP-16-linter-cross-reference.yaml` | 1 | keep — capability record (retired by CAP-264 / FR-1012 census); registry history |
-| `capabilities/CAP-165-watcher2-baseline-dead-code-removal.yaml` | 1 | keep — capability record (retired by CAP-264 / FR-1012 census); registry history |
-| `capabilities/CAP-193-watcher-wrapper-json-envelope.yaml` | 4 | keep — capability record (retired by CAP-264 / FR-1012 census); registry history |
-| `capabilities/CAP-259-declared-text-encoding.yaml` | 1 | keep — capability record (retired by CAP-264 / FR-1012 census); registry history |
-| `capabilities/CAP-264-chaplain-runtime-retired.yaml` | 30 | **edit** (D-6, round 3) — REQ-YG-668 added, FR-1013 in `fr`, doc surfaces + witness in `modules`; exact added lines frozen in the witness's `DELTA` |
-| `capabilities/CAP-31-chaplain-diary-append.yaml` | 1 | keep — capability record (retired by CAP-264 / FR-1012 census); registry history |
-| `capabilities/CAP-36-inquisitor-auto-propose.yaml` | 8 | keep — capability record (retired by CAP-264 / FR-1012 census); registry history |
-| `capabilities/CAP-39-inquisitor-commit-delta-gate.yaml` | 7 | keep — capability record (retired by CAP-264 / FR-1012 census); registry history |
-| `capabilities/CAP-42-inquisitor-worktree-gate.yaml` | 7 | keep — capability record (retired by CAP-264 / FR-1012 census); registry history |
-| `capabilities/CAP-44-judge-split-verdict.yaml` | 2 | keep — capability record (retired by CAP-264 / FR-1012 census); registry history |
-| `capabilities/CAP-55-chaplain-inbox-documentation.yaml` | 5 | keep — capability record (retired by CAP-264 / FR-1012 census); registry history |
-| `capabilities/CAP-64-concurrency-safety-map.yaml` | 1 | keep — capability record (retired by CAP-264 / FR-1012 census); registry history |
-| `capabilities/CAP-67-philosopher-daemon.yaml` | 1 | keep — capability record (retired by CAP-264 / FR-1012 census); registry history |
-| `capabilities/CAP-72-knowledge-graph-mass-graduation-fr193.yaml` | 1 | keep — capability record (retired by CAP-264 / FR-1012 census); registry history |
-| `capabilities/CAP-74-fsm-scripture-claude-md.yaml` | 2 | keep — capability record (retired by CAP-264 / FR-1012 census); registry history |
-| `capabilities/CAP-75-portable-chaplain.yaml` | 2 | keep — capability record (retired by CAP-264 / FR-1012 census); registry history |
-| `docs/2026-06-28-research.md` | 1 | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
-| `docs/2026-07-12-review-refactoring.md` | 2 | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
-| `docs/2026-07-18-fr-atlas.md` | 76 | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
-| `docs/2026-07-19-fr-atlas.md` | 76 | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
-| `docs/2026-07-28-research-safe-mobile-web-graph-access.md` | 10 | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
-| `docs/2026-07-29-research-subagent-promotion.md` | 4 | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
-| `docs/2026-08-18-velocity-report.md` | 1 | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
-| `docs/2026-08-21-plan-architecture-claims-pipeline.md` | 1 | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
-| `docs/2026-09-02-brainstorm-business-use-cases.md` | 2 | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
-| `docs/2026-09-05-research-pi-agent-runtime.md` | 3 | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
-| `docs/2026-09-05-research-plan-cap-journey-census.md` | 5 | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
-| `docs/FR-884-raw-read-log.md` | 1 | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
-| `docs/FR-884-session-task-shapes.md` | 3 | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
-| `docs/case-study-earlier-spikes.md` | 1 | keep — historical prose |
-| `docs/case-study-research-spike-outsider.md` | 1 | keep — historical prose |
-| `docs/census/cap-journey-pilot-2026-09-05-run1.md` | 50 | keep — FR-1011/FR-1012 deliverable — census, archive tooling, witnesses, evidence |
-| `docs/census/cap-journey-pilot-2026-09-05-run2.md` | 54 | keep — FR-1011/FR-1012 deliverable — census, archive tooling, witnesses, evidence |
-| `docs/census/cap-journey-pilot-2026-09-05-run3.md` | 55 | keep — FR-1011/FR-1012 deliverable — census, archive tooling, witnesses, evidence |
-| `docs/census/chaplain-test-disposition.brief.REJECTED.md` | 6 | keep — FR-1011/FR-1012 deliverable — census, archive tooling, witnesses, evidence |
-| `docs/census/chaplain-test-disposition.generic.md` | 77 | keep — FR-1011/FR-1012 deliverable — census, archive tooling, witnesses, evidence |
-| `docs/census/chaplain-test-disposition.human-read.md` | 131 | keep — FR-1011/FR-1012 deliverable — census, archive tooling, witnesses, evidence |
-| `docs/census/chaplain-test-disposition.md` | 98 | keep — FR-1011/FR-1012 deliverable — census, archive tooling, witnesses, evidence |
-| `docs/cmm-assessment.md` | 4 | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
-| `docs/concurrency-safety.md` | 11 | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
-| `docs/confessions.md` | 1 | keep — historical prose. Main drift after BASE: PR #628 (`b71d0083`, CONF-462…465 for FR-1012's noqa lines) added 4 matching `**File**:` lines before this PR; that exact delta is frozen in the witness's `DELTA` — the only post-BASE main change inside the census scope |
-| `docs/constitution-diff.md` | 2 | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
-| `docs/contexts/extending-watcher-fsm.md` | 25 | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
-| `docs/diary-2026-02-19.md` | 1 | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
-| `docs/diary-2026-02-20.md` | 16 | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
-| `docs/diary-2026-02-21.md` | 8 | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
-| `docs/diary-2026-02-22.md` | 4 | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
-| `docs/diary-2026-02-23.md` | 65 | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
-| `docs/diary-2026-02-24.md` | 23 | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
-| `docs/diary-2026-02-26.md` | 99 | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
-| `docs/diary-2026-03-02.md` | 98 | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
-| `docs/diary-2026-03-04.md` | 2 | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
-| `docs/diary-2026-03-06.md` | 2 | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
-| `docs/feature-request-methodology.md` | 1 | keep — historical prose |
-| `docs/letter-to-the-philosopher.md` | 5 | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
-| `docs/mercury-census/findings.md` | 2 | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
-| `docs/node-type-census-2026-08.md` | 7 | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
-| `docs/origin-story.md` | 18 | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
-| `docs/plan-chat-initiated-outbound-calls.md` | 1 | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
-| `docs/plan-converge-map-mercury-reduce.md` | 6 | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
-| `docs/plan-defensive-position-governed-pipeline.md` | 2 | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
-| `docs/plan-dogfood-chaplain.md` | 11 | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
-| `docs/plan-github-chaplain-arbitrary-repo.md` | 21 | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
-| `docs/plan-planner-topics-2026-07-18.md` | 4 | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
-| `docs/plan-process-mining.md` | 4 | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
-| `docs/plan-repo-split.md` | 8 | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
-| `docs/plan-research-langgraph-1.2-feature-gaps.md` | 1 | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
-| `docs/plan-research-session-isolation.md` | 5 | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
-| `docs/plan-token-cost-mitigation.md` | 16 | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
-| `docs/plan-watcher-fsm.md` | 97 | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
-| `docs/plan-web-toolkit.md` | 1 | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
-| `docs/plan-yamlgraph-skills.md` | 1 | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
-| `docs/recaps/2026-W34.md` | 2 | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
-| `docs/recaps/2026-W35.md` | 1 | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
-| `docs/refactoring-watcher-pipeline-v2.md` | 29 | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
-| `docs/refactoring-watcher-pipeline-v3.md` | 21 | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
-| `docs/refactoring-watcher-pipeline.md` | 8 | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
-| `docs/reflections-2026-03-05.md` | 1 | keep — historical prose |
-| `docs/scripture-provenance.md` | 1 | keep — historical prose |
-| `docs/sheikkinen-process.md` | 2 | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
-| `docs/spikes/outsider-reader-2026-09-05/EXPECTATIONS.md` | 1 | keep — historical prose |
-| `examples/2026-07-01-plan-cleanup.md` | 14 | keep — "watcher" false positive (FR-885 / file-hook / DeviantArt watcher) or historical example prose |
-| `examples/agent-sdk-planner/README.md` | 2 | keep — "watcher" false positive (FR-885 / file-hook / DeviantArt watcher) or historical example prose |
-| `examples/agent-sdk-planner/plan.py` | 1 | keep — "watcher" false positive (FR-885 / file-hook / DeviantArt watcher) or historical example prose |
-| `examples/bugfix/README.md` | 2 | keep — "watcher" false positive (FR-885 / file-hook / DeviantArt watcher) or historical example prose |
-| `examples/demos/cap_journey_census/extract.py` | 4 | keep — code/tooling comment or stale default path — outside a docs-only FR; the stale `.chaplain` defaults are filed as a spark (`proposals/stale-chaplain-paths-in-code.md`) |
-| `examples/demos/cap_journey_census/journeys.yaml` | 1 | keep — code/tooling comment or stale default path — outside a docs-only FR; the stale `.chaplain` defaults are filed as a spark (`proposals/stale-chaplain-paths-in-code.md`) |
-| `examples/demos/corpus_census/adapters/chaplain-discover.tool.yaml` | 4 | keep — FR-1011/FR-1012 deliverable — census, archive tooling, witnesses, evidence |
-| `examples/demos/corpus_census/adapters/chaplain-extract.tool.yaml` | 4 | keep — FR-1011/FR-1012 deliverable — census, archive tooling, witnesses, evidence |
-| `examples/demos/corpus_census/adapters/chaplain_adapters.py` | 14 | keep — FR-1011/FR-1012 deliverable — census, archive tooling, witnesses, evidence |
-| `examples/demos/corpus_census/adapters/chaplain_rubric.md` | 6 | keep — FR-1011/FR-1012 deliverable — census, archive tooling, witnesses, evidence |
-| `examples/demos/corpus_census/adapters/diary_recurrence.py` | 5 | keep — code/tooling comment or stale default path — outside a docs-only FR; the stale `.chaplain` defaults are filed as a spark (`proposals/stale-chaplain-paths-in-code.md`) |
-| `examples/demos/diary_index/prompts/extract_entry.yaml` | 1 | keep — "watcher" false positive (FR-885 / file-hook / DeviantArt watcher) or historical example prose |
-| `examples/demos/file-hook/README.md` | 2 | keep — "watcher" false positive (FR-885 / file-hook / DeviantArt watcher) or historical example prose |
-| `examples/demos/forensic-failure-diary/README.md` | 6 | keep — "watcher" false positive (FR-885 / file-hook / DeviantArt watcher) or historical example prose |
-| `examples/demos/forensic-failure-diary/graph.yaml` | 1 | keep — "watcher" false positive (FR-885 / file-hook / DeviantArt watcher) or historical example prose |
-| `examples/demos/forensic-failure-diary/prompts/analyze_failure.yaml` | 1 | keep — "watcher" false positive (FR-885 / file-hook / DeviantArt watcher) or historical example prose |
-| `examples/demos/philosopher_book/edited-chapters/ch-03-partial_remediation.md` | 1 | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
-| `examples/demos/philosopher_book/edited-chapters/ch-05-false_duplicate.md` | 2 | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
-| `examples/demos/philosopher_book/edited-chapters/ch-06-plausible_wrong_answer.md` | 1 | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
-| `examples/demos/philosopher_book/edited-chapters/ch-07-framework_costume.md` | 2 | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
-| `examples/demos/philosopher_book/edited-chapters/ch-08-working_system_inertia.md` | 8 | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
-| `examples/demos/philosopher_book/edited-chapters/ch-09-architecture_as_diagram.md` | 3 | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
-| `examples/demos/philosopher_book/edited-chapters/ch-10-gate_checks_shape_not_substance.md` | 2 | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
-| `examples/demos/philosopher_book/edited-chapters/ch-11-audit_as_ritual.md` | 9 | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
-| `examples/demos/philosopher_book/edited-chapters/ch-13-quick_confidence.md` | 1 | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
-| `examples/demos/philosopher_book/edited-chapters/ch-16-instruction_boundary_uncrossed.md` | 2 | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
-| `examples/demos/philosopher_book/edited-chapters/ch-18-model_as_trusted_peer.md` | 4 | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
-| `examples/demos/philosopher_book/edited-chapters/ch-19-infrastructure_self_exempt.md` | 11 | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
-| `examples/demos/philosopher_book/edited-chapters/editorial-report.md` | 13 | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
-| `examples/demos/philosopher_book/final/appendix-01-doctrine-accumulation.md` | 1 | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
-| `examples/demos/philosopher_book/final/book.md` | 46 | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
-| `examples/demos/philosopher_book/final/ch-03-partial_remediation.md` | 1 | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
-| `examples/demos/philosopher_book/final/ch-05-false_duplicate.md` | 2 | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
-| `examples/demos/philosopher_book/final/ch-06-plausible_wrong_answer.md` | 1 | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
-| `examples/demos/philosopher_book/final/ch-07-framework_costume.md` | 2 | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
-| `examples/demos/philosopher_book/final/ch-08-working_system_inertia.md` | 8 | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
-| `examples/demos/philosopher_book/final/ch-09-architecture_as_diagram.md` | 1 | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
-| `examples/demos/philosopher_book/final/ch-10-gate_checks_shape_not_substance.md` | 2 | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
-| `examples/demos/philosopher_book/final/ch-11-audit_as_ritual.md` | 9 | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
-| `examples/demos/philosopher_book/final/ch-13-quick_confidence.md` | 1 | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
-| `examples/demos/philosopher_book/final/ch-16-instruction_boundary_uncrossed.md` | 1 | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
-| `examples/demos/philosopher_book/final/ch-18-model_as_trusted_peer.md` | 2 | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
-| `examples/demos/philosopher_book/final/ch-19-infrastructure_self_exempt.md` | 11 | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
-| `examples/demos/philosopher_book/final/ch-22-letter-to-the-philosopher.md` | 5 | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
-| `examples/demos/philosopher_book/final/demo-run/_input_snapshot/book.md` | 46 | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
-| `examples/demos/philosopher_book/final/demo-run/_input_snapshot/ch-03-partial_remediation.md` | 1 | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
-| `examples/demos/philosopher_book/final/demo-run/_input_snapshot/ch-05-false_duplicate.md` | 2 | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
-| `examples/demos/philosopher_book/final/demo-run/_input_snapshot/ch-06-plausible_wrong_answer.md` | 1 | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
-| `examples/demos/philosopher_book/final/demo-run/_input_snapshot/ch-07-framework_costume.md` | 2 | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
-| `examples/demos/philosopher_book/final/demo-run/_input_snapshot/ch-08-working_system_inertia.md` | 8 | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
-| `examples/demos/philosopher_book/final/demo-run/_input_snapshot/ch-09-architecture_as_diagram.md` | 1 | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
-| `examples/demos/philosopher_book/final/demo-run/_input_snapshot/ch-10-gate_checks_shape_not_substance.md` | 2 | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
-| `examples/demos/philosopher_book/final/demo-run/_input_snapshot/ch-11-audit_as_ritual.md` | 9 | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
-| `examples/demos/philosopher_book/final/demo-run/_input_snapshot/ch-13-quick_confidence.md` | 1 | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
-| `examples/demos/philosopher_book/final/demo-run/_input_snapshot/ch-16-instruction_boundary_uncrossed.md` | 1 | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
-| `examples/demos/philosopher_book/final/demo-run/_input_snapshot/ch-18-model_as_trusted_peer.md` | 2 | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
-| `examples/demos/philosopher_book/final/demo-run/_input_snapshot/ch-19-infrastructure_self_exempt.md` | 11 | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
-| `examples/demos/philosopher_book/final/demo-run/_input_snapshot/ch-22-letter-to-the-philosopher.md` | 5 | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
-| `examples/demos/philosopher_book/philosopher-book/chapters/ch-01-downstream_fix.md` | 1 | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
-| `examples/demos/philosopher_book/philosopher-book/chapters/ch-03-partial_remediation.md` | 1 | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
-| `examples/demos/philosopher_book/philosopher-book/chapters/ch-04-regex_fourth_exclusion.md` | 1 | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
-| `examples/demos/philosopher_book/philosopher-book/chapters/ch-05-false_duplicate.md` | 4 | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
-| `examples/demos/philosopher_book/philosopher-book/chapters/ch-06-plausible_wrong_answer.md` | 1 | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
-| `examples/demos/philosopher_book/philosopher-book/chapters/ch-07-framework_costume.md` | 3 | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
-| `examples/demos/philosopher_book/philosopher-book/chapters/ch-08-working_system_inertia.md` | 11 | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
-| `examples/demos/philosopher_book/philosopher-book/chapters/ch-09-architecture_as_diagram.md` | 3 | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
-| `examples/demos/philosopher_book/philosopher-book/chapters/ch-10-gate_checks_shape_not_substance.md` | 3 | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
-| `examples/demos/philosopher_book/philosopher-book/chapters/ch-11-audit_as_ritual.md` | 12 | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
-| `examples/demos/philosopher_book/philosopher-book/chapters/ch-13-quick_confidence.md` | 1 | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
-| `examples/demos/philosopher_book/philosopher-book/chapters/ch-16-instruction_boundary_uncrossed.md` | 5 | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
-| `examples/demos/philosopher_book/philosopher-book/chapters/ch-18-model_as_trusted_peer.md` | 4 | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
-| `examples/demos/philosopher_book/philosopher-book/chapters/ch-19-infrastructure_self_exempt.md` | 13 | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
-| `examples/demos/planner/README.md` | 1 | keep — code/tooling comment or stale default path — outside a docs-only FR; the stale `.chaplain` defaults are filed as a spark (`proposals/stale-chaplain-paths-in-code.md`) |
-| `examples/demos/planner/demo.sh` | 1 | keep — code/tooling comment or stale default path — outside a docs-only FR; the stale `.chaplain` defaults are filed as a spark (`proposals/stale-chaplain-paths-in-code.md`) |
-| `examples/demos/research-route/nodes/research_tools.py` | 4 | keep — code/tooling comment or stale default path — outside a docs-only FR; the stale `.chaplain` defaults are filed as a spark (`proposals/stale-chaplain-paths-in-code.md`) |
-| `examples/ebook/README.md` | 5 | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
-| `examples/ebook/graph-ch03.yaml` | 4 | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
-| `examples/ebook/graph-ch04.yaml` | 4 | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
-| `examples/ebook/graph.yaml` | 32 | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
-| `examples/ebook/nodes/writing.py` | 10 | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
-| `examples/ebook/prompts/chapter/chaplain_pipeline.yaml` | 6 | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
-| `examples/ebook/prompts/chapter/doctrine.yaml` | 2 | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
-| `examples/ebook/prompts/chapter/inquisitor.yaml` | 10 | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
-| `examples/ebook/prompts/chapter/introduction.yaml` | 3 | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
-| `examples/ebook/prompts/chapter/traceability.yaml` | 2 | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
-| `examples/ebook/prompts/judge_draft.yaml` | 2 | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
-| `examples/ebook/run-chapters.sh` | 2 | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
-| `examples/novel_fandom/story/thread_waivers.yaml` | 3 | keep — "watcher" false positive (FR-885 / file-hook / DeviantArt watcher) or historical example prose |
-| `examples/plot_modeller/docs/plan-roundtrip-phased.md` | 1 | keep — "watcher" false positive (FR-885 / file-hook / DeviantArt watcher) or historical example prose |
-| `examples/shared/diary.py` | 3 | keep — code/tooling comment or stale default path — outside a docs-only FR; the stale `.chaplain` defaults are filed as a spark (`proposals/stale-chaplain-paths-in-code.md`) |
-| `graphs/philosopher/README.md` | 1 | keep — FR-1011 relocated graph; comments record provenance |
-| `graphs/philosopher/diary.py` | 3 | keep — FR-1011 relocated graph; comments record provenance |
-| `graphs/philosopher/graph.yaml` | 1 | keep — FR-1011 relocated graph; comments record provenance |
-| `graphs/philosopher/prompts/challenge.yaml` | 1 | keep — FR-1011 relocated graph; comments record provenance |
-| `graphs/philosopher/tools.py` | 1 | keep — FR-1011 relocated graph; comments record provenance |
-| `prompts/chaplain-audit.md` | 2 | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
-| `reference/fr-knowledge-graph.yaml` | 3 | keep — "watcher" false positive (FR-885 / file-hook / DeviantArt watcher) or historical example prose |
-| `scripts/chaplain_archive.sh` | 33 | keep — FR-1011/FR-1012 deliverable — census, archive tooling, witnesses, evidence |
-| `scripts/chaplain_census.py` | 22 | keep — FR-1011/FR-1012 deliverable — census, archive tooling, witnesses, evidence |
-| `scripts/chaplain_postmerge_witness.sh` | 14 | keep — FR-1011/FR-1012 deliverable — census, archive tooling, witnesses, evidence |
-| `scripts/fix_bare.sh` | 1 | keep — code/tooling comment or stale default path — outside a docs-only FR; the stale `.chaplain` defaults are filed as a spark (`proposals/stale-chaplain-paths-in-code.md`) |
-| `scripts/migrate_capabilities.py` | 6 | keep — code/tooling comment or stale default path — outside a docs-only FR; the stale `.chaplain` defaults are filed as a spark (`proposals/stale-chaplain-paths-in-code.md`) |
-| `scripts/migrate_diary_to_folder.py` | 2 | keep — code/tooling comment or stale default path — outside a docs-only FR; the stale `.chaplain` defaults are filed as a spark (`proposals/stale-chaplain-paths-in-code.md`) |
-| `scripts/pipeline_summary.py` | 1 | keep — code/tooling comment or stale default path — outside a docs-only FR; the stale `.chaplain` defaults are filed as a spark (`proposals/stale-chaplain-paths-in-code.md`) |
-| `scripts/vscode/MAP.md` | 3 | keep — code/tooling comment or stale default path — outside a docs-only FR; the stale `.chaplain` defaults are filed as a spark (`proposals/stale-chaplain-paths-in-code.md`) |
-| `scripts/vscode/now.py` | 1 | keep — code/tooling comment or stale default path — outside a docs-only FR; the stale `.chaplain` defaults are filed as a spark (`proposals/stale-chaplain-paths-in-code.md`) |
-| `scripts/worktree.sh` | 1 | keep — code/tooling comment or stale default path — outside a docs-only FR; the stale `.chaplain` defaults are filed as a spark (`proposals/stale-chaplain-paths-in-code.md`) |
-| `tests/conftest.py` | 2 | keep — code/tooling comment or stale default path — outside a docs-only FR; the stale `.chaplain` defaults are filed as a spark (`proposals/stale-chaplain-paths-in-code.md`) |
-| `tests/unit/test_automated_post_merge_finalization.py` | 3 | keep — test kept by the FR-1012 census (old-string witness or unrelated match) |
-| `tests/unit/test_chaplain_graph_compile.py` | 6 | keep — test kept by the FR-1012 census (old-string witness or unrelated match) |
-| `tests/unit/test_concurrency_safety_doc.py` | 2 | keep — test kept by the FR-1012 census (old-string witness or unrelated match) |
-| `tests/unit/test_diary_digest.py` | 6 | keep — test kept by the FR-1012 census (old-string witness or unrelated match) |
-| `tests/unit/test_diary_index.py` | 4 | keep — test kept by the FR-1012 census (old-string witness or unrelated match) |
-| `tests/unit/test_ebook_writing.py` | 15 | keep — test kept by the FR-1012 census (old-string witness or unrelated match) |
-| `tests/unit/test_fr026_chaplain_fixes.py` | 2 | keep — test kept by the FR-1012 census (old-string witness or unrelated match) |
-| `tests/unit/test_fr1011_relocation.py` | 19 | keep — FR-1011/FR-1012 deliverable — census, archive tooling, witnesses, evidence |
-| `tests/unit/test_fr1012_chaplain_archive.py` | 24 | keep — FR-1011/FR-1012 deliverable — census, archive tooling, witnesses, evidence |
-| `tests/unit/test_fr1012_chaplain_census.py` | 34 | keep — FR-1011/FR-1012 deliverable — census, archive tooling, witnesses, evidence |
-| `tests/unit/test_fr1012_chaplain_postmerge_witness.py` | 13 | keep — FR-1011/FR-1012 deliverable — census, archive tooling, witnesses, evidence |
-| `tests/unit/test_fr1012_chaplain_removed.py` | 18 | keep — FR-1011/FR-1012 deliverable — census, archive tooling, witnesses, evidence |
-| `tests/unit/test_fr372_gitignore_boundary_guard.py` | 1 | keep — test kept by the FR-1012 census (old-string witness or unrelated match) |
-| `tests/unit/test_fr382_chaplain_prompt_caching_scope_red.py` | 2 | keep — test kept by the FR-1012 census (old-string witness or unrelated match) |
-| `tests/unit/test_fr392_fsm_on_launch_hook_red.py` | 2 | keep — test kept by the FR-1012 census (old-string witness or unrelated match) |
-| `tests/unit/test_fr419_action_config_schema_boundary.py` | 9 | keep — test kept by the FR-1012 census (old-string witness or unrelated match) |
-| `tests/unit/test_fr446_copilot_skills.py` | 1 | keep — test kept by the FR-1012 census (old-string witness or unrelated match) |
-| `tests/unit/test_fr693_event_revision.py` | 1 | keep — test kept by the FR-1012 census (old-string witness or unrelated match) |
-| `tests/unit/test_fr748_fr_atlas.py` | 2 | keep — test kept by the FR-1012 census (old-string witness or unrelated match) |
-| `tests/unit/test_fr754_id_registry_package_boundary.py` | 5 | keep — test kept by the FR-1012 census (old-string witness or unrelated match) |
-| `tests/unit/test_fr896_precedent_traceability.py` | 1 | keep — test kept by the FR-1012 census (old-string witness or unrelated match) |
-| `tests/unit/test_fr942_instruction_diet.py` | 1 | keep — test kept by the FR-1012 census (old-string witness or unrelated match) |
-| `tests/unit/test_fsm_claude_md_doctrine.py` | 3 | keep — test kept by the FR-1012 census (old-string witness or unrelated match) |
-| `tests/unit/test_knowledge_graph_fr193.py` | 1 | keep — test kept by the FR-1012 census (old-string witness or unrelated match) |
-| `tests/unit/test_migrate_diary.py` | 7 | keep — test kept by the FR-1012 census (old-string witness or unrelated match) |
-| `tests/unit/test_philosopher.py` | 1 | keep — test kept by the FR-1012 census (old-string witness or unrelated match) |
-| `tests/unit/test_python_node_graph_integration.py` | 1 | keep — test kept by the FR-1012 census (old-string witness or unrelated match) |
-| `tests/unit/test_python_nodes.py` | 6 | keep — test kept by the FR-1012 census (old-string witness or unrelated match) |
-| `tests/unit/test_ramp_installer.py` | 1 | keep — test kept by the FR-1012 census (old-string witness or unrelated match) |
-| `yamlgraph/utils/fsm/action.py` | 1 | keep — code/tooling comment or stale default path — outside a docs-only FR; the stale `.chaplain` defaults are filed as a spark (`proposals/stale-chaplain-paths-in-code.md`) |
-| `yamlgraph/utils/worktree_helpers.py` | 1 | keep — code/tooling comment or stale default path — outside a docs-only FR; the stale `.chaplain` defaults are filed as a spark (`proposals/stale-chaplain-paths-in-code.md`) |
+| File | Matches | BASE lines sha256 | Disposition |
+|---|---|---|---|
+| `.github/copilot-instructions.md` | 4 | `681128186d27509441fc4d1a8b5d844a534e4a26b19a80fc05a4cec1133d4e32` | **edit** — edit — :205 heading `## Sermon of the Chaplain` → `## Sermon`; :177 drop "chaplain pipeline, " from the sources clause. :52 (`audit` boundary) and :162 (`inquisitor_auto_escalation` seed) are Knowledge Graph entries — unchanged |
+| `.github/skills/graph-authoring/SKILL.md` | 1 | `78551ea134268f1b0176475ee48de47944fd4c516c7ad0e3e629d5bcfd2a9f55` | **edit** — edit — :3 description drops "deciding whether graph work belongs in Chaplain instead" |
+| `.github/skills/graph-authoring/doctrine.md` | 2 | `2c83195a4651b8bebe64580fde2b37eaa13b442486f9875c7d303c4d323092bb` | **edit** — edit — :58 "escalate to Chaplain instead" and :128 "Enforce via Chaplain." → file an FR (`proposals/` → judge); live doctrine naming a retired route (found at BASE, not in the planning table) |
+| `.github/skills/judge-fr/doctrine.md` | 2 | `1321d0dda929daf9b8a2d359ca13fa6fec48d0b206f393a09fbc42f6af7260dc` | **edit** — edit — :135 → `docs/archive/chaplain.md`; :133 kept (true history) |
+| `docs/context/chaplain-system.md` | 58 | `fd830fe6f8289cdbbfa78c9b145b052299b9279f7412cb25c3544be7fa39cc77` | **edit** — edit — `git mv` → `docs/archive/chaplain-system.md`; linked from `docs/archive/chaplain.md` |
+| `docs/development-process.md` | 28 | `322b920c59886d0aec347e439b855f661d31bff0b74ffe44bfe2a87d67440379` | **edit** — every active-process passage (round-3 R-3 / review #627 P2): topology mermaid, § 3, § 3.1 (measurement sentence byte-identical; the rest past-tense history or deleted), intro :6, § 2.1 row :113, § 5 bullet :286, § 6 mermaid + bullets :312–320, § 7 row :330. Exact residual lines (7): listed in `tests/unit/test_fr1013_doctrine_sweep.py::RESIDUAL` |
+| `examples/README.md` | 3 | `0b7adc80025f03b7de9fed7e2e3225d590e767713c61c048ed43ff3f2e6b063b` | **edit** — edit — :57 row deleted; :74 note → `graphs/`; :171 witnesses line deleted |
+| `ramp/assets/tier2/github/skills/judge-fr/doctrine.md` | 2 | `1321d0dda929daf9b8a2d359ca13fa6fec48d0b206f393a09fbc42f6af7260dc` | **edit** — edit — `cp` byte-for-byte from the canonical after editing (mirror_exact, R-2) |
+| `reference/audit-index.md` | 8 | `3108536776b3670a975bcbc17a92bc58ff3a264408217042e91297b49d3e0698` | **edit** — edit — :65–71 six rows deleted, Philosopher → `graphs/philosopher/graph.yaml`, one `Chaplain (archived)` row → `docs/archive/chaplain.md`; :57 Inquisitor-audits row kept (the diary entries exist) |
+| `reference/command-book.md` | 1 | `ad005020b7b670a6763c9ea396aed717befd46edcac1e4a4000f05d1dc39f692` | **edit** — edit — :76 "Sermon of the Chaplain" → "Sermon" (follows the heading rename) |
+| `reference/graph-yaml.md` | 2 | `f7b8035d64798f55077b13acbc5b69e1bc108f335a5a69d168833c29d50e61cd` | **edit** — edit — :610 comment dropped; :1469 example → `graphs/fr_triage` |
+| `reference/onepager-development-process.md` | 9 | `68c709fffc40c080cb6848b69a0f3cdbff7b37bf0afa8bf79bf1901f620a1f93` | **edit** — edit — :11 column, :26 heading, :31 inbox path, :45 submission route, :90 hook row, :126, :138 flow step, :146, :154 sources |
+| `reference/patterns/fsm-as-conductor.md` | 8 | `e8f73a69b7b437d6ca91c41f4e1019daef6829e58dd0c60617485bd56cff77b6` | **edit** — edit — :169–170, :235 link targets → `docs/archive/chaplain-system.md`; the Chaplain remains a case study in the pattern (historical) |
+| `.github/hooks/README.md` | 2 | `856755e61c316c72e21837ed98d0f35f8e2d223b4538f4e878441ccb86480bc3` | keep — history note ("former chaplain arm removed by FR-1011") or CI comment — SPLIT boundary forbids hook/CI edits |
+| `.github/hooks/scripts/pre-command-guard.sh` | 1 | `2669595864d4ba0ea4d8ad99b474f817b27ecff5cec6b9417de0eea6ba1dc0f0` | keep — history note ("former chaplain arm removed by FR-1011") or CI comment — SPLIT boundary forbids hook/CI edits |
+| `.github/skills/feature-request/SKILL.md` | 1 | `fa333a13ec5e6a9cba7bc9fafe295842e0661bed81461d54df79a3203a220d0c` | keep — history note ("former chaplain arm removed by FR-1011") or CI comment — SPLIT boundary forbids hook/CI edits |
+| `.github/skills/judge-fr/MANIFEST.yaml` | 4 | `11c770dd73cdbd00508fff95a91c77143de4d59e4dd110e47c6ca0535984a2e8` | keep — lineage/provenance metadata (MANIFEST, adapter header) |
+| `.github/skills/judge-fr/adapters/graph.yaml` | 1 | `a40f4e40076140511f235d30cd535cdf5f3e8076ded90666ffcd2d7c51dbc5ec` | keep — lineage/provenance metadata (MANIFEST, adapter header) |
+| `.github/skills/outsider-view/fixtures/EXPECTATIONS.md` | 1 | `42a683ee7319626ad654898a5e582df68a216d7747887fc7d83322fa296808bf` | keep — history note ("former chaplain arm removed by FR-1011") or CI comment — SPLIT boundary forbids hook/CI edits |
+| `.github/workflows/workflow.yml` | 1 | `9eda362fa82790e3fdc9b59f04e4d644cf6055c93490dd21a7c6a22293aed365` | keep — history note ("former chaplain arm removed by FR-1011") or CI comment — SPLIT boundary forbids hook/CI edits |
+| `ARCHITECTURE.md` | 105 | `c992853e76146349f9f29fc8661ddb91e10f29f86ff46cf710be8305b0651760` | keep — generated file; changes only as `scripts/aggregate_capabilities.py` output of the CAP-264 edit (D-6): exact delta (1 row replaced, 1 REQ-YG-668 row added) frozen in the witness's `DELTA` |
+| `CHANGELOG.md` | 92 | `fb4555de09ed5ce1fb7e016373ce5b0a3a07b9ffb263c29b274d5c76cdd93676` | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
+| `capabilities/CAP-106-github-issues-remote-inbox.yaml` | 5 | `492c93beaf5314f51bd908e8c30a22b2c38bed10e42295211454c5b604a3d23f` | keep — capability record (retired by CAP-264 / FR-1012 census); registry history |
+| `capabilities/CAP-109-harden-remote-inbox.yaml` | 5 | `0d91643d8d111ac9ba63eaf13f977c10541e927d020cc6419772045fc92da5b9` | keep — capability record (retired by CAP-264 / FR-1012 census); registry history |
+| `capabilities/CAP-113-chaplain-research-step.yaml` | 10 | `fe1b975b832815452dcf9c7895d4a94eaf51724d99ce76f06143c847746c4314` | keep — capability record (retired by CAP-264 / FR-1012 census); registry history |
+| `capabilities/CAP-114-automated-post-merge-finalization.yaml` | 1 | `96f190ba199338e381691d720396355ef5f332ae8ee1f01390993c2d6929a8c3` | keep — capability record (retired by CAP-264 / FR-1012 census); registry history |
+| `capabilities/CAP-116-acceptance-tests-before-enforce.yaml` | 13 | `78d594536f89e3846867271c858638e40738321f754e7ff2f7691a629eb16981` | keep — capability record (retired by CAP-264 / FR-1012 census); registry history |
+| `capabilities/CAP-124-watcher2-pr-reuse.yaml` | 2 | `4b98a9e59285a4285d4c7f7fcf825bf7db007771a6674df05b205624a6611f42` | keep — capability record (retired by CAP-264 / FR-1012 census); registry history |
+| `capabilities/CAP-125-pipeline-script-retirement.yaml` | 12 | `0cf3ce99264b3305c690a8263e3e7426a5f0db03eecb6153f1194377dd0f5a90` | keep — capability record (retired by CAP-264 / FR-1012 census); registry history |
+| `capabilities/CAP-128-chaplain-documentation.yaml` | 9 | `581391e1418b3c9e10f24cd1767e9cd41de56c899f9d6811ed952e56ce400546` | keep — capability record (retired by CAP-264 / FR-1012 census); registry history |
+| `capabilities/CAP-130-watcher2-finalize-optimization.yaml` | 3 | `d4c519eeb7d92bf0502394ce8bfa37087af5d15c8ad47579b27b38db4c115e90` | keep — capability record (retired by CAP-264 / FR-1012 census); registry history |
+| `capabilities/CAP-132-watcher2-ci-resilience.yaml` | 6 | `a8edf0c5d3c3b9f0fb75297b7bb5ff9cbf90a741ee0fe57288c62a4e74324aa5` | keep — capability record (retired by CAP-264 / FR-1012 census); registry history |
+| `capabilities/CAP-133-watcher2-ci-remediation-crash-fix.yaml` | 3 | `2a6e8325130806f61363a05da125e0cf427179fbb496fd2b80b31eb27e1af1d1` | keep — capability record (retired by CAP-264 / FR-1012 census); registry history |
+| `capabilities/CAP-134-watcher2-changelog-auto-generation.yaml` | 7 | `e4a955106acdf1f2b6d66dfad2a9b35ca66b87153f1bbdd48f6a2116241e1067` | keep — capability record (retired by CAP-264 / FR-1012 census); registry history |
+| `capabilities/CAP-135-watcher2-forensic-failure-diary.yaml` | 8 | `bf996e91b836d3487d28f740e4de89cdef078b4234fb9219bd3d209a5831928c` | keep — capability record (retired by CAP-264 / FR-1012 census); registry history |
+| `capabilities/CAP-137-watcher-fsm-startup-script.yaml` | 3 | `4715246f538d9a05e407510cb121257b9b945ac9a6d638a53eb7bb69a4ad74af` | keep — capability record (retired by CAP-264 / FR-1012 census); registry history |
+| `capabilities/CAP-138-watcher-pipeline-fsm-simplification.yaml` | 8 | `b1417ed9a162d3dd137d72e8b4df714620b1b2fde7cb026fd5e2e89b5c6fbe37` | keep — capability record (retired by CAP-264 / FR-1012 census); registry history |
+| `capabilities/CAP-140-watcher2-validate-split-fix-gate.yaml` | 11 | `bab21a3208b0ef27754bab9265d2286cf60ad168d57770fbebce2e10add8caae` | keep — capability record (retired by CAP-264 / FR-1012 census); registry history |
+| `capabilities/CAP-142-skill-export.yaml` | 1 | `9227016caf02b0000e0559c9b5bee8edcec5cf7bdaa08f8357ea0cd15db919bc` | keep — capability record (retired by CAP-264 / FR-1012 census); registry history |
+| `capabilities/CAP-152-watcher2-dispatcher-audit-cadence.yaml` | 11 | `0843aee13faf4fcef80d2cde26404f42e63102557df5af0e8a7c05bd9451b3f7` | keep — capability record (retired by CAP-264 / FR-1012 census); registry history |
+| `capabilities/CAP-158-copilot-skill-promotion.yaml` | 1 | `6da3ca5490eb82404e64d1ad0d7bcfff2b3a99e144d67f41268370b1e7eaa2d7` | keep — capability record (retired by CAP-264 / FR-1012 census); registry history |
+| `capabilities/CAP-16-linter-cross-reference.yaml` | 1 | `3ba5139c8f136b07cb5874d0be3c389022bf4cd05e6ea01c033928cc30d66fe7` | keep — capability record (retired by CAP-264 / FR-1012 census); registry history |
+| `capabilities/CAP-165-watcher2-baseline-dead-code-removal.yaml` | 1 | `2684ee23fa851e45bc47bf8bcbd689cb93ea1bdbe9bbf1a356f96479daf9ffd3` | keep — capability record (retired by CAP-264 / FR-1012 census); registry history |
+| `capabilities/CAP-193-watcher-wrapper-json-envelope.yaml` | 4 | `95695d1cb9ef8056107de51c830d512068af7a4c336bd1c5761edcf361646573` | keep — capability record (retired by CAP-264 / FR-1012 census); registry history |
+| `capabilities/CAP-259-declared-text-encoding.yaml` | 1 | `2ba9ba197b84571ac7dbb6c32e6204ae536565ed001a4e5a9dd15d0954c6d922` | keep — capability record (retired by CAP-264 / FR-1012 census); registry history |
+| `capabilities/CAP-264-chaplain-runtime-retired.yaml` | 30 | `15c2fb37d48e9410eeaf87f08bc6c7cb0b547e2f100d2627b66621bc828cf3e1` | **edit** (D-6, round 3) — REQ-YG-668 added, FR-1013 in `fr`, doc surfaces + witness in `modules`; exact added lines frozen in the witness's `DELTA` |
+| `capabilities/CAP-31-chaplain-diary-append.yaml` | 1 | `936e6bbba9c4504e8ea716a1dc14683560e11d3c701bd5549ef2215a402461c0` | keep — capability record (retired by CAP-264 / FR-1012 census); registry history |
+| `capabilities/CAP-36-inquisitor-auto-propose.yaml` | 8 | `afec6ec829bd57116ef3e8a6f424f8e6960a8cc283c845a6de9d41790f7711df` | keep — capability record (retired by CAP-264 / FR-1012 census); registry history |
+| `capabilities/CAP-39-inquisitor-commit-delta-gate.yaml` | 7 | `e653ddc5ad76c0ee017c0f47a46c1ef7a6187a9a62eb1fc7927c7f4264be0875` | keep — capability record (retired by CAP-264 / FR-1012 census); registry history |
+| `capabilities/CAP-42-inquisitor-worktree-gate.yaml` | 7 | `d31722d29b3f068e29d1ff6ab6ad8df2339d16430a7ce59be9f9ab1643320995` | keep — capability record (retired by CAP-264 / FR-1012 census); registry history |
+| `capabilities/CAP-44-judge-split-verdict.yaml` | 2 | `488daceb56dd09f77d682930a809d23ce3036e2f3ae69266eaa7569c6027c159` | keep — capability record (retired by CAP-264 / FR-1012 census); registry history |
+| `capabilities/CAP-55-chaplain-inbox-documentation.yaml` | 5 | `7fd1545ac3dd948fb136c7a7a01daed63f272ad1bf0b999906e19ed7a1540020` | keep — capability record (retired by CAP-264 / FR-1012 census); registry history |
+| `capabilities/CAP-64-concurrency-safety-map.yaml` | 1 | `1b898671a4104894ae0bd5bfb9a05bc6b55b66e52dc82d7225ebbc7f8cf669be` | keep — capability record (retired by CAP-264 / FR-1012 census); registry history |
+| `capabilities/CAP-67-philosopher-daemon.yaml` | 1 | `0d7d8950f370d7f416ef3c7353ca66844c5bcd1a7a4ff73b08982f006cd3d13f` | keep — capability record (retired by CAP-264 / FR-1012 census); registry history |
+| `capabilities/CAP-72-knowledge-graph-mass-graduation-fr193.yaml` | 1 | `175f0e5bcc801e491ca3be65ae6c1493a81d31a49b03befd4a941afe73c56b85` | keep — capability record (retired by CAP-264 / FR-1012 census); registry history |
+| `capabilities/CAP-74-fsm-scripture-claude-md.yaml` | 2 | `7b5610885132f665819971c2ab4ea442a3f4a8d106d74ba05f28a66dee9104e4` | keep — capability record (retired by CAP-264 / FR-1012 census); registry history |
+| `capabilities/CAP-75-portable-chaplain.yaml` | 2 | `e1c3b2f4e1ab285dcf439d992fa3bfdc0779f35f3d5ad03e28c5dc72ad49cff5` | keep — capability record (retired by CAP-264 / FR-1012 census); registry history |
+| `docs/2026-06-28-research.md` | 1 | `a89fb6bd8456fd953fed7d278c90f77e85b9adf845987c63d538eba7397fecc6` | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
+| `docs/2026-07-12-review-refactoring.md` | 2 | `ac6b99f6909b7b438a5197993bc4a4576699d5f3187131ff2a9900081cdcebee` | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
+| `docs/2026-07-18-fr-atlas.md` | 76 | `28e675fa82a2095942f7118747d07c2c71539ea5a11aea4cb2e64a7408f87834` | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
+| `docs/2026-07-19-fr-atlas.md` | 76 | `5ed5bc92dc46a48f44d38267ff97225a1682b02a7cef85f18a1fd2ba3c588c79` | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
+| `docs/2026-07-28-research-safe-mobile-web-graph-access.md` | 10 | `27ef553cc881cc40ff72f19b394449265fc8a3731907762d41e03565d2336ebc` | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
+| `docs/2026-07-29-research-subagent-promotion.md` | 4 | `68ce038471c9e9b057a363fc894b2c430228167dc7a4cc7285691ec8a6b53892` | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
+| `docs/2026-08-18-velocity-report.md` | 1 | `cc4d4d46b0b5fd1dca618a00ed3fa27a7372f8f955b7e0a7fdec321dd8b5ad89` | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
+| `docs/2026-08-21-plan-architecture-claims-pipeline.md` | 1 | `45777fda024d4f6b95048661b9e3dd814502f7a441cecd1e1713817ecf667779` | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
+| `docs/2026-09-02-brainstorm-business-use-cases.md` | 2 | `21c8be9d44e02a6467b169e2a58883cc0e76b703e75dcda4664bdd4b805d28e4` | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
+| `docs/2026-09-05-research-pi-agent-runtime.md` | 3 | `4ac884bb6d15c1eafe9affffc5e48674f166e14f16ff135d8dea8d9f0b6f7934` | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
+| `docs/2026-09-05-research-plan-cap-journey-census.md` | 5 | `e785eb3cfb645faf23a039b93ce61047f4c80a355709822f966ee17b9fef180f` | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
+| `docs/FR-884-raw-read-log.md` | 1 | `6be5272c7c81f4ede3490eea869aed1b2b84aa154f69965b105210f508c94809` | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
+| `docs/FR-884-session-task-shapes.md` | 3 | `fb2499af963b12072f867a94254d56f9c58518be0d2e801a2b5d3ae69979dc57` | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
+| `docs/case-study-earlier-spikes.md` | 1 | `6f7922e94e30405d98210bded35915b9cf8273bc63aa6ca536069601b2322b5f` | keep — historical prose |
+| `docs/case-study-research-spike-outsider.md` | 1 | `f6452d0e1c0003b0d7133933b17b7cdc1123a2e41e29257fe4e36e31dad958f6` | keep — historical prose |
+| `docs/census/cap-journey-pilot-2026-09-05-run1.md` | 50 | `debbc5e3d6931655ebe2e08ee34ca4e7e9d430e9415866646fdeb1c24e37082b` | keep — FR-1011/FR-1012 deliverable — census, archive tooling, witnesses, evidence |
+| `docs/census/cap-journey-pilot-2026-09-05-run2.md` | 54 | `9b46af25d6579c074da79ad9965b98324820c295371ebbe399f7d3442a771116` | keep — FR-1011/FR-1012 deliverable — census, archive tooling, witnesses, evidence |
+| `docs/census/cap-journey-pilot-2026-09-05-run3.md` | 55 | `85813bc32e3199a90748abe657b8acfe18a7649850cc1165a93c8ca88a62652f` | keep — FR-1011/FR-1012 deliverable — census, archive tooling, witnesses, evidence |
+| `docs/census/chaplain-test-disposition.brief.REJECTED.md` | 6 | `ca96bb9ba308e533efc0690d088b648e2fb6b0a217c3280b93405824dc8dee66` | keep — FR-1011/FR-1012 deliverable — census, archive tooling, witnesses, evidence |
+| `docs/census/chaplain-test-disposition.generic.md` | 77 | `a6a12fd9a6aa4ba943a5e6ce4846e274ffc5768b311efc247588c60462072f89` | keep — FR-1011/FR-1012 deliverable — census, archive tooling, witnesses, evidence |
+| `docs/census/chaplain-test-disposition.human-read.md` | 131 | `288de4bf0dc4ca15ab83527cceb3c190e1a289e7541e430d1dc8e07be01abd39` | keep — FR-1011/FR-1012 deliverable — census, archive tooling, witnesses, evidence |
+| `docs/census/chaplain-test-disposition.md` | 98 | `d994516e52a2b0eca5609de2b3d752e7b5fbd3c7575a74f22b7547adfe2b824c` | keep — FR-1011/FR-1012 deliverable — census, archive tooling, witnesses, evidence |
+| `docs/cmm-assessment.md` | 4 | `9d6e655caec0037edb6f0e817023dddfc830d665b7a328a4e33344c9beaa5784` | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
+| `docs/concurrency-safety.md` | 11 | `bddef34eb442c3deac3c5dd81f56d159ee665595ca603eb2e614bb735dba3a4b` | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
+| `docs/confessions.md` | 1 | `e092ed04f39aaca6c728f64635e55a4c1d481ebb531d5c03ae2d6257f6a7ab06` | keep — historical prose. Main drift after BASE: PR #628 (`b71d0083`, CONF-462…465 for FR-1012's noqa lines) added 4 matching `**File**:` lines before this PR; that exact delta is frozen in the witness's `DELTA` — the only post-BASE main change inside the census scope |
+| `docs/constitution-diff.md` | 2 | `68a79ce454c903e0d7ad1d74b00bb63bff62d32f45912e5e1ad6ac800765f431` | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
+| `docs/contexts/extending-watcher-fsm.md` | 25 | `58f04399ad98c244ad1657a202b0d8f548fc28132d3295673428b99cdf38045b` | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
+| `docs/diary-2026-02-19.md` | 1 | `71ce71cab64c4c1d701248fb0e57a2006c23c29a4b144e7d1e70f40487dcd320` | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
+| `docs/diary-2026-02-20.md` | 16 | `fd6824803d4891f45d1694a7e1e4e8ba669db57077c9b2d9eece4842463e5206` | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
+| `docs/diary-2026-02-21.md` | 8 | `85c95ea34d0494fd0c84708e5e10225bf0c0a1eb3da3ca07859bddc8d10d8682` | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
+| `docs/diary-2026-02-22.md` | 4 | `3e9eb6b923d6e4eba0fe97969cc4ceefcfe4eb31562402e2f7b73e4719425f11` | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
+| `docs/diary-2026-02-23.md` | 65 | `b3b6d56154b30b9d602ef31452302df163c52b6e42560c25b3ccf7d6a2e466d2` | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
+| `docs/diary-2026-02-24.md` | 23 | `9b7d60575f43b42698fbdbf4edc3797fab08db5490f20b6466b8760ae1a24d01` | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
+| `docs/diary-2026-02-26.md` | 99 | `3af8027a267c9a7914da128f7fff0df1da2871662e01d94bfd52ce4ec2529e7c` | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
+| `docs/diary-2026-03-02.md` | 98 | `4cc7b11b6f9a411a1edf23c7f923580109cfd0c149724c8658b8ef813e2a08e6` | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
+| `docs/diary-2026-03-04.md` | 2 | `e824b9935cfe066cbcc09dea58efc4e96665a4c6e04e0de6e5cdac1e6ec5c5d7` | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
+| `docs/diary-2026-03-06.md` | 2 | `9ad409b12f61367b20b0803e8819a217f26a25b8fc73de59855fefa44442658e` | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
+| `docs/feature-request-methodology.md` | 1 | `28e7b18d09b7dc2e09783f3261ef6d79a694ee9918d2fda7ff920039efc192d1` | keep — historical prose |
+| `docs/letter-to-the-philosopher.md` | 5 | `23cb8f1895e1e13ae091e27bc2e7b43aadac87a2c778bcc2479a3b43b17e40da` | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
+| `docs/mercury-census/findings.md` | 2 | `f33d4a96f87b5b5bc6c885dbce32abeffa83f5846c43461a4306181a0690d840` | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
+| `docs/node-type-census-2026-08.md` | 7 | `5f66de510db71fa7f5aaa09e30e56f8faff44f41e0904be543ed5275df92673e` | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
+| `docs/origin-story.md` | 18 | `92c91f99a68e81a9b3392c9b507dbdeeb1aeacf77c3588ee72bb22ddc8d9e86a` | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
+| `docs/plan-chat-initiated-outbound-calls.md` | 1 | `c0ca1448a6c5cdc6c2284a50d996faa23f79ae5dc8ce1a726158e29e3254337c` | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
+| `docs/plan-converge-map-mercury-reduce.md` | 6 | `4ea19efb7a70d5d3822f03e50e44685e8158f0546f968aa81335f224f4550a0f` | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
+| `docs/plan-defensive-position-governed-pipeline.md` | 2 | `7b989a4b41fe51ddb19eb2b3c33e0be7603f966d4c937c1b4be9fa42b940518b` | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
+| `docs/plan-dogfood-chaplain.md` | 11 | `1177ce3208ee9393e0ecad82e4df98e38ec42615f81c32ae6c5ca6ed67472650` | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
+| `docs/plan-github-chaplain-arbitrary-repo.md` | 21 | `1dedc27e93502613f1710c98cb67c909f5eb00fed5ea384c901382884c754333` | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
+| `docs/plan-planner-topics-2026-07-18.md` | 4 | `cbf5e98d009add4dbf305230f3472a8c85b000c2faceedb5ae4215dfe5683a11` | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
+| `docs/plan-process-mining.md` | 4 | `6c78637c08ad3a47e4509212d29085e4e41741ffb57799c6f201b31d3694e27a` | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
+| `docs/plan-repo-split.md` | 8 | `4255ba20d8fe47f75bde3ec233aaa515a554fc8b7dcdd635f3b8c560796e502c` | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
+| `docs/plan-research-langgraph-1.2-feature-gaps.md` | 1 | `05915ec0510453172142830f5d08a4fc8d15c101608fc4fae810eb4c923d8f43` | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
+| `docs/plan-research-session-isolation.md` | 5 | `43aa4080f0b875559bc50e627248649b3ac3ab243529286c1890af9dc580a68f` | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
+| `docs/plan-token-cost-mitigation.md` | 16 | `fc4d32b3e5f947b1812ccee0e14a40dc6f01c161c6dbc792cc4dee0a89076456` | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
+| `docs/plan-watcher-fsm.md` | 97 | `f9916b8cad340a569ee68048af187f464c425baba967db9af6dcf82af340c72d` | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
+| `docs/plan-web-toolkit.md` | 1 | `2deefc790f90e9298e1a7d1840fbf37eb29e7fc083c5c11cc3e2ed4903ac90fc` | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
+| `docs/plan-yamlgraph-skills.md` | 1 | `2837d23845b8094b51bc2d9f3bf1d9ee5c8b0ba98e4cd90eeeb484679f2518db` | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
+| `docs/recaps/2026-W34.md` | 2 | `a061408743c49ff4db1903ad74695ad298fb3af8cb2156aa707e2bb8adee2829` | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
+| `docs/recaps/2026-W35.md` | 1 | `ffe228b96e7d1e652cbf60cf73cbc15e7b86106d668c57eb89bbb6dd98583365` | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
+| `docs/refactoring-watcher-pipeline-v2.md` | 29 | `f3712603783ae1905374d608c672679274ee3c2a559841fb455079fd0c7ff874` | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
+| `docs/refactoring-watcher-pipeline-v3.md` | 21 | `3696a469e9b4acaba042b68d450fb1cd507cfb255eb792dfbc45f7b7933e05d2` | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
+| `docs/refactoring-watcher-pipeline.md` | 8 | `d1d189c86446eaaa88a3fafef88e3b88f75478aeb52529b8b680b2bdea268b53` | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
+| `docs/reflections-2026-03-05.md` | 1 | `4a27d94950de9a801f3182f0f8288d80c36d066c5b1484efbf26bc0a70a1fddb` | keep — historical prose |
+| `docs/scripture-provenance.md` | 1 | `d8098a349916406852e9392e97366af554a2afea11087a0ad2cd63717c05135c` | keep — historical prose |
+| `docs/sheikkinen-process.md` | 2 | `415cdec586ad0f6d15805eee5e83b781e0d30c9528a63e739a06c948fa7ea192` | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
+| `docs/spikes/outsider-reader-2026-09-05/EXPECTATIONS.md` | 1 | `42a683ee7319626ad654898a5e582df68a216d7747887fc7d83322fa296808bf` | keep — historical prose |
+| `examples/2026-07-01-plan-cleanup.md` | 14 | `0b68a10b982bd15492feac9dae80890b6955134151f3f76fecc9ff729d6c0dd1` | keep — "watcher" false positive (FR-885 / file-hook / DeviantArt watcher) or historical example prose |
+| `examples/agent-sdk-planner/README.md` | 2 | `ec52f62fc148a364170f55fce2947fcd895cdfc1f6141bc8a7ad26a07a894728` | keep — "watcher" false positive (FR-885 / file-hook / DeviantArt watcher) or historical example prose |
+| `examples/agent-sdk-planner/plan.py` | 1 | `ac09850244cce6ead8ff680bb5bde0bbc335819a759ebe6180b4fc2432aafc9e` | keep — "watcher" false positive (FR-885 / file-hook / DeviantArt watcher) or historical example prose |
+| `examples/bugfix/README.md` | 2 | `17c305533da5c75ad47967d0fe10d66022f1bc3ab8c5d23bcdd5f0f2588cd57a` | keep — "watcher" false positive (FR-885 / file-hook / DeviantArt watcher) or historical example prose |
+| `examples/demos/cap_journey_census/extract.py` | 4 | `84c49848f393a751feb4a777516970717e340d5917c9017f1266d8161804ed9d` | keep — code/tooling comment or stale default path — outside a docs-only FR; the stale `.chaplain` defaults are filed as a spark (`proposals/stale-chaplain-paths-in-code.md`) |
+| `examples/demos/cap_journey_census/journeys.yaml` | 1 | `b452388d8842ef76d4222ee258ef6531f63d0738390433e353aaad24be8bb8bc` | keep — code/tooling comment or stale default path — outside a docs-only FR; the stale `.chaplain` defaults are filed as a spark (`proposals/stale-chaplain-paths-in-code.md`) |
+| `examples/demos/corpus_census/adapters/chaplain-discover.tool.yaml` | 4 | `68337fb78784a37c003a18b86adb2032c627467c988d3e8e7288a4a0f79fa3c2` | keep — FR-1011/FR-1012 deliverable — census, archive tooling, witnesses, evidence |
+| `examples/demos/corpus_census/adapters/chaplain-extract.tool.yaml` | 4 | `772643eb93da06fcb8d50595143a3742b7a69ec4e4f4f04d36e8d540d5c63fa9` | keep — FR-1011/FR-1012 deliverable — census, archive tooling, witnesses, evidence |
+| `examples/demos/corpus_census/adapters/chaplain_adapters.py` | 14 | `5ce852e46057f5aefcedabf7aa9d2e57c34933fedd40d1484f1f355c6b4751db` | keep — FR-1011/FR-1012 deliverable — census, archive tooling, witnesses, evidence |
+| `examples/demos/corpus_census/adapters/chaplain_rubric.md` | 6 | `8953e9df5f4f0dc794d632970b5bf7b95880b1c7afe38843756850df66cfa3d0` | keep — FR-1011/FR-1012 deliverable — census, archive tooling, witnesses, evidence |
+| `examples/demos/corpus_census/adapters/diary_recurrence.py` | 5 | `bdc9a8503efbfe5617ab15a59588ad2f5d9e5ea81801b7ba58d77be3543bc666` | keep — code/tooling comment or stale default path — outside a docs-only FR; the stale `.chaplain` defaults are filed as a spark (`proposals/stale-chaplain-paths-in-code.md`) |
+| `examples/demos/diary_index/prompts/extract_entry.yaml` | 1 | `5198c50641995ea186e5327f2ead74dc354d65ee8ac51c38da7a7b74bede5740` | keep — "watcher" false positive (FR-885 / file-hook / DeviantArt watcher) or historical example prose |
+| `examples/demos/file-hook/README.md` | 2 | `087bb84200d4875edd373545f26df12a7be4019db89e2920f8371d0ea65c4731` | keep — "watcher" false positive (FR-885 / file-hook / DeviantArt watcher) or historical example prose |
+| `examples/demos/forensic-failure-diary/README.md` | 6 | `faa2a5239f00a4ea05beaadcbc3d3afe83f4aec4875576e225b7a263b06c1ee2` | keep — "watcher" false positive (FR-885 / file-hook / DeviantArt watcher) or historical example prose |
+| `examples/demos/forensic-failure-diary/graph.yaml` | 1 | `510daea977995a4c3470fcc51e964dbb432ca291a531cb45549e1be9a63a99bb` | keep — "watcher" false positive (FR-885 / file-hook / DeviantArt watcher) or historical example prose |
+| `examples/demos/forensic-failure-diary/prompts/analyze_failure.yaml` | 1 | `4acb5e89b4dde919414292c577e9d39e7c8bcee2f05bcd47c50836d19f15b395` | keep — "watcher" false positive (FR-885 / file-hook / DeviantArt watcher) or historical example prose |
+| `examples/demos/philosopher_book/edited-chapters/ch-03-partial_remediation.md` | 1 | `fa3138e79e814da6921abe27a451c07f98696ec84a22bd5c712471d9131aae40` | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
+| `examples/demos/philosopher_book/edited-chapters/ch-05-false_duplicate.md` | 2 | `b2edaae5aa1ff9d701cf9b1f8836e4a2d5893e45609a068cec060dc61ee56f2f` | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
+| `examples/demos/philosopher_book/edited-chapters/ch-06-plausible_wrong_answer.md` | 1 | `657ae204f7440e5d93333b4a088b4695ecf60fc3fe808a77706b3b755f4d46f3` | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
+| `examples/demos/philosopher_book/edited-chapters/ch-07-framework_costume.md` | 2 | `efc48d227d81aafc4d9e38af768d910239d6c4984fe9d6c757506eaf00e6d9fa` | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
+| `examples/demos/philosopher_book/edited-chapters/ch-08-working_system_inertia.md` | 8 | `e96d82388c62fbbc344ffc3007f988d92c9ba740f857c8e6ef798ed12a26d497` | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
+| `examples/demos/philosopher_book/edited-chapters/ch-09-architecture_as_diagram.md` | 3 | `18cfd7c466a5307170aa04ed2052053f614087818624a936f6bf4a33fafd4493` | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
+| `examples/demos/philosopher_book/edited-chapters/ch-10-gate_checks_shape_not_substance.md` | 2 | `f0cad6281bae38087eb8b509165bd0ba45e330b8ab41ac2139417be8563a0d2c` | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
+| `examples/demos/philosopher_book/edited-chapters/ch-11-audit_as_ritual.md` | 9 | `907ecfde8790440d2ab933b6406ce0d31b6c2c6b52bedc1f4c4f0ceb770521a8` | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
+| `examples/demos/philosopher_book/edited-chapters/ch-13-quick_confidence.md` | 1 | `f809e03066d76b460108647bf753262bfea5e28620ce54d400affdf20a7fe739` | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
+| `examples/demos/philosopher_book/edited-chapters/ch-16-instruction_boundary_uncrossed.md` | 2 | `7007ad306874362499f99b785c595dfba6b44a77a39b93cbbfa32457f9262c44` | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
+| `examples/demos/philosopher_book/edited-chapters/ch-18-model_as_trusted_peer.md` | 4 | `5731f10d34d7bffdc35e9b79589e30aa7fe2d1d06738a2ac71e2733111c57f67` | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
+| `examples/demos/philosopher_book/edited-chapters/ch-19-infrastructure_self_exempt.md` | 11 | `369039520f933226d32301bf9294031331fa5b50cdbe4e2f55f8dd50ca2fd37b` | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
+| `examples/demos/philosopher_book/edited-chapters/editorial-report.md` | 13 | `7343b6deda424ee787c287f4d788b1acbc3976ccc4c24e11a71336d05dcf100a` | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
+| `examples/demos/philosopher_book/final/appendix-01-doctrine-accumulation.md` | 1 | `cd55315ab6c40ed24c67794a0ad04de72b2500cd80c60e01e7c6ab82bde3e3ad` | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
+| `examples/demos/philosopher_book/final/book.md` | 46 | `79c72815796da3e6c01d089b1fe3b208b401e09be44620f661f76401785ac5a9` | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
+| `examples/demos/philosopher_book/final/ch-03-partial_remediation.md` | 1 | `fa3138e79e814da6921abe27a451c07f98696ec84a22bd5c712471d9131aae40` | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
+| `examples/demos/philosopher_book/final/ch-05-false_duplicate.md` | 2 | `b2edaae5aa1ff9d701cf9b1f8836e4a2d5893e45609a068cec060dc61ee56f2f` | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
+| `examples/demos/philosopher_book/final/ch-06-plausible_wrong_answer.md` | 1 | `657ae204f7440e5d93333b4a088b4695ecf60fc3fe808a77706b3b755f4d46f3` | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
+| `examples/demos/philosopher_book/final/ch-07-framework_costume.md` | 2 | `efc48d227d81aafc4d9e38af768d910239d6c4984fe9d6c757506eaf00e6d9fa` | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
+| `examples/demos/philosopher_book/final/ch-08-working_system_inertia.md` | 8 | `e96d82388c62fbbc344ffc3007f988d92c9ba740f857c8e6ef798ed12a26d497` | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
+| `examples/demos/philosopher_book/final/ch-09-architecture_as_diagram.md` | 1 | `fdeff1f1f1e4bf60bc2c71ed391eecc16a278f6b50418fad598c97ecb5f99139` | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
+| `examples/demos/philosopher_book/final/ch-10-gate_checks_shape_not_substance.md` | 2 | `f0cad6281bae38087eb8b509165bd0ba45e330b8ab41ac2139417be8563a0d2c` | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
+| `examples/demos/philosopher_book/final/ch-11-audit_as_ritual.md` | 9 | `907ecfde8790440d2ab933b6406ce0d31b6c2c6b52bedc1f4c4f0ceb770521a8` | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
+| `examples/demos/philosopher_book/final/ch-13-quick_confidence.md` | 1 | `f809e03066d76b460108647bf753262bfea5e28620ce54d400affdf20a7fe739` | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
+| `examples/demos/philosopher_book/final/ch-16-instruction_boundary_uncrossed.md` | 1 | `196d20c0d97136afbaa030e51eb8a4e1cfca5dda5bf00025b30961eec92c6111` | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
+| `examples/demos/philosopher_book/final/ch-18-model_as_trusted_peer.md` | 2 | `cde10af7106ff91b4625b4d599c8f8628eec6606d4b634d790f4f34eadc0d24c` | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
+| `examples/demos/philosopher_book/final/ch-19-infrastructure_self_exempt.md` | 11 | `369039520f933226d32301bf9294031331fa5b50cdbe4e2f55f8dd50ca2fd37b` | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
+| `examples/demos/philosopher_book/final/ch-22-letter-to-the-philosopher.md` | 5 | `23cb8f1895e1e13ae091e27bc2e7b43aadac87a2c778bcc2479a3b43b17e40da` | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
+| `examples/demos/philosopher_book/final/demo-run/_input_snapshot/book.md` | 46 | `79c72815796da3e6c01d089b1fe3b208b401e09be44620f661f76401785ac5a9` | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
+| `examples/demos/philosopher_book/final/demo-run/_input_snapshot/ch-03-partial_remediation.md` | 1 | `fa3138e79e814da6921abe27a451c07f98696ec84a22bd5c712471d9131aae40` | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
+| `examples/demos/philosopher_book/final/demo-run/_input_snapshot/ch-05-false_duplicate.md` | 2 | `b2edaae5aa1ff9d701cf9b1f8836e4a2d5893e45609a068cec060dc61ee56f2f` | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
+| `examples/demos/philosopher_book/final/demo-run/_input_snapshot/ch-06-plausible_wrong_answer.md` | 1 | `657ae204f7440e5d93333b4a088b4695ecf60fc3fe808a77706b3b755f4d46f3` | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
+| `examples/demos/philosopher_book/final/demo-run/_input_snapshot/ch-07-framework_costume.md` | 2 | `efc48d227d81aafc4d9e38af768d910239d6c4984fe9d6c757506eaf00e6d9fa` | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
+| `examples/demos/philosopher_book/final/demo-run/_input_snapshot/ch-08-working_system_inertia.md` | 8 | `e96d82388c62fbbc344ffc3007f988d92c9ba740f857c8e6ef798ed12a26d497` | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
+| `examples/demos/philosopher_book/final/demo-run/_input_snapshot/ch-09-architecture_as_diagram.md` | 1 | `fdeff1f1f1e4bf60bc2c71ed391eecc16a278f6b50418fad598c97ecb5f99139` | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
+| `examples/demos/philosopher_book/final/demo-run/_input_snapshot/ch-10-gate_checks_shape_not_substance.md` | 2 | `f0cad6281bae38087eb8b509165bd0ba45e330b8ab41ac2139417be8563a0d2c` | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
+| `examples/demos/philosopher_book/final/demo-run/_input_snapshot/ch-11-audit_as_ritual.md` | 9 | `907ecfde8790440d2ab933b6406ce0d31b6c2c6b52bedc1f4c4f0ceb770521a8` | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
+| `examples/demos/philosopher_book/final/demo-run/_input_snapshot/ch-13-quick_confidence.md` | 1 | `f809e03066d76b460108647bf753262bfea5e28620ce54d400affdf20a7fe739` | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
+| `examples/demos/philosopher_book/final/demo-run/_input_snapshot/ch-16-instruction_boundary_uncrossed.md` | 1 | `196d20c0d97136afbaa030e51eb8a4e1cfca5dda5bf00025b30961eec92c6111` | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
+| `examples/demos/philosopher_book/final/demo-run/_input_snapshot/ch-18-model_as_trusted_peer.md` | 2 | `cde10af7106ff91b4625b4d599c8f8628eec6606d4b634d790f4f34eadc0d24c` | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
+| `examples/demos/philosopher_book/final/demo-run/_input_snapshot/ch-19-infrastructure_self_exempt.md` | 11 | `369039520f933226d32301bf9294031331fa5b50cdbe4e2f55f8dd50ca2fd37b` | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
+| `examples/demos/philosopher_book/final/demo-run/_input_snapshot/ch-22-letter-to-the-philosopher.md` | 5 | `23cb8f1895e1e13ae091e27bc2e7b43aadac87a2c778bcc2479a3b43b17e40da` | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
+| `examples/demos/philosopher_book/philosopher-book/chapters/ch-01-downstream_fix.md` | 1 | `ec77bf19ad5a11cad01274306d78851e00d06087bb96e9be962182fc823e9bae` | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
+| `examples/demos/philosopher_book/philosopher-book/chapters/ch-03-partial_remediation.md` | 1 | `97e8baa178525e436e6874dff388c9472d5eb17f3b750e068277b35149687931` | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
+| `examples/demos/philosopher_book/philosopher-book/chapters/ch-04-regex_fourth_exclusion.md` | 1 | `e1f0bf8e08bfb13b1399efdcb40040143e595be5ef6129d8fa817ed3734babd3` | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
+| `examples/demos/philosopher_book/philosopher-book/chapters/ch-05-false_duplicate.md` | 4 | `6b6f34281ce08f4f2068164400a0a8aa5feabed112a6824f602dc6a13947d46c` | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
+| `examples/demos/philosopher_book/philosopher-book/chapters/ch-06-plausible_wrong_answer.md` | 1 | `8f47457ff347678ac77aab1f423da8b77685aa7ddbd68fb38edfb06d7f14e7c2` | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
+| `examples/demos/philosopher_book/philosopher-book/chapters/ch-07-framework_costume.md` | 3 | `080705638c0c2a5a695b4eb0572691401c5e1109caaeb4780f94db9a2d89b04b` | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
+| `examples/demos/philosopher_book/philosopher-book/chapters/ch-08-working_system_inertia.md` | 11 | `6c4ef14d3a3ea59e765e7be20cec19ba31ee4a8b4dec0f0c3836fc8ca4cd20d6` | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
+| `examples/demos/philosopher_book/philosopher-book/chapters/ch-09-architecture_as_diagram.md` | 3 | `1c335f9067d949e9e9d3c445892dcea9412277ecc57c9a922d0061d65e09393f` | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
+| `examples/demos/philosopher_book/philosopher-book/chapters/ch-10-gate_checks_shape_not_substance.md` | 3 | `c5e614f29d87961915b9cfb1076ce54220d25160dd0c91932d352f51b45b4a79` | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
+| `examples/demos/philosopher_book/philosopher-book/chapters/ch-11-audit_as_ritual.md` | 12 | `f4b8d44cd6de69987755e17a91e3740ef683f3928b1a283d88ffea5086cf365c` | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
+| `examples/demos/philosopher_book/philosopher-book/chapters/ch-13-quick_confidence.md` | 1 | `f809e03066d76b460108647bf753262bfea5e28620ce54d400affdf20a7fe739` | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
+| `examples/demos/philosopher_book/philosopher-book/chapters/ch-16-instruction_boundary_uncrossed.md` | 5 | `36468a3d6b23553991001c1dc878d71f2615f0d994c2bf78d8ad87bcb431b175` | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
+| `examples/demos/philosopher_book/philosopher-book/chapters/ch-18-model_as_trusted_peer.md` | 4 | `84eb8fa975660b8815d00c788943384b7bc8688161acfe2da73da7e115d43935` | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
+| `examples/demos/philosopher_book/philosopher-book/chapters/ch-19-infrastructure_self_exempt.md` | 13 | `ac2e4bff7a126815a61a68f963c8d04a6f48f9c150051ad95cb2b35a7f3dc9a5` | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
+| `examples/demos/planner/README.md` | 1 | `54f0704e758c6628f171ba0682596bb8ed714b9eb967a1523812011e4c127f1e` | keep — code/tooling comment or stale default path — outside a docs-only FR; the stale `.chaplain` defaults are filed as a spark (`proposals/stale-chaplain-paths-in-code.md`) |
+| `examples/demos/planner/demo.sh` | 1 | `41f0c59ddbf3b2eddb9c222969dc67156520b262b14447ea5a628609214ecb4e` | keep — code/tooling comment or stale default path — outside a docs-only FR; the stale `.chaplain` defaults are filed as a spark (`proposals/stale-chaplain-paths-in-code.md`) |
+| `examples/demos/research-route/nodes/research_tools.py` | 4 | `d8483328783430ffdb4735accd7ea96d15f11a7f5ece08024777458eb23b35e3` | keep — code/tooling comment or stale default path — outside a docs-only FR; the stale `.chaplain` defaults are filed as a spark (`proposals/stale-chaplain-paths-in-code.md`) |
+| `examples/ebook/README.md` | 5 | `4ad596d3b6866d8d5c4e3417b19e3ad782c9b48c1a34d91934432437d1301ab1` | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
+| `examples/ebook/graph-ch03.yaml` | 4 | `9e8b14ddfdd8991a41fb49ad5e829d7ab024ebd0221e28f5985364792fdf16bd` | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
+| `examples/ebook/graph-ch04.yaml` | 4 | `717e0d8fc29831a8ce41b0bf160641b365f635b8ad8dde31f975a89a6e3ca333` | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
+| `examples/ebook/graph.yaml` | 32 | `e829bee9643dbe891cc5765ca6e77aa762b101b1b32c9694cf357dd67d91fd26` | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
+| `examples/ebook/nodes/writing.py` | 10 | `afdcec837d52178009daa7ba1586980b5f517589d59c5c6d3d2f3f403a7814e3` | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
+| `examples/ebook/prompts/chapter/chaplain_pipeline.yaml` | 6 | `5c862d6207c3241dfb5b45a9247c8b3843135ed155f466d58a0b3e3e5d0a1f62` | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
+| `examples/ebook/prompts/chapter/doctrine.yaml` | 2 | `0ac5518f7d82e29289d4138af9434ce3311434c23b34650b711a03f8ec54335e` | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
+| `examples/ebook/prompts/chapter/inquisitor.yaml` | 10 | `d33b92f8f04ba17e96507793eb5ad5c470ac6d387c53533bb438d746d07e6977` | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
+| `examples/ebook/prompts/chapter/introduction.yaml` | 3 | `3f1e70e454445ca3818ddc314f87908c6121ef01a1ca806bb8318c39ba5ff2c3` | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
+| `examples/ebook/prompts/chapter/traceability.yaml` | 2 | `1991a8a05498eaff1a6437f911509357d5adcdcd08b9269b14eec374646a8273` | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
+| `examples/ebook/prompts/judge_draft.yaml` | 2 | `555288adefec34e7e3b4c48c5037de00ef4da2384a46da2bd2a877d2c07ee487` | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
+| `examples/ebook/run-chapters.sh` | 2 | `33d9795616e6d3be98358467ec98582e0d929b7cae07fe1e92c9e5f8a922bdfb` | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
+| `examples/novel_fandom/story/thread_waivers.yaml` | 3 | `b5db2b86dab44bec5a3683a850e4dddc72c302869007cc60594283af4416b462` | keep — "watcher" false positive (FR-885 / file-hook / DeviantArt watcher) or historical example prose |
+| `examples/plot_modeller/docs/plan-roundtrip-phased.md` | 1 | `6a217e7449faa3e811f4e3fad81e0db5eaf3b9e37e3bd3c9e618b2899bb887c5` | keep — "watcher" false positive (FR-885 / file-hook / DeviantArt watcher) or historical example prose |
+| `examples/shared/diary.py` | 3 | `64733d495e69f0f28b867d7ffc83f9c194d81a0d71f875c62bc55bf1644369ce` | keep — code/tooling comment or stale default path — outside a docs-only FR; the stale `.chaplain` defaults are filed as a spark (`proposals/stale-chaplain-paths-in-code.md`) |
+| `graphs/philosopher/README.md` | 1 | `eb7ca2715b68ee5caa4f74392995776f532a212934912a376660171c261879a8` | keep — FR-1011 relocated graph; comments record provenance |
+| `graphs/philosopher/diary.py` | 3 | `3370ac268aba5e78756ab6f03a6ac0a82da6dea00c94e27c7fc9eacf67a57d6b` | keep — FR-1011 relocated graph; comments record provenance |
+| `graphs/philosopher/graph.yaml` | 1 | `cd360079dbe3eba495e254683303b6072b8094e126f7c5f1f15239266f18badd` | keep — FR-1011 relocated graph; comments record provenance |
+| `graphs/philosopher/prompts/challenge.yaml` | 1 | `afe86802d5eb0be49b963d660d1d1fe3ce5f6d6707686576cd12a247bb3a927e` | keep — FR-1011 relocated graph; comments record provenance |
+| `graphs/philosopher/tools.py` | 1 | `c227b378621f460794e9c200bd16dcae35e66691b70e7cf222d654b780a63ad8` | keep — FR-1011 relocated graph; comments record provenance |
+| `prompts/chaplain-audit.md` | 2 | `36d56af5fb07febed42d76a70b6326acd9fcc85dd0a56664500740e0564613fa` | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
+| `reference/fr-knowledge-graph.yaml` | 3 | `d4bb99106429eaa7abd39dc1d71ccffea0abe8d4fbe4117042ca19ad54bcbaf5` | keep — "watcher" false positive (FR-885 / file-hook / DeviantArt watcher) or historical example prose |
+| `scripts/chaplain_archive.sh` | 33 | `eb32197084cd6ec8ce08143ddf9d4e78358cb375164d3a46558e8b00a518ae1b` | keep — FR-1011/FR-1012 deliverable — census, archive tooling, witnesses, evidence |
+| `scripts/chaplain_census.py` | 22 | `a6670e9f6852d3728464cd9a9f4b28d5e6cc1f38323cb1db0e371d4ce53b7bb7` | keep — FR-1011/FR-1012 deliverable — census, archive tooling, witnesses, evidence |
+| `scripts/chaplain_postmerge_witness.sh` | 14 | `2d19d0c13320763f5a1c349ba1e4685ee116094c03c37abe014f10dd329bb8d5` | keep — FR-1011/FR-1012 deliverable — census, archive tooling, witnesses, evidence |
+| `scripts/fix_bare.sh` | 1 | `818fa954180db49e5060461c2500e8e8eeeb7bb247fb8a7ae474bed5054a247f` | keep — code/tooling comment or stale default path — outside a docs-only FR; the stale `.chaplain` defaults are filed as a spark (`proposals/stale-chaplain-paths-in-code.md`) |
+| `scripts/migrate_capabilities.py` | 6 | `20eefe53649459fd9581b737e6e5bca506c411f105a706f2df95a33fce38d604` | keep — code/tooling comment or stale default path — outside a docs-only FR; the stale `.chaplain` defaults are filed as a spark (`proposals/stale-chaplain-paths-in-code.md`) |
+| `scripts/migrate_diary_to_folder.py` | 2 | `d52cfb33ecd437cb7652e09ef7499de78e9f968aa15f0894b23828e4bd631e72` | keep — code/tooling comment or stale default path — outside a docs-only FR; the stale `.chaplain` defaults are filed as a spark (`proposals/stale-chaplain-paths-in-code.md`) |
+| `scripts/pipeline_summary.py` | 1 | `f47f5fc6f747e4c9ff442569c55912f49428b9a88f6708d024a195d182f5f9eb` | keep — code/tooling comment or stale default path — outside a docs-only FR; the stale `.chaplain` defaults are filed as a spark (`proposals/stale-chaplain-paths-in-code.md`) |
+| `scripts/vscode/MAP.md` | 3 | `783251fac82a3dc667f026edbcb8756e4fb15dea34d1af636527d9abdd85e168` | keep — code/tooling comment or stale default path — outside a docs-only FR; the stale `.chaplain` defaults are filed as a spark (`proposals/stale-chaplain-paths-in-code.md`) |
+| `scripts/vscode/now.py` | 1 | `4353230047b3274e322aefc8900c84c3a0d8ffb8bf785b605d0925991fff05f1` | keep — code/tooling comment or stale default path — outside a docs-only FR; the stale `.chaplain` defaults are filed as a spark (`proposals/stale-chaplain-paths-in-code.md`) |
+| `scripts/worktree.sh` | 1 | `07ff69d544424e4a333f863d4a7eb22a687206166306083f7780acaf10c1d6ed` | keep — code/tooling comment or stale default path — outside a docs-only FR; the stale `.chaplain` defaults are filed as a spark (`proposals/stale-chaplain-paths-in-code.md`) |
+| `tests/conftest.py` | 2 | `63faaab984f185368165a99119f5a0b2ac37c1cd0592e0c7582d6794ad0309cd` | keep — code/tooling comment or stale default path — outside a docs-only FR; the stale `.chaplain` defaults are filed as a spark (`proposals/stale-chaplain-paths-in-code.md`) |
+| `tests/unit/test_automated_post_merge_finalization.py` | 3 | `20f56e90bfb8d1cc5b535b57cc9f7ad521f51ef3e4963155356d36b6efbca6a6` | keep — test kept by the FR-1012 census (old-string witness or unrelated match) |
+| `tests/unit/test_chaplain_graph_compile.py` | 6 | `cef4e24fd9d14b2f7c5f54bf0781708c2c0f3629dc2daa3577eeb7928a79d445` | keep — test kept by the FR-1012 census (old-string witness or unrelated match) |
+| `tests/unit/test_concurrency_safety_doc.py` | 2 | `59537ced74984f10d33f860b19cf497d39b619c4187150a170b98560a7cbf53e` | keep — test kept by the FR-1012 census (old-string witness or unrelated match) |
+| `tests/unit/test_diary_digest.py` | 6 | `2588cea6bc924eca7cf0a5a07b1a77f8c25ccecdd9273f5bcfe31dc60d4086e4` | keep — test kept by the FR-1012 census (old-string witness or unrelated match) |
+| `tests/unit/test_diary_index.py` | 4 | `4ea88d71fa1e4266be3d8d00a063c7398ed08a65f800006beb0a8d8ef6045077` | keep — test kept by the FR-1012 census (old-string witness or unrelated match) |
+| `tests/unit/test_ebook_writing.py` | 15 | `b96316b1339c3d5b8175dabc067f9aa032a3351fa0b5518fb4d8500617d7d711` | keep — test kept by the FR-1012 census (old-string witness or unrelated match) |
+| `tests/unit/test_fr026_chaplain_fixes.py` | 2 | `823efa041abf9b86499b49863a88bb187cdf45932889148071e0ec654091717f` | keep — test kept by the FR-1012 census (old-string witness or unrelated match) |
+| `tests/unit/test_fr1011_relocation.py` | 19 | `67d7e17e1783cdb03989d8a4a11a269ab6f315737fea6eb777310af2754dbd62` | keep — FR-1011/FR-1012 deliverable — census, archive tooling, witnesses, evidence |
+| `tests/unit/test_fr1012_chaplain_archive.py` | 24 | `d835355f227590c81d76f1cbd5445a7aec7240a79160f331a1668d01c05dd43c` | keep — FR-1011/FR-1012 deliverable — census, archive tooling, witnesses, evidence |
+| `tests/unit/test_fr1012_chaplain_census.py` | 34 | `e4cf7a6afe19956e69a03eea2f75d7c56ffd268cc71965541199dbb92c6665c3` | keep — FR-1011/FR-1012 deliverable — census, archive tooling, witnesses, evidence |
+| `tests/unit/test_fr1012_chaplain_postmerge_witness.py` | 13 | `e29a9314d0fd868933f7c9fa64c1ae49dc1fb78d2eb1034813c5bb73d0db8357` | keep — FR-1011/FR-1012 deliverable — census, archive tooling, witnesses, evidence |
+| `tests/unit/test_fr1012_chaplain_removed.py` | 18 | `97ba1b2a9abdf724db5eae5d12fd04236afc96c95489b49f9d8db1606b63854c` | keep — FR-1011/FR-1012 deliverable — census, archive tooling, witnesses, evidence |
+| `tests/unit/test_fr372_gitignore_boundary_guard.py` | 1 | `993a400a540a129dcdf61884b90f51765f68abb40e313abc870c066420563d1d` | keep — test kept by the FR-1012 census (old-string witness or unrelated match) |
+| `tests/unit/test_fr382_chaplain_prompt_caching_scope_red.py` | 2 | `539e11781101901878b51b53127e21c51af6156b1c06b4f1bb3a8d87fe99556f` | keep — test kept by the FR-1012 census (old-string witness or unrelated match) |
+| `tests/unit/test_fr392_fsm_on_launch_hook_red.py` | 2 | `d3543207f86a6ca3b69cd671e47a03cdd0fbf21555179859dce68c5c9e89b49f` | keep — test kept by the FR-1012 census (old-string witness or unrelated match) |
+| `tests/unit/test_fr419_action_config_schema_boundary.py` | 9 | `bc0ca5fbef4017601835b013eb7d44cc2008da75e6f7a24fe0669cd5024ea71a` | keep — test kept by the FR-1012 census (old-string witness or unrelated match) |
+| `tests/unit/test_fr446_copilot_skills.py` | 1 | `ab96c9f1c0b21981262f5a2e28bcef892cded15bbcc6e6c243ea25bb06485583` | keep — test kept by the FR-1012 census (old-string witness or unrelated match) |
+| `tests/unit/test_fr693_event_revision.py` | 1 | `4a1815837e2f633a71c1a43b7f8a972faf134991db024475e12fcebb1c160cca` | keep — test kept by the FR-1012 census (old-string witness or unrelated match) |
+| `tests/unit/test_fr748_fr_atlas.py` | 2 | `04eb9bdf7a79b3144fe7a149d53f7fb1c6f1779e6d5de8f1ea67167dba3c8db7` | keep — test kept by the FR-1012 census (old-string witness or unrelated match) |
+| `tests/unit/test_fr754_id_registry_package_boundary.py` | 5 | `319eb8d39f3256b1d9f21c1710c06dae9d899347cadcf8a3fd586221d982c4b0` | keep — test kept by the FR-1012 census (old-string witness or unrelated match) |
+| `tests/unit/test_fr896_precedent_traceability.py` | 1 | `0333f930c39338f64a6490bdd285845756ba8d8f271ebb84d8492773b9122474` | keep — test kept by the FR-1012 census (old-string witness or unrelated match) |
+| `tests/unit/test_fr942_instruction_diet.py` | 1 | `e07b90edeba8d76d62610d6e3b9232ac5c5ea235e15675e1119d6af7624c37a2` | keep — test kept by the FR-1012 census (old-string witness or unrelated match) |
+| `tests/unit/test_fsm_claude_md_doctrine.py` | 3 | `ff479bdbf37ebe5818b5013f7a486967667ddb594eae7ef46ab1f343e6ce79ed` | keep — test kept by the FR-1012 census (old-string witness or unrelated match) |
+| `tests/unit/test_knowledge_graph_fr193.py` | 1 | `3ffd32f1741224e7b8cea38ff215c686983b94098fcbde3c6d19f82506a32a2f` | keep — test kept by the FR-1012 census (old-string witness or unrelated match) |
+| `tests/unit/test_migrate_diary.py` | 7 | `6fc47aded30b4d2feecae3b4af178d8f7833599b6ba06a03039b1bb54e790573` | keep — test kept by the FR-1012 census (old-string witness or unrelated match) |
+| `tests/unit/test_philosopher.py` | 1 | `7183e0ed38067ec2346c6de7da72295e319e1bf6d40785c0b47f8c9d710ed1f6` | keep — test kept by the FR-1012 census (old-string witness or unrelated match) |
+| `tests/unit/test_python_node_graph_integration.py` | 1 | `9c863a8bf1ec8870c3d969927989c277a363e8f387f68f7578c426cf9d1e378c` | keep — test kept by the FR-1012 census (old-string witness or unrelated match) |
+| `tests/unit/test_python_nodes.py` | 6 | `286d7f38dd52fe13d4f53ad6dbcf74e00bea31cc177556500462e7ec8e87e0db` | keep — test kept by the FR-1012 census (old-string witness or unrelated match) |
+| `tests/unit/test_ramp_installer.py` | 1 | `959509de58229b0dcfd171cebcf52168349751e9959ed99db6c46fcf3962acbb` | keep — test kept by the FR-1012 census (old-string witness or unrelated match) |
+| `yamlgraph/utils/fsm/action.py` | 1 | `838e69ee5bea4ed4643c80fd892d4a51d64835eacc0beb1c85facf7c3128eac4` | keep — code/tooling comment or stale default path — outside a docs-only FR; the stale `.chaplain` defaults are filed as a spark (`proposals/stale-chaplain-paths-in-code.md`) |
+| `yamlgraph/utils/worktree_helpers.py` | 1 | `c449c89fe5ad8f28684520d8b8103f631e6ad24a54600e752d60abee5f15c98f` | keep — code/tooling comment or stale default path — outside a docs-only FR; the stale `.chaplain` defaults are filed as a spark (`proposals/stale-chaplain-paths-in-code.md`) |

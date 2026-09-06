@@ -28,6 +28,7 @@ SCRIPTURE = REPO / ".github" / "copilot-instructions.md"
 DEV_PROCESS = REPO / "docs" / "development-process.md"
 AUDIT_INDEX = REPO / "reference" / "audit-index.md"
 INVENTORY = REPO / "docs" / "census" / "fr1013-inventory-at-base-36591389.txt"
+DISPOSITIONS = INVENTORY.with_name("fr1013-inventory-at-base-36591389.dispositions.md")
 
 BASE = "36591389e2fdfedf9ba5ae6362effad1c64cd06e"  # FR-1012 merge SHA (PR #623)
 
@@ -110,7 +111,8 @@ RESIDUAL: dict[str, list[str]] = {
 }
 
 # Clause 2, generated/registry files and main drift merged after BASE:
-# (removed matching lines, added matching lines) relative to BASE — exact.
+# (removed matching lines, added matching lines) relative to BASE — exact — plus
+# the sha256 of the resulting HEAD matching-line multiset (CI has no BASE object).
 DELTA: dict[str, tuple[list[str], list[str]]] = {
     "capabilities/CAP-264-chaplain-runtime-retired.yaml": (
         [],
@@ -140,6 +142,12 @@ DELTA: dict[str, tuple[list[str], list[str]]] = {
             "- **File**: [scripts/chaplain_census.py](../scripts/chaplain_census.py#L91)",
         ],
     ),
+}
+
+DELTA_HEAD_SHA256 = {
+    "capabilities/CAP-264-chaplain-runtime-retired.yaml": "d20976227ec1e9b85b4ae88c05aa45fc1eb1950e48d65bd38d43a82ecd3cfeaf",
+    "ARCHITECTURE.md": "5d5790c35a5eab27ea353174364eafe251afafd6eea9843e436c181b8edefd3a",
+    "docs/confessions.md": "b53ba777cc0fae631de84e12a9bdae14e81f5cbd3e5a0a99737fcecd95687ca1",
 }
 
 # Clause 3 — matching files absent from BASE that this FR creates (self-referential).
@@ -184,29 +192,42 @@ def _head_matches(rel: str) -> Counter[str]:
     return _matches(path.read_text(encoding="utf-8", errors="replace"))
 
 
-def _base_matches(paths: list[str]) -> dict[str, Counter[str]]:
-    """One `git cat-file --batch` round trip for every BASE blob."""
-    spec = "".join(f"{BASE}:{p}\n" for p in paths).encode()
-    raw = subprocess.run(
-        ["git", "cat-file", "--batch"],
-        cwd=REPO,
-        input=spec,
-        capture_output=True,
-        check=True,
-    ).stdout
-    out: dict[str, Counter[str]] = {}
-    pos = 0
-    for p in paths:
-        nl = raw.index(b"\n", pos)
-        header = raw[pos:nl].decode()
-        pos = nl + 1
-        if header.endswith(" missing"):
-            out[p] = Counter()
-            continue
-        size = int(header.rsplit(" ", 1)[1])
-        out[p] = _matches(raw[pos : pos + size].decode("utf-8", errors="replace"))
-        pos += size + 1
-    return out
+def _sha(lines: Counter[str]) -> str:
+    return hashlib.sha256(
+        "\n".join(sorted(lines.elements())).encode("utf-8")
+    ).hexdigest()
+
+
+_ROW = re.compile(r"^\| `([^`]+)` \| (\d+) \| `([0-9a-f]{64})` \| ")
+
+
+def _baseline() -> dict[str, tuple[int, str]]:
+    """Committed BASE baseline: per file, match count and sha256 of the sorted
+    matching lines (docs/census/…dispositions.md). CI checks out depth 1, so the
+    BASE object itself is not available there; the record is."""
+    rows = {}
+    for ln in DISPOSITIONS.read_text(encoding="utf-8").splitlines():
+        m = _ROW.match(ln)
+        if m:
+            rows[m.group(1)] = (int(m.group(2)), m.group(3))
+    return rows
+
+
+def _base_lines_if_available(rel: str) -> Counter[str] | None:
+    """Diagnostics only: the BASE blob when history is present (never in CI)."""
+    r = subprocess.run(
+        ["git", "cat-file", "-p", f"{BASE}:{rel}"], cwd=REPO, capture_output=True
+    )
+    if r.returncode != 0:
+        return None
+    return _matches(r.stdout.decode("utf-8", errors="replace"))
+
+
+def _explain(rel: str, head: Counter[str]) -> str:
+    base = _base_lines_if_available(rel)
+    if base is None:
+        return f"{rel}: matching lines differ from BASE ({len(list(head.elements()))} at HEAD; BASE object not available)"
+    return f"{rel}: removed {sorted((base - head).elements())} added {sorted((head - base).elements())}"
 
 
 def _section(text: str, start: str, end: str) -> str:
@@ -219,21 +240,30 @@ def _section(text: str, start: str, end: str) -> str:
 
 
 @pytest.mark.req("REQ-YG-668")
+def test_baseline_record_is_complete_and_agrees_with_the_raw_inventory():
+    baseline = _baseline()
+    inventory = Counter(
+        ln.rsplit(":", 1)[0]
+        for ln in INVENTORY.read_text(encoding="utf-8").splitlines()
+        if ln and not ln.startswith("#")
+    )
+    assert set(baseline) == set(inventory), "baseline rows != inventory files"
+    assert {p: c for p, (c, _) in baseline.items()} == dict(inventory)
+    assert len(baseline) == 261
+
+
+@pytest.mark.req("REQ-YG-668")
 def test_residual_clause1_files_outside_the_edit_set_match_base_line_for_line():
+    baseline = _baseline()
     frozen = sorted(
-        _frozen_files()
-        - set(RESIDUAL)
-        - set(DELTA)
-        - {"docs/context/chaplain-system.md"}
+        set(baseline) - set(RESIDUAL) - set(DELTA) - {"docs/context/chaplain-system.md"}
     )
-    base = _base_matches(frozen)
-    drift = {
-        p: (base[p] - _head_matches(p), _head_matches(p) - base[p]) for p in frozen
-    }
-    drift = {p: d for p, d in drift.items() if d[0] or d[1]}
-    assert not drift, (
-        "matching lines changed outside the edit set (removed, added): " + repr(drift)
-    )
+    drift = [
+        _explain(p, _head_matches(p))
+        for p in frozen
+        if _sha(_head_matches(p)) != baseline[p][1]
+    ]
+    assert not drift, "matching lines changed outside the edit set: " + "\n".join(drift)
 
 
 @pytest.mark.req("REQ-YG-668")
@@ -249,10 +279,10 @@ def test_residual_clause2_edit_set_files_carry_only_listed_lines(rel):
 @pytest.mark.parametrize("rel", sorted(DELTA))
 def test_residual_clause2_generated_and_drift_files_match_exact_delta(rel):
     removed, added = DELTA[rel]
-    base = _base_matches([rel])[rel]
     head = _head_matches(rel)
-    assert sorted((base - head).elements()) == removed, rel
-    assert sorted((head - base).elements()) == added, rel
+    assert _sha(head) == DELTA_HEAD_SHA256[rel], _explain(rel, head)
+    assert all(ln in head for ln in added), rel
+    assert not any(ln in head for ln in removed), rel
 
 
 @pytest.mark.req("REQ-YG-668")
@@ -265,9 +295,10 @@ def test_residual_clause3_no_unenumerated_matching_file():
 @pytest.mark.req("REQ-YG-668")
 @pytest.mark.parametrize("rel", OUT_OF_SCOPE_CODE)
 def test_residual_clause4_out_of_scope_code_defaults_unchanged(rel):
-    base = _base_matches([rel])[rel]
-    assert base, f"{rel} had no .chaplain default at BASE — reclassify"
-    assert _head_matches(rel) == base
+    count, sha = _baseline()[rel]
+    assert count, f"{rel} had no .chaplain default at BASE — reclassify"
+    head = _head_matches(rel)
+    assert _sha(head) == sha, _explain(rel, head)
 
 
 @pytest.mark.req("REQ-YG-668")
