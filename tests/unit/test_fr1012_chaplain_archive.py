@@ -74,6 +74,9 @@ def world(tmp_path: Path):
     pre = _git(repo, "rev-parse", "HEAD")
     (repo / "docs" / "census").mkdir(parents=True)
     (repo / "docs" / "census" / "chaplain-disposition-input.jsonl").write_text(json.dumps({"source_sha": pre, "path": ".chaplain/README.md", "kind": "test"}) + "\n", encoding="utf-8")
+    # the run record carries the frozen tree id; after a squash merge the source commit may be unreachable
+    tree = _git(repo, "rev-parse", f"{pre}:.chaplain")
+    (repo / "docs" / "census" / "chaplain-test-disposition.run.json").write_text(json.dumps({"source_sha": pre, "chaplain_tree_sha": tree}), encoding="utf-8")
     _git(repo, "add", "-A")
     _git(repo, "commit", "-q", "-m", "census evidence")
     evidence = _git(repo, "rev-parse", "HEAD")

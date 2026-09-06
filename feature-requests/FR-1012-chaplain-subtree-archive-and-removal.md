@@ -443,10 +443,10 @@ Deterministic non-census deletion set (D-6) is unchanged: `scripts/id_registry.p
 | New CAP-N / REQ-YG-M | `CAP-264` / `REQ-YG-666` (`capabilities/CAP-264-chaplain-runtime-retired.yaml`), allocated 2026-09-06 as max(main CAP-263 / REQ-YG-665, no open PR heads) + 1; witnessed today by `tests/unit/test_fr1012_chaplain_census.py` (19 tests) |
 | RED SHA + assertion output | _pending_ |
 | GREEN SHA + gate outputs | _pending_ |
-| `PRE` / `SPLIT` / `ARCHIVE_HEAD` | _pending_ |
-| Visibility decision (operator, date, rationale, PR) | **private**, operator, 2026-09-06, "archive can be private"; PR reference at pre-remote review |
+| `PRE` / `SPLIT` / `ARCHIVE_HEAD` | `PRE=0184a73d22500bd2bc678be8374bc4095de4575f` (squash merge of the census PR #621; `.chaplain` tree `3b25919c` == disposition input tree) / `SPLIT=b31f58492832a2b3c4fdc1cec4e0625f3f0e97e7` / `ARCHIVE_HEAD=cf30d87f120aa16e12b441869c32209073e97fb6`. Run 2026-09-06 12:21–12:32Z by `scripts/chaplain_archive.sh --visibility private --pre 0184a73d…`; journal `docs/census/chaplain-archive.run.json` (all seven transitions), manifest `docs/census/chaplain-archive-manifest.txt` (146 files, sha256 `3d4a77fa…`). Verified: tag `chaplain-archive` on origin → PRE; `sheikkinen/yamlgraph-chaplain` PRIVATE, archived, default branch main, 146 blobs, README first line carries the banner |
+| Visibility decision (operator, date, rationale, PR) | **private**, operator, 2026-09-06, "archive can be private"; census PR #621; archive created private and verified |
 | Round-2 judgement human review (ref + date; activates `Judged`) | operator instruction "run the census" to the enforcing session, 2026-09-06 (after the merges of #615, #617, #619, #620); recorded here as the activation reference — the operator may replace it with an explicit review note |
-| Pre-remote human review (AC-11) | _pending_ |
+| Pre-remote human review (AC-11) | operator instruction 2026-09-06: "continue to split .chaplain into private repo — including all git dance needed as pre-requisite", given after the census results, the dry-run plan and the review dispositions were reported; the dry run (146 files, private, seven steps) was shown before the real run. No separate review document — the instruction is the record |
 | Pre-merge human review (AC-18) | _pending_ |
 | Post-merge follow-up commit (AC-20) | _pending_ |
 | Post-merge `sync` + `now.py` outcome | _pending_ |
