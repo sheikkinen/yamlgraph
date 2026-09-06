@@ -317,3 +317,105 @@ Not authorized: a closure script or closure-script test; runtime, production Pyt
 | C-8 | The pre-round-3 branch commits are candidates only. Acceptance is determined by the amended FR and the witnesses in this judgement, not by those commits' existence or prior green results. | GATE |
 
 Authority granted: after R-1 through R-4 are folded and human-reviewed, FR-1013 may implement only D-1 through D-8; D-9 may occur only after the resulting PR is merged.
+
+---
+
+# Round 4 (2026-09-06, after PR #627 review 2 P5 — diary outside D-1..D-8) — APPROVED WITH REVISIONS
+
+**Verdict:** APPROVED WITH REVISIONS — the exact FR-1013 Distill entry is a mandatory, same-responsibility deliverable rather than a new concern, but authority for D-10 activates only after the FR resolves its contradictory diary exclusions, corrects the unsupported claim that CI necessarily gates this docs PR, folds the revised criteria below, and receives human review.
+
+**Reviewed against:** `feature-requests/FR-1013-chaplain-doctrine-sweep.md`; `feature-requests/FR-1013-chaplain-doctrine-sweep.judgement.md`; `.github/skills/judge-fr/doctrine.md`; `.github/skills/judge-fr/judgement.template.md`; `.github/copilot-instructions.md`; `docs/development-process.md`; `feature-requests/FR-1010-chaplain-archival-plan.md`; `feature-requests/FR-1010-chaplain-archival-plan.judgement.md`; `feature-requests/FR-193-mass-graduation-scripture-patterns.md`; `feature-requests/FR-207-standalone-scripture-methodology-repo.md`; `feature-requests/FR-1011-relocate-chaplain-live-parts.md`; `feature-requests/FR-1012-chaplain-subtree-archive-and-removal.md`; `docs/census/fr1013-inventory-at-base-36591389.dispositions.md`; `docs/diary/2026-09-06-reflection-fr-1013-the-inventory-that-was-fifteen-times-the-plan.md`; `.github/workflows/commitlint.yml`; `.pre-commit-config.yaml`; `scripts/gate_artifact_semantics.sh`; `changelog/unreleased/fr-1013-doctrine-sweep.md`.
+
+## What is sound
+
+The proposal remains narrowly scoped to one documentation-reconciliation concern. D-10 records what was learned while carrying out that concern; it does not add runtime behavior, another capability, or post-merge automation. The exact path is named and all other diary edits remain excluded (`feature-requests/FR-1013-chaplain-doctrine-sweep.md:124-136`). This satisfies **scope** and **single responsibility**; the round-2 closure-script split remains intact.
+
+The research and strategic case remain sound. FR-1010 compares six genuine solution classes, preserves the archive-discoverability disagreement, selects the source-only archive, and answers `is_this_a_graph` for both deterministic archival and the model-assisted census (`feature-requests/FR-1010-chaplain-archival-plan.md:449-468`). FR-1013 dispositions the Scripture, ramp, relocation, and runtime-removal precedents rather than merely listing them (`feature-requests/FR-1013-chaplain-doctrine-sweep.md:17-41`). Strategic classification remains **Pattern documentation**: the change reconciles active documentation and its required learning record; it introduces no framework primitive or example.
+
+The diary addition is **feasible**, **architecture-aligned**, **measurable**, and **testable**. Repository doctrine requires every completed task list to end with a metacognitive entry containing a Seed (`.github/copilot-instructions.md:26,213`; `docs/development-process.md:258-266`). The named artifact already contains explicit trap, heuristic, and Seed sections (`docs/diary/2026-09-06-reflection-fr-1013-the-inventory-that-was-fifteen-times-the-plan.md:25-49,54-77`), and the repository exposes a deterministic validator for file existence, non-empty content, minimum size, a Markdown section, and a `Seed:` marker (`scripts/gate_artifact_semantics.sh:52-83`).
+
+The remaining defect is **consistency**, not direction. The writable-surface table proposes D-10, while the Summary says diary is untouched, the historical allowlist permits only archive exceptions, the Purge List forbids all other allowlist edits, and AC-02 still freezes only D-1 through D-8 (`feature-requests/FR-1013-chaplain-doctrine-sweep.md:43-50,88-91,124-136,263-266,284-291`). Those contradictions are mechanically foldable.
+
+## Required revisions
+
+### R-1: Make D-10 an explicit exception everywhere diary content is frozen
+
+Replace the writable-surface row's "round-4 question" with a definitive D-10 authorization for exactly `docs/diary/2026-09-06-reflection-fr-1013-the-inventory-that-was-fifteen-times-the-plan.md`.
+
+Reconcile every conflicting boundary:
+
+- In the Summary, replace the claim that diary is untouched with a claim that pre-existing diary history is untouched except for the new D-10 artifact.
+- In the allowlist paragraph and Purge List, authorize exactly the D-10 path while leaving every other `docs/diary/` path immutable.
+- In AC-02, freeze the PR surface as D-1 through D-8 plus D-10; D-9 remains the operator-owned post-merge action.
+- Preserve "No other path may change" and the round-3 residual contract without widening either one.
+
+### R-2: Correct the diary-gate claim and add an executable D-10 witness
+
+Replace the statement that CI `diary-gate` blocks this PR with the accurate boundary: Scripture requires Distill for every completed task list, while the committed CI job runs only when the PR title starts with `feat` or `fix` (`.github/workflows/commitlint.yml:302-307`). Do not change CI, hooks, or the PR title to manufacture enforcement.
+
+Add AC-16 below. It must require that the BASE-to-HEAD diff under `docs/diary/` contains exactly the D-10 path and that:
+
+```bash
+source scripts/gate_artifact_semantics.sh
+validate_diary_reflection_file \
+  docs/diary/2026-09-06-reflection-fr-1013-the-inventory-that-was-fifteen-times-the-plan.md \
+  docs/diary/2026-09-06-reflection-fr-1013-the-inventory-that-was-fifteen-times-the-plan.md
+```
+
+returns zero. Also assert the literal `## The trap`, `## Heuristic`, and `**Seed:**` markers so acceptance witnesses the doctrine's substance, not merely the generic validator's shape checks. Renumber the existing post-merge AC-16 to AC-17.
+
+### R-3: Record round-4 authority without rewriting prior rounds
+
+Update Status, the Judgement section, and the Implementation Record to state that round-3 D-1 through D-8 remain the governing implementation scope, the existing diary commit was a candidate outside that freeze, and D-10 becomes authorized only after R-1 through R-3 are folded and this draft is human-reviewed. State that the round-4 AC-01 through AC-17 list supersedes the round-3 acceptance list; preserve rounds 1 through 3 in the judgement history unchanged.
+
+## Scope is frozen
+
+| Deliverable | Surface |
+|---|---|
+| D-1 | Amend FR-1013 and its judgement; preserve the BASE raw inventory and update its disposition record only as required by the already-authorized exact residual policy |
+| D-2 | Rename only the Scripture heading and remove only `chaplain pipeline` from the canonical-sources clause in `.github/copilot-instructions.md`; preserve all seven Sermon steps and the complete Knowledge Graph block |
+| D-3 | Reconcile the frozen active passages in `.github/skills/graph-authoring/SKILL.md`, `.github/skills/graph-authoring/doctrine.md`, `docs/development-process.md`, `examples/README.md`, `reference/audit-index.md`, `reference/command-book.md`, `reference/graph-yaml.md`, `reference/onepager-development-process.md`, and `reference/patterns/fsm-as-conductor.md` |
+| D-4 | Move `docs/context/chaplain-system.md` to `docs/archive/chaplain-system.md` and maintain its single link from `docs/archive/chaplain.md` |
+| D-5 | Update `.github/skills/judge-fr/doctrine.md` and its byte-identical `ramp/assets/tier2/github/skills/judge-fr/doctrine.md` mirror |
+| D-6 | Add REQ-YG-668 under `capabilities/CAP-264-chaplain-runtime-retired.yaml`; regenerate only the corresponding generated portions of `ARCHITECTURE.md` |
+| D-7 | Maintain `tests/unit/test_fr1013_doctrine_sweep.py` as the exact match-level policy and direct-REQ witness |
+| D-8 | Add `changelog/unreleased/fr-1013-doctrine-sweep.md` and record the mandatory human review in FR-1013 |
+| D-9 | After merge only, record FR-1013's merge SHA and close FR-1010 AC-12/AC-13 in a separate FR-1010-only commit |
+| D-10 | Add only `docs/diary/2026-09-06-reflection-fr-1013-the-inventory-that-was-fifteen-times-the-plan.md` as the FR-1013 Distill artifact |
+
+Not authorized: any other diary edit; a closure script or closure-script test; runtime, production Python, shell, hook, CI, graph, prompt, ramp manifest, ramp provenance, archive-repository, tag, or worktree behavior changes; a new CAP; any requirement other than REQ-YG-668 under CAP-264; manual edits to generated `ARCHITECTURE.md` content beyond the CAP-264/REQ-YG-668 rendering; changes to old witness tests; changes to historical FR, memento, ebook, research, or changelog-history content; changes to archive content beyond the two D-4 paths; changes to any Sermon step or Knowledge Graph entry; changes to `ramp/manifest.yaml` or `ramp/curation-diffs.md`; marking FR-1010 complete before FR-1013 is merged.
+
+## Revised acceptance criteria
+
+- [ ] AC-01: FR-1013 records `BASE=36591389e2fdfedf9ba5ae6362effad1c64cd06e`, links the FR-1012 human-review record, and records `git merge-base --is-ancestor "$BASE" HEAD` exiting 0 before authorized enforcement.
+- [ ] AC-02: FR-1013 contains separate exhaustive tables for the BASE match-bearing source set and the complete writable surface D-1 through D-8 plus D-10; every PR path changed from BASE appears in that writable table, while D-9 remains post-merge only.
+- [ ] AC-03: The committed raw inventory contains exactly 2,586 match rows after its two header lines, the disposition artifact contains 261 file rows, and the exact BASE SHA and reproducing command remain recorded.
+- [ ] AC-04: `grep -c 'Sermon of the Chaplain' .github/copilot-instructions.md` returns 0; the seven bold Sermon step names equal their `git show "$BASE":.github/copilot-instructions.md` values; the complete Knowledge Graph block is byte-identical to BASE; and the Scripture diff is limited to the heading and canonical-sources clause.
+- [ ] AC-05: `docs/development-process.md` describes the operator-driven `scripts/author.sh` -> `scripts/judge.sh` -> worktree enforcement -> `scripts/review.sh` -> human merge route in every frozen active-process passage, while its section 3.1 measurement sentence is byte-identical to BASE.
+- [ ] AC-06: The other D-3 skill/example/reference surfaces have exactly their frozen dispositions; `reference/audit-index.md` has exactly one row containing `Chaplain`, and that row links `docs/archive/chaplain.md`.
+- [ ] AC-07: `docs/archive/chaplain-system.md` exists, `docs/context/chaplain-system.md` does not, `git diff --name-status -M90% "$BASE"...HEAD` reports a rename score of at least 90%, and `docs/archive/chaplain.md` links the moved document.
+- [ ] AC-08: `cmp -s .github/skills/judge-fr/doctrine.md ramp/assets/tier2/github/skills/judge-fr/doctrine.md` exits 0; `pytest tests/unit/test_ramp_installer.py::test_mirror_exact_entries_match_live_bytes -q` passes; and `git diff --exit-code "$BASE"...HEAD -- ramp/manifest.yaml ramp/curation-diffs.md` exits 0.
+- [ ] AC-09: The residual witness scans tracked `.md`, `.py`, `.sh`, `.yaml`, and `.yml` files; compares exact matching-line multisets to BASE outside the authorized match-bearing edit set; enforces exact residual lines inside that set; rejects unenumerated matching files; and leaves every `keep-out-of-scope-code` line unchanged.
+- [ ] AC-10: `capabilities/CAP-264-chaplain-runtime-retired.yaml` associates FR-1013 with REQ-YG-668; CAP-265 retains REQ-YG-667; `python scripts/aggregate_capabilities.py` followed by `git diff --exit-code -- ARCHITECTURE.md` produces no unstaged drift; `python scripts/validate_capabilities.py --strict` and `python scripts/req_coverage.py --strict` pass.
+- [ ] AC-11: Every residual/documentation-consistency test in `tests/unit/test_fr1013_doctrine_sweep.py` is tagged REQ-YG-668; only the Knowledge Graph preservation test is tagged REQ-YG-192; only the ramp mirror test is tagged REQ-YG-613; the FR's traceability table quotes each requirement text.
+- [ ] AC-12: `pytest tests/unit/test_fr1013_doctrine_sweep.py tests/unit/test_knowledge_graph_fr193.py tests/unit/test_ramp_installer.py -q --no-cov` and `pytest tests/unit/ -q --no-cov -m "not slow" -n auto` pass.
+- [ ] AC-13: Human review is recorded in FR-1013 before merge and confirms the restricted Scripture diff, the adversarially reviewed judge-doctrine change, byte-identical mirror, generated-only architecture diff, exact residual policy, unchanged Sermon steps, unchanged Knowledge Graph, and D-10 as the only diary change.
+- [ ] AC-14: `changelog/unreleased/fr-1013-doctrine-sweep.md` exists with `type: removal` and `scope: doctrine`.
+- [ ] AC-15: The FR-1013 PR contains no closure script or closure-script test.
+- [ ] AC-16: `git diff --name-only "$BASE"...HEAD -- docs/diary/` returns exactly `docs/diary/2026-09-06-reflection-fr-1013-the-inventory-that-was-fifteen-times-the-plan.md`; `validate_diary_reflection_file` returns zero for that file; and the file contains literal `## The trap`, `## Heuristic`, and `**Seed:**` markers.
+- [ ] AC-17: Post-merge only, the operator records FR-1013's merge SHA in FR-1010, runs and records FR-1010 AC-12/AC-13 on merged `main`, records each phase's completion, and changes FR-1010 to `Completed` in a separate FR-1010-only commit.
+
+## Conditions for enforcement
+
+| # | Condition | Severity |
+|---|---|---|
+| C-1 | D-10 has no authority until R-1 through R-3 and AC-01 through AC-17 are folded into the committed FR and this draft receives human review; the draft remains advisory until then. | GATE |
+| C-2 | `36591389e2fdfedf9ba5ae6362effad1c64cd06e` remains the immutable BASE; if it is not an ancestor of the enforcement head, stop. | GATE |
+| C-3 | Round-3 D-1 through D-8 remain unchanged; round 4 authorizes only the exact D-10 diary path and the record edits needed to fold this judgement. | GATE |
+| C-4 | No CI, hook, or gate change is authorized. The Distill requirement comes from Scripture regardless of whether the PR title causes the current `feat`/`fix`-only CI job to run. | GATE |
+| C-5 | A matching path or line not represented by the frozen BASE inventory and round-3 residual policy stops enforcement and returns FR-1013 to judgement under FR-1010 C-10. | GATE |
+| C-6 | Human review remains mandatory before merge for Scripture, judge doctrine, its mirror, the CAP/ARCHITECTURE contract, and the exact D-10 scope; automated equality and shape checks do not replace adversarial review. | GATE |
+| C-7 | Historical records remain historical, known stale code defaults remain unchanged, and no other diary path may be created or edited under FR-1013. | GATE |
+| C-8 | D-9 remains an operator-owned post-merge action because its merge SHA cannot exist earlier. | GATE |
+
+Authority granted: after R-1 through R-3 are folded and human-reviewed, FR-1013 may retain its round-3 D-1 through D-8 implementation and add only D-10 in the PR; D-9 may occur only after that PR is merged.

@@ -2,7 +2,7 @@
 
 **Priority:** LOW
 **Type:** Enhancement (docs; Scripture edit — human gate C-4)
-**Status:** Enforced (round 3) 2026-09-06 on `feat/fr1013-doctrine-sweep` from BASE `36591389` — round-3 fold `c6b2ceb7`; RED `be98d617` (CAP-264 REQ-YG-668 + generated `ARCHITECTURE.md` + match-level witness; 3 fail / 37 pass at HEAD, SKIP=pytest); GREEN in the following commit. Pre-round-3 commits (step 0 `24015cf8`, RED `09818086`, GREEN `b5a80c5b`, diary `6e6523ab`) were candidates only (C-8) and are re-witnessed by the round-3 tests. Awaiting `scripts/outsider.sh` + `scripts/review.sh` on PR #627 and the AC-13 human read before merge. History: round 1 APPROVED WITH REVISIONS; round 2 **SPLIT** (closure script → Concern B, not filed — see § Post-merge closure); PR #627 review returned seven blocking findings (P1…P7) → round 3 **APPROVED WITH REVISIONS** (R-1…R-4 folded — see § Judgement); confession repair split to PR #628 (`b71d0083`).
+**Status:** Judged round 4 (2026-09-06) — **APPROVED WITH REVISIONS** (D-10 diary authorization; R-1…R-3 folded below; AC-01…17 supersede round 3's list); round-3 D-1…D-8 remain the governing implementation scope and are enforced on `feat/fr1013-doctrine-sweep` (PR #627); the diary commit was a candidate outside the round-3 freeze until D-10. Awaiting `scripts/review.sh` round 3 and the AC-13 human read (rounds 3 + 4 drafts) before merge. History: round 1 APPROVED WITH REVISIONS; round 2 **SPLIT**; PR #627 review 1 (seven findings) → round 3 APPROVED WITH REVISIONS; PR #627 review 2 (six findings, P1 refused — judge governs scope) → round 4. Confession repair: PR #628 (`b71d0083`).
 See [FR-1013-chaplain-doctrine-sweep.judgement.md](FR-1013-chaplain-doctrine-sweep.judgement.md)
 (all rounds).
 **Effort:** 0.5 day
@@ -46,8 +46,9 @@ Make every doctrine and reference document describe the SDLC that is
 actually practised — operator-driven plan → `scripts/judge.sh` → worktree
 enforcement → `scripts/review.sh` → human merge — and stop describing the
 FSM daemon as the process. One archive pointer replaces the runtime
-narrative wherever it appeared as live instruction; historical FRs, diary,
-changelog and `docs/memento/` are untouched.
+narrative wherever it appeared as live instruction; historical FRs, changelog
+and `docs/memento/` are untouched, and so is pre-existing diary history —
+the only `docs/diary/` write is this FR's own Distill entry (D-10).
 
 ## Value Statement
 
@@ -89,7 +90,7 @@ Allowlist (untouched): `feature-requests/`, `changelog/`, `docs/diary/`,
 `docs/memento/`, `docs/ebook/`, `docs/research-*.md`, `docs/context/fr-698.md`,
 `ramp/curation-diffs.md`. **Exception (R-3):** exactly
 `docs/archive/chaplain.md` (link line) and the new
-`docs/archive/chaplain-system.md` may be written under `docs/archive/`.
+`docs/archive/chaplain-system.md` may be written under `docs/archive/`. **Exception (round-4 D-10):** exactly `docs/diary/2026-09-06-reflection-fr-1013-the-inventory-that-was-fifteen-times-the-plan.md` may be added under `docs/diary/`; every other `docs/diary/` path is immutable.
 
 ### Inventory at BASE (R-1) — committed before any edit
 
@@ -131,9 +132,9 @@ git ls-files '*.md' '*.py' '*.sh' '*.yaml' '*.yml' \
 | 4 | `tests/unit/test_fr1013_doctrine_sweep.py` | witness (D-7) |
 | 5 | `changelog/unreleased/fr-1013-doctrine-sweep.md` | fragment (D-8) |
 | 6 | `feature-requests/FR-1013-chaplain-doctrine-sweep.md`, `feature-requests/FR-1013-chaplain-doctrine-sweep.judgement.md`, `docs/census/fr1013-inventory-at-base-36591389.txt` (unchanged), `docs/census/fr1013-inventory-at-base-36591389.dispositions.md` (only to encode the residual policy) | records (D-1) |
-| 7 | `docs/diary/2026-09-06-reflection-fr-1013-the-inventory-that-was-fifteen-times-the-plan.md` | Distill — **round-4 question (review #627/2 P5):** round-3 D-1…D-8 omit the diary while Scripture requires it and CI `diary-gate` blocks a PR without one; proposed **D-10**: this exact path, advisory content, no other diary edit |
+| 7 | `docs/diary/2026-09-06-reflection-fr-1013-the-inventory-that-was-fifteen-times-the-plan.md` | Distill (D-10, authorized round 4) — this exact path only; no other `docs/diary/` write |
 
-No other path may change (C-5).
+No other path may change (C-5); the PR surface is D-1…D-8 plus D-10 (AC-02); D-9 is the operator's post-merge action.
 
 **Residual contract (R-3; what the witness enforces):** (1) every BASE file outside the match-bearing set: multiset of matching line texts at HEAD equals BASE's; (2) every match-bearing or generated file: each HEAD match equals an exact residual line listed for that file in the test (empty list = zero matches); (3) a matching file absent from BASE fails unless it is an enumerated new artifact of this FR (the witness test itself, the disposition file, the changelog fragment, this FR's judgement); (4) the stale code defaults (`research_tools.py`, `diary_recurrence.py`, `cap_journey_census/extract.py`) are `keep-out-of-scope-code` — unchanged, not reclassified as historical; (5) any new or reworded unmatched residual stops enforcement (FR-1010 C-10).
 
@@ -260,10 +261,10 @@ specify the success path as precisely as the error paths (judgement round
 judge's scope finding disagree; the judge governs scope (`review-pr`
 doctrine: review output is advisory).
 
-## Acceptance Criteria (round 3, verbatim; R-4)
+## Acceptance Criteria (round 4, verbatim; supersede round 3)
 
 - [ ] AC-01: FR-1013 records `BASE=36591389e2fdfedf9ba5ae6362effad1c64cd06e`, links the FR-1012 human-review record, and records `git merge-base --is-ancestor "$BASE" HEAD` exiting 0 before authorized enforcement.
-- [ ] AC-02: FR-1013 contains separate exhaustive tables for the BASE match-bearing source set and the complete writable surface D-1 through D-8; every PR path changed from `BASE` appears in that writable table.
+- [ ] AC-02: FR-1013 contains separate exhaustive tables for the BASE match-bearing source set and the complete writable surface D-1 through D-8 plus D-10; every PR path changed from BASE appears in that writable table, while D-9 remains post-merge only.
 - [ ] AC-03: The committed raw inventory contains exactly 2,586 match rows after its two header lines, the disposition artifact contains 261 file rows, and the exact BASE SHA and reproducing command remain recorded.
 - [ ] AC-04: `grep -c 'Sermon of the Chaplain' .github/copilot-instructions.md` returns 0; the seven bold Sermon step names equal their `git show "$BASE":.github/copilot-instructions.md` values; the complete Knowledge Graph block is byte-identical to BASE; and the Scripture diff is limited to the heading and canonical-sources clause.
 - [ ] AC-05: `docs/development-process.md` describes the operator-driven `scripts/author.sh` -> `scripts/judge.sh` -> worktree enforcement -> `scripts/review.sh` -> human merge route in every frozen active-process passage, while its section 3.1 measurement sentence is byte-identical to BASE.
@@ -274,12 +275,13 @@ doctrine: review output is advisory).
 - [ ] AC-10: `capabilities/CAP-264-chaplain-runtime-retired.yaml` associates FR-1013 with REQ-YG-668; CAP-265 retains REQ-YG-667; `python scripts/aggregate_capabilities.py` followed by `git diff --exit-code -- ARCHITECTURE.md` produces no unstaged drift; `python scripts/validate_capabilities.py --strict` and `python scripts/req_coverage.py --strict` pass.
 - [ ] AC-11: Every residual/documentation-consistency test in `tests/unit/test_fr1013_doctrine_sweep.py` is tagged REQ-YG-668; only the Knowledge Graph preservation test is tagged REQ-YG-192; only the ramp mirror test is tagged REQ-YG-613; the FR's traceability table quotes each requirement text.
 - [ ] AC-12: `pytest tests/unit/test_fr1013_doctrine_sweep.py tests/unit/test_knowledge_graph_fr193.py tests/unit/test_ramp_installer.py -q --no-cov` and `pytest tests/unit/ -q --no-cov -m "not slow" -n auto` pass.
-- [ ] AC-13: Human review is recorded in FR-1013 before merge and confirms the restricted Scripture diff, the adversarially reviewed judge-doctrine change, byte-identical mirror, generated-only architecture diff, exact residual policy, unchanged Sermon steps, and unchanged Knowledge Graph.
+- [ ] AC-13: Human review is recorded in FR-1013 before merge and confirms the restricted Scripture diff, the adversarially reviewed judge-doctrine change, byte-identical mirror, generated-only architecture diff, exact residual policy, unchanged Sermon steps, unchanged Knowledge Graph, and D-10 as the only diary change.
 - [ ] AC-14: `changelog/unreleased/fr-1013-doctrine-sweep.md` exists with `type: removal` and `scope: doctrine`.
 - [ ] AC-15: The FR-1013 PR contains no closure script or closure-script test.
-- [ ] AC-16: Post-merge only, the operator records FR-1013's merge SHA in FR-1010, runs and records FR-1010 AC-12/AC-13 on merged `main`, records each phase's completion, and changes FR-1010 to `Completed` in a separate FR-1010-only commit.
+- [ ] AC-16: `git diff --name-only "$BASE"...HEAD -- docs/diary/` returns exactly `docs/diary/2026-09-06-reflection-fr-1013-the-inventory-that-was-fifteen-times-the-plan.md`; `validate_diary_reflection_file` returns zero for that file; and the file contains literal `## The trap`, `## Heuristic`, and `**Seed:**` markers.
+- [ ] AC-17: Post-merge only, the operator records FR-1013's merge SHA in FR-1010, runs and records FR-1010 AC-12/AC-13 on merged `main`, records each phase's completion, and changes FR-1010 to `Completed` in a separate FR-1010-only commit.
 
-Rounds 1–2 ACs (AC-01…13 + AC-A13) are superseded by this list and preserved in the judgement file.
+AC-16 reading: the PR's `docs/diary/` diff is taken against the merge target (`git diff --name-only origin/main...HEAD -- docs/diary/`); `BASE...HEAD` would also list the two FR-1010 diaries other sessions merged to `main` after BASE, which this PR does not touch. Rounds 1–3 ACs are preserved in the judgement file.
 
 ## Purge list
 
@@ -287,7 +289,7 @@ Rounds 1–2 ACs (AC-01…13 + AC-A13) are superseded by this list and preserved
   `2026-09-06-…-sole-consumer-of-a-dead-file…` may graduate later via its
   own FR; not here).
 - No edits under the allowlist except the two `docs/archive/` files named
-  in § Problem (R-3).
+  in § Problem (R-3) and the single D-10 diary path `docs/diary/2026-09-06-reflection-fr-1013-the-inventory-that-was-fifteen-times-the-plan.md`.
 - No `docs/development-process.md` edits outside the passages enumerated
   in the edit-set row; no edit to the § 3.1 measurement sentence.
 - No `ramp/manifest.yaml` or `ramp/curation-diffs.md` edit.
@@ -318,12 +320,13 @@ Rounds 1–2 ACs (AC-01…13 + AC-A13) are superseded by this list and preserved
 | `BASE` (FR-1012 merge SHA) + human-review ref | `36591389e2fdfedf9ba5ae6362effad1c64cd06e` — PR #623, merged by the operator 2026-09-06 |
 | § Inventory at BASE commit | `24015cf8` (after the P6 rebase onto `b71d0083`) — `docs/census/fr1013-inventory-at-base-36591389.{txt,dispositions.md}` |
 | Candidate commits on the branch (pre-round-3) | RED `09818086` (SKIP=pytest, 9 fail / 11 pass at BASE), GREEN `b5a80c5b`, diary `6e6523ab` |
+| Round-4 (D-10) | diary authorized as D-10; AC-16: `validate_diary_reflection_file` exit 0, markers `## The trap`, `## Heuristic`, `**Seed:**` present (4 hits); PR diary diff vs `origin/main` = exactly the D-10 path |
 | Round-3 commits | fold `c6b2ceb7`; RED `be98d617` (test + CAP-264/REQ-YG-668 + generated ARCHITECTURE.md; `req_coverage --strict` requires the REQ to exist before the tagged test can be committed, so registry and test share the RED commit; the doc edits stayed out, keeping 3 assertions red); GREEN — the commit after `be98d617` on the PR |
 | Residual witness at GREEN | 40 tests: clause 1 (248 BASE files line-multiset-equal), clause 2 (12 match-bearing files × exact residual lines; CAP-264 / ARCHITECTURE.md / confessions exact deltas), clause 3 (no unenumerated matching file), clause 4 (3 stale-default code files unchanged) |
 | Traceability: test function → REQ → quoted text | see table below |
 | Surviving old-string witness tests | `test_concurrency_safety_doc.py`, `test_fr748_fr_atlas.py`, `test_knowledge_graph_fr193.py` (present after FR-1012; `test_chaplain_readme_documentation.py` was deleted by the census). Their strings (`docs/concurrency-safety.md`, the FR atlases, the Knowledge Graph) are all in the keep set — untouched; all three pass |
 | Human review (AC-13) | _pending — operator, on the PR_ |
-| Post-merge closure (AC-16): merge SHA, FR-1010 ticks | _pending (operator)_ |
+| Post-merge closure (AC-17): merge SHA, FR-1010 ticks | _pending (operator)_ |
 
 **Traceability (round-1 R-5, round-3 R-1).** REQ-YG-668 (CAP-264, granted round 3) tags every residual/documentation-consistency test; REQ-YG-192 only the Knowledge-Graph-unchanged assertion; REQ-YG-613 only the mirror assertion. `ARCHITECTURE.md` regenerated by `scripts/aggregate_capabilities.py` (pre-commit) — witness: `git diff --exit-code -- ARCHITECTURE.md` after regeneration.
 
@@ -391,3 +394,12 @@ in the witness. P4 (pre-rebase SHAs in the record) → recorded from the GitHub
 PR after the last rebase; the branch is now advanced only by merge, never
 rebase, so the IDs stay stable. P5 (diary not in D-1…D-8) → D-10 proposed,
 round-4 judgement requested. P6 (changelog cites REQ-YG-666) → REQ-YG-668.
+
+**Round-4 judgement (2026-09-06) — APPROVED WITH REVISIONS.** D-10: exactly
+`docs/diary/2026-09-06-reflection-fr-1013-the-inventory-that-was-fifteen-times-the-plan.md` is the Distill artifact; R-1 diary exclusions reconciled (Summary,
+allowlist, Purge list, AC-02); R-2 the CI `diary-gate` claim corrected — the
+job runs only for `feat`/`fix` PR titles (`.github/workflows/commitlint.yml`),
+so Scripture, not CI, requires the entry; AC-16 added (validator + literal
+markers), post-merge AC renumbered AC-17; R-3 round-3 D-1…D-8 remain the
+governing scope, the diary commit was a candidate until D-10. Round-4 text
+appended to the judgement file.
