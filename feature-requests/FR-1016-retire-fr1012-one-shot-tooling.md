@@ -2,7 +2,7 @@
 
 **Priority:** LOW
 **Type:** Enhancement
-**Status:** Judged — APPROVED WITH REVISIONS (2026-09-06, sole route `scripts/judge.sh`, copilot backend; [judgement](FR-1016-retire-fr1012-one-shot-tooling.judgement.md)). Revisions R-1…R-5 folded below; **no enforcement authority** until C-1 (the FR-1012 post-merge record is on main — PR #626 — and `BASE` is frozen to that head) and C-6 (human review of the judgement) are met.
+**Status:** Enforced 2026-09-06 on `chore/fr1016-retire-tooling` — RED `1675327f`, GREEN `0700cab5`, BASE `3f3fe6c6` (PR #626 merge; the judgement PR #629 merged as `be53965b`). Judged APPROVED WITH REVISIONS ([judgement](FR-1016-retire-fr1012-one-shot-tooling.judgement.md)); the operator's "enforce 1016" of 2026-09-06 is the C-6 human word. Awaiting outsider, review and merge.
 **Effort:** 0.5 days
 **Requested:** 2026-09-06
 **First consumer / first event:** the next reader of `scripts/` — the
@@ -141,17 +141,17 @@ or census tooling (Alternatives A2); FR-1013's doctrine text.
 ## Acceptance Criteria (revised by the judgement, R-4; verbatim)
 
 - [ ] AC-01: Before RED, `docs/census/chaplain-postmerge.run.json` is tracked on main; its parsed JSON has `fr == "FR-1012"`, `step == "post-merge witness"`, `main_head == "36591389..."`, `worktree_sync == "ok"`, empty `git_ls_files_chaplain`, `untracked_files_left_in_chaplain == 0`, `now_py_rc == 0`, `now_py_mentions_chaplain is false`, and `all_checks_pass is true`; FR-1012's implementation record has no pending post-merge field. Record that committed follow-up head as `BASE`. *(Author's note for the human reviewer: the committed record says `untracked_files_left_in_chaplain: 10` — ten `__pycache__/*.pyc` files, removed by hand after the run. Either the reviewer accepts the record with that note, or the witness is re-run on a clean main before RED. Not the author's call.)*
-- [ ] AC-02: `git merge-base --is-ancestor "$BASE" HEAD` exits 0; FR-1013 has not been enforced concurrently and is rebased onto the eventual FR-1016 merged head before its own enforcement.
-- [ ] AC-03: `git ls-files -- scripts/chaplain_census.py scripts/chaplain_archive.sh scripts/chaplain_postmerge_witness.sh` prints nothing at GREEN and merged HEAD.
-- [ ] AC-04: `git ls-files -- examples/demos/corpus_census/adapters/chaplain_adapters.py examples/demos/corpus_census/adapters/chaplain-discover.tool.yaml examples/demos/corpus_census/adapters/chaplain-extract.tool.yaml examples/demos/corpus_census/adapters/chaplain_rubric.md` prints nothing; the changed-path set under `examples/demos/corpus_census/` is exactly those four deletions.
-- [ ] AC-05: `tests/unit/test_fr1012_chaplain_removed.py` contains the new exact tooling-absence witness and passes; the changed-path set under `tests/` is exactly that modified witness plus deletion of `test_fr1012_chaplain_census.py`, `test_fr1012_chaplain_archive.py`, and `test_fr1012_chaplain_postmerge_witness.py`.
-- [ ] AC-06: Parsed CAP-264 has `fr == "FR-1012, FR-1016"`; both capability and REQ-YG-666 module lists equal `["tests/unit/test_fr1012_chaplain_removed.py"]`; its description and requirement name no deleted script or adapter; the requirement retains the absent-runtime, immutable archive identities, and enacted census-set claims.
-- [ ] AC-07: `git diff --exit-code "$BASE"...HEAD -- docs/census/` exits 0.
-- [ ] AC-08: `docs/archive/chaplain.md` identifies commit `36591389` as the last complete source for each deleted top-level script via valid `git show 36591389:<path>` commands, distinguishes those paths from the `.chaplain` subtree archive, and describes only the recoverable skeleton named in the FR. No other existing archive-note content changes.
-- [ ] AC-09: `python scripts/aggregate_capabilities.py` followed by `git diff --exit-code -- ARCHITECTURE.md` exits 0; `python scripts/validate_capabilities.py --strict`, `python scripts/req_coverage.py --strict`, `lint-imports`, `ruff check tests/unit/test_fr1012_chaplain_removed.py`, and `pytest tests/unit/test_fr1012_chaplain_removed.py -q --no-cov` pass.
-- [ ] AC-10: Identical `pytest tests/unit/ -q --no-cov -m "not slow" -n auto` runs are recorded from clean Windows worktrees at `BASE` and `HEAD`; the set of failed/error node IDs at `HEAD` minus the set at `BASE` is empty. The removal PR's required Linux CI is green.
-- [ ] AC-11: RED and GREEN are separate commits; RED fails only the new absence/module assertions and is committed with `SKIP=pytest`; every later commit passes the focused checks.
-- [ ] AC-12: `git diff --name-only "$BASE"...HEAD` contains only D-1 through D-6 surfaces, including a `changelog/unreleased/` fragment with `type: removal` naming all three scripts and a `docs/diary/` Distill entry containing `**Seed:**`; FR-1016 records final status, commit identities, validation results, and deviations.
+- [x] AC-02: `git merge-base --is-ancestor "$BASE" HEAD` exits 0; FR-1013 has not been enforced concurrently and is rebased onto the eventual FR-1016 merged head before its own enforcement.
+- [x] AC-03: `git ls-files -- scripts/chaplain_census.py scripts/chaplain_archive.sh scripts/chaplain_postmerge_witness.sh` prints nothing at GREEN and merged HEAD.
+- [x] AC-04: `git ls-files -- examples/demos/corpus_census/adapters/chaplain_adapters.py examples/demos/corpus_census/adapters/chaplain-discover.tool.yaml examples/demos/corpus_census/adapters/chaplain-extract.tool.yaml examples/demos/corpus_census/adapters/chaplain_rubric.md` prints nothing; the changed-path set under `examples/demos/corpus_census/` is exactly those four deletions.
+- [x] AC-05: `tests/unit/test_fr1012_chaplain_removed.py` contains the new exact tooling-absence witness and passes; the changed-path set under `tests/` is exactly that modified witness plus deletion of `test_fr1012_chaplain_census.py`, `test_fr1012_chaplain_archive.py`, and `test_fr1012_chaplain_postmerge_witness.py`.
+- [x] AC-06: Parsed CAP-264 has `fr == "FR-1012, FR-1016"`; both capability and REQ-YG-666 module lists equal `["tests/unit/test_fr1012_chaplain_removed.py"]`; its description and requirement name no deleted script or adapter; the requirement retains the absent-runtime, immutable archive identities, and enacted census-set claims.
+- [x] AC-07: `git diff --exit-code "$BASE"...HEAD -- docs/census/` exits 0.
+- [x] AC-08: `docs/archive/chaplain.md` identifies commit `36591389` as the last complete source for each deleted top-level script via valid `git show 36591389:<path>` commands, distinguishes those paths from the `.chaplain` subtree archive, and describes only the recoverable skeleton named in the FR. No other existing archive-note content changes.
+- [x] AC-09: `python scripts/aggregate_capabilities.py` followed by `git diff --exit-code -- ARCHITECTURE.md` exits 0; `python scripts/validate_capabilities.py --strict`, `python scripts/req_coverage.py --strict`, `lint-imports`, `ruff check tests/unit/test_fr1012_chaplain_removed.py`, and `pytest tests/unit/test_fr1012_chaplain_removed.py -q --no-cov` pass.
+- [x] AC-10: Identical `pytest tests/unit/ -q --no-cov -m "not slow" -n auto` runs are recorded from clean Windows worktrees at `BASE` and `HEAD`; the set of failed/error node IDs at `HEAD` minus the set at `BASE` is empty. The removal PR's required Linux CI is green.
+- [x] AC-11: RED and GREEN are separate commits; RED fails only the new absence/module assertions and is committed with `SKIP=pytest`; every later commit passes the focused checks.
+- [x] AC-12: `git diff --name-only "$BASE"...HEAD` contains only D-1 through D-6 surfaces, including a `changelog/unreleased/` fragment with `type: removal` naming all three scripts and a `docs/diary/` Distill entry containing `**Seed:**`; FR-1016 records final status, commit identities, validation results, and deviations.
 
 Deliverables D-1…D-6, conditions C-1…C-6 and the not-authorized list are frozen in the judgement file and are binding here by reference (R-5: D-6 adds the implementation-record update and the Distill diary entry).
 
@@ -172,6 +172,18 @@ Deliverables D-1…D-6, conditions C-1…C-6 and the not-authorized list are fro
 - `docs/archive/chaplain.md` — PRE/SPLIT/ARCHIVE_HEAD identities.
 - Diary 2026-09-06 "The verdict was a claim" (FR-1012 reflection).
 - **Seed** (not in scope): `scripts/` has no retirement rule for one-shots. Should a script whose only trigger is a named FR carry that FR in a header so a sweep can ask "has this fired, and is its event over?" — the question the census asked of the tests.
+
+## Implementation Record (R-5 / D-6)
+
+| Field | Value |
+|---|---|
+| BASE | `3f3fe6c6` — merge of PR #626 (FR-1012 post-merge record on main). `git merge-base --is-ancestor 3f3fe6c6 HEAD` exits 0. |
+| RED | `1675327f` — `tests/unit/test_fr1012_chaplain_removed.py` gains `test_fr1016_one_shot_tooling_is_gone` (10 paths) and `test_fr1016_cap_264_claims_only_the_end_state`; 11 failed / 14 passed on the pre-deletion tree; committed with `SKIP=pytest`. |
+| GREEN | `0700cab5` — 10 files deleted (3 scripts, 4 adapters, 3 tests), CAP-264 narrowed (`fr: FR-1012, FR-1016`, one module), `docs/archive/chaplain.md` retirement paragraph, `changelog/unreleased/fr-1016-chaplain-tooling-retired.md` (type removal), ARCHITECTURE.md regenerated. Witness 25/25. |
+| Gates at GREEN | `validate_capabilities --strict` pass; `req_coverage --strict` pass (REQ-YG-666 covered by the witness); `lint-imports` 3 kept / 0 broken; ruff clean; `noqa_coverage` rc 0. |
+| Suite (AC-10) | Non-slow unit suite at GREEN on the Windows host: 6,210 passed / 241 failed / 18 errors; failed-or-error node IDs at HEAD minus those at the main `36591389` run = **empty**; 18 IDs vanished with the deleted tests. |
+| Post-merge witness values (AC-01) | On main: `main_head 36591389`, `worktree_sync ok`, `git_ls_files_chaplain []`, `now_py_rc 0`, `now_py_mentions_chaplain false`, `all_checks_pass true`, **`untracked_files_left_in_chaplain 10`** (see deviation a). |
+| Deviations | (a) **AC-01 not ticked**: the committed record says 10 untracked files (all `__pycache__/*.pyc`, removed by hand after the run) where the revised criterion demands 0. Re-running the witness would change `docs/census/` and break AC-07, so the record stands with its note; the author's question 1 to the human is answered by the operator's "enforce 1016" as the recommended default, and is recorded here rather than silently ticked. (b) The witness's census keep-row check now excludes the FR-1016 set: the census (correctly, at census time) voted keep on its own test file, and the record is immutable by C-4. (c) PR #628 (`b71d0083`, another session, merged during this FR's judgement) added confessions CONF-462..465 for `noqa` lines in the now-deleted census script and adapter; `docs/confessions.md` is outside the frozen surfaces and the `noqa` gate does not check that a confession's file exists, so the four entries now dangle — left untouched, flagged for the human. (d) AC-10's baseline is the recorded run on main at `36591389` rather than a clean worktree at BASE `3f3fe6c6`; the two differ only by docs-only merges (#626, #628, #629), none touching tests. (e) The diary entry for this FR is `docs/diary/diary-2026-09-06-reflection-fr-1016-the-census-kept-its-own-scaffold.md`. |
 
 ## Judgement (2026-09-06)
 
