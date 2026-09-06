@@ -9,7 +9,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 For fast repository orientation, use the generated static module map at `reference/module-map.md`.
 
 Doctrine (Scripture, Knowledge Graph, proposal submission, development
-process) lives solely in `.github/copilot-instructions.md` — read it first.
+process) lives solely in `.github/copilot-instructions.md`, imported here so
+Claude Code loads it together with this file:
+
+@.github/copilot-instructions.md
 
 ## Development Commands
 
