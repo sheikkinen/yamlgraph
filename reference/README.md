@@ -63,6 +63,7 @@ See [CHANGELOG.md](../CHANGELOG.md) for version history.
 | Document | Description |
 |----------|-------------|
 | [Code Analysis](code-analysis.md) | Automated code quality analysis |
+| [Command Book](command-book.md) | The one-word operator verdicts (`wt, fr, judge, doc pr, outsider, …`): what each obliges, what witnesses it, where its authority comes from |
 | [Implementation Agent](impl-agent.md) | 14-tool agent for codebase analysis |
 | [Web UI & API](web-ui-api.md) | Serving graphs as web applications |
 | [Intent + Questionnaire](intent-questionnaire-pattern.md) | Multi-graph routing with session registry |
