@@ -9,7 +9,7 @@ Raw match list: `fr1013-inventory-at-base-36591389.txt` (2586 lines, 261 files).
 | `.github/skills/graph-authoring/doctrine.md` | 2 | **edit** — edit — :58 "escalate to Chaplain instead" and :128 "Enforce via Chaplain." → file an FR (`proposals/` → judge); live doctrine naming a retired route (found at BASE, not in the planning table) |
 | `.github/skills/judge-fr/doctrine.md` | 2 | **edit** — edit — :135 → `docs/archive/chaplain.md`; :133 kept (true history) |
 | `docs/context/chaplain-system.md` | 58 | **edit** — edit — `git mv` → `docs/archive/chaplain-system.md`; linked from `docs/archive/chaplain.md` |
-| `docs/development-process.md` | 28 | **edit** — edit — topology mermaid (24–66), § 3 (121–176), § 6 mermaid (296–306), § 7 row (330) per the table; :6, :113, :189, :197, :286, :312–320, :366 are outside the four frozen ranges — unchanged (noted: :113 names the deleted `chaplain-ops` skill; § 3.1 is the evidence line) |
+| `docs/development-process.md` | 28 | **edit** — every active-process passage (round-3 R-3 / review #627 P2): topology mermaid, § 3, § 3.1 (measurement sentence byte-identical; the rest past-tense history or deleted), intro :6, § 2.1 row :113, § 5 bullet :286, § 6 mermaid + bullets :312–320, § 7 row :330. Exact residual lines (7): listed in `tests/unit/test_fr1013_doctrine_sweep.py::RESIDUAL` |
 | `examples/README.md` | 3 | **edit** — edit — :57 row deleted; :74 note → `graphs/`; :171 witnesses line deleted |
 | `ramp/assets/tier2/github/skills/judge-fr/doctrine.md` | 2 | **edit** — edit — `cp` byte-for-byte from the canonical after editing (mirror_exact, R-2) |
 | `reference/audit-index.md` | 8 | **edit** — edit — :65–71 six rows deleted, Philosopher → `graphs/philosopher/graph.yaml`, one `Chaplain (archived)` row → `docs/archive/chaplain.md`; :57 Inquisitor-audits row kept (the diary entries exist) |
@@ -24,7 +24,7 @@ Raw match list: `fr1013-inventory-at-base-36591389.txt` (2586 lines, 261 files).
 | `.github/skills/judge-fr/adapters/graph.yaml` | 1 | keep — lineage/provenance metadata (MANIFEST, adapter header) |
 | `.github/skills/outsider-view/fixtures/EXPECTATIONS.md` | 1 | keep — history note ("former chaplain arm removed by FR-1011") or CI comment — SPLIT boundary forbids hook/CI edits |
 | `.github/workflows/workflow.yml` | 1 | keep — history note ("former chaplain arm removed by FR-1011") or CI comment — SPLIT boundary forbids hook/CI edits |
-| `ARCHITECTURE.md` | 105 | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
+| `ARCHITECTURE.md` | 105 | keep — generated file; changes only as `scripts/aggregate_capabilities.py` output of the CAP-264 edit (D-6): exact delta (1 row replaced, 1 REQ-YG-668 row added) frozen in the witness's `DELTA` |
 | `CHANGELOG.md` | 92 | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
 | `capabilities/CAP-106-github-issues-remote-inbox.yaml` | 5 | keep — capability record (retired by CAP-264 / FR-1012 census); registry history |
 | `capabilities/CAP-109-harden-remote-inbox.yaml` | 5 | keep — capability record (retired by CAP-264 / FR-1012 census); registry history |
@@ -49,7 +49,7 @@ Raw match list: `fr1013-inventory-at-base-36591389.txt` (2586 lines, 261 files).
 | `capabilities/CAP-165-watcher2-baseline-dead-code-removal.yaml` | 1 | keep — capability record (retired by CAP-264 / FR-1012 census); registry history |
 | `capabilities/CAP-193-watcher-wrapper-json-envelope.yaml` | 4 | keep — capability record (retired by CAP-264 / FR-1012 census); registry history |
 | `capabilities/CAP-259-declared-text-encoding.yaml` | 1 | keep — capability record (retired by CAP-264 / FR-1012 census); registry history |
-| `capabilities/CAP-264-chaplain-runtime-retired.yaml` | 30 | keep — FR-1011/FR-1012 deliverable — census, archive tooling, witnesses, evidence |
+| `capabilities/CAP-264-chaplain-runtime-retired.yaml` | 30 | **edit** (D-6, round 3) — REQ-YG-668 added, FR-1013 in `fr`, doc surfaces + witness in `modules`; exact added lines frozen in the witness's `DELTA` |
 | `capabilities/CAP-31-chaplain-diary-append.yaml` | 1 | keep — capability record (retired by CAP-264 / FR-1012 census); registry history |
 | `capabilities/CAP-36-inquisitor-auto-propose.yaml` | 8 | keep — capability record (retired by CAP-264 / FR-1012 census); registry history |
 | `capabilities/CAP-39-inquisitor-commit-delta-gate.yaml` | 7 | keep — capability record (retired by CAP-264 / FR-1012 census); registry history |
@@ -85,7 +85,7 @@ Raw match list: `fr1013-inventory-at-base-36591389.txt` (2586 lines, 261 files).
 | `docs/census/chaplain-test-disposition.md` | 98 | keep — FR-1011/FR-1012 deliverable — census, archive tooling, witnesses, evidence |
 | `docs/cmm-assessment.md` | 4 | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
 | `docs/concurrency-safety.md` | 11 | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
-| `docs/confessions.md` | 1 | keep — historical prose |
+| `docs/confessions.md` | 1 | keep — historical prose. Main drift after BASE: PR #628 (`b71d0083`, CONF-462…465 for FR-1012's noqa lines) added 4 matching `**File**:` lines before this PR; that exact delta is frozen in the witness's `DELTA` — the only post-BASE main change inside the census scope |
 | `docs/constitution-diff.md` | 2 | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
 | `docs/contexts/extending-watcher-fsm.md` | 25 | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
 | `docs/diary-2026-02-19.md` | 1 | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
