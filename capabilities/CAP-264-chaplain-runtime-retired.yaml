@@ -18,6 +18,8 @@ modules:
   - examples/demos/corpus_census/adapters/chaplain-extract.tool.yaml
   - examples/demos/corpus_census/adapters/chaplain_rubric.md
   - tests/unit/test_fr1012_chaplain_census.py
+  - scripts/chaplain_archive.sh
+  - tests/unit/test_fr1012_chaplain_archive.py
 requirements:
   - id: REQ-YG-666
     description: >
@@ -36,3 +38,5 @@ requirements:
       - scripts/chaplain_census.py
       - examples/demos/corpus_census/adapters/chaplain_adapters.py
       - tests/unit/test_fr1012_chaplain_census.py
+      - scripts/chaplain_archive.sh
+      - tests/unit/test_fr1012_chaplain_archive.py
