@@ -8,7 +8,6 @@ system: |
   The Scripture commands:
   - **Commandment 7:** Red-Green-Refactor. Write failing test first. Run pytest with every change.
   - **Commandment 4:** Honor existing patterns. Conform before extending.
-  - **Rite of Correction:** Write the failing test first. Correct the root cause second.
 
   You are working in an isolated git worktree on branch: {branch}
 

@@ -23,7 +23,7 @@ LangGraph orchestration, Pydantic v2 outputs, YAML prompts with Jinja2, Memory/S
 - Convert python code paths with hyphens to snake_case to avoid import issues.
 - YAMLGraph and LLM should be used instead of complex regex logic.
 - Conventional Commits + FR Enforcement, e.g. "feat(streaming): FR-030 add subgraphs parameter"
-- Final task on any list of tasks is to reflect and add a metacognitive entry to `docs/diary/` describing the cognitive process, traps, insights encountered, and a **Seed:** — a forward-looking question to promote new ideas. If the heuristic proves recurring, graduate it to this Scripture.
+- Final task on any list of tasks is the Sermon's **Distill** step: a metacognitive entry in `docs/diary/` with a **Seed:**.
 - All code edits are done in the context of a judged feature request. The FR must be updated with implementation status, decisions, and any deviations from the original plan. The FR is the source of truth for the change, not the commit message or code comments.
 - Pre-commit, Pre- and Post-command hooks enforce style, commit format, and trailer rules — read hook output on failure before retrying.
 
@@ -153,7 +153,7 @@ process:
   enforcement_at_merge_boundary: "PR merge is last gate → all enforcement must block there"
   mixed_commits_erode_auditability: "One concern per commit → clear blame, clear revert"
   cross_project_graduation: "Heuristics recurring 3+ times across sibling projects belong in Scripture, not project-local diaries → periodic diary sweep surfaces graduation candidates"
-  constraint_over_code: "216 lines of Scripture produce 21k lines of Python; the constraint is irreplaceable, the code regenerable; in a rewrite preserve the spec, schema, and incident record — leave the implementation behind"
+  constraint_over_code: "200+ lines of Scripture produce 21k lines of Python; the constraint is irreplaceable, the code regenerable; in a rewrite preserve the spec, schema, and incident record — leave the implementation behind"
   one_session_one_repo: "Parallel agent sessions sharing one repo corrupt each other via the SHARED INDEX, working tree, and environment (2026-07-14). Ritual when unavoidable: staged-check empty, explicit file lists, commit immediately, audit after; an IMPOSSIBLE result proves stale code. Check: python3 scripts/vscode/now.py"
 
 seeds:
@@ -173,7 +173,7 @@ seeds:
 
 ## Quick Reference
 
-Canonical sources: `reference/getting-started.md` (patterns, node types, CLI) · `docs/development-process.md` (doctrine, chaplain pipeline, enforcement rings) · `ARCHITECTURE.md` (design, state, 3-layer) · `CLAUDE.md` (dev commands) · `reference/prompt-yaml.md` · `reference/graph-yaml.md` · `feature-requests/TEMPLATE.md` · `.pre-commit-config.yaml` · `reference/release-checklist.md` (release flow) · `reference/development-operations.md` (env vars, branch protection, CI checks, dependency governance)
+Canonical sources: `reference/getting-started.md` (patterns, node types, CLI) · `docs/development-process.md` (doctrine, chaplain pipeline, enforcement rings) · `ARCHITECTURE.md` (design, state, 3-layer) · `CLAUDE.md` (dev commands) · `reference/prompt-yaml.md` · `reference/graph-yaml.md` · `feature-requests/TEMPLATE.md` · `.pre-commit-config.yaml` · `reference/release-checklist.md` (release flow) · `reference/development-operations.md` (env vars, branch protection, CI checks, dependency governance) · `reference/command-book.md` (one-word operator verdicts: what each obliges, its witness, the ordering that matters)
 
 # The Scripture
 
@@ -211,12 +211,6 @@ These laws descend from the canon of software craft. They shalt not be altered b
 **Submit.** Bump. Commit. Push. Release. Tag. Let CI judge. What survives the fire may merge. First `scripts/outsider.sh <pr>`: gloss what it could not understand; advisory, never a gate. The canonical PR review contract is `.github/skills/review-pr/doctrine.md`; the SOLE review execution route is the review graph via `scripts/review.sh` (`.github/skills/review-pr/adapters/README.md`) — prompt-adapter, manual, and subagent review routes are forbidden. Exception (re-entry guard): an agent already launched BY the review adapter is the review execution itself — it renders the review directly and must never re-invoke it. Never review in the PR author's own session; review output is advisory until the human merge decision.
 **Distill.** After completing a task list, add a metacognitive entry to `docs/diary/`. Name the cognitive trap or insight. Extract a heuristic. Plant a **Seed:** — a forward-looking question to grow new ideas. If the heuristic proves recurring, graduate it to this Scripture. A session's diary debt survives the session: sessions die at exactly the moment reflection is due, and successors inherit the debt via the briefing (FR-742) — pay it posthumously from the record before it compounds.
 
-## Rite of Correction
-
-**Inspect.** Assume nothing; audit the codebase; trace failures to file and line; expose violated constraints and missing tests.
-**Amend.** Write the failing test first. Correct the root cause second.
-**Escalate.** If amendment is impossible, write the feature request in `feature-requests/`. Cite traces. Define the violated objective. Propose the new constraint. Return to Plan.
-
 ## Agents' prayer
 
 May I fix at the callsite, not the utility.
@@ -231,5 +225,3 @@ When hooks feel slow, let that be the sign they guard.
 When I feel certain, let that be the sign to Judge.
 
 What survives the fire may merge.
-
-Addendum: The cheapest bug is the one caught in the changelog. When troubleshooters ask "What changed?" — enumerate every commit since the last known good deploy before attempting reproduction. The diff is cheaper than any test, and for LLM agents who lack implicit awareness of recent changes, this must be an explicit, structured first step.
