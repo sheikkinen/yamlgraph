@@ -318,10 +318,10 @@ AC-16 reading: the PR's `docs/diary/` diff is taken against the merge target (`g
 | Field | Value |
 |---|---|
 | `BASE` (FR-1012 merge SHA) + human-review ref | `36591389e2fdfedf9ba5ae6362effad1c64cd06e` — PR #623, merged by the operator 2026-09-06 |
-| § Inventory at BASE commit | `24015cf8` (after the P6 rebase onto `b71d0083`) — `docs/census/fr1013-inventory-at-base-36591389.{txt,dispositions.md}` |
-| Candidate commits on the branch (pre-round-3) | RED `09818086` (SKIP=pytest, 9 fail / 11 pass at BASE), GREEN `b5a80c5b`, diary `6e6523ab` |
+| § Inventory at BASE commit | `24bf566c` (after the P6 rebase onto `b71d0083`) — `docs/census/fr1013-inventory-at-base-36591389.{txt,dispositions.md}` |
+| Candidate commits on the branch (pre-round-3) | RED `c1ef6669` (SKIP=pytest, 9 fail / 11 pass at BASE), GREEN `76605ae2`, diary `bca73b0f` |
 | Round-4 (D-10) | diary authorized as D-10; AC-16: `validate_diary_reflection_file` exit 0, markers `## The trap`, `## Heuristic`, `**Seed:**` present (4 hits); PR diary diff vs `origin/main` = exactly the D-10 path |
-| Round-3 commits | fold `c6b2ceb7`; RED `be98d617` (test + CAP-264/REQ-YG-668 + generated ARCHITECTURE.md; `req_coverage --strict` requires the REQ to exist before the tagged test can be committed, so registry and test share the RED commit; the doc edits stayed out, keeping 3 assertions red); GREEN — the commit after `be98d617` on the PR |
+| Round-3 commits (GitHub PR #627 IDs, recorded after the last rebase; the branch has since advanced only by merge) | fold `b2417ca3`; RED `c27e642d`; GREEN `59b11461`; diary addendum `a43469f4`; review-2 fixes `65681486`; round-4 fold `81dee7a2`; pre-round-3: step 0 `24bf566c`, RED `c1ef6669`, GREEN `76605ae2`, diary `bca73b0f`, amendment `b017dda6` (test + CAP-264/REQ-YG-668 + generated ARCHITECTURE.md; `req_coverage --strict` requires the REQ to exist before the tagged test can be committed, so registry and test share the RED commit; the doc edits stayed out, keeping 3 assertions red); GREEN `59b11461` |
 | Residual witness at GREEN | 40 tests: clause 1 (248 BASE files line-multiset-equal), clause 2 (12 match-bearing files × exact residual lines; CAP-264 / ARCHITECTURE.md / confessions exact deltas), clause 3 (no unenumerated matching file), clause 4 (3 stale-default code files unchanged) |
 | Traceability: test function → REQ → quoted text | see table below |
 | Surviving old-string witness tests | `test_concurrency_safety_doc.py`, `test_fr748_fr_atlas.py`, `test_knowledge_graph_fr193.py` (present after FR-1012; `test_chaplain_readme_documentation.py` was deleted by the census). Their strings (`docs/concurrency-safety.md`, the FR atlases, the Knowledge Graph) are all in the keep set — untouched; all three pass |
