@@ -321,3 +321,7 @@ def test_preflight_only_writes_manifest_and_record_without_running_graph(census,
     record = json.loads((tmp_path / "o/chaplain-test-disposition.run.json").read_text(encoding="utf-8"))
     assert len(manifest) == record["counts"]["items"] == 4 and record["preflight_problems"] == []
     assert record["provider"] == "anthropic" and record["model"] == "claude-haiku-4-5" and record["visibility_data_classification"]
+    # the committed record must load on every host: no native separators in persisted paths (review of PR #621, P4)
+    assert "\\" not in record["manifest_path"]
+    committed = json.loads((REPO / "docs/census/chaplain-test-disposition.run.json").read_text(encoding="utf-8"))
+    assert committed["manifest_path"] == "docs/census/chaplain-disposition-input.jsonl"

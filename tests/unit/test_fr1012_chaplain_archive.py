@@ -35,6 +35,7 @@ case "$cmd" in
     case "$*" in
       *visibility*) cat "$state/$(basename "$repo").visibility" ;;
       *isArchived*) [ -f "$state/$(basename "$repo").archived" ] && echo true || echo false ;;
+      *defaultBranchRef*) echo main ;;
       *) echo '{"name":"x"}' ;;
     esac ;;
   "repo create")
@@ -130,16 +131,52 @@ def test_full_run_journals_every_transition_and_archives(world):
     assert calls.count("created") == 1 and calls.count("archived") == 1
 
 
+TRANSITIONS = ["initialized", "tag_created", "repo_created", "split_pushed", "readme_committed", "verified"]
+
+
 @pytest.mark.req("REQ-YG-666")
-def test_partial_failure_then_resume_without_duplicate_mutation(world):
-    r = run(world, "--visibility", "private", "--pre", world["pre"], extra_env={"CHAPLAIN_ARCHIVE_FAIL_AFTER": "repo_created"})
-    assert r.returncode == 99 and journal(world)["state"] == "repo_created"
+@pytest.mark.parametrize("fail_after", TRANSITIONS)
+def test_partial_failure_after_each_transition_then_resume_without_duplicate_mutation(world, fail_after):
+    r = run(world, "--visibility", "private", "--pre", world["pre"], extra_env={"CHAPLAIN_ARCHIVE_FAIL_AFTER": fail_after})
+    assert r.returncode == 99 and journal(world)["state"] == fail_after, r.stderr
     # a plain re-run without --resume must refuse: the journal exists (69) or the tag/repo collide (65/66)
     assert run(world, "--visibility", "private", "--pre", world["pre"]).returncode in (65, 66, 69)
     r2 = run(world, "--visibility", "private", "--pre", world["pre"], "--resume")
     assert r2.returncode == 0, r2.stderr + r2.stdout
-    assert journal(world)["state"] == "archived"
-    assert (world["state"] / "calls.log").read_text().count("created") == 1, "repo must not be created twice"
+    j = journal(world)
+    assert j["state"] == "archived"
+    calls = (world["state"] / "calls.log").read_text() if (world["state"] / "calls.log").exists() else ""
+    assert calls.count("created") == 1 and calls.count("archived") == 1, "no remote mutation may happen twice"
+    tag = subprocess.run(["git", "ls-remote", "--tags", str(world["origin"]), "refs/tags/chaplain-archive"], capture_output=True, text=True).stdout.split()
+    assert tag[0] == world["pre"]
+    main = subprocess.run(["git", "ls-remote", str(world["archive"]), "refs/heads/main"], capture_output=True, text=True).stdout.split()
+    assert main[0] == j["archive_head"], "remote main must be the single banner commit"
+
+
+@pytest.mark.req("REQ-YG-666")
+def test_resume_refuses_remote_drift(world):
+    """Between the interruption and the resume, someone pushed to the archive's main → stop (69), no mutation."""
+    r = run(world, "--visibility", "private", "--pre", world["pre"], extra_env={"CHAPLAIN_ARCHIVE_FAIL_AFTER": "split_pushed"})
+    assert r.returncode == 99
+    drift = world["repo"].parent / "drift"
+    subprocess.run(["git", "clone", "-q", str(world["archive"]), str(drift)], check=True, capture_output=True)
+    (drift / "DRIFT.md").write_text("someone else\n", encoding="utf-8")
+    _git(drift, "add", "-A")
+    _git(drift, "commit", "-qm", "drift")
+    _git(drift, "push", "-q", "origin", "HEAD:main")
+    r2 = run(world, "--visibility", "private", "--pre", world["pre"], "--resume")
+    assert r2.returncode == 69, r2.stderr
+    assert journal(world)["state"] == "split_pushed", "a refused resume must not advance the journal"
+    assert "archived" not in ((world["state"] / "calls.log").read_text() if (world["state"] / "calls.log").exists() else "")
+
+
+@pytest.mark.req("REQ-YG-666")
+def test_resume_refuses_unknown_journal_state(world):
+    run(world, "--visibility", "private", "--pre", world["pre"], extra_env={"CHAPLAIN_ARCHIVE_FAIL_AFTER": "tag_created"})
+    j = journal(world)
+    j["state"] = "teleported"
+    (world["repo"] / "docs/census/chaplain-archive.run.json").write_text(json.dumps(j), encoding="utf-8")
+    assert run(world, "--visibility", "private", "--pre", world["pre"], "--resume").returncode == 69
 
 
 @pytest.mark.req("REQ-YG-666")

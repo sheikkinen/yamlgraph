@@ -121,7 +121,8 @@ def preflight(ad, out_dir: Path) -> dict:
         "visibility_data_classification": VISIBILITY,
         "ceilings": {"max_items": MAX_ITEMS, "max_total_bytes": MAX_TOTAL_BYTES, "max_item_bytes": MAX_ITEM_BYTES, "max_calls": MAX_CALLS, "timeout_s": TIMEOUT_S},
         "counts": {"items": len(rows), "tests": sum(r["kind"] == "test" for r in rows), "caps": sum(r["kind"] == "cap" for r in rows), "bytes": total, "planned_calls": calls},
-        "manifest_path": str(manifest_path.relative_to(REPO_ROOT) if manifest_path.is_relative_to(REPO_ROOT) else manifest_path),
+        # POSIX form so the committed record loads on every host (review of PR #621, P4)
+        "manifest_path": (manifest_path.relative_to(REPO_ROOT) if manifest_path.is_relative_to(REPO_ROOT) else manifest_path).as_posix(),
         "manifest_sha256": manifest_sha,
         "preflight_problems": problems,
     }

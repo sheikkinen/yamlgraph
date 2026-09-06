@@ -91,8 +91,13 @@ for t in "$REMOTE_TAG" "$LOCAL_TAG"; do
     [ "$t" = "$PRE" ] && [ "$RESUME" -eq 1 ] || fail 65 "tag $TAG already exists at $t and does not match a resumable journal (PRE $PRE)"
   fi
 done
-if "$GH" repo view "$ARCHIVE_REPO" --json name >/dev/null 2>&1; then
+repo_exists() { "$GH" repo view "$ARCHIVE_REPO" --json name >/dev/null 2>&1; }
+remote_main() { git ls-remote "$ARCHIVE_REMOTE" refs/heads/main 2>/dev/null | cut -f1; }
+if repo_exists; then
+  # resumable only when the journal claims this repository AND the remote facts match it (R-5, C-6)
   [ "$RESUME" -eq 1 ] && [ -n "$(journal_get state)" ] || fail 66 "repository $ARCHIVE_REPO already exists and no resumable journal claims it"
+  vis="$("$GH" repo view "$ARCHIVE_REPO" --json visibility --jq .visibility | tr 'A-Z' 'a-z')"
+  [ "$vis" = "$VISIBILITY" ] || fail 69 "remote visibility $vis != journal/requested $VISIBILITY"
 fi
 
 # --- manifest from the commit object, archive-relative ---------------------------------------------
@@ -129,7 +134,30 @@ if [ "$RESUME" -eq 0 ]; then
   transition initialized
 fi
 STATE="$(journal_get state)"
-after() { case "$STATE" in initialized) return 0 ;; esac; local order="initialized tag_created repo_created split_pushed readme_committed verified archived"; [[ "${order#*$STATE}" == *"$1"* ]]; }
+ORDER="initialized tag_created repo_created split_pushed readme_committed verified archived"
+after() { case "$STATE" in initialized) return 0 ;; esac; [[ "${ORDER#*$STATE}" == *"$1"* ]]; }
+
+# Resume gate (review of PR #621, P3): every transition the journal claims complete must still be
+# true on the remotes before anything is skipped or mutated; an unknown state is never resumable.
+verify_resumed_state() {
+  case " $ORDER " in *" $STATE "*) ;; *) fail 69 "journal state '$STATE' is not a known state" ;; esac
+  if ! after tag_created; then
+    [ "$(git ls-remote --tags origin "refs/tags/$TAG" | cut -f1)" = "$PRE" ] || fail 69 "journal says tag_created but origin tag != PRE"
+  fi
+  if ! after repo_created; then repo_exists || fail 69 "journal says repo_created but $ARCHIVE_REPO is absent"; fi
+  if ! after split_pushed; then
+    [ -n "$(journal_get split)" ] || fail 69 "journal says split_pushed but records no SPLIT"
+    # remote main equals SPLIT only until the banner commit moves it to ARCHIVE_HEAD
+    if after readme_committed; then
+      [ "$(remote_main)" = "$(journal_get split)" ] || fail 69 "journal says split_pushed but remote main $(remote_main) != SPLIT $(journal_get split)"
+    fi
+  fi
+  if ! after readme_committed; then
+    [ -n "$(journal_get archive_head)" ] || fail 69 "journal says readme_committed but records no ARCHIVE_HEAD"
+    [ "$(remote_main)" = "$(journal_get archive_head)" ] || fail 69 "journal says readme_committed but remote main $(remote_main) != ARCHIVE_HEAD $(journal_get archive_head)"
+  fi
+}
+[ "$RESUME" -eq 1 ] && verify_resumed_state
 
 if after tag_created; then
   if [ -z "$REMOTE_TAG" ]; then git tag "$TAG" "$PRE" 2>/dev/null || true; git push -q origin "refs/tags/$TAG"; fi
@@ -166,6 +194,8 @@ if after verified; then
   diff <(cut -d' ' -f3- "$MANIFEST") <(cut -d' ' -f3- "$WORK/actual.txt") >/dev/null || fail 68 "archive path set differs from the frozen manifest"
   diff <(grep -v '  README.md$' "$MANIFEST") <(grep -v '  README.md$' "$WORK/actual.txt") >/dev/null || fail 68 "archive file hashes differ from the frozen manifest (README.md excepted)"
   "$GH" repo view "$ARCHIVE_REPO" --json visibility --jq .visibility | tr 'A-Z' 'a-z' | grep -qx "$VISIBILITY" || fail 68 "archive repository visibility != $VISIBILITY"
+  "$GH" repo view "$ARCHIVE_REPO" --json defaultBranchRef --jq .defaultBranchRef.name | grep -qx main || fail 68 "archive default branch is not main"
+  [ "$(remote_main)" = "$(journal_get archive_head)" ] || fail 68 "remote main $(remote_main) != ARCHIVE_HEAD $(journal_get archive_head)"
   transition verified
 fi
 if after archived; then

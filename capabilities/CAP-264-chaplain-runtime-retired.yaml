@@ -23,10 +23,15 @@ modules:
 requirements:
   - id: REQ-YG-666
     description: >
-      The Chaplain runtime is absent from main; its source is reachable only
-      via the chaplain-archive tag and the archived repository; the census
-      delete/retire sets equal the enacted sets. The census that authorises
-      those sets is produced only by scripts/chaplain_census.py: it refuses,
+      Step 0/1 of the retirement (true on main now): the census that
+      authorises the Phase 2 delete/retire sets is produced only by
+      scripts/chaplain_census.py, and the source-only archive only by
+      scripts/chaplain_archive.sh. The end-state claim — the runtime is
+      absent from main, its source reachable only via the chaplain-archive
+      tag and the archived repository, and the enacted sets equal the
+      census sets — is added to this record by the atomic GREEN removal
+      commit together with its witness (review of PR #621, P2).
+      The census wrapper refuses,
       before any provider call, a source SHA that does not descend from the
       three prerequisite merges, more than 120 items, more than 1.5 MB in
       total, any item over 64 KB (operator amendment 2026-09-06 from 48 KB), more than 130 model calls, or

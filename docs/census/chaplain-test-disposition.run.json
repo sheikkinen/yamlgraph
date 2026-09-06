@@ -25,7 +25,7 @@
     "bytes": 807264,
     "planned_calls": 116
   },
-  "manifest_path": "docs\\census\\chaplain-disposition-input.jsonl",
+  "manifest_path": "docs/census/chaplain-disposition-input.jsonl",
   "manifest_sha256": "e4d5c5a83e93d2d7de26c0a221775b1a18776e49c745231c5ab1d876852c45bc",
   "preflight_problems": [],
   "manifest_sha256_note": "first recorded value 3f54bdb610d77094ef1ee5cf3210ad28af32134fe72a1a7d13c457e138f7bb49 was hashed over LF text while the file was written CRLF on Windows (bug fixed in the tooling commit); replaced by the sha of the bytes the graph run read",
@@ -86,5 +86,5 @@
     "7_no_silent_drop": true,
     "8_withheld_canaries_match": true
   },
-  "human_raw_read": "PENDING \u2014 a named human must read docs/census/chaplain-test-disposition.raw/ and record name+date here before the rows are trusted"
+  "human_raw_read": "Operator delegated the raw read to the enforcing session on 2026-09-06 ('rerun not needed \u2014 retirement is not exact science. check the deletes and proceed'); record: docs/census/chaplain-test-disposition.human-read.md (all 115 rows first pass; 41 model-decided deletes second pass against sources; 40 upheld, 1 overridden). No named human read the raw ledger themselves \u2014 recorded as a deviation from AC-06; review of PR #621 P1 objects."
 }
