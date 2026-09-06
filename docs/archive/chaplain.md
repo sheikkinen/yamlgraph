@@ -12,6 +12,8 @@ removed from `main` on 2026-09-06. Its source is preserved, read-only, as histor
 | Archive head | `cf30d87f120aa16e12b441869c32209073e97fb6` (`ARCHIVE_HEAD`: SPLIT plus one commit prepending the banner to `README.md`) |
 | Manifest | `docs/census/chaplain-archive-manifest.txt` — 146 files, sha256 `3d4a77faa5b2db99ad8b48a4c6a24173ed126aa7d4a0882b0a4938813b154b2d`; every file byte-identical to PRE except `README.md` |
 
+Design note (the FSM as it was built and operated): [chaplain-system.md](chaplain-system.md), moved here from `docs/context/` by FR-1019.
+
 The archive is **not a runnable distribution**: `scripts/start-system.sh` climbs `../..`
 and expects the parent repository around it. Recover a file with
 `git show chaplain-archive:.chaplain/<path>` here, or browse the archived repository.
