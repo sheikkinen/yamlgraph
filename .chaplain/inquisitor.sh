@@ -57,7 +57,7 @@ You are the Inquisitor. Your duty: audit the project's recent work against the S
 - Read the latest 5 commits: git log --oneline -5
 - Read the top of CHANGELOG.md (first 30 lines)
 - Read the latest diary entry from docs/diary/ (most recent file by name)
-- Read CLAUDE.md to refresh the Scripture (Commandments, Sermon, Rite of Correction)
+- Read CLAUDE.md to refresh the Scripture (Commandments, Sermon)
 
 **Step 2 — Investigate:**
 For each recent commit, check:
