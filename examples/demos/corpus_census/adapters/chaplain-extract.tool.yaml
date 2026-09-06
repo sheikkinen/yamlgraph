@@ -1,6 +1,0 @@
-name: chaplain-extract
-description: "FR-1012 chaplain disposition census: one item's file text + its collector-owned facts row"
-runtime:
-  type: python
-  path: chaplain_adapters.py
-  function: chaplain_extract

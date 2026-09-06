@@ -31,6 +31,19 @@ and expects the parent repository around it. Recover a file with
 | `.github/skills/chaplain-ops/`, `scripts/chaplain-prompts/` | none — retired with the runtime |
 
 Census of what was deleted and what was kept: `docs/census/chaplain-test-disposition.md`
-(41 test files deleted, 24 capability records retired, 50 items kept), produced by
-`scripts/chaplain_census.py`; archive journal `docs/census/chaplain-archive.run.json`
-produced by `scripts/chaplain_archive.sh`.
+(41 test files deleted, 24 capability records retired, 50 items kept); archive journal
+`docs/census/chaplain-archive.run.json`; post-merge witness record
+`docs/census/chaplain-postmerge.run.json`.
+
+**Tooling retired (FR-1016).** The three scripts that produced those records —
+`scripts/chaplain_census.py` (census driver: preflight ceilings, one judge call per item
+through the shipped `examples/demos/corpus_census` graph, confirmed-only reconciliation),
+`scripts/chaplain_archive.sh` (journaled, resumable subtree split with typed exits and a
+verify-on-resume step) and `scripts/chaplain_postmerge_witness.sh` — plus the chaplain census
+adapters under `examples/demos/corpus_census/adapters/` and their tests were deleted once every
+event they served had passed. They are **not** part of the `.chaplain` subtree archive above;
+their last complete source is commit `36591389` in this repository:
+`git show 36591389:scripts/chaplain_census.py`, `git show 36591389:scripts/chaplain_archive.sh`,
+`git show 36591389:scripts/chaplain_postmerge_witness.sh`. A future subtree retirement (the
+repo-split plan) lifts the skeleton from there and judges its own constants, canaries and
+ceilings; nothing chaplain-specific in them is reusable.
