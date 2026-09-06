@@ -55,7 +55,7 @@ naming why every existing pattern fails.
 Name the artifact boundary before writing files: target directory,
 `graph.yaml`, `prompts/*.yaml`, optional `nodes/`/tool files, README or
 demo output, and tests. If the task is feature work on the framework
-itself — not a new example/demo/pipeline — escalate to Chaplain instead
+itself — not a new example/demo/pipeline — file an FR instead
 (see Escalation).
 
 The artifact report returned to the requester must contain:
@@ -125,7 +125,7 @@ directly when:
 
 Graph artifact authoring — examples, demos, pipelines — goes through
 the adapter route above; one-off feature work goes Plan → Judge →
-Enforce via Chaplain.
+Enforce through the operator rite (`reference/command-book.md`).
 
 ## Anti-patterns
 
