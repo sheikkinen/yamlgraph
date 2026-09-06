@@ -1,6 +1,6 @@
 id: CAP-264
 name: Chaplain runtime retired
-fr: FR-1012
+fr: FR-1012, FR-1013
 description: >
   Phase 2 of FR-1010: the Chaplain FSM runtime (.chaplain/) is removed from
   main after a census decides, item by item, which chaplain-coupled tests
@@ -23,6 +23,14 @@ modules:
   - tests/unit/test_fr1012_chaplain_removed.py
   - scripts/chaplain_postmerge_witness.sh
   - tests/unit/test_fr1012_chaplain_postmerge_witness.py
+  - .github/copilot-instructions.md
+  - docs/development-process.md
+  - reference/audit-index.md
+  - reference/onepager-development-process.md
+  - .github/skills/graph-authoring/doctrine.md
+  - .github/skills/judge-fr/doctrine.md
+  - docs/archive/chaplain-system.md
+  - tests/unit/test_fr1013_doctrine_sweep.py
 requirements:
   - id: REQ-YG-666
     description: >
@@ -52,3 +60,23 @@ requirements:
       - tests/unit/test_fr1012_chaplain_removed.py
       - scripts/chaplain_postmerge_witness.sh
       - tests/unit/test_fr1012_chaplain_postmerge_witness.py
+  - id: REQ-YG-668
+    description: >
+      The post-FR-1012 tracked-text census remains reconciled: active
+      doctrine, skill instructions, process/reference documentation, and
+      examples describe the operator-driven author -> judge -> worktree
+      enforcement -> review -> human-merge route; no new or reworded
+      Chaplain-runtime match appears outside the frozen, dispositioned BASE
+      set; non-historical Chaplain pointers in those documentation surfaces
+      resolve to docs/archive/chaplain.md or docs/archive/chaplain-system.md;
+      witnessed by tests/unit/test_fr1013_doctrine_sweep.py (FR-1013, Phase 3
+      of FR-1010).
+    modules:
+      - .github/copilot-instructions.md
+      - docs/development-process.md
+      - reference/audit-index.md
+      - reference/onepager-development-process.md
+      - .github/skills/graph-authoring/doctrine.md
+      - .github/skills/judge-fr/doctrine.md
+      - docs/archive/chaplain-system.md
+      - tests/unit/test_fr1013_doctrine_sweep.py
