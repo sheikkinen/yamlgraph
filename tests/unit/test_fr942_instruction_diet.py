@@ -50,6 +50,7 @@ GOVERNED_KEYS = {
         "model_as_trusted_peer",
         "partial_remediation",
         "plausible_wrong_answer",
+        "private_language",  # FR-995 trap form of two_ends_of_the_knowledge_axis
         "quick_confidence",
         "recent_changes_blindness",
         "refactor_orphans_secondary",
