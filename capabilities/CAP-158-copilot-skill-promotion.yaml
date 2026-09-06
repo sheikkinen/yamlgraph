@@ -59,4 +59,4 @@ requirements:
       - .github/hooks/tests/test_authoring_guard.py
       - tests/unit/test_fr1014_authoring_proof_dir_graphs.py
 
-fr: FR-446
+fr: FR-446, FR-1014

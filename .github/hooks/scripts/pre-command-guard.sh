@@ -141,7 +141,8 @@ fi
 
 # ── Check 6: graph-authoring sole route (FR-767) ─────────────────────
 # Governed graph artifacts (examples/**/graph.yaml, examples/**/prompts/*.yaml,
-# graphs/*.yaml, .chaplain/graphs/*.yaml) may only be written under an armed
+# graphs/*.yaml, graphs/<name>/*.yaml, graphs/<name>/prompts/*.yaml (FR-1014),
+# .chaplain/graphs/*.yaml) may only be written under an armed
 # per-run authoring sentinel (scripts/author.sh). Path-based bright line (C-4),
 # fail closed on ambiguity (C-5). Sentinel = env token + matching token file.
 case "$TOOL_NAME" in
@@ -166,6 +167,8 @@ def governed_path(path):
     return bool(
         re.search(r"(^|/)examples/.+/graph\.ya?ml$", p)
         or re.search(r"(^|/)examples/.+/prompts/[^/]+\.ya?ml$", p)
+        or re.search(r"(^|/)graphs/[^/]+/[^/]+\.ya?ml$", p)
+        or re.search(r"(^|/)graphs/[^/]+/prompts/[^/]+\.ya?ml$", p)
         or re.search(r"(^|/)graphs/[^/]+\.ya?ml$", p)
         or re.search(r"(^|/)\.chaplain/graphs/[^/]+\.ya?ml$", p)
     )

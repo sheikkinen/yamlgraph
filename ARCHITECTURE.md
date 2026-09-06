@@ -2099,7 +2099,7 @@ Graph compilation enforces explicit Python tool loading policy with strict fail-
 
 Promote reference docs to Copilot Skills (.github/skills/) for on-demand loading in VS Code Copilot Chat.
 
-**Feature Request:** FR-446
+**Feature Request:** FR-446, FR-1014
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
