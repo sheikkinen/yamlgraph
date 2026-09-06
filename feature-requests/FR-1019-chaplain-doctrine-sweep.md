@@ -2,7 +2,7 @@
 
 **Priority:** LOW
 **Type:** Enhancement (docs only; two-line Scripture edit — human read before merge)
-**Status:** Judged — APPROVED WITH REVISIONS round 2 (2026-09-06, [judgement](FR-1019-chaplain-doctrine-sweep.judgement.md); round 1 REJECTED, its R-1..R-5 folded). Round-2 R-1..R-4 folded below. Authority activates after human review of the round-2 draft (C-1, C-2); nothing implemented yet.
+**Status:** Judged — APPROVED WITH REVISIONS round 2 (2026-09-06, [judgement](FR-1019-chaplain-doctrine-sweep.judgement.md); round 1 REJECTED, its R-1..R-5 folded). Round-2 R-1..R-4 folded below. Enforced 2026-09-06 (operator granted authority after a critical review of the judgement); see § Implementation record. Human read of the Scripture and judge-doctrine diffs due at PR review.
 **Effort:** 0.5 day
 **Requested:** 2026-09-06
 **Plan:** [FR-1010](FR-1010-chaplain-archival-plan.md) Phase 3. Prerequisite FR-1012 merged (`BASE = 36591389e2fdfedf9ba5ae6362effad1c64cd06e`). Supersedes [FR-1013](FR-1013-chaplain-doctrine-sweep.md) (REJECTED — process outgrew the change; the edits below are the same).
@@ -38,7 +38,7 @@ No live doctrine or reference document presents the Chaplain, its inbox, or the 
 
 **Process artifacts:** `changelog/unreleased/fr1019-doctrine-sweep.md` (`type: removal`, `scope: doctrine`); `docs/diary/diary-2026-09-06-reflection-fr-1019-chaplain-doctrine-sweep.md`; this FR's § Implementation record. No other diary, FR, changelog, memento, ebook, research or archive content is touched.
 
-**Post-merge operator action (not in the PR; AC-7):** after the implementation PR merges, the operator edits FR-1010 only: § Phase 3 heading and the phase-order sentence / AC-04 list name "FR-1019, superseding rejected FR-1013" instead of FR-1013; § Phase 3 records this PR's immutable merge SHA; AC-12 is run on merged `main` and its residual list recorded; AC-12 and AC-13 ticked; `**Status:**` → `Completed`.
+**Post-merge operator action (not in the PR; AC-8):** after the implementation PR merges, the operator edits FR-1010 only: § Phase 3 heading and the phase-order sentence / AC-04 list name "FR-1019, superseding rejected FR-1013" instead of FR-1013; § Phase 3 records this PR's immutable merge SHA; AC-12 is run on merged `main` and its residual list recorded; AC-12 and AC-13 ticked; `**Status:**` → `Completed`.
 
 **Source of the edits:** closed PR #627 (head `cf9b915e`) is evidence and a hunk source only. Port only the hunks the Change table describes, one file at a time, each reviewed as a patch against current HEAD (`git diff BASE cf9b915e -- <file>` read, then applied by hand or `git apply` of that file's hunks). Never `git cherry-pick` a commit, never `git checkout cf9b915e -- <path>`, and import nothing from its `ARCHITECTURE.md`, `capabilities/`, `docs/census/`, `tests/`, `docs/confessions.md`, diary, FR or post-merge-record changes.
 
@@ -106,3 +106,45 @@ STEPS='^\*\*(Research|Plan|Judge|Enforce|Purge|Submit|Distill)\.\*\*'
 ## Purge list
 
 No census, no inventory file, no baseline, no new test file, no new REQ or CAP, no per-file hash of the repository, no script, hook or CI change, no rewrite of archive or historical content to satisfy a grep.
+
+## Implementation record (2026-09-06)
+
+**Authority.** Round-2 draft (APPROVED WITH REVISIONS) folded; the operator asked for a critical review of the judgement itself (four substantive catches, three legibility asks, one doctrine-forced label), read it, and said `enforce` — that is the human word for C-1. Human read of the Scripture diff and both judge-doctrine copies (C-2, AC-7) is due at PR review, before merge.
+
+**Changed paths** (all within D-1…D-6; `git diff --name-status -M100%`):
+
+| Path | Deliverable |
+|---|---|
+| `.github/copilot-instructions.md` (M, numstat `2 2`) | D-1 |
+| `docs/development-process.md` (M) | D-2 |
+| `reference/onepager-development-process.md`, `reference/audit-index.md`, `reference/graph-yaml.md`, `reference/command-book.md`, `reference/patterns/fsm-as-conductor.md`, `examples/README.md` (M) | D-3 |
+| `.github/skills/graph-authoring/SKILL.md`, `.github/skills/graph-authoring/doctrine.md`, `.github/skills/judge-fr/doctrine.md`, `ramp/assets/tier2/github/skills/judge-fr/doctrine.md` (M; `cmp -s` equal) | D-4 |
+| `docs/context/chaplain-system.md` → `docs/archive/chaplain-system.md` (R100), `docs/archive/chaplain.md` (M, +1 link line) | D-5 |
+| `changelog/unreleased/fr1019-doctrine-sweep.md`, `docs/diary/diary-2026-09-06-reflection-fr-1019-chaplain-doctrine-sweep.md`, this section | D-6 |
+
+**Porting (AC-8).** Each live file's hunks were taken with `git diff be53965b cf9b915e -- <file> | git apply --index` (be53965b is PR #627's base), never `git cherry-pick` or `git checkout cf9b915e -- <path>`; `docs/archive/chaplain.md` had drifted on `main` (FR-1016) and its one-line hunk applied cleanly onto current HEAD. Three ported lines named FR-1013 as the sweep that did the work (`docs/archive/chaplain.md` link line, `docs/development-process.md` retirement sentence, `reference/audit-index.md` archived row); each now says FR-1019. Nothing from `cf9b915e`'s `ARCHITECTURE.md`, `capabilities/`, `docs/census/`, `tests/`, confessions, diary or FR changes was imported.
+
+**Acceptance results** (assertion block run with `set -e` in the worktree, BASE `36591389`):
+
+- AC-1 pass: heading count 0; numstat `2 2`; Sermon-step diff empty; Knowledge Graph block diff empty.
+- AC-2 pass: forbidden-string grep over the twelve live files returns nothing; `scripts/author.sh`, `scripts/judge.sh`, `scripts/review.sh` each present in `docs/development-process.md`; measurement sentence byte-equal to BASE.
+- AC-3 census (`grep -n -i -E 'chaplain|inquisitor'` over the live set, 26 lines) and disposition:
+
+  | Lines | Disposition |
+  |---|---|
+  | `.github/copilot-instructions.md:52` `audit # Inquisitor findings → enforcement gates`; `:162` `inquisitor_auto_escalation` | (c) the two untouched Knowledge Graph entries |
+  | `docs/development-process.md:138` "An autonomous FSM (the Chaplain) ran … and was retired"; `:146` measurement sentence "(chaplain path)"; `:320` "meta-tooling (hooks, chaplain scripts) historically drifted" | (a) explicit history, past tense |
+  | `docs/development-process.md:140,141,158,272` | (b) archive links |
+  | `reference/onepager-development-process.md:151` sources footer | (b) archive link |
+  | `reference/audit-index.md:57` "Inquisitor audits — `docs/diary/inquisitor-audit-*` — 200+ commit audits" | (a) history: the row indexes existing diary artifacts, not a running auditor |
+  | `reference/audit-index.md:65` "Chaplain (archived)" | (b) archive link (the one Chaplain row) |
+  | `reference/patterns/fsm-as-conductor.md:122,124,156,179,215` comparison table rows, footnote, section heading | (a) history: the pattern page compares three FSM instances; the Chaplain section is headed as an archived case and its Location/Context lines (`:169,170,235`) are (b) archive links |
+  | `.github/skills/judge-fr/doctrine.md:133,135,136` and the ramp mirror `:133,135,136` | (a) "chaplain-era prompts" vocabulary note and "The retired Chaplain runtime is the historical origin" + (b) archive link |
+
+  No surviving line presents the runtime as an active route.
+- AC-4 pass: `docs/context/chaplain-system.md` absent; move `R100`; one link in `docs/archive/chaplain.md`; one `Chaplain` row in the audit index linking `docs/archive/chaplain.md`.
+- AC-5: `cmp -s` equal; `ramp/manifest.yaml` and `ramp/curation-diffs.md` unchanged from BASE; `test_knowledge_graph_fr193.py` and `test_fr1012_chaplain_removed.py` pass (51 passed). **Deviation (host):** `test_mirror_exact_entries_match_live_bytes` ERRORs at fixture setup on this Windows host with `ManifestError: source not normalized: …` for every manifest entry — identically on unmodified `main` — a path-normalization quirk of the loader, not of the mirror; the mirror equality itself is witnessed by `cmp -s` here and by the test in Linux CI.
+- AC-6: fragment front matter asserts `type: removal` / `scope: doctrine`; diary validated by `validate_diary_reflection_file`; non-slow unit suite: see the suite line appended below.
+- AC-7: pending the human read at PR review.
+- AC-8 (post-merge, operator): not started; requires the merge SHA.
+- AC-6 suite line: `pytest tests/unit/ -q --no-cov -m "not slow" -n auto` on this Windows host → 6210 passed, 241 failed, 18 errors on the branch **and the identical 259-item failed/error set on unmodified `main`** (`comm` of the sorted FAILED/ERROR lines is empty both ways) — the host's known POSIX-shell / path-separator / symlink set; CI on Linux is the green witness for this criterion.
