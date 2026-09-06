@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Enhancement
-**Status:** Judged — APPROVED WITH REVISIONS 2026-09-06 (R-1..R-5 folded below; authority activates on human review of the judgement, C-6)
+**Status:** Completed 2026-09-06 — judged APPROVED WITH REVISIONS (1 round), R-1..R-5 folded, enforced (RED then GREEN), implementation record below
 **Effort:** 0.5 days
 **Requested:** 2026-09-06
 **First consumer / first event:** the next agent session that runs
@@ -168,51 +168,51 @@ test file.
 Revised set per judgement R-5 (binding; replaces the originally filed
 AC-1..AC-11):
 
-- [ ] AC-01: With no adjacent judgement, the stubbed executor runs once, the
+- [x] AC-01: With no adjacent judgement, the stubbed executor runs once, the
       wrapper exits 0 with a conforming stub artifact, and stderr contains
       `round 1`.
-- [ ] AC-02: With exactly one anchored verdict line in the adjacent
+- [x] AC-02: With exactly one anchored verdict line in the adjacent
       judgement, the stubbed executor runs once, the wrapper exits 0 with a
       conforming stub artifact, and stderr contains `round 2`.
-- [ ] AC-03: With exactly two anchored verdict lines and the default backend,
+- [x] AC-03: With exactly two anchored verdict lines and the default backend,
       the wrapper exits 77; the executor marker is absent; the judge lock is
       absent; and `tmp/draft-judgement-copilot-<fr-slug>.md` consists exactly
       of `**Verdict:** REJECTED — Operator: Rethink and rewrite the FR. It's
       getting too complicated as a planning document.` plus one newline.
-- [ ] AC-04: A four-verdict judgement with intervening `# Round N` headings
+- [x] AC-04: A four-verdict judgement with intervening `# Round N` headings
       produces the same exit, no-executor, no-lock, and exact-artifact result
       as AC-03.
-- [ ] AC-05: With two verdicts and `JUDGE_BACKEND=claude`, the wrapper exits
+- [x] AC-05: With two verdicts and `JUDGE_BACKEND=claude`, the wrapper exits
       77 and writes the exact sentinel to the Claude artifact; the executor
       marker is absent.
-- [ ] AC-06: With two verdicts and an invalid `JUDGE_BACKEND`, the existing
+- [x] AC-06: With two verdicts and an invalid `JUDGE_BACKEND`, the existing
       backend contract wins: exit 64, no sentinel artifact, no executor
       marker, and no lock.
-- [ ] AC-07: With two verdicts, a valid backend, and `JUDGE_EXECUTION=1`, the
+- [x] AC-07: With two verdicts, a valid backend, and `JUDGE_EXECUTION=1`, the
       existing re-entry contract wins: exit 70, no sentinel artifact, no
       executor marker, and no lock.
-- [ ] AC-08: A verdict token not beginning a line does not increment the
+- [x] AC-08: A verdict token not beginning a line does not increment the
       round; counting uses exactly the existing anchored grammar
       `^\*\*Verdict:\*\*`.
-- [ ] AC-09: No new argument or environment-variable bypass is introduced;
+- [x] AC-09: No new argument or environment-variable bypass is introduced;
       setting an otherwise unused `JUDGE_FORCE=1` or passing an extra
       `--force` argument does not change the AC-03 result.
-- [ ] AC-10: The Local conventions bullet and adapter README document exit
+- [x] AC-10: The Local conventions bullet and adapter README document exit
       77, the exact `REJECTED` sentinel, the two permitted human exits, and
       advisory status; `git diff --exit-code <base> --
       .github/skills/judge-fr/adapters/graph.yaml
       .github/skills/judge-fr/adapters/prompts/judge.yaml` succeeds.
-- [ ] AC-11: The new tests live in
+- [x] AC-11: The new tests live in
       `tests/unit/test_fr758_judge_review_wrappers.py`, each carries
       `@pytest.mark.req("REQ-YG-668")`, and the committed RED test precedes
       the GREEN implementation commit.
-- [ ] AC-12: REQ-YG-668 appears under CAP-211 in both `ARCHITECTURE.md` and
+- [x] AC-12: REQ-YG-668 appears under CAP-211 in both `ARCHITECTURE.md` and
       `capabilities/CAP-211-sole-route-judge-review.yaml`; no CAP-266 file
       exists; `python scripts/req_coverage.py --strict` passes; the
       capability registry loads.
-- [ ] AC-13: `pytest tests/unit/test_fr758_judge_review_wrappers.py -q
+- [x] AC-13: `pytest tests/unit/test_fr758_judge_review_wrappers.py -q
       --no-cov` passes without invoking a real judge graph.
-- [ ] AC-14: The changelog fragment exists, and the FR-1022 diary entry
+- [x] AC-14: The changelog fragment exists, and the FR-1022 diary entry
       contains `**Seed:**`.
 
 ## Alternatives Considered
@@ -287,3 +287,19 @@ changes, commits, or re-filing.
    judgement; would need its own FR.
 2. **C-6 human review of this folded FR is the GATE** before enforcement
    begins. `merge`-book verdict word suffices.
+
+Operator answer (2026-09-06): "enforce. pr. outsider. review. merge" —
+(a) accepted by default; C-6 cleared by the enforce verdict.
+
+## Implementation record (2026-09-06)
+
+| Step | Witness |
+|---|---|
+| RED | commit `test(judge): FR-1022 RED …` — 9 REQ-YG-668 tests appended to `tests/unit/test_fr758_judge_review_wrappers.py` (marker stub, C-7); 7 failing, 2 precedence tests (AC-06/07) green before and after by design; CAP-211 gains REQ-YG-668; `ARCHITECTURE.md` regenerated via `scripts/aggregate_capabilities.py`; `req_coverage.py --strict` green |
+| GREEN | commit `feat(judge): FR-1022 round sentinel …` — 12-line block in `scripts/judge.sh` between `mkdir -p "$WORKDIR/tmp"` and the lock (step 5–6 of the R-2 order); doctrine bullet; adapter README note; changelog fragment. `pytest tests/unit/test_fr758_judge_review_wrappers.py -q --no-cov` → 27 passed |
+| NC-412 | `graph.yaml` and `prompts/judge.yaml` untouched (AC-10) |
+| Distill | `docs/diary/2026-09-06-reflection-fr-1022-the-count-the-model-cannot-argue-with.md` |
+
+Decisions: no CAP-266 (R-3); no growth metric (parked); the research brief is
+left sha-pinned with its audit-log sentence (R-4 deviation, recorded above).
+AC-01..AC-14 satisfied; AC-11's RED-before-GREEN is in `git log`.
