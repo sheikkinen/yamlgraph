@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Judged — APPROVED WITH REVISIONS (2026-09-03). Revisions R-1..R-7 folded below. Authority remains inactive pending FR-975's own revisions being folded, human-approved, implemented, tested, and its canonical ledger bootstrapped (C-1), plus human review of this judgement (C-2).
+**Status:** Superseded by FR-1010 (2026-09-06) — see § Superseded.
 **Effort:** 3 days
 **Requested:** 2026-09-03
 **First consumer / first event:** the next CAP/REQ allocation attempt
@@ -14,6 +14,21 @@ editor outside any governed tool call) cannot be prevented at the point of
 typing, only rejected before commit/merge (see Ideal Result).
 **Research:** [FR-980.research.md](FR-980.research.md) (5 personas: os-infra-primitivist, data-process-planner, yamlgraph-native-planner, subtractionist, librarian; addendum below folds R-7's boundary corrections)
 **Prior art:** [FR-970](FR-970-load-bearing-atomic-id-allocation.md) / [FR-970.judgement](FR-970-load-bearing-atomic-id-allocation.judgement.md) — direct predecessor; SPLIT, this FR is exactly its Successor B (R-2), depending on Successor A's judged contract (D-2). [FR-975](FR-975-id-ledger-reservation-protocol.md) / [FR-975.judgement](FR-975-id-ledger-reservation-protocol.judgement.md) — Successor A; judged APPROVED WITH REVISIONS, authority not yet activated. This FR's dependency on FR-975 is corrected (R-7) to require FR-975's revisions folded, judgement human-approved, implementation complete with green real-remote tests, and its canonical ledger bootstrapped — not merely "authority activated" as originally stated. [FR-180](FR-180-plan-phase-id-reservation.md) — `scripts/id_registry.py`/`.chaplain/id-registry.yaml`, the advisory-mechanism precedent this FR retires (R-6). [FR-701](FR-701-capability-registry-consistency-gate.md) — `validate_registry()` backstop, unmodified (C-8). [FR-767](FR-767-graph-authoring-sole-route.md) — the PreToolUse guard pattern this FR extends, corrected (R-3) to be honest about its actual boundary (Copilot tool calls only, not arbitrary editors). [FR-466](FR-466-cap-retirement-support.md) — defines `status: retired` for capability YAML specifically; corrected citation (R-6) — this FR's legacy purge is executable removal, not a `status:` field on Python modules. Filename-noun matches from the research gate (FR-902, FR-596, FR-823, FR-824, FR-862) remain coincidental vocabulary overlaps in unrelated domains — no further disposition needed.
+
+## Superseded (2026-09-06)
+
+**By:** FR-1010 § "ID-allocation decision (R-2)", operator decision (ii).
+**Why:** the Chaplain runtime that hosted `.chaplain/id-registry.yaml` is
+being archived (FR-1010); this ledger program was never implemented — no
+CAP entry (`fr: FR-975|FR-980`), no code, test, hook, workflow or
+pre-commit entry cites it.
+**Replacement contract (FR-1010, verbatim):** Direct Plan/Enforce CAP/REQ
+allocation remains mechanical enumeration at filing:
+`max(ids on main + all open PR heads) + headroom`. FR-701's
+`scripts/validate_capabilities.py::validate_registry()` remains the
+post-hoc duplicate gate. No new allocator is introduced.
+**Deletion of legacy artifacts:** FR-1012 (Phase 2), only as reviewed
+census `delete` rows.
 
 ## Summary
 
