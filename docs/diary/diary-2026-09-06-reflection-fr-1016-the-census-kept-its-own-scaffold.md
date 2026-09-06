@@ -70,3 +70,63 @@ every script carry the FR that is its trigger in a header, so that a
 sweep — the same census graph with a scripts adapter — can list the
 one-shots whose FR is DONE and propose their retirement, instead of
 waiting for an operator to notice a name in `ls`?
+
+## Postscript: how the merge came to hinge on ten cache files
+
+The operator asked, on giving the merge word: how did the human gate on
+this PR end up being a decision about `untracked_files_left_in_chaplain`
+being 10 rather than 0?
+
+The chain, backwards. The round-2 judge made the human's acceptance of
+"10" a named condition (C-7) because the round-1 judge had frozen the
+value 0 into AC-01 *before the witness had run*; a second frozen
+condition (C-4) made the record immutable once it existed; the observed
+run said 10; so the two frozen conditions could only be reconciled by a
+party outside both — the human. The value itself was never in doubt:
+ten `.pyc` files compiled from the deleted modules, gitignored, removed
+by hand a minute later, with `.chaplain/` gone. No one believed the
+runtime was still there. The supervision function was spent on a
+question that had no content.
+
+Two mechanisms produced this.
+
+**The judge predicted evidence instead of binding it.** AC-01 pinned a
+*value* for a field of a record that did not exist yet. That is
+`threshold_encodes_forecast` in a new costume: an acceptance criterion
+that forecasts what the observation will say, so that the observation
+can only agree or fail. A criterion may fix the *shape* and *provenance*
+of evidence not yet observed — which file, which fields, who ran it,
+that it is preserved unchanged — never its value. "The record shows the
+count the witness observed, and the FR explains it" was always the
+right criterion; "== 0" was a guess dressed as a gate.
+
+**The witness counted what its own spec said to ignore.** The
+post-merge witness was specified as "`.chaplain` is untracked-empty";
+`__pycache__` is gitignored, so by the spec those ten files were not
+what the check was for. The script counted every regular file under the
+directory. A one-line `find` exclusion at authoring time — or reading
+the raw record once before the judge froze on it — would have produced
+0 honestly and the whole C-7 exchange would not have existed. The
+number 10 is an artifact of the ruler, not a fact about the tree.
+
+And one thing that went right: when the frozen 0 met the observed 10, I
+did not decide. Returning the FR to the judge, and the judge handing the
+final word to the human, is the separation the morning's diary entry
+asked for. The cost was that the separation fired on the wrong question.
+Separation of authority is necessary; it is not sufficient. The
+supervisor's attention is the scarcest resource in the loop, and a
+process that spends it on a `.pyc` count has a defect upstream of the
+gate, in whoever wrote the number down before it was observed.
+
+**Heuristic:** never freeze a value for evidence that has not been
+observed; freeze its shape, its source, and its immutability, and let
+the observation speak. When a human gate turns out to be about a value
+nobody disputes, do not congratulate the process for stopping — find
+the criterion that predicted the observation and fix that.
+
+**Seed:** could the judge graph refuse, mechanically, any acceptance
+criterion that compares a not-yet-existing artifact's field to a
+literal? The pattern is detectable: `== <literal>` on a path that
+`git ls-files` does not yet know. A lint on the judgement, before the
+human ever sees it.
+
