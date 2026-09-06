@@ -2021,3 +2021,9 @@ The ID ranges are:
 - **Code**: S603
 - **Sin**: `subprocess.run([gh, "pr", "comment", pr, "-R", repo, "--body-file", …])` — same arguments reach a subprocess.
 - **Penance**: Same validation as CONF-459; only runs when `--post` is given.
+
+### CONF-461
+- **File**: [tests/unit/test_fr1014_authoring_proof_dir_graphs.py](../tests/unit/test_fr1014_authoring_proof_dir_graphs.py#L67)
+- **Code**: S102
+- **Sin**: `exec()` of the `def governed_path` text extracted from `.github/hooks/scripts/pre-command-guard.sh`'s Python heredoc.
+- **Penance**: FR-1014 witness: the predicate lives inside a bash heredoc and cannot be imported; executing the repository's own hook source (read from the tree, not from input) is the only way to assert it row-for-row against `check_authoring_proof.GOVERNED` on hosts that cannot exec the bash hook. Namespace is limited to `re`.

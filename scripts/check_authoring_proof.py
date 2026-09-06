@@ -6,7 +6,8 @@ Local-only defense-in-depth behind the PreToolUse authoring guard —
 this is NOT a CI gate (tmp/ is ignored and absent in CI; C-6).
 
 Governed paths: examples/**/graph.yaml, examples/**/prompts/*.yaml,
-graphs/*.yaml, .chaplain/graphs/*.yaml. Only newly added (diff-filter=A)
+graphs/*.yaml (flat), graphs/<name>/*.yaml and graphs/<name>/prompts/*.yaml
+(dir-style, FR-1014), .chaplain/graphs/*.yaml. Only newly added (diff-filter=A)
 staged files are checked; edits to tracked artifacts are the PreToolUse
 guard's concern at write time, not the commit's.
 """
@@ -21,6 +22,8 @@ REPORT = Path("tmp/draft-authoring-report.md")
 GOVERNED = (
     re.compile(r"^examples/.+/graph\.ya?ml$"),
     re.compile(r"^examples/.+/prompts/[^/]+\.ya?ml$"),
+    re.compile(r"^graphs/[^/]+/[^/]+\.ya?ml$"),
+    re.compile(r"^graphs/[^/]+/prompts/[^/]+\.ya?ml$"),
     re.compile(r"^graphs/[^/]+\.ya?ml$"),
     re.compile(r"^\.chaplain/graphs/[^/]+\.ya?ml$"),
 )
