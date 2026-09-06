@@ -29,23 +29,22 @@
   "manifest_sha256": "e4d5c5a83e93d2d7de26c0a221775b1a18776e49c745231c5ab1d876852c45bc",
   "preflight_problems": [],
   "manifest_sha256_note": "first recorded value 3f54bdb610d77094ef1ee5cf3210ad28af32134fe72a1a7d13c457e138f7bb49 was hashed over LF text while the file was written CRLF on Windows (bug fixed in the tooling commit); replaced by the sha of the bytes the graph run read",
-  "reconcile_only_at": "2026-09-06T11:15:44.047845+00:00",
-  "finished_at": "2026-09-06T11:15:44.090650+00:00",
+  "reconcile_only_at": "2026-09-06T11:25:00.126994+00:00",
+  "finished_at": "2026-09-06T11:25:00.172166+00:00",
   "generic_ledger_sha256": "9c9c1e60bde5c9f2d0a6e9cccb8ecd8a07fc327798cbb92d6868f402d3075c5c",
-  "disposition_sha256": "05ed9c39c5d61eac116fd00b2326799536a64cc0ac7eebae78de6baff2422b7b",
+  "disposition_sha256": "7623ac8eebedcfe559fb556f81f9e86a5391f5da665acee47fc85e951f4d100f",
   "counts_out": {
     "delete": 42,
-    "retire": 23,
-    "keep": 50,
-    "unresolved": 1
+    "retire": 24,
+    "keep": 49,
+    "unresolved": 0
   },
-  "unresolved": [
-    "capabilities/CAP-116-acceptance-tests-before-enforce.yaml"
-  ],
+  "unresolved": [],
   "resolutions_file": "docs\\census\\chaplain-manual-resolutions.json",
   "resolutions_confirmed": [
     "capabilities/CAP-106-github-issues-remote-inbox.yaml",
     "capabilities/CAP-114-automated-post-merge-finalization.yaml",
+    "capabilities/CAP-116-acceptance-tests-before-enforce.yaml",
     "capabilities/CAP-125-pipeline-script-retirement.yaml",
     "capabilities/CAP-135-watcher2-forensic-failure-diary.yaml",
     "capabilities/CAP-137-watcher-fsm-startup-script.yaml",
@@ -65,9 +64,7 @@
     "tests/unit/test_id_registry.py",
     "tests/unit/test_migrate_diary.py"
   ],
-  "resolutions_pending_confirmation": [
-    "capabilities/CAP-116-acceptance-tests-before-enforce.yaml"
-  ],
+  "resolutions_pending_confirmation": [],
   "canaries": {
     "tests/unit/test_fr305_watcher_pipeline_v2.py": {
       "expected": "delete",

@@ -1,5 +1,5 @@
 {
-  "_about": "FR-1012 Step 0 human resolutions. Proposed by the census session on 2026-09-06 after reading all 115 raw rows; operator confirmed 20 of 21 on 2026-09-06 ('rest of the 21 as proposed'); CAP-116 stays unconfirmed pending investigation of its two outside witnesses.",
+  "_about": "FR-1012 Step 0 human resolutions. Proposed by the census session on 2026-09-06 after reading all 115 raw rows; operator confirmed all 21 on 2026-09-06 (20 as proposed; CAP-116 → retire after investigating its mis-tagged witnesses, see that entry).",
   "capabilities/CAP-135-watcher2-forensic-failure-diary.yaml": {
     "verdict": "retire",
     "reason": "model retire 0.95 but evidence span stitched name+description across YAML lines (inexact). Watcher2 forensic diary is runtime-only; REQ-YG-309's only witness is test_retire_old_pipeline_scripts.py (delete).",
@@ -57,11 +57,11 @@
     "confirmed": true
   },
   "capabilities/CAP-116-acceptance-tests-before-enforce.yaml": {
-    "verdict": "keep",
-    "reason": "mixed by rule: REQ-YG-263 has 2 witnesses outside the candidate set, so retiring trips req_coverage. Its modules are all .chaplain/ runtime files that Phase 2 deletes; the operator must either re-home REQ-YG-263 or accept a CAP whose modules vanish. Proposed keep pending that decision. OPERATOR 2026-09-06: investigate the two dangling tests first; unconfirmed.",
-    "resolved_by": "PROPOSED (census session)",
+    "verdict": "retire",
+    "reason": "OPERATOR 2026-09-06 after investigation: REQ-YG-263's two outside witnesses (test_fr331_static_module_map_tier2_context.py, test_fr335_module_map_compression.py) were mis-tagged live module-map tests — FR-331/FR-335 had no CAP. New CAP-265 / REQ-YG-667 'Static module map' allocated and both tests re-tagged in the same branch; REQ-YG-263 is then witnessed only by test_acceptance_tests_before_enforce.py (delete). CAP-116's six modules are all .chaplain/ files Phase 2 deletes. Manifest fan-in for this row reflects the tree before the re-tag.",
+    "resolved_by": "operator (decision 'New module-map CAP, retire CAP-116' via enforcing session)",
     "date": "2026-09-06",
-    "confirmed": false
+    "confirmed": true
   },
   "capabilities/CAP-55-chaplain-inbox-documentation.yaml": {
     "verdict": "retire",
