@@ -148,3 +148,4 @@ No census, no inventory file, no baseline, no new test file, no new REQ or CAP, 
 - AC-7: pending the human read at PR review.
 - AC-8 (post-merge, operator): not started; requires the merge SHA.
 - AC-6 suite line: `pytest tests/unit/ -q --no-cov -m "not slow" -n auto` on this Windows host → 6210 passed, 241 failed, 18 errors on the branch **and the identical 259-item failed/error set on unmodified `main`** (`comm` of the sorted FAILED/ERROR lines is empty both ways) — the host's known POSIX-shell / path-separator / symlink set; CI on Linux is the green witness for this criterion.
+- AC-7 record (2026-09-06): after the review (P1: C-2 human read outstanding) was dispositioned on PR #632 with the three hunks named, the operator issued `merge` — the human's word for the Scripture and judge-doctrine diffs (command book: `merge` given in the sequence is permission). Recorded here by the agent; the read itself is the operator's.
