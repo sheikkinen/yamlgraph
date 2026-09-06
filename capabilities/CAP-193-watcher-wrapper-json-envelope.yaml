@@ -1,4 +1,6 @@
 id: CAP-193
+status: retired
+retired_by: FR-1012
 name: Watcher Wrapper JSON Envelope
 description: >
   Watcher worktree setup/teardown wrappers delegate to scripts/worktree.sh

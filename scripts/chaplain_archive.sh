@@ -75,7 +75,11 @@ git merge-base --is-ancestor "$PRE" origin/main || fail 67 "PRE $PRE is not reac
 git cat-file -e "$PRE:.chaplain" 2>/dev/null || fail 67 "PRE has no .chaplain/ tree"
 PRE_TREE="$(git rev-parse "$PRE:.chaplain")"
 [ -s "$INPUT_MANIFEST" ] || fail 67 "disposition input manifest missing: $INPUT_MANIFEST"
-MANIFEST_TREE="$(git rev-parse "$(python3 -c "import json,sys; print(json.loads(open(sys.argv[1]).readline())['source_sha'])" "$INPUT_MANIFEST")":.chaplain 2>/dev/null || true)"
+# the census run record carries the frozen .chaplain tree id; the census source commit itself may no
+# longer be reachable after a squash merge, so resolve it only as a fallback
+RUN_RECORD="$REPO_ROOT/docs/census/chaplain-test-disposition.run.json"
+MANIFEST_TREE="$(python3 -c "import json,sys; print(json.load(open(sys.argv[1])).get('chaplain_tree_sha',''))" "$RUN_RECORD" 2>/dev/null || true)"
+[ -n "$MANIFEST_TREE" ] || MANIFEST_TREE="$(git rev-parse "$(python3 -c "import json,sys; print(json.loads(open(sys.argv[1]).readline())['source_sha'])" "$INPUT_MANIFEST")":.chaplain 2>/dev/null || true)"
 [ "$PRE_TREE" = "$MANIFEST_TREE" ] || fail 67 "PRE .chaplain tree $PRE_TREE != disposition input tree $MANIFEST_TREE"
 
 if [ "$RESUME" -eq 1 ]; then

@@ -345,22 +345,3 @@ class TestDemoGateDocumentation:
             "demo-output.log" in content or "demo proof" in content.lower()
         ), "development-operations.md must describe demo-gate purpose"
 
-
-# ── Enforcer Prompt Tests ──────────────────────────────────────────────────
-
-
-@pytest.mark.req("REQ-YG-200")
-class TestEnforcerPromptUpdated:
-    """Verify Phase 2 enforcer prompt includes demo output capture."""
-
-    def test_enforcer_mentions_demo_output_log(self) -> None:
-        """The enforce-test-demo prompt must instruct capturing demo-output.log."""
-        prompt_path = Path(
-            ".chaplain/graphs/watcher-enforce/prompts/enforce-test-demo.yaml"
-        )
-        if not prompt_path.exists():
-            pytest.skip("Enforcer prompt not found in this worktree")
-        content = prompt_path.read_text(encoding="utf-8")
-        assert (
-            "demo-output.log" in content
-        ), "Enforcer Phase 2 prompt must instruct capturing demo-output.log"

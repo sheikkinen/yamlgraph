@@ -1,4 +1,6 @@
 id: CAP-165
+status: retired
+retired_by: FR-1012
 name: Watcher2 Baseline Dead Code Removal
 fr: FR-278
 description: >

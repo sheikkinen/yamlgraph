@@ -1,0 +1,44 @@
+{
+  "pre": "0184a73d22500bd2bc678be8374bc4095de4575f",
+  "pre_tree": "3b25919cf65438f6d8167c62d4828c0f04215d03",
+  "visibility": "private",
+  "tag": "chaplain-archive",
+  "archive_repo": "sheikkinen/yamlgraph-chaplain",
+  "manifest_sha256": "3d4a77faa5b2db99ad8b48a4c6a24173ed126aa7d4a0882b0a4938813b154b2d",
+  "file_count": "146",
+  "started_at": "2026-09-06T12:21:22Z",
+  "transitions": [
+    {
+      "state": "initialized",
+      "at": "2026-09-06T12:21:22.798517+00:00"
+    },
+    {
+      "state": "tag_created",
+      "at": "2026-09-06T12:21:26.785004+00:00"
+    },
+    {
+      "state": "repo_created",
+      "at": "2026-09-06T12:21:30.704934+00:00"
+    },
+    {
+      "state": "split_pushed",
+      "at": "2026-09-06T12:32:18.277540+00:00"
+    },
+    {
+      "state": "readme_committed",
+      "at": "2026-09-06T12:32:25.651100+00:00"
+    },
+    {
+      "state": "verified",
+      "at": "2026-09-06T12:32:41.528718+00:00"
+    },
+    {
+      "state": "archived",
+      "at": "2026-09-06T12:32:43.666314+00:00"
+    }
+  ],
+  "state": "archived",
+  "split": "b31f58492832a2b3c4fdc1cec4e0625f3f0e97e7",
+  "archive_head": "cf30d87f120aa16e12b441869c32209073e97fb6",
+  "finished_at": "2026-09-06T12:32:43Z"
+}

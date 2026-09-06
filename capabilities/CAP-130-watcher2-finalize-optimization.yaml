@@ -1,5 +1,6 @@
 id: CAP-130
 status: retired
+retired_by: FR-1012
 name: Watcher2 Finalize Pre-commit Optimization
 description: >
   Optimize watcher2 finalize step to reduce copilot session invocations by pre-formatting

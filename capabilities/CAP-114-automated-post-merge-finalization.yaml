@@ -1,12 +1,11 @@
 id: CAP-114
 name: Automated Post-Merge Finalization
 description: >
-  Shared finalization library and watch.sh integration that automatically
-  creates finalization PRs for recently merged feature PRs, eliminating the
-  manual finalize_merge.sh step from the Chaplain pipeline.
+  Shared finalization library sourced by scripts/finalize_merge.sh (FR-258).
+  The watch.sh automation that once drove it retired with the Chaplain
+  runtime (FR-1012); the library and the manual finalizer stay live (CAP-38, CAP-45).
 modules:
   - scripts/lib/finalize_lib.sh
-  - .chaplain/watch.sh
   - scripts/finalize_merge.sh
   - tests/unit/test_automated_post_merge_finalization
 requirements:
@@ -21,7 +20,6 @@ requirements:
       auto-merge, and skips already-finalized FRs idempotently
     modules:
       - scripts/lib/finalize_lib.sh
-      - .chaplain/watch.sh
       - scripts/finalize_merge.sh
       - tests/unit/test_automated_post_merge_finalization
 fr: FR-258

@@ -1,4 +1,6 @@
 id: CAP-113
+status: retired
+retired_by: FR-1012
 name: Chaplain Research Step
 description: >
   Research guidance in the active watcher-plan runtime.

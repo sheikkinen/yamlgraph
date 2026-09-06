@@ -1,4 +1,6 @@
 id: CAP-55
+status: retired
+retired_by: FR-1012
 name: Chaplain Inbox Documentation
 description: >
   Document the .chaplain/inbox/ workflow in CLAUDE.md so Claude Code sessions

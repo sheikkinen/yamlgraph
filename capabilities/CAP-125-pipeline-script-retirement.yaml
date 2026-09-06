@@ -1,4 +1,6 @@
 id: CAP-125
+status: retired
+retired_by: FR-1012
 name: Pipeline Script Retirement (FR-276)
 fr: FR-276
 description: >

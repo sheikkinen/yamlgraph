@@ -1,5 +1,6 @@
 id: CAP-142
 status: retired
+retired_by: FR-1012
 name: Skill Export Portable Packaging
 description: >
   RETIRED by FR-912. Four months, zero committed artifacts: every file under

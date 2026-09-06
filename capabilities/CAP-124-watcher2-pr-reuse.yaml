@@ -1,4 +1,6 @@
 id: CAP-124
+status: retired
+retired_by: FR-1012
 name: Watcher2 PR Reuse (FR-275)
 description: >
   Enhanced create_pr.sh checks for existing PRs before creating new ones,

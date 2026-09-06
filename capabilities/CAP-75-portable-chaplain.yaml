@@ -26,12 +26,11 @@ requirements:
       - tests/unit/test_python_nodes.py
   - id: REQ-YG-529
     description: >
-      All process graph configs under graphs/ and .chaplain/graphs/ compile and their
+      All process graph configs under graphs/ compile and their
       declared python tools resolve at load time (FR-699); the philosopher
       write_diary proxy resolves the sibling graphs/philosopher/diary.py; verified by unit
       witness tests so loader-semantics changes condemn config drift at
       pre-commit instead of pipeline runtime
     modules:
       - graphs/philosopher
-      - .chaplain/graphs
       - tests/unit/test_chaplain_graph_compile.py

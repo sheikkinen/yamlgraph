@@ -1,4 +1,6 @@
 id: CAP-109
+status: retired
+retired_by: FR-1012
 name: Harden GitHub Issues Remote Inbox
 description: >
   Author allowlisting, body size cap (10,000 chars), and forensic

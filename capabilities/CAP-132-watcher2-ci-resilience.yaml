@@ -1,5 +1,6 @@
 id: CAP-132
 status: retired
+retired_by: FR-1012
 name: Watcher2 CI Resilience
 description: >
   Fix wait_ci.sh check ordering and CI resilience patterns for the watcher pipeline.

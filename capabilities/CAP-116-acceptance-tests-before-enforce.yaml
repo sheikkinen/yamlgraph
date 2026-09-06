@@ -1,4 +1,6 @@
 id: CAP-116
+status: retired
+retired_by: FR-1012
 name: Acceptance Tests Before Enforce
 description: >
   Ensure acceptance tests are authored before enforce execution in the active
