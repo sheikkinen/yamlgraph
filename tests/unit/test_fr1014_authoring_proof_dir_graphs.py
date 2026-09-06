@@ -64,7 +64,7 @@ def _load_guard_governed_path():
     match = re.search(r"^def governed_path\(path\):\n(?:    .*\n|\n(?=    ))*", text, re.M)
     assert match, "governed_path() not found in pre-command-guard.sh"
     namespace: dict = {"re": re}
-    exec(match.group(0), namespace)  # noqa: S102 — CONF-FR1014: witness of the hook's own predicate text
+    exec(match.group(0), namespace)  # noqa: S102 — CONF-461: executes the hook's own predicate source
     return namespace["governed_path"]
 
 
