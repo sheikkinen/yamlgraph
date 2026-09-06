@@ -192,11 +192,13 @@ none is owned by FR-975/FR-980.
 
 Precondition (C-2): FR-1011 merged to main as `84baceb7` (PR #615); no FR-1012 branch or PR exists. Worktree branched from main `84baceb7`.
 
+Rebased 2026-09-06 onto main `adefe683` (PR #620, which gave FR-1010 its canonical contract blockquote — review of PR #617, P6). Review of PR #619 (`scripts/review.sh 619`, head `b38c8c83`) returned *Not approved* on one finding, P1: at base `84baceb7` FR-1010 did not yet contain the sentence the Superseded blocks call verbatim. After the rebase the sentence in FR-975, FR-980 and this FR's § Problem quote was compared programmatically with FR-1010 lines 161-164 (whitespace-normalised): **byte-identical in all three**. Disposition posted on the PR; no block text changed.
+
 | AC | Command | Result |
 |---|---|---|
 | AC-01 | `grep -c '^\*\*Status:\*\* Superseded by FR-1010 (2026-09-06)' FR-975-…md FR-980-…md` | `1` and `1` |
 | AC-01 | `grep -c '^\*\*Status:\*\* Judged — SPLIT' FR-970-…md` | `1` (unchanged) |
-| AC-02 | per file: count of `## Superseded (2026-09-06)` / `operator decision (ii)` / the verbatim `max(ids on main + all open PR heads) + headroom` sentence / `post-hoc duplicate gate` / `FR-1012 (Phase 2), only as reviewed` | `1 / 1 / 1 / 1 / 1` in FR-975 and in FR-980 |
+| AC-02 | per file (re-verified at base `adefe683`: block text == FR-1010 canonical blockquote): count of `## Superseded (2026-09-06)` / `operator decision (ii)` / the verbatim `max(ids on main + all open PR heads) + headroom` sentence / `post-hoc duplicate gate` / `FR-1012 (Phase 2), only as reviewed` | `1 / 1 / 1 / 1 / 1` in FR-975 and in FR-980 |
 | AC-03 | `git diff --unified=0 <merge-base>...HEAD -- FR-975-…md FR-980-…md` | two hunks per file: `@@ -5 +5 @@` (Status line) and `@@ -16,0 +17,15 @@` (FR-975) / `@@ -17,0 +18,15 @@` (FR-980), the 15-line Superseded block inserted before `## Summary`; `git status` on `feature-requests/*.judgement.md` → nothing |
 | AC-04 | `git grep -n -E 'fr:[[:space:]]*FR-(975\|980)' HEAD -- capabilities` | empty |
 | AC-05 | `git grep -n -E 'FR-975\|FR-980\|id_ledger\|id-ledger' HEAD -- tests scripts yamlgraph .github/hooks .github/workflows .pre-commit-config.yaml` | empty — enforcement proceeded (C-3 not triggered) |
