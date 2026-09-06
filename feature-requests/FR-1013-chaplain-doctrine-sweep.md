@@ -2,7 +2,7 @@
 
 **Priority:** LOW
 **Type:** Enhancement (docs; Scripture edit — human gate C-4)
-**Status:** Amended for **round-3 judgement** (2026-09-06) after `scripts/review.sh` on PR #627 returned seven blocking findings — the round-2 verdict was `SPLIT` and granted Concern A no authority, yet the branch `feat/fr1013-doctrine-sweep` was enforced (step 0 `24015cf8`, RED `09818086`, GREEN `b5a80c5b`, diary `6e6523ab`). That branch is a **candidate**, not an enforcement: the round-3 verdict governs it, and every passage it left live (review P2), its file-level residual test (P3), its REQ tagging (P4) and its AC-10 command (P5) are re-specified below and will be re-enforced under whatever round 3 grants. Confession repair moved out to PR #628 (P6, merged `b71d0083`). History: APPROVED WITH REVISIONS (round 1, 2026-09-06); **SPLIT** (round 2, 2026-09-06) after review P5 added a closure script — Concern A (this docs-only sweep) continues here; Concern B (post-merge closure automation) is **not** filed, see § Post-merge closure.
+**Status:** Judged round 3 (2026-09-06) — **APPROVED WITH REVISIONS**; R-1 (REQ-YG-668, not 667), R-2 (writable-surface table), R-3 (match-level residual contract), R-4 (revised AC-01…16) folded below; awaiting the C-1 human read of the round-3 draft, then D-1…D-8 enforcement on `feat/fr1013-doctrine-sweep`. The pre-round-3 commits on that branch (step 0 `24015cf8`, RED `09818086`, GREEN `b5a80c5b`, diary `6e6523ab`) are **candidates only** (C-8): acceptance is decided by the revised ACs, not by their prior green. History: round 1 APPROVED WITH REVISIONS; round 2 **SPLIT** (closure script → Concern B, not filed — see § Post-merge closure); PR #627 review returned seven blocking findings (P1…P7, folded — see § Judgement); confession repair split to PR #628 (`b71d0083`).
 See [FR-1013-chaplain-doctrine-sweep.judgement.md](FR-1013-chaplain-doctrine-sweep.judgement.md)
 (all rounds).
 **Effort:** 0.5 day
@@ -103,7 +103,7 @@ git ls-files '*.md' '*.py' '*.sh' '*.yaml' '*.yml' \
 
 **Result at BASE `36591389`** (run 2026-09-06 from `feat/fr1013-doctrine-sweep`; `git merge-base --is-ancestor` exit 0): **2586 matches in 261 files**. Raw list (`file:line` per match; the full-text form is 509 KB and trips the large-file gate, and every line is reproducible from `BASE`): [docs/census/fr1013-inventory-at-base-36591389.txt](../docs/census/fr1013-inventory-at-base-36591389.txt); one disposition per file (covering every match in it): [docs/census/fr1013-inventory-at-base-36591389.dispositions.md](../docs/census/fr1013-inventory-at-base-36591389.dispositions.md) — kept out of this file because 261 rows would breach the 450-line file gate. No **stop** row: nothing under `.chaplain/` survives and no live consumer of a `.chaplain/` artifact was found; stale `.chaplain` *defaults* in code (`research_tools.py`, `diary_recurrence.py`, `cap_journey_census/extract.py`) are code, outside this docs-only FR, and filed as a spark. The grep's `watcher2?\b` arm also matches the unrelated FR-885 worktree watcher and the file-hook/DeviantArt watchers — false positives, kept.
 
-**Edit set (13 files; every implementation edit is one of these):**
+**BASE match-bearing source set (13 files — the only files whose *matching lines* change):**
 
 | File | Matches | Disposition |
 |---|---|---|
@@ -120,6 +120,22 @@ git ls-files '*.md' '*.py' '*.sh' '*.yaml' '*.yml' \
 | `reference/graph-yaml.md` | 2 | **edit** — edit — :610 comment dropped; :1469 example → `graphs/fr_triage` |
 | `reference/onepager-development-process.md` | 9 | **edit** — edit — :11 column, :26 heading, :31 inbox path, :45 submission route, :90 hook row, :126, :138 flow step, :146, :154 sources |
 | `reference/patterns/fsm-as-conductor.md` | 8 | **edit** — edit — :169–170, :235 link targets → `docs/archive/chaplain-system.md`; the Chaplain remains a case study in the pattern (historical) |
+
+**Writable surface (R-2; exhaustive — every path the PR changes from `BASE` is one of these):**
+
+| # | Path | Class |
+|---|---|---|
+| 1 | the 13 match-bearing files above | frozen content edits (D-2, D-3, D-5) |
+| 2 | `docs/archive/chaplain.md` (one link line), `docs/archive/chaplain-system.md` (move destination) | archive exception (D-4) |
+| 3 | `capabilities/CAP-264-chaplain-runtime-retired.yaml`; `ARCHITECTURE.md` **only** as `scripts/aggregate_capabilities.py` output of that edit | registry + generated (D-6) |
+| 4 | `tests/unit/test_fr1013_doctrine_sweep.py` | witness (D-7) |
+| 5 | `changelog/unreleased/fr-1013-doctrine-sweep.md` | fragment (D-8) |
+| 6 | `feature-requests/FR-1013-chaplain-doctrine-sweep.md`, `feature-requests/FR-1013-chaplain-doctrine-sweep.judgement.md`, `docs/census/fr1013-inventory-at-base-36591389.txt` (unchanged), `docs/census/fr1013-inventory-at-base-36591389.dispositions.md` (only to encode the residual policy) | records (D-1) |
+| 7 | `docs/diary/2026-09-06-reflection-fr-1013-*.md` | Distill |
+
+No other path may change (C-5).
+
+**Residual contract (R-3; what the witness enforces):** (1) every BASE file outside the match-bearing set: multiset of matching line texts at HEAD equals BASE's; (2) every match-bearing or generated file: each HEAD match equals an exact residual line listed for that file in the test (empty list = zero matches); (3) a matching file absent from BASE fails unless it is an enumerated new artifact of this FR (the witness test itself, the disposition file, the changelog fragment, this FR's judgement); (4) the stale code defaults (`research_tools.py`, `diary_recurrence.py`, `cap_journey_census/extract.py`) are `keep-out-of-scope-code` — unchanged, not reclassified as historical; (5) any new or reworded unmatched residual stops enforcement (FR-1010 C-10).
 
 **Keep set (248 files), grouped:**
 
@@ -200,7 +216,7 @@ this FR is filed in the planning session; enforcement happens later, from
    integrity — not documentation consistency; the eight documentation
    assertions have no direct REQ. Proposed resolution, for the judge to
    grant or replace: add **one** requirement to the existing CAP-264
-   (`capabilities/CAP-264-chaplain-runtime-retired.yaml`) — `REQ-YG-667`:
+   (`capabilities/CAP-264-chaplain-runtime-retired.yaml`) — `REQ-YG-668`:
    "Live doctrine and reference documents (`.github/copilot-instructions.md`,
    `.github/skills/*/doctrine.md`, `docs/development-process.md`,
    `reference/*.md`, `examples/README.md`) describe the operator-driven
@@ -211,10 +227,14 @@ this FR is filed in the planning session; enforcement happens later, from
    `docs/archive/chaplain-system.md`; verified by
    `tests/unit/test_fr1013_doctrine_sweep.py`." This is the judged
    exception to the Purge-list "no capability or requirement change": one
-   REQ under an existing CAP, tagged only by the documentation assertions.
-   Alternative for the judge: name an existing REQ that covers doctrine
-   consistency directly; the author found none (REQ-YG-192 is KG-shape,
-   REQ-YG-195 is `fsm/CLAUDE.md` mirroring, REQ-YG-613 is ramp bytes).
+   REQ under an existing CAP, tagged by every residual/documentation-consistency
+   assertion; REQ-YG-192 only on the Knowledge-Graph test, REQ-YG-613 only on
+   the mirror test.
+   Round 3 granted it as **REQ-YG-668** (REQ-YG-667 is CAP-265's) with the
+   judge's wording ("The post-FR-1012 tracked-text census remains reconciled …";
+   quoted in full in § Implementation Record); CAP-264 `fr` names FR-1012 and
+   FR-1013, its modules add the documentation surfaces and the witness test;
+   `ARCHITECTURE.md` changes only as `scripts/aggregate_capabilities.py` output.
 8. Old-string doc-witness tests: named **only after** FR-1012's census
    decides which survive (the four listed in the first draft —
    `test_chaplain_readme_documentation.py`, `test_concurrency_safety_doc.py`,
@@ -240,22 +260,26 @@ specify the success path as precisely as the error paths (judgement round
 judge's scope finding disagree; the judge governs scope (`review-pr`
 doctrine: review output is advisory).
 
-## Acceptance Criteria (from judgement, verbatim; R-4)
+## Acceptance Criteria (round 3, verbatim; R-4)
 
-- [ ] AC-01: FR-1013 records the immutable FR-1012 merge SHA as `BASE`, links its human review, and `git merge-base --is-ancestor "$BASE" HEAD` exits 0 before any FR-1013 enforcement.
-- [ ] AC-02: The R-1 post-removal inventory is committed in FR-1013 with its exact commands, baseline SHA, complete match list, and one disposition per match; every implementation edit is in that frozen inventory.
-- [ ] AC-03: `grep -c 'Sermon of the Chaplain' .github/copilot-instructions.md` returns 0, and a `diff` of the seven bold Sermon step names extracted from `git show "$BASE":.github/copilot-instructions.md` and the working tree is empty.
-- [ ] AC-04: `docs/development-process.md` describes the operator-driven `scripts/author.sh` → `scripts/judge.sh` → worktree enforcement → `scripts/review.sh` → human merge route; no non-historical passage names `start-system.sh`, the issue-label importer, `.chaplain/inbox`, `.chaplain/failed`, or `.chaplain/inquisitor.sh`; § 3.1's measurement sentence is byte-identical to `BASE`.
-- [ ] AC-05: `reference/audit-index.md` has exactly one row containing `Chaplain`, and that row links `docs/archive/chaplain.md`; all other active reference/skill/example matches have the R-1 disposition enforced by `test_fr1013_doctrine_sweep.py`.
-- [ ] AC-06: `docs/archive/chaplain-system.md` exists, `docs/context/chaplain-system.md` does not, and `git diff --name-status -M90% "$BASE"...HEAD` reports the move at a score of at least 90%; `docs/archive/chaplain.md` links the moved document.
-- [ ] AC-07: `cmp -s .github/skills/judge-fr/doctrine.md ramp/assets/tier2/github/skills/judge-fr/doctrine.md` exits 0; `pytest tests/unit/test_ramp_installer.py::test_mirror_exact_entries_match_live_bytes -q` passes; `git diff --exit-code "$BASE"...HEAD -- ramp/manifest.yaml ramp/curation-diffs.md` exits 0.
-- [ ] AC-08: The broad residual test derived from R-1 checks `.md`, `.py`, `.sh`, `.yaml`, and `.yml` tracked files and fails for every `.chaplain` or active Chaplain-runtime reference outside its exact historical/archive allowlist; its result satisfies FR-1010 AC-12 rather than silently widening the allowlist.
-- [ ] AC-09: Every new/updated test is listed with its surviving REQ and quoted requirement text; unrelated assertions are not tagged REQ-YG-192; the selected old-string witness list exactly matches tests still present after FR-1012.
-- [ ] AC-10: `pytest tests/unit/test_fr1013_doctrine_sweep.py tests/unit/test_knowledge_graph_fr193.py tests/unit/test_ramp_installer.py -q --no-cov` (the repo's 85 % coverage floor is configured for the full suite; a three-file selection cannot meet it — review #627 P5) and `pytest tests/unit/ -q --no-cov -m "not slow" -n auto` pass.
-- [ ] AC-11: Human review is recorded in FR-1013 before merge and confirms the Scripture diff is limited to the heading and canonical-sources clause, the judge doctrine mirror is byte-identical, and no Knowledge Graph entry or Sermon step changed.
-- [ ] AC-12: `changelog/unreleased/fr-1013-doctrine-sweep.md` exists with `type: removal` and `scope: doctrine`.
-- [ ] AC-13: Post-merge only, the operator records FR-1013's merge SHA in FR-1010, ticks AC-12/AC-13 after their commands pass on merged `main`, records each phase's completion, and changes status to `Completed` in a separate FR-1010-only closure commit.
-- [ ] AC-A13 (round 2): The FR-1013 PR contains no closure script or closure-script test.
+- [ ] AC-01: FR-1013 records `BASE=36591389e2fdfedf9ba5ae6362effad1c64cd06e`, links the FR-1012 human-review record, and records `git merge-base --is-ancestor "$BASE" HEAD` exiting 0 before authorized enforcement.
+- [ ] AC-02: FR-1013 contains separate exhaustive tables for the BASE match-bearing source set and the complete writable surface D-1 through D-8; every PR path changed from `BASE` appears in that writable table.
+- [ ] AC-03: The committed raw inventory contains exactly 2,586 match rows after its two header lines, the disposition artifact contains 261 file rows, and the exact BASE SHA and reproducing command remain recorded.
+- [ ] AC-04: `grep -c 'Sermon of the Chaplain' .github/copilot-instructions.md` returns 0; the seven bold Sermon step names equal their `git show "$BASE":.github/copilot-instructions.md` values; the complete Knowledge Graph block is byte-identical to BASE; and the Scripture diff is limited to the heading and canonical-sources clause.
+- [ ] AC-05: `docs/development-process.md` describes the operator-driven `scripts/author.sh` -> `scripts/judge.sh` -> worktree enforcement -> `scripts/review.sh` -> human merge route in every frozen active-process passage, while its section 3.1 measurement sentence is byte-identical to BASE.
+- [ ] AC-06: The other D-3 skill/example/reference surfaces have exactly their frozen dispositions; `reference/audit-index.md` has exactly one row containing `Chaplain`, and that row links `docs/archive/chaplain.md`.
+- [ ] AC-07: `docs/archive/chaplain-system.md` exists, `docs/context/chaplain-system.md` does not, `git diff --name-status -M90% "$BASE"...HEAD` reports a rename score of at least 90%, and `docs/archive/chaplain.md` links the moved document.
+- [ ] AC-08: `cmp -s .github/skills/judge-fr/doctrine.md ramp/assets/tier2/github/skills/judge-fr/doctrine.md` exits 0; `pytest tests/unit/test_ramp_installer.py::test_mirror_exact_entries_match_live_bytes -q` passes; and `git diff --exit-code "$BASE"...HEAD -- ramp/manifest.yaml ramp/curation-diffs.md` exits 0.
+- [ ] AC-09: The residual witness scans tracked `.md`, `.py`, `.sh`, `.yaml`, and `.yml` files; compares exact matching-line multisets to BASE outside the authorized match-bearing edit set; enforces exact residual lines inside that set; rejects unenumerated matching files; and leaves every `keep-out-of-scope-code` line unchanged.
+- [ ] AC-10: `capabilities/CAP-264-chaplain-runtime-retired.yaml` associates FR-1013 with REQ-YG-668; CAP-265 retains REQ-YG-667; `python scripts/aggregate_capabilities.py` followed by `git diff --exit-code -- ARCHITECTURE.md` produces no unstaged drift; `python scripts/validate_capabilities.py --strict` and `python scripts/req_coverage.py --strict` pass.
+- [ ] AC-11: Every residual/documentation-consistency test in `tests/unit/test_fr1013_doctrine_sweep.py` is tagged REQ-YG-668; only the Knowledge Graph preservation test is tagged REQ-YG-192; only the ramp mirror test is tagged REQ-YG-613; the FR's traceability table quotes each requirement text.
+- [ ] AC-12: `pytest tests/unit/test_fr1013_doctrine_sweep.py tests/unit/test_knowledge_graph_fr193.py tests/unit/test_ramp_installer.py -q --no-cov` and `pytest tests/unit/ -q --no-cov -m "not slow" -n auto` pass.
+- [ ] AC-13: Human review is recorded in FR-1013 before merge and confirms the restricted Scripture diff, the adversarially reviewed judge-doctrine change, byte-identical mirror, generated-only architecture diff, exact residual policy, unchanged Sermon steps, and unchanged Knowledge Graph.
+- [ ] AC-14: `changelog/unreleased/fr-1013-doctrine-sweep.md` exists with `type: removal` and `scope: doctrine`.
+- [ ] AC-15: The FR-1013 PR contains no closure script or closure-script test.
+- [ ] AC-16: Post-merge only, the operator records FR-1013's merge SHA in FR-1010, runs and records FR-1010 AC-12/AC-13 on merged `main`, records each phase's completion, and changes FR-1010 to `Completed` in a separate FR-1010-only commit.
+
+Rounds 1–2 ACs (AC-01…13 + AC-A13) are superseded by this list and preserved in the judgement file.
 
 ## Purge list
 
@@ -268,8 +292,8 @@ doctrine: review output is advisory).
   in the edit-set row; no edit to the § 3.1 measurement sentence.
 - No `ramp/manifest.yaml` or `ramp/curation-diffs.md` edit.
 - No script, hook, CI, graph, prompt change (round-2 SPLIT boundary). The
-  only capability/requirement change is the single `REQ-YG-667` entry under
-  CAP-264 proposed in step 7 — if round 3 grants it.
+  only capability/requirement change is `REQ-YG-668` under CAP-264 (round-3
+  R-1/D-6); `ARCHITECTURE.md` only as generated output.
 
 ## Alternatives Considered
 
@@ -299,11 +323,11 @@ doctrine: review output is advisory).
 | Human review (AC-11) | _pending — operator, on the PR_ |
 | Post-merge closure (AC-13): merge SHA, FR-1010 ticks | _pending (operator)_ |
 
-**Traceability (R-5).** REQ-YG-192 tags only the Knowledge-Graph-unchanged assertion. No CAP or REQ was invented.
+**Traceability (round-1 R-5, round-3 R-1).** REQ-YG-668 (CAP-264, granted round 3) tags every residual/documentation-consistency test; REQ-YG-192 only the Knowledge-Graph-unchanged assertion; REQ-YG-613 only the mirror assertion. `ARCHITECTURE.md` regenerated by `scripts/aggregate_capabilities.py` (pre-commit) — witness: `git diff --exit-code -- ARCHITECTURE.md` after regeneration.
 
 | Test function | REQ | Quoted requirement text (`ARCHITECTURE.md` / CAP) |
 |---|---|---|
-| `test_residual_matches_stay_within_the_frozen_inventory`, `test_edit_set_files_no_longer_name_the_retired_route`, `test_sermon_heading_renamed_and_steps_unchanged`, `test_sources_clause_no_longer_names_the_chaplain_pipeline`, `test_development_process_describes_the_operator_route`, `test_development_process_measurement_sentence_is_byte_identical_to_base`, `test_audit_index_has_exactly_one_chaplain_row_pointing_at_the_archive`, `test_chaplain_system_doc_moved_to_archive_and_linked` | REQ-YG-666 (CAP-264) | "The Chaplain runtime is absent from main; its source is reachable only via the chaplain-archive tag … and the archived repository" — these assertions witness that the *documentation* agrees with that state: no live doctrine or reference presents the absent runtime as the executable route, and every pointer resolves to the archive. This is the closest surviving REQ; if the reviewer holds that documentation consistency is not "directly covered" by REQ-YG-666, this FR returns to judgement per R-5 rather than inventing a REQ. |
+| residual/documentation-consistency tests (`test_residual_*`, `test_edit_set_*`, `test_sermon_heading_*`, `test_sources_clause_*`, `test_development_process_*`, `test_audit_index_*`, `test_chaplain_system_doc_*`) | REQ-YG-668 (CAP-264) | "The post-FR-1012 tracked-text census remains reconciled: active doctrine, skill instructions, process/reference documentation, and examples describe the operator-driven author -> judge -> worktree enforcement -> review -> human-merge route; no new or reworded Chaplain-runtime match appears outside the frozen, dispositioned BASE set; non-historical Chaplain pointers in those documentation surfaces resolve to `docs/archive/chaplain.md` or `docs/archive/chaplain-system.md`; witnessed by `tests/unit/test_fr1013_doctrine_sweep.py`." |
 | `test_knowledge_graph_block_is_byte_identical_to_base` | REQ-YG-192 (CAP-72) | "… all descriptions are one-liners following k[nowledge-graph style]; no existing traps/cures/process entries changed" — the KG block hash equals BASE's |
 | `test_judge_doctrine_ramp_mirror_is_byte_identical` | REQ-YG-613 (CAP-244) | "every mirror_exact entry matches its live counterpart byte-for-byte" |
 
@@ -337,7 +361,17 @@ set; P2 (`docs/development-process.md` :5–7, :110, :145–174, :275–281 stil
 present the Chaplain/Inquisitor as live) → edit-set row and step 2 widened
 to every active-process passage, measurement sentence still byte-identical;
 P3 (file-level residual allowlist) → step 6 match-level design; P4
-(REQ-YG-666 not direct) → step 7 `REQ-YG-667` proposal for the judge; P5
+(REQ-YG-666 not direct) → step 7 `REQ-YG-668` proposal for the judge; P5
 (AC-10 coverage floor) → `--no-cov`; P6 (confessions out of scope) → PR
 #628; P7 (stale SHAs after rebase) → Implementation Record. The outsider
 read of #627 (derived NO, six terms) was glossed in the PR body.
+
+**Round-3 judgement (2026-09-06) — APPROVED WITH REVISIONS.** R-1 REQ-YG-668
+(667 is CAP-265's); CAP-264 gains the REQ, FR-1013 in `fr`, doc surfaces +
+witness in `modules`; `ARCHITECTURE.md` generated only. R-2 writable-surface
+table (§ Inventory). R-3 residual contract, five clauses (§ Inventory) —
+the pre-round-3 test's set-of-paths check is the defect it replaces. R-4
+revised AC-01…16 replace the earlier list; branch commits are candidates
+(C-8). Human review of the round-3 draft (C-1) is the operator's read on
+the PR before merge, recorded at AC-13. Round-3 text appended to the
+judgement file.

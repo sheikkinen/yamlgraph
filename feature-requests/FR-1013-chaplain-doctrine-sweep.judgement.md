@@ -190,3 +190,130 @@ Not authorized by this judgement: implementing either concern before its amended
 | C-8 | A human retains the decisions to run the closure operation, accept its generated commit, and push it. | GATE |
 
 Authority granted: none; amend FR-1013 to contain only Concern A and file Concern B separately, then submit each committed proposal to independent judgement.
+
+---
+
+# Round 3 (2026-09-06, after PR #627 review P1..P7) — APPROVED WITH REVISIONS
+
+**Verdict:** APPROVED WITH REVISIONS — the round-3 doctrine sweep is a sound, single-purpose documentation retirement, but authority activates only after the occupied requirement ID, generated registry surface, residual-test contract, and frozen edit-set contradictions are corrected in the FR and human-reviewed.
+
+**Reviewed against:** `feature-requests/FR-1013-chaplain-doctrine-sweep.md`; `feature-requests/FR-1013-chaplain-doctrine-sweep.judgement.md` (rounds 1 and 2); `.github/skills/judge-fr/doctrine.md`; `.github/skills/judge-fr/judgement.template.md`; `.github/copilot-instructions.md`; `feature-requests/TEMPLATE.md`; cited research and prior-art records `feature-requests/FR-1010-chaplain-archival-plan.md`, `feature-requests/FR-193-mass-graduation-scripture-patterns.md`, `feature-requests/FR-207-standalone-scripture-methodology-repo.md`, `feature-requests/FR-1011-relocate-chaplain-live-parts.md`, `feature-requests/FR-1012-chaplain-subtree-archive-and-removal.md`, and `feature-requests/FR-1012-chaplain-subtree-archive-and-removal.judgement.md`; cited evidence `docs/census/fr1013-inventory-at-base-36591389.txt`, `docs/census/fr1013-inventory-at-base-36591389.dispositions.md`, `docs/archive/chaplain.md`, `tests/unit/test_fr1013_doctrine_sweep.py`, `capabilities/CAP-264-chaplain-runtime-retired.yaml`, `capabilities/CAP-265-static-module-map.yaml`, `ARCHITECTURE.md`, `ramp/manifest.yaml`, `.pre-commit-config.yaml`, `docs/development-process.md`, `scripts/aggregate_capabilities.py`, and `scripts/req_coverage.py`.
+
+## What is sound
+
+**Scope.** The first-consumer failure is concrete: live doctrine still leads a new session through retired Chaplain instructions to a removed entrypoint (`feature-requests/FR-1013-chaplain-doctrine-sweep.md:11-15`). The selected remedy is smaller than preserving a dead route behind banners: update only active doctrine/reference surfaces, retain historical records, and move the one long-form design note into the existing archive (`feature-requests/FR-1013-chaplain-doctrine-sweep.md:43-57,59-92,260-272`).
+
+**Consistency.** The round-2 split has been obeyed. Closure automation is explicitly excluded, while the unavoidable merged-state FR-1010 record remains operator-owned and post-merge (`feature-requests/FR-1013-chaplain-doctrine-sweep.md:225-241,270-272`). The round-3 additions to the documentation edit set answer the cited review findings without reintroducing scripts, hooks, CI, graphs, or prompts (`feature-requests/FR-1013-chaplain-doctrine-sweep.md:109-138,260-272`). The remaining inconsistencies are finite and mechanically repairable under R-1 through R-4.
+
+**Measurability.** The immutable `BASE`, exact inventory command, raw 2,586-match/261-file record, per-file disposition record, Scripture step comparison, rename threshold, mirror equality, targeted tests, and full non-slow suite give the enforcer direct witnesses (`feature-requests/FR-1013-chaplain-doctrine-sweep.md:94-140,243-258`). The inventory artifact's two header lines account for its 2,588 physical lines; its 2,586 match rows and the disposition artifact's 261 rows agree with the FR.
+
+**Feasibility.** The archive target exists and already records the runtime identities and replacements (`docs/archive/chaplain.md:1-35`). The judge doctrine asset is a declared `mirror_exact` entry (`ramp/manifest.yaml:56-60`). The capability registry is the source of truth and `ARCHITECTURE.md` is generated from it (`docs/development-process.md:190-208`; `scripts/aggregate_capabilities.py:1-10`), so the required traceability repair is feasible once its generated surface is admitted explicitly.
+
+**Architecture alignment.** The plan follows existing patterns rather than adding a new runtime abstraction: YAML capability registration, generated architecture documentation, requirement-marked tests, byte-identical ramp mirroring, and mandatory human review for Scripture/enforcement doctrine (`.github/copilot-instructions.md:169-177,180-213`; `.pre-commit-config.yaml:70-85`; `feature-requests/FR-1013-chaplain-doctrine-sweep.md:153-224,255-258`).
+
+**Single responsibility.** This is one concern: make active documentation agree with the already completed Chaplain retirement. The requirement record and generated architecture row are traceability for that concern, not an independent user-facing capability. The unrelated closure script remains outside this FR (`feature-requests/FR-1013-chaplain-doctrine-sweep.md:225-241,268-272`).
+
+**Strategic classification:** **Pattern documentation.** Existing author, judge, worktree, review, archive, capability-registry, and mirror abstractions suffice. FR-1013 documents the surviving route and removes stale active guidance; it adds neither a framework primitive nor a contrib example (`feature-requests/FR-1013-chaplain-doctrine-sweep.md:43-57,142-151`).
+
+**Testability.** Direct failing tests can be derived for every authorized outcome: exact residual match sets, Scripture and Knowledge Graph preservation, route wording, archive move, audit-index cardinality, ramp equality, generated requirement documentation, and test-to-REQ mapping (`feature-requests/FR-1013-chaplain-doctrine-sweep.md:175-224,243-258`). R-3 is required because the cited candidate test currently checks only that no new *file* appears and that three route strings vanish from edit-set files; it does not yet implement the FR's promised BASE-to-HEAD line-multiset comparison (`tests/unit/test_fr1013_doctrine_sweep.py:97-121`).
+
+The research gate is satisfied. FR-1010 compares six real solution classes, preserves the disagreement between tag-only and browsable source archives, cites precedents, and answers `is_this_a_graph`; FR-1013 then dispositions the Scripture, ramp, relocation, and removal precedents for this phase (`feature-requests/FR-1010-chaplain-archival-plan.md:449-468`; `feature-requests/FR-1013-chaplain-doctrine-sweep.md:17-42`).
+
+## Required revisions
+
+### R-1: Allocate the documentation requirement as REQ-YG-668, not REQ-YG-667
+
+Replace every proposed use of `REQ-YG-667` in FR-1013 with `REQ-YG-668`. `REQ-YG-667` is already owned by CAP-265 Static module map in both the registry and generated architecture table (`capabilities/CAP-265-static-module-map.yaml:19-27`; `ARCHITECTURE.md:583,3249`). Reusing it would make the proposal impossible to register.
+
+Amend `capabilities/CAP-264-chaplain-runtime-retired.yaml` so its `fr` field names both FR-1012 and FR-1013, its modules include the active documentation surfaces and `tests/unit/test_fr1013_doctrine_sweep.py`, and it contains this additional requirement:
+
+> **REQ-YG-668:** The post-FR-1012 tracked-text census remains reconciled: active doctrine, skill instructions, process/reference documentation, and examples describe the operator-driven author -> judge -> worktree enforcement -> review -> human-merge route; no new or reworded Chaplain-runtime match appears outside the frozen, dispositioned BASE set; non-historical Chaplain pointers in those documentation surfaces resolve to `docs/archive/chaplain.md` or `docs/archive/chaplain-system.md`; witnessed by `tests/unit/test_fr1013_doctrine_sweep.py`.
+
+Retag the residual and documentation-consistency tests from REQ-YG-666 to REQ-YG-668. Keep REQ-YG-192 only on the unchanged-Knowledge-Graph assertion and REQ-YG-613 only on the exact ramp-mirror assertion. Update the Proposed Solution, Purge List exception, acceptance criteria, and Implementation Record traceability table to state that mapping. REQ-YG-666 describes runtime removal, archive identity, and census enforcement, not active-document consistency (`capabilities/CAP-264-chaplain-runtime-retired.yaml:27-50`; `ARCHITECTURE.md:3239`).
+
+### R-2: Replace the false 13-file boundary with a complete frozen writable-surface table
+
+Change "Edit set (13 files; every implementation edit is one of these)" to "BASE match-bearing source set" and add a separate, exhaustive writable-surface table. The current claim omits the authorized edit to `docs/archive/chaplain.md`, the move destination `docs/archive/chaplain-system.md`, the witness test, changelog fragment, FR/census records, proposed CAP-264 edit, and generated `ARCHITECTURE.md` update (`feature-requests/FR-1013-chaplain-doctrine-sweep.md:109-140,208-224,254-258,290-308`).
+
+The table must enumerate:
+
+1. The thirteen BASE match-bearing rows already listed in the FR.
+2. `docs/archive/chaplain.md` and `docs/archive/chaplain-system.md`.
+3. `capabilities/CAP-264-chaplain-runtime-retired.yaml` and generated `ARCHITECTURE.md`.
+4. `tests/unit/test_fr1013_doctrine_sweep.py`.
+5. `changelog/unreleased/fr-1013-doctrine-sweep.md`.
+6. FR-1013 itself and its two committed census evidence files.
+
+State that `ARCHITECTURE.md` may change only as output of `scripts/aggregate_capabilities.py` from the authorized CAP-264 edit. This is not optional: the pre-commit hook regenerates architecture whenever a capability YAML changes, and strict requirement coverage rejects registry requirements absent from architecture (`.pre-commit-config.yaml:70-85`; `scripts/req_coverage.py:419-432`).
+
+Revise AC-02 and the Purge List to distinguish frozen content edits from supporting evidence, tests, registry metadata, generated architecture, and changelog artifacts. No file outside the revised table may change.
+
+### R-3: Make the residual policy match the residual test
+
+Replace AC-08's claim that every `.chaplain` reference outside a historical/archive allowlist fails. The FR deliberately retains frozen code defaults, provenance metadata, false positives, and other out-of-scope residuals (`feature-requests/FR-1013-chaplain-doctrine-sweep.md:105-108,129-140,310`). That policy cannot simultaneously satisfy the current AC-08 wording (`feature-requests/FR-1013-chaplain-doctrine-sweep.md:251`).
+
+Define the residual contract as follows:
+
+1. For every BASE file outside the authorized match-bearing edit set, the multiset of matching line texts at HEAD must equal its BASE multiset.
+2. For every authorized match-bearing edit or generated file, every HEAD match must equal an exact residual line listed for that file; an empty list means zero matches.
+3. A matching file absent from BASE fails unless it is an explicitly enumerated new artifact created by this FR.
+4. The known stale code defaults remain unchanged, named as `keep-out-of-scope-code`, and do not become evidence that they are historical.
+5. Any new or reworded unmatched residual stops enforcement under FR-1010 C-10.
+
+Update `tests/unit/test_fr1013_doctrine_sweep.py` to implement those line-level comparisons. The cited candidate's current set-of-paths check permits a new line to hide in any one of the 261 BASE files, exactly the review defect round 3 claims to repair (`tests/unit/test_fr1013_doctrine_sweep.py:97-113`; `feature-requests/FR-1013-chaplain-doctrine-sweep.md:175-190,333-343`).
+
+### R-4: Fold the round-3 contract into status, acceptance criteria, and implementation record
+
+Replace the heading "Acceptance Criteria (from judgement, verbatim; R-4)" with the revised criteria below. Record this round-3 verdict in the Judgement section, and describe the existing branch commits only as pre-authority candidates until R-1 through R-4 are folded and human-reviewed. Update the Implementation Record so it does not present REQ-YG-666 as direct coverage for documentation assertions and so it records the regenerated architecture witness.
+
+The prior rounds remain historical and must not be rewritten. Their operative boundaries remain: no closure script in this FR, no implementation authority before the current revisions are folded, and human review before merging Scripture or judge-doctrine changes (`feature-requests/FR-1013-chaplain-doctrine-sweep.judgement.md:120-193`; `feature-requests/FR-1013-chaplain-doctrine-sweep.md:313-344`).
+
+## Scope is frozen
+
+| Deliverable | Surface |
+|---|---|
+| D-1 | Amend FR-1013; preserve the BASE raw inventory and update its disposition record only as required to encode the round-3 exact residual policy |
+| D-2 | Rename only the Scripture heading and remove only `chaplain pipeline` from the canonical-sources clause in `.github/copilot-instructions.md`; preserve all seven Sermon steps and the complete Knowledge Graph block |
+| D-3 | Reconcile the frozen active passages in `.github/skills/graph-authoring/SKILL.md`, `.github/skills/graph-authoring/doctrine.md`, `docs/development-process.md`, `examples/README.md`, `reference/audit-index.md`, `reference/command-book.md`, `reference/graph-yaml.md`, `reference/onepager-development-process.md`, and `reference/patterns/fsm-as-conductor.md` |
+| D-4 | Move `docs/context/chaplain-system.md` to `docs/archive/chaplain-system.md` and maintain its single link from `docs/archive/chaplain.md` |
+| D-5 | Update `.github/skills/judge-fr/doctrine.md` and its byte-identical `ramp/assets/tier2/github/skills/judge-fr/doctrine.md` mirror |
+| D-6 | Add REQ-YG-668 under `capabilities/CAP-264-chaplain-runtime-retired.yaml`; regenerate only the corresponding generated portions of `ARCHITECTURE.md` |
+| D-7 | Update `tests/unit/test_fr1013_doctrine_sweep.py` to implement the exact match-level policy and direct REQ mapping |
+| D-8 | Add `changelog/unreleased/fr-1013-doctrine-sweep.md` and record the mandatory human review in FR-1013 |
+| D-9 | After merge only, record FR-1013's merge SHA and close FR-1010 AC-12/AC-13 in a separate FR-1010-only commit |
+
+Not authorized: a closure script or closure-script test; runtime, production Python, shell, hook, CI, graph, prompt, ramp manifest, ramp provenance, archive-repository, tag, or worktree behavior changes; a new CAP; any requirement other than REQ-YG-668 under CAP-264; manual edits to generated `ARCHITECTURE.md` content beyond the CAP-264/REQ-YG-668 rendering; changes to old witness tests; changes to historical FR, diary, memento, ebook, research, or changelog-history content; changes to archive content beyond the two D-4 paths; changes to any Sermon step or Knowledge Graph entry; changes to `ramp/manifest.yaml` or `ramp/curation-diffs.md`; marking FR-1010 complete before FR-1013 is merged.
+
+## Revised acceptance criteria
+
+- [ ] AC-01: FR-1013 records `BASE=36591389e2fdfedf9ba5ae6362effad1c64cd06e`, links the FR-1012 human-review record, and records `git merge-base --is-ancestor "$BASE" HEAD` exiting 0 before authorized enforcement.
+- [ ] AC-02: FR-1013 contains separate exhaustive tables for the BASE match-bearing source set and the complete writable surface D-1 through D-8; every PR path changed from `BASE` appears in that writable table.
+- [ ] AC-03: The committed raw inventory contains exactly 2,586 match rows after its two header lines, the disposition artifact contains 261 file rows, and the exact BASE SHA and reproducing command remain recorded.
+- [ ] AC-04: `grep -c 'Sermon of the Chaplain' .github/copilot-instructions.md` returns 0; the seven bold Sermon step names equal their `git show "$BASE":.github/copilot-instructions.md` values; the complete Knowledge Graph block is byte-identical to BASE; and the Scripture diff is limited to the heading and canonical-sources clause.
+- [ ] AC-05: `docs/development-process.md` describes the operator-driven `scripts/author.sh` -> `scripts/judge.sh` -> worktree enforcement -> `scripts/review.sh` -> human merge route in every frozen active-process passage, while its section 3.1 measurement sentence is byte-identical to BASE.
+- [ ] AC-06: The other D-3 skill/example/reference surfaces have exactly their frozen dispositions; `reference/audit-index.md` has exactly one row containing `Chaplain`, and that row links `docs/archive/chaplain.md`.
+- [ ] AC-07: `docs/archive/chaplain-system.md` exists, `docs/context/chaplain-system.md` does not, `git diff --name-status -M90% "$BASE"...HEAD` reports a rename score of at least 90%, and `docs/archive/chaplain.md` links the moved document.
+- [ ] AC-08: `cmp -s .github/skills/judge-fr/doctrine.md ramp/assets/tier2/github/skills/judge-fr/doctrine.md` exits 0; `pytest tests/unit/test_ramp_installer.py::test_mirror_exact_entries_match_live_bytes -q` passes; and `git diff --exit-code "$BASE"...HEAD -- ramp/manifest.yaml ramp/curation-diffs.md` exits 0.
+- [ ] AC-09: The residual witness scans tracked `.md`, `.py`, `.sh`, `.yaml`, and `.yml` files; compares exact matching-line multisets to BASE outside the authorized match-bearing edit set; enforces exact residual lines inside that set; rejects unenumerated matching files; and leaves every `keep-out-of-scope-code` line unchanged.
+- [ ] AC-10: `capabilities/CAP-264-chaplain-runtime-retired.yaml` associates FR-1013 with REQ-YG-668; CAP-265 retains REQ-YG-667; `python scripts/aggregate_capabilities.py` followed by `git diff --exit-code -- ARCHITECTURE.md` produces no unstaged drift; `python scripts/validate_capabilities.py --strict` and `python scripts/req_coverage.py --strict` pass.
+- [ ] AC-11: Every residual/documentation-consistency test in `tests/unit/test_fr1013_doctrine_sweep.py` is tagged REQ-YG-668; only the Knowledge Graph preservation test is tagged REQ-YG-192; only the ramp mirror test is tagged REQ-YG-613; the FR's traceability table quotes each requirement text.
+- [ ] AC-12: `pytest tests/unit/test_fr1013_doctrine_sweep.py tests/unit/test_knowledge_graph_fr193.py tests/unit/test_ramp_installer.py -q --no-cov` and `pytest tests/unit/ -q --no-cov -m "not slow" -n auto` pass.
+- [ ] AC-13: Human review is recorded in FR-1013 before merge and confirms the restricted Scripture diff, the adversarially reviewed judge-doctrine change, byte-identical mirror, generated-only architecture diff, exact residual policy, unchanged Sermon steps, and unchanged Knowledge Graph.
+- [ ] AC-14: `changelog/unreleased/fr-1013-doctrine-sweep.md` exists with `type: removal` and `scope: doctrine`.
+- [ ] AC-15: The FR-1013 PR contains no closure script or closure-script test.
+- [ ] AC-16: Post-merge only, the operator records FR-1013's merge SHA in FR-1010, runs and records FR-1010 AC-12/AC-13 on merged `main`, records each phase's completion, and changes FR-1010 to `Completed` in a separate FR-1010-only commit.
+
+## Conditions for enforcement
+
+| # | Condition | Severity |
+|---|---|---|
+| C-1 | No implementation authority activates until R-1 through R-4 and AC-01 through AC-16 are folded into the committed FR and this draft receives human review. | GATE |
+| C-2 | `36591389e2fdfedf9ba5ae6362effad1c64cd06e` remains the immutable BASE; if it is not an ancestor of the enforcement head, stop. | GATE |
+| C-3 | REQ-YG-667 remains owned by CAP-265. FR-1013 may add only REQ-YG-668 under CAP-264, with generated architecture synchronized before any test is accepted as traced. | GATE |
+| C-4 | A matching path or line not represented by the frozen BASE inventory and round-3 residual policy stops enforcement and returns FR-1013 to judgement under FR-1010 C-10. | GATE |
+| C-5 | Only D-1 through D-8 may appear in the PR; D-9 is an operator-owned post-merge action because its merge SHA cannot exist earlier. | GATE |
+| C-6 | Human review is mandatory before merge for Scripture, judge doctrine, its mirror, and the CAP/ARCHITECTURE contract; mirror equality and generated output do not replace adversarial review. | GATE |
+| C-7 | Historical records remain historical, and known stale code defaults remain unchanged and explicitly out of scope; neither class may be silently reclassified to make the residual test pass. | GATE |
+| C-8 | The pre-round-3 branch commits are candidates only. Acceptance is determined by the amended FR and the witnesses in this judgement, not by those commits' existence or prior green results. | GATE |
+
+Authority granted: after R-1 through R-4 are folded and human-reviewed, FR-1013 may implement only D-1 through D-8; D-9 may occur only after the resulting PR is merged.
