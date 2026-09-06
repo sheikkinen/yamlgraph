@@ -39,6 +39,18 @@ fi
 
 mkdir -p "$WORKDIR/tmp"
 
+# FR-1022 round sentinel: two prior verdicts on this FR file → the third
+# judgement is fixed text, not a model call. No override exists.
+JUDGEMENT="${FR_PATH%.md}.judgement.md"
+ROUND=0
+[ -f "$JUDGEMENT" ] && ROUND=$(grep -c '^\*\*Verdict:\*\*' "$JUDGEMENT")
+if [ "$ROUND" -ge 2 ]; then
+  printf '%s\n' "**Verdict:** REJECTED — Operator: Rethink and rewrite the FR. It's getting too complicated as a planning document." > "$ARTIFACT"
+  echo "judge.sh: round $((ROUND + 1)) on $FR_PATH — sentinel verdict written: $ARTIFACT (no model run; human exits: mark the FR Rejected, or re-file a shorter plan as a new FR file)" >&2
+  exit 77
+fi
+echo "judge.sh: round $((ROUND + 1)) on $FR_PATH" >&2
+
 # Atomic lock:
 if ! mkdir "$LOCK" 2>/dev/null; then
   if [ -n "$(find "$LOCK" -maxdepth 0 -mmin +$STALE_MIN 2>/dev/null)" ]; then
