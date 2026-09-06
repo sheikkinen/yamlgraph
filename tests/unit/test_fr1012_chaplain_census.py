@@ -21,7 +21,7 @@ REPO = Path(__file__).resolve().parents[2]
 ADAPTERS = REPO / "examples/demos/corpus_census/adapters"
 
 # process: reads scripts/, examples/ and drives git in a fixture repo (FR-756)
-pytestmark = [pytest.mark.req("REQ-YG-666"), pytest.mark.process]
+pytestmark = pytest.mark.process  # REQ-YG-666 is on every test (req_coverage reads decorators, not pytestmark)
 
 
 def _load(name: str, path: Path):
@@ -81,6 +81,7 @@ def repo(tmp_path: Path) -> Path:
 # --- discovery + facts ------------------------------------------------------------
 
 
+@pytest.mark.req("REQ-YG-666")
 def test_discovery_rule_is_sorted_unique_and_selects_by_needle(ad, repo):
     items = ad.discover_paths(repo)
     assert items == sorted(set(items))
@@ -90,6 +91,7 @@ def test_discovery_rule_is_sorted_unique_and_selects_by_needle(ad, repo):
     assert "capabilities/CAP-900-watcher.yaml" in items and "capabilities/CAP-901-mixed.yaml" in items
 
 
+@pytest.mark.req("REQ-YG-666")
 def test_manifest_fan_in_counts_only_tests_outside_the_candidate_set(ad, repo):
     rows = {r["path"]: r for r in ad.build_manifest(repo, "deadbeef")}
     assert rows["tests/unit/test_watcher_fsm.py"]["fan_in_by_req"] == {"REQ-YG-900": 0}
@@ -101,12 +103,14 @@ def test_manifest_fan_in_counts_only_tests_outside_the_candidate_set(ad, repo):
     assert all(len(r["sha256"]) == 64 and r["bytes"] > 0 for r in rows.values())
 
 
+@pytest.mark.req("REQ-YG-666")
 def test_reqs_come_from_marker_ast_not_text(ad, tmp_path):
     p = tmp_path / "test_x.py"
     p.write_text('"""mentions REQ-YG-999 in prose."""\nimport pytest\n\n@pytest.mark.req("REQ-YG-100")\ndef test_a():\n    pass\n', encoding="utf-8")
     assert ad.marker_reqs(tmp_path, ["test_x.py"]) == {"test_x.py": ["REQ-YG-100"]}
 
 
+@pytest.mark.req("REQ-YG-666")
 def test_extract_payload_is_facts_then_file_text(ad, repo, monkeypatch):
     rows = ad.build_manifest(repo, "deadbeef")
     manifest = repo / "docs/census/chaplain-disposition-input.jsonl"
@@ -141,6 +145,7 @@ ALL = {
 }
 
 
+@pytest.mark.req("REQ-YG-666")
 def test_reconcile_applies_both_cross_row_rules(ad, repo):
     generic, manifest = _generic(ad, repo, ALL)
     rows = {r.path: r for r in ad.reconcile(generic, manifest, repo)}
@@ -153,6 +158,7 @@ def test_reconcile_applies_both_cross_row_rules(ad, repo):
     assert ad.unresolved(rows.values()) == ["capabilities/CAP-901-mixed.yaml"]
 
 
+@pytest.mark.req("REQ-YG-666")
 def test_delete_that_would_orphan_a_req_becomes_manual(ad, repo):
     verdicts = dict(ALL, **{"capabilities/CAP-900-watcher.yaml": "keep"})
     generic, manifest = _generic(ad, repo, verdicts)
@@ -165,12 +171,14 @@ def test_delete_that_would_orphan_a_req_becomes_manual(ad, repo):
     ("path", "label"),
     [("tests/unit/test_watcher_fsm.py", "retire"), ("capabilities/CAP-900-watcher.yaml", "delete"), ("tests/unit/test_live_gate.py", "maybe")],
 )
+@pytest.mark.req("REQ-YG-666")
 def test_illegal_kind_verdict_pairs_are_rejected(ad, repo, path, label):
     generic, manifest = _generic(ad, repo, dict(ALL, **{path: label}))
     with pytest.raises(ad.ReconcileError, match="illegal verdict"):
         ad.reconcile(generic, manifest, repo)
 
 
+@pytest.mark.req("REQ-YG-666")
 def test_abstained_row_is_rejected_unless_resolved(ad, repo):
     over = {"tests/unit/test_live_gate.py": {"judgement": "abstain", "abstained": True, "abstain_reason": "unclear", "evidence_span": ""}}
     generic, manifest = _generic(ad, repo, ALL, **over)
@@ -181,6 +189,7 @@ def test_abstained_row_is_rejected_unless_resolved(ad, repo):
     assert rows["tests/unit/test_live_gate.py"].verdict == "keep" and "human resolution" in rows["tests/unit/test_live_gate.py"].reason
 
 
+@pytest.mark.req("REQ-YG-666")
 def test_unconfirmed_proposal_keeps_row_manual_and_shows_the_proposal(ad, repo):
     """A proposed resolution is not a human decision until confirmed: true."""
     over = {"tests/unit/test_live_gate.py": {"judgement": "abstain", "abstained": True, "abstain_reason": "unclear", "evidence_span": ""}}
@@ -196,6 +205,7 @@ def test_unconfirmed_proposal_keeps_row_manual_and_shows_the_proposal(ad, repo):
     assert rows2["tests/unit/test_watcher_fsm.py"].manual_review and rows2["tests/unit/test_watcher_fsm.py"].verdict == "keep"
 
 
+@pytest.mark.req("REQ-YG-666")
 def test_caps_own_deleted_witness_is_not_a_foreign_module(ad, repo):
     """CAP-900 lists its own test as a module; that test is deleted in the same run → not mixed."""
     (repo / "capabilities/CAP-900-watcher.yaml").write_text(
@@ -208,6 +218,7 @@ def test_caps_own_deleted_witness_is_not_a_foreign_module(ad, repo):
     assert rows["capabilities/CAP-900-watcher.yaml"].verdict == "retire" and not rows["capabilities/CAP-900-watcher.yaml"].manual_review
 
 
+@pytest.mark.req("REQ-YG-666")
 def test_reconcile_only_reuses_the_preserved_raw_ledger(census, ad, repo, monkeypatch, tmp_path):
     monkeypatch.setattr(census, "REPO_ROOT", repo)
     monkeypatch.setattr(census, "PREREQUISITES", {})
@@ -229,6 +240,7 @@ def test_reconcile_only_reuses_the_preserved_raw_ledger(census, ad, repo, monkey
     assert census.main(["--reconcile-only", "--out-dir", str(out)]) == census.EX_CONTRACT
 
 
+@pytest.mark.req("REQ-YG-666")
 def test_unknown_duplicate_and_missing_rows_are_rejected(ad, repo):
     generic, manifest = _generic(ad, repo, ALL)
     with pytest.raises(ad.ReconcileError, match="unknown item_ref"):
@@ -239,12 +251,14 @@ def test_unknown_duplicate_and_missing_rows_are_rejected(ad, repo):
         ad.reconcile(generic[1:], manifest, repo)
 
 
+@pytest.mark.req("REQ-YG-666")
 def test_invalid_evidence_span_is_rejected(ad, repo):
     generic, manifest = _generic(ad, repo, ALL, **{"tests/unit/test_watcher_fsm.py": {"evidence_span": "this text is nowhere in the payload"}})
     with pytest.raises(ad.ReconcileError, match="evidence_span"):
         ad.reconcile(generic, manifest, repo)
 
 
+@pytest.mark.req("REQ-YG-666")
 def test_manual_review_label_maps_to_keep_plus_flag(ad, repo):
     generic, manifest = _generic(ad, repo, dict(ALL, **{"tests/unit/test_live_gate.py": "manual_review"}))
     rows = {r.path: r for r in ad.reconcile(generic, manifest, repo)}
@@ -254,6 +268,7 @@ def test_manual_review_label_maps_to_keep_plus_flag(ad, repo):
 # --- wrapper preflight refusals (before any provider call) ------------------------------
 
 
+@pytest.mark.req("REQ-YG-666")
 def test_ceilings_and_canaries_are_the_frozen_values(census):
     assert (census.MAX_ITEMS, census.MAX_TOTAL_BYTES, census.MAX_ITEM_BYTES, census.MAX_CALLS, census.TIMEOUT_S) == (120, 1_500_000, 64 * 1024, 130, 1200)
     assert census.CANARIES == {"tests/unit/test_fr305_watcher_pipeline_v2.py": "delete", "tests/unit/test_fr_triage.py": "keep"}
@@ -261,6 +276,7 @@ def test_ceilings_and_canaries_are_the_frozen_values(census):
     assert not any(Path(p).name in rubric for p in census.CANARIES), "canaries must be withheld from the rubric"
 
 
+@pytest.mark.req("REQ-YG-666")
 def test_preflight_refuses_before_any_graph_call(census, ad, repo, monkeypatch, tmp_path):
     calls = []
     monkeypatch.setattr(census, "REPO_ROOT", repo)
@@ -295,6 +311,7 @@ def test_preflight_refuses_before_any_graph_call(census, ad, repo, monkeypatch, 
     assert census.main(["--out-dir", str(tmp_path / "o6")]) == census.EX_CONTRACT and calls == []
 
 
+@pytest.mark.req("REQ-YG-666")
 def test_preflight_only_writes_manifest_and_record_without_running_graph(census, repo, monkeypatch, tmp_path):
     monkeypatch.setattr(census, "REPO_ROOT", repo)
     monkeypatch.setattr(census, "PREREQUISITES", {})
