@@ -10,9 +10,6 @@ Condemns five bug classes before the fix:
 
 from __future__ import annotations
 
-import importlib.util
-import sys
-import types
 from pathlib import Path
 
 # ---------------------------------------------------------------------------
@@ -33,31 +30,6 @@ except ImportError:
 # Chaplain adapter import helpers (same pattern as test_fr319)
 # ---------------------------------------------------------------------------
 WORKTREE = Path(__file__).resolve().parents[2]
-ACTION_PATH = WORKTREE / ".chaplain" / "actions" / "yamlgraph_async_action.py"
-
-
-class _StubBaseAction:
-    def __init__(self, config: dict | None = None) -> None:
-        self.config = config or {}
-
-    def get_machine_name(self, context: dict) -> str:
-        return context.get("machine_name", "test-machine")
-
-
-def _load_chaplain_action(monkeypatch):
-    sm_pkg = types.ModuleType("statemachine_engine")
-    sm_actions_pkg = types.ModuleType("statemachine_engine.actions")
-    sm_base_mod = types.ModuleType("statemachine_engine.actions.base")
-    sm_base_mod.BaseAction = _StubBaseAction
-    monkeypatch.setitem(sys.modules, "statemachine_engine", sm_pkg)
-    monkeypatch.setitem(sys.modules, "statemachine_engine.actions", sm_actions_pkg)
-    monkeypatch.setitem(sys.modules, "statemachine_engine.actions.base", sm_base_mod)
-    spec = importlib.util.spec_from_file_location("_chaplain_action", ACTION_PATH)
-    mod = importlib.util.module_from_spec(spec)  # type: ignore[arg-type]
-    spec.loader.exec_module(mod)  # type: ignore[union-attr]
-    return mod.YamlgraphAsyncAction
-
-
 # ---------------------------------------------------------------------------
 # 1. Unknown key rejection
 # ---------------------------------------------------------------------------
@@ -154,55 +126,6 @@ class TestActionConfigEnvelopeIsolation:
         cfg = ActionConfig.model_validate(payload)
         assert cfg.event_key == "judge_result"
         assert cfg.timeout == 600
-
-
-# ---------------------------------------------------------------------------
-# 4. FR-319 interpolation behavior survives shim removal
-# ---------------------------------------------------------------------------
-@pytest.mark.req("REQ-YG-319")
-class TestFR319InterpolationPreservation:
-    """pre_snapshot interpolation must survive after _translate_legacy_config is gone."""
-
-    def test_variable_placeholder_resolved_from_context(self, monkeypatch) -> None:
-        """vars with {context_key} placeholders must resolve via pre_snapshot."""
-        from yamlgraph.utils.fsm.action import ActionConfig
-
-        action_cls = _load_chaplain_action(monkeypatch)
-        action = action_cls(
-            {
-                "graph": "some.yaml",
-                "vars": {"fr_path": "{topic_file}"},
-                "success": "done",
-                "error": "error",
-            }
-        )
-        context = {"topic_file": "/data/topics/gh-420.md", "main_dir": "/repo"}
-        # Simulate what bridge execute() does: validate config, produce params dict
-        raw = {k: v for k, v in action.config.items() if k not in {"type", "params"}}
-        cfg = ActionConfig.model_validate(raw)
-        params = cfg.model_dump(by_alias=False)
-        action.pre_snapshot(params, context)
-        assert params["variables"]["fr_path"] == "/data/topics/gh-420.md"
-
-    def test_unresolved_normalize_empty_semantics_preserved(self, monkeypatch) -> None:
-        """Keys in _NORMALIZE_EMPTY_ON_UNRESOLVED with unresolved placeholders become ''."""
-        from yamlgraph.utils.fsm.action import ActionConfig
-
-        action_cls = _load_chaplain_action(monkeypatch)
-        action = action_cls(
-            {
-                "graph": "some.yaml",
-                "vars": {"precommit_output": "{precommit_output}"},
-                "success": "done",
-                "error": "error",
-            }
-        )
-        context = {"main_dir": "/repo"}  # precommit_output NOT in context
-        raw = {k: v for k, v in action.config.items() if k not in {"type", "params"}}
-        cfg = ActionConfig.model_validate(raw)
-        params = cfg.model_dump(by_alias=False)
-        action.pre_snapshot(params, context)
-        assert params["variables"]["precommit_output"] == ""
 
 
 # ---------------------------------------------------------------------------

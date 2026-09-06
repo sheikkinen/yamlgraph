@@ -22,7 +22,6 @@ SKILLS_DIR = Path(__file__).resolve().parent.parent.parent / ".github" / "skills
 
 TIER_1_SKILLS = [
     "release-version",
-    "chaplain-ops",
     "run-code-analysis",
     "feature-request",
     "graph-authoring",
@@ -31,6 +30,7 @@ TIER_1_SKILLS = [
 RETIRED_SKILLS = [
     "author-graph",
     "author-prompt",
+    "chaplain-ops",  # retired with the runtime (FR-1012)
 ]
 
 
