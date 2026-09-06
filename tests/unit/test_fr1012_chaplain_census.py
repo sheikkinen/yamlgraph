@@ -238,7 +238,8 @@ def test_preflight_refuses_before_any_graph_call(census, ad, repo, monkeypatch, 
     assert census.main(["--out-dir", str(tmp_path / "o4")]) == census.EX_CONTRACT and calls == []
     monkeypatch.setattr(census, "PREREQUISITES", {})
     # 5) credential-shaped content
-    (repo / "tests/unit/test_live_gate.py").write_text('TOKEN = "ghp_' + "A" * 36 + '"\n', encoding="utf-8")
+    # keep the needle ("triage") so the file stays a census candidate and is scanned
+    (repo / "tests/unit/test_live_gate.py").write_text('TOKEN = "ghp_' + "A" * 36 + '"  # triage\n', encoding="utf-8")
     _git(repo, "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qam", "leak")
     assert census.main(["--out-dir", str(tmp_path / "o5")]) == census.EX_CONTRACT and calls == []
     # 6) dirty tree
