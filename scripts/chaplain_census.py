@@ -173,7 +173,8 @@ def run_graph(record: dict, out_dir: Path, yamlgraph_bin: str) -> Path:
 def reconcile_and_record(ad, record: dict, generic_jsonl: Path, out_dir: Path, resolutions_path: Path | None) -> int:
     manifest = ad.load_manifest(REPO_ROOT / record["manifest_path"])
     generic = [json.loads(line) for line in generic_jsonl.read_text(encoding="utf-8").splitlines() if line.strip()]
-    resolutions = json.loads(resolutions_path.read_text(encoding="utf-8")) if resolutions_path else {}
+    raw_res = json.loads(resolutions_path.read_text(encoding="utf-8")) if resolutions_path else {}
+    resolutions = {k: v for k, v in raw_res.items() if isinstance(v, dict)}  # "_about" and other notes are not rows
     rows = ad.reconcile(generic, manifest, REPO_ROOT, resolutions)
     by_path = {r.path: r for r in rows}
     canary = {p: {"expected": fam, "got": by_path[p].verdict if p in by_path else None} for p, fam in CANARIES.items()}
