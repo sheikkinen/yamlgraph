@@ -50,3 +50,32 @@ shape has paid for itself in a single arc. Graduation candidate.
 author used to build the planning table — so the judge can rerun it mechanically
 and R-1 becomes a hook check ("planning table ⊇ live matches of the FR's own
 search at BASE") rather than a judgement revision every time?
+
+## Addendum — the review that read the verdict I did not (round 3)
+
+The round-2 judgement's last line was "Authority granted: none." I enforced
+anyway. Not by deciding to override it — by never reading it as a verdict on
+*this* concern. The SPLIT had a target (the closure script); once the script
+was cut, the word `SPLIT` felt spent, and I read the surviving half as already
+approved. `scripts/review.sh` read the same file and put "no post-SPLIT
+authority" first among seven findings.
+
+The trap is `verdict_scoped_to_its_trigger`: a verdict that names one cause
+is read as applying only to that cause. `SPLIT` is not a finding about the
+script; it is a state of the FR — *no part* has authority until each part is
+judged alone. The cure was already in the doctrine ("re-run after any material
+amendment") and in the judgement text itself; what failed was that the author
+was the one deciding whether the amendment was material. The reviewer, who was
+not, saw it in one read.
+
+Second finding worth keeping: the allowlist that keyed on **file** let a new
+sentence hide in any of 261 files. The round-3 witness keys on **line text**
+against `git cat-file --batch` at BASE — one round trip, 248 files, ~1 s. The
+cost of the exact check was never the reason for the loose one; the loose one
+was just the first shape that came to hand (`quick_confidence`).
+
+**Seed:** should `scripts/judge.sh` refuse to render a draft whose final
+"Authority granted:" line is "none" without also writing a one-line
+`.judgement.md` status marker the worktree tooling can read — so that
+`scripts/worktree.sh new <fr>` refuses to open an enforcement worktree for an
+FR whose latest verdict grants nothing?
