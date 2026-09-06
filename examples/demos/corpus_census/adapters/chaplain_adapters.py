@@ -165,8 +165,8 @@ def build_manifest(root: Path, source_sha: str, items: list[str] | None = None) 
 def write_manifest(rows: list[dict[str, Any]], path: Path) -> str:
     path.parent.mkdir(parents=True, exist_ok=True)
     text = "".join(json.dumps(r, sort_keys=True) + "\n" for r in rows)
-    path.write_text(text, encoding="utf-8")
-    return hashlib.sha256(text.encode("utf-8")).hexdigest()
+    path.write_text(text, encoding="utf-8", newline="\n")  # LF on every host: the sha is over the bytes on disk
+    return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
 def load_manifest(path: Path) -> dict[str, dict[str, Any]]:
@@ -262,12 +262,20 @@ def _check_generic(generic: list[dict[str, Any]], manifest: dict[str, dict[str, 
 
 
 def _label(g: dict[str, Any], facts: dict[str, Any], root: Path, resolutions: dict[str, Any]) -> tuple[str, str, bool, float]:
-    """Return (verdict, reason, manual_review, confidence) for one row, or raise."""
+    """Return (verdict, reason, manual_review, confidence) for one row, or raise.
+
+    A resolution counts as human only when ``confirmed`` is true; an unconfirmed
+    (proposed) resolution keeps the row ``manual_review`` and carries the proposal
+    in the reason so the operator sees what to confirm.
+    """
     path = facts["path"]
     resolved = resolutions.get(path)
-    if resolved:
+    if resolved and resolved.get("confirmed") is True:
         return resolved["verdict"], f"human resolution ({resolved.get('resolved_by', '?')}, {resolved.get('date', '?')}): {resolved['reason']}", False, 1.0
+    proposal = f"; PROPOSED {resolved['verdict']}: {resolved['reason']} (unconfirmed)" if resolved else ""
     if g.get("abstained") or g.get("judgement") == "abstain" or (g.get("repaired") and g.get("judgement") == "abstain"):
+        if resolved:
+            return "keep", f"model abstained ({g.get('abstain_reason', '')!r}){proposal}", True, 0.0
         raise ReconcileError(f"{path}: abstained/demoted/failed row without human resolution ({g.get('abstain_reason', '')!r})")
     label = str(g.get("judgement", "")).strip()
     legal = {"test": {"keep", "delete", "manual_review"}, "cap": {"keep", "retire", "manual_review"}}[facts["kind"]]
@@ -275,9 +283,11 @@ def _label(g: dict[str, Any], facts: dict[str, Any], root: Path, resolutions: di
         raise ReconcileError(f"{path}: illegal verdict {label!r} for kind {facts['kind']}")
     span = str(g.get("evidence_span", ""))
     if not span or _norm(span) not in _norm(payload_for(root, facts)):
+        if resolved:
+            return "keep", f"model {label} with an inexact evidence span{proposal}", True, float(g.get("confidence", 0))
         raise ReconcileError(f"{path}: evidence_span is not an exact span of the item payload")
-    if label == "manual_review":
-        return "keep", f"model asked for manual review; span: {span}", True, float(g.get("confidence", 0))
+    if label == "manual_review" or resolved:
+        return "keep", f"model {label}; span: {span}{proposal}", True, float(g.get("confidence", 0))
     return label, f"model: {span}", False, float(g.get("confidence", 0))
 
 
@@ -294,23 +304,26 @@ def reconcile(
     caps = [p for p, f in manifest.items() if f["kind"] == "cap"]
     tests = [p for p, f in manifest.items() if f["kind"] == "test"]
 
+    confirmed = {p for p, r in resolutions.items() if r.get("confirmed") is True}
     for _ in range(3):  # fixpoint over the two cross-row rules
         retire_reqs = {r for p in caps if labels[p][0] == "retire" for r in manifest[p]["reqs"]}
         for p in tests:
             verdict, reason, manual, conf = labels[p]
-            if verdict != "delete" or p in resolutions:
+            if verdict != "delete" or p in confirmed:
                 continue
             orphaned = [r for r in manifest[p]["reqs"] if manifest[p]["fan_in_by_req"].get(r, 0) == 0 and r not in retire_reqs]
             if orphaned:
                 labels[p] = ("keep", f"delete would orphan {orphaned} (fan-in 0, no retiring CAP); {reason}", True, conf)
         kept_test_reqs = {r for p in tests if labels[p][0] == "keep" for r in manifest[p]["reqs"]}
+        deleted_tests = {p for p in tests if labels[p][0] == "delete"}
         for p in caps:
             verdict, reason, manual, conf = labels[p]
-            if verdict != "retire" or p in resolutions:
+            if verdict != "retire" or p in confirmed:
                 continue
             f = manifest[p]
             live = [r for r in f["reqs"] if f["surviving_witnesses_by_req"].get(r) or r in kept_test_reqs]
-            foreign = [m for m, present in f["modules_present"].items() if present and not _runtime_owned(m)]
+            # a CAP's own witness test that this census deletes is not a foreign module
+            foreign = [m for m, present in f["modules_present"].items() if present and not _runtime_owned(m) and m not in deleted_tests]
             if live or foreign:
                 labels[p] = ("keep", f"mixed CAP: live REQs {live}, non-runtime modules {foreign}; {reason}", True, conf)
 

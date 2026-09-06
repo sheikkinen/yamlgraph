@@ -193,6 +193,9 @@ def reconcile_and_record(ad, record: dict, generic_jsonl: Path, out_dir: Path, r
         disposition_sha256=_sha256_file(jsonl),
         counts_out={"delete": sum(r.verdict == "delete" for r in rows), "retire": sum(r.verdict == "retire" for r in rows), "keep": sum(r.verdict == "keep" for r in rows), "unresolved": len(unresolved)},
         unresolved=unresolved,
+        resolutions_file=str(resolutions_path) if resolutions_path else None,
+        resolutions_confirmed=sorted(p for p, r in resolutions.items() if r.get("confirmed") is True),
+        resolutions_pending_confirmation=sorted(p for p, r in resolutions.items() if r.get("confirmed") is not True),
         canaries=canary,
         invariants={
             "1_each_item_one_payload": len(manifest) == record["counts"]["items"],
@@ -218,7 +221,8 @@ def reconcile_and_record(ad, record: dict, generic_jsonl: Path, out_dir: Path, r
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--preflight", action="store_true", help="freeze the manifest and run every refusal; make no provider call")
-    ap.add_argument("--resolutions", type=Path, help="JSON {path: {verdict, reason, resolved_by, date}} of human resolutions")
+    ap.add_argument("--reconcile-only", action="store_true", help="re-reconcile the preserved raw generic ledger of the recorded run; no provider call")
+    ap.add_argument("--resolutions", type=Path, help="JSON {path: {verdict, reason, resolved_by, date, confirmed}} — only confirmed:true counts as human")
     ap.add_argument("--out-dir", type=Path, default=OUT_DIR)
     ap.add_argument("--yamlgraph-bin", default=os.environ.get("YAMLGRAPH_BIN") or shutil.which("yamlgraph"))
     args = ap.parse_args(argv)
@@ -226,6 +230,16 @@ def main(argv: list[str] | None = None) -> int:
     out_dir.mkdir(parents=True, exist_ok=True)
     ad = _adapters()
     try:
+        if args.reconcile_only:
+            record = json.loads((out_dir / f"{STEM}.run.json").read_text(encoding="utf-8"))
+            manifest_path = REPO_ROOT / record["manifest_path"]
+            if hashlib.sha256(manifest_path.read_bytes()).hexdigest() != record["manifest_sha256"]:
+                raise Refusal(EX_CONTRACT, "manifest on disk differs from the recorded run's manifest_sha256 — re-run the census")
+            raw = out_dir / f"{STEM}.raw" / "generic-ledger.jsonl"
+            if not raw.is_file():
+                raise Refusal(EX_CONTRACT, f"no preserved raw ledger at {raw}")
+            record["reconcile_only_at"] = datetime.now(UTC).isoformat()
+            return reconcile_and_record(ad, record, raw, out_dir, args.resolutions)
         record = preflight(ad, out_dir)
         print(f"chaplain_census: preflight ok — {record['counts']} manifest {record['manifest_sha256'][:12]}")
         if args.preflight:

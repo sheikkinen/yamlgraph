@@ -176,9 +176,57 @@ def test_abstained_row_is_rejected_unless_resolved(ad, repo):
     generic, manifest = _generic(ad, repo, ALL, **over)
     with pytest.raises(ad.ReconcileError, match="abstained"):
         ad.reconcile(generic, manifest, repo)
-    res = {"tests/unit/test_live_gate.py": {"verdict": "keep", "reason": "live gate", "resolved_by": "operator", "date": "2026-09-06"}}
+    res = {"tests/unit/test_live_gate.py": {"verdict": "keep", "reason": "live gate", "resolved_by": "operator", "date": "2026-09-06", "confirmed": True}}
     rows = {r.path: r for r in ad.reconcile(generic, manifest, repo, res)}
     assert rows["tests/unit/test_live_gate.py"].verdict == "keep" and "human resolution" in rows["tests/unit/test_live_gate.py"].reason
+
+
+def test_unconfirmed_proposal_keeps_row_manual_and_shows_the_proposal(ad, repo):
+    """A proposed resolution is not a human decision until confirmed: true."""
+    over = {"tests/unit/test_live_gate.py": {"judgement": "abstain", "abstained": True, "abstain_reason": "unclear", "evidence_span": ""}}
+    generic, manifest = _generic(ad, repo, ALL, **over)
+    res = {"tests/unit/test_live_gate.py": {"verdict": "keep", "reason": "live gate", "resolved_by": "PROPOSED", "date": "2026-09-06"}}
+    rows = {r.path: r for r in ad.reconcile(generic, manifest, repo, res)}
+    row = rows["tests/unit/test_live_gate.py"]
+    assert row.manual_review and row.verdict == "keep" and "PROPOSED keep" in row.reason and "unconfirmed" in row.reason
+    # an unconfirmed proposal on a model-clean row still forces manual review (the human overrides the model)
+    res2 = {"tests/unit/test_watcher_fsm.py": {"verdict": "keep", "reason": "actually live", "resolved_by": "PROPOSED", "date": "x"}}
+    generic2, _ = _generic(ad, repo, ALL)
+    rows2 = {r.path: r for r in ad.reconcile(generic2, manifest, repo, res2)}
+    assert rows2["tests/unit/test_watcher_fsm.py"].manual_review and rows2["tests/unit/test_watcher_fsm.py"].verdict == "keep"
+
+
+def test_caps_own_deleted_witness_is_not_a_foreign_module(ad, repo):
+    """CAP-900 lists its own test as a module; that test is deleted in the same run → not mixed."""
+    (repo / "capabilities/CAP-900-watcher.yaml").write_text(
+        "id: CAP-900\nname: Watcher\nmodules:\n  - .chaplain/scripts/start-system.sh\n  - tests/unit/test_watcher_fsm.py\nrequirements:\n  - id: REQ-YG-900\n    description: watcher fsm\n    modules:\n      - .chaplain/scripts/start-system.sh\nfr: FR-1\n",
+        encoding="utf-8",
+    )
+    _git(repo, "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qam", "cap lists its test")
+    generic, manifest = _generic(ad, repo, ALL)
+    rows = {r.path: r for r in ad.reconcile(generic, manifest, repo)}
+    assert rows["capabilities/CAP-900-watcher.yaml"].verdict == "retire" and not rows["capabilities/CAP-900-watcher.yaml"].manual_review
+
+
+def test_reconcile_only_reuses_the_preserved_raw_ledger(census, ad, repo, monkeypatch, tmp_path):
+    monkeypatch.setattr(census, "REPO_ROOT", repo)
+    monkeypatch.setattr(census, "PREREQUISITES", {})
+    monkeypatch.setattr(census, "CANARIES", {"tests/unit/test_watcher_fsm.py": "delete", "tests/unit/test_live_gate.py": "keep"})
+    out = tmp_path / "o"
+    assert census.main(["--preflight", "--out-dir", str(out)]) == 0
+    generic, _ = _generic(ad, repo, ALL)
+    raw = out / "chaplain-test-disposition.raw"
+    raw.mkdir()
+    (raw / "generic-ledger.jsonl").write_text("".join(json.dumps(g) + "\n" for g in generic), encoding="utf-8")
+    monkeypatch.setattr(census, "run_graph", lambda *a, **k: pytest.fail("reconcile-only must not run the graph"))
+    rc = census.main(["--reconcile-only", "--out-dir", str(out)])
+    assert rc == census.EX_UNRESOLVED  # CAP-901 is mixed → manual_review → enforcement stops
+    record = json.loads((out / "chaplain-test-disposition.run.json").read_text(encoding="utf-8"))
+    assert record["unresolved"] == ["capabilities/CAP-901-mixed.yaml"] and record["invariants"]["8_withheld_canaries_match"] is True
+    assert (out / "chaplain-test-disposition.jsonl").is_file() and (out / "chaplain-test-disposition.md").is_file()
+    # tamper with the manifest → refused
+    (out / "chaplain-disposition-input.jsonl").write_text("{}\n", encoding="utf-8")
+    assert census.main(["--reconcile-only", "--out-dir", str(out)]) == census.EX_CONTRACT
 
 
 def test_unknown_duplicate_and_missing_rows_are_rejected(ad, repo):
