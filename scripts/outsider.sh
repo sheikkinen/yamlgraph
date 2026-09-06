@@ -5,9 +5,11 @@
 # child process runs from a clean directory OUTSIDE the repo, so the Copilot
 # CLI cannot load .github/copilot-instructions.md. A reader that can see the
 # rulebook is not an outsider. Zero reader doctrine here (doctrine.md).
+# FR-1004: the posted PR comment is the only durable record of a run. A run
+# changes no tracked repository state; reports and logs go to git-ignored tmp/.
 #
 # usage: scripts/outsider.sh <pr-number> [--comment] [--repo owner/name]
-#        scripts/outsider.sh --input <file.md> [--label <name>]   # any title+body text; no ledger row
+#        scripts/outsider.sh --input <file.md> [--label <name>]   # any title+body text; report only
 #        scripts/outsider.sh --selftest                          # fixtures must derive NO/NO/NO/YES
 set -u
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -15,12 +17,11 @@ SKILL="$REPO_ROOT/.github/skills/outsider-view"
 GRAPH="$SKILL/adapters/graph.yaml"
 TOOLS="$SKILL/adapters/outsider_tools.py"
 FIXTURES="$SKILL/fixtures"
-LEDGER="${OUTSIDER_LEDGER:-$REPO_ROOT/docs/census/outsider-ledger.jsonl}"
 WORKDIR="${OUTSIDER_WORKDIR:-$REPO_ROOT}"
 LOCK="$WORKDIR/tmp/.outsider.lock"
 STALE_MIN=10
 GH_REPO="${OUTSIDER_GH_REPO:-sheikkinen/yamlgraph}"
-MODEL="gpt-5.6-sol"   # pinned literally in the adapter; echoed here for the ledger
+MODEL="gpt-5.6-sol"   # pinned literally in the adapter; echoed here for the observation marker
 
 fail() { echo "outsider.sh: $1" >&2; exit "$2"; }
 
@@ -67,24 +68,34 @@ echo "pid=$$ started=$(date -u +%Y-%m-%dT%H:%M:%SZ)" > "$LOCK/holder"
 PROMPT_DIGEST="$(shasum -a 256 "$SKILL/adapters/prompts/outsider.yaml" | cut -c1-16)"
 TOOL_SHA="$(git -C "$REPO_ROOT" rev-parse --short HEAD 2>/dev/null || echo unknown)"
 
-# run_one <input-file> <label> -> prints "verdict s3 s4 report" ; returns 0 only on a validated report
+# run_one <input-file> <label> [repo pr head_sha] -> prints "verdict s3 s4 report" ; returns 0 only on a validated report
+# repo/pr/head_sha default to the placeholder '-' for non-PR modes (FR-1004 S-3).
 run_one() {
-  local input="$1" label="$2" stamp report log
+  local input="$1" label="$2" repo="${3:--}" pr="${4:--}" head_sha="${5:--}" stamp report log
   stamp="$(date -u +%Y%m%dT%H%M%SZ)"
   report="$WORKDIR/tmp/outsider-${label}-${stamp}.md"
   log="$WORKDIR/tmp/outsider-${label}-${stamp}.log"
   cp "$input" "$CHILD_CWD/input.md"
   ( cd "$CHILD_CWD" && OUTSIDER_EXECUTION=1 "${YG[@]}" graph run "$GRAPH" \
-      --var "input_path=$CHILD_CWD/input.md" --var "report_path=$report" --var "model=$MODEL" --full ) > "$log" 2>&1
+      --var "input_path=$CHILD_CWD/input.md" --var "report_path=$report" --var "model=$MODEL" \
+      --var "repo=$repo" --var "pr=$pr" --var "head_sha=$head_sha" \
+      --var "prompt_digest=$PROMPT_DIGEST" --var "tool_sha=$TOOL_SHA" --full ) > "$log" 2>&1
   rm -f "$CHILD_CWD/input.md"
-  # Verify by artifact and contract, never by exit code.
-  if [ -s "$report" ] && "$PY" - "$report" "$TOOLS" <<'EOF' >/dev/null 2>&1
+  # Verify by artifact and contract, never by exit code. The observation marker
+  # must parse and must describe THIS run (repo, pr, head, model, prompt, tool)
+  # and THIS report (verdict, counts) before anything is posted (FR-1004 C-3).
+  if [ -s "$report" ] && "$PY" - "$report" "$TOOLS" "$repo" "$pr" "$head_sha" "$MODEL" "$PROMPT_DIGEST" "$TOOL_SHA" <<'EOF' >>"$log" 2>&1
 import importlib.util, sys
-report, tools = sys.argv[1], sys.argv[2]
+report, tools, repo, pr, head, model, prompt, tool = sys.argv[1:]
 spec = importlib.util.spec_from_file_location("ot", tools); m = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
 text = open(report, encoding="utf-8").read()
-assert text.startswith("**Derived verdict:** ")
-m.parse_report(text)
+assert text.startswith("**Derived verdict:** "), "report does not front-load the derived verdict"
+rep = m.parse_report(text)
+obs = m.parse_observation(text)
+expected = dict(repo=repo, pr=(int(pr) if pr != "-" else "-"), head_sha=head, model=model, prompt_digest=prompt, tool_sha=tool,
+                derived_verdict=m.derive_verdict(rep), s3=len(rep.section3), s4=len(rep.section4))
+actual = {k: getattr(obs, k) for k in expected}
+assert actual == expected, f"observation marker does not match this run: {actual} != {expected}"
 EOF
   then
     local verdict s3 s4
@@ -113,7 +124,7 @@ case "$MODE" in
   input)
     [ -f "$INPUT" ] || fail "input not found: $INPUT" 66
     out="$(run_one "$INPUT" "${LABEL:-input}")" || exit 1
-    echo "outsider.sh: report written: ${out##* } (derived ${out%% *}; no ledger row for --input)"; exit 0 ;;
+    echo "outsider.sh: report written: ${out##* } (derived ${out%% *}; no observation: --input reports are never posted)"; exit 0 ;;
   pr)
     command -v gh >/dev/null 2>&1 || fail "gh required" 69
     json="$(gh pr view "$PR" -R "$GH_REPO" --json title,body,headRefOid)" || fail "gh pr view failed for $PR" 66
@@ -121,23 +132,15 @@ case "$MODE" in
     input="$CHILD_CWD/pr-${PR}.md"
     printf '%s' "$json" | "$PY" -c 'import json,sys; d=json.load(sys.stdin); print("# "+d["title"]+"\n\n"+d["body"])' > "$input"
     head_sha="$(printf '%s' "$json" | "$PY" -c 'import json,sys; print(json.load(sys.stdin)["headRefOid"])')"
-    out="$(run_one "$input" "pr-${PR}")" || exit 1
+    out="$(run_one "$input" "pr-${PR}" "$GH_REPO" "$PR" "$head_sha")" || exit 1
     set -- $out; verdict="$1"; s3="$2"; s4="$3"; report="$4"
     echo "outsider.sh: report written: $report (derived $verdict; s3=$s3 s4=$s4)"
-    # Optional comment FIRST: a run whose requested comment fails is not a measurement (R-3 / C-6).
+    # The comment IS the observation (FR-1004): a run whose requested comment fails
+    # is not a measurement; a run without --comment is a local report only.
     if [ "$COMMENT" -eq 1 ]; then
-      gh pr comment "$PR" -R "$GH_REPO" --body-file "$report" >/dev/null && echo "outsider.sh: comment posted on #$PR" || fail "posting the comment failed; no ledger row written" 1
+      gh pr comment "$PR" -R "$GH_REPO" --body-file "$report" >/dev/null && echo "outsider.sh: comment posted on #$PR (the observation)" || fail "posting the comment failed; no observation recorded" 1
+    else
+      echo "outsider.sh: not posted (no --comment): the report is local only and is not an observation"
     fi
-    rel_report="${report#"$WORKDIR"/}"
-    "$PY" - "$TOOLS" "$LEDGER" "$GH_REPO" "$PR" "$head_sha" "$input" "$MODEL" "$PROMPT_DIGEST" "$TOOL_SHA" "$verdict" "$s3" "$s4" "$rel_report" <<'EOF' || fail "ledger append failed" 1
-import importlib.util, sys
-from pathlib import Path
-tools, ledger, repo, pr, sha, inp, model, pdg, tsha, v, s3, s4, rep = sys.argv[1:]
-spec = importlib.util.spec_from_file_location("ot", tools); m = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
-row = m.ledger_row(repo=repo, pr=int(pr), head_sha=sha, input_text=Path(inp).read_text(encoding="utf-8"), model=model,
-                   prompt_digest=pdg, tool_sha=tsha, verdict=v, s3=int(s3), s4=int(s4), report_path=rep)
-m.append_ledger(Path(ledger), row, mode="pr")
-print(f"ledger: +1 row ({m.distinct_pr_count(Path(ledger))} distinct PRs)")
-EOF
     exit 0 ;;
 esac

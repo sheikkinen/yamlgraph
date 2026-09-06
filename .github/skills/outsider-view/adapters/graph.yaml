@@ -9,6 +9,12 @@ state:
   input_path: str
   report_path: str
   model: str
+  # FR-1004: base observation fields; finalize_report builds the typed marker from them.
+  repo: str
+  pr: str
+  head_sha: str
+  prompt_digest: str
+  tool_sha: str
   pr_text: str
   outsider_result: dict
   report: dict

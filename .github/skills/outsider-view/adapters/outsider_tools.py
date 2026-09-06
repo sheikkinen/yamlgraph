@@ -1,25 +1,28 @@
-"""FR-995 outsider reader — typed report boundary, derived verdict, ledger.
+"""FR-995 outsider reader — typed report boundary, derived verdict, observation.
 
 The model's free text is a CLAIM. It is normalised here into a Pydantic
 report or rejected (fail closed). The verdict is derived from the validated
-report, never taken from the model. Ledger rows exist only for validated
-runs against real PRs.
+report, never taken from the model. Every rendered report carries one typed
+observation marker (FR-1004); the durable measurement record is the PR comment
+the wrapper posts. Outsider execution changes no tracked repository state;
+validated reports and logs under the git-ignored ``tmp/`` are diagnostics only.
 """
 
 from __future__ import annotations
 
 import hashlib
-import json
 import re
+from collections.abc import Iterable
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 MAX_S3 = 8
 MAX_S4 = 10
 HEDGES = ("does not say", "something called", "not stated", "cannot tell")
+PLACEHOLDER = "-"  # repo / pr / head_sha of a report that is not about a real PR
 _HEADINGS = (
     "## 1. In my own words",
     "## 2. Could I decide whether to merge this from the description alone?",
@@ -28,6 +31,29 @@ _HEADINGS = (
 )
 _QUOTE = re.compile(r"[“\"`]([^”\"`]{1,200})[”\"`]")
 _ITEM_START = re.compile(r"^(?:[-*]\s+|\d+\.\s+|\*\*)")
+_HEX40 = re.compile(r"^[0-9a-f]{40}$")
+_HEX64 = re.compile(r"^[0-9a-f]{64}$")
+_TS = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$")
+_MARKER_PREFIX = "<!-- outsider reader | "
+_MARKER_LINE = re.compile(r"^<!-- outsider reader \| (.*) -->$", re.MULTILINE)
+# The complete pre-FR-1004 marker (transition-safe counting): source, model, timestamp.
+_OLD_MARKER_LINE = re.compile(
+    r"^<!-- outsider reader \| source: \S+ \| model: \S+ \| \S+ -->$", re.MULTILINE
+)
+# marker key -> Observation field, in marker order
+_MARKER_FIELDS = (
+    ("ts", "ts"),
+    ("repo", "repo"),
+    ("pr", "pr"),
+    ("head", "head_sha"),
+    ("input", "input_sha256"),
+    ("model", "model"),
+    ("prompt", "prompt_digest"),
+    ("tool", "tool_sha"),
+    ("verdict", "derived_verdict"),
+    ("s3", "s3"),
+    ("s4", "s4"),
+)
 
 
 class ReportFormatError(ValueError):
@@ -47,9 +73,52 @@ class OutsiderReport(BaseModel):
     section4: list[str] = Field(max_length=MAX_S4)
 
 
+class Observation(BaseModel):
+    """The typed measurement carried by the report's HTML marker (FR-1004 S-2).
+
+    Countable only when the report is successfully posted as a PR comment.
+    ``--input`` / ``--selftest`` reports carry ``-`` for repo, pr and head_sha
+    and are never posted.
+    """
+
+    ts: str
+    repo: str = Field(min_length=1)
+    pr: int | Literal["-"]
+    head_sha: str
+    input_sha256: str
+    model: str = Field(min_length=1)
+    prompt_digest: str = Field(min_length=1)
+    tool_sha: str = Field(min_length=1)
+    derived_verdict: Literal["YES", "NO"]
+    s3: int = Field(ge=0)
+    s4: int = Field(ge=0)
+
+    @field_validator("ts")
+    @classmethod
+    def _utc_z(cls, v: str) -> str:
+        if not _TS.match(v):
+            raise ValueError("ts must be UTC ISO-8601 with a Z suffix")
+        return v
+
+    @field_validator("head_sha")
+    @classmethod
+    def _full_head(cls, v: str) -> str:
+        if v != PLACEHOLDER and not _HEX40.match(v):
+            raise ValueError("head_sha must be the full 40-hex SHA or '-'")
+        return v
+
+    @field_validator("input_sha256")
+    @classmethod
+    def _full_input(cls, v: str) -> str:
+        if not _HEX64.match(v):
+            raise ValueError("input_sha256 must be the full 64-hex digest")
+        return v
+
+
 # Resolve postponed annotations under yamlgraph's path-based tool loading (CONF-443 idiom).
 Item.model_rebuild()
 OutsiderReport.model_rebuild()
+Observation.model_rebuild()
 
 
 # ------------------------------------------------------------------ parse
@@ -142,12 +211,75 @@ def derive_verdict(report: OutsiderReport) -> Literal["YES", "NO"]:
     return "NO"
 
 
-def render_report(
-    report: OutsiderReport, verdict: str, *, model: str, source: str
-) -> str:
+# ------------------------------------------------------------- observation
+def _lf(text: str) -> str:
+    return text.replace("\r\n", "\n")
+
+
+def render_marker(obs: Observation) -> str:
+    """One HTML comment line: the typed observation, searchable on GitHub."""
+    body = " | ".join(f"{key}: {getattr(obs, attr)}" for key, attr in _MARKER_FIELDS)
+    return f"{_MARKER_PREFIX}{body} -->"
+
+
+def parse_observation(report_text: str) -> Observation:
+    """Round-trip the marker back into an Observation. Fails closed.
+
+    Line endings are normalised first: a report written on Windows, or a
+    comment body echoed back by GitHub, may carry CRLF.
+    """
+    hits = _MARKER_LINE.findall(_lf(report_text))
+    if len(hits) != 1:
+        raise ReportFormatError(
+            f"observation marker must appear exactly once ({len(hits)})"
+        )
+    keys: list[str] = []
+    fields: dict[str, str] = {}
+    for part in hits[0].split(" | "):
+        key, sep, value = part.partition(": ")
+        if not sep:
+            raise ReportFormatError(f"malformed marker field: {part!r}")
+        keys.append(key)
+        fields[key] = value
+    expected = [key for key, _ in _MARKER_FIELDS]
+    if keys != expected:  # order, completeness and duplicates in one check
+        raise ReportFormatError(f"marker fields {keys} != {expected}")
+    return Observation(**{attr: fields[key] for key, attr in _MARKER_FIELDS})
+
+
+def is_observation_comment(body: str, *, repo: str, pr: int) -> bool:
+    """True when *body* is a posted outsider report **about this PR**.
+
+    The distinct-PR count (FR-1004 S-4) keys on this, never on the words
+    "outsider reader" in prose. A pre-FR-1004 comment carries the complete
+    ``source | model | timestamp`` marker (authorised transition path; it has
+    no attribution fields). A new marker must round-trip through
+    :func:`parse_observation`, name a real PR (no ``-`` placeholders) and
+    match the queried *repo* and *pr* — a copied ``--input`` report or another
+    PR's report is not an observation of this one (R-1, AC-06, C-4).
+    """
+    if _OLD_MARKER_LINE.search(_lf(body)):
+        return True
+    try:
+        obs = parse_observation(body)
+    except (ReportFormatError, ValueError):
+        return False
+    return obs.repo == repo and obs.pr == pr and obs.head_sha != PLACEHOLDER
+
+
+def distinct_observed_prs(
+    comments: Iterable[tuple[int, str]], *, repo: str
+) -> set[int]:
+    """PR numbers of *repo* with at least one observation comment attributed to them."""
+    return {
+        pr for pr, body in comments if is_observation_comment(body, repo=repo, pr=pr)
+    }
+
+
+def render_report(report: OutsiderReport, obs: Observation) -> str:
     lines = [
-        f"**Derived verdict:** {verdict}  (rule: ≤ 2 items in section 3 and no hedge in section 1; computed in code)",
-        f"<!-- outsider reader | source: {source} | model: {model} | {datetime.now(UTC).isoformat()} -->",
+        f"**Derived verdict:** {obs.derived_verdict}  (rule: ≤ 2 items in section 3 and no hedge in section 1; computed in code)",
+        render_marker(obs),
         "",
         _HEADINGS[0],
         "",
@@ -169,59 +301,6 @@ def render_report(
     return "\n".join(lines) + "\n"
 
 
-# ------------------------------------------------------------------ ledger
-def ledger_row(
-    *,
-    repo: str,
-    pr: int,
-    head_sha: str,
-    input_text: str,
-    model: str,
-    prompt_digest: str,
-    tool_sha: str,
-    verdict: str,
-    s3: int,
-    s4: int,
-    report_path: str,
-) -> dict[str, Any]:
-    return {
-        "ts": datetime.now(UTC).isoformat(),
-        "repo": repo,
-        "pr": pr,
-        "head_sha": head_sha,
-        "input_sha256": hashlib.sha256(input_text.encode("utf-8")).hexdigest(),
-        "model": model,
-        "prompt_digest": prompt_digest,
-        "tool_sha": tool_sha,
-        "derived_verdict": verdict,
-        "s3_count": s3,
-        "s4_count": s4,
-        "report_path": report_path,
-    }
-
-
-def append_ledger(path: Path, row: dict[str, Any], *, mode: str) -> bool:
-    """Only validated runs against a real PR are measurements."""
-    if mode != "pr":
-        return False
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open("a", encoding="utf-8") as fh:
-        fh.write(json.dumps(row, sort_keys=True) + "\n")
-    return True
-
-
-def distinct_pr_count(path: Path) -> int:
-    if not path.is_file():
-        return 0
-    return len(
-        {
-            (json.loads(ln)["repo"], json.loads(ln)["pr"])
-            for ln in path.read_text(encoding="utf-8").splitlines()
-            if ln.strip()
-        }
-    )
-
-
 # ------------------------------------------------------------- graph tools
 def read_input(state: dict[str, Any]) -> str:
     path = Path(state["input_path"])
@@ -231,7 +310,13 @@ def read_input(state: dict[str, Any]) -> str:
 
 
 def finalize_report(state: dict[str, Any]) -> dict[str, Any]:
-    """Parse the model output, derive the verdict, write the report. Fails closed."""
+    """Parse the model output, derive the verdict, write the report. Fails closed.
+
+    The wrapper supplies the base observation fields as graph state (FR-1004
+    S-3: repo, pr, head_sha, prompt_digest, tool_sha, model); verdict and
+    counts come from the validated report; the input digest is taken over the
+    exact bytes the reader saw.
+    """
     result = state.get("outsider_result")
     output = (
         result.get("output")
@@ -242,21 +327,26 @@ def finalize_report(state: dict[str, Any]) -> dict[str, Any]:
         raise ReportFormatError(f"outsider produced no output: {result!r}")
     report = parse_report(output)
     verdict = derive_verdict(report)
+    obs = Observation(
+        ts=datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        repo=str(state["repo"]),
+        pr=str(state["pr"]),
+        head_sha=str(state["head_sha"]),
+        input_sha256=hashlib.sha256(Path(state["input_path"]).read_bytes()).hexdigest(),
+        model=str(state["model"]),
+        prompt_digest=str(state["prompt_digest"]),
+        tool_sha=str(state["tool_sha"]),
+        derived_verdict=verdict,
+        s3=len(report.section3),
+        s4=len(report.section4),
+    )
     out = Path(state["report_path"])
     out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(
-        render_report(
-            report,
-            verdict,
-            model=str(state.get("model", "gpt-5.6-sol")),
-            source=str(state["input_path"]),
-        ),
-        encoding="utf-8",
-    )
+    out.write_text(render_report(report, obs), encoding="utf-8", newline="\n")
     return {
         "path": str(out),
         "derived_verdict": verdict,
-        "s3_count": len(report.section3),
-        "s4_count": len(report.section4),
+        "s3_count": obs.s3,
+        "s4_count": obs.s4,
         "model_opinion": report.model_opinion,
     }
