@@ -87,7 +87,14 @@ def test_every_census_delete_row_is_gone():
 
 @pytest.mark.req("REQ-YG-666")
 def test_every_census_keep_row_is_still_there():
-    keeps = [r["path"] for r in _census_rows() if r["verdict"] == "keep"]
+    # The census kept its own test file (correct at census time); FR-1016 retired the
+    # tooling afterwards by a separate judgement, so that set is excluded here while the
+    # census record itself stays byte-identical (FR-1016 AC-07).
+    keeps = [
+        r["path"]
+        for r in _census_rows()
+        if r["verdict"] == "keep" and r["path"] not in FR1016_TOOLING_DELETIONS
+    ]
     missing = [p for p in keeps if not (REPO / p).exists()]
     assert missing == [], f"census keep rows missing: {missing}"
 
