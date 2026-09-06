@@ -1,4 +1,4 @@
-# Authoring brief: FR-1011 validation-only — philosopher smoke from its relocated path
+# Authoring brief: FR-1011 validation-only — philosopher and world_distill smokes from their relocated paths
 
 **Governing FR:** feature-requests/FR-1011-relocate-chaplain-live-parts.md (judged APPROVED WITH REVISIONS 2026-09-06; AC-14 three real smokes). Sibling of `fr-1011-relocate-chaplain-live-parts-brief.md`, which relocated the graphs and ran the first two smokes; split because three full-pipeline smokes in one run risk the backend's 900 s ceiling (`scripts/author_preflight.py` budget finding).
 **Prior art:** the relocated graph itself — `graphs/philosopher/graph.yaml` (moved from `.chaplain/graphs/philosopher/` by the sibling brief's run).
@@ -7,12 +7,18 @@
 
 ## Task
 
-Validate the relocated philosopher graph from its new path with a side-effect-contained real run.
+Validate the relocated philosopher and world_distill graphs from their new paths with side-effect-contained real runs. The world_distill smoke was blocked twice before (`feedparser` missing from the execution environment); the requesting session has since installed it into the interpreter that provides `yamlgraph` — do not install anything.
 
 ## Validation the authoring run must perform
 
 ```bash
 yamlgraph graph lint graphs/philosopher/graph.yaml
+yamlgraph graph lint graphs/world_distill/graph.yaml
+```
+
+```bash
+mkdir -p tmp
+yamlgraph graph run graphs/world_distill/graph.yaml --var date=$(date +%F) --var output_path=tmp/fr1011-world-context.md --full
 ```
 
 ```bash
@@ -21,7 +27,7 @@ cp docs/diary/diary-2026-09-0*.md tmp/fr1011-diary/
 yamlgraph graph run graphs/philosopher/graph.yaml --var diary_dir=tmp/fr1011-diary --var inbox_dir=tmp/fr1011-inbox --var date=$(date +%F) --full
 ```
 
-Record each command verbatim with its outcome, and list every file the run
+Record each command verbatim with its outcome. Confirm the world-context output file named by `--var output_path` was written and is non-empty, and list every file the run
 created under `tmp/fr1011-inbox/` and `tmp/fr1011-diary/` under "Artifacts"
 (they are the smoke's evidence, not authored artifacts). Confirm with
 `git status --short` that nothing tracked changed and that no file appeared
