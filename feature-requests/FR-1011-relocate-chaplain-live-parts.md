@@ -2,11 +2,17 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement (path relocation with no graph or finalizer semantic change; the inbox route changes path — R-5)
-**Status:** Judged — APPROVED WITH REVISIONS (2026-09-06). R-1..R-6 folded
-below; see [FR-1011-relocate-chaplain-live-parts.judgement.md](FR-1011-relocate-chaplain-live-parts.judgement.md).
-Implementation authority activates only after FR-1014 is **implemented,
-human-reviewed and merged** with all three authoring-guard surfaces in
-agreement (R-1), and this judgement is human-reviewed.
+**Status:** Enforced 2026-09-06 on `refactor/fr1011-relocate-chaplain-live-parts` —
+RED `878fbac6`+`8ba9fcbd`, GREEN `4ef6d9d9`; **merge blocked** on one item
+recorded in § Implementation Record: the philosopher smoke (AC-14 — fails
+identically on unchanged main; not a relocation effect; semantic repair
+forbidden by C-5, so the AC returns to judgement). The operator inbox
+manifest (AC-12) was recorded by PR #614. Judged — APPROVED WITH REVISIONS
+(2026-09-06), R-1..R-6 folded below; see
+[FR-1011-relocate-chaplain-live-parts.judgement.md](FR-1011-relocate-chaplain-live-parts.judgement.md).
+Prerequisite FR-1014 merged as `fec26941` (PR #612, operator `merge`
+verdict recorded in FR-1014 AC-14); this judgement human-reviewed by the
+merge of PR #611.
 **Effort:** 1 day
 **Requested:** 2026-09-06
 **Plan:** [FR-1010-chaplain-archival-plan.md](FR-1010-chaplain-archival-plan.md) — Phase 1 of 5; prerequisite FR-1014 **merged** (not merely judged), SHA recorded in § Implementation Record (FR-1010 C-3)
@@ -392,13 +398,24 @@ and the moved tests' files.
 - FR-1010 (plan), FR-1014 (Phase 0, prerequisite — merged), FR-1015
   (supersede FR-975/980), FR-1012 (Phase 2), FR-1013 (Phase 3)
 
-## Implementation Record
+## Implementation Record (2026-09-06, Windows host, branch `refactor/fr1011-relocate-chaplain-live-parts`)
 
-- FR-1014 merge SHA / human review: _pending_
-- Base SHA for rename check: _pending_
-- Authoring brief: _pending_; adapter report sections: _pending_
-- Lint × 3, smoke × 3: _pending_
-- Inbox manifest (operator, main checkout): **done 2026-09-06** as an independent local copy — the step cannot run on a remote device or worktree because the inbox is untracked; it was executed on the iMac main checkout ahead of the PR. 13 items frozen (`shasum -a 256 .chaplain/inbox/*.md`); 8 carries copied and `shasum -c` verified; 3 drops confirmed; 1 forward copied and verified; `ninchat_voice/` removed; new spark written. **Sources kept**: the eight `.chaplain/inbox/*.md` copies remain until this PR merges (untracked files have no recovery path, and `.chaplain/inbox/` "ceases to exist on main" is tied to the merge). Deletion of the sources + `.chaplain/inbox/` confirmed empty is the last runbook step, done at merge time. `proposals/` currently shows as `??` on main because `.gitignore` still ignores `.chaplain/inbox/`, not `/proposals/` — D-9 fixes that; nothing under `proposals/` is ever committed. Contents were not read by the agent; names + hashes only:
+- **FR-1014 merge SHA / human review:** `fec26941` (`fix(hooks): FR-1014 dir-aware authoring guard for graphs/ (#612)`); human review = operator `merge` verdict on PR #612, recorded in FR-1014 AC-14. AC-03 witnessed at that SHA in this worktree: `pytest tests/unit/test_fr1014_authoring_proof_dir_graphs.py -q --no-cov` → 39 passed before any relocation write.
+- **Base SHA for the rename check (immutable):** `fec26941`.
+- **Commits:** briefs `c1c52958`, RED `878fbac6` (`SKIP=pytest`; 32 failed, 1 passed — all `AssertionError`, no collection/import/fixture failure), RED follow-up `8ba9fcbd` (`SKIP=pytest`; 33 failed — the Path-segment form `".chaplain"` used by `triage_gate.py` had passed vacuously), resume brief `3b0f13ab`, smoke brief amendment `776d321f`, GREEN `4ef6d9d9`.
+- **Authoring briefs (D-2):** `feature-requests/authoring-briefs/fr-1011-relocate-chaplain-live-parts-brief.md` (relocations + path-only edits + lint×3 + two smokes), `…-resume-brief.md` (one comment line + the two smokes the first run recorded as blocked), `…-smoke-brief.md` (validation-only: world_distill + philosopher). Split on `scripts/author_preflight.py`'s budget finding (three full-pipeline smokes risk the 900 s backend ceiling). Each run's `tmp/draft-authoring-report.md` is copied verbatim below.
+- **Renames (AC-06):** `git diff --name-status -M90% fec26941...HEAD` reports `R100` for every graph, prompt and tool file, `R098` for `diary.py`, `R097` for `philosopher/tools.py`, `R098` for `finalize_lib.sh`, `R095` for `philosopher/graph.yaml`. **Deviation:** `graphs/philosopher/README.md` reports as `D`+`A` (similarity < 90%) because AC-08's truthful rewrite removed the dead `philosopher.sh` usage block, the watcher-relative links and the `.chaplain/` portability claim; the two criteria conflict for that one file and AC-08 was preferred.
+- **Lint × 3:** passed in run 1 (`graphs\fr_triage\graph.yaml`, `graphs\world_distill\graph.yaml`, `graphs\philosopher\graph.yaml` → `No issues found`), repeated in runs 2 and 3.
+- **Smoke — fr_triage:** run 2, `yamlgraph graph run graphs/fr_triage/graph.yaml --var fr_path=tmp/fr1011-smoke-fr.md --full` on a `tmp/` copy of FR-214 (Proposed) → passed; the copy carries one `## Triage (generated — claims requiring disposition)` heading. (Run 1 was blocked: the FR's frozen command used the committed FR-1011 copy, whose Status is Judged, and the graph appends to Proposed FRs only — the witness command in § Witness was wrong as written.)
+- **Smoke — world_distill:** run 3, `yamlgraph graph run graphs/world_distill/graph.yaml --var date=2026-09-06 --var output_path=tmp/fr1011-world-context.md --full` → passed, output 2647 bytes; `docs/world-context.md` untouched. (Runs 1 and 2 were blocked: `feedparser`, a declared `digest` extra, was absent first from `.venv` and then from the Python 3.13 interpreter that provides the adapter's `yamlgraph`; the requesting session installed it in both — an environment change, not a repository change.)
+- **Smoke — philosopher: NOT MET.** Run 3: `yamlgraph graph run graphs/philosopher/graph.yaml --var diary_dir=tmp/fr1011-diary --var inbox_dir=tmp/fr1011-inbox --var date=2026-09-06 --full` → `scan` and `analyze` complete, then `❌ Error: Object of type CopilotResult is not JSON serializable`, rc 1. Re-run directly by the session from the relocated path: identical. **Baseline on unchanged `main` (`fec26941`) from `.chaplain/graphs/philosopher/graph.yaml`: identical failure at the same point** (log `philosopher-smoke-main.log`). The dormant graph was already broken; the relocation neither caused nor can fix it — a semantic repair is forbidden by C-5 and out of D-3. AC-14 therefore returns to judgement (C-8 analogue): either FR-1011 accepts lint + compile witnesses for the dormant graph, or a separate FR repairs the philosopher's `CopilotResult` state handling before this merges. The warning `graduation_threshold='{state.graduation_threshold}' KeyError` on both trees is the same defect class (unset state variables).
+- **AC-15:** `python .github/hooks/scripts/checks/triage_gate.py` with `feature-requests/FR-1011-…md` staged → rc 0, no `FileNotFoundError`; `scripts/vscode/now.py:487` prints `yamlgraph graph run graphs/world_distill/graph.yaml`.
+- **AC-11:** `mkdir -p proposals && echo … > proposals/fr1011-fixture.md; git check-ignore -q proposals/fr1011-fixture.md` → rc 0; `git status --porcelain proposals` → empty; fixture removed.
+- **AC-09:** `bash -n scripts/finalize_merge.sh` ok; sourcing `scripts/lib/finalize_lib.sh` exposes `create_changelog_fragment create_diary_stub extract_fr_metadata update_fr_status`; `bash scripts/finalize_merge.sh` prints its usage. `tests/unit/test_finalize_merge.py` and `test_automated_post_merge_finalization.py` fail on this host exactly as on `main` (`bash` resolves to the WSL stub) — 28 failures identical in both trees; CI owns the pytest form.
+- **Tests:** `pytest tests/unit/test_fr1011_relocation.py …` — 33 passed; the focused set (`test_fr_triage`, `test_world_distill`, `test_philosopher`, `test_chaplain_graph_compile`, `test_fr382_…`, `test_fr1014_…`) green except `test_daemon_script_executable` (exec bit of `.chaplain/philosopher.sh`, fails identically on `main`). Full `pytest tests/unit -m "not slow" -n auto`: 262 failed / 18 errors on the branch vs 266 / 18 on `main` — `comm` diff: zero branch-only failures after `test_fr382` was repointed; four `main`-only failures are `world_distill` tests that pass once `feedparser` is installed.
+- **Gates:** `validate_capabilities.py --strict`, `req_coverage.py --strict`, `aggregate_capabilities.py` (no diff after commit), `aggregate_changelog.py`, `ruff check` on every changed `.py` — green. `noqa_coverage.py --strict` and the Tier-2 hook tests are CI-owed on this host (see FR-1014's record).
+- **Guard after cleanup (bash probes):** `graphs/fr_triage/graph.yaml` deny; `examples/demos/hello/graph.yaml` deny; `docs/x.md` approve. Observation: `.chaplain/graphs/watcher-plan/graph.yaml` is also denied — the FR-1014 `(^|/)graphs/[^/]+/[^/]+\.ya?ml$` arm matches `…/graphs/<name>/<file>.yaml` under any parent, so the Phase 2 watcher graphs are governed as a side effect of the dir-aware arm, not of this FR.
+- **Inbox manifest (AC-12, C-6): done** (operator, main checkout, merged to main by PR #614) — **done 2026-09-06** as an independent local copy — the step cannot run on a remote device or worktree because the inbox is untracked; it was executed on the iMac main checkout ahead of the PR. 13 items frozen (`shasum -a 256 .chaplain/inbox/*.md`); 8 carries copied and `shasum -c` verified; 3 drops confirmed; 1 forward copied and verified; `ninchat_voice/` removed; new spark written. **Sources kept**: the eight `.chaplain/inbox/*.md` copies remain until this PR merges (untracked files have no recovery path, and `.chaplain/inbox/` "ceases to exist on main" is tied to the merge). Deletion of the sources + `.chaplain/inbox/` confirmed empty is the last runbook step, done at merge time. `proposals/` currently shows as `??` on main because `.gitignore` still ignores `.chaplain/inbox/`, not `/proposals/` — D-9 fixes that; nothing under `proposals/` is ever committed. Contents were not read by the agent; names + hashes only:
 
 | File | SHA-256 | Disposition | Action |
 |---|---|---|---|
@@ -416,6 +433,196 @@ and the moved tests' files.
 | `workspace-sediment-audit.md` | `a25d471c12fec7c7de1f38556e5c9b09cf54b2ebddf716ef115304558b3e900c` | carry | copied to `proposals/`, hash verified |
 | `ninchat_voice/` | — | rm | empty since 2026-05-19; `rmdir` done |
 | `inbox-is-untracked-and-worktree-invisible.md` | `ebf15849956b825f9105d18b5c42848c5f216c14e3f5aa9d5ab0a9e19416e0ea` | new spark | written to `proposals/` in the same step |
+
+
+### Additional consumers found while tracing (path updates, not new live artifacts — C-8 not triggered)
+
+| File | What | Disposition |
+|---|---|---|
+| `tests/unit/test_automated_post_merge_finalization.py` | hardcodes `FINALIZE_LIB_SH` and asserts the finalizer sources it (CAP-114 witnesses) | repointed to `scripts/lib/finalize_lib.sh` (sixth test file) |
+| `tests/unit/test_fr382_chaplain_prompt_caching_scope_red.py` | inventories LLM prompts under `.chaplain/graphs` and expects exactly context-planner + distill_world + triage_fr | inventory spans both roots; expected set adds `graphs/enforcement/prompts/cross_check.yaml` (seventh test file) |
+| `.github/hooks/README.md:87`, `.github/skills/graph-authoring/SKILL.md:41` | publish the governed-path list with `.chaplain/graphs/*.yaml` | list updated (enumerating documentation of D-6) |
+| `graphs/philosopher/diary.py:3` | docstring "Used by diary_digest and .chaplain workflows" | reworded (not a governed path) |
+| `scripts/lib/finalize_lib.sh:14` | usage comment `source .chaplain/lib/finalize_lib.sh` | updated |
+
+### Residual `.chaplain` matches outside the FR's written allowlist (AC-07 second clause)
+
+`grep -rln '\.chaplain' .` (excluding `tmp/`, `.venv/`, `build/`) returns, beyond the allowlisted roots: 30 `capabilities/CAP-*.yaml` describing the watcher/inquisitor/inbox runtime (Phase 2 retirement census) and the generated `ARCHITECTURE.md`; `.gitignore` lines for `.chaplain/{inquisitor.log,state,inbox-fsm,drafts,processing,failed}` (Phase 2); `.github/skills/judge-fr/{MANIFEST.yaml,adapters/graph.yaml,doctrine.md}` lineage notes naming `watcher-plan` (Phase 2/3 doctrine); `pyproject.toml:230` (the `process` marker description); `scripts/fix_bare.sh:8` and `scripts/migrate_capabilities.py:198,275` (historical strings naming the old inbox); `graphs/philosopher/README.md:32` (states that no `.chaplain/` copy claim is made); `CHANGELOG.md` (untracked, generated). None names `.chaplain/graphs/{fr_triage,world_distill,philosopher}`, `.chaplain/lib/finalize_lib.sh`, `.chaplain/lib/diary.py` or `.chaplain/inbox/` (AC-07 first clause — `test_live_consumers_name_new_paths` and `test_relocated_trees_name_no_old_paths`). The written allowlist omitted `capabilities/`, `.gitignore`, `pyproject.toml`, the judge-fr skill and two scripts; recorded here as the enumerated residuals the judgement's AC-07 asks for.
+
+### Decisions and deviations
+
+1. Witness regex narrowed to the judgement's AC-07 forms (`.chaplain/graphs/{fr_triage,world_distill,philosopher}`, the two lib files, `.chaplain/inbox/`, and the Path-segment literal) after the first GREEN pass showed CAP-75 legitimately still listing the watcher graphs under `.chaplain/graphs` and `.gitignore` still listing `.chaplain/inbox-fsm/`.
+2. Three briefs instead of one (budget finding); the first run's smoke commands were wrong as frozen (non-Proposed FR; missing optional dependency) — corrected in the resume brief, not by repairing graphs.
+3. `changelog/unreleased/fr-1011-relocate-chaplain-live-parts.md` is typed `removal` (the aggregator accepts `feat|fix|removal`; the PR is a `refactor`, so the feat/fix diary and fragment gates do not fire — both artifacts exist anyway per D-10).
+4. FR-1014's truth-table rows for `graphs/fr_triage/**` relabelled `exists`; its `test_synthetic_and_fr1011_rows_are_absent` became `test_synthetic_rows_are_absent`.
+
+### Authoring report — run 1 (relocation brief), verbatim
+
+## Artifacts
+
+- `graphs/fr_triage/graph.yaml` (moved from `.chaplain/graphs/fr_triage/graph.yaml`; `R100`)
+- `graphs/fr_triage/prompts/triage_fr.yaml` (moved from `.chaplain/graphs/fr_triage/prompts/triage_fr.yaml`; `R100`)
+- `graphs/fr_triage/tools.py` (moved from `.chaplain/graphs/fr_triage/tools.py`; `R100`)
+- `graphs/world_distill/graph.yaml` (moved from `.chaplain/graphs/world_distill/graph.yaml`; `R100`)
+- `graphs/world_distill/prompts/distill_world.yaml` (moved from `.chaplain/graphs/world_distill/prompts/distill_world.yaml`; `R100`)
+- `graphs/world_distill/tools.py` (moved from `.chaplain/graphs/world_distill/tools.py`; `R100`)
+- `graphs/philosopher/README.md` (moved from `.chaplain/graphs/philosopher/README.md`; `R100`; path-only documentation edits)
+- `graphs/philosopher/diary.py` (moved from `.chaplain/lib/diary.py`; `R100`)
+- `graphs/philosopher/graph.yaml` (moved from `.chaplain/graphs/philosopher/graph.yaml`; `R100`; path/comment edits only)
+- `graphs/philosopher/prompts/analyze.yaml` (moved from `.chaplain/graphs/philosopher/prompts/analyze.yaml`; `R100`)
+- `graphs/philosopher/prompts/challenge.yaml` (moved from `.chaplain/graphs/philosopher/prompts/challenge.yaml`; `R100`)
+- `graphs/philosopher/prompts/distill.yaml` (moved from `.chaplain/graphs/philosopher/prompts/distill.yaml`; `R100`)
+- `graphs/philosopher/prompts/reflect.yaml` (moved from `.chaplain/graphs/philosopher/prompts/reflect.yaml`; `R100`)
+- `graphs/philosopher/tools.py` (moved from `.chaplain/graphs/philosopher/tools.py`; `R100`; path-only docstring/load-path edits)
+- `graphs/fr_triage/**` and `graphs/world_distill/**` contained no `.chaplain` literals when searched after relocation.
+
+## Precedent
+
+- Primary precedent: the three moved graph packages themselves; the task is relocation of committed artifacts, not new graph design.
+- Directory-style graph precedent: `graphs/enforcement/` uses a process graph under `graphs/` with adjacent prompts.
+
+## Validation
+
+- `yamlgraph graph lint graphs\fr_triage\graph.yaml` -> passed: no issues found.
+- `yamlgraph graph lint graphs\world_distill\graph.yaml` -> passed: no issues found.
+- `yamlgraph graph lint graphs\philosopher\graph.yaml` -> passed: no issues found.
+- `mkdir -p tmp` -> satisfied by existing/created `tmp` directory via PowerShell equivalent.
+- `cp feature-requests/FR-1011-relocate-chaplain-live-parts.md tmp/fr1011-smoke-fr.md` -> completed via PowerShell equivalent.
+- `yamlgraph graph run graphs\fr_triage\graph.yaml --var fr_path=tmp\fr1011-smoke-fr.md --full` -> blocked; see Blocked validation.
+- `yamlgraph graph run graphs\world_distill\graph.yaml --var date=2026-09-06 --var output_path=tmp\fr1011-world-context.md --full` -> blocked; see Blocked validation.
+- `git status --short` -> reported the directory moves; philosopher files with allowed content edits appeared as `RM`, unchanged moved files appeared as `R`.
+- `git diff --cached --name-status -M90% | grep -E '^R'` -> every moved file appeared as `R100`.
+
+## Repairs
+
+- No validation repair was applied. The lints passed, and the smoke failures require inputs or dependencies outside the allowed authoring edits.
+- The only content changes were the exhaustive path-only edits named in the brief for `graphs/philosopher/README.md`, `graphs/philosopher/graph.yaml`, and `graphs/philosopher/tools.py`.
+
+## Blocked validation
+
+- `yamlgraph graph run graphs\fr_triage\graph.yaml --var fr_path=tmp\fr1011-smoke-fr.md --full` failed at the append step with the exact error: `FR status is 'judged — approved with revisions (2026-09-06). r-1..r-6 folded' — triage appends to Proposed FRs only`. No semantic repair was made.
+- `yamlgraph graph run graphs\world_distill\graph.yaml --var date=2026-09-06 --var output_path=tmp\fr1011-world-context.md --full` failed before execution with the exact error: `Python tool load failed in strict mode (config.tool_load_mode=strict): fetch_ecosystem: world_distill requires 'feedparser' (pip install feedparser); prepare_distill_input: world_distill requires 'feedparser' (pip install feedparser); write_context: world_distill requires 'feedparser' (pip install feedparser)`. No dependency was installed during this authoring run.
+- The philosopher real smoke was intentionally not run here because the brief assigns it to `feature-requests/authoring-briefs/fr-1011-relocate-chaplain-live-parts-smoke-brief.md`.
+
+### Authoring report — run 2 (resume brief), verbatim
+
+# Artifacts
+
+- `graphs/philosopher/graph.yaml`
+
+# Precedent
+
+- Used the task brief's named prior art: `graphs/fr_triage/graph.yaml` and `graphs/world_distill/graph.yaml`.
+- The authored artifact boundary was limited to the required single comment-line edit in `graphs/philosopher/graph.yaml`; no prompt, node, edge, schema, tool, provider, or model files were edited by this run.
+
+# Validation
+
+- `yamlgraph graph lint graphs/philosopher/graph.yaml` -> passed: `No issues found`.
+- `yamlgraph graph lint graphs/fr_triage/graph.yaml` -> passed: `No issues found`.
+- `yamlgraph graph lint graphs/world_distill/graph.yaml` -> passed: `No issues found`.
+- `mkdir -p tmp; cp feature-requests/FR-214-fix-extract-variables-nested-set.md tmp/fr1011-smoke-fr.md` -> completed, but PowerShell reported `An item with the specified name ...\tmp already exists.` for `mkdir -p tmp`; the copy still proceeded.
+- `yamlgraph graph run graphs/fr_triage/graph.yaml --var fr_path=tmp/fr1011-smoke-fr.md --full` -> passed; the graph appended triage content to `tmp/fr1011-smoke-fr.md`.
+- `bash -lc 'yamlgraph graph run graphs/world_distill/graph.yaml --var date=$(date +%F) --var output_path=tmp/fr1011-world-context.md --full'` -> failed; see Blocked validation.
+- Confirmation: `tmp/fr1011-smoke-fr.md` contains 0 exact `## Triage` headings; it contains one generated heading spelled `## Triage (generated — claims requiring disposition)`.
+- Confirmation: `tmp/fr1011-world-context.md` was not written because the world_distill smoke failed.
+- Confirmation: `git status --short` shows no paths under `docs/`, `feature-requests/`, or `proposals/`.
+- Confirmation: the working tree had many tracked changes before this run; from this run, the only tracked authored path is `graphs/philosopher/graph.yaml`.
+
+# Repairs
+
+- Replaced the requested comment line in `graphs/philosopher/graph.yaml`.
+- No validation-driven repair was performed. The brief requires recording lint or smoke failures and stopping without semantic repair or package installation.
+
+# Blocked validation
+
+- Blocked command: `yamlgraph graph run graphs/world_distill/graph.yaml --var date=$(date +%F) --var output_path=tmp/fr1011-world-context.md --full`
+- Executed through Bash from PowerShell as: `bash -lc 'yamlgraph graph run graphs/world_distill/graph.yaml --var date=$(date +%F) --var output_path=tmp/fr1011-world-context.md --full'`
+- Reason: strict Python tool loading failed because `feedparser` is unavailable to the `yamlgraph` execution environment:
+  `Python tool load failed in strict mode (config.tool_load_mode=strict): fetch_ecosystem: world_distill requires 'feedparser' (pip install feedparser); prepare_distill_input: world_distill requires 'feedparser' (pip install feedparser); write_context: world_distill requires 'feedparser' (pip install feedparser)`
+- Blocked confirmation: `tmp/fr1011-world-context.md` non-empty output could not be confirmed because the command failed and the file does not exist.
+- Failed confirmation: the triage smoke copy does not contain an exact `## Triage` heading; it contains `## Triage (generated — claims requiring disposition)`, so the requested exact-heading count is 0.
+
+### Authoring report — run 3 (validation-only smoke brief), verbatim
+
+# Artifacts
+
+- `tmp/draft-authoring-report.md` - this report.
+- `tmp/fr1011-world-context.md` - world_distill smoke output; written and non-empty (2647 bytes).
+- `tmp/fr1011-diary/diary-2026-09-02-reflection-fr-954-the-host-that-could-not-see-red.md`
+- `tmp/fr1011-diary/diary-2026-09-02-reflection-fr-959-960-the-gate-the-enforcer-cannot-open.md`
+- `tmp/fr1011-diary/diary-2026-09-02-the-artifact-with-one-name.md`
+- `tmp/fr1011-diary/diary-2026-09-02-the-gatekeeper-locked-inside-the-room.md`
+- `tmp/fr1011-diary/diary-2026-09-02-the-inventory-that-counted-only-what-it-could-see.md`
+- `tmp/fr1011-diary/diary-2026-09-03-five-investigations-one-boundary.md`
+- `tmp/fr1011-diary/diary-2026-09-03-session-recap-business-plans-mcp-boundary.md`
+- `tmp/fr1011-diary/diary-2026-09-03-the-five-modules-under-yamlgraph-async-action.md`
+- `tmp/fr1011-diary/diary-2026-09-03-the-ledger-files-where-the-pain-is.md`
+- `tmp/fr1011-diary/diary-2026-09-03-the-lock-writes-half-a-pull.md`
+- `tmp/fr1011-diary/diary-2026-09-03-the-toolbelt-nobody-else-picked-up.md`
+- `tmp/fr1011-diary/diary-2026-09-04-reflection-fr-960-two-brains-one-route.md`
+- `tmp/fr1011-diary/diary-2026-09-04-reflection-fr-966-the-default-that-looked-like-a-redaction.md`
+- `tmp/fr1011-diary/diary-2026-09-04-reflection-fr-967-the-tests-that-were-cited-but-never-written.md`
+- `tmp/fr1011-diary/diary-2026-09-04-reflection-fr-982-the-project-that-was-never-created.md`
+- `tmp/fr1011-diary/diary-2026-09-04-reflection-fr-984-the-knob-that-was-already-there.md`
+- `tmp/fr1011-diary/diary-2026-09-04-reflection-fr-985-the-brief-that-didnt-change.md`
+- `tmp/fr1011-diary/diary-2026-09-04-reflection-the-vocabulary-i-searched-with.md`
+- `tmp/fr1011-diary/diary-2026-09-04-the-judge-that-never-says-no.md`
+- `tmp/fr1011-diary/diary-2026-09-04-the-opening-frame-set-the-prior.md`
+- `tmp/fr1011-diary/diary-2026-09-05-the-recap-nobody-outside-could-read.md`
+- `tmp/fr1011-diary/diary-2026-09-06-reflection-fr-1005-the-loader-that-kept-no-name.md`
+- `tmp/fr1011-diary/diary-2026-09-06-reflection-fr-1014-baseline-before-blame.md`
+- `tmp/fr1011-diary/diary-2026-09-06-the-step-that-was-not-in-the-list.md`
+- `tmp/fr1011-inbox/` - no files created.
+
+No graph, prompt, tool, documentation, or proposal artifact was authored or repaired.
+
+# Precedent
+
+- Task brief precedent: `graphs/philosopher/graph.yaml`, the relocated graph named by `feature-requests/authoring-briefs/fr-1011-relocate-chaplain-live-parts-smoke-brief.md`.
+- Validation-only run; no new graph shape was selected or adapted.
+
+# Validation
+
+- `yamlgraph graph lint graphs\philosopher\graph.yaml` - passed; exit code 0. Output included `graph.yaml - No issues found` and `All graphs passed linting`.
+- `yamlgraph graph lint graphs\world_distill\graph.yaml` - passed; exit code 0. Output included `graph.yaml - No issues found` and `All graphs passed linting`.
+- `New-Item -ItemType Directory -Force -Path tmp | Out-Null; yamlgraph graph run graphs\world_distill\graph.yaml --var date=2026-09-06 --var output_path=tmp\fr1011-world-context.md --full` - passed; exit code 0.
+- `New-Item -ItemType Directory -Force -Path tmp\fr1011-diary,tmp\fr1011-inbox | Out-Null; Copy-Item docs\diary\diary-2026-09-0*.md tmp\fr1011-diary\ -Force; yamlgraph graph run graphs\philosopher\graph.yaml --var diary_dir=tmp\fr1011-diary --var inbox_dir=tmp\fr1011-inbox --var date=2026-09-06 --full` - failed; exit code 1. Output ended with `Error: Object of type CopilotResult is not JSON serializable`.
+- `git --no-pager status --short -- docs\diary` - passed; no output, so no new or modified file appeared under `docs/diary/`.
+- `git --no-pager status --short -- proposals` - passed; no output, so no new or modified file appeared under `proposals/`.
+- `git --no-pager status --short` - completed, but the workspace was not clean: it reported tracked modifications and renames already present in the working tree, including FR-1011 relocation paths. The requested clean tracked-state confirmation was therefore not satisfied by repository status.
+
+# Repairs
+
+- None. The task brief forbids graph, prompt, or tool repairs in this validation-only run.
+
+# Blocked validation
+
+- `New-Item -ItemType Directory -Force -Path tmp\fr1011-diary,tmp\fr1011-inbox | Out-Null; Copy-Item docs\diary\diary-2026-09-0*.md tmp\fr1011-diary\ -Force; yamlgraph graph run graphs\philosopher\graph.yaml --var diary_dir=tmp\fr1011-diary --var inbox_dir=tmp\fr1011-inbox --var date=2026-09-06 --full` - blocked by runtime serialization failure: `Object of type CopilotResult is not JSON serializable`.
+- `git --no-pager status --short` cleanliness confirmation - blocked because repository status already contains tracked modifications and renames; no graph or prompt repair was attempted.
+
+### Acceptance criteria — status (judgement AC-01…AC-19)
+
+| AC | Status | Evidence |
+|---|---|---|
+| AC-01 folded, Type wording | met | header |
+| AC-02 FR-1014 merged first, SHA recorded | met | `fec26941`, PR #612 |
+| AC-03 three-surface table before deleting the arm | met | 39 passed at `fec26941` in this worktree |
+| AC-04 brief committed, cited, forbids semantic rewrites | met | three briefs, `c1c52958` / `3b0f13ab` / `776d321f` |
+| AC-05 RED collects, assertion-only, `SKIP=pytest` | met | `878fbac6`, `8ba9fcbd` |
+| AC-06 every pair `R` ≥ 90 | met except README | `R095`–`R100`; README `D`+`A` (deviation above) |
+| AC-07 live list clean; residuals enumerated | met | witnesses + enumeration above |
+| AC-08 philosopher package truthful | met | run 1/2 diffs: comments, docstrings, README |
+| AC-09 finalizer sources `scripts/lib`, behaviour unchanged | met (pytest CI-owed) | bash witness; CAP-38/45 untouched |
+| AC-10 CAPs + ARCHITECTURE + strict gates | met | gates row |
+| AC-11 `/proposals/` ignored, fresh-checkout command works | met | check-ignore rc 0 |
+| AC-12 inbox manifest | met | operator runbook on the iMac main checkout, 13 items + SHA-256, merged to main by PR #614 (table above) |
+| AC-13 lint × 3 | met | run 1 (repeated 2, 3) |
+| AC-14 three real smokes | **2 of 3** | fr_triage run 2, world_distill run 3; philosopher fails identically on main |
+| AC-15 triage hook import, `now.py` | met | rc 0; line 487 |
+| AC-16 focused + full suite | met on branch-vs-main parity | 0 branch-only failures; 28 platform failures identical |
+| AC-17 stub gone, fragment, diary | met | `examples/philosopher/` deleted; fragment; diary (below) |
+| AC-18 no new live artifact | met | seven consumer files repointed; none is a new live artifact |
+| AC-19 human review of hook/pre-commit deletion, Scripture path edit, report, manifest | **NOT MET yet** | recorded at the PR |
 
 ## Judgement (2026-09-06)
 
