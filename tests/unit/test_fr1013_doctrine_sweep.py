@@ -104,7 +104,10 @@ def test_residual_matches_stay_within_the_frozen_inventory():
     new = (
         matched
         - _frozen_files()
-        - {"docs/census/fr1013-inventory-at-base-36591389.dispositions.md"}
+        - {
+            "docs/census/fr1013-inventory-at-base-36591389.dispositions.md",
+            "tests/unit/test_fr1013_doctrine_sweep.py",
+        }
     )
     assert not new, f"files naming the retired runtime that were not in the BASE inventory: {sorted(new)}"
 

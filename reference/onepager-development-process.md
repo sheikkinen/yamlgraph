@@ -8,7 +8,7 @@ Ten commandments that govern every agent and every human working on this codebas
 
 | # | Law | Enforcement |
 |---|-----|-------------|
-| 1 | Research before coding — cheapest code is unwritten code | Chaplain pipeline |
+| 1 | Research before coding — cheapest code is unwritten code | FR `**Research:**` field; judge research gate |
 | 2 | Demonstrate with working examples, never abstract prose | `demo-gate` CI check |
 | 3 | Config is truth; code is logic — all prompts in YAML | `inline-llm-check` hook |
 | 4 | Conform before extending — read existing patterns first | Code review |
@@ -23,26 +23,24 @@ Ten commandments that govern every agent and every human working on this codebas
 
 ---
 
-## The Chaplain Pipeline
+## The Rite
 
-Automated quality loop that transforms topics into reviewed feature requests and diary entries.
+Operator-driven loop that turns a spark into a judged plan, an enforced change, and a diary entry.
 
 ```
-.chaplain/inbox/<topic>.md
-         │
-         ▼  (watch.sh polls every 5s)
-  ┌──────────────────────────────────────────────────┐
-  │  yamlgraph graph run examples/copilot/graph.yaml │
-  │                                                  │
-  │  Plan ──► Judge ──► Summarize ──► Write Diary    │
-  │  (draft FR)  (critique)  (LLM)   (Python tool)  │
-  └──────────────────────────────────────────────────┘
+proposals/<topic>.md              (untracked spark)
          │
          ▼
-  feature-requests/FR-XXX.md  +  docs/diary/YYYY-MM-DD-*.md
+  feature-requests/FR-XXX.md      ── scripts/judge.sh ──► FR-XXX.judgement.md
+         │
+         ▼  worktree: RED, then GREEN
+  PR ── scripts/outsider.sh ── scripts/review.sh ──► human merge
+         │
+         ▼
+  docs/diary/YYYY-MM-DD-reflection-fr-XXX-*.md
 ```
 
-**To submit a proposal:** drop a markdown file into `.chaplain/inbox/` — or open a GitHub Issue with the `chaplain` label (auto-imported). The pipeline runs Research → Plan → Judge → Enforce → Distill automatically. Rejected FRs are skipped by the enforce step.
+**To submit a proposal:** write a markdown spark into `proposals/` (`mkdir -p proposals && cat > proposals/<topic>.md`). The rite runs Research → Plan → Judge → Enforce → Distill; each word is defined in `command-book.md`.
 
 ---
 
@@ -87,7 +85,6 @@ pre-commit install --hook-type commit-msg
 
 | Gate | What it does |
 |------|--------------|
-| `inquisitor-background` | Launches async audit of the codebase after successful commit |
 
 ---
 
@@ -123,8 +120,8 @@ Test files  (@pytest.mark.req("REQ-YG-XXX"))
 Pre-commit: req_coverage.py --strict  +  CI: req_coverage.py
     │  enforce: every REQ has ≥ 1 test; every test has a REQ tag
     ▼
-Inquisitor + Chaplain
-    │  audit for drift; findings flow back to doctrine
+Diary → Philosopher
+    │  recurring heuristics graduate to doctrine
     └──────────────────────────────► back to Scripture
 ```
 
@@ -135,7 +132,7 @@ Every link is mechanically enforced. You cannot commit a test without `@pytest.m
 ## The Developer Flow
 
 ```
-1. Write topic → .chaplain/inbox/          (Chaplain drafts FR)
+1. Write spark → proposals/                (then draft the FR)
 2. Review FR in feature-requests/FR-XXX.md
 3. Write failing test (RED) — commit with SKIP=pytest
 4. Implement fix (GREEN) — pre-commit gates run
@@ -143,7 +140,7 @@ Every link is mechanically enforced. You cannot commit a test without `@pytest.m
    └─ conventional-pre-commit, feat-requires-fr, changelog-required all check
 6. Push PR → CI gates run (commitlint, test, changelog-gate, diary-gate …)
 7. Squash merge → PR title becomes the commit on main
-8. Post-commit: Inquisitor launches async audit
+8. scripts/outsider.sh + scripts/review.sh on the PR (advisory)
 9. Add diary entry to docs/diary/ (diary-gate blocks merge if missing)
 ```
 
@@ -151,4 +148,4 @@ Every link is mechanically enforced. You cannot commit a test without `@pytest.m
 
 ---
 
-*Sources: `CLAUDE.md`, `.pre-commit-config.yaml`, `docs/ebook/v3/`, `docs/context/chaplain-system.md`*
+*Sources: `CLAUDE.md`, `.pre-commit-config.yaml`, `docs/ebook/v3/`, `docs/archive/chaplain-system.md`*

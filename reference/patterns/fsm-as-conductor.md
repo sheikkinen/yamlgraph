@@ -166,8 +166,8 @@ setup → plan → capture_fr → judge → enforce_session
 - Graphs are multi-node pipelines (enforce-session: load map → plan context → assemble → enforce)
 - Three-model separation: plan (gpt-5.3-codex), judge (claude-sonnet-4), enforce (gpt-5.3-codex)
 - Validate loop with retry ceiling (max 5)
-- Location: `.chaplain/`
-- Context: `docs/context/chaplain-system.md`
+- Location: archived — `docs/archive/chaplain.md` (retired 2026-09)
+- Context: `docs/archive/chaplain-system.md`
 
 ## Scaling Dimensions
 
@@ -232,7 +232,7 @@ FSM+Graph is structurally closest to the **Saga pattern with non-deterministic s
 ## See Also
 
 - [examples/fsm-router/](../examples/fsm-router/) — Canonical example with README
-- [docs/context/chaplain-system.md](../docs/context/chaplain-system.md) — Chaplain architecture
+- [docs/archive/chaplain-system.md](../docs/archive/chaplain-system.md) — Chaplain architecture (archived)
 - [projects/ninchat_voice/docs/context/voice-projects.md](../projects/ninchat_voice/docs/context/voice-projects.md) — Voicebot architecture
 - [Interrupt Nodes](interrupt-nodes.md) — YAMLGraph-native alternative for human-in-loop
 - [Checkpointers](checkpointers.md) — State persistence for multi-turn graphs

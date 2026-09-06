@@ -2,7 +2,7 @@
 
 **Priority:** LOW
 **Type:** Enhancement (docs; Scripture edit — human gate C-4)
-**Status:** Judged — APPROVED WITH REVISIONS (round 1, 2026-09-06), then
+**Status:** Enforced 2026-09-06 on `feat/fr1013-doctrine-sweep` from BASE `36591389` — step 0 `77a702ac` (inventory), RED `9417c831` (SKIP=pytest, 9 assertions fail / 11 pass), GREEN in the following commit; awaiting `scripts/outsider.sh` + `scripts/review.sh` + the AC-11 human read before merge. Previously: Judged — APPROVED WITH REVISIONS (round 1, 2026-09-06), then
 **SPLIT** (round 2, 2026-09-06) after review P5 added a closure script:
 Concern A (this docs-only sweep) continues here with R-1 folded; Concern B
 (post-merge closure automation) is **not** filed — see § Post-merge closure.
@@ -262,11 +262,22 @@ doctrine: review output is advisory).
 | Field | Value |
 |---|---|
 | `BASE` (FR-1012 merge SHA) + human-review ref | `36591389e2fdfedf9ba5ae6362effad1c64cd06e` — PR #623, merged by the operator 2026-09-06 |
-| § Inventory at BASE commit | _pending_ |
-| Traceability: test function → REQ → quoted text | _pending_ |
-| Surviving old-string witness tests | _pending_ |
-| Human review (AC-11) | _pending_ |
+| § Inventory at BASE commit | `77a702ac` — `docs/census/fr1013-inventory-at-base-36591389.{txt,dispositions.md}` |
+| Traceability: test function → REQ → quoted text | see table below |
+| Surviving old-string witness tests | `test_concurrency_safety_doc.py`, `test_fr748_fr_atlas.py`, `test_knowledge_graph_fr193.py` (present after FR-1012; `test_chaplain_readme_documentation.py` was deleted by the census). Their strings (`docs/concurrency-safety.md`, the FR atlases, the Knowledge Graph) are all in the keep set — untouched; all three pass |
+| Human review (AC-11) | _pending — operator, on the PR_ |
 | Post-merge closure (AC-13): merge SHA, FR-1010 ticks | _pending (operator)_ |
+
+**Traceability (R-5).** REQ-YG-192 tags only the Knowledge-Graph-unchanged assertion. No CAP or REQ was invented.
+
+| Test function | REQ | Quoted requirement text (`ARCHITECTURE.md` / CAP) |
+|---|---|---|
+| `test_residual_matches_stay_within_the_frozen_inventory`, `test_edit_set_files_no_longer_name_the_retired_route`, `test_sermon_heading_renamed_and_steps_unchanged`, `test_sources_clause_no_longer_names_the_chaplain_pipeline`, `test_development_process_describes_the_operator_route`, `test_development_process_measurement_sentence_is_byte_identical_to_base`, `test_audit_index_has_exactly_one_chaplain_row_pointing_at_the_archive`, `test_chaplain_system_doc_moved_to_archive_and_linked` | REQ-YG-666 (CAP-264) | "The Chaplain runtime is absent from main; its source is reachable only via the chaplain-archive tag … and the archived repository" — these assertions witness that the *documentation* agrees with that state: no live doctrine or reference presents the absent runtime as the executable route, and every pointer resolves to the archive. This is the closest surviving REQ; if the reviewer holds that documentation consistency is not "directly covered" by REQ-YG-666, this FR returns to judgement per R-5 rather than inventing a REQ. |
+| `test_knowledge_graph_block_is_byte_identical_to_base` | REQ-YG-192 (CAP-72) | "… all descriptions are one-liners following k[nowledge-graph style]; no existing traps/cures/process entries changed" — the KG block hash equals BASE's |
+| `test_judge_doctrine_ramp_mirror_is_byte_identical` | REQ-YG-613 (CAP-244) | "every mirror_exact entry matches its live counterpart byte-for-byte" |
+
+**Deviations.** (1) The R-1 grep at BASE returned 2586 matches in 261 files — far wider than the planning table's 17 — because `chaplain|Chaplain|watcher2?\b|inquisitor` matches historical prose (diaries, plans, book chapters, capability records) and the unrelated FR-885 worktree watcher; dispositions are per file (one disposition covering all matches in the file) and live in `docs/census/` because 261 rows would breach the 450-line file gate. (2) Three doctrine/reference files not in the planning table were found live at BASE and added to the edit set at inventory time, before any edit: `.github/skills/graph-authoring/{doctrine.md,SKILL.md}` ("escalate to Chaplain"), `reference/command-book.md` (names the heading), `reference/patterns/fsm-as-conductor.md` (links the moved file). (3) `docs/confessions.md` gained CONF-462…465 in a separate commit (`dc9a108e`): FR-1012 shipped `# noqa: S603` lines citing confession IDs that were never written, and the repo-wide `noqa_coverage --strict` gate blocked every commit on this branch; the script itself was not touched (the hook's ruff would reformat 268 lines of it). (4) Stale `.chaplain` *defaults in code* found by the inventory are outside a docs-only FR and filed as `proposals/stale-chaplain-paths-in-code.md`.
+
 
 ## Judgement (2026-09-06)
 

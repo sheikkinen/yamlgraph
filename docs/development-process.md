@@ -21,10 +21,8 @@ traceable, reflected-upon code — and the reflections feed back into the doctri
 ```mermaid
 flowchart TB
     subgraph INTAKE["Intake"]
-        H[Human proposal<br/>.chaplain/inbox/*.md]
-        GH[GitHub Issue<br/>label: chaplain]
-        PH[Philosopher proposals<br/>from diary patterns]
-        IQ[Inquisitor proposals<br/>from audit findings]
+        H[Human spark<br/>proposals/*.md]
+        PH[Philosopher proposals<br/>graphs/philosopher, dormant]
     end
 
     subgraph DOCTRINE["Doctrine (constraints)"]
@@ -35,11 +33,11 @@ flowchart TB
         SK[.github/skills/<br/>doctrine.md + adapters]
     end
 
-    subgraph PIPELINE["Chaplain pipeline (autonomous)"]
-        P[Plan → FR + RED tests]
-        J[Judge → approve / revise / reject]
-        E[Enforce → implement GREEN]
-        V[Validate → gates + sanity + diary]
+    subgraph RITE["Rite (operator-driven)"]
+        P[Plan → FR via scripts/author.sh for graphs]
+        J[Judge → scripts/judge.sh]
+        E[Enforce → worktree, RED then GREEN]
+        V[Review → scripts/review.sh → human merge]
     end
 
     subgraph GATES["Mechanical enforcement"]
@@ -56,12 +54,11 @@ flowchart TB
         CAP[capabilities/CAP-*.yaml]
     end
 
-    INTAKE --> PIPELINE
-    DOCTRINE -.constrains.-> PIPELINE
-    PIPELINE --> GATES
+    INTAKE --> RITE
+    DOCTRINE -.constrains.-> RITE
+    RITE --> GATES
     GATES --> OUTPUT
     D -->|Philosopher scans<br/>3+ recurrences| PH
-    M -->|Inquisitor audits<br/>~24h cadence| IQ
     D -->|graduation| S
 ```
 
@@ -118,61 +115,30 @@ defined in a skill* — hook-side detail in [.github/hooks/README.md](../.github
 
 ---
 
-## 3. The Chaplain: Autonomous Plan → Judge → Enforce
+## 3. The rite as practised: Plan → Judge → Enforce → Review
 
-A dual-FSM system (built on `statemachine-engine`) runs YAMLGraph graphs to develop YAMLGraph —
-full dogfooding. Started via `.chaplain/scripts/start-system.sh`.
+The process is operator-driven. One person types one-word verdicts
+(`reference/command-book.md`); the agent executes each word through a sole route and leaves a
+witness artifact:
 
-```mermaid
-stateDiagram-v2
-    direction TB
-    state "Dispatcher FSM (poll 10s)" as DISP {
-        idle --> syncing_inbox : timeout
-        syncing_inbox --> processing_topic : topic_found
-        syncing_inbox --> auditing : audit_needed (24h)
-        syncing_inbox --> idle : no_topics
-        auditing --> idle : inquisitor done
-        processing_topic --> idle : pipeline exit
-    }
+1. **Plan** — the FR under `feature-requests/`; graphs and prompts only through
+   `scripts/author.sh` with a committed brief.
+2. **Judge** — `scripts/judge.sh <fr>` renders `<fr>.judgement.md`; never in the author's
+   session; re-run after any material amendment.
+3. **Enforce** — in a worktree (`scripts/worktree.sh new`), RED commit before GREEN, exactly
+   the frozen deliverables.
+4. **Review** — `scripts/outsider.sh <pr>` (a reader with no context) then
+   `scripts/review.sh <pr> <fr>` (the informed adversary); both advisory.
+5. **Merge** — the human's word, then CI; squash to `main`.
 
-    state "Pipeline Worker FSM (per topic, git worktree)" as PIPE {
-        setup : setup — worktree + branch feat/watcher2-*
-        plan : plan — gpt codex writes FR + RED tests
-        capture_fr : capture_fr — locate new FR-*.md
-        judge : judge — sonnet, FRESH session (anti-anchoring)
-        enforce : enforce — codex, 1h session (impl + pre-commit + pytest loop)
-        micro : micro gates — changelog fragment + PR title (deterministic)
-        sanity : sanity_check — quality review + diary stub
-        vgate : validate_gate — pre-commit / title / freshness / diary parity
-        vfix : validate_fix — fresh remediation session
+Plan and Judge run in separate model sessions so the judge is not anchored on the author's
+narrative (`judge_as_junior_pr`); deterministic gates (changelog fragment, PR title, diary)
+run at commit and CI, before any model-driven remediation.
 
-        setup --> plan
-        plan --> capture_fr
-        capture_fr --> judge
-        judge --> enforce : APPROVE
-        judge --> plan : AMEND / SPLIT
-        judge --> [*] : REJECT → .chaplain/failed/
-        enforce --> micro
-        micro --> sanity
-        sanity --> vgate
-        vgate --> [*] : pass → post-merge
-        vgate --> vfix : fix_needed (max 5)
-        vfix --> sanity
-    }
-```
-
-Key design decisions encoded in the FSM:
-
-- **Separation of judgement**: Plan and Judge run in *separate sessions with different models*
-  to prevent anchoring bias — the Judge reviews the FR as an adversarial junior-PR reviewer
-  (`judge_as_junior_pr`).
-- **Deterministic before expensive**: cheap micro-gates (changelog, title) run before any LLM
-  remediation loop.
-- **Topic queue** = filesystem state machine: `inbox/ → processing/ → done/ | failed/`.
-- **Post-merge finalization** (`post_merge.sh`): create/reuse PR → wait CI (with up to 2
-  remediation attempts) → squash-merge → consume inbox → rebase local main → teardown worktree.
-- **Remote intake**: GitHub Issues labeled `chaplain` are imported (author allowlist, size cap)
-  and closed with commit reference on merge.
+An autonomous FSM (the Chaplain) ran the same rite unattended from February to July 2026 and was
+retired in September 2026 (FR-1010 … FR-1013); its design is preserved in
+[docs/archive/chaplain-system.md](archive/chaplain-system.md) and its source in
+[docs/archive/chaplain.md](archive/chaplain.md).
 
 ### 3.1 Reality check: the manual rite dominates
 
@@ -296,12 +262,9 @@ The process improves itself through a mechanical graduation pipeline.
 ```mermaid
 flowchart LR
     WORK[Every FR completion] -->|diary-gate forces| DIARY["docs/diary/ reflection<br/>Trap · Heuristic · Seed"]
-    MAIN[Recent commits on main] -->|~24h cadence| INQ["Inquisitor<br/>.chaplain/inquisitor.sh<br/>audit vs Scripture"]
-    INQ -->|COMPLIANT / DRIFT / VIOLATION| DIARY
-    INQ -->|"persistent violation (3+ audits)<br/>--propose"| INBOX[.chaplain/inbox/]
     DIARY -->|30-day scan,<br/>3+ recurrences| PHIL["Philosopher<br/>scan → analyze → distill →<br/>challenge (devil's advocate) → propose"]
-    PHIL --> INBOX
-    INBOX -->|Chaplain pipeline| SCRIPT["Scripture amendment<br/>trap/cure graduated to doctrine"]
+    PHIL --> INBOX[proposals/]
+    INBOX -->|FR via judge.sh| SCRIPT["Scripture amendment<br/>trap/cure graduated to doctrine"]
     SCRIPT -.->|constrains all future work| WORK
 ```
 
@@ -327,7 +290,7 @@ YAMLGraph is exercised by its own development process at every level:
 
 | Layer | Dogfooding instance |
 |---|---|
-| Chaplain plan/judge/enforce/diary phases | Each is a YAMLGraph graph (`.chaplain/graphs/`) with copilot nodes |
+| Judge / review / authoring / outsider adapters | Each is a YAMLGraph graph (`.github/skills/*/adapters/graph.yaml`) with copilot or llm nodes; `fr_triage` and `world_distill` live in `graphs/` |
 | Philosopher & diary-index | YAMLGraph graphs over `docs/diary/` |
 | **Autogenerated books** | [examples/dungeon_master](../examples/dungeon_master) generates novel-length fiction (cards → synopsis → chapters → book); [examples/ebook](../examples/ebook) generates a 9-chapter eBook about YAMLGraph's own doctrine via a Write→Judge→Amend loop |
 | Demos as proofs | `examples/demos/` must ship `demo-output.log` in PR diffs (demo-gate) — *"code that has not been run must not be demoed"* |
