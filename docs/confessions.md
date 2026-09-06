@@ -2027,3 +2027,27 @@ The ID ranges are:
 - **Code**: S102
 - **Sin**: `exec()` of the `def governed_path` text extracted from `.github/hooks/scripts/pre-command-guard.sh`'s Python heredoc.
 - **Penance**: FR-1014 witness: the predicate lives inside a bash heredoc and cannot be imported; executing the repository's own hook source (read from the tree, not from input) is the only way to assert it row-for-row against `check_authoring_proof.GOVERNED` on hosts that cannot exec the bash hook. Namespace is limited to `re`.
+
+### CONF-462
+- **File**: [examples/demos/corpus_census/adapters/chaplain_adapters.py](../examples/demos/corpus_census/adapters/chaplain_adapters.py#L57)
+- **Code**: S603
+- **Sin**: `subprocess.run` of a fixed `git` argument list without `shell=True`.
+- **Penance**: FR-1012 census adapter: the argv is a constant list (`git ls-files` / `git show`), no user input reaches it, `check=True`; the discovery rule must read the committed tree, not the working copy. Entry added by FR-1013 — the FR-1012 line cited this ID but the confession was never written.
+
+### CONF-463
+- **File**: [scripts/chaplain_census.py](../scripts/chaplain_census.py#L75)
+- **Code**: S603
+- **Sin**: `subprocess.run(["git", *argv])` without `shell=True`.
+- **Penance**: FR-1012 census: constant `git` argv (`rev-parse`, `ls-files`) to pin the source SHA; `check=True`. Entry added by FR-1013 — the FR-1012 line cited this ID but the confession was never written.
+
+### CONF-464
+- **File**: [scripts/chaplain_census.py](../scripts/chaplain_census.py#L91)
+- **Code**: S603
+- **Sin**: `subprocess.run(["git", "merge-base", "--is-ancestor", sha, head])` without `shell=True`.
+- **Penance**: (the source line still cites CONF-463 — left untouched to keep the script out of a docs diff.) FR-1012 census: the prerequisite-merge ancestry gate; `sha`/`head` are validated hex refs, `check=False` with the return code read explicitly. Entry added by FR-1013.
+
+### CONF-465
+- **File**: [scripts/chaplain_census.py](../scripts/chaplain_census.py#L158)
+- **Code**: S603
+- **Sin**: `subprocess.run(cmd, ...)` of the constructed `yamlgraph graph run` argv without `shell=True`.
+- **Penance**: (source line cites CONF-463; see above.) FR-1012 census: sole invocation surface; argv is a list built from constants and the frozen manifest path, `timeout=TIMEOUT_S`, `check=False`, output reconciled fail-closed. Entry added by FR-1013.
