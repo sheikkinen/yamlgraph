@@ -199,18 +199,18 @@ def test_reduce_writes_artifact_with_frozen_schema(tools, tmp_path):
 
 @pytest.mark.req("REQ-YG-623")
 def test_reduce_preserves_conflicting_rows(tools, tmp_path):
+    """FR-1005 re-homed to canonical five-slot input: the subtractionist slot
+    dissents on the os-infra candidate; both rows survive, nothing is voted."""
     findings = _five_findings()
-    findings.append(
-        _finding(
-            persona="subtractionist",
-            candidate="OS permission bit on the governed path",
-            solution_class="os-permissions",
-            verdict="dissent",
-            precedent="FR-889: permission bit is bypassable by owner",
-        )
+    findings[3] = _finding(
+        persona="subtractionist",
+        candidate="OS permission bit on the governed path",
+        solution_class="os-permissions",
+        verdict="dissent",
+        precedent="FR-889: permission bit is bypassable by owner",
     )
     result = _reduce(tools, findings, tmp_path)
-    assert result["rows"] == 6, "disagreement must be preserved as rows, never voted"
+    assert result["rows"] == 5, "disagreement must be preserved as rows, never voted"
     text = (tmp_path / "tmp" / "draft-alternatives.md").read_text(encoding="utf-8")
     assert text.count("OS permission bit on the governed path") == 2
 
@@ -233,10 +233,18 @@ def test_reduce_fails_closed_on_librarian_without_url(tools, tmp_path):
 
 @pytest.mark.req("REQ-YG-623")
 def test_reduce_fails_closed_on_empty_cell(tools, tmp_path):
+    """FR-1005 re-homed: an empty cell is a model-owned defect, so the row is
+    contained (never written, never repaired) and the run keeps four rows."""
     findings = _five_findings()
     findings[1]["precedent"] = ""
-    with pytest.raises(ValueError, match="empty"):
-        _reduce(tools, findings, tmp_path)
+    result = _reduce(tools, findings, tmp_path)
+    assert result["rows"] == 4
+    text = (tmp_path / "tmp" / "draft-alternatives.md").read_text(encoding="utf-8")
+    assert "schema change dissolving the parse" not in text.split("|---|")[-1]
+    failed_line = next(
+        ln for ln in text.splitlines() if ln.startswith("- personas failed:")
+    )
+    assert "data_process_finding" in failed_line and "empty" in failed_line
 
 
 @pytest.mark.req("REQ-YG-623")
@@ -335,7 +343,9 @@ def test_research_sentinel_exit_70(tmp_path):
 def test_research_fresh_lock_exit_73(tmp_path):
     lock = tmp_path / "tmp" / ".research.lock"
     lock.mkdir(parents=True)
-    (lock / "holder").write_text("pid=99999 started=2026-08-26T00:00:00Z\n", encoding="utf-8")
+    (lock / "holder").write_text(
+        "pid=99999 started=2026-08-26T00:00:00Z\n", encoding="utf-8"
+    )
     result = _run_wrapper([str(CLEAN_BRIEF)], tmp_path, None)
     assert result.returncode == 73
     assert "pid=99999" in result.stderr
@@ -346,9 +356,9 @@ def test_research_preflight_blocks_contaminated_brief(tmp_path):
     stub = _write_stub(tmp_path / "yg", 'touch "$RESEARCH_WORKDIR/tmp/graph-ran"')
     result = _run_wrapper([str(CONTAMINATED_BRIEF)], tmp_path, stub)
     assert result.returncode == 64
-    assert not (
-        tmp_path / "tmp" / "graph-ran"
-    ).exists(), "preflight must run before any tokens are spent"
+    assert not (tmp_path / "tmp" / "graph-ran").exists(), (
+        "preflight must run before any tokens are spent"
+    )
 
 
 @pytest.mark.req("REQ-YG-623")

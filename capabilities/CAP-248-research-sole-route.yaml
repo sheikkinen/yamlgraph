@@ -1,7 +1,7 @@
 name: Research Sole Route (Closed-Input Alternatives)
 id: CAP-248
 status: active
-fr: FR-890, FR-896, FR-926, FR-938
+fr: FR-890, FR-896, FR-926, FR-938, FR-1005
 feature_request: feature-requests/FR-890-research-sole-route-closed-input-alternatives.md
 description: >
   scripts/research.sh runs the examples/demos/research-route map+reduce
@@ -51,5 +51,30 @@ requirements:
       PipelineError and dict entries alike, ignoring unstructured ones
       and preserving the terse missing-key message when the channel is
       empty (FR-926).
+    modules:
+      - examples
+  - id: REQ-YG-665
+    description: >
+      Research route row-failure containment (FR-1005): gather_findings
+      emits exactly one entry per canonical persona slot, and a missing
+      persona key becomes a typed FailedPersona record (outcome, canonical
+      state_key, non-empty cause) only when exactly one recorded error
+      belongs to that key's explicitly mapped graph node and is a
+      model-owned structured-output/schema validation failure; the
+      librarian, zero or ambiguous matches, and non-model failures stay
+      fatal with FR-926's diagnostics. The reducer attributes by slot: a
+      present finding that fails PersonaFinding validation (over-length,
+      closed-enum miss, empty cell) is contained with a cause naming the
+      field and Pydantic error type, never truncated or repaired; more
+      findings than slots, non-mapping entries, misplaced records, a
+      failed librarian, two failures, fewer than four valid or three
+      grounded rows, fabricated precedent and librarian reconciliation
+      failures raise before any artifact is written. The artifact carries
+      JSON accounting (persona keys executed / personas failed) whose
+      invariants — unique known keys, disjoint, conserved against the
+      five persona keys, row count equal to executed count, non-empty
+      cause, at most one failure, librarian executed, no failure line on
+      a full run — are enforced by the reducer and re-checked by
+      research_preflight.verify_artifact with mirrored constants.
     modules:
       - examples
