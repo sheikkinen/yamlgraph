@@ -154,11 +154,17 @@ under FR-1010`** is filed and merged **before** FR-1012. It sets both FRs'
 Status to `Superseded by FR-1010`, retires their CAP/REQ claims (verify
 with `grep -oE 'CAP-[0-9]+|REQ-YG-[0-9]+'` on both FRs at filing — the
 2026-09-06 read shows only CAP-170 / REQ-YG-580 referenced), and states
-the replacement for direct Plan/Enforce ID allocation. The de-facto
-replacement already in force since 2026-04-19 — `max(main + all open PR
-heads) + headroom`, mechanically enumerated at filing (`one_session_one_repo`,
-`collision_by_increment`) — is named as the contract; FR-1015 may not
-introduce a new allocator. FR-1012 may then delete `.chaplain/id-registry.yaml`,
+the replacement for direct Plan/Enforce ID allocation. The **canonical
+replacement-contract sentence** — the one and only wording FR-1015 may
+insert into FR-975/FR-980 (review P6, 2026-09-06) — is:
+
+> Direct Plan/Enforce CAP/REQ allocation remains mechanical enumeration at
+> filing: `max(ids on main + all open PR heads) + headroom`. FR-701's
+> `scripts/validate_capabilities.py::validate_registry()` remains the
+> post-hoc duplicate gate. No new allocator is introduced.
+
+This is the de-facto practice since 2026-04-19 (`one_session_one_repo`,
+`collision_by_increment`). FR-1012 may then delete `.chaplain/id-registry.yaml`,
 `scripts/id_registry.py`, `scripts/validate_id_registry.py`, the
 `validate-id-registry` hook and their tests, under the same census
 discipline as every other Phase 2 deletion (AC-09). FR-701's
@@ -297,7 +303,7 @@ the legacy ID artifacts `delete` with a committed authority behind it.
 
 ### Phase 2 — FR-1012 `chore(chaplain): subtree-split and remove runtime`
 
-Filed only after FR-1015 has merged and FR-1011 has merged with its inbox
+Enforced only after FR-1015 has merged and FR-1011 has merged with its inbox
 manifest recorded (C-5). Human review before merge for repo
 creation/archive, tag push, mass deletion, hook removal (C-4).
 

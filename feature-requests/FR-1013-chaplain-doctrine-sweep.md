@@ -2,10 +2,13 @@
 
 **Priority:** LOW
 **Type:** Enhancement (docs; Scripture edit — human gate C-4)
-**Status:** Judged — APPROVED WITH REVISIONS (2026-09-06). R-1..R-5 folded
-below; see [FR-1013-chaplain-doctrine-sweep.judgement.md](FR-1013-chaplain-doctrine-sweep.judgement.md).
-No enforcement authority until `BASE` (FR-1012 merge SHA) is recorded and
-`git merge-base --is-ancestor "$BASE" HEAD` exits 0.
+**Status:** Judged — APPROVED WITH REVISIONS (round 1, 2026-09-06), then
+**SPLIT** (round 2, 2026-09-06) after review P5 added a closure script:
+Concern A (this docs-only sweep) continues here with R-1 folded; Concern B
+(post-merge closure automation) is **not** filed — see § Post-merge closure.
+See [FR-1013-chaplain-doctrine-sweep.judgement.md](FR-1013-chaplain-doctrine-sweep.judgement.md)
+(both rounds). No enforcement authority until `BASE` (FR-1012 merge SHA) is
+recorded and `git merge-base --is-ancestor "$BASE" HEAD` exits 0.
 **Effort:** 0.5 day
 **Requested:** 2026-09-06
 **Plan:** [FR-1010-chaplain-archival-plan.md](FR-1010-chaplain-archival-plan.md) — Phase 3 of 5; prerequisite FR-1012 **merged** (FR-1010 C-3). At filing (2026-09-06) FR-1012 is judged, unenforced; `docs/archive/chaplain.md` does not yet exist. `BASE = <FR-1012 merge SHA>` — _blank until recorded_.
@@ -67,7 +70,7 @@ discovered live artifact stops the phase (FR-1010 C-10).
 
 | File | Lines | What is there | Change |
 |---|---|---|---|
-| `.github/copilot-instructions.md` | 204 | `## Sermon of the Chaplain` heading | rename → `## Sermon` (the seven steps are unchanged); one-line note that the Chaplain was the daemon that once ran this sermon, archived FR-1010 |
+| `.github/copilot-instructions.md` | 204 | `## Sermon of the Chaplain` heading | rename → `## Sermon` (the seven steps are unchanged). Heading only — no added sentence (review P7; AC-11 limits the Scripture diff to this heading and the sources clause) |
 | `.github/copilot-instructions.md` | 176 | canonical-sources line names `docs/development-process.md (doctrine, chaplain pipeline, enforcement rings)` | drop "chaplain pipeline" |
 | `.github/copilot-instructions.md` | 163 | `diary_graduation_pipeline` seed already says `proposals/` (FR-1011) | verify only |
 | `docs/development-process.md` | 24–38 | opening topology mermaid: `H[Human proposal .chaplain/inbox/*.md]`, `GH[GitHub Issue label: chaplain]`, `PH[Philosopher proposals]`, `IQ[Inquisitor proposals]`, `subgraph PIPELINE["Chaplain pipeline (autonomous)"]` | inbox → `proposals/`; drop `GH` and `IQ`; `PH` → `graphs/philosopher` (dormant); PIPELINE subgraph → "Rite (operator-driven)": author.sh → FR → judge.sh → worktree → review.sh → merge (R-3) |
@@ -148,9 +151,9 @@ this FR is filed in the planning session; enforcement happens later, from
    test function → surviving REQ ID → quoted requirement text, filled
    after the R-1 census. REQ-YG-192 may tag **only** the assertion that
    the Knowledge Graph entries are unchanged (`ARCHITECTURE.md:1242-1250`).
-   If no live REQ directly covers archive moves / reference-sweep
-   accuracy, the FR files a one-REQ CAP (allocated under FR-1015's
-   contract) rather than borrowing an unrelated REQ.
+   If no live REQ directly covers an assertion, enforcement **stops** and
+   this FR returns to judgement (judgement `:50-53`; review P3). No CAP or
+   REQ is invented during enforcement.
 8. Old-string doc-witness tests: named **only after** FR-1012's census
    decides which survive (the four listed in the first draft —
    `test_chaplain_readme_documentation.py`, `test_concurrency_safety_doc.py`,
@@ -158,12 +161,23 @@ this FR is filed in the planning session; enforcement happens later, from
    candidates, not a commitment).
 9. Changelog fragment `type: removal`, scope `doctrine`.
 
-### Post-merge closure (R-4; not a PR merge criterion)
+### Post-merge closure (operator-owned; not a PR deliverable — round-2 R-1)
 
-After this PR merges, the operator records its merge SHA here, runs
-FR-1010 AC-12/AC-13's commands on merged `main`, ticks them, records each
-phase's completion in FR-1010, and sets FR-1010 `Completed`. The PR merge
-gate requires only human review + a recorded intent to finalize.
+After this PR merges, the operator records its merge SHA here, executes
+FR-1010 AC-12 and AC-13 on merged `main`, records the phase results, and
+pushes an FR-1010-only closure commit. The PR merge gate requires only
+human review + a recorded intent to finalize. **No closure script or its
+test is part of this FR** (AC-A13).
+
+Concern B of the round-2 SPLIT — automating that closure
+(`scripts/fr1010_closure.sh`, proposed by PR #617's review P5) — is not
+filed. If it ever is, its FR must first disposition
+`scripts/finalize_merge.sh` (CAP-38/REQ-YG-125; the repo already has a
+post-merge finalizer that updates FR status and commits) and CAP-114, and
+specify the success path as precisely as the error paths (judgement round
+2 R-2, R-3, AC-B01..B05). The review's scriptability finding and the
+judge's scope finding disagree; the judge governs scope (`review-pr`
+doctrine: review output is advisory).
 
 ## Acceptance Criteria (from judgement, verbatim; R-4)
 
@@ -179,7 +193,8 @@ gate requires only human review + a recorded intent to finalize.
 - [ ] AC-10: `pytest tests/unit/test_fr1013_doctrine_sweep.py tests/unit/test_knowledge_graph_fr193.py tests/unit/test_ramp_installer.py -q` and `pytest tests/unit/ -q --no-cov -m "not slow" -n auto` pass.
 - [ ] AC-11: Human review is recorded in FR-1013 before merge and confirms the Scripture diff is limited to the heading and canonical-sources clause, the judge doctrine mirror is byte-identical, and no Knowledge Graph entry or Sermon step changed.
 - [ ] AC-12: `changelog/unreleased/fr-1013-doctrine-sweep.md` exists with `type: removal` and `scope: doctrine`.
-- [ ] AC-13: Post-merge only, FR-1010 records FR-1013's merge SHA, ticks AC-12/AC-13 after their commands pass on merged `main`, records each phase's completion, and changes status to `Completed`.
+- [ ] AC-13: Post-merge only, the operator records FR-1013's merge SHA in FR-1010, ticks AC-12/AC-13 after their commands pass on merged `main`, records each phase's completion, and changes status to `Completed` in a separate FR-1010-only closure commit.
+- [ ] AC-A13 (round 2): The FR-1013 PR contains no closure script or closure-script test.
 
 ## Purge list
 
@@ -190,6 +205,8 @@ gate requires only human review + a recorded intent to finalize.
   in § Problem (R-3).
 - No `docs/development-process.md` edits outside the four `BASE` ranges.
 - No `ramp/manifest.yaml` or `ramp/curation-diffs.md` edit.
+- No script, hook, CI, graph, prompt, capability or requirement change
+  (round-2 SPLIT boundary).
 
 ## Alternatives Considered
 
@@ -216,7 +233,7 @@ gate requires only human review + a recorded intent to finalize.
 | Traceability: test function → REQ → quoted text | _pending_ |
 | Surviving old-string witness tests | _pending_ |
 | Human review (AC-11) | _pending_ |
-| Post-merge closure (AC-13): merge SHA, FR-1010 ticks | _pending_ |
+| Post-merge closure (AC-13): merge SHA, FR-1010 ticks | _pending (operator)_ |
 
 ## Judgement (2026-09-06)
 
@@ -226,3 +243,14 @@ R-1 (`BASE` gate + inventory refresh), R-2 (`mirror_exact`, no renderer),
 R-3 (topology/§ 6/§ 7 in scope; `docs/archive/` exception), R-4
 (executable ACs; post-merge closure), R-5 (traceability table; REQ-YG-192
 scope) folded above.
+
+**Review of PR #617 (2026-09-06, `scripts/review.sh`) folded:** P3 (no CAP
+invented at enforcement — hard stop + return to judgement), P7 (heading
+only; no added Scripture sentence). P5 (closure script) was folded, then
+**reversed** by the round-2 judgement.
+
+**Round-2 judgement (2026-09-06) — SPLIT.** R-1 folded: closure script,
+its tests, the scripted closure subsection and AC-14 removed; AC-13
+restored to the operator-owned post-merge record; AC-A13 added. R-2/R-3
+(Concern B) are the entry conditions for a separate FR that is not filed.
+Round-2 text appended to the judgement file.

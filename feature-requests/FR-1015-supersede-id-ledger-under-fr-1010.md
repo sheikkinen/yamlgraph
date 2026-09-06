@@ -80,7 +80,8 @@ The operator decided (FR-1010 § "ID-allocation decision"): **supersede**.
 A decision recorded only in FR-1010 leaves the two successor records
 visibly open.
 
-What is in force, quoted from FR-1010 (frozen; not restated here):
+What is in force, quoted from FR-1010 § "ID-allocation decision" (the
+canonical sentence; review P6 aligned FR-1010 to it):
 
 > Direct Plan/Enforce CAP/REQ allocation remains mechanical enumeration at
 > filing: `max(ids on main + all open PR heads) + headroom`. FR-701's
@@ -197,3 +198,7 @@ R-1 (FR-970 out of the edit set), R-2 (FR-1010 contract verbatim; wider
 no-implementation evidence incl. `capabilities/`, `.github/workflows/`,
 `.pre-commit-config.yaml`), R-3 (no FR-1010 edit), R-4 (exact ACs; both
 legacy tests named as FR-1012 inputs) folded above.
+
+**Review of PR #617 (2026-09-06) P6:** FR-1010 now carries one canonical
+contract blockquote; the sentence quoted here and in the judgement's R-2
+is byte-identical to it.

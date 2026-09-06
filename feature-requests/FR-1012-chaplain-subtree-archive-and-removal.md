@@ -2,12 +2,15 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement (subtraction; destructive — human gates C-4)
-**Status:** Judged — APPROVED WITH REVISIONS (2026-09-06). R-1..R-9 folded
-below; see [FR-1012-chaplain-subtree-archive-and-removal.judgement.md](FR-1012-chaplain-subtree-archive-and-removal.judgement.md).
-No Phase 2 command may run while any field of § Prerequisite gate is blank.
+**Status:** Judged — APPROVED WITH REVISIONS (2026-09-06, two rounds). Round 1
+R-1..R-9 and round 2 R-1..R-7 folded below; see
+[FR-1012-chaplain-subtree-archive-and-removal.judgement.md](FR-1012-chaplain-subtree-archive-and-removal.judgement.md)
+(round 2 appended). Authority activates only after the round-2 draft is
+human-reviewed (reference + date recorded in § Implementation Record) and
+no field of § Prerequisite gate is blank.
 **Effort:** 2 days (census 0.5, removal 1, verification 0.5)
 **Requested:** 2026-09-06
-**Plan:** [FR-1010-chaplain-archival-plan.md](FR-1010-chaplain-archival-plan.md) — Phase 2 of 5; prerequisites FR-1014, FR-1011, FR-1015 must be **merged** and recorded in § Prerequisite gate before any Phase 2 operation (FR-1010 C-3, C-5). At filing (2026-09-06) none of the three is merged; FR-1014 is PR #612 (open), FR-1011 and FR-1015 are judged, unenforced.
+**Plan:** [FR-1010-chaplain-archival-plan.md](FR-1010-chaplain-archival-plan.md) — Phase 2 of 5; prerequisites FR-1014, FR-1011, FR-1015 must be **merged** and recorded in § Prerequisite gate before any Phase 2 operation (FR-1010 C-3, C-5). State at last edit (2026-09-06): FR-1014 merged (`fec26941`), FR-1011 merged (`84baceb7`), FR-1015 judged, unenforced.
 **First consumer / first event:** `scripts/vscode/now.py` and the next
 session briefing, at the first session start after merge — `.chaplain/`
 no longer appears in any orientation surface, and `req_coverage --strict`
@@ -56,8 +59,9 @@ CAP that references the Chaplain runtime; publish the runtime's history as
 a **source-only** archived repository and a tag; then delete `.chaplain/`
 and everything the census marks `delete`, retire the CAPs it marks
 `retire`, and leave `docs/archive/chaplain.md` as the one paragraph that
-says where it went. Every commit in the PR leaves `req_coverage --strict`,
-`validate_capabilities --strict`, and the full non-slow unit suite green.
+says where it went. Every commit in the PR **except the designated RED**
+leaves `req_coverage --strict`, `validate_capabilities --strict`, and the
+full non-slow unit suite green (history contract in Step 2).
 
 ## Value Statement
 
@@ -129,9 +133,9 @@ exists. `scripts/vscode/now.py` prints no `.chaplain` string.
 
 | Prerequisite | Merge SHA | Human-review ref | Evidence |
 |---|---|---|---|
-| FR-1014 dir-aware guard | _blank_ | _blank_ | PR #612 |
-| FR-1011 relocate live parts | _blank_ | _blank_ | inbox manifest location: _blank_; `.chaplain/inbox/` empty confirmed by: _blank_ |
-| FR-1015 supersede FR-975/980 | _blank_ | _blank_ | |
+| FR-1014 dir-aware guard | `fec26941` (PR #612, merged 2026-09-06) | _blank — operator_ | |
+| FR-1011 relocate live parts | `84baceb7` (PR #615, merged 2026-09-06) | _blank — operator_ | inbox manifest: FR-1011 § Implementation Record (PR #614); `.chaplain/inbox/` empty confirmed by: _blank — operator_ |
+| FR-1015 supersede FR-975/980 | _blank_ | _blank_ | not yet enforced |
 
 ### Archive visibility decision (R-7) — answered before any remote operation
 
@@ -141,79 +145,131 @@ exists. `scripts/vscode/now.py` prints no `.chaplain` string.
 An unanswered field authorizes no repository creation; it does **not**
 default to private.
 
-### Step 0 — Census (committed before any deletion; R-2, R-3, R-7)
+### Step 0 — Census (committed before any deletion; R-2, R-3 both rounds)
 
-Bound to the **unchanged** `examples/demos/corpus_census/graph.yaml`
-(FR-892). Consumer-specific pieces live with the existing adapter family:
+**Sole invocation surface (round 2 R-3): `scripts/chaplain_census.py`**,
+checked in, fail-closed. It: validates the filled prerequisite gate and
+the immutable source SHA (must descend from all three prerequisite merge
+SHAs); applies the deterministic, sorted, de-duplicated discovery rule
+below; records repository visibility / data classification
+(operator-owned code; `claude-haiku-4-5`); rejects credential-bearing
+input; enforces **before the first provider call** the ceilings ≤ 120
+items, ≤ 1.5 MB total, ≤ 48 KB per item, ≤ 130 model calls; wraps the
+whole graph process in a 20-minute deadline; invokes the **unchanged**
+`examples/demos/corpus_census/graph.yaml` with the exact discover/extract
+manifests, labels, provider/model, raw-ledger path and brief/rubric; then
+runs the Chaplain reconciler. Tests prove every preflight refusal happens
+before provider invocation.
+
+Bound to the unchanged graph (FR-892). Consumer-specific pieces live with
+the existing adapter family:
 
 - `examples/demos/corpus_census/adapters/chaplain-discover.tool.yaml` +
-  `chaplain_adapters.py` — **one deterministic discovery rule**, applied
-  after the prerequisites merge:
+  `chaplain_adapters.py` — **one deterministic discovery rule**:
   `git ls-files 'tests/**/*.py' | xargs grep -lE '\.chaplain|inquisitor|watcher2?|philosopher|inbox|triage|distill|chaplain'`
   ∪ `git ls-files 'capabilities/CAP-*.yaml' | xargs grep -lE 'chaplain|watcher|inquisitor|philosopher|inbox|triage|distill'`
-  ∪ the explicit legacy set (`scripts/id_registry.py`,
-  `scripts/validate_id_registry.py`, `tests/unit/test_id_registry.py`,
-  `tests/unit/test_fr754_id_registry_package_boundary.py`,
-  `.github/skills/chaplain-ops/**`, `scripts/chaplain-prompts/**`). The
-  frozen manifest `docs/census/chaplain-disposition-input.jsonl` records
-  per item: source tree SHA, path, kind, bytes, SHA-256, REQs (marker AST),
-  `fan_in_by_req`, and for CAPs `modules[]`, `modules_present{}`,
-  `current_status`. Per-REQ fan-in and module presence are computed in
-  code (invariant 5).
+  ∪ the two legacy ID-registry tests (`tests/unit/test_id_registry.py`,
+  `tests/unit/test_fr754_id_registry_package_boundary.py`) as ordinary
+  test rows; sorted, de-duplicated. **Only tests and CAPs are census
+  items** (review P2). The non-census deletion set — `scripts/id_registry.py`,
+  `scripts/validate_id_registry.py`, `.github/skills/chaplain-ops/**`,
+  `scripts/chaplain-prompts/**`, the `validate-id-registry` hook block —
+  is enumerated deterministically in Step 2 (judgement D-6), never sent
+  to the model. The frozen manifest `docs/census/chaplain-disposition-input.jsonl`
+  records per item: source tree SHA, path, kind, bytes, SHA-256, REQs
+  (marker AST), `fan_in_by_req`, and for CAPs `modules[]`,
+  `modules_present{}`, `current_status`. Per-REQ fan-in and module
+  presence are computed in code (invariant 5).
 - `chaplain-extract.tool.yaml` — payload = file text + the item's facts
-  row. Preflight ceilings frozen in the run config: ≤ 120 items,
-  ≤ 1.5 MB total, ≤ 48 KB per item, ≤ 130 model calls, ≤ 20 min wall
-  clock; provider/data-classification decision recorded (repository is
-  the operator's own code; `claude-haiku-4-5` as in `req_witness_audit`).
-- Rubric (`adapters/chaplain_rubric.md`) with **two typed row schemas**:
+  row.
+- **Output contract (round 2 R-2).** The shared graph has one fixed model
+  schema, `CorpusCensusFinding` (`prompts/judge_item.yaml:21-43`), and one
+  fixed reducer emitting `LedgerRow` (`tools.py:53-66,303-375`). The
+  Chaplain rubric (`adapters/chaplain_rubric.md`) therefore asks the
+  model for **only** a closed verdict label valid for the item kind
+  (`keep|delete` for tests, `keep|retire` for CAPs) plus the schema's
+  fixed `confidence`, exact `evidence_span`, and abstention fields. The
+  shared reducer writes its generic ledger to a distinct raw-ledger path
+  (`docs/census/chaplain-test-disposition.generic.jsonl`) that is never
+  overwritten. A Chaplain-specific **deterministic Pydantic reconciler**
+  (`chaplain_adapters.py::reconcile`) joins each generic row to the
+  collector-owned manifest facts and emits the frozen rows:
   - test row: `path, kind=test, verdict: keep|delete, reason, reqs[], fan_in_by_req{}, cites[], manual_review: bool`
   - CAP row: `path, cap_id, kind=cap, current_status, verdict: keep|retire, reason, reqs[], modules[], modules_present{}, surviving_witnesses_by_req{}, cites[], manual_review: bool`
-  Rules stated in the rubric: a test is `delete` only if its subject is
-  the runtime **and** every REQ it marks has `fan_in > 0` or belongs to a
-  CAP marked `retire` in the same run; a CAP is `retire` only when every
-  requirement and every present module is runtime-owned or explicitly
-  dispositioned; any mixed CAP is `keep` + `manual_review: true`, and
-  **enforcement stops** until this FR records the human resolution for
-  each such row.
+  Code, not the model, copies `path`, `kind`, REQs, fan-in, modules,
+  module presence and status. The reconciler rejects illegal
+  kind/verdict pairs, abstained/demoted/failed rows, missing/duplicate/
+  unknown IDs (invariants 2, 4, 7), invalid evidence spans, and any
+  unresolved `manual_review`. Rubric rules: a test is `delete` only if
+  its subject is the runtime **and** every REQ it marks has `fan_in > 0`
+  or belongs to a CAP marked `retire` in the same run; a CAP is `retire`
+  only when every requirement and every *present* module is runtime-owned
+  or explicitly dispositioned; any mixed CAP is `keep` + `manual_review`,
+  and **enforcement stops** until this FR records the human resolution.
 - Canaries (invariant 8), withheld from the rubric, matched by verdict
   family: `tests/unit/test_fr305_watcher_pipeline_v2.py` → `delete`;
   `tests/unit/test_fr_triage.py` (post-FR-1011 path) → `keep`.
-- Post-reconciliation (`chaplain_adapters.py`, deterministic): every
-  manifest ID has exactly one result of the right kind (invariants 2, 4,
-  7); every `cites[]` entry resolves to a line in the item; counts,
-  unresolved-`manual_review` count, and cost computed in code; writes
-  `docs/census/chaplain-test-disposition.jsonl` + `.md` + `.run.json`
-  (provider, model, run id, input SHA). Raw primary outputs preserved
-  under `docs/census/chaplain-test-disposition.raw/` and **read by a named
+- Outputs: `docs/census/chaplain-test-disposition.jsonl` + `.md` +
+  `.run.json` (provider, model, run id, source SHA, the three prerequisite
+  merge SHAs, ceilings, counts, unresolved count). Raw primary outputs
+  under `docs/census/chaplain-test-disposition.raw/`, **read by a named
   human** before the reduction is trusted (`read_raw_output_first`).
 
 If the shared graph cannot carry one required invariant, **stop** and file
-the generic gap as its own FR; do not copy the graph.
+the generic gap as its own FR; do not copy or modify the graph, prompts,
+or reducer.
 
-### Step 1 — Archive (human gate C-4; R-6, R-7)
+### Step 1 — Archive (pre-remote human review; R-6, R-7; round 2 R-4, R-5)
 
-Preflights, fail-closed: `git tag -l chaplain-archive` empty locally and
-`git ls-remote --tags origin refs/tags/chaplain-archive` empty;
-`gh repo view sheikkinen/yamlgraph-chaplain` fails (name unused). Any
-existing name stops enforcement for human reconciliation.
+Delivered as `scripts/chaplain_archive.sh` — checked in, fail-closed,
+explicit inputs, typed preflight exits, **journaled and resumable**.
+Human-owned inputs are exactly: the visibility choice (from the decision
+field), the review judgement, and the merge decision.
 
-```bash
-PRE=$(git rev-parse origin/main)                       # after FR-1015 merge; recorded
-git tag chaplain-archive "$PRE" && git push origin chaplain-archive
-git ls-files -z .chaplain | xargs -0 shasum -a 256 > tmp/chaplain-manifest.txt   # frozen path+hash set
-SPLIT=$(git subtree split -P .chaplain "$PRE")         # recorded
-gh repo create sheikkinen/yamlgraph-chaplain --<visibility from decision> --description "Historical source of the YAMLGraph Chaplain FSM runtime (2026-03 -> 2026-09). Not a runnable distribution."
-git push git@github.com:sheikkinen/yamlgraph-chaplain.git "$SPLIT":refs/heads/main
-# in a clone: PREPEND banner + links to the existing root README.md (the split's own README) — the only post-split change
-ARCHIVE_HEAD=<sha after README commit>                 # recorded
-gh repo archive sheikkinen/yamlgraph-chaplain --yes
+**`PRE` (round 2 R-4)** = the human-reviewed **census/evidence commit**
+(Step 2 class 1), a clean commit reachable from `origin/main`, whose
+`.chaplain` tree identity (`git rev-parse "$PRE":.chaplain`) equals the
+tree recorded in the disposition input manifest. The archive manifest
+`docs/census/chaplain-archive-manifest.txt` is built **from the commit
+object** (`git ls-tree -r "$PRE" -- .chaplain` + `git cat-file` → SHA-256),
+never from the index or working tree, with paths stored
+**archive-relative** (`.chaplain/` prefix stripped) so they compare
+equal to the fresh archive root.
+
+```
+Usage: scripts/chaplain_archive.sh --visibility private|public --pre <sha> [--dry-run] [--resume]
+Exit 64  usage / missing --visibility
+Exit 65  preflight: tag chaplain-archive exists (local or origin) and does not match journal
+Exit 66  preflight: sheikkinen/yamlgraph-chaplain exists and does not match journal
+Exit 67  preflight: --pre not reachable from origin/main, not clean, lacks .chaplain/, or .chaplain tree != manifest tree
+Exit 68  post-condition: archive clone (archive-relative path set, SHA-256s) != frozen manifest, or README first line not the banner
+Exit 69  journal/remote mismatch on --resume (PRE, SPLIT, visibility, or archive identity differ) → human reconciliation
 ```
 
-The split's root `README.md` (formerly `.chaplain/README.md`) is
-**modified**, not added: first line "Historical source snapshot — not a
-runnable distribution.", then links to the `chaplain-archive` tag and
-`docs/archive/chaplain.md`. Three immutable identities are recorded in
-`.run.json` and `docs/archive/chaplain.md`: `PRE`, `SPLIT`, `ARCHIVE_HEAD`.
+**Journal (round 2 R-5):** `docs/census/chaplain-archive.run.json`,
+created atomically (write-temp + rename) **before the first remote
+mutation**, updated after each state transition, committed in GREEN.
+States: `tag_created → repo_created → split_pushed → readme_committed →
+verified → archived`. On `--resume`, an existing tag or repository is
+accepted **only** when journal and remote facts exactly match the frozen
+`PRE`, `SPLIT`, visibility and expected archive identity; any unrelated
+or mismatched resource keeps the collision exit and stops. Tests inject
+failure after each transition and prove resume completes without
+duplicate mutation, and prove mismatches stop.
+
+Steps: preflights; `git tag chaplain-archive "$PRE"` + push; manifest from
+commit object; `SPLIT=$(git subtree split -P .chaplain "$PRE")`;
+`gh repo create sheikkinen/yamlgraph-chaplain --$VISIBILITY --description "Historical source of the YAMLGraph Chaplain FSM runtime (2026-03 -> 2026-09). Not a runnable distribution."`;
+push `SPLIT` → `refs/heads/main`; clone; **prepend** banner + links to the
+split's existing root `README.md` (formerly `.chaplain/README.md`) — the
+only post-split content change; commit → `ARCHIVE_HEAD`; verify
+(archive-relative path set == manifest, every SHA-256 equal except
+`README.md`, first line contains "not a runnable distribution",
+`gh repo view --json isArchived,visibility,defaultBranchRef` matches);
+`gh repo archive --yes`. `--dry-run` executes preflights and prints the
+plan (the pre-remote review artifact). Three immutable identities (`PRE`,
+`SPLIT`, `ARCHIVE_HEAD`) + manifest SHA-256 + transitions + timestamps land
+in the journal and `docs/archive/chaplain.md`.
 
 ### Step 2 — Removal (one PR; R-5 history contract; human gate C-4)
 
@@ -226,10 +282,13 @@ the census `delete`/`retire` sets equal the enacted sets". `N`/`M` are
 allocated at enforcement start and written here. **Not** CAP-165: its
 REQ-YG-466 is about FR-277 watcher2 baseline checkpointing.
 
-History contract (four commit classes, in order):
+History contract (four commit classes, in order; review P4):
 
-1. **Census/evidence commit** — manifests, adapters, rubric, jsonl, raw,
-   run record, this FR's Raw-read/human-read record. Passes all gates.
+1. **Census/evidence commit** — manifests, `scripts/chaplain_census.py`,
+   adapters, rubric, raw + generic + reconciled artifacts, run record,
+   exact CAP/REQ allocation, this FR's Raw-read/human-read record. Passes
+   all gates. **This commit is `PRE`** once human-reviewed (pre-remote
+   review, round 2 R-6).
 2. **RED commit** (`SKIP=pytest`) — `tests/unit/test_fr1012_chaplain_removed.py`
    tagged `@pytest.mark.req("REQ-YG-<M>")`, asserting: `.chaplain/`,
    `chaplain-ops/`, `chaplain-prompts/`, `id_registry.py`,
@@ -242,11 +301,23 @@ History contract (four commit classes, in order):
 3. **One atomic GREEN commit** — CAP `retire` transitions + census
    `delete` test deletions + `git rm -r .chaplain .github/skills/chaplain-ops scripts/chaplain-prompts scripts/id_registry.py scripts/validate_id_registry.py`
    + hook block removal + `.gitignore` lines + new CAP file +
-   `docs/archive/chaplain.md` + `python scripts/aggregate_capabilities.py`
-   + changelog fragment + `docs/diary/` Distill entry (R-9). Makes the
-   focused witness, `req_coverage --strict`, `validate_capabilities --strict`,
+   `docs/archive/chaplain.md` + completed `docs/census/chaplain-archive.run.json`
+   + `python scripts/aggregate_capabilities.py` + changelog fragment +
+   `docs/diary/` Distill entry (R-9). Makes the focused witness,
+   `req_coverage --strict`, `validate_capabilities --strict`,
    `lint-imports`, and the full non-slow suite pass.
-4. Every later commit and final HEAD passes all checks.
+4. Every later commit and final PR HEAD passes all checks.
+5. **Post-merge follow-up (docs-only; round 2 R-7)** — a separate
+   FR-1012 commit/PR that records `docs/census/chaplain-postmerge.run.json`
+   and completes § Implementation Record, merged **before FR-1013 starts**.
+
+**Two human reviews (round 2 R-6), chronologically possible:**
+- **Pre-remote review** — before tag push or repo creation: exact census +
+  manual resolutions, visibility decision, frozen `PRE`, archive manifest,
+  `chaplain_archive.sh --dry-run` output, intended remote operations.
+- **Pre-merge review** — before merge: actual remote journal +
+  `gh repo view` evidence, hook removal, exact mass-deletion diff,
+  RED/GREEN SHAs and outputs, final validation, deviations.
 
 `docs/archive/chaplain.md`: one paragraph (what it was, when it ran, why
 archived), tag, repo URL, verified visibility + archive status, the three
@@ -256,32 +327,41 @@ inbox → `proposals/`; fr_triage/world_distill/philosopher → `graphs/`;
 finalize_lib → `scripts/lib/`; id-registry → enumeration at filing +
 FR-701 (FR-1015); inquisitor → none, retired).
 
-### Step 3 — Post-merge witness
+### Step 3 — Post-merge witness (scripted; round 2 R-7)
 
-On the main checkout: `scripts/worktree.sh sync` succeeds (if git cannot
-unlink the 555 `.chaplain` dir, `chmod u+w .chaplain` first — recorded);
-`python scripts/vscode/now.py | grep -q '\.chaplain'; test $? -eq 1`.
+`scripts/chaplain_postmerge_witness.sh` on the main checkout: runs
+`scripts/worktree.sh sync` (if `git` cannot unlink the 555 `.chaplain`
+dir, `chmod u+w .chaplain` first — the script does this and logs it);
+asserts `git ls-files .chaplain` empty; asserts `python scripts/vscode/now.py`
+stdout has no `.chaplain` (`! grep -q`); writes
+`docs/census/chaplain-postmerge.run.json` (committed by the follow-up,
+history class 5) naming the three prerequisite merge SHAs and the Phase 2
+merge SHA. Exit 0 only if all hold.
 
-## Acceptance Criteria (from judgement, verbatim; R-8)
+## Acceptance Criteria (round-2 judgement, verbatim; R-7)
 
-- [ ] AC-01: FR-1014, FR-1011, and FR-1015 merge SHAs and human-review references are recorded; FR-1011's 13-item inbox manifest is linked and `.chaplain/inbox/` is confirmed empty; no Phase 2 command ran before all fields were complete.
-- [ ] AC-02: `## Raw Input Read` contains at least five source-cited samples covering certain-delete, certain-keep, shared-REQ, runtime-only CAP, and mixed/live CAP boundaries, each with computed fan-in and a concrete surprising detail.
-- [ ] AC-03: The Chaplain census binds only consumer-specific manifests/adapters/rubric to unchanged `examples/demos/corpus_census/graph.yaml`; no `examples/demos/chaplain_disposition_census/` or second graph/prompt tree exists.
-- [ ] AC-04: The frozen input manifest records source SHA, path, kind, bytes, SHA-256, REQs, and fan-in for every discovered item; hard item/byte/per-item/call/timeout ceilings and the provider/data-classification decision are recorded before the first model call.
-- [ ] AC-05: The run record proves all eight corpus-map-reduce invariants, both withheld canary families, zero missing/duplicate/unknown/wrong-kind rows, valid citations, and zero unresolved `manual_review` rows; raw primary outputs were read by the recorded human before reduction was trusted.
-- [ ] AC-06: `docs/census/chaplain-test-disposition.jsonl` and its summary are committed before RED or deletion; the deleted test set equals test `delete` rows, and transitioned CAPs equal CAP `retire` rows.
-- [ ] AC-07: The exact new CAP/REQ and `tests/unit/test_fr1012_chaplain_removed.py` are frozen in the FR; the recorded RED commit fails the focused assertions with `SKIP=pytest`, and the immediately following atomic GREEN commit makes the focused test, `python scripts/req_coverage.py --strict`, `python scripts/validate_capabilities.py --strict`, `lint-imports`, and `pytest tests/unit -q -m "not slow" -n auto` pass.
-- [ ] AC-08: Every commit except the designated RED passes the checks applicable to its state; final HEAD passes all AC-07 checks. The RED/GREEN SHAs and outputs are recorded.
-- [ ] AC-09: `git ls-files .chaplain .github/skills/chaplain-ops scripts/chaplain-prompts scripts/id_registry.py scripts/validate_id_registry.py` prints nothing, the `validate-id-registry` hook is absent, and no census-authorized deletion exceeds the reviewed `delete` set.
-- [ ] AC-10: The operator records `private` or `public`, date, rationale, and reviewed commit/PR before remote operations; preflights prove the tag and repository names unused; the creation command uses the decision and final `gh repo view` output proves visibility, archived status, and default branch.
-- [ ] AC-11: `git ls-remote --tags origin refs/tags/chaplain-archive` resolves exactly to the recorded pre-removal commit; `docs/archive/chaplain.md` records that commit, the subtree-split commit, and final archive HEAD.
-- [ ] AC-12: A fresh archive clone has exactly the frozen `.chaplain/` path set and file count; every source hash matches except `README.md`, whose sole documented transformation prepends the historical-source banner and links. Its first line contains "not a runnable distribution."
-- [ ] AC-13: `docs/archive/chaplain.md` contains the tag, URL, verified visibility/archive status, immutable SHAs, and a replacement-table row for every FR-1010 live-parts category.
-- [ ] AC-14: `python scripts/aggregate_capabilities.py && git diff --exit-code -- ARCHITECTURE.md` succeeds; an explicit no-match assertion proves `python scripts/vscode/now.py` emits no `.chaplain`; CAP-38, CAP-45, and `scripts/finalize_merge.sh` remain live and unchanged in behavior.
-- [ ] AC-15: Human review of the exact census, manual resolutions, remote visibility, tag/repository operations, hook removal, mass-deletion diff, RED/GREEN record, and final validation is recorded before tag push, repository creation/archive, or merge.
-- [ ] AC-16: Discovery of any new live artifact, existing remote/tag collision, unresolved census row, prerequisite drift, or FR-1010 live-parts change stops enforcement and returns FR-1010/FR-1012 to judgement.
-- [ ] AC-17: `changelog/unreleased/fr-1012-chaplain-runtime-removed.md` and a `docs/diary/` Distill entry with `**Seed:**` are committed; the FR implementation record contains all run, archive, review, validation, and deviation evidence.
-- [ ] AC-18: After merge, `scripts/worktree.sh sync` succeeds on main and an explicit no-match assertion proves `python scripts/vscode/now.py` emits no `.chaplain`; both outcomes are recorded.
+- [ ] AC-01: FR-1014, FR-1011, and FR-1015 merge SHAs and human-review references are recorded; FR-1011's 13-item inbox manifest is linked and `.chaplain/inbox/` is confirmed empty; the census source SHA descends from all three merge SHAs.
+- [ ] AC-02: `## Raw Input Read` retains at least five source-cited samples covering certain-delete, certain-keep, shared-REQ, runtime-only CAP, and mixed/live CAP boundaries, each with per-REQ fan-in and a concrete surprising detail.
+- [ ] AC-03: `scripts/chaplain_census.py` binds Chaplain manifests and rubric to unchanged `examples/demos/corpus_census/graph.yaml`; no second graph/prompt tree or modification to the shared graph, prompts, or reducer exists.
+- [ ] AC-04: The census model output uses the fixed `CorpusCensusFinding` schema; the generic ledger is preserved separately; a deterministic Pydantic reconciler emits the frozen test/CAP rows and rejects illegal kind/verdict pairs, abstained/demoted/failed rows, missing/duplicate/unknown rows, invalid evidence spans, and unresolved manual reviews.
+- [ ] AC-05: Before the first provider call, the census wrapper records source SHA, visibility/data classification, provider/model, item paths/kinds/bytes/SHA-256, marker-AST REQs, per-REQ fan-in, CAP modules/presence/status, and rejects any breach of the 120-item, 1.5-MB-total, 48-KB-item, 130-call, credential, or policy ceilings; the whole graph process has a 20-minute enforced timeout.
+- [ ] AC-06: The run record proves all eight corpus-map-reduce invariants, both withheld canary families, exact generic-ledger-to-manifest coverage, valid citations, and zero unresolved rows; a named human records reading the raw primary outputs before trusting the disposition artifact.
+- [ ] AC-07: The census/evidence commit contains the manifests, wrapper, adapters, rubric, raw/generic/reconciled artifacts, run record, exact CAP/REQ allocation, and human-read record; it passes all applicable gates before RED.
+- [ ] AC-08: The dedicated RED commit adds only the frozen focused removal witness, is marked `SKIP=pytest`, and records its expected assertion failures; the immediately following atomic GREEN makes that witness, `python scripts/req_coverage.py --strict`, `python scripts/validate_capabilities.py --strict`, `lint-imports`, and `pytest tests/unit -q -m "not slow" -n auto` pass.
+- [ ] AC-09: Every commit except the designated RED passes the checks applicable to its state; final Phase 2 PR HEAD passes every AC-08 command, with RED/GREEN SHAs and outputs recorded.
+- [ ] AC-10: The deleted test set equals reconciled test `delete` rows; transitioned CAPs equal reconciled CAP `retire` rows; `git ls-files .chaplain .github/skills/chaplain-ops scripts/chaplain-prompts scripts/id_registry.py scripts/validate_id_registry.py` prints nothing; the hook and matching `.gitignore` lines are absent; no other deletion occurs.
+- [ ] AC-11: Pre-remote human review records the exact census/manual resolutions, visibility decision, frozen `PRE`, archive manifest, archive-script dry run, and intended remote operations before tag push or repository creation.
+- [ ] AC-12: `PRE` equals the reviewed census/evidence commit; its `.chaplain` tree equals the disposition input tree; the archive manifest is generated from the commit object with archive-relative paths and SHA-256 values.
+- [ ] AC-13: The archive script writes an atomic durable journal before mutation; unrelated tag/repository collisions fail with the frozen typed exits; injected partial failures resume only when journal and remote `PRE`/`SPLIT`/visibility identities match exactly; mismatches stop for human reconciliation.
+- [ ] AC-14: `git ls-remote --tags origin refs/tags/chaplain-archive` resolves exactly to `PRE`; final `gh repo view` proves the selected visibility, archived state, and default branch; the committed archive journal records `PRE`, `SPLIT`, `ARCHIVE_HEAD`, manifest SHA-256, transitions, and timestamps.
+- [ ] AC-15: A fresh archive clone has exactly the archive-relative frozen path set and file count; every source hash matches except `README.md`, whose only content change is the prepended historical-source banner and links; its first line contains "not a runnable distribution."
+- [ ] AC-16: `docs/archive/chaplain.md` records the tag, URL, verified visibility/archive status, three immutable SHAs, and one replacement row for every FR-1010 live-parts category.
+- [ ] AC-17: `python scripts/aggregate_capabilities.py && git diff --exit-code -- ARCHITECTURE.md` succeeds; explicit no-match assertions prove `scripts/vscode/now.py` emits no `.chaplain`; the named existing focused tests for `scripts/finalize_merge.sh`, CAP-38, and CAP-45 pass (`pytest tests/unit/test_finalize_merge.py tests/unit/test_automated_post_merge_finalization.py tests/unit/test_diary_reflections_fr152.py -q`), as does the full non-slow suite.
+- [ ] AC-18: Pre-merge human review records the actual remote journal/state, hook removal, exact mass-deletion diff, RED/GREEN record, final validation, and deviations before merge.
+- [ ] AC-19: `scripts/chaplain_archive.sh`, `scripts/chaplain_postmerge_witness.sh`, and `scripts/chaplain_census.py` are checked in with focused tests for every refusal, success, and partial-recovery path; the census and archive were produced by those scripts, and their committed run records match the reviewed invocations.
+- [ ] AC-20: After merge, `scripts/chaplain_postmerge_witness.sh` exits 0 on main, proving sync succeeded, `.chaplain` is untracked-empty, and `now.py` emits no `.chaplain`; a docs-only FR-1012 follow-up commit records `docs/census/chaplain-postmerge.run.json` and completes the implementation record before FR-1013 starts.
+- [ ] AC-21: Any new live artifact, prerequisite or `.chaplain` tree drift, unresolved census row, provider-policy failure, archive mismatch, or mismatched remote/tag state stops enforcement and returns FR-1010/FR-1012 to judgement.
+- [ ] AC-22: `changelog/unreleased/fr-1012-chaplain-runtime-removed.md` and a `docs/diary/` Distill entry with `**Seed:**` are committed; the implementation record contains every census, archive, review, validation, follow-up, and deviation reference.
 
 ## Purge list
 
@@ -321,7 +401,10 @@ unlink the 555 `.chaplain` dir, `chmod u+w .chaplain` first — recorded);
 | GREEN SHA + gate outputs | _pending_ |
 | `PRE` / `SPLIT` / `ARCHIVE_HEAD` | _pending_ |
 | Visibility decision (operator, date, rationale, PR) | _pending_ |
-| Human-review reference (AC-15) | _pending_ |
+| Round-2 judgement human review (ref + date; activates `Judged`) | _pending_ |
+| Pre-remote human review (AC-11) | _pending_ |
+| Pre-merge human review (AC-18) | _pending_ |
+| Post-merge follow-up commit (AC-20) | _pending_ |
 | Post-merge `sync` + `now.py` outcome | _pending_ |
 | Deviations | _pending_ |
 
@@ -336,3 +419,21 @@ four-class commit history, no `rebase -x`), R-6 (archive provenance:
 README modified not added, manifest equality, three SHAs, fail-closed
 preflights), R-7 (visibility decision field), R-8 (ACs verbatim), R-9
 (implementation record + Distill) folded above.
+
+**Review of PR #617 (2026-09-06, `scripts/review.sh`) folded:** P2 (census
+items are tests + CAPs only; scripts/skill/prompts are the deterministic
+D-6 set), P4 ("every commit except RED"), P5 (archive and post-merge
+witness are checked-in fail-closed scripts with typed exits).
+
+**Round-2 judgement (2026-09-06, after P5 widening) — APPROVED WITH
+REVISIONS; R-1..R-7 folded:** R-1 (re-judgement state: pending human
+review; reference to be recorded in § Implementation Record before
+`Judged` activates), R-2 (bind to the real `CorpusCensusFinding` /
+`LedgerRow` contract; generic ledger preserved; Pydantic reconciler emits
+the frozen rows), R-3 (`scripts/chaplain_census.py` sole invocation
+surface; ceilings enforced in code before the first provider call), R-4
+(`PRE` = reviewed census commit; manifest from commit object,
+archive-relative paths), R-5 (journal in `docs/census/`, resumable state
+machine, exit 69), R-6 (pre-remote + pre-merge reviews), R-7 (post-merge
+carrier committed by a docs-only follow-up; positive provenance; exact
+focused tests named). Round-2 text appended to the judgement file.
