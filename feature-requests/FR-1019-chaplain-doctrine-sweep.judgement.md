@@ -98,3 +98,105 @@ Not authorized by this rejected draft: any implementation edit to Scripture, ski
 | C-6 | FR-1010 may be closed only after the implementation PR is merged and its immutable merge SHA is available. | GATE |
 
 Authority granted: none; only the D-1 planning revision is permitted before FR-1019 re-enters judgement.
+
+
+---
+
+## Round 2 (2026-09-06, copilot backend via scripts/judge.sh, on the FR with round-1 R-1..R-5 folded) — APPROVED WITH REVISIONS, R-1..R-4 folded into the FR
+
+
+**Verdict:** APPROVED WITH REVISIONS — the small documentation reconciliation is sound, but authority activates only after the live-file outcomes, executable assertions, closed-branch reuse boundary, and FR-1010 succession record are folded into the FR.
+
+**DRAFT:** Advisory until human-reviewed.
+
+**Reviewed against:** `feature-requests/FR-1019-chaplain-doctrine-sweep.md`; `feature-requests/FR-1019-chaplain-doctrine-sweep.judgement.md` (round 1); `feature-requests/FR-1010-chaplain-archival-plan.md`; `feature-requests/FR-1011-relocate-chaplain-live-parts.md`; `feature-requests/FR-1011-relocate-chaplain-live-parts.judgement.md`; `feature-requests/FR-1012-chaplain-subtree-archive-and-removal.md`; `feature-requests/FR-1012-chaplain-subtree-archive-and-removal.judgement.md`; `feature-requests/FR-1013-chaplain-doctrine-sweep.md`; `feature-requests/FR-1013-chaplain-doctrine-sweep.judgement.md`; cited baseline commit `36591389e2fdfedf9ba5ae6362effad1c64cd06e`; cited closed PR #627 head `cf9b915e` and its diff from the baseline; `.github/skills/judge-fr/doctrine.md`; `.github/skills/judge-fr/judgement.template.md`; `.github/copilot-instructions.md`; `docs/development-process.md`; `.github/skills/feature-request/SKILL.md`; `.github/skills/graph-authoring/SKILL.md`; `.github/skills/graph-authoring/doctrine.md`; `reference/onepager-development-process.md`; `reference/audit-index.md`; `reference/graph-yaml.md`; `reference/command-book.md`; `reference/patterns/fsm-as-conductor.md`; `examples/README.md`; `ramp/assets/tier2/github/skills/judge-fr/doctrine.md`; `capabilities/CAP-72-knowledge-graph-mass-graduation-fr193.yaml`; `capabilities/CAP-244-ramp-installer.yaml`; and `capabilities/CAP-264-chaplain-runtime-retired.yaml`.
+
+## What is sound
+
+The proposal now states a concrete failure event, a narrow ideal result, an exact prerequisite baseline, and a deliberate boundary between active guidance and preserved history (`feature-requests/FR-1019-chaplain-doctrine-sweep.md:8-18`). The cited umbrella research compares six genuine archival classes, preserves the material disagreement between history-only deletion and a browsable archive, names precedent, and answers `is_this_a_graph`; FR-1019 explains why that decision governs this final documentation phase (`feature-requests/FR-1010-chaplain-archival-plan.md:449-468`; `feature-requests/FR-1019-chaplain-doctrine-sweep.md:10-11`).
+
+The round-1 defects are materially resolved. The revised FR separates the exact live set from the byte-identical historical move, removes the untraceable permanent test, reuses only requirement-owned witnesses for mirror equality, Knowledge Graph preservation, and runtime absence, names its changelog and Distill artifacts, and makes umbrella closure explicitly post-merge (`feature-requests/FR-1019-chaplain-doctrine-sweep.md:20-45,51-78`). That is the correct response to FR-1013's rejected census, new requirement, and 421-line broad witness rather than another layer of enforcement machinery (`feature-requests/FR-1013-chaplain-doctrine-sweep.md:3-9`).
+
+Against the eight rubric criteria:
+
+1. **Scope:** the implementation is a fixed documentation reconciliation plus required process artifacts. It does not revive runtime, test, capability, hook, CI, graph, or script work (`feature-requests/FR-1019-chaplain-doctrine-sweep.md:20-45,80-82`).
+2. **Consistency:** live and archive content are now separated, but the grouped “pointer fixes” row is less precise than the ideal result, and FR-1010 still names rejected FR-1013 as the phase that must merge (`feature-requests/FR-1019-chaplain-doctrine-sweep.md:16-17,27-32,43-45`; `feature-requests/FR-1010-chaplain-archival-plan.md:341-358,374-376,401-408`). R-1 and R-4 close those remaining contradictions.
+3. **Measurability:** the baseline, Scripture preservation, archive move, mirror, targeted witnesses, and suite are directly checkable. Several count commands currently print expected values without asserting them, the combined script count does not prove that all three scripts occur, and AC-5 gives prose rather than executable artifact checks (`feature-requests/FR-1019-chaplain-doctrine-sweep.md:49-78`). R-3 makes those gates fail mechanically.
+4. **Feasibility:** the cited closed implementation proves that the document transformations and exact rename are workable, and the repository already declares the judge doctrine asset as `mirror_exact`. Reusing a closed branch must be hunk-based rather than copying whole stale files (`feature-requests/FR-1019-chaplain-doctrine-sweep.md:40`; `capabilities/CAP-244-ramp-installer.yaml:62-69`). R-2 freezes that boundary.
+5. **Architecture alignment:** active guidance moves to the surviving author/judge/review scripts while historical FSM design moves under `docs/archive/`; Scripture keeps its seven-step rite and Knowledge Graph unchanged (`feature-requests/FR-1019-chaplain-doctrine-sweep.md:22-38,51-57`).
+6. **Single responsibility:** this is one pattern-documentation concern. The changelog, diary, implementation record, and post-merge bookkeeping are lifecycle artifacts, not additional capabilities. No split is warranted.
+7. **Strategic classification:** **Pattern documentation**. Existing scripts, archive structure, mirror contract, and requirement witnesses suffice; no framework primitive or contrib example is added.
+8. **Testability:** each authorized invariant can be checked by focused shell assertions and the three existing requirement-owned tests. No new production branch or permanent behavior requires a new test; the remaining defects are acceptance-command precision, not a traceability gap.
+
+## Required revisions
+
+### R-1: Replace the grouped pointer row with exact file outcomes
+
+Expand the third live-edit row into mechanically reviewable outcomes for each named file. At minimum, state that:
+
+- `reference/onepager-development-process.md` replaces the active “Chaplain Pipeline,” issue-label importer, inbox flow, Inquisitor loop, and old context link with the operator-driven rite and archive link;
+- `reference/audit-index.md` retains exactly one archived Chaplain row and removes the retired runtime component rows;
+- `reference/graph-yaml.md` replaces the stale watcher/Chaplain examples with surviving graph paths;
+- `reference/command-book.md` renames its Scripture link to “Sermon”;
+- `reference/patterns/fsm-as-conductor.md` retains Chaplain only as an explicitly archived historical case and points to `docs/archive/`;
+- `examples/README.md` removes the deleted stub/witness claims and points surviving graphs at `graphs/`.
+
+Keep the existing exact rows for Scripture, development process, graph-authoring doctrine, judge doctrine, and the archive move. This is not a new census: it freezes the already selected twelve live files so the stated ideal can be reviewed without relying on private knowledge of PR #627.
+
+### R-2: Define closed-branch reuse as authorized-hunk porting
+
+Replace “cherry-pick them file by file” with an instruction to port only the document hunks enumerated in the frozen Change table from cited head `cf9b915e`. Do not cherry-pick commits, restore whole files from that head, or import its census, test, capability, architecture, confession, diary, FR, or post-merge-record changes.
+
+The cited head contains many changes outside this FR's scope, including `ARCHITECTURE.md`, `capabilities/CAP-264-chaplain-runtime-retired.yaml`, census artifacts, tests, confessions, and other FR/diary records. A path-level checkout can also overwrite changes made after the baseline. Every ported file must therefore be reviewed as a patch against current HEAD.
+
+### R-3: Turn printed expectations into failing assertions
+
+Revise AC-1 through AC-5 so each expected count is asserted, not left as a comment beside output. Use `test` around `grep -c` and `git diff --numstat`, test `scripts/author.sh`, `scripts/judge.sh`, and `scripts/review.sh` separately, and make the two measurement-sentence values byte-equal.
+
+Add executable AC-5 checks for the exact changelog path and its YAML fields and for the exact diary path and `**Seed:**`. In AC-2, record and human-disposition every remaining case-insensitive `Chaplain`, `Inquisitor`, or `.chaplain` match in the exact live set as either an explicitly historical statement, an archive link, or one of the two preserved Knowledge Graph entries. The narrower forbidden-string grep remains useful but cannot alone prove the Ideal Result: for example, an active heading such as “The Chaplain Pipeline” contains none of its forbidden alternatives.
+
+### R-4: Make FR-1019 the recorded successor for umbrella Phase 3
+
+Expand the post-merge operator action and AC-7 to update FR-1010's Phase 3 and phase-order/AC-04 references from rejected FR-1013 to “FR-1019, superseding rejected FR-1013,” then record FR-1019's immutable merge SHA. Only after that correction and the merged-main AC-12 witness may the operator tick FR-1010 AC-12 and AC-13 and set FR-1010 to `Completed`.
+
+Without this fold, FR-1010 still requires FR-1013 itself to receive human review and merge in sequence, which can never occur after FR-1013 was rejected and closed (`feature-requests/FR-1010-chaplain-archival-plan.md:355-376`; `feature-requests/FR-1013-chaplain-doctrine-sweep.md:3-9`).
+
+## Scope is frozen
+
+| Deliverable | Surface |
+|---|---|
+| D-1 | Two-line edit only in `.github/copilot-instructions.md` |
+| D-2 | Active-process reconciliation in `docs/development-process.md` |
+| D-3 | Exact pointer/history edits in `reference/onepager-development-process.md`, `reference/audit-index.md`, `reference/graph-yaml.md`, `reference/command-book.md`, `reference/patterns/fsm-as-conductor.md`, and `examples/README.md` |
+| D-4 | Retired-route wording edits in `.github/skills/graph-authoring/SKILL.md`, `.github/skills/graph-authoring/doctrine.md`, and `.github/skills/judge-fr/doctrine.md`; byte-identical copy to `ramp/assets/tier2/github/skills/judge-fr/doctrine.md` |
+| D-5 | Byte-identical move from `docs/context/chaplain-system.md` to `docs/archive/chaplain-system.md`; one link line in `docs/archive/chaplain.md` |
+| D-6 | `changelog/unreleased/fr1019-doctrine-sweep.md`, `docs/diary/diary-2026-09-06-reflection-fr-1019-chaplain-doctrine-sweep.md`, and FR-1019's implementation record |
+| D-7 | Post-merge operator update to FR-1010 replacing FR-1013 with its FR-1019 successor, recording the merge SHA, satisfying AC-12/AC-13, and setting status to `Completed` |
+
+Not authorized: any runtime, Python, hook, CI, graph, prompt, script, test, capability, requirement, architecture, ramp manifest, or ramp curation change; any census, inventory artifact, repository baseline file, or per-file hash registry; any edit to historical FR, diary, changelog, memento, ebook, research, or archive content except D-5 and the expressly post-merge FR-1010 update; any change to a Sermon step or Knowledge Graph entry; any whole-file restoration or commit cherry-pick from closed PR #627.
+
+## Revised acceptance criteria
+
+- [ ] AC-01: `BASE=36591389e2fdfedf9ba5ae6362effad1c64cd06e`; `git merge-base --is-ancestor "$BASE" HEAD` succeeds; `.github/copilot-instructions.md` has zero `Sermon of the Chaplain` matches; its numstat against BASE is exactly `2	2`; diffs of the seven bold Sermon steps and complete Knowledge Graph YAML block against BASE are empty.
+- [ ] AC-02: The Change table states the exact outcome for every live file in D-1 through D-4. The exact live set has zero forbidden operational-string matches, contains each of `scripts/author.sh`, `scripts/judge.sh`, and `scripts/review.sh` in `docs/development-process.md`, and preserves the measurement sentence byte-for-byte.
+- [ ] AC-03: A case-insensitive search for `Chaplain`, `Inquisitor`, and `.chaplain` over the exact live set is recorded in the implementation record; every surviving line is human-dispositioned as explicit history, an archive link, or one of the two untouched Knowledge Graph entries. No surviving line presents the retired runtime as an active route.
+- [ ] AC-04: `docs/context/chaplain-system.md` is absent; `docs/archive/chaplain-system.md` exists; `git diff --name-status -M100% "$BASE" --` reports `R100`; `docs/archive/chaplain.md` has exactly one link to it; `reference/audit-index.md` has exactly one `Chaplain` row and that row links `docs/archive/chaplain.md`.
+- [ ] AC-05: Canonical and ramp judge doctrine are byte-identical; `ramp/manifest.yaml` and `ramp/curation-diffs.md` are unchanged from BASE; the existing REQ-YG-613, REQ-YG-192, and REQ-YG-666 witness tests named in the FR pass.
+- [ ] AC-06: The exact changelog fragment exists and its front matter asserts `type: removal` and `scope: doctrine`; the exact diary file exists and contains `**Seed:**`; the non-slow unit suite passes.
+- [ ] AC-07: The FR implementation record lists every changed path and demonstrates that all are D-1 through D-6; it records human review of the Scripture and both judge-doctrine copies before merge.
+- [ ] AC-08: No commit or whole file is cherry-picked/restored from `cf9b915e`; only the frozen document hunks are ported and reviewed against current HEAD.
+- [ ] AC-09: Post-merge only, FR-1010 identifies FR-1019 as the successor that delivered Phase 3, records its immutable merge SHA, updates the obsolete FR-1013 phase references, records the merged-main residual witness, ticks AC-12/AC-13, and moves to `Completed`.
+
+## Conditions for enforcement
+
+| # | Condition | Severity |
+|---|---|---|
+| C-1 | R-1 through R-4 must be folded into the committed FR before implementation authority activates. | GATE |
+| C-2 | This draft and both enforcement-infrastructure diffs (`.github/copilot-instructions.md` and canonical/mirrored judge doctrine) require recorded human review before merge. | GATE |
+| C-3 | The two Scripture lines are the complete authorized Scripture change; all seven Sermon steps and the complete Knowledge Graph block remain byte-identical to BASE. | GATE |
+| C-4 | Archive content remains historical evidence and may not be rewritten to satisfy the live-file residual checks. | GATE |
+| C-5 | No new test, CAP, REQ, census, baseline artifact, hash inventory, script, hook, or CI change may be introduced. | GATE |
+| C-6 | Closed PR #627 is evidence and a hunk source only; it is not authority to import any path or commit outside D-1 through D-6. | GATE |
+| C-7 | D-7 occurs only after the implementation PR merges and its immutable merge SHA exists. | GATE |
+
+Authority granted: after R-1 through R-4 are folded into the committed FR and this draft is human-reviewed, FR-1019 may implement only D-1 through D-6; the operator may perform D-7 only after that implementation PR merges.
