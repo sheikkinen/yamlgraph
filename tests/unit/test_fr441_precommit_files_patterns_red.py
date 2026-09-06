@@ -17,7 +17,6 @@ TARGET_HOOK_FILES_PATTERNS = {
         r"(^yamlgraph/|^tests/|^ARCHITECTURE\.md$|^capabilities/|^scripts/req_coverage\.py$)"
     ),
     "validate-capabilities": r"(^capabilities/|^scripts/validate_capabilities\.py$)",
-    "validate-id-registry": r"(^capabilities/|^scripts/validate_id_registry\.py$)",
     "noqa-confession": r"(\.py$|^docs/confessions\.md$|^scripts/noqa_coverage\.py$)",
     "inline-llm-check": r"(\.py$|^scripts/lint_inline_llm\.py$)",
     "radon-complexity": r"\.py$",

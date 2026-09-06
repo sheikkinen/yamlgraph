@@ -1,6 +1,0 @@
-name: fr286-demo-context
-template: |
-  FR-286 merged-branch collision guard demo context.
-
-  This prompt file is included to keep the demo layout consistent with demos
-  that pair graph definitions with prompt assets.

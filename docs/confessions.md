@@ -149,7 +149,7 @@ Framework suppressions require elevated scrutiny. These live in `yamlgraph/`.
 - **Penance**: Used for YAML prompt template variable extraction, not HTML rendering. Autoescape would corrupt prompt text by escaping `<`, `>`, `&` characters. No web output is generated from this code path.
 
 ### CONF-010
-- **File**: [yamlgraph/executor_base.py](../yamlgraph/executor_base.py#L175)
+- **File**: [yamlgraph/executor_base.py](../yamlgraph/executor_base.py#L179)
 - **Code**: C901 (function too complex)
 - **Sin**: `prepare_messages` has high cyclomatic complexity (14 > 15 after refactoring, but still flagged) due to branching logic for different system field types (scalar vs. list vs. system_segments) and provider-specific message formatting.
 - **Penance**: Working functionality for FR-276 prompt caching. Complexity reduced from D (24) to C (14) through helper function extraction. The function orchestrates message preparation across multiple input formats and providers, making some complexity unavoidable.
@@ -407,7 +407,7 @@ Test suppressions are acceptable when they enable testing patterns that conflict
 - **Penance**: Same pattern as CONF-037. The `statemachine_engine` package is a local dependency not installed in CI; `importorskip` must execute before the action import to skip gracefully.
 
 ### CONF-048
-- **File**: [yamlgraph/tools/agent.py](../yamlgraph/tools/agent.py#L142)
+- **File**: [yamlgraph/tools/agent.py](../yamlgraph/tools/agent.py#L149)
 - **Code**: C901
 - **Sin**: `create_agent_node` has high cyclomatic complexity due to tool registration loop, LLM config resolution, multi-turn message handling, agent iteration loop with tool calls, and structured output extraction.
 - **Penance**: The function is a factory that builds a closure capturing configuration. The inner `node_fn` orchestrates the agent loop which is inherently sequential and branching. Splitting further would scatter the closure's captured variables across multiple functions with no clarity gain.
@@ -2023,7 +2023,7 @@ The ID ranges are:
 - **Penance**: Same validation as CONF-459; only runs when `--post` is given.
 
 ### CONF-461
-- **File**: [tests/unit/test_fr1014_authoring_proof_dir_graphs.py](../tests/unit/test_fr1014_authoring_proof_dir_graphs.py#L67)
+- **File**: [tests/unit/test_fr1014_authoring_proof_dir_graphs.py](../tests/unit/test_fr1014_authoring_proof_dir_graphs.py#L66)
 - **Code**: S102
 - **Sin**: `exec()` of the `def governed_path` text extracted from `.github/hooks/scripts/pre-command-guard.sh`'s Python heredoc.
 - **Penance**: FR-1014 witness: the predicate lives inside a bash heredoc and cannot be imported; executing the repository's own hook source (read from the tree, not from input) is the only way to assert it row-for-row against `check_authoring_proof.GOVERNED` on hosts that cannot exec the bash hook. Namespace is limited to `re`.

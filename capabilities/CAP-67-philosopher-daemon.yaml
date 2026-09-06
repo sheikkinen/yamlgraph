@@ -4,27 +4,25 @@ fr: FR-184
 description: >
   Automates the Philosopher role by scanning diary entries for recurring patterns
   (Trap, Heuristic, Seed markers) and proposing graduations to Scripture.
-  On-demand daemon writes proposals to .chaplain/inbox/ for Chaplain to process.
+  On-demand graph writes proposals to the proposals/ inbox (relocated to
+  graphs/philosopher/ by FR-1011; the .chaplain/philosopher.sh wrapper retired with FR-1012).
 modules:
-  - examples/philosopher/
-  - .chaplain/philosopher.sh
+  - graphs/philosopher/
 requirements:
   - id: REQ-YG-184
     description: Automated diary pattern scanning and graduation proposals
     modules:
-      - examples/philosopher/tools.py
-      - examples/philosopher/graph.yaml
-      - .chaplain/philosopher.sh
+      - graphs/philosopher/tools.py
+      - graphs/philosopher/graph.yaml
   - id: REQ-YG-185
     description: Copilot node migration with Pydantic-validated JSON extraction
     modules:
-      - examples/philosopher/models.py
-      - examples/philosopher/tools.py
-      - examples/shared/diary.py
+      - graphs/philosopher/tools.py
+      - graphs/philosopher/diary.py
   - id: REQ-YG-194
     description: World context loading for philosopher reflection enrichment
     modules:
-      - examples/philosopher/tools.py
-      - examples/philosopher/graph.yaml
-      - examples/philosopher/prompts/reflect.yaml
+      - graphs/philosopher/tools.py
+      - graphs/philosopher/graph.yaml
+      - graphs/philosopher/prompts/reflect.yaml
       - docs/world-context.md

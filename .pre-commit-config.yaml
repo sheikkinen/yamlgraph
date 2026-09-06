@@ -77,16 +77,6 @@ repos:
 
   - repo: local
     hooks:
-      - id: validate-id-registry
-        name: ID registry validation
-        entry: .venv/bin/python scripts/validate_id_registry.py
-        language: system
-        pass_filenames: false
-        files: (^capabilities/|^scripts/validate_id_registry\.py$)
-        stages: [pre-commit]
-
-  - repo: local
-    hooks:
       - id: cap-architecture-sync
         name: capability architecture sync
         entry: .venv/bin/python scripts/aggregate_capabilities.py

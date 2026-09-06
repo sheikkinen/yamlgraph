@@ -1,8 +1,0 @@
-name: watcher2_post_merge_inbox_consumption_context
-description: Context prompt asset for FR-289 post-merge inbox consumption demo
-version: "1.0"
-
-prompt: |
-  This demo validates watcher2 post-merge cleanup for FR-token-matched inbox items.
-  It proves token resolution order, inbox consumption into done queue, collision safety,
-  and explicit no-token no-op behavior.

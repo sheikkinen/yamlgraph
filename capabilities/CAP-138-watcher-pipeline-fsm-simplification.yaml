@@ -1,4 +1,6 @@
 id: CAP-138
+status: retired
+retired_by: FR-1012
 name: Watcher Pipeline FSM Simplification
 description: >
   Simplified watcher pipeline v2: 6 operational states (setup, plan,

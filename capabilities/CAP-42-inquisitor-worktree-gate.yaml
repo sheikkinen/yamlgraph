@@ -1,4 +1,6 @@
 id: CAP-42
+status: retired
+retired_by: FR-1012
 name: Inquisitor Worktree Gate
 description: >
   inquisitor.sh worktree gate detects git worktree context and exits early,

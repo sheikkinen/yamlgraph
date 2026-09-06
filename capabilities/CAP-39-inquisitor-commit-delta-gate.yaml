@@ -1,4 +1,6 @@
 id: CAP-39
+status: retired
+retired_by: FR-1012
 name: Inquisitor Commit-Delta Gate
 description: >
   inquisitor.sh commit-delta gate extracts last audit SHA from docs/diary/,

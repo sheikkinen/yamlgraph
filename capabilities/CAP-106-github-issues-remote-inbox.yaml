@@ -1,4 +1,6 @@
 id: CAP-106
+status: retired
+retired_by: FR-1012
 name: GitHub Issues Remote Inbox
 description: >
   watch.sh syncs open GitHub Issues labeled 'chaplain' into the local inbox,

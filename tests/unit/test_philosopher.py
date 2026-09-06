@@ -365,30 +365,6 @@ traps:
 
 
 # =============================================================================
-# Test: philosopher.sh exists and is executable
-# =============================================================================
-
-
-class TestPhilosopherDaemon:
-    """Tests for philosopher.sh daemon script."""
-
-    @pytest.mark.req("REQ-YG-184")
-    def test_daemon_script_exists(self):
-        """philosopher.sh should exist in .chaplain/."""
-        daemon_path = Path(".chaplain/philosopher.sh")
-        assert daemon_path.exists(), "philosopher.sh daemon not found"
-
-    @pytest.mark.req("REQ-YG-184")
-    def test_daemon_script_executable(self):
-        """philosopher.sh should have executable permissions."""
-        import stat
-
-        daemon_path = Path(".chaplain/philosopher.sh")
-        mode = daemon_path.stat().st_mode
-        assert mode & stat.S_IXUSR, "philosopher.sh is not executable"
-
-
-# =============================================================================
 # Test: Graph structure
 # =============================================================================
 

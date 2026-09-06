@@ -17,20 +17,16 @@ from yamlgraph.compile.graph_loader import compile_graph, load_graph_config
 pytestmark = pytest.mark.process
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-# FR-1011: the live process graphs moved to graphs/; the watcher graphs stay in
-# .chaplain/graphs/ until Phase 2. Both roots are compiled.
+# FR-1011 moved the live process graphs to graphs/; FR-1012 removed the runtime.
 CHAPLAIN_GRAPHS = sorted(
-    p
-    for root in (REPO_ROOT / "graphs", REPO_ROOT / ".chaplain" / "graphs")
-    for p in root.rglob("*.yaml")
-    if "prompts" not in p.parts
+    p for p in (REPO_ROOT / "graphs").rglob("*.yaml") if "prompts" not in p.parts
 )
 
 
 @pytest.mark.req("REQ-YG-529")
 def test_chaplain_graph_configs_discovered() -> None:
-    """The glob must find the chaplain graphs — an empty list would vacuously pass."""
-    assert len(CHAPLAIN_GRAPHS) >= 7, [str(p) for p in CHAPLAIN_GRAPHS]
+    """The glob must find the process graphs — an empty list would vacuously pass."""
+    assert len(CHAPLAIN_GRAPHS) >= 4, [str(p) for p in CHAPLAIN_GRAPHS]
 
 
 @pytest.mark.req("REQ-YG-529")

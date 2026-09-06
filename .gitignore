@@ -66,10 +66,8 @@ htmlcov/
 .mypy_cache/
 
 # Chaplain logs
-.chaplain/inquisitor.log
 
 # Chaplain daemon state (FR-258: timestamp tracking)
-.chaplain/state/
 .github/hooks/state/main-lock.json
 
 # Custom graphs
@@ -98,8 +96,6 @@ docs/ebook/v*/
 
 # Planning files
 /proposals/
-.chaplain/inbox-fsm/
-.chaplain/drafts/
 watcher.pid
 docs/fsm-diagrams/
 
@@ -112,8 +108,6 @@ docs/fr-board.md
 # Audio files
 *.wav
 node_modules/
-.chaplain/processing/
-.chaplain/failed/
 logs/
 
 # Private projects (removed from history — separate repos)

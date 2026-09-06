@@ -11,7 +11,6 @@ pytestmark = pytest.mark.process
 ARCHITECTURE_PATH = Path("ARCHITECTURE.md")
 ADR001_PATH = Path("docs/adr/001-test-requirement-traceability.md")
 REQ_COVERAGE_PATH = Path("scripts/req_coverage.py")
-INQUISITOR_PATH = Path(".chaplain/inquisitor.sh")
 HOOKS_README_PATH = Path(".github/hooks/README.md")
 
 
@@ -67,17 +66,6 @@ def test_ac04_req_coverage_explicitly_scopes_and_excludes_hook_tests() -> None:
     assert "tests/integration" in req_coverage
     assert ".github/hooks/tests" in req_coverage
     assert "scope" in req_coverage_lower and "infrastructure" in req_coverage_lower
-
-
-@pytest.mark.req("REQ-YG-063")
-def test_ac05_inquisitor_prompt_uses_scope_aware_req_tag_check() -> None:
-    inquisitor = _read_lower(INQUISITOR_PATH)
-
-    assert "framework-scope tests" in inquisitor
-    assert "tests/unit" in inquisitor
-    assert "tests/integration" in inquisitor
-    assert ".github/hooks/tests" in inquisitor
-    assert "exempt" in inquisitor
 
 
 @pytest.mark.req("REQ-YG-063")

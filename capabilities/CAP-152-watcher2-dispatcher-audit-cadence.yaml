@@ -1,4 +1,6 @@
 id: CAP-152
+status: retired
+retired_by: FR-1012
 name: Watcher2 Dispatcher Audit Cadence
 description: >
   Reintegrates inquisitor cadence into watcher-dispatcher so no-topic cycles can

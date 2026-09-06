@@ -1,4 +1,6 @@
 id: CAP-137
+status: retired
+retired_by: FR-1012
 name: Watcher FSM System Startup Script
 description: >
   Single startup script for the full watcher FSM system. Starts UI (creates

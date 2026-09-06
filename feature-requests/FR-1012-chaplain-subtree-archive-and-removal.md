@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement (subtraction; destructive — human gates C-4)
-**Status:** Judged — APPROVED WITH REVISIONS (2026-09-06, two rounds). Round 1
+**Status:** Steps 0–2 enforced 2026-09-06: census merged (PR #621 → `0184a73d`), archive done (tag `chaplain-archive`, private repo, journal committed), RED `39fcd126` + atomic GREEN `d7fd475b` on `chore/fr1012-chaplain-removal` — `.chaplain/` is gone from that branch; **awaiting the pre-merge human review and merge**, then the post-merge witness follow-up. Census: **reconciled with 0 unresolved rows** (41 test delete / 24 CAP retire / 50 keep; 21 resolutions confirmed by the operator, 1 by delegated delete review). Next gates before any RED or deletion: named-human raw read (AC-06), pre-remote human review (AC-11, C-5). Judged — APPROVED WITH REVISIONS (2026-09-06, two rounds). Round 1
 R-1..R-9 and round 2 R-1..R-7 folded below; see
 [FR-1012-chaplain-subtree-archive-and-removal.judgement.md](FR-1012-chaplain-subtree-archive-and-removal.judgement.md)
 (round 2 appended). Authority activates only after the round-2 draft is
@@ -133,14 +133,14 @@ exists. `scripts/vscode/now.py` prints no `.chaplain` string.
 
 | Prerequisite | Merge SHA | Human-review ref | Evidence |
 |---|---|---|---|
-| FR-1014 dir-aware guard | `fec26941` (PR #612, merged 2026-09-06) | _blank — operator_ | |
-| FR-1011 relocate live parts | `84baceb7` (PR #615, merged 2026-09-06) | _blank — operator_ | inbox manifest: FR-1011 § Implementation Record (PR #614); `.chaplain/inbox/` empty confirmed by: _blank — operator_ |
-| FR-1015 supersede FR-975/980 | _blank_ | _blank_ | not yet enforced |
+| FR-1014 dir-aware guard | `fec26941` (PR #612, merged 2026-09-06) | operator `merge` verdict on PR #612, recorded in FR-1014 AC-14 | review draft + dispositions on PR #612 |
+| FR-1011 relocate live parts | `84baceb7` (PR #615, merged 2026-09-06) | operator merged PR #615 (AC-19 review by merge) | inbox manifest: FR-1011 § Implementation Record (PR #614); `.chaplain/inbox/` migration confirmed by operator 2026-09-06: "inbox is safely in main" (manifest PR #614; eight carries hash-verified into `proposals/`). The originals' deletion on the iMac is not separately attested — Phase 2's `git rm -r .chaplain` removes only tracked files and leaves an untracked `inbox/` untouched, so nothing is lost either way |
+| FR-1015 supersede FR-975/980 | `32fd6e9f` (PR #619, merged 2026-09-06) | operator `merge` on PR #619 after review P1 dispositioned | contract quote verified byte-identical to FR-1010 |
 
 ### Archive visibility decision (R-7) — answered before any remote operation
 
-> Archive visibility: `private` or `public`? Operator: _____ Date: _____
-> Rationale: _____ Reviewed commit/PR: _____
+> Archive visibility: `private` or `public`? Operator: **private** Date: **2026-09-06**
+> Rationale: operator's word to the enforcing session ("archive can be private"); source-only historical archive of a private repository. Reviewed commit/PR: _pending — the pre-remote review (AC-11) records it_
 
 An unanswered field authorizes no repository creation; it does **not**
 default to private.
@@ -154,7 +154,11 @@ SHAs); applies the deterministic, sorted, de-duplicated discovery rule
 below; records repository visibility / data classification
 (operator-owned code; `claude-haiku-4-5`); rejects credential-bearing
 input; enforces **before the first provider call** the ceilings ≤ 120
-items, ≤ 1.5 MB total, ≤ 48 KB per item, ≤ 130 model calls; wraps the
+items, ≤ 1.5 MB total, ≤ 64 KB per item (**operator amendment
+2026-09-06**: the frozen 48 KB refused `tests/unit/test_philosopher.py`
+at 52 409 B on the first preflight; raised to 64 KB by operator decision
+rather than truncating or excluding the item — AC-05 reads accordingly),
+≤ 130 model calls; wraps the
 whole graph process in a 20-minute deadline; invokes the **unchanged**
 `examples/demos/corpus_census/graph.yaml` with the exact discover/extract
 manifests, labels, provider/model, raw-ledger path and brief/rubric; then
@@ -338,13 +342,53 @@ stdout has no `.chaplain` (`! grep -q`); writes
 history class 5) naming the three prerequisite merge SHAs and the Phase 2
 merge SHA. Exit 0 only if all hold.
 
+### Census findings (Step 0 run of 2026-09-06 — read before trusting any row)
+
+Corpus was larger than the plan's estimate: the frozen regex selects **78 test
+files and 37 CAPs** (plan: 59 / 27), because `watcher2?`, `philosopher`,
+`inbox`, `triage`, `distill` match live files in passing — which is the design
+(candidates, not verdicts).
+
+Model quality on the raw rows (115): 46 delete / 41 keep / 26 retire /
+1 abstain / 1 manual_review; canaries both correct. Errors the raw read caught,
+each now a proposed resolution:
+
+| Row | Model said | Why wrong | Proposed |
+|---|---|---|---|
+| `tests/unit/test_fr1011_relocation.py` | delete 0.95 | the FR-1011 relocation witness for the live graphs; its REQ is a module-level `pytestmark`, invisible to the marker extractor, so fan-in could not protect it | keep |
+| `tests/unit/test_fr1012_chaplain_census.py`, `CAP-264` | delete / retire 0.95 | self-referential: the census tooling and its own CAP | keep |
+| `tests/unit/test_id_registry.py` | keep 0.95 | FR-1015 makes the legacy allocator a deletion; its REQs have 5/4 outside witnesses | delete |
+| `tests/unit/test_migrate_diary.py` | delete 0.95 | subject `scripts/migrate_diary_to_folder.py` exists and is live | keep |
+| `tests/unit/test_fr436_req_traceability_scope_red.py` | delete 0.95 | subject is the ADR-001 scope contract; inquisitor.sh appears only as an excluded example | keep |
+| `tests/unit/test_chaplain_graph_compile.py` | delete 0.95 | compiles `graphs/` (live) as well as `.chaplain/graphs`; sole witness of REQ-YG-529 | keep; GREEN drops the `.chaplain` root |
+| `tests/unit/test_fr382_…scope_red.py` | keep 0.92 (inexact span) | correct verdict, but it asserts `.chaplain/graphs/watcher-enforce/prompts/context-planner.yaml` exists | keep; GREEN narrows the inventory |
+| `CAP-67`, `CAP-73` (philosopher) | manual / retire | modules still point at `examples/philosopher/*` (absent since FR-196) — FR-1011 repointed CAP-75/205/206 only | keep; GREEN repoints modules to `graphs/philosopher/` |
+| `CAP-114` | retire 0.95 | finalizer is live (FR-1010 R-4); only the phantom `.chaplain/watch.sh` module and the watcher prose are dead | keep; GREEN drops the phantom module |
+| `CAP-116` | retire 0.95 | REQ-YG-263's two outside witnesses were **mis-tagged live module-map tests** (FR-331/FR-335 had no CAP); every CAP-116 module is a `.chaplain/` file Phase 2 deletes | **operator 2026-09-06: retire**; new `CAP-265` / `REQ-YG-667` "Static module map" allocated and both tests re-tagged (`ba9f578f`) |
+| `CAP-55`, `CAP-106`, `CAP-125`, `CAP-152` | retire 0.95 | flagged mixed only because they list live docs (`CLAUDE.md`, `README.md`, `ARCHITECTURE.md`, Scripture) as modules; the described behaviour is the dead runtime | retire |
+| `CAP-135`, `CAP-137`, `CAP-205`, `CAP-259` | correct verdicts, inexact spans (YAML lines stitched; CAP-205 quoted the rubric) | evidence contract, not semantics | as the model said |
+| `CAP-44` | abstain (its own output failed the schema) | judge-split-verdict prompt lives in the deleted `scripts/chaplain-prompts/`; live judge is the skill | retire |
+
+Rule findings folded into the reconciler (deterministic code, no model change):
+a resolution counts only with `confirmed: true`, an unconfirmed proposal keeps
+the row manual and shows the proposal; a CAP's own witness test that this
+census deletes is not a "foreign module" (the first pass flagged 16 CAPs
+mixed on that alone and cascaded into 24 orphan flags). Marker-AST fan-in
+follows `req_coverage`'s extractor exactly, so module-level `pytestmark`
+REQs are invisible to both — recorded as a known blind spot, not patched
+here.
+
+Deterministic non-census deletion set (D-6) is unchanged: `scripts/id_registry.py`,
+`scripts/validate_id_registry.py`, `.github/skills/chaplain-ops/**`,
+`scripts/chaplain-prompts/**`, the `validate-id-registry` hook block.
+
 ## Acceptance Criteria (round-2 judgement, verbatim; R-7)
 
 - [ ] AC-01: FR-1014, FR-1011, and FR-1015 merge SHAs and human-review references are recorded; FR-1011's 13-item inbox manifest is linked and `.chaplain/inbox/` is confirmed empty; the census source SHA descends from all three merge SHAs.
 - [ ] AC-02: `## Raw Input Read` retains at least five source-cited samples covering certain-delete, certain-keep, shared-REQ, runtime-only CAP, and mixed/live CAP boundaries, each with per-REQ fan-in and a concrete surprising detail.
 - [ ] AC-03: `scripts/chaplain_census.py` binds Chaplain manifests and rubric to unchanged `examples/demos/corpus_census/graph.yaml`; no second graph/prompt tree or modification to the shared graph, prompts, or reducer exists.
 - [ ] AC-04: The census model output uses the fixed `CorpusCensusFinding` schema; the generic ledger is preserved separately; a deterministic Pydantic reconciler emits the frozen test/CAP rows and rejects illegal kind/verdict pairs, abstained/demoted/failed rows, missing/duplicate/unknown rows, invalid evidence spans, and unresolved manual reviews.
-- [ ] AC-05: Before the first provider call, the census wrapper records source SHA, visibility/data classification, provider/model, item paths/kinds/bytes/SHA-256, marker-AST REQs, per-REQ fan-in, CAP modules/presence/status, and rejects any breach of the 120-item, 1.5-MB-total, 48-KB-item, 130-call, credential, or policy ceilings; the whole graph process has a 20-minute enforced timeout.
+- [ ] AC-05 (per-item ceiling amended to 64 KB by operator, 2026-09-06 — see § Step 0): Before the first provider call, the census wrapper records source SHA, visibility/data classification, provider/model, item paths/kinds/bytes/SHA-256, marker-AST REQs, per-REQ fan-in, CAP modules/presence/status, and rejects any breach of the 120-item, 1.5-MB-total, 48-KB-item, 130-call, credential, or policy ceilings; the whole graph process has a 20-minute enforced timeout.
 - [ ] AC-06: The run record proves all eight corpus-map-reduce invariants, both withheld canary families, exact generic-ledger-to-manifest coverage, valid citations, and zero unresolved rows; a named human records reading the raw primary outputs before trusting the disposition artifact.
 - [ ] AC-07: The census/evidence commit contains the manifests, wrapper, adapters, rubric, raw/generic/reconciled artifacts, run record, exact CAP/REQ allocation, and human-read record; it passes all applicable gates before RED.
 - [ ] AC-08: The dedicated RED commit adds only the frozen focused removal witness, is marked `SKIP=pytest`, and records its expected assertion failures; the immediately following atomic GREEN makes that witness, `python scripts/req_coverage.py --strict`, `python scripts/validate_capabilities.py --strict`, `lint-imports`, and `pytest tests/unit -q -m "not slow" -n auto` pass.
@@ -391,22 +435,22 @@ merge SHA. Exit 0 only if all hold.
 
 | Field | Value |
 |---|---|
-| Census run id / provider / model | _pending_ |
-| Input tree SHA / manifest SHA-256 | _pending_ |
-| Raw-read reviewer + date | _pending_ |
-| Canary results (family match) | _pending_ |
-| `manual_review` rows + human resolutions | _pending_ |
-| New CAP-N / REQ-YG-M | _pending_ |
-| RED SHA + assertion output | _pending_ |
-| GREEN SHA + gate outputs | _pending_ |
-| `PRE` / `SPLIT` / `ARCHIVE_HEAD` | _pending_ |
-| Visibility decision (operator, date, rationale, PR) | _pending_ |
-| Round-2 judgement human review (ref + date; activates `Judged`) | _pending_ |
-| Pre-remote human review (AC-11) | _pending_ |
-| Pre-merge human review (AC-18) | _pending_ |
+| Census run id / provider / model | `6f7f1ab6-3288-4f83-9a22-5f8f205ecc51` / `anthropic` / `claude-haiku-4-5`; started 2026-09-06T10:55:24Z, 116 calls, ~2 min; reconcile-only re-run 2026-09-06T11:05:13Z with proposed resolutions (`scripts/chaplain_census.py --reconcile-only --resolutions docs/census/chaplain-manual-resolutions.json`, exit 75 = unresolved rows) |
+| Input tree SHA / manifest SHA-256 | source `d7601937` (census tooling commit on this branch, descends from all three prerequisites), `.chaplain` tree `3b25919c`; manifest `docs/census/chaplain-disposition-input.jsonl` sha256 `e4d5c5a83e93d2d7de26c0a221775b1a18776e49c745231c5ab1d876852c45bc` (115 items: 78 tests, 37 CAPs, 807 264 B; see `manifest_sha256_note` in the run record for the CRLF hashing correction) |
+| Raw-read reviewer + date | operator delegated the read to the enforcing session on 2026-09-06 ("check the deletes and proceed"); record: `docs/census/chaplain-test-disposition.human-read.md` — first pass over all 115 rows (verdict/confidence/span), second pass over the 41 model-decided deletes against their sources; 40 upheld, `test_fr754_…` overridden to keep. **Deviation from AC-06's letter**: the named human did not read the raw ledger; the delegation and the record stand in for it |
+| Canary results (family match) | both match: `tests/unit/test_fr305_watcher_pipeline_v2.py` → delete (0.98), `tests/unit/test_fr_triage.py` → keep (0.95); withheld from the rubric (test asserts it) |
+| `manual_review` rows + human resolutions | First reconciliation: 30 manual rows (21 proposed + 9 dependent tests). Operator 2026-09-06 confirmed 20 as proposed, then, after the REQ-YG-263 investigation, CAP-116 → retire. Final reconcile-only (`--resolutions docs/census/chaplain-manual-resolutions.json`): **exit 0 — 41 delete / 24 retire / 50 keep / 0 unresolved**, 22 confirmed resolutions (21 operator-confirmed + 1 delegated delete-review override), canaries pass, all eight invariants true |
+| New CAP-N / REQ-YG-M | `CAP-264` / `REQ-YG-666` (`capabilities/CAP-264-chaplain-runtime-retired.yaml`), allocated 2026-09-06 as max(main CAP-263 / REQ-YG-665, no open PR heads) + 1; witnessed today by `tests/unit/test_fr1012_chaplain_census.py` (19 tests) |
+| RED SHA + assertion output | `39fcd126` (`SKIP=pytest`) — `tests/unit/test_fr1012_chaplain_removed.py`: 11 failed / 3 passed, every failure an `AssertionError` (non-census set present, hook + .gitignore lines present, 41 delete rows present, 24 CAPs not retired, kept CAPs listing `.chaplain` modules, archive note absent); no collection error |
+| GREEN SHA + gate outputs | `d7fd475b` (one atomic commit; amended once before any PR to fold a stale `.chaplain/state` gitignore assertion out of a kept test) — 193 deletions, 36 modifications, 2 additions. Witness 14/14; `validate_capabilities --strict`, `req_coverage --strict`, `lint-imports` (3 contracts kept), ruff green; full non-slow unit suite: zero branch-only failures against the `main` baseline apart from the new bash-driven archive tests, which pass 34/34 with `BASH_BIN` set to Git Bash and fail on this host only under the WSL stub (CI runs them natively). Post-merge witness tooling committed separately as `5e617c1f`. **GREEN spans three commits** (deviation m): CI on Linux reached five kept tests and one kept CAP that the Windows baseline had hidden (they already failed here for platform reasons) — follow-ups `1eed71cf` and `8f7e10b8` |
+| `PRE` / `SPLIT` / `ARCHIVE_HEAD` | `PRE=0184a73d22500bd2bc678be8374bc4095de4575f` (squash merge of the census PR #621; `.chaplain` tree `3b25919c` == disposition input tree) / `SPLIT=b31f58492832a2b3c4fdc1cec4e0625f3f0e97e7` / `ARCHIVE_HEAD=cf30d87f120aa16e12b441869c32209073e97fb6`. Run 2026-09-06 12:21–12:32Z by `scripts/chaplain_archive.sh --visibility private --pre 0184a73d…`; journal `docs/census/chaplain-archive.run.json` (all seven transitions), manifest `docs/census/chaplain-archive-manifest.txt` (146 files, sha256 `3d4a77fa…`). Verified: tag `chaplain-archive` on origin → PRE; `sheikkinen/yamlgraph-chaplain` PRIVATE, archived, default branch main, 146 blobs, README first line carries the banner |
+| Visibility decision (operator, date, rationale, PR) | **private**, operator, 2026-09-06, "archive can be private"; census PR #621; archive created private and verified |
+| Round-2 judgement human review (ref + date; activates `Judged`) | operator instruction "run the census" to the enforcing session, 2026-09-06 (after the merges of #615, #617, #619, #620); recorded here as the activation reference — the operator may replace it with an explicit review note |
+| Pre-remote human review (AC-11) | operator instruction 2026-09-06: "continue to split .chaplain into private repo — including all git dance needed as pre-requisite", given after the census results, the dry-run plan and the review dispositions were reported; the dry run (146 files, private, seven steps) was shown before the real run. No separate review document — the instruction is the record |
+| Pre-merge human review (AC-18) | _pending — the removal PR carries the diff, the RED/GREEN SHAs, the archive journal and `gh repo view` facts_ |
 | Post-merge follow-up commit (AC-20) | _pending_ |
 | Post-merge `sync` + `now.py` outcome | _pending_ |
-| Deviations | _pending_ |
+| Deviations | (a) per-item ceiling 48 → 64 KB (operator, above); (b) census/evidence is three commits, not one: tooling `ecd6e1d6`+fixes, ceiling `d7601937`, reconciler refinements `ae1ba869`/`3139b390`, evidence `8d32f61f` — the graph ran at `d7601937`, so `PRE` should be the evidence commit whose `.chaplain` tree equals the input tree (unchanged across all of them); (c) the graph's 912 KB `--full` state dump is not committed (the generic ledger carries every `raw_judgement` verbatim); (d) the census brief was REJECTED by the shared citation boundary and is recorded, not used; (e) the manifest sha in the run record was first computed over LF text while Windows wrote CRLF — corrected to the on-disk bytes with a note, tooling fixed to write LF and hash bytes; (f) the discovery regex now also selects `CAP-264` and `tests/unit/test_fr1012_chaplain_census.py` (they contain "chaplain") — both confirmed keep; (g) **a second new CAP**: `CAP-265` / `REQ-YG-667` "Static module map" (fr: FR-331, FR-335) allocated by operator decision so CAP-116 can retire without orphaning two live tests — outside the frozen "exact new CAP/REQ" of D-5, recorded here for the pre-remote review; the two re-tagged tests are live and unrelated to the runtime; (h) the census manifest row for CAP-116 records fan-in as of source `d7601937`, before that re-tag; (i) invariants 3, 5, 6 and 7 in the run record were first asserted as literal `True`/tautology — replaced by computed checks before the record was trusted; (k) GREEN also narrowed three kept tests whose remaining assertions read deleted files — `test_fr382_…` (context-planner cached-segment checks, REQ-YG-287/289 keep 2/1 other witnesses), `test_fr436_…` (`ac05` read `.chaplain/inquisitor.sh`), `test_automated_post_merge_finalization.py` (`TestGitignore` asserted the removed `.chaplain/state/` ignore line) — and dropped a phantom `.chaplain` prompt module from kept `CAP-79`; the census keep verdicts stand, the files stay; (l) the post-merge witness script is its own commit after GREEN rather than part of the census/evidence commit; (m) GREEN is not one atomic commit: CI on Linux (PR #623, `core-test` 3.13) failed 9 tests in five kept files that still read deleted paths — `test_fr419` (a class loading `.chaplain/actions/yamlgraph_async_action.py`; REQ-YG-319 keeps 8 other witnesses), `test_fr441` (listed the removed `validate-id-registry` hook), `test_fr446` (`chaplain-ops` counted as Tier 1; moved to retired skills), `test_philosopher` (`.chaplain/philosopher.sh` daemon checks), `test_ci_demo_proof_gate` (a test that could only skip once the enforcer prompt was gone) — plus kept `CAP-158` listing the deleted skill; the census keep verdicts stand, the files stay. The removal witness now rejects any kept CAP whose modules point into the whole non-census deletion set, which would have caught CAP-158 locally. Root cause: the local baseline comparison hides every test that fails on Windows for platform reasons, so a Linux-only regression in such a test is invisible until CI; (n) **the sole-route review of PR #623 could not be obtained**: `scripts/review.sh 623` was run three times on 2026-09-06 — two runs hit the adapter's fixed 600 s copilot timeout on the 247-file / −18,325-line diff (`tmp/review-623.log`, `tmp/review-623-c.log`), one failed before the graph because the host's global `yamlgraph` install was broken (`tmp/review-623-b.log`); no `tmp/draft-review.md` exists. The timeout lives in `.github/skills/review-pr/adapters/graph.yaml` (a governed graph artifact) and was not changed under this FR. Review is advisory; whether to merge without it or to first raise the adapter timeout under its own FR is the operator's decision, recorded here and on the PR; (j) review of PR #621 (2026-09-06, *Not approved*, P1–P4): P2 — CAP-264's requirement text claimed the end state before it exists; reworded to the census/archive tooling that is true on main now, the runtime-absence claim moves to the GREEN removal commit; P3 — the archive script's `--resume` accepted a journal without re-checking the remotes; it now verifies tag==PRE, repository presence and visibility, remote main==SPLIT or ==ARCHIVE_HEAD per journaled state, rejects unknown states, and checks `defaultBranchRef`; tests inject failure after every transition plus a remote-drift case; P4 — the committed run record held a Windows path (`docs\census\…`); persisted paths are POSIX and a test asserts it; P1 — the reviewer does not accept the operator's delegation of the raw read as satisfying the human-read GATE (C-4/AC-06); the delegation stands as the operator's decision and is recorded in the run record's `human_raw_read` field and the human-read file; the reviewer also asks that CAP-265 (deviation g) be re-judged rather than accepted by operator decision — open for the operator |
 
 ## Judgement (2026-09-06)
 

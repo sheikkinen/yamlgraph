@@ -1,4 +1,6 @@
 id: CAP-140
+status: retired
+retired_by: FR-1012
 name: Watcher2 Validate Split Fix/Gate
 description: >
   Split watcher2 post-enforce validation into deterministic micro-remediation

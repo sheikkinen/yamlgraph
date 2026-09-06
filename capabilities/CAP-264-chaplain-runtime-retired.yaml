@@ -1,0 +1,54 @@
+id: CAP-264
+name: Chaplain runtime retired
+fr: FR-1012
+description: >
+  Phase 2 of FR-1010: the Chaplain FSM runtime (.chaplain/) is removed from
+  main after a census decides, item by item, which chaplain-coupled tests
+  and capability records witness the retired runtime and which witness live
+  behaviour. The census reuses the shipped corpus_census graph unchanged;
+  scripts/chaplain_census.py is the sole fail-closed invocation surface
+  (frozen discovery rule, marker-AST requirement fan-in, ceilings enforced
+  before the first provider call, deterministic Pydantic reconciliation,
+  withheld canaries). Its source is reachable only via the chaplain-archive
+  tag and the archived source-only repository.
+modules:
+  - scripts/chaplain_census.py
+  - examples/demos/corpus_census/adapters/chaplain_adapters.py
+  - examples/demos/corpus_census/adapters/chaplain-discover.tool.yaml
+  - examples/demos/corpus_census/adapters/chaplain-extract.tool.yaml
+  - examples/demos/corpus_census/adapters/chaplain_rubric.md
+  - tests/unit/test_fr1012_chaplain_census.py
+  - scripts/chaplain_archive.sh
+  - tests/unit/test_fr1012_chaplain_archive.py
+  - tests/unit/test_fr1012_chaplain_removed.py
+  - scripts/chaplain_postmerge_witness.sh
+  - tests/unit/test_fr1012_chaplain_postmerge_witness.py
+requirements:
+  - id: REQ-YG-666
+    description: >
+      The Chaplain runtime is absent from main; its source is reachable only
+      via the chaplain-archive tag (PRE 0184a73d) and the archived
+      repository sheikkinen/yamlgraph-chaplain (SPLIT b31f5849,
+      ARCHIVE_HEAD cf30d87f); the enacted test deletions
+      and CAP retirements equal the census delete/retire sets — witnessed by
+      tests/unit/test_fr1012_chaplain_removed.py. The census that
+      authorises the Phase 2 delete/retire sets is produced only by
+      scripts/chaplain_census.py, and the source-only archive only by
+      scripts/chaplain_archive.sh.
+      The census wrapper refuses,
+      before any provider call, a source SHA that does not descend from the
+      three prerequisite merges, more than 120 items, more than 1.5 MB in
+      total, any item over 64 KB (operator amendment 2026-09-06 from 48 KB), more than 130 model calls, or
+      credential-bearing input; its reconciler rejects illegal kind/verdict
+      pairs, abstained or failed rows, unknown, duplicate or missing rows,
+      evidence spans that are not exact payload spans, and any unresolved
+      manual-review row; both withheld canary families must match.
+    modules:
+      - scripts/chaplain_census.py
+      - examples/demos/corpus_census/adapters/chaplain_adapters.py
+      - tests/unit/test_fr1012_chaplain_census.py
+      - scripts/chaplain_archive.sh
+      - tests/unit/test_fr1012_chaplain_archive.py
+      - tests/unit/test_fr1012_chaplain_removed.py
+      - scripts/chaplain_postmerge_witness.sh
+      - tests/unit/test_fr1012_chaplain_postmerge_witness.py
