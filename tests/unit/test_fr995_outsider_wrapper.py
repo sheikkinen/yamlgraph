@@ -91,9 +91,10 @@ def _fake_bin(tmp: Path, *, graph_ok: bool, comment_ok: bool, report_text: str) 
         # Review #602 round 3 P1: a faulty executor may emit a report whose
         # marker is missing or misattributed; the wrapper must refuse to post it.
         f'R=$(grep -o "report_path=.*" "{vars_file}" | head -1); R="${{R#report_path=}}"\n'
+        # `sed -i.bak` is the BSD/GNU-portable form; bare `-i "<script>"` is GNU-only.
         'case "${FAKE_MARKER_MUTATION:-}" in\n'
-        '  drop) sed -i "/^<!-- outsider reader |/d" "$R";;\n'
-        '  pr999) sed -i "s/| pr: [0-9]* |/| pr: 999 |/" "$R";;\n'
+        '  drop) sed -i.bak "/^<!-- outsider reader |/d" "$R" && rm -f "$R.bak";;\n'
+        '  pr999) sed -i.bak "s/| pr: [0-9]* |/| pr: 999 |/" "$R" && rm -f "$R.bak";;\n'
         "esac\n",
         encoding="utf-8",
     )
@@ -244,9 +245,9 @@ def test_wrapper_is_executable_in_the_index():
         text=True,
         check=True,
     ).stdout.split()[0]
-    assert mode == "100755", (
-        f"scripts/outsider.sh committed as {mode}; ./scripts/outsider.sh would fail"
-    )
+    assert (
+        mode == "100755"
+    ), f"scripts/outsider.sh committed as {mode}; ./scripts/outsider.sh would fail"
 
 
 @pytest.mark.req("REQ-YG-663")
