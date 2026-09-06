@@ -20,17 +20,19 @@ modules:
   - tests/unit/test_fr1012_chaplain_census.py
   - scripts/chaplain_archive.sh
   - tests/unit/test_fr1012_chaplain_archive.py
+  - tests/unit/test_fr1012_chaplain_removed.py
 requirements:
   - id: REQ-YG-666
     description: >
-      Step 0/1 of the retirement (true on main now): the census that
+      The Chaplain runtime is absent from main; its source is reachable only
+      via the chaplain-archive tag (PRE 0184a73d) and the archived
+      repository sheikkinen/yamlgraph-chaplain (SPLIT b31f5849,
+      ARCHIVE_HEAD cf30d87f); the enacted test deletions
+      and CAP retirements equal the census delete/retire sets — witnessed by
+      tests/unit/test_fr1012_chaplain_removed.py. The census that
       authorises the Phase 2 delete/retire sets is produced only by
       scripts/chaplain_census.py, and the source-only archive only by
-      scripts/chaplain_archive.sh. The end-state claim — the runtime is
-      absent from main, its source reachable only via the chaplain-archive
-      tag and the archived repository, and the enacted sets equal the
-      census sets — is added to this record by the atomic GREEN removal
-      commit together with its witness (review of PR #621, P2).
+      scripts/chaplain_archive.sh.
       The census wrapper refuses,
       before any provider call, a source SHA that does not descend from the
       three prerequisite merges, more than 120 items, more than 1.5 MB in
@@ -45,3 +47,4 @@ requirements:
       - tests/unit/test_fr1012_chaplain_census.py
       - scripts/chaplain_archive.sh
       - tests/unit/test_fr1012_chaplain_archive.py
+      - tests/unit/test_fr1012_chaplain_removed.py

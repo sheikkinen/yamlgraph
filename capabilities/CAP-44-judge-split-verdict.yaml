@@ -1,4 +1,6 @@
 id: CAP-44
+status: retired
+retired_by: FR-1012
 name: Judge SPLIT Verdict
 description: >
   Add a fourth judge verdict (SPLIT) for multi-concern feature requests,

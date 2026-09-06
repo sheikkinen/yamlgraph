@@ -6,7 +6,7 @@ Validates:
 3. `watch.sh` contains the post-merge finalization phase
 4. Idempotency guards (FR status, existing PR, existing fragment)
 5. Timestamp-based filtering via `.chaplain/state/last-finalized-at`
-6. `.chaplain/state/` is gitignored
+6. (the `.chaplain/state/` ignore rule left with the runtime — FR-1012)
 
 Testing approach:
 - Content assertions for watch.sh and finalize_merge.sh (structure)
@@ -26,7 +26,6 @@ REPO_ROOT = os.path.join(os.path.dirname(__file__), "..", "..")
 WATCH_SH = os.path.join(REPO_ROOT, ".chaplain", "watch.sh")
 FINALIZE_MERGE_SH = os.path.join(REPO_ROOT, "scripts", "finalize_merge.sh")
 FINALIZE_LIB_SH = os.path.join(REPO_ROOT, "scripts", "lib", "finalize_lib.sh")
-GITIGNORE = os.path.join(REPO_ROOT, ".gitignore")
 
 # Shell snippet that sources finalize_lib.sh and exercises a single function.
 # TEST_DIR must contain a feature-requests/ directory with an FR file.
@@ -470,14 +469,6 @@ class TestFinalizeMergeSourcesLib:
 # 8. .gitignore
 # ---------------------------------------------------------------------------
 
-
-@pytest.mark.req("REQ-YG-261")
-class TestGitignore:
-    """.chaplain/state/ must be gitignored."""
-
-    def test_chaplain_state_gitignored(self):
-        content = _read_file(GITIGNORE)
-        assert ".chaplain/state/" in content
 
 
 # ---------------------------------------------------------------------------

@@ -1,4 +1,6 @@
 id: CAP-36
+status: retired
+retired_by: FR-1012
 name: Inquisitor Auto-Propose
 description: >
   --propose flag on inquisitor.sh detects violations persisting across

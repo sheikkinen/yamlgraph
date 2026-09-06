@@ -1,4 +1,6 @@
 id: CAP-128
+status: retired
+retired_by: FR-1012
 name: Chaplain Documentation
 description: >
   Comprehensive documentation for the FSM runtime orchestrator and shell

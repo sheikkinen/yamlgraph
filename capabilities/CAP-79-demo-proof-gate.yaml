@@ -32,6 +32,5 @@ requirements:
       - .pre-commit-config.yaml
       - .gitignore
       - CLAUDE.md
-      - .chaplain/graphs/watcher-enforce/prompts/enforce-test-demo.yaml
       - tests/unit/test_ci_demo_proof_gate.py
 fr: FR-206

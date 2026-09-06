@@ -390,13 +390,13 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 64 | CAP-64 Concurrency Safety Map | `docs/concurrency-safety.md`, `tests/unit/test_concurrency_safety_doc` | REQ-YG-160 |
 | 65 | CAP-65 Append-Only Capability Registry | `capabilities/`, `scripts/validate_capabilities.py`, `scripts/req_coverage.py` | REQ-YG-161 |
 | 66 | CAP-66 Append-Only Changelog | `changelog/`, `scripts/aggregate_changelog.py`, `scripts/migrate_changelog.py` | REQ-YG-162 |
-| 67 | CAP-67 Philosopher Daemon | `examples/philosopher/`, `.chaplain/philosopher.sh` | REQ-YG-184 – 185, 194 |
+| 67 | CAP-67 Philosopher Daemon | `graphs/philosopher/` | REQ-YG-184 – 185, 194 |
 | 68 | CAP-68 CI Dependency Security Scan | `.github/workflows/security.yml` | REQ-YG-186 |
 | 69 | CAP-69 Knowledge Graph Graduation (FR-190) | `.github/copilot-instructions.md` | REQ-YG-187 |
 | 70 | CAP-70 Knowledge Graph Graduation (FR-191) | `.github/copilot-instructions.md` | REQ-YG-188 |
 | 71 | CAP-71 Release Changelog Sync Gate | `scripts/check_changelog_release_sync.py`, `scripts/release.sh`, `.github/workflows/commitlint.yml`, `.pre-commit-config.yaml`, … | REQ-YG-189 – 191 |
 | 72 | CAP-72 Knowledge Graph Mass Graduation (FR-193) | `.github/copilot-instructions.md` | REQ-YG-192 |
-| 73 | CAP-73 Philosopher Challenge Node (FR-195) | `examples/philosopher/models.py`, `examples/philosopher/tools.py`, `examples/philosopher/graph.yaml`, `examples/philosopher/prompts/distill.yaml`, … | REQ-YG-193 |
+| 73 | CAP-73 Philosopher Challenge Node (FR-195) | `graphs/philosopher/tools.py`, `graphs/philosopher/graph.yaml`, `graphs/philosopher/prompts/distill.yaml`, `graphs/philosopher/prompts/challenge.yaml`, … | REQ-YG-193 |
 | 74 | CAP-74 FSM Scripture CLAUDE.md (FR-199) | `fsm/CLAUDE.md`, `tests/unit/test_fsm_claude_md_doctrine.py` | REQ-YG-195 |
 | 75 | CAP-75 Portable Chaplain (FR-196) | `yamlgraph/tools/python_tool.py`, `graphs/philosopher/tools.py`, `graphs/philosopher/diary.py`, `tests/unit/test_python_nodes.py` | REQ-YG-196, 529 |
 | 76 | CAP-76 Horoscope Demo | `examples/demos/horoscope` | REQ-YG-197 |
@@ -434,7 +434,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 110 | CAP-110 Diary Index Graph | `examples/demos/diary_index` | REQ-YG-257 |
 | 111 | CAP-111 Shared Graph Invocation | `graph_loader`, `discovery` | REQ-YG-206, 258 |
 | 113 | CAP-113 Chaplain Research Step | `.chaplain/graphs/watcher-plan` | REQ-YG-260 |
-| 114 | CAP-114 Automated Post-Merge Finalization | `scripts/lib/finalize_lib.sh`, `.chaplain/watch.sh`, `scripts/finalize_merge.sh`, `tests/unit/test_automated_post_merge_finalization` | REQ-YG-261 |
+| 114 | CAP-114 Automated Post-Merge Finalization | `scripts/lib/finalize_lib.sh`, `scripts/finalize_merge.sh`, `tests/unit/test_automated_post_merge_finalization` | REQ-YG-261 |
 | 116 | CAP-116 Acceptance Tests Before Enforce | `.chaplain/config/watcher-pipeline-v2.yaml`, `.chaplain/graphs/watcher-plan/step-plan-unified.yaml`, `.chaplain/graphs/watcher-plan/prompts/write-acceptance-tests.yaml`, `.chaplain/graphs/watcher-plan/prompts/judge.yaml`, … | REQ-YG-263 |
 | 117 | CAP-117 Race Node parse_json & Content Normalization | `yamlgraph/node_factory/race_node.py`, `yamlgraph/utils/content.py`, `yamlgraph/tools/agent.py` | REQ-YG-264 |
 | 118 | CAP-118 Copilot Node Model Selection | `yamlgraph/models/graph_schema.py`, `yamlgraph/compile/node_compiler.py`, `yamlgraph/node_factory/copilot_node.py` | REQ-YG-265 |
@@ -1189,15 +1189,15 @@ Replace monolithic CHANGELOG.md with fragment files under changelog/. Each chang
 
 ### 67. CAP-67 Philosopher Daemon
 
-Automates the Philosopher role by scanning diary entries for recurring patterns (Trap, Heuristic, Seed markers) and proposing graduations to Scripture. On-demand daemon writes proposals to .chaplain/inbox/ for Chaplain to process.
+Automates the Philosopher role by scanning diary entries for recurring patterns (Trap, Heuristic, Seed markers) and proposing graduations to Scripture. On-demand graph writes proposals to the proposals/ inbox (relocated to graphs/philosopher/ by FR-1011; the .chaplain/philosopher.sh wrapper retired with FR-1012).
 
 **Feature Request:** FR-184
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
-| REQ-YG-184 | Automated diary pattern scanning and graduation proposals | `examples/philosopher/tools.py`, `examples/philosopher/graph.yaml`, `.chaplain/philosopher.sh` |
-| REQ-YG-185 | Copilot node migration with Pydantic-validated JSON extraction | `examples/philosopher/models.py`, `examples/philosopher/tools.py`, `examples/shared/diary.py` |
-| REQ-YG-194 | World context loading for philosopher reflection enrichment | `examples/philosopher/tools.py`, `examples/philosopher/graph.yaml`, `examples/philosopher/prompts/reflect.yaml`, `docs/world-context.md` |
+| REQ-YG-184 | Automated diary pattern scanning and graduation proposals | `graphs/philosopher/tools.py`, `graphs/philosopher/graph.yaml` |
+| REQ-YG-185 | Copilot node migration with Pydantic-validated JSON extraction | `graphs/philosopher/tools.py`, `graphs/philosopher/diary.py` |
+| REQ-YG-194 | World context loading for philosopher reflection enrichment | `graphs/philosopher/tools.py`, `graphs/philosopher/graph.yaml`, `graphs/philosopher/prompts/reflect.yaml`, `docs/world-context.md` |
 
 ### 68. CAP-68 CI Dependency Security Scan
 
@@ -1253,13 +1253,13 @@ Graduates 8 recurring patterns from diary analysis into the Scripture Knowledge 
 
 ### 73. CAP-73 Philosopher Challenge Node (FR-195)
 
-Adds distill + challenge copilot nodes with unwrap gates to the philosopher graph, creating an adversarial quality gate (devil's advocate) that prevents weak or coincidental patterns from reaching .chaplain/inbox/. Implements ChallengeVerdict Pydantic model, unwrap_distill/unwrap_challenge tool functions, conditional routing on verdict, and distill/challenge prompt YAMLs.
+Adds distill + challenge copilot nodes with unwrap gates to the philosopher graph, creating an adversarial quality gate (devil's advocate) that prevents weak or coincidental patterns from reaching the proposals/ inbox. Implements ChallengeVerdict Pydantic model, unwrap_distill/unwrap_challenge tool functions, conditional routing on verdict, and distill/challenge prompt YAMLs.
 
 **Feature Request:** FR-195
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
-| REQ-YG-193 | ChallengeVerdict model with verdict/confidence/objections/surviving_arguments, unwrap_distill parses CopilotResult into Proposal or None, unwrap_challenge parses CopilotResult into ChallengeVerdict, write_proposals reads top_candidate, graph topology with conditional edges, distill/challenge prompts, reflect enriched with challenge context | `examples/philosopher/models.py`, `examples/philosopher/tools.py`, `examples/philosopher/graph.yaml`, `examples/philosopher/prompts/`, `tests/unit/test_philosopher.py` |
+| REQ-YG-193 | ChallengeVerdict model with verdict/confidence/objections/surviving_arguments, unwrap_distill parses CopilotResult into Proposal or None, unwrap_challenge parses CopilotResult into ChallengeVerdict, write_proposals reads top_candidate, graph topology with conditional edges, distill/challenge prompts, reflect enriched with challenge context | `graphs/philosopher/tools.py`, `graphs/philosopher/graph.yaml`, `graphs/philosopher/prompts/`, `tests/unit/test_philosopher.py` |
 
 ### 74. CAP-74 FSM Scripture CLAUDE.md (FR-199)
 
@@ -1280,7 +1280,7 @@ PythonToolConfig supports a `path` field for file-path-based tool loading via im
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-196 | PythonToolConfig supports path field (mutually exclusive with module) for file-path-based Python tool loading via spec_from_file_location; path resolves relative to graph_root when provided and both relative/absolute out-of-root paths are rejected; validation rejects both-set and neither-set; parse_python_tools accepts path or module in YAML tool definitions | `yamlgraph/tools/python_tool.py`, `tests/unit/test_python_nodes.py` |
-| REQ-YG-529 | All process graph configs under graphs/ and .chaplain/graphs/ compile and their declared python tools resolve at load time (FR-699); the philosopher write_diary proxy resolves the sibling graphs/philosopher/diary.py; verified by unit witness tests so loader-semantics changes condemn config drift at pre-commit instead of pipeline runtime | `graphs/philosopher`, `.chaplain/graphs`, `tests/unit/test_chaplain_graph_compile.py` |
+| REQ-YG-529 | All process graph configs under graphs/ compile and their declared python tools resolve at load time (FR-699); the philosopher write_diary proxy resolves the sibling graphs/philosopher/diary.py; verified by unit witness tests so loader-semantics changes condemn config drift at pre-commit instead of pipeline runtime | `graphs/philosopher`, `tests/unit/test_chaplain_graph_compile.py` |
 
 ### 76. CAP-76 Horoscope Demo
 
@@ -1320,7 +1320,7 @@ CI gate and pre-commit hook requiring demo-output.log artifact when demos are cr
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
-| REQ-YG-200 | demo-gate CI job in commitlint.yml extracts changed demo directories from git diff (excluding demo-output.log itself), verifies each has a demo-output.log in the diff, then validates content semantics using shared rules: reject empty logs, reject fatal execution markers (for example Node .* failed, [ERROR], ❌ Error:, exit code [1-9]), and reject logs with no success evidence; exits 1 on violations and 0 when no demos changed; job-level if condition restricts to feat/fix PR titles; uses actions/checkout@v4 with fetch-depth: 0; pre-commit hook demo-proof-check calls scripts/check_demo_proof.sh with identical semantic rules; .gitignore negates *.log for examples/demos/*/demo-output.log; CLAUDE.md documents demo-gate in branch protection section; enforcer Phase 2 prompt instructs capturing demo-output.log | `scripts/check_demo_proof.sh`, `scripts/demo_log_semantics.sh`, `.github/workflows/commitlint.yml`, `.pre-commit-config.yaml`, `.gitignore`, `CLAUDE.md`, `.chaplain/graphs/watcher-enforce/prompts/enforce-test-demo.yaml`, `tests/unit/test_ci_demo_proof_gate.py` |
+| REQ-YG-200 | demo-gate CI job in commitlint.yml extracts changed demo directories from git diff (excluding demo-output.log itself), verifies each has a demo-output.log in the diff, then validates content semantics using shared rules: reject empty logs, reject fatal execution markers (for example Node .* failed, [ERROR], ❌ Error:, exit code [1-9]), and reject logs with no success evidence; exits 1 on violations and 0 when no demos changed; job-level if condition restricts to feat/fix PR titles; uses actions/checkout@v4 with fetch-depth: 0; pre-commit hook demo-proof-check calls scripts/check_demo_proof.sh with identical semantic rules; .gitignore negates *.log for examples/demos/*/demo-output.log; CLAUDE.md documents demo-gate in branch protection section; enforcer Phase 2 prompt instructs capturing demo-output.log | `scripts/check_demo_proof.sh`, `scripts/demo_log_semantics.sh`, `.github/workflows/commitlint.yml`, `.pre-commit-config.yaml`, `.gitignore`, `CLAUDE.md`, `tests/unit/test_ci_demo_proof_gate.py` |
 
 ### 81. CAP-81 A2A Protocol Server
 
@@ -1646,13 +1646,13 @@ Research guidance in the active watcher-plan runtime. The unified planning step 
 
 ### 114. CAP-114 Automated Post-Merge Finalization
 
-Shared finalization library and watch.sh integration that automatically creates finalization PRs for recently merged feature PRs, eliminating the manual finalize_merge.sh step from the Chaplain pipeline.
+Shared finalization library sourced by scripts/finalize_merge.sh (FR-258). The watch.sh automation that once drove it retired with the Chaplain runtime (FR-1012); the library and the manual finalizer stay live (CAP-38, CAP-45).
 
 **Feature Request:** FR-258
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
-| REQ-YG-261 | Shared library `scripts/lib/finalize_lib.sh` provides `extract_fr_metadata`, `create_changelog_fragment`, `update_fr_status`, and `create_diary_stub` functions; `scripts/finalize_merge.sh` sources the library instead of inlining logic; `watch.sh` detects recently merged PRs via timestamp-based `gh pr list` query, creates finalization PRs with changelog fragment, FR status update, and diary stub, enables auto-merge, and skips already-finalized FRs idempotently | `scripts/lib/finalize_lib.sh`, `.chaplain/watch.sh`, `scripts/finalize_merge.sh`, `tests/unit/test_automated_post_merge_finalization` |
+| REQ-YG-261 | Shared library `scripts/lib/finalize_lib.sh` provides `extract_fr_metadata`, `create_changelog_fragment`, `update_fr_status`, and `create_diary_stub` functions; `scripts/finalize_merge.sh` sources the library instead of inlining logic; `watch.sh` detects recently merged PRs via timestamp-based `gh pr list` query, creates finalization PRs with changelog fragment, FR status update, and diary stub, enables auto-merge, and skips already-finalized FRs idempotently | `scripts/lib/finalize_lib.sh`, `scripts/finalize_merge.sh`, `tests/unit/test_automated_post_merge_finalization` |
 
 ### 116. CAP-116 Acceptance Tests Before Enforce
 
@@ -3236,7 +3236,7 @@ Phase 2 of FR-1010: the Chaplain FSM runtime (.chaplain/) is removed from main a
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
-| REQ-YG-666 | Step 0/1 of the retirement (true on main now): the census that authorises the Phase 2 delete/retire sets is produced only by scripts/chaplain_census.py, and the source-only archive only by scripts/chaplain_archive.sh. The end-state claim — the runtime is absent from main, its source reachable only via the chaplain-archive tag and the archived repository, and the enacted sets equal the census sets — is added to this record by the atomic GREEN removal commit together with its witness (review of PR #621, P2). The census wrapper refuses, before any provider call, a source SHA that does not descend from the three prerequisite merges, more than 120 items, more than 1.5 MB in total, any item over 64 KB (operator amendment 2026-09-06 from 48 KB), more than 130 model calls, or credential-bearing input; its reconciler rejects illegal kind/verdict pairs, abstained or failed rows, unknown, duplicate or missing rows, evidence spans that are not exact payload spans, and any unresolved manual-review row; both withheld canary families must match. | `scripts/chaplain_census.py`, `examples/demos/corpus_census/adapters/chaplain_adapters.py`, `tests/unit/test_fr1012_chaplain_census.py`, `scripts/chaplain_archive.sh`, `tests/unit/test_fr1012_chaplain_archive.py` |
+| REQ-YG-666 | The Chaplain runtime is absent from main; its source is reachable only via the chaplain-archive tag (PRE 0184a73d) and the archived repository sheikkinen/yamlgraph-chaplain (SPLIT b31f5849, ARCHIVE_HEAD cf30d87f); the enacted test deletions and CAP retirements equal the census delete/retire sets — witnessed by tests/unit/test_fr1012_chaplain_removed.py. The census that authorises the Phase 2 delete/retire sets is produced only by scripts/chaplain_census.py, and the source-only archive only by scripts/chaplain_archive.sh. The census wrapper refuses, before any provider call, a source SHA that does not descend from the three prerequisite merges, more than 120 items, more than 1.5 MB in total, any item over 64 KB (operator amendment 2026-09-06 from 48 KB), more than 130 model calls, or credential-bearing input; its reconciler rejects illegal kind/verdict pairs, abstained or failed rows, unknown, duplicate or missing rows, evidence spans that are not exact payload spans, and any unresolved manual-review row; both withheld canary families must match. | `scripts/chaplain_census.py`, `examples/demos/corpus_census/adapters/chaplain_adapters.py`, `tests/unit/test_fr1012_chaplain_census.py`, `scripts/chaplain_archive.sh`, `tests/unit/test_fr1012_chaplain_archive.py`, `tests/unit/test_fr1012_chaplain_removed.py` |
 
 ### 265. CAP-265 Static module map
 

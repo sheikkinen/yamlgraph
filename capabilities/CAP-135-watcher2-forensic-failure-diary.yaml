@@ -1,4 +1,6 @@
 id: CAP-135
+status: retired
+retired_by: FR-1012
 name: Watcher2 Forensic Failure Diary
 description: >
   Automated forensic analysis for watcher2 failures with structured diary generation.

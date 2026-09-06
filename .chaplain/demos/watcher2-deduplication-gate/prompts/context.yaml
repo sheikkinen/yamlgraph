@@ -1,7 +1,0 @@
-name: watcher2_deduplication_gate_context
-description: Context prompt asset for FR-287 dedup gate demo
-version: "1.0"
-
-prompt: |
-  This demo validates watcher2 deduplication behavior for already-completed FR topics.
-  It proves merged-hit skip, no-token pass-through, and gh failure graceful degradation.

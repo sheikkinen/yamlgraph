@@ -1,7 +1,0 @@
-name: watcher2_hook_preflight_gate_context
-description: Context prompt asset for FR-288 hook preflight gate demo
-version: "1.0"
-
-prompt: |
-  This demo verifies watcher2 hook-integrity preflight behavior.
-  It proves fail-closed handling for misconfigured core.hooksPath and broken hooks.
