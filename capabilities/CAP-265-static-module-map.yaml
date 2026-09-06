@@ -1,0 +1,28 @@
+id: CAP-265
+name: Static module map
+fr: FR-331, FR-335
+description: >
+  Deterministic, stdlib-only static module map of the yamlgraph package
+  (scripts/generate_module_map.py → reference/module-map.md) used as
+  Tier-2 orientation context: per-module exports and yamlgraph-internal
+  import dependencies, a deterministic test-to-module section, and a line
+  budget with trivial __init__ modules compressed (FR-335). Allocated by
+  FR-1012 Step 0 (2026-09-06): both FRs were Implemented without a
+  capability record and their witnesses had borrowed REQ-YG-263 from
+  CAP-116, the retired FSM capability.
+modules:
+  - scripts/generate_module_map.py
+  - reference/module-map.md
+  - tests/unit/test_fr331_static_module_map_tier2_context.py
+  - tests/unit/test_fr335_module_map_compression.py
+requirements:
+  - id: REQ-YG-667
+    description: >
+      scripts/generate_module_map.py parses yamlgraph/ with ast only, writes
+      reference/module-map.md with exports, yamlgraph-internal dependency
+      lists and a deterministic test-map section, stays within the FR-335
+      line budget, does not render trivial __init__ modules as sections,
+      and CLAUDE.md points at the artifact.
+    modules:
+      - scripts/generate_module_map.py
+      - reference/module-map.md

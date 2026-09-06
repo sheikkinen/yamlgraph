@@ -1,0 +1,6 @@
+name: chaplain-discover
+description: "FR-1012 chaplain disposition census: frozen discovery rule (tests + CAPs coupled to .chaplain)"
+runtime:
+  type: python
+  path: chaplain_adapters.py
+  function: chaplain_discover

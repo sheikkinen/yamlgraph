@@ -579,6 +579,8 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 261 | CAP-261 Tracing Off in Tests | `tests/conftest.py`, `tests/unit/test_fr982_tracing_off_in_tests.py` | REQ-YG-644 |
 | 262 | CAP-262 Map Fan-Out Concurrency Limit | `yamlgraph/compile/graph_loader.py`, `yamlgraph/cli/__init__.py`, `yamlgraph/cli/graph_run_helpers.py`, `yamlgraph/schemas/graph-v1.json`, … | REQ-YG-645 |
 | 263 | CAP-263 Outsider Reader for PR Descriptions | `.github/skills/outsider-view/adapters/outsider_tools.py`, `.github/skills/outsider-view/adapters/graph.yaml`, `scripts/outsider.sh`, `tests/unit/test_fr995_outsider_reader.py`, … | REQ-YG-660 – 663 |
+| 264 | CAP-264 Chaplain runtime retired | `scripts/chaplain_census.py`, `examples/demos/corpus_census/adapters/chaplain_adapters.py`, `examples/demos/corpus_census/adapters/chaplain-discover.tool.yaml`, `examples/demos/corpus_census/adapters/chaplain-extract.tool.yaml`, … | REQ-YG-666 |
+| 265 | CAP-265 Static module map | `scripts/generate_module_map.py`, `reference/module-map.md`, `tests/unit/test_fr331_static_module_map_tier2_context.py`, `tests/unit/test_fr335_module_map_compression.py` | REQ-YG-667 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -3225,6 +3227,26 @@ A reader with no project context reads a pull request's title and body — and n
 | REQ-YG-661 | The derived verdict is YES iff the validated report has at most 2 section-3 items and its restatement contains none of the hedge markers "does not say", "something called", "not stated", "cannot tell" (case-insensitive); otherwise NO. All nine committed spike reports derive NO or are rejected; none derives YES. | `.github/skills/outsider-view/adapters/outsider_tools.py` |
 | REQ-YG-662 | Every rendered report carries exactly one typed observation marker (`<!-- outsider reader \| ts \| repo \| pr \| head \| input \| model \| prompt \| tool \| verdict \| s3 \| s4 -->`): UTC `Z` timestamp, repo, PR number, full 40-hex PR head SHA, full 64-hex SHA-256 of the exact title+body bytes, pinned model, prompt digest, local tool git SHA, derived verdict and the section-3/section-4 counts; no `source:` or temp path; `-` placeholders for repo/pr/head on non-PR reports. The marker round-trips through parse_observation. One observation is countable only when a validated real-PR report is successfully posted as a PR comment (FR-1004); the committed ledger and `report_path` are retired, no mode writes under docs/ or any tracked file, and the distinct-PR count is a GitHub search over comments. | `.github/skills/outsider-view/adapters/outsider_tools.py` |
 | REQ-YG-663 | The wrapper runs the graph with the child working directory outside the repository and containing no `.github/`, pins gpt-5.6-sol with neither allow_all_paths nor allow_all_tools in the adapter, removes the temporary input on success and failure, preserves the validated report under repo tmp/, rejects recursive execution via OUTSIDER_EXECUTION, and calls `gh pr comment` only under explicit --comment. | `scripts/outsider.sh`, `.github/skills/outsider-view/adapters/graph.yaml` |
+
+### 264. CAP-264 Chaplain runtime retired
+
+Phase 2 of FR-1010: the Chaplain FSM runtime (.chaplain/) is removed from main after a census decides, item by item, which chaplain-coupled tests and capability records witness the retired runtime and which witness live behaviour. The census reuses the shipped corpus_census graph unchanged; scripts/chaplain_census.py is the sole fail-closed invocation surface (frozen discovery rule, marker-AST requirement fan-in, ceilings enforced before the first provider call, deterministic Pydantic reconciliation, withheld canaries). Its source is reachable only via the chaplain-archive tag and the archived source-only repository.
+
+**Feature Request:** FR-1012
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-666 | Step 0/1 of the retirement (true on main now): the census that authorises the Phase 2 delete/retire sets is produced only by scripts/chaplain_census.py, and the source-only archive only by scripts/chaplain_archive.sh. The end-state claim — the runtime is absent from main, its source reachable only via the chaplain-archive tag and the archived repository, and the enacted sets equal the census sets — is added to this record by the atomic GREEN removal commit together with its witness (review of PR #621, P2). The census wrapper refuses, before any provider call, a source SHA that does not descend from the three prerequisite merges, more than 120 items, more than 1.5 MB in total, any item over 64 KB (operator amendment 2026-09-06 from 48 KB), more than 130 model calls, or credential-bearing input; its reconciler rejects illegal kind/verdict pairs, abstained or failed rows, unknown, duplicate or missing rows, evidence spans that are not exact payload spans, and any unresolved manual-review row; both withheld canary families must match. | `scripts/chaplain_census.py`, `examples/demos/corpus_census/adapters/chaplain_adapters.py`, `tests/unit/test_fr1012_chaplain_census.py`, `scripts/chaplain_archive.sh`, `tests/unit/test_fr1012_chaplain_archive.py` |
+
+### 265. CAP-265 Static module map
+
+Deterministic, stdlib-only static module map of the yamlgraph package (scripts/generate_module_map.py → reference/module-map.md) used as Tier-2 orientation context: per-module exports and yamlgraph-internal import dependencies, a deterministic test-to-module section, and a line budget with trivial __init__ modules compressed (FR-335). Allocated by FR-1012 Step 0 (2026-09-06): both FRs were Implemented without a capability record and their witnesses had borrowed REQ-YG-263 from CAP-116, the retired FSM capability.
+
+**Feature Request:** FR-331, FR-335
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-667 | scripts/generate_module_map.py parses yamlgraph/ with ast only, writes reference/module-map.md with exports, yamlgraph-internal dependency lists and a deterministic test-map section, stays within the FR-335 line budget, does not render trivial __init__ modules as sections, and CLAUDE.md points at the artifact. | `scripts/generate_module_map.py`, `reference/module-map.md` |
 
 <!-- END GENERATED CAPABILITIES -->
 
