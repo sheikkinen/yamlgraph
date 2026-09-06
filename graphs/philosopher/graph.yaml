@@ -2,14 +2,14 @@
 # Scans diary entries for recurring patterns and proposes graduations to Scripture
 # FR-195: Adds distill/challenge adversarial gate before propose
 # FR-194: Adds world context loading for grounded reflection
-# FR-196: Relocated from examples/philosopher/ to .chaplain/graphs/philosopher/
+# FR-196 moved this graph out of examples/philosopher/ into the chaplain runtime; FR-1011 relocated it to graphs/philosopher/
 
 version: "1.0"
 name: philosopher-scan
 description: |
   Scan diary entries for recurring patterns and propose graduations.
   Nine phases: scan → analyze → distill → unwrap_distill → [challenge → unwrap_challenge →] propose → load_context → reflect → write_diary.
-  The distill/challenge gate (FR-195) prevents weak patterns from reaching .chaplain/inbox/.
+  The distill/challenge gate (FR-195) prevents weak patterns from reaching the proposals inbox.
 
 prompts_relative: true
 prompts_dir: prompts
@@ -18,7 +18,7 @@ prompts_dir: prompts
 
 state:
   diary_dir: str                # Path to docs/diary/
-  inbox_dir: str                # Path to .chaplain/inbox/
+  inbox_dir: str                # Path to the proposals inbox (proposals/ on the operator's main checkout)
   lookback_days: int            # How many days back to scan (default: 30)
   graduation_threshold: int     # Min occurrences to propose graduation (default: 3)
   date: str                     # Current date for diary entry

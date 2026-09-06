@@ -160,7 +160,7 @@ seeds:
   # Forward-looking patterns awaiting implementation
   inquisitor_auto_escalation: "Auto-create FR when audit pattern hits threshold"
   verification_checkpoint_primitive: "Checkpoint/resume for long enforce pipelines"
-  diary_graduation_pipeline: "Mechanical pipeline: diary entry with 3+ recurrences across projects → auto-proposal to .chaplain/inbox/ for Scripture graduation"
+  diary_graduation_pipeline: "Mechanical pipeline: diary entry with 3+ recurrences across projects → auto-proposal to proposals/ for Scripture graduation"
   artifact_carries_code_identity: "Stamp every archived measurement artifact (result.json etc.) with the git SHA of the code that produced it, so provenance is checked by equality instead of inferred from impossibility — the general cure for shared-repo measurement runs"
 ```
 

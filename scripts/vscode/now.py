@@ -484,7 +484,7 @@ def main() -> None:
         if wc.is_file():
             age_d = (time.time() - wc.stat().st_mtime) / 86400
             stale = (
-                "  ⚠ STALE — refresh: yamlgraph graph run .chaplain/graphs/world_distill/graph.yaml --var date=$(date +%F)"
+                "  ⚠ STALE — refresh: yamlgraph graph run graphs/world_distill/graph.yaml --var date=$(date +%F)"
                 if age_d > 14
                 else ""
             )

@@ -41,7 +41,8 @@ Before authoring anything, search committed precedent in this order:
 
 1. `examples/demos/` — smallest runnable patterns (start here).
 2. `examples/` — full applications with tools and tests.
-3. `.chaplain/graphs/` — process/pipeline graph shapes.
+3. `graphs/` — process/pipeline graph shapes (`graphs/enforcement/`,
+   `graphs/fr_triage/`, `graphs/world_distill/`, `graphs/philosopher/`).
 4. `reference/graph-yaml.md`, `reference/prompt-yaml.md`, and
    `reference/expressions.md` — syntax only.
 
@@ -113,7 +114,7 @@ vocabulary (approved, rejected, condemned, verdict) in the report.
 
 ## Escalation
 
-Submit a Chaplain proposal (`.chaplain/inbox/`) instead of authoring
+Submit a proposal (`proposals/`, see the feature-request skill) instead of authoring
 directly when:
 
 - The task changes framework code, hooks, CI, or doctrine — anything

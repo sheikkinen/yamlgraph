@@ -141,8 +141,8 @@ fi
 
 # ── Check 6: graph-authoring sole route (FR-767) ─────────────────────
 # Governed graph artifacts (examples/**/graph.yaml, examples/**/prompts/*.yaml,
-# graphs/*.yaml, graphs/<name>/*.yaml, graphs/<name>/prompts/*.yaml (FR-1014),
-# .chaplain/graphs/*.yaml) may only be written under an armed
+# graphs/*.yaml, graphs/<name>/*.yaml, graphs/<name>/prompts/*.yaml — FR-1014;
+# the former chaplain arm was removed by FR-1011) may only be written under an armed
 # per-run authoring sentinel (scripts/author.sh). Path-based bright line (C-4),
 # fail closed on ambiguity (C-5). Sentinel = env token + matching token file.
 case "$TOOL_NAME" in
@@ -170,7 +170,6 @@ def governed_path(path):
         or re.search(r"(^|/)graphs/[^/]+/[^/]+\.ya?ml$", p)
         or re.search(r"(^|/)graphs/[^/]+/prompts/[^/]+\.ya?ml$", p)
         or re.search(r"(^|/)graphs/[^/]+\.ya?ml$", p)
-        or re.search(r"(^|/)\.chaplain/graphs/[^/]+\.ya?ml$", p)
     )
 
 def sentinel_armed():
@@ -187,7 +186,7 @@ def sentinel_armed():
 PATHISH = r"[^\s\"';|&<>]+"
 
 def terminal_reason(cmd):
-    if not re.search(r"examples/|graphs/|\.chaplain/", cmd):
+    if not re.search(r"examples/|graphs/", cmd):
         return None
     for m in re.finditer(r">>?\s*[\"']?(" + PATHISH + ")", cmd):
         if governed_path(m.group(1)):
@@ -214,7 +213,7 @@ def terminal_reason(cmd):
         dest, sources = args[-1], args[:-1]
         if governed_path(dest):
             return "copy/move onto governed artifact " + dest
-        in_tree = re.match(r"(\./)?(examples|graphs|\.chaplain)(/|$)", dest)
+        in_tree = re.match(r"(\./)?(examples|graphs)(/|$)", dest)
         if not in_tree:
             continue
         for s in sources:
@@ -267,7 +266,7 @@ PYEOF
 ) || AUTHOR_REASON="authoring-guard analyzer error (fail closed)"
     if [[ -n "$AUTHOR_REASON" ]]; then
       audit_log "deny" "authoring-route" "$AUTHOR_REASON"
-      emit_deny "Governed graph artifact write denied: ${AUTHOR_REASON}.\\n\\nGraph authoring has a sole route: scripts/author.sh <task-brief.md>\\n(.github/skills/graph-authoring/adapters/README.md). The adapter arms a\\nper-run sentinel; unsentineled writes to examples/**/graph.yaml,\\nexamples/**/prompts/*.yaml, graphs/*.yaml and .chaplain/graphs/*.yaml\\nare denied (FR-767). Do not work around this guard — write a task brief\\nand run the adapter."
+      emit_deny "Governed graph artifact write denied: ${AUTHOR_REASON}.\\n\\nGraph authoring has a sole route: scripts/author.sh <task-brief.md>\\n(.github/skills/graph-authoring/adapters/README.md). The adapter arms a\\nper-run sentinel; unsentineled writes to examples/**/graph.yaml,\\nexamples/**/prompts/*.yaml, graphs/*.yaml and graphs/<name>/**.yaml\\nare denied (FR-767, FR-1014). Do not work around this guard — write a task brief\\nand run the adapter."
       exit 0
     fi
     ;;
@@ -370,12 +369,12 @@ fi
 
 # ── Check 5: branch creation in main worktree (FR-662) ───────────────
 # Agents must not create branches in the main worktree.
-# Isolation goes through chaplain worktrees, not local branches.
+# Isolation goes through scripts/worktree.sh worktrees, not local branches.
 # Allow: git branch -d (delete), git branch --list, git branch -a, queries
 if echo "$COMMAND" | grep -qE 'git\s+(checkout\s+-b|switch\s+-c|branch\s+[^-])'; then
   if ! echo "$COMMAND" | grep -qE 'git\s+branch\s+(-d|-D|--delete|--list|-a|-r|--merged|--no-merged|--contains|--no-contains|--sort|--show-current)'; then
     audit_log "deny" "branch-create" "${COMMAND:0:200}"
-    emit_deny "Branch creation in main worktree is forbidden. Single-developer workflow: commit to main.\\n\\nFor isolated work, submit to .chaplain/inbox/ — the chaplain creates worktrees.\\nFor isolated manual work: scripts/worktree.sh new <name>\\n\\nTo delete stale branches: git branch -d <name>"
+    emit_deny "Branch creation in main worktree is forbidden. Single-developer workflow: commit to main.\\n\\nFor isolated work: scripts/worktree.sh new <name>. Sparks go to proposals/ (feature-request skill).\\n\\nTo delete stale branches: git branch -d <name>"
     exit 0
   fi
 fi

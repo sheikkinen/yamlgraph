@@ -1,7 +1,7 @@
 """Tests for FR-258: Automate Post-Merge Finalization in watch.sh.
 
 Validates:
-1. Shared library `.chaplain/lib/finalize_lib.sh` functions work correctly
+1. Shared library `scripts/lib/finalize_lib.sh` functions work correctly (relocated by FR-1011)
 2. `scripts/finalize_merge.sh` sources the shared library (no duplication)
 3. `watch.sh` contains the post-merge finalization phase
 4. Idempotency guards (FR status, existing PR, existing fragment)
@@ -25,7 +25,7 @@ pytestmark = pytest.mark.process
 REPO_ROOT = os.path.join(os.path.dirname(__file__), "..", "..")
 WATCH_SH = os.path.join(REPO_ROOT, ".chaplain", "watch.sh")
 FINALIZE_MERGE_SH = os.path.join(REPO_ROOT, "scripts", "finalize_merge.sh")
-FINALIZE_LIB_SH = os.path.join(REPO_ROOT, ".chaplain", "lib", "finalize_lib.sh")
+FINALIZE_LIB_SH = os.path.join(REPO_ROOT, "scripts", "lib", "finalize_lib.sh")
 GITIGNORE = os.path.join(REPO_ROOT, ".gitignore")
 
 # Shell snippet that sources finalize_lib.sh and exercises a single function.
@@ -102,7 +102,7 @@ def _run_lib_function(
 
 @pytest.mark.req("REQ-YG-261")
 class TestSharedLibraryExists:
-    """`.chaplain/lib/finalize_lib.sh` must exist and be sourceable."""
+    """`scripts/lib/finalize_lib.sh` must exist and be sourceable."""
 
     def test_finalize_lib_exists(self):
         assert os.path.isfile(
@@ -431,7 +431,7 @@ class TestCreateDiaryStub:
 
 @pytest.mark.req("REQ-YG-261")
 class TestFinalizeMergeSourcesLib:
-    """scripts/finalize_merge.sh must source .chaplain/lib/finalize_lib.sh."""
+    """scripts/finalize_merge.sh must source scripts/lib/finalize_lib.sh."""
 
     def test_sources_finalize_lib(self):
         content = _read_file(FINALIZE_MERGE_SH)
@@ -570,8 +570,8 @@ class TestFinalizeMergeStillWorks:
         (repo / "docs" / "diary").mkdir(parents=True)
         (repo / "feature-requests").mkdir()
         (repo / "tmp").mkdir()
-        # Copy the shared library into .chaplain/lib/ for the script to source
-        lib_dest = repo / ".chaplain" / "lib"
+        # Copy the shared library into scripts/lib/ for the script to source
+        lib_dest = repo / "scripts" / "lib"
         lib_dest.mkdir(parents=True)
         import shutil
 

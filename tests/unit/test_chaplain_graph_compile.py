@@ -17,9 +17,12 @@ from yamlgraph.compile.graph_loader import compile_graph, load_graph_config
 pytestmark = pytest.mark.process
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
+# FR-1011: the live process graphs moved to graphs/; the watcher graphs stay in
+# .chaplain/graphs/ until Phase 2. Both roots are compiled.
 CHAPLAIN_GRAPHS = sorted(
     p
-    for p in (REPO_ROOT / ".chaplain" / "graphs").rglob("*.yaml")
+    for root in (REPO_ROOT / "graphs", REPO_ROOT / ".chaplain" / "graphs")
+    for p in root.rglob("*.yaml")
     if "prompts" not in p.parts
 )
 
@@ -48,12 +51,12 @@ def test_chaplain_graph_compiles(graph_path: Path) -> None:
 
 @pytest.mark.req("REQ-YG-529")
 def test_philosopher_write_diary_proxy_wiring() -> None:
-    """The write_diary proxy resolves .chaplain/lib/diary.py and its callable.
+    """The write_diary proxy resolves the sibling graphs/philosopher/diary.py and its callable.
 
     Wiring only: the incident was a broken link, not broken behavior.
     """
-    tools_path = REPO_ROOT / ".chaplain" / "graphs" / "philosopher" / "tools.py"
-    lib_path = tools_path.resolve().parents[2] / "lib" / "diary.py"
+    tools_path = REPO_ROOT / "graphs" / "philosopher" / "tools.py"
+    lib_path = tools_path.with_name("diary.py")
     assert lib_path.is_file(), f"proxy target missing: {lib_path}"
 
     spec = importlib.util.spec_from_file_location(

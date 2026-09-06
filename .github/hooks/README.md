@@ -83,9 +83,9 @@ Blocks dangerous terminal patterns *before* the command runs:
 
 Governed paths: `examples/**/graph.yaml`, `examples/**/prompts/*.yaml`,
 `graphs/*.yaml` (flat), `graphs/<name>/*.yaml` and
-`graphs/<name>/prompts/*.yaml` (dir-style, one directory deep — FR-1014),
-`.chaplain/graphs/*.yaml` (path-based bright line, C-4 — tracked artifacts
-included, R-2). The same predicate lives in three surfaces that must agree:
+`graphs/<name>/prompts/*.yaml` (dir-style, one directory deep — FR-1014;
+the former chaplain arm was removed by FR-1011) — path-based bright line,
+C-4, tracked artifacts included, R-2. The same predicate lives in three surfaces that must agree:
 `governed_path()` in `pre-command-guard.sh`, `GOVERNED` in
 `scripts/check_authoring_proof.py`, and the `authoring-proof` hook's
 `files:` selector in `.pre-commit-config.yaml`; the shared truth table is

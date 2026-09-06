@@ -37,7 +37,7 @@ Answers before you act:
 | `scripts/vscode/portrait.py` | Recent session titles + measured same-hour concurrency per day |
 | `scripts/vscode/timesheet.py --month YYYY-MM` | Day-grouped "what did I work on" report across a date range — repo, branch, one-line description per session (`--repo <substr>` to scope one project) |
 | `python3 scripts/fr_board.py` (add `--project projects/ninchat_voice` for the cross-repo view) | **What's next?** — the plan-state board (FR-740), computed live from `feature-requests/*.md` and printed to stdout (FR-858 retired the committed cache): active FRs, gates with owners and pre-drafted questions, parse-failure rows exposing status lag. Run this BEFORE re-deriving priorities from FR files by hand |
-| `docs/world-context.md` | **What's happening outside the repo?** — the world file (FR-744): distilled external context the philosopher grounds graduations against. `now.py` prints its pointer with age; the age label IS the scheduler — when it flags `⚠ STALE`, refresh with `yamlgraph graph run .chaplain/graphs/world_distill/graph.yaml --var date=$(date +%F)` |
+| `docs/world-context.md` | **What's happening outside the repo?** — the world file (FR-744): distilled external context the philosopher grounds graduations against. `now.py` prints its pointer with age; the age label IS the scheduler — when it flags `⚠ STALE`, refresh with `yamlgraph graph run graphs/world_distill/graph.yaml --var date=$(date +%F)` |
 
 ## Facts worth knowing (measured 2026-07-16)
 

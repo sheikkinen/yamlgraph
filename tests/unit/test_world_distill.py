@@ -24,7 +24,7 @@ import pytest
 pytestmark = pytest.mark.process
 
 REPO = Path(__file__).resolve().parents[2]
-TOOLS = REPO / ".chaplain/graphs/world_distill/tools.py"
+TOOLS = REPO / "graphs/world_distill/tools.py"
 
 
 def _load_tools():

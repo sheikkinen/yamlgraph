@@ -38,7 +38,7 @@ Verify by the report artifact, never exit code.
 The route is mechanically enforced (FR-767): `author.sh` arms a per-run
 sentinel token, and the PreToolUse guard (`pre-command-guard.sh`) denies
 any unsentineled write to governed paths — `examples/**/graph.yaml`,
-`examples/**/prompts/*.yaml`, `graphs/*.yaml`, `.chaplain/graphs/*.yaml`
+`examples/**/prompts/*.yaml`, `graphs/*.yaml`, `graphs/<name>/*.yaml`, `graphs/<name>/prompts/*.yaml`
 — across file tools and terminal write shapes, failing closed on
 ambiguity. If the adapter route fails, **fix the adapter and rerun** —
 the failure of the enforcement route is a defect in the route, never a

@@ -36,14 +36,13 @@ UNGOVERNED = "docs/notes.md"
 
 # ── FR-1014 truth table: graphs/ arm, dir-aware ──────────────────────
 # Provenance labels (R-2): "exists" rows pass `git ls-files --error-unmatch`
-# on main; "FR-1011" rows are named by that judged phase FR and do not
-# exist yet; "synthetic" rows exercise a contract arm with no committed
+# on main (the fr_triage rows since FR-1011 relocated them); "synthetic" rows exercise a contract arm with no committed
 # instance and are never cited as evidence of the current tree.
 GOVERNED_FLAT_SYNTHETIC = "graphs/fr1014-flat.yaml"  # synthetic: flat arm
 GOVERNED_DIR_DIRECT_EXISTS = "graphs/enforcement/changelog-req-check.yaml"  # exists
 GOVERNED_DIR_PROMPT_EXISTS = "graphs/enforcement/prompts/cross_check.yaml"  # exists
-GOVERNED_DIR_GRAPH_FR1011 = "graphs/fr_triage/graph.yaml"  # FR-1011 will create
-GOVERNED_DIR_PROMPT_FR1011 = "graphs/fr_triage/prompts/triage_fr.yaml"  # FR-1011 will create
+GOVERNED_DIR_GRAPH_FR1011 = "graphs/fr_triage/graph.yaml"  # exists (relocated by FR-1011)
+GOVERNED_DIR_PROMPT_FR1011 = "graphs/fr_triage/prompts/triage_fr.yaml"  # exists (relocated by FR-1011)
 
 FR1014_POSITIVES = [
     GOVERNED_DIR_DIRECT_EXISTS,

@@ -1,6 +1,6 @@
 """Shared diary writing utilities.
 
-Used by diary_digest and .chaplain workflows.
+Used by diary_digest and the philosopher graph (graphs/philosopher/, FR-1011).
 FR-097: Extracted from examples/diary_digest/nodes/writing.py for neutral ownership.
 FR-134: Refactored to write individual files to docs/diary/ folder.
 """

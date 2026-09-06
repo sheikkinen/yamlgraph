@@ -74,7 +74,7 @@ if hits >= 2:
       file_issues="${file_issues}${prior_art}\n"
     fi
     # FR-745 F1: reminder only — no LLM at hook time. Run the triage graph
-    # before judgement: yamlgraph graph run .chaplain/graphs/fr_triage/graph.yaml --var fr_path=<fr>
+    # before judgement: yamlgraph graph run graphs/fr_triage/graph.yaml --var fr_path=<fr>
     file_issues="${file_issues}ℹ FR-745: run fr_triage before judgement (canon answers + pre-mortem witnesses become dispositionable claims).\n\n"
   fi
 

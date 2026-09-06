@@ -13,8 +13,7 @@ One truth table, three enforcement surfaces that must agree on every row:
    additions are dir-style never invokes surface 1 at all).
 
 Provenance labels (FR-1014 R-2): "exists" rows are asserted against
-``git ls-files``; "FR-1011" rows are named by that judged phase FR and do not
-exist yet; the synthetic flat row exercises the retained flat arm and is not
+``git ls-files`` (the fr_triage rows were relocated there by FR-1011); the synthetic flat row exercises the retained flat arm and is not
 evidence of the current tree.
 """
 
@@ -40,8 +39,8 @@ pytestmark = [pytest.mark.req("REQ-YG-423"), pytest.mark.process]
 TRUTH_TABLE = [
     ("graphs/enforcement/changelog-req-check.yaml", "exists", True),
     ("graphs/enforcement/prompts/cross_check.yaml", "exists", True),
-    ("graphs/fr_triage/graph.yaml", "FR-1011", True),
-    ("graphs/fr_triage/prompts/triage_fr.yaml", "FR-1011", True),
+    ("graphs/fr_triage/graph.yaml", "exists", True),  # relocated by FR-1011
+    ("graphs/fr_triage/prompts/triage_fr.yaml", "exists", True),  # relocated by FR-1011
     ("graphs/fr1014-flat.yaml", "synthetic", True),
     ("graphs/README.md", "negative", False),
     ("graphs/fr_triage/tools.py", "negative", False),
@@ -120,10 +119,10 @@ def test_exists_rows_are_tracked(path):
     assert result.returncode == 0, result.stderr
 
 
-def test_synthetic_and_fr1011_rows_are_absent():
+def test_synthetic_rows_are_absent():
     tracked = subprocess.run(
         ["git", "ls-files", "graphs"], cwd=REPO, capture_output=True, text=True
     ).stdout.split()
     for path, provenance, _ in TRUTH_TABLE:
-        if provenance in {"synthetic", "FR-1011"}:
+        if provenance == "synthetic":
             assert path not in tracked, f"{path} labelled {provenance} but is tracked"
