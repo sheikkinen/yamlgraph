@@ -143,3 +143,143 @@ Not authorized under FR-1012: a new or copied census graph/prompt tree; modifica
 | C-10 | Any new live artifact, mixed CAP, unresolved census row, prerequisite drift, or archive mismatch stops enforcement and returns the frozen plan to judgement. | GATE |
 
 Authority granted: after R-1 through R-9 are folded, prerequisite evidence and the operator's visibility decision are recorded, and this judgement is human-reviewed, implement only the frozen shared-census consumer, source-only archive/tag, census-authorized retirement/removal, archive documentation, traceability, changelog, Distill, and post-merge witnesses.
+
+
+---
+
+# Round 2 (2026-09-06, after review P5 scope widening)
+
+# Judgement: FR-1012 Subtree-split `.chaplain/` to a source-only archive and remove the runtime
+
+**Verdict:** APPROVED WITH REVISIONS — the archive-and-removal phase remains a coherent, evidence-backed subtraction, but authority activates only after the widened scripted scope is reconciled with the shipped census schema, archive provenance and retry behavior are made exact, and the human-review chronology is made possible.
+
+**DRAFT:** Advisory until human-reviewed.
+
+**Reviewed against:** `feature-requests/FR-1012-chaplain-subtree-archive-and-removal.md`; `feature-requests/FR-1012-chaplain-subtree-archive-and-removal.judgement.md`; `feature-requests/FR-1010-chaplain-archival-plan.md`; `feature-requests/FR-1015-supersede-id-ledger-under-fr-1010.md`; `feature-requests/FR-889-os-enforced-main-write-lock.md`; `feature-requests/FR-892-corpus-census-pipeline-injected-adapters.md`; `reference/patterns/corpus-map-reduce.md`; `examples/demos/corpus_census/README.md`; `examples/demos/corpus_census/graph.yaml`; `examples/demos/corpus_census/prompts/judge_item.yaml`; `examples/demos/corpus_census/tools.py`; `.github/copilot-instructions.md`; `.github/skills/judge-fr/doctrine.md`; `.github/skills/judge-fr/judgement.template.md`.
+
+## What is sound
+
+The requested subtraction has a real consumer and a bounded end state. The FR ties removal to a reviewed census, preserves a source-only archive rather than making a false runnable-distribution claim, protects the relocated live surfaces, and leaves FR-701 unchanged (`feature-requests/FR-1012-chaplain-subtree-archive-and-removal.md:13-20,53-96,237-276`). Its five raw samples expose the actual semantic boundaries: filename arithmetic cannot distinguish a dead runtime witness from a relocated live behavior, REQ fan-in is per requirement, marker extraction must use the existing AST boundary, and a CAP can mix live and dead modules (`feature-requests/FR-1012-chaplain-subtree-archive-and-removal.md:100-129`).
+
+The prior revisions were materially folded. The FR now reuses `examples/demos/corpus_census/graph.yaml`, records prerequisites instead of assuming them, allocates a new removal CAP/REQ, separates RED from GREEN, preserves three archive identities, asks the operator for visibility, and adds implementation and Distill records (`feature-requests/FR-1012-chaplain-subtree-archive-and-removal.md:131-197,237-286,289-350`). The P5 move from pasted destructive commands to checked-in scripts is also directionally sound: remote mutation, mass deletion, and post-merge reconciliation deserve reviewable executable witnesses.
+
+Against the eight rubric criteria:
+
+1. **Scope:** source preservation, runtime deletion, directly coupled test/CAP retirement, and the scripts that make those destructive operations reproducible form one Phase 2 concern. The parent plan assigns this exact archive-and-remove boundary to FR-1012 (`feature-requests/FR-1010-chaplain-archival-plan.md:304-340`).
+2. **Consistency:** the desired end state is consistent, but three implementation contracts are not: custom model rows conflict with the shared graph's fixed schema; a `tmp/` run record is simultaneously required to be committed; and AC-15 requires final GREEN evidence before the remote operations needed to produce that GREEN (`feature-requests/FR-1012-chaplain-subtree-archive-and-removal.md:173-189,214-229,248-269,305-309`).
+3. **Measurability:** most criteria name paths, commands, identities, and equality checks. The remaining weak points are the unprovable negative “no Phase 2 command ran,” the undefined rooted-path comparison, “unchanged in behavior” without named witnesses, and an unspecified persistence carrier for evidence produced after merge (`feature-requests/FR-1012-chaplain-subtree-archive-and-removal.md:291-309`).
+4. **Feasibility:** subtree split, archive creation, tag push, deletion, CAP retirement, and post-merge sync are workable. The census as written is not: the unchanged graph invokes the fixed `judge_item` prompt and fixed reducer (`examples/demos/corpus_census/graph.yaml:87-129`), while that prompt can return only `source_index`, `judgement`, `confidence`, `evidence_span`, `abstained`, and `abstain_reason` (`examples/demos/corpus_census/prompts/judge_item.yaml:21-43`).
+5. **Architecture alignment:** reuse of the FR-892 graph follows the rule that a new corpus supplies adapters rather than another graph (`reference/patterns/corpus-map-reduce.md:57-61`). Rich Chaplain rows must therefore be constructed at the deterministic post-reconciliation boundary, not claimed as a caller-defined model schema that the graph does not expose.
+6. **Single responsibility:** no split is required. The archive is the preservation boundary that permits the removal; the census and scripts are evidence and execution surfaces for that same destructive transition.
+7. **Strategic classification:** repository maintenance/subtraction using an existing framework primitive. This is neither a new framework primitive nor a new contrib graph; the reusable census capability already exists.
+8. **Testability:** failing witnesses can be written for discovery bounds, reconciliation, archive preflights, partial-run recovery, manifest equality, removal, CAP retirement, and post-merge sync. They cannot be derived faithfully until the fixed graph schema, exact `PRE`, review stages, and durable evidence paths are frozen.
+
+## Required revisions
+
+### R-1: Correct the re-judgement state before claiming authority
+
+Replace the claim that the P5 widening has already been re-judged with a pending re-judgement state until this draft is human-reviewed and folded. The FR currently says “re-judged; see the re-judgement appended,” but the cited judgement contains only the earlier R-1 through R-9 decision (`feature-requests/FR-1012-chaplain-subtree-archive-and-removal.md:355-370`; `feature-requests/FR-1012-chaplain-subtree-archive-and-removal.judgement.md:1-146`). Record the reviewed re-judgement reference and activation date before restoring `Judged`.
+
+### R-2: Bind the Chaplain census to the shared graph's actual output contract
+
+Replace the claim that `chaplain_rubric.md` defines two model-output schemas. The unchanged graph has one fixed `CorpusCensusFinding` schema and one fixed `LedgerRow` reducer (`examples/demos/corpus_census/prompts/judge_item.yaml:21-43`; `examples/demos/corpus_census/tools.py:53-66,303-375`).
+
+Freeze this boundary instead:
+
+1. the model emits only a closed verdict label valid for the item kind plus the fixed confidence, exact `evidence_span`, and abstention fields;
+2. the shared reducer writes its generic ledger to a distinct raw-ledger path that is never overwritten;
+3. a Chaplain-specific deterministic Pydantic reconciler joins each generic ledger row to collector-owned manifest facts and emits the frozen test/CAP disposition schemas;
+4. code, not the model, copies `path`, `kind`, REQs, fan-in, modules, module presence, and current status; validates kind/verdict legality; derives `manual_review`; resolves the evidence span to source lines; and rejects abstained, demoted, row-failed, missing, duplicate, unknown, wrong-kind, or unresolved rows; and
+5. `docs/census/chaplain-test-disposition.jsonl` is the reconciled authorization artifact, while the generic ledger and raw primary outputs remain separately named evidence.
+
+If one required semantic field cannot be obtained from the fixed verdict-plus-evidence contract, stop and file the generic census gap as a separate FR; do not modify or copy the shared graph under FR-1012.
+
+### R-3: Add one fail-closed census invocation surface
+
+Add a checked-in `scripts/chaplain_census.py` that is the sole Phase 2 census command. It must validate the filled prerequisite gate and immutable source SHA, apply a deterministic sorted/deduplicated discovery rule, classify repository visibility/data policy, reject credential-bearing input, enforce the 120-item, 1.5-MB-total, 48-KB-item, 130-call, and 20-minute limits, invoke the unchanged graph with the exact discover/extract manifests, labels, provider/model, raw-ledger path, brief path/rubric, and then run the Chaplain reconciler.
+
+The item/byte/call checks must occur before the first provider call, and the wrapper must enforce the wall-clock deadline around the whole graph process. Tests must prove every preflight refusal occurs before provider invocation. A prose “run config” is not an executable ceiling, while the corpus contract requires pre-spend rejection and fail-closed data classification (`feature-requests/FR-1012-chaplain-subtree-archive-and-removal.md:145-197`; `reference/patterns/corpus-map-reduce.md:84-85,196-243,358-373`).
+
+### R-4: Freeze `PRE` and compare archive-relative paths from the commit object
+
+Define `PRE` as the human-reviewed census/evidence commit, require it to be a clean commit reachable from `origin/main`, and prove that its `.chaplain` tree identity equals the tree used by the disposition input manifest. Build `docs/census/chaplain-archive-manifest.txt` from the `PRE` commit object, not from the current index or working tree. The current `git ls-files ... | shasum` description does not read an arbitrary commit (`feature-requests/FR-1012-chaplain-subtree-archive-and-removal.md:214-221`).
+
+Store manifest paths archive-relative by stripping the `.chaplain/` prefix. Compare that normalized path set and hashes with the fresh archive root; otherwise the literal parent paths and subtree-root paths cannot be equal. Retain the README-only transformation exception and three immutable identities.
+
+### R-5: Make remote mutation journaled and safely resumable
+
+Move the archive run record from `tmp/chaplain-archive.run.json` to `docs/census/chaplain-archive.run.json`, initialize it atomically before the first remote mutation, and commit the completed journal in GREEN. This resolves the direct conflict between the Step 1 path and AC-19's committed-run-record requirement (`feature-requests/FR-1012-chaplain-subtree-archive-and-removal.md:214-215,309`).
+
+Freeze a resumable state machine for tag creation, repository creation, split push, README commit, verification, and repository archival. On retry, an existing tag or repository may be resumed only when the journal and remote facts exactly match the frozen `PRE`, `SPLIT`, visibility, and expected archive identity; an unrelated or mismatched resource retains the collision exit and stops for human reconciliation. Tests must inject failure after each remote transition and prove exact-state resume plus mismatch refusal. A script that pushes the tag and then treats its own partial result as an unrecoverable collision is not a complete fail-closed operation (`feature-requests/FR-1012-chaplain-subtree-archive-and-removal.md:198-229`).
+
+### R-6: Split human review into chronologically possible gates
+
+Replace AC-15 with two recorded reviews:
+
+1. **Pre-remote review:** exact census and manual resolutions, visibility decision, frozen `PRE`, archive manifest, script/dry-run output, and intended tag/repository operations. This review occurs before tag push or repository creation.
+2. **Pre-merge review:** actual remote journal and `gh repo view` evidence, hook removal, exact mass-deletion diff, RED/GREEN SHAs and outputs, final validation, and deviations. This review occurs before merge.
+
+The current criterion requires the final GREEN record and validation before remote operations, but GREEN itself records `PRE`/`SPLIT`/`ARCHIVE_HEAD` produced by those operations (`feature-requests/FR-1012-chaplain-subtree-archive-and-removal.md:248-269,305`). Preserve the parent plan's human gate without requiring evidence from the future (`feature-requests/FR-1010-chaplain-archival-plan.md:410-415`).
+
+### R-7: Give post-merge evidence a committed carrier and make weak checks exact
+
+Write the post-merge witness to `docs/census/chaplain-postmerge.run.json`, not `tmp/`, and freeze a docs-only FR-1012 follow-up commit that records the JSON and completes the FR implementation record before FR-1013 starts. The Phase 2 merge cannot itself contain evidence generated after that merge (`feature-requests/FR-1012-chaplain-subtree-archive-and-removal.md:278-286,308`).
+
+Replace “no Phase 2 command ran before all fields were complete” with positive provenance: the census run's source commit must descend from all three recorded prerequisite merge SHAs, and both run records must name those SHAs. Replace “remain live and unchanged in behavior” with the exact existing focused test commands for `scripts/finalize_merge.sh`, CAP-38, and CAP-45, plus the full non-slow suite. Fold the revised acceptance criteria below verbatim.
+
+## Scope is frozen
+
+| Deliverable | Surface |
+|---|---|
+| D-1 | `feature-requests/FR-1012-chaplain-subtree-archive-and-removal.md`: fold R-1 through R-7, corrected status, exact commands/paths, revised criteria, decisions, and implementation records. |
+| D-2 | `scripts/chaplain_census.py`; Chaplain discover/extract manifests, rubric, typed reconciler, and tests under the existing `examples/demos/corpus_census/adapters/` family; `examples/demos/corpus_census/graph.yaml` and its prompts remain unchanged. |
+| D-3 | Frozen input manifest, separately named generic ledger/raw outputs/brief, reconciled `docs/census/chaplain-test-disposition.jsonl`, summary, census run record, and human raw-read record. |
+| D-4 | `scripts/chaplain_archive.sh`, its fixture/partial-run tests, archive-relative source manifest, and committed `docs/census/chaplain-archive.run.json`. |
+| D-5 | Exact new CAP/REQ, `tests/unit/test_fr1012_chaplain_removed.py`, census-authorized test deletions/CAP retirements, and the explicitly enumerated non-census removals in one atomic GREEN. |
+| D-6 | `chaplain-archive` tag and source-only `sheikkinen/yamlgraph-chaplain` repository with README-only transformation, verified visibility/archive state, and three immutable identities. |
+| D-7 | `docs/archive/chaplain.md`, generated `ARCHITECTURE.md`, replacement table, changelog fragment, and one `docs/diary/` Distill entry containing a `**Seed:**`. |
+| D-8 | `scripts/chaplain_postmerge_witness.sh` and the committed follow-up `docs/census/chaplain-postmerge.run.json` plus completed FR implementation record. |
+
+Not authorized under FR-1012: changes to the shared census graph, prompts, generic reducer, YAMLGraph runtime, FR-701 validation, CAP-38, CAP-45, or `scripts/finalize_merge.sh`; a second census graph or prompt tree; deletion outside reconciled `delete` rows and the enumerated non-census set; retirement of a mixed/live CAP without recorded human resolution; doctrine work assigned to FR-1013; a runnable-standalone archive claim; symlinks, stubs, path shims, unreviewed public disclosure, destructive collision cleanup, or reuse/overwrite of a mismatched tag or repository.
+
+## Revised acceptance criteria
+
+- [ ] AC-01: FR-1014, FR-1011, and FR-1015 merge SHAs and human-review references are recorded; FR-1011's 13-item inbox manifest is linked and `.chaplain/inbox/` is confirmed empty; the census source SHA descends from all three merge SHAs.
+- [ ] AC-02: `## Raw Input Read` retains at least five source-cited samples covering certain-delete, certain-keep, shared-REQ, runtime-only CAP, and mixed/live CAP boundaries, each with per-REQ fan-in and a concrete surprising detail.
+- [ ] AC-03: `scripts/chaplain_census.py` binds Chaplain manifests and rubric to unchanged `examples/demos/corpus_census/graph.yaml`; no second graph/prompt tree or modification to the shared graph, prompts, or reducer exists.
+- [ ] AC-04: The census model output uses the fixed `CorpusCensusFinding` schema; the generic ledger is preserved separately; a deterministic Pydantic reconciler emits the frozen test/CAP rows and rejects illegal kind/verdict pairs, abstained/demoted/failed rows, missing/duplicate/unknown rows, invalid evidence spans, and unresolved manual reviews.
+- [ ] AC-05: Before the first provider call, the census wrapper records source SHA, visibility/data classification, provider/model, item paths/kinds/bytes/SHA-256, marker-AST REQs, per-REQ fan-in, CAP modules/presence/status, and rejects any breach of the 120-item, 1.5-MB-total, 48-KB-item, 130-call, credential, or policy ceilings; the whole graph process has a 20-minute enforced timeout.
+- [ ] AC-06: The run record proves all eight corpus-map-reduce invariants, both withheld canary families, exact generic-ledger-to-manifest coverage, valid citations, and zero unresolved rows; a named human records reading the raw primary outputs before trusting the disposition artifact.
+- [ ] AC-07: The census/evidence commit contains the manifests, wrapper, adapters, rubric, raw/generic/reconciled artifacts, run record, exact CAP/REQ allocation, and human-read record; it passes all applicable gates before RED.
+- [ ] AC-08: The dedicated RED commit adds only the frozen focused removal witness, is marked `SKIP=pytest`, and records its expected assertion failures; the immediately following atomic GREEN makes that witness, `python scripts/req_coverage.py --strict`, `python scripts/validate_capabilities.py --strict`, `lint-imports`, and `pytest tests/unit -q -m "not slow" -n auto` pass.
+- [ ] AC-09: Every commit except the designated RED passes the checks applicable to its state; final Phase 2 PR HEAD passes every AC-08 command, with RED/GREEN SHAs and outputs recorded.
+- [ ] AC-10: The deleted test set equals reconciled test `delete` rows; transitioned CAPs equal reconciled CAP `retire` rows; `git ls-files .chaplain .github/skills/chaplain-ops scripts/chaplain-prompts scripts/id_registry.py scripts/validate_id_registry.py` prints nothing; the hook and matching `.gitignore` lines are absent; no other deletion occurs.
+- [ ] AC-11: Pre-remote human review records the exact census/manual resolutions, visibility decision, frozen `PRE`, archive manifest, archive-script dry run, and intended remote operations before tag push or repository creation.
+- [ ] AC-12: `PRE` equals the reviewed census/evidence commit; its `.chaplain` tree equals the disposition input tree; the archive manifest is generated from the commit object with archive-relative paths and SHA-256 values.
+- [ ] AC-13: The archive script writes an atomic durable journal before mutation; unrelated tag/repository collisions fail with the frozen typed exits; injected partial failures resume only when journal and remote `PRE`/`SPLIT`/visibility identities match exactly; mismatches stop for human reconciliation.
+- [ ] AC-14: `git ls-remote --tags origin refs/tags/chaplain-archive` resolves exactly to `PRE`; final `gh repo view` proves the selected visibility, archived state, and default branch; the committed archive journal records `PRE`, `SPLIT`, `ARCHIVE_HEAD`, manifest SHA-256, transitions, and timestamps.
+- [ ] AC-15: A fresh archive clone has exactly the archive-relative frozen path set and file count; every source hash matches except `README.md`, whose only content change is the prepended historical-source banner and links; its first line contains "not a runnable distribution."
+- [ ] AC-16: `docs/archive/chaplain.md` records the tag, URL, verified visibility/archive status, three immutable SHAs, and one replacement row for every FR-1010 live-parts category.
+- [ ] AC-17: `python scripts/aggregate_capabilities.py && git diff --exit-code -- ARCHITECTURE.md` succeeds; explicit no-match assertions prove `scripts/vscode/now.py` emits no `.chaplain`; the named existing focused tests for `scripts/finalize_merge.sh`, CAP-38, and CAP-45 pass, as does the full non-slow suite.
+- [ ] AC-18: Pre-merge human review records the actual remote journal/state, hook removal, exact mass-deletion diff, RED/GREEN record, final validation, and deviations before merge.
+- [ ] AC-19: `scripts/chaplain_archive.sh`, `scripts/chaplain_postmerge_witness.sh`, and `scripts/chaplain_census.py` are checked in with focused tests for every refusal, success, and partial-recovery path; the census and archive were produced by those scripts, and their committed run records match the reviewed invocations.
+- [ ] AC-20: After merge, `scripts/chaplain_postmerge_witness.sh` exits 0 on main, proving sync succeeded, `.chaplain` is untracked-empty, and `now.py` emits no `.chaplain`; a docs-only FR-1012 follow-up commit records `docs/census/chaplain-postmerge.run.json` and completes the implementation record before FR-1013 starts.
+- [ ] AC-21: Any new live artifact, prerequisite or `.chaplain` tree drift, unresolved census row, provider-policy failure, archive mismatch, or mismatched remote/tag state stops enforcement and returns FR-1010/FR-1012 to judgement.
+- [ ] AC-22: `changelog/unreleased/fr-1012-chaplain-runtime-removed.md` and a `docs/diary/` Distill entry with `**Seed:**` are committed; the implementation record contains every census, archive, review, validation, follow-up, and deviation reference.
+
+## Conditions for enforcement
+
+| # | Condition | Severity |
+|---|---|---|
+| C-1 | R-1 through R-7 and AC-01 through AC-22 are folded into committed FR-1012, and this draft is human-reviewed, before implementation authority activates. | GATE |
+| C-2 | FR-1014, FR-1011, and FR-1015 are implemented, human-reviewed, merged in order, and recorded by immutable SHA; the inbox migration is complete and empty. | GATE |
+| C-3 | The fixed-schema shared census graph is reused byte-for-byte; Chaplain richness is added only by deterministic collector/reconciler code. Any generic graph/schema gap stops this FR. | GATE |
+| C-4 | No RED, remote mutation, deletion, or CAP retirement occurs until the exact census is committed, all invariants/canaries pass, raw rows are human-read, every manual row is resolved, and the exact new CAP/REQ is frozen. | GATE |
+| C-5 | Pre-remote human review covers the immutable census, visibility, `PRE`, archive manifest, and dry-run plan before any tag or repository mutation. | GATE |
+| C-6 | Remote operations use the journaled state machine; only an exact owned partial state may resume. Mismatched existing resources stop without overwrite or cleanup. | GATE |
+| C-7 | The dedicated failing RED precedes one atomic GREEN; only RED is exempt from green history, and final Phase 2 PR HEAD passes every strict, focused, and full check. | GATE |
+| C-8 | Pre-merge human review covers actual remote state, hook removal, mass deletion, RED/GREEN evidence, and final validation. | GATE |
+| C-9 | FR-701 validation, CAP-38/CAP-45, `scripts/finalize_merge.sh`, shared census artifacts, and FR-1013 doctrine scope remain untouched. | GATE |
+| C-10 | The post-merge witness and docs-only evidence commit complete FR-1012 before FR-1013 enforcement begins. | GATE |
+
+Authority granted: after R-1 through R-7 are folded and human-reviewed and C-1 through C-5 are satisfied, implement only the frozen fixed-schema census consumer, journaled source-only archive/tag, census-authorized retirement/removal, archive documentation, traceability, changelog, Distill, and post-merge evidence surfaces listed above, subject to C-6 through C-10 at their stated stages.
