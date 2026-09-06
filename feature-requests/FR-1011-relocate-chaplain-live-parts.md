@@ -398,7 +398,24 @@ and the moved tests' files.
 - Base SHA for rename check: _pending_
 - Authoring brief: _pending_; adapter report sections: _pending_
 - Lint × 3, smoke × 3: _pending_
-- Inbox manifest (operator, main checkout): _pending_
+- Inbox manifest (operator, main checkout): **done 2026-09-06** as an independent local copy — the step cannot run on a remote device or worktree because the inbox is untracked; it was executed on the iMac main checkout ahead of the PR. 13 items frozen (`shasum -a 256 .chaplain/inbox/*.md`); 8 carries copied and `shasum -c` verified; 3 drops confirmed; 1 forward copied and verified; `ninchat_voice/` removed; new spark written. **Sources kept**: the eight `.chaplain/inbox/*.md` copies remain until this PR merges (untracked files have no recovery path, and `.chaplain/inbox/` "ceases to exist on main" is tied to the merge). Deletion of the sources + `.chaplain/inbox/` confirmed empty is the last runbook step, done at merge time. `proposals/` currently shows as `??` on main because `.gitignore` still ignores `.chaplain/inbox/`, not `/proposals/` — D-9 fixes that; nothing under `proposals/` is ever committed. Contents were not read by the agent; names + hashes only:
+
+| File | SHA-256 | Disposition | Action |
+|---|---|---|---|
+| `capability-domain-activity-heatmap.md` | `3a04446807017e7795f0da08700e11e624e0ec8a5b79996528cee0227cf561e5` | carry | copied to `proposals/`, hash verified |
+| `deviant-daily-curated-rerun.md` | `3d2897c6052c16e8bac3c4f28cb7c8508f1313016fbd54f59edfeb9329066672` | forward | copied to `~/Documents/src/deviant-daily/proposals/`, hash verified |
+| `deviantart-auto-publish-pipeline.md` | `2c798c34d893a2c008e950496035b51f069b711f0294eb5e07cf42ed6a9642a7` | drop | not copied — FR-1010 table is the tombstone |
+| `example-provenance-audit-graph.md` | `d3fcacc6eba5bbd1d3502edb0ff9fe9f0a319f4e0ef26227328c0a7bd882a533` | carry | copied to `proposals/`, hash verified |
+| `index-memento-frs-into-prior-art.md` | `78732721871c95d6dab963edb3723b186325203c844d8e41ac9ef0ffcad69a99` | carry | copied to `proposals/`, hash verified |
+| `judge-regression-fixture.md` | `6bb78d71deff6214b5bdff58014a0ec91cb759b8e926d02d54726ace5d643dcf` | carry | copied to `proposals/`, hash verified |
+| `pin-interpreter-in-measurement-routes.md` | `cd6a280019e074959e74946c3d6950fadafff81f40002902dc0bf3ce56ec52d2` | carry | copied to `proposals/`, hash verified |
+| `prior-art-self-exclusion-misses-judgement-sibling.md` | `c8264965eeb9b57d1c8f4749f3a1318c152f453bcfb217eaa030c1170da6e251` | carry | copied to `proposals/`, hash verified |
+| `refactor-pre-command-guard-dispatcher.md` | `05345ae9a02e745ab66105a829a87fe3d1e4348a3d0b0a53f7cef3d74f1bf478` | drop | not copied — FR-1010 table is the tombstone |
+| `research-prompts-contradict-precedent-validator.md` | `cbf64548ded8c591d5a9bf9f04abe5b3372c969f9bd6c014bec0c9454ec132e3` | drop | not copied — FR-1010 table is the tombstone |
+| `supersede-disposition-gate.md` | `cb14c191d5a1f0446f878ca39dabc6b0e478e5421fdb06807471ef384899c0e0` | carry | copied to `proposals/`, hash verified |
+| `workspace-sediment-audit.md` | `a25d471c12fec7c7de1f38556e5c9b09cf54b2ebddf716ef115304558b3e900c` | carry | copied to `proposals/`, hash verified |
+| `ninchat_voice/` | — | rm | empty since 2026-05-19; `rmdir` done |
+| `inbox-is-untracked-and-worktree-invisible.md` | `ebf15849956b825f9105d18b5c42848c5f216c14e3f5aa9d5ab0a9e19416e0ea` | new spark | written to `proposals/` in the same step |
 
 ## Judgement (2026-09-06)
 
