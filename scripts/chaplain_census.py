@@ -201,11 +201,18 @@ def reconcile_and_record(ad, record: dict, generic_jsonl: Path, out_dir: Path, r
         invariants={
             "1_each_item_one_payload": len(manifest) == record["counts"]["items"],
             "2_each_payload_one_result": len(generic) == len(manifest),
-            "3_one_reduction_batch": True,
+            # one reduction batch: every generic row came from the single preserved ledger of this run
+            "3_one_reduction_batch": len({g.get("model") for g in generic}) == 1 and len({g.get("prompt_version") for g in generic}) == 1,
             "4_model_ids_reconciled": {g["item_ref"] for g in generic} == set(manifest),
-            "5_counts_in_code": True,
-            "6_provenance_recorded": True,
-            "7_no_silent_drop": not any(g.get("abstained") for g in generic) or bool(resolutions),
+            # counts in code: the reconciled verdict counts sum to the manifest size (nothing counted by the model)
+            "5_counts_in_code": sum(1 for r in rows) == len(manifest),
+            "6_provenance_recorded": all(record.get(k) for k in ("provider", "model", "source_sha", "chaplain_tree_sha", "run_id", "manifest_sha256")),
+            # no silent drop: every abstained / failed / manual-labelled generic row ended as a confirmed human resolution
+            "7_no_silent_drop": all(
+                resolutions.get(g["item_ref"], {}).get("confirmed") is True
+                for g in generic
+                if g.get("abstained") or g.get("judgement") in ("abstain", "manual_review")
+            ),
             "8_withheld_canaries_match": canary_ok,
         },
         human_raw_read="PENDING — a named human must read docs/census/chaplain-test-disposition.raw/ and record name+date here before the rows are trusted",

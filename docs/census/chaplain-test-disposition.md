@@ -141,7 +141,7 @@ VALIDATE_GATE_ACTION = CHAPLAIN / "actions" / "validate_gate_action.py" |
 ) -> dict: |
 | `tests/unit/test_fr747_loader_error_ux.py` | test | keep |  | REQ-YG-565 | model: FR-747: loader error UX — the two FR-744 boundary errors name their fix |
 | `tests/unit/test_fr748_fr_atlas.py` | test | keep |  | REQ-YG-566 | model: FR-748 RED witness: FR Atlas — the deterministic spine (REQ-YG-566) |
-| `tests/unit/test_fr754_id_registry_package_boundary.py` | test | delete |  | REQ-YG-001 | model: No Python module under yamlgraph/ may reference .chaplain directly. |
+| `tests/unit/test_fr754_id_registry_package_boundary.py` | test | keep |  | REQ-YG-001 | human resolution (enforcing session under operator delegation ('check the deletes and proceed', 2026-09-06), 2026-09-06): model delete 0.95 — wrong on read: the file is a live package-boundary guard (no module under yamlgraph/ may reference .chaplain; yamlgraph/utils/id_registry.py must stay removed). Both assertions remain meaningful after Phase 2 — a .chaplain reference inside yamlgraph/ would then be dangling. REQ-YG-001 fan-in 5. |
 | `tests/unit/test_fr796_watcher2_witness_curation.py` | test | delete |  | REQ-YG-206 | model: Regression tests for FR-796 watcher2 witness curation (REQ-YG-206). |
 | `tests/unit/test_fr893_diary_census.py` | test | keep |  | REQ-YG-624 | model: from examples.demos.corpus_census.adapters.diary_recurrence import aggregate |
 | `tests/unit/test_fr896_precedent_traceability.py` | test | keep |  | REQ-YG-623 | model: exercises scripts/ + examples/ (FR-756) |
