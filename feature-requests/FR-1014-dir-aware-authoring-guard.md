@@ -44,11 +44,15 @@ fan-out.
 
 Make the `graphs/` arm of the governed-path predicate match dir-style
 graph artifacts — the contract is **`graphs/<name>/*.yaml` plus
-`graphs/<name>/prompts/*.yaml`** (R-1), not only `graph.yaml` — in both
-`pre-command-guard.sh` and `check_authoring_proof.py`, keep the flat
-`graphs/*.yaml` arm, and replace the phantom `.chaplain` fixture in the
-Tier-2 witness with a provenance-labelled truth table (R-2). No other
-predicate changes. Docs that publish the flat-only contract are updated.
+`graphs/<name>/prompts/*.yaml`** (R-1), not only `graph.yaml` — in all
+**three** enforcement surfaces: `pre-command-guard.sh` `governed_path()`,
+`check_authoring_proof.py` `GOVERNED`, and the `authoring-proof` hook's
+`files:` selector in `.pre-commit-config.yaml:34` (added by FR-1011's
+judgement R-1: without it a commit containing only `graphs/<name>/graph.yaml`
+never invokes the backstop). Keep the flat `graphs/*.yaml` arm, and
+replace the phantom `.chaplain` fixture in the Tier-2 witness with a
+provenance-labelled truth table (R-2). No other predicate changes. Docs
+that publish the flat-only contract are updated.
 
 ## Value Statement
 
@@ -80,7 +84,11 @@ file). Consequences, verified 2026-09-06:
 | `graphs/showcase.yaml` (fixture `GOVERNED_TOP`) | no such file on main | yes |
 
 `check_authoring_proof.py:20-25` mirrors the same four patterns with `^`
-anchors and has the same gap.
+anchors and has the same gap. `.pre-commit-config.yaml:34` (the
+`authoring-proof` hook's `files:` selector) is a third copy of the flat
+contract: `^graphs/[^/]+\.ya?ml$|^\.chaplain/graphs/[^/]+\.ya?ml$`. A
+commit whose only governed additions are dir-style never triggers the
+backstop at all — the predicate fix alone would be unreachable.
 
 ## Ideal Result
 
@@ -136,9 +144,11 @@ or re.search(r"(^|/)graphs/[^/]+/prompts/[^/]+\.ya?ml$", p)
 or re.search(r"(^|/)graphs/[^/]+\.ya?ml$", p)
 ```
 
-`check_authoring_proof.py:23`: the `^`-anchored equivalents. The
-`.chaplain/graphs` arm is **left in place** by this FR (FR-1011 deletes
-it — one concern per FR). `:187` pre-filter unchanged.
+`check_authoring_proof.py:23`: the `^`-anchored equivalents.
+`.pre-commit-config.yaml:34`: `files:` gains `^graphs/[^/]+/[^/]+\.ya?ml$`
+and `^graphs/[^/]+/prompts/[^/]+\.ya?ml$`. The `.chaplain/graphs` arm in
+all three surfaces is **left in place** by this FR (FR-1011 deletes it —
+one concern per FR). `:187` pre-filter unchanged.
 
 Docs (R-4, mandatory): `scripts/check_authoring_proof.py:8-10` docstring
 and `.github/hooks/README.md:82-86` enumerate `graphs/<name>/*.yaml` and
@@ -149,12 +159,18 @@ and `.github/hooks/README.md:82-86` enumerate `graphs/<name>/*.yaml` and
 `pytest .github/hooks/tests/test_authoring_guard.py tests/unit/test_fr1014_authoring_proof_dir_graphs.py -q`
 green; a manual `create_file` payload for `graphs/enforcement/prompts/x.yaml`
 through the hook returns `deny` with `author.sh` in the message;
-`git ls-files --error-unmatch` succeeds for every row labelled "exists".
+`git ls-files --error-unmatch` succeeds for every row labelled "exists";
+selector witness: `pre-commit run authoring-proof --files graphs/fr1014-probe/graph.yaml`
+(file staged as a temporary addition, then unstaged) invokes the hook —
+recorded as command + output in the Implementation Record.
 
 ## Acceptance Criteria
 
-- [ ] `governed_path()` and `GOVERNED` agree on every row of the truth
-      table in § Ideal Result.
+- [ ] `governed_path()`, `GOVERNED`, and the `.pre-commit-config.yaml:34`
+      `files:` selector agree on every row of the truth table in
+      § Ideal Result (the selector is checked with `pre-commit run
+      authoring-proof --files <path>` for each positive; a
+      `pass_filenames: false` hook still gates on `files:`).
 - [ ] RED commit shows the three missing classes failing (direct-child
       YAML, dir-style `graph.yaml`, dir-style prompt); GREEN commit
       follows; both in `git log`.
@@ -165,7 +181,8 @@ through the hook returns `deny` with `author.sh` in the message;
       modules; `req_coverage --strict` and `validate_capabilities --strict`
       green.
 - [ ] `examples/` arms and the `.chaplain/graphs` arm are byte-identical
-      before and after (diff touches only the `graphs/` lines).
+      before and after in all three surfaces (diff touches only the
+      `graphs/` lines).
 - [ ] `check_authoring_proof.py:8-10` and `.github/hooks/README.md:82-86`
       state the dir-style contract.
 - [ ] Human review recorded in this FR before merge (FR-1010 C-4).
@@ -208,3 +225,5 @@ R-1 (predicate contract `graphs/<name>/*.yaml`; the draft regex would
 have failed its own positive), R-2 (fixture provenance; synthetic flat
 path labelled), R-3 (REQ-YG-423 / CAP-158 binding), R-4 (five-class
 research, local `is_this_a_graph`, mandatory docs) folded above.
+Amended 2026-09-06 by FR-1011's judgement R-1: the `.pre-commit-config.yaml:34`
+`files:` selector is the third surface and is in this FR's scope.

@@ -4,9 +4,10 @@
 **Type:** Enhancement (subtraction)
 **Status:** Judged — APPROVED WITH REVISIONS (2026-09-06). R-1..R-9 folded
 below; see [FR-1010-chaplain-archival-plan.judgement.md](FR-1010-chaplain-archival-plan.judgement.md).
-Grants authority only to file and independently judge FR-1014, FR-1011,
-FR-1012, FR-1013 in that order; no implementation or deletion authority.
-**Effort:** 4 phase FRs; this FR is the plan, not an implementation
+R-2 decision recorded (supersede). Grants authority only to file and
+independently judge FR-1014, FR-1011, FR-1015, FR-1012, FR-1013 in that
+order; no implementation or deletion authority.
+**Effort:** 5 phase FRs; this FR is the plan, not an implementation
 **Requested:** 2026-09-06
 **First consumer / first event:** the next agent session that starts
 work in this workspace and reads `scripts/vscode/now.py` output, at the
@@ -146,8 +147,23 @@ Coupling outside the directory:
 | (i) FR-975/FR-980 remain active (**default**) | Phase 2 `git rm -r .chaplain` must **exclude** `id-registry.yaml` — move it to the path FR-975 names for the legacy source, or leave `.chaplain/id-registry.yaml` as the sole surviving file until FR-980 AC-11 purges it. `id_registry.py`, `validate_id_registry.py`, the hook and their tests stay. |
 | (ii) Archival supersedes them | Amend FR-975/FR-980 status and their CAP/REQ claims **first** (separate FR), define the replacement for direct Plan/Enforce allocation, then Phase 2 may delete the legacy allocator. |
 
-**Decision:** _pending operator_ — FR-1012 may not be filed until this
-line is filled.
+**Decision (operator, 2026-09-06): (ii) supersede.** Chaplain archival
+supersedes the unimplemented FR-975/FR-980 ID-ledger program. Consequence,
+per option (ii): a new phase **FR-1015 `docs(fr): supersede FR-975/FR-980
+under FR-1010`** is filed and merged **before** FR-1012. It sets both FRs'
+Status to `Superseded by FR-1010`, retires their CAP/REQ claims (verify
+with `grep -oE 'CAP-[0-9]+|REQ-YG-[0-9]+'` on both FRs at filing — the
+2026-09-06 read shows only CAP-170 / REQ-YG-580 referenced), and states
+the replacement for direct Plan/Enforce ID allocation. The de-facto
+replacement already in force since 2026-04-19 — `max(main + all open PR
+heads) + headroom`, mechanically enumerated at filing (`one_session_one_repo`,
+`collision_by_increment`) — is named as the contract; FR-1015 may not
+introduce a new allocator. FR-1012 may then delete `.chaplain/id-registry.yaml`,
+`scripts/id_registry.py`, `scripts/validate_id_registry.py`, the
+`validate-id-registry` hook and their tests, under the same census
+discipline as every other Phase 2 deletion (AC-09). FR-701's
+duplicate-registry validation in `validate_capabilities.py` is untouched
+(C-7).
 
 ### Inbox pre-check (2026-09-06)
 
@@ -194,8 +210,7 @@ and the operator confirms `.chaplain/inbox/` is empty (C-5).
 
 ## Ideal Result
 
-`.chaplain/` does not exist on `main` (save, under R-2 option (i), the
-legacy `id-registry.yaml` awaiting FR-980's purge). `proposals/` holds
+`.chaplain/` does not exist on `main`. `proposals/` holds
 sparks and is the only inbox the skills name. `graphs/fr_triage/`,
 `graphs/world_distill/`, `graphs/philosopher/` are ordinary governed
 graphs under a dir-aware authoring guard (FR-1014). `scripts/lib/finalize_lib.sh`
@@ -227,7 +242,8 @@ before merge (C-4).
 
 ### Phase 1 — FR-1011 `refactor(chaplain): relocate live parts`
 
-Pure relocation; no behaviour change.
+Path relocation with no graph or finalizer semantic change; the inbox
+route's path changes (FR-1011 R-5).
 
 - `mkdir proposals/` in the tree with a `.gitkeep`-free `.gitignore`
   entry; the eight carried inbox items are migrated by the operator
@@ -272,11 +288,18 @@ Pure relocation; no behaviour change.
   `test_fr1011_relocation.py` witnesses (no `.chaplain` literal in live
   consumers; `diary.py` sibling; governed-path predicate).
 
+### Phase 1½ — FR-1015 `docs(fr): supersede FR-975/FR-980 under FR-1010`
+
+Records the R-2 decision in the superseded FRs themselves (Status,
+CAP/REQ claim retirement, named replacement contract). Docs-only; judged
+independently; merged before FR-1012 so that Phase 2's census can mark
+the legacy ID artifacts `delete` with a committed authority behind it.
+
 ### Phase 2 — FR-1012 `chore(chaplain): subtree-split and remove runtime`
 
-Filed only after the R-2 decision line is filled and FR-1011 has merged
-with its inbox manifest recorded (C-5). Human review before merge for
-repo creation/archive, tag push, mass deletion, hook removal (C-4).
+Filed only after FR-1015 has merged and FR-1011 has merged with its inbox
+manifest recorded (C-5). Human review before merge for repo
+creation/archive, tag push, mass deletion, hook removal (C-4).
 
 - **Census first (R-7).** A corpus-map-reduce run over the 59 test files
   + 27 CAPs produces `docs/census/chaplain-test-disposition.jsonl`: per
@@ -293,11 +316,11 @@ repo creation/archive, tag push, mass deletion, hook removal (C-4).
   source, not a runnable distribution** (R-3) → GitHub "archive
   repository".
 - `git tag chaplain-archive <pre-removal SHA>` on `main`, pushed.
-- `git rm -r .chaplain` — under R-2 option (i), **excluding**
-  `id-registry.yaml` and leaving `scripts/id_registry.py`,
-  `scripts/validate_id_registry.py`, the `validate-id-registry` hook and
-  their tests untouched; FR-701's duplicate-registry validation untouched
-  (C-7).
+- `git rm -r .chaplain` — including `id-registry.yaml`; and delete
+  `scripts/id_registry.py`, `scripts/validate_id_registry.py`, the
+  `validate-id-registry` hook and their tests — **only** as rows marked
+  `delete` in the census, with FR-1015 merged as the authority (R-2
+  decision (ii)). FR-701's duplicate-registry validation untouched (C-7).
 - Delete `.github/skills/chaplain-ops/`, `scripts/chaplain-prompts/`.
   `scripts/finalize_merge.sh` **stays** (C-6).
 - `status: retired` + `retired_by: FR-1012` on every CAP the census marks
@@ -323,11 +346,11 @@ repo creation/archive, tag push, mass deletion, hook removal (C-4).
 
 ### Sequencing constraint
 
-FR-1014 → FR-1011 → FR-1012 → FR-1013, each merged before the next starts
-(C-3). Each phase FR is judged independently, carries `**Plan:** FR-1010`,
-and may not borrow scope from a later phase. A phase that discovers a
-further live artifact **stops** and amends this FR's live-parts table
-before work resumes (C-10) — the plan is the source of truth.
+FR-1014 → FR-1011 → FR-1015 → FR-1012 → FR-1013, each merged before the
+next starts (C-3). Each phase FR is judged independently, carries
+`**Plan:** FR-1010`, and may not borrow scope from a later phase. A phase
+that discovers a further live artifact **stops** and returns to judgement
+under C-10 — the plan is the source of truth.
 
 ## Acceptance Criteria (R-8; mechanical phase gates)
 
@@ -338,11 +361,11 @@ before work resumes (C-10) — the plan is the source of truth.
 - [ ] AC-02: The live-parts table names every extracted path, including
       `.chaplain/lib/finalize_lib.sh`, its `scripts/finalize_merge.sh`
       consumer, and CAP-38/CAP-45/CAP-114 disposition.
-- [ ] AC-03: The R-2 decision line is filled by the operator and links
-      either amendments to FR-975/FR-980 or an explicit dependency on
-      their bootstrap; Phase 2 contains no duplicate or premature
-      ID-registry purge.
-- [ ] AC-04: FR-1014, FR-1011, FR-1012, FR-1013 each contain
+- [ ] AC-03: The R-2 decision line is filled by the operator (**done:
+      supersede**); FR-1015 amends FR-975/FR-980 and merges before
+      FR-1012; Phase 2 deletes the legacy ID artifacts only as census
+      `delete` rows.
+- [ ] AC-04: FR-1014, FR-1011, FR-1015, FR-1012, FR-1013 each contain
       `**Plan:** FR-1010`, one phase concern, a human-reviewed judgement,
       and merge in that order.
 - [ ] AC-05: FR-1014 has RED witnesses for dir-style `graphs/**/graph.yaml`
