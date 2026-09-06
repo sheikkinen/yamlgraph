@@ -25,7 +25,7 @@ retires them once all three steps are DONE on main: the removal merged as `36591
 them to be "checked in with focused tests"; that criterion was for the
 removal's audit trail, which the committed run records now carry.
 [FR-1010-chaplain-archival-plan.md](FR-1010-chaplain-archival-plan.md) —
-the governing plan; it names four phases and no phase for retiring the
+the governing plan; it names five phase FRs (AC-04; its AC-13 still says "four", the miscount the diary entry records) and no phase for retiring the
 retirement machinery, which is the gap this FR fills.
 [FR-1013-chaplain-doctrine-sweep.md](FR-1013-chaplain-doctrine-sweep.md) —
 docs-only by its judgement (SPLIT, round 2); this FR is the code-deletion
