@@ -240,6 +240,11 @@ here — the test execs the bash hook directly (`WinError 193`), a
 limitation of the test harness, not of the change. The same payloads were
 driven through the hook via `bash` (rows above); the pytest run is owed at
 the implementation PR's CI or the mac.
+`scripts/noqa_coverage.py --strict` is likewise CI-owed: on Windows it
+reports every noqa in the tree as undocumented (backslash paths never
+match the forward-slash confession links; main shows 230/230 the same
+way). CONF-461 is written in the documented form; the branch count is
+231 noqa / 322 confessions, main 230 / 321.
 
 ### Decisions and deviations
 
