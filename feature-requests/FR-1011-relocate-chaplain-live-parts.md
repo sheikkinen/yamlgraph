@@ -3,7 +3,7 @@
 **Priority:** MEDIUM
 **Type:** Enhancement (path relocation with no graph or finalizer semantic change; the inbox route changes path — R-5)
 **Status:** Enforced 2026-09-06 on `refactor/fr1011-relocate-chaplain-live-parts` —
-RED `878fbac6`+`8ba9fcbd`, GREEN `4ef6d9d9`; **merge blocked** on one item
+RED `5b1c8069`+`9eb74abf`, GREEN `bd524b1a`; **merge blocked** on one item
 recorded in § Implementation Record: the philosopher smoke (AC-14 — fails
 identically on unchanged main; not a relocation effect; semantic repair
 forbidden by C-5, so the AC returns to judgement). The operator inbox
@@ -402,7 +402,7 @@ and the moved tests' files.
 
 - **FR-1014 merge SHA / human review:** `fec26941` (`fix(hooks): FR-1014 dir-aware authoring guard for graphs/ (#612)`); human review = operator `merge` verdict on PR #612, recorded in FR-1014 AC-14. AC-03 witnessed at that SHA in this worktree: `pytest tests/unit/test_fr1014_authoring_proof_dir_graphs.py -q --no-cov` → 39 passed before any relocation write.
 - **Base SHA for the rename check (immutable):** `fec26941`.
-- **Commits:** briefs `c1c52958`, RED `878fbac6` (`SKIP=pytest`; 32 failed, 1 passed — all `AssertionError`, no collection/import/fixture failure), RED follow-up `8ba9fcbd` (`SKIP=pytest`; 33 failed — the Path-segment form `".chaplain"` used by `triage_gate.py` had passed vacuously), resume brief `3b0f13ab`, smoke brief amendment `776d321f`, GREEN `4ef6d9d9`.
+- **Commits (rebased onto main `11e45b6e` after PR #614 merged the manifest):** briefs `f41f5c5d`, RED `5b1c8069` (`SKIP=pytest`; 32 failed, 1 passed — all `AssertionError`, no collection/import/fixture failure), RED follow-up `9eb74abf` (`SKIP=pytest`; 33 failed — the Path-segment form `".chaplain"` used by `triage_gate.py` had passed vacuously), resume brief `cfcff9c6`, smoke brief amendment `800e111b`, GREEN `bd524b1a`.
 - **Authoring briefs (D-2):** `feature-requests/authoring-briefs/fr-1011-relocate-chaplain-live-parts-brief.md` (relocations + path-only edits + lint×3 + two smokes), `…-resume-brief.md` (one comment line + the two smokes the first run recorded as blocked), `…-smoke-brief.md` (validation-only: world_distill + philosopher). Split on `scripts/author_preflight.py`'s budget finding (three full-pipeline smokes risk the 900 s backend ceiling). Each run's `tmp/draft-authoring-report.md` is copied verbatim below.
 - **Renames (AC-06):** `git diff --name-status -M90% fec26941...HEAD` reports `R100` for every graph, prompt and tool file, `R098` for `diary.py`, `R097` for `philosopher/tools.py`, `R098` for `finalize_lib.sh`, `R095` for `philosopher/graph.yaml`. **Deviation:** `graphs/philosopher/README.md` reports as `D`+`A` (similarity < 90%) because AC-08's truthful rewrite removed the dead `philosopher.sh` usage block, the watcher-relative links and the `.chaplain/` portability claim; the two criteria conflict for that one file and AC-08 was preferred.
 - **Lint × 3:** passed in run 1 (`graphs\fr_triage\graph.yaml`, `graphs\world_distill\graph.yaml`, `graphs\philosopher\graph.yaml` → `No issues found`), repeated in runs 2 and 3.
@@ -607,8 +607,8 @@ No graph, prompt, tool, documentation, or proposal artifact was authored or repa
 | AC-01 folded, Type wording | met | header |
 | AC-02 FR-1014 merged first, SHA recorded | met | `fec26941`, PR #612 |
 | AC-03 three-surface table before deleting the arm | met | 39 passed at `fec26941` in this worktree |
-| AC-04 brief committed, cited, forbids semantic rewrites | met | three briefs, `c1c52958` / `3b0f13ab` / `776d321f` |
-| AC-05 RED collects, assertion-only, `SKIP=pytest` | met | `878fbac6`, `8ba9fcbd` |
+| AC-04 brief committed, cited, forbids semantic rewrites | met | three briefs, `f41f5c5d` / `cfcff9c6` / `800e111b` |
+| AC-05 RED collects, assertion-only, `SKIP=pytest` | met | `5b1c8069`, `9eb74abf` |
 | AC-06 every pair `R` ≥ 90 | met except README | `R095`–`R100`; README `D`+`A` (deviation above) |
 | AC-07 live list clean; residuals enumerated | met | witnesses + enumeration above |
 | AC-08 philosopher package truthful | met | run 1/2 diffs: comments, docstrings, README |
