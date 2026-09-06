@@ -15,6 +15,10 @@ modules:
   - .github/skills/graph-authoring/adapters/graph.yaml
   - .github/skills/graph-authoring/adapters/prompts/author.yaml
   - scripts/author.sh
+  - .github/hooks/scripts/pre-command-guard.sh
+  - scripts/check_authoring_proof.py
+  - .github/hooks/tests/test_authoring_guard.py
+  - tests/unit/test_fr1014_authoring_proof_dir_graphs.py
 
 requirements:
   - id: REQ-YG-423
@@ -33,6 +37,12 @@ requirements:
       a thin copilot-node adapter graph and pointer prompt launched by
       the scripts/author.sh operator wrapper, verified by the
       tmp/draft-authoring-report.md artifact contract, never exit code.
+      The route is mechanically enforced (FR-767) by the PreToolUse
+      guard's governed_path() predicate and the check_authoring_proof.py
+      commit backstop; FR-1014 makes their graphs/ arm dir-aware
+      (graphs/<name>/*.yaml and graphs/<name>/prompts/*.yaml alongside
+      flat graphs/*.yaml) and witnesses both predicates against one
+      provenance-labelled truth table.
     modules:
       - .github/skills/release-version/SKILL.md
       - .github/skills/chaplain-ops/SKILL.md
@@ -44,5 +54,9 @@ requirements:
       - .github/skills/graph-authoring/adapters/graph.yaml
       - .github/skills/graph-authoring/adapters/prompts/author.yaml
       - scripts/author.sh
+      - .github/hooks/scripts/pre-command-guard.sh
+      - scripts/check_authoring_proof.py
+      - .github/hooks/tests/test_authoring_guard.py
+      - tests/unit/test_fr1014_authoring_proof_dir_graphs.py
 
-fr: FR-446
+fr: FR-446, FR-1014

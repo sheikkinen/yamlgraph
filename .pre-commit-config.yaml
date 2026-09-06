@@ -31,7 +31,7 @@ repos:
         entry: .venv/bin/python scripts/check_authoring_proof.py
         language: system
         pass_filenames: false
-        files: (^examples/.*graph\.ya?ml$|^examples/.*/prompts/.*\.ya?ml$|^graphs/[^/]+\.ya?ml$|^\.chaplain/graphs/[^/]+\.ya?ml$|^scripts/check_authoring_proof\.py$)
+        files: (^examples/.*graph\.ya?ml$|^examples/.*/prompts/.*\.ya?ml$|^graphs/[^/]+\.ya?ml$|^graphs/[^/]+/[^/]+\.ya?ml$|^graphs/[^/]+/prompts/[^/]+\.ya?ml$|^\.chaplain/graphs/[^/]+\.ya?ml$|^scripts/check_authoring_proof\.py$)
         stages: [pre-commit]
 
   - repo: local
