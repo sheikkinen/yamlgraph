@@ -134,13 +134,13 @@ exists. `scripts/vscode/now.py` prints no `.chaplain` string.
 | Prerequisite | Merge SHA | Human-review ref | Evidence |
 |---|---|---|---|
 | FR-1014 dir-aware guard | `fec26941` (PR #612, merged 2026-09-06) | operator `merge` verdict on PR #612, recorded in FR-1014 AC-14 | review draft + dispositions on PR #612 |
-| FR-1011 relocate live parts | `84baceb7` (PR #615, merged 2026-09-06) | operator merged PR #615 (AC-19 review by merge) | inbox manifest: FR-1011 § Implementation Record (PR #614); `.chaplain/inbox/` empty confirmed by: **_blank — operator_** (PR #614 kept the originals until #615 merged; deletion + confirmation still owed on the iMac) |
+| FR-1011 relocate live parts | `84baceb7` (PR #615, merged 2026-09-06) | operator merged PR #615 (AC-19 review by merge) | inbox manifest: FR-1011 § Implementation Record (PR #614); `.chaplain/inbox/` migration confirmed by operator 2026-09-06: "inbox is safely in main" (manifest PR #614; eight carries hash-verified into `proposals/`). The originals' deletion on the iMac is not separately attested — Phase 2's `git rm -r .chaplain` removes only tracked files and leaves an untracked `inbox/` untouched, so nothing is lost either way |
 | FR-1015 supersede FR-975/980 | `32fd6e9f` (PR #619, merged 2026-09-06) | operator `merge` on PR #619 after review P1 dispositioned | contract quote verified byte-identical to FR-1010 |
 
 ### Archive visibility decision (R-7) — answered before any remote operation
 
-> Archive visibility: `private` or `public`? Operator: _____ Date: _____
-> Rationale: _____ Reviewed commit/PR: _____
+> Archive visibility: `private` or `public`? Operator: **private** Date: **2026-09-06**
+> Rationale: operator's word to the enforcing session ("archive can be private"); source-only historical archive of a private repository. Reviewed commit/PR: _pending — the pre-remote review (AC-11) records it_
 
 An unanswered field authorizes no repository creation; it does **not**
 default to private.
@@ -439,12 +439,12 @@ Deterministic non-census deletion set (D-6) is unchanged: `scripts/id_registry.p
 | Input tree SHA / manifest SHA-256 | source `d7601937` (census tooling commit on this branch, descends from all three prerequisites), `.chaplain` tree `3b25919c`; manifest `docs/census/chaplain-disposition-input.jsonl` sha256 `e4d5c5a83e93d2d7de26c0a221775b1a18776e49c745231c5ab1d876852c45bc` (115 items: 78 tests, 37 CAPs, 807 264 B; see `manifest_sha256_note` in the run record for the CRLF hashing correction) |
 | Raw-read reviewer + date | census session (agent) read all 115 generic rows on 2026-09-06 — findings below; **named-human read PENDING**: the operator reads `docs/census/chaplain-test-disposition.raw/generic-ledger.jsonl` and records name + date here before the rows are trusted (AC-06) |
 | Canary results (family match) | both match: `tests/unit/test_fr305_watcher_pipeline_v2.py` → delete (0.98), `tests/unit/test_fr_triage.py` → keep (0.95); withheld from the rubric (test asserts it) |
-| `manual_review` rows + human resolutions | 30 rows manual after reconciliation: 21 carry a PROPOSED resolution in `docs/census/chaplain-manual-resolutions.json` (`confirmed: false` — none is a human decision yet); the other 9 are tests whose owning CAP's retirement is among the 21 (orphan rule) and clear automatically when it is confirmed. Enforcement stops here (exit 75) until the operator sets `confirmed: true` per row and the reconcile-only run exits 0 |
+| `manual_review` rows + human resolutions | First reconciliation: 30 manual rows (21 proposed resolutions + 9 dependent tests). **Operator 2026-09-06 confirmed 20 of the 21 as proposed** ("rest of the 21 as proposed"); reconcile-only now yields 42 delete / 23 retire / 50 keep / **1 unresolved: CAP-116** ("investigate the dangling tests" — see finding below). Enforcement stops at exit 75 until CAP-116 is resolved |
 | New CAP-N / REQ-YG-M | `CAP-264` / `REQ-YG-666` (`capabilities/CAP-264-chaplain-runtime-retired.yaml`), allocated 2026-09-06 as max(main CAP-263 / REQ-YG-665, no open PR heads) + 1; witnessed today by `tests/unit/test_fr1012_chaplain_census.py` (19 tests) |
 | RED SHA + assertion output | _pending_ |
 | GREEN SHA + gate outputs | _pending_ |
 | `PRE` / `SPLIT` / `ARCHIVE_HEAD` | _pending_ |
-| Visibility decision (operator, date, rationale, PR) | _pending_ |
+| Visibility decision (operator, date, rationale, PR) | **private**, operator, 2026-09-06, "archive can be private"; PR reference at pre-remote review |
 | Round-2 judgement human review (ref + date; activates `Judged`) | operator instruction "run the census" to the enforcing session, 2026-09-06 (after the merges of #615, #617, #619, #620); recorded here as the activation reference — the operator may replace it with an explicit review note |
 | Pre-remote human review (AC-11) | _pending_ |
 | Pre-merge human review (AC-18) | _pending_ |
