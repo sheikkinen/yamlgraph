@@ -5,7 +5,7 @@
 **Status:** Proposed
 **Effort:** 1 day
 **Requested:** 2026-09-06
-**Plan:** [FR-1010-chaplain-archival-plan.md](FR-1010-chaplain-archival-plan.md) — Phase 1 of 3
+**Plan:** [FR-1010-chaplain-archival-plan.md](FR-1010-chaplain-archival-plan.md) — Phase 1 of 4; depends on FR-1014 (dir-aware authoring guard) having merged first (FR-1010 C-3)
 **First consumer / first event:** the pre-commit `triage-gate` hook, on
 the first `feature-requests/*.md` commit after this PR merges — it
 imports `fr_triage/tools.py` by filesystem path and is the one consumer
@@ -41,11 +41,17 @@ evidence record.
 ## Summary
 
 Move the three graphs (`fr_triage`, `world_distill`, `philosopher` with
-its `diary.py` dependency) from `.chaplain/graphs/` to `graphs/`, move the
-8 live sparks from `.chaplain/inbox/` to `proposals/`, update every
-consumer path, and delete the `examples/philosopher/` stub. After this
-FR, nothing outside `.chaplain/` refers to anything inside it except the
-`chaplain-ops` skill and the retirement-era tests that Phase 2 removes.
+its `diary.py` dependency) from `.chaplain/graphs/` to `graphs/`, move
+`.chaplain/lib/finalize_lib.sh` to `scripts/lib/` (its consumer
+`scripts/finalize_merge.sh` is live — CAP-38/REQ-YG-125, CAP-45/REQ-YG-144;
+FR-1010 R-4), create `proposals/` as the new inbox path, update every
+consumer path, and delete the `examples/philosopher/` stub. The eight
+live sparks are migrated by the operator on the main checkout (they are
+untracked and do not exist in any worktree — FR-1010 R-6), and the
+manifest is recorded here. After this FR, nothing outside `.chaplain/`
+refers to anything inside it except the `chaplain-ops` skill, the legacy
+ID registry (FR-1010 R-2), and the retirement-era tests that Phase 2
+removes.
 
 ## Value Statement
 
@@ -74,6 +80,9 @@ couplings, by file:line:
 | `tests/unit/test_world_distill.py` | 27 | `TOOLS = REPO / ".chaplain/graphs/world_distill/tools.py"` |
 | `tests/unit/test_philosopher.py` | 21, 401–1344 | ~30 literal `.chaplain/graphs/philosopher/...` paths |
 | `tests/unit/test_chaplain_graph_compile.py` | 22, 55 | globs `.chaplain/graphs/**/*.yaml`; asserts `parents[2]/lib/diary.py` |
+| `scripts/finalize_merge.sh` | 25 | `source "$REPO_ROOT/.chaplain/lib/finalize_lib.sh"` — live (CAP-38, CAP-45; `tests/unit/test_finalize_merge.py`) |
+| `capabilities/CAP-114-automated-post-merge-finalization.yaml` | 8, 15, 23 | `source:` paths name `.chaplain/lib/finalize_lib.sh` |
+| `.github/hooks/tests/test_authoring_guard.py` | 27 | `GOVERNED_CHAPLAIN = ".chaplain/graphs/pipeline.yaml"` — already replaced by FR-1014; this FR only confirms no `.chaplain` literal remains (Tier 2, outside `req_coverage`) |
 | `.gitignore` | 100 | `.chaplain/inbox/` |
 
 Two facts surfaced while tracing that the plan must record:
@@ -81,9 +90,16 @@ Two facts surfaced while tracing that the plan must record:
 1. **The inbox is untracked.** `.gitignore:100` ignores it; `git ls-files
    .chaplain/inbox` is empty; the directory does not exist in any
    worktree. Sparks are visible only on the main checkout of one
-   machine. This FR preserves that semantics (pure relocation) and files
-   the durability/visibility question as a spark of its own
-   (`proposals/inbox-is-untracked-and-worktree-invisible.md`).
+   machine. This FR preserves that semantics (pure relocation). The
+   physical migration is therefore **not a PR change**: it is the
+   operator runbook in FR-1010 § "Inbox pre-check" (freeze 13-item
+   SHA-256 manifest → copy 8 → confirm 3 drops / 1 forward / 1 rmdir →
+   hash-verify destinations → delete sources), executed on the main
+   checkout before this PR merges, with the manifest (names + hashes,
+   never contents) pasted into § Implementation Record below. The
+   durability/visibility question is filed as a spark of its own
+   (`proposals/inbox-is-untracked-and-worktree-invisible.md`, written by
+   the operator in the same runbook step).
 2. **`philosopher` is dormant, not live.** No consumer outside its own
    tests. Kept and relocated because it is the only implementation of
    the `diary_graduation_pipeline` seed; retiring it is a Phase 2
@@ -105,33 +121,26 @@ level down. `.chaplain/graphs/fr_triage/graph.yaml`,
 `.chaplain/graphs/*/prompts/*.yaml`, and the existing
 `graphs/enforcement/changelog-req-check.yaml` + `graphs/enforcement/prompts/*`
 have never been governed. The `.chaplain` arm was vacuous for every graph
-that directory actually contains. Relocation to `graphs/<name>/` therefore
-changes nothing about their governance — they remain ungoverned unless the
-`graphs/` arm becomes dir-aware.
+that directory actually contains.
 
-**Decision for the Judge** (options, evidence, default):
-
-| Option | Consequence |
-|---|---|
-| (a) Make the `graphs/` arm dir-aware in this FR: `graphs/.+/graph\.ya?ml$` and `graphs/.+/prompts/[^/]+\.ya?ml$`, keep the flat arm, delete the `.chaplain` arm; mirror in `check_authoring_proof.py` | Relocated graphs and `graphs/enforcement/` become governed at the moment they enter `graphs/`; this FR already runs through `scripts/author.sh`, so its own writes are sentineled. A witness test asserts the six paths (3 graphs × graph.yaml + one prompt each, plus `graphs/enforcement/`) are governed. |
-| (b) Delete the `.chaplain` arm only; file the dir-aware widening as FR-1014 | Pure relocation; the gap stays open for one more PR cycle and `graphs/enforcement/` stays ungoverned meanwhile. |
-
-Recommended default: **(a)**. The change strengthens the guard rather
-than loosening it (`guard_widening_when_caught` targets same-session
-exclusions added to escape a gate; this is the inverse), it is a
-two-line regex change with a witness, and this FR is the event at which
-the six paths enter `graphs/`.
+**Resolved by FR-1010 R-5:** the dir-aware widening is FR-1014 (Phase 0),
+independently judged and human-reviewed, merged **before** this FR. This
+FR only deletes the vacuous `.chaplain/graphs` arm and the `\.chaplain/`
+pre-filter token. It adds no pattern. Option (a) from the first draft is
+withdrawn.
 
 ## Ideal Result
 
-`ls .chaplain/graphs` shows only `watcher-*`; `ls graphs` shows
-`enforcement fr_triage philosopher world_distill`; `ls proposals` shows
-nine files (8 carried + 1 new); every consumer above points at the new
-path; `pytest tests/unit/test_fr_triage.py tests/unit/test_world_distill.py
-tests/unit/test_philosopher.py tests/unit/test_chaplain_graph_compile.py`
-is green; `yamlgraph graph lint` and a smoke run pass for each moved
-graph from its new location; `git diff --stat` shows renames, not
-rewrites, for the graph files.
+`ls .chaplain/graphs` shows only `watcher-*`; `ls .chaplain/lib` shows no
+`diary.py` or `finalize_lib.sh`; `ls graphs` shows
+`enforcement fr_triage philosopher world_distill`; `ls scripts/lib` shows
+`finalize_lib.sh`; `ls proposals` shows nine files on the operator's main
+checkout (8 carried + 1 new; untracked); every consumer above points at
+the new path; `pytest tests/unit/test_fr_triage.py tests/unit/test_world_distill.py
+tests/unit/test_philosopher.py tests/unit/test_chaplain_graph_compile.py
+tests/unit/test_finalize_merge.py` is green; `yamlgraph graph lint` and a
+smoke run pass for each moved graph from its new location; `git diff
+--stat` shows renames, not rewrites, for the moved files.
 
 ## Proposed Solution
 
@@ -154,16 +163,12 @@ because `mv` of `graph.yaml`/`prompts/*.yaml` is graph authoring
     exists.
   - `test_governed_regex_has_no_chaplain_arm`: `pre-command-guard.sh`
     and `check_authoring_proof.py` contain no `\.chaplain` literal.
-  - `test_dir_style_graphs_are_governed` (option (a) only): the
-    predicate returns True for `graphs/fr_triage/graph.yaml`,
-    `graphs/fr_triage/prompts/<first>.yaml`, likewise for
-    `world_distill`, `philosopher`, and
-    `graphs/enforcement/changelog-req-check.yaml`; False for
-    `graphs/README.md`.
-  - Tagged `@pytest.mark.req("REQ-YG-563", "REQ-YG-564", "REQ-YG-529")`
-    (CAP-206 fr_triage, CAP-205 world_distill, CAP-75 philosopher proxy)
-    — existing REQs; no new CAP. The governed-path witness carries the
-    FR-767 REQ from `capabilities/CAP-*-graph-authoring-sole-route.yaml`.
+  - `test_finalize_lib_relocated`: `scripts/finalize_merge.sh` sources
+    `scripts/lib/finalize_lib.sh`; the file exists; no `.chaplain`
+    literal in the script.
+  - Tagged `@pytest.mark.req("REQ-YG-563", "REQ-YG-564", "REQ-YG-529", "REQ-YG-125")`
+    (CAP-206 fr_triage, CAP-205 world_distill, CAP-75 philosopher proxy,
+    CAP-38 finalizer) — existing REQs; no new CAP.
 
 ### GREEN
 
@@ -172,10 +177,14 @@ git mv .chaplain/graphs/fr_triage      graphs/fr_triage
 git mv .chaplain/graphs/world_distill  graphs/world_distill
 git mv .chaplain/graphs/philosopher    graphs/philosopher
 git mv .chaplain/lib/diary.py          graphs/philosopher/diary.py
+mkdir -p scripts/lib
+git mv .chaplain/lib/finalize_lib.sh   scripts/lib/finalize_lib.sh
 git rm -r examples/philosopher
-mkdir proposals && mv .chaplain/inbox/{8 carried}.md proposals/
+# proposals/ is created by the operator runbook on main; the PR only
+# changes .gitignore so the directory is ignored wherever it appears.
 ```
 
+- `scripts/finalize_merge.sh:25` → `source "$REPO_ROOT/scripts/lib/finalize_lib.sh"`.
 - `graphs/philosopher/tools.py:371` → `Path(__file__).with_name("diary.py")`.
 - `graphs/philosopher/graph.yaml:5,12,21` comments: drop the `.chaplain`
   paths.
@@ -184,11 +193,11 @@ mkdir proposals && mv .chaplain/inbox/{8 carried}.md proposals/
 - `checks/fr-checks.sh:77`, `scripts/vscode/now.py:487` → new paths.
 - `pre-command-guard.sh:170` delete the `.chaplain/graphs` alternative;
   `:187` pre-filter → `examples/|graphs/`. `check_authoring_proof.py:25`
-  delete the pattern entry. Under option (a), the `graphs/` arm gains
-  the two dir-aware alternatives in both files; under (b) no pattern is
-  added.
+  delete the pattern entry. **No pattern is added** (FR-1014 owns the
+  dir-aware arm and has already merged).
 - `capabilities/CAP-205-world-distill.yaml:4,12,25`,
-  `CAP-206-fr-triage-graph.yaml:4,14,26`, `CAP-75-portable-chaplain.yaml:8,12,13,29`
+  `CAP-206-fr-triage-graph.yaml:4,14,26`, `CAP-75-portable-chaplain.yaml:8,12,13,29`,
+  `CAP-114-automated-post-merge-finalization.yaml:8,15,23`
   — `source:`/description paths → new locations (`validate_capabilities`
   reads them; text-only, no REQ change).
 - Skills: `feature-request/SKILL.md` §"Submitting" rewritten as
@@ -200,16 +209,15 @@ mkdir proposals && mv .chaplain/inbox/{8 carried}.md proposals/
   in the seed string. Path-only; doctrine text unchanged. (Scripture
   wording changes are Phase 3.)
 - `.gitignore:100` → `proposals/`. Same semantics as today.
-- New spark `proposals/inbox-is-untracked-and-worktree-invisible.md`
-  (fact 1 above, three sentences, no solution).
-- Inbox items **not** carried: `deviantart-auto-publish-pipeline.md`,
+- Inbox migration: **operator runbook on main** (FR-1010 § Inbox
+  pre-check), not this PR. Drops: `deviantart-auto-publish-pipeline.md`,
   `refactor-pre-command-guard-dispatcher.md`,
-  `research-prompts-contradict-precedent-validator.md` deleted from disk
-  (they are untracked; FR-1010's table is their tombstone);
-  `deviant-daily-curated-rerun.md` copied to
-  `~/Documents/src/deviant-daily/` by the operator (outside this repo's
-  blast radius — this FR only deletes the local copy after the operator
-  confirms); `ninchat_voice/` removed.
+  `research-prompts-contradict-precedent-validator.md` (FR-1010's table
+  is their tombstone). Forward: `deviant-daily-curated-rerun.md` copied
+  to the deviant-daily checkout by the operator. `ninchat_voice/`
+  removed. New spark `inbox-is-untracked-and-worktree-invisible.md`
+  written by the operator (three sentences, no solution). Manifest
+  recorded below.
 - Old path behaviour: `.chaplain/inbox/` ceases to exist on main. A
   write there fails with `ENOENT` from the shell — visible, not silent.
   No guard grammar is added (FR-889 C-5: the kernel is the barrier; the
@@ -226,22 +234,27 @@ mkdir proposals && mv .chaplain/inbox/{8 carried}.md proposals/
 
 ## Acceptance Criteria
 
-- [ ] `git diff --stat main..HEAD -- graphs/` shows renames (similarity
-      ≥ 90%) for every `graph.yaml`, `prompts/*.yaml`, `tools.py`,
-      `diary.py` moved.
-- [ ] `grep -rn '\.chaplain' .github/hooks/scripts scripts/vscode scripts/check_authoring_proof.py .github/skills/{feature-request,graph-authoring,session-introspection}`
+- [ ] `git diff --stat main..HEAD -- graphs/ scripts/lib/` shows renames
+      (similarity ≥ 90%) for every `graph.yaml`, `prompts/*.yaml`,
+      `tools.py`, `diary.py`, `finalize_lib.sh` moved.
+- [ ] `grep -rn '\.chaplain' .github/hooks/scripts scripts/vscode scripts/check_authoring_proof.py scripts/finalize_merge.sh .github/skills/{feature-request,graph-authoring,session-introspection}`
       returns nothing.
 - [ ] `pre-command-guard.sh` and `check_authoring_proof.py` contain no
-      `.chaplain` literal. Under (a): `test_dir_style_graphs_are_governed`
-      green; under (b): FR-1014 filed before this PR merges.
+      `.chaplain` literal and the diff shows only deletions in their
+      pattern lists (FR-1014 has already merged the dir-aware arm).
 - [ ] `checks/triage_gate.py` imports from `graphs/fr_triage/tools.py`;
       a `feature-requests/*.md` commit in the worktree runs the gate
       without `FileNotFoundError`.
 - [ ] `graphs/philosopher/tools.py` resolves `diary.py` as a sibling; the
       `write_diary` proxy test passes from the new path.
+- [ ] `scripts/finalize_merge.sh` sources `scripts/lib/finalize_lib.sh`;
+      `tests/unit/test_finalize_merge.py` green with
+      `.chaplain/lib/finalize_lib.sh` absent (FR-1010 AC-06).
 - [ ] `examples/philosopher/` does not exist.
-- [ ] `proposals/` holds the 8 carried sparks + 1 new; `.chaplain/inbox/`
-      does not exist on the main checkout after `git pull`.
+- [ ] § Implementation Record holds the operator's 13-item manifest
+      (names + SHA-256), the eight destination hashes verified, the
+      three drops and one forward named, and `.chaplain/inbox/` confirmed
+      empty on the main checkout (FR-1010 AC-07).
 - [ ] `.gitignore` ignores `proposals/`, not `.chaplain/inbox/`.
 - [ ] Lint + smoke for the three graphs recorded in the authoring
       report; `tests/unit/test_fr1011_relocation.py` green; full unit
@@ -254,10 +267,11 @@ mkdir proposals && mv .chaplain/inbox/{8 carried}.md proposals/
 
 ## Purge list (nothing invented)
 
-- No new guard grammar beyond the dir-aware `graphs/` arm (option (a)).
+- No new guard grammar (FR-1014 owns the dir-aware arm).
 - No symlink from `.chaplain/inbox/` to `proposals/`.
 - No `proposals/README.md` — the feature-request skill is the doc.
-- No CAP file; existing REQs cover the relocated graphs.
+- No CAP file; existing REQs cover the relocated graphs and finalizer.
+- No PR-side `mv` of untracked inbox files.
 
 ## Alternatives Considered
 
@@ -265,12 +279,17 @@ mkdir proposals && mv .chaplain/inbox/{8 carried}.md proposals/
 |---|---|
 | `feature-requests/inbox/` for sparks | `.pre-commit-config.yaml:280,286` (`^feature-requests/.*\.md$`) would run `prior-art-gate` and `triage-gate` on sparks that by design have no disposition sections. |
 | `examples/` for the three graphs | They are process graphs, not demos; `graphs/enforcement/` is the dir-style precedent for process graphs. |
-| Leave the `graphs/` regex flat | Verified gap (§ Guard gap): dir-style graphs under `graphs/` have never been governed. Leaving it means the relocated graphs enter an ungoverned path — option (b) above; defensible only with FR-1014 filed. |
+| Widen the `graphs/` regex in this FR (first-draft option (a)) | Withdrawn per FR-1010 R-5: enforcement hardening is a separate responsibility with its own human gate; it is FR-1014 and merges first. |
+| Delete `scripts/finalize_merge.sh` as the sole consumer of `finalize_lib.sh` (first draft) | Withdrawn per FR-1010 R-4: CAP-38/CAP-45 define it as live; the dependency direction was reversed. |
 | Retire philosopher now | Phase 2 scope; relocating keeps Phase 1 a pure move. |
 | Track `proposals/` in git | Changes spark-filing friction (PR per spark) — a design decision, filed as a spark, not smuggled into a relocation. |
 
 ## Related
 
-- FR-1010 (plan), FR-1012 (Phase 2), FR-1013 (Phase 3)
+- FR-1010 (plan), FR-1014 (Phase 0, prerequisite), FR-1012 (Phase 2), FR-1013 (Phase 3)
+
+## Implementation Record
+
+_Inbox manifest (operator, main checkout) — pending._
 
 ## Judgement (pending)
