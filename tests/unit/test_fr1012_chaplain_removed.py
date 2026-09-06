@@ -97,7 +97,7 @@ def test_no_kept_cap_lists_a_chaplain_module():
     for p in keeps:
         cap = yaml.safe_load((REPO / p).read_text(encoding="utf-8"))
         modules = set(cap.get("modules") or []) | {m for req in cap.get("requirements", []) for m in req.get("modules") or []}
-        bad = [m for m in modules if m.startswith(".chaplain") or m.startswith("examples/philosopher")]
+        bad = [m for m in modules if m.startswith((".chaplain", "examples/philosopher", ".github/skills/chaplain-ops", "scripts/chaplain-prompts", "scripts/id_registry", "scripts/validate_id_registry"))]
         if bad:
             offenders.append(f"{p}: {bad}")
     assert offenders == [], "\n".join(offenders)
