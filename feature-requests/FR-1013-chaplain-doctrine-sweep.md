@@ -2,13 +2,9 @@
 
 **Priority:** LOW
 **Type:** Enhancement (docs; Scripture edit — human gate C-4)
-**Status:** Enforced 2026-09-06 on `feat/fr1013-doctrine-sweep` from BASE `36591389` — step 0 `77a702ac` (inventory), RED `9417c831` (SKIP=pytest, 9 assertions fail / 11 pass), GREEN in the following commit; awaiting `scripts/outsider.sh` + `scripts/review.sh` + the AC-11 human read before merge. Previously: Judged — APPROVED WITH REVISIONS (round 1, 2026-09-06), then
-**SPLIT** (round 2, 2026-09-06) after review P5 added a closure script:
-Concern A (this docs-only sweep) continues here with R-1 folded; Concern B
-(post-merge closure automation) is **not** filed — see § Post-merge closure.
+**Status:** Amended for **round-3 judgement** (2026-09-06) after `scripts/review.sh` on PR #627 returned seven blocking findings — the round-2 verdict was `SPLIT` and granted Concern A no authority, yet the branch `feat/fr1013-doctrine-sweep` was enforced (step 0 `24015cf8`, RED `09818086`, GREEN `b5a80c5b`, diary `6e6523ab`). That branch is a **candidate**, not an enforcement: the round-3 verdict governs it, and every passage it left live (review P2), its file-level residual test (P3), its REQ tagging (P4) and its AC-10 command (P5) are re-specified below and will be re-enforced under whatever round 3 grants. Confession repair moved out to PR #628 (P6, merged `b71d0083`). History: APPROVED WITH REVISIONS (round 1, 2026-09-06); **SPLIT** (round 2, 2026-09-06) after review P5 added a closure script — Concern A (this docs-only sweep) continues here; Concern B (post-merge closure automation) is **not** filed, see § Post-merge closure.
 See [FR-1013-chaplain-doctrine-sweep.judgement.md](FR-1013-chaplain-doctrine-sweep.judgement.md)
-(both rounds). No enforcement authority until `BASE` (FR-1012 merge SHA) is
-recorded and `git merge-base --is-ancestor "$BASE" HEAD` exits 0.
+(all rounds).
 **Effort:** 0.5 day
 **Requested:** 2026-09-06
 **Plan:** [FR-1010-chaplain-archival-plan.md](FR-1010-chaplain-archival-plan.md) — Phase 3 of 5; prerequisite FR-1012 **merged** (FR-1010 C-3). At filing (2026-09-06) FR-1012 is judged, unenforced; `docs/archive/chaplain.md` does not yet exist. `BASE = 36591389e2fdfedf9ba5ae6362effad1c64cd06e` (PR #623 squash merge, 2026-09-06 13:25 UTC; human merge by the operator — the PR carried no GitHub review object).
@@ -116,7 +112,7 @@ git ls-files '*.md' '*.py' '*.sh' '*.yaml' '*.yml' \
 | `.github/skills/graph-authoring/doctrine.md` | 2 | **edit** — edit — :58 "escalate to Chaplain instead" and :128 "Enforce via Chaplain." → file an FR (`proposals/` → judge); live doctrine naming a retired route (found at BASE, not in the planning table) |
 | `.github/skills/judge-fr/doctrine.md` | 2 | **edit** — edit — :135 → `docs/archive/chaplain.md`; :133 kept (true history) |
 | `docs/context/chaplain-system.md` | 58 | **edit** — edit — `git mv` → `docs/archive/chaplain-system.md`; linked from `docs/archive/chaplain.md` |
-| `docs/development-process.md` | 28 | **edit** — edit — topology mermaid (24–66), § 3 (121–176), § 6 mermaid (296–306), § 7 row (330) per the table; :6, :113, :189, :197, :286, :312–320, :366 are outside the four frozen ranges — unchanged (noted: :113 names the deleted `chaplain-ops` skill; § 3.1 is the evidence line) |
+| `docs/development-process.md` | 28 | **edit** — every active-process passage (round-1 R-3 wording, review #627 P2): topology mermaid (24–66); § 3 (121–176) → "The rite as practised"; § 3.1 (177–219): the measurement sentence byte-identical, every other sentence that prescribes routing to the inbox / `.chaplain/failed/` / the FSM rewritten in the past tense as a bounded historical comparison or deleted (the dispatch heuristic and the 2026-07-07 caveat prescribe an inbox that no longer exists — deleted); intro :5–7 ("its own autonomous developer (the Chaplain/Watcher), its own auditor (the Inquisitor)") → the operator-driven rite; § 2.1 row :113 drops the deleted `chaplain-ops` skill and "via inbox/FRs" → `proposals/`; § 5 bullet :286 `automation_inherits_doctrine` → "scripts and adapters obey the same hooks"; § 6 mermaid (296–306) and bullets :312–320 (Inquisitor feeds the inbox; 2026-07-07 asymmetry) → Philosopher only, asymmetry bounded as history; § 7 row (330). Kept verbatim: § 3.1 measurement sentence; :366 ("meta-tooling (hooks, chaplain scripts) historically drifted" — already past tense) |
 | `examples/README.md` | 3 | **edit** — edit — :57 row deleted; :74 note → `graphs/`; :171 witnesses line deleted |
 | `ramp/assets/tier2/github/skills/judge-fr/doctrine.md` | 2 | **edit** — edit — `cp` byte-for-byte from the canonical after editing (mirror_exact, R-2) |
 | `reference/audit-index.md` | 8 | **edit** — edit — :65–71 six rows deleted, Philosopher → `graphs/philosopher/graph.yaml`, one `Chaplain (archived)` row → `docs/archive/chaplain.md`; :57 Inquisitor-audits row kept (the diary entries exist) |
@@ -164,19 +160,32 @@ this FR is filed in the planning session; enforcement happens later, from
 0. Record `BASE`; run and commit § Inventory at BASE (gate).
 1. `.github/copilot-instructions.md:204` heading; `:176` sources clause.
    Nothing else in Scripture.
-2. `docs/development-process.md`: topology (24–38), § 3 (121–176), § 6
-   mermaid (292–304), § 7 row (324–330) per the table; § 3.1's numbers
-   kept verbatim as the evidence line. Exact paragraph allowlist = those
-   four ranges as they exist at `BASE`.
+2. `docs/development-process.md`: every passage enumerated in the edit-set
+   row (topology, § 3, § 3.1 minus the measurement sentence, intro, § 2.1
+   row, § 5 bullet, § 6, § 7). Test: after the edit the file's only
+   remaining matches of the R-1 regex are the lines listed in the test's
+   `DEV_PROCESS_RESIDUAL` allowlist (the measurement sentence, the
+   archive-link sentences in § 3, the past-tense comparison in § 3.1, the
+   :366 self-exemption note) — each quoted verbatim, so a new live claim
+   fails the test by being absent from the list.
 3. Reference files per the table.
 4. `git mv docs/context/chaplain-system.md docs/archive/chaplain-system.md`;
    one link line added to `docs/archive/chaplain.md`.
 5. Edit canonical `.github/skills/judge-fr/doctrine.md:135`; `cp` to
    `ramp/assets/tier2/github/skills/judge-fr/doctrine.md`; `ramp/manifest.yaml`
    and `ramp/curation-diffs.md` untouched (R-2).
-6. Witness `tests/unit/test_fr1013_doctrine_sweep.py`: the R-1 residual
-   grep (encoded as the frozen allowlist) over tracked `.md .py .sh .yaml .yml`
-   returns only allowlisted rows; heading gone; Sermon step names equal
+6. Witness `tests/unit/test_fr1013_doctrine_sweep.py`, **match-level**
+   (review #627 P3 — a file-level allowlist lets a new reference hide in any
+   of the 261 BASE files): (a) for every tracked file in the R-1 scope that
+   is *not* in the edit set, the multiset of matching line texts at HEAD
+   equals the multiset at `git show "$BASE":<path>` — unchanged files pass
+   trivially, a new or reworded reference anywhere else fails; (b) for every
+   edit-set file, each remaining matching line must equal, verbatim, an
+   entry in that file's residual allowlist in the test (historical
+   sentences and archive links only) — an empty allowlist means zero
+   matches; (c) files not in the R-1 scope at BASE that match at HEAD fail,
+   except the test module itself and the census disposition file (both
+   self-referential by construction, named in the test). Heading gone; Sermon step names equal
    `git show "$BASE":.github/copilot-instructions.md`'s; `docs/archive/chaplain-system.md`
    exists; `reference/audit-index.md` has exactly one `Chaplain` row
    linking `docs/archive/chaplain.md`; `cmp -s` on the mirror pair.
@@ -186,7 +195,26 @@ this FR is filed in the planning session; enforcement happens later, from
    the Knowledge Graph entries are unchanged (`ARCHITECTURE.md:1242-1250`).
    If no live REQ directly covers an assertion, enforcement **stops** and
    this FR returns to judgement (judgement `:50-53`; review P3). No CAP or
-   REQ is invented during enforcement.
+   REQ is invented during enforcement. **Round-3 question (review #627
+   P4):** REQ-YG-666 covers runtime removal, archive identity and census
+   integrity — not documentation consistency; the eight documentation
+   assertions have no direct REQ. Proposed resolution, for the judge to
+   grant or replace: add **one** requirement to the existing CAP-264
+   (`capabilities/CAP-264-chaplain-runtime-retired.yaml`) — `REQ-YG-667`:
+   "Live doctrine and reference documents (`.github/copilot-instructions.md`,
+   `.github/skills/*/doctrine.md`, `docs/development-process.md`,
+   `reference/*.md`, `examples/README.md`) describe the operator-driven
+   author → judge → worktree → review → human-merge route; no
+   non-historical passage names a `.chaplain/` path, `start-system.sh`, the
+   issue-label importer or the Inquisitor as a live component; every
+   Chaplain pointer resolves to `docs/archive/chaplain.md` or
+   `docs/archive/chaplain-system.md`; verified by
+   `tests/unit/test_fr1013_doctrine_sweep.py`." This is the judged
+   exception to the Purge-list "no capability or requirement change": one
+   REQ under an existing CAP, tagged only by the documentation assertions.
+   Alternative for the judge: name an existing REQ that covers doctrine
+   consistency directly; the author found none (REQ-YG-192 is KG-shape,
+   REQ-YG-195 is `fsm/CLAUDE.md` mirroring, REQ-YG-613 is ramp bytes).
 8. Old-string doc-witness tests: named **only after** FR-1012's census
    decides which survive (the four listed in the first draft —
    `test_chaplain_readme_documentation.py`, `test_concurrency_safety_doc.py`,
@@ -223,7 +251,7 @@ doctrine: review output is advisory).
 - [ ] AC-07: `cmp -s .github/skills/judge-fr/doctrine.md ramp/assets/tier2/github/skills/judge-fr/doctrine.md` exits 0; `pytest tests/unit/test_ramp_installer.py::test_mirror_exact_entries_match_live_bytes -q` passes; `git diff --exit-code "$BASE"...HEAD -- ramp/manifest.yaml ramp/curation-diffs.md` exits 0.
 - [ ] AC-08: The broad residual test derived from R-1 checks `.md`, `.py`, `.sh`, `.yaml`, and `.yml` tracked files and fails for every `.chaplain` or active Chaplain-runtime reference outside its exact historical/archive allowlist; its result satisfies FR-1010 AC-12 rather than silently widening the allowlist.
 - [ ] AC-09: Every new/updated test is listed with its surviving REQ and quoted requirement text; unrelated assertions are not tagged REQ-YG-192; the selected old-string witness list exactly matches tests still present after FR-1012.
-- [ ] AC-10: `pytest tests/unit/test_fr1013_doctrine_sweep.py tests/unit/test_knowledge_graph_fr193.py tests/unit/test_ramp_installer.py -q` and `pytest tests/unit/ -q --no-cov -m "not slow" -n auto` pass.
+- [ ] AC-10: `pytest tests/unit/test_fr1013_doctrine_sweep.py tests/unit/test_knowledge_graph_fr193.py tests/unit/test_ramp_installer.py -q --no-cov` (the repo's 85 % coverage floor is configured for the full suite; a three-file selection cannot meet it — review #627 P5) and `pytest tests/unit/ -q --no-cov -m "not slow" -n auto` pass.
 - [ ] AC-11: Human review is recorded in FR-1013 before merge and confirms the Scripture diff is limited to the heading and canonical-sources clause, the judge doctrine mirror is byte-identical, and no Knowledge Graph entry or Sermon step changed.
 - [ ] AC-12: `changelog/unreleased/fr-1013-doctrine-sweep.md` exists with `type: removal` and `scope: doctrine`.
 - [ ] AC-13: Post-merge only, the operator records FR-1013's merge SHA in FR-1010, ticks AC-12/AC-13 after their commands pass on merged `main`, records each phase's completion, and changes status to `Completed` in a separate FR-1010-only closure commit.
@@ -236,10 +264,12 @@ doctrine: review output is advisory).
   own FR; not here).
 - No edits under the allowlist except the two `docs/archive/` files named
   in § Problem (R-3).
-- No `docs/development-process.md` edits outside the four `BASE` ranges.
+- No `docs/development-process.md` edits outside the passages enumerated
+  in the edit-set row; no edit to the § 3.1 measurement sentence.
 - No `ramp/manifest.yaml` or `ramp/curation-diffs.md` edit.
-- No script, hook, CI, graph, prompt, capability or requirement change
-  (round-2 SPLIT boundary).
+- No script, hook, CI, graph, prompt change (round-2 SPLIT boundary). The
+  only capability/requirement change is the single `REQ-YG-667` entry under
+  CAP-264 proposed in step 7 — if round 3 grants it.
 
 ## Alternatives Considered
 
@@ -262,7 +292,8 @@ doctrine: review output is advisory).
 | Field | Value |
 |---|---|
 | `BASE` (FR-1012 merge SHA) + human-review ref | `36591389e2fdfedf9ba5ae6362effad1c64cd06e` — PR #623, merged by the operator 2026-09-06 |
-| § Inventory at BASE commit | `77a702ac` — `docs/census/fr1013-inventory-at-base-36591389.{txt,dispositions.md}` |
+| § Inventory at BASE commit | `24015cf8` (after the P6 rebase onto `b71d0083`) — `docs/census/fr1013-inventory-at-base-36591389.{txt,dispositions.md}` |
+| Candidate commits on the branch (pre-round-3) | RED `09818086` (SKIP=pytest, 9 fail / 11 pass at BASE), GREEN `b5a80c5b`, diary `6e6523ab`; round-3 re-enforcement commits recorded below when they exist |
 | Traceability: test function → REQ → quoted text | see table below |
 | Surviving old-string witness tests | `test_concurrency_safety_doc.py`, `test_fr748_fr_atlas.py`, `test_knowledge_graph_fr193.py` (present after FR-1012; `test_chaplain_readme_documentation.py` was deleted by the census). Their strings (`docs/concurrency-safety.md`, the FR atlases, the Knowledge Graph) are all in the keep set — untouched; all three pass |
 | Human review (AC-11) | _pending — operator, on the PR_ |
@@ -276,7 +307,7 @@ doctrine: review output is advisory).
 | `test_knowledge_graph_block_is_byte_identical_to_base` | REQ-YG-192 (CAP-72) | "… all descriptions are one-liners following k[nowledge-graph style]; no existing traps/cures/process entries changed" — the KG block hash equals BASE's |
 | `test_judge_doctrine_ramp_mirror_is_byte_identical` | REQ-YG-613 (CAP-244) | "every mirror_exact entry matches its live counterpart byte-for-byte" |
 
-**Deviations.** (1) The R-1 grep at BASE returned 2586 matches in 261 files — far wider than the planning table's 17 — because `chaplain|Chaplain|watcher2?\b|inquisitor` matches historical prose (diaries, plans, book chapters, capability records) and the unrelated FR-885 worktree watcher; dispositions are per file (one disposition covering all matches in the file) and live in `docs/census/` because 261 rows would breach the 450-line file gate. (2) Three doctrine/reference files not in the planning table were found live at BASE and added to the edit set at inventory time, before any edit: `.github/skills/graph-authoring/{doctrine.md,SKILL.md}` ("escalate to Chaplain"), `reference/command-book.md` (names the heading), `reference/patterns/fsm-as-conductor.md` (links the moved file). (3) `docs/confessions.md` gained CONF-462…465 in a separate commit (`dc9a108e`): FR-1012 shipped `# noqa: S603` lines citing confession IDs that were never written, and the repo-wide `noqa_coverage --strict` gate blocked every commit on this branch; the script itself was not touched (the hook's ruff would reformat 268 lines of it). (4) Stale `.chaplain` *defaults in code* found by the inventory are outside a docs-only FR and filed as `proposals/stale-chaplain-paths-in-code.md`.
+**Deviations.** (1) The R-1 grep at BASE returned 2586 matches in 261 files — far wider than the planning table's 17 — because `chaplain|Chaplain|watcher2?\b|inquisitor` matches historical prose (diaries, plans, book chapters, capability records) and the unrelated FR-885 worktree watcher; dispositions are per file (one disposition covering all matches in the file) and live in `docs/census/` because 261 rows would breach the 450-line file gate. (2) Three doctrine/reference files not in the planning table were found live at BASE and added to the edit set at inventory time, before any edit: `.github/skills/graph-authoring/{doctrine.md,SKILL.md}` ("escalate to Chaplain"), `reference/command-book.md` (names the heading), `reference/patterns/fsm-as-conductor.md` (links the moved file). (3) FR-1012 shipped `# noqa: S603` lines citing confession IDs that were never written, so the repo-wide `noqa_coverage --strict` gate blocked every commit on this branch; the repair (CONF-462…465) was first committed here, then split out at review #627 P6 into PR #628 (merged `b71d0083`) and this branch rebased onto it — no confession change remains in this PR. (4) Stale `.chaplain` *defaults in code* found by the inventory are outside a docs-only FR and filed as `proposals/stale-chaplain-paths-in-code.md`.
 
 
 ## Judgement (2026-09-06)
@@ -298,3 +329,15 @@ its tests, the scripted closure subsection and AC-14 removed; AC-13
 restored to the operator-owned post-merge record; AC-A13 added. R-2/R-3
 (Concern B) are the entry conditions for a separate FR that is not filed.
 Round-2 text appended to the judgement file.
+
+**Review of PR #627 (2026-09-06, `scripts/review.sh`) — Not approved, seven
+blocking findings, folded for round 3:** P1 (no post-SPLIT authority; four
+edit-set files outside D-3) → this round-3 request with the committed edit
+set; P2 (`docs/development-process.md` :5–7, :110, :145–174, :275–281 still
+present the Chaplain/Inquisitor as live) → edit-set row and step 2 widened
+to every active-process passage, measurement sentence still byte-identical;
+P3 (file-level residual allowlist) → step 6 match-level design; P4
+(REQ-YG-666 not direct) → step 7 `REQ-YG-667` proposal for the judge; P5
+(AC-10 coverage floor) → `--no-cov`; P6 (confessions out of scope) → PR
+#628; P7 (stale SHAs after rebase) → Implementation Record. The outsider
+read of #627 (derived NO, six terms) was glossed in the PR body.
