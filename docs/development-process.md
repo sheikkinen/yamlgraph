@@ -129,7 +129,7 @@ witness artifact:
    the frozen deliverables.
 4. **Review** — `scripts/outsider.sh <pr>` (a reader with no context) then
    `scripts/review.sh <pr> <fr>` (the informed adversary); both advisory.
-5. **Merge** — the human's word, then CI; squash to `main`.
+5. **Merge** — CI green, both reviews read, diary present; then the human's word; squash to `main`.
 
 Plan and Judge run in separate model sessions so the judge is not anchored on the author's
 narrative (`judge_as_junior_pr`); deterministic gates (changelog fragment, PR title, diary)

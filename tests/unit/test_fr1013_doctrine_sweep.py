@@ -105,7 +105,7 @@ RESIDUAL: dict[str, list[str]] = {
         "- Context: `docs/archive/chaplain-system.md`",
         "| **Horizontal** (graph nodes) | More LLM steps per invocation | Chaplain enforce: 1 → 4 nodes with context planning |",
         "| **Chaplain** | ~60s | CI operations | timeout, stop | CI/CD automation |",
-        "- [docs/archive/chaplain-system.md](../docs/archive/chaplain-system.md) — Chaplain architecture (archived)",
+        "- [docs/archive/chaplain-system.md](../../docs/archive/chaplain-system.md) — Chaplain architecture (archived)",
     ],
 }
 

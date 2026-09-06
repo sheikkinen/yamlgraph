@@ -131,7 +131,7 @@ git ls-files '*.md' '*.py' '*.sh' '*.yaml' '*.yml' \
 | 4 | `tests/unit/test_fr1013_doctrine_sweep.py` | witness (D-7) |
 | 5 | `changelog/unreleased/fr-1013-doctrine-sweep.md` | fragment (D-8) |
 | 6 | `feature-requests/FR-1013-chaplain-doctrine-sweep.md`, `feature-requests/FR-1013-chaplain-doctrine-sweep.judgement.md`, `docs/census/fr1013-inventory-at-base-36591389.txt` (unchanged), `docs/census/fr1013-inventory-at-base-36591389.dispositions.md` (only to encode the residual policy) | records (D-1) |
-| 7 | `docs/diary/2026-09-06-reflection-fr-1013-*.md` | Distill |
+| 7 | `docs/diary/2026-09-06-reflection-fr-1013-the-inventory-that-was-fifteen-times-the-plan.md` | Distill — **round-4 question (review #627/2 P5):** round-3 D-1…D-8 omit the diary while Scripture requires it and CI `diary-gate` blocks a PR without one; proposed **D-10**: this exact path, advisory content, no other diary edit |
 
 No other path may change (C-5).
 
@@ -377,3 +377,17 @@ revised AC-01…16 replace the earlier list; branch commits are candidates
 (C-8). Human review of the round-3 draft (C-1) is the operator's read on
 the PR before merge, recorded at AC-13. Round-3 text appended to the
 judgement file.
+
+**Review of PR #627, round 2 (2026-09-06, head `59b11461`) — Not approved, six
+findings, dispositioned:** P1 (automate the post-merge closure) → **refused
+here**: round 2 SPLIT it out as Concern B and round 3 lists a closure script
+under "Not authorized"; the judge governs scope, review is advisory — the
+concern stays unfiled, AC-16 stays operator-owned. P2 (merge step ordering:
+`docs/development-process.md` § 3 step 5 and the onepager flow steps 6–9 put
+CI/reviews/diary after merge) → fixed: CI → outsider → review → diary → human
+merge. P3 (`reference/patterns/fsm-as-conductor.md:235` relative link one
+level short) → `../../docs/archive/chaplain-system.md`; residual line updated
+in the witness. P4 (pre-rebase SHAs in the record) → recorded from the GitHub
+PR after the last rebase; the branch is now advanced only by merge, never
+rebase, so the IDs stay stable. P5 (diary not in D-1…D-8) → D-10 proposed,
+round-4 judgement requested. P6 (changelog cites REQ-YG-666) → REQ-YG-668.

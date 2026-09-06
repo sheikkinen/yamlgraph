@@ -232,7 +232,7 @@ FSM+Graph is structurally closest to the **Saga pattern with non-deterministic s
 ## See Also
 
 - [examples/fsm-router/](../examples/fsm-router/) — Canonical example with README
-- [docs/archive/chaplain-system.md](../docs/archive/chaplain-system.md) — Chaplain architecture (archived)
+- [docs/archive/chaplain-system.md](../../docs/archive/chaplain-system.md) — Chaplain architecture (archived)
 - [projects/ninchat_voice/docs/context/voice-projects.md](../projects/ninchat_voice/docs/context/voice-projects.md) — Voicebot architecture
 - [Interrupt Nodes](interrupt-nodes.md) — YAMLGraph-native alternative for human-in-loop
 - [Checkpointers](checkpointers.md) — State persistence for multi-turn graphs

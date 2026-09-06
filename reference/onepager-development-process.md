@@ -138,10 +138,10 @@ Every link is mechanically enforced. You cannot commit a test without `@pytest.m
 4. Implement fix (GREEN) — pre-commit gates run
 5. Commit: feat(scope): FR-XXX description
    └─ conventional-pre-commit, feat-requires-fr, changelog-required all check
-6. Push PR → CI gates run (commitlint, test, changelog-gate, diary-gate …)
-7. Squash merge → PR title becomes the commit on main
-8. scripts/outsider.sh + scripts/review.sh on the PR (advisory)
-9. Add diary entry to docs/diary/ (diary-gate blocks merge if missing)
+6. Add diary entry to docs/diary/ (diary-gate blocks merge if missing)
+7. Push PR → CI gates run (commitlint, test, changelog-gate, diary-gate …)
+8. scripts/outsider.sh + scripts/review.sh on the PR (advisory; before merge)
+9. Human merge decision → squash merge → PR title becomes the commit on main
 ```
 
 **Emergency bypass:** admin override only — every bypass must be documented in `reference/break-glass.md`.
