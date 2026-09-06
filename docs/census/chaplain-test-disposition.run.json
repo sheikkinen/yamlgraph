@@ -1,0 +1,120 @@
+{
+  "run_id": "6f7f1ab6-3288-4f83-9a22-5f8f205ecc51",
+  "started_at": "2026-09-06T10:55:24.777345+00:00",
+  "source_sha": "d7601937b139c7505b0fc5d6a6ff14e56d2d2385",
+  "chaplain_tree_sha": "3b25919cf65438f6d8167c62d4828c0f04215d03",
+  "prerequisites": {
+    "FR-1014": "fec26941",
+    "FR-1011": "84baceb7",
+    "FR-1015": "32fd6e9f"
+  },
+  "provider": "anthropic",
+  "model": "claude-haiku-4-5",
+  "visibility_data_classification": "operator-owned source and tests of a private repository; no personal data; provider anthropic/claude-haiku-4-5 approved for this class (FR-1012 R-7 record)",
+  "ceilings": {
+    "max_items": 120,
+    "max_total_bytes": 1500000,
+    "max_item_bytes": 65536,
+    "max_calls": 130,
+    "timeout_s": 1200
+  },
+  "counts": {
+    "items": 115,
+    "tests": 78,
+    "caps": 37,
+    "bytes": 807264,
+    "planned_calls": 116
+  },
+  "manifest_path": "docs\\census\\chaplain-disposition-input.jsonl",
+  "manifest_sha256": "e4d5c5a83e93d2d7de26c0a221775b1a18776e49c745231c5ab1d876852c45bc",
+  "preflight_problems": [],
+  "manifest_sha256_note": "first recorded value 3f54bdb610d77094ef1ee5cf3210ad28af32134fe72a1a7d13c457e138f7bb49 was hashed over LF text while the file was written CRLF on Windows (bug fixed in the tooling commit); replaced by the sha of the bytes the graph run read",
+  "reconcile_only_at": "2026-09-06T11:05:13.569040+00:00",
+  "finished_at": "2026-09-06T11:05:13.607898+00:00",
+  "generic_ledger_sha256": "9c9c1e60bde5c9f2d0a6e9cccb8ecd8a07fc327798cbb92d6868f402d3075c5c",
+  "disposition_sha256": "1124d65e2bc73e176128e676f86b8f02d08f19d96973c7e6cb0a126afe2143cc",
+  "counts_out": {
+    "delete": 32,
+    "retire": 16,
+    "keep": 67,
+    "unresolved": 30
+  },
+  "unresolved": [
+    "capabilities/CAP-106-github-issues-remote-inbox.yaml",
+    "capabilities/CAP-114-automated-post-merge-finalization.yaml",
+    "capabilities/CAP-116-acceptance-tests-before-enforce.yaml",
+    "capabilities/CAP-125-pipeline-script-retirement.yaml",
+    "capabilities/CAP-135-watcher2-forensic-failure-diary.yaml",
+    "capabilities/CAP-137-watcher-fsm-startup-script.yaml",
+    "capabilities/CAP-152-watcher2-dispatcher-audit-cadence.yaml",
+    "capabilities/CAP-205-world-distill.yaml",
+    "capabilities/CAP-259-declared-text-encoding.yaml",
+    "capabilities/CAP-264-chaplain-runtime-retired.yaml",
+    "capabilities/CAP-44-judge-split-verdict.yaml",
+    "capabilities/CAP-55-chaplain-inbox-documentation.yaml",
+    "capabilities/CAP-67-philosopher-daemon.yaml",
+    "capabilities/CAP-73-philosopher-challenge-node.yaml",
+    "tests/unit/test_chaplain_graph_compile.py",
+    "tests/unit/test_claude_md_chaplain_inbox.py",
+    "tests/unit/test_fr1011_relocation.py",
+    "tests/unit/test_fr1012_chaplain_census.py",
+    "tests/unit/test_fr289_watcher2_post_merge_inbox_consumption.py",
+    "tests/unit/test_fr296_watcher_fsm_startup_script.py",
+    "tests/unit/test_fr312_watcher2_post_merge_main_sync.py",
+    "tests/unit/test_fr339_watcher2_post_merge_processing_cleanup.py",
+    "tests/unit/test_fr382_chaplain_prompt_caching_scope_red.py",
+    "tests/unit/test_fr411_watcher2_dispatcher_inquisitor_audit_cadence.py",
+    "tests/unit/test_fr436_req_traceability_scope_red.py",
+    "tests/unit/test_github_issues_remote_inbox.py",
+    "tests/unit/test_id_registry.py",
+    "tests/unit/test_judge_split_verdict.py",
+    "tests/unit/test_migrate_diary.py",
+    "tests/unit/test_retire_old_pipeline_scripts.py"
+  ],
+  "resolutions_file": "docs\\census\\chaplain-manual-resolutions.json",
+  "resolutions_confirmed": [],
+  "resolutions_pending_confirmation": [
+    "capabilities/CAP-106-github-issues-remote-inbox.yaml",
+    "capabilities/CAP-114-automated-post-merge-finalization.yaml",
+    "capabilities/CAP-116-acceptance-tests-before-enforce.yaml",
+    "capabilities/CAP-125-pipeline-script-retirement.yaml",
+    "capabilities/CAP-135-watcher2-forensic-failure-diary.yaml",
+    "capabilities/CAP-137-watcher-fsm-startup-script.yaml",
+    "capabilities/CAP-152-watcher2-dispatcher-audit-cadence.yaml",
+    "capabilities/CAP-205-world-distill.yaml",
+    "capabilities/CAP-259-declared-text-encoding.yaml",
+    "capabilities/CAP-264-chaplain-runtime-retired.yaml",
+    "capabilities/CAP-44-judge-split-verdict.yaml",
+    "capabilities/CAP-55-chaplain-inbox-documentation.yaml",
+    "capabilities/CAP-67-philosopher-daemon.yaml",
+    "capabilities/CAP-73-philosopher-challenge-node.yaml",
+    "tests/unit/test_chaplain_graph_compile.py",
+    "tests/unit/test_fr1011_relocation.py",
+    "tests/unit/test_fr1012_chaplain_census.py",
+    "tests/unit/test_fr382_chaplain_prompt_caching_scope_red.py",
+    "tests/unit/test_fr436_req_traceability_scope_red.py",
+    "tests/unit/test_id_registry.py",
+    "tests/unit/test_migrate_diary.py"
+  ],
+  "canaries": {
+    "tests/unit/test_fr305_watcher_pipeline_v2.py": {
+      "expected": "delete",
+      "got": "delete"
+    },
+    "tests/unit/test_fr_triage.py": {
+      "expected": "keep",
+      "got": "keep"
+    }
+  },
+  "invariants": {
+    "1_each_item_one_payload": true,
+    "2_each_payload_one_result": true,
+    "3_one_reduction_batch": true,
+    "4_model_ids_reconciled": true,
+    "5_counts_in_code": true,
+    "6_provenance_recorded": true,
+    "7_no_silent_drop": true,
+    "8_withheld_canaries_match": true
+  },
+  "human_raw_read": "PENDING \u2014 a named human must read docs/census/chaplain-test-disposition.raw/ and record name+date here before the rows are trusted"
+}
