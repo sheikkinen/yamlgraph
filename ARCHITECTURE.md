@@ -580,6 +580,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 262 | CAP-262 Map Fan-Out Concurrency Limit | `yamlgraph/compile/graph_loader.py`, `yamlgraph/cli/__init__.py`, `yamlgraph/cli/graph_run_helpers.py`, `yamlgraph/schemas/graph-v1.json`, … | REQ-YG-645 |
 | 263 | CAP-263 Outsider Reader for PR Descriptions | `.github/skills/outsider-view/adapters/outsider_tools.py`, `.github/skills/outsider-view/adapters/graph.yaml`, `scripts/outsider.sh`, `tests/unit/test_fr995_outsider_reader.py`, … | REQ-YG-660 – 663 |
 | 264 | CAP-264 Chaplain runtime retired | `scripts/chaplain_census.py`, `examples/demos/corpus_census/adapters/chaplain_adapters.py`, `examples/demos/corpus_census/adapters/chaplain-discover.tool.yaml`, `examples/demos/corpus_census/adapters/chaplain-extract.tool.yaml`, … | REQ-YG-666 |
+| 265 | CAP-265 Static module map | `scripts/generate_module_map.py`, `reference/module-map.md`, `tests/unit/test_fr331_static_module_map_tier2_context.py`, `tests/unit/test_fr335_module_map_compression.py` | REQ-YG-667 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -3236,6 +3237,16 @@ Phase 2 of FR-1010: the Chaplain FSM runtime (.chaplain/) is removed from main a
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-666 | The Chaplain runtime is absent from main; its source is reachable only via the chaplain-archive tag and the archived repository; the census delete/retire sets equal the enacted sets. The census that authorises those sets is produced only by scripts/chaplain_census.py: it refuses, before any provider call, a source SHA that does not descend from the three prerequisite merges, more than 120 items, more than 1.5 MB in total, any item over 64 KB (operator amendment 2026-09-06 from 48 KB), more than 130 model calls, or credential-bearing input; its reconciler rejects illegal kind/verdict pairs, abstained or failed rows, unknown, duplicate or missing rows, evidence spans that are not exact payload spans, and any unresolved manual-review row; both withheld canary families must match. | `scripts/chaplain_census.py`, `examples/demos/corpus_census/adapters/chaplain_adapters.py`, `tests/unit/test_fr1012_chaplain_census.py` |
+
+### 265. CAP-265 Static module map
+
+Deterministic, stdlib-only static module map of the yamlgraph package (scripts/generate_module_map.py → reference/module-map.md) used as Tier-2 orientation context: per-module exports and yamlgraph-internal import dependencies, a deterministic test-to-module section, and a line budget with trivial __init__ modules compressed (FR-335). Allocated by FR-1012 Step 0 (2026-09-06): both FRs were Implemented without a capability record and their witnesses had borrowed REQ-YG-263 from CAP-116, the retired FSM capability.
+
+**Feature Request:** FR-331, FR-335
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-667 | scripts/generate_module_map.py parses yamlgraph/ with ast only, writes reference/module-map.md with exports, yamlgraph-internal dependency lists and a deterministic test-map section, stays within the FR-335 line budget, does not render trivial __init__ modules as sections, and CLAUDE.md points at the artifact. | `scripts/generate_module_map.py`, `reference/module-map.md` |
 
 <!-- END GENERATED CAPABILITIES -->
 
