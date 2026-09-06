@@ -11,7 +11,7 @@ See [FR-1013-chaplain-doctrine-sweep.judgement.md](FR-1013-chaplain-doctrine-swe
 recorded and `git merge-base --is-ancestor "$BASE" HEAD` exits 0.
 **Effort:** 0.5 day
 **Requested:** 2026-09-06
-**Plan:** [FR-1010-chaplain-archival-plan.md](FR-1010-chaplain-archival-plan.md) — Phase 3 of 5; prerequisite FR-1012 **merged** (FR-1010 C-3). At filing (2026-09-06) FR-1012 is judged, unenforced; `docs/archive/chaplain.md` does not yet exist. `BASE = <FR-1012 merge SHA>` — _blank until recorded_.
+**Plan:** [FR-1010-chaplain-archival-plan.md](FR-1010-chaplain-archival-plan.md) — Phase 3 of 5; prerequisite FR-1012 **merged** (FR-1010 C-3). At filing (2026-09-06) FR-1012 is judged, unenforced; `docs/archive/chaplain.md` does not yet exist. `BASE = 36591389e2fdfedf9ba5ae6362effad1c64cd06e` (PR #623 squash merge, 2026-09-06 13:25 UTC; human merge by the operator — the PR carried no GitHub review object).
 **First consumer / first event:** a new agent session reading
 `.github/copilot-instructions.md` → "Sermon of the Chaplain" → following
 `docs/development-process.md § 3 "The Chaplain: Autonomous Plan → Judge →
@@ -105,10 +105,43 @@ git ls-files '*.md' '*.py' '*.sh' '*.yaml' '*.yml' \
   | xargs grep -nE '\.chaplain|Chaplain|chaplain|watcher2?\b|Inquisitor|inquisitor|label: chaplain|`chaplain` label'
 ```
 
-_Result at BASE: blank — every match listed with one disposition each
-(edit → what / keep-historical → why / stop → C-10)._ Every implementation
-edit must appear in this frozen list; the list becomes the residual
-allowlist encoded in `test_fr1013_doctrine_sweep.py`.
+**Result at BASE `36591389`** (run 2026-09-06 from `feat/fr1013-doctrine-sweep`; `git merge-base --is-ancestor` exit 0): **2586 matches in 261 files**. Raw list (`file:line` per match; the full-text form is 509 KB and trips the large-file gate, and every line is reproducible from `BASE`): [docs/census/fr1013-inventory-at-base-36591389.txt](../docs/census/fr1013-inventory-at-base-36591389.txt); one disposition per file (covering every match in it): [docs/census/fr1013-inventory-at-base-36591389.dispositions.md](../docs/census/fr1013-inventory-at-base-36591389.dispositions.md) — kept out of this file because 261 rows would breach the 450-line file gate. No **stop** row: nothing under `.chaplain/` survives and no live consumer of a `.chaplain/` artifact was found; stale `.chaplain` *defaults* in code (`research_tools.py`, `diary_recurrence.py`, `cap_journey_census/extract.py`) are code, outside this docs-only FR, and filed as a spark. The grep's `watcher2?\b` arm also matches the unrelated FR-885 worktree watcher and the file-hook/DeviantArt watchers — false positives, kept.
+
+**Edit set (13 files; every implementation edit is one of these):**
+
+| File | Matches | Disposition |
+|---|---|---|
+| `.github/copilot-instructions.md` | 4 | **edit** — edit — :205 heading `## Sermon of the Chaplain` → `## Sermon`; :177 drop "chaplain pipeline, " from the sources clause. :52 (`audit` boundary) and :162 (`inquisitor_auto_escalation` seed) are Knowledge Graph entries — unchanged |
+| `.github/skills/graph-authoring/SKILL.md` | 1 | **edit** — edit — :3 description drops "deciding whether graph work belongs in Chaplain instead" |
+| `.github/skills/graph-authoring/doctrine.md` | 2 | **edit** — edit — :58 "escalate to Chaplain instead" and :128 "Enforce via Chaplain." → file an FR (`proposals/` → judge); live doctrine naming a retired route (found at BASE, not in the planning table) |
+| `.github/skills/judge-fr/doctrine.md` | 2 | **edit** — edit — :135 → `docs/archive/chaplain.md`; :133 kept (true history) |
+| `docs/context/chaplain-system.md` | 58 | **edit** — edit — `git mv` → `docs/archive/chaplain-system.md`; linked from `docs/archive/chaplain.md` |
+| `docs/development-process.md` | 28 | **edit** — edit — topology mermaid (24–66), § 3 (121–176), § 6 mermaid (296–306), § 7 row (330) per the table; :6, :113, :189, :197, :286, :312–320, :366 are outside the four frozen ranges — unchanged (noted: :113 names the deleted `chaplain-ops` skill; § 3.1 is the evidence line) |
+| `examples/README.md` | 3 | **edit** — edit — :57 row deleted; :74 note → `graphs/`; :171 witnesses line deleted |
+| `ramp/assets/tier2/github/skills/judge-fr/doctrine.md` | 2 | **edit** — edit — `cp` byte-for-byte from the canonical after editing (mirror_exact, R-2) |
+| `reference/audit-index.md` | 8 | **edit** — edit — :65–71 six rows deleted, Philosopher → `graphs/philosopher/graph.yaml`, one `Chaplain (archived)` row → `docs/archive/chaplain.md`; :57 Inquisitor-audits row kept (the diary entries exist) |
+| `reference/command-book.md` | 1 | **edit** — edit — :76 "Sermon of the Chaplain" → "Sermon" (follows the heading rename) |
+| `reference/graph-yaml.md` | 2 | **edit** — edit — :610 comment dropped; :1469 example → `graphs/fr_triage` |
+| `reference/onepager-development-process.md` | 9 | **edit** — edit — :11 column, :26 heading, :31 inbox path, :45 submission route, :90 hook row, :126, :138 flow step, :146, :154 sources |
+| `reference/patterns/fsm-as-conductor.md` | 8 | **edit** — edit — :169–170, :235 link targets → `docs/archive/chaplain-system.md`; the Chaplain remains a case study in the pattern (historical) |
+
+**Keep set (248 files), grouped:**
+
+| Volume | Disposition |
+|---|---|
+| 1015 matches | keep — historical record / generated file (CHANGELOG, ARCHITECTURE) — not live instruction |
+| 706 matches | keep — FR-1011/FR-1012 deliverable — census, archive tooling, witnesses, evidence |
+| 391 matches | keep — authored content about the Chaplain era (book chapters, prompts) — historical |
+| 163 matches | keep — capability record (retired by CAP-264 / FR-1012 census); registry history |
+| 83 matches | keep — test kept by the FR-1012 census (old-string witness or unrelated match) |
+| 38 matches | keep — code/tooling comment or stale default path — outside a docs-only FR; the stale `.chaplain` defaults are filed as a spark (`proposals/stale-chaplain-paths-in-code.md`) |
+| 37 matches | keep — "watcher" false positive (FR-885 / file-hook / DeviantArt watcher) or historical example prose |
+| 7 matches | keep — historical prose |
+| 7 matches | keep — FR-1011 relocated graph; comments record provenance |
+| 6 matches | keep — history note ("former chaplain arm removed by FR-1011") or CI comment — SPLIT boundary forbids hook/CI edits |
+| 5 matches | keep — lineage/provenance metadata (MANIFEST, adapter header) |
+
+The residual test encodes this as: the set of files with matches at HEAD ⊆ the 261 files at BASE; every edit-file's named old strings are gone; the three route-critical strings (`Sermon of the Chaplain`, `.chaplain/inbox`, `start-system.sh`) appear in no edit-set file.
 
 ## Ideal Result
 
@@ -228,7 +261,7 @@ doctrine: review output is advisory).
 
 | Field | Value |
 |---|---|
-| `BASE` (FR-1012 merge SHA) + human-review ref | _pending_ |
+| `BASE` (FR-1012 merge SHA) + human-review ref | `36591389e2fdfedf9ba5ae6362effad1c64cd06e` — PR #623, merged by the operator 2026-09-06 |
 | § Inventory at BASE commit | _pending_ |
 | Traceability: test function → REQ → quoted text | _pending_ |
 | Surviving old-string witness tests | _pending_ |
