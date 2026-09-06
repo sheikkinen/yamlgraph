@@ -10,10 +10,10 @@
 `**Verdict:**` lines. Today that run launches a third model judgement and the
 loop continues; after this FR it receives a fixed verdict and stops.
 **Research:** [FR-1022.research.md](FR-1022.research.md) — brief
-`feature-requests/research-briefs/judge-round-sentinel.md`, run 2026-09-06,
-4 of 5 personas executed (data_process failed schema validation on its own
-`solution_class` field; its finding — same guard, threshold ≥ 1 — is
-recorded in the failure line and dispositioned under Alternatives).
+`feature-requests/research-briefs/judge-round-sentinel.md`, two runs
+2026-09-06 (second after R-4/review P2 corrected the brief): 5 of 5 personas,
+convergent on the wrapper-side count, split on threshold (≥ 1 / ≥ 2 / ≥ 3);
+the ≥ 1 variant is dispositioned under Alternatives.
 **Prior art:** [NC-414 / scripts/judge.sh](../scripts/judge.sh) — the
 `JUDGE_EXECUTION` lineage sentinel; this FR adds a second sentinel to the
 same wrapper using the same pattern (doctrine states, wrapper enforces).
@@ -80,11 +80,9 @@ became the deliverable". About half the later findings were defects
 introduced while folding the previous round
 (`docs/diary/2026-09-06-reflection-fr-1013-rigor-as-surface-area.md`).
 
-(R-4: the untracked hook audit log's per-FR invocation counts are not relied
-upon here; the committed judgement files and the diary are the evidence. The
-research brief that mentions them is sha-pinned by
-`feature-requests/research-runs.jsonl` and is left as the immutable input
-record.)
+(R-4: the untracked hook audit log's per-FR invocation counts are not
+evidence; the committed judgement files and the diary are. The research brief
+was corrected to drop them and the research route re-run — review P2.)
 
 The failure is not that the third verdict is wrong. It is that a third verdict
 from a model is *always plausible*, so it never ends the loop. The
@@ -92,12 +90,15 @@ termination condition must be something a model cannot argue with: a count.
 
 ## Ideal Result
 
-A judge that can be run at most twice per FR file. The third invocation is
-not a judgement of the FR's content; it is a judgement of the *process* —
-that a plan needing a third round has stopped being a plan — and it is
-delivered in the operator's voice, verbatim, by the wrapper. The agent's
-next move is forced: hand the FR back to the human, or rewrite it short and
-re-file. Nothing else in the judge route changes.
+A judge route that closes for an FR file once two verdicts have been
+promoted into its adjacent judgement. The next invocation is not a judgement
+of the FR's content; it is a judgement of the *process* — that a plan needing
+a third round has stopped being a plan — and it is delivered in the operator's
+voice, verbatim, by the wrapper. The agent's next move is forced: hand the FR
+back to the human, or rewrite it short and re-file. The count is of
+*promoted* verdicts: a draft that is never folded into `.judgement.md` does
+not count, so this bounds recorded rounds, not raw model invocations (review
+P3). Nothing else in the judge route changes.
 
 ## Proposed Solution
 
@@ -266,7 +267,7 @@ AC-1..AC-11):
 | R-1 | `REWRITE` is outside the closed verdict taxonomy | Folded: sentinel emits `REJECTED — Operator: …`; "eleven words" → "fixed directive" |
 | R-2 | Sentinel must not precede backend validation / re-entry guard | Folded: exact 7-step order in Proposed Solution; AC-06/AC-07 witness precedence |
 | R-3 | CAP-266 duplicates CAP-211; tests belong in the FR-758 harness | Folded: REQ-YG-668 under CAP-211; tests in `test_fr758_judge_review_wrappers.py` |
-| R-4 | Untracked audit-log counts cited as committed evidence; research header overstated convergence | Folded in FR and research header. Deviation: the brief is sha-pinned by `research-runs.jsonl` and is not edited |
+| R-4 | Untracked audit-log counts cited as committed evidence; research header overstated convergence | Folded: dropped from FR; brief corrected and research route re-run (second record promoted, 5/5 personas) — review P2 |
 | R-5 | AC set replaced with AC-01..AC-14 | Folded verbatim |
 
 **Purge list:** CAP-266; `tests/unit/test_fr1022_*.py`; the `REWRITE` token;
@@ -297,9 +298,11 @@ Operator answer (2026-09-06): "enforce. pr. outsider. review. merge" —
 |---|---|
 | RED | commit `test(judge): FR-1022 RED …` — 9 REQ-YG-668 tests appended to `tests/unit/test_fr758_judge_review_wrappers.py` (marker stub, C-7); 7 failing, 2 precedence tests (AC-06/07) green before and after by design; CAP-211 gains REQ-YG-668; `ARCHITECTURE.md` regenerated via `scripts/aggregate_capabilities.py`; `req_coverage.py --strict` green |
 | GREEN | commit `feat(judge): FR-1022 round sentinel …` — 12-line block in `scripts/judge.sh` between `mkdir -p "$WORKDIR/tmp"` and the lock (step 5–6 of the R-2 order); doctrine bullet; adapter README note; changelog fragment. `pytest tests/unit/test_fr758_judge_review_wrappers.py -q --no-cov` → 27 passed |
+| Ramp mirror | `ramp/assets/tier2/github/skills/judge-fr/doctrine.md` re-copied byte-exact from the live doctrine (`test_mirror_exact_entries_match_live_bytes`, REQ-YG-613) — review P1 |
 | NC-412 | `graph.yaml` and `prompts/judge.yaml` untouched (AC-10) |
 | Distill | `docs/diary/2026-09-06-reflection-fr-1022-the-count-the-model-cannot-argue-with.md` |
 
-Decisions: no CAP-266 (R-3); no growth metric (parked); the research brief is
-left sha-pinned with its audit-log sentence (R-4 deviation, recorded above).
-AC-01..AC-14 satisfied; AC-11's RED-before-GREEN is in `git log`.
+Decisions: no CAP-266 (R-3); no growth metric (parked). Review #633 round 1
+(P1 ramp mirror re-copied; P2 brief corrected + research re-run; P3 claims
+narrowed to promoted verdicts — the sentinel bounds recorded rounds, not raw
+invocations). AC-01..AC-14 satisfied; AC-11's RED-before-GREEN is in `git log`.

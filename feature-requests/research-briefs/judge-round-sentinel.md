@@ -25,9 +25,7 @@ has no fixed point; it terminates only when the human says stop, and the
 human is not put in the loop at any round.
 
 Committed evidence on `main` (2026-09-06): seven `.judgement.md` files carry
-two or more `**Verdict:**` lines; FR-1013's carries four. The hook audit log
-shows `scripts/judge.sh` invoked 3–4 times on FR-948, FR-949, FR-890, FR-765
-and FR-1001. In the FR-1013 case the FR grew from ~150 to 413 lines, the test
+two or more `**Verdict:**` lines; FR-1013's carries four. In the FR-1013 case the FR grew from ~150 to 413 lines, the test
 from 20 assertions to a 261-row sha256 baseline, a new REQ was minted, and
 roughly half the later findings were defects introduced while folding the
 previous round. The operator closed the PR unmerged and re-filed the same
@@ -85,8 +83,6 @@ enforcement/latency-critical
 - 2026-09-06, `git log --since=2026-08-20 -- 'feature-requests/*.judgement.md'`:
   FR-1013 and FR-1001 judgement files committed 3× each; FR-936, FR-949,
   FR-950, FR-874, FR-849, FR-847, FR-1004, FR-1012, FR-1016 committed 2×.
-- 2026-09-06, `.github/hooks/logs/audit.jsonl`: `scripts/judge.sh` invoked
-  4× on FR-948, 3× each on FR-949, FR-890, FR-765, FR-1001.
 - 2026-09-06, operator, this session: "several agent sessions have spiralled
   into endless judge-fr update cycles"; "third judgement is always following,
   no llm: 'Operator: Rethink and rewrite the FR. It's getting too complicated

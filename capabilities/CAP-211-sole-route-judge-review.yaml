@@ -14,9 +14,9 @@ description: >
   and verifies completion by artifact contract, never exit code: the
   judge draft must contain a "**Verdict:**" line; the review draft must
   open with "**Merge verdict:**" on line one. The judge wrapper also
-  bounds model judgement to two rounds per FR file (FR-1022 round
-  sentinel): a third run writes a fixed REJECTED verdict without
-  launching the graph. The wrappers contain zero
+  closes the route for an FR file once two verdicts have been promoted
+  into its adjacent judgement (FR-1022 round sentinel): the next run
+  writes a fixed REJECTED verdict without launching the graph. The wrappers contain zero
   judging or reviewing doctrine — the YAMLGraph adapter graphs under
   .github/skills/{judge-fr,review-pr}/adapters/ remain the sole
   execution routes.
