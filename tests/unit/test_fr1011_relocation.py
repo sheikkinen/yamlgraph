@@ -61,7 +61,12 @@ LIVE_CONSUMERS = [
 ]
 RELOCATED_TREES = ["graphs/fr_triage", "graphs/world_distill", "graphs/philosopher", "scripts/lib"]
 # Path form and Path-segment form (triage_gate.py builds ".chaplain" / "graphs" / ...).
-OLD_LITERALS = re.compile(r"\.chaplain/(graphs|lib/finalize_lib\.sh|lib/diary\.py|inbox)|[\"']\.chaplain[\"']")
+OLD_LITERALS = re.compile(
+    r"\.chaplain/graphs/(fr_triage|world_distill|philosopher)"
+    r"|\.chaplain/lib/(finalize_lib\.sh|diary\.py)"
+    r"|\.chaplain/inbox/"
+    r"|[\"']\.chaplain[\"']"
+)
 
 GUARD_SURFACES = [
     ".github/hooks/scripts/pre-command-guard.sh",

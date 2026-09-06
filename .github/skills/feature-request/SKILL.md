@@ -1,6 +1,6 @@
 ---
 name: feature-request
-description: "Create and manage YAMLGraph feature requests. Use when: writing a feature request, planning a feature, following the plan-judge-enforce workflow, submitting a proposal to the chaplain inbox, understanding the FR lifecycle, or writing acceptance criteria."
+description: "Create and manage YAMLGraph feature requests. Use when: writing a feature request, planning a feature, following the plan-judge-enforce workflow, submitting a proposal to proposals/, understanding the FR lifecycle, or writing acceptance criteria."
 argument-hint: "'new', 'template', or FR-XXX number"
 ---
 
@@ -81,22 +81,22 @@ solution-shaped sections (the preflight rejects them, exit 64).
 
 `Proposed` → `Judged` → `In Progress` → `Completed` (or `Rejected`)
 
-## Submitting to Chaplain
+## Submitting a proposal (spark)
 
-### Local Submission
-
-Write to `.chaplain/inbox/`:
+Sparks live in `proposals/` at the repository root. The directory is
+git-ignored (root-anchored `/proposals/`) and may not exist on a fresh
+checkout, so create it with the write:
 
 ```bash
-cat > .chaplain/inbox/refactor-state-builder.md << 'EOF'
+mkdir -p proposals && cat > proposals/refactor-state-builder.md << 'EOF'
 Problem: State builder has grown to 450 lines.
 Task: Split into state_builder.py and state_reducer.py.
 EOF
 ```
 
-### Remote Submission
-
-Open a GitHub Issue with the `chaplain` label. The runtime imports it automatically.
+Proposal contents are never committed; the operator triages them into
+feature requests. The former chaplain inbox directory no longer exists
+(FR-1011) — a write to the old path fails with `ENOENT`, on purpose.
 
 ## Conventions
 
@@ -145,4 +145,4 @@ python scripts/req_coverage.py --strict    # Verify coverage
 | `ARCHITECTURE.md` | Requirements registry |
 | `capabilities/CAP-*.yaml` | Capability specs |
 | `scripts/req_coverage.py` | Requirement coverage checker |
-| `.chaplain/inbox/` | Chaplain proposal inbox |
+| `proposals/` | Proposal (spark) inbox — untracked, root-ignored |

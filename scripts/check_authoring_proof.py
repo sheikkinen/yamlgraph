@@ -7,7 +7,7 @@ this is NOT a CI gate (tmp/ is ignored and absent in CI; C-6).
 
 Governed paths: examples/**/graph.yaml, examples/**/prompts/*.yaml,
 graphs/*.yaml (flat), graphs/<name>/*.yaml and graphs/<name>/prompts/*.yaml
-(dir-style, FR-1014), .chaplain/graphs/*.yaml. Only newly added (diff-filter=A)
+(dir-style, FR-1014). Only newly added (diff-filter=A)
 staged files are checked; edits to tracked artifacts are the PreToolUse
 guard's concern at write time, not the commit's.
 """
@@ -25,7 +25,6 @@ GOVERNED = (
     re.compile(r"^graphs/[^/]+/[^/]+\.ya?ml$"),
     re.compile(r"^graphs/[^/]+/prompts/[^/]+\.ya?ml$"),
     re.compile(r"^graphs/[^/]+\.ya?ml$"),
-    re.compile(r"^\.chaplain/graphs/[^/]+\.ya?ml$"),
 )
 
 

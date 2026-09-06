@@ -1,7 +1,7 @@
 id: CAP-206
 name: FR Triage Graph
 description: >
-  Doctrine-infrastructure graph (.chaplain/graphs/fr_triage) running the
+  Doctrine-infrastructure graph (graphs/fr_triage) running the
   mechanizable checklist tier on a Proposed FR: canon pass (≤3 one-line
   answers), pre-mortem witnesses (≤5 single lines), value-prop check.
   Output appended INSIDE the FR as dispositionable [pending] claims —
@@ -11,7 +11,7 @@ description: >
   10th judged FR carrying triage; survival must be earned in the
   calibration ledger (FR-745 F2).
 modules:
-  - .chaplain/graphs/fr_triage
+  - graphs/fr_triage
 requirements:
   - id: REQ-YG-564
     description: >
@@ -23,5 +23,5 @@ requirements:
       Commandment 6); triage_gate blocks commits where an FR's Status is
       Judged-or-later while [pending] triage claims remain.
     modules:
-      - .chaplain/graphs/fr_triage
+      - graphs/fr_triage
 fr: FR-745

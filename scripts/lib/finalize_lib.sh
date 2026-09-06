@@ -11,7 +11,7 @@
 #   create_diary_stub    — creates docs/diary/ reflection stub (idempotent)
 #
 # Usage:
-#   source .chaplain/lib/finalize_lib.sh
+#   source scripts/lib/finalize_lib.sh
 
 # Extract FR metadata from an FR file path.
 # Sets global variables: FR_HEADING, FR_NUM, FR_TITLE, REQ_ID, FR_SUMMARY

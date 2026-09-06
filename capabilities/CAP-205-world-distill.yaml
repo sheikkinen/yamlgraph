@@ -1,7 +1,7 @@
 id: CAP-205
 name: World Distill Graph
 description: >
-  Doctrine-infrastructure graph (.chaplain/graphs/world_distill) that
+  Doctrine-infrastructure graph (graphs/world_distill) that
   refreshes docs/world-context.md — the philosopher's world-grounding
   input, stale since 2026-03-13. Curated ecosystem feeds (RSS + HN
   keyword-filtered) → single distill LLM node with inline schema →
@@ -9,7 +9,7 @@ description: >
   (Commandment 6); distill input capped at title + source + 500-char
   excerpt per article (F3).
 modules:
-  - .chaplain/graphs/world_distill
+  - graphs/world_distill
 requirements:
   - id: REQ-YG-563
     description: >
@@ -22,5 +22,5 @@ requirements:
       empty distill result. now.py displays the world pointer with age
       and STALE label past 14 days.
     modules:
-      - .chaplain/graphs/world_distill
+      - graphs/world_distill
 fr: FR-744

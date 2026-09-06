@@ -5,12 +5,12 @@ description: >
   PythonToolConfig supports a `path` field for file-path-based tool loading via
   importlib.util.spec_from_file_location(). When graph context is available,
   relative paths resolve from graph root and are confined to graph root.
-  Enables .chaplain/ directory portability by bypassing dotted-package import
+  Enables graph-scope portability (graphs/philosopher/) by bypassing dotted-package import
   restrictions with deterministic graph-scoped loading.
 modules:
   - yamlgraph/tools/python_tool.py
-  - .chaplain/graphs/philosopher/tools.py
-  - .chaplain/lib/diary.py
+  - graphs/philosopher/tools.py
+  - graphs/philosopher/diary.py
   - tests/unit/test_python_nodes.py
 requirements:
   - id: REQ-YG-196
@@ -26,11 +26,12 @@ requirements:
       - tests/unit/test_python_nodes.py
   - id: REQ-YG-529
     description: >
-      All chaplain graph configs under .chaplain/graphs/ compile and their
+      All process graph configs under graphs/ and .chaplain/graphs/ compile and their
       declared python tools resolve at load time (FR-699); the philosopher
-      write_diary proxy resolves .chaplain/lib/diary.py; verified by unit
+      write_diary proxy resolves the sibling graphs/philosopher/diary.py; verified by unit
       witness tests so loader-semantics changes condemn config drift at
       pre-commit instead of pipeline runtime
     modules:
+      - graphs/philosopher
       - .chaplain/graphs
       - tests/unit/test_chaplain_graph_compile.py

@@ -3,7 +3,7 @@
 TDD RED phase: Tests for scan_diary_markers(), write_proposals(),
 and FR-185 copilot node migration (extract_json, Pydantic models).
 
-FR-196: Updated to use path-based loading for .chaplain/graphs/philosopher/tools.py
+FR-196: Updated to use path-based loading for graphs/philosopher/tools.py
 """
 
 import importlib.util
@@ -11,14 +11,14 @@ from pathlib import Path
 from unittest.mock import patch
 
 # =============================================================================
-# FR-196: Load tools.py from .chaplain/graphs/philosopher/ via spec_from_file_location
+# FR-196: Load tools.py from graphs/philosopher/ via spec_from_file_location
 # =============================================================================
 import pytest
 
 pytestmark = pytest.mark.process
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-TOOLS_PATH = REPO_ROOT / ".chaplain" / "graphs" / "philosopher" / "tools.py"
+TOOLS_PATH = REPO_ROOT / "graphs" / "philosopher" / "tools.py"
 
 
 def _load_philosopher_tools():
@@ -398,8 +398,8 @@ class TestPhilosopherGraph:
 
     @pytest.mark.req("REQ-YG-184")
     def test_graph_exists(self):
-        """.chaplain/graphs/philosopher/graph.yaml should exist."""
-        graph_path = Path(".chaplain/graphs/philosopher/graph.yaml")
+        """graphs/philosopher/graph.yaml should exist."""
+        graph_path = Path("graphs/philosopher/graph.yaml")
         assert graph_path.exists(), "philosopher graph not found"
 
     @pytest.mark.req("REQ-YG-194")
@@ -407,7 +407,7 @@ class TestPhilosopherGraph:
         """Graph should have 10 nodes after FR-194/FR-195: scan, analyze, distill, unwrap_distill, challenge, unwrap_challenge, propose, load_context, reflect, write_diary."""
         import yaml
 
-        graph_path = Path(".chaplain/graphs/philosopher/graph.yaml")
+        graph_path = Path("graphs/philosopher/graph.yaml")
         with open(graph_path, encoding="utf-8") as f:
             graph = yaml.safe_load(f)
 
@@ -432,7 +432,7 @@ class TestPhilosopherGraph:
         """Graph should have correct edge topology with FR-195 conditional edges."""
         import yaml
 
-        graph_path = Path(".chaplain/graphs/philosopher/graph.yaml")
+        graph_path = Path("graphs/philosopher/graph.yaml")
         with open(graph_path, encoding="utf-8") as f:
             graph = yaml.safe_load(f)
 
@@ -463,14 +463,14 @@ class TestPhilosopherReadme:
 
     @pytest.mark.req("REQ-YG-184")
     def test_readme_exists(self):
-        """.chaplain/graphs/philosopher/README.md should exist."""
-        readme_path = Path(".chaplain/graphs/philosopher/README.md")
+        """graphs/philosopher/README.md should exist."""
+        readme_path = Path("graphs/philosopher/README.md")
         assert readme_path.exists(), "philosopher README not found"
 
     @pytest.mark.req("REQ-YG-184")
     def test_readme_documents_usage(self):
         """README should document usage."""
-        readme_path = Path(".chaplain/graphs/philosopher/README.md")
+        readme_path = Path("graphs/philosopher/README.md")
         content = readme_path.read_text(encoding="utf-8")
         assert "usage" in content.lower() or "Usage" in content
 
@@ -777,7 +777,7 @@ class TestGraphCopilotNodes:
         """analyze node should use type: copilot."""
         import yaml
 
-        graph_path = Path(".chaplain/graphs/philosopher/graph.yaml")
+        graph_path = Path("graphs/philosopher/graph.yaml")
         with open(graph_path, encoding="utf-8") as f:
             graph = yaml.safe_load(f)
 
@@ -788,7 +788,7 @@ class TestGraphCopilotNodes:
         """reflect node should use type: copilot."""
         import yaml
 
-        graph_path = Path(".chaplain/graphs/philosopher/graph.yaml")
+        graph_path = Path("graphs/philosopher/graph.yaml")
         with open(graph_path, encoding="utf-8") as f:
             graph = yaml.safe_load(f)
 
@@ -799,7 +799,7 @@ class TestGraphCopilotNodes:
         """Philosopher copilot nodes should not have cli_flags: allow_all_paths."""
         import yaml
 
-        graph_path = Path(".chaplain/graphs/philosopher/graph.yaml")
+        graph_path = Path("graphs/philosopher/graph.yaml")
         with open(graph_path, encoding="utf-8") as f:
             graph = yaml.safe_load(f)
 
@@ -812,7 +812,7 @@ class TestGraphCopilotNodes:
         """Copilot nodes should have timeout configured."""
         import yaml
 
-        graph_path = Path(".chaplain/graphs/philosopher/graph.yaml")
+        graph_path = Path("graphs/philosopher/graph.yaml")
         with open(graph_path, encoding="utf-8") as f:
             graph = yaml.safe_load(f)
 
@@ -829,7 +829,7 @@ class TestPromptsCopilot:
         """analyze prompt should not have a schema: block."""
         import yaml
 
-        prompt_path = Path(".chaplain/graphs/philosopher/prompts/analyze.yaml")
+        prompt_path = Path("graphs/philosopher/prompts/analyze.yaml")
         with open(prompt_path, encoding="utf-8") as f:
             prompt = yaml.safe_load(f)
 
@@ -840,7 +840,7 @@ class TestPromptsCopilot:
         """reflect prompt should not have a schema: block."""
         import yaml
 
-        prompt_path = Path(".chaplain/graphs/philosopher/prompts/reflect.yaml")
+        prompt_path = Path("graphs/philosopher/prompts/reflect.yaml")
         with open(prompt_path, encoding="utf-8") as f:
             prompt = yaml.safe_load(f)
 
@@ -849,7 +849,7 @@ class TestPromptsCopilot:
     @pytest.mark.req("REQ-YG-185")
     def test_analyze_prompt_has_json_guard(self):
         """analyze prompt should include 'output ONLY valid JSON' guard."""
-        prompt_path = Path(".chaplain/graphs/philosopher/prompts/analyze.yaml")
+        prompt_path = Path("graphs/philosopher/prompts/analyze.yaml")
         content = prompt_path.read_text(encoding="utf-8")
 
         assert (
@@ -860,7 +860,7 @@ class TestPromptsCopilot:
     @pytest.mark.req("REQ-YG-185")
     def test_reflect_prompt_has_json_guard(self):
         """reflect prompt should include 'output ONLY valid JSON' guard."""
-        prompt_path = Path(".chaplain/graphs/philosopher/prompts/reflect.yaml")
+        prompt_path = Path("graphs/philosopher/prompts/reflect.yaml")
         content = prompt_path.read_text(encoding="utf-8")
 
         assert (
@@ -1194,7 +1194,7 @@ class TestPhilosopherGraphFR195:
         """Graph should have a distill copilot node."""
         import yaml
 
-        with open(".chaplain/graphs/philosopher/graph.yaml", encoding="utf-8") as f:
+        with open("graphs/philosopher/graph.yaml", encoding="utf-8") as f:
             graph = yaml.safe_load(f)
 
         assert "distill" in graph["nodes"]
@@ -1205,7 +1205,7 @@ class TestPhilosopherGraphFR195:
         """Graph should have a challenge copilot node."""
         import yaml
 
-        with open(".chaplain/graphs/philosopher/graph.yaml", encoding="utf-8") as f:
+        with open("graphs/philosopher/graph.yaml", encoding="utf-8") as f:
             graph = yaml.safe_load(f)
 
         assert "challenge" in graph["nodes"]
@@ -1216,7 +1216,7 @@ class TestPhilosopherGraphFR195:
         """Graph should have unwrap_distill and unwrap_challenge Python nodes."""
         import yaml
 
-        with open(".chaplain/graphs/philosopher/graph.yaml", encoding="utf-8") as f:
+        with open("graphs/philosopher/graph.yaml", encoding="utf-8") as f:
             graph = yaml.safe_load(f)
 
         assert "unwrap_distill" in graph["nodes"]
@@ -1229,7 +1229,7 @@ class TestPhilosopherGraphFR195:
         """Graph state should declare distill_result, top_candidate, challenge_result, challenge_parsed."""
         import yaml
 
-        with open(".chaplain/graphs/philosopher/graph.yaml", encoding="utf-8") as f:
+        with open("graphs/philosopher/graph.yaml", encoding="utf-8") as f:
             graph = yaml.safe_load(f)
 
         state = graph["state"]
@@ -1246,7 +1246,7 @@ class TestPhilosopherGraphFR195:
         """Graph should have conditional edges from unwrap nodes."""
         import yaml
 
-        with open(".chaplain/graphs/philosopher/graph.yaml", encoding="utf-8") as f:
+        with open("graphs/philosopher/graph.yaml", encoding="utf-8") as f:
             graph = yaml.safe_load(f)
 
         edges = graph["edges"]
@@ -1269,7 +1269,7 @@ class TestPhilosopherGraphFR195:
         """Graph should declare unwrap tool functions."""
         import yaml
 
-        with open(".chaplain/graphs/philosopher/graph.yaml", encoding="utf-8") as f:
+        with open("graphs/philosopher/graph.yaml", encoding="utf-8") as f:
             graph = yaml.safe_load(f)
 
         tools = graph["tools"]
@@ -1285,17 +1285,17 @@ class TestPhilosopherPromptsFR195:
     @pytest.mark.req("REQ-YG-193")
     def test_distill_prompt_exists(self):
         """distill.yaml prompt should exist."""
-        assert Path(".chaplain/graphs/philosopher/prompts/distill.yaml").exists()
+        assert Path("graphs/philosopher/prompts/distill.yaml").exists()
 
     @pytest.mark.req("REQ-YG-193")
     def test_challenge_prompt_exists(self):
         """challenge.yaml prompt should exist."""
-        assert Path(".chaplain/graphs/philosopher/prompts/challenge.yaml").exists()
+        assert Path("graphs/philosopher/prompts/challenge.yaml").exists()
 
     @pytest.mark.req("REQ-YG-193")
     def test_distill_prompt_has_json_guard(self):
         """distill prompt should include JSON output guard."""
-        content = Path(".chaplain/graphs/philosopher/prompts/distill.yaml").read_text(encoding="utf-8")
+        content = Path("graphs/philosopher/prompts/distill.yaml").read_text(encoding="utf-8")
         assert (
             "Output ONLY valid JSON" in content
             or "output ONLY valid JSON" in content.upper()
@@ -1305,7 +1305,7 @@ class TestPhilosopherPromptsFR195:
     def test_challenge_prompt_has_json_guard(self):
         """challenge prompt should include JSON output guard."""
         content = Path(
-            ".chaplain/graphs/philosopher/prompts/challenge.yaml"
+            "graphs/philosopher/prompts/challenge.yaml"
         ).read_text(encoding="utf-8")
         assert (
             "Output ONLY valid JSON" in content
@@ -1317,7 +1317,7 @@ class TestPhilosopherPromptsFR195:
         """distill prompt should not have a schema: block (validation in Python)."""
         import yaml
 
-        with open(".chaplain/graphs/philosopher/prompts/distill.yaml", encoding="utf-8") as f:
+        with open("graphs/philosopher/prompts/distill.yaml", encoding="utf-8") as f:
             prompt = yaml.safe_load(f)
         assert "schema" not in prompt
 
@@ -1325,7 +1325,7 @@ class TestPhilosopherPromptsFR195:
     def test_challenge_prompt_has_five_axes(self):
         """challenge prompt should mention all 5 challenge axes."""
         content = (
-            Path(".chaplain/graphs/philosopher/prompts/challenge.yaml")
+            Path("graphs/philosopher/prompts/challenge.yaml")
             .read_text(encoding="utf-8")
             .lower()
         )
@@ -1341,7 +1341,7 @@ class TestPhilosopherPromptsFR195:
     @pytest.mark.req("REQ-YG-193")
     def test_reflect_prompt_includes_challenge_context(self):
         """reflect prompt should include challenge_parsed variable."""
-        content = Path(".chaplain/graphs/philosopher/prompts/reflect.yaml").read_text(encoding="utf-8")
+        content = Path("graphs/philosopher/prompts/reflect.yaml").read_text(encoding="utf-8")
         assert "challenge" in content.lower()
 
 

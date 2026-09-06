@@ -1,0 +1,5 @@
+---
+type: removal
+scope: chaplain
+---
+- **FR-1011 Relocate the live parts out of `.chaplain/`**: the three graphs still in use — `fr_triage` (FR-745 triage gate), `world_distill` (FR-744 world file) and the dormant `philosopher` with its `diary.py` — moved from `.chaplain/graphs/` to `graphs/` as pure renames; `finalize_lib.sh` moved to `scripts/lib/` so `scripts/finalize_merge.sh` keeps working unchanged (CAP-38, CAP-45). The proposal inbox is now the root-ignored `proposals/` directory (feature-request skill gives the executable `mkdir -p proposals && cat > proposals/<topic>.md` form); the old `.chaplain/inbox/` path is gone and a write there fails with `ENOENT`. Every live consumer (triage hook, `now.py` hint, skills, the root Scripture seed path, CAP-75/114/205/206) names the new paths; the vacuous `.chaplain/graphs` arm and `.chaplain` routing text are deleted from the authoring guard, the proof backstop and the pre-commit selector (FR-1014 already owns the dir-aware `graphs/` arms). `examples/philosopher/` stub deleted. Phase 1 of FR-1010; the watcher runtime itself stays until Phase 2.

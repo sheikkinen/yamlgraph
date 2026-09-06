@@ -97,7 +97,7 @@ docs/ebook/v*/
 .venv
 
 # Planning files
-.chaplain/inbox/
+/proposals/
 .chaplain/inbox-fsm/
 .chaplain/drafts/
 watcher.pid

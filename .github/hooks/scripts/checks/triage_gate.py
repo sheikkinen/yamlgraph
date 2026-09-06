@@ -25,11 +25,7 @@ GIT = shutil.which("git") or "git"
 
 _spec = importlib.util.spec_from_file_location(
     "fr_triage_tools",
-    Path(__file__).resolve().parents[4]
-    / ".chaplain"
-    / "graphs"
-    / "fr_triage"
-    / "tools.py",
+    Path(__file__).resolve().parents[4] / "graphs" / "fr_triage" / "tools.py",
 )
 _tools = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(_tools)

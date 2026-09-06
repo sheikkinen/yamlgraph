@@ -258,7 +258,9 @@ def load_world_context(state: dict) -> dict:
 
 
 def write_proposals(state: dict) -> dict:
-    """Write graduation proposals to .chaplain/inbox/.
+    """Write graduation proposals to the inbox_dir state path.
+
+    The inbox_dir state path is the operator's proposals/ directory.
 
     Only writes proposals where occurrence count >= graduation_threshold.
     Deduplicates against existing Scripture entries.
@@ -361,14 +363,14 @@ This pattern has appeared {count} times, meeting the graduation threshold.
 
 
 def write_diary(state: dict) -> dict:
-    """Proxy to .chaplain/lib/diary.py:write_diary.
+    """Proxy to the sibling diary.py:write_diary.
 
     FR-445 confines `path:` tools to the graph root, so the shared diary
-    library outside this directory is loaded by absolute path here.
+    library is a sibling file of this module, loaded by path.
     """
     import importlib.util
 
-    lib_path = Path(__file__).resolve().parents[2] / "lib" / "diary.py"
+    lib_path = Path(__file__).with_name("diary.py")
     spec = importlib.util.spec_from_file_location("chaplain_lib_diary", lib_path)
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)

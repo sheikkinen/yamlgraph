@@ -398,7 +398,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 72 | CAP-72 Knowledge Graph Mass Graduation (FR-193) | `.github/copilot-instructions.md` | REQ-YG-192 |
 | 73 | CAP-73 Philosopher Challenge Node (FR-195) | `examples/philosopher/models.py`, `examples/philosopher/tools.py`, `examples/philosopher/graph.yaml`, `examples/philosopher/prompts/distill.yaml`, … | REQ-YG-193 |
 | 74 | CAP-74 FSM Scripture CLAUDE.md (FR-199) | `fsm/CLAUDE.md`, `tests/unit/test_fsm_claude_md_doctrine.py` | REQ-YG-195 |
-| 75 | CAP-75 Portable Chaplain (FR-196) | `yamlgraph/tools/python_tool.py`, `.chaplain/graphs/philosopher/tools.py`, `.chaplain/lib/diary.py`, `tests/unit/test_python_nodes.py` | REQ-YG-196, 529 |
+| 75 | CAP-75 Portable Chaplain (FR-196) | `yamlgraph/tools/python_tool.py`, `graphs/philosopher/tools.py`, `graphs/philosopher/diary.py`, `tests/unit/test_python_nodes.py` | REQ-YG-196, 529 |
 | 76 | CAP-76 Horoscope Demo | `examples/demos/horoscope` | REQ-YG-197 |
 | 77 | CAP-77 Image Generation Pipeline | `examples/image_pipeline` | REQ-YG-198 |
 | 78 | CAP-78 .fi Domain Crawl Demo | `examples/demos/fi-domain-crawl` | REQ-YG-199 |
@@ -434,7 +434,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 110 | CAP-110 Diary Index Graph | `examples/demos/diary_index` | REQ-YG-257 |
 | 111 | CAP-111 Shared Graph Invocation | `graph_loader`, `discovery` | REQ-YG-206, 258 |
 | 113 | CAP-113 Chaplain Research Step | `.chaplain/graphs/watcher-plan` | REQ-YG-260 |
-| 114 | CAP-114 Automated Post-Merge Finalization | `.chaplain/lib/finalize_lib.sh`, `.chaplain/watch.sh`, `scripts/finalize_merge.sh`, `tests/unit/test_automated_post_merge_finalization` | REQ-YG-261 |
+| 114 | CAP-114 Automated Post-Merge Finalization | `scripts/lib/finalize_lib.sh`, `.chaplain/watch.sh`, `scripts/finalize_merge.sh`, `tests/unit/test_automated_post_merge_finalization` | REQ-YG-261 |
 | 116 | CAP-116 Acceptance Tests Before Enforce | `.chaplain/config/watcher-pipeline-v2.yaml`, `.chaplain/graphs/watcher-plan/step-plan-unified.yaml`, `.chaplain/graphs/watcher-plan/prompts/write-acceptance-tests.yaml`, `.chaplain/graphs/watcher-plan/prompts/judge.yaml`, … | REQ-YG-263 |
 | 117 | CAP-117 Race Node parse_json & Content Normalization | `yamlgraph/node_factory/race_node.py`, `yamlgraph/utils/content.py`, `yamlgraph/tools/agent.py` | REQ-YG-264 |
 | 118 | CAP-118 Copilot Node Model Selection | `yamlgraph/models/graph_schema.py`, `yamlgraph/compile/node_compiler.py`, `yamlgraph/node_factory/copilot_node.py` | REQ-YG-265 |
@@ -520,8 +520,8 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 202 | CAP-202 SMT Condition Verification | `yamlgraph/linter/patterns/conditions_smt.py` | REQ-YG-545 |
 | 203 | CAP-203 ICPC-2 RFE Classifier Example | `examples/icpc-2-rfe/nodes/build_catalog.py`, `examples/icpc-2-rfe/nodes/catalog.py`, `examples/icpc-2-rfe/nodes/reduce.py` | REQ-YG-548 – 551, 554 – 556 |
 | 204 | CAP-204 CWE Vulnerability Classifier Example | `examples/cwe-classifier/nodes/build_catalog.py`, `examples/cwe-classifier/nodes/catalog.py`, `examples/cwe-classifier/nodes/reduce.py`, `examples/cwe-classifier/nodes/crosscheck.py` | REQ-YG-557 – 561 |
-| 205 | CAP-205 World Distill Graph | `.chaplain/graphs/world_distill` | REQ-YG-563 |
-| 206 | CAP-206 FR Triage Graph | `.chaplain/graphs/fr_triage` | REQ-YG-564 |
+| 205 | CAP-205 World Distill Graph | `graphs/world_distill` | REQ-YG-563 |
+| 206 | CAP-206 FR Triage Graph | `graphs/fr_triage` | REQ-YG-564 |
 | 207 | CAP-207 Loader Error UX | `utils/prompts.check_messages_contract`, `tools/python_tool`, `linter/checks_loader_ux` | REQ-YG-565 |
 | 208 | CAP-208 FR Atlas Onboarding Demo | `examples/demos/fr-atlas/nodes/collect.py`, `examples/demos/fr-atlas/nodes/coverage.py`, `examples/demos/fr-atlas/nodes/render.py` | REQ-YG-566 |
 | 209 | CAP-209 Root Package Seams | `yamlgraph/a2a`, `yamlgraph/compile` | REQ-YG-567 |
@@ -1271,14 +1271,14 @@ Upgrades fsm/CLAUDE.md (statemachine-engine/CLAUDE.md) from a four-line YAGNI/TD
 
 ### 75. CAP-75 Portable Chaplain (FR-196)
 
-PythonToolConfig supports a `path` field for file-path-based tool loading via importlib.util.spec_from_file_location(). When graph context is available, relative paths resolve from graph root and are confined to graph root. Enables .chaplain/ directory portability by bypassing dotted-package import restrictions with deterministic graph-scoped loading.
+PythonToolConfig supports a `path` field for file-path-based tool loading via importlib.util.spec_from_file_location(). When graph context is available, relative paths resolve from graph root and are confined to graph root. Enables graph-scope portability (graphs/philosopher/) by bypassing dotted-package import restrictions with deterministic graph-scoped loading.
 
 **Feature Request:** FR-196
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-196 | PythonToolConfig supports path field (mutually exclusive with module) for file-path-based Python tool loading via spec_from_file_location; path resolves relative to graph_root when provided and both relative/absolute out-of-root paths are rejected; validation rejects both-set and neither-set; parse_python_tools accepts path or module in YAML tool definitions | `yamlgraph/tools/python_tool.py`, `tests/unit/test_python_nodes.py` |
-| REQ-YG-529 | All chaplain graph configs under .chaplain/graphs/ compile and their declared python tools resolve at load time (FR-699); the philosopher write_diary proxy resolves .chaplain/lib/diary.py; verified by unit witness tests so loader-semantics changes condemn config drift at pre-commit instead of pipeline runtime | `.chaplain/graphs`, `tests/unit/test_chaplain_graph_compile.py` |
+| REQ-YG-529 | All process graph configs under graphs/ and .chaplain/graphs/ compile and their declared python tools resolve at load time (FR-699); the philosopher write_diary proxy resolves the sibling graphs/philosopher/diary.py; verified by unit witness tests so loader-semantics changes condemn config drift at pre-commit instead of pipeline runtime | `graphs/philosopher`, `.chaplain/graphs`, `tests/unit/test_chaplain_graph_compile.py` |
 
 ### 76. CAP-76 Horoscope Demo
 
@@ -1650,7 +1650,7 @@ Shared finalization library and watch.sh integration that automatically creates 
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
-| REQ-YG-261 | Shared library `.chaplain/lib/finalize_lib.sh` provides `extract_fr_metadata`, `create_changelog_fragment`, `update_fr_status`, and `create_diary_stub` functions; `scripts/finalize_merge.sh` sources the library instead of inlining logic; `watch.sh` detects recently merged PRs via timestamp-based `gh pr list` query, creates finalization PRs with changelog fragment, FR status update, and diary stub, enables auto-merge, and skips already-finalized FRs idempotently | `.chaplain/lib/finalize_lib.sh`, `.chaplain/watch.sh`, `scripts/finalize_merge.sh`, `tests/unit/test_automated_post_merge_finalization` |
+| REQ-YG-261 | Shared library `scripts/lib/finalize_lib.sh` provides `extract_fr_metadata`, `create_changelog_fragment`, `update_fr_status`, and `create_diary_stub` functions; `scripts/finalize_merge.sh` sources the library instead of inlining logic; `watch.sh` detects recently merged PRs via timestamp-based `gh pr list` query, creates finalization PRs with changelog fragment, FR status update, and diary stub, enables auto-merge, and skips already-finalized FRs idempotently | `scripts/lib/finalize_lib.sh`, `.chaplain/watch.sh`, `scripts/finalize_merge.sh`, `tests/unit/test_automated_post_merge_finalization` |
 
 ### 116. CAP-116 Acceptance Tests Before Enforce
 
@@ -2614,23 +2614,23 @@ Second instance of the coded-classification pattern (reference/patterns/coded-cl
 
 ### 205. CAP-205 World Distill Graph
 
-Doctrine-infrastructure graph (.chaplain/graphs/world_distill) that refreshes docs/world-context.md — the philosopher's world-grounding input, stale since 2026-03-13. Curated ecosystem feeds (RSS + HN keyword-filtered) → single distill LLM node with inline schema → dated markdown file. Zero-yield raises at both boundaries (Commandment 6); distill input capped at title + source + 500-char excerpt per article (F3).
+Doctrine-infrastructure graph (graphs/world_distill) that refreshes docs/world-context.md — the philosopher's world-grounding input, stale since 2026-03-13. Curated ecosystem feeds (RSS + HN keyword-filtered) → single distill LLM node with inline schema → dated markdown file. Zero-yield raises at both boundaries (Commandment 6); distill input capped at title + source + 500-char excerpt per article (F3).
 
 **Feature Request:** FR-744
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
-| REQ-YG-563 | world_distill graph: fetch from curated ecosystem feed config, per-feed failure tolerated but zero total yield raises ValueError; prepare_distill_input caps each article at title + source + 500-char excerpt; distill LLM node uses inline schema (highlights, themes, open_questions); write_context renders dated header ("Last updated: YYYY-MM-DD") + prose sections and REFUSES an empty distill result. now.py displays the world pointer with age and STALE label past 14 days. | `.chaplain/graphs/world_distill` |
+| REQ-YG-563 | world_distill graph: fetch from curated ecosystem feed config, per-feed failure tolerated but zero total yield raises ValueError; prepare_distill_input caps each article at title + source + 500-char excerpt; distill LLM node uses inline schema (highlights, themes, open_questions); write_context renders dated header ("Last updated: YYYY-MM-DD") + prose sections and REFUSES an empty distill result. now.py displays the world pointer with age and STALE label past 14 days. | `graphs/world_distill` |
 
 ### 206. CAP-206 FR Triage Graph
 
-Doctrine-infrastructure graph (.chaplain/graphs/fr_triage) running the mechanizable checklist tier on a Proposed FR: canon pass (≤3 one-line answers), pre-mortem witnesses (≤5 single lines), value-prop check. Output appended INSIDE the FR as dispositionable [pending] claims — never a verdict, never a Status change (authority_is_not_a_checklist). Reminder-only hook line at FR creation; disposition gate fires only at Status Judged+ with pending claims. Kill criterion: reviewed after the 10th judged FR carrying triage; survival must be earned in the calibration ledger (FR-745 F2).
+Doctrine-infrastructure graph (graphs/fr_triage) running the mechanizable checklist tier on a Proposed FR: canon pass (≤3 one-line answers), pre-mortem witnesses (≤5 single lines), value-prop check. Output appended INSIDE the FR as dispositionable [pending] claims — never a verdict, never a Status change (authority_is_not_a_checklist). Reminder-only hook line at FR creation; disposition gate fires only at Status Judged+ with pending claims. Kill criterion: reviewed after the 10th judged FR carrying triage; survival must be earned in the calibration ledger (FR-745 F2).
 
 **Feature Request:** FR-745
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
-| REQ-YG-564 | fr_triage graph: triage prompt with inline schema (canon_answers list ≤3, pre_mortem_witnesses list ≤5, value_prop_check) at haiku-class model; append_triage writes a "## Triage" section with [pending] markers and REFUSES to modify the Status line or append to a non-Proposed FR; empty triage output raises (zero-yield, Commandment 6); triage_gate blocks commits where an FR's Status is Judged-or-later while [pending] triage claims remain. | `.chaplain/graphs/fr_triage` |
+| REQ-YG-564 | fr_triage graph: triage prompt with inline schema (canon_answers list ≤3, pre_mortem_witnesses list ≤5, value_prop_check) at haiku-class model; append_triage writes a "## Triage" section with [pending] markers and REFUSES to modify the Status line or append to a non-Proposed FR; empty triage output raises (zero-yield, Commandment 6); triage_gate blocks commits where an FR's Status is Judged-or-later while [pending] triage claims remain. | `graphs/fr_triage` |
 
 ### 207. CAP-207 Loader Error UX
 

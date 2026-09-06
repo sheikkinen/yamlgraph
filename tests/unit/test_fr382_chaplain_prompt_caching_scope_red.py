@@ -10,6 +10,9 @@ pytestmark = pytest.mark.process
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 CHAPLAIN_GRAPHS_DIR = REPO_ROOT / ".chaplain" / "graphs"
+# FR-1011: fr_triage and world_distill were relocated to graphs/; the process-graph
+# inventory spans both roots until Phase 2 removes .chaplain/.
+PROCESS_GRAPHS_DIR = REPO_ROOT / "graphs"
 CONTEXT_PLANNER_PATH = (
     CHAPLAIN_GRAPHS_DIR / "watcher-enforce" / "prompts" / "context-planner.yaml"
 )
@@ -30,7 +33,8 @@ def _resolve_prompt_path(graph_path: Path, graph: dict, prompt_name: str) -> Pat
 
 def _collect_prompt_inventory() -> dict[str, set[Path]]:
     inventory: dict[str, set[Path]] = {"llm": set(), "copilot": set()}
-    for graph_path in CHAPLAIN_GRAPHS_DIR.rglob("*.yaml"):
+    graph_paths = [*CHAPLAIN_GRAPHS_DIR.rglob("*.yaml"), *PROCESS_GRAPHS_DIR.rglob("*.yaml")]
+    for graph_path in graph_paths:
         if "prompts" in graph_path.parts:
             continue
         graph = _load_yaml(graph_path)
@@ -95,23 +99,27 @@ def test_ac03_copilot_chaplain_prompts_remain_system_field_only() -> None:
 
 @pytest.mark.req("REQ-YG-287")
 def test_ac03_prompt_inventory_scope_matches_graph_node_types() -> None:
-    """LLM-consumed chaplain prompts: context-planner (FR-382 caching
+    """LLM-consumed process-graph prompts: context-planner (FR-382 caching
     scope) + world_distill's distill prompt (FR-744, out of FR-382
-    caching scope — single uncached call by design)."""
+    caching scope — single uncached call by design) + fr_triage (FR-745)
+    + the enforcement cross-check (graphs/enforcement). FR-1011 moved the
+    first two live graphs to graphs/."""
     inventory = _collect_prompt_inventory()
     world_distill_prompt = (
-        CHAPLAIN_GRAPHS_DIR / "world_distill" / "prompts" / "distill_world.yaml"
+        PROCESS_GRAPHS_DIR / "world_distill" / "prompts" / "distill_world.yaml"
     )
-    fr_triage_prompt = CHAPLAIN_GRAPHS_DIR / "fr_triage" / "prompts" / "triage_fr.yaml"
+    fr_triage_prompt = PROCESS_GRAPHS_DIR / "fr_triage" / "prompts" / "triage_fr.yaml"
+    enforcement_prompt = PROCESS_GRAPHS_DIR / "enforcement" / "prompts" / "cross_check.yaml"
     expected_llm_prompts = {
         CONTEXT_PLANNER_PATH.resolve(),
         world_distill_prompt.resolve(),
         fr_triage_prompt.resolve(),
+        enforcement_prompt.resolve(),
     }
 
     assert (
         inventory["llm"] == expected_llm_prompts
-    ), "LLM-consumed chaplain prompts must be exactly context-planner + distill_world + triage_fr"
+    ), "LLM-consumed process-graph prompts must be exactly context-planner + distill_world + triage_fr + cross_check"
     assert (
         CONTEXT_PLANNER_PATH.resolve() not in inventory["copilot"]
     ), "context-planner must not be consumed by copilot nodes"

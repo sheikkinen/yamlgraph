@@ -24,7 +24,7 @@ import pytest
 pytestmark = pytest.mark.process
 
 REPO = Path(__file__).resolve().parents[2]
-TOOLS = REPO / ".chaplain/graphs/fr_triage/tools.py"
+TOOLS = REPO / "graphs/fr_triage/tools.py"
 
 
 def _load():
