@@ -27,7 +27,7 @@ requirements:
       those sets is produced only by scripts/chaplain_census.py: it refuses,
       before any provider call, a source SHA that does not descend from the
       three prerequisite merges, more than 120 items, more than 1.5 MB in
-      total, any item over 48 KB, more than 130 model calls, or
+      total, any item over 64 KB (operator amendment 2026-09-06 from 48 KB), more than 130 model calls, or
       credential-bearing input; its reconciler rejects illegal kind/verdict
       pairs, abstained or failed rows, unknown, duplicate or missing rows,
       evidence spans that are not exact payload spans, and any unresolved

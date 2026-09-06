@@ -207,7 +207,7 @@ def test_manual_review_label_maps_to_keep_plus_flag(ad, repo):
 
 
 def test_ceilings_and_canaries_are_the_frozen_values(census):
-    assert (census.MAX_ITEMS, census.MAX_TOTAL_BYTES, census.MAX_ITEM_BYTES, census.MAX_CALLS, census.TIMEOUT_S) == (120, 1_500_000, 48 * 1024, 130, 1200)
+    assert (census.MAX_ITEMS, census.MAX_TOTAL_BYTES, census.MAX_ITEM_BYTES, census.MAX_CALLS, census.TIMEOUT_S) == (120, 1_500_000, 64 * 1024, 130, 1200)
     assert census.CANARIES == {"tests/unit/test_fr305_watcher_pipeline_v2.py": "delete", "tests/unit/test_fr_triage.py": "keep"}
     rubric = (ADAPTERS / "chaplain_rubric.md").read_text(encoding="utf-8")
     assert not any(Path(p).name in rubric for p in census.CANARIES), "canaries must be withheld from the rubric"
@@ -223,8 +223,8 @@ def test_preflight_refuses_before_any_graph_call(census, ad, repo, monkeypatch, 
     rc = census.main(["--out-dir", str(tmp_path / "o1")])
     assert rc == census.EX_CONTRACT and calls == []
     record = json.loads((tmp_path / "o1/chaplain-test-disposition.run.json").read_text(encoding="utf-8"))
-    assert any("over 48 KB" in p for p in record["preflight_problems"])
-    monkeypatch.setattr(census, "MAX_ITEM_BYTES", 48 * 1024)
+    assert any("over 0 KB" in p for p in record["preflight_problems"])
+    monkeypatch.setattr(census, "MAX_ITEM_BYTES", 64 * 1024)
     # 2) too many items
     monkeypatch.setattr(census, "MAX_ITEMS", 1)
     assert census.main(["--out-dir", str(tmp_path / "o2")]) == census.EX_CONTRACT and calls == []

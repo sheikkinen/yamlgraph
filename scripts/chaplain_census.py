@@ -40,7 +40,7 @@ STEM = "chaplain-test-disposition"
 # Frozen ceilings (FR-1012 § Step 0; AC-05).
 MAX_ITEMS = 120
 MAX_TOTAL_BYTES = 1_500_000
-MAX_ITEM_BYTES = 48 * 1024
+MAX_ITEM_BYTES = 64 * 1024  # operator amendment 2026-09-06: 48 KB refused test_philosopher.py (52 409 B); FR-1012 § Step 0 records it
 MAX_CALLS = 130  # items (one judge call each) + one synthesis call
 TIMEOUT_S = 20 * 60
 PROVIDER = "anthropic"
@@ -102,7 +102,7 @@ def preflight(ad, out_dir: Path) -> dict:
     if total > MAX_TOTAL_BYTES:
         problems.append(f"{total} bytes total > {MAX_TOTAL_BYTES}")
     if oversize:
-        problems.append("items over 48 KB: " + ", ".join(f"{p} ({b} B)" for p, b in oversize))
+        problems.append(f"items over {MAX_ITEM_BYTES // 1024} KB: " + ", ".join(f"{p} ({b} B)" for p, b in oversize))
     if calls > MAX_CALLS:
         problems.append(f"{calls} model calls > {MAX_CALLS}")
     for r in rows:
