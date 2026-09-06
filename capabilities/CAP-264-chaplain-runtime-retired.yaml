@@ -21,6 +21,8 @@ modules:
   - scripts/chaplain_archive.sh
   - tests/unit/test_fr1012_chaplain_archive.py
   - tests/unit/test_fr1012_chaplain_removed.py
+  - scripts/chaplain_postmerge_witness.sh
+  - tests/unit/test_fr1012_chaplain_postmerge_witness.py
 requirements:
   - id: REQ-YG-666
     description: >
@@ -48,3 +50,5 @@ requirements:
       - scripts/chaplain_archive.sh
       - tests/unit/test_fr1012_chaplain_archive.py
       - tests/unit/test_fr1012_chaplain_removed.py
+      - scripts/chaplain_postmerge_witness.sh
+      - tests/unit/test_fr1012_chaplain_postmerge_witness.py
