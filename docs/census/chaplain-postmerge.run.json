@@ -1,0 +1,19 @@
+{
+  "fr": "FR-1012",
+  "step": "post-merge witness",
+  "started_at": "2026-09-06T13:27:02Z",
+  "finished_at": "2026-09-06T13:27:13Z",
+  "main_head": "36591389e2fdfedf9ba5ae6362effad1c64cd06e",
+  "worktree_sync": "ok",
+  "chmod_uw_applied": false,
+  "git_ls_files_chaplain": [],
+  "untracked_files_left_in_chaplain": 10,
+  "now_py_rc": 0,
+  "now_py_mentions_chaplain": false,
+  "prerequisites": {
+    "FR-1014": "fec26941",
+    "FR-1011": "84baceb7",
+    "FR-1015": "32fd6e9f"
+  },
+  "all_checks_pass": true
+}
