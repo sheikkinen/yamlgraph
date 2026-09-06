@@ -1,88 +1,62 @@
 # Judgement: FR-1001 `yamlgraph-outsider` standalone demo repository
 
-**Verdict:** APPROVED WITH REVISIONS — the standalone repository is a sound contrib/example, but authority activates only after the FR makes graph failure necessary to wrapper failure, restores an exact typed report/reducer boundary, closes dangling evidence, states the sample model choice truthfully, and records human approval for paid live runs and the external PR comment.
+**Verdict:** APPROVED WITH REVISIONS — the standalone contrib/example remains a sound direction, but authority activates only after the FR stops treating the sample configuration's failed semantic calibration as success, restores the frozen `NO/NO/NO/YES` behavior gate, and folds the unplanned raw-reading capture into the contract.
 
-**Prior art:** [FR-1001-yamlgraph-outsider-demo-repo.md](FR-1001-yamlgraph-outsider-demo-repo.md) — the subject; its `**Prior art:**` line dispositions FR-995, FR-865, FR-998, FR-1004. Second judgement: the first (same file, superseded) covered a plan with a run ledger and a shell-owned `gh` path.
+**Prior art:** [FR-1001-yamlgraph-outsider-demo-repo.md](FR-1001-yamlgraph-outsider-demo-repo.md) — the subject; its `**Prior art:**` line dispositions FR-995, FR-865, FR-998, FR-1004. Third judgement (2026-09-06), after `scripts/review.sh` #603 P1: restores the frozen AC-13 gate, rejects the xfail oracle, folds raw-reading capture. Supersedes the two 2026-09-05 judgements of this FR. Operator merge decision recorded in the FR: ship with AC-13 openly NOT MET.
 
-**Reviewed against:** `feature-requests/FR-1001-yamlgraph-outsider-demo-repo.md`; `feature-requests/FR-1001-yamlgraph-outsider-demo-repo.judgement.md`; `.github/skills/judge-fr/doctrine.md`; `.github/skills/judge-fr/judgement.template.md`; `.github/copilot-instructions.md`; `CLAUDE.md`; `feature-requests/TEMPLATE.md`; `.github/skills/graph-authoring/doctrine.md`; `.github/skills/outsider-view/SKILL.md`; `.github/skills/outsider-view/doctrine.md`; `.github/skills/outsider-view/adapters/README.md`; `feature-requests/FR-995-outsider-reader.md`; `feature-requests/FR-995-outsider-reader.judgement.md`; `feature-requests/FR-865-ramp-installer.md`; `feature-requests/FR-998-anthropic-constrained-structured-output.md`; `feature-requests/FR-998-anthropic-constrained-structured-output.judgement.md`; `docs/2026-09-05-research-plan-cap-journey-census.md` sections 12-13; `docs/spikes/outsider-llm-2026-09-05/{graph.yaml,tools.py,yamlgraph-outsider,EXPECTATIONS.md}`; `docs/spikes/outsider-llm-2026-09-05/prompts/outsider.yaml`; `docs/spikes/outsider-llm-2026-09-05/inputs/{pr-591.md,plain-591.md,pr-591-v2.md,positive.md}`; the six committed reports `docs/spikes/outsider-llm-2026-09-05/out/{positive-claude-sonnet-4-5-20260905T080348Z.md,positive-claude-sonnet-4-5-20260905T080409Z.md,pr-591-claude-sonnet-4-5-20260905T080437Z.md,plain-591-claude-sonnet-4-5-20260905T080503Z.md,pr-591-v2-claude-sonnet-4-5-20260905T080533Z.md,592-claude-sonnet-4-5-20260905T080708Z.md}`; `reference/cli.md`; `reference/graph-yaml.md`; and `reference/development-operations.md`. `FR-1004` was named by FR-1001 but no committed `feature-requests/FR-1004*` artifact exists in the reviewed tree, so it was not consumed. The referenced GitHub PR comments were not consumed because they are not committed artifacts.
+**Reviewed against:** `feature-requests/FR-1001-yamlgraph-outsider-demo-repo.md`; the prior `feature-requests/FR-1001-yamlgraph-outsider-demo-repo.judgement.md`; `feature-requests/authoring-briefs/fr-1001-yamlgraph-outsider-demo-repo-brief.md`; `.github/skills/judge-fr/doctrine.md`; `.github/skills/judge-fr/judgement.template.md`; `.github/copilot-instructions.md`; `ARCHITECTURE.md` (application-layer and `projects/` versus `examples/` doctrine); `docs/2026-09-05-research-plan-cap-journey-census.md` sections 12–13; `docs/spikes/outsider-llm-2026-09-05/out/positive-claude-sonnet-4-5-20260905T080348Z.md`; `docs/spikes/outsider-llm-2026-09-05/out/positive-claude-sonnet-4-5-20260905T080409Z.md`; `docs/spikes/outsider-llm-2026-09-05/out/pr-591-claude-sonnet-4-5-20260905T080437Z.md`; `docs/spikes/outsider-llm-2026-09-05/out/plain-591-claude-sonnet-4-5-20260905T080503Z.md`; `docs/spikes/outsider-llm-2026-09-05/out/pr-591-v2-claude-sonnet-4-5-20260905T080533Z.md`; `docs/spikes/outsider-llm-2026-09-05/out/592-claude-sonnet-4-5-20260905T080708Z.md`; `feature-requests/FR-995-outsider-reader.md`; `feature-requests/FR-995-outsider-reader.judgement.md`; `feature-requests/FR-998-anthropic-constrained-structured-output.md`; `feature-requests/FR-865-ramp-installer.md`; `feature-requests/FR-1004-retire-outsider-ledger.md`; and `feature-requests/FR-1004-retire-outsider-ledger.judgement.md`. The external repository implementation, mutable GitHub comments, and the author's chat narrative were not consumed.
 
 ## What is sound
 
 | Criterion | Finding |
 |---|---|
-| Scope | The proposal is bounded to one public demo repository plus one discoverability link in this repository; runtime changes, ramp inclusion, and automatic invocation are excluded (`FR-1001:46-63,87-94`). A smaller plain-Python program would not satisfy the stated YAMLGraph demonstration purpose, while the cited three-node spike already proves the intended shape (`research plan:629-694`). |
-| Consistency | The amended plan has removed the run ledger, separated transient `out/` files from committed `docs/evidence/`, and made the graph own GitHub side effects (`FR-1001:46-63`). The remaining contradictions are narrow and mechanically repairable in R-1 through R-4. |
-| Measurability | Most criteria name exact commands, files, subprocess argument lists, negative paths, and observable results (`FR-1001:67-82`). The fake-command tests, parsed-graph checks, two-pass live sequence, and clean-environment run are substantially stronger than proxy grep alone. |
-| Feasibility | The committed spike ran the same Python -> `llm` -> Python topology end to end, produced six structurally valid reports, and posted one real comment in about 25 seconds (`research plan:639-689`; `EXPECTATIONS.md:9-25`). The proposed graph uses existing `llm` and Python-node primitives rather than adding framework behavior. |
-| Architecture alignment | The wrapper is presentation, the graph owns orchestration, and Python tools own GitHub/file side effects (`FR-1001:47-48`), matching the repository's three-layer convention. The committed brief, adapter route, lint, smoke, and separate Git root satisfy graph-authoring and workspace boundaries (`graph-authoring doctrine:9-17,19-29,52-89,93-107`; `FR-1001:46,67-68`). |
-| Single responsibility | Repository, script, graph, skill copy, fixtures, evidence, and README all serve one event: a maintainer requesting an advisory outsider reading before review (`FR-1001:8,12-22,46-63`). The adapter link is discovery for that same concern, not an independent feature. |
-| Strategic classification | **Contrib/example.** One demonstrated workflow reuses established YAMLGraph abstractions but needs local calibration and packaging. It is not a framework primitive; FR-998 separately owns the repeated provider-boundary defect (`FR-1001:10,90`; `FR-998:8-18`). |
-| Testability | Direct tests can be written for the reducer, wrapper argv, subprocess calls, report contract, environment provenance, and all named failures (`FR-1001:74-81`). R-1 and R-2 close the two places where the current text would permit incompatible passing implementations. |
+| Scope | One public demo repository plus one discovery link is a bounded response to the stated first event. Framework changes, ramp installation, automation, and merge authority remain excluded (`FR-1001:8,12-22,46-63,83-84`). A plain Python program would not demonstrate the named YAMLGraph use case. |
+| Consistency | The transport, three-layer ownership, typed boundary, reducer, and manual comment flow agree across Summary and Proposed Solution (`FR-1001:12-22,46-63`). The remaining contradiction is explicit and repairable: Ideal Result still requires `NO/NO/NO/YES` twice, while amended AC-13 calls `REJECTED/NO/YES/NO` acceptable (`FR-1001:40-42,81,106`). |
+| Measurability | Prerequisites, subprocess argument lists, graph/report dual success, typed normalization, provenance, posting, and repository boundaries have direct commands or assertions (`FR-1001:67-80,82-84`). AC-13 is mechanically executable, but its amended oracle measures preservation of the observed defect rather than the stated result; R-1 replaces that oracle. |
+| Feasibility | The provider-API spike proves the Python → `llm` → Python topology and records stable API execution (`research plan:629-694`; six spike reports). The current Haiku sample did not prove the required discrimination, but that is a calibration failure inside an otherwise feasible implementation, not an architectural impossibility (`FR-1001:90-113`). |
+| Architecture alignment | The wrapper owns presentation, the graph owns orchestration, and Python tools own GitHub/file side effects (`FR-1001:47-48`), matching the repository's three-layer application pattern (`ARCHITECTURE.md:25-57`). The separate Git root and committed authoring brief preserve the graph-authoring and workspace boundaries (`FR-1001:46,67-68`; authoring brief:1-40). |
+| Single responsibility | Repository packaging, fixtures, evidence, README, and the adapter link all serve one event: obtaining an advisory outsider reading before review (`FR-1001:8,12-22,46-63`). No orthogonal framework or enforcement concern is bundled. |
+| Strategic classification | **Contrib/example.** The proposal packages one demonstrated workflow using existing YAMLGraph abstractions and local calibration. It is not a framework primitive; FR-998 separately owns the provider structured-output boundary (`FR-1001:9-10,46-63`; `FR-998:8-18`). |
+| Testability | Failing tests derive directly for every deterministic seam and for the live semantic gate (`FR-1001:67-84`). A strict xfail of the desired behavior is the inverse of such a witness: it makes the known failure green and makes future success red (`FR-1001:81,106`). |
 
-The problem and raw-output read are substantive. The two positive Sonnet reports share six items but disagree by one, the plain-language report over-flags ordinary phrases, and the live #592 report quotes its explanatory parenthetical as unclear (`EXPECTATIONS.md:13-23`; positive reports `:13-21`; `plain-591` report `:13-22`; `592` report `:13-23`). The reducer follows the repository's `two_strike_split` and demote-never-drop rules rather than asking the prompt a third time (`.github/copilot-instructions.md:107-110`).
+The research requirement is satisfied in substance. The cited record preserves the disagreement between a discriminating but flickering Copilot route and a stable but over-flagging provider route, and it reads the raw reports rather than relying on aggregate counts (`FR-1001:9,30-38`; `research plan:629-694`). Prior art is dispositioned: FR-995 supplies the reader contract, FR-998 owns framework normalization, FR-865 owns distribution, and FR-1004 removes the ledger rather than creating one here (`FR-1001:10,116-131`).
 
-The proposed rules can also produce the claimed positive on the committed source without weakening the threshold: `yamlgraph` is followed by an em-dash gloss, path-like quotes and `FR-990` demote, while `mercury-2` and (in one run) `authoring-briefs` remain, leaving at most two retained items (`positive.md:5,12,24,49,54`; positive reports `:13-22`). The live two-pass gate remains necessary because the committed reports use Sonnet, not the proposed Haiku sample configuration.
+The failure record is also useful and must remain. Both live passes agreed, schema rejection was preserved, and the surprising inversions are concrete: the pre-gloss rewrite became YES while the intended positive became NO (`FR-1001:106`). That evidence invalidates the current success claim; it does not invalidate the problem or the three-node design.
 
 ## Required revisions
 
-### R-1: Make graph success necessary and artifact validity independently necessary
+### R-1: Restore the semantic calibration gate
 
-Revise Proposed Solution 2-3 and AC-09 through AC-11 so wrapper success requires **both** a zero `yamlgraph graph run` status and a fully validated report. A valid report is necessary but never sufficient. The wrapper must preserve a non-zero graph status even when `finalize` wrote the report before a failed `gh pr comment`.
+Replace amended AC-13 with the frozen behavior contract from the prior judgement: on the exact tested sample configuration, two complete live passes over `pr-591`, `plain-591`, `pr-591-v2`, and `positive` must each finish without schema rejection and derive `NO/NO/NO/YES`, in that order. Commit all eight raw readings and replay them through deterministic tests that assert the same sequence.
 
-This is a real composition gap: the plan intentionally writes the report before posting and requires the report to remain after posting fails (`FR-1001:48,76`), while the script description says it confirms only the report's first line before exiting (`FR-1001:47`). The cited spike implements exactly that unsafe ordering: it writes the report, then posts, while its wrapper returns success whenever the report header exists regardless of graph status (`spike tools.py:132-143`; `spike yamlgraph-outsider:19-26`). AC-11 also says comment failure leaves no success-shaped report, contradicting AC-10's requirement that the report remain (`FR-1001:76-77`).
+Delete the strict-xfail clause. `REJECTED/NO/YES/NO` is the recorded failed attempt, not an acceptable product oracle: `pr-591-v2` is a false positive against the pre-written expectation, `positive` is a false negative, and rejection is not a verdict. A test that fails when the desired sequence starts passing violates both the Ideal Result and the repository's fail-closed/TDD doctrine (`FR-1001:40-42,81,106`; `.github/copilot-instructions.md:181-193`).
 
-Freeze these semantics:
+Preserve the existing eight readings unchanged as historical evidence. A corrective run must use new evidence filenames carrying the new run timestamps and source commit; it must not overwrite or relabel the failed readings.
 
-1. graph status zero plus complete report validation -> wrapper success;
-2. graph status non-zero -> wrapper failure, whether or not a report exists;
-3. comment failure -> non-zero graph and wrapper status, no claimed/posted comment, valid local report retained for diagnosis;
-4. every failure before successful rendering -> no valid report;
-5. `comment` crosses the CLI boundary as one canonical `true` or `false` string and is normalized strictly to a boolean; any other value is rejected;
-6. `--comment` combined with `--input` is rejected at argument parsing rather than silently ignored.
+### R-2: Make status and public claims tell the same truth as the evidence
 
-Add wrapper and tool tests for all six branches. Do not replace artifact validation with exit-code trust; require both independent witnesses.
+Change the FR Status and implementation table so AC-13 is **NOT MET** until R-1 passes. Remove “P1 resolved,” “met as amended,” and every statement that the current implementation satisfies the live calibration contract (`FR-1001:5,106`).
 
-### R-2: Restore the complete typed report and reducer contract
+Keep the Ideal Result and Value Statement unchanged: the demo is valuable only if it separates descriptions that stand alone from those that do not (`FR-1001:24-27,40-42`). Until AC-13 passes, the README and implementation record must describe the tested sample as an experimental configuration with a recorded failed calibration, not as a validated sample. Once it passes, link the new eight-run evidence set and source commit.
 
-Replace the phrases “structured output,” “fail-closed validation,” and `validated_unclear_items` with explicit Pydantic boundaries inherited from FR-995:
+### R-3: Forbid calibration by changing the question
 
-- `OutsiderReading`: non-empty `restatement`; `opinion: Literal["YES", "NO"]`; non-empty `opinion_reason`; at most eight raw unclear items; at most ten non-empty needs items.
-- `UnclearItem`: non-empty `quote` and `question`.
-- `DemotionReason`: a closed enum of `identifier`, `path`, and `inline_gloss`.
-- `ReducedReading`: retained items plus demoted items carrying exactly one reason.
+The correction may change only the already authorized external sample configuration, graph/prompt/tool behavior, and their focused tests within D-2 through D-5. It must not revise the four fixture bodies, their pre-written `NO/NO/NO/YES` expectations, the `<= 2` retained-item threshold, the four hedge markers, or the rule that malformed/over-cap output fails closed. It must not turn a rejected reading into a verdict or add a fallback that substitutes a plausible report.
 
-Freeze the temporary FR-998 normalization rather than inheriting the spike's permissive `str(value)` behavior: accept only `list[str]`, a JSON-encoded `list[str]`, or newline-delimited strings in the two list fields; reject non-list JSON, non-string members, arbitrary scalar/container values, empty malformed lines, and unclear lines that cannot produce both quote and question. Apply the raw item caps before reduction.
+If the chosen provider/model cannot satisfy the unchanged fixtures twice, select and record a different human-approved sample configuration under the existing R-5 spend gate; do not weaken the fixtures to fit the model. Prompt or graph edits remain subject to the existing authoring route.
 
-Define single-reason precedence as `identifier` -> `path` -> `inline_gloss` when more than one rule matches. State that identifier matching is a full match, suffix matching is case-sensitive or case-insensitive explicitly, and inline-gloss matching succeeds on any exact source occurrence at the frozen boundary. Derive the verdict only from the validated restatement and retained unclear items. Render exactly four top-level sections, with demoted items as a labelled subsection of section 4; never render, comment, or report success from an invalid model.
+### R-4: Fold raw-reading capture into the evidence contract
 
-The current spike accepts arbitrary values by stringifying them and falling through after malformed JSON (`spike tools.py:55-66`), while repo doctrine requires typed boundaries and visible failures (`.github/copilot-instructions.md:181-193`). The FR's reducer rules are otherwise strong, but a machine-readable reason without overlap precedence permits two conforming implementations to disagree (`FR-1001:60,74,77`).
+Move `OUTSIDER_DUMP_READING` from the implementation deviation into Proposed Solution 6 and the acceptance criteria (`FR-1001:61,81,113`). Freeze it as an evidence-only, opt-in interface:
 
-### R-3: Close research and prior-art references
+1. absent in ordinary wrapper/comment runs and producing no extra artifact by default;
+2. enabled only with an explicit destination selected by the live-test harness;
+3. writing the exact model payload before the stricter boundary so rejected readings remain inspectable;
+4. never changing validation, verdict, report, comment, or process-success semantics;
+5. surfacing a capture-write failure rather than silently losing required evidence; and
+6. covered for valid, rejected, disabled, and write-failure cases.
 
-Amend the `Research` field with an explicit answer: `is_this_a_graph: Yes` because the artifact being demonstrated is the already-spiked fetch -> provider `llm` -> deterministic finalize pipeline, and because the graph isolates model inference from side-effect tools. Point from that field to a compact four-to-six-class disposition in the FR or research record covering at least Copilot transport, provider-API graph, plain Python/provider SDK, prompt-only calibration, and deterministic reducer calibration. Preserve the recorded disagreement between the stable/over-flagging Sonnet path and the discriminating/flickering Copilot path (`research plan:629-694`). This satisfies the prospective research gate's substance requirement (`judge doctrine:118-129`) without commissioning new research.
-
-Delete the unsupported statement that “FR-1004 retires” the parent ledger and the dangling Related entry, or replace both with an exact committed FR path. No `feature-requests/FR-1004*` artifact exists in the reviewed tree, so it cannot justify scope under input closure (`FR-1001:10,99`; `judge doctrine:16-24`).
-
-Likewise, either commit and cite exact local copies of the three claimed production reports or label those PR references as non-evidentiary context. The six committed spike reports already satisfy the raw-read requirement; authority must not depend on mutable PR comments unavailable to the judge's committed input set.
-
-### R-4: State the sample model choice truthfully
-
-Replace “Nothing in the repo chooses a model” with: the graph and wrapper contain no provider/model selection; copying `.env.sample` intentionally selects the tested Anthropic/Haiku sample configuration, and users may edit or omit those values (`FR-1001:18,49-58,69-71`). The current absolute claim conflicts with the active `ANTHROPIC_MODEL=claude-haiku-4-5` line and with AC-04's accurate “tested sample default” wording.
-
-Freeze provenance cases independently:
-
-1. configured provider and configured model -> record both literal configured values;
-2. configured provider and omitted provider-model variable -> record the provider plus `framework-default`;
-3. omitted provider -> record provider as `framework-default` and model as `framework-default`;
-4. never infer an effective model name from framework defaults.
-
-Tests must prove the values recorded by `finalize` are the same environment values available to YAMLGraph resolution. This preserves the actual selection priority documented by the graph reference (`reference/graph-yaml.md:91-110`) without claiming that the demo can observe an effective default it did not configure.
-
-### R-5: Record the human decisions for live spend and public posting
-
-Add an implementation gate immediately before AC-12's credentialed runs and AC-14's real comment: record the human-approved provider/model, spending owner, and target public PR. Confirm that the title/body and committed report contain no private material before posting or committing evidence. The first target may be the named `sheikkinen/deviant-daily` event (`FR-1001:8`), but the enforcer must not choose a different third-party PR or incur provider spend by implication.
-
-This does not alter the feature. It surfaces the spend and public-write decisions that judge doctrine reserves for a human (`judge doctrine:100-101`) while leaving deterministic and fake-command tests fully autonomous.
+This is necessary for AC-13's rejected-output evidence but is not authority for general tracing, telemetry, or a second run ledger.
 
 ## Scope is frozen
 
@@ -90,49 +64,48 @@ This does not alter the feature. It surfaces the spend and public-write decision
 |---|---|
 | D-1 | Public MIT repository `sheikkinen/yamlgraph-outsider`, maintained as a sibling clone with its own Git root |
 | D-2 | External repo: `graph.yaml`, `prompts/outsider.yaml`, `tools.py`, and executable `yamlgraph-outsider` |
-| D-3 | External repo: `.github/skills/outsider-view/{SKILL.md,doctrine.md}` with the truthful provider-API contract |
-| D-4 | External repo: four fixtures, pre-written expectations, committed structured-output/live evidence, focused reducer/tool/wrapper tests, and `docs/evidence/` |
-| D-5 | External repo: `README.md`, `LICENSE`, `.env.sample`, `.gitignore`, and `pyproject.toml` with the tested minimum YAMLGraph version and test command |
+| D-3 | External repo: `.github/skills/outsider-view/{SKILL.md,doctrine.md}` with the provider-API, advisory contract |
+| D-4 | External repo: the four frozen fixtures and expectations, immutable failed evidence, a new passing eight-run evidence set, focused reducer/tool/wrapper/live tests, and `docs/evidence/` |
+| D-5 | External repo: `README.md`, `LICENSE`, `.env.sample`, `.gitignore`, and `pyproject.toml` with tested minimum YAMLGraph and test commands |
 | D-6 | This repo: `feature-requests/authoring-briefs/fr-1001-yamlgraph-outsider-demo-repo-brief.md` and verified `tmp/draft-authoring-report.md` |
 | D-7 | This repo: one non-Copilot-route line in `.github/skills/outsider-view/adapters/README.md` |
-| D-8 | This repo: revised FR, final human-reviewed judgement, changelog fragment, and one `docs/diary/` reflection |
+| D-8 | This repo: revised FR, final human-reviewed judgement/status record, changelog fragment, and one `docs/diary/` reflection |
 
-Not authorized: YAMLGraph runtime, provider factory, provider/model defaults, or framework normalization changes; changes to this repository's existing outsider graph, prompt, wrapper, skill, doctrine, fixtures, or ledger beyond the single adapter-README link; a new demo ledger or census; edits to either historical spike tree; `ramp/manifest.yaml`; GitHub Actions, hooks, automatic invocation, automatic comments, blocking status, approval, merge behavior, or other enforcement; judge/review/graph-authoring doctrine changes; a new node type; or packaging the demo itself as a Python distribution.
+Not authorized: changes to the four fixture inputs or their expected `NO/NO/NO/YES` labels; a relaxed retained-item threshold or hedge rule; xfail/skip treatment of the live semantic gate; success-shaped fallback after rejection; YAMLGraph runtime, provider factory, or framework normalization changes; changes to this repository's existing outsider graph, prompt, wrapper, skill, doctrine, fixtures, or ledger beyond the single adapter-README link; a demo ledger or general telemetry facility; edits to either historical spike tree or the existing failed live evidence; `ramp/manifest.yaml`; GitHub Actions, hooks, automatic invocation/comments, blocking status, approval, merge behavior, or other enforcement; judge/review/graph-authoring doctrine changes; a new node type; or packaging the demo as a Python distribution.
 
 ## Revised acceptance criteria
 
-- [ ] AC-01: The revised FR cites `feature-requests/authoring-briefs/fr-1001-yamlgraph-outsider-demo-repo-brief.md`; `scripts/author.sh` produces the declared external graph/prompt/tool artifacts and a valid `tmp/draft-authoring-report.md`; the report records successful `yamlgraph graph lint <external-repo>/graph.yaml` and the narrow smoke, or the exact credential blocker.
-- [ ] AC-02: `gh repo view sheikkinen/yamlgraph-outsider --json visibility,licenseInfo` reports public visibility and an MIT license; the local target is a separate Git root outside the yamlgraph repository; `git check-ignore` proves `.env` and `out/` are ignored and `.env.sample` is tracked.
-- [ ] AC-03: Parsed `graph.yaml` contains no configured `provider` or `model` at defaults or node level; the entry script accepts no `--provider` or `--model` flag and contains no hard-coded model identifier.
-- [ ] AC-04: `.env.sample` contains one active sample provider, empty key, and explicit sample model on separate lines. README calls these the tested sample selection—not “no model choice”—and documents alternatives one variable per line.
-- [ ] AC-05: Tests cover all four R-4 provenance cases. Changing `.env` changes the recorded configured values without editing graph, prompt, tool, or wrapper; omitted values are recorded only as `framework-default`.
+- [ ] AC-01: The FR cites `feature-requests/authoring-briefs/fr-1001-yamlgraph-outsider-demo-repo-brief.md`; `scripts/author.sh` produces the declared external graph/prompt/tool artifacts and a valid `tmp/draft-authoring-report.md`; the report records successful lint and a narrow smoke, or the exact credential blocker.
+- [ ] AC-02: `gh repo view sheikkinen/yamlgraph-outsider --json visibility,licenseInfo` reports public visibility and an MIT license; the local target is a separate Git root outside this repository; `git check-ignore` proves `.env` and `out/` are ignored and `.env.sample` is tracked.
+- [ ] AC-03: Parsed `graph.yaml` contains no configured provider or model at defaults or node level; the entry script accepts no `--provider` or `--model` flag and contains no hard-coded model identifier.
+- [ ] AC-04: `.env.sample` contains one active sample provider, an empty key, and one explicit sample model on separate lines. README calls these the tested sample selection, documents alternatives one variable per line, and does not call the selection validated until AC-13 passes.
+- [ ] AC-05: Tests cover all four provenance cases. Changing `.env` changes recorded configured values without editing graph, prompt, tool, or wrapper; omitted values are recorded only as `framework-default`.
 - [ ] AC-06: The wrapper chooses `out/<label>-<timestamp>.md` before invocation and passes it as `report_path`; no LLM result is needed to construct the path.
-- [ ] AC-07: The standalone doctrine and `SKILL.md` contain no Copilot-CLI, pinned-`gpt-5.6-sol`, or ledger claim; they preserve title-and-body-only model input, advisory status, fail-closed handling, three-reader ownership, four top-level sections, one run per PR, and `./yamlgraph-outsider` invocation.
-- [ ] AC-08: Pydantic tests exercise every R-2 accepted and rejected normalization form, every required field and cap, quote/question parsing, reducer rule and near miss, reason precedence, stable order, no loss or duplication, retained-only counts, and the three named examples.
-- [ ] AC-09: The wrapper contains exactly one `yamlgraph graph run`, no `gh`, and one operational `git` call. With controlled executables on `PATH`, each missing prerequisite and missing `.env` has a distinct non-zero result and one-line hint; the `--var` set is exactly `pr,repo,input_path,comment,report_path`; invalid comment values and `--input --comment` fail before graph invocation.
-- [ ] AC-10: Wrapper success requires graph status zero **and** complete report validation. Tests prove graph status non-zero is preserved despite a valid report, and graph status zero with an absent/invalid report also fails.
-- [ ] AC-11: With a fake `gh`, `fetch_pr` calls `gh pr view <pr> -R <repo> --json title,body` as an argument list and returns exactly `# <title>\n\n<body>`; `--input` never calls `gh`; `finalize` posts only for strict `comment=true` with a PR source. A failed post returns non-zero and leaves the valid local report but no claimed successful comment.
-- [ ] AC-12: Malformed structured output, missing API key, missing `gh`, invalid PR/repository, fetch failure, graph failure, absent report, invalid report, and comment failure each follow the distinct R-1/R-2 artifact semantics and never produce wrapper success.
-- [ ] AC-13: Deterministic tests over committed structured outputs derive `NO/NO/NO/YES`. After the R-5 human spend decision, `pytest -m live` runs all four fixtures twice on the exact `.env.sample` configuration and requires that sequence on both passes; expectations predate execution and all eight raw outputs are committed under `docs/evidence/`.
+- [ ] AC-07: Standalone doctrine and `SKILL.md` contain no Copilot-CLI, pinned-`gpt-5.6-sol`, or ledger claim; they preserve title-and-body-only model input, advisory status, fail-closed handling, three-reader ownership, four top-level sections, one run per PR, and `./yamlgraph-outsider` invocation.
+- [ ] AC-08: Pydantic tests exercise every accepted and rejected normalization form, every required field and cap, quote/question parsing, every reducer rule and near miss, reason precedence, stable order, no loss or duplication, retained-only counts, and the three named reducer cases.
+- [ ] AC-09: The wrapper contains exactly one `yamlgraph graph run`, no `gh`, and one operational `git` call. Controlled executables prove distinct missing-prerequisite and missing-`.env` failures; the `--var` set is exactly `pr,repo,input_path,comment,report_path`; invalid comment values and `--input --comment` fail before graph invocation.
+- [ ] AC-10: Wrapper success requires graph status zero and complete report validation. Tests prove graph status non-zero is preserved despite a valid report, and graph status zero with an absent or invalid report fails.
+- [ ] AC-11: With a fake `gh`, `fetch_pr` uses the exact argument-list contract and returns exactly `# <title>\n\n<body>`; `--input` never calls `gh`; `finalize` posts only for strict `comment=true` with a PR source. A failed post returns non-zero and leaves the valid local report without claiming a successful comment.
+- [ ] AC-12: Malformed structured output, missing API key, missing `gh`, invalid PR/repository, fetch failure, graph failure, absent report, invalid report, comment failure, and raw-capture write failure follow their declared artifact semantics and never produce wrapper success. Tests prove `OUTSIDER_DUMP_READING` is disabled by default, captures exact valid and rejected payloads when enabled by the live harness, and never changes validation or verdict semantics.
+- [ ] AC-13: After the recorded human spend decision, `pytest -m live` runs the four unchanged fixtures twice on the exact `.env.sample` configuration. Both passes complete without schema rejection and derive `NO/NO/NO/YES`. Expectations predate execution; all eight new raw readings are committed with timestamps and source commit; deterministic replay derives the same sequence. Any rejection or different verdict fails normally—no skip or xfail.
 - [ ] AC-14: README's pre-publication report is committed under `docs/evidence/` and linked with input SHA-256, item count, configured provider/model, timestamp, and source commit.
-- [ ] AC-15: After the R-5 public-write decision, one explicit `--comment` run on the approved public PR outside `sheikkinen/yamlgraph` leaves the comment on that PR; its URL and evidence report are recorded in the FR; no credential or private PR material is committed.
-- [ ] AC-16: `pyproject.toml` declares the exact test command and tested minimum `yamlgraph`; focused tests pass in a clean environment; the README's clone/install/configure/run path succeeds.
-- [ ] AC-17: The Research and Prior art fields contain the R-3 `is_this_a_graph` answer, substantive solution-class disposition, and only committed evidentiary dependencies; the dangling FR-1004 claim is removed or replaced by an exact committed path.
-- [ ] AC-18: This repository's diff is limited to the authoring brief, one adapter-README line, FR plus final judgement/status record, changelog fragment, and diary entry; the spike trees, ramp manifest, existing outsider implementation, and ledger are byte-unchanged.
+- [ ] AC-15: After the public-write decision and AC-13, one explicit `--comment` run on the approved public PR outside `sheikkinen/yamlgraph` leaves the comment on that PR; its URL and evidence report are recorded in the FR; no credential or private PR material is committed.
+- [ ] AC-16: `pyproject.toml` declares the exact deterministic and live test commands and tested minimum `yamlgraph`; focused tests pass in a clean environment; the README clone/install/configure/run path succeeds.
+- [ ] AC-17: Research and Prior art retain the `is_this_a_graph` answer, substantive solution-class disposition, committed dependencies, and the failed calibration record. FR Status and implementation table mark AC-13 unmet until its passing evidence exists.
+- [ ] AC-18: This repository's diff is limited to the authoring brief, one adapter-README line, FR plus final judgement/status record, changelog fragment, and diary entry; spike trees, ramp manifest, existing outsider implementation, and ledger are byte-unchanged.
 
 ## Conditions for enforcement
 
 | # | Condition | Severity |
 |---|---|---|
-| C-1 | Fold R-1 through R-5 and AC-01 through AC-18 into FR-1001 before implementation; this draft grants no authority by itself. | GATE |
-| C-2 | Route every external `graph.yaml` or `prompts/*.yaml` creation/adaptation through the committed FR-1001 brief and `scripts/author.sh`; verify the report artifact, lint, and smoke rather than an exit code. | GATE |
-| C-3 | Preserve outsider input closure: only exact PR title and body enter the model; repository files, head SHA, doctrine, tools, comments, and chat narrative do not. | GATE |
-| C-4 | Keep invocation and commenting manual and advisory. No workflow, hook, automatic comment, blocking status, approval, merge action, or ramp inclusion is authorized. | GATE |
-| C-5 | Keep the external repository outside this worktree with an independent Git root; do not embed, vendor, or commit its working tree into yamlgraph. | GATE |
-| C-6 | Validate and normalize into the R-2 models, then reduce and derive, before rendering or posting. Unknown shapes fail visibly; no permissive stringification or silent default is authorized. | GATE |
-| C-7 | Require both successful graph status and valid artifact content. In particular, a retained local report after comment failure must never become wrapper success. | GATE |
-| C-8 | Obtain and record the R-5 human approval before provider-billed live runs or a public write to the selected external PR. | GATE |
-| C-9 | Do not modify framework normalization under FR-1001. Any local type-lie normalization remains confined to the demo's typed boundary and tested minimum YAMLGraph contract. | GATE |
-| C-10 | Complete RED/GREEN tests, public-repository documentation, changelog, FR implementation/status record, and diary reflection within the frozen surfaces. | GATE |
+| C-1 | Fold R-1 through R-4 and AC-01 through AC-18 into FR-1001 before corrective implementation or merge; the current amended AC-13 grants no authority. | GATE |
+| C-2 | Preserve the existing failed eight-run evidence unchanged and label it as a failed calibration; produce a distinct new evidence set for any corrective run. | GATE |
+| C-3 | Do not revise fixtures, expectations, threshold, hedge markers, or fail-closed behavior to make the sample pass. | GATE |
+| C-4 | Route every external graph or prompt edit through the committed FR-1001 brief and `scripts/author.sh`; verify the report artifact, lint, and smoke rather than an exit code. | GATE |
+| C-5 | Parse and validate before deriving, rendering, posting, or reporting success; a rejected model payload is evidence, never a verdict. | GATE |
+| C-6 | Obtain and record human approval before any additional provider spend or public comment, including a changed provider/model selection. | GATE |
+| C-7 | Keep raw capture opt-in, evidence-only, fail-visible, and semantically inert; do not grow it into a ledger or telemetry subsystem. | GATE |
+| C-8 | Do not describe the current sample configuration as validated or AC-13 as met until the exact two-pass gate succeeds normally. | GATE |
+| C-9 | Remain within D-1 through D-8 and the explicit not-authorized boundary; framework, automation, enforcement, and historical-artifact changes require separate judged authority. | GATE |
 
-Authority granted: after R-1 through R-5 are folded into the FR and the draft is human-reviewed, implementation may build only the standalone manual advisory demo, its evidence and tests, and the single yamlgraph adapter-documentation link described in D-1 through D-8.
+Authority granted: after R-1 through R-4 are folded into the FR, correct and re-evidence only the existing standalone contrib/example within D-1 through D-8; the current `REJECTED/NO/YES/NO` implementation is not authorized as satisfying the demo contract.
