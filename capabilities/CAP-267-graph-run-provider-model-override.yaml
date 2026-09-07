@@ -20,6 +20,7 @@ modules:
   - yamlgraph/cli/__init__.py
   - yamlgraph/cli/graph_commands.py
   - yamlgraph/compile/graph_loader.py
+  - yamlgraph/compile/default_overrides.py
   - scripts/research.sh
   - scripts/research_preflight.py
   - tests/unit/test_fr1028_provider_model_override.py
@@ -41,5 +42,6 @@ requirements:
     modules:
       - yamlgraph/cli/__init__.py
       - yamlgraph/compile/graph_loader.py
+      - yamlgraph/compile/default_overrides.py
       - scripts/research.sh
       - scripts/research_preflight.py

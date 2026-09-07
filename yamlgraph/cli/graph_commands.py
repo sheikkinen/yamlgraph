@@ -162,7 +162,10 @@ def cmd_graph_run(args: Namespace) -> None:
         try:
             bindings = parse_tool_bindings(getattr(args, "tool_bindings", []))
             graph_config = load_graph_config(
-                str(graph_path), tool_bindings=bindings or None
+                str(graph_path),
+                tool_bindings=bindings or None,
+                provider_override=getattr(args, "provider", None),
+                model_override=getattr(args, "model", None),
             )
         except ToolSlotBindingError as e:
             print(f"❌ Tool slot binding: {e}", file=error_stream)
