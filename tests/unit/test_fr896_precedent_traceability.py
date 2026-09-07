@@ -16,18 +16,15 @@ Judged contract (FR-896 judgement, R-1..R-4 folded):
   never blocking (AC-06, R-2).
 - ``max_length=400`` on model-authored prose; over-length rejected, not
   truncated (AC-07).
-- Provenance stamp: committed research-runs.jsonl line with brief/artifact
-  hashes, code git SHA; verifier distinguishes matching / missing /
-  mismatched — integrity, not execution proof (AC-08, R-3).
+- The FR-896 AC-08 provenance ledger (research-runs.jsonl + verifier) was
+  retired by FR-1026; its absence is witnessed at the end of this file.
 - The 2026-08-28 solution-shaped librarian output, replayed, is rejected
   (AC-09).
 """
 
 from __future__ import annotations
 
-import hashlib
 import importlib.util
-import json
 import os
 import stat
 import subprocess
@@ -173,9 +170,9 @@ def test_shared_predicate_exists_in_both_modules(tools, preflight):
     assert tools.is_librarian("Web-Librarian (grounded)")
     assert preflight.is_librarian("Web-Librarian (grounded)")
     assert not tools.is_librarian("subtractionist")
-    assert tools.SOLUTION_CLASSES == preflight.SOLUTION_CLASSES, (
-        "enum drift between reducer and verifier"
-    )
+    assert (
+        tools.SOLUTION_CLASSES == preflight.SOLUTION_CLASSES
+    ), "enum drift between reducer and verifier"
 
 
 # --- AC-03/AC-04: precedent three-way validation (R-1) ------------------------
@@ -371,72 +368,6 @@ MINIMAL_ARTIFACT = """# Draft alternatives
 """
 
 
-@pytest.mark.req("REQ-YG-623")
-def test_wrapper_appends_provenance_line(tmp_path):
-    stub = _write_stub(
-        tmp_path / "yg",
-        'mkdir -p "$RESEARCH_WORKDIR/tmp"\n'
-        f"cat > \"$RESEARCH_WORKDIR/tmp/draft-alternatives.md\" <<'ART'\n"
-        f"{MINIMAL_ARTIFACT}ART",
-    )
-    result = _run_wrapper([str(CLEAN_BRIEF)], tmp_path, stub)
-    assert result.returncode == 0, result.stderr
-    log = tmp_path / "feature-requests" / "research-runs.jsonl"
-    assert log.exists(), "provenance log must be written under feature-requests/"
-    record = json.loads(log.read_text(encoding="utf-8").splitlines()[-1])
-    for key in (
-        "brief_sha256",
-        "artifact_sha256",
-        "code_git_sha",
-        "timestamp",
-        "graph",
-    ):
-        assert key in record, f"missing provenance key: {key}"
-    assert (
-        record["brief_sha256"] == hashlib.sha256(CLEAN_BRIEF.read_bytes()).hexdigest()
-    )
-
-
-@pytest.mark.req("REQ-YG-623")
-def test_verify_promotion_matching_missing_mismatched(preflight, tmp_path):
-    artifact_text = MINIMAL_ARTIFACT
-    brief = tmp_path / "brief.md"
-    brief.write_text("problem\n", encoding="utf-8")
-    record = tmp_path / "FR-900.research.md"
-    record.write_text("<!-- header -->\n\n" + artifact_text, encoding="utf-8")
-    line = {
-        "brief_path": str(brief),
-        "brief_sha256": hashlib.sha256(brief.read_bytes()).hexdigest(),
-        "artifact_sha256": hashlib.sha256(artifact_text.encode()).hexdigest(),
-        "code_git_sha": "deadbeef",
-        "timestamp": "2026-08-28T00:00:00Z",
-        "graph": "examples/demos/research-route/graph.yaml",
-    }
-    log = tmp_path / "research-runs.jsonl"
-    log.write_text(json.dumps(line) + "\n", encoding="utf-8")
-    assert (
-        preflight.verify_promotion(
-            record.read_text(encoding="utf-8"),
-            log.read_text(encoding="utf-8"),
-            str(tmp_path),
-        )
-        == "matching"
-    )
-    assert (
-        preflight.verify_promotion(
-            record.read_text(encoding="utf-8"), "", str(tmp_path)
-        )
-        == "missing"
-    )
-    tampered = record.read_text(encoding="utf-8").replace("FR-889", "FR-000")
-    assert (
-        preflight.verify_promotion(
-            tampered, log.read_text(encoding="utf-8"), str(tmp_path)
-        )
-        == "mismatched"
-    )
-
-
 # --- AC-09: 2026-08-28 solution-shaped librarian output, replayed -------------
 
 SOLUTION_SHAPED_LIBRARIAN = {
@@ -485,3 +416,50 @@ def test_verify_artifact_counts_non_echo_rows(preflight):
         text = text.replace(verdict, "| echo |")
     violations = preflight.verify_artifact(text)
     assert any("non-echo" in v for v in violations)
+
+
+# --- FR-1026: provenance ledger retired --------------------------------------
+
+
+@pytest.mark.req("REQ-YG-623")
+def test_wrapper_writes_no_provenance_ledger(tmp_path):
+    stub = _write_stub(
+        tmp_path / "yg",
+        'mkdir -p "$RESEARCH_WORKDIR/tmp"\n'
+        f"cat > \"$RESEARCH_WORKDIR/tmp/draft-alternatives.md\" <<'ART'\n"
+        f"{MINIMAL_ARTIFACT}ART",
+    )
+    result = _run_wrapper([str(CLEAN_BRIEF)], tmp_path, stub)
+    assert result.returncode == 0, result.stderr
+    assert not (tmp_path / "feature-requests" / "research-runs.jsonl").exists()
+    assert "provenance" not in result.stdout + result.stderr
+
+
+@pytest.mark.req("REQ-YG-623")
+def test_verify_promotion_flag_is_generic_usage_error(tmp_path):
+    result = subprocess.run(
+        [sys.executable, str(PREFLIGHT_PY), "--verify-promotion", "x", "y"],
+        capture_output=True,
+        text=True,
+        timeout=30,
+    )
+    assert result.returncode == 2
+    assert "usage" in (result.stdout + result.stderr).lower()
+    assert "verify-promotion" not in result.stdout + result.stderr
+
+
+@pytest.mark.req("REQ-YG-623")
+def test_verify_promotion_function_removed(preflight):
+    assert not hasattr(preflight, "verify_promotion")
+
+
+@pytest.mark.req("REQ-YG-623")
+def test_ledger_not_tracked():
+    tracked = subprocess.run(
+        ["git", "ls-files", "feature-requests/research-runs.jsonl"],
+        cwd=REPO_ROOT,
+        capture_output=True,
+        text=True,
+        timeout=30,
+    ).stdout.strip()
+    assert tracked == ""
