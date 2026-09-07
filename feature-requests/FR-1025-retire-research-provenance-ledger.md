@@ -19,7 +19,7 @@ precedent (SLSA/CISA: unenforced provenance verification is decorative).
 C-4 already limited the claim to hash consistency, not proof of run. This FR
 retires that surface and nothing else FR-896 delivered (tool-slot binding,
 librarian grounding, precedent block stay).
-[FR-890-corpus-haiku-fingerprint-enrichment.md](FR-890-corpus-haiku-fingerprint-enrichment.md)
+[FR-890-research-sole-route-closed-input-alternatives.md](FR-890-research-sole-route-closed-input-alternatives.md)
 — the research sole route and the judge substance check; unchanged.
 [FR-1004-retire-outsider-ledger.md](FR-1004-retire-outsider-ledger.md) —
 retrieval hit on "retire ledger"; a different ledger (outsider runs, write
