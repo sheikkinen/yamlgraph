@@ -17,17 +17,12 @@ Stdlib-only checks, no LLM in this path (FR-890 R-2/R-3, FR-896 C-6):
    (FR-896 R-2). The wrapper checks shape; the Judge checks substance.
    FR-1005: a short run carries JSON persona accounting whose keys are
    conserved against the five canonical persona keys.
-3. ``verify_promotion``: integrity check for a promoted research record
-   against the committed run log (FR-896 R-3) — recomputes the brief and
-   table-body hashes and reports matching / missing / mismatched. This
-   proves hash consistency, not execution.
 
-Exit codes: 64 brief violation, 65 artifact or promotion violation.
+Exit codes: 64 brief violation, 65 artifact violation.
 """
 
 from __future__ import annotations
 
-import hashlib
 import json
 import re
 import sys
@@ -366,49 +361,7 @@ def verify_artifact(text: str) -> list[str]:
     return violations
 
 
-def verify_promotion(record_text: str, log_text: str, repo_root: str = ".") -> str:
-    """Integrity verdict for a promoted research record (FR-896 R-3):
-    ``matching`` (a run-log line reproduces the table-body and brief hashes),
-    ``missing`` (no log lines) or ``mismatched``. Same-actor log: this proves
-    hash consistency, not that the graph executed."""
-    records = [json.loads(line) for line in log_text.splitlines() if line.strip()]
-    if not records:
-        return "missing"
-
-    start = record_text.find("# Draft alternatives")
-    if start == -1:
-        return "mismatched"
-    body_sha = hashlib.sha256(record_text[start:].encode("utf-8")).hexdigest()
-
-    for entry in records:
-        if entry.get("artifact_sha256") != body_sha:
-            continue
-        brief = Path(entry.get("brief_path", ""))
-        if not brief.is_absolute():
-            brief = Path(repo_root) / brief
-        if brief.is_file() and hashlib.sha256(
-            brief.read_bytes()
-        ).hexdigest() == entry.get("brief_sha256"):
-            return "matching"
-        return "mismatched"
-    return "mismatched"
-
-
 def main(argv: list[str]) -> int:
-    if argv and argv[0] == "--verify-promotion":
-        if len(argv) not in (3, 4):
-            print(
-                "usage: research_preflight.py --verify-promotion "
-                "<record.md> <research-runs.jsonl> [repo_root]",
-                file=sys.stderr,
-            )
-            return 2
-        record = Path(argv[1]).read_text(encoding="utf-8")
-        log = Path(argv[2]).read_text(encoding="utf-8")
-        root = argv[3] if len(argv) == 4 else "."
-        status = verify_promotion(record, log, root)
-        print(f"research_preflight: promotion {status}")
-        return 0 if status == "matching" else EXIT_ARTIFACT
     if argv and argv[0] == "--verify-artifact":
         if len(argv) != 2:
             print(

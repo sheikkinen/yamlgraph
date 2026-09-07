@@ -1,7 +1,7 @@
 name: Research Sole Route (Closed-Input Alternatives)
 id: CAP-248
 status: active
-fr: FR-890, FR-896, FR-926, FR-938, FR-1005
+fr: FR-890, FR-896, FR-926, FR-938, FR-1005, FR-1026
 feature_request: feature-requests/FR-890-research-sole-route-closed-input-alternatives.md
 description: >
   scripts/research.sh runs the examples/demos/research-route map+reduce
@@ -41,11 +41,10 @@ requirements:
       missing URLs, or fabrication; personas receive a deterministic
       bounded committed-context block; scripts/research.sh enforces
       usage (64), missing brief (66), re-entry sentinel (70), lock
-      (73/75), and artifact contract (65) taxonomy, verifies the
-      artifact by schema shape, and appends an integrity provenance
-      line (brief/artifact SHA-256, code git SHA) to
-      feature-requests/research-runs.jsonl checkable via
-      research_preflight.py --verify-promotion; when a persona key is
+      (73/75), and artifact contract (65) taxonomy and verifies the
+      artifact by schema shape (the FR-896 SHA-256 provenance ledger and
+      its verifier were retired by FR-1026: the judge's substance
+      read of the promoted record is the sole check); when a persona key is
       missing, the gather boundary cites the causes already recorded in
       state["errors"] (node, category, exception type, message) for
       PipelineError and dict entries alike, ignoring unstructured ones
