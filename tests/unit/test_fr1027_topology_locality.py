@@ -198,6 +198,10 @@ OWNER_RE = re.compile(r"--owner\s+([A-Za-z0-9_.-]+)|--var org=([A-Za-z0-9_.-]+)"
 ISSUE_KEY_RE = re.compile(r"\b([A-Z][A-Z0-9_]{1,}-\d+)\b")
 EMAIL_RE = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
 ATLASSIAN_RE = re.compile(r"[a-z0-9-]+\.atlassian\.net")
+# Provider endpoint hostnames identify corp infrastructure; proofs must not carry them.
+ENDPOINT_RE = re.compile(
+    r"[a-z0-9.-]+\.(?:cognitiveservices\.azure\.com|openai\.azure\.com|services\.ai\.azure\.com)"
+)
 OUT_ROOT_RE = re.compile(r"out_dir=([^\s\\]+)")
 ALLOWED_ISSUE_PREFIXES = (
     "DEMOAI-",
@@ -238,9 +242,9 @@ def _committed_artifacts() -> list[Path]:
     files += sorted(ADAPTERS.glob("jira-*.tool.yaml")) + sorted(
         ADAPTERS.glob("gh-*.tool.yaml")
     )
-    log = DEMO / "demo-output.log"
-    if log.exists():
-        files.append(log)
+    for log in (DEMO / "demo-output.log", ADAPTERS.parent / "demo-output.log"):
+        if log.exists():
+            files.append(log)
     return files
 
 
@@ -256,6 +260,8 @@ def test_locality_audit_no_private_identifiers_in_committed_artifacts():
                 problems.append(f"{rel}: owner {owner!r}")
         if ATLASSIAN_RE.search(text):
             problems.append(f"{rel}: atlassian host")
+        for m in ENDPOINT_RE.finditer(text):
+            problems.append(f"{rel}: provider endpoint host {m.group(0)!r}")
         for m in EMAIL_RE.finditer(text):
             problems.append(f"{rel}: e-mail {m.group(0)!r}")
         for m in ISSUE_KEY_RE.finditer(text):

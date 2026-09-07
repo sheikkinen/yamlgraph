@@ -20,3 +20,4 @@ canonicalized at the reducer boundary; code-search hits honour the visibility
 policy so a public-only run never carries private repository names. (REQ-YG-670)
 
 Live-run witnesses folded 2026-09-07: listing ceiling (MAX_LISTED=1000) separated from the active/LLM-spend ceiling (MAX_REPOS=400); on_error: skip error-shaped findings are contained as typed map_failed rows (2 of ~200 Azure calls exhausted their 429 retries), never an abort.
+Committed demo proofs carry no provider endpoint hostnames; the locality audit rejects them.

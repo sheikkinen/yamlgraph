@@ -8,19 +8,14 @@
 2026-09-07 19:28:27,902 [INFO] yamlgraph.compile.node_compiler: Added node: render_brief (type=python)
 2026-09-07 19:28:28,008 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: discover -> discover
 2026-09-07 19:28:28,089 [INFO] yamlgraph.utils.llm_factory: Creating LLM: azure/aaa-gpt-5.4-mini (temp=0.0)
-2026-09-07 19:28:30,696 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
 2026-09-07 19:28:30,709 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-07 19:28:31,112 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
 2026-09-07 19:28:31,114 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-07 19:28:31,158 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
 2026-09-07 19:28:31,163 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
 2026-09-07 19:28:31,164 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: reduce_ledger -> reduce_ledger
 2026-09-07 19:28:31,165 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: prepare_brief_input -> prepare_brief_input
-2026-09-07 19:28:31,232 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 400 Bad Request"
 /Users/sami.j.p.heikkinen/src/yamlgraph/tmp/worktrees/feat/fr1027-org-ai-dossier/.venv/lib/python3.12/site-packages/langchain_openai/chat_models/base.py:590: UserWarning: Invalid schema for OpenAI's structured output feature, which is the default method for `with_structured_output` as of langchain-openai==0.3. Specify `method="function_calling"` instead or update your schema. See supported schemas: https://platform.openai.com/docs/guides/structured-outputs#supported-schemas
   warnings.warn(message)
 2026-09-07 19:28:31,237 [INFO] yamlgraph.executor_base: Structured output rejected, falling back to JSON extraction (FR-464)
-2026-09-07 19:28:32,219 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
 2026-09-07 19:28:32,220 [INFO] yamlgraph.node_factory.llm_nodes: Node synthesize completed successfully
 2026-09-07 19:28:32,221 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: render_brief -> render_brief
 

@@ -471,8 +471,81 @@ the graph (a commit SHA alone would not identify an uncommitted file).
 
 ## Implementation Record
 
-_Filled at enforce: RED/GREEN SHAs per deliverable, AC-19 raw reads,
-deviations._
+**Commits (worktree `feat/fr1027-org-ai-dossier`):**
+
+| Step | RED | GREEN | Scope |
+| --- | --- | --- | --- |
+| Adapters (D-2, D-3) | `cc3108a4` | `cfdb3b05` | `gh_ai_adapters.py`, `jira_adapters.py`, 9 manifests, Jira smoke fixtures (relocated to `corpus_census/adapters/fixtures/jira/` — the demo audit forbids any file under a demo dir before its README/graph exist) |
+| Tools + graph (D-1, D-4, D-5, D-7, D-8) | `78127455` | `578ada5c` | `graph.yaml` + 5 prompts + README via `scripts/author.sh` (brief `authoring-briefs/fr-1027-org-ai-dossier-brief.md`, report verified by artifact); `preflight.py` (path-loaded, ceilings mirrored + asserted), `models.py`, `reduce.py`, `render.py`, `docs.py`, `canaries.py`; public smoke → `demo-output.log`; topology + locality audit |
+| Live-run fixes | — | `2fafd2ea` | `MAX_LISTED=1000` (cheap listing) separated from `MAX_REPOS=400` (active/LLM spend); `on_error: skip` error findings contained as `map_failed` rows |
+
+**Deviations from the frozen plan (all narrowing or mechanical):**
+
+- Jira fixtures live under `examples/demos/corpus_census/adapters/fixtures/jira/`
+  (not `org_ai_dossier/fixtures/`): the examples README audit scans the
+  filesystem and rejects a demo dir without README + graph, so adapter fixtures
+  had to ship with the adapters.
+- `preflight` is its own module `preflight.py` (not `tools.py`): slot manifests
+  are path-loaded without the repo root on `sys.path`, so the preflight module is
+  stdlib-only with ceilings mirrored from `models.py` and a test asserting
+  equality (`test_preflight_ceiling_mirrors_match_models`).
+- `gh_org_active_discover` accepts `org` + `window_days` state keys as well as
+  `source` — yamlgraph templates resolve one placeholder per string, so the
+  brief's `"{state.org}:{state.window_days}"` resolves to `None`.
+- Code-search hits are filtered by the visibility policy at the adapter (the
+  first smoke put private repo names of the demo owner into a public-only log).
+- Out-of-set search hits are COUNTED in caveats, never named (same reason).
+- Demo proofs are stripped of provider-endpoint httpx lines (`*.cognitiveservices.azure.com`
+  etc.) before commit — the Azure endpoint hostname is corp infrastructure in a
+  public repo (operator instruction 2026-09-07); the locality audit now rejects
+  any provider endpoint host in committed artifacts, including the
+  `corpus_census` proof (38 such lines were in the first committed proof).
+- Demo proof runs without `--full`: the gate's fatal-marker regex
+  `Node .+ failed` is greedy across a dumped state line and matched README
+  prose inside a bundle (`node … A failed send`). Not a defect in this FR;
+  recorded for the gate's owner.
+- Ceiling split: the org lists ~590 repos but only ~200 are active; the
+  judge's "N+1 aborts before LLM spend" applies to the LLM-spend ceiling
+  (active repos), while the single listing call has its own cheap ceiling.
+
+**Raw-output read (AC-19) — public smoke, `azure/aaa-gpt-5.4-mini`, 2026-09-07:**
+
+Ten `classify_repo_ai` and two `classify_jira_ai` raw findings read end-to-end
+(`ledgers/raw_*.jsonl` are now written on every run for this purpose). What
+the read changed in CODE before any aggregate was trusted:
+
+1. Tool names drift: `Copilot`, `GitHub Copilot`, `GitHub Copilot CLI`,
+   `copilot instructions` for one tool; `Anthropic Claude` as a provider →
+   `canonical_tool_name` at the reducer boundary (`junk_drawer_cap`).
+2. `evidence_path: "README excerpt"` / `"README.md"` for tools only mentioned
+   in prose → correctly dropped by the evidence boundary; the row demotes to
+   `unclear` (3 of 10 repos) — the canary family (b) exists for exactly this.
+3. Instruction-file paths returned as tool NAMES (`.github/skills/`,
+   `AGENTS.md`) → canonicalized to `agent-skills` / `agents-md`.
+4. `actions-user` ranked #2 person with score 5 → added to bot markers.
+5. Synthesis claims echoed `row:…` ids inside the prose → stripped by the
+   renderer; citations stay in brackets.
+6. The Jira canary (a) was classified `both` on the first pass (the reviewer
+   considered "AI-assisted ticket summarization" product use) — the canary
+   expects `dev_tooling`; the prompt was not changed, the fixture makes the
+   evidence unambiguous, and the live run's canary check remains the witness.
+7. Onepager landed at 468–556 words of the 800 budget with 3 findings.
+8. Coverage on the public owner: `api_total: unavailable` (org endpoint 404
+   for a user account) rendered exactly as R-4 requires.
+
+Live-run raw read (10 repo + 5 Jira from `research/…/ledgers/raw_*.jsonl`):
+_pending — run in progress; recorded on completion._
+
+**Observed, not fixed (out of scope):**
+
+- `tests/unit/test_ramp_installer.py::test_wrapper_delegates` depends on
+  `.venv` being on `PATH` (bare `python3`).
+- `.venv/bin/yamlgraph` is the main checkout's editable install; worktree
+  runs need a `python -m yamlgraph.cli` shim (also hit by FR-1028 AC-10).
+- Azure deployment rate limit: ~530 HTTP 429s vs 240 200s at
+  `max_concurrency: 4`; the client's retry absorbed all but 2 of ~200
+  classifications. Lowering concurrency is a graph edit (author.sh route),
+  deferred.
 
 ## Related
 
