@@ -13,6 +13,7 @@ import yaml
 from langgraph.checkpoint.base import BaseCheckpointSaver
 from langgraph.graph import StateGraph
 
+from yamlgraph.compile.default_overrides import apply_default_overrides
 from yamlgraph.compile.edge_compiler import _add_conditional_edges, _process_edge
 from yamlgraph.compile.node_compiler import compile_nodes
 from yamlgraph.data_loader import load_data_files
@@ -117,12 +118,20 @@ class GraphConfig:
 
 
 def load_graph_config(
-    path: str | Path, tool_bindings: dict[str, str] | None = None
+    path: str | Path,
+    tool_bindings: dict[str, str] | None = None,
+    *,
+    provider_override: str | None = None,
+    model_override: str | None = None,
 ) -> GraphConfig:
     """Load and parse a YAML graph definition.
 
     Args:
         path: Path to the YAML file
+        tool_bindings: FR-892 slot name → manifest path bindings
+        provider_override: FR-1028 — replaces ``defaults.provider`` of THIS
+            graph only; explicit node pins keep precedence
+        model_override: FR-1028 — replaces ``defaults.model`` likewise
 
     Returns:
         GraphConfig instance
@@ -145,6 +154,8 @@ def load_graph_config(
         raise ValueError(
             f"Graph config must be a dict, got {type(config).__name__}: {path}"
         )
+
+    config = apply_default_overrides(config, provider_override, model_override)
 
     # FR-010: Auto-apply skip_if_exists=false to loop nodes
     config = apply_loop_node_defaults(config)

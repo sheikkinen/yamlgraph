@@ -160,7 +160,27 @@ already "has" an override that does not reach the nodes this FR needs.
 
 ## Implementation Record
 
-_To be filled at enforce: RED/GREEN SHAs, deviations, decisions._
+- **RED** `6f40af69` — `tests/unit/test_fr1028_provider_model_override.py`,
+  11 failed / 2 passed (the two no-flag paths pass by construction, AC-07 and
+  the pair-unset half of AC-08). CAP-267 / REQ-YG-671, ARCHITECTURE row,
+  fragment.
+- **GREEN** — see the commit following RED. Deviations from the plan:
+  - The override helper lives in a new `yamlgraph/compile/default_overrides.py`
+    (`apply_default_overrides`) rather than inside `graph_loader.py`: the
+    loader was at 434 lines and the addition crossed the 450-line gate.
+  - `verify_artifact` in `research_preflight.py` was already CC 22 (grade D)
+    on main; touching the file made the radon gate bite, so the per-row loop
+    was extracted into `_check_row` (behaviour-preserving; the FR-890/1005/938
+    suites are the witnesses).
+  - Provenance stamp: `head -1 / echo / tail -n +2` into `$ARTIFACT.tmp` then
+    `mv` — the line lands directly under the title, before the persona
+    accounting lines.
+- Observed, not fixed (out of scope): `tests/unit/test_ramp_installer.py::
+  test_wrapper_delegates` shells `scripts/ramp.sh` → bare `python3`, so it
+  fails in any shell where `.venv` is not on `PATH` (`ModuleNotFoundError:
+  yaml`). Passes with the venv activated. Test-isolation defect to file
+  separately; not caused by this change.
+- Live witness (AC-10): pending — next step in this arc.
 
 ## Alternatives Considered
 

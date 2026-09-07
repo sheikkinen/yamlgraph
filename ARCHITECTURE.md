@@ -581,7 +581,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 263 | CAP-263 Outsider Reader for PR Descriptions | `.github/skills/outsider-view/adapters/outsider_tools.py`, `.github/skills/outsider-view/adapters/graph.yaml`, `scripts/outsider.sh`, `tests/unit/test_fr995_outsider_reader.py`, … | REQ-YG-660 – 663 |
 | 264 | CAP-264 Chaplain runtime retired | `tests/unit/test_fr1012_chaplain_removed.py` | REQ-YG-666 |
 | 265 | CAP-265 Static module map | `scripts/generate_module_map.py`, `reference/module-map.md`, `tests/unit/test_fr331_static_module_map_tier2_context.py`, `tests/unit/test_fr335_module_map_compression.py` | REQ-YG-667 |
-| 267 | CAP-267 Graph run provider/model override | `yamlgraph/cli/__init__.py`, `yamlgraph/cli/graph_commands.py`, `yamlgraph/compile/graph_loader.py`, `scripts/research.sh`, … | REQ-YG-671 |
+| 267 | CAP-267 Graph run provider/model override | `yamlgraph/cli/__init__.py`, `yamlgraph/cli/graph_commands.py`, `yamlgraph/compile/graph_loader.py`, `yamlgraph/compile/default_overrides.py`, … | REQ-YG-671 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -3258,7 +3258,7 @@ Deterministic, stdlib-only static module map of the yamlgraph package (scripts/g
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
-| REQ-YG-671 | graph run accepts optional --provider/--model (None when omitted); load_graph_config(provider_override=, model_override=) replaces only the named root default on a copy of the parsed mapping, leaving the source unmutated and a plain reload unaffected; defaults-only llm and agent nodes inherit the pair, explicit pins win independently, a mixed pin inherits only the unpinned field; graph-tool children are loaded without overrides; scripts/research.sh forwards the RESEARCH_PROVIDER/RESEARCH_MODEL pair in stable order, exits 64 before the executor on a half-set pair, and stamps exactly one `- provider/model:` line that the artifact verifier accepts once and rejects when empty, duplicate, or malformed (legacy artifacts without the line still pass). | `yamlgraph/cli/__init__.py`, `yamlgraph/compile/graph_loader.py`, `scripts/research.sh`, `scripts/research_preflight.py` |
+| REQ-YG-671 | graph run accepts optional --provider/--model (None when omitted); load_graph_config(provider_override=, model_override=) replaces only the named root default on a copy of the parsed mapping, leaving the source unmutated and a plain reload unaffected; defaults-only llm and agent nodes inherit the pair, explicit pins win independently, a mixed pin inherits only the unpinned field; graph-tool children are loaded without overrides; scripts/research.sh forwards the RESEARCH_PROVIDER/RESEARCH_MODEL pair in stable order, exits 64 before the executor on a half-set pair, and stamps exactly one `- provider/model:` line that the artifact verifier accepts once and rejects when empty, duplicate, or malformed (legacy artifacts without the line still pass). | `yamlgraph/cli/__init__.py`, `yamlgraph/compile/graph_loader.py`, `yamlgraph/compile/default_overrides.py`, `scripts/research.sh`, `scripts/research_preflight.py` |
 
 <!-- END GENERATED CAPABILITIES -->
 
