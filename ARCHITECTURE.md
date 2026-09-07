@@ -581,6 +581,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 263 | CAP-263 Outsider Reader for PR Descriptions | `.github/skills/outsider-view/adapters/outsider_tools.py`, `.github/skills/outsider-view/adapters/graph.yaml`, `scripts/outsider.sh`, `tests/unit/test_fr995_outsider_reader.py`, … | REQ-YG-660 – 663 |
 | 264 | CAP-264 Chaplain runtime retired | `tests/unit/test_fr1012_chaplain_removed.py` | REQ-YG-666 |
 | 265 | CAP-265 Static module map | `scripts/generate_module_map.py`, `reference/module-map.md`, `tests/unit/test_fr331_static_module_map_tier2_context.py`, `tests/unit/test_fr335_module_map_compression.py` | REQ-YG-667 |
+| 266 | CAP-266 Org AI dossier census (GitHub + Jira) | `examples/demos/org_ai_dossier/graph.yaml`, `examples/demos/org_ai_dossier/tools.py`, `examples/demos/corpus_census/adapters/gh_ai_adapters.py`, `examples/demos/corpus_census/adapters/jira_adapters.py`, … | REQ-YG-670 |
 | 267 | CAP-267 Graph run provider/model override | `yamlgraph/cli/__init__.py`, `yamlgraph/cli/graph_commands.py`, `yamlgraph/compile/graph_loader.py`, `yamlgraph/compile/default_overrides.py`, … | REQ-YG-671 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
@@ -3249,6 +3250,16 @@ Deterministic, stdlib-only static module map of the yamlgraph package (scripts/g
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-667 | scripts/generate_module_map.py parses yamlgraph/ with ast only, writes reference/module-map.md with exports, yamlgraph-internal dependency lists and a deterministic test-map section, stays within the FR-335 line budget, does not render trivial __init__ modules as sections, and CLAUDE.md points at the artifact. | `scripts/generate_module_map.py`, `reference/module-map.md` |
+
+### 266. CAP-266 Org AI dossier census (GitHub + Jira)
+
+Contrib/example graph `examples/demos/org_ai_dossier/` built on the corpus-census pattern with a frozen two-source topology: GitHub active repositories and Jira active projects are discovered, extracted and classified (one Azure judgement per unit, temperature 0, every LLM node pinned `provider: azure`); typed LLM-free reducers own identities, coverage denominators, evidence reconciliation (model claims survive only with bundle-present evidence), two hidden semantic canary families, an AI-tool inventory, and two source-qualified person rankings (no cross-system join); an explicitly authorized (`persons_llm` required, no default, ack recorded) Azure map writes per-person summaries; two bounded synthesis judgements write dossier findings and a ≤800-word onepager. Numeric ceilings abort at N+1 before any LLM spend; the output root is enforced beneath gitignored `research/org-ai-dossier/` (smoke: `tmp/`), artifacts are written atomically only after reconciliation and canaries pass, and a mechanical locality audit keeps private identifiers out of the public repo. Adapters: `gh_ai_adapters.py` (active discover, AI-signal extract, org code search), `jira_adapters.py` (REST v3 discover/extract + smoke fixtures).
+
+**Feature Request:** FR-1027
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-670 | GitHub discover filters visibility/archived/window, returns sorted unique ids and aborts at MAX_REPOS+1; extract emits a typed bounded GitHubBundle (instruction files, manifest/workflow AI hits with paths, in-window PR authors with bot flags, tree truncation, absent markers); org code search respects term/result/rate ceilings and flags caps; Jira discover paginates with a page-cap overflow abort, validates keys, counts activity via approximate-count and reports dormant keys; Jira extract emits a typed bounded JiraBundle (≤30 issues, accountId-keyed persons, ADF flattened to ≤300 chars, AI-term clauses, non-2xx raise, single 429 retry); reducers reconcile identities exactly once, drop unsupported model claims, enforce both canary families and all ceilings, keep persons source-qualified with two rankings, gate person summaries on a required no-default policy input with ack, render denominator-qualified shares and a ≤800-word onepager, and write artifacts atomically only under the enforced output root; the locality audit passes on every committed artifact. | `examples/demos/org_ai_dossier/tools.py`, `examples/demos/corpus_census/adapters/gh_ai_adapters.py`, `examples/demos/corpus_census/adapters/jira_adapters.py` |
 
 ### 267. CAP-267 Graph run provider/model override
 
