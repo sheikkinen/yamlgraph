@@ -2,8 +2,11 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Proposed
-**Effort:** 3 days
+**Status:** Judged — APPROVED WITH REVISIONS 2026-09-07; R-1..R-8 folded
+2026-09-07; R-6 human policy answer recorded (§ Decisions 5); see
+[FR-1027-org-ai-dossier-census.judgement.md](FR-1027-org-ai-dossier-census.judgement.md)
+**Effort:** 5 days (was 3; judgement R-2/R-3/R-7 added typed contracts,
+ceilings, canaries, locality audit)
 **Requested:** 2026-09-07
 **First consumer / first event:** the operator, asked by management "which of
 our projects are active, which use AI, with what tools, and who carries them"
@@ -14,30 +17,37 @@ re-answered next quarter by re-running it
 2026-09-07T10:14Z on `azure/aaa-gpt-5.4-mini` via FR-1028 (`RESEARCH_PROVIDER`
 /`RESEARCH_MODEL`), all five personas executed. Dispositioned in § Research
 Disposition. Sizing probes and the Copilot-API / code-search alternative probes
-are recorded in gitignored `research/org-ai-dossier/sizing.md`.
+are recorded in gitignored `research/org-ai-dossier/sizing.md` (outside the
+judge's input closure by design).
 **Prior art:** FR-892 (corpus_census: injected discover/extract slots, LLM-free
-reduce, one synthesis tail) — FOUNDATION, reused unchanged. FR-899
-(repo_census: org repos → purpose/persons/activity on pinned Azure, customer
-org as runtime var) — DISTINCT: no AI-usage signal, no Jira source, no
-cross-org person rank, no dossier/onepager shape; its evidence bundle is
-frozen by judgement, so this FR is a SIBLING (FR-962 pattern), not an
-extension. FR-962 (person_profile_census: one person's authored PRs, consent
-warning R-1..R-5) — OVERLAPPING TERRITORY on persons; dispositioned in
-§ Persons: this FR ranks by mechanical footprint and bounds the LLM to a
-professional-contribution summary over work-system facts, inheriting the
-FR-962 warning verbatim. FR-896 (own-footprint pattern/model census) —
-distinct subject (author's repos, public artifact). FR-874 (REJECTED memory
-transport into this public repo) — the reason every output is gitignored.
+reduce, one synthesis tail) — FOUNDATION: this FR reuses the **pattern** and
+the adapter slot contract, NOT the one-corpus `corpus_census/graph.yaml`
+unchanged (judgement R-1). FR-899 (repo_census: org repos →
+purpose/persons/activity on pinned Azure, customer org as runtime var) —
+DISTINCT: no AI-usage signal, no Jira source, no dossier/onepager shape; its
+evidence bundle is frozen by judgement, so this FR is a SIBLING (FR-962
+pattern), not an extension. FR-962 (person_profile_census: one person's
+authored PRs, consent warning R-1..R-5) — OVERLAPPING TERRITORY on persons;
+dispositioned in § Persons: source-qualified identities only, two source-local
+rankings, no cross-system join, LLM summary gated by a no-default policy
+input, FR-962 warning verbatim in the README. FR-896 (own-footprint
+pattern/model census) — distinct subject. FR-874 (REJECTED memory transport
+into this public repo) — the reason every output is gitignored and
+preflight-enforced (R-7). FR-1028 — the provider override that unblocked this
+FR's research run; NOT used by this graph (every LLM node pins Azure).
 
 ## Summary
 
-One graph, `examples/demos/org_ai_dossier/`, composes the corpus_census
-pipeline three times — GitHub active repositories, Jira active projects, and
-the persons derived from both — with LLM-free reducers for activity,
-ranking, AI-tool inventory, and coverage denominators, then spends two Azure
-synthesis calls on a full dossier and a one-page overview. Every LLM node
-pins `provider: azure`. Org name, Jira site, activity window, and output
-directory are runtime inputs; nothing org-specific is committed.
+One new contrib/example graph, `examples/demos/org_ai_dossier/graph.yaml`,
+built on the corpus-census PATTERN with its own frozen two-source topology:
+GitHub active repositories and Jira active projects are discovered,
+extracted, and classified (one Azure judgement per unit); typed LLM-free
+reducers own activity, identities, coverage denominators, AI-tool inventory,
+evidence reconciliation, and two source-local person rankings; an optional,
+explicitly authorized Azure map writes per-person contribution summaries; two
+bounded Azure synthesis judgements write the dossier findings and the
+onepager. Every artifact lands under an enforced gitignored output root.
+Nothing org-specific is committed.
 
 ## Value Statement
 
@@ -60,252 +70,416 @@ which a graph cannot call. Hand-written dossiers
 
 ```bash
 yamlgraph graph run examples/demos/org_ai_dossier/graph.yaml \
-  --var org="<org>" --var window_days=90 --var top_persons=30 \
+  --tool preflight=examples/demos/org_ai_dossier/preflight.tool.yaml \
+  --tool gh_discover=examples/demos/corpus_census/adapters/gh-org-active-discover.tool.yaml \
+  --tool gh_extract=examples/demos/corpus_census/adapters/gh-repo-ai-extract.tool.yaml \
+  --tool gh_search=examples/demos/corpus_census/adapters/gh-org-code-search.tool.yaml \
+  --tool jira_discover=examples/demos/corpus_census/adapters/jira-active-discover.tool.yaml \
+  --tool jira_extract=examples/demos/corpus_census/adapters/jira-project-extract.tool.yaml \
+  --var org="<org>" --var visibility="private,internal,public" \
+  --var window_days=90 --var top_persons=30 \
+  --var persons_llm=true --var persons_llm_ack="I am the accountable controller; employer policy authorizes work-system-fact summaries" \
   --var out_dir=research/org-ai-dossier/2026-09-07 --full
 ```
 
-produces, under gitignored `out_dir`:
+produces, under `out_dir` (resolved beneath gitignored `research/org-ai-dossier/`):
 
-| Artifact | Producer | Content |
+| Artifact | Owner | Content |
 | --- | --- | --- |
-| `onepager.md` | 1 Azure synthesis call over code-reduced tables | ≤1 page: coverage denominators, active-project counts (GitHub / Jira), AI-using share WITH denominator, top AI tools, top persons, three findings, method + date + caveats |
-| `dossier.md` | code-rendered tables + 1 Azure synthesis call for the findings section | coverage, findings, AI-tool inventory (tool → kind → repos/projects → evidence), per-person section (footprint + 2–3 sentence contribution summary) |
-| `repos.md`, `jira.md` | code-rendered from ledgers | per-repo section (purpose, activity, AI usage, tools, evidence paths, top contributors); per-Jira-project section (purpose, activity counts, AI usage, tools, evidence issue keys, top assignees) |
-| `ledgers/repos.jsonl`, `ledgers/jira.jsonl`, `ledgers/persons.jsonl`, `ledgers/ai_tools.csv` | LLM-free reducers | deterministic, one row per unit, every LLM claim carries its evidence citation |
-| `run.json` | code | org, window, timestamps, git SHA of the graph, coverage: visible-repo count vs org-API count, archived, active; Jira visible vs active; Azure deployment name; token totals |
+| `onepager.md` | 1 Azure synthesis judgement over code-reduced tables, code-verified | ≤ **800 words**: coverage block, GitHub/Jira active counts, AI-use shares each as `n of <denominator>` incl. `unclear`, top AI tools, two source-separated top-person lists, exactly three cited findings, method + date, caveats |
+| `dossier.md` | code-rendered tables + 1 Azure synthesis judgement for the findings section | coverage block, findings, AI-tool inventory (tool → kind → repos/projects → evidence), person section (two rankings; summaries only when authorized) |
+| `repos.md`, `jira.md` | code | per-unit sections from the ledgers |
+| `ledgers/repos.jsonl`, `ledgers/jira.jsonl`, `ledgers/persons.jsonl`, `ledgers/ai_tools.csv` | typed reducers | one row per unit, frozen columns (§ Typed contracts), every model claim carries bundle-present evidence |
+| `run.json` | code | `RunRecord` (§ Typed contracts): identities/hashes, estimated vs actual API and LLM call counts, provider/deployment, prompt versions, run id, timestamps, every truncation/partial-coverage flag. **No token totals** (R-3: no in-graph mechanism exists; not widened here) |
 
 Zero LLM calls leave the pinned Azure deployment; zero org identifiers enter
-this repo.
+this repo; no success-shaped artifact exists unless reconciliation and both
+semantic canaries passed.
 
 ## Proposed Solution
 
-### Pipeline (cheap-map / code-reduce / one-judgement-tail)
+### Frozen topology (R-1)
+
+Sequential two-source pipeline, one graph, sibling of `repo_census`
+(preflight-first, slots bound at invocation, `provider: azure` and
+`temperature: 0` on every `type: llm` node, `on_error: fail` on every
+mechanical node, `max_items` on every map).
 
 ```text
-preflight ─► coverage ─► gh_discover ──► map gh_extract ──► map classify_repo ─┐
-                    └──► jira_discover ► map jira_extract ► map classify_jira ─┤
-                                                                               ▼
-                                                  reduce (code): activity, AI-tool
-                                                  inventory, claim reconciliation,
-                                                  person footprint + top-N rank
-                                                                               │
-                                          map summarize_person (top-N, Azure) ◄┘
-                                                                               │
-                        render_dossier (code tables + 1 Azure findings call) ◄─┘
-                        render_onepager (1 Azure call)  ─► out_dir
+preflight ─► coverage_gh ─► gh_discover ─► map gh_extract ─► gh_search ─► map classify_repo
+  ─► coverage_jira ─► jira_discover ─► map jira_extract ─► map classify_jira
+  ─► reduce (typed; reconciliation + canaries; aborts before any artifact)
+  ─► prepare_person_input ─┬─[persons_llm_active == true]─► map summarize_person ─┐
+                           └─[persons_llm_active != true]──────────────────────────┤
+  ─► prepare_findings_input ─► synthesize_findings ─► synthesize_onepager ─► render_artifacts ─► END
 ```
 
-Authored via `scripts/author.sh` (FR-767 sole route). The graph is a sibling
-of `repo_census/graph.yaml`: same preflight-first shape, `provider: azure`
-on every `type: llm` node, `max_items` caps on every map.
+Frozen declarations:
+
+- **Slots** (`slot: true`, FR-892): `preflight`, `gh_discover`, `gh_extract`,
+  `gh_search`, `jira_discover`, `jira_extract`. Local python tools (module
+  `examples.demos.org_ai_dossier.tools`): `coverage_gh`, `coverage_jira`,
+  `reduce`, `prepare_person_input`, `prepare_findings_input`,
+  `render_artifacts`.
+- **State keys:** `org`, `visibility`, `window_days`, `top_persons`,
+  `persons_llm`, `persons_llm_ack`, `out_dir`, `preflight_ok`,
+  `coverage_gh` (dict), `repo_items` (list), `repo_bundles` (list,
+  `sorted_add`), `search_hits` (dict), `repo_findings` (list, `sorted_add`),
+  `coverage_jira` (dict), `jira_items` (list), `jira_bundles` (list,
+  `sorted_add`), `jira_findings` (list, `sorted_add`), `reduced` (dict),
+  `person_input` (list), `persons_llm_active` (bool), `person_summaries`
+  (list, `sorted_add`), `findings_input` (dict), `findings_claims` (dict),
+  `onepager_claims` (dict), `artifacts` (dict).
+- **Edges:** linear as drawn; the single branch is two conditional edges out
+  of `prepare_person_input` on `persons_llm_active` (FR-467 fixed the
+  conditional→map fold); both paths join at `prepare_findings_input`.
+- **Reducer order inside `reduce`:** (1) reconcile repo identities
+  (discovered set == extracted set == classified set, each exactly once);
+  (2) reconcile Jira identities likewise; (3) evidence reconciliation of
+  every model claim (drop unsupported tools, demote `ai_usage` to
+  `unclear`); (4) merge `search_hits` only onto frozen active-repo ids,
+  everything else → caveats; (5) build source-qualified person footprints
+  and the two rankings; (6) AI-tool inventory; (7) coverage record; (8)
+  **canary check** (two families, § Canaries); (9) return `reduced`. Any
+  failure in 1–8 raises → `on_error: fail` → no artifact.
+- **Artifact-write boundary:** ONLY `render_artifacts` writes files, and only
+  after `reduced` exists and both synthesis claims passed citation
+  validation. It writes ledgers, `repos.md`, `jira.md`, `dossier.md`,
+  `onepager.md`, `run.json` into a temp dir and renames it to `out_dir`
+  atomically.
+- **Live vs smoke bindings:** live binds `preflight.tool.yaml` (Azure +
+  `gh auth status` + visibility policy + Jira env + `persons_llm` /
+  `persons_llm_ack` + `out_dir` root) and the live gh/jira adapters. Smoke
+  binds `smoke_preflight.tool.yaml` (Azure + `gh auth status` + visibility
+  == `public` + `out_dir` root; **no Jira env check**) and
+  `jira-fixture-discover.tool.yaml` / `jira-fixture-extract.tool.yaml`
+  (committed public-safe fixture bundles); GitHub stays live against
+  `sheikkinen` public repos. The committed `graph.yaml` binds nothing — the
+  README carries both commands. Every mode enters through the same first
+  node `preflight`.
+- Authored via `scripts/author.sh` (FR-767 sole route); the authoring
+  report is D-9 evidence.
 
 ### Adapters (FR-892 slot contract: state-dict in, `list[str]`/`str` out)
 
 New module `examples/demos/corpus_census/adapters/gh_ai_adapters.py`
-(`corpus_adapters.py` is at 364 lines — the 400-line rule forbids growing it):
+(`corpus_adapters.py` is at 364 lines). Fixed argv `gh` via `subprocess.run`
+(no shell), `GH_TIMEOUT` per call.
 
 - **`gh_org_active_discover(state)`** — `source` = `<org>:<window_days>`;
-  fixed argv `gh repo list <org> --limit 1000 --json
-  name,pushedAt,isArchived`; returns non-archived repos with `pushedAt`
-  inside the window. Malformed source → `ValueError`.
-- **`gh_repo_ai_extract(state)`** — FR-899 bundle (metadata, README head,
-  contributors) PLUS deterministic AI-signal probes, each a fixed `gh api`
-  call, bundle capped at `MAX_CHARS`:
-  - one `git/trees/HEAD?recursive=1` call (truncated flag honoured) →
-    presence of agent-instruction paths (`.github/copilot-instructions.md`,
-    `CLAUDE.md`, `AGENTS.md`, `.cursorrules`, `.cursor/`, `.claude/`,
-    `.github/skills/`, `.github/agents/`) and the list of dependency
-    manifests (`package.json`, `requirements*.txt`, `pyproject.toml`,
-    `*.csproj`, `Directory.Packages.props`, `go.mod`, `composer.json`);
-  - ≤6 manifest fetches, each grepped in code against a fixed AI-package
-    vocabulary (`openai`, `@azure/openai`, `Azure.AI.*`, `anthropic`,
-    `langchain*`, `langgraph`, `llama-index`, `semantic-kernel`,
-    `Microsoft.SemanticKernel`, `ai` (Vercel), `transformers`, `ollama`,
-    `mistralai`, `google-generativeai`, `cohere`, `@anthropic-ai/*`) —
-    matched lines recorded with path;
-  - ≤5 workflow files grepped for AI actions (`copilot`, `openai`,
-    `claude`, `ai-inference`);
-  - `pulls?state=all&per_page=30` → author logins with bot flags
-    (`copilot-swe-agent[bot]`, `Copilot`, `dependabot[bot]`, `renovate`).
-- **`gh_org_code_search(state)`** — org-wide `gh search code --owner <org>
-  <keyword>` for a fixed keyword list (English package/agent terms plus
-  Finnish `tekoäly`, `kielimalli`, `tekoälyavustaja`); ONE call per keyword (code-search
-  limit is 10/min, so the node sleeps to budget); returns `repo → keywords
-  hit`. Probe 2026-09-07 confirmed this works on the private org and
-  surfaces repos the per-repo manifest grep can miss (AI usage in source,
-  not in a manifest). Result is a discover-side signal merged into the repo
-  ledger by code; `--limit 100` cap per keyword is recorded in `run.json`.
+  `gh repo list <org> --limit <MAX_REPOS+1> --json
+  name,pushedAt,isArchived,visibility`. If the listing returns
+  `MAX_REPOS+1` rows → `OverflowError` (corpus exceeds ceiling; no LLM
+  spend). Filters: `visibility ∈ state.visibility` (else `ValueError`
+  naming the offending repo — visibility policy is enforced HERE, before
+  extraction), `isArchived == false`, `pushedAt` within window (ISO parse;
+  malformed → `ValueError`). Returns sorted unique `<org>/<name>`.
+  Duplicates → `ValueError`.
+- **`gh_repo_ai_extract(state)`** — `item` = `<org>/<name>`; emits
+  `GitHubBundle` JSON (§ Typed contracts), capped `MAX_BUNDLE_CHARS`:
+  `repos/{item}`, `readme` (head `MAX_README_CHARS`),
+  `contributors?per_page=MAX_CONTRIBUTORS`, `git/trees/HEAD?recursive=1`
+  (`truncated` flag copied into the bundle), ≤ `MAX_MANIFESTS` manifest
+  fetches from the fixed path list (`package.json`, `requirements*.txt`,
+  `pyproject.toml`, `*.csproj`, `Directory.Packages.props`, `go.mod`,
+  `composer.json`) grepped in code against the fixed AI-package vocabulary
+  (`openai`, `@azure/openai`, `Azure.AI.`, `anthropic`, `@anthropic-ai/`,
+  `langchain`, `langgraph`, `llama-index`, `llama_index`, `semantic-kernel`,
+  `Microsoft.SemanticKernel`, `"ai"` (Vercel), `transformers`, `ollama`,
+  `mistralai`, `google-generativeai`, `cohere`) — hits recorded as
+  `{path, line}`; ≤ `MAX_WORKFLOWS` workflow files grepped for `copilot`,
+  `openai`, `claude`, `ai-inference`; instruction-file presence from the
+  tree (`.github/copilot-instructions.md`, `CLAUDE.md`, `AGENTS.md`,
+  `.cursorrules`, `.cursor/`, `.claude/`, `.github/skills/`,
+  `.github/agents/`); `pulls?state=all&per_page=MAX_PRS&sort=updated` →
+  in-window PR authors with bot flag (`[bot]` suffix, `Copilot`,
+  `copilot-swe-agent`, `dependabot`, `renovate`). Non-zero `gh` exit on the
+  metadata call → raise; on optional calls (readme, manifest) → typed
+  `absent` marker, never a silent skip.
+- **`gh_org_code_search(state)`** — one `gh search code --owner <org>
+  <keyword> --limit MAX_SEARCH_RESULTS --json repository` per keyword in the
+  frozen list (`openai`, `anthropic`, `langchain`, `Azure.AI`,
+  `semantic-kernel`, `copilot-instructions`, `CLAUDE.md`, `AGENTS.md`,
+  `tekoäly`, `kielimalli`, `tekoälyavustaja`; `MAX_SEARCH_TERMS` = 12);
+  sleeps to stay ≤ 10 calls/min; returns
+  `{keyword: {repos: [...], capped: bool}}` where `capped` is true when the
+  result count equals `MAX_SEARCH_RESULTS`. The reducer maps hits onto
+  frozen active-repo ids; unknown / inactive / archived / non-listed repos
+  and every `capped` keyword become `CoverageRecord.search_caveats`, never
+  silent merges.
 
-New module `examples/demos/corpus_census/adapters/jira_adapters.py`, REST v3
-with basic auth from `JIRA_URL` / `JIRA_USERNAME` / `JIRA_API_TOKEN` (the
-same names the editor's `mcp-atlassian` server already uses; the operator
-exports them). `urllib.request`, fixed URLs, no shell, `timeout` on every
-call:
+New module `examples/demos/corpus_census/adapters/jira_adapters.py` — REST v3
+via `urllib.request`, basic auth from `JIRA_URL` / `JIRA_USERNAME` /
+`JIRA_API_TOKEN`, fixed URL templates, `urllib.parse.quote` on every path
+segment and JQL, `timeout=JIRA_TIMEOUT`, non-2xx → `RuntimeError(status,
+url)`; 429 → one retry after `Retry-After`, then raise.
 
-- **`jira_active_discover(state)`** — `GET /rest/api/3/project/search`
-  paginated (≤ `MAX_PAGES`); per project one
-  `POST /rest/api/3/search/approximate-count` with `project = <KEY> AND
-  updated >= -<window>d`; returns keys with count > 0. Dormant keys are
-  written to the coverage record, not silently dropped.
-- **`jira_project_extract(state)`** — project meta (name, type, lead
-  displayName), approximate counts (updated-in-window, created-in-window),
-  ≤30 most recently updated issues (`key`, `summary`, `issuetype`,
-  `status`, `assignee.displayName`, `reporter.displayName`, first 300 chars
-  of description), assignee/reporter frequency top-10, and an AI-keyword
-  count via `text ~ "AI OR LLM OR GPT OR Copilot OR tekoäly OR kielimalli"`
-  (Finnish terms included — the org's issues are bilingual). Bundle capped.
+- **`jira_active_discover(state)`** — `source` = `<window_days>`;
+  `GET /rest/api/3/project/search?startAt=…&maxResults=50` until `isLast`
+  or `MAX_PROJECT_PAGES` (+1 page → `OverflowError`); per project one
+  `POST /rest/api/3/search/approximate-count` with JQL built from validated
+  parts: `project = "<KEY>" AND updated >= -<N>d` (`KEY` must match
+  `^[A-Z][A-Z0-9_]+$`, `N` int). Returns sorted unique active keys; dormant
+  keys are returned through the coverage tool (`coverage_jira` calls the
+  same listing and records `visible`, `active`, `dormant`).
+- **`jira_project_extract(state)`** — `item` = `<KEY>`; emits `JiraBundle`
+  JSON capped `MAX_BUNDLE_CHARS`: `GET /rest/api/3/project/<KEY>` (name,
+  projectTypeKey, lead.accountId, lead.displayName), approximate counts
+  (updated-in-window, created-in-window), `POST /rest/api/3/search/jql`
+  with `fields=summary,issuetype,status,assignee,reporter,description,updated`,
+  `maxResults=MAX_ISSUES` (30), ordered by `updated DESC`; description is
+  Atlassian Document Format → flattened text via a bounded walker (concat
+  `text` nodes, `MAX_DESC_CHARS` = 300); assignee/reporter frequencies keyed
+  by `accountId` with `displayName` label, top `MAX_PERSONS_PER_PROJECT`
+  (10); AI-term count via approximate-count with JQL built from the frozen
+  term list as `text ~ "<term>"` clauses joined by `OR` (terms: `AI`,
+  `LLM`, `GPT`, `Copilot`, `tekoäly`, `kielimalli`).
+- **`jira_fixture_discover` / `jira_fixture_extract`** — read committed
+  `examples/demos/org_ai_dossier/fixtures/jira/*.json` (public-safe,
+  synthetic). Smoke only.
 
-Smoke route: a committed `jira_fixture` adapter returns a public-safe fixture
-bundle so `demo-output.log` can be produced without credentials (FR-962
-`smoke_preflight.tool.yaml` pattern). The committed `graph.yaml` binds the
-live adapters; the fixture is bound only by the README smoke command.
+Manifests (`*.tool.yaml`) per adapter as in FR-899/FR-962.
+
+### Typed contracts (R-2) — Pydantic v2, `extra="forbid"`
+
+| Model | Fields (type · owner · bound/nullability) |
+| --- | --- |
+| `GitHubBundle` | `id: str` (collector, `<org>/<name>`), `description: str\|None`, `pushed_at: datetime`, `archived: bool`, `visibility: Literal[public,private,internal]`, `language: str\|None`, `readme_head: str` (≤3000), `contributors: list[str]` (≤10 logins), `tree_truncated: bool`, `instruction_files: list[str]` (subset of frozen list), `manifest_hits: list[{path: str, line: str}]` (≤60), `workflow_hits: list[{path, line}]` (≤30), `pr_authors: list[{login: str, bot: bool, n: int}]` (≤30), `absent: list[str]` (optional calls that returned 404) |
+| `JiraBundle` | `key: str` (regex), `name: str`, `project_type: str`, `lead: {account_id: str, display_name: str}\|None`, `updated_in_window: int`, `created_in_window: int`, `ai_term_count: int`, `issues: list[{key, summary, issuetype, status, assignee_id\|None, reporter_id\|None, description_head: str ≤300}]` (≤30), `assignees: list[{account_id, display_name, n}]` (≤10), `reporters: list[...]` (≤10) |
+| `RepoAIRow` | `id` (collector), `activity: Literal[active]` (reducer — discover already filtered; timestamp kept as `pushed_at`), `purpose: str` (model), `ai_usage: Literal[none,product,dev_tooling,both,unclear]` (model → reducer may demote), `ai_tools: list[{name, kind: Literal[provider,framework,coding_agent,model], evidence_path: str}]` (model, each `evidence_path` ∈ bundle paths — reducer-verified), `search_keywords: list[str]` (reducer), `contributors: list[str]` (collector), `status: Literal[classified, map_failed]` (reducer; `map_failed` rows carry `purpose=""`, `ai_usage=unclear`, `ai_tools=[]`) |
+| `JiraAIRow` | `key`, `activity: active`, `purpose`, `ai_usage`, `ai_tools: list[{name, kind, evidence_issue: str ∈ bundle issue keys}]`, `updated_in_window`, `ai_term_count`, `status` — same failure semantics |
+| `PersonRow` | `id: str` (`github:<login>` \| `jira:<accountId>`; never both), `label: str` (login or display name), `source: Literal[github, jira]`, `repos: list[str]` (github only), `projects: list[str]` (jira only), `score: int` (github: Σ in-window PRs authored across active repos + 1 per active repo where contributor; jira: Σ assignee n + Σ reporter n across active projects), `rank: int` (within source), `summary: str\|None` (model; only when authorized) |
+| `AIToolRow` | `name`, `kind`, `n_repos: int`, `n_projects: int`, `evidence: list[str]` (`<repo>:<path>` or `<KEY>:<issue>`) |
+| `CoverageRecord` | GitHub: `api_total: int\|None` (`public_repos + total_private_repos`; `None` when unavailable — then no completeness percentage is rendered), `listed: int`, `archived: int`, `out_of_window: int`, `visibility_rejected: int`, `active: int`, `extracted: int`, `classified: int`, `unclear: int`, `map_failed: int`, `tree_truncated: int`, `search_caveats: list[str]`; Jira: `visible: int`, `active: int`, `dormant: int`, `extracted`, `classified`, `unclear`, `map_failed`, `page_cap_hit: bool` |
+| `RunRecord` | `run_id: str` (uuid4), `started/finished: datetime`, `org`, `window_days`, `visibility`, `persons_llm: bool`, `persons_llm_ack: str\|None`, `head_sha: str`, `graph_sha256: str` (of `graph.yaml`), `provider: azure`, `deployment: str`, `prompt_versions: dict[str,str]`, `api_calls_estimated: int`, `api_calls_actual: int`, `llm_calls_estimated: int`, `llm_calls_actual: int`, `coverage: CoverageRecord`, `artifact_sha256: dict[str,str]`, `canaries: {repo: pass, jira: pass}` |
+
+JSONL columns = the model fields in declaration order; `ai_tools.csv` columns
+= `AIToolRow` fields with `evidence` `;`-joined.
+
+Failure semantics: structural failures (identity mismatch, duplicate,
+malformed bundle, invalid model schema, overflow, canary miss) → raise → no
+artifact. A contained model failure (`on_error: skip` on the classify maps)
+becomes a typed `status=map_failed` row that the reconciliation step counts
+and that coverage reports; the run continues only if
+`map_failed ≤ MAX_MAP_FAILED` (5), else raise.
+
+### Ceilings (R-3) — numeric, frozen, N succeeds / N+1 aborts before LLM spend
+
+| Ceiling | Value |
+| --- | --- |
+| `MAX_REPOS` (active, after filter) | 400 (discover requests +1, overflow → abort) |
+| `MAX_PROJECTS` (Jira visible) | 150; `MAX_PROJECT_PAGES` 4 (×50) |
+| `MAX_ISSUES` per project | 30 |
+| `MAX_MANIFESTS` / `MAX_WORKFLOWS` per repo | 6 / 5 |
+| `MAX_SEARCH_TERMS` / `MAX_SEARCH_RESULTS` | 12 / 100 |
+| `MAX_BUNDLE_CHARS` | 6000 |
+| map `max_items` (all six maps) | 400 (gh), 150 (jira), `top_persons` ≤ 60 |
+| `MAX_LLM_CALLS` | 400 + 150 + 60 + 2 = 612 (estimated in preflight from ceilings; actual recorded) |
+| `MAX_API_CALLS` | 4 000 (GitHub, one hour of core budget minus headroom) + 400 (Jira) |
+| `config.max_concurrency` | 4 |
+| `config.timeout` | 5400 s |
+
+### Canaries (R-3)
+
+Two committed fixture families in `examples/demos/org_ai_dossier/canaries/`,
+withheld from prompts, injected by the reducer BEFORE ledger acceptance:
+
+- **repo family:** three synthetic `GitHubBundle`s with known answers — (a)
+  `package.json` line `"openai": "^4"` + `.github/copilot-instructions.md`
+  → `both`, tools ⊇ {openai/provider, copilot/coding_agent}; (b) README
+  mentions "AI-powered" but no manifest/instruction/workflow evidence →
+  `unclear` (the reducer must demote any claim); (c) plain library → `none`.
+- **jira family:** two synthetic `JiraBundle`s — (a) issues with "Copilot
+  rollout" + `ai_term_count > 0` → `dev_tooling` with evidence issue keys;
+  (b) no AI terms → `none`.
+
+The classify prompts are run on the canaries as extra map items (marked by a
+reserved id prefix `__canary__/`) and stripped before ledgers; a miss on
+ANY canary → raise → no artifact.
 
 ### LLM nodes (Azure, temperature 0, schema-validated, one judgement each)
 
-- `classify_repo_ai.yaml` — input: the extract bundle. Output schema:
-  `purpose` (one sentence), `ai_usage ∈ {none, product, dev_tooling, both,
-  unclear}`, `ai_tools: [{name, kind ∈ {provider, framework, coding_agent,
-  model}, evidence_path}]`, `rationale`. **Boundary:** code drops any
-  `ai_tools` entry whose `evidence_path` is not a path/line present in the
-  bundle, and demotes `ai_usage` to `unclear` when no entry survives
-  (`two_strike_split`: the model's output is a claim reconciled against the
-  source).
-- `classify_jira_ai.yaml` — same shape; `evidence` is an issue key that must
-  appear in the bundle.
-- `summarize_person.yaml` — input: the person's footprint row ONLY (repos +
-  their purpose sentences, PR count in window, Jira projects + counts).
-  Output: `summary` (2–3 sentences, professional contribution). Bounded:
-  "Do NOT infer seniority, performance, workload, sentiment, or intent; do
-  NOT mention anything not in the footprint." Code rejects summaries that
-  name a repo or project absent from the footprint.
-- `render_findings.yaml` (dossier findings section) and `render_onepager.yaml`
-  — the two synthesis calls, over code-reduced tables with citations
-  (FR-895 citation boundary: every cited row must exist in a ledger).
+- `classify_repo_ai.yaml` (`PROMPT_VERSION classify_repo_ai.v1`) — input:
+  `GitHubBundle` JSON. Output schema: `purpose`, `ai_usage`, `ai_tools[]`,
+  `rationale`. Reducer drops any tool whose `evidence_path` ∉ bundle paths
+  and demotes `ai_usage` to `unclear` when none survive.
+- `classify_jira_ai.yaml` (`v1`) — same shape; evidence = issue key ∈ bundle.
+- `summarize_person.yaml` (`v1`) — input: ONE source-qualified `PersonRow`
+  footprint (repos + their purpose sentences OR projects + their purpose
+  sentences; never both sources). Output: `summary` (2–3 sentences).
+  Bounded: no seniority, performance, workload, sentiment, intent, no
+  cross-system identity claim, no comparison to other persons, nothing
+  outside the footprint. Reducer rejects summaries that name a repo/project
+  outside the footprint, mention another person id/label, or contain any of
+  the banned-claim markers (frozen regex list in `tools.py`).
+- `synthesize_findings.yaml` (`v1`) and `synthesize_onepager.yaml` (`v1`) —
+  over code-reduced tables with row ids; every cited id must exist in a
+  ledger (FR-895 citation boundary); onepager must contain exactly three
+  findings and ≤ 800 words (code-counted) or the run fails.
 
-### Reducers (code, LLM-free, deterministic)
+### Coverage and output measurements (R-4)
 
-- Activity: `active` if `pushed_at`/`updated` within window (the discover
-  already filtered; the reducer records the timestamp used).
-- AI-tool inventory: aggregate surviving `ai_tools` across both ledgers →
-  `ai_tools.csv` (tool, kind, n_repos, n_jira_projects, evidence list).
-- Persons: GitHub side — PR authors (bots excluded) and contributors across
-  active repos, weighted by in-window PR count; Jira side — assignee +
-  reporter frequency across active projects. **No cross-system identity
-  join** (login ≠ displayName is not mechanically decidable); the persons
-  ledger holds two ranked lists and a `same_person` column that is filled
-  only on exact e-mail/displayName equality when GitHub exposes it, else
-  `unknown`. Top-N (`top_persons`, default 30) from the union by rank.
-- Coverage: `gh api /orgs/<org>` (`public_repos + total_private_repos`) vs
-  listed count; archived; active; Jira visible vs active. Written to
-  `run.json` and printed at the top of both rendered documents.
+Denominators are frozen names from `CoverageRecord`. Rendered percentages
+are ALWAYS `n of <denominator-name>=<value>` and the `unclear` and
+`map_failed` counts are shown beside every AI-use share. When
+`api_total is None`, the coverage block prints `org API total: unavailable`
+and no completeness ratio. `run.json.head_sha` + `graph_sha256` identify
+the graph (a commit SHA alone would not identify an uncommitted file).
 
-### Persons — disposition against FR-962
+### Persons (R-5, R-6) — disposition against FR-962
 
-FR-962 admitted person profiling only under an explicit consent warning, a
-visibility preflight, and outputs never committed. This FR re-enters that
-territory at org scale, so it inherits all three and narrows further: the
-LLM sees only work-system facts already aggregated by code; the output
-class is a contribution summary, not a behavioural profile; the FR-962
-warning block is copied verbatim into the demo README; the operator is the
-accountable controller. Whether org-scale summaries of colleagues are
-admissible under the employer's policy is an **operator/legal decision
-recorded in `run.json` (`persons_llm: true|false`)** — with `false` the
-person stage is mechanical only (ranked table, no prose). Default is `true`
-per the operator's 2026-09-07 decision; the judge may overrule.
+- Identities are source-qualified (`github:<login>`, `jira:<accountId>`);
+  display names are labels. **No `same_person`, no e-mail/display-name
+  equality, no union rank.** Two rankings with the frozen score formulas
+  above, each cut at `top_persons`.
+- `persons_llm` is a **required, no-default** runtime input. `false` →
+  `prepare_person_input` sets `persons_llm_active=false`, the summary map
+  is bypassed, the person section is mechanical. `true` → preflight
+  requires a non-empty `persons_llm_ack` string (recorded verbatim in
+  `run.json`), else fails before any fetch. Smoke always runs `false`.
+- README reproduces the FR-962 warning block verbatim and names the
+  operator as accountable controller.
+- The human policy answer (judgement R-6 / C-6) is recorded in § Decisions 5.
 
-## Acceptance Criteria
+### Locality (R-7)
 
-- [ ] `examples/demos/org_ai_dossier/graph.yaml` lints; every `type: llm`
-      node has `provider: azure`; every map has `max_items`.
-- [ ] Preflight fails (before any GitHub/Jira fetch) when any of
-      `AZURE_AI_ENDPOINT`, `AZURE_AI_API_KEY`, `AZURE_MODEL`, `gh auth
-      status`, `JIRA_URL`, `JIRA_USERNAME`, `JIRA_API_TOKEN` is missing —
-      unit test per variable.
-- [ ] `gh_org_active_discover` filters archived and out-of-window repos;
-      malformed source raises (unit, mocked `gh`).
-- [ ] `gh_repo_ai_extract` bundle contains instruction-file presence,
-      manifest AI hits with path, workflow AI hits, PR author bot flags;
-      bundle ≤ `MAX_CHARS` (unit, mocked `gh`, fixture repo).
-- [ ] `gh_org_code_search` budgets ≤10 calls/min and records the per-keyword
-      cap (unit, mocked `gh` + clock).
-- [ ] `jira_active_discover` paginates, counts via approximate-count, and
-      returns only active keys; dormant keys reach the coverage record
-      (unit, mocked HTTP).
-- [ ] `jira_project_extract` bundle has meta, counts, ≤30 issues, top-10
-      assignee/reporter, AI-keyword count; ≤ `MAX_CHARS` (unit, mocked HTTP).
-- [ ] Claim reconciliation: an `ai_tools` entry with an `evidence_path` not
-      in the bundle is dropped and `ai_usage` demotes to `unclear` when none
-      survive (unit — RED first).
-- [ ] Person summary boundary: a summary naming a repo/project outside the
-      footprint is rejected (unit — RED first).
-- [ ] Coverage denominators appear in `run.json`, `onepager.md` line 1–5,
-      and the `dossier.md` / `repos.md` / `jira.md` headers; every percentage in the rendered documents is
-      followed by `of <denominator>` (renderer unit test).
-- [ ] Persons ledger has no cross-system join unless exact e-mail/displayName
-      equality; `same_person` otherwise `unknown` (unit).
-- [ ] `persons_llm=false` skips `summarize_person` and renders the mechanical
-      table (unit on graph routing).
-- [ ] Smoke against the public demo org (`sheikkinen`) with the
-      `jira_fixture` adapter produces `demo-output.log`; committed output
-      contains no private org identifier (grep gate in the demo test).
-- [ ] Live run against the operator's org writes to `research/org-ai-dossier/
-      <date>/`; `git status` shows nothing under `research/` (gitignore
-      test).
-- [ ] README carries the FR-962 warning block verbatim plus the
-      `persons_llm` switch.
-- [ ] `read_raw_output_first`: before any aggregate is trusted, 10 raw
-      `classify_repo_ai` outputs and 5 `classify_jira_ai` outputs are read
-      end-to-end and cited in this FR's implementation notes with one
-      surprising detail each.
-- [ ] Tests tagged `@pytest.mark.req("REQ-YG-670")`; `capabilities/CAP-266-
-      org-ai-dossier.yaml`; `ARCHITECTURE.md` row; changelog fragment;
-      `python scripts/req_coverage.py --strict` green. (IDs allocated at
-      enforce; verify no race per repo memory.)
-- [x] `FR-1027.research.md` promoted from `scripts/research.sh` output and
-      dispositioned here before Judge (2026-09-07).
+- Discovery enforces the visibility policy (`visibility` var, no default)
+  before extraction; smoke README command passes `public` and the demo test
+  asserts the committed `demo-output.log` shows only `sheikkinen/` ids.
+- Preflight resolves `out_dir` with `Path.resolve(strict=False)` and requires
+  it to be strictly beneath `<repo>/research/org-ai-dossier/` (real path;
+  symlink escapes and `..` rejected), and requires that
+  `git check-ignore -q research/org-ai-dossier` succeeds — else fail before
+  any fetch. Smoke `out_dir` is `tmp/org-ai-dossier-smoke/` (allowed as the
+  second root, smoke preflight only).
+- Mechanical locality audit `tests/unit/test_fr1027_locality_audit.py`
+  scans `graph.yaml`, prompts, README, fixtures, canaries,
+  `demo-output.log`, and tool manifests for: any GitHub owner other than
+  `sheikkinen` in commands/fixtures, any `*.atlassian.net` host, any
+  `[A-Z]{2,}-\d+` issue key outside the synthetic fixture namespace
+  (`DEMO-`), any `@`-e-mail, any output root outside the two allowed roots.
+
+## Acceptance Criteria (judgement AC-01..AC-20, frozen)
+
+- [ ] AC-01: FR retains the five-class research record, preserved dissent,
+      prior-art dispositions, `is_this_a_graph` answer.
+- [ ] AC-02: graph.yaml matches § Frozen topology exactly (state keys, slots,
+      edges, reducer order, write boundary); test asserts node/edge/slot
+      sets and that no LLM node lacks `provider: azure` / `temperature: 0`.
+- [ ] AC-03: live and smoke commands bind explicit preflight/discovery/
+      extraction manifests; live preflight validates Azure, `gh auth`,
+      visibility, Jira env, `persons_llm` (+ack), `out_dir` root before any
+      fetch; smoke preflight skips only the Jira env check. Unit test per
+      check, plus a marker-file test proving no adapter ran on failure.
+- [ ] AC-04: every LLM node `provider: azure`, deployment from `AZURE_MODEL`,
+      `temperature: 0`, no `fallback`; every map has numeric `max_items`.
+- [ ] AC-05: `gh_org_active_discover` — visibility rejection, archived,
+      out-of-window, malformed timestamp, duplicate id, sorted unique
+      output, `MAX_REPOS+1` → `OverflowError` (mocked `gh`).
+- [ ] AC-06: `gh_repo_ai_extract` — typed `GitHubBundle`; tests: missing
+      auth, command failure, malformed JSON, manifest/workflow caps, tree
+      truncation flag, bot flags, 404 → `absent`, final size ≤ cap.
+- [ ] AC-07: `gh_org_code_search` — term/result/rate ceilings (mocked clock),
+      `capped` flag, reducer maps hits only onto active ids, others →
+      `search_caveats`.
+- [ ] AC-08: `jira_active_discover` — pagination, `isLast`, page-cap
+      overflow, JQL encoding, key regex, sorted unique, dormant accounting
+      via `coverage_jira` (mocked HTTP).
+- [ ] AC-09: `jira_project_extract` — typed `JiraBundle`; ≤30 issues,
+      accountId-keyed persons, ADF flattening + 300-char cap, top-10, AI-term
+      clauses, non-2xx raise, 429 single retry, timeout, size ≤ cap.
+- [ ] AC-10: reducer reconciles every discovered id exactly once; fixtures
+      for missing id, duplicate id, extra id, malformed bundle, invalid
+      model schema → raise; `map_failed` rows typed and counted;
+      `> MAX_MAP_FAILED` → raise.
+- [ ] AC-11: evidence reconciliation drops unsupported tools / demotes to
+      `unclear` (fixtures accepted + rejected); both canary families pass on
+      correct answers and a planted miss aborts the run.
+- [ ] AC-12: ceilings enforced: N succeeds, N+1 emits no artifact (repos,
+      projects/pages, issues, manifests, workflows, search terms/results,
+      bundle chars, LLM calls, API calls); `run.json` records estimated vs
+      actual calls, hashes, provider/deployment, prompt versions, run id,
+      timestamps, coverage flags.
+- [ ] AC-13: renderers print `n of <denominator>=<value>` for every share,
+      show `unclear`/`map_failed`, print `unavailable` when `api_total` is
+      None — in `run.json`, `onepager.md`, `dossier.md`, `repos.md`,
+      `jira.md`.
+- [ ] AC-14: `onepager.md` ≤ 800 words (code-counted), exactly three cited
+      findings, coverage block, active counts, AI shares, top tools, two
+      person lists, method/date, caveats.
+- [ ] AC-15: persons source-qualified; two rankings with frozen formulas;
+      `same_person` does not exist in any model; no combined rank.
+- [ ] AC-16: `persons_llm` required (missing → preflight fail); `false`
+      bypasses the summary map (routing test) and renders mechanical
+      tables; `true` requires `persons_llm_ack`, records it, and the summary
+      boundary rejects out-of-footprint / other-person / banned-claim text.
+- [ ] AC-17: smoke = `sheikkinen`, `visibility=public`, Jira fixtures,
+      `persons_llm=false`, `out_dir=tmp/org-ai-dossier-smoke/`; locality
+      audit passes on all committed artifacts.
+- [ ] AC-18: live `out_dir` must resolve beneath gitignored
+      `research/org-ai-dossier/` (tests: tracked path, `..`, symlink escape
+      → preflight fail); any preflight/reconciliation/canary failure leaves
+      no file under `out_dir` (temp-dir + atomic rename test).
+- [ ] AC-19: 10 raw `classify_repo_ai` and 5 raw `classify_jira_ai` outputs
+      read before aggregate acceptance; cited in § Implementation Record
+      with provider/deployment and one concrete surprising detail each.
+- [ ] AC-20: `tmp/draft-authoring-report.md` substantive (lint + smoke);
+      tests `@pytest.mark.req("REQ-YG-670")`; `CAP-266` / `REQ-YG-670`
+      confirmed free by grep over `capabilities/`, `ARCHITECTURE.md`, and all
+      `origin/*` branches immediately before the allocating commit;
+      `req_coverage.py --strict`, changelog fragment, FR record, diary.
+- [x] `FR-1027.research.md` promoted and dispositioned (2026-09-07).
 
 ## Research Disposition (FR-1027.research.md, five rows)
 
 | persona | finding | disposition |
 | --- | --- | --- |
-| os-infra-primitivist | one local command, gitignored outputs, Jira adapter on the MCP env names, Azure forced by preflight, fail closed before any fetch | **adopted** — this is the preflight + `out_dir` + env contract in § Proposed Solution |
-| data-process-planner | change the output shape to ledgers + dossier + onepager with explicit coverage and citations | **adopted** — § Ideal Result; coverage denominators are a hard AC |
-| yamlgraph-native-planner | corpus-census discover/extract/map-reduce with invocation-time slots, code joins, one Azure tail | **adopted** — the pipeline IS this; `is_this_a_graph` = yes (corpus-census family) |
-| subtractionist | delete the cross-org person ranking; keep a bounded "key contributors" list per project | **partially adopted, dissent preserved** — the operator decided `persons_llm=true` (2026-09-07); the ranking stays but is bounded to work-system facts, the LLM sees only the code-built footprint, and `persons_llm=false` degrades to exactly the subtractionist's shape. The judge may side with the dissent. |
-| librarian | external precedent: Jira MCP connector + development context (commits/PRs) as the cross-system evidence pattern | **acknowledged, not adopted as route** — MCP is not callable from a graph; the REST adapter reuses the MCP env names; the dev-panel join is deferred (§ Alternatives) |
+| os-infra-primitivist | one local command, gitignored outputs, Jira adapter on the MCP env names, Azure forced by preflight, fail closed before any fetch | **adopted** — preflight + enforced `out_dir` root + env contract |
+| data-process-planner | change the output shape to ledgers + dossier + onepager with explicit coverage and citations | **adopted** — § Ideal Result; typed `CoverageRecord`; denominators are ACs |
+| yamlgraph-native-planner | corpus-census discover/extract/map-reduce with invocation-time slots, code joins, one Azure tail | **adopted** — `is_this_a_graph` = yes (corpus-census family); two bounded tails, not one (R-1) |
+| subtractionist | delete the cross-org person ranking; keep a bounded "key contributors" list per project | **partially adopted, dissent preserved** — the judge's R-5 sided with it on the JOIN (no cross-system identity, no union rank); the operator kept per-source rankings and authorized summaries (§ Decisions 5). `persons_llm=false` is exactly the subtractionist's shape. |
+| librarian | external precedent: Jira MCP connector + development context (commits/PRs) | **acknowledged, not adopted as route** — MCP not callable from a graph; REST adapter reuses the MCP env names; dev-panel join deferred |
 
 ## Alternatives Considered (probed 2026-09-07 unless marked)
 
 | Alternative | Probe / evidence | Verdict |
 | --- | --- | --- |
-| Hand-written dossier per repo (`research/shared-ai-capabilities/findings.md` precedent) | one repo took one session; active corpus is O(200) repos | Rejected — `impossibly_large_sequential_task`; the census is the affordable form |
-| GitHub Copilot org metrics / seat API as the "who uses AI" answer | `gh api /orgs/<org>/copilot/billing` → 404, requires `admin:org` scope the operator lacks; would answer Copilot seats only, not product AI nor Jira | Rejected for now — recorded as an operator escalation (ask an org admin for a one-time export); complementary, not a substitute |
-| Org-wide code search as the ONLY AI-signal discover (no per-repo extract) | `gh search code --owner <org> <kw>` works on the private org; five keywords returned 3–17 repos each; code-search limit 10/min; results capped at 100/keyword and indexed on default branch only | Partially adopted — it is one discover-side signal merged by code; alone it cannot say *purpose*, *activity*, *who*, or distinguish product vs dev-tooling use |
-| Jira dev-panel API to join issues ↔ PRs ↔ repos mechanically | `jira_get_issues_development_info` exists but is per-issue; thousands of in-window issues → not within one run's budget | Deferred — correspondence is asserted only with both ledger rows cited, or marked operator input |
-| Use the editor's Atlassian MCP server directly in a chat session | it is how the sizing probes were done; not callable from a graph; not repeatable; no ledger | Rejected as the route; its env var names are reused for the REST adapter |
-| Extend `repo_census` (FR-899) in place with AI fields and a Jira slot | FR-899 evidence bundle and outputs are frozen by judgement and its PR is pending | Rejected — sibling graph (FR-962 precedent) keeps FR-899's contract intact |
-| Provider: default/Copilot instead of pinned Azure | operator decision 2026-09-07: Azure | Rejected — corp data governance (FR-899) |
-| Jira scope: all visible projects | operator decision 2026-09-07: active only | Rejected — dormant projects listed by key in coverage |
+| Hand-written dossier per repo (`research/shared-ai-capabilities/findings.md` precedent) | one repo took one session; active corpus is O(200) repos | Rejected — `impossibly_large_sequential_task` |
+| GitHub Copilot org metrics / seat API | `gh api /orgs/<org>/copilot/billing` → 404, needs `admin:org`; answers Copilot seats only | Rejected — operator escalation to an org admin; complementary |
+| Org-wide code search as the ONLY AI signal | works on the private org (five keywords, 3–17 repos each); 10/min; capped 100/keyword; default branch only | Partially adopted — one discover-side signal, reconciled by code |
+| Jira dev-panel API join | per-issue; thousands of in-window issues | Deferred; judge: not authorized under this FR |
+| Editor Atlassian MCP directly | not callable from a graph; not repeatable | Rejected as route; env names reused |
+| Extend `repo_census` in place | FR-899 contract frozen | Rejected — sibling graph |
+| Provider: default/Copilot | operator decision | Rejected — corp data governance |
+| Jira scope: all visible projects | operator decision | Rejected — dormant listed in coverage |
 
 ## Decisions (operator, 2026-09-07)
 
-1. `persons_llm` default **`true`** — LLM contribution summaries on; FR-962
-   warning block in README; operator is the accountable controller.
-2. `gh_org_code_search` keyword list **includes Finnish terms** (`tekoäly`,
-   `kielimalli`, `tekoälyavustaja`), mirroring the Jira JQL.
-3. Rendered output is **split**: `dossier.md` (coverage, findings, AI-tool
-   inventory, persons) + `repos.md` (per-repo sections) + `jira.md`
-   (per-Jira-project sections). The Ideal Result table and AC below are
-   read with this split.
-4. Research route unblock: **run `scripts/research.sh` on another provider**
-   (Azure/OpenAI) rather than wait for Anthropic key rotation — requires a
-   provider override in the research route, tracked as a separate change.
+1. ~~`persons_llm` default `true`~~ → superseded by judgement R-6: **no
+   default**, required input; see 5.
+2. `gh_org_code_search` keyword list **includes Finnish terms**.
+3. Rendered output is **split**: `dossier.md` + `repos.md` + `jira.md`.
+4. Research route unblock via **another provider** → FR-1028 (done).
+5. **R-6 / C-6 human policy answer (2026-09-07, operator):** "Yes —
+   authorized": the employer's applicable policy authorizes org-scale LLM
+   summaries of colleagues from GitHub/Jira work-system facts for this
+   management use, under the bounded source-separated summary contract; the
+   operator is the accountable controller and supplies `persons_llm_ack` at
+   each live run. `persons_llm=true` is therefore authorized for live use;
+   smoke stays `false`.
+6. Proceed with the judge's frozen scope (D-1..D-9) in this arc.
+
+## Implementation Record
+
+_Filled at enforce: RED/GREEN SHAs per deliverable, AC-19 raw reads,
+deviations._
 
 ## Related
 
 - [FR-892](FR-892-corpus-census-pipeline-injected-adapters.md),
   [FR-899](FR-899-org-repo-census-azure.md),
-  [FR-962](FR-962-person-profile-census-authored-prs.md), FR-874 (rejected)
+  [FR-962](FR-962-person-profile-census-authored-prs.md),
+  [FR-1028](FR-1028-graph-run-provider-model-override.md), FR-874 (rejected)
 - [examples/demos/repo_census/](../examples/demos/repo_census/),
   [examples/demos/person_profile_census/](../examples/demos/person_profile_census/),
   [examples/demos/corpus_census/adapters/](../examples/demos/corpus_census/adapters/)
