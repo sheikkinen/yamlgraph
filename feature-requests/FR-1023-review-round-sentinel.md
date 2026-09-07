@@ -33,8 +33,8 @@ introduces is per FR, mutated only by that FR's own PRs: the `.judgement.md`
 class, not the ledger class. Distinguished, not contradicted.
 [FR-865-ramp-installer.md](FR-865-ramp-installer.md) —
 `.github/skills/review-pr/doctrine.md` is a byte-exact mirror of a ramp
-asset; any doctrine edit here re-copies the mirror (PR #633 is failing CI
-for omitting exactly this on the judge side).
+asset; any doctrine edit here re-copies the mirror (PR #633 failed CI
+for omitting exactly this on the judge side until its review fold `16512c04`).
 [FR-1013-chaplain-doctrine-sweep.md](FR-1013-chaplain-doctrine-sweep.md) —
 REJECTED; the witnessed incident (three review rounds, zero durable review
 records), not a competing solution.
