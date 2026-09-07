@@ -33,6 +33,8 @@ yamlgraph graph run examples/demos/recap/graph.yaml \
 | `workstreams` | Commits grouped by FR reference or theme (model judgement), each tagged with the **verbatim** FR `[Status: …]` at HEAD by code (or `[no FR status]`) |
 | `orphans` | **Code-assembled** (FR-704): unreferenced commit lines copied bit-exact — every hash is `git show`-safe — plus graph/prompt changes in a fragment-less window |
 | `hotspots` | Files touched by multiple workstreams (model judgement) |
+| `pr_merged` / `pr_closed_unmerged` / `pr_open` | **FR-1027, code-assembled**: the window's pull requests as `#<number>\|<created>→<end>\|<N>d\|<title>`, ordered by decision timestamp then number descending (open rows by creation date). Merged and closed-unmerged are windowed; **open rows are never filtered by age** — staleness is the point |
+| `pr_axis_note` | Empty when the axis read cleanly. Otherwise why it could not (`no origin remote`, `origin host is …, not github.com`, `gh timed out after 60s`, …) and/or that the 300-row cap was reached |
 
 Convention absence (no `feature-requests/` / `changelog/unreleased/`) is
 detected by the Jinja2 template and reported to the model as "not detected" —
@@ -44,6 +46,56 @@ the raw `fr_changes`/`fragments` state keys stay available for downstream code.
 - Missing convention paths yield empty output natively (`git log -- <missing>` exits 0).
 - A `repo_path` that is **not** a git repo fails loudly (tool node raises).
 - Commit collection capped at 300; truncation is reported, not hidden.
+
+## Pull-request axis (FR-1027)
+
+A git-only recap cannot see what a window *decided*. A pull request closed
+without merging contributes zero commits, and an open one contributes none
+either — so the week's rejections and its work-in-flight are both structurally
+invisible. [nodes/prs.py](nodes/prs.py) adds that axis:
+
+1. **Identify** — `git -C <repo_path> remote get-url origin`, parsed for
+   `owner/name`. Three families accepted, each with an optional `.git`:
+   `https://github.com/o/n`, `git@github.com:o/n`, `ssh://git@github.com/o/n`.
+2. **Bound** — `git rev-parse --since=<since>` returns an epoch, and **that
+   epoch** is the comparison boundary. The UTC date is only ever printed, so a
+   pull request merged at 03:00 on the boundary day is not moved in or out by
+   midnight truncation.
+3. **Collect** — exactly **one** `gh` subprocess invocation per recap, fixed
+   argv, `shell=False`, 60-second timeout, 300-row cap. (`gh pr list --limit
+   300` paginates internally, so the promise is one subprocess, not one HTTP
+   request.)
+4. **Bucket** — in code, ordered in code, lines assembled in code. The model
+   never sees a pull request, so it cannot invent one.
+
+### It degrades honestly, and says so
+
+The axis is optional enrichment in exactly the way `feature-requests/` is: a
+plain local clone still produces a full recap.
+
+| Situation | `pr_axis` | Rendered |
+|-----------|-----------|----------|
+| Window had no pull requests | `available: True`, empty buckets | `(none)` |
+| No `origin`, non-GitHub host, local remote, malformed URL | `available: False` + reason, **no `gh` call at all** | one note, then `(not collected)` |
+| `gh` missing, unauthenticated, timed out, or returned junk | `available: False` + reason | one note, then `(not collected)` |
+| 300 rows returned | `available: True`, `cap_reached: True` | note says results **may** be truncated |
+
+Three deliberate refusals here:
+
+- **`(none)` is never printed for an axis that made no observation.** An empty
+  list and an unread source are different claims (Commandment 6).
+- **The cap note renders once, before the sections, and cannot be suppressed
+  by non-empty buckets** — a warning that vanishes when the page is full is
+  worse than no warning.
+- **Only four exception classes are absorbed** (`FileNotFoundError`,
+  `TimeoutExpired`, `CalledProcessError`, unparseable/incomplete JSON). A
+  `repo_path` that is not a git repository still fails loudly, and any
+  unexpected error propagates rather than being reported as an empty week.
+
+One inherited quirk, recorded rather than hidden: `git rev-parse --since="not
+a date"` returns the *current* epoch with exit 0, exactly as `git log --since`
+does for the five collection tools above. The axis uses git's own parser and
+inherits that silence rather than diverging from the rest of the graph.
 
 ## Difference from git-report
 

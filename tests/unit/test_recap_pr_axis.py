@@ -24,10 +24,10 @@ import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "scripts"))
 
+import weekly_recap  # noqa: E402
+
 from examples.demos.recap.nodes import prs  # noqa: E402
 from examples.demos.recap.nodes.partition import finalize_recap  # noqa: E402
-
-import weekly_recap  # noqa: E402
 
 pytestmark = pytest.mark.process
 
@@ -101,7 +101,9 @@ def git_replies(origin: str, epoch: int = EPOCH):  # noqa: ANN201
     return reply
 
 
-def run_collect(monkeypatch, origin: str, gh_reply, now: int = NOW) -> tuple[dict, Recorder]:  # noqa: ANN001
+def run_collect(
+    monkeypatch, origin: str, gh_reply, now: int = NOW
+) -> tuple[dict, Recorder]:  # noqa: ANN001
     rec = Recorder({"git": git_replies(origin), "gh": gh_reply})
     monkeypatch.setattr(prs.subprocess, "run", rec)
     monkeypatch.setattr(prs, "_now_epoch", lambda: now)
@@ -134,7 +136,10 @@ class TestOriginParsing:
         ("url", "expected"),
         [
             ("https://gitlab.com/o/n.git", "origin host is gitlab.com, not github.com"),
-            ("git@bitbucket.org:o/n.git", "origin host is bitbucket.org, not github.com"),
+            (
+                "git@bitbucket.org:o/n.git",
+                "origin host is bitbucket.org, not github.com",
+            ),
             ("/srv/git/mirror.git", "origin is a local path remote"),
             ("C:/src/yamlgraph", "origin is a local path remote"),
             ("file:///srv/git/mirror.git", "origin is a local path remote"),
@@ -142,7 +147,9 @@ class TestOriginParsing:
             ("https://github.com/", "origin URL is malformed (no owner/name)"),
         ],
     )
-    def test_rejected_remotes_carry_stable_reasons(self, url: str, expected: str) -> None:
+    def test_rejected_remotes_carry_stable_reasons(
+        self, url: str, expected: str
+    ) -> None:
         slug, reason = prs.parse_origin(url)
         assert slug is None
         assert reason == expected
@@ -158,7 +165,9 @@ class TestOriginParsing:
 
     @pytest.mark.req("REQ-YG-669")
     def test_non_github_origin_never_calls_gh(self, monkeypatch) -> None:  # noqa: ANN001
-        axis, rec = run_collect(monkeypatch, "https://gitlab.com/o/n.git", gh_reply=None)
+        axis, rec = run_collect(
+            monkeypatch, "https://gitlab.com/o/n.git", gh_reply=None
+        )
         assert axis["available"] is False
         assert "gitlab.com" in axis["reason"]
         assert "gh" not in rec.programs()
@@ -232,7 +241,9 @@ class TestBucketingAndFormat:
     @pytest.mark.req("REQ-YG-669")
     def test_fixture_is_scrambled(self) -> None:
         numbers = [row["number"] for row in fixture_rows()]
-        assert numbers != sorted(numbers, reverse=True), "fixture must not be pre-sorted"
+        assert numbers != sorted(numbers, reverse=True), (
+            "fixture must not be pre-sorted"
+        )
 
     @pytest.mark.req("REQ-YG-669")
     def test_exact_buckets_and_order(self) -> None:
@@ -292,7 +303,9 @@ class TestGhBoundary:
             "--json",
             "number,title,state,createdAt,mergedAt,closedAt",
         ]
-        kwargs = [c["kwargs"] for c in rec.calls if Path(str(c["argv"][0])).stem == "gh"][0]
+        kwargs = [
+            c["kwargs"] for c in rec.calls if Path(str(c["argv"][0])).stem == "gh"
+        ][0]
         assert kwargs.get("shell", False) is False
         assert kwargs.get("timeout") == prs.GH_TIMEOUT == 60
         assert axis["available"] is True
@@ -397,7 +410,9 @@ class TestAvailabilityAndCap:
             for n in range(prs.PR_LIMIT)
         ]
         axis, _ = run_collect(
-            monkeypatch, "https://github.com/o/n.git", gh_reply=lambda argv: json.dumps(rows)
+            monkeypatch,
+            "https://github.com/o/n.git",
+            gh_reply=lambda argv: json.dumps(rows),
         )
         assert axis["cap_reached"] is True
         assert axis["available"] is True
@@ -417,7 +432,9 @@ class TestAvailabilityAndCap:
             for n in range(prs.PR_LIMIT - 1)
         ]
         axis, _ = run_collect(
-            monkeypatch, "https://github.com/o/n.git", gh_reply=lambda argv: json.dumps(rows)
+            monkeypatch,
+            "https://github.com/o/n.git",
+            gh_reply=lambda argv: json.dumps(rows),
         )
         assert axis["cap_reached"] is False
 
@@ -427,7 +444,9 @@ class TestAxisNote:
 
     @pytest.mark.req("REQ-YG-669")
     def test_clean_axis_has_no_note(self) -> None:
-        assert prs.axis_note({"available": True, "reason": "", "cap_reached": False}) == ""
+        assert (
+            prs.axis_note({"available": True, "reason": "", "cap_reached": False}) == ""
+        )
 
     @pytest.mark.req("REQ-YG-669")
     def test_unavailable_note_carries_the_reason(self) -> None:
@@ -445,7 +464,11 @@ class TestAxisNote:
     @pytest.mark.req("REQ-YG-669")
     def test_both_clauses_when_both_hold(self) -> None:
         note = prs.axis_note(
-            {"available": False, "reason": "gh timed out after 60s", "cap_reached": True}
+            {
+                "available": False,
+                "reason": "gh timed out after 60s",
+                "cap_reached": True,
+            }
         )
         assert "unavailable: gh timed out after 60s" in note
         assert "may be truncated" in note
@@ -501,7 +524,9 @@ class TestFinalizeAttachesAxis:
         assert recap["orphans"] == ["def5678|2026-09-06|chore: tidy"]
         assert recap["hotspots"] == []
         assert recap["unverified_refs"] == []
-        assert recap["pr_axis_note"] == "pull-request axis unavailable: no origin remote"
+        assert (
+            recap["pr_axis_note"] == "pull-request axis unavailable: no origin remote"
+        )
 
     @pytest.mark.req("REQ-YG-669")
     def test_absent_axis_state_renders_as_unavailable_not_as_empty(self) -> None:
@@ -523,7 +548,13 @@ class TestRendererSections:
     @pytest.mark.req("REQ-YG-669")
     def test_existing_sections_keep_heading_and_order(self) -> None:
         out = weekly_recap.render_markdown(
-            {**self.BASE, "pr_merged": [], "pr_closed_unmerged": [], "pr_open": [], "pr_axis_note": ""},
+            {
+                **self.BASE,
+                "pr_merged": [],
+                "pr_closed_unmerged": [],
+                "pr_open": [],
+                "pr_axis_note": "",
+            },
             "2026-W37",
         )
         headings = [line for line in out.splitlines() if line.startswith("## ")]
@@ -537,7 +568,13 @@ class TestRendererSections:
     @pytest.mark.req("REQ-YG-669")
     def test_available_empty_renders_none(self) -> None:
         out = weekly_recap.render_markdown(
-            {**self.BASE, "pr_merged": [], "pr_closed_unmerged": [], "pr_open": [], "pr_axis_note": ""},
+            {
+                **self.BASE,
+                "pr_merged": [],
+                "pr_closed_unmerged": [],
+                "pr_open": [],
+                "pr_axis_note": "",
+            },
             "2026-W37",
         )
         section = out.split("## Pull requests merged\n\n")[1].splitlines()[0]
@@ -649,7 +686,8 @@ class TestWorkflowWiring:
         )
         steps = wf["jobs"]["recap"]["steps"]
         recap_step = [s for s in steps if s.get("id") == "recap"][0]
-        assert recap_step["env"]["GH_TOKEN"] == "${{ secrets.RECAP_PAT }}"
+        expected = "${{ secrets.RECAP_PAT }}"  # the existing secret, no new one
+        assert recap_step["env"]["GH_TOKEN"] == expected
 
     @pytest.mark.req("REQ-YG-669")
     def test_no_new_secret_and_no_new_permission(self) -> None:
@@ -705,5 +743,5 @@ class TestSinceGrammarIsGitsOwn:
     @pytest.mark.req("REQ-YG-669")
     def test_axis_uses_the_same_parser_as_the_existing_collection(self) -> None:
         argv = prs.rev_parse_argv(".", "not a date")
-        assert argv[:3] == ["git", "-C", "."]
-        assert argv[3:] == ["rev-parse", "--since=not a date"]
+        assert Path(argv[0]).stem == "git"  # resolved executable, not a shell string
+        assert argv[1:] == ["-C", ".", "rev-parse", "--since=not a date"]

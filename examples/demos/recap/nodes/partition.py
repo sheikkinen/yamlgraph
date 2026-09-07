@@ -10,6 +10,8 @@ from __future__ import annotations
 
 import re
 
+from examples.demos.recap.nodes.prs import axis_note
+
 _REF_PATTERN = re.compile(r"(?:FR|NC)-[0-9]+|#[0-9]+", re.IGNORECASE)
 
 
@@ -175,8 +177,30 @@ def _convention_orphans(churn: str, fragments: str) -> list[str]:
     return [f"{path} (no changelog fragment in window)" for path in seen]
 
 
+def _pr_axis(state: dict) -> dict:
+    """FR-1027: the pull-request axis as the recap renders it.
+
+    An absent state key is NOT an empty axis — a run whose collection node
+    never executed made no observation, and saying "(none)" would assert one
+    (Commandment 6). Missing state is reported as unavailable.
+    """
+    axis = state.get("pr_axis")
+    if not isinstance(axis, dict):
+        axis = {
+            "available": False,
+            "reason": "collection node did not run",
+            "cap_reached": False,
+        }
+    return {
+        "pr_merged": list(axis.get("merged") or []),
+        "pr_closed_unmerged": list(axis.get("closed_unmerged") or []),
+        "pr_open": list(axis.get("open") or []),
+        "pr_axis_note": axis_note(axis),
+    }
+
+
 def finalize_recap(state: dict) -> dict:
-    """Post-pass composing reconciliation, status join, and code-owned orphans.
+    """Post-pass composing reconciliation, status join, and code-owned lists.
 
     Orphans never transit the model (FR-704): two field runs proved the
     model corrupts hashes in copy-verbatim steps (703b72d → 703b72e, twice).
@@ -185,6 +209,9 @@ def finalize_recap(state: dict) -> dict:
 
     Reconciliation (FR-930) runs BEFORE the status join so an invented id
     can never collect a [Status: …] or [no FR status] tag.
+
+    FR-1027 attaches the pull-request axis here for the same reason orphans
+    live here: it is code-owned and the model must never see it (C-4).
     """
     recap = state.get("recap") or {}
     if hasattr(recap, "model_dump"):  # normalize at the boundary (F2)
@@ -200,4 +227,11 @@ def finalize_recap(state: dict) -> dict:
         state.get("churn") or "", state.get("fragments") or ""
     )
 
-    return {"recap": {**recap, "orphans": orphans, "unverified_refs": unverified}}
+    return {
+        "recap": {
+            **recap,
+            "orphans": orphans,
+            "unverified_refs": unverified,
+            **_pr_axis(state),
+        }
+    }

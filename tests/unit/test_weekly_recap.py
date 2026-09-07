@@ -95,11 +95,18 @@ class TestRenderMarkdown:
     @pytest.mark.req("REQ-YG-604")
     def test_empty_lists_render_explicit_none(self) -> None:
         """Empty sections say so — a blank section is indistinguishable
-        from a render failure (substance_over_presence)."""
+        from a render failure (substance_over_presence).
+
+        FR-1027 added three pull-request sections, so a recap with nothing in
+        any section renders six explicit ``(none)`` markers. The PR sections
+        say ``(none)`` and not ``(not collected)`` here because this fixture
+        carries no ``pr_axis_note``: an axis with no note read cleanly.
+        """
         md = weekly_recap.render_markdown(
             {"workstreams": [], "orphans": [], "hotspots": []}, "2026-W34"
         )
-        assert md.count("(none)") == 3
+        assert md.count("(none)") == 6
+        assert "(not collected)" not in md
 
 
 class TestSubstantiveWindow:

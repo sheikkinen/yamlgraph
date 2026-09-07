@@ -9,6 +9,7 @@ state:
   repo_path: str    # path to any git repository, e.g. "."
   referenced: str   # FR-702: partition pre-pass output (commits with refs)
   unreferenced: str # FR-702: partition pre-pass output (orphan candidates)
+  pr_axis: dict     # FR-1027: code-owned pull-request axis (never model-visible)
 
 tools:
   commits_since:
@@ -52,6 +53,12 @@ tools:
     module: examples.demos.recap.nodes.partition
     function: finalize_recap
     description: "Deterministic finalization (FR-703/FR-704): joins verbatim [Status: ...] tags and assembles orphans in code — unreferenced lines bit-exact plus window-rule convention entries; the model neither joins nor copies."
+
+  collect_prs_fn:
+    type: python
+    module: examples.demos.recap.nodes.prs
+    function: collect_prs
+    description: "PR axis (FR-1027): origin→owner/name, one bounded gh invocation, code-owned merged/closed-unmerged/open buckets; absence, unreachability and cap are reported, never substituted."
 
 nodes:
   get_commits:
@@ -98,6 +105,11 @@ nodes:
     tool: partition_commits
     requires: [commits]
 
+  get_prs:
+    type: python
+    tool: collect_prs_fn
+    requires: [repo_path, since]
+
   synthesize:
     type: llm
     prompt: recap
@@ -129,6 +141,8 @@ edges:
   - from: get_fr_statuses
     to: partition
   - from: partition
+    to: get_prs
+  - from: get_prs
     to: synthesize
   - from: synthesize
     to: finalize_recap

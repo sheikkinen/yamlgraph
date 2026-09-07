@@ -107,14 +107,19 @@ class TestRecapGraphStructure:
 
     @pytest.mark.req("REQ-YG-531")
     def test_edge_flow(self) -> None:
-        """START → tool chain → partition → synthesize → finalize_recap → END."""
+        """START → tool chain → partition → get_prs → synthesize → finalize → END.
+
+        FR-1027 spliced ``get_prs`` between ``partition`` and ``synthesize``;
+        the chain is otherwise the FR-700/702/703/704 chain unchanged.
+        """
         from yamlgraph.compile.graph_loader import load_graph_config
 
         config = load_graph_config(GRAPH_PATH)
         edge_pairs = [(e["from"], e["to"]) for e in config.edges]
         assert ("START", "get_commits") in edge_pairs
         assert ("get_fr_statuses", "partition") in edge_pairs
-        assert ("partition", "synthesize") in edge_pairs
+        assert ("partition", "get_prs") in edge_pairs
+        assert ("get_prs", "synthesize") in edge_pairs
         assert ("synthesize", "finalize_recap") in edge_pairs
         assert ("finalize_recap", "END") in edge_pairs
 

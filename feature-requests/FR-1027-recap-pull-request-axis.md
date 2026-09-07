@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Judged 2026-09-07 — APPROVED WITH REVISIONS; R-1..R-5 folded (C-1 satisfied). Enforcement authority active for the frozen scope; C-3 (workflow credential wiring) and C-7 (RECAP_PAT scope) are human decisions before merge.
+**Status:** Enforced 2026-09-07 — AC-01..AC-13 and AC-15..AC-18 delivered, **AC-14 PARTIAL** (unit half witnessed; integration half unrunnable on this host and executed by no CI lane — see § AC-14 disposition); graph authored through the governed route (report verified), lint clean, 63 new tests green, real-run witness records PR #627. Three deviations recorded in the Implementation Record. Diary: [diary-2026-09-07-reflection-fr-1027-the-artifact-that-already-existed.md](../docs/diary/diary-2026-09-07-reflection-fr-1027-the-artifact-that-already-existed.md). **C-3 and C-7 remain open and are the human's**: the workflow credential wiring needs human review before merge, and RECAP_PAT's PR-read scope is unverifiable until the first scheduled run.
 **Effort:** 0.5 days
 **Requested:** 2026-09-07
 **First consumer / first event:** the operator, next Monday morning, opening
@@ -357,58 +357,59 @@ beginning `#627|`.
 
 Verbatim from the judgement's revised set.
 
-- [ ] **AC-01** `yamlgraph graph lint examples/demos/recap/graph.yaml` passes
+- [x] **AC-01** `yamlgraph graph lint examples/demos/recap/graph.yaml` passes
       and the graph has exactly one LLM node, `synthesize`.
-- [ ] **AC-02** `prompts/recap.yaml` is byte-identical to its pre-change
+- [x] **AC-02** `prompts/recap.yaml` is byte-identical to its pre-change
       content; its schema fields are exactly `{workstreams, hotspots}` and its
       template references no PR state.
-- [ ] **AC-03** The existing tool-node set and every existing `type: shell`
+- [x] **AC-03** The existing tool-node set and every existing `type: shell`
       command remain unchanged; `test_collection_is_tool_nodes` and
       `test_git_commands_are_portable` pass unmodified.
-- [ ] **AC-04** Unit tests accept the three GitHub remote families and optional
+- [x] **AC-04** Unit tests accept the three GitHub remote families and optional
       `.git` suffix from R-3; missing, malformed, local/file, and non-GitHub
       remotes return stable unavailable reasons and never invoke `gh`.
-- [ ] **AC-05** A unit test proves `--since=<since>` is passed as one argv
+- [x] **AC-05** A unit test proves `--since=<since>` is passed as one argv
       element to `git rev-parse`, the exact returned epoch controls inclusive
       timestamp membership, and UTC date conversion is display-only.
-- [ ] **AC-06** A scrambled committed fixture proves exact bucket membership
+- [x] **AC-06** A scrambled committed fixture proves exact bucket membership
       and R-1 ordering for in-window merged, before-window merged, in-window
       closed-unmerged, before-window closed-unmerged, and old open PRs.
-- [ ] **AC-07** Every line equals `#<number>|<created>→<end>|<N>d|<title>`
+- [x] **AC-07** Every line equals `#<number>|<created>→<end>|<N>d|<title>`
       exactly, including fixture title bytes; duration is whole elapsed UTC
       days.
-- [ ] **AC-08** Exactly one fixed-argv, `shell=False` `gh` subprocess
+- [x] **AC-08** Exactly one fixed-argv, `shell=False` `gh` subprocess
       invocation is attempted for an eligible remote, with a 60-second
       timeout; a crafted remote cannot add or split argv.
-- [ ] **AC-09** Missing `gh`, timeout, non-zero exit with and without stderr,
+- [x] **AC-09** Missing `gh`, timeout, non-zero exit with and without stderr,
       invalid JSON, and missing required JSON fields each yield
       `available: False`, empty buckets, and a stable non-empty reason through
       narrow exception handling.
-- [ ] **AC-10** Available zero-row output is distinct from unavailable output;
+- [x] **AC-10** Available zero-row output is distinct from unavailable output;
       no error branch fabricates populated buckets.
-- [ ] **AC-11** A 300-row fixture marks `cap_reached: True` and reports that
+- [x] **AC-11** A 300-row fixture marks `cap_reached: True` and reports that
       results may be truncated; a 299-row fixture does not. The contract
       claims completeness only within the returned capped response.
-- [ ] **AC-12** `finalize_recap` attaches the three buckets and one axis note
+- [x] **AC-12** `finalize_recap` attaches the three buckets and one axis note
       while leaving `workstreams`, `orphans`, `hotspots`, and
       `unverified_refs` behavior unchanged; inherited FR-702/703/704/930 tests
       pass unmodified.
-- [ ] **AC-13** Exact renderer tests cover available-empty as `(none)`,
+- [x] **AC-13** Exact renderer tests cover available-empty as `(none)`,
       unavailable as one visible axis note plus `(not collected)`, and
       cap-reached output with both non-empty and empty buckets; existing
       section headings and order are preserved.
-- [ ] **AC-14** The bare-repo integration fixture has no origin and makes no
+- [~] **AC-14** The bare-repo integration fixture has no origin and makes no
       `gh` call; the complete recap records the absent-origin note without
-      adding a second slow/network path.
-- [ ] **AC-15** `feature-requests/FR-1027.witness.md` contains the metadata
+      adding a second slow/network path. **PARTIAL — unit half satisfied,
+      integration half BLOCKED-UNREACHABLE.** See § AC-14 disposition.
+- [x] **AC-15** `feature-requests/FR-1027.witness.md` contains the metadata
       required by R-5 and a closed-unmerged line beginning `#627|`, verified
       mechanically.
-- [ ] **AC-16** `.github/workflows/weekly-recap.yml` passes
+- [x] **AC-16** `.github/workflows/weekly-recap.yml` passes
       `${{ secrets.RECAP_PAT }}` as `GH_TOKEN` only to the recap step,
       verified by a workflow-YAML test.
-- [ ] **AC-17** RED tests and GREEN implementation are separate commits and
-      `git log` shows that order.
-- [ ] **AC-18** `CAP-195` contains `REQ-YG-669`; every new test carries
+- [x] **AC-17** RED tests and GREEN implementation are separate commits and
+      `git log` shows that order. RED `15584e38`, GREEN follows it.
+- [x] **AC-18** `CAP-195` contains `REQ-YG-669`; every new test carries
       `@pytest.mark.req("REQ-YG-669")`; regenerated `ARCHITECTURE.md`, strict
       requirement coverage, targeted recap tests, graph lint, README,
       changelog fragment, FR implementation notes, and diary distillation are
@@ -442,6 +443,182 @@ Recorded in full, with disagreement preserved, in
    in scheduled production use and already answers the timeframe question for
    any repository; a parallel artifact would duplicate the git collection and
    split the Monday output in two.
+
+## Implementation Record (2026-09-07)
+
+Enforced under the judgement's frozen scope. Every deliverable D-1..D-7
+landed; the surfaces are exactly the ones the judgement authorised, and
+nothing on its "Not authorized" list was touched.
+
+### What was built
+
+| Deliverable | Landed as |
+|---|---|
+| D-2 | `examples/demos/recap/graph.yaml` — one state key, one `type: python` tool, one node, two edges. Authored through the governed route (C-2, below). `prompts/recap.yaml` untouched. |
+| D-3 | `examples/demos/recap/nodes/prs.py` (~270 lines) — `parse_origin`, `rev_parse_argv`, `parse_max_age`, `bucket_prs`, `axis_note`, `collect_prs`. |
+| D-4 | `examples/demos/recap/nodes/partition.py` — `_pr_axis()` helper, four keys merged into `finalize_recap`'s return. |
+| D-5 | `scripts/weekly_recap.py` — three sections, a title map, `(not collected)`, and the single pre-section note; `.github/workflows/weekly-recap.yml` — `GH_TOKEN: ${{ secrets.RECAP_PAT }}` on the recap step only. |
+| D-6 | `tests/unit/test_recap_pr_axis.py` — 63 tests, all `REQ-YG-669`; `tests/fixtures/fr1027_gh_pr_list.json` — the scrambled 8-row fixture; one integration test in `tests/integration/test_recap_demo_integration.py`. |
+| D-7 | `capabilities/CAP-195-timeframe-recap-demo.yaml` (`REQ-YG-669`, `fr:` gains FR-1027), regenerated `ARCHITECTURE.md`, `examples/demos/recap/README.md` (§ Pull-request axis), `changelog/unreleased/fr-1027-recap-pull-request-axis.md`, `feature-requests/FR-1027.witness.md`. |
+
+### Gate compliance
+
+- **C-2 satisfied.** `graph.yaml` was written by the governed authoring route
+  and by nothing else: brief at
+  `feature-requests/authoring-briefs/fr1027-recap-pr-axis-brief.md`,
+  `scripts/author_preflight.py` exit 0, `scripts/author.sh` run 2026-09-07
+  (`gpt-5.5`, exit 0), report at `tmp/draft-authoring-report.md`. The adapter
+  applied exactly the brief's path-only edit list, passed
+  `yamlgraph graph lint`, passed the offline no-origin smoke, and correctly
+  **declined** to repair the nine suite failures the splice exposed because
+  they lay outside its permitted single-file surface. Those nine were then
+  dispositioned by hand — five mine, four environmental (below).
+- **C-4 satisfied and witnessed.** `prompts/recap.yaml` is byte-identical;
+  the schema is still `{workstreams, hotspots}`;
+  `synthesize.requires`/`variables` carry no `pr_*` key;
+  `test_prompt_carries_no_pull_request_input` and
+  `test_synthesize_variables_exclude_the_axis` fail if that ever changes.
+- **C-5 satisfied.** Exactly four exception classes are caught, each at the
+  `gh` call site. `test_no_broad_handler_unexpected_error_propagates` raises a
+  `MemoryError` through `collect_prs` and asserts it surfaces;
+  `test_non_repository_stays_loud` asserts a non-repo `repo_path` still
+  raises `CalledProcessError`.
+- **C-6 satisfied.** The note renders once, before the three sections, and
+  `test_cap_note_survives_non_empty_buckets` asserts it is present with rows
+  in two of the three buckets.
+- **C-3 and C-7 remain open, and are the human's.** The workflow credential
+  wiring is committed but unverified in the cron: `RECAP_PAT`'s scopes are
+  not readable from outside the secret. The first Monday run is the witness.
+  If the PAT cannot read PR metadata, the axis renders
+  `pull-request axis unavailable: gh exited …` and the recap is otherwise
+  intact — per C-7 the response is to return to planning, not to add a
+  permission or a second secret under this authority. The AC-15 witness below
+  was produced with the developer's own `gh` credential, so it does **not**
+  discharge C-7.
+
+### Deviations, each recorded rather than argued
+
+1. **`git rev-parse --since` degrades silently, contradicting the
+   judgement's premise for R-2.** The judgement wrote "Invalid `since` … 
+   remain[s] loud because the existing git collection contract already fails
+   those inputs." Measured on this host, it does not:
+   `git rev-parse --since="not a date"` returns the **current** epoch with
+   exit 0, and `git log --since="not a date"` likewise returns zero commits
+   with exit 0 — so the five pre-existing collection tools already accept a
+   garbage window silently. The axis therefore uses git's own parser and
+   **inherits** that silence rather than being made louder than the graph
+   around it; making one of six collectors strict would be a contract change
+   outside the frozen scope. `TestSinceGrammarIsGitsOwn` pins the argv so the
+   choice is visible in the suite rather than buried, and `parse_max_age`
+   still raises on any output shape other than `--max-age=<digits>`. **A
+   stricter `since` contract for the whole graph is a separate FR.**
+2. **Two pre-existing tests were updated, both by design of the frozen
+   scope.** `test_recap_demo.py::test_edge_flow` asserted
+   `partition → synthesize`, which the judgement's own D-2 replaces with
+   `partition → get_prs → synthesize`; and
+   `test_weekly_recap.py::test_empty_lists_render_explicit_none` counted three
+   `(none)` markers where the authorised renderer now emits six. Both were
+   updated to the new frozen contract with the reason in the docstring. AC-03
+   and AC-12 name the tests that must pass **unmodified** —
+   `test_collection_is_tool_nodes`, `test_git_commands_are_portable`, and the
+   inherited FR-702/703/704/930 suites — and all of those did.
+3. **One test assertion in this FR's own RED commit was wrong and was
+   corrected.** `TestSinceGrammarIsGitsOwn` asserted `argv[0] == "git"`, but
+   `prs.py` resolves the executable with `shutil.which` (the
+   `scripts/weekly_recap.py` precedent). The assertion now checks
+   `Path(argv[0]).stem == "git"` and the remaining elements exactly; the
+   contract under test — `--since=<since>` as one argv element — is unchanged.
+
+### AC-14 disposition: partial, and the reason is not this change
+
+The **unit half is satisfied**:
+`test_absent_origin_is_unavailable_and_never_calls_gh` builds an origin-less
+repository, runs `collect_prs`, and asserts both that the axis reports
+`no origin remote` and that `gh` appears nowhere in the recorded subprocess
+programs — so "no origin means no network call" is witnessed, which is the
+half the FR-922 latency budget cares about.
+
+The **integration half cannot run on this host, and will not run in CI
+either.** Two measurements, both cheap and both damning:
+
+1. On this Windows host the recap graph cannot execute its **first** node.
+   `commits_since` uses `--pretty=format:'%h|%ad|%s'`, and
+   `yamlgraph/tools/shell.py`'s POSIX quoting reaches cmd.exe as
+   `'%ad' is not recognized as an internal or external command`. Verified
+   identical on the unmodified merge base: the pre-existing
+   `TestRecapDispositionAxis::test_rejected_status_surfaces_verbatim` fails
+   the same way at the same node on `8149b90e`. No FR-1027 code is reached,
+   so nothing here caused it — it is the same `shell.py` platform boundary
+   behind 268 of the host's unit failures.
+2. `.github/workflows/workflow.yml` runs `pytest tests/unit` only (lines 63,
+   95, 146). **`tests/integration/` is never executed by CI**, so a green
+   pipeline is not evidence for this criterion on any platform.
+
+The test is therefore written, committed, and correct — and unwitnessed. It
+is not skipped, not marked xfail, and not weakened to pass: it will run for
+the first operator who runs `pytest tests/integration` on a POSIX host with a
+key, which is exactly the FR-922 gray-zone status that judgement accepted for
+its own bare-repo test.
+
+**This is the operator's call, not mine to close.** The options, with the
+evidence: (a) accept AC-14 as partial on the unit witness, which is what this
+FR does; (b) run `pytest tests/integration/test_recap_demo_integration.py` on
+the mac and paste the result into this FR, which discharges it in minutes;
+(c) file a separate FR for the `shell.py` POSIX-quoting boundary and/or for
+putting `tests/integration` in a CI lane — both are pre-existing gaps this FR
+merely surfaced, and both are outside its frozen scope.
+
+### Verification
+
+- `yamlgraph graph lint examples/demos/recap/graph.yaml` — clean (AC-01).
+- `tests/unit/test_recap_pr_axis.py` — **63 passed**.
+- Recap family (`test_recap_pr_axis`, `test_recap_demo`,
+  `test_fr702_recap_disposition`, `test_weekly_recap`) — **100 passed, 4
+  failed**, the four being environmental (next bullet).
+- `python scripts/req_coverage.py --strict` — exit 0; CAP-195 now 5/5 reqs,
+  103 tests. `scripts/check_changelog_req.py` — 4 passed, 0 failed.
+  `lint-imports` — clean. `ruff check` and `ruff format --check` — clean on
+  every file touched.
+- **Full fast unit suite, measured against a baseline rather than asserted.**
+  A detached worktree at the merge base (`8149b90e`, unmodified) was run with
+  the identical command, and the two `FAILED`/`ERROR` sets were diffed:
+
+  | | failed | passed | errors |
+  |---|---|---|---|
+  | `8149b90e` (baseline) | 250 | 6212 | 18 |
+  | this branch | 250 | **6275** | 18 |
+
+  `comm -13` and `comm -23` over the two sorted 268-line sets are both
+  **empty** — the failure sets are identical, and the only delta is the 63
+  passing tests this FR adds. The 268 are a Windows-host environment
+  baseline, not an inherited excuse: the root cause is visible in their logs
+  and is one boundary — `yamlgraph/tools/shell.py` applies POSIX
+  `shlex.quote()`, which Windows git rejects
+  (`fatal: cannot change to ''C:\Users\...''`), and FR-702's exit-code
+  normalization `|| [ $? -eq 1 ]` is POSIX-only
+  (`[: invalid integer '$?'`). The remainder are POSIX-only hook/installer
+  tests and missing optional dependencies (`z3` → lint W806, `ramp_installer`,
+  `fi_domain_crawl`). **Linux CI is the authority for those 268**; this FR
+  neither fixes nor worsens them, and the platform boundary they mark is a
+  known one (Scripture `platform`).
+- **AC-15 real run**, `feature-requests/FR-1027.witness.md`: `since`
+  `2026-08-31` against `sheikkinen/yamlgraph`, collected
+  2026-09-07T14:40:01Z. **93 merged, 1 closed unmerged, 0 open**, `cap_reached`
+  true. The one closed-unmerged row is
+  `#627|2026-09-06→2026-09-06|0d|docs(doctrine): FR-1013 doctrine and
+  reference sweep after Chaplain removal` — the pull request that motivated
+  this FR, and the one no git-only recap of that week can name. Asserted
+  mechanically by `TestWitness::test_witness_shows_the_pull_request_git_cannot_see`.
+
+### One honest note on the witness
+
+`cap_reached` is **true** on this repository at a one-week window: 300 rows
+came back, so the buckets are complete only within that page. That is not a
+defect of the run, it is the cap doing its job and saying so — and it is why
+R-4's "may be truncated" wording matters more here than it would on a quieter
+repository. Raising the limit, or windowing the `gh` query server-side with
+`--search`, is a follow-up an operator should decide on evidence, not
+something to smuggle in under this authority.
 
 ## Related
 
