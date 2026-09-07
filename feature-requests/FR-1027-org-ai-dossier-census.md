@@ -9,14 +9,12 @@
 our projects are active, which use AI, with what tools, and who carries them"
 — answered by one command whose output lands in gitignored `research/`, and
 re-answered next quarter by re-running it
-**Research:** brief committed at
-[research-briefs/org-ai-dossier.md](research-briefs/org-ai-dossier.md);
-`scripts/research.sh` run 2026-09-07 failed before any persona call — the
-Anthropic key in `.env` returns 401 on `/v1/models` (operator-side; key
-rotation needed). `FR-1027.research.md` is promoted once the route runs;
-until then this FR carries no authority (FR-890). Sizing probes and the
-Copilot-API / code-search alternative probes are recorded in gitignored
-`research/org-ai-dossier/sizing.md`.
+**Research:** [FR-1027.research.md](FR-1027.research.md) — brief
+[research-briefs/org-ai-dossier.md](research-briefs/org-ai-dossier.md), run
+2026-09-07T10:14Z on `azure/aaa-gpt-5.4-mini` via FR-1028 (`RESEARCH_PROVIDER`
+/`RESEARCH_MODEL`), all five personas executed. Dispositioned in § Research
+Disposition. Sizing probes and the Copilot-API / code-search alternative probes
+are recorded in gitignored `research/org-ai-dossier/sizing.md`.
 **Prior art:** FR-892 (corpus_census: injected discover/extract slots, LLM-free
 reduce, one synthesis tail) — FOUNDATION, reused unchanged. FR-899
 (repo_census: org repos → purpose/persons/activity on pinned Azure, customer
@@ -263,8 +261,18 @@ per the operator's 2026-09-07 decision; the judge may overrule.
       org-ai-dossier.yaml`; `ARCHITECTURE.md` row; changelog fragment;
       `python scripts/req_coverage.py --strict` green. (IDs allocated at
       enforce; verify no race per repo memory.)
-- [ ] `FR-1027.research.md` promoted from `scripts/research.sh` output and
-      dispositioned here before Judge.
+- [x] `FR-1027.research.md` promoted from `scripts/research.sh` output and
+      dispositioned here before Judge (2026-09-07).
+
+## Research Disposition (FR-1027.research.md, five rows)
+
+| persona | finding | disposition |
+| --- | --- | --- |
+| os-infra-primitivist | one local command, gitignored outputs, Jira adapter on the MCP env names, Azure forced by preflight, fail closed before any fetch | **adopted** — this is the preflight + `out_dir` + env contract in § Proposed Solution |
+| data-process-planner | change the output shape to ledgers + dossier + onepager with explicit coverage and citations | **adopted** — § Ideal Result; coverage denominators are a hard AC |
+| yamlgraph-native-planner | corpus-census discover/extract/map-reduce with invocation-time slots, code joins, one Azure tail | **adopted** — the pipeline IS this; `is_this_a_graph` = yes (corpus-census family) |
+| subtractionist | delete the cross-org person ranking; keep a bounded "key contributors" list per project | **partially adopted, dissent preserved** — the operator decided `persons_llm=true` (2026-09-07); the ranking stays but is bounded to work-system facts, the LLM sees only the code-built footprint, and `persons_llm=false` degrades to exactly the subtractionist's shape. The judge may side with the dissent. |
+| librarian | external precedent: Jira MCP connector + development context (commits/PRs) as the cross-system evidence pattern | **acknowledged, not adopted as route** — MCP is not callable from a graph; the REST adapter reuses the MCP env names; the dev-panel join is deferred (§ Alternatives) |
 
 ## Alternatives Considered (probed 2026-09-07 unless marked)
 

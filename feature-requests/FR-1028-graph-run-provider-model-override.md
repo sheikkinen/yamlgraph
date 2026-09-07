@@ -180,7 +180,14 @@ already "has" an override that does not reach the nodes this FR needs.
   fails in any shell where `.venv` is not on `PATH` (`ModuleNotFoundError:
   yaml`). Passes with the venv activated. Test-isolation defect to file
   separately; not caused by this change.
-- Live witness (AC-10): pending — next step in this arc.
+- Live witness (AC-10): **done 2026-09-07T10:14Z** — `RESEARCH_PROVIDER=azure
+  RESEARCH_MODEL=aaa-gpt-5.4-mini scripts/research.sh …/org-ai-dossier.md`
+  exit 0, five personas executed, header `- provider/model:
+  azure/aaa-gpt-5.4-mini`, verifier ok, promoted to `FR-1027.research.md`.
+  Note: `.venv/bin/yamlgraph` is the MAIN checkout's editable install, so in a
+  worktree `YAMLGRAPH_BIN` must point at a `python -m yamlgraph.cli` shim
+  (`tmp/yg-worktree.sh`) or the new flags are "unrecognized" — the first
+  attempt failed exactly so.
 
 ## Alternatives Considered
 
