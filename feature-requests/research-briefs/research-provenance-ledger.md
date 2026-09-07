@@ -23,12 +23,11 @@ code_git_sha, graph}` to a committed ledger, and `research_preflight.py
 --verify-promotion <record> <ledger>` recomputes the two hashes and reports
 `matching` / `missing` / `mismatched`.
 
-The second mechanism has no caller. `grep -rn 'verify-promotion'` over
-`.pre-commit-config.yaml`, `.github/workflows`, `.github/hooks`, and
-`scripts/*.sh` returns nothing; the only invocations are in
+The second mechanism has no invoking caller: no hook, workflow, or script
+runs `--verify-promotion`; `scripts/research.sh` mentions it once in a
+comment. The only executable consumer is
 `tests/unit/test_fr896_precedent_traceability.py`, which exercises the
-function on fixtures. The ledger has 34 lines and no reader other than that
-verifier.
+function on fixtures. The ledger has no reader other than that verifier.
 
 The hash pins the brief's bytes. A brief is a planning input: judges and
 reviewers have asked for its wording to change after research was run
@@ -86,9 +85,9 @@ enforcement/latency-critical
   (`55cb4951`) had been rendered on the first record. Operator, same day:
   "clearly just for the show. some SHA acrobatics?" and "SHAs are
   acrobatics no one asked for."
-- 2026-09-06: `grep -rn 'verify-promotion\|verify_promotion'
-  .pre-commit-config.yaml .github/workflows .github/hooks scripts/*.sh` →
-  no hits.
+- 2026-09-06: no invocation of `--verify-promotion` in
+  `.pre-commit-config.yaml`, `.github/workflows`, `.github/hooks`, or
+  `scripts/*.sh`; one comment mention in `scripts/research.sh`.
 - 2026-08-28, FR-896 judgement C-4: hash consistency only, not proof of
   execution.
 - 2026-09-06, FR-1025 judgement R-1: a brief on this problem that

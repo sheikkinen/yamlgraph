@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Proposed
+**Status:** Judged — REJECTED round 1 (2026-09-07); R-1 and R-3 folded below; R-2 (third research run) refused — operator ruling: re-research banned. Awaiting operator disposition; no re-judge.
 **Effort:** 0.25 days
 **Requested:** 2026-09-06
 **First consumer / first event:** the next agent that corrects a research
@@ -12,7 +12,7 @@ would say `mismatched` and re-runs five model calls to fix a hash (FR-1022,
 the brief is edited, the FR retracts the claim, done.
 **Research:** [FR-1026.research.md](FR-1026.research.md) — brief
 `feature-requests/research-briefs/research-provenance-ledger.md` (neutral
-rewrite after FR-1025 R-1), run 2026-09-06, 4 of 5 personas; NOT unanimous —
+rewrite after FR-1025 R-1), run 2026-09-07T03:48Z, 4 of 5 personas; NOT unanimous —
 two for outright deletion, one for deletion-plus-census-graph replacement,
 one naming the gate-or-retire fork. Dispositioned under Alternatives.
 **Prior art:** [FR-1025-retire-research-provenance-ledger.md](FR-1025-retire-research-provenance-ledger.md)
@@ -52,14 +52,14 @@ FR-890 intended and the only one that survives.
 ## Value Statement
 
 FR authors stop paying model calls to make an unenforced hash match, and the
-tree stops carrying a 34-line file that nothing reads.
+tree stops carrying a file that nothing reads.
 
 ## Problem
 
-`verify_promotion` is called by no hook, no CI step, no script — only by its
-own unit test on fixtures (`grep -rn 'verify-promotion\|verify_promotion'
-.pre-commit-config.yaml .github/workflows .github/hooks scripts/*.sh` → no
-hits, 2026-09-06). A verifier nobody requires can only be *satisfied*, and
+`verify_promotion` is invoked by no hook, no CI step, and no script: the only
+executable consumer is its own unit test on fixtures. `scripts/research.sh`
+mentions the command once, in a comment ("Verify with: …"), and never runs
+it (2026-09-07). A verifier nobody requires can only be *satisfied*, and
 after any edit to a brief the only way to satisfy it is to re-run research.
 
 Witness (committed in this FR's text because the source branch, PR #633, is
@@ -117,7 +117,9 @@ under a new heading, tagged `REQ-YG-623`:
 ## Acceptance Criteria
 
 - [ ] AC-1 `feature-requests/research-runs.jsonl` is not tracked.
-- [ ] AC-2 `grep -rn 'verify_promotion\|verify-promotion\|research-runs.jsonl\|brief_sha256\|artifact_sha256' scripts tests capabilities .github reference` returns no hits (historical FRs, judgements, evidence files, diaries and released changelogs are the record and are excluded).
+- [ ] AC-2a `grep -rn 'verify_promotion\|verify-promotion\|research-runs.jsonl\|brief_sha256\|artifact_sha256' scripts capabilities .github reference ARCHITECTURE.md` returns no hits (no active implementation, contract, or instruction references; historical FRs, judgements, evidence files, diaries and released changelogs are the record and are excluded).
+- [ ] AC-2b `test_wrapper_appends_provenance_line` and `test_verify_promotion_matching_missing_mismatched` are absent from `tests/unit/test_fr896_precedent_traceability.py`.
+- [ ] AC-2c The retirement witnesses (tests 1–4 above) are present in that file and pass; they are permitted to name the retired identifiers — their execution, not a zero-hit text search, proves the retirement.
 - [ ] AC-3 `scripts/research.sh` still exits 65 on a schema-invalid artifact and 0 on a valid one (existing tests green).
 - [ ] AC-4 Witness tests 1–4 pass; the RED commit precedes the GREEN commit in `git log`.
 - [ ] AC-5 REQ-YG-623 text no longer claims the ledger; `python scripts/req_coverage.py --strict` passes; `ARCHITECTURE.md` regenerated.
@@ -153,3 +155,29 @@ under a new heading, tagged `REQ-YG-623`:
   `tests/unit/test_fr896_precedent_traceability.py`,
   `capabilities/CAP-248-research-sole-route.yaml`
 - FR-1022 / PR #633 (incident; branch `featjudge-round-sentinel`)
+
+## Judgement (2026-09-07, round 1)
+
+**Verdict:** REJECTED — full text in
+[FR-1026-retire-research-provenance-ledger.judgement.md](FR-1026-retire-research-provenance-ledger.judgement.md)
+(sole route, `scripts/judge.sh`, backend copilot). The deletion itself was
+not contested ("narrow, feasible, and well motivated"; scope frozen as filed).
+
+| # | Finding | Resolution (binding) |
+|---|---------|----------------------|
+| R-1 | grep claim off by one comment hit; stale ledger line count; research date is 2026-09-07 UTC | Folded in FR and brief. The brief edit makes `verify_promotion` report `mismatched` for this brief — by design; the record is not re-run (see R-2) |
+| R-2 | Research record has 3 solution classes; doctrine requires 4–6; re-run the route | **Refused.** Operator ruling 2026-09-07: re-research banned. Three classes is the true size of the alternative space for a subtraction FR; the record preserves the real disagreement (delete / delete+census / gate-or-retire). A third run to reach a fourth class would be the FR-1022 dance this FR exists to end. The 4–6-class rule's fit to subtraction FRs is a doctrine question for a separate FR |
+| R-3 | AC-2 (zero grep hits in `tests`) contradicts AC-4 (witnesses name the identifiers) | Folded: AC-2a/2b/2c |
+
+**Purge list:** none beyond the frozen deletion set.
+
+**Scope frozen:** the deletion table under Proposed Solution, unchanged
+across both judgements. Not authorized: any replacement gate, flag, census
+graph, or run log; edits to the research graph, prompts, or reducer.
+
+### Questions for the human (as options, or 'none')
+
+1. **Disposition of this judgement.** Options: (a) operator overrides the
+   REJECTED verdict on the R-2 ground and grants authority to enforce the
+   frozen deletion set — *recommended*; (b) operator upholds; FR stays
+   Rejected and the ledger stays. No third model round either way.
