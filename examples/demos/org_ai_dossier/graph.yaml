@@ -1,0 +1,343 @@
+version: "1.0"
+name: org-ai-dossier
+description: >
+  Organization AI dossier census over active GitHub repositories and active
+  Jira projects, with Azure-pinned classification, hidden semantic canaries,
+  deterministic reduction, optional person summaries, and atomic artifact
+  rendering.
+
+prompts_relative: true
+prompts_dir: prompts
+
+defaults:
+  provider: azure
+  temperature: 0.0
+
+config:
+  max_map_items: 400
+  max_concurrency: 4
+  timeout: 5400
+
+state:
+  org: str
+  visibility: str
+  window_days: str
+  top_persons: str
+  persons_llm: str
+  persons_llm_ack: str
+  out_dir: str
+  preflight_ok: bool
+  coverage_gh: dict
+  api_calls_estimated: int
+  llm_calls_estimated: int
+  run_started: str
+  repo_items:
+    type: list
+  repo_bundles:
+    type: list
+    reducer: sorted_add
+  search_hits: dict
+  repo_findings:
+    type: list
+    reducer: sorted_add
+  coverage_jira: dict
+  jira_items:
+    type: list
+  jira_bundles:
+    type: list
+    reducer: sorted_add
+  jira_findings:
+    type: list
+    reducer: sorted_add
+  reduced: dict
+  person_input:
+    type: list
+  persons_llm_active: bool
+  person_summaries:
+    type: list
+    reducer: sorted_add
+  findings_input: dict
+  findings_claims: dict
+  onepager_claims: dict
+  artifacts: dict
+
+tools:
+  preflight:
+    slot: true
+    contract:
+      args: []
+  gh_discover:
+    slot: true
+    contract:
+      args: [source, visibility]
+  gh_extract:
+    slot: true
+    contract:
+      args: [item]
+  gh_search:
+    slot: true
+    contract:
+      args: [org]
+  jira_coverage:
+    slot: true
+    contract:
+      args: [source]
+  jira_discover:
+    slot: true
+    contract:
+      args: [source]
+  jira_extract:
+    slot: true
+    contract:
+      args: [item]
+  coverage_gh:
+    type: python
+    module: examples.demos.org_ai_dossier.tools
+    function: coverage_gh
+    description: "Estimate GitHub coverage, API calls, LLM calls, and run start."
+  inject_repo_canaries:
+    type: python
+    module: examples.demos.org_ai_dossier.tools
+    function: inject_repo_canaries
+    description: "Append hidden repository canary bundles before classification."
+  inject_jira_canaries:
+    type: python
+    module: examples.demos.org_ai_dossier.tools
+    function: inject_jira_canaries
+    description: "Append hidden Jira canary bundles before classification."
+  reduce:
+    type: python
+    module: examples.demos.org_ai_dossier.tools
+    function: reduce
+    description: "Validate classifications, reconcile canaries, and reduce ledgers."
+  prepare_person_input:
+    type: python
+    module: examples.demos.org_ai_dossier.tools
+    function: prepare_person_input
+    description: "Build source-local person footprints and person-summary routing flag."
+  prepare_findings_input:
+    type: python
+    module: examples.demos.org_ai_dossier.tools
+    function: prepare_findings_input
+    description: "Validate summaries and build bounded citable synthesis rows."
+  render_artifacts:
+    type: python
+    module: examples.demos.org_ai_dossier.tools
+    function: render_artifacts
+    description: "Validate citations and write dossier artifacts atomically."
+
+nodes:
+  preflight:
+    type: python
+    tool: preflight
+    state_key: preflight_ok
+    on_error: fail
+
+  coverage_gh:
+    type: python
+    tool: coverage_gh
+    on_error: fail
+
+  gh_discover:
+    type: python
+    tool: gh_discover
+    variables:
+      source: "{state.org}:{state.window_days}"
+      visibility: "{state.visibility}"
+    state_key: repo_items
+    on_error: fail
+
+  gh_extract_items:
+    type: map
+    over: "{state.repo_items}"
+    as: item
+    max_items: 400
+    node:
+      type: python
+      tool: gh_extract
+      state_key: content
+      on_error: fail
+    collect: repo_bundles
+
+  inject_repo_canaries:
+    type: python
+    tool: inject_repo_canaries
+    on_error: fail
+
+  gh_search:
+    type: python
+    tool: gh_search
+    variables:
+      org: "{state.org}"
+    on_error: fail
+
+  classify_repos:
+    type: map
+    over: "{state.repo_bundles}"
+    as: judged
+    max_items: 405
+    node:
+      type: llm
+      prompt: classify_repo_ai
+      provider: azure
+      temperature: 0
+      state_key: finding
+      on_error: skip
+      variables:
+        content: "{state.judged.value}"
+        source_index: "{state.judged._map_index}"
+    collect: repo_findings
+
+  coverage_jira:
+    type: python
+    tool: jira_coverage
+    variables:
+      source: "{state.window_days}"
+    on_error: fail
+
+  jira_discover:
+    type: python
+    tool: jira_discover
+    variables:
+      source: "{state.window_days}"
+    state_key: jira_items
+    on_error: fail
+
+  jira_extract_items:
+    type: map
+    over: "{state.jira_items}"
+    as: item
+    max_items: 150
+    node:
+      type: python
+      tool: jira_extract
+      state_key: content
+      on_error: fail
+    collect: jira_bundles
+
+  inject_jira_canaries:
+    type: python
+    tool: inject_jira_canaries
+    on_error: fail
+
+  classify_jira:
+    type: map
+    over: "{state.jira_bundles}"
+    as: judged
+    max_items: 155
+    node:
+      type: llm
+      prompt: classify_jira_ai
+      provider: azure
+      temperature: 0
+      state_key: finding
+      on_error: skip
+      variables:
+        content: "{state.judged.value}"
+        source_index: "{state.judged._map_index}"
+    collect: jira_findings
+
+  reduce:
+    type: python
+    tool: reduce
+    on_error: fail
+
+  prepare_person_input:
+    type: python
+    tool: prepare_person_input
+    on_error: fail
+
+  summarize_persons:
+    type: map
+    over: "{state.person_input}"
+    as: person
+    max_items: 60
+    node:
+      type: llm
+      prompt: summarize_person
+      provider: azure
+      temperature: 0
+      state_key: summary_out
+      on_error: fail
+      variables:
+        person: "{state.person.value}"
+        source_index: "{state.person._map_index}"
+    collect: person_summaries
+
+  prepare_findings_input:
+    type: python
+    tool: prepare_findings_input
+    on_error: fail
+
+  synthesize_findings:
+    type: llm
+    prompt: synthesize_findings
+    provider: azure
+    temperature: 0
+    state_key: findings_claims
+    variables:
+      rows: "{state.findings_input.rows}"
+      coverage: "{state.findings_input.coverage}"
+      tools: "{state.findings_input.ai_tools}"
+
+  synthesize_onepager:
+    type: llm
+    prompt: synthesize_onepager
+    provider: azure
+    temperature: 0
+    state_key: onepager_claims
+    variables:
+      rows: "{state.findings_input.rows}"
+      coverage: "{state.findings_input.coverage}"
+      tools: "{state.findings_input.ai_tools}"
+
+  render_artifacts:
+    type: python
+    tool: render_artifacts
+    on_error: fail
+
+edges:
+  - from: START
+    to: preflight
+  - from: preflight
+    to: coverage_gh
+  - from: coverage_gh
+    to: gh_discover
+  - from: gh_discover
+    to: gh_extract_items
+  - from: gh_extract_items
+    to: inject_repo_canaries
+  - from: inject_repo_canaries
+    to: gh_search
+  - from: gh_search
+    to: classify_repos
+  - from: classify_repos
+    to: coverage_jira
+  - from: coverage_jira
+    to: jira_discover
+  - from: jira_discover
+    to: jira_extract_items
+  - from: jira_extract_items
+    to: inject_jira_canaries
+  - from: inject_jira_canaries
+    to: classify_jira
+  - from: classify_jira
+    to: reduce
+  - from: reduce
+    to: prepare_person_input
+  - from: prepare_person_input
+    to: summarize_persons
+    condition: "persons_llm_active == true"
+  - from: prepare_person_input
+    to: prepare_findings_input
+    condition: "persons_llm_active != true"
+  - from: summarize_persons
+    to: prepare_findings_input
+  - from: prepare_findings_input
+    to: synthesize_findings
+  - from: synthesize_findings
+    to: synthesize_onepager
+  - from: synthesize_onepager
+    to: render_artifacts
+  - from: render_artifacts
+    to: END

@@ -1,0 +1,28 @@
+system: >
+  From a bounded table of rows containing item_ref, judgement, label, and
+  entries, plus a coverage record and an AI-tool table, return three to eight
+  findings about the organisation's AI use. Use only the supplied rows,
+  coverage, and AI-tool table. Every claim must cite only row:<item_ref> or
+  label:<label> values present in the rows. Never invent units, tools, or
+  people.
+
+user: |
+  Rows: {{ rows }}
+
+  Coverage: {{ coverage }}
+
+  AI tools: {{ tools }}
+
+  Return 3-8 claims. Each claim must include claim_id, text, citations, and
+  confidence.
+
+schema:
+  name: DossierFindings
+  fields:
+    claims:
+      type: list[dict]
+      description: >
+        Required list of 3-8 claim objects. Each object has exactly these
+        keys: claim_id (str), text (str), citations (list[str] formatted as
+        row:<item_ref> or label:<label> drawn only from the provided rows),
+        and confidence (float from 0 to 1).

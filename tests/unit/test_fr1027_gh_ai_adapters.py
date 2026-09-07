@@ -302,11 +302,14 @@ def test_search_budgets_calls_and_flags_caps(monkeypatch):
     monkeypatch.setattr(gh, "_sleep", fake_sleep)
     capped = json.dumps(
         [
-            {"repository": {"nameWithOwner": f"acme/r{i}"}}
+            {"repository": {"nameWithOwner": f"acme/r{i}", "isPrivate": True}}
             for i in range(gh.MAX_SEARCH_RESULTS)
         ]
     )
-    small = json.dumps([{"repository": {"nameWithOwner": "acme/x"}}] * 3)
+    small = json.dumps(
+        [{"repository": {"nameWithOwner": "acme/x", "isPrivate": True}}] * 3
+        + [{"repository": {"nameWithOwner": "acme/pub", "isPrivate": False}}]
+    )
 
     def run(argv, **kwargs):
         assert argv[:3] == ["gh", "search", "code"]
@@ -314,13 +317,18 @@ def test_search_budgets_calls_and_flags_caps(monkeypatch):
         return _completed(capped if argv[3] == "openai" else small)
 
     with patch(f"{MOD}.subprocess.run", side_effect=run) as spy:
-        hits = gh.gh_org_code_search({"org": "acme"})
+        hits = gh.gh_org_code_search({"org": "acme", "visibility": "private,internal"})[
+            "search_hits"
+        ]
     assert spy.call_count == len(gh.SEARCH_TERMS) <= gh.MAX_SEARCH_TERMS
     assert (
         hits["openai"]["capped"] is True
         and len(hits["openai"]["repos"]) == gh.MAX_SEARCH_RESULTS
     )
-    assert hits["anthropic"] == {"repos": ["acme/x"], "capped": False}
+    assert hits["anthropic"] == {
+        "repos": ["acme/x"],
+        "capped": False,
+    }, "public hit excluded"
     assert "tekoäly" in hits
     # ≤10 calls per minute → at least 6 s spacing enforced by sleeping
     assert len(sleeps) == len(gh.SEARCH_TERMS) - 1
@@ -330,4 +338,36 @@ def test_search_budgets_calls_and_flags_caps(monkeypatch):
 @pytest.mark.req("REQ-YG-670")
 def test_search_requires_org():
     with pytest.raises(ValueError, match="org"):
-        gh.gh_org_code_search({})
+        gh.gh_org_code_search({"visibility": "public"})
+
+
+@pytest.mark.req("REQ-YG-670")
+def test_search_public_policy_drops_private_hits(monkeypatch):
+    monkeypatch.setattr(gh, "_sleep", lambda s: None)
+    body = json.dumps(
+        [
+            {"repository": {"nameWithOwner": "acme/secret", "isPrivate": True}},
+            {"repository": {"nameWithOwner": "acme/open", "isPrivate": False}},
+        ]
+    )
+    with patch(f"{MOD}.subprocess.run", return_value=_completed(body)):
+        hits = gh.gh_org_code_search({"org": "acme", "visibility": "public"})[
+            "search_hits"
+        ]
+    assert all(h["repos"] == ["acme/open"] for h in hits.values())
+    assert "acme/secret" not in json.dumps(hits)
+
+
+@pytest.mark.req("REQ-YG-670")
+def test_discover_accepts_org_and_window_days_when_source_template_unresolved():
+    listing = json.dumps([_repo("a")])
+    with patch(f"{MOD}.subprocess.run", return_value=_completed(listing)):
+        items = gh.gh_org_active_discover(
+            {
+                "source": None,
+                "org": "acme",
+                "window_days": "90",
+                "visibility": "private",
+            }
+        )
+    assert items == ["acme/a"]

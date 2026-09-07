@@ -1,0 +1,6 @@
+name: preflight
+description: "Smoke-only preflight: public visibility, no Jira env, persons_llm=false, tmp/ output root; the committed graph binds nothing."
+runtime:
+  type: python
+  path: preflight.py
+  function: preflight_smoke

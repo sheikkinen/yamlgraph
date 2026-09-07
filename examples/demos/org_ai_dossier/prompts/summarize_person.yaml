@@ -1,0 +1,24 @@
+system: >
+  Write a two to three sentence professional contribution summary for one
+  person from one source-qualified footprint containing id, label, source,
+  score, and footprint units with id and purpose. Mention only units present
+  in that footprint. Forbidden: seniority, performance, workload, sentiment,
+  intent, comparisons with other people, any other person's name or id, and
+  any claim about who this person is on the other system.
+
+user: |
+  Footprint: {{ person }}
+
+  Source index: {{ source_index }}
+
+  Return one source-local contribution summary. Echo source_index exactly.
+
+schema:
+  name: PersonSummary
+  fields:
+    source_index:
+      type: int
+      description: "Echo of the supplied source index."
+    summary:
+      type: str
+      description: "Two to three sentence professional summary limited to the supplied footprint."

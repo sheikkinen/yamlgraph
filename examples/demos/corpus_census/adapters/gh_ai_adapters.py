@@ -33,7 +33,7 @@ MAX_WORKFLOW_HITS = 30
 MAX_BUNDLE_CHARS = 6000
 MAX_SEARCH_TERMS = 12
 MAX_SEARCH_RESULTS = 100
-SEARCH_MIN_INTERVAL_S = 6.0  # ≤10 code-search calls per minute
+SEARCH_MIN_INTERVAL_S = 7.0  # ≤10 code-search calls per minute, with margin
 
 VALID_VISIBILITY = frozenset({"public", "private", "internal"})
 INSTRUCTION_PATHS = (
@@ -75,7 +75,14 @@ AI_PACKAGE_TERMS = (
     "cohere",
 )
 WORKFLOW_TERMS = ("copilot", "openai", "claude", "ai-inference")
-BOT_MARKERS = ("[bot]", "copilot", "dependabot", "renovate")
+BOT_MARKERS = (
+    "[bot]",
+    "copilot",
+    "dependabot",
+    "renovate",
+    "actions-user",
+    "github-actions",
+)
 SEARCH_TERMS = (
     "openai",
     "anthropic",
@@ -153,6 +160,19 @@ def _parse_source(source: str) -> tuple[str, int]:
     return org, _parse_window(raw_days, "gh_org_active_discover")
 
 
+def _org_and_window(state: dict[str, Any]) -> tuple[str, int]:
+    """`source` = '<org>:<days>', or the separate `org` + `window_days` keys
+    (yamlgraph templates resolve one placeholder per string)."""
+    source = state.get("source")
+    if isinstance(source, str) and source.strip():
+        return _parse_source(source)
+    if state.get("org") is None and source is not None:
+        raise ValueError("source is required")
+    return _require(state, "org"), _parse_window(
+        str(state.get("window_days", "")), "gh_org_active_discover"
+    )
+
+
 def _parse_visibility(state: dict[str, Any]) -> frozenset[str]:
     raw = _require(state, "visibility")
     values = frozenset(v.strip().lower() for v in raw.split(",") if v.strip())
@@ -168,7 +188,7 @@ def _parse_visibility(state: dict[str, Any]) -> frozenset[str]:
 
 def gh_org_active_discover(state: dict[str, Any]) -> list[str]:
     """Active, policy-visible, non-archived repos of <org> within the window."""
-    org, window_days = _parse_source(_require(state, "source"))
+    org, window_days = _org_and_window(state)
     allowed = _parse_visibility(state)
     listing = _gh_json(
         "repo",
@@ -366,9 +386,14 @@ def gh_repo_ai_extract(state: dict[str, Any]) -> str:
 # --- org code search (AC-07) -------------------------------------------------
 
 
-def gh_org_code_search(state: dict[str, Any]) -> dict[str, dict[str, Any]]:
-    """One `gh search code` per frozen keyword; ≤10 calls/min; cap flagged."""
+def gh_org_code_search(state: dict[str, Any]) -> dict[str, Any]:
+    """One `gh search code` per frozen keyword; ≤10 calls/min; cap flagged.
+
+    Returns ``{"search_hits": {keyword: {repos, capped}}}`` — a python-node dict
+    result merges into graph state, so the state key is explicit.
+    """
     org = _require(state, "org")
+    allowed = _parse_visibility(state)
     hits: dict[str, dict[str, Any]] = {}
     last_call: float | None = None
     for keyword in SEARCH_TERMS:
@@ -388,13 +413,22 @@ def gh_org_code_search(state: dict[str, Any]) -> dict[str, dict[str, Any]]:
             "--json",
             "repository",
         )
+        # search results expose only isPrivate; private/internal both count as non-public
         repos = sorted(
             {
                 r["repository"]["nameWithOwner"]
                 for r in (results if isinstance(results, list) else [])
-                if isinstance(r, dict) and r.get("repository", {}).get("nameWithOwner")
+                if isinstance(r, dict)
+                and r.get("repository", {}).get("nameWithOwner")
+                and (
+                    ("public" in allowed and not r["repository"].get("isPrivate"))
+                    or (
+                        ({"private", "internal"} & allowed)
+                        and r["repository"].get("isPrivate")
+                    )
+                )
             }
         )
         n_results = len(results) if isinstance(results, list) else 0
         hits[keyword] = {"repos": repos, "capped": n_results >= MAX_SEARCH_RESULTS}
-    return hits
+    return {"search_hits": hits}

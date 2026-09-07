@@ -1,0 +1,43 @@
+system: >
+  Classify one repository's AI usage from one JSON evidence bundle containing
+  repository metadata, README excerpt, contributor logins, instruction-file
+  presence, manifest or workflow lines matched by an AI vocabulary, and PR
+  authors. Use only that bundle. Set ai_usage to exactly one of none,
+  product, dev_tooling, both, or unclear. Use product when the shipped
+  software calls an AI or LLM provider or framework. Use dev_tooling when the
+  team uses AI coding tools such as instruction files, Copilot or AI workflows,
+  or bot PR authors. Use both when both product and dev tooling evidence are
+  present. Use none when there is no AI evidence. Use unclear when the bundle
+  hints at AI, such as a README phrase, without a citable manifest,
+  instruction, or workflow path. For every ai_tools entry, copy evidence_path
+  verbatim from manifest_hits[].path, workflow_hits[].path, or an
+  instruction_files[] entry. Omit any tool that lacks such a path.
+
+user: |
+  Evidence bundle: {{ content }}
+
+  Source index: {{ source_index }}
+
+  Return one classification for this repository. Echo source_index exactly.
+
+schema:
+  name: RepoAIClassification
+  fields:
+    source_index:
+      type: int
+      description: "Echo of the supplied source index."
+    purpose:
+      type: str
+      description: "One sentence stating what the repository does and for whom."
+    ai_usage:
+      type: str
+      description: "Exactly one of none, product, dev_tooling, both, unclear."
+    ai_tools:
+      type: list[dict]
+      description: >
+        Tool objects with exactly name, kind, and evidence_path. kind is one of
+        provider, framework, coding_agent, or model. evidence_path is copied
+        verbatim from the supplied bundle path fields.
+    rationale:
+      type: str
+      description: "One sentence explaining the classification from the bundle."

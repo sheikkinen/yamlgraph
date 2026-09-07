@@ -140,17 +140,19 @@ def jira_active_discover(state: dict[str, Any]) -> list[str]:
 
 
 def jira_coverage(state: dict[str, Any]) -> dict[str, Any]:
-    """Visible / active / dormant accounting for the coverage record."""
+    """Visible / active / dormant accounting → ``{"coverage_jira": {...}}``."""
     days = _window(_require(state, "source"))
     keys, cap_hit = _list_projects()
     active, dormant = _activity(keys, days)
     return {
-        "visible": len(keys),
-        "active": len(active),
-        "dormant": len(dormant),
-        "page_cap_hit": cap_hit,
-        "active_keys": active,
-        "dormant_keys": dormant,
+        "coverage_jira": {
+            "visible": len(keys),
+            "active": len(active),
+            "dormant": len(dormant),
+            "page_cap_hit": cap_hit,
+            "active_keys": active,
+            "dormant_keys": dormant,
+        }
     }
 
 
@@ -284,12 +286,14 @@ def jira_fixture_coverage(state: dict[str, Any]) -> dict[str, Any]:
     active = sorted(b["key"] for b in bundles if b.get("updated_in_window", 0) > 0)
     dormant = sorted(b["key"] for b in bundles if b.get("updated_in_window", 0) <= 0)
     return {
-        "visible": len(bundles),
-        "active": len(active),
-        "dormant": len(dormant),
-        "page_cap_hit": False,
-        "active_keys": active,
-        "dormant_keys": dormant,
+        "coverage_jira": {
+            "visible": len(bundles),
+            "active": len(active),
+            "dormant": len(dormant),
+            "page_cap_hit": False,
+            "active_keys": active,
+            "dormant_keys": dormant,
+        }
     }
 
 

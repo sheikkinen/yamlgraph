@@ -153,7 +153,7 @@ def test_missing_env_raises_before_any_request(monkeypatch, missing):
 def test_coverage_listing_reports_visible_active_dormant():
     opener, _ = _router(_project_pages(4), counts={"P001": 2})
     with patch(f"{MOD}.urlopen", side_effect=opener):
-        cov = ja.jira_coverage({"source": "90"})
+        cov = ja.jira_coverage({"source": "90"})["coverage_jira"]
     assert cov == {
         "visible": 4,
         "active": 1,
@@ -347,4 +347,6 @@ def test_fixture_adapters_read_committed_public_safe_bundles():
     blob = ja.jira_fixture_extract({"item": keys[0]})
     b = json.loads(blob)
     assert b["key"] == keys[0] and len(blob) <= ja.MAX_BUNDLE_CHARS
-    assert ja.jira_fixture_coverage({"source": "90"})["visible"] >= len(keys)
+    assert ja.jira_fixture_coverage({"source": "90"})["coverage_jira"][
+        "visible"
+    ] >= len(keys)

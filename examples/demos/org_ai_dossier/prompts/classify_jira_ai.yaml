@@ -1,0 +1,42 @@
+system: >
+  Classify one Jira project's AI usage from one JSON evidence bundle containing
+  project metadata, activity counts, up to thirty recent issues with summaries,
+  statuses and short descriptions, and an AI-term count. Use only that bundle.
+  Set ai_usage to exactly one of none, product, dev_tooling, both, or unclear.
+  Use product when the project concerns shipped software that calls an AI or
+  LLM provider or framework. Use dev_tooling when the project records use of AI
+  coding tools, Copilot rollout, AI workflows, or developer-assistance tasks.
+  Use both when both product and dev tooling evidence are present. Use none
+  when there is no AI evidence. Use unclear when the project hints at AI
+  without a specific supporting issue. For every ai_tools entry, copy
+  evidence_issue verbatim from an issues[].key value. Omit any tool that lacks
+  such an issue key.
+
+user: |
+  Evidence bundle: {{ content }}
+
+  Source index: {{ source_index }}
+
+  Return one classification for this Jira project. Echo source_index exactly.
+
+schema:
+  name: JiraAIClassification
+  fields:
+    source_index:
+      type: int
+      description: "Echo of the supplied source index."
+    purpose:
+      type: str
+      description: "One sentence stating what the Jira project does and for whom."
+    ai_usage:
+      type: str
+      description: "Exactly one of none, product, dev_tooling, both, unclear."
+    ai_tools:
+      type: list[dict]
+      description: >
+        Tool objects with exactly name, kind, and evidence_issue. kind is one of
+        provider, framework, coding_agent, or model. evidence_issue is copied
+        verbatim from a supplied issue key.
+    rationale:
+      type: str
+      description: "One sentence explaining the classification from the bundle."

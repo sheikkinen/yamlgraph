@@ -15,4 +15,6 @@ explicitly-authorized person summaries → two bounded synthesis judgements →
 Adapters `gh_ai_adapters.py` (active discover, AI-signal extract, org code
 search) and `jira_adapters.py` (REST v3 + public-safe smoke fixtures under
 `corpus_census/adapters/fixtures/jira/`) with numeric
-ceilings that abort at N+1 before LLM spend. (REQ-YG-670)
+ceilings that abort at N+1 before LLM spend. Model-named tools are
+canonicalized at the reducer boundary; code-search hits honour the visibility
+policy so a public-only run never carries private repository names. (REQ-YG-670)

@@ -1,0 +1,174 @@
+2026-09-07 18:39:29,007 [INFO] yamlgraph.compile.graph_loader: Parsed 14 Python tools: preflight, gh_discover, gh_extract, gh_search, jira_coverage, jira_discover, jira_extract, coverage_gh, inject_repo_canaries, inject_jira_canaries, reduce, prepare_person_input, prepare_findings_input, render_artifacts
+2026-09-07 18:39:29,008 [INFO] yamlgraph.compile.node_compiler: Added node: preflight (type=python)
+2026-09-07 18:39:29,008 [INFO] yamlgraph.compile.node_compiler: Added node: coverage_gh (type=python)
+2026-09-07 18:39:29,008 [INFO] yamlgraph.compile.node_compiler: Added node: gh_discover (type=python)
+2026-09-07 18:39:29,009 [INFO] yamlgraph.compile.node_compiler: Added node: gh_extract_items (type=map)
+2026-09-07 18:39:29,009 [INFO] yamlgraph.compile.node_compiler: Added node: inject_repo_canaries (type=python)
+2026-09-07 18:39:29,009 [INFO] yamlgraph.compile.node_compiler: Added node: gh_search (type=python)
+2026-09-07 18:39:29,011 [INFO] yamlgraph.compile.node_compiler: Added node: classify_repos (type=map)
+2026-09-07 18:39:29,011 [INFO] yamlgraph.compile.node_compiler: Added node: coverage_jira (type=python)
+2026-09-07 18:39:29,012 [INFO] yamlgraph.compile.node_compiler: Added node: jira_discover (type=python)
+2026-09-07 18:39:29,012 [INFO] yamlgraph.compile.node_compiler: Added node: jira_extract_items (type=map)
+2026-09-07 18:39:29,012 [INFO] yamlgraph.compile.node_compiler: Added node: inject_jira_canaries (type=python)
+2026-09-07 18:39:29,014 [INFO] yamlgraph.compile.node_compiler: Added node: classify_jira (type=map)
+2026-09-07 18:39:29,014 [INFO] yamlgraph.compile.node_compiler: Added node: reduce (type=python)
+2026-09-07 18:39:29,014 [INFO] yamlgraph.compile.node_compiler: Added node: prepare_person_input (type=python)
+2026-09-07 18:39:29,015 [INFO] yamlgraph.compile.node_compiler: Added node: summarize_persons (type=map)
+2026-09-07 18:39:29,015 [INFO] yamlgraph.compile.node_compiler: Added node: prepare_findings_input (type=python)
+2026-09-07 18:39:29,016 [INFO] yamlgraph.compile.node_compiler: Added node: synthesize_findings (type=llm)
+2026-09-07 18:39:29,017 [INFO] yamlgraph.compile.node_compiler: Added node: synthesize_onepager (type=llm)
+2026-09-07 18:39:29,017 [INFO] yamlgraph.compile.node_compiler: Added node: render_artifacts (type=python)
+2026-09-07 18:39:29,150 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: preflight -> preflight
+2026-09-07 18:39:29,691 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: coverage_gh -> coverage_gh
+2026-09-07 18:39:31,782 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: gh_discover -> gh_discover
+2026-09-07 18:39:46,130 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: inject_repo_canaries -> inject_repo_canaries
+2026-09-07 18:39:46,131 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: gh_search -> gh_search
+2026-09-07 18:40:56,598 [INFO] yamlgraph.utils.llm_factory: Creating LLM: azure/aaa-gpt-5.4-mini (temp=0)
+2026-09-07 18:40:58,460 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 400 Bad Request"
+2026-09-07 18:40:58,461 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 400 Bad Request"
+/Users/sami.j.p.heikkinen/src/yamlgraph/tmp/worktrees/feat/fr1027-org-ai-dossier/.venv/lib/python3.12/site-packages/langchain_openai/chat_models/base.py:590: UserWarning: Invalid schema for OpenAI's structured output feature, which is the default method for `with_structured_output` as of langchain-openai==0.3. Specify `method="function_calling"` instead or update your schema. See supported schemas: https://platform.openai.com/docs/guides/structured-outputs#supported-schemas
+  warnings.warn(message)
+2026-09-07 18:40:58,469 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 400 Bad Request"
+2026-09-07 18:40:58,475 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 400 Bad Request"
+2026-09-07 18:40:58,475 [INFO] yamlgraph.executor_base: Structured output rejected, falling back to JSON extraction (FR-464)
+2026-09-07 18:40:58,476 [INFO] yamlgraph.executor_base: Structured output rejected, falling back to JSON extraction (FR-464)
+2026-09-07 18:40:58,476 [INFO] yamlgraph.executor_base: Structured output rejected, falling back to JSON extraction (FR-464)
+/Users/sami.j.p.heikkinen/src/yamlgraph/tmp/worktrees/feat/fr1027-org-ai-dossier/.venv/lib/python3.12/site-packages/langchain_openai/chat_models/base.py:590: UserWarning: Invalid schema for OpenAI's structured output feature, which is the default method for `with_structured_output` as of langchain-openai==0.3. Specify `method="function_calling"` instead or update your schema. See supported schemas: https://platform.openai.com/docs/guides/structured-outputs#supported-schemas
+  warnings.warn(message)
+2026-09-07 18:40:58,483 [INFO] yamlgraph.executor_base: Structured output rejected, falling back to JSON extraction (FR-464)
+2026-09-07 18:40:59,609 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-07 18:40:59,619 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_classify_repos_sub completed successfully
+2026-09-07 18:40:59,733 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-07 18:40:59,734 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_classify_repos_sub completed successfully
+2026-09-07 18:40:59,743 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 400 Bad Request"
+/Users/sami.j.p.heikkinen/src/yamlgraph/tmp/worktrees/feat/fr1027-org-ai-dossier/.venv/lib/python3.12/site-packages/langchain_openai/chat_models/base.py:590: UserWarning: Invalid schema for OpenAI's structured output feature, which is the default method for `with_structured_output` as of langchain-openai==0.3. Specify `method="function_calling"` instead or update your schema. See supported schemas: https://platform.openai.com/docs/guides/structured-outputs#supported-schemas
+  warnings.warn(message)
+2026-09-07 18:40:59,744 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-07 18:40:59,746 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_classify_repos_sub completed successfully
+2026-09-07 18:40:59,748 [INFO] yamlgraph.executor_base: Structured output rejected, falling back to JSON extraction (FR-464)
+2026-09-07 18:40:59,825 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 400 Bad Request"
+/Users/sami.j.p.heikkinen/src/yamlgraph/tmp/worktrees/feat/fr1027-org-ai-dossier/.venv/lib/python3.12/site-packages/langchain_openai/chat_models/base.py:590: UserWarning: Invalid schema for OpenAI's structured output feature, which is the default method for `with_structured_output` as of langchain-openai==0.3. Specify `method="function_calling"` instead or update your schema. See supported schemas: https://platform.openai.com/docs/guides/structured-outputs#supported-schemas
+  warnings.warn(message)
+2026-09-07 18:40:59,827 [INFO] yamlgraph.executor_base: Structured output rejected, falling back to JSON extraction (FR-464)
+2026-09-07 18:40:59,828 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 400 Bad Request"
+/Users/sami.j.p.heikkinen/src/yamlgraph/tmp/worktrees/feat/fr1027-org-ai-dossier/.venv/lib/python3.12/site-packages/langchain_openai/chat_models/base.py:590: UserWarning: Invalid schema for OpenAI's structured output feature, which is the default method for `with_structured_output` as of langchain-openai==0.3. Specify `method="function_calling"` instead or update your schema. See supported schemas: https://platform.openai.com/docs/guides/structured-outputs#supported-schemas
+  warnings.warn(message)
+2026-09-07 18:40:59,832 [INFO] yamlgraph.executor_base: Structured output rejected, falling back to JSON extraction (FR-464)
+2026-09-07 18:41:00,156 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-07 18:41:00,157 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_classify_repos_sub completed successfully
+2026-09-07 18:41:00,250 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 400 Bad Request"
+/Users/sami.j.p.heikkinen/src/yamlgraph/tmp/worktrees/feat/fr1027-org-ai-dossier/.venv/lib/python3.12/site-packages/langchain_openai/chat_models/base.py:590: UserWarning: Invalid schema for OpenAI's structured output feature, which is the default method for `with_structured_output` as of langchain-openai==0.3. Specify `method="function_calling"` instead or update your schema. See supported schemas: https://platform.openai.com/docs/guides/structured-outputs#supported-schemas
+  warnings.warn(message)
+2026-09-07 18:41:00,253 [INFO] yamlgraph.executor_base: Structured output rejected, falling back to JSON extraction (FR-464)
+2026-09-07 18:41:00,826 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-07 18:41:00,829 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_classify_repos_sub completed successfully
+2026-09-07 18:41:01,000 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 400 Bad Request"
+/Users/sami.j.p.heikkinen/src/yamlgraph/tmp/worktrees/feat/fr1027-org-ai-dossier/.venv/lib/python3.12/site-packages/langchain_openai/chat_models/base.py:590: UserWarning: Invalid schema for OpenAI's structured output feature, which is the default method for `with_structured_output` as of langchain-openai==0.3. Specify `method="function_calling"` instead or update your schema. See supported schemas: https://platform.openai.com/docs/guides/structured-outputs#supported-schemas
+  warnings.warn(message)
+2026-09-07 18:41:01,003 [INFO] yamlgraph.executor_base: Structured output rejected, falling back to JSON extraction (FR-464)
+2026-09-07 18:41:01,022 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-07 18:41:01,023 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_classify_repos_sub completed successfully
+2026-09-07 18:41:01,102 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 400 Bad Request"
+/Users/sami.j.p.heikkinen/src/yamlgraph/tmp/worktrees/feat/fr1027-org-ai-dossier/.venv/lib/python3.12/site-packages/langchain_openai/chat_models/base.py:590: UserWarning: Invalid schema for OpenAI's structured output feature, which is the default method for `with_structured_output` as of langchain-openai==0.3. Specify `method="function_calling"` instead or update your schema. See supported schemas: https://platform.openai.com/docs/guides/structured-outputs#supported-schemas
+  warnings.warn(message)
+2026-09-07 18:41:01,105 [INFO] yamlgraph.executor_base: Structured output rejected, falling back to JSON extraction (FR-464)
+2026-09-07 18:41:01,256 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-07 18:41:01,257 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_classify_repos_sub completed successfully
+2026-09-07 18:41:01,355 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 400 Bad Request"
+/Users/sami.j.p.heikkinen/src/yamlgraph/tmp/worktrees/feat/fr1027-org-ai-dossier/.venv/lib/python3.12/site-packages/langchain_openai/chat_models/base.py:590: UserWarning: Invalid schema for OpenAI's structured output feature, which is the default method for `with_structured_output` as of langchain-openai==0.3. Specify `method="function_calling"` instead or update your schema. See supported schemas: https://platform.openai.com/docs/guides/structured-outputs#supported-schemas
+  warnings.warn(message)
+2026-09-07 18:41:01,357 [INFO] yamlgraph.executor_base: Structured output rejected, falling back to JSON extraction (FR-464)
+2026-09-07 18:41:01,942 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-07 18:41:01,943 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_classify_repos_sub completed successfully
+2026-09-07 18:41:02,048 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 400 Bad Request"
+/Users/sami.j.p.heikkinen/src/yamlgraph/tmp/worktrees/feat/fr1027-org-ai-dossier/.venv/lib/python3.12/site-packages/langchain_openai/chat_models/base.py:590: UserWarning: Invalid schema for OpenAI's structured output feature, which is the default method for `with_structured_output` as of langchain-openai==0.3. Specify `method="function_calling"` instead or update your schema. See supported schemas: https://platform.openai.com/docs/guides/structured-outputs#supported-schemas
+  warnings.warn(message)
+2026-09-07 18:41:02,051 [INFO] yamlgraph.executor_base: Structured output rejected, falling back to JSON extraction (FR-464)
+2026-09-07 18:41:02,082 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-07 18:41:02,083 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_classify_repos_sub completed successfully
+2026-09-07 18:41:02,111 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-07 18:41:02,112 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_classify_repos_sub completed successfully
+2026-09-07 18:41:02,170 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 400 Bad Request"
+/Users/sami.j.p.heikkinen/src/yamlgraph/tmp/worktrees/feat/fr1027-org-ai-dossier/.venv/lib/python3.12/site-packages/langchain_openai/chat_models/base.py:590: UserWarning: Invalid schema for OpenAI's structured output feature, which is the default method for `with_structured_output` as of langchain-openai==0.3. Specify `method="function_calling"` instead or update your schema. See supported schemas: https://platform.openai.com/docs/guides/structured-outputs#supported-schemas
+  warnings.warn(message)
+2026-09-07 18:41:02,173 [INFO] yamlgraph.executor_base: Structured output rejected, falling back to JSON extraction (FR-464)
+2026-09-07 18:41:02,475 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-07 18:41:02,476 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_classify_repos_sub completed successfully
+2026-09-07 18:41:02,810 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-07 18:41:02,818 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_classify_repos_sub completed successfully
+2026-09-07 18:41:02,917 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-07 18:41:02,918 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_classify_repos_sub completed successfully
+2026-09-07 18:41:02,921 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: coverage_jira -> jira_coverage
+2026-09-07 18:41:02,924 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: jira_discover -> jira_discover
+2026-09-07 18:41:02,930 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: inject_jira_canaries -> inject_jira_canaries
+2026-09-07 18:41:03,098 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 400 Bad Request"
+2026-09-07 18:41:03,098 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 400 Bad Request"
+/Users/sami.j.p.heikkinen/src/yamlgraph/tmp/worktrees/feat/fr1027-org-ai-dossier/.venv/lib/python3.12/site-packages/langchain_openai/chat_models/base.py:590: UserWarning: Invalid schema for OpenAI's structured output feature, which is the default method for `with_structured_output` as of langchain-openai==0.3. Specify `method="function_calling"` instead or update your schema. See supported schemas: https://platform.openai.com/docs/guides/structured-outputs#supported-schemas
+  warnings.warn(message)
+2026-09-07 18:41:03,098 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 400 Bad Request"
+2026-09-07 18:41:03,098 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 400 Bad Request"
+2026-09-07 18:41:03,105 [INFO] yamlgraph.executor_base: Structured output rejected, falling back to JSON extraction (FR-464)
+2026-09-07 18:41:03,108 [INFO] yamlgraph.executor_base: Structured output rejected, falling back to JSON extraction (FR-464)
+2026-09-07 18:41:03,111 [INFO] yamlgraph.executor_base: Structured output rejected, falling back to JSON extraction (FR-464)
+2026-09-07 18:41:03,113 [INFO] yamlgraph.executor_base: Structured output rejected, falling back to JSON extraction (FR-464)
+2026-09-07 18:41:03,917 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-07 18:41:03,918 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_classify_jira_sub completed successfully
+2026-09-07 18:41:03,935 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-07 18:41:03,937 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_classify_jira_sub completed successfully
+2026-09-07 18:41:03,943 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-07 18:41:03,946 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_classify_jira_sub completed successfully
+2026-09-07 18:41:04,373 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-07 18:41:04,374 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_classify_jira_sub completed successfully
+2026-09-07 18:41:04,374 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: reduce -> reduce
+2026-09-07 18:41:04,380 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: prepare_person_input -> prepare_person_input
+2026-09-07 18:41:04,382 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: prepare_findings_input -> prepare_findings_input
+2026-09-07 18:41:04,487 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 400 Bad Request"
+/Users/sami.j.p.heikkinen/src/yamlgraph/tmp/worktrees/feat/fr1027-org-ai-dossier/.venv/lib/python3.12/site-packages/langchain_openai/chat_models/base.py:590: UserWarning: Invalid schema for OpenAI's structured output feature, which is the default method for `with_structured_output` as of langchain-openai==0.3. Specify `method="function_calling"` instead or update your schema. See supported schemas: https://platform.openai.com/docs/guides/structured-outputs#supported-schemas
+  warnings.warn(message)
+2026-09-07 18:41:04,491 [INFO] yamlgraph.executor_base: Structured output rejected, falling back to JSON extraction (FR-464)
+2026-09-07 18:41:07,651 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-07 18:41:07,653 [INFO] yamlgraph.node_factory.llm_nodes: Node synthesize_findings completed successfully
+2026-09-07 18:41:07,816 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 400 Bad Request"
+/Users/sami.j.p.heikkinen/src/yamlgraph/tmp/worktrees/feat/fr1027-org-ai-dossier/.venv/lib/python3.12/site-packages/langchain_openai/chat_models/base.py:590: UserWarning: Invalid schema for OpenAI's structured output feature, which is the default method for `with_structured_output` as of langchain-openai==0.3. Specify `method="function_calling"` instead or update your schema. See supported schemas: https://platform.openai.com/docs/guides/structured-outputs#supported-schemas
+  warnings.warn(message)
+2026-09-07 18:41:07,819 [INFO] yamlgraph.executor_base: Structured output rejected, falling back to JSON extraction (FR-464)
+2026-09-07 18:41:09,984 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-07 18:41:09,988 [INFO] yamlgraph.node_factory.llm_nodes: Node synthesize_onepager completed successfully
+2026-09-07 18:41:09,989 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: render_artifacts -> render_artifacts
+
+🚀 Running graph: graph.yaml
+   Variables: {'org': 'sheikkinen', 'visibility': 'public', 'window_days': '90', 'top_persons': '5', 'persons_llm': 'false', 'persons_llm_ack': '', 'out_dir': 'tmp/org-ai-dossier-smoke/authoring'}
+
+🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/09c0c2d4-5724-4301-bcee-e1b64ddeb80e/r/01a07c86-4389-7ad3-8137-67187d37b877?poll=true
+============================================================
+RESULT
+============================================================
+  current_step: render_artifacts
+  org: sheikkinen
+  visibility: public
+  window_days: 90
+  top_persons: 5
+  persons_llm: false
+  persons_llm_ack:
+  out_dir: tmp/org-ai-dossier-smoke/authoring
+  preflight_ok: True
+  coverage_gh: {'api_total': None, 'listed': 79, 'archived': 0, 'out_of_window': 15, 'visibility_rejected': 54, 'active': 10}
+  api_calls_estimated: 522
+  llm_calls_estimated: 172
+  run_started: 2026-09-07T15:39:31.780761+00:00
+  repo_items: ['sheikkinen/deviant-daily', 'sheikkinen/gitclaw', 'sheikkinen/gitclaw-oulu-civic-intelligence', 'sheikkinen/gitclaw-oulu-civic-intelligence-failed-witness', 'sheikkinen/hva-weekly-bulletin', 'sheikki...
+  repo_bundles: [{'_map_index': 0, 'value': '{"id": "sheikkinen/deviant-daily", "description": "Autonomous daily art publisher — YAMLGraph pipeline on GitHub Actions (yamlgraph FR-826)", "pushed_at": "2026-09-07T15:0...
+  search_hits: {'openai': {'repos': ['sheikkinen/yamlgraph'], 'capped': True}, 'anthropic': {'repos': ['sheikkinen/yamlgraph'], 'capped': True}, 'langchain': {'repos': ['sheikkinen/yamlgraph'], 'capped': True}, 'Azu...
+  repo_findings: [{'_map_index': 0, 'source_index': 0, 'purpose': 'This repository runs an autonomous daily art publishing pipeline that generates, describes, gates, and posts artwork for the operator’s DeviantArt acc...
+  coverage_jira: {'visible': 3, 'active': 2, 'dormant': 1, 'page_cap_hit': False, 'active_keys': ['DEMOAI', 'DEMOWEB'], 'dormant_keys': ['DEMOOLD']}
+  jira_items: ['DEMOAI', 'DEMOWEB']
+  jira_bundles: [{'_map_index': 0, 'value': '{"key": "DEMOAI", "name": "Demo AI Assistant", "project_type": "software", "lead": {"account_id": "demo-acct-001", "display_name": "Demo Lead"}, "updated_in_window": 12, "...
+  jira_findings: [{'_map_index': 0, 'source_index': 0, 'purpose': 'This project appears to support a demo team by building and evaluating an AI assistant for ticket handling and developer productivity.', 'ai_usage': '...
+  reduced: {'repos': [{'id': 'sheikkinen/deviant-daily', 'activity': 'active', 'pushed_at': '2026-09-07T15:09:24Z', 'purpose': 'This repository runs an autonomous daily art publishing pipeline that generates, de...
+  person_input: []
+  persons_llm_active: False
+  person_summaries: []
+  findings_input: {'rows': [{'item_ref': 'repo:sheikkinen/deviant-daily', 'judgement': 'This repository runs an autonomous daily art publishing pipeline that generates, describes, gates, and posts artwork for the opera...
+  findings_claims: {'claims': [{'claim_id': 'c1', 'text': 'The organisation uses AI most heavily in GitHub repositories, especially around automated workflows and coding assistance, with multiple repositories tied to co...
+  onepager_claims: {'claims': [{'claim_id': 'claim_1', 'text': 'Activity is concentrated in automated publishing and workflow repos: deviant-daily, gitclaw variants, hva-weekly-bulletin, and yamlgraph-daily-digest all r...
+  artifacts: {'onepager.md': 'tmp/org-ai-dossier-smoke/authoring/onepager.md', 'dossier.md': 'tmp/org-ai-dossier-smoke/authoring/dossier.md', 'repos.md': 'tmp/org-ai-dossier-smoke/authoring/repos.md', 'jira.md': '...

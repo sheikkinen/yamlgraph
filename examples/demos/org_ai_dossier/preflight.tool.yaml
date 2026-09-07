@@ -1,0 +1,6 @@
+name: preflight
+description: "FR-1027 org AI dossier live preflight."
+runtime:
+  type: python
+  path: preflight.py
+  function: preflight
