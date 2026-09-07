@@ -193,7 +193,8 @@ Operator answer (2026-09-07): (a) — "enforce".
 | AC-2a | `grep -rn '…' scripts capabilities .github reference ARCHITECTURE.md --exclude-dir=logs` → 0 (the gitignored hook audit log records this session's own greps and is not a reference) |
 | AC-3/6 | `pytest tests/unit/test_fr896_precedent_traceability.py tests/unit/test_fr890_research_route.py -q --no-cov` → 50 passed |
 | AC-5 | `python scripts/req_coverage.py --strict` → 0 |
-| AC-10 | Human review: operator (Sami Heikkinen), 2026-09-07 — the `enforce` verdict on the folded FR after two REJECTED model rounds; PR review to follow on the diff |
+| AC-10 | Human review: operator (Sami Heikkinen), 2026-09-07. Pre-implementation: the `enforce` verdict on the folded FR after the REJECTED model round. Diff review: the operator's merge decision on PR #636 is the named human review of the enforcement-infrastructure diff (review P2); this row is satisfied by that merge, not before it |
+| Review #636 | Sole route, 2026-09-07: Not approved on three grounds. P1 — REJECTED judgement grants no authority: operator override recorded above; the reviewer cannot see operator rulings by design. P2 — folded (this row). P3 — `docs/diary/2026-09-07-git-report.md`, a truncated model response imported into the branch by the `diary import` pre-commit hook, removed from the PR |
 | Distill | `docs/diary/2026-09-07-reflection-fr-1026-two-shape-gates-on-one-route.md` |
 
 Decisions: the CAP-248 retirement note names "the FR-896 SHA-256 provenance
