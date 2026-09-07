@@ -2050,3 +2050,39 @@ The ID ranges are:
 - **Code**: S607
 - **Sin**: `gh` invoked by bare name (partial executable path).
 - **Penance**: FR-1027. `gh` is the operator's authenticated GitHub CLI; resolving it through PATH is the documented contract shared with FR-899/FR-962 adapters, and preflight runs `gh auth status` before any adapter call.
+
+### CONF-466
+- **File**: [examples/demos/org_ai_dossier/render.py](../examples/demos/org_ai_dossier/render.py#L50)
+- **Code**: S603
+- **Sin**: `subprocess.run(["git", "rev-parse", "HEAD"], …)` for the run record's `head_sha`.
+- **Penance**: FR-1027 (judgement R-4: `head_sha` + `graph_sha256` identify the graph). Fixed argv, no shell, no external input, 10 s timeout; failure degrades to the literal `"unknown"`, never to a fabricated SHA.
+
+### CONF-467
+- **File**: [examples/demos/org_ai_dossier/render.py](../examples/demos/org_ai_dossier/render.py#L51)
+- **Code**: S607
+- **Sin**: `git` invoked by bare name.
+- **Penance**: FR-1027. Same contract as CONF-466; `git` on PATH is the repository's own toolchain assumption.
+
+### CONF-468
+- **File**: [examples/demos/org_ai_dossier/preflight.py](../examples/demos/org_ai_dossier/preflight.py#L36)
+- **Code**: S603
+- **Sin**: `subprocess.run(["gh", "auth", "status"], …)` in preflight.
+- **Penance**: FR-1027 (AC-03: `gh auth` validated before any fetch). Fixed argv, no input, 30 s timeout; failure raises `RuntimeError` and stops the run before any adapter call.
+
+### CONF-469
+- **File**: [examples/demos/org_ai_dossier/preflight.py](../examples/demos/org_ai_dossier/preflight.py#L37)
+- **Code**: S607
+- **Sin**: `gh` invoked by bare name.
+- **Penance**: FR-1027. Same PATH contract as CONF-465 (FR-899/FR-962 adapters).
+
+### CONF-470
+- **File**: [examples/demos/org_ai_dossier/preflight.py](../examples/demos/org_ai_dossier/preflight.py#L49)
+- **Code**: S603
+- **Sin**: `subprocess.run(["git", "check-ignore", "-q", rel], …)` — the resolved output root reaches a subprocess.
+- **Penance**: FR-1027 (judgement R-7: the gitignore claim is verified at runtime, not assumed). `rel` is the repo-relative path of the frozen `research/org-ai-dossier` root computed by code, not operator input; argv list, no shell, cwd pinned to the repo root, 10 s timeout.
+
+### CONF-471
+- **File**: [examples/demos/org_ai_dossier/preflight.py](../examples/demos/org_ai_dossier/preflight.py#L50)
+- **Code**: S607
+- **Sin**: `git` invoked by bare name.
+- **Penance**: FR-1027. Same as CONF-467.
