@@ -1,33 +1,33 @@
-2026-09-07 18:37:27,855 [INFO] yamlgraph.compile.graph_loader: Parsed 5 Python tools: discover, extract, reduce_ledger, prepare_brief_input, render_brief
-2026-09-07 18:37:27,856 [INFO] yamlgraph.compile.node_compiler: Added node: discover (type=python)
-2026-09-07 18:37:27,856 [INFO] yamlgraph.compile.node_compiler: Added node: extract_items (type=map)
-2026-09-07 18:37:27,859 [INFO] yamlgraph.compile.node_compiler: Added node: judge_items (type=map)
-2026-09-07 18:37:27,860 [INFO] yamlgraph.compile.node_compiler: Added node: reduce_ledger (type=python)
-2026-09-07 18:37:27,861 [INFO] yamlgraph.compile.node_compiler: Added node: prepare_brief_input (type=python)
-2026-09-07 18:37:27,863 [INFO] yamlgraph.compile.node_compiler: Added node: synthesize (type=llm)
-2026-09-07 18:37:27,864 [INFO] yamlgraph.compile.node_compiler: Added node: render_brief (type=python)
-2026-09-07 18:37:27,984 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: discover -> discover
-2026-09-07 18:37:28,078 [INFO] yamlgraph.utils.llm_factory: Creating LLM: azure/aaa-gpt-5.4-mini (temp=0.0)
-2026-09-07 18:37:30,551 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-07 18:37:30,570 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-07 18:37:30,757 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-07 18:37:30,759 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-07 18:37:30,950 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-07 18:37:30,952 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-07 18:37:30,954 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: reduce_ledger -> reduce_ledger
-2026-09-07 18:37:30,956 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: prepare_brief_input -> prepare_brief_input
-2026-09-07 18:37:31,033 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 400 Bad Request"
+2026-09-07 19:28:27,893 [INFO] yamlgraph.compile.graph_loader: Parsed 5 Python tools: discover, extract, reduce_ledger, prepare_brief_input, render_brief
+2026-09-07 19:28:27,894 [INFO] yamlgraph.compile.node_compiler: Added node: discover (type=python)
+2026-09-07 19:28:27,894 [INFO] yamlgraph.compile.node_compiler: Added node: extract_items (type=map)
+2026-09-07 19:28:27,896 [INFO] yamlgraph.compile.node_compiler: Added node: judge_items (type=map)
+2026-09-07 19:28:27,898 [INFO] yamlgraph.compile.node_compiler: Added node: reduce_ledger (type=python)
+2026-09-07 19:28:27,899 [INFO] yamlgraph.compile.node_compiler: Added node: prepare_brief_input (type=python)
+2026-09-07 19:28:27,900 [INFO] yamlgraph.compile.node_compiler: Added node: synthesize (type=llm)
+2026-09-07 19:28:27,902 [INFO] yamlgraph.compile.node_compiler: Added node: render_brief (type=python)
+2026-09-07 19:28:28,008 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: discover -> discover
+2026-09-07 19:28:28,089 [INFO] yamlgraph.utils.llm_factory: Creating LLM: azure/aaa-gpt-5.4-mini (temp=0.0)
+2026-09-07 19:28:30,696 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-07 19:28:30,709 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-07 19:28:31,112 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-07 19:28:31,114 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-07 19:28:31,158 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-07 19:28:31,163 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-07 19:28:31,164 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: reduce_ledger -> reduce_ledger
+2026-09-07 19:28:31,165 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: prepare_brief_input -> prepare_brief_input
+2026-09-07 19:28:31,232 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 400 Bad Request"
 /Users/sami.j.p.heikkinen/src/yamlgraph/tmp/worktrees/feat/fr1027-org-ai-dossier/.venv/lib/python3.12/site-packages/langchain_openai/chat_models/base.py:590: UserWarning: Invalid schema for OpenAI's structured output feature, which is the default method for `with_structured_output` as of langchain-openai==0.3. Specify `method="function_calling"` instead or update your schema. See supported schemas: https://platform.openai.com/docs/guides/structured-outputs#supported-schemas
   warnings.warn(message)
-2026-09-07 18:37:31,043 [INFO] yamlgraph.executor_base: Structured output rejected, falling back to JSON extraction (FR-464)
-2026-09-07 18:37:32,349 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-07 18:37:32,350 [INFO] yamlgraph.node_factory.llm_nodes: Node synthesize completed successfully
-2026-09-07 18:37:32,350 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: render_brief -> render_brief
+2026-09-07 19:28:31,237 [INFO] yamlgraph.executor_base: Structured output rejected, falling back to JSON extraction (FR-464)
+2026-09-07 19:28:32,219 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-07 19:28:32,220 [INFO] yamlgraph.node_factory.llm_nodes: Node synthesize completed successfully
+2026-09-07 19:28:32,221 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: render_brief -> render_brief
 
 🚀 Running graph: graph.yaml
    Variables: {'source': 'fixtures/corpus', 'rubric': "classify each document's main topic in one word", 'provider': 'azure', 'model': 'aaa-gpt-5.4-mini', 'output_path': '../../../tmp/corpus-census-ledger.md', 'brief_path': '../../../tmp/census-brief.md', 'brief_rubric': 'What does this corpus cover overall?'}
 
-🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/09c0c2d4-5724-4301-bcee-e1b64ddeb80e/r/01a07c84-6a42-7ec3-94df-5cd80df5cae9?poll=true
+🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/09c0c2d4-5724-4301-bcee-e1b64ddeb80e/r/01a07cb3-1b86-7560-b91c-a90c86af7272?poll=true
 ============================================================
 RESULT
 ============================================================
@@ -44,5 +44,5 @@ RESULT
   brief_path: ../../../tmp/census-brief.md
   brief_rubric: What does this corpus cover overall?
   brief_input: [{'confidence': 0.98, 'item_ref': 'fixtures/corpus/architecture.txt', 'judgement': 'architecture'}, {'confidence': 0.99, 'item_ref': 'fixtures/corpus/observability.txt', 'judgement': 'observability'}, {'confidence': 0.99, 'item_ref': 'fixtures/corpus/security.txt', 'judgement': 'security'}]
-  claims: {'claims': [{'claim_id': 'c1', 'text': 'The corpus covers architecture topics.', 'citations': ['row:fixtures/corpus/architecture.txt'], 'confidence': 0.98}, {'claim_id': 'c2', 'text': 'The corpus covers observability topics.', 'citations': ['row:fixtures/corpus/observability.txt'], 'confidence': 0.99}, {'claim_id': 'c3', 'text': 'The corpus covers security topics.', 'citations': ['row:fixtures/corpus/security.txt'], 'confidence': 0.99}, {'claim_id': 'c4', 'text': 'Overall, the corpus spans infrastructure and systems concerns rather than a single narrow subject.', 'citations': ['row:fixtures/corpus/architecture.txt', 'row:fixtures/corpus/observability.txt', 'row:fixtures/corpus/security.txt'], 'confidence': 0.95}]}
+  claims: {'claims': [{'claim_id': 'c1', 'text': 'The corpus covers architecture topics.', 'citations': ['row:fixtures/corpus/architecture.txt'], 'confidence': 0.98}, {'claim_id': 'c2', 'text': 'The corpus covers observability topics.', 'citations': ['row:fixtures/corpus/observability.txt'], 'confidence': 0.99}, {'claim_id': 'c3', 'text': 'The corpus covers security topics.', 'citations': ['row:fixtures/corpus/security.txt'], 'confidence': 0.99}, {'claim_id': 'c4', 'text': 'Overall, the corpus spans core technical concerns across system design, monitoring, and protection.', 'citations': ['row:fixtures/corpus/architecture.txt', 'row:fixtures/corpus/observability.txt', 'row:fixtures/corpus/security.txt'], 'confidence': 0.97}]}
   brief: {'accepted': True, 'errors': [], 'artifact': '../../../tmp/census-brief.md'}

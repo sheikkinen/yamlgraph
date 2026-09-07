@@ -21,7 +21,8 @@ from datetime import UTC, datetime, timedelta
 from typing import Any
 
 GH_TIMEOUT = 60
-MAX_REPOS = 400
+MAX_LISTED = 1000  # one cheap listing call; overflow at MAX_LISTED+1 aborts
+MAX_REPOS = 400  # ACTIVE repos after filtering — the LLM-spend ceiling
 MAX_README_CHARS = 3000
 MAX_CONTRIBUTORS = 10
 MAX_MANIFESTS = 6
@@ -195,15 +196,15 @@ def gh_org_active_discover(state: dict[str, Any]) -> list[str]:
         "list",
         org,
         "--limit",
-        str(MAX_REPOS + 1),
+        str(MAX_LISTED + 1),
         "--json",
         "name,pushedAt,isArchived,visibility",
     )
     if not isinstance(listing, list):
         raise ValueError("gh_org_active_discover: listing is not a list")
-    if len(listing) > MAX_REPOS:
+    if len(listing) > MAX_LISTED:
         raise OverflowError(
-            f"gh_org_active_discover: org {org} lists more than MAX_REPOS={MAX_REPOS} repos"
+            f"gh_org_active_discover: org {org} lists more than MAX_LISTED={MAX_LISTED} repos"
         )
     cutoff = _now() - timedelta(days=window_days)
     seen: set[str] = set()
@@ -222,6 +223,10 @@ def gh_org_active_discover(state: dict[str, Any]) -> list[str]:
         if _parse_iso(entry.get("pushedAt"), f"{name}.pushedAt") < cutoff:
             continue
         active.append(f"{org}/{name}")
+    if len(active) > MAX_REPOS:
+        raise OverflowError(
+            f"gh_org_active_discover: {len(active)} active repos exceed MAX_REPOS={MAX_REPOS}"
+        )
     return sorted(active)
 
 

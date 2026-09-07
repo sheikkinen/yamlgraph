@@ -69,6 +69,10 @@ def _findings_by_index(findings: list[Any], model: type, label: str) -> dict[int
             raise ValueError(f"{label} finding missing source index")
         if index in out:
             raise ValueError(f"{label}: duplicate finding index {index}")
+        if "_error" in finding:
+            # on_error: skip emits an error-shaped finding — a CONTAINED model
+            # failure; the row becomes map_failed and is counted against MAX_MAP_FAILED
+            continue
         payload = {
             k: v for k, v in finding.items() if k not in ("_map_index", "source_index")
         }

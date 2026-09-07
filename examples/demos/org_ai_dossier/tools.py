@@ -22,7 +22,6 @@ from examples.demos.org_ai_dossier.models import (
     MAX_API_CALLS_GITHUB,
     MAX_API_CALLS_JIRA,
     MAX_PROJECTS,
-    MAX_REPOS,
     MAX_TOP_PERSONS,
 )
 from examples.demos.org_ai_dossier.preflight import (
@@ -76,7 +75,7 @@ def coverage_gh(state: dict[str, Any]) -> dict[str, Any]:
         "list",
         org,
         "--limit",
-        str(MAX_REPOS + 1),
+        str(gh_ai_adapters.MAX_LISTED + 1),
         "--json",
         "name,pushedAt,isArchived,visibility",
     )

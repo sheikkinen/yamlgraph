@@ -18,3 +18,5 @@ search) and `jira_adapters.py` (REST v3 + public-safe smoke fixtures under
 ceilings that abort at N+1 before LLM spend. Model-named tools are
 canonicalized at the reducer boundary; code-search hits honour the visibility
 policy so a public-only run never carries private repository names. (REQ-YG-670)
+
+Live-run witnesses folded 2026-09-07: listing ceiling (MAX_LISTED=1000) separated from the active/LLM-spend ceiling (MAX_REPOS=400); on_error: skip error-shaped findings are contained as typed map_failed rows (2 of ~200 Azure calls exhausted their 429 retries), never an abort.

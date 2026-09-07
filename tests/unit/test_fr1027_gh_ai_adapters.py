@@ -65,7 +65,7 @@ def test_discover_filters_and_sorts_unique():
         )
     argv = run.call_args[0][0]
     assert argv[:4] == ["gh", "repo", "list", "acme"]
-    assert argv[argv.index("--limit") + 1] == str(gh.MAX_REPOS + 1)
+    assert argv[argv.index("--limit") + 1] == str(gh.MAX_LISTED + 1)
     assert run.call_args.kwargs.get("shell") in (None, False)
     assert items == ["acme/alpha", "acme/zeta"]
 
@@ -371,3 +371,27 @@ def test_discover_accepts_org_and_window_days_when_source_template_unresolved():
             }
         )
     assert items == ["acme/a"]
+
+
+@pytest.mark.req("REQ-YG-670")
+def test_discover_listing_ceiling_is_separate_from_active_ceiling():
+    # 600 listed, only 10 active → passes (listing cap is 1000, active cap 400)
+    listing = json.dumps(
+        [_repo(f"a{i:04d}") for i in range(10)]
+        + [_repo(f"o{i:04d}", days_ago=400) for i in range(590)]
+    )
+    with patch(f"{MOD}.subprocess.run", return_value=_completed(listing)) as run:
+        items = gh.gh_org_active_discover(
+            {"source": "acme:90", "visibility": "private"}
+        )
+    assert len(items) == 10
+    argv = run.call_args[0][0]
+    assert argv[argv.index("--limit") + 1] == str(gh.MAX_LISTED + 1)
+    over = json.dumps(
+        [_repo(f"r{i:04d}", days_ago=400) for i in range(gh.MAX_LISTED + 1)]
+    )
+    with (
+        patch(f"{MOD}.subprocess.run", return_value=_completed(over)),
+        pytest.raises(OverflowError, match="MAX_LISTED"),
+    ):
+        gh.gh_org_active_discover({"source": "acme:90", "visibility": "private"})

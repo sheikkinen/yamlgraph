@@ -408,6 +408,19 @@ def test_reduce_structural_failures_raise(mutate, msg):
 
 
 @pytest.mark.req("REQ-YG-670")
+def test_reduce_error_finding_from_on_error_skip_is_contained():
+    state = _reduce_state()
+    state["repo_findings"][1] = {
+        "_map_index": 1,
+        "_error": "[PipelineError(type=llm_error, message='429 rate limit')]",
+    }
+    out = t.reduce(state)["reduced"]
+    row = next(r for r in out["repos"] if r["id"] == "acme/b")
+    assert row["status"] == "map_failed" and row["ai_usage"] == "unclear"
+    assert out["coverage"]["github"]["map_failed"] == 1
+
+
+@pytest.mark.req("REQ-YG-670")
 def test_reduce_missing_finding_becomes_typed_map_failed_row_within_cap():
     state = _reduce_state()
     state["repo_findings"] = [f for f in state["repo_findings"] if f["_map_index"] != 1]
