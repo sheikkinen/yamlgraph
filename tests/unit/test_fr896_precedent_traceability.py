@@ -173,9 +173,9 @@ def test_shared_predicate_exists_in_both_modules(tools, preflight):
     assert tools.is_librarian("Web-Librarian (grounded)")
     assert preflight.is_librarian("Web-Librarian (grounded)")
     assert not tools.is_librarian("subtractionist")
-    assert tools.SOLUTION_CLASSES == preflight.SOLUTION_CLASSES, (
-        "enum drift between reducer and verifier"
-    )
+    assert (
+        tools.SOLUTION_CLASSES == preflight.SOLUTION_CLASSES
+    ), "enum drift between reducer and verifier"
 
 
 # --- AC-03/AC-04: precedent three-way validation (R-1) ------------------------
@@ -485,3 +485,50 @@ def test_verify_artifact_counts_non_echo_rows(preflight):
         text = text.replace(verdict, "| echo |")
     violations = preflight.verify_artifact(text)
     assert any("non-echo" in v for v in violations)
+
+
+# --- FR-1026: provenance ledger retired --------------------------------------
+
+
+@pytest.mark.req("REQ-YG-623")
+def test_wrapper_writes_no_provenance_ledger(tmp_path):
+    stub = _write_stub(
+        tmp_path / "yg",
+        'mkdir -p "$RESEARCH_WORKDIR/tmp"\n'
+        f"cat > \"$RESEARCH_WORKDIR/tmp/draft-alternatives.md\" <<'ART'\n"
+        f"{MINIMAL_ARTIFACT}ART",
+    )
+    result = _run_wrapper([str(CLEAN_BRIEF)], tmp_path, stub)
+    assert result.returncode == 0, result.stderr
+    assert not (tmp_path / "feature-requests" / "research-runs.jsonl").exists()
+    assert "provenance" not in result.stdout + result.stderr
+
+
+@pytest.mark.req("REQ-YG-623")
+def test_verify_promotion_flag_is_generic_usage_error(tmp_path):
+    result = subprocess.run(
+        [sys.executable, str(PREFLIGHT_PY), "--verify-promotion", "x", "y"],
+        capture_output=True,
+        text=True,
+        timeout=30,
+    )
+    assert result.returncode == 2
+    assert "usage" in (result.stdout + result.stderr).lower()
+    assert "verify-promotion" not in result.stdout + result.stderr
+
+
+@pytest.mark.req("REQ-YG-623")
+def test_verify_promotion_function_removed(preflight):
+    assert not hasattr(preflight, "verify_promotion")
+
+
+@pytest.mark.req("REQ-YG-623")
+def test_ledger_not_tracked():
+    tracked = subprocess.run(
+        ["git", "ls-files", "feature-requests/research-runs.jsonl"],
+        cwd=REPO_ROOT,
+        capture_output=True,
+        text=True,
+        timeout=30,
+    ).stdout.strip()
+    assert tracked == ""
