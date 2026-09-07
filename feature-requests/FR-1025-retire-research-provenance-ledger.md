@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Proposed
+**Status:** REJECTED 2026-09-06 — judge R-1: the research brief prescribed the solution ("Adding the gate is the wrong direction", "the deletion must retire…"), so the five-persona unanimity was a confirmation run, not research. Superseded by [FR-1026-retire-research-provenance-ledger.md](FR-1026-retire-research-provenance-ledger.md) with a neutral brief and fresh record; R-2..R-4 folded there. Kept as the record.
 **Effort:** 0.25 days
 **Requested:** 2026-09-06
 **First consumer / first event:** the next agent that corrects a research
