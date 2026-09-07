@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Enhancement
-**Status:** Proposed 2026-09-06 — research run in progress; unjudged. Stacked on FR-1022 (PR #633): depends on exit code 77, REQ-YG-668 under CAP-211, and the FR-1022 doctrine bullet.
+**Status:** Judged 2026-09-07 — APPROVED WITH REVISIONS (round 1, [judgement](FR-1023-review-round-sentinel.judgement.md)); R-1..R-3 folded; awaiting human review of the folded plan (C-1, C-7) before enforcement. Research complete (4 of 5 personas, 2026-09-06). Stacked on FR-1022 (PR #633): enforcement base must carry exit code 77, REQ-YG-668 under CAP-211, and the FR-1022 doctrine bullet (C-2).
 **Effort:** 0.5 days
 **Requested:** 2026-09-06
 **First consumer / first event:** the next agent session that runs
@@ -57,8 +57,9 @@ in the graph or prompt:
    **Merge verdict:** Not approved — Operator: Two model reviews were not enough. The third read is the human's: merge on your own judgement, or close the PR and re-file the FR shorter.
    ```
 
-   The sentence is provisional until the operator supplies their own
-   (Questions for the human, Q-1). No flag or variable bypasses it.
+   This is the binding sentence (R-1; operator Q-1 default accepted).
+   Replacing it is a material amendment that re-runs the judge. No flag or
+   variable bypasses the sentinel.
 
 Combined with FR-1022, one FR file can consume at most two judge rounds and
 two review rounds of model time. FR-1013 consumed seven.
@@ -134,11 +135,13 @@ After the artifact contract passes (step 7):
 
 ```bash
 # FR-1023: the wrapper, not the agent, records the round (the review had no
-# durable record before this; FR-1013 left three rounds as prose).
+# durable record before this; FR-1013 left three rounds as prose). The
+# draft is model text — untrusted — so every line of it is quoted (R-2, C-4);
+# only the wrapper's own unquoted heading can ever match the count grammar.
 [ -f "$RECORD" ] || printf '# Review record: %s\n' "$(basename "$FR_PATH")" > "$RECORD"
 {
   printf '\n## Review round %d — PR %s — %s\n\n' "$((ROUND + 1))" "$PR" "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-  cat "$ARTIFACT"
+  sed 's/^/> /' "$ARTIFACT"
 } >> "$RECORD"
 echo "review.sh: round $((ROUND + 1)) recorded in $RECORD (commit it with the fold)" >&2
 ```
@@ -146,9 +149,12 @@ echo "review.sh: round $((ROUND + 1)) recorded in $RECORD (commit it with the fo
 Decisions, with the alternative each rejects:
 
 - **Count the wrapper's own heading grammar**, not `**Merge verdict:**`
-  lines. The appended drafts are free text a reviewer writes; the headings
-  are text the wrapper writes. Counting only what the wrapper wrote makes
-  the count immune to a reviewer quoting the template mid-body.
+  lines, and **quote every appended draft line with `> `** (R-2). The
+  drafts are free text a model writes; the headings are text the wrapper
+  writes. Quoting makes the provenance claim true mechanically: a draft
+  body containing `## Review round 99 — PR 999 — 2026-01-01T00:00:00Z` at
+  column zero lands in the record as `> ## Review round 99 …` and cannot
+  increment the count (AC-08).
 - **Full draft appended, not line one.** Line one alone gives a count; the
   full draft gives round 2 its input and gives the FR the durable review
   record it never had. The cost is file length the human reads, which is
@@ -190,47 +196,57 @@ regenerated. No new CAP.
 
 ## Acceptance Criteria
 
+Binding set per judgement R-3 (replaces the originally filed AC-01..AC-14).
+"The sentinel line" is the exact `**Merge verdict:** Not approved — Operator:
+…` line in the Summary.
+
 - [ ] AC-01: With no adjacent `.review.md`, the stubbed executor runs once,
       the wrapper exits 0, stderr contains `round 1`, and `<fr>.review.md`
-      now exists with exactly one line matching `^## Review round 1 — PR 123 — `
-      followed by the stub draft's text.
-- [ ] AC-02: With one recorded round, the executor runs once, exit 0, stderr
-      contains `round 2`, and the record holds two round headings, the
-      first byte-identical to before.
+      contains exactly one wrapper heading matching
+      `^## Review round 1 — PR 123 — ` followed by the complete stub draft
+      with every line prefixed by `> `.
+- [ ] AC-02: With one recorded round, the executor runs once, exits 0, stderr
+      contains `round 2`, and the record holds exactly two wrapper headings;
+      every byte that existed before the run is unchanged.
 - [ ] AC-03: With two recorded rounds, the wrapper exits 77; the executor
-      marker is absent; the review lock is absent; `tmp/draft-review.md`
-      consists exactly of the sentinel line plus one newline; and
-      `<fr>.review.md` is byte-identical to before the run.
-- [ ] AC-04: Two recorded rounds carrying different PR numbers (617, 627)
-      produce the AC-03 result — the count is per FR file.
-- [ ] AC-05: With two recorded rounds and `REVIEW_EXECUTION=1`, the re-entry
-      contract wins: exit 70, no sentinel artifact, no marker, no lock, record
-      unchanged.
-- [ ] AC-06: Missing FR (66) and usage error (64) win over the sentinel with
-      two recorded rounds: no artifact, no record write.
-- [ ] AC-07: When the graph produces no artifact, or a draft whose line one is
-      not `**Merge verdict:**`, the wrapper exits 65 as today and appends
-      nothing to the record.
-- [ ] AC-08: A line `**Merge verdict:** …` or `## Review round` text not
-      matching the anchored heading grammar (indented, quoted, or inside a
-      body) does not increment the round.
-- [ ] AC-09: Setting an otherwise unused `REVIEW_FORCE=1` or passing an extra
-      `--force` argument does not change the AC-03 result.
-- [ ] AC-10: The doctrine bullet, adapter README, and command-book entry 11
-      document the record file, exit 77, the exact sentinel, the two human
-      exits, and advisory status;
-      `tests/unit/test_ramp_installer.py::test_mirror_exact_entries_match_live_bytes`
-      passes; `git diff --exit-code <base> -- .github/skills/review-pr/adapters/graph.yaml .github/skills/review-pr/adapters/prompts/review.yaml`
+      marker and review lock are absent; `tmp/draft-review.md` consists
+      exactly of the sentinel line plus one newline; and `<fr>.review.md` is
+      byte-identical to before the run.
+- [ ] AC-04: Two recorded rounds carrying different PR numbers, 617 and 627,
+      produce the AC-03 result, proving the count is per FR file.
+- [ ] AC-05: With two recorded rounds and `REVIEW_EXECUTION=1`, the existing
+      re-entry contract wins: exit 70, no sentinel artifact, no executor
+      marker, no lock, and an unchanged record.
+- [ ] AC-06: Missing-FR exit 66 and usage exit 64 win before round
+      processing: no sentinel artifact, no executor marker, no lock, and no
+      record write.
+- [ ] AC-07: When the graph produces no artifact, an empty artifact, or a
+      draft whose first line is not `**Merge verdict:**`, the wrapper exits
+      65 and appends nothing.
+- [ ] AC-08: A conforming draft containing the exact string
+      `## Review round 99 — PR 999 — 2026-01-01T00:00:00Z` at column zero in
+      its body is recorded with that line prefixed by `> `; the next
+      invocation counts only the wrapper heading and reports round 2.
+      Indented, quoted, partial, and `**Merge verdict:**` body lines likewise
+      do not increment the round.
+- [ ] AC-09: Setting an otherwise unused `REVIEW_FORCE=1` or passing an
+      extra `--force` argument does not alter the AC-03 result.
+- [ ] AC-10: The doctrine rule, adapter README, and command-book entry 11
+      agree on the record format, two-round cap, exit 77, the exact sentinel
+      line, two human exits, and advisory status.
+- [ ] AC-11: `tests/unit/test_ramp_installer.py::test_mirror_exact_entries_match_live_bytes`
+      passes, and `git diff --exit-code <base> -- .github/skills/review-pr/adapters/graph.yaml .github/skills/review-pr/adapters/prompts/review.yaml`
       succeeds.
-- [ ] AC-11: New tests live in `tests/unit/test_fr758_judge_review_wrappers.py`,
-      each tagged `REQ-YG-669`; the committed RED test precedes the GREEN
-      implementation commit.
-- [ ] AC-12: REQ-YG-669 appears under CAP-211 in both `ARCHITECTURE.md` and
-      the CAP-211 yaml; `python scripts/req_coverage.py --strict` passes.
-- [ ] AC-13: `pytest tests/unit/test_fr758_judge_review_wrappers.py -q --no-cov`
-      passes without invoking a real review graph.
-- [ ] AC-14: Changelog fragment exists; the FR-1023 diary entry contains
-      `**Seed:**`.
+- [ ] AC-12: New tests live in `tests/unit/test_fr758_judge_review_wrappers.py`,
+      each is tagged `@pytest.mark.req("REQ-YG-669")`, and the committed RED
+      test precedes the GREEN implementation commit.
+- [ ] AC-13: REQ-YG-669 appears under CAP-211 in both `ARCHITECTURE.md` and
+      `capabilities/CAP-211-sole-route-judge-review.yaml`;
+      `python scripts/req_coverage.py --strict` passes; and
+      `pytest tests/unit/test_fr758_judge_review_wrappers.py -q --no-cov`
+      passes without a real review graph.
+- [ ] AC-14: The changelog fragment exists, and the FR-1023 diary entry
+      contains `**Seed:**`.
 
 ## Alternatives Considered
 
@@ -272,21 +288,40 @@ regenerated. No new CAP.
 - `docs/diary/2026-09-06-reflection-fr-1022-the-count-the-model-cannot-argue-with.md`
   (the Seed this FR answers)
 
-## Judgement (pending)
+## Judgement (2026-09-07, round 1)
 
-Route: `scripts/judge.sh feature-requests/FR-1023-review-round-sentinel.md`
-from this worktree, after the research record is promoted. Never in this
-author session.
+**Verdict:** APPROVED WITH REVISIONS — full text in
+[FR-1023-review-round-sentinel.judgement.md](FR-1023-review-round-sentinel.judgement.md)
+(sole route, `scripts/judge.sh`, backend copilot, from the stacked worktree
+on branch commit `bf7a85bc`; the FR-1022 sentinel reported `round 1`).
+
+| # | Finding | Resolution (binding) |
+|---|---------|----------------------|
+| R-1 | Q-1..Q-3 left the sentinel sentence and doctrine surface provisional; status line stale | Folded: operator defaults recorded below; sentence made binding; status line updated |
+| R-2 | "Wrapper-only heading provenance" was a claim, not a mechanism — appended model text could match the heading grammar | Folded: every appended draft line is quoted with `> ` (`sed 's/^/> /'`); AC-01/02/08 specify the quoted body; C-4 treats review text as untrusted |
+| R-3 | AC set replaced with the binding AC-01..AC-14 | Folded verbatim |
+
+**Purge list:** the "provisional sentence" wording; the unquoted `cat "$ARTIFACT"` append; the pre-fold AC-08 ("inside a body") wording.
+
+**Scope frozen:** D-1..D-10 as listed in the judgement. Not authorized:
+edits to `adapters/graph.yaml` or `adapters/prompts/review.yaml`; a new
+capability; a second counter file; per-PR draft paths; prompt-level refusal;
+override flag or variable; automatic commits, PR comments, merge decisions,
+FR rejection, or re-filing; changes to judge-round behaviour; rewriting
+historical review or judgement records.
 
 ### Questions for the human (as options, or 'none')
 
-1. **Q-1 The fixed sentence.** FR-1022's was the operator's own words. The
-   line above is a placeholder in the operator's voice. Options: (a) keep
-   as drafted; (b) operator supplies the sentence — *recommended*; the
-   token stays `Not approved`.
-2. **Q-2 Who writes the record.** (a) the wrapper appends `<fr>.review.md`
-   after a conforming run — *recommended, as drafted*; (b) the agent
-   promotes, judge parity, count depends on discipline.
-3. **Q-3 Doctrine surface.** (a) one bullet in `review-pr/doctrine.md` plus
-   ramp mirror re-copy — *recommended, "doctrine states, wrapper
-   enforces"*; (b) adapter README only, no mirrored file touched.
+1. **Q-1 The fixed sentence.** (a) the drafted sentence — *default*;
+   (b) the operator supplies their own. **Operator answer (2026-09-07):**
+   sequence "judge, docs pr, outsider" given without a sentence → (a)
+   accepted by default. Replacing it later is a material amendment that
+   re-runs the judge (round 2 of this file).
+2. **Q-2 Who writes the record.** (a) the wrapper appends after a
+   conforming run — *default, as drafted*; (b) the agent promotes.
+   **Answer:** (a), by the same default.
+3. **Q-3 Doctrine surface.** (a) one bullet in `review-pr/doctrine.md`
+   plus ramp mirror re-copy — *default*; (b) adapter README only.
+   **Answer:** (a), by the same default (D-2, D-3).
+4. **C-7 human review of this folded FR is the GATE** before enforcement.
+   A `merge`-book verdict word on the doc PR suffices.
