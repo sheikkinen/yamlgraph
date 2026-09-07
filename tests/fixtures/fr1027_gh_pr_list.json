@@ -1,0 +1,66 @@
+[
+  {
+    "number": 640,
+    "title": "docs(plan): long-running spike kept open on purpose",
+    "state": "OPEN",
+    "createdAt": "2026-06-01T00:00:00Z",
+    "mergedAt": null,
+    "closedAt": null
+  },
+  {
+    "number": 633,
+    "title": "feat(judge): FR-1022 round sentinel — third judgement is fixed text, not a model call",
+    "state": "MERGED",
+    "createdAt": "2026-09-06T20:00:00Z",
+    "mergedAt": "2026-09-07T04:00:00Z",
+    "closedAt": "2026-09-07T04:00:00Z"
+  },
+  {
+    "number": 500,
+    "title": "chore: abandoned long before the window",
+    "state": "CLOSED",
+    "createdAt": "2026-08-01T00:00:00Z",
+    "mergedAt": null,
+    "closedAt": "2026-08-10T00:00:00Z"
+  },
+  {
+    "number": 636,
+    "title": "chore(research): FR-1026 retire the provenance ledger — the judge is the check, once",
+    "state": "MERGED",
+    "createdAt": "2026-09-06T22:00:00Z",
+    "mergedAt": "2026-09-07T04:10:00Z",
+    "closedAt": "2026-09-07T04:10:00Z"
+  },
+  {
+    "number": 627,
+    "title": "docs(doctrine): FR-1013 doctrine and reference sweep after Chaplain removal",
+    "state": "CLOSED",
+    "createdAt": "2026-09-06T09:00:00Z",
+    "mergedAt": null,
+    "closedAt": "2026-09-06T18:00:00Z"
+  },
+  {
+    "number": 610,
+    "title": "docs(fr): merged before the window opens",
+    "state": "MERGED",
+    "createdAt": "2026-08-20T09:00:00Z",
+    "mergedAt": "2026-08-25T10:00:00Z",
+    "closedAt": "2026-08-25T10:00:00Z"
+  },
+  {
+    "number": 641,
+    "title": "docs(fr): FR-1027 recap pull-request axis",
+    "state": "OPEN",
+    "createdAt": "2026-09-05T00:00:00Z",
+    "mergedAt": null,
+    "closedAt": null
+  },
+  {
+    "number": 635,
+    "title": "docs(fr): FR-1023 review round sentinel — plan, research record, judgement",
+    "state": "MERGED",
+    "createdAt": "2026-09-07T03:44:00Z",
+    "mergedAt": "2026-09-07T04:10:00Z",
+    "closedAt": "2026-09-07T04:10:00Z"
+  }
+]

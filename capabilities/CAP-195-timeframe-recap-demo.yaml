@@ -1,7 +1,7 @@
 name: Timeframe Recap Demo
 id: CAP-195
 status: active
-fr: FR-700, FR-930
+fr: FR-700, FR-930, FR-1027
 feature_request: FR-700
 description: >
   Example graph (examples/demos/recap/) that answers "what changed in this
@@ -77,5 +77,51 @@ requirements:
       copy instructions and no unreferenced input. Integration asserts the
       orphan hash field by exact equality — tolerant matching is for LLM
       output and orphans no longer are.
+    modules:
+      - examples
+  - id: REQ-YG-669
+    description: >
+      Pull-request axis (FR-1027). One graph-local python node
+      (examples/demos/recap/nodes/prs.py, type: python tool collect_prs_fn)
+      derives owner/name from repo_path's origin remote and returns a single
+      code-owned state key, pr_axis. Three accepted remote families
+      (https://, ssh://, scp-style git@host:owner/name), each with an optional
+      .git suffix; a missing, malformed, local/file, or non-GitHub origin ends
+      the node with a stable reason and NO gh invocation, while a path that is
+      not a git repository still fails loudly. The window boundary is the
+      exact epoch returned by git rev-parse --since=<since> (passed as one
+      argv element); UTC date conversion is display-only, so midnight
+      truncation cannot move a row in or out of the window. Membership is
+      inclusive: merged when mergedAt >= epoch, closed_unmerged when mergedAt
+      is null and closedAt >= epoch, open for every state == OPEN row at any
+      age. Collection is exactly ONE gh subprocess invocation per recap
+      (gh pr list --repo <slug> --state all --limit 300 --json
+      number,title,state,createdAt,mergedAt,closedAt), fixed argv,
+      shell=False, 60-second timeout; four narrow failure classes
+      (FileNotFoundError, TimeoutExpired, CalledProcessError with and without
+      stderr, unparseable JSON or a row missing a required field) each yield
+      available: False with empty buckets and a stable non-empty reason, and
+      no broad handler absorbs anything else. Ordering is code-owned and
+      stable: decided buckets by decision timestamp descending then number
+      descending, open rows by createdAt descending then number descending.
+      Lines are assembled in code as #<number>|<created>→<end>|<N>d|<title>
+      with the title byte-identical to the gh JSON, so every number is
+      paste-safe (FR-704 rule). available: True with empty buckets (a window
+      with no pull requests) is a different value from available: False (an
+      axis that could not be read), and 300 returned rows set cap_reached
+      whose note says results MAY be truncated — a 301st row is not
+      observable. finalize_recap attaches pr_merged, pr_closed_unmerged,
+      pr_open and one pr_axis_note without disturbing workstreams, orphans,
+      hotspots or unverified_refs; absent pr_axis state renders as unavailable
+      rather than empty. scripts/weekly_recap.py emits the note once before
+      the three PR sections so a cap warning cannot be suppressed by non-empty
+      buckets, renders (none) for an available empty bucket and
+      (not collected) for an unavailable one, and leaves the three original
+      section headings and their order unchanged. The axis is invisible to the
+      model: prompts/recap.yaml is unmodified, its schema stays
+      {workstreams, hotspots}, and synthesize carries no pr_* variable.
+      .github/workflows/weekly-recap.yml passes the existing
+      secrets.RECAP_PAT as GH_TOKEN to the recap step only — no new secret,
+      no new workflow permission.
     modules:
       - examples

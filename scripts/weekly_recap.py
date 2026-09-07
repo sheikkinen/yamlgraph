@@ -32,7 +32,24 @@ RECAP_SUBJECT_PREFIX = "docs(recap): weekly recap"
 RECAPS_DIR_PREFIX = "docs/recaps/"
 GIT = shutil.which("git") or "git"
 
-SECTIONS = ("workstreams", "orphans", "hotspots")
+SECTIONS = (
+    "workstreams",
+    "orphans",
+    "hotspots",
+    # FR-1027: the pull-request axis, code-owned, appended after the three
+    # original sections so their headings and order are untouched.
+    "pr_merged",
+    "pr_closed_unmerged",
+    "pr_open",
+)
+PR_SECTIONS = ("pr_merged", "pr_closed_unmerged", "pr_open")
+SECTION_TITLES = {
+    "pr_merged": "Pull requests merged",
+    "pr_closed_unmerged": "Pull requests closed unmerged",
+    "pr_open": "Pull requests open",
+}
+AXIS_NOTE_KEY = "pr_axis_note"
+NOT_COLLECTED = "(not collected)"
 
 
 def iso_week(d: date) -> str:
@@ -111,13 +128,27 @@ def render_markdown(recap: object, week: str) -> str:
     if not isinstance(recap, dict):
         raise TypeError(f"recap state must be dict or model, got {type(recap)}")
 
+    note = str(recap.get(AXIS_NOTE_KEY) or "").strip()
+    unavailable = note.startswith("pull-request axis unavailable")
+
     lines = [f"# Weekly Recap {week}", ""]
     for section in SECTIONS:
-        lines.append(f"## {section.capitalize()}")
+        # FR-1027 R-4: one axis-level note, emitted once immediately before
+        # the PR sections. Its placement does not depend on whether the
+        # buckets carry rows — a cap warning must not vanish because the
+        # capped page happened to be full.
+        if section == PR_SECTIONS[0] and note:
+            lines.append(f"> {note}")
+            lines.append("")
+        lines.append(f"## {SECTION_TITLES.get(section, section.capitalize())}")
         lines.append("")
         items = recap.get(section) or []
         if items:
             lines.extend(f"- {item}" for item in items)
+        elif section in PR_SECTIONS and unavailable:
+            # An axis we could not read made no observation; "(none)" would
+            # assert one (Commandment 6).
+            lines.append(NOT_COLLECTED)
         else:
             lines.append("(none)")
         lines.append("")

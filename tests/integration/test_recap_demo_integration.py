@@ -74,3 +74,54 @@ class TestRecapDispositionAxis:
         assert (
             "Rejected" in workstreams_blob
         ), f"verbatim status missing: {workstreams_blob}"
+
+
+@pytest.mark.slow
+class TestRecapPullRequestAxisOnOriginlessRepo:
+    """FR-1027 AC-14: the axis reports its own absence, and costs no network.
+
+    The bare fixture repository has no `origin`, so `collect_prs` ends at the
+    identify step — no `gh` invocation, no second slow path (FR-922 budget).
+    The recap around it must still be complete.
+    """
+
+    @pytest.mark.req("REQ-YG-669")
+    def test_absent_origin_note_and_complete_recap(self, tmp_path: Path) -> None:
+        from yamlgraph.compile.graph_loader import load_and_compile
+
+        env = {**_GIT_ENV, "HOME": str(tmp_path)}
+        subprocess.run(["git", "init", "-q", str(tmp_path)], check=True, env=env)
+        (tmp_path / "widget.py").write_text("# widget stub\n", encoding="utf-8")
+        subprocess.run(["git", "-C", str(tmp_path), "add", "-A"], check=True, env=env)
+        subprocess.run(
+            ["git", "-C", str(tmp_path), "commit", "-q", "-m", "feat: FR-043 widget"],
+            check=True,
+            env=env,
+        )
+        assert (
+            subprocess.run(
+                ["git", "-C", str(tmp_path), "remote", "get-url", "origin"],
+                capture_output=True,
+                text=True,
+                env=env,
+            ).returncode
+            != 0
+        ), "fixture must have no origin"
+
+        graph = load_and_compile(GRAPH_PATH)
+        result = graph.compile().invoke(
+            {"repo_path": str(tmp_path), "since": "1 day ago"}
+        )
+
+        axis = result["pr_axis"]
+        assert axis["available"] is False
+        assert axis["reason"] == "no origin remote"
+        assert (axis["merged"], axis["closed_unmerged"], axis["open"]) == ([], [], [])
+
+        recap = result["recap"]
+        recap_dict = recap if isinstance(recap, dict) else recap.model_dump()
+        assert recap_dict["workstreams"], "recap must still be complete"
+        assert (
+            recap_dict["pr_axis_note"]
+            == "pull-request axis unavailable: no origin remote"
+        )

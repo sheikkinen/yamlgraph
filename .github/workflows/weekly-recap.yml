@@ -34,6 +34,11 @@ jobs:
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           PROVIDER: anthropic
+          # FR-1027: the existing recap PAT, scoped to this one step, so the
+          # pull-request axis can read PR metadata. No new secret and no new
+          # workflow permission. Without it the axis reports itself
+          # unavailable rather than failing the run.
+          GH_TOKEN: ${{ secrets.RECAP_PAT }}
         run: |
           python scripts/weekly_recap.py --repo-path . --since "1 week ago" --output-dir docs/recaps | tee recap-run.log
           if grep -q "no-op" recap-run.log; then

@@ -32,6 +32,11 @@ SIBLING_SUFFIXES = (
     ".judgement.md",
     ".research.md",
     ".receipt.md",
+    # FR-1027: a judgement may name a real-run witness as a required
+    # deliverable (its R-5 did, at feature-requests/FR-XXX.witness.md). Like a
+    # judgement or a research record, it is evidence ABOUT one FR, not a
+    # second FR competing for the number.
+    ".witness.md",
 )
 SIBLING_SLUGS = ("evidence",)
 
@@ -127,6 +132,11 @@ class TestFeatureRequestNumbering:
     def test_sibling_words_in_slugs_are_not_treated_as_siblings(self) -> None:
         """FR-215-research-agent-demo.md is a primary FR, not a research sibling."""
         assert "FR-215-research-agent-demo.md" in _primary_fr_files().get("215", [])
+
+    def test_witness_record_is_a_sibling_not_a_second_fr(self) -> None:
+        """FR-1027.witness.md is evidence about FR-1027, not a rival for 1027."""
+        assert _is_sibling("FR-1027.witness.md", "1027")
+        assert "FR-1027.witness.md" not in _primary_fr_files().get("1027", [])
 
     def test_grandfathered_entries_are_still_duplicated(self) -> None:
         """The ratchet may only shrink: a resolved number must leave the list."""
