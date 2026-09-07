@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Enforced 2026-09-07 — AC-01..AC-13 and AC-15..AC-18 delivered, **AC-14 PARTIAL** (unit half witnessed; integration half unrunnable on this host and executed by no CI lane — see § AC-14 disposition); graph authored through the governed route (report verified), lint clean, 63 new tests green, real-run witness records PR #627. Three deviations recorded in the Implementation Record. Diary: [diary-2026-09-07-reflection-fr-1027-the-artifact-that-already-existed.md](../docs/diary/diary-2026-09-07-reflection-fr-1027-the-artifact-that-already-existed.md). **C-3 and C-7 remain open and are the human's**: the workflow credential wiring needs human review before merge, and RECAP_PAT's PR-read scope is unverifiable until the first scheduled run.
+**Status:** Implemented 2026-09-07, **awaiting witnesses and gates** — not merge-ready, and the review round 1 verdict (Not approved) stands. Delivered: AC-01..AC-13, AC-15..AC-18; graph authored through the governed route (report verified), lint clean, 63 new tests green, real-run witness records PR #627. **Owed by a POSIX host** (this host cannot execute `shell.py` at all): a refreshed `examples/demos/recap/demo-output.log` for the demo-proof gate, and the AC-14 integration run. **Owed by the human**: C-3 (approve the `weekly-recap.yml` credential wiring — a GATE no model review can discharge) and C-7 (whether `RECAP_PAT` can read PR metadata). Four deviations and five review dispositions recorded below. Diary: [diary-2026-09-07-reflection-fr-1027-the-artifact-that-already-existed.md](../docs/diary/diary-2026-09-07-reflection-fr-1027-the-artifact-that-already-existed.md).
 **Effort:** 0.5 days
 **Requested:** 2026-09-07
 **First consumer / first event:** the operator, next Monday morning, opening
@@ -522,7 +522,20 @@ nothing on its "Not authorized" list was touched.
    and AC-12 name the tests that must pass **unmodified** —
    `test_collection_is_tool_nodes`, `test_git_commands_are_portable`, and the
    inherited FR-702/703/704/930 suites — and all of those did.
-3. **One test assertion in this FR's own RED commit was wrong and was
+3. **A guard the judgement did not name was extended, to keep a deliverable
+   the judgement did name.** R-5 requires the witness at
+   `feature-requests/FR-1027.witness.md`, but
+   `tests/unit/test_fr_numbering.py` counts that filename as a *second*
+   primary FR claiming 1027, so the required `core-test` check failed. Its
+   `SIBLING_SUFFIXES` tuple already exempts `.judgement.md`, `.research.md`
+   and `.receipt.md` — artifacts that are evidence *about* an FR — and its
+   docstring says siblings legitimately share the parent's number. A
+   judgement-mandated witness is that class, so `.witness.md` was added with
+   a test pinning the behaviour. The alternative the review proposed
+   (renaming the witness) would violate a binding judgement revision. This
+   is the one place this change touches a gate outside the frozen surface,
+   and it is flagged for the human rather than buried.
+4. **One test assertion in this FR's own RED commit was wrong and was
    corrected.** `TestSinceGrammarIsGitsOwn` asserted `argv[0] == "git"`, but
    `prs.py` resolves the executable with `shutil.which` (the
    `scripts/weekly_recap.py` precedent). The assertion now checks
@@ -619,6 +632,32 @@ R-4's "may be truncated" wording matters more here than it would on a quieter
 repository. Raising the limit, or windowing the `gh` query server-side with
 `--search`, is a follow-up an operator should decide on evidence, not
 something to smuggle in under this authority.
+
+## Review round 1 (PR #637, head `a8d6bd0d`) — dispositions
+
+`scripts/review.sh 637` → **Not approved**, five blocking findings. Review is
+advisory until the human merge decision; the durable record is the PR comment
+and these dispositions.
+
+| # | Finding | Disposition |
+|---|---------|-------------|
+| **P1** | `FR-1027.witness.md` registers as a second primary FR, so required `core-test` fails `test_no_duplicate_fr_numbers`. Reviewer asked for a **rename**. | **Fixed, but NOT by renaming — recorded disagreement.** R-5 is a binding judgement revision that names `feature-requests/FR-1027.witness.md` literally; renaming would break the revision I was ordered to fold. The guard's own docstring says "sibling artifacts legitimately share their parent's number", and its `SIBLING_SUFFIXES` already carries `.judgement.md`, `.research.md`, `.receipt.md` — evidence *about* one FR. A judgement-mandated witness is the same class, so `.witness.md` joins the tuple, with a test (`test_witness_record_is_a_sibling_not_a_second_fr`) pinning it. This touches `tests/unit/test_fr_numbering.py`, which the judgement did not name; it is the smallest sufficient change that keeps an authorized deliverable at its authorized path. **If the human prefers the rename, R-5 must be amended first.** |
+| **P2** | `examples/demos/recap/` changed without a refreshed `demo-output.log`; the `Demo proof required for changed demos` check fails. | **Confirmed blocker. Owed by a POSIX host — cannot be produced here, and will not be faked.** `yamlgraph/tools/shell.py` runs `subprocess.run(..., shell=True)`, so Windows invokes `COMSPEC /c`; the recap's `--pretty=format:'%h\|%ad\|%s'` reaches cmd.exe as `'%ad' is not recognized as an internal or external command`. Substituting a POSIX shell through `COMSPEC` was attempted and does not work: Python passes the literal `/c`, which `sh.exe` reads as a path (`/c: Is a directory`). The gate validates a **committed** log, so the only honest route is one command on a POSIX host — see the handover in the FR status. |
+| **P3** | AC-14's integration witness has run on neither this host nor CI; a unit-level subprocess fake is not that witness. | **Agreed, and already disclosed as `[~] PARTIAL` before the review ran** (§ AC-14 disposition). One correction to the finding's framing: it is not merely "no POSIX execution in this PR's evidence" — `.github/workflows/workflow.yml` runs `pytest tests/unit` only (lines 63, 95, 146), so **no CI lane executes `tests/integration/` on any platform**. The test is written, committed, unweakened and unskipped; it needs one POSIX run. Same handover as P2. |
+| **P4** | C-7 defers the `RECAP_PAT` capability check to the first Monday; the reviewer holds that a credential probe is scriptable and therefore not human-owned, and asks for a non-publishing pre-merge probe. | **Partially accepted; deliberately not built.** The reviewer is right that "can this token run `gh pr list`" is mechanical in principle, and right that dispatching the current workflow is unsafe (its second step opens a PR). But authoring a non-publishing probe path is new scope, and the judgement's C-7 says that when the credential is in question the response is to **return to planning** — not to add a probe, a permission, or an input under this authority. So the question goes to the human with the reviewer's argument attached, which is what returning to planning means here. Note the failure mode is benign and self-reporting: a token that cannot read PRs makes the axis render `pull-request axis unavailable: gh exited …` and leaves the rest of the recap intact. |
+| **P5** | C-3 requires human approval of the workflow credential wiring before merge; the PR has no review decision. | **Agreed without reservation.** This is exactly why this PR is not being merged by the session that wrote it. A model-authored review cannot discharge C-3, and neither can the author. |
+
+**Non-blocking notes accepted:** the reviewer confirmed the code-owned
+boundary holds (prompt unchanged, one fixed-argv `gh` call with a timeout,
+qualified cap wording, unavailable distinguished from available-empty), and
+observed that the authoring report's structure suite ended with nine failures
+— those nine were dispositioned before this review (five fixed, four
+environmental with a merge-base baseline), which the review confirms.
+
+**Net effect on this PR:** P1 fixed in code. P2 and P3 need one POSIX host.
+P4 and P5 are the human's. The FR status is corrected from `Enforced` to
+`Implemented — awaiting witnesses and gates`, because the reviewer was right
+that `Enforced` contradicted a partial AC and two open gates.
 
 ## Related
 
