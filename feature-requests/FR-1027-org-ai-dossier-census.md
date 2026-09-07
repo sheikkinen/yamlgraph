@@ -71,7 +71,8 @@ produces, under gitignored `out_dir`:
 | Artifact | Producer | Content |
 | --- | --- | --- |
 | `onepager.md` | 1 Azure synthesis call over code-reduced tables | ≤1 page: coverage denominators, active-project counts (GitHub / Jira), AI-using share WITH denominator, top AI tools, top persons, three findings, method + date + caveats |
-| `dossier.md` | code-rendered tables + 1 Azure synthesis call for the findings section | per-repo section (purpose, activity, AI usage, tools, evidence paths, top contributors); per-Jira-project section (purpose, activity counts, AI usage, tools, evidence issue keys, top assignees); per-person section (footprint + 2–3 sentence contribution summary); AI-tool inventory (tool → kind → repos/projects → evidence) |
+| `dossier.md` | code-rendered tables + 1 Azure synthesis call for the findings section | coverage, findings, AI-tool inventory (tool → kind → repos/projects → evidence), per-person section (footprint + 2–3 sentence contribution summary) |
+| `repos.md`, `jira.md` | code-rendered from ledgers | per-repo section (purpose, activity, AI usage, tools, evidence paths, top contributors); per-Jira-project section (purpose, activity counts, AI usage, tools, evidence issue keys, top assignees) |
 | `ledgers/repos.jsonl`, `ledgers/jira.jsonl`, `ledgers/persons.jsonl`, `ledgers/ai_tools.csv` | LLM-free reducers | deterministic, one row per unit, every LLM claim carries its evidence citation |
 | `run.json` | code | org, window, timestamps, git SHA of the graph, coverage: visible-repo count vs org-API count, archived, active; Jira visible vs active; Azure deployment name; token totals |
 
@@ -129,7 +130,8 @@ New module `examples/demos/corpus_census/adapters/gh_ai_adapters.py`
   - `pulls?state=all&per_page=30` → author logins with bot flags
     (`copilot-swe-agent[bot]`, `Copilot`, `dependabot[bot]`, `renovate`).
 - **`gh_org_code_search(state)`** — org-wide `gh search code --owner <org>
-  <keyword>` for a fixed keyword list; ONE call per keyword (code-search
+  <keyword>` for a fixed keyword list (English package/agent terms plus
+  Finnish `tekoäly`, `kielimalli`, `tekoälyavustaja`); ONE call per keyword (code-search
   limit is 10/min, so the node sleeps to budget); returns `repo → keywords
   hit`. Probe 2026-09-07 confirmed this works on the private org and
   surfaces repos the per-repo manifest grep can miss (AI usage in source,
@@ -239,7 +241,7 @@ per the operator's 2026-09-07 decision; the judge may overrule.
 - [ ] Person summary boundary: a summary naming a repo/project outside the
       footprint is rejected (unit — RED first).
 - [ ] Coverage denominators appear in `run.json`, `onepager.md` line 1–5,
-      and `dossier.md` header; every percentage in the rendered documents is
+      and the `dossier.md` / `repos.md` / `jira.md` headers; every percentage in the rendered documents is
       followed by `of <denominator>` (renderer unit test).
 - [ ] Persons ledger has no cross-system join unless exact e-mail/displayName
       equality; `same_person` otherwise `unknown` (unit).
@@ -277,15 +279,19 @@ per the operator's 2026-09-07 decision; the judge may overrule.
 | Provider: default/Copilot instead of pinned Azure | operator decision 2026-09-07: Azure | Rejected — corp data governance (FR-899) |
 | Jira scope: all visible projects | operator decision 2026-09-07: active only | Rejected — dormant projects listed by key in coverage |
 
-## Open Questions (for the Judge / operator)
+## Decisions (operator, 2026-09-07)
 
-1. `persons_llm` default `true` — admissible under employer policy for
-   colleagues' work-system data? If not, default `false`.
-2. Should `gh_org_code_search` keywords include Finnish terms (`tekoäly`)
-   for README/doc hits, mirroring the Jira JQL?
-3. Is one `dossier.md` acceptable for O(200) repos (long), or should the
-   per-repo section be a separate `repos.md` with the dossier holding only
-   findings + inventories?
+1. `persons_llm` default **`true`** — LLM contribution summaries on; FR-962
+   warning block in README; operator is the accountable controller.
+2. `gh_org_code_search` keyword list **includes Finnish terms** (`tekoäly`,
+   `kielimalli`, `tekoälyavustaja`), mirroring the Jira JQL.
+3. Rendered output is **split**: `dossier.md` (coverage, findings, AI-tool
+   inventory, persons) + `repos.md` (per-repo sections) + `jira.md`
+   (per-Jira-project sections). The Ideal Result table and AC below are
+   read with this split.
+4. Research route unblock: **run `scripts/research.sh` on another provider**
+   (Azure/OpenAI) rather than wait for Anthropic key rotation — requires a
+   provider override in the research route, tracked as a separate change.
 
 ## Related
 
