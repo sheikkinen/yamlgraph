@@ -1,0 +1,6 @@
+name: gh-org-code-search
+description: "FR-1027 org AI dossier adapter: gh_org_code_search"
+runtime:
+  type: python
+  path: gh_ai_adapters.py
+  function: gh_org_code_search

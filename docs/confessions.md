@@ -2026,3 +2026,27 @@ The ID ranges are:
 - **Sin**: `exec()` of the `def governed_path` text extracted from `.github/hooks/scripts/pre-command-guard.sh`'s Python heredoc.
 - **Penance**: FR-1014 witness: the predicate lives inside a bash heredoc and cannot be imported; executing the repository's own hook source (read from the tree, not from input) is the only way to assert it row-for-row against `check_authoring_proof.GOVERNED` on hosts that cannot exec the bash hook. Namespace is limited to `re`.
 
+
+### CONF-462
+- **File**: [examples/demos/corpus_census/adapters/jira_adapters.py](../examples/demos/corpus_census/adapters/jira_adapters.py#L58)
+- **Code**: S310
+- **Sin**: `Request(url, …)` flagged for possible non-HTTP(S) scheme.
+- **Penance**: FR-1027. `url` is `JIRA_URL` (validated `https://` in `_env`, else `OSError` before any request) plus a fixed `/rest/api/3/…` template with `quote`d path segments; no caller supplies a URL. Stdlib `urllib` deliberately — the judgement (C-2) forbids new dependencies for this contrib/example.
+
+### CONF-463
+- **File**: [examples/demos/corpus_census/adapters/jira_adapters.py](../examples/demos/corpus_census/adapters/jira_adapters.py#L65)
+- **Code**: S310
+- **Sin**: `urlopen(req, timeout=…)` flagged for possible non-HTTP(S) scheme.
+- **Penance**: FR-1027. Opens the `Request` built from the https-validated base (CONF-462); timeout set; non-2xx raises `RuntimeError`, one 429 retry honouring `Retry-After`.
+
+### CONF-464
+- **File**: [examples/demos/corpus_census/adapters/gh_ai_adapters.py](../examples/demos/corpus_census/adapters/gh_ai_adapters.py#L105)
+- **Code**: S603
+- **Sin**: `subprocess.run(["gh", *argv], …)` — org name, repo ref and search keyword reach a subprocess.
+- **Penance**: FR-1027. argv list, no shell, fixed leading verbs (`repo list`, `api`, `search code`); repo refs validated `<org>/<name>`; keywords come from the frozen module constant `SEARCH_TERMS`; timeout on every call. Same pattern as the FR-899 adapter in `corpus_adapters.py`.
+
+### CONF-465
+- **File**: [examples/demos/corpus_census/adapters/gh_ai_adapters.py](../examples/demos/corpus_census/adapters/gh_ai_adapters.py#L106)
+- **Code**: S607
+- **Sin**: `gh` invoked by bare name (partial executable path).
+- **Penance**: FR-1027. `gh` is the operator's authenticated GitHub CLI; resolving it through PATH is the documented contract shared with FR-899/FR-962 adapters, and preflight runs `gh auth status` before any adapter call.

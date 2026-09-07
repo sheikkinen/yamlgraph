@@ -1,0 +1,22 @@
+{
+  "key": "DEMOAI",
+  "name": "Demo AI Assistant",
+  "project_type": "software",
+  "lead": {"account_id": "demo-acct-001", "display_name": "Demo Lead"},
+  "updated_in_window": 12,
+  "created_in_window": 4,
+  "ai_term_count": 5,
+  "issues": [
+    {"key": "DEMOAI-101", "summary": "Roll out GitHub Copilot to the demo team", "issuetype": "Story", "status": "Done", "assignee_id": "demo-acct-002", "reporter_id": "demo-acct-001", "description_head": "Enable Copilot seats and document usage guidelines for the demo team."},
+    {"key": "DEMOAI-102", "summary": "Prototype LLM summariser for demo tickets", "issuetype": "Task", "status": "In Progress", "assignee_id": "demo-acct-003", "reporter_id": "demo-acct-001", "description_head": "Use the Azure OpenAI deployment to summarise incoming demo tickets."},
+    {"key": "DEMOAI-103", "summary": "Evaluate tekoäly-avustaja for triage", "issuetype": "Task", "status": "To Do", "assignee_id": "demo-acct-002", "reporter_id": "demo-acct-004", "description_head": "Compare LLM triage against the current manual routing."}
+  ],
+  "assignees": [
+    {"account_id": "demo-acct-002", "display_name": "Demo Dev A", "n": 2},
+    {"account_id": "demo-acct-003", "display_name": "Demo Dev B", "n": 1}
+  ],
+  "reporters": [
+    {"account_id": "demo-acct-001", "display_name": "Demo Lead", "n": 2},
+    {"account_id": "demo-acct-004", "display_name": "Demo PO", "n": 1}
+  ]
+}

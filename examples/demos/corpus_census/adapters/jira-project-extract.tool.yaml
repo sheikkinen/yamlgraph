@@ -1,0 +1,6 @@
+name: jira-project-extract
+description: "FR-1027 org AI dossier adapter: jira_project_extract"
+runtime:
+  type: python
+  path: jira_adapters.py
+  function: jira_project_extract

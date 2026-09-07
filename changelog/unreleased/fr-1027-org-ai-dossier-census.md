@@ -13,5 +13,6 @@ explicitly-authorized person summaries → two bounded synthesis judgements →
 `dossier.md`, `onepager.md` (≤800 words), `repos.md`, `jira.md`, ledgers and
 `run.json` written atomically under an enforced gitignored output root.
 Adapters `gh_ai_adapters.py` (active discover, AI-signal extract, org code
-search) and `jira_adapters.py` (REST v3 + smoke fixtures) with numeric
+search) and `jira_adapters.py` (REST v3 + public-safe smoke fixtures under
+`corpus_census/adapters/fixtures/jira/`) with numeric
 ceilings that abort at N+1 before LLM spend. (REQ-YG-670)

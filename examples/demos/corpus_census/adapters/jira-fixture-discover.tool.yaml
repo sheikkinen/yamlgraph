@@ -1,0 +1,6 @@
+name: jira-fixture-discover
+description: "FR-1027 org AI dossier adapter: jira_fixture_discover"
+runtime:
+  type: python
+  path: jira_adapters.py
+  function: jira_fixture_discover

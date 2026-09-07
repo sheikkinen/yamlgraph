@@ -1,0 +1,19 @@
+{
+  "key": "DEMOWEB",
+  "name": "Demo Website",
+  "project_type": "software",
+  "lead": {"account_id": "demo-acct-005", "display_name": "Demo Web Lead"},
+  "updated_in_window": 7,
+  "created_in_window": 2,
+  "ai_term_count": 0,
+  "issues": [
+    {"key": "DEMOWEB-201", "summary": "Fix footer alignment on mobile", "issuetype": "Bug", "status": "Done", "assignee_id": "demo-acct-006", "reporter_id": "demo-acct-005", "description_head": "Footer overlaps the cookie banner on narrow screens."},
+    {"key": "DEMOWEB-202", "summary": "Upgrade CMS to latest LTS", "issuetype": "Task", "status": "In Progress", "assignee_id": "demo-acct-006", "reporter_id": "demo-acct-005", "description_head": "Routine dependency upgrade."}
+  ],
+  "assignees": [
+    {"account_id": "demo-acct-006", "display_name": "Demo Web Dev", "n": 2}
+  ],
+  "reporters": [
+    {"account_id": "demo-acct-005", "display_name": "Demo Web Lead", "n": 2}
+  ]
+}
