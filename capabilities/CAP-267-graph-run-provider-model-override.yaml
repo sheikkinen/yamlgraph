@@ -1,0 +1,45 @@
+id: CAP-267
+name: Graph run provider/model override
+fr: FR-1028
+description: >
+  `yamlgraph graph run --provider X --model Y` overrides the ROOT graph's
+  `defaults.provider` / `defaults.model` at the load boundary
+  (load_graph_config keyword-only provider_override / model_override). The
+  parsed YAML is copied, never mutated; explicit per-node provider/model
+  pins keep precedence (explicit node field → overridden root default →
+  existing provider resolution); provider and model resolve independently;
+  graph-tool child graphs keep their own declarations. scripts/research.sh
+  forwards the RESEARCH_PROVIDER/RESEARCH_MODEL pair (both or neither;
+  half-set exits 64 before the executor) and atomically stamps exactly one
+  `- provider/model: <provider>/<model>` header line into the draft
+  artifact before verification; research_preflight.py --verify-artifact
+  validates that optional line. Motivation: FR-1027's research run was
+  blocked by a dead Anthropic key while Azure credentials were valid
+  (2026-09-07).
+modules:
+  - yamlgraph/cli/__init__.py
+  - yamlgraph/cli/graph_commands.py
+  - yamlgraph/compile/graph_loader.py
+  - scripts/research.sh
+  - scripts/research_preflight.py
+  - tests/unit/test_fr1028_provider_model_override.py
+requirements:
+  - id: REQ-YG-671
+    description: >
+      graph run accepts optional --provider/--model (None when omitted);
+      load_graph_config(provider_override=, model_override=) replaces only
+      the named root default on a copy of the parsed mapping, leaving the
+      source unmutated and a plain reload unaffected; defaults-only llm and
+      agent nodes inherit the pair, explicit pins win independently, a
+      mixed pin inherits only the unpinned field; graph-tool children are
+      loaded without overrides; scripts/research.sh forwards the
+      RESEARCH_PROVIDER/RESEARCH_MODEL pair in stable order, exits 64 before
+      the executor on a half-set pair, and stamps exactly one
+      `- provider/model:` line that the artifact verifier accepts once and
+      rejects when empty, duplicate, or malformed (legacy artifacts without
+      the line still pass).
+    modules:
+      - yamlgraph/cli/__init__.py
+      - yamlgraph/compile/graph_loader.py
+      - scripts/research.sh
+      - scripts/research_preflight.py
