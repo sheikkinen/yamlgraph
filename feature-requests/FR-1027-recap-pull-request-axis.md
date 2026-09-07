@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Proposed
+**Status:** Judged 2026-09-07 — APPROVED WITH REVISIONS; R-1..R-5 folded (C-1 satisfied). Enforcement authority active for the frozen scope; C-3 (workflow credential wiring) and C-7 (RECAP_PAT scope) are human decisions before merge.
 **Effort:** 0.5 days
 **Requested:** 2026-09-07
 **First consumer / first event:** the operator, next Monday morning, opening
@@ -79,16 +79,19 @@ precedent).
 Add a pull-request axis to the existing `examples/demos/recap/` graph: one
 graph-local python node derives the repository's `owner/name` from
 `repo_path`'s `origin` remote, fetches one capped page of pull requests via
-`gh` with fixed argv, and buckets them deterministically into **merged in
-window**, **closed unmerged in window**, and **open now** — each line
-assembled in code, bit-exact, with the number, dates, days open and title. The
+**exactly one bounded `gh` subprocess invocation** with fixed argv, and buckets
+them into **merged in window**, **closed unmerged in window**, and **open
+now** — membership decided against the exact epoch `git rev-parse --since`
+returns, ordering and line assembly owned by code, each line bit-exact with
+the number, dates, days open and title. The
 axis never transits the model: the synthesis prompt and its schema are
 unchanged, and the lists are attached by the existing `finalize_recap`
 post-pass exactly as FR-704 attaches orphans. `scripts/weekly_recap.py` gains
 the three sections; FR-821's workflow gains a token so the Monday cron can see
 them. A repository with no `origin`, a non-GitHub remote, or no working `gh`
 credential still produces a recap, and says in one line why the axis is
-absent — distinguishable in state from an axis that ran and found nothing.
+absent — distinguishable in state from an axis that ran and found nothing, and
+from one that hit its 300-row cap.
 
 ## Value Statement
 
@@ -137,12 +140,54 @@ carrying a paste-safe number, the dates, how many days it was open, and its
 title — with no mechanical field anywhere in the file having passed through a
 model, and with the same graph still producing a complete recap of a bare local
 clone that has no remote, no credential, and no network.
+## Judgement fold (2026-09-07)
+
+Judged **APPROVED WITH REVISIONS** — [judgement](FR-1027-recap-pull-request-axis.judgement.md),
+round 1 of the FR-1022 two-round budget. R-1 through R-5 are folded into the
+sections below; the acceptance criteria are the judge's revised AC-01..AC-18
+verbatim. Deltas from the pre-judgement draft, recorded so the change is
+auditable:
+
+| # | Revision | Where it landed |
+|---|----------|-----------------|
+| R-1 | Exact epoch controls membership; UTC date conversion is display-only. Stable code-owned ordering defined. | § 1 steps 2 and 4; AC-05, AC-06 |
+| R-2 | "One network call" → **exactly one `gh` subprocess invocation**; 60 s timeout; four named narrow exception classes; no broad catch. | § 1 step 3; AC-08, AC-09 |
+| R-3 | Three remote families with optional `.git`; malformed / local / non-GitHub remotes are unavailable with stable reasons and **no** `gh` call; argv-injection witness required. | § 1 step 1; AC-04, AC-08 |
+| R-4 | `truncated` → `cap_reached`, "results may be truncated"; the axis note renders **once, before** the three sections, and cannot be suppressed by non-empty buckets; unavailable sections render `(not collected)`. | § 1 step 3, § 2, § 3; AC-11, AC-13 |
+| R-5 | The real-run witness is a named file, `FR-1027.witness.md`, with a mechanically asserted `#627|` line. | AC-15 |
+
+**Gates carried into enforcement** (all seven are GATE severity in the
+judgement; C-1 is satisfied by this fold):
+
+- **C-2** — `graph.yaml` is materially modified, so implementation goes
+  through the governed graph-authoring route (`scripts/author.sh`) and
+  preserves its validation report. Manual editing of the graph artifact is
+  denied mechanically (FR-767).
+- **C-3** — *for the human*: the `.github/workflows/weekly-recap.yml`
+  credential wiring is enforcement-infrastructure input and must be approved
+  by human review before merge. This FR does not self-certify it.
+- **C-4** — the axis stays code-owned: never in the prompt, the model schema,
+  a model-visible variable, or the reconciliation universe.
+- **C-5** — no broad handler, silent fallback, unbounded wait, or fabricated
+  empty-success state.
+- **C-6** — reaching the cap qualifies the whole axis as potentially partial.
+- **C-7** — *for the human*: if `RECAP_PAT` cannot read PR metadata, stop and
+  return to planning rather than adding permissions, a second secret, or a
+  token input. The PAT's scopes are not readable from outside the secret, so
+  this cannot be verified before the first scheduled run; the failure mode is
+  benign and self-reporting (the axis renders its own unavailable note), and
+  the local witness run under AC-15 uses the developer's own `gh` credential.
+
+The judgement carries no `### Questions for the human` section; per FR-740 that
+is an omission rather than a "none", and C-3 and C-7 above are the two
+decisions it should have surfaced.
 
 ## Proposed Solution
 
-The minimal path back from that ideal is one collection node, one attachment
-in the existing post-pass, three renderer sections, and one workflow env line.
-No new framework code, no new prompt, no new schema field, no new LLM call.
+The minimal path back from the ideal result is one collection node, one
+attachment in the existing post-pass, three renderer sections, and one
+workflow env line. No new framework code, no new prompt, no new schema field,
+no new LLM call.
 
 ### 1. One graph-local collection node
 
@@ -155,7 +200,7 @@ tools:
     type: python
     module: examples.demos.recap.nodes.prs
     function: collect_prs
-    description: "PR axis (FR-1027): origin→owner/name, one capped gh page, code-owned buckets; absence and unreachability are reported, never substituted."
+    description: "PR axis (FR-1027): origin→owner/name, one bounded gh invocation, code-owned buckets; absence, unreachability and cap are reported, never substituted."
 
 nodes:
   get_prs:
@@ -166,46 +211,94 @@ nodes:
 
 `collect_prs(state)` returns one state key, `pr_axis: dict`, and does four
 things in order, each of which can end the node with a recorded reason instead
-of an exception:
+of an exception.
 
-1. **Identify.** `git -C <repo_path> remote get-url origin` (fixed argv,
-   `shell=False`). Parse `owner/name` from the `https://github.com/...(.git)`
-   and `git@github.com:...(.git)` forms. No `origin`, or a host that is not
-   `github.com`, ends the node with
-   `reason: "no github origin remote"` / `"origin host is <host>, not github.com"`.
-2. **Bound the window.** `git -C <repo_path> rev-parse --since=<since>` returns
-   `--max-age=<epoch>`; the epoch is converted to a UTC date in python. Git's
-   own date parser is reused so `since` keeps accepting exactly what the graph
-   already accepts ("1 week ago", "yesterday", "2026-07-01") with no second
-   grammar and no new dependency.
-3. **Collect.** One call:
-   `gh pr list --repo <owner/name> --state all --limit 300 --json number,title,state,createdAt,mergedAt,closedAt`
-   — fixed argv, `shell=False`, so neither a crafted remote URL nor a crafted
-   `since` can become an argument. `gh` absent from PATH, unauthenticated, or
-   exiting non-zero ends the node with
-   `reason: "gh unavailable: <first stderr line>"`. Exactly 300 rows returned
-   sets `truncated: true`.
-4. **Bucket, in code.** For each row: `merged` when `mergedAt` falls in the
-   window; `closed_unmerged` when `closedAt` falls in the window and `mergedAt`
-   is null; `open` when `state == "OPEN"` regardless of age, because staleness
-   is the point. Everything else is dropped. Each bucket is a list of lines
-   assembled by string formatting, never by a model:
+**Step 1 — Identify (R-3).** `git -C <repo_path> remote get-url origin`
+(fixed argv, `shell=False`). The accepted remote families, each with an
+optional `.git` suffix, are exactly:
 
-   ```
-   #633|2026-09-06→2026-09-07|1d|feat(judge): FR-1022 round sentinel — third judgement is fixed text, not a model call
-   #627|2026-09-06→2026-09-06|0d|docs(doctrine): FR-1013 doctrine and reference sweep after Chaplain removal
-   #640|2026-09-05→open|2d|docs(fr): FR-1027 recap pull-request axis
-   ```
+```
+https://github.com/<owner>/<name>[.git]
+git@github.com:<owner>/<name>[.git]
+ssh://git@github.com/<owner>/<name>[.git]
+```
 
-   Days are whole UTC days, `floor((end - start) / 86400)`; an open row's end
-   is the collection time. Titles are copied verbatim from the `gh` JSON.
+Anything else ends the node **before any `gh` invocation**, with a stable
+specific reason: `"no origin remote"`, `"origin host is <host>, not
+github.com"`, `"origin is a local path remote"`, or `"origin URL is malformed
+(no owner/name)"`. The derived `owner/name` is passed as **one** argv element,
+never concatenated into a string that a shell or `gh` could re-split.
+
+**Step 2 — Bound the window (R-1).** `git -C <repo_path> rev-parse
+--since=<since>` returns `--max-age=<epoch>`; `<since>` is passed as one argv
+element. **That exact epoch is the comparison boundary.** Membership is
+inclusive against the epoch:
+
+- `merged` when `mergedAt` is non-null and `mergedAt >= epoch`
+- `closed_unmerged` when `mergedAt` is null, `closedAt` is non-null and
+  `closedAt >= epoch`
+- `open` when `state == "OPEN"`, regardless of age — staleness is the point
+
+Everything else is dropped. The epoch is converted to a UTC `YYYY-MM-DD`
+**only for the dates printed in a line**; the conversion never touches the
+comparison, so a PR merged at 03:00 UTC on the boundary day is not silently
+included or excluded by midnight truncation. Git's own date parser is reused,
+so `since` keeps accepting exactly what the graph already accepts ("1 week
+ago", "yesterday", "2026-07-01") with no second grammar and no new dependency.
+An invalid `since` and a non-repository `repo_path` stay **loud**: the existing
+git collection already fails those inputs and this node must not soften them.
+
+**Step 3 — Collect (R-2, R-4).** Exactly **one** `gh` subprocess invocation
+per recap, fixed argv, `shell=False`, with a **60-second timeout** matching
+the cited precedent (`corpus_adapters.py:98-106`):
+
+```
+gh pr list --repo <owner/name> --state all --limit 300
+           --json number,title,state,createdAt,mergedAt,closedAt
+```
+
+`gh pr list --limit 300` may paginate internally, so the claim is one
+subprocess invocation, not one HTTP request. Four **narrow** exception classes
+are handled, each returning `available: False`, empty buckets, and a stable
+non-empty reason — no broad `except Exception`:
+
+| Failure | Reason string |
+|---|---|
+| `FileNotFoundError` | `"gh not found on PATH"` |
+| `subprocess.TimeoutExpired` | `"gh timed out after 60s"` |
+| `subprocess.CalledProcessError` | `"gh exited <code>: <first stderr line>"`, or `"gh exited <code> with no stderr"` when stderr is blank |
+| `json.JSONDecodeError`, or a row missing a required field | `"gh returned unparseable JSON"` / `"gh row missing required field <name>"` |
+
+Exactly 300 returned rows set `cap_reached: True`. Per R-4 this is **not** a
+proof of truncation — a 301st row is not observable — so the recorded and
+rendered wording is "cap reached; results may be truncated", and the buckets
+claim completeness only *within the returned capped response*.
+
+**Step 4 — Bucket and order, in code (R-1).** Ordering is code-owned and
+stable, never dependent on undocumented `gh` response order:
+
+- `merged` and `closed_unmerged`: decision timestamp descending, then PR
+  number descending
+- `open`: `createdAt` descending, then PR number descending
+
+Each bucket is a list of lines assembled by string formatting, never by a
+model:
+
+```
+#633|2026-09-06→2026-09-07|1d|feat(judge): FR-1022 round sentinel — third judgement is fixed text, not a model call
+#627|2026-09-06→2026-09-06|0d|docs(doctrine): FR-1013 doctrine and reference sweep after Chaplain removal
+#640|2026-09-05→open|2d|docs(fr): FR-1027 recap pull-request axis
+```
+
+Days are whole elapsed UTC days, `floor((end - start) / 86400)`; an open row's
+end is the collection timestamp. Titles are copied verbatim from the `gh` JSON.
 
 `pr_axis` shape (the code-owned contract):
 
 ```python
-{"available": True,  "reason": "", "truncated": False,
+{"available": True,  "reason": "", "cap_reached": False,
  "merged": [...], "closed_unmerged": [...], "open": [...]}
-{"available": False, "reason": "no github origin remote", "truncated": False,
+{"available": False, "reason": "no origin remote", "cap_reached": False,
  "merged": [], "closed_unmerged": [], "open": []}
 ```
 
@@ -217,11 +310,16 @@ different values, and the renderer prints different text for them.
 
 `finalize_recap` in `nodes/partition.py` already owns the assembly of
 code-only fields (FR-704 orphans). It gains four keys read straight from
-`pr_axis` — `pr_merged`, `pr_closed_unmerged`, `pr_open`, `pr_axis_note` —
-where the note is `""` when available, the reason otherwise, with
-`" (capped at 300 — window TRUNCATED)"` appended when `truncated`. No
-reconciliation is needed and none is added: the model never sees a pull
-request, so it cannot invent one.
+`pr_axis` — `pr_merged`, `pr_closed_unmerged`, `pr_open`, and one axis-level
+`pr_axis_note` composed as:
+
+- available and cap not reached → `""`
+- unavailable → `"pull-request axis unavailable: <reason>"`
+- cap reached → `"pull-request cap of 300 reached; results may be truncated"`,
+  appended after the unavailable clause if both hold
+
+No reconciliation is needed and none is added: the model never sees a pull
+request, so it cannot invent one (C-4).
 
 `prompts/recap.yaml` is **not modified**. The inline schema stays
 `{workstreams, hotspots}`. This is the whole reason the change is 0.5 days:
@@ -231,79 +329,90 @@ FR-704 already built the channel for code-owned output, and this axis uses it.
 
 `scripts/weekly_recap.py`: `SECTIONS` gains the three keys, with a title map
 so `pr_closed_unmerged` renders as `## Pull requests closed unmerged` rather
-than `## Pr_closed_unmerged`; an empty available section renders `(none)` as
-today, and a non-empty `pr_axis_note` renders in place of `(none)`.
+than `## Pr_closed_unmerged`. Per R-4 the note has **one** placement that
+cannot be suppressed: when `pr_axis_note` is non-empty it is emitted **once,
+before** the three PR sections, whether or not their buckets carry rows. An
+available empty bucket renders `(none)`, as the three pre-existing sections
+do; an unavailable bucket renders `(not collected)`, because `(none)` would
+assert an observation that was never made. Existing section headings and
+order are untouched.
 
 `.github/workflows/weekly-recap.yml`: the `Run recap` step's `env` gains
-`GH_TOKEN: ${{ secrets.RECAP_PAT }}`. `gh` is preinstalled on
-`ubuntu-latest`; without a token the axis would report itself unavailable
-every Monday, which is honest but useless.
+`GH_TOKEN: ${{ secrets.RECAP_PAT }}` — the existing secret, scoped to that one
+step, no new credential and no new workflow permission (C-3, C-7). `gh` is
+preinstalled on `ubuntu-latest`; without a token the axis would report itself
+unavailable every Monday, which is honest but useless.
 
-### 4. Registry
+### 4. Registry and witness
 
 `capabilities/CAP-195-timeframe-recap-demo.yaml`: `fr:` gains FR-1027; a new
 requirement `REQ-YG-669` states the axis contract. `ARCHITECTURE.md`
-regenerated.
+regenerated. Per R-5 the real run is committed as
+`feature-requests/FR-1027.witness.md`, recording the run date, repository
+slug, exact `since` input, collection timestamp, cap status and the three
+buckets, with a test asserting its closed-unmerged section carries a line
+beginning `#627|`.
 
 ## Acceptance Criteria
 
-- [ ] **AC-01** `yamlgraph graph lint examples/demos/recap/graph.yaml` passes,
-      and the graph still has **exactly one** LLM node.
+Verbatim from the judgement's revised set.
+
+- [ ] **AC-01** `yamlgraph graph lint examples/demos/recap/graph.yaml` passes
+      and the graph has exactly one LLM node, `synthesize`.
 - [ ] **AC-02** `prompts/recap.yaml` is byte-identical to its pre-change
-      content; a test asserts the inline schema fields are exactly
-      `{workstreams, hotspots}` and that the template references no
-      pull-request state key.
-- [ ] **AC-03** Every `type: shell` tool in the graph still contains
-      `git -C {repo_path}` and the `type: tool` node set is unchanged — the
-      existing `test_collection_is_tool_nodes` and
-      `test_git_commands_are_portable` pass **unmodified**. The `gh` boundary
-      is the python node, matching `corpus_adapters.py:101`.
-- [ ] **AC-04** Slug derivation: unit tests cover `https://github.com/o/n`,
-      `https://github.com/o/n.git`, `git@github.com:o/n.git`,
-      `ssh://git@github.com/o/n`, a non-GitHub host, and no `origin` — the
-      last two yielding `available: False` with the specific reason and **no
-      exception**.
-- [ ] **AC-05** Window bounding: a unit test asserts the node passes
-      `--since=<since>` to `git rev-parse` and converts the returned
-      `--max-age=<epoch>` to a UTC `YYYY-MM-DD`; `since` grammar is unchanged.
-- [ ] **AC-06** Bucketing, against a committed `gh` JSON fixture that includes
-      a merged PR in window, a merged PR before the window, a closed-unmerged
-      PR in window, a closed-unmerged PR before the window, and an open PR
-      older than the window: exactly the in-window merged, the in-window
-      closed-unmerged, and **all** open rows appear, each in its own bucket.
-- [ ] **AC-07** Line format: a unit test asserts each assembled line equals
-      `#<number>|<created>→<end>|<N>d|<title>` by **exact equality**, with the
-      title byte-identical to the fixture — the FR-704 bit-exact rule, so
-      every number in the published recap is paste-safe.
-- [ ] **AC-08** Unreachability is distinguishable: unit tests assert
-      `available: True` with empty buckets for a repository with zero
-      pull requests, and `available: False` with a non-empty `reason` when
-      `gh` is missing or exits non-zero — and that no branch ever returns
-      populated buckets it did not receive.
-- [ ] **AC-09** Truncation: a 300-row fixture sets `truncated: True` and the
-      rendered note carries the capped-window text; a 299-row fixture does not.
-- [ ] **AC-10** `finalize_recap` attaches the four keys and leaves
-      `workstreams`, `orphans`, `hotspots` and `unverified_refs` behaviourally
-      unchanged — the existing FR-702/703/704/930 unit tests pass unmodified.
-- [ ] **AC-11** Renderer: `render_markdown` emits the three sections with the
-      mapped titles, `(none)` for an available empty section, and the note
-      text for an unavailable one; the three pre-existing sections keep their
-      current headings and order.
-- [ ] **AC-12** The bare-repo integration test gains **no** network
-      dependency: it runs against a repository with no `origin`, and asserts
-      the recap is complete with `pr_axis_note` naming the absent remote
-      (FR-922 latency budget — no second slow path).
-- [ ] **AC-13** One real run against this repository with `--var since="1
-      week ago"`, its output committed as a witness, showing #627 in
-      **closed unmerged** — the pull request the current recap cannot see.
-- [ ] **AC-14** `.github/workflows/weekly-recap.yml` passes `GH_TOKEN` to the
-      recap step; asserted by a test reading the workflow YAML.
-- [ ] **AC-15** RED commit (failing tests) and GREEN commit (implementation)
-      are separate, `git log` bearing witness (Commandment 7).
-- [ ] **AC-16** `CAP-195` carries `REQ-YG-669`, every new test is tagged
-      `@pytest.mark.req("REQ-YG-669")`, `python scripts/req_coverage.py
-      --strict` passes, changelog fragment added, `examples/demos/recap/README.md`
-      documents the axis and its absence behaviour.
+      content; its schema fields are exactly `{workstreams, hotspots}` and its
+      template references no PR state.
+- [ ] **AC-03** The existing tool-node set and every existing `type: shell`
+      command remain unchanged; `test_collection_is_tool_nodes` and
+      `test_git_commands_are_portable` pass unmodified.
+- [ ] **AC-04** Unit tests accept the three GitHub remote families and optional
+      `.git` suffix from R-3; missing, malformed, local/file, and non-GitHub
+      remotes return stable unavailable reasons and never invoke `gh`.
+- [ ] **AC-05** A unit test proves `--since=<since>` is passed as one argv
+      element to `git rev-parse`, the exact returned epoch controls inclusive
+      timestamp membership, and UTC date conversion is display-only.
+- [ ] **AC-06** A scrambled committed fixture proves exact bucket membership
+      and R-1 ordering for in-window merged, before-window merged, in-window
+      closed-unmerged, before-window closed-unmerged, and old open PRs.
+- [ ] **AC-07** Every line equals `#<number>|<created>→<end>|<N>d|<title>`
+      exactly, including fixture title bytes; duration is whole elapsed UTC
+      days.
+- [ ] **AC-08** Exactly one fixed-argv, `shell=False` `gh` subprocess
+      invocation is attempted for an eligible remote, with a 60-second
+      timeout; a crafted remote cannot add or split argv.
+- [ ] **AC-09** Missing `gh`, timeout, non-zero exit with and without stderr,
+      invalid JSON, and missing required JSON fields each yield
+      `available: False`, empty buckets, and a stable non-empty reason through
+      narrow exception handling.
+- [ ] **AC-10** Available zero-row output is distinct from unavailable output;
+      no error branch fabricates populated buckets.
+- [ ] **AC-11** A 300-row fixture marks `cap_reached: True` and reports that
+      results may be truncated; a 299-row fixture does not. The contract
+      claims completeness only within the returned capped response.
+- [ ] **AC-12** `finalize_recap` attaches the three buckets and one axis note
+      while leaving `workstreams`, `orphans`, `hotspots`, and
+      `unverified_refs` behavior unchanged; inherited FR-702/703/704/930 tests
+      pass unmodified.
+- [ ] **AC-13** Exact renderer tests cover available-empty as `(none)`,
+      unavailable as one visible axis note plus `(not collected)`, and
+      cap-reached output with both non-empty and empty buckets; existing
+      section headings and order are preserved.
+- [ ] **AC-14** The bare-repo integration fixture has no origin and makes no
+      `gh` call; the complete recap records the absent-origin note without
+      adding a second slow/network path.
+- [ ] **AC-15** `feature-requests/FR-1027.witness.md` contains the metadata
+      required by R-5 and a closed-unmerged line beginning `#627|`, verified
+      mechanically.
+- [ ] **AC-16** `.github/workflows/weekly-recap.yml` passes
+      `${{ secrets.RECAP_PAT }}` as `GH_TOKEN` only to the recap step,
+      verified by a workflow-YAML test.
+- [ ] **AC-17** RED tests and GREEN implementation are separate commits and
+      `git log` shows that order.
+- [ ] **AC-18** `CAP-195` contains `REQ-YG-669`; every new test carries
+      `@pytest.mark.req("REQ-YG-669")`; regenerated `ARCHITECTURE.md`, strict
+      requirement coverage, targeted recap tests, graph lint, README,
+      changelog fragment, FR implementation notes, and diary distillation are
+      present and passing.
 
 ## Alternatives Considered
 
@@ -326,7 +435,9 @@ Recorded in full, with disagreement preserved, in
    `corpus-map-reduce` shape, one LLM classification per PR). Rejected as
    `growth_as_default`: the gap is mechanical metadata the reader can read, not
    a classification, and a per-PR LLM call on a cron already measured at 283s
-   for one invocation (FR-922) buys nothing the buckets do not give.
+   for one invocation (FR-922) buys nothing the buckets do not give. The
+   Subtractionist's cost objection is adopted as the bound the judgement froze:
+   exactly one `gh` subprocess invocation per recap, with a 60-second timeout.
 4. **A second, standalone weekly-summary graph.** Rejected: FR-700's graph is
    in scheduled production use and already answers the timeframe question for
    any repository; a parallel artifact would duplicate the git collection and
