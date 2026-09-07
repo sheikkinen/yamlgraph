@@ -130,6 +130,16 @@ Write `<fr-path-without-.md>.judgement.md` following the adjacent
   itself (the bootstrap case), are not retro-gated.
 - Judgement artifact: `feature-requests/<ID>-<slug>.judgement.md`,
   committed alongside the FR (see FR-723 for shape precedent).
+- Round sentinel (FR-1022): a judgement file holding two `**Verdict:**`
+  lines closes the judge route for that FR file. Every later
+  `scripts/judge.sh` run writes the fixed verdict `REJECTED — Operator:
+  Rethink and rewrite the FR. It's getting too complicated as a planning
+  document.` (exit 77) without a model call and grants no authority; it is
+  advisory like every draft. The count is of promoted verdicts — drafts
+  never folded into the judgement file do not count. Exits: the human
+  marks the FR Rejected, or the plan is rewritten shorter and re-filed as
+  a NEW FR file (round 1 of that file; FR-1013 → FR-1019 precedent). No
+  override exists.
 - Verdict vocabulary note: chaplain-era prompts used APPROVE/AMEND;
   this doctrine's APPROVED / APPROVED WITH REVISIONS supersedes them.
 - The retired Chaplain runtime is the historical origin of this
