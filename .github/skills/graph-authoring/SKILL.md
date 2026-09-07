@@ -1,6 +1,6 @@
 ---
 name: graph-authoring
-description: "End-to-end workflow for creating a complete YAMLGraph artifact from a natural-language task — the ONLY way to author graphs. Use when: asked to create a new graph, example, or demo; turning a task description into graph + prompt files; ANY task that results in a new or materially modified graph.yaml or prompts/*.yaml, however phrased (mv, copy, adapt, tweak); drafting a pipeline that needs local validation before delivery; deciding whether graph work belongs in Chaplain instead. Not a syntax reference — composes reference/graph-yaml.md and reference/prompt-yaml.md."
+description: "End-to-end workflow for creating a complete YAMLGraph artifact from a natural-language task — the ONLY way to author graphs. Use when: asked to create a new graph, example, or demo; turning a task description into graph + prompt files; ANY task that results in a new or materially modified graph.yaml or prompts/*.yaml, however phrased (mv, copy, adapt, tweak); drafting a pipeline that needs local validation before delivery. Not a syntax reference — composes reference/graph-yaml.md and reference/prompt-yaml.md."
 argument-hint: "task description, or target directory like examples/demos/<name>/"
 ---
 

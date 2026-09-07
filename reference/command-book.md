@@ -73,5 +73,5 @@ stays advisory; the human's word was given in advance, not skipped.
 ## Related
 
 - `docs/development-process.md` §3.1 (why the manual loop dominates), §2.1 (doctrine vs procedure)
-- `.github/copilot-instructions.md` — Sermon of the Chaplain
+- `.github/copilot-instructions.md` — Sermon
 - `feature-requests/FR-1007-command-book.md` and `FR-1007-command-book.research.md`

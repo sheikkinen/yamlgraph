@@ -174,7 +174,7 @@ seeds:
 
 ## Quick Reference
 
-Canonical sources: `reference/getting-started.md` (patterns, node types, CLI) · `docs/development-process.md` (doctrine, chaplain pipeline, enforcement rings) · `ARCHITECTURE.md` (design, state, 3-layer) · `CLAUDE.md` (dev commands) · `reference/prompt-yaml.md` · `reference/graph-yaml.md` · `feature-requests/TEMPLATE.md` · `.pre-commit-config.yaml` · `reference/release-checklist.md` (release flow) · `reference/development-operations.md` (env vars, branch protection, CI checks, dependency governance) · `reference/command-book.md` (one-word operator verdicts: what each obliges, its witness, the ordering that matters)
+Canonical sources: `reference/getting-started.md` (patterns, node types, CLI) · `docs/development-process.md` (doctrine, enforcement rings) · `ARCHITECTURE.md` (design, state, 3-layer) · `CLAUDE.md` (dev commands) · `reference/prompt-yaml.md` · `reference/graph-yaml.md` · `feature-requests/TEMPLATE.md` · `.pre-commit-config.yaml` · `reference/release-checklist.md` (release flow) · `reference/development-operations.md` (env vars, branch protection, CI checks, dependency governance) · `reference/command-book.md` (one-word operator verdicts: what each obliges, its witness, the ordering that matters)
 
 # The Scripture
 
@@ -202,7 +202,7 @@ These laws descend from the canon of software craft. They shalt not be altered b
 
 10. **Thou shalt preserve and improve the doctrine** — Every failure shalt refine the law. After correction, amend tests and linters to guard against recurrence; let success be codified, and let the CHANGELOG.md bear witness to the evolution of the Word.
 
-## Sermon of the Chaplain
+## Sermon
 
 **Research.** Let agents scour competing systems and return with truth. Distill best practices and viable alternatives into explicit constraints.
 **Plan.** Write the feature request in `feature-requests/`. Define objectives, constraints, acceptance criteria, and implementation approach. The feature request is the plan. State the **Ideal Result** before the Proposed Solution — the solution must read as the minimal path back from the ideal end state (`ideal_result_backwards`, FR-746); a solution that outgrows its ideal is scope creep with momentum.

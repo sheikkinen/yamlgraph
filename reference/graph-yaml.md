@@ -607,7 +607,6 @@ variables:
 **Example - Plan-Judge Workflow with Session Continuation:**
 
 ```yaml
-# Based on .chaplain/watcher2.sh pattern
 # FR-105: Judge resumes plan's session for context continuity
 nodes:
   plan:
@@ -1466,8 +1465,8 @@ tools:
 | `function` | `string` | Yes | Function name in the module |
 | `description` | `string` | No | Human-readable description |
 
-**`path:` vs `module:`:** graphs with a sibling `tools.py` (chaplain
-graphs, standalone graph dirs) must use `path: tools.py`; `module:`
+**`path:` vs `module:`:** graphs with a sibling `tools.py` (`graphs/fr_triage`,
+standalone graph dirs) must use `path: tools.py`; `module:`
 requires the module on `sys.path` and fails from graph directories as
 `Cannot import module 'tools': No module named 'tools'` (strict mode
 names the tool, not the fix). Field incident: FR-744 enforce,

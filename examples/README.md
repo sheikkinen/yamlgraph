@@ -54,7 +54,6 @@ After the learning path, explore production examples below.
 | [novel_fandom/](novel_fandom/) | Fiction canon management | Typed canon schema, ref gate, lane immutability (FR-637) |
 | [ocr_cleanup/](ocr_cleanup/) | OCR text cleanup | Map nodes, PDF extraction, parallel LLM cleanup |
 | [openai_proxy/](openai_proxy/) | OpenAI-compatible guardrail proxy | Echo→validate→respond pipeline, `/v1/chat/completions` |
-| [philosopher/](philosopher/) | Chaplain philosopher workspace stub | Placeholder directory; active graph moved to `.chaplain/graphs/` |
 | [plot_modeller/](plot_modeller/) | L4 kind-classification spike | LLM→validator→retry loop, YAML output, ground-truth evaluation (FR-570) |
 | [questionnaire/](questionnaire/) | Feature request collector | Data files, interrupt loops, conditional routing |
 | [rag/](rag/) | RAG pipeline | LanceDB vectorstore, document indexing, retrieval |
@@ -71,7 +70,7 @@ After the learning path, explore production examples below.
 | [yamlgraph_gen/](yamlgraph_gen/) | Pipeline generator | Meta-generation, snippet composition, validation |
 | [fastapi_interview.py](fastapi_interview.py) | FastAPI integration | Async execution, interrupt handling, sessions |
 
-> **Note:** Chaplain infrastructure (copilot, enforce, philosopher) relocated to `.chaplain/graphs/` per FR-196.
+> **Note:** The philosopher graph lives in `graphs/philosopher/` (FR-196 → FR-1011).
 
 ## Demos Index
 
@@ -168,7 +167,6 @@ Tools for codebase analysis — useful for maintainers, not for learning.
 | [hook_classifier](demos/hook_classifier/) | FSM daemon for async hook event classification (FR-425) |
 | [agent-json](demos/agent-json/) | Agent structured JSON output (FR-449) |
 
-Chaplain and watcher2 infrastructure witnesses live under [`.chaplain/demos/`](../.chaplain/demos/).
 
 ### FR Validation Demos
 
