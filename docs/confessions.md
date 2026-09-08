@@ -2026,3 +2026,151 @@ The ID ranges are:
 - **Sin**: `exec()` of the `def governed_path` text extracted from `.github/hooks/scripts/pre-command-guard.sh`'s Python heredoc.
 - **Penance**: FR-1014 witness: the predicate lives inside a bash heredoc and cannot be imported; executing the repository's own hook source (read from the tree, not from input) is the only way to assert it row-for-row against `check_authoring_proof.GOVERNED` on hosts that cannot exec the bash hook. Namespace is limited to `re`.
 
+<!-- CONF-462 … CONF-485 confess the FR-1027 recap pull-request axis
+     (b203cd57). They were found undocumented by the noqa gate while
+     FR-1030 was in flight; ownership is taken here rather than
+     deferred. -->
+
+### CONF-462
+- **File**: [examples/demos/recap/nodes/prs.py](../examples/demos/recap/nodes/prs.py#L207)
+- **Code**: S603
+- **Sin**: `subprocess.run(...)` reaching `git` with an argument vector.
+- **Penance**: Fixed `git` argv, `shell=False`, finite timeout; the only variable element is a repository path the caller already owns. FR-1027 REQ-YG-669 pins the argv shape.
+
+### CONF-463
+- **File**: [examples/demos/recap/nodes/prs.py](../examples/demos/recap/nodes/prs.py#L240)
+- **Code**: S603
+- **Sin**: `subprocess.run(...)` reaching `gh` with an argument vector.
+- **Penance**: Exactly one `gh pr list` invocation per recap with fixed argv, `shell=False`, 60-second timeout; the repo slug is derived in code from the `origin` remote and rejected unless it matches one of three accepted remote families.
+
+### CONF-464
+- **File**: [examples/demos/recap/nodes/prs.py](../examples/demos/recap/nodes/prs.py#L289)
+- **Code**: S603
+- **Sin**: `subprocess.run(...)` reaching `git rev-parse --since=…`.
+- **Penance**: Fixed `git` argv, `shell=False`; `--since` is passed as one argv element precisely so a crafted window string cannot split into further arguments (asserted by `test_since_is_one_argv_element`).
+
+### CONF-465
+- **File**: [scripts/weekly_recap.py](../scripts/weekly_recap.py#L61)
+- **Code**: S603
+- **Sin**: `subprocess.run(...)` in the weekly recap driver.
+- **Penance**: Fixed argv, `shell=False`; inputs are repository-local paths chosen by the script, not by a caller.
+
+### CONF-466
+- **File**: [tests/unit/test_recap_pr_axis.py](../tests/unit/test_recap_pr_axis.py#L27)
+- **Code**: E402
+- **Sin**: `import weekly_recap` after a `sys.path.insert` — module-level import not at top.
+- **Penance**: `scripts/` is not an importable package; the path insert must precede the import. Same penance as CONF-291 for `tests/unit/test_weekly_recap.py`.
+
+### CONF-467
+- **File**: [tests/unit/test_recap_pr_axis.py](../tests/unit/test_recap_pr_axis.py#L29)
+- **Code**: E402
+- **Sin**: `from examples.demos.recap.nodes import prs` after the same path insert.
+- **Penance**: As CONF-466 — the graph-local node package is only importable once the path is prepared.
+
+### CONF-468
+- **File**: [tests/unit/test_recap_pr_axis.py](../tests/unit/test_recap_pr_axis.py#L30)
+- **Code**: E402
+- **Sin**: `from examples.demos.recap.nodes.partition import finalize_recap` after the same path insert.
+- **Penance**: As CONF-466.
+
+### CONF-469
+- **File**: [tests/unit/test_recap_pr_axis.py](../tests/unit/test_recap_pr_axis.py#L67)
+- **Code**: ANN001
+- **Sin**: `def __call__(self, argv, **kwargs)` — untyped `argv` on the subprocess recorder double.
+- **Penance**: The double must accept whatever `subprocess.run` is called with, including shapes a type annotation would forbid; narrowing it would weaken the very assertion the test makes about argv.
+
+### CONF-470
+- **File**: [tests/unit/test_recap_pr_axis.py](../tests/unit/test_recap_pr_axis.py#L67)
+- **Code**: ANN003
+- **Sin**: `**kwargs` untyped on the same recorder double.
+- **Penance**: As CONF-469 — the recorder captures the caller's keyword arguments verbatim so the test can assert `shell=False` and the timeout.
+
+### CONF-471
+- **File**: [tests/unit/test_recap_pr_axis.py](../tests/unit/test_recap_pr_axis.py#L89)
+- **Code**: ANN201
+- **Sin**: `def git_replies(origin: str, epoch: int = EPOCH):` — missing return annotation on a test helper.
+- **Penance**: Returns a locally-defined closure whose type is not nameable without an alias that would exist only to satisfy the annotation.
+
+### CONF-472
+- **File**: [tests/unit/test_recap_pr_axis.py](../tests/unit/test_recap_pr_axis.py#L106)
+- **Code**: ANN001
+- **Sin**: Untyped `monkeypatch` parameter on a test helper.
+- **Penance**: `monkeypatch` is a pytest builtin fixture; annotating it would import `_pytest` private types into the test suite.
+
+### CONF-473
+- **File**: [tests/unit/test_recap_pr_axis.py](../tests/unit/test_recap_pr_axis.py#L158)
+- **Code**: ANN001
+- **Sin**: Untyped `monkeypatch` fixture parameter.
+- **Penance**: As CONF-472.
+
+### CONF-474
+- **File**: [tests/unit/test_recap_pr_axis.py](../tests/unit/test_recap_pr_axis.py#L167)
+- **Code**: ANN001
+- **Sin**: Untyped `monkeypatch` fixture parameter.
+- **Penance**: As CONF-472.
+
+### CONF-475
+- **File**: [tests/unit/test_recap_pr_axis.py](../tests/unit/test_recap_pr_axis.py#L176)
+- **Code**: ANN001
+- **Sin**: Untyped `monkeypatch` fixture parameter.
+- **Penance**: As CONF-472.
+
+### CONF-476
+- **File**: [tests/unit/test_recap_pr_axis.py](../tests/unit/test_recap_pr_axis.py#L204)
+- **Code**: ANN001
+- **Sin**: Untyped `monkeypatch` fixture parameter.
+- **Penance**: As CONF-472.
+
+### CONF-477
+- **File**: [tests/unit/test_recap_pr_axis.py](../tests/unit/test_recap_pr_axis.py#L286)
+- **Code**: ANN001
+- **Sin**: Untyped `monkeypatch` fixture parameter.
+- **Penance**: As CONF-472.
+
+### CONF-478
+- **File**: [tests/unit/test_recap_pr_axis.py](../tests/unit/test_recap_pr_axis.py#L314)
+- **Code**: ANN001
+- **Sin**: Untyped `monkeypatch` fixture parameter.
+- **Penance**: As CONF-472.
+
+### CONF-479
+- **File**: [tests/unit/test_recap_pr_axis.py](../tests/unit/test_recap_pr_axis.py#L346)
+- **Code**: ANN001
+- **Sin**: Untyped `monkeypatch` fixture parameter on a multi-line signature.
+- **Penance**: As CONF-472.
+
+### CONF-480
+- **File**: [tests/unit/test_recap_pr_axis.py](../tests/unit/test_recap_pr_axis.py#L355)
+- **Code**: ANN001
+- **Sin**: Untyped `monkeypatch` fixture parameter.
+- **Penance**: As CONF-472.
+
+### CONF-481
+- **File**: [tests/unit/test_recap_pr_axis.py](../tests/unit/test_recap_pr_axis.py#L363)
+- **Code**: ANN001
+- **Sin**: Untyped `monkeypatch` fixture parameter.
+- **Penance**: As CONF-472.
+
+### CONF-482
+- **File**: [tests/unit/test_recap_pr_axis.py](../tests/unit/test_recap_pr_axis.py#L375)
+- **Code**: ANN001
+- **Sin**: Untyped `monkeypatch` fixture parameter.
+- **Penance**: As CONF-472.
+
+### CONF-483
+- **File**: [tests/unit/test_recap_pr_axis.py](../tests/unit/test_recap_pr_axis.py#L390)
+- **Code**: ANN001
+- **Sin**: Untyped `monkeypatch` fixture parameter.
+- **Penance**: As CONF-472.
+
+### CONF-484
+- **File**: [tests/unit/test_recap_pr_axis.py](../tests/unit/test_recap_pr_axis.py#L400)
+- **Code**: ANN001
+- **Sin**: Untyped `monkeypatch` fixture parameter.
+- **Penance**: As CONF-472.
+
+### CONF-485
+- **File**: [tests/unit/test_recap_pr_axis.py](../tests/unit/test_recap_pr_axis.py#L422)
+- **Code**: ANN001
+- **Sin**: Untyped `monkeypatch` fixture parameter.
+- **Penance**: As CONF-472.
