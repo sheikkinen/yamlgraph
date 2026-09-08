@@ -1,6 +1,6 @@
 # Org AI dossier
 
-FR-1027 provides an organisation AI-use dossier graph that mirrors the FR-892
+FR-1029 provides an organisation AI-use dossier graph that mirrors the FR-892
 corpus census slot pipeline, the FR-899 Azure-pinned repository census, and the
 FR-962 consent warning discipline. It inventories active GitHub repositories
 and active Jira projects, classifies one unit per LLM call, reduces the ledgers

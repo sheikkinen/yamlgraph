@@ -1,4 +1,4 @@
-"""FR-1027 person input, summary boundary, findings input, atomic renderer.
+"""FR-1029 person input, summary boundary, findings input, atomic renderer.
 
 Only `render_artifacts` writes files, and only after every claim passed the
 citation boundary and the onepager passed its word/finding bounds; the output

@@ -1,4 +1,4 @@
-"""FR-1027 typed LLM-free reducer (judgement R-2/R-3/R-5).
+"""FR-1029 typed LLM-free reducer (judgement R-2/R-3/R-5).
 
 Order is frozen (FR § Frozen topology): repo identities → jira identities →
 evidence reconciliation → search merge → persons → AI-tool inventory →

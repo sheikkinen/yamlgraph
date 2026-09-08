@@ -9,7 +9,7 @@
 **First consumer / first event:** `scripts/research.sh` (FR-890 sole route) on
 2026-09-07, blocked by a 401 from the Anthropic key while Azure and OpenAI
 credentials in the same `.env` are valid — the operator chose "run on another
-provider" over waiting for key rotation (FR-1027 § Decisions, item 4)
+provider" over waiting for key rotation (FR-1029 § Decisions, item 4)
 **Research:** in-body dispositioned record (§ Research Record) — the research
 sole route is the blocked consumer, so it cannot be the research producer
 for its own unblock (FR-890 R-6 equivalent record; substance per judgement
@@ -51,7 +51,7 @@ keys in the same file were valid. There is no runtime override: `graph run`
 offers `--var`, `--var-file`, `--tool` but no provider/model flag, and no
 environment variable is consulted by `compile/graph_loader.py` (line 67:
 `config.get("provider") or self.defaults.get("provider")`). The only routes
-were editing the committed graph or waiting on key rotation. FR-1027's
+were editing the committed graph or waiting on key rotation. FR-1029's
 research record was blocked by this.
 
 ## Ideal Result
@@ -127,12 +127,12 @@ ignores `--provider anthropic` entirely.
 - [ ] AC-10: live — `RESEARCH_PROVIDER=azure RESEARCH_MODEL=<deployment>
       scripts/research.sh feature-requests/research-briefs/org-ai-dossier.md`
       completes all personas, header carries the exact pair, verification
-      passes, promoted to `feature-requests/FR-1027.research.md`; no
+      passes, promoted to `feature-requests/FR-1029.research.md`; no
       credential or private org identifier in the artifact (C-6).
 - [ ] AC-11: tests tagged `@pytest.mark.req("REQ-YG-671")`;
       `capabilities/CAP-267-graph-run-provider-model-override.yaml`;
       `ARCHITECTURE.md` row; `python scripts/req_coverage.py --strict` green.
-      (IDs checked free on main and all remote branches 2026-09-07; FR-1027
+      (IDs checked free on main and all remote branches 2026-09-07; FR-1029
       holds REQ-YG-670 / CAP-266.)
 - [ ] AC-12: changelog fragment; § Implementation Record below filled; diary
       Distill entry with `Seed:`.
@@ -183,7 +183,7 @@ already "has" an override that does not reach the nodes this FR needs.
 - Live witness (AC-10): **done 2026-09-07T10:14Z** — `RESEARCH_PROVIDER=azure
   RESEARCH_MODEL=aaa-gpt-5.4-mini scripts/research.sh …/org-ai-dossier.md`
   exit 0, five personas executed, header `- provider/model:
-  azure/aaa-gpt-5.4-mini`, verifier ok, promoted to `FR-1027.research.md`.
+  azure/aaa-gpt-5.4-mini`, verifier ok, promoted to `FR-1029.research.md`.
   Note: `.venv/bin/yamlgraph` is the MAIN checkout's editable install, so in a
   worktree `YAMLGRAPH_BIN` must point at a `python -m yamlgraph.cli` shim
   (`tmp/yg-worktree.sh`) or the new flags are "unrecognized" — the first
@@ -196,7 +196,7 @@ solution classes, positions, precedent, and the preserved FR-231 conflict.
 
 ## Related
 
-- [FR-1027](FR-1027-org-ai-dossier-census.md) — blocked consumer
+- [FR-1029](FR-1029-org-ai-dossier-census.md) — blocked consumer
 - [FR-890](FR-890-research-sole-route-closed-input-alternatives.md) research sole route;
   [scripts/research.sh](../scripts/research.sh);
   [examples/demos/research-route/graph.yaml](../examples/demos/research-route/graph.yaml)

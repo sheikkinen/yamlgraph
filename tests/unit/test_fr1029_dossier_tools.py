@@ -1,4 +1,4 @@
-"""FR-1027 witnesses — org AI dossier local tools (REQ-YG-670).
+"""FR-1029 witnesses — org AI dossier local tools (REQ-YG-670).
 
 Covers preflight (AC-03, AC-16, AC-18), reducer reconciliation, evidence
 boundary and canaries (AC-10, AC-11), ceilings (AC-12), persons (AC-15),

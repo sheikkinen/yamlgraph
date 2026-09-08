@@ -1,4 +1,4 @@
-"""FR-1027 Jira REST v3 adapters (FR-892 slot contract) + smoke fixtures.
+"""FR-1029 Jira REST v3 adapters (FR-892 slot contract) + smoke fixtures.
 
 Credentials: JIRA_URL / JIRA_USERNAME / JIRA_API_TOKEN (the names the editor's
 mcp-atlassian server already uses). Fixed URL templates, every path segment

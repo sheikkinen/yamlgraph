@@ -2031,58 +2031,58 @@ The ID ranges are:
 - **File**: [examples/demos/corpus_census/adapters/jira_adapters.py](../examples/demos/corpus_census/adapters/jira_adapters.py#L58)
 - **Code**: S310
 - **Sin**: `Request(url, …)` flagged for possible non-HTTP(S) scheme.
-- **Penance**: FR-1027. `url` is `JIRA_URL` (validated `https://` in `_env`, else `OSError` before any request) plus a fixed `/rest/api/3/…` template with `quote`d path segments; no caller supplies a URL. Stdlib `urllib` deliberately — the judgement (C-2) forbids new dependencies for this contrib/example.
+- **Penance**: FR-1029. `url` is `JIRA_URL` (validated `https://` in `_env`, else `OSError` before any request) plus a fixed `/rest/api/3/…` template with `quote`d path segments; no caller supplies a URL. Stdlib `urllib` deliberately — the judgement (C-2) forbids new dependencies for this contrib/example.
 
 ### CONF-463
 - **File**: [examples/demos/corpus_census/adapters/jira_adapters.py](../examples/demos/corpus_census/adapters/jira_adapters.py#L65)
 - **Code**: S310
 - **Sin**: `urlopen(req, timeout=…)` flagged for possible non-HTTP(S) scheme.
-- **Penance**: FR-1027. Opens the `Request` built from the https-validated base (CONF-462); timeout set; non-2xx raises `RuntimeError`, one 429 retry honouring `Retry-After`.
+- **Penance**: FR-1029. Opens the `Request` built from the https-validated base (CONF-462); timeout set; non-2xx raises `RuntimeError`, one 429 retry honouring `Retry-After`.
 
 ### CONF-464
 - **File**: [examples/demos/corpus_census/adapters/gh_ai_adapters.py](../examples/demos/corpus_census/adapters/gh_ai_adapters.py#L113)
 - **Code**: S603
 - **Sin**: `subprocess.run(["gh", *argv], …)` — org name, repo ref and search keyword reach a subprocess.
-- **Penance**: FR-1027. argv list, no shell, fixed leading verbs (`repo list`, `api`, `search code`); repo refs validated `<org>/<name>`; keywords come from the frozen module constant `SEARCH_TERMS`; timeout on every call. Same pattern as the FR-899 adapter in `corpus_adapters.py`.
+- **Penance**: FR-1029. argv list, no shell, fixed leading verbs (`repo list`, `api`, `search code`); repo refs validated `<org>/<name>`; keywords come from the frozen module constant `SEARCH_TERMS`; timeout on every call. Same pattern as the FR-899 adapter in `corpus_adapters.py`.
 
 ### CONF-465
 - **File**: [examples/demos/corpus_census/adapters/gh_ai_adapters.py](../examples/demos/corpus_census/adapters/gh_ai_adapters.py#L114)
 - **Code**: S607
 - **Sin**: `gh` invoked by bare name (partial executable path).
-- **Penance**: FR-1027. `gh` is the operator's authenticated GitHub CLI; resolving it through PATH is the documented contract shared with FR-899/FR-962 adapters, and preflight runs `gh auth status` before any adapter call.
+- **Penance**: FR-1029. `gh` is the operator's authenticated GitHub CLI; resolving it through PATH is the documented contract shared with FR-899/FR-962 adapters, and preflight runs `gh auth status` before any adapter call.
 
 ### CONF-466
 - **File**: [examples/demos/org_ai_dossier/render.py](../examples/demos/org_ai_dossier/render.py#L50)
 - **Code**: S603
 - **Sin**: `subprocess.run(["git", "rev-parse", "HEAD"], …)` for the run record's `head_sha`.
-- **Penance**: FR-1027 (judgement R-4: `head_sha` + `graph_sha256` identify the graph). Fixed argv, no shell, no external input, 10 s timeout; failure degrades to the literal `"unknown"`, never to a fabricated SHA.
+- **Penance**: FR-1029 (judgement R-4: `head_sha` + `graph_sha256` identify the graph). Fixed argv, no shell, no external input, 10 s timeout; failure degrades to the literal `"unknown"`, never to a fabricated SHA.
 
 ### CONF-467
 - **File**: [examples/demos/org_ai_dossier/render.py](../examples/demos/org_ai_dossier/render.py#L51)
 - **Code**: S607
 - **Sin**: `git` invoked by bare name.
-- **Penance**: FR-1027. Same contract as CONF-466; `git` on PATH is the repository's own toolchain assumption.
+- **Penance**: FR-1029. Same contract as CONF-466; `git` on PATH is the repository's own toolchain assumption.
 
 ### CONF-468
 - **File**: [examples/demos/org_ai_dossier/preflight.py](../examples/demos/org_ai_dossier/preflight.py#L36)
 - **Code**: S603
 - **Sin**: `subprocess.run(["gh", "auth", "status"], …)` in preflight.
-- **Penance**: FR-1027 (AC-03: `gh auth` validated before any fetch). Fixed argv, no input, 30 s timeout; failure raises `RuntimeError` and stops the run before any adapter call.
+- **Penance**: FR-1029 (AC-03: `gh auth` validated before any fetch). Fixed argv, no input, 30 s timeout; failure raises `RuntimeError` and stops the run before any adapter call.
 
 ### CONF-469
 - **File**: [examples/demos/org_ai_dossier/preflight.py](../examples/demos/org_ai_dossier/preflight.py#L37)
 - **Code**: S607
 - **Sin**: `gh` invoked by bare name.
-- **Penance**: FR-1027. Same PATH contract as CONF-465 (FR-899/FR-962 adapters).
+- **Penance**: FR-1029. Same PATH contract as CONF-465 (FR-899/FR-962 adapters).
 
 ### CONF-470
 - **File**: [examples/demos/org_ai_dossier/preflight.py](../examples/demos/org_ai_dossier/preflight.py#L49)
 - **Code**: S603
 - **Sin**: `subprocess.run(["git", "check-ignore", "-q", rel], …)` — the resolved output root reaches a subprocess.
-- **Penance**: FR-1027 (judgement R-7: the gitignore claim is verified at runtime, not assumed). `rel` is the repo-relative path of the frozen `research/org-ai-dossier` root computed by code, not operator input; argv list, no shell, cwd pinned to the repo root, 10 s timeout.
+- **Penance**: FR-1029 (judgement R-7: the gitignore claim is verified at runtime, not assumed). `rel` is the repo-relative path of the frozen `research/org-ai-dossier` root computed by code, not operator input; argv list, no shell, cwd pinned to the repo root, 10 s timeout.
 
 ### CONF-471
 - **File**: [examples/demos/org_ai_dossier/preflight.py](../examples/demos/org_ai_dossier/preflight.py#L50)
 - **Code**: S607
 - **Sin**: `git` invoked by bare name.
-- **Penance**: FR-1027. Same as CONF-467.
+- **Penance**: FR-1029. Same as CONF-467.

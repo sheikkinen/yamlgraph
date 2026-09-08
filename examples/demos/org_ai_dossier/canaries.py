@@ -1,4 +1,4 @@
-"""FR-1027 hidden semantic canaries (judgement R-3).
+"""FR-1029 hidden semantic canaries (judgement R-3).
 
 Two frozen families with known answers, injected as extra map items AFTER
 extraction and BEFORE classification (the reducer cannot make LLM calls), then

@@ -2,9 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Judged — APPROVED WITH REVISIONS 2026-09-07; R-1..R-8 folded
-2026-09-07; R-6 human policy answer recorded (§ Decisions 5); see
-[FR-1027-org-ai-dossier-census.judgement.md](FR-1027-org-ai-dossier-census.judgement.md)
+**Status:** Shelved 2026-09-08 — judged APPROVED WITH REVISIONS 2026-09-07 (R-1..R-8 folded, R-6 answered), enforced RED/GREEN on branch `feat/fr1027-org-ai-dossier` (adapters cfdb3b05, demo 578ada5c, fixes 2fafd2ea/5ed25488/ec4a78cc; 100+ witnesses green, public smoke committed), three live runs aborted fail-closed (ceiling on the wrong set, Azure 429 exhaustion at concurrency 4, model enum drift) and the operator re-planned: the implementation moves to a private YAMLGraph consumer with cached, staged, LLM-last stages; nothing from this FR merges to main. Renumbered from FR-1027 on 2026-09-08 (a parallel session merged an unrelated FR-1027 first). See § Shelving Record and the diary `docs/diary/diary-2026-09-08-reflection-the-cache-that-was-not-in-the-plan.md` (on the FR-1028 PR). Judgement: [FR-1029-org-ai-dossier-census.judgement.md](FR-1029-org-ai-dossier-census.judgement.md)
 **Effort:** 5 days (was 3; judgement R-2/R-3/R-7 added typed contracts,
 ceilings, canaries, locality audit)
 **Requested:** 2026-09-07
@@ -12,7 +10,7 @@ ceilings, canaries, locality audit)
 our projects are active, which use AI, with what tools, and who carries them"
 — answered by one command whose output lands in gitignored `research/`, and
 re-answered next quarter by re-running it
-**Research:** [FR-1027.research.md](FR-1027.research.md) — brief
+**Research:** [FR-1029.research.md](FR-1029.research.md) — brief
 [research-briefs/org-ai-dossier.md](research-briefs/org-ai-dossier.md), run
 2026-09-07T10:14Z on `azure/aaa-gpt-5.4-mini` via FR-1028 (`RESEARCH_PROVIDER`
 /`RESEARCH_MODEL`), all five personas executed. Dispositioned in § Research
@@ -352,7 +350,7 @@ the graph (a commit SHA alone would not identify an uncommitted file).
   `git check-ignore -q research/org-ai-dossier` succeeds — else fail before
   any fetch. Smoke `out_dir` is `tmp/org-ai-dossier-smoke/` (allowed as the
   second root, smoke preflight only).
-- Mechanical locality audit `tests/unit/test_fr1027_locality_audit.py`
+- Mechanical locality audit `tests/unit/test_fr1029_locality_audit.py`
   scans `graph.yaml`, prompts, README, fixtures, canaries,
   `demo-output.log`, and tool manifests for: any GitHub owner other than
   `sheikkinen` in commands/fixtures, any `*.atlassian.net` host, any
@@ -428,9 +426,9 @@ the graph (a commit SHA alone would not identify an uncommitted file).
       confirmed free by grep over `capabilities/`, `ARCHITECTURE.md`, and all
       `origin/*` branches immediately before the allocating commit;
       `req_coverage.py --strict`, changelog fragment, FR record, diary.
-- [x] `FR-1027.research.md` promoted and dispositioned (2026-09-07).
+- [x] `FR-1029.research.md` promoted and dispositioned (2026-09-07).
 
-## Research Disposition (FR-1027.research.md, five rows)
+## Research Disposition (FR-1029.research.md, five rows)
 
 | persona | finding | disposition |
 | --- | --- | --- |
@@ -469,6 +467,20 @@ the graph (a commit SHA alone would not identify an uncommitted file).
    smoke stays `false`.
 6. Proceed with the judge's frozen scope (D-1..D-9) in this arc.
 
+## Shelving Record (2026-09-08)
+
+Operator reflection after run #3: "bruteforcing is slow and gathers unneeded
+info". Diagnosis recorded in the diary: no persisted intermediate between
+extract and classify, so each late failure re-paid ~1,600 `gh` calls (2 h at
+concurrency 1); and the LLM was asked first when "which are active" is fully
+mechanical and most of "which use AI" (manifest/instruction/workflow/search
+evidence) is too. Re-plan (private consumer repo `sheikkinen/org-ai-dossier`,
+lightweight process): 0 fetch+cache keyed by `pushed_at`/`updated` → 1 activity
+(no LLM) → 2 AI signals (no LLM) → 3 purpose + cross-project structure (LLM on
+cached READMEs, all active repos) → 4 contacts (mechanical + summary, relevant
+projects only) → 5 onepager. The adapters and typed reducers on this branch
+are the fetch/classify layer of that tool and move with it.
+
 ## Implementation Record
 
 **Commits (worktree `feat/fr1027-org-ai-dossier`):**
@@ -476,7 +488,7 @@ the graph (a commit SHA alone would not identify an uncommitted file).
 | Step | RED | GREEN | Scope |
 | --- | --- | --- | --- |
 | Adapters (D-2, D-3) | `cc3108a4` | `cfdb3b05` | `gh_ai_adapters.py`, `jira_adapters.py`, 9 manifests, Jira smoke fixtures (relocated to `corpus_census/adapters/fixtures/jira/` — the demo audit forbids any file under a demo dir before its README/graph exist) |
-| Tools + graph (D-1, D-4, D-5, D-7, D-8) | `78127455` | `578ada5c` | `graph.yaml` + 5 prompts + README via `scripts/author.sh` (brief `authoring-briefs/fr-1027-org-ai-dossier-brief.md`, report verified by artifact); `preflight.py` (path-loaded, ceilings mirrored + asserted), `models.py`, `reduce.py`, `render.py`, `docs.py`, `canaries.py`; public smoke → `demo-output.log`; topology + locality audit |
+| Tools + graph (D-1, D-4, D-5, D-7, D-8) | `78127455` | `578ada5c` | `graph.yaml` + 5 prompts + README via `scripts/author.sh` (brief `authoring-briefs/fr-1029-org-ai-dossier-brief.md`, report verified by artifact); `preflight.py` (path-loaded, ceilings mirrored + asserted), `models.py`, `reduce.py`, `render.py`, `docs.py`, `canaries.py`; public smoke → `demo-output.log`; topology + locality audit |
 | Live-run fixes | — | `2fafd2ea` | `MAX_LISTED=1000` (cheap listing) separated from `MAX_REPOS=400` (active/LLM spend); `on_error: skip` error findings contained as `map_failed` rows |
 
 **Deviations from the frozen plan (all narrowing or mechanical):**

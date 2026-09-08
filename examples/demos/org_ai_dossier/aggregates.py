@@ -1,4 +1,4 @@
-"""FR-1027 LLM-free aggregates: source-local person rankings and AI-tool inventory.
+"""FR-1029 LLM-free aggregates: source-local person rankings and AI-tool inventory.
 
 Persons are source-qualified (`github:<login>`, `jira:<accountId>`); the two
 rankings are never joined (judgement R-5). Bots are excluded on the GitHub side.

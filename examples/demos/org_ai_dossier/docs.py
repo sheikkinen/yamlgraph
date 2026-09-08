@@ -1,4 +1,4 @@
-"""FR-1027 deterministic markdown/ledger renderers (code-owned, LLM-free).
+"""FR-1029 deterministic markdown/ledger renderers (code-owned, LLM-free).
 
 Every share is rendered as `n of <denominator>=<value>`; `unclear` and
 `map_failed` are shown beside every AI-use share; an unavailable org API total

@@ -1,4 +1,4 @@
-"""FR-1027 graph-facing tools: preflight, GitHub coverage, re-exports.
+"""FR-1029 graph-facing tools: preflight, GitHub coverage, re-exports.
 
 `preflight` (live) and `preflight_smoke` are bound as the `preflight` slot and
 run as the first node in every mode. They fail BEFORE any GitHub/Jira fetch

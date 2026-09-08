@@ -1,4 +1,4 @@
-"""FR-1027 witnesses — frozen topology (AC-02, AC-04) and locality audit (AC-17).
+"""FR-1029 witnesses — frozen topology (AC-02, AC-04) and locality audit (AC-17).
 
 The topology test asserts the committed graph against the FR § Frozen
 topology: node set, edge order, slots, every LLM node Azure-pinned at

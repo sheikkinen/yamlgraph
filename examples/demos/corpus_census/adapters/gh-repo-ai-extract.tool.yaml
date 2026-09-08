@@ -1,5 +1,5 @@
 name: gh-repo-ai-extract
-description: "FR-1027 org AI dossier adapter: gh_repo_ai_extract"
+description: "FR-1029 org AI dossier adapter: gh_repo_ai_extract"
 runtime:
   type: python
   path: gh_ai_adapters.py

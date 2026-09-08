@@ -1,6 +1,6 @@
 id: CAP-266
 name: Org AI dossier census (GitHub + Jira)
-fr: FR-1027
+fr: FR-1029
 description: >
   Contrib/example graph `examples/demos/org_ai_dossier/` built on the
   corpus-census pattern with a frozen two-source topology: GitHub active
@@ -25,8 +25,8 @@ modules:
   - examples/demos/org_ai_dossier/tools.py
   - examples/demos/corpus_census/adapters/gh_ai_adapters.py
   - examples/demos/corpus_census/adapters/jira_adapters.py
-  - tests/unit/test_fr1027_gh_ai_adapters.py
-  - tests/unit/test_fr1027_jira_adapters.py
+  - tests/unit/test_fr1029_gh_ai_adapters.py
+  - tests/unit/test_fr1029_jira_adapters.py
 requirements:
   - id: REQ-YG-670
     description: >

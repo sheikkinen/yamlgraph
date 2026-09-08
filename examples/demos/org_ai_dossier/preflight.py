@@ -1,4 +1,4 @@
-"""FR-1027 preflight — bound as the `preflight` slot, first node in every mode.
+"""FR-1029 preflight — bound as the `preflight` slot, first node in every mode.
 
 Loaded by PATH from a slot manifest (no package context), so this module is
 self-contained: stdlib + inline ceilings mirrored from models.py (asserted

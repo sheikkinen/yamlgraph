@@ -1,4 +1,4 @@
-"""FR-1027 GitHub AI-signal adapters (FR-892 slot contract).
+"""FR-1029 GitHub AI-signal adapters (FR-892 slot contract).
 
 - `gh_org_active_discover`: visibility-policy + archived + window filter,
   sorted unique ids, `OverflowError` at MAX_REPOS+1 (before any LLM spend).

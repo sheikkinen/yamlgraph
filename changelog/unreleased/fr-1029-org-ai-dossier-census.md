@@ -3,7 +3,7 @@ type: feat
 scope: census
 req: REQ-YG-670
 ---
-- **FR-1027 Org AI dossier — GitHub + Jira census with onepager**: new
+- **FR-1029 Org AI dossier — GitHub + Jira census with onepager**: new
 contrib/example `examples/demos/org_ai_dossier/` on the corpus-census pattern:
 GitHub active repos and Jira active projects → one Azure judgement per unit →
 typed LLM-free reducers (identity reconciliation, evidence-backed AI claims,

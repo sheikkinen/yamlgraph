@@ -1,13 +1,13 @@
-# Authoring brief: FR-1027 org_ai_dossier graph (GitHub + Jira census, pinned Azure)
+# Authoring brief: FR-1029 org_ai_dossier graph (GitHub + Jira census, pinned Azure)
 
-**Governing FR:** feature-requests/FR-1027-org-ai-dossier-census.md (judged APPROVED WITH REVISIONS; R-1..R-8 folded; scope frozen — § Frozen topology is the contract this brief transcribes)
+**Governing FR:** feature-requests/FR-1029-org-ai-dossier-census.md (judged APPROVED WITH REVISIONS; R-1..R-8 folded; scope frozen — § Frozen topology is the contract this brief transcribes)
 **Prior art:** fr-899-repo-census-brief.md (sibling: preflight-first, Azure-pinned, FR-892 slots) and fr-892-corpus-census-brief.md (base pipeline) — this graph deliberately mirrors both; fr-896-pattern-model-census-brief.md and cap-journey-census-brief.md — sibling censuses with hidden canaries the reducer checks (canary discipline reused). None of them has two sources or a person stage; this is the first.
 **Target directory:** examples/demos/org_ai_dossier/
 **Artifacts to author:** `graph.yaml`, `prompts/classify_repo_ai.yaml`, `prompts/classify_jira_ai.yaml`, `prompts/summarize_person.yaml`, `prompts/synthesize_findings.yaml`, `prompts/synthesize_onepager.yaml`, `preflight.tool.yaml`, `smoke_preflight.tool.yaml`, `README.md`
 
 ## Task
 
-Author the FR-1027 org AI dossier graph: a sibling of
+Author the FR-1029 org AI dossier graph: a sibling of
 `examples/demos/repo_census/graph.yaml` with a frozen TWO-source topology
 (GitHub active repositories, then Jira active projects), hidden canaries
 injected between extraction and classification, a typed LLM-free reducer, an
@@ -193,7 +193,7 @@ canaries, expected answers, other units, aggregates, or rankings.
 
 ## README contract
 
-1. Purpose paragraph citing FR-1027 and the sibling precedents (FR-892,
+1. Purpose paragraph citing FR-1029 and the sibling precedents (FR-892,
    FR-899, FR-962).
 2. Reproduce this warning block VERBATIM (from FR-962's README):
 

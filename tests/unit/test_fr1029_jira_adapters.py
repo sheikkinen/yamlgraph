@@ -1,4 +1,4 @@
-"""FR-1027 witnesses — Jira REST adapters (REQ-YG-670, AC-08, AC-09).
+"""FR-1029 witnesses — Jira REST adapters (REQ-YG-670, AC-08, AC-09).
 
 Fixed URL templates, quoted path/JQL parts, basic auth from the three env
 names the editor MCP server already uses, bounded pagination with an

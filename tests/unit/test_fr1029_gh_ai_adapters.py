@@ -1,4 +1,4 @@
-"""FR-1027 witnesses — GitHub AI-signal adapters (REQ-YG-670, AC-05..AC-07).
+"""FR-1029 witnesses — GitHub AI-signal adapters (REQ-YG-670, AC-05..AC-07).
 
 Slot contract (FR-892): state-dict in; discover → sorted unique ids,
 extract → bounded JSON bundle, search → keyword→repos map with cap flags.

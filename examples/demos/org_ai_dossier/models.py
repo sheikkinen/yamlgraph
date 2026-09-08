@@ -1,4 +1,4 @@
-"""FR-1027 typed contracts (judgement R-2) — Pydantic v2, ``extra="forbid"``.
+"""FR-1029 typed contracts (judgement R-2) — Pydantic v2, ``extra="forbid"``.
 
 Owner per field is documented in the FR § Typed contracts; here the types
 and bounds are frozen. Ceilings (R-3) live alongside because every model

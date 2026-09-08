@@ -3255,7 +3255,7 @@ Deterministic, stdlib-only static module map of the yamlgraph package (scripts/g
 
 Contrib/example graph `examples/demos/org_ai_dossier/` built on the corpus-census pattern with a frozen two-source topology: GitHub active repositories and Jira active projects are discovered, extracted and classified (one Azure judgement per unit, temperature 0, every LLM node pinned `provider: azure`); typed LLM-free reducers own identities, coverage denominators, evidence reconciliation (model claims survive only with bundle-present evidence), two hidden semantic canary families, an AI-tool inventory, and two source-qualified person rankings (no cross-system join); an explicitly authorized (`persons_llm` required, no default, ack recorded) Azure map writes per-person summaries; two bounded synthesis judgements write dossier findings and a ≤800-word onepager. Numeric ceilings abort at N+1 before any LLM spend; the output root is enforced beneath gitignored `research/org-ai-dossier/` (smoke: `tmp/`), artifacts are written atomically only after reconciliation and canaries pass, and a mechanical locality audit keeps private identifiers out of the public repo. Adapters: `gh_ai_adapters.py` (active discover, AI-signal extract, org code search), `jira_adapters.py` (REST v3 discover/extract + smoke fixtures).
 
-**Feature Request:** FR-1027
+**Feature Request:** FR-1029
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
@@ -3263,7 +3263,7 @@ Contrib/example graph `examples/demos/org_ai_dossier/` built on the corpus-censu
 
 ### 267. CAP-267 Graph run provider/model override
 
-`yamlgraph graph run --provider X --model Y` overrides the ROOT graph's `defaults.provider` / `defaults.model` at the load boundary (load_graph_config keyword-only provider_override / model_override). The parsed YAML is copied, never mutated; explicit per-node provider/model pins keep precedence (explicit node field → overridden root default → existing provider resolution); provider and model resolve independently; graph-tool child graphs keep their own declarations. scripts/research.sh forwards the RESEARCH_PROVIDER/RESEARCH_MODEL pair (both or neither; half-set exits 64 before the executor) and atomically stamps exactly one `- provider/model: <provider>/<model>` header line into the draft artifact before verification; research_preflight.py --verify-artifact validates that optional line. Motivation: FR-1027's research run was blocked by a dead Anthropic key while Azure credentials were valid (2026-09-07).
+`yamlgraph graph run --provider X --model Y` overrides the ROOT graph's `defaults.provider` / `defaults.model` at the load boundary (load_graph_config keyword-only provider_override / model_override). The parsed YAML is copied, never mutated; explicit per-node provider/model pins keep precedence (explicit node field → overridden root default → existing provider resolution); provider and model resolve independently; graph-tool child graphs keep their own declarations. scripts/research.sh forwards the RESEARCH_PROVIDER/RESEARCH_MODEL pair (both or neither; half-set exits 64 before the executor) and atomically stamps exactly one `- provider/model: <provider>/<model>` header line into the draft artifact before verification; research_preflight.py --verify-artifact validates that optional line. Motivation: FR-1029's research run was blocked by a dead Anthropic key while Azure credentials were valid (2026-09-07).
 
 **Feature Request:** FR-1028
 
