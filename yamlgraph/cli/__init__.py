@@ -76,6 +76,18 @@ def create_parser() -> argparse.ArgumentParser:
         help="Bind a tool slot to an FR-768 manifest (SLOT=manifest.yaml), can repeat",
     )
     graph_run_parser.add_argument(
+        "--provider",
+        type=str,
+        default=None,
+        help="FR-1028: override the root graph's defaults.provider (node pins win)",
+    )
+    graph_run_parser.add_argument(
+        "--model",
+        type=str,
+        default=None,
+        help="FR-1028: override the root graph's defaults.model (node pins win)",
+    )
+    graph_run_parser.add_argument(
         "--thread", "-t", type=str, default=None, help="Thread ID for persistence"
     )
     graph_run_parser.add_argument(
