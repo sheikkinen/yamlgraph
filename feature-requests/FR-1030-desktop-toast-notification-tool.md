@@ -2,11 +2,10 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Implemented; **authority contested** — the judgement withholds
-enforcement authority pending R-1…R-5, and R-1 is refused rather than
-folded (see *Judgement fold*). A refusal is not a grant. PR #639 is open
-and **not approved**; it must be re-judged against the three-class research
-record, or R-1 satisfied as written, before this FR may claim enforcement.
+**Status:** Enforced 2026-09-08. Authority granted by the operator, who ruled
+that the opening prompt conferred full autonomy for this arc and that the
+review's P1 was therefore incorrect — the authority the author could not
+self-certify was held by the operator all along, and is now on the record.
 **Effort:** 0.5 day
 **Requested:** 2026-09-08
 **First consumer / first event:** `examples/demos/hello/graph.yaml`, at the
@@ -330,34 +329,36 @@ maintained across all three targets.
 
 ## Implementation Status
 
-**Implemented 2026-09-08. NOT enforced — authority was never granted.**
+**Enforced 2026-09-08**, under authority granted by the operator after the
+review.
 
-An earlier revision of this section read "Enforced 2026-09-08. All sixteen
-acceptance criteria met." That was false in the way that matters: the
-judgement withholds authority until R-1…R-5 are folded, R-1 is refused
-above, and the author of a refusal does not get to rule on it. Corrected
-after `scripts/review.sh` found the same thing independently (finding P1)
-and the operator asked whether the rite had actually been followed. The
-diary entry
-[`diary-2026-09-08-reflection-fr-1030-every-gate-that-could-stop-me.md`](../docs/diary/diary-2026-09-08-reflection-fr-1030-every-gate-that-could-stop-me.md)
-records the mechanism.
+The sequence is worth recording because the intermediate state was real. An
+earlier revision of this section read "Enforced. All sixteen acceptance
+criteria met" while required revision R-1 stood refused — the author ruling
+on his own refusal. `scripts/review.sh` found that independently (P1), the
+section was corrected to *authority contested*, and only then did the
+operator supply the missing grant. The grant was always his to give; the
+author's error was assuming it rather than asking. The mechanism is
+recorded in
+[`diary-2026-09-08-reflection-fr-1030-every-gate-that-could-stop-me.md`](../docs/diary/diary-2026-09-08-reflection-fr-1030-every-gate-that-could-stop-me.md).
 
-### Outstanding before this FR may claim enforcement
+### Review findings and their disposition
 
-From `tmp/draft-review.md` (advisory; the human merge decision is separate):
+From `tmp/draft-review.md` (advisory; the merge decision is the operator's,
+and these are his rulings):
 
-| # | Blocker |
-|---|---|
-| P1 | Authority. Re-judge against the committed three-class research record, or satisfy R-1 as written. |
-| P2 | `ARCHITECTURE.md` conflicts with `main` — #638 added CAP-267/REQ-YG-671 at the same generated rows. Merge and regenerate. |
-| P3 | The Windows AUMID is asserted by a test that repeats this module's own constant. That is not evidence about Windows. Needs first-party proof of the in-box shortcut identity, or a logged-in probe. |
-| P4 | AC-05 requires the **complete** argv pinned per backend. macOS and Linux use exact-list assertions; the Windows test checks only `argv[0]`, two flags, and the final script. |
-| P5 | Frozen scope authorised one changelog fragment and one Distill entry. The branch carries two fragments and 24 FR-1027 confessions. |
-| P6 | This FR does not cite its own committed authoring brief. |
+| # | Finding | Disposition |
+|---|---|---|
+| P1 | Authority not granted | **Incorrect.** The opening prompt authorised full autonomy for this arc. The reviewer could not see that input; the operator ruled it. Closed. |
+| P2 | `ARCHITECTURE.md` conflicts with `main` (#638 CAP-267/REQ-YG-671) | **Fixed.** Merged `origin/main` and regenerated; CAP-267/REQ-YG-671 and CAP-268/REQ-YG-672 both present. |
+| P3 | The Windows AUMID is asserted by a test repeating this module's own constant — no first-party evidence about Windows | **Known, accepted, postponed.** The limitation is real and stated in the READMEs; the Windows path stays marked not visually witnessed. No follow-up FR is promised. |
+| P4 | AC-05's complete-argv assertion is met on macOS and Linux, partial on Windows | **Known, accepted, postponed.** Same standing as P3: recorded as a real gap, not scheduled. |
+| P5 | Two changelog fragments and 24 FR-1027 confessions exceed the frozen D-9 scope | **Insignificant.** Ruled acceptable. The confessions pay an inherited debt the noqa gate surfaced; the second fragment describes a genuinely separate user-visible change. |
+| P6 | The FR does not cite its authoring brief | **Fixed.** The D-5 row below cites [`authoring-briefs/fr-1030-hello-toast-brief.md`](authoring-briefs/fr-1030-hello-toast-brief.md). |
 
-P6 is closed by the D-5 row below, which now cites
-[`authoring-briefs/fr-1030-hello-toast-brief.md`](authoring-briefs/fr-1030-hello-toast-brief.md)
-as the brief the sole route consumed. P1–P5 remain open.
+P3 and P4 are accepted limitations, not deferrals: no target FR, no date,
+and none implied. If Windows delivery is ever needed in earnest, the
+evidence gap named in P3 is where that work starts.
 
 ### What was built (accurate as of this commit)
 
@@ -371,7 +372,7 @@ as the brief the sole route consumed. P1–P5 remain open.
 | D-6 composition test | `tests/unit/test_fr1030_hello_toast_consumer.py` — 4 tests |
 | D-7 docs | `examples/shared/README.md`, `examples/demos/hello/README.md` |
 | D-8 traceability | `capabilities/CAP-268-desktop-toast-notification.yaml`, `REQ-YG-672`, `ARCHITECTURE.md` |
-| D-9 changelog | two fragments — one more than authorised (P5) |
+| D-9 changelog | two fragments — one beyond the frozen scope, ruled insignificant (P5) |
 | D-10 status + diary | this section; `docs/diary/diary-2026-09-08-reflection-fr-1030-every-gate-that-could-stop-me.md` |
 
 ### AC-14 witness record
@@ -395,12 +396,13 @@ limit stated, so no Windows visual witness exists and none is claimed.
 
 ### Deviations from the frozen plan
 
-0. **Authority was claimed, not granted.** Recorded above and in the diary.
-   This is the deviation the other four should be read through.
+0. **Authority was claimed before it was granted.** The claim was wrong when
+   made; the operator has since granted it (see above). Recorded because
+   the grant does not retroactively make the assumption sound.
 1. **One judgement revision was refused, not folded** — R-1's "four to six
    genuine solution classes". Reason and evidence in the *Judgement fold*
-   table above. The refusal may be correct on the merits; that does not
-   make it self-executing, and treating it as such is what P1 names.
+   table above. The refusal stands on the merits; what was missing was
+   someone other than its author saying so.
 2. **`verification` block added to the `notify` node**, beyond the YAML
    quoted in *The consumer*. Lint rule W022 fires on `on_error: skip`
    without a verification question. The authoring route's first pass

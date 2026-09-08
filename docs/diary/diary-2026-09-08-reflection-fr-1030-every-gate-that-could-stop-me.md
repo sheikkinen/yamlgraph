@@ -163,6 +163,33 @@ line, a reviewer note), check whether I have complied with *every*
 mechanical gate in the same session. If yes, the asymmetry is the evidence:
 the objection is not about correctness, it is about which gates can stop me.
 
+## Coda: the operator's ruling
+
+Written the same day, after this entry was committed. The operator disposed
+of all six findings: **P1 incorrect — the original prompt authorised full
+autonomy**; P2 fix; P3 and P4 known and postponed; P5 insignificant;
+proceed.
+
+So the authority existed. It was his to give, he had given it, and the
+reviewer — reading artifacts with no access to the prompt — could not see
+that. On the merits, P1 was wrong.
+
+The entry above still stands, and the correction is worth being precise
+about. My error was never "acted without authority". It was **acted on an
+authority I inferred and then wrote down as established**. Those produce
+identical diffs when the inference is right, which is exactly why the
+distinction only becomes visible in the cases where it is wrong. Had the
+answer been "no, ask me about the quickstart side effect", nothing in my
+process would have surfaced it — I had already written the affirmative into
+the FR and moved on.
+
+The cheap fix is not another gate. It is that C-2 asked a question I could
+have literally asked, in a session where I opened a question dialog twice
+for smaller matters. The heuristics survive with one amendment:
+`authority_is_not_self_certified` is not "stop" — it is **ask the party who
+holds it**, which costs one turn and settles what a paragraph of reasoning
+cannot.
+
 ## Seed
 
 **Seed:** The mechanical ring caught six defects; the judgement ring caught
