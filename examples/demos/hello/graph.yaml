@@ -3,7 +3,10 @@
 
 version: "1.0"
 name: hello-world
-description: Simple greeting generator demonstrating basic LLM usage
+description: >
+  Simple greeting generator demonstrating basic LLM usage, then submitting
+  the greeting as a desktop notification (FR-1030). Running this graph
+  raises a system toast on macOS, Windows, and Linux.
 
 prompts_relative: true
 prompts_dir: prompts
@@ -15,6 +18,10 @@ state:
   name: str
   style: str
 
+tools:
+  send_toast:
+    manifest: ../../shared/send_toast.tool.yaml
+
 nodes:
   greet:
     type: llm
@@ -25,8 +32,22 @@ nodes:
       style: "{state.style}"
     state_key: greeting
 
+  notify:
+    type: tool_call
+    tool: send_toast
+    args:
+      title: "Hello, {state.name}"
+      message: "{state.greeting.greeting}"
+    state_key: notified
+    on_error: skip
+    verification:
+      question: "Will contain submitted"
+      on_fail: warn
+
 edges:
   - from: START
     to: greet
   - from: greet
+    to: notify
+  - from: notify
     to: END

@@ -326,4 +326,59 @@ maintained across all three targets.
 
 ## Implementation Status
 
-_To be completed during enforcement._
+**Enforced 2026-09-08.** All sixteen acceptance criteria met.
+
+| Deliverable | Landed as |
+|---|---|
+| D-1 plan artifacts | `FR-1030-*.md`, `.research.md`, `.judgement.md`, `research-briefs/notify-toast-problem-brief.md` (commit `c63b3424`, before implementation) |
+| D-2 tool | `examples/shared/notify_toast.py` |
+| D-3 manifest | `examples/shared/send_toast.tool.yaml` |
+| D-4 unit tests | `tests/unit/test_shared_notify_toast.py` — 39 tests |
+| D-5 consumer | `examples/demos/hello/graph.yaml` + `demo-output.log` |
+| D-6 composition test | `tests/unit/test_fr1030_hello_toast_consumer.py` — 4 tests |
+| D-7 docs | `examples/shared/README.md`, `examples/demos/hello/README.md` |
+| D-8 traceability | `capabilities/CAP-268-desktop-toast-notification.yaml`, `REQ-YG-672`, `ARCHITECTURE.md` |
+| D-9 changelog | `changelog/unreleased/fr-1030-desktop-toast-notification.md` |
+| D-10 status + diary | this section; `docs/diary/` |
+
+### AC-14 witness record
+
+**macOS — visually witnessed.**
+
+- Date: 2026-09-08T03:03:04Z
+- OS: macOS 26.3.1 (`sw_vers -productVersion`)
+- Command:
+  `python -c "from examples.shared.notify_toast import send_toast; send_toast('FR-1030 witness', 'Watch now: this is the macOS visual witness for the shared toast tool.')"`
+- Returned: `{'submitted': True, 'backend': 'osascript'}`
+- Observer: the operator, asked directly whether the notification appeared
+  on screen, answered **"Yes — banner appeared"**. The first send was not
+  observed (operator was not looking), so it was re-sent and confirmed;
+  both attempts are recorded rather than only the successful one.
+
+**Windows and Linux — not visually witnessed.** Unchanged from the
+*Witness boundary* section above. The operator was offered the option of
+running one command by hand on the Windows host and chose to ship with the
+limit stated, so no Windows visual witness exists and none is claimed.
+
+### Deviations from the frozen plan
+
+1. **One judgement revision was refused, not folded** — R-1's "four to six
+   genuine solution classes". Reason and evidence in the *Judgement fold*
+   table above. Recorded as a refusal, not as a deferral.
+2. **`verification` block added to the `notify` node**, beyond the YAML
+   quoted in *The consumer*. Lint rule W022 fires on `on_error: skip`
+   without a verification question. The authoring route's first pass
+   repaired it with `"Will return non-empty"`, which is **vacuous here** —
+   the FR-778 envelope is a non-empty dict on the failure path too, so that
+   predicate passes when no toast went out. The brief was amended to fix
+   the question as `"Will contain submitted"` (the literal appears only in
+   a real success envelope) and the route was re-run from a clean graph.
+   Both authoring runs are in the record.
+3. **W017 remains** (`on_error: skip` silently drops failures). Accepted,
+   not repaired: the skip is the graph-level tolerance the FR argues for,
+   and the composition test asserts the failure is recorded rather than
+   dropped, which is the substance the warning is a proxy for.
+4. **Out-of-scope commit included**: `chore(confessions)` documenting 24
+   `noqa` suppressions from FR-1027 that the repo-wide gate reported the
+   moment any `.py` file was staged. Owned rather than bypassed; kept in a
+   separate commit so it can be read and reverted independently.

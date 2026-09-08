@@ -244,6 +244,80 @@ semantics) stay inline in their graph. The `search` description's glob
 example list is the canonical union across consumers — extend it in the
 manifest, never re-fork a per-demo copy.
 
+### `notify_toast.py` - Desktop Notification (FR-1030)
+
+`send_toast(title, message)` submits a native desktop notification. It is
+the local, immediate rung between stdout (needs the terminal in front) and
+`smtp_email.py` (remote, credentialed, minutes).
+
+```python
+from examples.shared.notify_toast import send_toast, ToastError
+
+send_toast("Pipeline finished", "42 chapters summarised in 3m12s")
+# -> {"submitted": True, "backend": "osascript"}
+```
+
+```yaml
+# In a graph — via manifest (FR-768)
+tools:
+  send_toast:
+    manifest: ../../shared/send_toast.tool.yaml
+
+nodes:
+  notify:
+    type: tool_call
+    tool: send_toast
+    args:
+      title: "Hello, {state.name}"
+      message: "{state.greeting.greeting}"
+    state_key: notified
+    on_error: skip
+```
+
+Committed consumer: [demos/hello](../demos/hello/) — the quickstart graph
+announces its own greeting.
+
+**`submitted` is not `delivered`.** A zero exit proves the OS notification
+facility *accepted* the request. It does not prove a human saw it: macOS
+presentation follows the user's Notifications settings, Windows honours
+Focus Assist and per-app policy, and a freedesktop daemon may drop or
+queue. The return value claims only what was proven.
+
+| Platform | Backend | Requires | In-box? |
+|----------|---------|----------|---------|
+| macOS (`darwin`) | `osascript` | an interactive, logged-in session | yes |
+| Windows (`win32`) | `powershell.exe` → WinRT `ToastNotificationManager` | Windows 10 build 10.0.10240+, an interactive desktop session | yes |
+| Linux | `notify-send` (libnotify) | a graphical session **and** a running notification daemon | **no — `notify-send` is not guaranteed to be installed** |
+
+On Windows the toast is attributed to Windows PowerShell in Action Center:
+Microsoft requires a desktop app to present the AppUserModelID of a
+Start-menu shortcut, and the in-box PowerShell AUMID is the one available
+without installing anything.
+
+**Injection boundary:** the AppleScript and PowerShell sources are frozen
+module constants. Caller text travels as `argv` (macOS, Linux) or as child
+environment (Windows, reaching the toast XML through `CreateTextNode`), so
+it never enters a command string, a script body, or markup. Every call is
+`shell=False` with a checked exit status and a 10-second timeout.
+`shlex.quote()` is deliberately absent — no shell is invoked, and quoting a
+value nothing parses would misplace the boundary.
+
+**Failure modes:** unsupported `sys.platform` raises `ToastError` naming
+the supported set *before* any subprocess; blank title and message, a
+missing binary, a non-zero exit, and a timeout each raise `ToastError`.
+No path returns a success-shaped mapping on failure. A graph that wants to
+tolerate a missing notifier declares `on_error: skip`, which records a
+visible FR-778 failure envelope in state rather than swallowing it.
+
+**Witness boundary:** macOS delivery is *visually witnessed* — a human
+confirmed the banner on macOS 26.3.1. **Windows and Linux are not.** Their
+argv/environment construction, `shell=False`, timeout, and error
+conversion are covered by unit tests; the pixels are not. The repository's
+only Windows host is reachable solely over WinRM, which runs
+non-interactively, so a green remote run would prove nothing about what a
+person at that machine sees. Only a human at that keyboard can close this
+gap.
+
 ## Scripts
 
 ### `scripts/set_fly_secrets.sh`

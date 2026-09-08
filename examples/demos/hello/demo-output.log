@@ -1,16 +1,22 @@
-2026-07-26 19:25:18,292 [INFO] yamlgraph.compile.node_compiler: Added node: greet (type=llm)
-2026-07-26 19:25:18,378 [INFO] yamlgraph.utils.llm_factory: Creating LLM: deepseek/deepseek-v4-flash (temp=0.7)
-2026-07-26 19:25:20,309 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
-2026-07-26 19:25:22,842 [INFO] yamlgraph.node_factory.llm_nodes: Node greet completed successfully
+2026-09-08 06:15:03,974 [INFO] yamlgraph.compile.graph_loader: Parsed 1 Python tools: send_toast
+2026-09-08 06:15:03,975 [INFO] yamlgraph.compile.node_compiler: Added node: greet (type=llm)
+2026-09-08 06:15:03,975 [INFO] yamlgraph.compile.node_compiler: Added node: notify (type=tool_call)
+2026-09-08 06:15:03,991 [INFO] yamlgraph.route: {"event": "run", "run_id": "01a07f03-16ac-7ae8-9b39-4b91cc5b68fb", "artifact_hash": "sha256:74825363808cffc817b8adbf856936843063d0be205a8c3fb3d512a35cdb91ee", "graph": "/Users/sheikki/Documents/src/yamlgraph/tmp/worktrees/featnotify-toast/examples/demos/hello/graph.yaml", "yamlgraph_version": "0.5.17", "thread_id": null, "started_at": "2026-09-08T03:15:03Z"}
+2026-09-08 06:15:04,073 [INFO] yamlgraph.utils.llm_factory: Creating LLM: deepseek/deepseek-v4-flash (temp=0.7)
+2026-09-08 06:15:06,028 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-08 06:15:07,478 [INFO] yamlgraph.node_factory.llm_nodes: Node greet completed successfully
+2026-09-08 06:15:07,677 [INFO] examples.shared.notify_toast: Notification submitted via osascript
+2026-09-08 06:15:07,855 [INFO] yamlgraph.route: {"event": "run_end", "run_id": "01a07f03-16ac-7ae8-9b39-4b91cc5b68fb", "ended_at": "2026-09-08T03:15:07Z", "dropped_events": 0}
 
 🚀 Running graph: graph.yaml
    Variables: {'name': 'World', 'style': 'enthusiastic'}
 
-🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/f889c0ec-fa9b-4025-b69c-2aa756283ef8/r/019f9f3e-c2dd-78b1-b65a-9ef1fccd3b73?poll=true
+🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/f889c0ec-fa9b-4025-b69c-2aa756283ef8/r/01a07f03-16b9-7d40-b348-313ee78142bc?poll=true
 ============================================================
 RESULT
 ============================================================
-  current_step: greet
+  current_step: notify
   style: enthusiastic
   name: World
-  greeting: {'greeting': "Hello to the entire world! It's a fantastic day to be alive!", 'emoji': '🌍', 'formality_level': 'informal'}
+  greeting: {'greeting': "Hey there, World! It's absolutely fantastic to see you today!", 'emoji': '🌍', 'formality_level': 'informal'}
+  notified: {'task_id': None, 'tool': 'send_toast', 'success': True, 'result': {'submitted': True, 'backend': 'osascript'}, 'error': None}
