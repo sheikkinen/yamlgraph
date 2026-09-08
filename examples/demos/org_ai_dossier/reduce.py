@@ -9,24 +9,26 @@ dropped; the caller's `on_error: fail` guarantees no artifact is written.
 from __future__ import annotations
 
 import json
-from collections import Counter, defaultdict
 from typing import Any
 
 from pydantic import ValidationError
 
 from examples.demos.org_ai_dossier import canaries
+from examples.demos.org_ai_dossier.aggregates import (
+    _ai_tools,
+    _persons_github,
+    _persons_jira,
+)
 from examples.demos.org_ai_dossier.models import (
     CANARY_PREFIX,
     MAX_MAP_FAILED,
     MAX_TOP_PERSONS,
-    AIToolRow,
     CoverageGitHub,
     CoverageJira,
     GitHubBundle,
     JiraAIRow,
     JiraBundle,
     JiraClassification,
-    PersonRow,
     RepoAIRow,
     RepoClassification,
 )
@@ -59,29 +61,43 @@ def _bundles_by_index(entries: list[Any], model: type, label: str) -> dict[int, 
     return out
 
 
+def _clean_tools(payload: dict[str, Any], model: type) -> dict[str, Any]:
+    """Drop tool entries the model got wrong (e.g. kind='feature'); keep the rest."""
+    tool_model = model.model_fields["ai_tools"].annotation.__args__[0]
+    kept = []
+    for entry in payload.get("ai_tools") or []:
+        try:
+            kept.append(tool_model.model_validate(entry).model_dump())
+        except (ValidationError, TypeError):
+            continue
+    return {**payload, "ai_tools": kept}
+
+
 def _findings_by_index(findings: list[Any], model: type, label: str) -> dict[int, Any]:
+    """Structural problems raise; model-owned problems become absent findings
+    (→ typed map_failed rows, counted against MAX_MAP_FAILED)."""
     out: dict[int, Any] = {}
+    seen: set[int] = set()
     for finding in findings:
         if not isinstance(finding, dict):
             raise ValueError(f"{label} finding is not a dict: {finding!r}")
         index = finding.get("source_index", finding.get("_map_index"))
         if not isinstance(index, int):
             raise ValueError(f"{label} finding missing source index")
-        if index in out:
+        if index in seen:
             raise ValueError(f"{label}: duplicate finding index {index}")
+        seen.add(index)
         if "_error" in finding:
-            # on_error: skip emits an error-shaped finding — a CONTAINED model
-            # failure; the row becomes map_failed and is counted against MAX_MAP_FAILED
+            # on_error: skip emits an error-shaped finding — a CONTAINED model failure
             continue
         payload = {
             k: v for k, v in finding.items() if k not in ("_map_index", "source_index")
         }
         try:
-            out[index] = model.model_validate(payload)
-        except ValidationError as exc:
-            raise ValueError(
-                f"{label} finding {index} invalid: {exc.errors()[0]['msg']}: {payload!r}"
-            ) from exc
+            out[index] = model.model_validate(_clean_tools(payload, model))
+        except ValidationError:
+            # model-owned schema drift (enum/shape) — contained, never an abort
+            continue
     return out
 
 
@@ -251,92 +267,6 @@ def _merge_search(rows: list[RepoAIRow], hits: dict[str, Any]) -> list[str]:
                 "(inactive/archived/unlisted) not merged"
             )
     return caveats
-
-
-def _persons_github(
-    bundles: list[GitHubBundle], purposes: dict[str, str], top: int
-) -> list[PersonRow]:
-    score: Counter[str] = Counter()
-    repos: dict[str, set[str]] = defaultdict(set)
-    for b in bundles:
-        for author in b.pr_authors:
-            if author.bot:
-                continue
-            score[author.login] += author.n
-            repos[author.login].add(b.id)
-        for login in b.contributors:
-            if any(m in login.lower() for m in ("[bot]", "dependabot", "renovate")):
-                continue
-            score[login] += 1
-            repos[login].add(b.id)
-    ranked = sorted(score.items(), key=lambda kv: (-kv[1], kv[0]))[:top]
-    return [
-        PersonRow(
-            id=f"github:{login}",
-            label=login,
-            source="github",
-            repos=sorted(repos[login]),
-            projects=[],
-            score=n,
-            rank=i + 1,
-        )
-        for i, (login, n) in enumerate(ranked)
-    ]
-
-
-def _persons_jira(bundles: list[JiraBundle], top: int) -> list[PersonRow]:
-    score: Counter[str] = Counter()
-    projects: dict[str, set[str]] = defaultdict(set)
-    labels: dict[str, str] = {}
-    for b in bundles:
-        for person in [*b.assignees, *b.reporters]:
-            score[person.account_id] += person.n
-            projects[person.account_id].add(b.key)
-            labels.setdefault(person.account_id, person.display_name)
-    ranked = sorted(score.items(), key=lambda kv: (-kv[1], kv[0]))[:top]
-    return [
-        PersonRow(
-            id=f"jira:{acc}",
-            label=labels[acc],
-            source="jira",
-            repos=[],
-            projects=sorted(projects[acc]),
-            score=n,
-            rank=i + 1,
-        )
-        for i, (acc, n) in enumerate(ranked)
-    ]
-
-
-def _ai_tools(repos: list[RepoAIRow], jira: list[JiraAIRow]) -> list[AIToolRow]:
-    acc: dict[tuple[str, str], dict[str, Any]] = {}
-    for r in repos:
-        for t in r.ai_tools:
-            slot = acc.setdefault(
-                (t.name.lower(), t.kind),
-                {"repos": set(), "projects": set(), "evidence": []},
-            )
-            slot["repos"].add(r.id)
-            slot["evidence"].append(f"{r.id}:{t.evidence_path}")
-    for j in jira:
-        for t in j.ai_tools:
-            slot = acc.setdefault(
-                (t.name.lower(), t.kind),
-                {"repos": set(), "projects": set(), "evidence": []},
-            )
-            slot["projects"].add(j.key)
-            slot["evidence"].append(f"{j.key}:{t.evidence_issue}")
-    rows = [
-        AIToolRow(
-            name=name,
-            kind=kind,
-            n_repos=len(v["repos"]),
-            n_projects=len(v["projects"]),
-            evidence=sorted(v["evidence"]),
-        )
-        for (name, kind), v in acc.items()
-    ]
-    return sorted(rows, key=lambda r: (-(r.n_repos + r.n_projects), r.name))
 
 
 _SOURCES = {

@@ -396,7 +396,6 @@ def test_reduce_happy_path_rows_persons_tools_coverage():
             ),
             "bundle",
         ),
-        (lambda s: s["repo_findings"][0].__setitem__("ai_usage", "maybe"), "maybe"),
         (lambda s: s["jira_items"].append("P9"), "P9"),
     ],
 )
@@ -405,6 +404,27 @@ def test_reduce_structural_failures_raise(mutate, msg):
     mutate(state)
     with pytest.raises(ValueError, match=msg):
         t.reduce(state)
+
+
+@pytest.mark.req("REQ-YG-670")
+def test_reduce_model_enum_drift_is_contained_not_fatal():
+    """Live-run witness 2026-09-07: a Jira finding carried kind='feature'."""
+    state = _reduce_state()
+    # bad tool entry only → entry dropped, finding kept
+    state["jira_findings"][0]["ai_tools"].append(
+        {"name": "triage bot", "kind": "feature", "evidence_issue": "P1-1"}
+    )
+    out = t.reduce(state)["reduced"]
+    assert [x["name"] for x in out["jira"][0]["ai_tools"]] == ["copilot"]
+    assert out["jira"][0]["status"] == "classified"
+    # finding-level drift → typed map_failed row, counted, no abort
+    state = _reduce_state()
+    state["repo_findings"][0]["ai_usage"] = "maybe"
+    out = t.reduce(state)["reduced"]
+    row = next(r for r in out["repos"] if r["id"] == "acme/a")
+    assert (
+        row["status"] == "map_failed" and out["coverage"]["github"]["map_failed"] == 1
+    )
 
 
 @pytest.mark.req("REQ-YG-670")

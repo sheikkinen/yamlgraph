@@ -32,7 +32,7 @@ required with no default and `true` requires `persons_llm_ack`.
 | `prompts/synthesize_onepager.yaml` | Exactly three manager-facing onepager claims. |
 | `tools.py` | Graph-facing coverage, canary, reduce, prepare, and render functions (module-loaded). |
 | `preflight.py` | Self-contained live/smoke preflight (path-loaded by the `preflight` slot manifests; ceilings mirrored from `models.py` and asserted equal by tests). |
-| `models.py`, `reduce.py`, `render.py`, `docs.py`, `canaries.py` | Typed contracts, LLM-free reduction, artifact rendering, markdown/ledger helpers, and hidden semantic canary bundles. |
+| `models.py`, `reduce.py`, `aggregates.py`, `render.py`, `docs.py`, `canaries.py` | Typed contracts, LLM-free reduction, artifact rendering, markdown/ledger helpers, and hidden semantic canary bundles. |
 | `preflight.tool.yaml`, `smoke_preflight.tool.yaml` | Live and smoke preflight manifests for the `preflight` slot. |
 | `../corpus_census/adapters/*.tool.yaml` | Runtime manifests for GitHub and Jira discovery, extraction, search, coverage, and fixtures. |
 | `../corpus_census/adapters/fixtures/jira/` | Committed Jira smoke fixture corpus. |
