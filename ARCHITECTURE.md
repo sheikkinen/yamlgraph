@@ -582,6 +582,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 264 | CAP-264 Chaplain runtime retired | `tests/unit/test_fr1012_chaplain_removed.py` | REQ-YG-666 |
 | 265 | CAP-265 Static module map | `scripts/generate_module_map.py`, `reference/module-map.md`, `tests/unit/test_fr331_static_module_map_tier2_context.py`, `tests/unit/test_fr335_module_map_compression.py` | REQ-YG-667 |
 | 267 | CAP-267 Graph run provider/model override | `yamlgraph/cli/__init__.py`, `yamlgraph/cli/graph_commands.py`, `yamlgraph/compile/graph_loader.py`, `yamlgraph/compile/default_overrides.py`, … | REQ-YG-671 |
+| 268 | CAP-268 Desktop Toast Notification Tool | `examples/shared/notify_toast.py`, `examples/shared/send_toast.tool.yaml`, `examples/demos/hello` | REQ-YG-672 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -3260,6 +3261,16 @@ Deterministic, stdlib-only static module map of the yamlgraph package (scripts/g
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-671 | graph run accepts optional --provider/--model (None when omitted); load_graph_config(provider_override=, model_override=) replaces only the named root default on a copy of the parsed mapping, leaving the source unmutated and a plain reload unaffected; defaults-only llm and agent nodes inherit the pair, explicit pins win independently, a mixed pin inherits only the unpinned field; graph-tool children are loaded without overrides; scripts/research.sh forwards the RESEARCH_PROVIDER/RESEARCH_MODEL pair in stable order, exits 64 before the executor on a half-set pair, and stamps exactly one `- provider/model:` line that the artifact verifier accepts once and rejects when empty, duplicate, or malformed (legacy artifacts without the line still pass). | `yamlgraph/cli/__init__.py`, `yamlgraph/compile/graph_loader.py`, `yamlgraph/compile/default_overrides.py`, `scripts/research.sh`, `scripts/research_preflight.py` |
+
+### 268. CAP-268 Desktop Toast Notification Tool
+
+examples/shared/notify_toast.py exposes send_toast(title, message), which submits a native desktop notification through the facility each OS already provides: osascript on macOS (frozen AppleScript on stdin, text as argv), powershell.exe driving WinRT ToastNotificationManager on Windows (frozen script, text as child environment, XML built with CreateTextNode), and notify-send on Linux (fixed argv after a -- terminator). Caller text is never interpolated into a command string, script source, or markup. Every invocation is shell=False with a checked exit status and a finite timeout. Success returns {"submitted": True, "backend": ...} — submission, not display. Unsupported platform, missing binary, non-zero exit, and timeout all raise ToastError; no failure path returns a submitted-shaped mapping. Declared via examples/shared/send_toast.tool.yaml (FR-768) and consumed by examples/demos/hello. (FR-1030)
+
+**Feature Request:** FR-1030
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-672 | Desktop toast notification: send_toast(title, message) dispatches on sys.platform to osascript/powershell.exe/notify-send and returns {"submitted": True, "backend": <name>}; caller text travels as argv or child environment only, never inside the frozen script literals; every invocation is shell=False with a finite timeout; unsupported platform raises ToastError naming darwin/win32/linux before any subprocess, and missing binary, non-zero exit, and timeout each raise ToastError. | `examples/shared/notify_toast.py`, `examples/shared/send_toast.tool.yaml`, `examples/demos/hello` |
 
 <!-- END GENERATED CAPABILITIES -->
 
