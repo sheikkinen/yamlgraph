@@ -2174,3 +2174,9 @@ The ID ranges are:
 - **Code**: ANN001
 - **Sin**: Untyped `monkeypatch` fixture parameter.
 - **Penance**: As CONF-472.
+
+### CONF-486
+- **File**: [examples/shared/notify_toast.py](../examples/shared/notify_toast.py#L122)
+- **Code**: S603
+- **Sin**: `subprocess.run(argv, ...)` — the single notification invocation, reached on every backend.
+- **Penance**: FR-1030. `argv[0]` is one of three module constants (`osascript`, `powershell.exe`, `notify-send`) selected by `sys.platform`, never by caller input; `shell=False`; a finite `TIMEOUT_SECONDS`; the exit status is checked and a non-zero code raises. Caller text reaches the child only as later argv elements or as environment, and the AppleScript/PowerShell sources are frozen constants asserted byte-identical against hostile payloads by `tests/unit/test_shared_notify_toast.py` (REQ-YG-672).

@@ -1,0 +1,32 @@
+# Tool manifest (FR-768) — shared desktop-toast tool (FR-1030, CAP-268).
+# First committed manifest consumer: examples/demos/hello (FR-1030).
+#
+# Contract: send_toast(subject-free) -> {"submitted": True, "backend": ...}
+#   send_toast(title, message)
+#   title:   notification headline; travels as argv (macOS/Linux) or as the
+#            child env var YG_TOAST_TITLE (Windows). Never interpolated.
+#   message: notification body; same transport as title.
+# Backend is chosen from sys.platform: darwin -> osascript, win32 ->
+#   powershell.exe driving WinRT ToastNotificationManager, linux ->
+#   notify-send. Any other platform raises ToastError naming the supported
+#   set BEFORE a subprocess is spawned.
+# "submitted" is not "delivered": a zero exit proves the OS notification
+#   facility accepted the request, not that a human saw it. Notification
+#   settings, Focus Assist, and daemon policy can all suppress presentation
+#   after a successful submission.
+# Prerequisites differ per platform and are NOT all in-box: macOS needs an
+#   interactive session; Windows needs 10.0.10240+ and an interactive
+#   desktop; Linux needs notify-send (libnotify, not guaranteed installed),
+#   a graphical session, and a running notification daemon.
+# Every failure raises ToastError — unsupported platform, blank input,
+#   missing binary, non-zero exit, timeout. There is no success-shaped
+#   return on any path; the tool_call node owns the error envelope, and a
+#   graph that wants to tolerate a missing notifier says so with on_error.
+# It is transport only: composing the title and message belongs to the
+#   caller.
+name: send_toast
+description: "Submit a native desktop notification (macOS, Windows, Linux)"
+runtime:
+  type: python
+  module: examples.shared.notify_toast
+  function: send_toast
