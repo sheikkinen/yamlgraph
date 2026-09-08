@@ -2,14 +2,14 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Judged — APPROVED WITH REVISIONS 2026-09-07; R-1..R-5 folded
+**Status:** Completed — enforced 2026-09-07 (RED 6f40af69 → GREEN 35efd265 on the arc branch; cherry-picked to this PR), live witness passed; judged APPROVED WITH REVISIONS 2026-09-07; R-1..R-5 folded
 2026-09-07; see [FR-1028-graph-run-provider-model-override.judgement.md](FR-1028-graph-run-provider-model-override.judgement.md)
 **Effort:** 0.5 days
 **Requested:** 2026-09-07
 **First consumer / first event:** `scripts/research.sh` (FR-890 sole route) on
 2026-09-07, blocked by a 401 from the Anthropic key while Azure and OpenAI
 credentials in the same `.env` are valid — the operator chose "run on another
-provider" over waiting for key rotation (FR-1027 § Decisions, item 4)
+provider" over waiting for key rotation (FR-1029 § Decisions, item 4)
 **Research:** in-body dispositioned record (§ Research Record) — the research
 sole route is the blocked consumer, so it cannot be the research producer
 for its own unblock (FR-890 R-6 equivalent record; substance per judgement
@@ -51,7 +51,7 @@ keys in the same file were valid. There is no runtime override: `graph run`
 offers `--var`, `--var-file`, `--tool` but no provider/model flag, and no
 environment variable is consulted by `compile/graph_loader.py` (line 67:
 `config.get("provider") or self.defaults.get("provider")`). The only routes
-were editing the committed graph or waiting on key rotation. FR-1027's
+were editing the committed graph or waiting on key rotation. FR-1029's
 research record was blocked by this.
 
 ## Ideal Result
@@ -103,38 +103,38 @@ ignores `--provider anthropic` entirely.
 
 ## Acceptance Criteria (judgement AC-01..AC-12, frozen)
 
-- [ ] AC-01: parser tests — `graph run` accepts optional `--provider` /
+- [x] AC-01: parser tests — `graph run` accepts optional `--provider` /
       `--model`; both `None` when omitted.
-- [ ] AC-02 (RED first): loader test — root graph with declared defaults
+- [x] AC-02 (RED first): loader test — root graph with declared defaults
       resolves an explicit pair; the parsed source mapping and a second
       unoverridden load retain the YAML values.
-- [ ] AC-03: provider-only and model-only each replace only the named root
+- [x] AC-03: provider-only and model-only each replace only the named root
       default.
-- [ ] AC-04: factory-mocked — defaults-only `type: llm` AND `type: agent`
+- [x] AC-04: factory-mocked — defaults-only `type: llm` AND `type: agent`
       nodes both receive the overridden pair.
-- [ ] AC-05: explicit provider/model pins win independently on both node
+- [x] AC-05: explicit provider/model pins win independently on both node
       kinds; a mixed-pin fixture (one field pinned) proves the unpinned field
       inherits its overridden default.
-- [ ] AC-06: graph-tool child fixture — root override is not forwarded to
+- [x] AC-06: graph-tool child fixture — root override is not forwarded to
       the child graph.
-- [ ] AC-07: no-flag `graph run` unchanged; `graph lint` ignores runtime flags.
-- [ ] AC-08: shell tests — `research.sh` forwards nothing when both vars
+- [x] AC-07: no-flag `graph run` unchanged; `graph lint` ignores runtime flags.
+- [x] AC-08: shell tests — `research.sh` forwards nothing when both vars
       unset, both flags in stable order when both set, exits 64 before the
       executor when exactly one is set.
-- [ ] AC-09: wrapper inserts exactly one `- provider/model:` line before
+- [x] AC-09: wrapper inserts exactly one `- provider/model:` line before
       verification; verifier accepts one valid line and legacy artifacts,
       rejects empty / duplicate / malformed.
-- [ ] AC-10: live — `RESEARCH_PROVIDER=azure RESEARCH_MODEL=<deployment>
+- [x] AC-10: live — `RESEARCH_PROVIDER=azure RESEARCH_MODEL=<deployment>
       scripts/research.sh feature-requests/research-briefs/org-ai-dossier.md`
       completes all personas, header carries the exact pair, verification
-      passes, promoted to `feature-requests/FR-1027.research.md`; no
+      passes, promoted to `feature-requests/FR-1029.research.md`; no
       credential or private org identifier in the artifact (C-6).
-- [ ] AC-11: tests tagged `@pytest.mark.req("REQ-YG-671")`;
+- [x] AC-11: tests tagged `@pytest.mark.req("REQ-YG-671")`;
       `capabilities/CAP-267-graph-run-provider-model-override.yaml`;
       `ARCHITECTURE.md` row; `python scripts/req_coverage.py --strict` green.
-      (IDs checked free on main and all remote branches 2026-09-07; FR-1027
+      (IDs checked free on main and all remote branches 2026-09-07; the dossier FR (now FR-1029)
       holds REQ-YG-670 / CAP-266.)
-- [ ] AC-12: changelog fragment; § Implementation Record below filled; diary
+- [x] AC-12: changelog fragment; § Implementation Record below filled; diary
       Distill entry with `Seed:`.
 
 Test files: `tests/unit/test_fr1028_provider_model_override.py` (AC-01..07),
@@ -189,7 +189,7 @@ solution classes, positions, precedent, and the preserved FR-231 conflict.
 
 ## Related
 
-- [FR-1027](FR-1027-org-ai-dossier-census.md) — blocked consumer
+- FR-1029 (org AI dossier) — blocked consumer; Shelved in this repo, FR + research record on archived branch `feat/fr1027-org-ai-dossier`
 - [FR-890](FR-890-research-sole-route-closed-input-alternatives.md) research sole route;
   [scripts/research.sh](../scripts/research.sh);
   [examples/demos/research-route/graph.yaml](../examples/demos/research-route/graph.yaml)

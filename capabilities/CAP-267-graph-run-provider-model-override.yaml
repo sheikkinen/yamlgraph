@@ -13,7 +13,7 @@ description: >
   half-set exits 64 before the executor) and atomically stamps exactly one
   `- provider/model: <provider>/<model>` header line into the draft
   artifact before verification; research_preflight.py --verify-artifact
-  validates that optional line. Motivation: FR-1027's research run was
+  validates that optional line. Motivation: FR-1029's research run was
   blocked by a dead Anthropic key while Azure credentials were valid
   (2026-09-07).
 modules:

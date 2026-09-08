@@ -89,3 +89,10 @@ Authority granted: after R-1 through R-5 are folded and human-reviewed, implemen
 ---
 **Prior art:** inherits the FR-1028 prior-art disposition (FR-119, FR-263, FR-071/230, FR-231 reconciled per R-2).
 **Folded:** 2026-09-07 by the operator session from `tmp/draft-judgement-copilot-FR-1028-*.md` (backend copilot, gpt-5.6-sol); R-1..R-5 folded into the FR the same day. Advisory until human-reviewed.
+**Renumbering note (2026-09-08):** the blocked consumer this judgement calls
+"FR-1027" was renumbered to **FR-1029** (org AI dossier) after a parallel
+session merged an unrelated FR-1027 (recap pull-request axis, #637) to main
+first. Read every `FR-1027` above as FR-1029; the FR itself has been updated.
+FR-1029 is Shelved in this repo — its implementation moved to a private
+YAMLGraph consumer — so `FR-1029.research.md` lives on the archived branch
+`feat/fr1027-org-ai-dossier`, not on main.
