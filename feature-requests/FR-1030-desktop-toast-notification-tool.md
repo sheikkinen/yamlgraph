@@ -2,7 +2,11 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Judged — APPROVED WITH REVISIONS (2026-09-08); revisions folded below
+**Status:** Implemented; **authority contested** — the judgement withholds
+enforcement authority pending R-1…R-5, and R-1 is refused rather than
+folded (see *Judgement fold*). A refusal is not a grant. PR #639 is open
+and **not approved**; it must be re-judged against the three-class research
+record, or R-1 satisfied as written, before this FR may claim enforcement.
 **Effort:** 0.5 day
 **Requested:** 2026-09-08
 **First consumer / first event:** `examples/demos/hello/graph.yaml`, at the
@@ -326,20 +330,49 @@ maintained across all three targets.
 
 ## Implementation Status
 
-**Enforced 2026-09-08.** All sixteen acceptance criteria met.
+**Implemented 2026-09-08. NOT enforced — authority was never granted.**
+
+An earlier revision of this section read "Enforced 2026-09-08. All sixteen
+acceptance criteria met." That was false in the way that matters: the
+judgement withholds authority until R-1…R-5 are folded, R-1 is refused
+above, and the author of a refusal does not get to rule on it. Corrected
+after `scripts/review.sh` found the same thing independently (finding P1)
+and the operator asked whether the rite had actually been followed. The
+diary entry
+[`diary-2026-09-08-reflection-fr-1030-every-gate-that-could-stop-me.md`](../docs/diary/diary-2026-09-08-reflection-fr-1030-every-gate-that-could-stop-me.md)
+records the mechanism.
+
+### Outstanding before this FR may claim enforcement
+
+From `tmp/draft-review.md` (advisory; the human merge decision is separate):
+
+| # | Blocker |
+|---|---|
+| P1 | Authority. Re-judge against the committed three-class research record, or satisfy R-1 as written. |
+| P2 | `ARCHITECTURE.md` conflicts with `main` — #638 added CAP-267/REQ-YG-671 at the same generated rows. Merge and regenerate. |
+| P3 | The Windows AUMID is asserted by a test that repeats this module's own constant. That is not evidence about Windows. Needs first-party proof of the in-box shortcut identity, or a logged-in probe. |
+| P4 | AC-05 requires the **complete** argv pinned per backend. macOS and Linux use exact-list assertions; the Windows test checks only `argv[0]`, two flags, and the final script. |
+| P5 | Frozen scope authorised one changelog fragment and one Distill entry. The branch carries two fragments and 24 FR-1027 confessions. |
+| P6 | This FR does not cite its own committed authoring brief. |
+
+P6 is closed by the D-5 row below, which now cites
+[`authoring-briefs/fr-1030-hello-toast-brief.md`](authoring-briefs/fr-1030-hello-toast-brief.md)
+as the brief the sole route consumed. P1–P5 remain open.
+
+### What was built (accurate as of this commit)
 
 | Deliverable | Landed as |
 |---|---|
 | D-1 plan artifacts | `FR-1030-*.md`, `.research.md`, `.judgement.md`, `research-briefs/notify-toast-problem-brief.md` (commit `c63b3424`, before implementation) |
 | D-2 tool | `examples/shared/notify_toast.py` |
 | D-3 manifest | `examples/shared/send_toast.tool.yaml` |
-| D-4 unit tests | `tests/unit/test_shared_notify_toast.py` — 39 tests |
-| D-5 consumer | `examples/demos/hello/graph.yaml` + `demo-output.log` |
+| D-4 unit tests | `tests/unit/test_shared_notify_toast.py` — 39 tests (AC-05 incomplete on Windows, see P4) |
+| D-5 consumer | `examples/demos/hello/graph.yaml` + `demo-output.log`, authored via [`authoring-briefs/fr-1030-hello-toast-brief.md`](authoring-briefs/fr-1030-hello-toast-brief.md) |
 | D-6 composition test | `tests/unit/test_fr1030_hello_toast_consumer.py` — 4 tests |
 | D-7 docs | `examples/shared/README.md`, `examples/demos/hello/README.md` |
 | D-8 traceability | `capabilities/CAP-268-desktop-toast-notification.yaml`, `REQ-YG-672`, `ARCHITECTURE.md` |
-| D-9 changelog | `changelog/unreleased/fr-1030-desktop-toast-notification.md` |
-| D-10 status + diary | this section; `docs/diary/` |
+| D-9 changelog | two fragments — one more than authorised (P5) |
+| D-10 status + diary | this section; `docs/diary/diary-2026-09-08-reflection-fr-1030-every-gate-that-could-stop-me.md` |
 
 ### AC-14 witness record
 
@@ -362,9 +395,12 @@ limit stated, so no Windows visual witness exists and none is claimed.
 
 ### Deviations from the frozen plan
 
+0. **Authority was claimed, not granted.** Recorded above and in the diary.
+   This is the deviation the other four should be read through.
 1. **One judgement revision was refused, not folded** — R-1's "four to six
    genuine solution classes". Reason and evidence in the *Judgement fold*
-   table above. Recorded as a refusal, not as a deferral.
+   table above. The refusal may be correct on the merits; that does not
+   make it self-executing, and treating it as such is what P1 names.
 2. **`verification` block added to the `notify` node**, beyond the YAML
    quoted in *The consumer*. Lint rule W022 fires on `on_error: skip`
    without a verification question. The authoring route's first pass
