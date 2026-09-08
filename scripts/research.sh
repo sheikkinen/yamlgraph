@@ -17,6 +17,14 @@ fail() { echo "research.sh: $1" >&2; exit "$2"; }
 [ -n "$BRIEF_PATH" ] || fail "usage: scripts/research.sh <problem-brief.md>" 64
 [ -f "$BRIEF_PATH" ] || fail "problem brief not found: $BRIEF_PATH" 66
 
+# FR-1028: provider/model override is a PAIR — both or neither.
+OVERRIDE=()
+if [ -n "${RESEARCH_PROVIDER:-}" ] || [ -n "${RESEARCH_MODEL:-}" ]; then
+  { [ -n "${RESEARCH_PROVIDER:-}" ] && [ -n "${RESEARCH_MODEL:-}" ]; } \
+    || fail "RESEARCH_PROVIDER and RESEARCH_MODEL must be set together (got provider='${RESEARCH_PROVIDER:-}' model='${RESEARCH_MODEL:-}')" 64
+  OVERRIDE=(--provider "$RESEARCH_PROVIDER" --model "$RESEARCH_MODEL")
+fi
+
 # Lineage sentinel (re-entry guard, mechanical layer):
 if [ -n "${RESEARCH_EXECUTION:-}" ]; then
   fail "you are inside a research execution — produce the findings, do not re-invoke" 70
@@ -60,11 +68,18 @@ else
 fi
 
 # Sole route: the graph researches; sentinel exported for the child only.
-RESEARCH_EXECUTION=1 "${YG[@]}" graph run "$GRAPH" --var "brief_path=$BRIEF_PATH" --full
+RESEARCH_EXECUTION=1 "${YG[@]}" graph run "$GRAPH" --var "brief_path=$BRIEF_PATH" \
+  ${OVERRIDE[@]+"${OVERRIDE[@]}"} --full
 GRAPH_RC=$?
 
 # Artifact contract: verify by schema/shape, never exit code (AC-08).
 [ -s "$ARTIFACT" ] || fail "contract violated (graph rc=$GRAPH_RC): $ARTIFACT missing or empty — tmp/draft-alternatives.md is the proof of research" 65
+
+# FR-1028: the wrapper (not the graph) stamps provenance, atomically, before verification.
+if [ ${#OVERRIDE[@]} -gt 0 ]; then
+  { head -n 1 "$ARTIFACT"; echo "- provider/model: $RESEARCH_PROVIDER/$RESEARCH_MODEL"; tail -n +2 "$ARTIFACT"; } > "$ARTIFACT.tmp" \
+    && mv "$ARTIFACT.tmp" "$ARTIFACT" || fail "could not stamp provenance into $ARTIFACT" 65
+fi
 "$PYBIN" "$(dirname "$0")/research_preflight.py" --verify-artifact "$ARTIFACT" \
   || fail "contract violated (graph rc=$GRAPH_RC): $ARTIFACT fails the frozen schema" 65
 
