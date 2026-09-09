@@ -15,7 +15,7 @@ from pathlib import Path
 import pytest
 import yaml
 
-from examples.demos.corpus_census.adapters.corpus_adapters import (
+from examples.demos.corpus_census.adapters.markdown_adapters import (
     MD_MAX_CHARS,
     MD_MAX_ITEMS,
     MarkdownItemRef,
@@ -214,7 +214,7 @@ def test_identity_is_checked_before_decoding(tmp_path):
 def test_manifest_declares_python_runtime(manifest, function):
     spec = yaml.safe_load((ADAPTER_DIR / manifest).read_text(encoding="utf-8"))
     assert spec["runtime"]["type"] == "python"
-    assert spec["runtime"]["path"] == "corpus_adapters.py"
+    assert spec["runtime"]["path"] == "markdown_adapters.py"
     assert spec["runtime"]["function"] == function
 
 
@@ -234,8 +234,13 @@ def test_manifests_resolve_through_slot_binding_and_chain(tmp_path):
         Path("."),
     )
 
-    assert resolved["discover"]["slot"] is not True, "slot must be replaced"
-    assert resolved["extract"]["runtime"]["function"] == "md_extract"
+    # Resolution flattens the manifest's runtime block into the tool entry
+    # and drops the slot declaration entirely.
+    assert "slot" not in resolved["discover"], "the slot declaration is replaced"
+    assert resolved["discover"]["type"] == "python"
+    assert resolved["discover"]["function"] == "md_discover"
+    assert resolved["extract"]["function"] == "md_extract"
+    assert Path(resolved["extract"]["path"]).name == "markdown_adapters.py"
 
     _write(tmp_path, "one.md", "first rule")
     _write(tmp_path, "two.md", "second rule")

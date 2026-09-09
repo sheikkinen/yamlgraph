@@ -1,0 +1,6 @@
+name: md-discover
+description: "FR-1033 bounded local-Markdown census adapter: md_discover"
+runtime:
+  type: python
+  path: markdown_adapters.py
+  function: md_discover
