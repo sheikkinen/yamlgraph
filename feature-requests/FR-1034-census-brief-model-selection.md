@@ -226,3 +226,24 @@ related tests, no regressions.
   `load_graph_config` requires slot bindings and returns a `GraphConfig` whose
   nodes are reached as `.nodes`, not by subscript; `render_brief` returns
   `{"brief": {...}}` and requires a `ledger` mapping with `jsonl_path`.
+
+## Known limitation found during enforcement (2026-09-09)
+
+The `synthesize` node hardcodes `temperature: 0.0` (`graph.yaml:134`). Claude
+Sonnet 5 **rejects** `temperature` with
+`400 invalid_request_error: temperature is deprecated for this model`, so the
+otherwise-obvious pairing — a cheap map plus a Sonnet-5 brief — fails at the
+provider even though selection works correctly. The demo proof therefore pairs
+`inception/mercury-2.5` with `anthropic/claude-haiku-4-5`, which differ in both
+provider and model and exercise the feature fully.
+
+Removing or making the temperature conditional is a further material
+`graph.yaml` change and is **not** authorized here. It is the natural successor
+FR: independent model selection is only half-useful while the sampling
+parameter constrains which models may be selected.
+
+This was caught by the CI demo-proof gate, not by me. A first demo run reported
+`EXIT=0` because the exit status read was the redirect's, not the executor's;
+the log contained the 400 and I did not read past the two lines confirming
+model selection. `read_raw_output_first` applies to a run log, and I had
+written that sentence into a diary entry an hour earlier.
