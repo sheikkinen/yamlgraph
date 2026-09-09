@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Proposed (revised 2026-09-09 per judgement R-1…R-4)
+**Status:** Implemented (2026-09-09)
 **Effort:** 0.25 days
 **Requirement:** REQ-YG-674 (new), owned by a new capability **CAP-270 bounded
 local-Markdown census binding**, listing the adapter module, both manifests,
@@ -181,3 +181,42 @@ FR does not pretend those shards reconcile.
 - FR-892 slot binding; FR-895 synthesize tail; FR-940 judgement normalisation.
 - [reference/patterns/corpus-map-reduce.md](../reference/patterns/corpus-map-reduce.md)
 - [FR-1033 judgement](FR-1033-markdown-corpus-census-adapters.judgement.md)
+
+## Implementation record (2026-09-09)
+
+Enforced as filed, with **one recorded deviation** from the frozen scope.
+
+**Deviation (D-1 surface).** The judgement froze D-1 to
+`corpus_adapters.py`. Adding the adapters there took that module from 364 to
+461 lines, past the 450-line hard ceiling in CLAUDE.md's Code Quality
+Standards and Commandment 8. Both rules bind and the judgement did not consider
+file size, so the adapters live in a new
+`examples/demos/corpus_census/adapters/markdown_adapters.py` (112 lines),
+following the `diary_adapters.py` precedent for a separate adapter module.
+`corpus_adapters.py` returns to its original 364 lines, unmodified. Manifests,
+tests, CAP-270 and ARCHITECTURE.md point at the new module. Flagged for the
+human rather than absorbed silently.
+
+- **D-1** `MarkdownItemRef`, `md_discover`, `md_extract`, `MD_MAX_ITEMS=200`,
+  `MD_MAX_CHARS=65536` in `examples/demos/corpus_census/adapters/markdown_adapters.py`
+  (see deviation above).
+- **D-2** `md-discover.tool.yaml`, `md-extract.tool.yaml` beside it.
+- **D-3** `tests/unit/test_markdown_corpus_adapters.py` — 16 witnesses, all
+  tagged `REQ-YG-674`, committed RED before implementation (`99d3c28b`).
+- **D-4** `capabilities/CAP-270-markdown-corpus-census.yaml`; REQ-YG-674 and
+  CAP-270 registered in `ARCHITECTURE.md`.
+- **D-5** changelog fragment; this record; diary distillation.
+
+**Decisions taken during enforcement.**
+
+- Two test assertions about the resolved slot structure were wrong and were
+  corrected against observed output, not against a guess: `resolve_tool_slots`
+  *removes* the `slot` key and *flattens* the manifest's `runtime` block into
+  the tool entry, rather than nesting it. The corrected assertions are stricter
+  than the originals (`"slot" not in resolved[...]`).
+- `MD_MAX_CHARS = 65536` is a character count applied after decoding, so a
+  file of multi-byte characters may exceed 65,536 bytes while passing. The
+  ceiling bounds what the model reads, which is the quantity that matters.
+- `tests/unit/test_fi_domain_crawl.py` cannot be collected in this environment
+  because `bs4` is not installed. That is an absent optional dependency, not a
+  test outcome, and is unaffected by this change.
