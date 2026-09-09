@@ -14,6 +14,7 @@ from pathlib import Path
 import pytest
 
 from examples.demos.corpus_census.brief_model_selection import (
+    effective_pair,
     resolve_brief_llm,
 )
 
@@ -21,6 +22,7 @@ from examples.demos.corpus_census.brief_model_selection import (
 pytestmark = pytest.mark.process
 
 DEMO = Path("examples/demos/corpus_census")
+BASE = {"provider": "inception", "model": "mercury-2.5"}
 
 
 def _ledger(tmp_path: Path) -> Path:
@@ -47,7 +49,6 @@ def _state(tmp_path: Path, brief_model: str, *, accepted: bool) -> dict:
         "brief_input": rows,
         "ledger": {"jsonl_path": str(_ledger(tmp_path))},
     }
-BASE = {"provider": "inception", "model": "mercury-2.5"}
 
 
 # --- AC-01..04: independent fallback -------------------------------------
@@ -55,7 +56,7 @@ BASE = {"provider": "inception", "model": "mercury-2.5"}
 
 @pytest.mark.req("REQ-YG-675")
 def test_no_override_returns_the_base_pair():
-    assert resolve_brief_llm(dict(BASE)) == {
+    assert effective_pair(dict(BASE)) == {
         "provider": "inception",
         "model": "mercury-2.5",
     }
@@ -64,7 +65,7 @@ def test_no_override_returns_the_base_pair():
 @pytest.mark.req("REQ-YG-675")
 def test_both_overrides_are_used():
     state = {**BASE, "brief_provider": "anthropic", "brief_model": "claude-sonnet-5"}
-    assert resolve_brief_llm(state) == {
+    assert effective_pair(state) == {
         "provider": "anthropic",
         "model": "claude-sonnet-5",
     }
@@ -73,7 +74,7 @@ def test_both_overrides_are_used():
 @pytest.mark.req("REQ-YG-675")
 def test_model_only_override_keeps_base_provider():
     state = {**BASE, "brief_model": "claude-sonnet-5"}
-    assert resolve_brief_llm(state) == {
+    assert effective_pair(state) == {
         "provider": "inception",
         "model": "claude-sonnet-5",
     }
@@ -82,7 +83,7 @@ def test_model_only_override_keeps_base_provider():
 @pytest.mark.req("REQ-YG-675")
 def test_provider_only_override_keeps_base_model():
     state = {**BASE, "brief_provider": "anthropic"}
-    assert resolve_brief_llm(state) == {
+    assert effective_pair(state) == {
         "provider": "anthropic",
         "model": "mercury-2.5",
     }
@@ -93,13 +94,13 @@ def test_provider_only_override_keeps_base_model():
 def test_blank_override_counts_as_absent(blank):
     """A blank value must not become a model literally named empty."""
     state = {**BASE, "brief_provider": blank, "brief_model": blank}
-    assert resolve_brief_llm(state) == dict(BASE)
+    assert effective_pair(state) == dict(BASE)
 
 
 @pytest.mark.req("REQ-YG-675")
 def test_override_values_are_trimmed():
     state = {**BASE, "brief_model": "  claude-sonnet-5  "}
-    assert resolve_brief_llm(state)["model"] == "claude-sonnet-5"
+    assert effective_pair(state)["model"] == "claude-sonnet-5"
 
 
 @pytest.mark.req("REQ-YG-675")
@@ -107,14 +108,27 @@ def test_override_values_are_trimmed():
 def test_missing_base_value_raises(missing):
     state = {k: v for k, v in BASE.items() if k != missing}
     with pytest.raises(ValueError, match=missing):
-        resolve_brief_llm(state)
+        effective_pair(state)
 
 
 @pytest.mark.req("REQ-YG-675")
 @pytest.mark.parametrize("blank", ["", "   "])
 def test_blank_base_value_raises(blank):
     with pytest.raises(ValueError, match="provider"):
-        resolve_brief_llm({**BASE, "provider": blank})
+        effective_pair({**BASE, "provider": blank})
+
+
+@pytest.mark.req("REQ-YG-675")
+def test_tool_entry_returns_the_update_keyed_by_state_key():
+    """Census python tools return {state_key: value}.
+
+    Returning the bare pair left brief_llm unset and synthesize silently fell
+    back to the graph defaults — a run that looked successful and used the
+    wrong model. Caught only by a live run, so it is pinned here.
+    """
+    assert resolve_brief_llm(dict(BASE)) == {
+        "brief_llm": {"provider": "inception", "model": "mercury-2.5"}
+    }
 
 
 # --- AC-05: the compiled graph, not the YAML text ------------------------

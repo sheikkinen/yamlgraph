@@ -31,8 +31,8 @@ def _override(state: dict[str, Any], key: str) -> str | None:
     return value.strip()
 
 
-def resolve_brief_llm(state: dict[str, Any]) -> dict[str, str]:
-    """Return the provider/model the synthesis call should use.
+def effective_pair(state: dict[str, Any]) -> dict[str, str]:
+    """The provider/model the synthesis call should use.
 
     ``brief_provider`` and ``brief_model`` fall back **independently** to the
     base pair, so overriding only the model keeps the base provider.
@@ -43,6 +43,18 @@ def resolve_brief_llm(state: dict[str, Any]) -> dict[str, str]:
         "provider": _override(state, "brief_provider") or provider,
         "model": _override(state, "brief_model") or model,
     }
+
+
+def resolve_brief_llm(state: dict[str, Any]) -> dict[str, Any]:
+    """Tool entry point: return the update keyed by the node's ``state_key``.
+
+    Census python tools return ``{state_key: value}`` — ``reduce_ledger``
+    returns ``{"ledger": ...}``, ``prepare_brief_input`` returns
+    ``{"brief_input": ...}``. Returning the bare pair here silently left
+    ``brief_llm`` unset, and ``synthesize`` fell back to the graph defaults
+    with no error: the run looked successful and used the wrong model.
+    """
+    return {"brief_llm": effective_pair(state)}
 
 
 def resolved_brief_model(state: dict[str, Any]) -> str:

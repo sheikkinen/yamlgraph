@@ -1,0 +1,21 @@
+fix(census): FR-1034 resolver must return the keyed state update
+
+The demo run found the feature inert after twenty-three unit tests had gone
+green. Census python tools return {state_key: value} — reduce_ledger returns
+{"ledger": ...}, prepare_brief_input returns {"brief_input": ...}. The resolver
+returned the bare pair, so brief_llm was never set, {state.brief_llm.model}
+resolved to nothing, and the LLM node silently fell back to the graph defaults.
+The log shows Creating LLM: anthropic/claude-haiku-4-5 on a run that asked for
+claude-sonnet-5, with no error at any stage.
+
+Splits effective_pair (the pure fallback logic, tests unchanged) from
+resolve_brief_llm (the tool entry returning the keyed update), and pins the
+keyed shape with a test that says why it exists.
+
+Demo proof rerun with the split: inception/mercury-2.5 for the per-item calls,
+anthropic/claude-sonnet-5 for the synthesis, exit 0, both models in the log.
+
+Diary reflection names green_over_a_dead_wire: unit tests written by the change
+author encode the author's model of the interface, so a wrong model produces
+agreement rather than failure. Compounded here by a silent fallback, which made
+the composition error unable to announce itself even in principle.
