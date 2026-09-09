@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Proposed
+**Status:** Proposed (revised 2026-09-09 per judgement R-1…R-3)
 **Effort:** 0.25 days
 **Requirement:** REQ-YG-675 (new), added to **CAP-250 corpus-census synthesize
 tail**, which already owns this stage and lists `examples/demos/corpus_census`
@@ -23,7 +23,8 @@ binding whose live run produced the evidence.
 
 Let the census synthesis call use a different provider and model from the
 per-item judgement. One new optional pair of variables and a small resolver;
-absent them, every existing invocation behaves exactly as today.
+absent them, both calls receive the same pair as before and brief content
+and provenance are unchanged.
 
 ## Value Statement
 
@@ -62,8 +63,10 @@ is exactly what the run above hit: a pin would have survived the override.
 
 An operator picks the cheapest model that can do each stage. A cheap map and a
 capable synthesis are one invocation, not a choice between them. An operator
-who names nothing gets today's behaviour byte for byte, and the README says
-what is true.
+who names nothing gets the same provider and model on both calls as before,
+with unchanged brief content and provenance — not byte-identical returned
+state, since the resolver necessarily adds `brief_llm`. Every governed document
+says what is true, and a brief records the model that actually wrote it.
 
 ## Proposed Solution
 
@@ -71,9 +74,13 @@ Only the synthesis stage needs to differ; the map already works. Two new
 optional variables and one resolver keep the surface at half the obvious size.
 
 - New optional state: `brief_provider: str`, `brief_model: str`.
-- New shared tool `resolve_brief_llm` in `tools.py`, returning
-  `{"provider": ..., "model": ...}` — each field the caller's value when
-  non-empty, otherwise the existing `provider` / `model`.
+- New focused module `examples/demos/corpus_census/brief_model_selection.py`
+  holding `resolve_brief_llm`, returning exactly
+  `{"provider": str, "model": str}` — each field the caller's trimmed value
+  when non-empty, otherwise the existing `provider` / `model`, and raising when
+  either base value is absent or blank. **Not** `tools.py`: that file is
+  already exactly 450 lines, the repository's hard maximum, and FR-1033 set the
+  precedent of splitting rather than exceeding it.
 - New node `resolve_brief_llm` placed between `prepare_brief_input` and
   `synthesize`, `state_key: brief_llm`.
 - `synthesize` reads `provider: "{state.brief_llm.provider}"` and
@@ -83,13 +90,32 @@ Dotted access into a dict-valued state key is existing behaviour, not an
 assumption: `judge_items` already reads `{state.judged_content.value}` and
 `{state.judged_content._map_index}` (`graph.yaml:100-101`).
 
-A resolver node rather than a template fallback because **no fallback
-mechanism exists**: the state schema has no default support
-(`yamlgraph/compile/state_builder.py` — no `default` handling), and no graph in
-the repository expresses `{state.x or state.y}`. Verified, not assumed.
+A resolver node rather than a template fallback because no fallback mechanism
+exists in the state schema, and no graph in the repository expresses
+`{state.x or state.y}`. Omitted brief-specific variables are nonetheless valid
+because the generated state TypedDict is `total=False`
+(`yamlgraph/models/state_builder.py:174-213`).
 
-`README.md` is corrected in the same change: "pinned" becomes "default", with
-the override named.
+*Correction:* an earlier draft cited `yamlgraph/compile/state_builder.py`. That
+file does not exist; the empty grep that produced the claim was evidence of a
+missing path, not of a missing feature. The conclusion survives, the evidence
+did not.
+
+**Truthful brief provenance (R-2).** `render_brief` currently stamps
+`run_meta["model"]` from `state.model` — the *map* model
+(`tools.py:443-444`). Left alone, a successful override would write false
+provenance and break CAP-250's existing requirement that the brief carry the
+effective model. So one call-site change is in scope: `render_brief` reads the
+resolved model from `state.brief_llm.model` and writes that. A missing mapping
+or a blank field fails loudly; it never reverts to the map model after
+resolution. No citation-validation or `census_brief.py` change.
+
+**Documentation (R-3).** The false "pinned" claim lives in three governed
+places, not one: `README.md:18-28,75-83`,
+`capabilities/CAP-250-census-synthesize-tail.yaml:4-11`, and
+`ARCHITECTURE.md:3091-3101`. All three are corrected, and REQ-YG-633's claim
+that judge and synthesis are selected together through one `model` variable is
+revised so it stays historically accurate once REQ-YG-675 exists.
 
 **Material `graph.yaml` change**, so enforcement goes through the sole
 graph-authoring route and retains its authoring report.
@@ -114,17 +140,29 @@ tagged `@pytest.mark.req("REQ-YG-675")`.
    boundary: the judge stage and the synthesis stage receive **different**
    model identifiers when the brief pair is supplied, and identical ones when
    it is not.
-7. `README.md` no longer describes the synthesis model as pinned; a test or
-   grep-based witness asserts the corrected wording, since the false claim is
-   the defect.
-8. Wiring: `REQ-YG-675` added to `CAP-250` and `ARCHITECTURE.md`; `FR-1034`
-   added to CAP-250's `fr:` list; changelog fragment; FR implementation record;
-   authoring report for the `graph.yaml` change; diary distillation.
+7. Accepted-brief provenance: with a brief override supplied, `run_meta["model"]`
+   in the rendered artifact equals the effective brief model, not the map model.
+8. Rejected-brief provenance: the same holds for the `*.REJECTED.md` artifact,
+   which renders the supplied metadata verbatim.
+9. With no override, provenance equals the existing model — the current
+   behaviour is preserved, not merely unbroken.
+10. `render_brief` raises when `brief_llm` is absent or either field is blank;
+    it never falls back to the map model after resolution.
+11. Documentation wording is asserted at each named location, not by an
+    unrestricted repository grep: `README.md`,
+    `capabilities/CAP-250-census-synthesize-tail.yaml`, and `ARCHITECTURE.md`
+    no longer describe the synthesis model as pinned or as sharing one variable.
+12. REQ-YG-633's wording is revised to stay historically accurate alongside
+    REQ-YG-675.
+13. Wiring: `REQ-YG-675` added to `CAP-250` and `ARCHITECTURE.md`; `FR-1034`
+    added to CAP-250's `fr:` list; changelog fragment; FR implementation record;
+    authoring report for the `graph.yaml` change; diary distillation.
 
 **Not authorized:** per-stage selection for any node other than `synthesize`;
-changes to `judge_items`, the reducer, the ledger, or the citation boundary;
-new CLI flags; retry or fallback logic on provider errors; touching the
-adapters.
+changes to `judge_items`, the reducer, the ledger, the citation boundary, or
+`census_brief.py`; moving or rewriting existing `tools.py` responsibilities
+beyond the one `render_brief` provenance line; new CLI flags; retry or fallback
+logic on provider errors; touching the adapters.
 
 ## Research: solution classes
 
