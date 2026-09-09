@@ -43,3 +43,21 @@ def resolve_brief_llm(state: dict[str, Any]) -> dict[str, str]:
         "provider": _override(state, "brief_provider") or provider,
         "model": _override(state, "brief_model") or model,
     }
+
+
+def resolved_brief_model(state: dict[str, Any]) -> str:
+    """The model that actually produced the brief (REQ-YG-675).
+
+    Never falls back to ``state["model"]``: that is the per-item map model, and
+    stamping it would label a brief with a model that did not write it.
+    """
+    brief_llm = state.get("brief_llm")
+    if not isinstance(brief_llm, dict):
+        raise ValueError(
+            "render_brief: brief_llm must be a mapping resolved by "
+            "resolve_brief_llm before synthesis"
+        )
+    model = brief_llm.get("model")
+    if not isinstance(model, str) or not model.strip():
+        raise ValueError("render_brief: brief_llm.model is missing or blank")
+    return model.strip()

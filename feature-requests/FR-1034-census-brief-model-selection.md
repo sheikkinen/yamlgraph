@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Proposed (revised 2026-09-09 per judgement R-1…R-3)
+**Status:** Implemented (2026-09-09)
 **Effort:** 0.25 days
 **Requirement:** REQ-YG-675 (new), added to **CAP-250 corpus-census synthesize
 tail**, which already owns this stage and lists `examples/demos/corpus_census`
@@ -189,3 +189,40 @@ observed asks for that yet.
 
 - FR-895 synthesize tail; FR-940 judgement normalisation; FR-1033 the binding.
 - [docs/diary/2026-09-09-reflection-fr-1033-fail-closed-is-the-same-rule-three-times.md](../docs/diary/2026-09-09-reflection-fr-1033-fail-closed-is-the-same-rule-three-times.md)
+
+## Implementation record (2026-09-09)
+
+Enforced as filed after folding R-1..R-3. 23 witnesses, all passing; 237
+related tests, no regressions.
+
+- **graph.yaml** authored through the sole route (`scripts/author.sh` with
+  `feature-requests/authoring-briefs/fr-1034-census-brief-model-brief.md`);
+  report at `tmp/draft-authoring-report.md`, artifact verified, lint + compile
+  + fixture smoke passed. The diff is exactly the brief: two state inputs,
+  `brief_llm`, the tool declaration, the resolver node, `synthesize`'s two
+  selection fields, and the edge rewire.
+- **`brief_model_selection.py`** (63 lines) holds `resolve_brief_llm` and
+  `resolved_brief_model`.
+- **`tools.py`** ends at exactly 450 lines — see the deviation note below.
+- CAP-250 gains REQ-YG-675 and FR-1034; ARCHITECTURE.md registers the
+  requirement; README, CAP-250 and ARCHITECTURE.md no longer call the
+  synthesis model "pinned".
+
+**Deviations and decisions.**
+
+- **Worktree, not main.** `capabilities/` is OS-locked read-only on the main
+  checkout (FR-889), and `main_write.py` fences `chmod` against governed roots
+  precisely to stop an agent unlocking it. The CAP-250 edit was therefore made
+  in a worktree created by `scripts/worktree.sh new`. No lock was mutated.
+- **`tools.py` was at exactly 450 lines before this change.** A first attempt
+  put the provenance helper inline and reached 469. It now lives in
+  `brief_model_selection.py`, reached through the function-local import pattern
+  `tools.py` already uses for `census_brief`, and the newly unused
+  `SYNTHESIS_MODEL` constant was removed. Net zero; the ceiling holds.
+- **AC-07/08 both cover provenance**, accepted and rejected. The rejected path
+  needed covering because `emit_brief` renders the same metadata into the
+  `.REJECTED.md` artifact, so a false stamp would survive rejection.
+- **Test-shape corrections against observed output, not guesses**:
+  `load_graph_config` requires slot bindings and returns a `GraphConfig` whose
+  nodes are reached as `.nodes`, not by subscript; `render_brief` returns
+  `{"brief": {...}}` and requires a `ledger` mapping with `jsonl_path`.

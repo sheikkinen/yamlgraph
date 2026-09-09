@@ -8,6 +8,7 @@ provenance rule that a brief must name the model that actually wrote it.
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import pytest
@@ -20,6 +21,32 @@ from examples.demos.corpus_census.brief_model_selection import (
 pytestmark = pytest.mark.process
 
 DEMO = Path("examples/demos/corpus_census")
+
+
+def _ledger(tmp_path: Path) -> Path:
+    """A minimal reduced-ledger JSONL for render_brief to cite against."""
+    path = tmp_path / "ledger.jsonl"
+    row = {"item_ref": "doc-1", "label": "invariant-store", "count": 1}
+    path.write_text(json.dumps(row) + "\n", encoding="utf-8")
+    return path
+
+
+def _state(tmp_path: Path, brief_model: str, *, accepted: bool) -> dict:
+    """render_brief input. `accepted` picks the brief vs REJECTED artifact."""
+    rows = [{"item_ref": "doc-1", "label": "invariant-store", "count": 1}]
+    claims = (
+        [{"text": "Most files record invariants.", "citations": ["row:doc-1"]}]
+        if accepted
+        else []
+    )
+    return {
+        **BASE,
+        "brief_llm": {"provider": "anthropic", "model": brief_model},
+        "brief_path": str(tmp_path / "brief.md"),
+        "claims": {"claims": claims},
+        "brief_input": rows,
+        "ledger": {"jsonl_path": str(_ledger(tmp_path))},
+    }
 BASE = {"provider": "inception", "model": "mercury-2.5"}
 
 
@@ -97,8 +124,15 @@ def test_blank_base_value_raises(blank):
 def test_compiled_graph_routes_the_two_stages_separately():
     from yamlgraph.compile.graph_loader import load_graph_config
 
-    config = load_graph_config(str(DEMO / "graph.yaml"))
-    nodes = config["nodes"]
+    # The graph declares two slots; loading requires them bound, as the CLI does.
+    config = load_graph_config(
+        str(DEMO / "graph.yaml"),
+        tool_bindings={
+            "discover": str(DEMO / "adapters/md-discover.tool.yaml"),
+            "extract": str(DEMO / "adapters/md-extract.tool.yaml"),
+        },
+    )
+    nodes = config.nodes
 
     assert nodes["synthesize"]["provider"] == "{state.brief_llm.provider}"
     assert nodes["synthesize"]["model"] == "{state.brief_llm.model}"
@@ -119,33 +153,31 @@ def test_provenance_names_the_effective_brief_model(tmp_path):
     """An overridden brief must not be stamped with the map model."""
     from examples.demos.corpus_census.tools import render_brief
 
-    out = tmp_path / "brief.md"
-    state = {
-        **BASE,
-        "brief_llm": {"provider": "anthropic", "model": "claude-sonnet-5"},
-        "brief_path": str(out),
-        "claims": {"claims": []},
-        "brief_input": [],
-    }
-    result = render_brief(state)
+    result = render_brief(_state(tmp_path, "claude-sonnet-5", accepted=True))["brief"]
+    assert result["accepted"], result.get("errors")
     artifact = Path(result["artifact"]).read_text(encoding="utf-8")
     assert "claude-sonnet-5" in artifact
     assert "mercury-2.5" not in artifact, "the map model must not be stamped"
 
 
 @pytest.mark.req("REQ-YG-675")
+def test_rejected_artifact_also_names_the_effective_brief_model(tmp_path):
+    """The REJECTED artifact renders the same metadata and must be truthful."""
+    from examples.demos.corpus_census.tools import render_brief
+
+    result = render_brief(_state(tmp_path, "claude-sonnet-5", accepted=False))["brief"]
+    assert not result["accepted"]
+    assert result["artifact"].endswith(".REJECTED.md")
+    artifact = Path(result["artifact"]).read_text(encoding="utf-8")
+    assert "claude-sonnet-5" in artifact
+    assert "mercury-2.5" not in artifact
+
+
+@pytest.mark.req("REQ-YG-675")
 def test_provenance_unchanged_without_override(tmp_path):
     from examples.demos.corpus_census.tools import render_brief
 
-    out = tmp_path / "brief.md"
-    state = {
-        **BASE,
-        "brief_llm": {"provider": "inception", "model": "mercury-2.5"},
-        "brief_path": str(out),
-        "claims": {"claims": []},
-        "brief_input": [],
-    }
-    result = render_brief(state)
+    result = render_brief(_state(tmp_path, "mercury-2.5", accepted=True))["brief"]
     assert "mercury-2.5" in Path(result["artifact"]).read_text(encoding="utf-8")
 
 
@@ -162,6 +194,7 @@ def test_render_brief_fails_loudly_on_unresolved_model(tmp_path, brief_llm):
         "brief_path": str(tmp_path / "brief.md"),
         "claims": {"claims": []},
         "brief_input": [],
+        "ledger": {"jsonl_path": str(_ledger(tmp_path))},
     }
     if brief_llm is not None:
         state["brief_llm"] = brief_llm
