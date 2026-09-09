@@ -1,9 +1,9 @@
 id: CAP-250
 name: Corpus-census synthesize tail
-fr: FR-895, FR-940, FR-943
+fr: FR-895, FR-940, FR-943, FR-1034
 description: >
   The corpus-census pipeline ends in a human-readable brief: a bounded,
-  column-allowlisted synthesis input (top-N ledger rows), a single pinned
+  column-allowlisted synthesis input (top-N ledger rows), a single
   structured-claims LLM call, and an LLM-free citation boundary that
   validates every claim citation against the source artifact before
   rendering. Validation failure emits no brief — only a .REJECTED.md
@@ -45,3 +45,18 @@ requirements:
       structural impossibilities remain batch-fatal
     modules:
       - examples/demos/corpus_census
+  - id: REQ-YG-675
+    description: >
+      The synthesis call's provider and model are selected independently of
+      the per-item judgement call's: brief_provider and brief_model each fall
+      back to provider/model when absent or blank, independently of one
+      another, with values trimmed and a blank treated as absent; a missing or
+      blank base provider/model raises. render_brief stamps run_meta.model
+      from the resolved brief_llm.model and raises when that mapping or field
+      is absent or blank, never reverting to the per-item map model, so a
+      brief always names the model that produced it.
+    modules:
+      - examples/demos/corpus_census/brief_model_selection.py
+      - examples/demos/corpus_census/tools.py
+      - examples/demos/corpus_census/graph.yaml
+      - tests/unit/test_census_brief_model_selection.py

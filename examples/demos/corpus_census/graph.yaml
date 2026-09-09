@@ -20,6 +20,8 @@ state:
   rubric: str
   model: str
   provider: str
+  brief_provider: str
+  brief_model: str
   labels: str
   output_path: str
   items:
@@ -36,6 +38,7 @@ state:
   brief_input:
     type: list
   claims: dict
+  brief_llm: dict
   brief: dict
 
 tools:
@@ -57,6 +60,11 @@ tools:
     path: tools.py
     function: prepare_brief_input
     description: "Load reduced ledger JSONL and build bounded public-safe synthesis input."
+  resolve_brief_llm:
+    type: python
+    path: brief_model_selection.py
+    function: resolve_brief_llm
+    description: "Resolve the effective provider/model for the synthesis call."
   render_brief:
     type: python
     path: tools.py
@@ -113,11 +121,16 @@ nodes:
     tool: prepare_brief_input
     state_key: brief_input
 
+  resolve_brief_llm:
+    type: python
+    tool: resolve_brief_llm
+    state_key: brief_llm
+
   synthesize:
     type: llm
     prompt: synthesize_brief
-    provider: "{state.provider}"
-    model: "{state.model}"
+    provider: "{state.brief_llm.provider}"
+    model: "{state.brief_llm.model}"
     temperature: 0.0
     state_key: claims
     variables:
@@ -141,6 +154,8 @@ edges:
   - from: reduce_ledger
     to: prepare_brief_input
   - from: prepare_brief_input
+    to: resolve_brief_llm
+  - from: resolve_brief_llm
     to: synthesize
   - from: synthesize
     to: render_brief

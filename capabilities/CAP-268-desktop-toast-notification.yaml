@@ -1,0 +1,35 @@
+id: CAP-268
+name: Desktop Toast Notification Tool
+description: >
+  examples/shared/notify_toast.py exposes send_toast(title, message), which
+  submits a native desktop notification through the facility each OS already
+  provides: osascript on macOS (frozen AppleScript on stdin, text as argv),
+  powershell.exe driving WinRT ToastNotificationManager on Windows (frozen
+  script, text as child environment, XML built with CreateTextNode), and
+  notify-send on Linux (fixed argv after a -- terminator). Caller text is
+  never interpolated into a command string, script source, or markup. Every
+  invocation is shell=False with a checked exit status and a finite timeout.
+  Success returns {"submitted": True, "backend": ...} — submission, not
+  display. Unsupported platform, missing binary, non-zero exit, and timeout
+  all raise ToastError; no failure path returns a submitted-shaped mapping.
+  Declared via examples/shared/send_toast.tool.yaml (FR-768) and consumed by
+  examples/demos/hello. (FR-1030)
+modules:
+  - examples/shared/notify_toast.py
+  - examples/shared/send_toast.tool.yaml
+  - examples/demos/hello
+requirements:
+  - id: REQ-YG-672
+    description: >
+      Desktop toast notification: send_toast(title, message) dispatches on
+      sys.platform to osascript/powershell.exe/notify-send and returns
+      {"submitted": True, "backend": <name>}; caller text travels as argv or
+      child environment only, never inside the frozen script literals; every
+      invocation is shell=False with a finite timeout; unsupported platform
+      raises ToastError naming darwin/win32/linux before any subprocess, and
+      missing binary, non-zero exit, and timeout each raise ToastError.
+    modules:
+      - examples/shared/notify_toast.py
+      - examples/shared/send_toast.tool.yaml
+      - examples/demos/hello
+fr: FR-1030

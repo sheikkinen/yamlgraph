@@ -1,0 +1,34 @@
+id: CAP-270
+name: Bounded local-Markdown census binding
+fr: FR-1033
+description: >
+  Binds the FR-892 corpus-census pipeline to a bounded directory of Markdown
+  files. Both adapters fail closed rather than silently shrinking the result:
+  a directory over the graph's map ceiling raises instead of returning a
+  prefix, and a file over the character ceiling raises instead of being
+  truncated. Each item carries the byte identity (path, sha256, byte count)
+  frozen at discovery and re-verified before decoding, so a ledger row is
+  provably about the bytes that were judged rather than about a pathname.
+modules:
+  - examples/demos/corpus_census/adapters/markdown_adapters.py
+  - examples/demos/corpus_census/adapters/md-discover.tool.yaml
+  - examples/demos/corpus_census/adapters/md-extract.tool.yaml
+  - tests/unit/test_markdown_corpus_adapters.py
+requirements:
+  - id: REQ-YG-674
+    description: >
+      Bounded local-Markdown census adapters are fail-closed and
+      identity-verified: md_discover returns every *.md file in the named
+      directory sorted, or raises naming the observed count and the ceiling
+      when the population exceeds it, and never returns a prefix; each item
+      is a deterministically serialized reference carrying path, raw-byte
+      sha256 and raw-byte count; md_extract validates that reference, then
+      re-reads the bytes and raises a named error on byte-count or digest
+      mismatch BEFORE decoding; a decoded file over the character ceiling
+      raises naming path, count and ceiling rather than being truncated;
+      invalid UTF-8 decodes with replacement only after identity is verified.
+    modules:
+      - examples/demos/corpus_census/adapters/markdown_adapters.py
+      - examples/demos/corpus_census/adapters/md-discover.tool.yaml
+      - examples/demos/corpus_census/adapters/md-extract.tool.yaml
+      - tests/unit/test_markdown_corpus_adapters.py

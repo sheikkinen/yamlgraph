@@ -89,6 +89,8 @@ LIBRARIAN_KEY = "librarian_finding"
 MIN_ROWS = 4
 EXECUTED_HEADER = "- persona keys executed:"
 FAILED_HEADER = "- personas failed:"
+PROVENANCE_HEADER = "- provider/model:"
+PROVENANCE_RE = re.compile(r"^- provider/model: [a-z0-9_-]+/[A-Za-z0-9._:-]+$")
 
 URL_RE = re.compile(r"https?://\S+")
 
@@ -302,9 +304,54 @@ def _check_persona_accounting(text: str, row_count: int) -> list[str]:
     return [f"persona accounting: {msg}" for hit, msg in checks if hit]
 
 
+def _check_provenance(text: str) -> list[str]:
+    """FR-1028: optional `- provider/model:` header — at most one, well-formed."""
+    lines = [
+        ln.strip()
+        for ln in text.splitlines()
+        if ln.strip().startswith(PROVENANCE_HEADER)
+    ]
+    if not lines:
+        return []
+    if len(lines) > 1:
+        return [f"provider/model: {len(lines)} lines, expected at most one"]
+    if not PROVENANCE_RE.match(lines[0]):
+        return [f"provider/model: malformed line {lines[0]!r}"]
+    return []
+
+
+def _check_row(
+    row: list[str], header: list[str], idx: dict[str, int], prior_art_empty: bool
+) -> tuple[list[str], bool, bool]:
+    """Per-row checks → (violations, is_non_echo, is_librarian)."""
+    if len(row) < len(header):
+        return [f"short row: {row!r}"], False, False
+    violations = [
+        f"empty required cell {name!r} in row: {row!r}"
+        for name in COLUMNS
+        if not row[idx[name]]
+    ]
+    class_cell = CONVERGENT_SUFFIX.sub("", row[idx["class"]])
+    if class_cell and class_cell not in SOLUTION_CLASSES:
+        violations.append(f"unknown solution class: {class_cell!r}")
+    verdict = row[idx["verdict"]]
+    if verdict and verdict not in ARTIFACT_VERDICTS:
+        violations.append(f"unknown verdict: {verdict!r}")
+    librarian = is_librarian(row[idx["persona"]])
+    citation = row[idx["precedent"]]
+    if librarian:
+        if any(err in citation for err in ERROR_STRINGS):
+            violations.append(f"librarian citation is an error string: {citation!r}")
+        elif not URL_RE.search(citation):
+            violations.append(f"librarian citation carries no URL: {citation!r}")
+    else:
+        violations.extend(_check_precedent(citation, prior_art_empty))
+    return violations, verdict != "echo", librarian
+
+
 def verify_artifact(text: str) -> list[str]:
     """Return schema/shape violations for a draft-alternatives artifact."""
-    violations: list[str] = []
+    violations: list[str] = _check_provenance(text)
     header, rows = _table_rows(text)
 
     for column in COLUMNS:
@@ -322,31 +369,12 @@ def verify_artifact(text: str) -> list[str]:
     non_echo_rows = 0
     librarian_rows = 0
     for row in rows:
-        if len(row) < len(header):
-            violations.append(f"short row: {row!r}")
-            continue
-        for name in COLUMNS:
-            if not row[idx[name]]:
-                violations.append(f"empty required cell {name!r} in row: {row!r}")
-        class_cell = CONVERGENT_SUFFIX.sub("", row[idx["class"]])
-        if class_cell and class_cell not in SOLUTION_CLASSES:
-            violations.append(f"unknown solution class: {class_cell!r}")
-        verdict = row[idx["verdict"]]
-        if verdict and verdict not in ARTIFACT_VERDICTS:
-            violations.append(f"unknown verdict: {verdict!r}")
-        if verdict != "echo":
-            non_echo_rows += 1
-        if is_librarian(row[idx["persona"]]):
-            librarian_rows += 1
-            citation = row[idx["precedent"]]
-            if any(err in citation for err in ERROR_STRINGS):
-                violations.append(
-                    f"librarian citation is an error string: {citation!r}"
-                )
-            elif not URL_RE.search(citation):
-                violations.append(f"librarian citation carries no URL: {citation!r}")
-        else:
-            violations.extend(_check_precedent(row[idx["precedent"]], prior_art_empty))
+        row_violations, non_echo, librarian = _check_row(
+            row, header, idx, prior_art_empty
+        )
+        violations.extend(row_violations)
+        non_echo_rows += non_echo
+        librarian_rows += librarian
 
     # Distinct-class count is advisory (FR-896 R-2): convergence is
     # information, never a gate. The gate is non-echo grounding.

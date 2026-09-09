@@ -21,7 +21,9 @@ The pipeline ends in a human-readable brief: `brief_path` and
 `brief_rubric` are REQUIRED — `prepare_brief_input` fails loudly before
 any synthesis call when either is missing. The synthesis input is bounded
 (top-N ledger rows by weight) and restricted to a public-safe column
-allowlist; one pinned `claude-haiku-4-5` call emits structured claim
+allowlist; one structured-claims call — `claude-haiku-4-5` by default,
+independently selectable via `brief_provider`/`brief_model` (FR-1034) —
+emits structured claim
 blocks; the LLM-free citation boundary (`adapters/census_brief.py`)
 validates every citation against the ledger before rendering. On
 rejection NO brief is written — a `*.REJECTED.md` artifact carries the
@@ -79,5 +81,6 @@ The judge and synthesis model are caller-selectable:
 ```
 
 Defaults (unset or empty vars) fall back to the graph `defaults:`
-chain — `anthropic` / `claude-haiku-4-5`. Ledger and brief provenance
+chain — `anthropic` / `claude-haiku-4-5` by default; the synthesis call
+accepts its own `brief_provider`/`brief_model` (FR-1034). Ledger and brief provenance
 carry the effective model.
