@@ -1,46 +1,54 @@
-2026-09-09 06:26:47,850 [INFO] yamlgraph.compile.graph_loader: Parsed 5 Python tools: discover, extract, reduce_ledger, prepare_brief_input, render_brief
-2026-09-09 06:26:47,852 [INFO] yamlgraph.compile.node_compiler: Added node: discover (type=python)
-2026-09-09 06:26:47,855 [INFO] yamlgraph.compile.node_compiler: Added node: extract_items (type=map)
-2026-09-09 06:26:47,859 [INFO] yamlgraph.compile.node_compiler: Added node: judge_items (type=map)
-2026-09-09 06:26:47,863 [INFO] yamlgraph.compile.node_compiler: Added node: reduce_ledger (type=python)
-2026-09-09 06:26:47,867 [INFO] yamlgraph.compile.node_compiler: Added node: prepare_brief_input (type=python)
-2026-09-09 06:26:47,869 [INFO] yamlgraph.compile.node_compiler: Added node: synthesize (type=llm)
-2026-09-09 06:26:47,874 [INFO] yamlgraph.compile.node_compiler: Added node: render_brief (type=python)
-2026-09-09 06:26:47,913 [INFO] yamlgraph.route: {"event": "run", "run_id": "01a08434-3054-78b4-96c0-582c451f4afa", "artifact_hash": "sha256:1a054bec0ccf288bac58ef91c613adf9dad5f28542040ecaab16e9035ff79d34", "graph": "C:/src/yamlgraph/examples/demos/corpus_census/graph.yaml", "yamlgraph_version": "0.5.24", "thread_id": null, "started_at": "2026-09-09T03:26:47Z"}
-2026-09-09 06:26:48,134 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: discover -> discover
-2026-09-09 06:26:48,148 [INFO] yamlgraph.utils.llm_factory: Creating LLM: anthropic/claude-haiku-4-5 (temp=0.0)
-2026-09-09 06:26:53,168 [INFO] httpx2: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
-2026-09-09 06:26:53,194 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-09 06:26:54,034 [INFO] httpx2: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
-2026-09-09 06:26:54,037 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-09 06:26:54,129 [INFO] httpx2: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
-2026-09-09 06:26:54,131 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-09 06:26:54,132 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: reduce_ledger -> reduce_ledger
-2026-09-09 06:26:54,136 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: prepare_brief_input -> prepare_brief_input
-2026-09-09 06:27:03,770 [INFO] httpx2: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
-2026-09-09 06:27:03,773 [INFO] yamlgraph.node_factory.llm_nodes: Node synthesize completed successfully
-2026-09-09 06:27:03,774 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: render_brief -> render_brief
-2026-09-09 06:27:03,942 [INFO] yamlgraph.route: {"event": "run_end", "run_id": "01a08434-3054-78b4-96c0-582c451f4afa", "ended_at": "2026-09-09T03:27:03Z", "dropped_events": 0}
+2026-09-09 07:37:57,313 [INFO] yamlgraph.compile.graph_loader: Parsed 6 Python tools: discover, extract, reduce_ledger, prepare_brief_input, resolve_brief_llm, render_brief
+2026-09-09 07:37:57,316 [INFO] yamlgraph.compile.node_compiler: Added node: discover (type=python)
+2026-09-09 07:37:57,318 [INFO] yamlgraph.compile.node_compiler: Added node: extract_items (type=map)
+2026-09-09 07:37:57,322 [INFO] yamlgraph.compile.node_compiler: Added node: judge_items (type=map)
+2026-09-09 07:37:57,326 [INFO] yamlgraph.compile.node_compiler: Added node: reduce_ledger (type=python)
+2026-09-09 07:37:57,330 [INFO] yamlgraph.compile.node_compiler: Added node: prepare_brief_input (type=python)
+2026-09-09 07:37:57,332 [INFO] yamlgraph.compile.node_compiler: Added node: resolve_brief_llm (type=python)
+2026-09-09 07:37:57,336 [INFO] yamlgraph.compile.node_compiler: Added node: synthesize (type=llm)
+2026-09-09 07:37:57,340 [INFO] yamlgraph.compile.node_compiler: Added node: render_brief (type=python)
+2026-09-09 07:37:57,385 [INFO] yamlgraph.route: {"event": "run", "run_id": "01a08475-55f0-78c4-85ce-e448d2597f44", "artifact_hash": "sha256:773a594379d8ca59ae2afe0470976739fc110c3d74f5dc5ad6ce1a757c25b262", "graph": "C:/src/yamlgraph/tmp/worktrees/featfr-1034-brief-model/examples/demos/corpus_census/graph.yaml", "yamlgraph_version": "0.5.23", "thread_id": null, "started_at": "2026-09-09T04:37:57Z"}
+2026-09-09 07:37:57,614 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: discover -> discover
+2026-09-09 07:37:57,628 [INFO] yamlgraph.utils.llm_factory: Creating LLM: inception/mercury-2.5 (temp=0.0)
+2026-09-09 07:38:04,142 [INFO] httpx2: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-09 07:38:04,160 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-09 07:38:04,942 [INFO] httpx2: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-09 07:38:04,945 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-09 07:38:05,402 [INFO] httpx2: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-09 07:38:05,405 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-09 07:38:05,406 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: reduce_ledger -> reduce_ledger
+2026-09-09 07:38:05,409 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: prepare_brief_input -> prepare_brief_input
+2026-09-09 07:38:05,419 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: resolve_brief_llm -> resolve_brief_llm
+2026-09-09 07:38:05,424 [INFO] yamlgraph.utils.llm_factory: Creating LLM: anthropic/claude-haiku-4-5 (temp=0.0)
+2026-09-09 07:38:06,824 [INFO] httpx2: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-09 07:38:06,848 [INFO] yamlgraph.node_factory.llm_nodes: Node synthesize completed successfully
+2026-09-09 07:38:06,849 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: render_brief -> render_brief
+2026-09-09 07:38:07,025 [INFO] yamlgraph.route: {"event": "run_end", "run_id": "01a08475-55f0-78c4-85ce-e448d2597f44", "ended_at": "2026-09-09T04:38:07Z", "dropped_events": 0}
 
 🚀 Running graph: graph.yaml
-   Variables: {'source': 'examples/demos/corpus_census/fixtures/md-corpus', 'labels': '["invariant-store","state-log","description"]', 'rubric': 'Classify this agent instruction file by what dominates it: invariant-store (facts that cost a failure to learn, not derivable from the code), state-log (perishable paths, checkpoints, dated status), or description (derivable by reading the code). Cite the most non-derivable line.', 'output_path': 'tmp/md-demo-ledger.md', 'brief_path': 'tmp/md-demo-brief.md', 'brief_rubric': 'What distinguishes these files from one another?'}
+   Variables: {'source': 'examples/demos/corpus_census/fixtures/md-corpus', 'provider': 'inception', 'model': 'mercury-2.5', 'brief_provider': 'anthropic', 'brief_model': 'claude-haiku-4-5', 'labels': '["invariant-store","state-log","description"]', 'rubric': 'Classify this agent instruction file by what dominates it: invariant-store (facts that cost a failure to learn, not derivable from the code), state-log (perishable paths, checkpoints, dated status), or description (derivable by reading the code). Cite the most non-derivable line.', 'output_path': 'tmp/md-ledger.md', 'brief_path': 'tmp/md-brief.md', 'brief_rubric': 'What distinguishes these files from one another?'}
 
-🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/f889c0ec-fa9b-4025-b69c-2aa756283ef8/r/01a08434-306c-7540-beb4-e43113d07b11?poll=true
+🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/f889c0ec-fa9b-4025-b69c-2aa756283ef8/r/01a08475-560c-74f1-9299-57e92db2f030?poll=true
 ============================================================
 RESULT
 ============================================================
   current_step: render_brief
   source: examples/demos/corpus_census/fixtures/md-corpus
   rubric: Classify this agent instruction file by what dominates it: invariant-store (facts that cost a failure to learn, not derivable from the code), state-log (perishable paths, checkpoints, dated status), or description (derivable by reading the code). Cite the most non-derivable line.
+  model: mercury-2.5
+  provider: inception
+  brief_provider: anthropic
+  brief_model: claude-haiku-4-5
   labels: ["invariant-store","state-log","description"]
-  output_path: tmp/md-demo-ledger.md
-  items: ['{"path":"examples\\\\demos\\\\corpus_census\\\\fixtures\\\\md-corpus\\\\atomic-writes.md","sha256":"2203e9bad8a208892540b107ee0f950d4afffc6179f1234a2e2d0ce9f63c7cff","bytes":519}', '{"path":"examples\\\\demos\\\\corpus_census\\\\fixtures\\\\md-corpus\\\\project-layout.md","sha256":"aff02264350e915cbcc0ab3c11a8d7da27236cbacb145d8ac291632a722375e2","bytes":289}', '{"path":"examples\\\\demos\\\\corpus_census\\\\fixtures\\\\md-corpus\\\\training-status.md","sha256":"c92555a6f79057ede331eab65067f5fc6fb68cea82aab9eeb0744fd35edc4170","bytes":279}']
-  contents: [{'_map_index': 0, 'value': '# Storage rules\n\n**Never call `fs.rename` directly.** Use `writeFileAtomic`. On Windows the\ndestination being open — by a virus scanner, the search indexer, or a sync\nclient — fails the rename with EPERM, so the save is lost intermittently and\nmore often on better-protected machines. Enforced by `fs-atomic.guard.test.ts`.\n\nAny new persisted preference must be added in three places: the struct field,\nthe constructor copy, and the save reconstruction. Missing one means the\npreference silently resets on restart.\n'}, {'_map_index': 1, 'value': '# Project overview\n\nThe service is a Python FastAPI application. `api/` holds the HTTP routes,\n`core/` the domain logic, and `db/` the SQLAlchemy models. Tests live under\n`tests/` and mirror the package layout.\n\nBuild with `make build`, run with `make dev`, and format with `ruff format`.\n'}, {'_map_index': 2, 'value': '# Current run\n\nCheckpoint: `/data/models/run-v7/checkpoints/epoch=32-step=216326.ckpt` (947MB).\nTraining stopped at epoch 32 on 2026-05-21. Fine-tune completed 00:07-00:58.\nResume from `last.ckpt` on the new GPU box; see the handoff note for the exact\nenvironment restore steps.\n'}]
-  findings: [{'_map_index': 0, 'source_index': 0, 'judgement': 'invariant-store', 'confidence': 0.92, 'evidence_span': 'On Windows the destination being open — by a virus scanner, the search indexer, or a sync client — fails the rename with EPERM, so the save is lost intermittently and more often on better-protected machines.', 'abstained': False, 'abstain_reason': ''}, {'_map_index': 1, 'source_index': 1, 'judgement': 'description', 'confidence': 0.92, 'evidence_span': 'The service is a Python FastAPI application. `api/` holds the HTTP routes, `core/` the domain logic, and `db/` the SQLAlchemy models. Tests live under `tests/` and mirror the package layout.', 'abstained': False, 'abstain_reason': ''}, {'_map_index': 2, 'source_index': 2, 'judgement': 'state-log', 'confidence': 0.95, 'evidence_span': 'Training stopped at epoch 32 on 2026-05-21', 'abstained': False, 'abstain_reason': ''}]
-  ledger: {'markdown_path': 'tmp\\md-demo-ledger.md', 'jsonl_path': 'tmp\\md-demo-ledger.jsonl', 'rows': 3}
-  brief_path: tmp/md-demo-brief.md
+  output_path: tmp/md-ledger.md
+  items: ['{"path":"examples\\\\demos\\\\corpus_census\\\\fixtures\\\\md-corpus\\\\atomic-writes.md","sha256":"42ccf53a73857ac1440803b26f7643e57107329faa6798d77d1624375acf191d","bytes":529}', '{"path":"examples\\\\demos\\\\corpus_census\\\\fixtures\\\\md-corpus\\\\project-layout.md","sha256":"b48a625bcd7df6f0da88dd550519e3b72612e1534f238be925b3d9121e79fadc","bytes":296}', '{"path":"examples\\\\demos\\\\corpus_census\\\\fixtures\\\\md-corpus\\\\training-status.md","sha256":"40f2a52437cd494959ad27825671e9d44c58c56774a3e72624dad1ec3c96e700","bytes":285}']
+  contents: [{'_map_index': 0, 'value': '# Storage rules\r\n\r\n**Never call `fs.rename` directly.** Use `writeFileAtomic`. On Windows the\r\ndestination being open — by a virus scanner, the search indexer, or a sync\r\nclient — fails the rename with EPERM, so the save is lost intermittently and\r\nmore often on better-protected machines. Enforced by `fs-atomic.guard.test.ts`.\r\n\r\nAny new persisted preference must be added in three places: the struct field,\r\nthe constructor copy, and the save reconstruction. Missing one means the\r\npreference silently resets on restart.\r\n'}, {'_map_index': 1, 'value': '# Project overview\r\n\r\nThe service is a Python FastAPI application. `api/` holds the HTTP routes,\r\n`core/` the domain logic, and `db/` the SQLAlchemy models. Tests live under\r\n`tests/` and mirror the package layout.\r\n\r\nBuild with `make build`, run with `make dev`, and format with `ruff format`.\r\n'}, {'_map_index': 2, 'value': '# Current run\r\n\r\nCheckpoint: `/data/models/run-v7/checkpoints/epoch=32-step=216326.ckpt` (947MB).\r\nTraining stopped at epoch 32 on 2026-05-21. Fine-tune completed 00:07-00:58.\r\nResume from `last.ckpt` on the new GPU box; see the handoff note for the exact\r\nenvironment restore steps.\r\n'}]
+  findings: [{'_map_index': 0, 'source_index': 0, 'judgement': 'invariant-store', 'confidence': 0.95, 'evidence_span': 'Any new persisted preference must be added in three places: the struct field, the constructor copy, and the save reconstruction.', 'abstained': False, 'abstain_reason': ''}, {'_map_index': 1, 'source_index': 1, 'judgement': 'description', 'confidence': 0.95, 'evidence_span': '`api/` holds the HTTP routes, `core/` the domain logic, and `db/` the SQLAlchemy models.', 'abstained': False, 'abstain_reason': ''}, {'_map_index': 2, 'source_index': 2, 'judgement': 'state-log', 'confidence': 0.95, 'evidence_span': 'Checkpoint: `/data/models/run-v7/checkpoints/epoch=32-step=216326.ckpt` (947MB).', 'abstained': False, 'abstain_reason': ''}]
+  ledger: {'markdown_path': 'tmp\\md-ledger.md', 'jsonl_path': 'tmp\\md-ledger.jsonl', 'rows': 3}
+  brief_path: tmp/md-brief.md
   brief_rubric: What distinguishes these files from one another?
-  brief_input: [{'confidence': 0.92, 'item_ref': '{"path":"examples\\\\demos\\\\corpus_census\\\\fixtures\\\\md-corpus\\\\atomic-writes.md","sha256":"2203e9bad8a208892540b107ee0f950d4afffc6179f1234a2e2d0ce9f63c7cff","bytes":519}', 'judgement': 'invariant-store'}, {'confidence': 0.92, 'item_ref': '{"path":"examples\\\\demos\\\\corpus_census\\\\fixtures\\\\md-corpus\\\\project-layout.md","sha256":"aff02264350e915cbcc0ab3c11a8d7da27236cbacb145d8ac291632a722375e2","bytes":289}', 'judgement': 'description'}, {'confidence': 0.95, 'item_ref': '{"path":"examples\\\\demos\\\\corpus_census\\\\fixtures\\\\md-corpus\\\\training-status.md","sha256":"c92555a6f79057ede331eab65067f5fc6fb68cea82aab9eeb0744fd35edc4170","bytes":279}', 'judgement': 'state-log'}]
-  claims: {'claims': [{}, {}]}
-  brief: {'accepted': False, 'errors': ['<claim 0>: empty claim text', '<claim 0>: claim has no citations', '<claim 1>: empty claim text', '<claim 1>: claim has no citations'], 'artifact': 'tmp\\md-demo-brief.REJECTED.md'}
+  brief_input: [{'confidence': 0.95, 'item_ref': '{"path":"examples\\\\demos\\\\corpus_census\\\\fixtures\\\\md-corpus\\\\atomic-writes.md","sha256":"42ccf53a73857ac1440803b26f7643e57107329faa6798d77d1624375acf191d","bytes":529}', 'judgement': 'invariant-store'}, {'confidence': 0.95, 'item_ref': '{"path":"examples\\\\demos\\\\corpus_census\\\\fixtures\\\\md-corpus\\\\project-layout.md","sha256":"b48a625bcd7df6f0da88dd550519e3b72612e1534f238be925b3d9121e79fadc","bytes":296}', 'judgement': 'description'}, {'confidence': 0.95, 'item_ref': '{"path":"examples\\\\demos\\\\corpus_census\\\\fixtures\\\\md-corpus\\\\training-status.md","sha256":"40f2a52437cd494959ad27825671e9d44c58c56774a3e72624dad1ec3c96e700","bytes":285}', 'judgement': 'state-log'}]
+  claims: {'claims': []}
+  brief_llm: {'provider': 'anthropic', 'model': 'claude-haiku-4-5'}
+  brief: {'accepted': False, 'errors': ['no claims emitted'], 'artifact': 'tmp\\md-brief.REJECTED.md'}
 

@@ -31,7 +31,6 @@ from pydantic import (
 ERROR_STRINGS = ("Error:", "No results")
 MODEL = "claude-haiku-4-5"
 PROMPT_VERSION = "judge_item.v1"
-SYNTHESIS_MODEL = "claude-haiku-4-5"
 SYNTHESIS_PROMPT_VERSION = "synthesize_brief.v1"
 
 # FR-940 frozen label grammar: lowercase alnum head/tail, interior may
@@ -417,6 +416,7 @@ def prepare_brief_input(
 def render_brief(state: dict[str, Any] | None = None, **kwargs: Any) -> dict[str, Any]:
     """Render a citation-checked human brief from structured claims."""
     from examples.demos.corpus_census.adapters import census_brief
+    from examples.demos.corpus_census import brief_model_selection as bms
 
     effective_state = state if isinstance(state, dict) else kwargs
     brief_path = _require_non_empty_string(effective_state, "brief_path")
@@ -441,7 +441,7 @@ def render_brief(state: dict[str, Any] | None = None, **kwargs: Any) -> dict[str
         brief_input,
         brief_path,
         run_meta={
-            "model": _effective_model(effective_state.get("model"), SYNTHESIS_MODEL),
+            "model": bms.resolved_brief_model(effective_state),
             "prompt_version": SYNTHESIS_PROMPT_VERSION,
             "rows": len(brief_input),
             "source_jsonl_path": source_jsonl_path,
