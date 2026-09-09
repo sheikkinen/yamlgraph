@@ -10,10 +10,10 @@ description: >
   frozen at discovery and re-verified before decoding, so a ledger row is
   provably about the bytes that were judged rather than about a pathname.
 modules:
-  - examples/demos/corpus_census/adapters/markdown_adapters
+  - examples/demos/corpus_census/adapters/markdown_adapters.py
   - examples/demos/corpus_census/adapters/md-discover.tool.yaml
   - examples/demos/corpus_census/adapters/md-extract.tool.yaml
-  - tests/unit/test_markdown_corpus_adapters
+  - tests/unit/test_markdown_corpus_adapters.py
 requirements:
   - id: REQ-YG-674
     description: >
@@ -27,3 +27,8 @@ requirements:
       mismatch BEFORE decoding; a decoded file over the character ceiling
       raises naming path, count and ceiling rather than being truncated;
       invalid UTF-8 decodes with replacement only after identity is verified.
+    modules:
+      - examples/demos/corpus_census/adapters/markdown_adapters.py
+      - examples/demos/corpus_census/adapters/md-discover.tool.yaml
+      - examples/demos/corpus_census/adapters/md-extract.tool.yaml
+      - tests/unit/test_markdown_corpus_adapters.py
