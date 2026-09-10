@@ -99,9 +99,9 @@ class TestConflictCheckJobStructure:
     def test_job_exists(self) -> None:
         """The commitlint workflow must contain a 'conflict-check' job."""
         wf = _load_workflow()
-        assert (
-            "conflict-check" in wf["jobs"]
-        ), "Missing 'conflict-check' job in commitlint.yml"
+        assert "conflict-check" in wf["jobs"], (
+            "Missing 'conflict-check' job in commitlint.yml"
+        )
 
     def test_job_name(self) -> None:
         """The job display name indicates conflict marker checking."""
@@ -125,15 +125,15 @@ class TestConflictCheckJobStructure:
         grep_steps = [s for s in steps if "run" in s and "git grep" in s.get("run", "")]
         assert grep_steps, "Must have a step that runs git grep"
         run_script = grep_steps[0]["run"]
-        assert (
-            "<{7}" in run_script or "<<<<<<<" in run_script
-        ), "Must check for <<<<<<< markers"
-        assert (
-            "={7}" in run_script or "=======" in run_script
-        ), "Must check for ======= markers"
-        assert (
-            ">{7}" in run_script or ">>>>>>>" in run_script
-        ), "Must check for >>>>>>> markers"
+        assert "<{7}" in run_script or "<<<<<<<" in run_script, (
+            "Must check for <<<<<<< markers"
+        )
+        assert "={7}" in run_script or "=======" in run_script, (
+            "Must check for ======= markers"
+        )
+        assert ">{7}" in run_script or ">>>>>>>" in run_script, (
+            "Must check for >>>>>>> markers"
+        )
 
     def test_excludes_github_directory(self) -> None:
         """The git grep must exclude .github/ to avoid false positives on workflow files."""
@@ -242,21 +242,27 @@ class TestConflictCheckDocumentation:
 
     def test_dev_ops_lists_conflict_check(self) -> None:
         """The CI checks section must list conflict-check."""
-        content = Path("reference/development-operations.md").read_text(encoding="utf-8")
-        assert (
-            "conflict-check" in content
-        ), "development-operations.md must list conflict-check as a status check"
+        content = Path("reference/development-operations.md").read_text(
+            encoding="utf-8"
+        )
+        assert "conflict-check" in content, (
+            "development-operations.md must list conflict-check as a status check"
+        )
 
     def test_dev_ops_describes_conflict_check(self) -> None:
         """The ops reference must describe what the conflict-check does."""
-        content = Path("reference/development-operations.md").read_text(encoding="utf-8")
-        assert (
-            "conflict marker" in content.lower()
-        ), "development-operations.md must describe conflict-check purpose"
+        content = Path("reference/development-operations.md").read_text(
+            encoding="utf-8"
+        )
+        assert "conflict marker" in content.lower(), (
+            "development-operations.md must describe conflict-check purpose"
+        )
 
     def test_dev_ops_notes_up_to_date_requirement(self) -> None:
         """The ops reference must note the 'require up-to-date' setting."""
-        content = Path("reference/development-operations.md").read_text(encoding="utf-8")
-        assert (
-            "up to date" in content.lower() or "up-to-date" in content.lower()
-        ), "development-operations.md must document the up-to-date setting"
+        content = Path("reference/development-operations.md").read_text(
+            encoding="utf-8"
+        )
+        assert "up to date" in content.lower() or "up-to-date" in content.lower(), (
+            "development-operations.md must document the up-to-date setting"
+        )

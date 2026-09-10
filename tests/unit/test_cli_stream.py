@@ -14,7 +14,8 @@ import pytest
 def test_stream_flag_prints_tokens(capsys, tmp_path):
     """--stream should print tokens to stdout as they arrive."""
     graph_file = tmp_path / "graph.yaml"
-    graph_file.write_text("""
+    graph_file.write_text(
+        """
 name: test-stream
 nodes:
   greet:
@@ -24,7 +25,9 @@ edges:
     to: greet
   - from: greet
     to: END
-""", encoding="utf-8")
+""",
+        encoding="utf-8",
+    )
 
     async def mock_stream(*args, **kwargs):
         for token in ["Hello", " ", "World"]:
@@ -65,7 +68,8 @@ edges:
 def test_stream_and_json_mutually_exclusive(capsys, tmp_path):
     """--stream + --json should exit with error."""
     graph_file = tmp_path / "graph.yaml"
-    graph_file.write_text("""
+    graph_file.write_text(
+        """
 name: test
 nodes:
   greet:
@@ -75,7 +79,9 @@ edges:
     to: greet
   - from: greet
     to: END
-""", encoding="utf-8")
+""",
+        encoding="utf-8",
+    )
 
     args = Namespace(
         graph_path=str(graph_file),
@@ -111,7 +117,8 @@ def test_stream_error_event_prints_to_stderr(capsys, tmp_path):
     from yamlgraph.models.streaming import StreamEvent
 
     graph_file = tmp_path / "graph.yaml"
-    graph_file.write_text("""
+    graph_file.write_text(
+        """
 name: test-stream-err
 nodes:
   greet:
@@ -121,7 +128,9 @@ edges:
     to: greet
   - from: greet
     to: END
-""", encoding="utf-8")
+""",
+        encoding="utf-8",
+    )
 
     async def mock_stream_with_error(*args, **kwargs):
         yield "partial"

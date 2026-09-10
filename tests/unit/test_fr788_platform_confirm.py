@@ -41,7 +41,9 @@ def test_graph_is_agent_type_with_bounded_iterations():
 @pytest.mark.req("REQ-YG-589")
 def test_tool_manifest_exists_and_structured():
     """AC-02: platform_confirm.tool.yaml exists with runtime.type: graph."""
-    manifest = yaml.safe_load((STEPS_DIR / "platform_confirm.tool.yaml").read_text(encoding="utf-8"))
+    manifest = yaml.safe_load(
+        (STEPS_DIR / "platform_confirm.tool.yaml").read_text(encoding="utf-8")
+    )
     assert manifest["name"] == "platform_confirm"
     runtime = manifest["runtime"]
     assert runtime["type"] == "graph"
@@ -96,7 +98,9 @@ def test_state_declares_frozen_input_cardinality():
 @pytest.mark.req("REQ-YG-589")
 def test_platform_confirmation_schema_exact_fields():
     """AC-05: PlatformConfirmation schema has exactly the four required fields."""
-    prompt = yaml.safe_load((GRAPH_DIR / "prompts" / "confirm.yaml").read_text(encoding="utf-8"))
+    prompt = yaml.safe_load(
+        (GRAPH_DIR / "prompts" / "confirm.yaml").read_text(encoding="utf-8")
+    )
     schema = prompt["schema"]
     assert schema["name"] == "PlatformConfirmation"
     fields = set(schema["fields"].keys())
@@ -106,7 +110,9 @@ def test_platform_confirmation_schema_exact_fields():
 @pytest.mark.req("REQ-YG-589")
 def test_platform_confirmation_schema_field_types():
     """AC-05: field types match str/bool contract."""
-    prompt = yaml.safe_load((GRAPH_DIR / "prompts" / "confirm.yaml").read_text(encoding="utf-8"))
+    prompt = yaml.safe_load(
+        (GRAPH_DIR / "prompts" / "confirm.yaml").read_text(encoding="utf-8")
+    )
     fields = prompt["schema"]["fields"]
     assert fields["family"]["type"] == "str"
     assert fields["base_url"]["type"] == "str"
@@ -117,9 +123,9 @@ def test_platform_confirmation_schema_field_types():
 @pytest.mark.req("REQ-YG-589")
 def test_prompt_documents_stop_at_first_confirmed_pair():
     """AC-04: prompt instructs stopping at the first satisfied predicate."""
-    system = yaml.safe_load((GRAPH_DIR / "prompts" / "confirm.yaml").read_text(encoding="utf-8"))[
-        "system"
-    ]
+    system = yaml.safe_load(
+        (GRAPH_DIR / "prompts" / "confirm.yaml").read_text(encoding="utf-8")
+    )["system"]
     assert "first" in system.lower()
     assert (
         "confirmed: false" in system.lower()
@@ -135,9 +141,9 @@ def test_prompt_documents_stop_at_first_confirmed_pair():
 @pytest.mark.req("REQ-YG-589")
 def test_prompt_documents_family_confirmation_matrix():
     """AC-06: prompt embeds predicates for all six required families."""
-    system = yaml.safe_load((GRAPH_DIR / "prompts" / "confirm.yaml").read_text(encoding="utf-8"))[
-        "system"
-    ]
+    system = yaml.safe_load(
+        (GRAPH_DIR / "prompts" / "confirm.yaml").read_text(encoding="utf-8")
+    )["system"]
     for family in ("CKAN", "PxWeb", "OData", "OpenAPI", "WordPress", "JSON-stat"):
         assert family in system
 
@@ -145,9 +151,9 @@ def test_prompt_documents_family_confirmation_matrix():
 @pytest.mark.req("REQ-YG-589")
 def test_prompt_documents_ckan_substance_predicate():
     """AC-06: CKAN predicate requires success + non-zero count, not just 200."""
-    system = yaml.safe_load((GRAPH_DIR / "prompts" / "confirm.yaml").read_text(encoding="utf-8"))[
-        "system"
-    ]
+    system = yaml.safe_load(
+        (GRAPH_DIR / "prompts" / "confirm.yaml").read_text(encoding="utf-8")
+    )["system"]
     assert "success" in system.lower()
     assert "count > 0" in system
 

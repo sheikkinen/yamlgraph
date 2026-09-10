@@ -25,12 +25,15 @@ class TestImportScheduledEntries:
         outputs = tmp_path / "outputs"
         outputs.mkdir()
         entry_file = outputs / "diary_entry_20260217.md"
-        entry_file.write_text("""\
+        entry_file.write_text(
+            """\
 # World Digest — Test Theme
 **Date:** 2026-02-17
 
 Content here.
-""", encoding="utf-8")
+""",
+            encoding="utf-8",
+        )
 
         diary_dir = tmp_path / "diary"
         diary_dir.mkdir()
@@ -58,17 +61,22 @@ Content here.
         outputs = tmp_path / "outputs"
         outputs.mkdir()
         entry_file = outputs / "diary_entry_20260217.md"
-        entry_file.write_text("""\
+        entry_file.write_text(
+            """\
 # World Digest — Test Theme
 **Date:** 2026-02-17
 
 Content here.
-""", encoding="utf-8")
+""",
+            encoding="utf-8",
+        )
 
         diary_dir = tmp_path / "diary"
         diary_dir.mkdir()
         # Pre-existing file
-        (diary_dir / "2026-02-17-world-digest.md").write_text("Already exists\n", encoding="utf-8")
+        (diary_dir / "2026-02-17-world-digest.md").write_text(
+            "Already exists\n", encoding="utf-8"
+        )
 
         results = importer.import_scheduled_entries(diary_dir, outputs)
 
@@ -87,10 +95,13 @@ class TestImportGitReports:
         git_report_dir.mkdir(parents=True)
 
         report_file = git_report_dir / "report_20260218_080000.txt"
-        report_file.write_text("""\
+        report_file.write_text(
+            """\
 analysis: Some analysis text
 report: title="Test Report" summary="This is a summary" key_findings=['Finding 1', 'Finding 2']
-""", encoding="utf-8")
+""",
+            encoding="utf-8",
+        )
 
         diary_dir = tmp_path / "diary"
         diary_dir.mkdir()

@@ -55,8 +55,9 @@ class TestCleanStaleDistInfoDirectUrl:
                     "url": f"file://{worktree_dir}",
                     "dir_info": {"editable": True},
                 }
-            )
-        , encoding="utf-8")
+            ),
+            encoding="utf-8",
+        )
 
         removed = clean_stale_pth_entries(venv, worktree_dir)
 
@@ -89,8 +90,9 @@ class TestCleanStaleDistInfoDirectUrl:
                     "url": f"file://{worktree_dir}",
                     "dir_info": {"editable": True},
                 }
-            )
-        , encoding="utf-8")
+            ),
+            encoding="utf-8",
+        )
 
         removed = clean_stale_pth_entries(venv, worktree_dir)
 
@@ -114,8 +116,9 @@ class TestCleanStaleDistInfoDirectUrl:
         other_dist.mkdir()
         other_url = other_dist / "direct_url.json"
         other_url.write_text(
-            json.dumps({"url": "https://pypi.org/packages/requests-2.31.0.tar.gz"})
-        , encoding="utf-8")
+            json.dumps({"url": "https://pypi.org/packages/requests-2.31.0.tar.gz"}),
+            encoding="utf-8",
+        )
 
         # Stale worktree dist-info
         stale_dist = site_packages / "yamlgraph-0.4.68.dist-info"
@@ -127,14 +130,15 @@ class TestCleanStaleDistInfoDirectUrl:
                     "url": f"file://{worktree_dir}",
                     "dir_info": {"editable": True},
                 }
-            )
-        , encoding="utf-8")
+            ),
+            encoding="utf-8",
+        )
 
         clean_stale_pth_entries(venv, worktree_dir)
 
         # Unrelated package MUST survive
         assert other_url.exists(), "Unrelated dist-info must not be touched"
         # Stale package MUST be cleaned — this MUST FAIL on unmodified code
-        assert (
-            not stale_url.exists()
-        ), "Stale direct_url.json referencing worktree survives cleanup"
+        assert not stale_url.exists(), (
+            "Stale direct_url.json referencing worktree survives cleanup"
+        )

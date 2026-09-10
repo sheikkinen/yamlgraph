@@ -57,9 +57,9 @@ class TestCapArchitectureSyncHook:
     def test_hook_exists(self) -> None:
         """cap-architecture-sync hook must be registered."""
         hook = _find_hook("cap-architecture-sync")
-        assert (
-            hook is not None
-        ), "Hook 'cap-architecture-sync' not found in .pre-commit-config.yaml"
+        assert hook is not None, (
+            "Hook 'cap-architecture-sync' not found in .pre-commit-config.yaml"
+        )
 
     @pytest.mark.req("REQ-YG-425")
     def test_hook_entry_runs_aggregate_script(self) -> None:

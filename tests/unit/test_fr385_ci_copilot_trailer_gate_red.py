@@ -202,7 +202,9 @@ def test_ac07_architecture_and_capability_entries_reference_new_req() -> None:
     cap = CAP_148_PATH.read_text(encoding="utf-8").lower()
     architecture = ARCHITECTURE_PATH.read_text(encoding="utf-8").lower()
     # FR-942 moved the CI checks list from CLAUDE.md to the ops reference.
-    dev_ops = Path("reference/development-operations.md").read_text(encoding="utf-8").lower()
+    dev_ops = (
+        Path("reference/development-operations.md").read_text(encoding="utf-8").lower()
+    )
 
     assert "req-yg-358" in cap
     assert "copilot-trailer-gate" in cap

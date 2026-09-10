@@ -60,7 +60,9 @@ class TestLedgerContract:
             assert col in md
         rows = [
             json.loads(line)
-            for line in (tmp_path / "ledger.jsonl").read_text(encoding="utf-8").splitlines()
+            for line in (tmp_path / "ledger.jsonl")
+            .read_text(encoding="utf-8")
+            .splitlines()
         ]
         assert result["rows"] == 2 and len(rows) == 2
         assert set(rows[0]) == {
@@ -84,7 +86,9 @@ class TestLedgerContract:
         _run(tmp_path, [GOOD_A, ABSTAIN_B])
         rows = [
             json.loads(line)
-            for line in (tmp_path / "ledger.jsonl").read_text(encoding="utf-8").splitlines()
+            for line in (tmp_path / "ledger.jsonl")
+            .read_text(encoding="utf-8")
+            .splitlines()
         ]
         abstained = [r for r in rows if r["abstained"]]
         assert len(abstained) == 1
@@ -109,7 +113,9 @@ class TestLedgerContract:
         assert result["rows"] == 2
         rows = [
             json.loads(line)
-            for line in (tmp_path / "ledger.jsonl").read_text(encoding="utf-8").splitlines()
+            for line in (tmp_path / "ledger.jsonl")
+            .read_text(encoding="utf-8")
+            .splitlines()
         ]
         failed = [r for r in rows if r["abstain_reason"].startswith("row failed: ")]
         assert len(failed) == 1

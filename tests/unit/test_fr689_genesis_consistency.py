@@ -81,7 +81,9 @@ class TestPersistSynopsisClearsExisting:
             "depth": 0,
             "text": "Old synopsis text with Frida.",
         }
-        (synopsis_dir / "floodmark_saga_synopsis.yaml").write_text(yaml.dump(old), encoding="utf-8")
+        (synopsis_dir / "floodmark_saga_synopsis.yaml").write_text(
+            yaml.dump(old), encoding="utf-8"
+        )
 
         # Call persist_synopsis — should clear the old one
         tools_mod.persist_synopsis({"synopsis": "New synopsis text with Runa."})
@@ -227,7 +229,9 @@ class TestFinalGateCrossTypeCollision:
             "scope": "local",
             "participants": [],
         }
-        (event_dir / "survival_truce.yaml").write_text(yaml.dump(event), encoding="utf-8")
+        (event_dir / "survival_truce.yaml").write_text(
+            yaml.dump(event), encoding="utf-8"
+        )
 
         # Same ID as rule
         rule_dir = canon_dir / "rule"
@@ -245,9 +249,9 @@ class TestFinalGateCrossTypeCollision:
 
         result = tools_mod.final_gate({})
         gate = result["gate_result"]
-        assert not gate[
-            "valid"
-        ], "final_gate must report cross-type ID collision as invalid"
+        assert not gate["valid"], (
+            "final_gate must report cross-type ID collision as invalid"
+        )
         assert "id_collisions" in gate, "gate_result must include 'id_collisions' key"
         assert "survival_truce" in gate["id_collisions"]
 
@@ -322,7 +326,9 @@ class TestUpdateRefsTool:
             "participants": ["ragnar", "gunnar"],
             "references": ["ragnar", "blood_feud"],
         }
-        (event_dir / "death_of_ragnar.yaml").write_text(yaml.dump(event), encoding="utf-8")
+        (event_dir / "death_of_ragnar.yaml").write_text(
+            yaml.dump(event), encoding="utf-8"
+        )
 
         result = tools_mod.update_refs({"old_id": "ragnar", "new_id": "hildes_father"})
         assert (
@@ -331,7 +337,9 @@ class TestUpdateRefsTool:
         )
 
         # Verify file was rewritten
-        updated = yaml.safe_load((event_dir / "death_of_ragnar.yaml").read_text(encoding="utf-8"))
+        updated = yaml.safe_load(
+            (event_dir / "death_of_ragnar.yaml").read_text(encoding="utf-8")
+        )
         assert "hildes_father" in updated["participants"]
         assert "ragnar" not in updated["participants"]
         assert "hildes_father" in updated["references"]
@@ -452,7 +460,9 @@ class TestDeterministicPreCheck:
             "lane": "dynamic",
             "depth": 0,
         }
-        (event_dir / "survival_truce.yaml").write_text(yaml.dump(existing), encoding="utf-8")
+        (event_dir / "survival_truce.yaml").write_text(
+            yaml.dump(existing), encoding="utf-8"
+        )
 
         result = tools_mod.dedup_pre_check(
             {"entity_type": "rule", "id": "survival_truce"}

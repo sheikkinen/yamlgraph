@@ -131,9 +131,9 @@ class TestNoqaLineRepair:
         source = "\n".join(["# padding"] * 8 + [_suppressed("x = 1", "E402"), ""])
         confessions = _write_fixture(tmp_path, source, [("tests/sample.py", 3, "E402")])
 
-        assert mod.undocumented_noqa(
-            tmp_path, confessions
-        ), "fixture must start drifted"
+        assert mod.undocumented_noqa(tmp_path, confessions), (
+            "fixture must start drifted"
+        )
 
         assert mod.fix_confession_lines(tmp_path, confessions) == 1
         assert "#L9" in confessions.read_text(encoding="utf-8")

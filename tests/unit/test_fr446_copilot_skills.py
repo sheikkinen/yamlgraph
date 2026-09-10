@@ -56,17 +56,17 @@ class TestCopilotSkillPromotion:
     def test_skill_md_not_empty(self, skill_name: str) -> None:
         skill_file = SKILLS_DIR / skill_name / "SKILL.md"
         content = skill_file.read_text(encoding="utf-8")
-        assert (
-            len(content) > 100
-        ), f"SKILL.md for {skill_name} too short ({len(content)} bytes)"
+        assert len(content) > 100, (
+            f"SKILL.md for {skill_name} too short ({len(content)} bytes)"
+        )
 
     @pytest.mark.parametrize("skill_name", RETIRED_SKILLS)
     def test_retired_skill_removed(self, skill_name: str) -> None:
         """Retired syntax skills must not linger — their content lives in
         the reference docs now (2026-07-29 retirement)."""
-        assert not (
-            SKILLS_DIR / skill_name
-        ).exists(), f"{skill_name} is retired; content belongs in reference/"
+        assert not (SKILLS_DIR / skill_name).exists(), (
+            f"{skill_name} is retired; content belongs in reference/"
+        )
 
     @pytest.mark.parametrize("skill_name", TIER_1_SKILLS)
     def test_skill_frontmatter_substance(self, skill_name: str) -> None:
@@ -77,9 +77,9 @@ class TestCopilotSkillPromotion:
         assert fm.get("name") == skill_name
         description = fm.get("description") or ""
         assert "Use when:" in description, f"{skill_name}: no 'Use when:' triggers"
-        assert (
-            fm.get("argument-hint") or ""
-        ).strip(), f"{skill_name}: no argument-hint"
+        assert (fm.get("argument-hint") or "").strip(), (
+            f"{skill_name}: no argument-hint"
+        )
 
 
 @pytest.mark.req("REQ-YG-423")
@@ -106,9 +106,9 @@ class TestGraphAuthoringWorkflowSkill:
             "Escalation",
             "Anti-patterns",
         ]:
-            assert (
-                heading.lower() in doctrine_text.lower()
-            ), f"doctrine.md missing required section: {heading}"
+            assert heading.lower() in doctrine_text.lower(), (
+                f"doctrine.md missing required section: {heading}"
+            )
 
     def test_composes_with_reference_docs(self, skill_text: str) -> None:
         """AC-03 (amended 2026-07-29): composes with the syntax reference
@@ -249,9 +249,9 @@ class TestGraphAuthoringAdapter:
         ]
         assert headings, "doctrine must have sections"
         for heading in headings:
-            assert (
-                f"## {heading}" not in prompt_text
-            ), f"doctrine section duplicated in prompt: {heading}"
+            assert f"## {heading}" not in prompt_text, (
+                f"doctrine section duplicated in prompt: {heading}"
+            )
 
     def test_wrapper_exists_executable_with_artifact_contract(
         self, wrapper_text: str

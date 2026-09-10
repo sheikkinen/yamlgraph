@@ -84,7 +84,9 @@ def test_cli_parser_rejects_skill_subcommand():
 
 @pytest.mark.req("REQ-YG-032")
 def test_cli_package_has_no_skill_export_wiring():
-    source = (REPO_ROOT / "yamlgraph" / "cli" / "__init__.py").read_text(encoding="utf-8")
+    source = (REPO_ROOT / "yamlgraph" / "cli" / "__init__.py").read_text(
+        encoding="utf-8"
+    )
     assert "cmd_skill_dispatch" not in source
     assert "skill" not in source.lower()
 

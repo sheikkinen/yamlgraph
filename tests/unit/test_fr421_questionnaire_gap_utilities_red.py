@@ -133,8 +133,9 @@ edges:
     to: detect
   - from: detect
     to: END
-""".strip()
-        , encoding="utf-8")
+""".strip(),
+            encoding="utf-8",
+        )
 
         compiled = load_and_compile(graph_path).compile()
         result = compiled.invoke(

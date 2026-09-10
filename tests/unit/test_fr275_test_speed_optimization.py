@@ -26,9 +26,9 @@ class TestSlowMarkerInfrastructure:
             content = f.read()
 
         # Look for slow marker definition
-        assert (
-            "slow: marks tests that take >1 second to complete" in content
-        ), "The 'slow' pytest marker must be defined in [tool.pytest.ini_options] markers"
+        assert "slow: marks tests that take >1 second to complete" in content, (
+            "The 'slow' pytest marker must be defined in [tool.pytest.ini_options] markers"
+        )
 
     @pytest.mark.slow
     @pytest.mark.req("REQ-YG-275")
@@ -42,9 +42,9 @@ class TestSlowMarkerInfrastructure:
             cwd=Path(__file__).parent.parent.parent,
         )
 
-        assert (
-            "slow: marks tests that take >1 second to complete" in result.stdout
-        ), "Pytest should recognize the 'slow' marker when --markers is run"
+        assert "slow: marks tests that take >1 second to complete" in result.stdout, (
+            "Pytest should recognize the 'slow' marker when --markers is run"
+        )
 
 
 class TestSlowTestMarking:
@@ -73,7 +73,9 @@ class TestSlowTestMarking:
                     found_slow_marker_before_sleep = True
                     break
 
-        assert found_slow_marker_before_sleep, "Tests with configurable time.sleep in test_map_node_timeout.py should have @pytest.mark.slow"
+        assert found_slow_marker_before_sleep, (
+            "Tests with configurable time.sleep in test_map_node_timeout.py should have @pytest.mark.slow"
+        )
 
     @pytest.mark.req("REQ-YG-275")
     def test_race_node_tests_have_slow_marker(self):
@@ -98,7 +100,9 @@ class TestSlowTestMarking:
                     found_slow_marker_before_sleep = True
                     break
 
-        assert found_slow_marker_before_sleep, "Tests with asyncio.sleep(30.0) in test_race_node.py should have @pytest.mark.slow"
+        assert found_slow_marker_before_sleep, (
+            "Tests with asyncio.sleep(30.0) in test_race_node.py should have @pytest.mark.slow"
+        )
 
 
 class TestSlowTestFiltering:
@@ -127,9 +131,9 @@ class TestSlowTestFiltering:
 
         # Should succeed and show some tests were deselected
         assert result.returncode == 0, f"Fast test collection failed: {result.stderr}"
-        assert (
-            "deselected" in result.stdout
-        ), "Fast test run should show some tests were deselected due to slow marker"
+        assert "deselected" in result.stdout, (
+            "Fast test run should show some tests were deselected due to slow marker"
+        )
 
     @pytest.mark.slow
     @pytest.mark.req("REQ-YG-275")
@@ -153,9 +157,9 @@ class TestSlowTestFiltering:
 
         # Should succeed and show some tests were selected
         assert result.returncode == 0, f"Slow test collection failed: {result.stderr}"
-        assert (
-            "selected" in result.stdout
-        ), "Slow test run should show some tests were selected with slow marker"
+        assert "selected" in result.stdout, (
+            "Slow test run should show some tests were selected with slow marker"
+        )
 
 
 class TestConfigurableTiming:
@@ -171,9 +175,9 @@ class TestConfigurableTiming:
             content = f.read()
 
         # Should use TEST_DELAY_SCALE or similar configurable mechanism
-        assert (
-            "TEST_DELAY_SCALE" in content or "DELAY_SCALE" in content
-        ), "chaos_tools.py should use configurable delay scaling for test optimization"
+        assert "TEST_DELAY_SCALE" in content or "DELAY_SCALE" in content, (
+            "chaos_tools.py should use configurable delay scaling for test optimization"
+        )
 
     @pytest.mark.req("REQ-YG-275")
     def test_timeout_tests_use_configurable_delays(self):
@@ -197,7 +201,9 @@ class TestConfigurableTiming:
 
         configurable_delay_found = has_test_delay_scale and has_configurable_sleep
 
-        assert configurable_delay_found, "test_map_node_timeout.py should use configurable delays via environment variables"
+        assert configurable_delay_found, (
+            "test_map_node_timeout.py should use configurable delays via environment variables"
+        )
 
 
 class TestDocumentationUpdates:
@@ -212,9 +218,9 @@ class TestDocumentationUpdates:
             content = f.read()
 
         # Should document the new fast test commands
-        assert (
-            'pytest tests/unit/ -q --no-cov -m "not slow"' in content
-        ), "CLAUDE.md should document the fast test command excluding slow tests"
+        assert 'pytest tests/unit/ -q --no-cov -m "not slow"' in content, (
+            "CLAUDE.md should document the fast test command excluding slow tests"
+        )
 
     @pytest.mark.req("REQ-YG-275")
     def test_claude_md_has_slow_only_test_commands(self):
@@ -225,9 +231,9 @@ class TestDocumentationUpdates:
             content = f.read()
 
         # Should document the slow test commands
-        assert (
-            'pytest tests/unit/ -q --no-cov -m "slow"' in content
-        ), "CLAUDE.md should document the slow-only test command"
+        assert 'pytest tests/unit/ -q --no-cov -m "slow"' in content, (
+            "CLAUDE.md should document the slow-only test command"
+        )
 
 
 class TestMarkerFunctionality:
@@ -252,9 +258,9 @@ class TestMarkerFunctionality:
             cwd=Path(__file__).parent.parent.parent,
         )
 
-        assert (
-            "-m MARKEXPR" in result.stdout
-        ), "Pytest should support -m marker expression syntax"
+        assert "-m MARKEXPR" in result.stdout, (
+            "Pytest should support -m marker expression syntax"
+        )
 
 
 class TestNoTestBehaviorChanges:
@@ -279,10 +285,10 @@ class TestNoTestBehaviorChanges:
             cwd=Path(__file__).parent.parent.parent,
         )
 
-        assert (
-            result.returncode == 0
-        ), f"Default test collection failed: {result.stderr}"
+        assert result.returncode == 0, (
+            f"Default test collection failed: {result.stderr}"
+        )
         # Should collect tests without exclusions
-        assert (
-            "collected" in result.stdout
-        ), "Default pytest run should collect all tests including those with slow markers"
+        assert "collected" in result.stdout, (
+            "Default pytest run should collect all tests including those with slow markers"
+        )

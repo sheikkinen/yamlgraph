@@ -73,7 +73,9 @@ class TestAnthropicContentBlocks:
 
         from yamlgraph.schema_loader import load_schema_from_yaml
 
-        with tempfile.NamedTemporaryFile(encoding="utf-8", suffix=".yaml", mode="w", delete=False) as f:
+        with tempfile.NamedTemporaryFile(
+            encoding="utf-8", suffix=".yaml", mode="w", delete=False
+        ) as f:
             f.write(PROMPT_YAML_WITH_SCHEMA)
             f.flush()
             output_model = load_schema_from_yaml(Path(f.name))
@@ -114,7 +116,9 @@ class TestAnthropicContentBlocks:
 
         from yamlgraph.schema_loader import load_schema_from_yaml
 
-        with tempfile.NamedTemporaryFile(encoding="utf-8", suffix=".yaml", mode="w", delete=False) as f:
+        with tempfile.NamedTemporaryFile(
+            encoding="utf-8", suffix=".yaml", mode="w", delete=False
+        ) as f:
             f.write(PROMPT_YAML_WITH_SCHEMA)
             f.flush()
             output_model = load_schema_from_yaml(Path(f.name))
@@ -124,9 +128,9 @@ class TestAnthropicContentBlocks:
         )
         result = node_fn({"input": "Judge this"})
 
-        assert isinstance(
-            result["result"], dict
-        ), f"Expected dict, got {type(result['result'])}: {str(result['result'])[:100]}"
+        assert isinstance(result["result"], dict), (
+            f"Expected dict, got {type(result['result'])}: {str(result['result'])[:100]}"
+        )
         assert result["result"]["verdict"] == "AMEND"
 
 
@@ -142,7 +146,9 @@ class TestAnthropicFallbackPath:
 
         from yamlgraph.schema_loader import load_schema_from_yaml
 
-        with tempfile.NamedTemporaryFile(encoding="utf-8", suffix=".yaml", mode="w", delete=False) as f:
+        with tempfile.NamedTemporaryFile(
+            encoding="utf-8", suffix=".yaml", mode="w", delete=False
+        ) as f:
             f.write(PROMPT_YAML_WITH_SCHEMA)
             f.flush()
             output_model = load_schema_from_yaml(Path(f.name))
@@ -171,9 +177,9 @@ class TestAnthropicFallbackPath:
 
         # Verify fallback was called with messages ending in HumanMessage
         call_args = mock_structured.invoke.call_args[0][0]
-        assert (
-            call_args[-1].type == "human"
-        ), f"Last message should be HumanMessage, got {call_args[-1].type}"
+        assert call_args[-1].type == "human", (
+            f"Last message should be HumanMessage, got {call_args[-1].type}"
+        )
 
 
 class TestPipelineSchemaResolution:
@@ -224,9 +230,9 @@ class TestPipelineSchemaResolution:
         result = node_fn({"input": "Evaluate this"})
 
         # Step 4: Assert structured dict output
-        assert isinstance(
-            result["verdict"], dict
-        ), f"Expected dict, got {type(result['verdict'])}: {str(result['verdict'])[:200]}"
+        assert isinstance(result["verdict"], dict), (
+            f"Expected dict, got {type(result['verdict'])}: {str(result['verdict'])[:200]}"
+        )
         assert result["verdict"]["verdict"] == "APPROVE"
         assert result["verdict"]["reasoning"] == "Looks good"
 
@@ -269,16 +275,16 @@ class TestPipelineSchemaResolution:
         )
         result = node_fn({"input": "Evaluate this"})
 
-        assert isinstance(
-            result["verdict"], dict
-        ), f"Expected dict, got {type(result['verdict'])}: {str(result['verdict'])[:200]}"
+        assert isinstance(result["verdict"], dict), (
+            f"Expected dict, got {type(result['verdict'])}: {str(result['verdict'])[:200]}"
+        )
         assert result["verdict"]["verdict"] == "APPROVE"
 
         # Verify fallback was invoked with HumanMessage last (Bug 2 fix)
         fallback_msgs = mock_structured.invoke.call_args[0][0]
-        assert (
-            fallback_msgs[-1].type == "human"
-        ), f"Fallback msgs should end with HumanMessage, got {fallback_msgs[-1].type}"
+        assert fallback_msgs[-1].type == "human", (
+            f"Fallback msgs should end with HumanMessage, got {fallback_msgs[-1].type}"
+        )
 
 
 class TestStructuredOutputJsonFallback:
@@ -292,7 +298,9 @@ class TestStructuredOutputJsonFallback:
 
         from yamlgraph.schema_loader import load_schema_from_yaml
 
-        with tempfile.NamedTemporaryFile(encoding="utf-8", suffix=".yaml", mode="w", delete=False) as f:
+        with tempfile.NamedTemporaryFile(
+            encoding="utf-8", suffix=".yaml", mode="w", delete=False
+        ) as f:
             f.write(PROMPT_YAML_WITH_SCHEMA)
             f.flush()
             output_model = load_schema_from_yaml(Path(f.name))
@@ -331,7 +339,9 @@ class TestStructuredOutputJsonFallback:
 
         from yamlgraph.schema_loader import load_schema_from_yaml
 
-        with tempfile.NamedTemporaryFile(encoding="utf-8", suffix=".yaml", mode="w", delete=False) as f:
+        with tempfile.NamedTemporaryFile(
+            encoding="utf-8", suffix=".yaml", mode="w", delete=False
+        ) as f:
             f.write(PROMPT_YAML_WITH_SCHEMA)
             f.flush()
             output_model = load_schema_from_yaml(Path(f.name))
@@ -360,7 +370,9 @@ class TestStructuredOutputJsonFallback:
 
         from yamlgraph.schema_loader import load_schema_from_yaml
 
-        with tempfile.NamedTemporaryFile(encoding="utf-8", suffix=".yaml", mode="w", delete=False) as f:
+        with tempfile.NamedTemporaryFile(
+            encoding="utf-8", suffix=".yaml", mode="w", delete=False
+        ) as f:
             f.write(PROMPT_YAML_WITH_SCHEMA)
             f.flush()
             output_model = load_schema_from_yaml(Path(f.name))
@@ -392,7 +404,9 @@ class TestStructuredOutputJsonFallback:
 
         from yamlgraph.schema_loader import load_schema_from_yaml
 
-        with tempfile.NamedTemporaryFile(encoding="utf-8", suffix=".yaml", mode="w", delete=False) as f:
+        with tempfile.NamedTemporaryFile(
+            encoding="utf-8", suffix=".yaml", mode="w", delete=False
+        ) as f:
             f.write(PROMPT_YAML_WITH_SCHEMA)
             f.flush()
             output_model = load_schema_from_yaml(Path(f.name))
@@ -430,7 +444,9 @@ class TestOpenAIStrictSchemaFallback:
 
         from yamlgraph.schema_loader import load_schema_from_yaml
 
-        with tempfile.NamedTemporaryFile(encoding="utf-8", suffix=".yaml", mode="w", delete=False) as f:
+        with tempfile.NamedTemporaryFile(
+            encoding="utf-8", suffix=".yaml", mode="w", delete=False
+        ) as f:
             f.write(PROMPT_YAML_WITH_SCHEMA)
             f.flush()
             output_model = load_schema_from_yaml(Path(f.name))
@@ -483,7 +499,9 @@ class TestOpenAIStrictSchemaFallback:
 
         from yamlgraph.schema_loader import load_schema_from_yaml
 
-        with tempfile.NamedTemporaryFile(encoding="utf-8", suffix=".yaml", mode="w", delete=False) as f:
+        with tempfile.NamedTemporaryFile(
+            encoding="utf-8", suffix=".yaml", mode="w", delete=False
+        ) as f:
             f.write(PROMPT_YAML_WITH_SCHEMA)
             f.flush()
             output_model = load_schema_from_yaml(Path(f.name))
@@ -521,7 +539,9 @@ class TestOpenAIStrictSchemaFallback:
 
         from yamlgraph.schema_loader import load_schema_from_yaml
 
-        with tempfile.NamedTemporaryFile(encoding="utf-8", suffix=".yaml", mode="w", delete=False) as f:
+        with tempfile.NamedTemporaryFile(
+            encoding="utf-8", suffix=".yaml", mode="w", delete=False
+        ) as f:
             f.write(PROMPT_YAML_WITH_SCHEMA)
             f.flush()
             output_model = load_schema_from_yaml(Path(f.name))

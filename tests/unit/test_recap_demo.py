@@ -95,7 +95,9 @@ class TestRecapGraphStructure:
         (FR-700 enforce); FR-704 moved orphans to code. What remains is
         judgement: workstreams + hotspots.
         """
-        prompt = yaml.safe_load((DEMO_DIR / "prompts" / "recap.yaml").read_text(encoding="utf-8"))
+        prompt = yaml.safe_load(
+            (DEMO_DIR / "prompts" / "recap.yaml").read_text(encoding="utf-8")
+        )
         fields = prompt["schema"]["fields"]
         assert set(fields) == {"workstreams", "hotspots"}
 

@@ -45,9 +45,9 @@ FRAMEWORK_TEST_DIRS = ("tests/unit", "tests/integration")
 EXCLUDED_TEST_DIRS = (".github/hooks/tests",)
 
 
-def load_capabilities_from_registry() -> (
-    tuple[list[str], dict[str, tuple[str, list[str]]]]
-):
+def load_capabilities_from_registry() -> tuple[
+    list[str], dict[str, tuple[str, list[str]]]
+]:
     """Load capabilities from YAML registry files.
 
     Returns:

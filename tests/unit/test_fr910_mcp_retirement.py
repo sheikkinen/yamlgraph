@@ -109,13 +109,17 @@ def test_no_live_mcp_server_references():
 def test_mcp_extra_is_removed():
     pyproject = (REPO_ROOT / "pyproject.toml").read_text(encoding="utf-8")
     assert "mcp = [" not in pyproject
-    constraints = (REPO_ROOT / "constraints" / "dev-py312.txt").read_text(encoding="utf-8")
+    constraints = (REPO_ROOT / "constraints" / "dev-py312.txt").read_text(
+        encoding="utf-8"
+    )
     assert not re.search(r"^mcp==", constraints, re.MULTILINE)
 
 
 @pytest.mark.req("REQ-YG-428")
 def test_is_this_a_graph_names_cli_route_only():
-    doctrine = (REPO_ROOT / ".github" / "copilot-instructions.md").read_text(encoding="utf-8")
+    doctrine = (REPO_ROOT / ".github" / "copilot-instructions.md").read_text(
+        encoding="utf-8"
+    )
     clause_start = doctrine.index("is_this_a_graph:")
     clause = doctrine[clause_start : clause_start + 1500]
     assert "yamlgraph graph list" in clause

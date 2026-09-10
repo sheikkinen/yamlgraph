@@ -35,7 +35,9 @@ user: "Judge: {input}"
 def _output_model():
     import tempfile
 
-    with tempfile.NamedTemporaryFile(encoding="utf-8", suffix=".yaml", mode="w", delete=False) as f:
+    with tempfile.NamedTemporaryFile(
+        encoding="utf-8", suffix=".yaml", mode="w", delete=False
+    ) as f:
         f.write(PROMPT_YAML_WITH_SCHEMA)
         f.flush()
         return load_schema_from_yaml(Path(f.name))
@@ -245,6 +247,6 @@ class TestNarrowedStructuredOutputCatch:
             for rec in caplog.records
             if rec.levelno == logging.WARNING and "ValidationError" in rec.getMessage()
         ]
-        assert (
-            warnings
-        ), f"Expected WARNING log naming ValidationError, got {caplog.records}"
+        assert warnings, (
+            f"Expected WARNING log naming ValidationError, got {caplog.records}"
+        )

@@ -100,8 +100,8 @@ class TestPersistWritesToTypeSubfolder:
         char_dir = canon_dir / "character"
         char_dir.mkdir(parents=True)
         (char_dir / "existing.yaml").write_text(
-            "id: existing\ntype: character\nname: X\n"
-        , encoding="utf-8")
+            "id: existing\ntype: character\nname: X\n", encoding="utf-8"
+        )
         state = {
             "deepened": [],
             "skeletons": [

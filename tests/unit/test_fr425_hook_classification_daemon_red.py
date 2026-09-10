@@ -336,7 +336,9 @@ class TestClassifyActionCallbacks:
 
         _make_action().on_error(snap, TimeoutError("timeout after 10s"), 10000, context)
 
-        entry = json.loads((tmp_path / "classifications.jsonl").read_text(encoding="utf-8").strip())
+        entry = json.loads(
+            (tmp_path / "classifications.jsonl").read_text(encoding="utf-8").strip()
+        )
         assert entry["reason"] == "classify-timeout"
 
 
@@ -383,7 +385,9 @@ class TestAdversarialInputs:
 
         _make_action().on_success(snap, "classified", 200, context)
 
-        entry = json.loads((tmp_path / "classifications.jsonl").read_text(encoding="utf-8").strip())
+        entry = json.loads(
+            (tmp_path / "classifications.jsonl").read_text(encoding="utf-8").strip()
+        )
         assert entry["reason"] == "classify-error"
         assert "danger=1" in entry["detail"]
         assert "intent=unknown" in entry["detail"]

@@ -173,7 +173,11 @@ def detect_compactions(turns: list[tuple[float, int]]) -> list[dict]:
 def load_calibration(calib_path: Path = CALIB_PATH) -> list[dict]:
     if not calib_path.is_file():
         return []
-    return [json.loads(ln) for ln in calib_path.read_text(encoding="utf-8").splitlines() if ln.strip()]
+    return [
+        json.loads(ln)
+        for ln in calib_path.read_text(encoding="utf-8").splitlines()
+        if ln.strip()
+    ]
 
 
 def record_compactions(calib_path: Path, sid: str, comps: list[dict]) -> int:

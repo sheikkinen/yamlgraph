@@ -26,8 +26,9 @@ def test_untagged_test_is_rejected(tmp_path: Path):
                 '''This test has no @pytest.mark.req tag.'''
                 assert True
             """
-        )
-    , encoding="utf-8")
+        ),
+        encoding="utf-8",
+    )
 
     # Copy conftest.py to tmp_path so enforcement hook is active
     conftest_src = Path(__file__).parent.parent / "conftest.py"
@@ -52,9 +53,9 @@ def test_untagged_test_is_rejected(tmp_path: Path):
     # Should fail with UsageError (non-zero exit)
     assert result.returncode != 0, "Pytest should reject tests without @pytest.mark.req"
     combined_output = result.stdout + result.stderr
-    assert (
-        "REQUIREMENT TRACEABILITY VIOLATION" in combined_output
-    ), f"Expected enforcement error message in output. Got: {combined_output}"
+    assert "REQUIREMENT TRACEABILITY VIOLATION" in combined_output, (
+        f"Expected enforcement error message in output. Got: {combined_output}"
+    )
 
 
 @pytest.mark.slow
@@ -73,8 +74,9 @@ def test_tagged_test_is_accepted(tmp_path: Path):
                 '''This test has proper @pytest.mark.req tag.'''
                 assert True
             """
-        )
-    , encoding="utf-8")
+        ),
+        encoding="utf-8",
+    )
 
     # Copy conftest.py to tmp_path so enforcement hook is active
     conftest_src = Path(__file__).parent.parent / "conftest.py"
@@ -97,9 +99,9 @@ def test_tagged_test_is_accepted(tmp_path: Path):
     )
 
     # Should succeed (0 exit code)
-    assert (
-        result.returncode == 0
-    ), f"Pytest should accept tests with @pytest.mark.req. Output: {result.stdout}"
+    assert result.returncode == 0, (
+        f"Pytest should accept tests with @pytest.mark.req. Output: {result.stdout}"
+    )
 
 
 @pytest.mark.slow
@@ -119,8 +121,9 @@ def test_unmarked_process_boundary_module_is_rejected(tmp_path: Path):
                 payload = "examples/demo.yaml"
                 assert payload.endswith(".yaml")
             """
-        )
-    , encoding="utf-8")
+        ),
+        encoding="utf-8",
+    )
 
     conftest_src = Path(__file__).parent.parent / "conftest.py"
     conftest_dst = tmp_path / "conftest.py"

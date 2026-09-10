@@ -200,7 +200,9 @@ class TestPersistGenesisImport:
     @pytest.mark.req("REQ-YG-515")
     def test_persist_genesis_no_importlib_for_validation(self) -> None:
         """persist_genesis.py does not use importlib for validation function."""
-        source = (NOVEL_FANDOM_DIR / "nodes" / "persist_genesis.py").read_text(encoding="utf-8")
+        source = (NOVEL_FANDOM_DIR / "nodes" / "persist_genesis.py").read_text(
+            encoding="utf-8"
+        )
         # Should not have importlib load for validation anymore
         assert "validate_referential_integrity" in source
         # The importlib usage should only be for persist_pages, not validation
@@ -209,6 +211,6 @@ class TestPersistGenesisImport:
             for line in source.splitlines()
             if "importlib" in line and "validate" in line.lower()
         ]
-        assert (
-            len(lines_with_importlib) == 0
-        ), f"importlib still used for validation: {lines_with_importlib}"
+        assert len(lines_with_importlib) == 0, (
+            f"importlib still used for validation: {lines_with_importlib}"
+        )

@@ -113,9 +113,9 @@ def test_graph_references_toolbelt_via_manifest_keys(demo):
     raw = yaml.safe_load(GRAPHS[demo].read_text(encoding="utf-8"))
     for tool in CANONICAL:
         entry = raw["tools"][tool]
-        assert set(entry) == {
-            "manifest"
-        }, f"{demo}.{tool} must be a pure manifest reference, got {entry}"
+        assert set(entry) == {"manifest"}, (
+            f"{demo}.{tool} must be a pure manifest reference, got {entry}"
+        )
         assert entry["manifest"].endswith(f"toolbelt/{tool}.tool.yaml")
 
 
@@ -125,9 +125,9 @@ def test_no_inline_copies_of_toolbelt_commands_remain(demo):
     """AC-02: zero inline copies of the four commands in the graph file."""
     text = GRAPHS[demo].read_text(encoding="utf-8")
     for tool, contract in CANONICAL.items():
-        assert (
-            f"command: {contract['command']}" not in text
-        ), f"{demo} still declares {tool} inline"
+        assert f"command: {contract['command']}" not in text, (
+            f"{demo} still declares {tool} inline"
+        )
 
 
 @pytest.mark.req("REQ-YG-579")
@@ -164,9 +164,9 @@ def test_demo_specific_tools_remain_inline(demo):
     for tool in INLINE_ONLY[demo]:
         entry = raw["tools"].get(tool)
         assert entry is not None, f"{demo} lost its inline tool {tool}"
-        assert (
-            "manifest" not in entry
-        ), f"{demo}.{tool} is demo-specific and must stay inline"
+        assert "manifest" not in entry, (
+            f"{demo}.{tool} is demo-specific and must stay inline"
+        )
 
 
 @pytest.mark.req("REQ-YG-579")

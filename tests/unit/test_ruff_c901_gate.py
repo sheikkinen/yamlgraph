@@ -60,9 +60,9 @@ class TestRuffC901Passes:
             text=True,
             cwd=REPO_ROOT,
         )
-        assert (
-            result.returncode == 0
-        ), f"ruff check failed with C901 enabled:\n{result.stdout}\n{result.stderr}"
+        assert result.returncode == 0, (
+            f"ruff check failed with C901 enabled:\n{result.stdout}\n{result.stderr}"
+        )
 
 
 class TestC901NoqaConfessions:
@@ -82,7 +82,9 @@ class TestC901NoqaConfessions:
         noqa_files: list[str] = []
         for py_file in sorted(REPO_ROOT.joinpath("yamlgraph").rglob("*.py")):
             rel = py_file.relative_to(REPO_ROOT)
-            for i, line in enumerate(py_file.read_text(encoding="utf-8").splitlines(), 1):
+            for i, line in enumerate(
+                py_file.read_text(encoding="utf-8").splitlines(), 1
+            ):
                 if marker in line:
                     noqa_files.append(f"{rel}:{i}")
 

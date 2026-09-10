@@ -433,12 +433,12 @@ def test_malformed_json_denies():
         assert code == 0, f"exit {code}"
         assert "deny" in out, f"expected deny on malformed JSON, got: {out}"
         assert len(entries) >= 1, f"expected audit log entry, got {len(entries)}"
-        assert (
-            entries[-1]["decision"] == "deny"
-        ), f"expected deny in audit, got: {entries[-1]}"
-        assert (
-            entries[-1]["reason"] == "parse-error"
-        ), f"expected parse-error reason, got: {entries[-1]}"
+        assert entries[-1]["decision"] == "deny", (
+            f"expected deny in audit, got: {entries[-1]}"
+        )
+        assert entries[-1]["reason"] == "parse-error", (
+            f"expected parse-error reason, got: {entries[-1]}"
+        )
 
 
 def test_read_file_logs_pass_not_inspected():
@@ -452,9 +452,9 @@ def test_read_file_logs_pass_not_inspected():
         e = entries[-1]
         assert e["tool"] == "read_file", f"expected tool=read_file, got: {e}"
         assert e["decision"] == "pass", f"expected decision=pass, got: {e}"
-        assert (
-            e["reason"] == "not-inspected"
-        ), f"expected reason=not-inspected, got: {e}"
+        assert e["reason"] == "not-inspected", (
+            f"expected reason=not-inspected, got: {e}"
+        )
 
 
 def test_terminal_deny_logs_audit():
@@ -470,9 +470,9 @@ def test_terminal_deny_logs_audit():
         assert len(entries) >= 1, f"expected audit log entry, got {len(entries)}"
         e = entries[-1]
         assert e["decision"] == "deny", f"expected deny, got: {e}"
-        assert (
-            e["reason"] == "co-authored-by"
-        ), f"expected co-authored-by reason, got: {e}"
+        assert e["reason"] == "co-authored-by", (
+            f"expected co-authored-by reason, got: {e}"
+        )
 
 
 def test_terminal_approve_logs_audit():
@@ -507,9 +507,9 @@ def test_session_id_in_audit_entry():
         assert code == 0
         assert len(entries) >= 1
         e = entries[-1]
-        assert (
-            e.get("session_id") == "abc-123-session"
-        ), f"expected session_id in audit entry, got: {e}"
+        assert e.get("session_id") == "abc-123-session", (
+            f"expected session_id in audit entry, got: {e}"
+        )
 
 
 def test_session_id_absent_when_not_in_payload():
@@ -536,9 +536,9 @@ def test_tool_use_id_in_audit_entry():
         assert code == 0
         assert len(entries) >= 1
         e = entries[-1]
-        assert (
-            e.get("tool_use_id") == "toolu_vrtx_01ABC"
-        ), f"expected tool_use_id in audit entry, got: {e}"
+        assert e.get("tool_use_id") == "toolu_vrtx_01ABC", (
+            f"expected tool_use_id in audit entry, got: {e}"
+        )
 
 
 # ── Lockdown command channel tests ───────────────────────────────────
@@ -652,9 +652,9 @@ def test_lockdown_status():
         reason = parsed.get("hookSpecificOutput", {}).get(
             "permissionDecisionReason", ""
         )
-        assert (
-            "entries" in reason.lower() or "total" in reason.lower()
-        ), f"status should show summary: {reason}"
+        assert "entries" in reason.lower() or "total" in reason.lower(), (
+            f"status should show summary: {reason}"
+        )
 
 
 def test_lockdown_unknown_command():
@@ -793,9 +793,9 @@ def test_branch_create_deny_logs_audit():
         assert len(entries) >= 1
         e = entries[-1]
         assert e["decision"] == "deny", f"expected deny, got: {e}"
-        assert (
-            e["reason"] == "branch-create"
-        ), f"expected branch-create reason, got: {e}"
+        assert e["reason"] == "branch-create", (
+            f"expected branch-create reason, got: {e}"
+        )
         parsed = json.loads(out)
         reason = parsed.get("hookSpecificOutput", {}).get(
             "permissionDecisionReason", ""

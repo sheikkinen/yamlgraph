@@ -14,6 +14,6 @@ def test_precommit_hook_exports_venv_path():
 
     config = Path(__file__).parents[2] / ".pre-commit-config.yaml"
     content = config.read_text(encoding="utf-8")
-    assert (
-        'export PATH=".venv/bin:$PATH"' in content
-    ), "Pre-commit pytest hook missing PATH export for .venv/bin"
+    assert 'export PATH=".venv/bin:$PATH"' in content, (
+        "Pre-commit pytest hook missing PATH export for .venv/bin"
+    )

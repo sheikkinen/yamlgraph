@@ -42,12 +42,12 @@ class TestPromptCachingDemoStructure:
         """Prompts directory exists with required prompt files."""
         prompts_dir = DEMO_DIR / "prompts"
         assert prompts_dir.exists(), "prompts/ directory must exist"
-        assert (
-            prompts_dir / "analyze.yaml"
-        ).exists(), "prompts/analyze.yaml must exist"
-        assert (
-            prompts_dir / "reflect.yaml"
-        ).exists(), "prompts/reflect.yaml must exist"
+        assert (prompts_dir / "analyze.yaml").exists(), (
+            "prompts/analyze.yaml must exist"
+        )
+        assert (prompts_dir / "reflect.yaml").exists(), (
+            "prompts/reflect.yaml must exist"
+        )
 
     @pytest.mark.req("REQ-YG-302")
     def test_readme_exists(self) -> None:
@@ -59,9 +59,9 @@ class TestPromptCachingDemoStructure:
     def test_demo_output_log_exists(self) -> None:
         """demo-output.log proving execution exists."""
         demo_log = DEMO_DIR / "demo-output.log"
-        assert (
-            demo_log.exists()
-        ), "demo-output.log must exist proving successful execution"
+        assert demo_log.exists(), (
+            "demo-output.log must exist proving successful execution"
+        )
 
 
 class TestGraphConfiguration:
@@ -81,9 +81,9 @@ class TestGraphConfiguration:
         from yamlgraph.compile.graph_loader import load_graph_config
 
         config = load_graph_config(f"{DEMO_PATH}/graph.yaml")
-        assert (
-            config.provider == "anthropic"
-        ), "Demo must use Anthropic provider for caching"
+        assert config.provider == "anthropic", (
+            "Demo must use Anthropic provider for caching"
+        )
 
     @pytest.mark.req("REQ-YG-303")
     def test_has_two_llm_nodes(self) -> None:
@@ -129,18 +129,18 @@ class TestPromptSystemSegments:
         with open(analyze_path, encoding="utf-8") as f:
             prompt_config = yaml.safe_load(f)
 
-        assert (
-            "system_segments" in prompt_config
-        ), "analyze.yaml must use system_segments"
+        assert "system_segments" in prompt_config, (
+            "analyze.yaml must use system_segments"
+        )
         segments = prompt_config["system_segments"]
         assert isinstance(segments, list), "system_segments must be a list"
         assert len(segments) >= 1, "Must have at least one system segment"
 
         # Check for cached segment
         cached_segments = [seg for seg in segments if seg.get("cache") is True]
-        assert (
-            len(cached_segments) >= 1
-        ), "Must have at least one segment with cache: true"
+        assert len(cached_segments) >= 1, (
+            "Must have at least one segment with cache: true"
+        )
 
     @pytest.mark.req("REQ-YG-304")
     def test_reflect_prompt_has_system_segments(self) -> None:
@@ -150,18 +150,18 @@ class TestPromptSystemSegments:
         with open(reflect_path, encoding="utf-8") as f:
             prompt_config = yaml.safe_load(f)
 
-        assert (
-            "system_segments" in prompt_config
-        ), "reflect.yaml must use system_segments"
+        assert "system_segments" in prompt_config, (
+            "reflect.yaml must use system_segments"
+        )
         segments = prompt_config["system_segments"]
         assert isinstance(segments, list), "system_segments must be a list"
         assert len(segments) >= 1, "Must have at least one system segment"
 
         # Check for cached segment
         cached_segments = [seg for seg in segments if seg.get("cache") is True]
-        assert (
-            len(cached_segments) >= 1
-        ), "Must have at least one segment with cache: true"
+        assert len(cached_segments) >= 1, (
+            "Must have at least one segment with cache: true"
+        )
 
     @pytest.mark.req("REQ-YG-304")
     def test_prompts_have_identical_cached_segments(self) -> None:
@@ -189,9 +189,9 @@ class TestPromptSystemSegments:
         reflect_cached_content = {seg["content"] for seg in reflect_cached}
 
         shared_content = analyze_cached_content & reflect_cached_content
-        assert (
-            len(shared_content) > 0
-        ), "Prompts must share at least one identical cached segment"
+        assert len(shared_content) > 0, (
+            "Prompts must share at least one identical cached segment"
+        )
 
     @pytest.mark.req("REQ-YG-304")
     def test_prompts_use_inline_schema(self) -> None:
@@ -228,13 +228,13 @@ class TestDocumentationUpdates:
         with open(ref_file, encoding="utf-8") as f:
             content = f.read()
 
-        assert (
-            "system_segments" in content
-        ), "prompt-yaml.md must document system_segments"
+        assert "system_segments" in content, (
+            "prompt-yaml.md must document system_segments"
+        )
         assert "cache:" in content, "prompt-yaml.md must document cache field"
-        assert (
-            "anthropic" in content.lower() or "Anthropic" in content
-        ), "Must document Anthropic-specific behavior"
+        assert "anthropic" in content.lower() or "Anthropic" in content, (
+            "Must document Anthropic-specific behavior"
+        )
 
     @pytest.mark.req("REQ-YG-305")
     def test_readme_explains_caching_benefits(self) -> None:
@@ -267,9 +267,9 @@ class TestDemoExecutionProof:
         # Check for execution indicators
         assert "analyze" in content.lower(), "Log must show analyze node execution"
         assert "reflect" in content.lower(), "Log must show reflect node execution"
-        assert any(
-            word in content for word in ["✓", "success", "completed"]
-        ), "Log must show successful execution"
+        assert any(word in content for word in ["✓", "success", "completed"]), (
+            "Log must show successful execution"
+        )
 
     @pytest.mark.req("REQ-YG-306")
     def test_demo_log_shows_anthropic_usage(self) -> None:
@@ -280,6 +280,6 @@ class TestDemoExecutionProof:
             content = f.read()
 
         # Should contain evidence of Anthropic provider usage
-        assert (
-            "anthropic" in content.lower() or "claude" in content.lower()
-        ), "Log must show evidence of Anthropic/Claude usage"
+        assert "anthropic" in content.lower() or "claude" in content.lower(), (
+            "Log must show evidence of Anthropic/Claude usage"
+        )

@@ -34,8 +34,9 @@ class TestAsyncGraphRelativePromptResolution:
             # Create a prompt file
             prompt_file = prompts_subdir / "relative_test.yaml"
             prompt_file.write_text(
-                "system: You are a test assistant.\nuser: Process {input}\n"
-            , encoding="utf-8")
+                "system: You are a test assistant.\nuser: Process {input}\n",
+                encoding="utf-8",
+            )
 
             with (
                 patch("yamlgraph.executor_async.create_llm") as mock_create_llm,
@@ -73,8 +74,9 @@ class TestAsyncGraphRelativePromptResolution:
                 """
 system: Custom system prompt.
 user: Custom user {input}
-"""
-            , encoding="utf-8")
+""",
+                encoding="utf-8",
+            )
 
             with (
                 patch("yamlgraph.executor_async.create_llm") as mock_create_llm,
@@ -118,9 +120,9 @@ user: Custom user {input}
             mock_prepare.assert_called_once()
             call_kwargs = mock_prepare.call_args.kwargs
 
-            assert (
-                call_kwargs.get("graph_path") == test_graph_path
-            ), f"graph_path not passed to prepare_messages. Got kwargs: {call_kwargs}"
+            assert call_kwargs.get("graph_path") == test_graph_path, (
+                f"graph_path not passed to prepare_messages. Got kwargs: {call_kwargs}"
+            )
             assert call_kwargs.get("prompts_relative") is True
 
 
@@ -140,7 +142,9 @@ class TestStreamingGraphRelativePromptResolution:
             prompts_subdir.mkdir()
 
             prompt_file = prompts_subdir / "stream_test.yaml"
-            prompt_file.write_text("system: Streaming test.\nuser: Stream {input}\n", encoding="utf-8")
+            prompt_file.write_text(
+                "system: Streaming test.\nuser: Stream {input}\n", encoding="utf-8"
+            )
 
             mock_chunk = MagicMock()
             mock_chunk.content = "streamed"
@@ -179,8 +183,9 @@ class TestStreamingGraphRelativePromptResolution:
                 """
 system: Custom stream.
 user: Stream custom {input}
-"""
-            , encoding="utf-8")
+""",
+                encoding="utf-8",
+            )
 
             mock_chunk = MagicMock()
             mock_chunk.content = "custom_streamed"

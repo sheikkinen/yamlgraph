@@ -61,9 +61,9 @@ def run():
 
 def call_of(mock):
     """(argv, kwargs) of the single subprocess invocation."""
-    assert (
-        mock.call_count == 1
-    ), f"expected exactly one subprocess call, got {mock.call_count}"
+    assert mock.call_count == 1, (
+        f"expected exactly one subprocess call, got {mock.call_count}"
+    )
     args, kwargs = mock.call_args
     return args[0], kwargs
 
@@ -106,9 +106,9 @@ class TestDispatch:
         with patch.object(sys, "platform", "aix"), pytest.raises(ToastError) as exc:
             send_toast("Title", "Message")
 
-        assert (
-            run.call_count == 0
-        ), "no subprocess may be spawned on an unsupported platform"
+        assert run.call_count == 0, (
+            "no subprocess may be spawned on an unsupported platform"
+        )
         for platform in SUPPORTED_PLATFORMS:
             assert platform in str(exc.value)
         assert "aix" in str(exc.value)

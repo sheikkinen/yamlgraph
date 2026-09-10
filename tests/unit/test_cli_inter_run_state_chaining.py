@@ -305,7 +305,9 @@ class TestFR269CmdGraphRunStateMerging:
         graph_path = tmp_path / "graph.yaml"
         graph_path.write_text("name: test\nnodes: {}\nedges: []\n", encoding="utf-8")
         state_path = tmp_path / "state.json"
-        state_path.write_text('{"topic": "from-import", "session_id": "abc"}', encoding="utf-8")
+        state_path.write_text(
+            '{"topic": "from-import", "session_id": "abc"}', encoding="utf-8"
+        )
 
         _setup_graph_loader_mocks(mock_load_config, mock_compile, mock_get_cp)
         captured_initial_state = {}

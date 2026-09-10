@@ -112,9 +112,9 @@ def test_pre_command_guard_has_no_write_shape_alternation() -> None:
         if pattern != FR889_FENCE
         and any(atom in pattern for atom in FR902_WRITE_VERB_ATOMS)
     ]
-    assert (
-        not offenders
-    ), f"write-shape grammar back in pre-command-guard.sh: {offenders}"
+    assert not offenders, (
+        f"write-shape grammar back in pre-command-guard.sh: {offenders}"
+    )
 
 
 def test_fr889_lock_mutator_fence_intact() -> None:

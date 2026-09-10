@@ -53,7 +53,9 @@ class TestScoreFilter:
         (dd / ".venv" / "bin" / "python").touch()
         (dd / "training" / "ckpt").mkdir(parents=True)
         (dd / "training" / "ckpt" / "model.pt").touch()
-        (dd / "training" / "ckpt" / "calibration.json").write_text("{}", encoding="utf-8")
+        (dd / "training" / "ckpt" / "calibration.json").write_text(
+            "{}", encoding="utf-8"
+        )
         monkeypatch.setenv("DEVIANT_DAILY_DIR", str(dd))
 
         completed = type(
@@ -168,7 +170,9 @@ class TestV2GraphContract:
         import yaml
 
         pdata = yaml.safe_load(
-            (V2_DIR / "prompts" / "generate_candidates.yaml").read_text(encoding="utf-8")
+            (V2_DIR / "prompts" / "generate_candidates.yaml").read_text(
+                encoding="utf-8"
+            )
         )
         assert "schema" in pdata
         assert "prompts" in pdata["schema"]["fields"]

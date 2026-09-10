@@ -45,8 +45,9 @@ class TestRecapDispositionAxis:
         frdir = tmp_path / "feature-requests"
         frdir.mkdir()
         (frdir / "FR-042-widget.md").write_text(
-            "# FR-042 Widget\n\n**Status:** Rejected\n\nNot worth building.\n"
-        , encoding="utf-8")
+            "# FR-042 Widget\n\n**Status:** Rejected\n\nNot worth building.\n",
+            encoding="utf-8",
+        )
         (tmp_path / "widget.py").write_text("# widget stub\n", encoding="utf-8")
         subprocess.run(["git", "-C", str(tmp_path), "add", "-A"], check=True, env=env)
         subprocess.run(
@@ -71,9 +72,9 @@ class TestRecapDispositionAxis:
         recap_dict = recap if isinstance(recap, dict) else recap.model_dump()
         workstreams_blob = " ".join(str(w) for w in recap_dict["workstreams"])
         assert "FR-042" in workstreams_blob
-        assert (
-            "Rejected" in workstreams_blob
-        ), f"verbatim status missing: {workstreams_blob}"
+        assert "Rejected" in workstreams_blob, (
+            f"verbatim status missing: {workstreams_blob}"
+        )
 
 
 @pytest.mark.slow

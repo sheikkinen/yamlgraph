@@ -622,7 +622,9 @@ class TestPersistPages:
         result = _persist._persist_impl(state, canon_dir, PAGE_MODELS)
         assert result["written_count"] == 1
         # FR-650: pages now land in type subfolder
-        written = yaml.safe_load((canon_dir / "character" / "hero.yaml").read_text(encoding="utf-8"))
+        written = yaml.safe_load(
+            (canon_dir / "character" / "hero.yaml").read_text(encoding="utf-8")
+        )
         assert written["name"] == "Hero"
 
     @pytest.mark.req("REQ-YG-495")
@@ -630,7 +632,9 @@ class TestPersistPages:
         canon_dir = tmp_path / "canon"
         canon_dir.mkdir()
         # Pre-existing page
-        (canon_dir / "existing.yaml").write_text("id: existing\ntype: character\n", encoding="utf-8")
+        (canon_dir / "existing.yaml").write_text(
+            "id: existing\ntype: character\n", encoding="utf-8"
+        )
         state = {
             "deepened": [],
             "skeletons": [
@@ -687,9 +691,9 @@ class TestSeedCanon:
                 "static",
             ), f"{f.name} has no valid lane (got {lane!r})"
             if data.get("type") not in static_ok:
-                assert (
-                    lane == "dynamic"
-                ), f"{f.name} (type={data.get('type')}) should be lane:dynamic"
+                assert lane == "dynamic", (
+                    f"{f.name} (type={data.get('type')}) should be lane:dynamic"
+                )
 
 
 # --- Graph lint (REQ-YG-494) ---

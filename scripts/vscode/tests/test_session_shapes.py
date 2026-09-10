@@ -79,8 +79,9 @@ def make_audit(tmp_path: Path, entries: list[tuple[str, str]]) -> Path:
                 }
             )
             for sid, tool in entries
-        )
-    , encoding="utf-8")
+        ),
+        encoding="utf-8",
+    )
     return path
 
 
@@ -199,8 +200,9 @@ def test_extract_transcript_text(tmp_path: Path) -> None:
                 "message": {"text": "user asks a thing"},
                 "response": [{"value": "agent answers a thing"}],
             }
-        )
-    , encoding="utf-8")
+        ),
+        encoding="utf-8",
+    )
     text = session_shapes.extract_transcript(path)
     assert "user asks a thing" in text
     assert "agent answers a thing" in text

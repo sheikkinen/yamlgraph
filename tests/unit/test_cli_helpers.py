@@ -18,7 +18,8 @@ class TestLoadGraphConfig:
     def test_loads_valid_yaml(self, tmp_path: Path):
         """Should load valid YAML graph config."""
         graph_file = tmp_path / "test.yaml"
-        graph_file.write_text("""
+        graph_file.write_text(
+            """
 name: test-graph
 nodes:
   greet:
@@ -26,7 +27,9 @@ nodes:
 edges:
   - from: START
     to: greet
-""", encoding="utf-8")
+""",
+            encoding="utf-8",
+        )
         config = load_graph_config(graph_file)
 
         assert config["name"] == "test-graph"

@@ -335,7 +335,7 @@ def find_clusters(
         if len(component) >= 2:
             clusters.append(sorted(component))
 
-    return {f"cluster-{i+1}": members for i, members in enumerate(clusters)}
+    return {f"cluster-{i + 1}": members for i, members in enumerate(clusters)}
 
 
 def name_cluster(members: list[str], fr_file_map: dict[str, Path]) -> str:

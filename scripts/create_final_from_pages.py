@@ -35,7 +35,9 @@ for p in data["paragraphs"]:
 
 # Save final.json
 output_path = input_path.parent / "final.json"
-output_path.write_text(json.dumps(final, ensure_ascii=False, indent=2), encoding="utf-8")
+output_path.write_text(
+    json.dumps(final, ensure_ascii=False, indent=2), encoding="utf-8"
+)
 
 print(f"Created final.json with {len(final['paragraphs'])} paragraphs")
 print(f"Saved to: {output_path}")

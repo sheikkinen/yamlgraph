@@ -104,6 +104,6 @@ def test_ac05_vulture_with_whitelist_is_clean_for_cli_refactor_scope() -> None:
         text=True,
         cwd=REPO_ROOT,
     )
-    assert (
-        result.returncode == 0
-    ), f"vulture found dead code:\n{result.stdout}\n{result.stderr}"
+    assert result.returncode == 0, (
+        f"vulture found dead code:\n{result.stdout}\n{result.stderr}"
+    )

@@ -99,9 +99,9 @@ class TestWorktreeIntegration:
             cwd=clean_git_repo,
             capture_output=True,
         )
-        assert (
-            result.returncode == 0
-        ), f"Failed to create worktree: {result.stderr.decode()}"
+        assert result.returncode == 0, (
+            f"Failed to create worktree: {result.stderr.decode()}"
+        )
         assert worktree_path.exists()
 
         # Verify it's a valid git worktree
@@ -240,12 +240,12 @@ class TestWorktreeConcurrency:
         )
 
         # Both should succeed
-        assert (
-            result_a.returncode == 0
-        ), f"Worktree A failed: {result_a.stderr.decode()}"
-        assert (
-            result_b.returncode == 0
-        ), f"Worktree B failed: {result_b.stderr.decode()}"
+        assert result_a.returncode == 0, (
+            f"Worktree A failed: {result_a.stderr.decode()}"
+        )
+        assert result_b.returncode == 0, (
+            f"Worktree B failed: {result_b.stderr.decode()}"
+        )
 
         # Both should exist independently
         assert worktree_a.exists()

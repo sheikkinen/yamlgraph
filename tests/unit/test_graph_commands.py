@@ -223,7 +223,9 @@ class TestLoadVarFile:
         from yamlgraph.cli.helpers import load_var_file
 
         var_file = tmp_path / "vars.yaml"
-        var_file.write_text("topic: AI\nstyle: casual\nitems:\n  - one\n  - two", encoding="utf-8")
+        var_file.write_text(
+            "topic: AI\nstyle: casual\nitems:\n  - one\n  - two", encoding="utf-8"
+        )
 
         result = load_var_file(str(var_file))
 
@@ -990,7 +992,10 @@ class TestCmdGraphCodegen:
         )
         cmd_graph_codegen(args)
 
-        assert output_file.read_text(encoding="utf-8") == "class TestState(TypedDict):\n    pass\n"
+        assert (
+            output_file.read_text(encoding="utf-8")
+            == "class TestState(TypedDict):\n    pass\n"
+        )
 
     @pytest.mark.req("REQ-YG-036")
     @patch("yamlgraph.cli.graph_commands.load_graph_config")
@@ -1259,7 +1264,9 @@ class TestCmdGraphRunExtended:
             None,  # timing_tracker
         )
 
-        (tmp_path / "graph.yaml").write_text("name: test\nnodes: {}\nedges: []", encoding="utf-8")
+        (tmp_path / "graph.yaml").write_text(
+            "name: test\nnodes: {}\nedges: []", encoding="utf-8"
+        )
         args = argparse.Namespace(
             graph_path=str(tmp_path / "graph.yaml"),
             var=["topic=AI"],
@@ -1301,7 +1308,9 @@ class TestCmdGraphRunExtended:
             None,  # timing_tracker
         )
 
-        (tmp_path / "graph.yaml").write_text("name: test\nnodes: {}\nedges: []", encoding="utf-8")
+        (tmp_path / "graph.yaml").write_text(
+            "name: test\nnodes: {}\nedges: []", encoding="utf-8"
+        )
         args = argparse.Namespace(
             graph_path=str(tmp_path / "graph.yaml"),
             var=[],
@@ -1358,7 +1367,9 @@ class TestCmdGraphRunExtended:
             None,  # timing_tracker
         )
 
-        (tmp_path / "graph.yaml").write_text("name: test\nnodes: {}\nedges: []", encoding="utf-8")
+        (tmp_path / "graph.yaml").write_text(
+            "name: test\nnodes: {}\nedges: []", encoding="utf-8"
+        )
         args = argparse.Namespace(
             graph_path=str(tmp_path / "graph.yaml"),
             var=[],
@@ -1402,7 +1413,9 @@ class TestCmdGraphRunExtended:
 
         mock_build.return_value = ({}, {}, None, None, None, False, None)
 
-        (tmp_path / "graph.yaml").write_text("name: test\nnodes: {}\nedges: []", encoding="utf-8")
+        (tmp_path / "graph.yaml").write_text(
+            "name: test\nnodes: {}\nedges: []", encoding="utf-8"
+        )
         args = argparse.Namespace(
             graph_path=str(tmp_path / "graph.yaml"),
             var=[],

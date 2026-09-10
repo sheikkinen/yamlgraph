@@ -143,8 +143,9 @@ class TestBackwardCompatibility:
             "    cache: false\n"
             '  - content: "Task context: important"\n'
             "    cache: true\n"
-            'user: "Help with {topic}"\n'
-        , encoding="utf-8")
+            'user: "Help with {topic}"\n',
+            encoding="utf-8",
+        )
 
         messages, provider, model = prepare_messages(
             "test_list", variables={"topic": "test"}, prompts_dir=tmp_path

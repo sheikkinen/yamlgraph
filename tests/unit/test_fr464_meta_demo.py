@@ -115,7 +115,9 @@ class TestMetaDemoGraphStructure:
     @pytest.mark.req("REQ-YG-467")
     def test_prompt_uses_verb_and_source(self) -> None:
         """Prompt must reference the verb and source variables."""
-        prompt_text = (DEMO_DIR / "prompts" / "meta_transform.yaml").read_text(encoding="utf-8")
+        prompt_text = (DEMO_DIR / "prompts" / "meta_transform.yaml").read_text(
+            encoding="utf-8"
+        )
         assert "{verb}" in prompt_text
         assert "{source}" in prompt_text
 

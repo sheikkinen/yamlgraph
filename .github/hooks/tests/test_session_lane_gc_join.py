@@ -68,7 +68,9 @@ def zoo(tmp_path):
     git(main, "merge", "--no-ff", "-m", "merge session", f"session/{SID_MERGED}")
     dirty_lane = lane_path(main, SID_DIRTY)
     (dirty_lane / "docs" / "a.md").write_text("modified\n", encoding="utf-8")
-    (lane_path(main, SID_UNTRACKED) / "orphan.txt").write_text("precious\n", encoding="utf-8")
+    (lane_path(main, SID_UNTRACKED) / "orphan.txt").write_text(
+        "precious\n", encoding="utf-8"
+    )
     lane_commit(main, SID_UNPUSHED)
     lane_commit(main, SID_UNMERGED)
     git(main, "push", "-q", "origin", f"session/{SID_UNMERGED}")

@@ -9,5 +9,7 @@ pytestmark = pytest.mark.process
 
 @pytest.mark.req("REQ-YG-527")
 def test_pre_command_guard_mentions_manual_worktree_lane() -> None:
-    hook = Path(".github/hooks/scripts/pre-command-guard.sh").read_text(encoding="utf-8")
+    hook = Path(".github/hooks/scripts/pre-command-guard.sh").read_text(
+        encoding="utf-8"
+    )
     assert "scripts/worktree.sh new <name>" in hook

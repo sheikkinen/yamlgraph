@@ -75,8 +75,8 @@ def empty_diary(diary_fixture_dir):
 def diary_no_markers(diary_fixture_dir):
     """Diary entries without any markers."""
     (diary_fixture_dir / "diary-2026-03-01.md").write_text(
-        "# Session\nJust some notes without markers.\n"
-    , encoding="utf-8")
+        "# Session\nJust some notes without markers.\n", encoding="utf-8"
+    )
     return diary_fixture_dir
 
 
@@ -84,11 +84,12 @@ def diary_no_markers(diary_fixture_dir):
 def diary_below_threshold(diary_fixture_dir):
     """Diary with markers appearing below threshold (less than 3 times)."""
     (diary_fixture_dir / "diary-2026-03-01.md").write_text(
-        "**Trap:** quick_confidence\n**Heuristic:** Judge when certain\n"
-    , encoding="utf-8")
+        "**Trap:** quick_confidence\n**Heuristic:** Judge when certain\n",
+        encoding="utf-8",
+    )
     (diary_fixture_dir / "diary-2026-03-02.md").write_text(
-        "**Trap:** quick_confidence\n"
-    , encoding="utf-8")
+        "**Trap:** quick_confidence\n", encoding="utf-8"
+    )
     return diary_fixture_dir
 
 
@@ -96,14 +97,14 @@ def diary_below_threshold(diary_fixture_dir):
 def diary_at_threshold(diary_fixture_dir):
     """Diary with markers appearing exactly at threshold (3 times)."""
     (diary_fixture_dir / "diary-2026-03-01.md").write_text(
-        "**Trap:** quick_confidence\n"
-    , encoding="utf-8")
+        "**Trap:** quick_confidence\n", encoding="utf-8"
+    )
     (diary_fixture_dir / "diary-2026-03-02.md").write_text(
-        "**Trap:** quick_confidence\n"
-    , encoding="utf-8")
+        "**Trap:** quick_confidence\n", encoding="utf-8"
+    )
     (diary_fixture_dir / "diary-2026-03-03.md").write_text(
-        "**Trap:** quick_confidence\n"
-    , encoding="utf-8")
+        "**Trap:** quick_confidence\n", encoding="utf-8"
+    )
     return diary_fixture_dir
 
 
@@ -112,8 +113,8 @@ def diary_above_threshold(diary_fixture_dir):
     """Diary with markers appearing above threshold (more than 3 times)."""
     for i in range(5):
         (diary_fixture_dir / f"diary-2026-03-0{i + 1}.md").write_text(
-            f"**Trap:** intent_drift\n**Seed:** Question {i}?\n"
-        , encoding="utf-8")
+            f"**Trap:** intent_drift\n**Seed:** Question {i}?\n", encoding="utf-8"
+        )
     return diary_fixture_dir
 
 
@@ -124,16 +125,19 @@ def diary_mixed_markers(diary_fixture_dir):
     (diary_fixture_dir / "diary-2026-03-01.md").write_text(
         "**Trap:** quick_confidence\n"
         "**Heuristic:** Judge when certain\n"
-        "**Seed:** Can we automate judgement?\n"
-    , encoding="utf-8")
+        "**Seed:** Can we automate judgement?\n",
+        encoding="utf-8",
+    )
     # File 2: same trap + different heuristic
     (diary_fixture_dir / "diary-2026-03-02.md").write_text(
-        "**Trap:** quick_confidence\n**Heuristic:** Test before assuming\n"
-    , encoding="utf-8")
+        "**Trap:** quick_confidence\n**Heuristic:** Test before assuming\n",
+        encoding="utf-8",
+    )
     # File 3: same trap again (now at threshold)
     (diary_fixture_dir / "diary-2026-03-03.md").write_text(
-        "**Trap:** quick_confidence\n**Heuristic:** Judge when certain\n"
-    , encoding="utf-8")
+        "**Trap:** quick_confidence\n**Heuristic:** Judge when certain\n",
+        encoding="utf-8",
+    )
     return diary_fixture_dir
 
 
@@ -216,10 +220,12 @@ class TestScanDiaryMarkers:
 
         # Create recent file
         (diary_fixture_dir / "diary-2026-03-10.md").write_text(
-            "**Trap:** recent_trap\n"
-        , encoding="utf-8")
+            "**Trap:** recent_trap\n", encoding="utf-8"
+        )
         # Create old file (~70 days ago with today=2026-03-11)
-        (diary_fixture_dir / "diary-2026-01-01.md").write_text("**Trap:** old_trap\n", encoding="utf-8")
+        (diary_fixture_dir / "diary-2026-01-01.md").write_text(
+            "**Trap:** old_trap\n", encoding="utf-8"
+        )
 
         state = {"diary_dir": str(diary_fixture_dir), "lookback_days": 30}
         # autouse fixture mocks get_today() to return "2026-03-11"
@@ -1271,7 +1277,9 @@ class TestPhilosopherPromptsFR195:
     @pytest.mark.req("REQ-YG-193")
     def test_distill_prompt_has_json_guard(self):
         """distill prompt should include JSON output guard."""
-        content = Path("graphs/philosopher/prompts/distill.yaml").read_text(encoding="utf-8")
+        content = Path("graphs/philosopher/prompts/distill.yaml").read_text(
+            encoding="utf-8"
+        )
         assert (
             "Output ONLY valid JSON" in content
             or "output ONLY valid JSON" in content.upper()
@@ -1280,9 +1288,9 @@ class TestPhilosopherPromptsFR195:
     @pytest.mark.req("REQ-YG-193")
     def test_challenge_prompt_has_json_guard(self):
         """challenge prompt should include JSON output guard."""
-        content = Path(
-            "graphs/philosopher/prompts/challenge.yaml"
-        ).read_text(encoding="utf-8")
+        content = Path("graphs/philosopher/prompts/challenge.yaml").read_text(
+            encoding="utf-8"
+        )
         assert (
             "Output ONLY valid JSON" in content
             or "output ONLY valid JSON" in content.upper()
@@ -1317,7 +1325,9 @@ class TestPhilosopherPromptsFR195:
     @pytest.mark.req("REQ-YG-193")
     def test_reflect_prompt_includes_challenge_context(self):
         """reflect prompt should include challenge_parsed variable."""
-        content = Path("graphs/philosopher/prompts/reflect.yaml").read_text(encoding="utf-8")
+        content = Path("graphs/philosopher/prompts/reflect.yaml").read_text(
+            encoding="utf-8"
+        )
         assert "challenge" in content.lower()
 
 

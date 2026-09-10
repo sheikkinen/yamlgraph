@@ -131,18 +131,22 @@ def write_questions(
 
     for q in questions:
         path = questions_dir / f"{q['req_id']}.json"
-        path.write_text(json.dumps(q, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        path.write_text(
+            json.dumps(q, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+        )
 
     manifest: dict[str, list[str]] = {}
     for i, batch in enumerate(build_batches(questions, max_tokens)):
         batch_id = f"batch-{i:03d}"
         manifest[batch_id] = [q["req_id"] for q in batch]
         path = batches_dir / f"{batch_id}.json"
-        path.write_text(json.dumps(batch, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        path.write_text(
+            json.dumps(batch, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+        )
 
     (out_dir / "manifest.json").write_text(
-        json.dumps(manifest, indent=2, sort_keys=True) + "\n"
-    , encoding="utf-8")
+        json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
     return manifest
 
 

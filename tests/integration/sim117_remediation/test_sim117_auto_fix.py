@@ -25,7 +25,9 @@ with open("file1.txt") as f1:
         print(content)
 """
 
-        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", suffix=".py", delete=False) as f:
+        with tempfile.NamedTemporaryFile(
+            encoding="utf-8", mode="w", suffix=".py", delete=False
+        ) as f:
             f.write(problematic_code)
             temp_file = Path(f.name)
 
@@ -45,9 +47,9 @@ with open("file1.txt") as f1:
                 'with open("file1.txt") as f1, open("file2.txt") as f2:'
                 in fixed_content
             )
-            assert (
-                fixed_content.count("with ") == 1
-            ), "Should combine into single with statement"
+            assert fixed_content.count("with ") == 1, (
+                "Should combine into single with statement"
+            )
 
         finally:
             temp_file.unlink()
@@ -58,6 +60,6 @@ with open("file1.txt") as f1:
             ["ruff", "check", "--help"], capture_output=True, text=True
         )
 
-        assert (
-            "--unsafe-fixes" in result.stdout
-        ), "ruff should support --unsafe-fixes flag"
+        assert "--unsafe-fixes" in result.stdout, (
+            "ruff should support --unsafe-fixes flag"
+        )

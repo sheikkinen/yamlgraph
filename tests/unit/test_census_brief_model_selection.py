@@ -234,8 +234,8 @@ def test_governed_docs_do_not_call_the_synthesis_model_pinned(path):
 
 @pytest.mark.req("REQ-YG-675")
 def test_capability_owns_the_new_requirement():
-    text = Path(
-        "capabilities/CAP-250-census-synthesize-tail.yaml"
-    ).read_text(encoding="utf-8")
+    text = Path("capabilities/CAP-250-census-synthesize-tail.yaml").read_text(
+        encoding="utf-8"
+    )
     assert "REQ-YG-675" in text
     assert "FR-1034" in text

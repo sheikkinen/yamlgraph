@@ -35,8 +35,7 @@ async def test_multi_turn_resume_with_command(openai_ready):
 
     # Should have response from LLM
     assert result2.get("response"), (
-        f"Turn 2 should have response, got: {result2}, "
-        f"errors: {result2.get('errors')}"
+        f"Turn 2 should have response, got: {result2}, errors: {result2.get('errors')}"
     )
     # Should hit interrupt again for next turn
     assert "__interrupt__" in result2, "Turn 2 should interrupt for next turn"
@@ -60,9 +59,9 @@ async def test_guard_classification_separate_call(openai_ready):
     # Test "continue" intent
     result = await compiled.ainvoke({"user_message": "tell me a joke"})
     intent = result.get("intent", "").lower().strip()
-    assert (
-        "continue" in intent
-    ), f"Normal message should classify as continue, got: {intent}"
+    assert "continue" in intent, (
+        f"Normal message should classify as continue, got: {intent}"
+    )
 
 
 @pytest.mark.asyncio
@@ -83,16 +82,16 @@ async def test_checkpointer_persists_across_turns(openai_ready):
 
     # Turn 2: resume with message
     result2 = await run_graph_async(app, Command(resume="my name is Alice"), config)
-    assert result2.get(
-        "response"
-    ), f"Turn 2 should have response, errors: {result2.get('errors')}"
+    assert result2.get("response"), (
+        f"Turn 2 should have response, errors: {result2.get('errors')}"
+    )
     response2 = result2["response"]
 
     # Turn 3: resume again - should have context from previous turns
     result3 = await run_graph_async(app, Command(resume="what did I just say?"), config)
-    assert result3.get(
-        "response"
-    ), f"Turn 3 should have response, errors: {result3.get('errors')}"
+    assert result3.get("response"), (
+        f"Turn 3 should have response, errors: {result3.get('errors')}"
+    )
 
     # Both turns should have produced LLM responses (proving checkpointing worked)
     assert len(response2) > 0, "Turn 2 response should not be empty"

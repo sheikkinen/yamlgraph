@@ -48,9 +48,9 @@ class TestFR369SnapshotHooksRed:
     def test_ac02_snapshot_dataclass_contract_exists(self) -> None:
         """AC-02: snapshot module defines SnapshotParams contract fields."""
         snapshot_path = ROOT / "yamlgraph" / "utils" / "fsm" / "snapshot.py"
-        assert (
-            snapshot_path.exists()
-        ), "Expected yamlgraph/utils/fsm/snapshot.py to exist"
+        assert snapshot_path.exists(), (
+            "Expected yamlgraph/utils/fsm/snapshot.py to exist"
+        )
 
         fields = _dataclass_fields(snapshot_path, "SnapshotParams")
         assert {

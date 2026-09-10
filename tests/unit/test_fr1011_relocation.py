@@ -59,7 +59,12 @@ LIVE_CONSUMERS = [
     "capabilities/CAP-206-fr-triage-graph.yaml",
     ".gitignore",
 ]
-RELOCATED_TREES = ["graphs/fr_triage", "graphs/world_distill", "graphs/philosopher", "scripts/lib"]
+RELOCATED_TREES = [
+    "graphs/fr_triage",
+    "graphs/world_distill",
+    "graphs/philosopher",
+    "scripts/lib",
+]
 # Path form and Path-segment form (triage_gate.py builds ".chaplain" / "graphs" / ...).
 OLD_LITERALS = re.compile(
     r"\.chaplain/graphs/(fr_triage|world_distill|philosopher)"
@@ -98,7 +103,9 @@ def test_live_consumers_name_new_paths(rel):
         for n, line in enumerate(_read(rel).splitlines(), 1)
         if OLD_LITERALS.search(line)
     ]
-    assert not hits, "live consumer still names an old .chaplain path:\n" + "\n".join(hits)
+    assert not hits, "live consumer still names an old .chaplain path:\n" + "\n".join(
+        hits
+    )
 
 
 def test_relocated_trees_name_no_old_paths():
@@ -111,7 +118,9 @@ def test_relocated_trees_name_no_old_paths():
                 for n, line in enumerate(p.read_text(encoding="utf-8").splitlines(), 1):
                     if OLD_LITERALS.search(line):
                         hits.append(f"{p.relative_to(REPO)}:{n}: {line.strip()}")
-    assert not hits, "relocated package still names an old .chaplain path:\n" + "\n".join(hits)
+    assert not hits, (
+        "relocated package still names an old .chaplain path:\n" + "\n".join(hits)
+    )
 
 
 def test_philosopher_diary_proxy_is_sibling():
@@ -120,34 +129,52 @@ def test_philosopher_diary_proxy_is_sibling():
     assert (REPO / tools_rel).is_file(), f"missing {tools_rel}"
     assert (REPO / diary_rel).is_file(), f"missing {diary_rel}"
     src = _read(tools_rel)
-    assert 'with_name("diary.py")' in src, "write_diary proxy must load the sibling diary.py"
-    assert 'parents[2] / "lib"' not in src, "old parents[2]/lib proxy path still present"
+    assert 'with_name("diary.py")' in src, (
+        "write_diary proxy must load the sibling diary.py"
+    )
+    assert 'parents[2] / "lib"' not in src, (
+        "old parents[2]/lib proxy path still present"
+    )
     spec = importlib.util.spec_from_file_location("fr1011_diary", REPO / diary_rel)
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
-    assert callable(getattr(mod, "write_diary", None)), "diary.py must expose write_diary"
+    assert callable(getattr(mod, "write_diary", None)), (
+        "diary.py must expose write_diary"
+    )
 
 
 def test_finalizer_sources_relocated_lib():
     src = _read("scripts/finalize_merge.sh")
-    assert "scripts/lib/finalize_lib.sh" in src, "finalize_merge.sh must source scripts/lib/finalize_lib.sh"
+    assert "scripts/lib/finalize_lib.sh" in src, (
+        "finalize_merge.sh must source scripts/lib/finalize_lib.sh"
+    )
     assert ".chaplain/lib" not in src, "finalize_merge.sh still sources .chaplain/lib"
 
 
 def test_proposals_route_documented():
     skill = _read(".github/skills/feature-request/SKILL.md")
-    assert "mkdir -p proposals" in skill, "feature-request skill must give the executable proposals/ command"
-    assert ".chaplain/inbox" not in skill, "feature-request skill still names .chaplain/inbox"
+    assert "mkdir -p proposals" in skill, (
+        "feature-request skill must give the executable proposals/ command"
+    )
+    assert ".chaplain/inbox" not in skill, (
+        "feature-request skill still names .chaplain/inbox"
+    )
     ignore = _read(".gitignore").splitlines()
-    assert "/proposals/" in ignore, ".gitignore must ignore the root-anchored /proposals/"
+    assert "/proposals/" in ignore, (
+        ".gitignore must ignore the root-anchored /proposals/"
+    )
     assert ".chaplain/inbox/" not in ignore, ".gitignore still lists .chaplain/inbox/"
 
 
 @pytest.mark.parametrize("rel", GUARD_SURFACES)
 def test_governed_surfaces_have_no_chaplain_arm(rel):
     text = _read(rel)
-    assert not re.search(r"\\\.chaplain|\.chaplain", text), f"{rel} still carries a .chaplain arm or routing text"
+    assert not re.search(r"\\\.chaplain|\.chaplain", text), (
+        f"{rel} still carries a .chaplain arm or routing text"
+    )
 
 
 def test_examples_philosopher_stub_removed():
-    assert not (REPO / "examples" / "philosopher").exists(), "examples/philosopher/ stub must be deleted"
+    assert not (REPO / "examples" / "philosopher").exists(), (
+        "examples/philosopher/ stub must be deleted"
+    )

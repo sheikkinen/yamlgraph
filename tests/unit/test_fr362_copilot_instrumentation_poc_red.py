@@ -24,9 +24,9 @@ def test_instrument_script_exists_and_defines_two_phase_contract():
     text = INSTRUMENT_SCRIPT.read_text(encoding="utf-8")
     assert "plan" in text, "Script must contain 'plan' phase label"
     assert "implement" in text, "Script must contain 'implement' phase label"
-    assert (
-        "--resume" in text
-    ), "Script must reference --resume flag for phase continuation"
+    assert "--resume" in text, (
+        "Script must reference --resume flag for phase continuation"
+    )
 
 
 @pytest.mark.req("REQ-YG-047")
@@ -55,7 +55,9 @@ def test_extractor_exists_and_emits_pydantic_valid_events(tmp_path):
             }
         ]
     }
-    (otel_dir / "otel.jsonl").write_text(json.dumps(otel_event) + "\n", encoding="utf-8")
+    (otel_dir / "otel.jsonl").write_text(
+        json.dumps(otel_event) + "\n", encoding="utf-8"
+    )
 
     # Run extractor
     result = subprocess.run(

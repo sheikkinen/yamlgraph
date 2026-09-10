@@ -108,13 +108,17 @@ class TestDedupEntitiesCleanup:
     @pytest.mark.req("REQ-YG-517")
     def test_no_llm_dedup_threshold(self) -> None:
         """_LLM_DEDUP_THRESHOLD removed — threshold in YAML router."""
-        source = (NOVEL_FANDOM_DIR / "nodes" / "dedup_entities.py").read_text(encoding="utf-8")
+        source = (NOVEL_FANDOM_DIR / "nodes" / "dedup_entities.py").read_text(
+            encoding="utf-8"
+        )
         assert "_LLM_DEDUP_THRESHOLD" not in source
 
     @pytest.mark.req("REQ-YG-517")
     def test_no_todo_stub(self) -> None:
         """TODO stub removed."""
-        source = (NOVEL_FANDOM_DIR / "nodes" / "dedup_entities.py").read_text(encoding="utf-8")
+        source = (NOVEL_FANDOM_DIR / "nodes" / "dedup_entities.py").read_text(
+            encoding="utf-8"
+        )
         assert "TODO" not in source
 
 

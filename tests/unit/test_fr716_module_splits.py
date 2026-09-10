@@ -33,9 +33,9 @@ class TestSplitRelievesGate:
     def test_graph_schema_bisected(self):
         """Node-config models live in node_schema; both halves well under
         the 400 warn line."""
-        assert (
-            REPO_ROOT / "yamlgraph/models/node_schema.py"
-        ).exists(), "node_schema.py missing — graph_schema.py still monolithic"
+        assert (REPO_ROOT / "yamlgraph/models/node_schema.py").exists(), (
+            "node_schema.py missing — graph_schema.py still monolithic"
+        )
         assert _lines("yamlgraph/models/graph_schema.py") < 300
         assert _lines("yamlgraph/models/node_schema.py") < 400
 

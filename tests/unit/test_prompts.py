@@ -106,7 +106,9 @@ class TestLoadPrompt:
         prompts_dir = tmp_path / "prompts"
         prompts_dir.mkdir()
         prompt_file = prompts_dir / "test.yaml"
-        prompt_file.write_text("system: You are helpful\nuser: Hello {name}", encoding="utf-8")
+        prompt_file.write_text(
+            "system: You are helpful\nuser: Hello {name}", encoding="utf-8"
+        )
 
         result = load_prompt("test", prompts_dir=prompts_dir)
 
@@ -121,7 +123,8 @@ class TestLoadPrompt:
         prompts_dir = tmp_path / "prompts"
         prompts_dir.mkdir()
         prompt_file = prompts_dir / "structured.yaml"
-        prompt_file.write_text("""
+        prompt_file.write_text(
+            """
 system: Analyze content
 user: "{content}"
 schema:
@@ -130,7 +133,9 @@ schema:
     summary:
       type: str
       description: Brief summary
-""", encoding="utf-8")
+""",
+            encoding="utf-8",
+        )
 
         result = load_prompt("structured", prompts_dir=prompts_dir)
 
@@ -223,7 +228,9 @@ class TestGraphRelativePrompts:
         # Graph-relative prompt (should NOT be used)
         graph_prompts = graph_dir / "prompts"
         graph_prompts.mkdir()
-        (graph_prompts / "greet.yaml").write_text("system: Graph local", encoding="utf-8")
+        (graph_prompts / "greet.yaml").write_text(
+            "system: Graph local", encoding="utf-8"
+        )
 
         # Explicit prompts dir (should be used)
         explicit_dir = tmp_path / "explicit"

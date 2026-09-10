@@ -30,6 +30,8 @@ except ImportError:
 # Chaplain adapter import helpers (same pattern as test_fr319)
 # ---------------------------------------------------------------------------
 WORKTREE = Path(__file__).resolve().parents[2]
+
+
 # ---------------------------------------------------------------------------
 # 1. Unknown key rejection
 # ---------------------------------------------------------------------------
@@ -146,9 +148,9 @@ class TestEventMapNormalizationPreservation:
                 "event_map": {"APPROVE": "approve_event", "REJECT": "reject_event"},
             }
         )
-        assert (
-            "approve" in cfg.event_map
-        ), "APPROVE must be normalized to lowercase in ActionConfig.event_map"
+        assert "approve" in cfg.event_map, (
+            "APPROVE must be normalized to lowercase in ActionConfig.event_map"
+        )
         assert "reject" in cfg.event_map
 
     def test_mixed_case_and_whitespace_key_normalized(self) -> None:
@@ -158,9 +160,9 @@ class TestEventMapNormalizationPreservation:
         cfg = ActionConfig.model_validate(
             {"graph": "judge.yaml", "event_map": {" Amend ": "revise"}}
         )
-        assert (
-            "amend" in cfg.event_map
-        ), "event_map keys must be stripped and lowercased by ActionConfig validator"
+        assert "amend" in cfg.event_map, (
+            "event_map keys must be stripped and lowercased by ActionConfig validator"
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -226,9 +228,9 @@ class TestActionConfigDescriptionStrip:
 
         from yamlgraph.utils.fsm.action import _STRIP_BEFORE_VALIDATE
 
-        assert (
-            "description" in _STRIP_BEFORE_VALIDATE
-        ), "_STRIP_BEFORE_VALIDATE must include 'description'"
+        assert "description" in _STRIP_BEFORE_VALIDATE, (
+            "_STRIP_BEFORE_VALIDATE must include 'description'"
+        )
 
         stripped = {
             k: v
@@ -245,9 +247,9 @@ class TestActionConfigDescriptionStrip:
         if not _ACTION_CONFIG_AVAILABLE:
             pytest.fail("ActionConfig not yet defined")
 
-        assert (
-            "description" not in ActionConfig.model_fields
-        ), "description belongs in _STRIP_BEFORE_VALIDATE, not in ActionConfig"
+        assert "description" not in ActionConfig.model_fields, (
+            "description belongs in _STRIP_BEFORE_VALIDATE, not in ActionConfig"
+        )
 
     def test_typo_still_rejected_after_fix(self) -> None:
         """Regression guard: stripping description must not weaken typo detection."""

@@ -245,9 +245,9 @@ def test_wrapper_is_executable_in_the_index():
         text=True,
         check=True,
     ).stdout.split()[0]
-    assert (
-        mode == "100755"
-    ), f"scripts/outsider.sh committed as {mode}; ./scripts/outsider.sh would fail"
+    assert mode == "100755", (
+        f"scripts/outsider.sh committed as {mode}; ./scripts/outsider.sh would fail"
+    )
 
 
 @pytest.mark.req("REQ-YG-663")

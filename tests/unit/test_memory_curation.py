@@ -37,9 +37,15 @@ def sha256_bytes(data: bytes) -> str:
 def memory_root(tmp_path: Path) -> Path:
     root = tmp_path / "memories"
     (root / "repo").mkdir(parents=True)
-    (root / "repo" / "keepme.md").write_text("# Durable fact\nstill true\n", encoding="utf-8")
-    (root / "repo" / "stale.md").write_text("# Version pin\nfoo is v0.1.7\n", encoding="utf-8")
-    root.joinpath("user-note.md").write_text("# User scope\nnot repo scope\n", encoding="utf-8")
+    (root / "repo" / "keepme.md").write_text(
+        "# Durable fact\nstill true\n", encoding="utf-8"
+    )
+    (root / "repo" / "stale.md").write_text(
+        "# Version pin\nfoo is v0.1.7\n", encoding="utf-8"
+    )
+    root.joinpath("user-note.md").write_text(
+        "# User scope\nnot repo scope\n", encoding="utf-8"
+    )
     return root
 
 
@@ -132,7 +138,9 @@ class TestReconcile:
         manifest = json.loads((out_dir / "manifest.json").read_text(encoding="utf-8"))
         result = self._reconcile(out_dir, make_disposition_rows(manifest))
         assert result.returncode == 0, result.stderr
-        disposition = json.loads((out_dir / "disposition.json").read_text(encoding="utf-8"))
+        disposition = json.loads(
+            (out_dir / "disposition.json").read_text(encoding="utf-8")
+        )
         assert disposition["manifest_sha256"] == sha256_bytes(
             (out_dir / "manifest.json").read_bytes()
         )
@@ -218,8 +226,9 @@ class TestApply:
         review = out_dir / "disposition.md"
         review.write_text(
             review.read_text(encoding="utf-8")
-            + f"\nSIGN-OFF: approved HUMAN=operator manifest={h_m} disposition={h_d}\n"
-        , encoding="utf-8")
+            + f"\nSIGN-OFF: approved HUMAN=operator manifest={h_m} disposition={h_d}\n",
+            encoding="utf-8",
+        )
 
     def _apply(self, memory_root: Path, out_dir: Path) -> subprocess.CompletedProcess:
         return run_tool(
@@ -259,8 +268,9 @@ class TestApply:
         review = out_dir / "disposition.md"
         review.write_text(
             review.read_text(encoding="utf-8")
-            + f"\nSIGN-OFF: approved HUMAN=operator manifest={'0' * 64} disposition={'0' * 64}\n"
-        , encoding="utf-8")
+            + f"\nSIGN-OFF: approved HUMAN=operator manifest={'0' * 64} disposition={'0' * 64}\n",
+            encoding="utf-8",
+        )
         result = self._apply(memory_root, out_dir)
         assert result.returncode != 0
         assert (memory_root / "repo" / "stale.md").exists()
@@ -271,9 +281,9 @@ class TestApply:
         result = self._apply(memory_root, out_dir)
         assert result.returncode == 0, result.stderr
         assert not (memory_root / "repo" / "stale.md").exists()
-        assert (
-            memory_root / "repo" / "keepme.md"
-        ).read_text(encoding="utf-8") == "# Durable fact\nredacted body\n"
+        assert (memory_root / "repo" / "keepme.md").read_text(
+            encoding="utf-8"
+        ) == "# Durable fact\nredacted body\n"
 
     def test_idempotent_rerun(self, memory_root, out_dir):
         self._prepare(memory_root, out_dir, {**self.FORGET_STALE, **self.REDACT_KEEP})
@@ -285,18 +295,22 @@ class TestApply:
     def test_refuses_on_live_drift(self, memory_root, out_dir):
         self._prepare(memory_root, out_dir, self.FORGET_STALE)
         self._sign(out_dir)
-        (memory_root / "repo" / "stale.md").write_text("edited after collection\n", encoding="utf-8")
+        (memory_root / "repo" / "stale.md").write_text(
+            "edited after collection\n", encoding="utf-8"
+        )
         result = self._apply(memory_root, out_dir)
         assert result.returncode != 0
         assert "drift" in (result.stdout + result.stderr).lower()
-        assert (
-            memory_root / "repo" / "stale.md"
-        ).read_text(encoding="utf-8") == "edited after collection\n"
+        assert (memory_root / "repo" / "stale.md").read_text(
+            encoding="utf-8"
+        ) == "edited after collection\n"
 
     def test_drift_anywhere_refuses_everything(self, memory_root, out_dir):
         self._prepare(memory_root, out_dir, {**self.FORGET_STALE, **self.REDACT_KEEP})
         self._sign(out_dir)
-        (memory_root / "repo" / "keepme.md").write_text("edited after collection\n", encoding="utf-8")
+        (memory_root / "repo" / "keepme.md").write_text(
+            "edited after collection\n", encoding="utf-8"
+        )
         result = self._apply(memory_root, out_dir)
         assert result.returncode != 0
         # no partial apply: stale.md must survive even though its own hash matched

@@ -161,15 +161,15 @@ class TestFR335ModuleMapCompression:
     ) -> None:
         module_map = _run_generator()
         trivial_modules = _trivial_init_modules()
-        assert (
-            trivial_modules
-        ), "Expected at least one trivial __init__.py module for AC coverage"
+        assert trivial_modules, (
+            "Expected at least one trivial __init__.py module for AC coverage"
+        )
 
         for module_path in trivial_modules:
             assert f"`{module_path}`" in module_map
-            assert (
-                f"### `{module_path}`" not in module_map
-            ), f"Trivial module rendered as verbose section: {module_path}"
+            assert f"### `{module_path}`" not in module_map, (
+                f"Trivial module rendered as verbose section: {module_path}"
+            )
 
     def test_ac04_existing_fr331_acceptance_tests_still_pass(self) -> None:
         assert FR331_TEST_PATH.exists(), f"Missing FR-331 test file: {FR331_TEST_PATH}"

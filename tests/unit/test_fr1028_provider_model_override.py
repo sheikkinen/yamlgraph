@@ -397,9 +397,9 @@ def test_verify_artifact_provenance_line(preflight, tools, tmp_path):
         f"{PROVENANCE} azure/dep 1",
     ):
         bad = text.replace("\n", f"\n{bad_line}\n", 1)
-        assert any(
-            "provider/model" in v for v in preflight.verify_artifact(bad)
-        ), bad_line
+        assert any("provider/model" in v for v in preflight.verify_artifact(bad)), (
+            bad_line
+        )
     dup = text.replace(
         "\n", f"\n{PROVENANCE} azure/dep-1\n{PROVENANCE} azure/dep-1\n", 1
     )

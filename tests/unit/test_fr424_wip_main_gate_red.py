@@ -51,7 +51,9 @@ def _run_precommit_wip_hook(
     entry = _wip_main_hook_entry()
     with tempfile.TemporaryDirectory() as tmpdir:
         _setup_git_repo(tmpdir, branch)
-        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", suffix=".txt", delete=False) as f:
+        with tempfile.NamedTemporaryFile(
+            encoding="utf-8", mode="w", suffix=".txt", delete=False
+        ) as f:
             f.write(commit_msg)
             f.flush()
             msg_file = f.name
@@ -203,7 +205,9 @@ def test_ac07_traceability_docs_reference_req_yg_419() -> None:
     cap = CAP_156_PATH.read_text(encoding="utf-8").lower()
     architecture = ARCHITECTURE_PATH.read_text(encoding="utf-8").lower()
     # FR-942 moved the CI checks list from CLAUDE.md to the ops reference.
-    dev_ops = Path("reference/development-operations.md").read_text(encoding="utf-8").lower()
+    dev_ops = (
+        Path("reference/development-operations.md").read_text(encoding="utf-8").lower()
+    )
 
     assert "req-yg-419" in cap
     assert "wip-gate" in cap

@@ -514,7 +514,9 @@ class TestCheckPromptFiles:
         # Create custom prompts directory
         custom_dir = temp_graph_dir / "custom" / "prompts"
         custom_dir.mkdir(parents=True)
-        (custom_dir / "my_prompt.yaml").write_text("system: Test\nuser: Test", encoding="utf-8")
+        (custom_dir / "my_prompt.yaml").write_text(
+            "system: Test\nuser: Test", encoding="utf-8"
+        )
 
         graph = {
             "version": "1.0",
@@ -544,7 +546,9 @@ class TestCheckPromptFiles:
         # Create custom prompts directory
         custom_dir = temp_graph_dir / "my" / "prompts"
         custom_dir.mkdir(parents=True)
-        (custom_dir / "test_prompt.yaml").write_text("system: Test\nuser: Test", encoding="utf-8")
+        (custom_dir / "test_prompt.yaml").write_text(
+            "system: Test\nuser: Test", encoding="utf-8"
+        )
 
         graph = {
             "version": "1.0",
@@ -578,7 +582,9 @@ class TestCheckPromptFiles:
         subdir.mkdir()
         prompts_dir = subdir / "prompts"
         prompts_dir.mkdir()
-        (prompts_dir / "local_prompt.yaml").write_text("system: Test\nuser: Test", encoding="utf-8")
+        (prompts_dir / "local_prompt.yaml").write_text(
+            "system: Test\nuser: Test", encoding="utf-8"
+        )
 
         graph = {
             "version": "1.0",

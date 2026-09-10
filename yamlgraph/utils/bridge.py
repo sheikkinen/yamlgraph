@@ -148,8 +148,7 @@ def run_coro_sync_safe(
             _done, still = await asyncio.wait(pending, timeout=cleanup_grace)
             if still:
                 logger.warning(
-                    "race cleanup abandoned %d task(s) still pending "
-                    "after %.1fs: %s",
+                    "race cleanup abandoned %d task(s) still pending after %.1fs: %s",
                     len(still),
                     cleanup_grace,
                     ", ".join(t.get_name() for t in still),

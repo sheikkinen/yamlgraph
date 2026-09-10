@@ -60,7 +60,9 @@ def _load_proof_module():
 def _load_guard_governed_path():
     """Extract ``def governed_path`` from the guard's Python heredoc and exec it."""
     text = GUARD_SCRIPT.read_text(encoding="utf-8")
-    match = re.search(r"^def governed_path\(path\):\n(?:    .*\n|\n(?=    ))*", text, re.M)
+    match = re.search(
+        r"^def governed_path\(path\):\n(?:    .*\n|\n(?=    ))*", text, re.M
+    )
     assert match, "governed_path() not found in pre-command-guard.sh"
     namespace: dict = {"re": re}
     exec(match.group(0), namespace)  # noqa: S102 — CONF-461: executes the hook's own predicate source
@@ -83,20 +85,26 @@ def _proof_governed(path: str) -> bool:
 
 @pytest.mark.parametrize(("path", "provenance", "expected"), TRUTH_TABLE, ids=ROW_IDS)
 def test_proof_governed_matches_truth_table(path, provenance, expected):
-    assert _proof_governed(path) is expected, f"GOVERNED disagrees on {path} ({provenance})"
+    assert _proof_governed(path) is expected, (
+        f"GOVERNED disagrees on {path} ({provenance})"
+    )
 
 
 @pytest.mark.parametrize(("path", "provenance", "expected"), TRUTH_TABLE, ids=ROW_IDS)
 def test_guard_governed_path_matches_truth_table(path, provenance, expected):
     governed_path = _load_guard_governed_path()
-    assert governed_path(path) is expected, f"governed_path() disagrees on {path} ({provenance})"
+    assert governed_path(path) is expected, (
+        f"governed_path() disagrees on {path} ({provenance})"
+    )
 
 
 @pytest.mark.parametrize(("path", "provenance", "expected"), TRUTH_TABLE, ids=ROW_IDS)
 def test_authoring_proof_selector_matches_truth_table(path, provenance, expected):
     """A dir-style-only commit must still invoke the backstop (FR-1011 R-1)."""
     selector = _authoring_proof_selector()
-    assert bool(selector.search(path)) is expected, f"files: selector disagrees on {path}"
+    assert bool(selector.search(path)) is expected, (
+        f"files: selector disagrees on {path}"
+    )
 
 
 @pytest.mark.parametrize(("path", "provenance", "expected"), TRUTH_TABLE, ids=ROW_IDS)
@@ -105,9 +113,7 @@ def test_hook_and_proof_predicates_agree(path, provenance, expected):
     assert _load_guard_governed_path()(path) is _proof_governed(path)
 
 
-@pytest.mark.parametrize(
-    "path", [row[0] for row in TRUTH_TABLE if row[1] == "exists"]
-)
+@pytest.mark.parametrize("path", [row[0] for row in TRUTH_TABLE if row[1] == "exists"])
 def test_exists_rows_are_tracked(path):
     """AC-03: every row labelled 'exists' is in the tree; no synthetic row is."""
     result = subprocess.run(

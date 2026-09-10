@@ -71,8 +71,8 @@ def write_store(
     chat = ws / "chatSessions"
     chat.mkdir(parents=True, exist_ok=True)
     (ws / "workspace.json").write_text(
-        json.dumps({"folder": "file:///fake/repo-under-test"})
-    , encoding="utf-8")
+        json.dumps({"folder": "file:///fake/repo-under-test"}), encoding="utf-8"
+    )
     recs = [
         {"kind": 0, "v": {"sessionId": session_id, "creationDate": ts, "requests": []}},
         # request 1 (model-a)

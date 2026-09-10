@@ -54,9 +54,9 @@ class TestLLMNodeJinja2State:
                 f"execute_prompt should receive state= parameter for Jinja2 templates. "
                 f"Got kwargs: {list(call_kwargs.keys())}"
             )
-            assert (
-                call_kwargs["state"] == state
-            ), f"state should contain full graph state. Got: {call_kwargs.get('state')}"
+            assert call_kwargs["state"] == state, (
+                f"state should contain full graph state. Got: {call_kwargs.get('state')}"
+            )
 
     @pytest.mark.req("REQ-YG-013")
     def test_jinja2_state_template_renders_correctly(self) -> None:
@@ -69,12 +69,12 @@ class TestLLMNodeJinja2State:
 
         formatted = format_prompt(template, {}, state=state)
 
-        assert (
-            "AI safety" in formatted
-        ), f"Jinja2 state.topic should render. Got: {formatted}"
-        assert (
-            "healthcare" in formatted
-        ), f"Jinja2 state.context should render. Got: {formatted}"
+        assert "AI safety" in formatted, (
+            f"Jinja2 state.topic should render. Got: {formatted}"
+        )
+        assert "healthcare" in formatted, (
+            f"Jinja2 state.context should render. Got: {formatted}"
+        )
 
     @pytest.mark.req("REQ-YG-013")
     def test_llm_node_jinja2_template_not_passed_through(self) -> None:
@@ -90,6 +90,6 @@ class TestLLMNodeJinja2State:
         )  # No state= param, so {{state.topic}} not available
 
         # Template should NOT render correctly without state
-        assert (
-            "{{ state.topic }}" in formatted or "AI" not in formatted
-        ), "Without state= parameter, Jinja2 state templates should not render"
+        assert "{{ state.topic }}" in formatted or "AI" not in formatted, (
+            "Without state= parameter, Jinja2 state templates should not render"
+        )

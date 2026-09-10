@@ -109,9 +109,9 @@ class TestJudgeDemoGraphStructure:
     def test_no_hardcoded_model(self) -> None:
         """FR-453: No hardcoded model — uses env var fallthrough."""
         raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text(encoding="utf-8"))
-        assert (
-            "model" not in raw["nodes"]["judge"]
-        ), "Judge node must not hardcode model — use PROVIDER/MODEL env vars"
+        assert "model" not in raw["nodes"]["judge"], (
+            "Judge node must not hardcode model — use PROVIDER/MODEL env vars"
+        )
 
     @pytest.mark.req("REQ-YG-408")
     def test_judge_state_key_is_verdict(self) -> None:
@@ -124,7 +124,9 @@ class TestJudgeDemoGraphStructure:
     @pytest.mark.req("REQ-YG-408")
     def test_prompt_has_structured_schema(self) -> None:
         """Prompt must define JudgeVerdict schema with 5 fields."""
-        prompt = yaml.safe_load((DEMO_DIR / "prompts" / "judge.yaml").read_text(encoding="utf-8"))
+        prompt = yaml.safe_load(
+            (DEMO_DIR / "prompts" / "judge.yaml").read_text(encoding="utf-8")
+        )
         schema = prompt["schema"]
         assert schema["name"] == "JudgeVerdict"
         expected_fields = {

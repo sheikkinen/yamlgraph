@@ -28,7 +28,9 @@ class TestLoadDataFiles:
         """Load a single YAML file into state."""
         # Create data file
         schema_file = tmp_path / "schema.yaml"
-        schema_file.write_text("fields:\n  - name: age\n    type: int", encoding="utf-8")
+        schema_file.write_text(
+            "fields:\n  - name: age\n    type: int", encoding="utf-8"
+        )
 
         graph_path = tmp_path / "graph.yaml"
         graph_path.touch()

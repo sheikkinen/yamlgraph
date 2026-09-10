@@ -77,11 +77,11 @@ def _write_graph(tmp_path: Path) -> Path:
     prompts_dir = tmp_path / "prompts"
     prompts_dir.mkdir()
     (prompts_dir / "phase1.yaml").write_text(
-        "system: You are a helper.\nuser: Do phase 1 for {task}"
-    , encoding="utf-8")
+        "system: You are a helper.\nuser: Do phase 1 for {task}", encoding="utf-8"
+    )
     (prompts_dir / "phase2.yaml").write_text(
-        "system: You are a helper.\nuser: Do phase 2 for {task}"
-    , encoding="utf-8")
+        "system: You are a helper.\nuser: Do phase 2 for {task}", encoding="utf-8"
+    )
     return graph_file
 
 
@@ -157,7 +157,8 @@ class TestCopilotSessionPropagation:
                 share_path = Path(cmd[share_idx])
                 share_path.parent.mkdir(parents=True, exist_ok=True)
                 share_path.write_text(
-                    f"# Session\n> - **Session ID:** `{session_uuid}`\n", encoding="utf-8"
+                    f"# Session\n> - **Session ID:** `{session_uuid}`\n",
+                    encoding="utf-8",
                 )
             return result
 
@@ -171,9 +172,9 @@ class TestCopilotSessionPropagation:
 
         # Phase2 received --resume with the correct UUID
         phase2_cmd = copilot_cmds[1][0][0]
-        assert (
-            "--resume" in phase2_cmd
-        ), f"Expected --resume in phase2 command, got: {phase2_cmd}"
+        assert "--resume" in phase2_cmd, (
+            f"Expected --resume in phase2 command, got: {phase2_cmd}"
+        )
         resume_idx = phase2_cmd.index("--resume")
         assert phase2_cmd[resume_idx + 1] == session_uuid
 
@@ -289,8 +290,8 @@ def _write_unwrap_graph(tmp_path: Path) -> Path:
     prompts_dir = tmp_path / "prompts"
     prompts_dir.mkdir()
     (prompts_dir / "analyze.yaml").write_text(
-        "system: You are an analyst.\nuser: Analyze {topic}"
-    , encoding="utf-8")
+        "system: You are an analyst.\nuser: Analyze {topic}", encoding="utf-8"
+    )
     return graph_file
 
 
@@ -350,7 +351,8 @@ class TestCopilotOutputUnwrap:
                 share_path = Path(cmd[share_idx])
                 share_path.parent.mkdir(parents=True, exist_ok=True)
                 share_path.write_text(
-                    f"# Session\n> - **Session ID:** `{session_uuid}`\n", encoding="utf-8"
+                    f"# Session\n> - **Session ID:** `{session_uuid}`\n",
+                    encoding="utf-8",
                 )
             return result
 

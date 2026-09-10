@@ -83,9 +83,11 @@ def _write_semantic_fixture(run_dir: Path) -> None:
         },
     ]
     (phase_dir / "otel.jsonl").write_text(
-        "".join(json.dumps(line) + "\n" for line in otel_lines)
-    , encoding="utf-8")
-    (phase_dir / "git-diff.patch").write_text("diff --git a/a.py b/a.py\n+pass\n", encoding="utf-8")
+        "".join(json.dumps(line) + "\n" for line in otel_lines), encoding="utf-8"
+    )
+    (phase_dir / "git-diff.patch").write_text(
+        "diff --git a/a.py b/a.py\n+pass\n", encoding="utf-8"
+    )
 
 
 @pytest.mark.req("REQ-YG-340")

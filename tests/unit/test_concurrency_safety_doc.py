@@ -88,6 +88,6 @@ def test_concurrency_safety_has_summary_table():
 def test_concurrency_safety_safe_patterns_documented():
     """AC: Safe patterns (async executor) document why they are safe."""
     content = DOC_PATH.read_text(encoding="utf-8")
-    assert (
-        "asyncio.gather" in content
-    ), "Async executor concurrency model not documented"
+    assert "asyncio.gather" in content, (
+        "Async executor concurrency model not documented"
+    )

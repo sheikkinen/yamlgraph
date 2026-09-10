@@ -672,7 +672,9 @@ class TestLoopExits:
             ],
             "loop_exits": {"draft": "distill"},  # draft not in loop_limits
         }
-        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", suffix=".yaml", delete=False) as f:
+        with tempfile.NamedTemporaryFile(
+            encoding="utf-8", mode="w", suffix=".yaml", delete=False
+        ) as f:
             yaml.dump(graph, f)
             path = Path(f.name)
 
@@ -708,7 +710,9 @@ class TestLoopExits:
             "loop_limits": {"critique": 3},
             "loop_exits": {"critique": "nonexistent_node"},
         }
-        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", suffix=".yaml", delete=False) as f:
+        with tempfile.NamedTemporaryFile(
+            encoding="utf-8", mode="w", suffix=".yaml", delete=False
+        ) as f:
             yaml.dump(graph, f)
             path = Path(f.name)
 
@@ -745,7 +749,9 @@ class TestLoopExits:
             "loop_limits": {"critique": 3},
             "loop_exits": {"critique": "distill"},
         }
-        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", suffix=".yaml", delete=False) as f:
+        with tempfile.NamedTemporaryFile(
+            encoding="utf-8", mode="w", suffix=".yaml", delete=False
+        ) as f:
             yaml.dump(graph, f)
             path = Path(f.name)
 

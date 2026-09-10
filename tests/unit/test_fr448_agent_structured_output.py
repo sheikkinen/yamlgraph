@@ -65,9 +65,9 @@ class TestAgentStructuredOutputNormalExit:
         )
         result = node_fn({"input": "Judge this"})
 
-        assert isinstance(
-            result["result"], dict
-        ), f"Expected dict, got {type(result['result'])}"
+        assert isinstance(result["result"], dict), (
+            f"Expected dict, got {type(result['result'])}"
+        )
         assert result["result"]["verdict"] == "APPROVE"
         assert result["result"]["reasoning"] == "Looks good"
 
@@ -131,9 +131,9 @@ class TestAgentStructuredOutputMaxIterations:
         )
         result = node_fn({"input": "Judge this"})
 
-        assert isinstance(
-            result["result"], dict
-        ), f"Expected dict, got {type(result['result'])}"
+        assert isinstance(result["result"], dict), (
+            f"Expected dict, got {type(result['result'])}"
+        )
         assert result["result"]["verdict"] == "APPROVE"
         assert result["_agent_limit_reached"] is True
 

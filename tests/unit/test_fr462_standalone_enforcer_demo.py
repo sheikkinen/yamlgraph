@@ -113,9 +113,9 @@ class TestEnforcerDemoGraphStructure:
     def test_no_hardcoded_model(self) -> None:
         """No hardcoded model — uses env var fallthrough."""
         raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text(encoding="utf-8"))
-        assert (
-            "model" not in raw["nodes"]["enforcer"]
-        ), "Enforcer node must not hardcode model — use PROVIDER/MODEL env vars"
+        assert "model" not in raw["nodes"]["enforcer"], (
+            "Enforcer node must not hardcode model — use PROVIDER/MODEL env vars"
+        )
 
     @pytest.mark.req("REQ-YG-426")
     def test_enforcer_state_key_is_implementation_result(self) -> None:
@@ -128,7 +128,9 @@ class TestEnforcerDemoGraphStructure:
     @pytest.mark.req("REQ-YG-426")
     def test_prompt_has_structured_schema(self) -> None:
         """Prompt must define ImplementationResult schema with 4 fields."""
-        prompt = yaml.safe_load((DEMO_DIR / "prompts" / "enforcer.yaml").read_text(encoding="utf-8"))
+        prompt = yaml.safe_load(
+            (DEMO_DIR / "prompts" / "enforcer.yaml").read_text(encoding="utf-8")
+        )
         schema = prompt["schema"]
         assert schema["name"] == "ImplementationResult"
         expected_fields = {
@@ -142,7 +144,9 @@ class TestEnforcerDemoGraphStructure:
     @pytest.mark.req("REQ-YG-426")
     def test_prompt_instructs_implementation_steps(self) -> None:
         """Prompt must instruct agent through implementation steps."""
-        prompt_text = (DEMO_DIR / "prompts" / "enforcer.yaml").read_text(encoding="utf-8")
+        prompt_text = (DEMO_DIR / "prompts" / "enforcer.yaml").read_text(
+            encoding="utf-8"
+        )
         assert "Read the FR" in prompt_text
         assert "Explore" in prompt_text
         assert "Implement" in prompt_text

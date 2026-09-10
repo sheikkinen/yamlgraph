@@ -60,9 +60,9 @@ def test_ac03_copilot_chaplain_prompts_remain_system_field_only() -> None:
     for prompt_path in sorted(inventory["copilot"]):
         prompt = _load_yaml(prompt_path)
         assert "system" in prompt, f"{prompt_path} must retain system field"
-        assert (
-            "system_segments" not in prompt
-        ), f"{prompt_path} must not migrate to system_segments in FR-382"
+        assert "system_segments" not in prompt, (
+            f"{prompt_path} must not migrate to system_segments in FR-382"
+        )
 
 
 @pytest.mark.req("REQ-YG-287")
@@ -76,13 +76,15 @@ def test_ac03_prompt_inventory_scope_matches_graph_node_types() -> None:
         PROCESS_GRAPHS_DIR / "world_distill" / "prompts" / "distill_world.yaml"
     )
     fr_triage_prompt = PROCESS_GRAPHS_DIR / "fr_triage" / "prompts" / "triage_fr.yaml"
-    enforcement_prompt = PROCESS_GRAPHS_DIR / "enforcement" / "prompts" / "cross_check.yaml"
+    enforcement_prompt = (
+        PROCESS_GRAPHS_DIR / "enforcement" / "prompts" / "cross_check.yaml"
+    )
     expected_llm_prompts = {
         world_distill_prompt.resolve(),
         fr_triage_prompt.resolve(),
         enforcement_prompt.resolve(),
     }
 
-    assert (
-        inventory["llm"] == expected_llm_prompts
-    ), "LLM-consumed process-graph prompts must be exactly distill_world + triage_fr + cross_check"
+    assert inventory["llm"] == expected_llm_prompts, (
+        "LLM-consumed process-graph prompts must be exactly distill_world + triage_fr + cross_check"
+    )

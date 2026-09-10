@@ -272,8 +272,9 @@ edges:
     to: step
   - from: step
     to: END
-"""
-        , encoding="utf-8")
+""",
+            encoding="utf-8",
+        )
         assert route_log_enabled() is False
         compile_graph(load_graph_config(graph_yaml))
         assert route_log_enabled() is True
@@ -288,7 +289,11 @@ edges:
         router({"_route": "a"})
         router({"_route": "a"})
 
-        lines = [json.loads(line) for line in sink.read_text(encoding="utf-8").splitlines() if line]
+        lines = [
+            json.loads(line)
+            for line in sink.read_text(encoding="utf-8").splitlines()
+            if line
+        ]
         assert len(lines) == 2
         assert all(entry["event"] == "route" for entry in lines)
 
@@ -301,7 +306,11 @@ edges:
         router({"_route": "a"})
 
         assert sink.exists()
-        lines = [json.loads(line) for line in sink.read_text(encoding="utf-8").splitlines() if line]
+        lines = [
+            json.loads(line)
+            for line in sink.read_text(encoding="utf-8").splitlines()
+            if line
+        ]
         assert len(lines) == 1
 
     @pytest.mark.req("REQ-YG-552")
@@ -317,7 +326,11 @@ edges:
 
         sink = route_dir / "route.jsonl"
         assert sink.exists()
-        lines = [json.loads(line) for line in sink.read_text(encoding="utf-8").splitlines() if line]
+        lines = [
+            json.loads(line)
+            for line in sink.read_text(encoding="utf-8").splitlines()
+            if line
+        ]
         assert len(lines) == 1
 
     @pytest.mark.req("REQ-YG-552")
@@ -332,7 +345,11 @@ edges:
 
         sink = route_dir / "route.jsonl"
         assert sink.exists()
-        lines = [json.loads(line) for line in sink.read_text(encoding="utf-8").splitlines() if line]
+        lines = [
+            json.loads(line)
+            for line in sink.read_text(encoding="utf-8").splitlines()
+            if line
+        ]
         assert len(lines) == 1
 
     @pytest.mark.req("REQ-YG-552")
@@ -345,7 +362,11 @@ edges:
 
         sink = tmp_path / "outputs" / "routes" / "run.route.jsonl"
         assert sink.exists()
-        lines = [json.loads(line) for line in sink.read_text(encoding="utf-8").splitlines() if line]
+        lines = [
+            json.loads(line)
+            for line in sink.read_text(encoding="utf-8").splitlines()
+            if line
+        ]
         assert len(lines) == 1
 
     @pytest.mark.req("REQ-YG-552")

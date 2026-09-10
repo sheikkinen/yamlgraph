@@ -200,7 +200,9 @@ def test_diary_debt_verdict_ref_aware(tmp_path):
     assert (
         todos.diary_debt_verdict(last_active, [diary], refs=["FR-220"]) == "UNWRITTEN"
     )
-    (diary / "2001-09-06-reflection-fr-220-god-factory.md").write_text("x", encoding="utf-8")
+    (diary / "2001-09-06-reflection-fr-220-god-factory.md").write_text(
+        "x", encoding="utf-8"
+    )
     assert (
         todos.diary_debt_verdict(last_active, [diary], refs=["FR-220"]) == "DELIVERED"
     )
@@ -228,6 +230,8 @@ def test_material_priority_transcript_else_chatsessions(tmp_path, monkeypatch):
     monkeypatch.setattr(todos, "WS_STORAGE", tmp_path)
     (ws / "chatSessions/sess-old.jsonl").write_text("{}", encoding="utf-8")
     assert "chatSessions" in str(todos.material_for("sess-old"))
-    (ws / "GitHub.copilot-chat/transcripts/sess-old.jsonl").write_text("{}", encoding="utf-8")
+    (ws / "GitHub.copilot-chat/transcripts/sess-old.jsonl").write_text(
+        "{}", encoding="utf-8"
+    )
     assert "transcripts" in str(todos.material_for("sess-old"))
     assert todos.material_for("sess-none") is None

@@ -26,8 +26,7 @@ def test_demo_declares_describe_image_via_manifest_only():
     raw = yaml.safe_load(DEMO_GRAPH.read_text(encoding="utf-8"))
     entry = raw["tools"]["describe_image"]
     assert set(entry) == {"manifest"}, (
-        f"describe_image must be declared via manifest only, got keys: "
-        f"{sorted(entry)}"
+        f"describe_image must be declared via manifest only, got keys: {sorted(entry)}"
     )
 
 

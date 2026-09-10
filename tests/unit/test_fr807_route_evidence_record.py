@@ -90,7 +90,9 @@ def test_artifact_hash_includes_subgraph_transitively(tmp_path):
     )
 
     first = route_log.compute_artifact_hash(parent)
-    child.write_text(child.read_text(encoding="utf-8") + "description: changed\n", encoding="utf-8")
+    child.write_text(
+        child.read_text(encoding="utf-8") + "description: changed\n", encoding="utf-8"
+    )
     assert route_log.compute_artifact_hash(parent) != first
 
 
@@ -117,7 +119,9 @@ def test_artifact_hash_includes_graph_tool_transitively(tmp_path):
     )
 
     first = route_log.compute_artifact_hash(parent)
-    child.write_text(child.read_text(encoding="utf-8") + "description: changed\n", encoding="utf-8")
+    child.write_text(
+        child.read_text(encoding="utf-8") + "description: changed\n", encoding="utf-8"
+    )
     assert route_log.compute_artifact_hash(parent) != first
 
 
@@ -143,7 +147,9 @@ async def test_async_entrypoint_emits_run_envelope(tmp_path, monkeypatch):
             return state
 
     await run_graph_async(App(), {}, {"configurable": {"thread_id": "async"}})
-    records = [json.loads(line) for line in sink.read_text(encoding="utf-8").splitlines()]
+    records = [
+        json.loads(line) for line in sink.read_text(encoding="utf-8").splitlines()
+    ]
     assert [record["event"] for record in records] == ["run", "route", "run_end"]
 
 

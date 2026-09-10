@@ -169,7 +169,10 @@ class TestIncidentReplay:
             assert result["rows"] == len(items)
             rows = [
                 json.loads(line)
-                for line in Path(out).with_suffix(".jsonl").read_text(encoding="utf-8").splitlines()
+                for line in Path(out)
+                .with_suffix(".jsonl")
+                .read_text(encoding="utf-8")
+                .splitlines()
             ]
             failed = [r for r in rows if r["abstain_reason"].startswith("row failed: ")]
             assert len(failed) == 1

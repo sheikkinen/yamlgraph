@@ -91,7 +91,7 @@ REAL_JUDGE_OUTPUT = {
 # Pattern 3: markdown header before verdict (also observed in practice)
 HEADER_OUTPUT = {
     "output": (
-        "## Judgement\n\n" "APPROVE\n\n" "Reasoning: the FR addresses a single concern."
+        "## Judgement\n\nAPPROVE\n\nReasoning: the FR addresses a single concern."
     )
 }
 

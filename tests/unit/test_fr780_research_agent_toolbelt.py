@@ -75,9 +75,9 @@ class TestManifestConversion:
         """AC-01: pure manifest references for the four shared tools."""
         entry = _raw()["tools"].get(tool)
         assert entry is not None, f"research-agent missing tool {tool}"
-        assert set(entry) == {
-            "manifest"
-        }, f"research-agent.{tool} must be a pure manifest reference, got {entry}"
+        assert set(entry) == {"manifest"}, (
+            f"research-agent.{tool} must be a pure manifest reference, got {entry}"
+        )
         assert entry["manifest"].endswith(f"toolbelt/{tool}.tool.yaml")
 
     @pytest.mark.req("REQ-YG-579")

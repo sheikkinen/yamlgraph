@@ -189,7 +189,8 @@ class TestSubgraphPatternsIntegration:
         subgraph_dir = tmp_path / "subgraphs"
         subgraph_dir.mkdir()
         subgraph_file = subgraph_dir / "summarizer.yaml"
-        subgraph_file.write_text("""
+        subgraph_file.write_text(
+            """
 version: "1.0"
 state:
   input_text: str
@@ -204,7 +205,9 @@ edges:
     to: summarize
   - from: summarize
     to: END
-""", encoding="utf-8")
+""",
+            encoding="utf-8",
+        )
 
         graph_content = """
 version: "1.0"

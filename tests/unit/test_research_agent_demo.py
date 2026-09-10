@@ -183,7 +183,9 @@ class TestResearchAgentGraphStructure:
     def test_validate_findings_has_schema(self) -> None:
         """validate_findings prompt defines a Pydantic schema."""
         prompt = yaml.safe_load(
-            (DEMO_DIR / "prompts" / "validate_findings.yaml").read_text(encoding="utf-8")
+            (DEMO_DIR / "prompts" / "validate_findings.yaml").read_text(
+                encoding="utf-8"
+            )
         )
         assert "schema" in prompt
         fields = prompt["schema"]["fields"]

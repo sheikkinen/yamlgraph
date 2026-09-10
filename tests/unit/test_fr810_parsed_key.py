@@ -256,8 +256,9 @@ class TestLinter:
                 to: step
               - from: step
                 to: END
-            """)
-        , encoding="utf-8")
+            """),
+            encoding="utf-8",
+        )
         return check_tool_call_nodes(graph)
 
     @pytest.mark.req("REQ-YG-597")
@@ -277,8 +278,9 @@ class TestLinter:
         """A manifest declaring runtime type graph is not a non-graph tool."""
         manifest = tmp_path / "step.tool.yaml"
         manifest.write_text(
-            "name: mytool\nruntime:\n  type: graph\n  path: child/graph.yaml\n"
-        , encoding="utf-8")
+            "name: mytool\nruntime:\n  type: graph\n  path: child/graph.yaml\n",
+            encoding="utf-8",
+        )
         issues = self._lint(tmp_path, "manifest: step.tool.yaml")
         assert not any(i.code == "W703" for i in issues)
 
@@ -286,7 +288,9 @@ class TestLinter:
     def test_warns_on_manifest_backed_shell_tool(self, tmp_path):
         """A manifest declaring a non-graph runtime still warns."""
         manifest = tmp_path / "step.tool.yaml"
-        manifest.write_text("name: mytool\nruntime:\n  type: shell\n  command: echo\n", encoding="utf-8")
+        manifest.write_text(
+            "name: mytool\nruntime:\n  type: shell\n  command: echo\n", encoding="utf-8"
+        )
         issues = self._lint(tmp_path, "manifest: step.tool.yaml")
         assert any(i.code == "W703" for i in issues)
 
@@ -324,8 +328,9 @@ def _write_fixture_graphs(tmp_path, is_spa):
             to: analyze
           - from: analyze
             to: END
-        """)
-    , encoding="utf-8")
+        """),
+        encoding="utf-8",
+    )
     (tmp_path / "graph.yaml").write_text(
         textwrap.dedent("""\
         version: "1.0"
@@ -367,8 +372,9 @@ def _write_fixture_graphs(tmp_path, is_spa):
             to: END
           - from: no_sniff
             to: END
-        """)
-    , encoding="utf-8")
+        """),
+        encoding="utf-8",
+    )
     return tmp_path / "graph.yaml"
 
 

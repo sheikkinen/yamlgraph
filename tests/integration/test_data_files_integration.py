@@ -22,7 +22,8 @@ class TestDataFilesInGraphLoader:
 
         # Create graph file with data_files
         graph_file = tmp_path / "graph.yaml"
-        graph_file.write_text("""
+        graph_file.write_text(
+            """
 version: "1.0"
 name: test-graph
 data_files:
@@ -35,7 +36,9 @@ edges:
     to: start
   - from: start
     to: END
-""", encoding="utf-8")
+""",
+            encoding="utf-8",
+        )
 
         config = load_graph_config(graph_file)
 
@@ -46,7 +49,8 @@ edges:
     def test_graph_config_empty_data_files(self, tmp_path: Path) -> None:
         """Graph without data_files has empty data dict."""
         graph_file = tmp_path / "graph.yaml"
-        graph_file.write_text("""
+        graph_file.write_text(
+            """
 version: "1.0"
 name: test-graph
 nodes:
@@ -57,7 +61,9 @@ edges:
     to: start
   - from: start
     to: END
-""", encoding="utf-8")
+""",
+            encoding="utf-8",
+        )
 
         config = load_graph_config(graph_file)
 
@@ -76,7 +82,8 @@ edges:
         schema_file.write_text("version: 2", encoding="utf-8")
 
         graph_file = subdir / "graph.yaml"
-        graph_file.write_text("""
+        graph_file.write_text(
+            """
 version: "1.0"
 name: test-graph
 data_files:
@@ -89,7 +96,9 @@ edges:
     to: start
   - from: start
     to: END
-""", encoding="utf-8")
+""",
+            encoding="utf-8",
+        )
 
         # Load from different cwd
         import os
@@ -106,7 +115,8 @@ edges:
     def test_data_files_missing_raises_error(self, tmp_path: Path) -> None:
         """Missing data file raises error during graph load."""
         graph_file = tmp_path / "graph.yaml"
-        graph_file.write_text("""
+        graph_file.write_text(
+            """
 version: "1.0"
 name: test-graph
 data_files:
@@ -119,7 +129,9 @@ edges:
     to: start
   - from: start
     to: END
-""", encoding="utf-8")
+""",
+            encoding="utf-8",
+        )
 
         from yamlgraph.data_loader import DataFileError
 
@@ -138,7 +150,8 @@ edges:
         subdir.mkdir()
 
         graph_file = subdir / "graph.yaml"
-        graph_file.write_text("""
+        graph_file.write_text(
+            """
 version: "1.0"
 name: test-graph
 data_files:
@@ -151,7 +164,9 @@ edges:
     to: start
   - from: start
     to: END
-""", encoding="utf-8")
+""",
+            encoding="utf-8",
+        )
 
         from yamlgraph.data_loader import DataFileError
 

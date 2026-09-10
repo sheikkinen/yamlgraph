@@ -92,9 +92,9 @@ class TestSinglePersistentLoop:
             loops_seen.add(id(threads[0]))
 
         assert len(loops_seen) == 1, "loop thread must be reused, not respawned"
-        assert not any(
-            t.name == "race-bridge" for t in threading.enumerate()
-        ), "per-invocation race-bridge threads must no longer exist"
+        assert not any(t.name == "race-bridge" for t in threading.enumerate()), (
+            "per-invocation race-bridge threads must no longer exist"
+        )
 
 
 class TestImportAndForkSafety:
@@ -226,9 +226,9 @@ class TestScopedDrain:
             r.getMessage() for r in caplog.records if "abandoned" in r.getMessage()
         ]
         assert warnings, "expected an abandonment WARNING from inv1's drain"
-        assert not any(
-            "inv2-clean" in w for w in warnings
-        ), f"drain must not report another invocation's tasks: {warnings}"
+        assert not any("inv2-clean" in w for w in warnings), (
+            f"drain must not report another invocation's tasks: {warnings}"
+        )
 
 
 class TestAbandonmentCancels:
@@ -254,9 +254,9 @@ class TestAbandonmentCancels:
         while time.monotonic() < deadline and not fate:
             time.sleep(0.05)
 
-        assert fate.get(
-            "cancelled"
-        ), f"abandoned coroutine must be cancelled, not left running: {fate}"
+        assert fate.get("cancelled"), (
+            f"abandoned coroutine must be cancelled, not left running: {fate}"
+        )
         assert not fate.get("survived"), (
             "abandoned coroutine outlived its budget on the shared loop — "
             "FR-708 leak-lifetime bound regressed"
@@ -323,6 +323,6 @@ class TestLoopDeathRecovery:
 
         (thread_after,) = BRIDGE_THREADS()
         assert thread_after is not thread_before
-        assert (
-            "restart" in caplog.text.lower()
-        ), "loop restart must be witnessed by a WARNING"
+        assert "restart" in caplog.text.lower(), (
+            "loop restart must be witnessed by a WARNING"
+        )

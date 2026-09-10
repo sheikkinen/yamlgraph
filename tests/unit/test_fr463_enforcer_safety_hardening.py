@@ -221,7 +221,9 @@ class TestFR463Schema:
     @pytest.mark.req("REQ-YG-427")
     def test_schema_has_four_fields(self) -> None:
         """ImplementationResult has 4 fields (no commit_hash)."""
-        prompt = yaml.safe_load((DEMO_DIR / "prompts" / "enforcer.yaml").read_text(encoding="utf-8"))
+        prompt = yaml.safe_load(
+            (DEMO_DIR / "prompts" / "enforcer.yaml").read_text(encoding="utf-8")
+        )
         fields = set(prompt["schema"]["fields"].keys())
         expected = {"success", "files_changed", "tests_passed", "summary"}
         assert fields == expected
@@ -229,7 +231,9 @@ class TestFR463Schema:
     @pytest.mark.req("REQ-YG-427")
     def test_no_commit_hash_in_schema(self) -> None:
         """commit_hash must not exist in schema."""
-        prompt = yaml.safe_load((DEMO_DIR / "prompts" / "enforcer.yaml").read_text(encoding="utf-8"))
+        prompt = yaml.safe_load(
+            (DEMO_DIR / "prompts" / "enforcer.yaml").read_text(encoding="utf-8")
+        )
         assert "commit_hash" not in prompt["schema"]["fields"]
 
 

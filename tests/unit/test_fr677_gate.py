@@ -162,8 +162,9 @@ class TestW025VerifyExpressions:
             "    type: passthrough\n"
             "edges:\n"
             "  - {from: START, to: step}\n"
-            "  - {from: step, to: END}\n" + verify_block
-        , encoding="utf-8")
+            "  - {from: step, to: END}\n" + verify_block,
+            encoding="utf-8",
+        )
         return graph
 
     @pytest.mark.req("REQ-YG-511")
