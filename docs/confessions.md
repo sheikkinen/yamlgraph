@@ -2144,3 +2144,15 @@ The ID ranges are:
 - **Code**: S603
 - **Sin**: `subprocess.run(argv, ...)` — the single notification invocation, reached on every backend.
 - **Penance**: FR-1030. `argv[0]` is one of three module constants (`osascript`, `powershell.exe`, `notify-send`) selected by `sys.platform`, never by caller input; `shell=False`; a finite `TIMEOUT_SECONDS`; the exit status is checked and a non-zero code raises. Caller text reaches the child only as later argv elements or as environment, and the AppleScript/PowerShell sources are frozen constants asserted byte-identical against hostile payloads by `tests/unit/test_shared_notify_toast.py` (REQ-YG-672).
+
+### CONF-487
+- **File**: [scripts/dirty_main_triage.py](../scripts/dirty_main_triage.py#L60)
+- **Code**: S603
+- **Sin**: `subprocess.run([GIT, *args], cwd=repo, ...)` — the text-returning git helper in the FR-1047 dirty-main classifier; `args` and `repo` are not constants.
+- **Penance**: `GIT` is resolved via `shutil.which`, `shell=False`, list-form argv. Every call site passes a fixed read-only plumbing subcommand (`rev-parse`, `hash-object`, `log --find-object`); the only caller-derived elements are repository paths and git-reported pathnames, always after an explicit `--` separator so a leading-dash path cannot become an option. `check=True`, so a failed probe raises and is classified `ERROR/PRESERVE` rather than degrading to "no match". Same idiom as CONF-441.
+
+### CONF-488
+- **File**: [scripts/dirty_main_triage.py](../scripts/dirty_main_triage.py#L69)
+- **Code**: S603
+- **Sin**: `subprocess.run([GIT, *args], cwd=repo, ...)` — the bytes-returning sibling of CONF-487, used where output must not be decoded (blob contents, NUL-delimited status).
+- **Penance**: As CONF-487. Separate from the text helper precisely so binary blobs and `surrogateescape` pathnames are never forced through a decode that could raise mid-classification (REQ-YG-678).

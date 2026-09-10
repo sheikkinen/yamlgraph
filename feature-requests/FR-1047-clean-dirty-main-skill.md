@@ -2,11 +2,10 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Judged — APPROVED WITH REVISIONS
-([judgement](FR-1047-clean-dirty-main-skill.judgement.md), round 1, 2026-09-10);
-R-1–R-6 folded below. Authority is **not** active: C-1 requires human review of
-the advisory judgement, C-6 requires human review of the
-`.github/copilot-instructions.md` diff.
+**Status:** Implemented 2026-09-10
+([judgement](FR-1047-clean-dirty-main-skill.judgement.md), round 1,
+APPROVED WITH REVISIONS; R-1–R-6 folded, none refused). C-1 and C-6 satisfied
+by operator direction.
 **Effort:** 1 day
 **Requested:** 2026-09-10
 **First consumer / first event:** the next agent handed the operator's
@@ -255,8 +254,53 @@ wrapper or mutating classifier mode; YAMLGraph runtime changes; classifying any
 unsupported git state as safe.
 
 **Blocking conditions:** C-1 (human review of the advisory judgement) and C-6
-(human review of the `.github/copilot-instructions.md` diff) are unmet.
-Implementation has not started.
+(human review of the `.github/copilot-instructions.md` diff) were both
+satisfied by the operator on 2026-09-10 ("enforce. pr. outsider. merge").
+
+## Implementation record
+
+**Status:** Implemented 2026-09-10.
+
+| Phase | Commit | Evidence |
+|-------|--------|----------|
+| RED | `9393f0fc` | 29 failing tests, `REQ-YG-678`. No vacuous passes: the three precondition tests assert a specific `REFUSED:` reason and the read-only test asserts a summary line was produced, so an absent script cannot satisfy them. |
+| GREEN | this commit | 29 passing. `ruff` clean; `radon` below the reporting threshold after `unreadable_reason` was split out of `classify` (C(12) → under C). |
+
+**Dogfood evidence — the real incident replayed.** A scratch clone was reset to
+`3343b721` (the incident HEAD) and the exact 13 paths restored from
+`origin/main` (`9acb6117`), reproducing the 2026-09-10 state byte for byte:
+
+```
+safe=13 preserve=0 unsupported=0 errors=0   rc=0
+```
+
+`reference/github-batch-hosting.md` — the path this session first misread as
+unique work and proposed deleting — classifies `TARGET_IDENTICAL  SAFE`. Adding
+one novel file to the same snapshot flips the run closed:
+
+```
+safe=13 preserve=1 unsupported=0 errors=0   rc=1
+NOT SAFE TO CLEAN: every path above must be dispositioned by a human ...
+```
+
+That is the asymmetry the FR was filed for, demonstrated on the incident that
+prompted it.
+
+**Deviations from the frozen scope:** none. D-1–D-8 delivered as specified;
+`CAP-272` and `REQ-YG-678` used as pinned.
+
+**Decisions taken during enforcement:**
+
+- Three tests initially passed in RED purely because the script did not exist.
+  They were strengthened to require a named refusal reason rather than any
+  non-zero exit — a negative assertion that a missing binary can satisfy is not
+  a witness.
+- Four unnecessary `# noqa: S603` comments in the test module tripped the
+  confession gate; `tests/**` already carries that per-file ignore. Removed
+  rather than confessed.
+- `classify` was split (`unreadable_reason`) to keep the symlink and
+  regular-file checks legible; behaviour unchanged, suite green before and
+  after.
 
 ## Alternatives Considered
 
