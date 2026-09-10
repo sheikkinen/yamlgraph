@@ -2,7 +2,7 @@
 
 **Status:** Architecture plan only; no application has been deployed by this change.
 **Decisions recorded:** 2026-09-10.
-**Audience:** Personal use or a small trusted team.
+**Audience:** Personal use or a small trusted team whose operators have repository write access.
 **First consumer / first event:** An operator planning a batch tool, before choosing hosting or building a custom trigger service.
 **Governing request:** [FR-1037](../feature-requests/FR-1037-github-batch-hosting-plan.md).
 
@@ -55,6 +55,13 @@ The link opens the workflow page; it does not execute the job. The user signs in
 enters inputs, selects the permitted execution ref, and confirms **Run workflow**
 inside GitHub. An existing GitHub login is not authorization for arbitrary Pages
 JavaScript to dispatch work. No shared token belongs in the page.
+
+GitHub's [manual-run documentation](https://docs.github.com/en/actions/how-tos/manage-workflow-runs/manually-run-a-workflow)
+requires **write access to the repository**. Users without that permission cannot
+use this handoff; granting repository access is an operator decision outside this
+plan. The workflow must declare `workflow_dispatch` and exist on the default
+branch for manual triggering. Do not grant write access merely to avoid building
+an appropriately scoped interface for a different audience.
 
 | Component | Responsibility |
 |---|---|
