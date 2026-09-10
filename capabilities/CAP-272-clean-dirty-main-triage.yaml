@@ -1,0 +1,38 @@
+name: Clean Dirty Main Triage
+id: CAP-272
+status: active
+fr: FR-1047
+feature_request: FR-1047
+description: >
+  A dirty main checkout is triaged by content provenance before anything is
+  discarded. The classifier is read-only and fails closed: exactly one
+  evidence class is safe, and every ambiguous git state, unreadable path, or
+  failed probe preserves the path and exits non-zero. The operator route
+  reaches the classifier from the phrase that occurs in practice, so the
+  recovery recipe is not re-derived at each incident.
+modules:
+  - scripts/dirty_main_triage.py
+  - .github/skills/clean-dirty-main/SKILL.md
+requirements:
+  - id: REQ-YG-678
+    description: >
+      Provenance triage for a dirty main checkout (FR-1047).
+      scripts/dirty_main_triage.py classifies each entry of
+      `git status --porcelain=v1 -z --untracked-files=all` as
+      TARGET_IDENTICAL when the working bytes equal the blob at the same
+      path in origin/main, KNOWN_BLOB when the bytes occur in another
+      reachable commit, or UNSEEN_BLOB when they occur in no examined
+      reachable ref. Only TARGET_IDENTICAL is safe. A non-main branch, a
+      linked worktree, an unresolvable origin/main, a staged entry,
+      deletion, rename, conflict, type change, symlink, submodule, or
+      non-regular file is UNSUPPORTED; any git, filesystem, or decode
+      failure is ERROR. The run mutates nothing and exits zero only when
+      the tree is clean or every path is TARGET_IDENTICAL.
+      .github/skills/clean-dirty-main/SKILL.md runs the classifier before
+      any mutation, stops before unlocking on any non-safe result, cleans
+      only explicit pathspecs, and restores the FR-889 lock on every exit.
+    modules:
+      - scripts/dirty_main_triage.py
+      - .github/skills/clean-dirty-main/SKILL.md
+      - .github/copilot-instructions.md
+      - tests/unit/test_dirty_main_triage.py
