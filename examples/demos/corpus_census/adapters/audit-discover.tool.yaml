@@ -1,0 +1,6 @@
+name: audit-discover
+description: "Hook-audit session census: enumerate agent sessions in audit.jsonl (date-batchable)"
+runtime:
+  type: python
+  path: audit_adapters.py
+  function: audit_discover
