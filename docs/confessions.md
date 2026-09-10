@@ -1913,7 +1913,7 @@ The ID ranges are:
 - **Penance**: FR-912 — literal pathspec from a module-level constant, no interpolation; same rationale as CONF-437/CONF-438.
 
 ### CONF-443
-- **File**: [examples/demos/corpus_census/tools.py](../examples/demos/corpus_census/tools.py#L50)
+- **File**: [examples/demos/corpus_census/tools.py](../examples/demos/corpus_census/tools.py#L49)
 - **Code**: E402
 - **Sin**: `import ledger_failures` after a `sys.path.insert` — module-level import not at top.
 - **Penance**: FR-943 — demo-local taxonomy module outside the installable package; the REPO_ROOT path bootstrap must precede the import (CONF-427/430 idiom).
